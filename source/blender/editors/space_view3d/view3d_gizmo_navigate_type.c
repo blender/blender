@@ -44,6 +44,8 @@
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
+#include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -62,23 +64,117 @@
 
 #define HANDLE_SIZE 0.33
 
-static void axis_geom_draw(
-        const wmGizmo *mpr, const float color[4], const bool UNUSED(select))
+/**
+ * \param viewmat_local_unit is typically the 'rv3d->viewmatob'
+ * copied into a 3x3 matrix and normalized.
+ */
+static void draw_xyz_wire(
+        uint pos_id, const float viewmat_local_unit[3][3], const float c[3], float size, int axis)
+{
+	int line_type;
+	float buffer[4][3];
+	int n = 0;
+
+	float v1[3] = {0.0f, 0.0f, 0.0f}, v2[3] = {0.0f, 0.0f, 0.0f};
+	float dim = size * 0.1f;
+	float dx[3], dy[3];
+
+	dx[0] = dim;  dx[1] = 0.0f; dx[2] = 0.0f;
+	dy[0] = 0.0f; dy[1] = dim;  dy[2] = 0.0f;
+
+	switch (axis) {
+		case 0:     /* x axis */
+			line_type = GWN_PRIM_LINES;
+
+			/* bottom left to top right */
+			negate_v3_v3(v1, dx);
+			sub_v3_v3(v1, dy);
+			copy_v3_v3(v2, dx);
+			add_v3_v3(v2, dy);
+
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
+
+			/* top left to bottom right */
+			mul_v3_fl(dy, 2.0f);
+			add_v3_v3(v1, dy);
+			sub_v3_v3(v2, dy);
+
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
+
+			break;
+		case 1:     /* y axis */
+			line_type = GWN_PRIM_LINES;
+
+			/* bottom left to top right */
+			mul_v3_fl(dx, 0.75f);
+			negate_v3_v3(v1, dx);
+			sub_v3_v3(v1, dy);
+			copy_v3_v3(v2, dx);
+			add_v3_v3(v2, dy);
+
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
+
+			/* top left to center */
+			mul_v3_fl(dy, 2.0f);
+			add_v3_v3(v1, dy);
+			zero_v3(v2);
+
+			copy_v3_v3(buffer[n++], v1);
+			copy_v3_v3(buffer[n++], v2);
+
+			break;
+		case 2:     /* z axis */
+			line_type = GWN_PRIM_LINE_STRIP;
+
+			/* start at top left */
+			negate_v3_v3(v1, dx);
+			add_v3_v3(v1, dy);
+
+			copy_v3_v3(buffer[n++], v1);
+
+			mul_v3_fl(dx, 2.0f);
+			add_v3_v3(v1, dx);
+
+			copy_v3_v3(buffer[n++], v1);
+
+			mul_v3_fl(dy, 2.0f);
+			sub_v3_v3(v1, dx);
+			sub_v3_v3(v1, dy);
+
+			copy_v3_v3(buffer[n++], v1);
+
+			add_v3_v3(v1, dx);
+
+			copy_v3_v3(buffer[n++], v1);
+
+			break;
+		default:
+			BLI_assert(0);
+			return;
+	}
+
+	for (int i = 0; i < n; i++) {
+		mul_transposed_m3_v3((float (*)[3])viewmat_local_unit, buffer[i]);
+		add_v3_v3(buffer[i], c);
+	}
+
+	immBegin(line_type, n);
+	for (int i = 0; i < n; i++) {
+		immVertex3fv(pos_id, buffer[i]);
+	}
+	immEnd();
+}
+
+static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool UNUSED(select))
 {
 	GPU_line_width(mpr->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	const uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-	/* flip z for reverse */
-	const float cone_coords[5][3] = {
-		{-1, -1, 4},
-		{-1, +1, 4},
-		{+1, +1, 4},
-		{+1, -1, 4},
-		{0,   0, 2},
-	};
 
 	struct {
 		float depth;
@@ -97,7 +193,6 @@ static void axis_geom_draw(
 
 	const float scale_axis = 0.25f;
 	static const float axis_highlight[4] = {1, 1, 1, 1};
-	static const float axis_nop[4] = {1, 1, 1, 0};
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];
 	gpuPushMatrix();
@@ -105,10 +200,19 @@ static void axis_geom_draw(
 
 	bool draw_center_done = false;
 
+	int axis_align = -1;
+	for (int axis = 0; axis < 3; axis++) {
+		if (len_squared_v2(mpr->matrix_offset[axis]) < 1e-6f) {
+			axis_align = axis;
+			break;
+		}
+	}
+
 	for (int axis_index = 0; axis_index < ARRAY_SIZE(axis_order); axis_index++) {
 		const int index = axis_order[axis_index].index;
 		const int axis = axis_order[axis_index].axis;
 		const bool is_pos = axis_order[axis_index].is_pos;
+		const bool is_highlight = index + 1 == mpr->highlight_part;
 
 		/* Draw slightly before, so axis aligned arrows draw ontop. */
 		if ((draw_center_done == false) && (axis_order[axis_index].depth > -0.01f)) {
@@ -121,41 +225,6 @@ static void axis_geom_draw(
 				gpuPushMatrix();
 				gpuMultMatrix(mpr->matrix_offset);
 			}
-
-			/* Center cube. */
-			{
-				float center[3], size[3];
-
-				zero_v3(center);
-				copy_v3_fl(size, HANDLE_SIZE);
-
-				GPU_depth_test(true);
-				glDepthMask(GL_TRUE);
-				glDepthFunc(GL_LEQUAL);
-				GPU_blend_set_func(GPU_ONE, GPU_ZERO);
-				GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
-				GPU_line_smooth(true);
-				GPU_blend(true);
-				GPU_line_width(1.0f);
-				/* Just draw depth values. */
-				immUniformColor4fv(axis_nop);
-				imm_draw_cube_fill_3d(pos_id, center, size);
-				immUniformColor4fv(axis_black);
-				madd_v3_v3fl(
-				        center,
-				        (float[3]){
-				            mpr->matrix_offset[0][2],
-				            mpr->matrix_offset[1][2],
-				            mpr->matrix_offset[2][2],
-				        },
-				        0.08f);
-				imm_draw_cube_wire_3d(pos_id, center, size);
-				GPU_blend(false);
-				GPU_line_smooth(false);
-				GPU_depth_test(false);
-			}
-
 			draw_center_done = true;
 		}
 		UI_GetThemeColor3fv(TH_AXIS_X + axis, axis_color[axis]);
@@ -165,33 +234,68 @@ static void axis_geom_draw(
 		const int index_y = (axis + 1) % 3;
 		const int index_x = (axis + 2) % 3;
 
-#define ROTATED_VERT(v_orig) \
-		{ \
-			float v[3]; \
-			copy_v3_v3(v, v_orig); \
-			if (is_pos == 0) { \
-				v[2] *= -1.0f; \
-			} \
-			immVertex3f(pos_id, v[index_x] * scale_axis, v[index_y] * scale_axis, v[index_z] * scale_axis); \
-		} ((void)0)
-
 		bool ok = true;
 
 		/* skip view align axis */
-		if (len_squared_v2(mpr->matrix_offset[axis]) < 1e-6f && (mpr->matrix_offset[axis][2] > 0.0f) == is_pos) {
+		if ((axis_align == axis) && (mpr->matrix_offset[axis][2] > 0.0f) == is_pos) {
 			ok = false;
 		}
 		if (ok) {
-			immUniformColor4fv(index + 1 == mpr->highlight_part ? axis_highlight : axis_color[axis]);
-			immBegin(GWN_PRIM_TRI_FAN, 6);
-			ROTATED_VERT(cone_coords[4]);
-			for (int j = 0; j <= 4; j++) {
-				ROTATED_VERT(cone_coords[j % 4]);
-			}
-			immEnd();
-		}
+			const float v[3] = {0, 0, 3 * (is_pos ? 1 : -1)};
+			const float v_final[3] = {
+				v[index_x] * scale_axis,
+				v[index_y] * scale_axis,
+				v[index_z] * scale_axis,
+			};
+			const float *color_current = is_highlight ? axis_highlight : axis_color[axis];
+			float color_current_fade[4];
+			copy_v4_v4(color_current_fade, color_current);
+			color_current_fade[3] *= 0.2;
 
-#undef ROTATED_VERT
+			/* Axis Line. */
+			if (is_pos) {
+				float v_start[3];
+				GPU_line_width(2.0f);
+				immUniformColor4fv(color_current);
+				immBegin(GWN_PRIM_LINES, 2);
+				if (axis_align == -1) {
+					zero_v3(v_start);
+				}
+				else {
+					/* When axis aligned we don't draw the front most axis
+					 * (allowing us to switch to the opposite side).
+					 * In this case don't draw lines over axis pointing away from us
+					 * because it obscures character and looks noisy.
+					 */
+					mul_v3_v3fl(v_start, v_final, 0.3f);
+				}
+				immVertex3fv(pos_id, v_start);
+				immVertex3fv(pos_id, v_final);
+				immEnd();
+			}
+
+			/* Axis Ball. */
+			{
+				gpuPushMatrix();
+				gpuTranslate3fv(v_final);
+				gpuScaleUniform(is_pos ? 0.22f : 0.18f);
+
+				Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
+				GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+				GWN_batch_uniform_4fv(sphere, "color", is_pos ? color_current : color_current_fade);
+				GWN_batch_draw(sphere);
+				gpuPopMatrix();
+			}
+
+			/* Axis XYZ Character. */
+			if (is_pos) {
+				GPU_line_width(1.0f);
+				float m3[3][3];
+				copy_m3_m4(m3, mpr->matrix_offset);
+				immUniformColor4fv(is_highlight ? axis_black : axis_highlight);
+				draw_xyz_wire(pos_id, m3, v_final, 1.0, axis);
+			}
+		}
 	}
 
 	gpuPopMatrix();

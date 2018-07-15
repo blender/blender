@@ -53,7 +53,7 @@
 /* Offset from screen edge. */
 #define GIZMO_OFFSET_FAC 1.5f
 /* Size of main icon. */
-#define GIZMO_SIZE 64
+#define GIZMO_SIZE 80
 /* Factor for size of smaller button. */
 #define GIZMO_MINI_FAC 0.35f
 /* How much mini buttons offset from the primary. */
