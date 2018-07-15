@@ -392,12 +392,12 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		GWN_batch_uniform_3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */
-		gpuPushMatrix();
-		gpuMultMatrix(obedit->obmat);
+		GPU_matrix_push();
+		GPU_matrix_mul(obedit->obmat);
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
 		for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {
-			gpuTranslate3f(
+			GPU_matrix_translate_3f(
 			        selem->location_local[0] - location_prev[0],
 			        selem->location_local[1] - location_prev[1],
 			        selem->location_local[2] - location_prev[2]);
@@ -405,15 +405,15 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 			const float radius = stroke_elem_radius(cdd, selem);
 
-			gpuPushMatrix();
-			gpuScaleUniform(radius);
+			GPU_matrix_push();
+			GPU_matrix_scale_1f(radius);
 			GWN_batch_draw(sphere);
-			gpuPopMatrix();
+			GPU_matrix_pop();
 
 			location_prev = selem->location_local;
 		}
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 
 	if (stroke_len > 1) {

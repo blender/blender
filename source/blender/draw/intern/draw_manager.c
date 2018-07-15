@@ -120,16 +120,16 @@ void DRW_draw_callbacks_pre_scene(void)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 
-	gpuLoadProjectionMatrix(rv3d->winmat);
-	gpuLoadMatrix(rv3d->viewmat);
+	GPU_matrix_projection_set(rv3d->winmat);
+	GPU_matrix_set(rv3d->viewmat);
 }
 
 void DRW_draw_callbacks_post_scene(void)
 {
 	RegionView3D *rv3d = DST.draw_ctx.rv3d;
 
-	gpuLoadProjectionMatrix(rv3d->winmat);
-	gpuLoadMatrix(rv3d->viewmat);
+	GPU_matrix_projection_set(rv3d->winmat);
+	GPU_matrix_set(rv3d->viewmat);
 }
 
 struct DRWTextStore *DRW_text_cache_ensure(void)
@@ -2074,18 +2074,18 @@ void DRW_draw_depth_loop(
 	DRW_opengl_context_disable();
 
 	/* XXX Drawing the resulting buffer to the BACK_BUFFER */
-	gpuPushMatrix();
-	gpuPushProjectionMatrix();
+	GPU_matrix_push();
+	GPU_matrix_push_projection();
 	wmOrtho2_region_pixelspace(ar);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 
 	glEnable(GL_DEPTH_TEST); /* Cannot write to depth buffer without testing */
 	glDepthFunc(GL_ALWAYS);
 	draw_depth_texture_to_screen(g_select_buffer.texture_depth);
 	glDepthFunc(GL_LEQUAL);
 
-	gpuPopMatrix();
-	gpuPopProjectionMatrix();
+	GPU_matrix_pop();
+	GPU_matrix_pop_projection();
 }
 
 /** \} */

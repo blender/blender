@@ -150,8 +150,8 @@ static void button2d_draw_intern(
 	}
 
 	bool need_to_pop = true;
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	if (is_3d) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
@@ -161,7 +161,7 @@ static void button2d_draw_intern(
 		mul_m4_m4m4(matrix_align, rv3d->viewmat, matrix_final_unit);
 		zero_v3(matrix_align[3]);
 		transpose_m4(matrix_align);
-		gpuMultMatrix(matrix_align);
+		GPU_matrix_mul(matrix_align);
 	}
 
 	if (select) {
@@ -195,15 +195,15 @@ static void button2d_draw_intern(
 			float size[2];
 			if (is_3d) {
 				const float fac = 2.0f;
-				gpuTranslate2f(-(fac / 2), -(fac / 2));
-				gpuScale2f(fac / (ICON_DEFAULT_WIDTH *  UI_DPI_FAC), fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
+				GPU_matrix_translate_2f(-(fac / 2), -(fac / 2));
+				GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH *  UI_DPI_FAC), fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
 				size[0] = 1.0f;
 				size[1] = 1.0f;
 			}
 			else {
 				size[0] = gz->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC;
 				size[1] = gz->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC;
-				gpuPopMatrix();
+				GPU_matrix_pop();
 				need_to_pop = false;
 			}
 			UI_icon_draw(size[0], size[1], button->icon);
@@ -212,7 +212,7 @@ static void button2d_draw_intern(
 	}
 
 	if (need_to_pop) {
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

@@ -685,13 +685,13 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			GPU_blend(true);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-			gpuPushProjectionMatrix();
-			gpuPushMatrix();
+			GPU_matrix_push_projection();
+			GPU_matrix_push();
 			ED_region_pixelspace(ar);
 
-			gpuTranslate2f(centx, centy);
-			gpuScaleUniform(bgpic->scale);
-			gpuRotate2D(RAD2DEGF(-bgpic->rotation));
+			GPU_matrix_translate_2f(centx, centy);
+			GPU_matrix_scale_1f(bgpic->scale);
+			GPU_matrix_rotate_2d(RAD2DEGF(-bgpic->rotation));
 
 			if (bgpic->flag & CAM_BGIMG_FLAG_FLIP_X) {
 				zoomx *= -1.0f;
@@ -707,8 +707,8 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 			immDrawPixelsTex(&state, x1 - centx, y1 - centy, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, ibuf->rect,
 			                 zoomx, zoomy, col);
 
-			gpuPopProjectionMatrix();
-			gpuPopMatrix();
+			GPU_matrix_pop_projection();
+			GPU_matrix_pop();
 
 			GPU_blend(false);
 

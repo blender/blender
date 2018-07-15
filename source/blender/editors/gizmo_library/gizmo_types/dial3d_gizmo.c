@@ -161,8 +161,8 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 {
 	GPU_line_width(1.0f);
 
-	gpuPushMatrix();
-	gpuRotate3f(RAD2DEGF(angle), 0.0f, 0.0f, -1.0f);
+	GPU_matrix_push();
+	GPU_matrix_rotate_3f(RAD2DEGF(angle), 0.0f, 0.0f, -1.0f);
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
@@ -177,7 +177,7 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 
 	immUnbindProgram();
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void dial_ghostarc_draw(
@@ -292,8 +292,8 @@ static void dial_draw_intern(
 	            .matrix_basis = (void *)matrix_basis_adjust,
 	        }), matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	/* draw rotation indicator arc first */
 	if ((gz->flag & WM_GIZMO_DRAW_VALUE) &&
@@ -335,7 +335,7 @@ static void dial_draw_intern(
 	/* draw actual dial gizmo */
 	dial_geom_draw(gz, color, select, matrix_basis_adjust, clip_plane);
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)

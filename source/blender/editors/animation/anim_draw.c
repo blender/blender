@@ -87,8 +87,8 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_scale_get(v2d, &xscale, NULL);
-	gpuPushMatrix();
-	gpuScale2f(1.0f / xscale, 1.0f);
+	GPU_matrix_push();
+	GPU_matrix_scale_2f(1.0f / xscale, 1.0f);
 
 	/* get timecode string
 	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
@@ -128,7 +128,7 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	                         numstr, col);
 
 	/* restore view transform */
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 /* General call for drawing current frame indicator in animation editor */

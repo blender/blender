@@ -1292,7 +1292,7 @@ static void icon_draw_texture_cached(
 {
 
 	float mvp[4][4];
-	gpuGetModelViewProjectionMatrix(mvp);
+	GPU_matrix_model_view_projection_get(mvp);
 
 	IconDrawCall *call = &g_icon_draw_cache.drawcall_cache[g_icon_draw_cache.calls];
 	g_icon_draw_cache.calls++;

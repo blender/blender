@@ -50,7 +50,7 @@ void wmViewport(const rcti *winrct)
 	glScissor(winrct->xmin, winrct->ymin, width, height);
 
 	wmOrtho2_pixelspace(width, height);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 }
 
 void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct)
@@ -89,7 +89,7 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
 	glScissor(x, y, scissor_width, scissor_height);
 
 	wmOrtho2_pixelspace(width, height);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 }
 
 void wmWindowViewport(wmWindow *win)
@@ -101,7 +101,7 @@ void wmWindowViewport(wmWindow *win)
 	glScissor(0, 0, width, height);
 
 	wmOrtho2_pixelspace(width, height);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 }
 
 void wmOrtho2(float x1, float x2, float y1, float y2)
@@ -110,7 +110,7 @@ void wmOrtho2(float x1, float x2, float y1, float y2)
 	if (x1 == x2) x2 += 1.0f;
 	if (y1 == y2) y2 += 1.0f;
 
-	gpuOrtho(x1, x2, y1, y2, -100, 100);
+	GPU_matrix_ortho_set(x1, x2, y1, y2, -100, 100);
 }
 
 static void wmOrtho2_offset(const float x, const float y, const float ofs)

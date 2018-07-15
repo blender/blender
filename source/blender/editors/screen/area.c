@@ -146,7 +146,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 void ED_region_pixelspace(ARegion *ar)
 {
 	wmOrtho2_region_pixelspace(ar);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 }
 
 /* only exported for WM */
@@ -352,8 +352,8 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	GPU_blend(true);
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-	gpuPushMatrix();
-	gpuTranslate2f(-ar->winrct.xmin, -ar->winrct.ymin);
+	GPU_matrix_push();
+	GPU_matrix_translate_2f(-ar->winrct.xmin, -ar->winrct.ymin);
 
 	for (az = sa->actionzones.first; az; az = az->next) {
 		/* test if action zone is over this region */
@@ -388,7 +388,7 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 		}
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	GPU_blend(false);
 }
@@ -2674,11 +2674,11 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		return;
 
 	/* find window pixel coordinates of origin */
-	gpuPushMatrix();
+	GPU_matrix_push();
 
 	/* offset and zoom using ogl */
-	gpuTranslate2f(x, y);
-	gpuScale2f(zoomx, zoomy);
+	GPU_matrix_translate_2f(x, y);
+	GPU_matrix_scale_2f(zoomx, zoomy);
 
 	BLF_size(blf_mono_font, style->widgetlabel.points * 1.5f * U.pixelsize, U.dpi);
 
@@ -2732,7 +2732,7 @@ void ED_region_image_metadata_draw(int x, int y, ImBuf *ibuf, const rctf *frame,
 		BLF_disable(blf_mono_font, BLF_CLIPPING);
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)

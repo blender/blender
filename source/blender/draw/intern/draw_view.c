@@ -548,8 +548,8 @@ void DRW_draw_grid(void)
 		*(&grid_unit) = NULL;  /* drawgrid need this to detect/affect smallest valid unit... */
 		drawgrid(&scene->unit, ar, v3d, &grid_unit);
 
-		gpuLoadProjectionMatrix(rv3d->winmat);
-		gpuLoadMatrix(rv3d->viewmat);
+		GPU_matrix_projection_set(rv3d->winmat);
+		GPU_matrix_set(rv3d->viewmat);
 	}
 	else {
 		glDepthMask(GL_TRUE);
@@ -587,9 +587,9 @@ void DRW_draw_background(void)
 		uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
 		uchar col_hi[3], col_lo[3];
 
-		gpuPushMatrix();
-		gpuLoadIdentity();
-		gpuLoadProjectionMatrix(m);
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
+		GPU_matrix_projection_set(m);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR_DITHER);
 
@@ -608,7 +608,7 @@ void DRW_draw_background(void)
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -724,8 +724,8 @@ void DRW_draw_cursor(void)
 			}
 
 			ED_region_pixelspace(ar);
-			gpuTranslate2f(co[0] + 0.5f, co[1] + 0.5f);
-			gpuScale2f(U.widget_unit, U.widget_unit);
+			GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
+			GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
 
 			Gwn_Batch *cursor_batch = DRW_cache_cursor_get(is_aligned);
 			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);

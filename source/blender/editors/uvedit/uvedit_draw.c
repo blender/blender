@@ -90,7 +90,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	GPU_line_width(1.0f);
 
-	gpuTranslate2fv(cursor);
+	GPU_matrix_translate_2fv(cursor);
 
 	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -141,7 +141,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	immUnbindProgram();
 
-	gpuTranslate2f(-cursor[0], -cursor[1]);
+	GPU_matrix_translate_2f(-cursor[0], -cursor[1]);
 }
 
 static int draw_uvs_face_check(Scene *scene)
@@ -814,7 +814,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 					/* Now draw each face contour separately with another builtin program. */
 					GWN_batch_program_set_builtin(loop_batch, GPU_SHADER_2D_SMOOTH_COLOR);
-					gpuBindMatrices(loop_batch->interface);
+					GPU_matrix_bind(loop_batch->interface);
 
 					GWN_batch_program_use_begin(loop_batch);
 					index = 0;

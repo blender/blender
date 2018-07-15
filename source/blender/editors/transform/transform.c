@@ -1813,7 +1813,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			tmval[i] += offset[i];
 		}
 
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		/* Dashed lines first. */
 		if (ELEM(t->helpline, HLP_SPRING, HLP_ANGLE)) {
@@ -1853,8 +1853,8 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			case HLP_SPRING:
 				immUniformThemeColor(TH_VIEW_OVERLAY);
 
-				gpuTranslate3fv(mval);
-				gpuRotateAxis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
+				GPU_matrix_translate_3fv(mval);
+				GPU_matrix_rotate_axis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
 
 				GPU_line_width(3.0f);
 				drawArrow(UP, 5, 10, 5);
@@ -1862,7 +1862,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				break;
 			case HLP_HARROW:
 				immUniformThemeColor(TH_VIEW_OVERLAY);
-				gpuTranslate3fv(mval);
+				GPU_matrix_translate_3fv(mval);
 
 				GPU_line_width(3.0f);
 				drawArrow(RIGHT, 5, 10, 5);
@@ -1871,7 +1871,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 			case HLP_VARROW:
 				immUniformThemeColor(TH_VIEW_OVERLAY);
 
-				gpuTranslate3fv(mval);
+				GPU_matrix_translate_3fv(mval);
 
 				GPU_line_width(3.0f);
 				drawArrow(UP, 5, 10, 5);
@@ -1887,23 +1887,23 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 				immUniformThemeColor(TH_VIEW_OVERLAY);
 
-				gpuTranslate3f(cent[0] - tmval[0] + mval[0], cent[1] - tmval[1] + mval[1], 0);
+				GPU_matrix_translate_3f(cent[0] - tmval[0] + mval[0], cent[1] - tmval[1] + mval[1], 0);
 
 				GPU_line_width(3.0f);
 				drawArc(dist, angle - delta_angle, angle - spacing_angle, 10);
 				drawArc(dist, angle + spacing_angle, angle + delta_angle, 10);
 
-				gpuPushMatrix();
+				GPU_matrix_push();
 
-				gpuTranslate3f(cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
-				gpuRotateAxis(RAD2DEGF(angle - delta_angle), 'Z');
+				GPU_matrix_translate_3f(cosf(angle - delta_angle) * dist, sinf(angle - delta_angle) * dist, 0);
+				GPU_matrix_rotate_axis(RAD2DEGF(angle - delta_angle), 'Z');
 
 				drawArrowHead(DOWN, 5);
 
-				gpuPopMatrix();
+				GPU_matrix_pop();
 
-				gpuTranslate3f(cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
-				gpuRotateAxis(RAD2DEGF(angle + delta_angle), 'Z');
+				GPU_matrix_translate_3f(cosf(angle + delta_angle) * dist, sinf(angle + delta_angle) * dist, 0);
+				GPU_matrix_rotate_axis(RAD2DEGF(angle + delta_angle), 'Z');
 
 				drawArrowHead(UP, 5);
 				break;
@@ -1913,7 +1913,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				unsigned char col[3], col2[3];
 				UI_GetThemeColor3ubv(TH_GRID, col);
 
-				gpuTranslate3fv(mval);
+				GPU_matrix_translate_3fv(mval);
 
 				GPU_line_width(3.0f);
 
@@ -1933,7 +1933,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		}
 
 		immUnbindProgram();
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 
@@ -7049,8 +7049,8 @@ static void drawEdgeSlide(TransInfo *t)
 			GPU_blend(true);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-			gpuPushMatrix();
-			gpuMultMatrix(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+			GPU_matrix_push();
+			GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
 
 			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
@@ -7138,7 +7138,7 @@ static void drawEdgeSlide(TransInfo *t)
 
 			immUnbindProgram();
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 
 			GPU_blend(false);
 
@@ -7682,8 +7682,8 @@ static void drawVertSlide(TransInfo *t)
 			GPU_blend(true);
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-			gpuPushMatrix();
-			gpuMultMatrix(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
+			GPU_matrix_push();
+			GPU_matrix_mul(TRANS_DATA_CONTAINER_FIRST_OK(t)->obedit->obmat);
 
 			GPU_line_width(line_size);
 
@@ -7769,7 +7769,7 @@ static void drawVertSlide(TransInfo *t)
 				immUnbindProgram();
 			}
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 
 			GPU_depth_test(true);
 		}

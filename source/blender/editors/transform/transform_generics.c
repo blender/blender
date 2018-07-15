@@ -1116,7 +1116,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = t->view;
 
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		copy_v3_v3(v3, dir);
 		mul_v3_fl(v3, v3d->far);
@@ -1144,7 +1144,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

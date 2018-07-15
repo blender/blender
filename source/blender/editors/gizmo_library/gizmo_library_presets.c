@@ -94,10 +94,10 @@ static void ed_gizmo_draw_preset_geometry(
 		GPU_select_load_id(select_id);
 	}
 
-	gpuPushMatrix();
-	gpuMultMatrix(mat);
+	GPU_matrix_push();
+	GPU_matrix_mul(mat);
 	wm_gizmo_geometryinfo_draw(info, is_select, color);
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (is_select) {
 		GPU_select_load_id(-1);
@@ -139,10 +139,10 @@ void ED_gizmo_draw_preset_facemap(
 		GPU_select_load_id(select_id);
 	}
 
-	gpuPushMatrix();
-	gpuMultMatrix(ob->obmat);
+	GPU_matrix_push();
+	GPU_matrix_mul(ob->obmat);
 	ED_draw_object_facemap(CTX_data_depsgraph(C), scene, ob, color, facemap);
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (is_select) {
 		GPU_select_load_id(-1);

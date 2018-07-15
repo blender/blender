@@ -326,7 +326,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			GPU_clear(GPU_COLOR_BIT | GPU_DEPTH_BIT);
 
 			wmOrtho2(0, sizex, 0, sizey);
-			gpuTranslate2f(sizex / 2, sizey / 2);
+			GPU_matrix_translate_2f(sizex / 2, sizey / 2);
 
 			G.f |= G_RENDER_OGL;
 			ED_gpencil_draw_ex(scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);

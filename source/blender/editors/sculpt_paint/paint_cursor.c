@@ -618,19 +618,19 @@ static void paint_draw_tex_overlay(
 		glDepthFunc(GL_ALWAYS);
 
 		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
-			gpuPushMatrix();
+			GPU_matrix_push();
 
 			/* brush rotation */
-			gpuTranslate2f(x, y);
-			gpuRotate2D(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
-			gpuTranslate2f(-x, -y);
+			GPU_matrix_translate_2f(x, y);
+			GPU_matrix_rotate_2d(-RAD2DEGF(primary ? ups->brush_rotation : ups->brush_rotation_sec));
+			GPU_matrix_translate_2f(-x, -y);
 
 			/* scale based on tablet pressure */
 			if (primary && ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 				const float scale = ups->size_pressure_value;
-				gpuTranslate2f(x, y);
-				gpuScale2f(scale, scale);
-				gpuTranslate2f(-x, -y);
+				GPU_matrix_translate_2f(x, y);
+				GPU_matrix_scale_2f(scale, scale);
+				GPU_matrix_translate_2f(-x, -y);
 			}
 
 			if (ups->draw_anchored) {
@@ -671,12 +671,12 @@ static void paint_draw_tex_overlay(
 				quad.xmax = brush->mask_stencil_dimension[0];
 				quad.ymax = brush->mask_stencil_dimension[1];
 			}
-			gpuPushMatrix();
+			GPU_matrix_push();
 			if (primary)
-				gpuTranslate2fv(brush->stencil_pos);
+				GPU_matrix_translate_2fv(brush->stencil_pos);
 			else
-				gpuTranslate2fv(brush->mask_stencil_pos);
-			gpuRotate2D(RAD2DEGF(mtex->rot));
+				GPU_matrix_translate_2fv(brush->mask_stencil_pos);
+			GPU_matrix_rotate_2d(RAD2DEGF(mtex->rot));
 		}
 
 		/* set quad color. Colored overlay does not get blending */
@@ -710,7 +710,7 @@ static void paint_draw_tex_overlay(
 		immUnbindProgram();
 
 		if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_VIEW)) {
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 	}
 }
@@ -762,11 +762,11 @@ static void paint_draw_cursor_overlay(
 		/* scale based on tablet pressure */
 		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 			do_pop = true;
-			gpuPushMatrix();
-			gpuLoadIdentity();
-			gpuTranslate2fv(center);
-			gpuScaleUniform(ups->size_pressure_value);
-			gpuTranslate2f(-center[0], -center[1]);
+			GPU_matrix_push();
+			GPU_matrix_identity_set();
+			GPU_matrix_translate_2fv(center);
+			GPU_matrix_scale_1f(ups->size_pressure_value);
+			GPU_matrix_translate_2f(-center[0], -center[1]);
 		}
 
 		Gwn_VertFormat *format = immVertexFormat();
@@ -796,7 +796,7 @@ static void paint_draw_cursor_overlay(
 		immUnbindProgram();
 
 		if (do_pop)
-			gpuPopMatrix();
+			GPU_matrix_pop();
 	}
 }
 

@@ -1151,7 +1151,7 @@ void UI_view2d_view_restore(const bContext *C)
 	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	wmOrtho2(0.0f, (float)width, 0.0f, (float)height);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 
 	//	ED_region_pixelspace(CTX_wm_region(C));
 }

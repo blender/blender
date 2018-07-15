@@ -72,9 +72,9 @@ static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix);
-	gpuRotate2D(RAD2DEGF(arrow_angle));
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix);
+	GPU_matrix_rotate_2d(RAD2DEGF(arrow_angle));
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -93,7 +93,7 @@ static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float
 
 	immUnbindProgram();
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void gizmo_arrow2d_draw(const bContext *UNUSED(C), wmGizmo *gz)

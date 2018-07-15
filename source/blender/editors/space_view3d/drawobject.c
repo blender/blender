@@ -621,7 +621,7 @@ void draw_object_backbufsel(
 		select_mode = ts->selectmode;
 	}
 
-	gpuMultMatrix(ob->obmat);
+	GPU_matrix_mul(ob->obmat);
 
 	glClearDepth(1.0); GPU_clear(GPU_DEPTH_BIT);
 	GPU_depth_test(true);
@@ -688,7 +688,7 @@ void draw_object_backbufsel(
 			break;
 	}
 
-	gpuLoadMatrix(rv3d->viewmat);
+	GPU_matrix_set(rv3d->viewmat);
 }
 
 

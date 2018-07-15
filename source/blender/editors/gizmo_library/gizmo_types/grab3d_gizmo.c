@@ -176,8 +176,8 @@ static void grab3d_draw_intern(
 	gizmo_color_get(gz, highlight, color);
 	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	if (align_view) {
 		float matrix_final_unit[4][4];
@@ -186,26 +186,26 @@ static void grab3d_draw_intern(
 		mul_m4_m4m4(matrix_align, rv3d->viewmat, matrix_final_unit);
 		zero_v3(matrix_align[3]);
 		transpose_m4(matrix_align);
-		gpuMultMatrix(matrix_align);
+		GPU_matrix_mul(matrix_align);
 	}
 
 	GPU_blend(true);
 	grab_geom_draw(gz, color, select, draw_options);
 	GPU_blend(false);
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (gz->interaction_data) {
-		gpuPushMatrix();
-		gpuMultMatrix(inter->init_matrix_final);
+		GPU_matrix_push();
+		GPU_matrix_mul(inter->init_matrix_final);
 
 		if (align_view) {
-			gpuMultMatrix(matrix_align);
+			GPU_matrix_mul(matrix_align);
 		}
 
 		GPU_blend(true);
 		grab_geom_draw(gz, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
 		GPU_blend(false);
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

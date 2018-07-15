@@ -677,7 +677,7 @@ void ED_view3d_project(const struct ARegion *ar, const float world[3], float reg
 	RegionView3D *rv3d = ar->regiondata;
 	int viewport[4] = {0, 0, ar->winx, ar->winy};
 
-	gpuProject(world, rv3d->viewmat, rv3d->winmat, viewport, region);
+	GPU_matrix_project(world, rv3d->viewmat, rv3d->winmat, viewport, region);
 }
 
 bool ED_view3d_unproject(const struct ARegion *ar, float regionx, float regiony, float regionz, float world[3])
@@ -686,5 +686,5 @@ bool ED_view3d_unproject(const struct ARegion *ar, float regionx, float regiony,
 	int viewport[4] = {0, 0, ar->winx, ar->winy};
 	float region[3] = {regionx, regiony, regionz};
 
-	return gpuUnProject(region, rv3d->viewmat, rv3d->winmat, viewport, world);
+	return GPU_matrix_unproject(region, rv3d->viewmat, rv3d->winmat, viewport, world);
 }

@@ -142,15 +142,15 @@ void blf_batch_draw_begin(FontBLF *font)
 
 	if (g_batch.active) {
 		float gpumat[4][4];
-		gpuGetModelViewMatrix(gpumat);
+		GPU_matrix_model_view_get(gpumat);
 
 		bool mat_changed = (memcmp(gpumat, g_batch.mat, sizeof(g_batch.mat)) != 0);
 
 		if (mat_changed) {
 			/* Modelviewmat is no longer the same.
 			 * Flush cache but with the previous mat. */
-			gpuPushMatrix();
-			gpuLoadMatrix(g_batch.mat);
+			GPU_matrix_push();
+			GPU_matrix_set(g_batch.mat);
 		}
 
 		/* flush cache if config is not the same. */
@@ -165,7 +165,7 @@ void blf_batch_draw_begin(FontBLF *font)
 		}
 
 		if (mat_changed) {
-			gpuPopMatrix();
+			GPU_matrix_pop();
 			/* Save for next memcmp. */
 			memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
 		}

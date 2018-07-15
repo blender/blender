@@ -19,8 +19,8 @@
 #include <string.h>
 
 // necessary functions from matrix API
-extern void gpuBindMatrices(const Gwn_ShaderInterface*);
-extern bool gpuMatricesDirty(void);
+extern void GPU_matrix_bind(const Gwn_ShaderInterface*);
+extern bool GPU_matrix_dirty_get(void);
 
 typedef struct {
 	// TODO: organize this struct by frequency of change (run-time)
@@ -129,7 +129,7 @@ void immBindProgram(GLuint program, const Gwn_ShaderInterface* shaderface)
 
 	glUseProgram(program);
 	get_attrib_locations(&imm.vertex_format, &imm.attrib_binding, shaderface);
-	gpuBindMatrices(shaderface);
+	GPU_matrix_bind(shaderface);
 	}
 
 void immUnbindProgram(void)
@@ -341,8 +341,8 @@ static void immDrawSetup(void)
 			}
 		}
 
-	if (gpuMatricesDirty())
-		gpuBindMatrices(imm.shader_interface);
+	if (GPU_matrix_dirty_get())
+		GPU_matrix_bind(imm.shader_interface);
 	}
 
 void immEnd(void)

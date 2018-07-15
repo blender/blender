@@ -551,8 +551,8 @@ static void gizmo_cage2d_draw_intern(
 
 	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	float margin[2];
 	gizmo_calc_rect_view_margin(gz, dims, margin);
@@ -668,7 +668,7 @@ static void gizmo_cage2d_draw_intern(
 	}
 
 	GPU_line_width(1.0);
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 /**

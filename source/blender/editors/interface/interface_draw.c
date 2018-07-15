@@ -1027,13 +1027,13 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 		if (scopes->wavefrm_mode == SCOPES_WAVEFRM_LUMA) {
 			float col[3] = {alpha, alpha, alpha};
 
-			gpuPushMatrix();
-			gpuTranslate2f(rect.xmin, yofs);
-			gpuScale2f(w, h);
+			GPU_matrix_push();
+			GPU_matrix_translate_2f(rect.xmin, yofs);
+			GPU_matrix_scale_2f(w, h);
 
 			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, col);
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 
 			/* min max */
 			immUniformColor3f(0.5f, 0.5f, 0.5f);
@@ -1049,15 +1049,15 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 		}
 		/* RGB (3 channel) */
 		else if (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB) {
-			gpuPushMatrix();
-			gpuTranslate2f(rect.xmin, yofs);
-			gpuScale2f(w, h);
+			GPU_matrix_push();
+			GPU_matrix_translate_2f(rect.xmin, yofs);
+			GPU_matrix_scale_2f(w, h);
 
 			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, colors_alpha[0]);
 			waveform_draw_one(scopes->waveform_2, scopes->waveform_tot, colors_alpha[1]);
 			waveform_draw_one(scopes->waveform_3, scopes->waveform_tot, colors_alpha[2]);
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 		/* PARADE / YCC (3 channels) */
 		else if (ELEM(scopes->wavefrm_mode,
@@ -1069,19 +1069,19 @@ void ui_draw_but_WAVEFORM(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UNUSE
 		{
 			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB_PARADE);
 
-			gpuPushMatrix();
-			gpuTranslate2f(rect.xmin, yofs);
-			gpuScale2f(w3, h);
+			GPU_matrix_push();
+			GPU_matrix_translate_2f(rect.xmin, yofs);
+			GPU_matrix_scale_2f(w3, h);
 
 			waveform_draw_one(scopes->waveform_1, scopes->waveform_tot, (rgb) ? colors_alpha[0] : colorsycc_alpha[0]);
 
-			gpuTranslate2f(1.0f, 0.0f);
+			GPU_matrix_translate_2f(1.0f, 0.0f);
 			waveform_draw_one(scopes->waveform_2, scopes->waveform_tot, (rgb) ? colors_alpha[1] : colorsycc_alpha[1]);
 
-			gpuTranslate2f(1.0f, 0.0f);
+			GPU_matrix_translate_2f(1.0f, 0.0f);
 			waveform_draw_one(scopes->waveform_3, scopes->waveform_tot, (rgb) ? colors_alpha[2] : colorsycc_alpha[2]);
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 
 		/* min max */
@@ -1263,13 +1263,13 @@ void ui_draw_but_VECTORSCOPE(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *UN
 		glBlendFunc(GL_ONE, GL_ONE);
 		GPU_point_size(1.0);
 
-		gpuPushMatrix();
-		gpuTranslate2f(centerx, centery);
-		gpuScaleUniform(diam);
+		GPU_matrix_push();
+		GPU_matrix_translate_2f(centerx, centery);
+		GPU_matrix_scale_1f(diam);
 
 		waveform_draw_one(scopes->vecscope, scopes->waveform_tot, col);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 
 	immUnbindProgram();
@@ -1548,15 +1548,15 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	ui_but_v3_get(but, light);
 
 	/* transform to button */
-	gpuPushMatrix();
+	GPU_matrix_push();
 
 	if (BLI_rcti_size_x(rect) < BLI_rcti_size_y(rect))
 		size = 0.5f * BLI_rcti_size_x(rect);
 	else
 		size = 0.5f * BLI_rcti_size_y(rect);
 
-	gpuTranslate2f(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect));
-	gpuScaleUniform(size);
+	GPU_matrix_translate_2f(rect->xmin + 0.5f * BLI_rcti_size_x(rect), rect->ymin + 0.5f * BLI_rcti_size_y(rect));
+	GPU_matrix_scale_1f(size);
 
 	Gwn_Batch *sphere = GPU_batch_preset_sphere(2);
 	GWN_batch_program_set_builtin(sphere, GPU_SHADER_SIMPLE_LIGHTING);
@@ -1580,7 +1580,7 @@ void ui_draw_but_UNITVEC(uiBut *but, uiWidgetColors *wcol, const rcti *rect)
 	GPU_line_smooth(false);
 
 	/* matrix after circle */
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	immUnbindProgram();
 }
@@ -1900,7 +1900,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 	}
 
 	if (!ok && scopes->track_preview) {
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		/* draw content of pattern area */
 		GPU_scissor(rect.xmin, rect.ymin, scissor[2], scissor[3]);
@@ -1919,7 +1919,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 			immDrawPixelsTex(&state, rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, GL_LINEAR, drawibuf->rect, 1.0f, 1.0f, NULL);
 
 			/* draw cross for pixel position */
-			gpuTranslate2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);
+			GPU_matrix_translate_2f(rect.xmin + scopes->track_pos[0], rect.ymin + scopes->track_pos[1]);
 			GPU_scissor(
 			        rect.xmin,
 			        rect.ymin,
@@ -1958,7 +1958,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 			immUnbindProgram();
 		}
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		ok = true;
 	}

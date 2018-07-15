@@ -165,14 +165,14 @@ static void external_draw_scene_do(void *vedata)
 	}
 
 	/* Rendered draw. */
-	gpuPushProjectionMatrix();
+	GPU_matrix_push_projection();
 	ED_region_pixelspace(ar);
 
 	/* Render result draw. */
 	type = rv3d->render_engine->type;
 	type->view_draw(rv3d->render_engine, draw_ctx->evil_C);
 
-	gpuPopProjectionMatrix();
+	GPU_matrix_pop_projection();
 
 	/* Set render info. */
 	EXTERNAL_Data *data = vedata;

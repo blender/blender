@@ -1405,17 +1405,17 @@ void drawnodespace(const bContext *C, ARegion *ar)
 
 			{
 				float original_proj[4][4];
-				gpuGetProjectionMatrix(original_proj);
+				GPU_matrix_projection_get(original_proj);
 
-				gpuPushMatrix();
-				gpuLoadIdentity();
+				GPU_matrix_push();
+				GPU_matrix_identity_set();
 
 				wmOrtho2_pixelspace(ar->winx, ar->winy);
 
 				WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
-				gpuPopMatrix();
-				gpuLoadProjectionMatrix(original_proj);
+				GPU_matrix_pop();
+				GPU_matrix_projection_set(original_proj);
 			}
 
 			draw_nodetree(C, ar, ntree, path->parent_key);

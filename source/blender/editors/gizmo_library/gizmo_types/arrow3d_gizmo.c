@@ -143,15 +143,15 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
 		/* *** draw arrow head *** */
 
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		if (draw_style == ED_GIZMO_ARROW_STYLE_BOX) {
 			const float size = 0.05f;
 
 			/* translate to line end with some extra offset so box starts exactly where line ends */
-			gpuTranslate3f(0.0f, 0.0f, arrow_length + size);
+			GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length + size);
 			/* scale down to box size */
-			gpuScale3f(size, size, size);
+			GPU_matrix_scale_3f(size, size, size);
 
 			/* draw cube */
 			immUnbindProgram();
@@ -165,13 +165,13 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 			const float width = 0.06f;
 
 			/* translate to line end */
-			gpuTranslate3f(0.0f, 0.0f, arrow_length);
+			GPU_matrix_translate_3f(0.0f, 0.0f, arrow_length);
 
 			imm_draw_circle_fill_3d(pos, 0.0, 0.0, width, 8);
 			imm_draw_cylinder_fill_3d(pos, width, 0.0, len, 8, 1);
 		}
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 #endif  /* USE_GIZMO_CUSTOM_ARROWS */
 	}
 
@@ -190,26 +190,26 @@ static void arrow_draw_intern(ArrowGizmo3D *arrow, const bool select, const bool
 
 	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 	GPU_blend(true);
 	arrow_draw_geom(arrow, select, color);
 	GPU_blend(false);
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (gz->interaction_data) {
 		GizmoInteraction *inter = gz->interaction_data;
 
-		gpuPushMatrix();
-		gpuMultMatrix(inter->init_matrix_final);
+		GPU_matrix_push();
+		GPU_matrix_mul(inter->init_matrix_final);
 
 
 		GPU_blend(true);
 		arrow_draw_geom(arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		GPU_blend(false);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

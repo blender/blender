@@ -117,13 +117,13 @@ static void draw_render_info(const bContext *C,
 			int x, y;
 			UI_view2d_view_to_region(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-			gpuPushMatrix();
-			gpuTranslate2f(x, y);
-			gpuScale2f(zoomx, zoomy);
+			GPU_matrix_push();
+			GPU_matrix_translate_2f(x, y);
+			GPU_matrix_scale_2f(zoomx, zoomy);
 
 			if (rd->mode & R_BORDER) {
 				/* TODO: round or floor instead of casting to int */
-				gpuTranslate2f((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
+				GPU_matrix_translate_2f((int)(-rd->border.xmin * rd->xsch * rd->size * 0.01f),
 				               (int)(-rd->border.ymin * rd->ysch * rd->size * 0.01f));
 			}
 
@@ -144,7 +144,7 @@ static void draw_render_info(const bContext *C,
 				MEM_freeN(tiles);
 			}
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 	}
 }

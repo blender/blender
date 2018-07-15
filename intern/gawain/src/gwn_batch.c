@@ -18,7 +18,7 @@
 #include <string.h>
 
 // necessary functions from matrix API
-extern void gpuBindMatrices(const Gwn_ShaderInterface* shaderface);
+extern void GPU_matrix_bind(const Gwn_ShaderInterface* shaderface);
 
 static void batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first);
 
@@ -537,7 +537,7 @@ void GWN_batch_draw(Gwn_Batch* batch)
 	assert(batch->verts[0]->vbo_id != 0);
 #endif
 	GWN_batch_program_use_begin(batch);
-	gpuBindMatrices(batch->interface); // external call.
+	GPU_matrix_bind(batch->interface); // external call.
 
 	GWN_batch_draw_range_ex(batch, 0, 0, false);
 

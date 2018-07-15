@@ -201,8 +201,8 @@ static void playanim_window_get_size(int *r_width, int *r_height)
 static void playanim_gl_matrix(void)
 {
 	/* unified matrix, note it affects offset for drawing */
-	/* note! cannot use gpuOrtho2D here because shader ignores. */
-	gpuOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
+	/* note! cannot use GPU_matrix_ortho_2d_set here because shader ignores. */
+	GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
 }
 
 /* implementation */
@@ -366,10 +366,10 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		float fac = ps->picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame - ((PlayAnimPict *)picsbase.first)->frame);
 
 		fac = 2.0f * fac - 1.0f;
-		gpuPushProjectionMatrix();
-		gpuLoadIdentityProjectionMatrix();
-		gpuPushMatrix();
-		gpuLoadIdentity();
+		GPU_matrix_push_projection();
+		GPU_matrix_identity_projection_set();
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
 
 		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -383,8 +383,8 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
-		gpuPopProjectionMatrix();
+		GPU_matrix_pop();
+		GPU_matrix_pop_projection();
 	}
 
 	GHOST_SwapWindowBuffers(g_WS.ghost_window);

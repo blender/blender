@@ -436,9 +436,9 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 		if (pid->cache->cached_frames == NULL)
 			continue;
 
-		gpuPushMatrix();
-		gpuTranslate2f(0.0, (float)V2D_SCROLL_HEIGHT_TEXT + yoffs);
-		gpuScale2f(1.0, cache_draw_height);
+		GPU_matrix_push();
+		GPU_matrix_translate_2f(0.0, (float)V2D_SCROLL_HEIGHT_TEXT + yoffs);
+		GPU_matrix_scale_2f(1.0, cache_draw_height);
 
 		switch (pid->type) {
 			case PTCACHE_TYPE_SOFTBODY:
@@ -512,7 +512,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 
 		GPU_blend(false);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		yoffs += cache_draw_height;
 	}

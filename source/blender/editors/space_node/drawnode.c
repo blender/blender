@@ -3193,8 +3193,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	if (ibuf) {
 		float x, y;
 
-		gpuPushProjectionMatrix();
-		gpuPushMatrix();
+		GPU_matrix_push_projection();
+		GPU_matrix_push();
 
 		/* somehow the offset has to be calculated inverse */
 		wmOrtho2_region_pixelspace(ar);
@@ -3277,8 +3277,8 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 			}
 		}
 
-		gpuPopProjectionMatrix();
-		gpuPopMatrix();
+		GPU_matrix_pop_projection();
+		GPU_matrix_pop();
 	}
 
 	BKE_image_release_ibuf(ima, ibuf, lock);

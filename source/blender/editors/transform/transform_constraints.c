@@ -800,13 +800,13 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			unit_m4(imat);
 		}
 
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		if (t->spacetype == SPACE_VIEW3D) {
 			/* pass */
 		}
 		else if (t->spacetype == SPACE_IMAGE) {
-			gpuScale2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
+			GPU_matrix_scale_2f(1.0f / t->aspect[0], 1.0f / t->aspect[1]);
 		}
 		else if (ELEM(t->spacetype, SPACE_IPO, SPACE_ACTION)) {
 			/* only scale y */
@@ -816,7 +816,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 			float ysize = BLI_rctf_size_y(datamask);
 			float xmask = BLI_rcti_size_x(mask);
 			float ymask = BLI_rcti_size_y(mask);
-			gpuScale2f(1.0f, (ysize / xsize) * (xmask / ymask));
+			GPU_matrix_scale_2f(1.0f, (ysize / xsize) * (xmask / ymask));
 		}
 
 		depth_test_enabled = GPU_depth_test_enabled();
@@ -837,7 +837,7 @@ void drawPropCircle(const struct bContext *C, TransInfo *t)
 		if (depth_test_enabled)
 			GPU_depth_test(true);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

@@ -280,7 +280,7 @@ static void ui_update_window_matrix(const wmWindow *window, const ARegion *regio
 	/* window matrix and aspect */
 	if (region && region->visible) {
 		/* Get projection matrix which includes View2D translation and zoom. */
-		gpuGetProjectionMatrix(block->winmat);
+		GPU_matrix_projection_get(block->winmat);
 		block->aspect = 2.0f / fabsf(region->winx * block->winmat[0][0]);
 	}
 	else {
@@ -1448,9 +1448,9 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	ui_but_to_pixelrect(&rect, ar, block, NULL);
 
 	/* pixel space for AA widgets */
-	gpuPushProjectionMatrix();
-	gpuPushMatrix();
-	gpuLoadIdentity();
+	GPU_matrix_push_projection();
+	GPU_matrix_push();
+	GPU_matrix_identity_set();
 
 	wmOrtho2_region_pixelspace(ar);
 
@@ -1485,8 +1485,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	BLF_batch_draw_end();
 
 	/* restore matrix */
-	gpuPopProjectionMatrix();
-	gpuPopMatrix();
+	GPU_matrix_pop_projection();
+	GPU_matrix_pop();
 }
 
 static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlock *block)

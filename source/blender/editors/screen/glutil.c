@@ -364,7 +364,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		// glPolygonOffset(-1.0, -1.0);
 
 		/* hack below is to mimic polygon offset */
-		gpuGetProjectionMatrix(winmat);
+		GPU_matrix_projection_get(winmat);
 
 		/* dist is from camera to center point */
 
@@ -401,7 +401,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		offset = 0.0;
 	}
 
-	gpuLoadProjectionMatrix(winmat);
+	GPU_matrix_projection_set(winmat);
 }
 
 /* **** Color management helper functions for GLSL display/transform ***** */

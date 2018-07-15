@@ -695,17 +695,17 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 			GPU_blend_set_func(GPU_DST_COLOR, GPU_ZERO);
 		}
 
-		gpuPushMatrix();
-		gpuTranslate2f(x, y);
-		gpuScale2f(zoomx, zoomy);
+		GPU_matrix_push();
+		GPU_matrix_translate_2f(x, y);
+		GPU_matrix_scale_2f(zoomx, zoomy);
 		if (stabmat) {
-			gpuMultMatrix(stabmat);
+			GPU_matrix_mul(stabmat);
 		}
 		IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
 		GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, red);
 		immDrawPixelsTex(&state, 0.0f, 0.0f, width, height, GL_RED, GL_FLOAT, GL_NEAREST, buffer, 1.0f, 1.0f, NULL);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		if (overlay_mode != MASK_OVERLAY_ALPHACHANNEL) {
 			GPU_blend(false);
@@ -715,13 +715,13 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 	}
 
 	/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
-	gpuPushMatrix();
-	gpuTranslate2f(x + xofs, y + yofs);
-	gpuScale2f(zoomx, zoomy);
+	GPU_matrix_push();
+	GPU_matrix_translate_2f(x + xofs, y + yofs);
+	GPU_matrix_scale_2f(zoomx, zoomy);
 	if (stabmat) {
-		gpuMultMatrix(stabmat);
+		GPU_matrix_mul(stabmat);
 	}
-	gpuScale2f(maxdim, maxdim);
+	GPU_matrix_scale_2f(maxdim, maxdim);
 
 	if (do_draw_cb) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
@@ -734,7 +734,7 @@ void ED_mask_draw_region(Mask *mask, ARegion *ar,
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 void ED_mask_draw_frames(Mask *mask, ARegion *ar, const int cfra, const int sfra, const int efra)

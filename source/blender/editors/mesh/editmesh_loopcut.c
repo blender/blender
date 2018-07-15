@@ -113,8 +113,8 @@ static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *a
 	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
 		GPU_depth_test(false);
 
-		gpuPushMatrix();
-		gpuMultMatrix(lcd->ob->obmat);
+		GPU_matrix_push();
+		GPU_matrix_mul(lcd->ob->obmat);
 
 		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 
@@ -146,7 +146,7 @@ static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *a
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		/* Reset default */
 		GPU_depth_test(true);

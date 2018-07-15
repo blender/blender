@@ -251,7 +251,7 @@ void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d)
 	/* we have to multiply instead of loading viewmatob to make
 	 * it work with duplis using displists, otherwise it will
 	 * override the dupli-matrix */
-	gpuMultMatrix(ob->obmat);
+	GPU_matrix_mul(ob->obmat);
 }
 
 #ifdef DEBUG

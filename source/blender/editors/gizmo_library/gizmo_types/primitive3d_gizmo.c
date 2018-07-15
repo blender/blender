@@ -99,14 +99,14 @@ static void gizmo_primitive_draw_intern(
 
 	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	GPU_blend(true);
 	gizmo_primitive_draw_geom(color_inner, color_outer, draw_style);
 	GPU_blend(false);
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (gz->interaction_data) {
 		GizmoInteraction *inter = gz->interaction_data;
@@ -115,14 +115,14 @@ static void gizmo_primitive_draw_intern(
 		copy_v3_fl(color_outer, 0.5f);
 		color_outer[3] = 0.8f;
 
-		gpuPushMatrix();
-		gpuMultMatrix(inter->init_matrix_final);
+		GPU_matrix_push();
+		GPU_matrix_mul(inter->init_matrix_final);
 
 		GPU_blend(true);
 		gizmo_primitive_draw_geom(color_inner, color_outer, draw_style);
 		GPU_blend(false);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

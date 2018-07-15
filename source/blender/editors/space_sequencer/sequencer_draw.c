@@ -1308,8 +1308,8 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	if (draw_backdrop) {
 		/* XXX: need to load identity projection too? */
-		gpuPushMatrix();
-		gpuLoadIdentity();
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
 	}
 
 	glGenTextures(1, (GLuint *)&texid);
@@ -1439,7 +1439,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 
 	if (draw_backdrop) {
-		gpuPopMatrix();
+		GPU_matrix_pop();
 		return;
 	}
 

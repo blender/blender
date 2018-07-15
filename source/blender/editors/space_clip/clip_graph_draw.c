@@ -119,13 +119,13 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 	if (sel == data->sel) {
 		immUniformThemeColor(sel ? TH_HANDLE_VERTEX_SELECT : TH_HANDLE_VERTEX);
 
-		gpuPushMatrix();
-		gpuTranslate2f(scene_framenr, val);
-		gpuScale2f(1.0f / data->xscale * data->hsize, 1.0f / data->yscale * data->hsize);
+		GPU_matrix_push();
+		GPU_matrix_translate_2f(scene_framenr, val);
+		GPU_matrix_scale_2f(1.0f / data->xscale * data->hsize, 1.0f / data->yscale * data->hsize);
 
 		imm_draw_circle_wire_2d(data->pos, 0, 0, 0.7, 8);
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 }
 

@@ -627,14 +627,14 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 
 	wmOrtho2(0.0f, size_x, 0.0f, size_y);
 	/* center */
-	gpuPushMatrix();
-	gpuLoadIdentity();
-	gpuTranslate2f(size_x * (1.0f - asp[0]) * 0.5f, size_y * (1.0f - asp[1]) * 0.5f);
+	GPU_matrix_push();
+	GPU_matrix_identity_set();
+	GPU_matrix_translate_2f(size_x * (1.0f - asp[0]) * 0.5f, size_y * (1.0f - asp[1]) * 0.5f);
 
 	screen_preview_scale_get(screen, size_x, size_y, asp, scale);
 	screen_preview_draw_areas(screen, scale, col, 1.5f);
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 /**

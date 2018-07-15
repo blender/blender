@@ -195,8 +195,8 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 	static const float axis_highlight[4] = {1, 1, 1, 1};
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];
-	gpuPushMatrix();
-	gpuMultMatrix(gz->matrix_offset);
+	GPU_matrix_push();
+	GPU_matrix_mul(gz->matrix_offset);
 
 	bool draw_center_done = false;
 
@@ -219,11 +219,11 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 
 			/* Circle defining active area (revert back to 2D space). */
 			{
-				gpuPopMatrix();
+				GPU_matrix_pop();
 				immUniformColor4fv(color);
 				imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
-				gpuPushMatrix();
-				gpuMultMatrix(gz->matrix_offset);
+				GPU_matrix_push();
+				GPU_matrix_mul(gz->matrix_offset);
 			}
 			draw_center_done = true;
 		}
@@ -276,15 +276,15 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 
 			/* Axis Ball. */
 			{
-				gpuPushMatrix();
-				gpuTranslate3fv(v_final);
-				gpuScaleUniform(is_pos ? 0.22f : 0.18f);
+				GPU_matrix_push();
+				GPU_matrix_translate_3fv(v_final);
+				GPU_matrix_scale_1f(is_pos ? 0.22f : 0.18f);
 
 				Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
 				GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
 				GWN_batch_uniform_4fv(sphere, "color", is_pos ? color_current : color_current_fade);
 				GWN_batch_draw(sphere);
-				gpuPopMatrix();
+				GPU_matrix_pop();
 			}
 
 			/* Axis XYZ Character. */
@@ -298,7 +298,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 		}
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 	immUnbindProgram();
 }
 
@@ -318,13 +318,13 @@ static void axis3d_draw_intern(
 	            .matrix_offset = matrix_unit,
 	        }), matrix_final);
 
-	gpuPushMatrix();
-	gpuMultMatrix(matrix_final);
+	GPU_matrix_push();
+	GPU_matrix_mul(matrix_final);
 
 	GPU_blend(true);
 	axis_geom_draw(gz, color, select);
 	GPU_blend(false);
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
