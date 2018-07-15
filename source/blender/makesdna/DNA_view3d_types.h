@@ -237,7 +237,7 @@ typedef struct View3D {
 	char gridflag;
 
 	/* transform gizmo info */
-	char _pad5[2], mpr_flag;
+	char _pad5[2], gizmo_flag;
 
 	short flag3;
 

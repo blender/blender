@@ -54,7 +54,7 @@
 
 
 static bool bpy_gizmotype_target_property_def(
-        wmGizmoType *wt, PyObject *item)
+        wmGizmoType *gzt, PyObject *item)
 {
 	/* Note: names based on 'rna_rna.c' */
 	PyObject *empty_tuple = PyTuple_New(0);
@@ -102,7 +102,7 @@ static bool bpy_gizmotype_target_property_def(
 		goto fail;
 	}
 
-	WM_gizmotype_target_property_def(wt, params.id, params.type, params.array_length);
+	WM_gizmotype_target_property_def(gzt, params.id, params.type, params.array_length);
 	Py_DECREF(empty_tuple);
 	return true;
 
@@ -111,17 +111,17 @@ fail:
 	return false;
 }
 
-static void gizmo_properties_init(wmGizmoType *wt)
+static void gizmo_properties_init(wmGizmoType *gzt)
 {
-	PyTypeObject *py_class = wt->ext.data;
-	RNA_struct_blender_type_set(wt->ext.srna, wt);
+	PyTypeObject *py_class = gzt->ext.data;
+	RNA_struct_blender_type_set(gzt->ext.srna, gzt);
 
 	/* only call this so pyrna_deferred_register_class gives a useful error
 	 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
 	 * later */
-	RNA_def_struct_identifier_no_struct_map(wt->srna, wt->idname);
+	RNA_def_struct_identifier_no_struct_map(gzt->srna, gzt->idname);
 
-	if (pyrna_deferred_register_class(wt->srna, py_class) != 0) {
+	if (pyrna_deferred_register_class(gzt->srna, py_class) != 0) {
 		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
@@ -149,7 +149,7 @@ static void gizmo_properties_init(wmGizmoType *wt)
 			PyObject **items = PySequence_Fast_ITEMS(bl_target_properties_fast);
 
 			for (uint i = 0; i < items_len; i++) {
-				if (!bpy_gizmotype_target_property_def(wt, items[i])) {
+				if (!bpy_gizmotype_target_property_def(gzt, items[i])) {
 					PyErr_Print();
 					PyErr_Clear();
 					break;
@@ -161,25 +161,25 @@ static void gizmo_properties_init(wmGizmoType *wt)
 	}
 }
 
-void BPY_RNA_gizmo_wrapper(wmGizmoType *wt, void *userdata)
+void BPY_RNA_gizmo_wrapper(wmGizmoType *gzt, void *userdata)
 {
 	/* take care not to overwrite anything set in
 	 * WM_gizmomaptype_group_link_ptr before opfunc() is called */
-	StructRNA *srna = wt->srna;
-	*wt = *((wmGizmoType *)userdata);
-	wt->srna = srna; /* restore */
+	StructRNA *srna = gzt->srna;
+	*gzt = *((wmGizmoType *)userdata);
+	gzt->srna = srna; /* restore */
 
 	/* don't do translations here yet */
 #if 0
 	/* Use i18n context from ext.srna if possible (py gizmogroups). */
-	if (wt->ext.srna) {
-		RNA_def_struct_translation_context(wt->srna, RNA_struct_translation_context(wt->ext.srna));
+	if (gt->ext.srna) {
+		RNA_def_struct_translation_context(gt->srna, RNA_struct_translation_context(gt->ext.srna));
 	}
 #endif
 
-	wt->struct_size = sizeof(wmGizmo);
+	gzt->struct_size = sizeof(wmGizmo);
 
-	gizmo_properties_init(wt);
+	gizmo_properties_init(gzt);
 }
 
 /** \} */
@@ -190,46 +190,46 @@ void BPY_RNA_gizmo_wrapper(wmGizmoType *wt, void *userdata)
 /** \name Gizmo Group
  * \{ */
 
-static void gizmogroup_properties_init(wmGizmoGroupType *wgt)
+static void gizmogroup_properties_init(wmGizmoGroupType *gzgt)
 {
 #ifdef USE_SRNA
-	PyTypeObject *py_class = wgt->ext.data;
+	PyTypeObject *py_class = gzgt->ext.data;
 #endif
-	RNA_struct_blender_type_set(wgt->ext.srna, wgt);
+	RNA_struct_blender_type_set(gzgt->ext.srna, gzgt);
 
 #ifdef USE_SRNA
 	/* only call this so pyrna_deferred_register_class gives a useful error
 	 * WM_operatortype_append_ptr will call RNA_def_struct_identifier
 	 * later */
-	RNA_def_struct_identifier(wgt->srna, wgt->idname);
+	RNA_def_struct_identifier(gzgt->srna, gzgt->idname);
 
-	if (pyrna_deferred_register_class(wgt->srna, py_class) != 0) {
+	if (pyrna_deferred_register_class(gzgt->srna, py_class) != 0) {
 		PyErr_Print(); /* failed to register operator props */
 		PyErr_Clear();
 	}
 #endif
 }
 
-void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *wgt, void *userdata)
+void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata)
 {
 	/* take care not to overwrite anything set in
 	 * WM_gizmomaptype_group_link_ptr before opfunc() is called */
 #ifdef USE_SRNA
-	StructRNA *srna = wgt->srna;
+	StructRNA *srna = gzgt->srna;
 #endif
-	*wgt = *((wmGizmoGroupType *)userdata);
+	*gzgt = *((wmGizmoGroupType *)userdata);
 #ifdef USE_SRNA
-	wgt->srna = srna; /* restore */
+	gzgt->srna = srna; /* restore */
 #endif
 
 #ifdef USE_SRNA
 	/* Use i18n context from ext.srna if possible (py gizmogroups). */
-	if (wgt->ext.srna) {
-		RNA_def_struct_translation_context(wgt->srna, RNA_struct_translation_context(wgt->ext.srna));
+	if (gzgt->ext.srna) {
+		RNA_def_struct_translation_context(gzgt->srna, RNA_struct_translation_context(gzgt->ext.srna));
 	}
 #endif
 
-	gizmogroup_properties_init(wgt);
+	gizmogroup_properties_init(gzgt);
 }
 
 /** \} */

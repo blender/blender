@@ -62,11 +62,11 @@ static GHash *global_gizmotype_hash = NULL;
 const wmGizmoType *WM_gizmotype_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
-		wmGizmoType *wt;
+		wmGizmoType *gzt;
 
-		wt = BLI_ghash_lookup(global_gizmotype_hash, idname);
-		if (wt) {
-			return wt;
+		gzt = BLI_ghash_lookup(global_gizmotype_hash, idname);
+		if (gzt) {
+			return gzt;
 		}
 
 		if (!quiet) {
@@ -90,56 +90,56 @@ void WM_gizmotype_iter(GHashIterator *ghi)
 
 static wmGizmoType *wm_gizmotype_append__begin(void)
 {
-	wmGizmoType *wt = MEM_callocN(sizeof(wmGizmoType), "gizmotype");
-	wt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
+	wmGizmoType *gzt = MEM_callocN(sizeof(wmGizmoType), "gizmotype");
+	gzt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoProperties);
 #if 0
 	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
 	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
 	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
 #endif
-	return wt;
+	return gzt;
 }
-static void wm_gizmotype_append__end(wmGizmoType *wt)
+static void wm_gizmotype_append__end(wmGizmoType *gzt)
 {
-	BLI_assert(wt->struct_size >= sizeof(wmGizmo));
+	BLI_assert(gzt->struct_size >= sizeof(wmGizmo));
 
-	RNA_def_struct_identifier(&BLENDER_RNA, wt->srna, wt->idname);
+	RNA_def_struct_identifier(&BLENDER_RNA, gzt->srna, gzt->idname);
 
-	BLI_ghash_insert(global_gizmotype_hash, (void *)wt->idname, wt);
+	BLI_ghash_insert(global_gizmotype_hash, (void *)gzt->idname, gzt);
 }
 
-void WM_gizmotype_append(void (*wtfunc)(struct wmGizmoType *))
+void WM_gizmotype_append(void (*gtfunc)(struct wmGizmoType *))
 {
-	wmGizmoType *wt = wm_gizmotype_append__begin();
-	wtfunc(wt);
-	wm_gizmotype_append__end(wt);
+	wmGizmoType *gzt = wm_gizmotype_append__begin();
+	gtfunc(gzt);
+	wm_gizmotype_append__end(gzt);
 }
 
-void WM_gizmotype_append_ptr(void (*wtfunc)(struct wmGizmoType *, void *), void *userdata)
+void WM_gizmotype_append_ptr(void (*gtfunc)(struct wmGizmoType *, void *), void *userdata)
 {
 	wmGizmoType *mt = wm_gizmotype_append__begin();
-	wtfunc(mt, userdata);
+	gtfunc(mt, userdata);
 	wm_gizmotype_append__end(mt);
 }
 
 /**
  * Free but don't remove from ghash.
  */
-static void gizmotype_free(wmGizmoType *wt)
+static void gizmotype_free(wmGizmoType *gzt)
 {
-	if (wt->ext.srna) { /* python gizmo, allocs own string */
-		MEM_freeN((void *)wt->idname);
+	if (gzt->ext.srna) { /* python gizmo, allocs own string */
+		MEM_freeN((void *)gzt->idname);
 	}
 
-	BLI_freelistN(&wt->target_property_defs);
-	MEM_freeN(wt);
+	BLI_freelistN(&gzt->target_property_defs);
+	MEM_freeN(gzt);
 }
 
 /**
  * \param C: May be NULL.
  */
 static void gizmotype_unlink(
-        bContext *C, Main *bmain, wmGizmoType *wt)
+        bContext *C, Main *bmain, wmGizmoType *gzt)
 {
 	/* Free instances. */
 	for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
@@ -147,15 +147,15 @@ static void gizmotype_unlink(
 			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 				ListBase *lb = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
 				for (ARegion *ar = lb->first; ar; ar = ar->next) {
-					wmGizmoMap *mmap = ar->gizmo_map;
-					if (mmap) {
-						wmGizmoGroup *mgroup;
-						for (mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-							for (wmGizmo *mpr = mgroup->gizmos.first, *mpr_next;  mpr; mpr = mpr_next) {
-								mpr_next = mpr->next;
-								BLI_assert(mgroup->parent_mmap == mmap);
-								if (mpr->type == wt) {
-									WM_gizmo_unlink(&mgroup->gizmos, mgroup->parent_mmap, mpr, C);
+					wmGizmoMap *gzmap = ar->gizmo_map;
+					if (gzmap) {
+						wmGizmoGroup *gzgroup;
+						for (gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
+							for (wmGizmo *gz = gzgroup->gizmos.first, *gz_next;  gz; gz = gz_next) {
+								gz_next = gz->next;
+								BLI_assert(gzgroup->parent_gzmap == gzmap);
+								if (gz->type == gzt) {
+									WM_gizmo_unlink(&gzgroup->gizmos, gzgroup->parent_gzmap, gz, C);
 									ED_region_tag_redraw(ar);
 								}
 							}
@@ -167,26 +167,26 @@ static void gizmotype_unlink(
 	}
 }
 
-void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *wt)
+void WM_gizmotype_remove_ptr(bContext *C, Main *bmain, wmGizmoType *gzt)
 {
-	BLI_assert(wt == WM_gizmotype_find(wt->idname, false));
+	BLI_assert(gzt == WM_gizmotype_find(gzt->idname, false));
 
-	BLI_ghash_remove(global_gizmotype_hash, wt->idname, NULL, NULL);
+	BLI_ghash_remove(global_gizmotype_hash, gzt->idname, NULL, NULL);
 
-	gizmotype_unlink(C, bmain, wt);
+	gizmotype_unlink(C, bmain, gzt);
 
-	gizmotype_free(wt);
+	gizmotype_free(gzt);
 }
 
 bool WM_gizmotype_remove(bContext *C, Main *bmain, const char *idname)
 {
-	wmGizmoType *wt = BLI_ghash_lookup(global_gizmotype_hash, idname);
+	wmGizmoType *gzt = BLI_ghash_lookup(global_gizmotype_hash, idname);
 
-	if (wt == NULL) {
+	if (gzt == NULL) {
 		return false;
 	}
 
-	WM_gizmotype_remove_ptr(C, bmain, wt);
+	WM_gizmotype_remove_ptr(C, bmain, gzt);
 
 	return true;
 }

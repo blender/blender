@@ -80,7 +80,7 @@ class SelectSideOfPlane(Operator):
 
 # Gizmos for plane_co, plane_no
 class SelectSideOfPlaneGizmoGroup(GizmoGroup):
-    bl_idname = "MESH_WGT_select_side_of_plane"
+    bl_idname = "MESH_GGT_select_side_of_plane"
     bl_label = "Side of Plane Gizmo"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -126,7 +126,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
             # XXX, this may change!
             op.execute(context)
 
-        mpr = self.gizmos.new("GIZMO_WT_grab_3d")
+        mpr = self.gizmos.new("GIZMO_GT_grab_3d")
         mpr.target_set_handler("offset", get=grab_get_cb, set=grab_set_cb)
 
         mpr.use_draw_value = True
@@ -161,7 +161,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
             op.plane_no = no
             op.execute(context)
 
-        mpr = self.gizmos.new("GIZMO_WT_dial_3d")
+        mpr = self.gizmos.new("GIZMO_GT_dial_3d")
         mpr.target_set_handler("offset", get=direction_get_cb, set=direction_set_cb)
         mpr.draw_options = {'ANGLE_START_Y'}
 

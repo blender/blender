@@ -86,18 +86,18 @@ static void gizmo_primitive_draw_geom(
 }
 
 static void gizmo_primitive_draw_intern(
-        wmGizmo *mpr, const bool UNUSED(select),
+        wmGizmo *gz, const bool UNUSED(select),
         const bool highlight)
 {
 	float color_inner[4], color_outer[4];
 	float matrix_final[4][4];
-	const int draw_style = RNA_enum_get(mpr->ptr, "draw_style");
+	const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
 
-	gizmo_color_get(mpr, highlight, color_outer);
+	gizmo_color_get(gz, highlight, color_outer);
 	copy_v4_v4(color_inner, color_outer);
 	color_inner[3] *= 0.5f;
 
-	WM_gizmo_calc_matrix_final(mpr, matrix_final);
+	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
@@ -108,8 +108,8 @@ static void gizmo_primitive_draw_intern(
 
 	gpuPopMatrix();
 
-	if (mpr->interaction_data) {
-		GizmoInteraction *inter = mpr->interaction_data;
+	if (gz->interaction_data) {
+		GizmoInteraction *inter = gz->interaction_data;
 
 		copy_v4_fl(color_inner, 0.5f);
 		copy_v3_fl(color_outer, 0.5f);
@@ -127,33 +127,33 @@ static void gizmo_primitive_draw_intern(
 }
 
 static void gizmo_primitive_draw_select(
-        const bContext *UNUSED(C), wmGizmo *mpr,
+        const bContext *UNUSED(C), wmGizmo *gz,
         int select_id)
 {
 	GPU_select_load_id(select_id);
-	gizmo_primitive_draw_intern(mpr, true, false);
+	gizmo_primitive_draw_intern(gz, true, false);
 }
 
-static void gizmo_primitive_draw(const bContext *UNUSED(C), wmGizmo *mpr)
+static void gizmo_primitive_draw(const bContext *UNUSED(C), wmGizmo *gz)
 {
 	gizmo_primitive_draw_intern(
-	        mpr, false,
-	        (mpr->state & WM_GIZMO_STATE_HIGHLIGHT));
+	        gz, false,
+	        (gz->state & WM_GIZMO_STATE_HIGHLIGHT));
 }
 
-static void gizmo_primitive_setup(wmGizmo *mpr)
+static void gizmo_primitive_setup(wmGizmo *gz)
 {
-	mpr->flag |= WM_GIZMO_DRAW_MODAL;
+	gz->flag |= WM_GIZMO_DRAW_MODAL;
 }
 
 static int gizmo_primitive_invoke(
-        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *UNUSED(event))
+        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *UNUSED(event))
 {
 	GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
 
-	WM_gizmo_calc_matrix_final(mpr, inter->init_matrix_final);
+	WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
 
-	mpr->interaction_data = inter;
+	gz->interaction_data = inter;
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -163,29 +163,29 @@ static int gizmo_primitive_invoke(
  *
  * \{ */
 
-static void GIZMO_WT_primitive_3d(wmGizmoType *wt)
+static void GIZMO_GT_primitive_3d(wmGizmoType *gzt)
 {
 	/* identifiers */
-	wt->idname = "GIZMO_WT_primitive_3d";
+	gzt->idname = "GIZMO_GT_primitive_3d";
 
 	/* api callbacks */
-	wt->draw = gizmo_primitive_draw;
-	wt->draw_select = gizmo_primitive_draw_select;
-	wt->setup = gizmo_primitive_setup;
-	wt->invoke = gizmo_primitive_invoke;
+	gzt->draw = gizmo_primitive_draw;
+	gzt->draw_select = gizmo_primitive_draw_select;
+	gzt->setup = gizmo_primitive_setup;
+	gzt->invoke = gizmo_primitive_invoke;
 
-	wt->struct_size = sizeof(wmGizmo);
+	gzt->struct_size = sizeof(wmGizmo);
 
 	static EnumPropertyItem rna_enum_draw_style[] = {
 		{ED_GIZMO_PRIMITIVE_STYLE_PLANE, "PLANE", 0, "Plane", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	RNA_def_enum(wt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_PRIMITIVE_STYLE_PLANE, "Draw Style", "");
+	RNA_def_enum(gzt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_PRIMITIVE_STYLE_PLANE, "Draw Style", "");
 }
 
 void ED_gizmotypes_primitive_3d(void)
 {
-	WM_gizmotype_append(GIZMO_WT_primitive_3d);
+	WM_gizmotype_append(GIZMO_GT_primitive_3d);
 }
 
 /** \} */

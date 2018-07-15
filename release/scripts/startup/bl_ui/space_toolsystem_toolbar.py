@@ -118,7 +118,7 @@ class _defs_view3d_generic:
         return dict(
             text="Ruler",
             icon="ops.view3d.ruler",
-            widget="VIEW3D_WGT_ruler",
+            widget="VIEW3D_GGT_ruler",
             keymap=(
                 ("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
             ),
@@ -133,7 +133,7 @@ class _defs_transform:
             text="Grab",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
-            widget="TRANSFORM_WGT_gizmo",
+            widget="TRANSFORM_GGT_gizmo",
             operator="transform.translate",
             # TODO, implement as optional fallback gizmo
             # keymap=(
@@ -147,7 +147,7 @@ class _defs_transform:
             text="Rotate",
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
-            widget="TRANSFORM_WGT_gizmo",
+            widget="TRANSFORM_GGT_gizmo",
             operator="transform.rotate",
             # TODO, implement as optional fallback gizmo
             # keymap=(
@@ -161,7 +161,7 @@ class _defs_transform:
             text="Scale",
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
-            widget="TRANSFORM_WGT_gizmo",
+            widget="TRANSFORM_GGT_gizmo",
             operator="transform.resize",
             # TODO, implement as optional fallback gizmo
             # keymap=(
@@ -174,7 +174,7 @@ class _defs_transform:
         return dict(
             text="Scale Cage",
             icon="ops.transform.resize.cage",
-            widget="VIEW3D_WGT_xform_cage",
+            widget="VIEW3D_GGT_xform_cage",
             operator="transform.resize",
         )
 
@@ -187,7 +187,7 @@ class _defs_transform:
         return dict(
             text="Transform",
             icon="ops.transform.transform",
-            widget="TRANSFORM_WGT_gizmo",
+            widget="TRANSFORM_GGT_gizmo",
             # No keymap default action, only for gizmo!
             draw_settings=draw_settings,
         )
@@ -462,7 +462,7 @@ class _defs_edit_mesh:
         return dict(
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
-            widget="MESH_WGT_extrude",
+            widget="MESH_GGT_extrude",
             operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(
                 ("mesh.extrude_context_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),

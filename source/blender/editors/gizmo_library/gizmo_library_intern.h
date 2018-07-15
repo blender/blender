@@ -76,25 +76,25 @@ float gizmo_value_from_offset(
         const bool constrained, const bool inverted, const bool use_precision);
 
 void gizmo_property_data_update(
-        struct wmGizmo *mpr, GizmoCommonData *data, wmGizmoProperty *mpr_prop,
+        struct wmGizmo *gz, GizmoCommonData *data, wmGizmoProperty *gz_prop,
         const bool constrained, const bool inverted);
 
 void  gizmo_property_value_reset(
-        bContext *C, const struct wmGizmo *mpr, GizmoInteraction *inter, wmGizmoProperty *mpr_prop);
+        bContext *C, const struct wmGizmo *gz, GizmoInteraction *inter, wmGizmoProperty *gz_prop);
 
 
 /* -------------------------------------------------------------------- */
 
 void gizmo_color_get(
-        const struct wmGizmo *mpr, const bool highlight,
+        const struct wmGizmo *gz, const bool highlight,
         float r_color[4]);
 
 bool gizmo_window_project_2d(
-        bContext *C, const struct wmGizmo *mpr, const float mval[2], int axis, bool use_offset,
+        bContext *C, const struct wmGizmo *gz, const float mval[2], int axis, bool use_offset,
         float r_co[2]);
 
 bool gizmo_window_project_3d(
-        bContext *C, const struct wmGizmo *mpr, const float mval[2], bool use_offset,
+        bContext *C, const struct wmGizmo *gz, const float mval[2], bool use_offset,
         float r_co[3]);
 
 /* -------------------------------------------------------------------- */

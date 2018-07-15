@@ -29,7 +29,7 @@ struct wmGizmoType;
 struct wmGizmoGroupType;
 
 /* exposed to rna/wm api */
-void BPY_RNA_gizmo_wrapper(struct wmGizmoType *wt, void *userdata);
-void BPY_RNA_gizmogroup_wrapper(struct wmGizmoGroupType *wgt, void *userdata);
+void BPY_RNA_gizmo_wrapper(struct wmGizmoType *gzt, void *userdata);
+void BPY_RNA_gizmogroup_wrapper(struct wmGizmoGroupType *gzgt, void *userdata);
 
 #endif  /* __BPY_GIZMO_WRAP_H__ */

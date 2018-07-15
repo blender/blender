@@ -11,7 +11,7 @@ from bpy.types import (
 
 
 class MyLightWidgetGroup(GizmoGroup):
-    bl_idname = "OBJECT_WGT_light_test"
+    bl_idname = "OBJECT_GGT_light_test"
     bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -25,7 +25,7 @@ class MyLightWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Arrow gizmo has one 'offset' property we can assign to the light energy.
         ob = context.object
-        mpr = self.gizmos.new("GIZMO_WT_arrow_3d")
+        mpr = self.gizmos.new("GIZMO_GGT_arrow_3d")
         mpr.target_set_prop("offset", ob.data, "energy")
         mpr.matrix_basis = ob.matrix_world.normalized()
         mpr.draw_style = 'BOX'

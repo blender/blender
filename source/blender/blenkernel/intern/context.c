@@ -876,9 +876,9 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
 	C->wm.menu = menu;
 }
 
-void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *mgroup)
+void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup)
 {
-	C->wm.gizmo_group = mgroup;
+	C->wm.gizmo_group = gzgroup;
 }
 
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)

@@ -168,9 +168,9 @@ static void draw_xyz_wire(
 	immEnd();
 }
 
-static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool UNUSED(select))
+static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool UNUSED(select))
 {
-	GPU_line_width(mpr->line_width);
+	GPU_line_width(gz->line_width);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	const uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
@@ -182,12 +182,12 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 		char axis;
 		char is_pos;
 	} axis_order[6] = {
-		{-mpr->matrix_offset[0][2], 0, 0, false},
-		{+mpr->matrix_offset[0][2], 1, 0, true},
-		{-mpr->matrix_offset[1][2], 2, 1, false},
-		{+mpr->matrix_offset[1][2], 3, 1, true},
-		{-mpr->matrix_offset[2][2], 4, 2, false},
-		{+mpr->matrix_offset[2][2], 5, 2, true},
+		{-gz->matrix_offset[0][2], 0, 0, false},
+		{+gz->matrix_offset[0][2], 1, 0, true},
+		{-gz->matrix_offset[1][2], 2, 1, false},
+		{+gz->matrix_offset[1][2], 3, 1, true},
+		{-gz->matrix_offset[2][2], 4, 2, false},
+		{+gz->matrix_offset[2][2], 5, 2, true},
 	};
 	qsort(&axis_order, ARRAY_SIZE(axis_order), sizeof(axis_order[0]), BLI_sortutil_cmp_float);
 
@@ -196,13 +196,13 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 	static const float axis_black[4] = {0, 0, 0, 1};
 	static float axis_color[3][4];
 	gpuPushMatrix();
-	gpuMultMatrix(mpr->matrix_offset);
+	gpuMultMatrix(gz->matrix_offset);
 
 	bool draw_center_done = false;
 
 	int axis_align = -1;
 	for (int axis = 0; axis < 3; axis++) {
-		if (len_squared_v2(mpr->matrix_offset[axis]) < 1e-6f) {
+		if (len_squared_v2(gz->matrix_offset[axis]) < 1e-6f) {
 			axis_align = axis;
 			break;
 		}
@@ -212,7 +212,7 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 		const int index = axis_order[axis_index].index;
 		const int axis = axis_order[axis_index].axis;
 		const bool is_pos = axis_order[axis_index].is_pos;
-		const bool is_highlight = index + 1 == mpr->highlight_part;
+		const bool is_highlight = index + 1 == gz->highlight_part;
 
 		/* Draw slightly before, so axis aligned arrows draw ontop. */
 		if ((draw_center_done == false) && (axis_order[axis_index].depth > -0.01f)) {
@@ -223,7 +223,7 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 				immUniformColor4fv(color);
 				imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
 				gpuPushMatrix();
-				gpuMultMatrix(mpr->matrix_offset);
+				gpuMultMatrix(gz->matrix_offset);
 			}
 			draw_center_done = true;
 		}
@@ -237,7 +237,7 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 		bool ok = true;
 
 		/* skip view align axis */
-		if ((axis_align == axis) && (mpr->matrix_offset[axis][2] > 0.0f) == is_pos) {
+		if ((axis_align == axis) && (gz->matrix_offset[axis][2] > 0.0f) == is_pos) {
 			ok = false;
 		}
 		if (ok) {
@@ -291,7 +291,7 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 			if (is_pos) {
 				GPU_line_width(1.0f);
 				float m3[3][3];
-				copy_m3_m4(m3, mpr->matrix_offset);
+				copy_m3_m4(m3, gz->matrix_offset);
 				immUniformColor4fv(is_highlight ? axis_black : axis_highlight);
 				draw_xyz_wire(pos_id, m3, v_final, 1.0, axis);
 			}
@@ -303,17 +303,17 @@ static void axis_geom_draw(const wmGizmo *mpr, const float color[4], const bool 
 }
 
 static void axis3d_draw_intern(
-        const bContext *UNUSED(C), wmGizmo *mpr,
+        const bContext *UNUSED(C), wmGizmo *gz,
         const bool select, const bool highlight)
 {
-	const float *color = highlight ? mpr->color_hi : mpr->color;
+	const float *color = highlight ? gz->color_hi : gz->color;
 	float matrix_final[4][4];
 	float matrix_unit[4][4];
 
 	unit_m4(matrix_unit);
 
 	WM_gizmo_calc_matrix_final_params(
-	        mpr,
+	        gz,
 	        &((struct WM_GizmoMatrixParams) {
 	            .matrix_offset = matrix_unit,
 	        }), matrix_final);
@@ -322,29 +322,29 @@ static void axis3d_draw_intern(
 	gpuMultMatrix(matrix_final);
 
 	GPU_blend(true);
-	axis_geom_draw(mpr, color, select);
+	axis_geom_draw(gz, color, select);
 	GPU_blend(false);
 	gpuPopMatrix();
 }
 
-static void gizmo_axis_draw(const bContext *C, wmGizmo *mpr)
+static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
 {
-	const bool is_modal = mpr->state & WM_GIZMO_STATE_MODAL;
-	const bool is_highlight = (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
+	const bool is_modal = gz->state & WM_GIZMO_STATE_MODAL;
+	const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	(void)is_modal;
 
 	GPU_blend(true);
-	axis3d_draw_intern(C, mpr, false, is_highlight);
+	axis3d_draw_intern(C, gz, false, is_highlight);
 	GPU_blend(false);
 }
 
 static int gizmo_axis_test_select(
-        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
+        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
 	float point_local[2] = {UNPACK2(event->mval)};
-	sub_v2_v2(point_local, mpr->matrix_basis[3]);
-	mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * UI_DPI_FAC));
+	sub_v2_v2(point_local, gz->matrix_basis[3]);
+	mul_v2_fl(point_local, 1.0f / (gz->scale_basis * UI_DPI_FAC));
 
 	const float len_sq = len_squared_v2(point_local);
 	if (len_sq > 1.0) {
@@ -358,14 +358,14 @@ static int gizmo_axis_test_select(
 	for (int i = 0; i < 3; i++) {
 		for (int is_pos = 0; is_pos < 2; is_pos++) {
 			float co[2] = {
-				mpr->matrix_offset[i][0] * (is_pos ? 1 : -1),
-				mpr->matrix_offset[i][1] * (is_pos ? 1 : -1),
+				gz->matrix_offset[i][0] * (is_pos ? 1 : -1),
+				gz->matrix_offset[i][1] * (is_pos ? 1 : -1),
 			};
 
 			bool ok = true;
 
 			/* Check if we're viewing on an axis, there is no point to clicking on the current axis so show the reverse. */
-			if (len_squared_v2(co) < 1e-6f && (mpr->matrix_offset[i][2] > 0.0f) == is_pos) {
+			if (len_squared_v2(co) < 1e-6f && (gz->matrix_offset[i][2] > 0.0f) == is_pos) {
 				ok = false;
 			}
 
@@ -384,7 +384,7 @@ static int gizmo_axis_test_select(
 		return part_best;
 	}
 
-	/* The 'mpr->scale_final' is already applied when projecting. */
+	/* The 'gz->scale_final' is already applied when projecting. */
 	if (len_sq < 1.0f) {
 		return 0;
 	}
@@ -392,23 +392,23 @@ static int gizmo_axis_test_select(
 	return -1;
 }
 
-static int gizmo_axis_cursor_get(wmGizmo *mpr)
+static int gizmo_axis_cursor_get(wmGizmo *gz)
 {
-	if (mpr->highlight_part > 0) {
+	if (gz->highlight_part > 0) {
 		return CURSOR_EDIT;
 	}
 	return BC_NSEW_SCROLLCURSOR;
 }
 
-void VIEW3D_WT_navigate_rotate(wmGizmoType *wt)
+void VIEW3D_GT_navigate_rotate(wmGizmoType *gzt)
 {
 	/* identifiers */
-	wt->idname = "VIEW3D_WT_navigate_rotate";
+	gzt->idname = "VIEW3D_GT_navigate_rotate";
 
 	/* api callbacks */
-	wt->draw = gizmo_axis_draw;
-	wt->test_select = gizmo_axis_test_select;
-	wt->cursor_get = gizmo_axis_cursor_get;
+	gzt->draw = gizmo_axis_draw;
+	gzt->test_select = gizmo_axis_test_select;
+	gzt->cursor_get = gizmo_axis_cursor_get;
 
-	wt->struct_size = sizeof(wmGizmo);
+	gzt->struct_size = sizeof(wmGizmo);
 }

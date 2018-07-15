@@ -1137,13 +1137,13 @@ static void gizmo_line_range(const int twtype, const short axis_type, float *r_s
 }
 
 static void gizmo_xform_message_subscribe(
-        wmGizmoGroup *mgroup, struct wmMsgBus *mbus,
+        wmGizmoGroup *gzgroup, struct wmMsgBus *mbus,
         Scene *scene, bScreen *UNUSED(screen), ScrArea *UNUSED(sa), ARegion *ar, const void *type_fn)
 {
 	/* Subscribe to view properties */
-	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
-		.user_data = mgroup->parent_mmap,
+		.user_data = gzgroup->parent_gzmap,
 		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
@@ -1159,7 +1159,7 @@ static void gizmo_xform_message_subscribe(
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			if (props[i]) {
-				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
 			}
 		}
 	}
@@ -1167,7 +1167,7 @@ static void gizmo_xform_message_subscribe(
 	PointerRNA toolsettings_ptr;
 	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
-	if (type_fn == TRANSFORM_WGT_gizmo) {
+	if (type_fn == TRANSFORM_GGT_gizmo) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
 		extern PropertyRNA rna_ToolSettings_use_gizmo_mode;
 		const PropertyRNA *props[] = {
@@ -1175,17 +1175,17 @@ static void gizmo_xform_message_subscribe(
 			&rna_ToolSettings_use_gizmo_mode,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
 		}
 	}
-	else if (type_fn == VIEW3D_WGT_xform_cage) {
+	else if (type_fn == VIEW3D_GGT_xform_cage) {
 		/* pass */
 	}
 	else {
 		BLI_assert(0);
 	}
 
-	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_mpr_tag_refresh);
+	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_gz_tag_refresh);
 }
 
 /** \} */
@@ -1195,26 +1195,26 @@ static void gizmo_xform_message_subscribe(
 /** \name Transform Gizmo
  * \{ */
 
-static GizmoGroup *gizmogroup_init(wmGizmoGroup *mgroup)
+static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 {
 	GizmoGroup *man;
 
 	man = MEM_callocN(sizeof(GizmoGroup), "gizmo_data");
 
-	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_3d", true);
-	const wmGizmoType *wt_dial = WM_gizmotype_find("GIZMO_WT_dial_3d", true);
-	const wmGizmoType *wt_prim = WM_gizmotype_find("GIZMO_WT_primitive_3d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
+	const wmGizmoType *gzt_prim = WM_gizmotype_find("GIZMO_GT_primitive_3d", true);
 
 #define GIZMO_NEW_ARROW(v, draw_style) { \
-	man->gizmos[v] = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL); \
+	man->gizmos[v] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL); \
 	RNA_enum_set(man->gizmos[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
 #define GIZMO_NEW_DIAL(v, draw_options) { \
-	man->gizmos[v] = WM_gizmo_new_ptr(wt_dial, mgroup, NULL); \
+	man->gizmos[v] = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL); \
 	RNA_enum_set(man->gizmos[v]->ptr, "draw_options", draw_options); \
 } ((void)0)
 #define GIZMO_NEW_PRIM(v, draw_style) { \
-	man->gizmos[v] = WM_gizmo_new_ptr(wt_prim, mgroup, NULL); \
+	man->gizmos[v] = WM_gizmo_new_ptr(gzt_prim, gzgroup, NULL); \
 	RNA_enum_set(man->gizmos[v]->ptr, "draw_style", draw_style); \
 } ((void)0)
 
@@ -1286,12 +1286,12 @@ static int gizmo_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *mgroup)
+static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 {
 	struct {
 		wmOperatorType *translate, *rotate, *trackball, *resize;
 	} ot_store = {NULL};
-	GizmoGroup *man = mgroup->customdata;
+	GizmoGroup *man = gzgroup->customdata;
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
 		const short axis_type = gizmo_get_axis_type(axis_idx);
@@ -1406,11 +1406,11 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *mgroup)
 	MAN_ITER_AXES_END;
 }
 
-static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoGroup *man = gizmogroup_init(mgroup);
+	GizmoGroup *man = gizmogroup_init(gzgroup);
 
-	mgroup->customdata = man;
+	gzgroup->customdata = man;
 
 	{
 		man->twtype = 0;
@@ -1436,12 +1436,12 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *mgroup)
 	}
 
 	/* *** set properties for axes *** */
-	gizmogroup_init_properties_from_twtype(mgroup);
+	gizmogroup_init_properties_from_twtype(gzgroup);
 }
 
-static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoGroup *man = mgroup->customdata;
+	GizmoGroup *man = gzgroup->customdata;
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1453,7 +1453,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *mgroup)
 		man->twtype = scene->toolsettings->gizmo_flag & man->twtype_init;
 		if (man->twtype != man->twtype_prev) {
 			man->twtype_prev = man->twtype;
-			gizmogroup_init_properties_from_twtype(mgroup);
+			gizmogroup_init_properties_from_twtype(gzgroup);
 		}
 	}
 
@@ -1527,18 +1527,18 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *mgroup)
 }
 
 static void WIDGETGROUP_gizmo_message_subscribe(
-        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
 	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	gizmo_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, TRANSFORM_WGT_gizmo);
+	gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, ar, TRANSFORM_GGT_gizmo);
 }
 
-static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoGroup *man = mgroup->customdata;
+	GizmoGroup *man = gzgroup->customdata;
 	// ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	// View3D *v3d = sa->spacedata.first;
@@ -1588,39 +1588,39 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *mgro
 	MAN_ITER_AXES_END;
 }
 
-static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *wgt)
+static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt)
 {
 	/* it's a given we only use this in 3D view */
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
-	    !STREQ(wgt->idname, tref_rt->gizmo_group))
+	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
 	{
-		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
+	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		return false;
 	}
 	return true;
 }
 
-void TRANSFORM_WGT_gizmo(wmGizmoGroupType *wgt)
+void TRANSFORM_GGT_gizmo(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Transform Gizmo";
-	wgt->idname = "TRANSFORM_WGT_gizmo";
+	gzgt->name = "Transform Gizmo";
+	gzgt->idname = "TRANSFORM_GGT_gizmo";
 
-	wgt->flag |= WM_GIZMOGROUPTYPE_3D;
+	gzgt->flag |= WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = WIDGETGROUP_gizmo_poll;
-	wgt->setup = WIDGETGROUP_gizmo_setup;
-	wgt->refresh = WIDGETGROUP_gizmo_refresh;
-	wgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
-	wgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
+	gzgt->poll = WIDGETGROUP_gizmo_poll;
+	gzgt->setup = WIDGETGROUP_gizmo_setup;
+	gzgt->refresh = WIDGETGROUP_gizmo_refresh;
+	gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
+	gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
 }
 
 /** \} */
@@ -1634,31 +1634,31 @@ struct XFormCageWidgetGroup {
 	wmGizmo *gizmo;
 };
 
-static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *wgt)
+static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if (!STREQ(wgt->idname, tref_rt->gizmo_group)) {
-		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
+	if (!STREQ(gzgt->idname, tref_rt->gizmo_group)) {
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
-static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	struct XFormCageWidgetGroup *xmgroup = MEM_mallocN(sizeof(struct XFormCageWidgetGroup), __func__);
-	const wmGizmoType *wt_cage = WM_gizmotype_find("GIZMO_WT_cage_3d", true);
-	xmgroup->gizmo = WM_gizmo_new_ptr(wt_cage, mgroup, NULL);
-	wmGizmo *mpr = xmgroup->gizmo;
+	struct XFormCageWidgetGroup *xgzgroup = MEM_mallocN(sizeof(struct XFormCageWidgetGroup), __func__);
+	const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
+	xgzgroup->gizmo = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
+	wmGizmo *gz = xgzgroup->gizmo;
 
-	RNA_enum_set(mpr->ptr, "transform",
+	RNA_enum_set(gz->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE);
 
-	mpr->color[0] = 1;
-	mpr->color_hi[0] = 1;
+	gz->color[0] = 1;
+	gz->color_hi[0] = 1;
 
-	mgroup->customdata = xmgroup;
+	gzgroup->customdata = xgzgroup;
 
 	{
 		wmOperatorType *ot_resize = WM_operatortype_find("TRANSFORM_OT_resize", true);
@@ -1673,7 +1673,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup
 			for (int y = 0; y < 3; y++) {
 				for (int z = 0; z < 3; z++) {
 					bool constraint[3] = {x != 1, y != 1, z != 1};
-					ptr = WM_gizmo_operator_set(mpr, i, ot_resize, NULL);
+					ptr = WM_gizmo_operator_set(gz, i, ot_resize, NULL);
 					if (prop_release_confirm == NULL) {
 						prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
 						prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
@@ -1687,15 +1687,15 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmGizmoGroup
 	}
 }
 
-static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
 
-	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
-	wmGizmo *mpr = xmgroup->gizmo;
+	struct XFormCageWidgetGroup *xgzgroup = gzgroup->customdata;
+	wmGizmo *gz = xgzgroup->gizmo;
 
 	struct TransformBounds tbounds;
 
@@ -1705,22 +1705,22 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *mgro
 	             }, &tbounds) == 0) ||
 	    equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
 	{
-		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, true);
+		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
 	}
 	else {
 		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
 
-		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
-		WM_gizmo_set_flag(mpr, WM_GIZMO_GRAB_CURSOR, true);
+		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+		WM_gizmo_set_flag(gz, WM_GIZMO_GRAB_CURSOR, true);
 
 		float dims[3];
 		sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);
-		RNA_float_set_array(mpr->ptr, "dimensions", dims);
+		RNA_float_set_array(gz->ptr, "dimensions", dims);
 		mul_v3_fl(dims, 0.5f);
 
-		copy_m4_m3(mpr->matrix_offset, rv3d->tw_axis_matrix);
-		mid_v3_v3v3(mpr->matrix_offset[3], rv3d->tw_axis_max, rv3d->tw_axis_min);
-		mul_m3_v3(rv3d->tw_axis_matrix, mpr->matrix_offset[3]);
+		copy_m4_m3(gz->matrix_offset, rv3d->tw_axis_matrix);
+		mid_v3_v3v3(gz->matrix_offset[3], rv3d->tw_axis_max, rv3d->tw_axis_min);
+		mul_m3_v3(rv3d->tw_axis_matrix, gz->matrix_offset[3]);
 
 		PropertyRNA *prop_center_override = NULL;
 		float center[3];
@@ -1732,11 +1732,11 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *mgro
 				center[1] = (float)(1 - y) * dims[1];
 				for (int z = 0; z < 3; z++) {
 					center[2] = (float)(1 - z) * dims[2];
-					struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(mpr, i);
+					struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, i);
 					if (prop_center_override == NULL) {
 						prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
 					}
-					mul_v3_m4v3(center_global, mpr->matrix_offset, center);
+					mul_v3_m4v3(center_global, gz->matrix_offset, center);
 					RNA_property_float_set_array(&mpop->ptr, prop_center_override, center_global);
 					i++;
 				}
@@ -1746,45 +1746,45 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *mgro
 }
 
 static void WIDGETGROUP_xform_cage_message_subscribe(
-        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
 	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	gizmo_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, VIEW3D_WGT_xform_cage);
+	gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, ar, VIEW3D_GGT_xform_cage);
 }
 
-static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
-	wmGizmo *mpr = xmgroup->gizmo;
+	struct XFormCageWidgetGroup *xgzgroup = gzgroup->customdata;
+	wmGizmo *gz = xgzgroup->gizmo;
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 	if (ob && ob->mode & OB_MODE_EDIT) {
-		copy_m4_m4(mpr->matrix_space, ob->obmat);
+		copy_m4_m4(gz->matrix_space, ob->obmat);
 	}
 	else {
-		unit_m4(mpr->matrix_space);
+		unit_m4(gz->matrix_space);
 	}
 }
 
-void VIEW3D_WGT_xform_cage(wmGizmoGroupType *wgt)
+void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Transform Cage";
-	wgt->idname = "VIEW3D_WGT_xform_cage";
+	gzgt->name = "Transform Cage";
+	gzgt->idname = "VIEW3D_GGT_xform_cage";
 
-	wgt->flag |= WM_GIZMOGROUPTYPE_3D;
+	gzgt->flag |= WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = WIDGETGROUP_xform_cage_poll;
-	wgt->setup = WIDGETGROUP_xform_cage_setup;
-	wgt->refresh = WIDGETGROUP_xform_cage_refresh;
-	wgt->message_subscribe = WIDGETGROUP_xform_cage_message_subscribe;
-	wgt->draw_prepare = WIDGETGROUP_xform_cage_draw_prepare;
+	gzgt->poll = WIDGETGROUP_xform_cage_poll;
+	gzgt->setup = WIDGETGROUP_xform_cage_setup;
+	gzgt->refresh = WIDGETGROUP_xform_cage_refresh;
+	gzgt->message_subscribe = WIDGETGROUP_xform_cage_message_subscribe;
+	gzgt->draw_prepare = WIDGETGROUP_xform_cage_draw_prepare;
 }
 
 /** \} */

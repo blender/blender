@@ -63,7 +63,7 @@ custom_shape_verts = (
 
 
 class MyCustomShapeWidget(Gizmo):
-    bl_idname = "VIEW3D_WT_auto_facemap"
+    bl_idname = "VIEW3D_GT_auto_facemap"
     bl_target_properties = (
         {"id": "offset", "type": 'FLOAT', "array_length": 1},
     )
@@ -113,7 +113,7 @@ class MyCustomShapeWidget(Gizmo):
 
 
 class MyCustomShapeWidgetGroup(GizmoGroup):
-    bl_idname = "OBJECT_WGT_light_test"
+    bl_idname = "OBJECT_GGT_light_test"
     bl_label = "Test Light Widget"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'

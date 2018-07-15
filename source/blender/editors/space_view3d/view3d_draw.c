@@ -1207,7 +1207,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 	if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
 	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
 	    /* No need to display gizmo and this info. */
-	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
 		/* pass */
 	}

@@ -2395,8 +2395,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 			else if (handler->gizmo_map) {
 				ScrArea *area = CTX_wm_area(C);
 				ARegion *region = CTX_wm_region(C);
-				wmGizmoMap *mmap = handler->gizmo_map;
-				wmGizmo *mpr = wm_gizmomap_highlight_get(mmap);
+				wmGizmoMap *gzmap = handler->gizmo_map;
+				wmGizmo *gz = wm_gizmomap_highlight_get(gzmap);
 
 				if (region->gizmo_map != handler->gizmo_map) {
 					WM_gizmomap_tag_refresh(handler->gizmo_map);
@@ -2406,10 +2406,10 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 				wm_region_mouse_co(C, event);
 
 				/* handle gizmo highlighting */
-				if (event->type == MOUSEMOVE && !wm_gizmomap_modal_get(mmap)) {
+				if (event->type == MOUSEMOVE && !wm_gizmomap_modal_get(gzmap)) {
 					int part;
-					mpr = wm_gizmomap_highlight_find(mmap, C, event, &part);
-					if (wm_gizmomap_highlight_set(mmap, C, mpr, part) && mpr != NULL) {
+					gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
+					if (wm_gizmomap_highlight_set(gzmap, C, gz, part) && gz != NULL) {
 						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
 					}
 				}
@@ -2417,45 +2417,45 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					/* Either we operate on a single highlighted item
 					 * or groups attached to the selected gizmos.
 					 * To simplify things both cases loop over an array of items. */
-					wmGizmoGroup *mgroup_first;
-					bool is_mgroup_single;
+					wmGizmoGroup *gzgroup_first;
+					bool is_gzgroup_single;
 
 					if (ISMOUSE(event->type)) {
-						/* Keep mpr set as-is, just fake single selection. */
-						if (mpr) {
-							mgroup_first = mpr->parent_mgroup;
+						/* Keep gz set as-is, just fake single selection. */
+						if (gz) {
+							gzgroup_first = gz->parent_gzgroup;
 						}
 						else {
-							mgroup_first = NULL;
+							gzgroup_first = NULL;
 						}
-						is_mgroup_single = true;
+						is_gzgroup_single = true;
 					}
 					else {
-						if (WM_gizmomap_is_any_selected(mmap)) {
-							const ListBase *groups = WM_gizmomap_group_list(mmap);
-							mgroup_first = groups->first;
+						if (WM_gizmomap_is_any_selected(gzmap)) {
+							const ListBase *groups = WM_gizmomap_group_list(gzmap);
+							gzgroup_first = groups->first;
 						}
 						else {
-							mgroup_first = NULL;
+							gzgroup_first = NULL;
 						}
-						is_mgroup_single = false;
+						is_gzgroup_single = false;
 					}
 
 					/* Don't use from now on. */
-					mpr = NULL;
+					gz = NULL;
 
-					for (wmGizmoGroup *mgroup = mgroup_first; mgroup; mgroup = mgroup->next) {
+					for (wmGizmoGroup *gzgroup = gzgroup_first; gzgroup; gzgroup = gzgroup->next) {
 						/* get user customized keymap from default one */
 
-						if ((is_mgroup_single == false) &&
+						if ((is_gzgroup_single == false) &&
 						    /* We might want to change the logic here and use some kind of gizmo edit-mode.
 						     * For now just use keymap when a selection exists. */
-						    wm_gizmogroup_is_any_selected(mgroup) == false)
+						    wm_gizmogroup_is_any_selected(gzgroup) == false)
 						{
 							continue;
 						}
 
-						wmKeyMap *keymap = WM_keymap_active(wm, mgroup->type->keymap);
+						wmKeyMap *keymap = WM_keymap_active(wm, gzgroup->type->keymap);
 						wmKeyMapItem *kmi;
 
 						PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
@@ -2472,7 +2472,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									/* weak, but allows interactive callback to not use rawkey */
 									event->keymap_idname = kmi->idname;
 
-									CTX_wm_gizmo_group_set(C, mgroup);
+									CTX_wm_gizmo_group_set(C, gzgroup);
 
 									/* handler->op is called later, we want keymap op to be triggered here */
 									handler->op = NULL;
@@ -2515,7 +2515,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							break;
 						}
 
-						if (is_mgroup_single) {
+						if (is_gzgroup_single) {
 							break;
 						}
 					}

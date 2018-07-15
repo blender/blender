@@ -132,8 +132,8 @@ static void toolsystem_unlink_ref(bContext *C, WorkSpace *workspace, bToolRef *t
 	bToolRef_Runtime *tref_rt = tref->runtime;
 
 	if (tref_rt->gizmo_group[0]) {
-		wmGizmoGroupType *wgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
-		if (wgt != NULL) {
+		wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(tref_rt->gizmo_group, false);
+		if (gzgt != NULL) {
 			bool found = false;
 
 			/* TODO(campbell) */
@@ -154,8 +154,8 @@ static void toolsystem_unlink_ref(bContext *C, WorkSpace *workspace, bToolRef *t
 			UNUSED_VARS(workspace);
 #endif
 			if (!found) {
-				wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(&wgt->mmap_params);
-				WM_gizmomaptype_group_unlink(C, bmain, mmap_type, wgt);
+				wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(&gzgt->gzmap_params);
+				WM_gizmomaptype_group_unlink(C, bmain, gzmap_type, gzgt);
 			}
 		}
 	}
@@ -173,9 +173,9 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 	bToolRef_Runtime *tref_rt = tref->runtime;
 	if (tref_rt->gizmo_group[0]) {
 		const char *idname = tref_rt->gizmo_group;
-		wmGizmoGroupType *wgt = WM_gizmogrouptype_find(idname, false);
-		if (wgt != NULL) {
-			WM_gizmo_group_type_ensure_ptr(wgt);
+		wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
+		if (gzgt != NULL) {
+			WM_gizmo_group_type_ensure_ptr(gzgt);
 		}
 		else {
 			CLOG_WARN(WM_LOG_TOOLS, "'%s' widget not found", idname);

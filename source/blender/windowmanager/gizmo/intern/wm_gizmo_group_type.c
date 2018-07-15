@@ -54,11 +54,11 @@ static GHash *global_gizmogrouptype_hash = NULL;
 wmGizmoGroupType *WM_gizmogrouptype_find(const char *idname, bool quiet)
 {
 	if (idname[0]) {
-		wmGizmoGroupType *wgt;
+		wmGizmoGroupType *gzgt;
 
-		wgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
-		if (wgt) {
-			return wgt;
+		gzgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
+		if (gzgt) {
+			return gzgt;
 		}
 
 		if (!quiet) {
@@ -82,46 +82,46 @@ void WM_gizmogrouptype_iter(GHashIterator *ghi)
 
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin(void)
 {
-	wmGizmoGroupType *wgt = MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype");
+	wmGizmoGroupType *gzgt = MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype");
 
-	return wgt;
+	return gzgt;
 }
-static void wm_gizmogrouptype_append__end(wmGizmoGroupType *wgt)
+static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
 {
-	BLI_assert(wgt->name != NULL);
-	BLI_assert(wgt->idname != NULL);
+	BLI_assert(gzgt->name != NULL);
+	BLI_assert(gzgt->idname != NULL);
 
-	wgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
+	gzgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 
 	/* if not set, use default */
-	if (wgt->setup_keymap == NULL) {
-		if (wgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
-			wgt->setup_keymap = WM_gizmogroup_keymap_common_select;
+	if (gzgt->setup_keymap == NULL) {
+		if (gzgt->flag & WM_GIZMOGROUPTYPE_SELECT) {
+			gzgt->setup_keymap = WM_gizmogroup_keymap_common_select;
 		}
 		else {
-			wgt->setup_keymap = WM_gizmogroup_keymap_common;
+			gzgt->setup_keymap = WM_gizmogroup_keymap_common;
 		}
 	}
 
-	BLI_ghash_insert(global_gizmogrouptype_hash, (void *)wgt->idname, wgt);
+	BLI_ghash_insert(global_gizmogrouptype_hash, (void *)gzgt->idname, gzgt);
 }
 
 wmGizmoGroupType *WM_gizmogrouptype_append(
         void (*wtfunc)(struct wmGizmoGroupType *))
 {
-	wmGizmoGroupType *wgt = wm_gizmogrouptype_append__begin();
-	wtfunc(wgt);
-	wm_gizmogrouptype_append__end(wgt);
-	return wgt;
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_append__begin();
+	wtfunc(gzgt);
+	wm_gizmogrouptype_append__end(gzgt);
+	return gzgt;
 }
 
 wmGizmoGroupType *WM_gizmogrouptype_append_ptr(
         void (*wtfunc)(struct wmGizmoGroupType *, void *), void *userdata)
 {
-	wmGizmoGroupType *wgt = wm_gizmogrouptype_append__begin();
-	wtfunc(wgt, userdata);
-	wm_gizmogrouptype_append__end(wgt);
-	return wgt;
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_append__begin();
+	wtfunc(gzgt, userdata);
+	wm_gizmogrouptype_append__end(gzgt);
+	return gzgt;
 }
 
 /**
@@ -129,56 +129,56 @@ wmGizmoGroupType *WM_gizmogrouptype_append_ptr(
  * This is most common for C gizmos which are enabled by default.
  */
 wmGizmoGroupTypeRef *WM_gizmogrouptype_append_and_link(
-        wmGizmoMapType *mmap_type,
+        wmGizmoMapType *gzmap_type,
         void (*wtfunc)(struct wmGizmoGroupType *))
 {
-	wmGizmoGroupType *wgt = WM_gizmogrouptype_append(wtfunc);
+	wmGizmoGroupType *gzgt = WM_gizmogrouptype_append(wtfunc);
 
-	wgt->mmap_params.spaceid = mmap_type->spaceid;
-	wgt->mmap_params.regionid = mmap_type->regionid;
+	gzgt->gzmap_params.spaceid = gzmap_type->spaceid;
+	gzgt->gzmap_params.regionid = gzmap_type->regionid;
 
-	return WM_gizmomaptype_group_link_ptr(mmap_type, wgt);
+	return WM_gizmomaptype_group_link_ptr(gzmap_type, gzgt);
 }
 
 /**
  * Free but don't remove from ghash.
  */
-static void gizmogrouptype_free(wmGizmoGroupType *wgt)
+static void gizmogrouptype_free(wmGizmoGroupType *gzgt)
 {
-	if (wgt->ext.srna) { /* python gizmo group, allocs own string */
-		MEM_freeN((void *)wgt->idname);
+	if (gzgt->ext.srna) { /* python gizmo group, allocs own string */
+		MEM_freeN((void *)gzgt->idname);
 	}
 
-	MEM_freeN(wgt);
+	MEM_freeN(gzgt);
 }
 
-void WM_gizmogrouptype_free_ptr(wmGizmoGroupType *wgt)
+void WM_gizmogrouptype_free_ptr(wmGizmoGroupType *gzgt)
 {
-	BLI_assert(wgt == WM_gizmogrouptype_find(wgt->idname, false));
+	BLI_assert(gzgt == WM_gizmogrouptype_find(gzgt->idname, false));
 
-	BLI_ghash_remove(global_gizmogrouptype_hash, wgt->idname, NULL, NULL);
+	BLI_ghash_remove(global_gizmogrouptype_hash, gzgt->idname, NULL, NULL);
 
-	gizmogrouptype_free(wgt);
+	gizmogrouptype_free(gzgt);
 
 	/* XXX, TODO, update the world! */
 }
 
 bool WM_gizmogrouptype_free(const char *idname)
 {
-	wmGizmoGroupType *wgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
+	wmGizmoGroupType *gzgt = BLI_ghash_lookup(global_gizmogrouptype_hash, idname);
 
-	if (wgt == NULL) {
+	if (gzgt == NULL) {
 		return false;
 	}
 
-	WM_gizmogrouptype_free_ptr(wgt);
+	WM_gizmogrouptype_free_ptr(gzgt);
 
 	return true;
 }
 
-static void wm_gizmogrouptype_ghash_free_cb(wmGizmoGroupType *wgt)
+static void wm_gizmogrouptype_ghash_free_cb(wmGizmoGroupType *gzgt)
 {
-	gizmogrouptype_free(wgt);
+	gizmogrouptype_free(gzgt);
 }
 
 void wm_gizmogrouptype_free(void)

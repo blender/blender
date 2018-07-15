@@ -63,20 +63,20 @@ struct EmptyImageWidgetGroup {
 
 /* translate callbacks */
 static void gizmo_empty_image_prop_matrix_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
 	float (*matrix)[4] = value_p;
-	BLI_assert(mpr_prop->type->array_length == 16);
-	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
-	const Object *ob = imgroup->state.ob;
+	BLI_assert(gz_prop->type->array_length == 16);
+	struct EmptyImageWidgetGroup *igzgroup = gz_prop->custom_func.user_data;
+	const Object *ob = igzgroup->state.ob;
 
 	unit_m4(matrix);
 	matrix[0][0] = ob->empty_drawsize;
 	matrix[1][1] = ob->empty_drawsize;
 
 	float dims[2] = {0.0f, 0.0f};
-	RNA_float_get_array(mpr->ptr, "dimensions", dims);
+	RNA_float_get_array(gz->ptr, "dimensions", dims);
 	dims[0] *= ob->empty_drawsize;
 	dims[1] *= ob->empty_drawsize;
 
@@ -85,18 +85,18 @@ static void gizmo_empty_image_prop_matrix_get(
 }
 
 static void gizmo_empty_image_prop_matrix_set(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
-	BLI_assert(mpr_prop->type->array_length == 16);
-	struct EmptyImageWidgetGroup *imgroup = mpr_prop->custom_func.user_data;
-	Object *ob = imgroup->state.ob;
+	BLI_assert(gz_prop->type->array_length == 16);
+	struct EmptyImageWidgetGroup *igzgroup = gz_prop->custom_func.user_data;
+	Object *ob = igzgroup->state.ob;
 
 	ob->empty_drawsize = matrix[0][0];
 
 	float dims[2];
-	RNA_float_get_array(mpr->ptr, "dimensions", dims);
+	RNA_float_get_array(gz->ptr, "dimensions", dims);
 	dims[0] *= ob->empty_drawsize;
 	dims[1] *= ob->empty_drawsize;
 
@@ -104,12 +104,12 @@ static void gizmo_empty_image_prop_matrix_set(
 	ob->ima_ofs[1] = (matrix[3][1] - (0.5f * dims[1])) / dims[1];
 }
 
-static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 	{
 		return false;
 	}
@@ -122,36 +122,36 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 	return false;
 }
 
-static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+static void WIDGETGROUP_empty_image_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	struct EmptyImageWidgetGroup *imgroup = MEM_mallocN(sizeof(struct EmptyImageWidgetGroup), __func__);
-	imgroup->gizmo = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
-	wmGizmo *mpr = imgroup->gizmo;
-	RNA_enum_set(mpr->ptr, "transform",
+	struct EmptyImageWidgetGroup *igzgroup = MEM_mallocN(sizeof(struct EmptyImageWidgetGroup), __func__);
+	igzgroup->gizmo = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, NULL);
+	wmGizmo *gz = igzgroup->gizmo;
+	RNA_enum_set(gz->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
 
-	mgroup->customdata = imgroup;
+	gzgroup->customdata = igzgroup;
 
-	WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_HOVER, true);
+	WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
 
-	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
-	UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+	UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 }
 
-static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	struct EmptyImageWidgetGroup *imgroup = mgroup->customdata;
+	struct EmptyImageWidgetGroup *igzgroup = gzgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
-	wmGizmo *mpr = imgroup->gizmo;
+	wmGizmo *gz = igzgroup->gizmo;
 
-	copy_m4_m4(mpr->matrix_basis, ob->obmat);
+	copy_m4_m4(gz->matrix_basis, ob->obmat);
 
-	RNA_enum_set(mpr->ptr, "transform",
+	RNA_enum_set(gz->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_UNIFORM);
 
-	imgroup->state.ob = ob;
+	igzgroup->state.ob = ob;
 
 	/* Use dimensions for aspect. */
 	if (ob->data != NULL) {
@@ -169,36 +169,36 @@ static void WIDGETGROUP_empty_image_refresh(const bContext *C, wmGizmoGroup *mgr
 		}
 
 		const float dims_max = max_ff(size[0], size[1]);
-		imgroup->state.dims[0] = size[0] / dims_max;
-		imgroup->state.dims[1] = size[1] / dims_max;
+		igzgroup->state.dims[0] = size[0] / dims_max;
+		igzgroup->state.dims[1] = size[1] / dims_max;
 	}
 	else {
-		copy_v2_fl(imgroup->state.dims, 1.0f);
+		copy_v2_fl(igzgroup->state.dims, 1.0f);
 	}
-	RNA_float_set_array(mpr->ptr, "dimensions", imgroup->state.dims);
+	RNA_float_set_array(gz->ptr, "dimensions", igzgroup->state.dims);
 
 	WM_gizmo_target_property_def_func(
-	        mpr, "matrix",
+	        gz, "matrix",
 	        &(const struct wmGizmoPropertyFnParams) {
 	            .value_get_fn = gizmo_empty_image_prop_matrix_get,
 	            .value_set_fn = gizmo_empty_image_prop_matrix_set,
 	            .range_get_fn = NULL,
-	            .user_data = imgroup,
+	            .user_data = igzgroup,
 	        });
 }
 
-void VIEW3D_WGT_empty_image(wmGizmoGroupType *wgt)
+void VIEW3D_GGT_empty_image(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Area Light Widgets";
-	wgt->idname = "VIEW3D_WGT_empty_image";
+	gzgt->name = "Area Light Widgets";
+	gzgt->idname = "VIEW3D_GGT_empty_image";
 
-	wgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
+	gzgt->flag |= (WM_GIZMOGROUPTYPE_PERSISTENT |
 	              WM_GIZMOGROUPTYPE_3D |
 	              WM_GIZMOGROUPTYPE_DEPTH_3D);
 
-	wgt->poll = WIDGETGROUP_empty_image_poll;
-	wgt->setup = WIDGETGROUP_empty_image_setup;
-	wgt->refresh = WIDGETGROUP_empty_image_refresh;
+	gzgt->poll = WIDGETGROUP_empty_image_poll;
+	gzgt->setup = WIDGETGROUP_empty_image_setup;
+	gzgt->refresh = WIDGETGROUP_empty_image_refresh;
 }
 
 /** \} */

@@ -10,7 +10,7 @@ from bpy.types import (
 
 
 class MyCameraWidgetGroup(GizmoGroup):
-    bl_idname = "OBJECT_WGT_test_camera"
+    bl_idname = "OBJECT_GGT_test_camera"
     bl_label = "Object Camera Test Widget"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'WINDOW'
@@ -24,7 +24,7 @@ class MyCameraWidgetGroup(GizmoGroup):
     def setup(self, context):
         # Run an operator using the dial gizmo
         ob = context.object
-        mpr = self.gizmos.new("GIZMO_WT_dial_3d")
+        mpr = self.gizmos.new("GIZMO_GGT_dial_3d")
         props = mpr.target_set_operator("transform.rotate")
         props.constraint_axis = False, False, True
         props.constraint_orientation = 'LOCAL'

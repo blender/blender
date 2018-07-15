@@ -70,7 +70,7 @@ typedef struct {
 	/* modal only */
 	BMBackup mesh_backup;
 	bool is_first;
-	short mpr_flag;
+	short gizmo_flag;
 } BisectData;
 
 static bool mesh_bisect_interactive_calc(
@@ -156,8 +156,8 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 		/* misc other vars */
 		G.moving = G_TRANSFORM_EDIT;
-		opdata->mpr_flag = v3d->mpr_flag;
-		v3d->mpr_flag = V3D_GIZMO_HIDE;
+		opdata->gizmo_flag = v3d->gizmo_flag;
+		v3d->gizmo_flag = V3D_GIZMO_HIDE;
 
 		/* initialize modal callout */
 		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
@@ -169,7 +169,7 @@ static void edbm_bisect_exit(bContext *C, BisectData *opdata)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
-	v3d->mpr_flag = opdata->mpr_flag;
+	v3d->gizmo_flag = opdata->gizmo_flag;
 	G.moving = 0;
 }
 
@@ -199,8 +199,8 @@ static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		/* Setup gizmos */
 		{
 			View3D *v3d = CTX_wm_view3d(C);
-			if (v3d && (v3d->mpr_flag & V3D_GIZMO_HIDE) == 0) {
-				WM_gizmo_group_type_ensure("MESH_WGT_bisect");
+			if (v3d && (v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
+				WM_gizmo_group_type_ensure("MESH_GGT_bisect");
 			}
 		}
 #endif
@@ -334,7 +334,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 }
 
 #ifdef USE_GIZMO
-static void MESH_WGT_bisect(struct wmGizmoGroupType *wgt);
+static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt);
 #endif
 
 void MESH_OT_bisect(struct wmOperatorType *ot)
@@ -374,7 +374,7 @@ void MESH_OT_bisect(struct wmOperatorType *ot)
 	WM_operator_properties_gesture_straightline(ot, CURSOR_EDIT);
 
 #ifdef USE_GIZMO
-	WM_gizmogrouptype_append(MESH_WGT_bisect);
+	WM_gizmogrouptype_append(MESH_GGT_bisect);
 #endif
 }
 
@@ -459,40 +459,40 @@ static void gizmo_mesh_bisect_update_from_op(GizmoGroup *man)
 
 /* depth callbacks */
 static void gizmo_bisect_prop_depth_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane_no[3];
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
 
-	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->matrix_basis[3]);
+	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, gz->matrix_basis[3]);
 }
 
 static void gizmo_bisect_prop_depth_set(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	const float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane);
 	normalize_v3(plane);
 
-	plane[3] = -value[0] - dot_v3v3(plane, mpr->matrix_basis[3]);
+	plane[3] = -value[0] - dot_v3v3(plane, gz->matrix_basis[3]);
 
 	/* Keep our location, may be offset simply to be inside the viewport. */
 	closest_to_plane_normalized_v3(plane_co, plane, plane_co);
@@ -504,27 +504,27 @@ static void gizmo_bisect_prop_depth_set(
 
 /* translate callbacks */
 static void gizmo_bisect_prop_translate_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(mpr_prop->type->array_length == 3);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_co, value_p);
 }
 
 static void gizmo_bisect_prop_translate_set(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(mpr_prop->type->array_length == 3);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	RNA_property_float_set_array(op->ptr, man->data.prop_plane_co, value_p);
 
@@ -533,15 +533,15 @@ static void gizmo_bisect_prop_translate_set(
 
 /* angle callbacks */
 static void gizmo_bisect_prop_angle_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
@@ -560,15 +560,15 @@ static void gizmo_bisect_prop_angle_get(
 }
 
 static void gizmo_bisect_prop_angle_set(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoGroup *man = mpr->parent_mgroup->customdata;
+	GizmoGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	const float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_plane_no, plane_no);
@@ -593,17 +593,17 @@ static void gizmo_bisect_prop_angle_set(
 	}
 }
 
-static bool gizmo_mesh_bisect_poll(const bContext *C, wmGizmoGroupType *wgt)
+static bool gizmo_mesh_bisect_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_bisect")) {
-		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
-static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *mgroup)
+static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 
@@ -612,15 +612,15 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *mgroup)
 	}
 
 	struct GizmoGroup *man = MEM_callocN(sizeof(GizmoGroup), __func__);
-	mgroup->customdata = man;
+	gzgroup->customdata = man;
 
-	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_3d", true);
-	const wmGizmoType *wt_grab = WM_gizmotype_find("GIZMO_WT_grab_3d", true);
-	const wmGizmoType *wt_dial = WM_gizmotype_find("GIZMO_WT_dial_3d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_grab_3d", true);
+	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 
-	man->translate_z = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-	man->translate_c = WM_gizmo_new_ptr(wt_grab, mgroup, NULL);
-	man->rotate_c = WM_gizmo_new_ptr(wt_dial, mgroup, NULL);
+	man->translate_z = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	man->translate_c = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
+	man->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
 
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_z->color);
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_c->color);
@@ -673,28 +673,28 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *mgroup)
 }
 
 static void gizmo_mesh_bisect_draw_prepare(
-        const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+        const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	GizmoGroup *man = mgroup->customdata;
+	GizmoGroup *man = gzgroup->customdata;
 	if (man->data.op->next) {
 		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
 	}
 	gizmo_mesh_bisect_update_from_op(man);
 }
 
-static void MESH_WGT_bisect(struct wmGizmoGroupType *wgt)
+static void MESH_GGT_bisect(struct wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Mesh Bisect";
-	wgt->idname = "MESH_WGT_bisect";
+	gzgt->name = "Mesh Bisect";
+	gzgt->idname = "MESH_GGT_bisect";
 
-	wgt->flag = WM_GIZMOGROUPTYPE_3D;
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = gizmo_mesh_bisect_poll;
-	wgt->setup = gizmo_mesh_bisect_setup;
-	wgt->draw_prepare = gizmo_mesh_bisect_draw_prepare;
+	gzgt->poll = gizmo_mesh_bisect_poll;
+	gzgt->setup = gizmo_mesh_bisect_setup;
+	gzgt->draw_prepare = gizmo_mesh_bisect_draw_prepare;
 }
 
 /** \} */

@@ -107,13 +107,13 @@ float gizmo_value_from_offset(
 }
 
 void gizmo_property_data_update(
-        wmGizmo *mpr, GizmoCommonData *data, wmGizmoProperty *mpr_prop,
+        wmGizmo *gz, GizmoCommonData *data, wmGizmoProperty *gz_prop,
         const bool constrained, const bool inverted)
 {
-	if (mpr_prop->custom_func.value_get_fn != NULL) {
+	if (gz_prop->custom_func.value_get_fn != NULL) {
 		/* pass  */
 	}
-	else if (mpr_prop->prop != NULL) {
+	else if (gz_prop->prop != NULL) {
 		/* pass  */
 	}
 	else {
@@ -121,12 +121,12 @@ void gizmo_property_data_update(
 		return;
 	}
 
-	float value = WM_gizmo_target_property_value_get(mpr, mpr_prop);
+	float value = WM_gizmo_target_property_value_get(gz, gz_prop);
 
 	if (constrained) {
 		if ((data->flag & GIZMO_CUSTOM_RANGE_SET) == 0) {
 			float range[2];
-			if (WM_gizmo_target_property_range_get(mpr, mpr_prop, range)) {
+			if (WM_gizmo_target_property_range_get(gz, gz_prop, range)) {
 				data->range = range[1] - range[0];
 				data->min = range[0];
 			}
@@ -142,23 +142,23 @@ void gizmo_property_data_update(
 }
 
 void gizmo_property_value_reset(
-        bContext *C, const wmGizmo *mpr, GizmoInteraction *inter,
-        wmGizmoProperty *mpr_prop)
+        bContext *C, const wmGizmo *gz, GizmoInteraction *inter,
+        wmGizmoProperty *gz_prop)
 {
-	WM_gizmo_target_property_value_set(C, mpr, mpr_prop, inter->init_value);
+	WM_gizmo_target_property_value_set(C, gz, gz_prop, inter->init_value);
 }
 
 /* -------------------------------------------------------------------- */
 
 void gizmo_color_get(
-        const wmGizmo *mpr, const bool highlight,
+        const wmGizmo *gz, const bool highlight,
         float r_col[4])
 {
-	if (highlight && !(mpr->flag & WM_GIZMO_DRAW_HOVER)) {
-		copy_v4_v4(r_col, mpr->color_hi);
+	if (highlight && !(gz->flag & WM_GIZMO_DRAW_HOVER)) {
+		copy_v4_v4(r_col, gz->color_hi);
 	}
 	else {
-		copy_v4_v4(r_col, mpr->color);
+		copy_v4_v4(r_col, gz->color);
 	}
 }
 
@@ -169,7 +169,7 @@ void gizmo_color_get(
  * Both 2D & 3D supported, use so we can use 2D gizmos in the 3D view.
  */
 bool gizmo_window_project_2d(
-        bContext *C, const struct wmGizmo *mpr, const float mval[2], int axis, bool use_offset,
+        bContext *C, const struct wmGizmo *gz, const float mval[2], int axis, bool use_offset,
         float r_co[2])
 {
 	float mat[4][4];
@@ -180,11 +180,11 @@ bool gizmo_window_project_2d(
 			unit_m4(mat_identity);
 			params.matrix_offset = mat_identity;
 		}
-		WM_gizmo_calc_matrix_final_params(mpr, &params, mat);
+		WM_gizmo_calc_matrix_final_params(gz, &params, mat);
 	}
 
 	/* rotate mouse in relation to the center and relocate it */
-	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
+	if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		/* For 3d views, transform 2D mouse pos onto plane. */
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
@@ -221,7 +221,7 @@ bool gizmo_window_project_2d(
 }
 
 bool gizmo_window_project_3d(
-        bContext *C, const struct wmGizmo *mpr, const float mval[2], bool use_offset,
+        bContext *C, const struct wmGizmo *gz, const float mval[2], bool use_offset,
         float r_co[3])
 {
 	float mat[4][4];
@@ -232,10 +232,10 @@ bool gizmo_window_project_3d(
 			unit_m4(mat_identity);
 			params.matrix_offset = mat_identity;
 		}
-		WM_gizmo_calc_matrix_final_params(mpr, &params, mat);
+		WM_gizmo_calc_matrix_final_params(gz, &params, mat);
 	}
 
-	if (mpr->parent_mgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
+	if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 		/* Note: we might want a custom reference point passed in,

@@ -505,7 +505,7 @@ typedef struct TransInfo {
 
 	short		current_orientation;
 	TransformOrientation *custom_orientation; /* this gets used when current_orientation is V3D_MANIP_CUSTOM */
-	short		mpr_flag;			/* backup from view3d, to restore on end */
+	short		gizmo_flag;			/* backup from view3d, to restore on end */
 
 	short		prop_mode;
 

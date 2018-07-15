@@ -224,10 +224,10 @@ void NODE_OT_viewer_border(struct wmOperatorType *ot);
 void NODE_OT_clear_viewer_border(struct wmOperatorType *ot);
 
 /* node_widgets.c */
-void NODE_WGT_backdrop_transform(struct wmGizmoGroupType *wgt);
-void NODE_WGT_backdrop_crop(struct wmGizmoGroupType *wgt);
-void NODE_WGT_backdrop_sun_beams(struct wmGizmoGroupType *wgt);
-void NODE_WGT_backdrop_corner_pin(struct wmGizmoGroupType *wgt);
+void NODE_GGT_backdrop_transform(struct wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_crop(struct wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_sun_beams(struct wmGizmoGroupType *gzgt);
+void NODE_GGT_backdrop_corner_pin(struct wmGizmoGroupType *gzgt);
 
 
 extern const char *node_context_dir[];

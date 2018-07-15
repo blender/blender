@@ -81,14 +81,14 @@ static void single_axis_convert(
  * Use for all geometry.
  */
 static void ed_gizmo_draw_preset_geometry(
-        const struct wmGizmo *mpr, float mat[4][4], int select_id,
+        const struct wmGizmo *gz, float mat[4][4], int select_id,
         const GizmoGeomInfo *info)
 {
 	const bool is_select = (select_id != -1);
-	const bool is_highlight = is_select && (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
+	const bool is_highlight = is_select && (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	float color[4];
-	gizmo_color_get(mpr, is_highlight, color);
+	gizmo_color_get(gz, is_highlight, color);
 
 	if (is_select) {
 		GPU_select_load_id(select_id);
@@ -105,35 +105,35 @@ static void ed_gizmo_draw_preset_geometry(
 }
 
 void ED_gizmo_draw_preset_box(
-        const struct wmGizmo *mpr, float mat[4][4], int select_id)
+        const struct wmGizmo *gz, float mat[4][4], int select_id)
 {
-	ed_gizmo_draw_preset_geometry(mpr, mat, select_id, &wm_gizmo_geom_data_cube);
+	ed_gizmo_draw_preset_geometry(gz, mat, select_id, &wm_gizmo_geom_data_cube);
 }
 
 void ED_gizmo_draw_preset_arrow(
-        const struct wmGizmo *mpr, float mat[4][4], int axis, int select_id)
+        const struct wmGizmo *gz, float mat[4][4], int axis, int select_id)
 {
 	float mat_rotate[4][4];
 	single_axis_convert(OB_POSZ, mat, axis, mat_rotate);
-	ed_gizmo_draw_preset_geometry(mpr, mat_rotate, select_id, &wm_gizmo_geom_data_arrow);
+	ed_gizmo_draw_preset_geometry(gz, mat_rotate, select_id, &wm_gizmo_geom_data_arrow);
 }
 
 void ED_gizmo_draw_preset_circle(
-        const struct wmGizmo *mpr, float mat[4][4], int axis, int select_id)
+        const struct wmGizmo *gz, float mat[4][4], int axis, int select_id)
 {
 	float mat_rotate[4][4];
 	single_axis_convert(OB_POSZ, mat, axis, mat_rotate);
-	ed_gizmo_draw_preset_geometry(mpr, mat_rotate, select_id, &wm_gizmo_geom_data_dial);
+	ed_gizmo_draw_preset_geometry(gz, mat_rotate, select_id, &wm_gizmo_geom_data_dial);
 }
 
 void ED_gizmo_draw_preset_facemap(
-        const bContext *C, const struct wmGizmo *mpr, struct Scene *scene, Object *ob,  const int facemap, int select_id)
+        const bContext *C, const struct wmGizmo *gz, struct Scene *scene, Object *ob,  const int facemap, int select_id)
 {
 	const bool is_select = (select_id != -1);
-	const bool is_highlight = is_select && (mpr->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
+	const bool is_highlight = is_select && (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
 
 	float color[4];
-	gizmo_color_get(mpr, is_highlight, color);
+	gizmo_color_get(gz, is_highlight, color);
 
 	if (is_select) {
 		GPU_select_load_id(select_id);

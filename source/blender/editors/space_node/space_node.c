@@ -752,7 +752,7 @@ static void node_region_listener(
         wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
-	wmGizmoMap *mmap = ar->gizmo_map;
+	wmGizmoMap *gzmap = ar->gizmo_map;
 
 	/* context changes */
 	switch (wmn->category) {
@@ -762,13 +762,13 @@ static void node_region_listener(
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_SPACE_NODE_VIEW:
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 			}
 			break;
 		case NC_SCREEN:
 			if (wmn->data == ND_LAYOUTSET || wmn->action == NA_EDITED) {
-				WM_gizmomap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			switch (wmn->data) {
 				case ND_ANIMPLAY:
@@ -784,13 +784,13 @@ static void node_region_listener(
 		case NC_SCENE:
 			ED_region_tag_redraw(ar);
 			if (wmn->data == ND_RENDER_RESULT) {
-				WM_gizmomap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_NODE:
 			ED_region_tag_redraw(ar);
 			if (ELEM(wmn->action, NA_EDITED, NA_SELECTED)) {
-				WM_gizmomap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_MATERIAL:
@@ -863,12 +863,12 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 static void node_widgets(void)
 {
 	/* create the widgetmap for the area here */
-	wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(
+	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
 	        &(const struct wmGizmoMapType_Params){SPACE_NODE, RGN_TYPE_WINDOW});
-	WM_gizmogrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_transform);
-	WM_gizmogrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_crop);
-	WM_gizmogrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_sun_beams);
-	WM_gizmogrouptype_append_and_link(mmap_type, NODE_WGT_backdrop_corner_pin);
+	WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_transform);
+	WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_crop);
+	WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_sun_beams);
+	WM_gizmogrouptype_append_and_link(gzmap_type, NODE_GGT_backdrop_corner_pin);
 }
 
 static void node_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)

@@ -1440,7 +1440,7 @@ void DRW_draw_render_loop_ex(
 	if (DST.draw_ctx.evil_C) {
 		/* needed so gizmo isn't obscured */
 		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		    ((v3d->mpr_flag & V3D_GIZMO_HIDE) == 0))
+		    ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0))
 		{
 			glDisable(GL_DEPTH_TEST);
 			DRW_draw_gizmo_3d();

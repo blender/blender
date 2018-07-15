@@ -53,13 +53,13 @@ struct wmGizmoGroup;
 
 /* gizmo_library_presets.c */
 void ED_gizmo_draw_preset_box(
-        const struct wmGizmo *mpr, float mat[4][4], int select_id);
+        const struct wmGizmo *gz, float mat[4][4], int select_id);
 void ED_gizmo_draw_preset_arrow(
-        const struct wmGizmo *mpr, float mat[4][4], int axis, int select_id);
+        const struct wmGizmo *gz, float mat[4][4], int axis, int select_id);
 void ED_gizmo_draw_preset_circle(
-        const struct wmGizmo *mpr, float mat[4][4], int axis, int select_id);
+        const struct wmGizmo *gz, float mat[4][4], int axis, int select_id);
 void ED_gizmo_draw_preset_facemap(
-        const struct bContext *C, const struct wmGizmo *mpr, struct Scene *scene,
+        const struct bContext *C, const struct wmGizmo *gz, struct Scene *scene,
         struct Object *ob,  const int facemap, int select_id);
 
 
@@ -87,8 +87,8 @@ enum {
 	ED_GIZMO_ARROW_DRAW_FLAG_STEM      = (1 << 0),
 };
 
-void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *mpr, const float min, const float max);
-void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *mpr, const float range_fac);
+void ED_gizmo_arrow3d_set_ui_range(struct wmGizmo *gz, const float min, const float max);
+void ED_gizmo_arrow3d_set_range_fac(struct wmGizmo *gz, const float range_fac);
 
 /* -------------------------------------------------------------------- */
 /* 2D Arrow Gizmo */

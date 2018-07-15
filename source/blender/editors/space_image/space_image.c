@@ -581,25 +581,25 @@ static int image_context(const bContext *C, const char *member, bContextDataResu
 	return 0;
 }
 
-static void IMAGE_WGT_gizmo2d(wmGizmoGroupType *wgt)
+static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "UV Transform Gizmo";
-	wgt->idname = "IMAGE_WGT_gizmo2d";
+	gzgt->name = "UV Transform Gizmo";
+	gzgt->idname = "IMAGE_GGT_gizmo2d";
 
-	wgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+	gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
 
-	wgt->poll = ED_widgetgroup_gizmo2d_poll;
-	wgt->setup = ED_widgetgroup_gizmo2d_setup;
-	wgt->refresh = ED_widgetgroup_gizmo2d_refresh;
-	wgt->draw_prepare = ED_widgetgroup_gizmo2d_draw_prepare;
+	gzgt->poll = ED_widgetgroup_gizmo2d_poll;
+	gzgt->setup = ED_widgetgroup_gizmo2d_setup;
+	gzgt->refresh = ED_widgetgroup_gizmo2d_refresh;
+	gzgt->draw_prepare = ED_widgetgroup_gizmo2d_draw_prepare;
 }
 
 static void image_widgets(void)
 {
-	wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(
+	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
 	        &(const struct wmGizmoMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
 
-	WM_gizmogrouptype_append_and_link(mmap_type, IMAGE_WGT_gizmo2d);
+	WM_gizmogrouptype_append_and_link(gzmap_type, IMAGE_GGT_gizmo2d);
 }
 
 /************************** main region ***************************/

@@ -67,26 +67,26 @@ struct BPyGizmoHandlerUserData {
 };
 
 static void py_rna_gizmo_handler_get_cb(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop,
         void *value_p)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = gz_prop->custom_func.user_data;
 	PyObject *ret = PyObject_CallObject(data->fn_slots[BPY_GIZMO_FN_SLOT_GET], NULL);
 	if (ret == NULL) {
 		goto fail;
 	}
 
-	if (mpr_prop->type->data_type == PROP_FLOAT) {
+	if (gz_prop->type->data_type == PROP_FLOAT) {
 		float *value = value_p;
-		if (mpr_prop->type->array_length == 1) {
+		if (gz_prop->type->array_length == 1) {
 			if ((*value = PyFloat_AsDouble(ret)) == -1.0f && PyErr_Occurred()) {
 				goto fail;
 			}
 		}
 		else {
-			if (PyC_AsArray(value, ret, mpr_prop->type->array_length, &PyFloat_Type, false,
+			if (PyC_AsArray(value, ret, gz_prop->type->array_length, &PyFloat_Type, false,
 			                "Gizmo get callback: ") == -1)
 			{
 				goto fail;
@@ -111,23 +111,23 @@ fail:
 }
 
 static void py_rna_gizmo_handler_set_cb(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop,
         const void *value_p)
 {
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
-	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = gz_prop->custom_func.user_data;
 
 	PyObject *args = PyTuple_New(1);
 
-	if (mpr_prop->type->data_type == PROP_FLOAT) {
+	if (gz_prop->type->data_type == PROP_FLOAT) {
 		const float *value = value_p;
 		PyObject *py_value;
-		if (mpr_prop->type->array_length == 1) {
+		if (gz_prop->type->array_length == 1) {
 			py_value = PyFloat_FromDouble(*value);
 		}
 		else {
-			py_value =  PyC_Tuple_PackArray_F32(value, mpr_prop->type->array_length);
+			py_value =  PyC_Tuple_PackArray_F32(value, gz_prop->type->array_length);
 		}
 		if (py_value == NULL) {
 			goto fail;
@@ -158,10 +158,10 @@ fail:
 }
 
 static void py_rna_gizmo_handler_range_get_cb(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = gz_prop->custom_func.user_data;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 
@@ -184,7 +184,7 @@ static void py_rna_gizmo_handler_range_get_cb(
 		goto fail;
 	}
 
-	if (mpr_prop->type->data_type == PROP_FLOAT) {
+	if (gz_prop->type->data_type == PROP_FLOAT) {
 		float range[2];
 		for (int i = 0; i < 2; i++) {
 			if (((range[i] = PyFloat_AsDouble(PyTuple_GET_ITEM(ret, i))) == -1.0f && PyErr_Occurred()) == 0) {
@@ -215,9 +215,9 @@ fail:
 }
 
 static void py_rna_gizmo_handler_free_cb(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop)
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop)
 {
-	struct BPyGizmoHandlerUserData *data = mpr_prop->custom_func.user_data;
+	struct BPyGizmoHandlerUserData *data = gz_prop->custom_func.user_data;
 
 	PyGILState_STATE gilstate = PyGILState_Ensure();
 	for (int i = 0; i < BPY_GIZMO_FN_SLOT_LEN; i++) {
@@ -271,14 +271,14 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
 		goto fail;
 	}
 
-	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *gz = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	const wmGizmoPropertyType *mpr_prop_type =
-	        WM_gizmotype_target_property_find(mpr->type, params.target);
-	if (mpr_prop_type == NULL) {
+	const wmGizmoPropertyType *gz_prop_type =
+	        WM_gizmotype_target_property_find(gz->type, params.target);
+	if (gz_prop_type == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "Gizmo target property '%s.%s' not found",
-		             mpr->type->idname, params.target);
+		             gz->type->idname, params.target);
 		goto fail;
 	}
 
@@ -307,7 +307,7 @@ static PyObject *bpy_gizmo_target_set_handler(PyObject *UNUSED(self), PyObject *
 	}
 
 	WM_gizmo_target_property_def_func_ptr(
-	        mpr, mpr_prop_type,
+	        gz, gz_prop_type,
 	        &(const struct wmGizmoPropertyFnParams) {
 	            .value_get_fn = py_rna_gizmo_handler_get_cb,
 	            .value_set_fn = py_rna_gizmo_handler_set_cb,
@@ -361,28 +361,28 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
 		goto fail;
 	}
 
-	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *gz = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmGizmoProperty *mpr_prop =
-	        WM_gizmo_target_property_find(mpr, params.target);
-	if (mpr_prop == NULL) {
+	wmGizmoProperty *gz_prop =
+	        WM_gizmo_target_property_find(gz, params.target);
+	if (gz_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "Gizmo target property '%s.%s' not found",
-		             mpr->type->idname, params.target);
+		             gz->type->idname, params.target);
 		goto fail;
 	}
 
-	const int array_len = WM_gizmo_target_property_array_length(mpr, mpr_prop);
-	switch (mpr_prop->type->data_type) {
+	const int array_len = WM_gizmo_target_property_array_length(gz, gz_prop);
+	switch (gz_prop->type->data_type) {
 		case PROP_FLOAT:
 		{
 			if (array_len != 0) {
 				float *value = BLI_array_alloca(value, array_len);
-				WM_gizmo_target_property_value_get_array(mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_get_array(gz, gz_prop, value);
 				return PyC_Tuple_PackArray_F32(value, array_len);
 			}
 			else {
-				float value = WM_gizmo_target_property_value_get(mpr, mpr_prop);
+				float value = WM_gizmo_target_property_value_get(gz, gz_prop);
 				return PyFloat_FromDouble(value);
 			}
 			break;
@@ -429,36 +429,36 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
 		goto fail;
 	}
 
-	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *gz = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmGizmoProperty *mpr_prop =
-	        WM_gizmo_target_property_find(mpr, params.target);
-	if (mpr_prop == NULL) {
+	wmGizmoProperty *gz_prop =
+	        WM_gizmo_target_property_find(gz, params.target);
+	if (gz_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "Gizmo target property '%s.%s' not found",
-		             mpr->type->idname, params.target);
+		             gz->type->idname, params.target);
 		goto fail;
 	}
 
-	const int array_len = WM_gizmo_target_property_array_length(mpr, mpr_prop);
-	switch (mpr_prop->type->data_type) {
+	const int array_len = WM_gizmo_target_property_array_length(gz, gz_prop);
+	switch (gz_prop->type->data_type) {
 		case PROP_FLOAT:
 		{
 			if (array_len != 0) {
 				float *value = BLI_array_alloca(value, array_len);
-				if (PyC_AsArray(value, params.value, mpr_prop->type->array_length, &PyFloat_Type, false,
+				if (PyC_AsArray(value, params.value, gz_prop->type->array_length, &PyFloat_Type, false,
 				                "Gizmo target property array") == -1)
 				{
 					goto fail;
 				}
-				WM_gizmo_target_property_value_set_array(BPy_GetContext(), mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_set_array(BPy_GetContext(), gz, gz_prop, value);
 			}
 			else {
 				float value;
 				if ((value = PyFloat_AsDouble(params.value)) == -1.0f && PyErr_Occurred()) {
 					goto fail;
 				}
-				WM_gizmo_target_property_value_set(BPy_GetContext(), mpr, mpr_prop, value);
+				WM_gizmo_target_property_value_set(BPy_GetContext(), gz, gz_prop, value);
 			}
 			Py_RETURN_NONE;
 		}
@@ -504,22 +504,22 @@ static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *ar
 		goto fail;
 	}
 
-	wmGizmo *mpr = ((BPy_StructRNA *)params.self)->ptr.data;
+	wmGizmo *gz = ((BPy_StructRNA *)params.self)->ptr.data;
 
-	wmGizmoProperty *mpr_prop =
-	        WM_gizmo_target_property_find(mpr, params.target);
-	if (mpr_prop == NULL) {
+	wmGizmoProperty *gz_prop =
+	        WM_gizmo_target_property_find(gz, params.target);
+	if (gz_prop == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "Gizmo target property '%s.%s' not found",
-		             mpr->type->idname, params.target);
+		             gz->type->idname, params.target);
 		goto fail;
 	}
 
-	switch (mpr_prop->type->data_type) {
+	switch (gz_prop->type->data_type) {
 		case PROP_FLOAT:
 		{
 			float range[2];
-			WM_gizmo_target_property_range_get(mpr, mpr_prop, range);
+			WM_gizmo_target_property_range_get(gz, gz_prop, range);
 			return PyC_Tuple_PackArray_F32(range, 2);
 		}
 		default:

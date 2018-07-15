@@ -61,14 +61,14 @@
 
 #include "../gizmo_library_intern.h"
 
-static void arrow2d_draw_geom(wmGizmo *mpr, const float matrix[4][4], const float color[4])
+static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float color[4])
 {
 	const float size = 0.11f;
 	const float size_breadth = size / 2.0f;
 	const float size_length = size * 1.7f;
 	/* Subtract the length so the arrow fits in the hotspot. */
-	const float arrow_length = RNA_float_get(mpr->ptr, "length") - size_length;
-	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
+	const float arrow_length = RNA_float_get(gz->ptr, "length") - size_length;
+	const float arrow_angle = RNA_float_get(gz->ptr, "angle");
 
 	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -96,60 +96,60 @@ static void arrow2d_draw_geom(wmGizmo *mpr, const float matrix[4][4], const floa
 	gpuPopMatrix();
 }
 
-static void gizmo_arrow2d_draw(const bContext *UNUSED(C), wmGizmo *mpr)
+static void gizmo_arrow2d_draw(const bContext *UNUSED(C), wmGizmo *gz)
 {
 	float color[4];
 
 	float matrix_final[4][4];
 
-	gizmo_color_get(mpr, mpr->state & WM_GIZMO_STATE_HIGHLIGHT, color);
+	gizmo_color_get(gz, gz->state & WM_GIZMO_STATE_HIGHLIGHT, color);
 
-	GPU_line_width(mpr->line_width);
+	GPU_line_width(gz->line_width);
 
-	WM_gizmo_calc_matrix_final(mpr, matrix_final);
+	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
 	GPU_blend(true);
-	arrow2d_draw_geom(mpr, matrix_final, color);
+	arrow2d_draw_geom(gz, matrix_final, color);
 	GPU_blend(false);
 
-	if (mpr->interaction_data) {
-		GizmoInteraction *inter = mpr->interaction_data;
+	if (gz->interaction_data) {
+		GizmoInteraction *inter = gz->interaction_data;
 
 		GPU_blend(true);
-		arrow2d_draw_geom(mpr, inter->init_matrix_final, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
+		arrow2d_draw_geom(gz, inter->init_matrix_final, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		GPU_blend(false);
 	}
 }
 
-static void gizmo_arrow2d_setup(wmGizmo *mpr)
+static void gizmo_arrow2d_setup(wmGizmo *gz)
 {
-	mpr->flag |= WM_GIZMO_DRAW_MODAL;
+	gz->flag |= WM_GIZMO_DRAW_MODAL;
 }
 
 static int gizmo_arrow2d_invoke(
-        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *UNUSED(event))
+        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *UNUSED(event))
 {
 	GizmoInteraction *inter = MEM_callocN(sizeof(GizmoInteraction), __func__);
 
-	copy_m4_m4(inter->init_matrix_basis, mpr->matrix_basis);
-	WM_gizmo_calc_matrix_final(mpr, inter->init_matrix_final);
+	copy_m4_m4(inter->init_matrix_basis, gz->matrix_basis);
+	WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
 
-	mpr->interaction_data = inter;
+	gz->interaction_data = inter;
 
 	return OPERATOR_RUNNING_MODAL;
 }
 
 static int gizmo_arrow2d_test_select(
-        bContext *UNUSED(C), wmGizmo *mpr, const wmEvent *event)
+        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
 	const float mval[2] = {event->mval[0], event->mval[1]};
-	const float arrow_length = RNA_float_get(mpr->ptr, "length");
-	const float arrow_angle = RNA_float_get(mpr->ptr, "angle");
-	const float line_len = arrow_length * mpr->scale_final;
+	const float arrow_length = RNA_float_get(gz->ptr, "length");
+	const float arrow_angle = RNA_float_get(gz->ptr, "angle");
+	const float line_len = arrow_length * gz->scale_final;
 	float mval_local[2];
 
 	copy_v2_v2(mval_local, mval);
-	sub_v2_v2(mval_local, mpr->matrix_basis[3]);
+	sub_v2_v2(mval_local, gz->matrix_basis[3]);
 
 	float line[2][2];
 	line[0][0] = line[0][1] = line[1][0] = 0.0f;
@@ -165,7 +165,7 @@ static int gizmo_arrow2d_test_select(
 	/* arrow line intersection check */
 	float isect_1[2], isect_2[2];
 	const int isect = isect_line_sphere_v2(
-	        line[0], line[1], mval_local, GIZMO_HOTSPOT + mpr->line_width * 0.5f,
+	        line[0], line[1], mval_local, GIZMO_HOTSPOT + gz->line_width * 0.5f,
 	        isect_1, isect_2);
 
 	if (isect > 0) {
@@ -197,29 +197,29 @@ static int gizmo_arrow2d_test_select(
  *
  * \{ */
 
-static void GIZMO_WT_arrow_2d(wmGizmoType *wt)
+static void GIZMO_GT_arrow_2d(wmGizmoType *gzt)
 {
 	/* identifiers */
-	wt->idname = "GIZMO_WT_arrow_2d";
+	gzt->idname = "GIZMO_GT_arrow_2d";
 
 	/* api callbacks */
-	wt->draw = gizmo_arrow2d_draw;
-	wt->setup = gizmo_arrow2d_setup;
-	wt->invoke = gizmo_arrow2d_invoke;
-	wt->test_select = gizmo_arrow2d_test_select;
+	gzt->draw = gizmo_arrow2d_draw;
+	gzt->setup = gizmo_arrow2d_setup;
+	gzt->invoke = gizmo_arrow2d_invoke;
+	gzt->test_select = gizmo_arrow2d_test_select;
 
-	wt->struct_size = sizeof(wmGizmo);
+	gzt->struct_size = sizeof(wmGizmo);
 
 	/* rna */
-	RNA_def_float(wt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
+	RNA_def_float(gzt->srna, "length", 1.0f, 0.0f, FLT_MAX, "Arrow Line Length", "", 0.0f, FLT_MAX);
 	RNA_def_float_rotation(
-	        wt->srna, "angle", 0, NULL, DEG2RADF(-360.0f), DEG2RADF(360.0f),
+	        gzt->srna, "angle", 0, NULL, DEG2RADF(-360.0f), DEG2RADF(360.0f),
 	        "Roll", "", DEG2RADF(-360.0f), DEG2RADF(360.0f));
 }
 
 void ED_gizmotypes_arrow_2d(void)
 {
-	WM_gizmotype_append(GIZMO_WT_arrow_2d);
+	WM_gizmotype_append(GIZMO_GT_arrow_2d);
 }
 
 /** \} */

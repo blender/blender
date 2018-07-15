@@ -160,14 +160,14 @@ static void gizmo_mesh_placement_update_from_op(GizmoPlacementGroup *man)
 
 /* translate callbacks */
 static void gizmo_placement_prop_matrix_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoPlacementGroup *man = mpr->parent_mgroup->customdata;
+	GizmoPlacementGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
-	BLI_assert(mpr_prop->type->array_length == 16);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 16);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	if (value_p != man->cage->matrix_offset) {
 		mul_m4_m4m4(value_p, man->cage->matrix_basis, man->cage->matrix_offset);
@@ -176,14 +176,14 @@ static void gizmo_placement_prop_matrix_get(
 }
 
 static void gizmo_placement_prop_matrix_set(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value)
 {
-	GizmoPlacementGroup *man = mpr->parent_mgroup->customdata;
+	GizmoPlacementGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(mpr_prop->type->array_length == 16);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 16);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float mat[4][4];
 	mul_m4_m4m4(mat, man->cage->matrix_basis, value);
@@ -197,38 +197,38 @@ static void gizmo_placement_prop_matrix_set(
 	gizmo_placement_exec(man);
 }
 
-static bool gizmo_mesh_placement_poll(const bContext *C, wmGizmoGroupType *wgt)
+static bool gizmo_mesh_placement_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_primitive_cube_add_gizmo")) {
-		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
 static void gizmo_mesh_placement_modal_from_setup(
-        const bContext *C, wmGizmoGroup *mgroup)
+        const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoPlacementGroup *man = mgroup->customdata;
+	GizmoPlacementGroup *man = gzgroup->customdata;
 
 	/* Initial size. */
 	{
-		wmGizmo *mpr = man->cage;
-		zero_m4(mpr->matrix_offset);
+		wmGizmo *gz = man->cage;
+		zero_m4(gz->matrix_offset);
 
-		/* TODO: support zero scaled matrix in 'GIZMO_WT_cage_3d'. */
-		mpr->matrix_offset[0][0] = 0.01;
-		mpr->matrix_offset[1][1] = 0.01;
-		mpr->matrix_offset[2][2] = 0.01;
-		mpr->matrix_offset[3][3] = 1.0f;
+		/* TODO: support zero scaled matrix in 'GIZMO_GT_cage_3d'. */
+		gz->matrix_offset[0][0] = 0.01;
+		gz->matrix_offset[1][1] = 0.01;
+		gz->matrix_offset[2][2] = 0.01;
+		gz->matrix_offset[3][3] = 1.0f;
 	}
 
 	/* Start off dragging. */
 	{
 		wmWindow *win = CTX_wm_window(C);
 		ARegion *ar = CTX_wm_region(C);
-		wmGizmo *mpr = man->cage;
+		wmGizmo *gz = man->cage;
 
 		{
 			float mat3[3][3];
@@ -239,19 +239,19 @@ static void gizmo_mesh_placement_modal_from_setup(
 			            win->eventstate->y - ar->winrct.ymin,
 			        },
 			        location, mat3);
-			copy_m4_m3(mpr->matrix_basis, mat3);
-			copy_v3_v3(mpr->matrix_basis[3], location);
+			copy_m4_m3(gz->matrix_basis, mat3);
+			copy_v3_v3(gz->matrix_basis[3], location);
 		}
 
 		if (1) {
-			wmGizmoMap *mmap = mgroup->parent_mmap;
+			wmGizmoMap *gzmap = gzgroup->parent_gzmap;
 			WM_gizmo_modal_set_from_setup(
-			        mmap, (bContext *)C, man->cage, ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
+			        gzmap, (bContext *)C, man->cage, ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
 		}
 	}
 }
 
-static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *mgroup)
+static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 
@@ -260,11 +260,11 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *mgroup)
 	}
 
 	struct GizmoPlacementGroup *man = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
-	mgroup->customdata = man;
+	gzgroup->customdata = man;
 
-	const wmGizmoType *wt_cage = WM_gizmotype_find("GIZMO_WT_cage_3d", true);
+	const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
 
-	man->cage = WM_gizmo_new_ptr(wt_cage, mgroup, NULL);
+	man->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
 
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->cage->color);
 
@@ -293,32 +293,32 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *mgroup)
 		        });
 	}
 
-	gizmo_mesh_placement_modal_from_setup(C, mgroup);
+	gizmo_mesh_placement_modal_from_setup(C, gzgroup);
 }
 
 static void gizmo_mesh_placement_draw_prepare(
-        const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+        const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	GizmoPlacementGroup *man = mgroup->customdata;
+	GizmoPlacementGroup *man = gzgroup->customdata;
 	if (man->data.op->next) {
 		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
 	}
 	gizmo_mesh_placement_update_from_op(man);
 }
 
-static void MESH_WGT_add_bounds(struct wmGizmoGroupType *wgt)
+static void MESH_GGT_add_bounds(struct wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Mesh Add Bounds";
-	wgt->idname = "MESH_WGT_add_bounds";
+	gzgt->name = "Mesh Add Bounds";
+	gzgt->idname = "MESH_GGT_add_bounds";
 
-	wgt->flag = WM_GIZMOGROUPTYPE_3D;
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = gizmo_mesh_placement_poll;
-	wgt->setup = gizmo_mesh_placement_setup;
-	wgt->draw_prepare = gizmo_mesh_placement_draw_prepare;
+	gzgt->poll = gizmo_mesh_placement_poll;
+	gzgt->setup = gizmo_mesh_placement_setup;
+	gzgt->draw_prepare = gizmo_mesh_placement_draw_prepare;
 }
 
 /** \} */
@@ -379,18 +379,18 @@ static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wm
 	int ret = add_primitive_cube_gizmo_exec(C, op);
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup gizmos */
-		if (v3d && ((v3d->mpr_flag & V3D_GIZMO_HIDE) == 0)) {
+		if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
 			ARegion *ar = CTX_wm_region(C);
-			wmGizmoMap *mmap = ar->gizmo_map;
-			wmGizmoGroupType *wgt = WM_gizmogrouptype_find("MESH_WGT_add_bounds", false);
-			wmGizmoGroup *mgroup = WM_gizmomap_group_find_ptr(mmap, wgt);
-			if (mgroup != NULL) {
-				GizmoPlacementGroup *man = mgroup->customdata;
+			wmGizmoMap *gzmap = ar->gizmo_map;
+			wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_add_bounds", false);
+			wmGizmoGroup *gzgroup = WM_gizmomap_group_find_ptr(gzmap, gzgt);
+			if (gzgroup != NULL) {
+				GizmoPlacementGroup *man = gzgroup->customdata;
 				man->data.op = op;
-				gizmo_mesh_placement_modal_from_setup(C, mgroup);
+				gizmo_mesh_placement_modal_from_setup(C, gzgroup);
 			}
 			else {
-				WM_gizmo_group_type_ensure_ptr(wgt);
+				WM_gizmo_group_type_ensure_ptr(gzgt);
 			}
 		}
 	}
@@ -420,7 +420,7 @@ void MESH_OT_primitive_cube_add_gizmo(wmOperatorType *ot)
 	PropertyRNA *prop = RNA_def_float_matrix(ot->srna, "matrix", 4, 4, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	WM_gizmogrouptype_append(MESH_WGT_add_bounds);
+	WM_gizmogrouptype_append(MESH_GGT_add_bounds);
 }
 
 /** \} */

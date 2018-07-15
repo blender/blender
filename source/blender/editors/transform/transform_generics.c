@@ -1350,8 +1350,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 
 		/* turn gizmo off during transform */
 		if (t->flag & T_MODAL) {
-			t->mpr_flag = v3d->mpr_flag;
-			v3d->mpr_flag = V3D_GIZMO_HIDE;
+			t->gizmo_flag = v3d->gizmo_flag;
+			v3d->gizmo_flag = V3D_GIZMO_HIDE;
 		}
 
 		if (t->scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) {
@@ -1690,7 +1690,7 @@ void postTrans(bContext *C, TransInfo *t)
 		View3D *v3d = t->sa->spacedata.first;
 		/* restore gizmo */
 		if (t->flag & T_MODAL) {
-			v3d->mpr_flag = t->mpr_flag;
+			v3d->gizmo_flag = t->gizmo_flag;
 		}
 	}
 

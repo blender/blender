@@ -716,26 +716,26 @@ static void view3d_dropboxes(void)
 
 static void view3d_widgets(void)
 {
-	wmGizmoMapType *mmap_type = WM_gizmomaptype_ensure(
+	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
 	        &(const struct wmGizmoMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_spot);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_area);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_target);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_force_field);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera_view);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_empty_image);
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_armature_spline);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_spot);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_area);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_target);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_force_field);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 
-	WM_gizmogrouptype_append(TRANSFORM_WGT_gizmo);
-	WM_gizmogrouptype_append(VIEW3D_WGT_xform_cage);
+	WM_gizmogrouptype_append(TRANSFORM_GGT_gizmo);
+	WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
 
-	WM_gizmogrouptype_append(VIEW3D_WGT_ruler);
-	WM_gizmotype_append(VIEW3D_WT_ruler_item);
+	WM_gizmogrouptype_append(VIEW3D_GGT_ruler);
+	WM_gizmotype_append(VIEW3D_GT_ruler_item);
 
-	WM_gizmogrouptype_append_and_link(mmap_type, VIEW3D_WGT_navigate);
-	WM_gizmotype_append(VIEW3D_WT_navigate_rotate);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_navigate);
+	WM_gizmotype_append(VIEW3D_GT_navigate_rotate);
 }
 
 
@@ -815,13 +815,13 @@ static void view3d_main_region_listener(
 {
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	wmGizmoMap *mmap = ar->gizmo_map;
+	wmGizmoMap *gzmap = ar->gizmo_map;
 
 	/* context changes */
 	switch (wmn->category) {
 		case NC_WM:
 			if (ELEM(wmn->data, ND_UNDO)) {
-				WM_gizmomap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_ANIMATION:
@@ -848,14 +848,14 @@ static void view3d_main_region_listener(
 					if (wmn->reference)
 						view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_LAYER:
 					if (wmn->reference) {
 						BKE_screen_view3d_sync(v3d, wmn->reference);
 					}
 					ED_region_tag_redraw(ar);
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
@@ -867,7 +867,7 @@ static void view3d_main_region_listener(
 				case ND_MARKERS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_WORLD:
 					/* handled by space_view3d_listener() for v3d access */
@@ -899,7 +899,7 @@ static void view3d_main_region_listener(
 				case ND_POINTCACHE:
 				case ND_LOD:
 					ED_region_tag_redraw(ar);
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 			}
 			switch (wmn->action) {
@@ -912,7 +912,7 @@ static void view3d_main_region_listener(
 			switch (wmn->data) {
 				case ND_SELECT:
 				{
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					ATTR_FALLTHROUGH;
 				}
 				case ND_DATA:
@@ -993,7 +993,7 @@ static void view3d_main_region_listener(
 					break;
 				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 			}
 			break;
@@ -1019,7 +1019,7 @@ static void view3d_main_region_listener(
 					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
 				}
 				ED_region_tag_redraw(ar);
-				WM_gizmomap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_ID:
@@ -1035,7 +1035,7 @@ static void view3d_main_region_listener(
 				case ND_LAYOUTBROWSE:
 				case ND_LAYOUTDELETE:
 				case ND_LAYOUTSET:
-					WM_gizmomap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_LAYER:

@@ -51,30 +51,30 @@
 /** \name Property Definition
  * \{ */
 
-BLI_INLINE wmGizmoProperty *wm_gizmo_target_property_array(wmGizmo *mpr)
+BLI_INLINE wmGizmoProperty *wm_gizmo_target_property_array(wmGizmo *gz)
 {
-	return (wmGizmoProperty *)(POINTER_OFFSET(mpr, mpr->type->struct_size));
+	return (wmGizmoProperty *)(POINTER_OFFSET(gz, gz->type->struct_size));
 }
 
-wmGizmoProperty *WM_gizmo_target_property_array(wmGizmo *mpr)
+wmGizmoProperty *WM_gizmo_target_property_array(wmGizmo *gz)
 {
-	return wm_gizmo_target_property_array(mpr);
+	return wm_gizmo_target_property_array(gz);
 }
 
-wmGizmoProperty *WM_gizmo_target_property_at_index(wmGizmo *mpr, int index)
+wmGizmoProperty *WM_gizmo_target_property_at_index(wmGizmo *gz, int index)
 {
-	BLI_assert(index < mpr->type->target_property_defs_len);
+	BLI_assert(index < gz->type->target_property_defs_len);
 	BLI_assert(index != -1);
-	wmGizmoProperty *mpr_prop_array = wm_gizmo_target_property_array(mpr);
-	return &mpr_prop_array[index];
+	wmGizmoProperty *gz_prop_array = wm_gizmo_target_property_array(gz);
+	return &gz_prop_array[index];
 }
 
-wmGizmoProperty *WM_gizmo_target_property_find(wmGizmo *mpr, const char *idname)
+wmGizmoProperty *WM_gizmo_target_property_find(wmGizmo *gz, const char *idname)
 {
 	int index = BLI_findstringindex(
-	        &mpr->type->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
+	        &gz->type->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
 	if (index != -1) {
-		return WM_gizmo_target_property_at_index(mpr, index);
+		return WM_gizmo_target_property_at_index(gz, index);
 	}
 	else {
 		return NULL;
@@ -82,84 +82,84 @@ wmGizmoProperty *WM_gizmo_target_property_find(wmGizmo *mpr, const char *idname)
 }
 
 void WM_gizmo_target_property_def_rna_ptr(
-        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type,
+        wmGizmo *gz, const wmGizmoPropertyType *gz_prop_type,
         PointerRNA *ptr, PropertyRNA *prop, int index)
 {
-	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
 	/* if gizmo evokes an operator we cannot use it for property manipulation */
-	BLI_assert(mpr->op_data == NULL);
+	BLI_assert(gz->op_data == NULL);
 
-	mpr_prop->type = mpr_prop_type;
+	gz_prop->type = gz_prop_type;
 
-	mpr_prop->ptr = *ptr;
-	mpr_prop->prop = prop;
-	mpr_prop->index = index;
+	gz_prop->ptr = *ptr;
+	gz_prop->prop = prop;
+	gz_prop->index = index;
 
-	if (mpr->type->property_update) {
-		mpr->type->property_update(mpr, mpr_prop);
+	if (gz->type->property_update) {
+		gz->type->property_update(gz, gz_prop);
 	}
 }
 
 void WM_gizmo_target_property_def_rna(
-        wmGizmo *mpr, const char *idname,
+        wmGizmo *gz, const char *idname,
         PointerRNA *ptr, const char *propname, int index)
 {
-	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
+	const wmGizmoPropertyType *gz_prop_type = WM_gizmotype_target_property_find(gz->type, idname);
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-	WM_gizmo_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
+	WM_gizmo_target_property_def_rna_ptr(gz, gz_prop_type, ptr, prop, index);
 }
 
 void WM_gizmo_target_property_def_func_ptr(
-        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type,
+        wmGizmo *gz, const wmGizmoPropertyType *gz_prop_type,
         const wmGizmoPropertyFnParams *params)
 {
-	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
 	/* if gizmo evokes an operator we cannot use it for property manipulation */
-	BLI_assert(mpr->op_data == NULL);
+	BLI_assert(gz->op_data == NULL);
 
-	mpr_prop->type = mpr_prop_type;
+	gz_prop->type = gz_prop_type;
 
-	mpr_prop->custom_func.value_get_fn = params->value_get_fn;
-	mpr_prop->custom_func.value_set_fn = params->value_set_fn;
-	mpr_prop->custom_func.range_get_fn = params->range_get_fn;
-	mpr_prop->custom_func.free_fn = params->free_fn;
-	mpr_prop->custom_func.user_data = params->user_data;
+	gz_prop->custom_func.value_get_fn = params->value_get_fn;
+	gz_prop->custom_func.value_set_fn = params->value_set_fn;
+	gz_prop->custom_func.range_get_fn = params->range_get_fn;
+	gz_prop->custom_func.free_fn = params->free_fn;
+	gz_prop->custom_func.user_data = params->user_data;
 
-	if (mpr->type->property_update) {
-		mpr->type->property_update(mpr, mpr_prop);
+	if (gz->type->property_update) {
+		gz->type->property_update(gz, gz_prop);
 	}
 }
 
 void WM_gizmo_target_property_def_func(
-        wmGizmo *mpr, const char *idname,
+        wmGizmo *gz, const char *idname,
         const wmGizmoPropertyFnParams *params)
 {
-	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
-	WM_gizmo_target_property_def_func_ptr(mpr, mpr_prop_type, params);
+	const wmGizmoPropertyType *gz_prop_type = WM_gizmotype_target_property_find(gz->type, idname);
+	WM_gizmo_target_property_def_func_ptr(gz, gz_prop_type, params);
 }
 
 void WM_gizmo_target_property_clear_rna_ptr(
-        wmGizmo *mpr, const wmGizmoPropertyType *mpr_prop_type)
+        wmGizmo *gz, const wmGizmoPropertyType *gz_prop_type)
 {
-	wmGizmoProperty *mpr_prop = WM_gizmo_target_property_at_index(mpr, mpr_prop_type->index_in_type);
+	wmGizmoProperty *gz_prop = WM_gizmo_target_property_at_index(gz, gz_prop_type->index_in_type);
 
 	/* if gizmo evokes an operator we cannot use it for property manipulation */
-	BLI_assert(mpr->op_data == NULL);
+	BLI_assert(gz->op_data == NULL);
 
-	mpr_prop->type = NULL;
+	gz_prop->type = NULL;
 
-	mpr_prop->ptr = PointerRNA_NULL;
-	mpr_prop->prop = NULL;
-	mpr_prop->index = -1;
+	gz_prop->ptr = PointerRNA_NULL;
+	gz_prop->prop = NULL;
+	gz_prop->index = -1;
 }
 
 void WM_gizmo_target_property_clear_rna(
-        wmGizmo *mpr, const char *idname)
+        wmGizmo *gz, const char *idname)
 {
-	const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(mpr->type, idname);
-	WM_gizmo_target_property_clear_rna_ptr(mpr, mpr_prop_type);
+	const wmGizmoPropertyType *gz_prop_type = WM_gizmotype_target_property_find(gz->type, idname);
+	WM_gizmo_target_property_clear_rna_ptr(gz, gz_prop_type);
 }
 
 
@@ -171,93 +171,93 @@ void WM_gizmo_target_property_clear_rna(
 /** \name Property Access
  * \{ */
 
-bool WM_gizmo_target_property_is_valid_any(wmGizmo *mpr)
+bool WM_gizmo_target_property_is_valid_any(wmGizmo *gz)
 {
-	wmGizmoProperty *mpr_prop_array = wm_gizmo_target_property_array(mpr);
-	for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
-		wmGizmoProperty *mpr_prop = &mpr_prop_array[i];
-		if (WM_gizmo_target_property_is_valid(mpr_prop)) {
+	wmGizmoProperty *gz_prop_array = wm_gizmo_target_property_array(gz);
+	for (int i = 0; i < gz->type->target_property_defs_len; i++) {
+		wmGizmoProperty *gz_prop = &gz_prop_array[i];
+		if (WM_gizmo_target_property_is_valid(gz_prop)) {
 			return true;
 		}
 	}
 	return false;
 }
 
-bool WM_gizmo_target_property_is_valid(const wmGizmoProperty *mpr_prop)
+bool WM_gizmo_target_property_is_valid(const wmGizmoProperty *gz_prop)
 {
-	return  ((mpr_prop->prop != NULL) ||
-	         (mpr_prop->custom_func.value_get_fn && mpr_prop->custom_func.value_set_fn));
+	return  ((gz_prop->prop != NULL) ||
+	         (gz_prop->custom_func.value_get_fn && gz_prop->custom_func.value_set_fn));
 }
 
 float WM_gizmo_target_property_value_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop)
+        const wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
-	if (mpr_prop->custom_func.value_get_fn) {
+	if (gz_prop->custom_func.value_get_fn) {
 		float value = 0.0f;
-		BLI_assert(mpr_prop->type->array_length == 1);
-		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, &value);
+		BLI_assert(gz_prop->type->array_length == 1);
+		gz_prop->custom_func.value_get_fn(gz, gz_prop, &value);
 		return value;
 	}
 
-	if (mpr_prop->index == -1) {
-		return RNA_property_float_get(&mpr_prop->ptr, mpr_prop->prop);
+	if (gz_prop->index == -1) {
+		return RNA_property_float_get(&gz_prop->ptr, gz_prop->prop);
 	}
 	else {
-		return RNA_property_float_get_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index);
+		return RNA_property_float_get_index(&gz_prop->ptr, gz_prop->prop, gz_prop->index);
 	}
 }
 
 void WM_gizmo_target_property_value_set(
-        bContext *C, const wmGizmo *mpr,
-        wmGizmoProperty *mpr_prop, const float value)
+        bContext *C, const wmGizmo *gz,
+        wmGizmoProperty *gz_prop, const float value)
 {
-	if (mpr_prop->custom_func.value_set_fn) {
-		BLI_assert(mpr_prop->type->array_length == 1);
-		mpr_prop->custom_func.value_set_fn(mpr, mpr_prop, &value);
+	if (gz_prop->custom_func.value_set_fn) {
+		BLI_assert(gz_prop->type->array_length == 1);
+		gz_prop->custom_func.value_set_fn(gz, gz_prop, &value);
 		return;
 	}
 
 	/* reset property */
-	if (mpr_prop->index == -1) {
-		RNA_property_float_set(&mpr_prop->ptr, mpr_prop->prop, value);
+	if (gz_prop->index == -1) {
+		RNA_property_float_set(&gz_prop->ptr, gz_prop->prop, value);
 	}
 	else {
-		RNA_property_float_set_index(&mpr_prop->ptr, mpr_prop->prop, mpr_prop->index, value);
+		RNA_property_float_set_index(&gz_prop->ptr, gz_prop->prop, gz_prop->index, value);
 	}
-	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
+	RNA_property_update(C, &gz_prop->ptr, gz_prop->prop);
 }
 
 void WM_gizmo_target_property_value_get_array(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         float *value)
 {
-	if (mpr_prop->custom_func.value_get_fn) {
-		mpr_prop->custom_func.value_get_fn(mpr, mpr_prop, value);
+	if (gz_prop->custom_func.value_get_fn) {
+		gz_prop->custom_func.value_get_fn(gz, gz_prop, value);
 		return;
 	}
-	RNA_property_float_get_array(&mpr_prop->ptr, mpr_prop->prop, value);
+	RNA_property_float_get_array(&gz_prop->ptr, gz_prop->prop, value);
 }
 
 void WM_gizmo_target_property_value_set_array(
-        bContext *C, const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        bContext *C, const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const float *value)
 {
-	if (mpr_prop->custom_func.value_set_fn) {
-		mpr_prop->custom_func.value_set_fn(mpr, mpr_prop, value);
+	if (gz_prop->custom_func.value_set_fn) {
+		gz_prop->custom_func.value_set_fn(gz, gz_prop, value);
 		return;
 	}
-	RNA_property_float_set_array(&mpr_prop->ptr, mpr_prop->prop, value);
+	RNA_property_float_set_array(&gz_prop->ptr, gz_prop->prop, value);
 
-	RNA_property_update(C, &mpr_prop->ptr, mpr_prop->prop);
+	RNA_property_update(C, &gz_prop->ptr, gz_prop->prop);
 }
 
 bool WM_gizmo_target_property_range_get(
-        const wmGizmo *mpr, wmGizmoProperty *mpr_prop,
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         float range[2])
 {
-	if (mpr_prop->custom_func.value_get_fn) {
-		if (mpr_prop->custom_func.range_get_fn) {
-			mpr_prop->custom_func.range_get_fn(mpr, mpr_prop, range);
+	if (gz_prop->custom_func.value_get_fn) {
+		if (gz_prop->custom_func.range_get_fn) {
+			gz_prop->custom_func.range_get_fn(gz, gz_prop, range);
 			return true;
 		}
 		else {
@@ -267,17 +267,17 @@ bool WM_gizmo_target_property_range_get(
 	}
 
 	float step, precision;
-	RNA_property_float_ui_range(&mpr_prop->ptr, mpr_prop->prop, &range[0], &range[1], &step, &precision);
+	RNA_property_float_ui_range(&gz_prop->ptr, gz_prop->prop, &range[0], &range[1], &step, &precision);
 	return true;
 }
 
 int WM_gizmo_target_property_array_length(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop)
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop)
 {
-	if (mpr_prop->custom_func.value_get_fn) {
-		return mpr_prop->type->array_length;
+	if (gz_prop->custom_func.value_get_fn) {
+		return gz_prop->type->array_length;
 	}
-	return RNA_property_array_length(&mpr_prop->ptr, mpr_prop->prop);
+	return RNA_property_array_length(&gz_prop->ptr, gz_prop->prop);
 }
 
 /** \} */
@@ -289,26 +289,26 @@ int WM_gizmo_target_property_array_length(
  * \{ */
 
 const wmGizmoPropertyType *WM_gizmotype_target_property_find(
-        const wmGizmoType *wt, const char *idname)
+        const wmGizmoType *gzt, const char *idname)
 {
-	return BLI_findstring(&wt->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
+	return BLI_findstring(&gzt->target_property_defs, idname, offsetof(wmGizmoPropertyType, idname));
 }
 
 void WM_gizmotype_target_property_def(
-        wmGizmoType *wt, const char *idname, int data_type, int array_length)
+        wmGizmoType *gzt, const char *idname, int data_type, int array_length)
 {
 	wmGizmoPropertyType *mpt;
 
-	BLI_assert(WM_gizmotype_target_property_find(wt, idname) == NULL);
+	BLI_assert(WM_gizmotype_target_property_find(gzt, idname) == NULL);
 
 	const uint idname_size = strlen(idname) + 1;
 	mpt = MEM_callocN(sizeof(wmGizmoPropertyType) + idname_size, __func__);
 	memcpy(mpt->idname, idname, idname_size);
 	mpt->data_type = data_type;
 	mpt->array_length = array_length;
-	mpt->index_in_type = wt->target_property_defs_len;
-	wt->target_property_defs_len += 1;
-	BLI_addtail(&wt->target_property_defs, mpt);
+	mpt->index_in_type = gzt->target_property_defs_len;
+	gzt->target_property_defs_len += 1;
+	BLI_addtail(&gzt->target_property_defs, mpt);
 }
 
 /** \} */
@@ -322,10 +322,10 @@ void WM_gizmo_do_msg_notify_tag_refresh(
         bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
 {
 	ARegion *ar = msg_val->owner;
-	wmGizmoMap *mmap = msg_val->user_data;
+	wmGizmoMap *gzmap = msg_val->user_data;
 
 	ED_region_tag_redraw(ar);
-	WM_gizmomap_tag_refresh(mmap);
+	WM_gizmomap_tag_refresh(gzmap);
 }
 
 /**
@@ -333,26 +333,26 @@ void WM_gizmo_do_msg_notify_tag_refresh(
  * drawing the region clears.
  */
 void WM_gizmo_target_property_subscribe_all(
-        wmGizmo *mpr, struct wmMsgBus *mbus, ARegion *ar)
+        wmGizmo *gz, struct wmMsgBus *mbus, ARegion *ar)
 {
-	if (mpr->type->target_property_defs_len) {
-		wmGizmoProperty *mpr_prop_array = WM_gizmo_target_property_array(mpr);
-		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
-			wmGizmoProperty *mpr_prop = &mpr_prop_array[i];
-			if (WM_gizmo_target_property_is_valid(mpr_prop)) {
-				if (mpr_prop->prop) {
+	if (gz->type->target_property_defs_len) {
+		wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
+		for (int i = 0; i < gz->type->target_property_defs_len; i++) {
+			wmGizmoProperty *gz_prop = &gz_prop_array[i];
+			if (WM_gizmo_target_property_is_valid(gz_prop)) {
+				if (gz_prop->prop) {
 					WM_msg_subscribe_rna(
-					        mbus, &mpr_prop->ptr, mpr_prop->prop,
+					        mbus, &gz_prop->ptr, gz_prop->prop,
 					        &(const wmMsgSubscribeValue){
 					            .owner = ar,
 					            .user_data = ar,
 					            .notify = ED_region_do_msg_notify_tag_redraw,
 					        }, __func__);
 					WM_msg_subscribe_rna(
-					        mbus, &mpr_prop->ptr, mpr_prop->prop,
+					        mbus, &gz_prop->ptr, gz_prop->prop,
 					        &(const wmMsgSubscribeValue){
 					            .owner = ar,
-					            .user_data = mpr->parent_mgroup->parent_mmap,
+					            .user_data = gz->parent_gzgroup->parent_gzmap,
 					            .notify = WM_gizmo_do_msg_notify_tag_refresh,
 					        }, __func__);
 				}

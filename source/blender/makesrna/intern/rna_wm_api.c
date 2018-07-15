@@ -120,31 +120,31 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 
 static wmGizmoGroupType *wm_gizmogrouptype_find_for_add_remove(ReportList *reports, const char *idname)
 {
-	wmGizmoGroupType *wgt = WM_gizmogrouptype_find(idname, true);
-	if (wgt == NULL) {
+	wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, true);
+	if (gzgt == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Gizmo group type '%s' not found!", idname);
 		return NULL;
 	}
-	if (wgt->flag & WM_GIZMOGROUPTYPE_PERSISTENT) {
+	if (gzgt->flag & WM_GIZMOGROUPTYPE_PERSISTENT) {
 		BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' has 'PERSISTENT' option set!", idname);
 		return NULL;
 	}
-	return wgt;
+	return gzgt;
 }
 
 static void rna_gizmo_group_type_add(ReportList *reports, const char *idname)
 {
-	wmGizmoGroupType *wgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
-	if (wgt != NULL) {
-		WM_gizmo_group_type_add_ptr(wgt);
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
+	if (gzgt != NULL) {
+		WM_gizmo_group_type_add_ptr(gzgt);
 	}
 }
 
 static void rna_gizmo_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
 {
-	wmGizmoGroupType *wgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
-	if (wgt != NULL) {
-		WM_gizmo_group_type_remove_ptr(bmain, wgt);
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
+	if (gzgt != NULL) {
+		WM_gizmo_group_type_remove_ptr(bmain, gzgt);
 	}
 }
 

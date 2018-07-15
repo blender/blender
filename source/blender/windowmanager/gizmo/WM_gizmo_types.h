@@ -171,7 +171,7 @@ struct wmGizmo {
 	wmGizmoFnModal custom_modal;
 
 	/* pointer back to group this gizmo is in (just for quick access) */
-	struct wmGizmoGroup *parent_mgroup;
+	struct wmGizmoGroup *parent_gzgroup;
 
 	void *py_instance;
 
@@ -385,7 +385,7 @@ typedef struct wmGizmoGroupType {
 	eWM_GizmoFlagMapTypeUpdateFlag type_update_flag;
 
 	/* same as gizmo-maps, so registering/unregistering goes to the correct region */
-	struct wmGizmoMapType_Params mmap_params;
+	struct wmGizmoMapType_Params gzmap_params;
 
 } wmGizmoGroupType;
 
@@ -395,7 +395,7 @@ typedef struct wmGizmoGroup {
 	struct wmGizmoGroupType *type;
 	ListBase gizmos;
 
-	struct wmGizmoMap *parent_mmap;
+	struct wmGizmoMap *parent_gzmap;
 
 	void *py_instance;            /* python stores the class instance here */
 	struct ReportList *reports;   /* errors and warnings storage */

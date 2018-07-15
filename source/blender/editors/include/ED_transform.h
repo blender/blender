@@ -159,13 +159,13 @@ void Transform_Properties(struct wmOperatorType *ot, int flags);
 
 /* transform gizmos */
 
-void TRANSFORM_WGT_gizmo(struct wmGizmoGroupType *wgt);
-void VIEW3D_WGT_xform_cage(struct wmGizmoGroupType *wgt);
+void TRANSFORM_GGT_gizmo(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_xform_cage(struct wmGizmoGroupType *gzgt);
 
-bool ED_widgetgroup_gizmo2d_poll(const struct bContext *C, struct wmGizmoGroupType *wgt);
-void ED_widgetgroup_gizmo2d_setup(const struct bContext *C, struct wmGizmoGroup *mgroup);
-void ED_widgetgroup_gizmo2d_refresh(const struct bContext *C, struct wmGizmoGroup *mgroup);
-void ED_widgetgroup_gizmo2d_draw_prepare(const struct bContext *C, struct wmGizmoGroup *mgroup);
+bool ED_widgetgroup_gizmo2d_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt);
+void ED_widgetgroup_gizmo2d_setup(const struct bContext *C, struct wmGizmoGroup *gzgroup);
+void ED_widgetgroup_gizmo2d_refresh(const struct bContext *C, struct wmGizmoGroup *gzgroup);
+void ED_widgetgroup_gizmo2d_draw_prepare(const struct bContext *C, struct wmGizmoGroup *gzgroup);
 
 
 /* Snapping */

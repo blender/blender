@@ -128,16 +128,16 @@ static void gizmo2d_get_axis_color(const int axis_idx, float *r_col, float *r_co
 	r_col_hi[3] *= alpha_hi;
 }
 
-static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *mgroup)
+static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
 {
-	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_2d", true);
-	const wmGizmoType *wt_cage = WM_gizmotype_find("GIZMO_WT_cage_2d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
+	const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
 
 	GizmoGroup2D *man = MEM_callocN(sizeof(GizmoGroup2D), __func__);
 
-	man->translate_x = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-	man->translate_y = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-	man->cage = WM_gizmo_new_ptr(wt_cage, mgroup, NULL);
+	man->translate_x = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	man->translate_y = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	man->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
 
 	RNA_enum_set(man->cage->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
@@ -197,11 +197,11 @@ static int gizmo2d_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	wmOperatorType *ot_translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
-	GizmoGroup2D *man = gizmogroup2d_init(mgroup);
-	mgroup->customdata = man;
+	GizmoGroup2D *man = gizmogroup2d_init(gzgroup);
+	gzgroup->customdata = man;
 
 	MAN2D_ITER_AXES_BEGIN(axis, axis_idx)
 	{
@@ -271,9 +271,9 @@ void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *mgrou
 	}
 }
 
-void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *mgroup)
+void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoGroup2D *man = mgroup->customdata;
+	GizmoGroup2D *man = gzgroup->customdata;
 	float origin[3];
 	gizmo2d_calc_bounds(C, origin, man->min, man->max);
 	copy_v2_v2(man->origin, origin);
@@ -321,10 +321,10 @@ void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *mgroup)
 	}
 }
 
-void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
+void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	ARegion *ar = CTX_wm_region(C);
-	GizmoGroup2D *man = mgroup->customdata;
+	GizmoGroup2D *man = gzgroup->customdata;
 	float origin[3] = {UNPACK2(man->origin), 0.0f};
 	float origin_aa[3] = {UNPACK2(man->origin), 0.0f};
 
@@ -346,7 +346,7 @@ void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *mgroup
  * - Called on every redraw, better to do a more simple poll and check for selection in _refresh
  * - UV editing only, could be expanded for other things.
  */
-bool ED_widgetgroup_gizmo2d_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
+bool ED_widgetgroup_gizmo2d_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
 	if ((U.gizmo_flag & USER_GIZMO_DRAW) == 0) {
 		return false;

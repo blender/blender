@@ -61,12 +61,12 @@ void wm_gizmogrouptype_init(void);
 void GIZMOGROUP_OT_gizmo_select(struct wmOperatorType *ot);
 void GIZMOGROUP_OT_gizmo_tweak(struct wmOperatorType *ot);
 
-bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *mgroup);
+bool wm_gizmogroup_is_any_selected(const struct wmGizmoGroup *gzgroup);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMap */
 
-void wm_gizmomap_remove(struct wmGizmoMap *mmap);
+void wm_gizmomap_remove(struct wmGizmoMap *gzmap);
 
 void wm_gizmos_keymap(struct wmKeyConfig *keyconf);
 
@@ -75,19 +75,19 @@ void wm_gizmomaps_handled_modal_update(
 void wm_gizmomap_handler_context(bContext *C, struct wmEventHandler *handler);
 
 struct wmGizmo *wm_gizmomap_highlight_find(
-        struct wmGizmoMap *mmap, bContext *C, const struct wmEvent *event,
+        struct wmGizmoMap *gzmap, bContext *C, const struct wmEvent *event,
         int *r_part);
 bool wm_gizmomap_highlight_set(
-        struct wmGizmoMap *mmap, const bContext *C,
-        struct wmGizmo *mpr, int part);
-struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *mmap);
+        struct wmGizmoMap *gzmap, const bContext *C,
+        struct wmGizmo *gz, int part);
+struct wmGizmo *wm_gizmomap_highlight_get(struct wmGizmoMap *gzmap);
 void wm_gizmomap_modal_set(
-        struct wmGizmoMap *mmap, bContext *C, struct wmGizmo *mpr,
+        struct wmGizmoMap *gzmap, bContext *C, struct wmGizmo *gz,
         const struct wmEvent *event, bool enable);
 
-struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *mmap);
-struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *mmap, int *r_selected_len);
-struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *mmap);
+struct wmGizmo *wm_gizmomap_modal_get(struct wmGizmoMap *gzmap);
+struct wmGizmo **wm_gizmomap_selected_get(wmGizmoMap *gzmap, int *r_selected_len);
+struct ListBase *wm_gizmomap_groups_get(wmGizmoMap *gzmap);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMapType */

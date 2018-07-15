@@ -2940,22 +2940,22 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_GIZMO_HIDE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", V3D_GIZMO_HIDE);
 	RNA_def_property_ui_text(prop, "Show Gizmo", "Show gizmos of all types");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_gizmo_navigate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_GIZMO_HIDE_NAVIGATE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", V3D_GIZMO_HIDE_NAVIGATE);
 	RNA_def_property_ui_text(prop, "Navigate Gizmo", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_gizmo_context", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_GIZMO_HIDE_CONTEXT);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", V3D_GIZMO_HIDE_CONTEXT);
 	RNA_def_property_ui_text(prop, "Context Gizmo", "Context sensitive gizmos for the active item");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_gizmo_tool", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "mpr_flag", V3D_GIZMO_HIDE_TOOL);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", V3D_GIZMO_HIDE_TOOL);
 	RNA_def_property_ui_text(prop, "Tool Gizmo", "Active tool gizmo");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

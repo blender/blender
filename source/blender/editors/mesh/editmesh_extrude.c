@@ -417,31 +417,31 @@ static void gizmo_mesh_extrude_orientation_matrix_set(
 	}
 }
 
-static bool gizmo_mesh_extrude_poll(const bContext *C, wmGizmoGroupType *wgt)
+static bool gizmo_mesh_extrude_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
 	if ((tref_rt == NULL) ||
-	    !STREQ(wgt->idname, tref_rt->gizmo_group) ||
+	    !STREQ(gzgt->idname, tref_rt->gizmo_group) ||
 	    !ED_operator_editmesh_view3d((bContext *)C))
 	{
-		WM_gizmo_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
-static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	struct GizmoExtrudeGroup *man = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
-	mgroup->customdata = man;
+	gzgroup->customdata = man;
 
-	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_3d", true);
-	const wmGizmoType *wt_grab = WM_gizmotype_find("GIZMO_WT_button_2d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
 	for (int i = 0; i < 4; i++) {
-		man->adjust_xyz_no[i] = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-		man->invoke_xyz_no[i] = WM_gizmo_new_ptr(wt_grab, mgroup, NULL);
+		man->adjust_xyz_no[i] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+		man->invoke_xyz_no[i] = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
 		man->invoke_xyz_no[i]->flag |= WM_GIZMO_DRAW_OFFSET_SCALE;
 	}
 
@@ -503,9 +503,9 @@ static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *mg
 	}
 }
 
-static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoExtrudeGroup *man = mgroup->customdata;
+	GizmoExtrudeGroup *man = gzgroup->customdata;
 
 	for (int i = 0; i < 4; i++) {
 		WM_gizmo_set_flag(man->invoke_xyz_no[i], WM_GIZMO_HIDDEN, true);
@@ -623,9 +623,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *mgroup)
 	}
 }
 
-static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
+static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoExtrudeGroup *man = mgroup->customdata;
+	GizmoExtrudeGroup *man = gzgroup->customdata;
 	switch (man->data.orientation_type) {
 		case V3D_MANIP_VIEW:
 		{
@@ -640,38 +640,38 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *mgr
 }
 
 static void gizmo_mesh_extrude_message_subscribe(
-        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
 	ARegion *ar = CTX_wm_region(C);
 
 	/* Subscribe to view properties */
-	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
-		.user_data = mgroup->parent_mmap,
+		.user_data = gzgroup->parent_gzmap,
 		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
 	{
-		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_gz_tag_refresh);
 	}
 
 }
 
-static void MESH_WGT_extrude(struct wmGizmoGroupType *wgt)
+static void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Mesh Extrude";
-	wgt->idname = "MESH_WGT_extrude";
+	gzgt->name = "Mesh Extrude";
+	gzgt->idname = "MESH_GGT_extrude";
 
-	wgt->flag = WM_GIZMOGROUPTYPE_3D;
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = gizmo_mesh_extrude_poll;
-	wgt->setup = gizmo_mesh_extrude_setup;
-	wgt->refresh = gizmo_mesh_extrude_refresh;
-	wgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;
-	wgt->message_subscribe = gizmo_mesh_extrude_message_subscribe;
+	gzgt->poll = gizmo_mesh_extrude_poll;
+	gzgt->setup = gizmo_mesh_extrude_setup;
+	gzgt->refresh = gizmo_mesh_extrude_refresh;
+	gzgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;
+	gzgt->message_subscribe = gizmo_mesh_extrude_message_subscribe;
 }
 
 #endif  /* USE_GIZMO */
@@ -826,7 +826,7 @@ void MESH_OT_extrude_context(wmOperatorType *ot)
 	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 
 #ifdef USE_GIZMO
-	WM_gizmogrouptype_append(MESH_WGT_extrude);
+	WM_gizmogrouptype_append(MESH_GGT_extrude);
 #endif
 }
 

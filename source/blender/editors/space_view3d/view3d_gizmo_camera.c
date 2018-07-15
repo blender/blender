@@ -61,11 +61,11 @@ struct CameraWidgetGroup {
 	wmGizmo *ortho_scale;
 };
 
-static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 	{
 		return false;
 	}
@@ -81,57 +81,57 @@ static bool WIDGETGROUP_camera_poll(const bContext *C, wmGizmoGroupType *UNUSED(
 	return false;
 }
 
-static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_camera_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	Object *ob = CTX_data_active_object(C);
 	float dir[3];
 
-	const wmGizmoType *wt_arrow = WM_gizmotype_find("GIZMO_WT_arrow_3d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 
-	struct CameraWidgetGroup *camgroup = MEM_callocN(sizeof(struct CameraWidgetGroup), __func__);
-	mgroup->customdata = camgroup;
+	struct CameraWidgetGroup *cagzgroup = MEM_callocN(sizeof(struct CameraWidgetGroup), __func__);
+	gzgroup->customdata = cagzgroup;
 
 	negate_v3_v3(dir, ob->obmat[2]);
 
 	/* dof distance */
 	{
-		wmGizmo *mpr;
-		mpr = camgroup->dop_dist = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-		RNA_enum_set(mpr->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CROSS);
-		WM_gizmo_set_flag(mpr, WM_GIZMO_DRAW_HOVER, true);
+		wmGizmo *gz;
+		gz = cagzgroup->dop_dist = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+		RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CROSS);
+		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_HOVER, true);
 
-		UI_GetThemeColor3fv(TH_GIZMO_A, mpr->color);
-		UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
+		UI_GetThemeColor3fv(TH_GIZMO_A, gz->color);
+		UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 	}
 
 	/* focal length
 	 * - logic/calculations are similar to BKE_camera_view_frame_ex, better keep in sync */
 	{
-		wmGizmo *mpr;
-		mpr = camgroup->focal_len = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-		mpr->flag |= WM_GIZMO_DRAW_NO_SCALE;
-		RNA_enum_set(mpr->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CONE);
-		RNA_enum_set(mpr->ptr, "transform",  ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
+		wmGizmo *gz;
+		gz = cagzgroup->focal_len = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+		gz->flag |= WM_GIZMO_DRAW_NO_SCALE;
+		RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CONE);
+		RNA_enum_set(gz->ptr, "transform",  ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
 
-		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
-		UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
+		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+		UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 
-		mpr = camgroup->ortho_scale = WM_gizmo_new_ptr(wt_arrow, mgroup, NULL);
-		mpr->flag |= WM_GIZMO_DRAW_NO_SCALE;
-		RNA_enum_set(mpr->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CONE);
-		RNA_enum_set(mpr->ptr, "transform",  ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
+		gz = cagzgroup->ortho_scale = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+		gz->flag |= WM_GIZMO_DRAW_NO_SCALE;
+		RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_ARROW_STYLE_CONE);
+		RNA_enum_set(gz->ptr, "transform",  ED_GIZMO_ARROW_XFORM_FLAG_CONSTRAINED);
 
-		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, mpr->color);
-		UI_GetThemeColor3fv(TH_GIZMO_HI, mpr->color_hi);
+		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+		UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
 	}
 }
 
-static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	if (!mgroup->customdata)
+	if (!gzgroup->customdata)
 		return;
 
-	struct CameraWidgetGroup *camgroup = mgroup->customdata;
+	struct CameraWidgetGroup *cagzgroup = gzgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
 	Camera *ca = ob->data;
 	PointerRNA camera_ptr;
@@ -149,16 +149,16 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *mgroup)
 	negate_v3_v3(dir, ob->obmat[2]);
 
 	if (ca->flag & CAM_SHOWLIMITS) {
-		WM_gizmo_set_matrix_location(camgroup->dop_dist, ob->obmat[3]);
-		WM_gizmo_set_matrix_rotation_from_yz_axis(camgroup->dop_dist, ob->obmat[1], dir);
-		WM_gizmo_set_scale(camgroup->dop_dist, ca->drawsize);
-		WM_gizmo_set_flag(camgroup->dop_dist, WM_GIZMO_HIDDEN, false);
+		WM_gizmo_set_matrix_location(cagzgroup->dop_dist, ob->obmat[3]);
+		WM_gizmo_set_matrix_rotation_from_yz_axis(cagzgroup->dop_dist, ob->obmat[1], dir);
+		WM_gizmo_set_scale(cagzgroup->dop_dist, ca->drawsize);
+		WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, false);
 
 		/* need to set property here for undo. TODO would prefer to do this in _init */
-		WM_gizmo_target_property_def_rna(camgroup->dop_dist, "offset", &camera_ptr, "dof_distance", -1);
+		WM_gizmo_target_property_def_rna(cagzgroup->dop_dist, "offset", &camera_ptr, "dof_distance", -1);
 	}
 	else {
-		WM_gizmo_set_flag(camgroup->dop_dist, WM_GIZMO_HIDDEN, true);
+		WM_gizmo_set_flag(cagzgroup->dop_dist, WM_GIZMO_HIDDEN, true);
 	}
 
 	/* TODO - make focal length/ortho ob_scale_inv widget optional */
@@ -167,14 +167,14 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *mgroup)
 	const float aspy = (float)scene->r.ysch * scene->r.yasp;
 	const bool is_ortho = (ca->type == CAM_ORTHO);
 	const int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, aspx, aspy);
-	wmGizmo *widget = is_ortho ? camgroup->ortho_scale : camgroup->focal_len;
+	wmGizmo *widget = is_ortho ? cagzgroup->ortho_scale : cagzgroup->focal_len;
 	float scale_matrix;
 	if (true) {
 		float offset[3];
 		float aspect[2];
 
 		WM_gizmo_set_flag(widget, WM_GIZMO_HIDDEN, false);
-		WM_gizmo_set_flag(is_ortho ? camgroup->focal_len : camgroup->ortho_scale, WM_GIZMO_HIDDEN, true);
+		WM_gizmo_set_flag(is_ortho ? cagzgroup->focal_len : cagzgroup->ortho_scale, WM_GIZMO_HIDDEN, true);
 
 
 		/* account for lens shifting */
@@ -208,9 +208,9 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *mgroup)
 	{
 		const char *propname = is_ortho ? "ortho_scale" : "lens";
 		PropertyRNA *prop = RNA_struct_find_property(&camera_ptr, propname);
-		const wmGizmoPropertyType *mpr_prop_type = WM_gizmotype_target_property_find(widget->type, "offset");
+		const wmGizmoPropertyType *gz_prop_type = WM_gizmotype_target_property_find(widget->type, "offset");
 
-		WM_gizmo_target_property_clear_rna_ptr(widget, mpr_prop_type);
+		WM_gizmo_target_property_clear_rna_ptr(widget, gz_prop_type);
 
 		float min, max, range;
 		float step, precision;
@@ -226,21 +226,21 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmGizmoGroup *mgroup)
 		         /* Half sensor, intentionally use sensor from camera and not calculated above. */
 		         (0.5f * ((ca->sensor_fit == CAMERA_SENSOR_FIT_HOR) ? ca->sensor_x : ca->sensor_x))));
 
-		WM_gizmo_target_property_def_rna_ptr(widget, mpr_prop_type, &camera_ptr, prop, -1);
+		WM_gizmo_target_property_def_rna_ptr(widget, gz_prop_type, &camera_ptr, prop, -1);
 	}
 
 }
 
 static void WIDGETGROUP_camera_message_subscribe(
-        const bContext *C, wmGizmoGroup *mgroup, struct wmMsgBus *mbus)
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
 	ARegion *ar = CTX_wm_region(C);
 	Object *ob = CTX_data_active_object(C);
 	Camera *ca = ob->data;
 
-	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
-		.user_data = mgroup->parent_mmap,
+		.user_data = gzgroup->parent_gzmap,
 		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
@@ -270,32 +270,32 @@ static void WIDGETGROUP_camera_message_subscribe(
 		RNA_id_pointer_create(&ca->id, &idptr);
 
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
 		}
 	}
 
 	/* Subscribe to render settings */
 	{
-		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_x, &msg_sub_value_mpr_tag_refresh);
-		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_y, &msg_sub_value_mpr_tag_refresh);
-		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_x, &msg_sub_value_mpr_tag_refresh);
-		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_y, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_x, &msg_sub_value_gz_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_y, &msg_sub_value_gz_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_x, &msg_sub_value_gz_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_y, &msg_sub_value_gz_tag_refresh);
 	}
 }
 
-void VIEW3D_WGT_camera(wmGizmoGroupType *wgt)
+void VIEW3D_GGT_camera(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Camera Widgets";
-	wgt->idname = "VIEW3D_WGT_camera";
+	gzgt->name = "Camera Widgets";
+	gzgt->idname = "VIEW3D_GGT_camera";
 
-	wgt->flag = (WM_GIZMOGROUPTYPE_PERSISTENT |
+	gzgt->flag = (WM_GIZMOGROUPTYPE_PERSISTENT |
 	             WM_GIZMOGROUPTYPE_3D |
 	             WM_GIZMOGROUPTYPE_DEPTH_3D);
 
-	wgt->poll = WIDGETGROUP_camera_poll;
-	wgt->setup = WIDGETGROUP_camera_setup;
-	wgt->refresh = WIDGETGROUP_camera_refresh;
-	wgt->message_subscribe = WIDGETGROUP_camera_message_subscribe;
+	gzgt->poll = WIDGETGROUP_camera_poll;
+	gzgt->setup = WIDGETGROUP_camera_setup;
+	gzgt->refresh = WIDGETGROUP_camera_refresh;
+	gzgt->message_subscribe = WIDGETGROUP_camera_message_subscribe;
 }
 
 /** \} */
@@ -316,12 +316,12 @@ struct CameraViewWidgetGroup {
 
 /* scale callbacks */
 static void gizmo_render_border_prop_matrix_get(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop,
         void *value_p)
 {
 	float (*matrix)[4] = value_p;
-	BLI_assert(mpr_prop->type->array_length == 16);
-	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	BLI_assert(gz_prop->type->array_length == 16);
+	struct CameraViewWidgetGroup *viewgroup = gz_prop->custom_func.user_data;
 	const rctf *border = viewgroup->state.edit_border;
 
 	unit_m4(matrix);
@@ -332,20 +332,20 @@ static void gizmo_render_border_prop_matrix_get(
 }
 
 static void gizmo_render_border_prop_matrix_set(
-        const wmGizmo *UNUSED(mpr), wmGizmoProperty *mpr_prop,
+        const wmGizmo *UNUSED(gz), wmGizmoProperty *gz_prop,
         const void *value_p)
 {
 	const float (*matrix)[4] = value_p;
-	struct CameraViewWidgetGroup *viewgroup = mpr_prop->custom_func.user_data;
+	struct CameraViewWidgetGroup *viewgroup = gz_prop->custom_func.user_data;
 	rctf *border = viewgroup->state.edit_border;
-	BLI_assert(mpr_prop->type->array_length == 16);
+	BLI_assert(gz_prop->type->array_length == 16);
 
 	BLI_rctf_resize(border, len_v3(matrix[0]), len_v3(matrix[1]));
 	BLI_rctf_recenter(border, matrix[3][0], matrix[3][1]);
 	BLI_rctf_isect(&(rctf){.xmin = 0, .ymin = 0, .xmax = 1, .ymax = 1}, border, border);
 }
 
-static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UNUSED(wgt))
+static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UNUSED(gzgt))
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -361,7 +361,7 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
 
 	View3D *v3d = CTX_wm_view3d(C);
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) ||
-	    (v3d->mpr_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_CONTEXT)))
 	{
 		return false;
 	}
@@ -382,11 +382,11 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmGizmoGroupType *UN
 	return false;
 }
 
-static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmGizmoGroup *mgroup)
+static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	struct CameraViewWidgetGroup *viewgroup = MEM_mallocN(sizeof(struct CameraViewWidgetGroup), __func__);
 
-	viewgroup->border = WM_gizmo_new("GIZMO_WT_cage_2d", mgroup, NULL);
+	viewgroup->border = WM_gizmo_new("GIZMO_GT_cage_2d", gzgroup, NULL);
 
 	RNA_enum_set(viewgroup->border->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
@@ -394,12 +394,12 @@ static void WIDGETGROUP_camera_view_setup(const bContext *UNUSED(C), wmGizmoGrou
 	RNA_enum_set(viewgroup->border->ptr, "draw_style", ED_GIZMO_CAGE2D_STYLE_BOX);
 
 
-	mgroup->customdata = viewgroup;
+	gzgroup->customdata = viewgroup;
 }
 
-static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	struct CameraViewWidgetGroup *viewgroup = mgroup->customdata;
+	struct CameraViewWidgetGroup *viewgroup = gzgroup->customdata;
 
 	ARegion *ar = CTX_wm_region(C);
 	struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -413,17 +413,17 @@ static void WIDGETGROUP_camera_view_draw_prepare(const bContext *C, wmGizmoGroup
 		viewgroup->state.view_border = (rctf){.xmin = 0, .ymin = 0, .xmax = ar->winx, .ymax = ar->winy};
 	}
 
-	wmGizmo *mpr = viewgroup->border;
-	unit_m4(mpr->matrix_space);
-	mul_v3_fl(mpr->matrix_space[0], BLI_rctf_size_x(&viewgroup->state.view_border));
-	mul_v3_fl(mpr->matrix_space[1], BLI_rctf_size_y(&viewgroup->state.view_border));
-	mpr->matrix_space[3][0] = viewgroup->state.view_border.xmin;
-	mpr->matrix_space[3][1] = viewgroup->state.view_border.ymin;
+	wmGizmo *gz = viewgroup->border;
+	unit_m4(gz->matrix_space);
+	mul_v3_fl(gz->matrix_space[0], BLI_rctf_size_x(&viewgroup->state.view_border));
+	mul_v3_fl(gz->matrix_space[1], BLI_rctf_size_y(&viewgroup->state.view_border));
+	gz->matrix_space[3][0] = viewgroup->state.view_border.xmin;
+	gz->matrix_space[3][1] = viewgroup->state.view_border.ymin;
 }
 
-static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *mgroup)
+static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	struct CameraViewWidgetGroup *viewgroup = mgroup->customdata;
+	struct CameraViewWidgetGroup *viewgroup = gzgroup->customdata;
 
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -431,8 +431,8 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *mgr
 	Scene *scene = CTX_data_scene(C);
 
 	{
-		wmGizmo *mpr = viewgroup->border;
-		WM_gizmo_set_flag(mpr, WM_GIZMO_HIDDEN, false);
+		wmGizmo *gz = viewgroup->border;
+		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
 
 		RNA_enum_set(viewgroup->border->ptr, "transform",
 		             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE | ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE);
@@ -445,7 +445,7 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *mgr
 		}
 
 		WM_gizmo_target_property_def_func(
-		        mpr, "matrix",
+		        gz, "matrix",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_render_border_prop_matrix_get,
 		            .value_set_fn = gizmo_render_border_prop_matrix_set,
@@ -456,18 +456,18 @@ static void WIDGETGROUP_camera_view_refresh(const bContext *C, wmGizmoGroup *mgr
 
 }
 
-void VIEW3D_WGT_camera_view(wmGizmoGroupType *wgt)
+void VIEW3D_GGT_camera_view(wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Camera View Widgets";
-	wgt->idname = "VIEW3D_WGT_camera_view";
+	gzgt->name = "Camera View Widgets";
+	gzgt->idname = "VIEW3D_GGT_camera_view";
 
-	wgt->flag = (WM_GIZMOGROUPTYPE_PERSISTENT |
+	gzgt->flag = (WM_GIZMOGROUPTYPE_PERSISTENT |
 	             WM_GIZMOGROUPTYPE_SCALE);
 
-	wgt->poll = WIDGETGROUP_camera_view_poll;
-	wgt->setup = WIDGETGROUP_camera_view_setup;
-	wgt->draw_prepare = WIDGETGROUP_camera_view_draw_prepare;
-	wgt->refresh = WIDGETGROUP_camera_view_refresh;
+	gzgt->poll = WIDGETGROUP_camera_view_poll;
+	gzgt->setup = WIDGETGROUP_camera_view_setup;
+	gzgt->draw_prepare = WIDGETGROUP_camera_view_draw_prepare;
+	gzgt->refresh = WIDGETGROUP_camera_view_refresh;
 }
 
 /** \} */

@@ -47,28 +47,28 @@
 #include "ED_gizmo_library.h"
 
 static void rna_gizmo_draw_preset_box(
-        wmGizmo *mpr, float matrix[16], int select_id)
+        wmGizmo *gz, float matrix[16], int select_id)
 {
-	ED_gizmo_draw_preset_box(mpr, (float (*)[4])matrix, select_id);
+	ED_gizmo_draw_preset_box(gz, (float (*)[4])matrix, select_id);
 }
 
 static void rna_gizmo_draw_preset_arrow(
-        wmGizmo *mpr, float matrix[16], int axis, int select_id)
+        wmGizmo *gz, float matrix[16], int axis, int select_id)
 {
-	ED_gizmo_draw_preset_arrow(mpr, (float (*)[4])matrix, axis, select_id);
+	ED_gizmo_draw_preset_arrow(gz, (float (*)[4])matrix, axis, select_id);
 }
 
 static void rna_gizmo_draw_preset_circle(
-        wmGizmo *mpr, float matrix[16], int axis, int select_id)
+        wmGizmo *gz, float matrix[16], int axis, int select_id)
 {
-	ED_gizmo_draw_preset_circle(mpr, (float (*)[4])matrix, axis, select_id);
+	ED_gizmo_draw_preset_circle(gz, (float (*)[4])matrix, axis, select_id);
 }
 
 static void rna_gizmo_draw_preset_facemap(
-        wmGizmo *mpr, struct bContext *C, struct Object *ob, int facemap, int select_id)
+        wmGizmo *gz, struct bContext *C, struct Object *ob, int facemap, int select_id)
 {
 	struct Scene *scene = CTX_data_scene(C);
-	ED_gizmo_draw_preset_facemap(C, mpr, scene, ob, facemap, select_id);
+	ED_gizmo_draw_preset_facemap(C, gz, scene, ob, facemap, select_id);
 }
 
 /* -------------------------------------------------------------------- */
@@ -76,14 +76,14 @@ static void rna_gizmo_draw_preset_facemap(
  * \{ */
 
 static void rna_gizmo_target_set_prop(
-        wmGizmo *mpr, ReportList *reports, const char *target_propname,
+        wmGizmo *gz, ReportList *reports, const char *target_propname,
         PointerRNA *ptr, const char *propname, int index)
 {
-	const wmGizmoPropertyType *mpr_prop_type =
-	        WM_gizmotype_target_property_find(mpr->type, target_propname);
-	if (mpr_prop_type == NULL) {
+	const wmGizmoPropertyType *gz_prop_type =
+	        WM_gizmotype_target_property_find(gz->type, target_propname);
+	if (gz_prop_type == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s' not found",
-		            mpr->type->idname, target_propname);
+		            gz->type->idname, target_propname);
 		return;
 	}
 
@@ -94,13 +94,13 @@ static void rna_gizmo_target_set_prop(
 		return;
 	}
 
-	if (mpr_prop_type->data_type != RNA_property_type(prop)) {
-		const int gizmo_type_index = RNA_enum_from_value(rna_enum_property_type_items, mpr_prop_type->data_type);
+	if (gz_prop_type->data_type != RNA_property_type(prop)) {
+		const int gizmo_type_index = RNA_enum_from_value(rna_enum_property_type_items, gz_prop_type->data_type);
 		const int prop_type_index = RNA_enum_from_value(rna_enum_property_type_items, RNA_property_type(prop));
 		BLI_assert((gizmo_type_index != -1) && (prop_type_index == -1));
 
 		BKE_reportf(reports, RPT_ERROR, "Gizmo target '%s.%s' expects '%s', '%s.%s' is '%s'",
-		            mpr->type->idname, target_propname,
+		            gz->type->idname, target_propname,
 		            rna_enum_property_type_items[gizmo_type_index].identifier,
 		            RNA_struct_identifier(ptr->type), propname,
 		            rna_enum_property_type_items[prop_type_index].identifier);
@@ -110,37 +110,37 @@ static void rna_gizmo_target_set_prop(
 	if (RNA_property_array_check(prop)) {
 		if (index == -1) {
 			const int prop_array_length = RNA_property_array_length(ptr, prop);
-			if (mpr_prop_type->array_length != prop_array_length) {
+			if (gz_prop_type->array_length != prop_array_length) {
 				BKE_reportf(reports, RPT_ERROR,
 				            "Gizmo target property '%s.%s' expects an array of length %d, found %d",
-				            mpr->type->idname, target_propname,
-				            mpr_prop_type->array_length,
+				            gz->type->idname, target_propname,
+				            gz_prop_type->array_length,
 				            prop_array_length);
 				return;
 			}
 		}
 	}
 	else {
-		if (mpr_prop_type->array_length != 1) {
+		if (gz_prop_type->array_length != 1) {
 			BKE_reportf(reports, RPT_ERROR,
 			            "Gizmo target property '%s.%s' expects an array of length %d",
-			            mpr->type->idname, target_propname,
-			            mpr_prop_type->array_length);
+			            gz->type->idname, target_propname,
+			            gz_prop_type->array_length);
 			return;
 		}
 	}
 
-	if (index >= mpr_prop_type->array_length) {
+	if (index >= gz_prop_type->array_length) {
 		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s', index %d must be below %d",
-		            mpr->type->idname, target_propname, index, mpr_prop_type->array_length);
+		            gz->type->idname, target_propname, index, gz_prop_type->array_length);
 		return;
 	}
 
-	WM_gizmo_target_property_def_rna_ptr(mpr, mpr_prop_type, ptr, prop, index);
+	WM_gizmo_target_property_def_rna_ptr(gz, gz_prop_type, ptr, prop, index);
 }
 
 static PointerRNA rna_gizmo_target_set_operator(
-        wmGizmo *mpr, ReportList *reports, const char *opname, int part_index)
+        wmGizmo *gz, ReportList *reports, const char *opname, int part_index)
 {
 	wmOperatorType *ot;
 
@@ -157,7 +157,7 @@ static PointerRNA rna_gizmo_target_set_operator(
 		properties = IDP_New(IDP_GROUP, &val, "wmGizmoProperties");
 	}
 
-	return *WM_gizmo_operator_set(mpr, part_index, ot, properties);
+	return *WM_gizmo_operator_set(gz, part_index, ot, properties);
 }
 
 /** \} */
@@ -167,16 +167,16 @@ static PointerRNA rna_gizmo_target_set_operator(
  * \{ */
 
 static bool rna_gizmo_target_is_valid(
-        wmGizmo *mpr, ReportList *reports, const char *target_propname)
+        wmGizmo *gz, ReportList *reports, const char *target_propname)
 {
-	wmGizmoProperty *mpr_prop =
-	        WM_gizmo_target_property_find(mpr, target_propname);
-	if (mpr_prop == NULL) {
+	wmGizmoProperty *gz_prop =
+	        WM_gizmo_target_property_find(gz, target_propname);
+	if (gz_prop == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "Gizmo target property '%s.%s' not found",
-		            mpr->type->idname, target_propname);
+		            gz->type->idname, target_propname);
 		return false;
 	}
-	return WM_gizmo_target_property_is_valid(mpr_prop);
+	return WM_gizmo_target_property_is_valid(gz_prop);
 }
 
 /** \} */
