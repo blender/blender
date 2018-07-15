@@ -15,37 +15,26 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- *
- *
- * Contributor(s): Mike Erwin
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Batched geometry rendering is powered by the Gawain library.
- * This file contains any additions or modifications specific to Blender.
- */
+#ifndef __GPU_BATCH_UTILS_H__
+#define __GPU_BATCH_UTILS_H__
 
-#ifndef __GPU_BATCH_H__
-#define __GPU_BATCH_H__
-
-#include "../../../intern/gawain/gawain/gwn_batch.h"
-#include "../../../intern/gawain/gawain/gwn_batch_private.h"
-
-// TODO: CMake magic to do this:
-// #include "gawain/batch.h"
+struct rctf;
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#include "GPU_shader.h"
+/* gpu_batch_utils.c */
+struct Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
+        const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+struct Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
+        const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
+        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-/* gpu_batch.c */
-void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id) ATTR_NONNULL(1);
+/* Only use by draw manager. Use the presets function instead for interface. */
+struct Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res) ATTR_WARN_UNUSED_RESULT;
 
-void gpu_batch_init(void);
-void gpu_batch_exit(void);
-
-#endif  /* __GPU_BATCH_H__ */
+#endif  /* __GPU_BATCH_UTILS_H__ */

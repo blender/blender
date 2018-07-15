@@ -39,6 +39,8 @@
 #include "BLI_math.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
+#include "GPU_batch_utils.h"
 
 #include "draw_cache.h"
 #include "draw_cache_impl.h"

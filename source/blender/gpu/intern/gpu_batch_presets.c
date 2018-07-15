@@ -38,6 +38,8 @@
 #include "UI_interface.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_utils.h"
+#include "GPU_batch_presets.h"  /* own include */
 #include "gpu_shader_private.h"
 
 /* Struct to store 3D Batches and their format */
@@ -59,11 +61,12 @@ static struct {
 
 static ListBase presets_list = {NULL, NULL};
 
+
 /* -------------------------------------------------------------------- */
 /** \name 3D Primitives
  * \{ */
 
-static Gwn_VertFormat *preset_3D_format(void)
+static Gwn_VertFormat *preset_3d_format(void)
 {
 	if (g_presets_3d.format.attr_len == 0) {
 		Gwn_VertFormat *format = &g_presets_3d.format;
@@ -84,6 +87,40 @@ static void batch_sphere_lat_lon_vert(
 	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), pos);
 	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), pos);
 }
+Gwn_Batch *GPU_batch_preset_sphere(int lod)
+{
+	BLI_assert(lod >= 0 && lod <= 2);
+	BLI_assert(BLI_thread_is_main());
+
+	if (lod == 0) {
+		return g_presets_3d.batch.sphere_low;
+	}
+	else if (lod == 1) {
+		return g_presets_3d.batch.sphere_med;
+	}
+	else {
+		return g_presets_3d.batch.sphere_high;
+	}
+}
+
+Gwn_Batch *GPU_batch_preset_sphere_wire(int lod)
+{
+	BLI_assert(lod >= 0 && lod <= 1);
+	BLI_assert(BLI_thread_is_main());
+
+	if (lod == 0) {
+		return g_presets_3d.batch.sphere_wire_low;
+	}
+	else {
+		return g_presets_3d.batch.sphere_wire_med;
+	}
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Create Sphere (3D)
+ * \{ */
 
 /* Replacement for gluSphere */
 Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res)
@@ -92,7 +129,7 @@ Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res)
 	const float lat_inc = M_PI / lat_res;
 	float lon, lat;
 
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(preset_3D_format());
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(preset_3d_format());
 	const uint vbo_len = (lat_res - 1) * lon_res * 6;
 	GWN_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -130,7 +167,7 @@ static Gwn_Batch *batch_sphere_wire(int lat_res, int lon_res)
 	const float lat_inc = M_PI / lat_res;
 	float lon, lat;
 
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(preset_3D_format());
+	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(preset_3d_format());
 	const uint vbo_len = (lat_res * lon_res * 2) + ((lat_res - 1) * lon_res * 2);
 	GWN_vertbuf_data_alloc(vbo, vbo_len);
 
@@ -158,37 +195,7 @@ static Gwn_Batch *batch_sphere_wire(int lat_res, int lon_res)
 	return GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 }
 
-Gwn_Batch *GPU_batch_preset_sphere(int lod)
-{
-	BLI_assert(lod >= 0 && lod <= 2);
-	BLI_assert(BLI_thread_is_main());
-
-	if (lod == 0) {
-		return g_presets_3d.batch.sphere_low;
-	}
-	else if (lod == 1) {
-		return g_presets_3d.batch.sphere_med;
-	}
-	else {
-		return g_presets_3d.batch.sphere_high;
-	}
-}
-
-Gwn_Batch *GPU_batch_preset_sphere_wire(int lod)
-{
-	BLI_assert(lod >= 0 && lod <= 1);
-	BLI_assert(BLI_thread_is_main());
-
-	if (lod == 0) {
-		return g_presets_3d.batch.sphere_wire_low;
-	}
-	else {
-		return g_presets_3d.batch.sphere_wire_med;
-	}
-}
-
 /** \} */
-
 
 void gpu_batch_presets_init(void)
 {

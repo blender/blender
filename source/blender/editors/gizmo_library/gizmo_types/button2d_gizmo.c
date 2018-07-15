@@ -45,6 +45,7 @@
 #include "GPU_matrix.h"
 #include "GPU_select.h"
 #include "GPU_batch.h"
+#include "GPU_batch_utils.h"
 #include "GPU_state.h"
 
 #include "RNA_access.h"

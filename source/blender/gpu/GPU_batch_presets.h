@@ -18,53 +18,35 @@
  * The Original Code is Copyright (C) 2016 Blender Foundation.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
  *
  * Contributor(s): Mike Erwin
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_batch.c
- *  \ingroup gpu
+/* Batched geometry rendering is powered by the Gawain library.
+ * This file contains any additions or modifications specific to Blender.
  */
 
-#include "MEM_guardedalloc.h"
+#ifndef __GPU_BATCH_PRESETS_H__
+#define __GPU_BATCH_PRESETS_H__
 
-#include "BLI_utildefines.h"
-#include "BLI_rect.h"
-#include "BLI_math.h"
-#include "BLI_polyfill_2d.h"
-#include "BLI_sort_utils.h"
+struct rctf;
+struct Gwn_VertFormat;
 
-#include "GPU_batch.h"  /* own include */
-#include "GPU_batch_presets.h"
-#include "gpu_shader_private.h"
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
-/* -------------------------------------------------------------------- */
-/** \name Utilities
- * \{ */
+/* gpu_batch_presets.c */
+struct Gwn_VertFormat *GPU_batch_preset_format_3d(void);
 
-void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id)
-{
-	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
-	GWN_batch_program_set(batch, shader->program, shader->interface);
-}
+/* Replacement for gluSphere */
+struct Gwn_Batch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
+struct Gwn_Batch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
 
-/** \} */
+void gpu_batch_presets_init(void);
+void gpu_batch_presets_register(struct Gwn_Batch *preset_batch);
+void gpu_batch_presets_reset(void);
+void gpu_batch_presets_exit(void);
 
-/* -------------------------------------------------------------------- */
-/** \name Init/Exit
- * \{ */
-
-void gpu_batch_init(void)
-{
-	gpu_batch_presets_init();
-}
-
-void gpu_batch_exit(void)
-{
-	gpu_batch_presets_exit();
-}
-
-/** \} */
+#endif  /* __GPU_BATCH_PRESETS_H__ */
