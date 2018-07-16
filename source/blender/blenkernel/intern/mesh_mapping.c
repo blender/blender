@@ -55,13 +55,13 @@
  * but for now this replaces it because its unused. */
 
 UvVertMap *BKE_mesh_uv_vert_map_create(
-        struct MPoly *mpoly, struct MLoop *mloop, struct MLoopUV *mloopuv,
+        const MPoly *mpoly, const MLoop *mloop, const MLoopUV *mloopuv,
         unsigned int totpoly, unsigned int totvert,
         const float limit[2], const bool selected, const bool use_winding)
 {
 	UvVertMap *vmap;
 	UvMapVert *buf;
-	MPoly *mp;
+	const MPoly *mp;
 	unsigned int a;
 	int i, totuv, nverts;
 
@@ -126,7 +126,8 @@ UvVertMap *BKE_mesh_uv_vert_map_create(
 	for (a = 0; a < totvert; a++) {
 		UvMapVert *newvlist = NULL, *vlist = vmap->vert[a];
 		UvMapVert *iterv, *v, *lastv, *next;
-		float *uv, *uv2, uvdiff[2];
+		const float *uv, *uv2;
+		float uvdiff[2];
 
 		while (vlist) {
 			v = vlist;
