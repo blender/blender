@@ -16,28 +16,26 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
-
-#include "opensubdiv_capi_type.h"
+#ifndef OPENSUBDIV_CAPI_TYPES_H_
+#define OPENSUBDIV_CAPI_TYPES_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
-
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
-
-int openSubdiv_getVersionHex(void);
+// Keep this a bitmask os it's possible to pass available
+// evaluators to Blender.
+typedef enum eOpenSubdivEvaluator {
+  OPENSUBDIV_EVALUATOR_CPU                     = (1 << 0),
+  OPENSUBDIV_EVALUATOR_OPENMP                  = (1 << 1),
+  OPENSUBDIV_EVALUATOR_OPENCL                  = (1 << 2),
+  OPENSUBDIV_EVALUATOR_CUDA                    = (1 << 3),
+  OPENSUBDIV_EVALUATOR_GLSL_TRANSFORM_FEEDBACK = (1 << 4),
+  OPENSUBDIV_EVALUATOR_GLSL_COMPUTE            = (1 << 5),
+} eOpenSubdivEvaluator;
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // OPENSUBDIV_CAPI_H_
+#endif  // OPENSUBDIV_CAPI_TYPES_H_

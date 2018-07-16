@@ -1,4 +1,4 @@
-// Copyright 2013 Blender Foundation. All rights reserved.
+// Copyright 2018 Blender Foundation. All rights reserved.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -16,28 +16,28 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
+#ifndef OPENSUBDIV_GL_MESH_INTERNAL_H_
+#define OPENSUBDIV_GL_MESH_INTERNAL_H_
+
+#ifdef _MSC_VER
+#  include <iso646.h>
+#endif
+
+#include <opensubdiv/osd/glMesh.h>
 
 #include "opensubdiv_capi_type.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace opensubdiv_capi {
+class GLMeshFVarData;
+}  // namespace opensubdiv_capi
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
+typedef struct OpenSubdiv_GLMeshInternal {
+  OpenSubdiv_GLMeshInternal();
+  ~OpenSubdiv_GLMeshInternal();
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
+  eOpenSubdivEvaluator evaluator_type;
+  OpenSubdiv::Osd::GLMeshInterface* mesh_interface;
+  opensubdiv_capi::GLMeshFVarData* fvar_data;
+} OpenSubdiv_GLMeshInternal;
 
-int openSubdiv_getVersionHex(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // OPENSUBDIV_CAPI_H_
+#endif  // OPENSUBDIV_GL_MESH_INTERNAL_H_

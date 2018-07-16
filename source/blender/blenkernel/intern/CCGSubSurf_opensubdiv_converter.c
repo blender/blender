@@ -432,35 +432,35 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 {
 	ConvDMStorage *user_data;
 
-	converter->get_scheme_type = conv_dm_get_type;
+	converter->getSchemeType = conv_dm_get_type;
 
-	converter->get_fvar_linear_interpolation =
+	converter->getFVarLinearInterpolation =
 	        conv_dm_get_fvar_linear_interpolation;
 
-	converter->get_num_faces = conv_dm_get_num_faces;
-	converter->get_num_edges = conv_dm_get_num_edges;
-	converter->get_num_verts = conv_dm_get_num_verts;
+	converter->getNumFaces = conv_dm_get_num_faces;
+	converter->getNumEdges = conv_dm_get_num_edges;
+	converter->getNumVertices = conv_dm_get_num_verts;
 
-	converter->get_num_face_verts = conv_dm_get_num_face_verts;
-	converter->get_face_verts = conv_dm_get_face_verts;
-	converter->get_face_edges = conv_dm_get_face_edges;
+	converter->getNumFaceVertices = conv_dm_get_num_face_verts;
+	converter->getFaceVertices = conv_dm_get_face_verts;
+	converter->getFaceEdges = conv_dm_get_face_edges;
 
-	converter->get_edge_verts = conv_dm_get_edge_verts;
-	converter->get_num_edge_faces = conv_dm_get_num_edge_faces;
-	converter->get_edge_faces = conv_dm_get_edge_faces;
-	converter->get_edge_sharpness = conv_dm_get_edge_sharpness;
+	converter->getEdgeVertices = conv_dm_get_edge_verts;
+	converter->getNumEdgeFaces = conv_dm_get_num_edge_faces;
+	converter->getEdgeFaces = conv_dm_get_edge_faces;
+	converter->getEdgeSharpness = conv_dm_get_edge_sharpness;
 
-	converter->get_num_vert_edges = conv_dm_get_num_vert_edges;
-	converter->get_vert_edges = conv_dm_get_vert_edges;
-	converter->get_num_vert_faces = conv_dm_get_num_vert_faces;
-	converter->get_vert_faces = conv_dm_get_vert_faces;
+	converter->getNumVertexEdges = conv_dm_get_num_vert_edges;
+	converter->getVertexEdges = conv_dm_get_vert_edges;
+	converter->getNumVertexFaces = conv_dm_get_num_vert_faces;
+	converter->getVertexFaces = conv_dm_get_vert_faces;
 
-	converter->get_num_uv_layers = conv_dm_get_num_uv_layers;
-	converter->precalc_uv_layer = conv_dm_precalc_uv_layer;
-	converter->finish_uv_layer = conv_dm_finish_uv_layer;
-	converter->get_num_uvs = conv_dm_get_num_uvs;
-	converter->get_uvs = conv_dm_get_uvs;
-	converter->get_face_corner_uv_index = conv_dm_get_face_corner_uv_index;
+	converter->getNumUVLayers = conv_dm_get_num_uv_layers;
+	converter->precalcUVLayer = conv_dm_precalc_uv_layer;
+	converter->finishUVLayer = conv_dm_finish_uv_layer;
+	converter->getNumUVCoordinates = conv_dm_get_num_uvs;
+	converter->getUVCoordinates = conv_dm_get_uvs;
+	converter->getFaceCornerUVIndex = conv_dm_get_face_corner_uv_index;
 
 	user_data = MEM_mallocN(sizeof(ConvDMStorage), __func__);
 	user_data->ss = ss;
@@ -476,7 +476,7 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	user_data->uvs = NULL;
 	user_data->face_uvs = NULL;
 
-	converter->free_user_data = conv_dm_free_user_data;
+	converter->freeUserData = conv_dm_free_user_data;
 	converter->user_data = user_data;
 
 #ifdef USE_MESH_ELEMENT_MAPPING
@@ -717,45 +717,45 @@ static int conv_ccg_get_face_corner_uv_index(const OpenSubdiv_Converter *UNUSED(
 void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
                                          OpenSubdiv_Converter *converter)
 {
-	converter->get_scheme_type = conv_ccg_get_bilinear_type;
+	converter->getSchemeType = conv_ccg_get_bilinear_type;
 
-	converter->get_fvar_linear_interpolation =
+	converter->getFVarLinearInterpolation =
 	        conv_ccg_get_fvar_linear_interpolation;
 
-	converter->get_num_faces = conv_ccg_get_num_faces;
-	converter->get_num_edges = conv_ccg_get_num_edges;
-	converter->get_num_verts = conv_ccg_get_num_verts;
+	converter->getNumFaces = conv_ccg_get_num_faces;
+	converter->getNumEdges = conv_ccg_get_num_edges;
+	converter->getNumVertices = conv_ccg_get_num_verts;
 
-	converter->get_num_face_verts = conv_ccg_get_num_face_verts;
-	converter->get_face_verts = conv_ccg_get_face_verts;
-	converter->get_face_edges = conv_ccg_get_face_edges;
+	converter->getNumFaceVertices = conv_ccg_get_num_face_verts;
+	converter->getFaceVertices = conv_ccg_get_face_verts;
+	converter->getFaceEdges = conv_ccg_get_face_edges;
 
-	converter->get_edge_verts = conv_ccg_get_edge_verts;
-	converter->get_num_edge_faces = conv_ccg_get_num_edge_faces;
-	converter->get_edge_faces = conv_ccg_get_edge_faces;
-	converter->get_edge_sharpness = conv_ccg_get_edge_sharpness;
+	converter->getEdgeVertices = conv_ccg_get_edge_verts;
+	converter->getNumEdgeFaces = conv_ccg_get_num_edge_faces;
+	converter->getEdgeFaces = conv_ccg_get_edge_faces;
+	converter->getEdgeSharpness = conv_ccg_get_edge_sharpness;
 
-	converter->get_num_vert_edges = conv_ccg_get_num_vert_edges;
-	converter->get_vert_edges = conv_ccg_get_vert_edges;
-	converter->get_num_vert_faces = conv_ccg_get_num_vert_faces;
-	converter->get_vert_faces = conv_ccg_get_vert_faces;
+	converter->getNumVertexEdges = conv_ccg_get_num_vert_edges;
+	converter->getVertexEdges = conv_ccg_get_vert_edges;
+	converter->getNumVertexFaces = conv_ccg_get_num_vert_faces;
+	converter->getVertexFaces = conv_ccg_get_vert_faces;
 
-	converter->get_num_uv_layers = conv_ccg_get_num_uv_layers;
-	converter->precalc_uv_layer = conv_ccg_precalc_uv_layer;
-	converter->finish_uv_layer = conv_ccg_finish_uv_layer;
-	converter->get_num_uvs = conv_ccg_get_num_uvs;
-	converter->get_uvs = conv_ccg_get_uvs;
-	converter->get_face_corner_uv_index = conv_ccg_get_face_corner_uv_index;
+	converter->getNumUVLayers = conv_ccg_get_num_uv_layers;
+	converter->precalcUVLayer = conv_ccg_precalc_uv_layer;
+	converter->finishUVLayer = conv_ccg_finish_uv_layer;
+	converter->getNumUVCoordinates = conv_ccg_get_num_uvs;
+	converter->getUVCoordinates = conv_ccg_get_uvs;
+	converter->getFaceCornerUVIndex = conv_ccg_get_face_corner_uv_index;
 
-	converter->free_user_data = NULL;
+	converter->freeUserData = NULL;
 	converter->user_data = ss;
 }
 
 void ccgSubSurf_converter_free(
         struct OpenSubdiv_Converter *converter)
 {
-	if (converter->free_user_data) {
-		converter->free_user_data(converter);
+	if (converter->freeUserData) {
+		converter->freeUserData(converter);
 	}
 }
 

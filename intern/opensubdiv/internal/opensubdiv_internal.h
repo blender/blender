@@ -1,4 +1,4 @@
-// Copyright 2013 Blender Foundation. All rights reserved.
+// Copyright 2015 Blender Foundation. All rights reserved.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -16,28 +16,23 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
+#ifndef OPENSUBDIV_INTERNAL_H_
+#define OPENSUBDIV_INTERNAL_H_
 
-#include "opensubdiv_capi_type.h"
-
-#ifdef __cplusplus
-extern "C" {
+// Perform full topology validation when exporting it to OpenSubdiv.
+#ifdef NDEBUG
+// Never do for release builds.
+#  undef OPENSUBDIV_VALIDATE_TOPOLOGY
+#else
+// TODO(sergey): Always disabled for now, the check doesn't handle multiple
+// non-manifolds from the OpenSubdiv side currently.
+// #  undef OPENSUBDIV_VALIDATE_TOPOLOGY
+#  define OPENSUBDIV_VALIDATE_TOPOLOGY
 #endif
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
+// Currently OpenSubdiv expects topology to be oriented, but sometimes it's
+// handy to disable orientation code to check whether it causes some weird
+// issues by using pre-oriented model.
+#define OPENSUBDIV_ORIENT_TOPOLOGY
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
-
-int openSubdiv_getVersionHex(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // OPENSUBDIV_CAPI_H_
+#endif  // OPENSUBDIV_INTERNAL_H_

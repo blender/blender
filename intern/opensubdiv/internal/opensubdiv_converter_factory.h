@@ -1,4 +1,4 @@
-// Copyright 2013 Blender Foundation. All rights reserved.
+// Copyright 2015 Blender Foundation. All rights reserved.
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License
@@ -16,28 +16,22 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
+#ifndef OPENSUBDIV_CONVERTER_FACTORY_H_
+#define OPENSUBDIV_CONVERTER_FACTORY_H_
 
-#include "opensubdiv_capi_type.h"
-
-#ifdef __cplusplus
-extern "C" {
+#ifdef _MSC_VER
+#  include <iso646.h>
 #endif
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
+#include <opensubdiv/far/topologyRefiner.h>
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
+struct OpenSubdiv_Converter;
 
-int openSubdiv_getVersionHex(void);
+namespace opensubdiv_capi {
 
-#ifdef __cplusplus
-}
-#endif
+OpenSubdiv::Far::TopologyRefiner* createOSDTopologyRefinerFromConverter(
+    struct OpenSubdiv_Converter* converter);
 
-#endif  // OPENSUBDIV_CAPI_H_
+}  // namespace opensubdiv_capi
+
+#endif  // OPENSUBDIV_CONVERTER_FACTORY_H_

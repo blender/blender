@@ -236,7 +236,7 @@ struct CCGSubSurf {
 	 * Refiner is created from the modifier stack and used later from the main
 	 * thread to construct GL mesh to avoid threaded access to GL.
 	 */
-	struct OpenSubdiv_TopologyRefinerDescr *osd_topology_refiner;  /* Only used at synchronization stage. */
+	struct OpenSubdiv_TopologyRefiner *osd_topology_refiner;  /* Only used at synchronization stage. */
 	/* Denotes whether osd_mesh is invalid now due to topology changes and needs
 	 * to be reconstructed.
 	 *
@@ -249,7 +249,7 @@ struct CCGSubSurf {
 	/* ** CPU backend. ** */
 
 	/* Limit evaluator, used to evaluate CCG. */
-	struct OpenSubdiv_EvaluatorDescr *osd_evaluator;
+	struct OpenSubdiv_Evaluator *osd_evaluator;
 	/* Next PTex face index, used while CCG synchronization
 	 * to fill in PTex index of CCGFace.
 	 */

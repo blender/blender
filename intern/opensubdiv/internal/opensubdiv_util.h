@@ -15,29 +15,25 @@
 // Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 //
 // Author: Sergey Sharybin
+// Contributor(s): Brecht van Lommel
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
+#ifndef OPENSUBDIV_UTIL_H_
+#define OPENSUBDIV_UTIL_H_
 
-#include "opensubdiv_capi_type.h"
+#include <vector>
+#include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+namespace opensubdiv_capi {
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
+#define STRINGIFY_ARG(x) "" #x
+#define STRINGIFY_APPEND(a, b) "" a #b
+#define STRINGIFY(x) STRINGIFY_APPEND("", x)
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
+void stringSplit(std::vector<std::string>* tokens,
+                 const std::string& str,
+                 const std::string& separators,
+                 bool skip_empty);
 
-int openSubdiv_getVersionHex(void);
+}  // namespace opensubdiv_capi
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif  // OPENSUBDIV_CAPI_H_
+#endif  // OPENSUBDIV_UTIL_H_

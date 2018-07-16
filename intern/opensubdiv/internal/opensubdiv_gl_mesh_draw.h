@@ -16,28 +16,24 @@
 //
 // Author: Sergey Sharybin
 
-#ifndef OPENSUBDIV_CAPI_H_
-#define OPENSUBDIV_CAPI_H_
+#ifndef OPENSUBDIV_GL_MESH_DRAW_H_
+#define OPENSUBDIV_GL_MESH_DRAW_H_
 
-#include "opensubdiv_capi_type.h"
+#include <stdint.h>  // for bool
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+struct OpenSubdiv_GLMesh;
 
-// Global initialization/deinitialization.
-//
-// Supposed to be called from main thread.
-void openSubdiv_init(void);
-void openSubdiv_cleanup(void);
+namespace opensubdiv_capi {
 
-// Bitmask of eOpenSubdivEvaluator.
-int openSubdiv_getAvailableEvaluators(void);
+void GLMeshDisplayPrepare(struct OpenSubdiv_GLMesh* gl_mesh,
+                          const bool use_osd_glsl,
+                          const int active_uv_index);
 
-int openSubdiv_getVersionHex(void);
+void GLMeshDisplayDrawPatches(OpenSubdiv_GLMesh* gl_mesh,
+                              const bool fill_quads,
+                              const int start_patch,
+                              const int num_patches);
 
-#ifdef __cplusplus
-}
-#endif
+}  // namespace opensubdiv_capi
 
-#endif  // OPENSUBDIV_CAPI_H_
+#endif  // OPENSUBDIV_GL_MESH_DRAW_H_
