@@ -70,6 +70,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *effect_taa_fb;
 	struct GPUFrameBuffer *depth_buffer_fb;
+	struct GPUFrameBuffer *volume_fb;
 
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
@@ -101,6 +102,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 	struct DRWPass *effect_aa_pass;
+	struct DRWPass *volume_pass;
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
@@ -166,6 +168,10 @@ typedef struct WORKBENCH_PrivateData {
 	float shadow_near_max[3];
 	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
 	bool shadow_changed;
+
+	/* Volumes */
+	bool volumes_do;
+	ListBase smoke_domains;
 
 	/* Ssao */
 	float winmat[4][4];
@@ -279,6 +285,14 @@ void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3]);
+
+/* workbench_volume.c */
+void workbench_volume_engine_init(void);
+void workbench_volume_engine_free(void);
+void workbench_volume_cache_init(WORKBENCH_Data *vedata);
+void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Object *ob, struct ModifierData *md);
+void workbench_volume_smoke_textures_free(WORKBENCH_PrivateData *wpd);
+
 
 extern DrawEngineType draw_engine_workbench_solid;
 extern DrawEngineType draw_engine_workbench_transparent;

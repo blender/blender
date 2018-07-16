@@ -971,6 +971,52 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 #endif // WITH_SMOKE
 }
 
+void GPU_create_smoke_velocity(SmokeModifierData *smd)
+{
+#ifdef WITH_SMOKE
+	if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+		SmokeDomainSettings *sds = smd->domain;
+
+		const float *vel_x = smoke_get_velocity_x(sds->fluid);
+		const float *vel_y = smoke_get_velocity_y(sds->fluid);
+		const float *vel_z = smoke_get_velocity_z(sds->fluid);
+
+		if (ELEM(NULL, vel_x, vel_y, vel_z)) {
+			return;
+		}
+
+		if (!sds->tex_velocity_x) {
+			sds->tex_velocity_x = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_x, NULL);
+			sds->tex_velocity_y = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_y, NULL);
+			sds->tex_velocity_z = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R16F, vel_z, NULL);
+		}
+	}
+#else // WITH_SMOKE
+	smd->domain->tex_velocity_x = NULL;
+	smd->domain->tex_velocity_y = NULL;
+	smd->domain->tex_velocity_z = NULL;
+#endif // WITH_SMOKE
+}
+
+/* TODO Unify with the other GPU_free_smoke. */
+void GPU_free_smoke_velocity(SmokeModifierData *smd)
+{
+	if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
+		if (smd->domain->tex_velocity_x)
+			GPU_texture_free(smd->domain->tex_velocity_x);
+
+		if (smd->domain->tex_velocity_y)
+			GPU_texture_free(smd->domain->tex_velocity_y);
+
+		if (smd->domain->tex_velocity_z)
+			GPU_texture_free(smd->domain->tex_velocity_z);
+
+		smd->domain->tex_velocity_x = NULL;
+		smd->domain->tex_velocity_y = NULL;
+		smd->domain->tex_velocity_z = NULL;
+	}
+}
+
 static LinkNode *image_free_queue = NULL;
 
 static void gpu_queue_image_for_free(Image *ima)

@@ -162,6 +162,8 @@ extern char datatoc_animviz_mpath_lines_vert_glsl[];
 extern char datatoc_animviz_mpath_lines_geom_glsl[];
 extern char datatoc_animviz_mpath_points_vert_glsl[];
 
+extern char datatoc_volume_velocity_vert_glsl[];
+
 extern char datatoc_armature_axes_vert_glsl[];
 extern char datatoc_armature_sphere_solid_vert_glsl[];
 extern char datatoc_armature_sphere_solid_frag_glsl[];
@@ -198,6 +200,9 @@ static struct {
 
 	struct GPUShader *mpath_line_sh;
 	struct GPUShader *mpath_points_sh;
+
+	struct GPUShader *volume_velocity_needle_sh;
+	struct GPUShader *volume_velocity_sh;
 
 	struct GPUShader *mball_handles;
 } g_shaders = {NULL};
@@ -734,6 +739,26 @@ struct GPUShader *mpath_points_shader_get(void)
 		        NULL);
 	}
 	return g_shaders.mpath_points_sh;
+}
+
+struct GPUShader *volume_velocity_shader_get(bool use_needle)
+{
+	if (use_needle) {
+		if (g_shaders.volume_velocity_needle_sh == NULL) {
+			g_shaders.volume_velocity_needle_sh = DRW_shader_create(
+			        datatoc_volume_velocity_vert_glsl, NULL,
+			        datatoc_gpu_shader_flat_color_frag_glsl, "#define USE_NEEDLE");
+		}
+		return g_shaders.volume_velocity_needle_sh;
+	}
+	else {
+		if (g_shaders.volume_velocity_sh == NULL) {
+			g_shaders.volume_velocity_sh = DRW_shader_create(
+			        datatoc_volume_velocity_vert_glsl, NULL,
+			        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+		}
+		return g_shaders.volume_velocity_sh;
+	}
 }
 
 /* ******************************************** COLOR UTILS *********************************************** */

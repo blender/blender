@@ -119,6 +119,9 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 			wpd->viewvecs[1][2] = vec_far[2] - wpd->viewvecs[0][2];
 		}
 	}
+
+	wpd->volumes_do = false;
+	BLI_listbase_clear(&wpd->smoke_domains);
 }
 
 void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3])

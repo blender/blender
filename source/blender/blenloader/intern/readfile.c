@@ -5100,6 +5100,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->domain->tex = NULL;
 				smd->domain->tex_shadow = NULL;
 				smd->domain->tex_flame = NULL;
+				smd->domain->tex_velocity_x = NULL;
+				smd->domain->tex_velocity_y = NULL;
+				smd->domain->tex_velocity_z = NULL;
 				smd->domain->tex_wt = NULL;
 				smd->domain->coba = newdataadr(fd, smd->domain->coba);
 

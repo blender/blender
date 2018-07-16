@@ -138,6 +138,8 @@ struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass);
 struct GPUShader *mpath_line_shader_get(void);
 struct GPUShader *mpath_points_shader_get(void);
 
+struct GPUShader *volume_velocity_shader_get(bool use_needle);
+
 int DRW_object_wire_theme_get(
         struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);

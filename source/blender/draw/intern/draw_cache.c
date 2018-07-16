@@ -61,6 +61,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_square;
 	Gwn_Batch *drw_line;
 	Gwn_Batch *drw_line_endpoints;
+	Gwn_Batch *drw_empty_cube;
 	Gwn_Batch *drw_empty_sphere;
 	Gwn_Batch *drw_empty_cone;
 	Gwn_Batch *drw_arrows;
@@ -341,6 +342,54 @@ Gwn_Batch *DRW_cache_cube_get(void)
 			{ 1.0f,  1.0f,  1.0f}
 		};
 
+		const uint indices[36] = {
+			0, 1, 2,
+			1, 3, 2,
+			0, 4, 1,
+			4, 5, 1,
+			6, 5, 4,
+			6, 7, 5,
+			2, 7, 6,
+			2, 3, 7,
+			3, 1, 7,
+			1, 5, 7,
+			0, 2, 4,
+			2, 6, 4,
+		};
+
+		/* Position Only 3D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, 36);
+
+		for (int i = 0; i < 36; ++i) {
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, verts[indices[i]]);
+		}
+
+		SHC.drw_cube = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_cube;
+}
+
+Gwn_Batch *DRW_cache_empty_cube_get(void)
+{
+	if (!SHC.drw_empty_cube) {
+		const GLfloat verts[8][3] = {
+			{-1.0f, -1.0f, -1.0f},
+			{-1.0f, -1.0f,  1.0f},
+			{-1.0f,  1.0f, -1.0f},
+			{-1.0f,  1.0f,  1.0f},
+			{ 1.0f, -1.0f, -1.0f},
+			{ 1.0f, -1.0f,  1.0f},
+			{ 1.0f,  1.0f, -1.0f},
+			{ 1.0f,  1.0f,  1.0f}
+		};
+
 		const GLubyte indices[24] = {0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6};
 
 		/* Position Only 3D format */
@@ -357,9 +406,9 @@ Gwn_Batch *DRW_cache_cube_get(void)
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, verts[indices[i]]);
 		}
 
-		SHC.drw_cube = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_empty_cube = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
-	return SHC.drw_cube;
+	return SHC.drw_empty_cube;
 }
 
 Gwn_Batch *DRW_cache_circle_get(void)

@@ -33,6 +33,7 @@
 
 #include "BKE_node.h"
 #include "BKE_particle.h"
+#include "BKE_modifier.h"
 
 #include "DNA_image_types.h"
 #include "DNA_mesh_types.h"
@@ -284,6 +285,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		MEM_freeN(defines_texture);
 		MEM_freeN(defines_hair);
 	}
+	workbench_volume_engine_init();
 	workbench_fxaa_engine_init();
 	workbench_taa_engine_init(vedata);
 
@@ -305,13 +307,11 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 	});
-
 	GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.transparent_accum_tx),
 		GPU_ATTACHMENT_TEXTURE(e_data.transparent_revealage_tx),
 	});
-
 	GPU_framebuffer_ensure_config(&fbl->composite_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
@@ -320,6 +320,8 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.transparent_accum_tx),
 	});
+
+	workbench_volume_cache_init(vedata);
 
 	/* Transparency Accum */
 	{
@@ -372,7 +374,9 @@ void workbench_forward_engine_free()
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_hair_sh);
 	DRW_SHADER_FREE_SAFE(e_data.checker_depth_sh);
 
+	workbench_volume_engine_free();
 	workbench_fxaa_engine_free();
+	workbench_taa_engine_free();
 }
 
 void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
@@ -444,6 +448,8 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene = draw_ctx->scene;
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -452,13 +458,22 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		workbench_forward_cache_populate_particles(vedata, ob);
 	}
 
+	ModifierData *md;
+	if (((ob->base_flag & BASE_FROMDUPLI) == 0) &&
+	    (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
+	    (((SmokeModifierData *)md)->domain != NULL))
+	{
+		workbench_volume_cache_populate(vedata, scene, ob, md);
+		return; /* Do not draw solid in this case. */
+	}
+
 	if (!DRW_check_object_visible_within_active_context(ob)) {
 		return;
 	}
 
 	WORKBENCH_MaterialData *material;
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
-		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		bool is_drawn = false;
@@ -595,6 +610,7 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	/* Composite */
 	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->composite_pass);
+	DRW_draw_pass(psl->volume_pass);
 
 	/* Color correct and Anti aliasing */
 	workbench_aa_draw_pass(vedata, e_data.composite_buffer_tx);
@@ -604,4 +620,5 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	DRW_draw_pass(psl->checker_depth_pass);
 
 	workbench_private_data_free(wpd);
+	workbench_volume_smoke_textures_free(wpd);
 }

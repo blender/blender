@@ -32,10 +32,12 @@
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_lightprobe_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
+#include "DNA_smoke_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
@@ -49,6 +51,7 @@
 #include "BKE_global.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_image.h"
@@ -58,6 +61,7 @@
 
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_draw.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -286,6 +290,8 @@ static struct {
 	struct GPUTexture *outlines_id_tx;
 	struct GPUTexture *outlines_color_tx;
 	struct GPUTexture *outlines_blur_tx;
+
+	ListBase smoke_domains;
 } e_data = {NULL}; /* Engine data */
 
 
@@ -1078,7 +1084,7 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_plain_axes_get();
 		stl->g_data->plain_axes = shgroup_instance(psl->non_meshes, geom);
 
-		geom = DRW_cache_cube_get();
+		geom = DRW_cache_empty_cube_get();
 		stl->g_data->cube = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_circle_get();
@@ -1156,7 +1162,7 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->camera_mist_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
 		/* Texture Space */
-		geom = DRW_cache_cube_get();
+		geom = DRW_cache_empty_cube_get();
 		stl->g_data->texspace = shgroup_instance(psl->non_meshes, geom);
 	}
 
@@ -1723,6 +1729,85 @@ static void DRW_shgroup_forcefield(OBJECT_StorageList *stl, Object *ob, ViewLaye
 	}
 }
 
+static void DRW_shgroup_volume_extra(
+        OBJECT_PassList *psl, OBJECT_StorageList *stl,
+        Object *ob, ViewLayer *view_layer, Scene *scene, ModifierData *md)
+{
+	SmokeModifierData *smd = (SmokeModifierData *)md;
+	SmokeDomainSettings *sds = smd->domain;
+	float *color;
+	float one = 1.0f;
+
+	if (sds == NULL) {
+		return;
+	}
+
+	DRW_object_wire_theme_get(ob, view_layer, &color);
+
+	/* Small cube showing voxel size. */
+	float voxel_cubemat[4][4] = {{0.0f}};
+	voxel_cubemat[0][0] = 1.0f / (float)sds->res[0];
+	voxel_cubemat[1][1] = 1.0f / (float)sds->res[1];
+	voxel_cubemat[2][2] = 1.0f / (float)sds->res[2];
+	voxel_cubemat[3][0] = voxel_cubemat[3][1] = voxel_cubemat[3][2] = -1.0f;
+	voxel_cubemat[3][3] = 1.0f;
+	translate_m4(voxel_cubemat, 1.0f, 1.0f, 1.0f);
+	mul_m4_m4m4(voxel_cubemat, ob->obmat, voxel_cubemat);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, voxel_cubemat);
+
+	/* Don't show smoke before simulation starts, this could be made an option in the future. */
+	if (!sds->draw_velocity || !sds->fluid || CFRA < sds->point_cache[0]->startframe) {
+		return;
+	}
+
+	const bool use_needle = (sds->vector_draw_type == VECTOR_DRAW_NEEDLE);
+	int line_count = (use_needle) ? 6 : 1;
+	int slice_axis = -1;
+	line_count *= sds->res[0] * sds->res[1] * sds->res[2];
+
+	if (sds->slice_method == MOD_SMOKE_SLICE_AXIS_ALIGNED &&
+	    sds->axis_slice_method == AXIS_SLICE_SINGLE)
+	{
+		float invviewmat[4][4];
+		DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+
+		const int axis = (sds->slice_axis == SLICE_AXIS_AUTO)
+		                  ? axis_dominant_v3_single(invviewmat[2])
+		                  : sds->slice_axis - 1;
+		slice_axis = axis;
+		line_count /= sds->res[axis];
+	}
+
+	GPU_create_smoke_velocity(smd);
+
+	DRWShadingGroup *grp = DRW_shgroup_create(volume_velocity_shader_get(use_needle), psl->non_meshes);
+	DRW_shgroup_uniform_texture(grp, "velocityX", sds->tex_velocity_x);
+	DRW_shgroup_uniform_texture(grp, "velocityY", sds->tex_velocity_y);
+	DRW_shgroup_uniform_texture(grp, "velocityZ", sds->tex_velocity_z);
+	DRW_shgroup_uniform_float_copy(grp, "displaySize", sds->vector_scale);
+	DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
+	DRW_shgroup_uniform_int_copy(grp, "sliceAxis", slice_axis);
+	DRW_shgroup_call_procedural_lines_add(grp, line_count, ob->obmat);
+
+	BLI_addtail(&e_data.smoke_domains, BLI_genericNodeN(smd));
+}
+
+static void volumes_free_smoke_textures(void)
+{
+	/* Free Smoke Textures after rendering */
+	/* XXX This is a waste of processing and GPU bandwidth if nothing
+	 * is updated. But the problem is since Textures are stored in the
+	 * modifier we don't want them to take precious VRAM if the
+	 * modifier is not used for display. We should share them for
+	 * all viewport in a redraw at least. */
+	for (LinkData *link = e_data.smoke_domains.first; link; link = link->next) {
+		SmokeModifierData *smd = (SmokeModifierData *)link->data;
+		GPU_free_smoke(smd);
+	}
+	BLI_freelistN(&e_data.smoke_domains);
+}
+
 static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
 {
 	float *color;
@@ -2142,7 +2227,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
+	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
+	ModifierData *md = NULL;
 	int theme_id = TH_UNDEFINED;
 
 	/* Handle particles first in case the emitter itself shouldn't be rendered. */
@@ -2311,6 +2398,14 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		DRW_shgroup_forcefield(stl, ob, view_layer);
 	}
 
+	if (((ob->base_flag & BASE_FROMDUPLI) == 0) &&
+	    (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
+	    (((SmokeModifierData *)md)->domain != NULL))
+	{
+		DRW_shgroup_volume_extra(psl, stl, ob, view_layer, scene, md);
+	}
+
 	/* don't show object extras in set's */
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
 
@@ -2437,6 +2532,8 @@ static void OBJECT_draw_scene(void *vedata)
 		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
 		stl->g_data->image_plane_map = NULL;
 	}
+
+	volumes_free_smoke_textures();
 }
 
 static const DrawEngineDataSize OBJECT_data_size = DRW_VIEWPORT_DATA_SIZE(OBJECT_Data);
