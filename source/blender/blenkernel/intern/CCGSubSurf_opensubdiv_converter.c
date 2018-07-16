@@ -389,12 +389,6 @@ static int conv_dm_get_num_uvs(const OpenSubdiv_Converter *converter)
 	return storage->num_uvs;
 }
 
-static void conv_dm_get_uvs(const OpenSubdiv_Converter *converter, float *uvs)
-{
-	ConvDMStorage *storage = converter->user_data;
-	memcpy(uvs, storage->uvs, sizeof(float) * 2 * storage->num_uvs);
-}
-
 static int conv_dm_get_face_corner_uv_index(const OpenSubdiv_Converter *converter,
                                             int face,
                                             int corner)
@@ -459,7 +453,6 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	converter->precalcUVLayer = conv_dm_precalc_uv_layer;
 	converter->finishUVLayer = conv_dm_finish_uv_layer;
 	converter->getNumUVCoordinates = conv_dm_get_num_uvs;
-	converter->getUVCoordinates = conv_dm_get_uvs;
 	converter->getFaceCornerUVIndex = conv_dm_get_face_corner_uv_index;
 
 	user_data = MEM_mallocN(sizeof(ConvDMStorage), __func__);
@@ -702,11 +695,6 @@ static int conv_ccg_get_num_uvs(const OpenSubdiv_Converter *UNUSED(converter))
 	return 0;
 }
 
-static void conv_ccg_get_uvs(const OpenSubdiv_Converter * UNUSED(converter),
-                      float *UNUSED(uvs))
-{
-}
-
 static int conv_ccg_get_face_corner_uv_index(const OpenSubdiv_Converter *UNUSED(converter),
                                              int UNUSED(face),
                                              int UNUSED(corner_))
@@ -744,7 +732,6 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 	converter->precalcUVLayer = conv_ccg_precalc_uv_layer;
 	converter->finishUVLayer = conv_ccg_finish_uv_layer;
 	converter->getNumUVCoordinates = conv_ccg_get_num_uvs;
-	converter->getUVCoordinates = conv_ccg_get_uvs;
 	converter->getFaceCornerUVIndex = conv_ccg_get_face_corner_uv_index;
 
 	converter->freeUserData = NULL;
