@@ -296,6 +296,12 @@ typedef struct DRWDebugLine {
 	float color[4];
 } DRWDebugLine;
 
+typedef struct DRWDebugSphere {
+	struct DRWDebugSphere *next; /* linked list */
+	float mat[4][4];
+	float color[4];
+} DRWDebugSphere;
+
 /* ------------- DRAW MANAGER ------------ */
 
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
@@ -388,6 +394,7 @@ typedef struct DRWManager {
 	struct {
 		/* TODO(fclem) optimize: use chunks. */
 		DRWDebugLine *lines;
+		DRWDebugSphere *spheres;
 	} debug;
 } DRWManager;
 

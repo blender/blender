@@ -29,6 +29,8 @@
 
 #include "DNA_object_types.h"
 
+#include "BKE_object.h"
+
 #include "BLI_link_utils.h"
 
 #include "GPU_immediate.h"
@@ -105,6 +107,36 @@ void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
 	DRW_debug_line_v3v3(bbox->vec[3], bbox->vec[7], color);
 }
 
+void DRW_debug_m4_as_bbox(const float m[4][4], const float color[4], const bool invert)
+{
+	BoundBox bb;
+	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+	float minv[4][4];
+	if (invert) {
+		invert_m4_m4(minv, m);
+	}
+
+	BKE_boundbox_init_from_minmax(&bb, min, max);
+	for (int i = 0; i < 8; ++i) {
+		mul_project_m4_v3((invert) ? minv : m, bb.vec[i]);
+	}
+	DRW_debug_bbox(&bb, color);
+}
+
+void DRW_debug_sphere(const float center[3], const float radius, const float color[4])
+{
+	float size_mat[4][4];
+	DRWDebugSphere *sphere = MEM_mallocN(sizeof(DRWDebugSphere), "DRWDebugSphere");
+	/* Bake all transform into a Matrix4 */
+	scale_m4_fl(size_mat, radius);
+	copy_m4_m4(sphere->mat, g_modelmat);
+	translate_m4(sphere->mat, center[0], center[1], center[2]);
+	mul_m4_m4m4(sphere->mat, sphere->mat, size_mat);
+
+	copy_v4_v4(sphere->color, color);
+	BLI_LINKS_PREPEND(DST.debug.spheres, sphere);
+}
+
 /* --------- Render --------- */
 
 static void drw_debug_draw_lines(void)
@@ -140,9 +172,51 @@ static void drw_debug_draw_lines(void)
 	immUnbindProgram();
 }
 
+static void drw_debug_draw_spheres(void)
+{
+	int count = BLI_linklist_count((LinkNode *)DST.debug.spheres);
+
+	if (count == 0) {
+		return;
+	}
+
+	float one = 1.0f;
+	Gwn_VertFormat vert_format = {0};
+	uint mat = GWN_vertformat_attr_add(&vert_format, "InstanceModelMatrix", GWN_COMP_F32, 16, GWN_FETCH_FLOAT);
+	uint col = GWN_vertformat_attr_add(&vert_format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint siz = GWN_vertformat_attr_add(&vert_format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+
+	Gwn_VertBuf *inst_vbo = GWN_vertbuf_create_with_format(&vert_format);
+
+	GWN_vertbuf_data_alloc(inst_vbo, count);
+
+	int v = 0;
+	while (DST.debug.spheres) {
+		void *next = DST.debug.spheres->next;
+
+		GWN_vertbuf_attr_set(inst_vbo, mat, v, DST.debug.spheres->mat[0]);
+		GWN_vertbuf_attr_set(inst_vbo, col, v, DST.debug.spheres->color);
+		GWN_vertbuf_attr_set(inst_vbo, siz, v, &one);
+		v++;
+
+		MEM_freeN(DST.debug.spheres);
+		DST.debug.spheres = next;
+	}
+
+	Gwn_Batch *empty_sphere = DRW_cache_empty_sphere_get();
+
+	Gwn_Batch *draw_batch = GWN_batch_create(GWN_PRIM_LINES, empty_sphere->verts[0], NULL);
+	GWN_batch_instbuf_set(draw_batch, inst_vbo, true);
+	GWN_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+
+	GWN_batch_draw(draw_batch);
+	GWN_batch_discard(draw_batch);
+}
+
 void drw_debug_draw(void)
 {
 	drw_debug_draw_lines();
+	drw_debug_draw_spheres();
 }
 
 void drw_debug_init(void)

@@ -55,6 +55,7 @@
 #include "draw_view.h"
 
 #include "draw_manager_profiling.h"
+#include "draw_debug.h"
 
 #include "MEM_guardedalloc.h"
 
