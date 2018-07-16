@@ -442,106 +442,64 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 				switch (sh_component) {
 					/* L0 */
 					case 0:
-					{
 						coef = 0.2822095f;
 						break;
-					}
-
 					/* L1 */
 					case 1:
-					{
 						coef = -0.488603f * nz * 2.0f / 3.0f;
 						break;
-					}
 					case 2:
-					{
 						coef = 0.488603f * ny * 2.0f / 3.0f;
 						break;
-					}
 					case 3:
-					{
 						coef = -0.488603f * nx * 2.0f / 3.0f;
 						break;
-					}
-
 					/* L2 */
 					case 4:
-					{
 						coef = 1.092548f * nx * nz * 1.0f / 4.0f;
 						break;
-					}
 					case 5:
-					{
 						coef = -1.092548f * nz * ny * 1.0f / 4.0f;
 						break;
-					}
 					case 6:
-					{
 						coef = 0.315392f * (3.0f * ny2 - 1.0f) * 1.0f / 4.0f;
 						break;
-					}
 					case 7:
-					{
 						coef = 1.092548f * nx * ny * 1.0f / 4.0f;
 						break;
-					}
 					case 8:
-					{
 						coef = 0.546274f * (nx2 - nz2) * 1.0f / 4.0f;
 						break;
-					}
-
 					/* L4 */
 					case 9:
-					{
 						coef = (2.5033429417967046f * nx * nz * (nx2 - nz2)) / -24.0f;
 						break;
-					}
 					case 10:
-					{
 						coef = (-1.7701307697799304f * nz * ny * (3.0f * nx2 - nz2)) / -24.0f;
 						break;
-					}
 					case 11:
-					{
 						coef = (0.9461746957575601f * nz * nx * (-1.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 12:
-					{
 						coef = (-0.6690465435572892f * nz * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 13:
-					{
 						coef = ((105.0f * ny4 - 90.0f * ny2 + 9.0f) / 28.359261614f) / -24.0f;
 						break;
-					}
 					case 14:
-					{
 						coef = (-0.6690465435572892f * nx * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 15:
-					{
 						coef = (0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 16:
-					{
 						coef = (-1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2)) / -24.0f;
 						break;
-					}
 					case 17:
-					{
 						coef = (0.6258357354491761f * (nx4 - 6.0f * nz2 * nx2 + nz4)) / -24.0f;
 						break;
-					}
-
 					default:
-					{
 						coef = 0.0f;
-					}
 				}
 
 				madd_v3_v3fl(sh, color, coef * weight);
