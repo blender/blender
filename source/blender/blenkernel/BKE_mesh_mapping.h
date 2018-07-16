@@ -50,8 +50,12 @@ typedef struct UvVertMap {
 
 typedef struct UvMapVert {
 	struct UvMapVert *next;
-	unsigned int f;
-	unsigned char tfindex, separate, flag;
+	unsigned int poly_index;
+	unsigned short loop_of_poly_index;
+	bool separate;
+	/* Zero-ed by map creation, left for use by specific areas. Is not
+	 * initialized to anything. */
+	unsigned char flag;
 } UvMapVert;
 
 /* UvElement stores per uv information so that we can quickly access information for a uv.
@@ -63,9 +67,9 @@ typedef struct UvElement {
 	/* Face the element belongs to */
 	struct BMLoop *l;
 	/* index in loop. */
-	unsigned short tfindex;
+	unsigned short loop_of_poly_index;
 	/* Whether this element is the first of coincident elements */
-	unsigned char separate;
+	bool separate;
 	/* general use flag */
 	unsigned char flag;
 	/* If generating element map with island sorting, this stores the island index */
