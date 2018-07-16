@@ -77,7 +77,7 @@ if 'cmake' in builder:
         # cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
 
     elif builder.startswith('win'):
-        if builder.endswith('_vc2017'):
+        if builder.endswith('_vs2017'):
             if builder.startswith('win64'):
                 cmake_options.extend(['-G', 'Visual Studio 15 2017 Win64'])
             elif builder.startswith('win32'):
