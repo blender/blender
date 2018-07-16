@@ -891,7 +891,7 @@ static void eevee_shadow_cascade_setup(
 		frustum_min_bounding_sphere(corners, center, &(sh_data->radius[c]));
 
 		/* Project into lightspace */
-		mul_mat3_m4_v3(viewmat, center);
+		mul_m4_v3(viewmat, center);
 
 		/* Snap projection center to nearest texel to cancel shimmering. */
 		float shadow_origin[2], shadow_texco[2];
