@@ -297,7 +297,6 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 {
 	MPoly *mpoly = dm->getPolyArray(dm);
 	MLoop *mloop = dm->getLoopArray(dm);
-	MVert *mvert = dm->getVertArray(dm);
 	int totvert = dm->getNumVerts(dm);
 	int totface = dm->getNumPolys(dm);
 	int i, seam;
@@ -309,13 +308,12 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	BLI_array_declare(fverts);
 #endif
 	EdgeSet *eset;
-	float creaseFactor = (float)ccgSubSurf_getSubdivisionLevels(ss);
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
 	/* previous behavior here is without accounting for winding, however this causes stretching in
 	 * UV map in really simple cases with mirror + subsurf, see second part of T44530. Also, initially
-	 * intention is to treat merged vertices from mirror modifier as seams, see code below with ME_VERT_MERGED
+	 * intention is to treat merged vertices from mirror modifier as seams.
 	 * This fixes a very old regression (2.49 was correct here) */
 	vmap = BKE_mesh_uv_vert_map_create(mpoly, mloop, mloopuv, totface, totvert, limit, false, true);
 	if (!vmap)
@@ -332,7 +330,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 			if (v->separate)
 				break;
 
-		seam = (v != NULL) || ((mvert + i)->flag & ME_VERT_MERGED);
+		seam = (v != NULL);
 
 		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
 			if (v->separate) {
@@ -370,18 +368,11 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		for (j = 0, j_next = nverts - 1; j < nverts; j_next = j++) {
 			unsigned int v0 = GET_UINT_FROM_POINTER(fverts[j_next]);
 			unsigned int v1 = GET_UINT_FROM_POINTER(fverts[j]);
-			MVert *mv0 = mvert + (ml[j_next].v);
-			MVert *mv1 = mvert + (ml[j].v);
 
 			if (BLI_edgeset_add(eset, v0, v1)) {
 				CCGEdge *e, *orige = ccgSubSurf_getFaceEdge(origf, j_next);
 				CCGEdgeHDL ehdl = SET_INT_IN_POINTER(mp->loopstart + j_next);
-				float crease;
-
-				if ((mv0->flag & mv1->flag) & ME_VERT_MERGED)
-					crease = creaseFactor;
-				else
-					crease = ccgSubSurf_getEdgeCrease(orige);
+				float crease = ccgSubSurf_getEdgeCrease(orige);
 
 				ccgSubSurf_syncEdge(ss, ehdl, fverts[j_next], fverts[j], crease, &e);
 			}
