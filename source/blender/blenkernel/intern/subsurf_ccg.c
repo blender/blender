@@ -285,11 +285,11 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct ML
 		for (nv = v = BKE_mesh_uv_vert_map_get_vert(vmap, ml[j].v); v; v = v->next) {
 			if (v->separate)
 				nv = v;
-			if (v->f == fi)
+			if (v->poly_index == fi)
 				break;
 		}
 
-		fverts[j] = SET_UINT_IN_POINTER(mpoly[nv->f].loopstart + nv->tfindex);
+		fverts[j] = SET_UINT_IN_POINTER(mpoly[nv->poly_index].loopstart + nv->loop_of_poly_index);
 	}
 }
 
@@ -337,7 +337,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
-				int loopid = mpoly[v->f].loopstart + v->tfindex;
+				int loopid = mpoly[v->poly_index].loopstart + v->loop_of_poly_index;
 				CCGVertHDL vhdl = SET_INT_IN_POINTER(loopid);
 
 				copy_v2_v2(uv, mloopuv[loopid].uv);
