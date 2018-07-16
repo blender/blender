@@ -247,10 +247,10 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	if (!stl->effects) {
-		stl->effects = MEM_mallocN(sizeof(*stl->effects), __func__);
+		stl->effects = MEM_callocN(sizeof(*stl->effects), __func__);
 		workbench_effect_info_init(stl->effects);
 	}
 	WORKBENCH_PrivateData *wpd = stl->g_data;
