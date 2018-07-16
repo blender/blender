@@ -261,7 +261,7 @@ GHOST_SystemX11::
 #endif /* WITH_X11_XINPUT */
 
 	if (m_xkb_descr) {
-		XkbFreeNames(m_xkb_descr, XkbKeyNamesMask, false);
+		XkbFreeKeyboard (m_xkb_descr, XkbAllComponentsMask, true);
 	}
 
 	XCloseDisplay(m_display);
