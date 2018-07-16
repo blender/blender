@@ -37,6 +37,8 @@
 
 #define SHADOW_CASTER_ALLOC_CHUNK 16
 
+// #define DEBUG_CSM
+
 static struct {
 	struct GPUShader *shadow_sh;
 	struct GPUShader *shadow_store_cube_sh[SHADOW_METHOD_MAX];
@@ -871,13 +873,13 @@ static void eevee_shadow_cascade_setup(
 		/* Given 8 frustum corners */
 		float corners[8][3] = {
 			/* Near Cap */
-			{-1.0f, -1.0f, splits_start_ndc[c]},
 			{ 1.0f, -1.0f, splits_start_ndc[c]},
+			{-1.0f, -1.0f, splits_start_ndc[c]},
 			{-1.0f,  1.0f, splits_start_ndc[c]},
 			{ 1.0f,  1.0f, splits_start_ndc[c]},
 			/* Far Cap */
-			{-1.0f, -1.0f, splits_end_ndc[c]},
 			{ 1.0f, -1.0f, splits_end_ndc[c]},
+			{-1.0f, -1.0f, splits_end_ndc[c]},
 			{-1.0f,  1.0f, splits_end_ndc[c]},
 			{ 1.0f,  1.0f, splits_end_ndc[c]}
 		};
@@ -889,6 +891,15 @@ static void eevee_shadow_cascade_setup(
 
 		float center[3];
 		frustum_min_bounding_sphere(corners, center, &(sh_data->radius[c]));
+
+#ifdef DEBUG_CSM
+		float dbg_col[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+		if (c < 3) {
+			dbg_col[c] = 1.0f;
+		}
+		DRW_debug_bbox((BoundBox *)&corners, dbg_col);
+		DRW_debug_sphere(center, sh_data->radius[c], dbg_col);
+#endif
 
 		/* Project into lightspace */
 		mul_m4_v3(viewmat, center);
@@ -919,6 +930,10 @@ static void eevee_shadow_cascade_setup(
 
 		mul_m4_m4m4(sh_data->viewprojmat[c], projmat, viewmat);
 		mul_m4_m4m4(cascade_data->shadowmat[c], texcomat, sh_data->viewprojmat[c]);
+
+#ifdef DEBUG_CSM
+		DRW_debug_m4_as_bbox(sh_data->viewprojmat[c], dbg_col, true);
+#endif
 	}
 
 	ubo_data->bias = 0.05f * la->bias;
