@@ -1100,7 +1100,8 @@ static PyObject *Quaternion_new(PyTypeObject *type, PyObject *args, PyObject *kw
 {
 	PyObject *seq = NULL;
 	double angle = 0.0f;
-	float quat[QUAT_SIZE] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float quat[QUAT_SIZE];
+	unit_qt(quat);
 
 	if (kwds && PyDict_Size(kwds)) {
 		PyErr_SetString(PyExc_TypeError,
