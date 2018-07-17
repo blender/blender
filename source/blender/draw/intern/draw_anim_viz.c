@@ -98,36 +98,36 @@ struct {
 /* *************************** Path Cache *********************************** */
 
 /* Just convert the CPU cache to GPU cache. */
-static Gwn_VertBuf *mpath_vbo_get(bMotionPath *mpath)
+static GPUVertBuf *mpath_vbo_get(bMotionPath *mpath)
 {
 	if (!mpath->points_vbo) {
-		Gwn_VertFormat format = {0};
+		GPUVertFormat format = {0};
 		/* Match structure of bMotionPathVert. */
-		uint pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-		GWN_vertformat_attr_add(&format, "flag", GWN_COMP_I32, 1, GWN_FETCH_INT);
-		mpath->points_vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(mpath->points_vbo, mpath->length);
+		uint pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		GPU_vertformat_attr_add(&format, "flag", GPU_COMP_I32, 1, GPU_FETCH_INT);
+		mpath->points_vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(mpath->points_vbo, mpath->length);
 
 		/* meh... a useless memcpy. */
-		Gwn_VertBufRaw raw_data;
-		GWN_vertbuf_attr_get_raw_data(mpath->points_vbo, pos, &raw_data);
-		memcpy(GWN_vertbuf_raw_step(&raw_data), mpath->points, sizeof(bMotionPathVert) * mpath->length);
+		GPUVertBufRaw raw_data;
+		GPU_vertbuf_attr_get_raw_data(mpath->points_vbo, pos, &raw_data);
+		memcpy(GPU_vertbuf_raw_step(&raw_data), mpath->points, sizeof(bMotionPathVert) * mpath->length);
 	}
 	return mpath->points_vbo;
 }
 
-static Gwn_Batch *mpath_batch_line_get(bMotionPath *mpath)
+static GPUBatch *mpath_batch_line_get(bMotionPath *mpath)
 {
 	if (!mpath->batch_line) {
-		mpath->batch_line = GWN_batch_create(GWN_PRIM_LINE_STRIP, mpath_vbo_get(mpath), NULL);
+		mpath->batch_line = GPU_batch_create(GPU_PRIM_LINE_STRIP, mpath_vbo_get(mpath), NULL);
 	}
 	return mpath->batch_line;
 }
 
-static Gwn_Batch *mpath_batch_points_get(bMotionPath *mpath)
+static GPUBatch *mpath_batch_points_get(bMotionPath *mpath)
 {
 	if (!mpath->batch_points) {
-		mpath->batch_points = GWN_batch_create(GWN_PRIM_POINTS, mpath_vbo_get(mpath), NULL);
+		mpath->batch_points = GPU_batch_create(GPU_PRIM_POINTS, mpath_vbo_get(mpath), NULL);
 	}
 	return mpath->batch_points;
 }

@@ -38,9 +38,9 @@
 
 typedef struct BatchBLF {
 	struct FontBLF *font; /* can only batch glyph from the same font */
-	struct Gwn_Batch *batch;
-	struct Gwn_VertBuf *verts;
-	struct Gwn_VertBufRaw pos_step, tex_step, col_step;
+	struct GPUBatch *batch;
+	struct GPUVertBuf *verts;
+	struct GPUVertBufRaw pos_step, tex_step, col_step;
 	unsigned int pos_loc, tex_loc, col_loc;
 	unsigned int glyph_len;
 	float ofs[2];    /* copy of font->pos */

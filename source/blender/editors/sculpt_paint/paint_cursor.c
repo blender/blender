@@ -680,9 +680,9 @@ static void paint_draw_tex_overlay(
 		}
 
 		/* set quad color. Colored overlay does not get blending */
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		uint texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		if (col) {
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
@@ -696,7 +696,7 @@ static void paint_draw_tex_overlay(
 		/* draw textured quad */
 		immUniform1i("image", GL_TEXTURE0);
 
-		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immBegin(GPU_PRIM_TRI_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, quad.xmin, quad.ymin);
 		immAttrib2f(texCoord, 1.0f, 0.0f);
@@ -769,9 +769,9 @@ static void paint_draw_cursor_overlay(
 			GPU_matrix_translate_2f(-center[0], -center[1]);
 		}
 
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		uint texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 
@@ -782,7 +782,7 @@ static void paint_draw_cursor_overlay(
 		/* draw textured quad */
 		immUniform1i("image", 0);
 
-		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immBegin(GPU_PRIM_TRI_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, quad.xmin, quad.ymin);
 		immAttrib2f(texCoord, 1.0f, 0.0f);
@@ -844,7 +844,7 @@ BLI_INLINE void draw_tri_point(
 		{co[0] + w, co[1] - w},
 	};
 
-	immBegin(GWN_PRIM_LINE_LOOP, 3);
+	immBegin(GPU_PRIM_LINE_LOOP, 3);
 	immVertex2fv(pos, tri[0]);
 	immVertex2fv(pos, tri[1]);
 	immVertex2fv(pos, tri[2]);
@@ -853,7 +853,7 @@ BLI_INLINE void draw_tri_point(
 	immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	GPU_line_width(1.0f);
 
-	immBegin(GWN_PRIM_LINE_LOOP, 3);
+	immBegin(GPU_PRIM_LINE_LOOP, 3);
 	immVertex2fv(pos, tri[0]);
 	immVertex2fv(pos, tri[1]);
 	immVertex2fv(pos, tri[2]);
@@ -888,7 +888,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 	GPU_line_width(3.0f);
 
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
+	immBegin(GPU_PRIM_LINE_STRIP, 3);
 	immVertex2fv(pos, bez->vec[0]);
 	immVertex2fv(pos, bez->vec[1]);
 	immVertex2fv(pos, bez->vec[2]);
@@ -902,7 +902,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	else {
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	}
-	immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GPU_PRIM_LINES, 2);
 	immVertex2fv(pos, bez->vec[0]);
 	immVertex2fv(pos, bez->vec[1]);
 	immEnd();
@@ -913,7 +913,7 @@ BLI_INLINE void draw_bezier_handle_lines(unsigned int pos, float sel_col[4], Bez
 	else {
 		immUniformColor4f(1.0f, 1.0f, 1.0f, 0.5f);
 	}
-	immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GPU_PRIM_LINES, 2);
 	immVertex2fv(pos, bez->vec[1]);
 	immVertex2fv(pos, bez->vec[2]);
 	immEnd();
@@ -930,7 +930,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 		GPU_blend(true);
 
 		/* draw the bezier handles and the curve segment between the current and next point */
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -961,7 +961,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 			immUniformColor4f(0.0f, 0.0f, 0.0f, 0.5f);
 			GPU_line_width(3.0f);
-			immBegin(GWN_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			immBegin(GPU_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
 			}
@@ -969,7 +969,7 @@ static void paint_draw_curve_cursor(Brush *brush)
 
 			immUniformColor4f(0.9f, 0.9f, 1.0f, 0.5f);
 			GPU_line_width(1.0f);
-			immBegin(GWN_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
+			immBegin(GPU_PRIM_LINE_STRIP, PAINT_CURVE_NUM_SEGMENTS + 1);
 			for (j = 0; j <= PAINT_CURVE_NUM_SEGMENTS; j++) {
 				immVertex2fv(pos, v[j]);
 			}
@@ -1118,7 +1118,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	GPU_blend(true); /* TODO: also set blend mode? */
 	GPU_line_smooth(true);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* set brush color */

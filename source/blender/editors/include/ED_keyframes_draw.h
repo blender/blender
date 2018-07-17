@@ -109,7 +109,7 @@ typedef enum eKeyframeShapeDrawOpts {
 } eKeyframeShapeDrawOpts;
 
 /* draw simple diamond-shape keyframe */
-/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND, immBegin(GWN_PRIM_POINTS, n), then call this n times */
+/* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND, immBegin(GPU_PRIM_POINTS, n), then call this n times */
 void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type, short mode, float alpha,
                          unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id);
 

@@ -147,13 +147,13 @@ static void drw_debug_draw_lines(void)
 		return;
 	}
 
-	Gwn_VertFormat *vert_format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(vert_format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	GPUVertFormat *vert_format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(vert_format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-	immBegin(GWN_PRIM_LINES, count * 2);
+	immBegin(GPU_PRIM_LINES, count * 2);
 
 	while (DST.debug.lines) {
 		void *next = DST.debug.lines->next;
@@ -181,36 +181,36 @@ static void drw_debug_draw_spheres(void)
 	}
 
 	float one = 1.0f;
-	Gwn_VertFormat vert_format = {0};
-	uint mat = GWN_vertformat_attr_add(&vert_format, "InstanceModelMatrix", GWN_COMP_F32, 16, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(&vert_format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	uint siz = GWN_vertformat_attr_add(&vert_format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+	GPUVertFormat vert_format = {0};
+	uint mat = GPU_vertformat_attr_add(&vert_format, "InstanceModelMatrix", GPU_COMP_F32, 16, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(&vert_format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint siz = GPU_vertformat_attr_add(&vert_format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 
-	Gwn_VertBuf *inst_vbo = GWN_vertbuf_create_with_format(&vert_format);
+	GPUVertBuf *inst_vbo = GPU_vertbuf_create_with_format(&vert_format);
 
-	GWN_vertbuf_data_alloc(inst_vbo, count);
+	GPU_vertbuf_data_alloc(inst_vbo, count);
 
 	int v = 0;
 	while (DST.debug.spheres) {
 		void *next = DST.debug.spheres->next;
 
-		GWN_vertbuf_attr_set(inst_vbo, mat, v, DST.debug.spheres->mat[0]);
-		GWN_vertbuf_attr_set(inst_vbo, col, v, DST.debug.spheres->color);
-		GWN_vertbuf_attr_set(inst_vbo, siz, v, &one);
+		GPU_vertbuf_attr_set(inst_vbo, mat, v, DST.debug.spheres->mat[0]);
+		GPU_vertbuf_attr_set(inst_vbo, col, v, DST.debug.spheres->color);
+		GPU_vertbuf_attr_set(inst_vbo, siz, v, &one);
 		v++;
 
 		MEM_freeN(DST.debug.spheres);
 		DST.debug.spheres = next;
 	}
 
-	Gwn_Batch *empty_sphere = DRW_cache_empty_sphere_get();
+	GPUBatch *empty_sphere = DRW_cache_empty_sphere_get();
 
-	Gwn_Batch *draw_batch = GWN_batch_create(GWN_PRIM_LINES, empty_sphere->verts[0], NULL);
-	GWN_batch_instbuf_set(draw_batch, inst_vbo, true);
-	GWN_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+	GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_LINES, empty_sphere->verts[0], NULL);
+	GPU_batch_instbuf_set(draw_batch, inst_vbo, true);
+	GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
 
-	GWN_batch_draw(draw_batch);
-	GWN_batch_discard(draw_batch);
+	GPU_batch_draw(draw_batch);
+	GPU_batch_discard(draw_batch);
 }
 
 void drw_debug_draw(void)

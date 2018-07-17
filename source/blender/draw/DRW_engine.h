@@ -138,8 +138,8 @@ void DRW_opengl_context_disable(void);
 
 void DRW_opengl_render_context_enable(void *re_gl_context);
 void DRW_opengl_render_context_disable(void *re_gl_context);
-void DRW_gawain_render_context_enable(void *re_gwn_context);
-void DRW_gawain_render_context_disable(void *re_gwn_context);
+void DRW_gawain_render_context_enable(void *re_gpu_context);
+void DRW_gawain_render_context_disable(void *re_gpu_context);
 
 void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 

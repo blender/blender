@@ -432,7 +432,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
 
 		/* we need a full screen pass to combine the result */
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 		psl->mix_occlude = DRW_pass_create(
 		        "Mix Occluded Wires",
@@ -450,7 +450,7 @@ static void edit_mesh_add_ob_to_pass(
         Scene *scene, Object *ob, DRWShadingGroup *face_shgrp, DRWShadingGroup *ledges_shgrp,
         DRWShadingGroup *lverts_shgrp, DRWShadingGroup *facedot_shgrp, DRWShadingGroup *facefill_shgrp)
 {
-	struct Gwn_Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
+	struct GPUBatch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
 	ToolSettings *tsettings = scene->toolsettings;
 
 	DRW_cache_mesh_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
@@ -477,7 +477,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
-	struct Gwn_Batch *geom;
+	struct GPUBatch *geom;
 
 	if (ob->type == OB_MESH) {
 		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
@@ -512,7 +512,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (vnormals_do || lnormals_do) {
-				struct Gwn_Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
+				struct GPUBatch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
 				DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
 
 				if (vnormals_do) {

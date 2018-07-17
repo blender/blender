@@ -23,10 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gwn_immediate.c
+/** \file blender/gpu/intern/gpu_immediate.c
  *  \ingroup gpu
  *
- * Gawain immediate mode work-alike
+ * GPU immediate mode work-alike
  */
 
 #include "UI_resources.h"
@@ -45,14 +45,14 @@
 #include <stdlib.h>
 
 /* necessary functions from matrix API */
-extern void GPU_matrix_bind(const Gwn_ShaderInterface*);
+extern void GPU_matrix_bind(const GPUShaderInterface*);
 extern bool GPU_matrix_dirty_get(void);
 
 typedef struct {
 	/* TODO: organize this struct by frequency of change (run-time) */
 
-	Gwn_Batch* batch;
-	Gwn_Context* context;
+	GPUBatch* batch;
+	GPUContext* context;
 
 	/* current draw call */
 	GLubyte* buffer_data;
@@ -60,9 +60,9 @@ typedef struct {
 	uint buffer_bytes_mapped;
 	uint vertex_len;
 	bool strict_vertex_len;
-	Gwn_PrimType prim_type;
+	GPUPrimType prim_type;
 
-	Gwn_VertFormat vertex_format;
+	GPUVertFormat vertex_format;
 
 	/* current vertex */
 	uint vertex_idx;
@@ -73,8 +73,8 @@ typedef struct {
 	GLuint vao_id;
 
 	GLuint bound_program;
-	const Gwn_ShaderInterface* shader_interface;
-	Gwn_AttrBinding attrib_binding;
+	const GPUShaderInterface* shader_interface;
+	GPUAttrBinding attrib_binding;
 	uint16_t prev_enabled_attrib_bits; /* <-- only affects this VAO, so we're ok */
 } Immediate;
 
@@ -91,11 +91,11 @@ void immInit(void)
 #endif
 	memset(&imm, 0, sizeof(Immediate));
 
-	imm.vbo_id = GWN_buf_id_alloc();
+	imm.vbo_id = GPU_buf_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
-	imm.prim_type = GWN_PRIM_NONE;
+	imm.prim_type = GPU_PRIM_NONE;
 	imm.strict_vertex_len = true;
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -106,38 +106,38 @@ void immActivate(void)
 {
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.prim_type == GWN_PRIM_NONE); /* make sure we're not between a Begin/End pair */
+	assert(imm.prim_type == GPU_PRIM_NONE); /* make sure we're not between a Begin/End pair */
 	assert(imm.vao_id == 0);
 #endif
-	imm.vao_id = GWN_vao_alloc();
-	imm.context = GWN_context_active_get();
+	imm.vao_id = GPU_vao_alloc();
+	imm.context = GPU_context_active_get();
 }
 
 void immDeactivate(void)
 {
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.prim_type == GWN_PRIM_NONE); /* make sure we're not between a Begin/End pair */
+	assert(imm.prim_type == GPU_PRIM_NONE); /* make sure we're not between a Begin/End pair */
 	assert(imm.vao_id != 0);
 #endif
-	GWN_vao_free(imm.vao_id, imm.context);
+	GPU_vao_free(imm.vao_id, imm.context);
 	imm.vao_id = 0;
 	imm.prev_enabled_attrib_bits = 0;
 }
 
 void immDestroy(void)
 {
-	GWN_buf_id_free(imm.vbo_id);
+	GPU_buf_id_free(imm.vbo_id);
 	initialized = false;
 }
 
-Gwn_VertFormat* immVertexFormat(void)
+GPUVertFormat* immVertexFormat(void)
 {
-	GWN_vertformat_clear(&imm.vertex_format);
+	GPU_vertformat_clear(&imm.vertex_format);
 	return &imm.vertex_format;
 }
 
-void immBindProgram(GLuint program, const Gwn_ShaderInterface* shaderface)
+void immBindProgram(GLuint program, const GPUShaderInterface* shaderface)
 {
 #if TRUST_NO_ONE
 	assert(imm.bound_program == 0);
@@ -173,7 +173,7 @@ void immUnbindProgram(void)
 }
 
 #if TRUST_NO_ONE
-static bool vertex_count_makes_sense_for_primitive(uint vertex_len, Gwn_PrimType prim_type)
+static bool vertex_count_makes_sense_for_primitive(uint vertex_len, GPUPrimType prim_type)
 {
 	/* does vertex_len make sense for this primitive type? */
 	if (vertex_len == 0) {
@@ -181,19 +181,19 @@ static bool vertex_count_makes_sense_for_primitive(uint vertex_len, Gwn_PrimType
 	}
 
 	switch (prim_type) {
-		case GWN_PRIM_POINTS:
+		case GPU_PRIM_POINTS:
 			return true;
-		case GWN_PRIM_LINES:
+		case GPU_PRIM_LINES:
 			return vertex_len % 2 == 0;
-		case GWN_PRIM_LINE_STRIP:
-		case GWN_PRIM_LINE_LOOP:
+		case GPU_PRIM_LINE_STRIP:
+		case GPU_PRIM_LINE_LOOP:
 			return vertex_len >= 2;
-		case GWN_PRIM_LINE_STRIP_ADJ:
+		case GPU_PRIM_LINE_STRIP_ADJ:
 			return vertex_len >= 4;
-		case GWN_PRIM_TRIS:
+		case GPU_PRIM_TRIS:
 			return vertex_len % 3 == 0;
-		case GWN_PRIM_TRI_STRIP:
-		case GWN_PRIM_TRI_FAN:
+		case GPU_PRIM_TRI_STRIP:
+		case GPU_PRIM_TRI_FAN:
 			return vertex_len >= 3;
 		default:
 			return false;
@@ -201,11 +201,11 @@ static bool vertex_count_makes_sense_for_primitive(uint vertex_len, Gwn_PrimType
 }
 #endif
 
-void immBegin(Gwn_PrimType prim_type, uint vertex_len)
+void immBegin(GPUPrimType prim_type, uint vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.prim_type == GWN_PRIM_NONE); /* make sure we haven't already begun */
+	assert(imm.prim_type == GPU_PRIM_NONE); /* make sure we haven't already begun */
 	assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
 #endif
 	imm.prim_type = prim_type;
@@ -250,7 +250,7 @@ void immBegin(Gwn_PrimType prim_type, uint vertex_len)
 	imm.vertex_data = imm.buffer_data;
 }
 
-void immBeginAtMost(Gwn_PrimType prim_type, uint vertex_len)
+void immBeginAtMost(GPUPrimType prim_type, uint vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(vertex_len > 0);
@@ -261,11 +261,11 @@ void immBeginAtMost(Gwn_PrimType prim_type, uint vertex_len)
 }
 
 
-Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, uint vertex_len)
+GPUBatch* immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(initialized);
-	assert(imm.prim_type == GWN_PRIM_NONE); /* make sure we haven't already begun */
+	assert(imm.prim_type == GPU_PRIM_NONE); /* make sure we haven't already begun */
 	assert(vertex_count_makes_sense_for_primitive(vertex_len, prim_type));
 #endif
 	imm.prim_type = prim_type;
@@ -273,19 +273,19 @@ Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, uint vertex_len)
 	imm.vertex_idx = 0;
 	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
-	Gwn_VertBuf* verts = GWN_vertbuf_create_with_format(&imm.vertex_format);
-	GWN_vertbuf_data_alloc(verts, vertex_len);
+	GPUVertBuf* verts = GPU_vertbuf_create_with_format(&imm.vertex_format);
+	GPU_vertbuf_data_alloc(verts, vertex_len);
 
-	imm.buffer_bytes_mapped = GWN_vertbuf_size_get(verts);
+	imm.buffer_bytes_mapped = GPU_vertbuf_size_get(verts);
 	imm.vertex_data = verts->data;
 
-	imm.batch = GWN_batch_create_ex(prim_type, verts, NULL, GWN_BATCH_OWNS_VBO);
-	imm.batch->phase = GWN_BATCH_BUILDING;
+	imm.batch = GPU_batch_create_ex(prim_type, verts, NULL, GPU_BATCH_OWNS_VBO);
+	imm.batch->phase = GPU_BATCH_BUILDING;
 
 	return imm.batch;
 }
 
-Gwn_Batch* immBeginBatchAtMost(Gwn_PrimType prim_type, uint vertex_len)
+GPUBatch* immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
 {
 	imm.strict_vertex_len = false;
 	return immBeginBatch(prim_type, vertex_len);
@@ -298,7 +298,7 @@ static void immDrawSetup(void)
 
 	/* enable/disable vertex attribs as needed */
 	if (imm.attrib_binding.enabled_bits != imm.prev_enabled_attrib_bits) {
-		for (uint loc = 0; loc < GWN_VERT_ATTR_MAX_LEN; ++loc) {
+		for (uint loc = 0; loc < GPU_VERT_ATTR_MAX_LEN; ++loc) {
 			bool is_enabled = imm.attrib_binding.enabled_bits & (1 << loc);
 			bool was_enabled = imm.prev_enabled_attrib_bits & (1 << loc);
 
@@ -316,7 +316,7 @@ static void immDrawSetup(void)
 	const uint stride = imm.vertex_format.stride;
 
 	for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
-		const Gwn_VertAttr* a = imm.vertex_format.attribs + a_idx;
+		const GPUVertAttr* a = imm.vertex_format.attribs + a_idx;
 
 		const uint offset = imm.buffer_offset + a->offset;
 		const GLvoid* pointer = (const GLubyte*)0 + offset;
@@ -324,14 +324,14 @@ static void immDrawSetup(void)
 		const uint loc = read_attrib_location(&imm.attrib_binding, a_idx);
 
 		switch (a->fetch_mode) {
-			case GWN_FETCH_FLOAT:
-			case GWN_FETCH_INT_TO_FLOAT:
+			case GPU_FETCH_FLOAT:
+			case GPU_FETCH_INT_TO_FLOAT:
 				glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_FALSE, stride, pointer);
 				break;
-			case GWN_FETCH_INT_TO_FLOAT_UNIT:
+			case GPU_FETCH_INT_TO_FLOAT_UNIT:
 				glVertexAttribPointer(loc, a->comp_len, a->gl_comp_type, GL_TRUE, stride, pointer);
 				break;
-			case GWN_FETCH_INT:
+			case GPU_FETCH_INT:
 				glVertexAttribIPointer(loc, a->comp_len, a->gl_comp_type, stride, pointer);
 		}
 	}
@@ -344,7 +344,7 @@ static void immDrawSetup(void)
 void immEnd(void)
 {
 #if TRUST_NO_ONE
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 
 	uint buffer_bytes_used;
@@ -375,11 +375,11 @@ void immEnd(void)
 
 	if (imm.batch) {
 		if (buffer_bytes_used != imm.buffer_bytes_mapped) {
-			GWN_vertbuf_data_resize(imm.batch->verts[0], imm.vertex_len);
+			GPU_vertbuf_data_resize(imm.batch->verts[0], imm.vertex_len);
 			/* TODO: resize only if vertex count is much smaller */
 		}
-		GWN_batch_program_set(imm.batch, imm.bound_program, imm.shader_interface);
-		imm.batch->phase = GWN_BATCH_READY_TO_DRAW;
+		GPU_batch_program_set(imm.batch, imm.bound_program, imm.shader_interface);
+		imm.batch->phase = GPU_BATCH_READY_TO_DRAW;
 		imm.batch = NULL; /* don't free, batch belongs to caller */
 	}
 	else {
@@ -395,7 +395,7 @@ void immEnd(void)
 	}
 
 	/* prep for next immBegin */
-	imm.prim_type = GWN_PRIM_NONE;
+	imm.prim_type = GPU_PRIM_NONE;
 	imm.strict_vertex_len = true;
 }
 
@@ -413,13 +413,13 @@ static void setAttribValueBit(uint attrib_id)
 
 void immAttrib1f(uint attrib_id, float x)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_F32);
+	assert(attrib->comp_type == GPU_COMP_F32);
 	assert(attrib->comp_len == 1);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -431,13 +431,13 @@ void immAttrib1f(uint attrib_id, float x)
 
 void immAttrib2f(uint attrib_id, float x, float y)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_F32);
+	assert(attrib->comp_type == GPU_COMP_F32);
 	assert(attrib->comp_len == 2);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -450,13 +450,13 @@ void immAttrib2f(uint attrib_id, float x, float y)
 
 void immAttrib3f(uint attrib_id, float x, float y, float z)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_F32);
+	assert(attrib->comp_type == GPU_COMP_F32);
 	assert(attrib->comp_len == 3);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -470,13 +470,13 @@ void immAttrib3f(uint attrib_id, float x, float y, float z)
 
 void immAttrib4f(uint attrib_id, float x, float y, float z, float w)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_F32);
+	assert(attrib->comp_type == GPU_COMP_F32);
 	assert(attrib->comp_len == 4);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -491,13 +491,13 @@ void immAttrib4f(uint attrib_id, float x, float y, float z, float w)
 
 void immAttrib1u(uint attrib_id, uint x)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_U32);
+	assert(attrib->comp_type == GPU_COMP_U32);
 	assert(attrib->comp_len == 1);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -508,13 +508,13 @@ void immAttrib1u(uint attrib_id, uint x)
 
 void immAttrib2i(uint attrib_id, int x, int y)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_I32);
+	assert(attrib->comp_type == GPU_COMP_I32);
 	assert(attrib->comp_len == 2);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -526,13 +526,13 @@ void immAttrib2i(uint attrib_id, int x, int y)
 
 void immAttrib2s(uint attrib_id, short x, short y)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_I16);
+	assert(attrib->comp_type == GPU_COMP_I16);
 	assert(attrib->comp_len == 2);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -559,13 +559,13 @@ void immAttrib4fv(uint attrib_id, const float data[4])
 
 void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_U8);
+	assert(attrib->comp_type == GPU_COMP_U8);
 	assert(attrib->comp_len == 3);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -579,13 +579,13 @@ void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 
 void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
-	Gwn_VertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
-	assert(attrib->comp_type == GWN_COMP_U8);
+	assert(attrib->comp_type == GPU_COMP_U8);
 	assert(attrib->comp_len == 4);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 
@@ -613,7 +613,7 @@ void immSkipAttrib(uint attrib_id)
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(imm.vertex_idx < imm.vertex_len);
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 #endif
 	setAttribValueBit(attrib_id);
 }
@@ -621,7 +621,7 @@ void immSkipAttrib(uint attrib_id)
 static void immEndVertex(void) /* and move on to the next vertex */
 {
 #if TRUST_NO_ONE
-	assert(imm.prim_type != GWN_PRIM_NONE); /* make sure we're between a Begin/End pair */
+	assert(imm.prim_type != GPU_PRIM_NONE); /* make sure we're between a Begin/End pair */
 	assert(imm.vertex_idx < imm.vertex_len);
 #endif
 
@@ -633,7 +633,7 @@ static void immEndVertex(void) /* and move on to the next vertex */
 #endif
 		for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
 			if ((imm.unassigned_attrib_bits >> a_idx) & 1) {
-				const Gwn_VertAttr* a = imm.vertex_format.attribs + a_idx;
+				const GPUVertAttr* a = imm.vertex_format.attribs + a_idx;
 
 /*				printf("copying %s from vertex %u to %u\n", a->name, imm.vertex_idx - 1, imm.vertex_idx); */
 
@@ -702,16 +702,16 @@ void immVertex2iv(uint attrib_id, const int data[2])
 
 #if 0
   #if TRUST_NO_ONE
-    #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(imm.shader_interface, name); assert(uniform);
+    #define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); assert(uniform);
   #else
-    #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(imm.shader_interface, name);
+    #define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name);
   #endif
 #else
 	/* NOTE: It is possible to have uniform fully optimized out from the shader.
 	 *       In this case we can't assert failure or allow NULL-pointer dereference.
 	 * TODO(sergey): How can we detect existing-but-optimized-out uniform but still
 	 *               catch typos in uniform names passed to immUniform*() functions? */
-  #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(imm.shader_interface, name); if (uniform == NULL) return;
+  #define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); if (uniform == NULL) return;
 #endif
 
 void immUniform1f(const char* name, float x)
@@ -817,7 +817,7 @@ void immUniform4iv(const char* name, const int data[4])
 
 void immUniformColor4f(float r, float g, float b, float a)
 {
-	const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform_builtin(imm.shader_interface, GWN_UNIFORM_COLOR);
+	const GPUShaderInput* uniform = GPU_shaderinterface_uniform_builtin(imm.shader_interface, GPU_UNIFORM_COLOR);
 #if TRUST_NO_ONE
 	assert(uniform != NULL);
 #endif

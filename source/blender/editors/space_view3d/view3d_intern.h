@@ -39,7 +39,7 @@ struct ARegion;
 struct ARegionType;
 struct Base;
 struct BoundBox;
-struct Gwn_Batch;
+struct GPUBatch;
 struct Depsgraph;
 struct Object;
 struct SmokeDomainSettings;

@@ -911,28 +911,28 @@ GPUTexture *GPU_texture_create_cube(
 	                               tex_format, GPU_DATA_FLOAT, err_out);
 }
 
-GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
+GPUTexture *GPU_texture_create_from_vertbuf(GPUVertBuf *vert)
 {
-	Gwn_VertFormat *format = &vert->format;
-	Gwn_VertAttr *attr = &format->attribs[0];
+	GPUVertFormat *format = &vert->format;
+	GPUVertAttr *attr = &format->attribs[0];
 
 	/* Detect incompatible cases (not supported by texture buffers) */
 	BLI_assert(format->attr_len == 1 && vert->vbo_id != 0);
 	BLI_assert(attr->comp_len != 3); /* Not until OGL 4.0 */
-	BLI_assert(attr->comp_type != GWN_COMP_I10);
-	BLI_assert(attr->fetch_mode != GWN_FETCH_INT_TO_FLOAT);
+	BLI_assert(attr->comp_type != GPU_COMP_I10);
+	BLI_assert(attr->fetch_mode != GPU_FETCH_INT_TO_FLOAT);
 
 	unsigned int byte_per_comp = attr->sz / attr->comp_len;
-	bool is_uint = ELEM(attr->comp_type, GWN_COMP_U8, GWN_COMP_U16, GWN_COMP_U32);
+	bool is_uint = ELEM(attr->comp_type, GPU_COMP_U8, GPU_COMP_U16, GPU_COMP_U32);
 
 	/* Cannot fetch signed int or 32bit ints as normalized float. */
-	if (attr->fetch_mode == GWN_FETCH_INT_TO_FLOAT_UNIT) {
+	if (attr->fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT) {
 		BLI_assert(is_uint || byte_per_comp <= 2);
 	}
 
 	GPUTextureFormat data_type;
 	switch (attr->fetch_mode) {
-		case GWN_FETCH_FLOAT:
+		case GPU_FETCH_FLOAT:
 			switch (attr->comp_len) {
 				case 1: data_type = GPU_R32F; break;
 				case 2: data_type = GPU_RG32F; break;
@@ -940,7 +940,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 				default: data_type = GPU_RGBA32F; break;
 			}
 			break;
-		case GWN_FETCH_INT:
+		case GPU_FETCH_INT:
 			switch (attr->comp_len) {
 				case 1:
 					switch (byte_per_comp) {
@@ -965,7 +965,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 					break;
 			}
 			break;
-		case GWN_FETCH_INT_TO_FLOAT_UNIT:
+		case GPU_FETCH_INT_TO_FLOAT_UNIT:
 			switch (attr->comp_len) {
 				case 1: data_type = (byte_per_comp == 1) ? GPU_R8 : GPU_R16; break;
 				case 2: data_type = (byte_per_comp == 1) ? GPU_RG8 : GPU_RG16; break;

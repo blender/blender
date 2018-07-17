@@ -24,7 +24,6 @@ set(INC
 	../../blenlib
 	../../gpu
 	../../makesdna
-	../../../../intern/gawain
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 )
@@ -35,13 +34,13 @@ set(INC_SYS
 )
 
 set(SRC
-	gwn_py_api.c
-	gwn_py_types.c
+	gpu_py_api.c
+	gpu_py_types.c
 
-	gwn_py_api.h
-	gwn_py_types.h
+	gpu_py_api.h
+	gpu_py_types.h
 )
 
 add_definitions(${GL_DEFINITIONS})
 
-blender_add_lib(bf_python_gawain "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_python_gpu "${SRC}" "${INC}" "${INC_SYS}")

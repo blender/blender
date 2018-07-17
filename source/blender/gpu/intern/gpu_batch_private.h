@@ -23,15 +23,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_batch_private.h
+/** \file blender/gpu/intern/gpu_batch_private.h
  *  \ingroup gpu
  *
- * Gawain geometry batch
+ * GPU geometry batch
  * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
-#ifndef __GWN_BATCH_PRIVATE_H__
-#define __GWN_BATCH_PRIVATE_H__
+#ifndef __GPU_BATCH_PRIVATE_H__
+#define __GPU_BATCH_PRIVATE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,13 +41,13 @@ extern "C" {
 #include "GPU_context.h"
 #include "GPU_shader_interface.h"
 
-void gwn_batch_remove_interface_ref(Gwn_Batch*, const Gwn_ShaderInterface*);
+void gpu_batch_remove_interface_ref(GPUBatch*, const GPUShaderInterface*);
 
-void gwn_context_add_batch(Gwn_Context*, Gwn_Batch*);
-void gwn_context_remove_batch(Gwn_Context*, Gwn_Batch*);
+void gpu_context_add_batch(GPUContext*, GPUBatch*);
+void gpu_context_remove_batch(GPUContext*, GPUBatch*);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_BATCH_PRIVATE_H__ */
+#endif /* __GPU_BATCH_PRIVATE_H__ */

@@ -180,7 +180,7 @@ static void EDIT_SURFACE_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		/* Get geometry cache */
-		struct Gwn_Batch *geom = DRW_cache_mesh_surface_get(ob);
+		struct GPUBatch *geom = DRW_cache_mesh_surface_get(ob);
 
 		/* Add geom to a shading group */
 		DRW_shgroup_call_add(stl->g_data->group, geom, ob->obmat);

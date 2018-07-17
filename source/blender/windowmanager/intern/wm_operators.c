@@ -2094,12 +2094,12 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		RNA_property_float_get_array(fill_ptr, fill_prop, col);
 	}
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	if (rc->gltex) {
 
-		uint texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, rc->gltex);
@@ -2123,7 +2123,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		}
 
 		/* draw textured quad */
-		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immBegin(GPU_PRIM_TRI_FAN, 4);
 
 		immAttrib2f(texCoord, 0, 0);
 		immVertex2f(pos, -radius, -radius);
@@ -2226,8 +2226,8 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	if (rc->col_prop)
 		RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fvAlpha(col, 0.5f);
@@ -2237,14 +2237,14 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 
 		/* draw original angle line */
 		GPU_matrix_rotate_2d(RAD2DEGF(rc->initial_value));
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		immEnd();
 
 		/* draw new angle line */
 		GPU_matrix_rotate_2d(RAD2DEGF(rc->current_value - rc->initial_value));
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		immEnd();

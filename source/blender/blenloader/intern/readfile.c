@@ -7018,7 +7018,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		direct_link_area_map(fd, &win->global_areas);
 
 		win->ghostwin = NULL;
-		win->gwnctx = NULL;
+		win->gpuctx = NULL;
 		win->eventstate = NULL;
 		win->cursor_keymap_status = NULL;
 		win->tweak = NULL;

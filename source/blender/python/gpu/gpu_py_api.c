@@ -18,10 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gawain/gwn_py_api.c
- *  \ingroup pygawain
+/** \file blender/python/gpu/gpu_py_api.c
+ *  \ingroup pygpu
  *
- * Experimental Python API, not considered public yet (called '_gawain'),
+ * Experimental Python API, not considered public yet (called '_gpu'),
  * we may re-expose as public later.
  */
 
@@ -30,32 +30,32 @@
 #include "GPU_batch.h"
 #include "GPU_vertex_format.h"
 
-#include "gwn_py_api.h"
-#include "gwn_py_types.h"
+#include "gpu_py_api.h"
+#include "gpu_py_types.h"
 
 #include "BLI_utildefines.h"
 
 #include "../generic/python_utildefines.h"
 
-PyDoc_STRVAR(GWN_doc,
-"This module provides access to gawain drawing functions."
+PyDoc_STRVAR(GPU_doc,
+"This module provides access to gpu drawing functions."
 );
-static struct PyModuleDef GWN_module_def = {
+static struct PyModuleDef GPU_module_def = {
 	PyModuleDef_HEAD_INIT,
-	.m_name = "_gawain",  /* m_name */
-	.m_doc = GWN_doc,  /* m_doc */
+	.m_name = "_gpu",  /* m_name */
+	.m_doc = GPU_doc,  /* m_doc */
 };
 
-PyObject *BPyInit_gawain(void)
+PyObject *BPyInit_gpu(void)
 {
 	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
 	PyObject *submodule;
 	PyObject *mod;
 
-	mod = PyModule_Create(&GWN_module_def);
+	mod = PyModule_Create(&GPU_module_def);
 
-	/* _gawain.types */
-	PyModule_AddObject(mod, "types", (submodule = BPyInit_gawain_types()));
+	/* _gpu.types */
+	PyModule_AddObject(mod, "types", (submodule = BPyInit_gpu_types()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 

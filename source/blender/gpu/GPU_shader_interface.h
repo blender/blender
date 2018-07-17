@@ -23,82 +23,82 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_shader_interface.h
+/** \file blender/gpu/GPU_shader_interface.h
  *  \ingroup gpu
  *
- * Gawain shader interface (C --> GLSL)
+ * GPU shader interface (C --> GLSL)
  */
 
-#ifndef __GWN_SHADER_INTERFACE_H__
-#define __GWN_SHADER_INTERFACE_H__
+#ifndef __GPU_SHADER_INTERFACE_H__
+#define __GPU_SHADER_INTERFACE_H__
 
 #include "GPU_common.h"
 
 typedef enum {
-	GWN_UNIFORM_NONE = 0, /* uninitialized/unknown */
+	GPU_UNIFORM_NONE = 0, /* uninitialized/unknown */
 
-	GWN_UNIFORM_MODEL,      /* mat4 ModelMatrix */
-	GWN_UNIFORM_VIEW,       /* mat4 ViewMatrix */
-	GWN_UNIFORM_MODELVIEW,  /* mat4 ModelViewMatrix */
-	GWN_UNIFORM_PROJECTION, /* mat4 ProjectionMatrix */
-	GWN_UNIFORM_VIEWPROJECTION, /* mat4 ViewProjectionMatrix */
-	GWN_UNIFORM_MVP,        /* mat4 ModelViewProjectionMatrix */
+	GPU_UNIFORM_MODEL,      /* mat4 ModelMatrix */
+	GPU_UNIFORM_VIEW,       /* mat4 ViewMatrix */
+	GPU_UNIFORM_MODELVIEW,  /* mat4 ModelViewMatrix */
+	GPU_UNIFORM_PROJECTION, /* mat4 ProjectionMatrix */
+	GPU_UNIFORM_VIEWPROJECTION, /* mat4 ViewProjectionMatrix */
+	GPU_UNIFORM_MVP,        /* mat4 ModelViewProjectionMatrix */
 
-	GWN_UNIFORM_MODEL_INV,           /* mat4 ModelMatrixInverse */
-	GWN_UNIFORM_VIEW_INV,            /* mat4 ViewMatrixInverse */
-	GWN_UNIFORM_MODELVIEW_INV,       /* mat4 ModelViewMatrixInverse */
-	GWN_UNIFORM_PROJECTION_INV,      /* mat4 ProjectionMatrixInverse */
-	GWN_UNIFORM_VIEWPROJECTION_INV,  /* mat4 ViewProjectionMatrixInverse */
+	GPU_UNIFORM_MODEL_INV,           /* mat4 ModelMatrixInverse */
+	GPU_UNIFORM_VIEW_INV,            /* mat4 ViewMatrixInverse */
+	GPU_UNIFORM_MODELVIEW_INV,       /* mat4 ModelViewMatrixInverse */
+	GPU_UNIFORM_PROJECTION_INV,      /* mat4 ProjectionMatrixInverse */
+	GPU_UNIFORM_VIEWPROJECTION_INV,  /* mat4 ViewProjectionMatrixInverse */
 
-	GWN_UNIFORM_NORMAL,      /* mat3 NormalMatrix */
-	GWN_UNIFORM_WORLDNORMAL, /* mat3 WorldNormalMatrix */
-	GWN_UNIFORM_CAMERATEXCO, /* vec4 CameraTexCoFactors */
-	GWN_UNIFORM_ORCO,        /* vec3 OrcoTexCoFactors[] */
+	GPU_UNIFORM_NORMAL,      /* mat3 NormalMatrix */
+	GPU_UNIFORM_WORLDNORMAL, /* mat3 WorldNormalMatrix */
+	GPU_UNIFORM_CAMERATEXCO, /* vec4 CameraTexCoFactors */
+	GPU_UNIFORM_ORCO,        /* vec3 OrcoTexCoFactors[] */
 
-	GWN_UNIFORM_COLOR, /* vec4 color */
-	GWN_UNIFORM_EYE, /* vec3 eye */
-	GWN_UNIFORM_CALLID, /* int callId */
+	GPU_UNIFORM_COLOR, /* vec4 color */
+	GPU_UNIFORM_EYE, /* vec3 eye */
+	GPU_UNIFORM_CALLID, /* int callId */
 
-	GWN_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
+	GPU_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
 
-	GWN_NUM_UNIFORMS, /* Special value, denotes number of builtin uniforms. */
-} Gwn_UniformBuiltin;
+	GPU_NUM_UNIFORMS, /* Special value, denotes number of builtin uniforms. */
+} GPUUniformBuiltin;
 
-typedef struct Gwn_ShaderInput {
-	struct Gwn_ShaderInput* next;
+typedef struct GPUShaderInput {
+	struct GPUShaderInput* next;
 	uint32_t name_offset;
 	uint name_hash;
-	Gwn_UniformBuiltin builtin_type; /* only for uniform inputs */
+	GPUUniformBuiltin builtin_type; /* only for uniform inputs */
 	uint32_t gl_type; /* only for attrib inputs */
 	int32_t size; /* only for attrib inputs */
 	int32_t location;
-} Gwn_ShaderInput;
+} GPUShaderInput;
 
-#define GWN_NUM_SHADERINTERFACE_BUCKETS 257
-#define GWN_SHADERINTERFACE_REF_ALLOC_COUNT 16
+#define GPU_NUM_SHADERINTERFACE_BUCKETS 257
+#define GPU_SHADERINTERFACE_REF_ALLOC_COUNT 16
 
-typedef struct Gwn_ShaderInterface {
+typedef struct GPUShaderInterface {
 	int32_t program;
 	uint32_t name_buffer_offset;
-	Gwn_ShaderInput* attrib_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
-	Gwn_ShaderInput* uniform_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
-	Gwn_ShaderInput* ubo_buckets[GWN_NUM_SHADERINTERFACE_BUCKETS];
-	Gwn_ShaderInput* builtin_uniforms[GWN_NUM_UNIFORMS];
+	GPUShaderInput* attrib_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput* uniform_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput* ubo_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput* builtin_uniforms[GPU_NUM_UNIFORMS];
 	char* name_buffer;
-	struct Gwn_Batch** batches; /* references to batches using this interface */
+	struct GPUBatch** batches; /* references to batches using this interface */
 	uint batches_len;
-} Gwn_ShaderInterface;
+} GPUShaderInterface;
 
-Gwn_ShaderInterface* GWN_shaderinterface_create(int32_t program_id);
-void GWN_shaderinterface_discard(Gwn_ShaderInterface*);
+GPUShaderInterface* GPU_shaderinterface_create(int32_t program_id);
+void GPU_shaderinterface_discard(GPUShaderInterface*);
 
-const Gwn_ShaderInput* GWN_shaderinterface_uniform(const Gwn_ShaderInterface*, const char* name);
-const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInterface*, Gwn_UniformBuiltin);
-const Gwn_ShaderInput* GWN_shaderinterface_ubo(const Gwn_ShaderInterface*, const char* name);
-const Gwn_ShaderInput* GWN_shaderinterface_attr(const Gwn_ShaderInterface*, const char* name);
+const GPUShaderInput* GPU_shaderinterface_uniform(const GPUShaderInterface*, const char* name);
+const GPUShaderInput* GPU_shaderinterface_uniform_builtin(const GPUShaderInterface*, GPUUniformBuiltin);
+const GPUShaderInput* GPU_shaderinterface_ubo(const GPUShaderInterface*, const char* name);
+const GPUShaderInput* GPU_shaderinterface_attr(const GPUShaderInterface*, const char* name);
 
 /* keep track of batches using this interface */
-void GWN_shaderinterface_add_batch_ref(Gwn_ShaderInterface*, struct Gwn_Batch*);
-void GWN_shaderinterface_remove_batch_ref(Gwn_ShaderInterface*, struct Gwn_Batch*);
+void GPU_shaderinterface_add_batch_ref(GPUShaderInterface*, struct GPUBatch*);
+void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface*, struct GPUBatch*);
 
-#endif /* __GWN_SHADER_INTERFACE_H__ */
+#endif /* __GPU_SHADER_INTERFACE_H__ */

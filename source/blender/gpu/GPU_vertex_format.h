@@ -23,79 +23,79 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_vertex_format.h
+/** \file blender/gpu/GPU_vertex_format.h
  *  \ingroup gpu
  *
- * Gawain vertex format
+ * GPU vertex format
  */
 
-#ifndef __GWN_VERTEX_FORMAT_H__
-#define __GWN_VERTEX_FORMAT_H__
+#ifndef __GPU_VERTEX_FORMAT_H__
+#define __GPU_VERTEX_FORMAT_H__
 
 #include "GPU_common.h"
 
-#define GWN_VERT_ATTR_MAX_LEN 16
-#define GWN_VERT_ATTR_MAX_NAMES 3
-#define GWN_VERT_ATTR_NAME_AVERAGE_LEN 11
-#define GWN_VERT_ATTR_NAMES_BUF_LEN ((GWN_VERT_ATTR_NAME_AVERAGE_LEN + 1) * GWN_VERT_ATTR_MAX_LEN)
+#define GPU_VERT_ATTR_MAX_LEN 16
+#define GPU_VERT_ATTR_MAX_NAMES 3
+#define GPU_VERT_ATTR_NAME_AVERAGE_LEN 11
+#define GPU_VERT_ATTR_NAMES_BUF_LEN ((GPU_VERT_ATTR_NAME_AVERAGE_LEN + 1) * GPU_VERT_ATTR_MAX_LEN)
 
 typedef enum {
-	GWN_COMP_I8,
-	GWN_COMP_U8,
-	GWN_COMP_I16,
-	GWN_COMP_U16,
-	GWN_COMP_I32,
-	GWN_COMP_U32,
+	GPU_COMP_I8,
+	GPU_COMP_U8,
+	GPU_COMP_I16,
+	GPU_COMP_U16,
+	GPU_COMP_I32,
+	GPU_COMP_U32,
 
-	GWN_COMP_F32,
+	GPU_COMP_F32,
 
-	GWN_COMP_I10
-} Gwn_VertCompType;
+	GPU_COMP_I10
+} GPUVertCompType;
 
 typedef enum {
-	GWN_FETCH_FLOAT,
-	GWN_FETCH_INT,
-	GWN_FETCH_INT_TO_FLOAT_UNIT, /* 127 (ubyte) -> 0.5 (and so on for other int types) */
-	GWN_FETCH_INT_TO_FLOAT /* 127 (any int type) -> 127.0 */
-} Gwn_VertFetchMode;
+	GPU_FETCH_FLOAT,
+	GPU_FETCH_INT,
+	GPU_FETCH_INT_TO_FLOAT_UNIT, /* 127 (ubyte) -> 0.5 (and so on for other int types) */
+	GPU_FETCH_INT_TO_FLOAT /* 127 (any int type) -> 127.0 */
+} GPUVertFetchMode;
 
-typedef struct Gwn_VertAttr {
-	Gwn_VertFetchMode fetch_mode;
-	Gwn_VertCompType comp_type;
+typedef struct GPUVertAttr {
+	GPUVertFetchMode fetch_mode;
+	GPUVertCompType comp_type;
 	uint gl_comp_type;
 	uint comp_len; /* 1 to 4 or 8 or 12 or 16 */
 	uint sz; /* size in bytes, 1 to 64 */
 	uint offset; /* from beginning of vertex, in bytes */
-	uint name_len; /* up to GWN_VERT_ATTR_MAX_NAMES */
-	const char* name[GWN_VERT_ATTR_MAX_NAMES];
-} Gwn_VertAttr;
+	uint name_len; /* up to GPU_VERT_ATTR_MAX_NAMES */
+	const char* name[GPU_VERT_ATTR_MAX_NAMES];
+} GPUVertAttr;
 
-typedef struct Gwn_VertFormat {
-	uint attr_len; /* 0 to 16 (GWN_VERT_ATTR_MAX_LEN) */
+typedef struct GPUVertFormat {
+	uint attr_len; /* 0 to 16 (GPU_VERT_ATTR_MAX_LEN) */
 	uint name_len; /* total count of active vertex attrib */
 	uint stride; /* stride in bytes, 1 to 256 */
 	uint name_offset;
 	bool packed;
-	char names[GWN_VERT_ATTR_NAMES_BUF_LEN];
-	Gwn_VertAttr attribs[GWN_VERT_ATTR_MAX_LEN]; /* TODO: variable-size attribs array */
-} Gwn_VertFormat;
+	char names[GPU_VERT_ATTR_NAMES_BUF_LEN];
+	GPUVertAttr attribs[GPU_VERT_ATTR_MAX_LEN]; /* TODO: variable-size attribs array */
+} GPUVertFormat;
 
-void GWN_vertformat_clear(Gwn_VertFormat*);
-void GWN_vertformat_copy(Gwn_VertFormat* dest, const Gwn_VertFormat* src);
+void GPU_vertformat_clear(GPUVertFormat*);
+void GPU_vertformat_copy(GPUVertFormat* dest, const GPUVertFormat* src);
 
-uint GWN_vertformat_attr_add(Gwn_VertFormat*, const char* name, Gwn_VertCompType, uint comp_len, Gwn_VertFetchMode);
-void GWN_vertformat_alias_add(Gwn_VertFormat*, const char* alias);
+uint GPU_vertformat_attr_add(GPUVertFormat*, const char* name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
+void GPU_vertformat_alias_add(GPUVertFormat*, const char* alias);
 
 /* format conversion */
 
-typedef struct Gwn_PackedNormal {
+typedef struct GPUPackedNormal {
 	int x : 10;
 	int y : 10;
 	int z : 10;
 	int w : 2;	/* 0 by default, can manually set to { -2, -1, 0, 1 } */
-} Gwn_PackedNormal;
+} GPUPackedNormal;
 
-Gwn_PackedNormal GWN_normal_convert_i10_v3(const float data[3]);
-Gwn_PackedNormal GWN_normal_convert_i10_s3(const short data[3]);
+GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3]);
+GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3]);
 
-#endif /* __GWN_VERTEX_FORMAT_H__ */
+#endif /* __GPU_VERTEX_FORMAT_H__ */

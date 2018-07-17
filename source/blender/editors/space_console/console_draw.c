@@ -158,8 +158,8 @@ static int console_textview_line_color(struct TextViewContext *tvc, unsigned cha
 		int offl = 0, offc = 0;
 		int xy[2] = {CONSOLE_DRAW_MARGIN, CONSOLE_DRAW_MARGIN};
 		int pen[2];
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		xy[1] += tvc->lheight / 6;
 
 		console_cursor_wrap_offset(sc->prompt, tvc->console_width, &offl, &offc, NULL);

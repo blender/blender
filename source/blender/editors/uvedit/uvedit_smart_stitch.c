@@ -1547,13 +1547,13 @@ static void stitch_calculate_edge_normal(BMEditMesh *em, UvEdge *edge, float *no
 
 /**
  */
-static void stitch_draw_vbo(Gwn_VertBuf *vbo, Gwn_PrimType prim_type, const float col[4])
+static void stitch_draw_vbo(GPUVertBuf *vbo, GPUPrimType prim_type, const float col[4])
 {
-	Gwn_Batch *batch = GWN_batch_create_ex(prim_type, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
-	GWN_batch_uniform_4fv(batch, "color", col);
-	GWN_batch_draw(batch);
-	GWN_batch_discard(batch);
+	GPUBatch *batch = GPU_batch_create_ex(prim_type, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_UNIFORM_COLOR);
+	GPU_batch_uniform_4fv(batch, "color", col);
+	GPU_batch_draw(batch);
+	GPU_batch_discard(batch);
 }
 
 /* TODO make things pretier : store batches inside StitchPreviewer instead of the bare verts pos */
@@ -1563,25 +1563,25 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	unsigned int num_line = 0, num_tri, tri_idx = 0, line_idx = 0;
 	StitchState *state = (StitchState *)arg;
 	StitchPreviewer *stitch_preview = state->stitch_preview;
-	Gwn_VertBuf *vbo, *vbo_line;
+	GPUVertBuf *vbo, *vbo_line;
 	float col[4];
 
-	static Gwn_VertFormat format = { 0 };
+	static GPUVertFormat format = { 0 };
 	static unsigned int pos_id;
 	if (format.attr_len == 0) {
-		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	}
 
 	GPU_blend(true);
 
 	/* Static Tris */
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_ACTIVE, col);
-	vbo = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(vbo, stitch_preview->num_static_tris * 3);
+	vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, stitch_preview->num_static_tris * 3);
 	for (int i = 0; i < stitch_preview->num_static_tris * 3; i++) {
-		GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->static_tris[i * 2]);
+		GPU_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->static_tris[i * 2]);
 	}
-	stitch_draw_vbo(vbo, GWN_PRIM_TRIS, col);
+	stitch_draw_vbo(vbo, GPU_PRIM_TRIS, col);
 
 
 	/* Preview Polys */
@@ -1591,39 +1591,39 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 	num_tri = num_line - 2 * stitch_preview->num_polys;
 
 	/* we need to convert the polys into triangles / lines */
-	vbo = GWN_vertbuf_create_with_format(&format);
-	vbo_line = GWN_vertbuf_create_with_format(&format);
+	vbo = GPU_vertbuf_create_with_format(&format);
+	vbo_line = GPU_vertbuf_create_with_format(&format);
 
-	GWN_vertbuf_data_alloc(vbo, num_tri * 3);
-	GWN_vertbuf_data_alloc(vbo_line, num_line * 2);
+	GPU_vertbuf_data_alloc(vbo, num_tri * 3);
+	GPU_vertbuf_data_alloc(vbo_line, num_line * 2);
 
 	for (int i = 0; i < stitch_preview->num_polys; i++) {
 		BLI_assert(stitch_preview->uvs_per_polygon[i] >= 3);
 
 		/* Start line */
-		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
-		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
+		GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + 2]);
 
 		for (j = 1; j < stitch_preview->uvs_per_polygon[i] - 1; ++j) {
-			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
-			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
-			GWN_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index]);
+			GPU_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, tri_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
 
-			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
-			GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
+			GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 0) * 2]);
+			GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + (j + 1) * 2]);
 		}
 
 		/* Closing line */
-		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
+		GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index]);
 		/* j = uvs_per_polygon[i] - 1*/
-		GWN_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j * 2]);
+		GPU_vertbuf_attr_set(vbo_line, pos_id, line_idx++, &stitch_preview->preview_polys[index + j * 2]);
 
 		index += stitch_preview->uvs_per_polygon[i] * 2;
 	}
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_FACE, col);
-	stitch_draw_vbo(vbo, GWN_PRIM_TRIS, col);
+	stitch_draw_vbo(vbo, GPU_PRIM_TRIS, col);
 	UI_GetThemeColor4fv(TH_STITCH_PREVIEW_EDGE, col);
-	stitch_draw_vbo(vbo_line, GWN_PRIM_LINES, col);
+	stitch_draw_vbo(vbo_line, GPU_PRIM_LINES, col);
 
 	GPU_blend(false);
 
@@ -1633,37 +1633,37 @@ static void stitch_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *ar
 		GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE) * 2.0f);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
-		vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable);
+		vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable);
 		for (int i = 0; i < stitch_preview->num_stitchable; i++) {
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
 		}
-		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
+		stitch_draw_vbo(vbo, GPU_PRIM_POINTS, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
-		vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable);
+		vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable);
 		for (int i = 0; i < stitch_preview->num_unstitchable; i++) {
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
 		}
-		stitch_draw_vbo(vbo, GWN_PRIM_POINTS, col);
+		stitch_draw_vbo(vbo, GPU_PRIM_POINTS, col);
 	}
 	else {
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_STITCHABLE, col);
-		vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable * 2);
+		vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, stitch_preview->num_stitchable * 2);
 		for (int i = 0; i < stitch_preview->num_stitchable * 2; i++) {
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_stitchable[i * 2]);
 		}
-		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
+		stitch_draw_vbo(vbo, GPU_PRIM_LINES, col);
 
 		UI_GetThemeColor4fv(TH_STITCH_PREVIEW_UNSTITCHABLE, col);
-		vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable * 2);
+		vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, stitch_preview->num_unstitchable * 2);
 		for (int i = 0; i < stitch_preview->num_unstitchable * 2; i++) {
-			GWN_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
+			GPU_vertbuf_attr_set(vbo, pos_id, i, &stitch_preview->preview_unstitchable[i * 2]);
 		}
-		stitch_draw_vbo(vbo, GWN_PRIM_LINES, col);
+		stitch_draw_vbo(vbo, GPU_PRIM_LINES, col);
 	}
 }
 

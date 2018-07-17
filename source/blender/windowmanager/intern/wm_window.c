@@ -194,14 +194,14 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 
 		/* We need this window's opengl context active to discard it. */
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
-		GWN_context_active_set(win->gwnctx);
+		GPU_context_active_set(win->gpuctx);
 
-		/* Delete local gawain objects.  */
-		GWN_context_discard(win->gwnctx);
+		/* Delete local gpu context.  */
+		GPU_context_discard(win->gpuctx);
 
 		GHOST_DisposeWindow(g_system, win->ghostwin);
 		win->ghostwin = NULL;
-		win->gwnctx = NULL;
+		win->gpuctx = NULL;
 
 	}
 }
@@ -645,7 +645,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		/* Clear drawable so we can set the new window. */
 		wm_window_clear_drawable(wm);
 
-		win->gwnctx = GWN_context_create();
+		win->gpuctx = GPU_context_create();
 
 		/* needed so we can detect the graphics card below */
 		GPU_init();
@@ -1099,7 +1099,7 @@ static void wm_window_set_drawable(wmWindowManager *wm, wmWindow *win, bool acti
 	if (activate) {
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
-	GWN_context_active_set(win->gwnctx);
+	GPU_context_active_set(win->gpuctx);
 	immActivate();
 }
 

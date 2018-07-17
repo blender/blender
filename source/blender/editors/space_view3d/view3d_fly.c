@@ -263,14 +263,14 @@ static void drawFlyPixel(const struct bContext *UNUSED(C), ARegion *UNUSED(ar), 
 	x2 = xoff + 0.55f * fly->width;
 	y2 = yoff + 0.55f * fly->height;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_VIEW_OVERLAY);
 
-	immBegin(GWN_PRIM_LINES, 16);
+	immBegin(GPU_PRIM_LINES, 16);
 
 	/* bottom left */
 	immVertex2f(pos, x1, y1);

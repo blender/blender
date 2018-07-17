@@ -23,15 +23,15 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_primitive_private.h
+/** \file blender/gpu/intern/gpu_primitive_private.h
  *  \ingroup gpu
  *
- * Gawain geometric primitives
+ * GPU geometric primitives
  */
 
-#ifndef __GWN_PRIMITIVE_PRIVATE_H__
-#define __GWN_PRIMITIVE_PRIVATE_H__
+#ifndef __GPU_PRIMITIVE_PRIVATE_H__
+#define __GPU_PRIMITIVE_PRIVATE_H__
 
-GLenum convert_prim_type_to_gl(Gwn_PrimType);
+GLenum convert_prim_type_to_gl(GPUPrimType);
 
-#endif /* __GWN_PRIMITIVE_PRIVATE_H__ */
+#endif /* __GPU_PRIMITIVE_PRIVATE_H__ */

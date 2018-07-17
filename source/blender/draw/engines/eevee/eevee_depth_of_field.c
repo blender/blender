@@ -192,7 +192,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		 * - Finally composite the 2 blurred buffers with the original render.
 		 **/
 		DRWShadingGroup *grp;
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 		psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
 

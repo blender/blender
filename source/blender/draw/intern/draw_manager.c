@@ -228,9 +228,9 @@ void DRW_transform_to_display(GPUTexture *tex)
 {
 	drw_state_set(DRW_STATE_WRITE_COLOR);
 
-	Gwn_VertFormat *vert_format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint texco = GWN_vertformat_attr_add(vert_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *vert_format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint texco = GPU_vertformat_attr_add(vert_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	const float dither = 1.0f;
 
@@ -262,7 +262,7 @@ void DRW_transform_to_display(GPUTexture *tex)
 	immUniformMatrix4fv("ModelViewProjectionMatrix", mat);
 
 	/* Full screen triangle */
-	immBegin(GWN_PRIM_TRIS, 3);
+	immBegin(GPU_PRIM_TRIS, 3);
 	immAttrib2f(texco, 0.0f, 0.0f);
 	immVertex2f(pos, -1.0f, -1.0f);
 
@@ -287,21 +287,21 @@ void DRW_transform_to_display(GPUTexture *tex)
 void DRW_transform_none(GPUTexture *tex)
 {
 	/* Draw as texture for final render (without immediate mode). */
-	Gwn_Batch *geom = DRW_cache_fullscreen_quad_texcoord_get();
-	GWN_batch_program_set_builtin(geom, GPU_SHADER_2D_IMAGE_COLOR);
+	GPUBatch *geom = DRW_cache_fullscreen_quad_get();
+	GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_IMAGE_COLOR);
 
 	GPU_texture_bind(tex, 0);
 
 	const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-	GWN_batch_uniform_4fv(geom, "color", white);
+	GPU_batch_uniform_4fv(geom, "color", white);
 
 	float mat[4][4];
 	unit_m4(mat);
-	GWN_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
+	GPU_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
 
-	GWN_batch_program_use_begin(geom);
-	GWN_batch_draw_range_ex(geom, 0, 0, false);
-	GWN_batch_program_use_end(geom);
+	GPU_batch_program_use_begin(geom);
+	GPU_batch_draw_range_ex(geom, 0, 0, false);
+	GPU_batch_program_use_end(geom);
 
 	GPU_texture_unbind(tex);
 }
@@ -327,7 +327,7 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
 	BLI_assert(samples > 0);
 	BLI_assert(GPU_texture_samples(src_color) == samples);
 
-	Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+	GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 
 	int builtin;
 	switch (samples) {
@@ -341,21 +341,21 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
 			break;
 	}
 
-	GWN_batch_program_set_builtin(geom, builtin);
+	GPU_batch_program_set_builtin(geom, builtin);
 
 	GPU_texture_bind(src_depth, 0);
 	GPU_texture_bind(src_color, 1);
-	GWN_batch_uniform_1i(geom, "depthMulti", 0);
-	GWN_batch_uniform_1i(geom, "colorMulti", 1);
+	GPU_batch_uniform_1i(geom, "depthMulti", 0);
+	GPU_batch_uniform_1i(geom, "colorMulti", 1);
 
 	float mat[4][4];
 	unit_m4(mat);
-	GWN_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
+	GPU_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
 
 	/* avoid gpuMatrix calls */
-	GWN_batch_program_use_begin(geom);
-	GWN_batch_draw_range_ex(geom, 0, 0, false);
-	GWN_batch_program_use_end(geom);
+	GPU_batch_program_use_begin(geom);
+	GPU_batch_draw_range_ex(geom, 0, 0, false);
+	GPU_batch_program_use_end(geom);
 }
 
 /** \} */
@@ -1573,14 +1573,14 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	}
 
 	void *re_gl_context = RE_gl_context_get(render);
-	void *re_gwn_context = NULL;
+	void *re_gpu_context = NULL;
 
 	/* Changing Context */
 	if (re_gl_context != NULL) {
 		DRW_opengl_render_context_enable(re_gl_context);
-		/* We need to query gwn context after a gl context has been bound. */
-		re_gwn_context = RE_gwn_context_get(render);
-		DRW_gawain_render_context_enable(re_gwn_context);
+		/* We need to query gpu context after a gl context has been bound. */
+		re_gpu_context = RE_gpu_context_get(render);
+		DRW_gawain_render_context_enable(re_gpu_context);
 	}
 	else {
 		DRW_opengl_context_enable();
@@ -1659,7 +1659,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
 	/* Changing Context */
 	if (re_gl_context != NULL) {
-		DRW_gawain_render_context_disable(re_gwn_context);
+		DRW_gawain_render_context_disable(re_gpu_context);
 		DRW_opengl_render_context_disable(re_gl_context);
 	}
 	else {
@@ -1967,9 +1967,9 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
 	const float w = (float)GPU_texture_width(texture);
 	const float h = (float)GPU_texture_height(texture);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_DEPTH_COPY);
 
@@ -1977,7 +1977,7 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
 
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
 
-	immBegin(GWN_PRIM_TRI_STRIP, 4);
+	immBegin(GPU_PRIM_TRI_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
@@ -2298,7 +2298,7 @@ void DRW_engines_register(void)
 	}
 }
 
-extern struct Gwn_VertFormat *g_pos_format; /* draw_shgroup.c */
+extern struct GPUVertFormat *g_pos_format; /* draw_shgroup.c */
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GPUTexture *globals_ramp; /* draw_common.c */
 void DRW_engines_free(void)
@@ -2352,7 +2352,7 @@ void DRW_opengl_context_create(void)
 	/* This changes the active context. */
 	DST.gl_context = WM_opengl_context_create();
 	/* Be sure to create gawain.context too. */
-	DST.gwn_context = GWN_context_create();
+	DST.gpu_context = GPU_context_create();
 	if (!G.background) {
 		immActivate();
 	}
@@ -2367,8 +2367,8 @@ void DRW_opengl_context_destroy(void)
 	BLI_assert(BLI_thread_is_main());
 	if (DST.gl_context != NULL) {
 		WM_opengl_context_activate(DST.gl_context);
-		GWN_context_active_set(DST.gwn_context);
-		GWN_context_discard(DST.gwn_context);
+		GPU_context_active_set(DST.gpu_context);
+		GPU_context_discard(DST.gpu_context);
 		WM_opengl_context_dispose(DST.gl_context);
 		BLI_ticket_mutex_free(DST.gl_context_mutex);
 	}
@@ -2387,7 +2387,7 @@ void DRW_opengl_context_enable(void)
 			}
 		}
 		WM_opengl_context_activate(DST.gl_context);
-		GWN_context_active_set(DST.gwn_context);
+		GPU_context_active_set(DST.gpu_context);
 		if (BLI_thread_is_main()) {
 			if (!G.background) {
 				immActivate();
@@ -2411,7 +2411,7 @@ void DRW_opengl_context_disable(void)
 		}
 		else {
 			WM_opengl_context_release(DST.gl_context);
-			GWN_context_active_set(NULL);
+			GPU_context_active_set(NULL);
 		}
 
 		BLI_ticket_mutex_unlock(DST.gl_context_mutex);
@@ -2437,20 +2437,20 @@ void DRW_opengl_render_context_disable(void *re_gl_context)
 }
 
 /* Needs to be called AFTER DRW_opengl_render_context_enable() */
-void DRW_gawain_render_context_enable(void *re_gwn_context)
+void DRW_gawain_render_context_enable(void *re_gpu_context)
 {
 	/* If thread is main you should use DRW_opengl_context_enable(). */
 	BLI_assert(!BLI_thread_is_main());
 
-	GWN_context_active_set(re_gwn_context);
+	GPU_context_active_set(re_gpu_context);
 	DRW_shape_cache_reset(); /* XXX fix that too. */
 }
 
 /* Needs to be called BEFORE DRW_opengl_render_context_disable() */
-void DRW_gawain_render_context_disable(void *UNUSED(re_gwn_context))
+void DRW_gawain_render_context_disable(void *UNUSED(re_gpu_context))
 {
 	DRW_shape_cache_reset(); /* XXX fix that too. */
-	GWN_context_active_set(NULL);
+	GPU_context_active_set(NULL);
 }
 
 /** \} */

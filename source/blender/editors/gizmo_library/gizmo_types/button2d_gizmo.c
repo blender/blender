@@ -72,7 +72,7 @@ typedef struct ButtonGizmo2D {
 	bool is_init;
 	/* Use an icon or shape */
 	int icon;
-	Gwn_Batch *shape_batch[2];
+	GPUBatch *shape_batch[2];
 } ButtonGizmo2D;
 
 #define CIRCLE_RESOLUTION 32
@@ -84,8 +84,8 @@ static void button2d_geom_draw_backdrop(
 {
 	GPU_line_width(gz->line_width);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -137,12 +137,12 @@ static void button2d_draw_intern(
 	if (draw_options & ED_GIZMO_BUTTON_SHOW_HELPLINE) {
 		float matrix_final_no_offset[4][4];
 		WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv(color);
 		GPU_line_width(gz->line_width);
 		immUniformColor4fv(color);
-		immBegin(GWN_PRIM_LINE_STRIP, 2);
+		immBegin(GPU_PRIM_LINE_STRIP, 2);
 		immVertex3fv(pos, matrix_final[3]);
 		immVertex3fv(pos, matrix_final_no_offset[3]);
 		immEnd();
@@ -177,9 +177,9 @@ static void button2d_draw_intern(
 			GPU_line_width(1.0f);
 			for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
 				/* Invert line color for wire. */
-				GWN_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
-				GWN_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
-				GWN_batch_draw(button->shape_batch[i]);
+				GPU_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
+				GPU_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
+				GPU_batch_draw(button->shape_batch[i]);
 
 				if (draw_options & ED_GIZMO_BUTTON_SHOW_OUTLINE) {
 					color[0] = 1.0f - color[0];
@@ -270,7 +270,7 @@ static void gizmo_button2d_free(wmGizmo *gz)
 	ButtonGizmo2D *shape = (ButtonGizmo2D *)gz;
 
 	for (uint i = 0; i < ARRAY_SIZE(shape->shape_batch); i++) {
-		GWN_BATCH_DISCARD_SAFE(shape->shape_batch[i]);
+		GPU_BATCH_DISCARD_SAFE(shape->shape_batch[i]);
 	}
 }
 

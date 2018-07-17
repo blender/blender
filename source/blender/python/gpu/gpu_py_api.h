@@ -18,13 +18,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __GWN_PY_API_H__
-#define __GWN_PY_API_H__
+#ifndef __GPU_PY_API_H__
+#define __GPU_PY_API_H__
 
-/** \file blender/python/gawain/gwn_py_api.h
- *  \ingroup pygawain
+/** \file blender/python/gpu/gpu_py_api.h
+ *  \ingroup pygpu
  */
 
-PyObject *BPyInit_gawain(void);
+PyObject *BPyInit_gpu(void);
 
-#endif  /* __GWN_PY_API_H__ */
+#endif  /* __GPU_PY_API_H__ */

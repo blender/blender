@@ -302,7 +302,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		downsample_write = DRW_STATE_WRITE_COLOR;
 	}
 
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	{
 		psl->color_downsample_ps = DRW_pass_create(

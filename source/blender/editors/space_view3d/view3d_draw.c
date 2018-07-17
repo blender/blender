@@ -365,7 +365,7 @@ static void drawviewborder_grid3(uint shdr_pos, float x1, float x2, float y1, fl
 	x4 = x1 + (1.0f - fac) * (x2 - x1);
 	y4 = y1 + (1.0f - fac) * (y2 - y1);
 
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GPU_PRIM_LINES, 8);
 
 	immVertex2f(shdr_pos, x1, y3);
 	immVertex2f(shdr_pos, x2, y3);
@@ -390,7 +390,7 @@ static void drawviewborder_triangle(
 	float w = x2 - x1;
 	float h = y2 - y1;
 
-	immBegin(GWN_PRIM_LINES, 6);
+	immBegin(GPU_PRIM_LINES, 6);
 
 	if (w > h) {
 		if (golden) {
@@ -467,7 +467,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 	x2i = (int)(x2 + (1.0f - 0.0001f));
 	y2i = (int)(y2 + (1.0f - 0.0001f));
 
-	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	/* First, solid lines. */
 	{
@@ -559,7 +559,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
 
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y3);
 			immVertex2f(shdr_pos, x2, y3);
@@ -571,7 +571,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y1);
 			immVertex2f(shdr_pos, x2, y2);
@@ -674,7 +674,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
-	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	GPU_line_width(1.0f);
 
@@ -814,12 +814,12 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 	GPU_blend(true);
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GWN_PRIM_LINES, 6);
+	immBegin(GPU_PRIM_LINES, 6);
 
 	for (int axis_i = 0; axis_i < 3; axis_i++) {
 		int i = axis_order[axis_i];
@@ -859,9 +859,9 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -872,7 +872,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 
 
-		immBegin(GWN_PRIM_LINE_STRIP, 3);
+		immBegin(GPU_PRIM_LINE_STRIP, 3);
 		color[3] = 0; /* more transparent toward the ends */
 		immAttrib4ubv(col, color);
 		add_v3_v3v3(end, o, scaled_axis);
@@ -911,7 +911,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-			immBegin(GWN_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
+			immBegin(GPU_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
 			color[3] = 63; /* somewhat faint */
 			immAttrib4ubv(col, color);
 			float angle = 0.0f;
@@ -940,7 +940,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 	/* -- draw rotation center -- */
 	immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
 	GPU_point_size(5.0f);
-	immBegin(GWN_PRIM_POINTS, 1);
+	immBegin(GPU_PRIM_POINTS, 1);
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
 	immEnd();

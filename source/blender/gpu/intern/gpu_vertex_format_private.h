@@ -23,17 +23,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_vertex_format_private.h
+/** \file blender/gpu/intern/gpu_vertex_format_private.h
  *  \ingroup gpu
  *
- * Gawain vertex format
+ * GPU vertex format
  */
 
-#ifndef __GWN_VERTEX_FORMAT_PRIVATE_H__
-#define __GWN_VERTEX_FORMAT_PRIVATE_H__
+#ifndef __GPU_VERTEX_FORMAT_PRIVATE_H__
+#define __GPU_VERTEX_FORMAT_PRIVATE_H__
 
-void VertexFormat_pack(Gwn_VertFormat*);
+void VertexFormat_pack(GPUVertFormat*);
 uint padding(uint offset, uint alignment);
-uint vertex_buffer_size(const Gwn_VertFormat*, uint vertex_len);
+uint vertex_buffer_size(const GPUVertFormat*, uint vertex_len);
 
-#endif /* __GWN_VERTEX_FORMAT_PRIVATE_H__ */
+#endif /* __GPU_VERTEX_FORMAT_PRIVATE_H__ */

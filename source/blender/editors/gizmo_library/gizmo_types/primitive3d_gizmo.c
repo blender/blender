@@ -77,10 +77,10 @@ static void gizmo_primitive_draw_geom(
 	}
 
 	if (vert_count > 0) {
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-		wm_gizmo_vec_draw(col_inner, verts, vert_count, pos, GWN_PRIM_TRI_FAN);
-		wm_gizmo_vec_draw(col_outer, verts, vert_count, pos, GWN_PRIM_LINE_LOOP);
+		wm_gizmo_vec_draw(col_inner, verts, vert_count, pos, GPU_PRIM_TRI_FAN);
+		wm_gizmo_vec_draw(col_outer, verts, vert_count, pos, GPU_PRIM_LINE_LOOP);
 		immUnbindProgram();
 	}
 }

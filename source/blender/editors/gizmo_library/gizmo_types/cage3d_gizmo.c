@@ -150,7 +150,7 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[3], bool r_con
 static void cage3d_draw_box_corners(
         const float r[3], const float margin[3], const float color[3])
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 	UNUSED_VARS(margin);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -185,7 +185,7 @@ static void cage3d_draw_box_interaction(
 		const float rad[3] = {margin[0] / 3, margin[1] / 3, margin[2] / 3};
 
 		{
-			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 			immUniformColor3fv(color);
 			imm_draw_cube_fill_3d(pos, co, rad);
@@ -217,7 +217,7 @@ static void cage3d_draw_circle_wire(
         const float r[3], const float margin[3], const float color[3],
         const int transform_flag, const int draw_options)
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
@@ -230,7 +230,7 @@ static void cage3d_draw_circle_wire(
 			const float rad[2] = {margin[0] / 2, margin[1] / 2};
 			const float center[2] = {0.0f, 0.0f};
 
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 			immVertex2f(pos, center[0] - rad[0], center[1] - rad[1]);
 			immVertex2f(pos, center[0] + rad[0], center[1] + rad[1]);
 			immVertex2f(pos, center[0] + rad[0], center[1] - rad[1]);
@@ -251,7 +251,7 @@ static void cage3d_draw_circle_handles(
         const float r[3], const float margin[3], const float color[3],
         bool solid, float scale)
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 	const float rad[3] = {margin[0] / 3, margin[1] / 3, margin[2] / 3};
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -305,7 +305,7 @@ static void gizmo_cage3d_draw_intern(
 	/* Handy for quick testing draw (if it's outside bounds). */
 	if (false) {
 		GPU_blend(true);
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
 		float s = 0.5f;

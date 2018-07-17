@@ -136,8 +136,8 @@ static void icon_draw_rect_input_line_prim(
 {
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
-	BLI_assert(ELEM(prim, GWN_PRIM_LINE_LOOP, GWN_PRIM_LINE_STRIP));
-	const uint pos_id = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	BLI_assert(ELEM(prim, GPU_PRIM_LINE_LOOP, GPU_PRIM_LINE_STRIP));
+	const uint pos_id = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4fv(color);
 	immBegin(prim, lines_len);
@@ -289,7 +289,7 @@ void icon_draw_rect_input(
 	else if (event_type == SPACEKEY) {
 		const uchar lines[] = {60, 118, 60, 60, 195, 60, 195, 118};
 		icon_draw_rect_input_line_prim(
-		        &rect, color, GWN_PRIM_LINE_STRIP,
+		        &rect, color, GPU_PRIM_LINE_STRIP,
 		        (const void *)lines, ARRAY_SIZE(lines) / 2);
 	}
 }

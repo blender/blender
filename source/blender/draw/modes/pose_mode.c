@@ -221,7 +221,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	         !DRW_state_is_select() &&
 	         POSE_is_bone_selection_overlay_active())
 	{
-		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			if (POSE_is_driven_by_active_armature(ob)) {
 				DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);

@@ -98,7 +98,7 @@ typedef struct OCIO_GLSLShader {
 	GLuint ocio_shader;
 	GLuint vert_shader;
 	GLuint program;
-	Gwn_ShaderInterface *shader_interface;
+	GPUShaderInterface *shader_interface;
 } GLSLDrawState;
 
 typedef struct OCIO_GLSLDrawState {
@@ -251,7 +251,7 @@ static void freeGLSLShader(OCIO_GLSLShader *shader)
 	}
 
 	if (shader->shader_interface) {
-		GWN_shaderinterface_discard(shader->shader_interface);
+		GPU_shaderinterface_discard(shader->shader_interface);
 	}
 
 	if (shader->ocio_shader) {
@@ -424,9 +424,9 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 
 			if (shader->program) {
 				if (shader->shader_interface) {
-					GWN_shaderinterface_discard(shader->shader_interface);
+					GPU_shaderinterface_discard(shader->shader_interface);
 				}
-				shader->shader_interface = GWN_shaderinterface_create(shader->program);
+				shader->shader_interface = GPU_shaderinterface_create(shader->program);
 			}
 		}
 	}
@@ -461,9 +461,9 @@ bool OCIOImpl::setupGLSLDraw(OCIO_GLSLDrawState **state_r, OCIO_ConstProcessorRc
 		 *
 		 * TODO(sergey): Look into some nicer solution.
 		 */
-		Gwn_VertFormat *format = immVertexFormat();
-		GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindProgram(shader->program, shader->shader_interface);
 
 		immUniform1i("image_texture", 0);

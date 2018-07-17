@@ -187,7 +187,7 @@ typedef enum eWS_Qual {
 static struct WindowStateGlobal {
 	GHOST_SystemHandle ghost_system;
 	void *ghost_window;
-	Gwn_Context *gwn_context;
+	GPUContext *gpu_context;
 
 	/* events */
 	eWS_Qual qual;
@@ -374,12 +374,12 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		GPU_matrix_push();
 		GPU_matrix_identity_set();
 
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3ub(0, 255, 0);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, fac, -1.0f);
 		immVertex2f(pos, fac,  1.0f);
 		immEnd();
@@ -1284,7 +1284,7 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	//GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
 	/* initialize OpenGL immediate mode */
-	g_WS.gwn_context =  GWN_context_create();
+	g_WS.gpu_context =  GPU_context_create();
 	GPU_init();
 	immActivate();
 
@@ -1555,10 +1555,10 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	GPU_shader_free_builtin_shaders();
 
-	if (g_WS.gwn_context) {
-		GWN_context_active_set(g_WS.gwn_context);
-		GWN_context_discard(g_WS.gwn_context);
-		g_WS.gwn_context = NULL;
+	if (g_WS.gpu_context) {
+		GPU_context_active_set(g_WS.gpu_context);
+		GPU_context_discard(g_WS.gpu_context);
+		g_WS.gpu_context = NULL;
 	}
 
 	BLF_exit();

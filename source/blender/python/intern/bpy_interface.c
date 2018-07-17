@@ -75,7 +75,7 @@
 #include "../generic/blf_py_api.h"
 #include "../generic/idprop_py_api.h"
 #include "../generic/imbuf_py_api.h"
-#include "../gawain/gwn_py_api.h"
+#include "../gpu/gpu_py_api.h"
 #include "../bmesh/bmesh_py_api.h"
 #include "../mathutils/mathutils.h"
 
@@ -219,7 +219,7 @@ static struct _inittab bpy_internal_modules[] = {
 	{"mathutils.kdtree", PyInit_mathutils_kdtree},
 #endif
 	{"_bpy_path", BPyInit__bpy_path},
-	{"_gawain", BPyInit_gawain},
+	{"_gpu", BPyInit_gpu},
 	{"bgl", BPyInit_bgl},
 	{"blf", BPyInit_blf},
 	{"imbuf", BPyInit_imbuf},

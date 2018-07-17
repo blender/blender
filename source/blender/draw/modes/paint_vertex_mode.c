@@ -150,7 +150,7 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
 		const bool use_wire = (v3d->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
 		const bool use_surface = v3d->overlay.vertex_paint_mode_opacity != 0.0f;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		if (use_surface) {
 			geom = DRW_cache_mesh_surface_vert_colors_get(ob);

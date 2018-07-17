@@ -84,7 +84,7 @@ static void draw_xyz_wire(
 
 	switch (axis) {
 		case 0:     /* x axis */
-			line_type = GWN_PRIM_LINES;
+			line_type = GPU_PRIM_LINES;
 
 			/* bottom left to top right */
 			negate_v3_v3(v1, dx);
@@ -105,7 +105,7 @@ static void draw_xyz_wire(
 
 			break;
 		case 1:     /* y axis */
-			line_type = GWN_PRIM_LINES;
+			line_type = GPU_PRIM_LINES;
 
 			/* bottom left to top right */
 			mul_v3_fl(dx, 0.75f);
@@ -127,7 +127,7 @@ static void draw_xyz_wire(
 
 			break;
 		case 2:     /* z axis */
-			line_type = GWN_PRIM_LINE_STRIP;
+			line_type = GPU_PRIM_LINE_STRIP;
 
 			/* start at top left */
 			negate_v3_v3(v1, dx);
@@ -172,8 +172,8 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 {
 	GPU_line_width(gz->line_width);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	const uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	const uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	struct {
@@ -257,7 +257,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 				float v_start[3];
 				GPU_line_width(2.0f);
 				immUniformColor4fv(color_current);
-				immBegin(GWN_PRIM_LINES, 2);
+				immBegin(GPU_PRIM_LINES, 2);
 				if (axis_align == -1) {
 					zero_v3(v_start);
 				}
@@ -280,10 +280,10 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 				GPU_matrix_translate_3fv(v_final);
 				GPU_matrix_scale_1f(is_pos ? 0.22f : 0.18f);
 
-				Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
-				GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
-				GWN_batch_uniform_4fv(sphere, "color", is_pos ? color_current : color_current_fade);
-				GWN_batch_draw(sphere);
+				GPUBatch *sphere = GPU_batch_preset_sphere(0);
+				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+				GPU_batch_uniform_4fv(sphere, "color", is_pos ? color_current : color_current_fade);
+				GPU_batch_draw(sphere);
 				GPU_matrix_pop();
 			}
 

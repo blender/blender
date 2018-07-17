@@ -27,7 +27,7 @@
 /** \file blender/gpu/GPU_immediate.h
  *  \ingroup gpu
  *
- * Gawain immediate mode work-alike
+ * GPU immediate mode work-alike
  */
 
 #ifndef __GPU_IMMEDIATE_H__
@@ -40,20 +40,20 @@
 #include "GPU_immediate_util.h"
 #include "GPU_shader.h"
 
-Gwn_VertFormat* immVertexFormat(void); /* returns a cleared vertex format, ready for add_attrib. */
+GPUVertFormat* immVertexFormat(void); /* returns a cleared vertex format, ready for add_attrib. */
 
-void immBindProgram(uint32_t program, const Gwn_ShaderInterface*); /* every immBegin must have a program bound first. */
+void immBindProgram(uint32_t program, const GPUShaderInterface*); /* every immBegin must have a program bound first. */
 void immUnbindProgram(void); /* call after your last immEnd, or before binding another program. */
 
-void immBegin(Gwn_PrimType, uint vertex_len); /* must supply exactly vertex_len vertices. */
-void immBeginAtMost(Gwn_PrimType, uint max_vertex_len); /* can supply fewer vertices. */
+void immBegin(GPUPrimType, uint vertex_len); /* must supply exactly vertex_len vertices. */
+void immBeginAtMost(GPUPrimType, uint max_vertex_len); /* can supply fewer vertices. */
 void immEnd(void); /* finishes and draws. */
 
 /* ImmBegin a batch, then use standard immFunctions as usual. */
 /* ImmEnd will finalize the batch instead of drawing. */
 /* Then you can draw it as many times as you like! Partially replaces the need for display lists. */
-Gwn_Batch* immBeginBatch(Gwn_PrimType, uint vertex_len);
-Gwn_Batch* immBeginBatchAtMost(Gwn_PrimType, uint vertex_len);
+GPUBatch* immBeginBatch(GPUPrimType, uint vertex_len);
+GPUBatch* immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */

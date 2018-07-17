@@ -267,7 +267,7 @@ static void drawseqwave(View2D *v2d, const bContext *C, SpaceSeq *sseq, Scene *s
 
 		GPU_blend(true);
 
-		immBegin(GWN_PRIM_TRI_STRIP, length * 2);
+		immBegin(GPU_PRIM_TRI_STRIP, length * 2);
 
 		for (i = 0; i < length; i++) {
 			float sampleoffset = startsample + ((x1_offset - x1) / stepsize + i) * samplestep;
@@ -343,7 +343,7 @@ static void drawmeta_contents(Scene *scene, Sequence *seqm, float x1, float y1, 
 
 	col[3] = 196; /* alpha, used for all meta children */
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -457,7 +457,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, const float handsize_cla
 			immUniformColor4ub(0, 0, 0, 50);
 		}
 
-		immBegin(GWN_PRIM_TRIS, 3);
+		immBegin(GPU_PRIM_TRIS, 3);
 		immVertex2fv(pos, v1);
 		immVertex2fv(pos, v2);
 		immVertex2fv(pos, v3);
@@ -719,7 +719,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	x2 = (seq->endstill) ? (seq->start + seq->len) : seq->enddisp;
 	y2 = seq->machine + SEQ_STRIP_OFSTOP;
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -781,7 +781,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	if (seq->flag & SEQ_LOCK) {
 		GPU_blend(true);
 
-		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
 		immUniform4f("color1", 1.0f, 1.0f, 1.0f, 0.125f);
@@ -799,7 +799,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 	if (!BKE_sequence_is_valid_check(seq)) {
 		GPU_blend(true);
 
-		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_DIAG_STRIPES);
 
 		immUniform4f("color1", 1.0f, 0.0f, 0.0f, 1.0f);
@@ -834,7 +834,7 @@ static void draw_seq_strip(const bContext *C, SpaceSeq *sseq, Scene *scene, AReg
 		drawmeta_contents(scene, seq, x1, y1, x2, y2);
 	}
 
-	pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	/* TODO: add back stippled line for muted strips? */
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -1040,7 +1040,7 @@ static void sequencer_draw_borders(const SpaceSeq *sseq, const View2D *v2d, cons
 	GPU_line_width(1.0f);
 
 	/* border */
-	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -1230,9 +1230,9 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	/* Format needs to be created prior to any immBindProgram call.
 	 * Do it here because OCIO binds it's own shader.
 	 */
-	Gwn_VertFormat *imm_format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(imm_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint texCoord = GWN_vertformat_attr_add(imm_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *imm_format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint texCoord = GPU_vertformat_attr_add(imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	if (scope) {
 		IMB_freeImBuf(ibuf);
@@ -1331,7 +1331,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		immUniform1i("image", 0);
 	}
 
-	immBegin(GWN_PRIM_TRI_FAN, 4);
+	immBegin(GPU_PRIM_TRI_FAN, 4);
 
 	if (draw_overlay) {
 		if (sseq->overlay_type == SEQ_DRAW_OVERLAY_RECT) {
@@ -1514,7 +1514,7 @@ static void draw_seq_backdrop(View2D *v2d)
 {
 	int i;
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* darker gray overlay over the view backdrop */
@@ -1541,7 +1541,7 @@ static void draw_seq_backdrop(View2D *v2d)
 	i = max_ii(1, ((int)v2d->cur.ymin) - 1);
 	int line_len = (int)v2d->cur.ymax - i + 1;
 	immUniformThemeColor(TH_GRID);
-	immBegin(GWN_PRIM_LINES, line_len * 2);
+	immBegin(GPU_PRIM_LINES, line_len * 2);
 	while (line_len--) {
 		immVertex2f(pos, v2d->cur.xmax, i);
 		immVertex2f(pos, v2d->cur.xmin, i);
@@ -1593,7 +1593,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 		const Sequence *seq = special_seq_update;
 		GPU_blend(true);
 
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ub(255, 255, 255, 48);
@@ -1613,7 +1613,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 	GPU_blend(true);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw darkened area outside of active timeline
@@ -1631,7 +1631,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 	immUniformThemeColorShade(TH_BACK, -60);
 
 	/* thin lines where the actual frames are */
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 
 	immVertex2f(pos, frame_sta, v2d->cur.ymin);
 	immVertex2f(pos, frame_sta, v2d->cur.ymax);
@@ -1649,7 +1649,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 
 		immUniformThemeColorShade(TH_BACK, -40);
 
-		immBegin(GWN_PRIM_LINES, 4);
+		immBegin(GPU_PRIM_LINES, 4);
 
 		immVertex2f(pos, ms->disp_range[0], v2d->cur.ymin);
 		immVertex2f(pos, ms->disp_range[0], v2d->cur.ymax);
@@ -1735,12 +1735,12 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	if (scene->ed && scene->ed->over_flag & SEQ_EDIT_OVERLAY_SHOW) {
 		int cfra_over = (scene->ed->over_flag & SEQ_EDIT_OVERLAY_ABS) ? scene->ed->over_cfra : scene->r.cfra + scene->ed->over_ofs;
 
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor3f(0.2f, 0.2f, 0.2f);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, cfra_over, v2d->cur.ymin);
 		immVertex2f(pos, cfra_over, v2d->cur.ymax);
 		immEnd();

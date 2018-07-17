@@ -400,8 +400,8 @@ static void draw_marker(
 	if (flag & DRAW_MARKERS_LINES)
 #endif
 	{
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -418,7 +418,7 @@ static void draw_marker(
 		immUniform1f("dash_width", 6.0f);
 		immUniform1f("dash_factor", 0.5f);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, xpos + 0.5f, 12.0f);
 		immVertex2f(pos, xpos + 0.5f, (v2d->cur.ymax + 12.0f) * yscale);
 		immEnd();
@@ -486,7 +486,7 @@ void ED_markers_draw(const bContext *C, int flag)
 	v2d = UI_view2d_fromcontext(C);
 
 	if (flag & DRAW_MARKERS_MARGIN) {
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		const unsigned char shade[4] = {0, 0, 0, 16};

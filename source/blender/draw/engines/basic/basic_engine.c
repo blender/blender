@@ -160,13 +160,13 @@ static void basic_cache_populate(void *vedata, Object *ob)
 			ParticleSettings *part = psys->part;
 			const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 			if (draw_as == PART_DRAW_PATH) {
-				struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
+				struct GPUBatch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
 				DRW_shgroup_call_add(stl->g_data->depth_shgrp, hairs, NULL);
 			}
 		}
 	}
 
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		bool do_cull = false;  /* TODO (we probably wan't to take this from the viewport?) */
 #ifdef USE_DEPTH

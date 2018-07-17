@@ -175,7 +175,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 		return;
 
 	if (stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
-		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			DRW_shgroup_call_add(pd->face_orientation_shgrp, geom, ob->obmat);
 		}

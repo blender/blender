@@ -815,10 +815,10 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata);
 void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, struct Object *ob);
 void EEVEE_lights_cache_shcaster_add(
-        EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob);
+        EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, struct GPUBatch *geom, Object *ob);
 void EEVEE_lights_cache_shcaster_material_add(
         EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl,
-        struct GPUMaterial *gpumat, struct Gwn_Batch *geom, struct Object *ob,
+        struct GPUMaterial *gpumat, struct GPUBatch *geom, struct Object *ob,
         float *alpha_threshold);
 void EEVEE_lights_cache_shcaster_object_add(EEVEE_ViewLayerData *sldata, struct Object *ob);
 void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata);

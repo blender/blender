@@ -64,31 +64,31 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info, const bool UNUSED(sel
 	/* TODO store the Batches inside the GizmoGeomInfo and updated it when geom changes
 	 * So we don't need to re-created and discard it every time */
 
-	Gwn_VertBuf *vbo;
-	Gwn_IndexBuf *el;
-	Gwn_Batch *batch;
-	Gwn_IndexBufBuilder elb = {0};
+	GPUVertBuf *vbo;
+	GPUIndexBuf *el;
+	GPUBatch *batch;
+	GPUIndexBufBuilder elb = {0};
 
-	Gwn_VertFormat format = {0};
-	uint pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	GPUVertFormat format = {0};
+	uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	/* Elements */
-	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, info->ntris, info->nverts);
+	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, info->ntris, info->nverts);
 	for (int i = 0; i < info->ntris; ++i) {
 		const unsigned short *idx = &info->indices[i * 3];
-		GWN_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
+		GPU_indexbuf_add_tri_verts(&elb, idx[0], idx[1], idx[2]);
 	}
-	el = GWN_indexbuf_build(&elb);
+	el = GPU_indexbuf_build(&elb);
 
-	vbo = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(vbo, info->nverts);
+	vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, info->nverts);
 
-	GWN_vertbuf_attr_fill(vbo, pos_id, info->verts);
+	GPU_vertbuf_attr_fill(vbo, pos_id, info->verts);
 
-	batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, el, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
+	batch = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, el, GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR);
 
-	GWN_batch_uniform_4fv(batch, "color", color);
+	GPU_batch_uniform_4fv(batch, "color", color);
 
 	/* We may want to re-visit this, for now disable
 	 * since it causes issues leaving the GL state modified. */
@@ -97,7 +97,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info, const bool UNUSED(sel
 	GPU_depth_test(true);
 #endif
 
-	GWN_batch_draw(batch);
+	GPU_batch_draw(batch);
 
 #if 0
 	GPU_depth_test(false);
@@ -105,7 +105,7 @@ void wm_gizmo_geometryinfo_draw(const GizmoGeomInfo *info, const bool UNUSED(sel
 #endif
 
 
-	GWN_batch_discard(batch);
+	GPU_batch_discard(batch);
 }
 
 void wm_gizmo_vec_draw(

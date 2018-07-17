@@ -23,10 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gwn_buffer_id.cpp
+/** \file blender/gpu/intern/gpu_buffer_id.cpp
  *  \ingroup gpu
  *
- * Gawain buffer IDs
+ * GPU buffer IDs
  */
 
 #include "GPU_buffer_id.h"
@@ -54,7 +54,7 @@ static bool thread_is_main()
 	return BLI_thread_is_main();
 }
 
-GLuint GWN_buf_id_alloc()
+GLuint GPU_buf_id_alloc()
 {
 	/* delete orphaned IDs */
 	orphan_mutex.lock();
@@ -73,7 +73,7 @@ GLuint GWN_buf_id_alloc()
 	return new_buffer_id;
 }
 
-void GWN_buf_id_free(GLuint buffer_id)
+void GPU_buf_id_free(GLuint buffer_id)
 {
 	if (thread_is_main()) {
 		glDeleteBuffers(1, &buffer_id);

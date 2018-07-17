@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Batched geometry rendering is powered by the Gawain library.
+/* Batched geometry rendering is powered by the GPU library.
  * This file contains any additions or modifications specific to Blender.
  */
 
@@ -32,20 +32,20 @@
 #define __GPU_BATCH_PRESETS_H__
 
 struct rctf;
-struct Gwn_VertFormat;
+struct GPUVertFormat;
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
 /* gpu_batch_presets.c */
-struct Gwn_VertFormat *GPU_batch_preset_format_3d(void);
+struct GPUVertFormat *GPU_batch_preset_format_3d(void);
 
 /* Replacement for gluSphere */
-struct Gwn_Batch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
-struct Gwn_Batch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
+struct GPUBatch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
+struct GPUBatch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
 
 void gpu_batch_presets_init(void);
-void gpu_batch_presets_register(struct Gwn_Batch *preset_batch);
+void gpu_batch_presets_register(struct GPUBatch *preset_batch);
 void gpu_batch_presets_reset(void);
 void gpu_batch_presets_exit(void);
 

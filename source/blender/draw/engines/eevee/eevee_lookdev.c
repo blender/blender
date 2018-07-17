@@ -60,7 +60,7 @@ void EEVEE_lookdev_cache_init(
 	if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
 		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
 		if (sl && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
-			struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+			struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 			GPUTexture *tex = NULL;
 
 			/* If one of the component is missing we start from scratch. */

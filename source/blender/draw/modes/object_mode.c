@@ -255,9 +255,9 @@ typedef struct OBJECT_PrivateData {
 
 static struct {
 	/* Instance Data format */
-	struct Gwn_VertFormat *particle_format;
-	struct Gwn_VertFormat *empty_image_format;
-	struct Gwn_VertFormat *empty_image_wire_format;
+	struct GPUVertFormat *particle_format;
+	struct GPUVertFormat *empty_image_format;
+	struct GPUVertFormat *empty_image_wire_format;
 
 	/* fullscreen shaders */
 	GPUShader *outline_prepass_sh;
@@ -851,7 +851,7 @@ static void DRW_shgroup_empty_image(
 				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
 			});
 
-			struct Gwn_Batch *geom = DRW_cache_image_plane_get();
+			struct GPUBatch *geom = DRW_cache_image_plane_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(
 			        e_data.object_empty_image_sh, psl->non_meshes, geom, e_data.empty_image_format);
 			DRW_shgroup_uniform_texture(grp, "image", tex);
@@ -871,7 +871,7 @@ static void DRW_shgroup_empty_image(
 				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
 			});
 
-			struct Gwn_Batch *geom = DRW_cache_image_plane_wire_get();
+			struct GPUBatch *geom = DRW_cache_image_plane_wire_get();
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(
 			        e_data.object_empty_image_wire_sh, psl->non_meshes, geom, e_data.empty_image_wire_format);
 			DRW_shgroup_uniform_vec2(grp, "aspect", empty_image_data->image_aspect, 1);
@@ -940,8 +940,8 @@ static void OBJECT_cache_init(void *vedata)
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_POINT;
 		DRWPass *pass = psl->lightprobes = DRW_pass_create("Object Probe Pass", state);
-		struct Gwn_Batch *sphere = DRW_cache_sphere_get();
-		struct Gwn_Batch *quad = DRW_cache_quad_get();
+		struct GPUBatch *sphere = DRW_cache_sphere_get();
+		struct GPUBatch *quad = DRW_cache_quad_get();
 
 		/* Cubemap */
 		g_data->lightprobes_cube_select       = shgroup_instance_outline(pass, sphere, &g_data->id_ofs_prb_select);
@@ -960,7 +960,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR;
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		/* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
 		float alphaOcclu = (xray_enabled) ? 1.0f : 0.35f;
 		/* Reminder : bool uniforms need to be 4 bytes. */
@@ -1000,7 +1000,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
 		psl->outlines_resolve = DRW_pass_create("Outlines Resolve Pass", state);
 
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		GPUTexture **outline_tx = (do_outline_expand) ? &e_data.outlines_blur_tx : &e_data.outlines_color_tx;
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_aa_sh, psl->outlines_resolve);
@@ -1014,7 +1014,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND;
 		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		static float mat[4][4];
 		unit_m4(mat);
 
@@ -1075,7 +1075,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		DRWState state =
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
@@ -1221,7 +1221,7 @@ static void OBJECT_cache_init(void *vedata)
 		/* TODO
 		 * for now we create multiple times the same VBO with only lamp center coordinates
 		 * but ideally we would only create it once */
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		/* start with buflimit because we don't want stipples */
 		geom = DRW_cache_single_line_get();
@@ -1273,7 +1273,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* -------- STIPPLES ------- */
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		/* Relationship Lines */
 		stl->g_data->relationship_lines = shgroup_dynlines_dashed_uniform_color(psl->non_meshes, ts.colorWire);
@@ -2252,7 +2252,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 		unit_m4(mat);
 
 		if (draw_as != PART_DRAW_PATH) {
-			struct Gwn_Batch *geom = DRW_cache_particles_get_dots(ob, psys);
+			struct GPUBatch *geom = DRW_cache_particles_get_dots(ob, psys);
 			DRWShadingGroup *shgrp = NULL;
 			static int screen_space[2] = {0, 1};
 			static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
@@ -2335,7 +2335,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	if (do_outlines) {
 		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
-			struct Gwn_Batch *geom;
+			struct GPUBatch *geom;
 			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
 			                           (v3d->shading.type < OB_MATERIAL);
 			if (xray_enabled) {
@@ -2363,7 +2363,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (ob != draw_ctx->object_edit) {
 				Mesh *me = ob->data;
 				if (me->totedge == 0) {
-					struct Gwn_Batch *geom = DRW_cache_mesh_verts_get(ob);
+					struct GPUBatch *geom = DRW_cache_mesh_verts_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
@@ -2374,7 +2374,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					}
 				}
 				else {
-					struct Gwn_Batch *geom = DRW_cache_mesh_loose_edges_get(ob);
+					struct GPUBatch *geom = DRW_cache_mesh_loose_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
 							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
@@ -2395,7 +2395,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				if (hide_object_extra) {
 					break;
 				}
-				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
+				struct GPUBatch *geom = DRW_cache_lattice_wire_get(ob, false);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
@@ -2411,7 +2411,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				if (hide_object_extra) {
 					break;
 				}
-				struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
+				struct GPUBatch *geom = DRW_cache_curve_edge_wire_get(ob);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}

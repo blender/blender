@@ -1043,10 +1043,10 @@ void RE_gl_context_create(Render *re)
 void RE_gl_context_destroy(Render *re)
 {
 	/* Needs to be called from the thread which used the ogl context for rendering. */
-	if (re->gwn_context) {
-		GWN_context_active_set(re->gwn_context);
-		GWN_context_discard(re->gwn_context);
-		re->gwn_context = NULL;
+	if (re->gpu_context) {
+		GPU_context_active_set(re->gpu_context);
+		GPU_context_discard(re->gpu_context);
+		re->gpu_context = NULL;
 	}
 	if (re->gl_context) {
 		WM_opengl_context_dispose(re->gl_context);
@@ -1059,12 +1059,12 @@ void *RE_gl_context_get(Render *re)
 	return re->gl_context;
 }
 
-void *RE_gwn_context_get(Render *re)
+void *RE_gpu_context_get(Render *re)
 {
-	if (re->gwn_context == NULL) {
-		re->gwn_context = GWN_context_create();
+	if (re->gpu_context == NULL) {
+		re->gpu_context = GPU_context_create();
 	}
-	return re->gwn_context;
+	return re->gpu_context;
 }
 
 /* ********* add object data (later) ******** */

@@ -244,7 +244,7 @@ void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], un
 
 	circball_array_fill(verts, cent, rad, tmat);
 
-	immBegin(GWN_PRIM_LINE_LOOP, CIRCLE_RESOL);
+	immBegin(GPU_PRIM_LINE_LOOP, CIRCLE_RESOL);
 	for (int i = 0; i < CIRCLE_RESOL; ++i) {
 		immVertex3fv(pos, verts[i]);
 	}
@@ -285,15 +285,15 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 
 	if (imm_len == 0) return;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	data.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	data.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U32, 1, GWN_FETCH_INT);
+	GPUVertFormat *format = immVertexFormat();
+	data.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	data.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	immBeginAtMost(GWN_PRIM_POINTS, imm_len);
+	immBeginAtMost(GPU_PRIM_POINTS, imm_len);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	immEnd();
 
@@ -303,9 +303,9 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *UNUSED(dm), int offset)
 {
 	Mesh *me = ob->data;
-	Gwn_Batch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GWN_batch_draw(batch);
+	GPUBatch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_draw(batch);
 }
 #endif
 
@@ -328,15 +328,15 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 	drawBMOffset_userData data;
 	data.bm = em->bm;
 	data.offset = offset;
-	Gwn_VertFormat *format = immVertexFormat();
-	data.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	data.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U32, 1, GWN_FETCH_INT);
+	GPUVertFormat *format = immVertexFormat();
+	data.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	data.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
-	immBeginAtMost(GWN_PRIM_POINTS, em->bm->totvert);
+	immBeginAtMost(GPU_PRIM_POINTS, em->bm->totvert);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, &data, DM_FOREACH_NOP);
 	immEnd();
 
@@ -348,9 +348,9 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *UNUSED(dm), int offset)
 	GPU_point_size(UI_GetThemeValuef(TH_VERTEX_SIZE));
 
 	Mesh *me = em->ob->data;
-	Gwn_Batch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GWN_batch_draw(batch);
+	GPUBatch *batch = DRW_mesh_batch_cache_get_verts_with_select_id(me, offset);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_draw(batch);
 }
 #endif
 
@@ -375,20 +375,20 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *dm, int offset)
 	data.bm = em->bm;
 	data.offset = offset;
 
-	Gwn_VertFormat *format = immVertexFormat();
+	GPUVertFormat *format = immVertexFormat();
 
 	const int imm_len = dm->getNumEdges(dm) * 2;
 
 	if (imm_len == 0) return;
 
-	data.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	data.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U32, 1, GWN_FETCH_INT);
+	data.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	data.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	GPU_line_width(1.0f);
 
-	immBeginAtMost(GWN_PRIM_LINES, imm_len);
+	immBeginAtMost(GPU_PRIM_LINES, imm_len);
 	dm->foreachMappedEdge(dm, bbs_mesh_wire__mapFunc, &data);
 	immEnd();
 
@@ -400,9 +400,9 @@ static void bbs_mesh_wire(BMEditMesh *em, DerivedMesh *UNUSED(dm), int offset)
 	GPU_line_width(1.0f);
 
 	Mesh *me = em->ob->data;
-	Gwn_Batch *batch = DRW_mesh_batch_cache_get_edges_with_select_id(me, offset);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GWN_batch_draw(batch);
+	GPUBatch *batch = DRW_mesh_batch_cache_get_edges_with_select_id(me, offset);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_draw(batch);
 }
 #endif
 
@@ -420,13 +420,13 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 
 	if (imm_len == 0) return;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	data.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	data.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U32, 1, GWN_FETCH_INT);
+	GPUVertFormat *format = immVertexFormat();
+	data.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	data.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
-	immBeginAtMost(GWN_PRIM_TRIS, imm_len);
+	immBeginAtMost(GPU_PRIM_TRIS, imm_len);
 
 	if (use_select == false) {
 		int selcol;
@@ -463,20 +463,20 @@ static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *dm, const bool use_select
 static void bbs_mesh_face(BMEditMesh *em, DerivedMesh *UNUSED(dm), const bool use_select)
 {
 	Mesh *me = em->ob->data;
-	Gwn_Batch *batch;
+	GPUBatch *batch;
 
 	if (use_select) {
 		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, true, 1);
-		GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-		GWN_batch_draw(batch);
+		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+		GPU_batch_draw(batch);
 	}
 	else {
 		int selcol;
 		GPU_select_index_get(0, &selcol);
 		batch = DRW_mesh_batch_cache_get_triangles_with_select_mask(me, true);
-		GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
-		GWN_batch_uniform_1ui(batch, "color", selcol);
-		GWN_batch_draw(batch);
+		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
+		GPU_batch_uniform_1ui(batch, "color", selcol);
+		GPU_batch_draw(batch);
 	}
 }
 #endif
@@ -499,15 +499,15 @@ static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *dm)
 {
 	drawBMOffset_userData data; /* don't use offset */
 	data.bm = em->bm;
-	Gwn_VertFormat *format = immVertexFormat();
-	data.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	data.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U32, 1, GWN_FETCH_INT);
+	GPUVertFormat *format = immVertexFormat();
+	data.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	data.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR_U32);
 
 	GPU_point_size(UI_GetThemeValuef(TH_FACEDOT_SIZE));
 
-	immBeginAtMost(GWN_PRIM_POINTS, em->bm->totface);
+	immBeginAtMost(GPU_PRIM_POINTS, em->bm->totface);
 	dm->foreachMappedFaceCenter(dm, bbs_mesh_solid__drawCenter, &data, DM_FOREACH_NOP);
 	immEnd();
 
@@ -517,9 +517,9 @@ static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *dm)
 static void bbs_mesh_face_dot(BMEditMesh *em, DerivedMesh *UNUSED(dm))
 {
 	Mesh *me = em->ob->data;
-	Gwn_Batch *batch = DRW_mesh_batch_cache_get_facedots_with_select_id(me, 1);
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GWN_batch_draw(batch);
+	GPUBatch *batch = DRW_mesh_batch_cache_get_facedots_with_select_id(me, 1);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_draw(batch);
 }
 #endif
 
@@ -583,12 +583,12 @@ static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(sce
 
 	{
 		int selcol;
-		Gwn_Batch *batch;
+		GPUBatch *batch;
 		GPU_select_index_get(0, &selcol);
 		batch = DRW_mesh_batch_cache_get_triangles_with_select_mask(me, true);
-		GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
-		GWN_batch_uniform_1ui(batch, "color", selcol);
-		GWN_batch_draw(batch);
+		GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_UNIFORM_COLOR_U32);
+		GPU_batch_uniform_1ui(batch, "color", selcol);
+		GPU_batch_draw(batch);
 	}
 
 	G.f |= (G_f_orig & G_BACKBUFSEL);
@@ -601,15 +601,15 @@ static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(sce
 static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob)
 {
 	Mesh *me = ob->data;
-	Gwn_Batch *batch;
+	GPUBatch *batch;
 	if ((me->editflag & ME_EDIT_PAINT_FACE_SEL)) {
 		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, true, 1);
 	}
 	else {
 		batch = DRW_mesh_batch_cache_get_triangles_with_select_id(me, false, 1);
 	}
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
-	GWN_batch_draw(batch);
+	GPU_batch_program_set_builtin(batch, GPU_SHADER_3D_FLAT_COLOR_U32);
+	GPU_batch_draw(batch);
 }
 
 void draw_object_backbufsel(
@@ -747,8 +747,8 @@ void ED_draw_object_facemap(
 	Mesh *me = ob->data;
 	const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 	if (facemap_data) {
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor4fv(col);
@@ -788,7 +788,7 @@ void ED_draw_object_facemap(
 
 		/* use gawain immediate mode fore now */
 		const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
-		immBeginAtMost(GWN_PRIM_TRIS, looptris_len * 3);
+		immBeginAtMost(GPU_PRIM_TRIS, looptris_len * 3);
 
 		MPoly *mp;
 		int i;

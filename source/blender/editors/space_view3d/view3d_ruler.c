@@ -461,7 +461,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 		GPU_blend(true);
 
-		const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		if (ruler_item->flag & RULERITEM_USE_ANGLE) {
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
@@ -475,7 +475,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
 
-			immBegin(GWN_PRIM_LINE_STRIP, 3);
+			immBegin(GPU_PRIM_LINE_STRIP, 3);
 
 			immVertex2fv(shdr_pos, co_ss[0]);
 			immVertex2fv(shdr_pos, co_ss[1]);
@@ -517,7 +517,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GWN_PRIM_LINE_STRIP, arc_steps + 1);
+				immBegin(GPU_PRIM_LINE_STRIP, arc_steps + 1);
 
 				for (j = 0; j <= arc_steps; j++) {
 					madd_v3_v3v3fl(co_tmp, ruler_item->co[1], dir_tmp, px_scale);
@@ -550,7 +550,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GWN_PRIM_LINES, 8);
+				immBegin(GPU_PRIM_LINES, 8);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec_a, cap_size);
 				immVertex2fv(shdr_pos, cap);
@@ -614,7 +614,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			immUniformArray4fv("colors", (float *)(float[][4]){{0.67f, 0.67f, 0.67f, 1.0f}, {col[0], col[1], col[2], col[3]}}, 2);
 			immUniform1f("dash_width", 6.0f);
 
-			immBegin(GWN_PRIM_LINES, 2);
+			immBegin(GPU_PRIM_LINES, 2);
 
 			immVertex2fv(shdr_pos, co_ss[0]);
 			immVertex2fv(shdr_pos, co_ss[2]);
@@ -638,7 +638,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 				immUniformColor3ubv(color_wire);
 
-				immBegin(GWN_PRIM_LINES, 4);
+				immBegin(GPU_PRIM_LINES, 4);
 
 				madd_v2_v2v2fl(cap, co_ss[0], rot_90_vec, cap_size);
 				immVertex2fv(shdr_pos, cap);
@@ -703,7 +703,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 			float co_ss[3];
 			ED_view3d_project_float_global(ar, ruler_item->co[ruler_item->co_index], co_ss, V3D_PROJ_TEST_NOP);
 
-			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 			immUniformColor4fv(color_act);

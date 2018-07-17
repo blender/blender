@@ -250,11 +250,11 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 	viconutil_set_point(pts[1], cx - d2, cy - d);
 	viconutil_set_point(pts[2], cx + d2, cy);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor4f(0.2f, 0.2f, 0.2f, alpha);
 
-	immBegin(GWN_PRIM_TRIS, 3);
+	immBegin(GPU_PRIM_TRIS, 3);
 	immVertex2iv(pos, pts[0]);
 	immVertex2iv(pos, pts[1]);
 	immVertex2iv(pos, pts[2]);
@@ -280,15 +280,15 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	int xco = x + w / 2;
 	int yco = y + h / 2;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint size_id = GWN_vertformat_attr_add(format, "size", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
-	uint color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
-	uint outline_color_id = GWN_vertformat_attr_add(format, "outlineColor", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+	uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	uint outline_color_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 	GPU_enable_program_point_size();
-	immBegin(GWN_PRIM_POINTS, 1);
+	immBegin(GPU_PRIM_POINTS, 1);
 
 	/* draw keyframe
 	 * - size: 0.6 * h (found out experimentally... dunno why!)
@@ -343,7 +343,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	const int b = x + w / 3 * 2;
 	const int c = x + w;
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* XXX: Include alpha into this... */
@@ -1262,7 +1262,7 @@ static void icon_draw_cache_flush_ex(void)
 	glUniform1i(img_loc, 0);
 	glUniform4fv(data_loc, ICON_DRAW_CACHE_SIZE * 3, (float *)g_icon_draw_cache.drawcall_cache);
 
-	GWN_draw_primitive(GWN_PRIM_TRIS, 6 * g_icon_draw_cache.calls);
+	GPU_draw_primitive(GPU_PRIM_TRIS, 6 * g_icon_draw_cache.calls);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1342,14 +1342,14 @@ static void icon_draw_texture(
 	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
 	GPU_shader_bind(shader);
 
-	if (rgb) glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), rgb[0], rgb[1], rgb[2], alpha);
-	else     glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
+	if (rgb) glUniform4f(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), rgb[0], rgb[1], rgb[2], alpha);
+	else     glUniform4f(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
 
 	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), x1, y1, x2, y2);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x, y, x + w, y + h);
 
-	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
+	GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }

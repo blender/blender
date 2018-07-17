@@ -23,31 +23,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_element.h
+/** \file blender/gpu/GPU_element.h
  *  \ingroup gpu
  *
- * Gawain element list (AKA index buffer)
+ * GPU element list (AKA index buffer)
  */
 
-#ifndef __GWN_ELEMENT_H__
-#define __GWN_ELEMENT_H__
+#ifndef __GPU_ELEMENT_H__
+#define __GPU_ELEMENT_H__
 
 #include "GPU_primitive.h"
 
-#define GWN_TRACK_INDEX_RANGE 1
+#define GPU_TRACK_INDEX_RANGE 1
 
-#define GWN_PRIM_RESTART 0xFFFFFFFF
+#define GPU_PRIM_RESTART 0xFFFFFFFF
 
 typedef enum {
-	GWN_INDEX_U8, /* GL has this, Vulkan does not */
-	GWN_INDEX_U16,
-	GWN_INDEX_U32
-} Gwn_IndexBufType;
+	GPU_INDEX_U8, /* GL has this, Vulkan does not */
+	GPU_INDEX_U16,
+	GPU_INDEX_U32
+} GPUIndexBufType;
 
-typedef struct Gwn_IndexBuf {
+typedef struct GPUIndexBuf {
 	uint index_len;
-#if GWN_TRACK_INDEX_RANGE
-	Gwn_IndexBufType index_type;
+#if GPU_TRACK_INDEX_RANGE
+	GPUIndexBufType index_type;
 	uint32_t gl_index_type;
 	uint min_index;
 	uint max_index;
@@ -55,48 +55,48 @@ typedef struct Gwn_IndexBuf {
 #endif
 	uint32_t vbo_id; /* 0 indicates not yet sent to VRAM */
 	bool use_prim_restart;
-} Gwn_IndexBuf;
+} GPUIndexBuf;
 
-void GWN_indexbuf_use(Gwn_IndexBuf*);
-uint GWN_indexbuf_size_get(const Gwn_IndexBuf*);
+void GPU_indexbuf_use(GPUIndexBuf*);
+uint GPU_indexbuf_size_get(const GPUIndexBuf*);
 
-typedef struct Gwn_IndexBufBuilder {
+typedef struct GPUIndexBufBuilder {
 	uint max_allowed_index;
 	uint max_index_len;
 	uint index_len;
-	Gwn_PrimType prim_type;
+	GPUPrimType prim_type;
 	uint* data;
 	bool use_prim_restart;
-} Gwn_IndexBufBuilder;
+} GPUIndexBufBuilder;
 
 
 /* supports all primitive types. */
-void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder*, Gwn_PrimType, uint index_len, uint vertex_len, bool use_prim_restart);
+void GPU_indexbuf_init_ex(GPUIndexBufBuilder*, GPUPrimType, uint index_len, uint vertex_len, bool use_prim_restart);
 
-/* supports only GWN_PRIM_POINTS, GWN_PRIM_LINES and GWN_PRIM_TRIS. */
-void GWN_indexbuf_init(Gwn_IndexBufBuilder*, Gwn_PrimType, uint prim_len, uint vertex_len);
+/* supports only GPU_PRIM_POINTS, GPU_PRIM_LINES and GPU_PRIM_TRIS. */
+void GPU_indexbuf_init(GPUIndexBufBuilder*, GPUPrimType, uint prim_len, uint vertex_len);
 
-void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder*, uint v);
-void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder*);
+void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder*, uint v);
+void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder*);
 
-void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder*, uint v);
-void GWN_indexbuf_add_line_verts(Gwn_IndexBufBuilder*, uint v1, uint v2);
-void GWN_indexbuf_add_tri_verts(Gwn_IndexBufBuilder*, uint v1, uint v2, uint v3);
-void GWN_indexbuf_add_line_adj_verts(Gwn_IndexBufBuilder*, uint v1, uint v2, uint v3, uint v4);
+void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder*, uint v);
+void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder*, uint v1, uint v2);
+void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder*, uint v1, uint v2, uint v3);
+void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder*, uint v1, uint v2, uint v3, uint v4);
 
-Gwn_IndexBuf* GWN_indexbuf_build(Gwn_IndexBufBuilder*);
-void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder*, Gwn_IndexBuf*);
+GPUIndexBuf* GPU_indexbuf_build(GPUIndexBufBuilder*);
+void GPU_indexbuf_build_in_place(GPUIndexBufBuilder*, GPUIndexBuf*);
 
-void GWN_indexbuf_discard(Gwn_IndexBuf*);
+void GPU_indexbuf_discard(GPUIndexBuf*);
 
 
 /* Macros */
 
-#define GWN_INDEXBUF_DISCARD_SAFE(elem) do { \
+#define GPU_INDEXBUF_DISCARD_SAFE(elem) do { \
 	if (elem != NULL) { \
-		GWN_indexbuf_discard(elem); \
+		GPU_indexbuf_discard(elem); \
 		elem = NULL; \
 	} \
 } while (0)
 
-#endif /* __GWN_ELEMENT_H__ */
+#endif /* __GPU_ELEMENT_H__ */

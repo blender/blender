@@ -648,8 +648,8 @@ static void node_draw_preview_background(float tile, rctf *rect)
 {
 	float x, y;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -721,7 +721,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 
 	GPU_blend(false);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, +100);
 	imm_draw_box_wire_2d(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
@@ -771,9 +771,9 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	float scale;
 	UI_view2d_scale_get(v2d, &scale, NULL);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 	GPU_blend(true);
 	GPU_enable_program_point_size();
@@ -788,7 +788,7 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 		immUniform1f("outlineWidth", 1.0f);
 		immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 0.6f);
 
-		immBeginAtMost(GWN_PRIM_POINTS, total_input_len + total_output_len);
+		immBeginAtMost(GPU_PRIM_POINTS, total_input_len + total_output_len);
 	}
 
 	/* socket inputs */
@@ -832,7 +832,7 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 		immUniform4f("outlineColor", c[0], c[1], c[2], 1.0f);
 		immUniform1f("outlineWidth", 1.5f);
 
-		immBegin(GWN_PRIM_POINTS, selected_input_len + selected_output_len);
+		immBegin(GPU_PRIM_POINTS, selected_input_len + selected_output_len);
 
 		if (selected_input_len) {
 			/* socket inputs */
@@ -1102,13 +1102,13 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	}
 
 	/* scale widget thing */
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColorShade(color_id, -10);
 	dx = 10.0f;
 
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
 	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 
@@ -1119,7 +1119,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	immUniformThemeColorShade(color_id, 30);
 	dx -= snode->aspect;
 
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
 	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 

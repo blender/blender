@@ -27,14 +27,14 @@ struct rctf;
 #include "BLI_sys_types.h"
 
 /* gpu_batch_utils.c */
-struct Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
+struct GPUBatch *GPU_batch_tris_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
         ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-struct Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
+struct GPUBatch *GPU_batch_wire_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
         ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 /* Only use by draw manager. Use the presets function instead for interface. */
-struct Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res) ATTR_WARN_UNUSED_RESULT;
+struct GPUBatch *gpu_batch_sphere(int lat_res, int lon_res) ATTR_WARN_UNUSED_RESULT;
 
 #endif  /* __GPU_BATCH_UTILS_H__ */

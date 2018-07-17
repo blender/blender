@@ -18,11 +18,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gawain/gwn_py_types.c
- *  \ingroup pygawain
+/** \file blender/python/gpu/gpu_py_types.c
+ *  \ingroup pygpu
  *
- * - Use ``bpygwn_`` for local API.
- * - Use ``BPyGwn_`` for public API.
+ * - Use ``bpygpu_`` for local API.
+ * - Use ``BPyGPU`` for public API.
  */
 
 #include <Python.h>
@@ -39,7 +39,7 @@
 #include "../generic/py_capi_utils.h"
 #include "../generic/python_utildefines.h"
 
-#include "gwn_py_types.h" /* own include */
+#include "gpu_py_types.h" /* own include */
 
 #ifdef __BIG_ENDIAN__
    /* big endian */
@@ -60,7 +60,7 @@
  * Use with PyArg_ParseTuple's "O&" formatting.
  * \{ */
 
-static int bpygwn_ParseVertCompType(PyObject *o, void *p)
+static int bpygpu_ParseVertCompType(PyObject *o, void *p)
 {
 	Py_ssize_t comp_type_id_len;
 	const char *comp_type_id = _PyUnicode_AsStringAndSize(o, &comp_type_id_len);
@@ -71,21 +71,21 @@ static int bpygwn_ParseVertCompType(PyObject *o, void *p)
 		return 0;
 	}
 
-	Gwn_VertCompType comp_type;
+	GPUVertCompType comp_type;
 	if (comp_type_id_len == 2) {
 		switch (*((ushort *)comp_type_id)) {
-			case MAKE_ID2('I', '8'): { comp_type = GWN_COMP_I8; goto success; }
-			case MAKE_ID2('U', '8'): { comp_type = GWN_COMP_U8; goto success; }
+			case MAKE_ID2('I', '8'): { comp_type = GPU_COMP_I8; goto success; }
+			case MAKE_ID2('U', '8'): { comp_type = GPU_COMP_U8; goto success; }
 		}
 	}
 	else if (comp_type_id_len == 3) {
 		switch (*((uint *)comp_type_id)) {
-			case MAKE_ID3('I', '1', '6'): { comp_type = GWN_COMP_I16; goto success; }
-			case MAKE_ID3('U', '1', '6'): { comp_type = GWN_COMP_U16; goto success; }
-			case MAKE_ID3('I', '3', '2'): { comp_type = GWN_COMP_I32; goto success; }
-			case MAKE_ID3('U', '3', '2'): { comp_type = GWN_COMP_U32; goto success; }
-			case MAKE_ID3('F', '3', '2'): { comp_type = GWN_COMP_F32; goto success; }
-			case MAKE_ID3('I', '1', '0'): { comp_type = GWN_COMP_I10; goto success; }
+			case MAKE_ID3('I', '1', '6'): { comp_type = GPU_COMP_I16; goto success; }
+			case MAKE_ID3('U', '1', '6'): { comp_type = GPU_COMP_U16; goto success; }
+			case MAKE_ID3('I', '3', '2'): { comp_type = GPU_COMP_I32; goto success; }
+			case MAKE_ID3('U', '3', '2'): { comp_type = GPU_COMP_U32; goto success; }
+			case MAKE_ID3('F', '3', '2'): { comp_type = GPU_COMP_F32; goto success; }
+			case MAKE_ID3('I', '1', '0'): { comp_type = GPU_COMP_I10; goto success; }
 		}
 	}
 
@@ -95,11 +95,11 @@ static int bpygwn_ParseVertCompType(PyObject *o, void *p)
 	return 0;
 
 success:
-	*((Gwn_VertCompType *)p) = comp_type;
+	*((GPUVertCompType *)p) = comp_type;
 	return 1;
 }
 
-static int bpygwn_ParseVertFetchMode(PyObject *o, void *p)
+static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
 {
 	Py_ssize_t mode_id_len;
 	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
@@ -112,12 +112,12 @@ static int bpygwn_ParseVertFetchMode(PyObject *o, void *p)
 #define MATCH_ID(id) \
 	if (mode_id_len == strlen(STRINGIFY(id))) { \
 		if (STREQ(mode_id, STRINGIFY(id))) { \
-			mode = GWN_FETCH_##id; \
+			mode = GPU_FETCH_##id; \
 			goto success; \
 		} \
 	} ((void)0)
 
-	Gwn_VertFetchMode mode;
+	GPUVertFetchMode mode;
 	MATCH_ID(FLOAT);
 	MATCH_ID(INT);
 	MATCH_ID(INT_TO_FLOAT_UNIT);
@@ -129,11 +129,11 @@ static int bpygwn_ParseVertFetchMode(PyObject *o, void *p)
 	return 0;
 
 success:
-	(*(Gwn_VertFetchMode *)p) = mode;
+	(*(GPUVertFetchMode *)p) = mode;
 	return 1;
 }
 
-static int bpygwn_ParsePrimType(PyObject *o, void *p)
+static int bpygpu_ParsePrimType(PyObject *o, void *p)
 {
 	Py_ssize_t mode_id_len;
 	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
@@ -146,12 +146,12 @@ static int bpygwn_ParsePrimType(PyObject *o, void *p)
 #define MATCH_ID(id) \
 	if (mode_id_len == strlen(STRINGIFY(id))) { \
 		if (STREQ(mode_id, STRINGIFY(id))) { \
-			mode = GWN_PRIM_##id; \
+			mode = GPU_PRIM_##id; \
 			goto success; \
 		} \
 	} ((void)0)
 
-	Gwn_PrimType mode;
+	GPUPrimType mode;
 	MATCH_ID(POINTS);
 	MATCH_ID(LINES);
 	MATCH_ID(TRIS);
@@ -168,7 +168,7 @@ static int bpygwn_ParsePrimType(PyObject *o, void *p)
 	return 0;
 
 success:
-	(*(Gwn_PrimType *)p) = mode;
+	(*(GPUPrimType *)p) = mode;
 	return 1;
 }
 
@@ -182,19 +182,19 @@ success:
 
 #define PY_AS_NATIVE_SWITCH(attr) \
 	switch (attr->comp_type) { \
-		case GWN_COMP_I8:  { PY_AS_NATIVE(int8_t,   PyC_Long_AsI8); break; } \
-		case GWN_COMP_U8:  { PY_AS_NATIVE(uint8_t,  PyC_Long_AsU8); break; } \
-		case GWN_COMP_I16: { PY_AS_NATIVE(int16_t,  PyC_Long_AsI16); break; } \
-		case GWN_COMP_U16: { PY_AS_NATIVE(uint16_t, PyC_Long_AsU16); break; } \
-		case GWN_COMP_I32: { PY_AS_NATIVE(int32_t,  PyC_Long_AsI32); break; } \
-		case GWN_COMP_U32: { PY_AS_NATIVE(uint32_t, PyC_Long_AsU32); break; } \
-		case GWN_COMP_F32: { PY_AS_NATIVE(float, PyFloat_AsDouble); break; } \
+		case GPU_COMP_I8:  { PY_AS_NATIVE(int8_t,   PyC_Long_AsI8); break; } \
+		case GPU_COMP_U8:  { PY_AS_NATIVE(uint8_t,  PyC_Long_AsU8); break; } \
+		case GPU_COMP_I16: { PY_AS_NATIVE(int16_t,  PyC_Long_AsI16); break; } \
+		case GPU_COMP_U16: { PY_AS_NATIVE(uint16_t, PyC_Long_AsU16); break; } \
+		case GPU_COMP_I32: { PY_AS_NATIVE(int32_t,  PyC_Long_AsI32); break; } \
+		case GPU_COMP_U32: { PY_AS_NATIVE(uint32_t, PyC_Long_AsU32); break; } \
+		case GPU_COMP_F32: { PY_AS_NATIVE(float, PyFloat_AsDouble); break; } \
 		default: \
 			BLI_assert(0); \
 	} ((void)0)
 
 /* No error checking, callers must run PyErr_Occurred */
-static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_VertAttr *attr)
+static void fill_format_elem(void *data_dst_void, PyObject *py_src, const GPUVertAttr *attr)
 {
 #define PY_AS_NATIVE(ty_dst, py_as_native) \
 { \
@@ -208,7 +208,7 @@ static void fill_format_elem(void *data_dst_void, PyObject *py_src, const Gwn_Ve
 }
 
 /* No error checking, callers must run PyErr_Occurred */
-static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_VertAttr *attr)
+static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const GPUVertAttr *attr)
 {
 	const uint len = attr->comp_len;
 
@@ -230,15 +230,15 @@ static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const Gwn_V
 #undef WARN_TYPE_LIMIT_PUSH
 #undef WARN_TYPE_LIMIT_POP
 
-static bool bpygwn_vertbuf_fill_impl(
-        Gwn_VertBuf *vbo,
+static bool bpygpu_vertbuf_fill_impl(
+        GPUVertBuf *vbo,
         uint data_id, PyObject *seq)
 {
 	bool ok = true;
-	const Gwn_VertAttr *attr = &vbo->format.attribs[data_id];
+	const GPUVertAttr *attr = &vbo->format.attribs[data_id];
 
-	Gwn_VertBufRaw data_step;
-	GWN_vertbuf_attr_get_raw_data(vbo, data_id, &data_step);
+	GPUVertBufRaw data_step;
+	GPU_vertbuf_attr_get_raw_data(vbo, data_id, &data_step);
 
 	PyObject *seq_fast = PySequence_Fast(seq, "Vertex buffer fill");
 	if (seq_fast == NULL) {
@@ -257,14 +257,14 @@ static bool bpygwn_vertbuf_fill_impl(
 
 	if (attr->comp_len == 1) {
 		for (uint i = 0; i < seq_len; i++) {
-			uchar *data = (uchar *)GWN_vertbuf_raw_step(&data_step);
+			uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
 			PyObject *item = seq_items[i];
 			fill_format_elem(data, item, attr);
 		}
 	}
 	else {
 		for (uint i = 0; i < seq_len; i++) {
-			uchar *data = (uchar *)GWN_vertbuf_raw_step(&data_step);
+			uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
 			PyObject *item = seq_items[i];
 			if (!PyTuple_CheckExact(item)) {
 				PyErr_Format(PyExc_ValueError,
@@ -298,7 +298,7 @@ finally:
 
 /* handy, but not used just now */
 #if 0
-static int bpygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
+static int bpygpu_find_id(const GPUVertFormat *fmt, const char *id)
 {
 	for (int i = 0; i < fmt->attr_len; i++) {
 		for (uint j = 0; j < fmt->name_len; j++) {
@@ -319,7 +319,7 @@ static int bpygwn_find_id(const Gwn_VertFormat *fmt, const char *id)
 /** \name VertFormat Type
  * \{ */
 
-static PyObject *bpygwn_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	if (PyTuple_GET_SIZE(args) || (kwds && PyDict_Size(kwds))) {
 		PyErr_SetString(PyExc_TypeError,
@@ -327,64 +327,64 @@ static PyObject *bpygwn_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *arg
 		return NULL;
 	}
 
-	BPyGwn_VertFormat *ret = (BPyGwn_VertFormat *)BPyGwn_VertFormat_CreatePyObject(NULL);
+	BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
 
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(bpygwn_VertFormat_attr_add_doc,
+PyDoc_STRVAR(bpygpu_VertFormat_attr_add_doc,
 "TODO"
 );
-static PyObject *bpygwn_VertFormat_attr_add(BPyGwn_VertFormat *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", "comp_type", "len", "fetch_mode", NULL};
 
 	struct {
 		const char *id;
-		Gwn_VertCompType comp_type;
+		GPUVertCompType comp_type;
 		uint len;
-		Gwn_VertFetchMode fetch_mode;
+		GPUVertFetchMode fetch_mode;
 	} params;
 
-	if (self->fmt.attr_len == GWN_VERT_ATTR_MAX_LEN) {
-		PyErr_SetString(PyExc_ValueError, "Maxumum attr reached " STRINGIFY(GWN_VERT_ATTR_MAX_LEN));
+	if (self->fmt.attr_len == GPU_VERT_ATTR_MAX_LEN) {
+		PyErr_SetString(PyExc_ValueError, "Maxumum attr reached " STRINGIFY(GPU_VERT_ATTR_MAX_LEN));
 		return NULL;
 	}
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds, "$sO&IO&:attr_add", (char **)kwlist,
 	        &params.id,
-	        bpygwn_ParseVertCompType, &params.comp_type,
+	        bpygpu_ParseVertCompType, &params.comp_type,
 	        &params.len,
-	        bpygwn_ParseVertFetchMode, &params.fetch_mode))
+	        bpygpu_ParseVertFetchMode, &params.fetch_mode))
 	{
 		return NULL;
 	}
 
-	uint attr_id = GWN_vertformat_attr_add(&self->fmt, params.id, params.comp_type, params.len, params.fetch_mode);
+	uint attr_id = GPU_vertformat_attr_add(&self->fmt, params.id, params.comp_type, params.len, params.fetch_mode);
 	return PyLong_FromLong(attr_id);
 }
 
-static struct PyMethodDef bpygwn_VertFormat_methods[] = {
-	{"attr_add", (PyCFunction)bpygwn_VertFormat_attr_add,
-	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertFormat_attr_add_doc},
+static struct PyMethodDef bpygpu_VertFormat_methods[] = {
+	{"attr_add", (PyCFunction)bpygpu_VertFormat_attr_add,
+	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertFormat_attr_add_doc},
 	{NULL, NULL, 0, NULL}
 };
 
 
-static void bpygwn_VertFormat_dealloc(BPyGwn_VertFormat *self)
+static void bpygpu_VertFormat_dealloc(BPyGPUVertFormat *self)
 {
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPyGwn_VertFormat_Type = {
+PyTypeObject BPyGPUVertFormat_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "Gwn_VertFormat",
-	.tp_basicsize = sizeof(BPyGwn_VertFormat),
-	.tp_dealloc = (destructor)bpygwn_VertFormat_dealloc,
+	.tp_name = "GPUVertFormat",
+	.tp_basicsize = sizeof(BPyGPUVertFormat),
+	.tp_dealloc = (destructor)bpygpu_VertFormat_dealloc,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_methods = bpygwn_VertFormat_methods,
-	.tp_new = bpygwn_VertFormat_new,
+	.tp_methods = bpygpu_VertFormat_methods,
+	.tp_new = bpygpu_VertFormat_new,
 };
 
 /** \} */
@@ -395,35 +395,35 @@ PyTypeObject BPyGwn_VertFormat_Type = {
 /** \name VertBuf Type
  * \{ */
 
-static PyObject *bpygwn_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	const char * const keywords[] = {"len", "format", NULL};
 
 	struct {
-		BPyGwn_VertFormat *py_fmt;
+		BPyGPUVertFormat *py_fmt;
 		uint len;
 	} params;
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds,
-	        "$IO!:Gwn_VertBuf.__new__", (char **)keywords,
+	        "$IO!:GPUVertBuf.__new__", (char **)keywords,
 	        &params.len,
-	        &BPyGwn_VertFormat_Type, &params.py_fmt))
+	        &BPyGPUVertFormat_Type, &params.py_fmt))
 	{
 		return NULL;
 	}
 
-	struct Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&params.py_fmt->fmt);
+	struct GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&params.py_fmt->fmt);
 
-	GWN_vertbuf_data_alloc(vbo, params.len);
+	GPU_vertbuf_data_alloc(vbo, params.len);
 
-	return BPyGwn_VertBuf_CreatePyObject(vbo);
+	return BPyGPUVertBuf_CreatePyObject(vbo);
 }
 
-PyDoc_STRVAR(bpygwn_VertBuf_fill_doc,
+PyDoc_STRVAR(bpygpu_VertBuf_fill_doc,
 "TODO"
 );
-static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertBuf_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", "data", NULL};
 
@@ -453,32 +453,32 @@ static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObj
 		return NULL;
 	}
 
-	if (!bpygwn_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
+	if (!bpygpu_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
 		return NULL;
 	}
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpygwn_VertBuf_methods[] = {
-	{"fill", (PyCFunction) bpygwn_VertBuf_fill,
-	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertBuf_fill_doc},
+static struct PyMethodDef bpygpu_VertBuf_methods[] = {
+	{"fill", (PyCFunction) bpygpu_VertBuf_fill,
+	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_fill_doc},
 	{NULL, NULL, 0, NULL}
 };
 
-static void bpygwn_VertBuf_dealloc(BPyGwn_VertBuf *self)
+static void bpygpu_VertBuf_dealloc(BPyGPUVertBuf *self)
 {
-	GWN_vertbuf_discard(self->buf);
+	GPU_vertbuf_discard(self->buf);
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPyGwn_VertBuf_Type = {
+PyTypeObject BPyGPUVertBuf_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "Gwn_VertBuf",
-	.tp_basicsize = sizeof(BPyGwn_VertBuf),
-	.tp_dealloc = (destructor)bpygwn_VertBuf_dealloc,
+	.tp_name = "GPUVertBuf",
+	.tp_basicsize = sizeof(BPyGPUVertBuf),
+	.tp_dealloc = (destructor)bpygpu_VertBuf_dealloc,
 	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_methods = bpygwn_VertBuf_methods,
-	.tp_new = bpygwn_VertBuf_new,
+	.tp_methods = bpygpu_VertBuf_methods,
+	.tp_new = bpygpu_VertBuf_new,
 };
 
 /** \} */
@@ -489,28 +489,28 @@ PyTypeObject BPyGwn_VertBuf_Type = {
 /** \name VertBatch Type
  * \{ */
 
-static PyObject *bpygwn_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
 	const char * const keywords[] = {"type", "buf", NULL};
 
 	struct {
-		Gwn_PrimType type_id;
-		BPyGwn_VertBuf *py_buf;
+		GPUPrimType type_id;
+		BPyGPUVertBuf *py_buf;
 	} params;
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kwds,
-	        "$O&O!:Gwn_Batch.__new__", (char **)keywords,
-	        bpygwn_ParsePrimType, &params.type_id,
-	        &BPyGwn_VertBuf_Type, &params.py_buf))
+	        "$O&O!:GPUBatch.__new__", (char **)keywords,
+	        bpygpu_ParsePrimType, &params.type_id,
+	        &BPyGPUVertBuf_Type, &params.py_buf))
 	{
 		return NULL;
 	}
 
-	Gwn_Batch *batch = GWN_batch_create(params.type_id, params.py_buf->buf, NULL);
-	BPyGwn_Batch *ret = (BPyGwn_Batch *)BPyGwn_Batch_CreatePyObject(batch);
+	GPUBatch *batch = GPU_batch_create(params.type_id, params.py_buf->buf, NULL);
+	BPyGPUBatch *ret = (BPyGPUBatch *)BPyGPUBatch_CreatePyObject(batch);
 
-#ifdef USE_GWN_PY_REFERENCES
+#ifdef USE_GPU_PY_REFERENCES
 	ret->references = PyList_New(1);
 	PyList_SET_ITEM(ret->references, 0, (PyObject *)params.py_buf);
 	Py_INCREF(params.py_buf);
@@ -520,14 +520,14 @@ static PyObject *bpygwn_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, Py
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(bpygwn_VertBatch_vertbuf_add_doc,
+PyDoc_STRVAR(bpygpu_VertBatch_vertbuf_add_doc,
 "TODO"
 );
-static PyObject *bpygwn_VertBatch_vertbuf_add(BPyGwn_Batch *self, BPyGwn_VertBuf *py_buf)
+static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
 {
-	if (!BPyGwn_VertBuf_Check(py_buf)) {
+	if (!BPyGPUVertBuf_Check(py_buf)) {
 		PyErr_Format(PyExc_TypeError,
-		             "Expected a Gwn_VertBuf, got %s",
+		             "Expected a GPUVertBuf, got %s",
 		             Py_TYPE(py_buf)->tp_name);
 		return NULL;
 	}
@@ -539,20 +539,20 @@ static PyObject *bpygwn_VertBatch_vertbuf_add(BPyGwn_Batch *self, BPyGwn_VertBuf
 		return NULL;
 	}
 
-#ifdef USE_GWN_PY_REFERENCES
+#ifdef USE_GPU_PY_REFERENCES
 	/* Hold user */
 	PyList_Append(self->references, (PyObject *)py_buf);
 #endif
 
-	GWN_batch_vertbuf_add(self->batch, py_buf->buf);
+	GPU_batch_vertbuf_add(self->batch, py_buf->buf);
 	Py_RETURN_NONE;
 }
 
 /* Currently magic number from Py perspective. */
-PyDoc_STRVAR(bpygwn_VertBatch_program_set_builtin_doc,
+PyDoc_STRVAR(bpygpu_VertBatch_program_set_builtin_doc,
 "TODO"
 );
-static PyObject *bpygwn_VertBatch_program_set_builtin(BPyGwn_Batch *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertBatch_program_set_builtin(BPyGPUBatch *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"id", NULL};
 
@@ -590,11 +590,11 @@ static PyObject *bpygwn_VertBatch_program_set_builtin(BPyGwn_Batch *self, PyObje
 	return NULL;
 
 success:
-	GWN_batch_program_set_builtin(self->batch, shader);
+	GPU_batch_program_set_builtin(self->batch, shader);
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygwn_VertBatch_uniform_bool(BPyGwn_Batch *self, PyObject *args)
+static PyObject *bpygpu_VertBatch_uniform_bool(BPyGPUBatch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -609,11 +609,11 @@ static PyObject *bpygwn_VertBatch_uniform_bool(BPyGwn_Batch *self, PyObject *arg
 		return NULL;
 	}
 
-	GWN_batch_uniform_1b(self->batch, params.id, params.values[0]);
+	GPU_batch_uniform_1b(self->batch, params.id, params.values[0]);
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygwn_VertBatch_uniform_i32(BPyGwn_Batch *self, PyObject *args)
+static PyObject *bpygpu_VertBatch_uniform_i32(BPyGPUBatch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -628,11 +628,11 @@ static PyObject *bpygwn_VertBatch_uniform_i32(BPyGwn_Batch *self, PyObject *args
 		return NULL;
 	}
 
-	GWN_batch_uniform_1i(self->batch, params.id, params.values[0]);
+	GPU_batch_uniform_1i(self->batch, params.id, params.values[0]);
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygwn_VertBatch_uniform_f32(BPyGwn_Batch *self, PyObject *args)
+static PyObject *bpygpu_VertBatch_uniform_f32(BPyGPUBatch *self, PyObject *args)
 {
 	struct {
 		const char *id;
@@ -648,78 +648,78 @@ static PyObject *bpygwn_VertBatch_uniform_f32(BPyGwn_Batch *self, PyObject *args
 	}
 
 	switch (PyTuple_GET_SIZE(args)) {
-		case 2: GWN_batch_uniform_1f(self->batch, params.id, params.values[0]); break;
-		case 3: GWN_batch_uniform_2f(self->batch, params.id, UNPACK2(params.values)); break;
-		case 4: GWN_batch_uniform_3f(self->batch, params.id, UNPACK3(params.values)); break;
-		case 5: GWN_batch_uniform_4f(self->batch, params.id, UNPACK4(params.values)); break;
+		case 2: GPU_batch_uniform_1f(self->batch, params.id, params.values[0]); break;
+		case 3: GPU_batch_uniform_2f(self->batch, params.id, UNPACK2(params.values)); break;
+		case 4: GPU_batch_uniform_3f(self->batch, params.id, UNPACK3(params.values)); break;
+		case 5: GPU_batch_uniform_4f(self->batch, params.id, UNPACK4(params.values)); break;
 		default:
 			BLI_assert(0);
 	}
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpygwn_VertBatch_draw_doc,
+PyDoc_STRVAR(bpygpu_VertBatch_draw_doc,
 "TODO"
 );
-static PyObject *bpygwn_VertBatch_draw(BPyGwn_Batch *self)
+static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "batch program has not not set");
 	}
-	GWN_batch_draw(self->batch);
+	GPU_batch_draw(self->batch);
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygwn_VertBatch_program_use_begin(BPyGwn_Batch *self)
+static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "batch program has not not set");
 	}
-	GWN_batch_program_use_begin(self->batch);
+	GPU_batch_program_use_begin(self->batch);
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygwn_VertBatch_program_use_end(BPyGwn_Batch *self)
+static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_ValueError,
 		                "batch program has not not set");
 	}
-	GWN_batch_program_use_end(self->batch);
+	GPU_batch_program_use_end(self->batch);
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpygwn_VertBatch_methods[] = {
-	{"vertbuf_add", (PyCFunction)bpygwn_VertBatch_vertbuf_add,
-	 METH_O, bpygwn_VertBatch_vertbuf_add_doc},
-	{"program_set_builtin", (PyCFunction)bpygwn_VertBatch_program_set_builtin,
-	 METH_VARARGS | METH_KEYWORDS, bpygwn_VertBatch_program_set_builtin_doc},
-	{"uniform_bool", (PyCFunction)bpygwn_VertBatch_uniform_bool,
+static struct PyMethodDef bpygpu_VertBatch_methods[] = {
+	{"vertbuf_add", (PyCFunction)bpygpu_VertBatch_vertbuf_add,
+	 METH_O, bpygpu_VertBatch_vertbuf_add_doc},
+	{"program_set_builtin", (PyCFunction)bpygpu_VertBatch_program_set_builtin,
+	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBatch_program_set_builtin_doc},
+	{"uniform_bool", (PyCFunction)bpygpu_VertBatch_uniform_bool,
 	 METH_VARARGS, NULL},
-	{"uniform_i32", (PyCFunction)bpygwn_VertBatch_uniform_i32,
+	{"uniform_i32", (PyCFunction)bpygpu_VertBatch_uniform_i32,
 	 METH_VARARGS, NULL},
-	{"uniform_f32", (PyCFunction)bpygwn_VertBatch_uniform_f32,
+	{"uniform_f32", (PyCFunction)bpygpu_VertBatch_uniform_f32,
 	  METH_VARARGS, NULL},
-	{"draw", (PyCFunction) bpygwn_VertBatch_draw,
-	 METH_NOARGS, bpygwn_VertBatch_draw_doc},
-	{"program_use_begin", (PyCFunction)bpygwn_VertBatch_program_use_begin,
+	{"draw", (PyCFunction) bpygpu_VertBatch_draw,
+	 METH_NOARGS, bpygpu_VertBatch_draw_doc},
+	{"program_use_begin", (PyCFunction)bpygpu_VertBatch_program_use_begin,
 	 METH_NOARGS, ""},
-	{"program_use_end", (PyCFunction)bpygwn_VertBatch_program_use_end,
+	{"program_use_end", (PyCFunction)bpygpu_VertBatch_program_use_end,
 	 METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
 
-#ifdef USE_GWN_PY_REFERENCES
+#ifdef USE_GPU_PY_REFERENCES
 
-static int bpygwn_Batch_traverse(BPyGwn_Batch *self, visitproc visit, void *arg)
+static int bpygpu_Batch_traverse(BPyGPUBatch *self, visitproc visit, void *arg)
 {
 	Py_VISIT(self->references);
 	return 0;
 }
 
-static int bpygwn_Batch_clear(BPyGwn_Batch *self)
+static int bpygpu_Batch_clear(BPyGPUBatch *self)
 {
 	Py_CLEAR(self->references);
 	return 0;
@@ -727,14 +727,14 @@ static int bpygwn_Batch_clear(BPyGwn_Batch *self)
 
 #endif
 
-static void bpygwn_Batch_dealloc(BPyGwn_Batch *self)
+static void bpygpu_Batch_dealloc(BPyGPUBatch *self)
 {
-	GWN_batch_discard(self->batch);
+	GPU_batch_discard(self->batch);
 
-#ifdef USE_GWN_PY_REFERENCES
+#ifdef USE_GPU_PY_REFERENCES
 	if (self->references) {
 		PyObject_GC_UnTrack(self);
-		bpygwn_Batch_clear(self);
+		bpygpu_Batch_clear(self);
 		Py_XDECREF(self->references);
 	}
 #endif
@@ -742,52 +742,52 @@ static void bpygwn_Batch_dealloc(BPyGwn_Batch *self)
 	Py_TYPE(self)->tp_free(self);
 }
 
-PyTypeObject BPyGwn_Batch_Type = {
+PyTypeObject BPyGPUBatch_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	.tp_name = "Gwn_Batch",
-	.tp_basicsize = sizeof(BPyGwn_Batch),
-	.tp_dealloc = (destructor)bpygwn_Batch_dealloc,
-#ifdef USE_GWN_PY_REFERENCES
+	.tp_name = "GPUBatch",
+	.tp_basicsize = sizeof(BPyGPUBatch),
+	.tp_dealloc = (destructor)bpygpu_Batch_dealloc,
+#ifdef USE_GPU_PY_REFERENCES
 	.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
-	.tp_traverse = (traverseproc)bpygwn_Batch_traverse,
-	.tp_clear = (inquiry)bpygwn_Batch_clear,
+	.tp_traverse = (traverseproc)bpygpu_Batch_traverse,
+	.tp_clear = (inquiry)bpygpu_Batch_clear,
 #else
 	.tp_flags = Py_TPFLAGS_DEFAULT,
 #endif
-	.tp_methods = bpygwn_VertBatch_methods,
-	.tp_new = bpygwn_Batch_new,
+	.tp_methods = bpygpu_VertBatch_methods,
+	.tp_new = bpygpu_Batch_new,
 };
 
 /* -------------------------------------------------------------------- */
 
 
-/** \name Gawain Types Module
+/** \name GPU Types Module
  * \{ */
 
 static struct PyModuleDef BPy_BM_types_module_def = {
 	PyModuleDef_HEAD_INIT,
-	.m_name = "_gawain.types",
+	.m_name = "_gpu.types",
 };
 
-PyObject *BPyInit_gawain_types(void)
+PyObject *BPyInit_gpu_types(void)
 {
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&BPy_BM_types_module_def);
 
-	if (PyType_Ready(&BPyGwn_VertFormat_Type) < 0)
+	if (PyType_Ready(&BPyGPUVertFormat_Type) < 0)
 		return NULL;
-	if (PyType_Ready(&BPyGwn_VertBuf_Type) < 0)
+	if (PyType_Ready(&BPyGPUVertBuf_Type) < 0)
 		return NULL;
-	if (PyType_Ready(&BPyGwn_Batch_Type) < 0)
+	if (PyType_Ready(&BPyGPUBatch_Type) < 0)
 		return NULL;
 
 #define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
 
-	MODULE_TYPE_ADD(submodule, BPyGwn_VertFormat_Type);
-	MODULE_TYPE_ADD(submodule, BPyGwn_VertBuf_Type);
-	MODULE_TYPE_ADD(submodule, BPyGwn_Batch_Type);
+	MODULE_TYPE_ADD(submodule, BPyGPUVertFormat_Type);
+	MODULE_TYPE_ADD(submodule, BPyGPUVertBuf_Type);
+	MODULE_TYPE_ADD(submodule, BPyGPUBatch_Type);
 
 #undef MODULE_TYPE_ADD
 
@@ -802,11 +802,11 @@ PyObject *BPyInit_gawain_types(void)
 /** \name Public API
  * \{ */
 
-PyObject *BPyGwn_VertFormat_CreatePyObject(Gwn_VertFormat *fmt)
+PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt)
 {
-	BPyGwn_VertFormat *self;
+	BPyGPUVertFormat *self;
 
-	self = PyObject_New(BPyGwn_VertFormat, &BPyGwn_VertFormat_Type);
+	self = PyObject_New(BPyGPUVertFormat, &BPyGPUVertFormat_Type);
 	if (fmt) {
 		self->fmt = *fmt;
 	}
@@ -817,26 +817,26 @@ PyObject *BPyGwn_VertFormat_CreatePyObject(Gwn_VertFormat *fmt)
 	return (PyObject *)self;
 }
 
-PyObject *BPyGwn_VertBuf_CreatePyObject(Gwn_VertBuf *buf)
+PyObject *BPyGPUVertBuf_CreatePyObject(GPUVertBuf *buf)
 {
-	BPyGwn_VertBuf *self;
+	BPyGPUVertBuf *self;
 
-	self = PyObject_New(BPyGwn_VertBuf, &BPyGwn_VertBuf_Type);
+	self = PyObject_New(BPyGPUVertBuf, &BPyGPUVertBuf_Type);
 	self->buf = buf;
 
 	return (PyObject *)self;
 }
 
 
-PyObject *BPyGwn_Batch_CreatePyObject(Gwn_Batch *batch)
+PyObject *BPyGPUBatch_CreatePyObject(GPUBatch *batch)
 {
-	BPyGwn_Batch *self;
+	BPyGPUBatch *self;
 
-#ifdef USE_GWN_PY_REFERENCES
-	self = (BPyGwn_Batch *)_PyObject_GC_New(&BPyGwn_Batch_Type);
+#ifdef USE_GPU_PY_REFERENCES
+	self = (BPyGPUBatch *)_PyObject_GC_New(&BPyGPUBatch_Type);
 	self->references = NULL;
 #else
-	self = PyObject_New(BPyGwn_Batch, &BPyGwn_Batch_Type);
+	self = PyObject_New(BPyGPUBatch, &BPyGPUBatch_Type);
 #endif
 
 	self->batch = batch;

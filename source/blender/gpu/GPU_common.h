@@ -23,12 +23,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_common.h
+/** \file blender/gpu/GPU_common.h
  *  \ingroup gpu
  */
 
-#ifndef __GWN_COMMON_H__
-#define __GWN_COMMON_H__
+#ifndef __GPU_COMMON_H__
+#define __GPU_COMMON_H__
 
 #define PROGRAM_NO_OPTI 0
 
@@ -51,11 +51,11 @@
   #include <assert.h>
 #endif
 
-/* GWN_INLINE */
+/* GPU_INLINE */
 #if defined(_MSC_VER)
-#  define GWN_INLINE static __forceinline
+#  define GPU_INLINE static __forceinline
 #else
-#  define GWN_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
+#  define GPU_INLINE static inline __attribute__((always_inline)) __attribute__((__unused__))
 #endif
 
-#endif /* __GWN_COMMON_H__ */
+#endif /* __GPU_COMMON_H__ */

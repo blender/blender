@@ -189,7 +189,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	EEVEE_EffectsInfo *effects = stl->effects;
 	LightCache *lcache = stl->g_data->light_cache;
 
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		int options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;

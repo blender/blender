@@ -134,11 +134,11 @@ static void drw_shgroup_bone_octahedral(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_octahedral_outline == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_wire_get();
+		struct GPUBatch *geom = DRW_cache_bone_octahedral_wire_get();
 		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
+		struct GPUBatch *geom = DRW_cache_bone_octahedral_get();
 		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
@@ -155,11 +155,11 @@ static void drw_shgroup_bone_box(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_box_wire == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_box_wire_get();
+		struct GPUBatch *geom = DRW_cache_bone_box_wire_get();
 		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_box_solid == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
+		struct GPUBatch *geom = DRW_cache_bone_box_get();
 		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
@@ -319,9 +319,9 @@ static void drw_shgroup_bone_custom_solid(
         Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Gwn_Batch *surf = DRW_cache_object_surface_get(custom);
-	struct Gwn_Batch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
-	struct Gwn_Batch *ledges = DRW_cache_object_loose_edges_get(custom);
+	struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
+	struct GPUBatch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
+	struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
 	float final_bonemat[4][4];
 
 	if (surf || edges || ledges) {
@@ -352,7 +352,7 @@ static void drw_shgroup_bone_custom_wire(
         const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
+	struct GPUBatch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
 		float final_bonemat[4][4], final_color[4];

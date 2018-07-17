@@ -190,7 +190,7 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 		const bool use_surface = v3d->overlay.weight_paint_mode_opacity != 0.0f;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		if (use_surface) {
 			geom = DRW_cache_mesh_surface_weights_get(ob);

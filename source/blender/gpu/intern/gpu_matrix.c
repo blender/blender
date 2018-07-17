@@ -558,20 +558,20 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3]
 	return m;
 }
 
-void GPU_matrix_bind(const Gwn_ShaderInterface *shaderface)
+void GPU_matrix_bind(const GPUShaderInterface *shaderface)
 {
 	/* set uniform values to matrix stack values
 	 * call this before a draw call if desired matrices are dirty
 	 * call glUseProgram before this, as glUniform expects program to be bound
 	 */
 
-	const Gwn_ShaderInput *MV = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MODELVIEW);
-	const Gwn_ShaderInput *P = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_PROJECTION);
-	const Gwn_ShaderInput *MVP = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MVP);
+	const GPUShaderInput *MV = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW);
+	const GPUShaderInput *P = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION);
+	const GPUShaderInput *MVP = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MVP);
 
-	const Gwn_ShaderInput *N = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_NORMAL);
-	const Gwn_ShaderInput *MV_inv = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MODELVIEW_INV);
-	const Gwn_ShaderInput *P_inv = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_PROJECTION_INV);
+	const GPUShaderInput *N = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_NORMAL);
+	const GPUShaderInput *MV_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW_INV);
+	const GPUShaderInput *P_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION_INV);
 
 	if (MV) {
 #if DEBUG_MATRIX_BIND

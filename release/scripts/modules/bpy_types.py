@@ -587,7 +587,7 @@ class Gizmo(StructRNA):
         _rna_gizmo_target_get_range as target_get_range,
     )
 
-    # Convenience wrappers around private `_gawain` module.
+    # Convenience wrappers around private `_gpu` module.
     def draw_custom_shape(self, shape, *, matrix=None, select_id=None):
         """
         Draw a shape created form :class:`bpy.types.Gizmo.draw_custom_shape`.
@@ -638,19 +638,19 @@ class Gizmo(StructRNA):
         :return: The newly created shape.
         :rtype: Undefined (it may change).
         """
-        from _gawain.types import (
-            Gwn_Batch,
-            Gwn_VertBuf,
-            Gwn_VertFormat,
+        from _gpu.types import (
+            GPUBatch,
+            GPUVertBuf,
+            GPUVertFormat,
         )
         dims = len(verts[0])
         if dims not in {2, 3}:
             raise ValueError("Expected 2D or 3D vertex")
-        fmt = Gwn_VertFormat()
+        fmt = GPUVertFormat()
         pos_id = fmt.attr_add(id="pos", comp_type='F32', len=dims, fetch_mode='FLOAT')
-        vbo = Gwn_VertBuf(len=len(verts), format=fmt)
+        vbo = GPUVertBuf(len=len(verts), format=fmt)
         vbo.fill(id=pos_id, data=verts)
-        batch = Gwn_Batch(type=type, buf=vbo)
+        batch = GPUBatch(type=type, buf=vbo)
         return (batch, dims)
 
 

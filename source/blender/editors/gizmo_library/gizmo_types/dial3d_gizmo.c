@@ -126,8 +126,8 @@ static void dial_geom_draw(
 
 	GPU_line_width(gz->line_width);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	if (clip_plane) {
 		immBindBuiltinProgram(GPU_SHADER_3D_CLIPPED_UNIFORM_COLOR);
@@ -164,13 +164,13 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 	GPU_matrix_push();
 	GPU_matrix_rotate_3f(RAD2DEGF(angle), 0.0f, 0.0f, -1.0f);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	immUniformColor4fv(color);
 
-	immBegin(GWN_PRIM_LINE_STRIP, 2);
+	immBegin(GPU_PRIM_LINE_STRIP, 2);
 	immVertex3f(pos, 0.0f, 0.0f, 0.0f);
 	immVertex3fv(pos, co_outer);
 	immEnd();
@@ -185,8 +185,8 @@ static void dial_ghostarc_draw(
 {
 	const float width_inner = DIAL_WIDTH - gz->line_width * 0.5f / U.gizmo_size;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformColor4fv(color);
 	imm_draw_disk_partial_fill_2d(

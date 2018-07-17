@@ -197,7 +197,7 @@ static void EDIT_TEXT_cache_populate(void *vedata, Object *ob)
 		if (ob == draw_ctx->object_edit) {
 			const Curve *cu = ob->data;
 			/* Get geometry cache */
-			struct Gwn_Batch *geom;
+			struct GPUBatch *geom;
 
 			if (cu->flag & CU_FAST) {
 				geom = DRW_cache_text_edge_wire_get(ob);

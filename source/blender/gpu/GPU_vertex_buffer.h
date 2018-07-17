@@ -23,73 +23,73 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_vertex_buffer.h
+/** \file blender/gpu/GPU_vertex_buffer.h
  *  \ingroup gpu
  *
- * Gawain vertex buffer
+ * GPU vertex buffer
  */
 
-#ifndef __GWN_VERTEX_BUFFER_H__
-#define __GWN_VERTEX_BUFFER_H__
+#ifndef __GPU_VERTEX_BUFFER_H__
+#define __GPU_VERTEX_BUFFER_H__
 
 #include "GPU_vertex_format.h"
 
 #define VRAM_USAGE 1
-/* How to create a Gwn_VertBuf: */
-/* 1) verts = GWN_vertbuf_create() or GWN_vertbuf_init(verts) */
-/* 2) GWN_vertformat_attr_add(verts->format, ...) */
-/* 3) GWN_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format */
-/* 4) GWN_vertbuf_attr_fill(verts, pos, application_pos_buffer) */
+/* How to create a GPUVertBuf: */
+/* 1) verts = GPU_vertbuf_create() or GPU_vertbuf_init(verts) */
+/* 2) GPU_vertformat_attr_add(verts->format, ...) */
+/* 3) GPU_vertbuf_data_alloc(verts, vertex_len) <-- finalizes/packs vertex format */
+/* 4) GPU_vertbuf_attr_fill(verts, pos, application_pos_buffer) */
 
-/* Is Gwn_VertBuf always used as part of a Gwn_Batch? */
+/* Is GPUVertBuf always used as part of a GPUBatch? */
 
 typedef enum {
 	/* can be extended to support more types */
-	GWN_USAGE_STREAM,
-	GWN_USAGE_STATIC, /* do not keep data in memory */
-	GWN_USAGE_DYNAMIC
-} Gwn_UsageType;
+	GPU_USAGE_STREAM,
+	GPU_USAGE_STATIC, /* do not keep data in memory */
+	GPU_USAGE_DYNAMIC
+} GPUUsageType;
 
-typedef struct Gwn_VertBuf {
-	Gwn_VertFormat format;
+typedef struct GPUVertBuf {
+	GPUVertFormat format;
 	uint vertex_len;    /* number of verts we want to draw */
 	uint vertex_alloc;  /* number of verts data */
 	bool dirty;
 	unsigned char* data; /* NULL indicates data in VRAM (unmapped) */
 	uint32_t vbo_id; /* 0 indicates not yet allocated */
-	Gwn_UsageType usage; /* usage hint for GL optimisation */
-} Gwn_VertBuf;
+	GPUUsageType usage; /* usage hint for GL optimisation */
+} GPUVertBuf;
 
-Gwn_VertBuf* GWN_vertbuf_create(Gwn_UsageType);
-Gwn_VertBuf* GWN_vertbuf_create_with_format_ex(const Gwn_VertFormat*, Gwn_UsageType);
+GPUVertBuf* GPU_vertbuf_create(GPUUsageType);
+GPUVertBuf* GPU_vertbuf_create_with_format_ex(const GPUVertFormat*, GPUUsageType);
 
-#define GWN_vertbuf_create_with_format(format) \
-	GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_STATIC)
+#define GPU_vertbuf_create_with_format(format) \
+	GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_STATIC)
 
-void GWN_vertbuf_discard(Gwn_VertBuf*);
+void GPU_vertbuf_discard(GPUVertBuf*);
 
-void GWN_vertbuf_init(Gwn_VertBuf*, Gwn_UsageType);
-void GWN_vertbuf_init_with_format_ex(Gwn_VertBuf*, const Gwn_VertFormat*, Gwn_UsageType);
+void GPU_vertbuf_init(GPUVertBuf*, GPUUsageType);
+void GPU_vertbuf_init_with_format_ex(GPUVertBuf*, const GPUVertFormat*, GPUUsageType);
 
-#define GWN_vertbuf_init_with_format(verts, format) \
-	GWN_vertbuf_init_with_format_ex(verts, format, GWN_USAGE_STATIC)
+#define GPU_vertbuf_init_with_format(verts, format) \
+	GPU_vertbuf_init_with_format_ex(verts, format, GPU_USAGE_STATIC)
 
-uint GWN_vertbuf_size_get(const Gwn_VertBuf*);
-void GWN_vertbuf_data_alloc(Gwn_VertBuf*, uint v_len);
-void GWN_vertbuf_data_resize(Gwn_VertBuf*, uint v_len);
-void GWN_vertbuf_vertex_count_set(Gwn_VertBuf*, uint v_len);
+uint GPU_vertbuf_size_get(const GPUVertBuf*);
+void GPU_vertbuf_data_alloc(GPUVertBuf*, uint v_len);
+void GPU_vertbuf_data_resize(GPUVertBuf*, uint v_len);
+void GPU_vertbuf_vertex_count_set(GPUVertBuf*, uint v_len);
 
 /* The most important set_attrib variant is the untyped one. Get it right first. */
 /* It takes a void* so the app developer is responsible for matching their app data types */
 /* to the vertex attribute's type and component count. They're in control of both, so this */
 /* should not be a problem. */
 
-void GWN_vertbuf_attr_set(Gwn_VertBuf*, uint a_idx, uint v_idx, const void* data);
-void GWN_vertbuf_attr_fill(Gwn_VertBuf*, uint a_idx, const void* data); /* tightly packed, non interleaved input data */
-void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf*, uint a_idx, uint stride, const void* data);
+void GPU_vertbuf_attr_set(GPUVertBuf*, uint a_idx, uint v_idx, const void* data);
+void GPU_vertbuf_attr_fill(GPUVertBuf*, uint a_idx, const void* data); /* tightly packed, non interleaved input data */
+void GPU_vertbuf_attr_fill_stride(GPUVertBuf*, uint a_idx, uint stride, const void* data);
 
 /* For low level access only */
-typedef struct Gwn_VertBufRaw {
+typedef struct GPUVertBufRaw {
 	uint size;
 	uint stride;
 	unsigned char* data;
@@ -98,9 +98,9 @@ typedef struct Gwn_VertBufRaw {
 	/* Only for overflow check */
 	unsigned char* _data_end;
 #endif
-} Gwn_VertBufRaw;
+} GPUVertBufRaw;
 
-GWN_INLINE void *GWN_vertbuf_raw_step(Gwn_VertBufRaw *a)
+GPU_INLINE void *GPU_vertbuf_raw_step(GPUVertBufRaw *a)
 {
 	unsigned char* data = a->data;
 	a->data += a->stride;
@@ -110,12 +110,12 @@ GWN_INLINE void *GWN_vertbuf_raw_step(Gwn_VertBufRaw *a)
 	return (void *)data;
 }
 
-GWN_INLINE uint GWN_vertbuf_raw_used(Gwn_VertBufRaw *a)
+GPU_INLINE uint GPU_vertbuf_raw_used(GPUVertBufRaw *a)
 {
 	return ((a->data - a->data_init) / a->stride);
 }
 
-void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf*, uint a_idx, Gwn_VertBufRaw *access);
+void GPU_vertbuf_attr_get_raw_data(GPUVertBuf*, uint a_idx, GPUVertBufRaw *access);
 
 /* TODO: decide whether to keep the functions below */
 /* doesn't immediate mode satisfy these needs? */
@@ -128,17 +128,17 @@ void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf*, uint a_idx, Gwn_VertBufRaw *acc
 /*	void setAttrib3ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b); */
 /*	void setAttrib4ub(unsigned a_idx, unsigned v_idx, unsigned char r, unsigned char g, unsigned char b, unsigned char a); */
 
-void GWN_vertbuf_use(Gwn_VertBuf*);
+void GPU_vertbuf_use(GPUVertBuf*);
 
 /* Metrics */
-uint GWN_vertbuf_get_memory_usage(void);
+uint GPU_vertbuf_get_memory_usage(void);
 
 /* Macros */
-#define GWN_VERTBUF_DISCARD_SAFE(verts) do { \
+#define GPU_VERTBUF_DISCARD_SAFE(verts) do { \
 	if (verts != NULL) { \
-		GWN_vertbuf_discard(verts); \
+		GPU_vertbuf_discard(verts); \
 		verts = NULL; \
 	} \
 } while (0)
 
-#endif /* __GWN_VERTEX_BUFFER_H__ */
+#endif /* __GPU_VERTEX_BUFFER_H__ */

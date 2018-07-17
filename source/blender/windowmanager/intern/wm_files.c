@@ -188,7 +188,7 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
 {
 	win->ghostwin = oldwin->ghostwin;
-	win->gwnctx = oldwin->gwnctx;
+	win->gpuctx = oldwin->gpuctx;
 	win->active = oldwin->active;
 	if (win->active) {
 		wm->winactive = win;
@@ -202,7 +202,7 @@ static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm
 		GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
 
 	oldwin->ghostwin = NULL;
-	oldwin->gwnctx = NULL;
+	oldwin->gpuctx = NULL;
 
 	win->eventstate = oldwin->eventstate;
 	oldwin->eventstate = NULL;

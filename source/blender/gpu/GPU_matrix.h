@@ -38,7 +38,7 @@
 extern "C" {
 #endif
 
-struct Gwn_ShaderInterface;
+struct GPUShaderInterface;
 
 void GPU_matrix_reset(void); /* to Identity transform & empty stack */
 
@@ -111,7 +111,7 @@ const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 
 
 /* set uniform values for currently bound shader */
-void GPU_matrix_bind(const struct Gwn_ShaderInterface *);
+void GPU_matrix_bind(const struct GPUShaderInterface *);
 bool GPU_matrix_dirty_get(void); /* since last bind */
 
 

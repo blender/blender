@@ -2184,14 +2184,14 @@ static void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNo
 		const float cy = y + snode->zoom * backdropHeight * node->custom4;
 		const float cross_size = 12 * U.pixelsize;
 
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor3f(1.0f, 1.0f, 1.0f);
 
-		immBegin(GWN_PRIM_LINES, 4);
+		immBegin(GPU_PRIM_LINES, 4);
 		immVertex2f(pos, cx - cross_size, cy - cross_size);
 		immVertex2f(pos, cx + cross_size, cy + cross_size);
 		immVertex2f(pos, cx + cross_size, cy - cross_size);
@@ -2229,14 +2229,14 @@ static void node_composit_backdrop_boxmask(SpaceNode *snode, ImBuf *backdrop, bN
 	y3 = cy - (-sine * -halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3f(1.0f, 1.0f, 1.0f);
 
-	immBegin(GWN_PRIM_LINE_LOOP, 4);
+	immBegin(GPU_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x2, y2);
 	immVertex2f(pos, x3, y3);
@@ -2273,14 +2273,14 @@ static void node_composit_backdrop_ellipsemask(SpaceNode *snode, ImBuf *backdrop
 	y3 = cy - (-sine * -halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 	y4 = cy - (-sine * halveBoxWidth + cosine * -halveBoxHeight) * snode->zoom;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformColor3f(1.0f, 1.0f, 1.0f);
 
-	immBegin(GWN_PRIM_LINE_LOOP, 4);
+	immBegin(GPU_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x1, y1);
 	immVertex2f(pos, x2, y2);
 	immVertex2f(pos, x3, y3);
@@ -3267,7 +3267,7 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 				              y + snode->zoom * viewer_border->ymin * ibuf->y,
 				              y + snode->zoom * viewer_border->ymax * ibuf->y);
 
-				uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+				uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 				immUniformThemeColor(TH_ACTIVE);
 
@@ -3392,50 +3392,50 @@ static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
 
 struct {
-	Gwn_Batch *batch; /* for batching line together */
-	Gwn_Batch *batch_single; /* for single line */
-	Gwn_VertBuf *inst_vbo;
+	GPUBatch *batch; /* for batching line together */
+	GPUBatch *batch_single; /* for single line */
+	GPUVertBuf *inst_vbo;
 	unsigned int p0_id, p1_id, p2_id, p3_id;
 	unsigned int colid_id;
-	Gwn_VertBufRaw p0_step, p1_step, p2_step, p3_step;
-	Gwn_VertBufRaw colid_step;
+	GPUVertBufRaw p0_step, p1_step, p2_step, p3_step;
+	GPUVertBufRaw colid_step;
 	unsigned int count;
 	bool enabled;
 } g_batch_link = {0};
 
 static void nodelink_batch_reset(void)
 {
-	GWN_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p0_id, &g_batch_link.p0_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p1_id, &g_batch_link.p1_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p2_id, &g_batch_link.p2_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p3_id, &g_batch_link.p3_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.colid_id, &g_batch_link.colid_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p0_id, &g_batch_link.p0_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p1_id, &g_batch_link.p1_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p2_id, &g_batch_link.p2_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.p3_id, &g_batch_link.p3_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch_link.inst_vbo, g_batch_link.colid_id, &g_batch_link.colid_step);
 	g_batch_link.count = 0;
 }
 
 static void set_nodelink_vertex(
-        Gwn_VertBuf *vbo,
+        GPUVertBuf *vbo,
         unsigned int uv_id, unsigned int pos_id, unsigned int exp_id, unsigned int v,
         const unsigned char uv[2], const float pos[2], const float exp[2])
 {
-	GWN_vertbuf_attr_set(vbo, uv_id, v, uv);
-	GWN_vertbuf_attr_set(vbo, pos_id, v, pos);
-	GWN_vertbuf_attr_set(vbo, exp_id, v, exp);
+	GPU_vertbuf_attr_set(vbo, uv_id, v, uv);
+	GPU_vertbuf_attr_set(vbo, pos_id, v, pos);
+	GPU_vertbuf_attr_set(vbo, exp_id, v, exp);
 }
 
 static void nodelink_batch_init(void)
 {
-	Gwn_VertFormat format = {0};
-	uint uv_id = GWN_vertformat_attr_add(&format, "uv", GWN_COMP_U8, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
-	uint pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint expand_id = GWN_vertformat_attr_add(&format, "expand", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STATIC);
+	GPUVertFormat format = {0};
+	uint uv_id = GPU_vertformat_attr_add(&format, "uv", GPU_COMP_U8, 2, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	uint pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint expand_id = GPU_vertformat_attr_add(&format, "expand", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STATIC);
 	int vcount = LINK_RESOL * 2; /* curve */
 	vcount += 2; /* restart strip */
 	vcount += 3 * 2; /* arrow */
 	vcount *= 2; /* shadow */
 	vcount += 2; /* restart strip */
-	GWN_vertbuf_data_alloc(vbo, vcount);
+	GPU_vertbuf_data_alloc(vbo, vcount);
 	int v = 0;
 
 	for (int k = 0; k < 2; ++k) {
@@ -3479,23 +3479,23 @@ static void nodelink_batch_init(void)
 			set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
 	}
 
-	g_batch_link.batch = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	g_batch_link.batch = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	gpu_batch_presets_register(g_batch_link.batch);
 
-	g_batch_link.batch_single = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, 0);
+	g_batch_link.batch_single = GPU_batch_create_ex(GPU_PRIM_TRI_STRIP, vbo, NULL, 0);
 	gpu_batch_presets_register(g_batch_link.batch_single);
 
 	/* Instances data */
-	Gwn_VertFormat format_inst = {0};
-	g_batch_link.p0_id = GWN_vertformat_attr_add(&format_inst, "P0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	g_batch_link.p1_id = GWN_vertformat_attr_add(&format_inst, "P1", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	g_batch_link.p2_id = GWN_vertformat_attr_add(&format_inst, "P2", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	g_batch_link.p3_id = GWN_vertformat_attr_add(&format_inst, "P3", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	g_batch_link.colid_id = GWN_vertformat_attr_add(&format_inst, "colid_doarrow", GWN_COMP_U8, 4, GWN_FETCH_INT);
-	g_batch_link.inst_vbo = GWN_vertbuf_create_with_format_ex(&format_inst, GWN_USAGE_STREAM);
-	GWN_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE); /* Alloc max count but only draw the range we need. */
+	GPUVertFormat format_inst = {0};
+	g_batch_link.p0_id = GPU_vertformat_attr_add(&format_inst, "P0", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	g_batch_link.p1_id = GPU_vertformat_attr_add(&format_inst, "P1", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	g_batch_link.p2_id = GPU_vertformat_attr_add(&format_inst, "P2", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	g_batch_link.p3_id = GPU_vertformat_attr_add(&format_inst, "P3", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	g_batch_link.colid_id = GPU_vertformat_attr_add(&format_inst, "colid_doarrow", GPU_COMP_U8, 4, GPU_FETCH_INT);
+	g_batch_link.inst_vbo = GPU_vertbuf_create_with_format_ex(&format_inst, GPU_USAGE_STREAM);
+	GPU_vertbuf_data_alloc(g_batch_link.inst_vbo, NODELINK_GROUP_SIZE); /* Alloc max count but only draw the range we need. */
 
-	GWN_batch_instbuf_set(g_batch_link.batch, g_batch_link.inst_vbo, true);
+	GPU_batch_instbuf_set(g_batch_link.batch, g_batch_link.inst_vbo, true);
 
 	nodelink_batch_reset();
 }
@@ -3526,14 +3526,14 @@ static void nodelink_batch_draw(SpaceNode *snode)
 	UI_GetThemeColor4fv(TH_EDGE_SELECT, colors[nodelink_get_color_id(TH_EDGE_SELECT)]);
 	UI_GetThemeColor4fv(TH_REDALERT,    colors[nodelink_get_color_id(TH_REDALERT)]);
 
-	GWN_vertbuf_vertex_count_set(g_batch_link.inst_vbo, g_batch_link.count);
-	GWN_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
+	GPU_vertbuf_vertex_count_set(g_batch_link.inst_vbo, g_batch_link.count);
+	GPU_vertbuf_use(g_batch_link.inst_vbo); /* force update. */
 
-	GWN_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
-	GWN_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, (float *)colors);
-	GWN_batch_uniform_1f(g_batch_link.batch, "expandSize", snode->aspect * LINK_WIDTH);
-	GWN_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
-	GWN_batch_draw(g_batch_link.batch);
+	GPU_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
+	GPU_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, (float *)colors);
+	GPU_batch_uniform_1f(g_batch_link.batch, "expandSize", snode->aspect * LINK_WIDTH);
+	GPU_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
+	GPU_batch_draw(g_batch_link.batch);
 
 	nodelink_batch_reset();
 
@@ -3562,11 +3562,11 @@ static void nodelink_batch_add_link(
 	BLI_assert(ELEM(th_col3, TH_WIRE, -1));
 
 	g_batch_link.count++;
-	copy_v2_v2(GWN_vertbuf_raw_step(&g_batch_link.p0_step), p0);
-	copy_v2_v2(GWN_vertbuf_raw_step(&g_batch_link.p1_step), p1);
-	copy_v2_v2(GWN_vertbuf_raw_step(&g_batch_link.p2_step), p2);
-	copy_v2_v2(GWN_vertbuf_raw_step(&g_batch_link.p3_step), p3);
-	char *colid = GWN_vertbuf_raw_step(&g_batch_link.colid_step);
+	copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p0_step), p0);
+	copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p1_step), p1);
+	copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p2_step), p2);
+	copy_v2_v2(GPU_vertbuf_raw_step(&g_batch_link.p3_step), p3);
+	char *colid = GPU_vertbuf_raw_step(&g_batch_link.colid_step);
 	colid[0] = nodelink_get_color_id(th_col1);
 	colid[1] = nodelink_get_color_id(th_col2);
 	colid[2] = nodelink_get_color_id(th_col3);
@@ -3604,14 +3604,14 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 			UI_GetThemeColor4fv(th_col1, colors[1]);
 			UI_GetThemeColor4fv(th_col2, colors[2]);
 
-			Gwn_Batch *batch = g_batch_link.batch_single;
-			GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
-			GWN_batch_uniform_2fv_array(batch, "bezierPts", 4, (float *)vec);
-			GWN_batch_uniform_4fv_array(batch, "colors", 3, (float *)colors);
-			GWN_batch_uniform_1f(batch, "expandSize", snode->aspect * LINK_WIDTH);
-			GWN_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
-			GWN_batch_uniform_1i(batch, "doArrow", drawarrow);
-			GWN_batch_draw(batch);
+			GPUBatch *batch = g_batch_link.batch_single;
+			GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_NODELINK);
+			GPU_batch_uniform_2fv_array(batch, "bezierPts", 4, (float *)vec);
+			GPU_batch_uniform_4fv_array(batch, "colors", 3, (float *)colors);
+			GPU_batch_uniform_1f(batch, "expandSize", snode->aspect * LINK_WIDTH);
+			GPU_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
+			GPU_batch_uniform_1i(batch, "doArrow", drawarrow);
+			GPU_batch_draw(batch);
 		}
 	}
 }
@@ -3660,7 +3660,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 
 void ED_node_draw_snap(View2D *v2d, const float cent[2], float size, NodeBorder border, unsigned pos)
 {
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 
 	if (border & (NODE_LEFT | NODE_RIGHT)) {
 		immVertex2f(pos, cent[0], v2d->cur.ymin);

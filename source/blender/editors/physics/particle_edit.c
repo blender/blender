@@ -2892,7 +2892,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	brush = &pset->brush[pset->brushtype];
 
 	if (brush) {
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ub(255, 255, 255, 128);

@@ -43,11 +43,11 @@ DRWInstanceData *DRW_instance_data_request(
         DRWInstanceDataList *idatalist, uint attrib_size);
 
 void DRW_batching_buffer_request(
-        DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_PrimType type, struct DRWShadingGroup *shgroup,
-        Gwn_Batch **r_batch, Gwn_VertBuf **r_vert);
+        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUPrimType type, struct DRWShadingGroup *shgroup,
+        GPUBatch **r_batch, GPUVertBuf **r_vert);
 void DRW_instancing_buffer_request(
-        DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_Batch *instance, struct DRWShadingGroup *shgroup,
-        Gwn_Batch **r_batch, Gwn_VertBuf **r_vert);
+        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUBatch *instance, struct DRWShadingGroup *shgroup,
+        GPUBatch **r_batch, GPUVertBuf **r_vert);
 
 /* Upload all instance data to the GPU as soon as possible. */
 void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist);

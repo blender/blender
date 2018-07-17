@@ -1007,13 +1007,13 @@ static void knifetool_draw_angle_snapping(const KnifeTool_OpData *kcd)
 		copy_v3_v3(v2, ray_hit_best[1]);
 	}
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_TRANSFORM);
 	GPU_line_width(2.0);
 
-	immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GPU_PRIM_LINES, 2);
 	immVertex3fv(pos, v1);
 	immVertex3fv(pos, v2);
 	immEnd();
@@ -1048,7 +1048,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	GPU_matrix_push();
 	GPU_matrix_mul(kcd->ob->obmat);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -1059,7 +1059,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.line);
 		GPU_line_width(2.0);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->prev.cage);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
@@ -1069,7 +1069,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.point);
 		GPU_point_size(11);
 
-		immBegin(GWN_PRIM_POINTS, 1);
+		immBegin(GPU_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
 		immEnd();
 	}
@@ -1078,7 +1078,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.curpoint);
 		GPU_point_size(9);
 
-		immBegin(GWN_PRIM_POINTS, 1);
+		immBegin(GPU_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->prev.cage);
 		immEnd();
 	}
@@ -1087,7 +1087,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.edge);
 		GPU_line_width(2.0);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex3fv(pos, kcd->curr.edge->v1->cageco);
 		immVertex3fv(pos, kcd->curr.edge->v2->cageco);
 		immEnd();
@@ -1096,7 +1096,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.point);
 		GPU_point_size(11);
 
-		immBegin(GWN_PRIM_POINTS, 1);
+		immBegin(GPU_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
 	}
@@ -1105,7 +1105,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.curpoint);
 		GPU_point_size(9);
 
-		immBegin(GWN_PRIM_POINTS, 1);
+		immBegin(GPU_PRIM_POINTS, 1);
 		immVertex3fv(pos, kcd->curr.cage);
 		immEnd();
 	}
@@ -1121,7 +1121,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor4ubv(kcd->colors.point_a);
 		GPU_point_size(11);
 
-		immBeginAtMost(GWN_PRIM_POINTS, kcd->totlinehit);
+		immBeginAtMost(GPU_PRIM_POINTS, kcd->totlinehit);
 
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
@@ -1136,7 +1136,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor4ubv(kcd->colors.curpoint_a);
 		GPU_point_size(7);
 
-		immBeginAtMost(GWN_PRIM_POINTS, kcd->totlinehit);
+		immBeginAtMost(GPU_PRIM_POINTS, kcd->totlinehit);
 
 		lh = kcd->linehits;
 		for (i = 0; i < kcd->totlinehit; i++, lh++) {
@@ -1157,7 +1157,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.line);
 		GPU_line_width(1.0);
 
-		immBeginAtMost(GWN_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
+		immBeginAtMost(GPU_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
 
 		BLI_mempool_iternew(kcd->kedges, &iter);
 		for (kfe = BLI_mempool_iterstep(&iter); kfe; kfe = BLI_mempool_iterstep(&iter)) {
@@ -1178,7 +1178,7 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 		immUniformColor3ubv(kcd->colors.point);
 		GPU_point_size(5.0);
 
-		immBeginAtMost(GWN_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
+		immBeginAtMost(GPU_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
 		BLI_mempool_iternew(kcd->kverts, &iter);
 		for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {

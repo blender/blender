@@ -23,14 +23,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_buffer_id.h
+/** \file blender/gpu/GPU_buffer_id.h
  *  \ingroup gpu
  *
- * Gawain buffer IDs
+ * GPU buffer IDs
  */
 
-#ifndef __GWN_BUFFER_ID_H__
-#define __GWN_BUFFER_ID_H__
+#ifndef __GPU_BUFFER_ID_H__
+#define __GPU_BUFFER_ID_H__
 
 /* Manage GL buffer IDs in a thread-safe way
  * Use these instead of glGenBuffers & its friends
@@ -43,11 +43,11 @@ extern "C" {
 
 #include "GPU_common.h"
 
-GLuint GWN_buf_id_alloc(void);
-void GWN_buf_id_free(GLuint buffer_id);
+GLuint GPU_buf_id_alloc(void);
+void GPU_buf_id_free(GLuint buffer_id);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_BUFFER_ID_H__ */
+#endif /* __GPU_BUFFER_ID_H__ */

@@ -425,7 +425,7 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 /* Add a shadow caster to the shadowpasses */
 void EEVEE_lights_cache_shcaster_add(
-        EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob)
+        EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_StorageList *stl, struct GPUBatch *geom, Object *ob)
 {
 	DRW_shgroup_call_object_add(
 	        stl->g_data->shadow_shgrp,
@@ -434,7 +434,7 @@ void EEVEE_lights_cache_shcaster_add(
 
 void EEVEE_lights_cache_shcaster_material_add(
 	EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_PassList *psl, struct GPUMaterial *gpumat,
-	struct Gwn_Batch *geom, struct Object *ob, float *alpha_threshold)
+	struct GPUBatch *geom, struct Object *ob, float *alpha_threshold)
 {
 	/* TODO / PERF : reuse the same shading group for objects with the same material */
 	DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);

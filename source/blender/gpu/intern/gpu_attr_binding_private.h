@@ -23,21 +23,21 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_attr_binding_private.h
+/** \file blender/gpu/intern/gpu_attr_binding_private.h
  *  \ingroup gpu
  *
- * Gawain vertex attribute binding
+ * GPU vertex attribute binding
  */
 
-#ifndef __GWN_ATTR_BINDING_PRIVATE_H__
-#define __GWN_ATTR_BINDING_PRIVATE_H__
+#ifndef __GPU_ATTR_BINDING_PRIVATE_H__
+#define __GPU_ATTR_BINDING_PRIVATE_H__
 
 #include "GPU_vertex_format.h"
 #include "GPU_shader_interface.h"
 
-void AttribBinding_clear(Gwn_AttrBinding*);
+void AttribBinding_clear(GPUAttrBinding*);
 
-void get_attrib_locations(const Gwn_VertFormat*, Gwn_AttrBinding*, const Gwn_ShaderInterface*);
-unsigned read_attrib_location(const Gwn_AttrBinding*, unsigned a_idx);
+void get_attrib_locations(const GPUVertFormat*, GPUAttrBinding*, const GPUShaderInterface*);
+unsigned read_attrib_location(const GPUAttrBinding*, unsigned a_idx);
 
-#endif /* __GWN_ATTR_BINDING_PRIVATE_H__ */
+#endif /* __GPU_ATTR_BINDING_PRIVATE_H__ */

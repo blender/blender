@@ -23,10 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gwn_vertex_format.c
+/** \file blender/gpu/intern/gpu_vertex_format.c
  *  \ingroup gpu
  *
- * Gawain vertex format
+ * GPU vertex format
  */
 
 #include "GPU_vertex_format.h"
@@ -40,26 +40,26 @@
   #include <stdio.h>
 #endif
 
-void GWN_vertformat_clear(Gwn_VertFormat* format)
+void GPU_vertformat_clear(GPUVertFormat* format)
 {
 #if TRUST_NO_ONE
-	memset(format, 0, sizeof(Gwn_VertFormat));
+	memset(format, 0, sizeof(GPUVertFormat));
 #else
 	format->attr_len = 0;
 	format->packed = false;
 	format->name_offset = 0;
 	format->name_len = 0;
 
-	for (unsigned i = 0; i < GWN_VERT_ATTR_MAX_LEN; i++) {
+	for (unsigned i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
 		format->attribs[i].name_len = 0;
 	}
 #endif
 }
 
-void GWN_vertformat_copy(Gwn_VertFormat* dest, const Gwn_VertFormat* src)
+void GPU_vertformat_copy(GPUVertFormat* dest, const GPUVertFormat* src)
 {
 	/* copy regular struct fields */
-	memcpy(dest, src, sizeof(Gwn_VertFormat));
+	memcpy(dest, src, sizeof(GPUVertFormat));
 
 	for (unsigned i = 0; i < dest->attr_len; i++) {
 		for (unsigned j = 0; j < dest->attribs[i].name_len; j++) {
@@ -68,43 +68,43 @@ void GWN_vertformat_copy(Gwn_VertFormat* dest, const Gwn_VertFormat* src)
 	}
 }
 
-static GLenum convert_comp_type_to_gl(Gwn_VertCompType type)
+static GLenum convert_comp_type_to_gl(GPUVertCompType type)
 {
 	static const GLenum table[] = {
-		[GWN_COMP_I8] = GL_BYTE,
-		[GWN_COMP_U8] = GL_UNSIGNED_BYTE,
-		[GWN_COMP_I16] = GL_SHORT,
-		[GWN_COMP_U16] = GL_UNSIGNED_SHORT,
-		[GWN_COMP_I32] = GL_INT,
-		[GWN_COMP_U32] = GL_UNSIGNED_INT,
+		[GPU_COMP_I8] = GL_BYTE,
+		[GPU_COMP_U8] = GL_UNSIGNED_BYTE,
+		[GPU_COMP_I16] = GL_SHORT,
+		[GPU_COMP_U16] = GL_UNSIGNED_SHORT,
+		[GPU_COMP_I32] = GL_INT,
+		[GPU_COMP_U32] = GL_UNSIGNED_INT,
 
-		[GWN_COMP_F32] = GL_FLOAT,
+		[GPU_COMP_F32] = GL_FLOAT,
 
-		[GWN_COMP_I10] = GL_INT_2_10_10_10_REV
+		[GPU_COMP_I10] = GL_INT_2_10_10_10_REV
 	};
 	return table[type];
 }
 
-static unsigned comp_sz(Gwn_VertCompType type)
+static unsigned comp_sz(GPUVertCompType type)
 {
 #if TRUST_NO_ONE
-	assert(type <= GWN_COMP_F32); /* other types have irregular sizes (not bytes) */
+	assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
 #endif
 	const GLubyte sizes[] = {1,1,2,2,4,4,4};
 	return sizes[type];
 }
 
-static unsigned attrib_sz(const Gwn_VertAttr *a)
+static unsigned attrib_sz(const GPUVertAttr *a)
 {
-	if (a->comp_type == GWN_COMP_I10) {
+	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
 	}
 	return a->comp_len * comp_sz(a->comp_type);
 }
 
-static unsigned attrib_align(const Gwn_VertAttr *a)
+static unsigned attrib_align(const GPUVertAttr *a)
 {
-	if (a->comp_type == GWN_COMP_I10) {
+	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
 	}
 	unsigned c = comp_sz(a->comp_type);
@@ -116,7 +116,7 @@ static unsigned attrib_align(const Gwn_VertAttr *a)
 	}
 }
 
-unsigned vertex_buffer_size(const Gwn_VertFormat* format, unsigned vertex_len)
+unsigned vertex_buffer_size(const GPUVertFormat* format, unsigned vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(format->packed && format->stride > 0);
@@ -124,11 +124,11 @@ unsigned vertex_buffer_size(const Gwn_VertFormat* format, unsigned vertex_len)
 	return format->stride * vertex_len;
 }
 
-static const char* copy_attrib_name(Gwn_VertFormat* format, const char* name)
+static const char* copy_attrib_name(GPUVertFormat* format, const char* name)
 {
 	/* strncpy does 110% of what we need; let's do exactly 100% */
 	char* name_copy = format->names + format->name_offset;
-	unsigned available = GWN_VERT_ATTR_NAMES_BUF_LEN - format->name_offset;
+	unsigned available = GPU_VERT_ATTR_NAMES_BUF_LEN - format->name_offset;
 	bool terminated = false;
 
 	for (unsigned i = 0; i < available; ++i) {
@@ -142,35 +142,35 @@ static const char* copy_attrib_name(Gwn_VertFormat* format, const char* name)
 	}
 #if TRUST_NO_ONE
 	assert(terminated);
-	assert(format->name_offset <= GWN_VERT_ATTR_NAMES_BUF_LEN);
+	assert(format->name_offset <= GPU_VERT_ATTR_NAMES_BUF_LEN);
 #else
 	(void)terminated;
 #endif
 	return name_copy;
 }
 
-unsigned GWN_vertformat_attr_add(Gwn_VertFormat* format, const char* name, Gwn_VertCompType comp_type, unsigned comp_len, Gwn_VertFetchMode fetch_mode)
+unsigned GPU_vertformat_attr_add(GPUVertFormat* format, const char* name, GPUVertCompType comp_type, unsigned comp_len, GPUVertFetchMode fetch_mode)
 {
 #if TRUST_NO_ONE
-	assert(format->name_len < GWN_VERT_ATTR_MAX_LEN); /* there's room for more */
-	assert(format->attr_len < GWN_VERT_ATTR_MAX_LEN); /* there's room for more */
+	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
+	assert(format->attr_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
 	assert(!format->packed); /* packed means frozen/locked */
 	assert((comp_len >= 1 && comp_len <= 4) || comp_len == 8 || comp_len == 12 || comp_len == 16);
 
 	switch (comp_type) {
-		case GWN_COMP_F32:
+		case GPU_COMP_F32:
 			/* float type can only kept as float */
-			assert(fetch_mode == GWN_FETCH_FLOAT);
+			assert(fetch_mode == GPU_FETCH_FLOAT);
 			break;
-		case GWN_COMP_I10:
+		case GPU_COMP_I10:
 			/* 10_10_10 format intended for normals (xyz) or colors (rgb)
 			 * extra component packed.w can be manually set to { -2, -1, 0, 1 } */
 			assert(comp_len == 3 || comp_len == 4);
-			assert(fetch_mode == GWN_FETCH_INT_TO_FLOAT_UNIT); /* not strictly required, may relax later */
+			assert(fetch_mode == GPU_FETCH_INT_TO_FLOAT_UNIT); /* not strictly required, may relax later */
 			break;
 		default:
 			/* integer types can be kept as int or converted/normalized to float */
-			assert(fetch_mode != GWN_FETCH_FLOAT);
+			assert(fetch_mode != GPU_FETCH_FLOAT);
 			/* only support float matrices (see Batch_update_program_bindings) */
 			assert(comp_len != 8 && comp_len != 12 && comp_len != 16);
 	}
@@ -178,12 +178,12 @@ unsigned GWN_vertformat_attr_add(Gwn_VertFormat* format, const char* name, Gwn_V
 	format->name_len++; /* multiname support */
 
 	const unsigned attrib_id = format->attr_len++;
-	Gwn_VertAttr* attrib = format->attribs + attrib_id;
+	GPUVertAttr* attrib = format->attribs + attrib_id;
 
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
 	attrib->gl_comp_type = convert_comp_type_to_gl(comp_type);
-	attrib->comp_len = (comp_type == GWN_COMP_I10) ? 4 : comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
+	attrib->comp_len = (comp_type == GPU_COMP_I10) ? 4 : comp_len; /* system needs 10_10_10_2 to be 4 or BGRA */
 	attrib->sz = attrib_sz(attrib);
 	attrib->offset = 0; /* offsets & stride are calculated later (during pack) */
 	attrib->fetch_mode = fetch_mode;
@@ -191,12 +191,12 @@ unsigned GWN_vertformat_attr_add(Gwn_VertFormat* format, const char* name, Gwn_V
 	return attrib_id;
 }
 
-void GWN_vertformat_alias_add(Gwn_VertFormat* format, const char* alias)
+void GPU_vertformat_alias_add(GPUVertFormat* format, const char* alias)
 {
-	Gwn_VertAttr* attrib = format->attribs + (format->attr_len - 1);
+	GPUVertAttr* attrib = format->attribs + (format->attr_len - 1);
 #if TRUST_NO_ONE
-	assert(format->name_len < GWN_VERT_ATTR_MAX_LEN); /* there's room for more */
-	assert(attrib->name_len < GWN_VERT_ATTR_MAX_NAMES);
+	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
+	assert(attrib->name_len < GPU_VERT_ATTR_MAX_NAMES);
 #endif
 	format->name_len++; /* multiname support */
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, alias);
@@ -221,7 +221,7 @@ static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
 }
 #endif
 
-void VertexFormat_pack(Gwn_VertFormat* format)
+void VertexFormat_pack(GPUVertFormat* format)
 {
 	/* For now, attributes are packed in the order they were added,
 	 * making sure each attrib is naturally aligned (add padding where necessary)
@@ -231,7 +231,7 @@ void VertexFormat_pack(Gwn_VertFormat* format)
 	/* TODO: realloc just enough to hold the final combo string. And just enough to
 	 * hold used attribs, not all 16. */
 
-	Gwn_VertAttr* a0 = format->attribs + 0;
+	GPUVertAttr* a0 = format->attribs + 0;
 	a0->offset = 0;
 	unsigned offset = a0->sz;
 
@@ -240,7 +240,7 @@ void VertexFormat_pack(Gwn_VertFormat* format)
 #endif
 
 	for (unsigned a_idx = 1; a_idx < format->attr_len; ++a_idx) {
-		Gwn_VertAttr* a = format->attribs + a_idx;
+		GPUVertAttr* a = format->attribs + a_idx;
 		unsigned mid_padding = padding(offset, attrib_align(a));
 		offset += mid_padding;
 		a->offset = offset;
@@ -263,7 +263,7 @@ void VertexFormat_pack(Gwn_VertFormat* format)
 
 
 /* OpenGL ES packs in a different order as desktop GL but component conversion is the same.
- * Of the code here, only struct Gwn_PackedNormal needs to change. */
+ * Of the code here, only struct GPUPackedNormal needs to change. */
 
 #define SIGNED_INT_10_MAX  511
 #define SIGNED_INT_10_MIN -512
@@ -297,14 +297,14 @@ static int convert_i16(short x)
 	return x >> 6;
 }
 
-Gwn_PackedNormal GWN_normal_convert_i10_v3(const float data[3])
+GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3])
 {
-	Gwn_PackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
+	GPUPackedNormal n = { .x = quantize(data[0]), .y = quantize(data[1]), .z = quantize(data[2]) };
 	return n;
 }
 
-Gwn_PackedNormal GWN_normal_convert_i10_s3(const short data[3])
+GPUPackedNormal GPU_normal_convert_i10_s3(const short data[3])
 {
-	Gwn_PackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
+	GPUPackedNormal n = { .x = convert_i16(data[0]), .y = convert_i16(data[1]), .z = convert_i16(data[2]) };
 	return n;
 }

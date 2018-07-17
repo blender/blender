@@ -135,7 +135,7 @@ static struct GPUTexture *create_ggx_lut_texture(int UNUSED(w), int UNUSED(h))
 	DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 	DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 
-	struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 	DRW_shgroup_call_add(grp, geom, NULL);
 
 	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
@@ -197,7 +197,7 @@ static struct GPUTexture *create_ggx_refraction_lut_texture(int w, int h)
 	DRW_shgroup_uniform_texture(grp, "texHammersley", hammersley);
 	DRW_shgroup_uniform_texture(grp, "utilTex", e_data.util_tex);
 
-	struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 	DRW_shgroup_call_add(grp, geom, NULL);
 
 	float *texels = MEM_mallocN(sizeof(float[2]) * w * h, "lut");
@@ -946,7 +946,7 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	{
 		psl->background_pass = DRW_pass_create("Background Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
 
-		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 		DRWShadingGroup *grp = NULL;
 
 		const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -1477,7 +1477,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 		char *auto_layer_names;
 		int *auto_layer_is_srgb;
 		int auto_layer_count;
-		struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(
+		struct GPUBatch **mat_geom = DRW_cache_object_surface_material_get(
 		        ob, gpumat_array, materials_len,
 		        &auto_layer_names,
 		        &auto_layer_is_srgb,
@@ -1690,7 +1690,7 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 	if (LOOK_DEV_OVERLAY_ENABLED(v3d)) {
 		EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 		EEVEE_LampsInfo *linfo = sldata->lamps;
-		struct Gwn_Batch *sphere = DRW_cache_sphere_get();
+		struct GPUBatch *sphere = DRW_cache_sphere_get();
 		static float mat1[4][4];
 		static float color[3] = {0.8f, 0.8f, 0.8f};
 		static float metallic_on = 1.0f;

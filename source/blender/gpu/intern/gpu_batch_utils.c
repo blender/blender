@@ -47,7 +47,7 @@
  * \param polys_flat_len: Length of the array (must be an even number).
  * \param rect: Optional region to map the byte 0..255 coords to. When not set use -1..1.
  */
-Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
+GPUBatch *GPU_batch_tris_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const rctf *rect)
 {
 	const uchar (*polys)[2] = (const void *)polys_flat;
@@ -103,41 +103,41 @@ Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
 	}
 
 	/* We have vertices and tris, make a batch from this. */
-	static Gwn_VertFormat format = {0};
+	static GPUVertFormat format = {0};
 	static struct { uint pos; } attr_id;
 	if (format.attr_len == 0) {
-		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	}
 
 	const uint verts_len = (verts_step - verts);
 	const uint tris_len = (tris_step - tris);
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(vbo, verts_len);
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, verts_len);
 
-	Gwn_VertBufRaw pos_step;
-	GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
+	GPUVertBufRaw pos_step;
+	GPU_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
 	for (uint i = 0; i < verts_len; i++) {
-		copy_v2_v2(GWN_vertbuf_raw_step(&pos_step), verts[i]);
+		copy_v2_v2(GPU_vertbuf_raw_step(&pos_step), verts[i]);
 	}
 
-	Gwn_IndexBufBuilder elb;
-	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tris_len, verts_len);
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tris_len, verts_len);
 	for (uint i = 0; i < tris_len; i++) {
-		GWN_indexbuf_add_tri_verts(&elb, UNPACK3(tris[i]));
+		GPU_indexbuf_add_tri_verts(&elb, UNPACK3(tris[i]));
 	}
-	Gwn_IndexBuf *indexbuf = GWN_indexbuf_build(&elb);
+	GPUIndexBuf *indexbuf = GPU_indexbuf_build(&elb);
 
 	MEM_freeN(tris);
 	MEM_freeN(verts);
 
-	return GWN_batch_create_ex(
-	        GWN_PRIM_TRIS, vbo,
+	return GPU_batch_create_ex(
+	        GPU_PRIM_TRIS, vbo,
 	        indexbuf,
-	        GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+	        GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
 }
 
-Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
+GPUBatch *GPU_batch_wire_from_poly_2d_encoded(
         const uchar *polys_flat, uint polys_flat_len, const rctf *rect)
 {
 	const uchar (*polys)[2] = (const void *)polys_flat;
@@ -206,18 +206,18 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 	}
 
 	/* We have vertices and tris, make a batch from this. */
-	static Gwn_VertFormat format = {0};
+	static GPUVertFormat format = {0};
 	static struct { uint pos; } attr_id;
 	if (format.attr_len == 0) {
-		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	}
 
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 	const uint vbo_len_capacity = lines_len * 2;
-	GWN_vertbuf_data_alloc(vbo, vbo_len_capacity);
+	GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-	Gwn_VertBufRaw pos_step;
-	GWN_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
+	GPUVertBufRaw pos_step;
+	GPU_vertbuf_attr_get_raw_data(vbo, attr_id.pos, &pos_step);
 
 	for (uint i = 0; i < lines_len; i++) {
 		union {
@@ -226,18 +226,18 @@ Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
 		} data;
 		data.as_u32 = lines[i];
 		for (uint k = 0; k < 2; k++) {
-			float *pos_v2 = GWN_vertbuf_raw_step(&pos_step);
+			float *pos_v2 = GPU_vertbuf_raw_step(&pos_step);
 			for (uint j = 0; j < 2; j++) {
 				pos_v2[j] = min_uchar[j] + ((float)data.as_u8_pair[k][j] * range_uchar[j]);
 			}
 		}
 	}
-	BLI_assert(vbo_len_capacity == GWN_vertbuf_raw_used(&pos_step));
+	BLI_assert(vbo_len_capacity == GPU_vertbuf_raw_used(&pos_step));
 	MEM_freeN(lines);
-	return GWN_batch_create_ex(
-	        GWN_PRIM_LINES, vbo,
+	return GPU_batch_create_ex(
+	        GPU_PRIM_LINES, vbo,
 	        NULL,
-	        GWN_BATCH_OWNS_VBO);
+	        GPU_BATCH_OWNS_VBO);
 }
 
 /** \} */

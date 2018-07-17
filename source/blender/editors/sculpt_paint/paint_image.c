@@ -419,15 +419,15 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		GPU_line_smooth(true);
 		GPU_blend(true);
 
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		GPU_line_width(4.0);
 		immUniformColor4ub(0, 0, 0, 255);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2i(pos, x, y);
 		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
 		immEnd();
@@ -435,7 +435,7 @@ static void gradient_draw_line(bContext *UNUSED(C), int x, int y, void *customda
 		GPU_line_width(2.0);
 		immUniformColor4ub(255, 255, 255, 255);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2i(pos, x, y);
 		immVertex2i(pos, pop->startmouse[0], pop->startmouse[1]);
 		immEnd();

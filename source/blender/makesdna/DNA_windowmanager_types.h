@@ -184,7 +184,7 @@ typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 
 	void *ghostwin;             /* don't want to include ghost.h stuff */
-	void *gwnctx;               /* don't want to include gawin stuff */
+	void *gpuctx;               /* don't want to include gpu stuff */
 
 	struct wmWindow *parent;    /* Parent window */
 

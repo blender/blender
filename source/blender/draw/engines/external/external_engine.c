@@ -128,7 +128,7 @@ static void external_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		/* Depth Prepass */
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);

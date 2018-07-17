@@ -214,9 +214,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	glDepthMask(GL_FALSE);  /* disable write in zbuffer */
 #endif
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
@@ -253,7 +253,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 					if (gridline_len == 0)
 						goto drawgrid_cleanup; /* nothing to draw */
 
-					immBegin(GWN_PRIM_LINES, gridline_len * 2);
+					immBegin(GPU_PRIM_LINES, gridline_len * 2);
 				}
 
 				float blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
@@ -306,7 +306,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 		if (gridline_len == 0)
 			goto drawgrid_cleanup; /* nothing to draw */
 
-		immBegin(GWN_PRIM_LINES, gridline_len * 2);
+		immBegin(GPU_PRIM_LINES, gridline_len * 2);
 
 		if (grids_to_draw == 2) {
 			UI_GetThemeColorBlend3ubv(TH_HIGH_GRAD, TH_GRID, dx / (GRID_MIN_PX_D * 6.0), col2);
@@ -381,13 +381,13 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 			uchar col_bg[3], col_grid_emphasise[3], col_grid_light[3];
 
-			Gwn_VertFormat *format = immVertexFormat();
-			uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+			uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-			immBegin(GWN_PRIM_LINES, vertex_len);
+			immBegin(GPU_PRIM_LINES, vertex_len);
 
 			/* draw normal grid lines */
 			UI_GetColorPtrShade3ubv(col_grid, col_grid_light, 10);
@@ -469,12 +469,12 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 		if (show_axis_x || show_axis_y || show_axis_z) {
 			/* draw axis lines -- sometimes grid floor is off, other times we still need to draw the Z axis */
 
-			Gwn_VertFormat *format = immVertexFormat();
-			uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-			uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+			uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
-			immBegin(GWN_PRIM_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
+			immBegin(GPU_PRIM_LINES, (show_axis_x + show_axis_y + show_axis_z) * 2);
 
 			if (show_axis_x) {
 				UI_make_axis_color(col_grid, col_axis, 'X');
@@ -582,9 +582,9 @@ void DRW_draw_background(void)
 		/* Gradient background Color */
 		glDisable(GL_DEPTH_TEST);
 
-		Gwn_VertFormat *format = immVertexFormat();
-		uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 		uchar col_hi[3], col_lo[3];
 
 		GPU_matrix_push();
@@ -596,7 +596,7 @@ void DRW_draw_background(void)
 		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
 		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
 
-		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immBegin(GPU_PRIM_TRI_FAN, 4);
 		immAttrib3ubv(color, col_lo);
 		immVertex2f(pos, -1.0f, -1.0f);
 		immVertex2f(pos, 1.0f, -1.0f);
@@ -689,10 +689,10 @@ void DRW_draw_cursor(void)
 
 			/* Draw lines */
 			if  (is_aligned == false) {
-				uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+				uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 				immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 				immUniformThemeColor3(TH_VIEW_OVERLAY);
-				immBegin(GWN_PRIM_LINES, 12);
+				immBegin(GPU_PRIM_LINES, 12);
 
 				const float scale = ED_view3d_pixel_size_no_ui_scale(rv3d, cursor->location) * U.widget_unit;
 
@@ -727,11 +727,11 @@ void DRW_draw_cursor(void)
 			GPU_matrix_translate_2f(co[0] + 0.5f, co[1] + 0.5f);
 			GPU_matrix_scale_2f(U.widget_unit, U.widget_unit);
 
-			Gwn_Batch *cursor_batch = DRW_cache_cursor_get(is_aligned);
+			GPUBatch *cursor_batch = DRW_cache_cursor_get(is_aligned);
 			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
-			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+			GPU_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 
-			GWN_batch_draw(cursor_batch);
+			GPU_batch_draw(cursor_batch);
 
 			glDisable(GL_BLEND);
 			glDisable(GL_LINE_SMOOTH);

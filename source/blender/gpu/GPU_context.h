@@ -23,14 +23,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_context.h
+/** \file blender/gpu/GPU_context.h
  *  \ingroup gpu
  *
- * This interface allow Gawain to manage VAOs for mutiple context and threads.
+ * This interface allow GPU to manage VAOs for mutiple context and threads.
  */
 
-#ifndef __GWN_CONTEXT_H__
-#define __GWN_CONTEXT_H__
+#ifndef __GPU_CONTEXT_H__
+#define __GPU_CONTEXT_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,16 +40,16 @@ extern "C" {
 #include "GPU_batch.h"
 #include "GPU_shader_interface.h"
 
-typedef struct Gwn_Context Gwn_Context;
+typedef struct GPUContext GPUContext;
 
-Gwn_Context* GWN_context_create(void);
-void GWN_context_discard(Gwn_Context*);
+GPUContext* GPU_context_create(void);
+void GPU_context_discard(GPUContext*);
 
-void GWN_context_active_set(Gwn_Context*);
-Gwn_Context* GWN_context_active_get(void);
+void GPU_context_active_set(GPUContext*);
+GPUContext* GPU_context_active_get(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_CONTEXT_H__ */
+#endif /* __GPU_CONTEXT_H__ */

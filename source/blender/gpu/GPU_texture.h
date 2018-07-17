@@ -41,7 +41,7 @@ extern "C" {
 struct Image;
 struct ImageUser;
 struct PreviewImage;
-struct Gwn_VertBuf;
+struct GPUVertBuf;
 
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
@@ -174,7 +174,7 @@ GPUTexture *GPU_texture_create_3D(
 GPUTexture *GPU_texture_create_cube(
         int w, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_from_vertbuf(
-        struct Gwn_VertBuf *vert);
+        struct GPUVertBuf *vert);
 GPUTexture *GPU_texture_create_buffer(
         GPUTextureFormat data_type, const uint buffer);
 

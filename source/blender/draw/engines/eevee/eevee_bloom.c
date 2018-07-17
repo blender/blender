@@ -196,7 +196,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 static DRWShadingGroup *eevee_create_bloom_pass(
         const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
 {
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	*pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 

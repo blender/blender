@@ -23,20 +23,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_attr_binding.h
+/** \file blender/gpu/GPU_attr_binding.h
  *  \ingroup gpu
  *
- * Gawain vertex attribute binding
+ * GPU vertex attribute binding
  */
 
-#ifndef __GWN_ATTR_BINDING_H__
-#define __GWN_ATTR_BINDING_H__
+#ifndef __GPU_ATTR_BINDING_H__
+#define __GPU_ATTR_BINDING_H__
 
 #include "GPU_common.h"
 
-typedef struct Gwn_AttrBinding {
+typedef struct GPUAttrBinding {
 	uint64_t loc_bits; /* store 4 bits for each of the 16 attribs */
 	uint16_t enabled_bits; /* 1 bit for each attrib */
-} Gwn_AttrBinding;
+} GPUAttrBinding;
 
-#endif /* __GWN_ATTR_BINDING_H__ */
+#endif /* __GPU_ATTR_BINDING_H__ */

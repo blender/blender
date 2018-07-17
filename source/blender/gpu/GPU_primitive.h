@@ -23,43 +23,43 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_primitive.h
+/** \file blender/gpu/GPU_primitive.h
  *  \ingroup gpu
  *
- * Gawain geometric primitives
+ * GPU geometric primitives
  */
 
-#ifndef __GWN_PRIMITIVE_H__
-#define __GWN_PRIMITIVE_H__
+#ifndef __GPU_PRIMITIVE_H__
+#define __GPU_PRIMITIVE_H__
 
 #include "GPU_common.h"
 
 typedef enum {
-	GWN_PRIM_POINTS,
-	GWN_PRIM_LINES,
-	GWN_PRIM_TRIS,
-	GWN_PRIM_LINE_STRIP,
-	GWN_PRIM_LINE_LOOP, /* GL has this, Vulkan does not */
-	GWN_PRIM_TRI_STRIP,
-	GWN_PRIM_TRI_FAN,
+	GPU_PRIM_POINTS,
+	GPU_PRIM_LINES,
+	GPU_PRIM_TRIS,
+	GPU_PRIM_LINE_STRIP,
+	GPU_PRIM_LINE_LOOP, /* GL has this, Vulkan does not */
+	GPU_PRIM_TRI_STRIP,
+	GPU_PRIM_TRI_FAN,
 
-	GWN_PRIM_LINES_ADJ,
-	GWN_PRIM_TRIS_ADJ,
-	GWN_PRIM_LINE_STRIP_ADJ,
+	GPU_PRIM_LINES_ADJ,
+	GPU_PRIM_TRIS_ADJ,
+	GPU_PRIM_LINE_STRIP_ADJ,
 
-	GWN_PRIM_NONE
-} Gwn_PrimType;
+	GPU_PRIM_NONE
+} GPUPrimType;
 
 /* what types of primitives does each shader expect? */
 typedef enum {
-	GWN_PRIM_CLASS_NONE    = 0,
-	GWN_PRIM_CLASS_POINT   = (1 << 0),
-	GWN_PRIM_CLASS_LINE    = (1 << 1),
-	GWN_PRIM_CLASS_SURFACE = (1 << 2),
-	GWN_PRIM_CLASS_ANY     = GWN_PRIM_CLASS_POINT | GWN_PRIM_CLASS_LINE | GWN_PRIM_CLASS_SURFACE
-} Gwn_PrimClass;
+	GPU_PRIM_CLASS_NONE    = 0,
+	GPU_PRIM_CLASS_POINT   = (1 << 0),
+	GPU_PRIM_CLASS_LINE    = (1 << 1),
+	GPU_PRIM_CLASS_SURFACE = (1 << 2),
+	GPU_PRIM_CLASS_ANY     = GPU_PRIM_CLASS_POINT | GPU_PRIM_CLASS_LINE | GPU_PRIM_CLASS_SURFACE
+} GPUPrimClass;
 
-Gwn_PrimClass GWN_primtype_class(Gwn_PrimType);
-bool GWN_primtype_belongs_to_class(Gwn_PrimType, Gwn_PrimClass);
+GPUPrimClass GPU_primtype_class(GPUPrimType);
+bool GPU_primtype_belongs_to_class(GPUPrimType, GPUPrimClass);
 
-#endif /* __GWN_PRIMITIVE_H__ */
+#endif /* __GPU_PRIMITIVE_H__ */

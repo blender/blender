@@ -382,10 +382,10 @@ static void blf_texture_draw(const unsigned char color[4], const float uv[2][2],
 {
 	/* Only one vertex per glyph, geometry shader expand it into a quad. */
 	/* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
-	copy_v4_fl4(GWN_vertbuf_raw_step(&g_batch.pos_step), x1 + g_batch.ofs[0], y1 + g_batch.ofs[1],
+	copy_v4_fl4(GPU_vertbuf_raw_step(&g_batch.pos_step), x1 + g_batch.ofs[0], y1 + g_batch.ofs[1],
 	                                                     x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
-	copy_v4_v4(GWN_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
-	copy_v4_v4_uchar(GWN_vertbuf_raw_step(&g_batch.col_step), color);
+	copy_v4_v4(GPU_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
+	copy_v4_v4_uchar(GPU_vertbuf_raw_step(&g_batch.col_step), color);
 	g_batch.glyph_len++;
 	/* Flush cache if it's full. */
 	if (g_batch.glyph_len == BLF_BATCH_DRAW_LEN_MAX) {

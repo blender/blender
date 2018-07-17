@@ -35,7 +35,7 @@ struct GPUShader {
 	GLuint geometry; /* handle for geometry shader */
 	GLuint fragment; /* handle for fragment shader */
 
-	Gwn_ShaderInterface *interface; /* cached uniform & attrib interface for shader */
+	GPUShaderInterface *interface; /* cached uniform & attrib interface for shader */
 
 	int feedback_transform_type;
 };

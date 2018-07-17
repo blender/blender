@@ -87,49 +87,49 @@ static int curve_render_surface_tri_len_get(const ListBase *lb)
 	return tri_len;
 }
 
-static void displist_indexbufbuilder_set(Gwn_IndexBufBuilder *elb, const DispList *dl, const int ofs)
+static void displist_indexbufbuilder_set(GPUIndexBufBuilder *elb, const DispList *dl, const int ofs)
 {
 	if (ELEM(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)) {
 		const int *idx = dl->index;
 		if (dl->type == DL_INDEX3) {
 			const int i_end = dl->parts;
 			for (int i = 0; i < i_end; i++, idx += 3) {
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
+				GPU_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
 			}
 		}
 		else if (dl->type == DL_SURF) {
 			const int i_end = dl->totindex;
 			for (int i = 0; i < i_end; i++, idx += 4) {
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[3] + ofs, idx[2] + ofs);
+				GPU_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[1] + ofs);
+				GPU_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[3] + ofs, idx[2] + ofs);
 			}
 		}
 		else {
 			BLI_assert(dl->type == DL_INDEX4);
 			const int i_end = dl->parts;
 			for (int i = 0; i < i_end; i++, idx += 4) {
-				GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
+				GPU_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[1] + ofs, idx[2] + ofs);
 
 				if (idx[2] != idx[3]) {
-					GWN_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
+					GPU_indexbuf_add_tri_verts(elb, idx[0] + ofs, idx[2] + ofs, idx[3] + ofs);
 				}
 			}
 		}
 	}
 }
 
-Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
+GPUVertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 {
-	static Gwn_VertFormat format = { 0 };
+	static GPUVertFormat format = { 0 };
 	static struct { uint pos, nor; } attr_id;
 	if (format.attr_len == 0) {
 		/* initialize vertex format */
-		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-		attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.nor = GPU_vertformat_attr_add(&format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 	}
 
-	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(vbo, curve_render_surface_vert_len_get(lb));
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, curve_render_surface_vert_len_get(lb));
 
 	BKE_displist_normals_add(lb);
 
@@ -141,9 +141,9 @@ Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 			const float *fp_no = dl->nors;
 			const int vbo_end = vbo_len_used + dl_vert_len(dl);
 			while (vbo_len_used < vbo_end) {
-				GWN_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, fp_co);
 				if (fp_no) {
-					GWN_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, fp_no);
+					GPU_vertbuf_attr_set(vbo, attr_id.nor, vbo_len_used, fp_no);
 					if (ndata_is_single == false) {
 						fp_no += 3;
 					}
@@ -157,13 +157,13 @@ Gwn_VertBuf *DRW_displist_vertbuf_calc_pos_with_normals(ListBase *lb)
 	return vbo;
 }
 
-Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
+GPUIndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 {
 	const int tri_len = curve_render_surface_tri_len_get(lb);
 	const int vert_len = curve_render_surface_vert_len_get(lb);
 
-	Gwn_IndexBufBuilder elb;
-	GWN_indexbuf_init(&elb, GWN_PRIM_TRIS, tri_len, vert_len);
+	GPUIndexBufBuilder elb;
+	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, tri_len, vert_len);
 
 	int ofs = 0;
 	for (const DispList *dl = lb->first; dl; dl = dl->next) {
@@ -171,14 +171,14 @@ Gwn_IndexBuf *DRW_displist_indexbuf_calc_triangles_in_order(ListBase *lb)
 		ofs += dl_vert_len(dl);
 	}
 
-	return GWN_indexbuf_build(&elb);
+	return GPU_indexbuf_build(&elb);
 }
 
-Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
+GPUIndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(ListBase *lb, uint gpumat_array_len)
 {
-	Gwn_IndexBuf **shaded_triangles_in_order = MEM_callocN(
+	GPUIndexBuf **shaded_triangles_in_order = MEM_callocN(
 	        sizeof(*shaded_triangles_in_order) * gpumat_array_len, __func__);
-	Gwn_IndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
+	GPUIndexBufBuilder *elb = BLI_array_alloca(elb, gpumat_array_len);
 
 	const int tri_len = curve_render_surface_tri_len_get(lb);
 	const int vert_len = curve_render_surface_vert_len_get(lb);
@@ -186,7 +186,7 @@ Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(L
 
 	/* Init each index buffer builder */
 	for (i = 0; i < gpumat_array_len; i++) {
-		GWN_indexbuf_init(&elb[i], GWN_PRIM_TRIS, tri_len, vert_len);
+		GPU_indexbuf_init(&elb[i], GPU_PRIM_TRIS, tri_len, vert_len);
 	}
 
 	/* calc each index buffer builder */
@@ -198,56 +198,56 @@ Gwn_IndexBuf **DRW_displist_indexbuf_calc_triangles_in_order_split_by_material(L
 
 	/* build each indexbuf */
 	for (i = 0; i < gpumat_array_len; i++) {
-		shaded_triangles_in_order[i] = GWN_indexbuf_build(&elb[i]);
+		shaded_triangles_in_order[i] = GPU_indexbuf_build(&elb[i]);
 	}
 
 	return shaded_triangles_in_order;
 }
 
 static void displist_vertbuf_attr_set_tri_pos_normals_and_uv(
-        Gwn_VertBufRaw *pos_step, Gwn_VertBufRaw *nor_step, Gwn_VertBufRaw *uv_step,
+        GPUVertBufRaw *pos_step, GPUVertBufRaw *nor_step, GPUVertBufRaw *uv_step,
         const float v1[3], const float v2[3], const float v3[3],
         const float n1[3], const float n2[3], const float n3[3],
         const float uv1[2], const float uv2[2], const float uv3[2])
 {
-	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v1);
-	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n1);
-	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv1);
+	copy_v3_v3(GPU_vertbuf_raw_step(pos_step), v1);
+	copy_v3_v3(GPU_vertbuf_raw_step(nor_step), n1);
+	copy_v2_v2(GPU_vertbuf_raw_step(uv_step), uv1);
 
-	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v2);
-	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n2);
-	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv2);
+	copy_v3_v3(GPU_vertbuf_raw_step(pos_step), v2);
+	copy_v3_v3(GPU_vertbuf_raw_step(nor_step), n2);
+	copy_v2_v2(GPU_vertbuf_raw_step(uv_step), uv2);
 
-	copy_v3_v3(GWN_vertbuf_raw_step(pos_step), v3);
-	copy_v3_v3(GWN_vertbuf_raw_step(nor_step), n3);
-	copy_v2_v2(GWN_vertbuf_raw_step(uv_step), uv3);
+	copy_v3_v3(GPU_vertbuf_raw_step(pos_step), v3);
+	copy_v3_v3(GPU_vertbuf_raw_step(nor_step), n3);
+	copy_v2_v2(GPU_vertbuf_raw_step(uv_step), uv3);
 }
 
-Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(ListBase *lb, uint gpumat_array_len)
+GPUBatch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(ListBase *lb, uint gpumat_array_len)
 {
-	static Gwn_VertFormat shaded_triangles_format = { 0 };
+	static GPUVertFormat shaded_triangles_format = { 0 };
 	static struct { uint pos, nor, uv; } attr_id;
 
 	if (shaded_triangles_format.attr_len == 0) {
 		/* initialize vertex format */
-		attr_id.pos = GWN_vertformat_attr_add(&shaded_triangles_format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-		attr_id.nor = GWN_vertformat_attr_add(&shaded_triangles_format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-		attr_id.uv = GWN_vertformat_attr_add(&shaded_triangles_format, "u", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		attr_id.pos = GPU_vertformat_attr_add(&shaded_triangles_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.nor = GPU_vertformat_attr_add(&shaded_triangles_format, "nor", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		attr_id.uv = GPU_vertformat_attr_add(&shaded_triangles_format, "u", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	}
 
-	Gwn_Batch **shaded_triangles = MEM_mallocN(sizeof(*shaded_triangles) * gpumat_array_len, __func__);
+	GPUBatch **shaded_triangles = MEM_mallocN(sizeof(*shaded_triangles) * gpumat_array_len, __func__);
 
-	Gwn_VertBuf **vbo = BLI_array_alloca(vbo, gpumat_array_len);
+	GPUVertBuf **vbo = BLI_array_alloca(vbo, gpumat_array_len);
 	uint *vbo_len_capacity = BLI_array_alloca(vbo_len_capacity, gpumat_array_len);
 
-	Gwn_VertBufRaw *pos_step, *nor_step, *uv_step;
+	GPUVertBufRaw *pos_step, *nor_step, *uv_step;
 	pos_step = BLI_array_alloca(pos_step, gpumat_array_len);
 	nor_step = BLI_array_alloca(nor_step, gpumat_array_len);
 	uv_step = BLI_array_alloca(uv_step, gpumat_array_len);
 
 	/* Create each vertex buffer */
 	for (int i = 0; i < gpumat_array_len; i++) {
-		vbo[i] = GWN_vertbuf_create_with_format(&shaded_triangles_format);
+		vbo[i] = GPU_vertbuf_create_with_format(&shaded_triangles_format);
 		vbo_len_capacity[i] = 0;
 	}
 
@@ -258,10 +258,10 @@ Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(Lis
 
 	/* Alloc each vertex buffer and get each raw data */
 	for (int i = 0; i < gpumat_array_len; i++) {
-		GWN_vertbuf_data_alloc(vbo[i], vbo_len_capacity[i]);
-		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.pos, &pos_step[i]);
-		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.nor, &nor_step[i]);
-		GWN_vertbuf_attr_get_raw_data(vbo[i], attr_id.uv, &uv_step[i]);
+		GPU_vertbuf_data_alloc(vbo[i], vbo_len_capacity[i]);
+		GPU_vertbuf_attr_get_raw_data(vbo[i], attr_id.pos, &pos_step[i]);
+		GPU_vertbuf_attr_get_raw_data(vbo[i], attr_id.nor, &nor_step[i]);
+		GPU_vertbuf_attr_get_raw_data(vbo[i], attr_id.uv, &uv_step[i]);
 	}
 
 	BKE_displist_normals_add(lb);
@@ -388,11 +388,11 @@ Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(Lis
 	}
 
 	for (int i = 0; i < gpumat_array_len; i++) {
-		uint vbo_len_used = GWN_vertbuf_raw_used(&pos_step[i]);
+		uint vbo_len_used = GPU_vertbuf_raw_used(&pos_step[i]);
 		if (vbo_len_capacity[i] != vbo_len_used) {
-			GWN_vertbuf_data_resize(vbo[i], vbo_len_used);
+			GPU_vertbuf_data_resize(vbo[i], vbo_len_used);
 		}
-		shaded_triangles[i] = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo[i], NULL, GWN_BATCH_OWNS_VBO);
+		shaded_triangles[i] = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo[i], NULL, GPU_BATCH_OWNS_VBO);
 	}
 
 	return shaded_triangles;

@@ -387,9 +387,9 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		float color[3];
 		UI_GetThemeColor3fv(TH_WIRE, color);
 
-		Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
-		GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
-		GWN_batch_uniform_3fv(sphere, "color", color);
+		GPUBatch *sphere = GPU_batch_preset_sphere(0);
+		GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+		GPU_batch_uniform_3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */
 		GPU_matrix_push();
@@ -407,7 +407,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 			GPU_matrix_push();
 			GPU_matrix_scale_1f(radius);
-			GWN_batch_draw(sphere);
+			GPU_batch_draw(sphere);
 			GPU_matrix_pop();
 
 			location_prev = selem->location_local;
@@ -430,8 +430,8 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		}
 
 		{
-			Gwn_VertFormat *format = immVertexFormat();
-			uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 			GPU_depth_test(false);
@@ -440,7 +440,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			GPU_line_width(3.0f);
 
 			imm_cpack(0x0);
-			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
+			immBegin(GPU_PRIM_LINE_STRIP, stroke_len);
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}
@@ -449,7 +449,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 			GPU_line_width(1.0f);
 
 			imm_cpack(0xffffffff);
-			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
+			immBegin(GPU_PRIM_LINE_STRIP, stroke_len);
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}

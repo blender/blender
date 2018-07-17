@@ -90,7 +90,7 @@ static void gizmo_arrow_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4]
 
 static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const float color[4])
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 	bool unbind_shader = true;
 	const int draw_style = RNA_enum_get(arrow->gizmo.ptr, "draw_style");
 	const int draw_options = RNA_enum_get(arrow->gizmo.ptr, "draw_options");
@@ -100,7 +100,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 	if (draw_style == ED_GIZMO_ARROW_STYLE_CROSS) {
 		immUniformColor4fv(color);
 
-		immBegin(GWN_PRIM_LINES, 4);
+		immBegin(GPU_PRIM_LINES, 4);
 		immVertex3f(pos, -1.0f,  0.0f, 0.0f);
 		immVertex3f(pos,  1.0f,  0.0f, 0.0f);
 		immVertex3f(pos,  0.0f, -1.0f, 0.0f);
@@ -120,7 +120,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 		};
 
 		GPU_line_width(arrow->gizmo.line_width);
-		wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_LOOP);
+		wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_LOOP);
 	}
 	else {
 #ifdef USE_GIZMO_CUSTOM_ARROWS
@@ -135,7 +135,7 @@ static void arrow_draw_geom(const ArrowGizmo3D *arrow, const bool select, const 
 
 		if (draw_options & ED_GIZMO_ARROW_DRAW_FLAG_STEM) {
 			GPU_line_width(arrow->gizmo.line_width);
-			wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GWN_PRIM_LINE_STRIP);
+			wm_gizmo_vec_draw(color, vec, ARRAY_SIZE(vec), pos, GPU_PRIM_LINE_STRIP);
 		}
 		else {
 			immUniformColor4fv(color);

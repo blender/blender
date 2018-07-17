@@ -92,7 +92,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 
 	GPU_matrix_translate_2fv(cursor);
 
-	const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -104,7 +104,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 0.0f, 0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 8.0f);
 
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GPU_PRIM_LINES, 8);
 
 	immVertex2f(shdr_pos, -0.05f * x_fac, 0.0f);
 	immVertex2f(shdr_pos, 0.0f, 0.05f * y_fac);
@@ -123,7 +123,7 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	immUniformArray4fv("colors", (float *)(float[][4]){{1.0f, 1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 1.0f}}, 2);
 	immUniform1f("dash_width", 2.0f);
 
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GPU_PRIM_LINES, 8);
 
 	immVertex2f(shdr_pos, -0.020f * x_fac, 0.0f);
 	immVertex2f(shdr_pos, -0.1f * x_fac, 0.0f);
@@ -168,7 +168,7 @@ static void draw_uvs_shadow(Object *obedit)
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -229,7 +229,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 				}
 			}
 
-			uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -241,7 +241,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 
 				BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
-						immBegin(GWN_PRIM_TRI_FAN, efa->len);
+						immBegin(GPU_PRIM_TRI_FAN, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -281,7 +281,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 						immUniformColor3fv(col);
 
 						/* TODO: use editmesh tessface */
-						immBegin(GWN_PRIM_TRI_FAN, efa->len);
+						immBegin(GPU_PRIM_TRI_FAN, efa->len);
 
 						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
@@ -308,9 +308,9 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 
 			col[3] = 0.5f; /* hard coded alpha, not that nice */
 
-			Gwn_VertFormat *format = immVertexFormat();
-			uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			uint color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+			uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
@@ -353,7 +353,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BME
 					}
 
 					/* TODO: use editmesh tessface */
-					immBegin(GWN_PRIM_TRI_FAN, efa->len);
+					immBegin(GPU_PRIM_TRI_FAN, efa->len);
 					BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 						a = fabsf(uvang[i] - ang[i]) / (float)M_PI;
@@ -393,7 +393,7 @@ static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, co
 	MLoopUV *luv;
 
 	/* For more efficiency first transfer the entire buffer to vram. */
-	Gwn_Batch *loop_batch = immBeginBatchAtMost(GWN_PRIM_LINE_LOOP, bm->totloop);
+	GPUBatch *loop_batch = immBeginBatchAtMost(GPU_PRIM_LINE_LOOP, bm->totloop);
 
 	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -407,17 +407,17 @@ static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, co
 	immEnd();
 
 	/* Then draw each face contour separately. */
-	GWN_batch_program_use_begin(loop_batch);
+	GPU_batch_program_use_begin(loop_batch);
 	unsigned int index = 0;
 	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
 
-		GWN_batch_draw_range_ex(loop_batch, index, efa->len, false);
+		GPU_batch_draw_range_ex(loop_batch, index, efa->len, false);
 		index += efa->len;
 	}
-	GWN_batch_program_use_end(loop_batch);
-	GWN_batch_discard(loop_batch);
+	GPU_batch_program_use_end(loop_batch);
+	GPU_batch_discard(loop_batch);
 }
 
 static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
@@ -425,7 +425,7 @@ static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
 	MLoopUV *mloopuv;
 	int i;
 
-	immBegin(GWN_PRIM_LINE_LOOP, mpoly->totloop);
+	immBegin(GPU_PRIM_LINE_LOOP, mpoly->totloop);
 
 	mloopuv = &me->mloopuv[mpoly->loopstart];
 	for (i = mpoly->totloop; i != 0; i--, mloopuv++) {
@@ -495,7 +495,7 @@ static void draw_uvs_other_mesh(Object *ob, const Image *curimage,
 static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *curimage,
                            const int other_uv_filter)
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -536,7 +536,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *view_la
 			mloopuv = me->mloopuv;
 		}
 
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -548,7 +548,7 @@ static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *view_la
 			if ((scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE) && mpoly->mat_nr != ob->actcol - 1)
 				continue;
 
-			immBegin(GWN_PRIM_LINE_LOOP, mpoly->totloop);
+			immBegin(GPU_PRIM_LINE_LOOP, mpoly->totloop);
 
 			mloopuv = mloopuv_base + mpoly->loopstart;
 			for (b = 0; b < mpoly->totloop; b++, mloopuv++) {
@@ -658,13 +658,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 			GPU_blend(true);
 
-			Gwn_VertFormat *format = immVertexFormat();
-			pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			GPUVertFormat *format = immVertexFormat();
+			pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+			color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-			Gwn_Batch *face_batch = immBeginBatch(GWN_PRIM_TRIS, tri_count * 3);
+			GPUBatch *face_batch = immBeginBatch(GPU_PRIM_TRIS, tri_count * 3);
 			for (unsigned int i = 0; i < em->tottri; i++) {
 				efa = em->looptris[i][0]->f;
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
@@ -686,9 +686,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			immEnd();
 
 			/* XXX performance: we should not create and throw away result. */
-			GWN_batch_draw(face_batch);
-			GWN_batch_program_use_end(face_batch);
-			GWN_batch_discard(face_batch);
+			GPU_batch_draw(face_batch);
+			GPU_batch_program_use_end(face_batch);
+			GPU_batch_discard(face_batch);
 
 			immUnbindProgram();
 
@@ -712,7 +712,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 
-	pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	switch (sima->dt_uv) {
 		case SI_UVDT_DASH:
@@ -751,8 +751,8 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	}
 
 	/* For more efficiency first transfer the entire buffer to vram. */
-	Gwn_Batch *loop_batch = immBeginBatchAtMost(GWN_PRIM_LINE_LOOP, bm->totloop);
-	Gwn_VertBuf *loop_vbo = loop_batch->verts[0];
+	GPUBatch *loop_batch = immBeginBatchAtMost(GPU_PRIM_LINE_LOOP, bm->totloop);
+	GPUVertBuf *loop_vbo = loop_batch->verts[0];
 	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;
@@ -766,17 +766,17 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 	/* Then draw each face contour separately. */
 	if (loop_vbo->vertex_len != 0) {
-		GWN_batch_program_use_begin(loop_batch);
+		GPU_batch_program_use_begin(loop_batch);
 		unsigned int index = 0, loop_vbo_count;
 		BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			GWN_batch_draw_range_ex(loop_batch, index, efa->len, false);
+			GPU_batch_draw_range_ex(loop_batch, index, efa->len, false);
 			index += efa->len;
 		}
 		loop_vbo_count = index;
-		GWN_batch_program_use_end(loop_batch);
+		GPU_batch_program_use_end(loop_batch);
 		immUnbindProgram();
 
 
@@ -790,14 +790,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 				if (interpedges) {
 					/* Create a color buffer. */
-					static Gwn_VertFormat format = { 0 };
+					static GPUVertFormat format = { 0 };
 					static uint shdr_col;
 					if (format.attr_len == 0) {
-						shdr_col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+						shdr_col = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 					}
 
-					Gwn_VertBuf *vbo_col = GWN_vertbuf_create_with_format(&format);
-					GWN_vertbuf_data_alloc(vbo_col, loop_vbo_count);
+					GPUVertBuf *vbo_col = GPU_vertbuf_create_with_format(&format);
+					GPU_vertbuf_data_alloc(vbo_col, loop_vbo_count);
 
 					index = 0;
 					BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
@@ -806,36 +806,36 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 						BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
 							sel = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
-							GWN_vertbuf_attr_set(vbo_col, shdr_col, index++, sel ? col1 : col2);
+							GPU_vertbuf_attr_set(vbo_col, shdr_col, index++, sel ? col1 : col2);
 						}
 					}
 					/* Reuse the UV buffer and add the color buffer. */
-					GWN_batch_vertbuf_add_ex(loop_batch, vbo_col, true);
+					GPU_batch_vertbuf_add_ex(loop_batch, vbo_col, true);
 
 					/* Now draw each face contour separately with another builtin program. */
-					GWN_batch_program_set_builtin(loop_batch, GPU_SHADER_2D_SMOOTH_COLOR);
+					GPU_batch_program_set_builtin(loop_batch, GPU_SHADER_2D_SMOOTH_COLOR);
 					GPU_matrix_bind(loop_batch->interface);
 
-					GWN_batch_program_use_begin(loop_batch);
+					GPU_batch_program_use_begin(loop_batch);
 					index = 0;
 					BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 						if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 							continue;
 
-						GWN_batch_draw_range_ex(loop_batch, index, efa->len, false);
+						GPU_batch_draw_range_ex(loop_batch, index, efa->len, false);
 						index += efa->len;
 					}
-					GWN_batch_program_use_end(loop_batch);
+					GPU_batch_program_use_end(loop_batch);
 				}
 				else {
-					Gwn_VertFormat *format = immVertexFormat();
-					pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-					color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+					GPUVertFormat *format = immVertexFormat();
+					pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+					color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 					immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 					/* Use batch here to avoid problems with `IMM_BUFFER_SIZE`. */
-					Gwn_Batch *flat_edges_batch = immBeginBatchAtMost(GWN_PRIM_LINES, loop_vbo_count * 2);
+					GPUBatch *flat_edges_batch = immBeginBatchAtMost(GPU_PRIM_LINES, loop_vbo_count * 2);
 					BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 						if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 							continue;
@@ -852,27 +852,27 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 					}
 					immEnd();
 
-					GWN_batch_draw(flat_edges_batch);
-					GWN_batch_discard(flat_edges_batch);
+					GPU_batch_draw(flat_edges_batch);
+					GPU_batch_discard(flat_edges_batch);
 
 					immUnbindProgram();
 				}
 			}
 			else {
-				GWN_batch_uniform_4fv(loop_batch, "color", col2);
+				GPU_batch_uniform_4fv(loop_batch, "color", col2);
 				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 				/* no nice edges */
-				GWN_batch_program_use_begin(loop_batch);
+				GPU_batch_program_use_begin(loop_batch);
 				index = 0;
 				BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 					if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 						continue;
 
-					GWN_batch_draw_range_ex(loop_batch, index, efa->len, false);
+					GPU_batch_draw_range_ex(loop_batch, index, efa->len, false);
 					index += efa->len;
 				}
-				GWN_batch_program_use_end(loop_batch);
+				GPU_batch_program_use_end(loop_batch);
 				immUnbindProgram();
 			}
 		}
@@ -881,7 +881,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		immUnbindProgram();
 	}
 
-	GWN_batch_discard(loop_batch);
+	GPU_batch_discard(loop_batch);
 
 	if (sima->flag & SI_SMOOTH_UV) {
 		GPU_line_smooth(false);
@@ -894,16 +894,16 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		float cent[2];
 		bool col_set = false;
 
-		Gwn_VertFormat *format = immVertexFormat();
-		pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 		pointsize = UI_GetThemeValuef(TH_FACEDOT_SIZE);
 		GPU_point_size(pointsize);
 
-		immBeginAtMost(GWN_PRIM_POINTS, bm->totface);
+		immBeginAtMost(GPU_PRIM_POINTS, bm->totface);
 
 		/* unselected faces */
 
@@ -955,7 +955,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	/* 6. draw uv vertices */
 
 	if (drawfaces != 2) { /* 2 means Mesh Face Mode */
-		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -964,7 +964,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		pointsize = UI_GetThemeValuef(TH_VERTEX_SIZE);
 		GPU_point_size(pointsize);
 
-		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
+		immBeginAtMost(GPU_PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -984,7 +984,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		GPU_point_size(pointsize * 2 + (((int)pointsize % 2) ? (-1) : 0));
 		imm_cpack(0xFF);
 
-		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
+		immBeginAtMost(GPU_PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
@@ -1004,7 +1004,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		immUniformThemeColor(TH_VERTEX_SELECT);
 		GPU_point_size(pointsize);
 
-		immBeginAtMost(GWN_PRIM_POINTS, bm->totloop);
+		immBeginAtMost(GPU_PRIM_POINTS, bm->totloop);
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))

@@ -136,12 +136,12 @@ static void gizmo_rect_pivot_from_scale_part(int part, float r_pt[2], bool r_con
 static void cage2d_draw_box_corners(
         const rctf *r, const float margin[2], const float color[3])
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
 
-	immBegin(GWN_PRIM_LINES, 16);
+	immBegin(GPU_PRIM_LINES, 16);
 
 	immVertex2f(pos, r->xmin, r->ymin + margin[1]);
 	immVertex2f(pos, r->xmin, r->ymin);
@@ -176,7 +176,7 @@ static void cage2d_draw_box_interaction(
 	/* 4 verts for translate, otherwise only 3 are used. */
 	float verts[4][2];
 	uint verts_len = 0;
-	Gwn_PrimType prim_type = GWN_PRIM_NONE;
+	GPUPrimType prim_type = GPU_PRIM_NONE;
 
 	switch (highlighted) {
 		case ED_GIZMO_CAGE2D_PART_SCALE_MIN_X:
@@ -192,10 +192,10 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
 				verts_len += 2;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -212,10 +212,10 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmin, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 2;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -232,10 +232,10 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymax);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
 				verts_len += 2;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -252,10 +252,10 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[2], r.xmax, r.ymin);
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 2;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -272,10 +272,10 @@ static void cage2d_draw_box_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymin);
 				verts_len += 1;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -292,10 +292,10 @@ static void cage2d_draw_box_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmin, r.ymax);
 				verts_len += 1;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -312,10 +312,10 @@ static void cage2d_draw_box_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymin);
 				verts_len += 1;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -332,10 +332,10 @@ static void cage2d_draw_box_interaction(
 			if (is_solid) {
 				ARRAY_SET_ITEMS(verts[3], r.xmax, r.ymax);
 				verts_len += 1;
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -355,10 +355,10 @@ static void cage2d_draw_box_interaction(
 			ARRAY_SET_ITEMS(verts[3], r_rotate.xmax, r_rotate.ymin);
 			verts_len = 4;
 			if (is_solid) {
-				prim_type = GWN_PRIM_TRI_FAN;
+				prim_type = GPU_PRIM_TRI_FAN;
 			}
 			else {
-				prim_type = GWN_PRIM_LINE_STRIP;
+				prim_type = GPU_PRIM_LINE_STRIP;
 			}
 			break;
 		}
@@ -371,10 +371,10 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[3],  margin[0] / 2, -margin[1] / 2);
 				verts_len = 4;
 				if (is_solid) {
-					prim_type = GWN_PRIM_TRI_FAN;
+					prim_type = GPU_PRIM_TRI_FAN;
 				}
 				else {
-					prim_type = GWN_PRIM_LINES;
+					prim_type = GPU_PRIM_LINES;
 				}
 			}
 			else {
@@ -385,12 +385,12 @@ static void cage2d_draw_box_interaction(
 				ARRAY_SET_ITEMS(verts[3], size[0],  -size[1]);
 				verts_len = 4;
 				if (is_solid) {
-					prim_type = GWN_PRIM_TRI_FAN;
+					prim_type = GPU_PRIM_TRI_FAN;
 				}
 				else {
 					/* unreachable */
 					BLI_assert(0);
-					prim_type = GWN_PRIM_LINE_STRIP;
+					prim_type = GPU_PRIM_LINE_STRIP;
 				}
 			}
 			break;
@@ -398,20 +398,20 @@ static void cage2d_draw_box_interaction(
 			return;
 	}
 
-	BLI_assert(prim_type != GWN_PRIM_NONE);
+	BLI_assert(prim_type != GPU_PRIM_NONE);
 
-	Gwn_VertFormat *format = immVertexFormat();
+	GPUVertFormat *format = immVertexFormat();
 	struct {
 		uint pos, col;
 	} attr_id = {
-		.pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT),
-		.col = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT),
+		.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT),
+		.col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
 	};
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
 	{
 		if (is_solid) {
-			BLI_assert(ELEM(prim_type, GWN_PRIM_TRI_FAN));
+			BLI_assert(ELEM(prim_type, GPU_PRIM_TRI_FAN));
 			immBegin(prim_type, verts_len);
 			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 			for (uint i = 0; i < verts_len; i++) {
@@ -420,7 +420,7 @@ static void cage2d_draw_box_interaction(
 			immEnd();
 		}
 		else {
-			BLI_assert(ELEM(prim_type, GWN_PRIM_LINE_STRIP, GWN_PRIM_LINES));
+			BLI_assert(ELEM(prim_type, GPU_PRIM_LINE_STRIP, GPU_PRIM_LINES));
 			GPU_line_width(line_width + 3.0f);
 
 			immBegin(prim_type, verts_len);
@@ -455,7 +455,7 @@ static void cage2d_draw_box_interaction(
 static void imm_draw_point_aspect_2d(
         uint pos, float x, float y, float rad_x, float rad_y, bool solid)
 {
-	immBegin(solid ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_LOOP, 4);
+	immBegin(solid ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, x - rad_x, y - rad_y);
 	immVertex2f(pos, x - rad_x, y + rad_y);
 	immVertex2f(pos, x + rad_x, y + rad_y);
@@ -467,12 +467,12 @@ static void cage2d_draw_circle_wire(
         const rctf *r, const float margin[2], const float color[3],
         const int transform_flag, const int draw_options)
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fv(color);
 
-	immBegin(GWN_PRIM_LINE_LOOP, 4);
+	immBegin(GPU_PRIM_LINE_LOOP, 4);
 	immVertex2f(pos, r->xmin, r->ymin);
 	immVertex2f(pos, r->xmax, r->ymin);
 	immVertex2f(pos, r->xmax, r->ymax);
@@ -480,7 +480,7 @@ static void cage2d_draw_circle_wire(
 	immEnd();
 
 	if (transform_flag & ED_GIZMO_CAGE2D_XFORM_FLAG_ROTATE) {
-		immBegin(GWN_PRIM_LINE_LOOP, 2);
+		immBegin(GPU_PRIM_LINE_LOOP, 2);
 		immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax);
 		immVertex2f(pos, BLI_rctf_cent_x(r), r->ymax + margin[1]);
 		immEnd();
@@ -491,7 +491,7 @@ static void cage2d_draw_circle_wire(
 			const float rad[2] = {margin[0] / 2, margin[1] / 2};
 			const float center[2] = {BLI_rctf_cent_x(r), BLI_rctf_cent_y(r)};
 
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 			immVertex2f(pos, center[0] - rad[0], center[1] - rad[1]);
 			immVertex2f(pos, center[0] + rad[0], center[1] + rad[1]);
 			immVertex2f(pos, center[0] + rad[0], center[1] - rad[1]);
@@ -508,7 +508,7 @@ static void cage2d_draw_circle_handles(
         const int transform_flag,
         bool solid)
 {
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	void (*circle_fn)(uint, float, float, float, float, int) =
 	        (solid) ? imm_draw_circle_fill_aspect_2d : imm_draw_circle_wire_aspect_2d;
 	const int resolu = 12;
@@ -560,7 +560,7 @@ static void gizmo_cage2d_draw_intern(
 	/* Handy for quick testing draw (if it's outside bounds). */
 	if (false) {
 		GPU_blend(true);
-		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4fv((const float[4]){1, 1, 1, 0.5f});
 		float s = 0.5f;

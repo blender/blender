@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_vertex_array_id.h
+/** \file blender/gpu/GPU_vertex_array_id.h
  *  \ingroup gpu
  *
  * Manage GL vertex array IDs in a thread-safe way
@@ -34,8 +34,8 @@
  * - free can be called from any thread
  */
 
-#ifndef __GWN_VERTEX_ARRAY_ID_H__
-#define __GWN_VERTEX_ARRAY_ID_H__
+#ifndef __GPU_VERTEX_ARRAY_ID_H__
+#define __GPU_VERTEX_ARRAY_ID_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,12 +44,12 @@ extern "C" {
 #include "GPU_common.h"
 #include "GPU_context.h"
 
-GLuint GWN_vao_default(void);
-GLuint GWN_vao_alloc(void);
-void GWN_vao_free(GLuint vao_id, Gwn_Context*);
+GLuint GPU_vao_default(void);
+GLuint GPU_vao_alloc(void);
+void GPU_vao_free(GLuint vao_id, GPUContext*);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_VERTEX_ARRAY_ID_H__ */
+#endif /* __GPU_VERTEX_ARRAY_ID_H__ */

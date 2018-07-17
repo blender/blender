@@ -91,31 +91,31 @@ static SpinLock ft_lib_mutex;
  **/
 static void blf_batch_draw_init(void)
 {
-	Gwn_VertFormat format = {0};
-	g_batch.pos_loc = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
-	g_batch.tex_loc = GWN_vertformat_attr_add(&format, "tex", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
-	g_batch.col_loc = GWN_vertformat_attr_add(&format, "col", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat format = {0};
+	g_batch.pos_loc = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+	g_batch.tex_loc = GPU_vertformat_attr_add(&format, "tex", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
+	g_batch.col_loc = GPU_vertformat_attr_add(&format, "col", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
-	g_batch.verts = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STREAM);
-	GWN_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
+	g_batch.verts = GPU_vertbuf_create_with_format_ex(&format, GPU_USAGE_STREAM);
+	GPU_vertbuf_data_alloc(g_batch.verts, BLF_BATCH_DRAW_LEN_MAX);
 
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
 	g_batch.glyph_len = 0;
 
-	g_batch.batch = GWN_batch_create_ex(GWN_PRIM_POINTS, g_batch.verts, NULL, GWN_BATCH_OWNS_VBO);
+	g_batch.batch = GPU_batch_create_ex(GPU_PRIM_POINTS, g_batch.verts, NULL, GPU_BATCH_OWNS_VBO);
 }
 
 static void blf_batch_draw_exit(void)
 {
-	GWN_BATCH_DISCARD_SAFE(g_batch.batch);
+	GPU_BATCH_DISCARD_SAFE(g_batch.batch);
 }
 
 void blf_batch_draw_vao_clear(void)
 {
 	if (g_batch.batch) {
-		gwn_batch_vao_cache_clear(g_batch.batch);
+		GPU_batch_vao_cache_clear(g_batch.batch);
 	}
 }
 
@@ -190,20 +190,20 @@ void blf_batch_draw(void)
 	UI_widgetbase_draw_cache_flush();
 
 	GPU_texture_bind(g_batch.tex_bind_state, 0);
-	GWN_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_len);
-	GWN_vertbuf_use(g_batch.verts); /* send data */
+	GPU_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_len);
+	GPU_vertbuf_use(g_batch.verts); /* send data */
 
 	GPUBuiltinShader shader = (g_batch.simple_shader) ? GPU_SHADER_TEXT_SIMPLE : GPU_SHADER_TEXT;
-	GWN_batch_program_set_builtin(g_batch.batch, shader);
-	GWN_batch_uniform_1i(g_batch.batch, "glyph", 0);
-	GWN_batch_draw(g_batch.batch);
+	GPU_batch_program_set_builtin(g_batch.batch, shader);
+	GPU_batch_uniform_1i(g_batch.batch, "glyph", 0);
+	GPU_batch_draw(g_batch.batch);
 
 	GPU_blend(false);
 
 	/* restart to 1st vertex data pointers */
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
+	GPU_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
 	g_batch.glyph_len = 0;
 }
 

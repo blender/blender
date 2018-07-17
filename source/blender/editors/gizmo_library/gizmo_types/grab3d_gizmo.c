@@ -105,8 +105,8 @@ static void grab_geom_draw(
 
 	GPU_line_width(gz->line_width);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -121,7 +121,7 @@ static void grab_geom_draw(
 		}
 	}
 	else if (draw_style == ED_GIZMO_GRAB_STYLE_CROSS_2D) {
-		immBegin(GWN_PRIM_LINES, 4);
+		immBegin(GPU_PRIM_LINES, 4);
 		immVertex2f(pos,  1.0f,  1.0f);
 		immVertex2f(pos, -1.0f, -1.0f);
 

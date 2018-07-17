@@ -70,7 +70,7 @@ static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float
 	const float arrow_length = RNA_float_get(gz->ptr, "length") - size_length;
 	const float arrow_angle = RNA_float_get(gz->ptr, "angle");
 
-	uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix);
@@ -80,12 +80,12 @@ static void arrow2d_draw_geom(wmGizmo *gz, const float matrix[4][4], const float
 
 	immUniformColor4fv(color);
 
-	immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GPU_PRIM_LINES, 2);
 	immVertex2f(pos, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, arrow_length);
 	immEnd();
 
-	immBegin(GWN_PRIM_TRIS, 3);
+	immBegin(GPU_PRIM_TRIS, 3);
 	immVertex2f(pos, size_breadth, arrow_length);
 	immVertex2f(pos, -size_breadth, arrow_length);
 	immVertex2f(pos, 0.0f, arrow_length + size_length);

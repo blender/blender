@@ -456,9 +456,9 @@ void wm_draw_region_blend(ARegion *ar, int view, bool blend)
 	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), halfx, halfy, 1.0f + halfx, 1.0f + halfy);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), ar->winrct.xmin, ar->winrct.ymin, ar->winrct.xmax + 1, ar->winrct.ymax + 1);
-	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
+	glUniform4f(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
 
-	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
+	GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

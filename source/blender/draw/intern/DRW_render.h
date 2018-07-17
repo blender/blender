@@ -71,7 +71,7 @@ struct GPUMaterial;
 struct GPUTexture;
 struct GPUUniformBuffer;
 struct Object;
-struct Gwn_Batch;
+struct GPUBatch;
 struct DefaultFramebufferList;
 struct DefaultTextureList;
 struct DRWTextStore;
@@ -306,7 +306,7 @@ typedef struct DRWInstanceAttribFormat {
 	int components;
 } DRWInstanceAttribFormat;
 
-struct Gwn_VertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttribFormat attribs[], int arraysize);
+struct GPUVertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttribFormat attribs[], int arraysize);
 #define DRW_shgroup_instance_format(format, ...) do { \
 	if (format == NULL) { \
 		DRWInstanceAttribFormat drw_format[] = __VA_ARGS__;\
@@ -317,25 +317,25 @@ struct Gwn_VertFormat *DRW_shgroup_instance_format_array(const DRWInstanceAttrib
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_material_create(struct GPUMaterial *material, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_material_instance_create(
-        struct GPUMaterial *material, DRWPass *pass, struct Gwn_Batch *geom, struct Object *ob,
-        struct Gwn_VertFormat *format);
+        struct GPUMaterial *material, DRWPass *pass, struct GPUBatch *geom, struct Object *ob,
+        struct GPUVertFormat *format);
 DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(struct GPUMaterial *material, DRWPass *pass, int size);
 DRWShadingGroup *DRW_shgroup_instance_create(
-        struct GPUShader *shader, DRWPass *pass, struct Gwn_Batch *geom, struct Gwn_VertFormat *format);
+        struct GPUShader *shader, DRWPass *pass, struct GPUBatch *geom, struct GPUVertFormat *format);
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(
-        struct GPUShader *shader, DRWPass *pass, struct Gwn_VertFormat *format);
+        struct GPUShader *shader, DRWPass *pass, struct GPUVertFormat *format);
 DRWShadingGroup *DRW_shgroup_line_batch_create(
         struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(
         struct GPUShader *shader, DRWPass *pass, int size);
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(
-        struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
+        struct GPUShader *shader, DRWPass *pass, struct GPUVertBuf *tf_target);
 
 
 typedef void (DRWCallGenerateFn)(
         DRWShadingGroup *shgroup,
-        void (*draw_fn)(DRWShadingGroup *shgroup, struct Gwn_Batch *geom),
+        void (*draw_fn)(DRWShadingGroup *shgroup, struct GPUBatch *geom),
         void *user_data);
 
 /* return final visibility */
@@ -343,27 +343,27 @@ typedef bool (DRWCallVisibilityFn)(
         bool vis_in,
         void *user_data);
 
-void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batch);
+void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct GPUBatch *batch);
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
-void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);
+void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct GPUBatch *geom, float (*obmat)[4]);
 void DRW_shgroup_call_range_add(
-        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4], uint v_sta, uint v_count);
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, float (*obmat)[4], uint v_sta, uint v_count);
 void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point_len, float (*obmat)[4]);
 void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, uint line_count, float (*obmat)[4]);
 void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, uint tria_count, float (*obmat)[4]);
 void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup, uint tria_count, struct Object *ob);
-void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob, bool bypass_culling);
+void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, bool bypass_culling);
 #define DRW_shgroup_call_object_add(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, false)
 #define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, true)
 void DRW_shgroup_call_object_add_with_callback(
-        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob,
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob,
         DRWCallVisibilityFn *callback, void *user_data);
 /* Used for drawing a batch with instancing without instance attribs. */
 void DRW_shgroup_call_instances_add(
-        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4], uint *count);
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, float (*obmat)[4], uint *count);
 void DRW_shgroup_call_object_instances_add(
-        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob, uint *count);
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, uint *count);
 void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, struct Object *ob, float (*obmat)[4]);
 void DRW_shgroup_call_generate_add(
         DRWShadingGroup *shgroup, DRWCallGenerateFn *geometry_fn, void *user_data, float (*obmat)[4]);
