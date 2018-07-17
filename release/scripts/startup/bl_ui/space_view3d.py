@@ -642,9 +642,12 @@ class VIEW3D_MT_view_align(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.camera_to_view", text="Align Active Camera to View")
         layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
+
+        layout.separator()
+
+        layout.operator("view3d.view_all", text="Center Cursor and View All").center = True
         layout.operator("view3d.view_center_cursor")
 
         layout.separator()
@@ -667,6 +670,8 @@ class VIEW3D_MT_view_align_selected(Menu):
         props.align_active = True
         props.type = 'BOTTOM'
 
+        layout.separator()
+
         props = layout.operator("view3d.view_axis", text="Front")
         props.align_active = True
         props.type = 'FRONT'
@@ -674,6 +679,8 @@ class VIEW3D_MT_view_align_selected(Menu):
         props = layout.operator("view3d.view_axis", text="Back")
         props.align_active = True
         props.type = 'BACK'
+
+        layout.separator()
 
         props = layout.operator("view3d.view_axis", text="Right")
         props.align_active = True
@@ -2655,6 +2662,9 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_edit_mesh_showhide")
         layout.operator_menu_enum("mesh.separate", "type")
         layout.menu("VIEW3D_MT_edit_mesh_clean")
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_edit_mesh_delete")
 
 
@@ -2879,14 +2889,11 @@ class VIEW3D_MT_edit_mesh_edges_data(Menu):
         props.use_verts = True
         props.clear = True
 
-        layout.separator()
-
-        layout.separator()
-
         if with_freestyle:
+            layout.separator()
+
             layout.operator("mesh.mark_freestyle_edge").clear = False
             layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
-            layout.separator()
 
 
 class VIEW3D_MT_edit_mesh_edges(Menu):
@@ -4493,9 +4500,9 @@ class VIEW3D_PT_pivot_point(Panel):
         col.label("Pivot Point")
         col.prop(toolsettings, "transform_pivot_point", expand=True)
 
-        col.separator()
-
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            col.separator()
+
             col.prop(
                 toolsettings,
                 "use_transform_pivot_point_align",
