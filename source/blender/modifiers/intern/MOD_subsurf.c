@@ -35,8 +35,9 @@
 
 #include <stddef.h>
 
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_mesh_types.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "DNA_userdef_types.h"
@@ -44,9 +45,9 @@
 
 #include "BLI_utildefines.h"
 
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"
@@ -55,6 +56,8 @@
 #include "MOD_modifiertypes.h"
 
 #include "intern/CCGSubSurf.h"
+
+// #define USE_OPENSUBDIV
 
 static void initData(ModifierData *md)
 {
@@ -181,9 +184,73 @@ static DerivedMesh *applyModifierEM(
 #endif
 
 	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, ss_flags);
-
 	return result;
 }
+
+#ifdef USE_OPENSUBDIV
+static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
+                                          const ModifierEvalContext *ctx)
+{
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	const int requested_levels = (use_render_params) ? smd->renderLevels
+	                                                 : smd->levels;
+	return get_render_subsurf_level(&scene->r,
+	                                requested_levels,
+	                                use_render_params);
+}
+
+static void subdiv_settings_init(SubdivSettings *settings,
+                                 const SubsurfModifierData *smd,
+                                 const ModifierEvalContext *ctx)
+{
+	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
+	settings->is_adaptive = !settings->is_simple;
+	settings->level = subdiv_levels_for_modifier_get(smd, ctx);
+	settings->fvar_linear_interpolation =
+	        (smd->flags & eSubsurfModifierFlag_SubsurfUv)
+	                ? SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY
+	                : SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
+}
+
+static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
+                                      const SubdivSettings *subdiv_settings)
+{
+	settings->resolution = (1 << subdiv_settings->level) + 1;
+}
+
+static Mesh *applyModifier_subdiv(ModifierData *md,
+                                  const ModifierEvalContext *ctx,
+                                  Mesh *mesh)
+{
+	Mesh *result = mesh;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	SubdivSettings subdiv_settings;
+	subdiv_settings_init(&subdiv_settings, smd, ctx);
+	if (subdiv_settings.level == 0) {
+		/* NOTE: Shouldn't really happen, is supposed to be catched by
+		 * isDisabled() callback.
+		 */
+		return result;
+	}
+	/* TODO(sergey): Try to re-use subdiv when possible. */
+	Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, mesh);
+	if (subdiv == NULL) {
+		/* Happens on bad topology. */
+		/* TODO(sergey): This also happens on meshes without faces, so probably
+		 * need to handle those differently (i.e. set modifier error when
+		 * topology itself is bad, and not do anything when there are no faces).
+		 */
+		return result;
+	}
+	SubdivToMeshSettings mesh_settings;
+	subdiv_mesh_settings_init(&mesh_settings, &subdiv_settings);
+	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	/* TODO(sergey): Cache subdiv somehow. */
+	BKE_subdiv_free(subdiv);
+	return result;
+}
+#endif
 
 static bool dependsOnNormals(ModifierData *md)
 {
@@ -222,7 +289,11 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
+#ifdef USE_OPENSUBDIV
+	/* applyModifier */     applyModifier_subdiv,
+#else
 	/* applyModifier */     NULL,
+#endif
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

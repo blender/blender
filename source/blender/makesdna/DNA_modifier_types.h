@@ -123,13 +123,6 @@ typedef enum {
 	eModifierFlag_SharedCaches          = (1 << 1),
 } ModifierFlag;
 
-typedef enum {
-	eSubsurfModifierFlag_Incremental  = (1 << 0),
-	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
-	eSubsurfModifierFlag_ControlEdges = (1 << 2),
-	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
-} SubsurfModifierFlag;
-
 /* not a real modifier */
 typedef struct MappingInfoModifierData {
 	ModifierData modifier;
@@ -140,6 +133,18 @@ typedef struct MappingInfoModifierData {
 	int uvlayer_tmp;
 	int texmapping;
 } MappingInfoModifierData;
+
+typedef enum {
+	eSubsurfModifierFlag_Incremental  = (1 << 0),
+	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
+	eSubsurfModifierFlag_ControlEdges = (1 << 2),
+	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
+} SubsurfModifierFlag;
+
+typedef enum {
+	SUBSURF_TYPE_CATMULL_CLARK = 0,
+	SUBSURF_TYPE_SIMPLE = 1,
+} eSubsurfModifierType;
 
 typedef struct SubsurfModifierData {
 	ModifierData modifier;

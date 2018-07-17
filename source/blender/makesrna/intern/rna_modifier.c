@@ -1175,8 +1175,8 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr, co
 static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static const EnumPropertyItem prop_subdivision_type_items[] = {
-		{0, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
-		{1, "SIMPLE", 0, "Simple", ""},
+		{SUBSURF_TYPE_CATMULL_CLARK, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
+		{SUBSURF_TYPE_SIMPLE, "SIMPLE", 0, "Simple", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
