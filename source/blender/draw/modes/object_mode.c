@@ -145,6 +145,9 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *cube;
 	DRWShadingGroup *circle;
 	DRWShadingGroup *sphere;
+	DRWShadingGroup *cylinder;
+	DRWShadingGroup *capsule_cap;
+	DRWShadingGroup *capsule_body;
 	DRWShadingGroup *cone;
 	DRWShadingGroup *single_arrow;
 	DRWShadingGroup *single_arrow_line;
@@ -1092,6 +1095,15 @@ static void OBJECT_cache_init(void *vedata)
 
 		geom = DRW_cache_empty_sphere_get();
 		stl->g_data->sphere = shgroup_instance(psl->non_meshes, geom);
+
+		geom = DRW_cache_empty_cylinder_get();
+		stl->g_data->cylinder = shgroup_instance(psl->non_meshes, geom);
+
+		geom = DRW_cache_empty_capsule_cap_get();
+		stl->g_data->capsule_cap = shgroup_instance(psl->non_meshes, geom);
+
+		geom = DRW_cache_empty_capsule_body_get();
+		stl->g_data->capsule_body = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_empty_cone_get();
 		stl->g_data->cone = shgroup_instance(psl->non_meshes, geom);
@@ -2146,6 +2158,82 @@ static void DRW_shgroup_texture_space(OBJECT_StorageList *stl, Object *ob, int t
 	DRW_shgroup_call_dynamic_add(stl->g_data->texspace, color, &one, tmp);
 }
 
+static void DRW_shgroup_bounds(OBJECT_StorageList *stl, Object *ob, int theme_id)
+{
+	float color[4], center[3], size[3], tmp[4][4], final_mat[4][4], one = 1.0f;
+	BoundBox  bb_local;
+
+	if (ob->type == OB_MBALL && !BKE_mball_is_basis(ob)) {
+		return;
+	}
+
+	BoundBox *bb = BKE_object_boundbox_get(ob);
+
+	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT,
+	                    OB_MBALL, OB_ARMATURE, OB_LATTICE))
+	{
+		const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+		bb = &bb_local;
+		BKE_boundbox_init_from_minmax(bb, min, max);
+	}
+
+	UI_GetThemeColor4fv(theme_id, color);
+	BKE_boundbox_calc_center_aabb(bb, center);
+	BKE_boundbox_calc_size_aabb(bb, size);
+
+	switch (ob->boundtype) {
+		case OB_BOUND_BOX:
+			size_to_mat4(tmp, size);
+			copy_v3_v3(tmp[3], center);
+			mul_m4_m4m4(tmp, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &one, tmp);
+			break;
+		case OB_BOUND_SPHERE:
+			size[0] = max_fff(size[0], size[1], size[2]);
+			size[1] = size[2] = size[0];
+			size_to_mat4(tmp, size);
+			copy_v3_v3(tmp[3], center);
+			mul_m4_m4m4(tmp, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &one, tmp);
+			break;
+		case OB_BOUND_CYLINDER:
+			size[0] = max_ff(size[0], size[1]);
+			size[1] = size[0];
+			size_to_mat4(tmp, size);
+			copy_v3_v3(tmp[3], center);
+			mul_m4_m4m4(tmp, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->cylinder, color, &one, tmp);
+			break;
+		case OB_BOUND_CONE:
+			size[0] = max_ff(size[0], size[1]);
+			size[1] = size[0];
+			size_to_mat4(tmp, size);
+			copy_v3_v3(tmp[3], center);
+			/* Cone batch has base at 0 and is pointing towards +Y. */
+			swap_v3_v3(tmp[1], tmp[2]);
+			tmp[3][2] -= size[2];
+			mul_m4_m4m4(tmp, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->cone, color, &one, tmp);
+			break;
+		case OB_BOUND_CAPSULE:
+			size[0] = max_ff(size[0], size[1]);
+			size[1] = size[0];
+			scale_m4_fl(tmp, size[0]);
+			copy_v2_v2(tmp[3], center);
+			tmp[3][2] = center[2] + max_ff(0.0f, size[2] - size[0]);
+			mul_m4_m4m4(final_mat, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->capsule_cap, color, &one, final_mat);
+			negate_v3(tmp[2]);
+			tmp[3][2] = center[2] - max_ff(0.0f, size[2] - size[0]);
+			mul_m4_m4m4(final_mat, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->capsule_cap, color, &one, final_mat);
+			tmp[2][2] = max_ff(0.0f, size[2] * 2.0f - size[0] * 2.0f);
+			mul_m4_m4m4(final_mat, ob->obmat, tmp);
+			DRW_shgroup_call_dynamic_add(stl->g_data->capsule_body, color, &one, final_mat);
+			break;
+	}
+}
+
 static void OBJECT_cache_populate_particles(Object *ob,
                                             OBJECT_PassList *psl)
 {
@@ -2398,17 +2486,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		DRW_shgroup_forcefield(stl, ob, view_layer);
 	}
 
-	if (((ob->base_flag & BASE_FROMDUPLI) == 0) &&
-	    (md = modifiers_findByType(ob, eModifierType_Smoke)) &&
-	    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
-	    (((SmokeModifierData *)md)->domain != NULL))
-	{
-		DRW_shgroup_volume_extra(psl, stl, ob, view_layer, scene, md);
-	}
-
 	/* don't show object extras in set's */
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
-
 		DRW_shgroup_object_center(stl, ob, view_layer, v3d);
 
 		if (show_relations) {
@@ -2433,6 +2512,17 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 		if ((ob->dtx & OB_TEXSPACE) && ELEM(ob->type, OB_MESH, OB_CURVE, OB_MBALL)) {
 			DRW_shgroup_texture_space(stl, ob, theme_id);
+		}
+
+		if (ob->dtx & OB_DRAWBOUNDOX) {
+			DRW_shgroup_bounds(stl, ob, theme_id);
+		}
+
+		if ((md = modifiers_findByType(ob, eModifierType_Smoke)) &&
+		    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
+		    (((SmokeModifierData *)md)->domain != NULL))
+		{
+			DRW_shgroup_volume_extra(psl, stl, ob, view_layer, scene, md);
 		}
 	}
 }
