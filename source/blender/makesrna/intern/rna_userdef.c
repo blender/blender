@@ -683,7 +683,9 @@ static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *va
 	if (sl->path_irr_cache) {
 		BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
 	}
-	value[0] = 0x00;
+	else {
+		value[0] = '\0';
+	}
 }
 
 static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
@@ -702,7 +704,9 @@ static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *val
 	if (sl->path_sh_cache) {
 		BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
 	}
-	value[0] = 0x00;
+	else {
+		value[0] = '\0';
+	}
 }
 
 static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)

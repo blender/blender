@@ -2499,9 +2499,12 @@ class WM_OT_studiolight_uninstall(Operator):
         userpref = context.user_preferences
         for studio_light in userpref.studio_lights:
             if studio_light.index == self.index:
-                self._remove_path(pathlib.Path(studio_light.path))
-                self._remove_path(pathlib.Path(studio_light.path_irr_cache))
-                self._remove_path(pathlib.Path(studio_light.path_sh_cache))
+                if len(studio_light.path) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path))
+                if len(studio_light.path_irr_cache) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path_irr_cache))
+                if len(studio_light.path_sh_cache) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path_sh_cache))
                 userpref.studio_lights.remove(studio_light)
                 return {'FINISHED'}
         return {'CANCELLED'}
