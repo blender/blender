@@ -1548,8 +1548,8 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.shade_smooth", text="Smooth Shading")
-        layout.operator("object.shade_flat", text="Flat Shading")
+        layout.operator("object.shade_smooth")
+        layout.operator("object.shade_flat")
 
         layout.separator()
 
