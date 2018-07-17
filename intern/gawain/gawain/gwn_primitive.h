@@ -1,15 +1,36 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2016 by Mike Erwin.
+ * All rights reserved.
+ *
+ * Contributor(s): Blender Foundation
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-// Gawain geometric primitives
-//
-// This code is part of the Gawain library, with modifications
-// specific to integration with Blender.
-//
-// Copyright 2017 Mike Erwin
-//
-// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
-// the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+/** \file blender/gpu/gwn_primitive.h
+ *  \ingroup gpu
+ *
+ * Gawain geometric primitives
+ */
 
-#pragma once
+#ifndef __GWN_PRIMITIVE_H__
+#define __GWN_PRIMITIVE_H__
 
 #include "gwn_common.h"
 
@@ -18,7 +39,7 @@ typedef enum {
 	GWN_PRIM_LINES,
 	GWN_PRIM_TRIS,
 	GWN_PRIM_LINE_STRIP,
-	GWN_PRIM_LINE_LOOP, // GL has this, Vulkan does not
+	GWN_PRIM_LINE_LOOP, /* GL has this, Vulkan does not */
 	GWN_PRIM_TRI_STRIP,
 	GWN_PRIM_TRI_FAN,
 
@@ -29,7 +50,7 @@ typedef enum {
 	GWN_PRIM_NONE
 } Gwn_PrimType;
 
-// what types of primitives does each shader expect?
+/* what types of primitives does each shader expect? */
 typedef enum {
 	GWN_PRIM_CLASS_NONE    = 0,
 	GWN_PRIM_CLASS_POINT   = (1 << 0),
@@ -40,3 +61,5 @@ typedef enum {
 
 Gwn_PrimClass GWN_primtype_class(Gwn_PrimType);
 bool GWN_primtype_belongs_to_class(Gwn_PrimType, Gwn_PrimClass);
+
+#endif /* __GWN_PRIMITIVE_H__ */

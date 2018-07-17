@@ -1,15 +1,37 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * The Original Code is Copyright (C) 2016 by Mike Erwin.
+ * All rights reserved.
+ *
+ * Contributor(s): Blender Foundation
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
 
-// Gawain context
-//
-// This code is part of the Gawain library, with modifications
-// specific to integration with Blender.
-//
-// Copyright 2018 Mike Erwin, Clément Foucault
-//
-// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
-// the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+/** \file blender/gpu/gwn_batch_private.h
+ *  \ingroup gpu
+ *
+ * Gawain geometry batch
+ * Contains VAOs + VBOs + Shader representing a drawable entity.
+ */
 
-#pragma once
+#ifndef __GWN_BATCH_PRIVATE_H__
+#define __GWN_BATCH_PRIVATE_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,3 +50,5 @@ void gwn_context_remove_batch(Gwn_Context*, Gwn_Batch*);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* __GWN_BATCH_PRIVATE_H__ */
