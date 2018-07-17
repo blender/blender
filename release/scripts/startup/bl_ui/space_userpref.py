@@ -28,25 +28,6 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 
 
-def opengl_light_buttons(column, light):
-    split = column.row()
-
-    split.prop(light, "use", text="", icon='OUTLINER_OB_LIGHT' if light.use else 'LIGHT_DATA')
-
-    col = split.column()
-    col.active = light.use
-    row = col.row()
-    row.label(text="Diffuse:")
-    row.prop(light, "diffuse_color", text="")
-    row = col.row()
-    row.label(text="Specular:")
-    row.prop(light, "specular_color", text="")
-
-    col = split.column()
-    col.active = light.use
-    col.prop(light, "direction", text="")
-
-
 class USERPREF_HT_header(Header):
     bl_space_type = 'USER_PREFERENCES'
 
@@ -550,43 +531,25 @@ class USERPREF_PT_system(Panel):
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
 
-        col.separator()
-
-        col.label(text="Textures:")
-        col.prop(system, "gl_texture_limit", text="Limit Size")
-        col.prop(system, "texture_time_out", text="Time Out")
-        col.prop(system, "texture_collection_rate", text="Collection Rate")
-
-        col.separator()
-
-        col.label(text="Images Draw Method:")
-        col.prop(system, "image_draw_method", text="")
-
-        col.separator()
-
-        col.label(text="Sequencer/Clip Editor:")
-        # currently disabled in the code
-        # col.prop(system, "prefetch_frames")
-        col.prop(system, "memory_cache_limit")
-
         # 3. Column
         column = split.column()
 
-        column.label(text="Solid OpenGL Lights:")
+        column.label(text="Textures:")
+        column.prop(system, "gl_texture_limit", text="Limit Size")
+        column.prop(system, "texture_time_out", text="Time Out")
+        column.prop(system, "texture_collection_rate", text="Collection Rate")
 
-        split = column.split(percentage=0.1)
-        split.label()
-        split.label(text="Colors:")
-        split.label(text="Direction:")
+        column.separator()
 
-        light = system.solid_lights[0]
-        opengl_light_buttons(column, light)
+        column.label(text="Images Draw Method:")
+        column.prop(system, "image_draw_method", text="")
 
-        light = system.solid_lights[1]
-        opengl_light_buttons(column, light)
+        column.separator()
 
-        light = system.solid_lights[2]
-        opengl_light_buttons(column, light)
+        column.label(text="Sequencer/Clip Editor:")
+        # currently disabled in the code
+        # column.prop(system, "prefetch_frames")
+        column.prop(system, "memory_cache_limit")
 
         column.separator()
 
@@ -1596,13 +1559,6 @@ class StudioLightPanelMixin():
     def _get_lights(self, userpref):
         return [light for light in userpref.studio_lights if light.is_user_defined and light.orientation == self.sl_orientation]
 
-    def draw_header(self, context):
-        layout = self.layout
-        row = layout.row()
-        userpref = context.user_preferences
-        lights = self._get_lights(userpref)
-        row.label("({})".format(len(lights)))
-
     def draw(self, context):
         layout = self.layout
         userpref = context.user_preferences
@@ -1640,6 +1596,48 @@ class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
     sl_orientation = 'CAMERA'
 
 
+class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
+    bl_label = "Specular Lights"
+    sl_orientation = 'CAMERA'
+
+    @classmethod
+    def poll(cls, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'LIGHTS')
+
+    def opengl_light_buttons(self, column, light):
+        split = column.split()
+
+        col = split.column()
+        col.prop(light, "use", text="Use", icon='OUTLINER_OB_LIGHT' if light.use else 'LIGHT_DATA')
+
+        sub = col.column()
+        sub.active = light.use
+        sub.prop(light, "specular_color")
+
+        col = split.column()
+        col.active = light.use
+        col.prop(light, "direction", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.split()
+
+        userpref = context.user_preferences
+        system = userpref.system
+
+        light = system.solid_lights[0]
+        colsplit = column.split(percentage=0.85)
+        self.opengl_light_buttons(colsplit, light)
+
+        light = system.solid_lights[1]
+        colsplit = column.split(percentage=0.85)
+        self.opengl_light_buttons(colsplit, light)
+
+        light = system.solid_lights[2]
+        self.opengl_light_buttons(column, light)
+
+
 classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1663,6 +1661,7 @@ classes = (
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
     USERPREF_PT_studiolight_camera,
+    USERPREF_PT_studiolight_specular,
 )
 
 if __name__ == "__main__":  # only for live edit.
