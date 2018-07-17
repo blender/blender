@@ -31,7 +31,7 @@
 #ifndef __BLF_INTERNAL_TYPES_H__
 #define __BLF_INTERNAL_TYPES_H__
 
-#include "../../../intern/gawain/gawain/gwn_vertex_buffer.h"
+#include "GPU_vertex_buffer.h"
 #include "GPU_texture.h"
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */

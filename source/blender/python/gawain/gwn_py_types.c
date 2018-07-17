@@ -27,8 +27,8 @@
 
 #include <Python.h>
 
-#include "gawain/gwn_batch.h"
-#include "gawain/gwn_vertex_format.h"
+#include "GPU_batch.h"
+#include "GPU_vertex_format.h"
 
 #include "BLI_math.h"
 

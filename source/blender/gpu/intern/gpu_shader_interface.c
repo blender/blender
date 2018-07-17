@@ -29,9 +29,9 @@
  * Gawain shader interface (C --> GLSL)
  */
 
-#include "gwn_batch_private.h"
-#include "gwn_shader_interface.h"
-#include "gwn_vertex_array_id.h"
+#include "gpu_batch_private.h"
+#include "GPU_shader_interface.h"
+#include "GPU_vertex_array_id.h"
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

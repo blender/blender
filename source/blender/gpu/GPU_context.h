@@ -23,31 +23,33 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_buffer_id.h
+/** \file blender/gpu/gwn_context.h
  *  \ingroup gpu
  *
- * Gawain buffer IDs
+ * This interface allow Gawain to manage VAOs for mutiple context and threads.
  */
 
-#ifndef __GWN_BUFFER_ID_H__
-#define __GWN_BUFFER_ID_H__
-
-/* Manage GL buffer IDs in a thread-safe way
- * Use these instead of glGenBuffers & its friends
- * - alloc must be called from main thread
- * - free can be called from any thread */
+#ifndef __GWN_CONTEXT_H__
+#define __GWN_CONTEXT_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "gwn_common.h"
+#include "GPU_common.h"
+#include "GPU_batch.h"
+#include "GPU_shader_interface.h"
 
-GLuint GWN_buf_id_alloc(void);
-void GWN_buf_id_free(GLuint buffer_id);
+typedef struct Gwn_Context Gwn_Context;
+
+Gwn_Context* GWN_context_create(void);
+void GWN_context_discard(Gwn_Context*);
+
+void GWN_context_active_set(Gwn_Context*);
+Gwn_Context* GWN_context_active_get(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_BUFFER_ID_H__ */
+#endif /* __GWN_CONTEXT_H__ */

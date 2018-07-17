@@ -34,9 +34,9 @@
  * - free can be called from any thread
  */
 
-#include "gwn_batch_private.h"
-#include "gwn_vertex_array_id.h"
-#include "gwn_context.h"
+#include "gpu_batch_private.h"
+#include "GPU_vertex_array_id.h"
+#include "GPU_context.h"
 #include <vector>
 #include <string.h>
 #include <pthread.h>

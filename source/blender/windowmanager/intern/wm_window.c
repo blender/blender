@@ -90,11 +90,10 @@
 #include "GPU_immediate.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
+#include "GPU_context.h"
 #include "BLF_api.h"
 
 #include "UI_resources.h"
-
-#include "../../../intern/gawain/gawain/gwn_context.h"
 
 /* for assert */
 #ifndef NDEBUG

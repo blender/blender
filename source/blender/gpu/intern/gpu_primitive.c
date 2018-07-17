@@ -29,8 +29,8 @@
  * Gawain geometric primitives
  */
 
-#include "gwn_primitive.h"
-#include "gwn_primitive_private.h"
+#include "GPU_primitive.h"
+#include "gpu_primitive_private.h"
 
 Gwn_PrimClass GWN_primtype_class(Gwn_PrimType prim_type)
 {

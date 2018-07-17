@@ -23,33 +23,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_vertex_array_id.h
+/** \file blender/gpu/gwn_batch_private.h
  *  \ingroup gpu
  *
- * Manage GL vertex array IDs in a thread-safe way
- * Use these instead of glGenBuffers & its friends
- * - alloc must be called from a thread that is bound
- *   to the context that will be used for drawing with
- *   this vao.
- * - free can be called from any thread
+ * Gawain geometry batch
+ * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
-#ifndef __GWN_VERTEX_ARRAY_ID_H__
-#define __GWN_VERTEX_ARRAY_ID_H__
+#ifndef __GWN_BATCH_PRIVATE_H__
+#define __GWN_BATCH_PRIVATE_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "gwn_common.h"
-#include "gwn_context.h"
+#include "GPU_batch.h"
+#include "GPU_context.h"
+#include "GPU_shader_interface.h"
 
-GLuint GWN_vao_default(void);
-GLuint GWN_vao_alloc(void);
-void GWN_vao_free(GLuint vao_id, Gwn_Context*);
+void gwn_batch_remove_interface_ref(Gwn_Batch*, const Gwn_ShaderInterface*);
+
+void gwn_context_add_batch(Gwn_Context*, Gwn_Batch*);
+void gwn_context_remove_batch(Gwn_Context*, Gwn_Batch*);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GWN_VERTEX_ARRAY_ID_H__ */
+#endif /* __GWN_BATCH_PRIVATE_H__ */

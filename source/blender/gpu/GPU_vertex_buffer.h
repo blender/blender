@@ -32,7 +32,7 @@
 #ifndef __GWN_VERTEX_BUFFER_H__
 #define __GWN_VERTEX_BUFFER_H__
 
-#include "gwn_vertex_format.h"
+#include "GPU_vertex_format.h"
 
 #define VRAM_USAGE 1
 /* How to create a Gwn_VertBuf: */

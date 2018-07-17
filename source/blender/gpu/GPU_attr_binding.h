@@ -23,33 +23,20 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_context.h
+/** \file blender/gpu/gwn_attr_binding.h
  *  \ingroup gpu
  *
- * This interface allow Gawain to manage VAOs for mutiple context and threads.
+ * Gawain vertex attribute binding
  */
 
-#ifndef __GWN_CONTEXT_H__
-#define __GWN_CONTEXT_H__
+#ifndef __GWN_ATTR_BINDING_H__
+#define __GWN_ATTR_BINDING_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "GPU_common.h"
 
-#include "gwn_common.h"
-#include "gwn_batch.h"
-#include "gwn_shader_interface.h"
+typedef struct Gwn_AttrBinding {
+	uint64_t loc_bits; /* store 4 bits for each of the 16 attribs */
+	uint16_t enabled_bits; /* 1 bit for each attrib */
+} Gwn_AttrBinding;
 
-typedef struct Gwn_Context Gwn_Context;
-
-Gwn_Context* GWN_context_create(void);
-void GWN_context_discard(Gwn_Context*);
-
-void GWN_context_active_set(Gwn_Context*);
-Gwn_Context* GWN_context_active_get(void);
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __GWN_CONTEXT_H__ */
+#endif /* __GWN_ATTR_BINDING_H__ */

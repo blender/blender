@@ -50,7 +50,6 @@ set(INC
 	../../../intern/glew-mx
 	../../../intern/guardedalloc
 	../../../intern/smoke/extern
-	../../../intern/gawain
 )
 
 set(INC_SYS
@@ -58,14 +57,17 @@ set(INC_SYS
 )
 
 set(SRC
+	intern/gpu_attr_binding.c
 	intern/gpu_basic_shader.c
 	intern/gpu_batch.c
 	intern/gpu_batch_presets.c
 	intern/gpu_batch_utils.c
+	intern/gpu_buffer_id.cpp
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
 	intern/gpu_debug.c
 	intern/gpu_draw.c
+	intern/gpu_element.c
 	intern/gpu_extensions.c
 	intern/gpu_framebuffer.c
 	intern/gpu_immediate.c
@@ -73,13 +75,18 @@ set(SRC
 	intern/gpu_init_exit.c
 	intern/gpu_material.c
 	intern/gpu_matrix.c
+	intern/gpu_primitive.c
 	intern/gpu_select.c
 	intern/gpu_select_pick.c
 	intern/gpu_select_sample_query.c
 	intern/gpu_shader.c
+	intern/gpu_shader_interface.c
 	intern/gpu_state.c
 	intern/gpu_texture.c
 	intern/gpu_uniformbuffer.c
+	intern/gpu_vertex_array_id.cpp
+	intern/gpu_vertex_buffer.c
+	intern/gpu_vertex_format.c
 	intern/gpu_viewport.c
 
 	shaders/gpu_shader_fx_lib.glsl
@@ -103,11 +110,15 @@ set(SRC
 	shaders/gpu_shader_smoke_frag.glsl
 	shaders/gpu_shader_smoke_vert.glsl
 
+	GPU_attr_binding.h
 	GPU_basic_shader.h
 	GPU_batch.h
+	GPU_buffer_id.h
 	GPU_buffers.h
+	GPU_common.h
 	GPU_debug.h
 	GPU_draw.h
+	GPU_element.h
 	GPU_extensions.h
 	GPU_framebuffer.h
 	GPU_glew.h
@@ -117,17 +128,26 @@ set(SRC
 	GPU_legacy_stubs.h
 	GPU_material.h
 	GPU_matrix.h
+	GPU_primitive.h
 	GPU_select.h
 	GPU_shader.h
+	GPU_shader_interface.h
 	GPU_state.h
 	GPU_texture.h
 	GPU_uniformbuffer.h
+	GPU_vertex_array_id.h
+	GPU_vertex_buffer.h
+	GPU_vertex_format.h
 	GPU_viewport.h
 
+	intern/gpu_attr_binding_private.h
+	intern/gpu_batch_private.h
 	intern/gpu_codegen.h
+	intern/gpu_primitive_private.h
 	intern/gpu_private.h
 	intern/gpu_select_private.h
 	intern/gpu_shader_private.h
+	intern/gpu_vertex_format_private.h
 )
 
 data_to_c_simple(shaders/gpu_shader_depth_only_frag.glsl SRC)

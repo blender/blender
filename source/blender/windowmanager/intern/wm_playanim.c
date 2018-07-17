@@ -69,7 +69,7 @@
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
-#include "GPU_batch.h"
+#include "GPU_context.h"
 #include "GPU_init_exit.h"
 
 #include "DNA_scene_types.h"

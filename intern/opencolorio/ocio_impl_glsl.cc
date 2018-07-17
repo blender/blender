@@ -49,7 +49,7 @@
 #endif
 
 extern "C" {
-#include "gawain/gwn_immediate.h"
+#include "GPU_immediate.h"
 }
 
 using namespace OCIO_NAMESPACE;

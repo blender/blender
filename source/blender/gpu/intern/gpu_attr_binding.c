@@ -29,8 +29,8 @@
  * Gawain vertex attribute binding
  */
 
-#include "gwn_attr_binding.h"
-#include "gwn_attr_binding_private.h"
+#include "GPU_attr_binding.h"
+#include "gpu_attr_binding_private.h"
 #include <stddef.h>
 #include <stdlib.h>
 

@@ -29,8 +29,8 @@
  * Gawain vertex format
  */
 
-#include "gwn_vertex_format.h"
-#include "gwn_vertex_format_private.h"
+#include "GPU_vertex_format.h"
+#include "gpu_vertex_format_private.h"
 #include <stddef.h>
 #include <string.h>
 

@@ -32,7 +32,7 @@
 #ifndef __GWN_SHADER_INTERFACE_H__
 #define __GWN_SHADER_INTERFACE_H__
 
-#include "gwn_common.h"
+#include "GPU_common.h"
 
 typedef enum {
 	GWN_UNIFORM_NONE = 0, /* uninitialized/unknown */

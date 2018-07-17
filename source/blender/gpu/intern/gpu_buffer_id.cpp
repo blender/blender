@@ -29,7 +29,8 @@
  * Gawain buffer IDs
  */
 
-#include "gwn_buffer_id.h"
+#include "GPU_buffer_id.h"
+
 #include <mutex>
 #include <vector>
 

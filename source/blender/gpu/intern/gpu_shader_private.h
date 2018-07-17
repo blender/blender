@@ -26,7 +26,7 @@
 #define __GPU_SHADER_PRIVATE_H__
 
 #include "GPU_glew.h"
-#include "gawain/gwn_shader_interface.h"
+#include "GPU_shader_interface.h"
 
 struct GPUShader {
 	GLuint program;  /* handle for full program (links shader stages below) */

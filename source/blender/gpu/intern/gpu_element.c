@@ -29,8 +29,9 @@
  * Gawain element list (AKA index buffer)
  */
 
-#include "gwn_element.h"
-#include "gwn_buffer_id.h"
+#include "GPU_element.h"
+#include "GPU_buffer_id.h"
+
 #include <stdlib.h>
 
 #define KEEP_SINGLE_COPY 1

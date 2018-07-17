@@ -23,24 +23,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_imm_util.h
+/** \file blender/gpu/gwn_buffer_id.h
  *  \ingroup gpu
  *
- * Gawain element list (AKA index buffer)
+ * Gawain buffer IDs
  */
 
-#ifndef __GWN_IMM_UTIL_H__
-#define __GWN_IMM_UTIL_H__
+#ifndef __GWN_BUFFER_ID_H__
+#define __GWN_BUFFER_ID_H__
 
-#include <stdlib.h>
+/* Manage GL buffer IDs in a thread-safe way
+ * Use these instead of glGenBuffers & its friends
+ * - alloc must be called from main thread
+ * - free can be called from any thread */
 
-/* Draw 2D rectangles (replaces glRect functions) */
-/* caller is reponsible for vertex format & shader */
-void immRectf(uint pos, float x1, float y1, float x2, float y2);
-void immRecti(uint pos, int x1, int y1, int x2, int y2);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-/* Same as immRectf/immRecti but does not call immBegin/immEnd. To use with GWN_PRIM_TRIS. */
-void immRectf_fast_with_color(uint pos, uint col, float x1, float y1, float x2, float y2, const float color[4]);
-void immRecti_fast_with_color(uint pos, uint col, int x1, int y1, int x2, int y2, const float color[4]);
+#include "GPU_common.h"
 
-#endif /* __GWN_IMM_UTIL_H__ */
+GLuint GWN_buf_id_alloc(void);
+void GWN_buf_id_free(GLuint buffer_id);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __GWN_BUFFER_ID_H__ */

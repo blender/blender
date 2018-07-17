@@ -32,7 +32,7 @@
 #ifndef __GWN_ELEMENT_H__
 #define __GWN_ELEMENT_H__
 
-#include "gwn_primitive.h"
+#include "GPU_primitive.h"
 
 #define GWN_TRACK_INDEX_RANGE 1
 

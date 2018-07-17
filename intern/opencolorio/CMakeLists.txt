@@ -27,8 +27,8 @@ set(INC
 	.
 	../glew-mx
 	../guardedalloc
-	../gawain
 	../../source/blender/blenlib
+	../../source/blender/gpu
 )
 
 set(INC_SYS

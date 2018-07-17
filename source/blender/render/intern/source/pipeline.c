@@ -97,7 +97,7 @@
 
 #include "../../../windowmanager/WM_api.h" /* XXX */
 #include "../../../windowmanager/wm_window.h" /* XXX */
-#include "../../../intern/gawain/gawain/gwn_context.h"
+#include "GPU_context.h"
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"

@@ -82,7 +82,7 @@
 #include "engines/workbench/workbench_engine.h"
 #include "engines/external/external_engine.h"
 
-#include "../../../intern/gawain/gawain/gwn_context.h"
+#include "GPU_context.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

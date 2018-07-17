@@ -45,7 +45,7 @@
 #include "eevee_lightcache.h"
 #include "eevee_private.h"
 
-#include "../../../intern/gawain/gawain/gwn_context.h"
+#include "GPU_context.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

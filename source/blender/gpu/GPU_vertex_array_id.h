@@ -23,21 +23,33 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gwn_attr_binding_private.h
+/** \file blender/gpu/gwn_vertex_array_id.h
  *  \ingroup gpu
  *
- * Gawain vertex attribute binding
+ * Manage GL vertex array IDs in a thread-safe way
+ * Use these instead of glGenBuffers & its friends
+ * - alloc must be called from a thread that is bound
+ *   to the context that will be used for drawing with
+ *   this vao.
+ * - free can be called from any thread
  */
 
-#ifndef __GWN_ATTR_BINDING_PRIVATE_H__
-#define __GWN_ATTR_BINDING_PRIVATE_H__
+#ifndef __GWN_VERTEX_ARRAY_ID_H__
+#define __GWN_VERTEX_ARRAY_ID_H__
 
-#include "gwn_vertex_format.h"
-#include "gwn_shader_interface.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void AttribBinding_clear(Gwn_AttrBinding*);
+#include "GPU_common.h"
+#include "GPU_context.h"
 
-void get_attrib_locations(const Gwn_VertFormat*, Gwn_AttrBinding*, const Gwn_ShaderInterface*);
-unsigned read_attrib_location(const Gwn_AttrBinding*, unsigned a_idx);
+GLuint GWN_vao_default(void);
+GLuint GWN_vao_alloc(void);
+void GWN_vao_free(GLuint vao_id, Gwn_Context*);
 
-#endif /* __GWN_ATTR_BINDING_PRIVATE_H__ */
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __GWN_VERTEX_ARRAY_ID_H__ */

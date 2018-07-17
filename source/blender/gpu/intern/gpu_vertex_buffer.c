@@ -29,9 +29,9 @@
  * Gawain vertex buffer
  */
 
-#include "gwn_vertex_buffer.h"
-#include "gwn_buffer_id.h"
-#include "gwn_vertex_format_private.h"
+#include "GPU_vertex_buffer.h"
+#include "GPU_buffer_id.h"
+#include "gpu_vertex_format_private.h"
 #include <stdlib.h>
 #include <string.h>
 

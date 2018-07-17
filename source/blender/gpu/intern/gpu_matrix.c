@@ -29,7 +29,7 @@
  *  \ingroup gpu
  */
 
-#include "../../../intern/gawain/gawain/gwn_shader_interface.h"
+#include "GPU_shader_interface.h"
 
 #define SUPPRESS_GENERIC_MATRIX_API
 #define USE_GPU_PY_MATRIX_API  /* only so values are declared */

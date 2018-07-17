@@ -32,7 +32,7 @@
 #ifndef __GWN_VERTEX_FORMAT_H__
 #define __GWN_VERTEX_FORMAT_H__
 
-#include "gwn_common.h"
+#include "GPU_common.h"
 
 #define GWN_VERT_ATTR_MAX_LEN 16
 #define GWN_VERT_ATTR_MAX_NAMES 3
