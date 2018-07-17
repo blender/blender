@@ -17,9 +17,9 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
+
 import bpy
 from bpy.types import (
-    Menu,
     Panel,
     UIList,
 )
@@ -71,6 +71,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+
         scene = context.scene
 
         layout.prop(scene, "camera")
@@ -92,13 +93,13 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
 
         layout.use_property_split = True
 
-        col = layout.column()
-        col.prop(unit, "system")
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
-        col = layout.column()
+        col = flow.column()
+        col.prop(unit, "system")
         col.prop(unit, "system_rotation")
 
-        col = layout.column()
+        col = flow.column()
         col.enabled = unit.system != 'NONE'
         col.prop(unit, "scale_length")
         col.prop(unit, "use_separate")
@@ -147,14 +148,16 @@ class SceneKeyingSetsPanel:
                 propname = prop
 
         row = layout.row(align=True)
-        row.prop(item, toggle_prop, text="", icon='STYLUS_PRESSURE', toggle=True)  # XXX: needs dedicated icon
 
-        subrow = row.row()
+        subrow = row.row(align=True)
         subrow.active = getattr(item, toggle_prop)
+
         if subrow.active:
             subrow.prop(item, prop, text=label)
         else:
             subrow.prop(owner, propname, text=label)
+
+        row.prop(item, toggle_prop, text="", icon='STYLUS_PRESSURE', toggle=True)  # XXX: needs dedicated icon
 
 
 class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
@@ -166,6 +169,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         layout = self.layout
 
         scene = context.scene
+
         row = layout.row()
 
         col = row.column()
@@ -175,20 +179,56 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
+
         ks = scene.keying_sets.active
         if ks and ks.is_path_absolute:
-            row = layout.row()
-
-            col = row.column()
+            col = flow.column()
             col.prop(ks, "bl_description")
 
-            subcol = col.column()
+            subcol = flow.column()
             subcol.operator_context = 'INVOKE_DEFAULT'
             subcol.operator("anim.keying_set_export", text="Export to File").filepath = "keyingset.py"
 
-            col = row.column()
-            col.label(text="Keyframing Settings:")
-            self.draw_keyframing_settings(context, col, ks, None)
+
+class SCENE_PT_keyframing_settings(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
+    bl_label = "Keyframing Settings"
+    bl_parent_id = "SCENE_PT_keying_sets"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        ks = context.scene.keying_sets.active
+        return (ks and ks.is_path_absolute)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        ks = scene.keying_sets.active
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column(align=True)
+        col.alignment = "RIGHT"
+        col.label(text="General Override")
+
+        self.draw_keyframing_settings(context, col, ks, None)
+
+        ksp = ks.paths.active
+        if ksp:
+            col.separator()
+
+            col = flow.column(align=True)
+            col.alignment = "RIGHT"
+            col.label(text="Active Set Override")
+
+            self.draw_keyframing_settings(context, col, ks, ksp)
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
@@ -219,33 +259,39 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
         col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
 
+        # TODO: 1) the template_any_ID needs to be fixed for the text alignment.
+        #       2) use_property_decorate has to properly skip the non animatable properties.
+        #          Properties affected with needless draw:
+        #          group_method, template_any_ID dropdown, use_entire_array
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation (remove this later on).
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=True)
+
         ksp = ks.paths.active
         if ksp:
-            col = layout.column()
-            col.label(text="Target:")
-            col.template_any_ID(ksp, "id", "id_type")
-            col.template_path_builder(ksp, "data_path", ksp.id)
+            col = flow.column(align=True)
+            col.alignment = "RIGHT"
 
-            row = col.row(align=True)
-            row.label(text="Array Target:")
-            row.prop(ksp, "use_entire_array", text="All Items")
-            if ksp.use_entire_array:
-                row.label(text=" ")  # padding
-            else:
-                row.prop(ksp, "array_index", text="Index")
+            col.template_any_ID(ksp, "id", "id_type", text="Target ID-Block")
 
-            layout.separator()
+            col.separator()
 
-            row = layout.row()
-            col = row.column()
-            col.label(text="F-Curve Grouping:")
-            col.prop(ksp, "group_method", text="")
+            col.template_path_builder(ksp, "data_path", ksp.id, text="Data Path")
+
+            col = flow.column()
+
+            col.prop(ksp, "use_entire_array", text="Array All Items")
+
+            if not ksp.use_entire_array:
+                col.prop(ksp, "array_index", text="Index")
+
+            col.separator()
+
+            col.prop(ksp, "group_method", text="F-Curve Grouping")
             if ksp.group_method == 'NAMED':
                 col.prop(ksp, "group")
-
-            col = row.column()
-            col.label(text="Keyframing Settings:")
-            self.draw_keyframing_settings(context, col, ks, ksp)
 
 
 class SCENE_PT_color_management(SceneButtonsPanel, Panel):
@@ -260,16 +306,19 @@ class SCENE_PT_color_management(SceneButtonsPanel, Panel):
         scene = context.scene
         view = scene.view_settings
 
-        col = layout.column()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
         col.prop(scene.display_settings, "display_device")
 
         col.separator()
 
-        col = layout.column()
         col.prop(view, "view_transform")
+        col.prop(view, "look")
+
+        col = flow.column()
         col.prop(view, "exposure")
         col.prop(view, "gamma")
-        col.prop(view, "look")
 
         col.separator()
 
@@ -314,21 +363,28 @@ class SCENE_PT_audio(SceneButtonsPanel, Panel):
         rd = context.scene.render
         ffmpeg = rd.ffmpeg
 
-        layout.prop(scene, "audio_volume")
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
-        col = layout.column()
+        col = flow.column()
+        col.prop(scene, "audio_volume")
+
+        col.separator()
+
         col.prop(scene, "audio_distance_model")
-
         col.prop(ffmpeg, "audio_channels")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(ffmpeg, "audio_mixrate", text="Sample Rate")
 
-        layout.separator()
+        col.separator()
 
-        col = layout.column(align=True)
+        col = col.column(align=True)
         col.prop(scene, "audio_doppler_speed", text="Doppler Speed")
         col.prop(scene, "audio_doppler_factor", text="Doppler Factor")
 
-        layout.separator()
+        col.separator()
 
         layout.operator("sound.bake_animation")
 
@@ -372,7 +428,6 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
         layout.use_property_split = True
 
         scene = context.scene
-
         rbw = scene.rigidbody_world
 
         if rbw is None:
@@ -380,7 +435,28 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
         else:
             layout.operator("rigidbody.world_remove")
 
-            col = layout.column()
+
+class SCENE_PT_rigid_body_world_settings(SceneButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_parent_id = "SCENE_PT_rigid_body_world"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        scene = context.scene
+        return scene and scene.rigidbody_world and (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        rbw = scene.rigidbody_world
+
+        if rbw:
+            flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+            col = flow.column()
             col.active = rbw.enabled
 
             col = col.column()
@@ -389,6 +465,9 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
             col = col.column()
             col.prop(rbw, "time_scale", text="Speed")
+
+            col = flow.column()
+            col.active = rbw.enabled
             col.prop(rbw, "use_split_impulse")
 
             col = col.column()
@@ -458,8 +537,12 @@ class SCENE_PT_simplify_viewport(SceneButtonsPanel, Panel):
 
         layout.active = rd.use_simplify
 
-        col = layout.column()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
         col.prop(rd, "simplify_subdivision", text="Max Subdivision")
+
+        col = flow.column()
         col.prop(rd, "simplify_child_particles", text="Max Child Particles")
 
 
@@ -476,8 +559,12 @@ class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
 
         layout.active = rd.use_simplify
 
-        col = layout.column()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
         col.prop(rd, "simplify_subdivision_render", text="Max Subdivision")
+
+        col = flow.column()
         col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
 
 
@@ -494,11 +581,13 @@ classes = (
     SCENE_PT_unit,
     SCENE_PT_keying_sets,
     SCENE_PT_keying_set_paths,
+    SCENE_PT_keyframing_settings,
     SCENE_PT_color_management,
     SCENE_PT_color_management_curves,
     SCENE_PT_audio,
     SCENE_PT_physics,
     SCENE_PT_rigid_body_world,
+    SCENE_PT_rigid_body_world_settings,
     SCENE_PT_rigid_body_cache,
     SCENE_PT_rigid_body_field_weights,
     SCENE_PT_simplify,

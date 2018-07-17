@@ -97,7 +97,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
                             'CONSTRAINT')  # RB_TODO needs better icon
 
 
-# cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc
+# cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc.
 
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
@@ -112,8 +112,8 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         col.operator("ptcache.add", icon='ZOOMIN', text="")
         col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
-    row = layout.row()
     if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
+        row = layout.row()
         row.prop(cache, "use_external")
 
         if cachetype == 'SMOKE':
@@ -131,7 +131,9 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
         cache_info = cache.info
         if cache_info:
-            layout.label(text=cache_info)
+            col = layout.column()
+            col.alignment = "RIGHT"
+            col.label(text=cache_info)
     else:
         if cachetype in {'SMOKE', 'DYNAMIC_PAINT'}:
             if not bpy.data.is_saved:
@@ -147,45 +149,54 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             col.enabled = enabled
             col.prop(cache, "frame_start", text="Simulation Start")
             col.prop(cache, "frame_end")
+
         if cachetype not in {'SMOKE', 'CLOTH', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
             col.prop(cache, "frame_step")
 
-        if cachetype != 'SMOKE':
-            layout.label(text=cache.info)
+        cache_info = cache.info
+        if cachetype != 'SMOKE' and cache_info:  # avoid empty space.
+            col = layout.column(align=True)
+            col.alignment = "RIGHT"
+            col.label(text=cache_info)
 
         can_bake = True
 
         if cachetype not in {'SMOKE', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
-            split = layout.split()
-            split.enabled = enabled and bpy.data.is_saved
+            flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+            flow.enabled = enabled and bpy.data.is_saved
 
-            col = split.column()
+            flow.use_property_split = True
+
+            # NOTE: TODO temporarly used until the animate properties are properly skipped.
+            flow.use_property_decorate = False  # No animation (remove this later on)
+
+            col = flow.column()
             col.prop(cache, "use_disk_cache")
 
-            col = split.column()
+            subcol = col.column()
+            subcol.active = cache.use_disk_cache
+            subcol.prop(cache, "use_library_path", "Use Lib Path")
+
+            col = flow.column()
+            col.enabled = enabled and bpy.data.is_saved
             col.active = cache.use_disk_cache
-            col.prop(cache, "use_library_path", "Use Lib Path")
-
-            row = layout.row()
-            row.enabled = enabled and bpy.data.is_saved
-            row.active = cache.use_disk_cache
-            row.label(text="Compression:")
-            row.prop(cache, "compression", expand=True)
-
-            layout.separator()
+            col.prop(cache, "compression", text="Compression", expand=True)
 
             if cache.id_data.library and not cache.use_disk_cache:
                 can_bake = False
 
                 col = layout.column(align=True)
-                col.label(text="Linked object baking requires Disk Cache to be enabled", icon='INFO')
+                col.alignment = "RIGHT"
+
+                col.separator()
+
+                col.label(text="Linked object baking requires Disk Cache to be enabled")
         else:
             layout.separator()
 
-        split = layout.split()
-        split.active = can_bake
-
-        col = split.column()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        col = flow.column()
+        col.active = can_bake
 
         if cache.is_baked is True:
             col.operator("ptcache.free_bake", text="Free Bake")
@@ -200,7 +211,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         sub.enabled = enabled
         sub.operator("ptcache.bake_from_cache", text="Current Cache to Bake")
 
-        col = split.column()
+        col = flow.column()
         col.operator("ptcache.bake_all", text="Bake All Dynamics").bake = True
         col.operator("ptcache.free_bake_all", text="Free All Bakes")
         col.operator("ptcache.bake_all", text="Update All To Frame").bake = False
@@ -212,31 +223,31 @@ def effector_weights_ui(self, context, weights, weight_type):
 
     layout.prop(weights, "group")
 
-    layout.use_property_split = False
+    # NOTE: TODO temporarly used until the animate properties are properly skipped
+    layout.use_property_decorate = False  # No animation (remove this later on)
 
-    split = layout.split()
+    flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
-    split.prop(weights, "gravity", slider=True)
-    split.prop(weights, "all", slider=True)
-
-    layout.separator()
-
-    split = layout.split()
-
-    col = split.column()
+    col = flow.column()
+    col.prop(weights, "gravity", slider=True)
+    col.prop(weights, "all", slider=True)
     col.prop(weights, "force", slider=True)
     col.prop(weights, "vortex", slider=True)
+
+    col = flow.column()
     col.prop(weights, "magnetic", slider=True)
+    col.prop(weights, "harmonic", slider=True)
+    col.prop(weights, "charge", slider=True)
+    col.prop(weights, "lennardjones", slider=True)
+
+    col = flow.column()
     col.prop(weights, "wind", slider=True)
     col.prop(weights, "curve_guide", slider=True)
     col.prop(weights, "texture", slider=True)
     if weight_type != 'SMOKE':
         col.prop(weights, "smokeflow", slider=True)
 
-    col = split.column()
-    col.prop(weights, "harmonic", slider=True)
-    col.prop(weights, "charge", slider=True)
-    col.prop(weights, "lennardjones", slider=True)
+    col = flow.column()
     col.prop(weights, "turbulence", slider=True)
     col.prop(weights, "drag", slider=True)
     col.prop(weights, "boid", slider=True)
