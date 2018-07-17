@@ -49,6 +49,10 @@ getFVarLinearInterpolationFromCAPI(
       return Options::FVAR_LINEAR_NONE;
     case OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY:
       return Options::FVAR_LINEAR_CORNERS_ONLY;
+    case OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS1:
+      return Options::FVAR_LINEAR_CORNERS_PLUS1;
+    case OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS2:
+      return Options::FVAR_LINEAR_CORNERS_PLUS2;
     case OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES:
       return Options::FVAR_LINEAR_BOUNDARIES;
     case OSD_FVAR_LINEAR_INTERPOLATION_ALL:
@@ -56,6 +60,28 @@ getFVarLinearInterpolationFromCAPI(
   }
   assert(!"Unknown fvar linear interpolation passed via C-API");
   return Options::FVAR_LINEAR_NONE;
+}
+
+OpenSubdiv_FVarLinearInterpolation
+getCAPIFVarLinearInterpolationFromOSD(
+     OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation) {
+  typedef OpenSubdiv::Sdc::Options Options;
+  switch (linear_interpolation) {
+    case Options::FVAR_LINEAR_NONE:
+      return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
+    case Options::FVAR_LINEAR_CORNERS_ONLY:
+      return OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY;
+    case Options::FVAR_LINEAR_CORNERS_PLUS1:
+      return OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS1;
+    case Options::FVAR_LINEAR_CORNERS_PLUS2:
+      return OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS2;
+    case Options::FVAR_LINEAR_BOUNDARIES:
+      return OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES;
+    case Options::FVAR_LINEAR_ALL:
+      return OSD_FVAR_LINEAR_INTERPOLATION_ALL;
+  }
+  assert(!"Unknown fvar linear interpolation passed via C-API");
+  return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
 }
 
 float getCompatibleEdgeSharpness(const OpenSubdiv_Converter* converter,

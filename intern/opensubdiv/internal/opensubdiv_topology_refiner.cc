@@ -46,6 +46,9 @@ bool getIsAdaptive(const OpenSubdiv_TopologyRefiner* topology_refiner) {
   return topology_refiner->internal->settings.is_adaptive;
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// Query basic topology information from base level.
+
 int getNumVertices(const OpenSubdiv_TopologyRefiner* topology_refiner) {
   return getOSDTopologyBaseLevel(topology_refiner)->GetNumVertices();
 }
@@ -57,6 +60,9 @@ int getNumEdges(const OpenSubdiv_TopologyRefiner* topology_refiner) {
 int getNumFaces(const OpenSubdiv_TopologyRefiner* topology_refiner) {
   return getOSDTopologyBaseLevel(topology_refiner)->GetNumFaces();
 }
+
+////////////////////////////////////////////////////////////////////////////////
+// PTex face geometry queries.
 
 int getNumFaceVertices(const OpenSubdiv_TopologyRefiner* topology_refiner,
                        const int face_index) {
@@ -97,18 +103,59 @@ void fillFacePtexIndexOffset(const OpenSubdiv_TopologyRefiner* topology_refiner,
   }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Face-varying data.
+
+int getNumFVarChannels(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  return base_level->GetNumFVarChannels();
+}
+
+OpenSubdiv_FVarLinearInterpolation getFVarLinearInterpolation(
+    const struct OpenSubdiv_TopologyRefiner* topology_refiner) {
+  return opensubdiv_capi::getCAPIFVarLinearInterpolationFromOSD(
+    getOSDTopologyRefiner(topology_refiner)->GetFVarLinearInterpolation());
+}
+
+int getNumFVarValues(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int channel) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  return base_level->GetNumFVarValues(channel);
+}
+
+const int* getFaceFVarValueIndices(
+    const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+    const int face_index,
+    const int channel) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  return &base_level->GetFaceFVarValues(face_index, channel)[0];
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Internal helpers.
+
 void assignFunctionPointers(OpenSubdiv_TopologyRefiner* topology_refiner) {
   topology_refiner->getSubdivisionLevel = getSubdivisionLevel;
   topology_refiner->getIsAdaptive = getIsAdaptive;
-
+  // Basic topology information.
   topology_refiner->getNumVertices = getNumVertices;
   topology_refiner->getNumEdges = getNumEdges;
   topology_refiner->getNumFaces = getNumFaces;
   topology_refiner->getNumFaceVertices = getNumFaceVertices;
-
+  // PTex face geometry.
   topology_refiner->getNumFacePtexFaces = getNumFacePtexFaces;
   topology_refiner->getNumPtexFaces = getNumPtexFaces;
   topology_refiner->fillFacePtexIndexOffset = fillFacePtexIndexOffset;
+  // Face-varying data.
+  topology_refiner->getNumFVarChannels = getNumFVarChannels;
+  topology_refiner->getFVarLinearInterpolation = getFVarLinearInterpolation;
+  topology_refiner->getNumFVarValues = getNumFVarValues;
+  topology_refiner->getFaceFVarValueIndices = getFaceFVarValueIndices;
 }
 
 OpenSubdiv_TopologyRefiner* allocateTopologyRefiner() {
@@ -125,9 +172,14 @@ OpenSubdiv_TopologyRefiner* allocateTopologyRefiner() {
 OpenSubdiv_TopologyRefiner* openSubdiv_createTopologyRefinerFromConverter(
     OpenSubdiv_Converter* converter,
     const OpenSubdiv_TopologyRefinerSettings* settings) {
-  OpenSubdiv_TopologyRefiner* topology_refiner = allocateTopologyRefiner();
-  topology_refiner->internal->osd_topology_refiner =
+  OpenSubdiv::Far::TopologyRefiner* osd_topology_refiner =
       opensubdiv_capi::createOSDTopologyRefinerFromConverter(converter);
+  if (osd_topology_refiner == NULL) {
+    // Happens on empty or bad topology.
+    return NULL;
+  }
+  OpenSubdiv_TopologyRefiner* topology_refiner = allocateTopologyRefiner();
+  topology_refiner->internal->osd_topology_refiner = osd_topology_refiner;
   // Store setting which we want to keep track of and which can not be stored
   // in OpenSubdiv's descriptor yet.
   topology_refiner->internal->settings = *settings;

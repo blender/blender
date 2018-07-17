@@ -383,6 +383,8 @@ TopologyRefinerFactory<TopologyRefinerData>::assignFaceVaryingTopology(
     const int num_uvs = converter->getNumUVCoordinates(converter);
     // Fill in per-corner index of the UV.
     const int channel = createBaseFVarChannel(refiner, num_uvs);
+    // TODO(sergey): Need to check whether converter changed the winding of
+    // face to match OpenSubdiv's expectations.
     for (int face_index = 0; face_index < num_faces; ++face_index) {
       Far::IndexArray dst_face_uvs =
           getBaseFaceFVarValues(refiner, face_index, channel);

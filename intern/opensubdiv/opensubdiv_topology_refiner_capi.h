@@ -21,6 +21,8 @@
 
 #include <stdint.h>  // for bool
 
+#include "opensubdiv_capi_type.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,7 +47,16 @@ typedef struct OpenSubdiv_TopologyRefiner {
   bool (*getIsAdaptive)(
       const struct OpenSubdiv_TopologyRefiner* topology_refiner);
 
+  // NOTE: All queries are querying base level.
+  //
+  // TODO(sergey): Consider making it more obvious in function naming,
+  // but since it's unlikely (or at least, will be uncommon use) for API
+  // which queries final geometry, we should be fine with this name for
+  // now.
+
+  //////////////////////////////////////////////////////////////////////////////
   // Query basic topology information from base level.
+
   int (*getNumVertices)(
       const struct OpenSubdiv_TopologyRefiner* topology_refiner);
   int (*getNumEdges)(
@@ -55,6 +66,9 @@ typedef struct OpenSubdiv_TopologyRefiner {
   int (*getNumFaceVertices)(
       const struct OpenSubdiv_TopologyRefiner* topology_refiner,
       const int face_index);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // PTex face geometry queries.
 
   // Ptex face corresponds to OpenSubdiv's internal "patch" and to Blender's
   // subdivision grid. The rule commes as:
@@ -79,6 +93,31 @@ typedef struct OpenSubdiv_TopologyRefiner {
       const struct OpenSubdiv_TopologyRefiner* topology_refiner,
       int* face_ptex_index_offset);
 
+  //////////////////////////////////////////////////////////////////////////////
+  // Face-varying data.
+
+  // Number of face-varying channels (or how they are called in Blender layers).
+  int (*getNumFVarChannels)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner);
+  // Get face-varying interpolation type.
+  OpenSubdiv_FVarLinearInterpolation (*getFVarLinearInterpolation)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner);
+  // Get total number of face-varying values in a particular channel.
+  int (*getNumFVarValues)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int channel);
+  // Get face-varying value indices associated with a particular face.
+  //
+  // This is an array of indices inside of face-varying array, array elements
+  // are aligned with face corners (or loops in Blender terminology).
+  const int* (*getFaceFVarValueIndices)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int face_index,
+      const int channel);
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Internal use.
+
   // Internal storage for the use in this module only.
   //
   // Tease: Contains actual OpenSubdiv's refiner and (optionally) some other
@@ -86,6 +125,8 @@ typedef struct OpenSubdiv_TopologyRefiner {
   struct OpenSubdiv_TopologyRefinerInternal* internal;
 } OpenSubdiv_TopologyRefiner;
 
+// NOTE: Will return NULL in cases of bad topology.
+// NOTE: Mesh without faces is considered a bad topology.
 OpenSubdiv_TopologyRefiner* openSubdiv_createTopologyRefinerFromConverter(
     struct OpenSubdiv_Converter* converter,
     const OpenSubdiv_TopologyRefinerSettings* settings);
@@ -101,7 +142,7 @@ void openSubdiv_deleteTopologyRefiner(
 // complicated parts of subdivision process.
 bool openSubdiv_topologyRefinerCompareWithConverter(
     const OpenSubdiv_TopologyRefiner* topology_refiner,
-    const OpenSubdiv_Converter* converter);
+    const struct OpenSubdiv_Converter* converter);
 
 #ifdef __cplusplus
 }

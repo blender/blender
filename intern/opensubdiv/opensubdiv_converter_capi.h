@@ -19,22 +19,11 @@
 #ifndef OPENSUBDIV_CONVERTER_CAPI_H_
 #define OPENSUBDIV_CONVERTER_CAPI_H_
 
+#include "opensubdiv_capi_type.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-typedef enum OpenSubdiv_SchemeType {
-  OSD_SCHEME_BILINEAR,
-  OSD_SCHEME_CATMARK,
-  OSD_SCHEME_LOOP,
-} OpenSubdiv_SchemeType;
-
-typedef enum OpenSubdiv_FVarLinearInterpolation {
-  OSD_FVAR_LINEAR_INTERPOLATION_NONE,
-  OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
-  OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES,
-  OSD_FVAR_LINEAR_INTERPOLATION_ALL,
-} OpenSubdiv_FVarLinearInterpolation;
 
 typedef struct OpenSubdiv_Converter {
   OpenSubdiv_SchemeType (*getSchemeType)(

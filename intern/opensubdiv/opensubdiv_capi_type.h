@@ -34,6 +34,21 @@ typedef enum eOpenSubdivEvaluator {
   OPENSUBDIV_EVALUATOR_GLSL_COMPUTE            = (1 << 5),
 } eOpenSubdivEvaluator;
 
+typedef enum OpenSubdiv_SchemeType {
+  OSD_SCHEME_BILINEAR,
+  OSD_SCHEME_CATMARK,
+  OSD_SCHEME_LOOP,
+} OpenSubdiv_SchemeType;
+
+typedef enum OpenSubdiv_FVarLinearInterpolation {
+  OSD_FVAR_LINEAR_INTERPOLATION_NONE,
+  OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
+  OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS1,
+  OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_PLUS2,
+  OSD_FVAR_LINEAR_INTERPOLATION_BOUNDARIES,
+  OSD_FVAR_LINEAR_INTERPOLATION_ALL,
+} OpenSubdiv_FVarLinearInterpolation;
+
 #ifdef __cplusplus
 }
 #endif
