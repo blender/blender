@@ -4069,6 +4069,13 @@ static void bevel_vert_two_edges(BevelParams *bp, BMesh *bm, BevVert *bv)
 				flag_out_edge(bm, bme);
 		}
 	}
+	else if (bp->faceHash) {
+		BMFace *f;
+		BMIter fiter;
+		BM_ITER_ELEM(f, &fiter, bv->v, BM_FACES_OF_VERT) {
+			BLI_ghash_insert(bp->faceHash, f, NULL);
+		}
+	}
 }
 
 /* Given that the boundary is built, now make the actual BMVerts
