@@ -1227,7 +1227,7 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
         world = context.world
 
         if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
-            layout.prop(world, "horizon_color", text="Color")
+            layout.prop(world, "color")
 
 
 class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):

@@ -1330,7 +1330,7 @@ void BlenderSync::sync_world(BL::Depsgraph& b_depsgraph, bool update_all)
 		}
 		else if(b_world) {
 			BackgroundNode *background = new BackgroundNode();
-			background->color = get_float3(b_world.horizon_color());
+			background->color = get_float3(b_world.color());
 			graph->add(background);
 
 			ShaderNode *out = graph->output();
