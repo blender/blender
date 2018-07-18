@@ -2874,6 +2874,48 @@ static void rna_NodeColorBalance_update_cdl(Main *bmain, Scene *scene, PointerRN
 	rna_Node_update(bmain, scene, ptr);
 }
 
+static void rna_NodeCryptomatte_matte_get(PointerRNA *ptr, char *value)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeCryptomatte *nc = node->storage;
+
+	strcpy(value, (nc->matte_id) ? nc->matte_id : "");
+}
+
+static int rna_NodeCryptomatte_matte_length(PointerRNA *ptr)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeCryptomatte *nc = node->storage;
+
+	return (nc->matte_id) ? strlen(nc->matte_id) : 0;
+}
+
+static void rna_NodeCryptomatte_matte_set(PointerRNA *ptr, const char *value)
+{
+	bNode *node = (bNode *)ptr->data;
+	NodeCryptomatte *nc = node->storage;
+
+	if (nc->matte_id)
+		MEM_freeN(nc->matte_id);
+
+	if (value && value[0])
+		nc->matte_id = BLI_strdup(value);
+	else
+		nc->matte_id = NULL;
+}
+
+static void rna_NodeCryptomatte_update_add(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ntreeCompositCryptomatteSyncFromAdd(ptr->id.data, ptr->data);
+	rna_Node_update(bmain, scene, ptr);
+}
+
+static void rna_NodeCryptomatte_update_remove(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ntreeCompositCryptomatteSyncFromRemove(ptr->id.data, ptr->data);
+	rna_Node_update(bmain, scene, ptr);
+}
+
 /* ******** Node Socket Types ******** */
 
 static PointerRNA rna_NodeOutputFile_slot_layer_get(CollectionPropertyIterator *iter)
@@ -3294,6 +3336,13 @@ static const EnumPropertyItem node_toon_items[] = {
 static const EnumPropertyItem node_hair_items[] = {
 	{SHD_HAIR_REFLECTION,     "Reflection",    0,   "Reflection", ""},
 	{SHD_HAIR_TRANSMISSION,   "Transmission",    0,  "Transmission", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static const EnumPropertyItem node_principled_hair_items[] = {
+	{SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION,     "ABSORPTION", 0, "Absorption coefficient",   "Directly set the absorption coefficient sigma_a. This is not the most intuitive way to color hair."},
+	{SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION, "MELANIN",    0, "Melanin concentration",    "Define the melanin concentrations below to get the most realistic-looking hair. You can get the concentrations for different types of hair online."},
+	{SHD_PRINCIPLED_HAIR_REFLECTANCE,           "COLOR",      0, "Direct coloring",          "Choose the color of your preference, and the shader will approximate the absorption coefficient to render lookalike hair."},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -4293,6 +4342,21 @@ static void def_hair(StructRNA *srna)
 	RNA_def_property_enum_items(prop, node_hair_items);
 	RNA_def_property_ui_text(prop, "Component", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+/* RNA initialization for the custom property. */
+static void def_hair_principled(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "parametrization", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_ui_text(prop, "Color parametrization", "Select the shader's color parametrization");
+	RNA_def_property_enum_items(prop, node_principled_hair_items);
+	RNA_def_property_enum_default(prop, SHD_PRINCIPLED_HAIR_REFLECTANCE);
+	/* Upon editing, update both the node data AND the UI representation */
+	/* (This effectively shows/hides the relevant sockets) */
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
 }
 
 static void def_sh_uvmap(StructRNA *srna)
@@ -6903,6 +6967,32 @@ static void def_cmp_sunbeams(StructRNA *srna)
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 10, 3);
 	RNA_def_property_ui_text(prop, "Ray Length", "Length of rays as a factor of the image size");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_cryptomatte(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	static float default_1[3] = {1.f, 1.f, 1.f};
+
+	RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
+	prop = RNA_def_property(srna, "matte_id", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_NodeCryptomatte_matte_get", "rna_NodeCryptomatte_matte_length",
+								  "rna_NodeCryptomatte_matte_set");
+	RNA_def_property_ui_text(prop, "Matte Objects", "List of object and material crypto IDs to include in matte");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+
+	prop = RNA_def_property(srna, "add", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_range(prop,  -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Add", "Add object or material to matte, by picking a color from the Pick output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeCryptomatte_update_add");
+
+	prop = RNA_def_property(srna, "remove", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_array_default(prop, default_1);
+	RNA_def_property_range(prop,  -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Remove", "Remove object or material from matte, by picking a color from the Pick output");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_NodeCryptomatte_update_remove");
 }
 
 /* -- Texture Nodes --------------------------------------------------------- */

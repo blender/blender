@@ -554,6 +554,7 @@ closure color bssrdf(string method, normal N, vector radius, color albedo) BUILT
 // Hair
 closure color hair_reflection(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
 closure color hair_transmission(normal N, float roughnessu, float roughnessv, vector T, float offset) BUILTIN;
+closure color principled_hair(normal N, color sigma, float roughnessu, float roughnessv, float coat, float alpha, float eta) BUILTIN;
 
 // Volume
 closure color henyey_greenstein(float g) BUILTIN;

@@ -1,0 +1,105 @@
+/*
+ * Copyright 2018 Blender Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "stdosl.h"
+
+color log3(color a)
+{
+	return color(log(a[0]), log(a[1]), log(a[2]));
+}
+
+color sigma_from_concentration(float eumelanin, float pheomelanin)
+{
+	return eumelanin*color(0.506, 0.841, 1.653) + pheomelanin*color(0.343, 0.733, 1.924);
+}
+
+color sigma_from_reflectance(color c, float azimuthal_roughness)
+{
+	float x = azimuthal_roughness;
+	float roughness_fac = (((((0.245*x) + 5.574)*x - 10.73)*x + 2.532)*x - 0.215)*x + 5.969;
+	color sigma = log3(c) / roughness_fac;
+	return sigma * sigma;
+}
+
+shader node_principled_hair_bsdf(
+	color Color = color(0.017513, 0.005763, 0.002059),
+	float Melanin = 0.8,
+	float MelaninRedness = 1.0,
+	float RandomColor = 0.0,
+	color Tint = 1.0,
+	color AbsorptionCoefficient = color(0.245531, 0.52, 1.365),
+	normal Normal = Ng,
+	string parametrization = "Absorption coefficient",
+	float Offset = radians(2),
+	float Roughness = 0.3,
+	float RadialRoughness = 0.3,
+	float RandomRoughness = 0.0,
+	float Coat = 0.0,
+	float IOR = 1.55,
+	string AttrRandom = "geom:curve_random",
+	float Random = 0.0,
+
+	output closure color BSDF = 0)
+{
+	/* Get random value from curve in none is specified. */
+	float random_value = 0.0;
+
+	if (isconnected(Random)) {
+		random_value = Random;
+	}
+	else {
+		getattribute(AttrRandom, random_value);
+	}
+
+	/* Compute roughness. */
+	float factor_random_roughness = 1.0 + 2.0*(random_value - 0.5)*RandomRoughness;
+	float m0_roughness = 1.0 - clamp(Coat, 0.0, 1.0);
+	float roughness = Roughness*factor_random_roughness;
+	float radial_roughness = RadialRoughness*factor_random_roughness;
+
+	/* Compute absorption. */
+	color sigma;
+
+	if (parametrization == "Absorption coefficient") {
+		sigma = AbsorptionCoefficient;
+	}
+	else if (parametrization == "Melanin concentration") {
+		/* Randomize melanin. */
+		float factor_random_color = 1.0 + 2.0*(random_value - 0.5) * RandomColor;
+		float melanin = Melanin * factor_random_color;
+
+		/* Map melanin 0..inf from more perceptually linear 0..1. */
+		melanin = -log(max(1.0 - melanin, 0.0001));
+
+		/* Benedikt Bitterli's melanin ratio remapping. */
+		float eumelanin = melanin * (1.0 - MelaninRedness);
+		float pheomelanin = melanin * MelaninRedness;
+		color melanin_sigma = sigma_from_concentration(eumelanin, pheomelanin);
+
+		/* Optional tint. */
+		color tint_sigma = sigma_from_reflectance(Tint, radial_roughness);
+		sigma = melanin_sigma + tint_sigma;
+	}
+	else if (parametrization == "Direct coloring"){
+		sigma = sigma_from_reflectance(Color, radial_roughness);
+	}
+	else {
+		/* Fallback to brownish hair, same as defaults for melanin. */
+		sigma = sigma_from_concentration(0.0, 0.8054375);
+	}
+
+	BSDF = principled_hair(Normal, sigma, roughness, radial_roughness, m0_roughness, Offset, IOR);
+}

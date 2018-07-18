@@ -1103,6 +1103,13 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
 				}
 				writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 			}
+			else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_CRYPTOMATTE)) {
+				NodeCryptomatte *nc = (NodeCryptomatte *)node->storage;
+				if (nc->matte_id) {
+					writedata(wd, DATA, strlen(nc->matte_id) + 1, nc->matte_id);
+				}
+				writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
+			}
 			else {
 				writestruct_id(wd, DATA, node->typeinfo->storagename, 1, node->storage);
 			}

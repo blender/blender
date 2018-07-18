@@ -905,6 +905,14 @@ typedef struct NodeSunBeams {
 	float ray_length;
 } NodeSunBeams;
 
+typedef struct NodeCryptomatte {
+	float add[3];
+	float remove[3];
+	char *matte_id;
+	int num_inputs;
+	int pad;
+} NodeCryptomatte;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL		0
 #define NODE_SCRIPT_EXTERNAL		1
@@ -952,6 +960,11 @@ typedef struct NodeSunBeams {
 /* hair components */
 #define SHD_HAIR_REFLECTION		0
 #define SHD_HAIR_TRANSMISSION		1
+
+/* principled hair parametrization */
+#define SHD_PRINCIPLED_HAIR_REFLECTANCE				0
+#define SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION	1
+#define SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION		2
 
 /* blend texture */
 #define SHD_BLEND_LINEAR			0

@@ -129,6 +129,9 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_tree_socket_add);
 	WM_operatortype_append(NODE_OT_tree_socket_remove);
 	WM_operatortype_append(NODE_OT_tree_socket_move);
+
+	WM_operatortype_append(NODE_OT_cryptomatte_layer_add);
+	WM_operatortype_append(NODE_OT_cryptomatte_layer_remove);
 }
 
 void ED_operatormacros_node(void)

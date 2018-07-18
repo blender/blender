@@ -123,6 +123,7 @@
 #define fmaxf(x, y) fmax(((float)(x)), ((float)(y)))
 #define fminf(x, y) fmin(((float)(x)), ((float)(y)))
 #define fmodf(x, y) fmod((float)(x), (float)(y))
+#define sinhf(x) sinh(((float)(x)))
 
 #ifndef __CL_USE_NATIVE__
 #  define sinf(x) native_sin(((float)(x)))

@@ -3089,6 +3089,139 @@ void PrincipledVolumeNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_principled_volume");
 }
 
+/* Principled Hair BSDF Closure */
+
+NODE_DEFINE(PrincipledHairBsdfNode)
+{
+	NodeType* type = NodeType::add("principled_hair_bsdf", create, NodeType::SHADER);
+
+	/* Color parametrization specified as enum. */
+	static NodeEnum parametrization_enum;
+	parametrization_enum.insert("Direct coloring", NODE_PRINCIPLED_HAIR_REFLECTANCE);
+	parametrization_enum.insert("Melanin concentration", NODE_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION);
+	parametrization_enum.insert("Absorption coefficient", NODE_PRINCIPLED_HAIR_DIRECT_ABSORPTION);
+	SOCKET_ENUM(parametrization, "Parametrization", parametrization_enum, NODE_PRINCIPLED_HAIR_REFLECTANCE);
+
+	/* Initialize sockets to their default values. */
+	SOCKET_IN_COLOR(color, "Color", make_float3(0.017513f, 0.005763f, 0.002059f));
+	SOCKET_IN_FLOAT(melanin, "Melanin", 0.8f);
+	SOCKET_IN_FLOAT(melanin_redness, "Melanin Redness", 1.0f);
+	SOCKET_IN_COLOR(tint, "Tint", make_float3(1.f, 1.f, 1.f));
+	SOCKET_IN_VECTOR(absorption_coefficient, "Absorption Coefficient", make_float3(0.245531f, 0.52f, 1.365f), SocketType::VECTOR);
+
+	SOCKET_IN_FLOAT(offset, "Offset", 2.f*M_PI_F/180.f);
+	SOCKET_IN_FLOAT(roughness, "Roughness", 0.3f);
+	SOCKET_IN_FLOAT(radial_roughness, "Radial Roughness", 0.3f);
+	SOCKET_IN_FLOAT(coat, "Coat", 0.0f);
+	SOCKET_IN_FLOAT(ior, "IOR", 1.55f);
+
+	SOCKET_IN_FLOAT(random_roughness, "Random Roughness", 0.0f);
+	SOCKET_IN_FLOAT(random_color, "Random Color", 0.0f);
+	SOCKET_IN_FLOAT(random, "Random", 0.0f);
+
+	SOCKET_IN_NORMAL(normal, "Normal", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_NORMAL);
+	SOCKET_IN_FLOAT(surface_mix_weight, "SurfaceMixWeight", 0.0f, SocketType::SVM_INTERNAL);
+
+	SOCKET_OUT_CLOSURE(BSDF, "BSDF");
+
+	return type;
+}
+
+PrincipledHairBsdfNode::PrincipledHairBsdfNode()
+: BsdfBaseNode(node_type)
+{
+	closure = CLOSURE_BSDF_HAIR_PRINCIPLED_ID;
+}
+
+/* Enable retrieving Hair Info -> Random if Random isn't linked. */
+void PrincipledHairBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
+{
+	if(!input("Random")->link) {
+		attributes->add(ATTR_STD_CURVE_RANDOM);
+	}
+	ShaderNode::attributes(shader, attributes);
+}
+
+/* Prepares the input data for the SVM shader. */
+void PrincipledHairBsdfNode::compile(SVMCompiler& compiler)
+{
+	compiler.add_node(NODE_CLOSURE_SET_WEIGHT, make_float3(1.0f, 1.0f, 1.0f));
+
+	ShaderInput *roughness_in = input("Roughness");
+	ShaderInput *radial_roughness_in = input("Radial Roughness");
+	ShaderInput *random_roughness_in = input("Random Roughness");
+	ShaderInput *offset_in = input("Offset");
+	ShaderInput *coat_in = input("Coat");
+	ShaderInput *ior_in = input("IOR");
+	ShaderInput *melanin_in =  input("Melanin");
+	ShaderInput *melanin_redness_in = input("Melanin Redness");
+	ShaderInput *random_color_in = input("Random Color");
+
+	int color_ofs = compiler.stack_assign(input("Color"));
+	int tint_ofs = compiler.stack_assign(input("Tint"));
+	int absorption_coefficient_ofs = compiler.stack_assign(input("Absorption Coefficient"));
+
+	ShaderInput *random_in = input("Random");
+	int attr_random = random_in->link ? SVM_STACK_INVALID : compiler.attribute(ATTR_STD_CURVE_RANDOM);
+
+	/* Encode all parameters into data nodes. */
+	compiler.add_node(NODE_CLOSURE_BSDF,
+		/* Socket IDs can be packed 4 at a time into a single data packet */
+		compiler.encode_uchar4(closure,
+			compiler.stack_assign_if_linked(roughness_in),
+			compiler.stack_assign_if_linked(radial_roughness_in),
+			compiler.closure_mix_weight_offset()),
+		/* The rest are stored as unsigned integers */
+		__float_as_uint(roughness),
+		__float_as_uint(radial_roughness));
+
+	compiler.add_node(compiler.stack_assign_if_linked(input("Normal")),
+		compiler.encode_uchar4(
+			compiler.stack_assign_if_linked(offset_in),
+			compiler.stack_assign_if_linked(ior_in),
+			color_ofs,
+			parametrization),
+		__float_as_uint(offset),
+		__float_as_uint(ior));
+
+	compiler.add_node(
+		compiler.encode_uchar4(
+			compiler.stack_assign_if_linked(coat_in),
+			compiler.stack_assign_if_linked(melanin_in),
+			compiler.stack_assign_if_linked(melanin_redness_in),
+			absorption_coefficient_ofs),
+		__float_as_uint(coat),
+		__float_as_uint(melanin),
+		__float_as_uint(melanin_redness));
+
+	compiler.add_node(
+		compiler.encode_uchar4(
+			tint_ofs,
+			compiler.stack_assign_if_linked(random_in),
+			compiler.stack_assign_if_linked(random_color_in),
+			compiler.stack_assign_if_linked(random_roughness_in)),
+		__float_as_uint(random),
+		__float_as_uint(random_color),
+		__float_as_uint(random_roughness));
+
+	compiler.add_node(
+		compiler.encode_uchar4(
+			SVM_STACK_INVALID,
+			SVM_STACK_INVALID,
+			SVM_STACK_INVALID,
+			SVM_STACK_INVALID),
+		attr_random,
+		SVM_STACK_INVALID,
+		SVM_STACK_INVALID);
+}
+
+/* Prepares the input data for the OSL shader. */
+void PrincipledHairBsdfNode::compile(OSLCompiler& compiler)
+{
+	compiler.parameter(this, "parametrization");
+	compiler.add(this, "node_principled_hair_bsdf");
+}
+
 /* Hair BSDF Closure */
 
 NODE_DEFINE(HairBsdfNode)

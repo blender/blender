@@ -156,6 +156,7 @@ set(SRC_CLOSURE_HEADERS
 	closure/volume.h
 	closure/bsdf_principled_diffuse.h
 	closure/bsdf_principled_sheen.h
+    closure/bsdf_hair_principled.h
 )
 
 set(SRC_SVM_HEADERS

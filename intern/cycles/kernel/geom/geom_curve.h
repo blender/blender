@@ -23,6 +23,33 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
+/* Interpolation of curve geometry */
+
+ccl_device_inline float3 curvetangent(float t, float3 p0, float3 p1, float3 p2, float3 p3)
+{
+	float fc = 0.71f;
+	float data[4];
+	float t2 = t * t;
+	data[0] = -3.0f * fc          * t2  + 4.0f * fc * t                  - fc;
+	data[1] =  3.0f * (2.0f - fc) * t2  + 2.0f * (fc - 3.0f) * t;
+	data[2] =  3.0f * (fc - 2.0f) * t2  + 2.0f * (3.0f - 2.0f * fc) * t  + fc;
+	data[3] =  3.0f * fc          * t2  - 2.0f * fc * t;
+	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
+}
+
+ccl_device_inline float3 curvepoint(float t, float3 p0, float3 p1, float3 p2, float3 p3)
+{
+	float data[4];
+	float fc = 0.71f;
+	float t2 = t * t;
+	float t3 = t2 * t;
+	data[0] = -fc          * t3  + 2.0f * fc          * t2 - fc * t;
+	data[1] =  (2.0f - fc) * t3  + (fc - 3.0f)        * t2 + 1.0f;
+	data[2] =  (fc - 2.0f) * t3  + (3.0f - 2.0f * fc) * t2 + fc * t;
+	data[3] =  fc          * t3  - fc * t2;
+	return data[0] * p0 + data[1] * p1 + data[2] * p2 + data[3] * p3;
+}
+
 /* Reading attributes on various curve elements */
 
 ccl_device float curve_attribute_float(KernelGlobals *kg, const ShaderData *sd, const AttributeDescriptor desc, float *dx, float *dy)

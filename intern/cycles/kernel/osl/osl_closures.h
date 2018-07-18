@@ -79,6 +79,7 @@ void closure_bsdf_microfacet_multi_ggx_fresnel_prepare(OSL::RendererServices *, 
 void closure_bsdf_microfacet_multi_ggx_glass_fresnel_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_aniso_fresnel_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_principled_clearcoat_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_principled_hair_prepare(OSL::RendererServices *, int id, void *data);
 
 #define CCLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \

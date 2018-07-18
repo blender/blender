@@ -229,6 +229,8 @@ void NODE_GGT_backdrop_crop(struct wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_sun_beams(struct wmGizmoGroupType *gzgt);
 void NODE_GGT_backdrop_corner_pin(struct wmGizmoGroupType *gzgt);
 
+void NODE_OT_cryptomatte_layer_add(struct wmOperatorType *ot);
+void NODE_OT_cryptomatte_layer_remove(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 
