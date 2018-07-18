@@ -49,7 +49,7 @@ static inline uint32_t rotl32(uint32_t x, int8_t r)
 	return (x << r) | (x >> (32 - r));
 }
 #  define ROTL32(x,y) rotl32(x,y)
-# define BIG_CONSTANT(x) (x##LLU)
+#  define BIG_CONSTANT(x) (x##LLU)
 #endif /* !defined(_MSC_VER) */
 
 /* Block read - if your platform needs to do endian-swapping or can only

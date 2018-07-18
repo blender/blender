@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,17 +30,10 @@
  */
 
 #include "node_composite_util.h"
+#include "BLI_assert.h"
 #include "BLI_dynstr.h"
 #include "BLI_hash_mm3.h"
-#include "BLI_assert.h"
-
-#ifndef max
-  #define max(a,b) (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min
-  #define min(a,b) (((a) < (b)) ? (a) : (b))
-#endif
+#include "BLI_utildefines.h"
 
 /* this is taken from the cryptomatte specification 1.0 */
 
@@ -48,8 +41,8 @@ static inline float hash_to_float(uint32_t hash)
 {
 	uint32_t mantissa = hash & (( 1 << 23) - 1);
 	uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
-	exponent = max(exponent, (uint32_t) 1);
-	exponent = min(exponent, (uint32_t) 254);
+	exponent = MAX2(exponent, (uint32_t) 1);
+	exponent = MIN2(exponent, (uint32_t) 254);
 	exponent = exponent << 23;
 	uint32_t sign = (hash >> 31);
 	sign = sign << 31;

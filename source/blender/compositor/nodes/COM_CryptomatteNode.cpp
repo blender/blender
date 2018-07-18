@@ -35,7 +35,8 @@ CryptomatteNode::CryptomatteNode(bNode *editorNode) : Node(editorNode)
 }
 
 /* This is taken from the Cryptomatte specification 1.0. */
-static inline float hash_to_float(uint32_t hash) {
+static inline float hash_to_float(uint32_t hash)
+{
 	uint32_t mantissa = hash & (( 1 << 23) - 1);
 	uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
 	exponent = max(exponent, (uint32_t) 1);
@@ -95,7 +96,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 	for (int i = 0; i < getNumberOfInputSockets()-1; ++i) {
 		converter.mapInputSocket(this->getInputSocket(i + 1), operation->getInputSocket(i));
 	}
-	
+
 	SeparateChannelOperation *separateOperation = new SeparateChannelOperation;
 	separateOperation->setChannel(3);
 	converter.addOperation(separateOperation);
