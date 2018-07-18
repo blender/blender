@@ -2240,8 +2240,8 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 
 void DRW_engines_register(void)
 {
-	RE_engines_register(&DRW_engine_viewport_opengl_type);
 	RE_engines_register(&DRW_engine_viewport_eevee_type);
+	RE_engines_register(&DRW_engine_viewport_opengl_type);
 
 	DRW_engine_register(&draw_engine_workbench_solid);
 	DRW_engine_register(&draw_engine_workbench_transparent);
