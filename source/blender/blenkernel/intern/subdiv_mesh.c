@@ -416,7 +416,10 @@ static void loop_interpolation_end(LoopsForInterpolation *loop_interpolation)
 static void subdiv_copy_vertex_data(
         const SubdivMeshContext *ctx,
         MVert *subdiv_vertex,
+        const Mesh *coarse_mesh,
+        const MPoly *coarse_poly,
         const VerticesForInterpolation *vertex_interpolation,
+        const int ptex_of_poly_index,
         const float u, const float v)
 {
 	const int subdiv_vertex_index = subdiv_vertex - ctx->subdiv_mesh->mvert;
@@ -430,7 +433,34 @@ static void subdiv_copy_vertex_data(
 	                  weights, NULL,
 	                  4,
 	                  subdiv_vertex_index);
-	/* TODO(sergey): Set ORIGINDEX. */
+	if (ctx->vert_origindex != NULL) {
+		ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
+		if (coarse_poly->totloop == 4) {
+			if (u == 0.0f && v == 0.0f) {
+				ctx->vert_origindex[subdiv_vertex_index] =
+				        vertex_interpolation->vertex_indices[0];
+			}
+			else if (u == 1.0f && v == 0.0f) {
+				ctx->vert_origindex[subdiv_vertex_index] =
+				        vertex_interpolation->vertex_indices[1];
+			}
+			else if (u == 1.0f && v == 1.0f) {
+				ctx->vert_origindex[subdiv_vertex_index] =
+				        vertex_interpolation->vertex_indices[2];
+			}
+			else if (u == 0.0f && v == 1.0f) {
+				ctx->vert_origindex[subdiv_vertex_index] =
+				        vertex_interpolation->vertex_indices[3];
+			}
+		} else {
+			if (u == 0.0f && v == 0.0f) {
+				const MLoop *coarse_mloop = coarse_mesh->mloop;
+				ctx->vert_origindex[subdiv_vertex_index] =
+				        coarse_mloop[coarse_poly->loopstart +
+				                             ptex_of_poly_index].v;
+			}
+		}
+	}
 }
 
 static void subdiv_evaluate_vertices(SubdivMeshContext *ctx,
@@ -447,12 +477,12 @@ static void subdiv_evaluate_vertices(SubdivMeshContext *ctx,
 	const int num_poly_ptex_faces = mpoly_ptex_faces_count_get(coarse_poly);
 	/* Hi-poly subdivided mesh. */
 	Mesh *subdiv_mesh = ctx->subdiv_mesh;
-	MVert *subdiv_vertert = subdiv_mesh->mvert;
+	MVert *subdiv_vertex = subdiv_mesh->mvert;
 	const int ptex_face_index = subdiv->face_ptex_offset[poly_index];
 	/* Actual evaluation. */
 	VerticesForInterpolation vertex_interpolation;
 	vertex_interpolation_init(ctx, &vertex_interpolation, coarse_poly);
-	MVert *subdiv_vert = &subdiv_vertert[ptex_face_index * resolution2];
+	MVert *subdiv_vert = &subdiv_vertex[ptex_face_index * resolution2];
 	for (int ptex_of_poly_index = 0;
 	     ptex_of_poly_index < num_poly_ptex_faces;
 	     ptex_of_poly_index++)
@@ -475,7 +505,10 @@ static void subdiv_evaluate_vertices(SubdivMeshContext *ctx,
 				const float u = x * inv_resolution_1;
 				subdiv_copy_vertex_data(ctx,
 				                        subdiv_vert,
+				                        coarse_mesh,
+				                        coarse_poly,
 				                        &vertex_interpolation,
+				                        ptex_of_poly_index,
 				                        u, v);
 			}
 		}

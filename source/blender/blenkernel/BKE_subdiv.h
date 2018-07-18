@@ -22,6 +22,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
+
 #ifndef __BKE_SUBDIV_H__
 #define __BKE_SUBDIV_H__
 
