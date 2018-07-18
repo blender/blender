@@ -51,15 +51,15 @@ typedef enum {
 
 typedef struct GPUBatch {
 	/* geometry */
-	GPUVertBuf* verts[GPU_BATCH_VBO_MAX_LEN]; /* verts[0] is required, others can be NULL */
-	GPUVertBuf* inst; /* instance attribs */
-	GPUIndexBuf* elem; /* NULL if element list not needed */
+	GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN]; /* verts[0] is required, others can be NULL */
+	GPUVertBuf *inst; /* instance attribs */
+	GPUIndexBuf *elem; /* NULL if element list not needed */
 	uint32_t gl_prim_type;
 
 	/* cached values (avoid dereferencing later) */
 	uint32_t vao_id;
 	uint32_t program;
-	const struct GPUShaderInterface* interface;
+	const struct GPUShaderInterface *interface;
 
 	/* book-keeping */
 	uint owns_flag;
@@ -74,21 +74,21 @@ typedef struct GPUBatch {
 	union {
 		/* Static handle count */
 		struct {
-			const struct GPUShaderInterface* interfaces[GPU_BATCH_VAO_STATIC_LEN];
+			const struct GPUShaderInterface *interfaces[GPU_BATCH_VAO_STATIC_LEN];
 			uint32_t vao_ids[GPU_BATCH_VAO_STATIC_LEN];
 		} static_vaos;
 		/* Dynamic handle count */
 		struct {
 			uint count;
-			const struct GPUShaderInterface** interfaces;
-			uint32_t* vao_ids;
+			const struct GPUShaderInterface **interfaces;
+			uint32_t *vao_ids;
 		} dynamic_vaos;
 	};
 
 	/* XXX This is the only solution if we want to have some data structure using
 	 * batches as key to identify nodes. We must destroy these nodes with this callback. */
-	void (*free_callback)(struct GPUBatch*, void*);
-	void* callback_data;
+	void (*free_callback)(struct GPUBatch *, void *);
+	void *callback_data;
 } GPUBatch;
 
 enum {
@@ -98,55 +98,55 @@ enum {
 	GPU_BATCH_OWNS_INDEX = (1 << 31),
 };
 
-GPUBatch* GPU_batch_create_ex(GPUPrimType, GPUVertBuf*, GPUIndexBuf*, uint owns_flag);
-void GPU_batch_init_ex(GPUBatch*, GPUPrimType, GPUVertBuf*, GPUIndexBuf*, uint owns_flag);
-GPUBatch* GPU_batch_duplicate(GPUBatch* batch_src);
+GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
+void GPU_batch_init_ex(GPUBatch *, GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
+GPUBatch *GPU_batch_duplicate(GPUBatch *batch_src);
 
 #define GPU_batch_create(prim, verts, elem) \
 	GPU_batch_create_ex(prim, verts, elem, 0)
 #define GPU_batch_init(batch, prim, verts, elem) \
 	GPU_batch_init_ex(batch, prim, verts, elem, 0)
 
-void GPU_batch_discard(GPUBatch*); /* verts & elem are not discarded */
+void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
 
-void GPU_batch_vao_cache_clear(GPUBatch*);
+void GPU_batch_vao_cache_clear(GPUBatch *);
 
-void GPU_batch_callback_free_set(GPUBatch*, void (*callback)(GPUBatch*, void*), void*);
+void GPU_batch_callback_free_set(GPUBatch *, void (*callback)(GPUBatch *, void *), void *);
 
-void GPU_batch_instbuf_set(GPUBatch*, GPUVertBuf*, bool own_vbo); /* Instancing */
+void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
 
-int GPU_batch_vertbuf_add_ex(GPUBatch*, GPUVertBuf*, bool own_vbo);
+int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
 
 #define GPU_batch_vertbuf_add(batch, verts) \
 	GPU_batch_vertbuf_add_ex(batch, verts, false)
 
-void GPU_batch_program_set_no_use(GPUBatch*, uint32_t program, const GPUShaderInterface*);
-void GPU_batch_program_set(GPUBatch*, uint32_t program, const GPUShaderInterface*);
+void GPU_batch_program_set_no_use(GPUBatch *, uint32_t program, const GPUShaderInterface *);
+void GPU_batch_program_set(GPUBatch *, uint32_t program, const GPUShaderInterface *);
 void GPU_batch_program_set_builtin(GPUBatch *batch, GPUBuiltinShader shader_id);
 /* Entire batch draws with one shader program, but can be redrawn later with another program. */
 /* Vertex shader's inputs must be compatible with the batch's vertex format. */
 
-void GPU_batch_program_use_begin(GPUBatch*); /* call before Batch_Uniform (temp hack?) */
-void GPU_batch_program_use_end(GPUBatch*);
+void GPU_batch_program_use_begin(GPUBatch *); /* call before Batch_Uniform (temp hack?) */
+void GPU_batch_program_use_end(GPUBatch *);
 
-void GPU_batch_uniform_1ui(GPUBatch*, const char* name, int value);
-void GPU_batch_uniform_1i(GPUBatch*, const char* name, int value);
-void GPU_batch_uniform_1b(GPUBatch*, const char* name, bool value);
-void GPU_batch_uniform_1f(GPUBatch*, const char* name, float value);
-void GPU_batch_uniform_2f(GPUBatch*, const char* name, float x, float y);
-void GPU_batch_uniform_3f(GPUBatch*, const char* name, float x, float y, float z);
-void GPU_batch_uniform_4f(GPUBatch*, const char* name, float x, float y, float z, float w);
-void GPU_batch_uniform_2fv(GPUBatch*, const char* name, const float data[2]);
-void GPU_batch_uniform_3fv(GPUBatch*, const char* name, const float data[3]);
-void GPU_batch_uniform_4fv(GPUBatch*, const char* name, const float data[4]);
-void GPU_batch_uniform_2fv_array(GPUBatch*, const char* name, int len, const float *data);
-void GPU_batch_uniform_4fv_array(GPUBatch*, const char* name, int len, const float *data);
-void GPU_batch_uniform_mat4(GPUBatch*, const char* name, const float data[4][4]);
+void GPU_batch_uniform_1ui(GPUBatch *, const char *name, int value);
+void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);
+void GPU_batch_uniform_1b(GPUBatch *, const char *name, bool value);
+void GPU_batch_uniform_1f(GPUBatch *, const char *name, float value);
+void GPU_batch_uniform_2f(GPUBatch *, const char *name, float x, float y);
+void GPU_batch_uniform_3f(GPUBatch *, const char *name, float x, float y, float z);
+void GPU_batch_uniform_4f(GPUBatch *, const char *name, float x, float y, float z, float w);
+void GPU_batch_uniform_2fv(GPUBatch *, const char *name, const float data[2]);
+void GPU_batch_uniform_3fv(GPUBatch *, const char *name, const float data[3]);
+void GPU_batch_uniform_4fv(GPUBatch *, const char *name, const float data[4]);
+void GPU_batch_uniform_2fv_array(GPUBatch *, const char *name, int len, const float *data);
+void GPU_batch_uniform_4fv_array(GPUBatch *, const char *name, int len, const float *data);
+void GPU_batch_uniform_mat4(GPUBatch *, const char *name, const float data[4][4]);
 
-void GPU_batch_draw(GPUBatch*);
+void GPU_batch_draw(GPUBatch *);
 
 /* This does not bind/unbind shader and does not call GPU_matrix_bind() */
-void GPU_batch_draw_range_ex(GPUBatch*, int v_first, int v_count, bool force_instance);
+void GPU_batch_draw_range_ex(GPUBatch *, int v_first, int v_count, bool force_instance);
 
 /* Does not even need batch */
 void GPU_draw_primitive(GPUPrimType, int v_count);
@@ -175,12 +175,12 @@ typedef struct BatchWithOwnVertexBufferAndElementList {
 	GPUVertBuf verts; /* link batch.verts to this */
 } BatchWithOwnVertexBufferAndElementList;
 
-GPUBatch* create_BatchWithOwnVertexBuffer(GPUPrimType, GPUVertFormat*, uint v_len, GPUIndexBuf*);
-GPUBatch* create_BatchWithOwnElementList(GPUPrimType, GPUVertBuf*, uint prim_len);
-GPUBatch* create_BatchWithOwnVertexBufferAndElementList(GPUPrimType, GPUVertFormat*, uint v_len, uint prim_len);
+GPUBatch *create_BatchWithOwnVertexBuffer(GPUPrimType, GPUVertFormat *, uint v_len, GPUIndexBuf *);
+GPUBatch *create_BatchWithOwnElementList(GPUPrimType, GPUVertBuf *, uint prim_len);
+GPUBatch *create_BatchWithOwnVertexBufferAndElementList(GPUPrimType, GPUVertFormat *, uint v_len, uint prim_len);
 /* verts: shared, own */
 /* elem: none, shared, own */
-GPUBatch* create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff);
+GPUBatch *create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff);
 
 #endif /* future plans */
 

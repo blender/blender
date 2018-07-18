@@ -40,9 +40,9 @@
 #include "GPU_immediate_util.h"
 #include "GPU_shader.h"
 
-GPUVertFormat* immVertexFormat(void); /* returns a cleared vertex format, ready for add_attrib. */
+GPUVertFormat *immVertexFormat(void); /* returns a cleared vertex format, ready for add_attrib. */
 
-void immBindProgram(uint32_t program, const GPUShaderInterface*); /* every immBegin must have a program bound first. */
+void immBindProgram(uint32_t program, const GPUShaderInterface *); /* every immBegin must have a program bound first. */
 void immUnbindProgram(void); /* call after your last immEnd, or before binding another program. */
 
 void immBegin(GPUPrimType, uint vertex_len); /* must supply exactly vertex_len vertices. */
@@ -52,8 +52,8 @@ void immEnd(void); /* finishes and draws. */
 /* ImmBegin a batch, then use standard immFunctions as usual. */
 /* ImmEnd will finalize the batch instead of drawing. */
 /* Then you can draw it as many times as you like! Partially replaces the need for display lists. */
-GPUBatch* immBeginBatch(GPUPrimType, uint vertex_len);
-GPUBatch* immBeginBatchAtMost(GPUPrimType, uint vertex_len);
+GPUBatch *immBeginBatch(GPUPrimType, uint vertex_len);
+GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */
@@ -99,18 +99,18 @@ void immVertex3fv(uint attrib_id, const float data[3]);
 void immVertex2iv(uint attrib_id, const int data[2]);
 
 /* Provide uniform values that don't change for the entire draw call. */
-void immUniform1i(const char* name, int x);
-void immUniform4iv(const char* name, const int data[4]);
-void immUniform1f(const char* name, float x);
-void immUniform2f(const char* name, float x, float y);
-void immUniform2fv(const char* name, const float data[2]);
-void immUniform3f(const char* name, float x, float y, float z);
-void immUniform3fv(const char* name, const float data[3]);
-void immUniformArray3fv(const char* name, const float *data, int count);
-void immUniform4f(const char* name, float x, float y, float z, float w);
-void immUniform4fv(const char* name, const float data[4]);
-void immUniformArray4fv(const char* bare_name, const float *data, int count);
-void immUniformMatrix4fv(const char* name, const float data[4][4]);
+void immUniform1i(const char *name, int x);
+void immUniform4iv(const char *name, const int data[4]);
+void immUniform1f(const char *name, float x);
+void immUniform2f(const char *name, float x, float y);
+void immUniform2fv(const char *name, const float data[2]);
+void immUniform3f(const char *name, float x, float y, float z);
+void immUniform3fv(const char *name, const float data[3]);
+void immUniformArray3fv(const char *name, const float *data, int count);
+void immUniform4f(const char *name, float x, float y, float z, float w);
+void immUniform4fv(const char *name, const float data[4]);
+void immUniformArray4fv(const char *bare_name, const float *data, int count);
+void immUniformMatrix4fv(const char *name, const float data[4][4]);
 
 /* Convenience functions for setting "uniform vec4 color". */
 /* The rgb functions have implicit alpha = 1.0. */

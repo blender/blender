@@ -659,14 +659,15 @@ GPUMaterial *GPU_material_from_nodetree(
 		GPU_nodes_prune(&mat->nodes, mat->outlink);
 		GPU_nodes_get_vertex_attributes(&mat->nodes, &mat->attribs);
 		/* Create source code and search pass cache for an already compiled version. */
-		mat->pass = GPU_generate_pass_new(mat,
-		                      mat->outlink,
-		                      &mat->attribs,
-		                      &mat->nodes,
-		                      vert_code,
-		                      geom_code,
-		                      frag_lib,
-		                      defines);
+		mat->pass = GPU_generate_pass_new(
+		        mat,
+		        mat->outlink,
+		        &mat->attribs,
+		        &mat->nodes,
+		        vert_code,
+		        geom_code,
+		        frag_lib,
+		        defines);
 
 		if (mat->pass == NULL) {
 			/* We had a cache hit and the shader has already failed to compile. */

@@ -522,42 +522,42 @@ void GPU_pbvh_grid_buffers_update(
 /* Build the element array buffer of grid indices using either
  * unsigned shorts or unsigned ints. */
 #define FILL_QUAD_BUFFER(max_vert_, tot_quad_, buffer_)                 \
-    {                                                                   \
-        int offset = 0;                                                 \
-        int i, j, k;                                                    \
+	{                                                                   \
+		int offset = 0;                                                 \
+		int i, j, k;                                                    \
                                                                         \
-        GPUIndexBufBuilder elb;                                        \
-        GPU_indexbuf_init(                                              \
-                &elb, GPU_PRIM_TRIS, tot_quad_ * 2, max_vert_);         \
+		GPUIndexBufBuilder elb;                                         \
+		GPU_indexbuf_init(                                              \
+		       &elb, GPU_PRIM_TRIS, tot_quad_ * 2, max_vert_);          \
                                                                         \
-        /* Fill the buffer */                                           \
-        for (i = 0; i < totgrid; ++i) {                                 \
-            BLI_bitmap *gh = NULL;                                      \
-            if (grid_hidden)                                            \
-                gh = grid_hidden[(grid_indices)[i]];                    \
+		/* Fill the buffer */                                           \
+		for (i = 0; i < totgrid; ++i) {                                 \
+			BLI_bitmap *gh = NULL;                                      \
+			if (grid_hidden)                                            \
+				gh = grid_hidden[(grid_indices)[i]];                    \
                                                                         \
-            for (j = 0; j < gridsize - 1; ++j) {                        \
-                for (k = 0; k < gridsize - 1; ++k) {                    \
-                    /* Skip hidden grid face */                         \
-                    if (gh && paint_is_grid_face_hidden(                \
-                            gh, gridsize, k, j))                        \
-                    {                                                   \
-                        continue;                                       \
-                    }                                                   \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k);    \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
-                                                                            \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k + 1); \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
-                    GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
-                }                                                       \
-            }                                                           \
+			for (j = 0; j < gridsize - 1; ++j) {                        \
+				for (k = 0; k < gridsize - 1; ++k) {                    \
+					/* Skip hidden grid face */                         \
+					if (gh && paint_is_grid_face_hidden(                \
+					        gh, gridsize, k, j))                        \
+					{                                                   \
+						continue;                                       \
+					}                                                   \
+					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
+					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k);    \
+					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
                                                                         \
-            offset += gridsize * gridsize;                              \
-        }                                                               \
-        buffer_ = GPU_indexbuf_build(&elb);                             \
-    } (void)0
+					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k + 1); \
+					GPU_indexbuf_add_generic_vert(&elb, offset + j * gridsize + k + 1); \
+					GPU_indexbuf_add_generic_vert(&elb, offset + (j + 1) * gridsize + k); \
+				}                                                       \
+			}                                                           \
+                                                                        \
+			offset += gridsize * gridsize;                              \
+		}                                                               \
+		buffer_ = GPU_indexbuf_build(&elb);                             \
+	} (void)0
 /* end FILL_QUAD_BUFFER */
 
 static GPUIndexBuf *gpu_get_grid_buffer(
@@ -912,7 +912,7 @@ void GPU_pbvh_bmesh_buffers_update(
 
 					BM_face_as_array_vert_tri(f, v);
 					GPU_indexbuf_add_tri_verts(
-					            &elb, BM_elem_index_get(v[0]), BM_elem_index_get(v[1]), BM_elem_index_get(v[2]));
+					        &elb, BM_elem_index_get(v[0]), BM_elem_index_get(v[1]), BM_elem_index_get(v[2]));
 				}
 			}
 

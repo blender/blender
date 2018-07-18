@@ -42,9 +42,9 @@
  #include <stdio.h>
 #endif
 
-static const char* BuiltinUniform_name(GPUUniformBuiltin u)
+static const char *BuiltinUniform_name(GPUUniformBuiltin u)
 {
-	static const char* names[] = {
+	static const char *names[] = {
 		[GPU_UNIFORM_NONE] = NULL,
 
 		[GPU_UNIFORM_MODEL] = "ModelMatrix",
@@ -76,7 +76,7 @@ static const char* BuiltinUniform_name(GPUUniformBuiltin u)
 	return names[u];
 }
 
-GPU_INLINE bool match(const char* a, const char* b)
+GPU_INLINE bool match(const char *a, const char *b)
 {
 	return strcmp(a, b) == 0;
 }
@@ -90,28 +90,31 @@ GPU_INLINE uint hash_string(const char *str)
 	return i;
 }
 
-GPU_INLINE void set_input_name(GPUShaderInterface* shaderface, GPUShaderInput* input,
-                               const char* name, uint32_t name_len)
+GPU_INLINE void set_input_name(
+        GPUShaderInterface *shaderface, GPUShaderInput *input,
+        const char *name, uint32_t name_len)
 {
 	input->name_offset = shaderface->name_buffer_offset;
 	input->name_hash = hash_string(name);
 	shaderface->name_buffer_offset += name_len + 1; /* include NULL terminator */
 }
 
-GPU_INLINE void shader_input_to_bucket(GPUShaderInput* input,
-                                       GPUShaderInput* buckets[GPU_NUM_SHADERINTERFACE_BUCKETS])
+GPU_INLINE void shader_input_to_bucket(
+        GPUShaderInput *input,
+        GPUShaderInput *buckets[GPU_NUM_SHADERINTERFACE_BUCKETS])
 {
 	const uint bucket_index = input->name_hash % GPU_NUM_SHADERINTERFACE_BUCKETS;
 	input->next = buckets[bucket_index];
 	buckets[bucket_index] = input;
 }
 
-GPU_INLINE const GPUShaderInput* buckets_lookup(GPUShaderInput* const buckets[GPU_NUM_SHADERINTERFACE_BUCKETS],
-                                           const char *name_buffer, const char *name)
+GPU_INLINE const GPUShaderInput *buckets_lookup(
+        GPUShaderInput *const buckets[GPU_NUM_SHADERINTERFACE_BUCKETS],
+        const char *name_buffer, const char *name)
 {
 	const uint name_hash = hash_string(name);
 	const uint bucket_index = name_hash % GPU_NUM_SHADERINTERFACE_BUCKETS;
-	const GPUShaderInput* input = buckets[bucket_index];
+	const GPUShaderInput *input = buckets[bucket_index];
 	if (input == NULL) {
 		/* Requested uniform is not found at all. */
 		return NULL;
@@ -129,7 +132,7 @@ GPU_INLINE const GPUShaderInput* buckets_lookup(GPUShaderInput* const buckets[GP
 		return NULL;
 	}
 	/* Work through possible collisions. */
-	const GPUShaderInput* next = input;
+	const GPUShaderInput *next = input;
 	while (next != NULL) {
 		input = next;
 		next = input->next;
@@ -143,7 +146,7 @@ GPU_INLINE const GPUShaderInput* buckets_lookup(GPUShaderInput* const buckets[GP
 	return NULL; /* not found */
 }
 
-GPU_INLINE void buckets_free(GPUShaderInput* buckets[GPU_NUM_SHADERINTERFACE_BUCKETS])
+GPU_INLINE void buckets_free(GPUShaderInput *buckets[GPU_NUM_SHADERINTERFACE_BUCKETS])
 {
 	for (uint bucket_index = 0; bucket_index < GPU_NUM_SHADERINTERFACE_BUCKETS; ++bucket_index) {
 		GPUShaderInput *input = buckets[bucket_index];
@@ -155,13 +158,13 @@ GPU_INLINE void buckets_free(GPUShaderInput* buckets[GPU_NUM_SHADERINTERFACE_BUC
 	}
 }
 
-static bool setup_builtin_uniform(GPUShaderInput* input, const char* name)
+static bool setup_builtin_uniform(GPUShaderInput *input, const char *name)
 {
 	/* TODO: reject DOUBLE, IMAGE, ATOMIC_COUNTER gl_types */
 
 	/* detect built-in uniforms (name must match) */
 	for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; ++u) {
-		const char* builtin_name = BuiltinUniform_name(u);
+		const char *builtin_name = BuiltinUniform_name(u);
 		if (match(name, builtin_name)) {
 			input->builtin_type = u;
 			return true;
@@ -171,15 +174,15 @@ static bool setup_builtin_uniform(GPUShaderInput* input, const char* name)
 	return false;
 }
 
-static const GPUShaderInput* add_uniform(GPUShaderInterface* shaderface, const char* name)
+static const GPUShaderInput *add_uniform(GPUShaderInterface *shaderface, const char *name)
 {
-	GPUShaderInput* input = malloc(sizeof(GPUShaderInput));
+	GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
 
 	input->location = glGetUniformLocation(shaderface->program, name);
 
 	uint name_len = strlen(name);
 	shaderface->name_buffer = realloc(shaderface->name_buffer, shaderface->name_buffer_offset + name_len + 1); /* include NULL terminator */
-	char* name_buffer = shaderface->name_buffer + shaderface->name_buffer_offset;
+	char *name_buffer = shaderface->name_buffer + shaderface->name_buffer_offset;
 	strcpy(name_buffer, name);
 
 	set_input_name(shaderface, input, name, name_len);
@@ -192,17 +195,18 @@ static const GPUShaderInput* add_uniform(GPUShaderInterface* shaderface, const c
 		shaderface->builtin_uniforms[input->builtin_type] = input;
 	}
 #if DEBUG_SHADER_INTERFACE
-	printf("GPUShaderInterface %p, program %d, uniform[] '%s' at location %d\n", shaderface,
-	                                                                              shaderface->program,
-	                                                                              name,
-	                                                                              input->location);
+	printf("GPUShaderInterface %p, program %d, uniform[] '%s' at location %d\n",
+	       shaderface,
+	       shaderface->program,
+	       name,
+	       input->location);
 #endif
 	return input;
 }
 
-GPUShaderInterface* GPU_shaderinterface_create(int32_t program)
+GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 {
-	GPUShaderInterface* shaderface = calloc(1, sizeof(GPUShaderInterface));
+	GPUShaderInterface *shaderface = calloc(1, sizeof(GPUShaderInterface));
 	shaderface->program = program;
 
 #if DEBUG_SHADER_INTERFACE
@@ -223,16 +227,16 @@ GPUShaderInterface* GPU_shaderinterface_create(int32_t program)
 
 	/* Attributes */
 	for (uint32_t i = 0; i < attr_len; ++i) {
-		GPUShaderInput* input = malloc(sizeof(GPUShaderInput));
+		GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
-		char* name = shaderface->name_buffer + shaderface->name_buffer_offset;
+		char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
 		GLsizei name_len = 0;
 
 		glGetActiveAttrib(program, i, remaining_buffer, &name_len, &input->size, &input->gl_type, name);
 
 		/* remove "[0]" from array name */
-		if (name[name_len-1] == ']') {
-			name[name_len-3] = '\0';
+		if (name[name_len - 1] == ']') {
+			name[name_len - 3] = '\0';
 			name_len -= 3;
 		}
 
@@ -250,9 +254,9 @@ GPUShaderInterface* GPU_shaderinterface_create(int32_t program)
 	}
 	/* Uniform Blocks */
 	for (uint32_t i = 0; i < ubo_len; ++i) {
-		GPUShaderInput* input = malloc(sizeof(GPUShaderInput));
+		GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
-		char* name = shaderface->name_buffer + shaderface->name_buffer_offset;
+		char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
 		GLsizei name_len = 0;
 
 		glGetActiveUniformBlockName(program, i, remaining_buffer, &name_len, name);
@@ -269,19 +273,19 @@ GPUShaderInterface* GPU_shaderinterface_create(int32_t program)
 	}
 	/* Builtin Uniforms */
 	for (GPUUniformBuiltin u = GPU_UNIFORM_NONE + 1; u < GPU_UNIFORM_CUSTOM; ++u) {
-		const char* builtin_name = BuiltinUniform_name(u);
+		const char *builtin_name = BuiltinUniform_name(u);
 		if (glGetUniformLocation(program, builtin_name) != -1) {
-			add_uniform((GPUShaderInterface*)shaderface, builtin_name);
+			add_uniform((GPUShaderInterface *)shaderface, builtin_name);
 		}
 	}
 	/* Batches ref buffer */
 	shaderface->batches_len = GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-	shaderface->batches = calloc(shaderface->batches_len, sizeof(GPUBatch*));
+	shaderface->batches = calloc(shaderface->batches_len, sizeof(GPUBatch *));
 
 	return shaderface;
 }
 
-void GPU_shaderinterface_discard(GPUShaderInterface* shaderface)
+void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
 {
 	/* Free memory used by buckets and has entries. */
 	buckets_free(shaderface->uniform_buckets);
@@ -300,19 +304,19 @@ void GPU_shaderinterface_discard(GPUShaderInterface* shaderface)
 	free(shaderface);
 }
 
-const GPUShaderInput* GPU_shaderinterface_uniform(const GPUShaderInterface* shaderface, const char* name)
+const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shaderface, const char *name)
 {
 	/* TODO: Warn if we find a matching builtin, since these can be looked up much quicker. */
-	const GPUShaderInput* input = buckets_lookup(shaderface->uniform_buckets, shaderface->name_buffer, name);
+	const GPUShaderInput *input = buckets_lookup(shaderface->uniform_buckets, shaderface->name_buffer, name);
 	/* If input is not found add it so it's found next time. */
 	if (input == NULL) {
-		input = add_uniform((GPUShaderInterface*)shaderface, name);
+		input = add_uniform((GPUShaderInterface *)shaderface, name);
 	}
 	return (input->location != -1) ? input : NULL;
 }
 
-const GPUShaderInput* GPU_shaderinterface_uniform_builtin(
-        const GPUShaderInterface* shaderface, GPUUniformBuiltin builtin)
+const GPUShaderInput *GPU_shaderinterface_uniform_builtin(
+	    const GPUShaderInterface *shaderface, GPUUniformBuiltin builtin)
 {
 #if TRUST_NO_ONE
 	assert(builtin != GPU_UNIFORM_NONE);
@@ -322,17 +326,17 @@ const GPUShaderInput* GPU_shaderinterface_uniform_builtin(
 	return shaderface->builtin_uniforms[builtin];
 }
 
-const GPUShaderInput* GPU_shaderinterface_ubo(const GPUShaderInterface* shaderface, const char* name)
+const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *shaderface, const char *name)
 {
 	return buckets_lookup(shaderface->ubo_buckets, shaderface->name_buffer, name);
 }
 
-const GPUShaderInput* GPU_shaderinterface_attr(const GPUShaderInterface* shaderface, const char* name)
+const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *shaderface, const char *name)
 {
 	return buckets_lookup(shaderface->attrib_buckets, shaderface->name_buffer, name);
 }
 
-void GPU_shaderinterface_add_batch_ref(GPUShaderInterface* shaderface, GPUBatch* batch)
+void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
 {
 	int i; /* find first unused slot */
 	for (i = 0; i < shaderface->batches_len; ++i) {
@@ -344,13 +348,13 @@ void GPU_shaderinterface_add_batch_ref(GPUShaderInterface* shaderface, GPUBatch*
 		/* Not enough place, realloc the array. */
 		i = shaderface->batches_len;
 		shaderface->batches_len += GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-		shaderface->batches = realloc(shaderface->batches, sizeof(GPUBatch*) * shaderface->batches_len);
-		memset(shaderface->batches + i, 0, sizeof(GPUBatch*) * GPU_SHADERINTERFACE_REF_ALLOC_COUNT);
+		shaderface->batches = realloc(shaderface->batches, sizeof(GPUBatch *) * shaderface->batches_len);
+		memset(shaderface->batches + i, 0, sizeof(GPUBatch *) * GPU_SHADERINTERFACE_REF_ALLOC_COUNT);
 	}
 	shaderface->batches[i] = batch;
 }
 
-void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface* shaderface, GPUBatch* batch)
+void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *shaderface, GPUBatch *batch)
 {
 	for (int i = 0; i < shaderface->batches_len; ++i) {
 		if (shaderface->batches[i] == batch) {

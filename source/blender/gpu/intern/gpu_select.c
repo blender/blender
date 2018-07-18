@@ -242,7 +242,7 @@ bool GPU_select_is_cached(void)
 const uint *GPU_select_buffer_near(const uint *buffer, int hits)
 {
 	const uint *buffer_near = NULL;
-	uint depth_min = (uint)-1;
+	uint depth_min = (uint) - 1;
 	for (int i = 0; i < hits; i++) {
 		if (buffer[1] < depth_min) {
 			BLI_assert(buffer[3] != -1);

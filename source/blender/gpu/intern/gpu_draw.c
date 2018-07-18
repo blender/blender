@@ -107,7 +107,7 @@ static bool is_over_resolution_limit(GLenum textarget, int w, int h)
 	int size = (textarget == GL_TEXTURE_2D) ?
 	        GPU_max_texture_size() : GPU_max_cube_map_size();
 	int reslimit = (U.glreslimit != 0) ?
-	    min_ii(U.glreslimit, size) : size;
+	        min_ii(U.glreslimit, size) : size;
 
 	return (w > reslimit || h > reslimit);
 }
@@ -239,42 +239,48 @@ typedef struct VerifyThreadData {
 	float *srgb_frect;
 } VerifyThreadData;
 
-static void gpu_verify_high_bit_srgb_buffer_slice(float *srgb_frect,
-                                                  ImBuf *ibuf,
-                                                  const int start_line,
-                                                  const int height)
+static void gpu_verify_high_bit_srgb_buffer_slice(
+        float *srgb_frect,
+        ImBuf *ibuf,
+        const int start_line,
+        const int height)
 {
 	size_t offset = ibuf->channels * start_line * ibuf->x;
 	float *current_srgb_frect = srgb_frect + offset;
 	float *current_rect_float = ibuf->rect_float + offset;
-	IMB_buffer_float_from_float(current_srgb_frect,
-	                            current_rect_float,
-	                            ibuf->channels,
-	                            IB_PROFILE_SRGB,
-	                            IB_PROFILE_LINEAR_RGB, true,
-	                            ibuf->x, height,
-	                            ibuf->x, ibuf->x);
+	IMB_buffer_float_from_float(
+	        current_srgb_frect,
+	        current_rect_float,
+	        ibuf->channels,
+	        IB_PROFILE_SRGB,
+	        IB_PROFILE_LINEAR_RGB, true,
+	        ibuf->x, height,
+	        ibuf->x, ibuf->x);
 	IMB_buffer_float_unpremultiply(current_srgb_frect, ibuf->x, height);
 }
 
-static void verify_thread_do(void *data_v,
-                             int start_scanline,
-                             int num_scanlines)
+static void verify_thread_do(
+        void *data_v,
+        int start_scanline,
+        int num_scanlines)
 {
 	VerifyThreadData *data = (VerifyThreadData *)data_v;
-	gpu_verify_high_bit_srgb_buffer_slice(data->srgb_frect,
-	                                      data->ibuf,
-	                                      start_scanline,
-	                                      num_scanlines);
+	gpu_verify_high_bit_srgb_buffer_slice(
+	        data->srgb_frect,
+	        data->ibuf,
+	        start_scanline,
+	        num_scanlines);
 }
 
-static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
-                                            ImBuf *ibuf)
+static void gpu_verify_high_bit_srgb_buffer(
+        float *srgb_frect,
+        ImBuf *ibuf)
 {
 	if (ibuf->y < 64) {
-		gpu_verify_high_bit_srgb_buffer_slice(srgb_frect,
-		                                      ibuf,
-		                                      0, ibuf->y);
+		gpu_verify_high_bit_srgb_buffer_slice(
+		        srgb_frect,
+		        ibuf,
+		        0, ibuf->y);
 	}
 	else {
 		VerifyThreadData data;
@@ -284,11 +290,12 @@ static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
 	}
 }
 
-GPUTexture *GPU_texture_from_blender(Image *ima,
-                                     ImageUser *iuser,
-                                     int textarget,
-                                     bool is_data,
-                                     double UNUSED(time))
+GPUTexture *GPU_texture_from_blender(
+        Image *ima,
+        ImageUser *iuser,
+        int textarget,
+        bool is_data,
+        double UNUSED(time))
 {
 	if (ima == NULL) {
 		return NULL;
@@ -363,11 +370,14 @@ GPUTexture *GPU_texture_from_blender(Image *ima,
 	const bool mipmap = GPU_get_mipmap();
 
 #ifdef WITH_DDS
-	if (ibuf->ftype == IMB_FTYPE_DDS)
+	if (ibuf->ftype == IMB_FTYPE_DDS) {
 		GPU_create_gl_tex_compressed(&bindcode, rect, rectw, recth, textarget, mipmap, ima, ibuf);
+	}
 	else
 #endif
+	{
 		GPU_create_gl_tex(&bindcode, rect, frect, rectw, recth, textarget, mipmap, use_high_bit_depth, ima);
+	}
 
 	/* mark as non-color data texture */
 	if (bindcode) {
@@ -556,8 +566,9 @@ void GPU_create_gl_tex(
 
 						if (mip_cube_map) {
 							for (int j = 0; j < 6; j++) {
-								glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
-								    informat, mipw, miph, 0, GL_RGBA, type, mip_cube_map[j]);
+								glTexImage2D(
+								        GL_TEXTURE_CUBE_MAP_POSITIVE_X + j, i,
+								        informat, mipw, miph, 0, GL_RGBA, type, mip_cube_map[j]);
 							}
 						}
 						gpu_del_cube_map(mip_cube_map);
@@ -639,8 +650,9 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 
 		size = ((width + 3) / 4) * ((height + 3) / 4) * blocksize;
 
-		glCompressedTexImage2D(GL_TEXTURE_2D, i, format, width, height,
-		    0, size, ibuf->dds_data.data + offset);
+		glCompressedTexImage2D(
+		        GL_TEXTURE_2D, i, format, width, height,
+		        0, size, ibuf->dds_data.data + offset);
 
 		offset += size;
 		width >>= 1;
@@ -755,8 +767,9 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 			ImBuf *ibuf_scale = IMB_allocFromBuffer(NULL, frect, w, h);
 			IMB_scaleImBuf(ibuf_scale, rectw, recth);
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-			                GL_FLOAT, ibuf_scale->rect_float);
+			glTexSubImage2D(
+			        GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
+			        GL_FLOAT, ibuf_scale->rect_float);
 
 			IMB_freeImBuf(ibuf_scale);
 		}
@@ -775,8 +788,9 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 				}
 			}
 
-			glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
-			                GL_UNSIGNED_BYTE, scalerect);
+			glTexSubImage2D(
+			        GL_TEXTURE_2D, 0, x, y, rectw, recth, GL_RGBA,
+			        GL_UNSIGNED_BYTE, scalerect);
 
 			MEM_freeN(scalerect);
 		}
@@ -860,8 +874,9 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, x);
 		glPixelStorei(GL_UNPACK_SKIP_ROWS, y);
 
-		glTexSubImage2D(GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
-		    GL_UNSIGNED_BYTE, ibuf->rect);
+		glTexSubImage2D(
+		        GL_TEXTURE_2D, 0, x, y, w, h, GL_RGBA,
+		        GL_UNSIGNED_BYTE, ibuf->rect);
 
 		glPixelStorei(GL_UNPACK_ROW_LENGTH, row_length);
 		glPixelStorei(GL_UNPACK_SKIP_PIXELS, skip_pixels);
@@ -913,8 +928,9 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			/* density only */
 			else {
-				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2],
-				                                 GPU_R8, smoke_get_density(sds->fluid), NULL);
+				sds->tex = GPU_texture_create_3D(
+				        sds->res[0], sds->res[1], sds->res[2],
+				        GPU_R8, smoke_get_density(sds->fluid), NULL);
 
 				/* Swizzle the RGBA components to read the Red channel so
 				 * that the shader stay the same for colored and non color
@@ -926,10 +942,12 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
 				GPU_texture_unbind(sds->tex);
 			}
-			sds->tex_flame = (smoke_has_fuel(sds->fluid)) ?
-			                  GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2],
-			                  GPU_R8, smoke_get_flame(sds->fluid), NULL) :
-			                  NULL;
+			sds->tex_flame = (
+			        smoke_has_fuel(sds->fluid) ?
+			        GPU_texture_create_3D(
+			                sds->res[0], sds->res[1], sds->res[2],
+			                GPU_R8, smoke_get_flame(sds->fluid), NULL) :
+			        NULL);
 		}
 		else if (!sds->tex && highres) {
 			/* rgba texture for color + density */
@@ -941,8 +959,9 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			/* density only */
 			else {
-				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
-				                                        GPU_R8, smoke_turbulence_get_density(sds->wt), NULL);
+				sds->tex = GPU_texture_create_3D(
+				        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
+				        GPU_R8, smoke_turbulence_get_density(sds->wt), NULL);
 
 				/* Swizzle the RGBA components to read the Red channel so
 				 * that the shader stay the same for colored and non color
@@ -954,14 +973,17 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
 				GPU_texture_unbind(sds->tex);
 			}
-			sds->tex_flame = (smoke_turbulence_has_fuel(sds->wt)) ?
-			                  GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
-			                                               GPU_R8, smoke_turbulence_get_flame(sds->wt), NULL) :
-			                  NULL;
+			sds->tex_flame = (
+			        smoke_turbulence_has_fuel(sds->wt) ?
+			        GPU_texture_create_3D(
+			                sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
+			                GPU_R8, smoke_turbulence_get_flame(sds->wt), NULL) :
+			        NULL);
 		}
 
-		sds->tex_shadow = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2],
-		                                        GPU_R8, sds->shadow, NULL);
+		sds->tex_shadow = GPU_texture_create_3D(
+		        sds->res[0], sds->res[1], sds->res[2],
+		        GPU_R8, sds->shadow, NULL);
 	}
 #else // WITH_SMOKE
 	(void)highres;
@@ -1301,10 +1323,10 @@ void GPU_select_to_index_array(unsigned int *col, const unsigned int size)
 {
 #define INDEX_BUF_ARRAY(INDEX_FROM_BUF_BITS) \
 	for (i = size; i--; col++) { \
-	    if ((c = *col)) { \
-	        *col = INDEX_FROM_BUF_BITS(c); \
-        } \
-    } ((void)0)
+		if ((c = *col)) { \
+			*col = INDEX_FROM_BUF_BITS(c); \
+		} \
+	} ((void)0)
 
 	if (size > 0) {
 		unsigned int i, c;

@@ -110,7 +110,7 @@ static void checkmat(cosnt float *m)
 	}
 }
 
-#define CHECKMAT(m) checkmat((const float*)m)
+#define CHECKMAT(m) checkmat((const float *)m)
 
 #else
 

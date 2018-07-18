@@ -49,16 +49,16 @@ static GLenum convert_usage_type_to_gl(GPUUsageType type)
 	return table[type];
 }
 
-GPUVertBuf* GPU_vertbuf_create(GPUUsageType usage)
+GPUVertBuf *GPU_vertbuf_create(GPUUsageType usage)
 {
-	GPUVertBuf* verts = malloc(sizeof(GPUVertBuf));
+	GPUVertBuf *verts = malloc(sizeof(GPUVertBuf));
 	GPU_vertbuf_init(verts, usage);
 	return verts;
 }
 
-GPUVertBuf* GPU_vertbuf_create_with_format_ex(const GPUVertFormat* format, GPUUsageType usage)
+GPUVertBuf *GPU_vertbuf_create_with_format_ex(const GPUVertFormat *format, GPUUsageType usage)
 {
-	GPUVertBuf* verts = GPU_vertbuf_create(usage);
+	GPUVertBuf *verts = GPU_vertbuf_create(usage);
 	GPU_vertformat_copy(&verts->format, format);
 	if (!format->packed) {
 		VertexFormat_pack(&verts->format);
@@ -69,14 +69,14 @@ GPUVertBuf* GPU_vertbuf_create_with_format_ex(const GPUVertFormat* format, GPUUs
 	/* TODO: implement those memory savings */
 }
 
-void GPU_vertbuf_init(GPUVertBuf* verts, GPUUsageType usage)
+void GPU_vertbuf_init(GPUVertBuf *verts, GPUUsageType usage)
 {
 	memset(verts, 0, sizeof(GPUVertBuf));
 	verts->usage = usage;
 	verts->dirty = true;
 }
 
-void GPU_vertbuf_init_with_format_ex(GPUVertBuf* verts, const GPUVertFormat* format, GPUUsageType usage)
+void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts, const GPUVertFormat *format, GPUUsageType usage)
 {
 	GPU_vertbuf_init(verts, usage);
 	GPU_vertformat_copy(&verts->format, format);
@@ -85,7 +85,7 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf* verts, const GPUVertFormat* for
 	}
 }
 
-void GPU_vertbuf_discard(GPUVertBuf* verts)
+void GPU_vertbuf_discard(GPUVertBuf *verts)
 {
 	if (verts->vbo_id) {
 		GPU_buf_id_free(verts->vbo_id);
@@ -99,15 +99,15 @@ void GPU_vertbuf_discard(GPUVertBuf* verts)
 	free(verts);
 }
 
-uint GPU_vertbuf_size_get(const GPUVertBuf* verts)
+uint GPU_vertbuf_size_get(const GPUVertBuf *verts)
 {
 	return vertex_buffer_size(&verts->format, verts->vertex_len);
 }
 
 /* create a new allocation, discarding any existing data */
-void GPU_vertbuf_data_alloc(GPUVertBuf* verts, uint v_len)
+void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 {
-	GPUVertFormat* format = &verts->format;
+	GPUVertFormat *format = &verts->format;
 	if (!format->packed) {
 		VertexFormat_pack(format);
 	}
@@ -133,7 +133,7 @@ void GPU_vertbuf_data_alloc(GPUVertBuf* verts, uint v_len)
 }
 
 /* resize buffer keeping existing data */
-void GPU_vertbuf_data_resize(GPUVertBuf* verts, uint v_len)
+void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 {
 #if TRUST_NO_ONE
 	assert(verts->data != NULL);
@@ -152,7 +152,7 @@ void GPU_vertbuf_data_resize(GPUVertBuf* verts, uint v_len)
 /* Set vertex count but does not change allocation.
  * Only this many verts will be uploaded to the GPU and rendered.
  * This is usefull for streaming data. */
-void GPU_vertbuf_vertex_count_set(GPUVertBuf* verts, uint v_len)
+void GPU_vertbuf_vertex_count_set(GPUVertBuf *verts, uint v_len)
 {
 #if TRUST_NO_ONE
 	assert(verts->data != NULL); /* only for dynamic data */
@@ -166,10 +166,10 @@ void GPU_vertbuf_vertex_count_set(GPUVertBuf* verts, uint v_len)
 	verts->vertex_len = v_len;
 }
 
-void GPU_vertbuf_attr_set(GPUVertBuf* verts, uint a_idx, uint v_idx, const void* data)
+void GPU_vertbuf_attr_set(GPUVertBuf *verts, uint a_idx, uint v_idx, const void *data)
 {
-	const GPUVertFormat* format = &verts->format;
-	const GPUVertAttr* a = format->attribs + a_idx;
+	const GPUVertFormat *format = &verts->format;
+	const GPUVertAttr *a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -177,13 +177,13 @@ void GPU_vertbuf_attr_set(GPUVertBuf* verts, uint a_idx, uint v_idx, const void*
 	assert(verts->data != NULL);
 #endif
 	verts->dirty = true;
-	memcpy((GLubyte*)verts->data + a->offset + v_idx * format->stride, data, a->sz);
+	memcpy((GLubyte *)verts->data + a->offset + v_idx * format->stride, data, a->sz);
 }
 
-void GPU_vertbuf_attr_fill(GPUVertBuf* verts, uint a_idx, const void* data)
+void GPU_vertbuf_attr_fill(GPUVertBuf *verts, uint a_idx, const void *data)
 {
-	const GPUVertFormat* format = &verts->format;
-	const GPUVertAttr* a = format->attribs + a_idx;
+	const GPUVertFormat *format = &verts->format;
+	const GPUVertAttr *a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -193,10 +193,10 @@ void GPU_vertbuf_attr_fill(GPUVertBuf* verts, uint a_idx, const void* data)
 	GPU_vertbuf_attr_fill_stride(verts, a_idx, stride, data);
 }
 
-void GPU_vertbuf_attr_fill_stride(GPUVertBuf* verts, uint a_idx, uint stride, const void* data)
+void GPU_vertbuf_attr_fill_stride(GPUVertBuf *verts, uint a_idx, uint stride, const void *data)
 {
-	const GPUVertFormat* format = &verts->format;
-	const GPUVertAttr* a = format->attribs + a_idx;
+	const GPUVertFormat *format = &verts->format;
+	const GPUVertAttr *a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -212,15 +212,15 @@ void GPU_vertbuf_attr_fill_stride(GPUVertBuf* verts, uint a_idx, uint stride, co
 	else {
 		/* we must copy it per vertex */
 		for (uint v = 0; v < vertex_len; ++v) {
-			memcpy((GLubyte*)verts->data + a->offset + v * format->stride, (const GLubyte*)data + v * stride, a->sz);
+			memcpy((GLubyte *)verts->data + a->offset + v * format->stride, (const GLubyte *)data + v * stride, a->sz);
 		}
 	}
 }
 
-void GPU_vertbuf_attr_get_raw_data(GPUVertBuf* verts, uint a_idx, GPUVertBufRaw *access)
+void GPU_vertbuf_attr_get_raw_data(GPUVertBuf *verts, uint a_idx, GPUVertBufRaw *access)
 {
-	const GPUVertFormat* format = &verts->format;
-	const GPUVertAttr* a = format->attribs + a_idx;
+	const GPUVertFormat *format = &verts->format;
+	const GPUVertAttr *a = format->attribs + a_idx;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attr_len);
@@ -231,14 +231,14 @@ void GPU_vertbuf_attr_get_raw_data(GPUVertBuf* verts, uint a_idx, GPUVertBufRaw 
 
 	access->size = a->sz;
 	access->stride = format->stride;
-	access->data = (GLubyte*)verts->data + a->offset;
+	access->data = (GLubyte *)verts->data + a->offset;
 	access->data_init = access->data;
 #if TRUST_NO_ONE
 	access->_data_end = access->data_init + (size_t)(verts->vertex_alloc * format->stride);
 #endif
 }
 
-static void VertBuffer_upload_data(GPUVertBuf* verts)
+static void VertBuffer_upload_data(GPUVertBuf *verts)
 {
 	uint buffer_sz = GPU_vertbuf_size_get(verts);
 
@@ -254,7 +254,7 @@ static void VertBuffer_upload_data(GPUVertBuf* verts)
 	verts->dirty = false;
 }
 
-void GPU_vertbuf_use(GPUVertBuf* verts)
+void GPU_vertbuf_use(GPUVertBuf *verts)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	if (verts->dirty) {

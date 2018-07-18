@@ -66,10 +66,11 @@ void GPU_blend_set_func_separate(
 	GPUBlendFunction src_rgb, GPUBlendFunction dst_rgb,
 	GPUBlendFunction src_alpha, GPUBlendFunction dst_alpha)
 {
-	glBlendFuncSeparate(gpu_get_gl_blendfunction(src_rgb),
-		gpu_get_gl_blendfunction(dst_rgb),
-		gpu_get_gl_blendfunction(src_alpha),
-		gpu_get_gl_blendfunction(dst_alpha));
+	glBlendFuncSeparate(
+	        gpu_get_gl_blendfunction(src_rgb),
+	        gpu_get_gl_blendfunction(dst_rgb),
+	        gpu_get_gl_blendfunction(src_alpha),
+	        gpu_get_gl_blendfunction(dst_alpha));
 }
 
 void GPU_depth_test(bool enable)

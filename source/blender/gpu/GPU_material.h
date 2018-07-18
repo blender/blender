@@ -104,7 +104,7 @@ typedef enum GPUBuiltin {
 	GPU_AUTO_BUMPSCALE =        (1 << 7),
 	GPU_CAMERA_TEXCO_FACTORS =  (1 << 8),
 	GPU_PARTICLE_SCALAR_PROPS = (1 << 9),
-	GPU_PARTICLE_LOCATION =	    (1 << 10),
+	GPU_PARTICLE_LOCATION =     (1 << 10),
 	GPU_PARTICLE_VELOCITY =     (1 << 11),
 	GPU_PARTICLE_ANG_VELOCITY = (1 << 12),
 	GPU_LOC_TO_VIEW_MATRIX =    (1 << 13),
@@ -268,8 +268,9 @@ GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 
-void GPU_material_vertex_attributes(GPUMaterial *material,
-	struct GPUVertexAttribs *attrib);
+void GPU_material_vertex_attributes(
+        GPUMaterial *material,
+        struct GPUVertexAttribs *attrib);
 
 bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);

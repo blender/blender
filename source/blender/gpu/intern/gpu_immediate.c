@@ -45,17 +45,17 @@
 #include <stdlib.h>
 
 /* necessary functions from matrix API */
-extern void GPU_matrix_bind(const GPUShaderInterface*);
+extern void GPU_matrix_bind(const GPUShaderInterface *);
 extern bool GPU_matrix_dirty_get(void);
 
 typedef struct {
 	/* TODO: organize this struct by frequency of change (run-time) */
 
-	GPUBatch* batch;
-	GPUContext* context;
+	GPUBatch *batch;
+	GPUContext *context;
 
 	/* current draw call */
-	GLubyte* buffer_data;
+	GLubyte *buffer_data;
 	uint buffer_offset;
 	uint buffer_bytes_mapped;
 	uint vertex_len;
@@ -66,14 +66,14 @@ typedef struct {
 
 	/* current vertex */
 	uint vertex_idx;
-	GLubyte* vertex_data;
+	GLubyte *vertex_data;
 	uint16_t unassigned_attrib_bits; /* which attributes of current vertex have not been given values? */
 
 	GLuint vbo_id;
 	GLuint vao_id;
 
 	GLuint bound_program;
-	const GPUShaderInterface* shader_interface;
+	const GPUShaderInterface *shader_interface;
 	GPUAttrBinding attrib_binding;
 	uint16_t prev_enabled_attrib_bits; /* <-- only affects this VAO, so we're ok */
 } Immediate;
@@ -131,13 +131,13 @@ void immDestroy(void)
 	initialized = false;
 }
 
-GPUVertFormat* immVertexFormat(void)
+GPUVertFormat *immVertexFormat(void)
 {
 	GPU_vertformat_clear(&imm.vertex_format);
 	return &imm.vertex_format;
 }
 
-void immBindProgram(GLuint program, const GPUShaderInterface* shaderface)
+void immBindProgram(GLuint program, const GPUShaderInterface *shaderface)
 {
 #if TRUST_NO_ONE
 	assert(imm.bound_program == 0);
@@ -261,7 +261,7 @@ void immBeginAtMost(GPUPrimType prim_type, uint vertex_len)
 }
 
 
-GPUBatch* immBeginBatch(GPUPrimType prim_type, uint vertex_len)
+GPUBatch *immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(initialized);
@@ -273,7 +273,7 @@ GPUBatch* immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 	imm.vertex_idx = 0;
 	imm.unassigned_attrib_bits = imm.attrib_binding.enabled_bits;
 
-	GPUVertBuf* verts = GPU_vertbuf_create_with_format(&imm.vertex_format);
+	GPUVertBuf *verts = GPU_vertbuf_create_with_format(&imm.vertex_format);
 	GPU_vertbuf_data_alloc(verts, vertex_len);
 
 	imm.buffer_bytes_mapped = GPU_vertbuf_size_get(verts);
@@ -285,7 +285,7 @@ GPUBatch* immBeginBatch(GPUPrimType prim_type, uint vertex_len)
 	return imm.batch;
 }
 
-GPUBatch* immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
+GPUBatch *immBeginBatchAtMost(GPUPrimType prim_type, uint vertex_len)
 {
 	imm.strict_vertex_len = false;
 	return immBeginBatch(prim_type, vertex_len);
@@ -316,10 +316,10 @@ static void immDrawSetup(void)
 	const uint stride = imm.vertex_format.stride;
 
 	for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
-		const GPUVertAttr* a = imm.vertex_format.attribs + a_idx;
+		const GPUVertAttr *a = imm.vertex_format.attribs + a_idx;
 
 		const uint offset = imm.buffer_offset + a->offset;
-		const GLvoid* pointer = (const GLubyte*)0 + offset;
+		const GLvoid *pointer = (const GLubyte *)0 + offset;
 
 		const uint loc = read_attrib_location(&imm.attrib_binding, a_idx);
 
@@ -413,7 +413,7 @@ static void setAttribValueBit(uint attrib_id)
 
 void immAttrib1f(uint attrib_id, float x)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_F32);
@@ -423,7 +423,7 @@ void immAttrib1f(uint attrib_id, float x)
 #endif
 	setAttribValueBit(attrib_id);
 
-	float* data = (float*)(imm.vertex_data + attrib->offset);
+	float *data = (float *)(imm.vertex_data + attrib->offset);
 /*	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data); */
 
 	data[0] = x;
@@ -431,7 +431,7 @@ void immAttrib1f(uint attrib_id, float x)
 
 void immAttrib2f(uint attrib_id, float x, float y)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_F32);
@@ -441,7 +441,7 @@ void immAttrib2f(uint attrib_id, float x, float y)
 #endif
 	setAttribValueBit(attrib_id);
 
-	float* data = (float*)(imm.vertex_data + attrib->offset);
+	float *data = (float *)(imm.vertex_data + attrib->offset);
 /*	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data); */
 
 	data[0] = x;
@@ -450,7 +450,7 @@ void immAttrib2f(uint attrib_id, float x, float y)
 
 void immAttrib3f(uint attrib_id, float x, float y, float z)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_F32);
@@ -460,7 +460,7 @@ void immAttrib3f(uint attrib_id, float x, float y, float z)
 #endif
 	setAttribValueBit(attrib_id);
 
-	float* data = (float*)(imm.vertex_data + attrib->offset);
+	float *data = (float *)(imm.vertex_data + attrib->offset);
 /*	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data); */
 
 	data[0] = x;
@@ -470,7 +470,7 @@ void immAttrib3f(uint attrib_id, float x, float y, float z)
 
 void immAttrib4f(uint attrib_id, float x, float y, float z, float w)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_F32);
@@ -480,7 +480,7 @@ void immAttrib4f(uint attrib_id, float x, float y, float z, float w)
 #endif
 	setAttribValueBit(attrib_id);
 
-	float* data = (float*)(imm.vertex_data + attrib->offset);
+	float *data = (float *)(imm.vertex_data + attrib->offset);
 /*	printf("%s %td %p\n", __FUNCTION__, (GLubyte*)data - imm.buffer_data, data); */
 
 	data[0] = x;
@@ -491,7 +491,7 @@ void immAttrib4f(uint attrib_id, float x, float y, float z, float w)
 
 void immAttrib1u(uint attrib_id, uint x)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_U32);
@@ -501,14 +501,14 @@ void immAttrib1u(uint attrib_id, uint x)
 #endif
 	setAttribValueBit(attrib_id);
 
-	uint* data = (uint*)(imm.vertex_data + attrib->offset);
+	uint *data = (uint *)(imm.vertex_data + attrib->offset);
 
 	data[0] = x;
 }
 
 void immAttrib2i(uint attrib_id, int x, int y)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_I32);
@@ -518,7 +518,7 @@ void immAttrib2i(uint attrib_id, int x, int y)
 #endif
 	setAttribValueBit(attrib_id);
 
-	int* data = (int*)(imm.vertex_data + attrib->offset);
+	int *data = (int *)(imm.vertex_data + attrib->offset);
 
 	data[0] = x;
 	data[1] = y;
@@ -526,7 +526,7 @@ void immAttrib2i(uint attrib_id, int x, int y)
 
 void immAttrib2s(uint attrib_id, short x, short y)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_I16);
@@ -536,7 +536,7 @@ void immAttrib2s(uint attrib_id, short x, short y)
 #endif
 	setAttribValueBit(attrib_id);
 
-	short* data = (short*)(imm.vertex_data + attrib->offset);
+	short *data = (short *)(imm.vertex_data + attrib->offset);
 
 	data[0] = x;
 	data[1] = y;
@@ -559,7 +559,7 @@ void immAttrib4fv(uint attrib_id, const float data[4])
 
 void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_U8);
@@ -569,7 +569,7 @@ void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 #endif
 	setAttribValueBit(attrib_id);
 
-	GLubyte* data = imm.vertex_data + attrib->offset;
+	GLubyte *data = imm.vertex_data + attrib->offset;
 /*	printf("%s %td %p\n", __FUNCTION__, data - imm.buffer_data, data); */
 
 	data[0] = r;
@@ -579,7 +579,7 @@ void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 
 void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
 {
-	GPUVertAttr* attrib = imm.vertex_format.attribs + attrib_id;
+	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
 	assert(attrib_id < imm.vertex_format.attr_len);
 	assert(attrib->comp_type == GPU_COMP_U8);
@@ -589,7 +589,7 @@ void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 #endif
 	setAttribValueBit(attrib_id);
 
-	GLubyte* data = imm.vertex_data + attrib->offset;
+	GLubyte *data = imm.vertex_data + attrib->offset;
 /*	printf("%s %td %p\n", __FUNCTION__, data - imm.buffer_data, data); */
 
 	data[0] = r;
@@ -633,11 +633,11 @@ static void immEndVertex(void) /* and move on to the next vertex */
 #endif
 		for (uint a_idx = 0; a_idx < imm.vertex_format.attr_len; ++a_idx) {
 			if ((imm.unassigned_attrib_bits >> a_idx) & 1) {
-				const GPUVertAttr* a = imm.vertex_format.attribs + a_idx;
+				const GPUVertAttr *a = imm.vertex_format.attribs + a_idx;
 
 /*				printf("copying %s from vertex %u to %u\n", a->name, imm.vertex_idx - 1, imm.vertex_idx); */
 
-				GLubyte* data = imm.vertex_data + a->offset;
+				GLubyte *data = imm.vertex_data + a->offset;
 				memcpy(data, data - imm.vertex_format.stride, a->sz);
 				/* TODO: consolidate copy of adjacent attributes */
 			}
@@ -714,31 +714,31 @@ void immVertex2iv(uint attrib_id, const int data[2])
   #define GET_UNIFORM const GPUShaderInput* uniform = GPU_shaderinterface_uniform(imm.shader_interface, name); if (uniform == NULL) return;
 #endif
 
-void immUniform1f(const char* name, float x)
+void immUniform1f(const char *name, float x)
 {
 	GET_UNIFORM
 	glUniform1f(uniform->location, x);
 }
 
-void immUniform2f(const char* name, float x, float y)
+void immUniform2f(const char *name, float x, float y)
 {
 	GET_UNIFORM
 	glUniform2f(uniform->location, x, y);
 }
 
-void immUniform2fv(const char* name, const float data[2])
+void immUniform2fv(const char *name, const float data[2])
 {
 	GET_UNIFORM
 	glUniform2fv(uniform->location, 1, data);
 }
 
-void immUniform3f(const char* name, float x, float y, float z)
+void immUniform3f(const char *name, float x, float y, float z)
 {
 	GET_UNIFORM
 	glUniform3f(uniform->location, x, y, z);
 }
 
-void immUniform3fv(const char* name, const float data[3])
+void immUniform3fv(const char *name, const float data[3])
 {
 	GET_UNIFORM
 	glUniform3fv(uniform->location, 1, data);
@@ -747,7 +747,7 @@ void immUniform3fv(const char* name, const float data[3])
 /* can increase this limit or move to another file */
 #define MAX_UNIFORM_NAME_LEN 60
 
-void immUniformArray3fv(const char* bare_name, const float *data, int count)
+void immUniformArray3fv(const char *bare_name, const float *data, int count)
 {
 	/* look up "name[0]" when given "name" */
 	const size_t len = strlen(bare_name);
@@ -765,19 +765,19 @@ void immUniformArray3fv(const char* bare_name, const float *data, int count)
 	glUniform3fv(uniform->location, count, data);
 }
 
-void immUniform4f(const char* name, float x, float y, float z, float w)
+void immUniform4f(const char *name, float x, float y, float z, float w)
 {
 	GET_UNIFORM
 	glUniform4f(uniform->location, x, y, z, w);
 }
 
-void immUniform4fv(const char* name, const float data[4])
+void immUniform4fv(const char *name, const float data[4])
 {
 	GET_UNIFORM
 	glUniform4fv(uniform->location, 1, data);
 }
 
-void immUniformArray4fv(const char* bare_name, const float *data, int count)
+void immUniformArray4fv(const char *bare_name, const float *data, int count)
 {
 	/* look up "name[0]" when given "name" */
 	const size_t len = strlen(bare_name);
@@ -795,19 +795,19 @@ void immUniformArray4fv(const char* bare_name, const float *data, int count)
 	glUniform4fv(uniform->location, count, data);
 }
 
-void immUniformMatrix4fv(const char* name, const float data[4][4])
+void immUniformMatrix4fv(const char *name, const float data[4][4])
 {
 	GET_UNIFORM
 	glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (float *)data);
 }
 
-void immUniform1i(const char* name, int x)
+void immUniform1i(const char *name, int x)
 {
 	GET_UNIFORM
 	glUniform1i(uniform->location, x);
 }
 
-void immUniform4iv(const char* name, const int data[4])
+void immUniform4iv(const char *name, const int data[4])
 {
 	GET_UNIFORM
 	glUniform4iv(uniform->location, 1, data);
@@ -817,7 +817,7 @@ void immUniform4iv(const char* name, const int data[4])
 
 void immUniformColor4f(float r, float g, float b, float a)
 {
-	const GPUShaderInput* uniform = GPU_shaderinterface_uniform_builtin(imm.shader_interface, GPU_UNIFORM_COLOR);
+	const GPUShaderInput *uniform = GPU_shaderinterface_uniform_builtin(imm.shader_interface, GPU_UNIFORM_COLOR);
 #if TRUST_NO_ONE
 	assert(uniform != NULL);
 #endif

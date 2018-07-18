@@ -269,14 +269,14 @@ void imm_draw_circle_fill_3d(unsigned pos, float x, float y, float rad, int nseg
 }
 
 /**
-* Draw a lined box.
-*
-* \param pos The vertex attribute number for position.
-* \param x1 left.
-* \param y1 bottom.
-* \param x2 right.
-* \param y2 top.
-*/
+ * Draw a lined box.
+ *
+ * \param pos The vertex attribute number for position.
+ * \param x1 left.
+ * \param y1 bottom.
+ * \param x2 right.
+ * \param y2 top.
+ */
 void imm_draw_box_wire_2d(unsigned pos, float x1, float y1, float x2, float y2)
 {
 	immBegin(GPU_PRIM_LINE_LOOP, 4);
@@ -353,17 +353,17 @@ void imm_draw_cube_wire_3d(uint pos, const float co[3], const float aspect[3])
 }
 
 /**
-* Draw a cylinder. Replacement for gluCylinder.
-* _warning_ : Slow, better use it only if you no other choices.
-*
-* \param pos The vertex attribute number for position.
-* \param nor The vertex attribute number for normal.
-* \param base Specifies the radius of the cylinder at z = 0.
-* \param top Specifies the radius of the cylinder at z = height.
-* \param height Specifies the height of the cylinder.
-* \param slices Specifies the number of subdivisions around the z axis.
-* \param stacks Specifies the number of subdivisions along the z axis.
-*/
+ * Draw a cylinder. Replacement for gluCylinder.
+ * _warning_ : Slow, better use it only if you no other choices.
+ *
+ * \param pos The vertex attribute number for position.
+ * \param nor The vertex attribute number for normal.
+ * \param base Specifies the radius of the cylinder at z = 0.
+ * \param top Specifies the radius of the cylinder at z = height.
+ * \param height Specifies the height of the cylinder.
+ * \param slices Specifies the number of subdivisions around the z axis.
+ * \param stacks Specifies the number of subdivisions along the z axis.
+ */
 void imm_draw_cylinder_fill_normal_3d(
         unsigned int pos, unsigned int nor, float base, float top, float height, int slices, int stacks)
 {
@@ -384,10 +384,10 @@ void imm_draw_cylinder_fill_normal_3d(
 			float h1 = height * ((float)j / (float)stacks);
 			float h2 = height * ((float)(j + 1) / (float)stacks);
 
-			float v1[3] = {r1 *cos2, r1 * sin2, h1};
-			float v2[3] = {r2 *cos2, r2 * sin2, h2};
-			float v3[3] = {r2 *cos1, r2 * sin1, h2};
-			float v4[3] = {r1 *cos1, r1 * sin1, h1};
+			float v1[3] = {r1 * cos2, r1 * sin2, h1};
+			float v2[3] = {r2 * cos2, r2 * sin2, h2};
+			float v3[3] = {r2 * cos1, r2 * sin1, h2};
+			float v4[3] = {r1 * cos1, r1 * sin1, h1};
 			float n1[3], n2[3];
 
 			/* calc normals */

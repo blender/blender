@@ -57,37 +57,37 @@ typedef struct GPUIndexBuf {
 	bool use_prim_restart;
 } GPUIndexBuf;
 
-void GPU_indexbuf_use(GPUIndexBuf*);
-uint GPU_indexbuf_size_get(const GPUIndexBuf*);
+void GPU_indexbuf_use(GPUIndexBuf *);
+uint GPU_indexbuf_size_get(const GPUIndexBuf *);
 
 typedef struct GPUIndexBufBuilder {
 	uint max_allowed_index;
 	uint max_index_len;
 	uint index_len;
 	GPUPrimType prim_type;
-	uint* data;
+	uint *data;
 	bool use_prim_restart;
 } GPUIndexBufBuilder;
 
 
 /* supports all primitive types. */
-void GPU_indexbuf_init_ex(GPUIndexBufBuilder*, GPUPrimType, uint index_len, uint vertex_len, bool use_prim_restart);
+void GPU_indexbuf_init_ex(GPUIndexBufBuilder *, GPUPrimType, uint index_len, uint vertex_len, bool use_prim_restart);
 
 /* supports only GPU_PRIM_POINTS, GPU_PRIM_LINES and GPU_PRIM_TRIS. */
-void GPU_indexbuf_init(GPUIndexBufBuilder*, GPUPrimType, uint prim_len, uint vertex_len);
+void GPU_indexbuf_init(GPUIndexBufBuilder *, GPUPrimType, uint prim_len, uint vertex_len);
 
-void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder*, uint v);
-void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder*);
+void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *, uint v);
+void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *);
 
-void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder*, uint v);
-void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder*, uint v1, uint v2);
-void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder*, uint v1, uint v2, uint v3);
-void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder*, uint v1, uint v2, uint v3, uint v4);
+void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *, uint v);
+void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder *, uint v1, uint v2);
+void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder *, uint v1, uint v2, uint v3);
+void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder *, uint v1, uint v2, uint v3, uint v4);
 
-GPUIndexBuf* GPU_indexbuf_build(GPUIndexBufBuilder*);
-void GPU_indexbuf_build_in_place(GPUIndexBufBuilder*, GPUIndexBuf*);
+GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *);
+void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
-void GPU_indexbuf_discard(GPUIndexBuf*);
+void GPU_indexbuf_discard(GPUIndexBuf *);
 
 
 /* Macros */

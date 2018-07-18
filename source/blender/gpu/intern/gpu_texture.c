@@ -160,9 +160,10 @@ static int gpu_get_component_count(GPUTextureFormat format)
 /* Definitely not complete, edit according to the gl specification. */
 static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat data_format)
 {
-	if (ELEM(tex_format, GPU_DEPTH_COMPONENT24,
-	                    GPU_DEPTH_COMPONENT16,
-	                    GPU_DEPTH_COMPONENT32F))
+	if (ELEM(tex_format,
+	         GPU_DEPTH_COMPONENT24,
+	         GPU_DEPTH_COMPONENT16,
+	         GPU_DEPTH_COMPONENT32F))
 	{
 		BLI_assert(data_format == GPU_DATA_FLOAT);
 	}
@@ -196,9 +197,10 @@ static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat 
 
 static GPUDataFormat gpu_get_data_format_from_tex_format(GPUTextureFormat tex_format)
 {
-	if (ELEM(tex_format, GPU_DEPTH_COMPONENT24,
-	                    GPU_DEPTH_COMPONENT16,
-	                    GPU_DEPTH_COMPONENT32F))
+	if (ELEM(tex_format,
+	         GPU_DEPTH_COMPONENT24,
+	         GPU_DEPTH_COMPONENT16,
+	         GPU_DEPTH_COMPONENT32F))
 	{
 		return GPU_DATA_FLOAT;
 	}
@@ -232,9 +234,10 @@ static GPUDataFormat gpu_get_data_format_from_tex_format(GPUTextureFormat tex_fo
 /* Definitely not complete, edit according to the gl specification. */
 static GLenum gpu_get_gl_dataformat(GPUTextureFormat data_type, GPUTextureFormatFlag *format_flag)
 {
-	if (ELEM(data_type, GPU_DEPTH_COMPONENT24,
-	                    GPU_DEPTH_COMPONENT16,
-	                    GPU_DEPTH_COMPONENT32F))
+	if (ELEM(data_type,
+	         GPU_DEPTH_COMPONENT24,
+	         GPU_DEPTH_COMPONENT16,
+	         GPU_DEPTH_COMPONENT32F))
 	{
 		*format_flag |= GPU_FORMAT_DEPTH;
 		return GL_DEPTH_COMPONENT;
@@ -1161,8 +1164,9 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	if ((G.debug & G_DEBUG)) {
 		for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
 			if (tex->fb[i] && GPU_framebuffer_bound(tex->fb[i])) {
-				fprintf(stderr, "Feedback loop warning!: Attempting to bind "
-				                "texture attached to current framebuffer!\n");
+				fprintf(stderr,
+				        "Feedback loop warning!: Attempting to bind "
+				        "texture attached to current framebuffer!\n");
 				BLI_assert(0); /* Should never happen! */
 				break;
 			}

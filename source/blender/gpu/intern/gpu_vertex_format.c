@@ -40,7 +40,7 @@
   #include <stdio.h>
 #endif
 
-void GPU_vertformat_clear(GPUVertFormat* format)
+void GPU_vertformat_clear(GPUVertFormat *format)
 {
 #if TRUST_NO_ONE
 	memset(format, 0, sizeof(GPUVertFormat));
@@ -56,7 +56,7 @@ void GPU_vertformat_clear(GPUVertFormat* format)
 #endif
 }
 
-void GPU_vertformat_copy(GPUVertFormat* dest, const GPUVertFormat* src)
+void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
 {
 	/* copy regular struct fields */
 	memcpy(dest, src, sizeof(GPUVertFormat));
@@ -90,7 +90,7 @@ static unsigned comp_sz(GPUVertCompType type)
 #if TRUST_NO_ONE
 	assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
 #endif
-	const GLubyte sizes[] = {1,1,2,2,4,4,4};
+	const GLubyte sizes[] = {1, 1, 2, 2, 4, 4, 4};
 	return sizes[type];
 }
 
@@ -116,7 +116,7 @@ static unsigned attrib_align(const GPUVertAttr *a)
 	}
 }
 
-unsigned vertex_buffer_size(const GPUVertFormat* format, unsigned vertex_len)
+unsigned vertex_buffer_size(const GPUVertFormat *format, unsigned vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(format->packed && format->stride > 0);
@@ -124,10 +124,10 @@ unsigned vertex_buffer_size(const GPUVertFormat* format, unsigned vertex_len)
 	return format->stride * vertex_len;
 }
 
-static const char* copy_attrib_name(GPUVertFormat* format, const char* name)
+static const char *copy_attrib_name(GPUVertFormat *format, const char *name)
 {
 	/* strncpy does 110% of what we need; let's do exactly 100% */
-	char* name_copy = format->names + format->name_offset;
+	char *name_copy = format->names + format->name_offset;
 	unsigned available = GPU_VERT_ATTR_NAMES_BUF_LEN - format->name_offset;
 	bool terminated = false;
 
@@ -149,7 +149,9 @@ static const char* copy_attrib_name(GPUVertFormat* format, const char* name)
 	return name_copy;
 }
 
-unsigned GPU_vertformat_attr_add(GPUVertFormat* format, const char* name, GPUVertCompType comp_type, unsigned comp_len, GPUVertFetchMode fetch_mode)
+unsigned GPU_vertformat_attr_add(
+        GPUVertFormat *format, const char *name,
+        GPUVertCompType comp_type, unsigned comp_len, GPUVertFetchMode fetch_mode)
 {
 #if TRUST_NO_ONE
 	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
@@ -178,7 +180,7 @@ unsigned GPU_vertformat_attr_add(GPUVertFormat* format, const char* name, GPUVer
 	format->name_len++; /* multiname support */
 
 	const unsigned attrib_id = format->attr_len++;
-	GPUVertAttr* attrib = format->attribs + attrib_id;
+	GPUVertAttr *attrib = format->attribs + attrib_id;
 
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, name);
 	attrib->comp_type = comp_type;
@@ -191,9 +193,9 @@ unsigned GPU_vertformat_attr_add(GPUVertFormat* format, const char* name, GPUVer
 	return attrib_id;
 }
 
-void GPU_vertformat_alias_add(GPUVertFormat* format, const char* alias)
+void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 {
-	GPUVertAttr* attrib = format->attribs + (format->attr_len - 1);
+	GPUVertAttr *attrib = format->attribs + (format->attr_len - 1);
 #if TRUST_NO_ONE
 	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
 	assert(attrib->name_len < GPU_VERT_ATTR_MAX_NAMES);
@@ -221,7 +223,7 @@ static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
 }
 #endif
 
-void VertexFormat_pack(GPUVertFormat* format)
+void VertexFormat_pack(GPUVertFormat *format)
 {
 	/* For now, attributes are packed in the order they were added,
 	 * making sure each attrib is naturally aligned (add padding where necessary)
@@ -231,7 +233,7 @@ void VertexFormat_pack(GPUVertFormat* format)
 	/* TODO: realloc just enough to hold the final combo string. And just enough to
 	 * hold used attribs, not all 16. */
 
-	GPUVertAttr* a0 = format->attribs + 0;
+	GPUVertAttr *a0 = format->attribs + 0;
 	a0->offset = 0;
 	unsigned offset = a0->sz;
 
@@ -240,7 +242,7 @@ void VertexFormat_pack(GPUVertFormat* format)
 #endif
 
 	for (unsigned a_idx = 1; a_idx < format->attr_len; ++a_idx) {
-		GPUVertAttr* a = format->attribs + a_idx;
+		GPUVertAttr *a = format->attribs + a_idx;
 		unsigned mid_padding = padding(offset, attrib_align(a));
 		offset += mid_padding;
 		a->offset = offset;

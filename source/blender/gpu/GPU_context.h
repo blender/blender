@@ -42,11 +42,11 @@ extern "C" {
 
 typedef struct GPUContext GPUContext;
 
-GPUContext* GPU_context_create(void);
-void GPU_context_discard(GPUContext*);
+GPUContext *GPU_context_create(void);
+void GPU_context_discard(GPUContext *);
 
-void GPU_context_active_set(GPUContext*);
-GPUContext* GPU_context_active_get(void);
+void GPU_context_active_set(GPUContext *);
+GPUContext *GPU_context_active_get(void);
 
 #ifdef __cplusplus
 }

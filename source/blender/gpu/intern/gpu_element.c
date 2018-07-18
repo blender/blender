@@ -46,7 +46,7 @@ static GLenum convert_index_type_to_gl(GPUIndexBufType type)
 	return table[type];
 }
 
-uint GPU_indexbuf_size_get(const GPUIndexBuf* elem)
+uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
 {
 #if GPU_TRACK_INDEX_RANGE
 	static const uint table[] = {
@@ -61,7 +61,7 @@ uint GPU_indexbuf_size_get(const GPUIndexBuf* elem)
 }
 
 void GPU_indexbuf_init_ex(
-        GPUIndexBufBuilder* builder, GPUPrimType prim_type,
+        GPUIndexBufBuilder *builder, GPUPrimType prim_type,
         uint index_len, uint vertex_len, bool use_prim_restart)
 {
 	builder->use_prim_restart = use_prim_restart;
@@ -72,7 +72,7 @@ void GPU_indexbuf_init_ex(
 	builder->data = calloc(builder->max_index_len, sizeof(uint));
 }
 
-void GPU_indexbuf_init(GPUIndexBufBuilder* builder, GPUPrimType prim_type, uint prim_len, uint vertex_len)
+void GPU_indexbuf_init(GPUIndexBufBuilder *builder, GPUPrimType prim_type, uint prim_len, uint vertex_len)
 {
 	uint verts_per_prim = 0;
 	switch (prim_type) {
@@ -98,7 +98,7 @@ void GPU_indexbuf_init(GPUIndexBufBuilder* builder, GPUPrimType prim_type, uint 
 	GPU_indexbuf_init_ex(builder, prim_type, prim_len * verts_per_prim, vertex_len, false);
 }
 
-void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder* builder, uint v)
+void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)
 {
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -108,7 +108,7 @@ void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder* builder, uint v)
 	builder->data[builder->index_len++] = v;
 }
 
-void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder* builder)
+void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder *builder)
 {
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -118,7 +118,7 @@ void GPU_indexbuf_add_primitive_restart(GPUIndexBufBuilder* builder)
 	builder->data[builder->index_len++] = GPU_PRIM_RESTART;
 }
 
-void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder* builder, uint v)
+void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder *builder, uint v)
 {
 #if TRUST_NO_ONE
 	assert(builder->prim_type == GPU_PRIM_POINTS);
@@ -126,7 +126,7 @@ void GPU_indexbuf_add_point_vert(GPUIndexBufBuilder* builder, uint v)
 	GPU_indexbuf_add_generic_vert(builder, v);
 }
 
-void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder* builder, uint v1, uint v2)
+void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder *builder, uint v1, uint v2)
 {
 #if TRUST_NO_ONE
 	assert(builder->prim_type == GPU_PRIM_LINES);
@@ -136,7 +136,7 @@ void GPU_indexbuf_add_line_verts(GPUIndexBufBuilder* builder, uint v1, uint v2)
 	GPU_indexbuf_add_generic_vert(builder, v2);
 }
 
-void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder* builder, uint v1, uint v2, uint v3)
+void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder *builder, uint v1, uint v2, uint v3)
 {
 #if TRUST_NO_ONE
 	assert(builder->prim_type == GPU_PRIM_TRIS);
@@ -147,7 +147,7 @@ void GPU_indexbuf_add_tri_verts(GPUIndexBufBuilder* builder, uint v1, uint v2, u
 	GPU_indexbuf_add_generic_vert(builder, v3);
 }
 
-void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder* builder, uint v1, uint v2, uint v3, uint v4)
+void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder *builder, uint v1, uint v2, uint v3, uint v4)
 {
 #if TRUST_NO_ONE
 	assert(builder->prim_type == GPU_PRIM_LINES_ADJ);
@@ -163,7 +163,7 @@ void GPU_indexbuf_add_line_adj_verts(GPUIndexBufBuilder* builder, uint v1, uint 
 /* Everything remains 32 bit while building to keep things simple.
  * Find min/max after, then convert to smallest index type possible. */
 
-static uint index_range(const uint values[], uint value_len, uint* min_out, uint* max_out)
+static uint index_range(const uint values[], uint value_len, uint *min_out, uint *max_out)
 {
 	if (value_len == 0) {
 		*min_out = 0;
@@ -186,7 +186,7 @@ static uint index_range(const uint values[], uint value_len, uint* min_out, uint
 	return max_value - min_value;
 }
 
-static void squeeze_indices_byte(GPUIndexBufBuilder *builder, GPUIndexBuf* elem)
+static void squeeze_indices_byte(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 {
 	const uint *values = builder->data;
 	const uint index_len = elem->index_len;
@@ -212,7 +212,7 @@ static void squeeze_indices_byte(GPUIndexBufBuilder *builder, GPUIndexBuf* elem)
 	}
 }
 
-static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf* elem)
+static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 {
 	const uint *values = builder->data;
 	const uint index_len = elem->index_len;
@@ -240,14 +240,14 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf* elem
 
 #endif /* GPU_TRACK_INDEX_RANGE */
 
-GPUIndexBuf* GPU_indexbuf_build(GPUIndexBufBuilder* builder)
+GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
-	GPUIndexBuf* elem = calloc(1, sizeof(GPUIndexBuf));
+	GPUIndexBuf *elem = calloc(1, sizeof(GPUIndexBuf));
 	GPU_indexbuf_build_in_place(builder, elem);
 	return elem;
 }
 
-void GPU_indexbuf_build_in_place(GPUIndexBufBuilder* builder, GPUIndexBuf* elem)
+void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 {
 #if TRUST_NO_ONE
 	assert(builder->data != NULL);
@@ -294,12 +294,12 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder* builder, GPUIndexBuf* elem)
 	/* other fields are safe to leave */
 }
 
-void GPU_indexbuf_use(GPUIndexBuf* elem)
+void GPU_indexbuf_use(GPUIndexBuf *elem)
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
 }
 
-void GPU_indexbuf_discard(GPUIndexBuf* elem)
+void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
 	if (elem->vbo_id) {
 		GPU_buf_id_free(elem->vbo_id);

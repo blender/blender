@@ -46,7 +46,7 @@ extern "C" {
 
 GLuint GPU_vao_default(void);
 GLuint GPU_vao_alloc(void);
-void GPU_vao_free(GLuint vao_id, GPUContext*);
+void GPU_vao_free(GLuint vao_id, GPUContext *);
 
 #ifdef __cplusplus
 }

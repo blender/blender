@@ -67,7 +67,7 @@ typedef struct GPUVertAttr {
 	uint sz; /* size in bytes, 1 to 64 */
 	uint offset; /* from beginning of vertex, in bytes */
 	uint name_len; /* up to GPU_VERT_ATTR_MAX_NAMES */
-	const char* name[GPU_VERT_ATTR_MAX_NAMES];
+	const char *name[GPU_VERT_ATTR_MAX_NAMES];
 } GPUVertAttr;
 
 typedef struct GPUVertFormat {
@@ -80,11 +80,13 @@ typedef struct GPUVertFormat {
 	GPUVertAttr attribs[GPU_VERT_ATTR_MAX_LEN]; /* TODO: variable-size attribs array */
 } GPUVertFormat;
 
-void GPU_vertformat_clear(GPUVertFormat*);
-void GPU_vertformat_copy(GPUVertFormat* dest, const GPUVertFormat* src);
+void GPU_vertformat_clear(GPUVertFormat *);
+void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src);
 
-uint GPU_vertformat_attr_add(GPUVertFormat*, const char* name, GPUVertCompType, uint comp_len, GPUVertFetchMode);
-void GPU_vertformat_alias_add(GPUVertFormat*, const char* alias);
+uint GPU_vertformat_attr_add(
+        GPUVertFormat *, const char *name,
+        GPUVertCompType, uint comp_len, GPUVertFetchMode);
+void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
 
 /* format conversion */
 
@@ -92,7 +94,7 @@ typedef struct GPUPackedNormal {
 	int x : 10;
 	int y : 10;
 	int z : 10;
-	int w : 2;	/* 0 by default, can manually set to { -2, -1, 0, 1 } */
+	int w : 2;  /* 0 by default, can manually set to { -2, -1, 0, 1 } */
 } GPUPackedNormal;
 
 GPUPackedNormal GPU_normal_convert_i10_v3(const float data[3]);

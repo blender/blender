@@ -65,7 +65,7 @@ typedef enum {
 } GPUUniformBuiltin;
 
 typedef struct GPUShaderInput {
-	struct GPUShaderInput* next;
+	struct GPUShaderInput *next;
 	uint32_t name_offset;
 	uint name_hash;
 	GPUUniformBuiltin builtin_type; /* only for uniform inputs */
@@ -80,25 +80,25 @@ typedef struct GPUShaderInput {
 typedef struct GPUShaderInterface {
 	int32_t program;
 	uint32_t name_buffer_offset;
-	GPUShaderInput* attrib_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-	GPUShaderInput* uniform_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-	GPUShaderInput* ubo_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
-	GPUShaderInput* builtin_uniforms[GPU_NUM_UNIFORMS];
-	char* name_buffer;
-	struct GPUBatch** batches; /* references to batches using this interface */
+	GPUShaderInput *attrib_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput *uniform_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput *ubo_buckets[GPU_NUM_SHADERINTERFACE_BUCKETS];
+	GPUShaderInput *builtin_uniforms[GPU_NUM_UNIFORMS];
+	char *name_buffer;
+	struct GPUBatch **batches; /* references to batches using this interface */
 	uint batches_len;
 } GPUShaderInterface;
 
-GPUShaderInterface* GPU_shaderinterface_create(int32_t program_id);
-void GPU_shaderinterface_discard(GPUShaderInterface*);
+GPUShaderInterface *GPU_shaderinterface_create(int32_t program_id);
+void GPU_shaderinterface_discard(GPUShaderInterface *);
 
-const GPUShaderInput* GPU_shaderinterface_uniform(const GPUShaderInterface*, const char* name);
-const GPUShaderInput* GPU_shaderinterface_uniform_builtin(const GPUShaderInterface*, GPUUniformBuiltin);
-const GPUShaderInput* GPU_shaderinterface_ubo(const GPUShaderInterface*, const char* name);
-const GPUShaderInput* GPU_shaderinterface_attr(const GPUShaderInterface*, const char* name);
+const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *, const char *name);
+const GPUShaderInput *GPU_shaderinterface_uniform_builtin(const GPUShaderInterface *, GPUUniformBuiltin);
+const GPUShaderInput *GPU_shaderinterface_ubo(const GPUShaderInterface *, const char *name);
+const GPUShaderInput *GPU_shaderinterface_attr(const GPUShaderInterface *, const char *name);
 
 /* keep track of batches using this interface */
-void GPU_shaderinterface_add_batch_ref(GPUShaderInterface*, struct GPUBatch*);
-void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface*, struct GPUBatch*);
+void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *, struct GPUBatch *);
+void GPU_shaderinterface_remove_batch_ref(GPUShaderInterface *, struct GPUBatch *);
 
 #endif /* __GPU_SHADER_INTERFACE_H__ */
