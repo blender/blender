@@ -158,7 +158,7 @@ typedef struct ShaderPreview {
 
 	Scene *scene;
 	Depsgraph *depsgraph;
-	ID *id;
+	ID *id, *id_copy;
 	ID *parent;
 	MTex *slot;
 
@@ -189,7 +189,7 @@ typedef struct IconPreview {
 	Scene *scene;
 	Depsgraph *depsgraph;
 	void *owner;
-	ID *id;
+	ID *id, *id_copy;
 	ListBase sizes;
 } IconPreview;
 
@@ -312,6 +312,29 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 	return sp->worldcopy;
 }
 
+static ID *duplicate_ids(ID *id, Depsgraph *depsgraph)
+{
+	ID *id_eval = id;
+
+	if (depsgraph) {
+		id_eval = DEG_get_evaluated_id(depsgraph, id);
+	}
+
+	switch (GS(id->name)) {
+		case ID_MA:
+			return (ID *)BKE_material_localize((Material *)id_eval);
+		case ID_TE:
+			return (ID *)BKE_texture_localize((Tex *)id_eval);
+		case ID_LA:
+			return (ID *)BKE_lamp_localize((Lamp *)id_eval);
+		case ID_WO:
+			return (ID *)BKE_world_localize((World *)id_eval);
+		default:
+			BLI_assert(!"ID type preview not supported.");
+			return NULL;
+	}
+}
+
 /* call this with a pointer to initialize preview scene */
 /* call this with NULL to restore assigned ID pointers in preview scene */
 static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_type, ShaderPreview *sp)
@@ -373,8 +396,9 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 			if (origmat) {
 				/* work on a copy */
-				mat = BKE_material_localize(origmat);
-				sp->matcopy = mat;
+				BLI_assert(sp->id_copy != NULL);
+				mat = sp->matcopy = (Material *)sp->id_copy;
+				sp->id_copy = NULL;
 				BLI_addtail(&pr_main->mat, mat);
 
 				/* use current scene world to light sphere */
@@ -400,13 +424,13 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 					if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
 						/* two previews, they get copied by wmJob */
 						BKE_node_preview_init_tree(mat->nodetree, sp->sizex, sp->sizey, true);
+						/* WATCH: Accessing origmat is not safe! */
 						BKE_node_preview_init_tree(origmat->nodetree, sp->sizex, sp->sizey, true);
 					}
 				}
 			}
 			else {
 				sce->r.mode &= ~(R_OSA);
-
 			}
 
 			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
@@ -432,16 +456,18 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			Tex *tex = NULL, *origtex = (Tex *)id;
 
 			if (origtex) {
-				tex = BKE_texture_localize(origtex);
-				sp->texcopy = tex;
+				BLI_assert(sp->id_copy != NULL);
+				tex = sp->texcopy = (Tex *)sp->id_copy;
+				sp->id_copy = NULL;
 				BLI_addtail(&pr_main->tex, tex);
 			}
 			set_preview_collection(sce, view_layer, MA_TEXTURE);
 
 			if (tex && tex->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
-				BKE_node_preview_init_tree(origtex->nodetree, sp->sizex, sp->sizey, true);
 				BKE_node_preview_init_tree(tex->nodetree, sp->sizex, sp->sizey, true);
+				/* WATCH: Accessing origtex is not safe! */
+				BKE_node_preview_init_tree(origtex->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
 		else if (id_type == ID_LA) {
@@ -449,8 +475,9 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 			/* work on a copy */
 			if (origla) {
-				la = BKE_lamp_localize(origla);
-				sp->lampcopy = la;
+				BLI_assert(sp->id_copy != NULL);
+				la = sp->lampcopy = (Lamp *)sp->id_copy;
+				sp->id_copy = NULL;
 				BLI_addtail(&pr_main->lamp, la);
 			}
 
@@ -473,16 +500,18 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 
 			if (la && la->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
-				BKE_node_preview_init_tree(origla->nodetree, sp->sizex, sp->sizey, true);
 				BKE_node_preview_init_tree(la->nodetree, sp->sizex, sp->sizey, true);
+				/* WATCH: Accessing origla is not safe! */
+				BKE_node_preview_init_tree(origla->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
 		else if (id_type == ID_WO) {
 			World *wrld = NULL, *origwrld = (World *)id;
 
 			if (origwrld) {
-				wrld = BKE_world_localize(origwrld);
-				sp->worldcopy = wrld;
+				BLI_assert(sp->id_copy != NULL);
+				wrld = sp->worldcopy = (World *)sp->id_copy;
+				sp->id_copy = NULL;
 				BLI_addtail(&pr_main->world, wrld);
 			}
 
@@ -492,6 +521,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 			if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
 				BKE_node_preview_init_tree(wrld->nodetree, sp->sizex, sp->sizey, true);
+				/* WATCH: Accessing origwrld is not safe! */
 				BKE_node_preview_init_tree(origwrld->nodetree, sp->sizex, sp->sizey, true);
 			}
 		}
@@ -685,7 +715,11 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	char name[32];
 	int sizex;
 	Main *pr_main = sp->pr_main;
-	ID *id_eval = DEG_get_evaluated_id(sp->depsgraph, id);
+	ID *id_eval = id;
+
+	if (sp->depsgraph) {
+		id_eval = DEG_get_evaluated_id(sp->depsgraph, id);
+	}
 
 	/* in case of split preview, use border render */
 	if (split) {
@@ -794,6 +828,26 @@ static void shader_preview_free(void *customdata)
 	ShaderPreview *sp = customdata;
 	Main *pr_main = sp->pr_main;
 
+	if (sp->id_copy){
+		switch (GS(sp->id_copy->name)) {
+			case ID_MA:
+				BKE_material_free((Material *)sp->id_copy);
+				break;
+			case ID_TE:
+				BKE_texture_free((Tex *)sp->id_copy);
+				break;
+			case ID_LA:
+				BKE_lamp_free((Lamp *)sp->id_copy);
+				break;
+			case ID_WO:
+				BKE_world_free((World *)sp->id_copy);
+				break;
+			default:
+				BLI_assert(!"ID type preview not supported.");
+				break;
+		}
+		MEM_freeN(sp->id_copy);
+	}
 	if (sp->matcopy) {
 		struct IDProperty *properties;
 
@@ -1074,6 +1128,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->pr_method = is_render ? PR_ICON_RENDER : PR_ICON_DEFERRED;
 		sp->pr_rect = cur_size->rect;
 		sp->id = ip->id;
+		sp->id_copy = ip->id_copy;
 		sp->bmain = ip->bmain;
 
 		if (is_render) {
@@ -1149,6 +1204,7 @@ void ED_preview_icon_render(Main *bmain, Scene *scene, ID *id, unsigned int *rec
 	ip.scene = scene;
 	ip.owner = BKE_previewimg_id_ensure(id);
 	ip.id = id;
+	ip.id_copy = duplicate_ids(id, NULL);
 
 	icon_preview_add_size(&ip, rect, sizex, sizey);
 
@@ -1183,6 +1239,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	ip->depsgraph = CTX_data_depsgraph(C);
 	ip->owner = owner;
 	ip->id = id;
+	ip->id_copy = duplicate_ids(id, ip->depsgraph);
 
 	icon_preview_add_size(ip, rect, sizex, sizey);
 
@@ -1231,6 +1288,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->sizey = sizey;
 	sp->pr_method = method;
 	sp->id = id;
+	sp->id_copy = duplicate_ids(id, sp->depsgraph);
 	sp->parent = parent;
 	sp->slot = slot;
 	sp->bmain = CTX_data_main(C);
