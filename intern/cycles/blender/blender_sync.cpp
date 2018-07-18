@@ -207,6 +207,8 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
 	            python_thread_state);
 
 	mesh_synced.clear();
+
+	free_data_after_sync(b_depsgraph);
 }
 
 /* Integrator */
@@ -564,6 +566,30 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 	}
 
 	return passes;
+}
+
+void BlenderSync::free_data_after_sync(BL::Depsgraph& b_depsgraph)
+{
+	/* When viewport display is not needed during render we can force some
+	 * caches to be releases from blender side in order to reduce peak memory
+	 * footprint during synchronization process.
+	 */
+	const bool is_interface_locked = b_engine.render() &&
+	                                 b_engine.render().use_lock_interface();
+	const bool can_free_caches = BlenderSession::headless || is_interface_locked;
+	if (!can_free_caches) {
+		return;
+	}
+	/* TODO(sergey): We can actually remove the whole dependency graph,
+	 * but that will need some API support first.
+	 */
+	BL::Depsgraph::objects_iterator b_ob;
+	for(b_depsgraph.objects.begin(b_ob);
+	    b_ob != b_depsgraph.objects.end();
+	    ++b_ob)
+	{
+		b_ob->cache_release();
+	}
 }
 
 /* Scene Parameters */
