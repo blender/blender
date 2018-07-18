@@ -241,6 +241,9 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 			ok = false;
 		}
 		if (ok) {
+			/* Check aligned, since the front axis won't display in this case,
+			 * and we want to make sure all 3 axes have a character at all times. */
+			const bool show_axis_char = (is_pos || (axis == axis_align));
 			const float v[3] = {0, 0, 3 * (is_pos ? 1 : -1)};
 			const float v_final[3] = {
 				v[index_x] * scale_axis,
@@ -278,7 +281,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 			{
 				GPU_matrix_push();
 				GPU_matrix_translate_3fv(v_final);
-				GPU_matrix_scale_1f(is_pos ? 0.22f : 0.18f);
+				GPU_matrix_scale_1f(show_axis_char ? 0.22f : 0.18f);
 
 				GPUBatch *sphere = GPU_batch_preset_sphere(0);
 				GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
@@ -288,7 +291,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 			}
 
 			/* Axis XYZ Character. */
-			if (is_pos) {
+			if (show_axis_char) {
 				GPU_line_width(1.0f);
 				float m3[3][3];
 				copy_m3_m4(m3, gz->matrix_offset);
