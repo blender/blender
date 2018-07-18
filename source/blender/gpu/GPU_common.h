@@ -43,9 +43,9 @@
   #include <GL/glew.h>
 #endif
 
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "BLI_sys_types.h"
 
 #if TRUST_NO_ONE
   #include <assert.h>
