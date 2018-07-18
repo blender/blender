@@ -246,6 +246,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeVolumeAbsorption"),
         NodeItem("ShaderNodeVolumeScatter"),
         NodeItem("ShaderNodeVolumePrincipled"),
+        NodeItem("ShaderNodeBsdfHairPrincipled", poll=object_shader_nodes_poll)
     ]),
     ShaderNewNodeCategory("SH_NEW_TEXTURE", "Texture", items=[
         NodeItem("ShaderNodeTexImage"),

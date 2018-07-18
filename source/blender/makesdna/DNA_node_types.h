@@ -963,6 +963,11 @@ typedef struct NodeCryptomatte {
 #define SHD_HAIR_REFLECTION		0
 #define SHD_HAIR_TRANSMISSION		1
 
+/* principled hair parametrization */
+#define SHD_PRINCIPLED_HAIR_REFLECTANCE				0
+#define SHD_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION	1
+#define SHD_PRINCIPLED_HAIR_DIRECT_ABSORPTION		2
+
 /* blend texture */
 #define SHD_BLEND_LINEAR			0
 #define SHD_BLEND_QUADRATIC			1

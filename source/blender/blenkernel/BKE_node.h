@@ -794,6 +794,8 @@ struct ShadeResult;
 #define SH_NODE_DISPLACEMENT            198
 #define SH_NODE_VECTOR_DISPLACEMENT     199
 #define SH_NODE_VOLUME_PRINCIPLED       200
+/* 201..700 occupied by other node types, continue from 701 */
+#define SH_NODE_BSDF_HAIR_PRINCIPLED    701
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

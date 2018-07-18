@@ -173,6 +173,7 @@ set(SRC
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
 	shader/nodes/node_shader_bsdf_hair.c
+	shader/nodes/node_shader_bsdf_hair_principled.c
 	shader/nodes/node_shader_bump.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c
