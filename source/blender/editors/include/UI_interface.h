@@ -969,6 +969,7 @@ void uiTemplateCurveMapping(
         bool levels, bool brush, bool neg_slope);
 void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool value_slider, bool lock, bool lock_luminosity, bool cubic);
 void uiTemplatePalette(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool color);
+void uiTemplateCryptoPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateLayers(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,
         PointerRNA *used_ptr, const char *used_propname, int active_layer);

@@ -74,6 +74,7 @@ set(SRC
 	intern/gsqueue.c
 	intern/hash_md5.c
 	intern/hash_mm2a.c
+	intern/hash_mm3.c
 	intern/jitter_2d.c
 	intern/lasso_2d.c
 	intern/list_sort_impl.h
@@ -159,6 +160,7 @@ set(SRC
 	BLI_hash.h
 	BLI_hash_md5.h
 	BLI_hash_mm2a.h
+	BLI_hash_mm3.h
 	BLI_heap.h
 	BLI_jitter_2d.h
 	BLI_kdopbvh.h

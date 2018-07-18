@@ -2544,6 +2544,25 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(layout, ptr, "ray_length", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
 
+static void node_composit_buts_cryptomatte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col = uiLayoutColumn(layout, true);
+
+	uiItemL(col, IFACE_("Matte Objects:"), ICON_NONE);
+
+	uiLayout *row = uiLayoutRow(col, true);
+	uiTemplateCryptoPicker(row, ptr, "add");
+	uiTemplateCryptoPicker(row, ptr, "remove");
+
+	uiItemR(col, ptr, "matte_id", 0, "", ICON_NONE);
+}
+
+static void node_composit_buts_cryptomatte_ex(uiLayout *layout, bContext *UNUSED(C), PointerRNA *UNUSED(ptr))
+{
+	uiItemO(layout, IFACE_("Add Crypto Layer"), ICON_ZOOMIN, "NODE_OT_cryptomatte_layer_add");
+	uiItemO(layout, IFACE_("Remove Crypto Layer"), ICON_ZOOMOUT, "NODE_OT_cryptomatte_layer_remove");
+}
+
 static void node_composit_buts_brightcontrast(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "use_premultiply", 0, NULL, ICON_NONE);
@@ -2775,6 +2794,10 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_SUNBEAMS:
 			ntype->draw_buttons = node_composit_buts_sunbeams;
+			break;
+		case CMP_NODE_CRYPTOMATTE:
+			ntype->draw_buttons = node_composit_buts_cryptomatte;
+			ntype->draw_buttons_ex = node_composit_buts_cryptomatte_ex;
 			break;
 		case CMP_NODE_BRIGHTCONTRAST:
 			ntype->draw_buttons = node_composit_buts_brightcontrast;

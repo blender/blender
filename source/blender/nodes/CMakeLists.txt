@@ -59,6 +59,7 @@ set(SRC
 	composite/nodes/node_composite_composite.c
 	composite/nodes/node_composite_cornerpin.c
 	composite/nodes/node_composite_crop.c
+	composite/nodes/node_composite_cryptomatte.c
 	composite/nodes/node_composite_curves.c
 	composite/nodes/node_composite_despeckle.c
 	composite/nodes/node_composite_doubleEdgeMask.c

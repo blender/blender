@@ -182,6 +182,11 @@ set(SRC
 	operations/COM_SunBeamsOperation.cpp
 	operations/COM_SunBeamsOperation.h
 
+	nodes/COM_CryptomatteNode.cpp
+	nodes/COM_CryptomatteNode.h
+	operations/COM_CryptomatteOperation.cpp
+	operations/COM_CryptomatteOperation.h
+
 	nodes/COM_CornerPinNode.cpp
 	nodes/COM_CornerPinNode.h
 	nodes/COM_PlaneTrackDeformNode.cpp

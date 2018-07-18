@@ -907,6 +907,14 @@ typedef struct NodeSunBeams {
 	float ray_length;
 } NodeSunBeams;
 
+typedef struct NodeCryptomatte {
+	float add[3];
+	float remove[3];
+	char *matte_id;
+	int num_inputs;
+	int pad;
+} NodeCryptomatte;
+
 /* script node mode */
 #define NODE_SCRIPT_INTERNAL		0
 #define NODE_SCRIPT_EXTERNAL		1

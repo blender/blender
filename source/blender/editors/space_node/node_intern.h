@@ -222,6 +222,9 @@ void NODE_OT_shader_script_update(struct wmOperatorType *ot);
 void NODE_OT_viewer_border(struct wmOperatorType *ot);
 void NODE_OT_clear_viewer_border(struct wmOperatorType *ot);
 
+void NODE_OT_cryptomatte_layer_add(struct wmOperatorType *ot);
+void NODE_OT_cryptomatte_layer_remove(struct wmOperatorType *ot);
+
 extern const char *node_context_dir[];
 
 // XXXXXX

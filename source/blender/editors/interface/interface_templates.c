@@ -2572,6 +2572,24 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
 	}
 }
 
+void uiTemplateCryptoPicker(uiLayout *layout, PointerRNA *ptr, const char *propname)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+	uiBlock *block;
+	uiBut *but;
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	block = uiLayoutGetBlock(layout);
+
+	but = uiDefIconTextButO(block, UI_BTYPE_BUT, "UI_OT_eyedropper_color_crypto", WM_OP_INVOKE_DEFAULT, ICON_EYEDROPPER, RNA_property_ui_name(prop), 0, 0, UI_UNIT_X, UI_UNIT_Y, RNA_property_ui_description(prop));
+	but->rnapoin = *ptr;
+	but->rnaprop = prop;
+	but->rnaindex = -1;
+}
 
 /********************* Layer Buttons Template ************************/
 
