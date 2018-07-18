@@ -521,14 +521,17 @@ static void subdiv_copy_edge_data(
         MEdge *subdiv_edge,
         const MEdge *coarse_edge)
 {
+	const int subdiv_edge_index = subdiv_edge - ctx->subdiv_mesh->medge;
 	if (coarse_edge == NULL) {
 		subdiv_edge->crease = 0;
 		subdiv_edge->bweight = 0;
 		subdiv_edge->flag = 0;
+		if (ctx->edge_origindex != NULL) {
+			ctx->edge_origindex[subdiv_edge_index] = ORIGINDEX_NONE;
+		}
 		return;
 	}
 	const int coarse_edge_index = coarse_edge - ctx->coarse_mesh->medge;
-	const int subdiv_edge_index = subdiv_edge - ctx->subdiv_mesh->medge;
 	CustomData_copy_data(&ctx->coarse_mesh->edata,
 	                     &ctx->subdiv_mesh->edata,
 	                     coarse_edge_index,
