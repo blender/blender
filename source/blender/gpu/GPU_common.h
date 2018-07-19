@@ -33,14 +33,14 @@
 #define PROGRAM_NO_OPTI 0
 
 #if defined(NDEBUG)
-  #define TRUST_NO_ONE 0
+#  define TRUST_NO_ONE 0
 #else
   /* strict error checking, enabled for debug builds during early development */
-  #define TRUST_NO_ONE 1
+#  define TRUST_NO_ONE 1
 #endif
 
 #if defined(WITH_OPENGL)
-  #include <GL/glew.h>
+#  include <GL/glew.h>
 #endif
 
 #include <stdbool.h>
@@ -48,7 +48,7 @@
 #include "BLI_sys_types.h"
 
 #if TRUST_NO_ONE
-  #include <assert.h>
+#  include <assert.h>
 #endif
 
 /* GPU_INLINE */

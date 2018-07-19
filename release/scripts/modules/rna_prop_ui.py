@@ -170,7 +170,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         else:
             row = box.row(align=True)
 
-        row.alignment = "RIGHT"
+        row.alignment = 'RIGHT'
 
         row.label(text=key, translate=False)
 

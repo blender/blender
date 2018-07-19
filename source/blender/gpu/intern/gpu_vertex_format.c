@@ -37,7 +37,7 @@
 #define PACK_DEBUG 0
 
 #if PACK_DEBUG
-  #include <stdio.h>
+#  include <stdio.h>
 #endif
 
 void GPU_vertformat_clear(GPUVertFormat *format)

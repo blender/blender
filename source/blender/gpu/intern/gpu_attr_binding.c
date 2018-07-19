@@ -35,7 +35,7 @@
 #include <stdlib.h>
 
 #if GPU_VERT_ATTR_MAX_LEN != 16
-  #error "attrib binding code assumes GPU_VERT_ATTR_MAX_LEN = 16"
+#  error "attrib binding code assumes GPU_VERT_ATTR_MAX_LEN = 16"
 #endif
 
 void AttribBinding_clear(GPUAttrBinding *binding)

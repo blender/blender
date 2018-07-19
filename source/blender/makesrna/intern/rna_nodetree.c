@@ -6976,8 +6976,9 @@ static void def_cmp_cryptomatte(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "NodeCryptomatte", "storage");
 	prop = RNA_def_property(srna, "matte_id", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_funcs(prop, "rna_NodeCryptomatte_matte_get", "rna_NodeCryptomatte_matte_length",
-								  "rna_NodeCryptomatte_matte_set");
+	RNA_def_property_string_funcs(
+	        prop, "rna_NodeCryptomatte_matte_get", "rna_NodeCryptomatte_matte_length",
+	        "rna_NodeCryptomatte_matte_set");
 	RNA_def_property_ui_text(prop, "Matte Objects", "List of object and material crypto IDs to include in matte");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 

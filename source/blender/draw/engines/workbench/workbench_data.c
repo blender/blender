@@ -33,11 +33,11 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
 		wpd->studio_light = BKE_studiolight_find(
-				wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+		        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
 	}
 	else {
 		wpd->studio_light = BKE_studiolight_find(
-				wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
 	}
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 

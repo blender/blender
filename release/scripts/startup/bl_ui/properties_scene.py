@@ -215,7 +215,7 @@ class SCENE_PT_keyframing_settings(SceneButtonsPanel, SceneKeyingSetsPanel, Pane
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
         col = flow.column(align=True)
-        col.alignment = "RIGHT"
+        col.alignment = 'RIGHT'
         col.label(text="General Override")
 
         self.draw_keyframing_settings(context, col, ks, None)
@@ -225,7 +225,7 @@ class SCENE_PT_keyframing_settings(SceneButtonsPanel, SceneKeyingSetsPanel, Pane
             col.separator()
 
             col = flow.column(align=True)
-            col.alignment = "RIGHT"
+            col.alignment = 'RIGHT'
             col.label(text="Active Set Override")
 
             self.draw_keyframing_settings(context, col, ks, ksp)
@@ -272,7 +272,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         ksp = ks.paths.active
         if ksp:
             col = flow.column(align=True)
-            col.alignment = "RIGHT"
+            col.alignment = 'RIGHT'
 
             col.template_any_ID(ksp, "id", "id_type", text="Target ID-Block")
 

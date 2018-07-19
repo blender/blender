@@ -41,10 +41,10 @@ extern "C" {
 #include "GPU_context.h"
 #include "GPU_shader_interface.h"
 
-void gpu_batch_remove_interface_ref(GPUBatch*, const GPUShaderInterface*);
+void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
 
-void gpu_context_add_batch(GPUContext*, GPUBatch*);
-void gpu_context_remove_batch(GPUContext*, GPUBatch*);
+void gpu_context_add_batch(GPUContext *ctx, GPUBatch *batch);
+void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch);
 
 #ifdef __cplusplus
 }

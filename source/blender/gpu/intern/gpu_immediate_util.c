@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_imm_util.c
+/** \file blender/gpu/intern/gpu_immediate_util.c
  *  \ingroup gpu
  *
  * GPU immediate mode drawing utilities

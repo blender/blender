@@ -19,7 +19,7 @@
  *
  */
 
-/** \file workbench_volumed.c
+/** \file workbench_volume.c
  *  \ingroup draw_engine
  */
 

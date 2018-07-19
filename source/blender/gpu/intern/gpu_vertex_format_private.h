@@ -32,8 +32,8 @@
 #ifndef __GPU_VERTEX_FORMAT_PRIVATE_H__
 #define __GPU_VERTEX_FORMAT_PRIVATE_H__
 
-void VertexFormat_pack(GPUVertFormat*);
+void VertexFormat_pack(GPUVertFormat *format);
 uint padding(uint offset, uint alignment);
-uint vertex_buffer_size(const GPUVertFormat*, uint vertex_len);
+uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len);
 
 #endif /* __GPU_VERTEX_FORMAT_PRIVATE_H__ */

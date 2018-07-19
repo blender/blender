@@ -132,7 +132,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         cache_info = cache.info
         if cache_info:
             col = layout.column()
-            col.alignment = "RIGHT"
+            col.alignment = 'RIGHT'
             col.label(text=cache_info)
     else:
         if cachetype in {'SMOKE', 'DYNAMIC_PAINT'}:
@@ -156,7 +156,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         cache_info = cache.info
         if cachetype != 'SMOKE' and cache_info:  # avoid empty space.
             col = layout.column(align=True)
-            col.alignment = "RIGHT"
+            col.alignment = 'RIGHT'
             col.label(text=cache_info)
 
         can_bake = True
@@ -186,7 +186,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
                 can_bake = False
 
                 col = layout.column(align=True)
-                col.alignment = "RIGHT"
+                col.alignment = 'RIGHT'
 
                 col.separator()
 

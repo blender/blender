@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/gpu_vertex_array_id.cpp
+/** \file blender/gpu/intern/gpu_vertex_array_id.cpp
  *  \ingroup gpu
  *
  * Manage GL vertex array IDs in a thread-safe way
@@ -58,7 +58,7 @@ static bool thread_is_main() {
 
 struct GPUContext {
 	GLuint default_vao;
-	std::unordered_set<GPUBatch*> batches; /* Batches that have VAOs from this context */
+	std::unordered_set<GPUBatch *> batches; /* Batches that have VAOs from this context */
 	std::vector<GLuint> orphaned_vertarray_ids;
 	std::mutex orphans_mutex; /* todo: try spinlock instead */
 #if TRUST_NO_ONE
@@ -73,12 +73,12 @@ struct GPUContext {
 
 #if defined(_MSC_VER) && (_MSC_VER == 1800)
 #define thread_local __declspec(thread)
-thread_local GPUContext* active_ctx = NULL;
+thread_local GPUContext *active_ctx = NULL;
 #else
-static thread_local GPUContext* active_ctx = NULL;
+static thread_local GPUContext *active_ctx = NULL;
 #endif
 
-static void clear_orphans(GPUContext* ctx)
+static void clear_orphans(GPUContext *ctx)
 {
 	ctx->orphans_mutex.lock();
 	if (!ctx->orphaned_vertarray_ids.empty()) {
@@ -89,19 +89,19 @@ static void clear_orphans(GPUContext* ctx)
 	ctx->orphans_mutex.unlock();
 }
 
-GPUContext* GPU_context_create(void)
+GPUContext *GPU_context_create(void)
 {
 #if TRUST_NO_ONE
 	/* assert(thread_is_main()); */
 #endif
-	GPUContext* ctx = new GPUContext;
+	GPUContext *ctx = new GPUContext;
 	glGenVertexArrays(1, &ctx->default_vao);
 	GPU_context_active_set(ctx);
 	return ctx;
 }
 
 /* to be called after GPU_context_active_set(ctx_to_destroy) */
-void GPU_context_discard(GPUContext* ctx)
+void GPU_context_discard(GPUContext *ctx)
 {
 #if TRUST_NO_ONE
 	/* Make sure no other thread has locked it. */
@@ -120,7 +120,7 @@ void GPU_context_discard(GPUContext* ctx)
 }
 
 /* ctx can be NULL */
-void GPU_context_active_set(GPUContext* ctx)
+void GPU_context_active_set(GPUContext *ctx)
 {
 #if TRUST_NO_ONE
 	if (active_ctx) {
@@ -140,7 +140,7 @@ void GPU_context_active_set(GPUContext* ctx)
 	active_ctx = ctx;
 }
 
-GPUContext* GPU_context_active_get(void)
+GPUContext *GPU_context_active_get(void)
 {
 	return active_ctx;
 }
@@ -168,7 +168,7 @@ GLuint GPU_vao_alloc(void)
 }
 
 /* this can be called from multiple thread */
-void GPU_vao_free(GLuint vao_id, GPUContext* ctx)
+void GPU_vao_free(GLuint vao_id, GPUContext *ctx)
 {
 #if TRUST_NO_ONE
 	assert(ctx);
@@ -183,12 +183,12 @@ void GPU_vao_free(GLuint vao_id, GPUContext* ctx)
 	}
 }
 
-void gpu_context_add_batch(GPUContext* ctx, GPUBatch* batch)
+void gpu_context_add_batch(GPUContext *ctx, GPUBatch *batch)
 {
 	ctx->batches.emplace(batch);
 }
 
-void gpu_context_remove_batch(GPUContext* ctx, GPUBatch* batch)
+void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch)
 {
 	ctx->orphans_mutex.lock();
 	ctx->batches.erase(batch);

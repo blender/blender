@@ -39,7 +39,7 @@
 #define DEBUG_SHADER_INTERFACE 0
 
 #if DEBUG_SHADER_INTERFACE
- #include <stdio.h>
+#  include <stdio.h>
 #endif
 
 static const char *BuiltinUniform_name(GPUUniformBuiltin u)

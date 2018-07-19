@@ -158,7 +158,7 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
-	void build_id(ID* id);
+	void build_id(ID *id);
 	void build_layer_collections(ListBase *lb);
 	void build_view_layer(Scene *scene,
 	                      ViewLayer *view_layer,

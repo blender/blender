@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BKE_SUBDIV_CONVERTER_H__
-#define __BKE_SUBDIV_CONVERTER_H__
+#ifndef __SUBDIV_CONVERTER_H__
+#define __SUBDIV_CONVERTER_H__
 
 #include "BKE_subdiv.h"
 
@@ -54,4 +54,4 @@ void BKE_subdiv_converter_free(struct OpenSubdiv_Converter *converter);
 int BKE_subdiv_converter_fvar_linear_from_settings(
         const SubdivSettings *settings);
 
-#endif  /* __BKE_SUBDIV_CONVERTER_H__ */
+#endif  /* __SUBDIV_CONVERTER_H__ */

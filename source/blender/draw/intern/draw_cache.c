@@ -901,7 +901,7 @@ GPUBatch *DRW_cache_empty_capsule_cap_get(void)
 			float v[3] = {0.0f, 0.0f, 0.0f};
 			copy_v2_v2(v, p[(i) % NSEGMENTS]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
-			copy_v2_v2(v, p[(i+1) % NSEGMENTS]);
+			copy_v2_v2(v, p[(i + 1) % NSEGMENTS]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx++, v);
 		}
 

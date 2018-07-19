@@ -37,7 +37,7 @@
 #define ORPHAN_DEBUG 0
 
 #if ORPHAN_DEBUG
-	#include <cstdio>
+#  include <cstdio>
 #endif
 
 static std::vector<GLuint> orphaned_buffer_ids;

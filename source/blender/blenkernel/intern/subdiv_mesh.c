@@ -152,7 +152,7 @@ static void edges_of_ptex_get(
 typedef struct VerticesForInterpolation {
 	/* This field points to a vertex data which is to be used for interpolation.
 	 * The idea is to avoid unnecessary allocations for regular faces, where
-	 * we can simply 
+	 * we can simply
 	 */
 	const CustomData *vertex_data;
 	/* Vertices data calculated for ptex corners. There are always 4 elements
@@ -176,7 +176,7 @@ typedef struct VerticesForInterpolation {
 static void vertex_interpolation_init(
         const SubdivMeshContext *ctx,
         VerticesForInterpolation *vertex_interpolation,
-		const MPoly *coarse_poly)
+        const MPoly *coarse_poly)
 {
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MLoop *coarse_mloop = coarse_mesh->mloop;
@@ -234,7 +234,8 @@ static void vertex_interpolation_from_ptex(
 {
 	if (coarse_poly->totloop == 4) {
 		/* Nothing to do, all indices and data is already assigned. */
-	} else {
+	}
+	else {
 		const CustomData *vertex_data = &ctx->coarse_mesh->vdata;
 		const Mesh *coarse_mesh = ctx->coarse_mesh;
 		const MLoop *coarse_mloop = coarse_mesh->mloop;
@@ -287,7 +288,7 @@ static void vertex_interpolation_end(
 typedef struct LoopsForInterpolation {
  /* This field points to a loop data which is to be used for interpolation.
 	 * The idea is to avoid unnecessary allocations for regular faces, where
-	 * we can simply 
+	 * we can simply
 	 */
 	const CustomData *loop_data;
 	/* Loops data calculated for ptex corners. There are always 4 elements
@@ -311,7 +312,7 @@ typedef struct LoopsForInterpolation {
 static void loop_interpolation_init(
         const SubdivMeshContext *ctx,
         LoopsForInterpolation *loop_interpolation,
-		const MPoly *coarse_poly)
+        const MPoly *coarse_poly)
 {
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	if (coarse_poly->totloop == 4) {
@@ -363,7 +364,8 @@ static void loop_interpolation_from_ptex(
 {
 	if (coarse_poly->totloop == 4) {
 		/* Nothing to do, all indices and data is already assigned. */
-	} else {
+	}
+	else {
 		const CustomData *loop_data = &ctx->coarse_mesh->ldata;
 		const Mesh *coarse_mesh = ctx->coarse_mesh;
 		const MLoop *coarse_mloop = coarse_mesh->mloop;
@@ -481,9 +483,10 @@ static void subdiv_evaluate_vertices(SubdivMeshContext *ctx,
 	vertex_interpolation_end(&vertex_interpolation);
 }
 
-static void subdiv_copy_edge_data(SubdivMeshContext *ctx,
-	                              MEdge *subdiv_edge,
-                                  const MEdge *coarse_edge)
+static void subdiv_copy_edge_data(
+        SubdivMeshContext *ctx,
+        MEdge *subdiv_edge,
+        const MEdge *coarse_edge)
 {
 	if (coarse_edge == NULL) {
 		subdiv_edge->crease = 0;
@@ -586,11 +589,12 @@ static void subdiv_create_edges(SubdivMeshContext *ctx, int poly_index)
 		EdgesOfPtex edges_of_ptex;
 		edges_of_ptex_get(ctx, &edges_of_ptex, coarse_poly, i);
 		/* Create bottom row of edges (0-1, 1-2). */
-		subdiv_edge = subdiv_create_edges_row(ctx,
-		                                      subdiv_edge,
-		                                      edges_of_ptex.first_edge,
-	                                          start_ptex_face_vertex_index,
-		                                      resolution);
+		subdiv_edge = subdiv_create_edges_row(
+		        ctx,
+		        subdiv_edge,
+		        edges_of_ptex.first_edge,
+		        start_ptex_face_vertex_index,
+		        resolution);
 		/* Create remaining edges. */
 		for (int row = 0; row < resolution - 1; row++) {
 			const int start_row_vertex_index =

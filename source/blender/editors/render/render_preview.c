@@ -828,7 +828,7 @@ static void shader_preview_free(void *customdata)
 	ShaderPreview *sp = customdata;
 	Main *pr_main = sp->pr_main;
 
-	if (sp->id_copy){
+	if (sp->id_copy) {
 		switch (GS(sp->id_copy->name)) {
 			case ID_MA:
 				BKE_material_free((Material *)sp->id_copy);
