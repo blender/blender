@@ -36,6 +36,7 @@
 
 #ifdef _WIN32
 #  include <windows.h>
+#  undef interface /* fix conflict with GPU_batch.h */
 #endif
 
 #include "MEM_guardedalloc.h"
