@@ -35,8 +35,8 @@
 #include <string.h>
 
 #ifdef _WIN32
+#  define WIN32_LEAN_AND_MEAN
 #  include <windows.h>
-#  undef interface /* fix conflict with GPU_batch.h */
 #endif
 
 #include "MEM_guardedalloc.h"
