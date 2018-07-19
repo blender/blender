@@ -314,6 +314,11 @@ static World *preview_get_localized_world(ShaderPreview *sp, World *world)
 
 static ID *duplicate_ids(ID *id, Depsgraph *depsgraph)
 {
+	if (id == NULL) {
+		/* Non-ID preview render. */
+		return NULL;
+	}
+
 	ID *id_eval = id;
 
 	if (depsgraph) {
