@@ -32,12 +32,11 @@
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
-#include "GPU_buffer_id.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
-#include "GPU_vertex_array_id.h"
 
 #include "gpu_batch_private.h"
+#include "gpu_context_private.h"
 #include "gpu_primitive_private.h"
 #include "gpu_shader_private.h"
 

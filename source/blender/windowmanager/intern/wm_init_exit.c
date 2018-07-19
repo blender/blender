@@ -119,6 +119,7 @@
 
 #include "GPU_material.h"
 #include "GPU_draw.h"
+#include "GPU_immediate.h"
 #include "GPU_init_exit.h"
 
 #include "BKE_sound.h"
@@ -515,9 +516,11 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BLF_exit();
 
 	if (opengl_is_init) {
+		DRW_opengl_context_enable_ex(false);
 		GPU_pass_cache_free();
-		DRW_opengl_context_destroy();
 		GPU_exit();
+		DRW_opengl_context_disable_ex(false);
+		DRW_opengl_context_destroy();
 	}
 
 #ifdef WITH_INTERNATIONAL

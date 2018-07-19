@@ -62,9 +62,9 @@ set(SRC
 	intern/gpu_batch.c
 	intern/gpu_batch_presets.c
 	intern/gpu_batch_utils.c
-	intern/gpu_buffer_id.cpp
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
+	intern/gpu_context.cpp
 	intern/gpu_debug.c
 	intern/gpu_draw.c
 	intern/gpu_element.c
@@ -84,7 +84,6 @@ set(SRC
 	intern/gpu_state.c
 	intern/gpu_texture.c
 	intern/gpu_uniformbuffer.c
-	intern/gpu_vertex_array_id.cpp
 	intern/gpu_vertex_buffer.c
 	intern/gpu_vertex_format.c
 	intern/gpu_viewport.c
@@ -113,7 +112,6 @@ set(SRC
 	GPU_attr_binding.h
 	GPU_basic_shader.h
 	GPU_batch.h
-	GPU_buffer_id.h
 	GPU_buffers.h
 	GPU_common.h
 	GPU_debug.h
@@ -135,7 +133,6 @@ set(SRC
 	GPU_state.h
 	GPU_texture.h
 	GPU_uniformbuffer.h
-	GPU_vertex_array_id.h
 	GPU_vertex_buffer.h
 	GPU_vertex_format.h
 	GPU_viewport.h
@@ -143,6 +140,7 @@ set(SRC
 	intern/gpu_attr_binding_private.h
 	intern/gpu_batch_private.h
 	intern/gpu_codegen.h
+	intern/gpu_context_private.h
 	intern/gpu_primitive_private.h
 	intern/gpu_private.h
 	intern/gpu_select_private.h

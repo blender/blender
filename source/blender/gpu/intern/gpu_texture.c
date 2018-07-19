@@ -38,21 +38,21 @@
 #include "BKE_global.h"
 
 #include "GPU_batch.h"
+#include "GPU_context.h"
 #include "GPU_debug.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
-#include "GPU_framebuffer.h"
 #include "GPU_glew.h"
+#include "GPU_framebuffer.h"
 #include "GPU_texture.h"
+
+#include "gpu_context_private.h"
 
 static struct GPUTextureGlobal {
 	GPUTexture *invalid_tex_1D; /* texture used in place of invalid textures (not loaded correctly, missing) */
 	GPUTexture *invalid_tex_2D;
 	GPUTexture *invalid_tex_3D;
 } GG = {NULL, NULL, NULL};
-
-static ListBase g_orphaned_tex = {NULL, NULL};
-static ThreadMutex g_orphan_lock;
 
 /* Maximum number of FBOs a texture can be attached to. */
 #define GPU_TEX_MAX_FBO_ATTACHED 8
@@ -535,7 +535,7 @@ GPUTexture *GPU_texture_create_nD(
 	gpu_texture_memory_footprint_add(tex);
 
 	/* Generate Texture object */
-	glGenTextures(1, &tex->bindcode);
+	tex->bindcode = GPU_tex_alloc();
 
 	if (!tex->bindcode) {
 		if (err_out)
@@ -668,7 +668,7 @@ static GPUTexture *GPU_texture_cube_create(
 	gpu_texture_memory_footprint_add(tex);
 
 	/* Generate Texture object */
-	glGenTextures(1, &tex->bindcode);
+	tex->bindcode = GPU_tex_alloc();
 
 	if (!tex->bindcode) {
 		if (err_out)
@@ -752,7 +752,7 @@ GPUTexture *GPU_texture_create_buffer(GPUTextureFormat tex_format, const GLuint 
 	}
 
 	/* Generate Texture object */
-	glGenTextures(1, &tex->bindcode);
+	tex->bindcode = GPU_tex_alloc();
 
 	if (!tex->bindcode) {
 		fprintf(stderr, "GPUTexture: texture create failed\n");
@@ -1301,17 +1301,6 @@ void GPU_texture_filters(GPUTexture *tex, GPUFilterFunction min_filter, GPUFilte
 	glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, gpu_get_gl_filterfunction(mag_filter));
 }
 
-
-static void gpu_texture_delete(GPUTexture *tex)
-{
-	if (tex->bindcode)
-		glDeleteTextures(1, &tex->bindcode);
-
-	gpu_texture_memory_footprint_remove(tex);
-
-	MEM_freeN(tex);
-}
-
 void GPU_texture_free(GPUTexture *tex)
 {
 	tex->refcount--;
@@ -1326,38 +1315,13 @@ void GPU_texture_free(GPUTexture *tex)
 			}
 		}
 
-		/* TODO(fclem): Check if the thread has an ogl context. */
-		if (BLI_thread_is_main()) {
-			gpu_texture_delete(tex);
-		}
-		else {
-			BLI_mutex_lock(&g_orphan_lock);
-			BLI_addtail(&g_orphaned_tex, BLI_genericNodeN(tex));
-			BLI_mutex_unlock(&g_orphan_lock);
-		}
+		if (tex->bindcode)
+			GPU_tex_free(tex->bindcode);
+
+		gpu_texture_memory_footprint_remove(tex);
+
+		MEM_freeN(tex);
 	}
-}
-
-void GPU_texture_orphans_init(void)
-{
-	BLI_mutex_init(&g_orphan_lock);
-}
-
-void GPU_texture_orphans_delete(void)
-{
-	BLI_mutex_lock(&g_orphan_lock);
-	LinkData *link;
-	while ((link = BLI_pophead(&g_orphaned_tex))) {
-		gpu_texture_delete((GPUTexture *)link->data);
-		MEM_freeN(link);
-	}
-	BLI_mutex_unlock(&g_orphan_lock);
-}
-
-void GPU_texture_orphans_exit(void)
-{
-	GPU_texture_orphans_delete();
-	BLI_mutex_end(&g_orphan_lock);
 }
 
 void GPU_texture_ref(GPUTexture *tex)

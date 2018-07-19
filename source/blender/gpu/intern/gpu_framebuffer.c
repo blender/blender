@@ -42,7 +42,8 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-#include "intern/gpu_private.h"
+#include "gpu_private.h"
+#include "gpu_context_private.h"
 
 static ThreadLocal(void *) g_currentfb;
 
@@ -69,6 +70,7 @@ typedef enum {
 #define GPU_FB_ATTACHEMENT_SET_DIRTY(flag, type) (flag |= (1 << type))
 
 struct GPUFrameBuffer {
+	GPUContext *ctx;
 	GLuint object;
 	GPUAttachment attachments[GPU_FB_MAX_ATTACHEMENT];
 	uint16_t dirty_flag;
@@ -196,7 +198,9 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 
 static void gpu_framebuffer_init(GPUFrameBuffer *fb)
 {
-	glGenFramebuffers(1, &fb->object);
+	fb->object = GPU_fbo_alloc();
+	fb->ctx = GPU_context_active_get();
+	gpu_context_add_framebuffer(fb->ctx, fb);
 }
 
 void GPU_framebuffer_free(GPUFrameBuffer *fb)
@@ -207,8 +211,11 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 		}
 	}
 
-	/* This restores the framebuffer if it was bound */
-	glDeleteFramebuffers(1, &fb->object);
+	if (fb->object != 0) {
+		/* This restores the framebuffer if it was bound */
+		GPU_fbo_free(fb->object, fb->ctx);
+		gpu_context_remove_framebuffer(fb->ctx, fb);
+	}
 
 	if (gpu_framebuffer_current_get() == fb->object) {
 		gpu_framebuffer_current_set(0);

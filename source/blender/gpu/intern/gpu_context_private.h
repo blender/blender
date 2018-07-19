@@ -23,33 +23,46 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/GPU_vertex_array_id.h
+/** \file blender/gpu/intern/gpu_context_private.h
  *  \ingroup gpu
  *
- * Manage GL vertex array IDs in a thread-safe way
- * Use these instead of glGenBuffers & its friends
- * - alloc must be called from a thread that is bound
- *   to the context that will be used for drawing with
- *   this vao.
- * - free can be called from any thread
+ * This interface allow GPU to manage GL objects for mutiple context and threads.
  */
 
-#ifndef __GPU_VERTEX_ARRAY_ID_H__
-#define __GPU_VERTEX_ARRAY_ID_H__
+#ifndef __GPU_CONTEXT_PRIVATE_H__
+#define __GPU_CONTEXT_PRIVATE_H__
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "GPU_common.h"
 #include "GPU_context.h"
 
+struct GPUFrameBuffer;
+
 GLuint GPU_vao_default(void);
+
+/* These require a gl ctx bound. */
+GLuint GPU_buf_alloc(void);
+GLuint GPU_tex_alloc(void);
 GLuint GPU_vao_alloc(void);
-void GPU_vao_free(GLuint vao_id, GPUContext *);
+GLuint GPU_fbo_alloc(void);
+
+/* These can be called any threads even without gl ctx. */
+void GPU_buf_free(GLuint buf_id);
+void GPU_tex_free(GLuint tex_id);
+/* These two need the ctx the id was created with. */
+void GPU_vao_free(GLuint vao_id, GPUContext *ctx);
+void GPU_fbo_free(GLuint fbo_id, GPUContext *ctx);
+
+void gpu_context_add_batch(GPUContext *ctx, GPUBatch *batch);
+void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch);
+
+void gpu_context_add_framebuffer(GPUContext *ctx, struct GPUFrameBuffer *fb);
+void gpu_context_remove_framebuffer(GPUContext *ctx, struct GPUFrameBuffer *fb);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __GPU_VERTEX_ARRAY_ID_H__ */
+#endif /* __GPU_CONTEXT_PRIVATE_H__ */

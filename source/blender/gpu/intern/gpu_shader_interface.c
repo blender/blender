@@ -29,9 +29,11 @@
  * GPU shader interface (C --> GLSL)
  */
 
-#include "gpu_batch_private.h"
 #include "GPU_shader_interface.h"
-#include "GPU_vertex_array_id.h"
+
+#include "gpu_batch_private.h"
+#include "gpu_context_private.h"
+
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>

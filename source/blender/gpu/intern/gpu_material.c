@@ -75,9 +75,6 @@
 #  include "BKE_DerivedMesh.h"
 #endif
 
-static ListBase g_orphaned_mat = {NULL, NULL};
-static ThreadMutex g_orphan_lock;
-
 /* Structs */
 
 struct GPUMaterial {
@@ -175,42 +172,10 @@ void GPU_material_free(ListBase *gpumaterial)
 {
 	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
-
-		/* TODO(fclem): Check if the thread has an ogl context. */
-		if (BLI_thread_is_main()) {
-			gpu_material_free_single(material);
-			MEM_freeN(material);
-		}
-		else {
-			BLI_mutex_lock(&g_orphan_lock);
-			BLI_addtail(&g_orphaned_mat, BLI_genericNodeN(material));
-			BLI_mutex_unlock(&g_orphan_lock);
-		}
+		gpu_material_free_single(material);
+		MEM_freeN(material);
 	}
 	BLI_freelistN(gpumaterial);
-}
-
-void GPU_material_orphans_init(void)
-{
-	BLI_mutex_init(&g_orphan_lock);
-}
-
-void GPU_material_orphans_delete(void)
-{
-	BLI_mutex_lock(&g_orphan_lock);
-	LinkData *link;
-	while ((link = BLI_pophead(&g_orphaned_mat))) {
-		gpu_material_free_single((GPUMaterial *)link->data);
-		MEM_freeN(link->data);
-		MEM_freeN(link);
-	}
-	BLI_mutex_unlock(&g_orphan_lock);
-}
-
-void GPU_material_orphans_exit(void)
-{
-	GPU_material_orphans_delete();
-	BLI_mutex_end(&g_orphan_lock);
 }
 
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)

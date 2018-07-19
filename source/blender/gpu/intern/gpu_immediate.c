@@ -32,11 +32,10 @@
 #include "UI_resources.h"
 
 #include "GPU_attr_binding.h"
-#include "GPU_buffer_id.h"
 #include "GPU_immediate.h"
-#include "GPU_vertex_array_id.h"
 
 #include "gpu_attr_binding_private.h"
+#include "gpu_context_private.h"
 #include "gpu_primitive_private.h"
 #include "gpu_shader_private.h"
 #include "gpu_vertex_format_private.h"
@@ -91,7 +90,7 @@ void immInit(void)
 #endif
 	memset(&imm, 0, sizeof(Immediate));
 
-	imm.vbo_id = GPU_buf_id_alloc();
+	imm.vbo_id = GPU_buf_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, imm.vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, IMM_BUFFER_SIZE, NULL, GL_DYNAMIC_DRAW);
 
@@ -127,7 +126,7 @@ void immDeactivate(void)
 
 void immDestroy(void)
 {
-	GPU_buf_id_free(imm.vbo_id);
+	GPU_buf_free(imm.vbo_id);
 	initialized = false;
 }
 

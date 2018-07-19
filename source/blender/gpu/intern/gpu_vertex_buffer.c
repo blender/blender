@@ -30,8 +30,10 @@
  */
 
 #include "GPU_vertex_buffer.h"
-#include "GPU_buffer_id.h"
+
+#include "gpu_context_private.h"
 #include "gpu_vertex_format_private.h"
+
 #include <stdlib.h>
 #include <string.h>
 
@@ -88,7 +90,7 @@ void GPU_vertbuf_init_with_format_ex(GPUVertBuf *verts, const GPUVertFormat *for
 void GPU_vertbuf_discard(GPUVertBuf *verts)
 {
 	if (verts->vbo_id) {
-		GPU_buf_id_free(verts->vbo_id);
+		GPU_buf_free(verts->vbo_id);
 #if VRAM_USAGE
 		vbo_memory_usage -= GPU_vertbuf_size_get(verts);
 #endif
@@ -117,7 +119,7 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 #endif
 	/* only create the buffer the 1st time */
 	if (verts->vbo_id == 0) {
-		verts->vbo_id = GPU_buf_id_alloc();
+		verts->vbo_id = GPU_buf_alloc();
 	}
 	/* discard previous data if any */
 	if (verts->data) {

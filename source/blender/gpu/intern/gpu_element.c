@@ -30,7 +30,8 @@
  */
 
 #include "GPU_element.h"
-#include "GPU_buffer_id.h"
+
+#include "gpu_context_private.h"
 
 #include <stdlib.h>
 
@@ -279,7 +280,7 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 #endif
 
 	if (elem->vbo_id == 0) {
-		elem->vbo_id = GPU_buf_id_alloc();
+		elem->vbo_id = GPU_buf_alloc();
 	}
 	/* send data to GPU */
 	/* GL_ELEMENT_ARRAY_BUFFER changes the state of the last VAO bound,
@@ -302,7 +303,7 @@ void GPU_indexbuf_use(GPUIndexBuf *elem)
 void GPU_indexbuf_discard(GPUIndexBuf *elem)
 {
 	if (elem->vbo_id) {
-		GPU_buf_id_free(elem->vbo_id);
+		GPU_buf_free(elem->vbo_id);
 	}
 	free(elem);
 }

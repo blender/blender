@@ -43,9 +43,6 @@ extern "C" {
 
 void gpu_batch_remove_interface_ref(GPUBatch *batch, const GPUShaderInterface *interface);
 
-void gpu_context_add_batch(GPUContext *ctx, GPUBatch *batch);
-void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch);
-
 #ifdef __cplusplus
 }
 #endif

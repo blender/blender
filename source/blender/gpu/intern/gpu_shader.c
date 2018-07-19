@@ -38,6 +38,7 @@
 #include "DNA_space_types.h"
 
 #include "GPU_extensions.h"
+#include "GPU_context.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -572,6 +573,7 @@ void GPU_shader_transform_feedback_disable(GPUShader *UNUSED(shader))
 
 void GPU_shader_free(GPUShader *shader)
 {
+	BLI_assert(GPU_context_active_get() != NULL);
 	BLI_assert(shader);
 
 	if (shader->vertex)
