@@ -247,6 +247,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	subdiv_mesh_settings_init(&mesh_settings, &subdiv_settings);
 	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
 	/* TODO(sergey): Cache subdiv somehow. */
+	// BKE_subdiv_stats_print(&subdiv->stats);
 	BKE_subdiv_free(subdiv);
 	return result;
 }

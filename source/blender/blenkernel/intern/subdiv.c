@@ -63,6 +63,9 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)
 {
 #ifdef WITH_OPENSUBDIV
+	SubdivStats stats;
+	BKE_subdiv_stats_init(&stats);
+	BKE_subdiv_stats_begin(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
 	OpenSubdiv_TopologyRefinerSettings topology_refiner_settings;
 	topology_refiner_settings.level = settings->level;
 	topology_refiner_settings.is_adaptive = settings->is_adaptive;
@@ -77,6 +80,8 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	subdiv->topology_refiner = osd_topology_refiner;
 	subdiv->evaluator = NULL;
 	update_subdiv_after_topology_change(subdiv);
+	BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
+	subdiv->stats = stats;
 	return subdiv;
 #else
 	UNUSED_VARS(settings, converter);

@@ -191,6 +191,7 @@ set(SRC
 	intern/subdiv_converter_mesh.c
 	intern/subdiv_eval.c
 	intern/subdiv_mesh.c
+	intern/subdiv_stats.c
 	intern/subsurf_ccg.c
 	intern/suggestions.c
 	intern/text.c

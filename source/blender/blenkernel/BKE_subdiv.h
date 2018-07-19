@@ -53,6 +53,40 @@ typedef struct SubdivSettings {
 	eSubdivFVarLinearInterpolation fvar_linear_interpolation;
 } SubdivSettings;
 
+/* NOTE: Order of enumerators MUST match order of values in SubdivStats. */
+typedef enum eSubdivStatsValue {
+	SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME = 0,
+	SUBDIV_STATS_SUBDIV_TO_MESH,
+	SUBDIV_STATS_EVALUATOR_CREATE,
+	SUBDIV_STATS_EVALUATOR_REFINE,
+
+	NUM_SUBDIV_STATS_VALUES,
+} eSubdivStatsValue;
+
+typedef struct SubdivStats {
+	union {
+		struct {
+			/* Time spend on creating topology refiner, which includes time
+			 * spend on conversion from Blender data to OpenSubdiv data, and
+			 * time spend on topology orientation on OpenSubdiv C-API side.
+			 */
+			double topology_refiner_creation_time;
+			/* Total time spent in BKE_subdiv_to_mesh(). */
+			double subdiv_to_mesh_time;
+			/* Time spent on evaluator creation from topology refiner. */
+			double evaluator_creation_time;
+			/* Time spent on evaluator->refine(). */
+			double evaluator_refine_time;
+		};
+		double values_[NUM_SUBDIV_STATS_VALUES];
+	};
+
+	/* Per-value timestamp on when corresponding BKE_subdiv_stats_begin() was
+	 * called.
+	 */
+	double begin_timestamp_[NUM_SUBDIV_STATS_VALUES];
+} SubdivStats;
+
 typedef struct Subdiv {
 	/* Settings this subdivision surface is created for.
 	 *
@@ -88,7 +122,18 @@ typedef struct Subdiv {
 
 	/* CPU side evaluator. */
 	struct OpenSubdiv_Evaluator *evaluator;
+
+	SubdivStats stats;
 } Subdiv;
+
+/* =============================== STATISTICS =============================== */
+
+void BKE_subdiv_stats_init(SubdivStats *stats);
+
+void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value);
+void BKE_subdiv_stats_end(SubdivStats *stats, eSubdivStatsValue value);
+
+void BKE_subdiv_stats_print(const SubdivStats *stats);
 
 /* ============================== CONSTRUCTION ============================== */
 

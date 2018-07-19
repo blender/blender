@@ -46,8 +46,10 @@ void BKE_subdiv_eval_begin(Subdiv *subdiv)
 {
 #ifdef WITH_OPENSUBDIV
 	if (subdiv->evaluator == NULL) {
+		BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
 		subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
 		        subdiv->topology_refiner);
+		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
 	}
 	else {
 		/* TODO(sergey): Check for topology change. */
@@ -112,7 +114,9 @@ void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 		break;
 	}
 	/* Update evaluator to the new coarse geometry. */
+	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
 	subdiv->evaluator->refine(subdiv->evaluator);
+	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
 #else
 	UNUSED_VARS(subdiv, mesh);
 #endif

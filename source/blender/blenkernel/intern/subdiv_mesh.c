@@ -912,6 +912,7 @@ Mesh *BKE_subdiv_to_mesh(
         const SubdivToMeshSettings *settings,
         const Mesh *coarse_mesh)
 {
+	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
 	/* Make sure evaluator is up to date with possible new topology, and that
 	 * is is refined for the new positions of coarse vertices.
 	 */
@@ -946,5 +947,6 @@ Mesh *BKE_subdiv_to_mesh(
 	                        &ctx,
 	                        subdiv_eval_task,
 	                        &parallel_range_settings);
+	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
 	return result;
 }
