@@ -297,7 +297,7 @@ static int eyedropper_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	}
 	else {
 		eyedropper_exit(C, op);
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	}
 }
 
@@ -315,7 +315,7 @@ static int eyedropper_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 	else {
-		return OPERATOR_CANCELLED;
+		return OPERATOR_PASS_THROUGH;
 	}
 }
 

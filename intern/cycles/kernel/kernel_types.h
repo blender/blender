@@ -54,7 +54,7 @@ CCL_NAMESPACE_BEGIN
 #define PRIM_NONE				(~0)
 #define LAMP_NONE				(~0)
 
-#define VOLUME_STACK_SIZE		16
+#define VOLUME_STACK_SIZE		32
 
 /* Split kernel constants */
 #define WORK_POOL_SIZE_GPU 64
