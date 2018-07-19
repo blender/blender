@@ -318,7 +318,6 @@ enum {
 
 typedef struct BevelModNorEditData {
 	struct GHash *faceHash;
-	struct GHash *vert_hash;
 } BevelModNorEditData;
 
 typedef struct BevelModifierData {

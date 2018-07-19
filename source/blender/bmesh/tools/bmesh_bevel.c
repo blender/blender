@@ -152,7 +152,7 @@ typedef struct BoundVert {
 	Profile profile;    /* edge profile between this and next BoundVert */
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
-	int add_seam;
+	int seam_len;
 	int sharp_len;
 //	int _pad;
 } BoundVert;
@@ -1532,18 +1532,18 @@ static void snap_to_superellipsoid(float co[3], const float super_r, bool midlin
 	co[2] = z;
 }
 
-#define EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
+#define BEV_EXTEND_EDGE_DATA_CHECK(eh, flag) (BM_elem_flag_test(eh->e, flag))
 
 static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
-	while ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag)))) {
+	while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))) {
 		e = e->next;
 		if (e == efirst)
 			break;
 	}
-	if ((!neg && !EDGE_DATA_CHECK(e, flag) || (neg && EDGE_DATA_CHECK(e, flag))))
+	if ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))))
 		return;
 
 	efirst = e;
@@ -1551,17 +1551,17 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 		
-		while ((!neg && !EDGE_DATA_CHECK(ne, flag) || (neg && EDGE_DATA_CHECK(ne, flag))) && ne != efirst) {
+		while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) && ne != efirst) {
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
-		if (ne == e || (ne == efirst && (!neg && !EDGE_DATA_CHECK(efirst, flag) ||
-										(neg && EDGE_DATA_CHECK(efirst, flag))))) {
+		if (ne == e || (ne == efirst && (!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag) ||
+										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag))))) {
 			break;
 		}
  		if (flag == BM_ELEM_SEAM)
-			e->rightv->add_seam = flag_count;
+			e->rightv->seam_len = flag_count;
 		else if (flag == BM_ELEM_SMOOTH)
 			e->rightv->sharp_len = flag_count;
 		e = ne;
@@ -1576,11 +1576,11 @@ static void bevel_extend_edge_data(BevVert *bv)
 	BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;
 
 	do {
-		if (bcur->add_seam) {
-			if (!bv->vmesh->boundstart->add_seam && start == bv->vmesh->boundstart)
+		if (bcur->seam_len) {
+			if (!bv->vmesh->boundstart->seam_len && start == bv->vmesh->boundstart)
 				start = bcur;
 
-			int idxlen = bcur->index + bcur->add_seam;
+			int idxlen = bcur->index + bcur->seam_len;
 			for (int i = bcur->index; i < idxlen; i++) {
 				BMVert *v1 = mesh_vert(vm, i % vm->count, 0, 0)->v, *v2;
 				BMEdge *e;
@@ -1659,7 +1659,6 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 {
 	if (bp->hnmode == BEVEL_HN_NONE)
 		return;
-	int mode = 1;
 
 	VMesh *vm = bv->vmesh;
 	BoundVert *bcur = vm->boundstart, *bstart = bcur;
@@ -1672,7 +1671,7 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 	float n_final[3] = { 0.0f, 0.0f, 0.0f };
 
 	if (bp->hnmode == BEVEL_HN_FACE) {
-		GHash *faceHash = BLI_ghash_int_new(__func__);
+		GHash *tempfaceHash = BLI_ghash_int_new(__func__);
 
 		BM_ITER_ELEM(e, &eiter, bv->v, BM_EDGES_OF_VERT) {
 			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
@@ -1680,25 +1679,25 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 				BMFace *f_a, *f_b;
 				BM_edge_face_pair(e, &f_a, &f_b);
 
-				if(f_a && !BLI_ghash_haskey(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
+				if(f_a && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
 					int f_area = BM_face_calc_area(f_a);
 					float f_no[3];
 					copy_v3_v3(f_no, f_a->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_ghash_insert(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)), NULL);
+					BLI_ghash_insert(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)), NULL);
 				}
-				if(f_b && !BLI_ghash_haskey(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
+				if(f_b && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
 					int f_area = BM_face_calc_area(f_b);
 					float f_no[3];
 					copy_v3_v3(f_no, f_b->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_ghash_insert(faceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)), NULL);
+					BLI_ghash_insert(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)), NULL);
 				}
 			}
 		}
-		BLI_ghash_free(faceHash, NULL, NULL);
+		BLI_ghash_free(tempfaceHash, NULL, NULL);
 		normalize_v3(n_final);
 	}
 	else if (bp->hnmode == BEVEL_HN_ADJ) {
@@ -1718,11 +1717,11 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 	do {
 		if (BMO_slot_map_contains(nslot, bcur->nv.v) != true) {
 
-			float(*custom_normal) = MEM_callocN(sizeof(*custom_normal) * 3, __func__);
-			add_v3_v3(custom_normal, n_final);
-			normalize_v3(custom_normal);
+			float(*vert_normal) = MEM_callocN(sizeof(*vert_normal) * 3, __func__);
+			add_v3_v3(vert_normal, n_final);
+			normalize_v3(vert_normal);
 
-			BMO_slot_map_insert(op, nslot, bcur->nv.v, custom_normal);
+			BMO_slot_map_insert(op, nslot, bcur->nv.v, vert_normal);
 		}
 		bcur = bcur->next;
 	} while (bcur != bstart);
@@ -5662,6 +5661,7 @@ void BM_mesh_bevel(
 		BLI_memarena_use_calloc(bp.mem_arena);
 		set_profile_spacing(&bp);
 
+		/* Stores BMOp if executed through tool else stores BevelModNorEditData */
 		if (bm->use_toolflags)
 			op = mod_bmop_customdata;
 		else {

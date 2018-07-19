@@ -140,7 +140,7 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 {
 	BKE_editmesh_lnorspace_update(em);
 	BM_normals_loops_edges_tag(em->bm, true);
-	int cd_clnors_offset = CustomData_get_offset(&em->bm->ldata, CD_CUSTOMLOOPNORMAL);
+	const int cd_clnors_offset = CustomData_get_offset(&em->bm->ldata, CD_CUSTOMLOOPNORMAL);
 
 	BMesh *bm = em->bm;
 	BMFace *f;
@@ -181,10 +181,12 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 						else {
 							e_next = (lfan_pivot->e == e_next) ? lfan_pivot->prev->e : lfan_pivot->e;
 						}
+
 						BLI_SMALLSTACK_PUSH(loops, lfan_pivot);
 						float cur[3];
 						mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
 						add_v3_v3(cn_wght, cur);
+
 						if(BM_elem_flag_test(lfan_pivot->f, BM_ELEM_SELECT))
 							add_v3_v3(cn_unwght, cur);
 
@@ -310,7 +312,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 	const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
 	const bool mark_seam = RNA_boolean_get(op->ptr, "mark_seam");
 	const bool mark_sharp = RNA_boolean_get(op->ptr, "mark_sharp");
-	const float strength = RNA_float_get(op->ptr, "strength");
+	const float hn_strength = RNA_float_get(op->ptr, "strength");
 	const int hnmode = RNA_enum_get(op->ptr, "hnmode");
 
 
@@ -330,7 +332,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 			"bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
 			"material=%i loop_slide=%b mark_seam=%b mark_sharp=%b strength=%f hnmode=%i",
 			BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-			clamp_overlap, material, loop_slide, mark_seam, mark_sharp, strength, hnmode);
+			clamp_overlap, material, loop_slide, mark_seam, mark_sharp, hn_strength, hnmode);
 
 		BMO_op_exec(em->bm, &bmop);
 
@@ -342,7 +344,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 		}
 
 		if(hnmode != BEVEL_HN_NONE)
-			bevel_harden_normals(em, &bmop, strength, hnmode);
+			bevel_harden_normals(em, &bmop, hn_strength, hnmode);
 
 		/* no need to de-select existing geometry */
 		if (!EDBM_op_finish(em, &bmop, op, true)) {
