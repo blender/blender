@@ -1623,7 +1623,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 	/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
 	if (ob->pose->flag & POSE_RECALC) {
-		BKE_pose_rebuild(ob, arm);
+		BKE_pose_rebuild(NULL, ob, arm);
 	}
 
 	// if (!(base->flag & OB_FROMDUPLI)) // TODO

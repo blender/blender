@@ -75,7 +75,7 @@ bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifie
 void BKE_object_link_modifiers(struct Scene *scene, struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob, const int flag);
 
-void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
+void BKE_object_make_proxy(struct Main *bmain, struct Object *ob, struct Object *target, struct Object *gob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 bool BKE_object_exists_check(struct Main *bmain, const struct Object *obtest);

@@ -1150,7 +1150,7 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
  *
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_src, const int flag)
+void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
 	ModifierData *md;
 
@@ -1180,7 +1180,7 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 		copy_object_pose(ob_dst, ob_src, flag_subdata);
 		/* backwards compat... non-armatures can get poses in older files? */
 		if (ob_src->type == OB_ARMATURE)
-			BKE_pose_rebuild(ob_dst, ob_dst->data);
+			BKE_pose_rebuild(bmain, ob_dst, ob_dst->data);
 	}
 	defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
 	BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
@@ -1359,7 +1359,7 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 /*             local_object->proxy == pointer to library object, saved in files and read */
 /*             local_object->proxy_group == pointer to collection dupli-object, saved in files and read */
 
-void BKE_object_make_proxy(Object *ob, Object *target, Object *cob)
+void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 {
 	/* paranoia checks */
 	if (ID_IS_LINKED(ob) || !ID_IS_LINKED(target)) {
@@ -1434,7 +1434,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *cob)
 	if (target->type == OB_ARMATURE) {
 		copy_object_pose(ob, target, 0);   /* data copy, object pointers in constraints */
 		BKE_pose_rest(ob->pose);            /* clear all transforms in channels */
-		BKE_pose_rebuild(ob, ob->data); /* set all internal links */
+		BKE_pose_rebuild(bmain, ob, ob->data); /* set all internal links */
 
 		armature_set_id_extern(ob);
 	}
@@ -2698,8 +2698,10 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
 			 * with poses we do it ahead of BKE_object_where_is_calc to ensure animation
 			 * is evaluated on the rebuilt pose, otherwise we get incorrect poses
 			 * on file load */
-			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC))
-				BKE_pose_rebuild(ob, ob->data);
+			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
+				/* No need to pass bmain here, we assume we do not need to rebuild DEG from here... */
+				BKE_pose_rebuild(NULL, ob, ob->data);
+			}
 		}
 	}
 	/* XXX new animsys warning: depsgraph tag OB_RECALC_DATA should not skip drivers,

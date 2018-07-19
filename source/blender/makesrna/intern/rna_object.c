@@ -356,10 +356,12 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		ob->data = id;
 		test_object_materials(G_MAIN, ob, id);
 
-		if (GS(id->name) == ID_CU)
+		if (GS(id->name) == ID_CU) {
 			BKE_curve_type_test(ob);
-		else if (ob->type == OB_ARMATURE)
-			BKE_pose_rebuild(ob, ob->data);
+		}
+		else if (ob->type == OB_ARMATURE) {
+			BKE_pose_rebuild(G_MAIN, ob, ob->data);
+		}
 	}
 }
 

@@ -360,7 +360,7 @@ static int make_proxy_exec(bContext *C, wmOperator *op)
 		newob = BKE_object_add_from(bmain, scene, view_layer, OB_EMPTY, name, gob ? gob : ob);
 
 		/* set layers OK */
-		BKE_object_make_proxy(newob, ob, gob);
+		BKE_object_make_proxy(bmain, newob, ob, gob);
 
 		/* Set back pointer immediately so dependency graph knows that this is
 		 * is a proxy and will act accordingly. Otherwise correctness of graph
@@ -1809,7 +1809,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 					case OB_ARMATURE:
 						DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 						ob->data = ID_NEW_SET(ob->data, BKE_armature_copy(bmain, ob->data));
-						BKE_pose_rebuild(ob, ob->data);
+						BKE_pose_rebuild(bmain, ob, ob->data);
 						break;
 					case OB_SPEAKER:
 						ob->data = ID_NEW_SET(ob->data, BKE_speaker_copy(bmain, ob->data));
