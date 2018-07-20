@@ -838,7 +838,34 @@ static void shader_preview_free(void *customdata)
 	ShaderPreview *sp = customdata;
 	Main *pr_main = sp->pr_main;
 
+	if (sp->matcopy) {
+		sp->id_copy = (ID *)sp->matcopy;
+		BLI_remlink(&pr_main->mat, sp->matcopy);
+	}
+	if (sp->texcopy) {
+		sp->id_copy = (ID *)sp->texcopy;
+		BLI_remlink(&pr_main->tex, sp->texcopy);
+	}
+	if (sp->worldcopy) {
+		sp->id_copy = (ID *)sp->worldcopy;
+		BLI_remlink(&pr_main->world, sp->worldcopy);
+	}
+	if (sp->lampcopy) {
+		sp->id_copy = (ID *)sp->lampcopy;
+		BLI_remlink(&pr_main->lamp, sp->lampcopy);
+	}
+	if (sp->id_copy) {
+		/* node previews */
+		shader_preview_updatejob(sp);
+	}
 	if (sp->id_copy && sp->own_id_copy) {
+		struct IDProperty *properties;
+		/* get rid of copied ID */
+		properties = IDP_GetProperties(sp->id_copy, false);
+		if (properties) {
+			IDP_FreeProperty(properties);
+			MEM_freeN(properties);
+		}
 		switch (GS(sp->id_copy->name)) {
 			case ID_MA:
 				BKE_material_free((Material *)sp->id_copy);
@@ -857,79 +884,6 @@ static void shader_preview_free(void *customdata)
 				break;
 		}
 		MEM_freeN(sp->id_copy);
-	}
-	if (sp->matcopy) {
-		struct IDProperty *properties;
-
-		/* node previews */
-		shader_preview_updatejob(sp);
-
-		/* get rid of copied material */
-		BLI_remlink(&pr_main->mat, sp->matcopy);
-
-		properties = IDP_GetProperties((ID *)sp->matcopy, false);
-		if (properties) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
-		}
-		if (sp->own_id_copy) {
-			BKE_material_free(sp->matcopy);
-			MEM_freeN(sp->matcopy);
-		}
-	}
-	if (sp->texcopy) {
-		struct IDProperty *properties;
-		/* node previews */
-		shader_preview_updatejob(sp);
-
-		/* get rid of copied texture */
-		BLI_remlink(&pr_main->tex, sp->texcopy);
-
-		properties = IDP_GetProperties((ID *)sp->texcopy, false);
-		if (properties) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
-		}
-		if (sp->own_id_copy) {
-			BKE_texture_free(sp->texcopy);
-			MEM_freeN(sp->texcopy);
-		}
-	}
-	if (sp->worldcopy) {
-		struct IDProperty *properties;
-		/* node previews */
-		shader_preview_updatejob(sp);
-
-		/* get rid of copied world */
-		BLI_remlink(&pr_main->world, sp->worldcopy);
-
-		properties = IDP_GetProperties((ID *)sp->worldcopy, false);
-		if (properties) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
-		}
-		if (sp->own_id_copy) {
-			BKE_world_free(sp->worldcopy);
-			MEM_freeN(sp->worldcopy);
-		}
-	}
-	if (sp->lampcopy) {
-		struct IDProperty *properties;
-		/* node previews */
-		shader_preview_updatejob(sp);
-
-		/* get rid of copied lamp */
-		BLI_remlink(&pr_main->lamp, sp->lampcopy);
-
-		properties = IDP_GetProperties((ID *)sp->lampcopy, false);
-		if (properties) {
-			IDP_FreeProperty(properties);
-			MEM_freeN(properties);
-		}
-		if (sp->own_id_copy) {
-			BKE_lamp_free(sp->lampcopy);
-			MEM_freeN(sp->lampcopy);
-		}
 	}
 
 	MEM_freeN(sp);
