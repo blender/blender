@@ -1798,13 +1798,31 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 	color = vec4(1.0, 0.0, 1.0, 1.0);
 }
 
-void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture(ima, co.xy);
 	alpha = color.a;
 }
 
-void tex_box_sample(vec3 texco,
+void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	ivec2 pix = ivec2(co.xy * textureSize(ima, 0).xy);
+	color = texelFetch(ima, pix, 0);
+	alpha = color.a;
+}
+
+void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	node_tex_image_linear(co, ima, color, alpha);
+}
+
+void node_tex_image_smart(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	/* use cubic for now */
+	node_tex_image_cubic(co, ima, color, alpha);
+}
+
+void tex_box_sample_linear(vec3 texco,
                     vec3 N,
                     sampler2D ima,
                     out vec4 color1,
@@ -1829,6 +1847,56 @@ void tex_box_sample(vec3 texco,
 		uv.x = 1.0 - uv.x;
 	}
 	color3 = texture(ima, uv);
+}
+
+void tex_box_sample_nearest(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	ivec2 pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color1 = texelFetch(ima, pix, 0);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color2 = texelFetch(ima, pix, 0);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color3 = texelFetch(ima, pix, 0);
+}
+
+void tex_box_sample_cubic(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	tex_box_sample_linear(texco, N, ima, color1, color2, color3);
+}
+
+void tex_box_sample_smart(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	tex_box_sample_cubic(texco, N, ima, color1, color2, color3);
 }
 
 void node_tex_image_box(vec3 texco,

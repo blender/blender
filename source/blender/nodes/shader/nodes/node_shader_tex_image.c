@@ -55,9 +55,25 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
+	static const char *names[] = {
+	    "node_tex_image_linear",
+	    "node_tex_image_nearest",
+	    "node_tex_image_cubic",
+	    "node_tex_image_smart"
+	};
+	static const char *names_box[] = {
+	    "tex_box_sample_linear",
+	    "tex_box_sample_nearest",
+	    "tex_box_sample_cubic",
+	    "tex_box_sample_smart"
+	};
+
 	Image *ima = (Image *)node->id;
 	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
+	const char *gpu_node_name = (tex->projection == SHD_PROJ_BOX)
+	                             ? names_box[tex->interpolation]
+	                             : names[tex->interpolation];
 	bool do_color_correction = false;
 
 	GPUNodeLink *norm, *col1, *col2, *col3;
@@ -84,7 +100,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	switch (tex->projection) {
 		case SHD_PROJ_FLAT:
-			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(ima, iuser, isdata));
 			break;
 		case SHD_PROJ_BOX:
 			GPU_link(mat, "direction_transform_m4v3", GPU_builtin(GPU_VIEW_NORMAL),
@@ -93,12 +109,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 			GPU_link(mat, "direction_transform_m4v3", norm,
 			                                          GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
 			                                          &norm);
-			GPU_link(mat, "tex_box_sample", in[0].link,
-			                                norm,
-			                                GPU_image(ima, iuser, isdata),
-			                                &col1,
-			                                &col2,
-			                                &col3);
+			GPU_link(mat, gpu_node_name, in[0].link,
+			                             norm,
+			                             GPU_image(ima, iuser, isdata),
+			                             &col1,
+			                             &col2,
+			                             &col3);
 			if (do_color_correction) {
 				GPU_link(mat, "srgb_to_linearrgb", col1, &col1);
 				GPU_link(mat, "srgb_to_linearrgb", col2, &col2);
@@ -115,12 +131,12 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 		case SHD_PROJ_SPHERE:
 			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
 			GPU_link(mat, "point_map_to_sphere", in[0].link, &in[0].link);
-			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(ima, iuser, isdata));
 			break;
 		case SHD_PROJ_TUBE:
 			GPU_link(mat, "point_texco_remap_square", in[0].link, &in[0].link);
 			GPU_link(mat, "point_map_to_tube", in[0].link, &in[0].link);
-			GPU_stack_link(mat, node, "node_tex_image", in, out, GPU_image(ima, iuser, isdata));
+			GPU_stack_link(mat, node, gpu_node_name, in, out, GPU_image(ima, iuser, isdata));
 			break;
 	}
 
