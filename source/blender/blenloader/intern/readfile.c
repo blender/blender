@@ -7542,6 +7542,7 @@ static void direct_link_speaker(FileData *fd, Speaker *spk)
 
 static void direct_link_sound(FileData *fd, bSound *sound)
 {
+	sound->tags = 0;
 	sound->handle = NULL;
 	sound->playback_handle = NULL;
 
@@ -7553,6 +7554,7 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 
 	if (fd->soundmap) {
 		sound->waveform = newsoundadr(fd, sound->waveform);
+		sound->tags |= SOUND_TAGS_WAVEFORM_NO_RELOAD;
 	}
 	else {
 		sound->waveform = NULL;
