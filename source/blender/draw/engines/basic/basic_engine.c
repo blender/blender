@@ -42,9 +42,6 @@
 
 #define BASIC_ENGINE "BLENDER_BASIC"
 
-/* we may want this later? */
-#define USE_DEPTH
-
 /* *********** LISTS *********** */
 
 /* GPUViewport.storage
@@ -54,11 +51,8 @@ typedef struct BASIC_StorageList {
 } BASIC_StorageList;
 
 typedef struct BASIC_PassList {
-#ifdef USE_DEPTH
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
-#endif
-	struct DRWPass *color_pass;
 } BASIC_PassList;
 
 typedef struct BASIC_Data {
@@ -72,37 +66,23 @@ typedef struct BASIC_Data {
 /* *********** STATIC *********** */
 
 static struct {
-#ifdef USE_DEPTH
 	/* Depth Pre Pass */
 	struct GPUShader *depth_sh;
-#endif
-	/* Shading Pass */
-	struct GPUShader *color_sh;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct BASIC_PrivateData {
-#ifdef USE_DEPTH
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_cull;
 	DRWShadingGroup *depth_shgrp_hair;
-#endif
-	DRWShadingGroup *color_shgrp;
 } BASIC_PrivateData; /* Transient data */
 
 /* Functions */
 
 static void basic_engine_init(void *UNUSED(vedata))
 {
-#ifdef USE_DEPTH
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
-	}
-#endif
-
-	/* Shading pass */
-	if (!e_data.color_sh) {
-		e_data.color_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 	}
 }
 
@@ -116,8 +96,6 @@ static void basic_cache_init(void *vedata)
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
-#ifdef USE_DEPTH
-	/* Depth Pass */
 	{
 		psl->depth_pass = DRW_pass_create(
 		        "Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
@@ -127,13 +105,6 @@ static void basic_cache_init(void *vedata)
 		        "Depth Pass Cull",
 		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass_cull);
-	}
-#endif
-
-	/* Color Pass */
-	{
-		psl->color_pass = DRW_pass_create("Color Pass", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL);
-		stl->g_data->color_shgrp = DRW_shgroup_create(e_data.color_sh, psl->color_pass);
 	}
 }
 
@@ -168,13 +139,9 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
 	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		bool do_cull = false;  /* TODO (we probably wan't to take this from the viewport?) */
-#ifdef USE_DEPTH
+		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
 		/* Depth Prepass */
 		DRW_shgroup_call_add((do_cull) ? stl->g_data->depth_shgrp_cull : stl->g_data->depth_shgrp, geom, ob->obmat);
-#endif
-		/* Shading */
-		DRW_shgroup_call_add(stl->g_data->color_shgrp, geom, ob->obmat);
 	}
 }
 
@@ -187,36 +154,10 @@ static void basic_cache_finish(void *vedata)
 
 static void basic_draw_scene(void *vedata)
 {
-
 	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
-	const bool is_select = DRW_state_is_select();
 
-	bool use_color = true;
-	bool use_depth = true;
-	bool use_depth_cull = true;
-
-	if (is_select) {
-		/* Needed for depth-picking,
-		 * for other selection types there are no need for extra passes either. */
-		use_color = false;
-		use_depth_cull = false;
-	}
-
-#ifdef USE_DEPTH
-	/* Pass 1 : Depth pre-pass */
-	if (use_depth) {
-		DRW_draw_pass(psl->depth_pass);
-	}
-
-	if (use_depth_cull) {
-		DRW_draw_pass(psl->depth_pass_cull);
-	}
-#endif
-
-	/* Pass 3 : Shading */
-	if (use_color) {
-		DRW_draw_pass(psl->color_pass);
-	}
+	DRW_draw_pass(psl->depth_pass);
+	DRW_draw_pass(psl->depth_pass_cull);
 }
 
 static void basic_engine_free(void)
