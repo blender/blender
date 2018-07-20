@@ -804,10 +804,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
 			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
-				la->contact_dist = 1.0f;
+				la->contact_dist = 0.2f;
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
-				la->contact_thickness = 0.5f;
+				la->contact_thickness = 0.2f;
 			}
 		}
 
