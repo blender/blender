@@ -334,6 +334,10 @@ static ID *duplicate_ids(ID *id, Depsgraph *depsgraph)
 			return (ID *)BKE_lamp_localize((Lamp *)id_eval);
 		case ID_WO:
 			return (ID *)BKE_world_localize((World *)id_eval);
+		case ID_IM:
+		case ID_BR:
+		case ID_SCR:
+			return NULL;
 		default:
 			BLI_assert(!"ID type preview not supported.");
 			return NULL;
