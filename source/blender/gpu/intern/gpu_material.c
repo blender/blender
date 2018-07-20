@@ -36,32 +36,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
 
-#include "BKE_anim.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf_types.h"
-
-#include "GPU_extensions.h"
-#include "GPU_framebuffer.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
