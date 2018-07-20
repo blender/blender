@@ -68,11 +68,9 @@ typedef struct LightProbe {
 	struct Image *image;           /* Image to use on as lighting data */
 	struct Collection *visibility_grp;  /* Object visibility group, inclusive or exclusive */
 
-	float data_draw_size;
-
 	/* Runtime display data */
 	float distfalloff, distgridinf;
-	float pad;
+	float pad[2];
 } LightProbe;
 
 /* Probe->type */

@@ -83,6 +83,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "clip_start", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipsta");
+	RNA_def_property_float_default(prop, 0.8f);
 	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip Start",
@@ -91,6 +92,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
+	RNA_def_property_float_default(prop, 40.0f);
 	RNA_def_property_range(prop, 1e-6f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_ui_text(prop, "Clip End",
@@ -115,11 +117,13 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "influence_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distinf");
+	RNA_def_property_float_default(prop, 2.5f);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Influence Distance", "Influence distance of the probe");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "falloff", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Falloff", "Control how fast the probe influence decreases");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
@@ -141,6 +145,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "parallax_distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "distpar");
+	RNA_def_property_float_default(prop, 2.5f);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_text(prop, "Parallax Radius", "Lowest corner of the parallax bounding box");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
@@ -148,21 +153,25 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	/* irradiance grid */
 	prop = RNA_def_property(srna, "grid_resolution_x", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_int_default(prop, 4);
 	RNA_def_property_ui_text(prop, "Resolution X", "Number of sample along the x axis of the volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "grid_resolution_y", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_int_default(prop, 4);
 	RNA_def_property_ui_text(prop, "Resolution Y", "Number of sample along the y axis of the volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "grid_resolution_z", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 256);
+	RNA_def_property_int_default(prop, 4);
 	RNA_def_property_ui_text(prop, "Resolution Z", "Number of sample along the z axis of the volume");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "visibility_buffer_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vis_bias");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.001f, 9999.0f);
 	RNA_def_property_ui_range(prop, 0.001f, 5.0f, 1.0, 3);
 	RNA_def_property_ui_text(prop, "Visibility Bias", "Bias for reducing self shadowing");
@@ -170,18 +179,21 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "visibility_bleed_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vis_bleedbias");
+	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Visibility Bleed Bias", "Bias for reducing light-bleed on variance shadow maps");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	prop = RNA_def_property(srna, "visibility_blur", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "vis_blur");
+	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Visibility Blur", "Filter size of the visibilty blur");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, "rna_LightProbe_recalc");
 
 	prop = RNA_def_property(srna, "intensity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "intensity");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.0f, 3.0f, 1.0, 3);
 	RNA_def_property_ui_text(prop, "Intensity", "Modify the intensity of the lighting captured by this probe");
@@ -204,11 +216,6 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_data", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIGHTPROBE_FLAG_SHOW_DATA);
 	RNA_def_property_ui_text(prop, "Show Data", "Show captured lighting data into the 3D view for debuging purpose");
-	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
-
-	prop = RNA_def_property(srna, "data_draw_size", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.05f, 10.0f);
-	RNA_def_property_ui_text(prop, "Data Draw Size", "Size of the spheres to debug captured light");
 	RNA_def_property_update(prop, NC_MATERIAL | ND_SHADING, NULL);
 
 	/* common */
