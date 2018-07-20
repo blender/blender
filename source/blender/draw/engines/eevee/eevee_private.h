@@ -515,6 +515,7 @@ typedef struct EEVEE_EffectsInfo {
 	int volume_current_sample;
 	/* SSR */
 	bool reflection_trace_full;
+	bool ssr_was_persp;
 	int ssr_neighbor_ofs;
 	int ssr_halfres_ofs[2];
 	struct GPUTexture *ssr_normal_input; /* Textures from pool */
@@ -908,6 +909,7 @@ void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 void EEVEE_mist_free(void);
 
 /* eevee_temporal_sampling.c */
+void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata);
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_temporal_sampling_matrices_calc(
         EEVEE_EffectsInfo *effects, float viewmat[4][4], float persmat[4][4], const double ht_point[2]);

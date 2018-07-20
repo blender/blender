@@ -174,6 +174,11 @@ void EEVEE_temporal_sampling_matrices_calc(
 	invert_m4_m4(effects->overide_wininv, effects->overide_winmat);
 }
 
+void EEVEE_temporal_sampling_reset(EEVEE_Data *vedata)
+{
+	vedata->stl->effects->taa_render_sample = 1;
+}
+
 int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
