@@ -272,6 +272,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -381,7 +382,6 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 
 	{
-		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
 		/* AO Samples Tex */
 		int num_iterations = workbench_taa_calculate_num_iterations(vedata);
@@ -405,8 +405,10 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 
 	/* Prepass */
 	{
+		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
+
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
-		psl->prepass_pass = DRW_pass_create("Prepass", state);
+		psl->prepass_pass = DRW_pass_create("Prepass", (do_cull) ? state | DRW_STATE_CULL_BACK : state);
 		psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
 	}
 
