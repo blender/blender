@@ -4569,7 +4569,11 @@ bool WM_window_modal_keymap_status_draw(
 					continue;
 				}
 				int icon_mod[4];
+#ifdef WITH_HEADLESS
+				int icon = 0;
+#else
 				int icon = UI_icon_from_keymap_item(kmi, icon_mod);
+#endif
 				if (icon != 0) {
 					for (int j = 0; j < ARRAY_SIZE(icon_mod) && icon_mod[j]; j++) {
 						uiItemL(row, "", icon_mod[j]);

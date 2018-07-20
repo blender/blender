@@ -53,6 +53,8 @@ public:
 	void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
 	void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
 	bool supportsNativeDialogs(void) { return false;}
+	GHOST_IContext *createOffscreenContext() { return NULL; }
+	GHOST_TSuccess disposeContext(GHOST_IContext *context) { return GHOST_kFailure; }
 
 	GHOST_TSuccess init() {
 		GHOST_TSuccess success = GHOST_System::init();
