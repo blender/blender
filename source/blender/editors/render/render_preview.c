@@ -173,6 +173,7 @@ typedef struct ShaderPreview {
 	int sizex, sizey;
 	unsigned int *pr_rect;
 	int pr_method;
+	bool own_id_copy;
 
 	Main *bmain;
 	Main *pr_main;
@@ -837,7 +838,7 @@ static void shader_preview_free(void *customdata)
 	ShaderPreview *sp = customdata;
 	Main *pr_main = sp->pr_main;
 
-	if (sp->id_copy) {
+	if (sp->id_copy && sp->own_id_copy) {
 		switch (GS(sp->id_copy->name)) {
 			case ID_MA:
 				BKE_material_free((Material *)sp->id_copy);
@@ -866,14 +867,15 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 
-		BKE_material_free(sp->matcopy);
-
 		properties = IDP_GetProperties((ID *)sp->matcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
 		}
-		MEM_freeN(sp->matcopy);
+		if (sp->own_id_copy) {
+			BKE_material_free(sp->matcopy);
+			MEM_freeN(sp->matcopy);
+		}
 	}
 	if (sp->texcopy) {
 		struct IDProperty *properties;
@@ -882,14 +884,16 @@ static void shader_preview_free(void *customdata)
 
 		/* get rid of copied texture */
 		BLI_remlink(&pr_main->tex, sp->texcopy);
-		BKE_texture_free(sp->texcopy);
 
 		properties = IDP_GetProperties((ID *)sp->texcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
 		}
-		MEM_freeN(sp->texcopy);
+		if (sp->own_id_copy) {
+			BKE_texture_free(sp->texcopy);
+			MEM_freeN(sp->texcopy);
+		}
 	}
 	if (sp->worldcopy) {
 		struct IDProperty *properties;
@@ -898,14 +902,16 @@ static void shader_preview_free(void *customdata)
 
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free(sp->worldcopy);
 
 		properties = IDP_GetProperties((ID *)sp->worldcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
 		}
-		MEM_freeN(sp->worldcopy);
+		if (sp->own_id_copy) {
+			BKE_world_free(sp->worldcopy);
+			MEM_freeN(sp->worldcopy);
+		}
 	}
 	if (sp->lampcopy) {
 		struct IDProperty *properties;
@@ -914,14 +920,16 @@ static void shader_preview_free(void *customdata)
 
 		/* get rid of copied lamp */
 		BLI_remlink(&pr_main->lamp, sp->lampcopy);
-		BKE_lamp_free(sp->lampcopy);
 
 		properties = IDP_GetProperties((ID *)sp->lampcopy, false);
 		if (properties) {
 			IDP_FreeProperty(properties);
 			MEM_freeN(properties);
 		}
-		MEM_freeN(sp->lampcopy);
+		if (sp->own_id_copy) {
+			BKE_lamp_free(sp->lampcopy);
+			MEM_freeN(sp->lampcopy);
+		}
 	}
 
 	MEM_freeN(sp);
@@ -1139,6 +1147,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->id = ip->id;
 		sp->id_copy = ip->id_copy;
 		sp->bmain = ip->bmain;
+		sp->own_id_copy = false;
 
 		if (is_render) {
 			BLI_assert(ip->id);
@@ -1181,6 +1190,15 @@ static void icon_preview_endjob(void *customdata)
 			}
 		}
 #endif
+	}
+
+	if (ip->id_copy) {
+		/* Feels a bit hacky just to reuse shader_preview_free() */
+		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
+		sp->id_copy = ip->id_copy;
+		sp->own_id_copy = true;
+		shader_preview_free(sp);
+		ip->id_copy = NULL;
 	}
 
 	if (ip->owner) {
@@ -1298,6 +1316,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->pr_method = method;
 	sp->id = id;
 	sp->id_copy = duplicate_ids(id, sp->depsgraph);
+	sp->own_id_copy = true;
 	sp->parent = parent;
 	sp->slot = slot;
 	sp->bmain = CTX_data_main(C);
