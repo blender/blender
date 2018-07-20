@@ -52,7 +52,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 					case NODE_VORONOI_CHEBYCHEV:
 						d = max3(fabs(vp - p));
 						break;
-					case NODE_VORONOI_MINKOWSKI:
+					case NODE_VORONOI_MINKOWSKI: {
 						float3 n = fabs(vp - p);
 						if(e == 0.5f) {
 							d = sqr(reduce_add(sqrt(n)));
@@ -61,6 +61,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 							d = powf(reduce_add(pow3(n, e)), 1.0f/e);
 						}
 						break;
+					}
 				}
 
 				/* To keep the shortest four distances and associated points we have to keep them in sorted order. */
