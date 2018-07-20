@@ -151,8 +151,10 @@ void GPU_context_discard(GPUContext *ctx)
 	BLI_assert(ctx == active_ctx);
 	BLI_assert(pthread_equal(pthread_self(), ctx->thread));
 	BLI_assert(ctx->orphaned_vertarray_ids.empty());
+#ifdef DEBUG
 	/* For now don't allow GPUFrameBuffers to be reuse in another ctx. */
 	BLI_assert(ctx->framebuffers.empty());
+#endif
 	/* delete remaining vaos */
 	while (!ctx->batches.empty()) {
 		/* this removes the array entry */
