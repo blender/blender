@@ -1804,18 +1804,46 @@ void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 	alpha = color.a;
 }
 
+void tex_box_sample(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color1 = texture(ima, uv);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color2 = texture(ima, uv);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color3 = texture(ima, uv);
+}
+
 void node_tex_image_box(vec3 texco,
                         vec3 N,
+                        vec4 color1,
+                        vec4 color2,
+                        vec4 color3,
                         sampler2D ima,
                         float blend,
                         out vec4 color,
                         out float alpha)
 {
-	vec3 signed_N = N;
-
 	/* project from direction vector to barycentric coordinates in triangles */
-	N = vec3(abs(N.x), abs(N.y), abs(N.z));
-	N /= (N.x + N.y + N.z);
+	N = abs(N);
+	N /= dot(N, vec3(1.0));
 
 	/* basic idea is to think of this as a triangle, each corner representing
 	 * one of the 3 faces of the cube. in the corners we have single textures,
@@ -1825,72 +1853,36 @@ void node_tex_image_box(vec3 texco,
 	 * the Nxyz values are the barycentric coordinates in an equilateral
 	 * triangle, which in case of blending, in the middle has a smaller
 	 * equilateral triangle where 3 textures blend. this divides things into
-	 * 7 zones, with an if () test for each zone */
+	 * 7 zones, with an if () test for each zone
+	 * EDIT: Now there is only 4 if's. */
 
-	vec3 weight = vec3(0.0, 0.0, 0.0);
-	float limit = 0.5 * (1.0 + blend);
+	float limit = 0.5 + 0.5 * blend;
 
-	/* first test for corners with single texture */
-	if (N.x > limit * (N.x + N.y) && N.x > limit * (N.x + N.z)) {
-		weight.x = 1.0;
+	vec3 weight;
+	weight.x = N.x / (N.x + N.y);
+	weight.y = N.y / (N.y + N.z);
+	weight.z = N.z / (N.x + N.z);
+	weight = clamp((weight - 0.5 * (1.0 - blend)) / max(1e-8, blend), 0.0, 1.0);
+
+	/* test for mixes between two textures */
+	if (N.z < (1.0 - limit) * (N.y + N.x)) {
+		weight.z = 0.0;
+		weight.y = 1.0 - weight.x;
 	}
-	else if (N.y > limit * (N.x + N.y) && N.y > limit * (N.y + N.z)) {
-		weight.y = 1.0;
+	else if (N.x < (1.0 - limit) * (N.y + N.z)) {
+		weight.x = 0.0;
+		weight.z = 1.0 - weight.y;
 	}
-	else if (N.z > limit * (N.x + N.z) && N.z > limit * (N.y + N.z)) {
-		weight.z = 1.0;
-	}
-	else if (blend > 0.0) {
-		/* in case of blending, test for mixes between two textures */
-		if (N.z < (1.0 - limit) * (N.y + N.x)) {
-			weight.x = N.x / (N.x + N.y);
-			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.y = 1.0 - weight.x;
-		}
-		else if (N.x < (1.0 - limit) * (N.y + N.z)) {
-			weight.y = N.y / (N.y + N.z);
-			weight.y = clamp((weight.y - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.z = 1.0 - weight.y;
-		}
-		else if (N.y < (1.0 - limit) * (N.x + N.z)) {
-			weight.x = N.x / (N.x + N.z);
-			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.z = 1.0 - weight.x;
-		}
-		else {
-			/* last case, we have a mix between three */
-			weight.x = ((2.0 - limit) * N.x + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.y = ((2.0 - limit) * N.y + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.z = ((2.0 - limit) * N.z + (limit - 1.0)) / (2.0 * limit - 1.0);
-		}
+	else if (N.y < (1.0 - limit) * (N.x + N.z)) {
+		weight.y = 0.0;
+		weight.x = 1.0 - weight.z;
 	}
 	else {
-		/* Desperate mode, no valid choice anyway, fallback to one side.*/
-		weight.x = 1.0;
-	}
-	color = vec4(0);
-	if (weight.x > 0.0) {
-		vec2 uv = texco.yz;
-		if(signed_N.x < 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.x * texture(ima, uv);
-	}
-	if (weight.y > 0.0) {
-		vec2 uv = texco.xz;
-		if(signed_N.y > 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.y * texture(ima, uv);
-	}
-	if (weight.z > 0.0) {
-		vec2 uv = texco.yx;
-		if(signed_N.z > 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.z * texture(ima, uv);
+		/* last case, we have a mix between three */
+		weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, 2.0 * limit - 1.0);
 	}
 
+	color = weight.x * color1 + weight.y * color2 + weight.z * color3;
 	alpha = color.a;
 }
 

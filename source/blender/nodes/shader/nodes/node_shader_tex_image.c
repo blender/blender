@@ -58,14 +58,24 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 	Image *ima = (Image *)node->id;
 	ImageUser *iuser = NULL;
 	NodeTexImage *tex = node->storage;
+	bool do_color_correction = false;
 
-	GPUNodeLink *norm;
+	GPUNodeLink *norm, *col1, *col2, *col3;
 
 	int isdata = tex->color_space == SHD_COLORSPACE_NONE;
 	float blend = tex->projection_blend;
 
 	if (!ima)
 		return GPU_stack_link(mat, node, "node_tex_image_empty", in, out);
+
+	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
+	if ((tex->color_space == SHD_COLORSPACE_COLOR) &&
+	    ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
+	    GPU_material_do_color_management(mat))
+	{
+		do_color_correction = true;
+	}
+	BKE_image_release_ibuf(ima, ibuf, NULL);
 
 	if (!in[0].link)
 		in[0].link = GPU_attribute(CD_MTFACE, "");
@@ -83,8 +93,20 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 			GPU_link(mat, "direction_transform_m4v3", norm,
 			                                          GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
 			                                          &norm);
+			GPU_link(mat, "tex_box_sample", in[0].link,
+			                                norm,
+			                                GPU_image(ima, iuser, isdata),
+			                                &col1,
+			                                &col2,
+			                                &col3);
+			if (do_color_correction) {
+				GPU_link(mat, "srgb_to_linearrgb", col1, &col1);
+				GPU_link(mat, "srgb_to_linearrgb", col2, &col2);
+				GPU_link(mat, "srgb_to_linearrgb", col3, &col3);
+			}
 			GPU_link(mat, "node_tex_image_box", in[0].link,
 			                                    norm,
+			                                    col1, col2, col3,
 			                                    GPU_image(ima, iuser, isdata),
 			                                    GPU_uniform(&blend),
 			                                    &out[0].link,
@@ -102,14 +124,9 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 			break;
 	}
 
-	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
-	if ((tex->color_space == SHD_COLORSPACE_COLOR) &&
-	    ibuf && (ibuf->colormanage_flag & IMB_COLORMANAGE_IS_DATA) == 0 &&
-	    GPU_material_do_color_management(mat))
-	{
+	if (do_color_correction && (tex->projection != SHD_PROJ_BOX)) {
 		GPU_link(mat, "srgb_to_linearrgb", out[0].link, &out[0].link);
 	}
-	BKE_image_release_ibuf(ima, ibuf, NULL);
 
 	return true;
 }
