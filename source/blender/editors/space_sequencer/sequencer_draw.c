@@ -220,9 +220,9 @@ static void drawseqwave(const bContext *C, SpaceSeq *sseq, Scene *scene, Sequenc
 
 		BLI_spin_lock(sound->spinlock);
 		if (!sound->waveform) {
-			if (!(sound->flags & SOUND_FLAGS_WAVEFORM_LOADING)) {
+			if (!(sound->tags & SOUND_TAGS_WAVEFORM_LOADING)) {
 				/* prevent sounds from reloading */
-				sound->flags |= SOUND_FLAGS_WAVEFORM_LOADING;
+				sound->tags |= SOUND_TAGS_WAVEFORM_LOADING;
 				BLI_spin_unlock(sound->spinlock);
 				sequencer_preview_add_sound(C, seq);
 			}

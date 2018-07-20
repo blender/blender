@@ -798,7 +798,7 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 		}
 		MEM_freeN(waveform);
 		BLI_spin_lock(sound->spinlock);
-		sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+		sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 		BLI_spin_unlock(sound->spinlock);
 		return;
 	}
@@ -807,7 +807,7 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 
 	BLI_spin_lock(sound->spinlock);
 	sound->waveform = waveform;
-	sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+	sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 	BLI_spin_unlock(sound->spinlock);
 }
 

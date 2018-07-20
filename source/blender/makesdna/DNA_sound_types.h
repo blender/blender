@@ -125,12 +125,12 @@ enum {
 #endif
 	SOUND_FLAGS_CACHING              = (1 << 4),
 	SOUND_FLAGS_MONO                 = (1 << 5),
-	SOUND_FLAGS_WAVEFORM_LOADING     = (1 << 6),
 };
 
 /* bSound->tags */
 enum {
 	SOUND_TAGS_WAVEFORM_NO_RELOAD    = 1 << 0,  /* Do not free/reset waveform on sound load, only used by undo code. */
+	SOUND_TAGS_WAVEFORM_LOADING     = (1 << 6),
 };
 
 /* to DNA_sound_types.h*/
