@@ -244,7 +244,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	gc->textures[gc->texture_current] = tex;
 	GPU_texture_bind(tex, 0);
 	GPU_texture_wrap_mode(tex, false);
-	GPU_texture_filters(tex, GPU_NEAREST, GPU_LINEAR);
+	GPU_texture_filters(tex, GPU_NEAREST, GPU_NEAREST);
 	GPU_texture_unbind(tex);
 }
 
