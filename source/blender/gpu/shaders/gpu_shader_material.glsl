@@ -1813,7 +1813,61 @@ void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float al
 
 void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-	node_tex_image_linear(co, ima, color, alpha);
+	vec2 tex_size = vec2(textureSize(ima, 0).xy);
+
+	co.xy *= tex_size;
+	/* texel center */
+	vec2 tc = floor(co.xy - 0.5) + 0.5;
+	vec2 f = co.xy - tc;
+	vec2 f2 = f * f;
+	vec2 f3 = f2 * f;
+	/* Bspline coefs (optimized) */
+	vec2 w3 =  f3 / 6.0;
+	vec2 w0 = -w3       + f2 * 0.5 - f * 0.5 + 1.0 / 6.0;
+	vec2 w1 =  f3 * 0.5 - f2 * 1.0           + 2.0 / 3.0;
+	vec2 w2 = 1.0 - w0 - w1 - w3;
+
+#if 1 /* Optimized version using 4 filtered tap. */
+	vec2 s0 = w0 + w1;
+	vec2 s1 = w2 + w3;
+
+	vec2 f0 = w1 / (w0 + w1);
+	vec2 f1 = w3 / (w2 + w3);
+
+	vec4 final_co;
+	final_co.xy = tc - 1.0 + f0;
+	final_co.zw = tc + 1.0 + f1;
+
+	final_co /= tex_size.xyxy;
+
+	color  = texture(ima, final_co.xy) * s0.x * s0.y;
+	color += texture(ima, final_co.zy) * s1.x * s0.y;
+	color += texture(ima, final_co.xw) * s0.x * s1.y;
+	color += texture(ima, final_co.zw) * s1.x * s1.y;
+
+#else /* Reference bruteforce 16 tap. */
+	color  = texelFetch(ima, ivec2(tc + vec2(-1.0, -1.0)), 0) * w0.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, -1.0)), 0) * w1.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, -1.0)), 0) * w2.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, -1.0)), 0) * w3.x * w0.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 0.0)), 0) * w0.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 0.0)), 0) * w1.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 0.0)), 0) * w2.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 0.0)), 0) * w3.x * w1.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 1.0)), 0) * w0.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 1.0)), 0) * w1.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 1.0)), 0) * w2.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 1.0)), 0) * w3.x * w2.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 2.0)), 0) * w0.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 2.0)), 0) * w1.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 2.0)), 0) * w2.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 2.0)), 0) * w3.x * w3.y;
+#endif
+
+	alpha = color.a;
 }
 
 void node_tex_image_smart(vec3 co, sampler2D ima, out vec4 color, out float alpha)
@@ -1886,7 +1940,25 @@ void tex_box_sample_cubic(vec3 texco,
                     out vec4 color2,
                     out vec4 color3)
 {
-	tex_box_sample_linear(texco, N, ima, color1, color2, color3);
+	float alpha;
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color1, alpha);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color2, alpha);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color3, alpha);
 }
 
 void tex_box_sample_smart(vec3 texco,
