@@ -45,9 +45,9 @@ void		wm_ghost_exit(void);
 void wm_get_screensize(int *r_width, int *r_height);
 void wm_get_desktopsize(int *r_width, int *r_height);
 
-wmWindow	*wm_window_new			(bContext *C);
-wmWindow	*wm_window_copy			(bContext *C, wmWindow *win_src, const bool duplicate_layout);
-wmWindow	*wm_window_copy_test	(bContext *C, wmWindow *win_src, const bool duplicate_layout);
+wmWindow	*wm_window_new			(bContext *C, wmWindow *parent);
+wmWindow	*wm_window_copy			(bContext *C, wmWindow *win_src, const bool duplicate_layout, const bool child);
+wmWindow	*wm_window_copy_test	(bContext *C, wmWindow *win_src, const bool duplicate_layout, const bool child);
 void		wm_window_free			(bContext *C, wmWindowManager *wm, wmWindow *win);
 void		wm_window_close			(bContext *C, wmWindowManager *wm, wmWindow *win);
 
@@ -85,6 +85,7 @@ int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
 void		wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_NONNULL();
 
 int			wm_window_new_exec(bContext *C, struct wmOperator *op);
+int			wm_window_new_main_exec(bContext *C, struct wmOperator *op);
 
 /* Initial (unmaximized) size to start with for
  * systems that can't find it for themselves (X11).

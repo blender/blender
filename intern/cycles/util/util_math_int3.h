@@ -91,6 +91,24 @@ ccl_device_inline bool operator<(const int3 &a, const int3 &b)
 {
 	return a.x < b.x && a.y < b.y && a.z < b.z;
 }
+
+ccl_device_inline int3 operator+(const int3 &a, const int3 &b)
+{
+#ifdef __KERNEL_SSE__
+	return int3(_mm_add_epi32(a.m128, b.m128));
+#else
+	return make_int3(a.x + b.x, a.y + b.y, a.z + b.z);
+#endif
+}
+
+ccl_device_inline int3 operator-(const int3 &a, const int3 &b)
+{
+#ifdef __KERNEL_SSE__
+	return int3(_mm_sub_epi32(a.m128, b.m128));
+#else
+	return make_int3(a.x - b.x, a.y - b.y, a.z - b.z);
+#endif
+}
 #endif  /* !__KERNEL_OPENCL__ */
 
 CCL_NAMESPACE_END

@@ -120,14 +120,9 @@ typedef struct ModifierData {
 typedef enum {
 	/* This modifier has been inserted in local override, and hence can be fully edited. */
 	eModifierFlag_StaticOverride_Local  = (1 << 0),
+	/* This modifier does not own its caches, but instead shares them with another modifier. */
+	eModifierFlag_SharedCaches          = (1 << 1),
 } ModifierFlag;
-
-typedef enum {
-	eSubsurfModifierFlag_Incremental  = (1 << 0),
-	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
-	eSubsurfModifierFlag_ControlEdges = (1 << 2),
-	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
-} SubsurfModifierFlag;
 
 /* not a real modifier */
 typedef struct MappingInfoModifierData {
@@ -139,6 +134,18 @@ typedef struct MappingInfoModifierData {
 	int uvlayer_tmp;
 	int texmapping;
 } MappingInfoModifierData;
+
+typedef enum {
+	eSubsurfModifierFlag_Incremental  = (1 << 0),
+	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
+	eSubsurfModifierFlag_ControlEdges = (1 << 2),
+	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
+} SubsurfModifierFlag;
+
+typedef enum {
+	SUBSURF_TYPE_CATMULL_CLARK = 0,
+	SUBSURF_TYPE_SIMPLE = 1,
+} eSubsurfModifierType;
 
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
@@ -631,8 +638,12 @@ typedef struct ClothModifierData {
 	struct Cloth *clothObject;            /* The internal data structure for cloth. */
 	struct ClothSimSettings *sim_parms;   /* definition is in DNA_cloth_types.h */
 	struct ClothCollSettings *coll_parms; /* definition is in DNA_cloth_types.h */
+
+	/* PointCache can be shared with other instances of ClothModifierData.
+	 * Inspect (modifier.flag & eModifierFlag_SharedCaches) to find out. */
 	struct PointCache *point_cache;       /* definition is in DNA_object_force_types.h */
 	struct ListBase ptcaches;
+
 	/* XXX nasty hack, remove once hair can be separated from cloth modifier data */
 	struct ClothHairData *hairdata;
 	/* grid geometry values of hair continuum */
@@ -832,7 +843,6 @@ typedef struct FluidsimModifierData {
 	ModifierData modifier;
 
 	struct FluidsimSettings *fss;   /* definition is in DNA_object_fluidsim_types.h */
-	struct PointCache *point_cache; /* definition is in DNA_object_force_types.h */
 } FluidsimModifierData;
 
 typedef struct ShrinkwrapModifierData {
@@ -1015,7 +1025,7 @@ typedef struct OceanModifierData {
 	char geometry_mode;
 
 	char flag;
-	char refresh;
+	char pad2;
 
 	short repeat_x;
 	short repeat_y;
@@ -1035,13 +1045,6 @@ enum {
 	MOD_OCEAN_GEOM_SIM_ONLY = 2,
 };
 
-enum {
-	MOD_OCEAN_REFRESH_RESET        = (1 << 0),
-	MOD_OCEAN_REFRESH_SIM          = (1 << 1),
-	MOD_OCEAN_REFRESH_ADD          = (1 << 2),
-	MOD_OCEAN_REFRESH_CLEAR_CACHE  = (1 << 3),
-	MOD_OCEAN_REFRESH_TOPOLOGY     = (1 << 4),
-};
 
 enum {
 	MOD_OCEAN_GENERATE_FOAM     = (1 << 0),

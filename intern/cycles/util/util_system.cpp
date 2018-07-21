@@ -312,4 +312,3 @@ size_t system_physical_ram()
 }
 
 CCL_NAMESPACE_END
-

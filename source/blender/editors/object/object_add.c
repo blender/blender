@@ -120,12 +120,12 @@
 /* this is an exact copy of the define in rna_lamp.c
  * kept here because of linking order.
  * Icons are only defined here */
-const EnumPropertyItem rna_enum_lamp_type_items[] = {
-	{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source"},
-	{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source"},
-	{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source"},
-	{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source"},
-	{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source"},
+const EnumPropertyItem rna_enum_light_type_items[] = {
+	{LA_LOCAL, "POINT", ICON_LIGHT_POINT, "Point", "Omnidirectional point light source"},
+	{LA_SUN, "SUN", ICON_LIGHT_SUN, "Sun", "Constant direction parallel ray light source"},
+	{LA_SPOT, "SPOT", ICON_LIGHT_SPOT, "Spot", "Directional cone light source"},
+	{LA_HEMI, "HEMI", ICON_LIGHT_HEMI, "Hemi", "180 degree constant light source"},
+	{LA_AREA, "AREA", ICON_LIGHT_AREA, "Area", "Directional area light source"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -985,9 +985,9 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, false);
 }
 
-/********************* Add Lamp Operator ********************/
+/********************* Add Light Operator ********************/
 
-static const char *get_lamp_defname(int type)
+static const char *get_light_defname(int type)
 {
 	switch (type) {
 		case LA_LOCAL: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Point");
@@ -996,11 +996,11 @@ static const char *get_lamp_defname(int type)
 		case LA_HEMI: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Hemi");
 		case LA_AREA: return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Area");
 		default:
-			return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Lamp");
+			return CTX_DATA_(BLT_I18NCONTEXT_ID_LAMP, "Light");
 	}
 }
 
-static int object_lamp_add_exec(bContext *C, wmOperator *op)
+static int object_light_add_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
@@ -1013,10 +1013,10 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	if (!ED_object_add_generic_get_opts(C, op, 'Z', loc, rot, NULL, &layer, NULL))
 		return OPERATOR_CANCELLED;
 
-	ob = ED_object_add_type(C, OB_LAMP, get_lamp_defname(type), loc, rot, false, layer);
+	ob = ED_object_add_type(C, OB_LAMP, get_light_defname(type), loc, rot, false, layer);
 
 	float size = RNA_float_get(op->ptr, "radius");
-	/* Better defaults for lamp size. */
+	/* Better defaults for light size. */
 	switch (type) {
 		case LA_LOCAL:
 		case LA_SPOT:
@@ -1041,23 +1041,23 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_lamp_add(wmOperatorType *ot)
+void OBJECT_OT_light_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Lamp";
-	ot->description = "Add a lamp object to the scene";
-	ot->idname = "OBJECT_OT_lamp_add";
+	ot->name = "Add Light";
+	ot->description = "Add a light object to the scene";
+	ot->idname = "OBJECT_OT_light_add";
 
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
-	ot->exec = object_lamp_add_exec;
+	ot->exec = object_light_add_exec;
 	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_lamp_type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_light_type_items, 0, "Type", "");
 	RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_LAMP);
 
 	ED_object_add_unit_props(ot);
@@ -2222,7 +2222,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US2(obn->data)
 					else {
 						obn->data = ID_NEW_SET(obn->data, BKE_armature_copy(bmain, obn->data));
-						BKE_pose_rebuild(obn, obn->data);
+						BKE_pose_rebuild(bmain, obn, obn->data);
 						didit = 1;
 					}
 					id_us_min(id);

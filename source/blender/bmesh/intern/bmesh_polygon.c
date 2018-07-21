@@ -487,7 +487,7 @@ void  BM_face_calc_tangent_vert_diagonal(const BMFace *f, float r_tangent[3])
 }
 
 /**
- * Compute a meaningful direction along the face (use for manipulator axis).
+ * Compute a meaningful direction along the face (use for gizmo axis).
  *
  * \note Callers shouldn't depend on the *exact* method used here.
  */

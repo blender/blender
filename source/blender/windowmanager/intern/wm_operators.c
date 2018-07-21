@@ -120,477 +120,9 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
-static GHash *global_ops_hash = NULL;
-/** Counter for operator-properties that should not be tagged with #OP_PROP_TAG_ADVANCED. */
-static int ot_prop_basic_count = -1;
-
 #define UNDOCUMENTED_OPERATOR_TIP N_("(undocumented operator)")
 
 /* ************ operator API, exported ********** */
-
-
-wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
-{
-	if (idname[0]) {
-		wmOperatorType *ot;
-
-		/* needed to support python style names without the _OT_ syntax */
-		char idname_bl[OP_MAX_TYPENAME];
-		WM_operator_bl_idname(idname_bl, idname);
-
-		ot = BLI_ghash_lookup(global_ops_hash, idname_bl);
-		if (ot) {
-			return ot;
-		}
-
-		if (!quiet) {
-			CLOG_INFO(WM_LOG_OPERATORS, 0, "search for unknown operator '%s', '%s'\n", idname_bl, idname);
-		}
-	}
-	else {
-		if (!quiet) {
-			CLOG_INFO(WM_LOG_OPERATORS, 0, "search for empty operator");
-		}
-	}
-
-	return NULL;
-}
-
-/* caller must free */
-void WM_operatortype_iter(GHashIterator *ghi)
-{
-	BLI_ghashIterator_init(ghi, global_ops_hash);
-}
-
-/** \name Operator Type Append
- * \{ */
-
-static wmOperatorType *wm_operatortype_append__begin(void)
-{
-	wmOperatorType *ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-
-	BLI_assert(ot_prop_basic_count == -1);
-
-	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
-	RNA_def_struct_property_tags(ot->srna, rna_enum_operator_property_tags);
-	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
-
-	return ot;
-}
-static void wm_operatortype_append__end(wmOperatorType *ot)
-{
-	if (ot->name == NULL) {
-		CLOG_ERROR(WM_LOG_OPERATORS, "Operator '%s' has no name property", ot->idname);
-	}
-
-	/* Allow calling _begin without _end in operatortype creation. */
-	WM_operatortype_props_advanced_end(ot);
-
-	/* XXX All ops should have a description but for now allow them not to. */
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description ? ot->description : UNDOCUMENTED_OPERATOR_TIP);
-	RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
-
-	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
-}
-
-/* all ops in 1 list (for time being... needs evaluation later) */
-void WM_operatortype_append(void (*opfunc)(wmOperatorType *))
-{
-	wmOperatorType *ot = wm_operatortype_append__begin();
-	opfunc(ot);
-	wm_operatortype_append__end(ot);
-}
-
-void WM_operatortype_append_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
-{
-	wmOperatorType *ot = wm_operatortype_append__begin();
-	opfunc(ot, userdata);
-	wm_operatortype_append__end(ot);
-}
-
-/** \} */
-
-/* ********************* macro operator ******************** */
-
-typedef struct {
-	int retval;
-} MacroData;
-
-static void wm_macro_start(wmOperator *op)
-{
-	if (op->customdata == NULL) {
-		op->customdata = MEM_callocN(sizeof(MacroData), "MacroData");
-	}
-}
-
-static int wm_macro_end(wmOperator *op, int retval)
-{
-	if (retval & OPERATOR_CANCELLED) {
-		MacroData *md = op->customdata;
-
-		if (md->retval & OPERATOR_FINISHED) {
-			retval |= OPERATOR_FINISHED;
-			retval &= ~OPERATOR_CANCELLED;
-		}
-	}
-
-	/* if modal is ending, free custom data */
-	if (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED)) {
-		if (op->customdata) {
-			MEM_freeN(op->customdata);
-			op->customdata = NULL;
-		}
-	}
-
-	return retval;
-}
-
-/* macro exec only runs exec calls */
-static int wm_macro_exec(bContext *C, wmOperator *op)
-{
-	wmOperator *opm;
-	int retval = OPERATOR_FINISHED;
-
-	wm_macro_start(op);
-
-	for (opm = op->macro.first; opm; opm = opm->next) {
-
-		if (opm->type->exec) {
-			retval = opm->type->exec(C, opm);
-			OPERATOR_RETVAL_CHECK(retval);
-
-			if (retval & OPERATOR_FINISHED) {
-				MacroData *md = op->customdata;
-				md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
-			}
-			else {
-				break; /* operator didn't finish, end macro */
-			}
-		}
-		else {
-			CLOG_WARN(WM_LOG_OPERATORS, "'%s' cant exec macro", opm->type->idname);
-		}
-	}
-
-	return wm_macro_end(op, retval);
-}
-
-static int wm_macro_invoke_internal(bContext *C, wmOperator *op, const wmEvent *event, wmOperator *opm)
-{
-	int retval = OPERATOR_FINISHED;
-
-	/* start from operator received as argument */
-	for (; opm; opm = opm->next) {
-		if (opm->type->invoke)
-			retval = opm->type->invoke(C, opm, event);
-		else if (opm->type->exec)
-			retval = opm->type->exec(C, opm);
-
-		OPERATOR_RETVAL_CHECK(retval);
-
-		BLI_movelisttolist(&op->reports->list, &opm->reports->list);
-
-		if (retval & OPERATOR_FINISHED) {
-			MacroData *md = op->customdata;
-			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
-		}
-		else {
-			break; /* operator didn't finish, end macro */
-		}
-	}
-
-	return wm_macro_end(op, retval);
-}
-
-static int wm_macro_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	wm_macro_start(op);
-	return wm_macro_invoke_internal(C, op, event, op->macro.first);
-}
-
-static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	wmOperator *opm = op->opm;
-	int retval = OPERATOR_FINISHED;
-
-	if (opm == NULL) {
-		CLOG_ERROR(WM_LOG_OPERATORS, "macro error, calling NULL modal()");
-	}
-	else {
-		retval = opm->type->modal(C, opm, event);
-		OPERATOR_RETVAL_CHECK(retval);
-
-		/* if we're halfway through using a tool and cancel it, clear the options [#37149] */
-		if (retval & OPERATOR_CANCELLED) {
-			WM_operator_properties_clear(opm->ptr);
-		}
-
-		/* if this one is done but it's not the last operator in the macro */
-		if ((retval & OPERATOR_FINISHED) && opm->next) {
-			MacroData *md = op->customdata;
-
-			md->retval = OPERATOR_FINISHED; /* keep in mind that at least one operator finished */
-
-			retval = wm_macro_invoke_internal(C, op, event, opm->next);
-
-			/* if new operator is modal and also added its own handler */
-			if (retval & OPERATOR_RUNNING_MODAL && op->opm != opm) {
-				wmWindow *win = CTX_wm_window(C);
-				wmEventHandler *handler;
-
-				handler = BLI_findptr(&win->modalhandlers, op, offsetof(wmEventHandler, op));
-				if (handler) {
-					BLI_remlink(&win->modalhandlers, handler);
-					wm_event_free_handler(handler);
-				}
-
-				/* if operator is blocking, grab cursor
-				 * This may end up grabbing twice, but we don't care.
-				 * */
-				if (op->opm->type->flag & OPTYPE_BLOCKING) {
-					int bounds[4] = {-1, -1, -1, -1};
-					const bool wrap = (
-					        (U.uiflag & USER_CONTINUOUS_MOUSE) &&
-					        ((op->opm->flag & OP_IS_MODAL_GRAB_CURSOR) || (op->opm->type->flag & OPTYPE_GRAB_CURSOR)));
-
-					if (wrap) {
-						ARegion *ar = CTX_wm_region(C);
-						if (ar) {
-							bounds[0] = ar->winrct.xmin;
-							bounds[1] = ar->winrct.ymax;
-							bounds[2] = ar->winrct.xmax;
-							bounds[3] = ar->winrct.ymin;
-						}
-					}
-
-					WM_cursor_grab_enable(win, wrap, false, bounds);
-				}
-			}
-		}
-	}
-
-	return wm_macro_end(op, retval);
-}
-
-static void wm_macro_cancel(bContext *C, wmOperator *op)
-{
-	/* call cancel on the current modal operator, if any */
-	if (op->opm && op->opm->type->cancel) {
-		op->opm->type->cancel(C, op->opm);
-	}
-
-	wm_macro_end(op, OPERATOR_CANCELLED);
-}
-
-/* Names have to be static for now */
-wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag)
-{
-	wmOperatorType *ot;
-	const char *i18n_context;
-
-	if (WM_operatortype_find(idname, true)) {
-		CLOG_ERROR(WM_LOG_OPERATORS, "operator %s exists, cannot create macro", idname);
-		return NULL;
-	}
-
-	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
-
-	ot->idname = idname;
-	ot->name = name;
-	ot->description = description;
-	ot->flag = OPTYPE_MACRO | flag;
-
-	ot->exec = wm_macro_exec;
-	ot->invoke = wm_macro_invoke;
-	ot->modal = wm_macro_modal;
-	ot->cancel = wm_macro_cancel;
-	ot->poll = NULL;
-
-	if (!ot->description) /* XXX All ops should have a description but for now allow them not to. */
-		ot->description = UNDOCUMENTED_OPERATOR_TIP;
-
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
-	RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
-	/* Use i18n context from ext.srna if possible (py operators). */
-	i18n_context = ot->ext.srna ? RNA_struct_translation_context(ot->ext.srna) : BLT_I18NCONTEXT_OPERATOR_DEFAULT;
-	RNA_def_struct_translation_context(ot->srna, i18n_context);
-	ot->translation_context = i18n_context;
-
-	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
-
-	return ot;
-}
-
-void WM_operatortype_append_macro_ptr(void (*opfunc)(wmOperatorType *, void *), void *userdata)
-{
-	wmOperatorType *ot;
-
-	ot = MEM_callocN(sizeof(wmOperatorType), "operatortype");
-	ot->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_OperatorProperties);
-
-	ot->flag = OPTYPE_MACRO;
-	ot->exec = wm_macro_exec;
-	ot->invoke = wm_macro_invoke;
-	ot->modal = wm_macro_modal;
-	ot->cancel = wm_macro_cancel;
-	ot->poll = NULL;
-
-	if (!ot->description)
-		ot->description = UNDOCUMENTED_OPERATOR_TIP;
-
-	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
-	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
-	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
-	opfunc(ot, userdata);
-
-	RNA_def_struct_ui_text(ot->srna, ot->name, ot->description);
-	RNA_def_struct_identifier(&BLENDER_RNA, ot->srna, ot->idname);
-
-	BLI_ghash_insert(global_ops_hash, (void *)ot->idname, ot);
-}
-
-wmOperatorTypeMacro *WM_operatortype_macro_define(wmOperatorType *ot, const char *idname)
-{
-	wmOperatorTypeMacro *otmacro = MEM_callocN(sizeof(wmOperatorTypeMacro), "wmOperatorTypeMacro");
-
-	BLI_strncpy(otmacro->idname, idname, OP_MAX_TYPENAME);
-
-	/* do this on first use, since operatordefinitions might have been not done yet */
-	WM_operator_properties_alloc(&(otmacro->ptr), &(otmacro->properties), idname);
-	WM_operator_properties_sanitize(otmacro->ptr, 1);
-
-	BLI_addtail(&ot->macro, otmacro);
-
-	{
-		/* operator should always be found but in the event its not. don't segfault */
-		wmOperatorType *otsub = WM_operatortype_find(idname, 0);
-		if (otsub) {
-			RNA_def_pointer_runtime(ot->srna, otsub->idname, otsub->srna,
-			                        otsub->name, otsub->description);
-		}
-	}
-
-	return otmacro;
-}
-
-static void wm_operatortype_free_macro(wmOperatorType *ot)
-{
-	wmOperatorTypeMacro *otmacro;
-
-	for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
-		if (otmacro->ptr) {
-			WM_operator_properties_free(otmacro->ptr);
-			MEM_freeN(otmacro->ptr);
-		}
-	}
-	BLI_freelistN(&ot->macro);
-}
-
-void WM_operatortype_remove_ptr(wmOperatorType *ot)
-{
-	BLI_assert(ot == WM_operatortype_find(ot->idname, false));
-
-	RNA_struct_free(&BLENDER_RNA, ot->srna);
-
-	if (ot->last_properties) {
-		IDP_FreeProperty(ot->last_properties);
-		MEM_freeN(ot->last_properties);
-	}
-
-	if (ot->macro.first)
-		wm_operatortype_free_macro(ot);
-
-	BLI_ghash_remove(global_ops_hash, ot->idname, NULL, NULL);
-
-	WM_keyconfig_update_operatortype();
-
-	MEM_freeN(ot);
-}
-
-bool WM_operatortype_remove(const char *idname)
-{
-	wmOperatorType *ot = WM_operatortype_find(idname, 0);
-
-	if (ot == NULL)
-		return false;
-
-	WM_operatortype_remove_ptr(ot);
-
-	return true;
-}
-
-/**
- * Remove memory of all previously executed tools.
- */
-void WM_operatortype_last_properties_clear_all(void)
-{
-	GHashIterator iter;
-
-	for (WM_operatortype_iter(&iter);
-	     (!BLI_ghashIterator_done(&iter));
-	     (BLI_ghashIterator_step(&iter)))
-	{
-		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);
-
-		if (ot->last_properties) {
-			IDP_FreeProperty(ot->last_properties);
-			MEM_freeN(ot->last_properties);
-			ot->last_properties = NULL;
-		}
-	}
-}
-
-/**
- * Tag all operator-properties of \a ot defined after calling this, until
- * the next #WM_operatortype_props_advanced_end call (if available), with
- * #OP_PROP_TAG_ADVANCED. Previously defined ones properties not touched.
- *
- * Calling this multiple times without a call to #WM_operatortype_props_advanced_end,
- * all calls after the first one are ignored. Meaning all propereties defined after the
- * first call are tagged as advanced.
- *
- * This doesn't do the actual tagging, #WM_operatortype_props_advanced_end does which is
- * called for all operators during registration (see #wm_operatortype_append__end).
- */
-void WM_operatortype_props_advanced_begin(wmOperatorType *ot)
-{
-	if (ot_prop_basic_count == -1) { /* Don't do anything if _begin was called before, but not _end  */
-		ot_prop_basic_count = RNA_struct_count_properties(ot->srna);
-	}
-}
-
-/**
- * Tags all operator-properties of \ot defined since the first #WM_operatortype_props_advanced_begin
- * call, or the last #WM_operatortype_props_advanced_end call, with #OP_PROP_TAG_ADVANCED.
- * Note that this is called for all operators during registration (see #wm_operatortype_append__end).
- * So it does not need to be explicitly called in operator-type definition.
- */
-void WM_operatortype_props_advanced_end(wmOperatorType *ot)
-{
-	PointerRNA struct_ptr;
-	int counter = 0;
-
-	if (ot_prop_basic_count == -1) {
-		/* WM_operatortype_props_advanced_begin was not called. Don't do anything. */
-		return;
-	}
-
-	RNA_pointer_create(NULL, ot->srna, NULL, &struct_ptr);
-
-	RNA_STRUCT_BEGIN (&struct_ptr, prop)
-	{
-		counter++;
-		if (counter > ot_prop_basic_count) {
-			WM_operatortype_prop_tag(prop, OP_PROP_TAG_ADVANCED);
-		}
-	}
-	RNA_STRUCT_END;
-
-	ot_prop_basic_count = -1;
-}
 
 /* SOME_OT_op -> some.op */
 void WM_operator_py_idname(char *to, const char *from)
@@ -1959,7 +1491,13 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
-	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
+	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
+		version_suffix = "Alpha";
+	}
+	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
+		version_suffix = "Beta";
+	}
+	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "rc")) {
 		version_suffix = "Release Candidate";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "release")) {
@@ -2027,10 +1565,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	split = uiLayoutSplit(layout, 0.0f, false);
 	col = uiLayoutColumn(split, false);
 	uiItemL(col, IFACE_("Links"), ICON_NONE);
-#if 0
-	uiItemStringO(col, IFACE_("Support an Open Animation Movie"), ICON_URL, "WM_OT_url_open", "url",
-	              "https://cloud.blender.org/join");
-#endif
+	uiItemStringO(col, IFACE_("Join the Development Fund"), ICON_URL, "WM_OT_url_open", "url",
+	              "https://www.blender.org/foundation/development-fund/");
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url",
 	              "http://www.blender.org/foundation/donation-payment/");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url",
@@ -2242,11 +1778,9 @@ static int wm_call_panel_exec(bContext *C, wmOperator *op)
 {
 	char idname[BKE_ST_MAXNAME];
 	RNA_string_get(op->ptr, "name", idname);
-	const int space_type = RNA_enum_get(op->ptr, "space_type");
-	const int region_type = RNA_enum_get(op->ptr, "region_type");
 	const bool keep_open = RNA_boolean_get(op->ptr, "keep_open");
 
-	return UI_popover_panel_invoke(C, space_type, region_type, idname, keep_open, op->reports);
+	return UI_popover_panel_invoke(C, idname, keep_open, op->reports);
 }
 
 static void WM_OT_call_panel(wmOperatorType *ot)
@@ -2263,10 +1797,6 @@ static void WM_OT_call_panel(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	prop = RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_enum(ot->srna, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "keep_open", true, "Keep Open", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -2294,7 +1824,7 @@ static void WM_OT_window_close(wmOperatorType *ot)
 {
 	ot->name = "Close Window";
 	ot->idname = "WM_OT_window_close";
-	ot->description = "Close the current Blender window";
+	ot->description = "Close the current window";
 
 	ot->exec = wm_window_close_exec;
 	ot->poll = WM_operator_winactive;
@@ -2304,9 +1834,19 @@ static void WM_OT_window_new(wmOperatorType *ot)
 {
 	ot->name = "New Window";
 	ot->idname = "WM_OT_window_new";
-	ot->description = "Create a new Blender window";
+	ot->description = "Create a new window";
 
 	ot->exec = wm_window_new_exec;
+	ot->poll = wm_operator_winactive_normal;
+}
+
+static void WM_OT_window_new_main(wmOperatorType *ot)
+{
+	ot->name = "New Main Window";
+	ot->idname = "WM_OT_window_new_main";
+	ot->description = "Create a new main window with its own workspace and scene selection";
+
+	ot->exec = wm_window_new_main_exec;
 	ot->poll = wm_operator_winactive_normal;
 }
 
@@ -2554,12 +2094,12 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		RNA_property_float_get_array(fill_ptr, fill_prop, col);
 	}
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	if (rc->gltex) {
 
-		unsigned int texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, rc->gltex);
@@ -2578,12 +2118,12 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		/* set up rotation if available */
 		if (rc->rot_prop) {
 			rot = RNA_property_float_get(&rc->rot_ptr, rc->rot_prop);
-			gpuPushMatrix();
-			gpuRotate2D(RAD2DEGF(rot));
+			GPU_matrix_push();
+			GPU_matrix_rotate_2d(RAD2DEGF(rot));
 		}
 
 		/* draw textured quad */
-		immBegin(GWN_PRIM_TRI_FAN, 4);
+		immBegin(GPU_PRIM_TRI_FAN, 4);
 
 		immAttrib2f(texCoord, 0, 0);
 		immVertex2f(pos, -radius, -radius);
@@ -2601,7 +2141,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 
 		/* undo rotation */
 		if (rc->rot_prop)
-			gpuPopMatrix();
+			GPU_matrix_pop();
 	}
 	else {
 		/* flat color if no texture available */
@@ -2668,7 +2208,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	/* Keep cursor in the original place */
 	x = rc->initial_mouse[0];
 	y = rc->initial_mouse[1];
-	gpuTranslate2f((float)x, (float)y);
+	GPU_matrix_translate_2f((float)x, (float)y);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
@@ -2676,7 +2216,7 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	/* apply zoom if available */
 	if (rc->zoom_prop) {
 		RNA_property_float_get_array(&rc->zoom_ptr, rc->zoom_prop, zoom);
-		gpuScale2fv(zoom);
+		GPU_matrix_scale_2fv(zoom);
 	}
 
 	/* draw rotated texture */
@@ -2686,30 +2226,30 @@ static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void 
 	if (rc->col_prop)
 		RNA_property_float_get_array(&rc->col_ptr, rc->col_prop, col);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformColor3fvAlpha(col, 0.5f);
 
 	if (rc->subtype == PROP_ANGLE) {
-		gpuPushMatrix();
+		GPU_matrix_push();
 
 		/* draw original angle line */
-		gpuRotate2D(RAD2DEGF(rc->initial_value));
-		immBegin(GWN_PRIM_LINES, 2);
+		GPU_matrix_rotate_2d(RAD2DEGF(rc->initial_value));
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		immEnd();
 
 		/* draw new angle line */
-		gpuRotate2D(RAD2DEGF(rc->current_value - rc->initial_value));
-		immBegin(GWN_PRIM_LINES, 2);
+		GPU_matrix_rotate_2d(RAD2DEGF(rc->current_value - rc->initial_value));
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_MIN_SIZE, 0.0f);
 		immVertex2f(pos, (float)WM_RADIAL_CONTROL_DISPLAY_SIZE, 0.0f);
 		immEnd();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 
 	/* draw circles on top */
@@ -3544,7 +3084,7 @@ static const EnumPropertyItem preview_id_type_items[] = {
     {FILTER_ID_GR, "GROUP", 0, "Groups", ""},
     {FILTER_ID_OB, "OBJECT", 0, "Objects", ""},
     {FILTER_ID_MA, "MATERIAL", 0, "Materials", ""},
-    {FILTER_ID_LA, "LAMP", 0, "Lamps", ""},
+    {FILTER_ID_LA, "LIGHT", 0, "Lights", ""},
     {FILTER_ID_WO, "WORLD", 0, "Worlds", ""},
     {FILTER_ID_TE, "TEXTURE", 0, "Textures", ""},
     {FILTER_ID_IM, "IMAGE", 0, "Images", ""},
@@ -3635,24 +3175,6 @@ static void WM_OT_doc_view_manual_ui_context(wmOperatorType *ot)
 }
 
 /* ******************************************************* */
-
-static void operatortype_ghash_free_cb(wmOperatorType *ot)
-{
-	if (ot->last_properties) {
-		IDP_FreeProperty(ot->last_properties);
-		MEM_freeN(ot->last_properties);
-	}
-
-	if (ot->macro.first)
-		wm_operatortype_free_macro(ot);
-
-	if (ot->ext.srna) /* python operator, allocs own string */
-		MEM_freeN((void *)ot->idname);
-
-	MEM_freeN(ot);
-}
-
-/* ******************************************************* */
 /* toggle 3D for current window, turning it fullscreen if needed */
 static void WM_OT_stereo3d_set(wmOperatorType *ot)
 {
@@ -3683,22 +3205,11 @@ static void WM_OT_stereo3d_set(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ******************************************************* */
-/* called on initialize WM_exit() */
-void wm_operatortype_free(void)
+void wm_operatortypes_register(void)
 {
-	BLI_ghash_free(global_ops_hash, NULL, (GHashValFreeFP)operatortype_ghash_free_cb);
-	global_ops_hash = NULL;
-}
-
-/* called on initialize WM_init() */
-void wm_operatortype_init(void)
-{
-	/* reserve size is set based on blender default setup */
-	global_ops_hash = BLI_ghash_str_new_ex("wm_operatortype_init gh", 2048);
-
 	WM_operatortype_append(WM_OT_window_close);
 	WM_operatortype_append(WM_OT_window_new);
+	WM_operatortype_append(WM_OT_window_new_main);
 	WM_operatortype_append(WM_OT_read_history);
 	WM_operatortype_append(WM_OT_read_homefile);
 	WM_operatortype_append(WM_OT_read_factory_settings);
@@ -3737,9 +3248,9 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_previews_clear);
 	WM_operatortype_append(WM_OT_doc_view_manual_ui_context);
 
-	/* manipulators */
-	WM_operatortype_append(MANIPULATORGROUP_OT_manipulator_select);
-	WM_operatortype_append(MANIPULATORGROUP_OT_manipulator_tweak);
+	/* gizmos */
+	WM_operatortype_append(GIZMOGROUP_OT_gizmo_select);
+	WM_operatortype_append(GIZMOGROUP_OT_gizmo_tweak);
 }
 
 /* circleselect-like modal operators */
@@ -3981,6 +3492,11 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "WM_OT_quit_blender", QKEY, KM_PRESS, KM_CTRL, 0);
 
+	/* F-Keys are a hassle on some macos systems. */
+#ifdef __APPLE__
+	WM_keymap_add_item(keymap, "WM_OT_search_menu", FKEY, KM_PRESS, KM_OSKEY, 0);
+#endif
+
 #ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "WM_OT_doc_view_manual_ui_context", F1KEY, KM_PRESS, KM_ALT, 0);
 
@@ -3995,8 +3511,6 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 #endif
 
 	/* menus that can be accessed anywhere in blender */
-	WM_keymap_add_item(keymap, "WM_OT_search_menu", ACCENTGRAVEKEY, KM_CLICK, 0, 0);
-
 	WM_keymap_add_menu(keymap, "SCREEN_MT_user_menu", QKEY, KM_PRESS, 0, 0);
 
 #ifdef WITH_INPUT_NDOF
@@ -4066,7 +3580,7 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	RNA_float_set(kmi->ptr, "value", 1.0f / 1.5f);
 #endif /* WITH_INPUT_NDOF */
 
-	wm_manipulators_keymap(keyconf);
+	wm_gizmos_keymap(keyconf);
 	gesture_circle_modal_keymap(keyconf);
 	gesture_border_modal_keymap(keyconf);
 	gesture_zoom_border_modal_keymap(keyconf);

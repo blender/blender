@@ -82,9 +82,9 @@ typedef struct bMotionPath {
 	int flag;                   /* baking settings - eMotionPath_Flag */
 
 	/* Used for drawing. */
-	struct Gwn_VertBuf *points_vbo;
-	struct Gwn_Batch *batch_line;
-	struct Gwn_Batch *batch_points;
+	struct GPUVertBuf *points_vbo;
+	struct GPUBatch *batch_line;
+	struct GPUBatch *batch_points;
 	void *pad;
 } bMotionPath;
 

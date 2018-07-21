@@ -102,7 +102,7 @@ static PyObject *pygpu_matrix_push(PyObject *UNUSED(self))
 	if (!pygpu_stack_is_push_model_view_ok_or_error()) {
 		return NULL;
 	}
-	gpuPushMatrix();
+	GPU_matrix_push();
 	Py_RETURN_NONE;
 }
 
@@ -116,7 +116,7 @@ static PyObject *pygpu_matrix_pop(PyObject *UNUSED(self))
 	if (!pygpu_stack_is_pop_model_view_ok_or_error()) {
 		return NULL;
 	}
-	gpuPopMatrix();
+	GPU_matrix_pop();
 	Py_RETURN_NONE;
 }
 
@@ -130,7 +130,7 @@ static PyObject *pygpu_matrix_push_projection(PyObject *UNUSED(self))
 	if (!pygpu_stack_is_push_projection_ok_or_error()) {
 		return NULL;
 	}
-	gpuPushProjectionMatrix();
+	GPU_matrix_push_projection();
 	Py_RETURN_NONE;
 }
 
@@ -144,7 +144,7 @@ static PyObject *pygpu_matrix_pop_projection(PyObject *UNUSED(self))
 	if (!pygpu_stack_is_pop_projection_ok_or_error()) {
 		return NULL;
 	}
-	gpuPopProjectionMatrix();
+	GPU_matrix_pop_projection();
 	Py_RETURN_NONE;
 }
 
@@ -197,14 +197,14 @@ static PyObject *pygpu_matrix_stack_context_enter(BPy_GPU_MatrixStackContext *se
 		if (!pygpu_stack_is_push_model_view_ok_or_error()) {
 			return NULL;
 		}
-		gpuPushMatrix();
+		GPU_matrix_push();
 		self->level = GPU_matrix_stack_level_get_model_view();
 	}
 	else if (self->type == PYGPU_MATRIX_TYPE_PROJECTION) {
 		if (!pygpu_stack_is_push_projection_ok_or_error()) {
 			return NULL;
 		}
-		gpuPushProjectionMatrix();
+		GPU_matrix_push_projection();
 		self->level = GPU_matrix_stack_level_get_projection();
 	}
 	else {
@@ -227,7 +227,7 @@ static PyObject *pygpu_matrix_stack_context_exit(BPy_GPU_MatrixStackContext *sel
 			fprintf(stderr, "Level push/pop mismatch, expected %d, got %d\n", self->level, level);
 		}
 		if (level != 0) {
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 	}
 	else if (self->type == PYGPU_MATRIX_TYPE_PROJECTION) {
@@ -236,7 +236,7 @@ static PyObject *pygpu_matrix_stack_context_exit(BPy_GPU_MatrixStackContext *sel
 			fprintf(stderr, "Level push/pop mismatch, expected %d, got %d", self->level, level);
 		}
 		if (level != 0) {
-			gpuPopProjectionMatrix();
+			GPU_matrix_pop_projection();
 		}
 	}
 	else {
@@ -294,7 +294,7 @@ static PyObject *pygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject *
 	if (!Matrix_Parse4x4(value, &pymat)) {
 		return NULL;
 	}
-	gpuMultMatrix(pymat->matrix);
+	GPU_matrix_mul(pymat->matrix);
 	Py_RETURN_NONE;
 }
 
@@ -314,10 +314,10 @@ static PyObject *pygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 		return NULL;
 	}
 	if (len == 2) {
-		gpuScale2fv(scale);
+		GPU_matrix_scale_2fv(scale);
 	}
 	else {
-		gpuScale3fv(scale);
+		GPU_matrix_scale_3fv(scale);
 	}
 	Py_RETURN_NONE;
 }
@@ -337,7 +337,7 @@ static PyObject *pygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *va
 		             Py_TYPE(value)->tp_name);
 		return NULL;
 	}
-	gpuScaleUniform(scalar);
+	GPU_matrix_scale_1f(scalar);
 	Py_RETURN_NONE;
 }
 
@@ -357,10 +357,10 @@ static PyObject *pygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value)
 		return NULL;
 	}
 	if (len == 2) {
-		gpuTranslate2fv(offset);
+		GPU_matrix_translate_2fv(offset);
 	}
 	else {
-		gpuTranslate3fv(offset);
+		GPU_matrix_translate_3fv(offset);
 	}
 	Py_RETURN_NONE;
 }
@@ -378,7 +378,7 @@ PyDoc_STRVAR(pygpu_matrix_reset_doc,
 );
 static PyObject *pygpu_matrix_reset(PyObject *UNUSED(self))
 {
-	gpuMatrixReset();
+	GPU_matrix_reset();
 	Py_RETURN_NONE;
 }
 
@@ -389,7 +389,7 @@ PyDoc_STRVAR(pygpu_matrix_load_identity_doc,
 );
 static PyObject *pygpu_matrix_load_identity(PyObject *UNUSED(self))
 {
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 	Py_RETURN_NONE;
 }
 
@@ -407,7 +407,7 @@ static PyObject *pygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *valu
 	if (!Matrix_Parse4x4(value, &pymat)) {
 		return NULL;
 	}
-	gpuLoadMatrix(pymat->matrix);
+	GPU_matrix_set(pymat->matrix);
 	Py_RETURN_NONE;
 }
 
@@ -428,7 +428,7 @@ PyDoc_STRVAR(pygpu_matrix_get_projection_matrix_doc,
 static PyObject *pygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
-	gpuGetModelViewMatrix(matrix);
+	GPU_matrix_model_view_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 4, 4, NULL);
 }
 
@@ -444,7 +444,7 @@ PyDoc_STRVAR(pygpu_matrix_get_modal_view_matrix_doc,
 static PyObject *pygpu_matrix_get_modal_view_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
-	gpuGetProjectionMatrix(matrix);
+	GPU_matrix_projection_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 4, 4, NULL);
 }
 
@@ -459,7 +459,7 @@ PyDoc_STRVAR(pygpu_matrix_get_normal_matrix_doc,
 static PyObject *pygpu_matrix_get_normal_matrix(PyObject *UNUSED(self))
 {
 	float matrix[3][3];
-	gpuGetNormalMatrix(matrix);
+	GPU_matrix_normal_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 3, 3, NULL);
 }
 

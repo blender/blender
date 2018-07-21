@@ -65,12 +65,12 @@ static void initData(ModifierData *md)
 	wmd->flag = 0;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const WarpModifierData *wmd = (const WarpModifierData *) md;
 	WarpModifierData *twmd = (WarpModifierData *) target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	twmd->curfalloff = curvemapping_copy(wmd->curfalloff);
 }
@@ -109,7 +109,7 @@ static void freeData(ModifierData *md)
 }
 
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(userRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(userRenderParams))
 {
 	WarpModifierData *wmd = (WarpModifierData *) md;
 

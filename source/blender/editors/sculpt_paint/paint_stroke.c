@@ -155,11 +155,11 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 
 		ARegion *ar = stroke->vc.ar;
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4ubv(paint->paint_cursor_col);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, x, y);
 		immVertex2f(pos,
 		            stroke->last_mouse_position[0] + ar->winrct.xmin,
@@ -181,7 +181,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	GPU_line_smooth(true);
 
-	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -194,7 +194,7 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 	immUniformArray4fv("colors", (float *)(float[][4]){{0.0f, 0.0f, 0.0f, alpha}, {1.0f, 1.0f, 1.0f, alpha}}, 2);
 	immUniform1f("dash_width", 6.0f);
 
-	immBegin(GWN_PRIM_LINES, 2);
+	immBegin(GPU_PRIM_LINES, 2);
 
 	ARegion *ar = stroke->vc.ar;
 

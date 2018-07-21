@@ -43,6 +43,7 @@ enum MemoryType {
 enum DataType {
 	TYPE_UNKNOWN,
 	TYPE_UCHAR,
+	TYPE_UINT16,
 	TYPE_UINT,
 	TYPE_INT,
 	TYPE_FLOAT,
@@ -50,13 +51,14 @@ enum DataType {
 	TYPE_UINT64,
 };
 
-static inline size_t datatype_size(DataType datatype) 
+static inline size_t datatype_size(DataType datatype)
 {
 	switch(datatype) {
 		case TYPE_UNKNOWN: return 1;
 		case TYPE_UCHAR: return sizeof(uchar);
 		case TYPE_FLOAT: return sizeof(float);
 		case TYPE_UINT: return sizeof(uint);
+		case TYPE_UINT16: return sizeof(uint16_t);
 		case TYPE_INT: return sizeof(int);
 		case TYPE_HALF: return sizeof(half);
 		case TYPE_UINT64: return sizeof(uint64_t);
@@ -156,6 +158,16 @@ template<> struct device_type_traits<half> {
 	static const int num_elements = 1;
 };
 
+template<> struct device_type_traits<ushort4> {
+	static const DataType data_type = TYPE_UINT16;
+	static const int num_elements = 4;
+};
+
+template<> struct device_type_traits<uint16_t> {
+	static const DataType data_type = TYPE_UINT16;
+	static const int num_elements = 1;
+};
+
 template<> struct device_type_traits<half4> {
 	static const DataType data_type = TYPE_HALF;
 	static const int num_elements = 4;
@@ -200,6 +212,9 @@ public:
 
 	virtual ~device_memory();
 
+	void swap_device(Device *new_device, size_t new_device_size, device_ptr new_device_ptr);
+	void restore_device();
+
 protected:
 	friend class CUDADevice;
 
@@ -222,6 +237,10 @@ protected:
 	void device_copy_to();
 	void device_copy_from(int y, int w, int h, int elem);
 	void device_zero();
+
+	device_ptr original_device_ptr;
+	size_t original_device_size;
+	Device *original_device;
 };
 
 /* Device Only Memory
@@ -478,4 +497,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /* __DEVICE_MEMORY_H__ */
-

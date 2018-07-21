@@ -104,7 +104,7 @@ typedef enum GPUBuiltin {
 	GPU_AUTO_BUMPSCALE =        (1 << 7),
 	GPU_CAMERA_TEXCO_FACTORS =  (1 << 8),
 	GPU_PARTICLE_SCALAR_PROPS = (1 << 9),
-	GPU_PARTICLE_LOCATION =	    (1 << 10),
+	GPU_PARTICLE_LOCATION =     (1 << 10),
 	GPU_PARTICLE_VELOCITY =     (1 << 11),
 	GPU_PARTICLE_ANG_VELOCITY = (1 << 12),
 	GPU_LOC_TO_VIEW_MATRIX =    (1 << 13),
@@ -241,7 +241,7 @@ GPUBuiltin GPU_get_material_builtins(GPUMaterial *material);
 
 void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], short *falloff_type, float *sharpness);
 struct GPUUniformBuffer *GPU_material_sss_profile_get(
-        GPUMaterial *material, int sample_ct, struct GPUTexture **tex_profile);
+        GPUMaterial *material, int sample_len, struct GPUTexture **tex_profile);
 
 /* High level functions to create and use GPU materials */
 GPUMaterial *GPU_material_from_nodetree_find(
@@ -254,11 +254,6 @@ void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(struct Main *bmain);
 
-void GPU_material_orphans_init(void);
-void GPU_material_orphans_exit(void);
-/* This has to be called from a thread with an ogl context bound. */
-void GPU_material_orphans_delete(void);
-
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
@@ -268,8 +263,9 @@ GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 struct GPUUniformBuffer *GPU_material_uniform_buffer_get(GPUMaterial *material);
 void GPU_material_uniform_buffer_create(GPUMaterial *material, ListBase *inputs);
 
-void GPU_material_vertex_attributes(GPUMaterial *material,
-	struct GPUVertexAttribs *attrib);
+void GPU_material_vertex_attributes(
+        GPUMaterial *material,
+        struct GPUVertexAttribs *attrib);
 
 bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);

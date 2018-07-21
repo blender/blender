@@ -75,53 +75,31 @@
  * \brief API for managing workspaces and their data.
  * \{ */
 
-WorkSpace *ED_workspace_add(
-        Main *bmain, const char *name, Scene *scene,
-        ViewLayer *act_view_layer)
+WorkSpace *ED_workspace_add(Main *bmain, const char *name)
 {
-	WorkSpace *workspace = BKE_workspace_add(bmain, name);
-
-	BKE_workspace_view_layer_set(workspace, act_view_layer, scene);
-
-	return workspace;
+	return BKE_workspace_add(bmain, name);
 }
 
 /**
  * Changes the object mode (if needed) to the one set in \a workspace_new.
  * Object mode is still stored on object level. In future it should all be workspace level instead.
  */
-static void workspace_change_update_mode(
-        const WorkSpace *workspace_old, const WorkSpace *workspace_new,
-        bContext *C, Object *ob_act, ReportList *reports)
-{
-	UNUSED_VARS(workspace_old, workspace_new, C, ob_act, reports);
-#if 0
-	eObjectMode mode_old = workspace_old->object_mode;
-	eObjectMode mode_new = workspace_new->object_mode;
-
-	if (mode_old != mode_new) {
-		ED_object_mode_compat_set(C, ob_act, mode_new, reports);
-		ED_object_mode_toggle(C, mode_new);
-	}
-#endif
-}
-
-static void workspace_change_update_view_layer(
-        WorkSpace *workspace_new, const WorkSpace *workspace_old,
-        Scene *scene)
-{
-	if (!BKE_workspace_view_layer_exists(workspace_new, scene)) {
-		BKE_workspace_view_layer_set(workspace_new, BKE_workspace_view_layer_get(workspace_old, scene), scene);
-	}
-}
-
 static void workspace_change_update(
         WorkSpace *workspace_new, const WorkSpace *workspace_old,
         bContext *C, wmWindowManager *wm)
 {
 	/* needs to be done before changing mode! (to ensure right context) */
-	workspace_change_update_view_layer(workspace_new, workspace_old, CTX_data_scene(C));
-	workspace_change_update_mode(workspace_old, workspace_new, C, CTX_data_active_object(C), &wm->reports);
+	UNUSED_VARS(workspace_old, workspace_new, C, wm);
+#if 0
+	Object *ob_act = CTX_data_active_object(C)
+	eObjectMode mode_old = workspace_old->object_mode;
+	eObjectMode mode_new = workspace_new->object_mode;
+
+	if (mode_old != mode_new) {
+		ED_object_mode_compat_set(C, ob_act, mode_new, &wm->reports);
+		ED_object_mode_toggle(C, mode_new);
+	}
+#endif
 }
 
 static bool workspace_change_find_new_layout_cb(const WorkSpaceLayout *layout, void *UNUSED(arg))
@@ -134,6 +112,7 @@ static WorkSpaceLayout *workspace_change_get_new_layout(
         Main *bmain, WorkSpace *workspace_new, wmWindow *win)
 {
 	/* ED_workspace_duplicate may have stored a layout to activate once the workspace gets activated. */
+	WorkSpaceLayout *layout_old = WM_window_get_active_layout(win);
 	WorkSpaceLayout *layout_new;
 	bScreen *screen_new;
 
@@ -154,8 +133,8 @@ static WorkSpaceLayout *workspace_change_get_new_layout(
 		                                   workspace_new, layout_new, workspace_change_find_new_layout_cb,
 		                                   NULL, false);
 		if (!layout_temp) {
-			/* fallback solution: duplicate layout */
-			layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_new, win);
+			/* fallback solution: duplicate layout from old workspace */
+			layout_temp = ED_workspace_layout_duplicate(bmain, workspace_new, layout_old, win);
 		}
 		layout_new = layout_temp;
 	}
@@ -191,15 +170,14 @@ bool ED_workspace_change(
 	BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
 
 	if (screen_new) {
-		WM_window_set_active_layout(win, workspace_new, layout_new);
-		WM_window_set_active_workspace(win, workspace_new);
+		BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace_new, layout_new);
+		BKE_workspace_active_set(win->workspace_hook, workspace_new);
 
 		/* update screen *after* changing workspace - which also causes the
 		 * actual screen change and updates context (including CTX_wm_workspace) */
 		screen_change_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C, wm);
 
-		BLI_assert(BKE_workspace_view_layer_exists(workspace_new, CTX_data_scene(C)) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 		WM_toolsystem_unlink_all(C, workspace_old);
@@ -220,10 +198,7 @@ WorkSpace *ED_workspace_duplicate(
 {
 	WorkSpaceLayout *layout_active_old = BKE_workspace_active_layout_get(win->workspace_hook);
 	ListBase *layouts_old = BKE_workspace_layouts_get(workspace_old);
-	Scene *scene = WM_window_get_active_scene(win);
-	WorkSpace *workspace_new = ED_workspace_add(
-	        bmain, workspace_old->id.name + 2, scene,
-	        BKE_workspace_view_layer_get(workspace_old, scene));
+	WorkSpace *workspace_new = ED_workspace_add(bmain, workspace_old->id.name + 2);
 
 	/* TODO(campbell): tools */
 
@@ -269,17 +244,6 @@ void ED_workspace_scene_data_sync(
 {
 	bScreen *screen = BKE_workspace_active_screen_get(hook);
 	BKE_screen_view3d_scene_sync(screen, scene);
-}
-
-void ED_workspace_view_layer_unset(
-        const Main *bmain, Scene *scene,
-        const ViewLayer *layer_unset, ViewLayer *layer_new)
-{
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		if (BKE_workspace_view_layer_get(workspace, scene) == layer_unset) {
-			BKE_workspace_view_layer_set(workspace, layer_new, scene);
-		}
-	}
 }
 
 /** \} Workspace API */

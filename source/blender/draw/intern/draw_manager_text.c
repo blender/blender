@@ -46,7 +46,7 @@ typedef struct ViewCachedString {
 	struct ViewCachedString *next, *prev;
 	float vec[3];
 	union {
-		unsigned char ub[4];
+		uchar ub[4];
 		int pack;
 	} col;
 	short sco[2];
@@ -79,7 +79,7 @@ void DRW_text_cache_add(
         const float co[3],
         const char *str, const int str_len,
         short xoffs, short flag,
-        const unsigned char col[4])
+        const uchar col[4])
 {
 	int alloc_len;
 	ViewCachedString *vos;
@@ -111,9 +111,7 @@ void DRW_text_cache_add(
 	}
 }
 
-void DRW_text_cache_draw(
-        DRWTextStore *dt,
-        View3D *v3d, ARegion *ar, bool depth_write)
+void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	ViewCachedString *vos;
@@ -143,18 +141,11 @@ void DRW_text_cache_draw(
 		}
 
 		float original_proj[4][4];
-		gpuGetProjectionMatrix(original_proj);
+		GPU_matrix_projection_get(original_proj);
 		wmOrtho2_region_pixelspace(ar);
 
-		gpuPushMatrix();
-		gpuLoadIdentity();
-
-		if (depth_write) {
-			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
-		}
-		else {
-			glDepthMask(GL_FALSE);
-		}
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
 
 		const int font_id = BLF_default();
 
@@ -171,7 +162,7 @@ void DRW_text_cache_draw(
 
 				BLF_position(
 				        font_id,
-				        (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1]), (depth_write) ? 0.0f : 2.0f);
+				        (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1]), 2.0f);
 
 				((vos->flag & DRW_TEXT_CACHE_ASCII) ?
 				 BLF_draw_ascii :
@@ -182,15 +173,8 @@ void DRW_text_cache_draw(
 			}
 		}
 
-		if (depth_write) {
-			if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
-		}
-		else {
-			glDepthMask(GL_TRUE);
-		}
-
-		gpuPopMatrix();
-		gpuLoadProjectionMatrix(original_proj);
+		GPU_matrix_pop();
+		GPU_matrix_projection_set(original_proj);
 
 		if (rv3d->rflag & RV3D_CLIPPING) {
 			ED_view3d_clipping_enable();

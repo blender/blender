@@ -152,7 +152,7 @@ typedef struct bNodeType {
 
 	float width, minwidth, maxwidth;
 	float height, minheight, maxheight;
-	short nclass, flag, compatibility;
+	short nclass, flag;
 
 	/* templates for static sockets */
 	bNodeSocketTemplate *inputs, *outputs;
@@ -250,11 +250,6 @@ typedef struct bNodeType {
 #define NODE_CLASS_INTERFACE		33
 #define NODE_CLASS_SHADER 			40
 #define NODE_CLASS_LAYOUT			100
-
-/* nodetype->compatibility */
-#define NODE_OLD_SHADING	(1 << 0)
-#define NODE_NEW_SHADING	(1 << 1)
-#define NODE_NEWER_SHADING	(1 << 2)
 
 /* node resize directions */
 #define NODE_RESIZE_TOP		1
@@ -601,7 +596,6 @@ void            node_type_update(struct bNodeType *ntype,
 void            node_type_exec(struct bNodeType *ntype, NodeInitExecFunction initexecfunc, NodeFreeExecFunction freeexecfunc, NodeExecFunction execfunc);
 void            node_type_gpu(struct bNodeType *ntype, NodeGPUExecFunction gpufunc);
 void            node_type_internal_links(struct bNodeType *ntype, void (*update_internal_links)(struct bNodeTree *, struct bNode *));
-void            node_type_compatibility(struct bNodeType *ntype, short compatibility);
 
 /** \} */
 
@@ -734,7 +728,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 
 #define SH_NODE_OUTPUT_MATERIAL			124
 #define SH_NODE_OUTPUT_WORLD			125
-#define SH_NODE_OUTPUT_LAMP				126
+#define SH_NODE_OUTPUT_LIGHT			126
 #define SH_NODE_FRESNEL					127
 #define SH_NODE_MIX_SHADER				128
 #define SH_NODE_ATTRIBUTE				129
@@ -802,6 +796,8 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 #define SH_NODE_DISPLACEMENT            198
 #define SH_NODE_VECTOR_DISPLACEMENT     199
 #define SH_NODE_VOLUME_PRINCIPLED       200
+/* 201..700 occupied by other node types, continue from 701 */
+#define SH_NODE_BSDF_HAIR_PRINCIPLED    701
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -813,9 +809,10 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
 void            ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
 bool            ntreeShaderExecTree(struct bNodeTree *ntree, int thread);
+struct bNode   *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
 
-void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
-void            ntreeGPUMaterialDomain(struct bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output);
+void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat,
+                                      bool *has_surface_output, bool *has_volume_output);
 
 /** \} */
 
@@ -949,6 +946,7 @@ void            ntreeGPUMaterialDomain(struct bNodeTree *ntree, bool *has_surfac
 #define CMP_NODE_PLANETRACKDEFORM	320
 #define CMP_NODE_CORNERPIN          321
 #define CMP_NODE_SWITCH_VIEW    322
+#define CMP_NODE_CRYPTOMATTE	323
 
 /* channel toggles */
 #define CMP_CHAN_RGB		1
@@ -1000,6 +998,11 @@ void ntreeCompositOutputFileUniqueLayer(struct ListBase *list, struct bNodeSocke
 
 void ntreeCompositColorBalanceSyncFromLGG(bNodeTree *ntree, bNode *node);
 void ntreeCompositColorBalanceSyncFromCDL(bNodeTree *ntree, bNode *node);
+
+void ntreeCompositCryptomatteSyncFromAdd(bNodeTree *ntree, bNode *node);
+void ntreeCompositCryptomatteSyncFromRemove(bNodeTree *ntree, bNode *node);
+struct bNodeSocket *ntreeCompositCryptomatteAddSocket(struct bNodeTree *ntree, struct bNode *node);
+int ntreeCompositCryptomatteRemoveSocket(struct bNodeTree *ntree, struct bNode *node);
 
 /** \} */
 

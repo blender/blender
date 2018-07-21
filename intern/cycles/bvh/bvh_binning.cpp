@@ -251,4 +251,3 @@ void BVHObjectBinning::split(BVHReference* prims,
 }
 
 CCL_NAMESPACE_END
-

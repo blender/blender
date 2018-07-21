@@ -341,7 +341,7 @@ static void action_header_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void action_channel_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -432,7 +432,7 @@ static void saction_channel_region_message_subscribe(
 }
 
 static void action_main_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -531,8 +531,7 @@ static void saction_main_region_message_subscribe(
 
 /* editor level listener */
 static void action_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
-        WorkSpace *UNUSED(workspace))
+        wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 
@@ -686,7 +685,7 @@ static void action_listener(
 }
 
 static void action_header_region_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *sa, ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
@@ -760,7 +759,7 @@ static void action_buttons_area_draw(const bContext *C, ARegion *ar)
 }
 
 static void action_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */

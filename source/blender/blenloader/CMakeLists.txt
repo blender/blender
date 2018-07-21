@@ -30,6 +30,7 @@ set(INC
 	../blenlib
 	../blentranslation
 	../depsgraph
+	../draw
 	../imbuf
 	../makesdna
 	../makesrna

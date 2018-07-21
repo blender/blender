@@ -33,11 +33,15 @@ CCL_NAMESPACE_BEGIN
 /* Some helpers to silence warning in templated function. */
 static bool isfinite(uchar /*value*/)
 {
-	return false;
+	return true;
 }
 static bool isfinite(half /*value*/)
 {
-	return false;
+	return true;
+}
+static bool isfinite(uint16_t  /*value*/)
+{
+	return true;
 }
 
 ImageManager::ImageManager(const DeviceInfo& info)
@@ -164,23 +168,27 @@ bool ImageManager::get_image_metadata(const string& filename,
 	metadata.height = spec.height;
 	metadata.depth = spec.depth;
 
-	/* check the main format, and channel formats;
-	 * if any take up more than one byte, we'll need a float texture slot */
-	if(spec.format.basesize() > 1) {
+
+	/* Check the main format, and channel formats. */
+	size_t channel_size = spec.format.basesize();
+
+	if(spec.format.is_floating_point()) {
 		metadata.is_float = true;
 		metadata.is_linear = true;
 	}
 
 	for(size_t channel = 0; channel < spec.channelformats.size(); channel++) {
-		if(spec.channelformats[channel].basesize() > 1) {
+		channel_size = max(channel_size, spec.channelformats[channel].basesize());
+		if(spec.channelformats[channel].is_floating_point()) {
 			metadata.is_float = true;
 			metadata.is_linear = true;
 		}
 	}
 
 	/* check if it's half float */
-	if(spec.format == TypeDesc::HALF)
+	if(spec.format == TypeDesc::HALF) {
 		metadata.is_half = true;
+	}
 
 	/* basic color space detection, not great but better than nothing
 	 * before we do OpenColorIO integration */
@@ -207,6 +215,9 @@ bool ImageManager::get_image_metadata(const string& filename,
 	}
 	else if(metadata.is_float) {
 		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+	}
+	else if(spec.format == TypeDesc::USHORT) {
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_USHORT4 : IMAGE_DATA_TYPE_USHORT;
 	}
 	else {
 		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
@@ -254,6 +265,10 @@ string ImageManager::name_from_type(int type)
 		return "half4";
 	else if(type == IMAGE_DATA_TYPE_HALF)
 		return "half";
+	else if(type == IMAGE_DATA_TYPE_USHORT)
+		return "ushort";
+	else if(type == IMAGE_DATA_TYPE_USHORT4)
+		return "ushort4";
 	else
 		return "byte4";
 }
@@ -493,7 +508,6 @@ bool ImageManager::file_load_image(Image *img,
                                    int texture_limit,
                                    device_vector<DeviceType>& tex_img)
 {
-	const StorageType alpha_one = (FileFormat == TypeDesc::UINT8)? 255 : 1;
 	ImageInput *in = NULL;
 	if(!file_load_image_generic(img, &in)) {
 		return false;
@@ -583,15 +597,22 @@ bool ImageManager::file_load_image(Image *img,
 	 */
 	bool is_rgba = (type == IMAGE_DATA_TYPE_FLOAT4 ||
 	                type == IMAGE_DATA_TYPE_HALF4 ||
-	                type == IMAGE_DATA_TYPE_BYTE4);
+	                type == IMAGE_DATA_TYPE_BYTE4 ||
+					type == IMAGE_DATA_TYPE_USHORT4);
 	if(is_rgba) {
+		const StorageType one = util_image_cast_from_float<StorageType>(1.0f);
+
 		if(cmyk) {
 			/* CMYK */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+2] = (pixels[i*4+2]*pixels[i*4+3])/255;
-				pixels[i*4+1] = (pixels[i*4+1]*pixels[i*4+3])/255;
-				pixels[i*4+0] = (pixels[i*4+0]*pixels[i*4+3])/255;
-				pixels[i*4+3] = alpha_one;
+				float c = util_image_cast_to_float(pixels[i*4+0]);
+				float m = util_image_cast_to_float(pixels[i*4+1]);
+				float y = util_image_cast_to_float(pixels[i*4+2]);
+				float k = util_image_cast_to_float(pixels[i*4+3]);
+				pixels[i*4+0] = util_image_cast_from_float<StorageType>((1.0f - c) * (1.0f - k));
+				pixels[i*4+1] = util_image_cast_from_float<StorageType>((1.0f - m) * (1.0f - k));
+				pixels[i*4+2] = util_image_cast_from_float<StorageType>((1.0f - y) * (1.0f - k));
+				pixels[i*4+3] = one;
 			}
 		}
 		else if(components == 2) {
@@ -606,7 +627,7 @@ bool ImageManager::file_load_image(Image *img,
 		else if(components == 3) {
 			/* RGB */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 				pixels[i*4+2] = pixels[i*3+2];
 				pixels[i*4+1] = pixels[i*3+1];
 				pixels[i*4+0] = pixels[i*3+0];
@@ -615,7 +636,7 @@ bool ImageManager::file_load_image(Image *img,
 		else if(components == 1) {
 			/* grayscale */
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 				pixels[i*4+2] = pixels[i];
 				pixels[i*4+1] = pixels[i];
 				pixels[i*4+0] = pixels[i];
@@ -623,7 +644,7 @@ bool ImageManager::file_load_image(Image *img,
 		}
 		if(img->use_alpha == false) {
 			for(size_t i = num_pixels-1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-				pixels[i*4+3] = alpha_one;
+				pixels[i*4+3] = one;
 			}
 		}
 	}
@@ -843,14 +864,61 @@ void ImageManager::device_load_image(Device *device,
 		thread_scoped_lock device_lock(device_mutex);
 		tex_img->copy_to_device();
 	}
+	else if(type == IMAGE_DATA_TYPE_USHORT) {
+		device_vector<uint16_t> *tex_img
+			= new device_vector<uint16_t>(device, img->mem_name.c_str(), MEM_TEXTURE);
+
+		if(!file_load_image<TypeDesc::USHORT, uint16_t>(img,
+		                                          type,
+		                                          texture_limit,
+		                                          *tex_img)) {
+			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
+			uint16_t *pixels = (uint16_t*)tex_img->alloc(1, 1);
+
+			pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
+		}
+
+		img->mem = tex_img;
+		img->mem->interpolation = img->interpolation;
+		img->mem->extension = img->extension;
+
+		thread_scoped_lock device_lock(device_mutex);
+		tex_img->copy_to_device();
+	}
+	else if(type == IMAGE_DATA_TYPE_USHORT4) {
+		device_vector<ushort4> *tex_img
+			= new device_vector<ushort4>(device, img->mem_name.c_str(), MEM_TEXTURE);
+
+		if(!file_load_image<TypeDesc::USHORT, uint16_t>(img,
+			type,
+			texture_limit,
+			*tex_img)) {
+			/* on failure to load, we set a 1x1 pixels pink image */
+			thread_scoped_lock device_lock(device_mutex);
+			uint16_t *pixels = (uint16_t*)tex_img->alloc(1, 1);
+
+			pixels[0] = (TEX_IMAGE_MISSING_R * 65535);
+			pixels[1] = (TEX_IMAGE_MISSING_G * 65535);
+			pixels[2] = (TEX_IMAGE_MISSING_B * 65535);
+			pixels[3] = (TEX_IMAGE_MISSING_A * 65535);
+		}
+
+		img->mem = tex_img;
+		img->mem->interpolation = img->interpolation;
+		img->mem->extension = img->extension;
+
+		thread_scoped_lock device_lock(device_mutex);
+		tex_img->copy_to_device();
+	}
 	else if(type == IMAGE_DATA_TYPE_HALF) {
 		device_vector<half> *tex_img
 			= new device_vector<half>(device, img->mem_name.c_str(), MEM_TEXTURE);
 
 		if(!file_load_image<TypeDesc::HALF, half>(img,
-		                                          type,
-		                                          texture_limit,
-		                                          *tex_img)) {
+			type,
+			texture_limit,
+			*tex_img)) {
 			/* on failure to load, we set a 1x1 pixels pink image */
 			thread_scoped_lock device_lock(device_mutex);
 			half *pixels = (half*)tex_img->alloc(1, 1);
@@ -865,7 +933,6 @@ void ImageManager::device_load_image(Device *device,
 		thread_scoped_lock device_lock(device_mutex);
 		tex_img->copy_to_device();
 	}
-
 	img->need_load = false;
 }
 
@@ -1005,4 +1072,3 @@ void ImageManager::device_free(Device *device)
 }
 
 CCL_NAMESPACE_END
-

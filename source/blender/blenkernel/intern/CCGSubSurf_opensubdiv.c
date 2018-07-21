@@ -42,6 +42,9 @@
 
 #include "opensubdiv_capi.h"
 #include "opensubdiv_converter_capi.h"
+#include "opensubdiv_evaluator_capi.h"
+#include "opensubdiv_gl_mesh_capi.h"
+#include "opensubdiv_topology_refiner_capi.h"
 
 #include "GPU_glew.h"
 #include "GPU_extensions.h"
@@ -131,7 +134,6 @@ static bool compare_ccg_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 
 static bool compare_osd_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 {
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner;
 	OpenSubdiv_Converter converter;
 	bool result;
 	if (ss->osd_mesh == NULL && ss->osd_topology_refiner == NULL) {
@@ -140,15 +142,10 @@ static bool compare_osd_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 	/* TODO(sergey): De-duplicate with topology counter at the bottom of
 	 * the file.
 	 */
-	if (ss->osd_topology_refiner != NULL) {
-		topology_refiner = ss->osd_topology_refiner;
-	}
-	else {
-		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
-	}
 	ccgSubSurf_converter_setup_from_derivedmesh(ss, dm, &converter);
-	result = openSubdiv_topologyRefnerCompareConverter(topology_refiner,
-	                                                   &converter);
+	result = openSubdiv_topologyRefinerCompareWithConverter(
+	        ss->osd_topology_refiner,
+	        &converter);
 	ccgSubSurf_converter_free(&converter);
 	return result;
 }
@@ -159,18 +156,9 @@ static bool opensubdiv_is_topology_changed(CCGSubSurf *ss, DerivedMesh *dm)
 		return true;
 	}
 	if (ss->osd_topology_refiner != NULL) {
-		int levels = openSubdiv_topologyRefinerGetSubdivLevel(
+		const int levels = ss->osd_topology_refiner->getSubdivisionLevel(
 		        ss->osd_topology_refiner);
 		BLI_assert(ss->osd_mesh_invalid == true);
-		if (levels != ss->subdivLevels) {
-			return true;
-		}
-	}
-	if (ss->osd_mesh != NULL && ss->osd_mesh_invalid == false) {
-		const OpenSubdiv_TopologyRefinerDescr *topology_refiner =
-		        openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
-		int levels = openSubdiv_topologyRefinerGetSubdivLevel(topology_refiner);
-		BLI_assert(ss->osd_topology_refiner == NULL);
 		if (levels != ss->subdivLevels) {
 			return true;
 		}
@@ -194,13 +182,13 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, DerivedMesh *dm)
 		/* Reset GPU part. */
 		ss->osd_mesh_invalid = true;
 		if (ss->osd_topology_refiner != NULL) {
-			openSubdiv_deleteTopologyRefinerDescr(ss->osd_topology_refiner);
+			openSubdiv_deleteTopologyRefiner(ss->osd_topology_refiner);
 			ss->osd_topology_refiner = NULL;
 		}
 
-		/* Reste CPU side. */
+		/* Reset CPU side. */
 		if (ss->osd_evaluator != NULL) {
-			openSubdiv_deleteEvaluatorDescr(ss->osd_evaluator);
+			openSubdiv_deleteEvaluator(ss->osd_evaluator);
 			ss->osd_evaluator = NULL;
 		}
 	}
@@ -209,10 +197,10 @@ void ccgSubSurf_checkTopologyChanged(CCGSubSurf *ss, DerivedMesh *dm)
 static void ccgSubSurf__updateGLMeshCoords(CCGSubSurf *ss)
 {
 	BLI_assert(ss->meshIFC.numLayers == 3);
-	openSubdiv_osdGLMeshUpdateVertexBuffer(ss->osd_mesh,
-	                                       (float *) ss->osd_coarse_coords,
-	                                       0,
-	                                       ss->osd_num_coarse_coords);
+	ss->osd_mesh->setCoarsePositions(ss->osd_mesh,
+	                                 (float *) ss->osd_coarse_coords,
+	                                 0,
+	                                 ss->osd_num_coarse_coords);
 }
 
 bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
@@ -259,9 +247,7 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
 
 		ss->osd_mesh = openSubdiv_createOsdGLMeshFromTopologyRefiner(
 		        ss->osd_topology_refiner,
-		        compute_type,
-		        ss->subdivLevels);
-		ss->osd_topology_refiner = NULL;
+		        compute_type);
 
 		if (UNLIKELY(ss->osd_mesh == NULL)) {
 			/* Most likely compute device is not available. */
@@ -269,13 +255,12 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
 		}
 
 		ccgSubSurf__updateGLMeshCoords(ss);
-		openSubdiv_osdGLMeshRefine(ss->osd_mesh);
-		openSubdiv_osdGLMeshSynchronize(ss->osd_mesh);
+		ss->osd_mesh->refine(ss->osd_mesh);
+		ss->osd_mesh->synchronize(ss->osd_mesh);
 		ss->osd_coarse_coords_invalid = false;
 
 		glBindVertexArray(ss->osd_vao);
-		glBindBuffer(GL_ARRAY_BUFFER,
-		             openSubdiv_getOsdGLMeshVertexBuffer(ss->osd_mesh));
+		ss->osd_mesh->bindVertexBuffer(ss->osd_mesh);
 
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
@@ -289,12 +274,12 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
 	}
 	else if (ss->osd_coarse_coords_invalid) {
 		ccgSubSurf__updateGLMeshCoords(ss);
-		openSubdiv_osdGLMeshRefine(ss->osd_mesh);
-		openSubdiv_osdGLMeshSynchronize(ss->osd_mesh);
+		ss->osd_mesh->refine(ss->osd_mesh);
+		ss->osd_mesh->synchronize(ss->osd_mesh);
 		ss->osd_coarse_coords_invalid = false;
 	}
 
-	openSubdiv_osdGLMeshDisplayPrepare(use_osd_glsl, active_uv_index);
+	ss->osd_mesh->prepareDraw(ss->osd_mesh, use_osd_glsl, active_uv_index);
 
 	return true;
 }
@@ -305,12 +290,12 @@ void ccgSubSurf_drawGLMesh(CCGSubSurf *ss, bool fill_quads,
 	if (LIKELY(ss->osd_mesh != NULL)) {
 		glBindVertexArray(ss->osd_vao);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-		             openSubdiv_getOsdGLMeshPatchIndexBuffer(ss->osd_mesh));
+		             ss->osd_mesh->getPatchIndexBuffer(ss->osd_mesh));
 
-		openSubdiv_osdGLMeshBindVertexBuffer(ss->osd_mesh);
+		ss->osd_mesh->bindVertexBuffer(ss->osd_mesh);
 		glBindVertexArray(ss->osd_vao);
-		openSubdiv_osdGLMeshDisplay(ss->osd_mesh, fill_quads,
-		                            start_partition, num_partitions);
+		ss->osd_mesh->drawPatches(ss->osd_mesh, fill_quads,
+		                          start_partition, num_partitions);
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -319,33 +304,21 @@ void ccgSubSurf_drawGLMesh(CCGSubSurf *ss, bool fill_quads,
 
 int ccgSubSurf_getNumGLMeshBaseFaces(CCGSubSurf *ss)
 {
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner;
 	if (ss->osd_topology_refiner != NULL) {
-		topology_refiner = ss->osd_topology_refiner;
+		return ss->osd_topology_refiner->getNumFaces(
+		        ss->osd_topology_refiner);
 	}
-	else if (ss->osd_mesh != NULL) {
-		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
-	}
-	else {
-		return 0;
-	}
-	return openSubdiv_topologyRefinerGetNumFaces(topology_refiner);
+	return 0;
 }
 
 /* Get number of vertices in base faces in a particular GL mesh. */
 int ccgSubSurf_getNumGLMeshBaseFaceVerts(CCGSubSurf *ss, int face)
 {
-	const OpenSubdiv_TopologyRefinerDescr *topology_refiner;
 	if (ss->osd_topology_refiner != NULL) {
-		topology_refiner = ss->osd_topology_refiner;
+		return ss->osd_topology_refiner->getNumFaceVertices(
+		        ss->osd_topology_refiner, face);
 	}
-	else if (ss->osd_mesh != NULL) {
-		topology_refiner = openSubdiv_getGLMeshTopologyRefiner(ss->osd_mesh);
-	}
-	else {
-		return 0;
-	}
-	return openSubdiv_topologyRefinerGetNumFaceVerts(topology_refiner, face);
+	return 0;
 }
 
 void ccgSubSurf_setSkipGrids(CCGSubSurf *ss, bool skip_grids)
@@ -453,17 +426,21 @@ void ccgSubSurf_evaluatorFVarUV(CCGSubSurf *ss,
 static bool opensubdiv_createEvaluator(CCGSubSurf *ss)
 {
 	OpenSubdiv_Converter converter;
-	OpenSubdiv_TopologyRefinerDescr *topology_refiner;
+	OpenSubdiv_TopologyRefiner *topology_refiner;
 	if (ss->fMap->numEntries == 0) {
 		/* OpenSubdiv doesn't support meshes without faces. */
 		return false;
 	}
 	ccgSubSurf_converter_setup_from_ccg(ss, &converter);
-	topology_refiner = openSubdiv_createTopologyRefinerDescr(&converter);
+	OpenSubdiv_TopologyRefinerSettings settings;
+	settings.level = ss->subdivLevels;
+	settings.is_adaptive = false;
+	topology_refiner =
+	        openSubdiv_createTopologyRefinerFromConverter(
+	                &converter, &settings);
 	ccgSubSurf_converter_free(&converter);
 	ss->osd_evaluator =
-	        openSubdiv_createEvaluatorDescr(topology_refiner,
-	                                        ss->subdivLevels);
+	        openSubdiv_createEvaluatorFromTopologyRefiner(topology_refiner);
 	if (ss->osd_evaluator == NULL) {
 		BLI_assert(!"OpenSubdiv initialization failed, should not happen.");
 		return false;
@@ -519,10 +496,11 @@ static void opensubdiv_updateEvaluatorCoarsePositions(CCGSubSurf *ss)
 		}
 	}
 
-	openSubdiv_setEvaluatorCoarsePositions(ss->osd_evaluator,
-	                                       (float *)positions,
-	                                       0,
-	                                       num_basis_verts);
+	ss->osd_evaluator->setCoarsePositions(ss->osd_evaluator,
+	                                      (float *)positions,
+	                                      0,
+	                                      num_basis_verts);
+	ss->osd_evaluator->refine(ss->osd_evaluator);
 
 	MEM_freeN(positions);
 }
@@ -557,11 +535,12 @@ static void opensubdiv_evaluateQuadFaceGrids(CCGSubSurf *ss,
 				ccgSubSurf__mapGridToFace(S, grid_u, grid_v, &face_u, &face_v);
 
 				/* TODO(sergey): Need proper port. */
-				openSubdiv_evaluateLimit(ss->osd_evaluator, osd_face_index,
-				                         face_u, face_v,
-				                         P,
-				                         do_normals ? dPdu : NULL,
-				                         do_normals ? dPdv : NULL);
+				ss->osd_evaluator->evaluateLimit(
+				        ss->osd_evaluator, osd_face_index,
+				        face_u, face_v,
+				        P,
+				        do_normals ? dPdu : NULL,
+				        do_normals ? dPdv : NULL);
 
 				OSD_LOG("face=%d, corner=%d, grid_u=%f, grid_v=%f, face_u=%f, face_v=%f, P=(%f, %f, %f)\n",
 				        osd_face_index, S, grid_u, grid_v, face_u, face_v, P[0], P[1], P[2]);
@@ -635,7 +614,11 @@ static void opensubdiv_evaluateQuadFaceGrids(CCGSubSurf *ss,
 			 * let's just re-evaluate for simplicity.
 			 */
 			/* TODO(sergey): Need proper port. */
-			openSubdiv_evaluateLimit(ss->osd_evaluator, osd_face_index, u, v, P, dPdu, dPdv);
+			ss->osd_evaluator->evaluateLimit(
+			        ss->osd_evaluator,
+			        osd_face_index,
+			        u, v,
+			        P, dPdu, dPdv);
 			VertDataCopy(co, P, ss);
 			if (do_normals) {
 				cross_v3_v3v3(no, dPdu, dPdv);
@@ -699,7 +682,11 @@ static void opensubdiv_evaluateNGonFaceGrids(CCGSubSurf *ss,
 				float P[3], dPdu[3], dPdv[3];
 
 				/* TODO(sergey): Need proper port. */
-				openSubdiv_evaluateLimit(ss->osd_evaluator, osd_face_index + S, u, v, P, dPdu, dPdv);
+				ss->osd_evaluator->evaluateLimit(
+				        ss->osd_evaluator,
+				        osd_face_index + S,
+				        u, v,
+				        P, dPdu, dPdv);
 
 				OSD_LOG("face=%d, corner=%d, u=%f, v=%f, P=(%f, %f, %f)\n",
 				        osd_face_index + S, S, u, v, P[0], P[1], P[2]);
@@ -837,7 +824,12 @@ void ccgSubSurf_prepareTopologyRefiner(CCGSubSurf *ss, DerivedMesh *dm)
 			OpenSubdiv_Converter converter;
 			ccgSubSurf_converter_setup_from_derivedmesh(ss, dm, &converter);
 			/* TODO(sergey): Remove possibly previously allocated refiner. */
-			ss->osd_topology_refiner = openSubdiv_createTopologyRefinerDescr(&converter);
+			OpenSubdiv_TopologyRefinerSettings settings;
+			settings.level = ss->subdivLevels;
+			settings.is_adaptive = false;
+			ss->osd_topology_refiner =
+			        openSubdiv_createTopologyRefinerFromConverter(
+			                &converter, &settings);
 			ccgSubSurf_converter_free(&converter);
 		}
 	}

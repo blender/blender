@@ -73,7 +73,7 @@ ccl_device float3 bsdf_toon_get_intensity(float max_angle, float smooth, float a
 		is = (1.0f - (angle - max_angle)/smooth);
 	else
 		is = 0.0f;
-	
+
 	return make_float3(is, is, is);
 }
 
@@ -90,7 +90,7 @@ ccl_device float3 bsdf_diffuse_toon_eval_reflect(const ShaderClosure *sc, const 
 	float angle = safe_acosf(fmaxf(dot(bsdf->N, omega_in), 0.0f));
 
 	float3 eval = bsdf_toon_get_intensity(max_angle, smooth, angle);
-	
+
 	if(eval.x > 0.0f) {
 		float sample_angle = bsdf_toon_get_sample_angle(max_angle, smooth);
 
@@ -152,7 +152,7 @@ ccl_device float3 bsdf_glossy_toon_eval_reflect(const ShaderClosure *sc, const f
 	float smooth = bsdf->smooth*M_PI_2_F;
 	float cosNI = dot(bsdf->N, omega_in);
 	float cosNO = dot(bsdf->N, I);
-	
+
 	if(cosNI > 0 && cosNO > 0) {
 		/* reflect the view vector */
 		float3 R = (2 * cosNO) * bsdf->N - I;
@@ -166,7 +166,7 @@ ccl_device float3 bsdf_glossy_toon_eval_reflect(const ShaderClosure *sc, const f
 		*pdf = 0.5f * M_1_PI_F / (1.0f - cosf(sample_angle));
 		return *pdf * eval;
 	}
-	
+
 	return make_float3(0.0f, 0.0f, 0.0f);
 }
 
@@ -181,7 +181,7 @@ ccl_device int bsdf_glossy_toon_sample(const ShaderClosure *sc, float3 Ng, float
 	float max_angle = bsdf->size*M_PI_2_F;
 	float smooth = bsdf->smooth*M_PI_2_F;
 	float cosNO = dot(bsdf->N, I);
-	
+
 	if(cosNO > 0) {
 		/* reflect the view vector */
 		float3 R = (2 * cosNO) * bsdf->N - I;
@@ -216,4 +216,3 @@ ccl_device int bsdf_glossy_toon_sample(const ShaderClosure *sc, float3 Ng, float
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_TOON_H__ */
-

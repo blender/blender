@@ -64,7 +64,6 @@
 
 #include "BLF_api.h"
 
-#include "DNA_mesh_types.h" /* only for USE_BMESH_SAVE_AS_COMPAT */
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -186,19 +185,24 @@ static void wm_window_match_init(bContext *C, ListBase *wmlist)
 	ED_editors_exit(C);
 }
 
-static void wm_window_substitute_old(wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
+static void wm_window_substitute_old(wmWindowManager *oldwm, wmWindowManager *wm, wmWindow *oldwin, wmWindow *win)
 {
 	win->ghostwin = oldwin->ghostwin;
-	win->gwnctx = oldwin->gwnctx;
+	win->gpuctx = oldwin->gpuctx;
 	win->active = oldwin->active;
-	if (win->active)
+	if (win->active) {
 		wm->winactive = win;
+	}
+	if (oldwm->windrawable == oldwin) {
+		oldwm->windrawable = NULL;
+		wm->windrawable = win;
+	}
 
 	if (!G.background) /* file loading in background mode still calls this */
 		GHOST_SetWindowUserData(win->ghostwin, win);    /* pointer back */
 
 	oldwin->ghostwin = NULL;
-	oldwin->gwnctx = NULL;
+	oldwin->gpuctx = NULL;
 
 	win->eventstate = oldwin->eventstate;
 	oldwin->eventstate = NULL;
@@ -281,13 +285,13 @@ static void wm_window_match_replace_by_file_wm(
 			if (oldwin->winid == win->winid) {
 				has_match = true;
 
-				wm_window_substitute_old(wm, oldwin, win);
+				wm_window_substitute_old(oldwm, wm, oldwin, win);
 			}
 		}
 	}
 	/* make sure at least one window is kept open so we don't lose the context, check T42303 */
 	if (!has_match) {
-		wm_window_substitute_old(wm, oldwm->windows.first, wm->windows.first);
+		wm_window_substitute_old(oldwm, wm, oldwm->windows.first, wm->windows.first);
 	}
 
 	wm_close_and_free_all(C, current_wm_list);
@@ -482,10 +486,17 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 
 	CTX_wm_window_set(C, wm->windows.first);
 
-	ED_editors_init(C);
-
 	Main *bmain = CTX_data_main(C);
 	DEG_on_visible_update(bmain, true);
+
+	if (!is_startup_file) {
+		/* When starting up, the UI hasn't been fully initialised yet, and
+		 * this call can trigger icon updates, causing a segfault due to a
+		 * not-yet-initialised ghash for the icons. */
+		wm_event_do_depsgraph(C);
+	}
+
+	ED_editors_init(C);
 
 #ifdef WITH_PYTHON
 	if (is_startup_file) {
@@ -2136,16 +2147,6 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	         RNA_boolean_get(op->ptr, "copy")),
 	        G_FILE_SAVE_COPY);
 
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	SET_FLAG_FROM_TEST(
-	        fileflags,
-	        (RNA_struct_find_property(op->ptr, "use_mesh_compat") &&
-	         RNA_boolean_get(op->ptr, "use_mesh_compat")),
-	        G_FILE_MESH_COMPAT);
-#else
-#  error "don't remove by accident"
-#endif
-
 	if (wm_file_write(C, path, fileflags, op->reports) != 0)
 		return OPERATOR_CANCELLED;
 
@@ -2197,11 +2198,6 @@ void WM_OT_save_as_mainfile(wmOperatorType *ot)
 	prop = RNA_def_boolean(ot->srna, "copy", false, "Save Copy",
 	                "Save a copy of the actual working state but does not make saved file active");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-	RNA_def_boolean(ot->srna, "use_mesh_compat", false, "Legacy Mesh Format",
-	                "Save using legacy mesh format (no ngons) - WARNING: only saves tris and quads, other ngons will "
-	                "be lost (no implicit triangulation)");
-#endif
 }
 
 static int wm_save_mainfile_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))

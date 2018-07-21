@@ -681,8 +681,14 @@ static void ui_item_enum_expand(
 
 	for (item = item_array; item->identifier; item++) {
 		if (!item->identifier[0]) {
-			if (radial && layout_radial) {
-				uiItemS(layout_radial);
+			const EnumPropertyItem *next_item = item + 1;
+			if (next_item->identifier) {
+				if (radial && layout_radial) {
+					uiItemS(layout_radial);
+				}
+				else {
+					uiItemS(block->curlayout);
+				}
 			}
 			continue;
 		}
@@ -2179,32 +2185,13 @@ void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *C, PanelType *pt, const 
 
 void uiItemPopoverPanel(
         uiLayout *layout, bContext *C,
-        int space_id, int region_id, const char *panel_type,
-        const char *name, int icon)
+        const char *panel_type, const char *name, int icon)
 {
-	SpaceType *st = BKE_spacetype_from_id(space_id);
-	if (st == NULL) {
-		RNA_warning("space type not found %d", space_id);
-		return;
-	}
-	ARegionType *art = BKE_regiontype_from_id(st, region_id);
-	if (art == NULL) {
-		RNA_warning("region type not found %d", region_id);
-		return;
-	}
-
-	PanelType *pt;
-	for (pt = art->paneltypes.first; pt; pt = pt->next) {
-		if (STREQ(pt->idname, panel_type)) {
-			break;
-		}
-	}
-
+	PanelType *pt = WM_paneltype_find(panel_type, true);
 	if (pt == NULL) {
-		RNA_warning("area type not found %s", panel_type);
+		RNA_warning("Panel type not found '%s'", panel_type);
 		return;
 	}
-
 	uiItemPopoverPanel_ptr(layout, C, pt, name, icon);
 }
 

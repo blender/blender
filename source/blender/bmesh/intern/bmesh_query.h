@@ -20,8 +20,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BMESH_QUERIES_H__
-#define __BMESH_QUERIES_H__
+#ifndef __BMESH_QUERY_H__
+#define __BMESH_QUERY_H__
 
 /** \file blender/bmesh/intern/bmesh_query.h
  *  \ingroup bmesh
@@ -198,4 +198,4 @@ float bmesh_subd_falloff_calc(const int falloff, float val) ATTR_WARN_UNUSED_RES
 
 #include "bmesh_query_inline.h"
 
-#endif /* __BMESH_QUERIES_H__ */
+#endif /* __BMESH_QUERY_H__ */

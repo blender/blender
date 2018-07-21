@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdio.h>
 
+#include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -250,7 +251,7 @@ void ED_view3d_init_mats_rv3d_gl(struct Object *ob, struct RegionView3D *rv3d)
 	/* we have to multiply instead of loading viewmatob to make
 	 * it work with duplis using displists, otherwise it will
 	 * override the dupli-matrix */
-	gpuMultMatrix(ob->obmat);
+	GPU_matrix_mul(ob->obmat);
 }
 
 #ifdef DEBUG
@@ -292,7 +293,7 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 {
 	wmWindowManager *wm = bmain->wm.first;
 
-	if (v3d->drawtype != OB_RENDER) {
+	if (v3d->shading.type != OB_RENDER) {
 		ARegion *ar;
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
@@ -323,18 +324,10 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->grid = 1.0f;
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;
-	v3d->drawtype = OB_SOLID;
-	v3d->shading.flag = V3D_SHADING_SPECULAR_HIGHLIGHT;
-	v3d->shading.light = V3D_LIGHTING_STUDIO;
-	v3d->shading.shadow_intensity = 0.5f;
-	v3d->shading.xray_alpha = 0.5f;
-	v3d->shading.cavity_valley_factor = 1.0f;
-	v3d->shading.cavity_ridge_factor = 1.0f;
-	copy_v3_fl(v3d->shading.single_color, 0.8f);
+	BKE_screen_view3d_shading_init(&v3d->shading);
 
-	v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
 	v3d->overlay.wireframe_threshold = 0.5f;
-	v3d->overlay.bone_selection_alpha = 0.5f;
+	v3d->overlay.bone_select_alpha = 0.5f;
 	v3d->overlay.texture_paint_mode_opacity = 0.8;
 	v3d->overlay.weight_paint_mode_opacity = 0.8;
 	v3d->overlay.vertex_paint_mode_opacity = 0.8;
@@ -347,8 +340,6 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->lens = 50.0f;
 	v3d->near = 0.01f;
 	v3d->far = 1000.0f;
-
-	v3d->twflag |= U.manipulator_flag & V3D_MANIPULATOR_DRAW;
 
 	v3d->bundle_size = 0.2f;
 	v3d->bundle_drawtype = OB_PLAINAXES;
@@ -433,8 +424,8 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3dn->lay = v3do->localvd->lay & 0xFFFFFF;
 	}
 
-	if (v3dn->drawtype == OB_RENDER)
-		v3dn->drawtype = OB_SOLID;
+	if (v3dn->shading.type == OB_RENDER)
+		v3dn->shading.type = OB_SOLID;
 
 	/* copy or clear inside new stuff */
 
@@ -453,12 +444,12 @@ static void view3d_main_region_init(wmWindowManager *wm, ARegion *ar)
 	ListBase *lb;
 	wmKeyMap *keymap;
 
-	if (ar->manipulator_map == NULL) {
-		ar->manipulator_map = WM_manipulatormap_new_from_type(
-		        &(const struct wmManipulatorMapType_Params) {SPACE_VIEW3D, RGN_TYPE_WINDOW});
+	if (ar->gizmo_map == NULL) {
+		ar->gizmo_map = WM_gizmomap_new_from_type(
+		        &(const struct wmGizmoMapType_Params) {SPACE_VIEW3D, RGN_TYPE_WINDOW});
 	}
 
-	WM_manipulatormap_add_handlers(ar, ar->manipulator_map);
+	WM_gizmomap_add_handlers(ar, ar->gizmo_map);
 
 	/* object ops. */
 
@@ -596,10 +587,23 @@ static bool view3d_ima_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEven
 	return 0;
 }
 
+static bool view3d_ima_bg_is_camera_view(bContext *C)
+{
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	if ((rv3d && (rv3d->persp == RV3D_CAMOB))) {
+		View3D *v3d = CTX_wm_view3d(C);
+		if (v3d && v3d->camera && v3d->camera->type == OB_CAMERA) {
+			return true;
+		}
+	}
+	return false;
+}
+
 static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
-	if (event->ctrl)
-		return false;
+	if (view3d_ima_bg_is_camera_view(C)) {
+		return true;
+	}
 
 	if (!ED_view3d_give_base_under_cursor(C, event->mval)) {
 		return view3d_ima_drop_poll(C, drag, event);
@@ -609,10 +613,14 @@ static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 
 static bool view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
+	if (!view3d_ima_bg_is_camera_view(C)) {
+		return true;
+	}
+
 	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
 
 	/* either holding and ctrl and no object, or dropping to empty */
-	if (((base == NULL) && event->ctrl) ||
+	if ((base == NULL) ||
 	    ((base != NULL) && base->object->type == OB_EMPTY))
 	{
 		return view3d_ima_drop_poll(C, drag, event);
@@ -666,6 +674,25 @@ static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 	}
 }
 
+static void view3d_lightcache_update(bContext *C)
+{
+	PointerRNA op_ptr;
+
+	Scene *scene = CTX_data_scene(C);
+
+	if (strcmp(scene->r.engine, RE_engine_id_BLENDER_EEVEE) != 0) {
+		/* Only do auto bake if eevee is the active engine */
+		return;
+	}
+
+	WM_operator_properties_create(&op_ptr, "SCENE_OT_light_cache_bake");
+	RNA_int_set(&op_ptr, "delay", 200);
+	RNA_enum_set_identifier(C, &op_ptr, "subset", "DIRTY");
+
+	WM_operator_name_call(C, "SCENE_OT_light_cache_bake", WM_OP_INVOKE_DEFAULT, &op_ptr);
+
+	WM_operator_properties_free(&op_ptr);
+}
 
 /* region dropbox definition */
 static void view3d_dropboxes(void)
@@ -682,26 +709,26 @@ static void view3d_dropboxes(void)
 
 static void view3d_widgets(void)
 {
-	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(
-	        &(const struct wmManipulatorMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
+	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
+	        &(const struct wmGizmoMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_spot);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_area);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_target);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_force_field);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_camera_view);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_empty_image);
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_armature_spline);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_spot);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_area);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_lamp_target);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_force_field);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_camera_view);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_empty_image);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_armature_spline);
 
-	WM_manipulatorgrouptype_append(TRANSFORM_WGT_manipulator);
-	WM_manipulatorgrouptype_append(VIEW3D_WGT_xform_cage);
+	WM_gizmogrouptype_append(TRANSFORM_GGT_gizmo);
+	WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
 
-	WM_manipulatorgrouptype_append(VIEW3D_WGT_ruler);
-	WM_manipulatortype_append(VIEW3D_WT_ruler_item);
+	WM_gizmogrouptype_append(VIEW3D_GGT_ruler);
+	WM_gizmotype_append(VIEW3D_GT_ruler_item);
 
-	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_navigate);
-	WM_manipulatortype_append(VIEW3D_WT_navigate_rotate);
+	WM_gizmogrouptype_append_and_link(gzmap_type, VIEW3D_GGT_navigate);
+	WM_gizmotype_append(VIEW3D_GT_navigate_rotate);
 }
 
 
@@ -776,18 +803,18 @@ static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene 
 }
 
 static void view3d_main_region_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *sa, ARegion *ar,
         wmNotifier *wmn, const Scene *scene)
 {
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
-	wmManipulatorMap *mmap = ar->manipulator_map;
+	wmGizmoMap *gzmap = ar->gizmo_map;
 
 	/* context changes */
 	switch (wmn->category) {
 		case NC_WM:
 			if (ELEM(wmn->data, ND_UNDO)) {
-				WM_manipulatormap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_ANIMATION:
@@ -814,14 +841,14 @@ static void view3d_main_region_listener(
 					if (wmn->reference)
 						view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_LAYER:
 					if (wmn->reference) {
 						BKE_screen_view3d_sync(v3d, wmn->reference);
 					}
 					ED_region_tag_redraw(ar);
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_OB_ACTIVE:
 				case ND_OB_SELECT:
@@ -833,7 +860,7 @@ static void view3d_main_region_listener(
 				case ND_MARKERS:
 				case ND_MODE:
 					ED_region_tag_redraw(ar);
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 				case ND_WORLD:
 					/* handled by space_view3d_listener() for v3d access */
@@ -865,7 +892,7 @@ static void view3d_main_region_listener(
 				case ND_POINTCACHE:
 				case ND_LOD:
 					ED_region_tag_redraw(ar);
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 			}
 			switch (wmn->action) {
@@ -878,7 +905,7 @@ static void view3d_main_region_listener(
 			switch (wmn->data) {
 				case ND_SELECT:
 				{
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					ATTR_FALLTHROUGH;
 				}
 				case ND_DATA:
@@ -959,9 +986,12 @@ static void view3d_main_region_listener(
 					break;
 				case ND_LIGHTING_DRAW:
 					ED_region_tag_redraw(ar);
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					break;
 			}
+			break;
+		case NC_LIGHTPROBE:
+			ED_area_tag_refresh(sa);
 			break;
 		case NC_IMAGE:
 			/* this could be more fine grained checks if we had
@@ -982,7 +1012,7 @@ static void view3d_main_region_listener(
 					rv3d->rflag |= RV3D_GPULIGHT_UPDATE;
 				}
 				ED_region_tag_redraw(ar);
-				WM_manipulatormap_tag_refresh(mmap);
+				WM_gizmomap_tag_refresh(gzmap);
 			}
 			break;
 		case NC_ID:
@@ -998,7 +1028,7 @@ static void view3d_main_region_listener(
 				case ND_LAYOUTBROWSE:
 				case ND_LAYOUTDELETE:
 				case ND_LAYOUTSET:
-					WM_manipulatormap_tag_refresh(mmap);
+					WM_gizmomap_tag_refresh(gzmap);
 					ED_region_tag_redraw(ar);
 					break;
 				case ND_LAYER:
@@ -1033,11 +1063,11 @@ static void view3d_main_region_message_subscribe(
 		&RNA_Window,
 
 		/* These object have properties that impact drawing. */
-		&RNA_AreaLamp,
+		&RNA_AreaLight,
 		&RNA_Camera,
-		&RNA_Lamp,
+		&RNA_Light,
 		&RNA_Speaker,
-		&RNA_SunLamp,
+		&RNA_SunLight,
 
 		/* General types the 3D view depends on. */
 		&RNA_Object,
@@ -1150,7 +1180,7 @@ static void view3d_header_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void view3d_header_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -1228,7 +1258,7 @@ static void view3d_buttons_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void view3d_buttons_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -1358,8 +1388,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *ar)
 
 /* area (not region) level listener */
 static void space_view3d_listener(
-        bScreen *UNUSED(sc), ScrArea *sa, struct wmNotifier *wmn, Scene *UNUSED(scene),
-        WorkSpace *UNUSED(workspace))
+        wmWindow *UNUSED(win), ScrArea *sa, struct wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	View3D *v3d = sa->spacedata.first;
 
@@ -1385,11 +1414,22 @@ static void space_view3d_listener(
 		case NC_MATERIAL:
 			switch (wmn->data) {
 				case ND_NODES:
-					if (v3d->drawtype == OB_TEXTURE)
+					if (v3d->shading.type == OB_TEXTURE)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}
 			break;
+	}
+}
+
+static void space_view3d_refresh(const bContext *C, ScrArea *UNUSED(sa))
+{
+	Scene *scene = CTX_data_scene(C);
+	LightCache *lcache = scene->eevee.light_cache;
+
+	if (lcache && (lcache->flag & LIGHTCACHE_UPDATE_AUTO) != 0) {
+		lcache->flag &= ~LIGHTCACHE_UPDATE_AUTO;
+		view3d_lightcache_update((bContext *)C);
 	}
 }
 
@@ -1493,11 +1533,12 @@ void ED_spacetype_view3d(void)
 	st->free = view3d_free;
 	st->init = view3d_init;
 	st->listener = space_view3d_listener;
+	st->refresh = space_view3d_refresh;
 	st->duplicate = view3d_duplicate;
 	st->operatortypes = view3d_operatortypes;
 	st->keymap = view3d_keymap;
 	st->dropboxes = view3d_dropboxes;
-	st->manipulators = view3d_widgets;
+	st->gizmos = view3d_widgets;
 	st->context = view3d_context;
 	st->id_remap = view3d_id_remap;
 

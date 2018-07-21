@@ -174,7 +174,7 @@ def bake_action_iter(
 
             # Bendy Bones
             if pbone.bone.bbone_segments > 1:
-                bbones[name] = {bb_prop : getattr(pbone, bb_prop) for bb_prop in BBONE_PROPS}
+                bbones[name] = {bb_prop: getattr(pbone, bb_prop) for bb_prop in BBONE_PROPS}
         return matrix, bbones
 
     if do_parents_clear:

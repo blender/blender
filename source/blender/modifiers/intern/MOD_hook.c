@@ -63,12 +63,12 @@ static void initData(ModifierData *md)
 	hmd->flag = 0;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const HookModifierData *hmd = (const HookModifierData *) md;
 	HookModifierData *thmd = (HookModifierData *) target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	thmd->curfalloff = curvemapping_copy(hmd->curfalloff);
 
@@ -96,7 +96,7 @@ static void freeData(ModifierData *md)
 	MEM_SAFE_FREE(hmd->indexar);
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 

@@ -114,9 +114,9 @@ void animviz_free_motionpath_cache(bMotionPath *mpath)
 	if (mpath->points)
 		MEM_freeN(mpath->points);
 
-	GWN_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
-	GWN_BATCH_DISCARD_SAFE(mpath->batch_line);
-	GWN_BATCH_DISCARD_SAFE(mpath->batch_points);
+	GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
+	GPU_BATCH_DISCARD_SAFE(mpath->batch_line);
+	GPU_BATCH_DISCARD_SAFE(mpath->batch_points);
 
 	/* reset the relevant parameters */
 	mpath->points = NULL;
@@ -495,9 +495,9 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		BLI_dlrbTree_free(&mpt->keys);
 
 		/* Free previous batches to force update. */
-		GWN_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
-		GWN_BATCH_DISCARD_SAFE(mpath->batch_line);
-		GWN_BATCH_DISCARD_SAFE(mpath->batch_points);
+		GPU_VERTBUF_DISCARD_SAFE(mpath->points_vbo);
+		GPU_BATCH_DISCARD_SAFE(mpath->batch_line);
+		GPU_BATCH_DISCARD_SAFE(mpath->batch_points);
 	}
 }
 

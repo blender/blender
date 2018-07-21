@@ -30,10 +30,15 @@ class MyCustomSocket(NodeSocket):
         ('DOWN', "Down", "Where your feet are"),
         ('UP', "Up", "Where your head should be"),
         ('LEFT', "Left", "Not right"),
-        ('RIGHT', "Right", "Not left")
+        ('RIGHT', "Right", "Not left"),
     )
 
-    my_enum_prop = bpy.props.EnumProperty(name="Direction", description="Just an example", items=my_items, default='UP')
+    my_enum_prop: bpy.props.EnumProperty(
+        name="Direction",
+        description="Just an example",
+        items=my_items,
+        default='UP',
+    )
 
     # Optional function for drawing the socket input value
     def draw(self, context, layout, node, text):
@@ -71,8 +76,8 @@ class MyCustomNode(Node, MyCustomTreeNode):
     # These work just like custom properties in ID data blocks
     # Extensive information can be found under
     # http://wiki.blender.org/index.php/Doc:2.6/Manual/Extensions/Python/Properties
-    my_string_prop = bpy.props.StringProperty()
-    my_float_prop = bpy.props.FloatProperty(default=3.1415926)
+    my_string_prop: bpy.props.StringProperty()
+    my_float_prop: bpy.props.FloatProperty(default=3.1415926)
 
     # === Optional Functions ===
     # Initialization function, called when a new node is created.

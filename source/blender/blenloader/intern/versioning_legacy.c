@@ -380,7 +380,6 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 					iuser->sfra = nia->sfra;
 					iuser->offset = nia->nr-1;
 					iuser->cycl = nia->cyclic;
-					iuser->fie_ima = 2;
 					iuser->ok = 1;
 
 					node->storage = iuser;
@@ -389,7 +388,6 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 				else {
 					ImageUser *iuser = node->storage = MEM_callocN(sizeof(ImageUser), "node image user");
 					iuser->sfra = 1;
-					iuser->fie_ima = 2;
 					iuser->ok = 1;
 				}
 			}
@@ -1033,7 +1031,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 						SpaceButs *sbuts = (SpaceButs *) sl;
 
 						sbuts->v2d.maxzoom = 1.2f;
-						sbuts->align = 1;	/* horizontal default */
 
 						if (sbuts->mainb == BUTS_LAMP) {
 							sbuts->mainb = CONTEXT_SHADING;
@@ -1107,33 +1104,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 					}
 				}
 			}
-		}
-	}
-
-	if (bmain->versionfile <= 231) {
-		/* new bit flags for showing/hiding grid floor and axes */
-		bScreen *sc = bmain->screen.first;
-
-		while (sc) {
-			ScrArea *sa = sc->areabase.first;
-			while (sa) {
-				SpaceLink *sl = sa->spacedata.first;
-				while (sl) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D*) sl;
-
-						if (v3d->gridflag == 0) {
-							v3d->gridflag |= V3D_SHOW_X;
-							v3d->gridflag |= V3D_SHOW_Y;
-							v3d->gridflag |= V3D_SHOW_FLOOR;
-							v3d->gridflag &= ~V3D_SHOW_Z;
-						}
-					}
-					sl = sl->next;
-				}
-				sa = sa->next;
-			}
-			sc = sc->id.next;
 		}
 	}
 
@@ -1845,13 +1815,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 					ima = blo_do_versions_newlibadr(fd, lib, tex->ima);
 					if (tex->imaflag & TEX_ANIM5_)
 						ima->source = IMA_SRC_MOVIE;
-					if (tex->imaflag & TEX_FIELDS_)
-						ima->flag |= IMA_FIELDS;
-					if (tex->imaflag & TEX_STD_FIELD_)
-						ima->flag |= IMA_STD_FIELD;
 				}
 				tex->iuser.frames = tex->frames;
-				tex->iuser.fie_ima = (char)tex->fie_ima;
 				tex->iuser.offset = tex->offset;
 				tex->iuser.sfra = tex->sfra;
 				tex->iuser.cycl = (tex->imaflag & TEX_ANIMCYCLIC_)!=0;
@@ -1865,18 +1830,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
 			for (ma = bmain->mat.first; ma; ma = ma->id.next)
 				if (ma->nodetree)
 					do_version_ntree_242_2(ma->nodetree);
-
-			for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-				ScrArea *sa;
-				for (sa = sc->areabase.first; sa; sa = sa->next) {
-					SpaceLink *sl;
-					for (sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_IMAGE) {
-							((SpaceImage *)sl)->iuser.fie_ima = 2;
-						}
-					}
-				}
-			}
 		}
 
 		if (bmain->subversionfile < 4) {

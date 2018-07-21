@@ -370,7 +370,7 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
 	/* by default we don't change the item position */
 	te_dragged->drag_data->insert_handle = te_dragged;
 	/* unset highlighted tree element, dragged one will be highlighted instead */
-	outliner_set_flag(&soops->tree, TSE_HIGHLIGHTED, false);
+	outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
 
 	ED_region_tag_redraw_no_rebuild(ar);
 
@@ -431,7 +431,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_show_hierarchy);
 	WM_operatortype_append(OUTLINER_OT_scroll_page);
 
-	WM_operatortype_append(OUTLINER_OT_selected_toggle);
+	WM_operatortype_append(OUTLINER_OT_select_all);
 	WM_operatortype_append(OUTLINER_OT_expanded_toggle);
 
 	WM_operatortype_append(OUTLINER_OT_keyingset_add_selected);
@@ -467,7 +467,7 @@ static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
 		{OUTLINER_ITEM_DRAG_CONFIRM, "CONFIRM", 0, "Confirm/Drop", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	const char *map_name = "Outliner Item Drap & Drop Modal Map";
+	const char *map_name = "Outliner Item Drag & Drop Modal Map";
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, map_name);
 
@@ -542,26 +542,33 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_show_one_level", PADMINUS, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "open", false); /* close */
 
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_selected_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_expanded_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", AKEY, KM_PRESS, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
+	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	WM_keymap_add_item(keymap, "OUTLINER_OT_expanded_toggle", AKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* keying sets - only for databrowse */
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_add_selected", KKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_keyingset_remove_selected", KKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_keyingset_add_selected", KKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_keyingset_remove_selected", KKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_keyframe_delete", IKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
+	/* Note: was D, Alt-D, keep these free for duplicate. */
+	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", DELKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_delete", DELKEY, KM_PRESS, 0, 0);
 
-	WM_keymap_verify_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "select", false);

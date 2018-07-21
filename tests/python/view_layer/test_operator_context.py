@@ -27,19 +27,19 @@ class UnitTesting(ViewLayerTesting):
             bl_label = "Sample Operator"
 
             view_layer = bpy.props.StringProperty(
-                    default="Not Set",
-                    options={'SKIP_SAVE'},
-                    )
+                default="Not Set",
+                options={'SKIP_SAVE'},
+            )
 
             scene_collection = bpy.props.StringProperty(
-                    default="",
-                    options={'SKIP_SAVE'},
-                    )
+                default="",
+                options={'SKIP_SAVE'},
+            )
 
             use_verbose = bpy.props.BoolProperty(
-                    default=False,
-                    options={'SKIP_SAVE'},
-                    )
+                default=False,
+                options={'SKIP_SAVE'},
+            )
 
             def execute(self, context):
                 view_layer = context.view_layer

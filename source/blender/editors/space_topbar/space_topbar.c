@@ -151,7 +151,7 @@ static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 	ED_region_header_init(ar);
 }
 
-static void topbar_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+static void topbar_main_region_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
                                         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -171,7 +171,7 @@ static void topbar_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 	}
 }
 
-static void topbar_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+static void topbar_header_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
                                    wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */

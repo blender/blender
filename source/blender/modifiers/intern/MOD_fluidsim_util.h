@@ -36,16 +36,16 @@
 struct Object;
 struct Scene;
 struct FluidsimModifierData;
-struct DerivedMesh;
+struct Mesh;
 struct ModifierEvalContext;
 
 /* new fluid-modifier interface */
 void fluidsim_init(struct FluidsimModifierData *fluidmd);
 void fluidsim_free(struct FluidsimModifierData *fluidmd);
 
-struct DerivedMesh *fluidsimModifier_do(
+struct Mesh *fluidsimModifier_do(
         struct FluidsimModifierData *fluidmd,
         const struct ModifierEvalContext *ctx,
-        struct DerivedMesh *dm);
+        struct Mesh *dm);
 
 #endif

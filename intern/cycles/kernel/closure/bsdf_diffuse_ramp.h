@@ -46,7 +46,7 @@ typedef ccl_addr_space struct DiffuseRampBsdf {
 ccl_device float3 bsdf_diffuse_ramp_get_color(const float3 colors[8], float pos)
 {
 	int MAXCOLORS = 8;
-	
+
 	float npos = pos * (float)(MAXCOLORS - 1);
 	int ipos = float_to_int(npos);
 	if(ipos < 0)
@@ -99,7 +99,7 @@ ccl_device int bsdf_diffuse_ramp_sample(const ShaderClosure *sc, float3 Ng, floa
 	}
 	else
 		*pdf = 0.0f;
-	
+
 	return LABEL_REFLECT|LABEL_DIFFUSE;
 }
 

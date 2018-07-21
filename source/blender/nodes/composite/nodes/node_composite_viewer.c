@@ -49,7 +49,6 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode *node)
 	ImageUser *iuser = MEM_callocN(sizeof(ImageUser), "node image user");
 	node->storage = iuser;
 	iuser->sfra = 1;
-	iuser->fie_ima = 2;
 	iuser->ok = 1;
 	node->custom3 = 0.5f;
 	node->custom4 = 0.5f;

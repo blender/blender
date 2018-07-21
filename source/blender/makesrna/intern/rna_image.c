@@ -72,17 +72,17 @@ static const EnumPropertyItem image_source_items[] = {
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
-static int rna_Image_is_stereo_3d_get(PointerRNA *ptr)
+static bool rna_Image_is_stereo_3d_get(PointerRNA *ptr)
 {
 	return BKE_image_is_stereo((Image *)ptr->data);
 }
 
-static int rna_Image_is_multiview_get(PointerRNA *ptr)
+static bool rna_Image_is_multiview_get(PointerRNA *ptr)
 {
 	return BKE_image_is_multiview((Image *)ptr->data);
 }
 
-static int rna_Image_dirty_get(PointerRNA *ptr)
+static bool rna_Image_dirty_get(PointerRNA *ptr)
 {
 	return BKE_image_is_dirty((Image *)ptr->data);
 }
@@ -97,27 +97,6 @@ static void rna_Image_source_set(PointerRNA *ptr, int value)
 		BKE_image_signal(G_MAIN, ima, NULL, IMA_SIGNAL_SRC_CHANGE);
 		DEG_id_tag_update(&ima->id, 0);
 	}
-}
-
-static void rna_Image_fields_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Image *ima = ptr->id.data;
-	ImBuf *ibuf;
-	void *lock;
-
-	ibuf = BKE_image_acquire_ibuf(ima, NULL, &lock);
-
-	if (ibuf) {
-		short nr = 0;
-
-		if (!(ima->flag & IMA_FIELDS) && (ibuf->flags & IB_fields)) nr = 1;
-		if ((ima->flag & IMA_FIELDS) && !(ibuf->flags & IB_fields)) nr = 1;
-
-		if (nr)
-			BKE_image_signal(bmain, ima, NULL, IMA_SIGNAL_FREE);
-	}
-
-	BKE_image_release_ibuf(ima, ibuf, lock);
 }
 
 static void rna_Image_reload_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -240,7 +219,7 @@ static void rna_Image_file_format_set(PointerRNA *ptr, int value)
 	}
 }
 
-static int rna_Image_has_data_get(PointerRNA *ptr)
+static bool rna_Image_has_data_get(PointerRNA *ptr)
 {
 	Image *image = (Image *)ptr->data;
 
@@ -434,7 +413,7 @@ static int rna_Image_channels_get(PointerRNA *ptr)
 	return channels;
 }
 
-static int rna_Image_is_float_get(PointerRNA *ptr)
+static bool rna_Image_is_float_get(PointerRNA *ptr)
 {
 	Image *im = (Image *)ptr->data;
 	ImBuf *ibuf;
@@ -562,13 +541,6 @@ static void rna_def_imageuser(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
-	prop = RNA_def_property(srna, "fields_per_frame", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "fie_ima");
-	RNA_def_property_range(prop, 1, 200);
-	RNA_def_property_ui_text(prop, "Fields per Frame", "Number of fields per rendered frame (2 fields is 1 image)");
-	RNA_def_property_update(prop, 0, "rna_ImageUser_update");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
 	prop = RNA_def_property(srna, "multilayer_layer", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "layer");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE); /* image_multi_cb */
@@ -672,11 +644,6 @@ static void rna_def_image(BlenderRNA *brna)
 		{IMA_TYPE_COMPOSITE, "COMPOSITING", 0, "Compositing", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static const EnumPropertyItem prop_field_order_items[] = {
-		{0, "EVEN", 0, "Upper First", "Upper field first"},
-		{IMA_STD_FIELD, "ODD", 0, "Lower First", "Lower field first"},
-		{0, NULL, 0, NULL, NULL}
-	};
 	static const EnumPropertyItem alpha_mode_items[] = {
 		{IMA_ALPHA_STRAIGHT, "STRAIGHT", 0, "Straight", "Transparent RGB and alpha pixels are unmodified"},
 		{IMA_ALPHA_PREMUL, "PREMUL", 0, "Premultiplied", "Transparent RGB pixels are multiplied by the alpha channel"},
@@ -726,22 +693,6 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "ImagePackedFile");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Packed Files", "Collection of packed images");
-
-	prop = RNA_def_property(srna, "field_order", PROP_ENUM, PROP_NONE);
-	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, prop_field_order_items);
-	RNA_def_property_ui_text(prop, "Field Order", "Order of video fields (select which lines are displayed first)");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, NULL);
-
-	/* booleans */
-	prop = RNA_def_property(srna, "use_fields", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", IMA_FIELDS);
-	RNA_def_property_ui_text(prop, "Fields", "Use fields of the image");
-	RNA_def_property_update(prop, NC_IMAGE | ND_DISPLAY, "rna_Image_fields_update");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-
 
 	prop = RNA_def_property(srna, "use_view_as_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);

@@ -39,20 +39,20 @@ BLACKLIST = {
 
     # The unpacked wheel is only loaded when actually used, not directly on import:
     os.path.join("io_blend_utils", "blender_bam-unpacked.whl"),
-    }
+}
 
 # Some modules need to add to the `sys.path`.
 MODULE_SYS_PATHS = {
     # Runs in a Python subprocess, so its expected its basedir can be imported.
     "io_blend_utils.blendfile_pack": ".",
-    }
+}
 
 if not bpy.app.build_options.freestyle:
     BLACKLIST.add("render_freestyle_svg")
 
 BLACKLIST_DIRS = (
     os.path.join(bpy.utils.resource_path('USER'), "scripts"),
-    ) + tuple(addon_utils.paths()[1:])
+) + tuple(addon_utils.paths()[1:])
 
 
 def module_names_recursive(mod_dir, *, parent=None):
@@ -168,7 +168,7 @@ def load_modules():
         os.sep + "presets" + os.sep,
         os.sep + "templates" + os.sep,
     ] + ([(os.sep + f + os.sep) for f in BLACKLIST] +
-         [(os.sep + f + ".py")  for f in BLACKLIST])
+         [(os.sep + f + ".py") for f in BLACKLIST])
 
     #
     # now submodules
@@ -185,7 +185,7 @@ def load_modules():
                 sys.path.extend([
                     os.path.normpath(os.path.join(mod_dir, f))
                     for f in MODULE_SYS_PATHS.get(mod_name_full, ())
-                    ])
+                ])
 
                 try:
                     __import__(mod_name_full)
@@ -247,6 +247,7 @@ def load_modules():
 def main():
     load_addons()
     load_modules()
+
 
 if __name__ == "__main__":
     # So a python error exits(1)

@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -32,29 +32,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifndef __KERNEL_SSE2__
-ccl_device int quick_floor(float x)
-{
-	return float_to_int(x) - ((x < 0) ? 1 : 0);
-}
-#else
+#ifdef __KERNEL_SSE2__
 ccl_device_inline ssei quick_floor_sse(const ssef& x)
 {
 	ssei b = truncatei(x);
 	ssei isneg = cast((x < ssef(0.0f)).m128);
 	return b + isneg; // unsaturated add 0xffffffff is the same as subtract -1
-}
-#endif
-
-#ifndef __KERNEL_SSE2__
-ccl_device float bits_to_01(uint bits)
-{
-	return bits * (1.0f/(float)0xFFFFFFFF);
-}
-#else
-ccl_device_inline ssef bits_to_01_sse(const ssei& bits)
-{
-	return uint32_to_float(bits) * ssef(1.0f/(float)0xFFFFFFFF);
 }
 #endif
 
@@ -120,7 +103,7 @@ ccl_device int imod(int a, int b)
 	return a < 0 ? a + b : a;
 }
 
-ccl_device uint phash(int kx, int ky, int kz, int3 p) 
+ccl_device uint phash(int kx, int ky, int kz, int3 p)
 {
 	return hash(imod(kx, p.x), imod(ky, p.y), imod(kz, p.z));
 }
@@ -129,7 +112,7 @@ ccl_device uint phash(int kx, int ky, int kz, int3 p)
 #ifndef __KERNEL_SSE2__
 ccl_device float floorfrac(float x, int* i)
 {
-	*i = quick_floor(x);
+	*i = quick_floor_to_int(x);
 	return x - *i;
 }
 #else
@@ -304,34 +287,27 @@ ccl_device float snoise(float3 p)
 }
 
 /* cell noise */
-#ifndef __KERNEL_SSE2__
-ccl_device_noinline float cellnoise(float3 p)
+ccl_device float cellnoise(float3 p)
 {
-	uint ix = quick_floor(p.x);
-	uint iy = quick_floor(p.y);
-	uint iz = quick_floor(p.z);
-
-	return bits_to_01(hash(ix, iy, iz));
+	int3 ip = quick_floor_to_int3(p);
+	return bits_to_01(hash(ip.x, ip.y, ip.z));
 }
 
-ccl_device float3 cellnoise_color(float3 p)
+ccl_device float3 cellnoise3(float3 p)
 {
-	float r = cellnoise(p);
-	float g = cellnoise(make_float3(p.y, p.x, p.z));
-	float b = cellnoise(make_float3(p.y, p.z, p.x));
-
+	int3 ip = quick_floor_to_int3(p);
+#ifndef __KERNEL_SSE__
+	float r = bits_to_01(hash(ip.x, ip.y, ip.z));
+	float g = bits_to_01(hash(ip.y, ip.x, ip.z));
+	float b = bits_to_01(hash(ip.y, ip.z, ip.x));
 	return make_float3(r, g, b);
-}
 #else
-ccl_device ssef cellnoise_color(const ssef& p)
-{
-	ssei ip = quick_floor_sse(p);
-	ssei ip_yxz = shuffle<1, 0, 2, 3>(ip);
-	ssei ip_xyy = shuffle<0, 1, 1, 3>(ip);
-	ssei ip_zzx = shuffle<2, 2, 0, 3>(ip);
-	return bits_to_01_sse(hash_sse(ip_xyy, ip_yxz, ip_zzx));
-}
+	ssei ip_yxz = shuffle<1, 0, 2, 3>(ssei(ip.m128));
+	ssei ip_xyy = shuffle<0, 1, 1, 3>(ssei(ip.m128));
+	ssei ip_zzx = shuffle<2, 2, 0, 3>(ssei(ip.m128));
+	ssei bits = hash_sse(ip_xyy, ip_yxz, ip_zzx);
+	return float3(uint32_to_float(bits) * ssef(1.0f/(float)0xFFFFFFFF));
 #endif
+}
 
 CCL_NAMESPACE_END
-

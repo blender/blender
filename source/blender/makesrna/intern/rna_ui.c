@@ -205,6 +205,8 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	BLI_freelistN(&pt->children);
 	BLI_freelinkN(&art->paneltypes, pt);
 
+	WM_paneltype_remove(pt);
+
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
@@ -312,6 +314,8 @@ static StructRNA *rna_Panel_register(
 			BLI_strncpy(pt->owner_id, owner_id, sizeof(pt->owner_id));
 		}
 	}
+
+	WM_paneltype_add(pt);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
@@ -851,22 +855,22 @@ static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 
 /* UILayout */
 
-static int rna_UILayout_active_get(PointerRNA *ptr)
+static bool rna_UILayout_active_get(PointerRNA *ptr)
 {
 	return uiLayoutGetActive(ptr->data);
 }
 
-static void rna_UILayout_active_set(PointerRNA *ptr, int value)
+static void rna_UILayout_active_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetActive(ptr->data, value);
 }
 
-static int rna_UILayout_alert_get(PointerRNA *ptr)
+static bool rna_UILayout_alert_get(PointerRNA *ptr)
 {
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_alert_set(PointerRNA *ptr, int value)
+static void rna_UILayout_alert_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
@@ -881,12 +885,12 @@ static int rna_UILayout_op_context_get(PointerRNA *ptr)
 	return uiLayoutGetOperatorContext(ptr->data);
 }
 
-static int rna_UILayout_enabled_get(PointerRNA *ptr)
+static bool rna_UILayout_enabled_get(PointerRNA *ptr)
 {
 	return uiLayoutGetEnabled(ptr->data);
 }
 
-static void rna_UILayout_enabled_set(PointerRNA *ptr, int value)
+static void rna_UILayout_enabled_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetEnabled(ptr->data, value);
 }
@@ -897,12 +901,12 @@ static int rna_UILayout_red_alert_get(PointerRNA *ptr)
 	return uiLayoutGetRedAlert(ptr->data);
 }
 
-static void rna_UILayout_red_alert_set(PointerRNA *ptr, int value)
+static void rna_UILayout_red_alert_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetRedAlert(ptr->data, value);
 }
 
-static int rna_UILayout_keep_aspect_get(PointerRNA *ptr)
+static bool rna_UILayout_keep_aspect_get(PointerRNA *ptr)
 {
 	return uiLayoutGetKeepAspect(ptr->data);
 }
@@ -953,22 +957,22 @@ static void rna_UILayout_emboss_set(PointerRNA *ptr, int value)
 	uiLayoutSetEmboss(ptr->data, value);
 }
 
-static int rna_UILayout_property_split_get(PointerRNA *ptr)
+static bool rna_UILayout_property_split_get(PointerRNA *ptr)
 {
 	return uiLayoutGetPropSep(ptr->data);
 }
 
-static void rna_UILayout_property_split_set(PointerRNA *ptr, int value)
+static void rna_UILayout_property_split_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetPropSep(ptr->data, value);
 }
 
-static int rna_UILayout_property_decorate_get(PointerRNA *ptr)
+static bool rna_UILayout_property_decorate_get(PointerRNA *ptr)
 {
 	return uiLayoutGetPropDecorate(ptr->data);
 }
 
-static void rna_UILayout_property_decorate_set(PointerRNA *ptr, int value)
+static void rna_UILayout_property_decorate_set(PointerRNA *ptr, bool value)
 {
 	uiLayoutSetPropDecorate(ptr->data, value);
 }
@@ -1164,6 +1168,11 @@ static void rna_def_panel(BlenderRNA *brna)
 	RNA_def_property_string_sdna(prop, NULL, "type->parent_id");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Parent ID Name", "If this is set, the panel becomes a subpanel");
+
+	prop = RNA_def_property(srna, "bl_ui_units_x", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "type->ui_units_x");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+	RNA_def_property_ui_text(prop, "Units X", "When set, defines popup panel width");
 
 	prop = RNA_def_property(srna, "use_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PNL_PIN);

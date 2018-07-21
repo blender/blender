@@ -178,7 +178,7 @@ void EEVEE_motion_blur_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	EEVEE_EffectsInfo *effects = stl->effects;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	if ((effects->enabled_effects & EFFECT_MOTION_BLUR) != 0) {
 		psl->motion_blur = DRW_pass_create("Motion Blur", DRW_STATE_WRITE_COLOR);

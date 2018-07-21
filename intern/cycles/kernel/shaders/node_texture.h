@@ -90,11 +90,11 @@ void voronoi(point p, float e, float da[4], point pa[4])
 float safe_noise(point p, string type)
 {
 	float f = 0.0;
-	
+
 	/* Perlin noise in range -1..1 */
 	if (type == "signed")
 		f = noise("perlin", p);
-	
+
 	/* Perlin noise in range 0..1 */
 	else
 		f = noise(p);
@@ -102,7 +102,7 @@ float safe_noise(point p, string type)
 	/* can happen for big coordinates, things even out to 0.5 then anyway */
 	if (!isfinite(f))
 		return 0.5;
-	
+
 	return f;
 }
 
@@ -114,7 +114,7 @@ float noise_turbulence(point p, float details, int hard)
 	float amp = 1.0;
 	float sum = 0.0;
 	int i, n;
-	
+
 	float octaves = clamp(details, 0.0, 16.0);
 	n = (int)octaves;
 
@@ -128,7 +128,7 @@ float noise_turbulence(point p, float details, int hard)
 		amp *= 0.5;
 		fscale *= 2.0;
 	}
-	
+
 	float rmd = octaves - floor(octaves);
 
 	if (rmd != 0.0) {
@@ -160,7 +160,6 @@ float nonzero(float f, float eps)
 		r = sign(f) * eps;
 	else
 		r = f;
-	
+
 	return r;
 }
-

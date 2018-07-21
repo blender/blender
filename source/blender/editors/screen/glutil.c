@@ -140,9 +140,9 @@ static int get_cached_work_texture(int *r_w, int *r_h)
 
 static void immDrawPixelsTexSetupAttributes(IMMDrawPixelsTexState *state)
 {
-	Gwn_VertFormat *vert_format = immVertexFormat();
-	state->pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	state->texco = GWN_vertformat_attr_add(vert_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *vert_format = immVertexFormat();
+	state->pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	state->texco = GPU_vertformat_attr_add(vert_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 }
 
 /* To be used before calling immDrawPixelsTex
@@ -297,7 +297,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 					glTexSubImage2D(GL_TEXTURE_2D, 0, subpart_w, subpart_h, 1, 1, format, GL_UNSIGNED_BYTE, &uc_rect[(((size_t)subpart_y) * offset_y + subpart_h - 1) * img_w * components + (subpart_x * offset_x + subpart_w - 1) * components]);
 			}
 
-			immBegin(GWN_PRIM_TRI_FAN, 4);
+			immBegin(GPU_PRIM_TRI_FAN, 4);
 			immAttrib2f(texco, (float)(0 + offset_left) / tex_w, (float)(0 + offset_bot) / tex_h);
 			immVertex2f(pos, rast_x + (float)offset_left * xzoom, rast_y + (float)offset_bot * yzoom);
 
@@ -364,7 +364,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		// glPolygonOffset(-1.0, -1.0);
 
 		/* hack below is to mimic polygon offset */
-		gpuGetProjectionMatrix(winmat);
+		GPU_matrix_projection_get(winmat);
 
 		/* dist is from camera to center point */
 
@@ -401,7 +401,7 @@ void bglPolygonOffset(float viewdist, float dist)
 		offset = 0.0;
 	}
 
-	gpuLoadProjectionMatrix(winmat);
+	GPU_matrix_projection_set(winmat);
 }
 
 /* **** Color management helper functions for GLSL display/transform ***** */
@@ -551,28 +551,28 @@ void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, flo
 	delta_y = min_ff(delta_y, border->ymax - border->ymin);
 
 	/* left bottom corner */
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
+	immBegin(GPU_PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmin, border->ymin + delta_y);
 	immVertex2f(pos, border->xmin, border->ymin);
 	immVertex2f(pos, border->xmin + delta_x, border->ymin);
 	immEnd();
 
 	/* left top corner */
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
+	immBegin(GPU_PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmin, border->ymax - delta_y);
 	immVertex2f(pos, border->xmin, border->ymax);
 	immVertex2f(pos, border->xmin + delta_x, border->ymax);
 	immEnd();
 
 	/* right bottom corner */
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
+	immBegin(GPU_PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmax - delta_x, border->ymin);
 	immVertex2f(pos, border->xmax, border->ymin);
 	immVertex2f(pos, border->xmax, border->ymin + delta_y);
 	immEnd();
 
 	/* right top corner */
-	immBegin(GWN_PRIM_LINE_STRIP, 3);
+	immBegin(GPU_PRIM_LINE_STRIP, 3);
 	immVertex2f(pos, border->xmax - delta_x, border->ymax);
 	immVertex2f(pos, border->xmax, border->ymax);
 	immVertex2f(pos, border->xmax, border->ymax - delta_y);

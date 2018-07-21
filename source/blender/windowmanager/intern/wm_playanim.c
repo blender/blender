@@ -28,8 +28,11 @@
 /** \file blender/windowmanager/intern/wm_playanim.c
  *  \ingroup wm
  *
+ * Animation player for image sequences & video's with sound support.
+ * Launched in a separate process from Blender's #RENDER_OT_play_rendered_anim
+ *
  * \note This file uses ghost directly and none of the WM definitions.
- *       this could be made into its own module, alongside creator/
+ * this could be made into its own module, alongside creator.
  */
 
 #include <sys/types.h>
@@ -66,7 +69,7 @@
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
-#include "GPU_batch.h"
+#include "GPU_context.h"
 #include "GPU_init_exit.h"
 
 #include "DNA_scene_types.h"
@@ -139,6 +142,9 @@ typedef struct PlayState {
 
 	/* restarts player for file drop */
 	char dropped_file[FILE_MAX];
+
+	bool need_frame_update;
+	int frame_cursor_x;
 } PlayState;
 
 /* for debugging */
@@ -181,7 +187,7 @@ typedef enum eWS_Qual {
 static struct WindowStateGlobal {
 	GHOST_SystemHandle ghost_system;
 	void *ghost_window;
-	Gwn_Context *gwn_context;
+	GPUContext *gpu_context;
 
 	/* events */
 	eWS_Qual qual;
@@ -198,8 +204,8 @@ static void playanim_window_get_size(int *r_width, int *r_height)
 static void playanim_gl_matrix(void)
 {
 	/* unified matrix, note it affects offset for drawing */
-	/* note! cannot use gpuOrtho2D here because shader ignores. */
-	gpuOrtho(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
+	/* note! cannot use GPU_matrix_ortho_2d_set here because shader ignores. */
+	GPU_matrix_ortho_set(0.0f, 1.0f, 0.0f, 1.0f, -1.0, 1.0f);
 }
 
 /* implementation */
@@ -363,25 +369,25 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 		float fac = ps->picture->frame / (double)(((PlayAnimPict *)picsbase.last)->frame - ((PlayAnimPict *)picsbase.first)->frame);
 
 		fac = 2.0f * fac - 1.0f;
-		gpuPushProjectionMatrix();
-		gpuLoadIdentityProjectionMatrix();
-		gpuPushMatrix();
-		gpuLoadIdentity();
+		GPU_matrix_push_projection();
+		GPU_matrix_identity_projection_set();
+		GPU_matrix_push();
+		GPU_matrix_identity_set();
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor3ub(0, 255, 0);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, fac, -1.0f);
 		immVertex2f(pos, fac,  1.0f);
 		immEnd();
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
-		gpuPopProjectionMatrix();
+		GPU_matrix_pop();
+		GPU_matrix_pop_projection();
 	}
 
 	GHOST_SwapWindowBuffers(g_WS.ghost_window);
@@ -558,8 +564,18 @@ static void update_sound_fps(void)
 #endif
 }
 
-static void change_frame(PlayState *ps, int cx)
+static void tag_change_frame(PlayState *ps, int cx)
 {
+	ps->need_frame_update = true;
+	ps->frame_cursor_x = cx;
+}
+
+static void change_frame(PlayState *ps)
+{
+	if (!ps->need_frame_update) {
+		return;
+	}
+
 	int sizex, sizey;
 	int i, i_last;
 
@@ -569,7 +585,7 @@ static void change_frame(PlayState *ps, int cx)
 
 	playanim_window_get_size(&sizex, &sizey);
 	i_last = ((struct PlayAnimPict *)picsbase.last)->frame;
-	i = (i_last * cx) / sizex;
+	i = (i_last * ps->frame_cursor_x) / sizex;
 	CLAMP(i, 0, i_last);
 
 #ifdef WITH_AUDASPACE
@@ -610,6 +626,8 @@ static void change_frame(PlayState *ps, int cx)
 	ps->sstep = true;
 	ps->wait2 = false;
 	ps->next_frame = 0;
+
+	ps->need_frame_update = false;
 }
 
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
@@ -961,7 +979,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 				if (type == GHOST_kEventButtonDown) {
 					if (inside_window) {
 						g_WS.qual |= WS_QUAL_LMOUSE;
-						change_frame(ps, cx);
+						tag_change_frame(ps, cx);
 					}
 				}
 				else
@@ -1006,7 +1024,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr ps_void)
 
 				GHOST_ScreenToClient(g_WS.ghost_window, cd->x, cd->y, &cx, &cy);
 
-				change_frame(ps, cx);
+				tag_change_frame(ps, cx);
 			}
 			break;
 		}
@@ -1266,8 +1284,9 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 	//GHOST_ActivateWindowDrawingContext(g_WS.ghost_window);
 
 	/* initialize OpenGL immediate mode */
-	g_WS.gwn_context =  GWN_context_create();
+	g_WS.gpu_context =  GPU_context_create();
 	GPU_init();
+	immActivate();
 
 	/* initialize the font */
 	BLF_init();
@@ -1442,23 +1461,18 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 			ps.next_frame = ps.direction;
 
-			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, ps.wait2))) {
-				if (hasevent) {
-					GHOST_DispatchEvents(g_WS.ghost_system);
-				}
-				/* Note, this still draws for mousemoves on pause */
-				if (ps.wait2) {
-					if (hasevent) {
-						if (ibuf) {
-							while (pupdate_time()) PIL_sleep_ms(1);
-							ptottime -= swaptime;
-							playanim_toscreen(&ps, ps.picture, ibuf, ps.fontid, ps.fstep);
-						}
-					}
-				}
-				if (ps.go == false) {
-					break;
-				}
+			while ((hasevent = GHOST_ProcessEvents(g_WS.ghost_system, 0))) {
+				GHOST_DispatchEvents(g_WS.ghost_system);
+			}
+			if (ps.go == false) {
+				break;
+			}
+			change_frame(&ps);
+			if (!hasevent) {
+				PIL_sleep_ms(1);
+			}
+			if (ps.wait2) {
+				continue;
 			}
 
 			ps.wait2 = ps.sstep;
@@ -1541,15 +1555,16 @@ static char *wm_main_playanim_intern(int argc, const char **argv)
 
 	GPU_shader_free_builtin_shaders();
 
-	GPU_exit();
-
-	if (g_WS.gwn_context) {
-		GWN_context_active_set(g_WS.gwn_context);
-		GWN_context_discard(g_WS.gwn_context);
-		g_WS.gwn_context = NULL;
+	if (g_WS.gpu_context) {
+		GPU_context_active_set(g_WS.gpu_context);
+		GPU_context_discard(g_WS.gpu_context);
+		g_WS.gpu_context = NULL;
 	}
 
 	BLF_exit();
+
+	immDeactivate();
+	GPU_exit();
 
 	GHOST_DisposeWindow(g_WS.ghost_system, g_WS.ghost_window);
 

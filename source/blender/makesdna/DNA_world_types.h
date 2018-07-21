@@ -51,6 +51,7 @@ struct MTex;
 typedef struct World {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
+	DrawDataList drawdata; /* runtime (must be immediately after id for utilities to use it). */
 
 	char _pad0[4];
 	short texact, mistype;
@@ -81,8 +82,7 @@ typedef struct World {
 	short flag, pad3[3];
 
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
-	short pr_texture, use_nodes, pad;
-	short update_flag;          /* XXX temporary flag waiting for depsgraph proper tagging */
+	short pr_texture, use_nodes, pad[2];
 
 	/* previews */
 	struct PreviewImage *preview;

@@ -37,24 +37,29 @@
 
 namespace DEG {
 
-BuilderMap::BuilderMap() {
+BuilderMap::BuilderMap()
+{
 	set = BLI_gset_ptr_new("deg builder gset");
 }
 
 
-BuilderMap::~BuilderMap() {
+BuilderMap::~BuilderMap()
+{
 	BLI_gset_free(set, NULL);
 }
 
-bool BuilderMap::checkIsBuilt(ID *id) {
+bool BuilderMap::checkIsBuilt(ID *id)
+{
 	return BLI_gset_haskey(set, id);
 }
 
-void BuilderMap::tagBuild(ID *id) {
+void BuilderMap::tagBuild(ID *id)
+{
 	BLI_gset_insert(set, id);
 }
 
-bool BuilderMap::checkIsBuiltAndTag(ID *id) {
+bool BuilderMap::checkIsBuiltAndTag(ID *id)
+{
 	void **key_p;
 	if (!BLI_gset_ensure_p_ex(set, id, &key_p)) {
 		*key_p = id;

@@ -106,25 +106,23 @@ typedef struct RingSelOpData {
 } RingSelOpData;
 
 /* modal loop selection drawing callback */
-static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
+static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
-	View3D *v3d = CTX_wm_view3d(C);
 	RingSelOpData *lcd = arg;
 
 	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
-		if (v3d && v3d->zbuf)
-			GPU_depth_test(false);
+		GPU_depth_test(false);
 
-		gpuPushMatrix();
-		gpuMultMatrix(lcd->ob->obmat);
+		GPU_matrix_push();
+		GPU_matrix_mul(lcd->ob->obmat);
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 		immUniformColor3ub(255, 0, 255);
 
 		if (lcd->totedge > 0) {
-			immBegin(GWN_PRIM_LINES, lcd->totedge * 2);
+			immBegin(GPU_PRIM_LINES, lcd->totedge * 2);
 
 			for (int i = 0; i < lcd->totedge; i++) {
 				immVertex3fv(pos, lcd->edges[i][0]);
@@ -137,7 +135,7 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		if (lcd->totpoint > 0) {
 			GPU_point_size(3.0f);
 
-			immBegin(GWN_PRIM_POINTS, lcd->totpoint);
+			immBegin(GPU_PRIM_POINTS, lcd->totpoint);
 
 			for (int i = 0; i < lcd->totpoint; i++) {
 				immVertex3fv(pos, lcd->points[i]);
@@ -148,10 +146,10 @@ static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
-		if (v3d && v3d->zbuf)
-			GPU_depth_test(true);
+		/* Reset default */
+		GPU_depth_test(true);
 	}
 }
 

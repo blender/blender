@@ -186,6 +186,12 @@ set(SRC
 	intern/sound.c
 	intern/speaker.c
 	intern/studiolight.c
+	intern/subdiv.c
+	intern/subdiv_converter.c
+	intern/subdiv_converter_mesh.c
+	intern/subdiv_eval.c
+	intern/subdiv_mesh.c
+	intern/subdiv_stats.c
 	intern/subsurf_ccg.c
 	intern/suggestions.c
 	intern/text.c
@@ -276,6 +282,7 @@ set(SRC
 	BKE_mesh_iterators.h
 	BKE_mesh_mapping.h
 	BKE_mesh_remap.h
+	BKE_mesh_runtime.h
 	BKE_mesh_tangent.h
 	BKE_modifier.h
 	BKE_movieclip.h
@@ -305,6 +312,7 @@ set(SRC
 	BKE_sound.h
 	BKE_speaker.h
 	BKE_studiolight.h
+	BKE_subdiv.h
 	BKE_subsurf.h
 	BKE_suggestions.h
 	BKE_text.h
@@ -322,8 +330,9 @@ set(SRC
 	intern/CCGSubSurf.h
 	intern/CCGSubSurf_inline.h
 	intern/CCGSubSurf_intern.h
-	intern/pbvh_intern.h
 	intern/data_transfer_intern.h
+	intern/pbvh_intern.h
+	intern/subdiv_converter.h
 )
 
 if(WITH_BINRELOC)

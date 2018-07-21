@@ -136,6 +136,18 @@ void DRW_opengl_context_destroy(void);
 void DRW_opengl_context_enable(void);
 void DRW_opengl_context_disable(void);
 
+/* Never use this. Only for closing blender. */
+void DRW_opengl_context_enable_ex(bool restore);
+void DRW_opengl_context_disable_ex(bool restore);
+
+void DRW_opengl_render_context_enable(void *re_gl_context);
+void DRW_opengl_render_context_disable(void *re_gl_context);
+void DRW_gawain_render_context_enable(void *re_gpu_context);
+void DRW_gawain_render_context_disable(void *re_gpu_context);
+
 void DRW_deferred_shader_remove(struct GPUMaterial *mat);
+
+struct DrawDataList *DRW_drawdatalist_from_id(struct ID *id);
+void DRW_drawdata_free(struct ID *id);
 
 #endif /* __DRW_ENGINE_H__ */

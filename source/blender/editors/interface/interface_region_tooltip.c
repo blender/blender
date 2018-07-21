@@ -615,31 +615,31 @@ static uiTooltipData *ui_tooltip_data_from_button(bContext *C, uiBut *but)
 	}
 }
 
-static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulator *mpr)
+static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 {
 	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	/* TODO(campbell): a way for manipulators to have their own descriptions (low priority). */
+	/* TODO(campbell): a way for gizmos to have their own descriptions (low priority). */
 
 	/* Operator Actions */
 	{
-		bool use_drag = mpr->drag_part != -1 && mpr->highlight_part != mpr->drag_part;
+		bool use_drag = gz->drag_part != -1 && gz->highlight_part != gz->drag_part;
 
 		const struct {
 			int part;
 			const char *prefix;
 		} mpop_actions[] = {
 			{
-				.part = mpr->highlight_part,
+				.part = gz->highlight_part,
 				.prefix = use_drag ? TIP_("Click") : NULL,
 			}, {
-				.part = use_drag ? mpr->drag_part : -1,
+				.part = use_drag ? gz->drag_part : -1,
 				.prefix = use_drag ? TIP_("Drag") : NULL,
 			},
 		};
 
 		for (int i = 0; i < ARRAY_SIZE(mpop_actions); i++) {
-			wmManipulatorOpElem *mpop = (mpop_actions[i].part != -1) ? WM_manipulator_operator_get(mpr, mpop_actions[i].part) : NULL;
+			wmGizmoOpElem *mpop = (mpop_actions[i].part != -1) ? WM_gizmo_operator_get(gz, mpop_actions[i].part) : NULL;
 			if (mpop != NULL) {
 				/* Description */
 				const char *info = RNA_struct_ui_description(mpop->type->srna);
@@ -691,13 +691,13 @@ static uiTooltipData *ui_tooltip_data_from_manipulator(bContext *C, wmManipulato
 	}
 
 	/* Property Actions */
-	if (mpr->type->target_property_defs_len) {
-		wmManipulatorProperty *mpr_prop_array = WM_manipulator_target_property_array(mpr);
-		for (int i = 0; i < mpr->type->target_property_defs_len; i++) {
+	if (gz->type->target_property_defs_len) {
+		wmGizmoProperty *gz_prop_array = WM_gizmo_target_property_array(gz);
+		for (int i = 0; i < gz->type->target_property_defs_len; i++) {
 			/* TODO(campbell): function callback descriptions. */
-			wmManipulatorProperty *mpr_prop = &mpr_prop_array[i];
-			if (mpr_prop->prop != NULL) {
-				const char *info = RNA_property_ui_description(mpr_prop->prop);
+			wmGizmoProperty *gz_prop = &gz_prop_array[i];
+			if (gz_prop->prop != NULL) {
+				const char *info = RNA_property_ui_description(gz_prop->prop);
 				if (info && info[0]) {
 					uiTooltipField *field = text_field_add(
 					        data, &(uiTooltipFormat){
@@ -934,13 +934,13 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	return ui_tooltip_create_with_data(C, data, init_position, aspect);
 }
 
-ARegion *UI_tooltip_create_from_manipulator(bContext *C, wmManipulator *mpr)
+ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
 {
 	wmWindow *win = CTX_wm_window(C);
 	const float aspect = 1.0f;
 	float init_position[2];
 
-	uiTooltipData *data = ui_tooltip_data_from_manipulator(C, mpr);
+	uiTooltipData *data = ui_tooltip_data_from_gizmo(C, gz);
 	if (data == NULL) {
 		return NULL;
 	}

@@ -279,16 +279,16 @@ enum {
 };
 
 /* ---------------------------------------------------------------------- */
-/* Lattice Gwn_Batch Cache */
+/* Lattice GPUBatch Cache */
 
 typedef struct LatticeBatchCache {
-	Gwn_VertBuf *pos;
-	Gwn_IndexBuf *edges;
+	GPUVertBuf *pos;
+	GPUIndexBuf *edges;
 
-	Gwn_Batch *all_verts;
-	Gwn_Batch *all_edges;
+	GPUBatch *all_verts;
+	GPUBatch *all_edges;
 
-	Gwn_Batch *overlay_verts;
+	GPUBatch *overlay_verts;
 
 	/* settings to determine if cache is invalid */
 	bool is_dirty;
@@ -301,7 +301,7 @@ typedef struct LatticeBatchCache {
 	bool is_editmode;
 } LatticeBatchCache;
 
-/* Gwn_Batch cache management. */
+/* GPUBatch cache management. */
 
 static bool lattice_batch_cache_valid(Lattice *lt)
 {
@@ -373,7 +373,7 @@ void DRW_lattice_batch_cache_dirty(Lattice *lt, int mode)
 			break;
 		case BKE_LATTICE_BATCH_DIRTY_SELECT:
 			/* TODO Separate Flag vbo */
-			GWN_BATCH_DISCARD_SAFE(cache->overlay_verts);
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_verts);
 			break;
 		default:
 			BLI_assert(0);
@@ -387,12 +387,12 @@ static void lattice_batch_cache_clear(Lattice *lt)
 		return;
 	}
 
-	GWN_BATCH_DISCARD_SAFE(cache->all_verts);
-	GWN_BATCH_DISCARD_SAFE(cache->all_edges);
-	GWN_BATCH_DISCARD_SAFE(cache->overlay_verts);
+	GPU_BATCH_DISCARD_SAFE(cache->all_verts);
+	GPU_BATCH_DISCARD_SAFE(cache->all_edges);
+	GPU_BATCH_DISCARD_SAFE(cache->overlay_verts);
 
-	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
-	GWN_INDEXBUF_DISCARD_SAFE(cache->edges);
+	GPU_VERTBUF_DISCARD_SAFE(cache->pos);
+	GPU_INDEXBUF_DISCARD_SAFE(cache->edges);
 }
 
 void DRW_lattice_batch_cache_free(Lattice *lt)
@@ -401,38 +401,38 @@ void DRW_lattice_batch_cache_free(Lattice *lt)
 	MEM_SAFE_FREE(lt->batch_cache);
 }
 
-/* Gwn_Batch cache usage. */
-static Gwn_VertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata, LatticeBatchCache *cache,
+/* GPUBatch cache usage. */
+static GPUVertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata, LatticeBatchCache *cache,
                                                 bool use_weight, const int actdef)
 {
 	BLI_assert(rdata->types & LR_DATATYPE_VERT);
 
 	if (cache->pos == NULL) {
-		static Gwn_VertFormat format = { 0 };
+		static GPUVertFormat format = { 0 };
 		static struct { uint pos, col; } attr_id;
 
-		GWN_vertformat_clear(&format);
+		GPU_vertformat_clear(&format);
 
 		/* initialize vertex format */
-		attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 		if (use_weight) {
-			attr_id.col = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			attr_id.col = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 		}
 
 		const int vert_len = lattice_render_data_verts_len_get(rdata);
 
-		cache->pos = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(cache->pos, vert_len);
+		cache->pos = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(cache->pos, vert_len);
 		for (int i = 0; i < vert_len; ++i) {
 			const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
-			GWN_vertbuf_attr_set(cache->pos, attr_id.pos, i, bp->vec);
+			GPU_vertbuf_attr_set(cache->pos, attr_id.pos, i, bp->vec);
 
 			if (use_weight) {
 				float w_col[4];
 				lattice_render_data_weight_col_get(rdata, i, actdef, w_col);
 
-				GWN_vertbuf_attr_set(cache->pos, attr_id.col, i, w_col);
+				GPU_vertbuf_attr_set(cache->pos, attr_id.col, i, w_col);
 			}
 		}
 	}
@@ -440,7 +440,7 @@ static Gwn_VertBuf *lattice_batch_cache_get_pos(LatticeRenderData *rdata, Lattic
 	return cache->pos;
 }
 
-static Gwn_IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata, LatticeBatchCache *cache)
+static GPUIndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata, LatticeBatchCache *cache)
 {
 	BLI_assert(rdata->types & (LR_DATATYPE_VERT | LR_DATATYPE_EDGE));
 
@@ -449,8 +449,8 @@ static Gwn_IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata, Lat
 		const int edge_len = lattice_render_data_edges_len_get(rdata);
 		int edge_len_real = 0;
 
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init(&elb, GWN_PRIM_LINES, edge_len, vert_len);
+		GPUIndexBufBuilder elb;
+		GPU_indexbuf_init(&elb, GPU_PRIM_LINES, edge_len, vert_len);
 
 #define LATT_INDEX(u, v, w) \
 	((((w) * rdata->dims.v_len + (v)) * rdata->dims.u_len) + (u))
@@ -463,17 +463,17 @@ static Gwn_IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata, Lat
 					int uxt = (u == 0 || u == rdata->dims.u_len - 1);
 
 					if (w && ((uxt || vxt) || !rdata->show_only_outside)) {
-						GWN_indexbuf_add_line_verts(&elb, LATT_INDEX(u, v, w - 1), LATT_INDEX(u, v, w));
+						GPU_indexbuf_add_line_verts(&elb, LATT_INDEX(u, v, w - 1), LATT_INDEX(u, v, w));
 						BLI_assert(edge_len_real <= edge_len);
 						edge_len_real++;
 					}
 					if (v && ((uxt || wxt) || !rdata->show_only_outside)) {
-						GWN_indexbuf_add_line_verts(&elb, LATT_INDEX(u, v - 1, w), LATT_INDEX(u, v, w));
+						GPU_indexbuf_add_line_verts(&elb, LATT_INDEX(u, v - 1, w), LATT_INDEX(u, v, w));
 						BLI_assert(edge_len_real <= edge_len);
 						edge_len_real++;
 					}
 					if (u && ((vxt || wxt) || !rdata->show_only_outside)) {
-						GWN_indexbuf_add_line_verts(&elb, LATT_INDEX(u - 1, v, w), LATT_INDEX(u, v, w));
+						GPU_indexbuf_add_line_verts(&elb, LATT_INDEX(u - 1, v, w), LATT_INDEX(u, v, w));
 						BLI_assert(edge_len_real <= edge_len);
 						edge_len_real++;
 					}
@@ -490,7 +490,7 @@ static Gwn_IndexBuf *lattice_batch_cache_get_edges(LatticeRenderData *rdata, Lat
 			BLI_assert(edge_len_real == edge_len);
 		}
 
-		cache->edges = GWN_indexbuf_build(&elb);
+		cache->edges = GPU_indexbuf_build(&elb);
 	}
 
 	return cache->edges;
@@ -505,18 +505,18 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 	LatticeRenderData *rdata = lattice_render_data_create(lt, options);
 
 	if (cache->overlay_verts == NULL) {
-		static Gwn_VertFormat format = { 0 };
+		static GPUVertFormat format = { 0 };
 		static struct { uint pos, data; } attr_id;
-		if (format.attrib_ct == 0) {
+		if (format.attr_len == 0) {
 			/* initialize vertex format */
-			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-			attr_id.data = GWN_vertformat_attr_add(&format, "data", GWN_COMP_U8, 1, GWN_FETCH_INT);
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+			attr_id.data = GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
 		}
 
 		const int vert_len = lattice_render_data_verts_len_get(rdata);
 
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, vert_len);
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, vert_len);
 		for (int i = 0; i < vert_len; ++i) {
 			const BPoint *bp = lattice_render_data_vert_bpoint(rdata, i);
 
@@ -530,17 +530,17 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 				}
 			}
 
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, i, bp->vec);
-			GWN_vertbuf_attr_set(vbo, attr_id.data, i, &vflag);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, i, bp->vec);
+			GPU_vertbuf_attr_set(vbo, attr_id.data, i, &vflag);
 		}
 
-		cache->overlay_verts = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		cache->overlay_verts = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	}
 
 	lattice_render_data_free(rdata);
 }
 
-Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
+GPUBatch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, const int actdef)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
@@ -548,7 +548,7 @@ Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, c
 		/* create batch from Lattice */
 		LatticeRenderData *rdata = lattice_render_data_create(lt, LR_DATATYPE_VERT | LR_DATATYPE_EDGE);
 
-		cache->all_edges = GWN_batch_create(GWN_PRIM_LINES, lattice_batch_cache_get_pos(rdata, cache, use_weight, actdef),
+		cache->all_edges = GPU_batch_create(GPU_PRIM_LINES, lattice_batch_cache_get_pos(rdata, cache, use_weight, actdef),
 		                                lattice_batch_cache_get_edges(rdata, cache));
 
 		lattice_render_data_free(rdata);
@@ -557,14 +557,14 @@ Gwn_Batch *DRW_lattice_batch_cache_get_all_edges(Lattice *lt, bool use_weight, c
 	return cache->all_edges;
 }
 
-Gwn_Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
+GPUBatch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 
 	if (cache->all_verts == NULL) {
 		LatticeRenderData *rdata = lattice_render_data_create(lt, LR_DATATYPE_VERT);
 
-		cache->all_verts = GWN_batch_create(GWN_PRIM_POINTS, lattice_batch_cache_get_pos(rdata, cache, false, -1), NULL);
+		cache->all_verts = GPU_batch_create(GPU_PRIM_POINTS, lattice_batch_cache_get_pos(rdata, cache, false, -1), NULL);
 
 		lattice_render_data_free(rdata);
 	}
@@ -572,7 +572,7 @@ Gwn_Batch *DRW_lattice_batch_cache_get_all_verts(Lattice *lt)
 	return cache->all_verts;
 }
 
-Gwn_Batch *DRW_lattice_batch_cache_get_overlay_verts(Lattice *lt)
+GPUBatch *DRW_lattice_batch_cache_get_overlay_verts(Lattice *lt)
 {
 	LatticeBatchCache *cache = lattice_batch_cache_get(lt);
 

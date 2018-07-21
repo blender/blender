@@ -258,7 +258,7 @@ ccl_device_inline bool transform_uniform_scale(const Transform& tfm, float& scal
 	/* the epsilon here is quite arbitrary, but this function is only used for
 	 * surface area and bump, where we expect it to not be so sensitive */
 	float eps = 1e-6f;
-	
+
 	float sx = len_squared(float4_to_float3(tfm.x));
 	float sy = len_squared(float4_to_float3(tfm.y));
 	float sz = len_squared(float4_to_float3(tfm.z));
@@ -471,4 +471,3 @@ OPENCL_TRANSFORM_ADDRSPACE_DECLARE(transform_direction_transposed)
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_TRANSFORM_H__ */
-

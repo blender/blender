@@ -39,7 +39,7 @@ struct ARegion;
 struct ARegionType;
 struct Base;
 struct BoundBox;
-struct Gwn_Batch;
+struct GPUBatch;
 struct Depsgraph;
 struct Object;
 struct SmokeDomainSettings;
@@ -51,8 +51,8 @@ struct Mesh;
 struct ViewLayer;
 struct wmOperatorType;
 struct wmKeyConfig;
-struct wmManipulatorGroupType;
-struct wmManipulatorType;
+struct wmGizmoGroupType;
+struct wmGizmoType;
 struct wmWindowManager;
 
 /* drawing flags: */
@@ -64,7 +64,6 @@ enum {
 
 /* view3d_header.c */
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_xray_draw_option(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_matcap_flip(struct wmOperatorType *ot);
 
 /* view3d_ops.c */
@@ -83,7 +82,8 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_ndof_all(struct wmOperatorType *ot);
 #endif /* WITH_INPUT_NDOF */
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
-void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
+void VIEW3D_OT_view_axis(struct wmOperatorType *ot);
+void VIEW3D_OT_view_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_view_lock_clear(struct wmOperatorType *ot);
 void VIEW3D_OT_view_lock_to_active(struct wmOperatorType *ot);
@@ -103,7 +103,7 @@ void VIEW3D_OT_cursor3d(struct wmOperatorType *ot);
 void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
-void VIEW3D_OT_toggle_render(struct wmOperatorType *ot);
+void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
 void view3d_boxview_sync(ScrArea *sa, ARegion *ar);
@@ -216,6 +216,7 @@ void viewdolly_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* view3d_buttons.c */
 void VIEW3D_OT_properties(struct wmOperatorType *ot);
+void VIEW3D_OT_object_mode_pie_or_toggle(struct wmOperatorType *ot);
 void view3d_buttons_register(struct ARegionType *art);
 
 /* view3d_camera_control.c */
@@ -253,21 +254,21 @@ ARegion *view3d_has_tools_region(ScrArea *sa);
 extern const char *view3d_context_dir[]; /* doc access */
 
 /* view3d_widgets.c */
-void VIEW3D_WGT_lamp_spot(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_lamp_area(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_lamp_target(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_camera(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_camera_view(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_force_field(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_empty_image(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_armature_spline(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WGT_navigate(struct wmManipulatorGroupType *wgt);
+void VIEW3D_GGT_lamp_spot(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_lamp_area(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_lamp_target(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_camera(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_camera_view(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_force_field(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_empty_image(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_armature_spline(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_navigate(struct wmGizmoGroupType *gzgt);
 
-void VIEW3D_WGT_ruler(struct wmManipulatorGroupType *wgt);
-void VIEW3D_WT_ruler_item(struct wmManipulatorType *wt);
+void VIEW3D_GGT_ruler(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GT_ruler_item(struct wmGizmoType *gzt);
 void VIEW3D_OT_ruler_add(struct wmOperatorType *ot);
 
-void VIEW3D_WT_navigate_rotate(struct wmManipulatorType *wt);
+void VIEW3D_GT_navigate_rotate(struct wmGizmoType *gzt);
 
 /* draw_volume.c */
 void draw_smoke_volume(struct SmokeDomainSettings *sds, struct Object *ob,

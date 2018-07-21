@@ -282,80 +282,6 @@ void WM_uilisttype_free(void)
 	uilisttypes_hash = NULL;
 }
 
-/* ************ MenuType handling ************** */
-
-static GHash *menutypes_hash = NULL;
-
-MenuType *WM_menutype_find(const char *idname, bool quiet)
-{
-	MenuType *mt;
-
-	if (idname[0]) {
-		mt = BLI_ghash_lookup(menutypes_hash, idname);
-		if (mt)
-			return mt;
-	}
-
-	if (!quiet)
-		printf("search for unknown menutype %s\n", idname);
-
-	return NULL;
-}
-
-bool WM_menutype_add(MenuType *mt)
-{
-	BLI_ghash_insert(menutypes_hash, mt->idname, mt);
-	return true;
-}
-
-void WM_menutype_freelink(MenuType *mt)
-{
-	bool ok;
-
-	ok = BLI_ghash_remove(menutypes_hash, mt->idname, NULL, MEM_freeN);
-
-	BLI_assert(ok);
-	(void)ok;
-}
-
-/* called on initialize WM_init() */
-void WM_menutype_init(void)
-{
-	/* reserve size is set based on blender default setup */
-	menutypes_hash = BLI_ghash_str_new_ex("menutypes_hash gh", 512);
-}
-
-void WM_menutype_free(void)
-{
-	GHashIterator gh_iter;
-
-	GHASH_ITER (gh_iter, menutypes_hash) {
-		MenuType *mt = BLI_ghashIterator_getValue(&gh_iter);
-		if (mt->ext.free) {
-			mt->ext.free(mt->ext.data);
-		}
-	}
-
-	BLI_ghash_free(menutypes_hash, NULL, MEM_freeN);
-	menutypes_hash = NULL;
-}
-
-bool WM_menutype_poll(bContext *C, MenuType *mt)
-{
-	/* If we're tagged, only use compatible. */
-	if (mt->owner_id[0] != '\0') {
-		const WorkSpace *workspace = CTX_wm_workspace(C);
-		if (BKE_workspace_owner_id_check(workspace, mt->owner_id) == false) {
-			return false;
-		}
-	}
-
-	if (mt->poll != NULL) {
-		return mt->poll(C, mt);
-	}
-	return true;
-}
-
 /* ****************************************** */
 
 void WM_keymap_init(bContext *C)
@@ -461,10 +387,11 @@ void wm_add_default(Main *bmain, bContext *C)
 	WorkSpaceLayout *layout = BKE_workspace_layout_find_global(bmain, screen, &workspace);
 
 	CTX_wm_manager_set(C, wm);
-	win = wm_window_new(C);
+	win = wm_window_new(C, NULL);
 	win->scene = CTX_data_scene(C);
-	WM_window_set_active_workspace(win, workspace);
-	WM_window_set_active_layout(win, workspace, layout);
+	STRNCPY(win->view_layer_name, CTX_data_view_layer(C)->name);
+	BKE_workspace_active_set(win->workspace_hook, workspace);
+	BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace, layout);
 	screen->winid = win->winid;
 
 	wm->winactive = win;
@@ -484,7 +411,8 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 		wm_autosave_timer_ended(wm);
 
 	while ((win = BLI_pophead(&wm->windows))) {
-		WM_window_set_active_workspace(win, NULL); /* prevent draw clear to use screen */
+		/* prevent draw clear to use screen */
+		BKE_workspace_active_set(win->workspace_hook, NULL);
 		wm_window_free(C, wm, win);
 	}
 

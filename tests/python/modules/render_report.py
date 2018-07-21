@@ -23,6 +23,7 @@ class COLORS_DUMMY:
     GREEN = ''
     ENDC = ''
 
+
 COLORS = COLORS_DUMMY
 
 
@@ -55,9 +56,11 @@ def blend_list(dirpath):
             filepath = os.path.join(dirpath, filename)
             yield filepath
 
+
 def test_get_name(filepath):
     filename = os.path.basename(filepath)
     return os.path.splitext(filename)[0]
+
 
 def test_get_images(output_dir, filepath, reference_dir):
     testname = test_get_name(filepath)
@@ -99,7 +102,7 @@ class Report:
         'passed_tests',
         'compare_tests',
         'compare_engines'
-        )
+    )
 
     def __init__(self, title, output_dir, idiff):
         self.title = title
@@ -158,7 +161,7 @@ class Report:
             filepath = os.path.join(outdir, "compare.data")
             pathlib.Path(filepath).write_text(self.compare_tests)
 
-    def _write_html(self, comparison = False):
+    def _write_html(self, comparison=False):
         # Gather intermediate data for all tests.
         if comparison:
             failed_data = []
@@ -307,7 +310,6 @@ class Report:
 
             self.compare_tests += test_html
 
-
     def _diff_output(self, filepath, tmp_filepath):
         old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir)
 
@@ -330,7 +332,7 @@ class Report:
                 "-failpercent", "1",
                 ref_img,
                 tmp_filepath,
-                )
+            )
             try:
                 subprocess.check_output(command)
                 failed = False
@@ -357,7 +359,7 @@ class Report:
             "-abs", "-scale", "16",
             ref_img,
             tmp_filepath
-            )
+        )
 
         try:
             subprocess.check_output(command)
@@ -366,7 +368,6 @@ class Report:
                 print_message(e.output.decode("utf-8"))
 
         return not failed
-
 
     def _run_test(self, filepath, render_cb):
         testname = test_get_name(filepath)
@@ -394,7 +395,7 @@ class Report:
                 return error
             elif error == "NO_START":
                 print_message('Can not perform tests because blender fails to start.',
-                      'Make sure INSTALL target was run.')
+                              'Make sure INSTALL target was run.')
                 return error
             elif error == 'VERIFY':
                 print_message("Rendered result is different from reference image")
@@ -403,7 +404,6 @@ class Report:
             print_message("{} ({} ms)" . format(testname, elapsed_ms),
                           'FAILURE', 'FAILED')
         return error
-
 
     def _run_all_tests(self, dirname, dirpath, render_cb):
         passed_tests = []
@@ -437,8 +437,8 @@ class Report:
                       'SUCCESS', 'PASSED')
         if failed_tests:
             print_message("{} tests, listed below:" .
-                         format(len(failed_tests)),
-                         'FAILURE', 'FAILED')
+                          format(len(failed_tests)),
+                          'FAILURE', 'FAILED')
             failed_tests.sort()
             for test in failed_tests:
                 print_message("{}" . format(test), 'FAILURE', "FAILED")

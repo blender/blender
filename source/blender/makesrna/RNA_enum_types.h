@@ -129,7 +129,7 @@ extern const EnumPropertyItem rna_enum_symmetrize_direction_items[];
 
 extern const EnumPropertyItem rna_enum_texture_type_items[];
 
-extern const EnumPropertyItem rna_enum_lamp_type_items[];
+extern const EnumPropertyItem rna_enum_light_type_items[];
 
 extern const EnumPropertyItem rna_enum_unpack_method_items[];
 

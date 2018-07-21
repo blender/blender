@@ -56,10 +56,9 @@ void BKE_object_workob_clear(struct Object *workob);
 void BKE_object_workob_calc_parent(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct Object *workob);
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
-struct SoftBody *copy_softbody(const struct SoftBody *sb, const int flag);
+void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src, const int flag);
 struct ParticleSystem *BKE_object_copy_particlesystem(struct ParticleSystem *psys, const int flag);
 void BKE_object_copy_particlesystems(struct Object *ob_dst, const struct Object *ob_src, const int flag);
-void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_particlesystems(struct Object *ob);
 void BKE_object_free_softbody(struct Object *ob);
 void BKE_object_free_curve_cache(struct Object *ob);
@@ -76,7 +75,7 @@ bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifie
 void BKE_object_link_modifiers(struct Scene *scene, struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob, const int flag);
 
-void BKE_object_make_proxy(struct Object *ob, struct Object *target, struct Object *gob);
+void BKE_object_make_proxy(struct Main *bmain, struct Object *ob, struct Object *target, struct Object *gob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 
 bool BKE_object_exists_check(struct Main *bmain, const struct Object *obtest);

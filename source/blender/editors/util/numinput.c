@@ -48,12 +48,16 @@
 #include "ED_numinput.h"
 #include "UI_interface.h"
 
+/* Numeric input which isn't allowing full numeric editing. */
+#define USE_FAKE_EDIT
 
 /* NumInput.flag */
 enum {
 	/* (1 << 8) and below are reserved for public flags! */
 	NUM_EDIT_FULL       = (1 << 9),   /* Enable full editing, with units and math operators support. */
+#ifdef USE_FAKE_EDIT
 	NUM_FAKE_EDITED     = (1 << 10),  /* Fake edited state (temp, avoids issue with backspace). */
+#endif
 };
 
 /* NumInput.val_flag[] */
@@ -61,8 +65,10 @@ enum {
 	/* (1 << 8) and below are reserved for public flags! */
 	NUM_EDITED          = (1 << 9),    /* User has edited this value somehow. */
 	NUM_INVALID         = (1 << 10),   /* Current expression for this value is invalid. */
+#ifdef USE_FAKE_EDIT
 	NUM_NEGATE          = (1 << 11),   /* Current expression's result has to be negated. */
 	NUM_INVERSE         = (1 << 12),   /* Current expression's result has to be inverted. */
+#endif
 };
 
 /* ************************** Functions *************************** */
@@ -109,6 +115,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 				char before_cursor[NUM_STR_REP_LEN];
 				char val[16];
 
+#ifdef USE_FAKE_EDIT
 				if (n->val_flag[i] & NUM_NEGATE) {
 					heading_exp = (n->val_flag[i] & NUM_INVERSE) ? "-1/(" : "-(";
 					trailing_exp = ")";
@@ -117,6 +124,7 @@ void outputNumInput(NumInput *n, char *str, UnitSettings *unit_settings)
 					heading_exp = "1/(";
 					trailing_exp = ")";
 				}
+#endif
 
 				if (n->val_flag[i] & NUM_INVALID) {
 					BLI_strncpy(val, "Invalid", sizeof(val));
@@ -156,9 +164,11 @@ bool hasNumInput(const NumInput *n)
 {
 	short i;
 
+#ifdef USE_FAKE_EDIT
 	if (n->flag & NUM_FAKE_EDITED) {
 		return true;
 	}
+#endif
 
 	for (i = 0; i <= n->idx_max; i++) {
 		if (n->val_flag[i] & NUM_EDITED) {
@@ -179,10 +189,13 @@ bool applyNumInput(NumInput *n, float *vec)
 
 	if (hasNumInput(n)) {
 		for (j = 0; j <= n->idx_max; j++) {
+#ifdef USE_FAKE_EDIT
 			if (n->flag & NUM_FAKE_EDITED) {
 				val = n->val[j];
 			}
-			else {
+			else
+#endif
+			{
 				/* if AFFECTALL and no number typed and cursor not on number, use first number */
 				i = (n->flag & NUM_AFFECT_ALL && n->idx != j && !(n->val_flag[j] & NUM_EDITED)) ? 0 : j;
 				val = (!(n->val_flag[i] & NUM_EDITED) && n->val_flag[i] & NUM_NULL_ONE) ? 1.0f : n->val[i];
@@ -202,7 +215,9 @@ bool applyNumInput(NumInput *n, float *vec)
 			}
 			vec[j] = val;
 		}
+#ifdef USE_FAKE_EDIT
 		n->flag &= ~NUM_FAKE_EDITED;
+#endif
 		return true;
 	}
 	else {
@@ -261,6 +276,21 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	short dir = STRCUR_DIR_NEXT, mode = STRCUR_JUMP_NONE;
 	int cur;
 
+#ifdef USE_FAKE_EDIT
+	if (U.flag & USER_FLAG_NUMINPUT_ADVANCED)
+#endif
+	{
+		if ((event->ctrl == 0) && (event->alt == 0) && (event->ascii != '\0') &&
+		    strchr("01234567890@%^&*-+/{}()[]<>.|", event->ascii))
+		{
+			if (!(n->flag & NUM_EDIT_FULL)) {
+				n->flag |= NUM_EDITED;
+				n->flag |= NUM_EDIT_FULL;
+				n->val_flag[idx] |= NUM_EDITED;
+			}
+		}
+	}
+
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (ELEM(event->val, NUM_MODAL_INCREMENT_UP, NUM_MODAL_INCREMENT_DOWN)) {
@@ -282,7 +312,11 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				n->val_flag[0] &= ~NUM_EDITED;
 				n->val_flag[1] &= ~NUM_EDITED;
 				n->val_flag[2] &= ~NUM_EDITED;
+#ifdef USE_FAKE_EDIT
 				n->flag |= NUM_FAKE_EDITED;
+#else
+				n->flag |= NUM_EDIT_FULL;
+#endif
 				updated = true;
 				break;
 			}
@@ -347,7 +381,9 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			return false;
 		case TABKEY:
+#ifdef USE_FAKE_EDIT
 			n->val_flag[idx] &= ~(NUM_NEGATE | NUM_INVERSE);
+#endif
 
 			idx = (idx + idx_max + (event->ctrl ? 0 : 2)) % (idx_max + 1);
 			n->idx = idx;
@@ -382,6 +418,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			break;
 #endif
+
+#ifdef USE_FAKE_EDIT
 		case PADMINUS:
 		case MINUSKEY:
 			if (event->ctrl || !(n->flag & NUM_EDIT_FULL)) {
@@ -396,6 +434,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 				updated = true;
 			}
 			break;
+#endif
 		case CKEY:
 			if (event->ctrl) {
 				/* Copy current str to the copypaste buffer. */
@@ -431,6 +470,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		ascii[0] = event->ascii;
 	}
 
+#ifdef USE_FAKE_EDIT
 	/* XXX Hack around keyboards without direct access to '=' nor '*'... */
 	if (ELEM(ascii[0], '=', '*')) {
 		if (!(n->flag & NUM_EDIT_FULL)) {
@@ -443,6 +483,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			return true;
 		}
 	}
+#endif
 
 	/* Up to this point, if we have a ctrl modifier, skip.
 	 * This allows to still access most of modals' shortcuts even in numinput mode.
@@ -511,6 +552,8 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		UNUSED_VARS(C);
 #endif  /* WITH_PYTHON */
 
+
+#ifdef USE_FAKE_EDIT
 		if (n->val_flag[idx] & NUM_NEGATE) {
 			n->val[idx] = -n->val[idx];
 		}
@@ -526,6 +569,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			}
 			n->val[idx] = (float)val;
 		}
+#endif
 
 		if (UNLIKELY(!isfinite(n->val[idx]))) {
 			n->val[idx] = val_prev;

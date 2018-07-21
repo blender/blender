@@ -62,7 +62,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
 {
 	if(!need_update)
 		return;
-	
+
 	device_free(device, dscene);
 
 	Shader *bg_shader = shader;
@@ -135,4 +135,3 @@ void Background::tag_update(Scene *scene)
 }
 
 CCL_NAMESPACE_END
-

@@ -69,7 +69,10 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 			flag |= DEG_TAG_COPY_ON_WRITE;
 		}
 		if (flag != 0) {
-			DEG_id_tag_update_ex(bmain, id_node->id_orig, flag);
+			DEG_graph_id_tag_update(bmain,
+			                        (::Depsgraph *)graph,
+			                        id_node->id_orig,
+			                        flag);
 		}
 	}
 }

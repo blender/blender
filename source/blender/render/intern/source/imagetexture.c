@@ -873,29 +873,25 @@ static void alpha_clip_aniso(ImBuf *ibuf, float minx, float miny, float maxx, fl
 static void image_mipmap_test(Tex *tex, ImBuf *ibuf)
 {
 	if (tex->imaflag & TEX_MIPMAP) {
-		if ((ibuf->flags & IB_fields) == 0) {
-
-			if (ibuf->mipmap[0] && (ibuf->userflags & IB_MIPMAP_INVALID)) {
-				BLI_thread_lock(LOCK_IMAGE);
-				if (ibuf->userflags & IB_MIPMAP_INVALID) {
-					IMB_remakemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
-					ibuf->userflags &= ~IB_MIPMAP_INVALID;
-				}
-				BLI_thread_unlock(LOCK_IMAGE);
+		if (ibuf->mipmap[0] && (ibuf->userflags & IB_MIPMAP_INVALID)) {
+			BLI_thread_lock(LOCK_IMAGE);
+			if (ibuf->userflags & IB_MIPMAP_INVALID) {
+				IMB_remakemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
+				ibuf->userflags &= ~IB_MIPMAP_INVALID;
 			}
-			if (ibuf->mipmap[0] == NULL) {
-				BLI_thread_lock(LOCK_IMAGE);
-				if (ibuf->mipmap[0] == NULL)
-					IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
-				BLI_thread_unlock(LOCK_IMAGE);
-			}
-			/* if no mipmap could be made, fall back on non-mipmap render */
-			if (ibuf->mipmap[0] == NULL) {
-				tex->imaflag &= ~TEX_MIPMAP;
-			}
+			BLI_thread_unlock(LOCK_IMAGE);
+		}
+		if (ibuf->mipmap[0] == NULL) {
+			BLI_thread_lock(LOCK_IMAGE);
+			if (ibuf->mipmap[0] == NULL)
+				IMB_makemipmap(ibuf, tex->imaflag & TEX_GAUSS_MIP);
+			BLI_thread_unlock(LOCK_IMAGE);
+		}
+		/* if no mipmap could be made, fall back on non-mipmap render */
+		if (ibuf->mipmap[0] == NULL) {
+			tex->imaflag &= ~TEX_MIPMAP;
 		}
 	}
-
 }
 
 static int imagewraposa_aniso(Tex *tex, Image *ima, ImBuf *ibuf, const float texvec[3], float dxt[2], float dyt[2], TexResult *texres, struct ImagePool *pool, const bool skip_load_image)

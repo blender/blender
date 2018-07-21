@@ -123,6 +123,7 @@
 #define fmaxf(x, y) fmax(((float)(x)), ((float)(y)))
 #define fminf(x, y) fmin(((float)(x)), ((float)(y)))
 #define fmodf(x, y) fmod((float)(x), (float)(y))
+#define sinhf(x) sinh(((float)(x)))
 
 #ifndef __CL_USE_NATIVE__
 #  define sinf(x) native_sin(((float)(x)))
@@ -150,8 +151,12 @@
 /* define NULL */
 #define NULL 0
 
+/* enable extensions */
+#ifdef __KERNEL_CL_KHR_FP16__
+#pragma OPENCL EXTENSION cl_khr_fp16 : enable
+#endif
+
 #include "util/util_half.h"
 #include "util/util_types.h"
 
 #endif /* __KERNEL_COMPAT_OPENCL_H__ */
-

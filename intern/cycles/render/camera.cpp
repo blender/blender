@@ -246,7 +246,7 @@ void Camera::update(Scene *scene)
 		cameratoscreen = projection_orthographic(nearclip, farclip);
 	else
 		cameratoscreen = projection_identity();
-	
+
 	ProjectionTransform screentocamera = projection_inverse(cameratoscreen);
 
 	rastertocamera = screentocamera * rastertoscreen;

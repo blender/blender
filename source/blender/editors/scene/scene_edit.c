@@ -23,9 +23,11 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -80,7 +82,7 @@ Scene *ED_scene_add(Main *bmain, bContext *C, wmWindow *win, eSceneCopyMethod me
 		}
 	}
 
-	WM_window_change_active_scene(bmain, C, win, scene_new);
+	WM_window_set_active_scene(bmain, C, win, scene_new);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SCENEBROWSE, scene_new);
 
@@ -95,6 +97,10 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 {
 	Scene *scene_new;
 
+	/* kill running jobs */
+	wmWindowManager *wm = bmain->wm.first;
+	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_ANY);
+
 	if (scene->id.prev)
 		scene_new = scene->id.prev;
 	else if (scene->id.next)
@@ -102,7 +108,7 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 	else
 		return false;
 
-	WM_window_change_active_scene(bmain, C, win, scene_new);
+	WM_window_set_active_scene(bmain, C, win, scene_new);
 
 	BKE_libblock_remap(bmain, scene, scene_new, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_NEVER_NULL_USAGE);
 
@@ -114,43 +120,17 @@ bool ED_scene_delete(bContext *C, Main *bmain, wmWindow *win, Scene *scene)
 	return true;
 }
 
-static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, const Scene *scene_new)
+/* Depsgraph updates after scene becomes active in a window. */
+void ED_scene_change_update(Main *bmain, Scene *scene, ViewLayer *layer)
 {
-	ViewLayer *layer_new = BKE_workspace_view_layer_exists(workspace, scene_new);
-	return layer_new ? layer_new : BKE_view_layer_default_view(scene_new);
-}
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, layer, true);
 
-void ED_scene_change_update(
-        Main *bmain, bContext *C,
-        wmWindow *win, const bScreen *screen, Scene *UNUSED(scene_old), Scene *scene_new)
-{
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ViewLayer *layer_new = scene_change_get_new_view_layer(workspace, scene_new);
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new, true);
-	Object *obact_new = OBACT(layer_new);
-	UNUSED_VARS(obact_new);
-
-#if 0
-	/* mode syncing */
-	eObjectMode object_mode_old = workspace->object_mode;
-	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
-	Object *obact_old = OBACT(layer_old);
-	UNUSED_VARS(obact_old, object_mode_old);
-#endif
-
-	win->scene = scene_new;
-	CTX_data_scene_set(C, scene_new);
-	BKE_workspace_view_layer_set(workspace, layer_new, scene_new);
-	BKE_scene_set_background(bmain, scene_new);
-	DEG_graph_relations_update(depsgraph, bmain, scene_new, layer_new);
+	BKE_scene_set_background(bmain, scene);
+	DEG_graph_relations_update(depsgraph, bmain, scene, layer);
 	DEG_on_visible_update(bmain, false);
 
-	ED_screen_update_after_scene_change(screen, scene_new, layer_new);
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, depsgraph);
-
-	/* complete redraw */
-	WM_event_add_notifier(C, NC_WINDOW, NULL);
 }
 
 static bool view_layer_remove_poll(
@@ -201,11 +181,16 @@ bool ED_scene_view_layer_delete(
 	BLI_remlink(&scene->view_layers, layer);
 	BLI_assert(BLI_listbase_is_empty(&scene->view_layers) == false);
 
-	ED_workspace_view_layer_unset(bmain, scene, layer, scene->view_layers.first);
+	/* Remove from windows. */
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (win->scene == scene && STREQ(win->view_layer_name, layer->name)) {
+			ViewLayer *first_layer = BKE_view_layer_default_view(scene);
+			STRNCPY(win->view_layer_name, first_layer->name);
+		}
+	}
 
 	BKE_view_layer_free(layer);
-
-	BKE_workspace_view_layer_remove(bmain, layer);
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(bmain);

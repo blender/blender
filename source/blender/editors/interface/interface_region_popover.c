@@ -87,6 +87,9 @@ struct uiPopover {
 	uiMenuCreateFunc menu_func;
 	void *menu_arg;
 
+	/* Size in pixels (ui scale applied). */
+	int ui_size_x;
+
 #ifdef USE_UI_POPOVER_ONCE
 	bool is_once;
 #endif
@@ -94,12 +97,13 @@ struct uiPopover {
 
 static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
 {
-	uiStyle *style = UI_style_get_dpi();
+	BLI_assert(pup->ui_size_x != 0);
 
+	uiStyle *style = UI_style_get_dpi();
 	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
 	pup->layout = UI_block_layout(
 	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0,
-	        U.widget_unit * UI_POPOVER_WIDTH_UNITS, 0, MENU_PADDING, style);
+	        pup->ui_size_x, 0, MENU_PADDING, style);
 
 	uiLayoutSetOperatorContext(pup->layout, opcontext);
 
@@ -234,6 +238,13 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	/* Create popover, buttons are created from callback. */
 	uiPopover *pup = MEM_callocN(sizeof(uiPopover), __func__);
 	pup->but = but;
+
+	/* FIXME: maybe one day we want non panel popovers? */
+	{
+		int ui_units_x = ((PanelType *)arg)->ui_units_x;
+		pup->ui_size_x = U.widget_unit * (ui_units_x ? ui_units_x : UI_POPOVER_WIDTH_UNITS);
+	}
+
 	pup->menu_func = menu_func;
 	pup->menu_arg = arg;
 
@@ -266,16 +277,13 @@ uiPopupBlockHandle *ui_popover_panel_create(
  * \{ */
 
 int UI_popover_panel_invoke(
-        bContext *C, int space_id, int region_id, const char *idname,
+        bContext *C, const char *idname,
         bool keep_open, ReportList *reports)
 {
 	uiLayout *layout;
-	PanelType *pt = UI_paneltype_find(space_id, region_id, idname);
+	PanelType *pt = WM_paneltype_find(idname, true);
 	if (pt == NULL) {
-		BKE_reportf(
-		        reports, RPT_ERROR,
-		        "Panel \"%s\" not found (space %d, region %d)",
-		        idname, space_id, region_id);
+		BKE_reportf(reports, RPT_ERROR, "Panel \"%s\" not found", idname);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -288,7 +296,7 @@ int UI_popover_panel_invoke(
 		ui_popover_panel_create(C, NULL, NULL, ui_item_paneltype_func, pt);
 	}
 	else {
-		uiPopover *pup = UI_popover_begin(C);
+		uiPopover *pup = UI_popover_begin(C, U.widget_unit * pt->ui_units_x);
 		layout = UI_popover_layout(pup);
 		UI_paneltype_draw(C, pt, layout);
 		UI_popover_end(C, pup, NULL);
@@ -306,9 +314,13 @@ int UI_popover_panel_invoke(
 /**
  * Only return handler, and set optional title.
  */
-uiPopover *UI_popover_begin(bContext *C)
+uiPopover *UI_popover_begin(bContext *C, int ui_size_x)
 {
 	uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
+	if (ui_size_x == 0) {
+		ui_size_x = U.widget_unit * UI_POPOVER_WIDTH_UNITS;
+	}
+	pup->ui_size_x = ui_size_x;
 
 	/* Opertor context default same as menus, change if needed. */
 	ui_popover_create_block(C, pup, WM_OP_EXEC_REGION_WIN);

@@ -23,7 +23,7 @@
  *
  * This file defines the gpu.select API.
  *
- * \note Currently only used for manipulator selection,
+ * \note Currently only used for gizmo selection,
  * will need to add begin/end and a way to access the hits.
  */
 

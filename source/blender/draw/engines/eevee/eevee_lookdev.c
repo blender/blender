@@ -30,22 +30,75 @@
 #include "DNA_screen_types.h"
 #include "DNA_world_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "ED_screen.h"
 
 #include "eevee_private.h"
+#include "eevee_lightcache.h"
+
+static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
+{
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_TextureList *txl = vedata->txl;
+
+	MEM_SAFE_FREE(stl->lookdev_lightcache);
+	MEM_SAFE_FREE(stl->lookdev_grid_data);
+	MEM_SAFE_FREE(stl->lookdev_cube_data);
+	DRW_TEXTURE_FREE_SAFE(txl->lookdev_grid_tx);
+	DRW_TEXTURE_FREE_SAFE(txl->lookdev_cube_tx);
+}
 
 void EEVEE_lookdev_cache_init(
         EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass,
         World *world, EEVEE_LightProbesInfo *pinfo)
 {
 	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_TextureList *txl = vedata->txl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
-	if (LOOK_DEV_MODE_ENABLED(v3d)) {
-		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_INTERNAL | STUDIOLIGHT_ORIENTATION_WORLD);
-		if ((sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
-			struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+	if (LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d)) {
+		StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light, STUDIOLIGHT_ORIENTATIONS_MATERIAL_MODE);
+		if (sl && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
+			struct GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 			GPUTexture *tex = NULL;
+
+			/* If one of the component is missing we start from scratch. */
+			if ((stl->lookdev_grid_data == NULL) ||
+			    (stl->lookdev_cube_data == NULL) ||
+			    (txl->lookdev_grid_tx == NULL) ||
+			    (txl->lookdev_cube_tx == NULL))
+			{
+				eevee_lookdev_lightcache_delete(vedata);
+			}
+
+			if (stl->lookdev_lightcache == NULL) {
+				const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+#if defined(IRRADIANCE_SH_L2)
+				int grid_res = 4;
+#elif defined(IRRADIANCE_CUBEMAP)
+				int grid_res = 8;
+#elif defined(IRRADIANCE_HL2)
+				int grid_res = 4;
+#endif
+				int cube_res = OCTAHEDRAL_SIZE_FROM_CUBESIZE(scene_eval->eevee.gi_cubemap_resolution);
+				int vis_res = scene_eval->eevee.gi_visibility_resolution;
+
+				stl->lookdev_lightcache = EEVEE_lightcache_create(1, 1, cube_res, vis_res, (int[3]){grid_res, grid_res, 1});
+
+				/* We do this to use a special light cache for lookdev.
+				 * This lightcache needs to be per viewport. But we need to
+				 * have correct freeing when the viewport is closed. So we
+				 * need to reference all textures to the txl and the memblocks
+				 * to the stl. */
+				stl->lookdev_grid_data = stl->lookdev_lightcache->grid_data;
+				stl->lookdev_cube_data = stl->lookdev_lightcache->cube_data;
+				stl->lookdev_cube_mips = stl->lookdev_lightcache->cube_mips;
+				txl->lookdev_grid_tx = stl->lookdev_lightcache->grid_tx.tex;
+				txl->lookdev_cube_tx = stl->lookdev_lightcache->cube_tx.tex;
+			}
+
+			stl->g_data->light_cache = stl->lookdev_lightcache;
 
 			*grp = DRW_shgroup_create(shader, pass);
 			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
@@ -77,11 +130,9 @@ void EEVEE_lookdev_cache_init(
 			    ((pinfo->studiolight_index != sl->index) ||
 			     (pinfo->studiolight_rot_z != v3d->shading.studiolight_rot_z)))
 			{
-				pinfo->update_world |= PROBE_UPDATE_ALL;
+				stl->lookdev_lightcache->flag |= LIGHTCACHE_UPDATE_WORLD;
 				pinfo->studiolight_index = sl->index;
 				pinfo->studiolight_rot_z = v3d->shading.studiolight_rot_z;
-				pinfo->prev_wo_sh_compiled = false;
-				pinfo->prev_world = NULL;
 			}
 		}
 	}

@@ -722,7 +722,6 @@ ImBuf *IMB_stereo3d_ImBuf(ImageFormatData *im_format, ImBuf *ibuf_left, ImBuf *i
 	ibuf_stereo->rect_colorspace = ibuf_left->rect_colorspace;
 	ibuf_stereo->float_colorspace = ibuf_left->float_colorspace;
 
-	/* copy flags for IB_fields and other settings */
 	ibuf_stereo->flags = ibuf_left->flags;
 
 	imb_stereo3d_data_initialize(
@@ -1233,7 +1232,6 @@ void IMB_ImBufFromStereo3d(
 	ibuf_left = IMB_allocImBuf(width, height, ibuf_stereo3d->planes, (is_float ? IB_rectfloat : IB_rect));
 	ibuf_right = IMB_allocImBuf(width, height, ibuf_stereo3d->planes, (is_float ? IB_rectfloat : IB_rect));
 
-	/* copy flags for IB_fields and other settings */
 	ibuf_left->flags = ibuf_stereo3d->flags;
 	ibuf_right->flags = ibuf_stereo3d->flags;
 

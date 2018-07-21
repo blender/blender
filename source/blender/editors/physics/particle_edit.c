@@ -2892,7 +2892,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 	brush = &pset->brush[pset->brushtype];
 
 	if (brush) {
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		immUniformColor4ub(255, 255, 255, 128);
@@ -4808,8 +4808,6 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		toggle_particle_cursor(C, 0);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
-
-	// ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
 

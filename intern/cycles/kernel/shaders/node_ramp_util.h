@@ -84,6 +84,6 @@ float rgb_ramp_lookup(float ramp[], float at, int interpolate, int extrapolate)
 
 	if (interpolate && t > 0.0)
 		result = (1.0 - t) * result + t * ramp[i + 1];
-	
+
 	return result;
 }

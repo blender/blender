@@ -1254,7 +1254,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 						tex->iuser.frames = 1;
 						tex->iuser.sfra = 1;
-						tex->iuser.fie_ima = 2;
 						tex->iuser.ok = 1;
 					}
 				}

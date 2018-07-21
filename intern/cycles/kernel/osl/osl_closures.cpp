@@ -4,8 +4,8 @@
  * Copyright (c) 2009-2010 Sony Pictures Imageworks Inc., et al.
  * All Rights Reserved.
  *
- * Modifications Copyright 2011, Blender Foundation.
- * 
+ * Modifications Copyright 2011-2018, Blender Foundation.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -59,6 +59,7 @@
 #include "kernel/closure/bsdf_ashikhmin_shirley.h"
 #include "kernel/closure/bsdf_toon.h"
 #include "kernel/closure/bsdf_hair.h"
+#include "kernel/closure/bsdf_hair_principled.h"
 #include "kernel/closure/bsdf_principled_diffuse.h"
 #include "kernel/closure/bsdf_principled_sheen.h"
 #include "kernel/closure/volume.h"
@@ -175,6 +176,61 @@ BSDF_CLOSURE_CLASS_END(PrincipledDiffuse, principled_diffuse)
 BSDF_CLOSURE_CLASS_BEGIN(PrincipledSheen, principled_sheen, PrincipledSheenBsdf, LABEL_DIFFUSE)
 	CLOSURE_FLOAT3_PARAM(PrincipledSheenClosure, params.N),
 BSDF_CLOSURE_CLASS_END(PrincipledSheen, principled_sheen)
+
+/* PRINCIPLED HAIR BSDF */
+class PrincipledHairClosure : public CBSDFClosure {
+public:
+	PrincipledHairBSDF params;
+
+	PrincipledHairBSDF *alloc(ShaderData *sd, int path_flag, float3 weight)
+	{
+		PrincipledHairBSDF *bsdf = (PrincipledHairBSDF*)bsdf_alloc_osl(sd, sizeof(PrincipledHairBSDF), weight, &params);
+		if(!bsdf) {
+			return NULL;
+		}
+
+		PrincipledHairExtra *extra = (PrincipledHairExtra*)closure_alloc_extra(sd, sizeof(PrincipledHairExtra));
+		if(!extra) {
+			return NULL;
+		}
+
+		bsdf->extra = extra;
+		return bsdf;
+	}
+
+	void setup(ShaderData *sd, int path_flag, float3 weight)
+	{
+		if(!skip(sd, path_flag, LABEL_GLOSSY))
+		{
+			PrincipledHairBSDF *bsdf = (PrincipledHairBSDF*)alloc(sd, path_flag, weight);
+			if (!bsdf)
+			{
+				return;
+			}
+
+			sd->flag |= (bsdf) ? bsdf_principled_hair_setup(sd, bsdf) : 0;
+		}
+	}
+};
+
+static ClosureParam *closure_bsdf_principled_hair_params()
+{
+	static ClosureParam params[] = {
+		CLOSURE_FLOAT3_PARAM(PrincipledHairClosure, params.N),
+		CLOSURE_FLOAT3_PARAM(PrincipledHairClosure, params.sigma),
+		CLOSURE_FLOAT_PARAM(PrincipledHairClosure, params.v),
+		CLOSURE_FLOAT_PARAM(PrincipledHairClosure, params.s),
+		CLOSURE_FLOAT_PARAM(PrincipledHairClosure, params.m0_roughness),
+		CLOSURE_FLOAT_PARAM(PrincipledHairClosure, params.alpha),
+		CLOSURE_FLOAT_PARAM(PrincipledHairClosure, params.eta),
+		CLOSURE_STRING_KEYPARAM(PrincipledHairClosure, label, "label"),
+		CLOSURE_FINISH_PARAM(PrincipledHairClosure)
+	};
+
+	return params;
+}
+
+CCLOSURE_PREPARE(closure_bsdf_principled_hair_prepare, PrincipledHairClosure)
 
 /* DISNEY PRINCIPLED CLEARCOAT */
 class PrincipledClearcoatClosure : public CBSDFClosure {
@@ -321,6 +377,9 @@ void OSLShader::register_closures(OSLShadingSystem *ss_)
 		bsdf_hair_reflection_params(), bsdf_hair_reflection_prepare);
 	register_closure(ss, "hair_transmission", id++,
 		bsdf_hair_transmission_params(), bsdf_hair_transmission_prepare);
+
+	register_closure(ss, "principled_hair", id++,
+		closure_bsdf_principled_hair_params(), closure_bsdf_principled_hair_prepare);
 
 	register_closure(ss, "henyey_greenstein", id++,
 		closure_henyey_greenstein_params(), closure_henyey_greenstein_prepare);
@@ -770,4 +829,3 @@ CCLOSURE_PREPARE(closure_henyey_greenstein_prepare, VolumeHenyeyGreensteinClosur
 
 
 CCL_NAMESPACE_END
-

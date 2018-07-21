@@ -103,4 +103,3 @@ ccl_device differential3 differential3_zero()
 }
 
 CCL_NAMESPACE_END
-

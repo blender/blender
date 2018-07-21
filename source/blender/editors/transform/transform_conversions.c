@@ -5463,10 +5463,6 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
 		MEM_freeN(custom_data->data);
 		custom_data->data = NULL;
 	}
-	if (tc->data) {
-		MEM_freeN(tc->data); // XXX postTrans usually does this
-		tc->data = NULL;
-	}
 }
 
 static void createTransSeqData(bContext *C, TransInfo *t)
@@ -6688,7 +6684,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
 			}
 
-			/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+			/* set BONE_TRANSFORM flags for autokey, gizmo draw might have changed them */
 			if (!canceled && (t->mode != TFM_DUMMY)) {
 				count_set_pose_transflags(ob, t->mode, t->around, NULL);
 			}

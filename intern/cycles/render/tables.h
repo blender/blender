@@ -51,4 +51,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __TABLES_H__ */
-

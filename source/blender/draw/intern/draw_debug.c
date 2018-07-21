@@ -29,6 +29,8 @@
 
 #include "DNA_object_types.h"
 
+#include "BKE_object.h"
+
 #include "BLI_link_utils.h"
 
 #include "GPU_immediate.h"
@@ -105,6 +107,36 @@ void DRW_debug_bbox(const BoundBox *bbox, const float color[4])
 	DRW_debug_line_v3v3(bbox->vec[3], bbox->vec[7], color);
 }
 
+void DRW_debug_m4_as_bbox(const float m[4][4], const float color[4], const bool invert)
+{
+	BoundBox bb;
+	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
+	float minv[4][4];
+	if (invert) {
+		invert_m4_m4(minv, m);
+	}
+
+	BKE_boundbox_init_from_minmax(&bb, min, max);
+	for (int i = 0; i < 8; ++i) {
+		mul_project_m4_v3((invert) ? minv : m, bb.vec[i]);
+	}
+	DRW_debug_bbox(&bb, color);
+}
+
+void DRW_debug_sphere(const float center[3], const float radius, const float color[4])
+{
+	float size_mat[4][4];
+	DRWDebugSphere *sphere = MEM_mallocN(sizeof(DRWDebugSphere), "DRWDebugSphere");
+	/* Bake all transform into a Matrix4 */
+	scale_m4_fl(size_mat, radius);
+	copy_m4_m4(sphere->mat, g_modelmat);
+	translate_m4(sphere->mat, center[0], center[1], center[2]);
+	mul_m4_m4m4(sphere->mat, sphere->mat, size_mat);
+
+	copy_v4_v4(sphere->color, color);
+	BLI_LINKS_PREPEND(DST.debug.spheres, sphere);
+}
+
 /* --------- Render --------- */
 
 static void drw_debug_draw_lines(void)
@@ -115,13 +147,13 @@ static void drw_debug_draw_lines(void)
 		return;
 	}
 
-	Gwn_VertFormat *vert_format = immVertexFormat();
-	uint pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	uint col = GWN_vertformat_attr_add(vert_format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	GPUVertFormat *vert_format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(vert_format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(vert_format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
 
-	immBegin(GWN_PRIM_LINES, count * 2);
+	immBegin(GPU_PRIM_LINES, count * 2);
 
 	while (DST.debug.lines) {
 		void *next = DST.debug.lines->next;
@@ -140,9 +172,51 @@ static void drw_debug_draw_lines(void)
 	immUnbindProgram();
 }
 
+static void drw_debug_draw_spheres(void)
+{
+	int count = BLI_linklist_count((LinkNode *)DST.debug.spheres);
+
+	if (count == 0) {
+		return;
+	}
+
+	float one = 1.0f;
+	GPUVertFormat vert_format = {0};
+	uint mat = GPU_vertformat_attr_add(&vert_format, "InstanceModelMatrix", GPU_COMP_F32, 16, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(&vert_format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint siz = GPU_vertformat_attr_add(&vert_format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+
+	GPUVertBuf *inst_vbo = GPU_vertbuf_create_with_format(&vert_format);
+
+	GPU_vertbuf_data_alloc(inst_vbo, count);
+
+	int v = 0;
+	while (DST.debug.spheres) {
+		void *next = DST.debug.spheres->next;
+
+		GPU_vertbuf_attr_set(inst_vbo, mat, v, DST.debug.spheres->mat[0]);
+		GPU_vertbuf_attr_set(inst_vbo, col, v, DST.debug.spheres->color);
+		GPU_vertbuf_attr_set(inst_vbo, siz, v, &one);
+		v++;
+
+		MEM_freeN(DST.debug.spheres);
+		DST.debug.spheres = next;
+	}
+
+	GPUBatch *empty_sphere = DRW_cache_empty_sphere_get();
+
+	GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_LINES, empty_sphere->verts[0], NULL);
+	GPU_batch_instbuf_set(draw_batch, inst_vbo, true);
+	GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE);
+
+	GPU_batch_draw(draw_batch);
+	GPU_batch_discard(draw_batch);
+}
+
 void drw_debug_draw(void)
 {
 	drw_debug_draw_lines();
+	drw_debug_draw_spheres();
 }
 
 void drw_debug_init(void)

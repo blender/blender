@@ -137,6 +137,7 @@ public:
 	int tile_index;
 
 	device_ptr buffer;
+	int device_size;
 
 	RenderBuffers *buffers;
 
@@ -146,4 +147,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __BUFFERS_H__ */
-

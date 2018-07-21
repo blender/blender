@@ -87,7 +87,7 @@ static bool POSE_is_bone_selection_overlay_active(void)
 {
 	const DRWContextState *dcs = DRW_context_state_get();
 	const View3D *v3d = dcs->v3d;
-	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECTION);
+	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT) && OBPOSE_FROM_OBACT(dcs->obact);
 }
 
 static void POSE_engine_init(void *UNUSED(vedata))
@@ -155,8 +155,8 @@ static void POSE_cache_init(void *vedata)
 
 	{
 		if (POSE_is_bone_selection_overlay_active()) {
-			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, v3d->overlay.bone_selection_alpha);
-			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(v3d->overlay.bone_selection_alpha, 4));
+			copy_v4_fl4(ppd->blend_color, 0.0f, 0.0f, 0.0f, v3d->overlay.bone_select_alpha);
+			copy_v4_fl4(ppd->blend_color_invert, 0.0f, 0.0f, 0.0f, pow(v3d->overlay.bone_select_alpha, 4));
 			DRWShadingGroup *grp;
 			psl->bone_selection = DRW_pass_create(
 			        "Bone Selection",
@@ -198,10 +198,13 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	/* In the future this will allow us to implement face manipulators,
+	/* In the future this will allow us to implement face gizmos,
 	 * and similar functionalities. For now we handle only pose bones. */
 
 	if (ob->type == OB_ARMATURE) {
+		if (draw_ctx->v3d->overlay.flag & V3D_OVERLAY_HIDE_BONES) {
+			return;
+		}
 		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 			DRWArmaturePasses passes = {
 			    .bone_solid = psl->bone_solid,
@@ -218,7 +221,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	         !DRW_state_is_select() &&
 	         POSE_is_bone_selection_overlay_active())
 	{
-		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			if (POSE_is_driven_by_active_armature(ob)) {
 				DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);

@@ -539,9 +539,9 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), halfx, halfy, 1.0f + halfx, 1.0f + halfy);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x1, y1, x2, y2);
-	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), 1.0f, 1.0f, 1.0f, 1.0f);
+	glUniform4f(GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_COLOR), 1.0f, 1.0f, 1.0f, 1.0f);
 
-	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
+	GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 
 	GPU_texture_unbind(color);
 }

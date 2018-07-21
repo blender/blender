@@ -65,4 +65,3 @@ ccl_device void kernel_lamp_emission(KernelGlobals *kg)
 }
 
 CCL_NAMESPACE_END
-

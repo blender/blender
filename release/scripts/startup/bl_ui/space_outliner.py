@@ -49,11 +49,11 @@ class OUTLINER_HT_header(Header):
 
         row = layout.row(align=True)
         if display_mode in {'VIEW_LAYER'}:
-            row.popover(space_type='OUTLINER',
-                        region_type='HEADER',
-                        panel_type="OUTLINER_PT_filter",
-                        text="",
-                        icon='FILTER')
+            row.popover(
+                panel="OUTLINER_PT_filter",
+                text="",
+                icon='FILTER',
+            )
         elif display_mode in {'LIBRARIES', 'ORPHAN_DATA'}:
             row.prop(space, "use_filter_id_type", text="", icon='FILTER')
             sub = row.row(align=True)
@@ -132,7 +132,6 @@ class OUTLINER_MT_edit_datablocks(Menu):
 
         layout.operator("outliner.drivers_add_selected")
         layout.operator("outliner.drivers_delete_selected")
-
 
 
 class OUTLINER_MT_collection_view_layer(Menu):
@@ -221,8 +220,8 @@ class OUTLINER_MT_object(Menu):
 
         if object_mode in {'EDIT', 'POSE'}:
             name = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode].name
-            layout.operator("outliner.object_operation", text=f"{name} Set").type = 'OBJECT_MODE_ENTER'
-            layout.operator("outliner.object_operation", text=f"{name} Clear").type = 'OBJECT_MODE_EXIT'
+            layout.operator("outliner.object_operation", text=f"{name:s} Set").type = 'OBJECT_MODE_ENTER'
+            layout.operator("outliner.object_operation", text=f"{name:s} Clear").type = 'OBJECT_MODE_EXIT'
             del name
 
             layout.separator()
@@ -261,28 +260,31 @@ class OUTLINER_PT_filter(Panel):
 
         col = layout.column(align=True)
 
-        col.prop(space, "use_filter_collection", text="Collections", icon="GROUP")
-        col.prop(space, "use_filter_object", text="Objects", icon="OBJECT_DATAMODE")
+        col.prop(space, "use_filter_collection", text="Collections", icon='GROUP')
+        col.prop(space, "use_filter_object", text="Objects", icon='OBJECT_DATAMODE')
 
         sub = col.column(align=True)
         sub.active = space.use_filter_object
 
         if bpy.data.meshes:
-            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon="MESH_DATA")
+            sub.prop(space, "use_filter_object_mesh", text="Meshes", icon='MESH_DATA')
         if bpy.data.armatures:
-            sub.prop(space, "use_filter_object_armature", text="Armatures", icon="ARMATURE_DATA")
-        if bpy.data.lamps:
-            sub.prop(space, "use_filter_object_lamp", text="Lamps", icon="LAMP_DATA")
+            sub.prop(space, "use_filter_object_armature", text="Armatures", icon='ARMATURE_DATA')
+        if bpy.data.lights:
+            sub.prop(space, "use_filter_object_light", text="Lights", icon='LIGHT_DATA')
         if bpy.data.cameras:
-            sub.prop(space, "use_filter_object_camera", text="Cameras", icon="CAMERA_DATA")
+            sub.prop(space, "use_filter_object_camera", text="Cameras", icon='CAMERA_DATA')
 
-        sub.prop(space, "use_filter_object_empty", text="Empties", icon="EMPTY_DATA")
+        sub.prop(space, "use_filter_object_empty", text="Empties", icon='EMPTY_DATA')
 
-        if bpy.data.curves or \
-           bpy.data.metaballs or \
-           bpy.data.lightprobes or \
-           bpy.data.lattices or \
-           bpy.data.fonts or bpy.data.speakers:
+        if (
+                bpy.data.curves or
+                bpy.data.metaballs or
+                bpy.data.lightprobes or
+                bpy.data.lattices or
+                bpy.data.fonts or
+                bpy.data.speakers
+        ):
             sub.prop(space, "use_filter_object_others", text="Others")
 
         subsub = sub.column(align=False)

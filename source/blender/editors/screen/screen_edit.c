@@ -381,8 +381,8 @@ static void region_cursor_set(wmWindow *win, bool swin_changed)
 		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar == screen->active_region) {
 				if (swin_changed || (ar->type && ar->type->event_cursor)) {
-					if (ar->manipulator_map != NULL) {
-						if (WM_manipulatormap_cursor_set(ar->manipulator_map, win)) {
+					if (ar->gizmo_map != NULL) {
+						if (WM_gizmomap_cursor_set(ar->gizmo_map, win)) {
 							return;
 						}
 					}
@@ -477,8 +477,8 @@ void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 	wmWindow *win;
 
 	for (win = wm->windows.first; win; win = win->next) {
-		if (WM_window_get_active_workspace(win) == NULL) {
-			WM_window_set_active_workspace(win, bmain->workspaces.first);
+		if (BKE_workspace_active_get(win->workspace_hook) == NULL) {
+			BKE_workspace_active_set(win->workspace_hook, bmain->workspaces.first);
 		}
 
 		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {
@@ -792,11 +792,19 @@ static void screen_global_statusbar_area_create(wmWindow *win)
 
 void ED_screen_global_areas_create(wmWindow *win)
 {
-	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-	if (screen->temp == 0) {
-		screen_global_topbar_area_create(win);
-		screen_global_statusbar_area_create(win);
+	/* Don't create global areas for child windows. */
+	if (win->parent) {
+		return;
 	}
+
+	/* Don't create global area for temporary windows. */
+	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+	if (screen->temp) {
+		return;
+	}
+
+	screen_global_topbar_area_create(win);
+	screen_global_statusbar_area_create(win);
 }
 
 
@@ -936,13 +944,41 @@ static void screen_set_3dview_camera(Scene *scene, ViewLayer *view_layer, ScrAre
 	}
 }
 
-void ED_screen_update_after_scene_change(const bScreen *screen, Scene *scene_new, ViewLayer *view_layer)
+void ED_screen_scene_change(bContext *C, wmWindow *win, Scene *scene)
 {
+#if 0
+	ViewLayer *view_layer_old = WM_window_get_active_view_layer(win);
+#endif
+
+	/* Switch scene. */
+	win->scene = scene;
+	if (CTX_wm_window(C) == win) {
+		CTX_data_scene_set(C, scene);
+	}
+
+	/* Ensure the view layer name is updated. */
+	WM_window_ensure_active_view_layer(win);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+
+#if 0
+	/* Mode Syncing. */
+	if (view_layer_old) {
+		WorkSpace *workspace = CTX_wm_workspace(C);
+		Object *obact_new = OBACT(view_layer);
+		UNUSED_VARS(obact_new);
+		eObjectMode object_mode_old = workspace->object_mode;
+		Object *obact_old = OBACT(view_layer_old);
+		UNUSED_VARS(obact_old, object_mode_old);
+	}
+#endif
+
+	/* Update 3D view cameras. */
+	const bScreen *screen = WM_window_get_active_screen(win);
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 			if (sl->spacetype == SPACE_VIEW3D) {
 				View3D *v3d = (View3D *)sl;
-				screen_set_3dview_camera(scene_new, view_layer, sa, v3d);
+				screen_set_3dview_camera(scene, view_layer, sa, v3d);
 			}
 		}
 	}

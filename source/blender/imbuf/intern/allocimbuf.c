@@ -521,7 +521,6 @@ ImBuf *IMB_dupImBuf(const ImBuf *ibuf1)
 
 	x = ibuf1->x;
 	y = ibuf1->y;
-	if (ibuf1->flags & IB_fields) y *= 2;
 
 	ibuf2 = IMB_allocImBuf(x, y, ibuf1->planes, flags);
 	if (ibuf2 == NULL) return NULL;

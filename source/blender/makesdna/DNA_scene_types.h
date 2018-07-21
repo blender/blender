@@ -1237,7 +1237,7 @@ typedef struct ToolSettings {
 	short autoik_chainlen;  /* runtime only */
 
 	/* SCE_MPR_LOC/SCAL */
-	char manipulator_flag;
+	char gizmo_flag;
 
 	/* Grease Pencil */
 	char gpencil_flags;		/* flags/options for how the tool works */
@@ -1385,6 +1385,9 @@ typedef struct SceneDisplay {
 	float matcap_ssao_attenuation;
 	int matcap_ssao_samples;
 	int pad;
+
+	/* OpenGL render engine settings. */
+	View3DShading shading;
 } SceneDisplay;
 
 typedef struct SceneEEVEE {
@@ -1392,6 +1395,9 @@ typedef struct SceneEEVEE {
 	int gi_diffuse_bounces;
 	int gi_cubemap_resolution;
 	int gi_visibility_resolution;
+
+	float gi_cubemap_draw_size;
+	float gi_irradiance_draw_size;
 
 	int taa_samples;
 	int taa_render_samples;
@@ -1432,6 +1438,9 @@ typedef struct SceneEEVEE {
 	int shadow_method;
 	int shadow_cube_size;
 	int shadow_cascade_size;
+
+	struct LightCache *light_cache;
+	char light_cache_info[64];
 } SceneEEVEE;
 
 /* *************************************************************** */
@@ -1705,7 +1714,7 @@ enum {
 
 /* RenderData.engine (scene.c) */
 extern const char *RE_engine_id_BLENDER_EEVEE;
-extern const char *RE_engine_id_BLENDER_WORKBENCH;
+extern const char *RE_engine_id_BLENDER_OPENGL;
 extern const char *RE_engine_id_CYCLES;
 
 /* **************** SCENE ********************* */
@@ -1959,6 +1968,7 @@ typedef enum eSculptFlags {
 	/* If set, dynamic-topology detail size will be constant in object space */
 	SCULPT_DYNTOPO_DETAIL_CONSTANT = (1 << 13),
 	SCULPT_DYNTOPO_DETAIL_BRUSH = (1 << 14),
+	SCULPT_DYNTOPO_DETAIL_MANUAL = (1 << 16),
 
 	/* Don't display mask in viewport, but still use it for strokes. */
 	SCULPT_HIDE_MASK = (1 << 15),
@@ -2014,7 +2024,7 @@ typedef enum eImagePaintMode {
 #define EDGE_MODE_TAG_BEVEL				4
 #define EDGE_MODE_TAG_FREESTYLE			5
 
-/* ToolSettings.manipulator_flag */
+/* ToolSettings.gizmo_flag */
 #define SCE_MANIP_TRANSLATE	1
 #define SCE_MANIP_ROTATE		2
 #define SCE_MANIP_SCALE		4
@@ -2111,6 +2121,9 @@ enum {
 	SCE_EEVEE_SSR_ENABLED			= (1 << 14),
 	SCE_EEVEE_SSR_REFRACTION		= (1 << 15),
 	SCE_EEVEE_SSR_HALF_RESOLUTION	= (1 << 16),
+	SCE_EEVEE_SHOW_IRRADIANCE		= (1 << 17),
+	SCE_EEVEE_SHOW_CUBEMAPS			= (1 << 18),
+	SCE_EEVEE_GI_AUTOBAKE			= (1 << 19),
 };
 
 /* SceneEEVEE->shadow_method */

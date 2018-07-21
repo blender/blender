@@ -131,7 +131,7 @@ color hsv_to_rgb(color hsv)
 	else {
 		if (h == 1.0)
 			h = 0.0;
-		
+
 		h *= 6.0;
 		i = floor(h);
 		f = h - i;
@@ -150,4 +150,3 @@ color hsv_to_rgb(color hsv)
 
 	return rgb;
 }
-

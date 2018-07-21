@@ -89,7 +89,6 @@ vec3 get_world_specular_light(vec4 specular_data, LightData light_data, vec3 N, 
 vec3 get_world_specular_lights(WorldData world_data, vec4 specular_data, vec3 N, vec3 I)
 {
 	vec3 specular_light = vec3(0.0);
-	specular_light += get_world_specular_light(specular_data, world_data.lights[0], N, I);
 	for (int i = 0 ; i < world_data.num_lights ; i ++) {
 		specular_light += get_world_specular_light(specular_data, world_data.lights[i], N, I);
 	}

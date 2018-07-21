@@ -186,7 +186,7 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 	}
 }
 
-int rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
+bool rna_ActionGroup_is_custom_colorset_get(PointerRNA *ptr)
 {
 	bActionGroup *grp = ptr->data;
 
@@ -297,7 +297,7 @@ static void rna_PoseChannel_name_set(PointerRNA *ptr, const char *value)
 	ED_armature_bone_rename(G_MAIN, ob->data, oldname, newname);
 }
 
-static int rna_PoseChannel_has_ik_get(PointerRNA *ptr)
+static bool rna_PoseChannel_has_ik_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	bPoseChannel *pchan = (bPoseChannel *)ptr->data;

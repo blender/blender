@@ -35,4 +35,3 @@ ccl_device void svm_node_invert(ShaderData *sd, float *stack, uint in_fac, uint 
 }
 
 CCL_NAMESPACE_END
-

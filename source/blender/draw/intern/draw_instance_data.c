@@ -45,17 +45,17 @@
 
 typedef struct DRWBatchingBuffer {
 	struct DRWShadingGroup *shgroup;  /* Link back to the owning shGroup. Also tells if it's used */
-	Gwn_VertFormat *format;           /* Identifier. */
-	Gwn_VertBuf *vert;                /* Gwn_VertBuf contained in the Gwn_Batch. */
-	Gwn_Batch *batch;                 /* Gwn_Batch containing the Gwn_VertBuf. */
+	GPUVertFormat *format;           /* Identifier. */
+	GPUVertBuf *vert;                /* GPUVertBuf contained in the GPUBatch. */
+	GPUBatch *batch;                 /* GPUBatch containing the GPUVertBuf. */
 } DRWBatchingBuffer;
 
 typedef struct DRWInstancingBuffer {
 	struct DRWShadingGroup *shgroup;  /* Link back to the owning shGroup. Also tells if it's used */
-	Gwn_VertFormat *format;           /* Identifier. */
-	Gwn_Batch *instance;              /* Identifier. */
-	Gwn_VertBuf *vert;                /* Gwn_VertBuf contained in the Gwn_Batch. */
-	Gwn_Batch *batch;                 /* Gwn_Batch containing the Gwn_VertBuf. */
+	GPUVertFormat *format;           /* Identifier. */
+	GPUBatch *instance;              /* Identifier. */
+	GPUVertBuf *vert;                /* GPUVertBuf contained in the GPUBatch. */
+	GPUBatch *batch;                 /* GPUBatch containing the GPUVertBuf. */
 } DRWInstancingBuffer;
 
 typedef struct DRWInstanceChunk {
@@ -100,7 +100,7 @@ static ListBase g_idatalists = {NULL, NULL};
  * that would be too slow]).
  **/
 
-static void instance_batch_free(Gwn_Batch *batch, void *UNUSED(user_data))
+static void instance_batch_free(GPUBatch *batch, void *UNUSED(user_data))
 {
 	/* Free all batches that have the same key before they are reused. */
 	/* TODO: Make it thread safe! Batch freeing can happen from another thread. */
@@ -111,8 +111,8 @@ static void instance_batch_free(Gwn_Batch *batch, void *UNUSED(user_data))
 		for (int i = 0; i < idatalist->instancing.alloc_size; i++, ibuf++) {
 			if (ibuf->instance == batch) {
 				BLI_assert(ibuf->shgroup == NULL); /* Make sure it has no other users. */
-				GWN_VERTBUF_DISCARD_SAFE(ibuf->vert);
-				GWN_BATCH_DISCARD_SAFE(ibuf->batch);
+				GPU_VERTBUF_DISCARD_SAFE(ibuf->vert);
+				GPU_BATCH_DISCARD_SAFE(ibuf->batch);
 				/* Tag as non alloced. */
 				ibuf->format = NULL;
 			}
@@ -121,8 +121,8 @@ static void instance_batch_free(Gwn_Batch *batch, void *UNUSED(user_data))
 }
 
 void DRW_batching_buffer_request(
-        DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_PrimType type, struct DRWShadingGroup *shgroup,
-        Gwn_Batch **r_batch, Gwn_VertBuf **r_vert)
+        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUPrimType type, struct DRWShadingGroup *shgroup,
+        GPUBatch **r_batch, GPUVertBuf **r_vert)
 {
 	DRWInstanceChunk *chunk = &idatalist->batching;
 	DRWBatchingBuffer *bbuf = idatalist->batching.bbufs;
@@ -152,16 +152,16 @@ void DRW_batching_buffer_request(
 	}
 	/* Create the batch. */
 	bbuf = chunk->bbufs + new_id;
-	bbuf->vert = *r_vert = GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_DYNAMIC);
-	bbuf->batch = *r_batch = GWN_batch_create_ex(type, bbuf->vert, NULL, 0);
+	bbuf->vert = *r_vert = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_DYNAMIC);
+	bbuf->batch = *r_batch = GPU_batch_create_ex(type, bbuf->vert, NULL, 0);
 	bbuf->format = format;
 	bbuf->shgroup = shgroup;
-	GWN_vertbuf_data_alloc(*r_vert, BUFFER_VERTS_CHUNK);
+	GPU_vertbuf_data_alloc(*r_vert, BUFFER_VERTS_CHUNK);
 }
 
 void DRW_instancing_buffer_request(
-        DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_Batch *instance, struct DRWShadingGroup *shgroup,
-        Gwn_Batch **r_batch, Gwn_VertBuf **r_vert)
+        DRWInstanceDataList *idatalist, GPUVertFormat *format, GPUBatch *instance, struct DRWShadingGroup *shgroup,
+        GPUBatch **r_batch, GPUVertBuf **r_vert)
 {
 	DRWInstanceChunk *chunk = &idatalist->instancing;
 	DRWInstancingBuffer *ibuf = idatalist->instancing.ibufs;
@@ -193,15 +193,15 @@ void DRW_instancing_buffer_request(
 	}
 	/* Create the batch. */
 	ibuf = chunk->ibufs + new_id;
-	ibuf->vert = *r_vert = GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_DYNAMIC);
-	ibuf->batch = *r_batch = GWN_batch_duplicate(instance);
+	ibuf->vert = *r_vert = GPU_vertbuf_create_with_format_ex(format, GPU_USAGE_DYNAMIC);
+	ibuf->batch = *r_batch = GPU_batch_duplicate(instance);
 	ibuf->format = format;
 	ibuf->shgroup = shgroup;
 	ibuf->instance = instance;
-	GWN_vertbuf_data_alloc(*r_vert, BUFFER_VERTS_CHUNK);
-	GWN_batch_instbuf_set(ibuf->batch, ibuf->vert, false);
+	GPU_vertbuf_data_alloc(*r_vert, BUFFER_VERTS_CHUNK);
+	GPU_batch_instbuf_set(ibuf->batch, ibuf->vert, false);
 	/* Make sure to free this ibuf if the instance batch gets free. */
-	GWN_batch_callback_free_set(instance, &instance_batch_free, NULL);
+	GPU_batch_callback_free_set(instance, &instance_batch_free, NULL);
 }
 
 void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
@@ -213,19 +213,19 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 	for (int i = 0; i < batching->alloc_size; i++, bbuf++) {
 		if (bbuf->shgroup != NULL) {
 			realloc_size = i + 1;
-			uint vert_ct = DRW_shgroup_get_instance_count(bbuf->shgroup);
-			vert_ct += (vert_ct == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
-			if (vert_ct + BUFFER_VERTS_CHUNK <= bbuf->vert->vertex_ct) {
-				uint size = vert_ct + BUFFER_VERTS_CHUNK - 1;
+			uint vert_len = DRW_shgroup_get_instance_count(bbuf->shgroup);
+			vert_len += (vert_len == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
+			if (vert_len + BUFFER_VERTS_CHUNK <= bbuf->vert->vertex_len) {
+				uint size = vert_len + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
-				GWN_vertbuf_data_resize(bbuf->vert, size);
+				GPU_vertbuf_data_resize(bbuf->vert, size);
 			}
-			GWN_vertbuf_use(bbuf->vert); /* Send data. */
+			GPU_vertbuf_use(bbuf->vert); /* Send data. */
 			bbuf->shgroup = NULL; /* Set as non used for the next round. */
 		}
 		else {
-			GWN_VERTBUF_DISCARD_SAFE(bbuf->vert);
-			GWN_BATCH_DISCARD_SAFE(bbuf->batch);
+			GPU_VERTBUF_DISCARD_SAFE(bbuf->vert);
+			GPU_BATCH_DISCARD_SAFE(bbuf->batch);
 			bbuf->format = NULL; /* Tag as non alloced. */
 		}
 	}
@@ -245,19 +245,19 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 	for (int i = 0; i < instancing->alloc_size; i++, ibuf++) {
 		if (ibuf->shgroup != NULL) {
 			realloc_size = i + 1;
-			uint vert_ct = DRW_shgroup_get_instance_count(ibuf->shgroup);
-			vert_ct += (vert_ct == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
-			if (vert_ct + BUFFER_VERTS_CHUNK <= ibuf->vert->vertex_ct) {
-				uint size = vert_ct + BUFFER_VERTS_CHUNK - 1;
+			uint vert_len = DRW_shgroup_get_instance_count(ibuf->shgroup);
+			vert_len += (vert_len == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
+			if (vert_len + BUFFER_VERTS_CHUNK <= ibuf->vert->vertex_len) {
+				uint size = vert_len + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
-				GWN_vertbuf_data_resize(ibuf->vert, size);
+				GPU_vertbuf_data_resize(ibuf->vert, size);
 			}
-			GWN_vertbuf_use(ibuf->vert); /* Send data. */
+			GPU_vertbuf_use(ibuf->vert); /* Send data. */
 			ibuf->shgroup = NULL; /* Set as non used for the next round. */
 		}
 		else {
-			GWN_VERTBUF_DISCARD_SAFE(ibuf->vert);
-			GWN_BATCH_DISCARD_SAFE(ibuf->batch);
+			GPU_VERTBUF_DISCARD_SAFE(ibuf->vert);
+			GPU_BATCH_DISCARD_SAFE(ibuf->batch);
 			ibuf->format = NULL; /* Tag as non alloced. */
 		}
 	}
@@ -366,15 +366,15 @@ void DRW_instance_data_list_free(DRWInstanceDataList *idatalist)
 
 	DRWBatchingBuffer *bbuf = idatalist->batching.bbufs;
 	for (int i = 0; i < idatalist->batching.alloc_size; i++, bbuf++) {
-		GWN_VERTBUF_DISCARD_SAFE(bbuf->vert);
-		GWN_BATCH_DISCARD_SAFE(bbuf->batch);
+		GPU_VERTBUF_DISCARD_SAFE(bbuf->vert);
+		GPU_BATCH_DISCARD_SAFE(bbuf->batch);
 	}
 	MEM_freeN(idatalist->batching.bbufs);
 
 	DRWInstancingBuffer *ibuf = idatalist->instancing.ibufs;
 	for (int i = 0; i < idatalist->instancing.alloc_size; i++, ibuf++) {
-		GWN_VERTBUF_DISCARD_SAFE(ibuf->vert);
-		GWN_BATCH_DISCARD_SAFE(ibuf->batch);
+		GPU_VERTBUF_DISCARD_SAFE(ibuf->vert);
+		GPU_BATCH_DISCARD_SAFE(ibuf->batch);
 	}
 	MEM_freeN(idatalist->instancing.ibufs);
 

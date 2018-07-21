@@ -31,7 +31,7 @@
 #define __DRAW_HAIR_PRIVATE_H__
 
 #define MAX_LAYER_NAME_CT   3 /* u0123456789, u, a0123456789 */
-#define MAX_LAYER_NAME_LEN  DECIMAL_DIGITS_BOUND(unsigned int) + 2
+#define MAX_LAYER_NAME_LEN  DECIMAL_DIGITS_BOUND(uint) + 2
 #define MAX_THICKRES        2 /* see eHairType */
 #define MAX_HAIR_SUBDIV     4 /* see hair_subdiv rna */
 
@@ -42,32 +42,32 @@ struct ParticleHairCache;
 
 typedef struct ParticleHairFinalCache {
 	/* Output of the subdivision stage: vertex buff sized to subdiv level. */
-	Gwn_VertBuf *proc_buf;
+	GPUVertBuf *proc_buf;
 	GPUTexture *proc_tex;
 
 	 /* Just contains a huge index buffer used to draw the final hair. */
-	Gwn_Batch *proc_hairs[MAX_THICKRES];
+	GPUBatch *proc_hairs[MAX_THICKRES];
 
 	int strands_res; /* points per hair, at least 2 */
 } ParticleHairFinalCache;
 
 typedef struct ParticleHairCache {
-	Gwn_VertBuf *pos;
-	Gwn_IndexBuf *indices;
-	Gwn_Batch *hairs;
+	GPUVertBuf *pos;
+	GPUIndexBuf *indices;
+	GPUBatch *hairs;
 
 	/* Hair Procedural display: Interpolation is done on the GPU. */
-	Gwn_VertBuf *proc_point_buf; /* Input control points */
+	GPUVertBuf *proc_point_buf; /* Input control points */
 	GPUTexture *point_tex;
 
-	Gwn_VertBuf *proc_strand_buf; /* Infos of control points strands (segment count and base index) */
+	GPUVertBuf *proc_strand_buf; /* Infos of control points strands (segment count and base index) */
 	GPUTexture *strand_tex;
 
-	Gwn_VertBuf *proc_uv_buf[MAX_MTFACE];
+	GPUVertBuf *proc_uv_buf[MAX_MTFACE];
 	GPUTexture *uv_tex[MAX_MTFACE];
 	char uv_layer_names[MAX_MTFACE][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
 
-	Gwn_VertBuf *proc_col_buf[MAX_MCOL];
+	GPUVertBuf *proc_col_buf[MAX_MCOL];
 	GPUTexture *col_tex[MAX_MCOL];
 	char col_layer_names[MAX_MCOL][MAX_LAYER_NAME_CT][MAX_LAYER_NAME_LEN];
 
@@ -76,9 +76,9 @@ typedef struct ParticleHairCache {
 
 	ParticleHairFinalCache final[MAX_HAIR_SUBDIV];
 
-	int strands_count;
-	int elems_count;
-	int point_count;
+	int strands_len;
+	int elems_len;
+	int point_len;
 } ParticleHairCache;
 
 bool particles_ensure_procedural_data(

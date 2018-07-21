@@ -132,6 +132,14 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			});
 		}
 
+		const bool is_persp = DRW_viewport_is_persp_get();
+		if (effects->ssr_was_persp != is_persp) {
+			effects->ssr_was_persp = is_persp;
+			DRW_viewport_request_redraw();
+			EEVEE_temporal_sampling_reset(vedata);
+			stl->g_data->valid_double_buffer = false;
+		}
+
 		effects->reflection_trace_full = (scene_eval->eevee.flag & SCE_EEVEE_SSR_HALF_RESOLUTION) == 0;
 		common_data->ssr_thickness = scene_eval->eevee.ssr_thickness;
 		common_data->ssr_border_fac = scene_eval->eevee.ssr_border_fade;
@@ -187,8 +195,9 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+	LightCache *lcache = stl->g_data->light_cache;
 
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	if ((effects->enabled_effects & EFFECT_SSR) != 0) {
 		int options = (effects->reflection_trace_full) ? SSR_FULL_TRACE : 0;
@@ -230,7 +239,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
 		DRW_shgroup_uniform_texture_ref(grp, "specroughBuffer", &effects->ssr_specrough_input);
-		DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &sldata->probe_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &lcache->cube_tx.tex);
 		DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_texture_ref(grp, "hitBuffer", &effects->ssr_hit_output);

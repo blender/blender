@@ -35,7 +35,7 @@ struct ARegion;
 struct wmWindow;
 struct ReportList;
 
-#include "manipulators/wm_manipulator_wmapi.h"
+#include "gizmo/wm_gizmo_wmapi.h"
 
 typedef struct wmPaintCursor {
 	struct wmPaintCursor *next, *prev;
@@ -62,6 +62,7 @@ void		wm_operator_register(bContext *C, wmOperator *op);
 void wm_operatortype_free(void);
 void wm_operatortype_init(void);
 void wm_window_keymap(wmKeyConfig *keyconf);
+void wm_operatortypes_register(void);
 
 /* wm_gesture.c */
 void wm_gesture_draw(struct wmWindow *win);

@@ -87,4 +87,3 @@ ccl_device int bsdf_refraction_sample(const ShaderClosure *sc, float3 Ng, float3
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_REFRACTION_H__ */
-

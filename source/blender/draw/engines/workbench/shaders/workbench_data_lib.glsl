@@ -8,7 +8,7 @@ struct WorldData {
 	vec4 background_color_low;
 	vec4 background_color_high;
 	vec4 object_outline_color;
-	vec4 light_direction_vs;
+	vec4 shadow_direction_vs;
 	LightData lights[3];
 	int num_lights;
 	int matcap_orientation;

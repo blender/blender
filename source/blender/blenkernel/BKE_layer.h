@@ -58,7 +58,7 @@ struct WorkSpace;
 
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
-struct ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace);
+struct ViewLayer *BKE_view_layer_find(const struct Scene *scene, const char *layer_name);
 struct ViewLayer *BKE_view_layer_add(struct Scene *scene, const char *name);
 
 /* DEPRECATED */

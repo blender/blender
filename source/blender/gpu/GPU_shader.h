@@ -89,10 +89,12 @@ void *GPU_shader_get_interface(GPUShader *shader);
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
-void GPU_shader_uniform_vector(GPUShader *shader, int location, int length,
-	int arraysize, const float *value);
-void GPU_shader_uniform_vector_int(GPUShader *shader, int location, int length,
-	int arraysize, const int *value);
+void GPU_shader_uniform_vector(
+        GPUShader *shader, int location, int length,
+        int arraysize, const float *value);
+void GPU_shader_uniform_vector_int(
+        GPUShader *shader, int location, int length,
+        int arraysize, const int *value);
 
 void GPU_shader_uniform_buffer(GPUShader *shader, int location, struct GPUUniformBuffer *ubo);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, struct GPUTexture *tex);
@@ -375,7 +377,7 @@ typedef struct GPUVertexAttribs {
 		int glinfoindoex;
 		int gltexco;
 		int attribid;
-		char name[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
+		char name[64];  /* MAX_CUSTOMDATA_LAYER_NAME */
 	} layer[GPU_MAX_ATTRIB];
 
 	int totlayer;

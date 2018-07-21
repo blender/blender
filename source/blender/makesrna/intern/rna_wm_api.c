@@ -118,33 +118,33 @@ static void rna_event_timer_remove(struct wmWindowManager *wm, wmTimer *timer)
 }
 
 
-static wmManipulatorGroupType *wm_manipulatorgrouptype_find_for_add_remove(ReportList *reports, const char *idname)
+static wmGizmoGroupType *wm_gizmogrouptype_find_for_add_remove(ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, true);
-	if (wgt == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator group type '%s' not found!", idname);
+	wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, true);
+	if (gzgt == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Gizmo group type '%s' not found!", idname);
 		return NULL;
 	}
-	if (wgt->flag & WM_MANIPULATORGROUPTYPE_PERSISTENT) {
-		BKE_reportf(reports, RPT_ERROR, "Manipulator group '%s' has 'PERSISTENT' option set!", idname);
+	if (gzgt->flag & WM_GIZMOGROUPTYPE_PERSISTENT) {
+		BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' has 'PERSISTENT' option set!", idname);
 		return NULL;
 	}
-	return wgt;
+	return gzgt;
 }
 
-static void rna_manipulator_group_type_add(ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_add(ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_find_for_add_remove(reports, idname);
-	if (wgt != NULL) {
-		WM_manipulator_group_type_add_ptr(wgt);
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
+	if (gzgt != NULL) {
+		WM_gizmo_group_type_add_ptr(gzgt);
 	}
 }
 
-static void rna_manipulator_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
+static void rna_gizmo_group_type_remove(Main *bmain, ReportList *reports, const char *idname)
 {
-	wmManipulatorGroupType *wgt = wm_manipulatorgrouptype_find_for_add_remove(reports, idname);
-	if (wgt != NULL) {
-		WM_manipulator_group_type_remove_ptr(bmain, wgt);
+	wmGizmoGroupType *gzgt = wm_gizmogrouptype_find_for_add_remove(reports, idname);
+	if (gzgt != NULL) {
+		WM_gizmo_group_type_remove_ptr(bmain, gzgt);
 	}
 }
 
@@ -376,12 +376,12 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 }
 
 /* popover wrapper */
-static PointerRNA rna_PopoverBegin(bContext *C)
+static PointerRNA rna_PopoverBegin(bContext *C, int ui_units_x)
 {
 	PointerRNA r_ptr;
 	void *data;
 
-	data = (void *)UI_popover_begin(C);
+	data = (void *)UI_popover_begin(C, U.widget_unit * ui_units_x);
 
 	RNA_pointer_create(NULL, &RNA_UIPopover, data, &r_ptr);
 
@@ -516,16 +516,16 @@ void RNA_api_wm(StructRNA *srna)
 	parm = RNA_def_pointer(func, "timer", "Timer", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "manipulator_group_type_add", "rna_manipulator_group_type_add");
+	func = RNA_def_function(srna, "gizmo_group_type_add", "rna_gizmo_group_type_add");
 	RNA_def_function_ui_description(func, "Activate an existing widget group (when the persistent option isn't set)");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Manipulator group type name");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
-	func = RNA_def_function(srna, "manipulator_group_type_remove", "rna_manipulator_group_type_remove");
+	func = RNA_def_function(srna, "gizmo_group_type_remove", "rna_gizmo_group_type_remove");
 	RNA_def_function_ui_description(func, "De-activate a widget group (when the persistent option isn't set)");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_MAIN | FUNC_USE_REPORTS);
-	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Manipulator group type name");
+	parm = RNA_def_string(func, "identifier", NULL, 0, "", "Gizmo group type name");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* Progress bar interface */
@@ -602,6 +602,7 @@ void RNA_api_wm(StructRNA *srna)
 	/* wrap UI_popover_begin */
 	func = RNA_def_function(srna, "popover_begin__internal", "rna_PopoverBegin");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	RNA_def_property(func, "ui_units_x", PROP_INT, PROP_UNSIGNED);
 	/* return */
 	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);

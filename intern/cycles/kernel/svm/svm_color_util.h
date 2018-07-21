@@ -60,7 +60,7 @@ ccl_device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
 		outcol.z *= tm + 2.0f*t*col2.z;
 	else
 		outcol.z = 1.0f - (tm + 2.0f*t*(1.0f - col2.z))*(1.0f - outcol.z);
-	
+
 	return outcol;
 }
 
@@ -167,7 +167,7 @@ ccl_device float3 svm_mix_burn(float t, float3 col1, float3 col2)
 		outcol.z = 1.0f;
 	else
 		outcol.z = tmp;
-	
+
 	return outcol;
 }
 
@@ -180,7 +180,7 @@ ccl_device float3 svm_mix_hue(float t, float3 col1, float3 col2)
 	if(hsv2.y != 0.0f) {
 		float3 hsv = rgb_to_hsv(outcol);
 		hsv.x = hsv2.x;
-		float3 tmp = hsv_to_rgb(hsv); 
+		float3 tmp = hsv_to_rgb(hsv);
 
 		outcol = interp(outcol, tmp, t);
 	}
@@ -227,7 +227,7 @@ ccl_device float3 svm_mix_color(float t, float3 col1, float3 col2)
 		float3 hsv = rgb_to_hsv(outcol);
 		hsv.x = hsv2.x;
 		hsv.y = hsv2.y;
-		float3 tmp = hsv_to_rgb(hsv); 
+		float3 tmp = hsv_to_rgb(hsv);
 
 		outcol = interp(outcol, tmp, t);
 	}
@@ -303,4 +303,3 @@ ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness,
 }
 
 CCL_NAMESPACE_END
-

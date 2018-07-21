@@ -128,7 +128,7 @@ static void external_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+	struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
 		/* Depth Prepass */
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
@@ -165,14 +165,14 @@ static void external_draw_scene_do(void *vedata)
 	}
 
 	/* Rendered draw. */
-	gpuPushProjectionMatrix();
+	GPU_matrix_push_projection();
 	ED_region_pixelspace(ar);
 
 	/* Render result draw. */
 	type = rv3d->render_engine->type;
 	type->view_draw(rv3d->render_engine, draw_ctx->evil_C);
 
-	gpuPopProjectionMatrix();
+	GPU_matrix_pop_projection();
 
 	/* Set render info. */
 	EXTERNAL_Data *data = vedata;

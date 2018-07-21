@@ -61,11 +61,11 @@ def render_gl(context, filepath, shade):
 
     ctx_shading_type(context, shade)
 
-    #~ # stop to inspect!
-    #~ if filepath == "test_cube_shell_solidify_subsurf_wp_wire":
-        #~ assert(0)
-    #~ else:
-        #~ return
+    # stop to inspect!
+    # if filepath == "test_cube_shell_solidify_subsurf_wp_wire":
+    #     assert(0)
+    # else:
+    #     return
 
     bpy.ops.render.opengl(write_still=True,
                           view_context=True)
@@ -127,7 +127,7 @@ def ctx_clear_scene():  # copied from batch_import.py
     # remove obdata, for now only worry about the startup scene
     for bpy_data_iter in (bpy.data.objects,
                           bpy.data.meshes,
-                          bpy.data.lamps,
+                          bpy.data.lights,
                           bpy.data.cameras,
                           ):
 
@@ -218,6 +218,7 @@ def mesh_bmesh_poly_elems(poly, elems):
     vert_start = poly.loop_start
     vert_total = poly.loop_total
     return elems[vert_start:vert_start + vert_total]
+
 
 def mesh_bmesh_poly_vertices(poly):
     return [loop.vertex_index
@@ -505,7 +506,7 @@ cube_like_vertices = (
     (-1, 1, 3),
     (0, 1, 3),
     (0, 0, 3),
-    )
+)
 
 
 cube_like_faces = (
@@ -547,7 +548,7 @@ cube_like_faces = (
     (31, 30, 36, 33),
     (32, 31, 33, 34),
     (35, 34, 33, 36),
-    )
+)
 
 
 # useful since its a shell for solidify and it can be mirrored
@@ -564,7 +565,7 @@ cube_shell_vertices = (
     (0, -1, 0),
     (0, 0, -1),
     (0, 1, -1),
-    )
+)
 
 
 cube_shell_face = (
@@ -577,7 +578,7 @@ cube_shell_face = (
     (6, 5, 11),
     (7, 4, 9, 8),
     (10, 7, 6, 11),
-    )
+)
 
 
 def make_cube(scene):
@@ -678,59 +679,77 @@ def make_monkey_extra(scene):
 
 global_tests = []
 
-global_tests.append(("none",
-    (),
-    ))
-
+global_tests.append(
+    ("none",
+     (),
+     )
+)
 # single
-global_tests.append(("subsurf_single",
-    ((modifier_subsurf_add, dict(levels=2)), ),
-    ))
+global_tests.append(
+    ("subsurf_single",
+     ((modifier_subsurf_add, dict(levels=2)), ),
+     )
+)
 
+global_tests.append(
+    ("armature_single",
+     ((modifier_armature_add, dict()), ),
+     )
+)
 
-global_tests.append(("armature_single",
-    ((modifier_armature_add, dict()), ),
-    ))
+global_tests.append(
+    ("mirror_single",
+     ((modifier_mirror_add, dict()), ),
+     )
+)
 
+global_tests.append(
+    ("hook_single",
+     ((modifier_hook_add, dict()), ),
+     )
+)
 
-global_tests.append(("mirror_single",
-    ((modifier_mirror_add, dict()), ),
-    ))
+global_tests.append(
+    ("decimate_single",
+     ((modifier_decimate_add, dict()), ),
+     )
+)
 
-global_tests.append(("hook_single",
-    ((modifier_hook_add, dict()), ),
-    ))
+global_tests.append(
+    ("build_single",
+     ((modifier_build_add, dict()), ),
+     )
+)
 
-global_tests.append(("decimate_single",
-    ((modifier_decimate_add, dict()), ),
-    ))
-
-global_tests.append(("build_single",
-    ((modifier_build_add, dict()), ),
-    ))
-
-global_tests.append(("mask_single",
-    ((modifier_mask_add, dict()), ),
-    ))
+global_tests.append(
+    ("mask_single",
+     ((modifier_mask_add, dict()), ),
+     )
+)
 
 
 # combinations
-global_tests.append(("mirror_subsurf",
-    ((modifier_mirror_add, dict()),
-     (modifier_subsurf_add, dict(levels=2))),
-    ))
+global_tests.append(
+    ("mirror_subsurf",
+     ((modifier_mirror_add, dict()),
+      (modifier_subsurf_add, dict(levels=2))),
+     )
+)
 
-global_tests.append(("solidify_subsurf",
-    ((modifier_solidify_add, dict()),
-     (modifier_subsurf_add, dict(levels=2))),
-    ))
+global_tests.append(
+    ("solidify_subsurf",
+     ((modifier_solidify_add, dict()),
+      (modifier_subsurf_add, dict(levels=2))),
+     )
+)
 
 
-def apply_test(test, scene, obj,
-               render_func=None,
-               render_args=None,
-               render_kwargs=None,
-               ):
+def apply_test(
+        test, scene, obj,
+        render_func=None,
+        render_args=None,
+        render_kwargs=None,
+):
 
     test_name, test_funcs = test
 
@@ -756,10 +775,12 @@ def test_cube(context, test):
     obj = make_cube_extra(scene)
     ctx_camera_setup(context, location=(3, 3, 3))
 
-    apply_test(test, scene, obj,
-               render_func=render_gl_all_modes,
-               render_args=(context, obj),
-               render_kwargs=dict(filepath=whoami()))
+    apply_test(
+        test, scene, obj,
+        render_func=render_gl_all_modes,
+        render_args=(context, obj),
+        render_kwargs=dict(filepath=whoami())
+    )
 
 
 def test_cube_like(context, test):
@@ -767,10 +788,12 @@ def test_cube_like(context, test):
     obj = make_cube_like_extra(scene)
     ctx_camera_setup(context, location=(5, 5, 5))
 
-    apply_test(test, scene, obj,
-               render_func=render_gl_all_modes,
-               render_args=(context, obj),
-               render_kwargs=dict(filepath=whoami()))
+    apply_test(
+        test, scene, obj,
+        render_func=render_gl_all_modes,
+        render_args=(context, obj),
+        render_kwargs=dict(filepath=whoami())
+    )
 
 
 def test_cube_shell(context, test):
@@ -778,10 +801,12 @@ def test_cube_shell(context, test):
     obj = make_cube_shell_extra(scene)
     ctx_camera_setup(context, location=(4, 4, 4))
 
-    apply_test(test, scene, obj,
-               render_func=render_gl_all_modes,
-               render_args=(context, obj),
-               render_kwargs=dict(filepath=whoami()))
+    apply_test(
+        test, scene, obj,
+        render_func=render_gl_all_modes,
+        render_args=(context, obj),
+        render_kwargs=dict(filepath=whoami())
+    )
 
 
 # -----------------------------------------------------------------------------

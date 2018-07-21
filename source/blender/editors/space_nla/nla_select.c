@@ -167,10 +167,24 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* 'standard' behavior - check if selected, then apply relevant selection */
-	if (RNA_boolean_get(op->ptr, "invert"))
-		deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_INVERT);
-	else
-		deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_ADD);
+	const int action = RNA_enum_get(op->ptr, "action");
+	switch (action) {
+		case SEL_TOGGLE:
+			deselect_nla_strips(&ac, DESELECT_STRIPS_TEST, SELECT_ADD);
+			break;
+		case SEL_SELECT:
+			deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_ADD);
+			break;
+		case SEL_DESELECT:
+			deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_SUBTRACT);
+			break;
+		case SEL_INVERT:
+			deselect_nla_strips(&ac, DESELECT_STRIPS_NOTEST, SELECT_INVERT);
+			break;
+		default:
+			BLI_assert(0);
+			break;
+	}
 
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
@@ -178,11 +192,11 @@ static int nlaedit_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_select_all_toggle(wmOperatorType *ot)
+void NLA_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "(De)select All";
-	ot->idname = "NLA_OT_select_all_toggle";
+	ot->idname = "NLA_OT_select_all";
 	ot->description = "Select or deselect all NLA-Strips";
 
 	/* api callbacks */
@@ -192,9 +206,8 @@ void NLA_OT_select_all_toggle(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER /*|OPTYPE_UNDO*/;
 
-	/* props */
-	ot->prop = RNA_def_boolean(ot->srna, "invert", 0, "Invert", "");
-	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+	/* properties */
+	WM_operator_properties_select_all(ot);
 }
 
 /* ******************** Border Select Operator **************************** */

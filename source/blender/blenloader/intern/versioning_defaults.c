@@ -52,7 +52,6 @@
 
 #include "BLO_readfile.h"
 
-
 /**
  * Override values in in-memory startup.blend, avoids resaving for small changes.
  */
@@ -72,7 +71,6 @@ void BLO_update_defaults_userpref_blend(void)
 	/* Defaults from T54943 (phase 1). */
 	U.flag &= ~USER_TOOLTIPS_PYTHON;
 	U.uiflag |= USER_AUTOPERSP;
-	U.manipulator_flag |= USER_MANIPULATOR_DRAW_NAVIGATE;
 	U.uiflag2 |= USER_REGION_OVERLAP;
 
 	U.versions = 1;

@@ -33,7 +33,6 @@ from modules.test_utils import (with_tempdir,
                                 )
 
 
-
 class AbcPropError(Exception):
     """Raised when AbstractAlembicTest.abcprop() finds an error."""
 

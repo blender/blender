@@ -26,7 +26,7 @@ import bmesh
 __all__ = (
     "select_prev",
     "select_next",
-    )
+)
 
 
 def other_edges_over_face(e):
@@ -303,8 +303,9 @@ def select_next(bm, report):
             for fn in (pass_fn, set, sum_set, len):
                 uuid_cmp_test = fn(uuid_cmp)
                 ele_pair_next_uuid_test = [
-                        (ele, uuid) for (ele, uuid) in ele_pair_next_uuid
-                        if uuid_cmp_test == fn(uuid)]
+                    (ele, uuid) for (ele, uuid) in ele_pair_next_uuid
+                    if uuid_cmp_test == fn(uuid)
+                ]
                 if len(ele_pair_next_uuid_test) > 1:
                     ele_pair_next_uuid = ele_pair_next_uuid_test
                 elif len(ele_pair_next_uuid_test) == 1:

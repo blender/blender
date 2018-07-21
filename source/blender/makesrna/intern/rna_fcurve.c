@@ -524,7 +524,7 @@ static void rna_FCurve_modifiers_remove(FCurve *fcu, ReportList *reports, Pointe
 	RNA_POINTER_INVALIDATE(fcm_ptr);
 }
 
-static void rna_FModifier_active_set(PointerRNA *ptr, int UNUSED(value))
+static void rna_FModifier_active_set(PointerRNA *ptr, bool UNUSED(value))
 {
 	FModifier *fcm = (FModifier *)ptr->data;
 

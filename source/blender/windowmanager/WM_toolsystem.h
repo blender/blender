@@ -73,11 +73,9 @@ void WM_toolsystem_ref_set_from_runtime(
 void WM_toolsystem_init(struct bContext *C);
 
 int WM_toolsystem_mode_from_spacetype(
-        struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa,
-        int space_type);
+        struct ViewLayer *view_layer, struct ScrArea *sa, int space_type);
 bool WM_toolsystem_key_from_context(
-        struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa,
-        bToolKey *tkey);
+        struct ViewLayer *view_layer, struct ScrArea *sa, bToolKey *tkey);
 void WM_toolsystem_update_from_context(
         struct bContext *C,
         struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa);
@@ -95,7 +93,7 @@ void WM_toolsystem_ref_properties_ensure(struct bToolRef *tref, struct wmOperato
 void WM_toolsystem_ref_properties_init_for_keymap(
         struct bToolRef *tref, struct PointerRNA *dst_ptr, struct PointerRNA *src_ptr, struct wmOperatorType *ot);
 
-void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa);
+void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace, struct ViewLayer *view_layer, struct ScrArea *sa);
 void WM_toolsystem_refresh_screen_all(struct Main *bmain);
 
 #ifdef __cplusplus

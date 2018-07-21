@@ -39,8 +39,7 @@ void register_node_type_sh_output_lamp(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_OUTPUT_LAMP, "Lamp Output", NODE_CLASS_OUTPUT, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
+	sh_node_type_base(&ntype, SH_NODE_OUTPUT_LIGHT, "Light Output", NODE_CLASS_OUTPUT, 0);
 	node_type_socket_templates(&ntype, sh_node_output_lamp_in, NULL);
 	node_type_init(&ntype, NULL);
 	node_type_storage(&ntype, "", NULL, NULL);

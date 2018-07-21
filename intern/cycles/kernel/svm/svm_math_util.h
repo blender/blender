@@ -94,11 +94,19 @@ ccl_device float svm_math(NodeMath type, float Fac1, float Fac2)
 		Fac = fabsf(Fac1);
 	else if(type == NODE_MATH_ARCTAN2)
 		Fac = atan2f(Fac1, Fac2);
+	else if (type == NODE_MATH_FLOOR)
+		Fac = floorf(Fac1);
+	else if (type == NODE_MATH_CEIL)
+		Fac = ceilf(Fac1);
+	else if (type == NODE_MATH_FRACT)
+		Fac = Fac1 - floorf(Fac1);
+	else if (type == NODE_MATH_SQRT)
+		Fac = safe_sqrtf(Fac1);
 	else if(type == NODE_MATH_CLAMP)
 		Fac = saturate(Fac1);
 	else
 		Fac = 0.0f;
-	
+
 	return Fac;
 }
 
@@ -180,4 +188,3 @@ ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
 }
 
 CCL_NAMESPACE_END
-

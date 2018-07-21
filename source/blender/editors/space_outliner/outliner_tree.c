@@ -2160,28 +2160,30 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		}
 		/* make hierarchy */
 		ten = soops->tree.first;
-		ten = ten->next;  /* first one is main */
-		while (ten) {
-			TreeElement *nten = ten->next, *par;
-			tselem = TREESTORE(ten);
-			lib = (Library *)tselem->id;
-			if (lib && lib->parent) {
-				par = (TreeElement *)lib->parent->id.newid;
-				if (tselem->id->tag & LIB_TAG_INDIRECT) {
-					/* Only remove from 'first level' if lib is not also directly used. */
-					BLI_remlink(&soops->tree, ten);
-					BLI_addtail(&par->subtree, ten);
-					ten->parent = par;
-				}
-				else {
-					/* Else, make a new copy of the libtree for our parent. */
-					TreeElement *dupten = outliner_add_library_contents(mainvar, soops, &par->subtree, lib);
-					if (dupten) {
-						dupten->parent = par;
+		if (ten != NULL) {
+			ten = ten->next;  /* first one is main */
+			while (ten) {
+				TreeElement *nten = ten->next, *par;
+				tselem = TREESTORE(ten);
+				lib = (Library *)tselem->id;
+				if (lib && lib->parent) {
+					par = (TreeElement *)lib->parent->id.newid;
+					if (tselem->id->tag & LIB_TAG_INDIRECT) {
+						/* Only remove from 'first level' if lib is not also directly used. */
+						BLI_remlink(&soops->tree, ten);
+						BLI_addtail(&par->subtree, ten);
+						ten->parent = par;
+					}
+					else {
+						/* Else, make a new copy of the libtree for our parent. */
+						TreeElement *dupten = outliner_add_library_contents(mainvar, soops, &par->subtree, lib);
+						if (dupten) {
+							dupten->parent = par;
+						}
 					}
 				}
+				ten = nten;
 			}
-			ten = nten;
 		}
 		/* restore newid pointers */
 		for (lib = mainvar->library.first; lib; lib = lib->id.next)

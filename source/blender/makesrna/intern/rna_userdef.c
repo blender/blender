@@ -143,16 +143,10 @@ static void rna_userdef_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 }
 
 /* also used by buffer swap switching */
-static void rna_userdef_dpi_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_userdef_dpi_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	/* font's are stored at each DPI level, without this we can easy load 100's of fonts */
 	BLF_cache_clear();
-
-	/* force setting drawable again */
-	wmWindowManager *wm = bmain->wm.first;
-	if (wm) {
-		wm->windrawable = NULL;
-	}
 
 	WM_main_add_notifier(NC_WINDOW, NULL);      /* full redraw */
 	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);    /* refresh region sizes */
@@ -170,36 +164,6 @@ static void rna_userdef_language_update(Main *UNUSED(bmain), Scene *UNUSED(scene
 	BLT_lang_set(NULL);
 	UI_reinit_font();
 }
-
-static void rna_userdef_show_manipulator_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	UserDef *userdef = (UserDef *)ptr->data;
-
-	/* lame, loop over all views and set */
-	bScreen *sc;
-	ScrArea *sa;
-	SpaceLink *sl;
-
-	/* from scene copy to the other views */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			for (sl = sa->spacedata.first; sl; sl = sl->next) {
-				if (sl->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = (View3D *)sl;
-					if (userdef->manipulator_flag & USER_MANIPULATOR_DRAW) {
-						v3d->twflag |= V3D_MANIPULATOR_DRAW;
-					}
-					else {
-						v3d->twflag &= ~V3D_MANIPULATOR_DRAW;
-					}
-				}
-			}
-		}
-	}
-
-	rna_userdef_update(bmain, scene, ptr);
-}
-
 
 static void rna_userdef_script_autoexec_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -719,7 +683,9 @@ static void rna_UserDef_studiolight_path_irr_cache_get(PointerRNA *ptr, char *va
 	if (sl->path_irr_cache) {
 		BLI_strncpy(value, sl->path_irr_cache, FILE_MAX);
 	}
-	value[0] = 0x00;
+	else {
+		value[0] = '\0';
+	}
 }
 
 static int rna_UserDef_studiolight_path_irr_cache_length(PointerRNA *ptr)
@@ -738,7 +704,9 @@ static void rna_UserDef_studiolight_path_sh_cache_get(PointerRNA *ptr, char *val
 	if (sl->path_sh_cache) {
 		BLI_strncpy(value, sl->path_sh_cache, FILE_MAX);
 	}
-	value[0] = 0x00;
+	else {
+		value[0] = '\0';
+	}
 }
 
 static int rna_UserDef_studiolight_path_sh_cache_length(PointerRNA *ptr)
@@ -758,10 +726,10 @@ static int rna_UserDef_studiolight_index_get(PointerRNA *ptr)
 }
 
 /* StudioLight.is_user_defined */
-static int rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
+static bool rna_UserDef_studiolight_is_user_defined_get(PointerRNA *ptr)
 {
 	StudioLight *sl = (StudioLight *)ptr->data;
-	return (sl->flag & STUDIOLIGHT_USER_DEFINED) > 0;
+	return (sl->flag & STUDIOLIGHT_USER_DEFINED) != 0;
 }
 
 /* StudioLight.orientation */
@@ -1035,14 +1003,6 @@ static void rna_def_userdef_theme_ui_panel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "sub_back", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_ui_text(prop, "Sub Background", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "show_header", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Header", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "show_back", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Show Background", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_ui_gradient(BlenderRNA *brna)
@@ -1245,35 +1205,35 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Axis", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	/* Generic manipulator colors. */
-	prop = RNA_def_property(srna, "manipulator_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_hi");
+	/* Generic gizmo colors. */
+	prop = RNA_def_property(srna, "gizmo_hi", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_hi");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Highlight", "");
+	RNA_def_property_ui_text(prop, "Gizmo Highlight", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_primary");
+	prop = RNA_def_property(srna, "gizmo_primary", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_primary");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Primary", "");
+	RNA_def_property_ui_text(prop, "Gizmo Primary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_secondary");
+	prop = RNA_def_property(srna, "gizmo_secondary", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_secondary");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator Secondary", "");
+	RNA_def_property_ui_text(prop, "Gizmo Secondary", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_a", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_a");
+	prop = RNA_def_property(srna, "gizmo_a", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_a");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator A", "");
+	RNA_def_property_ui_text(prop, "Gizmo A", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "manipulator_b", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "manipulator_b");
+	prop = RNA_def_property(srna, "gizmo_b", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "gizmo_b");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Manipulator B", "");
+	RNA_def_property_ui_text(prop, "Gizmo B", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
@@ -1805,9 +1765,10 @@ static void rna_def_userdef_theme_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Empty", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "lamp", PROP_FLOAT, PROP_COLOR_GAMMA);
+	prop = RNA_def_property(srna, "light", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "lamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Lamp", "");
+	RNA_def_property_ui_text(prop, "Light", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "speaker", PROP_FLOAT, PROP_COLOR_GAMMA);
@@ -3470,12 +3431,6 @@ static void rna_def_userdef_solidlight(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Direction", "Direction that the OpenGL light is shining");
 	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
 
-	prop = RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "col");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Diffuse Color", "Diffuse color of the OpenGL light");
-	RNA_def_property_update(prop, 0, "rna_UserDef_viewport_lights_update");
-
 	prop = RNA_def_property(srna, "specular_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "spec");
 	RNA_def_property_array(prop, 3);
@@ -3746,10 +3701,17 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotate Around Selection", "Use selection as the pivot point");
 
 	/* mini axis */
-	prop = RNA_def_property(srna, "show_mini_axis", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "uiflag", USER_SHOW_ROTVIEWICON);
-	RNA_def_property_ui_text(prop, "Show Mini Axes",
-	                         "Show a small rotating 3D axes in the bottom left corner of the 3D View");
+	static const EnumPropertyItem mini_axis_type_items[] = {
+		{0, "MINIMAL", 0, "Simple Axis", ""},
+		{USER_SHOW_GIZMO_AXIS, "GIZMO", 0, "Interactive Navigation", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	prop = RNA_def_property(srna, "mini_axis_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, mini_axis_type_items);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "uiflag");
+	RNA_def_property_ui_text(prop, "Mini Axes Type",
+	                         "Show a small rotating 3D axes in the top right corner of the 3D View");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "mini_axis_size", PROP_INT, PROP_NONE);
@@ -3775,35 +3737,22 @@ static void rna_def_userdef_view(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation Angle", "Rotation step for numerical pad keys (2 4 6 8)");
 
 	/* 3D transform widget */
-	prop = RNA_def_property(srna, "show_manipulator", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW);
-	RNA_def_property_ui_text(prop, "Manipulator", "Use 3D transform manipulator");
-	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
-
-	prop = RNA_def_property(srna, "show_manipulator_navigate", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_DRAW_NAVIGATE);
-	RNA_def_property_ui_text(prop, "Navigate Manipulator", "Use 3D navigation manipulator");
-	RNA_def_property_update(prop, 0, "rna_userdef_show_manipulator_update");
-
-	/* TODO, expose once it's working. */
-#if 0
-	prop = RNA_def_property(srna, "show_manipulator_shaded", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "manipulator_flag", USER_MANIPULATOR_SHADED);
-	RNA_def_property_ui_text(prop, "Manipulator Shaded", "Use 3D transform manipulator");
+	prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gizmo_flag", USER_GIZMO_DRAW);
+	RNA_def_property_ui_text(prop, "Gizmos", "Use transform gizmos by default");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-#endif
 
-	prop = RNA_def_property(srna, "manipulator_size", PROP_INT, PROP_PIXEL);
-	RNA_def_property_int_sdna(prop, NULL, "manipulator_size");
+	prop = RNA_def_property(srna, "gizmo_size", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_sdna(prop, NULL, "gizmo_size");
 	RNA_def_property_range(prop, 10, 200);
 	RNA_def_property_int_default(prop, 75);
-	RNA_def_property_ui_text(prop, "Manipulator Size", "Diameter of the manipulator");
+	RNA_def_property_ui_text(prop, "Gizmo Size", "Diameter of the gizmo");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "object_origin_size", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "obcenter_dia");
 	RNA_def_property_range(prop, 4, 10);
-	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Lamp origin display");
+	RNA_def_property_ui_text(prop, "Object Origin Size", "Diameter in Pixels for Object/Light origin display");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	/* View2D Grid Displays */
@@ -3893,6 +3842,14 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_RELEASECONFIRM);
 	RNA_def_property_ui_text(prop, "Release confirms",
 	                         "Moving things with a mouse drag confirms when releasing the button");
+
+	prop = RNA_def_property(srna, "use_numeric_input_advanced", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_FLAG_NUMINPUT_ADVANCED);
+	RNA_def_property_ui_text(
+	        prop, "Default to Advanced Numeric Input",
+	        "When entering numbers while transforming, "
+	        "default to advanced mode for full math expression evaluation");
+
 
 	/* Undo */
 	prop = RNA_def_property(srna, "undo_steps", PROP_INT, PROP_NONE);
@@ -4038,9 +3995,9 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_ARM);
 	RNA_def_property_ui_text(prop, "Duplicate Armature", "Causes armature data to be duplicated with the object");
 
-	prop = RNA_def_property(srna, "use_duplicate_lamp", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_duplicate_light", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_LAMP);
-	RNA_def_property_ui_text(prop, "Duplicate Lamp", "Causes lamp data to be duplicated with the object");
+	RNA_def_property_ui_text(prop, "Duplicate Light", "Causes light data to be duplicated with the object");
 
 	prop = RNA_def_property(srna, "use_duplicate_material", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "dupflag", USER_DUP_MAT);

@@ -86,7 +86,7 @@ int DiagSplit::T(Patch *patch, float2 Pstart, float2 Pend)
 
 	if(tmax - tmin > params.split_threshold)
 		return DSPLIT_NON_UNIFORM;
-	
+
 	return tmax;
 }
 
@@ -258,4 +258,3 @@ void DiagSplit::split_quad(Patch *patch, QuadDice::SubPatch *subpatch)
 }
 
 CCL_NAMESPACE_END
-

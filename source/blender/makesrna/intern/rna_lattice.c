@@ -155,7 +155,7 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Lattice_update_data(bmain, scene, ptr);
 }
 
-static void rna_Lattice_use_outside_set(PointerRNA *ptr, int value)
+static void rna_Lattice_use_outside_set(PointerRNA *ptr, bool value)
 {
 	Lattice *lt = ptr->data;
 
@@ -236,7 +236,7 @@ static char *rna_LatticePoint_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
-static int rna_Lattice_is_editmode_get(PointerRNA *ptr)
+static bool rna_Lattice_is_editmode_get(PointerRNA *ptr)
 {
 	Lattice *lt = (Lattice *)ptr->id.data;
 	return (lt->editlatt != NULL);

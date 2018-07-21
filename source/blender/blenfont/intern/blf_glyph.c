@@ -239,12 +239,12 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	}
 
 	unsigned char *pixels = MEM_callocN((size_t)gc->p2_width * (size_t)gc->p2_height, "BLF texture init");
-	GPUTexture *tex = GPU_texture_create_2D(gc->p2_width, gc->p2_height, GPU_R8, (const float *)pixels, error);
+	GPUTexture *tex = GPU_texture_create_nD(gc->p2_width, gc->p2_height, 0, 2, pixels, GPU_R8, GPU_DATA_UNSIGNED_BYTE, 0, false, error);
 	MEM_freeN(pixels);
 	gc->textures[gc->texture_current] = tex;
 	GPU_texture_bind(tex, 0);
 	GPU_texture_wrap_mode(tex, false);
-	GPU_texture_filters(tex, GPU_NEAREST, GPU_LINEAR);
+	GPU_texture_filters(tex, GPU_NEAREST, GPU_NEAREST);
 	GPU_texture_unbind(tex);
 }
 
@@ -382,10 +382,10 @@ static void blf_texture_draw(const unsigned char color[4], const float uv[2][2],
 {
 	/* Only one vertex per glyph, geometry shader expand it into a quad. */
 	/* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
-	copy_v4_fl4(GWN_vertbuf_raw_step(&g_batch.pos_step), x1 + g_batch.ofs[0], y1 + g_batch.ofs[1],
+	copy_v4_fl4(GPU_vertbuf_raw_step(&g_batch.pos_step), x1 + g_batch.ofs[0], y1 + g_batch.ofs[1],
 	                                                     x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
-	copy_v4_v4(GWN_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
-	copy_v4_v4_uchar(GWN_vertbuf_raw_step(&g_batch.col_step), color);
+	copy_v4_v4(GPU_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
+	copy_v4_v4_uchar(GPU_vertbuf_raw_step(&g_batch.col_step), color);
 	g_batch.glyph_len++;
 	/* Flush cache if it's full. */
 	if (g_batch.glyph_len == BLF_BATCH_DRAW_LEN_MAX) {
@@ -476,7 +476,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			BLI_assert(g->height > 0);
 		}
 
-		GPU_texture_update_sub(g->tex, g->bitmap, g->offset_x, g->offset_y, 0, g->width, g->height, 0);
+		GPU_texture_update_sub(g->tex, GPU_DATA_UNSIGNED_BYTE, g->bitmap, g->offset_x, g->offset_y, 0, g->width, g->height, 0);
 
 		g->uv[0][0] = ((float)g->offset_x) / ((float)gc->p2_width);
 		g->uv[0][1] = ((float)g->offset_y) / ((float)gc->p2_height);

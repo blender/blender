@@ -1248,35 +1248,3 @@ void POSE_OT_quaternions_flip(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
-/* -------------------------------------------------------------------- */
-/** \name Toggle Bone selection Overlay Operator
- * \{ */
-
-static int toggle_bone_selection_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	v3d->overlay.flag ^= V3D_OVERLAY_BONE_SELECTION;
-	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	return OPERATOR_FINISHED;
-}
-
-static bool pose_select_linked_poll(bContext *C)
-{
-	return (ED_operator_view3d_active(C) && ED_operator_posemode(C));
-}
-
-void POSE_OT_toggle_bone_selection_overlay(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Toggle Bone Selection Overlay";
-	ot->description = "Toggle bone selection overlay of the viewport";
-	ot->idname = "POSE_OT_toggle_bone_selection_overlay";
-
-	/* api callbacks */
-	ot->exec = toggle_bone_selection_exec;
-	ot->poll = pose_select_linked_poll;
-}
-
-/** \} */

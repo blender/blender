@@ -80,7 +80,7 @@ struct bContext {
 		struct ScrArea *area;
 		struct ARegion *region;
 		struct ARegion *menu;
-		struct wmManipulatorGroup *manipulator_group;
+		struct wmGizmoGroup *gizmo_group;
 		struct bContextStore *store;
 		const char *operator_poll_msg; /* reason for poll failing */
 	} wm;
@@ -675,9 +675,9 @@ struct ARegion *CTX_wm_menu(const bContext *C)
 	return C->wm.menu;
 }
 
-struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C)
+struct wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C)
 {
-	return C->wm.manipulator_group;
+	return C->wm.gizmo_group;
 }
 
 struct wmMsgBus *CTX_wm_message_bus(const bContext *C)
@@ -876,9 +876,9 @@ void CTX_wm_menu_set(bContext *C, ARegion *menu)
 	C->wm.menu = menu;
 }
 
-void CTX_wm_manipulator_group_set(bContext *C, struct wmManipulatorGroup *mgroup)
+void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup)
 {
-	C->wm.manipulator_group = mgroup;
+	C->wm.gizmo_group = gzgroup;
 }
 
 void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
@@ -926,9 +926,17 @@ ViewLayer *CTX_data_view_layer(const bContext *C)
 	if (ctx_data_pointer_verify(C, "view_layer", (void *)&view_layer)) {
 		return view_layer;
 	}
-	else {
-		return BKE_view_layer_from_workspace_get(CTX_data_scene(C), CTX_wm_workspace(C));
+
+	wmWindow *win = CTX_wm_window(C);
+	Scene *scene = CTX_data_scene(C);
+	if (win) {
+		view_layer = BKE_view_layer_find(scene, win->view_layer_name);
+		if (view_layer) {
+			return view_layer;
+		}
 	}
+
+	return BKE_view_layer_default_view(scene);
 }
 
 RenderEngineType *CTX_data_engine_type(const bContext *C)

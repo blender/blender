@@ -38,6 +38,8 @@
 
 #include "BKE_mesh.h"
 
+#include "DEG_depsgraph_query.h"
+
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
@@ -181,12 +183,14 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 	const View3D *v3d = draw_ctx->v3d;
 
 	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
+		/* We're always painting on original, display original data. */
+		ob = DEG_get_original_object(ob);
 		const Mesh *me = ob->data;
 		const bool use_wire = (v3d->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
 		const bool use_surface = v3d->overlay.weight_paint_mode_opacity != 0.0f;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
-		struct Gwn_Batch *geom;
+		struct GPUBatch *geom;
 
 		if (use_surface) {
 			geom = DRW_cache_mesh_surface_weights_get(ob);

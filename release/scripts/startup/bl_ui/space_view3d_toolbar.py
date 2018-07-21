@@ -247,18 +247,14 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
                 col.label("Missing Canvas", icon='INFO')
                 col.label("Add or assign a canvas image below")
                 col.label("Canvas Image:")
-                # todo this should be combinded into a single row
-                col.template_ID(toolsettings, "canvas", open="image.open")
-                col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
+                col.template_ID(toolsettings, "canvas", new="image.new", open="image.open")
 
         if toolsettings.missing_stencil:
             col.separator()
             col.label("Missing Stencil", icon='INFO')
             col.label("Add or assign a stencil image below")
             col.label("Stencil Image:")
-            # todo this should be combinded into a single row
-            col.template_ID(toolsettings, "stencil_image", open="image.open")
-            col.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+            col.template_ID(toolsettings, "stencil_image", new="image.new", open="image.open")
 
 
 # TODO, move to space_view3d.py
@@ -585,9 +581,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             mesh = ob.data
             uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
             col.label("Canvas Image:")
-            # todo this should be combinded into a single row
-            col.template_ID(settings, "canvas", open="image.open")
-            col.operator("image.new", text="New").gen_context = 'PAINT_CANVAS'
+            col.template_ID(settings, "canvas", new="image.new", open="image.open")
             col.label("UV Map:")
             col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
 
@@ -635,8 +629,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         colsub.alignment = 'RIGHT'
         colsub.label("Stencil Image")
         colsub = split.column()
-        colsub.template_ID(ipaint, "stencil_image", open="image.open")
-        colsub.operator("image.new", text="New").gen_context = 'PAINT_STENCIL'
+        colsub.template_ID(ipaint, "stencil_image", new="image.new", open="image.open")
 
         row = col.row(align=True)
         row.prop(ipaint, "stencil_color", text="Display Color")
@@ -895,6 +888,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     bl_context = ".sculpt_mode"  # dot on purpose (access from topbar)
     bl_label = "Dyntopo"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_ui_units_x = 12
 
     @classmethod
     def poll(cls, context):
@@ -913,6 +907,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
@@ -924,7 +919,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
 
         sub = col.column()
         sub.active = (brush and brush.sculpt_tool != 'MASK')
-        if (sculpt.detail_type_method == 'CONSTANT'):
+        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             row = sub.row(align=True)
             row.prop(sculpt, "constant_detail_resolution")
             row.operator("sculpt.sample_detail_size", text="", icon='EYEDROPPER')
@@ -942,7 +937,7 @@ class VIEW3D_PT_sculpt_dyntopo(Panel, View3DPaintPanel):
         col.prop(sculpt, "symmetrize_direction")
         col.operator("sculpt.symmetrize")
         col.operator("sculpt.optimize")
-        if (sculpt.detail_type_method == 'CONSTANT'):
+        if sculpt.detail_type_method in {'CONSTANT', 'MANUAL'}:
             col.operator("sculpt.detail_flood_fill")
 
 

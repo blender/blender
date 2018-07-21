@@ -226,7 +226,7 @@ static void setup_app_data(
 		 * only the current screen is important because we wont have to handle
 		 * events from multiple screens at once.*/
 		{
-			BKE_screen_manipulator_tag_refresh(curscreen);
+			BKE_screen_gizmo_tag_refresh(curscreen);
 		}
 	}
 

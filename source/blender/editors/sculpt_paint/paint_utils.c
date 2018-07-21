@@ -299,8 +299,8 @@ static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsig
 
 	/* get the needed opengl matrices */
 	GPU_viewport_size_get_i(view);
-	gpuGetModelViewMatrix(matrix);
-	gpuGetProjectionMatrix(proj);
+	GPU_matrix_model_view_get(matrix);
+	GPU_matrix_projection_get(proj);
 	view[0] = view[1] = 0;
 	mul_m4_m4m4(matrix, matrix, ob_eval->obmat);
 	mul_m4_m4m4(matrix, proj, matrix);

@@ -7,8 +7,8 @@ class ModalOperator(bpy.types.Operator):
     bl_idname = "object.modal_operator"
     bl_label = "Simple Modal Operator"
 
-    first_mouse_x = IntProperty()
-    first_value = FloatProperty()
+    first_mouse_x: IntProperty()
+    first_value: FloatProperty()
 
     def modal(self, context, event):
         if event.type == 'MOUSEMOVE':

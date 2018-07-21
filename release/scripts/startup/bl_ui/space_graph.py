@@ -60,9 +60,7 @@ class GRAPH_HT_header(Header):
             row.operator("graph.ghost_curves_create", text="", icon='GHOST_ENABLED')
 
         layout.popover(
-            space_type='GRAPH_EDITOR',
-            region_type='HEADER',
-            panel_type="GRAPH_PT_filters",
+            panel="GRAPH_PT_filters",
             text="",
             icon='FILTER',
         )
@@ -165,11 +163,12 @@ class GRAPH_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
-        layout.operator("graph.select_all_toggle").invert = False
-        layout.operator("graph.select_all_toggle", text="Invert Selection").invert = True
+        layout.operator("graph.select_all", text="All").action = 'SELECT'
+        layout.operator("graph.select_all", text="None").action = 'DESELECT'
+        layout.operator("graph.select_all", text="Invert").action = 'INVERT'
 
         layout.separator()
+
         props = layout.operator("graph.select_border")
         props.axis_range = False
         props.include_handles = False

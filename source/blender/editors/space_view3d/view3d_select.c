@@ -510,7 +510,7 @@ static void do_lasso_select_mesh(
 	/* for non zbuf projections, don't change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	gpuLoadMatrix(vc->rv3d->viewmat);
+	GPU_matrix_set(vc->rv3d->viewmat);
 	bbsel = EDBM_backbuf_border_mask_init(vc, mcords, moves, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {
@@ -1062,6 +1062,8 @@ static Base *object_mouse_select_menu(
 	short baseCount = 0;
 	bool ok;
 	LinkNode *linklist = NULL;
+	const int object_type_exclude_select = (
+	        vc->v3d->object_type_exclude_viewport | vc->v3d->object_type_exclude_select);
 
 	/* handle base->object->select_color */
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
@@ -1079,6 +1081,9 @@ static Base *object_mouse_select_menu(
 			}
 		}
 		else {
+			if (object_type_exclude_select & (1 << base->object->type)) {
+				continue;
+			}
 			const int dist = 15 * U.pixelsize;
 			if (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) {
 				const int delta_px[2] = {base->sx - mval[0], base->sy - mval[1]};
@@ -1184,7 +1189,7 @@ static int mixed_bones_object_selectbuffer(
 
 	/* define if we use solid nearest select or not */
 	if (use_cycle) {
-		if (v3d->drawtype > OB_WIRE) {
+		if (v3d->shading.type > OB_WIRE) {
 			do_nearest = true;
 			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
 				do_nearest = false;
@@ -1193,7 +1198,7 @@ static int mixed_bones_object_selectbuffer(
 		copy_v2_v2_int(last_mval, mval);
 	}
 	else {
-		if (v3d->drawtype > OB_WIRE) {
+		if (v3d->shading.type > OB_WIRE) {
 			do_nearest = true;
 		}
 	}
@@ -1447,9 +1452,13 @@ static bool ed_object_select_pick(
 			basact = object_mouse_select_menu(C, &vc, NULL, 0, mval, toggle);
 		}
 		else {
+			const int object_type_exclude_select = (
+			        vc.v3d->object_type_exclude_viewport | vc.v3d->object_type_exclude_select);
 			base = startbase;
 			while (base) {
-				if (BASE_SELECTABLE(base)) {
+				if (BASE_SELECTABLE(base) &&
+				    ((object_type_exclude_select & (1 << base->object->type)) == 0))
+				{
 					float screen_co[2];
 					if (ED_view3d_project_float_global(
 					            ar, base->object->obmat[3], screen_co,
@@ -1927,7 +1936,7 @@ static int do_mesh_box_select(
 	/* for non zbuf projections, don't change the GL state */
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-	gpuLoadMatrix(vc->rv3d->viewmat);
+	GPU_matrix_set(vc->rv3d->viewmat);
 	bbsel = EDBM_backbuf_border_init(vc, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 
 	if (ts->selectmode & SCE_SELECT_VERTEX) {

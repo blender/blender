@@ -267,4 +267,3 @@ protected:
 CCL_NAMESPACE_END
 
 #endif /*  __SCENE_H__ */
-

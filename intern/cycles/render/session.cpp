@@ -364,7 +364,7 @@ bool Session::acquire_tile(Device *tile_device, RenderTile& rtile)
 
 	if(!tile_manager.next_tile(tile, device_num))
 		return false;
-	
+
 	/* fill render tile */
 	rtile.x = tile_manager.state.buffer.full_x + tile->x;
 	rtile.y = tile_manager.state.buffer.full_y + tile->y;
@@ -502,6 +502,9 @@ void Session::map_neighbor_tiles(RenderTile *tiles, Device *tile_device)
 
 	assert(tiles[4].buffers);
 	device->map_neighbor_tiles(tile_device, tiles);
+
+	/* The denoised result is written back to the original tile. */
+	tiles[9] = tiles[4];
 }
 
 void Session::unmap_neighbor_tiles(RenderTile *tiles, Device *tile_device)
@@ -913,7 +916,7 @@ void Session::update_status_time(bool show_pause, bool show_done)
 		substatus = string_printf("Path Tracing Sample %d/%d",
 		                          progressive_sample+1,
 		                          num_samples);
-	
+
 	if(show_pause) {
 		status = "Paused";
 	}
@@ -938,7 +941,7 @@ void Session::render()
 
 	/* Add path trace task. */
 	DeviceTask task(DeviceTask::RENDER);
-	
+
 	task.acquire_tile = function_bind(&Session::acquire_tile, this, _1, _2);
 	task.release_tile = function_bind(&Session::release_tile, this, _1);
 	task.map_neighbor_tiles = function_bind(&Session::map_neighbor_tiles, this, _1, _2);

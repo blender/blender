@@ -54,22 +54,10 @@ void BKE_workspace_layout_remove(
 
 void BKE_workspace_relations_free(
         ListBase *relation_list);
-void BKE_workspace_scene_relations_free_invalid(
-        struct WorkSpace *workspace);
 
 
 /* -------------------------------------------------------------------- */
 /* General Utils */
-
-void BKE_workspace_view_layer_rename(
-        const struct Main *bmain,
-        const struct Scene *scene,
-        const char *old_name,
-        const char *new_name) ATTR_NONNULL();
-
-void BKE_workspace_view_layer_remove(
-        const struct Main *bmain,
-        const struct ViewLayer *view_layer) ATTR_NONNULL();
 
 struct WorkSpaceLayout *BKE_workspace_layout_find(
         const struct WorkSpace *workspace, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
@@ -97,17 +85,6 @@ struct bScreen *BKE_workspace_active_screen_get(const struct WorkSpaceInstanceHo
 void            BKE_workspace_active_screen_set(
         struct WorkSpaceInstanceHook *hook, struct WorkSpace *workspace, struct bScreen *screen) SETTER_ATTRS;
 
-struct Base *BKE_workspace_active_base_get(const struct WorkSpace *workspace, const struct Scene *scene);
-struct ViewLayer *BKE_workspace_view_layer_get(
-        const struct WorkSpace *workspace,
-        const struct Scene *scene) GETTER_ATTRS;
-struct ViewLayer *BKE_workspace_view_layer_exists(
-        const struct WorkSpace *workspace,
-        const struct Scene *scene) GETTER_ATTRS;
-void BKE_workspace_view_layer_set(
-        struct WorkSpace *workspace,
-        struct ViewLayer *layer,
-        struct Scene *scene) SETTER_ATTRS;
 struct ListBase *BKE_workspace_layouts_get(struct WorkSpace *workspace) GETTER_ATTRS;
 
 const char *BKE_workspace_layout_name_get(const struct WorkSpaceLayout *layout) GETTER_ATTRS;
@@ -120,11 +97,6 @@ struct WorkSpaceLayout *BKE_workspace_hook_layout_for_workspace_get(
         const struct WorkSpaceInstanceHook *hook, const struct WorkSpace *workspace) GETTER_ATTRS;
 void             BKE_workspace_hook_layout_for_workspace_set(
         struct WorkSpaceInstanceHook *hook, struct WorkSpace *workspace, struct WorkSpaceLayout *layout) ATTR_NONNULL();
-
-/* Update / evaluate */
-void BKE_workspace_update_tagged(struct Main *bmain,
-                                 struct WorkSpace *workspace,
-                                 struct Scene *scene);
 
 bool BKE_workspace_owner_id_check(
         const struct WorkSpace *workspace, const char *owner_id) ATTR_NONNULL();

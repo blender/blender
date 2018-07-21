@@ -93,20 +93,23 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	int result = 1;
 	if (TAA_ENABLED(wpd)) {
-		if (IN_RANGE_INCL(
+		if (DRW_state_is_image_render()) {
+			const Scene *scene = DRW_context_state_get()->scene;
+			result = (scene->r.mode & R_OSA) ? scene->r.osa : 1;
+		}
+		else if (IN_RANGE_INCL(
 		            wpd->user_preferences->gpu_viewport_quality,
 		            GPU_VIEWPORT_QUALITY_TAA8, GPU_VIEWPORT_QUALITY_TAA16))
 		{
 			result = 8;
 		}
 		else if (IN_RANGE_INCL(
-		                 wpd->user_preferences->gpu_viewport_quality,
-		                 GPU_VIEWPORT_QUALITY_TAA16, GPU_VIEWPORT_QUALITY_TAA32))
+		            wpd->user_preferences->gpu_viewport_quality,
+		            GPU_VIEWPORT_QUALITY_TAA16, GPU_VIEWPORT_QUALITY_TAA32))
 		{
 			result = 16;
 		}
-		else
-		{
+		else {
 			result = 32;
 		}
 	}
@@ -277,16 +280,23 @@ void workbench_taa_draw_scene_end(WORKBENCH_Data *vedata)
 
 	GPU_framebuffer_blit(dfbl->color_only_fb, 0, fbl->effect_taa_fb, 0, GPU_COLOR_BIT);
 
-	DRW_viewport_matrix_override_unset_all();
+	if (!DRW_state_is_image_render()) {
+		DRW_viewport_matrix_override_unset_all();
+	}
 
 	copy_m4_m4(effect_info->last_mat, effect_info->curr_mat);
-	if (effect_info->jitter_index != 0) {
+	if (effect_info->jitter_index != 0 && !DRW_state_is_image_render()) {
 		DRW_viewport_request_redraw();
 	}
 }
 
 void workbench_taa_view_updated(WORKBENCH_Data *vedata)
 {
-	WORKBENCH_EffectInfo *effect_info = vedata->stl->effects;
-	effect_info->view_updated = true;
+	WORKBENCH_StorageList *stl = vedata->stl;
+	if (stl) {
+		WORKBENCH_EffectInfo *effect_info = stl->effects;
+		if (effect_info) {
+			effect_info->view_updated = true;
+		}
+	}
 }

@@ -133,7 +133,7 @@ class CLIP_OT_filter_tracks(bpy.types.Operator):
     bl_idname = "clip.filter_tracks"
     bl_options = {'UNDO', 'REGISTER'}
 
-    track_threshold = FloatProperty(
+    track_threshold: FloatProperty(
         name="Track Threshold",
         description="Filter Threshold to select problematic tracks",
         default=5.0,
@@ -915,17 +915,17 @@ class CLIP_OT_setup_tracking_scene(Operator):
         return [(layers_a[i] | layers_b[i]) for i in range(len(layers_a))]
 
     @staticmethod
-    def _createLamp(scene):
-        lamp = bpy.data.lamps.new(name="Lamp", type='POINT')
-        lampob = bpy.data.objects.new(name="Lamp", object_data=lamp)
-        scene.objects.link(lampob)
+    def _createLight(scene):
+        light = bpy.data.lights.new(name="Light", type='POINT')
+        lightob = bpy.data.objects.new(name="Light", object_data=light)
+        scene.objects.link(lightob)
 
-        lampob.matrix_local = Matrix.Translation((4.076, 1.005, 5.904))
+        lightob.matrix_local = Matrix.Translation((4.076, 1.005, 5.904))
 
-        lamp.distance = 30
-        lamp.shadow_method = 'RAY_SHADOW'
+        light.distance = 30
+        light.shadow_method = 'RAY_SHADOW'
 
-        return lampob
+        return lightob
 
     def _createSampleObject(self, scene):
         vertices = self._getPlaneVertices(1.0, -1.0) + \
@@ -947,20 +947,20 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         all_layers = self._mergeLayers(fg.layers, bg.layers)
 
-        # ensure all lamps are active on foreground and background
-        has_lamp = False
+        # ensure all lights are active on foreground and background
+        has_light = False
         has_mesh = False
         for ob in scene.objects:
-            if ob.type == 'LAMP':
+            if ob.type == 'LIGHT':
                 ob.layers = all_layers
-                has_lamp = True
+                has_light = True
             elif ob.type == 'MESH' and "is_ground" not in ob:
                 has_mesh = True
 
-        # create sample lamp if there's no lamps in the scene
-        if not has_lamp:
-            lamp = self._createLamp(scene)
-            lamp.layers = all_layers
+        # create sample light if there's no lights in the scene
+        if not has_light:
+            light = self._createLight(scene)
+            light.layers = all_layers
 
         # create sample object if there's no meshes in the scene
         if not has_mesh:

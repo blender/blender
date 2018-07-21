@@ -58,12 +58,15 @@
 typedef struct bToolRef_Runtime {
 	int cursor;
 
-	/* One of these 3 must be defined. */
+	/** One of these 3 must be defined. */
 	char keymap[64];
-	char manipulator_group[64];
+	char gizmo_group[64];
 	char data_block[64];
 
-	/* index when a tool is a member of a group */
+	/** Use to infer primary operator to use when setting accelerator keys. */
+	char operator[64];
+
+	/** Index when a tool is a member of a group. */
 	int index;
 } bToolRef_Runtime;
 
@@ -76,7 +79,7 @@ typedef struct bToolRef {
 	/** Use to avoid initializing the same tool multiple times. */
 	short tag;
 
-	/** bToolKey (spacetype, mode), used in 'WM_api.h' */
+	/** #bToolKey (spacetype, mode), used in 'WM_api.h' */
 	short space_type;
 	/**
 	 * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.
@@ -126,7 +129,6 @@ typedef struct WorkSpace {
 	/* Store for each hook (so for each window) which layout has
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
-	ListBase scene_layer_relations; /* WorkSpaceSceneRelation */
 
 	/* Feature tagging (use for addons) */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
@@ -186,13 +188,6 @@ typedef struct WorkSpaceDataRelation {
 } WorkSpaceDataRelation;
 
 #endif /* DNA_PRIVATE_WORKSPACE_READ_WRITE */
-
-typedef struct WorkSpaceSceneRelation {
-	struct WorkSpaceSceneRelation *next, *prev;
-
-	struct Scene *scene;
-	char view_layer[64]; /* MAX_NAME */
-} WorkSpaceSceneRelation;
 
 /**
  * Little wrapper to store data that is going to be per window, but comming from the workspace.

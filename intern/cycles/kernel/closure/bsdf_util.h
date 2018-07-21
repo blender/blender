@@ -62,14 +62,14 @@ ccl_device float fresnel_dielectric(
 		Nn   = -N;
 		*is_inside = true;
 	}
-	
+
 	// compute reflection
 	*R = (2 * cos)* Nn - I;
 #ifdef __RAY_DIFFERENTIALS__
 	*dRdx = (2 * dot(Nn, dIdx)) * Nn - dIdx;
 	*dRdy = (2 * dot(Nn, dIdy)) * Nn - dIdy;
 #endif
-	
+
 	float arg = 1 -(neta * neta *(1 -(cos * cos)));
 	if(arg < 0) {
 		*T = make_float3(0.0f, 0.0f, 0.0f);
@@ -159,4 +159,3 @@ ccl_device_forceinline float3 interpolate_fresnel_color(float3 L, float3 H, floa
 CCL_NAMESPACE_END
 
 #endif /* __BSDF_UTIL_H__ */
-

@@ -30,6 +30,8 @@
 
 #include "GPU_shader.h"
 
+#include "RE_pipeline.h"
+
 #include "workbench_private.h"
 
 /* Functions */
@@ -69,6 +71,7 @@ static void workbench_solid_draw_scene(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
 	workbench_deferred_draw_scene(data);
+	workbench_deferred_draw_finish(data);
 }
 
 static void workbench_solid_engine_free(void)
@@ -80,6 +83,11 @@ static void workbench_solid_view_update(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
 	workbench_taa_view_updated(data);
+}
+
+static void workbench_render_to_image(void *vedata, RenderEngine *engine, RenderLayer *render_layer, const rcti *rect)
+{
+	workbench_render(vedata, engine, render_layer, rect);
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
@@ -97,5 +105,5 @@ DrawEngineType draw_engine_workbench_solid = {
 	&workbench_solid_draw_scene,
 	&workbench_solid_view_update,
 	NULL,
-	NULL,
+	&workbench_render_to_image,
 };

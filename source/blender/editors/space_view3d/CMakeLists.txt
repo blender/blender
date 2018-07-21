@@ -55,14 +55,14 @@ set(SRC
 	view3d_walk.c
 	view3d_header.c
 	view3d_iterators.c
-	view3d_manipulator_armature.c
-	view3d_manipulator_camera.c
-	view3d_manipulator_empty.c
-	view3d_manipulator_forcefield.c
-	view3d_manipulator_lamp.c
-	view3d_manipulator_navigate.c
-	view3d_manipulator_navigate_type.c
-	view3d_manipulator_ruler.c
+	view3d_gizmo_armature.c
+	view3d_gizmo_camera.c
+	view3d_gizmo_empty.c
+	view3d_gizmo_forcefield.c
+	view3d_gizmo_lamp.c
+	view3d_gizmo_navigate.c
+	view3d_gizmo_navigate_type.c
+	view3d_gizmo_ruler.c
 	view3d_ops.c
 	view3d_project.c
 	view3d_ruler.c

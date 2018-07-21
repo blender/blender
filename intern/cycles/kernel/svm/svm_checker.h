@@ -33,7 +33,7 @@ ccl_device_noinline float svm_checker(float3 p)
 }
 
 ccl_device void svm_node_tex_checker(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
-{	
+{
 	uint co_offset, color1_offset, color2_offset, scale_offset;
 	uint color_offset, fac_offset;
 
@@ -44,7 +44,7 @@ ccl_device void svm_node_tex_checker(KernelGlobals *kg, ShaderData *sd, float *s
 	float3 color1 = stack_load_float3(stack, color1_offset);
 	float3 color2 = stack_load_float3(stack, color2_offset);
 	float scale = stack_load_float_default(stack, scale_offset, node.w);
-	
+
 	float f = svm_checker(co*scale);
 
 	if(stack_valid(color_offset))
@@ -54,4 +54,3 @@ ccl_device void svm_node_tex_checker(KernelGlobals *kg, ShaderData *sd, float *s
 }
 
 CCL_NAMESPACE_END
-

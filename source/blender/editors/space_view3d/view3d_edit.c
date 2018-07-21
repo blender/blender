@@ -567,8 +567,8 @@ void viewrotate_modal_keymap(wmKeyConfig *keyconf)
 	static const EnumPropertyItem modal_items[] = {
 		{VIEW_MODAL_CONFIRM,    "CONFIRM", 0, "Confirm", ""},
 
-		{VIEWROT_MODAL_AXIS_SNAP_ENABLE,    "AXIS_SNAP_ENABLE", 0, "Enable Axis Snap", ""},
-		{VIEWROT_MODAL_AXIS_SNAP_DISABLE,   "AXIS_SNAP_DISABLE", 0, "Disable Axis Snap", ""},
+		{VIEWROT_MODAL_AXIS_SNAP_ENABLE,    "AXIS_SNAP_ENABLE", 0, "Axis Snap", ""},
+		{VIEWROT_MODAL_AXIS_SNAP_DISABLE,   "AXIS_SNAP_DISABLE", 0, "Axis Snap (Off)", ""},
 
 		{VIEWROT_MODAL_SWITCH_ZOOM, "SWITCH_TO_ZOOM", 0, "Switch to Zoom"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
@@ -2812,8 +2812,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
-	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
-	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
+	const bool is_face_map = ((is_gp_edit == false) && ar->gizmo_map &&
+	                          WM_gizmomap_is_any_selected(ar->gizmo_map));
 	Object *ob_eval = OBACT(view_layer_eval);
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
@@ -2858,7 +2858,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		CTX_DATA_END;
 	}
 	else if (is_face_map) {
-		ok = WM_manipulatormap_minmax(ar->manipulator_map, true, true, min, max);
+		ok = WM_gizmomap_minmax(ar->gizmo_map, true, true, min, max);
 	}
 	else if (obedit) {
 		/* only selected */
@@ -3223,7 +3223,6 @@ void VIEW3D_OT_view_center_lock(wmOperatorType *ot)
 
 static int render_border_exec(bContext *C, wmOperator *op)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
@@ -3233,17 +3232,13 @@ static int render_border_exec(bContext *C, wmOperator *op)
 	rcti rect;
 	rctf vb, border;
 
-	const bool camera_only = RNA_boolean_get(op->ptr, "camera_only");
-
-	if (camera_only && rv3d->persp != RV3D_CAMOB)
-		return OPERATOR_PASS_THROUGH;
-
 	/* get border select values using rna */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	/* calculate range */
 
 	if (rv3d->persp == RV3D_CAMOB) {
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &vb, false);
 	}
 	else {
@@ -3297,8 +3292,6 @@ static int render_border_exec(bContext *C, wmOperator *op)
 
 void VIEW3D_OT_render_border(wmOperatorType *ot)
 {
-	PropertyRNA *prop;
-
 	/* identifiers */
 	ot->name = "Set Render Border";
 	ot->description = "Set the boundaries of the border render and enable border render";
@@ -3317,10 +3310,6 @@ void VIEW3D_OT_render_border(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_border(ot);
-
-	prop = RNA_def_boolean(ot->srna, "camera_only", false, "Camera Only",
-	                       "Set render border for camera view and final render only");
-	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
@@ -3501,6 +3490,13 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	/* clamp after because we may have been zooming out */
 	CLAMP(new_dist, dist_range[0], dist_range[1]);
 
+	/* TODO(campbell): 'is_camera_lock' not currently working well. */
+	const bool is_camera_lock = ED_view3d_camera_lock_check(v3d, rv3d);
+	if ((rv3d->persp == RV3D_CAMOB) && (is_camera_lock == false)) {
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
+		ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, RV3D_PERSP);
+	}
+
 	ED_view3d_smooth_view(
 	        C, v3d, ar, smooth_viewtx,
 	        &(const V3D_SmoothParams) {.ofs = new_ofs, .dist = &new_dist});
@@ -3512,18 +3508,6 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int view3d_zoom_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
-	/* if in camera view do not exec the operator so we do not conflict with set render border*/
-	if ((rv3d->persp != RV3D_CAMOB) || ED_view3d_camera_lock_check(v3d, rv3d))
-		return WM_gesture_border_invoke(C, op, event);
-	else
-		return OPERATOR_PASS_THROUGH;
-}
-
 void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3532,7 +3516,7 @@ void VIEW3D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname = "VIEW3D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke = view3d_zoom_border_invoke;
+	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view3d_zoom_border_exec;
 	ot->modal = WM_gesture_border_modal;
 	ot->cancel = WM_gesture_border_cancel;
@@ -3602,7 +3586,7 @@ void VIEW3D_OT_zoom_camera_1_to_1(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name View Axis/Type Operator
+/** \name View Axis Operator
  * \{ */
 
 static const EnumPropertyItem prop_view_items[] = {
@@ -3612,17 +3596,20 @@ static const EnumPropertyItem prop_view_items[] = {
 	{RV3D_VIEW_TOP, "TOP", ICON_TRIA_UP, "Top", "View From the Top"},
 	{RV3D_VIEW_FRONT, "FRONT", 0, "Front", "View From the Front"},
 	{RV3D_VIEW_BACK, "BACK", 0, "Back", "View From the Back"},
-	{RV3D_VIEW_CAMERA, "CAMERA", ICON_CAMERA_DATA, "Camera", "View From the Active Camera"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 
 /* would like to make this a generic function - outside of transform */
 
+/**
+ * \param align_to_quat: When not NULL, set the axis relative to this rotation.
+ */
 static void axis_set_view(
         bContext *C, View3D *v3d, ARegion *ar,
         const float quat_[4],
-        short view, int perspo, bool align_active,
+        short view, int perspo,
+        const float *align_to_quat,
         const int smooth_viewtx)
 {
 	RegionView3D *rv3d = ar->regiondata; /* no NULL check is needed, poll checks */
@@ -3632,29 +3619,12 @@ static void axis_set_view(
 
 	normalize_qt_qt(quat, quat_);
 
-	if (align_active) {
-		/* align to active object */
-		Object *obact = CTX_data_active_object(C);
-		if (obact == NULL) {
-			/* no active object, ignore this option */
-			align_active = false;
-		}
-		else {
-			float obact_quat[4];
-			float twmat[3][3];
-
-			/* same as transform manipulator when normal is set */
-			ED_getTransformOrientationMatrix(C, twmat, V3D_AROUND_ACTIVE);
-
-			mat3_to_quat(obact_quat, twmat);
-			invert_qt_normalized(obact_quat);
-			mul_qt_qtqt(quat, quat, obact_quat);
-
-			rv3d->view = view = RV3D_VIEW_USER;
-		}
+	if (align_to_quat) {
+		mul_qt_qtqt(quat, quat, align_to_quat);
+		rv3d->view = view = RV3D_VIEW_USER;
 	}
 
-	if (align_active == false) {
+	if (align_to_quat == NULL) {
 		rv3d->view = view;
 	}
 
@@ -3710,14 +3680,13 @@ static void axis_set_view(
 	}
 }
 
-static int viewnumpad_exec(bContext *C, wmOperator *op)
+static int view_axis_exec(bContext *C, wmOperator *op)
 {
 	View3D *v3d;
 	ARegion *ar;
 	RegionView3D *rv3d;
 	static int perspo = RV3D_PERSP;
-	int viewnum, nextperspo;
-	bool align_active;
+	int viewnum;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	/* no NULL check is needed, poll checks */
@@ -3727,112 +3696,94 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	ED_view3d_smooth_view_force_finish(C, v3d, ar);
 
 	viewnum = RNA_enum_get(op->ptr, "type");
-	align_active = RNA_boolean_get(op->ptr, "align_active");
 
-	/* Use this to test if we started out with a camera */
+	float align_quat_buf[4];
+	float *align_quat = NULL;
 
-	if (rv3d->persp == RV3D_CAMOB) {
-		nextperspo = rv3d->lpersp;
-	}
-	else {
-		nextperspo = perspo;
-	}
-
-	if (RV3D_VIEW_IS_AXIS(viewnum)) {
-		float quat[4];
-
-		ED_view3d_quat_from_axis_view(viewnum, quat);
-		axis_set_view(C, v3d, ar, quat, viewnum, nextperspo, align_active, smooth_viewtx);
-	}
-	else if (viewnum == RV3D_VIEW_CAMERA) {
-		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
-			/* lastview -  */
-
-			ViewLayer *view_layer = CTX_data_view_layer(C);
-			Scene *scene = CTX_data_scene(C);
-
-			if (rv3d->persp != RV3D_CAMOB) {
-				Object *ob = OBACT(view_layer);
-
-				if (!rv3d->smooth_timer) {
-					/* store settings of current view before allowing overwriting with camera view
-					 * only if we're not currently in a view transition */
-
-					ED_view3d_lastview_store(rv3d);
-				}
-
-#if 0
-				if (G.qual == LR_ALTKEY) {
-					if (oldcamera && is_an_active_object(oldcamera)) {
-						v3d->camera = oldcamera;
-					}
-					handle_view3d_lock();
-				}
-#endif
-
-				/* first get the default camera for the view lock type */
-				if (v3d->scenelock) {
-					/* sets the camera view if available */
-					v3d->camera = scene->camera;
-				}
-				else {
-					/* use scene camera if one is not set (even though we're unlocked) */
-					if (v3d->camera == NULL) {
-						v3d->camera = scene->camera;
-					}
-				}
-
-				/* if the camera isn't found, check a number of options */
-				if (v3d->camera == NULL && ob && ob->type == OB_CAMERA)
-					v3d->camera = ob;
-
-				if (v3d->camera == NULL)
-					v3d->camera = BKE_view_layer_camera_find(view_layer);
-
-				/* couldnt find any useful camera, bail out */
-				if (v3d->camera == NULL)
-					return OPERATOR_CANCELLED;
-
-				/* important these don't get out of sync for locked scenes */
-				if (v3d->scenelock)
-					scene->camera = v3d->camera;
-
-				/* finally do snazzy view zooming */
-				rv3d->persp = RV3D_CAMOB;
-				ED_view3d_smooth_view(
-				        C, v3d, ar, smooth_viewtx,
-				        &(const V3D_SmoothParams) {
-				            .camera = v3d->camera, .ofs = rv3d->ofs, .quat = rv3d->viewquat,
-				            .dist = &rv3d->dist, .lens = &v3d->lens});
-			}
-			else {
-				/* return to settings of last view */
-				/* does view3d_smooth_view too */
-				axis_set_view(C, v3d, ar,
-				              rv3d->lviewquat,
-				              rv3d->lview, rv3d->lpersp, 0,
-				              smooth_viewtx);
-			}
+	if (RNA_boolean_get(op->ptr, "align_active")) {
+		/* align to active object */
+		Object *obact = CTX_data_active_object(C);
+		if (obact != NULL) {
+			float twmat[3][3];
+			/* same as transform gizmo when normal is set */
+			ED_getTransformOrientationMatrix(C, twmat, V3D_AROUND_ACTIVE);
+			align_quat = align_quat_buf;
+			mat3_to_quat(align_quat, twmat);
+			invert_qt_normalized(align_quat);
 		}
 	}
 
-	if (rv3d->persp != RV3D_CAMOB) perspo = rv3d->persp;
+	if (RNA_boolean_get(op->ptr, "relative")) {
+		float z_rel[3];
+
+		if (viewnum == RV3D_VIEW_RIGHT) {
+			negate_v3_v3(z_rel, rv3d->viewinv[0]);
+		}
+		else if (viewnum == RV3D_VIEW_LEFT) {
+			copy_v3_v3(z_rel, rv3d->viewinv[0]);
+		}
+		else if (viewnum == RV3D_VIEW_TOP) {
+			negate_v3_v3(z_rel, rv3d->viewinv[1]);
+		}
+		else if (viewnum == RV3D_VIEW_BOTTOM) {
+			copy_v3_v3(z_rel, rv3d->viewinv[1]);
+		}
+		else if (viewnum == RV3D_VIEW_FRONT) {
+			negate_v3_v3(z_rel, rv3d->viewinv[2]);
+		}
+		else if (viewnum == RV3D_VIEW_BACK) {
+			copy_v3_v3(z_rel, rv3d->viewinv[2]);
+		}
+		else {
+			BLI_assert(0);
+		}
+
+		float angle_max = FLT_MAX;
+		int view_closest = -1;
+		for (int i = RV3D_VIEW_FRONT; i <= RV3D_VIEW_BOTTOM; i++) {
+			float quat[4];
+			float mat[3][3];
+			ED_view3d_quat_from_axis_view(i, quat);
+			quat[0] *= -1.0f;
+			quat_to_mat3(mat, quat);
+			if (align_quat) {
+				mul_qt_qtqt(quat, quat, align_quat);
+			}
+			const float angle_test = angle_normalized_v3v3(z_rel, mat[2]);
+			if (angle_max > angle_test) {
+				angle_max = angle_test;
+				view_closest = i;
+			}
+		}
+		if (view_closest == -1) {
+			view_closest = RV3D_VIEW_FRONT;
+		}
+		viewnum = view_closest;
+	}
+
+	/* Use this to test if we started out with a camera */
+	const int nextperspo = (rv3d->persp == RV3D_CAMOB) ? rv3d->lpersp : perspo;
+	float quat[4];
+	ED_view3d_quat_from_axis_view(viewnum, quat);
+	axis_set_view(C, v3d, ar, quat, viewnum, nextperspo, align_quat, smooth_viewtx);
+
+	perspo = rv3d->persp;
 
 	return OPERATOR_FINISHED;
 }
 
 
-void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
+void VIEW3D_OT_view_axis(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "View Numpad";
+	ot->name = "View Axis";
 	ot->description = "Use a preset viewpoint";
-	ot->idname = "VIEW3D_OT_viewnumpad";
+	ot->idname = "VIEW3D_OT_view_axis";
 
 	/* api callbacks */
-	ot->exec = viewnumpad_exec;
+	ot->exec = view_axis_exec;
 	ot->poll = ED_operator_rv3d_user_region_poll;
 
 	/* flags */
@@ -3842,6 +3793,112 @@ void VIEW3D_OT_viewnumpad(wmOperatorType *ot)
 	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "align_active", 0, "Align Active", "Align to the active object's axis");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "relative", 0, "Relative", "Rotate relative to the current orientation");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name View Camera Operator
+ * \{ */
+
+static int view_camera_exec(bContext *C, wmOperator *op)
+{
+	View3D *v3d;
+	ARegion *ar;
+	RegionView3D *rv3d;
+	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
+
+	/* no NULL check is needed, poll checks */
+	ED_view3d_context_user_region(C, &v3d, &ar);
+	rv3d = ar->regiondata;
+
+	ED_view3d_smooth_view_force_finish(C, v3d, ar);
+
+	if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
+		/* lastview -  */
+
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Scene *scene = CTX_data_scene(C);
+
+		if (rv3d->persp != RV3D_CAMOB) {
+			Object *ob = OBACT(view_layer);
+
+			if (!rv3d->smooth_timer) {
+				/* store settings of current view before allowing overwriting with camera view
+				 * only if we're not currently in a view transition */
+
+				ED_view3d_lastview_store(rv3d);
+			}
+
+#if 0
+			if (G.qual == LR_ALTKEY) {
+				if (oldcamera && is_an_active_object(oldcamera)) {
+					v3d->camera = oldcamera;
+				}
+				handle_view3d_lock();
+			}
+#endif
+
+			/* first get the default camera for the view lock type */
+			if (v3d->scenelock) {
+				/* sets the camera view if available */
+				v3d->camera = scene->camera;
+			}
+			else {
+				/* use scene camera if one is not set (even though we're unlocked) */
+				if (v3d->camera == NULL) {
+					v3d->camera = scene->camera;
+				}
+			}
+
+			/* if the camera isn't found, check a number of options */
+			if (v3d->camera == NULL && ob && ob->type == OB_CAMERA)
+				v3d->camera = ob;
+
+			if (v3d->camera == NULL)
+				v3d->camera = BKE_view_layer_camera_find(view_layer);
+
+			/* couldnt find any useful camera, bail out */
+			if (v3d->camera == NULL)
+				return OPERATOR_CANCELLED;
+
+			/* important these don't get out of sync for locked scenes */
+			if (v3d->scenelock)
+				scene->camera = v3d->camera;
+
+			/* finally do snazzy view zooming */
+			rv3d->persp = RV3D_CAMOB;
+			ED_view3d_smooth_view(
+			        C, v3d, ar, smooth_viewtx,
+			        &(const V3D_SmoothParams) {
+			            .camera = v3d->camera, .ofs = rv3d->ofs, .quat = rv3d->viewquat,
+			            .dist = &rv3d->dist, .lens = &v3d->lens});
+		}
+		else {
+			/* return to settings of last view */
+			/* does view3d_smooth_view too */
+			axis_set_view(C, v3d, ar, rv3d->lviewquat, rv3d->lview, rv3d->lpersp, NULL, smooth_viewtx);
+		}
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void VIEW3D_OT_view_camera(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "View Camera";
+	ot->description = "Toggle the camera view";
+	ot->idname = "VIEW3D_OT_view_camera";
+
+	/* api callbacks */
+	ot->exec = view_camera_exec;
+	ot->poll = ED_operator_rv3d_user_region_poll;
+
+	/* flags */
+	ot->flag = 0;
 }
 
 /** \} */
@@ -4354,30 +4411,40 @@ void VIEW3D_OT_navigate(wmOperatorType *ot)
 /** \name Background Image Add Operator
  * \{ */
 
-static CameraBGImage *background_image_add(bContext *C)
-{
-	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
 
-	return BKE_camera_background_image_new(cam);
+static Camera *background_image_camera_from_context(bContext *C)
+{
+	/* Needed to support drag-and-drop & camera buttons context. */
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d != NULL) {
+		if (v3d->camera && v3d->camera->data && v3d->camera->type == OB_CAMERA) {
+			return v3d->camera->data;
+		}
+		return NULL;
+	}
+	else {
+		return CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+	}
 }
 
 static int background_image_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	background_image_add(C);
+	Camera *cam = background_image_camera_from_context(C);
+	BKE_camera_background_image_new(cam);
 
 	return OPERATOR_FINISHED;
 }
 
 static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	Camera *cam = CTX_data_pointer_get_type(C, "camera", &RNA_Camera).data;
+	Camera *cam = background_image_camera_from_context(C);
 	Image *ima;
 	CameraBGImage *bgpic;
 
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	/* may be NULL, continue anyway */
 
-	bgpic = background_image_add(C);
+	bgpic = BKE_camera_background_image_new(cam);
 	bgpic->ima = ima;
 
 	cam->flag |= CAM_SHOW_BG_IMAGE;
@@ -4387,19 +4454,24 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, const wmEven
 	return OPERATOR_FINISHED;
 }
 
+static bool background_image_add_poll(bContext *C)
+{
+	return background_image_camera_from_context(C) != NULL;
+}
+
 void VIEW3D_OT_background_image_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	/* note: having key shortcut here is bad practice,
 	 * but for now keep because this displays when dragging an image over the 3D viewport */
-	ot->name   = "Add Background Image (Ctrl for Empty Object)";
-	ot->description = "Add a new background image (Ctrl for Empty Object)";
+	ot->name   = "Add Background Image";
+	ot->description = "Add a new background image";
 	ot->idname = "VIEW3D_OT_background_image_add";
 
 	/* api callbacks */
 	ot->invoke = background_image_add_invoke;
 	ot->exec   = background_image_add_exec;
-	ot->poll   = ED_operator_camera;
+	ot->poll   = background_image_add_poll;
 
 	/* flags */
 	ot->flag   = OPTYPE_UNDO;
@@ -4783,34 +4855,77 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Toggle Render Shading Operator
+/** \name Toggle Shading Operator
  * \{ */
 
-static int toggle_render_exec(bContext *C, wmOperator *UNUSED(op))
+static const EnumPropertyItem prop_shading_type_items[] = {
+	{OB_SOLID, "SOLID", 0, "Solid and X-Ray", "Toggle solid and X-ray shading"},
+	{OB_MATERIAL, "MATERIAL", 0, "LookDev", "Toggle lookdev shading"},
+	{OB_RENDER, "RENDERED", 0, "Rendered", "Toggle rendered shading"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static int toggle_shading_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	if (v3d->drawtype == OB_RENDER) {
-		v3d->drawtype = v3d->prev_drawtype;
+	ScrArea *sa = CTX_wm_area(C);
+	int type = RNA_enum_get(op->ptr, "type");
+
+	if (type == OB_SOLID) {
+		if (v3d->shading.type == OB_SOLID) {
+			/* Toggle X-Ray if already in solid mode. */
+			if (ED_operator_posemode(C) || ED_operator_editmesh(C)) {
+				v3d->flag ^= V3D_ZBUF_SELECT;
+			}
+			else {
+				v3d->shading.flag ^= V3D_SHADING_XRAY;
+			}
+		}
+		else {
+			/* Go to solid mode. */
+			v3d->shading.type = OB_SOLID;
+		}
 	}
-	else {
-		v3d->prev_drawtype = v3d->drawtype;
-		v3d->drawtype = OB_RENDER;
+	else if (type == OB_MATERIAL) {
+		if (v3d->shading.type == OB_MATERIAL) {
+			v3d->shading.type = OB_SOLID;
+		}
+		else {
+			v3d->shading.type = OB_MATERIAL;
+		}
 	}
-	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
+	else if (type == OB_RENDER) {
+		if (v3d->shading.type == OB_RENDER) {
+			v3d->shading.type = v3d->shading.prev_type;
+		}
+		else {
+			v3d->shading.prev_type = v3d->shading.type;
+			v3d->shading.type = OB_RENDER;
+		}
+	}
+
+	ED_view3d_shade_update(bmain, v3d, sa);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
 	return OPERATOR_FINISHED;
 }
 
-void VIEW3D_OT_toggle_render(wmOperatorType *ot)
+void VIEW3D_OT_toggle_shading(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
-	ot->name = "Toggle Rendered Shading";
-	ot->description = "Toggle rendered shading mode of the viewport";
-	ot->idname = "VIEW3D_OT_toggle_render";
+	ot->name = "Toggle Shading Type";
+	ot->description = "Toggle shading type in 3D viewport";
+	ot->idname = "VIEW3D_OT_toggle_shading";
 
 	/* api callbacks */
-	ot->exec = toggle_render_exec;
+	ot->exec = toggle_shading_exec;
 	ot->poll = ED_operator_view3d_active;
+
+	prop = RNA_def_enum(ot->srna, "type", prop_shading_type_items, 0, "Type", "Shading type to toggle");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 /** \} */

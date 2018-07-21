@@ -573,7 +573,7 @@ static int rna_Property_icon_get(PointerRNA *ptr)
 	return prop->icon;
 }
 
-static int rna_Property_readonly_get(PointerRNA *ptr)
+static bool rna_Property_readonly_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
@@ -584,64 +584,64 @@ static int rna_Property_readonly_get(PointerRNA *ptr)
 	return (prop->flag & PROP_EDITABLE) == 0;
 }
 
-static int rna_Property_animatable_get(PointerRNA *ptr)
+static bool rna_Property_animatable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
 	return (prop->flag & PROP_ANIMATABLE) != 0;
 }
 
-static int rna_Property_overridable_get(PointerRNA *ptr)
+static bool rna_Property_overridable_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
 	return (prop->flag_override & PROPOVERRIDE_OVERRIDABLE_STATIC) != 0;
 }
 
-static int rna_Property_use_output_get(PointerRNA *ptr)
+static bool rna_Property_use_output_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag_parameter & PARM_OUTPUT) != 0;
 }
 
-static int rna_Property_is_required_get(PointerRNA *ptr)
+static bool rna_Property_is_required_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag_parameter & PARM_REQUIRED) != 0;
 }
 
-static int rna_Property_is_argument_optional_get(PointerRNA *ptr)
+static bool rna_Property_is_argument_optional_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag_parameter & PARM_PYFUNC_OPTIONAL) != 0;
 }
 
-static int rna_Property_is_never_none_get(PointerRNA *ptr)
+static bool rna_Property_is_never_none_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_NEVER_NULL) != 0;
 }
 
-static int rna_Property_is_hidden_get(PointerRNA *ptr)
+static bool rna_Property_is_hidden_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_HIDDEN) != 0;
 }
 
-static int rna_Property_is_skip_save_get(PointerRNA *ptr)
+static bool rna_Property_is_skip_save_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_SKIP_SAVE) != 0;
 }
 
 
-static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
+static bool rna_Property_is_enum_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_ENUM_FLAG) != 0;
 }
 
-static int rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
+static bool rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_LIB_EXCEPTION) != 0;
@@ -698,26 +698,26 @@ static void rna_Property_array_dimensions_get(PointerRNA *ptr, int dimensions[RN
 	}
 }
 
-static int rna_Property_is_registered_get(PointerRNA *ptr)
+static bool rna_Property_is_registered_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_REGISTER) != 0;
 }
 
-static int rna_Property_is_registered_optional_get(PointerRNA *ptr)
+static bool rna_Property_is_registered_optional_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag & PROP_REGISTER_OPTIONAL) != 0;
 }
 
-static int rna_Property_is_runtime_get(PointerRNA *ptr)
+static bool rna_Property_is_runtime_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	return (prop->flag_internal & PROP_INTERN_RUNTIME) != 0;
 }
 
 
-static int rna_BoolProperty_default_get(PointerRNA *ptr)
+static bool rna_BoolProperty_default_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 	rna_idproperty_check(&prop, ptr);
@@ -740,7 +740,7 @@ static int rna_NumberProperty_default_array_get_length(PointerRNA *ptr, int leng
 
 	return length[0];
 }
-static int rna_NumberProperty_is_array_get(PointerRNA *ptr)
+static bool rna_NumberProperty_is_array_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
 
@@ -1045,19 +1045,19 @@ static void rna_Function_parameters_begin(CollectionPropertyIterator *iter, Poin
 	rna_iterator_listbase_begin(iter, &((FunctionRNA *)ptr->data)->cont.properties, rna_property_builtin);
 }
 
-static int rna_Function_registered_get(PointerRNA *ptr)
+static bool rna_Function_registered_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
 	return 0 != (func->flag & FUNC_REGISTER);
 }
 
-static int rna_Function_registered_optional_get(PointerRNA *ptr)
+static bool rna_Function_registered_optional_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
 	return 0 != (func->flag & (FUNC_REGISTER_OPTIONAL & ~FUNC_REGISTER));
 }
 
-static int rna_Function_no_self_get(PointerRNA *ptr)
+static bool rna_Function_no_self_get(PointerRNA *ptr)
 {
 	FunctionRNA *func = (FunctionRNA *)ptr->data;
 	return !(func->flag & FUNC_NO_SELF);

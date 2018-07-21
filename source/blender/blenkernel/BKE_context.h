@@ -157,7 +157,7 @@ struct SpaceLink *CTX_wm_space_data(const bContext *C);
 struct ARegion *CTX_wm_region(const bContext *C);
 void *CTX_wm_region_data(const bContext *C);
 struct ARegion *CTX_wm_menu(const bContext *C);
-struct wmManipulatorGroup *CTX_wm_manipulator_group(const bContext *C);
+struct wmGizmoGroup *CTX_wm_gizmo_group(const bContext *C);
 struct wmMsgBus *CTX_wm_message_bus(const bContext *C);
 struct ReportList *CTX_wm_reports(const bContext *C);
 
@@ -185,7 +185,7 @@ void CTX_wm_screen_set(bContext *C, struct bScreen *screen); /* to be removed */
 void CTX_wm_area_set(bContext *C, struct ScrArea *sa);
 void CTX_wm_region_set(bContext *C, struct ARegion *region);
 void CTX_wm_menu_set(bContext *C, struct ARegion *menu);
-void CTX_wm_manipulator_group_set(bContext *C, struct wmManipulatorGroup *mgroup);
+void CTX_wm_gizmo_group_set(bContext *C, struct wmGizmoGroup *gzgroup);
 const char *CTX_wm_operator_poll_msg_get(struct bContext *C);
 void CTX_wm_operator_poll_msg_set(struct bContext *C, const char *msg);
 

@@ -184,10 +184,13 @@ typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 
 	void *ghostwin;             /* don't want to include ghost.h stuff */
-	void *gwnctx;               /* don't want to include gawin stuff */
+	void *gpuctx;               /* don't want to include gpu stuff */
 
-	struct Scene *scene;     /* The scene displayed in this window. */
-	struct Scene *new_scene; /* temporary when switching */
+	struct wmWindow *parent;    /* Parent window */
+
+	struct Scene *scene;        /* Active scene displayed in this window. */
+	struct Scene *new_scene;    /* temporary when switching */
+	char view_layer_name[64];   /* Active view layer displayed in this window. */
 
 	struct WorkSpaceInstanceHook *workspace_hook;
 
@@ -328,6 +331,8 @@ typedef struct wmKeyMap {
 	/* runtime */
 	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
 	bool (*poll)(struct bContext *);
+	bool (*poll_modal_item)(const struct wmOperator *op, int value);
+
 	/** For modal, #EnumPropertyItem for now. */
 	const void *modal_items;
 } wmKeyMap;

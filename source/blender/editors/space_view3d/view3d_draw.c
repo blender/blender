@@ -74,6 +74,7 @@
 #include "DEG_depsgraph_query.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 #include "GPU_draw.h"
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
@@ -183,8 +184,8 @@ static void view3d_main_region_setup_view(
 	ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, viewmat, winmat, rect);
 
 	/* set for opengl */
-	gpuLoadProjectionMatrix(rv3d->winmat);
-	gpuLoadMatrix(rv3d->viewmat);
+	GPU_matrix_projection_set(rv3d->winmat);
+	GPU_matrix_set(rv3d->viewmat);
 }
 
 static bool view3d_stereo3d_active(wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d)
@@ -364,7 +365,7 @@ static void drawviewborder_grid3(uint shdr_pos, float x1, float x2, float y1, fl
 	x4 = x1 + (1.0f - fac) * (x2 - x1);
 	y4 = y1 + (1.0f - fac) * (y2 - y1);
 
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GPU_PRIM_LINES, 8);
 
 	immVertex2f(shdr_pos, x1, y3);
 	immVertex2f(shdr_pos, x2, y3);
@@ -389,7 +390,7 @@ static void drawviewborder_triangle(
 	float w = x2 - x1;
 	float h = y2 - y1;
 
-	immBegin(GWN_PRIM_LINES, 6);
+	immBegin(GPU_PRIM_LINES, 6);
 
 	if (w > h) {
 		if (golden) {
@@ -466,7 +467,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 	x2i = (int)(x2 + (1.0f - 0.0001f));
 	y2i = (int)(y2 + (1.0f - 0.0001f));
 
-	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	/* First, solid lines. */
 	{
@@ -558,7 +559,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 			x3 = x1 + 0.5f * (x2 - x1);
 			y3 = y1 + 0.5f * (y2 - y1);
 
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y3);
 			immVertex2f(shdr_pos, x2, y3);
@@ -570,7 +571,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 		}
 
 		if (ca->dtx & CAM_DTX_CENTER_DIAG) {
-			immBegin(GWN_PRIM_LINES, 4);
+			immBegin(GPU_PRIM_LINES, 4);
 
 			immVertex2f(shdr_pos, x1, y1);
 			immVertex2f(shdr_pos, x2, y2);
@@ -673,7 +674,7 @@ static void drawviewborder(Scene *scene, Depsgraph *depsgraph, ARegion *ar, View
 static void drawrenderborder(ARegion *ar, View3D *v3d)
 {
 	/* use the same program for everything */
-	uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	GPU_line_width(1.0f);
 
@@ -703,7 +704,6 @@ void ED_view3d_draw_depth(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 
-	short zbuf = v3d->zbuf;
 	short flag = v3d->flag;
 	float glalphaclip = U.glalphaclip;
 	int obcenter_dia = U.obcenter_dia;
@@ -727,7 +727,6 @@ void ED_view3d_draw_depth(
 	/* get surface depth without bias */
 	rv3d->rflag |= RV3D_ZOFFSET_DISABLED;
 
-	v3d->zbuf = true;
 	GPU_depth_test(true);
 
 	DRW_draw_depth_loop(depsgraph, ar, v3d);
@@ -737,8 +736,8 @@ void ED_view3d_draw_depth(
 	}
 	rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;
 
-	v3d->zbuf = zbuf;
-	if (!v3d->zbuf) GPU_depth_test(false);
+	/* Reset default for UI */
+	GPU_depth_test(false);
 
 	U.glalphaclip = glalphaclip;
 	v3d->flag = flag;
@@ -815,12 +814,12 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 	GPU_blend(true);
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GWN_PRIM_LINES, 6);
+	immBegin(GPU_PRIM_LINES, 6);
 
 	for (int axis_i = 0; axis_i < 3; axis_i++) {
 		int i = axis_order[axis_i];
@@ -860,9 +859,9 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	glDepthMask(GL_FALSE);  /* don't overwrite zbuf */
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_SMOOTH_COLOR);
 
@@ -873,7 +872,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 		mul_v3_v3fl(scaled_axis, rv3d->rot_axis, scale);
 
 
-		immBegin(GWN_PRIM_LINE_STRIP, 3);
+		immBegin(GPU_PRIM_LINE_STRIP, 3);
 		color[3] = 0; /* more transparent toward the ends */
 		immAttrib4ubv(col, color);
 		add_v3_v3v3(end, o, scaled_axis);
@@ -912,7 +911,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 				axis_angle_to_quat(q, vis_axis, vis_angle);
 			}
 
-			immBegin(GWN_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
+			immBegin(GPU_PRIM_LINE_LOOP, ROT_AXIS_DETAIL);
 			color[3] = 63; /* somewhat faint */
 			immAttrib4ubv(col, color);
 			float angle = 0.0f;
@@ -941,7 +940,7 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 	/* -- draw rotation center -- */
 	immBindBuiltinProgram(GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
 	GPU_point_size(5.0f);
-	immBegin(GWN_PRIM_POINTS, 1);
+	immBegin(GPU_PRIM_POINTS, 1);
 	immAttrib4ubv(col, color);
 	immVertex3fv(pos, o);
 	immEnd();
@@ -1205,11 +1204,14 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 
 	BLF_batch_draw_begin();
 
-	if (((U.uiflag & USER_SHOW_ROTVIEWICON) != 0) &&
-	    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-	    /* No need to display manipulator and this info. */
-	    ((U.manipulator_flag & USER_MANIPULATOR_DRAW_NAVIGATE) == 0))
+	if ((U.uiflag & USER_SHOW_GIZMO_AXIS) ||
+	    (v3d->flag2 & V3D_RENDER_OVERRIDE) ||
+	    /* No need to display gizmo and this info. */
+	    (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_NAVIGATE)))
 	{
+		/* pass */
+	}
+	else {
 		draw_view_axis(rv3d, &rect);
 	}
 
@@ -1353,10 +1355,10 @@ void ED_view3d_draw_offscreen(
 		GPU_free_images_anim(G.main);  /* XXX :((( */
 	}
 
-	gpuPushProjectionMatrix();
-	gpuLoadIdentity();
-	gpuPushMatrix();
-	gpuLoadIdentity();
+	GPU_matrix_push_projection();
+	GPU_matrix_identity_set();
+	GPU_matrix_push();
+	GPU_matrix_identity_set();
 
 	if ((viewname != NULL && viewname[0] != '\0') && (viewmat == NULL) && rv3d->persp == RV3D_CAMOB && v3d->camera)
 		view3d_stereo3d_setup_offscreen(depsgraph, scene, v3d, ar, winmat, viewname);
@@ -1373,8 +1375,8 @@ void ED_view3d_draw_offscreen(
 	ar->winy = bwiny;
 	ar->winrct = brect;
 
-	gpuPopProjectionMatrix();
-	gpuPopMatrix();
+	GPU_matrix_pop_projection();
+	GPU_matrix_pop();
 
 	UI_Theme_Restore(&theme_state);
 
@@ -1587,7 +1589,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	v3d.camera = camera;
 	v3d.lay = scene->lay;
-	v3d.drawtype = drawtype;
+	v3d.shading.type = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {

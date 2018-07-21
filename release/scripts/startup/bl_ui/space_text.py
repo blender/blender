@@ -60,12 +60,12 @@ class TEXT_HT_header(Header):
             if text.filepath:
                 if text.is_dirty:
                     row.label(
-                        iface_(f"File: *{text.filepath} (unsaved)"),
+                        iface_(f"File: *{text.filepath:s} (unsaved)"),
                         translate=False,
                     )
                 else:
                     row.label(
-                        iface_(f"File: {text.filepath}"),
+                        iface_(f"File: {text.filepath:s}"),
                         translate=False,
                     )
             else:

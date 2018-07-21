@@ -78,7 +78,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_uv_sphere_add);
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 
-	WM_operatortype_append(MESH_OT_primitive_cube_add_manipulator);
+	WM_operatortype_append(MESH_OT_primitive_cube_add_gizmo);
 
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
@@ -345,23 +345,21 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "vertex_only", true);
 
 	/* selecting */
-
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX);
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", TWOKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_EDGE);
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", THREEKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_FACE);
-
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX);
-	RNA_boolean_set(kmi->ptr, "use_extend", true);
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", TWOKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_EDGE);
-	RNA_boolean_set(kmi->ptr, "use_extend", true);
-	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", THREEKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_enum_set(kmi->ptr, "type", SCE_SELECT_FACE);
-	RNA_boolean_set(kmi->ptr, "use_extend", true);
+	for (int i = 0; i < 4; i++) {
+		const bool is_extend = (i & 1);
+		const bool is_expand = (i & 2);
+		const int key_modifier = (is_extend ? KM_SHIFT : 0) | (is_expand ? KM_CTRL : 0);
+		for (int j = 0; j < 3; j++) {
+			kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY + j, KM_PRESS, key_modifier, 0);
+			RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX << j);
+			if (is_extend) {
+				RNA_boolean_set(kmi->ptr, "use_extend", true);
+			}
+			if (is_expand) {
+				RNA_boolean_set(kmi->ptr, "use_expand", true);
+			}
+		}
+	}
 
 	/* standard mouse selection goes via space_view3d */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
@@ -389,7 +387,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "use_fill", true);
 
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
@@ -412,6 +412,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 #ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "MESH_OT_faces_select_linked_flat", FKEY, KM_PRESS, (KM_CTRL | KM_SHIFT | KM_ALT), 0);
 #endif
+
+	WM_keymap_add_item(keymap, "MESH_OT_select_mirror", MKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -521,7 +523,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_mesh_vertices", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_uv_map", UKEY, KM_PRESS, 0, 0);
+
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_vertex_group", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_group_remove_from", GKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 
 #ifdef USE_WM_KEYMAP_27X
 	/* useful stuff from object-mode */

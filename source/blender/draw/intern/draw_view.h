@@ -30,7 +30,7 @@ void DRW_draw_grid(void);
 void DRW_draw_region_info(void);
 void DRW_draw_background(void);
 void DRW_draw_cursor(void);
-void DRW_draw_manipulator_3d(void);
-void DRW_draw_manipulator_2d(void);
+void DRW_draw_gizmo_3d(void);
+void DRW_draw_gizmo_2d(void);
 
 #endif /* __DRAW_VIEW_H__ */

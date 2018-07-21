@@ -95,4 +95,3 @@ CCL_NAMESPACE_END
 #endif
 
 #endif /* __OSL_GLOBALS_H__ */
-

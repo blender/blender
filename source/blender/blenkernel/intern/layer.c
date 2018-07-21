@@ -42,7 +42,6 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
-#include "BKE_workspace.h"
 #include "BKE_object.h"
 
 #include "DNA_group_types.h"
@@ -130,17 +129,22 @@ ViewLayer *BKE_view_layer_default_render(const Scene *scene)
 	return scene->view_layers.first;
 }
 
-/**
- * Returns the ViewLayer to be used for drawing, outliner, and other context related areas.
- */
-ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace)
+/* Returns view layer with matching name, or NULL if not found. */
+ViewLayer *BKE_view_layer_find(const Scene *scene, const char *layer_name)
 {
-	return BKE_workspace_view_layer_get(workspace, scene);
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		if (STREQ(view_layer->name, layer_name)) {
+			return view_layer;
+		}
+	}
+
+	return NULL;
 }
 
 /**
- * This is a placeholder to know which areas of the code need to be addressed for the Workspace changes.
- * Never use this, you should either use BKE_view_layer_from_workspace_get or get ViewLayer explicitly.
+ * This is a placeholder to know which areas of the code need to be addressed
+ * for the Workspace changes. Never use this, you should typically get the
+ * active layer from the context or window.
  */
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
@@ -342,7 +346,9 @@ void BKE_view_layer_base_select(struct ViewLayer *view_layer, Base *selbase)
 
 /**************************** Copy View Layer and Layer Collections ***********************/
 
-static void layer_collections_copy_data(ListBase *layer_collections_dst, const ListBase *layer_collections_src)
+static void layer_collections_copy_data(
+        ViewLayer *view_layer_dst, const ViewLayer *view_layer_src,
+        ListBase *layer_collections_dst, const ListBase *layer_collections_src)
 {
 	BLI_duplicatelist(layer_collections_dst, layer_collections_src);
 
@@ -351,8 +357,14 @@ static void layer_collections_copy_data(ListBase *layer_collections_dst, const L
 
 	while (layer_collection_dst != NULL) {
 		layer_collections_copy_data(
+		        view_layer_dst,
+		        view_layer_src,
 		        &layer_collection_dst->layer_collections,
 		        &layer_collection_src->layer_collections);
+
+		if (layer_collection_src == view_layer_src->active_collection) {
+			view_layer_dst->active_collection = layer_collection_dst;
+		}
 
 		layer_collection_dst = layer_collection_dst->next;
 		layer_collection_src = layer_collection_src->next;
@@ -365,7 +377,7 @@ static void layer_collections_copy_data(ListBase *layer_collections_dst, const L
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
 void BKE_view_layer_copy_data(
-        Scene *UNUSED(scene_dst), const Scene *UNUSED(scene_src),
+        Scene *scene_dst, const Scene *UNUSED(scene_src),
         ViewLayer *view_layer_dst, const ViewLayer *view_layer_src,
         const int flag)
 {
@@ -392,9 +404,15 @@ void BKE_view_layer_copy_data(
 		}
 	}
 
-	layer_collections_copy_data(&view_layer_dst->layer_collections, &view_layer_src->layer_collections);
+	view_layer_dst->active_collection = NULL;
+	layer_collections_copy_data(
+	        view_layer_dst,
+	        view_layer_src,
+	        &view_layer_dst->layer_collections,
+	        &view_layer_src->layer_collections);
 
-	// TODO: not always safe to free BKE_layer_collection_sync(scene_dst, view_layer_dst);
+	LayerCollection *lc_scene_dst = view_layer_dst->layer_collections.first;
+	lc_scene_dst->collection = scene_dst->master_collection;
 }
 
 void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, const char *newname)
@@ -418,9 +436,15 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 		}
 	}
 
-	/* fix all the animation data and workspace which may link to this */
+	/* fix all the animation data and windows which may link to this */
 	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
-	BKE_workspace_view_layer_rename(bmain, scene, oldname, view_layer->name);
+
+	wmWindowManager *wm = bmain->wm.first;
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
+			STRNCPY(win->view_layer_name, view_layer->name);
+		}
+	}
 
 	/* Dependency graph uses view layer name based lookups. */
 	DEG_id_tag_update(&scene->id, 0);
@@ -588,6 +612,10 @@ static int layer_collection_sync(
 			BLI_findptr(lb_scene, lc->collection, offsetof(CollectionChild, collection)) : NULL;
 
 		if (!collection) {
+			if (lc == view_layer->active_collection) {
+				view_layer->active_collection = NULL;
+			}
+
 			/* Free recursively. */
 			layer_collection_free(view_layer, lc);
 			BLI_freelinkN(lb_layer, lc);

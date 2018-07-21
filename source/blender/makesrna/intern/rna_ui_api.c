@@ -277,8 +277,7 @@ static void rna_uiItemM(
 
 static void rna_uiItemPopoverPanel(
         uiLayout *layout, bContext *C,
-        int space_type, int region_type, const char *panel_type,
-        const char *name, const char *text_ctxt,
+        const char *panel_type, const char *name, const char *text_ctxt,
         bool translate, int icon, int icon_value)
 {
 	/* Get translated name (label). */
@@ -288,7 +287,7 @@ static void rna_uiItemPopoverPanel(
 		icon = icon_value;
 	}
 
-	uiItemPopoverPanel(layout, C, space_type, region_type, panel_type, name, icon);
+	uiItemPopoverPanel(layout, C, panel_type, name, icon);
 }
 
 static void rna_uiItemPopoverPanelFromGroup(
@@ -717,11 +716,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func = RNA_def_function(srna, "popover", "rna_uiItemPopoverPanel");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-	parm = RNA_def_enum(func, "space_type", rna_enum_space_type_items, 0, "Space Type", "");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_string(func, "panel_type", NULL, 0, "", "Identifier of the panel");
+	parm = RNA_def_string(func, "panel", NULL, 0, "", "Identifier of the panel");
 	api_ui_item_common(func);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
@@ -844,7 +839,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "template_preview", "uiTemplatePreview");
-	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lamps or worlds");
+	RNA_def_function_ui_description(func, "Item. A preview window for materials, textures, lights or worlds");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "id", "ID", "", "ID data-block");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
@@ -856,7 +851,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	               "(i.e. all previews of materials without explicit ID will have the same size...)");
 
 	func = RNA_def_function(srna, "template_curve_mapping", "uiTemplateCurveMapping");
-	RNA_def_function_ui_description(func, "Item. A curve mapping widget used for e.g falloff curves for lamps");
+	RNA_def_function_ui_description(func, "Item. A curve mapping widget used for e.g falloff curves for lights");
 	api_ui_item_rna_common(func);
 	RNA_def_enum(func, "type", curve_type_items, 0, "Type", "Type of curves to display");
 	RNA_def_boolean(func, "levels", false, "", "Show black/white levels");

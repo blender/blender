@@ -1055,31 +1055,31 @@ class SmartProject(Operator):
     bl_label = "Smart UV Project"
     bl_options = {'REGISTER', 'UNDO'}
 
-    angle_limit = FloatProperty(
+    angle_limit: FloatProperty(
         name="Angle Limit",
         description="Lower for more projection groups, higher for less distortion",
         min=1.0, max=89.0,
         default=66.0,
     )
-    island_margin = FloatProperty(
+    island_margin: FloatProperty(
         name="Island Margin",
         description="Margin to reduce bleed from adjacent islands",
         unit='LENGTH', subtype='DISTANCE',
         min=0.0, max=1.0,
         default=0.0,
     )
-    user_area_weight = FloatProperty(
+    user_area_weight: FloatProperty(
         name="Area Weight",
         description="Weight projections vector by faces with larger areas",
         min=0.0, max=1.0,
         default=0.0,
     )
-    use_aspect = BoolProperty(
+    use_aspect: BoolProperty(
         name="Correct Aspect",
         description="Map UVs taking image aspect ratio into account",
         default=True
     )
-    stretch_to_bounds = BoolProperty(
+    stretch_to_bounds: BoolProperty(
         name="Stretch to UV Bounds",
         description="Stretch the final output to texture bounds",
         default=True,

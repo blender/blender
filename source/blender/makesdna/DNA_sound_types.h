@@ -65,13 +65,15 @@ typedef struct bSound {
 	 */
 	struct PackedFile *newpackedfile;
 	struct Ipo *ipo;
+
 	float volume;
 	float attenuation;
 	float pitch;
 	float min_gain;
 	float max_gain;
 	float distance;
-	int flags;
+	short flags;
+	short tags;  /* Runtime only, always reset in readfile. */
 	int pad;
 
 	/* unused currently
@@ -116,13 +118,19 @@ enum {
 	SND_CFRA_NUM    = 2,
 };
 
+/* bSound->flags */
 enum {
 #ifdef DNA_DEPRECATED
 	SOUND_FLAGS_3D                   = (1 << 3),  /* deprecated! used for sound actuator loading */
 #endif
 	SOUND_FLAGS_CACHING              = (1 << 4),
 	SOUND_FLAGS_MONO                 = (1 << 5),
-	SOUND_FLAGS_WAVEFORM_LOADING     = (1 << 6),
+};
+
+/* bSound->tags */
+enum {
+	SOUND_TAGS_WAVEFORM_NO_RELOAD    = 1 << 0,  /* Do not free/reset waveform on sound load, only used by undo code. */
+	SOUND_TAGS_WAVEFORM_LOADING     = (1 << 6),
 };
 
 /* to DNA_sound_types.h*/

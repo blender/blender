@@ -615,10 +615,11 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 			if ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)) {
 				/* create exactly one sampler for each texture */
 				if (codegen_input_has_texture(input) && input->bindtex) {
-					BLI_dynstr_appendf(ds, "uniform %s samp%d;\n",
-						(input->textype == GPU_TEX2D) ? "sampler2D" :
-						(input->textype == GPU_TEXCUBE) ? "samplerCube" : "sampler2DShadow",
-						input->texid);
+					BLI_dynstr_appendf(
+					        ds, "uniform %s samp%d;\n",
+					        (input->textype == GPU_TEX2D) ? "sampler2D" :
+					        (input->textype == GPU_TEXCUBE) ? "samplerCube" : "sampler2DShadow",
+					        input->texid);
 				}
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {
@@ -635,13 +636,15 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 						}
 					}
 					else if (gpu_str_prefix(name, "unf")) {
-						BLI_dynstr_appendf(ds, "uniform %s %s;\n",
-							GPU_DATATYPE_STR[input->type], name);
+						BLI_dynstr_appendf(
+						        ds, "uniform %s %s;\n",
+						        GPU_DATATYPE_STR[input->type], name);
 					}
 					else {
-						BLI_dynstr_appendf(ds, "%s %s %s;\n",
-							GLEW_VERSION_3_0 ? "in" : "varying",
-							GPU_DATATYPE_STR[input->type], name);
+						BLI_dynstr_appendf(
+						        ds, "%s %s %s;\n",
+						        GLEW_VERSION_3_0 ? "in" : "varying",
+						        GPU_DATATYPE_STR[input->type], name);
 					}
 				}
 			}
@@ -658,12 +661,14 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 				}
 				else if (input->dynamicvec) {
 					/* only create uniforms for dynamic vectors */
-					BLI_dynstr_appendf(ds, "uniform %s unf%d;\n",
-						GPU_DATATYPE_STR[input->type], input->id);
+					BLI_dynstr_appendf(
+					        ds, "uniform %s unf%d;\n",
+					        GPU_DATATYPE_STR[input->type], input->id);
 				}
 				else {
-					BLI_dynstr_appendf(ds, "const %s cons%d = ",
-						GPU_DATATYPE_STR[input->type], input->id);
+					BLI_dynstr_appendf(
+					        ds, "const %s cons%d = ",
+					        GPU_DATATYPE_STR[input->type], input->id);
 					codegen_print_datatype(ds, input->type, input->vec);
 					BLI_dynstr_append(ds, ";\n");
 				}
@@ -675,9 +680,10 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 					BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
 				}
 #endif
-				BLI_dynstr_appendf(ds, "%s %s var%d;\n",
-					GLEW_VERSION_3_0 ? "in" : "varying",
-					GPU_DATATYPE_STR[input->type], input->attribid);
+				BLI_dynstr_appendf(
+				        ds, "%s %s var%d;\n",
+				        GLEW_VERSION_3_0 ? "in" : "varying",
+				        GPU_DATATYPE_STR[input->type], input->attribid);
 #ifdef WITH_OPENSUBDIV
 				if (skip_opensubdiv) {
 					BLI_dynstr_appendf(ds, "#endif\n");
@@ -696,8 +702,9 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 
 		for (LinkData *link = ubo_inputs.first; link; link = link->next) {
 			input = link->data;
-			BLI_dynstr_appendf(ds, "\t%s unf%d;\n",
-				GPU_DATATYPE_STR[input->type], input->id);
+			BLI_dynstr_appendf(
+			        ds, "\t%s unf%d;\n",
+			        GPU_DATATYPE_STR[input->type], input->id);
 		}
 		BLI_dynstr_append(ds, "};\n");
 		BLI_freelistN(&ubo_inputs);
@@ -719,9 +726,11 @@ static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_TEX_PIXEL) {
 				if (codegen_input_has_texture(input) && input->definetex) {
-					BLI_dynstr_appendf(ds, "\tvec4 tex%d = texture2D(", input->texid);
-					BLI_dynstr_appendf(ds, "samp%d, gl_TexCoord[%d].st);\n",
-					                   input->texid, input->texid);
+					BLI_dynstr_appendf(
+					        ds, "\tvec4 tex%d = texture2D(", input->texid);
+					BLI_dynstr_appendf(
+					        ds, "samp%d, gl_TexCoord[%d].st);\n",
+					        input->texid, input->texid);
 				}
 			}
 		}
@@ -729,11 +738,13 @@ static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 		/* declare temporary variables for node output storage */
 		for (output = node->outputs.first; output; output = output->next) {
 			if (output->type == GPU_CLOSURE) {
-				BLI_dynstr_appendf(ds, "\tClosure tmp%d;\n", output->id);
+				BLI_dynstr_appendf(
+				        ds, "\tClosure tmp%d;\n", output->id);
 			}
 			else {
-				BLI_dynstr_appendf(ds, "\t%s tmp%d;\n",
-				                   GPU_DATATYPE_STR[output->type], output->id);
+				BLI_dynstr_appendf(
+				        ds, "\t%s tmp%d;\n",
+				        GPU_DATATYPE_STR[output->type], output->id);
 			}
 		}
 	}
@@ -757,8 +768,9 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 					BLI_dynstr_appendf(ds, ", gl_TexCoord[%d].st", input->texid);
 			}
 			else if (input->source == GPU_SOURCE_TEX_PIXEL) {
-				codegen_convert_datatype(ds, input->link->output->type, input->type,
-					"tmp", input->link->output->id);
+				codegen_convert_datatype(
+				        ds, input->link->output->type, input->type,
+				        "tmp", input->link->output->id);
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {
 				if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
@@ -862,10 +874,12 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 			for (input = node->inputs.first; input; input = input->next) {
 				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 					if (input->attribtype == CD_TANGENT) {
-						BLI_dynstr_appendf(ds, "#ifdef USE_OPENSUBDIV\n");
-						BLI_dynstr_appendf(ds, "\t%s var%d;\n",
-						                   GPU_DATATYPE_STR[input->type],
-						                   input->attribid);
+						BLI_dynstr_appendf(
+						        ds, "#ifdef USE_OPENSUBDIV\n");
+						BLI_dynstr_appendf(
+						        ds, "\t%s var%d;\n",
+						        GPU_DATATYPE_STR[input->type],
+						        input->attribid);
 						if (has_tangent == false) {
 							BLI_dynstr_appendf(ds, "\tvec3 Q1 = dFdx(inpt.v.position.xyz);\n");
 							BLI_dynstr_appendf(ds, "\tvec3 Q2 = dFdy(inpt.v.position.xyz);\n");
@@ -917,7 +931,7 @@ static const char *attrib_prefix_get(CustomDataType type)
 		case CD_TANGENT:        return "t";
 		case CD_MCOL:           return "c";
 		case CD_AUTO_FROM_NAME: return "a";
-		default: BLI_assert(false && "Gwn_VertAttr Prefix type not found : This should not happen!"); return "";
+		default: BLI_assert(false && "GPUVertAttr Prefix type not found : This should not happen!"); return "";
 	}
 }
 
@@ -929,12 +943,13 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	char *code;
 
 	/* Hairs uv and col attribs are passed by bufferTextures. */
-	BLI_dynstr_append(ds,
-	    "#ifdef HAIR_SHADER\n"
-	    "#define DEFINE_ATTRIB(type, attr) uniform samplerBuffer attr\n"
-	    "#else\n"
-	    "#define DEFINE_ATTRIB(type, attr) in type attr\n"
-	    "#endif\n"
+	BLI_dynstr_append(
+	        ds,
+	        "#ifdef HAIR_SHADER\n"
+	        "#define DEFINE_ATTRIB(type, attr) uniform samplerBuffer attr\n"
+	        "#else\n"
+	        "#define DEFINE_ATTRIB(type, attr) in type attr\n"
+	        "#endif\n"
 	);
 
 	for (node = nodes->first; node; node = node->next) {
@@ -952,10 +967,12 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 				}
 				else {
 					unsigned int hash = BLI_ghashutil_strhash_p(input->attribname);
-					BLI_dynstr_appendf(ds, "DEFINE_ATTRIB(%s, %s%u);\n",
-						GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
-					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
-						input->attribid, attrib_prefix_get(input->attribtype), hash);
+					BLI_dynstr_appendf(
+					        ds, "DEFINE_ATTRIB(%s, %s%u);\n",
+					        GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
+					BLI_dynstr_appendf(
+					        ds, "#define att%d %s%u\n",
+					        input->attribid, attrib_prefix_get(input->attribtype), hash);
 					/* Auto attrib can be vertex color byte buffer.
 					 * We need to know and convert them to linear space in VS. */
 					if (!use_geom && input->attribtype == CD_AUTO_FROM_NAME) {
@@ -963,33 +980,36 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 						BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attribid, hash);
 					}
 				}
-				BLI_dynstr_appendf(ds, "out %s var%d%s;\n",
-					GPU_DATATYPE_STR[input->type], input->attribid, use_geom ? "g" : "");
+				BLI_dynstr_appendf(
+				        ds, "out %s var%d%s;\n",
+				        GPU_DATATYPE_STR[input->type], input->attribid, use_geom ? "g" : "");
 			}
 		}
 	}
 
 	BLI_dynstr_append(ds, "\n");
 
-	BLI_dynstr_append(ds,
-	    "#define ATTRIB\n"
-	    "uniform mat3 NormalMatrix;\n"
-	    "uniform mat4 ModelMatrixInverse;\n"
-	    "vec3 srgb_to_linear_attrib(vec3 c) {\n"
-	    "\tc = max(c, vec3(0.0));\n"
-	    "\tvec3 c1 = c * (1.0 / 12.92);\n"
-	    "\tvec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));\n"
-	    "\treturn mix(c1, c2, step(vec3(0.04045), c));\n"
-	    "}\n\n"
+	BLI_dynstr_append(
+	        ds,
+	        "#define ATTRIB\n"
+	        "uniform mat3 NormalMatrix;\n"
+	        "uniform mat4 ModelMatrixInverse;\n"
+	        "vec3 srgb_to_linear_attrib(vec3 c) {\n"
+	        "\tc = max(c, vec3(0.0));\n"
+	        "\tvec3 c1 = c * (1.0 / 12.92);\n"
+	        "\tvec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));\n"
+	        "\treturn mix(c1, c2, step(vec3(0.04045), c));\n"
+	        "}\n\n"
 	);
 
 	/* Prototype because defined later. */
-	BLI_dynstr_append(ds,
-	    "vec2 hair_get_customdata_vec2(const samplerBuffer);\n"
-	    "vec3 hair_get_customdata_vec3(const samplerBuffer);\n"
-	    "vec4 hair_get_customdata_vec4(const samplerBuffer);\n"
-	    "vec3 hair_get_strand_pos(void);\n"
-	    "\n"
+	BLI_dynstr_append(
+	        ds,
+	        "vec2 hair_get_customdata_vec2(const samplerBuffer);\n"
+	        "vec3 hair_get_customdata_vec3(const samplerBuffer);\n"
+	        "vec4 hair_get_customdata_vec4(const samplerBuffer);\n"
+	        "vec3 hair_get_strand_pos(void);\n"
+	        "\n"
 	);
 
 	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
@@ -1001,16 +1021,19 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				if (input->attribtype == CD_TANGENT) {
 					/* Not supported by hairs */
-					BLI_dynstr_appendf(ds, "\tvar%d%s = vec4(0.0);\n",
-					                   input->attribid, use_geom ? "g" : "");
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = vec4(0.0);\n",
+					        input->attribid, use_geom ? "g" : "");
 				}
 				else if (input->attribtype == CD_ORCO) {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
-					                   input->attribid, use_geom ? "g" : "");
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = OrcoTexCoFactors[0] + (ModelMatrixInverse * vec4(hair_get_strand_pos(), 1.0)).xyz * OrcoTexCoFactors[1];\n",
+					        input->attribid, use_geom ? "g" : "");
 				}
 				else {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = hair_get_customdata_%s(att%d);\n",
-					                   input->attribid, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attribid);
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = hair_get_customdata_%s(att%d);\n",
+					        input->attribid, use_geom ? "g" : "", GPU_DATATYPE_STR[input->type], input->attribid);
 				}
 			}
 		}
@@ -1030,21 +1053,25 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					        input->attribid, use_geom ? "g" : "", input->attribid);
 				}
 				else if (input->attribtype == CD_ORCO) {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
-					                   input->attribid, use_geom ? "g" : "");
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
+					        input->attribid, use_geom ? "g" : "");
 				}
 				else if (input->attribtype == CD_MCOL) {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = srgb_to_linear_attrib(att%d);\n",
-					                   input->attribid, use_geom ? "g" : "", input->attribid);
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = srgb_to_linear_attrib(att%d);\n",
+					        input->attribid, use_geom ? "g" : "", input->attribid);
 				}
 				else if (input->attribtype == CD_AUTO_FROM_NAME) {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attrib(att%d) : att%d;\n",
-					                   input->attribid, use_geom ? "g" : "",
-					                   input->attribid, input->attribid, input->attribid);
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attrib(att%d) : att%d;\n",
+					        input->attribid, use_geom ? "g" : "",
+					        input->attribid, input->attribid, input->attribid);
 				}
 				else {
-					BLI_dynstr_appendf(ds, "\tvar%d%s = att%d;\n",
-					                   input->attribid, use_geom ? "g" : "", input->attribid);
+					BLI_dynstr_appendf(
+					        ds, "\tvar%d%s = att%d;\n",
+					        input->attribid, use_geom ? "g" : "", input->attribid);
 				}
 			}
 		}
@@ -1083,12 +1110,14 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				BLI_dynstr_appendf(ds, "in %s var%dg[];\n",
-				                   GPU_DATATYPE_STR[input->type],
-				                   input->attribid);
-				BLI_dynstr_appendf(ds, "out %s var%d;\n",
-				                   GPU_DATATYPE_STR[input->type],
-				                   input->attribid);
+				BLI_dynstr_appendf(
+				        ds, "in %s var%dg[];\n",
+				        GPU_DATATYPE_STR[input->type],
+				        input->attribid);
+				BLI_dynstr_appendf(
+				        ds, "out %s var%d;\n",
+				        GPU_DATATYPE_STR[input->type],
+				        input->attribid);
 			}
 		}
 	}
@@ -1382,8 +1411,8 @@ static const char *gpu_uniform_set_function_from_type(eNodeSocketDatatype type)
 		case SOCK_RGBA:
 			return "set_rgba";
 		default:
-			 BLI_assert(!"No gpu function for non-supported eNodeSocketDatatype");
-			 return NULL;
+			BLI_assert(!"No gpu function for non-supported eNodeSocketDatatype");
+			return NULL;
 	}
 }
 
@@ -1553,8 +1582,9 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 
 						attribs->layer[a].type = input->attribtype;
 						attribs->layer[a].attribid = input->attribid;
-						BLI_strncpy(attribs->layer[a].name, input->attribname,
-						            sizeof(attribs->layer[a].name));
+						BLI_strncpy(
+						        attribs->layer[a].name, input->attribname,
+						        sizeof(attribs->layer[a].name));
 					}
 					else {
 						input->attribid = attribs->layer[a].attribid;
@@ -1966,11 +1996,12 @@ GPUPass *GPU_generate_pass_new(
 void GPU_pass_compile(GPUPass *pass)
 {
 	if (!pass->compiled) {
-		pass->shader = GPU_shader_create(pass->vertexcode,
-		                                 pass->fragmentcode,
-		                                 pass->geometrycode,
-		                                 NULL,
-		                                 pass->defines);
+		pass->shader = GPU_shader_create(
+		        pass->vertexcode,
+		        pass->fragmentcode,
+		        pass->geometrycode,
+		        NULL,
+		        pass->defines);
 		pass->compiled = true;
 	}
 }

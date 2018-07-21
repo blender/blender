@@ -71,6 +71,8 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
+#include "DEG_depsgraph_build.h"
+
 #include "BIK_api.h"
 
 /* **************** Generic Functions, data level *************** */
@@ -1951,9 +1953,14 @@ void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
 	BLI_ghash_free(bone_hash, NULL, NULL);
 }
 
-/* only after leave editmode, duplicating, validating older files, library syncing */
-/* NOTE: pose->flag is set for it */
-void BKE_pose_rebuild(Object *ob, bArmature *arm)
+/**
+ * Only after leave editmode, duplicating, validating older files, library syncing.
+ *
+ * \note pose->flag is set for it.
+ *
+ * \param bmain May be NULL, only used to tag depsgraph as being dirty...
+ */
+void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm)
 {
 	Bone *bone;
 	bPose *pose;
@@ -1998,12 +2005,17 @@ void BKE_pose_rebuild(Object *ob, bArmature *arm)
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	}
 
-	BKE_pose_update_constraint_flags(ob->pose); /* for IK detection for example */
+	BKE_pose_update_constraint_flags(pose); /* for IK detection for example */
 
-	ob->pose->flag &= ~POSE_RECALC;
-	ob->pose->flag |= POSE_WAS_REBUILT;
+	pose->flag &= ~POSE_RECALC;
+	pose->flag |= POSE_WAS_REBUILT;
 
-	BKE_pose_channels_hash_make(ob->pose);
+	BKE_pose_channels_hash_make(pose);
+
+	/* Rebuilding poses forces us to also rebuild the dependency graph, since there is one node per pose/bone... */
+	if (bmain != NULL) {
+		DEG_relations_tag_update(bmain);
+	}
 }
 
 /* ********************** THE POSE SOLVER ******************* */
@@ -2277,8 +2289,10 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 	if (ELEM(NULL, arm, scene))
 		return;
-	if ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC))
-		BKE_pose_rebuild(ob, arm);
+	if ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC)) {
+		/* WARNING! passing NULL bmain here means we won't tag depsgraph's as dirty - hopefully this is OK. */
+		BKE_pose_rebuild(NULL, ob, arm);
+	}
 
 	ctime = BKE_scene_frame_get(scene); /* not accurate... */
 

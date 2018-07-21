@@ -91,7 +91,7 @@ void GPU_pbvh_grid_buffers_update(
         const int update_flags);
 
 /* draw */
-struct Gwn_Batch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast);
+struct GPUBatch *GPU_pbvh_buffers_batch_get(GPU_PBVH_Buffers *buffers, bool fast);
 
 /* debug PBVH draw */
 void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, unsigned int pos);

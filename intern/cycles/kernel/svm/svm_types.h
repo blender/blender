@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 /* SVM stack has a fixed size */
 #define SVM_STACK_SIZE 255
 /* SVM stack offsets with this value indicate that it's not on the stack */
-#define SVM_STACK_INVALID 255 
+#define SVM_STACK_INVALID 255
 
 #define SVM_BUMP_EVAL_STATE_SIZE 9
 
@@ -261,6 +261,10 @@ typedef enum NodeMath {
 	NODE_MATH_MODULO,
 	NODE_MATH_ABSOLUTE,
 	NODE_MATH_ARCTAN2,
+	NODE_MATH_FLOOR,
+	NODE_MATH_CEIL,
+	NODE_MATH_FRACT,
+	NODE_MATH_SQRT,
 	NODE_MATH_CLAMP /* used for the clamp UI option */
 } NodeMath;
 
@@ -334,6 +338,21 @@ typedef enum NodeVoronoiColoring {
 	NODE_VORONOI_CELLS
 } NodeVoronoiColoring;
 
+typedef enum NodeVoronoiDistanceMetric {
+	NODE_VORONOI_DISTANCE,
+	NODE_VORONOI_MANHATTAN,
+	NODE_VORONOI_CHEBYCHEV,
+	NODE_VORONOI_MINKOWSKI
+} NodeVoronoiDistanceMetric;
+
+typedef enum NodeVoronoiFeature {
+	NODE_VORONOI_F1,
+	NODE_VORONOI_F2,
+	NODE_VORONOI_F3,
+	NODE_VORONOI_F4,
+	NODE_VORONOI_F2F1
+} NodeVoronoiFeature;
+
 typedef enum NodeBlendWeightType {
 	NODE_LAYER_WEIGHT_FRESNEL,
 	NODE_LAYER_WEIGHT_FACING
@@ -399,6 +418,13 @@ typedef enum ShaderType {
 	SHADER_TYPE_BUMP,
 } ShaderType;
 
+typedef enum NodePrincipledHairParametrization {
+	NODE_PRINCIPLED_HAIR_REFLECTANCE = 0,
+	NODE_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION = 1,
+	NODE_PRINCIPLED_HAIR_DIRECT_ABSORPTION = 2,
+	NODE_PRINCIPLED_HAIR_NUM,
+} NodePrincipledHairParametrization;
+
 /* Closure */
 
 typedef enum ClosureType {
@@ -445,6 +471,7 @@ typedef enum ClosureType {
 	CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID,
 	CLOSURE_BSDF_MICROFACET_MULTI_GGX_GLASS_FRESNEL_ID,
 	CLOSURE_BSDF_SHARP_GLASS_ID,
+	CLOSURE_BSDF_HAIR_PRINCIPLED_ID,
 	CLOSURE_BSDF_HAIR_TRANSMISSION_ID,
 
 	/* Special cases */
@@ -476,7 +503,7 @@ typedef enum ClosureType {
 /* watch this, being lazy with memory usage */
 #define CLOSURE_IS_BSDF(type) (type <= CLOSURE_BSDF_TRANSPARENT_ID)
 #define CLOSURE_IS_BSDF_DIFFUSE(type) (type >= CLOSURE_BSDF_DIFFUSE_ID && type <= CLOSURE_BSDF_DIFFUSE_TOON_ID)
-#define CLOSURE_IS_BSDF_GLOSSY(type) (type >= CLOSURE_BSDF_REFLECTION_ID && type <= CLOSURE_BSDF_HAIR_REFLECTION_ID)
+#define CLOSURE_IS_BSDF_GLOSSY(type) ((type >= CLOSURE_BSDF_REFLECTION_ID && type <= CLOSURE_BSDF_HAIR_REFLECTION_ID )|| (type == CLOSURE_BSDF_HAIR_PRINCIPLED_ID))
 #define CLOSURE_IS_BSDF_TRANSMISSION(type) (type >= CLOSURE_BSDF_TRANSLUCENT_ID && type <= CLOSURE_BSDF_HAIR_TRANSMISSION_ID)
 #define CLOSURE_IS_BSDF_BSSRDF(type) (type == CLOSURE_BSDF_BSSRDF_ID || type == CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID)
 #define CLOSURE_IS_BSDF_SINGULAR(type) (type == CLOSURE_BSDF_REFLECTION_ID || \
@@ -505,4 +532,3 @@ typedef enum ClosureType {
 CCL_NAMESPACE_END
 
 #endif /*  __SVM_TYPES_H__ */
-

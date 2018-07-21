@@ -34,7 +34,7 @@
 
 struct ID;
 
-/* Unkomment this to have verbose log about original and CoW pointers
+/* Uncomment this to have verbose log about original and CoW pointers
  * logged, with detailed information when they are allocated, expanded
  * and remapped.
  */

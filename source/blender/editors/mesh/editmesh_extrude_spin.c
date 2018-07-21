@@ -54,27 +54,27 @@
 
 #include "mesh_intern.h"  /* own include */
 
-#define USE_MANIPULATOR
+#define USE_GIZMO
 
-#ifdef USE_MANIPULATOR
-#include "ED_manipulator_library.h"
+#ifdef USE_GIZMO
+#include "ED_gizmo_library.h"
 #include "ED_undo.h"
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name Spin Manipulator
+/** \name Spin Gizmo
  * \{ */
 
-#ifdef USE_MANIPULATOR
-typedef struct ManipulatorSpinGroup {
+#ifdef USE_GIZMO
+typedef struct GizmoSpinGroup {
 	/* Arrow to change plane depth. */
-	struct wmManipulator *translate_z;
+	struct wmGizmo *translate_z;
 	/* Translate XYZ */
-	struct wmManipulator *translate_c;
-	/* For grabbing the manipulator and moving freely. */
-	struct wmManipulator *rotate_c;
+	struct wmGizmo *translate_c;
+	/* For grabbing the gizmo and moving freely. */
+	struct wmGizmo *rotate_c;
 	/* Spin angle */
-	struct wmManipulator *angle_z;
+	struct wmGizmo *angle_z;
 
 	/* We could store more vars here! */
 	struct {
@@ -87,14 +87,14 @@ typedef struct ManipulatorSpinGroup {
 		float rotate_axis[3];
 		float rotate_up[3];
 	} data;
-} ManipulatorSpinGroup;
+} GizmoSpinGroup;
 
 /**
  * XXX. calling redo from property updates is not great.
  * This is needed because changing the RNA doesn't cause a redo
  * and we're not using operator UI which does just this.
  */
-static void manipulator_spin_exec(ManipulatorSpinGroup *man)
+static void gizmo_spin_exec(GizmoSpinGroup *man)
 {
 	wmOperator *op = man->data.op;
 	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
@@ -102,7 +102,7 @@ static void manipulator_spin_exec(ManipulatorSpinGroup *man)
 	}
 }
 
-static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
+static void gizmo_mesh_spin_update_from_op(GizmoSpinGroup *man)
 {
 	wmOperator *op = man->data.op;
 
@@ -111,15 +111,15 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
 
-	WM_manipulator_set_matrix_location(man->translate_z, plane_co);
-	WM_manipulator_set_matrix_location(man->rotate_c, plane_co);
-	WM_manipulator_set_matrix_location(man->angle_z, plane_co);
+	WM_gizmo_set_matrix_location(man->translate_z, plane_co);
+	WM_gizmo_set_matrix_location(man->rotate_c, plane_co);
+	WM_gizmo_set_matrix_location(man->angle_z, plane_co);
 	/* translate_c location comes from the property. */
 
-	WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_z, plane_no);
-	WM_manipulator_set_matrix_rotation_from_z_axis(man->angle_z, plane_no);
+	WM_gizmo_set_matrix_rotation_from_z_axis(man->translate_z, plane_no);
+	WM_gizmo_set_matrix_rotation_from_z_axis(man->angle_z, plane_no);
 
-	WM_manipulator_set_scale(man->translate_c, 0.2);
+	WM_gizmo_set_scale(man->translate_c, 0.2);
 
 	RegionView3D *rv3d = ED_view3d_context_rv3d(man->data.context);
 	if (rv3d) {
@@ -130,103 +130,103 @@ static void manipulator_mesh_spin_update_from_op(ManipulatorSpinGroup *man)
 		project_plane_normalized_v3_v3v3(man->data.rotate_up, man->data.rotate_up, man->data.rotate_axis);
 		normalize_v3(man->data.rotate_up);
 
-		WM_manipulator_set_matrix_rotation_from_z_axis(man->translate_c, plane_no);
-		WM_manipulator_set_matrix_rotation_from_yz_axis(man->rotate_c, plane_no, man->data.rotate_axis);
+		WM_gizmo_set_matrix_rotation_from_z_axis(man->translate_c, plane_no);
+		WM_gizmo_set_matrix_rotation_from_yz_axis(man->rotate_c, plane_no, man->data.rotate_axis);
 
 		/* show the axis instead of mouse cursor */
 		RNA_enum_set(man->rotate_c->ptr, "draw_options",
-		             ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_MIRROR |
-		             ED_MANIPULATOR_DIAL_DRAW_FLAG_ANGLE_START_Y);
+		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR |
+		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y);
 
 	}
 }
 
 /* depth callbacks */
-static void manipulator_spin_prop_depth_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_depth_get(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane_no[3];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
 
-	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, mpr->matrix_basis[3]);
+	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, gz->matrix_basis[3]);
 }
 
-static void manipulator_spin_prop_depth_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_depth_set(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	const float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane);
 	normalize_v3(plane);
 
-	plane[3] = -value[0] - dot_v3v3(plane, mpr->matrix_basis[3]);
+	plane[3] = -value[0] - dot_v3v3(plane, gz->matrix_basis[3]);
 
 	/* Keep our location, may be offset simply to be inside the viewport. */
 	closest_to_plane_normalized_v3(plane_co, plane, plane_co);
 
 	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, plane_co);
 
-	manipulator_spin_exec(man);
+	gizmo_spin_exec(man);
 }
 
 /* translate callbacks */
-static void manipulator_spin_prop_translate_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_translate_get(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 3);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, value);
 }
 
-static void manipulator_spin_prop_translate_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_translate_set(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 
-	BLI_assert(mpr_prop->type->array_length == 3);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 3);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, value);
 
-	manipulator_spin_exec(man);
+	gizmo_spin_exec(man);
 }
 
 /* angle callbacks */
-static void manipulator_spin_prop_axis_angle_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_axis_angle_get(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
@@ -244,16 +244,16 @@ static void manipulator_spin_prop_axis_angle_get(
 	}
 }
 
-static void manipulator_spin_prop_axis_angle_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_axis_angle_set(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	const float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
 	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
@@ -273,50 +273,50 @@ static void manipulator_spin_prop_axis_angle_set(
 			/* re-normalize - seems acceptable */
 			RNA_property_float_set_array(op->ptr, man->data.prop_axis_no, plane_no);
 
-			manipulator_spin_exec(man);
+			gizmo_spin_exec(man);
 		}
 	}
 }
 
 /* angle callbacks */
-static void manipulator_spin_prop_angle_get(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_angle_get(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
 	float *value = value_p;
 
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 	value[0] = RNA_property_float_get(op->ptr, man->data.prop_angle);
 }
 
-static void manipulator_spin_prop_angle_set(
-        const wmManipulator *mpr, wmManipulatorProperty *mpr_prop,
+static void gizmo_spin_prop_angle_set(
+        const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	ManipulatorSpinGroup *man = mpr->parent_mgroup->customdata;
+	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
 	wmOperator *op = man->data.op;
-	BLI_assert(mpr_prop->type->array_length == 1);
-	UNUSED_VARS_NDEBUG(mpr_prop);
+	BLI_assert(gz_prop->type->array_length == 1);
+	UNUSED_VARS_NDEBUG(gz_prop);
 	const float *value = value_p;
 	RNA_property_float_set(op->ptr, man->data.prop_angle, value[0]);
 
-	manipulator_spin_exec(man);
+	gizmo_spin_exec(man);
 }
 
-static bool manipulator_mesh_spin_poll(const bContext *C, wmManipulatorGroupType *wgt)
+static bool gizmo_mesh_spin_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
-static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *mgroup)
+static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 
@@ -324,32 +324,32 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 		return;
 	}
 
-	struct ManipulatorSpinGroup *man = MEM_callocN(sizeof(ManipulatorSpinGroup), __func__);
-	mgroup->customdata = man;
+	struct GizmoSpinGroup *man = MEM_callocN(sizeof(GizmoSpinGroup), __func__);
+	gzgroup->customdata = man;
 
-	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
-	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_grab_3d", true);
-	const wmManipulatorType *wt_dial = WM_manipulatortype_find("MANIPULATOR_WT_dial_3d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_grab_3d", true);
+	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 
-	man->translate_z = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
-	man->translate_c = WM_manipulator_new_ptr(wt_grab, mgroup, NULL);
-	man->rotate_c = WM_manipulator_new_ptr(wt_dial, mgroup, NULL);
-	man->angle_z = WM_manipulator_new_ptr(wt_dial, mgroup, NULL);
+	man->translate_z = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	man->translate_c = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
+	man->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
+	man->angle_z = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
 
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->translate_z->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->translate_c->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_SECONDARY, man->rotate_c->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_z->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_c->color);
+	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, man->rotate_c->color);
 	UI_GetThemeColor3fv(TH_AXIS_Z, man->angle_z->color);
 
 
-	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
-	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING_2D);
+	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
+	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_GIZMO_GRAB_STYLE_RING_2D);
 
-	WM_manipulator_set_flag(man->translate_c, WM_MANIPULATOR_DRAW_VALUE, true);
-	WM_manipulator_set_flag(man->rotate_c, WM_MANIPULATOR_DRAW_VALUE, true);
-	WM_manipulator_set_flag(man->angle_z, WM_MANIPULATOR_DRAW_VALUE, true);
+	WM_gizmo_set_flag(man->translate_c, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(man->rotate_c, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(man->angle_z, WM_GIZMO_DRAW_VALUE, true);
 
-	WM_manipulator_set_scale(man->angle_z, 0.5f);
+	WM_gizmo_set_scale(man->angle_z, 0.5f);
 
 	{
 		man->data.context = (bContext *)C;
@@ -359,42 +359,42 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 		man->data.prop_angle = RNA_struct_find_property(op->ptr, "angle");
 	}
 
-	manipulator_mesh_spin_update_from_op(man);
+	gizmo_mesh_spin_update_from_op(man);
 
 	/* Setup property callbacks */
 	{
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        man->translate_z, "offset",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_spin_prop_depth_get,
-		            .value_set_fn = manipulator_spin_prop_depth_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_spin_prop_depth_get,
+		            .value_set_fn = gizmo_spin_prop_depth_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        man->translate_c, "offset",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_spin_prop_translate_get,
-		            .value_set_fn = manipulator_spin_prop_translate_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_spin_prop_translate_get,
+		            .value_set_fn = gizmo_spin_prop_translate_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        man->rotate_c, "offset",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_spin_prop_axis_angle_get,
-		            .value_set_fn = manipulator_spin_prop_axis_angle_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_spin_prop_axis_angle_get,
+		            .value_set_fn = gizmo_spin_prop_axis_angle_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
 
-		WM_manipulator_target_property_def_func(
+		WM_gizmo_target_property_def_func(
 		        man->angle_z, "offset",
-		        &(const struct wmManipulatorPropertyFnParams) {
-		            .value_get_fn = manipulator_spin_prop_angle_get,
-		            .value_set_fn = manipulator_spin_prop_angle_set,
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_spin_prop_angle_get,
+		            .value_set_fn = gizmo_spin_prop_angle_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
@@ -402,34 +402,34 @@ static void manipulator_mesh_spin_setup(const bContext *C, wmManipulatorGroup *m
 	}
 }
 
-static void manipulator_mesh_spin_draw_prepare(
-        const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void gizmo_mesh_spin_draw_prepare(
+        const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	ManipulatorSpinGroup *man = mgroup->customdata;
+	GizmoSpinGroup *man = gzgroup->customdata;
 	if (man->data.op->next) {
 		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
 	}
-	manipulator_mesh_spin_update_from_op(man);
+	gizmo_mesh_spin_update_from_op(man);
 }
 
-static void MESH_WGT_spin(struct wmManipulatorGroupType *wgt)
+static void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Mesh Spin";
-	wgt->idname = "MESH_WGT_spin";
+	gzgt->name = "Mesh Spin";
+	gzgt->idname = "MESH_GGT_spin";
 
-	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = manipulator_mesh_spin_poll;
-	wgt->setup = manipulator_mesh_spin_setup;
-	wgt->draw_prepare = manipulator_mesh_spin_draw_prepare;
+	gzgt->poll = gizmo_mesh_spin_poll;
+	gzgt->setup = gizmo_mesh_spin_setup;
+	gzgt->draw_prepare = gizmo_mesh_spin_draw_prepare;
 }
 
 /** \} */
 
-#endif  /* USE_MANIPULATOR */
+#endif  /* USE_GIZMO */
 
 /* -------------------------------------------------------------------- */
 /** \name Spin Operator
@@ -508,11 +508,11 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 
 	int ret = edbm_spin_exec(C, op);
 
-#ifdef USE_MANIPULATOR
+#ifdef USE_GIZMO
 	if (ret & OPERATOR_FINISHED) {
-		/* Setup manipulators */
-		if (v3d && (v3d->twflag & V3D_MANIPULATOR_DRAW)) {
-			WM_manipulator_group_type_ensure("MESH_WGT_spin");
+		/* Setup gizmos */
+		if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
+			WM_gizmo_group_type_ensure("MESH_GGT_spin");
 		}
 	}
 #endif
@@ -548,7 +548,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	                     "Center", "Center in global view space", -1e4f, 1e4f);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -1.0f, 1.0f);
 
-#ifdef USE_MANIPULATOR
-	WM_manipulatorgrouptype_append(MESH_WGT_spin);
+#ifdef USE_GIZMO
+	WM_gizmogrouptype_append(MESH_GGT_spin);
 #endif
 }

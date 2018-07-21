@@ -139,24 +139,25 @@ class IMAGE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("uv.select_all", text="All").action = 'SELECT'
+        layout.operator("uv.select_all", text="None").action = 'DESELECT'
+        layout.operator("uv.select_all", text="Invert").action = 'INVERT'
+
+        layout.separator()
+
         layout.operator("uv.select_border").pinned = False
         layout.operator("uv.select_border", text="Border Select Pinned").pinned = True
         layout.operator("uv.circle_select")
 
         layout.separator()
 
-        layout.operator("uv.select_all").action = 'TOGGLE'
-        layout.operator("uv.select_all", text="Inverse").action = 'INVERT'
+        layout.operator("uv.select_less", text="Less")
+        layout.operator("uv.select_more", text="More")
 
         layout.separator()
 
         layout.operator("uv.select_pinned")
         layout.operator("uv.select_linked").extend = False
-
-        layout.separator()
-
-        layout.operator("uv.select_less", text="Less")
-        layout.operator("uv.select_more", text="More")
 
         layout.separator()
 
@@ -190,30 +191,33 @@ class IMAGE_MT_image(Menu):
 
         sima = context.space_data
         ima = sima.image
-
-        layout.operator("image.new")
-        layout.operator("image.open")
-
         show_render = sima.show_render
 
+        layout.operator("image.new", text="New")
+        layout.operator("image.open", text="Open...")
+
         layout.operator("image.read_viewlayers")
+
+        if ima:
+            if not show_render:
+                layout.operator("image.replace", text="Replace...")
+                layout.operator("image.reload", text="Reload")
+
+            layout.operator("image.external_edit", "Edit Externally")
+
+        layout.separator()
+
+        if ima:
+            layout.operator("image.save", text="Save")
+            layout.operator("image.save_as", text="Save As...")
+            layout.operator("image.save_as", text="Save a Copy...").copy = True
+
+        if ima and ima.source == 'SEQUENCE':
+            layout.operator("image.save_sequence")
 
         layout.operator("image.save_dirty", text="Save All Images")
 
         if ima:
-            if not show_render:
-                layout.operator("image.replace")
-                layout.operator("image.reload")
-
-            layout.operator("image.save")
-            layout.operator("image.save_as")
-            layout.operator("image.save_as", text="Save a Copy").copy = True
-
-            if ima.source == 'SEQUENCE':
-                layout.operator("image.save_sequence")
-
-            layout.operator("image.external_edit", "Edit Externally")
-
             layout.separator()
 
             layout.menu("IMAGE_MT_image_invert")
@@ -221,7 +225,7 @@ class IMAGE_MT_image(Menu):
             if not show_render:
                 if not ima.packed_file:
                     layout.separator()
-                    layout.operator("image.pack")
+                    layout.operator("image.pack", text="Pack")
 
                 # only for dirty && specific image types, perhaps
                 # this could be done in operator poll too

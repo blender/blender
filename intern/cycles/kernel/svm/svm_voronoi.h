@@ -18,123 +18,137 @@ CCL_NAMESPACE_BEGIN
 
 /* Voronoi */
 
-ccl_device float voronoi_F1_distance(float3 p)
+ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, float e, float da[4], float3 pa[4])
 {
-	/* returns squared distance in da */
-	float da = 1e10f;
+	/* Compute the distance to and the position of the closest neighbors to p.
+	 *
+	 * The neighbors are randomly placed, 1 each in a 3x3x3 grid (Worley pattern).
+	 * The distances and points are returned in ascending order, i.e. da[0] and pa[0] will
+	 * contain the distance to the closest point and its coordinates respectively.
+	 */
 
-#ifndef __KERNEL_SSE2__
-	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
+	da[0] = 1e10f;
+	da[1] = 1e10f;
+	da[2] = 1e10f;
+	da[3] = 1e10f;
 
-	for(int xx = -1; xx <= 1; xx++) {
-		for(int yy = -1; yy <= 1; yy++) {
-			for(int zz = -1; zz <= 1; zz++) {
-				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
-				float3 vp = ip + cellnoise_color(ip);
-				float d = len_squared(p - vp);
-				da = min(d, da);
-			}
-		}
-	}
-#else
-	ssef vec_p = load4f(p);
-	ssei xyzi = quick_floor_sse(vec_p);
+	int3 xyzi = quick_floor_to_int3(p);
 
 	for(int xx = -1; xx <= 1; xx++) {
 		for(int yy = -1; yy <= 1; yy++) {
 			for(int zz = -1; zz <= 1; zz++) {
-				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
-				ssef vp = ip + cellnoise_color(ip);
-				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
-				da = min(d, da);
-			}
-		}
-	}
-#endif
+				int3 ip = xyzi + make_int3(xx, yy, zz);
+				float3 fp = make_float3(ip.x, ip.y, ip.z);
+				float3 vp = fp + cellnoise3(fp);
 
-	return da;
-}
+				float d;
+				switch(distance) {
+					case NODE_VORONOI_DISTANCE:
+						d = len_squared(p - vp);
+						break;
+					case NODE_VORONOI_MANHATTAN:
+						d = reduce_add(fabs(vp - p));
+						break;
+					case NODE_VORONOI_CHEBYCHEV:
+						d = max3(fabs(vp - p));
+						break;
+					case NODE_VORONOI_MINKOWSKI:
+						float3 n = fabs(vp - p);
+						if(e == 0.5f) {
+							d = sqr(reduce_add(sqrt(n)));
+						}
+						else {
+							d = powf(reduce_add(pow3(n, e)), 1.0f/e);
+						}
+						break;
+				}
 
-ccl_device float3 voronoi_F1_color(float3 p)
-{
-	/* returns color of the nearest point */
-	float da = 1e10f;
+				/* To keep the shortest four distances and associated points we have to keep them in sorted order. */
+				if (d < da[0]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = da[0];
+					da[0] = d;
 
-#ifndef __KERNEL_SSE2__
-	float3 pa;
-	int ix = floor_to_int(p.x), iy = floor_to_int(p.y), iz = floor_to_int(p.z);
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = pa[0];
+					pa[0] = vp;
+				}
+				else if (d < da[1]) {
+					da[3] = da[2];
+					da[2] = da[1];
+					da[1] = d;
 
-	for(int xx = -1; xx <= 1; xx++) {
-		for(int yy = -1; yy <= 1; yy++) {
-			for(int zz = -1; zz <= 1; zz++) {
-				float3 ip = make_float3(ix + xx, iy + yy, iz + zz);
-				float3 vp = ip + cellnoise_color(ip);
-				float d = len_squared(p - vp);
+					pa[3] = pa[2];
+					pa[2] = pa[1];
+					pa[1] = vp;
+				}
+				else if (d < da[2]) {
+					da[3] = da[2];
+					da[2] = d;
 
-				if(d < da) {
-					da = d;
-					pa = vp;
+					pa[3] = pa[2];
+					pa[2] = vp;
+				}
+				else if (d < da[3]) {
+					da[3] = d;
+					pa[3] = vp;
 				}
 			}
 		}
-	}
-
-	return cellnoise_color(pa);
-#else
-	ssef pa, vec_p = load4f(p);
-	ssei xyzi = quick_floor_sse(vec_p);
-
-	for(int xx = -1; xx <= 1; xx++) {
-		for(int yy = -1; yy <= 1; yy++) {
-			for(int zz = -1; zz <= 1; zz++) {
-				ssef ip = ssef(xyzi + ssei(xx, yy, zz, 0));
-				ssef vp = ip + cellnoise_color(ip);
-				float d = len_squared<1, 1, 1, 0>(vec_p - vp);
-
-				if(d < da) {
-					da = d;
-					pa = vp;
-				}
-			}
-		}
-	}
-
-	ssef color = cellnoise_color(pa);
-	return (float3 &)color;
-#endif
-}
-
-ccl_device_noinline float4 svm_voronoi(NodeVoronoiColoring coloring, float3 p)
-{
-	if(coloring == NODE_VORONOI_INTENSITY) {
-		/* compute squared distance to the nearest neighbour */
-		float fac = voronoi_F1_distance(p);
-		return make_float4(fac, fac, fac, fac);
-	}
-	else {
-		/* compute color of the nearest neighbour */
-		float3 color = voronoi_F1_color(p);
-		return make_float4(color.x, color.y, color.z, average(color));
 	}
 }
 
 ccl_device void svm_node_tex_voronoi(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node, int *offset)
 {
-	uint coloring = node.y;
-	uint scale_offset, co_offset, fac_offset, color_offset;
+	uint4 node2 = read_node(kg, offset);
 
-	decode_node_uchar4(node.z, &scale_offset, &co_offset, &fac_offset, &color_offset);
+	uint co_offset, coloring, distance, feature;
+	uint scale_offset, e_offset, fac_offset, color_offset;
+
+	decode_node_uchar4(node.y, &co_offset, &coloring, &distance, &feature);
+	decode_node_uchar4(node.z, &scale_offset, &e_offset, &fac_offset, &color_offset);
 
 	float3 co = stack_load_float3(stack, co_offset);
-	float scale = stack_load_float_default(stack, scale_offset, node.w);
+	float scale = stack_load_float_default(stack, scale_offset, node2.x);
+	float exponent = stack_load_float_default(stack, e_offset, node2.y);
 
-	float4 result = svm_voronoi((NodeVoronoiColoring)coloring, co*scale);
-	float3 color = make_float3(result.x, result.y, result.z);
-	float f = result.w;
+	float dist[4];
+	float3 neighbor[4];
+	voronoi_neighbors(co*scale, (NodeVoronoiDistanceMetric)distance, exponent, dist, neighbor);
 
-	if(stack_valid(fac_offset)) stack_store_float(stack, fac_offset, f);
+	float3 color;
+	float fac;
+	if(coloring == NODE_VORONOI_INTENSITY) {
+		switch(feature) {
+			case NODE_VORONOI_F1: fac = dist[0]; break;
+			case NODE_VORONOI_F2: fac = dist[1]; break;
+			case NODE_VORONOI_F3: fac = dist[2]; break;
+			case NODE_VORONOI_F4: fac = dist[3]; break;
+			case NODE_VORONOI_F2F1: fac = dist[1] - dist[0]; break;
+		}
+
+		color = make_float3(fac, fac, fac);
+	}
+	else {
+		 /* NODE_VORONOI_CELLS */
+		switch(feature) {
+			case NODE_VORONOI_F1: color = neighbor[0]; break;
+			case NODE_VORONOI_F2: color = neighbor[1]; break;
+			case NODE_VORONOI_F3: color = neighbor[2]; break;
+			case NODE_VORONOI_F4: color = neighbor[3]; break;
+			/* Usefulness of this vector is questionable. Note F2 >= F1 but the
+			 * individual vector components might not be. */
+			case NODE_VORONOI_F2F1: color = fabs(neighbor[1] - neighbor[0]); break;
+		}
+
+		color = cellnoise3(color);
+		fac = average(color);
+	}
+
+	if(stack_valid(fac_offset)) stack_store_float(stack, fac_offset, fac);
 	if(stack_valid(color_offset)) stack_store_float3(stack, color_offset, color);
 }
 
 CCL_NAMESPACE_END
-

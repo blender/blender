@@ -390,7 +390,7 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Cursor Manipulator
+/** \name Cursor Gizmo
  *
  * \note This may need its own file, for now not.
  * \{ */

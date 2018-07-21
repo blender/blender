@@ -49,8 +49,7 @@ void main()
 	cos.xy = (vec2(texel) + 0.5) * storedTexelSize;
 
 	/* add a 2 pixel border to ensure filtering is correct */
-	cos.xy *= 1.0 + storedTexelSize * 2.0;
-	cos.xy -= storedTexelSize;
+	cos.xy = (cos.xy - storedTexelSize) / (1.0 - 2.0 * storedTexelSize);
 
 	float pattern = 1.0;
 

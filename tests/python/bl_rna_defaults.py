@@ -8,7 +8,7 @@ DUMMY_NAME = "Untitled"
 DUMMY_PATH = __file__
 GLOBALS = {
     "error_num": 0,
-    }
+}
 
 
 def as_float_32(f):
@@ -125,8 +125,8 @@ test_World = _test_id_gen("worlds")
 ns = globals()
 for t in bpy.data.curves.bl_rna.functions["new"].parameters["type"].enum_items.keys():
     ns["test_Curve_%s" % t] = _test_id_gen("curves", args_create=(DUMMY_NAME, t))
-for t in bpy.data.lamps.bl_rna.functions["new"].parameters["type"].enum_items.keys():
-    ns["test_Lamp_%s" % t] = _test_id_gen("lamps", args_create=(DUMMY_NAME, t))
+for t in bpy.data.lights.bl_rna.functions["new"].parameters["type"].enum_items.keys():
+    ns["test_Light_%s" % t] = _test_id_gen("lights", args_create=(DUMMY_NAME, t))
 # types are a dynamic enum, have to hard-code.
 for t in "ShaderNodeTree", "CompositorNodeTree", "TextureNodeTree":
     ns["test_NodeGroup_%s" % t] = _test_id_gen("node_groups", args_create=(DUMMY_NAME, t))
@@ -141,6 +141,7 @@ def main():
             fn_val(fn_id)
 
     print("Error (total): %d" % GLOBALS["error_num"])
+
 
 if __name__ == "__main__":
     main()

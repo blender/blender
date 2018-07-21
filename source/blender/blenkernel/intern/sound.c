@@ -756,15 +756,19 @@ int BKE_sound_scene_playing(struct Scene *scene)
 
 void BKE_sound_free_waveform(bSound *sound)
 {
-	SoundWaveform *waveform = sound->waveform;
-	if (waveform) {
-		if (waveform->data) {
-			MEM_freeN(waveform->data);
+	if ((sound->tags & SOUND_TAGS_WAVEFORM_NO_RELOAD) == 0) {
+		SoundWaveform *waveform = sound->waveform;
+		if (waveform) {
+			if (waveform->data) {
+				MEM_freeN(waveform->data);
+			}
+			MEM_freeN(waveform);
 		}
-		MEM_freeN(waveform);
-	}
 
-	sound->waveform = NULL;
+		sound->waveform = NULL;
+	}
+	/* This tag is only valid once. */
+	sound->tags &= ~SOUND_TAGS_WAVEFORM_NO_RELOAD;
 }
 
 void BKE_sound_read_waveform(bSound *sound, short *stop)
@@ -793,7 +797,7 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 		}
 		MEM_freeN(waveform);
 		BLI_spin_lock(sound->spinlock);
-		sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+		sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 		BLI_spin_unlock(sound->spinlock);
 		return;
 	}
@@ -802,7 +806,7 @@ void BKE_sound_read_waveform(bSound *sound, short *stop)
 
 	BLI_spin_lock(sound->spinlock);
 	sound->waveform = waveform;
-	sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+	sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 	BLI_spin_unlock(sound->spinlock);
 }
 

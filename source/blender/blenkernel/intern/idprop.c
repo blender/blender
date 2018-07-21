@@ -913,7 +913,6 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 		case IDP_ID:
 			return (IDP_Id(prop1) == IDP_Id(prop2));
 		default:
-			/* should never get here */
 			BLI_assert(0);
 			break;
 	}
@@ -1015,7 +1014,8 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 					prop->data.pointer = MEM_mallocN(DEFAULT_ALLOC_FOR_NULL_STRINGS, "id property string 1");
 					*IDP_String(prop) = '\0';
 					prop->totallen = DEFAULT_ALLOC_FOR_NULL_STRINGS;
-					prop->len = 1; /*NULL string, has len of 1 to account for null byte.*/
+					/* NULL string, has len of 1 to account for null byte. */
+					prop->len = 1;
 				}
 				else {
 					BLI_assert((int)val->string.len <= (int)strlen(st) + 1);
@@ -1030,8 +1030,8 @@ IDProperty *IDP_New(const char type, const IDPropertyTemplate *val, const char *
 		}
 		case IDP_GROUP:
 		{
+			/* Values are set properly by calloc. */
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty group");
-			/* heh I think all needed values are set properly by calloc anyway :) */
 			break;
 		}
 		case IDP_ID:

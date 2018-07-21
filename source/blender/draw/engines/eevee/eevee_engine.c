@@ -123,7 +123,7 @@ static void eevee_cache_init(void *vedata)
 	EEVEE_volumes_cache_init(sldata, vedata);
 }
 
-static void eevee_cache_populate(void *vedata, Object *ob)
+void EEVEE_cache_populate(void *vedata, Object *ob)
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
@@ -146,7 +146,7 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 				/* TODO: Special case for dupli objects because we cannot save the object pointer. */
 			}
 			else {
-				EEVEE_lightprobes_cache_add(sldata, ob);
+				EEVEE_lightprobes_cache_add(sldata, vedata, ob);
 			}
 		}
 		else if (ob->type == OB_LAMP) {
@@ -191,10 +191,10 @@ static void eevee_draw_background(void *vedata)
 
 	/* Number of iteration: needed for all temporal effect (SSR, volumetrics)
 	 * when using opengl render. */
-	int loop_ct = (DRW_state_is_image_render() &&
+	int loop_len = (DRW_state_is_image_render() &&
 	               (stl->effects->enabled_effects & (EFFECT_VOLUMETRIC | EFFECT_SSR)) != 0) ? 4 : 1;
 
-	while (loop_ct--) {
+	while (loop_len--) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		float clear_depth = 1.0f;
 		uint clear_stencil = 0xFF;
@@ -282,7 +282,9 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_subsurface_compute(sldata, vedata);
 		EEVEE_reflection_compute(sldata, vedata);
 		EEVEE_occlusion_draw_debug(sldata, vedata);
-		DRW_draw_pass(psl->probe_display);
+		if (psl->probe_display) {
+			DRW_draw_pass(psl->probe_display);
+		}
 		EEVEE_refraction_compute(sldata, vedata);
 
 		/* Opaque refraction */
@@ -365,21 +367,35 @@ static void eevee_view_update(void *vedata)
 
 static void eevee_id_object_update(void *UNUSED(vedata), Object *object)
 {
-	/* This is a bit mask of components which update is to be ignored. */
 	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_get(object);
-	if (ped != NULL && ped->engine_data.recalc != 0) {
-		ped->need_full_update = true;
-		ped->engine_data.recalc = 0;
+	if (ped != NULL && ped->dd.recalc != 0) {
+		ped->need_update = (ped->dd.recalc & (ID_RECALC_TRANSFORM | ID_RECALC_COPY_ON_WRITE)) != 0;
+		ped->dd.recalc = 0;
 	}
 	EEVEE_LampEngineData *led = EEVEE_lamp_data_get(object);
-	if (led != NULL && led->engine_data.recalc != 0) {
+	if (led != NULL && led->dd.recalc != 0) {
 		led->need_update = true;
-		led->engine_data.recalc = 0;
+		led->dd.recalc = 0;
 	}
 	EEVEE_ObjectEngineData *oedata = EEVEE_object_data_get(object);
-	if (oedata != NULL && oedata->engine_data.recalc != 0) {
+	if (oedata != NULL && oedata->dd.recalc != 0) {
 		oedata->need_update = true;
-		oedata->engine_data.recalc = 0;
+		oedata->dd.recalc = 0;
+	}
+}
+
+static void eevee_id_world_update(void *vedata, World *wo)
+{
+	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	LightCache *lcache = stl->g_data->light_cache;
+
+	EEVEE_WorldEngineData *wedata = EEVEE_world_data_ensure(wo);
+
+	if (wedata != NULL && wedata->dd.recalc != 0) {
+		if ((lcache->flag & (LIGHTCACHE_BAKED | LIGHTCACHE_BAKING)) == 0) {
+			lcache->flag |= LIGHTCACHE_UPDATE_WORLD;
+		}
+		wedata->dd.recalc = 0;
 	}
 }
 
@@ -387,6 +403,9 @@ static void eevee_id_update(void *vedata, ID *id)
 {
 	/* Handle updates based on ID type. */
 	switch (GS(id->name)) {
+		case ID_WO:
+			eevee_id_world_update(vedata, (World *)id);
+			break;
 		case ID_OB:
 			eevee_id_object_update(vedata, (Object *)id);
 			break;
@@ -433,7 +452,7 @@ DrawEngineType draw_engine_eevee_type = {
 	&eevee_engine_init,
 	&eevee_engine_free,
 	&eevee_cache_init,
-	&eevee_cache_populate,
+	&EEVEE_cache_populate,
 	&eevee_cache_finish,
 	&eevee_draw_background,
 	NULL, /* Everything is drawn in the background pass (see comment on function) */

@@ -36,12 +36,13 @@
 
 #include "DRW_render.h"
 
+#include "workbench_engine.h"
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define MAX_SHADERS (1 << 10)
 
-#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
+#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->shading.color_type & V3D_SHADING_TEXTURE_COLOR)
 #define FLAT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_FLAT)
 #define STUDIOLIGHT_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_STUDIO)
 #define MATCAP_ENABLED(wpd) (wpd->shading.light == V3D_LIGHTING_MATCAP)
@@ -51,7 +52,7 @@
 #define CAVITY_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_CAVITY)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 
-#define IS_NAVIGATING(wpd) (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING)
+#define IS_NAVIGATING(wpd) ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
 #define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && (IN_RANGE(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || ((wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8) && IS_NAVIGATING(wpd))))
 #define TAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd))
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
@@ -59,7 +60,11 @@
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) || CAVITY_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
-#define TEXTURE_DRAWING_ENABLED(wpd) (wpd->color_type & V3D_SHADING_TEXTURE_COLOR)
+
+
+struct RenderEngine;
+struct RenderLayer;
+struct rcti;
 
 
 typedef struct WORKBENCH_FramebufferList {
@@ -71,6 +76,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *effect_fb;
 	struct GPUFrameBuffer *effect_taa_fb;
 	struct GPUFrameBuffer *depth_buffer_fb;
+	struct GPUFrameBuffer *volume_fb;
 
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
@@ -102,6 +108,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 	struct DRWPass *effect_aa_pass;
+	struct DRWPass *volume_pass;
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
@@ -129,7 +136,7 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
-	float light_direction_vs[4];
+	float shadow_direction_vs[4];
 	WORKBENCH_UBO_Light lights[3];
 	int num_lights;
 	int matcap_orientation;
@@ -153,7 +160,6 @@ typedef struct WORKBENCH_PrivateData {
 	View3DShading shading;
 	StudioLight *studio_light;
 	UserDef *user_preferences;
-	int color_type;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
@@ -168,6 +174,10 @@ typedef struct WORKBENCH_PrivateData {
 	float shadow_near_max[3];
 	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
 	bool shadow_changed;
+
+	/* Volumes */
+	bool volumes_do;
+	ListBase smoke_domains;
 
 	/* Ssao */
 	float winmat[4][4];
@@ -203,12 +213,8 @@ typedef struct WORKBENCH_MaterialData {
 } WORKBENCH_MaterialData;
 
 typedef struct WORKBENCH_ObjectData {
-	struct ObjectEngineData *next, *prev;
-	struct DrawEngineType *engine_type;
-	/* Only nested data, NOT the engine data itself. */
-	ObjectEngineDataFreeCb free;
-	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
-	int recalc;
+	DrawData dd;
+
 	/* Shadow direction in local object space. */
 	float shadow_dir[3], shadow_depth;
 	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */
@@ -231,6 +237,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
 void workbench_deferred_engine_free(void);
 void workbench_deferred_draw_background(WORKBENCH_Data *vedata);
 void workbench_deferred_draw_scene(WORKBENCH_Data *vedata);
+void workbench_deferred_draw_finish(WORKBENCH_Data *vedata);
 void workbench_deferred_cache_init(WORKBENCH_Data *vedata);
 void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_deferred_cache_finish(WORKBENCH_Data *vedata);
@@ -284,9 +291,17 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 void workbench_effect_info_init(WORKBENCH_EffectInfo *effect_info);
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
 void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
-void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float light_direction[3]);
+void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3]);
 
-extern DrawEngineType draw_engine_workbench_solid;
-extern DrawEngineType draw_engine_workbench_transparent;
+/* workbench_volume.c */
+void workbench_volume_engine_init(void);
+void workbench_volume_engine_free(void);
+void workbench_volume_cache_init(WORKBENCH_Data *vedata);
+void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Object *ob, struct ModifierData *md);
+void workbench_volume_smoke_textures_free(WORKBENCH_PrivateData *wpd);
+
+/* workbench_render.c */
+void workbench_render(WORKBENCH_Data *vedata, struct RenderEngine *engine, struct RenderLayer *render_layer, const struct rcti *rect);
+void workbench_render_update_passes(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer);
 
 #endif

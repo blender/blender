@@ -27,7 +27,7 @@
 #ifndef __GPU_STATE_H__
 #define __GPU_STATE_H__
 
- /* These map directly to the GL_ blend functions, to minimize API add as needed*/
+/* These map directly to the GL_ blend functions, to minimize API add as needed*/
 typedef enum GPUBlendFunction {
 	GPU_ONE,
 	GPU_SRC_ALPHA,

@@ -124,7 +124,7 @@ static float blender_camera_focal_distance(BL::RenderEngine& b_engine,
 
 	if(!b_dof_object)
 		return b_camera.dof_distance();
-	
+
 	/* for dof object, return distance along camera Z direction */
 	BL::Array<float, 16> b_ob_matrix;
 	b_engine.camera_model_matrix(b_ob, bcam->use_spherical_stereo, b_ob_matrix);
@@ -232,7 +232,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 		bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 	}
 	else {
-		/* from lamp not implemented yet */
+		/* from light not implemented yet */
 	}
 }
 
@@ -726,7 +726,7 @@ static void blender_camera_view_subset(BL::RenderEngine& b_engine,
 
 	blender_camera_viewplane(&cam_bcam, cam_bcam.full_width, cam_bcam.full_height,
 		&cam, &cam_aspect, &sensor_size);
-	
+
 	/* return */
 	*view_box = view * (1.0f/view_aspect);
 	*cam_box = cam * (1.0f/cam_aspect);
@@ -895,4 +895,3 @@ BufferParams BlenderSync::get_buffer_params(BL::RenderSettings& b_render,
 }
 
 CCL_NAMESPACE_END
-

@@ -17,7 +17,7 @@
 # <pep8 compliant>
 
 import bpy
-from bpy_extras.node_utils import find_node_input, find_output_node
+from bpy_extras.node_utils import find_node_input
 from bl_operators.presets import PresetMenu
 
 from bpy.types import (
@@ -1008,7 +1008,7 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
     def poll(cls, context):
         ob = context.object
         return (CyclesButtonsPanel.poll(context) and
-                ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LAMP'}) or
+                ob and ((ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'META', 'LIGHT'}) or
                         (ob.dupli_type == 'COLLECTION' and ob.dupli_group)))
 
     def draw(self, context):
@@ -1029,7 +1029,7 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
         flow.prop(visibility, "transmission")
         flow.prop(visibility, "scatter")
 
-        if ob.type != 'LAMP':
+        if ob.type != 'LIGHT':
             flow.prop(visibility, "shadow")
 
         row = layout.row()
@@ -1049,34 +1049,34 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
-    """Enable nodes on a material, world or lamp"""
+    """Enable nodes on a material, world or light"""
     bl_idname = "cycles.use_shading_nodes"
     bl_label = "Use Nodes"
 
     @classmethod
     def poll(cls, context):
         return (getattr(context, "material", False) or getattr(context, "world", False) or
-                getattr(context, "lamp", False))
+                getattr(context, "light", False))
 
     def execute(self, context):
         if context.material:
             context.material.use_nodes = True
         elif context.world:
             context.world.use_nodes = True
-        elif context.lamp:
-            context.lamp.use_nodes = True
+        elif context.light:
+            context.light.use_nodes = True
 
         return {'FINISHED'}
 
 
-def panel_node_draw(layout, id_data, output_types, input_name):
+def panel_node_draw(layout, id_data, output_type, input_name):
     if not id_data.use_nodes:
         layout.operator("cycles.use_shading_nodes", icon='NODETREE')
         return False
 
     ntree = id_data.node_tree
 
-    node = find_output_node(ntree, output_types)
+    node = ntree.get_output_node('CYCLES')
     if node:
         input = find_node_input(node, input_name)
         if input:
@@ -1089,7 +1089,7 @@ def panel_node_draw(layout, id_data, output_types, input_name):
     return True
 
 
-class CYCLES_LAMP_PT_preview(CyclesButtonsPanel, Panel):
+class CYCLES_LIGHT_PT_preview(CyclesButtonsPanel, Panel):
     bl_label = "Preview"
     bl_context = "data"
     bl_options = {'DEFAULT_CLOSED'}
@@ -1097,52 +1097,52 @@ class CYCLES_LAMP_PT_preview(CyclesButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         return (
-            context.lamp and
+            context.light and
             not (
-                context.lamp.type == 'AREA' and
-                context.lamp.cycles.is_portal
+                context.light.type == 'AREA' and
+                context.light.cycles.is_portal
             ) and
             CyclesButtonsPanel.poll(context)
         )
 
     def draw(self, context):
-        self.layout.template_preview(context.lamp)
+        self.layout.template_preview(context.light)
 
 
-class CYCLES_LAMP_PT_lamp(CyclesButtonsPanel, Panel):
-    bl_label = "Lamp"
+class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
+    bl_label = "Light"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.lamp and CyclesButtonsPanel.poll(context)
+        return context.light and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
-        lamp = context.lamp
-        clamp = lamp.cycles
+        light = context.light
+        clamp = light.cycles
         # cscene = context.scene.cycles
 
-        layout.prop(lamp, "type", expand=True)
+        layout.prop(light, "type", expand=True)
 
         layout.use_property_split = True
 
         col = layout.column()
 
-        if lamp.type in {'POINT', 'SUN', 'SPOT'}:
-            col.prop(lamp, "shadow_soft_size", text="Size")
-        elif lamp.type == 'AREA':
-            col.prop(lamp, "shape", text="Shape")
+        if light.type in {'POINT', 'SUN', 'SPOT'}:
+            col.prop(light, "shadow_soft_size", text="Size")
+        elif light.type == 'AREA':
+            col.prop(light, "shape", text="Shape")
             sub = col.column(align=True)
 
-            if lamp.shape in {'SQUARE', 'DISK'}:
-                sub.prop(lamp, "size")
-            elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
-                sub.prop(lamp, "size", text="Size X")
-                sub.prop(lamp, "size_y", text="Y")
+            if light.shape in {'SQUARE', 'DISK'}:
+                sub.prop(light, "size")
+            elif light.shape in {'RECTANGLE', 'ELLIPSE'}:
+                sub.prop(light, "size", text="Size X")
+                sub.prop(light, "size_y", text="Y")
 
-        if not (lamp.type == 'AREA' and clamp.is_portal):
+        if not (light.type == 'AREA' and clamp.is_portal):
             sub = col.column()
             if use_branched_path(context):
                 subsub = sub.row(align=True)
@@ -1151,53 +1151,53 @@ class CYCLES_LAMP_PT_lamp(CyclesButtonsPanel, Panel):
             sub.prop(clamp, "max_bounces")
 
         sub = col.column(align=True)
-        sub.active = not (lamp.type == 'AREA' and clamp.is_portal)
+        sub.active = not (light.type == 'AREA' and clamp.is_portal)
         sub.prop(clamp, "cast_shadow")
         sub.prop(clamp, "use_multiple_importance_sampling", text="Multiple Importance")
 
-        if lamp.type == 'AREA':
+        if light.type == 'AREA':
             col.prop(clamp, "is_portal", text="Portal")
 
-        if lamp.type == 'HEMI':
-            layout.label(text="Not supported, interpreted as sun lamp")
+        if light.type == 'HEMI':
+            layout.label(text="Not supported, interpreted as sun light")
 
 
-class CYCLES_LAMP_PT_nodes(CyclesButtonsPanel, Panel):
+class CYCLES_LIGHT_PT_nodes(CyclesButtonsPanel, Panel):
     bl_label = "Nodes"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        return context.lamp and not (context.lamp.type == 'AREA' and
-                                     context.lamp.cycles.is_portal) and \
+        return context.light and not (context.light.type == 'AREA' and
+                                      context.light.cycles.is_portal) and \
             CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
 
-        lamp = context.lamp
-        if not panel_node_draw(layout, lamp, ('OUTPUT_LAMP',), 'Surface'):
-            layout.prop(lamp, "color")
+        light = context.light
+        if not panel_node_draw(layout, light, 'OUTPUT_LIGHT', 'Surface'):
+            layout.prop(light, "color")
 
 
-class CYCLES_LAMP_PT_spot(CyclesButtonsPanel, Panel):
+class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
     bl_label = "Spot Shape"
     bl_context = "data"
 
     @classmethod
     def poll(cls, context):
-        lamp = context.lamp
-        return (lamp and lamp.type == 'SPOT') and CyclesButtonsPanel.poll(context)
+        light = context.light
+        return (light and light.type == 'SPOT') and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout
-        lamp = context.lamp
+        light = context.light
         layout.use_property_split = True
 
         col = layout.column()
-        col.prop(lamp, "spot_size", text="Size")
-        col.prop(lamp, "spot_blend", text="Blend", slider=True)
-        col.prop(lamp, "show_cone")
+        col.prop(light, "spot_size", text="Size")
+        col.prop(light, "spot_blend", text="Blend", slider=True)
+        col.prop(light, "show_cone")
 
 
 class CYCLES_WORLD_PT_preview(CyclesButtonsPanel, Panel):
@@ -1226,8 +1226,8 @@ class CYCLES_WORLD_PT_surface(CyclesButtonsPanel, Panel):
 
         world = context.world
 
-        if not panel_node_draw(layout, world, ('OUTPUT_WORLD',), 'Surface'):
-            layout.prop(world, "horizon_color", text="Color")
+        if not panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Surface'):
+            layout.prop(world, "color")
 
 
 class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
@@ -1244,7 +1244,7 @@ class CYCLES_WORLD_PT_volume(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         world = context.world
-        panel_node_draw(layout, world, ('OUTPUT_WORLD',), 'Volume')
+        panel_node_draw(layout, world, 'OUTPUT_WORLD', 'Volume')
 
 
 class CYCLES_WORLD_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
@@ -1344,6 +1344,7 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
 
         col = layout.column()
 
+
 class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"
     bl_parent_id = "CYCLES_WORLD_PT_settings"
@@ -1425,7 +1426,7 @@ class CYCLES_MATERIAL_PT_surface(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        if not panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Surface'):
+        if not panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Surface'):
             layout.prop(mat, "diffuse_color")
 
 
@@ -1445,7 +1446,7 @@ class CYCLES_MATERIAL_PT_volume(CyclesButtonsPanel, Panel):
         mat = context.material
         # cmat = mat.cycles
 
-        panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Volume')
+        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Volume')
 
 
 class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
@@ -1461,7 +1462,7 @@ class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
         layout = self.layout
 
         mat = context.material
-        panel_node_draw(layout, mat, ('OUTPUT_MATERIAL', 'OUTPUT_EEVEE_MATERIAL'), 'Displacement')
+        panel_node_draw(layout, mat, 'OUTPUT_MATERIAL', 'Displacement')
 
 
 class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
@@ -1526,8 +1527,6 @@ class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
         sub.prop(cmat, "volume_sampling", text="Sampling")
         col.prop(cmat, "volume_interpolation", text="Interpolation")
         col.prop(cmat, "homogeneous_volume", text="Homogeneous")
-
-
 
 
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
@@ -1789,7 +1788,7 @@ def get_panels():
         'DATA_PT_area',
         'DATA_PT_camera_dof',
         'DATA_PT_falloff_curve',
-        'DATA_PT_lamp',
+        'DATA_PT_light',
         'DATA_PT_preview',
         'DATA_PT_spot',
         'MATERIAL_PT_context_material',
@@ -1843,10 +1842,10 @@ classes = (
     CYCLES_OBJECT_PT_motion_blur,
     CYCLES_OBJECT_PT_cycles_settings,
     CYCLES_OT_use_shading_nodes,
-    CYCLES_LAMP_PT_preview,
-    CYCLES_LAMP_PT_lamp,
-    CYCLES_LAMP_PT_nodes,
-    CYCLES_LAMP_PT_spot,
+    CYCLES_LIGHT_PT_preview,
+    CYCLES_LIGHT_PT_light,
+    CYCLES_LIGHT_PT_nodes,
+    CYCLES_LIGHT_PT_spot,
     CYCLES_WORLD_PT_preview,
     CYCLES_WORLD_PT_surface,
     CYCLES_WORLD_PT_volume,

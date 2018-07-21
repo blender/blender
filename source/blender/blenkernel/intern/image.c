@@ -186,76 +186,6 @@ void BKE_images_exit(void)
 	BLI_spin_end(&image_spin);
 }
 
-/* ******** IMAGE PROCESSING ************* */
-
-static void de_interlace_ng(struct ImBuf *ibuf) /* neogeo fields */
-{
-	struct ImBuf *tbuf1, *tbuf2;
-
-	if (ibuf == NULL) return;
-	if (ibuf->flags & IB_fields) return;
-	ibuf->flags |= IB_fields;
-
-	if (ibuf->rect) {
-		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
-
-		ibuf->x *= 2;
-
-		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
-		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
-
-		ibuf->x /= 2;
-		IMB_rectcpy(ibuf, tbuf1, 0, 0, 0, 0, tbuf1->x, tbuf1->y);
-		IMB_rectcpy(ibuf, tbuf2, 0, tbuf2->y, 0, 0, tbuf2->x, tbuf2->y);
-
-		IMB_freeImBuf(tbuf1);
-		IMB_freeImBuf(tbuf2);
-	}
-	ibuf->y /= 2;
-}
-
-static void de_interlace_st(struct ImBuf *ibuf) /* standard fields */
-{
-	struct ImBuf *tbuf1, *tbuf2;
-
-	if (ibuf == NULL) return;
-	if (ibuf->flags & IB_fields) return;
-	ibuf->flags |= IB_fields;
-
-	if (ibuf->rect) {
-		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, IB_rect);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, IB_rect);
-
-		ibuf->x *= 2;
-
-		IMB_rectcpy(tbuf1, ibuf, 0, 0, 0, 0, ibuf->x, ibuf->y);
-		IMB_rectcpy(tbuf2, ibuf, 0, 0, tbuf2->x, 0, ibuf->x, ibuf->y);
-
-		ibuf->x /= 2;
-		IMB_rectcpy(ibuf, tbuf2, 0, 0, 0, 0, tbuf2->x, tbuf2->y);
-		IMB_rectcpy(ibuf, tbuf1, 0, tbuf2->y, 0, 0, tbuf1->x, tbuf1->y);
-
-		IMB_freeImBuf(tbuf1);
-		IMB_freeImBuf(tbuf2);
-	}
-	ibuf->y /= 2;
-}
-
-void BKE_image_de_interlace(Image *ima, int odd)
-{
-	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-	if (ibuf) {
-		if (odd)
-			de_interlace_st(ibuf);
-		else
-			de_interlace_ng(ibuf);
-	}
-	BKE_image_release_ibuf(ima, ibuf, NULL);
-}
-
 /* ***************** ALLOC & FREE, DATA MANAGING *************** */
 
 static void image_free_cached_frames(Image *image)
@@ -3129,7 +3059,7 @@ static void image_create_multilayer(Image *ima, ImBuf *ibuf, int framenr)
 #endif  /* WITH_OPENEXR */
 
 /* common stuff to do with images after loading */
-static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
+static void image_initialize_after_load(Image *ima, ImBuf *UNUSED(ibuf))
 {
 	/* Preview is NULL when it has never been used as an icon before.
 	 * Never handle previews/icons outside of main thread. */
@@ -3137,11 +3067,6 @@ static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 		BKE_icon_changed(BKE_icon_id_ensure(&ima->id));
 	}
 
-	/* fields */
-	if (ima->flag & IMA_FIELDS) {
-		if (ima->flag & IMA_STD_FIELD) de_interlace_st(ibuf);
-		else de_interlace_ng(ibuf);
-	}
 	/* timer */
 	BKE_image_tag_time(ima);
 
@@ -4093,12 +4018,12 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **r_lock)
 
 void BKE_image_release_ibuf(Image *ima, ImBuf *ibuf, void *lock)
 {
-	if (lock) {
+	if (lock != NULL) {
 		/* for getting image during threaded render / compositing, need to release */
 		if (lock == ima) {
 			BLI_thread_unlock(LOCK_VIEWER); /* viewer image */
 		}
-		else if (lock) {
+		else {
 			RE_ReleaseResultImage(lock); /* render result */
 			BLI_thread_unlock(LOCK_VIEWER); /* view image imbuf */
 		}
@@ -4249,7 +4174,7 @@ void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
 
 int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool *r_is_in_range)
 {
-	const int len = (iuser->fie_ima * iuser->frames) / 2;
+	const int len = iuser->frames;
 
 	if (r_is_in_range) {
 		*r_is_in_range = false;
@@ -4290,7 +4215,7 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool
 		if (fieldnr) cfra++;
 
 		/* transform to images space */
-		framenr = (cfra + iuser->fie_ima - 2) / iuser->fie_ima;
+		framenr = cfra;
 		if (framenr > iuser->frames) framenr = iuser->frames;
 
 		if (iuser->cycl) {

@@ -208,4 +208,3 @@ ccl_device void svm_node_hair_info(KernelGlobals *kg,
 #endif
 
 CCL_NAMESPACE_END
-

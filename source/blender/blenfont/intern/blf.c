@@ -594,24 +594,24 @@ static void blf_draw_gl__start(FontBLF *font)
 	if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0)
 		return; /* glyphs will be translated individually and batched. */
 
-	gpuPushMatrix();
+	GPU_matrix_push();
 
 	if (font->flags & BLF_MATRIX)
-		gpuMultMatrix(font->m);
+		GPU_matrix_mul(font->m);
 
-	gpuTranslate3fv(font->pos);
+	GPU_matrix_translate_3fv(font->pos);
 
 	if (font->flags & BLF_ASPECT)
-		gpuScale3fv(font->aspect);
+		GPU_matrix_scale_3fv(font->aspect);
 
 	if (font->flags & BLF_ROTATION)
-		gpuRotate2D(RAD2DEG(font->angle));
+		GPU_matrix_rotate_2d(RAD2DEG(font->angle));
 }
 
 static void blf_draw_gl__end(FontBLF *font)
 {
 	if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) != 0)
-		gpuPopMatrix();
+		GPU_matrix_pop();
 }
 
 void BLF_draw_ex(

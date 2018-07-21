@@ -44,13 +44,13 @@ static void rna_Sound_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 	BKE_sound_load(bmain, (bSound *)ptr->data);
 }
 
-static int rna_Sound_caching_get(PointerRNA *ptr)
+static bool rna_Sound_caching_get(PointerRNA *ptr)
 {
 	bSound *sound = (bSound *)(ptr->data);
 	return (sound->flags & SOUND_FLAGS_CACHING) != 0;
 }
 
-static void rna_Sound_caching_set(PointerRNA *ptr, const int value)
+static void rna_Sound_caching_set(PointerRNA *ptr, const bool value)
 {
 	bSound *sound = (bSound *)(ptr->data);
 	if (value)

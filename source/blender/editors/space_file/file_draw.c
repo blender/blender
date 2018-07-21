@@ -402,8 +402,8 @@ static void file_draw_preview(
 
 	/* border */
 	if (use_dropshadow) {
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
@@ -466,7 +466,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int i;
 	int sy;
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShade(TH_BACK, -7);
 
@@ -486,14 +486,14 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 
 	const int step = (layout->tile_w + 2 * layout->tile_border_x);
 
-	unsigned int vertex_ct = 0;
+	unsigned int vertex_len = 0;
 	int sx = (int)v2d->tot.xmin;
 	while (sx < v2d->cur.xmax) {
 		sx += step;
-		vertex_ct += 4; /* vertex_count = 2 points per line * 2 lines per divider */
+		vertex_len += 4; /* vertex_count = 2 points per line * 2 lines per divider */
 	}
 
-	if (vertex_ct > 0) {
+	if (vertex_len > 0) {
 		int v1[2], v2[2];
 		unsigned char col_hi[3], col_lo[3];
 
@@ -503,12 +503,12 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 		v1[1] = v2d->cur.ymax - layout->tile_border_y;
 		v2[1] = v2d->cur.ymin;
 
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
-		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+		uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GWN_PRIM_LINES, vertex_ct);
+		immBegin(GPU_PRIM_LINES, vertex_len);
 
 		sx = (int)v2d->tot.xmin;
 		while (sx < v2d->cur.xmax) {

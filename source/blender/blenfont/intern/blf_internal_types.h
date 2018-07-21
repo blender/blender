@@ -31,16 +31,16 @@
 #ifndef __BLF_INTERNAL_TYPES_H__
 #define __BLF_INTERNAL_TYPES_H__
 
-#include "../../../intern/gawain/gawain/gwn_vertex_buffer.h"
+#include "GPU_vertex_buffer.h"
 #include "GPU_texture.h"
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
 typedef struct BatchBLF {
 	struct FontBLF *font; /* can only batch glyph from the same font */
-	struct Gwn_Batch *batch;
-	struct Gwn_VertBuf *verts;
-	struct Gwn_VertBufRaw pos_step, tex_step, col_step;
+	struct GPUBatch *batch;
+	struct GPUVertBuf *verts;
+	struct GPUVertBufRaw pos_step, tex_step, col_step;
 	unsigned int pos_loc, tex_loc, col_loc;
 	unsigned int glyph_len;
 	float ofs[2];    /* copy of font->pos */

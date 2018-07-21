@@ -356,3 +356,50 @@ void MathArcTan2Operation::executePixelSampled(float output[4], float x, float y
 
 	clampIfNeeded(output);
 }
+
+void MathFloorOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+
+	output[0] = floor(inputValue1[0]);
+
+	clampIfNeeded(output);
+}
+
+void MathCeilOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+
+	output[0] = ceil(inputValue1[0]);
+
+	clampIfNeeded(output);
+}
+
+void MathFractOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+
+	output[0] = inputValue1[0] - floor(inputValue1[0]);
+
+	clampIfNeeded(output);
+}
+
+void MathSqrtOperation::executePixelSampled(float output[4], float x, float y, PixelSampler sampler)
+{
+	float inputValue1[4];
+
+	this->m_inputValue1Operation->readSampled(inputValue1, x, y, sampler);
+
+	if (inputValue1[0] > 0)
+		output[0] = sqrt(inputValue1[0]);
+	else
+		output[0] = 0.0f;
+
+	clampIfNeeded(output);
+}

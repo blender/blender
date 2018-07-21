@@ -85,6 +85,24 @@ struct Mesh *mesh_get_eval_deform(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
 
+#ifdef USE_DERIVEDMESH
+struct DerivedMesh *mesh_create_derived_index_render(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask, int index);
+#endif
+struct Mesh *mesh_create_eval_final_index_render(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask, int index);
+
+#ifdef USE_DERIVEDMESH
+struct DerivedMesh *mesh_create_derived_view(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+#endif
+struct Mesh *mesh_create_eval_final_view(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+
 void BKE_mesh_runtime_eval_to_meshkey(struct Mesh *me_deformed, struct Mesh *me, struct KeyBlock *kb);
 
 /* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */

@@ -162,12 +162,12 @@ class BRUSH_OT_active_index_set(Operator):
     bl_idname = "brush.active_index_set"
     bl_label = "Set Brush Number"
 
-    mode = StringProperty(
+    mode: StringProperty(
         name="Mode",
         description="Paint mode to set brush for",
         maxlen=1024,
     )
-    index = IntProperty(
+    index: IntProperty(
         name="Number",
         description="Brush number",
     )
@@ -199,8 +199,8 @@ class WM_OT_context_set_boolean(Operator):
     bl_label = "Context Set Boolean"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = BoolProperty(
+    data_path: rna_path_prop
+    value: BoolProperty(
         name="Value",
         description="Assignment value",
         default=True,
@@ -215,13 +215,13 @@ class WM_OT_context_set_int(Operator):  # same as enum
     bl_label = "Context Set"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = IntProperty(
+    data_path: rna_path_prop
+    value: IntProperty(
         name="Value",
         description="Assign value",
         default=0,
     )
-    relative = rna_relative_prop
+    relative: rna_relative_prop
 
     execute = execute_context_assign
 
@@ -232,8 +232,8 @@ class WM_OT_context_scale_float(Operator):
     bl_label = "Context Scale Float"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = FloatProperty(
+    data_path: rna_path_prop
+    value: FloatProperty(
         name="Value",
         description="Assign value",
         default=1.0,
@@ -260,13 +260,13 @@ class WM_OT_context_scale_int(Operator):
     bl_label = "Context Scale Int"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = FloatProperty(
+    data_path: rna_path_prop
+    value: FloatProperty(
         name="Value",
         description="Assign value",
         default=1.0,
     )
-    always_step = BoolProperty(
+    always_step: BoolProperty(
         name="Always Step",
         description="Always adjust the value by a minimum of 1 when 'value' is not 1.0",
         default=True,
@@ -303,13 +303,13 @@ class WM_OT_context_set_float(Operator):  # same as enum
     bl_label = "Context Set Float"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = FloatProperty(
+    data_path: rna_path_prop
+    value: FloatProperty(
         name="Value",
         description="Assignment value",
         default=0.0,
     )
-    relative = rna_relative_prop
+    relative: rna_relative_prop
 
     execute = execute_context_assign
 
@@ -320,8 +320,8 @@ class WM_OT_context_set_string(Operator):  # same as enum
     bl_label = "Context Set String"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = StringProperty(
+    data_path: rna_path_prop
+    value: StringProperty(
         name="Value",
         description="Assign value",
         maxlen=1024,
@@ -336,8 +336,8 @@ class WM_OT_context_set_enum(Operator):
     bl_label = "Context Set Enum"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = StringProperty(
+    data_path: rna_path_prop
+    value: StringProperty(
         name="Value",
         description="Assignment value (as a string)",
         maxlen=1024,
@@ -352,8 +352,8 @@ class WM_OT_context_set_value(Operator):
     bl_label = "Context Set Value"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = StringProperty(
+    data_path: rna_path_prop
+    value: StringProperty(
         name="Value",
         description="Assignment value (as a string)",
         maxlen=1024,
@@ -373,7 +373,7 @@ class WM_OT_context_toggle(Operator):
     bl_label = "Context Toggle"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
+    data_path: rna_path_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -392,13 +392,13 @@ class WM_OT_context_toggle_enum(Operator):
     bl_label = "Context Toggle Values"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value_1 = StringProperty(
+    data_path: rna_path_prop
+    value_1: StringProperty(
         name="Value",
         description="Toggle enum",
         maxlen=1024,
     )
-    value_2 = StringProperty(
+    value_2: StringProperty(
         name="Value",
         description="Toggle enum",
         maxlen=1024,
@@ -431,9 +431,9 @@ class WM_OT_context_cycle_int(Operator):
     bl_label = "Context Int Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    reverse = rna_reverse_prop
-    wrap = rna_wrap_prop
+    data_path: rna_path_prop
+    reverse: rna_reverse_prop
+    wrap: rna_wrap_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -467,9 +467,9 @@ class WM_OT_context_cycle_enum(Operator):
     bl_label = "Context Enum Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    reverse = rna_reverse_prop
-    wrap = rna_wrap_prop
+    data_path: rna_path_prop
+    reverse: rna_reverse_prop
+    wrap: rna_wrap_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -524,8 +524,8 @@ class WM_OT_context_cycle_array(Operator):
     bl_label = "Context Array Cycle"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    reverse = rna_reverse_prop
+    data_path: rna_path_prop
+    reverse: rna_reverse_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -549,7 +549,8 @@ class WM_OT_context_menu_enum(Operator):
     bl_idname = "wm.context_menu_enum"
     bl_label = "Context Enum Menu"
     bl_options = {'UNDO', 'INTERNAL'}
-    data_path = rna_path_prop
+
+    data_path: rna_path_prop
 
     def execute(self, context):
         data_path = self.data_path
@@ -575,7 +576,8 @@ class WM_OT_context_pie_enum(Operator):
     bl_idname = "wm.context_pie_enum"
     bl_label = "Context Enum Pie"
     bl_options = {'UNDO', 'INTERNAL'}
-    data_path = rna_path_prop
+
+    data_path: rna_path_prop
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -602,12 +604,13 @@ class WM_OT_operator_pie_enum(Operator):
     bl_idname = "wm.operator_pie_enum"
     bl_label = "Operator Enum Pie"
     bl_options = {'UNDO', 'INTERNAL'}
-    data_path = StringProperty(
+
+    data_path: StringProperty(
         name="Operator",
         description="Operator name (in python as string)",
         maxlen=1024,
     )
-    prop_string = StringProperty(
+    prop_string: StringProperty(
         name="Property",
         description="Property name (as a string)",
         maxlen=1024,
@@ -646,8 +649,8 @@ class WM_OT_context_set_id(Operator):
     bl_label = "Set Library ID"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path_prop
-    value = StringProperty(
+    data_path: rna_path_prop
+    value: StringProperty(
         name="Value",
         description="Assign value",
         maxlen=1024,
@@ -697,10 +700,10 @@ class WM_OT_context_collection_boolean_set(Operator):
     bl_label = "Context Collection Boolean Set"
     bl_options = {'UNDO', 'REGISTER', 'INTERNAL'}
 
-    data_path_iter = data_path_iter
-    data_path_item = data_path_item
+    data_path_iter: data_path_iter
+    data_path_item: data_path_item
 
-    type = EnumProperty(
+    type: EnumProperty(
         name="Type",
         items=(('TOGGLE', "Toggle", ""),
                ('ENABLE', "Enable", ""),
@@ -756,22 +759,22 @@ class WM_OT_context_modal_mouse(Operator):
     bl_label = "Context Modal Mouse"
     bl_options = {'GRAB_CURSOR', 'BLOCKING', 'UNDO', 'INTERNAL'}
 
-    data_path_iter = data_path_iter
-    data_path_item = data_path_item
-    header_text = StringProperty(
+    data_path_iter: data_path_iter
+    data_path_item: data_path_item
+    header_text: StringProperty(
         name="Header Text",
         description="Text to display in header during scale",
     )
 
-    input_scale = FloatProperty(
+    input_scale: FloatProperty(
         description="Scale the mouse movement by this value before applying the delta",
         default=0.01,
     )
-    invert = BoolProperty(
+    invert: BoolProperty(
         description="Invert the mouse input",
         default=False,
     )
-    initial_x = IntProperty(options={'HIDDEN'})
+    initial_x: IntProperty(options={'HIDDEN'})
 
     def _values_store(self, context):
         data_path_iter = self.data_path_iter
@@ -864,7 +867,7 @@ class WM_OT_url_open(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    url = StringProperty(
+    url: StringProperty(
         name="URL",
         description="URL to open",
     )
@@ -881,7 +884,7 @@ class WM_OT_path_open(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
         options={'SKIP_SAVE'},
     )
@@ -996,7 +999,7 @@ class WM_OT_doc_view_manual(Operator):
     bl_idname = "wm.doc_view_manual"
     bl_label = "View Manual"
 
-    doc_id = doc_id
+    doc_id: doc_id
 
     @staticmethod
     def _find_reference(rna_id, url_mapping, verbose=True):
@@ -1050,7 +1053,7 @@ class WM_OT_doc_view(Operator):
     bl_idname = "wm.doc_view"
     bl_label = "View Documentation"
 
-    doc_id = doc_id
+    doc_id: doc_id
     if bpy.app.version_cycle == "release":
         _prefix = ("https://docs.blender.org/api/blender_python_api_current")
     else:
@@ -1114,16 +1117,16 @@ class WM_OT_properties_edit(Operator):
     # register only because invoke_props_popup requires.
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    data_path = rna_path
-    property = rna_property
-    value = rna_value
-    min = rna_min
-    max = rna_max
-    use_soft_limits = rna_use_soft_limits
-    is_overridable_static = rna_is_overridable_static
-    soft_min = rna_min
-    soft_max = rna_max
-    description = StringProperty(
+    data_path: rna_path
+    property: rna_property
+    value: rna_value
+    min: rna_min
+    max: rna_max
+    use_soft_limits: rna_use_soft_limits
+    is_overridable_static: rna_is_overridable_static
+    soft_min: rna_min
+    soft_max: rna_max
+    description: StringProperty(
         name="Tooltip",
     )
 
@@ -1319,7 +1322,7 @@ class WM_OT_properties_add(Operator):
     bl_label = "Add Property"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path
+    data_path: rna_path
 
     def execute(self, context):
         from rna_prop_ui import (
@@ -1362,7 +1365,7 @@ class WM_OT_properties_context_change(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    context = StringProperty(
+    context: StringProperty(
         name="Context",
         maxlen=64,
     )
@@ -1378,8 +1381,8 @@ class WM_OT_properties_remove(Operator):
     bl_label = "Remove Property"
     bl_options = {'UNDO', 'INTERNAL'}
 
-    data_path = rna_path
-    property = rna_property
+    data_path: rna_path
+    property: rna_property
 
     def execute(self, context):
         from rna_prop_ui import (
@@ -1400,7 +1403,7 @@ class WM_OT_keyconfig_activate(Operator):
     bl_idname = "wm.keyconfig_activate"
     bl_label = "Activate Keyconfig"
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
 
@@ -1435,7 +1438,7 @@ class WM_OT_appconfig_activate(Operator):
     bl_idname = "wm.appconfig_activate"
     bl_label = "Activate Application Configuration"
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
 
@@ -1460,7 +1463,7 @@ class WM_OT_sysinfo(Operator):
     bl_idname = "wm.sysinfo"
     bl_label = "Save System Info"
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
         options={'SKIP_SAVE'},
     )
@@ -1538,26 +1541,26 @@ class WM_OT_keyconfig_import(Operator):
     bl_idname = "wm.keyconfig_import"
     bl_label = "Import Key Configuration..."
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
         default="keymap.py",
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_text = BoolProperty(
+    filter_text: BoolProperty(
         name="Filter text",
         default=True,
         options={'HIDDEN'},
     )
-    filter_python = BoolProperty(
+    filter_python: BoolProperty(
         name="Filter python",
         default=True,
         options={'HIDDEN'},
     )
-    keep_original = BoolProperty(
+    keep_original: BoolProperty(
         name="Keep original",
         description="Keep original file after copying to configuration folder",
         default=True,
@@ -1605,21 +1608,26 @@ class WM_OT_keyconfig_export(Operator):
     bl_idname = "wm.keyconfig_export"
     bl_label = "Export Key Configuration..."
 
-    filepath = StringProperty(
+    all: BoolProperty(
+        name="All Keymaps",
+        default=False,
+        description="Write all keymaps (not just user modified)",
+    )
+    filepath: StringProperty(
         subtype='FILE_PATH',
         default="keymap.py",
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_text = BoolProperty(
+    filter_text: BoolProperty(
         name="Filter text",
         default=True,
         options={'HIDDEN'},
     )
-    filter_python = BoolProperty(
+    filter_python: BoolProperty(
         name="Filter python",
         default=True,
         options={'HIDDEN'},
@@ -1636,10 +1644,11 @@ class WM_OT_keyconfig_export(Operator):
 
         wm = context.window_manager
 
-        keyconfig_utils.keyconfig_export(
+        keyconfig_utils.keyconfig_export_as_data(
             wm,
             wm.keyconfigs.active,
             self.filepath,
+            all_keymaps=self.all,
         )
 
         return {'FINISHED'}
@@ -1655,7 +1664,7 @@ class WM_OT_keymap_restore(Operator):
     bl_idname = "wm.keymap_restore"
     bl_label = "Restore Key Map(s)"
 
-    all = BoolProperty(
+    all: BoolProperty(
         name="All Keymaps",
         description="Restore all keymaps to default",
     )
@@ -1678,7 +1687,7 @@ class WM_OT_keyitem_restore(Operator):
     bl_idname = "wm.keyitem_restore"
     bl_label = "Restore Key Map Item"
 
-    item_id = IntProperty(
+    item_id: IntProperty(
         name="Item Identifier",
         description="Identifier of the item to remove",
     )
@@ -1725,7 +1734,7 @@ class WM_OT_keyitem_remove(Operator):
     bl_idname = "wm.keyitem_remove"
     bl_label = "Remove Key Map Item"
 
-    item_id = IntProperty(
+    item_id: IntProperty(
         name="Item Identifier",
         description="Identifier of the item to remove",
     )
@@ -1793,7 +1802,7 @@ class WM_OT_addon_enable(Operator):
     bl_idname = "wm.addon_enable"
     bl_label = "Enable Add-on"
 
-    module = StringProperty(
+    module: StringProperty(
         name="Module",
         description="Module name of the add-on to enable",
     )
@@ -1839,7 +1848,7 @@ class WM_OT_addon_disable(Operator):
     bl_idname = "wm.addon_disable"
     bl_label = "Disable Add-on"
 
-    module = StringProperty(
+    module: StringProperty(
         name="Module",
         description="Module name of the add-on to disable",
     )
@@ -1868,7 +1877,7 @@ class WM_OT_owner_enable(Operator):
     bl_idname = "wm.owner_enable"
     bl_label = "Enable Add-on"
 
-    owner_id = StringProperty(
+    owner_id: StringProperty(
         name="UI Tag",
     )
 
@@ -1883,7 +1892,7 @@ class WM_OT_owner_disable(Operator):
     bl_idname = "wm.owner_disable"
     bl_label = "Disable UI Tag"
 
-    owner_id = StringProperty(
+    owner_id: StringProperty(
         name="UI Tag",
     )
 
@@ -1899,20 +1908,20 @@ class WM_OT_theme_install(Operator):
     bl_idname = "wm.theme_install"
     bl_label = "Install Theme..."
 
-    overwrite = BoolProperty(
+    overwrite: BoolProperty(
         name="Overwrite",
         description="Remove existing theme file if exists",
         default=True,
     )
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.xml",
         options={'HIDDEN'},
     )
@@ -1976,31 +1985,31 @@ class WM_OT_addon_install(Operator):
     bl_idname = "wm.addon_install"
     bl_label = "Install Add-on from File..."
 
-    overwrite = BoolProperty(
+    overwrite: BoolProperty(
         name="Overwrite",
         description="Remove existing add-ons with the same ID",
         default=True,
     )
-    target = EnumProperty(
+    target: EnumProperty(
         name="Target Path",
         items=(('DEFAULT', "Default", ""),
                ('PREFS', "User Prefs", "")),
     )
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_python = BoolProperty(
+    filter_python: BoolProperty(
         name="Filter python",
         default=True,
         options={'HIDDEN'},
     )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.py;*.zip",
         options={'HIDDEN'},
     )
@@ -2130,7 +2139,7 @@ class WM_OT_addon_remove(Operator):
     bl_idname = "wm.addon_remove"
     bl_label = "Remove Add-on"
 
-    module = StringProperty(
+    module: StringProperty(
         name="Module",
         description="Module name of the add-on to remove",
     )
@@ -2190,7 +2199,7 @@ class WM_OT_addon_expand(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    module = StringProperty(
+    module: StringProperty(
         name="Module",
         description="Module name of the add-on to expand",
     )
@@ -2214,7 +2223,7 @@ class WM_OT_addon_userpref_show(Operator):
     bl_label = ""
     bl_options = {'INTERNAL'}
 
-    module = StringProperty(
+    module: StringProperty(
         name="Module",
         description="Module name of the add-on to expand",
     )
@@ -2245,21 +2254,21 @@ class WM_OT_app_template_install(Operator):
     bl_idname = "wm.app_template_install"
     bl_label = "Install Template from File..."
 
-    overwrite = BoolProperty(
+    overwrite: BoolProperty(
         name="Overwrite",
         description="Remove existing template with the same ID",
         default=True,
     )
 
-    filepath = StringProperty(
+    filepath: StringProperty(
         subtype='FILE_PATH',
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.zip",
         options={'HIDDEN'},
     )
@@ -2344,19 +2353,18 @@ class WM_OT_tool_set_by_name(Operator):
     bl_idname = "wm.tool_set_by_name"
     bl_label = "Set Tool By Name"
 
-    name = StringProperty(
+    name: StringProperty(
         name="Text",
         description="Display name of the tool",
     )
-
-    cycle = BoolProperty(
+    cycle: BoolProperty(
         name="Cycle",
         description="Cycle through tools in this group",
         default=False,
         options={'SKIP_SAVE'},
     )
 
-    space_type = rna_space_type_prop
+    space_type: rna_space_type_prop
 
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
@@ -2398,9 +2406,13 @@ class WM_OT_toolbar(Operator):
 
         def draw_menu(popover, context):
             layout = popover.layout
+
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("wm.search_menu", text="Search Commands...", icon='VIEWZOOM')
+
             cls.draw_cls(layout, context, detect_layout=False, scale_y=1.0)
 
-        wm.popover(draw_menu, keymap=keymap)
+        wm.popover(draw_menu, ui_units_x=8, keymap=keymap)
         return {'FINISHED'}
 
 
@@ -2410,27 +2422,27 @@ class WM_OT_studiolight_install(Operator):
     bl_idname = "wm.studiolight_install"
     bl_label = "Install Custom Studio Light"
 
-    files = CollectionProperty(
+    files: CollectionProperty(
         name="File Path",
         type=OperatorFileListElement,
     )
-    directory = StringProperty(
+    directory: StringProperty(
         subtype='DIR_PATH',
     )
-    filter_folder = BoolProperty(
+    filter_folder: BoolProperty(
         name="Filter folders",
         default=True,
         options={'HIDDEN'},
     )
-    filter_glob = StringProperty(
+    filter_glob: StringProperty(
         default="*.png;*.jpg;*.hdr;*.exr",
         options={'HIDDEN'},
     )
-    orientation = EnumProperty(
+    orientation: EnumProperty(
         items=(
-            ("MATCAP", "MatCap", ""),
-            ("WORLD", "World", ""),
-            ("CAMERA", "Camera", ""),
+            ('MATCAP', "MatCap", ""),
+            ('WORLD', "World", ""),
+            ('CAMERA', "Camera", ""),
         )
     )
 
@@ -2476,7 +2488,7 @@ class WM_OT_studiolight_install(Operator):
 class WM_OT_studiolight_uninstall(Operator):
     bl_idname = 'wm.studiolight_uninstall'
     bl_label = "Uninstall Studio Light"
-    index = bpy.props.IntProperty()
+    index: bpy.props.IntProperty()
 
     def _remove_path(self, path):
         if path.exists():
@@ -2487,9 +2499,12 @@ class WM_OT_studiolight_uninstall(Operator):
         userpref = context.user_preferences
         for studio_light in userpref.studio_lights:
             if studio_light.index == self.index:
-                self._remove_path(pathlib.Path(studio_light.path))
-                self._remove_path(pathlib.Path(studio_light.path_irr_cache))
-                self._remove_path(pathlib.Path(studio_light.path_sh_cache))
+                if len(studio_light.path) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path))
+                if len(studio_light.path_irr_cache) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path_irr_cache))
+                if len(studio_light.path_sh_cache) > 0:
+                    self._remove_path(pathlib.Path(studio_light.path_sh_cache))
                 userpref.studio_lights.remove(studio_light)
                 return {'FINISHED'}
         return {'CANCELLED'}

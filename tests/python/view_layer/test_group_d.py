@@ -46,7 +46,6 @@ class UnitTesting(ViewLayerTesting):
                 self.assertEqual(1, bpy.data.groups[0].users)
                 self.assertEqual(3, len(bpy.data.groups[0].objects))
 
-
             # empty the group of objects
             group = bpy.data.groups[0]
             while group.objects:

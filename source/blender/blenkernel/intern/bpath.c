@@ -513,7 +513,7 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			}
 
 			if (ob->soft) {
-				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
+				BPATH_TRAVERSE_POINTCACHE(ob->soft->shared->ptcaches);
 			}
 
 			for (psys = ob->particlesystem.first; psys; psys = psys->next) {

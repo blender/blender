@@ -223,13 +223,13 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerR
 	return particle_edit_cache_brush_items;
 }
 
-static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
+static bool rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
 }
-static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
+static bool rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
 	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
@@ -577,8 +577,10 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 		 "Relative Detail", "Mesh detail is relative to the brush size and detail size"},
 		{SCULPT_DYNTOPO_DETAIL_CONSTANT, "CONSTANT", 0,
 		 "Constant Detail", "Mesh detail is constant in object space according to detail size"},
-	    {SCULPT_DYNTOPO_DETAIL_BRUSH, "BRUSH", 0,
+		{SCULPT_DYNTOPO_DETAIL_BRUSH, "BRUSH", 0,
 		 "Brush Detail", "Mesh detail is relative to brush radius"},
+		{SCULPT_DYNTOPO_DETAIL_MANUAL, "MANUAL", 0,
+		 "Manual Detail", "Mesh detail does not change on each stroke, only when using Flood Fill"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

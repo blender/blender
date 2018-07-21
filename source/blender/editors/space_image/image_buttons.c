@@ -1000,25 +1000,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 						col = uiLayoutColumn(layout, false);
 						uiItemR(col, &imaptr, "use_deinterlace", 0, IFACE_("Deinterlace"), ICON_NONE);
 					}
-
-					split = uiLayoutSplit(layout, 0.0f, false);
-
-					col = uiLayoutColumn(split, false);
-					/* XXX Why only display fields_per_frame only for video image types?
-					 *     And why allow fields for non-video image types at all??? */
-					if (BKE_image_is_animated(ima)) {
-						uiLayout *subsplit = uiLayoutSplit(col, 0.0f, false);
-						uiLayout *subcol = uiLayoutColumn(subsplit, false);
-						uiItemR(subcol, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-						subcol = uiLayoutColumn(subsplit, false);
-						uiLayoutSetActive(subcol, RNA_boolean_get(&imaptr, "use_fields"));
-						uiItemR(subcol, userptr, "fields_per_frame", 0, IFACE_("Fields"), ICON_NONE);
-					}
-					else
-						uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
-					row = uiLayoutRow(col, false);
-					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
-					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 				}
 			}
 

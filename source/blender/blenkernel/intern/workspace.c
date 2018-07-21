@@ -157,7 +157,6 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 void BKE_workspace_free(WorkSpace *workspace)
 {
 	BKE_workspace_relations_free(&workspace->hook_layout_relations);
-	BLI_freelistN(&workspace->scene_layer_relations);
 
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
@@ -166,10 +165,10 @@ void BKE_workspace_free(WorkSpace *workspace)
 		tref_next = tref->next;
 		if (tref->runtime) {
 			MEM_freeN(tref->runtime);
-			if (tref->properties) {
-				IDP_FreeProperty(tref->properties);
-				MEM_freeN(tref->properties);
-			}
+		}
+		if (tref->properties) {
+			IDP_FreeProperty(tref->properties);
+			MEM_freeN(tref->properties);
 		}
 	}
 	BLI_freelistN(&workspace->tools);
@@ -267,47 +266,8 @@ void BKE_workspace_relations_free(
 	}
 }
 
-void BKE_workspace_scene_relations_free_invalid(
-        WorkSpace *workspace)
-{
-	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first, *relation_next; relation; relation = relation_next) {
-		relation_next = relation->next;
-
-		if (relation->scene == NULL) {
-			BLI_freelinkN(&workspace->scene_layer_relations, relation);
-		}
-		else if (!BLI_findstring(&relation->scene->view_layers, relation->view_layer, offsetof(ViewLayer, name))) {
-			BLI_freelinkN(&workspace->scene_layer_relations, relation);
-		}
-	}
-}
-
 /* -------------------------------------------------------------------- */
 /* General Utils */
-
-void BKE_workspace_view_layer_rename(
-        const Main *bmain,
-        const Scene *scene,
-        const char *old_name,
-        const char *new_name)
-{
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first; relation; relation = relation->next) {
-			if (relation->scene == scene && STREQ(relation->view_layer, old_name)) {
-				STRNCPY(relation->view_layer, new_name);
-			}
-		}
-	}
-}
-
-void BKE_workspace_view_layer_remove(
-        const Main *bmain,
-        const ViewLayer *UNUSED(view_layer))
-{
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		BKE_workspace_scene_relations_free_invalid(workspace);
-	}
-}
 
 WorkSpaceLayout *BKE_workspace_layout_find(
         const WorkSpace *workspace, const bScreen *screen)
@@ -429,46 +389,6 @@ void BKE_workspace_active_screen_set(WorkSpaceInstanceHook *hook, WorkSpace *wor
 	BKE_workspace_hook_layout_for_workspace_set(hook, workspace, layout);
 }
 
-Base *BKE_workspace_active_base_get(const WorkSpace *workspace, const Scene *scene)
-{
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
-	return view_layer->basact;
-}
-
-ViewLayer *BKE_workspace_view_layer_exists(const WorkSpace *workspace, const Scene *scene)
-{
-	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_layer_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
-	return (relation) ? BLI_findstring(&scene->view_layers, relation->view_layer, offsetof(ViewLayer, name)) : NULL;
-}
-
-ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene *scene)
-{
-	ViewLayer *layer = BKE_workspace_view_layer_exists(workspace, scene);
-
-	if (layer == NULL) {
-		BKE_workspace_view_layer_set((WorkSpace *)workspace, scene->view_layers.first, (Scene *)scene);
-		layer = scene->view_layers.first;
-	}
-
-	return layer;
-}
-
-void BKE_workspace_view_layer_set(WorkSpace *workspace, ViewLayer *layer, Scene *scene)
-{
-	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_layer_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
-	if (relation == NULL) {
-		relation = MEM_callocN(sizeof(*relation), __func__);
-	}
-	else {
-		BLI_remlink(&workspace->scene_layer_relations, relation);
-	}
-
-	/* (Re)insert at the head of the list, for faster lookups. */
-	relation->scene = scene;
-	STRNCPY(relation->view_layer, layer->name);
-	BLI_addhead(&workspace->scene_layer_relations, relation);
-}
-
 ListBase *BKE_workspace_layouts_get(WorkSpace *workspace)
 {
 	return &workspace->layouts;
@@ -503,27 +423,6 @@ void BKE_workspace_hook_layout_for_workspace_set(
 	hook->act_layout = layout;
 	workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
 }
-
-/* Update / evaluate */
-
-void BKE_workspace_update_tagged(Main *bmain,
-                                 WorkSpace *workspace,
-                                 Scene *scene)
-{
-	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
-	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
-	                                                      view_layer,
-	                                                      true);
-	/* TODO(sergey): For now all dependency graphs which are evaluated from
-	 * workspace are considered active. This will work all fine with "locked"
-	 * view layer and time across windows. This is to be granted separately,
-	 * and for until then we have to accept ambiguities when object is shared
-	 * across visible view layers and has overrides on it.
-	 */
-	DEG_make_active(depsgraph);
-	BKE_scene_graph_update_tagged(depsgraph, bmain);
-}
-
 
 bool BKE_workspace_owner_id_check(
         const WorkSpace *workspace, const char *owner_id)

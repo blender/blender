@@ -1,26 +1,43 @@
 
-in vec3 pos;
+/* XXX TODO fix code duplication */
+struct CubeData {
+	vec4 position_type;
+	vec4 attenuation_fac_type;
+	mat4 influencemat;
+	mat4 parallaxmat;
+};
 
-/* Instance attrib */
-in int probe_id;
-in vec3 probe_location;
-in float sphere_size;
+layout(std140) uniform probe_block {
+	CubeData probes_data[MAX_PROBE];
+};
+
+uniform float sphere_size;
+uniform vec3 screen_vecs[2];
 
 flat out int pid;
-out vec3 worldNormal;
-out vec3 worldPosition;
+out vec2 quadCoord;
+
+const vec2 pos[6] = vec2[6](
+	vec2(-1.0, -1.0),
+	vec2( 1.0, -1.0),
+	vec2(-1.0,  1.0),
+
+	vec2( 1.0, -1.0),
+	vec2( 1.0,  1.0),
+	vec2(-1.0,  1.0)
+);
 
 void main()
 {
-	pid = probe_id;
+	pid = 1 + (gl_VertexID / 6); /* +1 for the world */
+	int vert_id = gl_VertexID % 6;
 
-	/* While this is not performant, we do this to
-	 * match the object mode engine instancing shader. */
-	mat4 offsetmat = mat4(1.0); /* Identity */
-	offsetmat[3].xyz = probe_location;
+	quadCoord = pos[vert_id];
 
-	vec4 wpos = offsetmat * vec4(pos * sphere_size, 1.0);
-	worldPosition = wpos.xyz;
-	gl_Position = ViewProjectionMatrix * wpos;
-	worldNormal = normalize(pos);
+	vec3 ws_location = probes_data[pid].position_type.xyz;
+	vec3 screen_pos = screen_vecs[0] * quadCoord.x + screen_vecs[1] * quadCoord.y;
+	ws_location += screen_pos * sphere_size;
+
+	gl_Position = ViewProjectionMatrix * vec4(ws_location, 1.0);
+	gl_Position.z += 0.0001; /* Small bias to let the icon draw without zfighting */
 }

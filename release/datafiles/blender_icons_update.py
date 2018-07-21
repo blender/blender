@@ -11,8 +11,8 @@ def run(cmd):
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 
-inkscape_bin = "inkscape"
-blender_bin = "blender"
+inkscape_bin = os.environ.get("INKSCAPE_BIN", "inkscape")
+blender_bin = os.environ.get("BLENDER_BIN", "blender")
 
 if sys.platform == 'darwin':
     inkscape_app_path = '/Applications/Inkscape.app/Contents/Resources/script'

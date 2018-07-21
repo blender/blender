@@ -40,6 +40,8 @@
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_capi.h"
 #  include "opensubdiv_converter_capi.h"
+#  include "opensubdiv_evaluator_capi.h"
+#  include "opensubdiv_topology_refiner_capi.h"
 #endif
 
 #include "GPU_glew.h"
@@ -329,7 +331,7 @@ void ccgSubSurf_free(CCGSubSurf *ss)
 	CCGAllocatorHDL allocator = ss->allocator;
 #ifdef WITH_OPENSUBDIV
 	if (ss->osd_evaluator != NULL) {
-		openSubdiv_deleteEvaluatorDescr(ss->osd_evaluator);
+		openSubdiv_deleteEvaluator(ss->osd_evaluator);
 	}
 	if (ss->osd_mesh != NULL) {
 		ccgSubSurf__delete_osdGLMesh(ss->osd_mesh);
@@ -341,7 +343,7 @@ void ccgSubSurf_free(CCGSubSurf *ss)
 		MEM_freeN(ss->osd_coarse_coords);
 	}
 	if (ss->osd_topology_refiner != NULL) {
-		openSubdiv_deleteTopologyRefinerDescr(ss->osd_topology_refiner);
+		openSubdiv_deleteTopologyRefiner(ss->osd_topology_refiner);
 	}
 #endif
 

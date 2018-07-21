@@ -971,7 +971,7 @@ static UvMapVert *uv_select_edgeloop_vertex_map_get(UvVertMap *vmap, BMFace *efa
 	for (iterv = first; iterv; iterv = iterv->next) {
 		if (iterv->separate)
 			first = iterv;
-		if (iterv->f == BM_elem_index_get(efa))
+		if (iterv->poly_index == BM_elem_index_get(efa))
 			return first;
 	}
 
@@ -993,9 +993,9 @@ static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1,
 			if (iterv2->separate && iterv2 != first2)
 				break;
 
-			if (iterv1->f == iterv2->f) {
+			if (iterv1->poly_index == iterv2->poly_index) {
 				/* if face already tagged, don't do this edge */
-				efa = BM_face_at_index(em->bm, iterv1->f);
+				efa = BM_face_at_index(em->bm, iterv1->poly_index);
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG))
 					return false;
 
@@ -1019,8 +1019,8 @@ static bool uv_select_edgeloop_edge_tag_faces(BMEditMesh *em, UvMapVert *first1,
 			if (iterv2->separate && iterv2 != first2)
 				break;
 
-			if (iterv1->f == iterv2->f) {
-				efa = BM_face_at_index(em->bm, iterv1->f);
+			if (iterv1->poly_index == iterv2->poly_index) {
+				efa = BM_face_at_index(em->bm, iterv1->poly_index);
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				break;
 			}
@@ -1231,18 +1231,19 @@ static void uv_select_linked_multi(
 				for (iterv = vlist; iterv; iterv = iterv->next) {
 					if (iterv->separate)
 						startv = iterv;
-					if (iterv->f == a)
+					if (iterv->poly_index == a)
 						break;
 				}
 
 				for (iterv = startv; iterv; iterv = iterv->next) {
 					if ((startv != iterv) && (iterv->separate))
 						break;
-					else if (!flag[iterv->f]) {
-						flag[iterv->f] = 1;
-						stack[stacksize] = iterv->f;
+					else if (!flag[iterv->poly_index]) {
+						flag[iterv->poly_index] = 1;
+						stack[stacksize] = iterv->poly_index;
 						stacksize++;
 					}
+
 				}
 			}
 		}
@@ -2742,7 +2743,7 @@ static void uv_select_flush_from_tag_sticky_loc_internal(
 		if (vlist_iter->separate)
 			start_vlist = vlist_iter;
 
-		if (efa_index == vlist_iter->f)
+		if (efa_index == vlist_iter->poly_index)
 			break;
 
 		vlist_iter = vlist_iter->next;
@@ -2754,12 +2755,12 @@ static void uv_select_flush_from_tag_sticky_loc_internal(
 		if (vlist_iter != start_vlist && vlist_iter->separate)
 			break;
 
-		if (efa_index != vlist_iter->f) {
+		if (efa_index != vlist_iter->poly_index) {
 			BMLoop *l_other;
-			efa_vlist = BM_face_at_index(em->bm, vlist_iter->f);
+			efa_vlist = BM_face_at_index(em->bm, vlist_iter->poly_index);
 			/* tf_vlist = BM_ELEM_CD_GET_VOID_P(efa_vlist, cd_poly_tex_offset); */ /* UNUSED */
 
-			l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->tfindex);
+			l_other = BM_iter_at_index(em->bm, BM_LOOPS_OF_FACE, efa_vlist, vlist_iter->loop_of_poly_index);
 
 			uvedit_uv_select_set(em, scene, l_other, select, false, cd_loop_uv_offset);
 		}
@@ -4178,14 +4179,14 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 				v1coincident = 0;
 
 			separated2 = 0;
-			efa1 = BM_face_at_index(bm, mv1->f);
+			efa1 = BM_face_at_index(bm, mv1->poly_index);
 			mvinit2 = vmap->vert[BM_elem_index_get(editedge->v2)];
 
 			for (mv2 = mvinit2; mv2; mv2 = mv2->next) {
 				if (mv2->separate)
 					mv2sep = mv2;
 
-				efa2 = BM_face_at_index(bm, mv2->f);
+				efa2 = BM_face_at_index(bm, mv2->poly_index);
 				if (efa1 == efa2) {
 					/* if v1 is not coincident no point in comparing */
 					if (v1coincident) {
@@ -4445,7 +4446,9 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "UV_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
@@ -4461,7 +4464,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "clear", true);
 
 	/* unwrap */
-	WM_keymap_add_item(keymap, "UV_OT_unwrap", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_unwrap", UKEY, KM_PRESS, 0, 0);
 #ifdef USE_WM_KEYMAP_27X
 	WM_keymap_add_item(keymap, "UV_OT_minimize_stretch", VKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "UV_OT_pack_islands", PKEY, KM_PRESS, KM_CTRL, 0);

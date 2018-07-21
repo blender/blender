@@ -38,81 +38,81 @@
 extern "C" {
 #endif
 
-struct Gwn_ShaderInterface;
+struct GPUShaderInterface;
 
-void gpuMatrixReset(void); /* to Identity transform & empty stack */
+void GPU_matrix_reset(void); /* to Identity transform & empty stack */
 
 /* ModelView Matrix (2D or 3D) */
 
-void gpuPushMatrix(void); /* TODO: PushCopy vs PushIdentity? */
-void gpuPopMatrix(void);
+void GPU_matrix_push(void); /* TODO: PushCopy vs PushIdentity? */
+void GPU_matrix_pop(void);
 
-void gpuLoadIdentity(void);
+void GPU_matrix_identity_set(void);
 
-void gpuScaleUniform(float factor);
+void GPU_matrix_scale_1f(float factor);
 
 
 /* 3D ModelView Matrix */
 
-void gpuLoadMatrix(const float m[4][4]);
-void gpuMultMatrix(const float m[4][4]);
+void GPU_matrix_set(const float m[4][4]);
+void GPU_matrix_mul(const float m[4][4]);
 
-void gpuTranslate3f(float x, float y, float z);
-void gpuTranslate3fv(const float vec[3]);
-void gpuScale3f(float x, float y, float z);
-void gpuScale3fv(const float vec[3]);
-void gpuRotate3f(float deg, float x, float y, float z); /* axis of rotation should be a unit vector */
-void gpuRotate3fv(float deg, const float axis[3]); /* axis of rotation should be a unit vector */
-void gpuRotateAxis(float deg, char axis); /* TODO: enum for axis? */
+void GPU_matrix_translate_3f(float x, float y, float z);
+void GPU_matrix_translate_3fv(const float vec[3]);
+void GPU_matrix_scale_3f(float x, float y, float z);
+void GPU_matrix_scale_3fv(const float vec[3]);
+void GPU_matrix_rotate_3f(float deg, float x, float y, float z); /* axis of rotation should be a unit vector */
+void GPU_matrix_rotate_3fv(float deg, const float axis[3]); /* axis of rotation should be a unit vector */
+void GPU_matrix_rotate_axis(float deg, char axis); /* TODO: enum for axis? */
 
-void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
+void GPU_matrix_look_at(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ);
 /* TODO: variant that takes eye[3], center[3], up[3] */
 
 
 /* 2D ModelView Matrix */
 
-void gpuTranslate2f(float x, float y);
-void gpuTranslate2fv(const float vec[2]);
-void gpuScale2f(float x, float y);
-void gpuScale2fv(const float vec[2]);
-void gpuRotate2D(float deg);
+void GPU_matrix_translate_2f(float x, float y);
+void GPU_matrix_translate_2fv(const float vec[2]);
+void GPU_matrix_scale_2f(float x, float y);
+void GPU_matrix_scale_2fv(const float vec[2]);
+void GPU_matrix_rotate_2d(float deg);
 
 /* Projection Matrix (2D or 3D) */
 
-void gpuPushProjectionMatrix(void);
-void gpuPopProjectionMatrix(void);
+void GPU_matrix_push_projection(void);
+void GPU_matrix_pop_projection(void);
 
 /* 3D Projection Matrix */
 
-void gpuLoadIdentityProjectionMatrix(void);
-void gpuLoadProjectionMatrix(const float m[4][4]);
+void GPU_matrix_identity_projection_set(void);
+void GPU_matrix_projection_set(const float m[4][4]);
 
-void gpuOrtho(float left, float right, float bottom, float top, float near, float far);
-void gpuFrustum(float left, float right, float bottom, float top, float near, float far);
-void gpuPerspective(float fovy, float aspect, float near, float far);
+void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far);
+void GPU_matrix_frustum_set(float left, float right, float bottom, float top, float near, float far);
+void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far);
 
 /* 3D Projection between Window and World Space */
 
-void gpuProject(const float world[3], const float model[4][4], const float proj[4][4], const int view[4], float win[3]);
-bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3]);
+void GPU_matrix_project(const float world[3], const float model[4][4], const float proj[4][4], const int view[4], float win[3]);
+bool GPU_matrix_unproject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3]);
 
 /* 2D Projection Matrix */
 
-void gpuOrtho2D(float left, float right, float bottom, float top);
+void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top);
 
 
 /* functions to get matrix values */
-const float (*gpuGetModelViewMatrix(float m[4][4]))[4];
-const float (*gpuGetProjectionMatrix(float m[4][4]))[4];
-const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4];
+const float (*GPU_matrix_model_view_get(float m[4][4]))[4];
+const float (*GPU_matrix_projection_get(float m[4][4]))[4];
+const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4];
 
-const float (*gpuGetNormalMatrix(float m[3][3]))[3];
-const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3];
+const float (*GPU_matrix_normal_get(float m[3][3]))[3];
+const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3];
 
 
 /* set uniform values for currently bound shader */
-void gpuBindMatrices(const struct Gwn_ShaderInterface *);
-bool gpuMatricesDirty(void); /* since last bind */
+void GPU_matrix_bind(const struct GPUShaderInterface *);
+bool GPU_matrix_dirty_get(void); /* since last bind */
 
 
 /* Python API needs to be able to inspect the stack so errors raise exceptions instead of crashing. */
@@ -177,14 +177,14 @@ int GPU_matrix_stack_level_get_projection(void);
 #endif  /* C11 */
 
 /* make matrix inputs generic, to avoid warnings */
-#  define gpuMultMatrix(x)  gpuMultMatrix(_GPU_MAT4_CONST_CAST(x))
-#  define gpuLoadMatrix(x)  gpuLoadMatrix(_GPU_MAT4_CONST_CAST(x))
-#  define gpuLoadProjectionMatrix(x)  gpuLoadProjectionMatrix(_GPU_MAT4_CONST_CAST(x))
-#  define gpuGetModelViewMatrix(x)  gpuGetModelViewMatrix(_GPU_MAT4_CAST(x))
-#  define gpuGetProjectionMatrix(x)  gpuGetProjectionMatrix(_GPU_MAT4_CAST(x))
-#  define gpuGetModelViewProjectionMatrix(x)  gpuGetModelViewProjectionMatrix(_GPU_MAT4_CAST(x))
-#  define gpuGetNormalMatrix(x)  gpuGetNormalMatrix(_GPU_MAT3_CAST(x))
-#  define gpuGetNormalMatrixInverse(x)  gpuGetNormalMatrixInverse(_GPU_MAT3_CAST(x))
+#  define GPU_matrix_mul(x)  GPU_matrix_mul(_GPU_MAT4_CONST_CAST(x))
+#  define GPU_matrix_set(x)  GPU_matrix_set(_GPU_MAT4_CONST_CAST(x))
+#  define GPU_matrix_projection_set(x)  GPU_matrix_projection_set(_GPU_MAT4_CONST_CAST(x))
+#  define GPU_matrix_model_view_get(x)  GPU_matrix_model_view_get(_GPU_MAT4_CAST(x))
+#  define GPU_matrix_projection_get(x)  GPU_matrix_projection_get(_GPU_MAT4_CAST(x))
+#  define GPU_matrix_model_view_projection_get(x)  GPU_matrix_model_view_projection_get(_GPU_MAT4_CAST(x))
+#  define GPU_matrix_normal_get(x)  GPU_matrix_normal_get(_GPU_MAT3_CAST(x))
+#  define GPU_matrix_normal_inverse_get(x)  GPU_matrix_normal_inverse_get(_GPU_MAT3_CAST(x))
 #endif /* SUPPRESS_GENERIC_MATRIX_API */
 
 #endif /* __GPU_MATRIX_H__ */

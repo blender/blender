@@ -120,7 +120,7 @@ static void studiolight_free(struct StudioLight *sl)
 	STUDIOLIGHT_DELETE_ICON(sl->icon_id_matcap_flipped);
 #undef STUDIOLIGHT_DELETE_ICON
 
-	for (int index = 0 ; index < 6 ; index ++) {
+	for (int index = 0; index < 6; index++) {
 		IMB_SAFE_FREE(sl->radiance_cubemap_buffers[index]);
 	}
 	GPU_TEXTURE_SAFE_FREE(sl->equirectangular_radiance_gputexture);
@@ -152,7 +152,7 @@ static struct StudioLight *studiolight_create(int flag)
 		sl->icon_id_irradiance = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
 	}
 
-	for (int index = 0 ; index < 6 ; index ++) {
+	for (int index = 0; index < 6; index++) {
 		sl->radiance_cubemap_buffers[index] = NULL;
 	}
 
@@ -193,9 +193,9 @@ static void studiolight_calculate_radiance_buffer(
 	float xf;
 	float *color = colbuf;
 
-	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++, yf += add_y) {
+	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y++, yf += add_y) {
 		xf = start_x;
-		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++, xf += add_x) {
+		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x++, xf += add_x) {
 			direction[index_x] = xf;
 			direction[index_y] = yf;
 			direction[index_z] = z;
@@ -234,13 +234,13 @@ static void studiolight_create_equirectangular_radiance_gputexture(StudioLight *
 
 			float *offset4 = ibuf->rect_float;
 			float *offset3 = sl->gpu_matcap_3components;
-			for (int i = 0 ; i < ibuf->x * ibuf->y; i++) {
+			for (int i = 0; i < ibuf->x * ibuf->y; i++) {
 				copy_v3_v3(offset3, offset4);
 				offset3 += 3;
 				offset4 += 4;
 			}
-			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
-			        ibuf->x, ibuf->y, GPU_R11F_G11F_B10F, sl->gpu_matcap_3components, error);
+			sl->equirectangular_radiance_gputexture = GPU_texture_create_nD(
+			        ibuf->x, ibuf->y, 0, 2, sl->gpu_matcap_3components, GPU_R11F_G11F_B10F, GPU_DATA_FLOAT, 0, false, error);
 		}
 		else {
 			sl->equirectangular_radiance_gputexture = GPU_texture_create_2D(
@@ -336,8 +336,8 @@ BLI_INLINE void studiolight_evaluate_radiance_buffer(
 	float angle;
 	float *radiance_color = radiance_buffer->rect_float;
 	float direction[3];
-	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
-		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
+	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y++) {
+		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x++) {
 			// calculate light direction;
 			direction[zoffset] = zvalue;
 			direction[xoffset] = (x / (float)STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) - 0.5f;
@@ -345,7 +345,7 @@ BLI_INLINE void studiolight_evaluate_radiance_buffer(
 			normalize_v3(direction);
 			angle = fmax(0.0f, dot_v3v3(direction, normal));
 			madd_v3_v3fl(color, radiance_color, angle);
-			(*hits) ++;
+			(*hits)++;
 			radiance_color += 4;
 		}
 	}
@@ -442,106 +442,64 @@ static void studiolight_calculate_spherical_harmonics_coefficient(StudioLight *s
 				switch (sh_component) {
 					/* L0 */
 					case 0:
-					{
 						coef = 0.2822095f;
 						break;
-					}
-
 					/* L1 */
 					case 1:
-					{
 						coef = -0.488603f * nz * 2.0f / 3.0f;
 						break;
-					}
 					case 2:
-					{
 						coef = 0.488603f * ny * 2.0f / 3.0f;
 						break;
-					}
 					case 3:
-					{
 						coef = -0.488603f * nx * 2.0f / 3.0f;
 						break;
-					}
-
 					/* L2 */
 					case 4:
-					{
 						coef = 1.092548f * nx * nz * 1.0f / 4.0f;
 						break;
-					}
 					case 5:
-					{
 						coef = -1.092548f * nz * ny * 1.0f / 4.0f;
 						break;
-					}
 					case 6:
-					{
 						coef = 0.315392f * (3.0f * ny2 - 1.0f) * 1.0f / 4.0f;
 						break;
-					}
 					case 7:
-					{
 						coef = 1.092548f * nx * ny * 1.0f / 4.0f;
 						break;
-					}
 					case 8:
-					{
 						coef = 0.546274f * (nx2 - nz2) * 1.0f / 4.0f;
 						break;
-					}
-
 					/* L4 */
 					case 9:
-					{
 						coef = (2.5033429417967046f * nx * nz * (nx2 - nz2)) / -24.0f;
 						break;
-					}
 					case 10:
-					{
 						coef = (-1.7701307697799304f * nz * ny * (3.0f * nx2 - nz2)) / -24.0f;
 						break;
-					}
 					case 11:
-					{
-						coef = (0.9461746957575601f * nz * nx * (-1.0f +7.0f*ny2)) / -24.0f;
+						coef = (0.9461746957575601f * nz * nx * (-1.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 12:
-					{
 						coef = (-0.6690465435572892f * nz * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 13:
-					{
-						coef = ((105.0f*ny4-90.0f*ny2+9.0f)/28.359261614f) / -24.0f;
+						coef = ((105.0f * ny4 - 90.0f * ny2 + 9.0f) / 28.359261614f) / -24.0f;
 						break;
-					}
 					case 14:
-					{
 						coef = (-0.6690465435572892f * nx * ny * (-3.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 15:
-					{
 						coef = (0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2)) / -24.0f;
 						break;
-					}
 					case 16:
-					{
 						coef = (-1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2)) / -24.0f;
 						break;
-					}
 					case 17:
-					{
 						coef = (0.6258357354491761f * (nx4 - 6.0f * nz2 * nx2 + nz4)) / -24.0f;
 						break;
-					}
-
 					default:
-					{
 						coef = 0.0f;
-					}
 				}
 
 				madd_v3_v3fl(sh, color, coef * weight);
@@ -621,7 +579,7 @@ static void studiolight_apply_spherical_harmonics_windowing(StudioLight *sl, flo
 
 	/* Apply windowing lambda */
 	index = 0;
-	for (int level = 0; level <= STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; level ++) {
+	for (int level = 0; level <= STUDIOLIGHT_SPHERICAL_HARMONICS_LEVEL; level++) {
 		float s = 1.0f / (1.0f + lambda * SQUARE(level) * SQUARE(level + 1.0f));
 
 		for (int m = -1; m <= level; m++) {
@@ -666,9 +624,9 @@ BLI_INLINE void studiolight_sample_spherical_harmonics(StudioLight *sl, float co
 	const float nz4 = SQUARE(nz2);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[9],   2.5033429417967046f * nx * nz * (nx2 - nz2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[10], -1.7701307697799304f * nz * ny * (3.0f * nx2 - nz2));
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[11],  0.9461746957575601f * nz * nx * (-1.0f + 7.0f*ny2));
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[11],  0.9461746957575601f * nz * nx * (-1.0f + 7.0f * ny2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[12], -0.6690465435572892f * nz * ny * (-3.0f + 7.0f * ny2));
-	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[13],  (105.0f*ny4-90.0f*ny2+9.0f)/28.359261614f);
+	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[13],  (105.0f * ny4 - 90.0f * ny2 + 9.0f) / 28.359261614f);
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[14], -0.6690465435572892f * nx * ny * (-3.0f + 7.0f * ny2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[15],  0.9461746957575601f * (nx2 - nz2) * (-1.0f + 7.0f * ny2));
 	madd_v3_v3fl(color, sl->spherical_harmonics_coefs[16], -1.7701307697799304f * nx * ny * (nx2 - 3.0f * nz2));
@@ -683,7 +641,7 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED);
 
-		for (int comp = 0; comp < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; comp ++) {
+		for (int comp = 0; comp < STUDIOLIGHT_SPHERICAL_HARMONICS_COMPONENTS; comp++) {
 			studiolight_calculate_spherical_harmonics_coefficient(sl, comp);
 		}
 
@@ -705,8 +663,8 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 static float texel_coord_solid_angle(float a_U, float a_V, int a_Size)
 {
 	//scale up to [-1, 1] range (inclusive), offset by 0.5 to point to texel center.
-	float u = (2.0f * ((float)a_U + 0.5f) / (float)a_Size ) - 1.0f;
-	float v = (2.0f * ((float)a_V + 0.5f) / (float)a_Size ) - 1.0f;
+	float u = (2.0f * ((float)a_U + 0.5f) / (float)a_Size) - 1.0f;
+	float v = (2.0f * ((float)a_V + 0.5f) / (float)a_Size) - 1.0f;
 
 	float resolution_inv = 1.0f / a_Size;
 
@@ -729,8 +687,8 @@ BLI_INLINE void studiolight_evaluate_specular_radiance_buffer(
 	float angle;
 	float *radiance_color = radiance_buffer->rect_float;
 	float direction[3];
-	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
-		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
+	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y++) {
+		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x++) {
 			// calculate light direction;
 			float u = (x / (float)STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) - 0.5f;
 			float v = (y / (float)STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) - 0.5f;
@@ -823,10 +781,10 @@ static void studiolight_calculate_irradiance_equirectangular_image(StudioLight *
 
 		float *colbuf = MEM_mallocN(STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH * STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT * sizeof(float[4]), __func__);
 		float *color = colbuf;
-		for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT ; y ++) {
+		for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT; y++) {
 			float yf = y / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT;
 
-			for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH ; x ++) {
+			for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH; x++) {
 				float xf = x / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH;
 				float dir[3];
 				equirectangular_to_direction(dir, xf, yf);
@@ -875,8 +833,8 @@ static void studiolight_calculate_light_direction(StudioLight *sl)
 			/* go over every pixel, determine light, if higher calc direction off the light */
 			float new_light;
 			float *color = ibuf->rect_float;
-			for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT; y ++) {
-				for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH; x ++) {
+			for (int y = 0; y < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_HEIGHT; y++) {
+				for (int x = 0; x < STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH; x++) {
 					new_light = color[0] + color[1] + color[2];
 					if (new_light > best_light) {
 						float u = x / (float)STUDIOLIGHT_IRRADIANCE_EQUIRECTANGULAR_WIDTH;
@@ -1037,7 +995,7 @@ static void studiolight_matcap_preview(uint *icon_buffer, StudioLight *sl, bool 
 			if (flipped) {
 				fx = 1.0f - fx;
 			}
-			nearest_interpolation_color(ibuf, NULL, color, fx * ibuf->x, fy * ibuf->y);
+			nearest_interpolation_color(ibuf, NULL, color, fx * ibuf->x - 1.0f, fy * ibuf->y - 1.0f);
 
 			uint alphamask = alpha_circle_mask(fx, fy, 0.5f - pixel_size, 0.5f);
 

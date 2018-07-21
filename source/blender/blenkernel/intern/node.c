@@ -3333,11 +3333,6 @@ void node_type_internal_links(bNodeType *ntype, void (*update_internal_links)(bN
 	ntype->update_internal_links = update_internal_links;
 }
 
-void node_type_compatibility(struct bNodeType *ntype, short compatibility)
-{
-	ntype->compatibility = compatibility;
-}
-
 /* callbacks for undefined types */
 
 static bool node_undefined_poll(bNodeType *UNUSED(ntype), bNodeTree *UNUSED(nodetree))
@@ -3437,6 +3432,7 @@ static void registerCompositNodes(void)
 	register_node_type_cmp_doubleedgemask();
 	register_node_type_cmp_keyingscreen();
 	register_node_type_cmp_keying();
+	register_node_type_cmp_cryptomatte();
 
 	register_node_type_cmp_translate();
 	register_node_type_cmp_rotate();
@@ -3525,6 +3521,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_bsdf_velvet();
 	register_node_type_sh_bsdf_toon();
 	register_node_type_sh_bsdf_hair();
+	register_node_type_sh_bsdf_hair_principled();
 	register_node_type_sh_emission();
 	register_node_type_sh_holdout();
 	register_node_type_sh_volume_absorption();

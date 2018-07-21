@@ -121,7 +121,7 @@ def register_node_categories(identifier, cat_list):
             "category": cat,
             "poll": cat.poll,
             "draw": draw_node_item,
-            })
+        })
         panel_type = type("NODE_PT_category_" + cat.identifier, (bpy.types.Panel,), {
             "bl_space_type": 'NODE_EDITOR',
             "bl_region_type": 'TOOLS',
@@ -130,7 +130,7 @@ def register_node_categories(identifier, cat_list):
             "category": cat,
             "poll": cat.poll,
             "draw": draw_node_item,
-            })
+        })
 
         menu_types.append(menu_type)
         panel_types.append(panel_type)

@@ -424,7 +424,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			Lamp *la = (Lamp *)id;
 			la->nodetree = ntree;
 
-			output_type = SH_NODE_OUTPUT_LAMP;
+			output_type = SH_NODE_OUTPUT_LIGHT;
 			shader_type = SH_NODE_EMISSION;
 
 			copy_v3_v3(color, &la->r);
@@ -628,7 +628,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				nodeClearActiveID(ntree, ID_TE);
 
 			if (ELEM(node->type, SH_NODE_OUTPUT_MATERIAL,
-			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LAMP, SH_NODE_OUTPUT_LINESTYLE))
+			         SH_NODE_OUTPUT_WORLD, SH_NODE_OUTPUT_LIGHT, SH_NODE_OUTPUT_LINESTYLE))
 			{
 				bNode *tnode;
 
@@ -2544,6 +2544,96 @@ void NODE_OT_clear_viewer_border(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = clear_viewer_border_exec;
 	ot->poll = composite_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Cryptomatte Add Socket  ******************* */
+
+static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNodeTree *ntree = NULL;
+	bNode *node = NULL;
+
+	if (ptr.data) {
+		node = ptr.data;
+		ntree = ptr.id.data;
+	}
+	else if (snode && snode->edittree) {
+		ntree = snode->edittree;
+		node = nodeGetActive(snode->edittree);
+	}
+
+	if (!node || node->type != CMP_NODE_CRYPTOMATTE) {
+		return OPERATOR_CANCELLED;
+	}
+
+	ntreeCompositCryptomatteAddSocket(ntree, node);
+
+	snode_notify(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_cryptomatte_layer_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Cryptomatte Socket";
+	ot->description = "Add a new input layer to a Cryptomatte node";
+	ot->idname = "NODE_OT_cryptomatte_layer_add";
+
+	/* callbacks */
+	ot->exec = node_cryptomatte_add_socket_exec;
+	ot->poll = composite_node_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ****************** Cryptomatte Remove Socket  ******************* */
+
+static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	PointerRNA ptr = CTX_data_pointer_get(C, "node");
+	bNodeTree *ntree = NULL;
+	bNode *node = NULL;
+
+	if (ptr.data) {
+		node = ptr.data;
+		ntree = ptr.id.data;
+	}
+	else if (snode && snode->edittree) {
+		ntree = snode->edittree;
+		node = nodeGetActive(snode->edittree);
+	}
+
+	if (!node || node->type != CMP_NODE_CRYPTOMATTE) {
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!ntreeCompositCryptomatteRemoveSocket(ntree, node)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	snode_notify(C, snode);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_cryptomatte_layer_remove(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Remove Cryptomatte Socket";
+	ot->description = "Remove layer from a Crytpomatte node";
+	ot->idname = "NODE_OT_cryptomatte_layer_remove";
+
+	/* callbacks */
+	ot->exec = node_cryptomatte_remove_socket_exec;
+	ot->poll = composite_node_editable;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

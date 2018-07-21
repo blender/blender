@@ -170,6 +170,23 @@ void color_to_blender_normal_new_shading(vec3 color, out vec3 normal)
 
 /*********** SHADER NODES ***************/
 
+void particle_info(
+        vec4 sprops, vec4 loc, vec3 vel, vec3 avel,
+        out float index, out float random, out float age,
+        out float life_time, out vec3 location,
+        out float size, out vec3 velocity, out vec3 angular_velocity)
+{
+	index = sprops.x;
+	random = loc.w;
+	age = sprops.y;
+	life_time = sprops.z;
+	size = sprops.w;
+
+	location = loc.xyz;
+	velocity = vel;
+	angular_velocity = avel;
+}
+
 void vect_normalize(vec3 vin, out vec3 vout)
 {
 	vout = normalize(vin);
@@ -370,6 +387,29 @@ void math_abs(float val1, out float outval)
 void math_atan2(float val1, float val2, out float outval)
 {
 	outval = atan(val1, val2);
+}
+
+void math_floor(float val, out float outval)
+{
+	outval = floor(val);
+}
+
+void math_ceil(float val, out float outval)
+{
+	outval = ceil(val);
+}
+
+void math_fract(float val, out float outval)
+{
+	outval = val - floor(val);
+}
+
+void math_sqrt(float val, out float outval)
+{
+	if (val > 0.0)
+		outval = sqrt(val);
+	else
+		outval = 0.0;
 }
 
 void squeeze(float val, float width, float center, out float outval)
@@ -1758,24 +1798,192 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 	color = vec4(1.0, 0.0, 1.0, 1.0);
 }
 
-void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture(ima, co.xy);
 	alpha = color.a;
 }
 
+void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	ivec2 pix = ivec2(co.xy * textureSize(ima, 0).xy);
+	color = texelFetch(ima, pix, 0);
+	alpha = color.a;
+}
+
+void node_tex_image_cubic(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	vec2 tex_size = vec2(textureSize(ima, 0).xy);
+
+	co.xy *= tex_size;
+	/* texel center */
+	vec2 tc = floor(co.xy - 0.5) + 0.5;
+	vec2 f = co.xy - tc;
+	vec2 f2 = f * f;
+	vec2 f3 = f2 * f;
+	/* Bspline coefs (optimized) */
+	vec2 w3 =  f3 / 6.0;
+	vec2 w0 = -w3       + f2 * 0.5 - f * 0.5 + 1.0 / 6.0;
+	vec2 w1 =  f3 * 0.5 - f2 * 1.0           + 2.0 / 3.0;
+	vec2 w2 = 1.0 - w0 - w1 - w3;
+
+#if 1 /* Optimized version using 4 filtered tap. */
+	vec2 s0 = w0 + w1;
+	vec2 s1 = w2 + w3;
+
+	vec2 f0 = w1 / (w0 + w1);
+	vec2 f1 = w3 / (w2 + w3);
+
+	vec4 final_co;
+	final_co.xy = tc - 1.0 + f0;
+	final_co.zw = tc + 1.0 + f1;
+
+	final_co /= tex_size.xyxy;
+
+	color  = texture(ima, final_co.xy) * s0.x * s0.y;
+	color += texture(ima, final_co.zy) * s1.x * s0.y;
+	color += texture(ima, final_co.xw) * s0.x * s1.y;
+	color += texture(ima, final_co.zw) * s1.x * s1.y;
+
+#else /* Reference bruteforce 16 tap. */
+	color  = texelFetch(ima, ivec2(tc + vec2(-1.0, -1.0)), 0) * w0.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, -1.0)), 0) * w1.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, -1.0)), 0) * w2.x * w0.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, -1.0)), 0) * w3.x * w0.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 0.0)), 0) * w0.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 0.0)), 0) * w1.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 0.0)), 0) * w2.x * w1.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 0.0)), 0) * w3.x * w1.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 1.0)), 0) * w0.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 1.0)), 0) * w1.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 1.0)), 0) * w2.x * w2.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 1.0)), 0) * w3.x * w2.y;
+
+	color += texelFetch(ima, ivec2(tc + vec2(-1.0, 2.0)), 0) * w0.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 0.0, 2.0)), 0) * w1.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 1.0, 2.0)), 0) * w2.x * w3.y;
+	color += texelFetch(ima, ivec2(tc + vec2( 2.0, 2.0)), 0) * w3.x * w3.y;
+#endif
+
+	alpha = color.a;
+}
+
+void node_tex_image_smart(vec3 co, sampler2D ima, out vec4 color, out float alpha)
+{
+	/* use cubic for now */
+	node_tex_image_cubic(co, ima, color, alpha);
+}
+
+void tex_box_sample_linear(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color1 = texture(ima, uv);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color2 = texture(ima, uv);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	color3 = texture(ima, uv);
+}
+
+void tex_box_sample_nearest(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	ivec2 pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color1 = texelFetch(ima, pix, 0);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color2 = texelFetch(ima, pix, 0);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	pix = ivec2(uv.xy * textureSize(ima, 0).xy);
+	color3 = texelFetch(ima, pix, 0);
+}
+
+void tex_box_sample_cubic(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	float alpha;
+	/* X projection */
+	vec2 uv = texco.yz;
+	if (N.x < 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color1, alpha);
+	/* Y projection */
+	uv = texco.xz;
+	if (N.y > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color2, alpha);
+	/* Z projection */
+	uv = texco.yx;
+	if (N.z > 0.0) {
+		uv.x = 1.0 - uv.x;
+	}
+	node_tex_image_cubic(uv.xyy, ima, color3, alpha);
+}
+
+void tex_box_sample_smart(vec3 texco,
+                    vec3 N,
+                    sampler2D ima,
+                    out vec4 color1,
+                    out vec4 color2,
+                    out vec4 color3)
+{
+	tex_box_sample_cubic(texco, N, ima, color1, color2, color3);
+}
+
 void node_tex_image_box(vec3 texco,
                         vec3 N,
+                        vec4 color1,
+                        vec4 color2,
+                        vec4 color3,
                         sampler2D ima,
                         float blend,
                         out vec4 color,
                         out float alpha)
 {
-	vec3 signed_N = N;
-
 	/* project from direction vector to barycentric coordinates in triangles */
-	N = vec3(abs(N.x), abs(N.y), abs(N.z));
-	N /= (N.x + N.y + N.z);
+	N = abs(N);
+	N /= dot(N, vec3(1.0));
 
 	/* basic idea is to think of this as a triangle, each corner representing
 	 * one of the 3 faces of the cube. in the corners we have single textures,
@@ -1785,72 +1993,36 @@ void node_tex_image_box(vec3 texco,
 	 * the Nxyz values are the barycentric coordinates in an equilateral
 	 * triangle, which in case of blending, in the middle has a smaller
 	 * equilateral triangle where 3 textures blend. this divides things into
-	 * 7 zones, with an if () test for each zone */
+	 * 7 zones, with an if () test for each zone
+	 * EDIT: Now there is only 4 if's. */
 
-	vec3 weight = vec3(0.0, 0.0, 0.0);
-	float limit = 0.5 * (1.0 + blend);
+	float limit = 0.5 + 0.5 * blend;
 
-	/* first test for corners with single texture */
-	if (N.x > limit * (N.x + N.y) && N.x > limit * (N.x + N.z)) {
-		weight.x = 1.0;
+	vec3 weight;
+	weight.x = N.x / (N.x + N.y);
+	weight.y = N.y / (N.y + N.z);
+	weight.z = N.z / (N.x + N.z);
+	weight = clamp((weight - 0.5 * (1.0 - blend)) / max(1e-8, blend), 0.0, 1.0);
+
+	/* test for mixes between two textures */
+	if (N.z < (1.0 - limit) * (N.y + N.x)) {
+		weight.z = 0.0;
+		weight.y = 1.0 - weight.x;
 	}
-	else if (N.y > limit * (N.x + N.y) && N.y > limit * (N.y + N.z)) {
-		weight.y = 1.0;
+	else if (N.x < (1.0 - limit) * (N.y + N.z)) {
+		weight.x = 0.0;
+		weight.z = 1.0 - weight.y;
 	}
-	else if (N.z > limit * (N.x + N.z) && N.z > limit * (N.y + N.z)) {
-		weight.z = 1.0;
-	}
-	else if (blend > 0.0) {
-		/* in case of blending, test for mixes between two textures */
-		if (N.z < (1.0 - limit) * (N.y + N.x)) {
-			weight.x = N.x / (N.x + N.y);
-			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.y = 1.0 - weight.x;
-		}
-		else if (N.x < (1.0 - limit) * (N.y + N.z)) {
-			weight.y = N.y / (N.y + N.z);
-			weight.y = clamp((weight.y - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.z = 1.0 - weight.y;
-		}
-		else if (N.y < (1.0 - limit) * (N.x + N.z)) {
-			weight.x = N.x / (N.x + N.z);
-			weight.x = clamp((weight.x - 0.5 * (1.0 - blend)) / blend, 0.0, 1.0);
-			weight.z = 1.0 - weight.x;
-		}
-		else {
-			/* last case, we have a mix between three */
-			weight.x = ((2.0 - limit) * N.x + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.y = ((2.0 - limit) * N.y + (limit - 1.0)) / (2.0 * limit - 1.0);
-			weight.z = ((2.0 - limit) * N.z + (limit - 1.0)) / (2.0 * limit - 1.0);
-		}
+	else if (N.y < (1.0 - limit) * (N.x + N.z)) {
+		weight.y = 0.0;
+		weight.x = 1.0 - weight.z;
 	}
 	else {
-		/* Desperate mode, no valid choice anyway, fallback to one side.*/
-		weight.x = 1.0;
-	}
-	color = vec4(0);
-	if (weight.x > 0.0) {
-		vec2 uv = texco.yz;
-		if(signed_N.x < 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.x * texture(ima, uv);
-	}
-	if (weight.y > 0.0) {
-		vec2 uv = texco.xz;
-		if(signed_N.y > 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.y * texture(ima, uv);
-	}
-	if (weight.z > 0.0) {
-		vec2 uv = texco.yx;
-		if(signed_N.z > 0.0) {
-			uv.x = 1.0 - uv.x;
-		}
-		color += weight.z * texture(ima, uv);
+		/* last case, we have a mix between three */
+		weight = ((2.0 - limit) * N + (limit - 1.0)) / max(1e-8, 2.0 * limit - 1.0);
 	}
 
+	color = weight.x * color1 + weight.y * color2 + weight.z * color3;
 	alpha = color.a;
 }
 
@@ -2250,7 +2422,7 @@ void node_tex_sky(vec3 co, out vec4 color)
 	color = vec4(1.0);
 }
 
-void node_tex_voronoi(vec3 co, float scale, float coloring, out vec4 color, out float fac)
+void node_tex_voronoi(vec3 co, float scale, float exponent, float coloring, out vec4 color, out float fac)
 {
 	vec3 p = co * scale;
 	int xx, yy, zz, xi, yi, zi;

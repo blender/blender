@@ -184,7 +184,7 @@ void ED_view3d_smooth_view_ex(
 	}
 
 	/* skip smooth viewing for render engine draw */
-	if (smooth_viewtx && v3d->drawtype != OB_RENDER) {
+	if (smooth_viewtx && v3d->shading.type != OB_RENDER) {
 		bool changed = false; /* zero means no difference */
 
 		if (sview->camera_old != sview->camera)
@@ -721,14 +721,14 @@ void view3d_winmatrix_set(Depsgraph *depsgraph, ARegion *ar, const View3D *v3d, 
 	}
 
 	if (is_ortho) {
-		gpuOrtho(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
+		GPU_matrix_ortho_set(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 	}
 	else {
-		gpuFrustum(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
+		GPU_matrix_frustum_set(viewplane.xmin, viewplane.xmax, viewplane.ymin, viewplane.ymax, clipsta, clipend);
 	}
 
 	/* update matrix in 3d view region */
-	gpuGetProjectionMatrix(rv3d->winmat);
+	GPU_matrix_projection_get(rv3d->winmat);
 }
 
 static void obmat_to_viewmat(RegionView3D *rv3d, Object *ob)
@@ -1003,8 +1003,7 @@ int view3d_opengl_select(
 	 * the object & bone view locking takes 'rect' into account, see: T51629. */
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, &rect);
 
-	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = true;
+	if (v3d->shading.type > OB_WIRE) {
 		GPU_depth_test(true);
 	}
 
@@ -1049,8 +1048,7 @@ int view3d_opengl_select(
 	G.f &= ~G_PICKSEL;
 	ED_view3d_draw_setup_view(vc->win, depsgraph, scene, ar, v3d, vc->rv3d->viewmat, NULL, NULL);
 
-	if (v3d->drawtype > OB_WIRE) {
-		v3d->zbuf = 0;
+	if (v3d->shading.type > OB_WIRE) {
 		GPU_depth_test(false);
 	}
 

@@ -143,27 +143,27 @@ static PointerRNA rna_DepsgraphUpdate_id_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ID, ptr->data);
 }
 
-static int rna_DepsgraphUpdate_updated_transform_get(PointerRNA *ptr)
+static bool rna_DepsgraphUpdate_is_dirty_transform_get(PointerRNA *ptr)
 {
 	ID *id = ptr->data;
-	return ((id->recalc & ID_RECALC_TRANSFORM) != 0);
+	return ((id->recalc & ID_RECALC_TRANSFORM) == 0);
 }
 
-static int rna_DepsgraphUpdate_updated_geometry_get(PointerRNA *ptr)
+static bool rna_DepsgraphUpdate_is_dirty_geometry_get(PointerRNA *ptr)
 {
 	ID *id = ptr->data;
 	if (id->recalc & ID_RECALC_GEOMETRY) {
-		return true;
+		return false;
 	}
 	if (GS(id->name) != ID_OB) {
-		return false;
+		return true;
 	}
 	Object *object = (Object *)id;
 	ID *data = object->data;
 	if (data == NULL) {
-		return 0;
+		return true;
 	}
-	return ((data->recalc & ID_RECALC_ALL) != 0);
+	return ((data->recalc & ID_RECALC_ALL) == 0);
 }
 
 /* **************** Depsgraph **************** */
@@ -454,15 +454,15 @@ static void rna_def_depsgraph_update(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphUpdate_id_get", NULL, NULL, NULL);
 
-	prop = RNA_def_property(srna, "updated_transform", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "is_dirty_transform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Transform", "Object transformation was updated");
-	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_updated_transform_get", NULL);
+	RNA_def_property_ui_text(prop, "Transform", "Object transformation is not updated");
+	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_is_dirty_transform_get", NULL);
 
-	prop = RNA_def_property(srna, "updated_geometry", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "is_dirty_geometry", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Geometry", "Object geometry was updated");
-	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_updated_geometry_get", NULL);
+	RNA_def_property_ui_text(prop, "Geometry", "Object geometry is not updated");
+	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphUpdate_is_dirty_geometry_get", NULL);
 }
 
 static void rna_def_depsgraph(BlenderRNA *brna)

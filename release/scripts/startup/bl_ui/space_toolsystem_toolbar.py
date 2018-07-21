@@ -118,7 +118,7 @@ class _defs_view3d_generic:
         return dict(
             text="Ruler",
             icon="ops.view3d.ruler",
-            widget="VIEW3D_WGT_ruler",
+            widget="VIEW3D_GGT_ruler",
             keymap=(
                 ("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
             ),
@@ -130,11 +130,12 @@ class _defs_transform:
     @ToolDef.from_fn
     def translate():
         return dict(
-            text="Move",
+            text="Grab",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
-            widget="TRANSFORM_WGT_manipulator",
-            # TODO, implement as optional fallback manipulator
+            widget="TRANSFORM_GGT_gizmo",
+            operator="transform.translate",
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -146,8 +147,9 @@ class _defs_transform:
             text="Rotate",
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
-            widget="TRANSFORM_WGT_manipulator",
-            # TODO, implement as optional fallback manipulator
+            widget="TRANSFORM_GGT_gizmo",
+            operator="transform.rotate",
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -159,8 +161,9 @@ class _defs_transform:
             text="Scale",
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
-            widget="TRANSFORM_WGT_manipulator",
-            # TODO, implement as optional fallback manipulator
+            widget="TRANSFORM_GGT_gizmo",
+            operator="transform.resize",
+            # TODO, implement as optional fallback gizmo
             # keymap=(
             #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
@@ -171,20 +174,21 @@ class _defs_transform:
         return dict(
             text="Scale Cage",
             icon="ops.transform.resize.cage",
-            widget="VIEW3D_WGT_xform_cage",
+            widget="VIEW3D_GGT_xform_cage",
+            operator="transform.resize",
         )
 
     @ToolDef.from_fn
     def transform():
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_manipulator_mode")
+            layout.prop(tool_settings, "use_gizmo")
 
         return dict(
             text="Transform",
             icon="ops.transform.transform",
-            widget="TRANSFORM_WGT_manipulator",
-            # No keymap default action, only for manipulators!
+            widget="TRANSFORM_GGT_gizmo",
+            # No keymap default action, only for gizmo!
             draw_settings=draw_settings,
         )
 
@@ -316,7 +320,7 @@ class _defs_edit_mesh:
             widget=None,
             keymap=(
                 ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
-                ("mesh.primitive_cube_add_manipulator", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+                ("mesh.primitive_cube_add_gizmo", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
@@ -458,7 +462,8 @@ class _defs_edit_mesh:
         return dict(
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
-            widget="MESH_WGT_extrude",
+            widget="MESH_GGT_extrude",
+            operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(
                 ("mesh.extrude_context_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='EVT_TWEAK_A', value='ANY')),
@@ -869,7 +874,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_options = {'HIDE_HEADER'}
 
     # Satisfy the 'ToolSelectPanelHelper' API.
-    keymap_prefix = "Image Editor Tool: "
+    keymap_prefix = "Image Editor Tool:"
 
     @classmethod
     def tools_from_context(cls, context, mode=None):
@@ -920,7 +925,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_options = {'HIDE_HEADER'}
 
     # Satisfy the 'ToolSelectPanelHelper' API.
-    keymap_prefix = "3D View Tool: "
+    keymap_prefix = "3D View Tool:"
 
     @classmethod
     def tools_from_context(cls, context, mode=None):
@@ -939,10 +944,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        (
-            _defs_transform.translate,
-            _defs_transform.transform,
-        ),
+        _defs_transform.transform,
+        _defs_transform.translate,
         _defs_transform.rotate,
         (
             _defs_transform.scale,

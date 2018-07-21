@@ -97,14 +97,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 {
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		const bScreen *screen_parent = screen_parent_find(screen);
-		Scene *scene = screen->scene;
 		WorkSpace *workspace;
-		ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
 		if (screen->temp) {
 			continue;
-		}
-		if (!layer) {
-			layer = BKE_view_layer_default_view(scene);
 		}
 
 		if (screen_parent) {
@@ -117,7 +112,6 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
 		BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
-		BKE_workspace_view_layer_set(workspace, layer, scene);
 	}
 }
 
@@ -170,7 +164,18 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			bScreen *screen_parent = screen_parent_find(win->screen);
 			bScreen *screen = screen_parent ? screen_parent : win->screen;
+
+			if (screen->temp) {
+				/* We do not generate a new workspace for those screens... still need to set some data in win. */
+				win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
+				win->scene = screen->scene;
+				/* Deprecated from now on! */
+				win->screen = NULL;
+				continue;
+			}
+
 			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, screen->id.name + 2, offsetof(ID, name) + 2);
+			BLI_assert(workspace != NULL);
 			ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
 			win->workspace_hook = BKE_workspace_instance_hook_create(bmain);
@@ -178,7 +183,16 @@ static void do_version_workspaces_after_lib_link(Main *bmain)
 			BKE_workspace_active_set(win->workspace_hook, workspace);
 			BKE_workspace_active_layout_set(win->workspace_hook, layouts->first);
 
-			win->scene = screen->scene;
+			/* Move scene and view layer to window. */
+			Scene *scene = screen->scene;
+			ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
+			if (!layer) {
+				layer = BKE_view_layer_default_view(scene);
+			}
+
+			win->scene = scene;
+			STRNCPY(win->view_layer_name, layer->name);
+
 			/* Deprecated from now on! */
 			win->screen = NULL;
 		}
@@ -594,7 +608,7 @@ void do_versions_after_linking_280(Main *bmain)
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 0)) {
 		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 			/* same render-layer as do_version_workspaces_after_lib_link will activate,
-			 * so same layer as BKE_view_layer_from_workspace_get would return */
+			 * so same layer as BKE_view_layer_default_view would return */
 			ViewLayer *layer = screen->scene->view_layers.first;
 
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -790,10 +804,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "contact_dist")) {
 			for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
-				la->contact_dist = 1.0f;
+				la->contact_dist = 0.2f;
 				la->contact_bias = 0.03f;
 				la->contact_spread = 0.2f;
-				la->contact_thickness = 0.5f;
+				la->contact_thickness = 0.2f;
 			}
 		}
 
@@ -1086,7 +1100,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 						v3d->overlay.backwire_opacity = 0.5f;
 						v3d->overlay.normals_length = 0.1f;
-						v3d->overlay.flag = V3D_OVERLAY_LOOK_DEV;
+						v3d->overlay.flag = 0;
 					}
 				}
 			}
@@ -1451,13 +1465,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_selection_alpha")) {
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "bone_select_alpha")) {
 			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							v3d->overlay.bone_selection_alpha = 0.5f;
+							v3d->overlay.bone_select_alpha = 0.5f;
 						}
 					}
 				}
@@ -1527,9 +1541,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->eevee.gi_irradiance_draw_size = 0.1f;
+				scene->eevee.gi_cubemap_draw_size = 0.3f;
+			}
+		}
+
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-			if (scene->toolsettings->manipulator_flag == 0) {
-				scene->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+			if (scene->toolsettings->gizmo_flag == 0) {
+				scene->toolsettings->gizmo_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 			}
 		}
 
@@ -1559,5 +1580,46 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "SoftBody", "SoftBody_Shared", "*shared")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				SoftBody *sb = ob->soft;
+				if (sb == NULL) {
+					continue;
+				}
+				if (sb->shared == NULL) {
+					sb->shared = MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared");
+				}
+
+				/* Move shared pointers from deprecated location to current location */
+				sb->shared->pointcache = sb->pointcache;
+				sb->shared->ptcaches = sb->ptcaches;
+
+				sb->pointcache = NULL;
+				BLI_listbase_clear(&sb->ptcaches);
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "short", "type")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							if (v3d->drawtype == OB_RENDER) {
+								v3d->drawtype = OB_SOLID;
+							}
+							v3d->shading.type = v3d->drawtype;
+							v3d->shading.prev_type = OB_SOLID;
+						}
+					}
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "View3DShading", "shading")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				BKE_screen_view3d_shading_init(&scene->display.shading);
+			}
+		}
 	}
 }

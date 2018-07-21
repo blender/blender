@@ -446,18 +446,13 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	uiBut *but;
 	NodeLinkArg *argN;
 	int first = 1;
-	int compatibility = 0;
-
-	if (ntree->type == NTREE_SHADER) {
-		compatibility = NODE_NEW_SHADING;
-	}
 
 	/* generate array of node types sorted by UI name */
 	bNodeType **sorted_ntypes = NULL;
 	BLI_array_declare(sorted_ntypes);
 
 	NODE_TYPES_BEGIN(ntype) {
-		if (compatibility && !(ntype->compatibility & compatibility)) {
+		if (!(ntype->poll && ntype->poll(ntype, ntree))) {
 			continue;
 		}
 

@@ -100,7 +100,7 @@ public:
 
 private:
 	/* sync */
-	void sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all);
+	void sync_lights(BL::Depsgraph& b_depsgraph, bool update_all);
 	void sync_materials(BL::Depsgraph& b_depsgraph, bool update_all);
 	void sync_objects(BL::Depsgraph& b_depsgraph, float motion_time = 0.0f);
 	void sync_motion(BL::RenderSettings& b_render,
@@ -156,6 +156,9 @@ private:
 
 	/* Images. */
 	void sync_images();
+
+	/* Early data free. */
+	void free_data_after_sync(BL::Depsgraph& b_depsgraph);
 
 	/* util */
 	void find_shader(BL::ID& id, vector<Shader*>& used_shaders, Shader *default_shader);
@@ -218,4 +221,3 @@ private:
 CCL_NAMESPACE_END
 
 #endif /* __BLENDER_SYNC_H__ */
-

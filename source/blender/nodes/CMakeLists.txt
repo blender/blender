@@ -60,6 +60,7 @@ set(SRC
 	composite/nodes/node_composite_composite.c
 	composite/nodes/node_composite_cornerpin.c
 	composite/nodes/node_composite_crop.c
+	composite/nodes/node_composite_cryptomatte.c
 	composite/nodes/node_composite_curves.c
 	composite/nodes/node_composite_despeckle.c
 	composite/nodes/node_composite_doubleEdgeMask.c
@@ -168,6 +169,7 @@ set(SRC
 	shader/nodes/node_shader_bsdf_transparent.c
 	shader/nodes/node_shader_bsdf_velvet.c
 	shader/nodes/node_shader_bsdf_hair.c
+	shader/nodes/node_shader_bsdf_hair_principled.c
 	shader/nodes/node_shader_bump.c
 	shader/nodes/node_shader_emission.c
 	shader/nodes/node_shader_fresnel.c

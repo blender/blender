@@ -648,8 +648,8 @@ static void node_draw_preview_background(float tile, rctf *rect)
 {
 	float x, y;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -721,7 +721,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 
 	GPU_blend(false);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColorShadeAlpha(TH_BACK, -15, +100);
 	imm_draw_box_wire_2d(pos, draw_rect.xmin, draw_rect.ymin, draw_rect.xmax, draw_rect.ymax);
@@ -758,10 +758,10 @@ void node_draw_shadow(SpaceNode *snode, bNode *node, float radius, float alpha)
 
 void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *node, bool draw_outputs, bool select_all)
 {
-	const unsigned int total_input_ct = BLI_listbase_count(&node->inputs);
-	const unsigned int total_output_ct = BLI_listbase_count(&node->outputs);
+	const uint total_input_len = BLI_listbase_count(&node->inputs);
+	const uint total_output_len = BLI_listbase_count(&node->outputs);
 
-	if (total_input_ct + total_output_ct == 0) {
+	if (total_input_len + total_output_len == 0) {
 		return;
 	}
 
@@ -771,9 +771,9 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	float scale;
 	UI_view2d_scale_get(v2d, &scale, NULL);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
 
 	GPU_blend(true);
 	GPU_enable_program_point_size();
@@ -788,17 +788,17 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 		immUniform1f("outlineWidth", 1.0f);
 		immUniform4f("outlineColor", 0.0f, 0.0f, 0.0f, 0.6f);
 
-		immBeginAtMost(GWN_PRIM_POINTS, total_input_ct + total_output_ct);
+		immBeginAtMost(GPU_PRIM_POINTS, total_input_len + total_output_len);
 	}
 
 	/* socket inputs */
-	short selected_input_ct = 0;
+	short selected_input_len = 0;
 	bNodeSocket *sock;
 	for (sock = node->inputs.first; sock; sock = sock->next) {
 		if (nodeSocketIsHidden(sock))
 			continue;
 		if (select_all || (sock->flag & SELECT)) {
-			++selected_input_ct;
+			++selected_input_len;
 			continue;
 		}
 
@@ -806,13 +806,13 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	}
 
 	/* socket outputs */
-	short selected_output_ct = 0;
+	short selected_output_len = 0;
 	if (draw_outputs) {
 		for (sock = node->outputs.first; sock; sock = sock->next) {
 			if (nodeSocketIsHidden(sock))
 				continue;
 			if (select_all || (sock->flag & SELECT)) {
-				++selected_output_ct;
+				++selected_output_len;
 				continue;
 			}
 
@@ -825,36 +825,36 @@ void node_draw_sockets(View2D *v2d, const bContext *C, bNodeTree *ntree, bNode *
 	}
 
 	/* go back and draw selected sockets */
-	if (selected_input_ct + selected_output_ct > 0) {
+	if (selected_input_len + selected_output_len > 0) {
 		/* outline for selected sockets */
 		float c[3];
 		UI_GetThemeColor3fv(TH_TEXT_HI, c);
 		immUniform4f("outlineColor", c[0], c[1], c[2], 1.0f);
 		immUniform1f("outlineWidth", 1.5f);
 
-		immBegin(GWN_PRIM_POINTS, selected_input_ct + selected_output_ct);
+		immBegin(GPU_PRIM_POINTS, selected_input_len + selected_output_len);
 
-		if (selected_input_ct) {
+		if (selected_input_len) {
 			/* socket inputs */
 			for (sock = node->inputs.first; sock; sock = sock->next) {
 				if (nodeSocketIsHidden(sock))
 					continue;
 				if (select_all || (sock->flag & SELECT)) {
 					node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
-					if (--selected_input_ct == 0)
+					if (--selected_input_len == 0)
 						break; /* stop as soon as last one is drawn */
 				}
 			}
 		}
 
-		if (selected_output_ct) {
+		if (selected_output_len) {
 			/* socket outputs */
 			for (sock = node->outputs.first; sock; sock = sock->next) {
 				if (nodeSocketIsHidden(sock))
 					continue;
 				if (select_all || (sock->flag & SELECT)) {
 					node_socket_circle_draw(C, ntree, node_ptr, sock, pos, col);
-					if (--selected_output_ct == 0)
+					if (--selected_output_len == 0)
 						break; /* stop as soon as last one is drawn */
 				}
 			}
@@ -960,6 +960,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 
+		UI_GetThemeColor4fv(TH_TEXT, color);
 		/* custom draw function for this button */
 		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v', color);
 	}
@@ -1079,6 +1080,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 
+		UI_GetThemeColor4fv(TH_TEXT, color);
 		/* custom draw function for this button */
 		UI_draw_icon_tri(rct->xmin + 10.0f, centy, 'h', color);
 	}
@@ -1100,13 +1102,13 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	}
 
 	/* scale widget thing */
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColorShade(color_id, -10);
 	dx = 10.0f;
 
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
 	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 
@@ -1117,7 +1119,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	immUniformThemeColorShade(color_id, 30);
 	dx -= snode->aspect;
 
-	immBegin(GWN_PRIM_LINES, 4);
+	immBegin(GPU_PRIM_LINES, 4);
 	immVertex2f(pos, rct->xmax - dx, centy - 4.0f);
 	immVertex2f(pos, rct->xmax - dx, centy + 4.0f);
 
@@ -1403,17 +1405,17 @@ void drawnodespace(const bContext *C, ARegion *ar)
 
 			{
 				float original_proj[4][4];
-				gpuGetProjectionMatrix(original_proj);
+				GPU_matrix_projection_get(original_proj);
 
-				gpuPushMatrix();
-				gpuLoadIdentity();
+				GPU_matrix_push();
+				GPU_matrix_identity_set();
 
 				wmOrtho2_pixelspace(ar->winx, ar->winy);
 
-				WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);
+				WM_gizmomap_draw(ar->gizmo_map, C, WM_GIZMOMAP_DRAWSTEP_2D);
 
-				gpuPopMatrix();
-				gpuLoadProjectionMatrix(original_proj);
+				GPU_matrix_pop();
+				GPU_matrix_projection_set(original_proj);
 			}
 
 			draw_nodetree(C, ar, ntree, path->parent_key);

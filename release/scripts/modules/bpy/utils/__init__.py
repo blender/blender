@@ -34,7 +34,6 @@ __all__ = (
     "refresh_script_paths",
     "app_template_paths",
     "register_class",
-    "register_module",
     "register_manual_map",
     "unregister_manual_map",
     "register_classes_factory",
@@ -50,7 +49,6 @@ __all__ = (
     "smpte_from_seconds",
     "units",
     "unregister_class",
-    "unregister_module",
     "user_resource",
 )
 
@@ -165,10 +163,6 @@ def load_scripts(reload_scripts=False, refresh_scripts=False):
         # its not perfect.
         for module_name in [ext.module for ext in _user_preferences.addons]:
             _addon_utils.disable(module_name)
-
-        # *AFTER* unregistering all add-ons, otherwise all calls to
-        # unregister_module() will silently fail (do nothing).
-        _bpy_types.TypeMap.clear()
 
     def register_module_call(mod):
         register = getattr(mod, "register", None)
@@ -488,11 +482,11 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
 
     return (
         "%s%02d:%02d:%02d:%02d" % (
-        sign,
-        int(frame / (3600 * fps)),          # HH
-        int((frame / (60 * fps)) % 60),     # MM
-        int((frame / fps) % 60),            # SS
-        int(frame % fps),                   # FF
+            sign,
+            int(frame / (3600 * fps)),          # HH
+            int((frame / (60 * fps)) % 60),     # MM
+            int((frame / fps) % 60),            # SS
+            int(frame % fps),                   # FF
         ))
 
 
@@ -581,8 +575,13 @@ def keyconfig_set(filepath, report=None):
     try:
         error_msg = ""
         with open(filepath, 'r', encoding='utf-8') as keyfile:
-            exec(compile(keyfile.read(), filepath, "exec"),
-                 {"__file__": filepath})
+            exec(
+                compile(keyfile.read(), filepath, "exec"),
+                {
+                    "__file__": filepath,
+                    "__name__": "__main__",
+                }
+            )
     except:
         import traceback
         error_msg = traceback.format_exc()
@@ -648,58 +647,6 @@ def user_resource(resource_type, path="", create=False):
                 target_path = ""
 
     return target_path
-
-
-def _bpy_module_classes(module, is_registered=False):
-    typemap_list = _bpy_types.TypeMap.get(module, ())
-    i = 0
-    while i < len(typemap_list):
-        cls_weakref = typemap_list[i]
-        cls = cls_weakref()
-
-        if cls is None:
-            del typemap_list[i]
-        else:
-            if is_registered == cls.is_registered:
-                yield cls
-            i += 1
-
-
-def register_module(module, verbose=False):
-    if verbose:
-        print("bpy.utils.register_module(%r): ..." % module)
-    cls = None
-    for cls in _bpy_module_classes(module, is_registered=False):
-        if verbose:
-            print("    %r" % cls)
-        try:
-            register_class(cls)
-        except:
-            print("bpy.utils.register_module(): "
-                  "failed to registering class %r" % cls)
-            import traceback
-            traceback.print_exc()
-    if verbose:
-        print("done.\n")
-    if cls is None:
-        raise Exception("register_module(%r): defines no classes" % module)
-
-
-def unregister_module(module, verbose=False):
-    if verbose:
-        print("bpy.utils.unregister_module(%r): ..." % module)
-    for cls in _bpy_module_classes(module, is_registered=True):
-        if verbose:
-            print("    %r" % cls)
-        try:
-            unregister_class(cls)
-        except:
-            print("bpy.utils.unregister_module(): "
-                  "failed to unregistering class %r" % cls)
-            import traceback
-            traceback.print_exc()
-    if verbose:
-        print("done.\n")
 
 
 def register_classes_factory(classes):
@@ -772,6 +719,7 @@ def _blender_default_map():
     # avoid storing in memory
     del _sys.modules["rna_manual_reference"]
     return ret
+
 
 # hooks for doc lookups
 _manual_map = [_blender_default_map]

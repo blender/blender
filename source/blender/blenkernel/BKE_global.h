@@ -179,12 +179,12 @@ enum {
 /* On write, make backup `.blend1`, `.blend2` ... files, when the users preference is enabled */
 #define G_FILE_HISTORY           (1 << 25)
 /* BMesh option to save as older mesh format */
-#define G_FILE_MESH_COMPAT       (1 << 26)
+// #define G_FILE_MESH_COMPAT       (1 << 26)
 /* On write, restore paths after editing them (G_FILE_RELATIVE_REMAP) */
 #define G_FILE_SAVE_COPY         (1 << 27)
 #define G_FILE_GLSL_NO_ENV_LIGHTING (1 << 28)
 
-#define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_MESH_COMPAT | G_FILE_SAVE_COPY)
+#define G_FILE_FLAGS_RUNTIME (G_FILE_NO_UI | G_FILE_RELATIVE_REMAP | G_FILE_SAVE_COPY)
 
 /* ENDIAN_ORDER: indicates what endianness the platform where the file was
  * written had. */

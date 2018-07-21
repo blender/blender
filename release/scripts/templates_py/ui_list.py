@@ -7,8 +7,10 @@ class MESH_UL_mylist(bpy.types.UIList):
     # E.g. VGROUP_EMPTY = 1 << 0
 
     # Custom properties, saved with .blend file. E.g.
-    # use_filter_empty = bpy.props.BoolProperty(name="Filter Empty", default=False, options=set(),
-    #                                           description="Whether to filter empty vertex groups")
+    # use_filter_empty: bpy.props.BoolProperty(
+    #     name="Filter Empty", default=False, options=set(),
+    #     description="Whether to filter empty vertex groups",
+    # )
 
     # Called for each drawn item.
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index, flt_flag):

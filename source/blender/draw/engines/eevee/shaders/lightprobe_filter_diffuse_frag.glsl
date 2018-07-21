@@ -131,8 +131,7 @@ void main()
 
 	/* Add a N pixel border to ensure filtering is correct
 	 * for N mipmap levels. */
-	uvs += uvs * texelSize * paddingSize * 2.0;
-	uvs -= texelSize * paddingSize;
+	uvs = (uvs - texelSize * paddingSize) / (1.0 - 2.0 * texelSize * paddingSize);
 
 	/* edge mirroring : only mirror if directly adjacent
 	 * (not diagonally adjacent) */

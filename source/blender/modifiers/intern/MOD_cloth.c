@@ -42,6 +42,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_cloth.h"
@@ -155,7 +156,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const ClothModifierData *clmd = (const ClothModifierData *) md;
 	ClothModifierData *tclmd = (ClothModifierData *) target;
@@ -170,14 +171,21 @@ static void copyData(const ModifierData *md, ModifierData *target)
 		MEM_freeN(tclmd->coll_parms);
 
 	BKE_ptcache_free_list(&tclmd->ptcaches);
-	tclmd->point_cache = NULL;
+	if (flag & LIB_ID_CREATE_NO_MAIN) {
+		/* Share the cache with the original object's modifier. */
+		tclmd->modifier.flag |= eModifierFlag_SharedCaches;
+		tclmd->ptcaches = clmd->ptcaches;
+		tclmd->point_cache = clmd->point_cache;
+	}
+	else {
+		tclmd->point_cache = BKE_ptcache_add(&tclmd->ptcaches);
+		tclmd->point_cache->step = 1;
+	}
 
 	tclmd->sim_parms = MEM_dupallocN(clmd->sim_parms);
 	if (clmd->sim_parms->effector_weights)
 		tclmd->sim_parms->effector_weights = MEM_dupallocN(clmd->sim_parms->effector_weights);
 	tclmd->coll_parms = MEM_dupallocN(clmd->coll_parms);
-	tclmd->point_cache = BKE_ptcache_add(&tclmd->ptcaches);
-	tclmd->point_cache->step = 1;
 	tclmd->clothObject = NULL;
 	tclmd->hairdata = NULL;
 	tclmd->solver_result = NULL;
@@ -206,7 +214,12 @@ static void freeData(ModifierData *md)
 		if (clmd->coll_parms)
 			MEM_freeN(clmd->coll_parms);
 
-		BKE_ptcache_free_list(&clmd->ptcaches);
+		if (md->flag & eModifierFlag_SharedCaches) {
+			BLI_listbase_clear(&clmd->ptcaches);
+		}
+		else {
+			BKE_ptcache_free_list(&clmd->ptcaches);
+		}
 		clmd->point_cache = NULL;
 
 		if (clmd->hairdata)

@@ -120,8 +120,11 @@ def check(check_ctxt, msgs, key, msgsrc, settings):
            key[1][0].isalpha() and not key[1][0].isupper()):
             not_capitalized.add(key)
     if end_point is not None:
-        if (key[1].strip().endswith('.') and not key[1].strip().endswith('...') and
-            key[1] not in settings.WARN_MSGID_END_POINT_ALLOWED):
+        if (
+                key[1].strip().endswith('.') and
+                (not key[1].strip().endswith('...')) and
+                key[1] not in settings.WARN_MSGID_END_POINT_ALLOWED
+        ):
             end_point.add(key)
     if undoc_ops is not None:
         if key[1] == settings.UNDOC_OPS_STR:
@@ -183,8 +186,10 @@ def print_info(reports, pot):
 #                if py_in_rna and key in py_in_rna:
 #                    _print("\t\t-> RNA message also used in py UI code!")
                 if spell_errors and spell_errors.get(key):
-                    lines = ["\t\t-> {}: misspelled, suggestions are ({})".format(w, "'" + "', '".join(errs) + "'")
-                             for w, errs in  spell_errors[key]]
+                    lines = [
+                        "\t\t-> {}: misspelled, suggestions are ({})".format(w, "'" + "', '".join(errs) + "'")
+                        for w, errs in spell_errors[key]
+                    ]
                     _print("\n".join(lines))
             _print("\t\t{}".format("\n\t\t".join(pot.msgs[key].sources)))
 
@@ -215,13 +220,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
     """
     def class_blacklist():
         blacklist_rna_class = {getattr(bpy.types, cls_id) for cls_id in (
-                # core classes
-                "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
-                # registerable classes
-                "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
-                # window classes
-                "Window",
-            )
+            # core classes
+            "Context", "Event", "Function", "UILayout", "UnknownType", "Property", "Struct",
+            # registerable classes
+            "Panel", "Menu", "Header", "RenderEngine", "Operator", "OperatorMacro", "Macro", "KeyingSetInfo",
+            # window classes
+            "Window",
+        )
         }
 
         # More builtin classes we don't need to parse.
@@ -380,12 +385,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 
     # Dump Messages
     operator_categories = {}
+
     def process_cls_list(cls_list):
         if not cls_list:
             return
 
         def full_class_id(cls):
-            """Gives us 'ID.Lamp.AreaLamp' which is best for sorting."""
+            """Gives us 'ID.Light.AreaLight' which is best for sorting."""
             # Always the same issue, some classes listed in blacklist should actually no more exist (they have been
             # unregistered), but are still listed by __subclasses__() calls... :/
             if cls in blacklist_rna_class:
@@ -447,6 +453,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     i18n_contexts = bpy.app.translations.contexts
 
     root_paths = tuple(bpy.utils.resource_path(t) for t in ('USER', 'LOCAL', 'SYSTEM'))
+
     def make_rel(path):
         for rp in root_paths:
             if path.startswith(rp):
@@ -510,6 +517,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         return [_extract_string_merge(estr_ls, nds_ls) for estr_ls, nds_ls in bag]
 
     i18n_ctxt_ids = {v for v in bpy.app.translations.contexts_C_to_py.values()}
+
     def _ctxt_to_ctxt(node):
         # We must try, to some extend, to get contexts from vars instead of only literal strings...
         ctxt = extract_strings(node)[0]
@@ -561,9 +569,9 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     translate_kw = {
         "text": ((("text_ctxt",), _ctxt_to_ctxt),
                  (("operator",), _op_to_ctxt),
-                ),
-        "msgid": ((("msgctxt",), _ctxt_to_ctxt),
                  ),
+        "msgid": ((("msgctxt",), _ctxt_to_ctxt),
+                  ),
         "message": (),
     }
 
@@ -611,7 +619,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         func_translate_args[func_id] = pgettext_variants_args
         for func_id in func_ids:
             func_translate_args[func_id] = pgettext_variants_args
-    #print(func_translate_args)
+    # print(func_translate_args)
 
     # Break recursive nodes look up on some kind of nodes.
     # E.g. we don't want to get strings inside subscripts (blah["foo"])!
@@ -666,7 +674,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                                 if kw.arg == arg_kw:
                                     context_elements[arg_kw] = kw.value
                                     break
-                    #print(context_elements)
+                    # print(context_elements)
                     for kws, proc in translate_kw[msgid]:
                         if set(kws) <= context_elements.keys():
                             args = tuple(context_elements[k] for k in kws)
@@ -676,7 +684,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
                                 msgctxts[msgid] = ctxt
                                 break
 
-                #print(translate_args)
+                # print(translate_args)
                 # do nothing if not found
                 for arg_kw, (arg_pos, _) in func_args.items():
                     msgctxt = msgctxts[arg_kw]
@@ -706,7 +714,7 @@ def dump_py_messages(msgs, reports, addons, settings, addons_only=False):
             return []
         if os.path.isdir(path):
             return [os.path.join(dpath, fn) for dpath, _, fnames in os.walk(path) for fn in fnames
-                                            if not fn.startswith("_") and fn.endswith(".py")]
+                    if not fn.startswith("_") and fn.endswith(".py")]
         return [path]
 
     files = []
@@ -738,7 +746,9 @@ def dump_src_messages(msgs, reports, settings):
     pygettexts = tuple(re.compile(r).search for r in settings.PYGETTEXT_KEYWORDS)
 
     _clean_str = re.compile(settings.str_clean_re).finditer
-    clean_str = lambda s: "".join(m.group("clean") for m in _clean_str(s))
+
+    def clean_str(s):
+        return "".join(m.group("clean") for m in _clean_str(s))
 
     def dump_src_file(path, rel_path, msgs, reports, settings):
         def process_entry(_msgctxt, _msgid):
@@ -873,10 +883,10 @@ def dump_messages(do_messages, do_checks, settings):
         process_msg(msgs, settings.DEFAULT_CONTEXT, cat[1],
                     "Language categories’ labels from bl_i18n_utils/settings.py", reports, None, settings)
 
-    #pot.check()
+    # pot.check()
     pot.unescape()  # Strings gathered in py/C source code may contain escaped chars...
     print_info(reports, pot)
-    #pot.check()
+    # pot.check()
 
     if do_messages:
         print("Writing messages…")

@@ -37,6 +37,7 @@ set(INC
 	../nodes
 	../physics
 	../draw
+	../gpu
 	../../../intern/atomic
 	../../../intern/guardedalloc
 	../../../intern/mikktspace

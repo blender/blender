@@ -127,11 +127,12 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals *kg, int id, float x, fl
 	const TextureInfo& info = kernel_tex_fetch(__texture_info, id);
 	CUtexObject tex = (CUtexObject)info.data;
 
-	/* float4, byte4 and half4 */
+	/* float4, byte4, ushort4 and half4 */
 	const int texture_type = kernel_tex_type(id);
 	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 ||
 	   texture_type == IMAGE_DATA_TYPE_BYTE4 ||
-	   texture_type == IMAGE_DATA_TYPE_HALF4)
+	   texture_type == IMAGE_DATA_TYPE_HALF4 ||
+	   texture_type == IMAGE_DATA_TYPE_USHORT4)
 	{
 		if(info.interpolation == INTERPOLATION_CUBIC) {
 			return kernel_tex_image_interp_bicubic<float4>(info, tex, x, y);
@@ -164,7 +165,8 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 	const int texture_type = kernel_tex_type(id);
 	if(texture_type == IMAGE_DATA_TYPE_FLOAT4 ||
 	   texture_type == IMAGE_DATA_TYPE_BYTE4 ||
-	   texture_type == IMAGE_DATA_TYPE_HALF4)
+	   texture_type == IMAGE_DATA_TYPE_HALF4 ||
+	   texture_type == IMAGE_DATA_TYPE_USHORT4)
 	{
 		if(interpolation == INTERPOLATION_CUBIC) {
 			return kernel_tex_image_interp_bicubic_3d<float4>(info, tex, x, y, z);
@@ -186,4 +188,3 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals *kg, int id, float x,
 		return make_float4(f, f, f, 1.0f);
 	}
 }
-

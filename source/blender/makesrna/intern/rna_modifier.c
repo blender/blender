@@ -50,6 +50,7 @@
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
+#include "BKE_ocean.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
 
 #include "RNA_access.h"
@@ -657,7 +658,7 @@ static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max
 	*max = max_ii(0, mmd->totlvl);  /* intentionally _not_ -1 */
 }
 
-static int rna_MultiresModifier_external_get(PointerRNA *ptr)
+static bool rna_MultiresModifier_external_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	Mesh *me = ob->data;
@@ -706,7 +707,7 @@ static void rna_ShrinkwrapModifier_face_cull_set(struct PointerRNA *ptr, int val
 	    (swm->shrinkOpts & ~(MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE | MOD_SHRINKWRAP_CULL_TARGET_BACKFACE)) | value;
 }
 
-static int rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
+static bool rna_MeshDeformModifier_is_bound_get(PointerRNA *ptr)
 {
 	return (((MeshDeformModifierData *)ptr->data)->bindcagecos != NULL);
 }
@@ -720,7 +721,7 @@ static PointerRNA rna_SoftBodyModifier_settings_get(PointerRNA *ptr)
 static PointerRNA rna_SoftBodyModifier_point_cache_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
-	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->pointcache);
+	return rna_pointer_inherit_refine(ptr, &RNA_PointCache, ob->soft->shared->pointcache);
 }
 
 static PointerRNA rna_CollisionModifier_settings_get(PointerRNA *ptr)
@@ -743,26 +744,7 @@ static void rna_OceanModifier_init_update(Main *bmain, Scene *scene, PointerRNA 
 {
 	OceanModifierData *omd = (OceanModifierData *)ptr->data;
 
-	omd->refresh |= (MOD_OCEAN_REFRESH_RESET | MOD_OCEAN_REFRESH_SIM | MOD_OCEAN_REFRESH_CLEAR_CACHE);
-
-	rna_Modifier_update(bmain, scene, ptr);
-}
-
-static void rna_OceanModifier_sim_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-
-	omd->refresh |= MOD_OCEAN_REFRESH_SIM;
-
-	rna_Modifier_update(bmain, scene, ptr);
-}
-
-static void rna_OceanModifier_topology_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	OceanModifierData *omd = (OceanModifierData *)ptr->data;
-
-	omd->refresh |= MOD_OCEAN_REFRESH_TOPOLOGY;
-
+	BKE_ocean_free_modifier_cache(omd);
 	rna_Modifier_update(bmain, scene, ptr);
 }
 
@@ -776,12 +758,11 @@ static void rna_OceanModifier_ocean_chop_set(PointerRNA *ptr, float value)
 	if ((old_value == 0.0f && value > 0.0f) ||
 	    (old_value > 0.0f && value == 0.0f))
 	{
-		omd->refresh |= MOD_OCEAN_REFRESH_RESET;
-		omd->refresh |= MOD_OCEAN_REFRESH_CLEAR_CACHE;
+		BKE_ocean_free_modifier_cache(omd);
 	}
 }
 
-static int rna_LaplacianDeformModifier_is_bind_get(PointerRNA *ptr)
+static bool rna_LaplacianDeformModifier_is_bind_get(PointerRNA *ptr)
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)ptr->data;
 	return ((lmd->flag & MOD_LAPLACIANDEFORM_BIND) && (lmd->cache_system != NULL));
@@ -1130,13 +1111,13 @@ static void rna_CorrectiveSmoothModifier_rest_source_update(Main *bmain, Scene *
 	rna_CorrectiveSmoothModifier_update(bmain, scene, ptr);
 }
 
-static int rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
+static bool rna_CorrectiveSmoothModifier_is_bind_get(PointerRNA *ptr)
 {
 	CorrectiveSmoothModifierData *csmd = (CorrectiveSmoothModifierData *)ptr->data;
 	return (csmd->bind_coords != NULL);
 }
 
-static int rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
+static bool rna_SurfaceDeformModifier_is_bound_get(PointerRNA *ptr)
 {
 	return (((SurfaceDeformModifierData *)ptr->data)->verts != NULL);
 }
@@ -1198,8 +1179,8 @@ static void rna_ParticleInstanceModifier_particle_system_set(PointerRNA *ptr, co
 static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static const EnumPropertyItem prop_subdivision_type_items[] = {
-		{0, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
-		{1, "SIMPLE", 0, "Simple", ""},
+		{SUBSURF_TYPE_CATMULL_CLARK, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
+		{SUBSURF_TYPE_SIMPLE, "SIMPLE", 0, "Simple", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1331,7 +1312,7 @@ static void rna_def_modifier_warp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_volume_preserve", PROP_BOOLEAN, PROP_NONE);
@@ -1922,7 +1903,7 @@ static void rna_def_modifier_hook(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "falloff_curve", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "curfalloff");
-	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom Lamp Falloff Curve");
+	RNA_def_property_ui_text(prop, "Falloff Curve", "Custom falloff curve");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "center", PROP_FLOAT, PROP_NONE);
@@ -4097,7 +4078,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Size", "Surface scale factor (does not affect the height of the waves)");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "repeat_x", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_x");
@@ -4105,7 +4086,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat X", "Repetitions of the generated surface in X");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "repeat_y", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "repeat_y");
@@ -4113,7 +4094,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 1024);
 	RNA_def_property_ui_range(prop, 1, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Repeat Y", "Repetitions of the generated surface in Y");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_topology_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "use_normals", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_OCEAN_GENERATE_NORMALS);
@@ -4177,7 +4158,7 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "wave_scale", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "wave_scale");
 	RNA_def_property_ui_text(prop, "Wave Scale", "Scale of the displacement effect");
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "depth", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "depth");
@@ -4209,13 +4190,13 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	                         "Choppiness of the wave's crest (adds some horizontal component to the displacement)");
 	RNA_def_property_ui_range(prop, 0.0, 4.0, 3, -1);
 	RNA_def_property_float_funcs(prop, NULL, "rna_OceanModifier_ocean_chop_set", NULL);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "time", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "time");
 	RNA_def_property_ui_text(prop, "Time", "Current time of the simulation");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, -1);
-	RNA_def_property_update(prop, 0, "rna_OceanModifier_sim_update");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "random_seed", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "seed");

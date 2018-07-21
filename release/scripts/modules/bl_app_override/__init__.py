@@ -172,6 +172,7 @@ def ui_draw_filter_register(
 
         class Wrapper(cls_real):
             __slots__ = ()
+
             def __getattribute__(self, attr):
                 if attr == "layout":
                     return UILayout_Fake(self_real.layout)

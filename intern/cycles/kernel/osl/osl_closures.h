@@ -5,7 +5,7 @@
  * All Rights Reserved.
  *
  * Modifications Copyright 2011, Blender Foundation.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
@@ -79,6 +79,7 @@ void closure_bsdf_microfacet_multi_ggx_fresnel_prepare(OSL::RendererServices *, 
 void closure_bsdf_microfacet_multi_ggx_glass_fresnel_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_microfacet_multi_ggx_aniso_fresnel_prepare(OSL::RendererServices *, int id, void *data);
 void closure_bsdf_principled_clearcoat_prepare(OSL::RendererServices *, int id, void *data);
+void closure_bsdf_principled_hair_prepare(OSL::RendererServices *, int id, void *data);
 
 #define CCLOSURE_PREPARE(name, classname)          \
 void name(RendererServices *, int id, void *data) \
@@ -146,4 +147,3 @@ CCLOSURE_PREPARE_STATIC(bsdf_##lower##_prepare, Upper##Closure)
 CCL_NAMESPACE_END
 
 #endif /* __OSL_CLOSURES_H__ */
-

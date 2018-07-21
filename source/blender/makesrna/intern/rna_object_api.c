@@ -517,7 +517,7 @@ void RNA_api_object(StructRNA *srna)
 	/* Camera-related operations */
 	func = RNA_def_function(srna, "calc_matrix_camera", "rna_Object_calc_matrix_camera");
 	RNA_def_function_ui_description(func, "Generate the camera projection matrix of this object "
-	                                      "(mostly useful for Camera and Lamp types)");
+	                                      "(mostly useful for Camera and Light types)");
 	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "",
 	                       "Depsgraph to get evaluated data from");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

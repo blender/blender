@@ -29,7 +29,7 @@
  *  \ingroup gpu
  */
 
-#include "../../../intern/gawain/gawain/gwn_shader_interface.h"
+#include "GPU_shader_interface.h"
 
 #define SUPPRESS_GENERIC_MATRIX_API
 #define USE_GPU_PY_MATRIX_API  /* only so values are declared */
@@ -86,7 +86,7 @@ static MatrixState state = {
 #define ProjectionStack state.projection_stack
 #define Projection ProjectionStack.stack[ProjectionStack.top]
 
-void gpuMatrixReset(void)
+void GPU_matrix_reset(void)
 {
 	state.model_view_stack.top = 0;
 	state.projection_stack.top = 0;
@@ -110,7 +110,7 @@ static void checkmat(cosnt float *m)
 	}
 }
 
-#define CHECKMAT(m) checkmat((const float*)m)
+#define CHECKMAT(m) checkmat((const float *)m)
 
 #else
 
@@ -119,76 +119,76 @@ static void checkmat(cosnt float *m)
 #endif
 
 
-void gpuPushMatrix(void)
+void GPU_matrix_push(void)
 {
 	BLI_assert(ModelViewStack.top + 1 < MATRIX_STACK_DEPTH);
 	ModelViewStack.top++;
 	copy_m4_m4(ModelView, ModelViewStack.stack[ModelViewStack.top - 1]);
 }
 
-void gpuPopMatrix(void)
+void GPU_matrix_pop(void)
 {
 	BLI_assert(ModelViewStack.top > 0);
 	ModelViewStack.top--;
 	state.dirty = true;
 }
 
-void gpuPushProjectionMatrix(void)
+void GPU_matrix_push_projection(void)
 {
 	BLI_assert(ProjectionStack.top + 1 < MATRIX_STACK_DEPTH);
 	ProjectionStack.top++;
 	copy_m4_m4(Projection, ProjectionStack.stack[ProjectionStack.top - 1]);
 }
 
-void gpuPopProjectionMatrix(void)
+void GPU_matrix_pop_projection(void)
 {
 	BLI_assert(ProjectionStack.top > 0);
 	ProjectionStack.top--;
 	state.dirty = true;
 }
 
-void gpuLoadMatrix(const float m[4][4])
+void GPU_matrix_set(const float m[4][4])
 {
 	copy_m4_m4(ModelView, m);
 	CHECKMAT(ModelView3D);
 	state.dirty = true;
 }
 
-void gpuLoadIdentityProjectionMatrix(void)
+void GPU_matrix_identity_projection_set(void)
 {
 	unit_m4(Projection);
 	CHECKMAT(Projection3D);
 	state.dirty = true;
 }
 
-void gpuLoadProjectionMatrix(const float m[4][4])
+void GPU_matrix_projection_set(const float m[4][4])
 {
 	copy_m4_m4(Projection, m);
 	CHECKMAT(Projection3D);
 	state.dirty = true;
 }
 
-void gpuLoadIdentity(void)
+void GPU_matrix_identity_set(void)
 {
 	unit_m4(ModelView);
 	state.dirty = true;
 }
 
-void gpuTranslate2f(float x, float y)
+void GPU_matrix_translate_2f(float x, float y)
 {
 	Mat4 m;
 	unit_m4(m);
 	m[3][0] = x;
 	m[3][1] = y;
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 }
 
-void gpuTranslate2fv(const float vec[2])
+void GPU_matrix_translate_2fv(const float vec[2])
 {
-	gpuTranslate2f(vec[0], vec[1]);
+	GPU_matrix_translate_2f(vec[0], vec[1]);
 }
 
-void gpuTranslate3f(float x, float y, float z)
+void GPU_matrix_translate_3f(float x, float y, float z)
 {
 #if 1
 	translate_m4(ModelView, x, y, z);
@@ -199,61 +199,61 @@ void gpuTranslate3f(float x, float y, float z)
 	m[3][0] = x;
 	m[3][1] = y;
 	m[3][2] = z;
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 #endif
 	state.dirty = true;
 }
 
-void gpuTranslate3fv(const float vec[3])
+void GPU_matrix_translate_3fv(const float vec[3])
 {
-	gpuTranslate3f(vec[0], vec[1], vec[2]);
+	GPU_matrix_translate_3f(vec[0], vec[1], vec[2]);
 }
 
-void gpuScaleUniform(float factor)
+void GPU_matrix_scale_1f(float factor)
 {
 	Mat4 m;
 	scale_m4_fl(m, factor);
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 }
 
-void gpuScale2f(float x, float y)
+void GPU_matrix_scale_2f(float x, float y)
 {
 	Mat4 m = {{0.0f}};
 	m[0][0] = x;
 	m[1][1] = y;
 	m[2][2] = 1.0f;
 	m[3][3] = 1.0f;
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 }
 
-void gpuScale2fv(const float vec[2])
+void GPU_matrix_scale_2fv(const float vec[2])
 {
-	gpuScale2f(vec[0], vec[1]);
+	GPU_matrix_scale_2f(vec[0], vec[1]);
 }
 
-void gpuScale3f(float x, float y, float z)
+void GPU_matrix_scale_3f(float x, float y, float z)
 {
 	Mat4 m = {{0.0f}};
 	m[0][0] = x;
 	m[1][1] = y;
 	m[2][2] = z;
 	m[3][3] = 1.0f;
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 }
 
-void gpuScale3fv(const float vec[3])
+void GPU_matrix_scale_3fv(const float vec[3])
 {
-	gpuScale3f(vec[0], vec[1], vec[2]);
+	GPU_matrix_scale_3f(vec[0], vec[1], vec[2]);
 }
 
-void gpuMultMatrix(const float m[4][4])
+void GPU_matrix_mul(const float m[4][4])
 {
 	mul_m4_m4_post(ModelView, m);
 	CHECKMAT(ModelView);
 	state.dirty = true;
 }
 
-void gpuRotate2D(float deg)
+void GPU_matrix_rotate_2d(float deg)
 {
 	/* essentially RotateAxis('Z')
 	 * TODO: simpler math for 2D case
@@ -261,20 +261,20 @@ void gpuRotate2D(float deg)
 	rotate_m4(ModelView, 'Z', DEG2RADF(deg));
 }
 
-void gpuRotate3f(float deg, float x, float y, float z)
+void GPU_matrix_rotate_3f(float deg, float x, float y, float z)
 {
 	const float axis[3] = {x, y, z};
-	gpuRotate3fv(deg, axis);
+	GPU_matrix_rotate_3fv(deg, axis);
 }
 
-void gpuRotate3fv(float deg, const float axis[3])
+void GPU_matrix_rotate_3fv(float deg, const float axis[3])
 {
 	Mat4 m;
 	axis_angle_to_mat4(m, axis, DEG2RADF(deg));
-	gpuMultMatrix(m);
+	GPU_matrix_mul(m);
 }
 
-void gpuRotateAxis(float deg, char axis)
+void GPU_matrix_rotate_axis(float deg, char axis)
 {
 	/* rotate_m4 works in place */
 	rotate_m4(ModelView, axis, DEG2RADF(deg));
@@ -398,14 +398,14 @@ static void mat4_look_from_origin(float m[4][4], float lookdir[3], float camup[3
 	state.dirty = true;
 }
 
-void gpuOrtho(float left, float right, float bottom, float top, float near, float far)
+void GPU_matrix_ortho_set(float left, float right, float bottom, float top, float near, float far)
 {
 	mat4_ortho_set(Projection, left, right, bottom, top, near, far);
 	CHECKMAT(Projection);
 	state.dirty = true;
 }
 
-void gpuOrtho2D(float left, float right, float bottom, float top)
+void GPU_matrix_ortho_2d_set(float left, float right, float bottom, float top)
 {
 	Mat4 m;
 	mat4_ortho_set(m, left, right, bottom, top, -1.0f, 1.0f);
@@ -413,21 +413,21 @@ void gpuOrtho2D(float left, float right, float bottom, float top)
 	state.dirty = true;
 }
 
-void gpuFrustum(float left, float right, float bottom, float top, float near, float far)
+void GPU_matrix_frustum_set(float left, float right, float bottom, float top, float near, float far)
 {
 	mat4_frustum_set(Projection, left, right, bottom, top, near, far);
 	CHECKMAT(Projection);
 	state.dirty = true;
 }
 
-void gpuPerspective(float fovy, float aspect, float near, float far)
+void GPU_matrix_perspective_set(float fovy, float aspect, float near, float far)
 {
 	float half_height = tanf(fovy * (float)(M_PI / 360.0)) * near;
 	float half_width = half_height * aspect;
-	gpuFrustum(-half_width, +half_width, -half_height, +half_height, near, far);
+	GPU_matrix_frustum_set(-half_width, +half_width, -half_height, +half_height, near, far);
 }
 
-void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
+void GPU_matrix_look_at(float eyeX, float eyeY, float eyeZ, float centerX, float centerY, float centerZ, float upX, float upY, float upZ)
 {
 	Mat4 cm;
 	float lookdir[3];
@@ -439,11 +439,11 @@ void gpuLookAt(float eyeX, float eyeY, float eyeZ, float centerX, float centerY,
 
 	mat4_look_from_origin(cm, lookdir, camup);
 
-	gpuMultMatrix(cm);
-	gpuTranslate3f(-eyeX, -eyeY, -eyeZ);
+	GPU_matrix_mul(cm);
+	GPU_matrix_translate_3f(-eyeX, -eyeY, -eyeZ);
 }
 
-void gpuProject(const float world[3], const float model[4][4], const float proj[4][4], const int view[4], float win[3])
+void GPU_matrix_project(const float world[3], const float model[4][4], const float proj[4][4], const int view[4], float win[3])
 {
 	float v[4];
 
@@ -459,7 +459,7 @@ void gpuProject(const float world[3], const float model[4][4], const float proj[
 	win[2] = (v[2] + 1) * 0.5f;
 }
 
-bool gpuUnProject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3])
+bool GPU_matrix_unproject(const float win[3], const float model[4][4], const float proj[4][4], const int view[4], float world[3])
 {
 	float pm[4][4];
 	float in[4];
@@ -497,7 +497,7 @@ bool gpuUnProject(const float win[3], const float model[4][4], const float proj[
 	return true;
 }
 
-const float (*gpuGetModelViewMatrix(float m[4][4]))[4]
+const float (*GPU_matrix_model_view_get(float m[4][4]))[4]
 {
 	if (m) {
 		copy_m4_m4(m, ModelView);
@@ -508,7 +508,7 @@ const float (*gpuGetModelViewMatrix(float m[4][4]))[4]
 	}
 }
 
-const float (*gpuGetProjectionMatrix(float m[4][4]))[4]
+const float (*GPU_matrix_projection_get(float m[4][4]))[4]
 {
 	if (m) {
 		copy_m4_m4(m, Projection);
@@ -519,7 +519,7 @@ const float (*gpuGetProjectionMatrix(float m[4][4]))[4]
 	}
 }
 
-const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4]
+const float (*GPU_matrix_model_view_projection_get(float m[4][4]))[4]
 {
 	if (m == NULL) {
 		static Mat4 temp;
@@ -530,14 +530,14 @@ const float (*gpuGetModelViewProjectionMatrix(float m[4][4]))[4]
 	return m;
 }
 
-const float (*gpuGetNormalMatrix(float m[3][3]))[3]
+const float (*GPU_matrix_normal_get(float m[3][3]))[3]
 {
 	if (m == NULL) {
 		static Mat3 temp3;
 		m = temp3;
 	}
 
-	copy_m3_m4(m, (const float (*)[4])gpuGetModelViewMatrix(NULL));
+	copy_m3_m4(m, (const float (*)[4])GPU_matrix_model_view_get(NULL));
 
 	invert_m3(m);
 	transpose_m3(m);
@@ -545,40 +545,40 @@ const float (*gpuGetNormalMatrix(float m[3][3]))[3]
 	return m;
 }
 
-const float (*gpuGetNormalMatrixInverse(float m[3][3]))[3]
+const float (*GPU_matrix_normal_inverse_get(float m[3][3]))[3]
 {
 	if (m == NULL) {
 		static Mat3 temp3;
 		m = temp3;
 	}
 
-	gpuGetNormalMatrix(m);
+	GPU_matrix_normal_get(m);
 	invert_m3(m);
 
 	return m;
 }
 
-void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
+void GPU_matrix_bind(const GPUShaderInterface *shaderface)
 {
 	/* set uniform values to matrix stack values
 	 * call this before a draw call if desired matrices are dirty
 	 * call glUseProgram before this, as glUniform expects program to be bound
 	 */
 
-	const Gwn_ShaderInput *MV = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MODELVIEW);
-	const Gwn_ShaderInput *P = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_PROJECTION);
-	const Gwn_ShaderInput *MVP = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MVP);
+	const GPUShaderInput *MV = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW);
+	const GPUShaderInput *P = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION);
+	const GPUShaderInput *MVP = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MVP);
 
-	const Gwn_ShaderInput *N = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_NORMAL);
-	const Gwn_ShaderInput *MV_inv = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_MODELVIEW_INV);
-	const Gwn_ShaderInput *P_inv = GWN_shaderinterface_uniform_builtin(shaderface, GWN_UNIFORM_PROJECTION_INV);
+	const GPUShaderInput *N = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_NORMAL);
+	const GPUShaderInput *MV_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_MODELVIEW_INV);
+	const GPUShaderInput *P_inv = GPU_shaderinterface_uniform_builtin(shaderface, GPU_UNIFORM_PROJECTION_INV);
 
 	if (MV) {
 #if DEBUG_MATRIX_BIND
 		puts("setting MV matrix");
 #endif
 
-		glUniformMatrix4fv(MV->location, 1, GL_FALSE, (const float *)gpuGetModelViewMatrix(NULL));
+		glUniformMatrix4fv(MV->location, 1, GL_FALSE, (const float *)GPU_matrix_model_view_get(NULL));
 	}
 
 	if (P) {
@@ -586,7 +586,7 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 		puts("setting P matrix");
 #endif
 
-		glUniformMatrix4fv(P->location, 1, GL_FALSE, (const float *)gpuGetProjectionMatrix(NULL));
+		glUniformMatrix4fv(P->location, 1, GL_FALSE, (const float *)GPU_matrix_projection_get(NULL));
 	}
 
 	if (MVP) {
@@ -594,7 +594,7 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 		puts("setting MVP matrix");
 #endif
 
-		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, (const float *)gpuGetModelViewProjectionMatrix(NULL));
+		glUniformMatrix4fv(MVP->location, 1, GL_FALSE, (const float *)GPU_matrix_model_view_projection_get(NULL));
 	}
 
 	if (N) {
@@ -602,19 +602,19 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 		puts("setting normal matrix");
 #endif
 
-		glUniformMatrix3fv(N->location, 1, GL_FALSE, (const float *)gpuGetNormalMatrix(NULL));
+		glUniformMatrix3fv(N->location, 1, GL_FALSE, (const float *)GPU_matrix_normal_get(NULL));
 	}
 
 	if (MV_inv) {
 		Mat4 m;
-		gpuGetModelViewMatrix(m);
+		GPU_matrix_model_view_get(m);
 		invert_m4(m);
 		glUniformMatrix4fv(MV_inv->location, 1, GL_FALSE, (const float *)m);
 	}
 
 	if (P_inv) {
 		Mat4 m;
-		gpuGetProjectionMatrix(m);
+		GPU_matrix_projection_get(m);
 		invert_m4(m);
 		glUniformMatrix4fv(P_inv->location, 1, GL_FALSE, (const float *)m);
 	}
@@ -622,7 +622,7 @@ void gpuBindMatrices(const Gwn_ShaderInterface *shaderface)
 	state.dirty = false;
 }
 
-bool gpuMatricesDirty(void)
+bool GPU_matrix_dirty_get(void)
 {
 	return state.dirty;
 }

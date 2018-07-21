@@ -76,9 +76,8 @@ ccl_device void emissive_sample(const float3 Ng, float randu, float randv,
 ccl_device float3 emissive_simple_eval(const float3 Ng, const float3 I)
 {
 	float res = emissive_pdf(Ng, I);
-	
+
 	return make_float3(res, res, res);
 }
 
 CCL_NAMESPACE_END
-

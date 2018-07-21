@@ -255,7 +255,6 @@ static void pydriver_error(ChannelDriver *driver)
 #define OK_OP(op) [op] = 1
 
 const char secure_opcodes[255] = {
-	OK_OP(0),
 	OK_OP(POP_TOP),
 	OK_OP(ROT_TWO),
 	OK_OP(ROT_THREE),
@@ -349,15 +348,14 @@ static bool bpy_driver_secure_bytecode_validate(PyObject *expr_code, PyObject *d
 
 	/* Check opcodes. */
 	{
-		const char *codestr;
+		const _Py_CODEUNIT *codestr;
 		Py_ssize_t  code_len;
 
 		PyBytes_AsStringAndSize(py_code->co_code, (char **)&codestr, &code_len);
+		code_len /= sizeof(*codestr);
 
-#define CODESIZE(op) (HAS_ARG(op) ? 3 : 1)
-
-		for (Py_ssize_t i = 0; i < code_len; i += CODESIZE(codestr[i])) {
-			const int opcode = codestr[i];
+		for (Py_ssize_t i = 0; i < code_len; i++) {
+			const int opcode = _Py_OPCODE(codestr[i]);
 			if (secure_opcodes[opcode] == 0) {
 				fprintf(stderr, "\tBPY_driver_eval() - restructed access disallows opcode '%d', "
 				                "enable auto-execution to support\n", opcode);

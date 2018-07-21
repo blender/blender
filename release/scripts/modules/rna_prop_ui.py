@@ -129,14 +129,25 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         props.data_path = context_member
         del row
 
+    show_developer_ui = context.user_preferences.view.show_developer_ui
     rna_properties = {prop.identifier for prop in rna_item.bl_rna.properties if prop.is_runtime} if items else None
+
+    layout.use_property_split = True
+    layout.use_property_decorate = False  # No animation.
+
+    flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
     for key, val in items:
 
         if key == '_RNA_UI':
             continue
 
-        row = layout.row()
+        is_rna = (key in rna_properties)
+
+        # only show API defined for developers
+        if is_rna and not show_developer_ui:
+            continue
+
         to_dict = getattr(val, "to_dict", None)
         to_list = getattr(val, "to_list", None)
 
@@ -150,19 +161,20 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         else:
             val_draw = val
 
+        row = flow.row(align=True)
         box = row.box()
 
         if use_edit:
             split = box.split(percentage=0.75)
-            row = split.row()
+            row = split.row(align=True)
         else:
-            row = box.row()
+            row = box.row(align=True)
+
+        row.alignment = 'RIGHT'
 
         row.label(text=key, translate=False)
 
-        # explicit exception for arrays
-        is_rna = (key in rna_properties)
-
+        # explicit exception for arrays.
         if to_dict or to_list:
             row.label(text=val_draw, translate=False)
         else:
@@ -180,6 +192,8 @@ def draw(layout, context, context_member, property_type, use_edit=True):
                 assign_props(props, val_draw, key)
             else:
                 row.label(text="API Defined")
+
+    del flow
 
 
 class PropertyPanel:

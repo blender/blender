@@ -63,4 +63,3 @@ ccl_device void svm_node_tex_wave(KernelGlobals *kg, ShaderData *sd, float *stac
 }
 
 CCL_NAMESPACE_END
-

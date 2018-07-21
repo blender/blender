@@ -279,9 +279,6 @@ enum {
 /* this is so we can save bmesh files that load in trunk, ignoring NGons
  * will eventually be removed */
 
-#define USE_BMESH_SAVE_AS_COMPAT
-#define USE_BMESH_SAVE_WITHOUT_MFACE
-
 /* enable this so meshes get tessfaces calculated by default */
 /* #define USE_TESSFACE_DEFAULT */
 

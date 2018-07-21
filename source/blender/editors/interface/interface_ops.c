@@ -948,10 +948,13 @@ void UI_editsource_active_but_test(uiBut *but)
 
 static int editsource_text_edit(
         bContext *C, wmOperator *op,
-        char filepath[FILE_MAX], int line)
+        const char filepath[FILE_MAX], const int line)
 {
 	struct Main *bmain = CTX_data_main(C);
 	Text *text;
+
+	/* Developers may wish to copy-paste to an external editor. */
+	printf("%s:%d\n", filepath, line);
 
 	for (text = bmain->text.first; text; text = text->id.next) {
 		if (text->name && BLI_path_cmp(text->name, filepath) == 0) {
@@ -1356,6 +1359,7 @@ void ED_operatortypes_ui(void)
 
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
+	WM_operatortype_append(UI_OT_eyedropper_color_crypto);
 	WM_operatortype_append(UI_OT_eyedropper_colorband);
 	WM_operatortype_append(UI_OT_eyedropper_colorband_point);
 	WM_operatortype_append(UI_OT_eyedropper_id);

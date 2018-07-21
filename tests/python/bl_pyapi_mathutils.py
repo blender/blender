@@ -21,22 +21,22 @@ vector_data = (
     (-0.854645, 0.518036, 0.033936),
     (0.42514, -0.437866, -0.792114),
     (-0.358948, 0.597046, 0.717377),
-    (-0.985413,0.144714, 0.089294),
-    )
+    (-0.985413, 0.144714, 0.089294),
+)
 
 # get data at different scales
 vector_data = sum(
     (tuple(tuple(a * scale for a in v) for v in vector_data)
-    for scale in (s * sign for s in (0.0001, 0.1, 1.0, 10.0, 1000.0, 100000.0)
-                           for sign in (1.0, -1.0))), ()) + ((0.0, 0.0, 0.0),)
+     for scale in (s * sign for s in (0.0001, 0.1, 1.0, 10.0, 1000.0, 100000.0)
+                   for sign in (1.0, -1.0))), ()) + ((0.0, 0.0, 0.0),)
 
 
 class MatrixTesting(unittest.TestCase):
     def test_matrix_column_access(self):
-        #mat =
-        #[ 1  2  3  4 ]
-        #[ 1  2  3  4 ]
-        #[ 1  2  3  4 ]
+        # mat =
+        # [ 1  2  3  4 ]
+        # [ 1  2  3  4 ]
+        # [ 1  2  3  4 ]
         mat = Matrix(((1, 11, 111),
                       (2, 22, 222),
                       (3, 33, 333),
@@ -81,11 +81,11 @@ class MatrixTesting(unittest.TestCase):
             self.assertIn(item, indices)
 
     def test_matrix_to_3x3(self):
-        #mat =
-        #[ 1  2  3  4  ]
-        #[ 2  4  6  8  ]
-        #[ 3  6  9  12 ]
-        #[ 4  8  12 16 ]
+        # mat =
+        # [ 1  2  3  4  ]
+        # [ 2  4  6  8  ]
+        # [ 3  6  9  12 ]
+        # [ 4  8  12 16 ]
         mat = Matrix(tuple((i, 2 * i, 3 * i, 4 * i) for i in range(1, 5)))
         mat_correct = Matrix(((1, 2, 3), (2, 4, 6), (3, 6, 9)))
         self.assertEqual(mat.to_3x3(), mat_correct)
@@ -371,7 +371,6 @@ class KDTreeTesting(unittest.TestCase):
                     self.assertEqual(ret_regular[1] % 2, 0)
                     ret_filter = k_all.find(co, lambda i: (i % 2) == 0)
                     self.assertAlmostEqualVector(ret_regular, ret_filter)
-
 
         # filter out all values (search odd tree for even values and the reverse)
         co = (0,) * 3

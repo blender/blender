@@ -124,13 +124,13 @@ int BIF_snappingSupported(Object *obedit)
 }
 #endif
 
-bool validSnap(TransInfo *t)
+bool validSnap(const TransInfo *t)
 {
 	return (t->tsnap.status & (POINT_INIT | TARGET_INIT)) == (POINT_INIT | TARGET_INIT) ||
 	       (t->tsnap.status & (MULTI_POINTS | TARGET_INIT)) == (MULTI_POINTS | TARGET_INIT);
 }
 
-bool activeSnap(TransInfo *t)
+bool activeSnap(const TransInfo *t)
 {
 	return ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP) ||
 	       ((t->modifiers & (MOD_SNAP | MOD_SNAP_INVERT)) == MOD_SNAP_INVERT);
@@ -155,7 +155,6 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (validSnap(t)) {
 			TransSnapPoint *p;
-			View3D *v3d = CTX_wm_view3d(C);
 			RegionView3D *rv3d = CTX_wm_region_view3d(C);
 			float imat[4][4];
 			float size;
@@ -166,7 +165,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			invert_m4_m4(imat, rv3d->viewmat);
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
@@ -191,7 +190,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			if (usingSnappingNormal(t) && validSnappingNormal(t)) {
 				immUniformColor4ubv(activeCol);
 
-				immBegin(GWN_PRIM_LINES, 2);
+				immBegin(GPU_PRIM_LINES, 2);
 				immVertex3f(pos, t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
 				immVertex3f(pos, t->tsnap.snapPoint[0] + t->tsnap.snapNormal[0],
 				            t->tsnap.snapPoint[1] + t->tsnap.snapNormal[1],
@@ -201,8 +200,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			immUnbindProgram();
 
-			if (v3d->zbuf)
-				GPU_depth_test(true);
+			GPU_depth_test(true);
 		}
 	}
 	else if (t->spacetype == SPACE_IMAGE) {
@@ -221,7 +219,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 
 			GPU_blend(true);
 
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -453,12 +451,12 @@ void resetSnapping(TransInfo *t)
 	t->tsnap.snapNodeBorder = 0;
 }
 
-bool usingSnappingNormal(TransInfo *t)
+bool usingSnappingNormal(const TransInfo *t)
 {
 	return t->tsnap.align;
 }
 
-bool validSnappingNormal(TransInfo *t)
+bool validSnappingNormal(const TransInfo *t)
 {
 	if (validSnap(t)) {
 		if (!is_zero_v3(t->tsnap.snapNormal)) {
@@ -791,7 +789,7 @@ void removeSnapPoint(TransInfo *t)
 	}
 }
 
-void getSnapPoint(TransInfo *t, float vec[3])
+void getSnapPoint(const TransInfo *t, float vec[3])
 {
 	if (t->tsnap.points.first) {
 		TransSnapPoint *p;

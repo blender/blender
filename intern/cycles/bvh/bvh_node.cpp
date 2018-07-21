@@ -206,7 +206,7 @@ void InnerNode::print(int depth) const
 {
 	for(int i = 0; i < depth; i++)
 		printf("  ");
-	
+
 	printf("inner node %p\n", (void*)this);
 
 	if(children[0])
@@ -219,9 +219,8 @@ void LeafNode::print(int depth) const
 {
 	for(int i = 0; i < depth; i++)
 		printf("  ");
-	
+
 	printf("leaf node %d to %d\n", lo, hi);
 }
 
 CCL_NAMESPACE_END
-

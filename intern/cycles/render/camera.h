@@ -181,7 +181,7 @@ public:
 	/* functions */
 	Camera();
 	~Camera();
-	
+
 	void compute_auto_viewplane();
 
 	void update(Scene *scene);
@@ -213,4 +213,3 @@ private:
 CCL_NAMESPACE_END
 
 #endif /* __CAMERA_H__ */
-

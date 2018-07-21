@@ -42,11 +42,11 @@ def example_function(text, save_path, render_path):
     scene.camera = cam_ob       # set the active camera
     cam_ob.location = 0.0, 0.0, 10.0
 
-    # Lamp
-    lamp_data = bpy.data.lamps.new("MyLamp", 'POINT')
-    lamp_ob = bpy.data.objects.new(name="MyCam", object_data=lamp_data)
-    scene.objects.link(lamp_ob)
-    lamp_ob.location = 2.0, 2.0, 5.0
+    # Light
+    light_data = bpy.data.lights.new("MyLight", 'POINT')
+    light_ob = bpy.data.objects.new(name="MyCam", object_data=light_data)
+    scene.objects.link(light_ob)
+    light_ob.location = 2.0, 2.0, 5.0
 
     if save_path:
         bpy.ops.wm.save_as_mainfile(filepath=save_path)

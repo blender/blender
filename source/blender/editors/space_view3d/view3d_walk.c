@@ -134,18 +134,15 @@ typedef enum eWalkGravityState {
 void walk_modal_keymap(wmKeyConfig *keyconf)
 {
 	static const EnumPropertyItem modal_items[] = {
-		{WALK_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 		{WALK_MODAL_CONFIRM, "CONFIRM", 0, "Confirm", ""},
+		{WALK_MODAL_CANCEL, "CANCEL", 0, "Cancel", ""},
 
-		{WALK_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},
-		{WALK_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
-
-		{WALK_MODAL_DIR_FORWARD, "FORWARD", 0, "Move Forward", ""},
-		{WALK_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Move Backward", ""},
-		{WALK_MODAL_DIR_LEFT, "LEFT", 0, "Move Left (Strafe)", ""},
-		{WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Move Right (Strafe)", ""},
-		{WALK_MODAL_DIR_UP, "UP", 0, "Move Up", ""},
-		{WALK_MODAL_DIR_DOWN, "DOWN", 0, "Move Down", ""},
+		{WALK_MODAL_DIR_FORWARD, "FORWARD", 0, "Forward", ""},
+		{WALK_MODAL_DIR_BACKWARD, "BACKWARD", 0, "Backward", ""},
+		{WALK_MODAL_DIR_LEFT, "LEFT", 0, "Left (Strafe)", ""},
+		{WALK_MODAL_DIR_RIGHT, "RIGHT", 0, "Right (Strafe)", ""},
+		{WALK_MODAL_DIR_UP, "UP", 0, "Up", ""},
+		{WALK_MODAL_DIR_DOWN, "DOWN", 0, "Down", ""},
 
 		{WALK_MODAL_DIR_FORWARD_STOP, "FORWARD_STOP", 0, "Stop Move Forward", ""},
 		{WALK_MODAL_DIR_BACKWARD_STOP, "BACKWARD_STOP", 0, "Stop Mode Backward", ""},
@@ -156,14 +153,17 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 
 		{WALK_MODAL_TELEPORT, "TELEPORT", 0, "Teleport", "Move forward a few units at once"},
 
-		{WALK_MODAL_FAST_ENABLE, "FAST_ENABLE", 0, "Fast Enable", "Move faster (walk or fly)"},
-		{WALK_MODAL_FAST_DISABLE, "FAST_DISABLE", 0, "Fast Disable", "Resume regular speed"},
+		{WALK_MODAL_ACCELERATE, "ACCELERATE", 0, "Accelerate", ""},
+		{WALK_MODAL_DECELERATE, "DECELERATE", 0, "Decelerate", ""},
 
-		{WALK_MODAL_SLOW_ENABLE, "SLOW_ENABLE", 0, "Slow Enable", "Move slower (walk or fly)"},
-		{WALK_MODAL_SLOW_DISABLE, "SLOW_DISABLE", 0, "Slow Disable", "Resume regular speed"},
+		{WALK_MODAL_FAST_ENABLE, "FAST_ENABLE", 0, "Fast", "Move faster (walk or fly)"},
+		{WALK_MODAL_FAST_DISABLE, "FAST_DISABLE", 0, "Fast (Off)", "Resume regular speed"},
+
+		{WALK_MODAL_SLOW_ENABLE, "SLOW_ENABLE", 0, "Slow", "Move slower (walk or fly)"},
+		{WALK_MODAL_SLOW_DISABLE, "SLOW_DISABLE", 0, "Slow (Off)", "Resume regular speed"},
 
 		{WALK_MODAL_JUMP, "JUMP", 0, "Jump", "Jump when in walk mode"},
-		{WALK_MODAL_JUMP_STOP, "JUMP_STOP", 0, "Jump Stop", "Stop pushing jump"},
+		{WALK_MODAL_JUMP_STOP, "JUMP_STOP", 0, "Jump (Off)", "Stop pushing jump"},
 
 		{WALK_MODAL_TOGGLE, "GRAVITY_TOGGLE", 0, "Toggle Gravity", "Toggle gravity effect"},
 
@@ -178,8 +178,8 @@ void walk_modal_keymap(wmKeyConfig *keyconf)
 	keymap = WM_modalkeymap_add(keyconf, "View3D Walk Modal", modal_items);
 
 	/* items for modal map */
-	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, WALK_MODAL_CANCEL);
 	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_ANY, KM_ANY, 0, WALK_MODAL_CANCEL);
+	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, WALK_MODAL_CANCEL);
 
 	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_ANY, KM_ANY, 0, WALK_MODAL_CONFIRM);
 	WM_modalkeymap_add_item(keymap, RETKEY, KM_PRESS, KM_ANY, 0, WALK_MODAL_CONFIRM);
@@ -343,14 +343,14 @@ static void drawWalkPixel(const struct bContext *UNUSED(C), ARegion *ar, void *a
 		yoff = walk->ar->winy / 2;
 	}
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_VIEW_OVERLAY);
 
-	immBegin(GWN_PRIM_LINES, 8);
+	immBegin(GPU_PRIM_LINES, 8);
 
 	/* North */
 	immVertex2i(pos, xoff, yoff + inner_length);

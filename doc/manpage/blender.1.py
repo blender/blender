@@ -42,6 +42,7 @@ def man_format(data):
     data = data.replace("\t", "  ")
     return data
 
+
 if len(sys.argv) != 3:
     import getopt
     raise getopt.GetoptError("Usage: %s <path-to-blender> <output-filename>" % sys.argv[0])

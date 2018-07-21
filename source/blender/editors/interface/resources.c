@@ -260,14 +260,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->panelcolors.back; break;
 				case TH_PANEL_SUB_BACK:
 					cp = ts->panelcolors.sub_back; break;
-				case TH_PANEL_SHOW_HEADER:
-					cp = &setting;
-					setting = ts->panelcolors.show_header;
-					break;
-				case TH_PANEL_SHOW_BACK:
-					cp = &setting;
-					setting = ts->panelcolors.show_back;
-					break;
 
 				case TH_BUTBACK:
 					cp = ts->button; break;
@@ -687,16 +679,16 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_AXIS_Z:
 					cp = btheme->tui.zaxis; break;
 
-				case TH_MANIPULATOR_HI:
-					cp = btheme->tui.manipulator_hi; break;
-				case TH_MANIPULATOR_PRIMARY:
-					cp = btheme->tui.manipulator_primary; break;
-				case TH_MANIPULATOR_SECONDARY:
-					cp = btheme->tui.manipulator_secondary; break;
-				case TH_MANIPULATOR_A:
-					cp = btheme->tui.manipulator_a; break;
-				case TH_MANIPULATOR_B:
-					cp = btheme->tui.manipulator_b; break;
+				case TH_GIZMO_HI:
+					cp = btheme->tui.gizmo_hi; break;
+				case TH_GIZMO_PRIMARY:
+					cp = btheme->tui.gizmo_primary; break;
+				case TH_GIZMO_SECONDARY:
+					cp = btheme->tui.gizmo_secondary; break;
+				case TH_GIZMO_A:
+					cp = btheme->tui.gizmo_a; break;
+				case TH_GIZMO_B:
+					cp = btheme->tui.gizmo_b; break;
 
 				case TH_INFO_SELECTED:
 					cp = ts->info_selected;
@@ -755,7 +747,9 @@ void ui_theme_init_default(void)
 
 	UI_SetTheme(0, 0);  /* make sure the global used in this file is set */
 
+	const int active_theme_area = btheme->active_theme_area;
 	memcpy(btheme, &U_theme_default, sizeof(*btheme));
+	btheme->active_theme_area = active_theme_area;
 }
 
 void ui_style_init_default(void)
@@ -1344,9 +1338,9 @@ void init_userdef_do_versions(Main *bmain)
 		U.savetime = 1;
 // XXX		error(STRINGIFY(BLENDER_STARTUP_FILE)" is buggy, please consider removing it.\n");
 	}
-	if (U.manipulator_size == 0) {
-		U.manipulator_size = 75;
-		U.manipulator_flag |= USER_MANIPULATOR_DRAW;
+	if (U.gizmo_size == 0) {
+		U.gizmo_size = 75;
+		U.gizmo_flag |= USER_GIZMO_DRAW;
 	}
 	if (U.pad_rot_angle == 0.0f)
 		U.pad_rot_angle = 15.0f;
@@ -1389,7 +1383,7 @@ void init_userdef_do_versions(Main *bmain)
 		if (U.rvisize == 0) {
 			U.rvisize = 15;
 			U.rvibright = 8;
-			U.uiflag |= USER_SHOW_ROTVIEWICON;
+			U.uiflag |= USER_SHOW_GIZMO_AXIS;
 		}
 
 	}
@@ -1568,7 +1562,7 @@ void init_userdef_do_versions(Main *bmain)
 	if (!USER_VERSION_ATLEAST(278, 6)) {
 		/* Clear preference flags for re-use. */
 		U.flag &= ~(
-		    USER_FLAG_DEPRECATED_1 | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
+		    USER_FLAG_NUMINPUT_ADVANCED | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
 		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
 		    USER_FLAG_DEPRECATED_9 | USER_DEVELOPER_UI);
 		U.uiflag &= ~(
@@ -1608,11 +1602,7 @@ void init_userdef_do_versions(Main *bmain)
 
 	/* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
-	bAddon *addon = BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module));
-	if (addon) {
-		BLI_remlink(&U.addons, addon);
-		BKE_addon_free(addon);
-	}
+	BKE_addon_remove_safe(&U.addons, "cycles");
 #endif
 
 	/* funny name, but it is GE stuff, moves userdef stuff to engine */

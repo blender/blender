@@ -188,4 +188,3 @@ void CurveSystemManager::tag_update_mesh()
 	need_mesh_update = true;
 }
 CCL_NAMESPACE_END
-

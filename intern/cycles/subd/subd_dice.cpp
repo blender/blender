@@ -348,4 +348,3 @@ void QuadDice::dice(SubPatch& sub, EdgeFactors& ef)
 }
 
 CCL_NAMESPACE_END
-

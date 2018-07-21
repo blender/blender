@@ -25,6 +25,9 @@
 #ifndef __GPU_PRIVATE_H__
 #define __GPU_PRIVATE_H__
 
+struct GPUContext;
+struct GPUFrameBuffer;
+
 /* call this before running any of the functions below */
 void gpu_extensions_init(void);
 void gpu_extensions_exit(void);

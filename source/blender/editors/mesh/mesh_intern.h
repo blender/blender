@@ -92,8 +92,8 @@ void MESH_OT_primitive_monkey_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_uv_sphere_add(struct wmOperatorType *ot);
 void MESH_OT_primitive_ico_sphere_add(struct wmOperatorType *ot);
 
-/* *** editmesh_add_manipulator.c *** */
-void MESH_OT_primitive_cube_add_manipulator(struct wmOperatorType *ot);
+/* *** editmesh_add_gizmo.c *** */
+void MESH_OT_primitive_cube_add_gizmo(struct wmOperatorType *ot);
 
 /* *** editmesh_bevel.c *** */
 void MESH_OT_bevel(struct wmOperatorType *ot);

@@ -33,6 +33,7 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -93,6 +94,8 @@
 #include "UI_interface.h"
 
 #include "RE_pipeline.h"
+
+#include "engines/eevee/eevee_lightcache.h"
 
 #include "render_intern.h"  // own include
 
@@ -615,12 +618,12 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
+	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = BKE_view_layer_add(scene, NULL);
 
-	if (workspace) {
-		BKE_workspace_view_layer_set(workspace, view_layer, scene);
+	if (win) {
+		WM_window_set_active_view_layer(win, view_layer);
 	}
 
 	DEG_id_tag_update(&scene->id, 0);
@@ -671,6 +674,184 @@ void SCENE_OT_view_layer_remove(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
+}
+
+/********************** light cache operators *********************/
+enum {
+	LIGHTCACHE_SUBSET_ALL = 0,
+	LIGHTCACHE_SUBSET_DIRTY,
+	LIGHTCACHE_SUBSET_CUBE,
+};
+
+static void light_cache_bake_tag_cache(Scene *scene, wmOperator *op)
+{
+	if (scene->eevee.light_cache != NULL) {
+		int subset = RNA_enum_get(op->ptr, "subset");
+		switch (subset) {
+			case LIGHTCACHE_SUBSET_ALL:
+				scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_GRID | LIGHTCACHE_UPDATE_CUBE;
+				break;
+			case LIGHTCACHE_SUBSET_CUBE:
+				scene->eevee.light_cache->flag |= LIGHTCACHE_UPDATE_CUBE;
+				break;
+			case LIGHTCACHE_SUBSET_DIRTY:
+				/* Leave tag untouched. */
+				break;
+		}
+	}
+}
+
+/* catch esc */
+static int light_cache_bake_modal(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	Scene *scene = (Scene *) op->customdata;
+
+	/* no running blender, remove handler and pass through */
+	if (0 == WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER)) {
+		return OPERATOR_FINISHED | OPERATOR_PASS_THROUGH;
+	}
+
+	/* running render */
+	switch (event->type) {
+		case ESCKEY:
+			return OPERATOR_RUNNING_MODAL;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+static void light_cache_bake_cancel(bContext *C, wmOperator *op)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	Scene *scene = (Scene *) op->customdata;
+
+	/* kill on cancel, because job is using op->reports */
+	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_RENDER);
+}
+
+/* executes blocking render */
+static int light_cache_bake_exec(bContext *C, wmOperator *op)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+
+	G.is_break = false;
+
+	/* TODO abort if selected engine is not eevee. */
+	void *rj = EEVEE_lightbake_job_data_alloc(bmain, view_layer, scene, false);
+
+	light_cache_bake_tag_cache(scene, op);
+
+	short stop = 0, do_update; float progress; /* Not actually used. */
+	EEVEE_lightbake_job(rj, &stop, &do_update, &progress);
+	EEVEE_lightbake_job_data_free(rj);
+
+	// no redraw needed, we leave state as we entered it
+	ED_update_for_newframe(bmain, CTX_data_depsgraph(C));
+
+	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static int light_cache_bake_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	int delay = RNA_int_get(op->ptr, "delay");
+
+	wmJob *wm_job = EEVEE_lightbake_job_create(wm, win, bmain, view_layer, scene, delay);
+
+	if (!wm_job) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* add modal handler for ESC */
+	WM_event_add_modal_handler(C, op);
+
+	light_cache_bake_tag_cache(scene, op);
+
+	/* store actual owner of job, so modal operator could check for it,
+	 * the reason of this is that active scene could change when rendering
+	 * several layers from compositor [#31800]
+	 */
+	op->customdata = scene;
+
+	WM_jobs_start(wm, wm_job);
+
+	WM_cursor_wait(0);
+
+	return OPERATOR_RUNNING_MODAL;
+}
+
+void SCENE_OT_light_cache_bake(wmOperatorType *ot)
+{
+	static const EnumPropertyItem light_cache_subset_items[] = {
+		{LIGHTCACHE_SUBSET_ALL, "ALL", 0, "All LightProbes", "Bake both irradiance grids and reflection cubemaps"},
+		{LIGHTCACHE_SUBSET_DIRTY, "DIRTY", 0, "Dirty Only", "Only bake lightprobes that are marked as dirty"},
+		{LIGHTCACHE_SUBSET_CUBE, "CUBEMAPS", 0, "Cubemaps Only", "Try to only bake reflection cubemaps if irradiance "
+	                                                             "grids are up to date"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Bake Light Cache";
+	ot->idname = "SCENE_OT_light_cache_bake";
+	ot->description = "Bake the active view layer lighting";
+
+	/* api callbacks */
+	ot->invoke = light_cache_bake_invoke;
+	ot->modal = light_cache_bake_modal;
+	ot->cancel = light_cache_bake_cancel;
+	ot->exec = light_cache_bake_exec;
+
+	ot->prop = RNA_def_int(ot->srna, "delay", 0, 0, 2000, "Delay", "Delay in millisecond before baking starts", 0, 2000);
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+
+	ot->prop = RNA_def_enum(ot->srna, "subset", light_cache_subset_items, 0, "Subset", "Subset of probes to update");
+	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
+}
+
+static bool light_cache_free_poll(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+
+	return scene->eevee.light_cache;
+}
+
+static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+
+	if (!scene->eevee.light_cache) {
+		return OPERATOR_CANCELLED;
+	}
+
+	EEVEE_lightcache_free(scene->eevee.light_cache);
+	scene->eevee.light_cache = NULL;
+
+	EEVEE_lightcache_info_update(&scene->eevee);
+
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+
+	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void SCENE_OT_light_cache_free(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Free Light Cache";
+	ot->idname = "SCENE_OT_light_cache_free";
+	ot->description = "Free cached indirect lighting";
+
+	/* api callbacks */
+	ot->exec = light_cache_free_exec;
+	ot->poll = light_cache_free_poll;
 }
 
 /********************** render view operators *********************/
@@ -1654,7 +1835,7 @@ static int paste_mtex_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (id == NULL) {
 		Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
-		Lamp *la = CTX_data_pointer_get_type(C, "lamp", &RNA_Lamp).data;
+		Lamp *la = CTX_data_pointer_get_type(C, "light", &RNA_Light).data;
 		World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
 		ParticleSystem *psys = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
 		FreestyleLineStyle *linestyle = CTX_data_pointer_get_type(C, "line_style", &RNA_FreestyleLineStyle).data;

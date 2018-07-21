@@ -148,17 +148,17 @@ static void particle_edit_cache_populate(void *vedata,
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
 	{
-		struct Gwn_Batch *strands =
+		struct GPUBatch *strands =
 		        DRW_cache_particles_get_edit_strands(object, psys, edit);
 		DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);
 	}
 	if (pset->selectmode == SCE_SELECT_POINT) {
-		struct Gwn_Batch *points =
+		struct GPUBatch *points =
 		        DRW_cache_particles_get_edit_inner_points(object, psys, edit);
 		DRW_shgroup_call_add(stl->g_data->inner_points_group, points, NULL);
 	}
 	if (ELEM(pset->selectmode, SCE_SELECT_POINT, SCE_SELECT_END)) {
-		struct Gwn_Batch *points =
+		struct GPUBatch *points =
 		        DRW_cache_particles_get_edit_tip_points(object, psys, edit);
 		DRW_shgroup_call_add(stl->g_data->tip_points_group, points, NULL);
 	}

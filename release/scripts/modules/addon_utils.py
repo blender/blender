@@ -78,7 +78,7 @@ def modules_refresh(module_cache=addons_fake_modules):
         try:
             file_mod = open(mod_path, "r", encoding='UTF-8')
         except OSError as ex:
-            print("Error opening file %r: %s" % (mod_path, ex))
+            print("Error opening file:", mod_path, ex)
             return None
 
         with file_mod:
@@ -116,7 +116,7 @@ def modules_refresh(module_cache=addons_fake_modules):
         try:
             ast_data = ast.parse(data, filename=mod_path)
         except:
-            print("Syntax error 'ast.parse' can't read %r" % mod_path)
+            print("Syntax error 'ast.parse' can't read:", repr(mod_path))
             import traceback
             traceback.print_exc()
             ast_data = None
@@ -138,7 +138,7 @@ def modules_refresh(module_cache=addons_fake_modules):
                 mod.__file__ = mod_path
                 mod.__time__ = os.path.getmtime(mod_path)
             except:
-                print("AST error parsing bl_info for %s" % mod_name)
+                print("AST error parsing bl_info for:", mod_name)
                 import traceback
                 traceback.print_exc()
                 raise
@@ -148,8 +148,11 @@ def modules_refresh(module_cache=addons_fake_modules):
 
             return mod
         else:
-            print("fake_module: addon missing 'bl_info' "
-                  "gives bad performance!: %r" % mod_path)
+            print(
+                "fake_module: addon missing 'bl_info' "
+                "gives bad performance!:",
+                repr(mod_path),
+            )
             return None
 
     modules_stale = set(module_cache.keys())
@@ -167,17 +170,21 @@ def modules_refresh(module_cache=addons_fake_modules):
             mod = module_cache.get(mod_name)
             if mod:
                 if mod.__file__ != mod_path:
-                    print("multiple addons with the same name:\n  %r\n  %r" %
-                          (mod.__file__, mod_path))
+                    print(
+                        "multiple addons with the same name:\n"
+                        "  " f"{mod.__file__!r}" "\n"
+                        "  " f"{mod_path!r}"
+                    )
                     error_duplicates.append((mod.bl_info["name"], mod.__file__, mod_path))
 
                 elif mod.__time__ != os.path.getmtime(mod_path):
-                    print("reloading addon:",
-                          mod_name,
-                          mod.__time__,
-                          os.path.getmtime(mod_path),
-                          mod_path,
-                          )
+                    print(
+                        "reloading addon:",
+                        mod_name,
+                        mod.__time__,
+                        os.path.getmtime(mod_path),
+                        repr(mod_path),
+                    )
                     del module_cache[mod_name]
                     mod = None
 
@@ -209,6 +216,8 @@ def modules(module_cache=addons_fake_modules, *, refresh=True):
         )
     )
     return mod_list
+
+
 modules._is_first = True
 
 
@@ -231,10 +240,12 @@ def check(module_name):
     )
 
     if loaded_state is Ellipsis:
-        print("Warning: addon-module %r found module "
-              "but without __addon_enabled__ field, "
-              "possible name collision from file: %r" %
-              (module_name, getattr(mod, "__file__", "<unknown>")))
+        print(
+            "Warning: addon-module " f"{module_name:s}" " found module "
+            "but without '__addon_enabled__' field, "
+            "possible name collision from file:",
+            repr(getattr(mod, "__file__", "<unknown>")),
+        )
 
         loaded_state = False
 
@@ -301,8 +312,10 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             try:
                 mod.unregister()
             except Exception as ex:
-                print("Exception in module unregister(): %r" %
-                      getattr(mod, "__file__", module_name))
+                print(
+                    "Exception in module unregister():",
+                    repr(getattr(mod, "__file__", module_name)),
+                )
                 handle_error(ex)
                 return None
 
@@ -311,7 +324,7 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         mtime_new = os.path.getmtime(mod.__file__)
         if mtime_orig != mtime_new:
             import importlib
-            print("module changed on disk:", mod.__file__, "reloading...")
+            print("module changed on disk:", repr(mod.__file__), "reloading...")
 
             try:
                 importlib.reload(mod)
@@ -341,12 +354,35 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         except Exception as ex:
             # if the addon doesn't exist, dont print full traceback
             if type(ex) is ImportError and ex.name == module_name:
-                print("addon not found: %r" % module_name)
+                print("addon not found:", repr(module_name))
             else:
                 handle_error(ex)
 
             if default_set:
                 _addon_remove(module_name)
+            return None
+
+        # 1.1) fail when add-on is too old
+        # This is a temporary 2.8x migration check, so we can manage addons that are supported.
+
+        # Silent default, we know these need updating.
+        if module_name in {
+			"io_anim_bvh",
+			"io_mesh_ply",
+			"io_mesh_stl",
+			"io_mesh_uv_layout",
+			"io_scene_3ds",
+			"io_scene_fbx",
+			"io_scene_obj",
+			"io_scene_x3d",
+        }:
+            return None
+
+        try:
+            if mod.bl_info.get("blender", (0, 0, 0)) < (2, 80, 0):
+                raise Exception(f"Add-on '{module_name:s}' has not been upgraded to 2.8, ignoring")
+        except Exception as ex:
+            handle_error(ex)
             return None
 
         # 2) try register collected modules
@@ -362,8 +398,10 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         try:
             mod.register()
         except Exception as ex:
-            print("Exception in module register(): %r" %
-                  getattr(mod, "__file__", module_name))
+            print(
+                "Exception in module register():",
+                getattr(mod, "__file__", module_name),
+            )
             handle_error(ex)
             del sys.modules[module_name]
             if default_set:
@@ -413,12 +451,15 @@ def disable(module_name, *, default_set=False, handle_error=None):
         try:
             mod.unregister()
         except Exception as ex:
-            print("Exception in module unregister(): %r" %
-                  getattr(mod, "__file__", module_name))
+            mod_path = getattr(mod, "__file__", module_name)
+            print("Exception in module unregister():", repr(mod_path))
+            del mod_path
             handle_error(ex)
     else:
-        print("addon_utils.disable: %s not %s." %
-              (module_name, "disabled" if mod is None else "loaded"))
+        print(
+            "addon_utils.disable: " f"{module_name:s}" " not",
+            ("disabled" if mod is None else "loaded")
+        )
 
     # could be in more than once, unlikely but better do this just in case.
     if default_set:

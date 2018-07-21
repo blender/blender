@@ -42,7 +42,7 @@
 
 /* all the list begin functions are added manually here, Main is not in SDNA */
 
-static int rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
+static bool rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 {
 	if (G.fileflags & G_AUTOPACK)
 		return 1;
@@ -50,7 +50,7 @@ static int rna_Main_use_autopack_get(PointerRNA *UNUSED(ptr))
 	return 0;
 }
 
-static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), int value)
+static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), bool value)
 {
 	if (value)
 		G.fileflags |= G_AUTOPACK;
@@ -58,12 +58,12 @@ static void rna_Main_use_autopack_set(PointerRNA *UNUSED(ptr), int value)
 		G.fileflags &= ~G_AUTOPACK;
 }
 
-static int rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
+static bool rna_Main_is_saved_get(PointerRNA *UNUSED(ptr))
 {
 	return G.relbase_valid;
 }
 
-static int rna_Main_is_dirty_get(PointerRNA *ptr)
+static bool rna_Main_is_dirty_get(PointerRNA *ptr)
 {
 	/* XXX, not totally nice to do it this way, should store in main ? */
 	Main *bmain = (Main *)ptr->data;
@@ -107,7 +107,7 @@ static void rna_Main_object_begin(CollectionPropertyIterator *iter, PointerRNA *
 	rna_iterator_listbase_begin(iter, &bmain->object, NULL);
 }
 
-static void rna_Main_lamp_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_light_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
 	rna_iterator_listbase_begin(iter, &bmain->lamp, NULL);
@@ -353,7 +353,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"materials", "Material", "rna_Main_mat_begin", "Materials", "Material data-blocks", RNA_def_main_materials},
 		{"node_groups", "NodeTree", "rna_Main_nodetree_begin", "Node Groups", "Node group data-blocks", RNA_def_main_node_groups},
 		{"meshes", "Mesh", "rna_Main_mesh_begin", "Meshes", "Mesh data-blocks", RNA_def_main_meshes},
-		{"lamps", "Lamp", "rna_Main_lamp_begin", "Lamps", "Lamp data-blocks", RNA_def_main_lamps},
+		{"lights", "Light", "rna_Main_light_begin", "Lights", "Light data-blocks", RNA_def_main_lights},
 		{"libraries", "Library", "rna_Main_library_begin", "Libraries", "Library data-blocks", RNA_def_main_libraries},
 		{"screens", "Screen", "rna_Main_screen_begin", "Screens", "Screen data-blocks", RNA_def_main_screens},
 		{"window_managers", "WindowManager", "rna_Main_wm_begin", "Window Managers", "Window manager data-blocks", RNA_def_main_window_managers},

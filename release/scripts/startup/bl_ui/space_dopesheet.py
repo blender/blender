@@ -132,8 +132,8 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_cameras", text="Cameras")
         if bpy.data.grease_pencil:
             flow.prop(dopesheet, "show_gpencil", text="Grease Pencil Objects")
-        if bpy.data.lamps:
-            flow.prop(dopesheet, "show_lamps", text="Lamps")
+        if bpy.data.lights:
+            flow.prop(dopesheet, "show_lights", text="Lights")
         if bpy.data.materials:
             flow.prop(dopesheet, "show_materials", text="Materials")
         if bpy.data.textures:
@@ -263,9 +263,7 @@ class DOPESHEET_HT_editor_buttons(Header):
             row.prop(st.dopesheet, "filter_text", text="")
 
         layout.popover(
-            space_type='DOPESHEET_EDITOR',
-            region_type='HEADER',
-            panel_type="DOPESHEET_PT_filters",
+            panel="DOPESHEET_PT_filters",
             text="",
             icon='FILTER',
         )
@@ -280,11 +278,10 @@ class DOPESHEET_HT_editor_buttons(Header):
         sub.active = toolsettings.use_proportional_action
         sub.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
-
         row = layout.row(align=True)
         row.operator("action.copy", text="", icon='COPYDOWN')
         row.operator("action.paste", text="", icon='PASTEDOWN')
-        if st.mode not in ('GPENCIL', 'MASK'):
+        if st.mode not in {'GPENCIL', 'MASK'}:
             row.operator("action.paste", text="", icon='PASTEFLIPDOWN').flipped = True
 
 
@@ -359,9 +356,9 @@ class DOPESHEET_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # This is a bit misleading as the operator's default text is "Select All" while it actually *toggles* All/None
-        layout.operator("action.select_all_toggle").invert = False
-        layout.operator("action.select_all_toggle", text="Invert Selection").invert = True
+        layout.operator("action.select_all", text="All").action = 'SELECT'
+        layout.operator("action.select_all", text="None").action = 'DESELECT'
+        layout.operator("action.select_all", text="Invert").action = 'INVERT'
 
         layout.separator()
         layout.operator("action.select_border").axis_range = False

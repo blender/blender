@@ -256,7 +256,7 @@ void CLOSURE_NAME(
 		PlanarData pd = planars_data[i];
 
 		/* Fade on geometric normal. */
-		float fade = probe_attenuation_planar(pd, worldPosition, worldNormal, roughness);
+		float fade = probe_attenuation_planar(pd, worldPosition, (gl_FrontFacing) ? worldNormal : -worldNormal, roughness);
 
 		if (fade > 0.0) {
 			if (!(ssrToggle && ssr_id == outputSsrId)) {
@@ -404,7 +404,7 @@ void CLOSURE_NAME(
 		spec_occlu = 1.0;
 	}
 
-	out_spec += spec_accum.rgb * ssr_spec * spec_occlu * float(specToggle);
+	out_spec += spec_accum.rgb * ssr_spec * spec_occlu;
 #endif
 
 #ifdef CLOSURE_REFRACTION
@@ -419,7 +419,12 @@ void CLOSURE_NAME(
 	vec2 C_brdf_lut = texture(utilTex, vec3(C_uv, 1.0)).rg;
 	vec3 C_fresnel = F_ibl(vec3(0.04), brdf_lut) * specular_occlusion(NV, final_ao, C_roughness);
 
-	out_spec += C_spec_accum.rgb * C_fresnel * float(specToggle) * C_intensity;
+	out_spec += C_spec_accum.rgb * C_fresnel * C_intensity;
+#endif
+
+#ifdef CLOSURE_GLOSSY
+	/* Global toggle for lightprobe baking. */
+	out_spec *= float(specToggle);
 #endif
 
 	/* ---------------------------------------------------------------- */

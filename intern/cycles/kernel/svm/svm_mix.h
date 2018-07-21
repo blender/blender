@@ -32,4 +32,3 @@ ccl_device void svm_node_mix(KernelGlobals *kg, ShaderData *sd, float *stack, ui
 }
 
 CCL_NAMESPACE_END
-

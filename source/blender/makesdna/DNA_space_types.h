@@ -138,8 +138,8 @@ typedef struct SpaceButs {
 	short space_subtype;
 
 	short mainb, mainbo, mainbuser; /* context tabs */
-	short re_align, align;          /* align for panels */
 	short preview;                  /* preview is signal to refresh */
+	short pad[2];
 	char flag;
 	char collection_context;
 
@@ -212,14 +212,6 @@ typedef enum eSpaceButtons_Flag {
 	SB_TEX_USER_LIMITED = (1 << 3), /* Do not add materials, particles, etc. in TemplateTextureUser list. */
 	SB_SHADING_CONTEXT = (1 << 4),
 } eSpaceButtons_Flag;
-
-/* SpaceButs.align */
-typedef enum eSpaceButtons_Align {
-	BUT_FREE = 0,
-	BUT_HORIZONTAL = 1,
-	BUT_VERTICAL = 2,
-	BUT_AUTO = 3,
-} eSpaceButtons_Align;
 
 /** \} */
 

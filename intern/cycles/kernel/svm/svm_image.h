@@ -203,4 +203,3 @@ ccl_device void svm_node_tex_environment(KernelGlobals *kg, ShaderData *sd, floa
 }
 
 CCL_NAMESPACE_END
-

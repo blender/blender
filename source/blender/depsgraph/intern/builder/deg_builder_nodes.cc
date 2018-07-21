@@ -829,8 +829,19 @@ void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
 	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
+			if (dtar->id == NULL) {
+				continue;
+			}
 			build_id(dtar->id);
 			build_driver_id_property(dtar->id, dtar->rna_path);
+			/* Corresponds to dtar_id_ensure_proxy_from(). */
+			if ((GS(dtar->id->name) == ID_OB) &&
+			    (((Object *)dtar->id)->proxy_from != NULL))
+			{
+				Object *proxy_from = ((Object *)dtar->id)->proxy_from;
+				build_id(&proxy_from->id);
+				build_driver_id_property(&proxy_from->id, dtar->rna_path);
+			}
 		}
 		DRIVER_TARGETS_LOOPER_END
 	}
@@ -873,9 +884,7 @@ void DepsgraphNodeBuilder::build_world(World *world)
 	/* world itself */
 	add_operation_node(&world->id,
 	                   DEG_NODE_TYPE_SHADING,
-	                   function_bind(BKE_world_eval,
-	                                 _1,
-	                                 get_cow_datablock(world)),
+	                   NULL,
 	                   DEG_OPCODE_WORLD_UPDATE);
 	/* world's nodetree */
 	if (world->nodetree != NULL) {

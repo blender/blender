@@ -104,6 +104,26 @@ void device_memory::device_zero()
 	}
 }
 
+void device_memory::swap_device(Device *new_device,
+                                size_t new_device_size,
+                                device_ptr new_device_ptr)
+{
+	original_device = device;
+	original_device_size = device_size;
+	original_device_ptr = device_pointer;
+
+	device = new_device;
+	device_size = new_device_size;
+	device_pointer = new_device_ptr;
+}
+
+void device_memory::restore_device()
+{
+	device = original_device;
+	device_size = original_device_size;
+	device_pointer = original_device_ptr;
+}
+
 /* Device Sub Ptr */
 
 device_sub_ptr::device_sub_ptr(device_memory& mem, int offset, int size)
@@ -118,4 +138,3 @@ device_sub_ptr::~device_sub_ptr()
 }
 
 CCL_NAMESPACE_END
-

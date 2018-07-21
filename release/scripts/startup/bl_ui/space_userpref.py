@@ -28,25 +28,6 @@ from bpy.app.translations import pgettext_iface as iface_
 from bpy.app.translations import contexts as i18n_contexts
 
 
-def opengl_lamp_buttons(column, lamp):
-    split = column.row()
-
-    split.prop(lamp, "use", text="", icon='OUTLINER_OB_LAMP' if lamp.use else 'LAMP_DATA')
-
-    col = split.column()
-    col.active = lamp.use
-    row = col.row()
-    row.label(text="Diffuse:")
-    row.prop(lamp, "diffuse_color", text="")
-    row = col.row()
-    row.label(text="Specular:")
-    row.prop(lamp, "specular_color", text="")
-
-    col = split.column()
-    col.active = lamp.use
-    col.prop(lamp, "direction", text="")
-
-
 class USERPREF_HT_header(Header):
     bl_space_type = 'USER_PREFERENCES'
 
@@ -238,15 +219,15 @@ class USERPREF_PT_interface(Panel):
 
         col.separator()
 
-        col.prop(view, "show_manipulator_navigate")
+        # col.prop(view, "show_gizmo_navigate")
 
         sub = col.column(align=True)
 
-        sub.prop(view, "show_mini_axis", text="Display Mini Axis")
-        sub.active = not view.show_manipulator_navigate
+        sub.label("3D Viewport Axis:")
+        sub.row().prop(view, "mini_axis_type", expand=True)
 
         sub = col.column(align=True)
-        sub.active = view.show_mini_axis
+        sub.active = view.mini_axis_type == 'MINIMAL'
         sub.prop(view, "mini_axis_size", text="Size")
         sub.prop(view, "mini_axis_brightness", text="Brightness")
 
@@ -258,16 +239,14 @@ class USERPREF_PT_interface(Panel):
         #col.label(text="Open Toolbox Delay:")
         #col.prop(view, "open_left_mouse_delay", text="Hold LMB")
         #col.prop(view, "open_right_mouse_delay", text="Hold RMB")
-        col.prop(view, "show_manipulator", text="Transform Manipulator")
-        # Currently not working
-        # col.prop(view, "show_manipulator_shaded")
+        col.prop(view, "show_gizmo", text="Gizmos")
         sub = col.column()
-        sub.active = view.show_manipulator
-        sub.prop(view, "manipulator_size", text="Size")
+        sub.active = view.show_gizmo
+        sub.prop(view, "gizmo_size", text="Size")
 
         col.separator()
 
-        col.label("Development")
+        col.label("Development:")
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_developer_ui")
 
@@ -275,7 +254,7 @@ class USERPREF_PT_interface(Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="View Manipulation:")
+        col.label(text="View Gizmos:")
         col.prop(view, "use_mouse_depth_cursor")
         col.prop(view, "use_cursor_lock_adjust")
         col.prop(view, "use_mouse_depth_navigate")
@@ -326,7 +305,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        col.label("Warnings")
+        col.label("Warnings:")
         col.prop(view, "use_quit_dialog")
 
         col.separator()
@@ -436,6 +415,7 @@ class USERPREF_PT_edit(Panel):
 
         col.label(text="Transform:")
         col.prop(edit, "use_drag_immediately")
+        col.prop(edit, "use_numeric_input_advanced")
 
         row.separator()
         row.separator()
@@ -454,7 +434,7 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "use_duplicate_text", text="Text")
         col.prop(edit, "use_duplicate_metaball", text="Metaball")
         col.prop(edit, "use_duplicate_armature", text="Armature")
-        col.prop(edit, "use_duplicate_lamp", text="Lamp")
+        col.prop(edit, "use_duplicate_light", text="Light")
         col.prop(edit, "use_duplicate_material", text="Material")
         col.prop(edit, "use_duplicate_texture", text="Texture")
         #col.prop(edit, "use_duplicate_fcurve", text="F-Curve")
@@ -526,13 +506,13 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "use_16bit_textures")
 
         col.separator()
-        col.label(text="Selection")
+        col.label(text="Selection:")
         col.prop(system, "select_method", text="")
         col.prop(system, "use_select_pick_depth")
 
         col.separator()
 
-        col.label(text="Anisotropic Filtering")
+        col.label(text="Anisotropic Filtering:")
         col.prop(system, "anisotropic_filter", text="")
 
         col.separator()
@@ -551,43 +531,25 @@ class USERPREF_PT_system(Panel):
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
 
-        col.separator()
-
-        col.label(text="Textures:")
-        col.prop(system, "gl_texture_limit", text="Limit Size")
-        col.prop(system, "texture_time_out", text="Time Out")
-        col.prop(system, "texture_collection_rate", text="Collection Rate")
-
-        col.separator()
-
-        col.label(text="Images Draw Method:")
-        col.prop(system, "image_draw_method", text="")
-
-        col.separator()
-
-        col.label(text="Sequencer/Clip Editor:")
-        # currently disabled in the code
-        # col.prop(system, "prefetch_frames")
-        col.prop(system, "memory_cache_limit")
-
         # 3. Column
         column = split.column()
 
-        column.label(text="Solid OpenGL Lights:")
+        column.label(text="Textures:")
+        column.prop(system, "gl_texture_limit", text="Limit Size")
+        column.prop(system, "texture_time_out", text="Time Out")
+        column.prop(system, "texture_collection_rate", text="Collection Rate")
 
-        split = column.split(percentage=0.1)
-        split.label()
-        split.label(text="Colors:")
-        split.label(text="Direction:")
+        column.separator()
 
-        lamp = system.solid_lights[0]
-        opengl_lamp_buttons(column, lamp)
+        column.label(text="Images Draw Method:")
+        column.prop(system, "image_draw_method", text="")
 
-        lamp = system.solid_lights[1]
-        opengl_lamp_buttons(column, lamp)
+        column.separator()
 
-        lamp = system.solid_lights[2]
-        opengl_lamp_buttons(column, lamp)
+        column.label(text="Sequencer/Clip Editor:")
+        # currently disabled in the code
+        # column.prop(system, "prefetch_frames")
+        column.prop(system, "memory_cache_limit")
 
         column.separator()
 
@@ -917,7 +879,7 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            col.label("Axis & Manipulator Colors:")
+            col.label("Axis & Gizmo Colors:")
 
             row = col.row()
 
@@ -935,10 +897,10 @@ class USERPREF_PT_theme(Panel):
             padding = subsplit.split(percentage=0.15)
             colsub = padding.column()
             colsub = padding.column()
-            colsub.row().prop(ui, "manipulator_primary")
-            colsub.row().prop(ui, "manipulator_secondary")
-            colsub.row().prop(ui, "manipulator_a")
-            colsub.row().prop(ui, "manipulator_b")
+            colsub.row().prop(ui, "gizmo_primary")
+            colsub.row().prop(ui, "gizmo_secondary")
+            colsub.row().prop(ui, "gizmo_a")
+            colsub.row().prop(ui, "gizmo_b")
 
             col.separator()
             col.separator()
@@ -1473,7 +1435,14 @@ class USERPREF_PT_addons(Panel):
                 sub = row.row()
                 sub.active = is_enabled
                 sub.label(text="%s: %s" % (info["category"], info["name"]))
-                if info["warning"]:
+
+                # WARNING: 2.8x exception, may be removed
+                # use disabled state for old add-ons, chances are they are broken.
+                if info.get("blender", (0,)) < (2, 80):
+                    sub.label(text="upgrade to 2.8x required")
+                    sub.label(icon='ERROR')
+                # Remove code above after 2.8x migration is complete.
+                elif info["warning"]:
                     sub.label(icon='ERROR')
 
                 # icon showing support level.
@@ -1590,13 +1559,6 @@ class StudioLightPanelMixin():
     def _get_lights(self, userpref):
         return [light for light in userpref.studio_lights if light.is_user_defined and light.orientation == self.sl_orientation]
 
-    def draw_header(self, context):
-        layout = self.layout
-        row = layout.row()
-        userpref = context.user_preferences
-        lights = self._get_lights(userpref)
-        row.label("({})".format(len(lights)))
-
     def draw(self, context):
         layout = self.layout
         userpref = context.user_preferences
@@ -1634,6 +1596,48 @@ class USERPREF_PT_studiolight_camera(Panel, StudioLightPanelMixin):
     sl_orientation = 'CAMERA'
 
 
+class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
+    bl_label = "Specular Lights"
+    sl_orientation = 'CAMERA'
+
+    @classmethod
+    def poll(cls, context):
+        userpref = context.user_preferences
+        return (userpref.active_section == 'LIGHTS')
+
+    def opengl_light_buttons(self, column, light):
+        split = column.split()
+
+        col = split.column()
+        col.prop(light, "use", text="Use", icon='OUTLINER_OB_LIGHT' if light.use else 'LIGHT_DATA')
+
+        sub = col.column()
+        sub.active = light.use
+        sub.prop(light, "specular_color")
+
+        col = split.column()
+        col.active = light.use
+        col.prop(light, "direction", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        column = layout.split()
+
+        userpref = context.user_preferences
+        system = userpref.system
+
+        light = system.solid_lights[0]
+        colsplit = column.split(percentage=0.85)
+        self.opengl_light_buttons(colsplit, light)
+
+        light = system.solid_lights[1]
+        colsplit = column.split(percentage=0.85)
+        self.opengl_light_buttons(colsplit, light)
+
+        light = system.solid_lights[2]
+        self.opengl_light_buttons(column, light)
+
+
 classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
@@ -1657,6 +1661,7 @@ classes = (
     USERPREF_PT_studiolight_matcaps,
     USERPREF_PT_studiolight_world,
     USERPREF_PT_studiolight_camera,
+    USERPREF_PT_studiolight_specular,
 )
 
 if __name__ == "__main__":  # only for live edit.

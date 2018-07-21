@@ -246,7 +246,7 @@ float gtao_multibounce(float visibility, vec3 albedo)
 float occlusion_compute(vec3 N, vec3 vpos, float user_occlusion, vec4 rand, out vec3 bent_normal)
 {
 #ifndef USE_REFRACTION
-	if ((int(aoSettings) & USE_AO) > 0) {
+	if ((int(aoSettings) & USE_AO) != 0) {
 		float visibility;
 		vec3 vnor = mat3(ViewMatrix) * N;
 

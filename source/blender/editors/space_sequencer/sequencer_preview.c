@@ -96,7 +96,7 @@ static void preview_startjob(void *data, short *stop, short *do_update, float *p
 
 				/* make sure we cleanup the loading flag! */
 				BLI_spin_lock(sound->spinlock);
-				sound->flags &= ~SOUND_FLAGS_WAVEFORM_LOADING;
+				sound->tags &= ~SOUND_TAGS_WAVEFORM_LOADING;
 				BLI_spin_unlock(sound->spinlock);
 
 				BLI_mutex_lock(pj->mutex);

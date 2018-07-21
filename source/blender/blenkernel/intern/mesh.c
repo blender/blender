@@ -349,8 +349,9 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
 
 			/* Mark an arbitrary vertex as root */
 			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-				vs = CustomData_bmesh_get(&bm->vdata, v->head.data,
-				                          CD_MVERT_SKIN);
+				vs = CustomData_bmesh_get(
+				        &bm->vdata, v->head.data,
+				        CD_MVERT_SKIN);
 				vs->flag |= MVERT_SKIN_ROOT;
 				break;
 			}
@@ -358,11 +359,12 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
 	}
 	else {
 		if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
-			vs = CustomData_add_layer(&me->vdata,
-			                          CD_MVERT_SKIN,
-			                          CD_DEFAULT,
-			                          NULL,
-			                          me->totvert);
+			vs = CustomData_add_layer(
+			        &me->vdata,
+			        CD_MVERT_SKIN,
+			        CD_DEFAULT,
+			        NULL,
+			        me->totvert);
 
 			/* Mark an arbitrary vertex as root */
 			if (vs) {
@@ -384,11 +386,12 @@ bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me)
 	}
 	else {
 		if (!CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
-			CustomData_add_layer(&me->pdata,
-			                          CD_FACEMAP,
-			                          CD_DEFAULT,
-			                          NULL,
-			                          me->totpoly);
+			CustomData_add_layer(
+			        &me->pdata,
+			        CD_FACEMAP,
+			        CD_DEFAULT,
+			        NULL,
+			        me->totpoly);
 			changed = true;
 		}
 	}
@@ -1200,9 +1203,10 @@ int poly_get_adj_loops_from_vert(
         const MLoop *mloop, unsigned int vert,
         unsigned int r_adj[2])
 {
-	int corner = poly_find_loop_from_vert(poly,
-	                                      &mloop[poly->loopstart],
-	                                      vert);
+	int corner = poly_find_loop_from_vert(
+	        poly,
+	        &mloop[poly->loopstart],
+	        vert);
 
 	if (corner != -1) {
 #if 0	/* unused - this loop */
@@ -1310,11 +1314,12 @@ void BKE_mesh_ensure_navmesh(Mesh *me)
 
 void BKE_mesh_tessface_calc(Mesh *mesh)
 {
-	mesh->totface = BKE_mesh_recalc_tessellation(&mesh->fdata, &mesh->ldata, &mesh->pdata,
-	                                             mesh->mvert,
-	                                             mesh->totface, mesh->totloop, mesh->totpoly,
-	                                             /* calc normals right after, don't copy from polys here */
-	                                             false);
+	mesh->totface = BKE_mesh_recalc_tessellation(
+	        &mesh->fdata, &mesh->ldata, &mesh->pdata,
+	        mesh->mvert,
+	        mesh->totface, mesh->totloop, mesh->totpoly,
+	        /* calc normals right after, don't copy from polys here */
+	        false);
 
 	BKE_mesh_update_customdata_pointers(mesh, true);
 }
@@ -1511,6 +1516,21 @@ void BKE_mesh_apply_vert_coords(Mesh *mesh, float (*vertCoords)[3])
 	mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 }
 
+void BKE_mesh_apply_vert_normals(Mesh *mesh, short (*vertNormals)[3])
+{
+	MVert *vert;
+	int i;
+
+	/* this will just return the pointer if it wasn't a referenced layer */
+	vert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+	mesh->mvert = vert;
+
+	for (i = 0; i < mesh->totvert; ++i, ++vert)
+		copy_v3_v3_short(vert->no, vertNormals[i]);
+
+	mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
+}
+
 /**
  * Compute 'split' (aka loop, or per face corner's) normals.
  *
@@ -1549,8 +1569,8 @@ void BKE_mesh_calc_normals_split_ex(Mesh *mesh, MLoopNorSpaceArray *r_lnors_spac
 	else {
 		polynors = MEM_malloc_arrayN(mesh->totpoly, sizeof(float[3]), __func__);
 		BKE_mesh_calc_normals_poly(
-		            mesh->mvert, NULL, mesh->totvert,
-		            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);
+		        mesh->mvert, NULL, mesh->totvert,
+		        mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, polynors, false);
 		free_polynors = true;
 	}
 
@@ -1830,8 +1850,9 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mesh_eval_geometry(Depsgraph *depsgraph,
-                            Mesh *mesh)
+void BKE_mesh_eval_geometry(
+        Depsgraph *depsgraph,
+        Mesh *mesh)
 {
 	DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
 	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {

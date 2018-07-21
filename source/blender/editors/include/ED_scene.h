@@ -31,10 +31,7 @@ enum eSceneCopyMethod;
 
 struct Scene *ED_scene_add(struct Main *bmain, struct bContext *C, struct wmWindow *win, enum eSceneCopyMethod method) ATTR_NONNULL();
 bool ED_scene_delete(struct bContext *C, struct Main *bmain, struct wmWindow *win, struct Scene *scene) ATTR_NONNULL();
-void ED_scene_change_update(
-        struct Main *bmain, struct bContext *C,
-        struct wmWindow *win, const struct bScreen *screen,
-        struct Scene *scene_old, struct Scene *scene_new) ATTR_NONNULL();
+void ED_scene_change_update(struct Main *bmain, struct Scene *scene, struct ViewLayer *layer) ATTR_NONNULL();
 bool ED_scene_view_layer_delete(
         struct Main *bmain, struct Scene *scene, struct ViewLayer *layer,
         struct ReportList *reports) ATTR_NONNULL(1, 2, 3);

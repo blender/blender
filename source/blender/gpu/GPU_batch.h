@@ -15,60 +15,185 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
+ * The Original Code is Copyright (C) 2016 by Mike Erwin.
  * All rights reserved.
  *
- *
- * Contributor(s): Mike Erwin
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/* Batched geometry rendering is powered by the Gawain library.
- * This file contains any additions or modifications specific to Blender.
+/** \file blender/gpu/GPU_batch.h
+ *  \ingroup gpu
+ *
+ * GPU geometry batch
+ * Contains VAOs + VBOs + Shader representing a drawable entity.
  */
 
 #ifndef __GPU_BATCH_H__
 #define __GPU_BATCH_H__
 
-#include "../../../intern/gawain/gawain/gwn_batch.h"
-#include "../../../intern/gawain/gawain/gwn_batch_private.h"
-
-struct rctf;
-
-// TODO: CMake magic to do this:
-// #include "gawain/batch.h"
-
-#include "BLI_compiler_attrs.h"
-#include "BLI_sys_types.h"
-
+#include "GPU_vertex_buffer.h"
+#include "GPU_element.h"
+#include "GPU_shader_interface.h"
 #include "GPU_shader.h"
 
-/* Extend GWN_batch_program_set to use Blender’s library of built-in shader programs. */
+typedef enum {
+	GPU_BATCH_READY_TO_FORMAT,
+	GPU_BATCH_READY_TO_BUILD,
+	GPU_BATCH_BUILDING,
+	GPU_BATCH_READY_TO_DRAW
+} GPUBatchPhase;
 
-/* gpu_batch.c */
-void GWN_batch_program_set_builtin(Gwn_Batch *batch, GPUBuiltinShader shader_id) ATTR_NONNULL(1);
+#define GPU_BATCH_VBO_MAX_LEN 3
+#define GPU_BATCH_VAO_STATIC_LEN 3
+#define GPU_BATCH_VAO_DYN_ALLOC_COUNT 16
 
-Gwn_Batch *GPU_batch_tris_from_poly_2d_encoded(
-        const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
-        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-Gwn_Batch *GPU_batch_wire_from_poly_2d_encoded(
-        const uchar *polys_flat, uint polys_flat_len, const struct rctf *rect
-        ) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+typedef struct GPUBatch {
+	/* geometry */
+	GPUVertBuf *verts[GPU_BATCH_VBO_MAX_LEN]; /* verts[0] is required, others can be NULL */
+	GPUVertBuf *inst; /* instance attribs */
+	GPUIndexBuf *elem; /* NULL if element list not needed */
+	uint32_t gl_prim_type;
+
+	/* cached values (avoid dereferencing later) */
+	uint32_t vao_id;
+	uint32_t program;
+	const struct GPUShaderInterface *interface;
+
+	/* book-keeping */
+	uint owns_flag;
+	struct GPUContext *context; /* used to free all vaos. this implies all vaos were created under the same context. */
+	GPUBatchPhase phase;
+	bool program_in_use;
+
+	/* Vao management: remembers all geometry state (vertex attrib bindings & element buffer)
+	 * for each shader interface. Start with a static number of vaos and fallback to dynamic count
+	 * if necessary. Once a batch goes dynamic it does not go back. */
+	bool is_dynamic_vao_count;
+	union {
+		/* Static handle count */
+		struct {
+			const struct GPUShaderInterface *interfaces[GPU_BATCH_VAO_STATIC_LEN];
+			uint32_t vao_ids[GPU_BATCH_VAO_STATIC_LEN];
+		} static_vaos;
+		/* Dynamic handle count */
+		struct {
+			uint count;
+			const struct GPUShaderInterface **interfaces;
+			uint32_t *vao_ids;
+		} dynamic_vaos;
+	};
+
+	/* XXX This is the only solution if we want to have some data structure using
+	 * batches as key to identify nodes. We must destroy these nodes with this callback. */
+	void (*free_callback)(struct GPUBatch *, void *);
+	void *callback_data;
+} GPUBatch;
+
+enum {
+	GPU_BATCH_OWNS_VBO = (1 << 0),
+	/* each vbo index gets bit-shifted */
+	GPU_BATCH_OWNS_INSTANCES = (1 << 30),
+	GPU_BATCH_OWNS_INDEX = (1 << 31),
+};
+
+GPUBatch *GPU_batch_create_ex(GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
+void GPU_batch_init_ex(GPUBatch *, GPUPrimType, GPUVertBuf *, GPUIndexBuf *, uint owns_flag);
+GPUBatch *GPU_batch_duplicate(GPUBatch *batch_src);
+
+#define GPU_batch_create(prim, verts, elem) \
+	GPU_batch_create_ex(prim, verts, elem, 0)
+#define GPU_batch_init(batch, prim, verts, elem) \
+	GPU_batch_init_ex(batch, prim, verts, elem, 0)
+
+void GPU_batch_discard(GPUBatch *); /* verts & elem are not discarded */
+
+void GPU_batch_vao_cache_clear(GPUBatch *);
+
+void GPU_batch_callback_free_set(GPUBatch *, void (*callback)(GPUBatch *, void *), void *);
+
+void GPU_batch_instbuf_set(GPUBatch *, GPUVertBuf *, bool own_vbo); /* Instancing */
+
+int GPU_batch_vertbuf_add_ex(GPUBatch *, GPUVertBuf *, bool own_vbo);
+
+#define GPU_batch_vertbuf_add(batch, verts) \
+	GPU_batch_vertbuf_add_ex(batch, verts, false)
+
+void GPU_batch_program_set_no_use(GPUBatch *, uint32_t program, const GPUShaderInterface *);
+void GPU_batch_program_set(GPUBatch *, uint32_t program, const GPUShaderInterface *);
+void GPU_batch_program_set_builtin(GPUBatch *batch, GPUBuiltinShader shader_id);
+/* Entire batch draws with one shader program, but can be redrawn later with another program. */
+/* Vertex shader's inputs must be compatible with the batch's vertex format. */
+
+void GPU_batch_program_use_begin(GPUBatch *); /* call before Batch_Uniform (temp hack?) */
+void GPU_batch_program_use_end(GPUBatch *);
+
+void GPU_batch_uniform_1ui(GPUBatch *, const char *name, int value);
+void GPU_batch_uniform_1i(GPUBatch *, const char *name, int value);
+void GPU_batch_uniform_1b(GPUBatch *, const char *name, bool value);
+void GPU_batch_uniform_1f(GPUBatch *, const char *name, float value);
+void GPU_batch_uniform_2f(GPUBatch *, const char *name, float x, float y);
+void GPU_batch_uniform_3f(GPUBatch *, const char *name, float x, float y, float z);
+void GPU_batch_uniform_4f(GPUBatch *, const char *name, float x, float y, float z, float w);
+void GPU_batch_uniform_2fv(GPUBatch *, const char *name, const float data[2]);
+void GPU_batch_uniform_3fv(GPUBatch *, const char *name, const float data[3]);
+void GPU_batch_uniform_4fv(GPUBatch *, const char *name, const float data[4]);
+void GPU_batch_uniform_2fv_array(GPUBatch *, const char *name, int len, const float *data);
+void GPU_batch_uniform_4fv_array(GPUBatch *, const char *name, int len, const float *data);
+void GPU_batch_uniform_mat4(GPUBatch *, const char *name, const float data[4][4]);
+
+void GPU_batch_draw(GPUBatch *);
+
+/* This does not bind/unbind shader and does not call GPU_matrix_bind() */
+void GPU_batch_draw_range_ex(GPUBatch *, int v_first, int v_count, bool force_instance);
+
+/* Does not even need batch */
+void GPU_draw_primitive(GPUPrimType, int v_count);
+
+#if 0 /* future plans */
+
+/* Can multiple batches share a GPUVertBuf? Use ref count? */
+
+
+/* We often need a batch with its own data, to be created and discarded together. */
+/* WithOwn variants reduce number of system allocations. */
+
+typedef struct BatchWithOwnVertexBuffer {
+	GPUBatch batch;
+	GPUVertBuf verts; /* link batch.verts to this */
+} BatchWithOwnVertexBuffer;
+
+typedef struct BatchWithOwnElementList {
+	GPUBatch batch;
+	GPUIndexBuf elem; /* link batch.elem to this */
+} BatchWithOwnElementList;
+
+typedef struct BatchWithOwnVertexBufferAndElementList {
+	GPUBatch batch;
+	GPUIndexBuf elem; /* link batch.elem to this */
+	GPUVertBuf verts; /* link batch.verts to this */
+} BatchWithOwnVertexBufferAndElementList;
+
+GPUBatch *create_BatchWithOwnVertexBuffer(GPUPrimType, GPUVertFormat *, uint v_len, GPUIndexBuf *);
+GPUBatch *create_BatchWithOwnElementList(GPUPrimType, GPUVertBuf *, uint prim_len);
+GPUBatch *create_BatchWithOwnVertexBufferAndElementList(GPUPrimType, GPUVertFormat *, uint v_len, uint prim_len);
+/* verts: shared, own */
+/* elem: none, shared, own */
+GPUBatch *create_BatchInGeneral(GPUPrimType, VertexBufferStuff, ElementListStuff);
+
+#endif /* future plans */
 
 void gpu_batch_init(void);
 void gpu_batch_exit(void);
 
-/* gpu_batch_presets.c */
-/* Only use by draw manager. Use the presets function instead for interface. */
-Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res) ATTR_WARN_UNUSED_RESULT;
-/* Replacement for gluSphere */
-Gwn_Batch *GPU_batch_preset_sphere(int lod) ATTR_WARN_UNUSED_RESULT;
-Gwn_Batch *GPU_batch_preset_sphere_wire(int lod) ATTR_WARN_UNUSED_RESULT;
+/* Macros */
 
-void gpu_batch_presets_init(void);
-void gpu_batch_presets_register(Gwn_Batch *preset_batch);
-void gpu_batch_presets_reset(void);
-void gpu_batch_presets_exit(void);
+#define GPU_BATCH_DISCARD_SAFE(batch) do { \
+	if (batch != NULL) { \
+		GPU_batch_discard(batch); \
+		batch = NULL; \
+	} \
+} while (0)
 
-#endif  /* __GPU_BATCH_H__ */
+#endif /* __GPU_BATCH_H__ */

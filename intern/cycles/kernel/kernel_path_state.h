@@ -269,4 +269,3 @@ ccl_device_inline void path_state_branch(ccl_addr_space PathState *state,
 }
 
 CCL_NAMESPACE_END
-

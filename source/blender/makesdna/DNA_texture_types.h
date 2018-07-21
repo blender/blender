@@ -192,7 +192,7 @@ typedef struct Tex {
 	short extend;
 
 	/* variables disabled, moved to struct iuser */
-	short fie_ima;
+	short _pad0;
 	int len;
 	int frames, offset, sfra;
 
@@ -319,7 +319,7 @@ typedef struct ColorMapping {
 
 /* imaflag unused, only for version check */
 #ifdef DNA_DEPRECATED_ALLOW
-#define TEX_FIELDS_		8
+// #define TEX_FIELDS_		8
 #define TEX_ANIMCYCLIC_	64
 #define TEX_ANIM5_		128
 #define TEX_ANTIALI_	256

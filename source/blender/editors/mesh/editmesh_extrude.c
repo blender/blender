@@ -53,7 +53,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
-#include "ED_manipulator_library.h"
+#include "ED_gizmo_library.h"
 
 #include "UI_resources.h"
 
@@ -61,7 +61,7 @@
 
 #include "mesh_intern.h"  /* own include */
 
-#define USE_MANIPULATOR
+#define USE_GIZMO
 
 /* -------------------------------------------------------------------- */
 /** \name Extrude Internal Utilities
@@ -360,10 +360,10 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 
 
 /* -------------------------------------------------------------------- */
-/** \name Extrude Manipulator
+/** \name Extrude Gizmo
  * \{ */
 
-#ifdef USE_MANIPULATOR
+#ifdef USE_GIZMO
 
 const float extrude_button_scale = 0.15f;
 const float extrude_button_offset_scale = 1.5f;
@@ -380,11 +380,11 @@ static const uchar shape_plus[] = {
 	0x90, 0x6e, 0xd7, 0x80, 0xff, 0x5f, 0xfb, 0x5f, 0xfb,
 };
 
-typedef struct ManipulatorExtrudeGroup {
+typedef struct GizmoExtrudeGroup {
 
 	/* XYZ & normal. */
-	struct wmManipulator *invoke_xyz_no[4];
-	struct wmManipulator *adjust_xyz_no[5];
+	struct wmGizmo *invoke_xyz_no[4];
+	struct wmGizmo *adjust_xyz_no[5];
 
 	struct {
 		float normal_mat3[3][3];  /* use Z axis for normal. */
@@ -392,10 +392,10 @@ typedef struct ManipulatorExtrudeGroup {
 	} data;
 
 	wmOperatorType *ot_extrude;
-} ManipulatorExtrudeGroup;
+} GizmoExtrudeGroup;
 
-static void manipulator_mesh_extrude_orientation_matrix_set(
-        struct ManipulatorExtrudeGroup *man, const float mat[3][3])
+static void gizmo_mesh_extrude_orientation_matrix_set(
+        struct GizmoExtrudeGroup *man, const float mat[3][3])
 {
 	for (int i = 0; i < 3; i++) {
 		/* Set orientation without location. */
@@ -417,32 +417,32 @@ static void manipulator_mesh_extrude_orientation_matrix_set(
 	}
 }
 
-static bool manipulator_mesh_extrude_poll(const bContext *C, wmManipulatorGroupType *wgt)
+static bool gizmo_mesh_extrude_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
 	if ((tref_rt == NULL) ||
-	    !STREQ(wgt->idname, tref_rt->manipulator_group) ||
+	    !STREQ(gzgt->idname, tref_rt->gizmo_group) ||
 	    !ED_operator_editmesh_view3d((bContext *)C))
 	{
-		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
 }
 
-static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipulatorGroup *mgroup)
+static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	struct ManipulatorExtrudeGroup *man = MEM_callocN(sizeof(ManipulatorExtrudeGroup), __func__);
-	mgroup->customdata = man;
+	struct GizmoExtrudeGroup *man = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
+	gzgroup->customdata = man;
 
-	const wmManipulatorType *wt_arrow = WM_manipulatortype_find("MANIPULATOR_WT_arrow_3d", true);
-	const wmManipulatorType *wt_grab = WM_manipulatortype_find("MANIPULATOR_WT_button_2d", true);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
 	for (int i = 0; i < 4; i++) {
-		man->adjust_xyz_no[i] = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL);
-		man->invoke_xyz_no[i] = WM_manipulator_new_ptr(wt_grab, mgroup, NULL);
-		man->invoke_xyz_no[i]->flag |= WM_MANIPULATOR_DRAW_OFFSET_SCALE;
+		man->adjust_xyz_no[i] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+		man->invoke_xyz_no[i] = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
+		man->invoke_xyz_no[i]->flag |= WM_GIZMO_DRAW_OFFSET_SCALE;
 	}
 
 	{
@@ -460,25 +460,25 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 		UI_GetThemeColor3fv(TH_AXIS_X + i, man->invoke_xyz_no[i]->color);
 		UI_GetThemeColor3fv(TH_AXIS_X + i, man->adjust_xyz_no[i]->color);
 	}
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->invoke_xyz_no[3]->color);
-	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->adjust_xyz_no[3]->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->invoke_xyz_no[3]->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->adjust_xyz_no[3]->color);
 
 	for (int i = 0; i < 4; i++) {
-		WM_manipulator_set_scale(man->invoke_xyz_no[i], extrude_button_scale);
-		WM_manipulator_set_scale(man->adjust_xyz_no[i], extrude_arrow_scale);
+		WM_gizmo_set_scale(man->invoke_xyz_no[i], extrude_button_scale);
+		WM_gizmo_set_scale(man->adjust_xyz_no[i], extrude_arrow_scale);
 	}
-	WM_manipulator_set_scale(man->adjust_xyz_no[3], extrude_arrow_normal_axis_scale);
+	WM_gizmo_set_scale(man->adjust_xyz_no[3], extrude_arrow_normal_axis_scale);
 
 	for (int i = 0; i < 4; i++) {
 	}
 
 	for (int i = 0; i < 4; i++) {
-		WM_manipulator_set_flag(man->adjust_xyz_no[i], WM_MANIPULATOR_DRAW_VALUE, true);
+		WM_gizmo_set_flag(man->adjust_xyz_no[i], WM_GIZMO_DRAW_VALUE, true);
 	}
 
 	/* XYZ & normal axis extrude. */
 	for (int i = 0; i < 4; i++) {
-		PointerRNA *ptr = WM_manipulator_operator_set(man->invoke_xyz_no[i], 0, man->ot_extrude, NULL);
+		PointerRNA *ptr = WM_gizmo_operator_set(man->invoke_xyz_no[i], 0, man->ot_extrude, NULL);
 		{
 			bool constraint[3] = {0, 0, 0};
 			constraint[MIN2(i, 2)] = 1;
@@ -490,7 +490,7 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 
 	/* Adjust extrude. */
 	for (int i = 0; i < 4; i++) {
-		PointerRNA *ptr = WM_manipulator_operator_set(man->adjust_xyz_no[i], 0, man->ot_extrude, NULL);
+		PointerRNA *ptr = WM_gizmo_operator_set(man->adjust_xyz_no[i], 0, man->ot_extrude, NULL);
 		{
 			bool constraint[3] = {0, 0, 0};
 			constraint[MIN2(i, 2)] = 1;
@@ -498,18 +498,18 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 			RNA_boolean_set(&macroptr, "release_confirm", true);
 			RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
 		}
-		wmManipulatorOpElem *mpop = WM_manipulator_operator_get(man->adjust_xyz_no[i], 0);
+		wmGizmoOpElem *mpop = WM_gizmo_operator_get(man->adjust_xyz_no[i], 0);
 		mpop->is_redo = true;
 	}
 }
 
-static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGroup *mgroup)
+static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	ManipulatorExtrudeGroup *man = mgroup->customdata;
+	GizmoExtrudeGroup *man = gzgroup->customdata;
 
 	for (int i = 0; i < 4; i++) {
-		WM_manipulator_set_flag(man->invoke_xyz_no[i], WM_MANIPULATOR_HIDDEN, true);
-		WM_manipulator_set_flag(man->adjust_xyz_no[i], WM_MANIPULATOR_HIDDEN, true);
+		WM_gizmo_set_flag(man->invoke_xyz_no[i], WM_GIZMO_HIDDEN, true);
+		WM_gizmo_set_flag(man->adjust_xyz_no[i], WM_GIZMO_HIDDEN, true);
 	}
 
 	if (G.moving) {
@@ -525,7 +525,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 
 	if (use_normal) {
 		struct TransformBounds tbounds_normal;
-		if (!ED_transform_calc_manipulator_stats(
+		if (!ED_transform_calc_gizmo_stats(
 		            C, &(struct TransformCalcParams){
 		                .orientation_type = V3D_MANIP_NORMAL + 1,
 		            }, &tbounds_normal))
@@ -536,7 +536,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	}
 
 	/* TODO(campbell): run second since this modifies the 3D view, it should not. */
-	if (!ED_transform_calc_manipulator_stats(
+	if (!ED_transform_calc_gizmo_stats(
 	            C, &(struct TransformCalcParams){
 	                .orientation_type = man->data.orientation_type + 1,
 	            }, &tbounds))
@@ -556,15 +556,15 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	        (extrude_arrow_normal_axis_scale * extrude_button_offset_scale) / extrude_button_scale);
 
 	/* Needed for normal orientation. */
-	manipulator_mesh_extrude_orientation_matrix_set(man, tbounds.axis);
+	gizmo_mesh_extrude_orientation_matrix_set(man, tbounds.axis);
 	if (use_normal) {
 		copy_m4_m3(man->adjust_xyz_no[3]->matrix_basis, man->data.normal_mat3);
 	}
 
 	/* Location. */
 	for (int i = 0; i < axis_len_used; i++) {
-		WM_manipulator_set_matrix_location(man->invoke_xyz_no[i], tbounds.center);
-		WM_manipulator_set_matrix_location(man->adjust_xyz_no[i], tbounds.center);
+		WM_gizmo_set_matrix_location(man->invoke_xyz_no[i], tbounds.center);
+		WM_gizmo_set_matrix_location(man->adjust_xyz_no[i], tbounds.center);
 	}
 
 	wmOperator *op = WM_operator_last_redo(C);
@@ -572,13 +572,13 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 
 	/* Un-hide. */
 	for (int i = 0; i < axis_len_used; i++) {
-		WM_manipulator_set_flag(man->invoke_xyz_no[i], WM_MANIPULATOR_HIDDEN, false);
-		WM_manipulator_set_flag(man->adjust_xyz_no[i], WM_MANIPULATOR_HIDDEN, !has_redo);
+		WM_gizmo_set_flag(man->invoke_xyz_no[i], WM_GIZMO_HIDDEN, false);
+		WM_gizmo_set_flag(man->adjust_xyz_no[i], WM_GIZMO_HIDDEN, !has_redo);
 	}
 
 	/* Operator properties. */
 	if (use_normal) {
-		wmManipulatorOpElem *mpop = WM_manipulator_operator_get(man->invoke_xyz_no[3], 0);
+		wmGizmoOpElem *mpop = WM_gizmo_operator_get(man->invoke_xyz_no[3], 0);
 		PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
 		RNA_enum_set(&macroptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	}
@@ -598,7 +598,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 			    (orientation_type == man->data.orientation_type && constraint_axis[i]) :
 			    (orientation_type == V3D_MANIP_NORMAL && constraint_axis[2]))
 			{
-				wmManipulatorOpElem *mpop = WM_manipulator_operator_get(man->adjust_xyz_no[i], 0);
+				wmGizmoOpElem *mpop = WM_gizmo_operator_get(man->adjust_xyz_no[i], 0);
 
 				PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
 
@@ -609,7 +609,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 			else {
 				/* TODO(campbell): ideally we could adjust all,
 				 * this is complicated by how operator redo and the transform macro works. */
-				WM_manipulator_set_flag(man->adjust_xyz_no[i], WM_MANIPULATOR_HIDDEN, true);
+				WM_gizmo_set_flag(man->adjust_xyz_no[i], WM_GIZMO_HIDDEN, true);
 			}
 		}
 	}
@@ -618,14 +618,14 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		RNA_enum_set(
 		        man->invoke_xyz_no[i]->ptr,
 		        "draw_options",
-		        (man->adjust_xyz_no[i]->flag & WM_MANIPULATOR_HIDDEN) ?
-		        ED_MANIPULATOR_BUTTON_SHOW_HELPLINE : 0);
+		        (man->adjust_xyz_no[i]->flag & WM_GIZMO_HIDDEN) ?
+		        ED_GIZMO_BUTTON_SHOW_HELPLINE : 0);
 	}
 }
 
-static void manipulator_mesh_extrude_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	ManipulatorExtrudeGroup *man = mgroup->customdata;
+	GizmoExtrudeGroup *man = gzgroup->customdata;
 	switch (man->data.orientation_type) {
 		case V3D_MANIP_VIEW:
 		{
@@ -633,48 +633,48 @@ static void manipulator_mesh_extrude_draw_prepare(const bContext *C, wmManipulat
 			float mat[3][3];
 			copy_m3_m4(mat, rv3d->viewinv);
 			normalize_m3(mat);
-			manipulator_mesh_extrude_orientation_matrix_set(man, mat);
+			gizmo_mesh_extrude_orientation_matrix_set(man, mat);
 			break;
 		}
 	}
 }
 
-static void manipulator_mesh_extrude_message_subscribe(
-        const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
+static void gizmo_mesh_extrude_message_subscribe(
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
 	ARegion *ar = CTX_wm_region(C);
 
 	/* Subscribe to view properties */
-	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
 		.owner = ar,
-		.user_data = mgroup->parent_mmap,
-		.notify = WM_manipulator_do_msg_notify_tag_refresh,
+		.user_data = gzgroup->parent_gzmap,
+		.notify = WM_gizmo_do_msg_notify_tag_refresh,
 	};
 
 	{
-		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_mpr_tag_refresh);
+		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_gz_tag_refresh);
 	}
 
 }
 
-static void MESH_WGT_extrude(struct wmManipulatorGroupType *wgt)
+static void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
 {
-	wgt->name = "Mesh Extrude";
-	wgt->idname = "MESH_WGT_extrude";
+	gzgt->name = "Mesh Extrude";
+	gzgt->idname = "MESH_GGT_extrude";
 
-	wgt->flag = WM_MANIPULATORGROUPTYPE_3D;
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 
-	wgt->mmap_params.spaceid = SPACE_VIEW3D;
-	wgt->mmap_params.regionid = RGN_TYPE_WINDOW;
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	wgt->poll = manipulator_mesh_extrude_poll;
-	wgt->setup = manipulator_mesh_extrude_setup;
-	wgt->refresh = manipulator_mesh_extrude_refresh;
-	wgt->draw_prepare = manipulator_mesh_extrude_draw_prepare;
-	wgt->message_subscribe = manipulator_mesh_extrude_message_subscribe;
+	gzgt->poll = gizmo_mesh_extrude_poll;
+	gzgt->setup = gizmo_mesh_extrude_setup;
+	gzgt->refresh = gizmo_mesh_extrude_refresh;
+	gzgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;
+	gzgt->message_subscribe = gizmo_mesh_extrude_message_subscribe;
 }
 
-#endif  /* USE_MANIPULATOR */
+#endif  /* USE_GIZMO */
 
 /** \} */
 
@@ -825,8 +825,8 @@ void MESH_OT_extrude_context(wmOperatorType *ot)
 
 	Transform_Properties(ot, P_NO_DEFAULTS | P_MIRROR_DUMMY);
 
-#ifdef USE_MANIPULATOR
-	WM_manipulatorgrouptype_append(MESH_WGT_extrude);
+#ifdef USE_GIZMO
+	WM_gizmogrouptype_append(MESH_GGT_extrude);
 #endif
 }
 

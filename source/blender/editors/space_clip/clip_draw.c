@@ -80,7 +80,7 @@ static void draw_keyframe(int frame, int cfra, int sfra, float framelen, int wid
 	int x = (frame - sfra) * framelen;
 
 	if (width == 1) {
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2i(pos, x, 0);
 		immVertex2i(pos, x, height * UI_DPI_FAC);
 		immEnd();
@@ -167,7 +167,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	BKE_movieclip_get_cache_segments(clip, &sc->user, &totseg, &points);
 	ED_region_cache_draw_cached_segments(ar, totseg, points, sfra, efra);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* track */
@@ -248,7 +248,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	ED_region_cache_draw_curfra_label(sc->user.framenr, x, 8.0f * UI_DPI_FAC);
 
-	pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* solver keyframes */
@@ -290,7 +290,7 @@ static void draw_movieclip_muted(ARegion *ar, int width, int height, float zoomx
 {
 	int x, y;
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* find window pixel coordinates of origin */
@@ -349,18 +349,18 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 
 	/* draw boundary border for frame if stabilization is enabled */
 	if (sc->flag & SC_SHOW_STABLE && clip->tracking.stabilization.flag & TRACKING_2D_STABILIZATION) {
-		const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		/* Exclusive OR allows to get orig value when second operand is 0,
 		 * and negative of orig value when second operand is 1. */
 		glEnable(GL_COLOR_LOGIC_OP);
 		glLogicOp(GL_XOR);
 
-		gpuPushMatrix();
-		gpuTranslate2f(x, y);
+		GPU_matrix_push();
+		GPU_matrix_translate_2f(x, y);
 
-		gpuScale2f(zoomx, zoomy);
-		gpuMultMatrix(sc->stabmat);
+		GPU_matrix_scale_2f(zoomx, zoomy);
+		GPU_matrix_mul(sc->stabmat);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -377,7 +377,7 @@ static void draw_stabilization_border(SpaceClip *sc, ARegion *ar, int width, int
 
 		immUnbindProgram();
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 
 		glDisable(GL_COLOR_LOGIC_OP);
 	}
@@ -452,7 +452,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		i++;
 	}
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -463,7 +463,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 			if ((b - a - 1) >= 1) {
 				GPU_point_size(5.0f);
 
-				immBegin(GWN_PRIM_POINTS, b - a - 1);
+				immBegin(GPU_PRIM_POINTS, b - a - 1);
 
 				for (i = a; i < b; i++) {
 					if (i != curindex) {
@@ -478,7 +478,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		if ((b - a) >= 2) {
 			GPU_line_width(3.0f);
 
-			immBegin(GWN_PRIM_LINE_STRIP, b - a);
+			immBegin(GPU_PRIM_LINE_STRIP, b - a);
 
 			for (i = a; i < b; i++) {
 				immVertex2f(pos, path[i][0], path[i][1]);
@@ -494,7 +494,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		if ((curindex - a) >= 1) {
 			immUniformThemeColor(TH_PATH_BEFORE);
 
-			immBegin(GWN_PRIM_POINTS, curindex - a);
+			immBegin(GPU_PRIM_POINTS, curindex - a);
 
 			for (i = a; i < curindex; i++) {
 				immVertex2f(pos, path[i][0], path[i][1]);
@@ -506,7 +506,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 		if ((b - curindex - 1) >= 1) {
 			immUniformThemeColor(TH_PATH_AFTER);
 
-			immBegin(GWN_PRIM_POINTS, b - curindex - 1);
+			immBegin(GPU_PRIM_POINTS, b - curindex - 1);
 
 			for (i = curindex + 1; i < b; i++) {
 				immVertex2f(pos, path[i][0], path[i][1]);
@@ -521,7 +521,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	if ((curindex - a + 1) >= 2) {
 		immUniformThemeColor(TH_PATH_BEFORE);
 
-		immBegin(GWN_PRIM_LINE_STRIP, curindex - a + 1);
+		immBegin(GPU_PRIM_LINE_STRIP, curindex - a + 1);
 
 		for (i = a; i <= curindex; i++) {
 			immVertex2f(pos, path[i][0], path[i][1]);
@@ -533,7 +533,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	if ((b - curindex) >= 2) {
 		immUniformThemeColor(TH_PATH_AFTER);
 
-		immBegin(GWN_PRIM_LINE_STRIP, b - curindex);
+		immBegin(GPU_PRIM_LINE_STRIP, b - curindex);
 
 		for (i = curindex; i < b; i++) {
 			immVertex2f(pos, path[i][0], path[i][1]);
@@ -579,12 +579,12 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		{
 			GPU_point_size(tiny ? 3.0f : 4.0f);
 
-			immBegin(GWN_PRIM_POINTS, 1);
+			immBegin(GPU_PRIM_POINTS, 1);
 			immVertex2f(position, pos[0], pos[1]);
 			immEnd();
 		}
 		else {
-			immBegin(GWN_PRIM_LINES, 8);
+			immBegin(GPU_PRIM_LINES, 8);
 
 			immVertex2f(position, pos[0] + px[0] * 2, pos[1]);
 			immVertex2f(position, pos[0] + px[0] * 8, pos[1]);
@@ -603,11 +603,11 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	}
 
 	/* pattern and search outline */
-	gpuPushMatrix();
-	gpuTranslate2fv(marker_pos);
+	GPU_matrix_push();
+	GPU_matrix_translate_2fv(marker_pos);
 
 	if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-		immBegin(GWN_PRIM_LINE_LOOP, 4);
+		immBegin(GPU_PRIM_LINE_LOOP, 4);
 		immVertex2fv(position, marker->pattern_corners[0]);
 		immVertex2fv(position, marker->pattern_corners[1]);
 		immVertex2fv(position, marker->pattern_corners[2]);
@@ -625,7 +625,7 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 		                            marker->search_max[1]);
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void track_colors(MovieTrackingTrack *track, int act, float col[3], float scol[3])
@@ -705,14 +705,14 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 			immUniform1f("dash_factor", 2.0f);  /* Solid "line" */
 
-			immBegin(GWN_PRIM_POINTS, 1);
+			immBegin(GPU_PRIM_POINTS, 1);
 			immVertex2f(shdr_pos, pos[0], pos[1]);
 			immEnd();
 		}
 		else {
 			immUniform1f("dash_factor", 2.0f);  /* Solid line */
 
-			immBegin(GWN_PRIM_LINES, 8);
+			immBegin(GPU_PRIM_LINES, 8);
 
 			immVertex2f(shdr_pos, pos[0] + px[0] * 3, pos[1]);
 			immVertex2f(shdr_pos, pos[0] + px[0] * 7, pos[1]);
@@ -735,7 +735,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 			glEnable(GL_COLOR_LOGIC_OP);
 			glLogicOp(GL_XOR);
 
-			immBegin(GWN_PRIM_LINES, 2);
+			immBegin(GPU_PRIM_LINES, 2);
 			immVertex2fv(shdr_pos, pos);
 			immVertex2fv(shdr_pos, marker_pos);
 			immEnd();
@@ -745,8 +745,8 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	/* pattern */
-	gpuPushMatrix();
-	gpuTranslate2fv(marker_pos);
+	GPU_matrix_push();
+	GPU_matrix_translate_2fv(marker_pos);
 
 	if (track->flag & TRACK_LOCKED) {
 		if (act) {
@@ -783,7 +783,7 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	}
 
 	if ((track->pat_flag & SELECT) == sel && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
-		immBegin(GWN_PRIM_LINE_LOOP, 4);
+		immBegin(GPU_PRIM_LINE_LOOP, 4);
 		immVertex2fv(shdr_pos, marker->pattern_corners[0]);
 		immVertex2fv(shdr_pos, marker->pattern_corners[1]);
 		immVertex2fv(shdr_pos, marker->pattern_corners[2]);
@@ -800,12 +800,12 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		                            marker->search_max[0], marker->search_max[1]);
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	/* Restore default shader */
 	immUnbindProgram();
 
-	const uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	const uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	BLI_assert(pos == shdr_pos);
 	UNUSED_VARS_NDEBUG(pos);
 
@@ -857,7 +857,7 @@ static void draw_marker_slide_triangle(float x, float y, float dx, float dy, int
 		tdy += px[1];
 	}
 
-	immBegin(GWN_PRIM_TRIS, 3);
+	immBegin(GPU_PRIM_TRIS, 3);
 	immVertex2f(pos, x, y);
 	immVertex2f(pos, x - tdx, y);
 	immVertex2f(pos, x, y + tdy);
@@ -884,8 +884,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		immUniformThemeColor(TH_MARKER_OUTLINE);
 	}
 
-	gpuPushMatrix();
-	gpuTranslate2fv(marker_pos);
+	GPU_matrix_push();
+	GPU_matrix_translate_2fv(marker_pos);
 
 	dx = 6.0f / width / sc->zoom;
 	dy = 6.0f / height / sc->zoom;
@@ -935,7 +935,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 
 		GPU_line_width(outline ? 3.0f : 1.0f);
 
-		immBegin(GWN_PRIM_LINES, 2);
+		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, 0.0f, 0.0f);
 		immVertex2fv(pos, tilt_ctrl);
 		immEnd();
@@ -944,7 +944,7 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		draw_marker_slide_square(tilt_ctrl[0], tilt_ctrl[1], patdx, patdy, outline, px, pos);
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
@@ -1141,18 +1141,18 @@ static void draw_plane_marker_image(Scene *scene,
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, GL_RGBA,
 			             GL_UNSIGNED_BYTE, display_buffer);
 
-			gpuPushMatrix();
-			gpuMultMatrix(gl_matrix);
+			GPU_matrix_push();
+			GPU_matrix_mul(gl_matrix);
 
-			Gwn_VertFormat *imm_format = immVertexFormat();
-			unsigned int pos = GWN_vertformat_attr_add(imm_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			unsigned int texCoord = GWN_vertformat_attr_add(imm_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			GPUVertFormat *imm_format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(imm_format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+			uint texCoord = GPU_vertformat_attr_add(imm_format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 			immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
 			immUniform1i("image", 0);
 
-			immBegin(GWN_PRIM_TRI_FAN, 4);
+			immBegin(GPU_PRIM_TRI_FAN, 4);
 
 			immAttrib2f(texCoord, 0.0f, 0.0f);
 			immVertex2f(pos, 0.0f, 0.0f);
@@ -1170,7 +1170,7 @@ static void draw_plane_marker_image(Scene *scene,
 
 			immUnbindProgram();
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 
 			glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1206,7 +1206,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 	}
 
 	if (draw_plane_quad || is_selected_track) {
-		const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -1239,7 +1239,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 			}
 
 			/* Draw rectangle itself. */
-			immBegin(GWN_PRIM_LINE_LOOP, 4);
+			immBegin(GPU_PRIM_LINE_LOOP, 4);
 			immVertex2fv(shdr_pos, plane_marker->corners[0]);
 			immVertex2fv(shdr_pos, plane_marker->corners[1]);
 			immVertex2fv(shdr_pos, plane_marker->corners[2]);
@@ -1252,7 +1252,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 
 				immUniformColor3f(1.0f, 0.0f, 0.0f);
 
-				immBegin(GWN_PRIM_LINES, 2);
+				immBegin(GPU_PRIM_LINES, 2);
 
 				getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[1], end_point);
 				immVertex2fv(shdr_pos, plane_marker->corners[0]);
@@ -1262,7 +1262,7 @@ static void draw_plane_marker_ex(SpaceClip *sc, Scene *scene, MovieTrackingPlane
 
 				immUniformColor3f(0.0f, 1.0f, 0.0f);
 
-				immBegin(GWN_PRIM_LINES, 2);
+				immBegin(GPU_PRIM_LINES, 2);
 
 				getArrowEndPoint(width, height, sc->zoom, plane_marker->corners[0], plane_marker->corners[3], end_point);
 				immVertex2fv(shdr_pos, plane_marker->corners[0]);
@@ -1342,13 +1342,13 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 
 	UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-	gpuPushMatrix();
-	gpuTranslate2f(x, y);
+	GPU_matrix_push();
+	GPU_matrix_translate_2f(x, y);
 
-	gpuPushMatrix();
-	gpuScale2f(zoomx, zoomy);
-	gpuMultMatrix(sc->stabmat);
-	gpuScale2f(width, height);
+	GPU_matrix_push();
+	GPU_matrix_scale_2f(zoomx, zoomy);
+	GPU_matrix_mul(sc->stabmat);
+	GPU_matrix_scale_2f(width, height);
 
 	act_track = BKE_tracking_track_get_active(tracking);
 
@@ -1414,7 +1414,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 		}
 	}
 
-	unsigned int position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint position = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1519,7 +1519,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 							immUniformColor3f(1.0f, 0.0f, 0.0f);
 						}
 
-						immBegin(GWN_PRIM_POINTS, 1);
+						immBegin(GPU_PRIM_POINTS, 1);
 
 						if (undistort) {
 							immVertex2f(position, pos[0] / width, pos[1] / (height * aspy));
@@ -1539,7 +1539,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 
 	immUnbindProgram();
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (sc->flag & SC_SHOW_NAMES) {
 		/* scaling should be cleared before drawing texts, otherwise font would also be scaled */
@@ -1565,7 +1565,7 @@ static void draw_tracking_tracks(SpaceClip *sc, Scene *scene, ARegion *ar, Movie
 		}
 	}
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 
 	if (marker_pos)
 		MEM_freeN(marker_pos);
@@ -1592,13 +1592,13 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	UI_view2d_view_to_region_fl(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-	gpuPushMatrix();
-	gpuTranslate2f(x, y);
-	gpuScale2f(zoomx, zoomy);
-	gpuMultMatrix(sc->stabmat);
-	gpuScale2f(width, height);
+	GPU_matrix_push();
+	GPU_matrix_translate_2f(x, y);
+	GPU_matrix_scale_2f(zoomx, zoomy);
+	GPU_matrix_mul(sc->stabmat);
+	GPU_matrix_scale_2f(width, height);
 
-	unsigned int position = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint position = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -1675,7 +1675,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		immUniformColor3f(1.0f, 0.0f, 0.0f);
 
 		for (i = 0; i <= n; i++) {
-			immBegin(GWN_PRIM_LINE_STRIP, n + 1);
+			immBegin(GPU_PRIM_LINE_STRIP, n + 1);
 
 			for (j = 0; j <= n; j++) {
 				immVertex2fv(position, grid[i][j]);
@@ -1685,7 +1685,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		}
 
 		for (j = 0; j <= n; j++) {
-			immBegin(GWN_PRIM_LINE_STRIP, n + 1);
+			immBegin(GPU_PRIM_LINE_STRIP, n + 1);
 
 			for (i = 0; i <= n; i++) {
 				immVertex2fv(position, grid[i][j]);
@@ -1743,7 +1743,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 								sub_v2_v2v2(dpos, npos, pos);
 								mul_v2_fl(dpos, 1.0f / steps);
 
-								immBegin(GWN_PRIM_LINE_STRIP, steps + 1);
+								immBegin(GPU_PRIM_LINE_STRIP, steps + 1);
 
 								for (j = 0; j <= steps; j++) {
 									BKE_tracking_distort_v2(tracking, pos, tpos);
@@ -1756,7 +1756,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 							}
 						}
 						else if (stroke->totpoints == 1) {
-							immBegin(GWN_PRIM_POINTS, 1);
+							immBegin(GPU_PRIM_POINTS, 1);
 							immVertex2f(position, stroke->points[0].x + offsx, stroke->points[0].y + offsy);
 							immEnd();
 						}
@@ -1774,7 +1774,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 	immUnbindProgram();
 
-	gpuPopMatrix();
+	GPU_matrix_pop();
 }
 
 void clip_draw_main(const bContext *C, SpaceClip *sc, ARegion *ar)
@@ -1871,8 +1871,8 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 		 * associated with the clip is already drawn in draw_distortion
 		 */
 		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || is_track_source) {
-			gpuPushMatrix();
-			gpuMultMatrix(sc->unistabmat);
+			GPU_matrix_push();
+			GPU_matrix_mul(sc->unistabmat);
 
 			if (is_track_source) {
 				MovieTrackingTrack *track = BKE_tracking_track_get_active(&sc->clip->tracking);
@@ -1881,13 +1881,13 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 					int framenr = ED_space_clip_get_clip_frame_number(sc);
 					MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-					gpuTranslate2fv(marker->pos);
+					GPU_matrix_translate_2fv(marker->pos);
 				}
 			}
 
 			ED_gpencil_draw_2dimage(C);
 
-			gpuPopMatrix();
+			GPU_matrix_pop();
 		}
 	}
 	else {

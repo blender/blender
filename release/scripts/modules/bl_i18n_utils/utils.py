@@ -32,9 +32,9 @@ import tempfile
 #import time
 
 from bl_i18n_utils import (
-        settings,
-        utils_rtl,
-        )
+    settings,
+    utils_rtl,
+)
 
 import bpy
 
@@ -44,6 +44,8 @@ from bpy.app.translations import locale_explode
 
 
 _valid_po_path_re = re.compile(r"^\S+:[0-9]+$")
+
+
 def is_valid_po_path(path):
     return bool(_valid_po_path_re.match(path))
 
@@ -57,9 +59,10 @@ def get_best_similar(data):
     # We also consider to never make a match when len differs more than -len_key / 2, +len_key * 2 (which is valid
     # as long as use_similar is not below ~0.7).
     # Gives an overall ~20% of improvement!
-    #tmp = difflib.get_close_matches(key[1], similar_pool, n=1, cutoff=use_similar)
-    #if tmp:
-        #tmp = tmp[0]
+
+    # tmp = difflib.get_close_matches(key[1], similar_pool, n=1, cutoff=use_similar)
+    # if tmp:
+    #     tmp = tmp[0]
     tmp = None
     s = difflib.SequenceMatcher()
     s.set_seq2(key[1])
@@ -178,9 +181,11 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
     userpref = bpy.context.user_preferences
     used_ext = {ext.module for ext in userpref.addons}
 
-    ret = [mod for mod in addon_utils.modules()
-               if ((addons and mod.__name__ in addons) or
-                   (not addons and addon_utils.module_bl_info(mod)["support"] in support))]
+    ret = [
+        mod for mod in addon_utils.modules()
+        if ((addons and mod.__name__ in addons) or
+            (not addons and addon_utils.module_bl_info(mod)["support"] in support))
+    ]
 
     if not check_only:
         for mod in ret:
@@ -229,18 +234,21 @@ class I18nMessage:
 
     def _get_msgctxt(self):
         return "".join(self.msgctxt_lines)
+
     def _set_msgctxt(self, ctxt):
         self.msgctxt_lines = [ctxt]
     msgctxt = property(_get_msgctxt, _set_msgctxt)
 
     def _get_msgid(self):
         return "".join(self.msgid_lines)
+
     def _set_msgid(self, msgid):
         self.msgid_lines = [msgid]
     msgid = property(_get_msgid, _set_msgid)
 
     def _get_msgstr(self):
         return "".join(self.msgstr_lines)
+
     def _set_msgstr(self, msgstr):
         self.msgstr_lines = [msgstr]
     msgstr = property(_get_msgstr, _set_msgstr)
@@ -250,12 +258,15 @@ class I18nMessage:
         lstrip2 = len(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)
         return ([l[lstrip1:] for l in self.comment_lines if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE)] +
                 [l[lstrip2:] for l in self.comment_lines
-                             if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)])
+                 if l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)])
+
     def _set_sources(self, sources):
         cmmlines = self.comment_lines.copy()
         for l in cmmlines:
-            if (l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE) or
-                l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)):
+            if (
+                    l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE) or
+                    l.startswith(self.settings.PO_COMMENT_PREFIX_SOURCE_CUSTOM)
+            ):
                 self.comment_lines.remove(l)
         lines_src = []
         lines_src_custom = []
@@ -791,7 +802,7 @@ class I18nMessages:
             if len(k) > 1 and src_rna in src_to_msg:
                 k &= src_to_msg[src_rna]
             msgmap["rna_tip"]["key"] = k
-            #print(k)
+            # print(k)
         btip = getattr(msgs, msgmap["but_tip"]["msgstr"])
         #print("button tip: " + btip)
         if btip and btip not in {rtip, etip}:
@@ -1051,12 +1062,13 @@ class I18nMessages:
         import subprocess
         with tempfile.NamedTemporaryFile(mode='w+', encoding="utf-8") as tmp_po_f:
             self.write_messages_to_po(tmp_po_f)
-            cmd = (self.settings.GETTEXT_MSGFMT_EXECUTABLE,
-                   "--statistics",  # show stats
-                   tmp_po_f.name,
-                   "-o",
-                   fname,
-                  )
+            cmd = (
+                self.settings.GETTEXT_MSGFMT_EXECUTABLE,
+                "--statistics",  # show stats
+                tmp_po_f.name,
+                "-o",
+                fname,
+            )
             print("Running ", " ".join(cmd))
             ret = subprocess.call(cmd)
             print("Finished.")
@@ -1081,6 +1093,7 @@ class I18nMessages:
         EOT = b"0x04"  # Used to concatenate context and msgid
         _msgid_offset = 0
         _msgstr_offset = 0
+
         def _gen(v):
             nonlocal _msgid_offset, _msgstr_offset
             msgid = v.msgid.encode("utf-8")
@@ -1188,6 +1201,7 @@ class I18n:
 
     def _py_file_get(self):
         return self.src.get(self.settings.PARSER_PY_ID)
+
     def _py_file_set(self, value):
         self.src[self.settings.PARSER_PY_ID] = value
     py_file = property(_py_file_get, _py_file_set)
@@ -1252,7 +1266,8 @@ class I18n:
             _ctx_txt = "s are"
         else:
             _ctx_txt = " is"
-        lines = (("",
+        lines = ((
+            "",
             "Average stats for all {} translations:\n".format(self.nbr_trans),
             "    {:>6.1%} done!\n".format(self.lvl / self.nbr_trans),
             "    {:>6.1%} of messages are tooltips.\n".format(self.lvl_ttips / self.nbr_trans),
@@ -1350,10 +1365,10 @@ class I18n:
                 comment_lines = [self.settings.PO_COMMENT_PREFIX + c for c in user_comments] + common_comment_lines
                 self.trans[uid].msgs[key] = I18nMessage(ctxt, [key[1]], [msgstr], comment_lines, False, is_fuzzy,
                                                         settings=self.settings)
-        #key = self.settings.PO_HEADER_KEY
-        #for uid, trans in self.trans.items():
-            #if key not in trans.msgs:
-                #trans.msgs[key]
+        # key = self.settings.PO_HEADER_KEY
+        # for uid, trans in self.trans.items():
+        #     if key not in trans.msgs:
+        #         trans.msgs[key]
         self.unescape()
 
     def write(self, kind, langs=set()):

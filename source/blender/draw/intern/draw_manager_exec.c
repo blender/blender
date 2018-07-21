@@ -419,10 +419,10 @@ void DRW_state_invert_facing(void)
  * and if the shaders have support for it (see usage of gl_ClipDistance).
  * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
  **/
-void DRW_state_clip_planes_count_set(uint plane_ct)
+void DRW_state_clip_planes_count_set(uint plane_len)
 {
-	BLI_assert(plane_ct <= MAX_CLIP_PLANES);
-	DST.num_clip_planes = plane_ct;
+	BLI_assert(plane_len <= MAX_CLIP_PLANES);
+	DST.num_clip_planes = plane_len;
 }
 
 void DRW_state_clip_planes_reset(void)
@@ -827,29 +827,29 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 }
 
 static void draw_geometry_execute_ex(
-        DRWShadingGroup *shgroup, Gwn_Batch *geom, uint start, uint count, bool draw_instance)
+        DRWShadingGroup *shgroup, GPUBatch *geom, uint start, uint count, bool draw_instance)
 {
 	/* Special case: empty drawcall, placement is done via shader, don't bind anything. */
 	/* TODO use DRW_CALL_PROCEDURAL instead */
 	if (geom == NULL) {
 		BLI_assert(shgroup->type == DRW_SHG_TRIANGLE_BATCH); /* Add other type if needed. */
 		/* Shader is already bound. */
-		GWN_draw_primitive(GWN_PRIM_TRIS, count);
+		GPU_draw_primitive(GPU_PRIM_TRIS, count);
 		return;
 	}
 
 	/* step 2 : bind vertex array & draw */
-	GWN_batch_program_set_no_use(
+	GPU_batch_program_set_no_use(
 	        geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	/* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
 	geom->program_in_use = true;
 
-	GWN_batch_draw_range_ex(geom, start, count, draw_instance);
+	GPU_batch_draw_range_ex(geom, start, count, draw_instance);
 
 	geom->program_in_use = false; /* XXX hacking gawain */
 }
 
-static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
+static void draw_geometry_execute(DRWShadingGroup *shgroup, GPUBatch *geom)
 {
 	draw_geometry_execute_ex(shgroup, geom, 0, 0, false);
 }
@@ -923,7 +923,7 @@ static void release_texture_slots(bool with_persist)
 		}
 	}
 
-	/* Reset so that slots are consistenly assigned for different shader
+	/* Reset so that slots are consistently assigned for different shader
 	 * draw calls, to avoid shader specialization/patching by the driver. */
 	DST.RST.bind_tex_inc = 0;
 }
@@ -940,7 +940,7 @@ static void release_ubo_slots(bool with_persist)
 		}
 	}
 
-	/* Reset so that slots are consistenly assigned for different shader
+	/* Reset so that slots are consistently assigned for different shader
 	 * draw calls, to avoid shader specialization/patching by the driver. */
 	DST.RST.bind_ubo_inc = 0;
 }
@@ -1055,9 +1055,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	if (G.f & G_PICKSEL) {                                           \
 		if (_shgroup->override_selectid == -1) {                        \
 			/* Hack : get vbo data without actually drawing. */     \
-			Gwn_VertBufRaw raw;                   \
-			GWN_vertbuf_attr_get_raw_data(_shgroup->inst_selectid, 0, &raw); \
-			select_id = GWN_vertbuf_raw_step(&raw);                               \
+			GPUVertBufRaw raw;                   \
+			GPU_vertbuf_attr_get_raw_data(_shgroup->inst_selectid, 0, &raw); \
+			select_id = GPU_vertbuf_raw_step(&raw);                               \
 			switch (_shgroup->type) {                                             \
 				case DRW_SHG_TRIANGLE_BATCH: _count = 3; break;                   \
 				case DRW_SHG_LINE_BATCH: _count = 2; break;                       \
@@ -1168,7 +1168,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 					call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
 					break;
 				case DRW_CALL_PROCEDURAL:
-					GWN_draw_primitive(call->procedural.prim_type, call->procedural.vert_count);
+					GPU_draw_primitive(call->procedural.prim_type, call->procedural.vert_count);
 					break;
 				default:
 					BLI_assert(0);

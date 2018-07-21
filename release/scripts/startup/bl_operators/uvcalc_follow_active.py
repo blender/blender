@@ -226,7 +226,7 @@ class FollowActiveQuads(Operator):
     bl_label = "Follow Active Quads"
     bl_options = {'REGISTER', 'UNDO'}
 
-    mode = bpy.props.EnumProperty(
+    mode: bpy.props.EnumProperty(
         name="Edge Length Mode",
         description="Method to space UV edge loops",
         items=(('EVEN', "Even", "Space all UVs evenly"),

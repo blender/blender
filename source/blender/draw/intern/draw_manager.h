@@ -35,6 +35,7 @@
 #include "BLI_threads.h"
 
 #include "GPU_batch.h"
+#include "GPU_context.h"
 #include "GPU_framebuffer.h"
 #include "GPU_shader.h"
 #include "GPU_uniformbuffer.h"
@@ -106,8 +107,8 @@ typedef struct DRWCallState {
 	DRWCallVisibilityFn *visibility_cb;
 	void *user_data;
 
-	unsigned char flag;
-	unsigned char cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
+	uchar flag;
+	uchar cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
 	uint16_t matflag;         /* Which matrices to compute. */
 	/* Culling: Using Bounding Sphere for now for faster culling.
 	 * Not ideal for planes. */
@@ -129,7 +130,7 @@ typedef enum {
 	DRW_CALL_RANGE,                  /* Like single but only draw a range of vertices/indices. */
 	DRW_CALL_INSTANCES,              /* Draw instances without any instancing attribs. */
 	DRW_CALL_GENERATE,               /* Uses a callback to draw with any number of batches. */
-	DRW_CALL_PROCEDURAL,             /* Generate a drawcall without any Gwn_Batch. */
+	DRW_CALL_PROCEDURAL,             /* Generate a drawcall without any GPUBatch. */
 } DRWCallType;
 
 typedef struct DRWCall {
@@ -138,14 +139,14 @@ typedef struct DRWCall {
 
 	union {
 		struct { /* type == DRW_CALL_SINGLE */
-			Gwn_Batch *geometry;
+			GPUBatch *geometry;
 		} single;
 		struct { /* type == DRW_CALL_RANGE */
-			Gwn_Batch *geometry;
+			GPUBatch *geometry;
 			uint start, count;
 		} range;
 		struct { /* type == DRW_CALL_INSTANCES */
-			Gwn_Batch *geometry;
+			GPUBatch *geometry;
 			/* Count can be adjusted between redraw. If needed, we can add fixed count. */
 			uint *count;
 		} instances;
@@ -155,7 +156,7 @@ typedef struct DRWCall {
 		} generate;
 		struct { /* type == DRW_CALL_PROCEDURAL */
 			uint vert_count;
-			Gwn_PrimType prim_type;
+			GPUPrimType prim_type;
 		} procedural;
 	};
 
@@ -225,16 +226,16 @@ struct DRWShadingGroup {
 		} calls;
 		struct { /* DRW_SHG_FEEDBACK_TRANSFORM */
 			DRWCall *first, *last; /* Linked list of DRWCall or DRWCallDynamic depending of type */
-			struct Gwn_VertBuf *tfeedback_target; /* Transform Feedback target. */
+			struct GPUVertBuf *tfeedback_target; /* Transform Feedback target. */
 		};
 		struct { /* DRW_SHG_***_BATCH */
-			struct Gwn_Batch *batch_geom;     /* Result of call batching */
-			struct Gwn_VertBuf *batch_vbo;
+			struct GPUBatch *batch_geom;     /* Result of call batching */
+			struct GPUVertBuf *batch_vbo;
 			uint primitive_count;
 		};
 		struct { /* DRW_SHG_INSTANCE[_EXTERNAL] */
-			struct Gwn_Batch *instance_geom;
-			struct Gwn_VertBuf *instance_vbo;
+			struct GPUBatch *instance_geom;
+			struct GPUVertBuf *instance_vbo;
 			uint instance_count;
 			float instance_orcofac[2][3]; /* TODO find a better place. */
 		};
@@ -263,7 +264,7 @@ struct DRWShadingGroup {
 #endif
 
 #ifdef USE_GPU_SELECT
-	Gwn_VertBuf *inst_selectid;
+	GPUVertBuf *inst_selectid;
 	DRWPass *pass_parent; /* backlink to pass we're in */
 	int override_selectid; /* Override for single object instances. */
 #endif
@@ -296,6 +297,12 @@ typedef struct DRWDebugLine {
 	float color[4];
 } DRWDebugLine;
 
+typedef struct DRWDebugSphere {
+	struct DRWDebugSphere *next; /* linked list */
+	float mat[4][4];
+	float color[4];
+} DRWDebugSphere;
+
 /* ------------- DRAW MANAGER ------------ */
 
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
@@ -308,7 +315,7 @@ typedef struct DRWManager {
 	DRWInstanceData *object_instance_data[MAX_INSTANCE_DATA_SIZE];
 	/* State of the object being evaluated if already allocated. */
 	DRWCallState *ob_state;
-	unsigned char state_cache_id; /* Could be larger but 254 view changes is already a lot! */
+	uchar state_cache_id; /* Could be larger but 254 view changes is already a lot! */
 
 	/* Rendering state */
 	GPUShader *shader;
@@ -372,8 +379,8 @@ typedef struct DRWManager {
 	/* gl_context serves as the offset for clearing only
 	 * the top portion of the struct so DO NOT MOVE IT! */
 	void *gl_context;                /* Unique ghost context used by the draw manager. */
-	Gwn_Context *gwn_context;
-	ThreadMutex gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
+	GPUContext *gpu_context;
+	TicketMutex *gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
 
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {
@@ -388,6 +395,7 @@ typedef struct DRWManager {
 	struct {
 		/* TODO(fclem) optimize: use chunks. */
 		DRWDebugLine *lines;
+		DRWDebugSphere *spheres;
 	} debug;
 } DRWManager;
 

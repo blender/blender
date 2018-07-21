@@ -89,7 +89,7 @@ bool BlenderSync::object_is_light(BL::Object& b_ob)
 {
 	BL::ID b_ob_data = b_ob.data();
 
-	return (b_ob_data && b_ob_data.is_a(&RNA_Lamp));
+	return (b_ob_data && b_ob_data.is_a(&RNA_Light));
 }
 
 static uint object_ray_visibility(BL::Object& b_ob)
@@ -126,57 +126,57 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 			*use_portal = true;
 		return;
 	}
-	
-	BL::Lamp b_lamp(b_ob.data());
+
+	BL::Light b_light(b_ob.data());
 
 	/* type */
-	switch(b_lamp.type()) {
-		case BL::Lamp::type_POINT: {
-			BL::PointLamp b_point_lamp(b_lamp);
-			light->size = b_point_lamp.shadow_soft_size();
+	switch(b_light.type()) {
+		case BL::Light::type_POINT: {
+			BL::PointLight b_point_light(b_light);
+			light->size = b_point_light.shadow_soft_size();
 			light->type = LIGHT_POINT;
 			break;
 		}
-		case BL::Lamp::type_SPOT: {
-			BL::SpotLamp b_spot_lamp(b_lamp);
-			light->size = b_spot_lamp.shadow_soft_size();
+		case BL::Light::type_SPOT: {
+			BL::SpotLight b_spot_light(b_light);
+			light->size = b_spot_light.shadow_soft_size();
 			light->type = LIGHT_SPOT;
-			light->spot_angle = b_spot_lamp.spot_size();
-			light->spot_smooth = b_spot_lamp.spot_blend();
+			light->spot_angle = b_spot_light.spot_size();
+			light->spot_smooth = b_spot_light.spot_blend();
 			break;
 		}
-		case BL::Lamp::type_HEMI: {
+		case BL::Light::type_HEMI: {
 			light->type = LIGHT_DISTANT;
 			light->size = 0.0f;
 			break;
 		}
-		case BL::Lamp::type_SUN: {
-			BL::SunLamp b_sun_lamp(b_lamp);
-			light->size = b_sun_lamp.shadow_soft_size();
+		case BL::Light::type_SUN: {
+			BL::SunLight b_sun_light(b_light);
+			light->size = b_sun_light.shadow_soft_size();
 			light->type = LIGHT_DISTANT;
 			break;
 		}
-		case BL::Lamp::type_AREA: {
-			BL::AreaLamp b_area_lamp(b_lamp);
+		case BL::Light::type_AREA: {
+			BL::AreaLight b_area_light(b_light);
 			light->size = 1.0f;
 			light->axisu = transform_get_column(&tfm, 0);
 			light->axisv = transform_get_column(&tfm, 1);
-			light->sizeu = b_area_lamp.size();
-			switch(b_area_lamp.shape()) {
-				case BL::AreaLamp::shape_SQUARE:
+			light->sizeu = b_area_light.size();
+			switch(b_area_light.shape()) {
+				case BL::AreaLight::shape_SQUARE:
 					light->sizev = light->sizeu;
 					light->round = false;
 					break;
-				case BL::AreaLamp::shape_RECTANGLE:
-					light->sizev = b_area_lamp.size_y();
+				case BL::AreaLight::shape_RECTANGLE:
+					light->sizev = b_area_light.size_y();
 					light->round = false;
 					break;
-				case BL::AreaLamp::shape_DISK:
+				case BL::AreaLight::shape_DISK:
 					light->sizev = light->sizeu;
 					light->round = true;
 					break;
-				case BL::AreaLamp::shape_ELLIPSE:
-					light->sizev = b_area_lamp.size_y();
+				case BL::AreaLight::shape_ELLIPSE:
+					light->sizev = b_area_light.size_y();
 					light->round = true;
 					break;
 			}
@@ -192,22 +192,22 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 
 	/* shader */
 	vector<Shader*> used_shaders;
-	find_shader(b_lamp, used_shaders, scene->default_light);
+	find_shader(b_light, used_shaders, scene->default_light);
 	light->shader = used_shaders[0];
 
 	/* shadow */
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
-	light->cast_shadow = get_boolean(clamp, "cast_shadow");
-	light->use_mis = get_boolean(clamp, "use_multiple_importance_sampling");
-	
-	int samples = get_int(clamp, "samples");
+	PointerRNA clight = RNA_pointer_get(&b_light.ptr, "cycles");
+	light->cast_shadow = get_boolean(clight, "cast_shadow");
+	light->use_mis = get_boolean(clight, "use_multiple_importance_sampling");
+
+	int samples = get_int(clight, "samples");
 	if(get_boolean(cscene, "use_square_samples"))
 		light->samples = samples * samples;
 	else
 		light->samples = samples;
 
-	light->max_bounces = get_int(clamp, "max_bounces");
+	light->max_bounces = get_int(clight, "max_bounces");
 
 	if(b_ob != b_ob_instance) {
 		light->random_id = random_id;
@@ -217,7 +217,7 @@ void BlenderSync::sync_light(BL::Object& b_parent,
 	}
 
 	if(light->type == LIGHT_AREA)
-		light->is_portal = get_boolean(clamp, "is_portal");
+		light->is_portal = get_boolean(clight, "is_portal");
 	else
 		light->is_portal = false;
 
@@ -315,7 +315,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
-		/* don't use lamps for excluded layers used as mask layer */
+		/* don't use lights for excluded layers used as mask layer */
 		if(!motion && !((layer_flag & view_layer.holdout_layer) &&
 		                (layer_flag & view_layer.exclude_layer)))
 		{
@@ -394,7 +394,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 	if(object_map.sync(&object, b_ob, b_parent, key))
 		object_updated = true;
-	
+
 	/* mesh sync */
 	object->mesh = sync_mesh(b_depsgraph, b_ob, b_ob_instance, object_updated, hide_tris);
 
@@ -543,7 +543,7 @@ static bool object_render_hide(BL::Object& b_ob,
 		}
 		parent = parent.parent();
 	}
-	
+
 	hide_triangles = hide_emitter;
 
 	if(show_emitter) {
@@ -563,7 +563,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 {
 	/* layer data */
 	bool motion = motion_time != 0.0f;
-	
+
 	if(!motion) {
 		/* prepare for sync */
 		light_map.pre_sync();
@@ -729,4 +729,3 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 }
 
 CCL_NAMESPACE_END
-

@@ -70,8 +70,7 @@ GHOST_ContextWGL::GHOST_ContextWGL(
       m_contextFlags(contextFlags),
       m_alphaBackground(alphaBackground),
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
-      m_hGLRC(NULL),
-      m_init(false)
+      m_hGLRC(NULL)
 #ifndef NDEBUG
       ,
       m_dummyVendor(NULL),
@@ -140,10 +139,6 @@ GHOST_TSuccess GHOST_ContextWGL::getSwapInterval(int &intervalOut)
 
 GHOST_TSuccess GHOST_ContextWGL::activateDrawingContext()
 {
-	if (m_init == false) {
-		initContext();
-	}
-
 	if (WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
 		return GHOST_kSuccess;
 	}
@@ -203,10 +198,6 @@ static int weight_pixel_format(PIXELFORMATDESCRIPTOR &pfd, PIXELFORMATDESCRIPTOR
 	if (pfd.cStencilBits >= 8)
 		weight++;
 #endif
-
-	/* want swap copy capability -- it matters a lot */
-	if (pfd.dwFlags & PFD_SWAP_COPY)
-		weight += 16;
 
 	return weight;
 }
@@ -409,7 +400,6 @@ static void makeAttribList(
         std::vector<int>& out,
         bool stereoVisual,
         int numOfAASamples,
-        int swapMethod,
         bool needAlpha,
         bool needStencil,
         bool sRGB)
@@ -428,9 +418,6 @@ static void makeAttribList(
 
 	out.push_back(WGL_ACCELERATION_ARB);
 	out.push_back(WGL_FULL_ACCELERATION_ARB);
-
-	out.push_back(WGL_SWAP_METHOD_ARB);
-	out.push_back(swapMethod);
 
 	if (stereoVisual) {
 		out.push_back(WGL_STEREO_ARB);
@@ -473,13 +460,12 @@ static void makeAttribList(
 }
 
 
-int GHOST_ContextWGL::_choose_pixel_format_arb_2(
+int GHOST_ContextWGL::_choose_pixel_format_arb_1(
         bool stereoVisual,
-        int *numOfAASamples,
+        int numOfAASamples,
         bool needAlpha,
         bool needStencil,
-        bool sRGB,
-        int swapMethod)
+        bool sRGB)
 {
 	std::vector<int> iAttributes;
 
@@ -491,12 +477,12 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_2(
 	int samples;
 
 	// guard against some insanely high number of samples
-	if (*numOfAASamples > 64) {
+	if (numOfAASamples > 64) {
 		fprintf(stderr, "Warning! Clamping number of samples to 64.\n");
 		samples = 64;
 	}
 	else {
-		samples = *numOfAASamples;
+		samples = numOfAASamples;
 	}
 
 	// request a format with as many samples as possible, but not more than requested
@@ -505,7 +491,6 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_2(
 		        iAttributes,
 		        stereoVisual,
 		        samples,
-		        swapMethod,
 		        needAlpha,
 		        needStencil,
 		        sRGB);
@@ -554,13 +539,11 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_2(
 		int actualSamples, alphaBits;
 		wglGetPixelFormatAttribivARB(m_hDC, iPixelFormat, 0, 1, iQuery, &actualSamples);
 
-		if (actualSamples != *numOfAASamples) {
+		if (actualSamples != numOfAASamples) {
 			fprintf(stderr,
 			        "Warning! Unable to find a multisample pixel format that supports exactly %d samples. "
 			        "Substituting one that uses %d samples.\n",
-			        *numOfAASamples, actualSamples);
-
-			*numOfAASamples = actualSamples; // set context property to actual value
+			        numOfAASamples, actualSamples);
 		}
 		if (needAlpha) {
 			iQuery[0] = WGL_ALPHA_BITS_ARB;
@@ -570,69 +553,6 @@ int GHOST_ContextWGL::_choose_pixel_format_arb_2(
 						"Warning! Unable to find a frame buffer with alpha channel.\n");
 			}
 		}
-	}
-	else {
-		*numOfAASamples = 0;
-	}
-	return iPixelFormat;
-}
-
-
-int GHOST_ContextWGL::_choose_pixel_format_arb_1(bool stereoVisual,
-        int numOfAASamples,
-        bool needAlpha,
-        bool needStencil,
-        bool sRGB,
-        int *swapMethodOut)
-{
-	int iPixelFormat;
-	int copyPixelFormat = 0;
-	int undefPixelFormat = 0;
-	int exchPixelFormat = 0;
-	int copyNumOfAASamples = 0;
-	int undefNumOfAASamples = 0;
-	int exchNumOfAASamples = 0;
-
-	*swapMethodOut = WGL_SWAP_COPY_ARB;
-	copyNumOfAASamples = numOfAASamples;
-	copyPixelFormat  = _choose_pixel_format_arb_2(
-		stereoVisual, &copyNumOfAASamples, needAlpha, needStencil, sRGB, *swapMethodOut);
-
-	if (copyPixelFormat == 0 || copyNumOfAASamples < numOfAASamples) {
-		*swapMethodOut = WGL_SWAP_UNDEFINED_ARB;
-		undefNumOfAASamples = numOfAASamples;
-		undefPixelFormat = _choose_pixel_format_arb_2(
-			stereoVisual, &undefNumOfAASamples, needAlpha, needStencil, sRGB, *swapMethodOut);
-
-		if (undefPixelFormat == 0 || undefNumOfAASamples < numOfAASamples) {
-			*swapMethodOut = WGL_SWAP_EXCHANGE_ARB;
-			exchNumOfAASamples = numOfAASamples;
-			exchPixelFormat = _choose_pixel_format_arb_2(
-				stereoVisual, &exchNumOfAASamples, needAlpha, needStencil, sRGB, *swapMethodOut);
-			if (exchPixelFormat == 0 || exchNumOfAASamples < numOfAASamples) {
-				// the number of AA samples cannot be met, take the highest
-				if (undefPixelFormat != 0 && undefNumOfAASamples >= exchNumOfAASamples) {
-					exchNumOfAASamples = undefNumOfAASamples;
-					exchPixelFormat = undefPixelFormat;
-					*swapMethodOut = WGL_SWAP_UNDEFINED_ARB;
-				}
-				if (copyPixelFormat != 0 && copyNumOfAASamples >= exchNumOfAASamples) {
-					exchNumOfAASamples = copyNumOfAASamples;
-					exchPixelFormat = copyPixelFormat;
-					*swapMethodOut = WGL_SWAP_COPY_ARB;
-				}
-			}
-			iPixelFormat = exchPixelFormat;
-			m_numOfAASamples = exchNumOfAASamples;
-		}
-		else {
-			iPixelFormat = undefPixelFormat;
-			m_numOfAASamples = undefNumOfAASamples;
-		}
-	}
-	else {
-		iPixelFormat = copyPixelFormat;
-		m_numOfAASamples = copyNumOfAASamples;
 	}
 	return iPixelFormat;
 }
@@ -646,15 +566,13 @@ int GHOST_ContextWGL::choose_pixel_format_arb(
         bool sRGB)
 {
 	int iPixelFormat;
-	int swapMethodOut;
 
 	iPixelFormat = _choose_pixel_format_arb_1(
 	        stereoVisual,
 	        numOfAASamples,
 	        needAlpha,
 	        needStencil,
-	        sRGB,
-	        &swapMethodOut);
+	        sRGB);
 
 	if (iPixelFormat == 0 && stereoVisual) {
 		fprintf(stderr, "Warning! Unable to find a stereo pixel format.\n");
@@ -664,17 +582,9 @@ int GHOST_ContextWGL::choose_pixel_format_arb(
 		        numOfAASamples,
 		        needAlpha,
 		        needStencil,
-		        sRGB,
-		        &swapMethodOut);
+		        sRGB);
 
 		m_stereoVisual = false;  // set context property to actual value
-	}
-
-	if (swapMethodOut != WGL_SWAP_COPY_ARB) {
-		fprintf(stderr,
-		        "Warning! Unable to find a pixel format that supports WGL_SWAP_COPY_ARB. "
-		        "Substituting one that uses %s.\n",
-		        swapMethodOut == WGL_SWAP_UNDEFINED_ARB ? "WGL_SWAP_UNDEFINED_ARB" : "WGL_SWAP_EXCHANGE_ARB");
 	}
 
 	return iPixelFormat;
@@ -694,7 +604,6 @@ int GHOST_ContextWGL::choose_pixel_format(
 		(DWORD) (
 		PFD_SUPPORT_OPENGL |
 		PFD_DRAW_TO_WINDOW |
-		PFD_SWAP_COPY      |             /* support swap copy */
 		PFD_DOUBLEBUFFER   |             /* support double-buffering */
 		(stereoVisual ? PFD_STEREO : 0) |/* support stereo */
 		(
@@ -893,23 +802,8 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 		goto error;
 	}
 
-	initContext();
-
-	initClearGL();
-	::SwapBuffers(m_hDC);
-
-	return GHOST_kSuccess;
-error:
-	::wglMakeCurrent(prevHDC, prevHGLRC);
-	return GHOST_kFailure;
-
-}
-
-
-GHOST_TSuccess GHOST_ContextWGL::initContext()
-{
 	if (!WIN32_CHK(::wglMakeCurrent(m_hDC, m_hGLRC))) {
-		return GHOST_kFailure;
+		goto error;
 	}
 
 	initContextGLEW();
@@ -923,7 +817,8 @@ GHOST_TSuccess GHOST_ContextWGL::initContext()
 		glEnable(GL_POINT_SPRITE);
 	}
 
-	m_init = true;
+	initClearGL();
+	::SwapBuffers(m_hDC);
 
 #ifndef NDEBUG
 	const char *vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
@@ -938,6 +833,10 @@ GHOST_TSuccess GHOST_ContextWGL::initContext()
 #endif
 
 	return GHOST_kSuccess;
+error:
+	::wglMakeCurrent(prevHDC, prevHGLRC);
+	return GHOST_kFailure;
+
 }
 
 

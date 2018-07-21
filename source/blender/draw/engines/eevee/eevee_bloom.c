@@ -132,9 +132,9 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		/* determine the iteration count */
 		const float minDim = (float)MIN2(blitsize[0], blitsize[1]);
 		const float maxIter = (radius - 8.0f) + log(minDim) / log(2);
-		const int maxIterInt = effects->bloom_iteration_ct = (int)maxIter;
+		const int maxIterInt = effects->bloom_iteration_len = (int)maxIter;
 
-		CLAMP(effects->bloom_iteration_ct, 1, MAX_BLOOM_STEP);
+		CLAMP(effects->bloom_iteration_len, 1, MAX_BLOOM_STEP);
 
 		effects->bloom_sample_scale = 0.5f + maxIter - (float)maxIterInt;
 		effects->bloom_curve_threshold[0] = threshold - knee;
@@ -146,7 +146,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 		/* Downsample buffers */
 		copy_v2_v2_int(texsize, blitsize);
-		for (int i = 0; i < effects->bloom_iteration_ct; ++i) {
+		for (int i = 0; i < effects->bloom_iteration_len; ++i) {
 			texsize[0] /= 2; texsize[1] /= 2;
 
 			texsize[0] = MAX2(texsize[0], 2);
@@ -165,7 +165,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 		/* Upsample buffers */
 		copy_v2_v2_int(texsize, blitsize);
-		for (int i = 0; i < effects->bloom_iteration_ct - 1; ++i) {
+		for (int i = 0; i < effects->bloom_iteration_len - 1; ++i) {
 			texsize[0] /= 2; texsize[1] /= 2;
 
 			texsize[0] = MAX2(texsize[0], 2);
@@ -196,7 +196,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 static DRWShadingGroup *eevee_create_bloom_pass(
         const char *name, EEVEE_EffectsInfo *effects, struct GPUShader *sh, DRWPass **pass, bool upsample)
 {
-	struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 	*pass = DRW_pass_create(name, DRW_STATE_WRITE_COLOR);
 
@@ -291,7 +291,7 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
 
 		last = effects->bloom_downsample[0];
 
-		for (int i = 1; i < effects->bloom_iteration_ct; ++i) {
+		for (int i = 1; i < effects->bloom_iteration_len; ++i) {
 			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i - 1]);
 			effects->unf_source_buffer = last;
 
@@ -303,7 +303,7 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
 		}
 
 		/* Upsample and accumulate */
-		for (int i = effects->bloom_iteration_ct - 2; i >= 0; --i) {
+		for (int i = effects->bloom_iteration_len - 2; i >= 0; --i) {
 			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i]);
 			effects->unf_source_buffer = effects->bloom_downsample[i];
 			effects->unf_base_buffer = last;

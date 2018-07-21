@@ -50,6 +50,7 @@
 #include "BIF_gl.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
@@ -373,7 +374,6 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		return;
 	}
 
-	View3D *v3d = cdd->vc.v3d;
 	Object *obedit = cdd->vc.obedit;
 	Curve *cu = obedit->data;
 
@@ -387,17 +387,17 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		float color[3];
 		UI_GetThemeColor3fv(TH_WIRE, color);
 
-		Gwn_Batch *sphere = GPU_batch_preset_sphere(0);
-		GWN_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
-		GWN_batch_uniform_3fv(sphere, "color", color);
+		GPUBatch *sphere = GPU_batch_preset_sphere(0);
+		GPU_batch_program_set_builtin(sphere, GPU_SHADER_3D_UNIFORM_COLOR);
+		GPU_batch_uniform_3fv(sphere, "color", color);
 
 		/* scale to edit-mode space */
-		gpuPushMatrix();
-		gpuMultMatrix(obedit->obmat);
+		GPU_matrix_push();
+		GPU_matrix_mul(obedit->obmat);
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
 		for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {
-			gpuTranslate3f(
+			GPU_matrix_translate_3f(
 			        selem->location_local[0] - location_prev[0],
 			        selem->location_local[1] - location_prev[1],
 			        selem->location_local[2] - location_prev[2]);
@@ -405,15 +405,15 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 
 			const float radius = stroke_elem_radius(cdd, selem);
 
-			gpuPushMatrix();
-			gpuScaleUniform(radius);
-			GWN_batch_draw(sphere);
-			gpuPopMatrix();
+			GPU_matrix_push();
+			GPU_matrix_scale_1f(radius);
+			GPU_batch_draw(sphere);
+			GPU_matrix_pop();
 
 			location_prev = selem->location_local;
 		}
 
-		gpuPopMatrix();
+		GPU_matrix_pop();
 	}
 
 	if (stroke_len > 1) {
@@ -430,41 +430,33 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 		}
 
 		{
-			Gwn_VertFormat *format = immVertexFormat();
-			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			GPUVertFormat *format = immVertexFormat();
+			uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
+			GPU_depth_test(false);
 			GPU_blend(true);
 			GPU_line_smooth(true);
-
-			imm_cpack(0x0);
-			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
 			GPU_line_width(3.0f);
 
-			if (v3d->zbuf) {
-				GPU_depth_test(false);
-			}
-
+			imm_cpack(0x0);
+			immBegin(GPU_PRIM_LINE_STRIP, stroke_len);
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}
-
 			immEnd();
 
-			imm_cpack(0xffffffff);
-			immBegin(GWN_PRIM_LINE_STRIP, stroke_len);
 			GPU_line_width(1.0f);
 
+			imm_cpack(0xffffffff);
+			immBegin(GPU_PRIM_LINE_STRIP, stroke_len);
 			for (int i = 0; i < stroke_len; i++) {
 				immVertex3fv(pos, coord_array[i]);
 			}
-
 			immEnd();
 
-			if (v3d->zbuf) {
-				GPU_depth_test(true);
-			}
-
+			/* Reset defaults */
+			GPU_depth_test(true);
 			GPU_blend(false);
 			GPU_line_smooth(false);
 
@@ -1103,7 +1095,7 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		else {
 			if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) &&
-			    (v3d->drawtype > OB_WIRE))
+			    (v3d->shading.type > OB_WIRE))
 			{
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);

@@ -44,7 +44,7 @@ set(INC_SYS
 set(SRC
 	editface.c
 	editmesh_add.c
-	editmesh_add_manipulator.c
+	editmesh_add_gizmo.c
 	editmesh_bevel.c
 	editmesh_bisect.c
 	editmesh_extrude.c

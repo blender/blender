@@ -70,6 +70,8 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 
+#include "DRW_engine.h"
+
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_curve_types.h"
 #  include "DNA_key_types.h"
@@ -553,6 +555,13 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
 		}
+		case ID_SCE:
+		{
+			Scene *scene_cow = (Scene *)id_cow;
+			const Scene *scene_orig = (const Scene *)id_orig;
+			scene_cow->eevee.light_cache = scene_orig->eevee.light_cache;
+			break;
+		}
 		default:
 			break;
 	}
@@ -806,6 +815,8 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 */
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
+	DrawDataList drawdata_backup;
+	DrawDataList *drawdata_ptr = NULL;
 	ObjectRuntimeBackup object_runtime_backup = {NULL};
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
@@ -841,9 +852,11 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				break;
 			}
 			case ID_OB:
-				deg_backup_object_runtime((Object *)id_cow,
-				                          &object_runtime_backup);
+			{
+				Object *ob = (Object *)id_cow;
+				deg_backup_object_runtime(ob, &object_runtime_backup);
 				break;
+			}
 			default:
 				break;
 		}
@@ -851,12 +864,21 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 			gpumaterial_backup = *gpumaterial_ptr;
 			gpumaterial_ptr->first = gpumaterial_ptr->last = NULL;
 		}
+		drawdata_ptr = DRW_drawdatalist_from_id(id_cow);
+		if (drawdata_ptr != NULL) {
+			drawdata_backup = *drawdata_ptr;
+			drawdata_ptr->first = drawdata_ptr->last = NULL;
+		}
 	}
 	deg_free_copy_on_write_datablock(id_cow);
 	deg_expand_copy_on_write_datablock(depsgraph, id_node);
 	/* Restore GPU materials. */
 	if (gpumaterial_ptr != NULL) {
 		*gpumaterial_ptr = gpumaterial_backup;
+	}
+	/* Restore DrawData. */
+	if (drawdata_ptr != NULL) {
+		*drawdata_ptr = drawdata_backup;
 	}
 	if (id_type == ID_OB) {
 		deg_restore_object_runtime((Object *)id_cow, &object_runtime_backup);
@@ -911,6 +933,12 @@ void discard_mesh_edit_mode_pointers(ID *id_cow)
 	mesh_cow->edit_btmesh = NULL;
 }
 
+void discard_scene_pointers(ID *id_cow)
+{
+	Scene *scene_cow = (Scene *)id_cow;
+	scene_cow->eevee.light_cache = NULL;
+}
+
 /* NULL-ify all edit mode pointers which points to data from
  * original object.
  */
@@ -932,6 +960,11 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_LT:
 			discard_lattice_edit_mode_pointers(id_cow);
+			break;
+		case ID_SCE:
+			/* Not really edit mode but still needs to run before
+			 * BKE_libblock_free_datablock() */
+			discard_scene_pointers(id_cow);
 			break;
 		default:
 			break;

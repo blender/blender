@@ -97,7 +97,7 @@ typedef struct {
 	/* modal only */
 	float mcenter[2];
 	void *draw_handle_pixel;
-	short twflag;
+	short gizmo_flag;
 	short value_mode;  /* Which value does mouse movement and numeric input affect? */
 	float segments;     /* Segments as float so smooth mouse pan works in small increments */
 } BevelData;
@@ -287,8 +287,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		G.moving = G_TRANSFORM_EDIT;
 
 		if (v3d) {
-			opdata->twflag = v3d->twflag;
-			v3d->twflag = 0;
+			opdata->gizmo_flag = v3d->gizmo_flag;
+			v3d->gizmo_flag = V3D_GIZMO_HIDE;
 		}
 	}
 
@@ -377,7 +377,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 		}
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
-			v3d->twflag = opdata->twflag;
+			v3d->gizmo_flag = opdata->gizmo_flag;
 		}
 		G.moving = 0;
 	}

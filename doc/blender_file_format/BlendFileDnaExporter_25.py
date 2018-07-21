@@ -7,7 +7,7 @@
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
 #
-# This program is distributed in the hope that it will be useful, 
+# This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
@@ -22,21 +22,21 @@
 #
 #    Name:
 #        dna.py
-#        
+#
 #    Description:
 #        Creates a browsable DNA output to HTML.
-#        
+#
 #    Author:
 #        Jeroen Bakker
-#        
+#
 #    Version:
 #        v0.1 (12-05-2009) - migration of original source code to python.
 #           Added code to support blender 2.5 branch
 #        v0.2 (25-05-2009) - integrated with BlendFileReader.py
-#        
+#
 #    Input:
 #        blender build executable
-#        
+#
 #    Output:
 #        dna.html
 #        dna.css (will only be created when not existing)
@@ -76,12 +76,12 @@ class DNACatalogHTML:
     DNACatalog is a catalog of all information in the DNA1 file-block
     '''
 
-    def __init__(self, catalog, bpy_module = None):
+    def __init__(self, catalog, bpy_module=None):
         self.Catalog = catalog
         self.bpy = bpy_module
-    
+
     def WriteToHTML(self, handle):
-            
+
         dna_html_template = """
             <!DOCTYPE html PUBLIC -//W3C//DTD HTML 4.01 Transitional//EN http://www.w3.org/TR/html4/loose.dtd>
             <html>
@@ -105,10 +105,10 @@ class DNACatalogHTML:
                 ${structs_content}
             </body>
             </html>"""
-        
+
         header = self.Catalog.Header
         bpy = self.bpy
-        
+
         # ${version} and ${revision}
         if bpy:
             version = '.'.join(map(str, bpy.app.version))
@@ -116,7 +116,7 @@ class DNACatalogHTML:
         else:
             version = str(header.Version)
             revision = 'Unknown'
-        
+
         # ${bitness}
         if header.PointerSize == 8:
             bitness = '64 bit'
@@ -125,10 +125,10 @@ class DNACatalogHTML:
 
         # ${endianness}
         if header.LittleEndianness:
-            endianess= 'Little endianness'
+            endianess = 'Little endianness'
         else:
-            endianess= 'Big endianness'
-        
+            endianess = 'Big endianness'
+
         # ${structs_list}
         log.debug("Creating structs index")
         structs_list = ''
@@ -136,7 +136,7 @@ class DNACatalogHTML:
         structureIndex = 0
         for structure in self.Catalog.Structs:
             structs_list += list_item.format(structureIndex, structure.Type.Name)
-            structureIndex+=1
+            structureIndex += 1
 
         # ${structs_content}
         log.debug("Creating structs content")
@@ -144,20 +144,20 @@ class DNACatalogHTML:
         for structure in self.Catalog.Structs:
             log.debug(structure.Type.Name)
             structs_content += self.Structure(structure)
-           
+
         d = dict(
-            version = version, 
-            revision = revision, 
-            bitness = bitness, 
-            endianness = endianess, 
-            structs_list = structs_list, 
-            structs_content = structs_content
+            version=version,
+            revision=revision,
+            bitness=bitness,
+            endianness=endianess,
+            structs_list=structs_list,
+            structs_content=structs_content
         )
 
         dna_html = Template(dna_html_template).substitute(d)
         dna_html = self.format(dna_html)
         handle.write(dna_html)
-    
+
     def Structure(self, structure):
         struct_table_template = """
             <table><a name="${struct_name}"></a>
@@ -178,23 +178,23 @@ class DNACatalogHTML:
             </table>
             <label>Total size: ${size} bytes</label><br/>
             <label>(<a href="#top">top</a>)</label><br/>"""
-        
+
         d = dict(
-            struct_name = structure.Type.Name, 
-            fields = self.StructureFields(structure, None, 0), 
-            size = str(structure.Type.Size)
+            struct_name=structure.Type.Name,
+            fields=self.StructureFields(structure, None, 0),
+            size=str(structure.Type.Size)
         )
-        
+
         struct_table = Template(struct_table_template).substitute(d)
         return struct_table
-        
+
     def StructureFields(self, structure, parentReference, offset):
         fields = ''
         for field in structure.Fields:
             fields += self.StructureField(field, structure, parentReference, offset)
             offset += field.Size(self.Catalog.Header)
         return fields
-        
+
     def StructureField(self, field, structure, parentReference, offset):
         structure_field_template = """
             <tr>
@@ -205,7 +205,7 @@ class DNACatalogHTML:
                 <td>${offset}</td>
                 <td>${size}</td>
             </tr>"""
-        
+
         if field.Type.Structure is None or field.Name.IsPointer():
 
             # ${reference}
@@ -216,37 +216,37 @@ class DNACatalogHTML:
                 struct = '<a href="#{0}">{0}</a>'.format(structure.Type.Name)
             else:
                 struct = structure.Type.Name
-            
+
             # ${type}
             type = field.Type.Name
-            
+
             # ${name}
             name = field.Name.Name
-            
+
             # ${offset}
             # offset already set
-            
+
             # ${size}
             size = field.Size(self.Catalog.Header)
-        
+
             d = dict(
-                reference = reference, 
-                struct = struct, 
-                type = type, 
-                name = name, 
-                offset = offset, 
-                size = size
+                reference=reference,
+                struct=struct,
+                type=type,
+                name=name,
+                offset=offset,
+                size=size
             )
-            
+
             structure_field = Template(structure_field_template).substitute(d)
-        
+
         elif field.Type.Structure is not None:
             reference = field.Name.AsReference(parentReference)
-            structure_field = self.StructureFields(field.Type.Structure, reference, offset) 
+            structure_field = self.StructureFields(field.Type.Structure, reference, offset)
 
         return structure_field
 
-    def indent(self, input, dent, startswith = ''):
+    def indent(self, input, dent, startswith=''):
         output = ''
         if dent < 0:
             for line in input.split('\n'):
@@ -257,19 +257,19 @@ class DNACatalogHTML:
                 output += line.lstrip() + '\n'  # remove indentation completely
         elif dent > 0:
             for line in input.split('\n'):
-                output += ' '* dent + line + '\n'
+                output += ' ' * dent + line + '\n'
         return output
-    
+
     def format(self, input):
         diff = {
-            '\n<!DOCTYPE':'<!DOCTYPE', 
-            '\n</ul>'    :'</ul>', 
-            '<a name'         :'\n<a name', 
-            '<tr>\n'     :'<tr>', 
-            '<tr>'       :'  <tr>', 
-            '</th>\n'    :'</th>', 
-            '</td>\n'    :'</td>', 
-            '<tbody>\n'  :'<tbody>'
+            '\n<!DOCTYPE': '<!DOCTYPE',
+            '\n</ul>': '</ul>',
+            '<a name': '\n<a name',
+            '<tr>\n': '<tr>',
+            '<tr>': '  <tr>',
+            '</th>\n': '</th>',
+            '</td>\n': '</td>',
+            '<tbody>\n': '<tbody>'
         }
         output = self.indent(input, 0)
         for key, value in diff.items():
@@ -283,17 +283,17 @@ class DNACatalogHTML:
         '''
         css = """
             @CHARSET "ISO-8859-1";
-            
+
             body {
                 font-family: verdana;
                 font-size: small;
             }
-            
+
             div.title {
                 font-size: large;
                 text-align: center;
             }
-            
+
             h1 {
                 page-break-before: always;
             }
@@ -304,7 +304,7 @@ class DNACatalogHTML:
                 margin-right: 3%;
                 padding-left: 40px;
             }
-            
+
             h1:hover{
                 background-color: #EBEBEB;
             }
@@ -312,7 +312,7 @@ class DNACatalogHTML:
             h3 {
                 padding-left: 40px;
             }
-            
+
             table {
                 border-width: 1px;
                 border-style: solid;
@@ -321,21 +321,21 @@ class DNACatalogHTML:
                 width: 94%;
                 margin: 20px 3% 10px;
             }
-            
+
             caption {
                 margin-bottom: 5px;
             }
-            
+
             th {
                 background-color: #000000;
                 color:#ffffff;
                 padding-left:5px;
                 padding-right:5px;
             }
-            
+
             tr {
             }
-            
+
             td {
                 border-width: 1px;
                 border-style: solid;
@@ -343,12 +343,12 @@ class DNACatalogHTML:
                 padding-left:5px;
                 padding-right:5px;
             }
-            
+
             label {
                 float:right;
                 margin-right: 3%;
             }
-            
+
             ul.multicolumn {
                 list-style:none;
                 float:left;
@@ -361,18 +361,18 @@ class DNACatalogHTML:
                 width:200px;
                 margin-right:0px;
             }
-            
+
             a {
                 color:#a000a0;
                 text-decoration:none;
             }
-            
+
             a:hover {
                 color:#a000a0;
                 text-decoration:underline;
             }
             """
-            
+
         css = self.indent(css, 0)
 
         handle.write(css)
@@ -389,13 +389,13 @@ def usage():
     print("\tdefault:       % blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py")
     print("\twith options:  % blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py -- --dna-keep-blend --dna-debug\n")
 
-    
+
 ######################################################
 # Main
 ######################################################
 
 def main():
-    
+
     import os, os.path
 
     try:
@@ -408,37 +408,37 @@ def main():
         else:
             filename = 'dna'
         dir = os.path.dirname(__file__)
-        Path_Blend = os.path.join(dir, filename + '.blend') # temporary blend file
-        Path_HTML  = os.path.join(dir, filename + '.html')  # output html file
-        Path_CSS   = os.path.join(dir, 'dna.css')           # output css file
+        Path_Blend = os.path.join(dir, filename + '.blend')  # temporary blend file
+        Path_HTML = os.path.join(dir, filename + '.html')  # output html file
+        Path_CSS = os.path.join(dir, 'dna.css')           # output css file
 
         # create a blend file for dna parsing
         if not os.path.exists(Path_Blend):
             log.info("1: write temp blend file with SDNA info")
             log.info("   saving to: " + Path_Blend)
             try:
-                bpy.ops.wm.save_as_mainfile(filepath = Path_Blend, copy = True, compress = False)
+                bpy.ops.wm.save_as_mainfile(filepath=Path_Blend, copy=True, compress=False)
             except:
                 log.error("Filename {0} does not exist and can't be created... quitting".format(Path_Blend))
                 return
         else:
             log.info("1: found blend file with SDNA info")
             log.info("   " + Path_Blend)
-        
+
         # read blend header from blend file
         log.info("2: read file:")
-        
+
         if not dir in sys.path:
             sys.path.append(dir)
         import BlendFileReader
-        
+
         handle = BlendFileReader.openBlendFile(Path_Blend)
         blendfile = BlendFileReader.BlendFile(handle)
         catalog = DNACatalogHTML(blendfile.Catalog, bpy)
 
         # close temp file
         handle.close()
-        
+
         # deleting or not?
         if '--dna-keep-blend' in sys.argv:
             # keep the blend, useful for studying hexdumps
@@ -449,7 +449,7 @@ def main():
             log.info("5: close and delete temp blend:")
             log.info("   {0}".format(Path_Blend))
             os.remove(Path_Blend)
-        
+
         # export dna to xhtml
         log.info("6: export sdna to xhtml file: %r" % Path_HTML)
         handleHTML = open(Path_HTML, "w")
@@ -466,12 +466,12 @@ def main():
         if not bpy.app.background:
             log.info("7: quit blender")
             bpy.ops.wm.exit_blender()
-    
+
     except ImportError:
         log.warning("  skipping, not running in Blender")
         usage()
         sys.exit(2)
-        
+
 
 if __name__ == '__main__':
     main()

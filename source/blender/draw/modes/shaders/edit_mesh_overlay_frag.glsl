@@ -36,11 +36,10 @@ out vec4 FragColor;
 void distToEdgeAndPoint(vec2 dir, vec2 ori, out float edge, out float point)
 {
 	dir = normalize(dir.xy);
+	dir = vec2(-dir.y, dir.x);
 	vec2 of = gl_FragCoord.xy - ori;
-	point = dot(of, of);
-	float dof = dot(dir, of);
-	edge = sqrt(abs(point - dof * dof));
-	point = sqrt(point);
+	point = sqrt(dot(of, of));
+	edge = abs(dot(dir, of));
 }
 
 void colorDist(vec4 color, float dist)

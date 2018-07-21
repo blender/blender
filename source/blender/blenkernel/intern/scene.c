@@ -103,6 +103,8 @@
 
 #include "RE_engine.h"
 
+#include "engines/eevee/eevee_lightcache.h"
+
 #include "PIL_time.h"
 
 #include "IMB_colormanagement.h"
@@ -111,7 +113,7 @@
 #include "bmesh.h"
 
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
-const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
+const char *RE_engine_id_BLENDER_OPENGL = "BLENDER_OPENGL";
 const char *RE_engine_id_CYCLES = "CYCLES";
 
 void free_avicodecdata(AviCodecData *acd)
@@ -316,6 +318,9 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	else {
 		sce_dst->preview = NULL;
 	}
+
+	sce_dst->eevee.light_cache = NULL;
+	/* TODO Copy the cache. */
 }
 
 Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
@@ -355,6 +360,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		BKE_color_managed_view_settings_copy(&sce_copy->r.bake.im_format.view_settings, &sce->r.bake.im_format.view_settings);
 
 		curvemapping_copy_data(&sce_copy->r.mblur_shutter_curve, &sce->r.mblur_shutter_curve);
+
+		/* viewport display settings */
+		sce_copy->display = sce->display;
 
 		/* tool settings */
 		sce_copy->toolsettings = BKE_toolsettings_copy(sce->toolsettings, 0);
@@ -511,6 +519,11 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 		sce->master_collection = NULL;
 	}
 
+	if (sce->eevee.light_cache) {
+		EEVEE_lightcache_free(sce->eevee.light_cache);
+		sce->eevee.light_cache = NULL;
+	}
+
 	/* These are freed on doversion. */
 	BLI_assert(sce->layer_properties == NULL);
 }
@@ -635,7 +648,7 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->uvcalc_flag = UVCALC_TRANSFORM_CORRECT;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
-	sce->toolsettings->manipulator_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+	sce->toolsettings->gizmo_flag = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 
 	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
@@ -810,10 +823,15 @@ void BKE_scene_init(Scene *sce)
 	sce->display.matcap_ssao_attenuation = 1.0f;
 	sce->display.matcap_ssao_samples = 16;
 
+	/* OpenGL Render. */
+	BKE_screen_view3d_shading_init(&sce->display.shading);
+
 	/* SceneEEVEE */
 	sce->eevee.gi_diffuse_bounces = 3;
 	sce->eevee.gi_cubemap_resolution = 512;
 	sce->eevee.gi_visibility_resolution = 32;
+	sce->eevee.gi_cubemap_draw_size = 0.3f;
+	sce->eevee.gi_irradiance_draw_size = 0.1f;
 
 	sce->eevee.taa_samples = 16;
 	sce->eevee.taa_render_samples = 64;
@@ -855,6 +873,8 @@ void BKE_scene_init(Scene *sce)
 	sce->eevee.shadow_method = SHADOW_ESM;
 	sce->eevee.shadow_cube_size = 512;
 	sce->eevee.shadow_cascade_size = 1024;
+
+	sce->eevee.light_cache = NULL;
 
 	sce->eevee.flag =
 	        SCE_EEVEE_VOLUMETRIC_LIGHTS |
@@ -906,7 +926,7 @@ Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 /**
  * Sets the active scene, mainly used when running in background mode (``--scene`` command line argument).
  * This is also called to set the scene directly, bypassing windowing code.
- * Otherwise #WM_window_change_active_scene is used when changing scenes by the user.
+ * Otherwise #WM_window_set_active_scene is used when changing scenes by the user.
  */
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
@@ -1268,7 +1288,7 @@ static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgrap
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_ARMATURE && ob->adt && ob->adt->recalc & ADT_RECALC_ANIM) {
 			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
-				BKE_pose_rebuild(ob, ob->data);
+				BKE_pose_rebuild(bmain, ob, ob->data);
 			}
 		}
 	}
@@ -1293,7 +1313,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
 			if (area->spacetype != SPACE_VIEW3D) {
 				continue;
 			}
-			if (v3d->drawtype == OB_RENDER) {
+			if (v3d->shading.type == OB_RENDER) {
 				return true;
 			}
 		}
@@ -1525,6 +1545,11 @@ bool BKE_scene_use_spherical_stereo(Scene *scene)
 bool BKE_scene_uses_blender_eevee(const Scene *scene)
 {
 	return STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE);
+}
+
+bool BKE_scene_uses_blender_opengl(const Scene *scene)
+{
+	return STREQ(scene->r.engine, RE_engine_id_BLENDER_OPENGL);
 }
 
 bool BKE_scene_uses_cycles(const Scene *scene)

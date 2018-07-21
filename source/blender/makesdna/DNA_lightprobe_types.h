@@ -68,11 +68,9 @@ typedef struct LightProbe {
 	struct Image *image;           /* Image to use on as lighting data */
 	struct Collection *visibility_grp;  /* Object visibility group, inclusive or exclusive */
 
-	float data_draw_size;
-
 	/* Runtime display data */
 	float distfalloff, distgridinf;
-	float pad;
+	float pad[2];
 } LightProbe;
 
 /* Probe->type */
@@ -104,6 +102,79 @@ enum {
 enum {
 	LIGHTPROBE_SHAPE_ELIPSOID   = 0,
 	LIGHTPROBE_SHAPE_BOX        = 1,
+};
+
+/* ------- Eevee LightProbes ------- */
+/* Needs to be there because written to file
+ * with the lightcache. */
+
+typedef struct LightProbeCache {
+	float position[3], parallax_type;
+	float attenuation_fac;
+	float attenuation_type;
+	float pad3[2];
+	float attenuationmat[4][4];
+	float parallaxmat[4][4];
+} LightProbeCache;
+
+typedef struct LightGridCache {
+	float mat[4][4];
+	int resolution[3], offset; /* offset to the first irradiance sample in the pool. */
+	float corner[3], attenuation_scale;
+	float increment_x[3], attenuation_bias; /* world space vector between 2 opposite cells */
+	float increment_y[3], level_bias;
+	float increment_z[3], pad4;
+	float visibility_bias, visibility_bleed, visibility_range, pad5;
+} LightGridCache;
+
+/* ------ Eevee Lightcache ------- */
+
+typedef struct LightCacheTexture {
+	struct GPUTexture *tex;
+	/* Copy of GPU datas to create GPUTextures on file read. */
+	char *data;
+	int tex_size[3];
+	char data_type;
+	char components;
+	char pad[2];
+} LightCacheTexture;
+
+typedef struct LightCache {
+	int flag;
+	/* only a single cache for now */
+	int cube_len, grid_len;          /* Number of probes to use for rendering. */
+	int mips_len;                    /* Number of mipmap level to use. */
+	int vis_res, ref_res;            /* Size of a visibility/reflection sample. */
+	int pad[2];
+	/* In the future, we could create a bigger texture containing
+	 * multiple caches (for animation) and interpolate between the
+	 * caches overtime to another texture. */
+	LightCacheTexture grid_tx;
+	LightCacheTexture cube_tx;        /* Contains data for mipmap level 0. */
+	LightCacheTexture *cube_mips;     /* Does not contains valid GPUTexture, only data. */
+	/* All lightprobes data contained in the cache. */
+	LightProbeCache *cube_data;
+	LightGridCache  *grid_data;
+} LightCache;
+
+/* LightCache->flag */
+enum {
+	LIGHTCACHE_BAKED            = (1 << 0),
+	LIGHTCACHE_BAKING           = (1 << 1),
+	LIGHTCACHE_CUBE_READY       = (1 << 2),
+	LIGHTCACHE_GRID_READY       = (1 << 3),
+	/* Update tagging */
+	LIGHTCACHE_UPDATE_CUBE      = (1 << 4),
+	LIGHTCACHE_UPDATE_GRID      = (1 << 5),
+	LIGHTCACHE_UPDATE_WORLD     = (1 << 6),
+	LIGHTCACHE_UPDATE_AUTO      = (1 << 7),
+};
+
+/* EEVEE_LightCacheTexture->data_type */
+enum {
+	LIGHTCACHETEX_BYTE          = (1 << 0),
+	LIGHTCACHETEX_FLOAT         = (1 << 1),
+	LIGHTCACHETEX_UINT          = (1 << 2),
 };
 
 #ifdef __cplusplus

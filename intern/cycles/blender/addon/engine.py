@@ -82,15 +82,17 @@ def _parse_command_line():
         if args.cycles_resumable_current_chunk is not None:
             import _cycles
             _cycles.set_resumable_chunk(
-                    int(args.cycles_resumable_num_chunks),
-                    int(args.cycles_resumable_current_chunk))
+                int(args.cycles_resumable_num_chunks),
+                int(args.cycles_resumable_current_chunk),
+            )
         elif args.cycles_resumable_start_chunk is not None and \
-             args.cycles_resumable_end_chunk:
+                args.cycles_resumable_end_chunk:
             import _cycles
             _cycles.set_resumable_chunk_range(
-                    int(args.cycles_resumable_num_chunks),
-                    int(args.cycles_resumable_start_chunk),
-                    int(args.cycles_resumable_end_chunk))
+                int(args.cycles_resumable_num_chunks),
+                int(args.cycles_resumable_start_chunk),
+                int(args.cycles_resumable_end_chunk),
+            )
 
 
 def init():
@@ -208,6 +210,7 @@ def with_network():
 def system_info():
     import _cycles
     return _cycles.system_info()
+
 
 def register_passes(engine, scene, srl):
     engine.register_pass(scene, srl, "Combined", 4, "RGBA", 'COLOR')

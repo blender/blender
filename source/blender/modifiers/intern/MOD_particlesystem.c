@@ -79,14 +79,14 @@ static void freeData(ModifierData *md)
 		psmd->psys->flag |= PSYS_DELETE;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
 	const ParticleSystemModifierData *psmd = (const ParticleSystemModifierData *) md;
 #endif
 	ParticleSystemModifierData *tpsmd = (ParticleSystemModifierData *) target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	tpsmd->mesh_final = NULL;
 	tpsmd->mesh_original = NULL;

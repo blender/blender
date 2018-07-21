@@ -96,6 +96,7 @@ set(SRC
 	engines/eevee/eevee_depth_of_field.c
 	engines/eevee/eevee_effects.c
 	engines/eevee/eevee_engine.c
+	engines/eevee/eevee_lightcache.c
 	engines/eevee/eevee_lightprobes.c
 	engines/eevee/eevee_lights.c
 	engines/eevee/eevee_lookdev.c
@@ -116,7 +117,9 @@ set(SRC
 	engines/workbench/workbench_effect_taa.c
 	engines/workbench/workbench_forward.c
 	engines/workbench/workbench_materials.c
+	engines/workbench/workbench_render.c
 	engines/workbench/workbench_studiolight.c
+	engines/workbench/workbench_volume.c
 	engines/workbench/solid_mode.c
 	engines/workbench/transparent_mode.c
 	engines/external/external_engine.c
@@ -137,6 +140,7 @@ set(SRC
 	modes/edit_mesh_mode_intern.h
 	engines/basic/basic_engine.h
 	engines/eevee/eevee_engine.h
+	engines/eevee/eevee_lightcache.h
 	engines/eevee/eevee_lut.h
 	engines/eevee/eevee_private.h
 	engines/external/external_engine.h
@@ -223,6 +227,8 @@ data_to_c_simple(engines/workbench/shaders/workbench_shadow_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_geom.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_caps_geom.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_debug_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_volume_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_volume_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_world_light_lib.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)
@@ -295,6 +301,7 @@ data_to_c_simple(modes/shaders/paint_wire_vert.glsl SRC)
 data_to_c_simple(modes/shaders/paint_vert_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_frag.glsl SRC)
 data_to_c_simple(modes/shaders/particle_strand_vert.glsl SRC)
+data_to_c_simple(modes/shaders/volume_velocity_vert.glsl SRC)
 
 list(APPEND INC
 )

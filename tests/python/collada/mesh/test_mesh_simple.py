@@ -31,6 +31,7 @@ import difflib
 import pathlib
 from pathlib import Path
 
+
 def with_tempdir(wrapped):
     """Creates a temporary directory for the function, cleaning up after it returns normally.
 
@@ -56,7 +57,9 @@ def with_tempdir(wrapped):
 
     return decorator
 
+
 LINE = "+----------------------------------------------------------------"
+
 
 class AbstractColladaTest(unittest.TestCase):
 
@@ -71,33 +74,33 @@ class AbstractColladaTest(unittest.TestCase):
 
         ref = open(reference)
         exp = open(export)
-        diff=difflib.unified_diff(ref.readlines(), exp.readlines(), lineterm='', n=0)
+        diff = difflib.unified_diff(ref.readlines(), exp.readlines(), lineterm='', n=0)
         ref.close()
         exp.close()
 
-        diff_count = 0;
+        diff_count = 0
         for line in diff:
             error = True
             for prefix in ('---', '+++', '@@'):
                 # Ignore diff metadata
                 if line.startswith(prefix):
-                    error=False
+                    error = False
                     break
             else:
                 # Ignore time stamps
                 for ignore in ('<created>', '<modified>', '<authoring_tool>'):
                     if line[1:].strip().startswith(ignore):
-                        error=False
+                        error = False
                         break
             if error:
-                diff_count +=1
+                diff_count += 1
                 pline = line.strip()
                 if diff_count == 1:
                     print("\n%s" % LINE)
                     print("|Test has errors:")
                     print(LINE)
                 pre = "reference" if pline[0] == "-" else "generated"
-                print ("| %s:%s"% (pre, pline[1:]))
+                print("| %s:%s" % (pre, pline[1:]))
 
         if diff_count > 0:
             print(LINE)
@@ -107,14 +110,16 @@ class AbstractColladaTest(unittest.TestCase):
 
         return diff_count == 0
 
+
 class MeshExportTest(AbstractColladaTest):
     @with_tempdir
     def test_export_single_mesh(self, tempdir: pathlib.Path):
         test = "mesh_simple_001"
         reference_dae = self.testdir / Path("%s.dae" % test)
-        outfile       = tempdir / Path("%s_out.dae" % test)
+        outfile = tempdir / Path("%s_out.dae" % test)
 
-        bpy.ops.wm.collada_export(filepath="%s" % str(outfile),
+        bpy.ops.wm.collada_export(
+            filepath="%s" % str(outfile),
             check_existing=True,
             filemode=8,
             display_type="DEFAULT",
@@ -140,15 +145,17 @@ class MeshExportTest(AbstractColladaTest):
             export_texture_type_selection="mat",
             open_sim=False,
             limit_precision=False,
-            keep_bind_info=False)
+            keep_bind_info=False,
+        )
 
         # Now check the resulting Collada file.
         if not self.checkdae(reference_dae, outfile):
             self.fail()
+
 
 if __name__ == '__main__':
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     parser = argparse.ArgumentParser()
     parser.add_argument('--testdir', required=True)
     args, remaining = parser.parse_known_args()
-    unittest.main(argv=sys.argv[0:1]+remaining)
+    unittest.main(argv=sys.argv[0:1] + remaining)

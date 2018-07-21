@@ -192,7 +192,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		 * - Finally composite the 2 blurred buffers with the original render.
 		 **/
 		DRWShadingGroup *grp;
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 		psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
 
@@ -208,8 +208,8 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		/* This create an empty batch of N triangles to be positioned
 		 * by the vertex shader 0.4ms against 6ms with instancing */
 		const float *viewport_size = DRW_viewport_size_get();
-		const int sprite_ct = ((int)viewport_size[0] / 2) * ((int)viewport_size[1] / 2); /* brackets matters */
-		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_ct);
+		const int sprite_len = ((int)viewport_size[0] / 2) * ((int)viewport_size[1] / 2); /* brackets matters */
+		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_len);
 
 		DRW_shgroup_uniform_texture_ref(grp, "nearBuffer", &effects->dof_down_near);
 		DRW_shgroup_uniform_texture_ref(grp, "farBuffer", &effects->dof_down_far);

@@ -3276,7 +3276,8 @@ SoftBody *sbNew(Scene *scene)
 	sb->shearstiff = 1.0f;
 	sb->solverflags |= SBSO_OLDERR;
 
-	sb->pointcache = BKE_ptcache_add(&sb->ptcaches);
+	sb->shared = MEM_callocN(sizeof(*sb->shared), "SoftBody_Shared");
+	sb->shared->pointcache = BKE_ptcache_add(&sb->shared->ptcaches);
 
 	if (!sb->effector_weights)
 		sb->effector_weights = BKE_add_effector_weights(NULL);
@@ -3287,14 +3288,26 @@ SoftBody *sbNew(Scene *scene)
 }
 
 /* frees all */
-void sbFree(SoftBody *sb)
+void sbFree(Object *ob)
 {
+	SoftBody *sb = ob->soft;
+	if (sb == NULL) {
+		return;
+	}
+
 	free_softbody_intern(sb);
-	BKE_ptcache_free_list(&sb->ptcaches);
-	sb->pointcache = NULL;
+
+	if ((ob->id.tag & LIB_TAG_COPIED_ON_WRITE) == 0) {
+		/* Only free shared data on non-CoW copies */
+		BKE_ptcache_free_list(&sb->shared->ptcaches);
+		sb->shared->pointcache = NULL;
+		MEM_freeN(sb->shared);
+	}
 	if (sb->effector_weights)
 		MEM_freeN(sb->effector_weights);
 	MEM_freeN(sb);
+
+	ob->soft = NULL;
 }
 
 void sbFreeSimulation(SoftBody *sb)
@@ -3601,7 +3614,7 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 	float dtime, timescale;
 	int framedelta, framenr, startframe, endframe;
 	int cache_result;
-	cache= sb->pointcache;
+	cache= sb->shared->pointcache;
 
 	framenr= (int)cfra;
 	framedelta= framenr - cache->simframe;
@@ -3669,7 +3682,8 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 	}
 
 	/* try to read from cache */
-	bool can_simulate = (framenr == sb->last_frame + 1) && !(cache->flag & PTCACHE_BAKED);
+	bool can_write_cache = DEG_is_active(depsgraph);
+	bool can_simulate = (framenr == sb->last_frame + 1) && !(cache->flag & PTCACHE_BAKED) && can_write_cache;
 
 	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
 
@@ -3680,7 +3694,7 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 
 		BKE_ptcache_validate(cache, framenr);
 
-		if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED)
+		if (cache_result == PTCACHE_READ_INTERPOLATED && cache->flag & PTCACHE_REDO_NEEDED && can_write_cache)
 			BKE_ptcache_write(&pid, framenr);
 
 		sb->last_frame = framenr;
@@ -3692,7 +3706,9 @@ void sbObjectStep(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float c
 	}
 	else if (/*ob->id.lib || */(cache->flag & PTCACHE_BAKED)) { /* "library linking & pointcaches" has to be solved properly at some point */
 		/* if baked and nothing in cache, do nothing */
-		BKE_ptcache_invalidate(cache);
+		if (can_write_cache) {
+			BKE_ptcache_invalidate(cache);
+		}
 		return;
 	}
 

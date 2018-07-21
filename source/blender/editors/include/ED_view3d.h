@@ -523,7 +523,7 @@ void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *a
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
 #define V3D_IS_ZBUF(v3d) \
-	(((v3d)->flag & V3D_ZBUF_SELECT) && ((v3d)->drawtype > OB_WIRE))
+	(((v3d)->flag & V3D_ZBUF_SELECT) && ((v3d)->shading.type > OB_WIRE))
 
 void ED_view3d_id_remap(struct View3D *v3d, const struct ID *old_id, struct ID *new_id);
 

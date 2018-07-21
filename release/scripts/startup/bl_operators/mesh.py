@@ -33,7 +33,7 @@ class MeshMirrorUV(Operator):
     bl_label = "Copy Mirrored UV coords"
     bl_options = {'REGISTER', 'UNDO'}
 
-    direction = EnumProperty(
+    direction: EnumProperty(
         name="Axis Direction",
         items=(
             ('POSITIVE', "Positive", ""),
@@ -41,7 +41,7 @@ class MeshMirrorUV(Operator):
         ),
     )
 
-    precision = IntProperty(
+    precision: IntProperty(
         name="Precision",
         description=("Tolerance for finding vertex duplicates"),
         min=1, max=16,

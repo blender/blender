@@ -29,7 +29,7 @@
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_filter_divide_shadow(int sample,
-                                 TilesInfo *tiles,
+                                 TileInfo *tile_info,
                                  float *unfilteredA,
                                  float *unfilteredB,
                                  float *sampleVariance,
@@ -43,7 +43,7 @@ kernel_cuda_filter_divide_shadow(int sample,
 	int y = prefilter_rect.y + blockDim.y*blockIdx.y + threadIdx.y;
 	if(x < prefilter_rect.z && y < prefilter_rect.w) {
 		kernel_filter_divide_shadow(sample,
-		                            tiles,
+		                            tile_info,
 		                            x, y,
 		                            unfilteredA,
 		                            unfilteredB,
@@ -59,7 +59,7 @@ kernel_cuda_filter_divide_shadow(int sample,
 extern "C" __global__ void
 CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_filter_get_feature(int sample,
-                               TilesInfo *tiles,
+                               TileInfo *tile_info,
                                int m_offset,
                                int v_offset,
                                float *mean,
@@ -72,7 +72,7 @@ kernel_cuda_filter_get_feature(int sample,
 	int y = prefilter_rect.y + blockDim.y*blockIdx.y + threadIdx.y;
 	if(x < prefilter_rect.z && y < prefilter_rect.w) {
 		kernel_filter_get_feature(sample,
-		                          tiles,
+		                          tile_info,
 		                          m_offset, v_offset,
 		                          x, y,
 		                          mean, variance,

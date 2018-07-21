@@ -953,7 +953,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 		/* 2) Show editing panel for setting up this driver */
 		/* TODO: Use a different one from the editing popever, so we can have the single/all toggle? */
-		UI_popover_panel_invoke(C, SPACE_IPO, RGN_TYPE_UI, "GRAPH_PT_drivers_popover", true, op->reports);
+		UI_popover_panel_invoke(C, "GRAPH_PT_drivers_popover", true, op->reports);
 	}
 
 	return OPERATOR_INTERFACE;
@@ -1041,7 +1041,7 @@ static int edit_driver_button_exec(bContext *C, wmOperator *op)
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
 	if (ptr.id.data && ptr.data && prop) {
-		UI_popover_panel_invoke(C, SPACE_IPO, RGN_TYPE_UI, "GRAPH_PT_drivers_popover", true, op->reports);
+		UI_popover_panel_invoke(C, "GRAPH_PT_drivers_popover", true, op->reports);
 	}
 
 	return OPERATOR_INTERFACE;

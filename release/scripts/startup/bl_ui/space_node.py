@@ -61,7 +61,7 @@ class NODE_HT_header(Header):
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
 
                 # No shader nodes for Eevee lamps
-                if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob.type == 'LAMP'):
+                if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob.type == 'LIGHT'):
                     row = layout.row()
                     row.prop(snode_id, "use_nodes")
 
@@ -73,12 +73,11 @@ class NODE_HT_header(Header):
                 # Show material.new when no active ID/slot exists
                 if not id_from and ob.type in {'MESH', 'CURVE', 'SURFACE', 'FONT', 'METABALL'}:
                     row.template_ID(ob, "active_material", new="material.new")
-                # Material ID, but not for Lamps
-                if id_from and ob.type != 'LAMP':
+                # Material ID, but not for Lights
+                if id_from and ob.type != 'LIGHT':
                     row.template_ID(id_from, "active_material", new="material.new")
 
             if snode.shader_type == 'WORLD':
-
                 NODE_MT_editor_menus.draw_collapsible(context, layout)
 
                 if snode_id:

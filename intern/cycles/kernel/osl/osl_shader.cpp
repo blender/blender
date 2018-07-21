@@ -115,7 +115,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd, PathS
 	globals->backfacing = (sd->flag & SD_BACKFACING);
 
 	/* shader data to be used in services callbacks */
-	globals->renderstate = sd; 
+	globals->renderstate = sd;
 
 	/* hacky, we leave it to services to fetch actual object matrix */
 	globals->shader2common = sd;
@@ -340,7 +340,7 @@ void OSLShader::eval_volume(KernelGlobals *kg, ShaderData *sd, PathState *state,
 	if(kg->osl->volume_state[shader]) {
 		ss->execute(octx, *(kg->osl->volume_state[shader]), *globals);
 	}
-	
+
 	/* flatten closure tree */
 	if(globals->Ci)
 		flatten_volume_closure_tree(sd, globals->Ci);
@@ -405,4 +405,3 @@ int OSLShader::find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id, 
 }
 
 CCL_NAMESPACE_END
-

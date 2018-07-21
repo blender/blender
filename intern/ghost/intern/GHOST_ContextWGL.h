@@ -131,22 +131,12 @@ private:
 	        int numOfAASamples,
 	        bool needAlpha,
 	        bool needStencil,
-	        bool sRGB,
-	        int *swapMethodOut);
-
-	int _choose_pixel_format_arb_2(bool stereoVisual,
-	        int *numOfAASamples,
-	        bool needAlpha,
-	        bool needStencil,
-	        bool sRGB,
-	        int  swapMethod);
-	GHOST_TSuccess initContext();
+	        bool sRGB);
 
 	void initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD);
 
 	HWND m_hWnd;
 	HDC  m_hDC;
-	bool m_init;
 
 	const int m_contextProfileMask;
 	const int m_contextMajorVersion;

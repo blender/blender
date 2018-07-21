@@ -49,25 +49,25 @@ class AddBox(bpy.types.Operator):
     bl_label = "Add Box"
     bl_options = {'REGISTER', 'UNDO'}
 
-    width = FloatProperty(
+    width: FloatProperty(
         name="Width",
         description="Box Width",
         min=0.01, max=100.0,
         default=1.0,
     )
-    height = FloatProperty(
+    height: FloatProperty(
         name="Height",
         description="Box Height",
         min=0.01, max=100.0,
         default=1.0,
     )
-    depth = FloatProperty(
+    depth: FloatProperty(
         name="Depth",
         description="Box Depth",
         min=0.01, max=100.0,
         default=1.0,
     )
-    layers = BoolVectorProperty(
+    layers: BoolVectorProperty(
         name="Layers",
         description="Object Layers",
         size=20,
@@ -75,15 +75,15 @@ class AddBox(bpy.types.Operator):
     )
 
     # generic transform props
-    view_align = BoolProperty(
+    view_align: BoolProperty(
         name="Align to View",
         default=False,
     )
-    location = FloatVectorProperty(
+    location: FloatVectorProperty(
         name="Location",
         subtype='TRANSLATION',
     )
-    rotation = FloatVectorProperty(
+    rotation: FloatVectorProperty(
         name="Rotation",
         subtype='EULER',
     )

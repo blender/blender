@@ -1222,3 +1222,29 @@ void VIEW3D_OT_properties(wmOperatorType *ot)
 	/* flags */
 	ot->flag = 0;
 }
+
+static int view3d_object_mode_menu(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = CTX_data_active_object(C);
+	if (ob && ((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
+		ED_object_mode_toggle(C, OB_MODE_POSE);
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		UI_pie_menu_invoke(C, "VIEW3D_MT_object_mode_pie", CTX_wm_window(C)->eventstate);
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_object_mode_pie_or_toggle(wmOperatorType *ot)
+{
+	ot->name = "Object Mode Menu";
+	ot->description = "";
+	ot->idname = "VIEW3D_OT_object_mode_pie_or_toggle";
+
+	ot->exec = view3d_object_mode_menu;
+	ot->poll = ED_operator_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}

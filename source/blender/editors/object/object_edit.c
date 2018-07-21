@@ -709,7 +709,9 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 
 	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
 
-	WM_toolsystem_update_from_context_view3d(C);
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -809,7 +811,9 @@ static int posemode_exec(bContext *C, wmOperator *op)
 
 	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
 
-	WM_toolsystem_update_from_context_view3d(C);
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1046,10 +1050,8 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 					DEG_relations_tag_update(bmain);
 				}
 				else if (event == 23) {
-					base->object->softflag = ob->softflag;
-					if (base->object->soft) sbFree(base->object->soft);
-
-					base->object->soft = copy_softbody(ob->soft, 0);
+					sbFree(base->object);
+					BKE_object_copy_softbody(base->object, ob, 0);
 
 					if (!modifiers_findByType(base->object, eModifierType_Softbody)) {
 						BLI_addhead(&base->object->modifiers, modifier_new(eModifierType_Softbody));

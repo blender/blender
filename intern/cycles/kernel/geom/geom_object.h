@@ -613,4 +613,3 @@ ccl_device_inline void object_normal_transform_addrspace(KernelGlobals *kg,
 #endif
 
 CCL_NAMESPACE_END
-

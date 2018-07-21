@@ -36,7 +36,7 @@ __all__ = (
     "RKS_GEN_rotation",
     "RKS_GEN_scaling",
     "RKS_GEN_bendy_bones",
-    )
+)
 
 import bpy
 
@@ -220,6 +220,7 @@ def RKS_GEN_scaling(ksi, context, ks, data):
         ks.paths.add(id_block, path)
 
 # ------
+
 
 # Property identifiers for Bendy Bones
 bbone_property_ids = (

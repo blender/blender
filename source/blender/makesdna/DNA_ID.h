@@ -45,6 +45,27 @@ struct ID;
 struct PackedFile;
 struct GPUTexture;
 
+/* Runtime display data */
+struct DrawData;
+typedef void (*DrawDataInitCb)(struct DrawData *engine_data);
+typedef void (*DrawDataFreeCb)(struct DrawData *engine_data);
+
+#
+#
+typedef struct DrawData {
+	struct DrawData *next, *prev;
+	struct DrawEngineType *engine_type;
+	/* Only nested data, NOT the engine data itself. */
+	DrawDataFreeCb free;
+	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
+	int recalc;
+} DrawData;
+
+typedef struct DrawDataList {
+	struct DrawData *first, *last;
+} DrawDataList;
+
+
 typedef struct IDPropertyData {
 	void *pointer;
 	ListBase group;

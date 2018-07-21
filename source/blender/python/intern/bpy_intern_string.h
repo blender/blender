@@ -30,6 +30,7 @@
 void bpy_intern_string_init(void);
 void bpy_intern_string_exit(void);
 
+extern PyObject *bpy_intern_str___annotations__;
 extern PyObject *bpy_intern_str___doc__;
 extern PyObject *bpy_intern_str___main__;
 extern PyObject *bpy_intern_str___module__;
@@ -41,7 +42,6 @@ extern PyObject *bpy_intern_str_bl_rna;
 extern PyObject *bpy_intern_str_bl_target_properties;
 extern PyObject *bpy_intern_str_bpy_types;
 extern PyObject *bpy_intern_str_frame;
-extern PyObject *bpy_intern_str_order;
 extern PyObject *bpy_intern_str_properties;
 extern PyObject *bpy_intern_str_register;
 extern PyObject *bpy_intern_str_self;

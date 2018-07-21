@@ -91,8 +91,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = WM_window_get_active_scene(win);
-	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-	ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	Object *obact = (view_layer && view_layer->basact) ? view_layer->basact->object : NULL;
 	Object *obedit = view_layer ? OBEDIT_FROM_VIEW_LAYER(view_layer) : NULL;
 

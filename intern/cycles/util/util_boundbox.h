@@ -55,7 +55,7 @@ public:
 	{
 	}
 
-	__forceinline void grow(const float3& pt)  
+	__forceinline void grow(const float3& pt)
 	{
 		/* the order of arguments to min is such that if pt is nan, it will not
 		 * influence the resulting bounding box */
@@ -63,7 +63,7 @@ public:
 		max = ccl::max(pt, max);
 	}
 
-	__forceinline void grow(const float3& pt, float border)  
+	__forceinline void grow(const float3& pt, float border)
 	{
 		float3 shift = make_float3(border, border, border);
 		min = ccl::min(pt - shift, min);
@@ -76,7 +76,7 @@ public:
 		grow(bbox.max);
 	}
 
-	__forceinline void grow_safe(const float3& pt)  
+	__forceinline void grow_safe(const float3& pt)
 	{
 		/* the order of arguments to min is such that if pt is nan, it will not
 		 * influence the resulting bounding box */
@@ -86,7 +86,7 @@ public:
 		}
 	}
 
-	__forceinline void grow_safe(const float3& pt, float border)  
+	__forceinline void grow_safe(const float3& pt, float border)
 	{
 		if(isfinite(pt.x) && isfinite(pt.y) && isfinite(pt.z) && isfinite(border)) {
 			float3 shift = make_float3(border, border, border);
@@ -101,7 +101,7 @@ public:
 		grow_safe(bbox.max);
 	}
 
-	__forceinline void intersect(const BoundBox& bbox) 
+	__forceinline void intersect(const BoundBox& bbox)
 	{
 		min = ccl::max(min, bbox.min);
 		max = ccl::min(max, bbox.max);
@@ -283,4 +283,3 @@ public:
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_BOUNDBOX_H__ */
-

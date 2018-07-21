@@ -2077,7 +2077,7 @@ static void pbvh_node_check_mask_changed(PBVH *bvh, PBVHNode *node)
 
 struct PBVHNodeDrawCallbackData {
 
-	void (*draw_fn)(void *user_data, Gwn_Batch *batch);
+	void (*draw_fn)(void *user_data, GPUBatch *batch);
 	void *user_data;
 	bool fast;
 };
@@ -2087,7 +2087,7 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 	struct PBVHNodeDrawCallbackData *data = data_v;
 
 	if (!(node->flag & PBVH_FullyHidden)) {
-		Gwn_Batch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
+		GPUBatch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
 		if (triangles != NULL) {
 			data->draw_fn(data->user_data, triangles);
 		}
@@ -2099,7 +2099,7 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
  */
 void BKE_pbvh_draw_cb(
         PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
-        void (*draw_fn)(void *user_data, Gwn_Batch *batch), void *user_data)
+        void (*draw_fn)(void *user_data, GPUBatch *batch), void *user_data)
 {
 	struct PBVHNodeDrawCallbackData draw_data = {
 		.fast = fast,

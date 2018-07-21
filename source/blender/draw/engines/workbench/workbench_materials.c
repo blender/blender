@@ -129,8 +129,7 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 	result += BLI_ghashutil_uinthash_v4_murmur(input);
 
 	/* add texture reference */
-	if (material_template->ima)
-	{
+	if (material_template->ima) {
 		result += BLI_ghashutil_inthash_p_murmur(material_template->ima);
 	}
 
@@ -182,10 +181,10 @@ int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *i
 	return color_type;
 }
 
-void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material)
+void workbench_material_shgroup_uniform(
+        WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material)
 {
-	if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR)
-	{
+	if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR) {
 		GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
 		DRW_shgroup_uniform_texture(grp, "image", tex);
 	}

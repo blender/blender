@@ -244,7 +244,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 		{
 			Curve *cu = ob->data;
 			/* Get geometry cache */
-			struct Gwn_Batch *geom;
+			struct GPUBatch *geom;
 
 			geom = DRW_cache_curve_edge_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);

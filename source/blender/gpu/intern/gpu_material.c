@@ -36,32 +36,18 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
 #include "BLI_math.h"
-#include "BLI_blenlib.h"
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
-#include "BLI_rand.h"
-#include "BLI_threads.h"
 
-#include "BKE_anim.h"
-#include "BKE_colorband.h"
-#include "BKE_colortools.h"
-#include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 
-#include "IMB_imbuf_types.h"
-
-#include "GPU_extensions.h"
-#include "GPU_framebuffer.h"
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
@@ -74,9 +60,6 @@
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_DerivedMesh.h"
 #endif
-
-static ListBase g_orphaned_mat = {NULL, NULL};
-static ThreadMutex g_orphan_lock;
 
 /* Structs */
 
@@ -175,42 +158,10 @@ void GPU_material_free(ListBase *gpumaterial)
 {
 	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
-
-		/* TODO(fclem): Check if the thread has an ogl context. */
-		if (BLI_thread_is_main()) {
-			gpu_material_free_single(material);
-			MEM_freeN(material);
-		}
-		else {
-			BLI_mutex_lock(&g_orphan_lock);
-			BLI_addtail(&g_orphaned_mat, BLI_genericNodeN(material));
-			BLI_mutex_unlock(&g_orphan_lock);
-		}
+		gpu_material_free_single(material);
+		MEM_freeN(material);
 	}
 	BLI_freelistN(gpumaterial);
-}
-
-void GPU_material_orphans_init(void)
-{
-	BLI_mutex_init(&g_orphan_lock);
-}
-
-void GPU_material_orphans_delete(void)
-{
-	BLI_mutex_lock(&g_orphan_lock);
-	LinkData *link;
-	while ((link = BLI_pophead(&g_orphaned_mat))) {
-		gpu_material_free_single((GPUMaterial *)link->data);
-		MEM_freeN(link->data);
-		MEM_freeN(link);
-	}
-	BLI_mutex_unlock(&g_orphan_lock);
-}
-
-void GPU_material_orphans_exit(void)
-{
-	GPU_material_orphans_delete();
-	BLI_mutex_end(&g_orphan_lock);
 }
 
 GPUBuiltin GPU_get_material_builtins(GPUMaterial *material)
@@ -354,7 +305,7 @@ static float eval_integral(float x0, float x1, short falloff_type, float sharpne
 #undef INTEGRAL_RESOLUTION
 
 static void compute_sss_kernel(
-        GPUSssKernelData *kd, float radii[3], int sample_ct, int falloff_type, float sharpness)
+        GPUSssKernelData *kd, float radii[3], int sample_len, int falloff_type, float sharpness)
 {
 	float rad[3];
 	/* Minimum radius */
@@ -390,13 +341,13 @@ static void compute_sss_kernel(
 	}
 
 	/* Compute samples locations on the 1d kernel [-1..1] */
-	sss_calculate_offsets(kd, sample_ct, SSS_EXPONENT);
+	sss_calculate_offsets(kd, sample_len, SSS_EXPONENT);
 
 	/* Weights sum for normalization */
 	float sum[3] = {0.0f, 0.0f, 0.0f};
 
 	/* Compute integral of each sample footprint */
-	for (int i = 0; i < sample_ct; i++) {
+	for (int i = 0; i < sample_len; i++) {
 		float x0, x1;
 
 		if (i == 0) {
@@ -406,8 +357,8 @@ static void compute_sss_kernel(
 			x0 = (kd->kernel[i - 1][3] + kd->kernel[i][3]) / 2.0f;
 		}
 
-		if (i == sample_ct - 1) {
-			x1 = kd->kernel[sample_ct - 1][3] + fabsf(kd->kernel[sample_ct - 2][3] - kd->kernel[sample_ct - 1][3]) / 2.0f;
+		if (i == sample_len - 1) {
+			x1 = kd->kernel[sample_len - 1][3] + fabsf(kd->kernel[sample_len - 2][3] - kd->kernel[sample_len - 1][3]) / 2.0f;
 		}
 		else {
 			x1 = (kd->kernel[i][3] + kd->kernel[i + 1][3]) / 2.0f;
@@ -428,25 +379,25 @@ static void compute_sss_kernel(
 	for (int i = 0; i < 3; ++i) {
 		if (sum[i] > 0.0f) {
 			/* Normalize */
-			for (int j = 0; j < sample_ct; j++) {
+			for (int j = 0; j < sample_len; j++) {
 				kd->kernel[j][i] /= sum[i];
 			}
 		}
 		else {
 			/* Avoid 0 kernel sum. */
-			kd->kernel[sample_ct / 2][i] = 1.0f;
+			kd->kernel[sample_len / 2][i] = 1.0f;
 		}
 	}
 
 	/* Put center sample at the start of the array (to sample first) */
 	float tmpv[4];
-	copy_v4_v4(tmpv, kd->kernel[sample_ct / 2]);
-	for (int i = sample_ct / 2; i > 0; i--) {
+	copy_v4_v4(tmpv, kd->kernel[sample_len / 2]);
+	for (int i = sample_len / 2; i > 0; i--) {
 		copy_v4_v4(kd->kernel[i], kd->kernel[i - 1]);
 	}
 	copy_v4_v4(kd->kernel[0], tmpv);
 
-	kd->samples = sample_ct;
+	kd->samples = sample_len;
 }
 
 #define INTEGRAL_RESOLUTION 512
@@ -523,12 +474,12 @@ void GPU_material_sss_profile_create(GPUMaterial *material, float radii[3], shor
 	}
 }
 
-struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_ct, GPUTexture **tex_profile)
+struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int sample_len, GPUTexture **tex_profile)
 {
 	if (!material->sss_enabled)
 		return NULL;
 
-	if (material->sss_dirty || (material->sss_samples != sample_ct)) {
+	if (material->sss_dirty || (material->sss_samples != sample_len)) {
 		GPUSssKernelData kd;
 
 		float sharpness = material->sss_sharpness;
@@ -536,7 +487,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 		/* XXX Black magic but it seems to fit. Maybe because we integrate -1..1 */
 		sharpness *= 0.5f;
 
-		compute_sss_kernel(&kd, material->sss_radii, sample_ct, material->sss_falloff, sharpness);
+		compute_sss_kernel(&kd, material->sss_radii, sample_len, material->sss_falloff, sharpness);
 
 		/* Update / Create UBO */
 		GPU_uniformbuffer_update(material->sss_profile, &kd);
@@ -553,7 +504,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 
 		MEM_freeN(translucence_profile);
 
-		material->sss_samples = sample_ct;
+		material->sss_samples = sample_len;
 		material->sss_dirty = false;
 	}
 
@@ -644,8 +595,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	mat->engine_type = engine_type;
 	mat->options = options;
 
-	ntreeGPUMaterialNodes(ntree, mat, NODE_NEW_SHADING | NODE_NEWER_SHADING);
-	ntreeGPUMaterialDomain(ntree, &has_surface_output, &has_volume_output);
+	ntreeGPUMaterialNodes(ntree, mat, &has_surface_output, &has_volume_output);
 
 	if (has_surface_output) {
 		mat->domain |= GPU_DOMAIN_SURFACE;
@@ -660,14 +610,15 @@ GPUMaterial *GPU_material_from_nodetree(
 		GPU_nodes_prune(&mat->nodes, mat->outlink);
 		GPU_nodes_get_vertex_attributes(&mat->nodes, &mat->attribs);
 		/* Create source code and search pass cache for an already compiled version. */
-		mat->pass = GPU_generate_pass_new(mat,
-		                      mat->outlink,
-		                      &mat->attribs,
-		                      &mat->nodes,
-		                      vert_code,
-		                      geom_code,
-		                      frag_lib,
-		                      defines);
+		mat->pass = GPU_generate_pass_new(
+		        mat,
+		        mat->outlink,
+		        &mat->attribs,
+		        &mat->nodes,
+		        vert_code,
+		        geom_code,
+		        frag_lib,
+		        defines);
 
 		if (mat->pass == NULL) {
 			/* We had a cache hit and the shader has already failed to compile. */

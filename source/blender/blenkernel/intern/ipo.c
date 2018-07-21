@@ -1717,8 +1717,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 			/* IPO first to take into any non-NLA'd Object Animation */
 			if (ob->ipo) {
 				ipo_to_animdata(bmain, id, ob->ipo, NULL, NULL, NULL);
-
-				id_us_min(&ob->ipo->id);
+				/* No need to id_us_min ipo ID here, ipo_to_animdata already does it. */
 				ob->ipo = NULL;
 			}
 
@@ -1751,7 +1750,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 			/* IPO second... */
 			if (ob->ipo) {
 				ipo_to_animdata(bmain, id, ob->ipo, NULL, NULL, NULL);
-				id_us_min(&ob->ipo->id);
+				/* No need to id_us_min ipo ID here, ipo_to_animdata already does it. */
 				ob->ipo = NULL;
 			}
 		}
@@ -1999,7 +1998,7 @@ void do_versions_ipos_to_animato(Main *bmain)
 	for (id = bmain->lamp.first; id; id = id->next) {
 		Lamp *la = (Lamp *)id;
 
-		if (G.debug & G_DEBUG) printf("\tconverting lamp %s\n", id->name + 2);
+		if (G.debug & G_DEBUG) printf("\tconverting light %s\n", id->name + 2);
 
 		/* we're only interested in the IPO */
 		if (la->ipo) {

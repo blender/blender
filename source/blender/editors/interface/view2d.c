@@ -153,11 +153,10 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
 	 */
 	if (scroll) {
-		int scroll_width  = (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ?   V2D_SCROLL_WIDTH_TEXT  : v2d->size_vert;
-		int scroll_height = (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ? V2D_SCROLL_HEIGHT_TEXT : v2d->size_hor;
-
-		CLAMP_MIN(scroll_width, V2D_SCROLL_WIDTH_MIN);
-		CLAMP_MIN(scroll_height, V2D_SCROLL_HEIGHT_MIN);
+		const int scroll_width = (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ?
+		                             V2D_SCROLL_WIDTH_TEXT : V2D_SCROLL_WIDTH;
+		const int scroll_height = (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ?
+		                              V2D_SCROLL_HEIGHT_TEXT : V2D_SCROLL_HEIGHT;
 
 		/* vertical scroller */
 		if (scroll & V2D_SCROLL_LEFT) {
@@ -1152,7 +1151,7 @@ void UI_view2d_view_restore(const bContext *C)
 	int height = BLI_rcti_size_y(&ar->winrct) + 1;
 
 	wmOrtho2(0.0f, (float)width, 0.0f, (float)height);
-	gpuLoadIdentity();
+	GPU_matrix_identity_set();
 
 	//	ED_region_pixelspace(CTX_wm_region(C));
 }
@@ -1339,12 +1338,12 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 	if (vertex_count == 0)
 		return;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GWN_PRIM_LINES, vertex_count);
+	immBegin(GPU_PRIM_LINES, vertex_count);
 
 	/* vertical lines */
 	if (flag & V2D_VERTICAL_LINES) {
@@ -1481,15 +1480,15 @@ void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 		count_y = (v2d->cur.ymax - start_y) / step + 1;
 
 	if (count_x > 0 || count_y > 0) {
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 		float theme_color[3];
 
 		UI_GetThemeColorShade3fv(TH_BACK, -10, theme_color);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-		immBegin(GWN_PRIM_LINES, count_x * 2 + count_y * 2 + 4);
+		immBegin(GPU_PRIM_LINES, count_x * 2 + count_y * 2 + 4);
 
 		immAttrib3fv(color, theme_color);
 		for (int i = 0; i < count_x ; start_x += step, i++) {
@@ -1532,14 +1531,14 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	vertex_count += 2 * ((int)((v2d->cur.xmax - v2d->cur.xmin) / lstep) + 1);
 	vertex_count += 2 * ((int)((v2d->cur.ymax - v2d->cur.ymin) / lstep) + 1);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	GPUVertFormat *format = immVertexFormat();
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
 
 	GPU_line_width(1.0f);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBeginAtMost(GWN_PRIM_LINES, vertex_count);
+	immBeginAtMost(GPU_PRIM_LINES, vertex_count);
 
 	for (int level = 0; level < totlevels; ++level) {
 		UI_GetThemeColorShade3ubv(colorid, offset, grid_line_color);

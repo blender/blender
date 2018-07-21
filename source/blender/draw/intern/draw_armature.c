@@ -134,11 +134,11 @@ static void drw_shgroup_bone_octahedral(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_octahedral_outline == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_wire_get();
+		struct GPUBatch *geom = DRW_cache_bone_octahedral_wire_get();
 		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
+		struct GPUBatch *geom = DRW_cache_bone_octahedral_get();
 		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
@@ -155,11 +155,11 @@ static void drw_shgroup_bone_box(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_box_wire == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_box_wire_get();
+		struct GPUBatch *geom = DRW_cache_bone_box_wire_get();
 		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_box_solid == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
+		struct GPUBatch *geom = DRW_cache_bone_box_get();
 		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
@@ -319,9 +319,9 @@ static void drw_shgroup_bone_custom_solid(
         Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Gwn_Batch *surf = DRW_cache_object_surface_get(custom);
-	struct Gwn_Batch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
-	struct Gwn_Batch *ledges = DRW_cache_object_loose_edges_get(custom);
+	struct GPUBatch *surf = DRW_cache_object_surface_get(custom);
+	struct GPUBatch *edges = DRW_cache_object_edge_detection_get(custom, NULL);
+	struct GPUBatch *ledges = DRW_cache_object_loose_edges_get(custom);
 	float final_bonemat[4][4];
 
 	if (surf || edges || ledges) {
@@ -352,7 +352,7 @@ static void drw_shgroup_bone_custom_wire(
         const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
-	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
+	struct GPUBatch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
 		float final_bonemat[4][4], final_color[4];
@@ -514,7 +514,7 @@ static void set_pchan_colorset(Object *ob, bPoseChannel *pchan)
 }
 
 /* This function is for brightening/darkening a given color (like UI_GetThemeColorShade3ubv()) */
-static void cp_shade_color3ub(unsigned char cp[3], const int offset)
+static void cp_shade_color3ub(uchar cp[3], const int offset)
 {
 	int r, g, b;
 
@@ -549,7 +549,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_NORMAL:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -591,7 +591,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 
 			if (bcolor) {
 				float solid_bcolor[3];
-				rgb_uchar_to_float(solid_bcolor, (unsigned char *)bcolor->solid);
+				rgb_uchar_to_float(solid_bcolor, (uchar *)bcolor->solid);
 				interp_v3_v3v3(fcolor, fcolor, solid_bcolor, 1.0f);
 			}
 
@@ -600,7 +600,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_CONSTS:
 		{
 			if ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS)) {
-				unsigned char cp[4];
+				uchar cp[4];
 				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 80);
 				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 80);
 				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 80);
@@ -618,7 +618,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_SPHEREBONE_BASE:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -649,7 +649,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		case PCHAN_COLOR_SPHEREBONE_END:
 		{
 			if (bcolor) {
-				unsigned char cp[4] = {255};
+				uchar cp[4] = {255};
 
 				if (boneflag & BONE_DRAW_ACTIVE) {
 					copy_v3_v3_char((char *)cp, bcolor->active);
@@ -683,7 +683,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 		{
 			/* inner part in background color or constraint */
 			if ((constflag) && ((bcolor == NULL) || (bcolor->flag & TH_WIRECOLOR_CONSTCOLS))) {
-				unsigned char cp[4];
+				uchar cp[4];
 				if (constflag & PCHAN_HAS_TARGET) rgba_char_args_set((char *)cp, 255, 150, 0, 255);
 				else if (constflag & PCHAN_HAS_IK) rgba_char_args_set((char *)cp, 255, 255, 0, 255);
 				else if (constflag & PCHAN_HAS_SPLINEIK) rgba_char_args_set((char *)cp, 200, 255, 0, 255);
@@ -695,7 +695,7 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 			else {
 				if (bcolor) {
 					const char *cp = bcolor->solid;
-					rgb_uchar_to_float(fcolor, (unsigned char *)cp);
+					rgb_uchar_to_float(fcolor, (uchar *)cp);
 					fcolor[3] = 204.f / 255.f;
 				}
 				else {
@@ -1298,7 +1298,7 @@ static void draw_bone_line(
 		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, col_head, col_tail);
 	}
 	else {
-		/* In selection mode, draw bone, root and tip separatly. */
+		/* In selection mode, draw bone, root and tip separately. */
 		DRW_select_load_id(select_id | BONESEL_BONE);
 		drw_shgroup_bone_stick(BONE_VAR(eBone, pchan, disp_mat), col_wire, col_bone, no_display, no_display);
 
@@ -1588,7 +1588,7 @@ static void draw_armature_edit(Object *ob)
 
 				/* Draw names of bone */
 				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-					unsigned char color[4];
+					uchar color[4];
 					UI_GetThemeColor4ubv((eBone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
 
 					float vec[3];
@@ -1623,7 +1623,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 	/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
 	if (ob->pose->flag & POSE_RECALC) {
-		BKE_pose_rebuild(ob, arm);
+		return;
 	}
 
 	// if (!(base->flag & OB_FROMDUPLI)) // TODO
@@ -1702,7 +1702,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 				/* Draw names of bone */
 				if (show_text && (arm->flag & ARM_DRAWNAMES)) {
-					unsigned char color[4];
+					uchar color[4];
 					UI_GetThemeColor4ubv((arm->flag & ARM_POSEMODE) &&
 					                     (bone->flag & BONE_SELECTED) ? TH_TEXT_HI : TH_TEXT, color);
 					float vec[3];

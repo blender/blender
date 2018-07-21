@@ -45,7 +45,7 @@ class OBJECT_OT_add_object(Operator, AddObjectHelper):
     bl_label = "Add Mesh Object"
     bl_options = {'REGISTER', 'UNDO'}
 
-    scale = FloatVectorProperty(
+    scale: FloatVectorProperty(
         name="scale",
         default=(1.0, 1.0, 1.0),
         subtype='TRANSLATION',

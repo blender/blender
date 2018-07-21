@@ -6,24 +6,24 @@
 
 #ifdef DOUBLE_MANIFOLD
 #  ifdef USE_INVOC_EXT
-#    define invoc_ct 2
+#    define invoc_len 2
 #  else
-#    define vert_ct 8
+#    define vert_len 8
 #  endif
 #else
 #  ifdef USE_INVOC_EXT
-#    define invoc_ct 1
+#    define invoc_len 1
 #  else
-#    define vert_ct 4
+#    define vert_len 4
 #  endif
 #endif
 
 #ifdef USE_INVOC_EXT
-layout(lines_adjacency, invocations = invoc_ct) in;
+layout(lines_adjacency, invocations = invoc_len) in;
 layout(triangle_strip, max_vertices = 4) out;
 #else
 layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = vert_ct) out;
+layout(triangle_strip, max_vertices = vert_len) out;
 #endif
 
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);

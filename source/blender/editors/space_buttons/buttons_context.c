@@ -47,6 +47,7 @@
 #include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_linestyle_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_context.h"
 #include "BKE_action.h"
@@ -69,6 +70,8 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "WM_api.h"
 
 #include "buttons_intern.h" // own include
 
@@ -114,11 +117,13 @@ static int buttons_context_path_scene(ButsContextPath *path)
 	return RNA_struct_is_a(ptr->type, &RNA_Scene);
 }
 
-static int buttons_context_path_view_layer(ButsContextPath *path, WorkSpace *workspace)
+static int buttons_context_path_view_layer(ButsContextPath *path, wmWindow *win)
 {
 	if (buttons_context_path_scene(path)) {
 		Scene *scene = path->ptr[path->len - 1].data;
-		ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+		ViewLayer *view_layer = (win->scene == scene) ?
+			WM_window_get_active_view_layer(win) :
+			BKE_view_layer_default_view(scene);
 
 		RNA_pointer_create(&scene->id, &RNA_ViewLayer, view_layer, &path->ptr[path->len]);
 		path->len++;
@@ -159,7 +164,7 @@ static int buttons_context_path_world(ButsContextPath *path)
 	return 0;
 }
 
-static int buttons_context_path_linestyle(ButsContextPath *path, WorkSpace *workspace)
+static int buttons_context_path_linestyle(ButsContextPath *path, wmWindow *window)
 {
 	FreestyleLineStyle *linestyle;
 	PointerRNA *ptr = &path->ptr[path->len - 1];
@@ -169,7 +174,7 @@ static int buttons_context_path_linestyle(ButsContextPath *path, WorkSpace *work
 		return 1;
 	}
 	/* if we have a view layer, use the lineset's linestyle */
-	else if (buttons_context_path_view_layer(path, workspace)) {
+	else if (buttons_context_path_view_layer(path, window)) {
 		ViewLayer *view_layer = path->ptr[path->len - 1].data;
 		linestyle = BKE_linestyle_active_from_view_layer(view_layer);
 		if (linestyle) {
@@ -199,6 +204,9 @@ static int buttons_context_path_object(ButsContextPath *path)
 	if (RNA_struct_is_a(ptr->type, &RNA_Object)) {
 		return 1;
 	}
+	if (!RNA_struct_is_a(ptr->type, &RNA_ViewLayer)) {
+		return 0;
+	}
 
 	ViewLayer *view_layer = ptr->data;
 	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
@@ -226,7 +234,7 @@ static int buttons_context_path_data(ButsContextPath *path, int type)
 	else if (RNA_struct_is_a(ptr->type, &RNA_MetaBall) && (type == -1 || type == OB_MBALL)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_Lattice) && (type == -1 || type == OB_LATTICE)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_Camera) && (type == -1 || type == OB_CAMERA)) return 1;
-	else if (RNA_struct_is_a(ptr->type, &RNA_Lamp) && (type == -1 || type == OB_LAMP)) return 1;
+	else if (RNA_struct_is_a(ptr->type, &RNA_Light) && (type == -1 || type == OB_LAMP)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_Speaker) && (type == -1 || type == OB_SPEAKER)) return 1;
 	else if (RNA_struct_is_a(ptr->type, &RNA_LightProbe) && (type == -1 || type == OB_LIGHTPROBE)) return 1;
 	/* try to get an object in the path, no pinning supported here */
@@ -432,7 +440,7 @@ static int buttons_context_path_texture(const bContext *C, ButsContextPath *path
 		else if (GS(id->name) == ID_OB)
 			buttons_context_path_object(path);
 		else if (GS(id->name) == ID_LS)
-			buttons_context_path_linestyle(path, CTX_wm_workspace(C));
+			buttons_context_path_linestyle(path, CTX_wm_window(C));
 	}
 
 	if (ct->texture) {
@@ -472,8 +480,9 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 {
 	SpaceButs *sbuts = CTX_wm_space_buts(C);
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	wmWindow *window = CTX_wm_window(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
-	ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
 	ID *id;
 	int found;
 
@@ -514,13 +523,13 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		case BCONTEXT_VIEW_LAYER:
 #ifdef WITH_FREESTYLE
 			if (buttons_context_linestyle_pinnable(C, view_layer)) {
-				found = buttons_context_path_linestyle(path, workspace);
+				found = buttons_context_path_linestyle(path, window);
 				if (found) {
 					break;
 				}
 			}
 #endif
-			found = buttons_context_path_view_layer(path, workspace);
+			found = buttons_context_path_view_layer(path, window);
 			break;
 		case BCONTEXT_WORLD:
 			found = buttons_context_path_world(path);
@@ -670,7 +679,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 
 const char *buttons_context_dir[] = {
 	"texture_slot", "scene", "world", "object", "mesh", "armature", "lattice", "curve",
-	"meta_ball", "lamp", "speaker", "lightprobe", "camera", "material", "material_slot",
+	"meta_ball", "light", "speaker", "lightprobe", "camera", "material", "material_slot",
 	"texture", "texture_user", "texture_user_property", "bone", "edit_bone",
 	"pose_bone", "particle_system", "particle_system_editable", "particle_settings",
 	"cloth", "soft_body", "fluid", "smoke", "collision", "brush", "dynamic_paint",
@@ -727,8 +736,8 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 		set_pointer_type(path, result, &RNA_MetaBall);
 		return 1;
 	}
-	else if (CTX_data_equals(member, "lamp")) {
-		set_pointer_type(path, result, &RNA_Lamp);
+	else if (CTX_data_equals(member, "light")) {
+		set_pointer_type(path, result, &RNA_Light);
 		return 1;
 	}
 	else if (CTX_data_equals(member, "camera")) {
@@ -1003,10 +1012,10 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 			name = RNA_struct_name_get_alloc(ptr, namebuf, sizeof(namebuf), NULL);
 
 			if (name) {
-				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER) && ptr->type == &RNA_Scene)) {
+				if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_Scene)) {
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
 				}
-				else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER) && ptr->type == &RNA_ViewLayer)) {
+				else if ((!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD) && ptr->type == &RNA_ViewLayer)) {
 					uiItemLDrag(row, ptr, "", icon);  /* save some space */
 				}
 				else {

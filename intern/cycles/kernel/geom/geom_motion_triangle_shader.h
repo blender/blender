@@ -120,4 +120,3 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals *kg,
 }
 
 CCL_NAMESPACE_END
-

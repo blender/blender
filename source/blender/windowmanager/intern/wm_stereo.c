@@ -87,9 +87,9 @@ void wm_stereo3d_draw_interlace(wmWindow *win, ARegion *ar)
 	float halfx = GLA_PIXEL_OFS / ar->winx;
 	float halfy = GLA_PIXEL_OFS / ar->winy;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	/* leave GL_TEXTURE0 as the latest active texture */
 	for (int view = 1; view >= 0; view--) {
@@ -104,7 +104,7 @@ void wm_stereo3d_draw_interlace(wmWindow *win, ARegion *ar)
 
 	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
 
-	immBegin(GWN_PRIM_TRI_FAN, 4);
+	immBegin(GPU_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, ar->winrct.xmin, ar->winrct.ymin);
@@ -163,9 +163,9 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 {
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
 
@@ -188,7 +188,7 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
 	immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
 
-	immBegin(GWN_PRIM_TRI_FAN, 4);
+	immBegin(GPU_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, soffx, 0.0f);
@@ -209,9 +209,9 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
 void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 {
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	GPUVertFormat *format = immVertexFormat();
+	uint texcoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
 
@@ -232,7 +232,7 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 
 	immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
 
-	immBegin(GWN_PRIM_TRI_FAN, 4);
+	immBegin(GPU_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, soffy);
@@ -404,7 +404,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	    prev_display_mode != win_src->stereo3d_format->display_mode)
 	{
 		/* in case the hardward supports pageflip but not the display */
-		if ((win_dst = wm_window_copy_test(C, win_src, false))) {
+		if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
 			/* pass */
 		}
 		else {
@@ -423,7 +423,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 			ok = false;
 		}
 		/* pageflip requires a new window to be created with the proper OS flags */
-		else if ((win_dst = wm_window_copy_test(C, win_src, false))) {
+		else if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
 			if (wm_stereo3d_quadbuffer_supported()) {
 				BKE_report(op->reports, RPT_INFO, "Quad-buffer window successfully created");
 			}

@@ -147,7 +147,7 @@ static int EDIT_MESH_sh_index(ToolSettings *tsettings, RegionView3D *rv3d, bool 
 	return result;
 }
 
-static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, bool anti_alias)
+static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, bool anti_alias, bool looseedge)
 {
 	const int selectmode = tsettings->selectmode;
 	const int fast_mode = rv3d->rflag & RV3D_NAVIGATING;
@@ -174,7 +174,10 @@ static char *EDIT_MESH_sh_defines(ToolSettings *tsettings, RegionView3D *rv3d, b
 	if (anti_alias) {
 		BLI_dynstr_append(ds, "#define ANTI_ALIASING\n");
 	}
-	BLI_dynstr_append(ds, "#define VERTEX_FACING\n");
+
+	if (!looseedge) {
+		BLI_dynstr_append(ds, "#define VERTEX_FACING\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -198,7 +201,7 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	const int index = EDIT_MESH_sh_index(tsettings, rv3d, fast_mode);
 	if (looseedge) {
 		if (!e_data.overlay_loose_edge_sh_cache[index]) {
-			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true, true);
 			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_loose_edge_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
@@ -213,7 +216,7 @@ static GPUShader *EDIT_MESH_ensure_shader(ToolSettings *tsettings, RegionView3D 
 	}
 	else {
 		if (!e_data.overlay_tri_sh_cache[index]) {
-			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true);
+			char *defines = EDIT_MESH_sh_defines(tsettings, rv3d, true, false);
 			char *lib = EDIT_MESH_sh_lib();
 			e_data.overlay_tri_sh_cache[index] = DRW_shader_create_with_lib(
 			        datatoc_edit_mesh_overlay_vert_glsl,
@@ -362,7 +365,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 
 	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-	                           (draw_ctx->v3d->drawtype < OB_MATERIAL);
+	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
 	stl->g_data->do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0) || xray_enabled;
 
 	{
@@ -429,7 +432,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
 
 		/* we need a full screen pass to combine the result */
-		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 
 		psl->mix_occlude = DRW_pass_create(
 		        "Mix Occluded Wires",
@@ -447,7 +450,7 @@ static void edit_mesh_add_ob_to_pass(
         Scene *scene, Object *ob, DRWShadingGroup *face_shgrp, DRWShadingGroup *ledges_shgrp,
         DRWShadingGroup *lverts_shgrp, DRWShadingGroup *facedot_shgrp, DRWShadingGroup *facefill_shgrp)
 {
-	struct Gwn_Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
+	struct GPUBatch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
 	ToolSettings *tsettings = scene->toolsettings;
 
 	DRW_cache_mesh_wire_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
@@ -474,7 +477,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
-	struct Gwn_Batch *geom;
+	struct GPUBatch *geom;
 
 	if (ob->type == OB_MESH) {
 		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
@@ -509,7 +512,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (vnormals_do || lnormals_do) {
-				struct Gwn_Batch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
+				struct GPUBatch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
 				DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
 
 				if (vnormals_do) {

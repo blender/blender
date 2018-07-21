@@ -2464,7 +2464,7 @@ void BKE_library_make_local(
 	 * Try "make all local" in 04_01_H.lighting.blend from Agent327 without this, e.g. */
 	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data != NULL && ob->type == OB_ARMATURE && ob->pose != NULL && ob->pose->flag & POSE_RECALC) {
-			BKE_pose_rebuild(ob, ob->data);
+			BKE_pose_rebuild(bmain, ob, ob->data);
 		}
 	}
 

@@ -45,9 +45,10 @@
 #include "DNA_view3d_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BLI_math_vector.h"
 #include "BLI_listbase.h"
-#include "BLI_utildefines.h"
 #include "BLI_rect.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
@@ -222,7 +223,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	BLI_listbase_clear(&newar->panels_category_active);
 	BLI_listbase_clear(&newar->ui_lists);
 	newar->visible = 0;
-	newar->manipulator_map = NULL;
+	newar->gizmo_map = NULL;
 	newar->regiontimer = NULL;
 	newar->headerstr = NULL;
 	newar->draw_buffer = NULL;
@@ -324,18 +325,18 @@ void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID 
 }
 
 /**
- * Avoid bad-level calls to #WM_manipulatormap_tag_refresh.
+ * Avoid bad-level calls to #WM_gizmomap_tag_refresh.
  */
-static void (*region_refresh_tag_manipulatormap_callback)(struct wmManipulatorMap *) = NULL;
+static void (*region_refresh_tag_gizmomap_callback)(struct wmGizmoMap *) = NULL;
 
-void BKE_region_callback_refresh_tag_manipulatormap_set(void (*callback)(struct wmManipulatorMap *))
+void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *))
 {
-	region_refresh_tag_manipulatormap_callback = callback;
+	region_refresh_tag_gizmomap_callback = callback;
 }
 
-void BKE_screen_manipulator_tag_refresh(struct bScreen *sc)
+void BKE_screen_gizmo_tag_refresh(struct bScreen *sc)
 {
-	if (region_refresh_tag_manipulatormap_callback == NULL) {
+	if (region_refresh_tag_gizmomap_callback == NULL) {
 		return;
 	}
 
@@ -343,21 +344,21 @@ void BKE_screen_manipulator_tag_refresh(struct bScreen *sc)
 	ARegion *ar;
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->manipulator_map != NULL) {
-				region_refresh_tag_manipulatormap_callback(ar->manipulator_map);
+			if (ar->gizmo_map != NULL) {
+				region_refresh_tag_gizmomap_callback(ar->gizmo_map);
 			}
 		}
 	}
 }
 
 /**
- * Avoid bad-level calls to #WM_manipulatormap_delete.
+ * Avoid bad-level calls to #WM_gizmomap_delete.
  */
-static void (*region_free_manipulatormap_callback)(struct wmManipulatorMap *) = NULL;
+static void (*region_free_gizmomap_callback)(struct wmGizmoMap *) = NULL;
 
-void BKE_region_callback_free_manipulatormap_set(void (*callback)(struct wmManipulatorMap *))
+void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *))
 {
-	region_free_manipulatormap_callback = callback;
+	region_free_gizmomap_callback = callback;
 }
 
 static void panel_list_free(ListBase *lb)
@@ -414,8 +415,8 @@ void BKE_area_region_free(SpaceType *st, ARegion *ar)
 		}
 	}
 
-	if (ar->manipulator_map != NULL) {
-		region_free_manipulatormap_callback(ar->manipulator_map);
+	if (ar->gizmo_map != NULL) {
+		region_free_gizmomap_callback(ar->gizmo_map);
 	}
 
 	BLI_freelistN(&ar->ui_lists);
@@ -853,6 +854,21 @@ void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
 			}
 		}
 	}
+}
+
+void BKE_screen_view3d_shading_init(View3DShading *shading)
+{
+	memset(shading, 0, sizeof(*shading));
+
+	shading->type = OB_SOLID;
+	shading->prev_type = OB_SOLID;
+	shading->flag = V3D_SHADING_SPECULAR_HIGHLIGHT;
+	shading->light = V3D_LIGHTING_STUDIO;
+	shading->shadow_intensity = 0.5f;
+	shading->xray_alpha = 0.5f;
+	shading->cavity_valley_factor = 1.0f;
+	shading->cavity_ridge_factor = 1.0f;
+	copy_v3_fl(shading->single_color, 0.8f);
 }
 
 /* magic zoom calculation, no idea what

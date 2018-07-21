@@ -78,7 +78,7 @@ typedef struct {
 	/* modal only */
 	float mcenter[2];
 	void *draw_handle_pixel;
-	short twflag;
+	short gizmo_flag;
 } InsetData;
 
 
@@ -173,8 +173,8 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		        ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
 		if (v3d) {
-			opdata->twflag = v3d->twflag;
-			v3d->twflag = 0;
+			opdata->gizmo_flag = v3d->gizmo_flag;
+			v3d->gizmo_flag = V3D_GIZMO_HIDE;
 		}
 	}
 
@@ -196,7 +196,7 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 		}
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
-			v3d->twflag = opdata->twflag;
+			v3d->gizmo_flag = opdata->gizmo_flag;
 		}
 		G.moving = 0;
 	}

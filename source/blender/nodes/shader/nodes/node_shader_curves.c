@@ -74,7 +74,6 @@ void register_node_type_sh_curve_vec(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_CURVE_VEC, "Vector Curves", NODE_CLASS_OP_VECTOR, 0);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_curve_vec_in, sh_node_curve_vec_out);
 	node_type_init(&ntype, node_shader_init_curve_vec);
 	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
@@ -133,7 +132,6 @@ void register_node_type_sh_curve_rgb(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_CURVE_RGB, "RGB Curves", NODE_CLASS_OP_COLOR, 0);
-	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_curve_rgb_in, sh_node_curve_rgb_out);
 	node_type_init(&ntype, node_shader_init_curve_rgb);
 	node_type_size_preset(&ntype, NODE_SIZE_LARGE);

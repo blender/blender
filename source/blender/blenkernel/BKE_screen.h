@@ -45,13 +45,14 @@ struct ScrVert;
 struct SpaceType;
 struct TransformOrientation;
 struct View3D;
+struct View3DShading;
 struct bContext;
 struct bContextDataResult;
 struct bScreen;
 struct uiLayout;
 struct uiList;
 struct wmKeyConfig;
-struct wmManipulatorMap;
+struct wmGizmoMap;
 struct wmNotifier;
 struct wmWindow;
 struct wmWindowManager;
@@ -88,9 +89,8 @@ typedef struct SpaceType {
 	/* exit is called when the area is hidden or removed */
 	void (*exit)(struct wmWindowManager *wm, struct ScrArea *sa);
 	/* Listeners can react to bContext changes */
-	void (*listener)(struct bScreen *sc, struct ScrArea *sa,
-	                 struct wmNotifier *wmn, struct Scene *scene,
-	                 struct WorkSpace *workspace);
+	void (*listener)(struct wmWindow *win, struct ScrArea *sa,
+	                 struct wmNotifier *wmn, struct Scene *scene);
 
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
 	void (*refresh)(const struct bContext *C, struct ScrArea *sa);
@@ -105,8 +105,8 @@ typedef struct SpaceType {
 	/* on startup, define dropboxes for spacetype+regions */
 	void (*dropboxes)(void);
 
-	/* initialize manipulator-map-types and manipulator-group-types with the region */
-	void (*manipulators)(void);
+	/* initialize gizmo-map-types and gizmo-group-types with the region */
+	void (*gizmos)(void);
 
 	/* return context data */
 	int (*context)(const struct bContext *C, const char *member, struct bContextDataResult *result);
@@ -146,7 +146,7 @@ typedef struct ARegionType {
 	/* snap the size of the region (can be NULL for no snapping). */
 	int (*snap_size)(const struct ARegion *ar, int size, int axis);
 	/* contextual changes should be handled here */
-	void (*listener)(struct bScreen *sc, struct ScrArea *sa, struct ARegion *ar,
+	void (*listener)(struct wmWindow *win, struct ScrArea *sa, struct ARegion *ar,
 	                 struct wmNotifier *wmn, const struct Scene *scene);
 	/* Optional callback to generate subscriptions. */
 	void (*message_subscribe)(
@@ -204,8 +204,10 @@ typedef struct PanelType {
 	char category[BKE_ST_MAXNAME];            /* for category tabs */
 	char owner_id[BKE_ST_MAXNAME];            /* for work-spaces to selectively show. */
 	char parent_id[BKE_ST_MAXNAME];           /* parent idname for subpanels */
-	int space_type;
-	int region_type;
+	short space_type;
+	short region_type;
+	/* For popovers, 0 for default. */
+	int ui_units_x;
 
 	int flag;
 
@@ -324,9 +326,9 @@ void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID 
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
 void            BKE_screen_area_free(struct ScrArea *sa);
-/* Manipulator-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
-void BKE_region_callback_free_manipulatormap_set(void (*callback)(struct wmManipulatorMap *));
-void BKE_region_callback_refresh_tag_manipulatormap_set(void (*callback)(struct wmManipulatorMap *));
+/* Gizmo-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
+void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *));
+void BKE_region_callback_refresh_tag_gizmomap_set(void (*callback)(struct wmGizmoMap *));
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 struct ARegion *BKE_area_find_region_active_win(struct ScrArea *sa);
@@ -343,7 +345,7 @@ unsigned int BKE_screen_view3d_layer_active(
 
 unsigned int BKE_screen_view3d_layer_all(const struct bScreen *sc) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
-void BKE_screen_manipulator_tag_refresh(struct bScreen *sc);
+void BKE_screen_gizmo_tag_refresh(struct bScreen *sc);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
 void BKE_screen_view3d_scene_sync(struct bScreen *sc, struct Scene *scene);
@@ -353,6 +355,8 @@ bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT AT
 /* zoom factor conversion */
 float BKE_screen_view3d_zoom_to_fac(float camzoom);
 float BKE_screen_view3d_zoom_from_fac(float zoomfac);
+
+void BKE_screen_view3d_shading_init(struct View3DShading *shading);
 
 /* screen */
 void BKE_screen_free(struct bScreen *sc);

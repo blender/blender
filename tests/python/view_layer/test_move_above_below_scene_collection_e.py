@@ -17,21 +17,21 @@ class UnitTesting(MoveSceneCollectionTesting):
     def get_reference_scene_tree_map(self):
         # original tree, no changes
         reference_tree_map = [
-                ['A', [
-                    ['i', None],
-                    ['ii', None],
-                    ]],
-                ['B', None],
-                ['C', [
-                    ['1', None],
-                    ['2', None],
-                    ['3', [
-                        ['dog', None],
-                        ['iii', None],
-                        ['cat', None],
-                        ]],
-                    ]],
-                ]
+            ['A', [
+                ['i', None],
+                ['ii', None],
+            ]],
+            ['B', None],
+            ['C', [
+                ['1', None],
+                ['2', None],
+                ['3', [
+                    ['dog', None],
+                    ['iii', None],
+                    ['cat', None],
+                ]],
+            ]],
+        ]
         return reference_tree_map
 
     def test_scene_collection_move_a(self):

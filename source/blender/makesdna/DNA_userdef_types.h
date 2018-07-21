@@ -156,8 +156,7 @@ typedef struct uiPanelColors {
 	char header[4];
 	char back[4];
 	char sub_back[4];
-	short show_header;
-	short show_back;
+	char pad2[4];
 } uiPanelColors;
 
 typedef struct uiGradientColors {
@@ -196,12 +195,12 @@ typedef struct ThemeUI {
 	/* Axis Colors */
 	char xaxis[4], yaxis[4], zaxis[4];
 
-	/* Manipulator Colors. */
-	char manipulator_hi[4];
-	char manipulator_primary[4];
-	char manipulator_secondary[4];
-	char manipulator_a[4];
-	char manipulator_b[4];
+	/* Gizmo Colors. */
+	char gizmo_hi[4];
+	char gizmo_primary[4];
+	char gizmo_secondary[4];
+	char gizmo_a[4];
+	char gizmo_b[4];
 	char pad2[4];
 } ThemeUI;
 
@@ -573,7 +572,7 @@ typedef struct UserDef {
 	short gp_settings;  /* eGP_UserdefSettings */
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
-	short manipulator_flag, manipulator_size;
+	short gizmo_flag, gizmo_size;
 	short pad6[3];
 	short textimeout, texcollectrate;
 	short dragthreshold;
@@ -674,7 +673,7 @@ typedef enum eUserPref_Section {
 /* UserDef.flag */
 typedef enum eUserPref_Flag {
 	USER_AUTOSAVE			= (1 << 0),
-	USER_FLAG_DEPRECATED_1	= (1 << 1),  /* cleared */
+	USER_FLAG_NUMINPUT_ADVANCED = (1 << 1),
 	USER_FLAG_DEPRECATED_2	= (1 << 2),  /* cleared */
 	USER_FLAG_DEPRECATED_3	= (1 << 3),  /* cleared */
 /*	USER_SCENEGLOBAL         = (1 << 4), deprecated */
@@ -752,7 +751,7 @@ typedef enum eUserpref_UI_Flag {
 	USER_ORBIT_SELECTION	= (1 << 14),
 	USER_DEPTH_NAVIGATE     = (1 << 15),
 	USER_HIDE_DOT			= (1 << 16),
-	USER_SHOW_ROTVIEWICON	= (1 << 17),
+	USER_SHOW_GIZMO_AXIS	= (1 << 17),
 	USER_SHOW_VIEWPORTNAME	= (1 << 18),
 	USER_CAM_LOCK_NO_PARENT	= (1 << 19),
 	USER_ZOOM_TO_MOUSEPOS	= (1 << 20),
@@ -876,9 +875,7 @@ typedef enum eGP_UserdefSettings {
 } eGP_UserdefSettings;
 
 enum {
-	USER_MANIPULATOR_DRAW            = (1 << 0),
-	USER_MANIPULATOR_DRAW_NAVIGATE   = (1 << 1),
-	USER_MANIPULATOR_SHADED          = (1 << 8),
+	USER_GIZMO_DRAW            = (1 << 0),
 };
 
 /* Color Picker Types.

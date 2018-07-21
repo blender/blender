@@ -41,4 +41,3 @@ ccl_device void svm_node_separate_vector(ShaderData *sd, float *stack, uint ivec
 }
 
 CCL_NAMESPACE_END
-

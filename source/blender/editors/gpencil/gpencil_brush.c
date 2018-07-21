@@ -985,8 +985,8 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customda
 	GP_EditBrush_Data *brush = gpsculpt_get_brush(CTX_data_scene(C));
 
 	if (brush) {
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		GPUVertFormat *format = immVertexFormat();
+		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 		GPU_line_smooth(true);
@@ -1832,7 +1832,7 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 			case DOWNARROWKEY:
 				return OPERATOR_PASS_THROUGH;
 
-			/* Camera/View Manipulations - Allowed */
+			/* Camera/View Gizmo's - Allowed */
 			/* (See rationale in gpencil_paint.c -> gpencil_draw_modal()) */
 			case PAD0:  case PAD1:  case PAD2:  case PAD3:  case PAD4:
 			case PAD5:  case PAD6:  case PAD7:  case PAD8:  case PAD9:

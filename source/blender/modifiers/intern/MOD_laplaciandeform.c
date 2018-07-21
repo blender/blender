@@ -704,18 +704,18 @@ static void initData(ModifierData *md)
 	lmd->flag = 0;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const LaplacianDeformModifierData *lmd = (const LaplacianDeformModifierData *)md;
 	LaplacianDeformModifierData *tlmd = (LaplacianDeformModifierData *)target;
 
-	modifier_copyData_generic(md, target);
+	modifier_copyData_generic(md, target, flag);
 
 	tlmd->vertexco = MEM_dupallocN(lmd->vertexco);
 	tlmd->cache_system = NULL;
 }
 
-static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, int UNUSED(useRenderParams))
+static bool isDisabled(const struct Scene *UNUSED(scene), ModifierData *md, bool UNUSED(useRenderParams))
 {
 	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
 	if (lmd->anchor_grp_name[0]) return 0;

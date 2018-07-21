@@ -226,4 +226,3 @@ ccl_device void cmj_sample_2D(int s, int N, int p, float *fx, float *fy)
 #endif
 
 CCL_NAMESPACE_END
-

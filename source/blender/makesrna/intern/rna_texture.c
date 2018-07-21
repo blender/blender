@@ -368,7 +368,7 @@ static const EnumPropertyItem *rna_TextureSlot_output_node_itemf(
 	return item;
 }
 
-static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, int value)
+static void rna_Texture_use_color_ramp_set(PointerRNA *ptr, bool value)
 {
 	Tex *tex = (Tex *)ptr->data;
 
@@ -393,7 +393,7 @@ static void rna_Texture_use_nodes_update(bContext *C, PointerRNA *ptr)
 	rna_Texture_nodes_update(CTX_data_main(C), CTX_data_scene(C), ptr);
 }
 
-static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, int value)
+static void rna_ImageTexture_mipmap_set(PointerRNA *ptr, bool value)
 {
 	Tex *tex = (Tex *)ptr->data;
 
@@ -1435,7 +1435,7 @@ static void rna_def_texture(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "Texture", "ID");
 	RNA_def_struct_sdna(srna, "Tex");
-	RNA_def_struct_ui_text(srna, "Texture", "Texture data-block used by materials, lamps, worlds and brushes");
+	RNA_def_struct_ui_text(srna, "Texture", "Texture data-block used by materials, lights, worlds and brushes");
 	RNA_def_struct_ui_icon(srna, ICON_TEXTURE_DATA);
 	RNA_def_struct_refine_func(srna, "rna_Texture_refine");
 

@@ -903,7 +903,7 @@ static float rna_PartSetting_linelenhead_get(struct PointerRNA *ptr)
 }
 
 
-static int rna_PartSettings_is_fluid_get(PointerRNA *ptr)
+static bool rna_PartSettings_is_fluid_get(PointerRNA *ptr)
 {
 	ParticleSettings *part = (ParticleSettings *)ptr->data;
 
@@ -1063,19 +1063,19 @@ static char *rna_SPHFluidSettings_path(PointerRNA *ptr)
 	return NULL;
 }
 
-static int rna_ParticleSystem_multiple_caches_get(PointerRNA *ptr)
+static bool rna_ParticleSystem_multiple_caches_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
 	return (psys->ptcaches.first != psys->ptcaches.last);
 }
-static int rna_ParticleSystem_editable_get(PointerRNA *ptr)
+static bool rna_ParticleSystem_editable_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 
 	return psys_check_edited(psys);
 }
-static int rna_ParticleSystem_edited_get(PointerRNA *ptr)
+static bool rna_ParticleSystem_edited_get(PointerRNA *ptr)
 {
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 

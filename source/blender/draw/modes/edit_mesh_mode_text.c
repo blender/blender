@@ -63,7 +63,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	char numstr[32]; /* Stores the measurement display text here */
 	size_t numstr_len;
 	const char *conv_float; /* Use a float conversion matching the grid size */
-	unsigned char col[4] = {0, 0, 0, 255}; /* color of the text to draw */
+	uchar col[4] = {0, 0, 0, 255}; /* color of the text to draw */
 	float area; /* area of the face */
 	float grid = unit->system ? unit->scale_length : v3d->grid;
 	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;

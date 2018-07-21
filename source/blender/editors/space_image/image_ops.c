@@ -1231,7 +1231,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
 	Object *obedit = CTX_data_edit_object(C);
 	ImageUser *iuser = NULL;
 	ImageOpenData *iod = op->customdata;
-	PointerRNA idptr;
 	Image *ima = NULL;
 	char filepath[FILE_MAX];
 	int frame_seq_len = 0;
@@ -1297,8 +1296,9 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		 * pointer use also increases user, so this compensates it */
 		id_us_min(&ima->id);
 
-		RNA_id_pointer_create(&ima->id, &idptr);
-		RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, idptr);
+		PointerRNA imaptr;
+		RNA_id_pointer_create(&ima->id, &imaptr);
+		RNA_property_pointer_set(&iod->pprop.ptr, iod->pprop.prop, imaptr);
 		RNA_property_update(C, &iod->pprop.ptr, iod->pprop.prop);
 	}
 
@@ -1340,7 +1340,6 @@ static int image_open_exec(bContext *C, wmOperator *op)
 		else {
 			iuser->offset = frame_ofs - 1;
 		}
-		iuser->fie_ima = 2;
 		iuser->scene = scene;
 		BKE_image_init_imageuser(ima, iuser);
 	}
@@ -2382,6 +2381,30 @@ enum {
 	GEN_CONTEXT_PAINT_STENCIL = 2
 };
 
+typedef struct ImageNewData {
+	PropertyPointerRNA pprop;
+} ImageNewData;
+
+static ImageNewData *image_new_init(bContext *C, wmOperator *op)
+{
+	if (op->customdata) {
+		return op->customdata;
+	}
+
+	ImageNewData *data = MEM_callocN(sizeof(ImageNewData), __func__);
+	UI_context_active_but_prop_get_templateID(C, &data->pprop.ptr, &data->pprop.prop);
+	op->customdata = data;
+	return data;
+}
+
+static void image_new_free(wmOperator *op)
+{
+	if (op->customdata) {
+		MEM_freeN(op->customdata);
+		op->customdata = NULL;
+	}
+}
+
 static int image_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima;
@@ -2389,13 +2412,11 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	Object *obedit;
 	Image *ima;
 	Main *bmain;
-	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 	char name_buffer[MAX_ID_NAME - 2];
 	const char *name;
 	float color[4];
 	int width, height, floatbuf, gen_type, alpha;
-	int gen_context;
 	int stereo3d;
 
 	/* retrieve state */
@@ -2419,7 +2440,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	gen_type = RNA_enum_get(op->ptr, "generated_type");
 	RNA_float_get_array(op->ptr, "color", color);
 	alpha = RNA_boolean_get(op->ptr, "alpha");
-	gen_context = RNA_enum_get(op->ptr, "gen_context");
 	stereo3d = RNA_boolean_get(op->ptr, "use_stereo_3d");
 
 	if (!alpha)
@@ -2427,79 +2447,44 @@ static int image_new_exec(bContext *C, wmOperator *op)
 
 	ima = BKE_image_add_generated(bmain, width, height, name, alpha ? 32 : 24, floatbuf, gen_type, color, stereo3d);
 
-	if (!ima)
+	if (!ima) {
+		image_new_free(op);
 		return OPERATOR_CANCELLED;
+	}
 
 	/* hook into UI */
-	UI_context_active_but_prop_get_templateID(C, &ptr, &prop);
+	ImageNewData *data = image_new_init(C, op);
 
-	if (prop) {
+	if (data->pprop.prop) {
 		/* when creating new ID blocks, use is already 1, but RNA
 		 * pointer use also increases user, so this compensates it */
 		id_us_min(&ima->id);
 
-		RNA_id_pointer_create(&ima->id, &idptr);
-		RNA_property_pointer_set(&ptr, prop, idptr);
-		RNA_property_update(C, &ptr, prop);
+		PointerRNA imaptr;
+		RNA_id_pointer_create(&ima->id, &imaptr);
+		RNA_property_pointer_set(&data->pprop.ptr, data->pprop.prop, imaptr);
+		RNA_property_update(C, &data->pprop.ptr, data->pprop.prop);
 	}
 	else if (sima) {
 		ED_space_image_set(bmain, sima, scene, obedit, ima);
-	}
-	else if (gen_context == GEN_CONTEXT_PAINT_CANVAS) {
-		bScreen *sc;
-		Object *ob = CTX_data_active_object(C);
-
-		if (scene->toolsettings->imapaint.canvas)
-			id_us_min(&scene->toolsettings->imapaint.canvas->id);
-		scene->toolsettings->imapaint.canvas = ima;
-
-		for (sc = bmain->screen.first; sc; sc = sc->id.next) {
-			ScrArea *sa;
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_IMAGE) {
-						SpaceImage *sima_other = (SpaceImage *)sl;
-
-						if (!sima_other->pin) {
-							ED_space_image_set(bmain, sima_other, scene, obedit, ima);
-						}
-					}
-				}
-			}
-		}
-		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
-	}
-	else if (gen_context == GEN_CONTEXT_PAINT_STENCIL) {
-		Object *ob = CTX_data_active_object(C);
-		if (scene->toolsettings->imapaint.stencil)
-			id_us_min(&scene->toolsettings->imapaint.stencil->id);
-		scene->toolsettings->imapaint.stencil = ima;
-		BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
-	}
-	else {
-		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-		if (tex && tex->type == TEX_IMAGE) {
-			if (tex->ima)
-				id_us_min(&tex->ima->id);
-			tex->ima = ima;
-			ED_area_tag_redraw(CTX_wm_area(C));
-		}
 	}
 
 	BKE_image_signal(bmain, ima, (sima) ? &sima->iuser : NULL, IMA_SIGNAL_USER_NEW_IMAGE);
 
 	WM_event_add_notifier(C, NC_IMAGE | NA_ADDED, ima);
 
+	image_new_free(op);
+
 	return OPERATOR_FINISHED;
 }
 
-/* XXX, Ton is not a fan of OK buttons but using this function to avoid undo/redo bug while in mesh-editmode, - campbell */
-/* XXX Note: the WM_operator_props_dialog_popup() doesn't work for UI_context_active_but_prop_get_templateID(), image is not being that way */
 static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+	/* Get property in advance, it doesn't work after WM_operator_props_dialog_popup. */
+	ImageNewData *data;
+	op->customdata = data = MEM_callocN(sizeof(ImageNewData), __func__);
+	UI_context_active_but_prop_get_templateID(C, &data->pprop.ptr, &data->pprop.prop);
+
 	/* Better for user feedback. */
 	RNA_string_set(op->ptr, "name", DATA_(IMA_DEF_NAME));
 	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
@@ -2552,17 +2537,15 @@ static void image_new_draw(bContext *UNUSED(C), wmOperator *op)
 #endif
 }
 
+static void image_new_cancel(bContext *UNUSED(C), wmOperator *op)
+{
+	image_new_free(op);
+}
+
 void IMAGE_OT_new(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	static float default_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-
-	static const EnumPropertyItem gen_context_items[] = {
-		{GEN_CONTEXT_NONE, "NONE", 0, "None", ""},
-		{GEN_CONTEXT_PAINT_CANVAS, "PAINT_CANVAS", 0, "Paint Canvas", ""},
-		{GEN_CONTEXT_PAINT_STENCIL, "PAINT_STENCIL", 0, "Paint Stencil", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	/* identifiers */
 	ot->name = "New Image";
@@ -2573,6 +2556,7 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	ot->exec = image_new_exec;
 	ot->invoke = image_new_invoke;
 	ot->ui = image_new_draw;
+	ot->cancel = image_new_cancel;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -2590,7 +2574,6 @@ void IMAGE_OT_new(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "generated_type", rna_enum_image_generated_type_items, IMA_GENTYPE_BLANK,
 	             "Generated Type", "Fill the image with a grid for UV map testing");
 	RNA_def_boolean(ot->srna, "float", 0, "32 bit Float", "Create image with 32 bit floating point bit depth");
-	prop = RNA_def_enum(ot->srna, "gen_context", gen_context_items, 0, "Gen Context", "Generation context");
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_boolean(ot->srna, "use_stereo_3d", 0, "Stereo 3D", "Create an image with left and right views");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
@@ -3716,7 +3699,7 @@ static int image_read_viewlayers_exec(bContext *C, wmOperator *UNUSED(op))
 
 void IMAGE_OT_read_viewlayers(wmOperatorType *ot)
 {
-	ot->name = "Read View Layers";
+	ot->name = "Open Cached Render";
 	ot->idname = "IMAGE_OT_read_viewlayers";
 	ot->description = "Read all the current scene's view layers from cache, as needed";
 

@@ -3,7 +3,7 @@
 import unittest
 import random
 
-test= bpy.data.test
+test = bpy.data.test
 
 # farr - 1-dimensional array of float
 # fdarr - dynamic 1-dimensional array of float
@@ -11,6 +11,7 @@ test= bpy.data.test
 # fdmarr - dynamic 3-dimensional (ditto size) array of float
 
 # same as above for other types except that the first letter is "i" for int and "b" for bool
+
 
 class TestArray(unittest.TestCase):
     # test that assignment works by: assign -> test value
@@ -20,14 +21,14 @@ class TestArray(unittest.TestCase):
     # bpy.data.test.farr[3], iarr[3], barr[...], fmarr, imarr, bmarr
 
     def setUp(self):
-        test.farr= (1.0, 2.0, 3.0)
-        test.iarr= (7, 8, 9)
-        test.barr= (False, True, False)
+        test.farr = (1.0, 2.0, 3.0)
+        test.iarr = (7, 8, 9)
+        test.barr = (False, True, False)
 
     # test access
     # test slice access, negative indices
     def test_access(self):
-        rvals= ([1.0, 2.0, 3.0], [7, 8, 9], [False, True, False])
+        rvals = ([1.0, 2.0, 3.0], [7, 8, 9], [False, True, False])
         for arr, rval in zip((test.farr, test.iarr, test.barr), rvals):
             self.assertEqual(prop_to_list(arr), rval)
             self.assertEqual(arr[0:3], rval)
@@ -39,12 +40,12 @@ class TestArray(unittest.TestCase):
     # fail when index out of bounds
     def test_access_fail(self):
         for arr in (test.farr, test.iarr, test.barr):
-            self.assertRaises(IndexError, lambda : arr[4])
+            self.assertRaises(IndexError, lambda: arr[4])
 
     # test assignment of a whole array
     def test_assign_array(self):
         # should accept int as float
-        test.farr= (1, 2, 3)
+        test.farr = (1, 2, 3)
 
     # fail when: unexpected no. of items, invalid item type
     def test_assign_array_fail(self):
@@ -55,20 +56,20 @@ class TestArray(unittest.TestCase):
             self.assertRaises(ValueError, assign_empty_list, arr)
 
         def assign_invalid_float():
-            test.farr= (1.0, 2.0, "3.0")
+            test.farr = (1.0, 2.0, "3.0")
 
         def assign_invalid_int():
-            test.iarr= ("1", 2, 3)
+            test.iarr = ("1", 2, 3)
 
         def assign_invalid_bool():
-            test.barr= (True, 0.123, False)
+            test.barr = (True, 0.123, False)
 
         for func in [assign_invalid_float, assign_invalid_int, assign_invalid_bool]:
             self.assertRaises(TypeError, func)
 
         # shouldn't accept float as int
         def assign_float_as_int():
-            test.iarr= (1, 2, 3.0)
+            test.iarr = (1, 2, 3.0)
         self.assertRaises(TypeError, assign_float_as_int)
 
         # non-dynamic arrays cannot change size
@@ -81,14 +82,14 @@ class TestArray(unittest.TestCase):
     def test_assign_item(self):
         for arr, rand_func in zip((test.farr, test.iarr, test.barr), (rand_float, rand_int, rand_bool)):
             for i in range(len(arr)):
-                val= rand_func()
+                val = rand_func()
                 arr[i] = val
 
                 self.assertEqual(arr[i], val)
 
         # float prop should accept also int
         for i in range(len(test.farr)):
-            val= rand_int()
+            val = rand_int()
             test.farr[i] = val
             self.assertEqual(test.farr[i], float(val))
 
@@ -112,7 +113,7 @@ class TestArray(unittest.TestCase):
         # test various lengths here
         for arr, rand_func in zip(("fdarr", "idarr", "bdarr"), (rand_float, rand_int, rand_bool)):
             for length in range(1, 64):
-                rval= make_random_array(length, rand_func)
+                rval = make_random_array(length, rand_func)
                 setattr(test, arr, rval)
                 self.assertEqual(prop_to_list(getattr(test, arr)), rval)
 
@@ -136,7 +137,7 @@ class TestMArray(unittest.TestCase):
     def test_assign_array(self):
         for arr, func in zip(("fmarr", "imarr", "bmarr"), (rand_float, rand_int, rand_bool)):
             # assignment of [3][4][5]
-            rval= make_random_3d_array((3, 4, 5), func)
+            rval = make_random_3d_array((3, 4, 5), func)
             setattr(test, arr, rval)
             self.assertEqual(prop_to_list(getattr(test, arr)), rval)
 
@@ -144,7 +145,7 @@ class TestMArray(unittest.TestCase):
 
     def test_assign_array_fail(self):
         def assign_empty_array():
-            test.fmarr= ()
+            test.fmarr = ()
         self.assertRaises(ValueError, assign_empty_array)
 
         def assign_invalid_size(arr, rval):
@@ -152,19 +153,19 @@ class TestMArray(unittest.TestCase):
 
         # assignment of 3,4,4 or 3,3,5 should raise ex
         for arr, func in zip(("fmarr", "imarr", "bmarr"), (rand_float, rand_int, rand_bool)):
-            rval= make_random_3d_array((3, 4, 4), func)
+            rval = make_random_3d_array((3, 4, 4), func)
             self.assertRaises(ValueError, assign_invalid_size, arr, rval)
 
-            rval= make_random_3d_array((3, 3, 5), func)
+            rval = make_random_3d_array((3, 3, 5), func)
             self.assertRaises(ValueError, assign_invalid_size, arr, rval)
 
-            rval= make_random_3d_array((3, 3, 3), func)
+            rval = make_random_3d_array((3, 3, 3), func)
             self.assertRaises(ValueError, assign_invalid_size, arr, rval)
 
     def test_assign_item(self):
         # arr[i] = x
         for arr, func in zip(("fmarr", "imarr", "bmarr", "fdmarr", "idmarr", "bdmarr"), (rand_float, rand_int, rand_bool) * 2):
-            rval= make_random_2d_array((4, 5), func)
+            rval = make_random_2d_array((4, 5), func)
 
             for i in range(3):
                 getattr(test, arr)[i] = rval
@@ -173,14 +174,13 @@ class TestMArray(unittest.TestCase):
         # arr[i][j] = x
         for arr, func in zip(("fmarr", "imarr", "bmarr", "fdmarr", "idmarr", "bdmarr"), (rand_float, rand_int, rand_bool) * 2):
 
-            arr= getattr(test, arr)
-            rval= make_random_array(5, func)
+            arr = getattr(test, arr)
+            rval = make_random_array(5, func)
 
             for i in range(3):
                 for j in range(4):
                     arr[i][j] = rval
                     self.assertEqual(prop_to_list(arr[i][j]), rval)
-
 
     def test_assign_item_fail(self):
         def assign_wrong_size(arr, i, rval):
@@ -188,8 +188,8 @@ class TestMArray(unittest.TestCase):
 
         # assign wrong size at level 2
         for arr, func in zip(("fmarr", "imarr", "bmarr"), (rand_float, rand_int, rand_bool)):
-            rval1= make_random_2d_array((3, 5), func)
-            rval2= make_random_2d_array((4, 3), func)
+            rval1 = make_random_2d_array((3, 5), func)
+            rval2 = make_random_2d_array((4, 3), func)
 
             for i in range(3):
                 self.assertRaises(ValueError, assign_wrong_size, arr, i, rval1)
@@ -198,22 +198,22 @@ class TestMArray(unittest.TestCase):
     def test_dynamic_assign_array(self):
         for arr, func in zip(("fdmarr", "idmarr", "bdmarr"), (rand_float, rand_int, rand_bool)):
             # assignment of [3][4][5]
-            rval= make_random_3d_array((3, 4, 5), func)
+            rval = make_random_3d_array((3, 4, 5), func)
             setattr(test, arr, rval)
             self.assertEqual(prop_to_list(getattr(test, arr)), rval)
 
             # [2][4][5]
-            rval= make_random_3d_array((2, 4, 5), func)
+            rval = make_random_3d_array((2, 4, 5), func)
             setattr(test, arr, rval)
             self.assertEqual(prop_to_list(getattr(test, arr)), rval)
 
             # [1][4][5]
-            rval= make_random_3d_array((1, 4, 5), func)
+            rval = make_random_3d_array((1, 4, 5), func)
             setattr(test, arr, rval)
             self.assertEqual(prop_to_list(getattr(test, arr)), rval)
 
-
     # test access
+
     def test_access(self):
         pass
 
@@ -221,26 +221,32 @@ class TestMArray(unittest.TestCase):
     def test_access_fail(self):
         pass
 
+
 random.seed()
+
 
 def rand_int():
     return random.randint(-1000, 1000)
 
+
 def rand_float():
     return float(rand_int())
+
 
 def rand_bool():
     return bool(random.randint(0, 1))
 
+
 def make_random_array(len, rand_func):
-    arr= []
+    arr = []
     for i in range(len):
         arr.append(rand_func())
 
     return arr
 
+
 def make_random_2d_array(dimsize, rand_func):
-    marr= []
+    marr = []
     for i in range(dimsize[0]):
         marr.append([])
 
@@ -249,8 +255,9 @@ def make_random_2d_array(dimsize, rand_func):
 
     return marr
 
+
 def make_random_3d_array(dimsize, rand_func):
-    marr= []
+    marr = []
     for i in range(dimsize[0]):
         marr.append([])
 
@@ -262,8 +269,9 @@ def make_random_3d_array(dimsize, rand_func):
 
     return marr
 
+
 def prop_to_list(prop):
-    ret= []
+    ret = []
 
     for x in prop:
         if type(x) not in {bool, int, float}:
@@ -273,8 +281,10 @@ def prop_to_list(prop):
 
     return ret
 
+
 def suite():
     return unittest.TestSuite([unittest.TestLoader().loadTestsFromTestCase(TestArray), unittest.TestLoader().loadTestsFromTestCase(TestMArray)])
+
 
 if __name__ == "__main__":
     unittest.TextTestRunner(verbosity=2).run(suite())

@@ -28,6 +28,6 @@
 
 extern DrawEngineType draw_engine_workbench_solid;
 extern DrawEngineType draw_engine_workbench_transparent;
-extern RenderEngineType DRW_engine_viewport_workbench_type;
+extern RenderEngineType DRW_engine_viewport_opengl_type;
 
 #endif /* __WORKBENCH_ENGINE_H__ */

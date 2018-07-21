@@ -105,7 +105,8 @@ typedef enum {
 	UI_WTYPE_PROGRESSBAR,
 } uiWidgetTypeEnum;
 
-#define UI_MENU_WIDTH_MIN (UI_UNIT_Y * 9)
+#define UI_MENU_WIDTH_MIN       (UI_UNIT_Y * 9)
+#define UI_MENU_SUBMENU_PADDING (6 * UI_DPI_FAC) /* some extra padding added to menus containing submenu icons */
 
 /* menu scrolling */
 #define UI_MENU_SCROLL_ARROW	12
@@ -349,6 +350,13 @@ struct PieMenuData {
 	float alphafac;
 };
 
+/* uiBlock.content_hints */
+enum eBlockContentHints {
+	/* In a menu block, if there is a single sub-menu button, we add some
+	 * padding to the right to put nicely aligned triangle icons there. */
+	BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
+};
+
 struct uiBlock {
 	uiBlock *next, *prev;
 
@@ -395,11 +403,15 @@ struct uiBlock {
 
 	int flag;
 	short alignnr;
+	/* Hints about the buttons of this block. Used to avoid iterating over
+	 * buttons to find out if some criteria is met by any. Instead, check this
+	 * criteria when adding the button and set a flag here if it's met. */
+	short content_hints; /* eBlockContentHints */
 
 	char direction;
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied to buttons */
 	bool auto_open;
-	char _pad[7];
+	char _pad[5];
 	double auto_open_last;
 
 	const char *lockstr;
@@ -740,12 +752,11 @@ enum {
 	ROUNDBOX_TRIA_MAX, /* don't use */
 };
 
-struct Gwn_Batch *ui_batch_roundbox_get(bool filled, bool antialiased);
-struct Gwn_Batch *ui_batch_roundbox_widget_get(int tria);
-struct Gwn_Batch *ui_batch_roundbox_shadow_get(void);
+struct GPUBatch *ui_batch_roundbox_get(bool filled, bool antialiased);
+struct GPUBatch *ui_batch_roundbox_widget_get(int tria);
+struct GPUBatch *ui_batch_roundbox_shadow_get(void);
 
-void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
-                           float rad, bool use_alpha, const float color[4]);
+void ui_draw_anti_tria_rect(const rctf *rect, char dir, const float color[4]);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_popover_back(ARegion *ar, struct uiStyle *style, uiBlock *block, rcti *rect);
 void ui_draw_pie_center(uiBlock *block);
@@ -777,6 +788,11 @@ void uiStyleInit(void);
 /* interface_icons.c */
 void ui_icon_ensure_deferred(const struct bContext *C, const int icon_id, const bool big);
 int ui_id_icon_get(const struct bContext *C, struct ID *id, const bool big);
+
+/* interface_icons_event.c */
+void icon_draw_rect_input(
+        float x, float y, int w, int h, float alpha,
+        short event_type, short event_value);
 
 /* resources.c */
 void init_userdef_do_versions(struct Main *bmain);
@@ -827,6 +843,7 @@ struct wmKeyMap *eyedropper_colorband_modal_keymap(struct wmKeyConfig *keyconf);
 
 /* interface_eyedropper_color.c */
 void UI_OT_eyedropper_color(struct wmOperatorType *ot);
+void UI_OT_eyedropper_color_crypto(struct wmOperatorType *ot);
 
 /* interface_eyedropper_colorband.c */
 void UI_OT_eyedropper_colorband(struct wmOperatorType *ot);

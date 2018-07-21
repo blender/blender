@@ -64,6 +64,7 @@
 #include "BKE_animsys.h"  /* <------ should this be here?, needed for sequencer update */
 #include "BKE_camera.h"
 #include "BKE_colortools.h"
+#include "BKE_context.h" /* XXX needed by wm_window.h */
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
@@ -95,7 +96,8 @@
 #include "RE_render_ext.h"
 
 #include "../../../windowmanager/WM_api.h" /* XXX */
-#include "../../../intern/gawain/gawain/gwn_context.h"
+#include "../../../windowmanager/wm_window.h" /* XXX */
+#include "GPU_context.h"
 
 #ifdef WITH_FREESTYLE
 #  include "FRS_freestyle.h"
@@ -1034,15 +1036,17 @@ void RE_gl_context_create(Render *re)
 {
 	/* Needs to be created in the main ogl thread. */
 	re->gl_context = WM_opengl_context_create();
+	/* So we activate the window's one afterwards. */
+	wm_window_reset_drawable();
 }
 
 void RE_gl_context_destroy(Render *re)
 {
 	/* Needs to be called from the thread which used the ogl context for rendering. */
-	if (re->gwn_context) {
-		GWN_context_active_set(re->gwn_context);
-		GWN_context_discard(re->gwn_context);
-		re->gwn_context = NULL;
+	if (re->gpu_context) {
+		GPU_context_active_set(re->gpu_context);
+		GPU_context_discard(re->gpu_context);
+		re->gpu_context = NULL;
 	}
 	if (re->gl_context) {
 		WM_opengl_context_dispose(re->gl_context);
@@ -1055,12 +1059,12 @@ void *RE_gl_context_get(Render *re)
 	return re->gl_context;
 }
 
-void *RE_gwn_context_get(Render *re)
+void *RE_gpu_context_get(Render *re)
 {
-	if (re->gwn_context == NULL) {
-		re->gwn_context = GWN_context_create();
+	if (re->gpu_context == NULL) {
+		re->gpu_context = GPU_context_create();
 	}
-	return re->gwn_context;
+	return re->gpu_context;
 }
 
 /* ********* add object data (later) ******** */

@@ -109,7 +109,7 @@ static void statusbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 }
 
 static void statusbar_header_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */

@@ -61,7 +61,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_GR, "COLLECTION", ICON_GROUP, "Collection", ""},
 	{ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
 	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
-	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
+	{ID_LA, "LIGHT", ICON_LIGHT_DATA, "Light", ""},
 	{ID_LI, "LIBRARY", ICON_LIBRARY_DATA_DIRECT, "Library", ""},
 	{ID_LS, "LINESTYLE", ICON_LINE_DATA, "Line Style", ""},
 	{ID_LT, "LATTICE", ICON_LATTICE_DATA, "Lattice", ""},
@@ -183,7 +183,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
 	if (base_type == &RNA_Collection) return ID_GR;
 	if (base_type == &RNA_Image) return ID_IM;
 	if (base_type == &RNA_Key) return ID_KE;
-	if (base_type == &RNA_Lamp) return ID_LA;
+	if (base_type == &RNA_Light) return ID_LA;
 	if (base_type == &RNA_Library) return ID_LI;
 	if (base_type == &RNA_FreestyleLineStyle) return ID_LS;
 	if (base_type == &RNA_Lattice) return ID_LT;
@@ -227,7 +227,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_GR: return &RNA_Collection;
 		case ID_IM: return &RNA_Image;
 		case ID_KE: return &RNA_Key;
-		case ID_LA: return &RNA_Lamp;
+		case ID_LA: return &RNA_Light;
 		case ID_LI: return &RNA_Library;
 		case ID_LS: return &RNA_FreestyleLineStyle;
 		case ID_LT: return &RNA_Lattice;
@@ -272,7 +272,7 @@ IDProperty *rna_ID_idprops(PointerRNA *ptr, bool create)
 	return IDP_GetProperties(ptr->data, create);
 }
 
-void rna_ID_fake_user_set(PointerRNA *ptr, int value)
+void rna_ID_fake_user_set(PointerRNA *ptr, bool value)
 {
 	ID *id = (ID *)ptr->data;
 
@@ -689,7 +689,7 @@ static void rna_ImagePreview_pixels_float_set(PointerRNA *ptr, const float *valu
 }
 
 
-static void rna_ImagePreview_is_image_custom_set(PointerRNA *ptr, int value)
+static void rna_ImagePreview_is_image_custom_set(PointerRNA *ptr, bool value)
 {
 	rna_ImagePreview_is_custom_set(ptr, value, ICON_SIZE_PREVIEW);
 }
@@ -735,7 +735,7 @@ static void rna_ImagePreview_image_pixels_float_set(PointerRNA *ptr, const float
 }
 
 
-static void rna_ImagePreview_is_icon_custom_set(PointerRNA *ptr, int value)
+static void rna_ImagePreview_is_icon_custom_set(PointerRNA *ptr, bool value)
 {
 	rna_ImagePreview_is_custom_set(ptr, value, ICON_SIZE_ICON);
 }

@@ -40,6 +40,7 @@ def shell_run(text):
 
     add_scrollback(output, style)
 
+
 PROMPT = "$ "
 
 
@@ -64,7 +65,7 @@ def execute(context, is_interactive):
 
 
 def autocomplete(context):
-    #~ sc = context.space_data
+    # sc = context.space_data
     # TODO
     return {'CANCELLED'}
 

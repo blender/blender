@@ -19,37 +19,37 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	wpd->user_preferences = &U;
 
 	View3D *v3d = draw_ctx->v3d;
-	if (v3d) {
-		wpd->shading = v3d->shading;
-		if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
-			wpd->studio_light = BKE_studiolight_find(
-			        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
-		}
-		else {
-			wpd->studio_light = BKE_studiolight_find(
-			        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
-		}
+	if (!v3d) {
+		wpd->shading = scene->display.shading;
+	}
+	else if (v3d->shading.type == OB_RENDER &&
+	         BKE_scene_uses_blender_opengl(scene))
+	{
+		wpd->shading = scene->display.shading;
 	}
 	else {
-		memset(&wpd->shading, 0, sizeof(wpd->shading));
-		wpd->shading.light = V3D_LIGHTING_STUDIO;
-		wpd->shading.shadow_intensity = 0.5;
-		copy_v3_fl(wpd->shading.single_color, 0.8f);
-		wpd->studio_light = BKE_studiolight_find_first(STUDIOLIGHT_INTERNAL);
+		wpd->shading = v3d->shading;
+	}
+
+	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
+		wpd->studio_light = BKE_studiolight_find(
+		        wpd->shading.matcap, STUDIOLIGHT_ORIENTATION_VIEWNORMAL);
+	}
+	else {
+		wpd->studio_light = BKE_studiolight_find(
+		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
 	}
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
-	wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) > 0;
-	wd->background_alpha = 1.0f;
+	wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
+	wd->background_alpha = (v3d || scene->r.alphamode == R_ADDSKY) ? 1.0f : 0.0f;
 
-	if ((v3d->flag3 & V3D_SHOW_WORLD) &&
-	    (scene->world != NULL))
-	{
+	if (!v3d || ((v3d->flag3 & V3D_SHOW_WORLD) && (scene->world != NULL))) {
 		copy_v3_v3(wd->background_color_low, &scene->world->horr);
 		copy_v3_v3(wd->background_color_high, &scene->world->horr);
 	}
-	else {
+	else if (v3d) {
 		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
 
@@ -57,6 +57,10 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		 * Needs to be adressed properly (color managed using ocio). */
 		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
 		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
+	}
+	else {
+		zero_v3(wd->background_color_low);
+		zero_v3(wd->background_color_high);
 	}
 
 	studiolight_update_world(wpd->studio_light, wd);
@@ -119,9 +123,12 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 			wpd->viewvecs[1][2] = vec_far[2] - wpd->viewvecs[0][2];
 		}
 	}
+
+	wpd->volumes_do = false;
+	BLI_listbase_clear(&wpd->smoke_domains);
 }
 
-void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float light_direction[3])
+void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, float r_light_direction[3])
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -129,13 +136,16 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 	float view_matrix[4][4];
 	DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
 
+	copy_v3_v3(r_light_direction, scene->display.light_direction);
+	negate_v3(r_light_direction);
+
 	{
 		WORKBENCH_UBO_Light *light = &wd->lights[0];
-		mul_v3_mat3_m4v3(light->light_direction_vs, view_matrix, light_direction);
+		mul_v3_mat3_m4v3(light->light_direction_vs, view_matrix, r_light_direction);
 		light->light_direction_vs[3] = 0.0f;
 		copy_v3_fl(light->specular_color, 1.0f);
 		light->energy = 1.0f;
-		copy_v4_v4(wd->light_direction_vs, light->light_direction_vs);
+		copy_v4_v4(wd->shadow_direction_vs, light->light_direction_vs);
 		wd->num_lights = 1;
 	}
 
@@ -154,8 +164,6 @@ void workbench_private_data_get_light_direction(WORKBENCH_PrivateData *wpd, floa
 		wd->num_lights = light_index;
 	}
 
-	copy_v3_v3(light_direction, scene->display.light_direction);
-	negate_v3(light_direction);
 	DRW_uniformbuffer_update(wpd->world_ubo, wd);
 }
 

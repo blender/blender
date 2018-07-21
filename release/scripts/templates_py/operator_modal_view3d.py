@@ -8,7 +8,7 @@ class ViewOperator(bpy.types.Operator):
     bl_idname = "view3d.modal_operator"
     bl_label = "Simple View Operator"
 
-    offset = FloatVectorProperty(
+    offset: FloatVectorProperty(
         name="Offset",
         size=3,
     )

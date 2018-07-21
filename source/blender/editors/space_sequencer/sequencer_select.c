@@ -829,7 +829,7 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Handles";
 	ot->idname = "SEQUENCER_OT_select_handles";
-	ot->description = "Select manipulator handles on the sides of the selected strip";
+	ot->description = "Select gizmo handles on the sides of the selected strip";
 
 	/* api callbacks */
 	ot->exec = sequencer_select_handles_exec;

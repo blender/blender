@@ -491,7 +491,7 @@ typedef struct TransInfo {
 	short		persp;
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
-	char		helpline;		/* Choice of custom cursor with or without a help line from the manipulator to the mouse position. */
+	char		helpline;		/* Choice of custom cursor with or without a help line from the gizmo to the mouse position. */
 	short		obedit_type;	/* Avoid looking inside TransDataContainer obedit. */
 
 	float		vec[3];			/* translation, to show for widget   	*/
@@ -505,7 +505,7 @@ typedef struct TransInfo {
 
 	short		current_orientation;
 	TransformOrientation *custom_orientation; /* this gets used when current_orientation is V3D_MANIP_CUSTOM */
-	short		twflag;			/* backup from view3d, to restore on end */
+	short		gizmo_flag;			/* backup from view3d, to restore on end */
 
 	short		prop_mode;
 
@@ -712,9 +712,9 @@ void flushTransMasking(TransInfo *t);
 void flushTransPaintCurve(TransInfo *t);
 void restoreBones(TransDataContainer *tc);
 
-/*********************** transform_manipulator.c ********** */
+/*********************** transform_gizmo.c ********** */
 
-#define MANIPULATOR_AXIS_LINE_WIDTH 2.0f
+#define GIZMO_AXIS_LINE_WIDTH 2.0f
 
 /* return 0 when no gimbal for selection */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]);
@@ -774,8 +774,8 @@ void snapGridIncrementAction(TransInfo *t, float *val, GearsType action);
 
 void snapSequenceBounds(TransInfo *t, const int mval[2]);
 
-bool activeSnap(TransInfo *t);
-bool validSnap(TransInfo *t);
+bool activeSnap(const TransInfo *t);
+bool validSnap(const TransInfo *t);
 
 void initSnapping(struct TransInfo *t, struct wmOperator *op);
 void freeSnapping(struct TransInfo *t);
@@ -785,10 +785,10 @@ void applySnapping(TransInfo *t, float *vec);
 void resetSnapping(TransInfo *t);
 eRedrawFlag handleSnapping(TransInfo *t, const struct wmEvent *event);
 void drawSnapping(const struct bContext *C, TransInfo *t);
-bool usingSnappingNormal(TransInfo *t);
-bool validSnappingNormal(TransInfo *t);
+bool usingSnappingNormal(const TransInfo *t);
+bool validSnappingNormal(const TransInfo *t);
 
-void getSnapPoint(TransInfo *t, float vec[3]);
+void getSnapPoint(const TransInfo *t, float vec[3]);
 void addSnapPoint(TransInfo *t);
 eRedrawFlag updateSelectedSnapPoint(TransInfo *t);
 void removeSnapPoint(TransInfo *t);

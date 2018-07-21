@@ -217,4 +217,3 @@ const NodeType *NodeType::find(ustring name)
 }
 
 CCL_NAMESPACE_END
-

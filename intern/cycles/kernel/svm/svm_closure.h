@@ -16,6 +16,21 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Hair Melanin */
+
+ccl_device_inline float3 sigma_from_concentration(float eumelanin, float pheomelanin)
+{
+	return eumelanin*make_float3(0.506f, 0.841f, 1.653f) + pheomelanin*make_float3(0.343f, 0.733f, 1.924f);
+}
+
+ccl_device_inline float3 sigma_from_reflectance(float3 color, float azimuthal_roughness)
+{
+	float x = azimuthal_roughness;
+	float roughness_fac = (((((0.245f*x) + 5.574f)*x - 10.73f)*x + 2.532f)*x - 0.215f)*x + 5.969f;
+	float3 sigma = log3(color) / roughness_fac;
+	return sigma * sigma;
+}
+
 /* Closure Nodes */
 
 ccl_device void svm_node_glass_setup(ShaderData *sd, MicrofacetBsdf *bsdf, int type, float eta, float roughness, bool refract)
@@ -130,7 +145,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			// calculate weights of the diffuse and specular part
 			float diffuse_weight = (1.0f - saturate(metallic)) * (1.0f - saturate(transmission));
-			
+
 			float final_transmission = saturate(transmission) * (1.0f - saturate(metallic));
 			float specular_weight = (1.0f - final_transmission);
 
@@ -243,7 +258,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					float3 spec_weight = weight * specular_weight;
 
 					MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), spec_weight);
-					if(!bsdf){
+					if(!bsdf) {
 						break;
 					}
 
@@ -713,7 +728,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				bsdf->N = N;
 				bsdf->size = param1;
 				bsdf->smooth = param2;
-				
+
 				if(type == CLOSURE_BSDF_DIFFUSE_TOON_ID)
 					sd->flag |= bsdf_diffuse_toon_setup(bsdf);
 				else
@@ -722,10 +737,111 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			break;
 		}
 #ifdef __HAIR__
+		case CLOSURE_BSDF_HAIR_PRINCIPLED_ID: {
+			uint4 data_node2 = read_node(kg, offset);
+			uint4 data_node3 = read_node(kg, offset);
+			uint4 data_node4 = read_node(kg, offset);
+
+			float3 weight = sd->svm_closure_weight * mix_weight;
+
+			uint offset_ofs, ior_ofs, color_ofs, parametrization;
+			decode_node_uchar4(data_node.y, &offset_ofs, &ior_ofs, &color_ofs, &parametrization);
+			float alpha = stack_load_float_default(stack, offset_ofs, data_node.z);
+			float ior = stack_load_float_default(stack, ior_ofs, data_node.w);
+
+			uint coat_ofs, melanin_ofs, melanin_redness_ofs, absorption_coefficient_ofs;
+			decode_node_uchar4(data_node2.x, &coat_ofs, &melanin_ofs, &melanin_redness_ofs, &absorption_coefficient_ofs);
+
+			uint tint_ofs, random_ofs, random_color_ofs, random_roughness_ofs;
+			decode_node_uchar4(data_node3.x, &tint_ofs, &random_ofs, &random_color_ofs, &random_roughness_ofs);
+
+			const AttributeDescriptor attr_descr_random = find_attribute(kg, sd, data_node4.y);
+			float random = 0.0f;
+			if (attr_descr_random.offset != ATTR_STD_NOT_FOUND) {
+				random = primitive_attribute_float(kg, sd, attr_descr_random, NULL, NULL);
+			}
+			else {
+				random = stack_load_float_default(stack, random_ofs, data_node3.y);
+			}
+
+
+			PrincipledHairBSDF *bsdf = (PrincipledHairBSDF*)bsdf_alloc(sd, sizeof(PrincipledHairBSDF), weight);
+			if(bsdf) {
+				PrincipledHairExtra *extra = (PrincipledHairExtra*)closure_alloc_extra(sd, sizeof(PrincipledHairExtra));
+
+				if (!extra)
+					break;
+
+				/* Random factors range: [-randomization/2, +randomization/2]. */
+				float random_roughness = stack_load_float_default(stack, random_roughness_ofs, data_node3.w);
+				float factor_random_roughness = 1.0f + 2.0f*(random - 0.5f)*random_roughness;
+				float roughness = param1 * factor_random_roughness;
+				float radial_roughness = param2 * factor_random_roughness;
+
+				/* Remap Coat value to [0, 100]% of Roughness. */
+				float coat = stack_load_float_default(stack, coat_ofs, data_node2.y);
+				float m0_roughness = 1.0f - clamp(coat, 0.0f, 1.0f);
+
+				bsdf->N = N;
+				bsdf->v = roughness;
+				bsdf->s = radial_roughness;
+				bsdf->m0_roughness = m0_roughness;
+				bsdf->alpha = alpha;
+				bsdf->eta = ior;
+				bsdf->extra = extra;
+
+				switch(parametrization) {
+					case NODE_PRINCIPLED_HAIR_DIRECT_ABSORPTION: {
+						float3 absorption_coefficient = stack_load_float3(stack, absorption_coefficient_ofs);
+						bsdf->sigma = absorption_coefficient;
+						break;
+					}
+					case NODE_PRINCIPLED_HAIR_PIGMENT_CONCENTRATION: {
+						float melanin = stack_load_float_default(stack, melanin_ofs, data_node2.z);
+						float melanin_redness = stack_load_float_default(stack, melanin_redness_ofs, data_node2.w);
+
+						/* Randomize melanin.  */
+						float random_color = stack_load_float_default(stack, random_color_ofs, data_node3.z);
+						random_color = clamp(random_color, 0.0f, 1.0f);
+						float factor_random_color = 1.0f + 2.0f * (random - 0.5f) * random_color;
+						melanin *= factor_random_color;
+
+						/* Map melanin 0..inf from more perceptually linear 0..1. */
+						melanin = -logf(fmaxf(1.0f - melanin, 0.0001f));
+
+						/* Benedikt Bitterli's melanin ratio remapping. */
+						float eumelanin = melanin * (1.0f - melanin_redness);
+						float pheomelanin = melanin * melanin_redness;
+						float3 melanin_sigma = sigma_from_concentration(eumelanin, pheomelanin);
+
+						/* Optional tint. */
+						float3 tint = stack_load_float3(stack, tint_ofs);
+						float3 tint_sigma = sigma_from_reflectance(tint, radial_roughness);
+
+						bsdf->sigma = melanin_sigma + tint_sigma;
+						break;
+					}
+					case NODE_PRINCIPLED_HAIR_REFLECTANCE: {
+						float3 color = stack_load_float3(stack, color_ofs);
+						bsdf->sigma = sigma_from_reflectance(color, radial_roughness);
+						break;
+					}
+					default: {
+						/* Fallback to brownish hair, same as defaults for melanin. */
+						kernel_assert(!"Invalid Principled Hair parametrization!");
+						bsdf->sigma = sigma_from_concentration(0.0f, 0.8054375f);
+						break;
+					}
+				}
+
+				sd->flag |= bsdf_principled_hair_setup(sd, bsdf);
+			}
+			break;
+		}
 		case CLOSURE_BSDF_HAIR_REFLECTION_ID:
 		case CLOSURE_BSDF_HAIR_TRANSMISSION_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
-			
+
 			if(sd->flag & SD_BACKFACING && sd->type & PRIMITIVE_ALL_CURVE) {
 				/* todo: giving a fixed weight here will cause issues when
 				 * mixing multiple BSDFS. energy will not be conserved and
@@ -764,7 +880,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			break;
 		}
-#endif
+#endif  /* __HAIR__ */
 
 #ifdef __SUBSURFACE__
 		case CLOSURE_BSSRDF_CUBIC_ID:
@@ -1055,4 +1171,3 @@ ccl_device void svm_node_set_normal(KernelGlobals *kg, ShaderData *sd, float *st
 }
 
 CCL_NAMESPACE_END
-

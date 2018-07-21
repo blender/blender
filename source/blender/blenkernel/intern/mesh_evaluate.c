@@ -96,10 +96,10 @@ void BKE_mesh_calc_normals_mapping_simple(struct Mesh *mesh)
 	const bool only_face_normals = CustomData_is_referenced_layer(&mesh->vdata, CD_MVERT);
 
 	BKE_mesh_calc_normals_mapping_ex(
-	            mesh->mvert, mesh->totvert,
-	            mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL,
-	            mesh->mface, mesh->totface, NULL, NULL,
-	            only_face_normals);
+	        mesh->mvert, mesh->totvert,
+	        mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly, NULL,
+	        mesh->mface, mesh->totface, NULL, NULL,
+	        only_face_normals);
 }
 
 /* Calculate vertex and face normals, face normals are returned in *r_faceNors if non-NULL
@@ -360,9 +360,10 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #ifdef DEBUG_TIME
 	TIMEIT_START_AVERAGED(BKE_mesh_calc_normals);
 #endif
-	BKE_mesh_calc_normals_poly(mesh->mvert, NULL, mesh->totvert,
-	                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                           NULL, false);
+	BKE_mesh_calc_normals_poly(
+	        mesh->mvert, NULL, mesh->totvert,
+	        mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	        NULL, false);
 #ifdef DEBUG_TIME
 	TIMEIT_END_AVERAGED(BKE_mesh_calc_normals);
 #endif
@@ -516,8 +517,9 @@ MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
  * Beware, this modifies ref_vec and other_vec in place!
  * In case no valid space can be generated, ref_alpha and ref_beta are set to zero (which means 'use auto lnors').
  */
-void BKE_lnor_space_define(MLoopNorSpace *lnor_space, const float lnor[3],
-                           float vec_ref[3], float vec_other[3], BLI_Stack *edge_vectors)
+void BKE_lnor_space_define(
+        MLoopNorSpace *lnor_space, const float lnor[3],
+        float vec_ref[3], float vec_other[3], BLI_Stack *edge_vectors)
 {
 	const float pi2 = (float)M_PI * 2.0f;
 	float tvec[3], dtp;
@@ -799,8 +801,9 @@ static void mesh_edges_sharp_tag(
 				e2l[1] = (mp->flag & ME_SMOOTH) ? INDEX_UNSET : INDEX_INVALID;
 			}
 			else if (e2l[1] == INDEX_UNSET) {
-				const bool is_angle_sharp = (check_angle &&
-				                             dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle_cos);
+				const bool is_angle_sharp = (
+				        check_angle &&
+				        dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle_cos);
 
 				/* Second loop using this edge, time to test its sharpness.
 				 * An edge is sharp if it is tagged as such, or its face is not smooth,
@@ -1133,8 +1136,8 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
 		/* Find next loop of the smooth fan. */
 		BKE_mesh_loop_manifold_fan_around_vert_next(
-		            mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
-		            &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
+		        mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
+		        &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
 
 		e2lfan_curr = edge_to_loops[mlfan_curr->e];
 	}
@@ -1270,8 +1273,8 @@ static bool loop_split_generator_check_cyclic_smooth_fan(
 	while (true) {
 		/* Find next loop of the smooth fan. */
 		BKE_mesh_loop_manifold_fan_around_vert_next(
-		            mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
-		            &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
+		        mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
+		        &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
 
 		e2lfan_curr = edge_to_loops[mlfan_curr->e];
 
@@ -1620,9 +1623,10 @@ static void mesh_normals_loop_custom_set(
 	BLI_SMALLSTACK_DECLARE(clnors_data, short *);
 
 	/* Compute current lnor spacearr. */
-	BKE_mesh_normals_loop_split(mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
-	                            mpolys, polynors, numPolys, use_split_normals, split_angle,
-	                            &lnors_spacearr, NULL, loop_to_poly);
+	BKE_mesh_normals_loop_split(
+	        mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
+	        mpolys, polynors, numPolys, use_split_normals, split_angle,
+	        &lnors_spacearr, NULL, loop_to_poly);
 
 	/* Set all given zero vectors to their default value. */
 	if (use_vertices) {
@@ -1730,9 +1734,10 @@ static void mesh_normals_loop_custom_set(
 
 		/* And now, recompute our new auto lnors and lnor spacearr! */
 		BKE_lnor_spacearr_clear(&lnors_spacearr);
-		BKE_mesh_normals_loop_split(mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
-		                            mpolys, polynors, numPolys, use_split_normals, split_angle,
-		                            &lnors_spacearr, NULL, loop_to_poly);
+		BKE_mesh_normals_loop_split(
+		        mverts, numVerts, medges, numEdges, mloops, lnors, numLoops,
+		        mpolys, polynors, numPolys, use_split_normals, split_angle,
+		        &lnors_spacearr, NULL, loop_to_poly);
 	}
 	else {
 		BLI_BITMAP_SET_ALL(done_loops, true, (size_t)numLoops);
@@ -1804,8 +1809,9 @@ void BKE_mesh_normals_loop_custom_set(
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
 {
-	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, r_custom_loopnors, numLoops,
-	                             mpolys, polynors, numPolys, r_clnors_data, false);
+	mesh_normals_loop_custom_set(
+	        mverts, numVerts, medges, numEdges, mloops, r_custom_loopnors, numLoops,
+	        mpolys, polynors, numPolys, r_clnors_data, false);
 }
 
 void BKE_mesh_normals_loop_custom_from_vertices_set(
@@ -1814,8 +1820,9 @@ void BKE_mesh_normals_loop_custom_from_vertices_set(
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
         short (*r_clnors_data)[2])
 {
-	mesh_normals_loop_custom_set(mverts, numVerts, medges, numEdges, mloops, r_custom_vertnors, numLoops,
-	                             mpolys, polynors, numPolys, r_clnors_data, true);
+	mesh_normals_loop_custom_set(
+	        mverts, numVerts, medges, numEdges, mloops, r_custom_vertnors, numLoops,
+	        mpolys, polynors, numPolys, r_clnors_data, true);
 }
 
 /**
@@ -1899,19 +1906,19 @@ void BKE_mesh_calc_poly_normal(
 		mesh_calc_ngon_normal(mpoly, loopstart, mvarray, r_no);
 	}
 	else if (mpoly->totloop == 3) {
-		normal_tri_v3(r_no,
-		              mvarray[loopstart[0].v].co,
-		              mvarray[loopstart[1].v].co,
-		              mvarray[loopstart[2].v].co
-		              );
+		normal_tri_v3(
+		        r_no,
+		        mvarray[loopstart[0].v].co,
+		        mvarray[loopstart[1].v].co,
+		        mvarray[loopstart[2].v].co);
 	}
 	else if (mpoly->totloop == 4) {
-		normal_quad_v3(r_no,
-		               mvarray[loopstart[0].v].co,
-		               mvarray[loopstart[1].v].co,
-		               mvarray[loopstart[2].v].co,
-		               mvarray[loopstart[3].v].co
-		               );
+		normal_quad_v3(
+		        r_no,
+		        mvarray[loopstart[0].v].co,
+		        mvarray[loopstart[1].v].co,
+		        mvarray[loopstart[2].v].co,
+		        mvarray[loopstart[3].v].co);
 	}
 	else { /* horrible, two sided face! */
 		r_no[0] = 0.0;
@@ -1951,19 +1958,19 @@ void BKE_mesh_calc_poly_normal_coords(
 		mesh_calc_ngon_normal_coords(mpoly, loopstart, vertex_coords, r_no);
 	}
 	else if (mpoly->totloop == 3) {
-		normal_tri_v3(r_no,
-		              vertex_coords[loopstart[0].v],
-		              vertex_coords[loopstart[1].v],
-		              vertex_coords[loopstart[2].v]
-		              );
+		normal_tri_v3(
+		        r_no,
+		        vertex_coords[loopstart[0].v],
+		        vertex_coords[loopstart[1].v],
+		        vertex_coords[loopstart[2].v]);
 	}
 	else if (mpoly->totloop == 4) {
-		normal_quad_v3(r_no,
-		               vertex_coords[loopstart[0].v],
-		               vertex_coords[loopstart[1].v],
-		               vertex_coords[loopstart[2].v],
-		               vertex_coords[loopstart[3].v]
-		               );
+		normal_quad_v3(
+		        r_no,
+		        vertex_coords[loopstart[0].v],
+		        vertex_coords[loopstart[1].v],
+		        vertex_coords[loopstart[2].v],
+		        vertex_coords[loopstart[3].v]);
 	}
 	else { /* horrible, two sided face! */
 		r_no[0] = 0.0;
@@ -1991,19 +1998,19 @@ void BKE_mesh_calc_poly_center(
         const MVert *mvarray, float r_cent[3])
 {
 	if (mpoly->totloop == 3) {
-		mid_v3_v3v3v3(r_cent,
-		              mvarray[loopstart[0].v].co,
-		              mvarray[loopstart[1].v].co,
-		              mvarray[loopstart[2].v].co
-		              );
+		mid_v3_v3v3v3(
+		        r_cent,
+		        mvarray[loopstart[0].v].co,
+		        mvarray[loopstart[1].v].co,
+		        mvarray[loopstart[2].v].co);
 	}
 	else if (mpoly->totloop == 4) {
-		mid_v3_v3v3v3v3(r_cent,
-		                mvarray[loopstart[0].v].co,
-		                mvarray[loopstart[1].v].co,
-		                mvarray[loopstart[2].v].co,
-		                mvarray[loopstart[3].v].co
-		                );
+		mid_v3_v3v3v3v3(
+		        r_cent,
+		        mvarray[loopstart[0].v].co,
+		        mvarray[loopstart[1].v].co,
+		        mvarray[loopstart[2].v].co,
+		        mvarray[loopstart[3].v].co);
 	}
 	else {
 		mesh_calc_ngon_center(mpoly, loopstart, mvarray, r_cent);
@@ -2016,10 +2023,10 @@ float BKE_mesh_calc_poly_area(
         const MVert *mvarray)
 {
 	if (mpoly->totloop == 3) {
-		return area_tri_v3(mvarray[loopstart[0].v].co,
-		                   mvarray[loopstart[1].v].co,
-		                   mvarray[loopstart[2].v].co
-		                   );
+		return area_tri_v3(
+		        mvarray[loopstart[0].v].co,
+		        mvarray[loopstart[1].v].co,
+		        mvarray[loopstart[2].v].co);
 	}
 	else {
 		int i;
@@ -2130,8 +2137,9 @@ static float mesh_calc_poly_area_centroid(
 }
 
 #if 0 /* slow version of the function below */
-void BKE_mesh_calc_poly_angles(MPoly *mpoly, MLoop *loopstart,
-                               MVert *mvarray, float angles[])
+void BKE_mesh_calc_poly_angles(
+        MPoly *mpoly, MLoop *loopstart,
+        MVert *mvarray, float angles[])
 {
 	MLoop *ml;
 	MLoop *mloop = &loopstart[-mpoly->loopstart];
@@ -2499,8 +2507,9 @@ void BKE_mesh_loops_to_mface_corners(
  *
  * \note when mface is not NULL, mface[face_index].v4 is used to test quads, else, loopindices[face_index][3] is used.
  */
-void BKE_mesh_loops_to_tessdata(CustomData *fdata, CustomData *ldata, MFace *mface,
-                                int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
+void BKE_mesh_loops_to_tessdata(
+        CustomData *fdata, CustomData *ldata, MFace *mface,
+        int *polyindices, unsigned int (*loopindices)[4], const int num_faces)
 {
 	/* Note: performances are sub-optimal when we get a NULL mface, we could be ~25% quicker with dedicated code...
 	 *       Issue is, unless having two different functions with nearly the same code, there's not much ways to solve
@@ -3036,130 +3045,6 @@ void BKE_mesh_recalc_looptri(
 #undef ML_TO_MLT
 }
 
-/* -------------------------------------------------------------------- */
-
-
-#ifdef USE_BMESH_SAVE_AS_COMPAT
-
-/**
- * This function recreates a tessellation.
- * returns number of tessellation faces.
- *
- * for forwards compat only quad->tri polys to mface, skip ngons.
- */
-int BKE_mesh_mpoly_to_mface(struct CustomData *fdata, struct CustomData *ldata,
-                            struct CustomData *pdata, int totface, int UNUSED(totloop), int totpoly)
-{
-	MLoop *mloop;
-
-	unsigned int lindex[4];
-	int i;
-	int k;
-
-	MPoly *mp, *mpoly;
-	MFace *mface, *mf;
-
-	const int numUV = CustomData_number_of_layers(ldata, CD_MLOOPUV);
-	const int numCol = CustomData_number_of_layers(ldata, CD_MLOOPCOL);
-	const bool hasPCol = CustomData_has_layer(ldata, CD_PREVIEW_MLOOPCOL);
-	const bool hasOrigSpace = CustomData_has_layer(ldata, CD_ORIGSPACE_MLOOP);
-	const bool hasLNor = CustomData_has_layer(ldata, CD_NORMAL);
-
-	/* over-alloc, ngons will be skipped */
-	mface = MEM_malloc_arrayN((size_t)totpoly, sizeof(*mface), __func__);
-
-	mpoly = CustomData_get_layer(pdata, CD_MPOLY);
-	mloop = CustomData_get_layer(ldata, CD_MLOOP);
-
-	mp = mpoly;
-	k = 0;
-	for (i = 0; i < totpoly; i++, mp++) {
-		if (ELEM(mp->totloop, 3, 4)) {
-			const unsigned int mp_loopstart = (unsigned int)mp->loopstart;
-			mf = &mface[k];
-
-			mf->mat_nr = mp->mat_nr;
-			mf->flag = mp->flag;
-
-			mf->v1 = mp_loopstart + 0;
-			mf->v2 = mp_loopstart + 1;
-			mf->v3 = mp_loopstart + 2;
-			mf->v4 = (mp->totloop == 4) ? (mp_loopstart + 3) : 0;
-
-			/* abuse edcode for temp storage and clear next loop */
-			mf->edcode = (char)mp->totloop; /* only ever 3 or 4 */
-
-			k++;
-		}
-	}
-
-	CustomData_free(fdata, totface);
-
-	totface = k;
-
-	CustomData_add_layer(fdata, CD_MFACE, CD_ASSIGN, mface, totface);
-
-	CustomData_from_bmeshpoly(fdata, ldata, totface);
-
-	mp = mpoly;
-	k = 0;
-	for (i = 0; i < totpoly; i++, mp++) {
-		if (ELEM(mp->totloop, 3, 4)) {
-			mf = &mface[k];
-
-			if (mf->edcode == 3) {
-				/* sort loop indices to ensure winding is correct */
-				/* NO SORT - looks like we can skip this */
-
-				lindex[0] = mf->v1;
-				lindex[1] = mf->v2;
-				lindex[2] = mf->v3;
-				lindex[3] = 0; /* unused */
-
-				/* transform loop indices to vert indices */
-				mf->v1 = mloop[mf->v1].v;
-				mf->v2 = mloop[mf->v2].v;
-				mf->v3 = mloop[mf->v3].v;
-
-				BKE_mesh_loops_to_mface_corners(
-				        fdata, ldata, pdata,
-				        lindex, k, i, 3,
-				        numUV, numCol, hasPCol, hasOrigSpace, hasLNor);
-				test_index_face(mf, fdata, k, 3);
-			}
-			else {
-				/* sort loop indices to ensure winding is correct */
-				/* NO SORT - looks like we can skip this */
-
-				lindex[0] = mf->v1;
-				lindex[1] = mf->v2;
-				lindex[2] = mf->v3;
-				lindex[3] = mf->v4;
-
-				/* transform loop indices to vert indices */
-				mf->v1 = mloop[mf->v1].v;
-				mf->v2 = mloop[mf->v2].v;
-				mf->v3 = mloop[mf->v3].v;
-				mf->v4 = mloop[mf->v4].v;
-
-				BKE_mesh_loops_to_mface_corners(
-				        fdata, ldata, pdata,
-				        lindex, k, i, 4,
-				        numUV, numCol, hasPCol, hasOrigSpace, hasLNor);
-				test_index_face(mf, fdata, k, 4);
-			}
-
-			mf->edcode = 0;
-
-			k++;
-		}
-	}
-
-	return k;
-}
-#endif /* USE_BMESH_SAVE_AS_COMPAT */
-
-
 static void bm_corners_to_loops_ex(
         ID *id, CustomData *fdata, CustomData *ldata,
         MFace *mface, int totloop, int findex, int loopstart, int numTex, int numCol)
@@ -3217,8 +3102,9 @@ static void bm_corners_to_loops_ex(
 
 		if (CustomData_external_test(fdata, CD_MDISPS)) {
 			if (id && fdata->external) {
-				CustomData_external_add(ldata, id, CD_MDISPS,
-				                        totloop, fdata->external->filename);
+				CustomData_external_add(
+				        ldata, id, CD_MDISPS,
+				        totloop, fdata->external->filename);
 			}
 		}
 
@@ -3256,10 +3142,11 @@ static void bm_corners_to_loops_ex(
 
 void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
-	BKE_mesh_convert_mfaces_to_mpolys_ex(&mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
-	                                     mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
-	                                     mesh->medge, mesh->mface,
-	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
+	BKE_mesh_convert_mfaces_to_mpolys_ex(
+	        &mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
+	        mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
+	        mesh->medge, mesh->mface,
+	        &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
 
 	BKE_mesh_update_customdata_pointers(mesh, true);
 }
@@ -3276,21 +3163,23 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
  */
 void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
 {
-	BKE_mesh_convert_mfaces_to_mpolys_ex(&mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
-	                                     mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
-	                                     mesh->medge, mesh->mface,
-	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
+	BKE_mesh_convert_mfaces_to_mpolys_ex(
+	        &mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
+	        mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
+	        mesh->medge, mesh->mface,
+	        &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
 
 	CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->ldata);
 
 	BKE_mesh_update_customdata_pointers(mesh, true);
 }
 
-void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
-                                          int totedge_i, int totface_i, int totloop_i, int totpoly_i,
-                                          MEdge *medge, MFace *mface,
-                                          int *r_totloop, int *r_totpoly,
-                                          MLoop **r_mloop, MPoly **r_mpoly)
+void BKE_mesh_convert_mfaces_to_mpolys_ex(
+        ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
+        int totedge_i, int totface_i, int totloop_i, int totpoly_i,
+        MEdge *medge, MFace *mface,
+        int *r_totloop, int *r_totpoly,
+        MLoop **r_mloop, MPoly **r_mpoly)
 {
 	MFace *mf;
 	MLoop *ml, *mloop;
@@ -3514,10 +3403,11 @@ void BKE_mesh_polygons_flip(
 
 /* update the hide flag for edges and faces from the corresponding
  * flag in verts */
-void BKE_mesh_flush_hidden_from_verts_ex(const MVert *mvert,
-                                         const MLoop *mloop,
-                                         MEdge *medge, const int totedge,
-                                         MPoly *mpoly, const int totpoly)
+void BKE_mesh_flush_hidden_from_verts_ex(
+        const MVert *mvert,
+        const MLoop *mloop,
+        MEdge *medge, const int totedge,
+        MPoly *mpoly, const int totpoly)
 {
 	int i, j;
 
@@ -3543,15 +3433,17 @@ void BKE_mesh_flush_hidden_from_verts_ex(const MVert *mvert,
 }
 void BKE_mesh_flush_hidden_from_verts(Mesh *me)
 {
-	BKE_mesh_flush_hidden_from_verts_ex(me->mvert, me->mloop,
-	                                    me->medge, me->totedge,
-	                                    me->mpoly, me->totpoly);
+	BKE_mesh_flush_hidden_from_verts_ex(
+	        me->mvert, me->mloop,
+	        me->medge, me->totedge,
+	        me->mpoly, me->totpoly);
 }
 
-void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
-                                         const MLoop *mloop,
-                                         MEdge *medge, const int UNUSED(totedge),
-                                         const MPoly *mpoly, const int totpoly)
+void BKE_mesh_flush_hidden_from_polys_ex(
+        MVert *mvert,
+        const MLoop *mloop,
+        MEdge *medge, const int UNUSED(totedge),
+        const MPoly *mpoly, const int totpoly)
 {
 	const MPoly *mp;
 	int i;
@@ -3584,18 +3476,20 @@ void BKE_mesh_flush_hidden_from_polys_ex(MVert *mvert,
 }
 void BKE_mesh_flush_hidden_from_polys(Mesh *me)
 {
-	BKE_mesh_flush_hidden_from_polys_ex(me->mvert, me->mloop,
-	                                    me->medge, me->totedge,
-	                                    me->mpoly, me->totpoly);
+	BKE_mesh_flush_hidden_from_polys_ex(
+	        me->mvert, me->mloop,
+	        me->medge, me->totedge,
+	        me->mpoly, me->totpoly);
 }
 
 /**
  * simple poly -> vert/edge selection.
  */
-void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
-                                         const MLoop *mloop,
-                                         MEdge *medge,       const int totedge,
-                                         const MPoly *mpoly, const int totpoly)
+void BKE_mesh_flush_select_from_polys_ex(
+        MVert *mvert,       const int totvert,
+        const MLoop *mloop,
+        MEdge *medge,       const int totedge,
+        const MPoly *mpoly, const int totpoly)
 {
 	MVert *mv;
 	MEdge *med;
@@ -3629,16 +3523,18 @@ void BKE_mesh_flush_select_from_polys_ex(MVert *mvert,       const int totvert,
 }
 void BKE_mesh_flush_select_from_polys(Mesh *me)
 {
-	BKE_mesh_flush_select_from_polys_ex(me->mvert, me->totvert,
-	                                 me->mloop,
-	                                 me->medge, me->totedge,
-	                                 me->mpoly, me->totpoly);
+	BKE_mesh_flush_select_from_polys_ex(
+	        me->mvert, me->totvert,
+	        me->mloop,
+	        me->medge, me->totedge,
+	        me->mpoly, me->totpoly);
 }
 
-void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(totvert),
-                                         const MLoop *mloop,
-                                         MEdge *medge,       const int totedge,
-                                         MPoly *mpoly,       const int totpoly)
+void BKE_mesh_flush_select_from_verts_ex(
+        const MVert *mvert, const int UNUSED(totvert),
+        const MLoop *mloop,
+        MEdge *medge,       const int totedge,
+        MPoly *mpoly,       const int totpoly)
 {
 	MEdge *med;
 	MPoly *mp;
@@ -3683,10 +3579,11 @@ void BKE_mesh_flush_select_from_verts_ex(const MVert *mvert, const int UNUSED(to
 }
 void BKE_mesh_flush_select_from_verts(Mesh *me)
 {
-	BKE_mesh_flush_select_from_verts_ex(me->mvert, me->totvert,
-	                                    me->mloop,
-	                                    me->medge, me->totedge,
-	                                    me->mpoly, me->totpoly);
+	BKE_mesh_flush_select_from_verts_ex(
+	        me->mvert, me->totvert,
+	        me->mloop,
+	        me->medge, me->totedge,
+	        me->mpoly, me->totpoly);
 }
 /** \} */
 
@@ -3714,7 +3611,7 @@ void BKE_mesh_calc_relative_deform(
         const float (*vert_cos_dst)[3],
 
         const float (*vert_cos_org)[3],
-              float (*vert_cos_new)[3])
+        float       (*vert_cos_new)[3])
 {
 	const MPoly *mp;
 	int i;

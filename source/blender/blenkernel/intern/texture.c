@@ -233,7 +233,6 @@ void BKE_texture_default(Tex *tex)
 	tex->texfilter = TXF_EWA;
 	tex->afmax = 8;
 	tex->xrepeat = tex->yrepeat = 1;
-	tex->fie_ima = 2;
 	tex->sfra = 1;
 	tex->frames = 0;
 	tex->offset = 0;
@@ -267,7 +266,6 @@ void BKE_texture_default(Tex *tex)
 	tex->vn_distm = 0;
 	tex->vn_coltype = 0;
 
-	tex->iuser.fie_ima = 2;
 	tex->iuser.ok = 1;
 	tex->iuser.frames = 100;
 	tex->iuser.sfra = 1;

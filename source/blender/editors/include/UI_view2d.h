@@ -103,8 +103,6 @@ enum eView2D_Gridlines {
 /* ------ Defines for Scrollers ----- */
 
 /* scroller area */
-#define V2D_SCROLL_HEIGHT_MIN  (0.25f * U.widget_unit)
-#define V2D_SCROLL_WIDTH_MIN   (0.25f * U.widget_unit)
 #define V2D_SCROLL_HEIGHT      (0.45f * U.widget_unit)
 #define V2D_SCROLL_WIDTH       (0.45f * U.widget_unit)
 /* For scrollers with scale markings (text written onto them) */

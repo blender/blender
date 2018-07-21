@@ -82,7 +82,7 @@ class SequencerCutMulticam(Operator):
     bl_label = "Cut multicam"
     bl_options = {'REGISTER', 'UNDO'}
 
-    camera = IntProperty(
+    camera: IntProperty(
         name="Camera",
         min=1, max=32,
         soft_min=1, soft_max=32,

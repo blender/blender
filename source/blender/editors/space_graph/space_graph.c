@@ -279,7 +279,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 
 	if (((sipo->flag & SIPO_NODRAWCURSOR) == 0) || (sipo->mode == SIPO_MODE_DRIVERS)) {
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
@@ -292,7 +292,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			GPU_blend(true);
 			GPU_line_width(2.0);
 
-			immBegin(GWN_PRIM_LINES, 2);
+			immBegin(GPU_PRIM_LINES, 2);
 			immVertex2f(pos, v2d->cur.xmin, y);
 			immVertex2f(pos, v2d->cur.xmax, y);
 			immEnd();
@@ -310,7 +310,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 			GPU_blend(true);
 			GPU_line_width(2.0);
 
-			immBegin(GWN_PRIM_LINES, 2);
+			immBegin(GPU_PRIM_LINES, 2);
 			immVertex2f(pos, x, v2d->cur.ymin);
 			immVertex2f(pos, x, v2d->cur.ymax);
 			immEnd();
@@ -430,7 +430,7 @@ static void graph_buttons_region_draw(const bContext *C, ARegion *ar)
 }
 
 static void graph_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        wmWindow *UNUSED(win), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
@@ -568,8 +568,7 @@ static void graph_region_message_subscribe(
 }
 
 /* editor level listener */
-static void graph_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene),
-                           WorkSpace *UNUSED(workspace))
+static void graph_listener(wmWindow *UNUSED(win), ScrArea *sa, wmNotifier *wmn, Scene *UNUSED(scene))
 {
 	SpaceIpo *sipo = (SpaceIpo *)sa->spacedata.first;
 

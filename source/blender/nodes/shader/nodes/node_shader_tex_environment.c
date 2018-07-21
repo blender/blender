@@ -48,7 +48,6 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode *no
 	tex->projection = SHD_PROJ_EQUIRECTANGULAR;
 	tex->iuser.frames = 1;
 	tex->iuser.sfra = 1;
-	tex->iuser.fie_ima = 2;
 	tex->iuser.ok = 1;
 
 	node->storage = tex;
@@ -97,12 +96,12 @@ void register_node_type_sh_tex_environment(void)
 	static bNodeType ntype;
 
 	sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, "Environment Texture", NODE_CLASS_TEXTURE, 0);
-	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_tex_environment_in, sh_node_tex_environment_out);
 	node_type_init(&ntype, node_shader_init_tex_environment);
 	node_type_storage(&ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
 	node_type_gpu(&ntype, node_shader_gpu_tex_environment);
 	node_type_label(&ntype, node_image_label);
+	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 
 	nodeRegisterType(&ntype);
 }

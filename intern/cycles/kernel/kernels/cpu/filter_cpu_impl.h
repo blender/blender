@@ -34,7 +34,7 @@ CCL_NAMESPACE_BEGIN
 /* Denoise filter */
 
 void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
-                                                     TilesInfo *tiles,
+                                                     TileInfo *tile_info,
                                                      int x,
                                                      int y,
                                                      float *unfilteredA,
@@ -49,7 +49,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_divide_shadow);
 #else
-	kernel_filter_divide_shadow(sample, tiles,
+	kernel_filter_divide_shadow(sample, tile_info,
 	                            x, y,
 	                            unfilteredA,
 	                            unfilteredB,
@@ -63,7 +63,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_divide_shadow)(int sample,
 }
 
 void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
-                                                   TilesInfo *tiles,
+                                                   TileInfo *tile_info,
                                                    int m_offset,
                                                    int v_offset,
                                                    int x,
@@ -76,7 +76,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_get_feature)(int sample,
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_get_feature);
 #else
-	kernel_filter_get_feature(sample, tiles,
+	kernel_filter_get_feature(sample, tile_info,
 	                          m_offset, v_offset,
 	                          x, y,
 	                          mean, variance,

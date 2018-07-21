@@ -221,46 +221,10 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "toggle", 1, "Toggle", "Toggle the layer");
 }
 
-/* -------------------------------------------------------------------- */
-/** \name Toggle Bone selection Overlay Operator
- * \{ */
-
-static int toggle_show_xray(bContext *C, wmOperator *UNUSED(op))
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	v3d->shading.flag ^= V3D_SHADING_XRAY;
-	ED_view3d_shade_update(CTX_data_main(C), v3d, CTX_wm_area(C));
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	return OPERATOR_FINISHED;
-}
-
-static bool toggle_show_xray_poll(bContext *C)
-{
-	bool result = (ED_operator_view3d_active(C) && !ED_operator_posemode(C) && !ED_operator_editmesh(C));
-	if (result) {
-		// Additional test for SOLID or TEXTURE mode
-		View3D *v3d = CTX_wm_view3d(C);
-		result = (v3d->drawtype & (OB_SOLID | OB_TEXTURE)) > 0;
-	}
-	return result;
-}
-
-void VIEW3D_OT_toggle_xray_draw_option(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Toggle Show X-Ray";
-	ot->description = "Toggle show X-Ray";
-	ot->idname = "VIEW3D_OT_toggle_xray_draw_option";
-
-	/* api callbacks */
-	ot->exec = toggle_show_xray;
-	ot->poll = toggle_show_xray_poll;
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Toggle Bone selection Overlay Operator
+/** \name Toggle Matcap Flip Operator
  * \{ */
 
 static int toggle_matcap_flip(bContext *C, wmOperator *UNUSED(op))
@@ -281,7 +245,6 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = toggle_matcap_flip;
-	// ot->poll = toggle_show_xray_poll;
 }
 
 /** \} */
@@ -345,7 +308,7 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
 
-	/* Manipulators aren't used in paint modes */
+	/* Gizmos aren't used in paint modes */
 	if (!ELEM(ob->mode, OB_MODE_SCULPT, OB_MODE_PARTICLE_EDIT)) {
 		/* masks aren't used for sculpt and particle painting */
 		PointerRNA meshptr;
@@ -428,9 +391,9 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	else {
 		/* Moved to popover and topbar. */
 #if 0
-		/* Transform widget / manipulators */
+		/* Transform widget / gizmos */
 		row = uiLayoutRow(layout, true);
-		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(row, &v3dptr, "show_gizmo", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(row, &sceneptr, "transform_orientation", 0, "", ICON_NONE);
 #endif
 	}

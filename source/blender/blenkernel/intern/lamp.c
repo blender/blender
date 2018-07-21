@@ -84,10 +84,10 @@ void BKE_lamp_init(Lamp *la)
 	la->cascade_count = 4;
 	la->cascade_exponent = 0.8f;
 	la->cascade_fade = 0.1f;
-	la->contact_dist = 1.0f;
+	la->contact_dist = 0.2f;
 	la->contact_bias = 0.03f;
 	la->contact_spread = 0.2f;
-	la->contact_thickness = 0.5f;
+	la->contact_thickness = 0.2f;
 	la->spec_fac = 1.0f;
 
 	curvemapping_initialize(la->curfalloff);

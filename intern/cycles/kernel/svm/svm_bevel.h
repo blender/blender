@@ -223,4 +223,3 @@ ccl_device void svm_node_bevel(
 }
 
 CCL_NAMESPACE_END
-

@@ -33,14 +33,13 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_fluidsim_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
-
-#include "BKE_cdderivedmesh.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 
@@ -65,45 +64,49 @@ static void freeData(ModifierData *md)
 	fluidsim_free(fluidmd);
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
 {
 	const FluidsimModifierData *fluidmd = (const FluidsimModifierData *) md;
 	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
 
-	if (fluidmd->fss) {
-		tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
-		if (tfluidmd->fss && (tfluidmd->fss->meshVelocities != NULL)) {
-			tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
-		}
+	/* Free any FSS that was allocated in initData() */
+	if (tfluidmd->fss) {
+		MEM_SAFE_FREE(tfluidmd->fss->meshVelocities);
+		MEM_freeN(tfluidmd->fss);
 	}
 
-	/* Seems to never be used, but for sqke of consistency... */
-	BLI_assert(fluidmd->point_cache == NULL);
-	BLI_assert(tfluidmd->point_cache == NULL);
-	tfluidmd->point_cache = NULL;
+	if (fluidmd->fss == NULL) {
+		tfluidmd->fss = NULL;
+		return;
+	}
+
+	tfluidmd->fss = MEM_dupallocN(fluidmd->fss);
+	if (tfluidmd->fss->meshVelocities != NULL) {
+		tfluidmd->fss->meshVelocities = MEM_dupallocN(tfluidmd->fss->meshVelocities);
+	}
 }
 
 
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
-	DerivedMesh *result = NULL;
+	Mesh *result = NULL;
 
 	/* check for alloc failing */
 	if (!fluidmd->fss) {
 		initData(md);
 
 		if (!fluidmd->fss) {
-			return dm;
+			return mesh;
 		}
 	}
 
-	result = fluidsimModifier_do(fluidmd, ctx, dm);
+	result = fluidsimModifier_do(fluidmd, ctx, mesh);
 
-	return result ? result : dm;
+	return result ? result : mesh;
 }
 
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
@@ -150,14 +153,14 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

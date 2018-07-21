@@ -913,7 +913,7 @@ static void draw_textscroll(const SpaceText *st, rcti *scroll, rcti *back)
 	float rad;
 
 	/* background so highlights don't go behind the scrollbar */
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 	immUniformThemeColor(TH_BACK);
 	immRecti(pos, back->xmin, back->ymin, back->xmax, back->ymax);
@@ -967,24 +967,24 @@ static void draw_documentation(const SpaceText *st, ARegion *ar)
 	boxh = (DOC_HEIGHT + 1) * (st->lheight_dpi + TXT_LINE_SPACING);
 
 	/* Draw panel */
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_BACK);
 	immRecti(pos, x, y, x + boxw, y - boxh);
 	immUniformThemeColor(TH_SHADE1);
-	immBegin(GWN_PRIM_LINE_LOOP, 4);
+	immBegin(GPU_PRIM_LINE_LOOP, 4);
 	immVertex2i(pos, x, y);
 	immVertex2i(pos, x + boxw, y);
 	immVertex2i(pos, x + boxw, y - boxh);
 	immVertex2i(pos, x, y - boxh);
 	immEnd();
-	immBegin(GWN_PRIM_LINE_LOOP, 3);
+	immBegin(GPU_PRIM_LINE_LOOP, 3);
 	immVertex2i(pos, x + boxw - 10, y - 7);
 	immVertex2i(pos, x + boxw - 4, y - 7);
 	immVertex2i(pos, x + boxw - 7, y - 2);
 	immEnd();
-	immBegin(GWN_PRIM_LINE_LOOP, 3);
+	immBegin(GPU_PRIM_LINE_LOOP, 3);
 	immVertex2i(pos, x + boxw - 10, y - boxh + 7);
 	immVertex2i(pos, x + boxw - 4, y - boxh + 7);
 	immVertex2i(pos, x + boxw - 7, y - boxh + 2);
@@ -1066,7 +1066,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 	/* not needed but stands out nicer */
 	UI_draw_box_shadow(220, x, y - boxh, x + boxw, y);
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	immUniformThemeColor(TH_SHADE1);
@@ -1089,7 +1089,7 @@ static void draw_suggestion_list(const SpaceText *st, const TextDrawContext *tdc
 		w = st->cwidth * text_get_char_pos(st, str, len);
 
 		if (item == sel) {
-			unsigned int posi = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+			uint posi = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 			immUniformThemeColor(TH_SHADE2);
@@ -1130,7 +1130,7 @@ static void draw_text_decoration(SpaceText *st, ARegion *ar)
 		return;
 	}
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* Draw the selection */
@@ -1443,7 +1443,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 	if (st->showlinenrs) {
 		x = TXT_OFFSET + TEXTXLOC;
 
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformThemeColor(TH_GRID);
 		immRecti(pos, (TXT_OFFSET - 12), 0, (TXT_OFFSET - 5) + TEXTXLOC, ar->winy - 2);
@@ -1502,7 +1502,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 		margin_column_x = x + st->cwidth * (st->margin_column - st->left);
 
 		if (margin_column_x >= x) {
-			const uint shdr_pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
+			const uint shdr_pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 
@@ -1515,7 +1515,7 @@ void draw_text_main(SpaceText *st, ARegion *ar)
 			immUniform1f("dash_width", 2.0f);
 			immUniform1f("dash_factor", 0.5f);
 
-			immBegin(GWN_PRIM_LINES, 2);
+			immBegin(GPU_PRIM_LINES, 2);
 			immVertex2i(shdr_pos, margin_column_x, 0);
 			immVertex2i(shdr_pos, margin_column_x, ar->winy - 2);
 			immEnd();

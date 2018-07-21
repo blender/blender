@@ -52,7 +52,7 @@ class QuickFur(Operator):
     bl_label = "Quick Fur"
     bl_options = {'REGISTER', 'UNDO'}
 
-    density = EnumProperty(
+    density: EnumProperty(
         name="Fur Density",
         items=(
             ('LIGHT', "Light", ""),
@@ -61,13 +61,13 @@ class QuickFur(Operator):
         ),
         default='MEDIUM',
     )
-    view_percentage = IntProperty(
+    view_percentage: IntProperty(
         name="View %",
         min=1, max=100,
         soft_min=1, soft_max=100,
         default=10,
     )
-    length = FloatProperty(
+    length: FloatProperty(
         name="Length",
         min=0.001, max=100,
         soft_min=0.01, soft_max=10,
@@ -118,7 +118,7 @@ class QuickExplode(Operator):
     bl_label = "Quick Explode"
     bl_options = {'REGISTER', 'UNDO'}
 
-    style = EnumProperty(
+    style: EnumProperty(
         name="Explode Style",
         items=(
             ('EXPLODE', "Explode", ""),
@@ -126,40 +126,40 @@ class QuickExplode(Operator):
         ),
         default='EXPLODE',
     )
-    amount = IntProperty(
+    amount: IntProperty(
         name="Amount of pieces",
         min=2, max=10000,
         soft_min=2, soft_max=10000,
         default=100,
     )
-    frame_duration = IntProperty(
+    frame_duration: IntProperty(
         name="Duration",
         min=1, max=300000,
         soft_min=1, soft_max=10000,
         default=50,
     )
 
-    frame_start = IntProperty(
+    frame_start: IntProperty(
         name="Start Frame",
         min=1, max=300000,
         soft_min=1, soft_max=10000,
         default=1,
     )
-    frame_end = IntProperty(
+    frame_end: IntProperty(
         name="End Frame",
         min=1, max=300000,
         soft_min=1, soft_max=10000,
         default=10,
     )
 
-    velocity = FloatProperty(
+    velocity: FloatProperty(
         name="Outwards Velocity",
         min=0, max=300000,
         soft_min=0, soft_max=10,
         default=1,
     )
 
-    fade = BoolProperty(
+    fade: BoolProperty(
         name="Fade",
         description="Fade the pieces over time",
         default=True,
@@ -306,7 +306,7 @@ class QuickSmoke(Operator):
     bl_label = "Quick Smoke"
     bl_options = {'REGISTER', 'UNDO'}
 
-    style = EnumProperty(
+    style: EnumProperty(
         name="Smoke Style",
         items=(
             ('SMOKE', "Smoke", ""),
@@ -316,7 +316,7 @@ class QuickSmoke(Operator):
         default='SMOKE',
     )
 
-    show_flows = BoolProperty(
+    show_flows: BoolProperty(
         name="Render Smoke Objects",
         description="Keep the smoke objects visible during rendering",
         default=False,
@@ -410,7 +410,7 @@ class QuickFluid(Operator):
     bl_label = "Quick Fluid"
     bl_options = {'REGISTER', 'UNDO'}
 
-    style = EnumProperty(
+    style: EnumProperty(
         name="Fluid Style",
         items=(
             ('INFLOW', "Inflow", ""),
@@ -418,19 +418,19 @@ class QuickFluid(Operator):
         ),
         default='BASIC',
     )
-    initial_velocity = FloatVectorProperty(
+    initial_velocity: FloatVectorProperty(
         name="Initial Velocity",
         description="Initial velocity of the fluid",
         min=-100.0, max=100.0,
         default=(0.0, 0.0, 0.0),
         subtype='VELOCITY',
     )
-    show_flows = BoolProperty(
+    show_flows: BoolProperty(
         name="Render Fluid Objects",
         description="Keep the fluid objects visible during rendering",
         default=False,
     )
-    start_baking = BoolProperty(
+    start_baking: BoolProperty(
         name="Start Fluid Bake",
         description=("Start baking the fluid immediately "
                      "after creating the domain object"),
