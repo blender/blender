@@ -1145,15 +1145,18 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 	clearcoat *= 0.25;
 	clearcoat *= 1.0 - transmission;
 
+	vec3 mixed_ss_base_color = mix(diffuse, subsurface_color.rgb, subsurface);
+
 #ifdef USE_SSS
-	diffuse = mix(diffuse, vec3(0.0), subsurface);
+	diffuse = vec3(0.0);
 #else
-	diffuse = mix(diffuse, subsurface_color.rgb, subsurface);
+	diffuse = mixed_ss_base_color;
 #endif
+
 	f0 = mix(f0, vec3(1.0), transmission);
 
-	float sss_scalef = dot(sss_scale, vec3(1.0 / 3.0));
-	eevee_closure_principled(N, diffuse, f0, int(ssr_id), roughness,
+	float sss_scalef = dot(sss_scale, vec3(1.0 / 3.0)) * subsurface;
+	eevee_closure_principled(N, mixed_ss_base_color, f0, int(ssr_id), roughness,
 	                         CN, clearcoat, clearcoat_roughness, 1.0, sss_scalef, ior,
 	                         out_diff, out_trans, out_spec, out_refr, ssr_spec);
 
@@ -1177,11 +1180,11 @@ void node_bsdf_principled_clearcoat(vec4 base_color, float subsurface, vec3 subs
 #ifdef USE_SSS
 	result.sss_data.a = sss_scalef;
 	result.sss_data.rgb = out_diff + out_trans;
-#ifdef USE_SSS_ALBEDO
-	result.sss_albedo.rgb = mix(vec3(0.0), subsurface_color.rgb, subsurface);
-#else
-	result.sss_data.rgb *= mix(vec3(0.0), subsurface_color.rgb, subsurface);
-#endif
+#  ifdef USE_SSS_ALBEDO
+	result.sss_albedo.rgb = mixed_ss_base_color;
+#  else
+	result.sss_data.rgb *= mixed_ss_base_color;
+#  endif
 	result.sss_data.rgb *= (1.0 - transmission);
 #endif
 }
