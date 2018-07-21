@@ -1146,15 +1146,6 @@ static void icon_preview_endjob(void *customdata)
 #endif
 	}
 
-	if (ip->id_copy) {
-		/* Feels a bit hacky just to reuse shader_preview_free() */
-		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
-		sp->id_copy = ip->id_copy;
-		sp->own_id_copy = true;
-		shader_preview_free(sp);
-		ip->id_copy = NULL;
-	}
-
 	if (ip->owner) {
 		PreviewImage *prv_img = ip->owner;
 		prv_img->tag &= ~PRV_TAG_DEFFERED_RENDERING;
@@ -1168,6 +1159,15 @@ static void icon_preview_endjob(void *customdata)
 static void icon_preview_free(void *customdata)
 {
 	IconPreview *ip = (IconPreview *)customdata;
+
+	if (ip->id_copy) {
+		/* Feels a bit hacky just to reuse shader_preview_free() */
+		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
+		sp->id_copy = ip->id_copy;
+		sp->own_id_copy = true;
+		shader_preview_free(sp);
+		ip->id_copy = NULL;
+	}
 
 	BLI_freelistN(&ip->sizes);
 	MEM_freeN(ip);
