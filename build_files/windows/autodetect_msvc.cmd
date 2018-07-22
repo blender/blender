@@ -10,5 +10,5 @@ echo Compiler Detection failed. Use verbose switch for more information.
 exit /b 1
 
 :DetectionComplete
-echo Compiler Detection successfull, detected VS%BUILD_VS_YEAR%
+echo Compiler Detection successful, detected VS%BUILD_VS_YEAR%
 exit /b 0
