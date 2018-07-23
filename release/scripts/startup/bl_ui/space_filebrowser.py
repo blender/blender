@@ -56,6 +56,8 @@ class FILEBROWSER_HT_header(Header):
 
         layout.separator_spacer()
 
+        layout.template_running_jobs()
+
         if params:
             layout.prop(params, "use_filter", text="", icon='FILTER')
 
@@ -85,8 +87,6 @@ class FILEBROWSER_HT_header(Header):
 
             row.separator()
             row.prop(params, "filter_search", text="", icon='VIEWZOOM')
-
-        layout.template_running_jobs()
 
 
 class FILEBROWSER_UL_dir(UIList):
