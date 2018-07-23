@@ -94,26 +94,6 @@ typedef struct Subdiv {
 	 */
 	SubdivSettings settings;
 
-	/* Total number of ptex faces on subdivision level 0.
-	 *
-	 * Ptex face is what is internally used by OpenSubdiv for evaluator. It is
-	 * a quad face, which corresponds to Blender's legacy Catmull Clark grids.
-	 *
-	 * Basically, here is a correspondence between polygons and ptex faces:
-	 * - Triangle consists of 3 PTex faces.
-	 * - Quad is a single PTex face.
-	 * - N-gon is N PTex faces.
-	 *
-	 * This value is initialized in BKE_subdiv_new_from_FOO() and is read-only
-	 * after this.
-	 */
-	int num_ptex_faces;
-
-	/* Indexed by base face index, element indicates total number of ptex faces
-	 * created for preceding base faces.
-	 */
-	int *face_ptex_offset;
-
 	/* Topology refiner includes all the glue logic to feed Blender side
 	 * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh
 	 * drawer.
