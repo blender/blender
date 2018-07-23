@@ -308,6 +308,18 @@ static char *replace_bbone_easing_rnapath(char *old_path)
 	}
 }
 
+/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already.
+ *       But in 2.79 another case generating non-unique names was discovered (see T55668, involving Meta strips)... */
+static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
+{
+	for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {
+		BKE_sequence_base_unique_name_recursive(&sce->ed->seqbase, seq);
+		if (seq->seqbase.first != NULL) {
+			do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
+		}
+	}
+}
+
 static void do_version_bbone_easing_fcurve_fix(ID *UNUSED(id), FCurve *fcu, void *UNUSED(user_data))
 {
 	/* F-Curve's path (for bbone_in/out) */
@@ -1823,6 +1835,14 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						pimd->particle_amount = 1.0f;
 					}
 				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 279, 6)) {
+		for (Scene *sce = bmain->scene.first; sce != NULL; sce = sce->id.next) {
+			if (sce->ed != NULL && sce->ed->seqbase.first != NULL) {
+				do_versions_seq_unique_name_all_strips(sce, &sce->ed->seqbase);
 			}
 		}
 	}

@@ -28,7 +28,7 @@
  * and keep comment above the defines.
  * Use STRINGIFY() rather than defining with quotes */
 #define BLENDER_VERSION         279
-#define BLENDER_SUBVERSION      5
+#define BLENDER_SUBVERSION      6
 /* Several breakages with 270, e.g. constraint deg vs rad */
 #define BLENDER_MINVERSION      270
 #define BLENDER_MINSUBVERSION   6
