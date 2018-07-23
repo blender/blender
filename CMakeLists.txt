@@ -1555,7 +1555,11 @@ if(WITH_PYTHON)
 endif()
 
 if(WITH_CXX11)
-	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+	if(
+		CMAKE_COMPILER_IS_GNUCC OR
+		CMAKE_C_COMPILER_ID MATCHES "Clang" OR
+		CMAKE_C_COMPILER_ID MATCHES "Intel"
+	)
 		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 	elseif(MSVC)
