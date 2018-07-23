@@ -279,6 +279,10 @@ static void wm_window_match_replace_by_file_wm(
 	wm->initialized = 0;
 	wm->winactive = NULL;
 
+	/* Clearing drawable of before deleting any context
+	 * to avoid clearing the wrong wm. */
+	wm_window_clear_drawable(oldwm);
+
 	/* only first wm in list has ghostwins */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		for (wmWindow *oldwin = oldwm->windows.first; oldwin; oldwin = oldwin->next) {
