@@ -99,6 +99,8 @@ void animviz_settings_init(bAnimVizSettings *avs)
 	avs->path_viewflag = (MOTIONPATH_VIEW_KFRAS | MOTIONPATH_VIEW_KFNOS);
 
 	avs->path_step = 1;
+
+	avs->path_bakeflag |= MOTIONPATH_BAKE_HEADS;
 }
 
 /* ------------------- */

@@ -287,7 +287,8 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End",
 	            "Last frame to calculate bone paths on", MINFRAME, MAXFRAME / 2.0);
 
-	RNA_def_enum(ot->srna, "bake_location", rna_enum_motionpath_bake_location_items, 0,
+	RNA_def_enum(ot->srna, "bake_location", rna_enum_motionpath_bake_location_items,
+	             MOTIONPATH_BAKE_HEADS,
 	             "Bake Location",
 	             "Which point on the bones is used when calculating paths");
 }
