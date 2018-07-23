@@ -70,6 +70,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_sequencer.h"
 #include "BKE_studiolight.h"
 #include "BKE_workspace.h"
 
