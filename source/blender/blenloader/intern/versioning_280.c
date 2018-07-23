@@ -1213,7 +1213,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 				scene->eevee.flag =
 					SCE_EEVEE_VOLUMETRIC_LIGHTS |
-					SCE_EEVEE_VOLUMETRIC_COLORED |
 					SCE_EEVEE_GTAO_BENT_NORMALS |
 					SCE_EEVEE_GTAO_BOUNCE |
 					SCE_EEVEE_TAA_REPROJECTION |
@@ -1271,7 +1270,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
 				EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
 				EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
-				EEVEE_GET_BOOL(props, volumetric_colored_transmittance, SCE_EEVEE_VOLUMETRIC_COLORED);
 				EEVEE_GET_BOOL(props, gtao_enable, SCE_EEVEE_GTAO_ENABLED);
 				EEVEE_GET_BOOL(props, gtao_use_bent_normals, SCE_EEVEE_GTAO_BENT_NORMALS);
 				EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
