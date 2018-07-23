@@ -5530,6 +5530,7 @@ static Sequence *seq_dupli(const Scene *scene_src, Scene *scene_dst, Sequence *s
 
 	if (scene_src == scene_dst) {
 		if (dupe_flag & SEQ_DUPE_UNIQUE_NAME) {
+			/* TODO this is broken in case of Meta strips recursive duplication... Not trivial to fix. */
 			BKE_sequence_base_unique_name_recursive(&scene_dst->ed->seqbase, seqn);
 		}
 

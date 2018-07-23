@@ -753,6 +753,18 @@ void do_versions_after_linking_280(Main *bmain)
 #endif
 }
 
+/* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already.
+ *       But in 2.79 another case generating non-unique names was discovered (see T55668, involving Meta strips)... */
+static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
+{
+	for (Sequence *seq = seqbasep->first; seq != NULL; seq = seq->next) {
+		BKE_sequence_base_unique_name_recursive(&sce->ed->seqbase, seq);
+		if (seq->seqbase.first != NULL) {
+			do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
+		}
+	}
+}
+
 void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 {
 	bool use_collection_compat_28 = true;
@@ -1200,6 +1212,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 				scene->eevee.flag =
 					SCE_EEVEE_VOLUMETRIC_LIGHTS |
+					SCE_EEVEE_VOLUMETRIC_COLORED |
 					SCE_EEVEE_GTAO_BENT_NORMALS |
 					SCE_EEVEE_GTAO_BOUNCE |
 					SCE_EEVEE_TAA_REPROJECTION |
@@ -1257,6 +1270,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
 				EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
 				EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
+				EEVEE_GET_BOOL(props, volumetric_colored_transmittance, SCE_EEVEE_VOLUMETRIC_COLORED);
 				EEVEE_GET_BOOL(props, gtao_enable, SCE_EEVEE_GTAO_ENABLED);
 				EEVEE_GET_BOOL(props, gtao_use_bent_normals, SCE_EEVEE_GTAO_BENT_NORMALS);
 				EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
@@ -1522,7 +1536,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 21)) {
+		for (Scene *sce = bmain->scene.first; sce != NULL; sce = sce->id.next) {
+			if (sce->ed != NULL && sce->ed->seqbase.first != NULL) {
+				do_versions_seq_unique_name_all_strips(sce, &sce->ed->seqbase);
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "texture_paint_mode_opacity")) {
 			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -1620,4 +1640,5 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
 }
