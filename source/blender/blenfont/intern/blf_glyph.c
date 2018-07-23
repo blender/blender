@@ -244,7 +244,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	gc->textures[gc->texture_current] = tex;
 	GPU_texture_bind(tex, 0);
 	GPU_texture_wrap_mode(tex, false);
-	GPU_texture_filters(tex, GPU_NEAREST, GPU_NEAREST);
+	GPU_texture_filters(tex, GPU_NEAREST, GPU_LINEAR);
 	GPU_texture_unbind(tex);
 }
 
@@ -427,8 +427,8 @@ static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
 {
 	rect->xmin = floorf(x + g->pos_x);
 	rect->xmax = rect->xmin + (float)g->width;
-	rect->ymin = y + g->pos_y;
-	rect->ymax = y + g->pos_y - (float)g->height;
+	rect->ymin = floorf(y + g->pos_y);
+	rect->ymax = rect->ymin - (float)g->height;
 }
 
 void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
