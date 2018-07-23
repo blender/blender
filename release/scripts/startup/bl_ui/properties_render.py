@@ -594,8 +594,6 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         sub = col.column()
         sub.active = props.use_volumetric_shadows
         sub.prop(props, "volumetric_shadow_samples", text="Shadow Samples")
-        col.separator()
-        col.prop(props, "use_volumetric_colored_transmittance")
 
 
 class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):

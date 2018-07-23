@@ -878,7 +878,6 @@ void BKE_scene_init(Scene *sce)
 
 	sce->eevee.flag =
 	        SCE_EEVEE_VOLUMETRIC_LIGHTS |
-	        SCE_EEVEE_VOLUMETRIC_COLORED |
 	        SCE_EEVEE_GTAO_BENT_NORMALS |
 	        SCE_EEVEE_GTAO_BOUNCE |
 	        SCE_EEVEE_TAA_REPROJECTION |
