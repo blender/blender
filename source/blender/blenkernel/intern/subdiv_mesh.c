@@ -355,7 +355,7 @@ static void vertex_interpolation_init(
 		int *indices = BLI_array_alloca(indices, coarse_poly->totloop);
 		for (int i = 0; i < coarse_poly->totloop; ++i) {
 			weights[i] = weight;
-			indices[i] = coarse_poly->loopstart + i;
+			indices[i] = coarse_mloop[coarse_poly->loopstart + i].v;
 		}
 		CustomData_interp(&coarse_mesh->vdata,
 		                  &vertex_interpolation->vertex_data_storage,
@@ -395,13 +395,15 @@ static void vertex_interpolation_from_ptex(
 		 * iteration.
 		 */
 		const float weights[2] = {0.5f, 0.5f};
+		const int first_loop_index = loops_of_ptex.first_loop - coarse_mloop;
+		const int last_loop_index = loops_of_ptex.last_loop - coarse_mloop;
 		const int first_indices[2] = {
-		        coarse_mloop[loops_of_ptex.first_loop - coarse_mloop].v,
-		        coarse_mloop[(loops_of_ptex.first_loop + 1 - coarse_mloop) %
-		                coarse_poly->totloop].v};
-		const int last_indices[2] = {
-		        coarse_mloop[loops_of_ptex.last_loop - coarse_mloop].v,
-		        coarse_mloop[loops_of_ptex.first_loop - coarse_mloop].v};
+		        coarse_mloop[first_loop_index].v,
+		        coarse_mloop[coarse_poly->loopstart +
+		                (first_loop_index - coarse_poly->loopstart + 1) %
+		                        coarse_poly->totloop].v};
+		const int last_indices[2] = {coarse_mloop[first_loop_index].v,
+		                             coarse_mloop[last_loop_index].v};
 		CustomData_interp(vertex_data,
 		                  &vertex_interpolation->vertex_data_storage,
 		                  first_indices,
