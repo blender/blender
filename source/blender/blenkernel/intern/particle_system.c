@@ -2941,7 +2941,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 		skip = 1; /* only hair, keyed and baked stuff can have paths */
 	else if (part->ren_as != PART_DRAW_PATH && !(part->type==PART_HAIR && ELEM(part->ren_as, PART_DRAW_OB, PART_DRAW_GR)))
 		skip = 1; /* particle visualization must be set as path */
-	else {
+	else if (DEG_get_mode(sim->depsgraph) != DAG_EVAL_RENDER) {
 		if (part->draw_as != PART_DRAW_REND)
 			skip = 1; /* draw visualization */
 		else if (psys->pointcache->flag & PTCACHE_BAKING)
