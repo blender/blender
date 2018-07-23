@@ -570,6 +570,9 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
 
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_exclude_set", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_include_set", EKEY, KM_PRESS, KM_ALT, 0);
+
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "select", false);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
