@@ -728,7 +728,7 @@ class GPENCIL_MT_snap(Menu):
 
         layout.operator("gpencil.snap_to_grid", text="Selection to Grid")
         layout.operator("gpencil.snap_to_cursor", text="Selection to Cursor").use_offset = False
-        layout.operator("gpencil.snap_to_cursor", text="Selection to Cursor (Offset)").use_offset = True
+        layout.operator("gpencil.snap_to_cursor", text="Selection to Cursor (Keep Offset)").use_offset = True
 
         layout.separator()
 
