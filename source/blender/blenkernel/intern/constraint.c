@@ -1760,7 +1760,7 @@ static void sizelike_new_data(void *cdata)
 {
 	bSizeLikeConstraint *data = (bSizeLikeConstraint *)cdata;
 
-	data->flag = SIZELIKE_X | SIZELIKE_Y | SIZELIKE_Z;
+	data->flag = SIZELIKE_X | SIZELIKE_Y | SIZELIKE_Z | SIZELIKE_MULTIPLY;
 }
 
 static void sizelike_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -1808,29 +1808,28 @@ static void sizelike_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *ta
 		mat4_to_size(size, ct->matrix);
 		mat4_to_size(obsize, cob->matrix);
 
-		if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
-			if (data->flag & SIZELIKE_OFFSET) {
-				size[0] += (obsize[0] - 1.0f);
-				mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
+		if (data->flag & SIZELIKE_OFFSET) {
+			/* Scale is a multiplicative quantity, so adding it makes no sense.
+			 * However, the additive mode has to stay for backward compatibility. */
+			if (data->flag & SIZELIKE_MULTIPLY) {
+				/* size[i] *= obsize[i] */
+				mul_v3_v3(size, obsize);
 			}
-			else
-				mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
+			else {
+				/* 2.7 compatibility mode: size[i] += (obsize[i] - 1.0f) */
+				add_v3_v3(size, obsize);
+				add_v3_fl(size, -1.0f);
+			}
+		}
+
+		if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
+			mul_v3_fl(cob->matrix[0], size[0] / obsize[0]);
 		}
 		if ((data->flag & SIZELIKE_Y) && (obsize[1] != 0)) {
-			if (data->flag & SIZELIKE_OFFSET) {
-				size[1] += (obsize[1] - 1.0f);
-				mul_v3_fl(cob->matrix[1], size[1] / obsize[1]);
-			}
-			else
-				mul_v3_fl(cob->matrix[1], size[1] / obsize[1]);
+			mul_v3_fl(cob->matrix[1], size[1] / obsize[1]);
 		}
 		if ((data->flag & SIZELIKE_Z) && (obsize[2] != 0)) {
-			if (data->flag & SIZELIKE_OFFSET) {
-				size[2] += (obsize[2] - 1.0f);
-				mul_v3_fl(cob->matrix[2], size[2] / obsize[2]);
-			}
-			else
-				mul_v3_fl(cob->matrix[2], size[2] / obsize[2]);
+			mul_v3_fl(cob->matrix[2], size[2] / obsize[2]);
 		}
 	}
 }

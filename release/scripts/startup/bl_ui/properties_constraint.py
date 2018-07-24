@@ -420,7 +420,11 @@ class ConstraintButtonsPanel:
         row.prop(con, "use_y", text="Y")
         row.prop(con, "use_z", text="Z")
 
-        layout.prop(con, "use_offset")
+        row= layout.row()
+        row.prop(con, "use_offset")
+        row = row.row()
+        row.active = con.use_offset
+        row.prop(con, "use_add")
 
         self.space_template(layout, con)
 
