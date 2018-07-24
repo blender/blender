@@ -68,7 +68,7 @@ def main(context, event):
     # we could do lots of stuff but for the example just select.
     if best_obj is not None:
         best_obj.select_set(action='SELECT')
-        context.scene.objects.active = best_obj
+        context.view_layer.objects.active = best_obj
 
 
 class ViewOperatorRayCast(bpy.types.Operator):

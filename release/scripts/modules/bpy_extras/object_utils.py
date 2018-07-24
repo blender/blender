@@ -166,7 +166,7 @@ def object_data_add(context, obdata, operator=None, name=None):
 
         obj_act.select_set(action='SELECT')
         scene.update()  # apply location
-        # scene.objects.active = obj_new
+        # layer.objects.active = obj_new
 
         # Match up UV layers, this is needed so adding an object with UV's
         # doesn't create new layers when there happens to be a naming mis-match.

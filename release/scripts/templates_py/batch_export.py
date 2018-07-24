@@ -9,9 +9,9 @@ basedir = os.path.dirname(bpy.data.filepath)
 if not basedir:
     raise Exception("Blend file is not saved")
 
-scene = bpy.context.scene
+view_layer = bpy.context.view_layer
 
-obj_active = scene.objects.active
+obj_active = view_layer.objects.active
 selection = bpy.context.selected_objects
 
 bpy.ops.object.select_all(action='DESELECT')
@@ -21,7 +21,7 @@ for obj in selection:
     obj.select_set(action='SELECT')
 
     # some exporters only use the active object
-    scene.objects.active = obj
+    view_layer.objects.active = obj
 
     name = bpy.path.clean_name(obj.name)
     fn = os.path.join(basedir, name)
@@ -36,7 +36,7 @@ for obj in selection:
     print("written:", fn)
 
 
-scene.objects.active = obj_active
+view_layer.objects.active = obj_active
 
 for obj in selection:
     obj.select_set(action='SELECT')
