@@ -257,7 +257,7 @@ class PresetMenu(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'HEADER'
     bl_label = "Presets"
-    path_menu: Menu.path_menu
+    path_menu = Menu.path_menu
 
     @classmethod
     def draw_panel_header(cls, layout):
