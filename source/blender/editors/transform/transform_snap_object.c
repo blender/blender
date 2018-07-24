@@ -216,17 +216,17 @@ static void iter_snap_objects(
 		    !((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
 		      (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
 		{
-			Object *obj = base->object;
-			if (obj->transflag & OB_DUPLI) {
+			Object *obj_eval = DEG_get_evaluated_object(sctx->depsgraph, base->object);
+			if (obj_eval->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(sctx->depsgraph, sctx->scene, obj);
+				ListBase *lb = object_duplilist(sctx->depsgraph, sctx->scene, obj_eval);
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					sob_callback(sctx, use_object_edit_cage, dupli_ob->ob, dupli_ob->mat, data);
 				}
 				free_object_duplilist(lb);
 			}
 
-			sob_callback(sctx, use_object_edit_cage, obj, obj->obmat, data);
+			sob_callback(sctx, use_object_edit_cage, obj_eval, obj_eval->obmat, data);
 		}
 	}
 }
