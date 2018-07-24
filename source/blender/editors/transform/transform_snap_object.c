@@ -2062,7 +2062,7 @@ static short snapEditMesh(
 		sod = *sod_p;
 	}
 	else {
-		sod = *sod_p = snap_object_data_mesh_create(sctx, em->bm);
+		sod = *sod_p = snap_object_data_editmesh_create(sctx, em->bm);
 	}
 
 	float dist_px_sq = SQUARE(*dist_px);
