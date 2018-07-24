@@ -411,6 +411,9 @@ static int collection_add_exec(bContext *C, wmOperator *UNUSED(op))
 	id_fake_user_set(&collection->id);
 	BKE_collection_object_add(bmain, collection, ob);
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_relations_tag_update(bmain);
+
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
@@ -460,6 +463,9 @@ static int collection_link_exec(bContext *C, wmOperator *op)
 
 	BKE_collection_object_add(bmain, collection, ob);
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_relations_tag_update(bmain);
+
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
@@ -500,6 +506,9 @@ static int collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_collection_object_remove(bmain, collection, ob, false);
 
+	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_relations_tag_update(bmain);
+
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
@@ -530,6 +539,8 @@ static int collection_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 
 	BKE_libblock_delete(bmain, collection);
+
+	DEG_relations_tag_update(bmain);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
