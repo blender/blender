@@ -80,9 +80,12 @@ extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
 /* static functions */
-static char *workbench_build_forward_vert(void)
+static char *workbench_build_forward_vert(bool is_hair)
 {
 	char *str = NULL;
+	if (!is_hair) {
+		return BLI_strdup(datatoc_workbench_prepass_vert_glsl);
+	}
 
 	DynStr *ds = BLI_dynstr_new();
 
@@ -206,7 +209,7 @@ static void ensure_forward_shaders(WORKBENCH_PrivateData *wpd, int index, bool u
 
 	if (e_data.transparent_accum_sh_cache[index] == NULL) {
 		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
-		char *transparent_accum_vert = workbench_build_forward_vert();
+		char *transparent_accum_vert = workbench_build_forward_vert(is_hair);
 		char *transparent_accum_frag = workbench_build_forward_transparent_accum_frag();
 		e_data.transparent_accum_sh_cache[index] = DRW_shader_create(
 		        transparent_accum_vert, NULL,
@@ -267,7 +270,8 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		char *defines = workbench_material_build_defines(wpd, false, false);
 		char *defines_texture = workbench_material_build_defines(wpd, true, false);
 		char *defines_hair = workbench_material_build_defines(wpd, false, true);
-		char *forward_vert = workbench_build_forward_vert();
+		char *forward_vert = workbench_build_forward_vert(false);
+		char *forward_hair_vert = workbench_build_forward_vert(true);
 		e_data.object_outline_sh = DRW_shader_create(
 		        forward_vert, NULL,
 		        datatoc_workbench_forward_depth_frag_glsl, defines);
@@ -275,12 +279,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		        forward_vert, NULL,
 		        datatoc_workbench_forward_depth_frag_glsl, defines_texture);
 		e_data.object_outline_hair_sh = DRW_shader_create(
-		        forward_vert, NULL,
+		        forward_hair_vert, NULL,
 		        datatoc_workbench_forward_depth_frag_glsl, defines_hair);
 
 
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(
 		        datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
+		MEM_freeN(forward_hair_vert);
 		MEM_freeN(forward_vert);
 		MEM_freeN(defines);
 		MEM_freeN(defines_texture);

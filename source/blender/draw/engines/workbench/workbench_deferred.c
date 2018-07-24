@@ -142,9 +142,12 @@ static char *workbench_build_prepass_frag(void)
 	return str;
 }
 
-static char *workbench_build_prepass_vert(void)
+static char *workbench_build_prepass_vert(bool is_hair)
 {
 	char *str = NULL;
+	if (!is_hair) {
+		return BLI_strdup(datatoc_workbench_prepass_vert_glsl);
+	}
 
 	DynStr *ds = BLI_dynstr_new();
 
@@ -176,7 +179,7 @@ static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, bool 
 	if (e_data.prepass_sh_cache[index] == NULL) {
 		char *defines = workbench_material_build_defines(wpd, use_textures, is_hair);
 		char *composite_frag = workbench_build_composite_frag(wpd);
-		char *prepass_vert = workbench_build_prepass_vert();
+		char *prepass_vert = workbench_build_prepass_vert(is_hair);
 		char *prepass_frag = workbench_build_prepass_frag();
 		e_data.prepass_sh_cache[index] = DRW_shader_create(
 		        prepass_vert, NULL,
