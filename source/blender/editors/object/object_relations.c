@@ -2329,6 +2329,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 			if (new_ob != NULL && new_ob->id.override_static != NULL) {
 				if ((base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL) {
 					BKE_collection_object_add_from(bmain, scene, obcollection, new_ob);
+					base = BKE_view_layer_base_find(view_layer, new_ob);
 					DEG_id_tag_update_ex(bmain, &new_ob->id, DEG_TAG_TRANSFORM | DEG_TAG_BASE_FLAGS_UPDATE);
 				}
 				/* parent to 'collection' empty */
