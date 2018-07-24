@@ -62,7 +62,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 	bNode *node = this->getbNode();
 	NodeCryptomatte *cryptoMatteSettings = (NodeCryptomatte *)node->storage;
 
-	CryptomatteOperation *operation = new CryptomatteOperation(getNumberOfInputSockets()-1);
+	CryptomatteOperation *operation = new CryptomatteOperation(getNumberOfInputSockets() - 1);
 	if (cryptoMatteSettings) {
 		if (cryptoMatteSettings->matte_id) {
 			/* Split the string by commas, ignoring white space. */
@@ -83,7 +83,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 						operation->addObjectIndex(atof(token.substr(1, token.length() - 2).c_str()));
 					}
 					else {
-						uint32_t hash = BLI_hash_mm3((const unsigned char*)token.c_str(), token.length(), 0);
+						uint32_t hash = BLI_hash_mm3((const unsigned char *)token.c_str(), token.length(), 0);
 						operation->addObjectIndex(hash_to_float(hash));
 					}
 				}
@@ -93,7 +93,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 
 	converter.addOperation(operation);
 
-	for (int i = 0; i < getNumberOfInputSockets()-1; ++i) {
+	for (int i = 0; i < getNumberOfInputSockets() - 1; ++i) {
 		converter.mapInputSocket(this->getInputSocket(i + 1), operation->getInputSocket(i));
 	}
 
