@@ -1147,7 +1147,7 @@ static void write_nodetree_nolib(WriteData *wd, bNodeTree *ntree)
  */
 static void current_screen_compat(
         Main *mainvar, bool use_active_win,
-        bScreen **r_screen, Scene **r_scene, ViewLayer **r_render_layer)
+        bScreen **r_screen, Scene **r_scene, ViewLayer **r_view_layer)
 {
 	wmWindowManager *wm;
 	wmWindow *window = NULL;
@@ -1177,7 +1177,7 @@ static void current_screen_compat(
 
 	*r_screen = (window) ? BKE_workspace_active_screen_get(window->workspace_hook) : NULL;
 	*r_scene = (window) ? window->scene : NULL;
-	*r_render_layer = (window && *r_scene) ? BKE_view_layer_find(*r_scene, window->view_layer_name) : NULL;
+	*r_view_layer = (window && *r_scene) ? BKE_view_layer_find(*r_scene, window->view_layer_name) : NULL;
 }
 
 typedef struct RenderInfo {
@@ -1193,11 +1193,11 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)
 {
 	bScreen *curscreen;
 	Scene *sce, *curscene = NULL;
-	ViewLayer *render_layer;
+	ViewLayer *view_layer;
 	RenderInfo data;
 
 	/* XXX in future, handle multiple windows with multiple screens? */
-	current_screen_compat(mainvar, false, &curscreen, &curscene, &render_layer);
+	current_screen_compat(mainvar, false, &curscreen, &curscene, &view_layer);
 
 	for (sce = mainvar->scene.first; sce; sce = sce->id.next) {
 		if (sce->id.lib == NULL && (sce == curscene || (sce->r.scemode & R_BG_RENDER))) {
@@ -3686,7 +3686,7 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	FileGlobal fg;
 	bScreen *screen;
 	Scene *scene;
-	ViewLayer *render_layer;
+	ViewLayer *view_layer;
 	char subvstr[8];
 
 	/* prevent mem checkers from complaining */
@@ -3695,12 +3695,12 @@ static void write_global(WriteData *wd, int fileflags, Main *mainvar)
 	memset(fg.build_hash, 0, sizeof(fg.build_hash));
 	fg.pad1 = NULL;
 
-	current_screen_compat(mainvar, is_undo, &screen, &scene, &render_layer);
+	current_screen_compat(mainvar, is_undo, &screen, &scene, &view_layer);
 
 	/* XXX still remap G */
 	fg.curscreen = screen;
 	fg.curscene = scene;
-	fg.cur_view_layer = render_layer;
+	fg.cur_view_layer = view_layer;
 
 	/* prevent to save this, is not good convention, and feature with concerns... */
 	fg.fileflags = (fileflags & ~G_FILE_FLAGS_RUNTIME);
