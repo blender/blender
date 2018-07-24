@@ -206,7 +206,7 @@ static void iter_snap_objects(
         IterSnapObjsCallback sob_callback,
         void *data)
 {
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(sctx->depsgraph);
+	ViewLayer *view_layer = DEG_get_input_view_layer(sctx->depsgraph);
 	const eSnapSelect snap_select = params->snap_select;
 	const bool use_object_edit_cage = params->use_object_edit_cage;
 
