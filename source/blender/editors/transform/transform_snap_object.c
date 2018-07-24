@@ -172,6 +172,26 @@ static void min_max_from_bmesh(
 	}
 }
 
+static SnapObjectData_Mesh *snap_object_data_mesh_create(SnapObjectContext *sctx)
+{
+	SnapObjectData_Mesh *sod = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+	sod->sd.type = SNAP_MESH;
+	/* start assuming that it has each of these element types */
+	sod->has_looptris = true;
+	sod->has_loose_edge = true;
+	sod->has_loose_vert = true;
+
+	return sod;
+}
+
+static SnapObjectData_EditMesh *snap_object_data_editmesh_create(SnapObjectContext *sctx, BMesh *bm)
+{
+	SnapObjectData_EditMesh *sod = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
+	sod->sd.type = SNAP_EDIT_MESH;
+	min_max_from_bmesh(bm, sod->min, sod->max);
+
+	return sod;
+}
 
 /**
  * Walks through all objects in the scene to create the list of objets to snap.
@@ -386,8 +406,7 @@ static bool raycastMesh(
 		sod = *sod_p;
 	}
 	else {
-		sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-		sod->sd.type = SNAP_MESH;
+		sod = *sod_p = snap_object_data_mesh_create(sctx);
 	}
 
 	BVHTreeFromMesh *treedata = &sod->treedata;
@@ -525,9 +544,7 @@ static bool raycastEditMesh(
 		sod = *sod_p;
 	}
 	else {
-		sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-		sod->sd.type = SNAP_EDIT_MESH;
-		min_max_from_bmesh(em->bm, sod->min, sod->max);
+		sod = *sod_p = snap_object_data_editmesh_create(sctx, em->bm);
 	}
 
 	{
@@ -1838,12 +1855,7 @@ static short snapMesh(
 		sod = *sod_p;
 	}
 	else {
-		sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-		sod->sd.type = SNAP_MESH;
-		/* start assuming that it has each of these element types */
-		sod->has_looptris = true;
-		sod->has_loose_edge = true;
-		sod->has_loose_vert = true;
+		sod = *sod_p = snap_object_data_mesh_create(sctx);
 	}
 
 	BVHTreeFromMesh *treedata, dummy_treedata;
@@ -2050,9 +2062,7 @@ static short snapEditMesh(
 		sod = *sod_p;
 	}
 	else {
-		sod = *sod_p = BLI_memarena_calloc(sctx->cache.mem_arena, sizeof(*sod));
-		sod->sd.type = SNAP_EDIT_MESH;
-		min_max_from_bmesh(em->bm, sod->min, sod->max);
+		sod = *sod_p = snap_object_data_mesh_create(sctx, em->bm);
 	}
 
 	float dist_px_sq = SQUARE(*dist_px);
