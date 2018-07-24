@@ -934,9 +934,8 @@ int UI_icon_get_height(int icon_id)
 	return 0;
 }
 
-void UI_icons_init(int first_dyn_id)
+void UI_icons_init()
 {
-	BKE_icons_init(first_dyn_id);
 #ifndef WITH_HEADLESS
 	init_iconfile_list(&iconfilelist);
 	init_internal_icons();

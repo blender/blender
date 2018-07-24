@@ -83,7 +83,7 @@ static struct bThemeState g_theme_state = {
 
 void ui_resources_init(void)
 {
-	UI_icons_init(BIFICONID_LAST);
+	UI_icons_init();
 }
 
 void ui_resources_free(void)
