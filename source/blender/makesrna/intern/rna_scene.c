@@ -4092,6 +4092,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "fstop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "F-stop", "F-stop for dof effect");
+	RNA_def_property_float_default(prop, 128.0f);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
@@ -4110,6 +4111,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Ratio", "Distortion to simulate anamorphic lens bokeh");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0000001f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 2.0f, 0.1, 3);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);

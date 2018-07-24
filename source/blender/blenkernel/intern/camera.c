@@ -76,6 +76,9 @@ void BKE_camera_init(Camera *cam)
 	cam->flag |= CAM_SHOWPASSEPARTOUT;
 	cam->passepartalpha = 0.5f;
 
+	cam->gpu_dof.fstop = 128.0f;
+	cam->gpu_dof.ratio = 1.0f;
+
 	/* stereoscopy 3d */
 	cam->stereo.interocular_distance = 0.065f;
 	cam->stereo.convergence_distance = 30.f * 0.065f;
