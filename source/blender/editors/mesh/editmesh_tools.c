@@ -5373,7 +5373,7 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static bool edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
 {
 	const char *prop_id = RNA_property_identifier(prop);
 	const int action = RNA_enum_get(ptr, "type");
@@ -5406,7 +5406,7 @@ static void edbm_sort_elements_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call. */
-	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, NULL, '\0');
 }
 
 void MESH_OT_sort_elements(wmOperatorType *ot)

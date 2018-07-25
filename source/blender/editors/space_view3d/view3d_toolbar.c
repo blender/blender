@@ -67,7 +67,7 @@
 
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, 'V', 0);
+	uiTemplateOperatorPropertyButs(C, pa->layout, op, 'V', 0);
 }
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)

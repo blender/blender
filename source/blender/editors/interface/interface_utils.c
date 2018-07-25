@@ -159,7 +159,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
  */
 int uiDefAutoButsRNA(
         uiLayout *layout, PointerRNA *ptr,
-        bool (*check_prop)(PointerRNA *, PropertyRNA *),
+        bool (*check_prop)(PointerRNA *ptr, PropertyRNA *prop, void *user_data), void *user_data,
         const char label_align)
 {
 	uiLayout *split, *col;
@@ -172,8 +172,9 @@ int uiDefAutoButsRNA(
 	RNA_STRUCT_BEGIN (ptr, prop)
 	{
 		flag = RNA_property_flag(prop);
-		if (flag & PROP_HIDDEN || (check_prop && check_prop(ptr, prop) == 0))
+		if (flag & PROP_HIDDEN || (check_prop && check_prop(ptr, prop, user_data) == 0)) {
 			continue;
+		}
 
 		if (label_align != '\0') {
 			PropertyType type = RNA_property_type(prop);

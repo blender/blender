@@ -703,7 +703,11 @@ uiBut *uiDefSearchButO_ptr(
         short width, short height, float a1, float a2, const char *tip);
 
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
-int uiDefAutoButsRNA(uiLayout *layout, struct PointerRNA *ptr, bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *), const char label_align);
+
+int uiDefAutoButsRNA(
+        uiLayout *layout, struct PointerRNA *ptr,
+        bool (*check_prop)(struct PointerRNA *ptr, struct PropertyRNA *prop, void *user_data), void *user_data,
+        const char label_align);
 
 /* Links
  *
@@ -988,7 +992,6 @@ void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
 void uiTemplateOperatorPropertyButs(
         const struct bContext *C, uiLayout *layout, struct wmOperator *op,
-        bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
         const char label_align, const short flag);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
