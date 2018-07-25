@@ -127,7 +127,6 @@ private:
 	                 int motion_step = 0);
 	Object *sync_object(BL::Depsgraph& b_depsgraph,
 	                    BL::DepsgraphObjectInstance& b_instance,
-	                    uint layer_flag,
 	                    float motion_time,
 	                    bool hide_tris,
 	                    BlenderObjectCulling& culling,
@@ -191,28 +190,18 @@ private:
 
 	struct RenderLayerInfo {
 		RenderLayerInfo()
-		: view_layer(0), layer(0),
-		  holdout_layer(0), exclude_layer(0),
-		  material_override(PointerRNA_NULL),
-		  use_background_shader(true),
+		: use_background_shader(true),
 		  use_background_ao(true),
 		  use_surfaces(true),
-		  use_hair(true),
-		  samples(0), bound_samples(false)
+		  use_hair(true)
 		{}
 
 		string name;
 		uint view_layer;
-		uint layer; /* This can be safely removed from Cycles. */
-		uint holdout_layer; /* This can be safely removed from Cycles. */
-		uint exclude_layer; /* This can be safely removed from Cycles. */
-		BL::Material material_override; /* This can be safely removed from Cycles. */
 		bool use_background_shader;
 		bool use_background_ao;
 		bool use_surfaces;
 		bool use_hair;
-		int samples; /* This can be safely removed from Cycles. */
-		bool bound_samples; /* This can be safely removed from Cycles. */
 	} view_layer;
 
 	Progress &progress;

@@ -461,15 +461,13 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 			scene->integrator->tag_update(scene);
 		}
 
-		/* Update number of samples per layer. */
-		int samples = sync->get_layer_samples();
-		bool bound_samples = sync->get_layer_bound_samples();
-		int effective_layer_samples;
+		int effective_layer_samples = session_params.samples;
 
+		/* TODO: Update number of samples per layer. */
+#if 0
 		if(samples != 0 && (!bound_samples || (samples < session_params.samples)))
 			effective_layer_samples = samples;
-		else
-			effective_layer_samples = session_params.samples;
+#endif
 
 		/* Update tile manager if we're doing resumable render. */
 		update_resumable_tile_manager(effective_layer_samples);
