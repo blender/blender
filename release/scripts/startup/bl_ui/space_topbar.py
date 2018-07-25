@@ -265,8 +265,8 @@ class INFO_MT_file(Menu):
         layout.separator()
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.link", text="Link", icon='LINK_BLEND')
-        layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
+        layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
         layout.menu("INFO_MT_file_previews")
 
         layout.separator()
@@ -539,8 +539,13 @@ class TOPBAR_MT_file_specials(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.link", text="Link", icon='LINK_BLEND')
-        layout.operator("wm.append", text="Append", icon='APPEND_BLEND')
+        layout.operator("wm.read_homefile", text="New", icon='NEW')
+        layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
+
+        layout.separator()
+
+        layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
+        layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
 
         layout.separator()
 
