@@ -460,6 +460,8 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_exclude_clear);
 	WM_operatortype_append(OUTLINER_OT_collection_holdout_set);
 	WM_operatortype_append(OUTLINER_OT_collection_holdout_clear);
+	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_set);
+	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_clear);
 }
 
 static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)

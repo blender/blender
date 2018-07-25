@@ -146,6 +146,9 @@ class OUTLINER_MT_collection_view_layer(Menu):
         layout.operator("outliner.collection_exclude_clear")
 
         if context.engine == 'CYCLES':
+            layout.operator("outliner.collection_indirect_only_set")
+            layout.operator("outliner.collection_indirect_only_clear")
+
             layout.operator("outliner.collection_holdout_set")
             layout.operator("outliner.collection_holdout_clear")
 

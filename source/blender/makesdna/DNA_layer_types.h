@@ -105,6 +105,7 @@ enum {
 	BASE_ENABLED_RENDER   = (1 << 7), /* Object is enabled in final render */
 	BASE_ENABLED          = (1 << 9), /* Object is enabled. */
 	BASE_HOLDOUT          = (1 << 10), /* Object masked out from render */
+	BASE_INDIRECT_ONLY    = (1 << 11), /* Object only contributes indirectly to render */
 };
 
 /* LayerCollection->flag */
@@ -115,6 +116,7 @@ enum {
 	/* LAYER_COLLECTION_DEPRECATED3 = (1 << 3), */
 	LAYER_COLLECTION_EXCLUDE = (1 << 4),
 	LAYER_COLLECTION_HOLDOUT = (1 << 5),
+	LAYER_COLLECTION_INDIRECT_ONLY = (1 << 6),
 };
 
 /* Layer Collection->runtime_flag */

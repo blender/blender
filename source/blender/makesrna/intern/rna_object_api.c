@@ -128,7 +128,7 @@ static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return -1;
 	}
 
@@ -141,7 +141,7 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return -1;
 	}
 
@@ -153,11 +153,23 @@ static bool rna_Object_holdout_get(Object *ob, ReportList *reports, ViewLayer *v
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return -1;
 	}
 
 	return ((base->flag & BASE_HOLDOUT) != 0) ? 1 : 0;
+}
+
+static bool rna_Object_indirect_only_get(Object *ob, ReportList *reports, ViewLayer *view_layer)
+{
+	Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+	if (!base) {
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
+		return -1;
+	}
+
+	return ((base->flag & BASE_INDIRECT_ONLY) != 0) ? 1 : 0;
 }
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
@@ -513,6 +525,14 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object holdout");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "indirect_only_get", "rna_Object_indirect_only_get");
+	RNA_def_function_ui_description(func, "Test if object is set to contribute only indirectly (through shadows and reflections) in the view layer");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object indirect only");
 	RNA_def_function_return(func, parm);
 
 	/* Matrix space conversion */

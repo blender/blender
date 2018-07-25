@@ -487,28 +487,15 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 						nlc->flag |= LAYER_COLLECTION_EXCLUDE;
 					}
 				}
-				else if ((scene->lay & srl->lay & ~(srl->lay_exclude) & (1 << layer)) ||
-				         (srl->lay_zmask & (scene->lay | srl->lay_exclude) & (1 << layer)))
-				{
+				else {
 					if (srl->lay_zmask & (1 << layer)) {
 						have_override = true;
 						lc->flag |= LAYER_COLLECTION_HOLDOUT;
-
-						BKE_override_layer_collection_boolean_add(
-						        lc,
-						        ID_OB,
-						        "cycles.is_holdout",
-						        true);
 					}
 
 					if ((srl->lay & (1 << layer)) == 0) {
 						have_override = true;
-
-						BKE_override_layer_collection_boolean_add(
-						        lc,
-						        ID_OB,
-						        "cycles_visibility.camera",
-						        false);
+						lc->flag |= LAYER_COLLECTION_INDIRECT_ONLY;
 					}
 				}
 			}

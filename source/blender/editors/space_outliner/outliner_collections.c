@@ -625,6 +625,16 @@ static bool collections_holdout_clear_poll(bContext *C)
 	return collections_view_layer_poll(C, true, LAYER_COLLECTION_HOLDOUT);
 }
 
+static bool collections_indirect_only_set_poll(bContext *C)
+{
+	return collections_view_layer_poll(C, false, LAYER_COLLECTION_INDIRECT_ONLY);
+}
+
+static bool collections_indirect_only_clear_poll(bContext *C)
+{
+	return collections_view_layer_poll(C, true, LAYER_COLLECTION_INDIRECT_ONLY);
+}
+
 static void layer_collection_flag_recursive_set(LayerCollection *lc, int flag)
 {
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
@@ -647,7 +657,9 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	struct CollectionEditData data = {.scene = scene, .soops = soops};
 	bool clear = strstr(op->idname, "clear") != NULL;
-	int flag = strstr(op->idname, "holdout") ? LAYER_COLLECTION_HOLDOUT : LAYER_COLLECTION_EXCLUDE;
+	int flag = strstr(op->idname, "holdout") ?       LAYER_COLLECTION_HOLDOUT :
+	           strstr(op->idname, "indirect_only") ? LAYER_COLLECTION_INDIRECT_ONLY :
+	                                                 LAYER_COLLECTION_EXCLUDE;
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -734,6 +746,36 @@ void OUTLINER_OT_collection_holdout_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = collection_view_layer_exec;
 	ot->poll = collections_holdout_clear_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void OUTLINER_OT_collection_indirect_only_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Indirect Only";
+	ot->idname = "OUTLINER_OT_collection_indirect_only_set";
+	ot->description = "Set collection to only contribute indirectly (through shadows and reflections) in the view layer";
+
+	/* api callbacks */
+	ot->exec = collection_view_layer_exec;
+	ot->poll = collections_indirect_only_set_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void OUTLINER_OT_collection_indirect_only_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Indirect Only";
+	ot->idname = "OUTLINER_OT_collection_indirect_only_clear";
+	ot->description = "Clear collection contributing only indirectly in the view layer";
+
+	/* api callbacks */
+	ot->exec = collection_view_layer_exec;
+	ot->poll = collections_indirect_only_clear_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

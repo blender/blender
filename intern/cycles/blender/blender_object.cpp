@@ -361,12 +361,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 	}
 #endif
 
-	/* TODO: hide objects not on render layer from camera rays. */
-#if 0
-	if(!(layer_flag & view_layer.layer)) {
+	/* Clear camera visibility for indirect only objects. */
+	bool use_indirect_only = b_ob.indirect_only_get(b_view_layer);
+	if(use_indirect_only) {
 		visibility &= ~PATH_RAY_CAMERA;
 	}
-#endif
 
 	/* Don't export completely invisible objects. */
 	if(visibility == 0) {
