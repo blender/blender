@@ -57,6 +57,7 @@ typedef struct SubdivSettings {
 typedef enum eSubdivStatsValue {
 	SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME = 0,
 	SUBDIV_STATS_SUBDIV_TO_MESH,
+	SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY,
 	SUBDIV_STATS_EVALUATOR_CREATE,
 	SUBDIV_STATS_EVALUATOR_REFINE,
 
@@ -73,6 +74,8 @@ typedef struct SubdivStats {
 			double topology_refiner_creation_time;
 			/* Total time spent in BKE_subdiv_to_mesh(). */
 			double subdiv_to_mesh_time;
+			/* Geometry (MVert and co) creation time during SUBDIV_TYO_MESH. */
+			double subdiv_to_mesh_geometry_time;
 			/* Time spent on evaluator creation from topology refiner. */
 			double evaluator_creation_time;
 			/* Time spent on evaluator->refine(). */
