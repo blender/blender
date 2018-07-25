@@ -70,6 +70,10 @@ wmKeyMapItem *WM_keymap_add_panel(struct wmKeyMap *keymap, const char *idname, i
 wmKeyMapItem *WM_keymap_add_tool(struct wmKeyMap *keymap, const char *idname, int type,
                                  int val, int modifier, int keymodifier);
 
+void WM_keymap_add_context_enum_set_items(
+        wmKeyMap *keymap, const struct EnumPropertyItem *items, const char *data_path,
+        int type_start, int val, int modifier, int keymodifier);
+
 bool        WM_keymap_remove_item(struct wmKeyMap *keymap, struct wmKeyMapItem *kmi);
 int         WM_keymap_item_to_string(wmKeyMapItem *kmi, const bool compact, char *result, const int result_len);
 
