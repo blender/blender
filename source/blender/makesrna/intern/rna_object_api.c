@@ -129,10 +129,10 @@ static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
 
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
-		return -1;
+		return false;
 	}
 
-	return ((base->flag & BASE_SELECTED) != 0) ? 1 : 0;
+	return ((base->flag & BASE_SELECTED) != 0);
 }
 
 static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
@@ -142,10 +142,10 @@ static bool rna_Object_visible_get(Object *ob, bContext *C, ReportList *reports)
 
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
-		return -1;
+		return false;
 	}
 
-	return ((base->flag & BASE_VISIBLE) != 0) ? 1 : 0;
+	return ((base->flag & BASE_VISIBLE) != 0);
 }
 
 static bool rna_Object_holdout_get(Object *ob, ReportList *reports, ViewLayer *view_layer)
@@ -154,10 +154,10 @@ static bool rna_Object_holdout_get(Object *ob, ReportList *reports, ViewLayer *v
 
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
-		return -1;
+		return false;
 	}
 
-	return ((base->flag & BASE_HOLDOUT) != 0) ? 1 : 0;
+	return ((base->flag & BASE_HOLDOUT) != 0);
 }
 
 static bool rna_Object_indirect_only_get(Object *ob, ReportList *reports, ViewLayer *view_layer)
@@ -166,10 +166,10 @@ static bool rna_Object_indirect_only_get(Object *ob, ReportList *reports, ViewLa
 
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
-		return -1;
+		return false;
 	}
 
-	return ((base->flag & BASE_INDIRECT_ONLY) != 0) ? 1 : 0;
+	return ((base->flag & BASE_INDIRECT_ONLY) != 0);
 }
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
