@@ -165,6 +165,14 @@ const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
+	{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
+	{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
+	{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
+	{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 const EnumPropertyItem rna_enum_snap_element_items[] = {
 	{SCE_SNAP_MODE_INCREMENT, "INCREMENT", ICON_SNAP_INCREMENT, "Increment", "Snap to increments of grid"},
 	{SCE_SNAP_MODE_VERTEX, "VERTEX", ICON_SNAP_VERTEX, "Vertex", "Snap to vertices"},
@@ -2404,14 +2412,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem uv_select_mode_items[] = {
-		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
-		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
-		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
-		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	/* the construction of this enum is quite special - everything is stored as bitflags,
 	 * with 1st position only for for on/off (and exposed as boolean), while others are mutually
 	 * exclusive options but which will only have any effect when autokey is enabled
@@ -2806,7 +2806,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	/* UV */
 	prop = RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
-	RNA_def_property_enum_items(prop, uv_select_mode_items);
+	RNA_def_property_enum_items(prop, rna_enum_mesh_select_mode_uv_items);
 	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 

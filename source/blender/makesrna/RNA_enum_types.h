@@ -54,6 +54,7 @@ extern const EnumPropertyItem rna_enum_snap_element_items[];
 extern const EnumPropertyItem rna_enum_snap_node_element_items[];
 extern const EnumPropertyItem rna_enum_curve_fit_method_items[];
 extern const EnumPropertyItem rna_enum_mesh_select_mode_items[];
+extern const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[];
 extern const EnumPropertyItem rna_enum_mesh_delimit_mode_items[];
 extern const EnumPropertyItem rna_enum_space_graph_mode_items[];
 extern const EnumPropertyItem rna_enum_space_type_items[];

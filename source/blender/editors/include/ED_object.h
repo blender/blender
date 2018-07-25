@@ -112,6 +112,7 @@ void ED_keymap_proportional_obmode(struct wmKeyConfig *keyconf, struct wmKeyMap 
 void ED_keymap_proportional_maskmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
 void ED_keymap_proportional_editmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap,
                                      const bool do_connected);
+void ED_keymap_editmesh_elem_mode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
