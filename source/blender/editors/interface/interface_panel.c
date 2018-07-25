@@ -454,9 +454,9 @@ static void ui_offset_panel_block(uiBlock *block)
 /* triangle 'icon' for panel header */
 void UI_draw_icon_tri(float x, float y, char dir, const float color[4])
 {
-	float f3 = 0.15 * U.widget_unit;
-	float f5 = 0.25 * U.widget_unit;
-	float f7 = 0.35 * U.widget_unit;
+	float f3 = 0.05 * U.widget_unit;
+	float f5 = 0.15 * U.widget_unit;
+	float f7 = 0.25 * U.widget_unit;
 
 	if (dir == 'h') {
 		UI_draw_anti_tria(x - f3, y - f5, x - f3, y + f5, x + f7, y, color);

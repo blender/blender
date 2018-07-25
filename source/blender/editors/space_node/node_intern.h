@@ -238,7 +238,7 @@ extern const char *node_context_dir[];
 
 // nodes draw without dpi - the view zoom is flexible
 #define HIDDEN_RAD      (0.75f * U.widget_unit)
-#define BASIS_RAD       (0.4f * U.widget_unit)
+#define BASIS_RAD       (0.2f * U.widget_unit)
 #define NODE_DYS        (U.widget_unit / 2)
 #define NODE_DY         U.widget_unit
 #define NODE_SOCKDY     (0.08f * U.widget_unit)

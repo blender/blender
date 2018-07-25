@@ -951,18 +951,18 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	/* open/close entirely? */
 	{
 		uiBut *but;
-		int but_size = UI_UNIT_X * 0.6f;
+		int but_size = UI_UNIT_X * 1.2f;
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
 		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
 		but = uiDefBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, "",
-		               rct->xmin + 0.5f * U.widget_unit - but_size / 2, rct->ymax - NODE_DY / 2.0f - but_size / 2,
+		               rct->xmin + 0.6f * U.widget_unit - but_size / 2, rct->ymax - NODE_DY / 2.2f - but_size / 2,
 		               but_size, but_size, NULL, 0, 0, 0, 0, "");
 		UI_but_func_set(but, node_toggle_button_cb, node, (void *)"NODE_OT_hide_toggle");
 		UI_block_emboss_set(node->block, UI_EMBOSS);
 
 		UI_GetThemeColor4fv(TH_TEXT, color);
 		/* custom draw function for this button */
-		UI_draw_icon_tri(rct->xmin + 0.5f * U.widget_unit, rct->ymax - NODE_DY / 2.0f, 'v', color);
+		UI_draw_icon_tri(rct->xmin + 0.6f * U.widget_unit, rct->ymax - NODE_DY / 2.2f, 'v', color);
 	}
 
 	nodeLabel(ntree, node, showname, sizeof(showname));
@@ -1071,7 +1071,7 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	/* open entirely icon */
 	{
 		uiBut *but;
-		int but_size = UI_UNIT_X * 0.6f;
+		int but_size = UI_UNIT_X * 1.2f;
 		/* XXX button uses a custom triangle draw below, so make it invisible without icon */
 		UI_block_emboss_set(node->block, UI_EMBOSS_NONE);
 		but = uiDefBut(node->block, UI_BTYPE_BUT_TOGGLE, B_REDR, "",
