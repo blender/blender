@@ -492,6 +492,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 				{
 					if (srl->lay_zmask & (1 << layer)) {
 						have_override = true;
+						lc->flag |= LAYER_COLLECTION_HOLDOUT;
 
 						BKE_override_layer_collection_boolean_add(
 						        lc,

@@ -104,6 +104,7 @@ enum {
 	BASE_ENABLED_VIEWPORT = (1 << 6), /* Object is enabled in viewport. */
 	BASE_ENABLED_RENDER   = (1 << 7), /* Object is enabled in final render */
 	BASE_ENABLED          = (1 << 9), /* Object is enabled. */
+	BASE_HOLDOUT          = (1 << 10), /* Object masked out from render */
 };
 
 /* LayerCollection->flag */
@@ -113,6 +114,7 @@ enum {
 	/* LAYER_COLLECTION_DEPRECATED2 = (1 << 2), */
 	/* LAYER_COLLECTION_DEPRECATED3 = (1 << 3), */
 	LAYER_COLLECTION_EXCLUDE = (1 << 4),
+	LAYER_COLLECTION_HOLDOUT = (1 << 5),
 };
 
 /* Layer Collection->runtime_flag */

@@ -291,6 +291,7 @@ void BlenderSync::sync_background_light(bool use_portal)
 /* Object */
 
 Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
+                                 BL::ViewLayer& b_view_layer,
                                  BL::DepsgraphObjectInstance& b_instance,
                                  float motion_time,
                                  bool hide_tris,
@@ -345,7 +346,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 	/* Visibility flags for both parent and child. */
 	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
-	bool use_holdout = get_boolean(cobject, "is_holdout");
+	bool use_holdout = get_boolean(cobject, "is_holdout") ||
+	                   b_ob.holdout_get(b_view_layer);
 	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
 	if(b_parent.ptr.data != b_ob.ptr.data) {
@@ -588,6 +590,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 	BL::Depsgraph::mode_enum depsgraph_mode = b_depsgraph.mode();
 
 	BL::Depsgraph::object_instances_iterator b_instance_iter;
@@ -609,6 +612,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		 if(!object_render_hide(b_ob, true, true, hide_tris, depsgraph_mode)) {
 			/* object itself */
 			sync_object(b_depsgraph,
+			            b_view_layer,
 			            b_instance,
 			            motion_time,
 			            hide_tris,

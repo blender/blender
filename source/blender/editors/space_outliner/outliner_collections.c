@@ -574,7 +574,7 @@ static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, v
 	return TRAVERSE_CONTINUE;
 }
 
-static bool collections_view_layer_poll(bContext *C, bool include)
+static bool collections_view_layer_poll(bContext *C, bool clear, int flag)
 {
 	/* Poll function so the right click menu show current state of selected collections. */
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -593,10 +593,10 @@ static bool collections_view_layer_poll(bContext *C, bool include)
 	GSET_ITER(collections_to_edit_iter, data.collections_to_edit) {
 		LayerCollection *lc = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 
-		if (include && (lc->flag & LAYER_COLLECTION_EXCLUDE)) {
+		if (clear && (lc->flag & flag)) {
 			result = true;
 		}
-		else if (!include && !(lc->flag & LAYER_COLLECTION_EXCLUDE)) {
+		else if (!clear && !(lc->flag & flag)) {
 			result = true;
 		}
 	}
@@ -605,27 +605,37 @@ static bool collections_view_layer_poll(bContext *C, bool include)
 	return result;
 }
 
-static bool collections_exclude_poll(bContext *C)
+static bool collections_exclude_set_poll(bContext *C)
 {
-	return collections_view_layer_poll(C, false);
+	return collections_view_layer_poll(C, false, LAYER_COLLECTION_EXCLUDE);
 }
 
-static bool collections_include_poll(bContext *C)
+static bool collections_exclude_clear_poll(bContext *C)
 {
-	return collections_view_layer_poll(C, true);
+	return collections_view_layer_poll(C, true, LAYER_COLLECTION_EXCLUDE);
 }
 
-static void layer_collection_exclude_recursive_set(LayerCollection *lc)
+static bool collections_holdout_set_poll(bContext *C)
+{
+	return collections_view_layer_poll(C, false, LAYER_COLLECTION_HOLDOUT);
+}
+
+static bool collections_holdout_clear_poll(bContext *C)
+{
+	return collections_view_layer_poll(C, true, LAYER_COLLECTION_HOLDOUT);
+}
+
+static void layer_collection_flag_recursive_set(LayerCollection *lc, int flag)
 {
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
-		if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
-			nlc->flag |= LAYER_COLLECTION_EXCLUDE;
+		if (lc->flag & flag) {
+			nlc->flag |= flag;
 		}
 		else {
-			nlc->flag &= ~LAYER_COLLECTION_EXCLUDE;
+			nlc->flag &= ~flag;
 		}
 
-		layer_collection_exclude_recursive_set(nlc);
+		layer_collection_flag_recursive_set(nlc, flag);
 	}
 }
 
@@ -636,7 +646,8 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	struct CollectionEditData data = {.scene = scene, .soops = soops};
-	bool include = STREQ(op->idname, "OUTLINER_OT_collection_include_set");
+	bool clear = strstr(op->idname, "clear") != NULL;
+	int flag = strstr(op->idname, "holdout") ? LAYER_COLLECTION_HOLDOUT : LAYER_COLLECTION_EXCLUDE;
 
 	data.collections_to_edit = BLI_gset_ptr_new(__func__);
 
@@ -647,14 +658,14 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 		LayerCollection *lc = BLI_gsetIterator_getKey(&collections_to_edit_iter);
 
 		if (!(lc->collection->flag & COLLECTION_IS_MASTER)) {
-			if (include) {
-				lc->flag &= ~LAYER_COLLECTION_EXCLUDE;
+			if (clear) {
+				lc->flag &= ~flag;
 			}
 			else {
-				lc->flag |= LAYER_COLLECTION_EXCLUDE;
+				lc->flag |= flag;
 			}
 
-			layer_collection_exclude_recursive_set(lc);
+			layer_collection_flag_recursive_set(lc, flag);
 		}
 	}
 
@@ -671,28 +682,58 @@ static int collection_view_layer_exec(bContext *C, wmOperator *op)
 void OUTLINER_OT_collection_exclude_set(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Exclude from View Layer";
+	ot->name = "Set Exclude";
 	ot->idname = "OUTLINER_OT_collection_exclude_set";
 	ot->description = "Exclude collection from the active view layer";
 
 	/* api callbacks */
 	ot->exec = collection_view_layer_exec;
-	ot->poll = collections_exclude_poll;
+	ot->poll = collections_exclude_set_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-void OUTLINER_OT_collection_include_set(wmOperatorType *ot)
+void OUTLINER_OT_collection_exclude_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Include in View Layer";
-	ot->idname = "OUTLINER_OT_collection_include_set";
+	ot->name = "Clear Exclude";
+	ot->idname = "OUTLINER_OT_collection_exclude_clear";
 	ot->description = "Include collection in the active view layer";
 
 	/* api callbacks */
 	ot->exec = collection_view_layer_exec;
-	ot->poll = collections_include_poll;
+	ot->poll = collections_exclude_clear_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void OUTLINER_OT_collection_holdout_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Holdout";
+	ot->idname = "OUTLINER_OT_collection_holdout_set";
+	ot->description = "Mask collection in the active view layer";
+
+	/* api callbacks */
+	ot->exec = collection_view_layer_exec;
+	ot->poll = collections_holdout_set_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+void OUTLINER_OT_collection_holdout_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Holdout";
+	ot->idname = "OUTLINER_OT_collection_holdout_clear";
+	ot->description = "Clear masking of collection in the active view layer";
+
+	/* api callbacks */
+	ot->exec = collection_view_layer_exec;
+	ot->poll = collections_holdout_clear_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

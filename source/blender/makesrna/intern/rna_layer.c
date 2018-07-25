@@ -230,6 +230,12 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Exclude", "Exclude collection from view layer");
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
+
+	prop = RNA_def_property(srna, "holdout", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", LAYER_COLLECTION_HOLDOUT);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Holdout", "Mask out collection from view layer");
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_LayerCollection_use_update");
 }
 
 static void rna_def_layer_collections(BlenderRNA *brna, PropertyRNA *cprop)
