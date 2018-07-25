@@ -220,7 +220,8 @@ typedef struct RigidBodyCon {
 	int flag;					/* (eRigidBodyCon_Flag) */
 
 	float breaking_threshold;	/* breaking impulse threshold */
-	float pad;
+	char spring_type;       	/* spring implementation to use */
+	char pad[3];
 
 	/* limits */
 	/* translation limits */
@@ -290,8 +291,14 @@ typedef enum eRigidBodyCon_Type {
 	/* Simplified spring constraint with only once axis that's automatically placed between the connected bodies */
 	RBC_TYPE_SPRING,
 	/* dirves bodies by applying linear and angular forces */
-	RBC_TYPE_MOTOR
+	RBC_TYPE_MOTOR,
 } eRigidBodyCon_Type;
+
+/* Spring implementation type for RigidBodyOb */
+typedef enum eRigidBodyCon_SpringType {
+	RBC_SPRING_TYPE1 = 0,	/* btGeneric6DofSpringConstraint */
+	RBC_SPRING_TYPE2,   	/* btGeneric6DofSpring2Constraint */
+} eRigidBodyCon_SpringType;
 
 /* Flags for RigidBodyCon */
 typedef enum eRigidBodyCon_Flag {

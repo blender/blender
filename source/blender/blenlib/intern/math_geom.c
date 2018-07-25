@@ -2763,9 +2763,11 @@ bool isect_ray_aabb_v3(
 	return true;
 }
 
-/*
- * Test a bounding box (AABB) for ray intersection
- * assumes the ray is already local to the boundbox space
+/**
+ * Test a bounding box (AABB) for ray intersection.
+ * Assumes the ray is already local to the boundbox space.
+ *
+ * \note: \a direction should be normalized if you intend to use the \a tmin or \a tmax distance results!
  */
 bool isect_ray_aabb_v3_simple(
         const float orig[3], const float dir[3],
@@ -2774,19 +2776,25 @@ bool isect_ray_aabb_v3_simple(
 {
 	double t[7];
 	float hit_dist[2];
-	t[1] = (double)(bb_min[0] - orig[0]) / dir[0];
-	t[2] = (double)(bb_max[0] - orig[0]) / dir[0];
-	t[3] = (double)(bb_min[1] - orig[1]) / dir[1];
-	t[4] = (double)(bb_max[1] - orig[1]) / dir[1];
-	t[5] = (double)(bb_min[2] - orig[2]) / dir[2];
-	t[6] = (double)(bb_max[2] - orig[2]) / dir[2];
+	const double invdirx = (dir[0] > 1e-35f || dir[0] < -1e-35f) ? 1.0 / (double)dir[0] : DBL_MAX;
+	const double invdiry = (dir[1] > 1e-35f || dir[1] < -1e-35f) ? 1.0 / (double)dir[1] : DBL_MAX;
+	const double invdirz = (dir[2] > 1e-35f || dir[2] < -1e-35f) ? 1.0 / (double)dir[2] : DBL_MAX;
+	t[1] = (double)(bb_min[0] - orig[0]) * invdirx;
+	t[2] = (double)(bb_max[0] - orig[0]) * invdirx;
+	t[3] = (double)(bb_min[1] - orig[1]) * invdiry;
+	t[4] = (double)(bb_max[1] - orig[1]) * invdiry;
+	t[5] = (double)(bb_min[2] - orig[2]) * invdirz;
+	t[6] = (double)(bb_max[2] - orig[2]) * invdirz;
 	hit_dist[0] = (float)fmax(fmax(fmin(t[1], t[2]), fmin(t[3], t[4])), fmin(t[5], t[6]));
 	hit_dist[1] = (float)fmin(fmin(fmax(t[1], t[2]), fmax(t[3], t[4])), fmax(t[5], t[6]));
-	if ((hit_dist[1] < 0 || hit_dist[0] > hit_dist[1]))
+	if ((hit_dist[1] < 0.0f || hit_dist[0] > hit_dist[1])) {
 		return false;
+	}
 	else {
-		if (tmin) *tmin = hit_dist[0];
-		if (tmax) *tmax = hit_dist[1];
+		if (tmin)
+			*tmin = hit_dist[0];
+		if (tmax)
+			*tmax = hit_dist[1];
 		return true;
 	}
 }

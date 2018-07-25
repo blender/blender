@@ -333,8 +333,10 @@ static void rna_Object_ray_cast(
 	/* Test BoundBox first (efficiency) */
 	BoundBox *bb = BKE_object_boundbox_get(ob);
 	float distmin;
-	if (!bb || (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, NULL) && distmin <= distance)) {
-
+	normalize_v3(direction);  /* Needed for valid distance check from isect_ray_aabb_v3_simple() call. */
+	if (!bb ||
+	    (isect_ray_aabb_v3_simple(origin, direction, bb->vec[0], bb->vec[6], &distmin, NULL) && distmin <= distance))
+	{
 		BVHTreeFromMesh treeData = {NULL};
 
 		/* no need to managing allocation or freeing of the BVH data. this is generated and freed as needed */
@@ -346,9 +348,6 @@ static void rna_Object_ray_cast(
 
 			hit.index = -1;
 			hit.dist = distance;
-
-			normalize_v3(direction);
-
 
 			if (BLI_bvhtree_ray_cast(treeData.tree, origin, direction, 0.0f, &hit,
 			                         treeData.raycast_callback, &treeData) != -1)

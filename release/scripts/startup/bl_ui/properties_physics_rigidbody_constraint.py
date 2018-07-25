@@ -139,6 +139,11 @@ class PHYSICS_PT_rigid_body_constraint(PHYSICS_PT_rigidbody_constraint_panel, Pa
             sub.prop(rbc, "motor_ang_max_impulse", text="Max Impulse")
 
         elif rbc.type in {'GENERIC', 'GENERIC_SPRING'}:
+            if rbc.type == 'GENERIC_SPRING':
+                row = layout.row()
+                row.label("Spring Type:")
+                row.prop(rbc, "spring_type", text="")
+
             col = layout.column(align=True)
             col.label("Limits:")
 
