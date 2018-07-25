@@ -566,10 +566,10 @@ static void loop_interpolation_end(LoopsForInterpolation *loop_interpolation)
 static void subdiv_copy_vertex_data(
         const SubdivMeshContext *ctx,
         MVert *subdiv_vertex,
-        const Mesh *coarse_mesh,
+        const Mesh *UNUSED(coarse_mesh),
         const MPoly *coarse_poly,
         const VerticesForInterpolation *vertex_interpolation,
-        const int ptex_of_poly_index,
+        const int UNUSED(ptex_of_poly_index),
         const float u, const float v)
 {
 	const int subdiv_vertex_index = subdiv_vertex - ctx->subdiv_mesh->mvert;
@@ -587,27 +587,33 @@ static void subdiv_copy_vertex_data(
 		ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
 		if (coarse_poly->totloop == 4) {
 			if (u == 0.0f && v == 0.0f) {
-				ctx->vert_origindex[subdiv_vertex_index] =
-				        vertex_interpolation->vertex_indices[0];
+				// ctx->vert_origindex[subdiv_vertex_index] =
+				//         vertex_interpolation->vertex_indices[0];
 			}
 			else if (u == 1.0f && v == 0.0f) {
-				ctx->vert_origindex[subdiv_vertex_index] =
-				        vertex_interpolation->vertex_indices[1];
+				// ctx->vert_origindex[subdiv_vertex_index] =
+				//         vertex_interpolation->vertex_indices[1];
 			}
 			else if (u == 1.0f && v == 1.0f) {
-				ctx->vert_origindex[subdiv_vertex_index] =
-				        vertex_interpolation->vertex_indices[2];
+				// ctx->vert_origindex[subdiv_vertex_index] =
+				//         vertex_interpolation->vertex_indices[2];
 			}
 			else if (u == 0.0f && v == 1.0f) {
-				ctx->vert_origindex[subdiv_vertex_index] =
-				        vertex_interpolation->vertex_indices[3];
+				// ctx->vert_origindex[subdiv_vertex_index] =
+				//         vertex_interpolation->vertex_indices[3];
+			}
+			else {
+				ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
 			}
 		} else {
 			if (u == 0.0f && v == 0.0f) {
-				const MLoop *coarse_mloop = coarse_mesh->mloop;
-				ctx->vert_origindex[subdiv_vertex_index] =
-				        coarse_mloop[coarse_poly->loopstart +
-				                             ptex_of_poly_index].v;
+				// const MLoop *coarse_mloop = coarse_mesh->mloop;
+				// ctx->vert_origindex[subdiv_vertex_index] =
+				//         coarse_mloop[coarse_poly->loopstart +
+				//                              ptex_of_poly_index].v;
+			}
+			else {
+				ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
 			}
 		}
 	}
@@ -996,7 +1002,7 @@ static void subdiv_copy_poly_data(const SubdivMeshContext *ctx,
 	                     subdiv_poly_index,
 	                     1);
 	if (ctx->poly_origindex != NULL) {
-		ctx->poly_origindex[subdiv_poly_index] = coarse_poly_index;
+		// ctx->poly_origindex[subdiv_poly_index] = coarse_poly_index;
 	}
 }
 
