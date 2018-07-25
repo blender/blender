@@ -168,7 +168,7 @@ def reset(engine, data, depsgraph):
     import bpy
 
     if bpy.app.debug_value == 256:
-        _cycles.debug_flags_update(depsgraph.scene)
+        _cycles.debug_flags_update(depsgraph.scene.as_pointer())
     else:
         _cycles.debug_flags_reset()
 
