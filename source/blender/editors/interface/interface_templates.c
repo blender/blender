@@ -1557,7 +1557,7 @@ static void template_operator_redo_property_buts_draw(
 		eAutoPropButsReturn return_info = uiTemplateOperatorPropertyButs(
 		        C, layout, op,
 		        UI_BUT_LABEL_ALIGN_NONE,
-		        layout_flags | (r_has_advanced ? UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED : 0));
+		        layout_flags);
 		if (return_info & UI_PROP_BUTS_ANY_FAILED_CHECK) {
 			if (r_has_advanced) {
 				*r_has_advanced = true;
