@@ -511,6 +511,17 @@ static bool transform_poll_property(const bContext *UNUSED(C), wmOperator *op, c
 {
 	const char *prop_id = RNA_property_identifier(prop);
 
+	/* Orientation/Constraints. */
+	{
+		/* Hide orientation axis if no constraints are set, since it wont be used. */
+		PropertyRNA *prop_con = RNA_struct_find_property(op->ptr, "constraint_axis");
+		if (prop_con && !RNA_property_is_set(op->ptr, prop_con)) {
+			if (STRPREFIX(prop_id, "constraint")) {
+				return false;
+			}
+		}
+	}
+
 	/* Proportional Editing. */
 	{
 		PropertyRNA *prop_pet = RNA_struct_find_property(op->ptr, "proportional");

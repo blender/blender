@@ -2153,7 +2153,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			}
 		}
 
-		RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+		/* Only set if needed, so we can hide in the UI when nothing is set.
+		 * See 'transform_poll_property'. */
+		if (ELEM(true, UNPACK3(constraint_axis))) {
+			RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+		}
 	}
 
 	{
