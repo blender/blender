@@ -88,7 +88,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             if cam.lens_unit == 'MILLIMETERS':
                 col.prop(cam, "lens")
             elif cam.lens_unit == 'FOV':
-                row.prop(cam, "angle")
+                col.prop(cam, "angle")
             col.prop(cam, "lens_unit")
 
         elif cam.type == 'ORTHO':
