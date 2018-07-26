@@ -453,8 +453,9 @@ static bool data_transfer_poll(bContext *C)
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-static bool data_transfer_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
+static bool data_transfer_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
 {
+	PointerRNA *ptr = op->ptr;
 	PropertyRNA *prop_other;
 
 	const char *prop_id = RNA_property_identifier(prop);
@@ -515,19 +516,6 @@ static bool data_transfer_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, vo
 	return true;
 }
 
-/* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-static void data_transfer_ui(bContext *C, wmOperator *op)
-{
-	uiLayout *layout = op->layout;
-	wmWindowManager *wm = CTX_wm_manager(C);
-	PointerRNA ptr;
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, data_transfer_draw_check_prop, NULL, '\0');
-}
-
 /* transfers weight from active to selected */
 void OBJECT_OT_data_transfer(wmOperatorType *ot)
 {
@@ -540,10 +528,10 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 
 	/* API callbacks.*/
 	ot->poll = data_transfer_poll;
+	ot->poll_property = data_transfer_poll_property;
 	ot->invoke = WM_menu_invoke;
 	ot->exec = data_transfer_exec;
 	ot->check = data_transfer_check;
-	ot->ui = data_transfer_ui;
 
 	/* Flags.*/
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -702,10 +690,10 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
 	ot->idname = "OBJECT_OT_datalayout_transfer";
 
 	ot->poll = datalayout_transfer_poll;
+	ot->poll_property = data_transfer_poll_property;
 	ot->invoke = datalayout_transfer_invoke;
 	ot->exec = datalayout_transfer_exec;
 	ot->check = data_transfer_check;
-	ot->ui = data_transfer_ui;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -1371,8 +1371,9 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
+static bool gp_convert_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
 {
+	PointerRNA *ptr = op->ptr;
 	const char *prop_id = RNA_property_identifier(prop);
 	const bool link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
 	int timing_mode = RNA_enum_get(ptr, "timing_mode");
@@ -1435,18 +1436,6 @@ static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void 
 	return false;
 }
 
-static void gp_convert_ui(bContext *C, wmOperator *op)
-{
-	uiLayout *layout = op->layout;
-	wmWindowManager *wm = CTX_wm_manager(C);
-	PointerRNA ptr;
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, gp_convert_draw_check_prop, NULL, '\0');
-}
-
 void GPENCIL_OT_convert(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1460,7 +1449,7 @@ void GPENCIL_OT_convert(wmOperatorType *ot)
 	ot->invoke = WM_menu_invoke;
 	ot->exec = gp_convert_layer_exec;
 	ot->poll = gp_convert_poll;
-	ot->ui = gp_convert_ui;
+	ot->poll_property = gp_convert_poll_property;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
