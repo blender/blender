@@ -952,7 +952,7 @@ bool RNA_struct_bl_idname_ok_or_report(ReportList *reports, const char *identifi
 
 /* Property Information */
 
-const char *RNA_property_identifier(PropertyRNA *prop)
+const char *RNA_property_identifier(const PropertyRNA *prop)
 {
 	return rna_ensure_property_identifier(prop);
 }
