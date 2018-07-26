@@ -1341,16 +1341,9 @@ static void tselem_draw_icon(
 static void outliner_draw_iconrow_number(
         const uiFontStyle *fstyle,
         int offsx, int ys,
-        const eOLDrawState active,
         const int num_elements)
 {
-	float color[4] = {0.4f, 0.4f, 0.4f, 0.9f};
-	copy_v3_fl(color, 0.2f);
-	if (active != OL_DRAWSEL_NONE) {
-		copy_v3_fl(color, 0.65f);
-		color[3] = 1.0f;
-	}
-
+	float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	float ufac = 0.25f * UI_UNIT_X;
 	float offset_x = (float) offsx + UI_UNIT_X * 0.35f;
 
@@ -1414,13 +1407,13 @@ static void outliner_draw_iconrow_doit(
 	}
 
 	/* No inlined icon should be clickable. */
-	tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.5f * alpha_fac, false);
+	tselem_draw_icon(block, xmax, (float)*offsx, (float)ys, tselem, te, 0.8f * alpha_fac, false);
 	te->xs = *offsx;
 	te->ys = ys;
 	te->xend = (short)*offsx + UI_UNIT_X;
 
 	if (num_elements > 1) {
-		outliner_draw_iconrow_number(fstyle, *offsx, ys, active, num_elements);
+		outliner_draw_iconrow_number(fstyle, *offsx, ys, num_elements);
 	}
 	(*offsx) += UI_UNIT_X;
 }
