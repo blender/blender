@@ -450,7 +450,7 @@ static bool data_transfer_poll(bContext *C)
 }
 
 /* Used by both OBJECT_OT_data_transfer and OBJECT_OT_datalayout_transfer */
-static bool data_transfer_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool data_transfer_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
 {
 	PropertyRNA *prop_other;
 
@@ -522,7 +522,7 @@ static void data_transfer_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, data_transfer_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
+	uiDefAutoButsRNA(layout, &ptr, data_transfer_draw_check_prop, NULL, '\0', false);
 }
 
 /* transfers weight from active to selected */

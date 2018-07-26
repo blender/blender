@@ -800,7 +800,7 @@ bool RNA_struct_bl_idname_ok_or_report(struct ReportList *reports, const char *i
 
 /* Property Information */
 
-const char *RNA_property_identifier(PropertyRNA *prop);
+const char *RNA_property_identifier(const PropertyRNA *prop);
 const char *RNA_property_description(PropertyRNA *prop);
 
 PropertyType RNA_property_type(PropertyRNA *prop);

@@ -947,7 +947,7 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	return OPERATOR_INTERFACE;
 }
 
-static bool parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
 {
 	const char *prop_id = RNA_property_identifier(prop);
 	const int type = RNA_enum_get(ptr, "type");
@@ -972,7 +972,7 @@ static void parent_set_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call. */
-	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
+	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 void OBJECT_OT_parent_set(wmOperatorType *ot)

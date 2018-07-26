@@ -1410,7 +1410,7 @@ static int image_open_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static bool image_open_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+static bool image_open_draw_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop, void *UNUSED(user_data))
 {
 	const char *prop_id = RNA_property_identifier(prop);
 
@@ -1429,7 +1429,7 @@ static void image_open_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(layout, &ptr, image_open_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
+	uiDefAutoButsRNA(layout, &ptr, image_open_draw_check_prop, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
 	/* image template */
 	RNA_pointer_create(NULL, &RNA_ImageFormatSettings, imf, &imf_ptr);
@@ -2124,7 +2124,7 @@ static void image_save_as_cancel(bContext *UNUSED(C), wmOperator *op)
 	image_save_as_free(op);
 }
 
-static bool image_save_as_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool image_save_as_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
 {
 	const char *prop_id = RNA_property_identifier(prop);
 
@@ -2149,7 +2149,7 @@ static void image_save_as_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(layout, &ptr, image_save_as_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
+	uiDefAutoButsRNA(layout, &ptr, image_save_as_draw_check_prop, NULL, UI_BUT_LABEL_ALIGN_NONE, false);
 
 	/* multiview template */
 	if (is_multiview)

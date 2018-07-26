@@ -1382,7 +1382,7 @@ static int gp_convert_layer_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool gp_convert_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop, void *UNUSED(user_data))
 {
 	const char *prop_id = RNA_property_identifier(prop);
 	const bool link_strokes = RNA_boolean_get(ptr, "use_link_strokes");
@@ -1455,7 +1455,7 @@ static void gp_convert_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, gp_convert_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
+	uiDefAutoButsRNA(layout, &ptr, gp_convert_draw_check_prop, NULL, '\0', false);
 }
 
 void GPENCIL_OT_convert(wmOperatorType *ot)

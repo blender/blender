@@ -1542,11 +1542,6 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 /************************ Redo Buttons Template *************************/
 
-static bool template_operator_redo_property_buts_poll(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
-{
-	return (RNA_property_tags(prop) & OP_PROP_TAG_ADVANCED) == 0;
-}
-
 static void template_operator_redo_property_buts_draw(
         const bContext *C, wmOperator *op,
         uiLayout *layout, int layout_flags,
@@ -1560,8 +1555,9 @@ static void template_operator_redo_property_buts_draw(
 	else {
 		/* Might want to make label_align adjustable somehow. */
 		eAutoPropButsReturn return_info = uiTemplateOperatorPropertyButs(
-		        C, layout, op, r_has_advanced ? template_operator_redo_property_buts_poll : NULL,
-		        UI_BUT_LABEL_ALIGN_NONE, layout_flags);
+		        C, layout, op,
+		        UI_BUT_LABEL_ALIGN_NONE,
+		        layout_flags | (r_has_advanced ? UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED : 0));
 		if (return_info & UI_PROP_BUTS_ANY_FAILED_CHECK) {
 			if (r_has_advanced) {
 				*r_has_advanced = true;
@@ -3948,13 +3944,30 @@ static void ui_layout_operator_buts__reset_cb(bContext *UNUSED(C), void *op_pt, 
 }
 #endif
 
+struct uiTemplateOperatorPropertyPollParam {
+	const bContext *C;
+	wmOperator *op;
+	short flag;
+};
+
+static bool ui_layout_operator_buts_poll_property(
+        struct PointerRNA *UNUSED(ptr), struct PropertyRNA *prop, void *user_data)
+{
+	struct uiTemplateOperatorPropertyPollParam *params = user_data;
+	if ((params->flag & UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED) &&
+	    (RNA_property_tags(prop) & OP_PROP_TAG_ADVANCED))
+	{
+		return false;
+	}
+	return params->op->type->poll_property(params->C, params->op, prop);
+}
+
 /**
  * Draw Operator property buttons for redoing execution with different settings.
  * This function does not initialize the layout, functions can be called on the layout before and after.
  */
 eAutoPropButsReturn uiTemplateOperatorPropertyButs(
         const bContext *C, uiLayout *layout, wmOperator *op,
-        bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
         const eButLabelAlign label_align, const short flag)
 {
 	uiBlock *block = uiLayoutGetBlock(layout);
@@ -4013,13 +4026,32 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 	else {
 		wmWindowManager *wm = CTX_wm_manager(C);
 		PointerRNA ptr;
+		struct uiTemplateOperatorPropertyPollParam user_data = {.C = C, .op = op, .flag = flag};
+
+
+
+#if 0
+static bool template_operator_redo_property_buts_poll(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+{
+}
+#endif
+
+
+
+
+
+
 
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 		uiLayoutSetPropSep(layout, true);
 
 		/* main draw call */
-		return_info = uiDefAutoButsRNA(layout, &ptr, check_prop, label_align, (flag & UI_TEMPLATE_OP_PROPS_COMPACT));
+		return_info = uiDefAutoButsRNA(
+		        layout, &ptr,
+		        op->type->poll_property ? ui_layout_operator_buts_poll_property : NULL,
+		        op->type->poll_property ? &user_data : NULL,
+		        label_align, (flag & UI_TEMPLATE_OP_PROPS_COMPACT));
 
 		if ((return_info & UI_PROP_BUTS_NONE_ADDED) && (flag & UI_TEMPLATE_OP_PROPS_SHOW_EMPTY)) {
 			uiItemL(layout, IFACE_("No Properties"), ICON_NONE);
