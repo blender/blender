@@ -1441,22 +1441,18 @@ static int tree_element_id_type_to_index(TreeElement *te)
 	}
 }
 
+typedef struct MergedIconRow {
+	eOLDrawState active[INDEX_ID_MAX + OB_TYPE_MAX];
+	int num_elements[INDEX_ID_MAX + OB_TYPE_MAX];
+	TreeElement *tree_element[INDEX_ID_MAX + OB_TYPE_MAX];
+} MergedIconRow;
+
 static void outliner_draw_iconrow(
         bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, ViewLayer *view_layer, SpaceOops *soops,
-        ListBase *lb, int level, int xmax, int *offsx, int ys, float alpha_fac)
+        ListBase *lb, int level, int xmax, int *offsx, int ys, float alpha_fac, MergedIconRow *merged)
 {
 	eOLDrawState active;
 	const Object *obact = OBACT(view_layer);
-
-	struct {
-		eOLDrawState active[INDEX_ID_MAX + OB_TYPE_MAX];
-		int num_elements[INDEX_ID_MAX + OB_TYPE_MAX];
-		TreeElement *tree_element[INDEX_ID_MAX + OB_TYPE_MAX];
-	} data = {
-		.active = {0},
-		.num_elements = {0},
-		.tree_element = {NULL},
-	};
 
 	for (TreeElement *te = lb->first; te; te = te->next) {
 		/* exit drawing early */
@@ -1488,13 +1484,13 @@ static void outliner_draw_iconrow(
 			}
 			else {
 				const int index = tree_element_id_type_to_index(te);
-				data.num_elements[index]++;
-				if ((data.tree_element[index] == NULL) ||
-				    (active > data.active[index]))
+				merged->num_elements[index]++;
+				if ((merged->tree_element[index] == NULL) ||
+				    (active > merged->active[index]))
 				{
-					data.tree_element[index] = te;
+					merged->tree_element[index] = te;
 				}
-				data.active[index] = MAX2(active, data.active[index]);
+				merged->active[index] = MAX2(active, merged->active[index]);
 			}
 		}
 
@@ -1502,26 +1498,28 @@ static void outliner_draw_iconrow(
 		if (tselem->type != TSE_R_LAYER) {
 			outliner_draw_iconrow(
 			        C, block, fstyle, scene, view_layer, soops,
-			        &te->subtree, level + 1, xmax, offsx, ys, alpha_fac);
+			        &te->subtree, level + 1, xmax, offsx, ys, alpha_fac, merged);
 		}
 	}
 
-	for (int i = 0; i < INDEX_ID_MAX; i++) {
-		const int num_subtypes = (i == INDEX_ID_OB) ? OB_TYPE_MAX : 1;
-		/* See tree_element_id_type_to_index for the index logic. */
-		int index_base = i;
-		if (i > INDEX_ID_OB) {
-			index_base += OB_TYPE_MAX;
-		}
-		for (int j = 0; j < num_subtypes; j++) {
-			const int index = index_base + j;
-			if (data.num_elements[index] != 0) {
-				outliner_draw_iconrow_doit(block,
-				                           data.tree_element[index],
-				                           fstyle,
-				                           xmax, offsx, ys, alpha_fac,
-				                           data.active[index],
-				                           data.num_elements[index]);
+	if (level == 0) {
+		for (int i = 0; i < INDEX_ID_MAX; i++) {
+			const int num_subtypes = (i == INDEX_ID_OB) ? OB_TYPE_MAX : 1;
+			/* See tree_element_id_type_to_index for the index logic. */
+			int index_base = i;
+			if (i > INDEX_ID_OB) {
+				index_base += OB_TYPE_MAX;
+			}
+			for (int j = 0; j < num_subtypes; j++) {
+				const int index = index_base + j;
+				if (merged->num_elements[index] != 0) {
+					outliner_draw_iconrow_doit(block,
+					                           merged->tree_element[index],
+					                           fstyle,
+					                           xmax, offsx, ys, alpha_fac,
+					                           merged->active[index],
+					                           merged->num_elements[index]);
+				}
 			}
 		}
 	}
@@ -1748,9 +1746,10 @@ static void outliner_draw_tree_element(
 						immUnbindProgram();
 					}
 
+					MergedIconRow merged = {{0}};
 					outliner_draw_iconrow(
 					        C, block, fstyle, scene, view_layer, soops, &te->subtree, 0, xmax, &tempx,
-					        *starty, alpha_fac);
+					        *starty, alpha_fac, &merged);
 
 					GPU_blend(false);
 				}
