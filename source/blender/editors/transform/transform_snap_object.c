@@ -2055,6 +2055,9 @@ static short snapEditMesh(
 	BVHTreeFromEditMesh *treedata_vert = NULL, *treedata_edge = NULL;
 	Object *em_ob = em->ob;
 
+	BLI_assert(em_ob->data == ob->data);
+	UNUSED_VARS_NDEBUG(ob);
+
 	void **sod_p;
 	/* Use `em->ob` as the key in ghash since the editmesh is used
 	 * to create bvhtree and is the same for each linked object. */

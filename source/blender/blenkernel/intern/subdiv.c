@@ -96,5 +96,7 @@ void BKE_subdiv_free(Subdiv *subdiv)
 		openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
 	}
 	MEM_freeN(subdiv);
+#else
+	UNUSED_VARS(subdiv);
 #endif
 }
