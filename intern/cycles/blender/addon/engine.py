@@ -52,7 +52,9 @@ def _workaround_buggy_drivers():
 
 def _configure_argument_parser():
     import argparse
-    parser = argparse.ArgumentParser(description="Cycles Addon argument parser")
+    # No help because it conflicts with general Python scripts argument parsing
+    parser = argparse.ArgumentParser(description="Cycles Addon argument parser",
+                                     add_help=False)
     parser.add_argument("--cycles-resumable-num-chunks",
                         help="Number of chunks to split sample range into",
                         default=None)
