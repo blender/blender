@@ -1048,14 +1048,15 @@ static void knifetool_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void 
 	GPU_matrix_push();
 	GPU_matrix_mul(kcd->ob->obmat);
 
+	if (kcd->mode == MODE_DRAGGING && kcd->is_angle_snapping) {
+		knifetool_draw_angle_snapping(kcd);
+	}
+
 	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
 	if (kcd->mode == MODE_DRAGGING) {
-		if (kcd->is_angle_snapping)
-			knifetool_draw_angle_snapping(kcd);
-
 		immUniformColor3ubv(kcd->colors.line);
 		GPU_line_width(2.0);
 
