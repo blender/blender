@@ -153,7 +153,7 @@ private:
 	                       Scene *scene,
 	                       ImageDataType type,
 	                       int slot,
-	                       Progress *progess);
+	                       Progress *progress);
 	void device_free_image(Device *device,
 	                       ImageDataType type,
 	                       int slot);
