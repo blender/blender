@@ -1406,7 +1406,7 @@ static void space_view3d_listener(
 			switch (wmn->data) {
 				case ND_WORLD_DRAW:
 				case ND_WORLD:
-					if (v3d->flag3 & V3D_SHOW_WORLD)
+					if (v3d->shading.background_type & V3D_SHADING_BACKGROUND_WORLD)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}

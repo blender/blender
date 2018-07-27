@@ -1546,6 +1546,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DShadeing", "short", "background_type")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->shading.background_type = (v3d->flag3 & V3D_SHOW_WORLD)? V3D_SHADING_BACKGROUND_WORLD: V3D_SHADING_BACKGROUND_THEME;
+							copy_v3_fl(v3d->shading.background_color, 0.05f);
+						}
+					}
+				}
+			}
+		}
+
 		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "gi_cubemap_draw_size")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 				scene->eevee.gi_irradiance_draw_size = 0.1f;

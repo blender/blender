@@ -3839,10 +3839,14 @@ class VIEW3D_PT_shading_color(Panel):
 
         shading = VIEW3D_PT_shading.get_shading(context)
 
-        layout.row().prop(shading, "color_type", expand=True)
-
+        layout.row().prop(shading, 'color_type', expand=True)
         if shading.color_type == 'SINGLE':
-            layout.row().prop(shading, "single_color", text="")
+            layout.row().prop(shading, 'single_color', text="")
+
+        layout.row().label("Background")
+        layout.row().prop(shading, 'background_type', expand=True)
+        if shading.background_type == 'VIEWPORT':
+            layout.row().prop(shading, "background_color", text="")
 
 
 class VIEW3D_PT_shading_options(Panel):
@@ -3911,10 +3915,6 @@ class VIEW3D_PT_shading_options(Panel):
         col = layout.column()
         if not shading.light == 'MATCAP':
             col.prop(shading, "show_specular_highlight")
-
-        view = context.space_data
-        if view.type == 'VIEW_3D':
-            col.prop(view, "show_world")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):

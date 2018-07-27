@@ -2427,6 +2427,15 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem background_type_items[] = {
+		{V3D_SHADING_BACKGROUND_THEME,    "THEME",    0, "Theme",    "Use the theme for background color"},
+		{V3D_SHADING_BACKGROUND_WORLD,    "WORLD",    0, "World",    "Use the world for background color"},
+		{V3D_SHADING_BACKGROUND_VIEWPORT, "VIEWPORT", 0, "Viewport", "Use a custom color limited to this viewport only"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	static const float default_background_color[] = {0.05f, 0.05f, 0.05f};
+
+
 	/* Note these settings are used for both 3D viewport and the OpenGL render
 	 * engine in the scene, so can't assume to always be part of a screen. */
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
@@ -2511,6 +2520,18 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "single_color");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Color for single color mode");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "background_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, background_type_items);
+	RNA_def_property_ui_text(prop, "Background", "Way to draw the background");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "background_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_background_color);
+	RNA_def_property_ui_text(prop, "Background Color", "Color for custom background color");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -2955,11 +2976,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "lock_camera", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_LOCK_CAMERA);
 	RNA_def_property_ui_text(prop, "Lock Camera to View", "Enable view navigation within the camera view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_world", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_SHOW_WORLD);
-	RNA_def_property_ui_text(prop, "World Background", "Display world colors in the background");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "use_occlude_geometry", PROP_BOOLEAN, PROP_NONE);

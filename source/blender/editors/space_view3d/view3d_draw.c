@@ -1599,7 +1599,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 		v3d.flag2 |= V3D_SOLID_TEX;
 	}
 
-	v3d.flag3 |= V3D_SHOW_WORLD;
+	v3d.shading.background_type = V3D_SHADING_BACKGROUND_WORLD;
 
 	if (draw_flags & V3D_OFSDRAW_USE_CAMERA_DOF) {
 		if (camera->type == OB_CAMERA) {
