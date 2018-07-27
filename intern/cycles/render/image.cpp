@@ -229,15 +229,6 @@ bool ImageManager::get_image_metadata(const string& filename,
 	return true;
 }
 
-int ImageManager::max_flattened_slot(ImageDataType type)
-{
-	if(tex_num_images[type] == 0) {
-		/* No textures for the type, no slots needs allocation. */
-		return 0;
-	}
-	return type_index_to_flattened_slot(tex_num_images[type], type);
-}
-
 /* The lower three bits of a device texture slot number indicate its type.
  * These functions convert the slot ids from ImageManager "images" ones
  * to device ones and vice verse.
