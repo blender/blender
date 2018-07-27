@@ -777,6 +777,7 @@ typedef struct EEVEE_PrivateData {
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
+void EEVEE_view_layer_data_free(void *sldata);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer);
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void);

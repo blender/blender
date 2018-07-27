@@ -30,7 +30,7 @@
 #include "eevee_private.h"
 #include "eevee_lightcache.h"
 
-static void eevee_view_layer_data_free(void *storage)
+void EEVEE_view_layer_data_free(void *storage)
 {
 	EEVEE_ViewLayerData *sldata = (EEVEE_ViewLayerData *)storage;
 
@@ -77,7 +77,7 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_get(void)
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_layer)
 {
 	EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure_ex(
-	        view_layer, &draw_engine_eevee_type, &eevee_view_layer_data_free);
+	        view_layer, &draw_engine_eevee_type, &EEVEE_view_layer_data_free);
 
 	if (*sldata == NULL) {
 		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
@@ -89,7 +89,7 @@ EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure_ex(struct ViewLayer *view_laye
 EEVEE_ViewLayerData *EEVEE_view_layer_data_ensure(void)
 {
 	EEVEE_ViewLayerData **sldata = (EEVEE_ViewLayerData **)DRW_view_layer_engine_data_ensure(
-	        &draw_engine_eevee_type, &eevee_view_layer_data_free);
+	        &draw_engine_eevee_type, &EEVEE_view_layer_data_free);
 
 	if (*sldata == NULL) {
 		*sldata = MEM_callocN(sizeof(**sldata), "EEVEE_ViewLayerData");
