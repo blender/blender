@@ -95,6 +95,12 @@ public:
 	getMainDisplayDimensions(GHOST_TUns32& width,
 	                         GHOST_TUns32& height) const;
 
+	GHOST_IContext *
+	createOffscreenContext();
+
+	GHOST_TSuccess
+	disposeContext(GHOST_IContext *context);
+
 	/**
 	 * Informs if the system provides native dialogs (eg. confirm quit)
 	 */

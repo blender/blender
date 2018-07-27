@@ -120,6 +120,7 @@ public:
 
 private:
 	SDL_Window *m_window;
+	SDL_Window *m_hidden_window;
 
 	const int m_contextProfileMask;
 	const int m_contextMajorVersion;

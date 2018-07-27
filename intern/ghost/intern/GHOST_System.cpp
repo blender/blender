@@ -297,7 +297,9 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 #ifdef WITH_INPUT_NDOF
 void GHOST_System::setNDOFDeadZone(float deadzone)
 {
-	this->m_ndofManager->setDeadZone(deadzone);
+	if (this->m_ndofManager) {
+		this->m_ndofManager->setDeadZone(deadzone);
+	}
 }
 #endif
 

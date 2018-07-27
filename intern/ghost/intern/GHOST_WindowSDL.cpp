@@ -93,7 +93,7 @@ GHOST_WindowSDL::newDrawingContext(GHOST_TDrawingContextType type)
 		        m_wantNumOfAASamples,
 		        m_sdl_win,
 		        0, // profile bit
-		        0, 0,
+		        3, 3,
 		        GHOST_OPENGL_SDL_CONTEXT_FLAGS,
 		        GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
 
