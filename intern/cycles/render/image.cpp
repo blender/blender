@@ -171,10 +171,12 @@ bool ImageManager::get_image_metadata(const string& filename,
 
 		if(metadata.is_float) {
 			metadata.is_linear = true;
-			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4
+			                                        : IMAGE_DATA_TYPE_FLOAT;
 		}
 		else {
-			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4
+			                                        : IMAGE_DATA_TYPE_BYTE;
 		}
 
 		return true;
@@ -186,7 +188,8 @@ bool ImageManager::get_image_metadata(const string& filename,
 		return false;
 	}
 	if(path_is_directory(filename)) {
-		VLOG(1) << "File '" << filename << "' is a directory, can't use as image.";
+		VLOG(1) << "File '" << filename
+		        << "' is a directory, can't use as image.";
 		return false;
 	}
 
@@ -249,16 +252,20 @@ bool ImageManager::get_image_metadata(const string& filename,
 	metadata.channels = spec.nchannels;
 
 	if(metadata.is_half) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_HALF4
+		                                        : IMAGE_DATA_TYPE_HALF;
 	}
 	else if(metadata.is_float) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4
+		                                        : IMAGE_DATA_TYPE_FLOAT;
 	}
 	else if(spec.format == TypeDesc::USHORT) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_USHORT4 : IMAGE_DATA_TYPE_USHORT;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_USHORT4
+		                                        : IMAGE_DATA_TYPE_USHORT;
 	}
 	else {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4
+		                                        : IMAGE_DATA_TYPE_BYTE;
 	}
 
 	in->close();
@@ -338,14 +345,16 @@ int ImageManager::add_image(const string& filename,
 	}
 
 	/* Count if we're over the limit.
-	 * Very unlikely, since max_num_images is insanely big. But better safe than sorry. */
+	 * Very unlikely, since max_num_images is insanely big. But better safe
+	 * than sorry.
+	 */
 	int tex_count = 0;
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_count += tex_num_images[type];
 	}
 	if(tex_count > max_num_images) {
-		printf("ImageManager::add_image: Reached image limit (%d), skipping '%s'\n",
-			max_num_images, filename.c_str());
+		printf("ImageManager::add_image: Reached image limit (%d), "
+		       "skipping '%s'\n", max_num_images, filename.c_str());
 		return -1;
 	}
 
