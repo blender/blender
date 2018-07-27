@@ -149,10 +149,6 @@ private:
 	                     int texture_limit,
 	                     device_vector<DeviceType>& tex_img);
 
-	int type_index_to_flattened_slot(int slot, ImageDataType type);
-	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
-	const char* name_from_type(ImageDataType type);
-
 	void device_load_image(Device *device,
 	                       Scene *scene,
 	                       ImageDataType type,

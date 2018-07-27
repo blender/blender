@@ -30,19 +30,57 @@
 
 CCL_NAMESPACE_BEGIN
 
+namespace {
+
 /* Some helpers to silence warning in templated function. */
-static bool isfinite(uchar /*value*/)
+bool isfinite(uchar /*value*/)
 {
 	return true;
 }
-static bool isfinite(half /*value*/)
+bool isfinite(half /*value*/)
 {
 	return true;
 }
-static bool isfinite(uint16_t  /*value*/)
+bool isfinite(uint16_t  /*value*/)
 {
 	return true;
 }
+
+/* The lower three bits of a device texture slot number indicate its type.
+ * These functions convert the slot ids from ImageManager "images" ones
+ * to device ones and vice verse.
+ */
+int type_index_to_flattened_slot(int slot, ImageDataType type)
+{
+	return (slot << IMAGE_DATA_TYPE_SHIFT) | (type);
+}
+
+int flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
+{
+	*type = (ImageDataType)(flat_slot & IMAGE_DATA_TYPE_MASK);
+	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
+}
+
+const char* name_from_type(ImageDataType type)
+{
+	switch(type) {
+		case IMAGE_DATA_TYPE_FLOAT4: return "float4";
+		case IMAGE_DATA_TYPE_BYTE4: return "byte4";
+		case IMAGE_DATA_TYPE_HALF4: return "half4";
+		case IMAGE_DATA_TYPE_FLOAT: return "float";
+		case IMAGE_DATA_TYPE_BYTE: return "byte";
+		case IMAGE_DATA_TYPE_HALF: return "half";
+		case IMAGE_DATA_TYPE_USHORT4: return "ushort4";
+		case IMAGE_DATA_TYPE_USHORT: return "ushort";
+		case IMAGE_DATA_NUM_TYPES:
+			assert(!"System enumerator type, should never be used");
+			return "";
+	}
+	assert(!"Unhandled image data type");
+	return "";
+}
+
+}  // namespace
 
 ImageManager::ImageManager(const DeviceInfo& info)
 {
@@ -227,40 +265,6 @@ bool ImageManager::get_image_metadata(const string& filename,
 	delete in;
 
 	return true;
-}
-
-/* The lower three bits of a device texture slot number indicate its type.
- * These functions convert the slot ids from ImageManager "images" ones
- * to device ones and vice verse.
- */
-int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
-{
-	return (slot << IMAGE_DATA_TYPE_SHIFT) | (type);
-}
-
-int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
-{
-	*type = (ImageDataType)(flat_slot & IMAGE_DATA_TYPE_MASK);
-	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
-}
-
-const char* ImageManager::name_from_type(ImageDataType type)
-{
-	switch(type) {
-		case IMAGE_DATA_TYPE_FLOAT4: return "float4";
-		case IMAGE_DATA_TYPE_BYTE4: return "byte4";
-		case IMAGE_DATA_TYPE_HALF4: return "half4";
-		case IMAGE_DATA_TYPE_FLOAT: return "float";
-		case IMAGE_DATA_TYPE_BYTE: return "byte";
-		case IMAGE_DATA_TYPE_HALF: return "half";
-		case IMAGE_DATA_TYPE_USHORT4: return "ushort4";
-		case IMAGE_DATA_TYPE_USHORT: return "ushort";
-		case IMAGE_DATA_NUM_TYPES:
-			assert(!"System enumerator type, should never be used");
-			return "";
-	}
-	assert(!"Unhandled image data type");
-	return "";
 }
 
 static bool image_equals(ImageManager::Image *image,
