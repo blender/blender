@@ -4779,10 +4779,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem display_mode_items[] = {
-		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
-		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
-		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
-		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes"},
+		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in a maximized Image Editor"},
+		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in an Image Editor"},
+		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in a new window"},
+		{R_OUTPUT_NONE, "NONE", 0, "Keep User Interface", "Images are rendered without changing the user interface"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -4795,7 +4795,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem pixel_size_items[] = {
-		{0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the UI scale"},
+		{0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the user interface scale"},
 		{1, "1", 0, "1x", "Render at full resolution"},
 		{2, "2", 0, "2x", "Render at 50% resolution"},
 		{4, "4", 0, "4x", "Render at 25% resolution"},
