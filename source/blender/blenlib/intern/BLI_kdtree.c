@@ -774,7 +774,12 @@ int BLI_kdtree_calc_duplicates_fast(
 			if (ELEM(duplicates[index], -1, index)) {
 				p.search = index;
 				copy_v3_v3(p.search_co, tree->nodes[node_index].co);
+				int found_prev = found;
 				deduplicate_recursive(&p, tree->root);
+				if (found != found_prev) {
+					/* Prevent chains of doubles. */
+					duplicates[index] = index;
+				}
 			}
 		}
 		MEM_freeN(order);
@@ -786,7 +791,12 @@ int BLI_kdtree_calc_duplicates_fast(
 			if (ELEM(duplicates[index], -1, index)) {
 				p.search = index;
 				copy_v3_v3(p.search_co, tree->nodes[node_index].co);
+				int found_prev = found;
 				deduplicate_recursive(&p, tree->root);
+				if (found != found_prev) {
+					/* Prevent chains of doubles. */
+					duplicates[index] = index;
+				}
 			}
 		}
 	}
