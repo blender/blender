@@ -88,5 +88,7 @@ shader node_normal_map(
 
 	if (Strength != 1.0)
 		Normal = normalize(NormalIn + (Normal - NormalIn) * max(Strength, 0.0));
+
+	Normal = ensure_valid_reflection(Ng, I, Normal);
 }
 
