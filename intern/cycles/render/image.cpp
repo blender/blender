@@ -253,24 +253,23 @@ int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *typ
 	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
 }
 
-string ImageManager::name_from_type(int type)
+const char* ImageManager::name_from_type(ImageDataType type)
 {
-	if(type == IMAGE_DATA_TYPE_FLOAT4)
-		return "float4";
-	else if(type == IMAGE_DATA_TYPE_FLOAT)
-		return "float";
-	else if(type == IMAGE_DATA_TYPE_BYTE)
-		return "byte";
-	else if(type == IMAGE_DATA_TYPE_HALF4)
-		return "half4";
-	else if(type == IMAGE_DATA_TYPE_HALF)
-		return "half";
-	else if(type == IMAGE_DATA_TYPE_USHORT)
-		return "ushort";
-	else if(type == IMAGE_DATA_TYPE_USHORT4)
-		return "ushort4";
-	else
-		return "byte4";
+	switch(type) {
+		case IMAGE_DATA_TYPE_FLOAT4: return "float4";
+		case IMAGE_DATA_TYPE_BYTE4: return "byte4";
+		case IMAGE_DATA_TYPE_HALF4: return "half4";
+		case IMAGE_DATA_TYPE_FLOAT: return "float";
+		case IMAGE_DATA_TYPE_BYTE: return "byte";
+		case IMAGE_DATA_TYPE_HALF: return "half";
+		case IMAGE_DATA_TYPE_USHORT4: return "ushort4";
+		case IMAGE_DATA_TYPE_USHORT: return "ushort";
+		case IMAGE_DATA_NUM_TYPES:
+			assert(!"System enumerator type, should never be used");
+			return "";
+	}
+	assert(!"Unhandled image data type");
+	return "";
 }
 
 static bool image_equals(ImageManager::Image *image,
@@ -732,7 +731,8 @@ void ImageManager::device_load_image(Device *device,
 
 	/* Slot assignment */
 	int flat_slot = type_index_to_flattened_slot(slot, type);
-	img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type).c_str(), flat_slot);
+	img->mem_name = string_printf("__tex_image_%s_%03d",
+	                              name_from_type(type), flat_slot);
 
 	/* Free previous texture in slot. */
 	if(img->mem) {
