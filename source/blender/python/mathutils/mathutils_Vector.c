@@ -1127,22 +1127,16 @@ PyDoc_STRVAR(Vector_project_doc,
 static PyObject *Vector_project(VectorObject *self, PyObject *value)
 {
 	const int size = self->size;
-	float tvec[MAX_DIMENSIONS];
-	float vec[MAX_DIMENSIONS];
+	float *tvec;
 	double dot = 0.0f, dot2 = 0.0f;
 	int x;
 
-	if (mathutils_array_parse(tvec, size, size, value, "Vector.project(other), invalid 'other' arg") == -1)
-		return NULL;
-
-	if (self->size > 4) {
-		PyErr_SetString(PyExc_ValueError,
-		                "Vector must be 2D, 3D or 4D");
-		return NULL;
-	}
-
 	if (BaseMath_ReadCallback(self) == -1)
 		return NULL;
+
+	if (mathutils_array_parse_alloc(&tvec, size, value, "Vector.project(other), invalid 'other' arg") == -1) {
+		return NULL;
+	}
 
 	/* get dot products */
 	for (x = 0; x < size; x++) {
@@ -1152,9 +1146,9 @@ static PyObject *Vector_project(VectorObject *self, PyObject *value)
 	/* projection */
 	dot /= dot2;
 	for (x = 0; x < size; x++) {
-		vec[x] = (float)dot * tvec[x];
+		tvec[x] *= (float)dot;
 	}
-	return Vector_CreatePyObject(vec, size, Py_TYPE(self));
+	return Vector_CreatePyObject_alloc(tvec, size, Py_TYPE(self));
 }
 
 PyDoc_STRVAR(Vector_lerp_doc,
