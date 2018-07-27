@@ -134,7 +134,7 @@ NodeType::~NodeType()
 
 void NodeType::register_input(ustring name, ustring ui_name, SocketType::Type type, int struct_offset,
                               const void *default_value, const NodeEnum *enum_values,
-							  const NodeType **node_type, int flags, int extra_flags)
+                              const NodeType **node_type, int flags, int extra_flags)
 {
 	SocketType socket;
 	socket.name = name;
