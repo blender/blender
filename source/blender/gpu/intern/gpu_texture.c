@@ -160,6 +160,8 @@ static int gpu_get_component_count(GPUTextureFormat format)
 /* Definitely not complete, edit according to the gl specification. */
 static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat data_format)
 {
+	(void)data_format;
+
 	if (ELEM(tex_format,
 	         GPU_DEPTH_COMPONENT24,
 	         GPU_DEPTH_COMPONENT16,
