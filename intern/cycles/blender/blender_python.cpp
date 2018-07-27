@@ -734,6 +734,12 @@ static PyObject *set_resumable_chunk_range_func(PyObject * /*self*/, PyObject *a
 	Py_RETURN_NONE;
 }
 
+static PyObject *enable_print_stats_func(PyObject * /*self*/, PyObject * /*args*/)
+{
+	BlenderSession::print_render_stats = true;
+	Py_RETURN_NONE;
+}
+
 static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
 {
 	vector<DeviceInfo>& devices = Device::available_devices();
@@ -771,6 +777,9 @@ static PyMethodDef methods[] = {
 	/* Debugging routines */
 	{"debug_flags_update", debug_flags_update_func, METH_VARARGS, ""},
 	{"debug_flags_reset", debug_flags_reset_func, METH_NOARGS, ""},
+
+	/* Statistics. */
+	{"enable_print_stats", enable_print_stats_func, METH_NOARGS, ""},
 
 	/* Resumable render */
 	{"set_resumable_chunk", set_resumable_chunk_func, METH_VARARGS, ""},

@@ -379,4 +379,10 @@ void Scene::device_free()
 	free_memory(false);
 }
 
+void Scene::collect_statistics(RenderStats *stats)
+{
+	mesh_manager->collect_statistics(this, stats);
+	image_manager->collect_statistics(stats);
+}
+
 CCL_NAMESPACE_END

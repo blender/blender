@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class Progress;
+class RenderStats;
 class Scene;
 
 class ImageMetaData {
@@ -88,6 +89,8 @@ public:
 	bool set_animation_frame_update(int frame);
 
 	device_memory *image_memory(int flat_slot);
+
+	void collect_statistics(RenderStats *stats);
 
 	bool need_update;
 

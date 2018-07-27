@@ -67,6 +67,9 @@ def _configure_argument_parser():
     parser.add_argument("--cycles-resumable-end-chunk",
                         help="End chunk to render",
                         default=None)
+    parser.add_argument("--cycles-print-stats",
+                        help="Print rendering statistics to stderr",
+                        action='store_true')
     return parser
 
 
@@ -95,6 +98,9 @@ def _parse_command_line():
                 int(args.cycles_resumable_start_chunk),
                 int(args.cycles_resumable_end_chunk),
             )
+    if args.cycles_print_stats:
+        import _cycles
+        _cycles.enable_print_stats()
 
 
 def init():

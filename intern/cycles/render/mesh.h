@@ -38,6 +38,7 @@ class Device;
 class DeviceScene;
 class Mesh;
 class Progress;
+class RenderStats;
 class Scene;
 class SceneParams;
 class AttributeRequest;
@@ -350,6 +351,8 @@ public:
 	void tag_update(Scene *scene);
 
 	void create_volume_mesh(Scene *scene, Mesh *mesh, Progress &progress);
+
+	void collect_statistics(const Scene *scene, RenderStats *stats);
 
 protected:
 	/* Calculate verts/triangles/curves offsets in global arrays. */

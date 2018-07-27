@@ -17,6 +17,7 @@
 #include "device/device.h"
 #include "render/image.h"
 #include "render/scene.h"
+#include "render/stats.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
@@ -1039,6 +1040,17 @@ void ImageManager::device_free(Device *device)
 			device_free_image(device, (ImageDataType)type, slot);
 		}
 		images[type].clear();
+	}
+}
+
+void ImageManager::collect_statistics(RenderStats *stats)
+{
+	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
+		foreach(const Image *image, images[type]) {
+			stats->image.textures.add_entry(
+			        NamedSizeEntry(path_filename(image->filename),
+			                       image->mem->memory_size()));
+		}
 	}
 }
 
