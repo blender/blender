@@ -1204,7 +1204,6 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 	ob_dst->derivedDeform = NULL;
 	ob_dst->derivedFinal = NULL;
 
-	BLI_listbase_clear(&ob_dst->gpulamp);
 	BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
 	BLI_listbase_clear(&ob_dst->pc_ids);
 

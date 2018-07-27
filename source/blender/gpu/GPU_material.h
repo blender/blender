@@ -55,7 +55,6 @@ struct GPUNodeStack;
 struct GPUMaterial;
 struct GPUTexture;
 struct GPUUniformBuffer;
-struct GPULamp;
 struct PreviewImage;
 struct World;
 struct bNode;
