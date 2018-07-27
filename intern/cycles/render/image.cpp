@@ -128,12 +128,12 @@ bool ImageManager::set_animation_frame_update(int frame)
 
 device_memory *ImageManager::image_memory(int flat_slot)
 {
-	   ImageDataType type;
-	   int slot = flattened_slot_to_type_index(flat_slot, &type);
+	ImageDataType type;
+	int slot = flattened_slot_to_type_index(flat_slot, &type);
 
-	   Image *img = images[type][slot];
+	Image *img = images[type][slot];
 
-	   return img->mem;
+	return img->mem;
 }
 
 bool ImageManager::get_image_metadata(int flat_slot,
