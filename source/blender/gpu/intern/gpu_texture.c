@@ -432,6 +432,11 @@ static bool gpu_texture_try_alloc(
 			glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, NULL);
 			break;
 		case GL_PROXY_TEXTURE_2D_ARRAY:
+			/* HACK: Some driver wrongly check GL_PROXY_TEXTURE_2D_ARRAY as a GL_PROXY_TEXTURE_3D
+			 * checking all dimensions against GPU_max_texture_layers (see T55888). */
+			return (tex->w < GPU_max_texture_size()) &&
+			       (tex->h < GPU_max_texture_size()) &&
+			       (tex->d < GPU_max_texture_layers());
 		case GL_PROXY_TEXTURE_3D:
 			glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, data_format, data_type, NULL);
 			break;
