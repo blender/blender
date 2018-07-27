@@ -27,6 +27,7 @@
 #include "render/nodes.h"
 #include "render/object.h"
 #include "render/scene.h"
+#include "render/stats.h"
 
 #include "kernel/osl/osl_globals.h"
 
@@ -2015,8 +2016,8 @@ void MeshManager::device_update_displacement_images(Device *device,
 }
 
 void MeshManager::device_update_volume_images(Device *device,
-											  Scene *scene,
-											  Progress& progress)
+                                              Scene *scene,
+                                              Progress& progress)
 {
 	progress.set_status("Updating Volume Images");
 	TaskPool pool;
@@ -2043,11 +2044,11 @@ void MeshManager::device_update_volume_images(Device *device,
 
 	foreach(int slot, volume_images) {
 		pool.push(function_bind(&ImageManager::device_update_slot,
-								image_manager,
-								device,
-								scene,
-								slot,
-								&progress));
+		                        image_manager,
+		                        device,
+		                        scene,
+		                        slot,
+		                        &progress));
 	}
 	pool.wait_work();
 }
@@ -2274,6 +2275,15 @@ void MeshManager::tag_update(Scene *scene)
 {
 	need_update = true;
 	scene->object_manager->need_update = true;
+}
+
+void MeshManager::collect_statistics(const Scene *scene, RenderStats *stats)
+{
+	foreach(Mesh *mesh, scene->meshes) {
+		stats->mesh.geometry.add_entry(
+		        NamedSizeEntry(string(mesh->name.c_str()),
+		                       mesh->get_total_size_in_bytes()));
+	}
 }
 
 bool Mesh::need_attribute(Scene *scene, AttributeStandard std)

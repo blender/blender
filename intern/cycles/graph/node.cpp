@@ -425,20 +425,22 @@ bool Node::equals(const Node& other) const
 
 /* Hash */
 
+namespace {
+
 template<typename T>
-static void value_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
+void value_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	md5.append(((uint8_t*)node) + socket.struct_offset, socket.size());
 }
 
-static void float3_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
+void float3_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	/* Don't compare 4th element used for padding. */
 	md5.append(((uint8_t*)node) + socket.struct_offset, sizeof(float) * 3);
 }
 
 template<typename T>
-static void array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
+void array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	const array<T>& a = *(const array<T>*)(((char*)node) + socket.struct_offset);
 	for (size_t i = 0; i < a.size(); i++) {
@@ -446,7 +448,7 @@ static void array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 	}
 }
 
-static void float3_array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
+void float3_array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	/* Don't compare 4th element used for padding. */
 	const array<float3>& a = *(const array<float3>*)(((char*)node) + socket.struct_offset);
@@ -454,6 +456,8 @@ static void float3_array_hash(const Node *node, const SocketType& socket, MD5Has
 		md5.append((uint8_t*)&a[i], sizeof(float) * 3);
 	}
 }
+
+}  // namespace
 
 void Node::hash(MD5Hash& md5)
 {
@@ -493,6 +497,79 @@ void Node::hash(MD5Hash& md5)
 			case SocketType::UNDEFINED: break;
 		}
 	}
+}
+
+namespace {
+
+template<typename T>
+size_t array_size_in_bytes(const Node *node, const SocketType& socket)
+{
+	const array<T>& a = *(const array<T>*)(((char*)node) + socket.struct_offset);
+	return a.size() * sizeof(T);
+}
+
+}  // namespace
+
+size_t Node::get_total_size_in_bytes() const
+{
+	size_t total_size = 0;
+	foreach(const SocketType& socket, type->inputs) {
+		switch(socket.type) {
+			case SocketType::BOOLEAN:
+			case SocketType::FLOAT:
+			case SocketType::INT:
+			case SocketType::UINT:
+			case SocketType::COLOR:
+			case SocketType::VECTOR:
+			case SocketType::POINT:
+			case SocketType::NORMAL:
+			case SocketType::POINT2:
+			case SocketType::CLOSURE:
+			case SocketType::STRING:
+			case SocketType::ENUM:
+			case SocketType::TRANSFORM:
+			case SocketType::NODE:
+				total_size += socket.size();
+				break;
+
+			case SocketType::BOOLEAN_ARRAY:
+				total_size += array_size_in_bytes<bool>(this, socket);
+				break;
+			case SocketType::FLOAT_ARRAY:
+				total_size += array_size_in_bytes<float>(this, socket);
+				break;
+			case SocketType::INT_ARRAY:
+				total_size += array_size_in_bytes<int>(this, socket);
+				break;
+			case SocketType::COLOR_ARRAY:
+				total_size += array_size_in_bytes<float3>(this, socket);
+				break;
+			case SocketType::VECTOR_ARRAY:
+				total_size += array_size_in_bytes<float3>(this, socket);
+				break;
+			case SocketType::POINT_ARRAY:
+				total_size += array_size_in_bytes<float3>(this, socket);
+				break;
+			case SocketType::NORMAL_ARRAY:
+				total_size += array_size_in_bytes<float3>(this, socket);
+				break;
+			case SocketType::POINT2_ARRAY:
+				total_size += array_size_in_bytes<float2>(this, socket);
+				break;
+			case SocketType::STRING_ARRAY:
+				total_size += array_size_in_bytes<ustring>(this, socket);
+				break;
+			case SocketType::TRANSFORM_ARRAY:
+				total_size += array_size_in_bytes<Transform>(this, socket);
+				break;
+			case SocketType::NODE_ARRAY:
+				total_size += array_size_in_bytes<void*>(this, socket);
+				break;
+
+			case SocketType::UNDEFINED: break;
+		}
+	}
+	return total_size;
 }
 
 CCL_NAMESPACE_END

@@ -52,7 +52,9 @@ def _workaround_buggy_drivers():
 
 def _configure_argument_parser():
     import argparse
-    parser = argparse.ArgumentParser(description="Cycles Addon argument parser")
+    # No help because it conflicts with general Python scripts argument parsing
+    parser = argparse.ArgumentParser(description="Cycles Addon argument parser",
+                                     add_help=False)
     parser.add_argument("--cycles-resumable-num-chunks",
                         help="Number of chunks to split sample range into",
                         default=None)
@@ -65,6 +67,9 @@ def _configure_argument_parser():
     parser.add_argument("--cycles-resumable-end-chunk",
                         help="End chunk to render",
                         default=None)
+    parser.add_argument("--cycles-print-stats",
+                        help="Print rendering statistics to stderr",
+                        action='store_true')
     return parser
 
 
@@ -93,6 +98,9 @@ def _parse_command_line():
                 int(args.cycles_resumable_start_chunk),
                 int(args.cycles_resumable_end_chunk),
             )
+    if args.cycles_print_stats:
+        import _cycles
+        _cycles.enable_print_stats()
 
 
 def init():

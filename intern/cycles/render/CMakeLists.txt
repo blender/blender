@@ -33,6 +33,7 @@ set(SRC
 	session.cpp
 	shader.cpp
 	sobol.cpp
+	stats.cpp
 	svm.cpp
 	tables.cpp
 	tile.cpp
@@ -60,6 +61,7 @@ set(SRC_HEADERS
 	session.h
 	shader.h
 	sobol.h
+	stats.h
 	svm.h
 	tables.h
 	tile.h

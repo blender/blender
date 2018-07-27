@@ -28,6 +28,7 @@
 #include "render/scene.h"
 #include "render/session.h"
 #include "render/shader.h"
+#include "render/stats.h"
 
 #include "util/util_color.h"
 #include "util/util_foreach.h"
@@ -48,6 +49,7 @@ int BlenderSession::num_resumable_chunks = 0;
 int BlenderSession::current_resumable_chunk = 0;
 int BlenderSession::start_resumable_chunk = 0;
 int BlenderSession::end_resumable_chunk = 0;
+bool BlenderSession::print_render_stats = false;
 
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::UserPreferences& b_userpref,
@@ -478,6 +480,12 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 		/* render */
 		session->start();
 		session->wait();
+
+		if(!b_engine.is_preview() && background && print_render_stats) {
+			RenderStats stats;
+			session->scene->collect_statistics(&stats);
+			printf("Render statistics:\n%s\n", stats.full_report().c_str());
+		}
 
 		if(session->progress.get_cancel())
 			break;
