@@ -381,8 +381,8 @@ protected:
 	                                       Progress& progress);
 
 	void device_update_volume_images(Device *device,
-									 Scene *scene,
-									 Progress& progress);
+	                                 Scene *scene,
+	                                 Progress& progress);
 };
 
 CCL_NAMESPACE_END

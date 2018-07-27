@@ -2015,8 +2015,8 @@ void MeshManager::device_update_displacement_images(Device *device,
 }
 
 void MeshManager::device_update_volume_images(Device *device,
-											  Scene *scene,
-											  Progress& progress)
+                                              Scene *scene,
+                                              Progress& progress)
 {
 	progress.set_status("Updating Volume Images");
 	TaskPool pool;
@@ -2043,11 +2043,11 @@ void MeshManager::device_update_volume_images(Device *device,
 
 	foreach(int slot, volume_images) {
 		pool.push(function_bind(&ImageManager::device_update_slot,
-								image_manager,
-								device,
-								scene,
-								slot,
-								&progress));
+		                        image_manager,
+		                        device,
+		                        scene,
+		                        slot,
+		                        &progress));
 	}
 	pool.wait_work();
 }
