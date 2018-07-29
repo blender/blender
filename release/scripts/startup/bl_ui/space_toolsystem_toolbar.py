@@ -182,7 +182,7 @@ class _defs_transform:
     def transform():
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo")
+            layout.prop(tool_settings, "use_gizmo_mode")
 
         return dict(
             text="Transform",
