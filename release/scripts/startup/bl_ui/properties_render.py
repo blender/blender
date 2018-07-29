@@ -120,7 +120,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         return args
 
     @staticmethod
-    def draw_framerate(sub, rd):
+    def draw_framerate(layout, sub, rd):
         if RENDER_PT_dimensions._preset_class is None:
             RENDER_PT_dimensions._preset_class = bpy.types.RENDER_MT_framerate_presets
 
@@ -130,8 +130,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
 
         if show_framerate:
-            sub.prop(rd, "fps")
-            sub.prop(rd, "fps_base", text="/")
+            col = layout.column(align=True)
+            col.prop(rd, "fps")
+            col.prop(rd, "fps_base", text="Base")
 
     def draw(self, context):
         layout = self.layout
@@ -161,10 +162,10 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         col.prop(scene, "frame_end", text="End")
         col.prop(scene, "frame_step", text="Step")
 
-        col = layout.split(percentage=0.5)
+        col = layout.split()
         col.alignment = 'RIGHT'
         col.label(text="Frame Rate")
-        self.draw_framerate(col, rd)
+        self.draw_framerate(layout, col, rd)
 
 
 class RENDER_PT_frame_remapping(RenderButtonsPanel, Panel):
