@@ -80,7 +80,7 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 	UI_block_func_set(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 
 	/* Hack: temporary hide.*/
-	const char *hide[4] = {"filepath", "files", "directory", "filename"};
+	const char *hide[] = {"filepath", "files", "directory", "filename"};
 	for (int i = 0; i < ARRAY_SIZE(hide); i++) {
 		PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
 		if (prop) {
