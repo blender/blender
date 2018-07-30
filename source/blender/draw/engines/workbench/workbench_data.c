@@ -21,14 +21,17 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	View3D *v3d = draw_ctx->v3d;
 	if (!v3d) {
 		wpd->shading = scene->display.shading;
+		wpd->use_color_view_settings = true;
 	}
 	else if (v3d->shading.type == OB_RENDER &&
 	         BKE_scene_uses_blender_opengl(scene))
 	{
 		wpd->shading = scene->display.shading;
+		wpd->use_color_view_settings = true;
 	}
 	else {
 		wpd->shading = v3d->shading;
+		wpd->use_color_view_settings = false;
 	}
 
 	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {

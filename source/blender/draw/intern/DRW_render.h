@@ -234,7 +234,7 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 	} \
 } while (0)
 
-void DRW_transform_to_display(struct GPUTexture *tex);
+void DRW_transform_to_display(struct GPUTexture *tex, bool use_view_settings);
 void DRW_transform_none(struct GPUTexture *tex);
 void DRW_multisamples_resolve(
         struct GPUTexture *src_depth, struct GPUTexture *src_color, bool use_depth);

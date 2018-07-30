@@ -224,7 +224,7 @@ bool DRW_check_psys_visible_within_active_context(
  * \{ */
 
 /* Use color management profile to draw texture to framebuffer */
-void DRW_transform_to_display(GPUTexture *tex)
+void DRW_transform_to_display(GPUTexture *tex, bool use_view_settings)
 {
 	drw_state_set(DRW_STATE_WRITE_COLOR);
 
@@ -239,8 +239,11 @@ void DRW_transform_to_display(GPUTexture *tex)
 	/* View transform is already applied for offscreen, don't apply again, see: T52046 */
 	if (!(DST.options.is_image_render && !DST.options.is_scene_render)) {
 		Scene *scene = DST.draw_ctx.scene;
+		ColorManagedDisplaySettings *display_settings = &scene->display_settings;
+		ColorManagedViewSettings *view_settings = (use_view_settings) ? &scene->view_settings : NULL;
+
 		use_ocio = IMB_colormanagement_setup_glsl_draw_from_space(
-		        &scene->view_settings, &scene->display_settings, NULL, dither, false);
+		        view_settings, display_settings, NULL, dither, false);
 	}
 
 	if (!use_ocio) {

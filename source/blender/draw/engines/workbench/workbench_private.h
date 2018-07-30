@@ -187,6 +187,9 @@ typedef struct WORKBENCH_PrivateData {
 	float viewvecs[3][4];
 	float ssao_params[4];
 	float ssao_settings[4];
+
+	/* Color Management */
+	bool use_color_view_settings;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_EffectInfo {

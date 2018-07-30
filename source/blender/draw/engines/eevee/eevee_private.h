@@ -774,6 +774,9 @@ typedef struct EEVEE_PrivateData {
 
 	/* Mist Settings */
 	float mist_start, mist_inv_dist, mist_falloff;
+
+	/* Color Management */
+	bool use_color_view_settings;
 } EEVEE_PrivateData; /* Transient data */
 
 /* eevee_data.c */
