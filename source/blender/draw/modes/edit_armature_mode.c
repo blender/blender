@@ -60,7 +60,7 @@ typedef struct EDIT_ARMATURE_Data {
 /* *********** STATIC *********** */
 
 typedef struct EDIT_ARMATURE_PrivateData {
-	char pad; /* UNUSED */
+	bool transparent_bones;
 } EDIT_ARMATURE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -69,15 +69,18 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 {
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 	EDIT_ARMATURE_StorageList *stl = ((EDIT_ARMATURE_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
+	stl->g_data->transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 
 	{
 		/* Solid bones */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
+		state |= (stl->g_data->transparent_bones) ? DRW_STATE_BLEND : DRW_STATE_WRITE_DEPTH;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 	}
 
@@ -116,10 +119,12 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 {
 	bArmature *arm = ob->data;
-	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
+			EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
+			EDIT_ARMATURE_StorageList *stl = ((EDIT_ARMATURE_Data *)vedata)->stl;
+
 			DRWArmaturePasses passes = {
 			    .bone_solid = psl->bone_solid,
 			    .bone_outline = psl->bone_outline,
@@ -128,7 +133,7 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 			    .bone_axes = psl->bone_axes,
 			    .relationship_lines = psl->relationship,
 			};
-			DRW_shgroup_armature_edit(ob, passes);
+			DRW_shgroup_armature_edit(ob, passes, stl->g_data->transparent_bones);
 		}
 	}
 }
@@ -136,22 +141,20 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 static void EDIT_ARMATURE_draw_scene(void *vedata)
 {
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
+	EDIT_ARMATURE_StorageList *stl = ((EDIT_ARMATURE_Data *)vedata)->stl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	const bool transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 
 	DRW_draw_pass(psl->bone_envelope);
 
-	if (transparent_bones) {
-		DRW_pass_state_add(psl->bone_solid, DRW_STATE_BLEND);
-		DRW_pass_state_remove(psl->bone_solid, DRW_STATE_WRITE_DEPTH);
+	if (stl->g_data->transparent_bones) {
+		/* For performance reason, avoid blending on MS target. */
 		DRW_draw_pass(psl->bone_solid);
 	}
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
-	if (!transparent_bones) {
+	if (!stl->g_data->transparent_bones) {
 		DRW_draw_pass(psl->bone_solid);
 	}
 
