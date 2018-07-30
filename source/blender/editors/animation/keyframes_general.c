@@ -183,7 +183,8 @@ void duplicate_fcurve_keys(FCurve *fcu)
 /* Various Tools */
 
 /* Basic F-Curve 'cleanup' function that removes 'double points' and unnecessary keyframes on linear-segments only
- * optionally clears up curve if one keyframe with default value remains */
+ * optionally clears up curve if one keyframe with default value remains
+ */
 void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, bool cleardefault)
 {
 	FCurve *fcu = (FCurve *)ale->key_data;
@@ -206,7 +207,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
-	insert_vert_fcurve(fcu, bezt->vec[1][0], bezt->vec[1][1], BEZKEYTYPE(bezt), 0);
+	insert_bezt_fcurve(fcu, bezt, 0);
 	if (!(bezt->f2 & SELECT)) {
 		lastb = fcu->bezt;
 		lastb->f1 = lastb->f2 = lastb->f3 = 0;
@@ -235,7 +236,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 		cur[0] = bezt->vec[1][0]; cur[1] = bezt->vec[1][1];
 
 		if (!(bezt->f2 & SELECT)) {
-			insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+			insert_bezt_fcurve(fcu, bezt, 0);
 			lastb = (fcu->bezt + (fcu->totvert - 1));
 			lastb->f1 = lastb->f2 = lastb->f3 = 0;
 			continue;
@@ -254,7 +255,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 				if (cur[1] > next[1]) {
 					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 						/* add new keyframe */
-						insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+						insert_bezt_fcurve(fcu, bezt, 0);
 					}
 				}
 			}
@@ -262,7 +263,7 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 				/* only add if values are a considerable distance apart */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+					insert_bezt_fcurve(fcu, bezt, 0);
 				}
 			}
 		}
@@ -271,19 +272,19 @@ void clean_fcurve(struct bAnimContext *ac, bAnimListElem *ale, float thresh, boo
 			if (beztn) {
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
-					/* add new keyframe*/
-					insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+					/* add new keyframe */
+					insert_bezt_fcurve(fcu, bezt, 0);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+					insert_bezt_fcurve(fcu, bezt, 0);
 				}
 			}
 			else {
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_fcurve(fcu, cur[0], cur[1], BEZKEYTYPE(bezt), 0);
+					insert_bezt_fcurve(fcu, bezt, 0);
 				}
 			}
 		}
