@@ -732,7 +732,7 @@ static void deg_backup_object_runtime(
         Object *object,
         ObjectRuntimeBackup *object_runtime_backup)
 {
-	/* Store evaluated mesh, and make sure we don't free it. */
+	/* Store evaluated mesh and curve_cache, and make sure we don't free it. */
 	Mesh *mesh_eval = object->runtime.mesh_eval;
 	object_runtime_backup->runtime = object->runtime;
 	BKE_object_runtime_reset(object);
@@ -743,9 +743,6 @@ static void deg_backup_object_runtime(
 	if (mesh_eval != NULL && object->data == mesh_eval) {
 		object->data = object->runtime.mesh_orig;
 	}
-	/* Store curve cache and make sure we don't free it. */
-	object_runtime_backup->curve_cache = object->curve_cache;
-	object->curve_cache = NULL;
 	/* Make a backup of base flags. */
 	object_runtime_backup->base_flag = object->base_flag;
 }
@@ -782,9 +779,6 @@ static void deg_restore_object_runtime(
 				mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
 			}
 		}
-	}
-	if (object_runtime_backup->curve_cache != NULL) {
-		object->curve_cache = object_runtime_backup->curve_cache;
 	}
 	object->base_flag = object_runtime_backup->base_flag;
 }

@@ -1479,7 +1479,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 		ob_dst->parent = NULL;
 		BKE_constraints_free(&ob_dst->constraints);
-		ob_dst->curve_cache = NULL;
+		ob_dst->runtime.curve_cache = NULL;
 		ob_dst->transflag &= ~OB_DUPLI;
 
 		copy_m4_m4(ob_dst->obmat, dob->mat);
@@ -1638,7 +1638,7 @@ static const EnumPropertyItem convert_target_items[] = {
 
 static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-	if (ob->curve_cache == NULL) {
+	if (ob->runtime.curve_cache == NULL) {
 		/* Force creation. This is normally not needed but on operator
 		 * redo we might end up with an object which isn't evaluated yet.
 		 */
@@ -1966,7 +1966,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 
 				convert_ensure_curve_cache(depsgraph, scene, baseob);
-				BKE_mesh_from_metaball(&baseob->curve_cache->disp, newob->data);
+				BKE_mesh_from_metaball(&baseob->runtime.curve_cache->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {
 					basact = basen;

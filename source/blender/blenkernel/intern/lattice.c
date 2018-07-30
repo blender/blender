@@ -211,9 +211,9 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 		/* works best if we force to linear type (endpoints match) */
 		lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
-		if (ltOb->curve_cache) {
+		if (ltOb->runtime.curve_cache) {
 			/* prevent using deformed locations */
-			BKE_displist_free(&ltOb->curve_cache->disp);
+			BKE_displist_free(&ltOb->runtime.curve_cache->disp);
 		}
 
 		copy_m4_m4(mat, ltOb->obmat);
@@ -349,7 +349,7 @@ LatticeDeformData *init_latt_deform(Object *oblatt, Object *ob)
 	/* we make an array with all differences */
 	Lattice *lt = oblatt->data;
 	BPoint *bp;
-	DispList *dl = oblatt->curve_cache ? BKE_displist_find(&oblatt->curve_cache->disp, DL_VERTS) : NULL;
+	DispList *dl = oblatt->runtime.curve_cache ? BKE_displist_find(&oblatt->runtime.curve_cache->disp, DL_VERTS) : NULL;
 	const float *co = dl ? dl->verts : NULL;
 	float *fp, imat[4][4];
 	float fu, fv, fw;
@@ -558,7 +558,7 @@ static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float di
 	int cycl = 0;
 
 	/* test for cyclic */
-	bl = ob->curve_cache->bev.first;
+	bl = ob->runtime.curve_cache->bev.first;
 	if (!bl->nr) return false;
 	if (bl->poly > -1) cycl = 1;
 
@@ -573,7 +573,7 @@ static bool where_on_path_deform(Object *ob, float ctime, float vec[4], float di
 	if (where_on_path(ob, ctime1, vec, dir, quat, radius, NULL)) {
 
 		if (cycl == 0) {
-			Path *path = ob->curve_cache->path;
+			Path *path = ob->runtime.curve_cache->path;
 			float dvec[3];
 
 			if (ctime < 0.0f) {
@@ -610,12 +610,12 @@ static bool calc_curve_deform(Object *par, float co[3],
 	short index;
 	const bool is_neg_axis = (axis > 2);
 
-	if (par->curve_cache == NULL) {
+	if (par->runtime.curve_cache == NULL) {
 		/* Happens with a cyclic dependencies. */
 		return false;
 	}
 
-	if (par->curve_cache->path == NULL) {
+	if (par->runtime.curve_cache->path == NULL) {
 		return false;  /* happens on append, cyclic dependencies and empty curves */
 	}
 
@@ -625,7 +625,7 @@ static bool calc_curve_deform(Object *par, float co[3],
 		if (cu->flag & CU_STRETCH)
 			fac = (-co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
-			fac = -(co[index] - cd->dmax[index]) / (par->curve_cache->path->totdist);
+			fac = -(co[index] - cd->dmax[index]) / (par->runtime.curve_cache->path->totdist);
 	}
 	else {
 		index = axis;
@@ -633,8 +633,8 @@ static bool calc_curve_deform(Object *par, float co[3],
 			fac = (co[index] - cd->dmin[index]) / (cd->dmax[index] - cd->dmin[index]);
 		}
 		else {
-			if (LIKELY(par->curve_cache->path->totdist > FLT_EPSILON)) {
-				fac = +(co[index] - cd->dmin[index]) / (par->curve_cache->path->totdist);
+			if (LIKELY(par->runtime.curve_cache->path->totdist > FLT_EPSILON)) {
+				fac = +(co[index] - cd->dmin[index]) / (par->runtime.curve_cache->path->totdist);
 			}
 			else {
 				fac = 0.0f;
@@ -1035,11 +1035,11 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 	int numVerts, editmode = (lt->editlatt != NULL);
 	const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
-	if (ob->curve_cache) {
-		BKE_displist_free(&ob->curve_cache->disp);
+	if (ob->runtime.curve_cache) {
+		BKE_displist_free(&ob->runtime.curve_cache->disp);
 	}
 	else {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for lattice");
+		ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for lattice");
 	}
 
 	for (; md; md = md->next) {
@@ -1071,7 +1071,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		dl->nr = numVerts;
 		dl->verts = (float *) vertexCos;
 
-		BLI_addtail(&ob->curve_cache->disp, dl);
+		BLI_addtail(&ob->runtime.curve_cache->disp, dl);
 	}
 }
 
@@ -1145,7 +1145,7 @@ BoundBox *BKE_lattice_boundbox_get(Object *ob)
 
 void BKE_lattice_minmax_dl(Object *ob, Lattice *lt, float min[3], float max[3])
 {
-	DispList *dl = ob->curve_cache ? BKE_displist_find(&ob->curve_cache->disp, DL_VERTS) : NULL;
+	DispList *dl = ob->runtime.curve_cache ? BKE_displist_find(&ob->runtime.curve_cache->disp, DL_VERTS) : NULL;
 
 	if (!dl) {
 		BKE_lattice_minmax(lt, min, max);

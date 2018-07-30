@@ -537,18 +537,18 @@ void calc_curvepath(Object *ob, ListBase *nurbs)
 		return;
 	}
 
-	if (ob->curve_cache->path) free_path(ob->curve_cache->path);
-	ob->curve_cache->path = NULL;
+	if (ob->runtime.curve_cache->path) free_path(ob->runtime.curve_cache->path);
+	ob->runtime.curve_cache->path = NULL;
 
 	/* weak! can only use first curve */
-	bl = ob->curve_cache->bev.first;
+	bl = ob->runtime.curve_cache->bev.first;
 	if (bl == NULL || !bl->nr) {
 		return;
 	}
 
 	nu = nurbs->first;
 
-	ob->curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
+	ob->runtime.curve_cache->path = path = MEM_callocN(sizeof(Path), "calc_curvepath");
 
 	/* if POLY: last vertice != first vertice */
 	cycl = (bl->poly != -1);
@@ -665,15 +665,15 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 
 	if (ob == NULL || ob->type != OB_CURVE) return 0;
 	cu = ob->data;
-	if (ob->curve_cache == NULL || ob->curve_cache->path == NULL || ob->curve_cache->path->data == NULL) {
+	if (ob->runtime.curve_cache == NULL || ob->runtime.curve_cache->path == NULL || ob->runtime.curve_cache->path->data == NULL) {
 		printf("no path!\n");
 		return 0;
 	}
-	path = ob->curve_cache->path;
+	path = ob->runtime.curve_cache->path;
 	pp = path->data;
 
 	/* test for cyclic */
-	bl = ob->curve_cache->bev.first;
+	bl = ob->runtime.curve_cache->bev.first;
 	if (!bl) return 0;
 	if (!bl->nr) return 0;
 	if (bl->poly > -1) cycl = 1;

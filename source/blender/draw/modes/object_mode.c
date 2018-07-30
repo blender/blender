@@ -1663,7 +1663,7 @@ static void DRW_shgroup_forcefield(OBJECT_StorageList *stl, Object *ob, ViewLaye
 			}
 			break;
 		case PFIELD_GUIDE:
-			if (cu && (cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
+			if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path && ob->runtime.curve_cache->path->data) {
 				where_on_path(ob, 0.0f, pd->drawvec1, tmp, NULL, NULL, NULL);
 				where_on_path(ob, 1.0f, pd->drawvec2, tmp, NULL, NULL, NULL);
 			}
@@ -1704,7 +1704,7 @@ static void DRW_shgroup_forcefield(OBJECT_StorageList *stl, Object *ob, ViewLaye
 			DRW_shgroup_call_dynamic_add(stl->g_data->field_vortex, color, &pd->drawvec1, ob->obmat);
 			break;
 		case PFIELD_GUIDE:
-			if (cu && (cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
+			if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path && ob->runtime.curve_cache->path->data) {
 				DRW_shgroup_call_dynamic_add(stl->g_data->field_curve_sta, color, &pd->f_strength, ob->obmat);
 				DRW_shgroup_call_dynamic_add(stl->g_data->field_curve_end, color, &pd->f_strength, ob->obmat);
 			}

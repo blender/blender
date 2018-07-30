@@ -716,7 +716,7 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 								if (md) {
 									((CurveModifierData *)md)->object = par;
 								}
-								if (par->curve_cache && par->curve_cache->path == NULL) {
+								if (par->runtime.curve_cache && par->runtime.curve_cache->path == NULL) {
 									DEG_id_tag_update(&par->id, OB_RECALC_DATA);
 								}
 							}

@@ -170,15 +170,15 @@ void BKE_object_free_softbody(Object *ob)
 
 void BKE_object_free_curve_cache(Object *ob)
 {
-	if (ob->curve_cache) {
-		BKE_displist_free(&ob->curve_cache->disp);
-		BKE_curve_bevelList_free(&ob->curve_cache->bev);
-		if (ob->curve_cache->path) {
-			free_path(ob->curve_cache->path);
+	if (ob->runtime.curve_cache) {
+		BKE_displist_free(&ob->runtime.curve_cache->disp);
+		BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+		if (ob->runtime.curve_cache->path) {
+			free_path(ob->runtime.curve_cache->path);
 		}
-		BKE_nurbList_free(&ob->curve_cache->deformed_nurbs);
-		MEM_freeN(ob->curve_cache);
-		ob->curve_cache = NULL;
+		BKE_nurbList_free(&ob->runtime.curve_cache->deformed_nurbs);
+		MEM_freeN(ob->runtime.curve_cache);
+		ob->runtime.curve_cache = NULL;
 	}
 }
 
@@ -460,12 +460,12 @@ void BKE_object_free(Object *ob)
 	BLI_freelistN(&ob->lodlevels);
 
 	/* Free runtime curves data. */
-	if (ob->curve_cache) {
-		BKE_curve_bevelList_free(&ob->curve_cache->bev);
-		if (ob->curve_cache->path)
-			free_path(ob->curve_cache->path);
-		MEM_freeN(ob->curve_cache);
-		ob->curve_cache = NULL;
+	if (ob->runtime.curve_cache) {
+		BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+		if (ob->runtime.curve_cache->path)
+			free_path(ob->runtime.curve_cache->path);
+		MEM_freeN(ob->runtime.curve_cache);
+		ob->runtime.curve_cache = NULL;
 	}
 
 	BKE_previewimg_free(&ob->preview);
@@ -1154,6 +1154,9 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 {
 	ModifierData *md;
 
+	/* Do not copy runtime data. */
+	BKE_object_runtime_reset(ob_dst);
+
 	/* We never handle usercount here for own data. */
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
 
@@ -1211,9 +1214,6 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 	ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
 
 	copy_object_lod(ob_dst, ob_src, flag_subdata);
-
-	/* Do not copy runtime curve data. */
-	ob_dst->curve_cache = NULL;
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
 	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) {  /* XXX TODO temp hack */
@@ -1725,7 +1725,7 @@ static bool ob_parcurve(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, 
 	}
 #endif
 
-	if (par->curve_cache->path == NULL) {
+	if (par->runtime.curve_cache->path == NULL) {
 		return false;
 	}
 
@@ -1944,10 +1944,10 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		ListBase *nurb;
 
 		/* Unless there's some weird depsgraph failure the cache should exist. */
-		BLI_assert(par->curve_cache != NULL);
+		BLI_assert(par->runtime.curve_cache != NULL);
 
-		if (par->curve_cache->deformed_nurbs.first != NULL) {
-			nurb = &par->curve_cache->deformed_nurbs;
+		if (par->runtime.curve_cache->deformed_nurbs.first != NULL) {
+			nurb = &par->runtime.curve_cache->deformed_nurbs;
 		}
 		else {
 			Curve *cu = par->data;
@@ -1958,7 +1958,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	}
 	else if (par->type == OB_LATTICE) {
 		Lattice *latt  = par->data;
-		DispList *dl   = par->curve_cache ? BKE_displist_find(&par->curve_cache->disp, DL_VERTS) : NULL;
+		DispList *dl   = par->runtime.curve_cache ? BKE_displist_find(&par->runtime.curve_cache->disp, DL_VERTS) : NULL;
 		float (*co)[3] = dl ? (float (*)[3])dl->verts : NULL;
 		int tot;
 
@@ -2539,10 +2539,10 @@ void BKE_object_foreach_display_point(
 			func_cb(co, user_data);
 		}
 	}
-	else if (ob->curve_cache && ob->curve_cache->disp.first) {
+	else if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
 		DispList *dl;
 
-		for (dl = ob->curve_cache->disp.first; dl; dl = dl->next) {
+		for (dl = ob->runtime.curve_cache->disp.first; dl; dl = dl->next) {
 			const float *v3 = dl->verts;
 			int totvert = dl->nr;
 			int i;

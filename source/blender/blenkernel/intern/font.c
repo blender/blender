@@ -1075,8 +1075,8 @@ makebreak:
 	/* TEXT ON CURVE */
 	/* Note: Only OB_CURVE objects could have a path  */
 	if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
-		BLI_assert(cu->textoncurve->curve_cache != NULL);
-		if (cu->textoncurve->curve_cache->path) {
+		BLI_assert(cu->textoncurve->runtime.curve_cache != NULL);
+		if (cu->textoncurve->runtime.curve_cache->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;
 			float timeofs, sizefac;
@@ -1106,7 +1106,7 @@ makebreak:
 			/* we put the x-coordinaat exact at the curve, the y is rotated */
 
 			/* length correction */
-			distfac = sizefac * cu->textoncurve->curve_cache->path->totdist / (maxx - minx);
+			distfac = sizefac * cu->textoncurve->runtime.curve_cache->path->totdist / (maxx - minx);
 			timeofs = 0.0f;
 
 			if (distfac > 1.0f) {
