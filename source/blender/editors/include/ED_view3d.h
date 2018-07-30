@@ -119,7 +119,7 @@ void ED_view3d_cursor3d_position_rotation(
         float cursor_co[3], float cursor_quat[4]);
 void ED_view3d_cursor3d_update(
         struct bContext *C, const int mval[2],
-        bool use_depth, enum eV3DCursorOrient orientation);
+        const bool use_depth, enum eV3DCursorOrient orientation);
 
 struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D *rv3d);
 

@@ -57,7 +57,7 @@
 
 /******************************** Prototypes ********************************/
 
-static bool collection_child_add(Collection *parent, Collection *collection, int flag, const bool add_us);
+static bool collection_child_add(Collection *parent, Collection *collection, const int flag, const bool add_us);
 static bool collection_child_remove(Collection *parent, Collection *collection);
 static bool collection_object_add(Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us);
 static bool collection_object_remove(Main *bmain, Collection *collection, Object *ob, const bool free_us);
