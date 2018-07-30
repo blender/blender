@@ -1,3 +1,3 @@
-These matcap images are licensed as GNU GPL 2 or later, like the rest of Blender's code.
+These matcap images are licensed as CC0 or public domain.
 
-Thanks to Kent Trammell, Aidy Burrows, John Herreno , Terry Wallwork and David Silverman for making the pictures.
+Thanks to the Blender community for contributing these matcaps.
