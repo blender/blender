@@ -130,6 +130,8 @@ int BKE_scene_camera_switch_update(struct Scene *scene);
 char *BKE_scene_find_marker_name(struct Scene *scene, int frame);
 char *BKE_scene_find_last_marker_name(struct Scene *scene, int frame);
 
+int BKE_scene_frame_snap_by_seconds(struct Scene *scene, double interval_in_seconds, int cfra);
+
 /* checks for cycle, returns 1 if it's all OK */
 bool BKE_scene_validate_setscene(struct Main *bmain, struct Scene *sce);
 

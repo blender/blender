@@ -45,6 +45,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_sound.h"
+#include "BKE_scene.h"
 
 #include "UI_view2d.h"
 
@@ -98,8 +99,13 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 	float frame = RNA_float_get(op->ptr, "frame");
 	bool do_snap = RNA_boolean_get(op->ptr, "snap");
 
-	if (do_snap && CTX_wm_space_seq(C)) {
-		frame = BKE_sequencer_find_next_prev_edit(scene, frame, SEQ_SIDE_BOTH, true, false, false);
+	if (do_snap) {
+		if (CTX_wm_space_seq(C)) {
+			frame = BKE_sequencer_find_next_prev_edit(scene, frame, SEQ_SIDE_BOTH, true, false, false);
+		}
+		else {
+			frame = BKE_scene_frame_snap_by_seconds(scene, 1.0, frame);
+		}
 	}
 
 	/* set the new frame number */

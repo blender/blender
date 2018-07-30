@@ -1207,6 +1207,16 @@ char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
 	return best_marker ? best_marker->name : NULL;
 }
 
+int BKE_scene_frame_snap_by_seconds(Scene *scene, double interval_in_seconds, int cfra)
+{
+	const int fps = round_db_to_int(FPS * interval_in_seconds);
+	const int second_prev = cfra - mod_i(cfra, fps);
+	const int second_next = second_prev + fps;
+	const int delta_prev = cfra - second_prev;
+	const int delta_next = second_next - cfra;
+	return (delta_prev < delta_next) ? second_prev : second_next;
+}
+
 void BKE_scene_remove_rigidbody_object(struct Main *bmain, Scene *scene, Object *ob)
 {
 	/* remove rigid body constraint from world before removing object */
