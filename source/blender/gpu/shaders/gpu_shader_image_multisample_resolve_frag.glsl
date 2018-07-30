@@ -8,8 +8,6 @@ out vec4 fragColor;
 #error "Too many samples"
 #endif
 
-// #define USE_DEPTH_WEIGHTING
-
 void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -19,26 +17,26 @@ void main()
 	vec4 d1, d2, d3, d4;
 	vec4 c1, c2, c3, c4, c5, c6, c7, c8;
 	vec4 c9, c10, c11, c12, c13, c14, c15, c16;
-	d1 = d2 = d3 = d4 = vec4(1.0);
+	d1 = d2 = d3 = d4 = vec4(0.5);
 	w1 = w2 = w3 = w4 = vec4(0.0);
 	c1 = c2 = c3 = c4 = c5 = c6 = c7 = c8 = vec4(0.0);
 	c9 = c10 = c11 = c12 = c13 = c14 = c15 = c16 = vec4(0.0);
 
+#ifdef USE_DEPTH
 	/* Depth */
-
 	d1.x = texelFetch(depthMulti, texel, 0).r;
 	d1.y = texelFetch(depthMulti, texel, 1).r;
-#if SAMPLES > 2
+#  if SAMPLES > 2
 	d1.z = texelFetch(depthMulti, texel, 2).r;
 	d1.w = texelFetch(depthMulti, texel, 3).r;
-#endif
-#if SAMPLES > 4
+#  endif
+#  if SAMPLES > 4
 	d2.x = texelFetch(depthMulti, texel, 4).r;
 	d2.y = texelFetch(depthMulti, texel, 5).r;
 	d2.z = texelFetch(depthMulti, texel, 6).r;
 	d2.w = texelFetch(depthMulti, texel, 7).r;
-#endif
-#if SAMPLES > 8
+#  endif
+#  if SAMPLES > 8
 	d3.x = texelFetch(depthMulti, texel, 8).r;
 	d3.y = texelFetch(depthMulti, texel, 9).r;
 	d3.z = texelFetch(depthMulti, texel, 10).r;
@@ -47,6 +45,7 @@ void main()
 	d4.y = texelFetch(depthMulti, texel, 13).r;
 	d4.z = texelFetch(depthMulti, texel, 14).r;
 	d4.w = texelFetch(depthMulti, texel, 15).r;
+#  endif
 #endif
 
 	/* COLOR */
@@ -89,22 +88,26 @@ void main()
 	}
 #endif
 
-#if SAMPLES > 8
-	d1 = min(d1, min(d3, d4));
-#endif
-#if SAMPLES > 4
-	d1 = min(d1, d2);
-#endif
-#if SAMPLES > 2
-	d1.xy = min(d1.xy, d1.zw);
-#endif
-	gl_FragDepth = min(d1.x, d1.y);
-
-#ifdef USE_DEPTH_WEIGHTING
-	c1  *= w1.x; c2  *= w1.y; c3  *= w1.z; c4  *= w1.w;
-	c5  *= w2.x; c6  *= w2.y; c7  *= w2.z; c8  *= w2.w;
-	c9  *= w3.x; c10 *= w3.y; c11 *= w3.z; c12 *= w3.w;
-	c13 *= w4.x; c14 *= w4.y; c15 *= w4.z; c16 *= w4.w;
+#ifdef USE_DEPTH
+	d1 *= 1.0 - step(1.0, d1); /* make far plane depth = 0 */
+#  if SAMPLES > 8
+	d4 *= 1.0 - step(1.0, d4);
+	d3 *= 1.0 - step(1.0, d3);
+	d1 = max(d1, max(d3, d4));
+#  endif
+#  if SAMPLES > 4
+	d2 *= 1.0 - step(1.0, d2);
+	d1 = max(d1, d2);
+	d1 = max(d1, d2);
+#  endif
+#  if SAMPLES > 2
+	d1.xy = max(d1.xy, d1.zw);
+#  endif
+	gl_FragDepth = max(d1.x, d1.y);
+	/* Don't let the 0.0 farplane occlude other things */
+	if (gl_FragDepth == 0.0) {
+		gl_FragDepth = 1.0;
+	}
 #endif
 
 	c1 =  c1 + c2;

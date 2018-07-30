@@ -738,6 +738,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_4] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_8] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_16] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 
 		[GPU_SHADER_2D_IMAGE_INTERLACE] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                    datatoc_gpu_shader_image_interlace_frag_glsl },
@@ -873,14 +877,30 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2:
 				defines = "#define SAMPLES 2\n";
 				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST:
+				defines = "#define SAMPLES 2\n"
+				          "#define USE_DEPTH\n";
+				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_4:
 				defines = "#define SAMPLES 4\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST:
+				defines = "#define SAMPLES 4\n"
+				          "#define USE_DEPTH\n";
 				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_8:
 				defines = "#define SAMPLES 8\n";
 				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST:
+				defines = "#define SAMPLES 8\n"
+				          "#define USE_DEPTH\n";
+				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_16:
 				defines = "#define SAMPLES 16\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST:
+				defines = "#define SAMPLES 16\n"
+				          "#define USE_DEPTH\n";
 				break;
 			case GPU_SHADER_2D_WIDGET_BASE_INST:
 			case GPU_SHADER_2D_NODELINK_INST:

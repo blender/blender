@@ -317,10 +317,14 @@ void DRW_transform_none(GPUTexture *tex)
 /* Use manual multisample resolve pass.
  * Much quicker than blitting back and forth.
  * Assume destination fb is bound*/
-void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
+void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color, bool use_depth)
 {
-	drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL |
-	              DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+	DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL;
+
+	if (use_depth) {
+		state |= DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
+	}
+	drw_state_set(state);
 
 	int samples = GPU_texture_samples(src_depth);
 
@@ -330,22 +334,39 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
 	GPUBatch *geom = DRW_cache_fullscreen_quad_get();
 
 	int builtin;
-	switch (samples) {
-		case 2:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2; break;
-		case 4:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_4; break;
-		case 8:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_8; break;
-		case 16: builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16; break;
-		default:
-			BLI_assert(0);
-			builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2;
-			break;
+	if (use_depth) {
+		switch (samples) {
+			case 2:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST; break;
+			case 4:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST; break;
+			case 8:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST; break;
+			case 16: builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST; break;
+			default:
+				BLI_assert("Mulisample count unsupported by blit shader.");
+				builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST;
+				break;
+		}
+	}
+	else {
+		switch (samples) {
+			case 2:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2; break;
+			case 4:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_4; break;
+			case 8:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_8; break;
+			case 16: builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16; break;
+			default:
+				BLI_assert("Mulisample count unsupported by blit shader.");
+				builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2;
+				break;
+		}
 	}
 
 	GPU_batch_program_set_builtin(geom, builtin);
 
-	GPU_texture_bind(src_depth, 0);
+	if (use_depth) {
+		GPU_texture_bind(src_depth, 0);
+		GPU_batch_uniform_1i(geom, "depthMulti", 0);
+	}
+
 	GPU_texture_bind(src_color, 1);
-	GPU_batch_uniform_1i(geom, "depthMulti", 0);
 	GPU_batch_uniform_1i(geom, "colorMulti", 1);
 
 	float mat[4][4];

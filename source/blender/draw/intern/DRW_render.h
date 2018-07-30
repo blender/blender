@@ -120,7 +120,16 @@ typedef char DRWViewportEmptyList;
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Resolve"); \
 		GPU_framebuffer_bind(dfbl->default_fb); \
-		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color); \
+		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, true); \
+		DRW_stats_query_end(); \
+	} \
+}
+
+#define MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl) { \
+	if (dfbl->multisample_fb != NULL) { \
+		DRW_stats_query_start("Multisample Resolve"); \
+		GPU_framebuffer_bind(dfbl->default_fb); \
+		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color, false); \
 		DRW_stats_query_end(); \
 	} \
 }
@@ -228,7 +237,7 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 void DRW_transform_to_display(struct GPUTexture *tex);
 void DRW_transform_none(struct GPUTexture *tex);
 void DRW_multisamples_resolve(
-        struct GPUTexture *src_depth, struct GPUTexture *src_color);
+        struct GPUTexture *src_depth, struct GPUTexture *src_color, bool use_depth);
 
 /* Shaders */
 struct GPUShader *DRW_shader_create(
