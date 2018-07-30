@@ -75,7 +75,7 @@ ccl_device_inline float area_light_sample(float3 P,
 	/* Compute internal angles (gamma_i). */
 	float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
 	float4 nz = make_float4(y0, x1, y1, x0) * diff;
-	nz = nz / sqrt(sqr(z0 * diff) + sqr(nz));
+	nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
 	float g0 = safe_acosf(-nz.x * nz.y);
 	float g1 = safe_acosf(-nz.y * nz.z);
 	float g2 = safe_acosf(-nz.z * nz.w);
