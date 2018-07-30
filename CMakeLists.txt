@@ -62,6 +62,11 @@ if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
 	set(CMAKE_BUILD_TYPE_INIT "Release")
 endif()
 
+# Omit superfluous "Up-to-date" messages.
+if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
+	set(CMAKE_INSTALL_MESSAGE "LAZY")
+endif()
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
