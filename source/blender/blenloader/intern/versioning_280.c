@@ -112,6 +112,9 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		else {
 			workspace = BKE_workspace_add(bmain, screen->id.name + 2);
 		}
+		if (workspace == NULL) {
+			continue;  /* Not much we can do.. */
+		}
 		BKE_workspace_layout_add(bmain, workspace, screen, screen->id.name + 2);
 	}
 }
