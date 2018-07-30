@@ -327,7 +327,7 @@ static void MPATH_draw_scene(void *vedata)
 	DRW_draw_pass(psl->lines);
 	DRW_draw_pass(psl->points);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl)
 }
 
 /* *************************** Draw Engine Defines ****************************** */
