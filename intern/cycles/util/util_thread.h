@@ -17,15 +17,10 @@
 #ifndef __UTIL_THREAD_H__
 #define __UTIL_THREAD_H__
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-#  include <thread>
-#  include <mutex>
-#  include <condition_variable>
-#  include <functional>
-#else
-#  include <boost/thread.hpp>
-#  include <pthread.h>
-#endif
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
 #include <queue>
 
 #ifdef _WIN32
@@ -42,16 +37,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 typedef std::mutex thread_mutex;
 typedef std::unique_lock<std::mutex> thread_scoped_lock;
 typedef std::condition_variable thread_condition_variable;
-#else
-/* use boost for mutexes */
-typedef boost::mutex thread_mutex;
-typedef boost::mutex::scoped_lock thread_scoped_lock;
-typedef boost::condition_variable thread_condition_variable;
-#endif
 
 /* own pthread based implementation, to avoid boost version conflicts with
  * dynamically loaded blender plugins */
@@ -66,11 +54,7 @@ public:
 
 protected:
 	function<void(void)> run_cb_;
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 	std::thread thread_;
-#else
-	pthread_t pthread_id_;
-#endif
 	bool joined_;
 	int group_;
 };

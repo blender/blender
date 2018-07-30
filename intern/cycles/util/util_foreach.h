@@ -17,13 +17,8 @@
 #ifndef __UTIL_FOREACH_H__
 #define __UTIL_FOREACH_H__
 
-/* Use Boost to get nice foreach() loops for STL data structures. */
+/* Nice foreach() loops for STL data structures. */
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-#  define foreach(x, y) for(x : y)
-#else
-#  include <boost/foreach.hpp>
-#  define foreach BOOST_FOREACH
-#endif
+#define foreach(x, y) for(x : y)
 
 #endif /* __UTIL_FOREACH_H__ */

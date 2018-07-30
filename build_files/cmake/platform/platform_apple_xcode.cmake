@@ -104,7 +104,7 @@ endif()
 # 10.9 is our min. target, if you use higher sdk, weak linking happens
 if(CMAKE_OSX_DEPLOYMENT_TARGET)
 	if(${CMAKE_OSX_DEPLOYMENT_TARGET} VERSION_LESS 10.9)
-		message(STATUS "Setting deployment target to 10.9, lower versions are incompatible with WITH_CXX11")
+		message(STATUS "Setting deployment target to 10.9, lower versions are not supported")
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "" FORCE)
 	endif()
 else()

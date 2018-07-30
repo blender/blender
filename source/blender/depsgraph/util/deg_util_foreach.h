@@ -30,11 +30,4 @@
 
 #pragma once
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-#  define foreach(x, y) for(x : y)
-#elif defined(HAVE_BOOST_FUNCTION_BINDINGS)
-#  include <boost/foreach.hpp>
-#  define foreach BOOST_FOREACH
-#else
-#  error "Depsgraph requires either Boost or C++11 for range-based loops."
-#endif
+#define foreach(x, y) for(x : y)
