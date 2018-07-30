@@ -168,4 +168,3 @@ void BKE_world_make_local(Main *bmain, World *wrld, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &wrld->id, true, lib_local);
 }
-

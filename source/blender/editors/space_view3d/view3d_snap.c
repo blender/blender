@@ -229,7 +229,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 /** Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
  *
  * \param snap_target_global: a location in global space to snap to (eg. 3D cursor or active object).
- * \param use_offset: if the selected objects should maintain their relative offsets and be snapped by the selection 
+ * \param use_offset: if the selected objects should maintain their relative offsets and be snapped by the selection
  *                    pivot point (median, active), or if every object origin should be snapped to the given location.
 **/
 static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
