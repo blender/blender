@@ -719,13 +719,12 @@ static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
 }
 
 typedef struct ObjectRuntimeBackup {
-	CurveCache *curve_cache;
 	Object_Runtime runtime;
 	short base_flag;
 } ObjectRuntimeBackup;
 
 /* Make a backup of object's evaluation runtime data, additionally
- * male object to be safe for free without invalidating backed up
+ * make object to be safe for free without invalidating backed up
  * pointers.
  */
 static void deg_backup_object_runtime(
