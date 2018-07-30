@@ -100,7 +100,7 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 	SeparateChannelOperation *separateOperation = new SeparateChannelOperation;
 	separateOperation->setChannel(3);
 	converter.addOperation(separateOperation);
-	
+
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
 	converter.addOperation(operationAlpha);
 
@@ -117,5 +117,5 @@ void CryptomatteNode::convertToOperations(NodeConverter &converter, const Compos
 	converter.mapOutputSocket(outputSocketMatte, separateOperation->getOutputSocket(0));
 	converter.mapOutputSocket(outputSocketImage, operationAlpha->getOutputSocket(0));
 	converter.mapOutputSocket(outputSocketPick, clearAlphaOperation->getOutputSocket(0));
-	
+
 }
