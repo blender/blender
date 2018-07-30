@@ -23,6 +23,8 @@
  *  \ingroup draw_engine
  */
 
+#include "ED_screen.h"
+
 #include "workbench_private.h"
 
 
@@ -32,6 +34,15 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_EffectInfo *effect_info = stl->effects;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	if (draw_ctx->evil_C != NULL) {
+		struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+		wpd->is_playback = ED_screen_animation_playing(wm) != NULL;
+	}
+	else {
+		wpd->is_playback = false;
+	}
 
 	if (TAA_ENABLED(wpd)) {
 		psl->effect_aa_pass = workbench_taa_create_pass(vedata, tx);
