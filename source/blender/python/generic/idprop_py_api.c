@@ -596,15 +596,15 @@ static IDProperty *idp_from_PyMapping(const char *name, PyObject *ob)
 	return prop;
 }
 
-static IDProperty *idp_from_DatablockPointer(const char *name, PyObject *ob, IDPropertyTemplate *val)
+static IDProperty *idp_from_DatablockPointer(const char *name, PyObject *ob)
 {
-	pyrna_id_FromPyObject(ob, &val->id);
-	return IDP_New(IDP_ID, val, name);
+	IDPropertyTemplate val = {0};
+	pyrna_id_FromPyObject(ob, &val.id);
+	return IDP_New(IDP_ID, &val, name);
 }
 
 static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 {
-	IDPropertyTemplate val = {0};
 	const char *name = idp_try_read_name(name_obj);
 	if (name == NULL) {
 		return NULL;
@@ -626,7 +626,7 @@ static IDProperty *idp_from_PyObject(PyObject *name_obj, PyObject *ob)
 		return idp_from_PySequence(name, ob);
 	}
 	else if (ob == Py_None || pyrna_id_CheckPyObject(ob)) {
-		return idp_from_DatablockPointer(name, ob, &val);
+		return idp_from_DatablockPointer(name, ob);
 	}
 	else if (PyMapping_Check(ob)) {
 		return idp_from_PyMapping(name, ob);
