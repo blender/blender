@@ -2351,6 +2351,7 @@ void DRW_opengl_context_create(void)
 	}
 	/* This changes the active context. */
 	DST.gl_context = WM_opengl_context_create();
+	WM_opengl_context_activate(DST.gl_context);
 	/* Be sure to create gawain.context too. */
 	DST.gpu_context = GPU_context_create();
 	if (!G.background) {
