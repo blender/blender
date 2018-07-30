@@ -354,7 +354,7 @@ static int view_scrollright_exec(bContext *C, wmOperator *op)
 	}
 
 	/* set RNA-Props - only movement in positive x-direction */
-	RNA_int_set(op->ptr, "deltax", 20);
+	RNA_int_set(op->ptr, "deltax", 40);
 	RNA_int_set(op->ptr, "deltay", 0);
 
 	/* apply movement, then we're done */
@@ -398,7 +398,7 @@ static int view_scrollleft_exec(bContext *C, wmOperator *op)
 	}
 
 	/* set RNA-Props - only movement in negative x-direction */
-	RNA_int_set(op->ptr, "deltax", -20);
+	RNA_int_set(op->ptr, "deltax", -40);
 	RNA_int_set(op->ptr, "deltay", 0);
 
 	/* apply movement, then we're done */
