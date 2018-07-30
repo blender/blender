@@ -3784,7 +3784,7 @@ class VIEW3D_PT_shading_lighting(Panel):
             sub.scale_y = 0.6 # smaller matcap/hdri preview
 
             if shading.light == 'STUDIO':
-                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+                sub.template_icon_view(shading, "studio_light", scale=3)
 
                 if shading.selected_studio_light.orientation == 'WORLD':
                     col.prop(shading, "studiolight_rotate_z", text="Rotation")
@@ -3793,7 +3793,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
             elif shading.light == 'MATCAP':
-                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+                sub.template_icon_view(shading, "studio_light", scale=3)
 
                 col = split.column()
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
@@ -3810,7 +3810,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col = split.column()
                 sub = col.row()
                 sub.scale_y = 0.6
-                sub.template_icon_view(shading, "studio_light", show_labels=True, scale=3)
+                sub.template_icon_view(shading, "studio_light", scale=3)
 
                 col = split.column()
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
