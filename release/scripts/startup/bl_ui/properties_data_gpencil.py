@@ -215,7 +215,7 @@ class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
         layout.enabled = not gpl.lock
         col = layout.column(align=True)
         col.prop(gpl, "tint_color")
-        col.prop(gpl, "tint_factor", slider=True)
+        col.prop(gpl, "tint_factor", text="Factor", slider=True)
 
         # Offsets - Thickness
         col = layout.row(align=True)
@@ -236,10 +236,10 @@ class DATA_PT_gpencil_parentpanel(LayerDataButtonsPanel, Panel):
         layout.use_property_decorate = False
 
         gpl = context.active_gpencil_layer
-        col = layout.column(align=True)
+        col = layout.column()
         col.active = not gpl.lock
-        col.prop(gpl, "parent", text="Parent")
-        col.prop(gpl, "parent_type", text="Parent Type")
+        col.prop(gpl, "parent")
+        col.prop(gpl, "parent_type", text="Type")
         parent = gpl.parent
 
         if parent and gpl.parent_type == 'BONE' and parent.type == 'ARMATURE':

@@ -785,43 +785,31 @@ class GreasePencilOnionPanel:
     @staticmethod
     def draw_settings(layout, gp):
         col = layout.column()
-
         col.prop(gp, "onion_mode")
+        col.prop(gp, "onion_factor", text="Opacity", slider=True)
 
-        row = col.row()
-        row.prop(gp, "onion_factor", text="Opacity", slider=True)
+        if gp.onion_mode in ('ABSOLUTE', 'RELATIVE'):
+            col = layout.column(align=True)
+            col.prop(gp, "ghost_before_range", text="Frames Before")
+            col.prop(gp, "ghost_after_range", text="After")
 
-        # Frames before.
-        sub = layout.column(align=True)
-        row = sub.row(align=True)
-        row.active = gp.use_ghost_custom_colors
-        row.prop(gp, "before_color", text="Color Before")
+        layout.prop(gp, "use_ghost_custom_colors", text="Use Custom Colors")
 
-        row = sub.row(align=True)
-        row.active = gp.onion_mode in ('ABSOLUTE', 'RELATIVE')
-        row.prop(gp, "ghost_before_range", text="Frames Before")
+        if gp.use_ghost_custom_colors:
+            col = layout.column(align=True)
+            col.active = gp.use_ghost_custom_colors
+            col.prop(gp, "before_color", text="Color Before")
+            col.prop(gp, "after_color", text="After")
 
-        # Frames after.
-        sub = layout.column(align=True)
-        row = sub.row(align=True)
-        row.active = gp.use_ghost_custom_colors
-        row.prop(gp, "after_color", text="Color After")
-
-        row = sub.row(align=True)
-        row.active = gp.onion_mode in ('ABSOLUTE', 'RELATIVE')
-        row.prop(gp, "ghost_after_range", text="Frames After")
-
-        layout.prop(gp, "use_ghost_custom_colors", text="Use Custom Color")
         layout.prop(gp, "use_ghosts_always", text="View In Render")
 
-        # Fade and loop.
-        row = layout.row()
-        row.active = gp.use_onion_skinning
-        row.prop(gp, "use_onion_fade", text="Fade")
+        col = layout.column(align=True)
+        col.active = gp.use_onion_skinning
+        col.prop(gp, "use_onion_fade", text="Fade")
         if hasattr(gp, "use_onion_loop"):  # XXX
-            subrow = layout.row()
-            subrow.active = gp.onion_mode in ('RELATIVE', 'SELECTED')
-            subrow.prop(gp, "use_onion_loop", text="Loop")
+            sub = layout.column()
+            sub.active = gp.onion_mode in ('RELATIVE', 'SELECTED')
+            sub.prop(gp, "use_onion_loop", text="Loop")
 
 
 class GreasePencilToolsPanel:
