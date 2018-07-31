@@ -699,6 +699,7 @@ class GPENCIL_UL_annotation_layer(UIList):
 class GreasePencilDataPanel:
     bl_label = "Annotations"
     bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -832,7 +833,6 @@ class GreasePencilToolsPanel:
     # For use in "2D" Editors without their own toolbar
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
-    # bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Grease Pencil Settings"
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
