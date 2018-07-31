@@ -57,7 +57,7 @@
 
 #include "intern/CCGSubSurf.h"
 
-#define USE_OPENSUBDIV
+// #define USE_OPENSUBDIV
 
 static void initData(ModifierData *md)
 {
