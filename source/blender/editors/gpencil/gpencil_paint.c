@@ -1690,7 +1690,7 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
 			break;
 		}
-		
+
 		/* unsupported views */
 		default:
 		{

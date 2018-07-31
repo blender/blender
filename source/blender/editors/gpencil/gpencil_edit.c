@@ -1785,13 +1785,13 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 			/* Copy over the relevant point data */
 			new_stroke->points    = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints, "gp delete stroke fragment");
 			memcpy(new_stroke->points, gps->points + island->start_idx, sizeof(bGPDspoint) * new_stroke->totpoints);
-			
+
 			/* Copy over vertex weight data (if available) */
 			if (new_stroke->dvert != NULL) {
 				/* Copy over the relevant vertex-weight points */
 				new_stroke->dvert     = MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints, "gp delete stroke fragment weight");
 				memcpy(new_stroke->dvert, gps->dvert + island->start_idx, sizeof(MDeformVert) * new_stroke->totpoints);
-				
+
 				/* Copy weights */
 				int e = island->start_idx;
 				for (int i = 0; i < new_stroke->totpoints; i++) {

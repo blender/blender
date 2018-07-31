@@ -1245,7 +1245,7 @@ void uiItemsFullEnumO(
 
 		if (ui_layout_is_radial(layout)) {
 			/* XXX: While "_all()" guarantees spatial stability, it's bad when an enum has > 8 items total,
-			 * but only a small subset will ever be shown at once (e.g. Mode Switch menu, after the 
+			 * but only a small subset will ever be shown at once (e.g. Mode Switch menu, after the
 			 * introduction of GP editing modes)
 			 */
 #if 0

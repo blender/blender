@@ -19,14 +19,14 @@ out vec4 FragColor;
 
 float overlay_color(float a, float b)
 {
-	float rtn; 
+	float rtn;
 		if (a < 0.5) {
 			rtn = 2.0 * a * b;
 		}
 		else {
 			rtn = 1.0 - 2.0 * (1.0 - a) * (1.0 - b);
 		}
-	
+
 	return rtn;
 }
 
@@ -53,16 +53,16 @@ vec4 get_blend_color(int mode, vec4 src_color, vec4 mix_color)
 	else if (mode == MODE_DIVIDE) {
 		outcolor = src_color / mix_color;
 	}
-	else {	
+	else {
 		outcolor = mix_color;
 	}
-		
+
 	/* use always the alpha of source color */
-	
+
 	outcolor.a = src_color.a;
 	/* use alpha to calculate the weight of the mixed color */
 	outcolor = mix(src_color, outcolor, mix_color.a);
-	
+
 	return outcolor;
 }
 
@@ -75,8 +75,8 @@ void main()
 	vec4 rim_pixel= texelFetch(strokeRim, uv.xy, 0);
 
 	vec4 outcolor = src_pixel;
-	
-	/* is transparent */ 
+
+	/* is transparent */
 	if (src_pixel.a == 0.0f) {
 		discard;
 	}
@@ -92,7 +92,7 @@ void main()
 			outcolor = get_blend_color(mode, src_pixel, rim_pixel);
 		}
 	}
-	
+
 	gl_FragDepth = stroke_depth;
 	FragColor = outcolor;
 }

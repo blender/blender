@@ -28,12 +28,12 @@ void main()
 	vec4 src_pixel= texelFetch(strokeColor, uv.xy, 0);
 	float luminance = get_luminance(src_pixel);
 	vec4 outcolor;
-	
-	/* is transparent */ 
+
+	/* is transparent */
 	if (src_pixel.a == 0.0f) {
 		discard;
 	}
-	
+
 	switch(mode) {
 		case MODE_GRAYSCALE:
 			{
@@ -78,7 +78,7 @@ void main()
 			{
 			outcolor = src_pixel;
 			}
-	
+
 	}
 
 	gl_FragDepth = stroke_depth;

@@ -23,15 +23,15 @@ void main()
 {
 	vec2 uv = vec2(gl_FragCoord.xy);
 	vec4 nloc = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
-	
+
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (nsize[0] / (nloc.z * defaultpixsize)) : (nsize[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (nsize[1] / (nloc.z * defaultpixsize)) : (nsize[1] / defaultpixsize);
 
 	dx = max(abs(dx), 3.0);
 	dy = max(abs(dy), 3.0);
-	
+
 	vec2 coord = vec2(dx * floor(uv.x / dx), dy * floor(uv.y / dy));
-	
+
 	float stroke_depth = texelFetch(strokeDepth, ivec2(coord), 0).r;
 	vec4 outcolor = texelFetch(strokeColor, ivec2(coord), 0);
 

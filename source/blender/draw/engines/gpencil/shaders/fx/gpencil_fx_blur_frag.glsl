@@ -21,10 +21,10 @@ void main()
 	ivec2 uv = ivec2(gl_FragCoord.xy);
 
 	vec4 nloc = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
-	
+
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
-	
+
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
 	/* depth */
 	float outdepth = 0;
@@ -42,7 +42,7 @@ void main()
 
 	gl_FragDepth = outdepth;
 
-	/* color */	
+	/* color */
 	vec4 outcolor = vec4(0.0);
     outcolor += texelFetch(strokeColor, ivec2(uv.x - 1.0 * dx, uv.y + 1.0 * dy), 0) * 0.0947416;
     outcolor += texelFetch(strokeColor, ivec2(uv.x - 0.0 * dx, uv.y + 1.0 * dy), 0) * 0.118318;

@@ -1573,7 +1573,7 @@ void init_userdef_do_versions(Main *bmain)
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			memcpy(btheme, &U_theme_default, sizeof(*btheme));
 		}
-		
+
 		/* Annotations - new layer color
 		 * Replace anything that used to be set if it looks like was left
 		 * on the old default (i.e. black), which most users used

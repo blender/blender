@@ -23,11 +23,11 @@ vec2 toScreenSpace(vec4 vertex)
 {
 	/* need to calculate ndc because this is not done by vertex shader */
 	vec3 ndc = vec3(vertex).xyz / vertex.w;
-					
+
 	vec2 sc;
 	sc.x = ((ndc.x + 1.0) / 2.0) * Viewport.x;
 	sc.y = ((ndc.y + 1.0) / 2.0) * Viewport.y;
-	
+
 	return sc;
 }
 
@@ -37,15 +37,15 @@ void main()
 	vec2 uv = vec2(gl_FragCoord.xy);
 	float stroke_depth;
 	vec4 outcolor;
-	
-	vec4 center3d = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0); 
+
+	vec4 center3d = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
 	vec2 center = toScreenSpace(center3d);
 	vec2 tc = uv - center;
 
 	float dist = length(tc);
 	float pxradius = (ProjectionMatrix[3][3] == 0.0) ? (radius / (loc.z * defaultpixsize)) : (radius / defaultpixsize);
 	pxradius = max(pxradius, 1);
-	
+
 	if (dist <= pxradius) {
 		float percent = (pxradius - dist) / pxradius;
 		float theta = percent * percent * angle * 8.0;

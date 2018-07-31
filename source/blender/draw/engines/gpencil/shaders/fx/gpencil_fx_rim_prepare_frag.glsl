@@ -26,7 +26,7 @@ void main()
 {
 	vec2 uv = vec2(gl_FragCoord.xy);
 	vec4 nloc = ProjectionMatrix * ViewMatrix * vec4(loc.xyz, 1.0);
-	
+
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
 
@@ -35,7 +35,7 @@ void main()
 	vec4 offset_pixel= texelFetch(strokeColor, ivec2(uv.x - dx, uv.y - dy), 0);
 	vec4 outcolor;
 
-	/* is transparent */ 
+	/* is transparent */
 	if (src_pixel.a == 0.0f) {
 		discard;
 	}
@@ -56,7 +56,7 @@ void main()
 		}
 		else {
 			outcolor = vec4(rim_color, 1.0);
-		}	
+		}
 	}
 
 	gl_FragDepth = stroke_depth;

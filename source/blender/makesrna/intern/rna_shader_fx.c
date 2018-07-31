@@ -443,7 +443,7 @@ static void rna_def_shader_fx_light(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
 	srna = RNA_def_struct(brna, "ShaderFxLight", "ShaderFx");
 	RNA_def_struct_ui_text(srna, "Light Effect", "Light effect");
 	RNA_def_struct_sdna(srna, "LightShaderFxData");
@@ -517,7 +517,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Edit Mode", "Display effect in Edit mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 	RNA_def_property_ui_icon(prop, ICON_EDITMODE_HLT, 0);
-	
+
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eShaderFxMode_Expanded);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);

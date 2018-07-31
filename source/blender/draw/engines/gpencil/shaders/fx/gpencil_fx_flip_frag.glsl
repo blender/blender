@@ -27,7 +27,7 @@ void main()
 	if (mode[1] > 0) {
 		uv.y = wsize.y - uv.y;
 	}
-	
+
 	ivec2 iuv = ivec2(uv.x, uv.y);
 	stroke_depth = texelFetch(strokeDepth, iuv, 0).r;
 	outcolor = texelFetch(strokeColor, iuv, 0);
