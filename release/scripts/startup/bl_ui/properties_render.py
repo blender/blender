@@ -219,23 +219,35 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.prop(rd, "use_stamp_time", text="Time")
         col.prop(rd, "use_stamp_date", text="Date")
-        col.prop(rd, "use_stamp_render_time", text="RenderTime")
+        col.prop(rd, "use_stamp_time", text="Time")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_render_time", text="Render Time")
         col.prop(rd, "use_stamp_frame", text="Frame")
-        col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_frame_range", text="Frame Range")
         col.prop(rd, "use_stamp_memory", text="Memory")
 
         col = split.column(align=True)
         col.prop(rd, "use_stamp_camera", text="Camera")
         col.prop(rd, "use_stamp_lens", text="Lens")
-        col.prop(rd, "use_stamp_filename", text="Filename")
-        col.prop(rd, "use_stamp_frame_range", text="Frame range")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_scene", text="Scene")
         col.prop(rd, "use_stamp_marker", text="Marker")
-        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_filename", text="Filename")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_sequencer_strip", text="Strip Name")
 
         if rd.use_sequencer:
-            col.prop(rd, "use_stamp_strip_meta", text="Sequence Strip")
+            col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
 
         row = layout.split(percentage=0.3)
         row.prop(rd, "use_stamp_note", text="Note")
