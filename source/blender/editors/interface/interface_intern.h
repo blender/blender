@@ -780,7 +780,7 @@ void ui_draw_preview_item(struct uiFontStyle *fstyle, rcti *rect, const char *na
 #define UI_POPUP_MENU_TOP (int)(8 * UI_DPI_FAC)
 
 #define UI_PIXEL_AA_JITTER 8
-const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];
+extern const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2];
 
 /* interface_style.c */
 void uiStyleInit(void);

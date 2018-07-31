@@ -3422,7 +3422,7 @@ bool node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, flo
 static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
 
-struct {
+static struct {
 	GPUBatch *batch; /* for batching line together */
 	GPUBatch *batch_single; /* for single line */
 	GPUVertBuf *inst_vbo;

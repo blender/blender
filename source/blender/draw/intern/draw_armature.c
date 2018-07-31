@@ -460,7 +460,7 @@ static void drw_shgroup_bone_ik_spline_lines(const float start[3], const float e
  * \{ */
 
 /* global here is reset before drawing each bone */
-struct {
+static struct {
 	const ThemeWireColor *bcolor;
 } g_color;
 

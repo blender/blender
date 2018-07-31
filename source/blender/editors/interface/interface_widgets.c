@@ -1083,7 +1083,7 @@ static void widgetbase_set_uniform_colors_ubv(
 #define MAX_WIDGET_BASE_BATCH 6
 #define MAX_WIDGET_PARAMETERS 11
 
-struct {
+static struct {
 	GPUBatch *batch; /* Batch type */
 	uiWidgetBaseParameters params[MAX_WIDGET_BASE_BATCH];
 	int count;

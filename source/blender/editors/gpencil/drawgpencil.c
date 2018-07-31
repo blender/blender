@@ -574,7 +574,7 @@ static void gp_add_filldata_tobuffer(
 
 	mul_v3_m4v3(fpt, diff_mat, &pt->x);
 	/* if 2d, need conversion */
-	if (!flag & GP_STROKE_3DSPACE) {
+	if (!(flag & GP_STROKE_3DSPACE)) {
 		gp_calc_2d_stroke_fxy(fpt, flag, offsx, offsy, winx, winy, co);
 		copy_v2_v2(fpt, co);
 		fpt[2] = 0.0f; /* 2d always is z=0.0f */

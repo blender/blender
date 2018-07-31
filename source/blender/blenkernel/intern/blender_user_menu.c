@@ -89,6 +89,7 @@ bUserMenuItem *BKE_blender_user_menu_item_add(ListBase *lb, int type)
 		size = sizeof(bUserMenuItem_Prop);
 	}
 	else {
+		size = sizeof(bUserMenuItem);
 		BLI_assert(0);
 	}
 

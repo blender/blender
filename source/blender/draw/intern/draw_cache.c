@@ -242,13 +242,15 @@ static GPUVertBuf *sphere_wire_vbo(const float rad)
 				cv[0] = p[(i + j) % NSEGMENTS][0];
 				cv[1] = p[(i + j) % NSEGMENTS][1];
 
-				if (axis == 0)
-					v[0] = cv[0], v[1] = cv[1], v[2] = 0.0f;
-				else if (axis == 1)
-					v[0] = cv[0], v[1] = 0.0f,  v[2] = cv[1];
-				else
-					v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
-
+				if (axis == 0) {
+					ARRAY_SET_ITEMS(v, cv[0], cv[1], 0.0f);
+				}
+				else if (axis == 1) {
+					ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
+				}
+				else {
+					ARRAY_SET_ITEMS(v, 0.0f, cv[0], cv[1]);
+				}
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 2 + j + (NSEGMENTS * 2 * axis), v);
 			}
 		}
@@ -825,17 +827,17 @@ GPUBatch *DRW_cache_empty_cone_get(void)
 			cv[1] = p[(i) % NSEGMENTS][1];
 
 			/* cone sides */
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4, v);
-			v[0] = 0.0f, v[1] = 2.0f, v[2] = 0.0f;
+			ARRAY_SET_ITEMS(v, 0.0f, 2.0f, 0.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 1, v);
 
 			/* end ring */
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 3, v);
 		}
 
@@ -1578,9 +1580,9 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 			cv[1] = p[i % NSEGMENTS][1];
 
 			/* cone sides */
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4, v);
-			v[0] = 0.0f, v[1] = 0.0f, v[2] = 0.0f;
+			ARRAY_SET_ITEMS(v, 0.0f, 0.0f, 0.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 1, v);
 
 			GPU_vertbuf_attr_set(vbo, attr_id.n1, i * 4,     n[(i) % NSEGMENTS]);
@@ -1589,11 +1591,11 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 			GPU_vertbuf_attr_set(vbo, attr_id.n2, i * 4 + 1, n[(i + 1) % NSEGMENTS]);
 
 			/* end ring */
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 3, v);
 
 			GPU_vertbuf_attr_set(vbo, attr_id.n1, i * 4 + 2, n[(i) % NSEGMENTS]);

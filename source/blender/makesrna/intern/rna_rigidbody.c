@@ -77,7 +77,7 @@ const EnumPropertyItem rna_enum_rigidbody_constraint_type_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 /* bullet spring type */
-const EnumPropertyItem rna_enum_rigidbody_constraint_spring_type_items[] = {
+static const EnumPropertyItem rna_enum_rigidbody_constraint_spring_type_items[] = {
 	{RBC_SPRING_TYPE1, "SPRING1", ICON_NONE, "Blender 2.7", "Spring implementation used in blender 2.7. Damping is capped at 1.0"},
 	{RBC_SPRING_TYPE2, "SPRING2", ICON_NONE, "Blender 2.8", "New implementation available since 2.8"},
 	{0, NULL, 0, NULL, NULL}};

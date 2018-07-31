@@ -60,7 +60,7 @@ const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-const EnumPropertyItem rna_enum_shaderfx_rim_modes_items[] = {
+static const EnumPropertyItem rna_enum_shaderfx_rim_modes_items[] = {
 	{eShaderFxRimMode_Normal, "NORMAL", 0, "Normal", "" },
 	{eShaderFxRimMode_Overlay, "OVERLAY", 0, "Overlay", "" },
 	{eShaderFxRimMode_Add, "ADD", 0, "Add", "" },
@@ -70,7 +70,7 @@ const EnumPropertyItem rna_enum_shaderfx_rim_modes_items[] = {
 	{0, NULL, 0, NULL, NULL }
 };
 
-const EnumPropertyItem rna_enum_shaderfx_colorize_modes_items[] = {
+static const EnumPropertyItem rna_enum_shaderfx_colorize_modes_items[] = {
 	{eShaderFxColorizeMode_GrayScale, "GRAYSCALE", 0, "Gray Scale", "" },
 	{eShaderFxColorizeMode_Sepia, "SEPIA", 0, "Sepia", "" },
 	{eShaderFxColorizeMode_BiTone, "BITONE", 0, "Bi-Tone", "" },

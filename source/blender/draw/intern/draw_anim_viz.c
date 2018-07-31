@@ -90,10 +90,12 @@ typedef struct MPATH_Data {
 	MPATH_StorageList *stl;
 } MPATH_Data;
 
-struct {
+#if 0
+static struct {
 	GPUShader *mpath_line_sh;
 	GPUShader *mpath_points_sh;
 } e_data = {0};
+#endif
 
 /* *************************** Path Cache *********************************** */
 

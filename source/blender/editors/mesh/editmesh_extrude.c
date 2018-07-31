@@ -365,11 +365,11 @@ void MESH_OT_extrude_repeat(wmOperatorType *ot)
 
 #ifdef USE_GIZMO
 
-const float extrude_button_scale = 0.15f;
-const float extrude_button_offset_scale = 1.5f;
-const float extrude_arrow_scale = 1.0f;
-const float extrude_arrow_xyz_axis_scale = 1.0f;
-const float extrude_arrow_normal_axis_scale = 1.75f;
+static const float extrude_button_scale = 0.15f;
+static const float extrude_button_offset_scale = 1.5f;
+static const float extrude_arrow_scale = 1.0f;
+static const float extrude_arrow_xyz_axis_scale = 1.0f;
+static const float extrude_arrow_normal_axis_scale = 1.75f;
 
 static const uchar shape_plus[] = {
 	0x5f, 0xfb, 0x40, 0xee, 0x25, 0xda, 0x11, 0xbf, 0x4, 0xa0, 0x0, 0x80, 0x4, 0x5f, 0x11,

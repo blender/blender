@@ -95,7 +95,7 @@
 /** Render State: No persistent data between draw calls. */
 DRWManager DST = {NULL};
 
-ListBase DRW_engines = {NULL, NULL};
+static ListBase DRW_engines = {NULL, NULL};
 
 extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
 

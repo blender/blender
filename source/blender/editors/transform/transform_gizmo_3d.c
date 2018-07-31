@@ -107,7 +107,7 @@
 #define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
 /* threshold for testing view aligned gizmo axis */
-struct {
+static struct {
 	float min, max;
 } g_tw_axis_range[2] = {
 	/* Regular range */
