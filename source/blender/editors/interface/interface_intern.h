@@ -831,6 +831,7 @@ bool ui_but_is_toggle(const uiBut *but);
 bool ui_but_is_popover_once_compat(const uiBut *but);
 
 extern bool ui_block_is_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
+extern bool ui_block_is_popover(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_block_is_pie_menu(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 extern bool ui_block_is_popup_any(const uiBlock *block) ATTR_WARN_UNUSED_RESULT;
 
