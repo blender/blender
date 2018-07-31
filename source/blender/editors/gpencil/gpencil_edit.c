@@ -2454,7 +2454,6 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps, bGPDspoint *point, int id
                                       float pressure, float strength, float deltatime)
 {
 	bGPDspoint *newpoint;
-	MDeformVert *dvert, *newdvert;
 
 	gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
 	if (gps->dvert != NULL) {
@@ -2462,11 +2461,6 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps, bGPDspoint *point, int id
 	}
 	gps->totpoints++;
 	newpoint = &gps->points[gps->totpoints - 1];
-
-	if (gps->dvert != NULL) {
-		dvert = &gps->dvert[idx];
-		newdvert = &gps->dvert[gps->totpoints - 1];
-	}
 
 	newpoint->x = point->x * delta[0];
 	newpoint->y = point->y * delta[1];
@@ -2476,8 +2470,13 @@ static void gpencil_stroke_copy_point(bGPDstroke *gps, bGPDspoint *point, int id
 	newpoint->strength = strength;
 	newpoint->time = point->time + deltatime;
 
-	newdvert->totweight = dvert->totweight;
-	newdvert->dw = MEM_dupallocN(dvert->dw);
+	if (gps->dvert != NULL) {
+		MDeformVert *dvert = &gps->dvert[idx];
+		MDeformVert *newdvert = &gps->dvert[gps->totpoints - 1];
+
+		newdvert->totweight = dvert->totweight;
+		newdvert->dw = MEM_dupallocN(dvert->dw);
+	}
 }
 
 /* Helper: join two strokes using the shortest distance (reorder stroke if necessary ) */
