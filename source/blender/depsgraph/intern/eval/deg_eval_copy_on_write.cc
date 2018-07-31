@@ -548,9 +548,13 @@ void update_special_pointers(const Depsgraph *depsgraph,
 				object_cow->runtime.mesh_orig = (Mesh *)object_cow->data;
 			}
 			if (object_cow->type == OB_ARMATURE) {
-				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
-				                             object_cow->pose);
-				update_pose_orig_pointers(object_orig->pose, object_cow->pose);
+				const bArmature *armature_orig = (bArmature *)object_orig->data;
+				bArmature *armature_cow = (bArmature *)object_cow->data;
+				BKE_pose_remap_bone_pointers(armature_cow, object_cow->pose);
+				if (armature_orig->edbo == NULL) {
+					update_pose_orig_pointers(object_orig->pose,
+					                          object_cow->pose);
+				}
 			}
 			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
