@@ -111,7 +111,7 @@ static void deformStroke(
 		MDeformVert *dvert = &gps->dvert[i];
 		float curvef = 1.0f;
 		/* verify vertex group */
-		float weight = get_modifier_point_weight(dvert, (int)(!(mmd->flag & GP_THICK_INVERT_VGROUP) == 0), vindex);
+		float weight = get_modifier_point_weight(dvert, (int)((mmd->flag & GP_THICK_INVERT_VGROUP) != 0), vindex);
 		if (weight < 0) {
 			continue;
 		}
