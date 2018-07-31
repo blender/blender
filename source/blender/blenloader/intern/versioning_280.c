@@ -1645,9 +1645,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							v3d->shading.background_type = (
-							        (v3d->flag3 & V3D_SHOW_WORLD) ?
-							        V3D_SHADING_BACKGROUND_WORLD : V3D_SHADING_BACKGROUND_THEME);
 							copy_v3_fl(v3d->shading.background_color, 0.05f);
 						}
 					}
@@ -1743,7 +1740,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
 							v3d->vertex_opacity = 1.0f;
-							v3d->flag3 |= V3D_GP_SHOW_EDIT_LINES;
+							v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
 						}
 					}
 				}

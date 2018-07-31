@@ -658,7 +658,7 @@ static void gpencil_add_editpoints_shgroup(
 		if (cache->batch_edlin[cache->cache_idx]) {
 			if ((obact) && (obact == ob) &&
 			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			    (v3d->flag3 & V3D_GP_SHOW_EDIT_LINES))
+			    (v3d->gp_flag & V3D_GP_SHOW_EDIT_LINES))
 			{
 				DRW_shgroup_call_add(
 				        stl->g_data->shgrps_edit_line,
@@ -757,7 +757,7 @@ static void gpencil_draw_strokes(
 	const bool playing = (bool)stl->storage->playing;
 	const bool is_render = (bool)stl->storage->is_render;
 	const bool is_mat_preview = (bool)stl->storage->is_mat_preview;
-	const bool overlay_multiedit = v3d != NULL ? (v3d->flag3 & V3D_GP_SHOW_MULTIEDIT_LINES) : true;
+	const bool overlay_multiedit = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) : true;
 
 	/* Get evaluation context */
 	/* NOTE: We must check if C is valid, otherwise we get crashes when trying to save files
@@ -1182,7 +1182,7 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data, void *vedata, Scene 
 	int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 	ToolSettings *ts = scene->toolsettings;
 	bGPDframe *derived_gpf = NULL;
-	const bool main_onion = v3d != NULL ? ((v3d->flag3 & V3D_GP_SHOW_ONION_SKIN) == 0) : true;
+	const bool main_onion = v3d != NULL ? ((v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) == 0) : true;
 	const bool no_onion = (bool)(gpd->flag & GP_DATA_STROKE_WEIGHTMODE) || main_onion;
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 

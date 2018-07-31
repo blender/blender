@@ -510,7 +510,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		/* grid */
 		if ((v3d) &&
 		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		    (v3d->flag3 & V3D_GP_SHOW_GRID) &&
+		    (v3d->gp_flag & V3D_GP_SHOW_GRID) &&
 		    (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact))
 		{
 			stl->g_data->batch_grid = DRW_gpencil_get_grid();
@@ -640,7 +640,7 @@ void GPENCIL_draw_scene(void *ved)
 	/* paper pass to display a confortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-		    (v3d->flag3 & V3D_GP_SHOW_PAPER) &&
+		    (v3d->gp_flag & V3D_GP_SHOW_PAPER) &&
 		    (stl->g_data->gp_cache_used > 0))
 		{
 			DRW_draw_pass(psl->paper_pass);
@@ -664,7 +664,7 @@ void GPENCIL_draw_scene(void *ved)
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			    (v3d->flag3 & V3D_GP_SHOW_GRID))
+			    (v3d->gp_flag & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);
 			}
@@ -753,7 +753,7 @@ void GPENCIL_draw_scene(void *ved)
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			    (v3d->flag3 & V3D_GP_SHOW_GRID))
+			    (v3d->gp_flag & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);
 			}

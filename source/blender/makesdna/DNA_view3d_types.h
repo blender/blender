@@ -236,8 +236,10 @@ typedef struct View3D {
 	int layact;
 
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
-	short scenelock, _pad1;
-	short flag, flag2, pad2;
+	short scenelock;
+	short gp_flag;
+	short flag;
+	int flag2;
 
 	float lens, grid;
 	float near, far;
@@ -256,16 +258,16 @@ typedef struct View3D {
 	/* transform gizmo info */
 	char _pad5[2], gizmo_flag;
 
-	short flag3;
+	short _pad2;
 
 	/* drawflags, denoting state */
-	char _pad2;
+	char _pad3;
 	char transp, xray;
 
 	char multiview_eye;				/* multiview current eye - for internal use */
 
 	/* actually only used to define the opacity of the grease pencil vertex in edit mode */
-	float vertex_opacity;                  
+	float vertex_opacity;
 
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
@@ -346,7 +348,7 @@ typedef struct View3D {
 #define RV3D_VIEW_IS_AXIS(view) \
 	(((view) >= RV3D_VIEW_FRONT) && ((view) <= RV3D_VIEW_BOTTOM))
 
-/* View3d->flag2 (short) */
+/* View3d->flag2 (int) */
 #define V3D_RENDER_OVERRIDE		(1 << 2)
 #define V3D_SOLID_TEX			(1 << 3)
 #define V3D_SHOW_ANNOTATION     (1 << 4)
@@ -362,13 +364,12 @@ typedef struct View3D {
 #define V3D_OCCLUDE_WIRE		(1 << 14)
 #define V3D_SHOW_MODE_SHADE_OVERRIDE (1 << 15) /* XXX: DNA deprecated */
 
-/* View3d->flag3 (short) */
-#define V3D_SHOW_WORLD		         (1 << 0) /* LEGACY replaced by V3D_SHADING_BACKGROUND_WORLD */
-#define V3D_GP_SHOW_PAPER            (1 << 2) /* Activate paper to cover all viewport */
-#define V3D_GP_SHOW_GRID             (1 << 3) /* Activate paper grid */
-#define V3D_GP_SHOW_EDIT_LINES       (1 << 4)
-#define V3D_GP_SHOW_MULTIEDIT_LINES  (1 << 5)
-#define V3D_GP_SHOW_ONION_SKIN       (1 << 6) /* main switch at view level */
+/* View3d->gp_flag (short) */
+#define V3D_GP_SHOW_PAPER            (1 << 0) /* Activate paper to cover all viewport */
+#define V3D_GP_SHOW_GRID             (1 << 1) /* Activate paper grid */
+#define V3D_GP_SHOW_EDIT_LINES       (1 << 2)
+#define V3D_GP_SHOW_MULTIEDIT_LINES  (1 << 3)
+#define V3D_GP_SHOW_ONION_SKIN       (1 << 4) /* main switch at view level */
 
 /* View3DShading->light */
 enum {
