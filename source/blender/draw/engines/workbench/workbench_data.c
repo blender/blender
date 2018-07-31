@@ -42,6 +42,13 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->studio_light = BKE_studiolight_find(
 		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
 	}
+
+	/* If matcaps are missing, use this as fallback. */
+	if (UNLIKELY(wpd->studio_light == NULL)) {
+		wpd->studio_light = BKE_studiolight_find(
+		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+	}
+
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
