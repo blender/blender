@@ -4360,7 +4360,7 @@ class VIEW3D_PT_overlay_edit_curve(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = "Edit Curve"
+    bl_label = "Curve Edit Mode"
 
     @classmethod
     def poll(cls, context):
@@ -4435,7 +4435,7 @@ class VIEW3D_PT_overlay_edit_armature(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_parent_id = 'VIEW3D_PT_overlay'
-    bl_label = "Edit Armature"
+    bl_label = "Armature Edit Mode"
 
     @classmethod
     def poll(cls, context):
