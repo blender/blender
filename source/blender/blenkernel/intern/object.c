@@ -1281,8 +1281,10 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 	if (ob_src->pose) {
 		copy_object_pose(ob_dst, ob_src, flag_subdata);
 		/* backwards compat... non-armatures can get poses in older files? */
-		if (ob_src->type == OB_ARMATURE)
-			BKE_pose_rebuild(bmain, ob_dst, ob_dst->data);
+		if (ob_src->type == OB_ARMATURE) {
+			const bool do_pose_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
+			BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
+		}
 	}
 	defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
 	BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
@@ -1536,7 +1538,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 	if (target->type == OB_ARMATURE) {
 		copy_object_pose(ob, target, 0);   /* data copy, object pointers in constraints */
 		BKE_pose_rest(ob->pose);            /* clear all transforms in channels */
-		BKE_pose_rebuild(bmain, ob, ob->data); /* set all internal links */
+		BKE_pose_rebuild(bmain, ob, ob->data, true); /* set all internal links */
 
 		armature_set_id_extern(ob);
 	}
@@ -2807,7 +2809,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
 			 * on file load */
 			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
 				/* No need to pass bmain here, we assume we do not need to rebuild DEG from here... */
-				BKE_pose_rebuild(NULL, ob, ob->data);
+				BKE_pose_rebuild(NULL, ob, ob->data, true);
 			}
 		}
 	}

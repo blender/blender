@@ -2332,7 +2332,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US2(obn->data)
 					else {
 						obn->data = ID_NEW_SET(obn->data, BKE_armature_copy(bmain, obn->data));
-						BKE_pose_rebuild(bmain, obn, obn->data);
+						BKE_pose_rebuild(bmain, obn, obn->data, true);
 						didit = 1;
 					}
 					id_us_min(id);

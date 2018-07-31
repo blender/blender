@@ -1789,7 +1789,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 					case OB_ARMATURE:
 						DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 						ob->data = ID_NEW_SET(ob->data, BKE_armature_copy(bmain, ob->data));
-						BKE_pose_rebuild(bmain, ob, ob->data);
+						BKE_pose_rebuild(bmain, ob, ob->data, true);
 						break;
 					case OB_SPEAKER:
 						ob->data = ID_NEW_SET(ob->data, BKE_speaker_copy(bmain, ob->data));

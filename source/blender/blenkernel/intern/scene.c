@@ -1336,7 +1336,7 @@ static void scene_armature_depsgraph_workaround(Main *bmain, Depsgraph *depsgrap
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_ARMATURE && ob->adt && ob->adt->recalc & ADT_RECALC_ANIM) {
 			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
-				BKE_pose_rebuild(bmain, ob, ob->data);
+				BKE_pose_rebuild(bmain, ob, ob->data, true);
 			}
 		}
 	}

@@ -1960,7 +1960,7 @@ void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
  *
  * \param bmain May be NULL, only used to tag depsgraph as being dirty...
  */
-void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm)
+void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_user)
 {
 	Bone *bone;
 	bPose *pose;
@@ -1989,7 +1989,7 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm)
 	for (pchan = pose->chanbase.first; pchan; pchan = next) {
 		next = pchan->next;
 		if (pchan->bone == NULL) {
-			BKE_pose_channel_free(pchan);
+			BKE_pose_channel_free_ex(pchan, do_id_user);
 			BKE_pose_channels_hash_free(pose);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
@@ -2291,7 +2291,7 @@ void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 		return;
 	if ((ob->pose == NULL) || (ob->pose->flag & POSE_RECALC)) {
 		/* WARNING! passing NULL bmain here means we won't tag depsgraph's as dirty - hopefully this is OK. */
-		BKE_pose_rebuild(NULL, ob, arm);
+		BKE_pose_rebuild(NULL, ob, arm, true);
 	}
 
 	ctime = BKE_scene_frame_get(scene); /* not accurate... */
