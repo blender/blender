@@ -1412,6 +1412,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ofs = NULL;
 	}
 
+	GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
+
+	if (old_fb)  {
+		GPU_framebuffer_restore();
+	}
+
 	const bool own_ofs = (ofs == NULL);
 	DRW_opengl_context_enable();
 
@@ -1555,6 +1561,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	}
 
 	DRW_opengl_context_disable();
+
+	if (old_fb)  {
+		GPU_framebuffer_bind(old_fb);
+	}
 
 	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
