@@ -92,9 +92,6 @@ void DRW_gpencil_multisample_ensure(GPENCIL_Data *vedata, int rect_w, int rect_h
 				            GPU_ATTACHMENT_TEXTURE(txl->multisample_depth),
 				            GPU_ATTACHMENT_TEXTURE(txl->multisample_color)
 				        });
-				if (!GPU_framebuffer_check_valid(fbl->multisample_fb, NULL)) {
-					GPU_framebuffer_free(fbl->multisample_fb);
-				}
 			}
 		}
 	}
