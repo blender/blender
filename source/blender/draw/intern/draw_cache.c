@@ -605,7 +605,7 @@ GPUBatch *DRW_cache_gpencil_axes_get(void)
 			GPU_vertbuf_attr_set(vbo, pos_id, i + 6, verts[indices[i]]);
 		}
 
-		SHC.drw_gpencil_axes = GPU_batch_create(GPU_PRIM_LINES, vbo, NULL);
+		SHC.drw_gpencil_axes = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_gpencil_axes;
 }
