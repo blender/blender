@@ -321,8 +321,6 @@ class GreasePencilAppearancePanel:
             col.row().prop(brush, "cursor_color_sub", text="Subtract")
 
 
-###############################
-
 class GPENCIL_MT_pie_tool_palette(Menu):
     """A pie menu for quick access to Grease Pencil tools"""
     bl_label = "Grease Pencil Tools"
@@ -508,7 +506,7 @@ class GPENCIL_MT_pie_tools_more(Menu):
 
 
 class GPENCIL_MT_pie_sculpt(Menu):
-    """A pie menu for accessing Grease Pencil stroke sculpting settings"""
+    """A pie menu for accessing Grease Pencil stroke sculpt settings"""
     bl_label = "Grease Pencil Sculpt"
 
     @classmethod
@@ -555,9 +553,6 @@ class GPENCIL_MT_pie_sculpt(Menu):
         row.prop_enum(settings, "tool", value='THICKNESS')
         row.prop_enum(settings, "tool", value='STRENGTH')
         row.prop_enum(settings, "tool", value='RANDOMIZE')
-
-
-###############################
 
 
 class GPENCIL_MT_snap(Menu):
@@ -657,7 +652,7 @@ class GPENCIL_MT_gpencil_draw_specials(Menu):
         layout.operator("gpencil.primitive", text="Rectangle", icon='UV_FACESEL').type = 'BOX'
         layout.operator("gpencil.primitive", text="Circle", icon='ANTIALIASED').type = 'CIRCLE'
 
-        # colors
+        # Colors.
         layout.separator()
         layout.operator("gpencil.colorpick", text="Colors", icon="GROUP_VCOL")
 
@@ -720,23 +715,20 @@ class GreasePencilDataPanel:
     @staticmethod
     def draw(self, context):
         layout = self.layout
-        #layout.use_property_split = True
         layout.use_property_decorate = False
 
-        # owner of Grease Pencil data
+        # Grease Pencil owner.
         gpd_owner = context.gpencil_data_owner
         gpd = context.gpencil_data
 
-        # Owner Selector
+        # Owner selector.
         if context.space_data.type == 'CLIP_EDITOR':
             layout.row().prop(context.space_data, "grease_pencil_source", expand=True)
-        # Grease Pencil data selector
+
         layout.template_ID(gpd_owner, "grease_pencil", new="gpencil.data_add", unlink="gpencil.data_unlink")
 
-        # Grease Pencil data...
-        if (gpd is None) or (not gpd.layers):
-            layout.operator("gpencil.layer_add", text="New Note")
-        else:
+        # List of layers/notes.
+        if gpd or gpd.layers:
             self.draw_layers(context, layout, gpd)
 
     def draw_layers(self, context, layout, gpd):
@@ -783,7 +775,6 @@ class GreasePencilDataPanel:
             row.operator("gpencil.active_frame_delete", text="", icon='X')
 
 
-
 class GreasePencilOnionPanel:
     @staticmethod
     def draw_settings(layout, gp):
@@ -794,7 +785,7 @@ class GreasePencilOnionPanel:
         row = col.row()
         row.prop(gp, "onion_factor", text="Opacity", slider=True)
 
-        # - Before Frames
+        # Frames before.
         sub = layout.column(align=True)
         row = sub.row(align=True)
         row.active = gp.use_ghost_custom_colors
@@ -804,7 +795,7 @@ class GreasePencilOnionPanel:
         row.active = gp.onion_mode in ('ABSOLUTE', 'RELATIVE')
         row.prop(gp, "ghost_before_range", text="Frames Before")
 
-        # - After Frames
+        # Frames after.
         sub = layout.column(align=True)
         row = sub.row(align=True)
         row.active = gp.use_ghost_custom_colors
@@ -817,7 +808,7 @@ class GreasePencilOnionPanel:
         layout.prop(gp, "use_ghost_custom_colors", text="Use Custom Color")
         layout.prop(gp, "use_ghosts_always", text="View In Render")
 
-        # - fade and loop
+        # Fade and loop.
         row = layout.row()
         row.active = gp.use_onion_skinning
         row.prop(gp, "use_onion_fade", text="Fade")
@@ -826,8 +817,6 @@ class GreasePencilOnionPanel:
             subrow.active = gp.onion_mode in ('RELATIVE', 'SELECTED')
             subrow.prop(gp, "use_onion_loop", text="Loop")
 
-
-###############################
 
 class GreasePencilToolsPanel:
     # For use in "2D" Editors without their own toolbar
@@ -869,7 +858,6 @@ class GreasePencilToolsPanel:
 
         gpencil_stroke_placement_settings(context, layout)
 
-###############################
 
 classes = (
     GPENCIL_MT_pie_tool_palette,
