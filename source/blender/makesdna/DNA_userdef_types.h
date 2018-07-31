@@ -862,7 +862,8 @@ typedef enum eOpenGL_AntiAliasMethod {
 /* text draw options
  * UserDef.text_render */
 typedef enum eText_Draw_Options {
-	USER_TEXT_DISABLE_AA	= (1 << 0),
+	USER_TEXT_DISABLE_AA	  = (1 << 0),
+	USER_TEXT_DISABLE_HINTING = (1 << 1),
 } eText_Draw_Options;
 
 /* tw_flag (transform widget) */
