@@ -186,25 +186,7 @@ class _defs_view3d_generic:
 class _defs_annotate:
     @classmethod
     def draw_settings_common(cls, context, layout, tool):
-        user_prefs = context.user_preferences
         ts = context.tool_settings
-
-        # XXX: These context checks are needed for layer-dependent settings,
-        # but this breaks for using topbar for 2D editor active tools, etc.
-        if type(context.gpencil_data_owner) is bpy.types.Object:
-            gpd = context.scene.grease_pencil
-        else:
-            gpd = context.gpencil_data
-
-        gpl = gpd.layers.active if gpd else None
-
-        if gpd and gpl:
-            layout.prop(gpd.layers, "active_note", text="")
-            layout.prop(gpl, "color", text="")
-            layout.prop(gpl, "thickness")
-        else:
-            layout.prop(user_prefs.edit, "grease_pencil_default_color", text="")
-            layout.prop(ts, "annotation_thickness", text="Thickness")
 
         # For 3D view, show the stroke placement settings
         # XXX: How to tell what editor the active tool comes from?

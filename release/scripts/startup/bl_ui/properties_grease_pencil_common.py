@@ -774,6 +774,12 @@ class GreasePencilDataPanel:
             row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED')
             row.operator("gpencil.active_frame_delete", text="", icon='X')
 
+        tool_settings = context.tool_settings
+        if gpd and gpl:
+            layout.prop(gpl, "thickness")
+        else:
+            layout.prop(tool_settings, "annotation_thickness", text="Thickness")
+
 
 class GreasePencilOnionPanel:
     @staticmethod
