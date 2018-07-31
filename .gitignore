@@ -24,8 +24,8 @@ Desktop.ini
 /BUILD_NOTES.txt
 
 # local patches
-*.patch
-*.diff
+/*.patch
+/*.diff
 
 # in-source doc-gen
 /doc/doxygen/html/
