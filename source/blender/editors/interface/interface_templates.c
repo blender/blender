@@ -4296,20 +4296,6 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		PointerRNA ptr;
 		struct uiTemplateOperatorPropertyPollParam user_data = {.C = C, .op = op, .flag = flag};
 
-
-
-#if 0
-static bool template_operator_redo_property_buts_poll(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
-{
-}
-#endif
-
-
-
-
-
-
-
 		RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 		uiLayoutSetPropSep(layout, true);

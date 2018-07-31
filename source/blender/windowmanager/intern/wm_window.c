@@ -2169,7 +2169,7 @@ ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
 
 	view_layer = BKE_view_layer_default_view(scene);
 	if (view_layer) {
-		WM_window_set_active_view_layer((wmWindow*)win, view_layer);
+		WM_window_set_active_view_layer((wmWindow *)win, view_layer);
 	}
 
 	return view_layer;

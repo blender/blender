@@ -764,7 +764,8 @@ static void subdiv_evaluate_corner_vertices_regular(
 		const MLoop *coarse_loop =
 		    &coarse_mloop[coarse_poly->loopstart + corner];
 		if (BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map,
-		                                   coarse_loop->v)) {
+		                                   coarse_loop->v))
+		{
 			continue;
 		}
 		const MVert *coarse_vert = &coarse_mvert[coarse_loop->v];
@@ -798,7 +799,8 @@ static void subdiv_evaluate_corner_vertices_special(
 		const MLoop *coarse_loop =
 		    &coarse_mloop[coarse_poly->loopstart + corner];
 		if (BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_vertices_used_map,
-		                                   coarse_loop->v)) {
+		                                   coarse_loop->v))
+		{
 			continue;
 		}
 		const MVert *coarse_vert = &coarse_mvert[coarse_loop->v];
@@ -847,7 +849,8 @@ static void subdiv_evaluate_edge_vertices_regular(
 		const MLoop *coarse_loop =
 		    &coarse_mloop[coarse_poly->loopstart + corner];
 		if (BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_edges_used_map,
-		                                   coarse_loop->e)) {
+		                                   coarse_loop->e))
+		{
 			continue;
 		}
 		vertex_interpolation_from_ptex(ctx,
@@ -860,8 +863,8 @@ static void subdiv_evaluate_edge_vertices_regular(
 		        ctx->vertices_edge_offset +
 		        coarse_loop->e * num_subdiv_vertices_per_coarse_edge];
 		for (int vertex_index = 0;
-		    vertex_index < num_subdiv_vertices_per_coarse_edge;
-		    vertex_index++, subdiv_vert++)
+		     vertex_index < num_subdiv_vertices_per_coarse_edge;
+		     vertex_index++, subdiv_vert++)
 		{
 			float fac = (vertex_index + 1) * inv_resolution_1;
 			if (flip) {
@@ -918,7 +921,8 @@ static void subdiv_evaluate_edge_vertices_special(
 		const MLoop *coarse_loop =
 		        &coarse_mloop[coarse_poly->loopstart + corner];
 		if (BLI_BITMAP_TEST_AND_SET_ATOMIC(ctx->coarse_edges_used_map,
-		                                   coarse_loop->e)) {
+		                                   coarse_loop->e))
+		{
 			continue;
 		}
 		vertex_interpolation_from_ptex(ctx,
@@ -936,8 +940,8 @@ static void subdiv_evaluate_edge_vertices_special(
 			veretx_delta = -1;
 		}
 		for (int vertex_index = 1;
-		    vertex_index < num_vertices_per_ptex_edge;
-		    vertex_index++, subdiv_vert += veretx_delta)
+		     vertex_index < num_vertices_per_ptex_edge;
+		     vertex_index++, subdiv_vert += veretx_delta)
 		{
 			float u = vertex_index * inv_ptex_resolution_1;
 			subdiv_vertex_data_interpolate(ctx,
@@ -953,8 +957,8 @@ static void subdiv_evaluate_edge_vertices_special(
 		const int next_ptex_face_index =
 		        ptex_face_start_index + (corner + 1) % coarse_poly->totloop;
 		for (int vertex_index = 1;
-		    vertex_index < num_vertices_per_ptex_edge - 1;
-		    vertex_index++, subdiv_vert += veretx_delta)
+		     vertex_index < num_vertices_per_ptex_edge - 1;
+		     vertex_index++, subdiv_vert += veretx_delta)
 		{
 			float v = 1.0f - vertex_index * inv_ptex_resolution_1;
 			subdiv_vertex_data_interpolate(ctx,
@@ -1416,7 +1420,8 @@ static void subdiv_create_edges_all_patches_special(
 				subdiv_copy_edge_data(ctx, subdiv_edge, NULL);
 				if (flip) {
 					subdiv_edge->v1 = start_edge_vertex + (resolution - i - 3);
-				} else {
+				}
+				else {
 					subdiv_edge->v1 = start_edge_vertex + i;
 				}
 				subdiv_edge->v2 = side_start_index + i;
@@ -1433,7 +1438,8 @@ static void subdiv_create_edges_all_patches_special(
 				subdiv_copy_edge_data(ctx, subdiv_edge, NULL);
 				if (flip) {
 					subdiv_edge->v1 = start_edge_vertex + (resolution - i - 3);
-				} else {
+				}
+				else {
 					subdiv_edge->v1 = start_edge_vertex + i;
 				}
 				subdiv_edge->v2 = side_start_index +
@@ -1762,7 +1768,8 @@ static void subdiv_create_loops_regular(SubdivMeshContext *ctx,
 				e0 = ctx->edge_boundary_offset +
 				         coarse_loop->e * num_subdiv_edges_per_coarse_edge +
 				         num_subdiv_edges_per_coarse_edge - i - 1;
-			} else {
+			}
+			else {
 				e0 = ctx->edge_boundary_offset +
 				         coarse_loop->e * num_subdiv_edges_per_coarse_edge +
 				         i;
@@ -2040,7 +2047,8 @@ static void subdiv_create_loops_special(SubdivMeshContext *ctx,
 				e0 = ctx->edge_boundary_offset +
 				         coarse_loop->e * num_subdiv_edges_per_coarse_edge +
 				         num_subdiv_edges_per_coarse_edge - i - 1;
-			} else {
+			}
+			else {
 				e0 = ctx->edge_boundary_offset +
 				         coarse_loop->e * num_subdiv_edges_per_coarse_edge +
 				         i;

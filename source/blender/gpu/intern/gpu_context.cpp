@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_vertex_array_id.cpp
+/** \file blender/gpu/intern/gpu_context.cpp
  *  \ingroup gpu
  *
  * Manage GL vertex array IDs in a thread-safe way
