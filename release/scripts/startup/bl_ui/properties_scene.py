@@ -569,7 +569,8 @@ class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
 
 
 class SCENE_PT_simplify_greasepencil(SceneButtonsPanel, Panel):
-    bl_label = "Simplify Grease Pencil"
+    bl_label = "Grease Pencil"
+    bl_parent_id = "SCENE_PT_simplify"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -579,20 +580,21 @@ class SCENE_PT_simplify_greasepencil(SceneButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         rd = context.scene.render
 
         layout.active = rd.simplify_gpencil
 
-        row = layout.row()
-        row.prop(rd, "simplify_gpencil_onplay", text="Only on Play")
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "simplify_gpencil_view_fill", text="Fill")
-        col.prop(rd, "simplify_gpencil_remove_lines", text="Remove Fill Lines")
+        col = layout.column()
+        col.prop(rd, "simplify_gpencil_onplay", text="Playback Only")
         col.prop(rd, "simplify_gpencil_view_modifier", text="Modifiers")
+
+        col = layout.column(align=True)
+        col.prop(rd, "simplify_gpencil_view_fill")
+        sub = col.column()
+        sub.active = rd.simplify_gpencil_view_fill
+        sub.prop(rd, "simplify_gpencil_remove_lines", text="Lines")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

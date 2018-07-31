@@ -5188,27 +5188,27 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	/* Grease Pencil - Simplify Options */
 	prop = RNA_def_property(srna, "simplify_gpencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_ENABLE);
-	RNA_def_property_ui_text(prop, "Simplify", "Simplify Grease Pencil Drawing");
+	RNA_def_property_ui_text(prop, "Simplify", "Simplify Grease Pencil drawing");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "simplify_gpencil_onplay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_ON_PLAY);
-	RNA_def_property_ui_text(prop, "On Play", "Simplify Grease Pencil only when play animation");
+	RNA_def_property_ui_text(prop, "Simplify Playback", "Simplify Grease Pencil only during animation playback");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "simplify_gpencil_view_fill", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_FILL);
-	RNA_def_property_ui_text(prop, "Fill", "Do not fill strokes on viewport");
+	RNA_def_property_ui_text(prop, "Disable Fill", "Disable fill strokes in the viewport");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "simplify_gpencil_remove_lines", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_REMOVE_FILL_LINE);
-	RNA_def_property_ui_text(prop, "Remove Lines", "Remove External Lines of Filling Strokes");
+	RNA_def_property_ui_text(prop, "Disable Lines", "Disable external lines of fill strokes");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "simplify_gpencil_view_modifier", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_MODIFIER);
-	RNA_def_property_ui_text(prop, "Fill", "Do not apply modifiers on viewport");
+	RNA_def_property_ui_text(prop, "Disable Modifiers", "Do not apply modifiers in the viewport");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* persistent data */
