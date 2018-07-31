@@ -533,7 +533,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 	}
 
 	/* Show header tools for header buttons. */
-	if (ui_block_is_menu(but->block) == false) {
+	if (ui_block_is_popup_any(but->block) == false) {
 		ARegion *ar = CTX_wm_region(C);
 		if (ar && (ar->regiontype == RGN_TYPE_HEADER)) {
 			uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
