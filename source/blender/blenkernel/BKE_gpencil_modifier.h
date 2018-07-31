@@ -22,7 +22,7 @@
 #ifndef __BKE_GPENCIL_MODIFIER_H__
 #define __BKE_GPENCIL_MODIFIER_H__
 
-/** \file BKE_greasepencil_modifier.h
+/** \file BKE_gpencil_modifier.h
  *  \ingroup bke
  */
 

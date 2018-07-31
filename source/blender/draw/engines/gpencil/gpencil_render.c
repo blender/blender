@@ -84,14 +84,17 @@ void GPENCIL_render_init(GPENCIL_Data *ved, RenderEngine *engine, struct Depsgra
 		DRW_gpencil_multisample_ensure(vedata, rect_w, rect_h);
 	}
 
-	vedata->render_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8,
-		&draw_engine_gpencil_type);
-	vedata->render_color_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F,
-		&draw_engine_gpencil_type);
-	GPU_framebuffer_ensure_config(&fbl->main, {
-		GPU_ATTACHMENT_TEXTURE(vedata->render_depth_tx),
-		GPU_ATTACHMENT_TEXTURE(vedata->render_color_tx)
-		});
+	vedata->render_depth_tx = DRW_texture_pool_query_2D(
+	        size[0], size[1], GPU_DEPTH24_STENCIL8,
+	        &draw_engine_gpencil_type);
+	vedata->render_color_tx = DRW_texture_pool_query_2D(
+	        size[0], size[1], GPU_RGBA32F,
+	        &draw_engine_gpencil_type);
+	GPU_framebuffer_ensure_config(
+	        &fbl->main, {
+	            GPU_ATTACHMENT_TEXTURE(vedata->render_depth_tx),
+	            GPU_ATTACHMENT_TEXTURE(vedata->render_color_tx)
+	        });
 
 	/* Alloc transient data. */
 	if (!stl->g_data) {

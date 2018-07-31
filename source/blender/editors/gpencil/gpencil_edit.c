@@ -62,7 +62,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_paint.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -861,8 +860,7 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 		for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
 			if (ED_gpencil_stroke_can_use(C, gps)) {
 				ma = give_current_material(ob, gps->mat_nr + 1);
-				if (BLI_ghash_haskey(gp_strokes_copypastebuf_colors, &gps->mat_nr) == false)
-				{
+				if (BLI_ghash_haskey(gp_strokes_copypastebuf_colors, &gps->mat_nr) == false) {
 					BLI_ghash_insert(gp_strokes_copypastebuf_colors, &gps->mat_nr, ma);
 				}
 			}
@@ -2153,7 +2151,7 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
 	}
 
 	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
-    DEG_id_tag_update(&obact->id, DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&obact->id, DEG_TAG_COPY_ON_WRITE);
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -2757,7 +2755,7 @@ static int gp_strokes_reproject_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
- 	RegionView3D *rv3d = ar->regiondata;
+	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = sa->spacedata.first;
 
 	GP_SpaceConversion gsc = {NULL};

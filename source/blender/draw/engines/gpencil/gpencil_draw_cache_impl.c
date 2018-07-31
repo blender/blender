@@ -158,36 +158,42 @@ GPUBatch *DRW_gpencil_get_stroke_geom(bGPDframe *gpf, bGPDstroke *gps, short thi
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
 			if (gps->flag & GP_STROKE_CYCLIC && totpoints > 2) {
-				gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, &points[totpoints - 1], idx,
-										 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+				gpencil_set_stroke_point(
+				        vbo, gpf->runtime.viewmatrix, &points[totpoints - 1], idx,
+				        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 				idx++;
 			}
 			else {
-				gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, &points[1], idx,
-										 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+				gpencil_set_stroke_point(
+				        vbo, gpf->runtime.viewmatrix, &points[1], idx,
+				        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 				idx++;
 			}
 		}
 		/* set point */
-		gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, pt, idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+		gpencil_set_stroke_point(
+		        vbo, gpf->runtime.viewmatrix, pt, idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 	}
 
 	if (gps->flag & GP_STROKE_CYCLIC && totpoints > 2) {
 		/* draw line to first point to complete the cycle */
-		gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, &points[0], idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+		gpencil_set_stroke_point(
+		        vbo, gpf->runtime.viewmatrix, &points[0], idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 		/* now add adjacency point (not drawn) */
-		gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, &points[1], idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+		gpencil_set_stroke_point(
+		        vbo, gpf->runtime.viewmatrix, &points[1], idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 	}
 	/* last adjacency point (not drawn) */
 	else {
-		gpencil_set_stroke_point(vbo, gpf->runtime.viewmatrix, &points[totpoints - 2], idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
+		gpencil_set_stroke_point(
+		        vbo, gpf->runtime.viewmatrix, &points[totpoints - 2], idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 	}
 
 	return GPU_batch_create_ex(GPU_PRIM_LINE_STRIP_ADJ, vbo, NULL, GPU_BATCH_OWNS_VBO);
@@ -237,30 +243,35 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, float matrix[4][4], s
 		if (i == 0) {
 			if (totpoints > 1) {
 				ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt2);
-				gpencil_set_stroke_point(vbo, matrix, &pt2, idx,
-										 pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+				gpencil_set_stroke_point(
+				        vbo, matrix, &pt2, idx,
+				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 			}
 			else {
-				gpencil_set_stroke_point(vbo, matrix, &pt, idx,
-										 pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+				gpencil_set_stroke_point(
+				        vbo, matrix, &pt, idx,
+				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 			}
 			idx++;
 		}
 		/* set point */
-		gpencil_set_stroke_point(vbo, matrix, &pt, idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		gpencil_set_stroke_point(
+		        vbo, matrix, &pt, idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 		idx++;
 	}
 
 	/* last adjacency point (not drawn) */
 	if (totpoints > 2) {
 		ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 2], &pt2);
-		gpencil_set_stroke_point(vbo, matrix, &pt2, idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		gpencil_set_stroke_point(
+		        vbo, matrix, &pt2, idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 	}
 	else {
-		gpencil_set_stroke_point(vbo, matrix, &pt, idx,
-								 pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
+		gpencil_set_stroke_point(
+		        vbo, matrix, &pt, idx,
+		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 	}
 
 	return GPU_batch_create_ex(GPU_PRIM_LINE_STRIP_ADJ, vbo, NULL, GPU_BATCH_OWNS_VBO);
@@ -307,9 +318,10 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, float matrix[4][4], sh
 		ED_gp_project_point_to_plane(ob, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &pt);
 
 		/* set point */
-		gpencil_set_stroke_point(vbo, matrix, &pt, idx,
-								 pos_id, color_id, thickness_id, uvdata_id,
-								 thickness, gpd->runtime.scolor);
+		gpencil_set_stroke_point(
+		        vbo, matrix, &pt, idx,
+		        pos_id, color_id, thickness_id, uvdata_id,
+		        thickness, gpd->runtime.scolor);
 		idx++;
 	}
 
@@ -600,9 +612,10 @@ GPUBatch *DRW_gpencil_get_edlin_geom(bGPDstroke *gps, float alpha, short UNUSED(
 	return GPU_batch_create_ex(GPU_PRIM_LINE_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
 }
 
-static void set_grid_point(GPUVertBuf *vbo, int idx, float col_grid[4],
-						uint pos_id, uint color_id,
-						float v1, float v2, int axis)
+static void set_grid_point(
+        GPUVertBuf *vbo, int idx, float col_grid[4],
+        uint pos_id, uint color_id,
+        float v1, float v2, int axis)
 {
 	GPU_vertbuf_attr_set(vbo, color_id, idx, col_grid);
 
@@ -618,8 +631,7 @@ static void set_grid_point(GPUVertBuf *vbo, int idx, float col_grid[4],
 		pos[1] = v2;
 		pos[2] = 0.0f;
 	}
-	else
-	{
+	else {
 		pos[0] = v1;
 		pos[1] = 0.0f;
 		pos[2] = v2;

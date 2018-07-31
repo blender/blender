@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencilopacity.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilopacity.c
  *  \ingroup modifiers
  */
 
@@ -81,7 +81,7 @@ static void deformStroke(
 		return;
 	}
 
-	gp_style->fill_rgba[3]*= mmd->factor;
+	gp_style->fill_rgba[3] *= mmd->factor;
 
 	/* if factor is > 1, then force opacity */
 	if (mmd->factor > 1.0f) {
@@ -133,7 +133,7 @@ static void deformStroke(
 }
 
 static void bakeModifier(
-		struct Main *UNUSED(bmain), Depsgraph *depsgraph,
+        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	bGPdata *gpd = ob->data;

@@ -204,9 +204,10 @@ static bool object_has_modifier(const Object *ob, const ModifierData *exclude,
 * If the callback ever returns true, iteration will stop and the
 * function value will be true. Otherwise the function returns false.
 */
-bool ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
-						  bool (*callback)(Object *ob, void *callback_data),
-						  void *callback_data)
+bool ED_object_iter_other(
+        Main *bmain, Object *orig_ob, const bool include_orig,
+        bool (*callback)(Object *ob, void *callback_data),
+        void *callback_data)
 {
 	ID *ob_data_id = orig_ob->data;
 	int users = ob_data_id->us;
@@ -220,10 +221,10 @@ bool ED_object_iter_other(Main *bmain, Object *orig_ob, const bool include_orig,
 		int totfound = include_orig ? 0 : 1;
 
 		for (ob = bmain->object.first; ob && totfound < users;
-			ob = ob->id.next)
+		     ob = ob->id.next)
 		{
 			if (((ob != orig_ob) || include_orig) &&
-				(ob->data == orig_ob->data))
+			    (ob->data == orig_ob->data))
 			{
 				if (callback(ob, callback_data))
 					return true;
@@ -318,7 +319,7 @@ static bool object_modifier_remove(Main *bmain, Object *ob, ModifierData *md,
 	}
 
 	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
-		BLI_listbase_is_empty(&ob->particlesystem))
+	    BLI_listbase_is_empty(&ob->particlesystem))
 	{
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
@@ -681,8 +682,8 @@ int ED_object_modifier_apply(
 		return 0;
 	}
 	else if ((ob->mode & OB_MODE_SCULPT) &&
-		(find_multires_modifier_before(scene, md)) &&
-		(modifier_isSameTopology(md) == false))
+	         (find_multires_modifier_before(scene, md)) &&
+	         (modifier_isSameTopology(md) == false))
 	{
 		BKE_report(reports, RPT_ERROR, "Constructive modifier cannot be applied to multi-res data in sculpt mode");
 		return 0;
@@ -1525,7 +1526,7 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(bm_vert, BM_ELEM_SELECT) &&
-			BLI_gset_add(visited, bm_vert))
+		    BLI_gset_add(visited, bm_vert))
 		{
 			MVertSkin *vs = BM_ELEM_CD_GET_VOID_P(bm_vert, cd_vert_skin_offset);
 

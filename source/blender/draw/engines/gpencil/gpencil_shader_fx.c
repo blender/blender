@@ -211,8 +211,9 @@ static void DRW_gpencil_fx_blur(
 
 	struct GPUBatch *fxquad = DRW_cache_fullscreen_quad_get();
 
-	fx_shgrp = DRW_shgroup_create(e_data->gpencil_fx_blur_sh,
-								psl->fx_shader_pass_blend);
+	fx_shgrp = DRW_shgroup_create(
+	        e_data->gpencil_fx_blur_sh,
+	        psl->fx_shader_pass_blend);
 	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_a);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_a);
@@ -389,8 +390,9 @@ static void DRW_gpencil_fx_rim(
 
 	struct GPUBatch *fxquad = DRW_cache_fullscreen_quad_get();
 	/* prepare pass */
-	fx_shgrp = DRW_shgroup_create(e_data->gpencil_fx_rim_prepare_sh,
-								psl->fx_shader_pass_blend);
+	fx_shgrp = DRW_shgroup_create(
+	        e_data->gpencil_fx_rim_prepare_sh,
+	        psl->fx_shader_pass_blend);
 	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_a);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_a);
@@ -408,8 +410,9 @@ static void DRW_gpencil_fx_rim(
 	fxd->runtime.fx_sh = fx_shgrp;
 
 	/* blur pass */
-	fx_shgrp = DRW_shgroup_create(e_data->gpencil_fx_blur_sh,
-								psl->fx_shader_pass_blend);
+	fx_shgrp = DRW_shgroup_create(
+	        e_data->gpencil_fx_blur_sh,
+	        psl->fx_shader_pass_blend);
 	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_rim);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_rim);
@@ -423,8 +426,9 @@ static void DRW_gpencil_fx_rim(
 	fxd->runtime.fx_sh_b = fx_shgrp;
 
 	/* resolve pass */
-	fx_shgrp = DRW_shgroup_create(e_data->gpencil_fx_rim_resolve_sh,
-								psl->fx_shader_pass_blend);
+	fx_shgrp = DRW_shgroup_create(
+	        e_data->gpencil_fx_rim_resolve_sh,
+	        psl->fx_shader_pass_blend);
 	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_a);
 	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_a);

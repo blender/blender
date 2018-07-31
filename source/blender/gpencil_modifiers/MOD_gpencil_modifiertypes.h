@@ -15,17 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor(s): Ben Batt
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file MOD_modifiertypes.h
+/** \file MOD_gpencil_modifiertypes.h
  *  \ingroup modifiers
  */
 
-#ifndef __MOD_GP_MODIFIERTYPES_H__
-#define __MOD_GP_MODIFIERTYPES_H__
+#ifndef __MOD_GPENCIL_MODIFIERTYPES_H__
+#define __MOD_GPENCIL_MODIFIERTYPES_H__
 
 #include "BKE_gpencil_modifier.h"
 
@@ -50,4 +48,4 @@ extern GpencilModifierTypeInfo modifierType_Gpencil_Offset;
 /* MOD_gpencil_util.c */
 void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[]);
 
-#endif  /* __MOD_GP_MODIFIERTYPES_H__ */
+#endif  /* __MOD_GPENCIL_MODIFIERTYPES_H__ */

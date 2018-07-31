@@ -1426,9 +1426,9 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 			 * The decision was to use a fix size, instead of paintbrush->thickness value.
 			 */
 			if ((gp_style) && (GPENCIL_PAINT_MODE(gpd)) &&
-				((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
-				((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
-				(paintbrush->gpencil_settings->brush_type == GP_BRUSH_TYPE_DRAW))
+			    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE) == 0) &&
+			    ((paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) == 0) &&
+			    (paintbrush->gpencil_settings->brush_type == GP_BRUSH_TYPE_DRAW))
 			{
 				radius = 2.0f;
 				copy_v3_v3(color, gp_style->stroke_rgba);
@@ -1491,7 +1491,7 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 	/* Draw line for lazy mouse */
 	if ((last_mouse_position) &&
-		(paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
+	    (paintbrush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP))
 	{
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
@@ -1501,8 +1501,10 @@ static void gp_brush_drawcursor(bContext *C, int x, int y, void *customdata)
 
 		immBegin(GPU_PRIM_LINES, 2);
 		immVertex2f(pos, x, y);
-		immVertex2f(pos, last_mouse_position[0] + ar->winrct.xmin,
-						 last_mouse_position[1] + ar->winrct.ymin);
+		immVertex2f(
+		        pos,
+		        last_mouse_position[0] + ar->winrct.xmin,
+		        last_mouse_position[1] + ar->winrct.ymin);
 		immEnd();
 
 		glDisable(GL_BLEND);

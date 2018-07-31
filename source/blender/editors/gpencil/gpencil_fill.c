@@ -125,8 +125,9 @@ typedef struct tGPDfill {
 
 
  /* draw a given stroke using same thickness and color for all points */
-static void gp_draw_basic_stroke(tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
-								bool cyclic, float ink[4], int flag, float thershold)
+static void gp_draw_basic_stroke(
+        tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
+        bool cyclic, float ink[4], int flag, float thershold)
 {
 	bGPDspoint *points = gps->points;
 
@@ -228,8 +229,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 			}
 			/* check if the color is visible */
 			MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
-			if ((gp_style == NULL) || (gp_style->flag & GP_STYLE_COLOR_HIDE))
-			{
+			if ((gp_style == NULL) || (gp_style->flag & GP_STYLE_COLOR_HIDE)) {
 				continue;
 			}
 
@@ -247,7 +247,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* normal strokes */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE) ||
-				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				ED_gp_draw_fill(&tgpw);
 
@@ -255,7 +255,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* 3D Lines with basic shapes and invisible lines */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
-				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				gp_draw_basic_stroke(tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
 					tgpf->flag, tgpf->fill_threshold);
@@ -313,8 +313,9 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	ED_view3d_update_viewmat(tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
-							NULL, winmat, NULL);
+	ED_view3d_update_viewmat(
+	        tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
+	        NULL, winmat, NULL);
 	/* set for opengl */
 	GPU_matrix_projection_set(tgpf->rv3d->winmat);
 	GPU_matrix_set(tgpf->rv3d->viewmat);
@@ -531,8 +532,7 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 
 		if (true) { /* Was: 'rgba' */
 			/* check if no border(red) or already filled color(green) */
-			if ((rgba[0] != 1.0f) && (rgba[1] != 1.0f))
-			{
+			if ((rgba[0] != 1.0f) && (rgba[1] != 1.0f)) {
 				/* fill current pixel */
 				set_pixel(ibuf, v, fill_col);
 
@@ -627,7 +627,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 	int backtracked_co[2];
 	int current_check_co[2];
 	int prev_check_co[2];
-	int backtracked_offset[1][2] = { { 0,0 } };
+	int backtracked_offset[1][2] = {{0, 0}};
 	// bool boundary_found = false;
 	bool start_found = false;
 	const int NEIGHBOR_COUNT = 8;
@@ -667,12 +667,11 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		}
 	}
 
-	while (true && start_found)
-	{
+	while (start_found) {
 		int cur_back_offset = -1;
 		for (int i = 0; i < NEIGHBOR_COUNT; i++) {
 			if (backtracked_offset[0][0] == offset[i][0] &&
-				backtracked_offset[0][1] == offset[i][1])
+			    backtracked_offset[0][1] == offset[i][1])
 			{
 				/* Finding the bracktracked pixel offset index */
 				cur_back_offset = i;
@@ -706,7 +705,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		}
 		/* current pixel is equal to starting pixel */
 		if (boundary_co[0] == start_co[0] &&
-			boundary_co[1] == start_co[1])
+		    boundary_co[1] == start_co[1])
 		{
 			BLI_stack_pop(tgpf->stack, &v);
 			// boundary_found = true;
@@ -753,8 +752,10 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 		for (i = 0, ptc = tgpf->sbuffer; i < totpoints; i++, ptc++) {
 			copy_v2_v2_int(mval, &ptc->x);
 
-			if ((ED_view3d_autodist_depth(tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
-				(i && (ED_view3d_autodist_depth_seg(tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
+			if ((ED_view3d_autodist_depth(
+			             tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
+			    (i && (ED_view3d_autodist_depth_seg(
+			                   tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
 			{
 				interp_depth = true;
 			}
@@ -849,7 +850,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 
 	/* add stroke to frame */
-	if ((ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) || (tgpf->on_back == true)){
+	if ((ts->gpencil_flags & GP_TOOL_FLAG_PAINT_ONBACK) || (tgpf->on_back == true)) {
 		BLI_addhead(&tgpf->gpf->strokes, gps);
 	}
 	else {
@@ -862,10 +863,11 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	point2D = (tGPspoint *)tgpf->sbuffer;
 	for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++, dvert++) {
 		/* convert screen-coordinates to 3D coordinates */
-		gp_stroke_convertcoords_tpoint(tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
-									   tgpf->gpl, point2D,
-									   tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
-									   &pt->x);
+		gp_stroke_convertcoords_tpoint(
+		        tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
+		        tgpf->gpl, point2D,
+		        tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
+		        &pt->x);
 
 		pt->pressure = 1.0f;
 		pt->strength = 1.0f;;

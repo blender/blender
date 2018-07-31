@@ -384,8 +384,7 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
 
 	for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
-		if (GPENCIL_MODIFIER_ACTIVE(md, is_render))
-		{
+		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
 			if (GPENCIL_MODIFIER_EDIT(md, is_edit)) {
@@ -407,8 +406,7 @@ void BKE_gpencil_geometry_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer 
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
 
 	for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
-		if (GPENCIL_MODIFIER_ACTIVE(md, is_render))
-		{
+		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
 			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
 			if (GPENCIL_MODIFIER_EDIT(md, is_edit)) {

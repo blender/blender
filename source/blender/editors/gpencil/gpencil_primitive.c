@@ -230,23 +230,27 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 		}
 		else {
 			if (tgpi->flag == IN_PROGRESS) {
-				BLI_snprintf(status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
-							 tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
+				BLI_snprintf(
+				        status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
+				        tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
 			}
 			else {
-				BLI_snprintf(status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, (int)tgpi->tot_edges,
-							 tgpi->bottom[0], tgpi->bottom[1]);
+				BLI_snprintf(
+				        status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, (int)tgpi->tot_edges,
+				        tgpi->bottom[0], tgpi->bottom[1]);
 			}
 		}
 	}
 	else {
 		if (tgpi->flag == IN_PROGRESS) {
-			BLI_snprintf(status_str, sizeof(status_str), "%s: (%d, %d) (%d, %d)", msg_str,
-						 tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
+			BLI_snprintf(
+			        status_str, sizeof(status_str), "%s: (%d, %d) (%d, %d)", msg_str,
+			        tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
 		}
 		else {
-			BLI_snprintf(status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
-				         tgpi->bottom[0], tgpi->bottom[1]);
+			BLI_snprintf(
+			        status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
+			        tgpi->bottom[0], tgpi->bottom[1]);
 		}
 	}
 	ED_workspace_status_text(C, status_str);
@@ -467,7 +471,7 @@ static void gpencil_primitive_init(bContext *C, wmOperator *op)
 	if (tgpi->type == GP_STROKE_CIRCLE) {
 		RNA_int_set(op->ptr, "edges", 32);
 	}
-	else if(tgpi->type == GP_STROKE_BOX) {
+	else if (tgpi->type == GP_STROKE_BOX) {
 		RNA_int_set(op->ptr, "edges", 4);
 	}
 	else { /* LINE */

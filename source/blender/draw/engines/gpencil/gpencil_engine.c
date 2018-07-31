@@ -87,10 +87,11 @@ void DRW_gpencil_multisample_ensure(GPENCIL_Data *vedata, int rect_w, int rect_h
 					txl->multisample_depth = GPU_texture_create_2D_multisample(
 					        rect_w, rect_h, GPU_DEPTH24_STENCIL8, NULL, samples, NULL);
 				}
-				GPU_framebuffer_ensure_config(&fbl->multisample_fb, {
-					GPU_ATTACHMENT_TEXTURE(txl->multisample_depth),
-					GPU_ATTACHMENT_TEXTURE(txl->multisample_color)
-					});
+				GPU_framebuffer_ensure_config(
+				        &fbl->multisample_fb, {
+				            GPU_ATTACHMENT_TEXTURE(txl->multisample_depth),
+				            GPU_ATTACHMENT_TEXTURE(txl->multisample_color)
+				        });
 				if (!GPU_framebuffer_check_valid(fbl->multisample_fb, NULL)) {
 					GPU_framebuffer_free(fbl->multisample_fb);
 				}
@@ -121,39 +122,49 @@ static void GPENCIL_create_framebuffers(void *vedata)
 			&draw_engine_gpencil_type);
 		e_data.temp_color_tx_a = DRW_texture_pool_query_2D(size[0], size[1], fb_format,
 			&draw_engine_gpencil_type);
-		GPU_framebuffer_ensure_config(&fbl->temp_fb_a, {
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a)
-			});
+		GPU_framebuffer_ensure_config(
+		        &fbl->temp_fb_a, {
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_a),
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_a)
+		        });
 
-		e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8,
-			&draw_engine_gpencil_type);
-		e_data.temp_color_tx_b = DRW_texture_pool_query_2D(size[0], size[1], fb_format,
-			&draw_engine_gpencil_type);
-		GPU_framebuffer_ensure_config(&fbl->temp_fb_b, {
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b)
-			});
+		e_data.temp_depth_tx_b = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        &draw_engine_gpencil_type);
+		e_data.temp_color_tx_b = DRW_texture_pool_query_2D(
+		        size[0], size[1], fb_format,
+		        &draw_engine_gpencil_type);
+		GPU_framebuffer_ensure_config(
+		        &fbl->temp_fb_b, {
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_b),
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b)
+		        });
 
 		/* used for rim FX effect */
-		e_data.temp_depth_tx_rim = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8,
-			&draw_engine_gpencil_type);
-		e_data.temp_color_tx_rim = DRW_texture_pool_query_2D(size[0], size[1], fb_format,
-			&draw_engine_gpencil_type);
-		GPU_framebuffer_ensure_config(&fbl->temp_fb_rim, {
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_rim),
-			GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_rim),
-			});
+		e_data.temp_depth_tx_rim = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        &draw_engine_gpencil_type);
+		e_data.temp_color_tx_rim = DRW_texture_pool_query_2D(
+		        size[0], size[1], fb_format,
+		        &draw_engine_gpencil_type);
+		GPU_framebuffer_ensure_config(
+		        &fbl->temp_fb_rim, {
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_rim),
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_rim),
+		        });
 
 		/* background framebuffer to speed up drawing process (always 16 bits) */
-		e_data.background_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH24_STENCIL8,
-			&draw_engine_gpencil_type);
-		e_data.background_color_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F,
-			&draw_engine_gpencil_type);
-		GPU_framebuffer_ensure_config(&fbl->background_fb, {
-			GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
-			GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx)
-			});
+		e_data.background_depth_tx = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_DEPTH24_STENCIL8,
+		        &draw_engine_gpencil_type);
+		e_data.background_color_tx = DRW_texture_pool_query_2D(
+		        size[0], size[1], GPU_RGBA32F,
+		        &draw_engine_gpencil_type);
+		GPU_framebuffer_ensure_config(
+		        &fbl->background_fb, {
+		            GPU_ATTACHMENT_TEXTURE(e_data.background_depth_tx),
+		            GPU_ATTACHMENT_TEXTURE(e_data.background_color_tx)
+		        });
 	}
 }
 
@@ -358,7 +369,7 @@ void GPENCIL_cache_init(void *vedata)
 		    (stl->storage->playing == 0))
 		{
 			if (((obact_gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
-				(obact_gpd->runtime.sbuffer_size > 1))
+			    (obact_gpd->runtime.sbuffer_size > 1))
 			{
 				stl->g_data->session_flag = GP_DRW_PAINT_PAINTING;
 			}
@@ -485,8 +496,9 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			}
 
 			/* allocate memory for saving gp objects for drawing later */
-			stl->g_data->gp_object_cache = gpencil_object_cache_add(stl->g_data->gp_object_cache, ob, false,
-									&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
+			stl->g_data->gp_object_cache = gpencil_object_cache_add(
+			        stl->g_data->gp_object_cache, ob, false,
+			        &stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
 
 			/* generate instances as separate cache objects for instance modifiers
 			 * with the "Make as Objects" option enabled
@@ -500,9 +512,9 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 
 		/* grid */
 		if ((v3d) &&
-			((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			(v3d->flag3 & V3D_GP_SHOW_GRID) &&
-			(ob->type == OB_GPENCIL) && (ob == draw_ctx->obact))
+		    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+		    (v3d->flag3 & V3D_GP_SHOW_GRID) &&
+		    (ob->type == OB_GPENCIL) && (ob == draw_ctx->obact))
 		{
 			stl->g_data->batch_grid = DRW_gpencil_get_grid();
 			DRW_shgroup_call_add(stl->g_data->shgrps_grid,
@@ -631,8 +643,8 @@ void GPENCIL_draw_scene(void *ved)
 	/* paper pass to display a confortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-			(v3d->flag3 & V3D_GP_SHOW_PAPER) &&
-			(stl->g_data->gp_cache_used > 0))
+		    (v3d->flag3 & V3D_GP_SHOW_PAPER) &&
+		    (stl->g_data->gp_cache_used > 0))
 		{
 			DRW_draw_pass(psl->paper_pass);
 		}
@@ -655,7 +667,7 @@ void GPENCIL_draw_scene(void *ved)
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				(v3d->flag3 & V3D_GP_SHOW_GRID))
+			    (v3d->flag3 & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);
 			}
@@ -744,7 +756,7 @@ void GPENCIL_draw_scene(void *ved)
 		/* grid pass */
 		if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 			if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				(v3d->flag3 & V3D_GP_SHOW_GRID))
+			    (v3d->flag3 & V3D_GP_SHOW_GRID))
 			{
 				DRW_draw_pass(psl->grid_pass);
 			}

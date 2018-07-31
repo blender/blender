@@ -1023,7 +1023,7 @@ void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop,
-		int filter, const bool live_icon);
+        int filter, const bool live_icon);
 void uiTemplateIDBrowse(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop, int filter);

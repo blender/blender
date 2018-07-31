@@ -32,6 +32,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_object_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -47,9 +48,6 @@
 #include "rna_internal.h"
 
 #include "WM_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-#include "ED_gpencil.h"
 
 /* parent type */
 static const EnumPropertyItem parent_type_items[] = {
@@ -77,7 +75,6 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 
 #ifdef RNA_RUNTIME
 
-#include "BLI_math.h"
 #include "BLI_ghash.h"
 
 #include "WM_api.h"

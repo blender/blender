@@ -277,7 +277,7 @@ static void subdiv_mesh_ctx_init_offsets(SubdivMeshContext *ctx)
 			        num_ptex_faces_per_poly *
 			                (num_inner_edges_per_ptex_face_get(
 			                         no_quad_patch_resolution - 1) +
-		                     (no_quad_patch_resolution - 2) +
+			                 (no_quad_patch_resolution - 2) +
 			                 num_subdiv_vertices_per_coarse_edge);
 			if (no_quad_patch_resolution >= 3) {
 				edge_offset += coarse_poly->totloop;
@@ -2193,7 +2193,7 @@ static void subdiv_copy_poly_data(const SubdivMeshContext *ctx,
 static void subdiv_create_polys(SubdivMeshContext *ctx, int poly_index)
 {
 	const int resolution = ctx->settings->resolution;
-    const int start_poly_index = ctx->subdiv_polygon_offset[poly_index];
+	const int start_poly_index = ctx->subdiv_polygon_offset[poly_index];
 	/* Base/coarse mesh information. */
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;

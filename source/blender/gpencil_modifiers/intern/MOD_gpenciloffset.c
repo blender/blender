@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpenciloffset.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpenciloffset.c
  *  \ingroup modifiers
  */
 
@@ -105,7 +105,7 @@ static void deformStroke(
 }
 
 static void bakeModifier(
-		struct Main *UNUSED(bmain), Depsgraph *depsgraph,
+        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	bGPdata *gpd = ob->data;

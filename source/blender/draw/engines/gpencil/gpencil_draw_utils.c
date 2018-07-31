@@ -63,8 +63,9 @@
 #define PATTERN 5
 
 /* Helper for doing all the checks on whether a stroke can be drawn */
-static bool gpencil_can_draw_stroke(struct MaterialGPencilStyle *gp_style, const bGPDstroke *gps,
-									const bool onion, const bool is_mat_preview)
+static bool gpencil_can_draw_stroke(
+        struct MaterialGPencilStyle *gp_style, const bGPDstroke *gps,
+        const bool onion, const bool is_mat_preview)
 {
 	/* skip stroke if it doesn't have any valid data */
 	if ((gps->points == NULL) || (gps->totpoints < 1) || (gp_style == NULL))
@@ -77,8 +78,8 @@ static bool gpencil_can_draw_stroke(struct MaterialGPencilStyle *gp_style, const
 
 	/* check if the color is visible */
 	if ((gp_style == NULL) ||
-		(gp_style->flag & GP_STYLE_COLOR_HIDE) ||
-		(onion && (gp_style->flag & GP_STYLE_COLOR_ONIONSKIN)))
+	    (gp_style->flag & GP_STYLE_COLOR_HIDE) ||
+	    (onion && (gp_style->flag & GP_STYLE_COLOR_ONIONSKIN)))
 	{
 		return false;
 	}
@@ -656,8 +657,8 @@ static void gpencil_add_editpoints_shgroup(
 		}
 		if (cache->batch_edlin[cache->cache_idx]) {
 			if ((obact) && (obact == ob) &&
-				((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-				(v3d->flag3 & V3D_GP_SHOW_EDIT_LINES))
+			    ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
+			    (v3d->flag3 & V3D_GP_SHOW_EDIT_LINES))
 			{
 				DRW_shgroup_call_add(
 				        stl->g_data->shgrps_edit_line,
@@ -947,7 +948,7 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				        stl->storage->unit_matrix);
 
 				if ((gpd->runtime.sbuffer_size >= 3) && (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
-					((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0))
+				    ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0))
 				{
 					/* if not solid, fill is simulated with solid color */
 					if (gpd->runtime.bfill_style > 0) {
@@ -1229,12 +1230,12 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data, void *vedata, Scene 
 
 		/* draw onion skins */
 		if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
-			(!no_onion) && (overlay) &&
-			(gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
-			((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
+		    (!no_onion) && (overlay) &&
+		    (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
+		    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
 		{
 			if ((!stl->storage->is_render) ||
-				((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
+			    ((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
 			{
 				gpencil_draw_onionskins(cache, e_data, vedata, ob, gpd, gpl, gpf);
 			}

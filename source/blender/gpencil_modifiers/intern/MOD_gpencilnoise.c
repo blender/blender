@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencilnoise.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilnoise.c
  *  \ingroup modifiers
  */
 

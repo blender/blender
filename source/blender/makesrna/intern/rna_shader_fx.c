@@ -38,7 +38,6 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
-#include "BKE_shader_fx.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

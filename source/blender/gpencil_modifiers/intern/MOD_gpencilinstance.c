@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencilinstance.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilinstance.c
  *  \ingroup modifiers
  */
 
@@ -320,7 +320,7 @@ static void generateStrokes(
 
 /* Generic "bakeModifier" callback */
 static void bakeModifier(
-		Main *bmain, Depsgraph *depsgraph,
+        Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	InstanceGpencilModifierData *mmd = (InstanceGpencilModifierData *)md;

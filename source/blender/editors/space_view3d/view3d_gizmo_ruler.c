@@ -37,7 +37,6 @@
 #include "BKE_object.h"
 #include "BKE_unit.h"
 #include "BKE_material.h"
-#include "BKE_main.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"

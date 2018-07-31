@@ -61,8 +61,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_main.h"
-#include "BKE_paint.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
 #include "BKE_material.h"
@@ -624,7 +622,7 @@ static short gp_stroke_addpoint(
 		}
 		/* apply randomness to pressure */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_press > 0.0f))
+		    (brush->gpencil_settings->draw_random_press > 0.0f))
 		{
 			float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_sensitivity, 0, pressure);
 			float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
@@ -672,7 +670,7 @@ static short gp_stroke_addpoint(
 
 		/* apply randomness to color strength */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_strength > 0.0f))
+		    (brush->gpencil_settings->draw_random_strength > 0.0f))
 		{
 			if (BLI_rng_get_float(p->rng) > 0.5f) {
 				pt->strength -= pt->strength * brush->gpencil_settings->draw_random_strength * BLI_rng_get_float(p->rng);
@@ -1381,13 +1379,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 						/* 2) Tag any point with overly low influence for removal in the next pass */
 						if ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-							(eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
 						{
 							pt1->flag |= GP_SPOINT_TAG;
 							do_cull = true;
 						}
 						if ((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-							(eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
 						{
 							pt2->flag |= GP_SPOINT_TAG;
 							do_cull = true;
@@ -1500,14 +1498,14 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 	Brush *brush_old = paint->brush;
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
 		if ((brush->ob_mode == OB_MODE_GPENCIL_PAINT) &&
-			(brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+		    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
 		{
 			/* save first eraser to use later if no default */
 			if (brush_dft == NULL) {
 				brush_dft = brush;
 			}
 			/* found default */
-			if(brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
+			if (brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
 				return brush;
 			}
 		}
@@ -2201,7 +2199,7 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 {
 	Brush *brush = p->brush;
 	if ((p->paintmode == GP_PAINTMODE_ERASER) ||
-		(brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+	    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
 	{
 		WM_cursor_modal_set(p->win, BC_CROSSCURSOR);  /* XXX need a better cursor */
 	}
@@ -2218,17 +2216,20 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 
 #if 0 /* FIXME, this never runs! */
 		switch (p->paintmode) {
-				case GP_PAINTMODE_DRAW_POLY:
-					/* Provide usage tips, since this is modal, and unintuitive without hints */
-					ED_workspace_status_text(C, IFACE_("Annotation Create Poly: LMB click to place next stroke vertex | "
-					                                  "ESC/Enter to end  (or click outside this area)"));
-					break;
-				default:
-					/* Do nothing - the others are self explanatory, exit quickly once the mouse is released
-					 * Showing any text would just be annoying as it would flicker.
-					 */
-					break;
-			}
+			case GP_PAINTMODE_DRAW_POLY:
+				/* Provide usage tips, since this is modal, and unintuitive without hints */
+				ED_workspace_status_text(
+				        C, IFACE_(
+				                "Annotation Create Poly: LMB click to place next stroke vertex | "
+				                "ESC/Enter to end  (or click outside this area)"
+				        ));
+				break;
+			default:
+				/* Do nothing - the others are self explanatory, exit quickly once the mouse is released
+				 * Showing any text would just be annoying as it would flicker.
+				 */
+				break;
+		}
 #endif
 
 		case GP_STATUS_IDLING:

@@ -22,8 +22,8 @@
  *  \ingroup DNA
  */
 
-#ifndef __DNA_SHADERFX_TYPES_H__
-#define __DNA_SHADERFX_TYPES_H__
+#ifndef __DNA_SHADER_FX_TYPES_H__
+#define __DNA_SHADER_FX_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -130,7 +130,7 @@ typedef struct LightShaderFxData {
 	int flag;                    /* flags */
 	float energy;
 	float ambient;
-	float loc[4]; /* internal, not visible in rna */ 
+	float loc[4]; /* internal, not visible in rna */
 	char pad[4];
 	ShaderFxData_runtime runtime;
 } LightShaderFxData;
@@ -193,4 +193,4 @@ typedef struct WaveShaderFxData {
 	char pad[4];
 	ShaderFxData_runtime runtime;
 } WaveShaderFxData;
-#endif  /* __DNA_SHADERFX_TYPES_H__ */
+#endif  /* __DNA_SHADER_FX_TYPES_H__ */

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/modifiers/intern/MOD_gpencil_util.h
+/** \file blender/gpencil_modifiers/intern/MOD_gpencil_util.h
  *  \ingroup modifiers
  */
 

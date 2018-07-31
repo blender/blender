@@ -787,9 +787,10 @@ static void gp_draw_data_layers(
 			 * It should also be noted that sbuffer contains temporary point types
 			 * i.e. tGPspoints NOT bGPDspoints
 			 */
-			gp_draw_stroke_buffer(gpd->runtime.sbuffer,
-								gpd->runtime.sbuffer_size, lthick,
-								dflag, gpd->runtime.sbuffer_sflag, ink);
+			gp_draw_stroke_buffer(
+			        gpd->runtime.sbuffer,
+			        gpd->runtime.sbuffer_size, lthick,
+			        dflag, gpd->runtime.sbuffer_sflag, ink);
 		}
 	}
 }

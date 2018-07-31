@@ -67,7 +67,6 @@
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_library.h"
-#include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_material.h"
@@ -462,8 +461,7 @@ void GPENCIL_OT_frame_duplicate(wmOperatorType *ot)
 		{ GP_FRAME_DUP_ACTIVE, "ACTIVE", 0, "Active", "Duplicate frame in active layer only" },
 		{ GP_FRAME_DUP_ALL, "ALL", 0, "All", "Duplicate active frames in all layers" },
 		{ 0, NULL, 0, NULL, NULL }
-		};
-
+	};
 
 	/* identifiers */
 	ot->name = "Duplicate Frame";
@@ -1401,8 +1399,8 @@ static bool gpencil_vertex_group_poll(bContext *C)
 	if ((ob) && (ob->type == OB_GPENCIL)) {
 		if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) && ob->defbase.first) {
 			if (ELEM(ob->mode,
-				     OB_MODE_GPENCIL_EDIT,
-				     OB_MODE_GPENCIL_SCULPT))
+			         OB_MODE_GPENCIL_EDIT,
+			         OB_MODE_GPENCIL_SCULPT))
 			{
 				return true;
 			}
@@ -1418,8 +1416,7 @@ static bool gpencil_vertex_group_weight_poll(bContext *C)
 
 	if ((ob) && (ob->type == OB_GPENCIL)) {
 		if (!ID_IS_LINKED(ob) && !ID_IS_LINKED(ob->data) && ob->defbase.first) {
-			if (ob->mode == OB_MODE_GPENCIL_WEIGHT)
-			{
+			if (ob->mode == OB_MODE_GPENCIL_WEIGHT) {
 				return true;
 			}
 		}
@@ -1807,8 +1804,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 	{
 		if (base->object->type == OB_GPENCIL) {
 			if ((base->object->rot[0] != 0) ||
-				(base->object->rot[1] != 0) ||
-				(base->object->rot[2] != 0))
+			    (base->object->rot[1] != 0) ||
+			    (base->object->rot[2] != 0))
 			{
 				BKE_report(op->reports, RPT_ERROR, "Apply all rotations before join objects");
 				return OPERATOR_CANCELLED;

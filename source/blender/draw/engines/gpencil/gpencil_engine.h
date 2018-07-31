@@ -279,8 +279,9 @@ typedef struct GpencilBatchCache {
 } GpencilBatchCache;
 
 /* general drawing functions */
-struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(struct GPENCIL_e_data *e_data, struct GPENCIL_Data *vedata, struct DRWPass *pass, struct GPUShader *shader,
-														  struct Object *ob, struct bGPdata *gpd, struct MaterialGPencilStyle *gp_style, int id, bool onion);
+struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
+        struct GPENCIL_e_data *e_data, struct GPENCIL_Data *vedata, struct DRWPass *pass, struct GPUShader *shader,
+        struct Object *ob, struct bGPdata *gpd, struct MaterialGPencilStyle *gp_style, int id, bool onion);
 void DRW_gpencil_populate_datablock(struct GPENCIL_e_data *e_data, void *vedata, struct Scene *scene, struct Object *ob, struct bGPdata *gpd);
 void DRW_gpencil_populate_buffer_strokes(struct GPENCIL_e_data *e_data, void *vedata, struct ToolSettings *ts, struct Object *ob);
 void DRW_gpencil_populate_multiedit(struct GPENCIL_e_data *e_data, void *vedata, struct Scene *scene, struct Object *ob, struct bGPdata *gpd);
@@ -300,8 +301,9 @@ struct GPUBatch *DRW_gpencil_get_buffer_point_geom(struct bGPdata *gpd, float ma
 struct GPUBatch *DRW_gpencil_get_grid(void);
 
 /* object cache functions */
-struct tGPencilObjectCache *gpencil_object_cache_add(struct tGPencilObjectCache *cache_array, struct Object *ob,
-							  bool is_temp, int *gp_cache_size, int *gp_cache_used);
+struct tGPencilObjectCache *gpencil_object_cache_add(
+        struct tGPencilObjectCache *cache_array, struct Object *ob,
+        bool is_temp, int *gp_cache_size, int *gp_cache_used);
 
 /* geometry batch cache functions */
 void gpencil_batch_cache_check_free_slots(struct Object *ob);

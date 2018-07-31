@@ -3821,24 +3821,18 @@ bool BKE_object_modifier_gpencil_use_time(Object *ob, GpencilModifierData *md)
 
 		/* action - check for F-Curves with paths containing 'grease_pencil_modifiers[' */
 		if (adt->action) {
-			for (fcu = (FCurve *)adt->action->curves.first;
-				fcu != NULL;
-				fcu = (FCurve *)fcu->next)
-			{
-				if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+			for (fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
+				if (fcu->rna_path && strstr(fcu->rna_path, pattern)) {
 					return true;
+				}
 			}
 		}
 
-		/* This here allows modifier properties to get driven and still update properly
-		*
-		*/
-		for (fcu = (FCurve *)adt->drivers.first;
-			fcu != NULL;
-			fcu = (FCurve *)fcu->next)
-		{
-			if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+		/* This here allows modifier properties to get driven and still update properly */
+		for (fcu = adt->drivers.first; fcu != NULL; fcu = fcu->next) {
+			if (fcu->rna_path && strstr(fcu->rna_path, pattern)) {
 				return true;
+			}
 		}
 	}
 
@@ -3862,22 +3856,14 @@ bool BKE_object_shaderfx_use_time(Object *ob, ShaderFxData *fx)
 
 		/* action - check for F-Curves with paths containing string[' */
 		if (adt->action) {
-			for (fcu = (FCurve *)adt->action->curves.first;
-				fcu != NULL;
-				fcu = (FCurve *)fcu->next)
-			{
+			for (fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
 				if (fcu->rna_path && strstr(fcu->rna_path, pattern))
 					return true;
 			}
 		}
 
-		/* This here allows properties to get driven and still update properly
-		*
-		*/
-		for (fcu = (FCurve *)adt->drivers.first;
-			fcu != NULL;
-			fcu = (FCurve *)fcu->next)
-		{
+		/* This here allows properties to get driven and still update properly */
+		for (fcu = adt->drivers.first; fcu != NULL; fcu = fcu->next) {
 			if (fcu->rna_path && strstr(fcu->rna_path, pattern))
 				return true;
 		}

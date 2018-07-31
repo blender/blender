@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencillattice.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencillattice.c
  *  \ingroup modifiers
  */
 
@@ -111,7 +111,7 @@ static void deformStroke(
  * (i.e. one where we don't have to worry about restoring state)
  */
 static void bakeModifier(
-		Main *bmain, Depsgraph *depsgraph,
+        Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	LatticeGpencilModifierData *mmd = (LatticeGpencilModifierData *)md;

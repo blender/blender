@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencilmirror.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilmirror.c
  *  \ingroup modifiers
  */
 
@@ -142,9 +142,9 @@ static void generateStrokes(
 	tot_strokes = BLI_listbase_count(&gpf->strokes);
 
 	for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
-		if (is_stroke_affected_by_modifier(ob,
-			mmd->layername, mmd->pass_index, 1, gpl, gps,
-			mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
+		if (is_stroke_affected_by_modifier(
+		            ob, mmd->layername, mmd->pass_index, 1, gpl, gps,
+		            mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
 		{
 			/* check each axis for mirroring */
 			for (int xi = 0; xi < 3; ++xi) {
@@ -162,7 +162,7 @@ static void generateStrokes(
 }
 
 static void bakeModifier(
-		Main *bmain, Depsgraph *depsgraph,
+        Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;

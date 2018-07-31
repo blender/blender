@@ -1683,22 +1683,23 @@ static bool ed_object_select_pick(
 			   The grease pencil modes are not real modes, but a hack to make the interface
 			   consistent, so need some tricks to keep UI synchronized */
 			// XXX: This stuff neeeds reviewing (Aligorith)
-#if 0
-			if (((oldbasact) && oldbasact->object->type == OB_GPENCIL) || (basact->object->type == OB_GPENCIL)) {
+			if (false &&
+			    (((oldbasact) && oldbasact->object->type == OB_GPENCIL) ||
+			     (basact->object->type == OB_GPENCIL)))
+			{
 				/* set cursor */
-				if (ELEM(basact->object->mode == OB_MODE_GPENCIL_PAINT,
-												OB_MODE_GPENCIL_SCULPT,
-												OB_MODE_GPENCIL_WEIGHT)) {
+				if (ELEM(basact->object->mode,
+				         OB_MODE_GPENCIL_PAINT,
+				         OB_MODE_GPENCIL_SCULPT,
+				         OB_MODE_GPENCIL_WEIGHT))
+				{
 					ED_gpencil_toggle_brush_cursor(C, true, NULL);
 				}
 				else {
 					/* TODO: maybe is better use restore */
 					ED_gpencil_toggle_brush_cursor(C, false, NULL);
 				}
-				/* set workspace mode */
-				BKE_workspace_object_mode_set(CTX_wm_workspace(C), scene, basact->object->mode);
 			}
-#endif
 		}
 
 		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);

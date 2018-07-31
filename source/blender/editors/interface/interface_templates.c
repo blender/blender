@@ -174,7 +174,7 @@ static uiBlock *template_common_search_menu(
         uiButSearchFunc search_func, void *search_arg,
         uiButHandleFunc handle_func, void *active_item,
         const int preview_rows, const int preview_cols,
-		float scale)
+        float scale)
 {
 	static char search[256];
 	wmWindow *win = CTX_wm_window(C);
@@ -644,7 +644,7 @@ static uiBut *template_id_def_new_but(
 static void template_ID(
         bContext *C, uiLayout *layout, TemplateID *template_ui, StructRNA *type, int flag,
         const char *newop, const char *openop, const char *unlinkop,
-		const bool live_icon)
+        const bool live_icon)
 {
 	uiBut *but;
 	uiBlock *block;
@@ -875,7 +875,7 @@ static void ui_template_id(
         PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop,
         int flag, int prv_rows, int prv_cols, int filter, bool use_tabs,
-		float scale, bool live_icon)
+        float scale, bool live_icon)
 {
 	TemplateID *template_ui;
 	PropertyRNA *prop;
@@ -933,7 +933,7 @@ static void ui_template_id(
 void uiTemplateID(
         uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, const char *newop,
         const char *openop, const char *unlinkop,
-		int filter, const bool live_icon)
+        int filter, const bool live_icon)
 {
 	ui_template_id(
 	        layout, C, ptr, propname,
@@ -1569,8 +1569,9 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 /************************ Grease Pencil Modifier Template *************************/
 
-static uiLayout *gpencil_draw_modifier(uiLayout *layout, Object *ob,
-									   GpencilModifierData *md)
+static uiLayout *gpencil_draw_modifier(
+        uiLayout *layout, Object *ob,
+        GpencilModifierData *md)
 {
 	const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 	PointerRNA ptr;

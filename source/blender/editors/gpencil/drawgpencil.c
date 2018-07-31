@@ -1047,7 +1047,7 @@ static void gp_draw_strokes(tGPDdraw *tgpw)
 		    (gp_style->fill_rgba[3] > 0.0f) &&
 		    ((gps->flag & GP_STROKE_NOFILL) == 0))
 		{
-				continue;
+			continue;
 		}
 
 		/* calculate thickness */

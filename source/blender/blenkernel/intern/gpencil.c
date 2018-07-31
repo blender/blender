@@ -546,7 +546,7 @@ void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_d
 	}
 	BLI_assert(gps_src->totpoints == gps_dst->totpoints);
 
-	if ((gps_src->dvert == NULL) || (gps_dst->dvert == NULL)){
+	if ((gps_src->dvert == NULL) || (gps_dst->dvert == NULL)) {
 		return;
 	}
 
@@ -1050,7 +1050,7 @@ Material *BKE_gpencil_get_material_from_brush(Brush *brush)
 	Material *ma = NULL;
 
 	if ((brush != NULL) && (brush->gpencil_settings != NULL) &&
-		(brush->gpencil_settings->material != NULL))
+	    (brush->gpencil_settings->material != NULL))
 	{
 		ma = brush->gpencil_settings->material;
 	}
@@ -1076,7 +1076,7 @@ Material *BKE_gpencil_material_ensure(Main *bmain, Object *ob)
 		assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_EXISTING);
 	}
 	else if (ma->gp_style == NULL) {
-			BKE_material_init_gpencil_settings(ma);
+		BKE_material_init_gpencil_settings(ma);
 	}
 
 	return ma;

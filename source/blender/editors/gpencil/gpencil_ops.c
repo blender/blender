@@ -128,8 +128,8 @@ static bool gp_stroke_paintmode_draw_poll(bContext *C)
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush)
-		&& (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_DRAW));
+	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush) &&
+	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_DRAW));
 }
 
 /* Poll callback for stroke painting (erase brush) */
@@ -139,8 +139,8 @@ static bool gp_stroke_paintmode_erase_poll(bContext *C)
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush)
-		&& (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE));
+	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush) &&
+	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE));
 }
 
 /* Poll callback for stroke painting (fill) */
@@ -150,8 +150,8 @@ static bool gp_stroke_paintmode_fill_poll(bContext *C)
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush)
-		&& (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_FILL));
+	return (gpd && (gpd->flag & GP_DATA_STROKE_PAINTMODE) && (brush) &&
+	        (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_FILL));
 }
 
 /* Poll callback for stroke sculpting mode */

@@ -18,12 +18,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file DNA_greasepencil_modifier_types.h
+/** \file DNA_gpencil_modifier_types.h
  *  \ingroup DNA
  */
 
-#ifndef __DNA_GREASEPENCIL_TYPES_H__
-#define __DNA_GREASEPENCIL_TYPES_H__
+#ifndef __DNA_GPENCIL_MODIFIER_TYPES_H__
+#define __DNA_GPENCIL_MODIFIER_TYPES_H__
 
 #include "DNA_defs.h"
 #include "DNA_listBase.h"
@@ -401,4 +401,4 @@ typedef enum eSmoothGpencil_Flag {
 #define MOD_MESHSEQ_READ_ALL \
 	(MOD_MESHSEQ_READ_VERT | MOD_MESHSEQ_READ_POLY | MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)
 
-#endif  /* __DNA_GREASEPENCIL_TYPES_H__ */
+#endif  /* __DNA_GPENCIL_MODIFIER_TYPES_H__ */

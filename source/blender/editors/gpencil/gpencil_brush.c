@@ -755,10 +755,11 @@ static bool gp_brush_randomize_apply(
 	const float inf = gp_brush_influence_calc(gso, radius, co) / 2.0f;
 	const float fac = BLI_rng_get_float(gso->rng) * inf;
 	/* need one flag enabled by default */
-	if ((gso->settings->flag & (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
-	                            GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
-								GP_BRUSHEDIT_FLAG_APPLY_THICKNESS |
-								GP_BRUSHEDIT_FLAG_APPLY_UV)) == 0)
+	if ((gso->settings->flag &
+	     (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
+	      GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
+	      GP_BRUSHEDIT_FLAG_APPLY_THICKNESS |
+	      GP_BRUSHEDIT_FLAG_APPLY_UV)) == 0)
 	{
 		gso->settings->flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
 	}

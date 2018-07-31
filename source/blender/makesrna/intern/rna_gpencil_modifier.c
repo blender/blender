@@ -50,7 +50,6 @@
 #include "BKE_mesh_remap.h"
 #include "BKE_multires.h"
 #include "BKE_smoke.h" /* For smokeModifier_free & smokeModifier_createType */
-#include "BKE_gpencil_modifier.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

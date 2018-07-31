@@ -38,8 +38,9 @@
 #include "draw_cache_impl.h"
 
  /* add a gpencil object to cache to defer drawing */
-tGPencilObjectCache *gpencil_object_cache_add(tGPencilObjectCache *cache_array, Object *ob, bool is_temp,
-							  int *gp_cache_size, int *gp_cache_used)
+tGPencilObjectCache *gpencil_object_cache_add(
+        tGPencilObjectCache *cache_array, Object *ob, bool is_temp,
+        int *gp_cache_size, int *gp_cache_used)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	tGPencilObjectCache *cache_elem = NULL;

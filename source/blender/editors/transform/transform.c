@@ -103,8 +103,6 @@
 
 #include "transform.h"
 
-#include "DEG_depsgraph.h"
-
 /* Disabling, since when you type you know what you are doing, and being able to set it to zero is handy. */
 // #define USE_NUM_NO_ZERO
 

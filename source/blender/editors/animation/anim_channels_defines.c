@@ -84,8 +84,6 @@
 
 #include "BIF_gl.h"
 
-#include "DEG_depsgraph.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 

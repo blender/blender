@@ -1005,7 +1005,8 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 	 * for them to end up aligned oddly, but only for Monkey
 	 */
 	if ((RNA_struct_property_is_set(op->ptr, "view_align") == false) &&
-		(type == GP_MONKEY)) {
+	    (type == GP_MONKEY))
+	{
 		RNA_boolean_set(op->ptr, "view_align", true);
 	}
 

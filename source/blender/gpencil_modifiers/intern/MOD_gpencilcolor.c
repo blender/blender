@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/modifiers/intern/MOD_gpencilcolor.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilcolor.c
  *  \ingroup modifiers
  */
 
@@ -98,7 +98,7 @@ static void deformStroke(
 }
 
 static void bakeModifier(
-		Main *bmain, Depsgraph *depsgraph,
+        Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
 	ColorGpencilModifierData *mmd = (ColorGpencilModifierData *)md;
