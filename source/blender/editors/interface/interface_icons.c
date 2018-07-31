@@ -47,6 +47,7 @@
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_dynamicpaint_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -109,6 +110,7 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 #define ICON_TYPE_VECTOR         4
 #define ICON_TYPE_GEOM           5
 #define ICON_TYPE_EVENT          6  /* draw keymap entries using custom renderer. */
+#define ICON_TYPE_GPLAYER        7
 
 typedef struct DrawInfo {
 	int type;
@@ -391,6 +393,28 @@ DEF_VICON_COLORSET_DRAW_NTH(20, 19)
 
 #undef DEF_VICON_COLORSET_DRAW_NTH
 
+/* Dynamically render icon instead of rendering a plain color to a texture/buffer
+ * This is mot strictly a "vicon", as it needs access to icon->obj to get the color info,
+ * but it works in a very similar way.
+ */
+static void vicon_gplayer_color_draw(Icon *icon, int x, int y, int w, int h)
+{
+	bGPDlayer *gpl = (bGPDlayer *)icon->obj;
+
+	/* Just draw a colored rect - Like for vicon_colorset_draw() */
+	/* TODO: Make this have rounded corners, and maybe be a bit smaller.
+	 * However, UI_draw_roundbox_aa() draws the colors too dark, so can't be used.
+	 */
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor3fv(gpl->color);
+	immRecti(pos, x, y, x + w - 1, y + h - 1);
+
+	immUnbindProgram();
+}
+
+
 #ifndef WITH_HEADLESS
 
 static void init_brush_icons(void)
@@ -442,6 +466,30 @@ static void init_brush_icons(void)
 	INIT_BRUSH_ICON(ICON_BRUSH_THUMB, thumb);
 	INIT_BRUSH_ICON(ICON_BRUSH_ROTATE, twist);
 	INIT_BRUSH_ICON(ICON_BRUSH_VERTEXDRAW, vertexdraw);
+
+	/* grease pencil sculpt */
+	INIT_BRUSH_ICON(ICON_GPBRUSH_SMOOTH, gp_brush_smooth);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_THICKNESS, gp_brush_thickness);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_STRENGTH, gp_brush_strength);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_GRAB, gp_brush_grab);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_PUSH, gp_brush_push);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_TWIST, gp_brush_twist);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_PINCH, gp_brush_pinch);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_RANDOMIZE, gp_brush_randomize);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_CLONE, gp_brush_clone);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_WEIGHT, gp_brush_weight);
+
+	/* grease pencil drawing brushes */
+	INIT_BRUSH_ICON(ICON_GPBRUSH_PENCIL, gp_brush_pencil);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_PEN, gp_brush_pen);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_INK, gp_brush_ink);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_INKNOISE, gp_brush_inknoise);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_BLOCK, gp_brush_block);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_MARKER, gp_brush_marker);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_FILL, gp_brush_fill);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_SOFT, gp_brush_erase_soft);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_HARD, gp_brush_erase_hard);
+	INIT_BRUSH_ICON(ICON_GPBRUSH_ERASE_STROKE, gp_brush_erase_stroke);
 
 #undef INIT_BRUSH_ICON
 }
@@ -876,6 +924,9 @@ static DrawInfo *icon_create_drawinfo(Icon *icon)
 	}
 	else if (icon_data_type == ICON_DATA_STUDIOLIGHT) {
 		di->type = ICON_TYPE_BUFFER;
+	}
+	else if (icon_data_type == ICON_DATA_GPLAYER) {
+		di->type = ICON_TYPE_GPLAYER;
 	}
 	else {
 		BLI_assert(0);
@@ -1484,6 +1535,15 @@ static void icon_draw_size(
 			GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		}
 	}
+	else if (di->type == ICON_TYPE_GPLAYER) {
+		BLI_assert(icon->obj != NULL);
+
+		/* We need to flush widget base first to ensure correct ordering. */
+		UI_widgetbase_draw_cache_flush();
+
+		/* Just draw a colored rect - Like for vicon_colorset_draw() */
+		vicon_gplayer_color_draw(icon, (int)x, (int)y,  w, h);
+	}
 }
 
 static void ui_id_preview_image_render_size(
@@ -1576,7 +1636,45 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		}
 
 		/* reset the icon */
-		if (mode == OB_MODE_SCULPT) {
+		if (ob->mode & OB_MODE_GPENCIL_PAINT) {
+			switch (br->gpencil_settings->icon_id) {
+				case GP_BRUSH_ICON_PENCIL:
+					br->id.icon_id = ICON_GPBRUSH_PENCIL;
+					break;
+				case GP_BRUSH_ICON_PEN:
+					br->id.icon_id = ICON_GPBRUSH_PEN;
+					break;
+				case GP_BRUSH_ICON_INK:
+					br->id.icon_id = ICON_GPBRUSH_INK;
+					break;
+				case GP_BRUSH_ICON_INKNOISE:
+					br->id.icon_id = ICON_GPBRUSH_INKNOISE;
+					break;
+				case GP_BRUSH_ICON_BLOCK:
+					br->id.icon_id = ICON_GPBRUSH_BLOCK;
+					break;
+				case GP_BRUSH_ICON_MARKER:
+					br->id.icon_id = ICON_GPBRUSH_MARKER;
+					break;
+				case GP_BRUSH_ICON_FILL:
+					br->id.icon_id = ICON_GPBRUSH_FILL;
+					break;
+				case GP_BRUSH_ICON_ERASE_SOFT:
+					br->id.icon_id = ICON_GPBRUSH_ERASE_SOFT;
+					break;
+				case GP_BRUSH_ICON_ERASE_HARD:
+					br->id.icon_id = ICON_GPBRUSH_ERASE_HARD;
+					break;
+				case GP_BRUSH_ICON_ERASE_STROKE:
+					br->id.icon_id = ICON_GPBRUSH_ERASE_STROKE;
+					break;
+				default:
+					br->id.icon_id = ICON_GPBRUSH_PEN;
+					break;
+			}
+			return id->icon_id;
+		}
+		else if (mode == OB_MODE_SCULPT) {
 			items = rna_enum_brush_sculpt_tool_items;
 			tool = br->sculpt_tool;
 		}

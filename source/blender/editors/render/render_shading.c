@@ -469,6 +469,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 	Main *bmain = CTX_data_main(C);
+	Object *ob = CTX_data_active_object(C);
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
@@ -477,7 +478,12 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 		ma = BKE_material_copy(bmain, ma);
 	}
 	else {
-		ma = BKE_material_add(bmain, DATA_("Material"));
+		if ((!ob) || (ob->type != OB_GPENCIL)) {
+			ma = BKE_material_add(bmain, DATA_("Material"));
+		}
+		else {
+			ma = BKE_material_add_gpencil(bmain, DATA_("Material"));
+		}
 		ED_node_shader_default(C, &ma->id);
 		ma->use_nodes = true;
 	}

@@ -1244,7 +1244,15 @@ void uiItemsFullEnumO(
 		bool free;
 
 		if (ui_layout_is_radial(layout)) {
+			/* XXX: While "_all()" guarantees spatial stability, it's bad when an enum has > 8 items total,
+			 * but only a small subset will ever be shown at once (e.g. Mode Switch menu, after the 
+			 * introduction of GP editing modes)
+			 */
+#if 0
 			RNA_property_enum_items_gettexted_all(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
+#else
+			RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, &totitem, &free);
+#endif
 		}
 		else {
 			RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item_array, &totitem, &free);

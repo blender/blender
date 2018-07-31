@@ -1022,7 +1022,8 @@ uiLayout *uiLayoutRadial(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *unlinkop, int filter);
+        const char *newop, const char *openop, const char *unlinkop,
+		int filter, const bool live_icon);
 void uiTemplateIDBrowse(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop, int filter);
@@ -1052,6 +1053,12 @@ void uiTemplatePathBuilder(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,
         struct PointerRNA *root_ptr, const char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+uiLayout *uiTemplateGpencilModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+void uiTemplateGpencilColorPreview(
+	uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+	int rows, int cols, float scale, int filter);
+
+uiLayout *uiTemplateShaderFx(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 
 void uiTemplateOperatorRedoProperties(uiLayout *layout, const struct bContext *C);
 

@@ -552,11 +552,11 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 
 	/* populate tree with keyframe nodes */
 	scene_to_keylist(&ads, scene, &keys, NULL);
-	gpencil_to_keylist(&ads, scene->gpd, &keys);
+	gpencil_to_keylist(&ads, scene->gpd, &keys, false);
 
 	if (ob) {
 		ob_to_keylist(&ads, ob, &keys, NULL);
-		gpencil_to_keylist(&ads, ob->gpd, &keys);
+		gpencil_to_keylist(&ads, ob->data, &keys, false);
 	}
 
 	if (mask) {

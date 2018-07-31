@@ -38,6 +38,8 @@ set(INC
 	../makesrna
 	../bmesh
 	../modifiers
+	../gpencil_modifiers
+	../shader_fx
 	../nodes
 	../physics
 	../render/extern/include
@@ -115,6 +117,7 @@ set(SRC
 	intern/font.c
 	intern/freestyle.c
 	intern/gpencil.c
+	intern/gpencil_modifier.c
 	intern/icons.c
 	intern/icons_rasterize.c
 	intern/idcode.c
@@ -180,6 +183,7 @@ set(SRC
 	intern/seqeffects.c
 	intern/seqmodifier.c
 	intern/sequencer.c
+	intern/shader_fx.c
 	intern/shrinkwrap.c
 	intern/smoke.c
 	intern/softbody.c
@@ -259,6 +263,7 @@ set(SRC
 	BKE_freestyle.h
 	BKE_global.h
 	BKE_gpencil.h
+	BKE_gpencil_modifier.h
 	BKE_icons.h
 	BKE_idcode.h
 	BKE_idprop.h
@@ -306,6 +311,7 @@ set(SRC
 	BKE_scene.h
 	BKE_screen.h
 	BKE_sequencer.h
+	BKE_shader_fx.h
 	BKE_shrinkwrap.h
 	BKE_smoke.h
 	BKE_softbody.h

@@ -578,6 +578,9 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 	Link *link = NULL;
 	const char *id_iter;
 
+	if (id == NULL)
+		return NULL;
+
 	for (link = listbase->first; link; link = link->next) {
 		id_iter = ((const char *)link) + offset;
 

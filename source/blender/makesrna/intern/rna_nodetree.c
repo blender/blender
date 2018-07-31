@@ -8358,6 +8358,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_GPencil_datablocks_annotations_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil data-block");
 	RNA_def_property_update(prop, NC_NODE, NULL);

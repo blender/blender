@@ -115,6 +115,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_empty_add);
 	WM_operatortype_append(OBJECT_OT_lightprobe_add);
 	WM_operatortype_append(OBJECT_OT_drop_named_image);
+	WM_operatortype_append(OBJECT_OT_gpencil_add);
 	WM_operatortype_append(OBJECT_OT_light_add);
 	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_speaker_add);
@@ -146,6 +147,20 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_skin_loose_mark_clear);
 	WM_operatortype_append(OBJECT_OT_skin_radii_equalize);
 	WM_operatortype_append(OBJECT_OT_skin_armature_create);
+
+	/* grease pencil modifiers */
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_remove);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_up);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_down);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_apply);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
+
+	/* shader fx */
+	WM_operatortype_append(OBJECT_OT_shaderfx_add);
+	WM_operatortype_append(OBJECT_OT_shaderfx_remove);
+	WM_operatortype_append(OBJECT_OT_shaderfx_move_up);
+	WM_operatortype_append(OBJECT_OT_shaderfx_move_down);
 
 	WM_operatortype_append(OBJECT_OT_correctivesmooth_bind);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);

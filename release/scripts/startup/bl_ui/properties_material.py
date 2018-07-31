@@ -86,8 +86,11 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        engine = context.engine
-        return (context.material or context.object) and (engine in cls.COMPAT_ENGINES)
+        if context.active_object and context.active_object.type == 'GPENCIL':
+            return False
+        else:
+            engine = context.engine
+            return (context.material or context.object) and (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

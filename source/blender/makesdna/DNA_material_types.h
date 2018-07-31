@@ -54,6 +54,59 @@ typedef struct TexPaintSlot {
 	int pad;
 } TexPaintSlot;
 
+typedef struct MaterialGPencilStyle {
+	struct Image *sima;      /* Texture image for strokes */
+	struct Image *ima;       /* Texture image for filling */
+	float stroke_rgba[4];    /* color for paint and strokes (alpha included) */
+	float fill_rgba[4];      /* color that should be used for drawing "fills" for strokes (alpha included) */
+	float mix_rgba[4];       /* secondary color used for gradients and other stuff */
+	short flag;              /* settings */
+	short index;             /* custom index for passes */
+	short stroke_style;      /* style for drawing strokes (used to select shader type) */
+	short fill_style;        /* style for filling areas (used to select shader type) */
+	float mix_factor;        /* factor used to define shader behavior (several uses) */
+	float gradient_angle;    /* angle used for gradients orientation */
+	float gradient_radius;   /* radius for radial gradients */
+	float pattern_gridsize;  /* cheesboard size */
+	float gradient_scale[2]; /* uv coordinates scale */
+	float gradient_shift[2]; /* factor to shift filling in 2d space */
+	float texture_angle;     /* angle used for texture orientation */
+	float texture_scale[2];  /* texture scale (separated of uv scale) */
+	float texture_offset[2]; /* factor to shift texture in 2d space */
+	float texture_opacity;   /* texture opacity */
+	float texture_pixsize;   /* pixel size for uv along the stroke */
+	int mode;                /* drawing mode (line or dots) */
+
+	int gradient_type;       /* type of gradient */
+	char pad[4];
+} MaterialGPencilStyle;
+
+/* MaterialGPencilStyle->flag */
+typedef enum eMaterialGPencilStyle_Flag {
+	/* Fill Texture is a pattern */
+	GP_STYLE_FILL_PATTERN = (1 << 0),
+	/* don't display color */
+	GP_STYLE_COLOR_HIDE = (1 << 1),
+	/* protected from further editing */
+	GP_STYLE_COLOR_LOCKED = (1 << 2),
+	/* do onion skinning */
+	GP_STYLE_COLOR_ONIONSKIN = (1 << 3),
+	/* clamp texture */
+	GP_STYLE_COLOR_TEX_CLAMP = (1 << 4),
+	/* mix texture */
+	GP_STYLE_COLOR_TEX_MIX = (1 << 5),
+	/* Flip fill colors */
+	GP_STYLE_COLOR_FLIP_FILL = (1 << 6),
+	/* Stroke Texture is a pattern */
+	GP_STYLE_STROKE_PATTERN = (1 << 7)
+} eMaterialGPencilStyle_Flag;
+
+typedef enum eMaterialGPencilStyle_Mode {
+	GP_STYLE_MODE_LINE = 0, /* line */
+	GP_STYLE_MODE_DOTS = 1, /* dots */
+	GP_STYLE_MODE_BOX = 2, /* rectangles */
+} eMaterialGPencilStyle_Mode;
+
 typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */
@@ -107,6 +160,9 @@ typedef struct Material {
 
 	/* Runtime cache for GLSL materials. */
 	ListBase gpumaterial;
+
+	/* grease pencil color */
+	struct MaterialGPencilStyle *gp_style;
 } Material;
 
 /* **************** MATERIAL ********************* */
@@ -227,6 +283,26 @@ enum {
 	MA_BS_SOLID,
 	MA_BS_CLIP,
 	MA_BS_HASHED,
+};
+
+/* Grease Pencil Stroke styles */
+enum {
+	GP_STYLE_STROKE_STYLE_SOLID = 0,
+	GP_STYLE_STROKE_STYLE_TEXTURE
+};
+
+/* Grease Pencil Fill styles */
+enum {
+	GP_STYLE_FILL_STYLE_SOLID = 0,
+	GP_STYLE_FILL_STYLE_GRADIENT,
+	GP_STYLE_FILL_STYLE_CHESSBOARD,
+	GP_STYLE_FILL_STYLE_TEXTURE
+};
+
+/* Grease Pencil Gradient Types */
+enum {
+	GP_STYLE_GRADIENT_LINEAR = 0,
+	GP_STYLE_GRADIENT_RADIAL
 };
 
 #endif

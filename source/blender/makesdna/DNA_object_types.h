@@ -180,7 +180,9 @@ typedef struct Object {
 	ListBase effect  DNA_DEPRECATED;             // XXX deprecated... keep for readfile
 	ListBase defbase;   /* list of bDeformGroup (vertex groups) names and flag only */
 	ListBase modifiers; /* list of ModifierData structures */
+	ListBase greasepencil_modifiers; /* list of GpencilModifierData structures */
 	ListBase fmaps;     /* list of facemaps */
+	ListBase shader_fx; /* list of viewport effects. Actually only used by grease pencil */
 
 	int mode;           /* Local object mode */
 	int restore_mode;
@@ -351,6 +353,9 @@ enum {
 
 /* 23 and 24 are for life and sector (old file compat.) */
 	OB_ARMATURE   = 25,
+/* Grease Pencil object used in 3D view but not used for annotation in 2D */
+	OB_GPENCIL  = 26,
+
 	OB_TYPE_MAX,
 };
 
@@ -361,9 +366,9 @@ enum {
 
 /* check if the object type supports materials */
 #define OB_TYPE_SUPPORT_MATERIAL(_type) \
-	((_type) >= OB_MESH && (_type) <= OB_MBALL)
+	(((_type) >= OB_MESH && (_type) <= OB_MBALL) || ((_type) == OB_GPENCIL))
 #define OB_TYPE_SUPPORT_VGROUP(_type) \
-	(ELEM(_type, OB_MESH, OB_LATTICE))
+	(ELEM(_type, OB_MESH, OB_LATTICE, OB_GPENCIL))
 #define OB_TYPE_SUPPORT_EDITMODE(_type) \
 	(ELEM(_type, OB_MESH, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE))
 #define OB_TYPE_SUPPORT_PARVERT(_type) \
@@ -375,10 +380,10 @@ enum {
 
 /* is this ID type used as object data */
 #define OB_DATA_SUPPORT_ID(_id_type) \
-	(ELEM(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_LP, ID_CA, ID_LT, ID_AR))
+	(ELEM(_id_type, ID_ME, ID_CU, ID_MB, ID_LA, ID_SPK, ID_LP, ID_CA, ID_LT, ID_GD, ID_AR))
 
 #define OB_DATA_SUPPORT_ID_CASE \
-	ID_ME: case ID_CU: case ID_MB: case ID_LA: case ID_SPK: case ID_LP: case ID_CA: case ID_LT: case ID_AR
+	ID_ME: case ID_CU: case ID_MB: case ID_LA: case ID_SPK: case ID_LP: case ID_CA: case ID_LT: case ID_GD: case ID_AR
 
 /* partype: first 4 bits: type */
 enum {
@@ -464,6 +469,12 @@ enum {
 	OB_EMPTY_SPHERE  = 6,
 	OB_EMPTY_CONE    = 7,
 	OB_EMPTY_IMAGE   = 8,
+};
+
+/* gpencil add types */
+enum {
+	GP_EMPTY = 0,
+	GP_MONKEY = 1
 };
 
 /* boundtype */

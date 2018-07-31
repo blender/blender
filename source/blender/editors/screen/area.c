@@ -1428,18 +1428,32 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if (flag & ED_KEYMAP_GPENCIL) {
 		/* grease pencil */
-		/* NOTE: This is now 2 keymaps - One for basic functionality,
-		 *       and one that only applies when "Edit Mode" is enabled
-		 *       for strokes.
+		/* NOTE: This is now 4 keymaps - One for basic functionality,
+		 *       and others for special stroke modes (edit, paint and sculpt).
 		 *
-		 *       For now, it's easier to just include both,
-		 *       since you hardly want one without the other.
+		 *       For now, it's easier to just include all,
+		 *       since you hardly want one without the others.
 		 */
 		wmKeyMap *keymap_general = WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
-		wmKeyMap *keymap_edit = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
-
 		WM_event_add_keymap_handler(handlers, keymap_general);
+
+		wmKeyMap *keymap_edit = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_edit);
+
+		wmKeyMap *keymap_paint = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint Mode", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap_paint);
+
+		wmKeyMap *keymap_paint_draw = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap_paint_draw);
+
+		wmKeyMap *keymap_paint_erase = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap_paint_erase);
+
+		wmKeyMap *keymap_paint_fill = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap_paint_fill);
+
+		wmKeyMap *keymap_sculpt = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
+		WM_event_add_keymap_handler(handlers, keymap_sculpt);
 	}
 	if (flag & ED_KEYMAP_HEADER) {
 		/* standard keymap for headers regions */

@@ -598,12 +598,12 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_util
 		bf_editor_uvedit
 		bf_editor_curve
-		bf_editor_gpencil
 		bf_editor_interface
 		bf_editor_gizmo_library
 		bf_editor_mesh
 		bf_editor_metaball
 		bf_editor_object
+		bf_editor_gpencil
 		bf_editor_lattice
 		bf_editor_armature
 		bf_editor_physics
@@ -626,12 +626,15 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_freestyle
 		bf_ikplugin
 		bf_modifiers
+		bf_gpencil_modifiers
 		bf_alembic
 		bf_bmesh
 		bf_gpu
 		bf_draw
 		bf_blenloader
 		bf_blenkernel
+		bf_shader_fx
+		bf_gpencil_modifiers
 		bf_physics
 		bf_nodes
 		bf_rna

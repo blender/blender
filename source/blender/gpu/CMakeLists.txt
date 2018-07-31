@@ -260,6 +260,14 @@ data_to_c_simple(shaders/gpu_shader_vertex_world.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_vert.glsl SRC)
 
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_frag.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_gpencil_stroke_geom.glsl SRC)
+
+data_to_c_simple(shaders/gpu_shader_gpencil_fill_vert.glsl SRC)
+data_to_c_simple(shaders/gpu_shader_gpencil_fill_frag.glsl SRC)
+
+
 if(WITH_MOD_SMOKE)
 	add_definitions(-DWITH_SMOKE)
 endif()

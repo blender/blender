@@ -28,9 +28,9 @@ from rna_prop_ui import PropertyPanel
 from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
-    point_cache_ui,
-    effector_weights_ui,
-)
+        point_cache_ui,
+        effector_weights_ui,
+        )
 
 
 class SCENE_PT_units_length_presets(PresetMenu):
@@ -103,7 +103,6 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         col.enabled = unit.system != 'NONE'
         col.prop(unit, "scale_length")
         col.prop(unit, "use_separate")
-
 
 class SceneKeyingSetsPanel:
 
@@ -568,6 +567,33 @@ class SCENE_PT_simplify_render(SceneButtonsPanel, Panel):
         col.prop(rd, "simplify_child_particles_render", text="Max Child Particles")
 
 
+class SCENE_PT_simplify_greasepencil(SceneButtonsPanel, Panel):
+    bl_label = "Simplify Grease Pencil"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+        self.layout.prop(rd, "simplify_gpencil", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        layout.active = rd.simplify_gpencil
+
+        row = layout.row()
+        row.prop(rd, "simplify_gpencil_onplay", text="Only on Play")
+
+        split = layout.split()
+
+        col = split.column()
+        col.prop(rd, "simplify_gpencil_view_fill", text="Fill")
+        col.prop(rd, "simplify_gpencil_remove_lines", text="Remove Fill Lines")
+        col.prop(rd, "simplify_gpencil_view_modifier", text="Modifiers")
+
+
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
     _context_path = "scene"
@@ -593,6 +619,7 @@ classes = (
     SCENE_PT_simplify,
     SCENE_PT_simplify_viewport,
     SCENE_PT_simplify_render,
+    SCENE_PT_simplify_greasepencil,
     SCENE_PT_custom_props,
 )
 

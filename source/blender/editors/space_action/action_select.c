@@ -51,6 +51,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_nla.h"
 #include "BKE_context.h"
+#include "BKE_gpencil.h"
 
 #include "UI_view2d.h"
 
@@ -134,15 +135,20 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 
 	/* Now set the flags */
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		if (ale->type == ANIMTYPE_GPLAYER)
+		if (ale->type == ANIMTYPE_GPLAYER) {
 			ED_gplayer_frame_select_set(ale->data, sel);
-		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ale->update |= ANIM_UPDATE_DEPS;
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
 			ED_masklayer_frame_select_set(ale->data, sel);
-		else
+		}
+		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL);
+		}
 	}
 
 	/* Cleanup */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -283,12 +289,16 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 					for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 						ED_gplayer_frames_select_border(gpl, rectf.xmin, rectf.xmax, selectmode);
 					}
+					ale->update |= ANIM_UPDATE_DEPS;
 					break;
 				}
 #endif
 				case ANIMTYPE_GPLAYER:
+				{
 					ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+					ale->update |= ANIM_UPDATE_DEPS;
 					break;
+				}
 				case ANIMTYPE_MASKDATABLOCK:
 				{
 					Mask *mask = ale->data;
@@ -312,6 +322,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 	}
 
 	/* cleanup */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -493,6 +504,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 				case ANIMTYPE_GPLAYER:
 				{
 					ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
+					ale->update |= ANIM_UPDATE_DEPS;
 					break;
 				}
 				case ANIMTYPE_MASKDATABLOCK:
@@ -520,6 +532,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 	}
 
 	/* cleanup */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -707,6 +720,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
 			ED_gplayer_frames_select_border(ale->data, min, max, SELECT_ADD);
+			ale->update |= ANIM_UPDATE_DEPS;
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
 			ED_masklayer_frames_select_border(ale->data, min, max, SELECT_ADD);
@@ -717,6 +731,7 @@ static void markers_selectkeys_between(bAnimContext *ac)
 	}
 
 	/* Cleanup */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -796,17 +811,23 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 				ked.f1 = ce->cfra;
 
 			/* select elements with frame number matching cfraelem */
-			if (ale->type == ANIMTYPE_GPLAYER)
+			if (ale->type == ANIMTYPE_GPLAYER) {
 				ED_gpencil_select_frame(ale->data, ce->cfra, SELECT_ADD);
-			else if (ale->type == ANIMTYPE_MASKLAYER)
+				ale->update |= ANIM_UPDATE_DEPS;
+			}
+			else if (ale->type == ANIMTYPE_MASKLAYER) {
 				ED_mask_select_frame(ale->data, ce->cfra, SELECT_ADD);
-			else
+			}
+			else {
 				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+			}
 		}
 	}
 
 	/* free elements */
 	BLI_freelistN(&ked.list);
+
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -1081,12 +1102,16 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
-		else if (ale->type == ANIMTYPE_GPLAYER)
+		else if (ale->type == ANIMTYPE_GPLAYER) {
 			ED_gplayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
-		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ale->update |= ANIM_UPDATE_DEPS;
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
 			ED_masklayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
-		else
+		}
+		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+		}
 	}
 
 	/* Sync marker support */
@@ -1111,6 +1136,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 	}
 
 	/* Cleanup */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -1227,6 +1253,7 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	/* select the nominated keyframe on the given frame */
 	if (ale->type == ANIMTYPE_GPLAYER) {
 		ED_gpencil_select_frame(ale->data, selx, select_mode);
+		ale->update |= ANIM_UPDATE_DEPS;
 	}
 	else if (ale->type == ANIMTYPE_MASKLAYER) {
 		ED_mask_select_frame(ale->data, selx, select_mode);
@@ -1244,12 +1271,14 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 			for (ale = anim_data.first; ale; ale = ale->next) {
 				if (ale->type == ANIMTYPE_GPLAYER) {
 					ED_gpencil_select_frame(ale->data, selx, select_mode);
+					ale->update |= ANIM_UPDATE_DEPS;
 				}
 				else if (ale->type == ANIMTYPE_MASKLAYER) {
 					ED_mask_select_frame(ale->data, selx, select_mode);
 				}
 			}
 
+			ANIM_animdata_update(ac, &anim_data);
 			ANIM_animdata_freelist(&anim_data);
 		}
 		else {
@@ -1294,16 +1323,22 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 			ked.f1 = selx;
 
 		/* select elements with frame number matching cfra */
-		if (ale->type == ANIMTYPE_GPLAYER)
+		if (ale->type == ANIMTYPE_GPLAYER) {
 			ED_gpencil_select_frame(ale->key_data, selx, select_mode);
-		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ale->update |= ANIM_UPDATE_DEPS;
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
 			ED_mask_select_frame(ale->key_data, selx, select_mode);
-		else
+		}
+		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
+		}
 	}
 
 	/* free elements */
 	BLI_freelistN(&ked.list);
+
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
@@ -1318,6 +1353,7 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 	/* select all keyframes in this channel */
 	if (ale->type == ANIMTYPE_GPLAYER) {
 		ED_gpencil_select_frames(ale->data, select_mode);
+		ale->update = ANIM_UPDATE_DEPS;
 	}
 	else if (ale->type == ANIMTYPE_MASKLAYER) {
 		ED_mask_select_frames(ale->data, select_mode);
@@ -1335,12 +1371,14 @@ static void actkeys_mselect_channel_only(bAnimContext *ac, bAnimListElem *ale, s
 			for (ale = anim_data.first; ale; ale = ale->next) {
 				if (ale->type == ANIMTYPE_GPLAYER) {
 					ED_gpencil_select_frames(ale->data, select_mode);
+					ale->update |= ANIM_UPDATE_DEPS;
 				}
 				else if (ale->type == ANIMTYPE_MASKLAYER) {
 					ED_mask_select_frames(ale->data, select_mode);
 				}
 			}
 
+			ANIM_animdata_update(ac, &anim_data);
 			ANIM_animdata_freelist(&anim_data);
 		}
 		else {
@@ -1473,6 +1511,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 
 		/* remove active channel from list of channels for separate treatment (since it's needed later on) */
 		BLI_remlink(&anim_data, ale);
+		ale->next = ale->prev = NULL;
 
 		/* cleanup temporary lists */
 		BLI_dlrbTree_free(&anim_keys);
@@ -1556,6 +1595,12 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 				actkeys_mselect_single(ac, ale, select_mode, selx);
 			}
 		}
+
+		/* flush tagged updates
+		 * NOTE: We temporarily add this channel back to the list so that this can happen
+		 */
+		anim_data.first = anim_data.last = ale;
+		ANIM_animdata_update(ac, &anim_data);
 
 		/* free this channel */
 		MEM_freeN(ale);

@@ -52,6 +52,7 @@
 #include "BKE_camera.h"
 #include "BKE_context.h"
 #include "BKE_font.h"
+#include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -77,7 +78,6 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_mesh.h"
-#include "ED_gpencil.h"
 #include "ED_view3d.h"
 #include "ED_transform_snap_object_context.h"
 
@@ -2811,7 +2811,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
-	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
+	const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
 	const bool is_face_map = ((is_gp_edit == false) && ar->gizmo_map &&
 	                          WM_gizmomap_is_any_selected(ar->gizmo_map));
 	Object *ob_eval = OBACT(view_layer_eval);
@@ -2850,9 +2850,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		{
 			/* we're only interested in selected points here... */
 			if ((gps->flag & GP_STROKE_SELECT) && (gps->flag & GP_STROKE_3DSPACE)) {
-				if (ED_gpencil_stroke_minmax(gps, true, min, max)) {
-					ok = true;
-				}
+				ok |= BKE_gpencil_stroke_minmax(gps, true, min, max);
 			}
 		}
 		CTX_DATA_END;

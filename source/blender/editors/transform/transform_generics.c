@@ -74,6 +74,7 @@
 #include "BKE_armature.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -105,6 +106,7 @@
 #include "ED_curve.h" /* for curve_editnurbs */
 #include "ED_clip.h"
 #include "ED_screen.h"
+#include "ED_gpencil.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -379,7 +381,8 @@ static void recalcData_actedit(TransInfo *t)
 		/* flush transform values back to actual coordinates */
 		flushTransIntFrameActionData(t);
 	}
-	else {
+
+	if (ac.datatype != ANIMCONT_MASK) {
 		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_ANIMDATA);
 		ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
@@ -1311,7 +1314,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	}
 
 	/* GPencil editing context */
-	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+	if (GPENCIL_ANY_MODE(gpd)) {
 		t->options |= CTX_GPENCIL_STROKES;
 	}
 
@@ -1822,6 +1825,21 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 			r_center[1] = t->ar->winy / 2.0f;
 		}
 		r_center[2] = 0.0f;
+	}
+	else if (t->options & CTX_GPENCIL_STROKES) {
+		 /* move cursor in local space */
+		TransData *td = NULL;
+		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+			float mat[3][3], imat[3][3];
+
+			td = tc->data;
+			Object *ob = td->ob;
+
+			sub_v3_v3v3(r_center, r_center, ob->obmat[3]);
+			copy_m3_m4(mat, ob->obmat);
+			invert_m3_m3(imat, mat);
+			mul_m3_v3(imat, r_center);
+		}
 	}
 }
 

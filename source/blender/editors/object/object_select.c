@@ -41,6 +41,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -88,8 +89,8 @@
  * this takes into account the 'restrict selection in 3d view' flag.
  * deselect works always, the restriction just prevents selection */
 
-/* Note: send a NC_SCENE|ND_OB_SELECT notifier yourself! (or
- * or a NC_SCENE|ND_OB_VISIBLE in case of visibility toggling */
+ /* Note: send a NC_SCENE|ND_OB_SELECT notifier yourself! (or
+  * or a NC_SCENE|ND_OB_VISIBLE in case of visibility toggling */
 
 void ED_object_base_select(Base *base, eObjectSelect_Mode mode)
 {

@@ -190,6 +190,14 @@ typedef struct View3DOverlay {
 	float wireframe_threshold;
 	char _pad0[4];
 
+	/* grease pencil setttings */
+	float gpencil_grid_scale;
+	float gpencil_paper_opacity;
+	int   gpencil_grid_lines;
+	int   gpencil_grid_axis;
+	float gpencil_grid_opacity;
+	char _pad1[4];
+
 } View3DOverlay;
 
 /* 3D ViewPort Struct */
@@ -256,7 +264,8 @@ typedef struct View3D {
 
 	char multiview_eye;				/* multiview current eye - for internal use */
 
-	char pad3[4];
+	/* actually only used to define the opacity of the grease pencil vertex in edit mode */
+	float vertex_opacity;                  
 
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
@@ -340,7 +349,7 @@ typedef struct View3D {
 /* View3d->flag2 (short) */
 #define V3D_RENDER_OVERRIDE		(1 << 2)
 #define V3D_SOLID_TEX			(1 << 3)
-#define V3D_SHOW_GPENCIL		(1 << 4)
+#define V3D_SHOW_ANNOTATION     (1 << 4)
 #define V3D_LOCK_CAMERA			(1 << 5)
 #define V3D_RENDER_SHADOW		(1 << 6)		/* This is a runtime only flag that's used to tell draw_mesh_object() that we're doing a shadow pass instead of a regular draw */
 #define V3D_SHOW_RECONSTRUCTION	(1 << 7)
@@ -353,9 +362,13 @@ typedef struct View3D {
 #define V3D_OCCLUDE_WIRE		(1 << 14)
 #define V3D_SHOW_MODE_SHADE_OVERRIDE (1 << 15) /* XXX: DNA deprecated */
 
-
 /* View3d->flag3 (short) */
-#define V3D_SHOW_WORLD			(1 << 0) /* LEGACY replaced by V3D_SHADING_BACKGROUND_WORLD */
+#define V3D_SHOW_WORLD		         (1 << 0) /* LEGACY replaced by V3D_SHADING_BACKGROUND_WORLD */
+#define V3D_GP_SHOW_PAPER            (1 << 2) /* Activate paper to cover all viewport */
+#define V3D_GP_SHOW_GRID             (1 << 3) /* Activate paper grid */
+#define V3D_GP_SHOW_EDIT_LINES       (1 << 4)
+#define V3D_GP_SHOW_MULTIEDIT_LINES  (1 << 5)
+#define V3D_GP_SHOW_ONION_SKIN       (1 << 6) /* main switch at view level */
 
 /* View3DShading->light */
 enum {
@@ -481,5 +494,13 @@ enum {
 /* #BKE_screen_view3d_zoom_to_fac() values above */
 #define RV3D_CAMZOOM_MIN_FACTOR  0.1657359312880714853f
 #define RV3D_CAMZOOM_MAX_FACTOR 44.9852813742385702928f
+
+/* View3d.gpencil_grid_axis */
+enum {
+	V3D_GP_GRID_AXIS_LOCK = (1 << 0),
+	V3D_GP_GRID_AXIS_X    = (1 << 1),
+	V3D_GP_GRID_AXIS_Y    = (1 << 2),
+	V3D_GP_GRID_AXIS_Z    = (1 << 3),
+};
 
 #endif

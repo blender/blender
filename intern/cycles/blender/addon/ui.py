@@ -895,7 +895,10 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.material or context.object) and CyclesButtonsPanel.poll(context)
+        if context.active_object and context.active_object.type == 'GPENCIL':
+            return False
+        else:
+            return (context.material or context.object) and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

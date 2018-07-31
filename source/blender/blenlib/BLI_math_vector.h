@@ -78,6 +78,9 @@ MINLINE void zero_v3_int(int r[3]);
 MINLINE void copy_v2_v2_int(int r[2], const int a[2]);
 MINLINE void copy_v3_v3_int(int r[3], const int a[3]);
 MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
+/* int <-> float */
+MINLINE void copy_v2fl_v2i(float r[2], const int a[2]);
+MINLINE void round_v2i_v2fl(int r[2], const float a[2]);
 /* double -> float */
 MINLINE void copy_v2fl_v2db(float r[2], const double a[2]);
 MINLINE void copy_v3fl_v3db(float r[3], const double a[3]);

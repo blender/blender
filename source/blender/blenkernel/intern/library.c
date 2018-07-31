@@ -1073,6 +1073,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_IP] = &(main->ipo);
 	lb[INDEX_ID_AC] = &(main->action); /* moved here to avoid problems when freeing with animato (aligorith) */
 	lb[INDEX_ID_KE] = &(main->key);
+	lb[INDEX_ID_PAL] = &(main->palettes); /* referenced by gpencil, so needs to be before that to avoid crashes */
 	lb[INDEX_ID_GD] = &(main->gpencil); /* referenced by nodes, objects, view, scene etc, before to free after. */
 	lb[INDEX_ID_NT] = &(main->nodetree);
 	lb[INDEX_ID_IM] = &(main->image);

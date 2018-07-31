@@ -2280,7 +2280,12 @@ static short snapObject(
 			        dist_px,
 			        r_loc, r_no, r_index);
 			break;
-
+		case OB_GPENCIL:
+			retval = snapEmpty(
+					snapdata, ob, obmat,
+					dist_px,
+					r_loc, r_no, r_index);
+			break;
 		case OB_CAMERA:
 			retval = snapCamera(
 			        sctx, snapdata, ob, obmat,

@@ -38,6 +38,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lattice_types.h"
 
@@ -59,6 +60,7 @@
 #include "BKE_armature.h"
 #include "BKE_lattice.h"
 #include "BKE_tracking.h"
+#include "BKE_gpencil.h"
 
 #include "DEG_depsgraph.h"
 
@@ -73,6 +75,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_gpencil.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -434,7 +437,7 @@ static int apply_objects_internal(
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT)) {
+		if (ELEM(ob->type, OB_MESH, OB_ARMATURE, OB_LATTICE, OB_MBALL, OB_CURVE, OB_SURF, OB_FONT, OB_GPENCIL)) {
 			ID *obdata = ob->data;
 			if (ID_REAL_USERS(obdata) > 1) {
 				BKE_reportf(reports, RPT_ERROR,
@@ -477,6 +480,37 @@ static int apply_objects_internal(
 				            "Font's can only have scale applied: \"%s\"",
 				            ob->id.name + 2);
 				changed = false;
+			}
+		}
+
+		if (ob->type == OB_GPENCIL) {
+			bGPdata *gpd = ob->data;
+			if (gpd) {
+				if (gpd->layers.first) {
+					/* Unsupported configuration */
+					bool has_unparented_layers = false;
+
+					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+						/* Parented layers aren't supported as we can't easily re-evaluate the scene to sample parent movement */
+						if (gpl->parent == NULL) {
+							has_unparented_layers = true;
+							break;
+						}
+					}
+
+					if (has_unparented_layers == false) {
+						BKE_reportf(reports, RPT_ERROR,
+						            "Can't apply to a GP datablock where all layers are parented: Object \"%s\", %s \"%s\", aborting",
+						            ob->id.name + 2, BKE_idcode_to_name(ID_GD), gpd->id.name + 2);
+						changed = false;
+					}
+				}
+				else {
+					/* No layers/data */
+					BKE_reportf(reports, RPT_ERROR,
+					            "Can't apply to GP datablock with no layers: Object \"%s\", %s \"%s\", aborting",
+					            ob->id.name + 2, BKE_idcode_to_name(ID_GD), gpd->id.name + 2);
+				}
 			}
 		}
 
@@ -586,6 +620,10 @@ static int apply_objects_internal(
 			if (do_props) {
 				cu->fsize *= scale;
 			}
+		}
+		else if (ob->type == OB_GPENCIL) {
+			bGPdata *gpd = ob->data;
+			BKE_gpencil_transform(gpd, mat);
 		}
 		else if (ob->type == OB_CAMERA) {
 			MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
@@ -1055,6 +1093,69 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				tot_change++;
 				lt->id.tag |= LIB_TAG_DOIT;
 				do_inverse_offset = true;
+			}
+			else if (ob->type == OB_GPENCIL) {
+				bGPdata *gpd = ob->data;
+				float gpcenter[3];
+				if (gpd) {
+					if (centermode == ORIGIN_TO_GEOMETRY) {
+						zero_v3(gpcenter);
+						BKE_gpencil_centroid_3D(gpd, gpcenter);
+						add_v3_v3(gpcenter, ob->obmat[3]);
+					}
+					if (centermode == ORIGIN_TO_CURSOR) {
+						copy_v3_v3(gpcenter, cursor);
+					}
+					if ((centermode == ORIGIN_TO_GEOMETRY) || (centermode == ORIGIN_TO_CURSOR)) {
+						bGPDspoint *pt;
+						float imat[3][3], bmat[3][3];
+						float offset_global[3];
+						float offset_local[3];
+						int i;
+
+						sub_v3_v3v3(offset_global, gpcenter, ob->obmat[3]);
+						copy_m3_m4(bmat, obact->obmat);
+						invert_m3_m3(imat, bmat);
+						mul_m3_v3(imat, offset_global);
+						mul_v3_m3v3(offset_local, imat, offset_global);
+
+						float diff_mat[4][4];
+						float inverse_diff_mat[4][4];
+
+						/* recalculate all strokes (all layers are considered without evaluating lock attributtes) */
+						for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+							/* calculate difference matrix */
+							ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
+							/* undo matrix */
+							invert_m4_m4(inverse_diff_mat, diff_mat);
+							for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+								for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+									/* skip strokes that are invalid for current view */
+									if (ED_gpencil_stroke_can_use(C, gps) == false)
+										continue;
+
+									for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
+										float mpt[3];
+										mul_v3_m4v3(mpt, inverse_diff_mat, &pt->x);
+										sub_v3_v3(mpt, offset_local);
+										mul_v3_m4v3(&pt->x, diff_mat, mpt);
+									}
+								}
+							}
+						}
+						DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+
+						tot_change++;
+						if (centermode == ORIGIN_TO_GEOMETRY) {
+							copy_v3_v3(ob->loc, gpcenter);
+						}
+						ob->id.tag |= LIB_TAG_DOIT;
+						do_inverse_offset = true;
+					}
+					else {
+						BKE_report(op->reports, RPT_WARNING, "Grease Pencil Object does not support this set origin option");
+					}
+				}
 			}
 
 			/* offset other selected objects */

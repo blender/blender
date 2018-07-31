@@ -319,8 +319,6 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	if (outliner_animdata_test(sce->adt))
 		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
 
-	/* Grease Pencil */
-	outliner_add_element(soops, lb, sce->gpd, te, 0, 0);
 }
 
 TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)

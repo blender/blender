@@ -31,25 +31,45 @@
  *  \author Joshua Leung
  */
 
+struct CurveMapping;
+struct Depsgraph;
+struct GpencilModifierData;
 struct ToolSettings;
 struct ListBase;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
+struct bGPDspoint;
 struct bGPDstroke;
+struct Material;
 struct bGPDpalette;
 struct bGPDpalettecolor;
 struct Main;
+struct BoundBox;
+struct Brush;
+struct Object;
+struct bDeformGroup;
+struct SimplifyGpencilModifierData;
+struct InstanceGpencilModifierData;
+struct LatticeGpencilModifierData;
+
+struct MDeformVert;
+struct MDeformWeight;
 
 /* ------------ Grease-Pencil API ------------------ */
 
+void BKE_gpencil_free_point_weights(struct MDeformVert *dvert);
+void BKE_gpencil_free_stroke_weights(struct bGPDstroke *gps);
 void BKE_gpencil_free_stroke(struct bGPDstroke *gps);
 bool BKE_gpencil_free_strokes(struct bGPDframe *gpf);
 void BKE_gpencil_free_frames(struct bGPDlayer *gpl);
 void BKE_gpencil_free_layers(struct ListBase *list);
-void BKE_gpencil_free_brushes(struct ListBase *list);
-void BKE_gpencil_free_palettes(struct ListBase *list);
-void BKE_gpencil_free(struct bGPdata *gpd, bool free_palettes);
+bool BKE_gpencil_free_frame_runtime_data(struct bGPDframe *derived_gpf);
+void BKE_gpencil_free_derived_frames(struct bGPdata *gpd);
+void BKE_gpencil_free(struct bGPdata *gpd, bool free_all);
+
+void BKE_gpencil_batch_cache_dirty(struct bGPdata *gpd);
+void BKE_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 void BKE_gpencil_stroke_sync_selection(struct bGPDstroke *gps);
 
@@ -60,21 +80,36 @@ struct bGPdata   *BKE_gpencil_data_addnew(struct Main *bmain, const char name[])
 
 struct bGPDframe *BKE_gpencil_frame_duplicate(const struct bGPDframe *gpf_src);
 struct bGPDlayer *BKE_gpencil_layer_duplicate(const struct bGPDlayer *gpl_src);
+void BKE_gpencil_frame_copy_strokes(struct bGPDframe *gpf_src, struct bGPDframe *gpf_dst);
+struct bGPDstroke *BKE_gpencil_stroke_duplicate(struct bGPDstroke *gps_src);
+
 void BKE_gpencil_copy_data(struct Main *bmain, struct bGPdata *gpd_dst, const struct bGPdata *gpd_src, const int flag);
+struct bGPdata   *BKE_gpencil_copy(struct Main *bmain, const struct bGPdata *gpd);
 struct bGPdata   *BKE_gpencil_data_duplicate(struct Main *bmain, const struct bGPdata *gpd, bool internal_copy);
 
 void BKE_gpencil_make_local(struct Main *bmain, struct bGPdata *gpd, const bool lib_local);
 
 void BKE_gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe *gpf);
 
-struct bGPDpalette *BKE_gpencil_palette_addnew(struct bGPdata *gpd, const char *name, bool setactive);
-struct bGPDpalette *BKE_gpencil_palette_duplicate(const struct bGPDpalette *palette_src);
-struct bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(struct bGPDpalette *palette, const char *name, bool setactive);
+/* materials */
+void BKE_gpencil_material_index_remove(struct bGPdata *gpd, int index);
+void BKE_gpencil_material_remap(struct bGPdata *gpd, const unsigned int *remap, unsigned int remap_len);
 
-struct bGPDbrush *BKE_gpencil_brush_addnew(struct ToolSettings *ts, const char *name, bool setactive);
-struct bGPDbrush *BKE_gpencil_brush_duplicate(const struct bGPDbrush *brush_src);
-void BKE_gpencil_brush_init_presets(struct ToolSettings *ts);
+/* statistics functions */
+void BKE_gpencil_stats_update(struct bGPdata *gpd);
 
+/* Utilities for creating and populating GP strokes */
+/* - Number of values defining each point in the built-in data
+ *   buffers for primitives (e.g. 2D Monkey)
+ */
+#define GP_PRIM_DATABUF_SIZE  5
+
+void BKE_gpencil_stroke_add_points(
+        struct bGPDstroke *gps,
+        const float *array, const int totpoints,
+        const float mat[4][4]);
+
+struct bGPDstroke *BKE_gpencil_add_stroke(struct bGPDframe *gpf, int mat_idx, int totpoints, short thickness);
 
 /* Stroke and Fill - Alpha Visibility Threshold */
 #define GPENCIL_ALPHA_OPACITY_THRESH 0.001f
@@ -103,20 +138,40 @@ struct bGPDlayer *BKE_gpencil_layer_getactive(struct bGPdata *gpd);
 void BKE_gpencil_layer_setactive(struct bGPdata *gpd, struct bGPDlayer *active);
 void BKE_gpencil_layer_delete(struct bGPdata *gpd, struct bGPDlayer *gpl);
 
-struct bGPDbrush *BKE_gpencil_brush_getactive(struct ToolSettings *ts);
-void BKE_gpencil_brush_setactive(struct ToolSettings *ts, struct bGPDbrush *active);
-void BKE_gpencil_brush_delete(struct ToolSettings *ts, struct bGPDbrush *brush);
+struct Material *BKE_gpencil_get_material_from_brush(struct Brush *brush);
+struct Material *BKE_gpencil_material_ensure(struct Main *bmain, struct Object *ob);
 
-struct bGPDpalette *BKE_gpencil_palette_getactive(struct bGPdata *gpd);
-void BKE_gpencil_palette_setactive(struct bGPdata *gpd, struct bGPDpalette *active);
-void BKE_gpencil_palette_delete(struct bGPdata *gpd, struct bGPDpalette *palette);
-void BKE_gpencil_palette_change_strokes(struct bGPdata *gpd);
+/* object boundbox */
+bool BKE_gpencil_stroke_minmax(
+        const struct bGPDstroke *gps, const bool use_select,
+        float r_min[3], float r_max[3]);
 
-struct bGPDpalettecolor *BKE_gpencil_palettecolor_getactive(struct bGPDpalette *palette);
-void BKE_gpencil_palettecolor_setactive(struct bGPDpalette *palette, struct bGPDpalettecolor *active);
-void BKE_gpencil_palettecolor_delete(struct bGPDpalette *palette, struct bGPDpalettecolor *palcolor);
-struct bGPDpalettecolor *BKE_gpencil_palettecolor_getbyname(struct bGPDpalette *palette, char *name);
-void BKE_gpencil_palettecolor_changename(struct bGPdata *gpd, char *oldname, const char *newname);
-void BKE_gpencil_palettecolor_delete_strokes(struct bGPdata *gpd, char *name);
+struct BoundBox *BKE_gpencil_boundbox_get(struct Object *ob);
+void BKE_gpencil_centroid_3D(struct bGPdata *gpd, float r_centroid[3]);
+
+/* vertex groups */
+float BKE_gpencil_vgroup_use_index(struct MDeformVert *dvert, int index);
+void BKE_gpencil_vgroup_remove(struct Object *ob, struct bDeformGroup *defgroup);
+struct MDeformWeight *BKE_gpencil_vgroup_add_point_weight(struct MDeformVert *dvert, int index, float weight);
+bool BKE_gpencil_vgroup_remove_point_weight(struct MDeformVert *dvert, int index);
+void BKE_gpencil_stroke_weights_duplicate(struct bGPDstroke *gps_src, struct bGPDstroke *gps_dst);
+
+/* GPencil geometry evaluation */
+void BKE_gpencil_eval_geometry(struct Depsgraph *depsgraph, struct bGPdata *gpd);
+
+/* stroke geometry utilities */
+void BKE_gpencil_stroke_normal(const struct bGPDstroke *gps, float r_normal[3]);
+void BKE_gpencil_simplify_stroke(struct bGPDstroke *gps, float factor);
+void BKE_gpencil_simplify_fixed(struct bGPDstroke *gps);
+
+void BKE_gpencil_transform(struct bGPdata *gpd, float mat[4][4]);
+
+bool BKE_gpencil_smooth_stroke(struct bGPDstroke *gps, int i, float inf);
+bool BKE_gpencil_smooth_stroke_strength(struct bGPDstroke *gps, int point_index, float influence);
+bool BKE_gpencil_smooth_stroke_thickness(struct bGPDstroke *gps, int point_index, float influence);
+bool BKE_gpencil_smooth_stroke_uv(struct bGPDstroke *gps, int point_index, float influence);
+
+void BKE_gpencil_get_range_selected(struct bGPDlayer *gpl, int *r_initframe, int *r_endframe);
+float BKE_gpencil_multiframe_falloff_calc(struct bGPDframe *gpf, int actnum, int f_init, int f_end, struct CurveMapping *cur_falloff);
 
 #endif /*  __BKE_GPENCIL_H__ */

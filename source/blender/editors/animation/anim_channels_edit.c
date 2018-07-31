@@ -1727,8 +1727,7 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				bGPDlayer *gpl = (bGPDlayer *)ale->data;
 
 				/* try to delete the layer's data and the layer itself */
-				BKE_gpencil_free_frames(gpl);
-				BLI_freelinkN(&gpd->layers, gpl);
+				BKE_gpencil_layer_delete(gpd, gpl);
 				break;
 			}
 			case ANIMTYPE_MASKLAYER:

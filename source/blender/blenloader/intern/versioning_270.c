@@ -76,6 +76,9 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utils.h"
+
+#include "BLT_translation.h"
 
 #include "BLO_readfile.h"
 
@@ -86,6 +89,64 @@
 #include "readfile.h"
 
 #include "MEM_guardedalloc.h"
+
+/* ************************************************** */
+/* GP Palettes API (Deprecated) */
+
+/* add a new gp-palette */
+static bGPDpalette *BKE_gpencil_palette_addnew(bGPdata *gpd, const char *name)
+{
+	bGPDpalette *palette;
+
+	/* check that list is ok */
+	if (gpd == NULL) {
+		return NULL;
+	}
+
+	/* allocate memory and add to end of list */
+	palette = MEM_callocN(sizeof(bGPDpalette), "bGPDpalette");
+
+	/* add to datablock */
+	BLI_addtail(&gpd->palettes, palette);
+
+	/* set basic settings */
+	/* auto-name */
+	BLI_strncpy(palette->info, name, sizeof(palette->info));
+	BLI_uniquename(&gpd->palettes, palette, DATA_("GP_Palette"), '.', offsetof(bGPDpalette, info),
+		sizeof(palette->info));
+
+	/* return palette */
+	return palette;
+}
+
+/* add a new gp-palettecolor */
+static bGPDpalettecolor *BKE_gpencil_palettecolor_addnew(bGPDpalette *palette, const char *name)
+{
+	bGPDpalettecolor *palcolor;
+
+	/* check that list is ok */
+	if (palette == NULL) {
+		return NULL;
+	}
+
+	/* allocate memory and add to end of list */
+	palcolor = MEM_callocN(sizeof(bGPDpalettecolor), "bGPDpalettecolor");
+
+	/* add to datablock */
+	BLI_addtail(&palette->colors, palcolor);
+
+	/* set basic settings */
+	copy_v4_v4(palcolor->color, U.gpencil_new_layer_col);
+	ARRAY_SET_ITEMS(palcolor->fill, 1.0f, 1.0f, 1.0f);
+
+	/* auto-name */
+	BLI_strncpy(palcolor->info, name, sizeof(palcolor->info));
+	BLI_uniquename(&palette->colors, palcolor, DATA_("Color"), '.', offsetof(bGPDpalettecolor, info),
+		sizeof(palcolor->info));
+
+	/* return palette color */
+	return palcolor;
+}
 
 /**
  * Setup rotation stabilization from ancient single track spec.
@@ -1344,8 +1405,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				ToolSettings *ts = scene->toolsettings;
 				/* initialize use position for sculpt brushes */
 				ts->gp_sculpt.flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
-				/* initialize  selected vertices alpha factor */
-				ts->gp_sculpt.alpha = 1.0f;
 
 				/* new strength sculpt brush */
 				if (ts->gp_sculpt.brush[0].size >= 11) {
@@ -1358,25 +1417,16 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
 				}
 			}
-			/* create a default grease pencil drawing brushes set */
-			if (!BLI_listbase_is_empty(&bmain->gpencil)) {
-				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-					ToolSettings *ts = scene->toolsettings;
-					if (BLI_listbase_is_empty(&ts->gp_brushes)) {
-						BKE_gpencil_brush_init_presets(ts);
-					}
-				}
-			}
 			/* Convert Grease Pencil to new palettes/brushes
 			 * Loop all strokes and create the palette and all colors
 			 */
 			for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
 				if (BLI_listbase_is_empty(&gpd->palettes)) {
 					/* create palette */
-					bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, "GP_Palette", true);
+					bGPDpalette *palette = BKE_gpencil_palette_addnew(gpd, "GP_Palette");
 					for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 						/* create color using layer name */
-						bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_addnew(palette, gpl->info, true);
+						bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_addnew(palette, gpl->info);
 						if (palcolor != NULL) {
 							/* set color attributes */
 							copy_v4_v4(palcolor->color, gpl->color);
@@ -1386,7 +1436,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 							if (gpl->flag & GP_LAYER_LOCKED)     palcolor->flag |= PC_COLOR_LOCKED;
 							if (gpl->flag & GP_LAYER_ONIONSKIN)  palcolor->flag |= PC_COLOR_ONIONSKIN;
 							if (gpl->flag & GP_LAYER_VOLUMETRIC) palcolor->flag |= PC_COLOR_VOLUMETRIC;
-							if (gpl->flag & GP_LAYER_HQ_FILL)    palcolor->flag |= PC_COLOR_HQ_FILL;
 
 							/* set layer opacity to 1 */
 							gpl->opacity = 1.0f;
@@ -1399,8 +1448,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 								for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 									/* set stroke to palette and force recalculation */
 									BLI_strncpy(gps->colorname, gpl->info, sizeof(gps->colorname));
-									gps->palcolor = NULL;
-									gps->flag |= GP_STROKE_RECALC_COLOR;
 									gps->thickness = gpl->thickness;
 
 									/* set alpha strength to 1 */
@@ -1410,13 +1457,7 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *bmain)
 								}
 							}
 						}
-
-						/* set thickness to 0 (now it is a factor to override stroke thickness) */
-						gpl->thickness = 0.0f;
 					}
-					/* set first color as active */
-					if (palette->colors.first)
-						BKE_gpencil_palettecolor_setactive(palette, palette->colors.first);
 				}
 			}
 		}

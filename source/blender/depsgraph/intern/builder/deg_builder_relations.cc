@@ -85,10 +85,12 @@ extern "C" {
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
+#include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_world.h"
@@ -525,6 +527,18 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 		data.builder = this;
 		modifiers_foreachIDLink(object, modifier_walk, &data);
 	}
+	/* Grease Pencil Modifiers. */
+	if (object->greasepencil_modifiers.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		BKE_gpencil_modifiers_foreachIDLink(object, modifier_walk, &data);
+	}
+	/* Shader FX. */
+	if (object->shader_fx.first != NULL) {
+		BuilderWalkUserData data;
+		data.builder = this;
+		BKE_shaderfx_foreachIDLink(object, modifier_walk, &data);
+	}
 	/* Constraints. */
 	if (object->constraints.first != NULL) {
 		BuilderWalkUserData data;
@@ -569,10 +583,6 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
 		build_particles(object);
-	}
-	/* Grease pencil. */
-	if (object->gpd != NULL) {
-		build_gpencil(object->gpd);
 	}
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
@@ -630,6 +640,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		case OB_SURF:
 		case OB_MBALL:
 		case OB_LATTICE:
+		case OB_GPENCIL:
 		{
 			build_object_data_geometry(object);
 			break;
@@ -1798,6 +1809,42 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 			}
 		}
 	}
+	/* Grease Pencil Modifiers */
+	if (object->greasepencil_modifiers.first != NULL) {
+		ModifierUpdateDepsgraphContext ctx = {};
+		ctx.scene = scene_;
+		ctx.object = object;
+		LISTBASE_FOREACH(GpencilModifierData *, md, &object->greasepencil_modifiers) {
+			const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo((GpencilModifierType)md->type);
+			if (mti->updateDepsgraph) {
+				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
+				ctx.node = reinterpret_cast< ::DepsNodeHandle* >(&handle);
+				mti->updateDepsgraph(md, &ctx);
+			}
+			if (BKE_object_modifier_gpencil_use_time(object, md)) {
+				TimeSourceKey time_src_key;
+				add_relation(time_src_key, obdata_ubereval_key, "Time Source");
+			}
+		}
+	}
+	/* Shader FX */
+	if (object->shader_fx.first != NULL) {
+		ModifierUpdateDepsgraphContext ctx = {};
+		ctx.scene = scene_;
+		ctx.object = object;
+		LISTBASE_FOREACH(ShaderFxData *, fx, &object->shader_fx) {
+			const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo((ShaderFxType)fx->type);
+			if (fxi->updateDepsgraph) {
+				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
+				ctx.node = reinterpret_cast< ::DepsNodeHandle* >(&handle);
+				fxi->updateDepsgraph(fx, &ctx);
+			}
+			if (BKE_object_shaderfx_use_time(object, fx)) {
+				TimeSourceKey time_src_key;
+				add_relation(time_src_key, obdata_ubereval_key, "Time Source");
+			}
+		}
+	}
 	/* Materials. */
 	if (object->totcol) {
 		for (int a = 1; a <= object->totcol; a++) {
@@ -1895,13 +1942,13 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 	}
 	/* Link object data evaluation node to exit operation. */
 	OperationKey obdata_geom_eval_key(obdata,
-	                                  DEG_NODE_TYPE_GEOMETRY,
-	                                  DEG_OPCODE_PLACEHOLDER,
-	                                  "Geometry Eval");
+		DEG_NODE_TYPE_GEOMETRY,
+		DEG_OPCODE_PLACEHOLDER,
+		"Geometry Eval");
 	OperationKey obdata_geom_done_key(obdata,
-	                                  DEG_NODE_TYPE_GEOMETRY,
-	                                  DEG_OPCODE_PLACEHOLDER,
-	                                  "Eval Done");
+		DEG_NODE_TYPE_GEOMETRY,
+		DEG_OPCODE_PLACEHOLDER,
+		"Eval Done");
 	add_relation(obdata_geom_eval_key,
 	             obdata_geom_done_key,
 	             "ObData Geom Eval Done");
@@ -1917,35 +1964,67 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
 				ComponentKey bevob_geom_key(&cu->bevobj->id,
-				                            DEG_NODE_TYPE_GEOMETRY);
+					DEG_NODE_TYPE_GEOMETRY);
 				add_relation(bevob_geom_key,
-				             obdata_geom_eval_key,
-				             "Curve Bevel Geometry");
+					obdata_geom_eval_key,
+					"Curve Bevel Geometry");
 				ComponentKey bevob_key(&cu->bevobj->id,
-				                       DEG_NODE_TYPE_TRANSFORM);
+					DEG_NODE_TYPE_TRANSFORM);
 				add_relation(bevob_key,
-				             obdata_geom_eval_key,
-				             "Curve Bevel Transform");
+					obdata_geom_eval_key,
+					"Curve Bevel Transform");
 				build_object(NULL, cu->bevobj);
 			}
 			if (cu->taperobj != NULL) {
 				ComponentKey taperob_key(&cu->taperobj->id,
-				                         DEG_NODE_TYPE_GEOMETRY);
+					DEG_NODE_TYPE_GEOMETRY);
 				add_relation(taperob_key, obdata_geom_eval_key, "Curve Taper");
 				build_object(NULL, cu->taperobj);
 			}
 			if (cu->textoncurve != NULL) {
 				ComponentKey textoncurve_key(&cu->textoncurve->id,
-				                             DEG_NODE_TYPE_GEOMETRY);
+					DEG_NODE_TYPE_GEOMETRY);
 				add_relation(textoncurve_key,
-				             obdata_geom_eval_key,
-				             "Text on Curve");
+					obdata_geom_eval_key,
+					"Text on Curve");
 				build_object(NULL, cu->textoncurve);
 			}
 			break;
 		}
 		case ID_LT:
 			break;
+		case ID_GD: /* Grease Pencil */
+		{
+			bGPdata *gpd = (bGPdata *)obdata;
+
+			/* Geometry cache needs to be recalculated on frame change
+			* (e.g. to fix crashes after scrubbing the timeline when
+			*  onion skinning is enabled, since the ghosts need to be
+			*  re-added to the cache once scrubbing ends)
+			*/
+			TimeSourceKey time_key;
+			ComponentKey geometry_key(obdata, DEG_NODE_TYPE_GEOMETRY);
+			add_relation(time_key,
+						 geometry_key,
+						 "GP Frame Change");
+
+			/* Geometry cache also needs to be recalculated when Material
+			* settings change (e.g. when fill.opacity changes on/off,
+			* we need to rebuild the bGPDstroke->triangles caches)
+			*/
+			for (int i = 0; i < gpd->totcol; i++) {
+				Material *ma = gpd->mat[i];
+				if ((ma != NULL) && (ma->gp_style != NULL)) {
+					OperationKey material_key(&ma->id,
+											  DEG_NODE_TYPE_SHADING,
+						                      DEG_OPCODE_MATERIAL_UPDATE);
+					add_relation(material_key,
+								 geometry_key,
+								 "Material -> GP Data");
+				}
+			}
+			break;
+		}
 		default:
 			BLI_assert(!"Should not happen");
 			break;
@@ -2228,6 +2307,11 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		if (id_type == ID_ME && comp_node->type == DEG_NODE_TYPE_GEOMETRY) {
 			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
 		}
+		/* materials need update grease pencil objects */
+		if (id_type == ID_MA) {
+			rel_flag &= ~DEPSREL_FLAG_NO_FLUSH;
+		}
+
 		/* Notes on exceptions:
 		 * - Parameters component is where drivers are living. Changing any
 		 *   of the (custom) properties in the original datablock (even the

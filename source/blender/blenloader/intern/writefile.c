@@ -118,6 +118,8 @@
 #include "DNA_genfile.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_gpencil_modifier_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_fileglobal_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lattice_types.h"
@@ -165,6 +167,7 @@
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_global.h" // for G
+#include "BKE_gpencil_modifier.h"
 #include "BKE_idcode.h"
 #include "BKE_layer.h"
 #include "BKE_library.h" // for  set_listbasepointers
@@ -173,6 +176,7 @@
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
+#include "BKE_shader_fx.h"
 #include "BKE_subsurf.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
@@ -1788,6 +1792,57 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 	}
 }
 
+static void write_gpencil_modifiers(WriteData *wd, ListBase *modbase)
+{
+	GpencilModifierData *md;
+
+	if (modbase == NULL) {
+		return;
+	}
+
+	for (md = modbase->first; md; md = md->next) {
+		const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+		if (mti == NULL) {
+			return;
+		}
+
+		writestruct_id(wd, DATA, mti->struct_name, 1, md);
+
+		if (md->type == eGpencilModifierType_Thick) {
+			ThickGpencilModifierData *gpmd = (ThickGpencilModifierData *)md;
+
+			if (gpmd->curve_thickness) {
+				write_curvemapping(wd, gpmd->curve_thickness);
+			}
+		}
+		else if (md->type == eGpencilModifierType_Hook) {
+			HookGpencilModifierData *gpmd = (HookGpencilModifierData *)md;
+
+			if (gpmd->curfalloff) {
+				write_curvemapping(wd, gpmd->curfalloff);
+			}
+		}
+	}
+}
+
+static void write_shaderfxs(WriteData *wd, ListBase *fxbase)
+{
+	ShaderFxData *fx;
+
+	if (fxbase == NULL) {
+		return;
+	}
+
+	for (fx = fxbase->first; fx; fx = fx->next) {
+		const ShaderFxTypeInfo *fxi = BKE_shaderfxType_getInfo(fx->type);
+		if (fxi == NULL) {
+			return;
+		}
+
+		writestruct_id(wd, DATA, fxi->struct_name, 1, fx);
+	}
+}
+
 static void write_object(WriteData *wd, Object *ob)
 {
 	if (ob->id.us > 0 || wd->use_memfile) {
@@ -1842,6 +1897,8 @@ static void write_object(WriteData *wd, Object *ob)
 
 		write_particlesystems(wd, &ob->particlesystem);
 		write_modifiers(wd, &ob->modifiers);
+		write_gpencil_modifiers(wd, &ob->greasepencil_modifiers);
+		write_shaderfxs(wd, &ob->shader_fx);
 
 		writelist(wd, DATA, LinkData, &ob->pc_ids);
 		writelist(wd, DATA, LodLevel, &ob->lodlevels);
@@ -2260,6 +2317,11 @@ static void write_material(WriteData *wd, Material *ma)
 		}
 
 		write_previews(wd, ma->preview);
+
+		/* grease pencil settings */
+		if (ma->gp_style) {
+			writestruct(wd, DATA, MaterialGPencilStyle, 1, ma->gp_style);
+		}
 	}
 }
 
@@ -2463,24 +2525,18 @@ static void write_scene(WriteData *wd, Scene *sce)
 		writestruct(wd, DATA, UvSculpt, 1, tos->uvsculpt);
 		write_paint(wd, &tos->uvsculpt->paint);
 	}
-	/* write grease-pencil drawing brushes to file */
-	writelist(wd, DATA, bGPDbrush, &tos->gp_brushes);
-	for (bGPDbrush *brush = tos->gp_brushes.first; brush; brush = brush->next) {
-		if (brush->cur_sensitivity) {
-			write_curvemapping(wd, brush->cur_sensitivity);
-		}
-		if (brush->cur_strength) {
-			write_curvemapping(wd, brush->cur_strength);
-		}
-		if (brush->cur_jitter) {
-			write_curvemapping(wd, brush->cur_jitter);
-		}
+	if (tos->gp_paint) {
+		writestruct(wd, DATA, GpPaint, 1, tos->gp_paint);
+		write_paint(wd, &tos->gp_paint->paint);
 	}
 	/* write grease-pencil custom ipo curve to file */
 	if (tos->gp_interpolate.custom_ipo) {
 		write_curvemapping(wd, tos->gp_interpolate.custom_ipo);
 	}
-
+	/* write grease-pencil multiframe falloff curve to file */
+	if (tos->gp_sculpt.cur_falloff) {
+		write_curvemapping(wd, tos->gp_sculpt.cur_falloff);
+	}
 
 	write_paint(wd, &tos->imapaint.paint);
 
@@ -2654,6 +2710,8 @@ static void write_gpencil(WriteData *wd, bGPdata *gpd)
 			write_animdata(wd, gpd->adt);
 		}
 
+		writedata(wd, DATA, sizeof(void *) * gpd->totcol, gpd->mat);
+
 		/* write grease-pencil layers to file */
 		writelist(wd, DATA, bGPDlayer, &gpd->layers);
 		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -2664,14 +2722,9 @@ static void write_gpencil(WriteData *wd, bGPdata *gpd)
 				writelist(wd, DATA, bGPDstroke, &gpf->strokes);
 				for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 					writestruct(wd, DATA, bGPDspoint, gps->totpoints, gps->points);
+					write_dverts(wd, gps->totpoints, gps->dvert);
 				}
 			}
-		}
-
-		/* write grease-pencil palettes */
-		writelist(wd, DATA, bGPDpalette, &gpd->palettes);
-		for (bGPDpalette *palette = gpd->palettes.first; palette; palette = palette->next) {
-			writelist(wd, DATA, bGPDpalettecolor, &palette->colors);
 		}
 	}
 }
@@ -3158,6 +3211,20 @@ static void write_brush(WriteData *wd, Brush *brush)
 
 		if (brush->curve) {
 			write_curvemapping(wd, brush->curve);
+		}
+
+		if (brush->gpencil_settings) {
+			writestruct(wd, DATA, BrushGpencilSettings, 1, brush->gpencil_settings);
+
+			if (brush->gpencil_settings->curve_sensitivity) {
+				write_curvemapping(wd, brush->gpencil_settings->curve_sensitivity);
+			}
+			if (brush->gpencil_settings->curve_strength) {
+				write_curvemapping(wd, brush->gpencil_settings->curve_strength);
+			}
+			if (brush->gpencil_settings->curve_jitter) {
+				write_curvemapping(wd, brush->gpencil_settings->curve_jitter);
+			}
 		}
 		if (brush->gradient) {
 			writestruct(wd, DATA, ColorBand, 1, brush->gradient);

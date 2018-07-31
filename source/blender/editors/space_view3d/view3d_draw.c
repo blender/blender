@@ -1593,7 +1593,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {
-		v3d.flag2 |= V3D_SHOW_GPENCIL;
+		v3d.flag2 |= V3D_SHOW_ANNOTATION;
 	}
 	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX) {
 		v3d.flag2 |= V3D_SOLID_TEX;

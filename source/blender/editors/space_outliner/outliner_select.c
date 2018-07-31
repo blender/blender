@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
@@ -46,9 +47,11 @@
 #include "BKE_armature.h"
 #include "BKE_collection.h"
 #include "BKE_context.h"
+#include "BKE_gpencil.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_workspace.h"
@@ -60,6 +63,7 @@
 #include "ED_screen.h"
 #include "ED_sequencer.h"
 #include "ED_undo.h"
+#include "ED_gpencil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -467,6 +471,28 @@ static eOLDrawState tree_element_active_defgroup(
 				return OL_DRAWSEL_NORMAL;
 			}
 	}
+	return OL_DRAWSEL_NONE;
+}
+
+static eOLDrawState UNUSED_FUNCTION(tree_element_active_gplayer)(
+        bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tselem, const eOLSetState set)
+{
+	bGPdata *gpd = (bGPdata *)tselem->id;
+	bGPDlayer *gpl = te->directdata;
+
+	/* We can only have a single "active" layer at a time
+	 * and there must always be an active layer...
+	 */
+	if (set != OL_SETSEL_NONE) {
+		if (gpl) {
+			BKE_gpencil_layer_setactive(gpd, gpl);
+			WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_SELECTED, gpd);
+		}
+	}
+	else {
+		return OL_DRAWSEL_NORMAL;
+	}
+
 	return OL_DRAWSEL_NONE;
 }
 
@@ -1005,6 +1031,10 @@ static void do_outliner_item_activate_tree_element(
 					do_outliner_activate_obdata(C, scene, view_layer, base);
 				}
 			}
+		}
+		else if (ELEM(te->idcode, ID_GD)) {
+			/* set grease pencil to object mode */
+			WM_operator_name_call(C, "GPENCIL_OT_editmode_toggle", WM_OP_INVOKE_REGION_WIN, NULL);
 		}
 		else {  // rest of types
 			tree_element_active(C, scene, view_layer, soops, te, OL_SETSEL_NORMAL, false);

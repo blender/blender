@@ -123,10 +123,6 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	if (scene->nodetree != NULL) {
 		build_compositor(scene);
 	}
-	/* Grease pencil. */
-	if (scene->gpd != NULL) {
-		build_gpencil(scene->gpd);
-	}
 	/* Masks. */
 	LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);

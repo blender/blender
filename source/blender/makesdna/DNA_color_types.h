@@ -99,6 +99,7 @@ typedef enum eCurveMappingPreset {
 	CURVE_PRESET_MID9   = 4,
 	CURVE_PRESET_ROUND  = 5,
 	CURVE_PRESET_ROOT   = 6,
+	CURVE_PRESET_GAUSS  = 7,
 } eCurveMappingPreset;
 
 /* histogram->mode */

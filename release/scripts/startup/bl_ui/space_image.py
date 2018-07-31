@@ -21,20 +21,15 @@ import bpy
 import math
 from bpy.types import Header, Menu, Panel, UIList
 from .properties_paint_common import (
-    UnifiedPaintPanel,
-    brush_texture_settings,
-    brush_texpaint_common,
-    brush_mask_texture_settings,
-)
+        UnifiedPaintPanel,
+        brush_texture_settings,
+        brush_texpaint_common,
+        brush_mask_texture_settings,
+        )
 from .properties_grease_pencil_common import (
-    GreasePencilDrawingToolsPanel,
-    GreasePencilStrokeEditPanel,
-    GreasePencilStrokeSculptPanel,
-    GreasePencilBrushPanel,
-    GreasePencilBrushCurvesPanel,
-    GreasePencilDataPanel,
-    GreasePencilPaletteColorPanel,
-)
+        GreasePencilDrawingToolsPanel,
+        GreasePencilDataPanel
+        )
 from bpy.app.translations import pgettext_iface as iface_
 
 
@@ -1346,38 +1341,11 @@ class IMAGE_PT_grease_pencil(GreasePencilDataPanel, Panel):
 
     # NOTE: this is just a wrapper around the generic GP Panel
 
-
-# Grease Pencil palette colors
-class IMAGE_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'UI'
-
-    # NOTE: this is just a wrapper around the generic GP Panel
-
-
 # Grease Pencil drawing tools
 class IMAGE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'TOOLS'
 
-
-# Grease Pencil stroke editing tools
-class IMAGE_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-
-
-# Grease Pencil stroke sculpting tools
-class IMAGE_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-
-
-# Grease Pencil drawing brushes
-class IMAGE_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-
-
-# Grease Pencil drawing curves
-class IMAGE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
 
 
 classes = (
@@ -1430,12 +1398,7 @@ classes = (
     IMAGE_PT_sample_line,
     IMAGE_PT_scope_sample,
     IMAGE_PT_grease_pencil,
-    IMAGE_PT_grease_pencil_palettecolor,
     IMAGE_PT_tools_grease_pencil_draw,
-    IMAGE_PT_tools_grease_pencil_edit,
-    IMAGE_PT_tools_grease_pencil_sculpt,
-    IMAGE_PT_tools_grease_pencil_brush,
-    IMAGE_PT_tools_grease_pencil_brushcurves,
 )
 
 if __name__ == "__main__":  # only for live edit.

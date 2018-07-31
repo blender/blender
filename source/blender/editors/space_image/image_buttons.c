@@ -876,7 +876,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	if (!compact) {
 		uiTemplateID(
 		        layout, C, ptr, propname,
-		        ima ? NULL : "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL);
+		        ima ? NULL : "IMAGE_OT_new", "IMAGE_OT_open", NULL, UI_TEMPLATE_ID_FILTER_ALL, false);
 	}
 
 	if (ima) {

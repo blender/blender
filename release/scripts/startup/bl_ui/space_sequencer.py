@@ -22,7 +22,6 @@ from bpy.types import Header, Menu, Panel
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
     GreasePencilDataPanel,
-    GreasePencilPaletteColorPanel,
     GreasePencilToolsPanel,
 )
 from bpy.app.translations import pgettext_iface as iface_
@@ -1281,14 +1280,6 @@ class SEQUENCER_PT_grease_pencil(GreasePencilDataPanel, SequencerButtonsPanel_Ou
     # But, it should only show up when there are images in the preview region
 
 
-class SEQUENCER_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, SequencerButtonsPanel_Output, Panel):
-    bl_space_type = 'SEQUENCE_EDITOR'
-    bl_region_type = 'UI'
-
-    # NOTE: this is just a wrapper around the generic GP Panel
-    # But, it should only show up when there are images in the preview region
-
-
 class SEQUENCER_PT_grease_pencil_tools(GreasePencilToolsPanel, SequencerButtonsPanel_Output, Panel):
     bl_space_type = 'SEQUENCE_EDITOR'
     bl_region_type = 'UI'
@@ -1333,7 +1324,6 @@ classes = (
     SEQUENCER_PT_view_safe_areas,
     SEQUENCER_PT_modifiers,
     SEQUENCER_PT_grease_pencil,
-    SEQUENCER_PT_grease_pencil_palettecolor,
     SEQUENCER_PT_grease_pencil_tools,
     SEQUENCER_PT_custom_props,
 )

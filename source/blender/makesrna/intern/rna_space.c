@@ -40,6 +40,7 @@
 #include "BLI_math.h"
 
 #include "DNA_action_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -288,6 +289,7 @@ static const EnumPropertyItem buttons_context_items[] = {
 	{BCONTEXT_PARTICLE, "PARTICLES", ICON_PARTICLES, "Particles", "Particle"},
 	{BCONTEXT_PHYSICS, "PHYSICS", ICON_PHYSICS, "Physics", "Physics"},
 	{BCONTEXT_WORKSPACE, "WORKSPACE", ICON_SPLITSCREEN, "Workspace", "Workspace"},
+	{BCONTEXT_SHADERFX, "SHADERFX", ICON_SOLO_ON, "Effects", "Object visual effects" },
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -305,6 +307,14 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 	{FILE_SORT_EXTENSION, "FILE_SORT_EXTENSION", ICON_SORTBYEXT, "Sort by extension", "Sort the file list by extension/type"},
 	{FILE_SORT_TIME, "FILE_SORT_TIME", ICON_SORTTIME, "Sort by time", "Sort files by modification time"},
 	{FILE_SORT_SIZE, "FILE_SORT_SIZE", ICON_SORTSIZE, "Sort by size", "Sort files by size"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
+	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Lock", "Use current drawing locked axis" },
+	{V3D_GP_GRID_AXIS_X, "X", 0, "X", ""},
+	{V3D_GP_GRID_AXIS_Y, "Y", 0, "Y", ""},
+	{V3D_GP_GRID_AXIS_Z, "Z", 0, "Z", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -473,6 +483,17 @@ static void rna_Space_view2d_sync_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 
 		UI_view2d_sync(sc, sa, v2d, V2D_LOCK_SET);
 	}
+}
+
+static void rna_GPencil_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	/* need set all caches as dirty to recalculate onion skinning */
+	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob->type == OB_GPENCIL) {
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+	}
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
 /* Space 3D View */
@@ -1336,6 +1357,10 @@ static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
 
 	if (sbuts->pathflag & (1 << BCONTEXT_MODIFIER)) {
 		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_MODIFIER);
+	}
+
+	if (sbuts->pathflag & (1 << BCONTEXT_SHADERFX)) {
+		RNA_enum_items_add_value(&item, &totitem, buttons_context_items, BCONTEXT_SHADERFX);
 	}
 
 	if (sbuts->pathflag & (1 << BCONTEXT_DATA)) {
@@ -2613,7 +2638,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag2", V3D_RENDER_OVERRIDE);
 	RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like gizmos and outlines");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
@@ -2831,6 +2856,86 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Weight Paint Opacity", "Opacity of the weight paint mode overlay");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* grease pencil paper settings */
+	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_ANNOTATION);
+	RNA_def_property_ui_text(prop, "Show Annotation",
+		"Show annotations for this view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "use_gpencil_paper", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_GP_SHOW_PAPER);
+	RNA_def_property_ui_text(prop, "Use Paper",
+		"Cover all viewport with a full color layer to improve visibility while drawing over complex scenes");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "use_gpencil_grid", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_GP_SHOW_GRID);
+	RNA_def_property_ui_text(prop, "Use Grid",
+		"Draw a grid over grease pencil paper");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "gpencil_grid_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_grid_scale");
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Scale", "Grid scale");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "gpencil_grid_lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "overlay.gpencil_grid_lines");
+	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
+	RNA_def_property_ui_text(prop, "Subdivisions", "Number of subdivisions in each side of symmetry line");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "gpencil_grid_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "overlay.gpencil_grid_axis");
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
+	RNA_def_property_ui_text(prop, "Axis", "Axis to display grid");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_grid_opacity");
+	RNA_def_property_range(prop, 0.1f, 1.0f);
+	RNA_def_property_float_default(prop, 0.9f);
+	RNA_def_property_ui_text(prop, "Opacity", "Grid opacity");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* Paper opacity factor */
+	prop = RNA_def_property(srna, "gpencil_paper_opacity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_paper_opacity");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_ui_text(prop, "Opacity", "Paper opacity");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* show edit lines */
+	prop = RNA_def_property(srna, "use_gpencil_edit_lines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_GP_SHOW_EDIT_LINES);
+	RNA_def_property_ui_text(prop, "Edit Lines", "Show edit lines when edit strokes");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "use_gpencil_multiedit_line_only", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_GP_SHOW_MULTIEDIT_LINES);
+	RNA_def_property_ui_text(prop, "Lines Only", "Show only edit lines for additional frames");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+	/* main grease pencil onion switch */
+	prop = RNA_def_property(srna, "use_gpencil_onion_skin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag3", V3D_GP_SHOW_ONION_SKIN);
+	RNA_def_property_ui_text(prop, "Onion Skins", "Show ghosts of the frames before and after the current frame");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
+	/* vertex opacity */
+	prop = RNA_def_property(srna, "vertex_opacity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "vertex_opacity");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Vertex Opacity", "Opacity for edit vertices");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_GPencil_update");
+
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)
@@ -2955,12 +3060,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_float_default(prop, 1000.0f);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_SHOW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Show Grease Pencil",
-	                         "Show grease pencil for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_textured_solid", PROP_BOOLEAN, PROP_NONE);
@@ -3143,6 +3242,8 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 			 {"show_object_viewport_lattice", "show_object_select_lattice"}},
 			{"Empty", (1 << OB_EMPTY),
 			 {"show_object_viewport_empty", "show_object_select_empty"}},
+			{"Grease Pencil", (1 << OB_GPENCIL),
+			 {"show_object_viewport_grease_pencil", "show_object_select_grease_pencil"}},
 			{"Camera", (1 << OB_CAMERA),
 			 {"show_object_viewport_camera", "show_object_select_camera"}},
 			{"Light", (1 << OB_LAMP),
@@ -3382,10 +3483,10 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Repeated", "Draw the image repeated outside of the main view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
-	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_SHOW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Show Grease Pencil",
-	                         "Show grease pencil for this view");
+	RNA_def_property_ui_text(prop, "Show Annotation",
+	                         "Show annotations for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	prop = RNA_def_property(srna, "draw_channels", PROP_ENUM, PROP_NONE);
@@ -3434,6 +3535,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_GPencil_datablocks_annotations_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
@@ -3587,10 +3689,10 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
-	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_SHOW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Show Grease Pencil",
-	                         "Show grease pencil for this view");
+	RNA_def_property_ui_text(prop, "Show Annotation",
+	                         "Show annotations for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
 	prop = RNA_def_property(srna, "display_channel", PROP_INT, PROP_NONE);
@@ -3629,8 +3731,9 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_GPencil_datablocks_annotations_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
+	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease Pencil data for this Preview region");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 
 	prop = RNA_def_property(srna, "overlay_type", PROP_ENUM, PROP_NONE);
@@ -4734,10 +4837,10 @@ static void rna_def_space_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Backdrop", "Use active Viewer Node output as backdrop for compositing nodes");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, "rna_SpaceNodeEditor_show_backdrop_update");
 
-	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SNODE_SHOW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Show Grease Pencil",
-	                         "Show grease pencil for this view");
+	RNA_def_property_ui_text(prop, "Show Annotation",
+	                         "Show annotations for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_NODE_VIEW, NULL);
 
 	prop = RNA_def_property(srna, "use_auto_render", PROP_BOOLEAN, PROP_NONE);
@@ -4802,8 +4905,8 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem gpencil_source_items[] = {
-		{SC_GPENCIL_SRC_CLIP, "CLIP", 0, "Clip", "Show grease pencil data-block which belongs to movie clip"},
-		{SC_GPENCIL_SRC_TRACK, "TRACK", 0, "Track", "Show grease pencil data-block which belongs to active track"},
+		{SC_GPENCIL_SRC_CLIP, "CLIP", 0, "Clip", "Show annotation data-block which belongs to movie clip"},
+		{SC_GPENCIL_SRC_TRACK, "TRACK", 0, "Track", "Show annotation data-block which belongs to active track"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -4953,11 +5056,11 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Manual Calibration", "Use manual calibration helpers");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
-	/* show grease pencil */
-	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Show Grease Pencil",
-	                         "Show grease pencil for this view");
+	/* show annotation */
+	prop = RNA_def_property(srna, "show_annotation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_ANNOTATION);
+	RNA_def_property_ui_text(prop, "Show Annotation",
+	                         "Show annotations for this view");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* show filters */

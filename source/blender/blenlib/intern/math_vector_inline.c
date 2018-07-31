@@ -192,6 +192,19 @@ MINLINE void copy_v4_v4_int(int r[4], const int a[4])
 	r[3] = a[3];
 }
 
+/* int <-> float */
+MINLINE void round_v2i_v2fl(int r[2], const float a[2])
+{
+	r[0] = (int)roundf(a[0]);
+	r[1] = (int)roundf(a[1]);
+}
+
+MINLINE void copy_v2fl_v2i(float r[2], const int a[2])
+{
+	r[0] = (float)a[0];
+	r[1] = (float)a[1];
+}
+
 /* double -> float */
 MINLINE void copy_v2fl_v2db(float r[2], const double a[2])
 {

@@ -2608,11 +2608,14 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
 	/* populate tree with keyframe nodes */
 	scene_to_keylist(&ads, scene, &keys, NULL);
-	gpencil_to_keylist(&ads, scene->gpd, &keys);
 
 	if (ob) {
 		ob_to_keylist(&ads, ob, &keys, NULL);
-		gpencil_to_keylist(&ads, ob->gpd, &keys);
+
+		if (ob->type == OB_GPENCIL) {
+			const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
+			gpencil_to_keylist(&ads, ob->data, &keys, active);
+		}
 	}
 
 	{

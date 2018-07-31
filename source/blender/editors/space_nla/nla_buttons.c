@@ -145,6 +145,7 @@ bool nla_panel_context(const bContext *C, PointerRNA *adt_ptr, PointerRNA *nlt_p
 			case ANIMTYPE_DSLINESTYLE:
 			case ANIMTYPE_DSSPK:
 			case ANIMTYPE_DSGPENCIL:
+			case ANIMTYPE_PALETTE:
 			{
 				/* for these channels, we only do AnimData */
 				if (ale->adt && adt_ptr) {
@@ -287,7 +288,7 @@ static void nla_panel_animdata(const bContext *C, Panel *pa)
 	row = uiLayoutRow(layout, true);
 	uiTemplateID(
 	        row, (bContext *)C, &adt_ptr, "action",
-	        "ACTION_OT_new", NULL, "NLA_OT_action_unlink", UI_TEMPLATE_ID_FILTER_ALL);
+	        "ACTION_OT_new", NULL, "NLA_OT_action_unlink", UI_TEMPLATE_ID_FILTER_ALL, false);
 
 	/* extrapolation */
 	row = uiLayoutRow(layout, true);

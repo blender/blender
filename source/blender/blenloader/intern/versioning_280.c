@@ -54,16 +54,19 @@
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_genfile.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
+#include "BKE_colortools.h"
 #include "BKE_freestyle.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_pointcache.h"
@@ -73,6 +76,9 @@
 #include "BKE_sequencer.h"
 #include "BKE_studiolight.h"
 #include "BKE_workspace.h"
+#include "BKE_gpencil.h"
+#include "BKE_paint.h"
+#include "BKE_object.h"
 
 #include "BLO_readfile.h"
 #include "readfile.h"
@@ -743,6 +749,7 @@ void do_versions_after_linking_280(Main *bmain)
 		}
 	}
 #endif
+
 }
 
 /* NOTE: this version patch is intended for versions < 2.52.2, but was initially introduced in 2.27 already.
@@ -839,7 +846,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			if (ntree->type == NTREE_SHADER) {
 				for (bNode *node = ntree->nodes.first; node; node = node->next) {
 					if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
-					    STREQ(node->idname, "ShaderNodeOutputMetallic"))
+						STREQ(node->idname, "ShaderNodeOutputMetallic"))
 					{
 						BLI_strncpy(node->idname, "ShaderNodeEeveeMetallic", sizeof(node->idname));
 						error |= NTREE_DOVERSION_NEED_OUTPUT;
@@ -851,14 +858,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					}
 
 					else if (node->type == 196 /* SH_NODE_OUTPUT_EEVEE_MATERIAL */ &&
-					         STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
+						STREQ(node->idname, "ShaderNodeOutputEeveeMaterial"))
 					{
 						node->type = SH_NODE_OUTPUT_MATERIAL;
 						BLI_strncpy(node->idname, "ShaderNodeOutputMaterial", sizeof(node->idname));
 					}
 
 					else if (node->type == 194 /* SH_NODE_EEVEE_METALLIC */ &&
-					         STREQ(node->idname, "ShaderNodeEeveeMetallic"))
+						STREQ(node->idname, "ShaderNodeEeveeMetallic"))
 					{
 						node->type = SH_NODE_BSDF_PRINCIPLED;
 						BLI_strncpy(node->idname, "ShaderNodeBsdfPrincipled", sizeof(node->idname));
@@ -869,10 +876,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		} FOREACH_NODETREE_END
 
-		if (error & NTREE_DOVERSION_NEED_OUTPUT) {
-			BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
-			printf("You need to connect Principled and Eevee Specular shader nodes to new material output nodes.\n");
-		}
+			if (error & NTREE_DOVERSION_NEED_OUTPUT) {
+				BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
+				printf("You need to connect Principled and Eevee Specular shader nodes to new material output nodes.\n");
+			}
 
 		if (error & NTREE_DOVERSION_TRANSPARENCY_EMISSION) {
 			BKE_report(fd->reports, RPT_ERROR, "Eevee material conversion problem. Error in console");
@@ -896,6 +903,68 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 #endif
+
+		{
+			/* Grease pencil sculpt and paint cursors */
+			if (!DNA_struct_elem_find(fd->filesdna, "GP_BrushEdit_Settings", "int", "weighttype")) {
+				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+					/* sculpt brushes */
+					GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
+					if (gset) {
+						gset->weighttype = GP_EDITBRUSH_TYPE_WEIGHT;
+					}
+				}
+			}
+
+			{
+				float curcolor_add[3], curcolor_sub[3];
+				ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
+				ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
+				GP_EditBrush_Data *gp_brush;
+
+				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+					ToolSettings *ts = scene->toolsettings;
+					/* sculpt brushes */
+					GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
+					for (int i = 0; i < TOT_GP_EDITBRUSH_TYPES; ++i) {
+						gp_brush = &gset->brush[i];
+						gp_brush->flag |= GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+						copy_v3_v3(gp_brush->curcolor_add, curcolor_add);
+						copy_v3_v3(gp_brush->curcolor_sub, curcolor_sub);
+					}
+				}
+			}
+
+			/* Init grease pencil edit line color */
+			if (!DNA_struct_elem_find(fd->filesdna, "bGPdata", "float", "line_color[4]")) {
+				for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+					ARRAY_SET_ITEMS(gpd->line_color, 0.6f, 0.6f, 0.6f, 0.5f);
+				}
+			}
+
+			/* Init grease pencil pixel size factor */
+			if (!DNA_struct_elem_find(fd->filesdna, "bGPDdata", "int", "pixfactor")) {
+				for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+					gpd->pixfactor = GP_DEFAULT_PIX_FACTOR;
+				}
+			}
+
+			/* Grease pencil multiframe falloff curve */
+			if (!DNA_struct_elem_find(fd->filesdna, "GP_BrushEdit_Settings", "CurveMapping", "cur_falloff")) {
+				for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+					/* sculpt brushes */
+					GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
+					if ((gset) && (gset->cur_falloff == NULL)) {
+						gset->cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+						curvemapping_initialize(gset->cur_falloff);
+						curvemap_reset(gset->cur_falloff->cm,
+							&gset->cur_falloff->clipr,
+							CURVE_PRESET_GAUSS,
+							CURVEMAP_SLOPE_POSITIVE);
+					}
+				}
+			}
+		}
 	}
 
 #ifdef USE_COLLECTION_COMPAT_28
@@ -914,6 +983,26 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 #endif
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 3)) {
+		/* init grease pencil grids and paper */
+		if (!DNA_struct_elem_find(fd->filesdna, "gp_paper_opacity", "float", "gpencil_paper_color[3]")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+					for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_grid_scale = 1.0f; // Scale
+							v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES; // NUmber of lines
+							v3d->overlay.gpencil_paper_opacity = 0.5f;
+							v3d->overlay.gpencil_grid_axis = V3D_GP_GRID_AXIS_Y;
+							v3d->overlay.gpencil_grid_opacity = 0.9f;
+						}
+					}
+				}
+			}
+		}
+	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 6)) {
 		if (DNA_struct_elem_find(fd->filesdna, "SpaceOops", "int", "filter") == false) {
@@ -1017,6 +1106,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				tex->type = 0;
 			}
 		}
+
 	}
 
 	if (!MAIN_VERSION_ATLEAST(bmain, 280, 11)) {
@@ -1643,6 +1733,101 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				BKE_screen_view3d_shading_init(&scene->display.shading);
 			}
 		}
+		/* initialize grease pencil view data */
+		if (!DNA_struct_elem_find(fd->filesdna, "SpaceView3D", "float", "vertex_opacity")) {
+			for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+				for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->vertex_opacity = 1.0f;
+							v3d->flag3 |= V3D_GP_SHOW_EDIT_LINES;
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 22)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "annotate_v3d_align")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->toolsettings->annotate_v3d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
+				scene->toolsettings->annotate_thickness = 3;
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "bGPDlayer", "short", "line_change")) {
+			for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					gpl->line_change = gpl->thickness;
+					if ((gpl->thickness < 1) || (gpl->thickness > 10)) {
+						gpl->thickness = 3;
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_scale")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_grid_scale = 1.0f;
+						}
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_opacity")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_paper_opacity = 0.5f;
+						}
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_opacity")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_grid_opacity = 0.5f;
+						}
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "int", "gpencil_grid_axis")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_grid_axis = V3D_GP_GRID_AXIS_Y;
+						}
+					}
+				}
+			}
+		}
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "int", "gpencil_grid_lines")) {
+			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES;
+						}
+					}
+				}
+			}
+		}
+
 	}
 
 }
