@@ -447,6 +447,7 @@ static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	BLF_cache_clear();
+	UI_reinit_font();
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
@@ -4211,6 +4212,11 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_antialiasing_update");
+
+	prop = RNA_def_property(srna, "use_text_hinting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_HINTING);
+	RNA_def_property_ui_text(prop, "Text Hinting", "Draw user interface text with hinting");
+	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
 	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");
