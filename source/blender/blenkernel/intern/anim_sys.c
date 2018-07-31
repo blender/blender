@@ -104,7 +104,6 @@ bool id_type_can_have_animdata(const short id_type)
 		case ID_MSK:
 		case ID_GD:
 		case ID_CF:
-		case ID_PAL:
 			return true;
 
 		/* no AnimData */
