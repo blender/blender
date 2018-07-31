@@ -289,7 +289,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_angle_factor = 0.0f;
 
 	brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-	brush->gpencil_settings->draw_smoothfac = 0.5f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->thick_smoothfac = 1.0f;
 	brush->gpencil_settings->thick_smoothlvl = 3;
@@ -321,7 +321,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_angle_factor = 0.0f;
 
 	brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-	brush->gpencil_settings->draw_smoothfac = 0.5f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->draw_subdivide = 1;
 	brush->gpencil_settings->thick_smoothfac = 1.0f;
@@ -350,7 +350,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_angle_factor = 0.0f;
 
 	brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-	brush->gpencil_settings->draw_smoothfac = 0.5f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->thick_smoothfac = 1.0f;
 	brush->gpencil_settings->thick_smoothlvl = 3;
@@ -387,7 +387,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_angle_factor = 0.0f;
 
 	brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-	brush->gpencil_settings->draw_smoothfac = 1.0f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 2;
 	brush->gpencil_settings->thick_smoothfac = 0.5f;
 	brush->gpencil_settings->thick_smoothlvl = 2;
@@ -454,7 +454,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->draw_angle_factor = 1.0f;
 
 	brush->gpencil_settings->flag |= GP_BRUSH_GROUP_SETTINGS;
-	brush->gpencil_settings->draw_smoothfac = 0.5f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->thick_smoothfac = 1.0f;
 	brush->gpencil_settings->thick_smoothlvl = 3;
@@ -477,7 +477,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_FILL;
 	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_FILL;
 
-	brush->gpencil_settings->draw_smoothfac = 0.5f;
+	brush->gpencil_settings->draw_smoothfac = 0.1f;
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->thick_smoothfac = 1.0f;
 	brush->gpencil_settings->thick_smoothlvl = 3;
