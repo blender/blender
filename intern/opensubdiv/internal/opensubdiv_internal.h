@@ -24,9 +24,6 @@
 // Never do for release builds.
 #  undef OPENSUBDIV_VALIDATE_TOPOLOGY
 #else
-// TODO(sergey): Always disabled for now, the check doesn't handle multiple
-// non-manifolds from the OpenSubdiv side currently.
-// #  undef OPENSUBDIV_VALIDATE_TOPOLOGY
 #  define OPENSUBDIV_VALIDATE_TOPOLOGY
 #endif
 

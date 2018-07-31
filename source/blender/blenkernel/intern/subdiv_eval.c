@@ -33,9 +33,12 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
+
+#include "MEM_guardedalloc.h"
 
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_evaluator_capi.h"
@@ -60,6 +63,42 @@ void BKE_subdiv_eval_begin(Subdiv *subdiv)
 }
 
 #ifdef WITH_OPENSUBDIV
+static void set_coarse_positions(Subdiv *subdiv, const Mesh *mesh)
+{
+	const MVert *mvert = mesh->mvert;
+	const MLoop *mloop = mesh->mloop;
+	const MPoly *mpoly = mesh->mpoly;
+	/* Mark vertices which needs new coordinates. */
+	/* TODO(sergey): This is annoying to calculate this on every update,
+	 * maybe it's better to cache this mapping. Or make it possible to have
+	 * OpenSubdiv's vertices match mesh ones?
+	 */
+	BLI_bitmap *vertex_used_map =
+	        BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < poly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			BLI_BITMAP_ENABLE(vertex_used_map, loop->v);
+		}
+	}
+	for (int vertex_index = 0, manifold_veretx_index = 0;
+	     vertex_index < mesh->totvert;
+	     vertex_index++)
+	{
+		if (!BLI_BITMAP_TEST_BOOL(vertex_used_map, vertex_index)) {
+			continue;
+		}
+		const MVert *vertex = &mvert[vertex_index];
+		subdiv->evaluator->setCoarsePositions(
+		        subdiv->evaluator,
+		        vertex->co,
+		        manifold_veretx_index, 1);
+		manifold_veretx_index++;
+	}
+	MEM_freeN(vertex_used_map);
+}
+
 static void set_face_varying_data_from_uv(Subdiv *subdiv,
                                           const MLoopUV *mloopuv,
                                           const int layer_index)
@@ -94,12 +133,7 @@ void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 #ifdef WITH_OPENSUBDIV
 	BKE_subdiv_eval_begin(subdiv);
 	/* Set coordinates of base mesh vertices. */
-	subdiv->evaluator->setCoarsePositionsFromBuffer(
-	        subdiv->evaluator,
-	        mesh->mvert,
-	        offsetof(MVert, co),
-	        sizeof(MVert),
-	        0, mesh->totvert);
+	set_coarse_positions(subdiv, mesh);
 	/* Set face-varyign data to UV maps. */
 	const int num_uv_layers =
 	        CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);

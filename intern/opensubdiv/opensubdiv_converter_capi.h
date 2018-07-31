@@ -19,6 +19,8 @@
 #ifndef OPENSUBDIV_CONVERTER_CAPI_H_
 #define OPENSUBDIV_CONVERTER_CAPI_H_
 
+#include <stdint.h>  // for bool
+
 #include "opensubdiv_capi_type.h"
 
 #ifdef __cplusplus
@@ -34,6 +36,7 @@ typedef struct OpenSubdiv_Converter {
 
   //////////////////////////////////////////////////////////////////////////////
   // Global geometry counters.
+
   // Number of faces/edges/vertices in the base mesh.
   int (*getNumFaces)(const struct OpenSubdiv_Converter* converter);
   int (*getNumEdges)(const struct OpenSubdiv_Converter* converter);
@@ -91,6 +94,11 @@ typedef struct OpenSubdiv_Converter {
   void (*getVertexFaces)(const struct OpenSubdiv_Converter* converter,
                          const int vertex_index,
                          int* vertex_faces);
+
+  // Check whether vertex is to be marked as an infinite sharp.
+  // This is a way to make sharp vertices which are adjacent to a loose edges.
+  bool (*isInfiniteSharpVertex)(const struct OpenSubdiv_Converter* converter,
+                                const int vertex_index);
 
   //////////////////////////////////////////////////////////////////////////////
   // Face-varying data.

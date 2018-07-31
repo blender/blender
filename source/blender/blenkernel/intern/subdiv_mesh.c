@@ -33,6 +33,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_key_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_bitmap.h"
@@ -40,6 +41,7 @@
 #include "BLI_task.h"
 
 #include "BKE_mesh.h"
+#include "BKE_key.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -183,6 +185,7 @@ static void subdiv_mesh_ctx_count(SubdivMeshContext *ctx)
 	ctx->num_subdiv_vertices = coarse_mesh->totvert;
 	ctx->num_subdiv_edges =
 	        coarse_mesh->totedge * (num_subdiv_vertices_per_coarse_edge + 1);
+	/* Calculate extra vertices and edges createdd by non-loose geometry. */
 	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
 		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
 		const int num_ptex_faces_per_poly =
@@ -222,6 +225,12 @@ static void subdiv_mesh_ctx_count(SubdivMeshContext *ctx)
 			ctx->num_subdiv_polygons +=
 			        num_ptex_faces_per_poly *
 			        num_polys_per_ptex_get(no_quad_patch_resolution);
+		}
+	}
+	/* Calculate extra edges createdd by loose edges. */
+	for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
+		if (!BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, edge_index)) {
+			ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge;
 		}
 	}
 	ctx->num_subdiv_loops = ctx->num_subdiv_polygons * 4;
@@ -2186,6 +2195,164 @@ static void subdiv_create_polys(SubdivMeshContext *ctx, int poly_index)
 }
 
 /* =============================================================================
+ * Loose elements subdivision process.
+ */
+
+static void subdiv_create_loose_vertices_task(
+        void *__restrict userdata,
+        const int vertex_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	SubdivMeshContext *ctx = userdata;
+	if (BLI_BITMAP_TEST_BOOL(ctx->coarse_vertices_used_map, vertex_index)) {
+		/* Vertex is not loose, was handled when handling polygons. */
+		return;
+	}
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MVert *coarse_mvert = coarse_mesh->mvert;
+	const MVert *coarse_vertex = &coarse_mvert[vertex_index];
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	MVert *subdiv_vertex = &subdiv_mvert[
+	        ctx->vertices_corner_offset + vertex_index];
+	subdiv_vertex_data_copy(ctx, coarse_vertex, subdiv_vertex);
+}
+
+/* Get neighbor edges of the given one.
+ * - neighbors[0] is an edge adjacent to edge->v1.
+ * - neighbors[1] is an edge adjacent to edge->v1.
+ */
+static void find_edge_neighbors(const SubdivMeshContext *ctx,
+                                const MEdge *edge,
+                                const MEdge *neighbors[2])
+{
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MEdge *coarse_medge = coarse_mesh->medge;
+	neighbors[0] = NULL;
+	neighbors[1] = NULL;
+	for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
+		if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, edge_index)) {
+			continue;
+		}
+		const MEdge *current_edge = &coarse_medge[edge_index];
+		if (current_edge == edge) {
+			continue;
+		}
+		if (ELEM(edge->v1, current_edge->v1, current_edge->v2)) {
+			neighbors[0] = current_edge;
+		}
+		if (ELEM(edge->v2, current_edge->v1, current_edge->v2)) {
+			neighbors[1] = current_edge;
+		}
+	}
+}
+
+static void points_for_loose_edges_interpolation_get(
+        SubdivMeshContext *ctx,
+        const MEdge *coarse_edge,
+        const MEdge *neighbors[2],
+		float points_r[4][3])
+{
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MVert *coarse_mvert = coarse_mesh->mvert;
+	/* Middle points corresponds to the edge. */
+	copy_v3_v3(points_r[1], coarse_mvert[coarse_edge->v1].co);
+	copy_v3_v3(points_r[2], coarse_mvert[coarse_edge->v2].co);
+	/* Start point, duplicate from edge start if no neighbor. */
+	if (neighbors[0] != NULL) {
+		if (neighbors[0]->v1 == coarse_edge->v1) {
+			copy_v3_v3(points_r[0], coarse_mvert[neighbors[0]->v2].co);
+		}
+		else {
+			copy_v3_v3(points_r[0], coarse_mvert[neighbors[0]->v1].co);
+		}
+	}
+	else {
+		sub_v3_v3v3(points_r[0], points_r[1], points_r[2]);
+		add_v3_v3(points_r[0], points_r[1]);
+	}
+	/* End point, duplicate from edge end if no neighbor. */
+	if (neighbors[1] != NULL) {
+		if (neighbors[1]->v1 == coarse_edge->v2) {
+			copy_v3_v3(points_r[3], coarse_mvert[neighbors[1]->v2].co);
+		}
+		else {
+			copy_v3_v3(points_r[3], coarse_mvert[neighbors[1]->v1].co);
+		}
+	}
+	else {
+		sub_v3_v3v3(points_r[3], points_r[2], points_r[1]);
+		add_v3_v3(points_r[3], points_r[2]);
+	}
+}
+
+static void subdiv_create_vertices_of_loose_edges_task(
+        void *__restrict userdata,
+        const int edge_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	SubdivMeshContext *ctx = userdata;
+	if (BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, edge_index)) {
+		/* Vertex is not loose, was handled when handling polygons. */
+		return;
+	}
+	const int resolution = ctx->settings->resolution;
+	const int resolution_1 = resolution - 1;
+	const float inv_resolution_1 = 1.0f / (float)resolution_1;
+	const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MEdge *coarse_edge = &coarse_mesh->medge[edge_index];
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	/* Find neighbors of the current loose edge. */
+	const MEdge *neighbors[2];
+	find_edge_neighbors(ctx, coarse_edge, neighbors);
+	/* Get points for b-spline interpolation. */
+	float points[4][3];
+	points_for_loose_edges_interpolation_get(
+	        ctx, coarse_edge, neighbors, points);
+	/* Subdivion verticies which corresponds to edge's v1 and v2. */
+	MVert *subdiv_v1 = &subdiv_mvert[
+	        ctx->vertices_corner_offset + coarse_edge->v1];
+	MVert *subdiv_v2 = &subdiv_mvert[
+	        ctx->vertices_corner_offset + coarse_edge->v2];
+	/* First subdivided inner vertex of the edge.  */
+	MVert *subdiv_start_vertex = &subdiv_mvert[
+	        ctx->vertices_edge_offset +
+	        edge_index * num_subdiv_vertices_per_coarse_edge];
+	/* Perform interpolation. */
+	for (int i = 0; i < resolution; i++) {
+		const float u = i * inv_resolution_1;
+		float weights[4];
+		key_curve_position_weights(u, weights, KEY_BSPLINE);
+
+		MVert *subdiv_vertex;
+		if (i == 0) {
+			subdiv_vertex = subdiv_v1;
+		}
+		else if (i == resolution - 1) {
+			subdiv_vertex = subdiv_v2;
+		}
+		else {
+			subdiv_vertex = &subdiv_start_vertex[i - 1];
+		}
+		interp_v3_v3v3v3v3(subdiv_vertex->co,
+		                   points[0],
+		                   points[1],
+		                   points[2],
+		                   points[3],
+		                   weights);
+		/* Reset flags and such. */
+		subdiv_vertex->flag = 0;
+		subdiv_vertex->bweight = 0.0f;
+		/* Reset normal. */
+		subdiv_vertex->no[0] = 0.0f;
+		subdiv_vertex->no[1] = 0.0f;
+		subdiv_vertex->no[2] = 1.0f;
+	}
+}
+
+/* =============================================================================
  * Subdivision process entry points.
  */
 
@@ -2244,6 +2411,14 @@ Mesh *BKE_subdiv_to_mesh(
 	BLI_task_parallel_range(0, coarse_mesh->totpoly,
 	                        &ctx,
 	                        subdiv_eval_task,
+	                        &parallel_range_settings);
+	BLI_task_parallel_range(0, coarse_mesh->totvert,
+	                        &ctx,
+	                        subdiv_create_loose_vertices_task,
+	                        &parallel_range_settings);
+	BLI_task_parallel_range(0, coarse_mesh->totedge,
+	                        &ctx,
+	                        subdiv_create_vertices_of_loose_edges_task,
 	                        &parallel_range_settings);
 	BLI_task_parallel_range(0, coarse_mesh->totedge,
 	                        &ctx,

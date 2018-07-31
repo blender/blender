@@ -31,6 +31,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_bitmap.h"
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
@@ -68,6 +69,26 @@ typedef struct ConverterStorage {
 	 */
 	int *loop_uv_indices;
 	int num_uv_coordinates;
+
+	/* Indexed by coarse mesh elements, gives index of corresponding element
+	 * with ignoring all non-manifold entities.
+	 *
+	 * NOTE: This isn't strictly speaking manifold, this is more like non-loose
+	 * geometry index. As in, index of element as if there were no loose edges
+	 * or vertices in the mesh.
+	 */
+	int *manifold_vertex_index;
+	int *manifold_edge_index;
+	/* Indexed by vertex index from mesh, corresponds to whether this vertex has
+	 * infinite sharpness due to non-manifol topology.
+	 */
+	BLI_bitmap *infinite_sharp_vertices_map;
+	/* Reverse mapping to above. */
+	int *manifold_vertex_index_reverse;
+	int *manifold_edge_index_reverse;
+	/* Number of non-loose elements. */
+	int num_manifold_vertices;
+	int num_manifold_edges;
 } ConverterStorage;
 
 static OpenSubdiv_SchemeType get_scheme_type(
@@ -98,70 +119,81 @@ static int get_num_faces(const OpenSubdiv_Converter *converter)
 static int get_num_edges(const OpenSubdiv_Converter *converter)
 {
 	ConverterStorage *storage = converter->user_data;
-	return storage->mesh->totedge;
+	return storage->num_manifold_edges;
 }
 
-static int get_num_verts(const OpenSubdiv_Converter *converter)
+static int get_num_vertices(const OpenSubdiv_Converter *converter)
 {
 	ConverterStorage *storage = converter->user_data;
-	return storage->mesh->totvert;
+	return storage->num_manifold_vertices;
 }
 
-static int get_num_face_verts(const OpenSubdiv_Converter *converter, int face)
+static int get_num_face_vertices(const OpenSubdiv_Converter *converter,
+                                 int manifold_face_index)
 {
 	ConverterStorage *storage = converter->user_data;
-	return storage->mesh->mpoly[face].totloop;
+	return storage->mesh->mpoly[manifold_face_index].totloop;
 }
 
-static void get_face_verts(const OpenSubdiv_Converter *converter,
-                           int face,
-                           int *face_verts)
+static void get_face_vertices(const OpenSubdiv_Converter *converter,
+                              int manifold_face_index,
+                              int *manifold_face_vertices)
 {
 	ConverterStorage *storage = converter->user_data;
-	const MPoly *mp = &storage->mesh->mpoly[face];
+	const MPoly *poly = &storage->mesh->mpoly[manifold_face_index];
 	const MLoop *mloop = storage->mesh->mloop;
-	for (int loop = 0; loop < mp->totloop; loop++) {
-		face_verts[loop] = mloop[mp->loopstart + loop].v;
+	for (int corner = 0; corner < poly->totloop; corner++) {
+		manifold_face_vertices[corner] = storage->manifold_vertex_index[
+		        mloop[poly->loopstart + corner].v];
 	}
 }
 
 static void get_face_edges(const OpenSubdiv_Converter *converter,
-                           int face,
-                           int *face_edges)
+                           int manifold_face_index,
+                           int *manifold_face_edges)
 {
 	ConverterStorage *storage = converter->user_data;
-	const MPoly *mp = &storage->mesh->mpoly[face];
+	const MPoly *poly = &storage->mesh->mpoly[manifold_face_index];
 	const MLoop *mloop = storage->mesh->mloop;
-	for (int loop = 0; loop < mp->totloop; loop++) {
-		face_edges[loop] = mloop[mp->loopstart + loop].e;
+	for (int corner = 0; corner < poly->totloop; corner++) {
+		manifold_face_edges[corner] =
+		        storage->manifold_edge_index[mloop[poly->loopstart + corner].e];
 	}
 }
 
-static void get_edge_verts(const OpenSubdiv_Converter *converter,
-                           int edge,
-                           int *edge_verts)
+static void get_edge_vertices(const OpenSubdiv_Converter *converter,
+                              int manifold_edge_index,
+                              int *manifold_edge_vertices)
 {
 	ConverterStorage *storage = converter->user_data;
-	const MEdge *me = &storage->mesh->medge[edge];
-	edge_verts[0] = me->v1;
-	edge_verts[1] = me->v2;
+	const int edge_index =
+	        storage->manifold_edge_index_reverse[manifold_edge_index];
+	const MEdge *edge = &storage->mesh->medge[edge_index];
+	manifold_edge_vertices[0] = storage->manifold_vertex_index[edge->v1];
+	manifold_edge_vertices[1] = storage->manifold_vertex_index[edge->v2];
 }
 
-static int get_num_edge_faces(const OpenSubdiv_Converter *converter, int edge)
+static int get_num_edge_faces(const OpenSubdiv_Converter *converter,
+                              int manifold_edge_index)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int edge_index =
+	        storage->manifold_edge_index_reverse[manifold_edge_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	return storage->edge_poly_map[edge].count;
+	return storage->edge_poly_map[edge_index].count;
 #else
 	const Mesh *mesh = storage->mesh;
 	const MPoly *mpoly = mesh->mpoly;
 	const MLoop *mloop = mesh->mloop;
 	int num = 0;
-	for (int poly = 0; poly < mesh->totpoly; poly++) {
-		const MPoly *mp = &mpoly[poly];
-		for (int loop = 0; loop < mp->totloop; loop++) {
-			const MLoop *ml = &mloop[mp->loopstart + loop];
-			if (ml->e == edge) {
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < poly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			if (storage->manifold_edge_index[loop->e] == -1) {
+				continue;
+			}
+			if (loop->e == edge_index) {
 				++num;
 				break;
 			}
@@ -172,25 +204,30 @@ static int get_num_edge_faces(const OpenSubdiv_Converter *converter, int edge)
 }
 
 static void get_edge_faces(const OpenSubdiv_Converter *converter,
-                           int edge,
-                           int *edge_faces)
+                           int manifold_edge_index,
+                           int *manifold_edge_faces)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int edge_index =
+	        storage->manifold_edge_index_reverse[manifold_edge_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	memcpy(edge_faces,
-	       storage->edge_poly_map[edge].indices,
-	       sizeof(int) * storage->edge_poly_map[edge].count);
+	memcpy(manifold_edge_faces,
+	       storage->edge_poly_map[edge_index].indices,
+	       sizeof(int) * storage->edge_poly_map[edge_index].count);
 #else
 	const Mesh *mesh = storage->mesh;
 	const MPoly *mpoly = mesh->mpoly;
 	const MLoop *mloop = mesh->mloop;
 	int num = 0;
-	for (int poly = 0; poly < mesh->totpoly; poly++) {
-		const MPoly *mp = &mpoly[poly];
-		for (int loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *ml = &mloop[mp->loopstart + loop];
-			if (ml->e == edge) {
-				edge_faces[num++] = poly;
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < mpoly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			if (storage->manifold_edge_index[loop->e] == -1) {
+				continue;
+			}
+			if (loop->e == edge_index) {
+				manifold_edge_faces[num++] = poly_index;
 				break;
 			}
 		}
@@ -198,26 +235,46 @@ static void get_edge_faces(const OpenSubdiv_Converter *converter,
 #endif
 }
 
-static float get_edge_sharpness(const OpenSubdiv_Converter *converter, int edge)
+static float get_edge_sharpness(const OpenSubdiv_Converter *converter,
+                                int manifold_edge_index)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int edge_index =
+	        storage->manifold_edge_index_reverse[manifold_edge_index];
 	const MEdge *medge = storage->mesh->medge;
-	const float edge_crease =  (float)medge[edge].crease / 255.0f;
+	const float edge_crease =  (float)medge[edge_index].crease / 255.0f;
 	return edge_crease * storage->settings.level;
 }
 
-static int get_num_vert_edges(const OpenSubdiv_Converter *converter, int vert)
+static int get_num_vertex_edges(const OpenSubdiv_Converter *converter,
+                                int manifold_vertex_index)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int vertex_index =
+	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	return storage->vert_edge_map[vert].count;
+	const int num_vertex_edges = storage->vert_edge_map[vertex_index].count;
+	int num_manifold_vertex_edges = 0;
+	for (int i = 0; i < num_vertex_edges; i++) {
+		const int edge_index = storage->vert_edge_map[vertex_index].indices[i];
+		const int manifold_edge_index =
+		        storage->manifold_edge_index[edge_index];
+		if (manifold_edge_index == -1) {
+			continue;
+		}
+		num_manifold_vertex_edges++;
+	}
+	return num_manifold_vertex_edges;
 #else
 	const Mesh *mesh = storage->mesh;
 	const MEdge *medge = mesh->medge;
 	int num = 0;
-	for (int edge = 0; edge < mesh->totedge; edge++) {
-		const MEdge *me = &medge[edge];
-		if (me->v1 == vert || me->v2 == vert) {
+	for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+		const MEdge *edge = &medge[edge_index];
+		if (storage->manifold_edge_index[edge_index] == -1) {
+			continue;
+		}
+		if (edge->v1 == vertex_index || edge->v2 == vertex_index) {
 			++num;
 		}
 	}
@@ -225,43 +282,61 @@ static int get_num_vert_edges(const OpenSubdiv_Converter *converter, int vert)
 #endif
 }
 
-static void get_vert_edges(const OpenSubdiv_Converter *converter,
-                           int vert,
-                           int *vert_edges)
+static void get_vertex_edges(const OpenSubdiv_Converter *converter,
+                             int manifold_vertex_index,
+                             int *manifold_vertex_edges)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int vertex_index =
+	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	memcpy(vert_edges,
-	       storage->vert_edge_map[vert].indices,
-	       sizeof(int) * storage->vert_edge_map[vert].count);
+	const int num_vertex_edges = storage->vert_edge_map[vertex_index].count;
+	int num_manifold_vertex_edges = 0;
+	for (int i = 0; i < num_vertex_edges; i++) {
+		const int edge_index = storage->vert_edge_map[vertex_index].indices[i];
+		const int manifold_edge_index =
+		        storage->manifold_edge_index[edge_index];
+		if (manifold_edge_index == -1) {
+			continue;
+		}
+		manifold_vertex_edges[num_manifold_vertex_edges] = manifold_edge_index;
+		num_manifold_vertex_edges++;
+	}
 #else
 	const Mesh *mesh = storage->mesh;
 	const MEdge *medge = mesh->medge;
 	int num = 0;
-	for (int edge = 0; edge < mesh->totedge; edge++) {
-		const MEdge *me = &medge[edge];
-		if (me->v1 == vert || me->v2 == vert) {
-			vert_edges[num++] = edge;
+	for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+		const MEdge *edge = &medge[edge_index];
+		if (storage->manifold_edge_index[edge_index] == -1) {
+			continue;
+		}
+		if (edge->v1 == vertex_index || edge->v2 == vertex_index) {
+			manifold_vertex_edges[num++] =
+			        storage->manifold_edge_index[edge_index];
 		}
 	}
 #endif
 }
 
-static int get_num_vert_faces(const OpenSubdiv_Converter *converter, int vert)
+static int get_num_vertex_faces(const OpenSubdiv_Converter *converter,
+                                int manifold_vertex_index)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int vertex_index =
+	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	return storage->vert_poly_map[vert].count;
+	return storage->vert_poly_map[vertex_index].count;
 #else
 	const Mesh *mesh = storage->mesh;
 	const MPoly *mpoly = mesh->mpoly;
 	const MLoop *mloop = mesh->mloop;
 	int num = 0;
-	for (int poly = 0; poly < mesh->totpoly; poly++) {
-		const MPoly *mp = &mpoly[poly];
-		for (int loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *ml = &mloop[mp->loopstart + loop];
-			if (ml->v == vert) {
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < mpoly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			if (loop->v == vertex_index) {
 				++num;
 				break;
 			}
@@ -271,31 +346,43 @@ static int get_num_vert_faces(const OpenSubdiv_Converter *converter, int vert)
 #endif
 }
 
-static void get_vert_faces(const OpenSubdiv_Converter *converter,
-                           int vert,
-                           int *vert_faces)
+static void get_vertex_faces(const OpenSubdiv_Converter *converter,
+                            int manifold_vertex_index,
+                            int *manifold_vertex_faces)
 {
 	ConverterStorage *storage = converter->user_data;
+	const int vertex_index =
+	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
 #ifdef USE_MESH_ELEMENT_MAPPING
-	memcpy(vert_faces,
-	       storage->vert_poly_map[vert].indices,
-	       sizeof(int) * storage->vert_poly_map[vert].count);
+	memcpy(manifold_vertex_faces,
+	       storage->vert_poly_map[vertex_index].indices,
+	       sizeof(int) * storage->vert_poly_map[vertex_index].count);
 #else
 	const Mesh *mesh = storage->mesh;
 	const MPoly *mpoly = mesh->mpoly;
 	const MLoop *mloop = mesh->mloop;
 	int num = 0;
-	for (int poly = 0; poly < mesh->totpoly; poly++) {
-		const MPoly *mp = &mpoly[poly];
-		for (int loop = 0; loop < mpoly->totloop; loop++) {
-			const MLoop *ml = &mloop[mp->loopstart + loop];
-			if (ml->v == vert) {
-				vert_faces[num++] = poly;
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < mpoly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			if (loop->v == vertex_index) {
+				manifold_vertex_faces[num++] = poly_index;
 				break;
 			}
 		}
 	}
 #endif
+}
+
+static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
+                                     int manifold_vertex_index)
+{
+	ConverterStorage *storage = converter->user_data;
+	const int vertex_index =
+	        storage->manifold_vertex_index_reverse[manifold_vertex_index];
+	return BLI_BITMAP_TEST_BOOL(storage->infinite_sharp_vertices_map,
+	                            vertex_index);
 }
 
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
@@ -382,6 +469,11 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
 	MEM_freeN(user_data->edge_poly_map);
 	MEM_freeN(user_data->edge_poly_mem);
 #endif
+	MEM_freeN(user_data->manifold_vertex_index);
+	MEM_freeN(user_data->manifold_edge_index);
+	MEM_freeN(user_data->infinite_sharp_vertices_map);
+	MEM_freeN(user_data->manifold_vertex_index_reverse);
+	MEM_freeN(user_data->manifold_edge_index_reverse);
 	MEM_freeN(user_data);
 }
 
@@ -393,21 +485,22 @@ static void init_functions(OpenSubdiv_Converter *converter)
 
 	converter->getNumFaces = get_num_faces;
 	converter->getNumEdges = get_num_edges;
-	converter->getNumVertices = get_num_verts;
+	converter->getNumVertices = get_num_vertices;
 
-	converter->getNumFaceVertices = get_num_face_verts;
-	converter->getFaceVertices = get_face_verts;
+	converter->getNumFaceVertices = get_num_face_vertices;
+	converter->getFaceVertices = get_face_vertices;
 	converter->getFaceEdges = get_face_edges;
 
-	converter->getEdgeVertices = get_edge_verts;
+	converter->getEdgeVertices = get_edge_vertices;
 	converter->getNumEdgeFaces = get_num_edge_faces;
 	converter->getEdgeFaces = get_edge_faces;
 	converter->getEdgeSharpness = get_edge_sharpness;
 
-	converter->getNumVertexEdges = get_num_vert_edges;
-	converter->getVertexEdges = get_vert_edges;
-	converter->getNumVertexFaces = get_num_vert_faces;
-	converter->getVertexFaces = get_vert_faces;
+	converter->getNumVertexEdges = get_num_vertex_edges;
+	converter->getVertexEdges = get_vertex_edges;
+	converter->getNumVertexFaces = get_num_vertex_faces;
+	converter->getVertexFaces = get_vertex_faces;
+	converter->isInfiniteSharpVertex = is_infinite_sharp_vertex;
 
 	converter->getNumUVLayers = get_num_uv_layers;
 	converter->precalcUVLayer = precalc_uv_layer;
@@ -444,6 +537,74 @@ static void create_element_maps_if_needed(ConverterStorage *storage)
 #endif
 }
 
+static void initialize_manifold_index_array(const BLI_bitmap *used_map,
+                                            const int num_elements,
+                                            int **indices_r,
+                                            int **indices_reverse_r,
+                                            int *num_manifold_elements_r)
+{
+	int *indices = MEM_malloc_arrayN(
+	        num_elements, sizeof(int), "manifold indices");
+	int *indices_reverse = MEM_malloc_arrayN(
+	        num_elements, sizeof(int), "manifold indices reverse");
+	int offset = 0;
+	for (int i = 0; i < num_elements; i++) {
+		if (BLI_BITMAP_TEST_BOOL(used_map, i)) {
+			indices[i] = i - offset;
+			indices_reverse[i - offset] = i;
+		}
+		else {
+			indices[i] = -1;
+			offset++;
+		}
+	}
+	*indices_r = indices;
+	*indices_reverse_r = indices_reverse;
+	*num_manifold_elements_r = num_elements - offset;
+}
+
+static void initialize_manifold_indices(ConverterStorage *storage)
+{
+	const Mesh *mesh = storage->mesh;
+	const MEdge *medge = mesh->medge;
+	const MLoop *mloop = mesh->mloop;
+	const MPoly *mpoly = mesh->mpoly;
+	/* Set bits of elements which are not loose. */
+	BLI_bitmap *vert_used_map = BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+	BLI_bitmap *edge_used_map = BLI_BITMAP_NEW(mesh->totedge, "edge used map");
+	for (int poly_index = 0; poly_index < mesh->totpoly; poly_index++) {
+		const MPoly *poly = &mpoly[poly_index];
+		for (int corner = 0; corner < poly->totloop; corner++) {
+			const MLoop *loop = &mloop[poly->loopstart + corner];
+			BLI_BITMAP_ENABLE(vert_used_map, loop->v);
+			BLI_BITMAP_ENABLE(edge_used_map, loop->e);
+		}
+	}
+	initialize_manifold_index_array(vert_used_map,
+	                                mesh->totvert,
+	                                &storage->manifold_vertex_index,
+	                                &storage->manifold_vertex_index_reverse,
+	                                &storage->num_manifold_vertices);
+	initialize_manifold_index_array(edge_used_map,
+	                                mesh->totedge,
+	                                &storage->manifold_edge_index,
+	                                &storage->manifold_edge_index_reverse,
+	                                &storage->num_manifold_edges);
+	/* Initialize infinite sharp mapping. */
+	storage->infinite_sharp_vertices_map =
+	        BLI_BITMAP_NEW(mesh->totvert, "vert used map");
+	for (int edge_index = 0; edge_index < mesh->totedge; edge_index++) {
+		if (!BLI_BITMAP_TEST_BOOL(edge_used_map, edge_index)) {
+			const MEdge *edge = &medge[edge_index];
+			BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge->v1);
+			BLI_BITMAP_ENABLE(storage->infinite_sharp_vertices_map, edge->v2);
+		}
+	}
+	/* Free working variables. */
+	MEM_freeN(vert_used_map);
+	MEM_freeN(edge_used_map);
+}
+
 static void init_user_data(OpenSubdiv_Converter *converter,
                            const SubdivSettings *settings,
                            const Mesh *mesh)
@@ -454,6 +615,7 @@ static void init_user_data(OpenSubdiv_Converter *converter,
 	user_data->mesh = mesh;
 	user_data->loop_uv_indices = NULL;
 	create_element_maps_if_needed(user_data);
+	initialize_manifold_indices(user_data);
 	converter->user_data = user_data;
 }
 #endif

@@ -346,16 +346,10 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   const int num_vertices = converter->getNumVertices(converter);
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     ConstIndexArray vertex_edges = getBaseVertexEdges(refiner, vertex_index);
-    for (int i = 0; i < vertex_edges.size(); ++i) {
-      const int edge_index = vertex_edges[i];
-      ConstIndexArray edge_faces = getBaseEdgeFaces(refiner, edge_index);
-      if (edge_faces.size() == 0) {
-        setBaseVertexSharpness(refiner, vertex_index,
-                               Crease::SHARPNESS_INFINITE);
-        break;
-      }
-    }
-    if (vertex_edges.size() == 2) {
+    if (converter->isInfiniteSharpVertex(converter, vertex_index)) {
+      setBaseVertexSharpness(
+          refiner, vertex_index, Crease::SHARPNESS_INFINITE);
+    } else if (vertex_edges.size() == 2) {
       const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
       const float sharpness0 = converter->getEdgeSharpness(converter, edge0);
       const float sharpness1 = converter->getEdgeSharpness(converter, edge1);
