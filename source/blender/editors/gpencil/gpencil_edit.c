@@ -486,44 +486,6 @@ void GPENCIL_OT_selection_opacity_toggle(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
 }
 
-/* toggle multi edit strokes support */
-static int gpencil_multiedit_toggle_exec(bContext *C, wmOperator *op)
-{
-	View3D *v3d = CTX_wm_view3d(C);
-	const bool lines = RNA_boolean_get(op->ptr, "lines");
-
-	/* Just toggle value */
-	if (lines == 0) {
-		v3d->flag3 ^= V3D_GP_SHOW_EDIT_LINES;
-	}
-	else {
-		v3d->flag3 ^= V3D_GP_SHOW_MULTIEDIT_LINES;
-	}
-
-	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
-	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void GPENCIL_OT_multiedit_toggle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Edit Lines Toggle";
-	ot->idname = "GPENCIL_OT_multiedit_toggle";
-	ot->description = "Enable/disable edit lines support";
-
-	/* callbacks */
-	ot->exec = gpencil_multiedit_toggle_exec;
-	ot->poll = gp_stroke_edit_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "toggle_visibility", 0, "Toggle Visibility Only", "Toggle visibility of edit lines only");
-}
-
 /* ************** Duplicate Selected Strokes **************** */
 
 /* Make copies of selected point segments in a selected stroke */

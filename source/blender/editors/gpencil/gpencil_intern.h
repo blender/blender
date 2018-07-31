@@ -291,7 +291,6 @@ void GPENCIL_OT_paintmode_toggle(struct wmOperatorType *ot);
 void GPENCIL_OT_sculptmode_toggle(struct wmOperatorType *ot);
 void GPENCIL_OT_weightmode_toggle(struct wmOperatorType *ot);
 void GPENCIL_OT_selection_opacity_toggle(struct wmOperatorType *ot);
-void GPENCIL_OT_multiedit_toggle(struct wmOperatorType *ot);
 
 void GPENCIL_OT_select(struct wmOperatorType *ot);
 void GPENCIL_OT_select_all(struct wmOperatorType *ot);

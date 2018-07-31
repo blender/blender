@@ -404,11 +404,10 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_selection_opacity_toggle", HKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* toogle multiedit support */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 1);
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_edit_lines");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_multiedit_line_only");
 
 	/* Isolate Layer */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_layer_isolate", PADASTERKEY, KM_PRESS, 0, 0);
@@ -605,12 +604,10 @@ static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 	ed_keymap_gpencil_sculpt(keymap);
 
 	/* toogle multiedit support */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 1);
-
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_edit_lines");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_multiedit_line_only");
 }
 
 /* Stroke Weight Paint Keymap - Only when weight is enabled */
@@ -637,12 +634,10 @@ static void ed_keymap_gpencil_weightpainting(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.weight_brush.size");
 
 	/* toogle multiedit support */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, 0, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 0);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_multiedit_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "toggle_visibility", 1);
-
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_edit_lines");
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_string_set(kmi->ptr, "data_path", "space_data.overlay.use_gpencil_multiedit_line_only");
 }
 /* ==================== */
 
@@ -678,7 +673,6 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_sculptmode_toggle);
 	WM_operatortype_append(GPENCIL_OT_weightmode_toggle);
 	WM_operatortype_append(GPENCIL_OT_selection_opacity_toggle);
-	WM_operatortype_append(GPENCIL_OT_multiedit_toggle);
 
 	WM_operatortype_append(GPENCIL_OT_select);
 	WM_operatortype_append(GPENCIL_OT_select_all);
