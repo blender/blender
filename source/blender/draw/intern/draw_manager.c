@@ -1419,7 +1419,7 @@ void DRW_draw_render_loop_ex(
 	DRW_hair_init();
 
 	/* No framebuffer allowed before drawing. */
-	BLI_assert(GPU_framebuffer_current_get() == 0);
+	BLI_assert(GPU_framebuffer_active_get() == NULL);
 
 	/* Init engines */
 	drw_engines_init();

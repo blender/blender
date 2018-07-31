@@ -45,8 +45,6 @@
 #include "gpu_private.h"
 #include "gpu_context_private.h"
 
-static ThreadLocal(void *) g_currentfb;
-
 typedef enum {
 	GPU_FB_DEPTH_ATTACHMENT = 0,
 	GPU_FB_DEPTH_STENCIL_ATTACHMENT,
@@ -169,22 +167,29 @@ static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
 
 void gpu_framebuffer_module_init(void)
 {
-	BLI_thread_local_create(g_currentfb);
 }
 
 void gpu_framebuffer_module_exit(void)
 {
-	BLI_thread_local_delete(g_currentfb);
 }
 
-static uint gpu_framebuffer_current_get(void)
+GPUFrameBuffer *GPU_framebuffer_active_get(void)
 {
-	return GET_UINT_FROM_POINTER(BLI_thread_local_get(g_currentfb));
+	GPUContext *ctx = GPU_context_active_get();
+	if (ctx) {
+		return gpu_context_active_framebuffer_get(ctx);
+	}
+	else {
+		return 0;
+	}
 }
 
-static void gpu_framebuffer_current_set(uint object)
+static void gpu_framebuffer_current_set(GPUFrameBuffer *fb)
 {
-	BLI_thread_local_set(g_currentfb, SET_UINT_IN_POINTER(object));
+	GPUContext *ctx = GPU_context_active_get();
+	if (ctx) {
+		gpu_context_active_framebuffer_set(ctx, fb);
+	}
 }
 
 /* GPUFrameBuffer */
@@ -217,8 +222,8 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 		gpu_context_remove_framebuffer(fb->ctx, fb);
 	}
 
-	if (gpu_framebuffer_current_get() == fb->object) {
-		gpu_framebuffer_current_set(0);
+	if (GPU_framebuffer_active_get() == fb) {
+		gpu_framebuffer_current_set(NULL);
 	}
 
 	MEM_freeN(fb);
@@ -371,7 +376,7 @@ static void gpu_framebuffer_update_attachments(GPUFrameBuffer *fb)
 	GLenum gl_attachments[GPU_FB_MAX_COLOR_ATTACHMENT];
 	int numslots = 0;
 
-	BLI_assert(gpu_framebuffer_current_get() == fb->object);
+	BLI_assert(GPU_framebuffer_active_get() == fb);
 
 	/* Update attachments */
 	for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; ++type) {
@@ -415,10 +420,10 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 	if (fb->object == 0)
 		gpu_framebuffer_init(fb);
 
-	if (gpu_framebuffer_current_get() != fb->object)
+	if (GPU_framebuffer_active_get() != fb)
 		glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 
-	gpu_framebuffer_current_set(fb->object);
+	gpu_framebuffer_current_set(fb);
 
 	if (fb->dirty_flag != 0)
 		gpu_framebuffer_update_attachments(fb);
@@ -439,20 +444,15 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 
 void GPU_framebuffer_restore(void)
 {
-	if (gpu_framebuffer_current_get() != 0) {
+	if (GPU_framebuffer_active_get() != NULL) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		gpu_framebuffer_current_set(0);
+		gpu_framebuffer_current_set(NULL);
 	}
 }
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb)
 {
-	return (fb->object == gpu_framebuffer_current_get()) && (fb->object != 0);
-}
-
-unsigned int GPU_framebuffer_current_get(void)
-{
-	return gpu_framebuffer_current_get();
+	return (fb == GPU_framebuffer_active_get()) && (fb->object != 0);
 }
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
@@ -543,7 +543,7 @@ void GPU_framebuffer_blit(
 {
 	BLI_assert(blit_buffers != 0);
 
-	GLuint prev_fb = gpu_framebuffer_current_get();
+	GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 
 	/* Framebuffers must be up to date. This simplify this function. */
 	if (fb_read->dirty_flag != 0 || fb_read->object == 0) {
@@ -601,11 +601,11 @@ void GPU_framebuffer_blit(
 	        mask, GL_NEAREST);
 
 	/* Restore previous framebuffer */
-	if (fb_write->object == prev_fb) {
+	if (fb_write == prev_fb) {
 		GPU_framebuffer_bind(fb_write); /* To update drawbuffers */
 	}
 	else {
-		glBindFramebuffer(GL_FRAMEBUFFER, prev_fb);
+		glBindFramebuffer(GL_FRAMEBUFFER, prev_fb->object);
 		gpu_framebuffer_current_set(prev_fb);
 	}
 }
@@ -619,13 +619,13 @@ void GPU_framebuffer_recursive_downsample(
         void (*callback)(void *userData, int level), void *userData)
 {
 	/* Framebuffer must be up to date and bound. This simplify this function. */
-	if (gpu_framebuffer_current_get() != fb->object || fb->dirty_flag != 0 || fb->object == 0) {
+	if (GPU_framebuffer_active_get() != fb || fb->dirty_flag != 0 || fb->object == 0) {
 		GPU_framebuffer_bind(fb);
 	}
 	/* HACK: We make the framebuffer appear not bound in order to
 	 * not trigger any error in GPU_texture_bind().  */
-	GLuint prev_fb = gpu_framebuffer_current_get();
-	gpu_framebuffer_current_set(0);
+	GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
+	gpu_framebuffer_current_set(NULL);
 
 	int i;
 	int current_dim[2] = {fb->width, fb->height};
