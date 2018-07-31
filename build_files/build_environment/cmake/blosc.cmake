@@ -25,6 +25,7 @@ set(BLOSC_EXTRA_ARGS
 	-DThreads_FOUND=1
 	-DPTHREAD_LIBS=${LIBDIR}/pthreads/lib/pthreadVC2.lib
 	-DPTHREAD_INCLUDE_DIR=${LIBDIR}/pthreads/inc
+	-DDEACTIVATE_SNAPPY=ON
 )
 
 ExternalProject_Add(external_blosc
