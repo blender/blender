@@ -343,8 +343,6 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 
 	/* update tempdir from user preferences */
 	BKE_tempdir_init(U.tempdir);
-
-	BLF_antialias_set((U.text_render & USER_TEXT_DISABLE_AA) == 0);
 }
 
 

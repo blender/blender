@@ -221,7 +221,6 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	GlyphBLF *g;
 	FT_Error err;
 	FT_Bitmap bitmap, tempbitmap;
-	const bool is_sharp = !BLF_antialias_get();
 	int flags = FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
 	FT_BBox bbox;
 	unsigned int key;
@@ -246,10 +245,12 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	if (font->flags & BLF_HINTING)
 		flags &= ~FT_LOAD_NO_HINTING;
 
-	if (is_sharp)
+	if (font->flags & BLF_MONOCHROME) {
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
-	else
+	}
+	else {
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);
+	}
 
 	if (err) {
 		BLI_spin_unlock(font->ft_lib_mutex);
@@ -259,7 +260,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	/* get the glyph. */
 	slot = font->face->glyph;
 
-	if (is_sharp) {
+	if (font->flags & BLF_MONOCHROME) {
 		err = FT_Render_Glyph(slot, FT_RENDER_MODE_MONO);
 
 		/* Convert result from 1 bit per pixel to 8 bit per pixel */
@@ -288,7 +289,7 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	g->height = (int)bitmap.rows;
 
 	if (g->width && g->height) {
-		if (is_sharp) {
+		if (font->flags & BLF_MONOCHROME) {
 			/* Font buffer uses only 0 or 1 values, Blender expects full 0..255 range */
 			int i;
 			for (i = 0; i < (g->width * g->height); i++) {

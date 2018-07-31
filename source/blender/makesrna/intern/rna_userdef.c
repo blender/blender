@@ -451,12 +451,6 @@ static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 	WM_main_add_notifier(NC_WINDOW, NULL);
 }
 
-static void rna_userdef_text_antialiasing_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	BLF_antialias_set((U.text_render & USER_TEXT_DISABLE_AA) == 0);
-	rna_userdef_text_update(bmain, scene, ptr);
-}
-
 static PointerRNA rna_Theme_space_generic_get(PointerRNA *ptr)
 {
 	return rna_pointer_inherit_refine(ptr, &RNA_ThemeSpaceGeneric, ptr->data);
@@ -4211,7 +4205,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_text_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
-	RNA_def_property_update(prop, 0, "rna_userdef_text_antialiasing_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
 	prop = RNA_def_property(srna, "use_text_hinting", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_HINTING);
