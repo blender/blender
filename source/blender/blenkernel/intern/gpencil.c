@@ -419,13 +419,13 @@ bGPDlayer *BKE_gpencil_layer_addnew(bGPdata *gpd, const char *name, bool setacti
 		/* set default thickness of new strokes for this layer */
 		gpl->thickness = 3;
 
-		/* onion-skinning settings */
-		gpl->onion_flag |= GP_LAYER_ONIONSKIN;
 	}
 	else {
 		/* thickness parameter represents "thickness change", not absolute thickness */
 		gpl->thickness = 0;
 		gpl->opacity = 1.0f;
+		/* onion-skinning settings */
+		gpl->onion_flag |= GP_LAYER_ONIONSKIN;
 	}
 
 	/* auto-name */
