@@ -29,6 +29,8 @@
  * GPU shader interface (C --> GLSL)
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "GPU_shader_interface.h"
 
 #include "gpu_batch_private.h"
@@ -154,7 +156,7 @@ GPU_INLINE void buckets_free(GPUShaderInput *buckets[GPU_NUM_SHADERINTERFACE_BUC
 		GPUShaderInput *input = buckets[bucket_index];
 		while (input != NULL) {
 			GPUShaderInput *input_next = input->next;
-			free(input);
+			MEM_freeN(input);
 			input = input_next;
 		}
 	}
@@ -178,12 +180,12 @@ static bool setup_builtin_uniform(GPUShaderInput *input, const char *name)
 
 static const GPUShaderInput *add_uniform(GPUShaderInterface *shaderface, const char *name)
 {
-	GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
+	GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput Unif");
 
 	input->location = glGetUniformLocation(shaderface->program, name);
 
 	uint name_len = strlen(name);
-	shaderface->name_buffer = realloc(shaderface->name_buffer, shaderface->name_buffer_offset + name_len + 1); /* include NULL terminator */
+	shaderface->name_buffer = MEM_reallocN(shaderface->name_buffer, shaderface->name_buffer_offset + name_len + 1); /* include NULL terminator */
 	char *name_buffer = shaderface->name_buffer + shaderface->name_buffer_offset;
 	strcpy(name_buffer, name);
 
@@ -208,7 +210,7 @@ static const GPUShaderInput *add_uniform(GPUShaderInterface *shaderface, const c
 
 GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 {
-	GPUShaderInterface *shaderface = calloc(1, sizeof(GPUShaderInterface));
+	GPUShaderInterface *shaderface = MEM_callocN(sizeof(GPUShaderInterface), "GPUShaderInterface");
 	shaderface->program = program;
 
 #if DEBUG_SHADER_INTERFACE
@@ -225,11 +227,11 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &ubo_len);
 
 	const uint32_t name_buffer_len = attr_len * max_attrib_name_len + ubo_len * max_ubo_name_len;
-	shaderface->name_buffer = malloc(name_buffer_len);
+	shaderface->name_buffer = MEM_mallocN(name_buffer_len, "name_buffer");
 
 	/* Attributes */
 	for (uint32_t i = 0; i < attr_len; ++i) {
-		GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
+		GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput Attr");
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
 		char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
 		GLsizei name_len = 0;
@@ -256,7 +258,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 	}
 	/* Uniform Blocks */
 	for (uint32_t i = 0; i < ubo_len; ++i) {
-		GPUShaderInput *input = malloc(sizeof(GPUShaderInput));
+		GPUShaderInput *input = MEM_mallocN(sizeof(GPUShaderInput), "GPUShaderInput UBO");
 		GLsizei remaining_buffer = name_buffer_len - shaderface->name_buffer_offset;
 		char *name = shaderface->name_buffer + shaderface->name_buffer_offset;
 		GLsizei name_len = 0;
@@ -282,7 +284,7 @@ GPUShaderInterface *GPU_shaderinterface_create(int32_t program)
 	}
 	/* Batches ref buffer */
 	shaderface->batches_len = GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-	shaderface->batches = calloc(shaderface->batches_len, sizeof(GPUBatch *));
+	shaderface->batches = MEM_callocN(shaderface->batches_len * sizeof(GPUBatch *), "GPUShaderInterface batches");
 
 	return shaderface;
 }
@@ -294,16 +296,16 @@ void GPU_shaderinterface_discard(GPUShaderInterface *shaderface)
 	buckets_free(shaderface->attrib_buckets);
 	buckets_free(shaderface->ubo_buckets);
 	/* Free memory used by name_buffer. */
-	free(shaderface->name_buffer);
+	MEM_freeN(shaderface->name_buffer);
 	/* Remove this interface from all linked Batches vao cache. */
 	for (int i = 0; i < shaderface->batches_len; ++i) {
 		if (shaderface->batches[i] != NULL) {
 			gpu_batch_remove_interface_ref(shaderface->batches[i], shaderface);
 		}
 	}
-	free(shaderface->batches);
+	MEM_freeN(shaderface->batches);
 	/* Free memory used by shader interface by its self. */
-	free(shaderface);
+	MEM_freeN(shaderface);
 }
 
 const GPUShaderInput *GPU_shaderinterface_uniform(const GPUShaderInterface *shaderface, const char *name)
@@ -350,8 +352,7 @@ void GPU_shaderinterface_add_batch_ref(GPUShaderInterface *shaderface, GPUBatch 
 		/* Not enough place, realloc the array. */
 		i = shaderface->batches_len;
 		shaderface->batches_len += GPU_SHADERINTERFACE_REF_ALLOC_COUNT;
-		shaderface->batches = realloc(shaderface->batches, sizeof(GPUBatch *) * shaderface->batches_len);
-		memset(shaderface->batches + i, 0, sizeof(GPUBatch *) * GPU_SHADERINTERFACE_REF_ALLOC_COUNT);
+		shaderface->batches = MEM_recallocN(shaderface->batches, sizeof(GPUBatch *) * shaderface->batches_len);
 	}
 	shaderface->batches[i] = batch;
 }
