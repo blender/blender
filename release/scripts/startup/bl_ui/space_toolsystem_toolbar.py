@@ -200,9 +200,10 @@ class _defs_annotate:
 
         if gpd and gpl:
             layout.prop(gpd.layers, "active_note", text="")
-            layout.prop(gpl, "thickness", text="Thickness")
+            layout.prop(gpl, "color", text="")
+            layout.prop(gpl, "thickness")
         else:
-            layout.prop(user_prefs.edit, "grease_pencil_default_color", text="Color")
+            layout.prop(user_prefs.edit, "grease_pencil_default_color", text="")
             layout.prop(ts, "annotation_thickness", text="Thickness")
 
         # For 3D view, show the stroke placement settings
