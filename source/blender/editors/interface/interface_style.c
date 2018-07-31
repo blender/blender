@@ -532,6 +532,13 @@ void uiStyleInit(void)
 			flag_disable |= BLF_HINTING;
 		}
 
+		if (U.text_render & USER_TEXT_DISABLE_AA) {
+			flag_enable |= BLF_MONOCHROME;
+		}
+		else {
+			flag_disable |= BLF_MONOCHROME;
+		}
+
 		for (font = U.uifonts.first; font; font = font->next) {
 			if (font->blf_id != -1) {
 				BLF_enable(font->blf_id, flag_enable);
