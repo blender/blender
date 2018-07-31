@@ -757,7 +757,7 @@ static void deg_restore_object_runtime(
 	Mesh *mesh_orig = object->runtime.mesh_orig;
 	object->runtime = object_runtime_backup->runtime;
 	object->runtime.mesh_orig = mesh_orig;
-	if (object->runtime.mesh_eval != NULL) {
+	if (object->type == OB_MESH && object->runtime.mesh_eval != NULL) {
 		if (object->id.recalc & ID_RECALC_GEOMETRY) {
 			/* If geometry is tagged for update it means, that part of
 			 * evaluated mesh are not valid anymore. In this case we can not
@@ -773,14 +773,12 @@ static void deg_restore_object_runtime(
 			/* Do same thing as object update: override actual object data
 			 * pointer with evaluated datablock.
 			 */
-			if (object->type == OB_MESH) {
-				object->data = mesh_eval;
-				/* Evaluated mesh simply copied edit_btmesh pointer from
-				 * original mesh during update, need to make sure no dead
-				 * pointers are left behind.
-				*/
-				mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
-			}
+			object->data = mesh_eval;
+			/* Evaluated mesh simply copied edit_btmesh pointer from
+			 * original mesh during update, need to make sure no dead
+			 * pointers are left behind.
+			*/
+			mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
 		}
 	}
 	object->base_flag = object_runtime_backup->base_flag;
