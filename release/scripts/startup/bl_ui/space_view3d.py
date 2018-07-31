@@ -181,7 +181,7 @@ class VIEW3D_HT_header(Header):
         # Proportional editing
         if obj:
             gpd = context.gpencil_data
-            if gpd is not None:
+            if gpd is not None and obj.type == 'GPENCIL':
                 if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode:
                     row = layout.row(align=True)
                     row.prop(tool_settings, "proportional_edit", icon_only=True)
