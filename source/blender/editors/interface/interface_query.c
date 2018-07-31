@@ -114,6 +114,14 @@ bool ui_block_is_pie_menu(const uiBlock *block)
 	return ((block->flag & UI_BLOCK_RADIAL) != 0);
 }
 
+bool ui_block_is_popup_any(const uiBlock *block)
+{
+	return (
+	        ui_block_is_menu(block) ||
+	        ui_block_is_pie_menu(block)
+	);
+}
+
 bool UI_block_is_empty(const uiBlock *block)
 {
 	for (const uiBut *but = block->buttons.first; but; but = but->next) {
