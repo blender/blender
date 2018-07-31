@@ -1378,6 +1378,9 @@ static void object_clear_mpath(Object *ob)
 		animviz_free_motionpath(ob->mpath);
 		ob->mpath = NULL;
 		ob->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
+
+		/* tag object for copy on write - so removed paths don't still show */
+		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 

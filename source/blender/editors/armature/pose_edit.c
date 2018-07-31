@@ -365,6 +365,9 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
 	/* if nothing was skipped, there should be no paths left! */
 	if (skipped == false)
 		ob->pose->avs.path_bakeflag &= ~MOTIONPATH_BAKE_HAS_PATHS;
+
+	/* tag armature object for copy on write - so removed paths don't still show */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 /* operator callback - wrapper for the backend function  */
