@@ -1328,6 +1328,37 @@ void BKE_pose_rest(bPose *pose)
 	}
 }
 
+void BKE_pose_copyesult_pchan_result(bPoseChannel *pchanto, const bPoseChannel *pchanfrom)
+{
+	copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
+	copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
+
+	/* used for local constraints */
+	copy_v3_v3(pchanto->loc, pchanfrom->loc);
+	copy_qt_qt(pchanto->quat, pchanfrom->quat);
+	copy_v3_v3(pchanto->eul, pchanfrom->eul);
+	copy_v3_v3(pchanto->size, pchanfrom->size);
+
+	copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
+	copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
+
+	pchanto->roll1 = pchanfrom->roll1;
+	pchanto->roll2 = pchanfrom->roll2;
+	pchanto->curveInX = pchanfrom->curveInX;
+	pchanto->curveInY = pchanfrom->curveInY;
+	pchanto->curveOutX = pchanfrom->curveOutX;
+	pchanto->curveOutY = pchanfrom->curveOutY;
+	pchanto->ease1 = pchanfrom->ease1;
+	pchanto->ease2 = pchanfrom->ease2;
+	pchanto->scaleIn = pchanfrom->scaleIn;
+	pchanto->scaleOut = pchanfrom->scaleOut;
+
+	pchanto->rotmode = pchanfrom->rotmode;
+	pchanto->flag = pchanfrom->flag;
+	pchanto->protectflag = pchanfrom->protectflag;
+	pchanto->bboneflag = pchanfrom->bboneflag;
+}
+
 /* both poses should be in sync */
 bool BKE_pose_copy_result(bPose *to, bPose *from)
 {
@@ -1346,34 +1377,8 @@ bool BKE_pose_copy_result(bPose *to, bPose *from)
 
 	for (pchanfrom = from->chanbase.first; pchanfrom; pchanfrom = pchanfrom->next) {
 		pchanto = BKE_pose_channel_find_name(to, pchanfrom->name);
-		if (pchanto) {
-			copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
-			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
-
-			/* used for local constraints */
-			copy_v3_v3(pchanto->loc, pchanfrom->loc);
-			copy_qt_qt(pchanto->quat, pchanfrom->quat);
-			copy_v3_v3(pchanto->eul, pchanfrom->eul);
-			copy_v3_v3(pchanto->size, pchanfrom->size);
-
-			copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
-			copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
-
-			pchanto->roll1 = pchanfrom->roll1;
-			pchanto->roll2 = pchanfrom->roll2;
-			pchanto->curveInX = pchanfrom->curveInX;
-			pchanto->curveInY = pchanfrom->curveInY;
-			pchanto->curveOutX = pchanfrom->curveOutX;
-			pchanto->curveOutY = pchanfrom->curveOutY;
-			pchanto->ease1 = pchanfrom->ease1;
-			pchanto->ease2 = pchanfrom->ease2;
-			pchanto->scaleIn = pchanfrom->scaleIn;
-			pchanto->scaleOut = pchanfrom->scaleOut;
-
-			pchanto->rotmode = pchanfrom->rotmode;
-			pchanto->flag = pchanfrom->flag;
-			pchanto->protectflag = pchanfrom->protectflag;
-			pchanto->bboneflag = pchanfrom->bboneflag;
+		if (pchanto != NULL) {
+			BKE_pose_copyesult_pchan_result(pchanto, pchanfrom);
 		}
 	}
 	return true;

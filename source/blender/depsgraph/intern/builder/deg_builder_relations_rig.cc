@@ -469,10 +469,19 @@ void DepsgraphRelationBuilder::build_proxy_rig(Object *object)
 		                           DEG_NODE_TYPE_BONE,
 		                           pchan->name,
 		                           DEG_OPCODE_BONE_DONE);
+		OperationKey from_bone_done_key(&proxy_from->id,
+		                                DEG_NODE_TYPE_BONE,
+		                                pchan->name,
+		                                DEG_OPCODE_BONE_DONE);
 		add_relation(pose_init_key, bone_local_key, "Pose Init -> Bone Local");
 		add_relation(bone_local_key, bone_ready_key, "Local -> Ready");
 		add_relation(bone_ready_key, bone_done_key, "Ready -> Done");
 		add_relation(bone_done_key, pose_done_key, "Bone Done -> Pose Done");
+
+		/* Make sure bone in the proxy is not done before it's FROM is done. */
+		add_relation(from_bone_done_key,
+		             bone_done_key,
+		             "From Bone Done -> Pose Done");
 
 		if (pchan->prop != NULL) {
 			OperationKey bone_parameters(&object->id,

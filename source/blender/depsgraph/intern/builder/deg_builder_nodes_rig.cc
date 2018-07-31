@@ -314,12 +314,13 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             function_bind(BKE_pose_eval_proxy_copy,
+	                             function_bind(BKE_pose_eval_proxy_pose_init,
 	                                           _1,
 	                                           object_cow),
 	                             DEG_OPCODE_POSE_INIT);
 	op_node->set_as_entry();
 
+	int pchan_index = 0;
 	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		op_node = add_operation_node(&object->id,
 		                             DEG_NODE_TYPE_BONE,
@@ -334,10 +335,14 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 		                   NULL,
 		                   DEG_OPCODE_BONE_READY);
 		/* Bone is fully evaluated. */
-		op_node = add_operation_node(&object->id,
+		op_node = add_operation_node(
+		        &object->id,
 		                             DEG_NODE_TYPE_BONE,
 		                             pchan->name,
-		                             NULL,
+		        function_bind(BKE_pose_eval_proxy_copy_bone,
+		                      _1,
+		                      object_cow,
+		                      pchan_index),
 		                             DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
 
@@ -349,10 +354,14 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 			                   DEG_OPCODE_PARAMETERS_EVAL,
 			                   pchan->name);
 		}
+
+		pchan_index++;
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,
-	                             NULL,
+	                             function_bind(BKE_pose_eval_proxy_pose_done,
+	                                           _1,
+	                                           object_cow),
 	                             DEG_OPCODE_POSE_DONE);
 	op_node->set_as_exit();
 }

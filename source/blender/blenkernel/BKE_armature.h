@@ -231,9 +231,16 @@ void BKE_pose_eval_flush(
         struct Scene *scene,
         struct Object *ob);
 
-void BKE_pose_eval_proxy_copy(
+void BKE_pose_eval_proxy_pose_init(struct Depsgraph *depsgraph,
+                                   struct Object *object);
+
+void BKE_pose_eval_proxy_pose_done(struct Depsgraph *depsgraph,
+                                   struct Object *object);
+
+void BKE_pose_eval_proxy_copy_bone(
         struct Depsgraph *depsgraph,
-        struct Object *ob);
+        struct Object *object,
+        int pchan_index);
 
 #ifdef __cplusplus
 }
