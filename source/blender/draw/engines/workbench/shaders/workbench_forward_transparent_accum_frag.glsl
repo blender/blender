@@ -19,7 +19,7 @@ in vec3 normal_viewport;
 #ifdef V3D_SHADING_TEXTURE_COLOR
 in vec2 uv_interp;
 #endif
-#ifdef STUDIOLIGHT_ORIENTATION_VIEWNORMAL
+#ifdef V3D_LIGHTING_MATCAP
 uniform sampler2D matcapImage;
 #endif
 
