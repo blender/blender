@@ -40,8 +40,8 @@ static void initData(ShaderFxData *fx)
 {
 	RimShaderFxData *gpfx = (RimShaderFxData *)fx;
 	ARRAY_SET_ITEMS(gpfx->offset, 50, -100);
-	ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f, 0.9f);
-	ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f, 1.0f);
+	ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
+	ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
 	gpfx->mode = eShaderFxRimMode_Multiply;
 	ARRAY_SET_ITEMS(gpfx->blur, 0, 0);
 }
