@@ -280,7 +280,7 @@ class _defs_annotate:
         return dict(
             text="Eraser",
             icon="ops.gpencil.draw.eraser",
-            cursor='CROSSHAIR', # XXX: Always show brush circle when enabled
+            cursor='CROSSHAIR',  # XXX: Always show brush circle when enabled
             keymap=(
                 ("gpencil.annotate",
                  dict(mode='ERASER', wait_for_input=False),
@@ -1030,6 +1030,7 @@ class _defs_uv_select:
             ),
         )
 
+
 class _defs_gpencil_paint:
     @classmethod
     def draw_color_selector(cls, context, layout):
@@ -1049,7 +1050,7 @@ class _defs_gpencil_paint:
         if ob and ob.mode == 'GPENCIL_PAINT':
             brush = context.active_gpencil_brush
             gp_settings = brush.gpencil_settings
-            tool_settings= context.tool_settings
+            tool_settings = context.tool_settings
 
             if gp_settings.gpencil_brush_type == 'ERASE':
                 row = layout.row()
@@ -1075,7 +1076,6 @@ class _defs_gpencil_paint:
                 row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
 
                 _defs_gpencil_paint.draw_color_selector(context, layout)
-
 
     @staticmethod
     def generate_from_brushes(context):

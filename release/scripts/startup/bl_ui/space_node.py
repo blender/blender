@@ -23,10 +23,10 @@ from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
-        GreasePencilDrawingToolsPanel,
-        GreasePencilDataPanel,
-        GreasePencilToolsPanel
-        )
+    GreasePencilDrawingToolsPanel,
+    GreasePencilDataPanel,
+    GreasePencilToolsPanel,
+)
 
 
 class NODE_HT_header(Header):

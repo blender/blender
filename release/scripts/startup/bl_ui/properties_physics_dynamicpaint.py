@@ -97,7 +97,6 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
                         col.prop(surface, "image_resolution")
                     col.prop(surface, "use_antialiasing")
 
-
                     sub = col.column(align=True)
                     sub.prop(surface, "frame_start", text="Frame Start")
                     sub.prop(surface, "frame_end", text="End")
@@ -227,7 +226,6 @@ class PHYSICS_PT_dp_advanced_canvas_paint_dissolve(PhysicButtonsPanel, Panel):
         canvas = context.dynamic_paint.canvas_settings
         surface = canvas.canvas_surfaces.active
         self.layout.prop(surface, "use_dissolve", text="")
-
 
     def draw(self, context):
         layout = self.layout
@@ -398,7 +396,6 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
         layout = self.layout
 
 
-
 class PHYSICS_PT_dp_effects_spread(PhysicButtonsPanel, Panel):
     bl_label = "Spread"
     bl_parent_id = "PHYSICS_PT_dp_effects"
@@ -454,6 +451,7 @@ class PHYSICS_PT_dp_effects_drip(PhysicButtonsPanel, Panel):
         col.separator()
 
         effector_weights_ui(self, context, surface.effector_weights, 'DYNAMIC_PAINT')
+
 
 class PHYSICS_PT_dp_effects_shrink(PhysicButtonsPanel, Panel):
     bl_label = "Shrink"

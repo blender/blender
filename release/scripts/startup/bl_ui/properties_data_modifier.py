@@ -28,6 +28,7 @@ class ModifierButtonsPanel:
     bl_context = "modifier"
     bl_options = {'HIDE_HEADER'}
 
+
 class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     bl_label = "Modifiers"
 
@@ -1857,7 +1858,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         if md.mode == 'CONCURRENT':
             col.prop(md, "concurrent_time_alignment")
         else:
-            col.separator() # For spacing
+            col.separator()  # For spacing
             col.separator()
         col.separator()
 
@@ -1929,7 +1930,6 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Object:")
         layout.prop(md, "object", text="")
 
-
     def GP_HOOK(self, layout, ob, md):
         gpd = ob.data
         split = layout.split()
@@ -1977,7 +1977,6 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "use_falloff_uniform")
 
-
     def GP_OFFSET(self, layout, ob, md):
         gpd = ob.data
         split = layout.split()
@@ -1988,7 +1987,6 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
         col.prop(md, "rotation")
-
 
         col.label("Layer:")
         row = col.row(align=True)

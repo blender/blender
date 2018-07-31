@@ -3840,7 +3840,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
             "armature",
             "lattice",
             "empty",
-		    "grease_pencil",
+            "grease_pencil",
             "camera",
             "light",
             "light_probe",
@@ -3902,7 +3902,7 @@ class VIEW3D_PT_shading_lighting(Panel):
             split = layout.split(0.9)
             col = split.column()
             sub = col.row()
-            sub.scale_y = 0.6 # smaller matcap/hdri preview
+            sub.scale_y = 0.6  # smaller matcap/hdri preview
 
             if shading.light == 'STUDIO':
                 sub.template_icon_view(shading, "studio_light", scale=3)
@@ -3941,7 +3941,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                     col = split.column()
                     col.prop(shading, "studiolight_rotate_z", text="Rotation")
                     col.prop(shading, "studiolight_background_alpha")
-                    col = split.column() # to align properly with above
+                    col = split.column()  # to align properly with above
 
 
 class VIEW3D_PT_shading_color(Panel):
@@ -4887,7 +4887,6 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
         # Falloff curve
         if gpd.use_multiedit and settings.use_multiframe_falloff:
             layout.template_curve_mapping(settings, "multiframe_falloff_curve", brush=True)
-
 
 
 classes = (

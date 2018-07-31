@@ -56,7 +56,6 @@ class PHYSICS_PT_rigid_body(PHYSICS_PT_rigidbody_panel, Panel):
             col.prop(rbo, "kinematic", text="Animated")
 
 
-
 class PHYSICS_PT_rigid_body_collisions(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Collisions"
     bl_parent_id = 'PHYSICS_PT_rigid_body'
@@ -107,6 +106,7 @@ class PHYSICS_PT_rigid_body_collisions_surface(PHYSICS_PT_rigidbody_panel, Panel
         col.prop(rbo, "friction")
         col.prop(rbo, "restitution", text="Bounciness")
 
+
 class PHYSICS_PT_rigid_body_collisions_sensitivity(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Sensitivity"
     bl_parent_id = 'PHYSICS_PT_rigid_body_collisions'
@@ -135,6 +135,7 @@ class PHYSICS_PT_rigid_body_collisions_sensitivity(PHYSICS_PT_rigidbody_panel, P
             sub = col.column()
             sub.active = rbo.use_margin
             sub.prop(rbo, "collision_margin", text="Margin")
+
 
 class PHYSICS_PT_rigid_body_collisions_collections(PHYSICS_PT_rigidbody_panel, Panel):
     bl_label = "Collision Collections"

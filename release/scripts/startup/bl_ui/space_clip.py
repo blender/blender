@@ -23,8 +23,9 @@ from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
-        GreasePencilDrawingToolsPanel,
-        GreasePencilDataPanel)
+    GreasePencilDrawingToolsPanel,
+    GreasePencilDataPanel,
+)
 
 
 class CLIP_UL_tracking_objects(UIList):
@@ -1152,7 +1153,6 @@ class CLIP_PT_grease_pencil(GreasePencilDataPanel, CLIP_PT_clip_view_panel, Pane
 class CLIP_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
-
 
 
 class CLIP_MT_view(Menu):

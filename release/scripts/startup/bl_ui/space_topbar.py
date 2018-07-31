@@ -512,7 +512,6 @@ class INFO_MT_help(Menu):
             "wm.url_open", text="Manual", icon='HELP',
         ).url = "https://docs.blender.org/manual/en/dev/"
 
-
         layout.operator(
             "wm.url_open", text="Report a Bug", icon='URL',
         ).url = "https://developer.blender.org/maniphest/task/edit/form/1"

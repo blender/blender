@@ -128,8 +128,8 @@ class GreasePencilDrawingToolsPanel:
             elif is_clip_editor:
                 row.prop(context.space_data, "grease_pencil_source", expand=True)
 
-        #col.separator()
-        #col.separator()
+        # col.separator()
+        # col.separator()
 
         gpencil_stroke_placement_settings(context, col)
 
@@ -404,7 +404,7 @@ class GPENCIL_MT_pie_settings_palette(Menu):
         pie = layout.menu_pie()
         gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
-        palcolor = None #context.active_gpencil_palettecolor
+        palcolor = None  # context.active_gpencil_palettecolor
         brush = context.active_gpencil_brush
 
         is_editmode = bool(gpd and gpd.use_stroke_edit_mode and context.editable_gpencil_strokes)
@@ -812,7 +812,7 @@ class GreasePencilOnionPanel:
         row = layout.row()
         row.active = gp.use_onion_skinning
         row.prop(gp, "use_onion_fade", text="Fade")
-        if hasattr(gp, "use_onion_loop"): # XXX
+        if hasattr(gp, "use_onion_loop"):  # XXX
             subrow = layout.row()
             subrow.active = gp.onion_mode in ('RELATIVE', 'SELECTED')
             subrow.prop(gp, "use_onion_loop", text="Loop")

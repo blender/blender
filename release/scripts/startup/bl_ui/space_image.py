@@ -21,15 +21,15 @@ import bpy
 import math
 from bpy.types import Header, Menu, Panel, UIList
 from .properties_paint_common import (
-        UnifiedPaintPanel,
-        brush_texture_settings,
-        brush_texpaint_common,
-        brush_mask_texture_settings,
-        )
+    UnifiedPaintPanel,
+    brush_texture_settings,
+    brush_texpaint_common,
+    brush_mask_texture_settings,
+)
 from .properties_grease_pencil_common import (
-        GreasePencilDrawingToolsPanel,
-        GreasePencilDataPanel
-        )
+    GreasePencilDrawingToolsPanel,
+    GreasePencilDataPanel,
+)
 from bpy.app.translations import pgettext_iface as iface_
 
 
@@ -1342,10 +1342,11 @@ class IMAGE_PT_grease_pencil(GreasePencilDataPanel, Panel):
     # NOTE: this is just a wrapper around the generic GP Panel
 
 # Grease Pencil drawing tools
+
+
 class IMAGE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
-
 
 
 classes = (

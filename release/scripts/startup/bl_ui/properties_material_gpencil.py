@@ -84,7 +84,6 @@ class GPMaterialButtonsPanel:
                 ob.active_material.grease_pencil)
 
 
-
 class MATERIAL_PT_gpencil_slots(Panel):
     bl_label = "Grease Pencil Material Slots"
     bl_space_type = 'PROPERTIES'

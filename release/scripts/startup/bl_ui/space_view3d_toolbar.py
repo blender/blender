@@ -20,16 +20,16 @@
 import bpy
 from bpy.types import Menu, Panel, UIList
 from .properties_grease_pencil_common import (
-        GreasePencilStrokeEditPanel,
-        GreasePencilStrokeSculptPanel,
-        GreasePencilAppearancePanel,
-        )
+    GreasePencilStrokeEditPanel,
+    GreasePencilStrokeSculptPanel,
+    GreasePencilAppearancePanel,
+)
 from .properties_paint_common import (
-        UnifiedPaintPanel,
-        brush_texture_settings,
-        brush_texpaint_common,
-        brush_mask_texture_settings,
-        )
+    UnifiedPaintPanel,
+    brush_texture_settings,
+    brush_texpaint_common,
+    brush_mask_texture_settings,
+)
 from bl_operators.presets import PresetMenu
 
 
@@ -69,9 +69,13 @@ def draw_vpaint_symmetry(layout, vpaint):
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 # Most of these panels should not be visible in GP edit modes
+
+
 def is_not_gpencil_edit_mode(context):
-    is_gpmode = context.active_object and \
-                context.active_object.mode in {'GPENCIL_EDIT', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}
+    is_gpmode = (
+        context.active_object and
+        context.active_object.mode in {'GPENCIL_EDIT', 'GPENCIL_PAINT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}
+    )
     return not is_gpmode
 
 

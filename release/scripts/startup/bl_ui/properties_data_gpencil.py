@@ -21,12 +21,13 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
-        GreasePencilDataPanel,
-        GreasePencilOnionPanel,
-        )
+    GreasePencilDataPanel,
+    GreasePencilOnionPanel,
+)
 
 ###############################
 # Base-Classes (for shared stuff - e.g. poll, attributes, etc.)
+
 
 class DataButtonsPanel:
     bl_space_type = 'PROPERTIES'
@@ -378,6 +379,7 @@ class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.GreasePencil
 
 ###############################
+
 
 classes = (
     DATA_PT_gpencil,

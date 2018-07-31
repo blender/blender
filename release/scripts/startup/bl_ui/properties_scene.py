@@ -28,9 +28,9 @@ from rna_prop_ui import PropertyPanel
 from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
-        point_cache_ui,
-        effector_weights_ui,
-        )
+    point_cache_ui,
+    effector_weights_ui,
+)
 
 
 class SCENE_PT_units_length_presets(PresetMenu):
@@ -103,6 +103,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         col.enabled = unit.system != 'NONE'
         col.prop(unit, "scale_length")
         col.prop(unit, "use_separate")
+
 
 class SceneKeyingSetsPanel:
 

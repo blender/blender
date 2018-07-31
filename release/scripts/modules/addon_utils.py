@@ -367,14 +367,14 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
 
         # Silent default, we know these need updating.
         if module_name in {
-			"io_anim_bvh",
-			"io_mesh_ply",
-			"io_mesh_stl",
-			"io_mesh_uv_layout",
-			"io_scene_3ds",
-			"io_scene_fbx",
-			"io_scene_obj",
-			"io_scene_x3d",
+            "io_anim_bvh",
+            "io_mesh_ply",
+            "io_mesh_stl",
+            "io_mesh_uv_layout",
+            "io_scene_3ds",
+            "io_scene_fbx",
+            "io_scene_obj",
+            "io_scene_x3d",
         }:
             return None
 

@@ -28,6 +28,7 @@ class ShaderFxButtonsPanel:
     bl_context = "shaderfx"
     bl_options = {'HIDE_HEADER'}
 
+
 class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
     bl_label = "Effects"
 
@@ -79,7 +80,7 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
         if fx.mode in {'BITONE', 'CUSTOM', 'TRANSPARENT'}:
             layout.prop(fx, "factor")
 
-    def FX_WAVE(self, layout,fx):
+    def FX_WAVE(self, layout, fx):
         layout.prop(fx, "orientation", expand=True)
 
         layout.separator()
