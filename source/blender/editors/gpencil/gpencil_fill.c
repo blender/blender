@@ -372,6 +372,7 @@ static void get_pixel(ImBuf *ibuf, int idx, float r_col[4])
 /* set pixel data (rgba) at index */
 static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
 {
+	//BLI_assert(idx <= ibuf->x * ibuf->y);
 	if (ibuf->rect) {
 		uint *rrect = &ibuf->rect[idx];
 		uchar ccol[4];
@@ -587,20 +588,23 @@ static void gpencil_clean_borders(tGPDfill *tgpf)
 	const float fill_col[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	ibuf = BKE_image_acquire_ibuf(tgpf->ima, NULL, &lock);
 	int idx;
+	int pixel = 0;
 
 	/* horizontal lines */
-	for (idx = 0; idx < ibuf->x; idx++) {
+	for (idx = 0; idx < ibuf->x - 1; idx++) {
 		/* bottom line */
 		set_pixel(ibuf, idx, fill_col);
 		/* top line */
-		set_pixel(ibuf, idx + (ibuf->x * (ibuf->y - 1)), fill_col);
+		pixel = idx + (ibuf->x * (ibuf->y - 1));
+		set_pixel(ibuf, pixel, fill_col);
 	}
 	/* vertical lines */
 	for (idx = 0; idx < ibuf->y; idx++) {
 		/* left line */
 		set_pixel(ibuf, ibuf->x * idx, fill_col);
 		/* right line */
-		set_pixel(ibuf, ibuf->x * idx + (ibuf->x - 1), fill_col);
+		pixel = ibuf->x * idx + (ibuf->x - 1);
+		set_pixel(ibuf, pixel, fill_col);
 	}
 
 	/* release ibuf */
