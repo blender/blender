@@ -3091,7 +3091,7 @@ void ED_view3d_draw_offscreen_init(Main *bmain, Scene *scene, View3D *v3d)
  */
 static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
 {
-	if (scene->world && (v3d->flag3 & V3D_SHOW_WORLD)) {
+	if (scene->world && (v3d->flag2 & V3D_SHOW_WORLD)) {
 		RegionView3D *rv3d = ar->regiondata;
 		GPUMaterial *gpumat = GPU_material_world(scene, scene->world);
 
@@ -3497,7 +3497,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 		v3d.flag2 |= V3D_SOLID_TEX;
 	}
 	if (draw_flags & V3D_OFSDRAW_USE_BACKGROUND) {
-		v3d.flag3 |= V3D_SHOW_WORLD;
+		v3d.flag2 |= V3D_SHOW_WORLD;
 	}
 	if (draw_flags & V3D_OFSDRAW_USE_CAMERA_DOF) {
 		if (camera->type == OB_CAMERA) {
