@@ -728,7 +728,7 @@ class GreasePencilDataPanel:
         layout.template_ID(gpd_owner, "grease_pencil", new="gpencil.data_add", unlink="gpencil.data_unlink")
 
         # List of layers/notes.
-        if gpd or gpd.layers:
+        if gpd and gpd.layers:
             self.draw_layers(context, layout, gpd)
 
     def draw_layers(self, context, layout, gpd):
