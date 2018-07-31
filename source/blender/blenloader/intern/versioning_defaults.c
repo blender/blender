@@ -442,4 +442,21 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			la->energy = 10.0;
 		}
 	}
+	/* default grease pencil settings */
+	{
+		for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->flag3 |= V3D_GP_SHOW_EDIT_LINES;
+						v3d->flag3 |= V3D_GP_SHOW_MULTIEDIT_LINES;
+						v3d->flag3 |= V3D_GP_SHOW_ONION_SKIN;
+						v3d->vertex_opacity = 0.9f;
+						break;
+					}
+				}
+			}
+		}
+	}
 }
