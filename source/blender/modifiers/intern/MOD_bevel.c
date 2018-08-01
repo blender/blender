@@ -233,7 +233,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, const fl
 static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *bm)
 {
 	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
-	if (bmd->value == 0 || bmd->clnordata.faceHash == NULL && vertex_only)
+	if (bmd->value == 0 || (bmd->clnordata.faceHash == NULL && vertex_only))
 		return;
 
 	BM_mesh_normals_update(bm);
