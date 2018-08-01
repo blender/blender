@@ -1809,7 +1809,7 @@ void node_tex_image_linear(vec3 co, sampler2D ima, out vec4 color, out float alp
 
 void node_tex_image_nearest(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
-	ivec2 pix = ivec2(co.xy * textureSize(ima, 0).xy);
+	ivec2 pix = ivec2(fract(co.xy) * textureSize(ima, 0).xy);
 	color = texelFetch(ima, pix, 0);
 	alpha = color.a;
 }
