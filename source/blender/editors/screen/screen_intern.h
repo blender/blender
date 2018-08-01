@@ -37,7 +37,7 @@ struct Main;
 
 /* internal exports only */
 
-#define AZONESPOT       (0.6f * U.widget_unit)
+#define AZONESPOT       (0.8f * U.widget_unit)
 #define AZONEFADEIN     (5.0f * U.widget_unit) /* when azone is totally visible */
 #define AZONEFADEOUT    (6.5f * U.widget_unit) /* when we start seeing the azone */
 
