@@ -48,7 +48,7 @@ struct bGPDstroke;
 struct ModifierUpdateDepsgraphContext;
 
 #define SHADER_FX_ACTIVE(_fx, _is_render) (((_fx->mode & eShaderFxMode_Realtime) && (_is_render == false)) || \
-												  ((_fx->mode & eShaderFxMode_Render) && (_is_render == true))) 
+												  ((_fx->mode & eShaderFxMode_Render) && (_is_render == true)))
 #define SHADER_FX_EDIT(_fx, _is_edit) (((_fx->mode & eShaderFxMode_Editmode) == 0) && (_is_edit))
 
 typedef enum {
@@ -63,7 +63,7 @@ typedef enum {
 	eShaderFxTypeFlag_SupportsEditmode = (1 << 0),
 
 	/* For effects that support editmode this determines if the
-	* effect should be enabled by default in editmode. 
+	* effect should be enabled by default in editmode.
 	*/
 	eShaderFxTypeFlag_EnableInEditmode = (1 << 2),
 
@@ -101,7 +101,7 @@ typedef struct ShaderFxTypeInfo {
 
 	/* Initialize new instance data for this effect type, this function
 	 * should set effect variables to their default values.
-	 * 
+	 *
 	 * This function is optional.
 	 */
 	void (*initData)(struct ShaderFxData *fx);
@@ -129,7 +129,7 @@ typedef struct ShaderFxTypeInfo {
 	 */
 	void (*updateDepsgraph)(struct ShaderFxData *fx,
 	                        const struct ModifierUpdateDepsgraphContext *ctx);
- 
+
 	/* Should return true if the effect needs to be recalculated on time
 	 * changes.
 	 *

@@ -96,6 +96,3 @@ void main()
 	gl_FragDepth = stroke_depth;
 	FragColor = outcolor;
 }
-
-
-

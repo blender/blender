@@ -53,4 +53,3 @@ void shaderfx_type_init(ShaderFxTypeInfo *types[])
 	INIT_FX_TYPE(Wave);
 #undef INIT_FX_TYPE
 }
-

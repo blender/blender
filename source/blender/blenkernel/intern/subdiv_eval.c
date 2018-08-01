@@ -231,7 +231,7 @@ void BKE_subdiv_eval_face_varying(
 	                                       u, v,
 	                                       face_varying);
 #else
-	UNUSED_VARS(subdiv, ptex_face_index, u, v, face_varying);
+	UNUSED_VARS(subdiv, face_varying_channel, ptex_face_index, u, v, face_varying);
 #endif
 }
 

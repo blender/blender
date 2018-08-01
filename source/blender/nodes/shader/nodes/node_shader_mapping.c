@@ -88,8 +88,8 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	TexMapping *texmap = node->storage;
 	float domin = (texmap->flag & TEXMAP_CLIP_MIN) != 0;
 	float domax = (texmap->flag & TEXMAP_CLIP_MAX) != 0;
-	static float max[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX, 0.0};
-	static float min[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX, 0.0};
+	static float max[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX};
+	static float min[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 	GPUNodeLink *tmin, *tmax, *tmat0, *tmat1, *tmat2, *tmat3;
 
 	tmin = GPU_uniform_buffer((domin) ? texmap->min : min, GPU_VEC3);
