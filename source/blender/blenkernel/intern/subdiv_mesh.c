@@ -1509,25 +1509,25 @@ static void subdiv_eval_uv_layer(SubdivMeshContext *ctx,
 	for (int layer_index = 0; layer_index < ctx->num_uv_layers; layer_index++) {
 		MLoopUV *subdiv_loopuv = &ctx->uv_layers[layer_index][mloop_index];
 		BKE_subdiv_eval_face_varying(subdiv,
+		                             layer_index,
 		                             ptex_face_index,
 		                             u, v,
 		                             subdiv_loopuv[0].uv);
 		BKE_subdiv_eval_face_varying(subdiv,
+		                             layer_index,
 		                             ptex_face_index,
 		                             u + du, v,
 		                             subdiv_loopuv[1].uv);
 		BKE_subdiv_eval_face_varying(subdiv,
+		                             layer_index,
 		                             ptex_face_index,
 		                             u + du, v + dv,
 		                             subdiv_loopuv[2].uv);
 		BKE_subdiv_eval_face_varying(subdiv,
+		                             layer_index,
 		                             ptex_face_index,
 		                             u, v + dv,
 		                             subdiv_loopuv[3].uv);
-		/* TODO(sergey): Currently evaluator only has single UV layer, so can
-		 * not evaluate more than that. Need to be solved.
-		 */
-		break;
 	}
 }
 

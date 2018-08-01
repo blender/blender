@@ -57,7 +57,8 @@ class CpuEvalOutputAPI {
   //
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
-  void setFaceVaryingData(const float* varying_data,
+  void setFaceVaryingData(const int face_varying_channel,
+                          const float* varying_data,
                           const int start_vertex_index, const int num_vertices);
 
   // Set coarse vertex position from a continuous memory buffer where
@@ -82,7 +83,8 @@ class CpuEvalOutputAPI {
   //
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
-  void setFaceVaryingDataFromBuffer(const void* buffer,
+  void setFaceVaryingDataFromBuffer(const int face_varying_channel,
+                                    const void* buffer,
                                     const int start_offset,
                                     const int stride,
                                     const int start_vertex_index,
@@ -104,7 +106,8 @@ class CpuEvalOutputAPI {
 
   // Evaluate facee-varying data at a given bilinear coordinate of given
   // ptex face.
-  void evaluateFaceVarying(const int ptes_face_index,
+  void evaluateFaceVarying(const int face_varying_channel,
+                           const int ptes_face_index,
                            float face_u, float face_v,
                            float face_varying[2]);
 

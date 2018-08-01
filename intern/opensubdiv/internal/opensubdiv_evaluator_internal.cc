@@ -39,6 +39,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "internal/opensubdiv_topology_refiner_internal.h"
+#include "internal/opensubdiv_util.h"
 #include "opensubdiv_topology_refiner_capi.h"
 
 using OpenSubdiv::Osd::BufferDescriptor;
@@ -147,6 +148,106 @@ class StackAllocatedBuffer {
   float data_[element_size * num_vertices];
 };
 
+template <typename EVAL_VERTEX_BUFFER,
+          typename STENCIL_TABLE,
+          typename PATCH_TABLE,
+          typename EVALUATOR,
+          typename DEVICE_CONTEXT = void>
+class FaceVaryingVolatileEval {
+ public:
+  typedef OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR> EvaluatorCache;
+
+  FaceVaryingVolatileEval(int face_varying_channel,
+                          const StencilTable* face_varying_stencils,
+                          int face_varying_width,
+                          PATCH_TABLE* patch_table,
+                          EvaluatorCache* evaluator_cache = NULL,
+                          DEVICE_CONTEXT* device_context = NULL)
+      : face_varying_channel_(face_varying_channel),
+        src_face_varying_desc_(0, face_varying_width, face_varying_width),
+        patch_table_(patch_table),
+        evaluator_cache_(evaluator_cache),
+        device_context_(device_context) {
+    using OpenSubdiv::Osd::convertToCompatibleStencilTable;
+    num_coarse_face_varying_vertices_ =
+        face_varying_stencils->GetNumControlVertices();
+    const int num_total_face_varying_vertices =
+        face_varying_stencils->GetNumControlVertices() +
+        face_varying_stencils->GetNumStencils();
+    src_face_varying_data_ =
+        EVAL_VERTEX_BUFFER::Create(2,
+                                   num_total_face_varying_vertices,
+                                   device_context);
+    face_varying_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(
+        face_varying_stencils, device_context_);
+  }
+
+  ~FaceVaryingVolatileEval() {
+    delete src_face_varying_data_;
+    delete face_varying_stencils_;
+  }
+
+  void updateData(const float* src, int start_vertex, int num_vertices) {
+    src_face_varying_data_->UpdateData(src,
+                                       start_vertex,
+                                       num_vertices,
+                                       device_context_);
+  }
+
+  void refine() {
+    BufferDescriptor dst_face_varying_desc = src_face_varying_desc_;
+    dst_face_varying_desc.offset += num_coarse_face_varying_vertices_ *
+                                    src_face_varying_desc_.stride;
+    const EVALUATOR* eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
+        evaluator_cache_,
+        src_face_varying_desc_,
+        dst_face_varying_desc,
+        device_context_);
+    EVALUATOR::EvalStencils(src_face_varying_data_, src_face_varying_desc_,
+                            src_face_varying_data_, dst_face_varying_desc,
+                            face_varying_stencils_,
+                            eval_instance,
+                            device_context_);
+  }
+
+  void evalPatch(const PatchCoord& patch_coord, float face_varying[2]) {
+    StackAllocatedBuffer<2, 1> face_varying_data;
+    BufferDescriptor face_varying_desc(0, 2, 2);
+    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
+    const EVALUATOR* eval_instance =
+        OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(evaluator_cache_,
+                                                 src_face_varying_desc_,
+                                                 face_varying_desc,
+                                                 device_context_);
+    EVALUATOR::EvalPatchesFaceVarying(
+        src_face_varying_data_, src_face_varying_desc_,
+        &face_varying_data, face_varying_desc,
+        patch_coord_buffer.GetNumVertices(),
+        &patch_coord_buffer,
+        patch_table_,
+        face_varying_channel_,
+        eval_instance,
+        device_context_);
+    const float* refined_face_varying = face_varying_data.BindCpuBuffer();
+    memcpy(face_varying, refined_face_varying, sizeof(float) * 2);
+  }
+
+ protected:
+  int face_varying_channel_;
+
+  BufferDescriptor src_face_varying_desc_;
+
+  int num_coarse_face_varying_vertices_;
+  EVAL_VERTEX_BUFFER* src_face_varying_data_;
+  const STENCIL_TABLE* face_varying_stencils_;
+
+  // NOTE: We reference this, do not own it.
+  PATCH_TABLE* patch_table_;
+
+  EvaluatorCache* evaluator_cache_;
+  DEVICE_CONTEXT* device_context_;
+};
+
 // Volatile evaluator which can be used from threads.
 //
 // TODO(sergey): Make it possible to evaluate coordinates in chunks.
@@ -162,19 +263,22 @@ template <typename SRC_VERTEX_BUFFER,
 class VolatileEvalOutput {
  public:
   typedef OpenSubdiv::Osd::EvaluatorCacheT<EVALUATOR> EvaluatorCache;
+  typedef FaceVaryingVolatileEval<EVAL_VERTEX_BUFFER,
+                                  STENCIL_TABLE,
+                                  PATCH_TABLE,
+                                  EVALUATOR,
+                                  DEVICE_CONTEXT> FaceVaryingEval;
 
-  VolatileEvalOutput(const StencilTable* vertex_stencils,
-                     const StencilTable* varying_stencils,
-                     const StencilTable* face_varying_stencils,
-                     const int face_varying_channel,
-                     const int face_varying_width,
-                     const PatchTable* patch_table,
-                     EvaluatorCache* evaluator_cache = NULL,
-                     DEVICE_CONTEXT* device_context = NULL)
+  VolatileEvalOutput(
+      const StencilTable* vertex_stencils,
+      const StencilTable* varying_stencils,
+      const vector<const StencilTable*>& all_face_varying_stencils,
+      const int face_varying_width,
+      const PatchTable* patch_table,
+      EvaluatorCache* evaluator_cache = NULL,
+      DEVICE_CONTEXT* device_context = NULL)
       : src_desc_(0, 3, 3),
         src_varying_desc_(0, 3, 3),
-        src_face_varying_desc_(0, face_varying_width, face_varying_width),
-        face_varying_channel_(face_varying_channel),
         face_varying_width_(face_varying_width),
         evaluator_cache_(evaluator_cache),
         device_context_(device_context) {
@@ -193,33 +297,31 @@ class VolatileEvalOutput {
         vertex_stencils, device_context_);
     varying_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(
         varying_stencils, device_context_);
-    if (face_varying_stencils != NULL) {
-      num_coarse_face_varying_vertices_ =
-          face_varying_stencils->GetNumControlVertices();
-      const int num_total_face_varying_vertices =
-          face_varying_stencils->GetNumControlVertices() +
-          face_varying_stencils->GetNumStencils();
-      src_face_varying_data_ =
-          EVAL_VERTEX_BUFFER::Create(2,
-                                     num_total_face_varying_vertices,
-                                     device_context_);
-        face_varying_stencils_ = convertToCompatibleStencilTable<STENCIL_TABLE>(
-            face_varying_stencils, device_context_);
-    } else {
-      num_coarse_face_varying_vertices_ = 0;
-      src_face_varying_data_ = NULL;
-      face_varying_stencils_ = NULL;
+    // Create evaluators for every face varying channel.
+    face_varying_evaluators.reserve(all_face_varying_stencils.size());
+    int face_varying_channel = 0;
+    foreach (const StencilTable* face_varying_stencils,
+             all_face_varying_stencils) {
+      face_varying_evaluators.push_back(
+          new FaceVaryingEval(face_varying_channel,
+                              face_varying_stencils,
+                              face_varying_width,
+                              patch_table_,
+                              evaluator_cache_,
+                              device_context_));
+      ++face_varying_channel;
     }
   }
 
   ~VolatileEvalOutput() {
     delete src_data_;
     delete src_varying_data_;
-    delete src_face_varying_data_;
     delete patch_table_;
     delete vertex_stencils_;
     delete varying_stencils_;
-    delete face_varying_stencils_;
+    foreach (FaceVaryingEval* face_varying_evaluator, face_varying_evaluators) {
+      delete face_varying_evaluator;
+    }
   }
 
   // TODO(sergey): Implement binding API.
@@ -235,13 +337,14 @@ class VolatileEvalOutput {
                                   device_context_);
   }
 
-  void updateFaceVaryingData(const float* src,
+  void updateFaceVaryingData(const int face_varying_channel,
+                             const float* src,
                              int start_vertex,
                              int num_vertices) {
-    src_face_varying_data_->UpdateData(src,
-                                       start_vertex,
-                                       num_vertices,
-                                       device_context_);
+    assert(face_varying_channel >= 0);
+    assert(face_varying_channel < face_varying_evaluators.size());
+    face_varying_evaluators[face_varying_channel]->updateData(
+        src, start_vertex, num_vertices);
   }
 
   bool hasVaryingData() const {
@@ -251,7 +354,7 @@ class VolatileEvalOutput {
   }
 
   bool hasFaceVaryingData() const {
-    return face_varying_stencils_ != NULL;
+    return face_varying_evaluators.size() != 0;
   }
 
   void refine() {
@@ -285,19 +388,10 @@ class VolatileEvalOutput {
     }
     // Evaluate face-varying data.
     if (hasFaceVaryingData()) {
-      BufferDescriptor dst_face_varying_desc = src_face_varying_desc_;
-      dst_face_varying_desc.offset += num_coarse_face_varying_vertices_ *
-                                      src_face_varying_desc_.stride;
-      eval_instance = OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(
-          evaluator_cache_,
-          src_face_varying_desc_,
-          dst_face_varying_desc,
-          device_context_);
-      EVALUATOR::EvalStencils(src_face_varying_data_, src_face_varying_desc_,
-                              src_face_varying_data_, dst_face_varying_desc,
-                              face_varying_stencils_,
-                              eval_instance,
-                              device_context_);
+      foreach (FaceVaryingEval* face_varying_evaluator,
+               face_varying_evaluators) {
+        face_varying_evaluator->refine();
+      }
     }
   }
 
@@ -384,47 +478,30 @@ class VolatileEvalOutput {
     memcpy(varying, refined_varying, sizeof(float) * 3);
   }
 
-  void evalPatchFaceVarying(const PatchCoord& patch_coord,
+  void evalPatchFaceVarying(const int face_varying_channel,
+                            const PatchCoord& patch_coord,
                             float face_varying[2]) {
-    StackAllocatedBuffer<2, 1> face_varying_data;
-    BufferDescriptor face_varying_desc(0, 2, 2);
-    SinglePatchCoordBuffer patch_coord_buffer(patch_coord);
-    const EVALUATOR* eval_instance =
-        OpenSubdiv::Osd::GetEvaluator<EVALUATOR>(evaluator_cache_,
-                                                 src_face_varying_desc_,
-                                                 face_varying_desc,
-                                                 device_context_);
-    EVALUATOR::EvalPatchesFaceVarying(
-        src_face_varying_data_, src_face_varying_desc_,
-        &face_varying_data, face_varying_desc,
-        patch_coord_buffer.GetNumVertices(),
-        &patch_coord_buffer,
-        patch_table_,
-        face_varying_channel_,
-        eval_instance,
-        device_context_);
-    const float* refined_face_varying = face_varying_data.BindCpuBuffer();
-    memcpy(face_varying, refined_face_varying, sizeof(float) * 2);
+    assert(face_varying_channel >= 0);
+    assert(face_varying_channel < face_varying_evaluators.size());
+    face_varying_evaluators[face_varying_channel]->evalPatch(
+        patch_coord, face_varying);
   }
 
  private:
   SRC_VERTEX_BUFFER* src_data_;
   SRC_VERTEX_BUFFER* src_varying_data_;
-  EVAL_VERTEX_BUFFER* src_face_varying_data_;
   PatchCoordBuffer* patch_coords_;
   PATCH_TABLE* patch_table_;
   BufferDescriptor src_desc_;
   BufferDescriptor src_varying_desc_;
-  BufferDescriptor src_face_varying_desc_;
 
   int num_coarse_vertices_;
-  int face_varying_channel_;
-  int face_varying_width_;
-  int num_coarse_face_varying_vertices_;
 
   const STENCIL_TABLE* vertex_stencils_;
   const STENCIL_TABLE* varying_stencils_;
-  const STENCIL_TABLE* face_varying_stencils_;
+
+  int face_varying_width_;
+  vector<FaceVaryingEval*> face_varying_evaluators;
 
   EvaluatorCache* evaluator_cache_;
   DEVICE_CONTEXT* device_context_;
@@ -442,8 +519,7 @@ class CpuEvalOutput : public VolatileEvalOutput<CpuVertexBuffer,
  public:
   CpuEvalOutput(const StencilTable* vertex_stencils,
                 const StencilTable* varying_stencils,
-                const StencilTable* face_varying_stencils,
-                const int face_varying_channel,
+                const vector<const StencilTable*>& all_face_varying_stencils,
                 const int face_varying_width,
                 const PatchTable* patch_table,
                 EvaluatorCache* evaluator_cache = NULL)
@@ -453,8 +529,7 @@ class CpuEvalOutput : public VolatileEvalOutput<CpuVertexBuffer,
                            CpuPatchTable,
                            CpuEvaluator> (vertex_stencils,
                                           varying_stencils,
-                                          face_varying_stencils,
-                                          face_varying_channel,
+                                          all_face_varying_stencils,
                                           face_varying_width,
                                           patch_table,
                                           evaluator_cache) {
@@ -490,11 +565,13 @@ void CpuEvalOutputAPI::setVaryingData(const float* varying_data,
                                      num_vertices);
 }
 
-void CpuEvalOutputAPI::setFaceVaryingData(const float* face_varying_data,
+void CpuEvalOutputAPI::setFaceVaryingData(const int face_varying_channel,
+                                          const float* face_varying_data,
                                           const int start_vertex_index,
                                           const int num_vertices) {
   // TODO(sergey): Add sanity check on indices.
-  implementation_->updateFaceVaryingData(face_varying_data,
+  implementation_->updateFaceVaryingData(face_varying_channel,
+                                         face_varying_data,
                                          start_vertex_index,
                                          num_vertices);
 }
@@ -535,6 +612,7 @@ void CpuEvalOutputAPI::setVaryingDataFromBuffer(
 }
 
 void CpuEvalOutputAPI::setFaceVaryingDataFromBuffer(
+    const int face_varying_channel,
     const void* buffer,
     const int start_offset,
     const int stride,
@@ -546,6 +624,7 @@ void CpuEvalOutputAPI::setFaceVaryingDataFromBuffer(
   for (int i = 0; i < num_vertices; ++i) {
     const int current_vertex_index = start_vertex_index + i;
     implementation_->updateFaceVaryingData(
+        face_varying_channel,
         reinterpret_cast<const float*>(current_buffer),
         current_vertex_index, 1);
     current_buffer += stride;
@@ -585,7 +664,8 @@ void CpuEvalOutputAPI::evaluateVarying(const int ptex_face_index,
   implementation_->evalPatchVarying(patch_coord, varying);
 }
 
-void CpuEvalOutputAPI::evaluateFaceVarying(const int ptex_face_index,
+void CpuEvalOutputAPI::evaluateFaceVarying(const int face_varying_channel,
+                                           const int ptex_face_index,
                                            float face_u, float face_v,
                                            float face_varying[2]) {
   assert(face_u >= 0.0f);
@@ -595,7 +675,8 @@ void CpuEvalOutputAPI::evaluateFaceVarying(const int ptex_face_index,
   const PatchTable::PatchHandle* handle =
       patch_map_->FindPatch(ptex_face_index, face_u, face_v);
   PatchCoord patch_coord(*handle, face_u, face_v);
-  implementation_->evalPatchFaceVarying(patch_coord, face_varying);
+  implementation_->evalPatchFaceVarying(
+      face_varying_channel, patch_coord, face_varying);
 }
 
 }  // namespace opensubdiv_capi
@@ -614,6 +695,7 @@ OpenSubdiv_EvaluatorInternal::~OpenSubdiv_EvaluatorInternal() {
 
 OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
     OpenSubdiv_TopologyRefiner* topology_refiner) {
+  using opensubdiv_capi::vector;
   TopologyRefiner* refiner = topology_refiner->internal->osd_topology_refiner;
   if (refiner == NULL) {
     // Happens on bad topology.
@@ -621,8 +703,8 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   }
   // TODO(sergey): Base this on actual topology.
   // const bool bas_varying_data = false;
-  const bool has_face_varying_data =
-      (refiner->GetNumFVarChannels() != 0);
+  const int num_face_varying_channels = refiner->GetNumFVarChannels();
+  const bool has_face_varying_data = (num_face_varying_channels != 0);
   const int level = topology_refiner->getSubdivisionLevel(topology_refiner);
   // TODO(sergey): Query from topology refiner.
   const bool is_adaptive = topology_refiner->getIsAdaptive(topology_refiner);
@@ -659,19 +741,20 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   varying_stencils =
       StencilTableFactory::Create(*refiner, varying_stencil_options);
   // Face warying stencil.
-  const StencilTable* face_varying_stencils = NULL;
+vector<const StencilTable*> all_face_varying_stencils;
 #ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
-  if (has_face_varying_data) {
+  all_face_varying_stencils.reserve(num_face_varying_channels);
+  for (int face_varying_channel = 0;
+       face_varying_channel < num_face_varying_channels;
+       ++face_varying_channel) {
     StencilTableFactory::Options face_varying_stencil_options;
     face_varying_stencil_options.generateOffsets = true;
     face_varying_stencil_options.generateIntermediateLevels = is_adaptive;
     face_varying_stencil_options.interpolationMode =
         StencilTableFactory::INTERPOLATE_FACE_VARYING;
-    // TODO(sergey): Make it configurable which face varying channel is being
-    // interpolated.
-    face_varying_stencil_options.fvarChannel = 0;
-    face_varying_stencils =
-        StencilTableFactory::Create(*refiner, face_varying_stencil_options);
+    face_varying_stencil_options.fvarChannel = face_varying_channel;
+    all_face_varying_stencils.push_back(
+        StencilTableFactory::Create(*refiner, face_varying_stencil_options));
   }
 #endif
   // Generate bi-cubic patch table for the limit surface.
@@ -705,16 +788,20 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
     varying_stencils = table;
   }
 #ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
-  const StencilTable* local_point_face_varying_stencil_table =
-      patch_table->GetLocalPointFaceVaryingStencilTable();
-  if (local_point_face_varying_stencil_table != NULL) {
+  for (int face_varying_channel = 0;
+       face_varying_channel < num_face_varying_channels;
+       ++face_varying_channel) {
     const StencilTable* table =
         StencilTableFactory::AppendLocalPointStencilTableFaceVarying(
               *refiner,
-              face_varying_stencils,
-              local_point_face_varying_stencil_table);
-      delete face_varying_stencils;
-      face_varying_stencils = table;
+              all_face_varying_stencils[face_varying_channel],
+              patch_table->GetLocalPointFaceVaryingStencilTable(
+                  face_varying_channel),
+              face_varying_channel);
+    if (table != NULL) {
+      delete all_face_varying_stencils[face_varying_channel];
+      all_face_varying_stencils[face_varying_channel] = table;
+    }
   }
 #endif
   // Create OpenSubdiv's CPU side evaluator.
@@ -722,8 +809,8 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   opensubdiv_capi::CpuEvalOutput* eval_output =
       new opensubdiv_capi::CpuEvalOutput(vertex_stencils,
                                          varying_stencils,
-                                         face_varying_stencils,
-                                         0, 2,
+                                         all_face_varying_stencils,
+                                         2,
                                          patch_table);
   OpenSubdiv::Far::PatchMap* patch_map = new PatchMap(*patch_table);
   // Wrap everything we need into an object which we control from our side.
@@ -736,7 +823,9 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   // TOOD(sergey): Look into whether we've got duplicated stencils arrays.
   delete vertex_stencils;
   delete varying_stencils;
-  delete face_varying_stencils;
+  foreach (const StencilTable* table, all_face_varying_stencils) {
+    delete table;
+  }
   return evaluator_descr;
 }
 

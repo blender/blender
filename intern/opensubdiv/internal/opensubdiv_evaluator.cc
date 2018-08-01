@@ -42,9 +42,11 @@ void setVaryingData(OpenSubdiv_Evaluator* evaluator,
 }
 
 void setFaceVaryingData(OpenSubdiv_Evaluator* evaluator,
+                        const int face_varying_channel,
                         const float* face_varying_data,
                         const int start_vertex_index, const int num_vertices) {
-  evaluator->internal->eval_output->setFaceVaryingData(face_varying_data,
+  evaluator->internal->eval_output->setFaceVaryingData(face_varying_channel,
+                                                       face_varying_data,
                                                        start_vertex_index,
                                                        num_vertices);
 }
@@ -78,12 +80,14 @@ void setVaryingDataFromBuffer(OpenSubdiv_Evaluator* evaluator,
 }
 
 void setFaceVaryingDataFromBuffer(OpenSubdiv_Evaluator* evaluator,
+                                  const int face_varying_channel,
                                   const void* buffer,
                                   const int start_offset,
                                   const int stride,
                                   const int start_vertex_index,
                                   const int num_vertices) {
   evaluator->internal->eval_output->setFaceVaryingDataFromBuffer(
+          face_varying_channel,
           buffer,
           start_offset,
           stride,
@@ -114,12 +118,12 @@ void evaluateVarying(OpenSubdiv_Evaluator* evaluator,
 }
 
 void evaluateFaceVarying(OpenSubdiv_Evaluator* evaluator,
+                         const int face_varying_channel,
                          const int ptex_face_index,
                          float face_u, float face_v,
                          float face_varying[2]) {
-  evaluator->internal->eval_output->evaluateFaceVarying(ptex_face_index,
-                                                        face_u, face_v,
-                                                        face_varying);
+  evaluator->internal->eval_output->evaluateFaceVarying(
+      face_varying_channel, ptex_face_index, face_u, face_v, face_varying);
 }
 
 void assignFunctionPointers(OpenSubdiv_Evaluator* evaluator) {

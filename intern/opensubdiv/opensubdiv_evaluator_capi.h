@@ -41,6 +41,7 @@ typedef struct OpenSubdiv_Evaluator {
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
   void (*setFaceVaryingData)(struct OpenSubdiv_Evaluator* evaluator,
+                             const int face_varying_channel,
                              const float* face_varying_data,
                              const int start_vertex_index,
                              const int num_vertices);
@@ -70,6 +71,7 @@ typedef struct OpenSubdiv_Evaluator {
   // TODO(sergey): Find a better name for vertex here. It is not the vertex of
   // geometry, but a vertex of UV map.
   void (*setFaceVaryingDataFromBuffer)(struct OpenSubdiv_Evaluator* evaluator,
+                                       const int face_varying_channel,
                                        const void* buffer,
                                        const int start_offset,
                                        const int stride,
@@ -95,6 +97,7 @@ typedef struct OpenSubdiv_Evaluator {
   // Evaluate face-varying data at a given bilinear coordinate of given
   // ptex face.
   void (*evaluateFaceVarying)(struct OpenSubdiv_Evaluator* evaluator,
+                              const int face_varying_channel,
                               const int ptex_face_index,
                               float face_u, float face_v,
                               float face_varying[2]);

@@ -158,6 +158,7 @@ void BKE_subdiv_eval_limit_point_and_short_normal(
 
 void BKE_subdiv_eval_face_varying(
         Subdiv *subdiv,
+        const int face_varying_channel,
         const int ptex_face_index,
         const float u, const float v,
         float varying[2]);

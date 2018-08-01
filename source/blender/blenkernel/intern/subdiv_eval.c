@@ -122,10 +122,11 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 		     vertex_index < num_face_vertices;
 		     vertex_index++, mluv++)
 		{
-			evaluator->setFaceVaryingData(evaluator,
-			                              mluv->uv,
-			                              uv_indicies[vertex_index],
-			                              1);
+		evaluator->setFaceVaryingData(evaluator,
+                                      layer_index,
+		                              mluv->uv,
+		                              uv_indicies[vertex_index],
+		                              1);
 		}
 	}
 }
@@ -147,11 +148,6 @@ void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 		const MLoopUV *mloopuv = CustomData_get_layer_n(
 		        &mesh->ldata, CD_MLOOPUV, layer_index);
 		set_face_varying_data_from_uv(subdiv, mloopuv, layer_index);
-		/* NOTE: Currently evaluator can only handle single face varying layer.
-		 * This is a limitation of C-API and some underlying helper classes from
-		 * our side which will get fixed.
-		 */
-		break;
 	}
 	/* Update evaluator to the new coarse geometry. */
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
@@ -223,12 +219,14 @@ void BKE_subdiv_eval_limit_point_and_short_normal(
 
 void BKE_subdiv_eval_face_varying(
         Subdiv *subdiv,
+        const int face_varying_channel,
         const int ptex_face_index,
         const float u, const float v,
         float face_varying[2])
 {
 #ifdef WITH_OPENSUBDIV
 	subdiv->evaluator->evaluateFaceVarying(subdiv->evaluator,
+	                                       face_varying_channel,
 	                                       ptex_face_index,
 	                                       u, v,
 	                                       face_varying);
