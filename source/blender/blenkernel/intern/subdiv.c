@@ -29,6 +29,8 @@
 
 #include "BKE_subdiv.h"
 
+#include "DNA_mesh_types.h"
+
 #include "BLI_utildefines.h"
 
 #include "MEM_guardedalloc.h"
@@ -52,11 +54,18 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	OpenSubdiv_TopologyRefinerSettings topology_refiner_settings;
 	topology_refiner_settings.level = settings->level;
 	topology_refiner_settings.is_adaptive = settings->is_adaptive;
-	struct OpenSubdiv_TopologyRefiner *osd_topology_refiner =
-	        openSubdiv_createTopologyRefinerFromConverter(
-	                converter, &topology_refiner_settings);
-	if (osd_topology_refiner == NULL) {
-		return NULL;
+	struct OpenSubdiv_TopologyRefiner *osd_topology_refiner = NULL;
+	if (converter->getNumVertices(converter) != 0) {
+		osd_topology_refiner =
+		        openSubdiv_createTopologyRefinerFromConverter(
+		                converter, &topology_refiner_settings);
+
+	}
+	else {
+		/* TODO(sergey): Check whether original geometry had any vertices.
+		 * The thing here is: OpenSubdiv can only deal with faces, but our
+		 * side of subdiv also deals with loose vertices and edges.
+		 */
 	}
 	Subdiv *subdiv = MEM_callocN(sizeof(Subdiv), "subdiv from converetr");
 	subdiv->settings = *settings;
@@ -75,6 +84,9 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
                                  struct Mesh *mesh)
 {
 #ifdef WITH_OPENSUBDIV
+	if (mesh->totvert == 0) {
+		return NULL;
+	}
 	OpenSubdiv_Converter converter;
 	BKE_subdiv_converter_init_for_mesh(&converter, settings, mesh);
 	Subdiv *subdiv = BKE_subdiv_new_from_converter(settings, &converter);

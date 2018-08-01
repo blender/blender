@@ -236,11 +236,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	/* TODO(sergey): Try to re-use subdiv when possible. */
 	Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, mesh);
 	if (subdiv == NULL) {
-		/* Happens on bad topology. */
-		/* TODO(sergey): This also happens on meshes without faces, so probably
-		 * need to handle those differently (i.e. set modifier error when
-		 * topology itself is bad, and not do anything when there are no faces).
-		 */
+		/* Happens on bad topology, ut also on empty input mesh. */
 		return result;
 	}
 	SubdivToMeshSettings mesh_settings;

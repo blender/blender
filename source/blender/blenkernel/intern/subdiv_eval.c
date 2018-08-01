@@ -48,7 +48,10 @@
 void BKE_subdiv_eval_begin(Subdiv *subdiv)
 {
 #ifdef WITH_OPENSUBDIV
-	if (subdiv->evaluator == NULL) {
+	if (subdiv->topology_refiner == NULL) {
+		/* Happens on input mesh with just loose geometry. */
+	}
+	else if (subdiv->evaluator == NULL) {
 		BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
 		subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
 		        subdiv->topology_refiner);
@@ -132,6 +135,9 @@ void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 {
 #ifdef WITH_OPENSUBDIV
 	BKE_subdiv_eval_begin(subdiv);
+	if (subdiv->evaluator == NULL) {
+		return;
+	}
 	/* Set coordinates of base mesh vertices. */
 	set_coarse_positions(subdiv, mesh);
 	/* Set face-varyign data to UV maps. */
