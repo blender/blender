@@ -159,9 +159,8 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 	float *offset = ubo->data;
 	for (LinkData *link = inputs->first; link; link = link->next) {
 		GPUInput *input = link->data;
-		const GPUType gputype = get_padded_gpu_type(link);
-		memcpy(offset, input->dynamicvec, gputype * sizeof(float));
-		offset += gputype;
+		memcpy(offset, input->dynamicvec, input->type * sizeof(float));
+		offset += get_padded_gpu_type(link);
 	}
 
 	/* Note since we may create the UBOs in the CPU in a different thread than the main drawing one,
