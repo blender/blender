@@ -63,11 +63,21 @@ static int gpu_shader_normal_map(GPUMaterial *mat, bNode *node, bNodeExecData *U
 
 	if (in[0].link)
 		strength = in[0].link;
+	else if (node->original) {
+		bNodeSocket *socket = BLI_findlink(&node->original->inputs, 0);
+		bNodeSocketValueFloat *socket_data = socket->default_value;
+		strength = GPU_uniform_buffer(&socket_data->value, GPU_FLOAT);
+	}
 	else
 		strength = GPU_uniform(in[0].vec);
 
 	if (in[1].link)
 		realnorm = in[1].link;
+	else if (node->original) {
+		bNodeSocket *socket = BLI_findlink(&node->original->inputs, 1);
+		bNodeSocketValueRGBA *socket_data = socket->default_value;
+		realnorm = GPU_uniform_buffer(socket_data->value, GPU_VEC3);
+	}
 	else
 		realnorm = GPU_uniform(in[1].vec);
 
