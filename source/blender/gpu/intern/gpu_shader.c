@@ -162,6 +162,13 @@ extern char datatoc_gpu_shader_vsm_store_frag_glsl[];
 extern char datatoc_gpu_shader_sep_gaussian_blur_vert_glsl[];
 extern char datatoc_gpu_shader_sep_gaussian_blur_frag_glsl[];
 
+extern char datatoc_gpu_shader_gpencil_stroke_vert_glsl[];
+extern char datatoc_gpu_shader_gpencil_stroke_frag_glsl[];
+extern char datatoc_gpu_shader_gpencil_stroke_geom_glsl[];
+
+extern char datatoc_gpu_shader_gpencil_fill_vert_glsl[];
+extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
+
 /* cache of built-in shaders (each is created on first use) */
 static GPUShader *builtin_shaders[GPU_NUM_BUILTIN_SHADERS] = { NULL };
 
@@ -738,6 +745,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_4] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_8] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_16] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 
 		[GPU_SHADER_2D_IMAGE_INTERLACE] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                    datatoc_gpu_shader_image_interlace_frag_glsl },
@@ -864,6 +875,13 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                             datatoc_gpu_shader_2D_nodelink_frag_glsl },
 		[GPU_SHADER_2D_NODELINK_INST] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
 		                                  datatoc_gpu_shader_2D_nodelink_frag_glsl },
+
+		[GPU_SHADER_GPENCIL_STROKE] = { datatoc_gpu_shader_gpencil_stroke_vert_glsl,
+		                                datatoc_gpu_shader_gpencil_stroke_frag_glsl,
+		                                datatoc_gpu_shader_gpencil_stroke_geom_glsl },
+
+		[GPU_SHADER_GPENCIL_FILL] = { datatoc_gpu_shader_gpencil_fill_vert_glsl,
+		                              datatoc_gpu_shader_gpencil_fill_frag_glsl },
 	};
 
 	if (builtin_shaders[shader] == NULL) {
@@ -873,14 +891,30 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2:
 				defines = "#define SAMPLES 2\n";
 				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2_DEPTH_TEST:
+				defines = "#define SAMPLES 2\n"
+				          "#define USE_DEPTH\n";
+				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_4:
 				defines = "#define SAMPLES 4\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_4_DEPTH_TEST:
+				defines = "#define SAMPLES 4\n"
+				          "#define USE_DEPTH\n";
 				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_8:
 				defines = "#define SAMPLES 8\n";
 				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_8_DEPTH_TEST:
+				defines = "#define SAMPLES 8\n"
+				          "#define USE_DEPTH\n";
+				break;
 			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_16:
 				defines = "#define SAMPLES 16\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_16_DEPTH_TEST:
+				defines = "#define SAMPLES 16\n"
+				          "#define USE_DEPTH\n";
 				break;
 			case GPU_SHADER_2D_WIDGET_BASE_INST:
 			case GPU_SHADER_2D_NODELINK_INST:

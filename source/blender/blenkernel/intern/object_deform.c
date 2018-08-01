@@ -53,6 +53,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_gpencil.h"
 
 /** \name Misc helpers
  * \{ */
@@ -402,12 +403,17 @@ static void object_defgroup_remove_edit_mode(Object *ob, bDeformGroup *dg)
  */
 void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
-	if (BKE_object_is_in_editmode_vgroup(ob))
-		object_defgroup_remove_edit_mode(ob, defgroup);
-	else
-		object_defgroup_remove_object_mode(ob, defgroup);
+	if ((ob) && (ob->type == OB_GPENCIL)) {
+		BKE_gpencil_vgroup_remove(ob, defgroup);
+	}
+	else {
+		if (BKE_object_is_in_editmode_vgroup(ob))
+			object_defgroup_remove_edit_mode(ob, defgroup);
+		else
+			object_defgroup_remove_object_mode(ob, defgroup);
 
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+	}
 }
 
 /**

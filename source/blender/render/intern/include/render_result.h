@@ -123,7 +123,7 @@ bool render_result_has_views(struct RenderResult *rr);
 	     iter_ != NULL;                                   \
 	    iter_ = iter_->next, nr_++)                       \
 	{                                                     \
-		if ((re_)->r.scemode & R_SINGLE_LAYER) {          \
+		if (!G.background &&  (re_)->r.scemode & R_SINGLE_LAYER) {  \
 			if (nr_ != re->active_view_layer) {           \
 				continue;                                 \
 			}                                             \

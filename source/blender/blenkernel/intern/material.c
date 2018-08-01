@@ -43,6 +43,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_ID.h"
 #include "DNA_meta_types.h"
 #include "DNA_node_types.h"
@@ -58,6 +59,7 @@
 #include "BKE_animsys.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_library.h"
@@ -103,8 +105,28 @@ void BKE_material_free(Material *ma)
 
 	MEM_SAFE_FREE(ma->texpaintslot);
 
+	MEM_SAFE_FREE(ma->gp_style);
+
 	BKE_icon_id_delete((ID *)ma);
 	BKE_previewimg_free(&ma->preview);
+}
+
+void BKE_material_init_gpencil_settings(Material *ma)
+{
+	if ((ma) && (ma->gp_style == NULL)) {
+		ma->gp_style = MEM_callocN(sizeof(MaterialGPencilStyle), "Grease Pencil Material Settings");
+
+		MaterialGPencilStyle *gp_style = ma->gp_style;
+		/* set basic settings */
+		gp_style->stroke_rgba[3] = 1.0f;
+		gp_style->pattern_gridsize = 0.1f;
+		gp_style->gradient_radius = 0.5f;
+		ARRAY_SET_ITEMS(gp_style->mix_rgba, 1.0f, 1.0f, 1.0f, 0.2f);
+		ARRAY_SET_ITEMS(gp_style->gradient_scale, 1.0f, 1.0f);
+		ARRAY_SET_ITEMS(gp_style->texture_scale, 1.0f, 1.0f);
+		gp_style->texture_opacity = 1.0f;
+		gp_style->texture_pixsize = 100.0f;
+	}
 }
 
 void BKE_material_init(Material *ma)
@@ -124,6 +146,7 @@ void BKE_material_init(Material *ma)
 	ma->preview = NULL;
 
 	ma->alpha_threshold = 0.5f;
+
 }
 
 Material *BKE_material_add(Main *bmain, const char *name)
@@ -136,6 +159,19 @@ Material *BKE_material_add(Main *bmain, const char *name)
 
 	return ma;
 }
+
+Material *BKE_material_add_gpencil(Main *bmain, const char *name)
+{
+	Material *ma;
+
+	ma = BKE_material_add(bmain, name);
+
+	/* grease pencil settings */
+	BKE_material_init_gpencil_settings(ma);
+
+	return ma;
+}
+
 
 /**
  * Only copy internal data of Material ID from source to already allocated/initialized destination.
@@ -162,6 +198,10 @@ void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_sr
 
 	if (ma_src->texpaintslot != NULL) {
 		ma_dst->texpaintslot = MEM_dupallocN(ma_src->texpaintslot);
+	}
+
+	if (ma_src->gp_style != NULL) {
+		ma_dst->gp_style = MEM_dupallocN(ma_src->gp_style);
 	}
 
 	BLI_listbase_clear(&ma_dst->gpumaterial);
@@ -199,6 +239,7 @@ Material *BKE_material_localize(Material *ma)
 	man->texpaintslot = NULL;
 	man->preview = NULL;
 
+	/* man->gp_style = NULL; */ /* XXX: We probably don't want to clear here, or else we may get problems with COW later? */
 	BLI_listbase_clear(&man->gpumaterial);
 
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
@@ -218,6 +259,7 @@ Material ***give_matarar(Object *ob)
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb;
+	bGPdata *gpd;
 
 	if (ob->type == OB_MESH) {
 		me = ob->data;
@@ -231,6 +273,10 @@ Material ***give_matarar(Object *ob)
 		mb = ob->data;
 		return &(mb->mat);
 	}
+	else if (ob->type == OB_GPENCIL) {
+		gpd = ob->data;
+		return &(gpd->mat);
+	}
 	return NULL;
 }
 
@@ -239,6 +285,7 @@ short *give_totcolp(Object *ob)
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb;
+	bGPdata *gpd;
 
 	if (ob->type == OB_MESH) {
 		me = ob->data;
@@ -251,6 +298,10 @@ short *give_totcolp(Object *ob)
 	else if (ob->type == OB_MBALL) {
 		mb = ob->data;
 		return &(mb->totcol);
+	}
+	else if (ob->type == OB_GPENCIL) {
+		gpd = ob->data;
+		return &(gpd->totcol);
 	}
 	return NULL;
 }
@@ -286,6 +337,8 @@ short *give_totcolp_id(ID *id)
 			return &(((Curve *)id)->totcol);
 		case ID_MB:
 			return &(((MetaBall *)id)->totcol);
+		case ID_GD:
+			return &(((bGPdata *)id)->totcol);
 		default:
 			break;
 	}
@@ -306,6 +359,9 @@ static void material_data_index_remove_id(ID *id, short index)
 			break;
 		case ID_MB:
 			/* meta-elems don't have materials atm */
+			break;
+		case ID_GD:
+			BKE_gpencil_material_index_remove((bGPdata *)id, index);
 			break;
 		default:
 			break;
@@ -485,6 +541,21 @@ Material *give_current_material(Object *ob, short act)
 	}
 
 	return ma;
+}
+
+MaterialGPencilStyle *BKE_material_gpencil_settings_get(Object *ob, short act)
+{
+	Material *ma = give_current_material(ob, act);
+	if (ma != NULL) {
+		if (ma->gp_style == NULL) {
+			BKE_material_init_gpencil_settings(ma);
+		}
+
+		return ma->gp_style;
+	}
+	else {
+		return NULL;
+	}
 }
 
 Material *give_node_material(Material *ma)
@@ -727,6 +798,9 @@ void BKE_material_remap_object(Object *ob, const unsigned int *remap)
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		BKE_curve_material_remap(ob->data, remap, ob->totcol);
 	}
+	if (ob->type == OB_GPENCIL) {
+		BKE_gpencil_material_remap(ob->data, remap, ob->totcol);
+	}
 	else {
 		/* add support for this object data! */
 		BLI_assert(matar == NULL);
@@ -924,10 +998,10 @@ bool BKE_object_material_slot_remove(Main *bmain, Object *ob)
 	}
 
 	/* check indices from mesh */
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_GPENCIL)) {
 		material_data_index_remove_id((ID *)ob->data, actcol - 1);
-		if (ob->curve_cache) {
-			BKE_displist_free(&ob->curve_cache->disp);
+		if (ob->runtime.curve_cache) {
+			BKE_displist_free(&ob->runtime.curve_cache->disp);
 		}
 	}
 

@@ -69,6 +69,7 @@ void SceneExporter::exportHierarchy(bContext *C, Depsgraph *depsgraph, Scene *sc
 				case OB_CAMERA:
 				case OB_LAMP:
 				case OB_EMPTY:
+				case OB_GPENCIL:
 				case OB_ARMATURE:
 					base_objects.push_back(ob);
 					break;
@@ -122,6 +123,7 @@ void SceneExporter::writeNodes(bContext *C, Depsgraph *depsgraph, Object *ob, Sc
 				case OB_CAMERA:
 				case OB_LAMP:
 				case OB_EMPTY:
+				case OB_GPENCIL:
 				case OB_ARMATURE:
 					if (bc_is_marked(cob))
 						child_objects.push_back(cob);

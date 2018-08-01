@@ -55,6 +55,7 @@
 #include "BKE_layer.h"
 #include "BKE_linestyle.h"
 #include "BKE_modifier.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
@@ -152,6 +153,19 @@ static void buttons_texture_modifier_foreach(void *userData, Object *ob, Modifie
 	                                  N_("Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
 }
 
+static void buttons_texture_modifier_gpencil_foreach(void *userData, Object *ob, GpencilModifierData *md, const char *propname)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	ListBase *users = userData;
+
+	RNA_pointer_create(&ob->id, &RNA_GpencilModifier, md, &ptr);
+	prop = RNA_struct_find_property(&ptr, propname);
+
+	buttons_texture_user_property_add(users, &ob->id, ptr, prop,
+		N_("Grease Pencil Modifiers"), RNA_struct_ui_icon(ptr.type), md->name);
+}
+
 static void buttons_texture_users_from_context(ListBase *users, const bContext *C, SpaceButs *sbuts)
 {
 	Scene *scene = NULL;
@@ -202,6 +216,9 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 
 		/* modifiers */
 		modifiers_foreachTexLink(ob, buttons_texture_modifier_foreach, users);
+
+		/* grease pencil modifiers */
+		BKE_gpencil_modifiers_foreachTexLink(ob, buttons_texture_modifier_gpencil_foreach, users);
 
 		/* particle systems */
 		if (psys && !limited_mode) {

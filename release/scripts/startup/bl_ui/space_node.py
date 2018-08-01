@@ -24,13 +24,8 @@ from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
     GreasePencilDrawingToolsPanel,
-    GreasePencilStrokeEditPanel,
-    GreasePencilStrokeSculptPanel,
-    GreasePencilBrushPanel,
-    GreasePencilBrushCurvesPanel,
     GreasePencilDataPanel,
-    GreasePencilPaletteColorPanel,
-    GreasePencilToolsPanel
+    GreasePencilToolsPanel,
 )
 
 
@@ -364,7 +359,6 @@ class NODE_PT_active_node_generic(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Node"
-#    bl_options = {'HIDE_HEADER'}
 
     @classmethod
     def poll(cls, context):
@@ -383,6 +377,7 @@ class NODE_PT_active_node_color(Panel):
     bl_region_type = 'UI'
     bl_label = "Color"
     bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'NODE_PT_active_node_generic'
 
     @classmethod
     def poll(cls, context):
@@ -410,6 +405,8 @@ class NODE_PT_active_node_properties(Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Properties"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'NODE_PT_active_node_generic'
 
     @classmethod
     def poll(cls, context):
@@ -453,18 +450,22 @@ class NODE_PT_backdrop(Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         snode = context.space_data
         layout.active = snode.show_backdrop
-        layout.prop(snode, "backdrop_channels", text="")
-        layout.prop(snode, "backdrop_zoom", text="Zoom")
 
-        col = layout.column(align=True)
-        col.label(text="Offset:")
-        col.prop(snode, "backdrop_offset", text="")
+        col = layout.column()
+
+        col.prop(snode, "backdrop_channels", text="Channels")
+        col.prop(snode, "backdrop_zoom", text="Zoom")
+
+        col.prop(snode, "backdrop_offset", text="Offset")
+
+        col.separator()
+
         col.operator("node.backimage_move", text="Move")
-
-        layout.operator("node.backimage_fit", text="Fit")
+        col.operator("node.backimage_fit", text="Fit")
 
 
 class NODE_PT_quality(bpy.types.Panel):
@@ -479,6 +480,7 @@ class NODE_PT_quality(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         snode = context.space_data
         tree = snode.node_tree
@@ -522,19 +524,7 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
 class NODE_PT_grease_pencil(GreasePencilDataPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
-
-    # NOTE: this is just a wrapper around the generic GP Panel
-
-    @classmethod
-    def poll(cls, context):
-        snode = context.space_data
-        return snode is not None and snode.node_tree is not None
-
-
-# Grease Pencil palette colors
-class NODE_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
 
     # NOTE: this is just a wrapper around the generic GP Panel
 
@@ -563,31 +553,6 @@ class NODE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_region_type = 'TOOLS'
 
 
-# Grease Pencil stroke editing tools
-class NODE_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-
-
-# Grease Pencil stroke sculpting tools
-class NODE_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-
-# Grease Pencil drawing brushes
-
-
-class NODE_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-
-# Grease Pencil drawing curves
-
-
-class NODE_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
-    bl_space_type = 'NODE_EDITOR'
-    bl_region_type = 'TOOLS'
-
 # -----------------------------
 
 
@@ -612,13 +577,8 @@ classes = (
     NODE_PT_quality,
     NODE_UL_interface_sockets,
     NODE_PT_grease_pencil,
-    NODE_PT_grease_pencil_palettecolor,
     NODE_PT_grease_pencil_tools,
     NODE_PT_tools_grease_pencil_draw,
-    NODE_PT_tools_grease_pencil_edit,
-    NODE_PT_tools_grease_pencil_sculpt,
-    NODE_PT_tools_grease_pencil_brush,
-    NODE_PT_tools_grease_pencil_brushcurves,
 )
 
 

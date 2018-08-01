@@ -21,14 +21,17 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	View3D *v3d = draw_ctx->v3d;
 	if (!v3d) {
 		wpd->shading = scene->display.shading;
+		wpd->use_color_view_settings = true;
 	}
 	else if (v3d->shading.type == OB_RENDER &&
 	         BKE_scene_uses_blender_opengl(scene))
 	{
 		wpd->shading = scene->display.shading;
+		wpd->use_color_view_settings = true;
 	}
 	else {
 		wpd->shading = v3d->shading;
+		wpd->use_color_view_settings = false;
 	}
 
 	if (wpd->shading.light == V3D_LIGHTING_MATCAP) {
@@ -39,15 +42,28 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		wpd->studio_light = BKE_studiolight_find(
 		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
 	}
+
+	/* If matcaps are missing, use this as fallback. */
+	if (UNLIKELY(wpd->studio_light == NULL)) {
+		wpd->studio_light = BKE_studiolight_find(
+		        wpd->shading.studio_light, STUDIOLIGHT_ORIENTATION_CAMERA | STUDIOLIGHT_ORIENTATION_WORLD);
+	}
+
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
 	WORKBENCH_UBO_World *wd = &wpd->world_data;
 	wd->matcap_orientation = (wpd->shading.flag & V3D_SHADING_MATCAP_FLIP_X) != 0;
 	wd->background_alpha = (v3d || scene->r.alphamode == R_ADDSKY) ? 1.0f : 0.0f;
 
-	if (!v3d || ((v3d->flag3 & V3D_SHOW_WORLD) && (scene->world != NULL))) {
+	if (!v3d || ((v3d->shading.background_type & V3D_SHADING_BACKGROUND_WORLD) &&
+	    (scene->world != NULL)))
+	{
 		copy_v3_v3(wd->background_color_low, &scene->world->horr);
 		copy_v3_v3(wd->background_color_high, &scene->world->horr);
+	}
+	else if (v3d->shading.background_type & V3D_SHADING_BACKGROUND_VIEWPORT) {
+		copy_v3_v3(wd->background_color_low, v3d->shading.background_color);
+		copy_v3_v3(wd->background_color_high, v3d->shading.background_color);
 	}
 	else if (v3d) {
 		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);

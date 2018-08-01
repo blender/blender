@@ -201,7 +201,7 @@ static void splineik_init_tree_from_pchan(Scene *scene, Object *UNUSED(ob), bPos
 
 		/* get the current length of the curve */
 		/* NOTE: this is assumed to be correct even after the curve was resized */
-		splineLen = ikData->tar->curve_cache->path->totdist;
+		splineLen = ikData->tar->runtime.curve_cache->path->totdist;
 
 		/* calculate the scale factor to multiply all the path values by so that the
 		 * bone chain retains its current length, such that
@@ -558,6 +558,17 @@ void BKE_splineik_execute_tree(
 
 /* *************** Depsgraph evaluation callbacks ************ */
 
+static void pose_pchan_index_create(bPose *pose)
+{
+	const int num_channels = BLI_listbase_count(&pose->chanbase);
+	pose->chan_array = MEM_malloc_arrayN(
+	        num_channels, sizeof(bPoseChannel *), "pose->chan_array");
+	int pchan_index = 0;
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
+		pose->chan_array[pchan_index++] = pchan;
+	}
+}
+
 BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
 {
 	bPose *pose = ob->pose;
@@ -585,16 +596,12 @@ void BKE_pose_eval_init(struct Depsgraph *depsgraph,
 	/* imat is needed for solvers. */
 	invert_m4_m4(ob->imat, ob->obmat);
 
-	const int num_channels = BLI_listbase_count(&pose->chanbase);
-	pose->chan_array = MEM_malloc_arrayN(
-	        num_channels, sizeof(bPoseChannel *), "pose->chan_array");
-
 	/* clear flags */
-	int pchan_index = 0;
 	for (bPoseChannel *pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
 		pchan->flag &= ~(POSE_DONE | POSE_CHAIN | POSE_IKTREE | POSE_IKSPLINE);
-		pose->chan_array[pchan_index++] = pchan;
 	}
+
+	pose_pchan_index_create(pose);
 }
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
@@ -688,7 +695,8 @@ void BKE_pose_bone_done(struct Depsgraph *depsgraph,
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
 	}
-	if (DEG_is_active(depsgraph)) {
+	bArmature *arm = (bArmature *)ob->data;
+	if (DEG_is_active(depsgraph) && arm->edbo == NULL) {
 		bPoseChannel *pchan_orig = pchan->orig_pchan;
 		copy_m4_m4(pchan_orig->pose_mat, pchan->pose_mat);
 		copy_m4_m4(pchan_orig->chan_mat, pchan->chan_mat);
@@ -751,12 +759,44 @@ void BKE_pose_eval_flush(struct Depsgraph *depsgraph,
 	pose->chan_array = NULL;
 }
 
-void BKE_pose_eval_proxy_copy(struct Depsgraph *depsgraph, Object *ob)
+void BKE_pose_eval_proxy_pose_init(struct Depsgraph *depsgraph, Object *object)
 {
-	BLI_assert(ID_IS_LINKED(ob) && ob->proxy_from != NULL);
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
-	if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
-		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
-		       ob->id.name + 2, ob->proxy_from->id.name + 2);
-	}
+	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+
+	pose_pchan_index_create(object->pose);
+}
+
+void BKE_pose_eval_proxy_pose_done(struct Depsgraph *depsgraph, Object *object)
+{
+	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+
+	bPose *pose = object->pose;
+	BLI_assert(pose->chan_array != NULL);
+	MEM_freeN(pose->chan_array);
+	pose->chan_array = NULL;
+}
+
+void BKE_pose_eval_proxy_copy_bone(
+        struct Depsgraph *depsgraph,
+        Object *object,
+        int pchan_index)
+{
+	BLI_assert(ID_IS_LINKED(object) && object->proxy_from != NULL);
+	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
+	bPoseChannel *pchan = pose_pchan_get_indexed(object, pchan_index);
+	/* TODO(sergey): Use indexec lookup, once it's guaranteed to be kept
+	 * around for the time while proxies are evaluating.
+	 */
+#if 0
+	bPoseChannel *pchan_from = pose_pchan_get_indexed(
+	        object->proxy_from, pchan_index);
+#else
+	bPoseChannel *pchan_from = BKE_pose_channel_find_name(
+	        object->proxy_from->pose, pchan->name);
+#endif
+	BLI_assert(pchan != NULL);
+	BLI_assert(pchan_from != NULL);
+	BKE_pose_copyesult_pchan_result(pchan, pchan_from);
 }

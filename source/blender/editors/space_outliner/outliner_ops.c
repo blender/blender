@@ -457,7 +457,11 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_link);
 	WM_operatortype_append(OUTLINER_OT_collection_instance);
 	WM_operatortype_append(OUTLINER_OT_collection_exclude_set);
-	WM_operatortype_append(OUTLINER_OT_collection_include_set);
+	WM_operatortype_append(OUTLINER_OT_collection_exclude_clear);
+	WM_operatortype_append(OUTLINER_OT_collection_holdout_set);
+	WM_operatortype_append(OUTLINER_OT_collection_holdout_clear);
+	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_set);
+	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_clear);
 }
 
 static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
@@ -569,6 +573,9 @@ void outliner_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "OBJECT_OT_move_to_collection", MKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "OBJECT_OT_link_to_collection", MKEY, KM_PRESS, KM_SHIFT, 0);
+
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_exclude_set", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_collection_exclude_clear", EKEY, KM_PRESS, KM_ALT, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "select", false);

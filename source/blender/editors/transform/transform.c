@@ -45,6 +45,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
 #include "DNA_workspace_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"
@@ -87,6 +88,7 @@
 #include "ED_mesh.h"
 #include "ED_clip.h"
 #include "ED_node.h"
+#include "ED_gpencil.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
@@ -578,6 +580,10 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
 	if (t->options & CTX_GPENCIL_STROKES) {
+		bGPdata *gpd = ED_gpencil_data_get_active(C);
+		if (gpd) {
+			DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+		}
 		WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
 	}
 	else if (t->spacetype == SPACE_VIEW3D) {
@@ -1819,7 +1825,23 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		    (float)t->mval[1],
 		};
 
+
+#if 0 /* XXX: Fix from 1c9690e7607bc990cc4a3e6ba839949bb83a78af cannot be used anymore */
+		if ((t->flag & T_POINTS) && (t->options & CTX_GPENCIL_STROKES)) {
+			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+				Object *ob = tc->obedit;
+				float vecrot[3];
+				copy_v3_v3(vecrot, t->center);
+				mul_m4_v3(ob->obmat, vecrot);
+				projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
+			}
+		}
+		else {
+			projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
+		}
+#else
 		projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
+#endif
 
 		/* Offset the values for the area region. */
 		const float offset[2] = {
@@ -2172,7 +2194,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			}
 		}
 
-		RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+		/* Only set if needed, so we can hide in the UI when nothing is set.
+		 * See 'transform_poll_property'. */
+		if (ELEM(true, UNPACK3(constraint_axis))) {
+			RNA_property_boolean_set_array(op->ptr, prop, constraint_axis);
+		}
 	}
 
 	{
@@ -3608,7 +3634,25 @@ static void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, f
 	else
 		sub_v3_v3(vec, td->center);
 
-	mul_v3_fl(vec, td->factor);
+	/* grease pencil falloff */
+	if (t->options & CTX_GPENCIL_STROKES) {
+		bGPDstroke *gps = (bGPDstroke *)td->extra;
+		mul_v3_fl(vec, td->factor * gps->runtime.multi_frame_falloff);
+
+		/* scale stroke thickness */
+		if (td->val) {
+			snapGridIncrement(t, t->values);
+			applyNumInput(&t->num, t->values);
+
+			float ratio = t->values[0];
+			*td->val = td->ival * ratio * gps->runtime.multi_frame_falloff;
+			CLAMP_MIN(*td->val, 0.001f);
+		}
+
+	}
+	else {
+		mul_v3_fl(vec, td->factor);
+	}
 
 	if (t->flag & (T_OBJECT | T_POSE)) {
 		mul_m3_v3(td->smtx, vec);
@@ -3983,6 +4027,20 @@ static void ElementRotation_ex(TransInfo *t, TransDataContainer *tc, TransData *
 	if (t->flag & T_POINTS) {
 		mul_m3_m3m3(totmat, mat, td->mtx);
 		mul_m3_m3m3(smat, td->smtx, totmat);
+
+		/* apply gpencil falloff */
+		if (t->options & CTX_GPENCIL_STROKES) {
+			bGPDstroke *gps = (bGPDstroke *)td->extra;
+			float sx = smat[0][0];
+			float sy = smat[1][1];
+			float sz = smat[2][2];
+
+			mul_m3_fl(smat, gps->runtime.multi_frame_falloff);
+			/* fix scale */
+			smat[0][0] = sx;
+			smat[1][1] = sy;
+			smat[2][2] = sz;
+		}
 
 		sub_v3_v3v3(vec, td->iloc, center);
 		mul_m3_v3(smat, vec);
@@ -4764,7 +4822,21 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 			}
 
 			mul_m3_v3(td->smtx, tvec);
-			mul_v3_fl(tvec, td->factor);
+
+			if (t->options & CTX_GPENCIL_STROKES) {
+				/* grease pencil multiframe falloff */
+				bGPDstroke *gps = (bGPDstroke *)td->extra;
+				if (gps != NULL) {
+					mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
+				}
+				else {
+					mul_v3_fl(tvec, td->factor);
+				}
+			}
+			else {
+				/* proportional editing falloff */
+				mul_v3_fl(tvec, td->factor);
+			}
 
 			protectedTransBits(td->protectflag, tvec);
 

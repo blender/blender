@@ -72,6 +72,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 
 /* *********************** operators ******************** */
 
+/** Snaps every individual object center to its nearest point on the grid. **/
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -212,7 +213,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Selection to Grid";
-	ot->description = "Snap selected item(s) to nearest grid division";
+	ot->description = "Snap selected item(s) to their nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_selected_to_grid";
 
 	/* api callbacks */
@@ -225,6 +226,12 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 /* *************************************************** */
 
+/** Snaps the selection as a whole (use_offset=true) or each selected object to the given location.
+ *
+ * \param snap_target_global: a location in global space to snap to (eg. 3D cursor or active object).
+ * \param use_offset: if the selected objects should maintain their relative offsets and be snapped by the selection
+ *                    pivot point (median, active), or if every object origin should be snapped to the given location.
+**/
 static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -434,7 +441,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Selection to Cursor";
-	ot->description = "Snap selected item(s) to cursor";
+	ot->description = "Snap selected item(s) to the 3D cursor";
 	ot->idname = "VIEW3D_OT_snap_selected_to_cursor";
 
 	/* api callbacks */
@@ -445,9 +452,13 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset", "");
+	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset",
+		"If the selection should be snapped as a whole or by each object center");
 }
 
+/* *************************************************** */
+
+/** Snaps each selected object to the location of the active selected object. **/
 static int snap_selected_to_active_exec(bContext *C, wmOperator *op)
 {
 	float snap_target_global[3];
@@ -478,6 +489,7 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
 
 /* *************************************************** */
 
+/** Snaps the 3D cursor location to its nearest point on the grid. **/
 static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -502,7 +514,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Grid";
-	ot->description = "Snap cursor to nearest grid division";
+	ot->description = "Snap 3D cursor to the nearest grid division";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_grid";
 
 	/* api callbacks */
@@ -515,7 +527,8 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 /* **************************************************** */
 
-static void bundle_midpoint(Depsgraph *depsgraph, Scene *scene, Object *ob, float vec[3])
+/** Returns the center position of a tracking marker visible on the viewport (useful to snap to). **/
+static void bundle_midpoint(Depsgraph *depsgraph, Scene *scene, Object *ob, float r_vec[3])
 {
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	MovieTracking *tracking;
@@ -563,10 +576,11 @@ static void bundle_midpoint(Depsgraph *depsgraph, Scene *scene, Object *ob, floa
 	}
 
 	if (ok) {
-		mid_v3_v3v3(vec, min, max);
+		mid_v3_v3v3(r_vec, min, max);
 	}
 }
 
+/** Snaps the 3D cursor location to the median point of the selection. **/
 static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -690,7 +704,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Selected";
-	ot->description = "Snap cursor to center of selected item(s)";
+	ot->description = "Snap 3D cursor to the middle of the selected item(s)";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_selected";
 
 	/* api callbacks */
@@ -703,9 +717,11 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 
 /* ********************************************** */
 
-/* this could be exported to be a generic function
- * see: calculateCenterActive */
-
+/** Calculates the center position of the active object in global space.
+ *
+ * Note: this could be exported to be a generic function.
+ * see: calculateCenterActive
+**/
 static bool snap_calc_active_center(bContext *C, const bool select_only, float r_center[3])
 {
 	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -770,7 +786,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Active";
-	ot->description = "Snap cursor to active item";
+	ot->description = "Snap 3D cursor to the active item";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_active";
 
 	/* api callbacks */
@@ -782,7 +798,8 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 }
 
 /* **************************************************** */
-/*New Code - Snap Cursor to Center -*/
+
+/** Snaps the 3D cursor location to the origin. **/
 static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -802,7 +819,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Cursor to Center";
-	ot->description = "Snap cursor to world origin";
+	ot->description = "Snap 3D cursor to the world origin";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 
 	/* api callbacks */
@@ -815,23 +832,22 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 
 /* **************************************************** */
 
-
-bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
+/** Calculates the bounding box corners (min and max) for \a obedit. The returned values are in global space. **/
+bool ED_view3d_minmax_verts(Object *obedit, float r_min[3], float r_max[3])
 {
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
 	float centroid[3], vec[3], bmat[3][3];
-	int a;
 
-	/* metaballs are an exception */
+	/* Metaballs are an exception. */
 	if (obedit->type == OB_MBALL) {
 		float ob_min[3], ob_max[3];
 		bool changed;
 
 		changed = BKE_mball_minmax_ex(obedit->data, ob_min, ob_max, obedit->obmat, SELECT);
 		if (changed) {
-			minmax_v3v3_v3(min, max, ob_min);
-			minmax_v3v3_v3(min, max, ob_max);
+			minmax_v3v3_v3(r_min, r_max, ob_min);
+			minmax_v3v3_v3(r_min, r_max, ob_max);
 		}
 		return changed;
 	}
@@ -845,12 +861,12 @@ bool ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 	copy_m3_m4(bmat, obedit->obmat);
 
 	tv = tvs.transverts;
-	for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+	for (int a = 0; a < tvs.transverts_tot; a++, tv++) {
 		copy_v3_v3(vec, (tv->flag & TX_VERT_USE_MAPLOC) ? tv->maploc : tv->loc);
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
-		minmax_v3v3_v3(min, max, vec);
+		minmax_v3v3_v3(r_min, r_max, vec);
 	}
 
 	ED_transverts_free(&tvs);

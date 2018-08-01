@@ -3,6 +3,7 @@
 
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrix;
+uniform float alpha = 0.4;
 
 flat in vec3 finalStateColor;
 flat in vec3 finalBoneColor;
@@ -73,8 +74,7 @@ void main()
 	float dither = (0.5 + dot(vec2(ivec2(gl_FragCoord.xy) & ivec2(1)), vec2(1.0, 2.0))) * 0.25;
 	dither *= (1.0 / 255.0); /* Assume 8bit per color buffer. */
 
-	/* Hardcoded transparency factor. Less than shape to be less distractive. */
-	fragColor = vec4(fragColor.rgb + dither, 0.4);
+	fragColor = vec4(fragColor.rgb + dither, alpha);
 
 	t /= ray_len;
 	gl_FragDepth = get_depth_from_view_z(ray_dir_view.z * t + ray_ori_view.z);

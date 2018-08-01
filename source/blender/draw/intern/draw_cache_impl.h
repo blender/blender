@@ -41,6 +41,7 @@ struct Curve;
 struct Lattice;
 struct Mesh;
 struct MetaBall;
+struct bGPdata;
 
 /* Expose via BKE callbacks */
 void DRW_mball_batch_cache_dirty(struct MetaBall *mb, int mode);
@@ -57,6 +58,9 @@ void DRW_lattice_batch_cache_free(struct Lattice *lt);
 
 void DRW_particle_batch_cache_dirty(struct ParticleSystem *psys, int mode);
 void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
+
+void DRW_gpencil_batch_cache_dirty(struct bGPdata *gpd);
+void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 /* Curve */
 struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu, struct CurveCache *ob_curve_cache);

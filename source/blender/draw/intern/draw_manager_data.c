@@ -998,6 +998,23 @@ void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask)
 	shgroup->stencil_mask = mask;
 }
 
+bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup)
+{
+	switch (shgroup->type) {
+		case DRW_SHG_NORMAL:
+		case DRW_SHG_FEEDBACK_TRANSFORM:
+			return shgroup->calls.first == NULL;
+		case DRW_SHG_POINT_BATCH:
+		case DRW_SHG_LINE_BATCH:
+		case DRW_SHG_TRIANGLE_BATCH:
+		case DRW_SHG_INSTANCE:
+		case DRW_SHG_INSTANCE_EXTERNAL:
+			return shgroup->instance_count == 0;
+	}
+	BLI_assert(!"Shading Group type not supported");
+	return true;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1017,6 +1034,16 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 	pass->shgroups.last = NULL;
 
 	return pass;
+}
+
+bool DRW_pass_is_empty(DRWPass *pass)
+{
+	for (DRWShadingGroup *shgroup = pass->shgroups.first; shgroup; shgroup = shgroup->next) {
+		if (!DRW_shgroup_is_empty(shgroup)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 void DRW_pass_state_set(DRWPass *pass, DRWState state)

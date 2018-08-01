@@ -651,7 +651,9 @@ typedef struct UserDef {
 	struct WalkNavigation walk_navigation;
 
 	short opensubdiv_compute_type;
-	char pad5[6];
+	short gpencil_multisamples;	/* eMultiSample_Type, amount of samples for Grease Pencil */
+
+	char pad5[4];
 } UserDef;
 
 extern UserDef U; /* from blenkernel blender.c */
@@ -862,7 +864,8 @@ typedef enum eOpenGL_AntiAliasMethod {
 /* text draw options
  * UserDef.text_render */
 typedef enum eText_Draw_Options {
-	USER_TEXT_DISABLE_AA	= (1 << 0),
+	USER_TEXT_DISABLE_AA	  = (1 << 0),
+	USER_TEXT_DISABLE_HINTING = (1 << 1),
 } eText_Draw_Options;
 
 /* tw_flag (transform widget) */
@@ -957,7 +960,7 @@ typedef enum eNdof_Flag {
 
 #define NDOF_PIXELS_PER_SECOND 600.0f
 
-/* UserDef.ogl_multisamples */
+/* UserDef.ogl_multisamples and gpencil_multisamples */
 typedef enum eMultiSample_Type {
 	USER_MULTISAMPLE_NONE	= 0,
 	USER_MULTISAMPLE_2	= 2,

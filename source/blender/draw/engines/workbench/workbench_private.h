@@ -53,8 +53,10 @@
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 
 #define IS_NAVIGATING(wpd) ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
-#define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && (IN_RANGE(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || ((wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8) && IS_NAVIGATING(wpd))))
-#define TAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd))
+#define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && \
+                            (IN_RANGE(wpd->user_preferences->gpu_viewport_quality, GPU_VIEWPORT_QUALITY_FXAA, GPU_VIEWPORT_QUALITY_TAA8) || \
+                             ((IS_NAVIGATING(wpd) || wpd->is_playback) && (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8))))
+#define TAA_ENABLED(wpd) (wpd->user_preferences->gpu_viewport_quality >= GPU_VIEWPORT_QUALITY_TAA8 && !IS_NAVIGATING(wpd) && !wpd->is_playback)
 #define SPECULAR_HIGHLIGHT_ENABLED(wpd) ((wpd->shading.flag & V3D_SHADING_SPECULAR_HIGHLIGHT) && (!STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)))
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define NORMAL_VIEWPORT_COMP_PASS_ENABLED(wpd) (MATCAP_ENABLED(wpd) || STUDIOLIGHT_ENABLED(wpd) || SHADOW_ENABLED(wpd) || SPECULAR_HIGHLIGHT_ENABLED(wpd))
@@ -174,6 +176,7 @@ typedef struct WORKBENCH_PrivateData {
 	float shadow_near_max[3];
 	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
 	bool shadow_changed;
+	bool is_playback;
 
 	/* Volumes */
 	bool volumes_do;
@@ -184,6 +187,9 @@ typedef struct WORKBENCH_PrivateData {
 	float viewvecs[3][4];
 	float ssao_params[4];
 	float ssao_settings[4];
+
+	/* Color Management */
+	bool use_color_view_settings;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_EffectInfo {

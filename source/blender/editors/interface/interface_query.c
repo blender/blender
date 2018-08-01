@@ -109,9 +109,23 @@ bool ui_block_is_menu(const uiBlock *block)
 	        ((block->flag & UI_BLOCK_KEEP_OPEN) == 0));
 }
 
+bool ui_block_is_popover(const uiBlock *block)
+{
+	return (block->flag & UI_BLOCK_POPOVER) != 0;
+}
+
 bool ui_block_is_pie_menu(const uiBlock *block)
 {
 	return ((block->flag & UI_BLOCK_RADIAL) != 0);
+}
+
+bool ui_block_is_popup_any(const uiBlock *block)
+{
+	return (
+	        ui_block_is_menu(block) ||
+	        ui_block_is_popover(block) ||
+	        ui_block_is_pie_menu(block)
+	);
 }
 
 bool UI_block_is_empty(const uiBlock *block)

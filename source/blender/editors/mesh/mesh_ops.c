@@ -344,22 +344,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "vertex_only", true);
 
-	/* selecting */
-	for (int i = 0; i < 4; i++) {
-		const bool is_extend = (i & 1);
-		const bool is_expand = (i & 2);
-		const int key_modifier = (is_extend ? KM_SHIFT : 0) | (is_expand ? KM_CTRL : 0);
-		for (int j = 0; j < 3; j++) {
-			kmi = WM_keymap_add_item(keymap, "MESH_OT_select_mode", ONEKEY + j, KM_PRESS, key_modifier, 0);
-			RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX << j);
-			if (is_extend) {
-				RNA_boolean_set(kmi->ptr, "use_extend", true);
-			}
-			if (is_expand) {
-				RNA_boolean_set(kmi->ptr, "use_expand", true);
-			}
-		}
-	}
+	/* Selec Vert/Edge/Face. */
+	ED_keymap_editmesh_elem_mode(keyconf, keymap);
 
 	/* standard mouse selection goes via space_view3d */
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_loop_select", SELECTMOUSE, KM_PRESS, KM_ALT, 0);

@@ -29,6 +29,8 @@
  * GPU vertex buffer
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "GPU_vertex_buffer.h"
 
 #include "gpu_context_private.h"
@@ -53,7 +55,7 @@ static GLenum convert_usage_type_to_gl(GPUUsageType type)
 
 GPUVertBuf *GPU_vertbuf_create(GPUUsageType usage)
 {
-	GPUVertBuf *verts = malloc(sizeof(GPUVertBuf));
+	GPUVertBuf *verts = MEM_mallocN(sizeof(GPUVertBuf), "GPUVertBuf");
 	GPU_vertbuf_init(verts, usage);
 	return verts;
 }
@@ -96,9 +98,9 @@ void GPU_vertbuf_discard(GPUVertBuf *verts)
 #endif
 	}
 	if (verts->data) {
-		free(verts->data);
+		MEM_freeN(verts->data);
 	}
-	free(verts);
+	MEM_freeN(verts);
 }
 
 uint GPU_vertbuf_size_get(const GPUVertBuf *verts)
@@ -123,7 +125,7 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 	}
 	/* discard previous data if any */
 	if (verts->data) {
-		free(verts->data);
+		MEM_freeN(verts->data);
 	}
 #if VRAM_USAGE
 	uint new_size = vertex_buffer_size(&verts->format, v_len);
@@ -131,7 +133,7 @@ void GPU_vertbuf_data_alloc(GPUVertBuf *verts, uint v_len)
 #endif
 	verts->dirty = true;
 	verts->vertex_len = verts->vertex_alloc = v_len;
-	verts->data = malloc(sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
+	verts->data = MEM_mallocN(sizeof(GLubyte) * GPU_vertbuf_size_get(verts), "GPUVertBuf data");
 }
 
 /* resize buffer keeping existing data */
@@ -148,7 +150,7 @@ void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 #endif
 	verts->dirty = true;
 	verts->vertex_len = verts->vertex_alloc = v_len;
-	verts->data = realloc(verts->data, sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
+	verts->data = MEM_reallocN(verts->data, sizeof(GLubyte) * GPU_vertbuf_size_get(verts));
 }
 
 /* Set vertex count but does not change allocation.
@@ -250,7 +252,7 @@ static void VertBuffer_upload_data(GPUVertBuf *verts)
 	glBufferSubData(GL_ARRAY_BUFFER, 0, buffer_sz, verts->data);
 
 	if (verts->usage == GPU_USAGE_STATIC) {
-		free(verts->data);
+		MEM_freeN(verts->data);
 		verts->data = NULL;
 	}
 	verts->dirty = false;

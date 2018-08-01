@@ -23,6 +23,8 @@
  *  \ingroup draw_engine
  */
 
+#include "ED_screen.h"
+
 #include "workbench_private.h"
 
 
@@ -32,6 +34,15 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_EffectInfo *effect_info = stl->effects;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	if (draw_ctx->evil_C != NULL) {
+		struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+		wpd->is_playback = ED_screen_animation_playing(wm) != NULL;
+	}
+	else {
+		wpd->is_playback = false;
+	}
 
 	if (TAA_ENABLED(wpd)) {
 		psl->effect_aa_pass = workbench_taa_create_pass(vedata, tx);
@@ -45,7 +56,7 @@ void workbench_aa_create_pass(WORKBENCH_Data *vedata, GPUTexture **tx)
 	}
 }
 
-static void workspace_aa_draw_transform(GPUTexture *tx)
+static void workspace_aa_draw_transform(GPUTexture *tx, WORKBENCH_PrivateData *wpd)
 {
 	if (DRW_state_is_image_render()) {
 		/* Linear result for render. */
@@ -53,7 +64,7 @@ static void workspace_aa_draw_transform(GPUTexture *tx)
 	}
 	else {
 		/* Display space result for viewport. */
-		DRW_transform_to_display(tx);
+		DRW_transform_to_display(tx, wpd->use_color_view_settings);
 	}
 }
 
@@ -68,7 +79,7 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	if (FXAA_ENABLED(wpd)) {
 		GPU_framebuffer_bind(fbl->effect_fb);
-		workspace_aa_draw_transform(tx);
+		workspace_aa_draw_transform(tx, wpd);
 		GPU_framebuffer_bind(dfbl->color_only_fb);
 		DRW_draw_pass(psl->effect_aa_pass);
 	}
@@ -81,11 +92,11 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 		 */
 		if (effect_info->jitter_index == 1) {
 			GPU_framebuffer_bind(dfbl->color_only_fb);
-			workspace_aa_draw_transform(tx);
+			workspace_aa_draw_transform(tx, wpd);
 		}
 		else {
 			GPU_framebuffer_bind(fbl->effect_fb);
-			workspace_aa_draw_transform(tx);
+			workspace_aa_draw_transform(tx, wpd);
 			GPU_framebuffer_bind(dfbl->color_only_fb);
 			DRW_draw_pass(psl->effect_aa_pass);
 		}
@@ -93,6 +104,6 @@ void workbench_aa_draw_pass(WORKBENCH_Data *vedata, GPUTexture *tx)
 	}
 	else {
 		GPU_framebuffer_bind(dfbl->color_only_fb);
-		workspace_aa_draw_transform(tx);
+		workspace_aa_draw_transform(tx, wpd);
 	}
 }

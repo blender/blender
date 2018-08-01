@@ -883,14 +883,9 @@ class CYCLES_CAMERA_PT_dof_viewport(CyclesButtonsPanel, Panel):
         cam = context.camera
         dof_options = cam.gpu_dof
 
-        hq_support = dof_options.is_hq_supported
         sub = flow.column(align=True)
-        subhq = sub.column()
-        subhq.active = hq_support
-        subhq.prop(dof_options, "use_high_quality")
         sub.prop(dof_options, "fstop")
-        if dof_options.use_high_quality and hq_support:
-            sub.prop(dof_options, "blades")
+        sub.prop(dof_options, "blades")
 
 
 class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
@@ -900,7 +895,10 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return (context.material or context.object) and CyclesButtonsPanel.poll(context)
+        if context.active_object and context.active_object.type == 'GPENCIL':
+            return False
+        else:
+            return (context.material or context.object) and CyclesButtonsPanel.poll(context)
 
     def draw(self, context):
         layout = self.layout

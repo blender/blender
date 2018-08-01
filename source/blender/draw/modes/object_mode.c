@@ -165,6 +165,9 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *field_tube_limit;
 	DRWShadingGroup *field_cone_limit;
 
+	/* Grease Pencil */
+	DRWShadingGroup *gpencil_axes;
+
 	/* Speaker */
 	DRWShadingGroup *speaker;
 
@@ -1136,6 +1139,10 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_screenspace_circle_get();
 		stl->g_data->field_curve_sta = shgroup_instance_screen_aligned(psl->non_meshes, geom);
 
+		/* Grease Pencil */
+		geom = DRW_cache_gpencil_axes_get();
+		stl->g_data->gpencil_axes = shgroup_instance(psl->non_meshes, geom);
+
 		/* Speaker */
 		geom = DRW_cache_speaker_get();
 		stl->g_data->speaker = shgroup_instance(psl->non_meshes, geom);
@@ -1663,7 +1670,7 @@ static void DRW_shgroup_forcefield(OBJECT_StorageList *stl, Object *ob, ViewLaye
 			}
 			break;
 		case PFIELD_GUIDE:
-			if (cu && (cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
+			if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path && ob->runtime.curve_cache->path->data) {
 				where_on_path(ob, 0.0f, pd->drawvec1, tmp, NULL, NULL, NULL);
 				where_on_path(ob, 1.0f, pd->drawvec2, tmp, NULL, NULL, NULL);
 			}
@@ -1704,7 +1711,7 @@ static void DRW_shgroup_forcefield(OBJECT_StorageList *stl, Object *ob, ViewLaye
 			DRW_shgroup_call_dynamic_add(stl->g_data->field_vortex, color, &pd->drawvec1, ob->obmat);
 			break;
 		case PFIELD_GUIDE:
-			if (cu && (cu->flag & CU_PATH) && ob->curve_cache->path && ob->curve_cache->path->data) {
+			if (cu && (cu->flag & CU_PATH) && ob->runtime.curve_cache->path && ob->runtime.curve_cache->path->data) {
 				DRW_shgroup_call_dynamic_add(stl->g_data->field_curve_sta, color, &pd->f_strength, ob->obmat);
 				DRW_shgroup_call_dynamic_add(stl->g_data->field_curve_end, color, &pd->f_strength, ob->obmat);
 			}
@@ -1818,6 +1825,14 @@ static void volumes_free_smoke_textures(void)
 		GPU_free_smoke(smd);
 	}
 	BLI_freelistN(&e_data.smoke_domains);
+}
+
+static void DRW_shgroup_gpencil(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
+{
+	float *color;
+	DRW_object_wire_theme_get(ob, view_layer, &color);
+
+	DRW_shgroup_call_dynamic_add(stl->g_data->gpencil_axes, color, &ob->empty_drawsize, ob->obmat);
 }
 
 static void DRW_shgroup_speaker(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
@@ -2444,6 +2459,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				break;
 			}
 			DRW_shgroup_empty(stl, psl, ob, view_layer);
+			break;
+		case OB_GPENCIL:
+			DRW_shgroup_gpencil(stl, ob, view_layer);
 			break;
 		case OB_SPEAKER:
 			if (hide_object_extra) {

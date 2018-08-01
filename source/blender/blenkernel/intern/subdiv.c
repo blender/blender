@@ -42,23 +42,6 @@
 #  include "opensubdiv_topology_refiner_capi.h"
 #endif
 
-#ifdef WITH_OPENSUBDIV
-static void update_subdiv_after_topology_change(Subdiv *subdiv)
-{
-	/* Count ptex faces. */
-	subdiv->num_ptex_faces = subdiv->topology_refiner->getNumPtexFaces(
-	        subdiv->topology_refiner);
-	/* Initialize offset of base faces in ptex indices. */
-	MEM_SAFE_FREE(subdiv->face_ptex_offset);
-	subdiv->face_ptex_offset = MEM_malloc_arrayN(subdiv->num_ptex_faces,
-	                                             sizeof(int),
-	                                             "subdiv ptex offset");
-	subdiv->topology_refiner->fillFacePtexIndexOffset(
-	        subdiv->topology_refiner,
-	        subdiv->face_ptex_offset);
-}
-#endif
-
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)
 {
@@ -79,7 +62,6 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	subdiv->settings = *settings;
 	subdiv->topology_refiner = osd_topology_refiner;
 	subdiv->evaluator = NULL;
-	update_subdiv_after_topology_change(subdiv);
 	BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
 	subdiv->stats = stats;
 	return subdiv;
@@ -113,7 +95,8 @@ void BKE_subdiv_free(Subdiv *subdiv)
 	if (subdiv->topology_refiner != NULL) {
 		openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
 	}
-	MEM_SAFE_FREE(subdiv->face_ptex_offset);
 	MEM_freeN(subdiv);
+#else
+	UNUSED_VARS(subdiv);
 #endif
 }

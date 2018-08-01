@@ -17,19 +17,21 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
-from bpy.types import Menu, Panel, UIList
 
+import bpy
+from bpy.types import (
+    Menu,
+    Panel,
+    UIList,
+)
 from bpy.types import (
     Brush,
     FreestyleLineStyle,
-    Object,
     ParticleSettings,
     Texture,
 )
 
 from rna_prop_ui import PropertyPanel
-
 from .properties_paint_common import brush_texture_settings
 
 
@@ -47,9 +49,9 @@ class TEXTURE_MT_specials(Menu):
 class TEXTURE_UL_texslots(UIList):
 
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        ma = data
         slot = item
         tex = slot.texture if slot else None
+
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if tex:
                 layout.prop(tex, "name", text="", emboss=False, icon_value=icon)
@@ -131,18 +133,18 @@ class TEXTURE_PT_context(TextureButtonsPanel, Panel):
         if not pin_id:
             col.template_texture_user()
 
-        col.separator()
-
         if user or pin_id:
+            col.separator()
+
             if pin_id:
                 col.template_ID(space, "pin_id")
             else:
                 propname = context.texture_user_property.identifier
                 col.template_ID(user, propname, new="texture.new")
 
-            col.separator()
-
             if tex:
+                col.separator()
+
                 split = col.split(percentage=0.2)
                 split.label(text="Type")
                 split.prop(tex, "type", text="")
@@ -179,25 +181,35 @@ class TEXTURE_PT_node_mapping(TextureButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         node = context.texture_node
 
         mapping = node.texture_mapping
 
-        layout.prop(mapping, "vector_type", expand=True)
+        col = flow.column()
+        col.prop(mapping, "vector_type")
 
-        row = layout.row()
+        col.separator()
 
-        row.column().prop(mapping, "translation")
-        row.column().prop(mapping, "rotation")
-        row.column().prop(mapping, "scale")
+        col = col.column(align=True)
+        col.prop(mapping, "mapping_x", text="Projection X")
+        col.prop(mapping, "mapping_y", text="Y")
+        col.prop(mapping, "mapping_z", text="Z")
 
-        layout.label(text="Projection:")
+        col.separator()
 
-        row = layout.row()
-        row.prop(mapping, "mapping_x", text="")
-        row.prop(mapping, "mapping_y", text="")
-        row.prop(mapping, "mapping_z", text="")
+        col = flow.column()
+        col.column().prop(mapping, "translation")
+
+        col = flow.column()
+        col.column().prop(mapping, "rotation")
+
+        col = flow.column()
+        col.column().prop(mapping, "scale")
 
 
 class TextureTypePanel(TextureButtonsPanel):
@@ -216,21 +228,29 @@ class TEXTURE_PT_clouds(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         tex = context.texture
 
-        layout.row().prop(tex, "cloud_type", expand=True)
-        layout.label(text="Noise:")
-        layout.row().prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        split = layout.split()
+        col.separator()
 
-        col = split.column()
+        col.prop(tex, "noise_type", text="Type")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "cloud_type")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(tex, "noise_scale", text="Size")
         col.prop(tex, "noise_depth", text="Depth")
-
-        split.prop(tex, "nabla", text="Nabla")
+        col.prop(tex, "nabla", text="Nabla")
 
 
 class TEXTURE_PT_wood(TextureTypePanel, Panel):
@@ -240,26 +260,34 @@ class TEXTURE_PT_wood(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=False)
 
         tex = context.texture
 
-        layout.row().prop(tex, "noise_basis_2", expand=True)
-        layout.row().prop(tex, "wood_type", expand=True)
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        col = layout.column()
+        col.separator()
+
+        col.prop(tex, "wood_type")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "noise_basis_2", text="Second Basis")
+
+        col = col.column()
         col.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
-        col.label(text="Noise:")
-        col.row().prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        col.prop(tex, "noise_type", text="Type")
 
-        split = layout.split()
-        split.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
+        col.separator()
 
-        col = split.column()
-        col.prop(tex, "noise_scale", text="Size")
-        col.prop(tex, "turbulence")
-
-        split.prop(tex, "nabla")
+        sub = flow.column()
+        sub.active = tex.wood_type in {'RINGNOISE', 'BANDNOISE'}
+        sub.prop(tex, "noise_scale", text="Size")
+        sub.prop(tex, "turbulence")
+        sub.prop(tex, "nabla")
 
 
 class TEXTURE_PT_marble(TextureTypePanel, Panel):
@@ -269,22 +297,29 @@ class TEXTURE_PT_marble(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         tex = context.texture
 
-        layout.row().prop(tex, "marble_type", expand=True)
-        layout.row().prop(tex, "noise_basis_2", expand=True)
-        layout.label(text="Noise:")
-        layout.row().prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        split = layout.split()
+        col.separator()
 
-        col = split.column()
+        col.prop(tex, "marble_type")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "noise_basis_2", text="Second Basis")
+        col.prop(tex, "noise_type", text="Type")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(tex, "noise_scale", text="Size")
         col.prop(tex, "noise_depth", text="Depth")
-
-        col = split.column()
         col.prop(tex, "turbulence")
         col.prop(tex, "nabla")
 
@@ -296,12 +331,16 @@ class TEXTURE_PT_magic(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         tex = context.texture
 
-        row = layout.row()
-        row.prop(tex, "noise_depth", text="Depth")
-        row.prop(tex, "turbulence")
+        col = flow.column()
+        col.prop(tex, "noise_depth", text="Depth")
+
+        col = flow.column()
+        col.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_blend(TextureTypePanel, Panel):
@@ -311,15 +350,19 @@ class TEXTURE_PT_blend(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         tex = context.texture
 
-        layout.prop(tex, "progression")
+        col = flow.column()
+        col.prop(tex, "progression")
 
-        sub = layout.row()
+        col.separator()
 
-        sub.active = (tex.progression in {'LINEAR', 'QUADRATIC', 'EASING', 'RADIAL'})
-        sub.prop(tex, "use_flip_axis", expand=True)
+        col = flow.column()
+        col.active = (tex.progression in {'LINEAR', 'QUADRATIC', 'EASING', 'RADIAL'})
+        col.prop(tex, "use_flip_axis", text="Orientation")
 
 
 class TEXTURE_PT_stucci(TextureTypePanel, Panel):
@@ -329,21 +372,44 @@ class TEXTURE_PT_stucci(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         tex = context.texture
 
-        layout.row().prop(tex, "stucci_type", expand=True)
-        layout.label(text="Noise:")
-        layout.row().prop(tex, "noise_type", text="Type", expand=True)
-        layout.prop(tex, "noise_basis", text="Basis")
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
-        row.prop(tex, "turbulence")
+        col.separator()
+
+        col.row().prop(tex, "stucci_type")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "noise_type", text="Type")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "noise_scale", text="Size")
+        col.prop(tex, "turbulence")
 
 
 class TEXTURE_PT_image(TextureTypePanel, Panel):
     bl_label = "Image"
+    tex_type = 'IMAGE'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        # TODO: maybe expose the template_ID from the template image here.
+        layout = self.layout
+        del layout
+
+
+class TEXTURE_PT_image_settings(TextureTypePanel, Panel):
+    bl_label = "Settings"
+    bl_parent_id = 'TEXTURE_PT_image'
     tex_type = 'IMAGE'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -356,11 +422,13 @@ class TEXTURE_PT_image(TextureTypePanel, Panel):
 
 def texture_filter_common(tex, layout):
     layout.prop(tex, "filter_type", text="Filter Type")
+
     if tex.use_mipmap and tex.filter_type in {'AREA', 'EWA', 'FELINE'}:
+        col = layout.column()
         if tex.filter_type == 'FELINE':
-            layout.prop(tex, "filter_lightprobes", text="Light Probes")
+            col.prop(tex, "filter_lightprobes", text="Light Probes")
         else:
-            layout.prop(tex, "filter_eccentricity", text="Eccentricity")
+            col.prop(tex, "filter_eccentricity", text="Eccentricity")
 
     layout.prop(tex, "filter_size", text="Size")
     layout.prop(tex, "use_filter_size_min", text="Minimum Size")
@@ -376,14 +444,11 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
-        idblock = context_tex_datablock(context)
         tex = context.texture
-        slot = getattr(context, "texture_slot", None)
 
         col = flow.column()
-        col.prop(tex, "use_flip_axis", text="Flip X/Y Axis")
         col.prop(tex, "use_interpolation")
 
         col.separator()
@@ -396,8 +461,7 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
         col.separator()
 
-        col = flow.column()
-        texture_filter_common(tex, col)
+        texture_filter_common(tex, flow)
 
 
 class TEXTURE_PT_image_alpha(TextureTypePanel, Panel):
@@ -433,43 +497,70 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         tex = context.texture
 
-        col = flow.column()
-        col.prop(tex, "extension")
+        col = layout.column()
+        col.prop(tex, "use_flip_axis", text="Flip Axes")
+
+        col.separator()
+
+        subcol = layout.column()
+        subcol.prop(tex, "extension")  # use layout, to keep the same location in case of button cycling.
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         if tex.extension == 'REPEAT':
+
+            col = flow.column()
             sub = col.column(align=True)
             sub.prop(tex, "repeat_x", text="Repeat X")
             sub.prop(tex, "repeat_y", text="Y")
 
+            col = flow.column()
             sub = col.column()
-            sub.prop(tex, "use_mirror_x", text="Mirror X")
             sub.active = (tex.repeat_x > 1)
+            sub.prop(tex, "use_mirror_x", text="Mirror X")
 
             sub = col.column()
-            sub.prop(tex, "use_mirror_y", text="Y")
             sub.active = (tex.repeat_y > 1)
+            sub.prop(tex, "use_mirror_y", text="Y")
 
         elif tex.extension == 'CHECKER':
-            col = layout.column(align=True)
-            col.prop(tex, "use_checker_even", text="Even")
-            col.prop(tex, "use_checker_odd", text="Odd")
+            subcol.separator()
 
-            col = layout.column()
+            col = flow.column()
             col.prop(tex, "checker_distance", text="Distance")
 
-        col = flow.column()
-        sub = col.column(align=True)
-        # col.prop(tex, "crop_rectangle")
-        sub.prop(tex, "crop_min_x", text="Crop Minimum X")
-        sub.prop(tex, "crop_min_y", text="Y")
+            col = flow.column()
+            col.prop(tex, "use_checker_even", text="Tiles Even")
+            col.prop(tex, "use_checker_odd", text="Odd")
+        else:
+            del flow
 
-        sub = col.column(align=True)
-        sub.prop(tex, "crop_max_x", text="Crop Maximum X")
-        sub.prop(tex, "crop_max_y", text="Y")
+
+class TEXTURE_PT_image_mapping_crop(TextureTypePanel, Panel):
+    bl_label = "Crop"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'TEXTURE_PT_image_mapping'
+    tex_type = 'IMAGE'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        tex = context.texture
+
+        col = flow.column(align=True)
+        # col.prop(tex, "crop_rectangle")
+        col.prop(tex, "crop_min_x", text="Minimum X")
+        col.prop(tex, "crop_min_y", text="Y")
+
+        col = flow.column(align=True)
+        col.prop(tex, "crop_max_x", text="Maximum X")
+        col.prop(tex, "crop_max_y", text="Y")
 
 
 class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
@@ -479,33 +570,42 @@ class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         tex = context.texture
 
-        layout.prop(tex, "musgrave_type")
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        split = layout.split()
+        col.separator()
 
-        col = split.column()
+        col.prop(tex, "musgrave_type")
+
+        col.separator()
+
+        col.prop(tex, "noise_scale", text="Size")
+        col.prop(tex, "nabla")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(tex, "dimension_max", text="Dimension")
         col.prop(tex, "lacunarity")
         col.prop(tex, "octaves")
 
+        col.separator()
+
         musgrave_type = tex.musgrave_type
-        col = split.column()
+
+        col = flow.column()
+
         if musgrave_type in {'HETERO_TERRAIN', 'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "offset")
         col.prop(tex, "noise_intensity", text="Intensity")
+
         if musgrave_type in {'RIDGED_MULTIFRACTAL', 'HYBRID_MULTIFRACTAL'}:
             col.prop(tex, "gain")
-
-        layout.label(text="Noise:")
-
-        layout.prop(tex, "noise_basis", text="Basis")
-
-        row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
-        row.prop(tex, "nabla")
 
 
 class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
@@ -515,33 +615,51 @@ class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         tex = context.texture
 
-        split = layout.split()
+        col = flow.column()
+        col.prop(tex, "distance_metric")
 
-        col = split.column()
-        col.label(text="Distance Metric:")
-        col.prop(tex, "distance_metric", text="")
         sub = col.column()
         sub.active = tex.distance_metric == 'MINKOVSKY'
         sub.prop(tex, "minkovsky_exponent", text="Exponent")
-        col.label(text="Coloring:")
-        col.prop(tex, "color_mode", text="")
+
+        sub.separator()
+
+        col = flow.column()
+        col.prop(tex, "color_mode")
         col.prop(tex, "noise_intensity", text="Intensity")
 
-        col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Feature Weights:")
-        sub.prop(tex, "weight_1", text="1", slider=True)
-        sub.prop(tex, "weight_2", text="2", slider=True)
-        sub.prop(tex, "weight_3", text="3", slider=True)
-        sub.prop(tex, "weight_4", text="4", slider=True)
+        col.separator()
 
-        layout.label(text="Noise:")
-        row = layout.row()
-        row.prop(tex, "noise_scale", text="Size")
-        row.prop(tex, "nabla")
+        col = flow.column()
+        col.prop(tex, "noise_scale", text="Size")
+        col.prop(tex, "nabla")
+
+
+class TEXTURE_PT_voronoi_feature_weights(TextureTypePanel, Panel):
+    bl_label = "Feature Weights"
+    bl_parent_id = "TEXTURE_PT_voronoi"
+    tex_type = 'VORONOI'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        tex = context.texture
+
+        col = flow.column(align=True)
+        col.prop(tex, "weight_1", text="First", slider=True)
+        col.prop(tex, "weight_2", text="Second", slider=True)
+
+        sub = flow.column(align=True)
+        sub.prop(tex, "weight_3", text="Third", slider=True)
+        sub.prop(tex, "weight_4", text="Fourth", slider=True)
 
 
 class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
@@ -551,19 +669,24 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
         tex = context.texture
 
-        layout.prop(tex, "noise_distortion")
-        layout.prop(tex, "noise_basis", text="Basis")
+        col = flow.column()
+        col.prop(tex, "noise_basis", text="Noise Basis")
 
-        split = layout.split()
+        col.separator()
 
-        col = split.column()
-        col.prop(tex, "distortion", text="Distortion")
+        col.prop(tex, "noise_distortion", text="Distortion")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(tex, "distortion", text="Amount")
         col.prop(tex, "noise_scale", text="Size")
-
-        split.prop(tex, "nabla")
+        col.prop(tex, "nabla")
 
 
 class TextureSlotPanel(TextureButtonsPanel):
@@ -595,68 +718,64 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         idblock = context_tex_datablock(context)
 
         tex = context.texture_slot
 
-        if not isinstance(idblock, Brush):
-            split = layout.split(percentage=0.3)
-            col = split.column()
-            col.label(text="Coordinates:")
-            col = split.column()
-            col.prop(tex, "texture_coords", text="")
-
-            if tex.texture_coords == 'ORCO':
-                """
-                ob = context.object
-                if ob and ob.type == 'MESH':
-                    split = layout.split(percentage=0.3)
-                    split.label(text="Mesh:")
-                    split.prop(ob.data, "texco_mesh", text="")
-                """
-            elif tex.texture_coords == 'UV':
-                split = layout.split(percentage=0.3)
-                split.label(text="Map:")
-                ob = context.object
-                if ob and ob.type == 'MESH':
-                    split.prop_search(tex, "uv_layer", ob.data, "uv_layers", text="")
-                else:
-                    split.prop(tex, "uv_layer", text="")
-
-            elif tex.texture_coords == 'OBJECT':
-                split = layout.split(percentage=0.3)
-                split.label(text="Object:")
-                split.prop(tex, "object", text="")
-
-            elif tex.texture_coords == 'ALONG_STROKE':
-                split = layout.split(percentage=0.3)
-                split.label(text="Use Tips:")
-                split.prop(tex, "use_tips", text="")
-
         if isinstance(idblock, Brush):
             if context.sculpt_object or context.image_paint_object:
                 brush_texture_settings(layout, idblock, context.sculpt_object)
         else:
+            col = flow.column()
+
+            col.prop(tex, "texture_coords", text="Coordinates")
+
+            # Note: the ORCO case used to call ob.data, "texco_mesh" prop.
+            if tex.texture_coords == 'UV':
+                ob = context.object
+
+                if ob and ob.type == 'MESH':
+                    # Note: TODO prop_search doesn't align on the right.
+                    row = col.row(align=True)
+                    row.prop_search(tex, "uv_layer", ob.data, "uv_layers", text="Map")
+                    row.label(text="", icon='BLANK1')
+                else:
+                    col.prop(tex, "uv_layer", text="Map")
+
+            elif tex.texture_coords == 'OBJECT':
+                col.prop(tex, "object", text="Object")
+
+            elif tex.texture_coords == 'ALONG_STROKE':
+                col.prop(tex, "use_tips", text="Use Tips")
+
+            col.separator()
+
             if isinstance(idblock, FreestyleLineStyle):
-                split = layout.split(percentage=0.3)
-                split.label(text="Projection:")
-                split.prop(tex, "mapping", text="")
+                col = flow.column()
+                col.prop(tex, "mapping", text="Projection")
 
-                split = layout.split(percentage=0.3)
-                split.separator()
-                row = split.row()
-                row.prop(tex, "mapping_x", text="")
-                row.prop(tex, "mapping_y", text="")
-                row.prop(tex, "mapping_z", text="")
+                col.separator()
 
-            row = layout.row()
-            row.column().prop(tex, "offset")
-            row.column().prop(tex, "scale")
+                col = flow.column()
+                col.prop(tex, "mapping_x", text="Mapping X")
+                col.prop(tex, "mapping_y", text="Y")
+                col.prop(tex, "mapping_z", text="Z")
+
+                col.separator()
+
+            col = flow.column(align=True)
+            col.column().prop(tex, "offset")
+
+            col = flow.column(align=True)
+            col.column().prop(tex, "scale")
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, Panel):
     bl_label = "Influence"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
@@ -672,107 +791,126 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
         return (engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
-
         layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
 
         idblock = context_tex_datablock(context)
-
         tex = context.texture_slot
 
         def factor_but(layout, toggle, factor, name):
             row = layout.row(align=True)
-            row.prop(tex, toggle, text="")
+            row.active = getattr(tex, toggle)
+
+            row.prop(tex, factor, text=name, slider=True)
             sub = row.row(align=True)
-            sub.active = getattr(tex, toggle)
-            sub.prop(tex, factor, text=name, slider=True)
+            sub.prop(tex, toggle, text="")
             return sub  # XXX, temp. use_map_normal needs to override.
 
         if isinstance(idblock, ParticleSettings):
-            split = layout.split()
-
-            col = split.column()
-            col.label(text="General:")
-            factor_but(col, "use_map_time", "time_factor", "Time")
+            col = flow.column()
+            factor_but(col, "use_map_time", "time_factor", "General Time")
             factor_but(col, "use_map_life", "life_factor", "Lifetime")
             factor_but(col, "use_map_density", "density_factor", "Density")
             factor_but(col, "use_map_size", "size_factor", "Size")
 
-            col = split.column()
-            col.label(text="Physics:")
-            factor_but(col, "use_map_velocity", "velocity_factor", "Velocity")
+            col.separator()
+
+            col = flow.column()
+            factor_but(col, "use_map_velocity", "velocity_factor", "Physics Velocity")
             factor_but(col, "use_map_damp", "damp_factor", "Damp")
             factor_but(col, "use_map_gravity", "gravity_factor", "Gravity")
             factor_but(col, "use_map_field", "field_factor", "Force Fields")
 
-            layout.label(text="Hair:")
+            col.separator()
 
-            split = layout.split()
-
-            col = split.column()
-            factor_but(col, "use_map_length", "length_factor", "Length")
+            col = flow.column()
+            factor_but(col, "use_map_length", "length_factor", "Hair Length")
             factor_but(col, "use_map_clump", "clump_factor", "Clump")
             factor_but(col, "use_map_twist", "twist_factor", "Twist")
 
-            col = split.column()
+            col = flow.column()
             factor_but(col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude")
             factor_but(col, "use_map_kink_freq", "kink_freq_factor", "Kink Frequency")
             factor_but(col, "use_map_rough", "rough_factor", "Rough")
 
         elif isinstance(idblock, FreestyleLineStyle):
-            split = layout.split()
-
-            col = split.column()
+            col = flow.column()
             factor_but(col, "use_map_color_diffuse", "diffuse_color_factor", "Color")
-            col = split.column()
             factor_but(col, "use_map_alpha", "alpha_factor", "Alpha")
 
-        layout.separator()
-
         if not isinstance(idblock, ParticleSettings):
-            split = layout.split()
+            col = flow.column()
 
-            col = split.column()
             col.prop(tex, "blend_type", text="Blend")
             col.prop(tex, "use_rgb_to_intensity")
+
             # color is used on gray-scale textures even when use_rgb_to_intensity is disabled.
             col.prop(tex, "color", text="")
 
-            col = split.column()
+            col = flow.column()
             col.prop(tex, "invert", text="Negative")
             col.prop(tex, "use_stencil")
 
 
-class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
-    bl_label = "Colors"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
+class TextureColorsPoll:
     @classmethod
     def poll(cls, context):
         tex = context.texture
         return tex and (tex.type != 'NONE' or tex.use_nodes) and (context.engine in cls.COMPAT_ENGINES)
 
+
+class TEXTURE_PT_colors(TextureButtonsPanel, TextureColorsPoll, Panel):
+    bl_label = "Colors"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=False, even_rows=False, align=False)
 
         tex = context.texture
 
-        col = layout.column()
-        sub = col.column(align=True)
-        sub.prop(tex, "factor_red", text="Multiply R")
-        sub.prop(tex, "factor_green", text="G")
-        sub.prop(tex, "factor_blue", text="B")
+        col = flow.column()
+        col.prop(tex, "use_clamp", text="Clamp")
 
+        col = flow.column(align=True)
+        col.prop(tex, "factor_red", text="Multiply R")
+        col.prop(tex, "factor_green", text="G")
+        col.prop(tex, "factor_blue", text="B")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(tex, "intensity")
         col.prop(tex, "contrast")
         col.prop(tex, "saturation")
 
-        col.prop(tex, "use_clamp", text="Clamp")
-        col.prop(tex, "use_color_ramp", text="Ramp")
-        if tex.use_color_ramp:
-            layout.use_property_split = False
+
+class TEXTURE_PT_colors_ramp(TextureButtonsPanel, TextureColorsPoll, Panel):
+    bl_label = "Color Ramp"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'TEXTURE_PT_colors'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw_header(self, context):
+        tex = context.texture
+        self.layout.prop(tex, "use_color_ramp", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        tex = context.texture
+
+        # Note: TODO after creation of a new texture, the template_color_ramp will be blank.
+        #       Possibly needs to be fixed in the template itself.
+        is_active = bool(tex and tex.use_color_ramp)
+        if is_active:
             layout.template_color_ramp(tex, "color_ramp", expand=True)
+        else:
+            layout.alignment = 'RIGHT'
+            layout.label("Please enable the Color Ramp first")
 
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
@@ -792,8 +930,6 @@ classes = (
     TEXTURE_PT_context,
     TEXTURE_PT_node,
     TEXTURE_PT_node_mapping,
-    TEXTURE_PT_mapping,
-    TEXTURE_PT_influence,
     TEXTURE_PT_clouds,
     TEXTURE_PT_wood,
     TEXTURE_PT_marble,
@@ -801,13 +937,19 @@ classes = (
     TEXTURE_PT_blend,
     TEXTURE_PT_stucci,
     TEXTURE_PT_image,
+    TEXTURE_PT_image_settings,
     TEXTURE_PT_image_alpha,
-    TEXTURE_PT_image_sampling,
     TEXTURE_PT_image_mapping,
+    TEXTURE_PT_image_mapping_crop,
+    TEXTURE_PT_image_sampling,
     TEXTURE_PT_musgrave,
     TEXTURE_PT_voronoi,
+    TEXTURE_PT_voronoi_feature_weights,
     TEXTURE_PT_distortednoise,
+    TEXTURE_PT_influence,
+    TEXTURE_PT_mapping,
     TEXTURE_PT_colors,
+    TEXTURE_PT_colors_ramp,
     TEXTURE_PT_custom_props,
 )
 

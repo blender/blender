@@ -70,6 +70,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_fcurve.h"
 #include "BKE_idprop.h"
 #include "BKE_lamp.h"
@@ -716,7 +717,7 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 								if (md) {
 									((CurveModifierData *)md)->object = par;
 								}
-								if (par->curve_cache && par->curve_cache->path == NULL) {
+								if (par->runtime.curve_cache && par->runtime.curve_cache->path == NULL) {
 									DEG_id_tag_update(&par->id, OB_RECALC_DATA);
 								}
 							}
@@ -947,13 +948,13 @@ static int parent_set_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent 
 	return OPERATOR_INTERFACE;
 }
 
-static bool parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool parent_set_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
-	const int type = RNA_enum_get(ptr, "type");
 
 	/* Only show XMirror for PAR_ARMATURE_ENVELOPE and PAR_ARMATURE_AUTO! */
 	if (STREQ(prop_id, "xmirror")) {
+		const int type = RNA_enum_get(op->ptr, "type");
 		if (ELEM(type, PAR_ARMATURE_ENVELOPE, PAR_ARMATURE_AUTO))
 			return true;
 		else
@@ -961,18 +962,6 @@ static bool parent_set_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
 	}
 
 	return true;
-}
-
-static void parent_set_ui(bContext *C, wmOperator *op)
-{
-	uiLayout *layout = op->layout;
-	wmWindowManager *wm = CTX_wm_manager(C);
-	PointerRNA ptr;
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-	/* Main auto-draw call. */
-	uiDefAutoButsRNA(layout, &ptr, parent_set_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 void OBJECT_OT_parent_set(wmOperatorType *ot)
@@ -986,7 +975,7 @@ void OBJECT_OT_parent_set(wmOperatorType *ot)
 	ot->invoke = parent_set_invoke;
 	ot->exec = parent_set_exec;
 	ot->poll = ED_operator_object_active;
-	ot->ui = parent_set_ui;
+	ot->poll_property = parent_set_poll_property;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1621,21 +1610,11 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 /**************************** Make Single User ********************************/
 
-static Object *single_object_users_object(Main *bmain, Scene *scene, Object *ob)
+static Object *single_object_users_object(Main *bmain, Object *ob)
 {
 	/* base gets copy of object */
 	Object *obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 
-	/* remap gpencil parenting */
-
-	if (scene->gpd) {
-		bGPdata *gpd = scene->gpd;
-		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-			if (gpl->parent == ob) {
-				gpl->parent = obn;
-			}
-		}
-	}
 
 	id_us_plus(&obn->id);
 	id_us_min(&ob->id);
@@ -1660,7 +1639,7 @@ static void single_object_users_collection(Main *bmain, Scene *scene, Collection
 		/* an object may be in more than one collection */
 		if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
 			if (!ID_IS_LINKED(ob) && ob->id.us > 1) {
-				cob->ob = single_object_users_object(bmain, scene, cob->ob);
+				cob->ob = single_object_users_object(bmain, cob->ob);
 			}
 		}
 	}
@@ -1714,6 +1693,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 	/* collection pointers in scene */
 	BKE_scene_groups_relink(scene);
 
+	/* active camera */
 	ID_NEW_REMAP(scene->camera);
 	if (v3d) ID_NEW_REMAP(v3d->camera);
 
@@ -1809,13 +1789,16 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 					case OB_ARMATURE:
 						DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 						ob->data = ID_NEW_SET(ob->data, BKE_armature_copy(bmain, ob->data));
-						BKE_pose_rebuild(bmain, ob, ob->data);
+						BKE_pose_rebuild(bmain, ob, ob->data, true);
 						break;
 					case OB_SPEAKER:
 						ob->data = ID_NEW_SET(ob->data, BKE_speaker_copy(bmain, ob->data));
 						break;
 					case OB_LIGHTPROBE:
 						ob->data = ID_NEW_SET(ob->data, BKE_lightprobe_copy(bmain, ob->data));
+						break;
+					case OB_GPENCIL:
+						ob->data = ID_NEW_SET(ob->data, BKE_gpencil_copy(bmain, ob->data));
 						break;
 					default:
 						printf("ERROR %s: can't copy %s\n", __func__, id->name);
@@ -1950,10 +1933,6 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 			for (bNode *node = scene->nodetree->nodes.first; node; node = node->next) {
 				IDP_RelinkProperty(node->prop);
 			}
-		}
-
-		if (scene->gpd) {
-			IDP_RelinkProperty(scene->gpd->id.properties);
 		}
 
 		if (scene->world) {
@@ -2329,6 +2308,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 			if (new_ob != NULL && new_ob->id.override_static != NULL) {
 				if ((base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL) {
 					BKE_collection_object_add_from(bmain, scene, obcollection, new_ob);
+					base = BKE_view_layer_base_find(view_layer, new_ob);
 					DEG_id_tag_update_ex(bmain, &new_ob->id, DEG_TAG_TRANSFORM | DEG_TAG_BASE_FLAGS_UPDATE);
 				}
 				/* parent to 'collection' empty */

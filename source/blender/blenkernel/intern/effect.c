@@ -163,10 +163,10 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
 	if (eff->pd->forcefield == PFIELD_GUIDE && eff->ob->type==OB_CURVE) {
 		Curve *cu= eff->ob->data;
 		if (cu->flag & CU_PATH) {
-			if (eff->ob->curve_cache == NULL || eff->ob->curve_cache->path==NULL || eff->ob->curve_cache->path->data==NULL)
+			if (eff->ob->runtime.curve_cache == NULL || eff->ob->runtime.curve_cache->path==NULL || eff->ob->runtime.curve_cache->path->data==NULL)
 				BKE_displist_make_curveTypes(depsgraph, eff->scene, eff->ob, 0);
 
-			if (eff->ob->curve_cache->path && eff->ob->curve_cache->path->data) {
+			if (eff->ob->runtime.curve_cache->path && eff->ob->runtime.curve_cache->path->data) {
 				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);
 				mul_m4_v3(eff->ob->obmat, eff->guide_loc);
 				mul_mat3_m4_v3(eff->ob->obmat, eff->guide_dir);

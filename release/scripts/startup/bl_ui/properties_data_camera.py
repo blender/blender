@@ -88,7 +88,7 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
             if cam.lens_unit == 'MILLIMETERS':
                 col.prop(cam, "lens")
             elif cam.lens_unit == 'FOV':
-                row.prop(cam, "angle")
+                col.prop(cam, "angle")
             col.prop(cam, "lens_unit")
 
         elif cam.type == 'ORTHO':
@@ -250,15 +250,10 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
             col.prop(dof_options, "rotation")
             col.prop(dof_options, "ratio")
         else:
-            hq_support = dof_options.is_hq_supported
             col = flow.column()
             col.label("Viewport")
-            sub = col.column()
-            sub.active = hq_support
-            sub.prop(dof_options, "use_high_quality")
             col.prop(dof_options, "fstop")
-            if dof_options.use_high_quality and hq_support:
-                col.prop(dof_options, "blades")
+            col.prop(dof_options, "blades")
 
 
 class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):

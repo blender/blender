@@ -36,6 +36,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -335,11 +336,17 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 
 	v3d->flag = V3D_SELECT_OUTLINE;
-	v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_GPENCIL;
+	v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_ANNOTATION;
 
 	v3d->lens = 50.0f;
 	v3d->near = 0.01f;
 	v3d->far = 1000.0f;
+
+	v3d->overlay.gpencil_grid_scale = 1.0; // Scales
+	v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES; // NUmber of Lines
+	v3d->overlay.gpencil_paper_opacity = 0.5f;
+	v3d->overlay.gpencil_grid_axis = V3D_GP_GRID_AXIS_Y;
+	v3d->overlay.gpencil_grid_opacity = 0.9f;
 
 	v3d->bundle_size = 0.2f;
 	v3d->bundle_drawtype = OB_PLAINAXES;
@@ -349,6 +356,10 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->stereo3d_flag |= V3D_S3D_DISPPLANE;
 	v3d->stereo3d_convergence_alpha = 0.15f;
 	v3d->stereo3d_volume_alpha = 0.05f;
+
+	/* grease pencil settings */
+	v3d->vertex_opacity = 1.0f;
+	v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for view3d");
@@ -1406,7 +1417,7 @@ static void space_view3d_listener(
 			switch (wmn->data) {
 				case ND_WORLD_DRAW:
 				case ND_WORLD:
-					if (v3d->flag3 & V3D_SHOW_WORLD)
+					if (v3d->shading.background_type & V3D_SHADING_BACKGROUND_WORLD)
 						ED_area_tag_redraw_regiontype(sa, RGN_TYPE_WINDOW);
 					break;
 			}

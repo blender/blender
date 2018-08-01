@@ -681,7 +681,7 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 	/* so all users of this armature should get rebuilt */
 	for (obt = bmain->object.first; obt; obt = obt->id.next) {
 		if (obt->data == arm) {
-			BKE_pose_rebuild(bmain, obt, arm);
+			BKE_pose_rebuild(bmain, obt, arm, true);
 		}
 	}
 

@@ -268,6 +268,7 @@ rbConstraint *RB_constraint_new_slider(float pivot[3], float orn[4], rbRigidBody
 rbConstraint *RB_constraint_new_piston(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 rbConstraint *RB_constraint_new_6dof(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
+rbConstraint *RB_constraint_new_6dof_spring2(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 rbConstraint *RB_constraint_new_motor(float pivot[3], float orn[4], rbRigidBody *rb1, rbRigidBody *rb2);
 
 /* ............ */
@@ -299,11 +300,17 @@ void RB_constraint_set_limits_piston(rbConstraint *con, float lin_lower, float l
 void RB_constraint_set_limits_6dof(rbConstraint *con, int axis, float lower, float upper);
 
 /* 6dof spring specific */
-void RB_constraint_set_limits_6dof_spring(rbConstraint *con, int axis, float lower, float upper);
 void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis, float stiffness);
 void RB_constraint_set_damping_6dof_spring(rbConstraint *con, int axis, float damping);
 void RB_constraint_set_spring_6dof_spring(rbConstraint *con, int axis, int enable);
 void RB_constraint_set_equilibrium_6dof_spring(rbConstraint *con);
+
+/* 6dof spring 2 specific */
+void RB_constraint_set_limits_6dof_spring2(rbConstraint *con, int axis, float lower, float upper);
+void RB_constraint_set_stiffness_6dof_spring2(rbConstraint *con, int axis, float stiffness);
+void RB_constraint_set_damping_6dof_spring2(rbConstraint *con, int axis, float damping);
+void RB_constraint_set_spring_6dof_spring2(rbConstraint *con, int axis, int enable);
+void RB_constraint_set_equilibrium_6dof_spring2(rbConstraint *con);
 
 /* motors */
 void RB_constraint_set_enable_motor(rbConstraint *con, int enable_lin, int enable_ang);

@@ -207,7 +207,7 @@ void BKE_mball_texspace_calc(Object *ob)
 	(min)[0] = (min)[1] = (min)[2] = 1.0e30f;
 	(max)[0] = (max)[1] = (max)[2] = -1.0e30f;
 
-	dl = ob->curve_cache->disp.first;
+	dl = ob->runtime.curve_cache->disp.first;
 	while (dl) {
 		tot = dl->nr;
 		if (tot) do_it = true;

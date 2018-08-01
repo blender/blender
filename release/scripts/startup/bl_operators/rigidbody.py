@@ -60,7 +60,7 @@ class CopyRigidbodySettings(Operator):
 
     def execute(self, context):
         obj_act = context.object
-        scene = context.scene
+        view_layer = context.view_layer
 
         # deselect all but mesh objects
         for o in context.selected_objects:
@@ -68,9 +68,9 @@ class CopyRigidbodySettings(Operator):
                 o.select_set(action='DESELECT')
             elif o.rigid_body is None:
                 # Add rigidbody to object!
-                scene.objects.active = o
+                view_layer.objects.active = o
                 bpy.ops.rigidbody.object_add()
-        scene.objects.active = obj_act
+        view_layer.objects.active = obj_act
 
         objects = context.selected_objects
         if objects:
@@ -265,7 +265,7 @@ class ConnectRigidBodies(Operator):
         ob = bpy.data.objects.new("Constraint", object_data=None)
         ob.location = loc
         context.scene.objects.link(ob)
-        context.scene.objects.active = ob
+        context.view_layer.objects.active = ob
         ob.select_set(action='SELECT')
 
         bpy.ops.rigidbody.constraint_add()
@@ -278,7 +278,7 @@ class ConnectRigidBodies(Operator):
         con.object2 = object2
 
     def execute(self, context):
-        scene = context.scene
+        view_layer = context.view_layer
         objects = context.selected_objects
         obj_act = context.active_object
         change = False
@@ -312,7 +312,7 @@ class ConnectRigidBodies(Operator):
             bpy.ops.object.select_all(action='DESELECT')
             for obj in objects:
                 obj.select_set(action='SELECT')
-            scene.objects.active = obj_act
+            view_layer.objects.active = obj_act
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, "No other objects selected")

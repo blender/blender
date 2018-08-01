@@ -52,7 +52,7 @@ AbcMBallWriter::AbcMBallWriter(
 	m_is_animated = isAnimated();
 
 	m_mesh_ob = BKE_object_copy(bmain, ob);
-	m_mesh_ob->curve_cache = (CurveCache *)MEM_callocN(
+	m_mesh_ob->runtime.curve_cache = (CurveCache *)MEM_callocN(
 	                             sizeof(CurveCache),
 	                             "CurveCache for AbcMBallWriter");
 

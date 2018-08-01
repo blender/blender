@@ -77,7 +77,8 @@ typedef enum ePaintMode {
 	ePaintTextureProjective = 3,
 	ePaintTexture2D = 4,
 	ePaintSculptUV = 5,
-	ePaintInvalid = 6
+	ePaintInvalid = 6,
+	ePaintGpencil = 7
 } ePaintMode;
 
 /* overlay invalidation */

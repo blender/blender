@@ -26,14 +26,7 @@
 
 #include <Alembic/AbcGeom/All.h>
 #include <algorithm>
-
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #include <unordered_map>
-typedef std::unordered_map<uint64_t, int> uv_index_map;
-#else
-#include <map>
-typedef std::map<uint64_t, int> uv_index_map;
-#endif
 
 extern "C" {
 #include "DNA_customdata_types.h"
@@ -59,6 +52,8 @@ using Alembic::Abc::V2fArraySample;
 using Alembic::AbcGeom::OV2fGeomParam;
 using Alembic::AbcGeom::OC4fGeomParam;
 
+
+typedef std::unordered_map<uint64_t, int> uv_index_map;
 
 static inline uint64_t uv_to_hash_key(Imath::V2f v)
 {

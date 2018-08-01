@@ -881,7 +881,7 @@ void ED_view3d_draw_depth_gpencil(
 
 	GPU_depth_test(true);
 
-	if (v3d->flag2 & V3D_SHOW_GPENCIL) {
+	if (v3d->flag2 & V3D_SHOW_ANNOTATION) {
 		ED_gpencil_draw_view3d(NULL, scene, view_layer, depsgraph, v3d, ar, true);
 	}
 

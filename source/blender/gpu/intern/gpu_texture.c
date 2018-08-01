@@ -160,6 +160,8 @@ static int gpu_get_component_count(GPUTextureFormat format)
 /* Definitely not complete, edit according to the gl specification. */
 static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat data_format)
 {
+	(void)data_format;
+
 	if (ELEM(tex_format,
 	         GPU_DEPTH_COMPONENT24,
 	         GPU_DEPTH_COMPONENT16,
@@ -432,6 +434,11 @@ static bool gpu_texture_try_alloc(
 			glTexImage2D(proxy, 0, internalformat, tex->w, tex->h, 0, data_format, data_type, NULL);
 			break;
 		case GL_PROXY_TEXTURE_2D_ARRAY:
+			/* HACK: Some driver wrongly check GL_PROXY_TEXTURE_2D_ARRAY as a GL_PROXY_TEXTURE_3D
+			 * checking all dimensions against GPU_max_texture_layers (see T55888). */
+			return (tex->w > 0) && (tex->w <= GPU_max_texture_size()) &&
+			       (tex->h > 0) && (tex->h <= GPU_max_texture_size()) &&
+			       (tex->d > 0) && (tex->d <= GPU_max_texture_layers());
 		case GL_PROXY_TEXTURE_3D:
 			glTexImage3D(proxy, 0, internalformat, tex->w, tex->h, tex->d, 0, data_format, data_type, NULL);
 			break;

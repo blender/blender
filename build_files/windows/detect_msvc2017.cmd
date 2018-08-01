@@ -10,8 +10,8 @@ set vs_where=%ProgramFilesX86%\Microsoft Visual Studio\Installer\vswhere.exe
 if not exist "%vs_where%" (
 	if NOT "%verbose%" == "" (
 		echo Visual Studio 2017 ^(15.2 or newer^) is not detected
-		goto FAIL
 	)
+	goto FAIL
 )
 
 if NOT "%verbose%" == "" (

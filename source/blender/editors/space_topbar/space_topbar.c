@@ -168,6 +168,10 @@ static void topbar_main_region_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(s
 			if (wmn->data == ND_SPACE_VIEW3D)
 				ED_region_tag_redraw(ar);
 			break;
+		case NC_GPENCIL:
+			if (wmn->data == ND_DATA)
+				ED_region_tag_redraw(ar);
+			break;
 	}
 }
 

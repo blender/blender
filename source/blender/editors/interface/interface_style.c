@@ -522,6 +522,35 @@ void uiStyleInit(void)
 
 	BLF_size(blf_mono_font, 12 * U.pixelsize, 72);
 
+	/* Set default flags based on UI preferences (not render fonts) */
+	{
+		int flag_enable = 0, flag_disable = 0;
+		if ((U.text_render & USER_TEXT_DISABLE_HINTING) == 0) {
+			flag_enable |= BLF_HINTING;
+		}
+		else {
+			flag_disable |= BLF_HINTING;
+		}
+
+		if (U.text_render & USER_TEXT_DISABLE_AA) {
+			flag_enable |= BLF_MONOCHROME;
+		}
+		else {
+			flag_disable |= BLF_MONOCHROME;
+		}
+
+		for (font = U.uifonts.first; font; font = font->next) {
+			if (font->blf_id != -1) {
+				BLF_enable(font->blf_id, flag_enable);
+				BLF_disable(font->blf_id, flag_disable);
+			}
+		}
+		if (blf_mono_font != -1) {
+			BLF_enable(blf_mono_font, flag_enable);
+			BLF_disable(blf_mono_font, flag_disable);
+		}
+	}
+
 	/**
 	 * Second for rendering else we get threading problems,
 	 *

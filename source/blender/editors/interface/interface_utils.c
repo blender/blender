@@ -159,7 +159,7 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
  */
 eAutoPropButsReturn uiDefAutoButsRNA(
         uiLayout *layout, PointerRNA *ptr,
-        bool (*check_prop)(PointerRNA *, PropertyRNA *),
+        bool (*check_prop)(PointerRNA *ptr, PropertyRNA *prop, void *user_data), void *user_data,
         const eButLabelAlign label_align, const bool compact)
 {
 	eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
@@ -174,7 +174,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(
 		if (flag & PROP_HIDDEN) {
 			continue;
 		}
-		if (check_prop && check_prop(ptr, prop) == 0) {
+		if (check_prop && check_prop(ptr, prop, user_data) == 0) {
 			return_info |= UI_PROP_BUTS_ANY_FAILED_CHECK;
 			continue;
 		}

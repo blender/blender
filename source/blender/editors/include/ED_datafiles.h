@@ -42,6 +42,9 @@ extern char datatoc_preview_blend[];
 extern int datatoc_preview_cycles_blend_size;
 extern char datatoc_preview_cycles_blend[];
 
+extern int datatoc_preview_grease_pencil_blend_size;
+extern char datatoc_preview_grease_pencil_blend[];
+
 extern int datatoc_blender_icons16_png_size;
 extern char datatoc_blender_icons16_png[];
 
@@ -239,6 +242,66 @@ extern char datatoc_mc23_jpg[];
 extern int datatoc_mc24_jpg_size;
 extern char datatoc_mc24_jpg[];
 
+/* grease pencil sculpt brushes files */
 
+extern int datatoc_gp_brush_smooth_png_size;
+extern char datatoc_gp_brush_smooth_png[];
+
+extern int datatoc_gp_brush_thickness_png_size;
+extern char datatoc_gp_brush_thickness_png[];
+
+extern int datatoc_gp_brush_strength_png_size;
+extern char datatoc_gp_brush_strength_png[];
+
+extern int datatoc_gp_brush_grab_png_size;
+extern char datatoc_gp_brush_grab_png[];
+
+extern int datatoc_gp_brush_push_png_size;
+extern char datatoc_gp_brush_push_png[];
+
+extern int datatoc_gp_brush_twist_png_size;
+extern char datatoc_gp_brush_twist_png[];
+
+extern int datatoc_gp_brush_pinch_png_size;
+extern char datatoc_gp_brush_pinch_png[];
+
+extern int datatoc_gp_brush_randomize_png_size;
+extern char datatoc_gp_brush_randomize_png[];
+
+extern int datatoc_gp_brush_clone_png_size;
+extern char datatoc_gp_brush_clone_png[];
+
+extern int datatoc_gp_brush_weight_png_size;
+extern char datatoc_gp_brush_weight_png[];
+
+extern int datatoc_gp_brush_pencil_png_size;
+extern char datatoc_gp_brush_pencil_png[];
+
+extern int datatoc_gp_brush_pen_png_size;
+extern char datatoc_gp_brush_pen_png[];
+
+extern int datatoc_gp_brush_ink_png_size;
+extern char datatoc_gp_brush_ink_png[];
+
+extern int datatoc_gp_brush_inknoise_png_size;
+extern char datatoc_gp_brush_inknoise_png[];
+
+extern int datatoc_gp_brush_block_png_size;
+extern char datatoc_gp_brush_block_png[];
+
+extern int datatoc_gp_brush_marker_png_size;
+extern char datatoc_gp_brush_marker_png[];
+
+extern int datatoc_gp_brush_fill_png_size;
+extern char datatoc_gp_brush_fill_png[];
+
+extern int datatoc_gp_brush_erase_soft_png_size;
+extern char datatoc_gp_brush_erase_soft_png[];
+
+extern int datatoc_gp_brush_erase_hard_png_size;
+extern char datatoc_gp_brush_erase_hard_png[];
+
+extern int datatoc_gp_brush_erase_stroke_png_size;
+extern char datatoc_gp_brush_erase_stroke_png[];
 
 #endif /* __ED_DATAFILES_H__ */

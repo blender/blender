@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_vertex_array_id.cpp
+/** \file blender/gpu/intern/gpu_context.cpp
  *  \ingroup gpu
  *
  * Manage GL vertex array IDs in a thread-safe way
@@ -69,6 +69,7 @@ static std::mutex orphans_mutex;
 
 struct GPUContext {
 	GLuint default_vao;
+	GPUFrameBuffer *current_fbo;
 	std::unordered_set<GPUBatch *> batches; /* Batches that have VAOs from this context */
 #ifdef DEBUG
 	std::unordered_set<GPUFrameBuffer *> framebuffers; /* Framebuffers that have FBO from this context */
@@ -82,6 +83,7 @@ struct GPUContext {
 
 	GPUContext() {
 		thread_is_used = false;
+		current_fbo = 0;
 	}
 #endif
 };
@@ -314,4 +316,14 @@ void gpu_context_remove_framebuffer(GPUContext *ctx, GPUFrameBuffer *fb)
 #else
 	UNUSED_VARS(ctx, fb);
 #endif
+}
+
+void gpu_context_active_framebuffer_set(GPUContext *ctx, GPUFrameBuffer *fb)
+{
+	ctx->current_fbo = fb;
+}
+
+GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx)
+{
+	return ctx->current_fbo;
 }

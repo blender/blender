@@ -54,11 +54,13 @@ void BKE_material_init(struct Material *ma);
 void BKE_material_remap_object(struct Object *ob, const unsigned int *remap);
 void BKE_material_remap_object_calc(struct  Object *ob_dst, struct Object *ob_src, short *remap_src_to_dst);
 struct Material *BKE_material_add(struct Main *bmain, const char *name);
+struct Material *BKE_material_add_gpencil(struct Main *bmain, const char *name);
 void BKE_material_copy_data(struct Main *bmain, struct Material *ma_dst, const struct Material *ma_src, const int flag);
 struct Material *BKE_material_copy(struct Main *bmain, const struct Material *ma);
 struct Material *BKE_material_localize(struct Material *ma);
 struct Material *give_node_material(struct Material *ma); /* returns node material or self */
 void BKE_material_make_local(struct Main *bmain, struct Material *ma, const bool lib_local);
+void BKE_material_init_gpencil_settings(struct Material *ma);
 
 /* UNUSED */
 // void automatname(struct Material *);
@@ -86,6 +88,8 @@ void assign_matarar(struct Main *bmain, struct Object *ob, struct Material ***ma
 short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma);
 bool  BKE_object_material_slot_add(struct Main *bmain, struct Object *ob);
 bool  BKE_object_material_slot_remove(struct Main *bmain, struct Object *ob);
+
+struct MaterialGPencilStyle *BKE_material_gpencil_settings_get(struct Object *ob, short act);
 
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);

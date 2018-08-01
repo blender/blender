@@ -75,6 +75,7 @@ typedef struct POSE_PrivateData {
 	DRWShadingGroup *bone_selection_invert_shgrp;
 	float blend_color[4];
 	float blend_color_invert[4];
+	bool transparent_bones;
 } POSE_PrivateData; /* Transient data */
 
 static struct {
@@ -112,9 +113,10 @@ static void POSE_cache_init(void *vedata)
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
 	POSE_PrivateData *ppd = stl->g_data;
+	ppd->transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 
 	{
 		/* Solid bones */
@@ -195,7 +197,7 @@ static bool POSE_is_driven_by_active_armature(Object *ob)
 static void POSE_cache_populate(void *vedata, Object *ob)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
-	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
+	POSE_PrivateData *ppd = ((POSE_Data *)vedata)->stl->g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	/* In the future this will allow us to implement face gizmos,
@@ -214,7 +216,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 			    .bone_axes = psl->bone_axes,
 			    .relationship_lines = psl->relationship,
 			};
-			DRW_shgroup_armature_pose(ob, passes);
+			DRW_shgroup_armature_pose(ob, passes, ppd->transparent_bones);
 		}
 	}
 	else if (ob->type == OB_MESH &&
@@ -224,10 +226,10 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			if (POSE_is_driven_by_active_armature(ob)) {
-				DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);
+				DRW_shgroup_call_object_add(ppd->bone_selection_shgrp, geom, ob);
 			}
 			else {
-				DRW_shgroup_call_object_add(stl->g_data->bone_selection_invert_shgrp, geom, ob);
+				DRW_shgroup_call_object_add(ppd->bone_selection_invert_shgrp, geom, ob);
 			}
 		}
 	}

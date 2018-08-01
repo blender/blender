@@ -170,52 +170,86 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			if (ts->gp_sculpt.brush[0].size == 0) {
 				GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
 				GP_EditBrush_Data *brush;
+				float curcolor_add[3], curcolor_sub[3];
+				ARRAY_SET_ITEMS(curcolor_add, 1.0f, 0.6f, 0.6f);
+				ARRAY_SET_ITEMS(curcolor_sub, 0.6f, 0.6f, 1.0f);
+
+				/* default sculpt brush */
+				gset->brushtype = GP_EDITBRUSH_TYPE_PUSH;
+				/* default weight paint brush */
+				gset->weighttype = GP_EDITBRUSH_TYPE_WEIGHT;
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_SMOOTH];
 				brush->size = 25;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_THICKNESS];
 				brush->size = 25;
 				brush->strength = 0.5f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_STRENGTH];
 				brush->size = 25;
 				brush->strength = 0.5f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_GRAB];
 				brush->size = 50;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_PUSH];
 				brush->size = 25;
 				brush->strength = 0.3f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_TWIST];
 				brush->size = 50;
 				brush->strength = 0.3f; // XXX?
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_PINCH];
 				brush->size = 50;
 				brush->strength = 0.5f; // XXX?
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 
 				brush = &gset->brush[GP_EDITBRUSH_TYPE_RANDOMIZE];
 				brush->size = 25;
 				brush->strength = 0.5f;
-				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
+
+				brush = &gset->brush[GP_EDITBRUSH_TYPE_WEIGHT];
+				brush->size = 25;
+				brush->strength = 0.5f;
+				brush->flag = GP_EDITBRUSH_FLAG_USE_FALLOFF | GP_EDITBRUSH_FLAG_ENABLE_CURSOR;
+				copy_v3_v3(brush->curcolor_add, curcolor_add);
+				copy_v3_v3(brush->curcolor_sub, curcolor_sub);
 			}
 
 			ts->gpencil_v3d_align = GP_PROJECT_VIEWSPACE;
 			ts->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
 			ts->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
 			ts->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
+
+			ts->annotate_v3d_align = GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR;
+			ts->annotate_thickness = 3;
 
 			ParticleEditSettings *pset = &ts->particle;
 			for (int a = 0; a < ARRAY_SIZE(pset->brush); a++) {
@@ -406,6 +440,23 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 
 		for (Lamp *la = bmain->lamp.first; la; la = la->id.next) {
 			la->energy = 10.0;
+		}
+	}
+	/* default grease pencil settings */
+	{
+		for (bScreen *sc = bmain->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->gp_flag |= V3D_GP_SHOW_EDIT_LINES;
+						v3d->gp_flag |= V3D_GP_SHOW_MULTIEDIT_LINES;
+						v3d->gp_flag |= V3D_GP_SHOW_ONION_SKIN;
+						v3d->vertex_opacity = 0.9f;
+						break;
+					}
+				}
+			}
 		}
 	}
 }

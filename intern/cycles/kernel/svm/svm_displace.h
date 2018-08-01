@@ -75,6 +75,8 @@ ccl_device void svm_node_set_bump(KernelGlobals *kg, ShaderData *sd, float *stac
 		object_normal_transform(kg, sd, &normal_out);
 	}
 
+	normal_out = ensure_valid_reflection(sd->Ng, sd->I, normal_out);
+
 	stack_store_float3(stack, node.w, normal_out);
 #endif
 }

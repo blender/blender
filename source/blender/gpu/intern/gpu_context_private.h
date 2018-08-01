@@ -61,6 +61,9 @@ void gpu_context_remove_batch(GPUContext *ctx, GPUBatch *batch);
 void gpu_context_add_framebuffer(GPUContext *ctx, struct GPUFrameBuffer *fb);
 void gpu_context_remove_framebuffer(GPUContext *ctx, struct GPUFrameBuffer *fb);
 
+void gpu_context_active_framebuffer_set(GPUContext *ctx, struct GPUFrameBuffer *fb);
+struct GPUFrameBuffer *gpu_context_active_framebuffer_get(GPUContext *ctx);
+
 #ifdef __cplusplus
 }
 #endif

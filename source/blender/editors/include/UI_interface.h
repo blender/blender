@@ -772,7 +772,7 @@ typedef enum {
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
 eAutoPropButsReturn uiDefAutoButsRNA(
         uiLayout *layout, struct PointerRNA *ptr,
-        bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
+        bool (*check_prop)(struct PointerRNA *ptr, struct PropertyRNA *prop, void *user_data), void *user_data,
         eButLabelAlign label_align, const bool compact);
 
 /* use inside searchfunc to add items */
@@ -935,6 +935,7 @@ enum {
 	UI_TEMPLATE_OP_PROPS_SHOW_TITLE       = (1 << 0),
 	UI_TEMPLATE_OP_PROPS_SHOW_EMPTY       = (1 << 1),
 	UI_TEMPLATE_OP_PROPS_COMPACT          = (1 << 2),
+	UI_TEMPLATE_OP_PROPS_HIDE_ADVANCED    = (1 << 3),
 };
 
 /* used for transp checkers */
@@ -1021,7 +1022,8 @@ uiLayout *uiLayoutRadial(uiLayout *layout);
 void uiTemplateHeader(uiLayout *layout, struct bContext *C);
 void uiTemplateID(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *unlinkop, int filter);
+        const char *newop, const char *openop, const char *unlinkop,
+        int filter, const bool live_icon);
 void uiTemplateIDBrowse(
         uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
         const char *newop, const char *openop, const char *unlinkop, int filter);
@@ -1051,6 +1053,12 @@ void uiTemplatePathBuilder(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,
         struct PointerRNA *root_ptr, const char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+uiLayout *uiTemplateGpencilModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
+void uiTemplateGpencilColorPreview(
+	uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname,
+	int rows, int cols, float scale, int filter);
+
+uiLayout *uiTemplateShaderFx(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
 
 void uiTemplateOperatorRedoProperties(uiLayout *layout, const struct bContext *C);
 
@@ -1085,7 +1093,6 @@ void UI_but_func_operator_search(uiBut *but);
 void uiTemplateOperatorSearch(uiLayout *layout);
 eAutoPropButsReturn uiTemplateOperatorPropertyButs(
         const struct bContext *C, uiLayout *layout, struct wmOperator *op,
-        bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
         const eButLabelAlign label_align, const short flag);
 void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);

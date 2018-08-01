@@ -134,10 +134,6 @@ void DepsgraphNodeBuilder::build_view_layer(
 	if (scene->nodetree != NULL) {
 		build_compositor(scene);
 	}
-	/* Grease pencil. */
-	if (scene->gpd != NULL) {
-		build_gpencil(scene->gpd);
-	}
 	/* Cache file. */
 	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);

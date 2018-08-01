@@ -29,6 +29,8 @@
  * GPU element list (AKA index buffer)
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "GPU_element.h"
 
 #include "gpu_context_private.h"
@@ -70,7 +72,7 @@ void GPU_indexbuf_init_ex(
 	builder->max_index_len = index_len;
 	builder->index_len = 0; // start empty
 	builder->prim_type = prim_type;
-	builder->data = calloc(builder->max_index_len, sizeof(uint));
+	builder->data = MEM_callocN(builder->max_index_len * sizeof(uint), "GPUIndexBuf data");
 }
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder, GPUPrimType prim_type, uint prim_len, uint vertex_len)
@@ -243,7 +245,7 @@ static void squeeze_indices_short(GPUIndexBufBuilder *builder, GPUIndexBuf *elem
 
 GPUIndexBuf *GPU_indexbuf_build(GPUIndexBufBuilder *builder)
 {
-	GPUIndexBuf *elem = calloc(1, sizeof(GPUIndexBuf));
+	GPUIndexBuf *elem = MEM_callocN(sizeof(GPUIndexBuf), "GPUIndexBuf");
 	GPU_indexbuf_build_in_place(builder, elem);
 	return elem;
 }
@@ -290,7 +292,7 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *builder, GPUIndexBuf *elem)
 	glBufferData(GL_ARRAY_BUFFER, GPU_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
 
 	/* discard builder (one-time use) */
-	free(builder->data);
+	MEM_freeN(builder->data);
 	builder->data = NULL;
 	/* other fields are safe to leave */
 }
@@ -305,5 +307,5 @@ void GPU_indexbuf_discard(GPUIndexBuf *elem)
 	if (elem->vbo_id) {
 		GPU_buf_free(elem->vbo_id);
 	}
-	free(elem);
+	MEM_freeN(elem);
 }

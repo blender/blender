@@ -133,7 +133,8 @@ void blf_batch_draw_begin(FontBLF *font)
 
 	if (simple_shader) {
 		/* Offset is applied to each glyph. */
-		copy_v2_v2(g_batch.ofs, font->pos);
+		g_batch.ofs[0] = floorf(font->pos[0]);
+		g_batch.ofs[1] = floorf(font->pos[1]);
 	}
 	else {
 		/* Offset is baked in modelview mat. */

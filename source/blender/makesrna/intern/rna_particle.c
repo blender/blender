@@ -1132,6 +1132,9 @@ static void rna_ParticleDupliWeight_active_index_set(struct PointerRNA *ptr, int
 
 static void rna_ParticleDupliWeight_name_get(PointerRNA *ptr, char *str)
 {
+	ParticleSettings *part = (ParticleSettings *)ptr->id.data;
+	psys_find_group_weights(part);
+
 	ParticleDupliWeight *dw = ptr->data;
 
 	if (dw->ob)

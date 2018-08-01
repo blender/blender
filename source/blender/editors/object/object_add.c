@@ -71,6 +71,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_gpencil.h"
 #include "BKE_lamp.h"
 #include "BKE_lattice.h"
 #include "BKE_layer.h"
@@ -103,6 +104,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_gpencil.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_node.h"
@@ -985,6 +987,107 @@ void OBJECT_OT_drop_named_image(wmOperatorType *ot)
 	ED_object_add_generic_props(ot, false);
 }
 
+/********************* Add Gpencil Operator ********************/
+
+static int object_gpencil_add_exec(bContext *C, wmOperator *op)
+{
+	Object *ob = CTX_data_active_object(C);
+	bGPdata *gpd = (ob && (ob->type == OB_GPENCIL)) ? ob->data : NULL;
+
+	const int type = RNA_enum_get(op->ptr, "type");
+
+	float loc[3], rot[3];
+	unsigned int layer;
+	bool newob = false;
+
+	/* Hack: Force view-align to be on by default
+	 * since it's not nice for adding shapes in 2D
+	 * for them to end up aligned oddly, but only for Monkey
+	 */
+	if ((RNA_struct_property_is_set(op->ptr, "view_align") == false) &&
+	    (type == GP_MONKEY))
+	{
+		RNA_boolean_set(op->ptr, "view_align", true);
+	}
+
+	/* Note: We use 'Y' here (not 'Z'), as */
+	WM_operator_view3d_unit_defaults(C, op);
+	if (!ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, NULL, &layer, NULL))
+		return OPERATOR_CANCELLED;
+
+	/* add new object if not currently editing a GP object,
+	 * or if "empty" was chosen (i.e. user wants a blank GP canvas)
+	 */
+	if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false) || (type == GP_EMPTY)) {
+		const char *ob_name = (type == GP_MONKEY) ? "Suzanne" : NULL;
+		float radius = RNA_float_get(op->ptr, "radius");
+
+		ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true, layer);
+		gpd = ob->data;
+		newob = true;
+
+		BKE_object_obdata_size_init(ob, GP_OBGPENCIL_DEFAULT_SIZE * radius);
+	}
+	else {
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_ADDED, NULL);
+	}
+
+	/* create relevant geometry */
+	switch (type) {
+		case GP_MONKEY:
+		{
+			float radius = RNA_float_get(op->ptr, "radius");
+			float mat[4][4];
+
+			ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+			mul_v3_fl(mat[0], radius);
+			mul_v3_fl(mat[1], radius);
+			mul_v3_fl(mat[2], radius);
+
+			ED_gpencil_create_monkey(C, mat);
+			break;
+		}
+
+		case GP_EMPTY:
+			/* do nothing */
+			break;
+
+		default:
+			BKE_report(op->reports, RPT_WARNING, "Not implemented");
+			break;
+	}
+
+	/* if this is a new object, initialise default stuff (colors, etc.) */
+	if (newob) {
+		ED_gpencil_add_defaults(C);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_gpencil_add(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add GPencil";
+	ot->description = "Add a grease pencil object to the scene";
+	ot->idname = "OBJECT_OT_gpencil_add";
+
+	/* api callbacks */
+	ot->invoke = WM_menu_invoke;
+	ot->exec = object_gpencil_add_exec;
+	ot->poll = ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ED_object_add_unit_props(ot);
+	ED_object_add_generic_props(ot, false);
+
+	ot->prop = RNA_def_enum(ot->srna, "type", rna_enum_object_gpencil_type_items, 0, "Type", "");
+}
+
 /********************* Add Light Operator ********************/
 
 static const char *get_light_defname(int type)
@@ -1479,7 +1582,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 		ob_dst->parent = NULL;
 		BKE_constraints_free(&ob_dst->constraints);
-		ob_dst->curve_cache = NULL;
+		ob_dst->runtime.curve_cache = NULL;
 		ob_dst->transflag &= ~OB_DUPLI;
 
 		copy_m4_m4(ob_dst->obmat, dob->mat);
@@ -1638,7 +1741,7 @@ static const EnumPropertyItem convert_target_items[] = {
 
 static void convert_ensure_curve_cache(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-	if (ob->curve_cache == NULL) {
+	if (ob->runtime.curve_cache == NULL) {
 		/* Force creation. This is normally not needed but on operator
 		 * redo we might end up with an object which isn't evaluated yet.
 		 */
@@ -1780,6 +1883,10 @@ static int convert_exec(bContext *C, wmOperator *op)
 				 * would keep modifiers on all but the converted object [#26003] */
 				if (ob->type == OB_MESH) {
 					BKE_object_free_modifiers(ob, 0);  /* after derivedmesh calls! */
+				}
+				if (ob->type == OB_GPENCIL) {
+					BKE_object_free_modifiers(ob, 0);  /* after derivedmesh calls! */
+					BKE_object_free_shaderfx(ob, 0);
 				}
 			}
 		}
@@ -1966,7 +2073,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 
 				convert_ensure_curve_cache(depsgraph, scene, baseob);
-				BKE_mesh_from_metaball(&baseob->curve_cache->disp, newob->data);
+				BKE_mesh_from_metaball(&baseob->runtime.curve_cache->disp, newob->data);
 
 				if (obact->type == OB_MBALL) {
 					basact = basen;
@@ -2122,6 +2229,10 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US(obn->mat[a])
 					else {
 						obn->mat[a] = ID_NEW_SET(obn->mat[a], BKE_material_copy(bmain, obn->mat[a]));
+						/* duplicate grease pencil settings */
+						if (ob->mat[a]->gp_style) {
+							obn->mat[a]->gp_style = MEM_dupallocN(ob->mat[a]->gp_style);
+						}
 					}
 					id_us_min(id);
 
@@ -2222,7 +2333,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US2(obn->data)
 					else {
 						obn->data = ID_NEW_SET(obn->data, BKE_armature_copy(bmain, obn->data));
-						BKE_pose_rebuild(bmain, obn, obn->data);
+						BKE_pose_rebuild(bmain, obn, obn->data, true);
 						didit = 1;
 					}
 					id_us_min(id);
@@ -2253,6 +2364,16 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 					ID_NEW_REMAP_US2(obn->data)
 					else {
 						obn->data = ID_NEW_SET(obn->data, BKE_speaker_copy(bmain, obn->data));
+						didit = 1;
+					}
+					id_us_min(id);
+				}
+				break;
+			case OB_GPENCIL:
+				if (dupflag != 0) {
+					ID_NEW_REMAP_US2(obn->data)
+					else {
+						obn->data = ID_NEW_SET(obn->data, BKE_gpencil_copy(bmain, obn->data));
 						didit = 1;
 					}
 					id_us_min(id);
@@ -2482,7 +2603,7 @@ static bool join_poll(bContext *C)
 
 	if (!ob || ID_IS_LINKED(ob)) return 0;
 
-	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE))
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_ARMATURE, OB_GPENCIL))
 		return ED_operator_screenactive(C);
 	else
 		return 0;
@@ -2500,6 +2621,13 @@ static int join_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Cannot edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
+	else if (ob->type == OB_GPENCIL) {
+		bGPdata *gpd = (bGPdata *)ob->data;
+		if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
+			BKE_report(op->reports, RPT_ERROR, "This data does not support joining in this mode");
+			return OPERATOR_CANCELLED;
+		}
+	}
 
 	if (ob->type == OB_MESH)
 		return join_mesh_exec(C, op);
@@ -2507,6 +2635,8 @@ static int join_exec(bContext *C, wmOperator *op)
 		return join_curve_exec(C, op);
 	else if (ob->type == OB_ARMATURE)
 		return join_armature_exec(C, op);
+	else if (ob->type == OB_GPENCIL)
+		return ED_gpencil_join_objects_exec(C, op);
 
 	return OPERATOR_CANCELLED;
 }

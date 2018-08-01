@@ -1412,6 +1412,12 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ofs = NULL;
 	}
 
+	GPUFrameBuffer *old_fb = GPU_framebuffer_active_get();
+
+	if (old_fb)  {
+		GPU_framebuffer_restore();
+	}
+
 	const bool own_ofs = (ofs == NULL);
 	DRW_opengl_context_enable();
 
@@ -1556,6 +1562,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 	DRW_opengl_context_disable();
 
+	if (old_fb)  {
+		GPU_framebuffer_bind(old_fb);
+	}
+
 	if (ibuf->rect_float && ibuf->rect)
 		IMB_rect_from_float(ibuf);
 
@@ -1593,13 +1603,13 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 
 	if (draw_flags & V3D_OFSDRAW_USE_GPENCIL) {
-		v3d.flag2 |= V3D_SHOW_GPENCIL;
+		v3d.flag2 |= V3D_SHOW_ANNOTATION;
 	}
 	if (draw_flags & V3D_OFSDRAW_USE_SOLID_TEX) {
 		v3d.flag2 |= V3D_SOLID_TEX;
 	}
 
-	v3d.flag3 |= V3D_SHOW_WORLD;
+	v3d.shading.background_type = V3D_SHADING_BACKGROUND_WORLD;
 
 	if (draw_flags & V3D_OFSDRAW_USE_CAMERA_DOF) {
 		if (camera->type == OB_CAMERA) {

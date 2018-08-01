@@ -456,9 +456,10 @@ static Mesh *arrayModifier_doArray(
 	if (amd->fit_type == MOD_ARR_FITCURVE && amd->curve_ob) {
 		Curve *cu = amd->curve_ob->data;
 		if (cu) {
-			if (amd->curve_ob->curve_cache && amd->curve_ob->curve_cache->path) {
+			CurveCache *curve_cache = amd->curve_ob->runtime.curve_cache;
+			if (curve_cache != NULL && curve_cache->path != NULL) {
 				float scale_fac = mat4_to_scale(amd->curve_ob->obmat);
-				length = scale_fac * amd->curve_ob->curve_cache->path->totdist;
+				length = scale_fac * curve_cache->path->totdist;
 			}
 		}
 	}

@@ -63,7 +63,9 @@
 #include "BKE_global.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_node.h"
+#include "BKE_shader_fx.h"
 #include "BKE_sound.h"
 #include "BKE_image.h"
 #include "BKE_particle.h"
@@ -371,6 +373,8 @@ int main(
 	BKE_cachefiles_init();
 	BKE_images_init();
 	BKE_modifier_init();
+	BKE_gpencil_modifier_init();
+	BKE_shaderfx_init();
 	DEG_register_node_types();
 
 	BKE_brush_system_init();

@@ -142,8 +142,15 @@ class OUTLINER_MT_collection_view_layer(Menu):
 
         space = context.space_data
 
-        layout.operator("outliner.collection_exclude_set", text="Exclude")
-        layout.operator("outliner.collection_include_set", text="Include")
+        layout.operator("outliner.collection_exclude_set")
+        layout.operator("outliner.collection_exclude_clear")
+
+        if context.engine == 'CYCLES':
+            layout.operator("outliner.collection_indirect_only_set")
+            layout.operator("outliner.collection_indirect_only_clear")
+
+            layout.operator("outliner.collection_holdout_set")
+            layout.operator("outliner.collection_holdout_clear")
 
 
 class OUTLINER_MT_collection(Menu):

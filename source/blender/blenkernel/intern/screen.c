@@ -869,6 +869,7 @@ void BKE_screen_view3d_shading_init(View3DShading *shading)
 	shading->cavity_valley_factor = 1.0f;
 	shading->cavity_ridge_factor = 1.0f;
 	copy_v3_fl(shading->single_color, 0.8f);
+	copy_v3_fl(shading->background_color, 0.05f);
 }
 
 /* magic zoom calculation, no idea what

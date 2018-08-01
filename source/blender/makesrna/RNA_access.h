@@ -269,9 +269,6 @@ extern StructRNA RNA_FreestyleSettings;
 extern StructRNA RNA_Function;
 extern StructRNA RNA_GPencilFrame;
 extern StructRNA RNA_GPencilLayer;
-extern StructRNA RNA_GPencilPalette;
-extern StructRNA RNA_GPencilPaletteColor;
-extern StructRNA RNA_GPencilBrush;
 extern StructRNA RNA_GPencilInterpolateSettings;
 extern StructRNA RNA_GPencilStroke;
 extern StructRNA RNA_GPencilStrokePoint;
@@ -600,6 +597,31 @@ extern StructRNA RNA_SunLight;
 extern StructRNA RNA_SurfaceCurve;
 extern StructRNA RNA_SurfaceDeformModifier;
 extern StructRNA RNA_SurfaceModifier;
+extern StructRNA RNA_GpencilModifier;
+extern StructRNA RNA_BuildGpencilModifier;
+extern StructRNA RNA_NoiseGpencilModifier;
+extern StructRNA RNA_SubdivGpencilModifier;
+extern StructRNA RNA_SimplifyGpencilModifier;
+extern StructRNA RNA_ThickGpencilModifier;
+extern StructRNA RNA_TintGpencilModifier;
+extern StructRNA RNA_ColorGpencilModifier;
+extern StructRNA RNA_InstanceGpencilModifier;
+extern StructRNA RNA_DupliGpencilModifier;
+extern StructRNA RNA_OpacityGpencilModifier;
+extern StructRNA RNA_LatticeGpencilModifier;
+extern StructRNA RNA_MirrorGpencilModifier;
+extern StructRNA RNA_SmoothGpencilModifier;
+extern StructRNA RNA_HookGpencilModifier;
+extern StructRNA RNA_OffsetGpencilModifier;
+extern StructRNA RNA_ShaderFx;
+extern StructRNA RNA_ShaderFxBlur;
+extern StructRNA RNA_ShaderFxColorize;
+extern StructRNA RNA_ShaderFxFlip;
+extern StructRNA RNA_ShaderFxLight;
+extern StructRNA RNA_ShaderFxPixel;
+extern StructRNA RNA_ShaderFxRim;
+extern StructRNA RNA_ShaderFxSwirl;
+extern StructRNA RNA_ShaderFxWave;
 extern StructRNA RNA_TexMapping;
 extern StructRNA RNA_Text;
 extern StructRNA RNA_TextBox;
@@ -801,7 +823,7 @@ bool RNA_struct_bl_idname_ok_or_report(struct ReportList *reports, const char *i
 
 /* Property Information */
 
-const char *RNA_property_identifier(PropertyRNA *prop);
+const char *RNA_property_identifier(const PropertyRNA *prop);
 const char *RNA_property_description(PropertyRNA *prop);
 
 PropertyType RNA_property_type(PropertyRNA *prop);

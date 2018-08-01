@@ -46,26 +46,32 @@
 
 #include "PIL_time.h"
 
-#include "BKE_colortools.h"
-#include "BKE_context.h"
-#include "BKE_global.h"
-#include "BKE_gpencil.h"
-#include "BKE_main.h"
-#include "BKE_paint.h"
-#include "BKE_report.h"
-#include "BKE_screen.h"
-#include "BKE_tracking.h"
-
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_material_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_windowmanager_types.h"
+
+#include "BKE_colortools.h"
+#include "BKE_main.h"
+#include "BKE_brush.h"
+#include "BKE_paint.h"
+#include "BKE_context.h"
+#include "BKE_global.h"
+#include "BKE_gpencil.h"
+#include "BKE_report.h"
+#include "BKE_layer.h"
+#include "BKE_material.h"
+#include "BKE_screen.h"
+#include "BKE_tracking.h"
 
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
 #include "ED_screen.h"
+#include "ED_object.h"
 #include "ED_view3d.h"
 #include "ED_clip.h"
 
@@ -82,6 +88,7 @@
 #include "WM_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "gpencil_intern.h"
 
@@ -110,6 +117,8 @@ typedef enum eGPencil_PaintFlags {
 	GP_PAINTFLAG_STROKEADDED    = (1 << 1),
 	GP_PAINTFLAG_V3D_ERASER_DEPTH = (1 << 2),
 	GP_PAINTFLAG_SELECTMASK     = (1 << 3),
+	GP_PAINTFLAG_HARD_ERASER    = (1 << 4),
+	GP_PAINTFLAG_STROKE_ERASER  = (1 << 5),
 } eGPencil_PaintFlags;
 
 
@@ -117,10 +126,13 @@ typedef enum eGPencil_PaintFlags {
  *   "p" = op->customdata
  */
 typedef struct tGPsdata {
-	Main *bmain;
+	bContext *C;
+
+	Main *bmain;        /* main database pointer */
 	Scene *scene;       /* current scene from context */
 	struct Depsgraph *depsgraph;
 
+	Object *ob;         /* current object */
 	wmWindow *win;      /* window where painting originated */
 	ScrArea *sa;        /* area where painting originated */
 	ARegion *ar;        /* region where painting originated */
@@ -165,14 +177,23 @@ typedef struct tGPsdata {
 
 	void *erasercursor; /* radial cursor data for drawing eraser */
 
-	bGPDpalettecolor *palettecolor; /* current palette color */
-	bGPDbrush *brush; /* current drawing brush */
+	/* mat settings are only used for 3D view */
+	Material *material;   /* current material */
+
+	Brush *brush;    /* current drawing brush */
+	Brush *eraser;   /* default eraser brush */
 	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
 	int lock_axis;       /* lock drawing to one axis */
+	bool disable_fill;   /* the stroke is no fill mode */
 
 	RNG *rng;
 
 	short keymodifier;   /* key used for invoking the operator */
+	short shift;         /* shift modifier flag */
+
+	float totpixlen;     /* size in pixels for uv calculation */
+
+	ReportList *reports;
 } tGPsdata;
 
 /* ------ */
@@ -183,6 +204,14 @@ typedef struct tGPsdata {
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX    (U.gp_euclideandist)
 
+static void gp_update_cache(bGPdata *gpd)
+{
+	if (gpd) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
+	}
+}
+
 static bool gp_stroke_added_check(tGPsdata *p)
 {
 	return (p->gpf && p->gpf->strokes.last && p->flags & GP_PAINTFLAG_STROKEADDED);
@@ -192,6 +221,9 @@ static void gp_stroke_added_enable(tGPsdata *p)
 {
 	BLI_assert(p->gpf->strokes.last != NULL);
 	p->flags |= GP_PAINTFLAG_STROKEADDED;
+
+	/* drawing batch cache is dirty now */
+	gp_update_cache(p->gpd);
 }
 
 /* ------ */
@@ -206,30 +238,42 @@ static void gp_session_validatebuffer(tGPsdata *p);
 static bool gpencil_draw_poll(bContext *C)
 {
 	if (ED_operator_regionactive(C)) {
-		/* check if current context can support GPencil data */
-		if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
-			/* check if Grease Pencil isn't already running */
-			if (ED_gpencil_session_active() == 0)
-				return 1;
-			else
-				CTX_wm_operator_poll_msg_set(C, "Grease Pencil operator is already active");
+		ScrArea *sa = CTX_wm_area(C);
+		if (!ELEM(sa->spacetype, SPACE_VIEW3D)) {
+			/* check if current context can support GPencil data */
+			if (ED_gpencil_data_get_pointers(C, NULL) != NULL) {
+				/* check if Grease Pencil isn't already running */
+				if (ED_gpencil_session_active() == 0)
+					return 1;
+				else
+					CTX_wm_operator_poll_msg_set(C, "Grease Pencil operator is already active");
+			}
+			else {
+				CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
+			}
+			return 0;
 		}
+		/* 3D Viewport */
 		else {
-			CTX_wm_operator_poll_msg_set(C, "Failed to find Grease Pencil data to draw into");
+			if (ED_gpencil_session_active() == 0) {
+				return 1;
+			}
+			else {
+				return 0;
+			}
 		}
 	}
 	else {
 		CTX_wm_operator_poll_msg_set(C, "Active region not set");
+		return 0;
 	}
-
-	return 0;
 }
 
 /* check if projecting strokes into 3d-geometry in the 3D-View */
 static bool gpencil_project_check(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
-	return ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) && (*p->align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)));
+	return ((gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) && (*p->align_flag & (GP_PROJECT_DEPTH_VIEW | GP_PROJECT_DEPTH_STROKE)));
 }
 
 /* ******************************************* */
@@ -241,38 +285,39 @@ static bool gpencil_project_check(tGPsdata *p)
 static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 {
 	View3D *v3d = p->sa->spacedata.first;
-	const float *fp = ED_view3d_cursor3d_get(p->scene, v3d)->location;
-
-	/* the reference point used depends on the owner... */
-#if 0 /* XXX: disabled for now, since we can't draw relative to the owner yet */
+	Object *ob = NULL;
 	if (p->ownerPtr.type == &RNA_Object) {
-		Object *ob = (Object *)p->ownerPtr.data;
-
-		/* active Object
-		 *  - use relative distance of 3D-cursor from object center
-		 */
-		sub_v3_v3v3(vec, fp, ob->loc);
+		ob = (Object *)p->ownerPtr.data;
 	}
-	else
-#endif
-	{
-		/* use 3D-cursor */
-		copy_v3_v3(vec, fp);
-	}
+	ED_gp_get_drawing_reference(v3d, p->scene, ob, p->gpl, *p->align_flag, vec);
 }
 
 /* Stroke Editing ---------------------------- */
-
 /* check if the current mouse position is suitable for adding a new point */
 static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 {
+	Brush *brush = p->brush;
 	int dx = abs(mval[0] - pmval[0]);
 	int dy = abs(mval[1] - pmval[1]);
+	brush->gpencil_settings->flag &= ~GP_BRUSH_STABILIZE_MOUSE_TEMP;
 
 	/* if buffer is empty, just let this go through (i.e. so that dots will work) */
-	if (p->gpd->sbuffer_size == 0)
+	if (p->gpd->runtime.sbuffer_size == 0) {
 		return true;
-
+	}
+	/* if lazy mouse, check minimum distance */
+	else if (GPENCIL_LAZY_MODE(brush, p->shift)) {
+		brush->gpencil_settings->flag |= GP_BRUSH_STABILIZE_MOUSE_TEMP;
+		if ((dx * dx + dy * dy) > (brush->smooth_stroke_radius * brush->smooth_stroke_radius)) {
+			return true;
+		}
+		else {
+			/* If the mouse is moving within the radius of the last move,
+			* don't update the mouse position. This allows sharp turns. */
+			copy_v2_v2_int(p->mval, p->mvalo);
+			return false;
+		}
+	}
 	/* check if mouse moved at least certain distance on both axes (best case)
 	 *	- aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
 	 */
@@ -291,47 +336,17 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 		return false;
 }
 
-/* reproject the points of the stroke to a plane locked to axis to avoid stroke offset */
-static void gp_project_points_to_plane(RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
-{
-	float plane_normal[3];
-	float vn[3];
-
-	float ray[3];
-	float rpoint[3];
-
-	/* normal vector for a plane locked to axis */
-	zero_v3(plane_normal);
-	plane_normal[axis] = 1.0f;
-
-	/* Reproject the points in the plane */
-	for (int i = 0; i < gps->totpoints; i++) {
-		bGPDspoint *pt = &gps->points[i];
-
-		/* get a vector from the point with the current view direction of the viewport */
-		ED_view3d_global_to_vector(rv3d, &pt->x, vn);
-
-		/* calculate line extrem point to create a ray that cross the plane */
-		mul_v3_fl(vn, -50.0f);
-		add_v3_v3v3(ray, &pt->x, vn);
-
-		/* if the line never intersect, the point is not changed */
-		if (isect_line_plane_v3(rpoint, &pt->x, ray, origin, plane_normal)) {
-			copy_v3_v3(&pt->x, rpoint);
-		}
-	}
-}
-
 /* reproject stroke to plane locked to axis in 3d cursor location */
 static void gp_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
 {
 	bGPdata *gpd = p->gpd;
+	Object *obact = (Object *)p->ownerPtr.data;
+
 	float origin[3];
-	float cursor[3];
 	RegionView3D *rv3d = p->ar->regiondata;
 
 	/* verify the stroke mode is CURSOR 3d space mode */
-	if ((gpd->sbuffer_sflag & GP_STROKE_3DSPACE) == 0) {
+	if ((gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) == 0) {
 		return;
 	}
 	if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
@@ -341,12 +356,9 @@ static void gp_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
 		return;
 	}
 
-	/* get 3d cursor and set origin for locked axis only. Uses axis-1 because the enum for XYZ start with 1 */
-	gp_get_3d_reference(p, cursor);
-	zero_v3(origin);
-	origin[p->lock_axis - 1] = cursor[p->lock_axis - 1];
-
-	gp_project_points_to_plane(rv3d, gps, origin, p->lock_axis - 1);
+	/* get drawing origin */
+	gp_get_3d_reference(p, origin);
+	ED_gp_project_stroke_to_plane(obact, rv3d, gps, origin, p->lock_axis - 1);
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -356,7 +368,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 	bGPdata *gpd = p->gpd;
 
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
-	if (gpd->sbuffer_sflag & GP_STROKE_3DSPACE) {
+	if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
 		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
@@ -365,7 +377,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 		else {
 			float mval_prj[2];
 			float rvec[3], dvec[3];
-			float mval_f[2] = {UNPACK2(mval)};
+			float mval_f[2];
+			copy_v2fl_v2i(mval_f, mval);
 			float zfac;
 
 			/* Current method just converts each point in screen-coordinates to
@@ -390,42 +403,23 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			}
 		}
 	}
-
-	/* 2d - on 'canvas' (assume that p->v2d is set) */
-	else if ((gpd->sbuffer_sflag & GP_STROKE_2DSPACE) && (p->v2d)) {
-		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
-		mul_v3_m4v3(out, p->imat, out);
-	}
-
-	/* 2d - relative to screen (viewport area) */
-	else {
-		if (p->subrect == NULL) { /* normal 3D view */
-			out[0] = (float)(mval[0]) / (float)(p->ar->winx) * 100;
-			out[1] = (float)(mval[1]) / (float)(p->ar->winy) * 100;
-		}
-		else { /* camera view, use subrect */
-			out[0] = ((mval[0] - p->subrect->xmin) / BLI_rctf_size_x(p->subrect)) * 100;
-			out[1] = ((mval[1] - p->subrect->ymin) / BLI_rctf_size_y(p->subrect)) * 100;
-		}
-	}
 }
 
 /* apply jitter to stroke */
-static void gp_brush_jitter(
-        bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const int mval[2], int r_mval[2], RNG *rng)
+static void gp_brush_jitter(bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2], int r_mval[2], RNG *rng)
 {
 	float pressure = pt->pressure;
 	float tmp_pressure = pt->pressure;
-	if (brush->draw_jitter > 0.0f) {
-		float curvef = curvemapping_evaluateF(brush->cur_jitter, 0, pressure);
-		tmp_pressure = curvef * brush->draw_sensitivity;
+	if (brush->gpencil_settings->draw_jitter > 0.0f) {
+		float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_jitter, 0, pressure);
+		tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
 	}
-	const float exfactor = (brush->draw_jitter + 2.0f) * (brush->draw_jitter + 2.0f); /* exponential value */
+	const float exfactor = (brush->gpencil_settings->draw_jitter + 2.0f) * (brush->gpencil_settings->draw_jitter + 2.0f); /* exponential value */
 	const float fac = BLI_rng_get_float(rng) * exfactor * tmp_pressure;
 	/* Jitter is applied perpendicular to the mouse movement vector (2D space) */
 	float mvec[2], svec[2];
 	/* mouse movement in ints -> floats */
-	if (gpd->sbuffer_size > 1) {
+	if (gpd->runtime.sbuffer_size > 1) {
 		mvec[0] = (float)(mval[0] - (pt - 1)->x);
 		mvec[1] = (float)(mval[1] - (pt - 1)->y);
 		normalize_v2(mvec);
@@ -451,18 +445,18 @@ static void gp_brush_jitter(
 }
 
 /* apply pressure change depending of the angle of the stroke to simulate a pen with shape */
-static void gp_brush_angle(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const int mval[2])
+static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2])
 {
 	float mvec[2];
-	float sen = brush->draw_angle_factor; /* sensitivity */;
+	float sen = brush->gpencil_settings->draw_angle_factor; /* sensitivity */;
 	float fac;
 	float mpressure;
 
-	float angle = brush->draw_angle; /* default angle of brush in radians */;
+	float angle = brush->gpencil_settings->draw_angle; /* default angle of brush in radians */;
 	float v0[2] = { cos(angle), sin(angle) }; /* angle vector of the brush with full thickness */
 
 	/* Apply to first point (only if there are 2 points because before no data to do it ) */
-	if (gpd->sbuffer_size == 1) {
+	if (gpd->runtime.sbuffer_size == 1) {
 		mvec[0] = (float)(mval[0] - (pt - 1)->x);
 		mvec[1] = (float)(mval[1] - (pt - 1)->y);
 		normalize_v2(mvec);
@@ -475,7 +469,7 @@ static void gp_brush_angle(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const 
 	}
 
 	/* apply from second point */
-	if (gpd->sbuffer_size >= 1) {
+	if (gpd->runtime.sbuffer_size >= 1) {
 		mvec[0] = (float)(mval[0] - (pt - 1)->x);
 		mvec[1] = (float)(mval[1] - (pt - 1)->y);
 		normalize_v2(mvec);
@@ -490,21 +484,83 @@ static void gp_brush_angle(bGPdata *gpd, bGPDbrush *brush, tGPspoint *pt, const 
 
 }
 
+/* Apply smooth to buffer while drawing
+* to smooth point C, use 2 before (A, B) and current point (D):
+*
+*   A----B-----C------D
+*
+* \param p	    Temp data
+* \param inf    Influence factor
+* \param idx	Index of the last point (need minimum 3 points in the array)
+*/
+static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
+{
+	bGPdata *gpd = p->gpd;
+	short num_points = gpd->runtime.sbuffer_size;
+
+	/* Do nothing if not enough points to smooth out */
+	if ((num_points < 3) || (idx < 3) || (inf == 0.0f)) {
+		return;
+	}
+
+	tGPspoint *points = (tGPspoint *)gpd->runtime.sbuffer;
+	float steps = 4.0f;
+	if (idx < 4) {
+		steps--;
+	}
+
+	tGPspoint *pta = idx >= 4 ? &points[idx - 4] : NULL;
+	tGPspoint *ptb = idx >= 3 ? &points[idx - 3] : NULL;
+	tGPspoint *ptc = idx >= 2 ? &points[idx - 2] : NULL;
+	tGPspoint *ptd = &points[idx - 1];
+
+	float sco[2] = { 0.0f };
+	float a[2], b[2], c[2], d[2];
+	const float average_fac = 1.0f / steps;
+
+	/* Compute smoothed coordinate by taking the ones nearby */
+	if (pta) {
+		copy_v2fl_v2i(a, &pta->x);
+		madd_v2_v2fl(sco, a, average_fac);
+	}
+	if (ptb) {
+		copy_v2fl_v2i(b, &ptb->x);
+		madd_v2_v2fl(sco, b, average_fac);
+	}
+	if (ptc) {
+		copy_v2fl_v2i(c, &ptc->x);
+		madd_v2_v2fl(sco, c, average_fac);
+	}
+	if (ptd) {
+		copy_v2fl_v2i(d, &ptd->x);
+		madd_v2_v2fl(sco, d, average_fac);
+	}
+
+	/* Based on influence factor, blend between original and optimal smoothed coordinate */
+	interp_v2_v2v2(c, c, sco, inf);
+	round_v2i_v2fl(&ptc->x, c);
+}
+
 /* add current stroke-point to buffer (returns whether point was successfully added) */
 static short gp_stroke_addpoint(
         tGPsdata *p, const int mval[2], float pressure, double curtime)
 {
 	bGPdata *gpd = p->gpd;
-	bGPDbrush *brush = p->brush;
+	Brush *brush = p->brush;
 	tGPspoint *pt;
 	ToolSettings *ts = p->scene->toolsettings;
+	Object *obact = (Object *)p->ownerPtr.data;
+	Depsgraph *depsgraph = p->depsgraph;                                      \
+	RegionView3D *rv3d = p->ar->regiondata;
+	View3D *v3d = p->sa->spacedata.first;
+	MaterialGPencilStyle *gp_style = p->material->gp_style;
 
 	/* check painting mode */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only - i.e. only store start and end point in buffer */
-		if (gpd->sbuffer_size == 0) {
+		if (gpd->runtime.sbuffer_size == 0) {
 			/* first point in buffer (start point) */
-			pt = (tGPspoint *)(gpd->sbuffer);
+			pt = (tGPspoint *)(gpd->runtime.sbuffer);
 
 			/* store settings */
 			copy_v2_v2_int(&pt->x, mval);
@@ -513,13 +569,13 @@ static short gp_stroke_addpoint(
 			pt->time = (float)(curtime - p->inittime);
 
 			/* increment buffer size */
-			gpd->sbuffer_size++;
+			gpd->runtime.sbuffer_size++;
 		}
 		else {
 			/* just reset the endpoint to the latest value
 			 *	- assume that pointers for this are always valid...
 			 */
-			pt = ((tGPspoint *)(gpd->sbuffer) + 1);
+			pt = ((tGPspoint *)(gpd->runtime.sbuffer) + 1);
 
 			/* store settings */
 			copy_v2_v2_int(&pt->x, mval);
@@ -528,31 +584,35 @@ static short gp_stroke_addpoint(
 			pt->time = (float)(curtime - p->inittime);
 
 			/* now the buffer has 2 points (and shouldn't be allowed to get any larger) */
-			gpd->sbuffer_size = 2;
+			gpd->runtime.sbuffer_size = 2;
 		}
+
+		/* tag depsgraph to update object */
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
 
 		/* can keep carrying on this way :) */
 		return GP_STROKEADD_NORMAL;
 	}
 	else if (p->paintmode == GP_PAINTMODE_DRAW) { /* normal drawing */
 		/* check if still room in buffer */
-		if (gpd->sbuffer_size >= GP_STROKE_BUFFER_MAX)
+		if (gpd->runtime.sbuffer_size >= GP_STROKE_BUFFER_MAX)
 			return GP_STROKEADD_OVERFLOW;
 
 		/* get pointer to destination point */
-		pt = ((tGPspoint *)(gpd->sbuffer) + gpd->sbuffer_size);
+		pt = ((tGPspoint *)(gpd->runtime.sbuffer) + gpd->runtime.sbuffer_size);
 
 		/* store settings */
 		/* pressure */
-		if (brush->flag & GP_BRUSH_USE_PRESSURE) {
-			float curvef = curvemapping_evaluateF(brush->cur_sensitivity, 0, pressure);
-			pt->pressure = curvef * brush->draw_sensitivity;
+		if (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) {
+			float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_sensitivity, 0, pressure);
+			pt->pressure = curvef * brush->gpencil_settings->draw_sensitivity;
 		}
 		else {
 			pt->pressure = 1.0f;
 		}
+
 		/* Apply jitter to position */
-		if (brush->draw_jitter > 0.0f) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) && (brush->gpencil_settings->draw_jitter > 0.0f)) {
 			int r_mval[2];
 			gp_brush_jitter(gpd, brush, pt, mval, r_mval, p->rng);
 			copy_v2_v2_int(&pt->x, r_mval);
@@ -561,42 +621,62 @@ static short gp_stroke_addpoint(
 			copy_v2_v2_int(&pt->x, mval);
 		}
 		/* apply randomness to pressure */
-		if ((brush->draw_random_press > 0.0f) && (brush->flag & GP_BRUSH_USE_RANDOM_PRESSURE)) {
-			float curvef = curvemapping_evaluateF(brush->cur_sensitivity, 0, pressure);
-			float tmp_pressure = curvef * brush->draw_sensitivity;
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
+		    (brush->gpencil_settings->draw_random_press > 0.0f))
+		{
+			float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_sensitivity, 0, pressure);
+			float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
 			if (BLI_rng_get_float(p->rng) > 0.5f) {
-				pt->pressure -= tmp_pressure * brush->draw_random_press * BLI_rng_get_float(p->rng);
+				pt->pressure -= tmp_pressure * brush->gpencil_settings->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			else {
-				pt->pressure += tmp_pressure * brush->draw_random_press * BLI_rng_get_float(p->rng);
+				pt->pressure += tmp_pressure * brush->gpencil_settings->draw_random_press * BLI_rng_get_float(p->rng);
 			}
 			CLAMP(pt->pressure, GPENCIL_STRENGTH_MIN, 1.0f);
 		}
 
+		/* apply randomness to uv texture rotation */
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) && (brush->gpencil_settings->uv_random > 0.0f)) {
+			if (BLI_rng_get_float(p->rng) > 0.5f) {
+				pt->uv_rot = (BLI_rng_get_float(p->rng) * M_PI * -1) * brush->gpencil_settings->uv_random;
+			}
+			else {
+				pt->uv_rot = (BLI_rng_get_float(p->rng) * M_PI) * brush->gpencil_settings->uv_random;
+			}
+			CLAMP(pt->uv_rot, -M_PI_2, M_PI_2);
+		}
+		else {
+			pt->uv_rot = 0.0f;
+		}
+
 		/* apply angle of stroke to brush size */
-		if (brush->draw_angle_factor > 0.0f) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
+		    (brush->gpencil_settings->draw_angle_factor > 0.0f))
+		{
 			gp_brush_angle(gpd, brush, pt, mval);
 		}
 
 		/* color strength */
-		if (brush->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
-			float curvef = curvemapping_evaluateF(brush->cur_strength, 0, pressure);
-			float tmp_pressure = curvef * brush->draw_sensitivity;
+		if (brush->gpencil_settings->flag & GP_BRUSH_USE_STENGTH_PRESSURE) {
+			float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_strength, 0, pressure);
+			float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
 
-			pt->strength = tmp_pressure * brush->draw_strength;
+			pt->strength = tmp_pressure * brush->gpencil_settings->draw_strength;
 		}
 		else {
-			pt->strength = brush->draw_strength;
+			pt->strength = brush->gpencil_settings->draw_strength;
 		}
 		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 
 		/* apply randomness to color strength */
-		if ((brush->draw_random_press > 0.0f) && (brush->flag & GP_BRUSH_USE_RANDOM_STRENGTH)) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
+		    (brush->gpencil_settings->draw_random_strength > 0.0f))
+		{
 			if (BLI_rng_get_float(p->rng) > 0.5f) {
-				pt->strength -= pt->strength * brush->draw_random_press * BLI_rng_get_float(p->rng);
+				pt->strength -= pt->strength * brush->gpencil_settings->draw_random_strength * BLI_rng_get_float(p->rng);
 			}
 			else {
-				pt->strength += pt->strength * brush->draw_random_press * BLI_rng_get_float(p->rng);
+				pt->strength += pt->strength * brush->gpencil_settings->draw_random_strength * BLI_rng_get_float(p->rng);
 			}
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 		}
@@ -604,11 +684,49 @@ static short gp_stroke_addpoint(
 		/* point time */
 		pt->time = (float)(curtime - p->inittime);
 
+		/* point uv (only 3d view) */
+		if ((p->sa->spacetype == SPACE_VIEW3D) && (gpd->runtime.sbuffer_size > 1)) {
+			float pixsize = gp_style->texture_pixsize / 1000000.0f;
+			tGPspoint *ptb = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 2;
+			bGPDspoint spt, spt2;
+
+			/* get origin to reproject point */
+			float origin[3];
+			gp_get_3d_reference(p, origin);
+			/* reproject current */
+			ED_gpencil_tpoint_to_point(p->ar, origin, pt, &spt);
+			ED_gp_project_point_to_plane(obact, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &spt);
+
+			/* reproject previous */
+			ED_gpencil_tpoint_to_point(p->ar, origin, ptb, &spt2);
+			ED_gp_project_point_to_plane(obact, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &spt2);
+
+			p->totpixlen += len_v3v3(&spt.x, &spt2.x) / pixsize;
+			pt->uv_fac = p->totpixlen;
+			if ((gp_style) && (gp_style->sima)) {
+				pt->uv_fac /= gp_style->sima->gen_x;
+			}
+		}
+		else {
+			p->totpixlen = 0.0f;
+			pt->uv_fac = 0.0f;
+		}
+
 		/* increment counters */
-		gpd->sbuffer_size++;
+		gpd->runtime.sbuffer_size++;
+
+		/* smooth while drawing previous points with a reduction factor for previous */
+		if (brush->gpencil_settings->active_smooth > 0.0f) {
+			for (int s = 0; s < 3; s++) {
+				gp_smooth_buffer(p, brush->gpencil_settings->active_smooth * ((3.0f - s) / 3.0f), gpd->runtime.sbuffer_size - s);
+			}
+		}
+
+		/* tag depsgraph to update object */
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
 
 		/* check if another operation can still occur */
-		if (gpd->sbuffer_size == GP_STROKE_BUFFER_MAX)
+		if (gpd->runtime.sbuffer_size == GP_STROKE_BUFFER_MAX)
 			return GP_STROKEADD_FULL;
 		else
 			return GP_STROKEADD_NORMAL;
@@ -617,7 +735,7 @@ static short gp_stroke_addpoint(
 
 		bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 		/* get pointer to destination point */
-		pt = (tGPspoint *)(gpd->sbuffer);
+		pt = (tGPspoint *)(gpd->runtime.sbuffer);
 
 		/* store settings */
 		copy_v2_v2_int(&pt->x, mval);
@@ -632,14 +750,17 @@ static short gp_stroke_addpoint(
 		if (gp_stroke_added_check(p)) {
 			bGPDstroke *gps = p->gpf->strokes.last;
 			bGPDspoint *pts;
+			MDeformVert *dvert;
 
 			/* first time point is adding to temporary buffer -- need to allocate new point in stroke */
-			if (gpd->sbuffer_size == 0) {
+			if (gpd->runtime.sbuffer_size == 0) {
 				gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
+				gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * (gps->totpoints + 1));
 				gps->totpoints++;
 			}
 
 			pts = &gps->points[gps->totpoints - 1];
+			dvert = &gps->dvert[gps->totpoints - 1];
 
 			/* special case for poly lines: normally,
 			 * depth is needed only when creating new stroke from buffer,
@@ -647,8 +768,6 @@ static short gp_stroke_addpoint(
 			 * so initialize depth buffer before converting coordinates
 			 */
 			if (gpencil_project_check(p)) {
-				View3D *v3d = p->sa->spacedata.first;
-
 				view3d_region_operator_needs_opengl(p->win, p->ar);
 				ED_view3d_autodist_init(
 				        p->depsgraph, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
@@ -656,25 +775,32 @@ static short gp_stroke_addpoint(
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
+			/* reproject to plane (only in 3d space) */
+			gp_reproject_toplane(p, gps);
 			/* if parented change position relative to parent object */
-			if (gpl->parent != NULL) {
-				gp_apply_parent_point(gpl, pts);
-			}
+			gp_apply_parent_point(depsgraph, obact, gpd, gpl, pts);
 			/* copy pressure and time */
 			pts->pressure = pt->pressure;
 			pts->strength = pt->strength;
 			pts->time = pt->time;
+			pts->uv_fac = pt->uv_fac;
+			pts->uv_rot = pt->uv_rot;
+
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+
 			/* force fill recalc */
 			gps->flag |= GP_STROKE_RECALC_CACHES;
+			/* drawing batch cache is dirty now */
+			gp_update_cache(p->gpd);
 		}
 
 		/* increment counters */
-		if (gpd->sbuffer_size == 0)
-			gpd->sbuffer_size++;
+		if (gpd->runtime.sbuffer_size == 0)
+			gpd->runtime.sbuffer_size++;
+
+		/* tag depsgraph to update object */
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
 
 		return GP_STROKEADD_NORMAL;
 	}
@@ -690,9 +816,9 @@ static short gp_stroke_addpoint(
 static void gp_stroke_simplify(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
-	tGPspoint *old_points = (tGPspoint *)gpd->sbuffer;
-	short num_points = gpd->sbuffer_size;
-	short flag = gpd->sbuffer_sflag;
+	tGPspoint *old_points = (tGPspoint *)gpd->runtime.sbuffer;
+	short num_points = gpd->runtime.sbuffer_size;
+	short flag = gpd->runtime.sbuffer_sflag;
 	short i, j;
 
 	/* only simplify if simplification is enabled, and we're not doing a straight line */
@@ -707,9 +833,9 @@ static void gp_stroke_simplify(tGPsdata *p)
 	 *	- firstly set sbuffer to NULL, so a new one is allocated
 	 *	- secondly, reset flag after, as it gets cleared auto
 	 */
-	gpd->sbuffer = NULL;
+	gpd->runtime.sbuffer = NULL;
 	gp_session_validatebuffer(p);
-	gpd->sbuffer_sflag = flag;
+	gpd->runtime.sbuffer_sflag = flag;
 
 /* macro used in loop to get position of new point
  *	- used due to the mixture of datatypes in use here
@@ -766,8 +892,11 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDstroke *gps;
 	bGPDspoint *pt;
 	tGPspoint *ptc;
-	bGPDbrush *brush = p->brush;
+	MDeformVert *dvert;
+	Brush *brush = p->brush;
 	ToolSettings *ts = p->scene->toolsettings;
+	Depsgraph *depsgraph = p->depsgraph;
+	Object *obact = (Object *)p->ownerPtr.data;
 
 	int i, totelem;
 	/* since strokes are so fine, when using their depth we need a margin otherwise they might get missed */
@@ -777,14 +906,14 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	 *	- drawing straight-lines only requires the endpoints
 	 */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT)
-		totelem = (gpd->sbuffer_size >= 2) ? 2 : gpd->sbuffer_size;
+		totelem = (gpd->runtime.sbuffer_size >= 2) ? 2 : gpd->runtime.sbuffer_size;
 	else
-		totelem = gpd->sbuffer_size;
+		totelem = gpd->runtime.sbuffer_size;
 
 	/* exit with error if no valid points from this stroke */
 	if (totelem == 0) {
 		if (G.debug & G_DEBUG)
-			printf("Error: No valid points in stroke buffer to convert (tot=%d)\n", gpd->sbuffer_size);
+			printf("Error: No valid points in stroke buffer to convert (tot=%d)\n", gpd->runtime.sbuffer_size);
 		return;
 	}
 
@@ -793,6 +922,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	 * interactive behavior
 	 */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
+		/* be sure to hide any lazy cursor */
+		ED_gpencil_toggle_brush_cursor(p->C, true, NULL);
+
 		if (gp_stroke_added_check(p)) {
 			return;
 		}
@@ -803,95 +935,94 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 	/* copy appropriate settings for stroke */
 	gps->totpoints = totelem;
-	gps->thickness = brush->thickness;
-	gps->flag = gpd->sbuffer_sflag;
+	gps->thickness = brush->size;
+	gps->flag = gpd->runtime.sbuffer_sflag;
 	gps->inittime = p->inittime;
 
 	/* enable recalculation flag by default (only used if hq fill) */
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 
 	/* allocate enough memory for a continuous array for storage points */
-	int sublevel = brush->sublevel;
-	int new_totpoints = gps->totpoints;
+	const int subdivide = brush->gpencil_settings->draw_subdivide;
 
-	for (i = 0; i < sublevel; i++) {
-		new_totpoints += new_totpoints - 1;
-	}
-	gps->points = MEM_callocN(sizeof(bGPDspoint) * new_totpoints, "gp_stroke_points");
+	gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
+	gps->dvert = MEM_callocN(sizeof(MDeformVert) * gps->totpoints, "gp_stroke_weights");
+
 	/* initialize triangle memory to dummy data */
 	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 	gps->tot_triangles = 0;
+	/* drawing batch cache is dirty now */
+	gp_update_cache(p->gpd);
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
+	dvert = gps->dvert + (gps->totpoints - totelem);
 
 	/* copy points from the buffer to the stroke */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only -> only endpoints */
 		{
 			/* first point */
-			ptc = gpd->sbuffer;
+			ptc = gpd->runtime.sbuffer;
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
-			/* if parented change position relative to parent object */
-			if (gpl->parent != NULL) {
-				gp_apply_parent_point(gpl, pt);
-			}
 			/* copy pressure and time */
 			pt->pressure = ptc->pressure;
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
 
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+
 			pt++;
+			dvert++;
 		}
 
 		if (totelem == 2) {
 			/* last point if applicable */
-			ptc = ((tGPspoint *)gpd->sbuffer) + (gpd->sbuffer_size - 1);
+			ptc = ((tGPspoint *)gpd->runtime.sbuffer) + (gpd->runtime.sbuffer_size - 1);
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
-			/* if parented change position relative to parent object */
-			if (gpl->parent != NULL) {
-				gp_apply_parent_point(gpl, pt);
-			}
-
 			/* copy pressure and time */
 			pt->pressure = ptc->pressure;
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
+
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+		}
+
+		/* reproject to plane (only in 3d space) */
+		gp_reproject_toplane(p, gps);
+		pt = gps->points;
+		for (i = 0; i < gps->totpoints; i++, pt++) {
+			/* if parented change position relative to parent object */
+			gp_apply_parent_point(depsgraph, obact, gpd, gpl, pt);
 		}
 	}
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* first point */
-		ptc = gpd->sbuffer;
+		ptc = gpd->runtime.sbuffer;
 
 		/* convert screen-coordinates to appropriate coordinates (and store them) */
 		gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-		/* if axis locked, reproject to plane locked (only in 3d space) */
-		if (p->lock_axis > GP_LOCKAXIS_NONE) {
-			gp_reproject_toplane(p, gps);
-		}
+		/* reproject to plane (only in 3d space) */
+		gp_reproject_toplane(p, gps);
 		/* if parented change position relative to parent object */
-		if (gpl->parent != NULL) {
-			gp_apply_parent_point(gpl, pt);
-		}
+		gp_apply_parent_point(depsgraph, obact, gpd, gpl, pt);
 		/* copy pressure and time */
 		pt->pressure = ptc->pressure;
 		pt->strength = ptc->strength;
 		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 		pt->time = ptc->time;
+
+		dvert->totweight = 0;
+		dvert->dw = NULL;
+
 	}
 	else {
 		float *depth_arr = NULL;
@@ -902,9 +1033,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			int interp_depth = 0;
 			int found_depth = 0;
 
-			depth_arr = MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
+			depth_arr = MEM_mallocN(sizeof(float) * gpd->runtime.sbuffer_size, "depth_points");
 
-			for (i = 0, ptc = gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
+			for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_size; i++, ptc++, pt++) {
 				copy_v2_v2_int(mval, &ptc->x);
 
 				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr + i) == 0) &&
@@ -921,7 +1052,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 			if (found_depth == false) {
 				/* eeh... not much we can do.. :/, ignore depth in this case, use the 3D cursor */
-				for (i = gpd->sbuffer_size - 1; i >= 0; i--)
+				for (i = gpd->runtime.sbuffer_size - 1; i >= 0; i--)
 					depth_arr[i] = 0.9999f;
 			}
 			else {
@@ -930,13 +1061,13 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 					int first_valid = 0;
 					int last_valid = 0;
 
-					for (i = 0; i < gpd->sbuffer_size; i++) {
+					for (i = 0; i < gpd->runtime.sbuffer_size; i++) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
 					first_valid = i;
 
-					for (i = gpd->sbuffer_size - 1; i >= 0; i--) {
+					for (i = gpd->runtime.sbuffer_size - 1; i >= 0; i--) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
@@ -950,16 +1081,15 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 				}
 
 				if (interp_depth) {
-					interp_sparse_array(depth_arr, gpd->sbuffer_size, FLT_MAX);
+					interp_sparse_array(depth_arr, gpd->runtime.sbuffer_size, FLT_MAX);
 				}
 			}
 		}
 
-
 		pt = gps->points;
 
 		/* convert all points (normal behavior) */
-		for (i = 0, ptc = gpd->sbuffer; i < gpd->sbuffer_size && ptc; i++, ptc++, pt++) {
+		for (i = 0, ptc = gpd->runtime.sbuffer; i < gpd->runtime.sbuffer_size && ptc; i++, ptc++, pt++) {
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, depth_arr ? depth_arr + i : NULL);
 
@@ -968,20 +1098,18 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
+			pt->uv_fac = ptc->uv_fac;
+			pt->uv_rot = ptc->uv_rot;
 		}
 
-		/* subdivide the stroke */
-		if (sublevel > 0) {
-			int totpoints = gps->totpoints;
-			for (i = 0; i < sublevel; i++) {
-				/* we're adding one new point between each pair of verts on each step */
-				totpoints += totpoints - 1;
-
-				gp_subdivide_stroke(gps, totpoints);
-			}
+		/* subdivide and smooth the stroke */
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) && (subdivide > 0)) {
+			gp_subdivide_stroke(gps, subdivide);
 		}
 		/* apply randomness to stroke */
-		if (brush->draw_random_sub > 0.0f) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
+		    (brush->gpencil_settings->draw_random_sub > 0.0f))
+		{
 			gp_randomize_stroke(gps, brush, p->rng);
 		}
 
@@ -989,34 +1117,43 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		 * for each iteration, the factor is reduced to get a better smoothing without changing too much
 		 * the original stroke
 		 */
-		if (brush->draw_smoothfac > 0.0f) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
+		    (brush->gpencil_settings->draw_smoothfac > 0.0f))
+		{
 			float reduce = 0.0f;
-			for (int r = 0; r < brush->draw_smoothlvl; ++r) {
+			for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
 				for (i = 0; i < gps->totpoints; i++) {
-					/* NOTE: No pressure smoothing, or else we get annoying thickness changes while drawing... */
-					gp_smooth_stroke(gps, i, brush->draw_smoothfac - reduce, false);
+					BKE_gpencil_smooth_stroke(gps, i, brush->gpencil_settings->draw_smoothfac - reduce);
+					BKE_gpencil_smooth_stroke_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
 				}
 				reduce += 0.25f;  // reduce the factor
 			}
 		}
+		/* smooth thickness */
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
+		    (brush->gpencil_settings->thick_smoothfac > 0.0f))
+		{
+			for (int r = 0; r < brush->gpencil_settings->thick_smoothlvl * 2; r++) {
+				for (i = 0; i < gps->totpoints; i++) {
+					BKE_gpencil_smooth_stroke_thickness(gps, i, brush->gpencil_settings->thick_smoothfac);
+				}
+			}
+		}
 
-		/* if axis locked, reproject to plane locked (only in 3d space) */
-		if (p->lock_axis > GP_LOCKAXIS_NONE) {
-			gp_reproject_toplane(p, gps);
-		}
-		/* if parented change position relative to parent object */
-		if (gpl->parent != NULL) {
-			gp_apply_parent(gpl, gps);
-		}
+		/* reproject to plane (only in 3d space) */
+		gp_reproject_toplane(p, gps);
+		/* change position relative to parent object */
+		gp_apply_parent(depsgraph, obact, gpd, gpl, gps);
 
 		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}
-	/* Save palette color */
-	bGPDpalette *palette = BKE_gpencil_palette_getactive(p->gpd);
-	bGPDpalettecolor *palcolor = BKE_gpencil_palettecolor_getactive(palette);
-	gps->palcolor = palcolor;
-	BLI_strncpy(gps->colorname, palcolor->info, sizeof(gps->colorname));
+
+	/* Save material index */
+	gps->mat_nr = BKE_object_material_slot_find_index(p->ob, p->material) - 1;
+
+	/* calculate UVs along the stroke */
+	ED_gpencil_calc_stroke_uv(obact, gps);
 
 	/* add stroke to frame, usually on tail of the listbase, but if on back is enabled the stroke is added on listbase head
 	 * because the drawing order is inverse and the head stroke is the first to draw. This is very useful for artist
@@ -1047,6 +1184,8 @@ static float view3d_point_depth(const RegionView3D *rv3d, const float co[3])
 /* only erase stroke points that are visible */
 static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, const int x, const int y)
 {
+	Object *obact = (Object *)p->ownerPtr.data;
+
 	if ((p->sa->spacetype == SPACE_VIEW3D) &&
 	    (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
 	{
@@ -1059,7 +1198,7 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 
 		float diff_mat[4][4];
 		/* calculate difference matrix if parent object */
-		ED_gpencil_parent_location(gpl, diff_mat);
+		ED_gpencil_parent_location(p->depsgraph, obact, p->gpd, gpl, diff_mat);
 
 		if (ED_view3d_autodist_simple(p->ar, mval, mval_3d, 0, NULL)) {
 			const float depth_mval = view3d_point_depth(rv3d, mval_3d);
@@ -1092,6 +1231,24 @@ static float gp_stroke_eraser_calc_influence(tGPsdata *p, const int mval[2], con
 	return fac;
 }
 
+/* helper to free a stroke */
+static void gp_free_stroke(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps)
+{
+	if (gps->points) {
+		MEM_freeN(gps->points);
+	}
+
+	if (gps->dvert) {
+		BKE_gpencil_free_stroke_weights(gps);
+		MEM_freeN(gps->dvert);
+	}
+
+	if (gps->triangles)
+		MEM_freeN(gps->triangles);
+	BLI_freelinkN(&gpf->strokes, gps);
+	gp_update_cache(gpd);
+}
+
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
@@ -1099,46 +1256,58 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
                                       const int mval[2], const int mvalo[2],
                                       const int radius, const rcti *rect)
 {
+	Depsgraph *depsgraph = p->depsgraph;
+	Object *obact = (Object *)p->ownerPtr.data;
+	Brush *eraser = p->eraser;
 	bGPDspoint *pt1, *pt2;
 	int pc1[2] = {0};
 	int pc2[2] = {0};
 	int i;
 	float diff_mat[4][4];
 
-	/* calculate difference matrix if parent object */
-	if (gpl->parent != NULL) {
-		ED_gpencil_parent_location(gpl, diff_mat);
-	}
+	/* calculate difference matrix */
+	ED_gpencil_parent_location(depsgraph, obact, p->gpd, gpl, diff_mat);
 
 	if (gps->totpoints == 0) {
 		/* just free stroke */
-		if (gps->points)
-			MEM_freeN(gps->points);
-		if (gps->triangles)
-			MEM_freeN(gps->triangles);
-		BLI_freelinkN(&gpf->strokes, gps);
+		gp_free_stroke(p->gpd, gpf, gps);
 	}
 	else if (gps->totpoints == 1) {
 		/* only process if it hasn't been masked out... */
 		if (!(p->flags & GP_PAINTFLAG_SELECTMASK) || (gps->points->flag & GP_SPOINT_SELECT)) {
-			if (gpl->parent == NULL) {
-				gp_point_to_xy(&p->gsc, gps, gps->points, &pc1[0], &pc1[1]);
-			}
-			else {
-				bGPDspoint pt_temp;
-				gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-				gp_point_to_xy(&p->gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
-			}
+			bGPDspoint pt_temp;
+			gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+			gp_point_to_xy(&p->gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 			/* do boundbox check first */
 			if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
 				/* only check if point is inside */
 				if (len_v2v2_int(mval, pc1) <= radius) {
 					/* free stroke */
-					// XXX: pressure sensitive eraser should apply here too?
-					MEM_freeN(gps->points);
-					if (gps->triangles)
-						MEM_freeN(gps->triangles);
-					BLI_freelinkN(&gpf->strokes, gps);
+					gp_free_stroke(p->gpd, gpf, gps);
+				}
+			}
+		}
+	}
+	else if ((p->flags & GP_PAINTFLAG_STROKE_ERASER) || (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_STROKE)) {
+		for (i = 0; (i + 1) < gps->totpoints; i++) {
+
+			/* only process if it hasn't been masked out... */
+			if ((p->flags & GP_PAINTFLAG_SELECTMASK) && !(gps->points->flag & GP_SPOINT_SELECT))
+				continue;
+
+			/* get points to work with */
+			pt1 = gps->points + i;
+			bGPDspoint npt;
+			gp_point_to_parent_space(pt1, diff_mat, &npt);
+			gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
+
+			/* do boundbox check first */
+			if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
+				/* only check if point is inside */
+				if (len_v2v2_int(mval, pc1) <= radius) {
+					/* free stroke */
+					gp_free_stroke(p->gpd, gpf, gps);
+					return;
 				}
 			}
 		}
@@ -1181,18 +1350,12 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			if ((p->flags & GP_PAINTFLAG_SELECTMASK) && !(gps->points->flag & GP_SPOINT_SELECT))
 				continue;
 
-			if (gpl->parent == NULL) {
-				gp_point_to_xy(&p->gsc, gps, pt1, &pc1[0], &pc1[1]);
-				gp_point_to_xy(&p->gsc, gps, pt2, &pc2[0], &pc2[1]);
-			}
-			else {
-				bGPDspoint npt;
-				gp_point_to_parent_space(pt1, diff_mat, &npt);
-				gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
+			bGPDspoint npt;
+			gp_point_to_parent_space(pt1, diff_mat, &npt);
+			gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-				gp_point_to_parent_space(pt2, diff_mat, &npt);
-				gp_point_to_xy(&p->gsc, gps, &npt, &pc2[0], &pc2[1]);
-			}
+			gp_point_to_parent_space(pt2, diff_mat, &npt);
+			gp_point_to_xy(&p->gsc, gps, &npt, &pc2[0], &pc2[1]);
 
 			/* Check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
@@ -1215,11 +1378,15 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 						pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength / 2.0f;
 
 						/* 2) Tag any point with overly low influence for removal in the next pass */
-						if (pt1->pressure < cull_thresh) {
+						if ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						{
 							pt1->flag |= GP_SPOINT_TAG;
 							do_cull = true;
 						}
-						if (pt2->pressure < cull_thresh) {
+						if ((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						{
 							pt2->flag |= GP_SPOINT_TAG;
 							do_cull = true;
 						}
@@ -1230,8 +1397,9 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 		/* Second Pass: Remove any points that are tagged */
 		if (do_cull) {
-			gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG);
+			gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false);
 		}
+		gp_update_cache(p->gpd);
 	}
 }
 
@@ -1275,7 +1443,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 		for (gps = gpf->strokes.first; gps; gps = gpn) {
 			gpn = gps->next;
 			/* check if the color is editable */
-			if (ED_gpencil_stroke_color_use(gpl, gps) == false) {
+			if (ED_gpencil_stroke_color_use(p->ob, gpl, gps) == false) {
 				continue;
 			}
 			/* Not all strokes in the datablock may be valid in the current editor/context
@@ -1295,107 +1463,178 @@ static void gp_stroke_doeraser(tGPsdata *p)
 static void gp_session_validatebuffer(tGPsdata *p)
 {
 	bGPdata *gpd = p->gpd;
+	Brush *brush = p->brush;
 
 	/* clear memory of buffer (or allocate it if starting a new session) */
-	if (gpd->sbuffer) {
+	if (gpd->runtime.sbuffer) {
 		/* printf("\t\tGP - reset sbuffer\n"); */
-		memset(gpd->sbuffer, 0, sizeof(tGPspoint) * GP_STROKE_BUFFER_MAX);
+		memset(gpd->runtime.sbuffer, 0, sizeof(tGPspoint) * GP_STROKE_BUFFER_MAX);
 	}
 	else {
 		/* printf("\t\tGP - allocate sbuffer\n"); */
-		gpd->sbuffer = MEM_callocN(sizeof(tGPspoint) * GP_STROKE_BUFFER_MAX, "gp_session_strokebuffer");
+		gpd->runtime.sbuffer = MEM_callocN(sizeof(tGPspoint) * GP_STROKE_BUFFER_MAX, "gp_session_strokebuffer");
 	}
 
 	/* reset indices */
-	gpd->sbuffer_size = 0;
+	gpd->runtime.sbuffer_size = 0;
 
 	/* reset flags */
-	gpd->sbuffer_sflag = 0;
+	gpd->runtime.sbuffer_sflag = 0;
 
 	/* reset inittime */
 	p->inittime = 0.0;
+
+	/* reset lazy */
+	if (brush) {
+		brush->gpencil_settings->flag &= ~GP_BRUSH_STABILIZE_MOUSE_TEMP;
+	}
 }
 
-/* create a new palette color */
-static bGPDpalettecolor *gp_create_new_color(bGPDpalette *palette)
+/* helper to get default eraser and create one if no eraser brush */
+static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 {
-	bGPDpalettecolor *palcolor;
+	Brush *brush_dft = NULL;
+	Paint *paint = BKE_brush_get_gpencil_paint(ts);
+	Brush *brush_old = paint->brush;
+	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+		if ((brush->ob_mode == OB_MODE_GPENCIL_PAINT) &&
+		    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+		{
+			/* save first eraser to use later if no default */
+			if (brush_dft == NULL) {
+				brush_dft = brush;
+			}
+			/* found default */
+			if (brush->gpencil_settings->flag & GP_BRUSH_DEFAULT_ERASER) {
+				return brush;
+			}
+		}
+	}
+	/* if no default, but exist eraser brush, return this and set as default */
+	if (brush_dft) {
+		brush_dft->gpencil_settings->flag |= GP_BRUSH_DEFAULT_ERASER;
+		return brush_dft;
+	}
+	/* create a new soft eraser brush */
+	else {
+		brush_dft = BKE_brush_add_gpencil(bmain, ts, "Soft Eraser");
+		brush_dft->size = 30.0f;
+		brush_dft->gpencil_settings->flag |= (GP_BRUSH_ENABLE_CURSOR | GP_BRUSH_DEFAULT_ERASER);
+		brush_dft->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
+		brush_dft->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
+		brush_dft->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
 
-	palcolor = BKE_gpencil_palettecolor_addnew(palette, DATA_("Color"), true);
+		/* reset current brush */
+		BKE_paint_brush_set(paint, brush_old);
 
-	return palcolor;
+		return brush_dft;
+	}
 }
 
 /* initialize a drawing brush */
-static void gp_init_drawing_brush(ToolSettings *ts, tGPsdata *p)
+static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 {
-	bGPDbrush *brush;
+	Brush *brush;
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+
+	Paint *paint = BKE_brush_get_gpencil_paint(ts);
 
 	/* if not exist, create a new one */
-	if (BLI_listbase_is_empty(&ts->gp_brushes)) {
+	if (paint->brush == NULL) {
 		/* create new brushes */
-		BKE_gpencil_brush_init_presets(ts);
-		brush = BKE_gpencil_brush_getactive(ts);
+		BKE_brush_gpencil_presets(C);
+		brush = BKE_brush_getactive_gpencil(ts);
 	}
 	else {
 		/* Use the current */
-		brush = BKE_gpencil_brush_getactive(ts);
+		brush = BKE_brush_getactive_gpencil(ts);
 	}
 	/* be sure curves are initializated */
-	curvemapping_initialize(brush->cur_sensitivity);
-	curvemapping_initialize(brush->cur_strength);
-	curvemapping_initialize(brush->cur_jitter);
+	curvemapping_initialize(brush->gpencil_settings->curve_sensitivity);
+	curvemapping_initialize(brush->gpencil_settings->curve_strength);
+	curvemapping_initialize(brush->gpencil_settings->curve_jitter);
 
 	/* asign to temp tGPsdata */
 	p->brush = brush;
+	if (brush->gpencil_settings->brush_type != GP_BRUSH_TYPE_ERASE) {
+		p->eraser = gp_get_default_eraser(p->bmain, ts);
+	}
+	else {
+		p->eraser = brush;
+	}
+	/* use radius of eraser */
+	p->radius = (short)p->eraser->size;
+
+	/* GPXX: Need this update to synchronize brush with draw manager.
+	* Maybe this update can be removed when the new tool system
+	* will be in place, but while, we need this to keep drawing working.
+	*
+	*/
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 
-/* initialize a paint palette brush and a default color if not exist */
-static void gp_init_palette(tGPsdata *p)
+/* initialize a paint brush and a default color if not exist */
+static void gp_init_colors(tGPsdata *p)
 {
-	bGPdata *gpd;
-	bGPDpalette *palette;
-	bGPDpalettecolor *palcolor;
+	bGPdata *gpd = p->gpd;
+	Brush *brush = p->brush;
 
-	gpd = p->gpd;
+	Material *ma = NULL;
+	MaterialGPencilStyle *gp_style = NULL;
 
-	/* if not exist, create a new palette */
-	if (BLI_listbase_is_empty(&gpd->palettes)) {
-		/* create new palette */
-		palette = BKE_gpencil_palette_addnew(gpd, DATA_("GP_Palette"), true);
-		/* now create a default color */
-		palcolor = gp_create_new_color(palette);
+	/* use brush material */
+	ma = BKE_gpencil_get_material_from_brush(brush);
+
+	/* if no brush defaults, get material and color info
+	 * NOTE: Ensures that everything we need will exist...
+	 */
+	if ((ma == NULL) || (ma->gp_style == NULL)) {
+		BKE_gpencil_material_ensure(p->bmain, p->ob);
+
+		/* assign always the first material to the brush */
+		p->material = give_current_material(p->ob, 1);
+		brush->gpencil_settings->material = p->material;
 	}
 	else {
-		/* Use the current palette and color */
-		palette = BKE_gpencil_palette_getactive(gpd);
-		/* the palette needs one color */
-		if (BLI_listbase_is_empty(&palette->colors)) {
-			palcolor = gp_create_new_color(palette);
-		}
-		else {
-			palcolor = BKE_gpencil_palettecolor_getactive(palette);
-		}
-		/* in some situations can be null, so use first */
-		if (palcolor == NULL) {
-			BKE_gpencil_palettecolor_setactive(palette, palette->colors.first);
-			palcolor = palette->colors.first;
-		}
+		p->material = ma;
 	}
 
-	/* asign to temp tGPsdata */
-	p->palettecolor = palcolor;
+	/* check if the material is already on object material slots and add it if missing */
+	if (BKE_object_material_slot_find_index(p->ob, p->material) == 0) {
+		BKE_object_material_slot_add(p->bmain, p->ob);
+		assign_material(p->bmain, p->ob, ma, p->ob->totcol, BKE_MAT_ASSIGN_EXISTING);
+	}
+
+	/* assign color information to temp tGPsdata */
+	gp_style = p->material->gp_style;
+	if (gp_style) {
+
+		/* set colors */
+		copy_v4_v4(gpd->runtime.scolor, gp_style->stroke_rgba);
+		copy_v4_v4(gpd->runtime.sfill, gp_style->fill_rgba);
+		/* add some alpha to make easy the filling without hide strokes */
+		if (gpd->runtime.sfill[3] > 0.8f) {
+			gpd->runtime.sfill[3] = 0.8f;
+		}
+
+		gpd->runtime.mode = (short)gp_style->mode;
+		gpd->runtime.bstroke_style = gp_style->stroke_style;
+		gpd->runtime.bfill_style = gp_style->fill_style;
+	}
 }
 
 /* (re)init new painting data */
-static bool gp_session_initdata(bContext *C, tGPsdata *p)
+static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 {
 	Main *bmain = CTX_data_main(C);
 	bGPdata **gpd_ptr = NULL;
 	ScrArea *curarea = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
+	Object *obact = CTX_data_active_object(C);
+	View3D *v3d = curarea->spacedata.first;
 
 	/* make sure the active view (at the starting time) is a 3d-view */
 	if (curarea == NULL) {
@@ -1406,10 +1645,12 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	}
 
 	/* pass on current scene and window */
+	p->C = C;
 	p->bmain = CTX_data_main(C);
 	p->scene = CTX_data_scene(C);
 	p->depsgraph = CTX_data_depsgraph(C);
 	p->win = CTX_wm_window(C);
+	p->disable_fill = RNA_boolean_get(op->ptr, "disable_fill");
 
 	unit_m4(p->imat);
 	unit_m4(p->mat);
@@ -1424,7 +1665,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 			/* set current area
 			 *	- must verify that region data is 3D-view (and not something else)
 			 */
-			/* CAUTION: If this is the "toolbar", then this will change on the first stroke */
+			 /* CAUTION: If this is the "toolbar", then this will change on the first stroke */
 			p->sa = curarea;
 			p->ar = ar;
 			p->align_flag = &ts->gpencil_v3d_align;
@@ -1435,92 +1676,19 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable\n");
 				return 0;
 			}
-			break;
-		}
-		case SPACE_NODE:
-		{
-			/* SpaceNode *snode = curarea->spacedata.first; */
 
-			/* set current area */
-			p->sa = curarea;
-			p->ar = ar;
-			p->v2d = &ar->v2d;
-			p->align_flag = &ts->gpencil_v2d_align;
-			break;
-		}
-		case SPACE_SEQ:
-		{
-			SpaceSeq *sseq = curarea->spacedata.first;
-
-			/* set current area */
-			p->sa = curarea;
-			p->ar = ar;
-			p->v2d = &ar->v2d;
-			p->align_flag = &ts->gpencil_seq_align;
-
-			/* check that gpencil data is allowed to be drawn */
-			if (sseq->mainb == SEQ_DRAW_SEQUENCE) {
-				p->status = GP_STATUS_ERROR;
-				if (G.debug & G_DEBUG)
-					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
-				return 0;
+			/* if active object doesn't exist or isn't a GP Object, create one */
+			float *cur = ED_view3d_cursor3d_get(p->scene, v3d)->location;
+			if ((!obact) || (obact->type != OB_GPENCIL)) {
+				/* create new default object */
+				obact = ED_add_gpencil_object(C, p->scene, cur);
 			}
+			/* assign object after all checks to be sure we have one active */
+			p->ob = obact;
+
 			break;
 		}
-		case SPACE_IMAGE:
-		{
-			/* SpaceImage *sima = curarea->spacedata.first; */
 
-			/* set the current area */
-			p->sa = curarea;
-			p->ar = ar;
-			p->v2d = &ar->v2d;
-			p->align_flag = &ts->gpencil_ima_align;
-			break;
-		}
-		case SPACE_CLIP:
-		{
-			SpaceClip *sc = curarea->spacedata.first;
-			MovieClip *clip = ED_space_clip_get_clip(sc);
-
-			if (clip == NULL) {
-				p->status = GP_STATUS_ERROR;
-				return false;
-			}
-
-			/* set the current area */
-			p->sa = curarea;
-			p->ar = ar;
-			p->v2d = &ar->v2d;
-			p->align_flag = &ts->gpencil_v2d_align;
-
-			invert_m4_m4(p->imat, sc->unistabmat);
-
-			/* custom color for new layer */
-			p->custom_color[0] = 1.0f;
-			p->custom_color[1] = 0.0f;
-			p->custom_color[2] = 0.5f;
-			p->custom_color[3] = 0.9f;
-
-			if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-				int framenr = ED_space_clip_get_clip_frame_number(sc);
-				MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
-				MovieTrackingMarker *marker = track ? BKE_tracking_marker_get(track, framenr) : NULL;
-
-				if (marker) {
-					p->imat[3][0] -= marker->pos[0];
-					p->imat[3][1] -= marker->pos[1];
-				}
-				else {
-					p->status = GP_STATUS_ERROR;
-					return false;
-				}
-			}
-
-			invert_m4_m4(p->mat, p->imat);
-			copy_m4_m4(p->gsc.mat, p->mat);
-			break;
-		}
 		/* unsupported views */
 		default:
 		{
@@ -1533,7 +1701,7 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 
 	/* get gp-data */
 	gpd_ptr = ED_gpencil_data_get_pointers(C, &p->ownerPtr);
-	if (gpd_ptr == NULL) {
+	if ((gpd_ptr == NULL) || ED_gpencil_data_owner_is_annotation(&p->ownerPtr)) {
 		p->status = GP_STATUS_ERROR;
 		if (G.debug & G_DEBUG)
 			printf("Error: Current context doesn't allow for any Grease Pencil data\n");
@@ -1555,16 +1723,18 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 
 	/* clear out buffer (stored in gp-data), in case something contaminated it */
 	gp_session_validatebuffer(p);
+
 	/* set brush and create a new one if null */
-	gp_init_drawing_brush(ts, p);
-	/* set palette info and create a new one if null */
-	gp_init_palette(p);
-	/* set palette colors */
-	bGPDpalettecolor *palcolor = p->palettecolor;
-	bGPdata *pdata = p->gpd;
-	copy_v4_v4(pdata->scolor, palcolor->color);
-	copy_v4_v4(pdata->sfill, palcolor->fill);
-	pdata->sflag = palcolor->flag;
+	gp_init_drawing_brush(C, p);
+
+	/* setup active color */
+	if (curarea->spacetype == SPACE_VIEW3D) {
+		/* NOTE: This is only done for 3D view, as Materials aren't used for
+		 *       annotations in 2D editors
+		 */
+		gp_init_colors(p);
+	}
+
 	/* lock axis */
 	p->lock_axis = ts->gp_sculpt.lock_axis;
 
@@ -1572,20 +1742,22 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 }
 
 /* init new painting session */
-static tGPsdata *gp_session_initpaint(bContext *C)
+static tGPsdata *gp_session_initpaint(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
 
 	/* create new context data */
 	p = MEM_callocN(sizeof(tGPsdata), "GPencil Drawing Data");
 
-	gp_session_initdata(C, p);
+	gp_session_initdata(C, op, p);
 
+#if 0
 	/* radius for eraser circle is defined in userprefs now */
 	/* NOTE: we do this here, so that if we exit immediately,
 	 *       erase size won't get lost
 	 */
 	p->radius = U.gp_eraser;
+#endif
 
 	/* Random generator, only init once. */
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
@@ -1606,15 +1778,15 @@ static void gp_session_cleanup(tGPsdata *p)
 		return;
 
 	/* free stroke buffer */
-	if (gpd->sbuffer) {
+	if (gpd->runtime.sbuffer) {
 		/* printf("\t\tGP - free sbuffer\n"); */
-		MEM_freeN(gpd->sbuffer);
-		gpd->sbuffer = NULL;
+		MEM_freeN(gpd->runtime.sbuffer);
+		gpd->runtime.sbuffer = NULL;
 	}
 
 	/* clear flags */
-	gpd->sbuffer_size = 0;
-	gpd->sbuffer_sflag = 0;
+	gpd->runtime.sbuffer_size = 0;
+	gpd->runtime.sbuffer_sflag = 0;
 	p->inittime = 0.0;
 }
 
@@ -1632,11 +1804,12 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 {
 	Scene *scene = p->scene;
 	ToolSettings *ts = scene->toolsettings;
+	int cfra_eval = (int)DEG_get_ctime(p->depsgraph);
 
 	/* get active layer (or add a new one if non-existent) */
 	p->gpl = BKE_gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
-		p->gpl = BKE_gpencil_layer_addnew(p->gpd, "GP_Layer", true);
+		p->gpl = BKE_gpencil_layer_addnew(p->gpd, DATA_("GP_Layer"), true);
 
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
@@ -1670,7 +1843,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 			 *       -> If there are no strokes in that frame, don't add a new empty frame
 			 */
 			if (gpl->actframe && gpl->actframe->strokes.first) {
-				gpl->actframe = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_COPY);
+				gpl->actframe = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_ADD_COPY);
 				has_layer_to_erase = true;
 			}
 
@@ -1708,7 +1881,9 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		else
 			add_frame_mode = GP_GETFRAME_ADD_NEW;
 
-		p->gpf = BKE_gpencil_layer_getframe(p->gpl, CFRA, add_frame_mode);
+		p->gpf = BKE_gpencil_layer_getframe(p->gpl, cfra_eval, add_frame_mode);
+		/* set as dirty draw manager cache */
+		gp_update_cache(p->gpd);
 
 		if (p->gpf == NULL) {
 			p->status = GP_STATUS_ERROR;
@@ -1724,7 +1899,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 	/* set 'eraser' for this stroke if using eraser */
 	p->paintmode = paintmode;
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
-		p->gpd->sbuffer_sflag |= GP_STROKE_ERASER;
+		p->gpd->runtime.sbuffer_sflag |= GP_STROKE_ERASER;
 
 		/* check if we should respect depth while erasing */
 		if (p->sa->spacetype == SPACE_VIEW3D) {
@@ -1735,7 +1910,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 	}
 	else {
 		/* disable eraser flags - so that we can switch modes during a session */
-		p->gpd->sbuffer_sflag &= ~GP_STROKE_ERASER;
+		p->gpd->runtime.sbuffer_sflag &= ~GP_STROKE_ERASER;
 
 		if (p->sa->spacetype == SPACE_VIEW3D) {
 			if (p->gpl->flag & GP_LAYER_NO_XRAY) {
@@ -1744,9 +1919,15 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		}
 	}
 
+	/* set special fill stroke mode */
+	if (p->disable_fill == true) {
+		p->gpd->runtime.sbuffer_sflag |= GP_STROKE_NOFILL;
+		/* replace stroke color with fill color */
+		copy_v4_v4(p->gpd->runtime.scolor, p->gpd->runtime.sfill);
+	}
+
 	/* set 'initial run' flag, which is only used to denote when a new stroke is starting */
 	p->flags |= GP_PAINTFLAG_FIRSTRUN;
-
 
 	/* when drawing in the camera view, in 2D space, set the subrect */
 	p->subrect = NULL;
@@ -1782,41 +1963,7 @@ static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Deps
 		switch (p->sa->spacetype) {
 			case SPACE_VIEW3D:
 			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_3DSPACE;
-				break;
-			}
-			case SPACE_NODE:
-			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
-				break;
-			}
-			case SPACE_SEQ:
-			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
-				break;
-			}
-			case SPACE_IMAGE:
-			{
-				SpaceImage *sima = (SpaceImage *)p->sa->spacedata.first;
-
-				/* only set these flags if the image editor doesn't have an image active,
-				 * otherwise user will be confused by strokes not appearing after they're drawn
-				 *
-				 * Admittedly, this is a bit hacky, but it works much nicer from an ergonomic standpoint!
-				 */
-				if (ELEM(NULL, sima, sima->image)) {
-					/* make strokes be drawn in screen space */
-					p->gpd->sbuffer_sflag &= ~GP_STROKE_2DSPACE;
-					*(p->align_flag) &= ~GP_PROJECT_VIEWSPACE;
-				}
-				else {
-					p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
-				}
-				break;
-			}
-			case SPACE_CLIP:
-			{
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
+				p->gpd->runtime.sbuffer_sflag |= GP_STROKE_3DSPACE;
 				break;
 			}
 		}
@@ -1839,7 +1986,7 @@ static void gp_paint_strokeend(tGPsdata *p)
 	}
 
 	/* check if doing eraser or not */
-	if ((p->gpd->sbuffer_sflag & GP_STROKE_ERASER) == 0) {
+	if ((p->gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
 		/* simplify stroke before transferring? */
 		gp_stroke_simplify(p);
 
@@ -1920,10 +2067,12 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 		p->erasercursor = NULL;
 	}
 	else if (enable && !p->erasercursor) {
+		ED_gpencil_toggle_brush_cursor(p->C, false, NULL);
 		/* enable cursor */
-		p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-		                                           NULL, /* XXX */
-		                                           gpencil_draw_eraser, p);
+		p->erasercursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        NULL, /* XXX */
+		        gpencil_draw_eraser, p);
 	}
 }
 
@@ -1943,13 +2092,26 @@ static bool gpencil_is_tablet_eraser_active(const wmEvent *event)
 static void gpencil_draw_exit(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = op->customdata;
+	bGPdata *gpd = CTX_data_gpencil_data(C);
 
 	/* clear undo stack */
 	gpencil_undo_finish();
 
 	/* restore cursor to indicate end of drawing */
-	WM_cursor_modal_restore(CTX_wm_window(C));
+	if (p->sa->spacetype != SPACE_VIEW3D) {
+		WM_cursor_modal_restore(CTX_wm_window(C));
+	}
+	else {
+		/* or restore paint if 3D view */
+		if ((p) && (p->paintmode == GP_PAINTMODE_ERASER)) {
+			WM_cursor_modal_set(p->win, CURSOR_STD);
+		}
+		/* drawing batch cache is dirty now */
+		if (gpd) {
+			gp_update_cache(gpd);
+		}
 
+	}
 	/* don't assume that operator data exists at all */
 	if (p) {
 		/* check size of buffer before cleanup, to determine if anything happened here */
@@ -1962,11 +2124,16 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		 * NOTE: Do this even when not in eraser mode, as eraser may
 		 *       have been toggled at some point.
 		 */
-		U.gp_eraser = p->radius;
+		if (p->eraser) {
+			p->eraser->size = p->radius;
+		}
 
 		/* cleanup */
 		gp_paint_cleanup(p);
 		gp_session_cleanup(p);
+		ED_gpencil_toggle_brush_cursor(C, true, NULL);
+
+		/* finally, free the temp data */
 		gp_session_free(p);
 	}
 
@@ -1986,9 +2153,18 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	tGPsdata *p;
 	eGPencil_PaintModes paintmode = RNA_enum_get(op->ptr, "mode");
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Brush *brush = BKE_brush_getactive_gpencil(ts);
+
+	/* if mode is draw and the brush is eraser, cancel */
+	if (paintmode != GP_PAINTMODE_ERASER) {
+		if ((brush) && (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE)) {
+			return 0;
+		}
+	}
 
 	/* check context */
-	p = op->customdata = gp_session_initpaint(C);
+	p = op->customdata = gp_session_initpaint(C, op);
 	if ((p == NULL) || (p->status == GP_STATUS_ERROR)) {
 		/* something wasn't set correctly in context */
 		gpencil_draw_exit(C, op);
@@ -2009,6 +2185,8 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 		p->keymodifier = -1;
 	}
 
+	p->reports = op->reports;
+
 	/* everything is now setup ok */
 	return 1;
 }
@@ -2019,10 +2197,15 @@ static int gpencil_draw_init(bContext *C, wmOperator *op, const wmEvent *event)
 /* ensure that the correct cursor icon is set */
 static void gpencil_draw_cursor_set(tGPsdata *p)
 {
-	if (p->paintmode == GP_PAINTMODE_ERASER)
+	Brush *brush = p->brush;
+	if ((p->paintmode == GP_PAINTMODE_ERASER) ||
+	    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+	{
 		WM_cursor_modal_set(p->win, BC_CROSSCURSOR);  /* XXX need a better cursor */
-	else
-		WM_cursor_modal_set(p->win, BC_PAINTBRUSHCURSOR);
+	}
+	else {
+		WM_cursor_modal_set(p->win, CURSOR_STD);
+	}
 }
 
 /* update UI indicators of status, including cursor and header prints */
@@ -2030,11 +2213,24 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 {
 	/* header prints */
 	switch (p->status) {
-		case GP_STATUS_PAINTING:
-			/* only print this for paint-sessions, otherwise it gets annoying */
-			if (GPENCIL_SKETCH_SESSIONS_ON(p->scene))
-				ED_workspace_status_text(C, IFACE_("Grease Pencil: Drawing/erasing stroke... Release to end stroke"));
-			break;
+
+#if 0 /* FIXME, this never runs! */
+		switch (p->paintmode) {
+			case GP_PAINTMODE_DRAW_POLY:
+				/* Provide usage tips, since this is modal, and unintuitive without hints */
+				ED_workspace_status_text(
+				        C, IFACE_(
+				                "Annotation Create Poly: LMB click to place next stroke vertex | "
+				                "ESC/Enter to end  (or click outside this area)"
+				        ));
+				break;
+			default:
+				/* Do nothing - the others are self explanatory, exit quickly once the mouse is released
+				 * Showing any text would just be annoying as it would flicker.
+				 */
+				break;
+		}
+#endif
 
 		case GP_STATUS_IDLING:
 			/* print status info */
@@ -2048,12 +2244,11 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 					                                  "ESC/Enter to end  (or click outside this area)"));
 					break;
 				case GP_PAINTMODE_DRAW:
-					ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw | "
-					                                  "E/ESC/Enter to end  (or click outside this area)"));
+					ED_workspace_status_text(C, IFACE_("Grease Pencil Freehand Session: Hold and drag LMB to draw"));
 					break;
 				case GP_PAINTMODE_DRAW_POLY:
 					ED_workspace_status_text(C, IFACE_("Grease Pencil Poly Session: LMB click to place next stroke vertex | "
-					                                  "ESC/Enter to end  (or click outside this area)"));
+					                                  "Release Shift/ESC/Enter to end  (or click outside this area)"));
 					break;
 
 				default: /* unhandled future cases */
@@ -2067,14 +2262,19 @@ static void gpencil_draw_status_indicators(bContext *C, tGPsdata *p)
 			/* clear status string */
 			ED_workspace_status_text(C, NULL);
 			break;
+		case GP_STATUS_PAINTING:
+			break;
 	}
 }
 
 /* ------------------------------- */
 
 /* create a new stroke point at the point indicated by the painting context */
-static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph)
+static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgraph *depsgraph)
 {
+	bGPdata *gpd = p->gpd;
+	tGPspoint *pt = NULL;
+
 	/* handle drawing/erasing -> test for erasing first */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		/* do 'live' erasing now */
@@ -2087,6 +2287,17 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
 	}
 	/* only add current point to buffer if mouse moved (even though we got an event, it might be just noise) */
 	else if (gp_stroke_filtermval(p, p->mval, p->mvalo)) {
+
+		/* if lazy mouse, interpolate the last and current mouse positions */
+		if (GPENCIL_LAZY_MODE(p->brush, p->shift)) {
+			float now_mouse[2];
+			float last_mouse[2];
+			copy_v2fl_v2i(now_mouse, p->mval);
+			copy_v2fl_v2i(last_mouse, p->mvalo);
+			interp_v2_v2v2(now_mouse, now_mouse, last_mouse, p->brush->smooth_stroke_factor);
+			round_v2i_v2fl(p->mval, now_mouse);
+		}
+
 		/* try to add point */
 		short ok = gp_stroke_addpoint(p, p->mval, p->pressure, p->curtime);
 
@@ -2124,11 +2335,24 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph
 		p->mvalo[1] = p->mval[1];
 		p->opressure = p->pressure;
 		p->ocurtime = p->curtime;
+
+		pt = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 1;
+		if (p->paintmode != GP_PAINTMODE_ERASER) {
+			ED_gpencil_toggle_brush_cursor(C, true, &pt->x);
+		}
+	}
+	else if ((p->brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) &&
+	         (gpd->runtime.sbuffer_size > 0))
+	{
+		pt = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 1;
+		if (p->paintmode != GP_PAINTMODE_ERASER) {
+			ED_gpencil_toggle_brush_cursor(C, true, &pt->x);
+		}
 	}
 }
 
 /* handle draw event */
-static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsgraph *depsgraph)
+static void gpencil_draw_apply_event(bContext *C, wmOperator *op, const wmEvent *event, Depsgraph *depsgraph, int x, int y)
 {
 	tGPsdata *p = op->customdata;
 	PointerRNA itemptr;
@@ -2136,13 +2360,15 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 	int tablet = 0;
 
 	/* convert from window-space to area-space mouse coordinates
+	 * add any x,y override position for fake events
 	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
 	 */
-	p->mval[0] = event->mval[0] + 1;
-	p->mval[1] = event->mval[1] + 1;
+	p->mval[0] = event->mval[0] + 1 - x;
+	p->mval[1] = event->mval[1] + 1 - y;
+	p->shift = event->shift;
 
 	/* verify key status for straight lines */
-	if ((event->ctrl > 0) || (event->alt > 0)) {
+	if ((event->alt > 0) && (RNA_boolean_get(op->ptr, "disable_straight") == false)) {
 		if (p->straight[0] == 0) {
 			int dx = abs(p->mval[0] - p->mvalo[0]);
 			int dy = abs(p->mval[1] - p->mvalo[1]);
@@ -2151,12 +2377,12 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 				if (dx >= dy) {
 					/* horizontal */
 					p->straight[0] = 1;
-					p->straight[1] = p->mval[1]; /* save y */
+					p->straight[1] = (short)p->mval[1]; /* save y */
 				}
 				else {
 					/* vertical */
 					p->straight[0] = 2;
-					p->straight[1] = p->mval[0]; /* save x */
+					p->straight[1] = (short)p->mval[0]; /* save x */
 				}
 			}
 		}
@@ -2189,6 +2415,22 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 	else {
 		/* No tablet data -> No pressure info is available */
 		p->pressure = 1.0f;
+	}
+
+	/* special eraser modes */
+	if (p->paintmode == GP_PAINTMODE_ERASER) {
+		if (event->shift > 0) {
+			p->flags |= GP_PAINTFLAG_HARD_ERASER;
+		}
+		else {
+			p->flags &= ~GP_PAINTFLAG_HARD_ERASER;
+		}
+		if (event->alt > 0) {
+			p->flags |= GP_PAINTFLAG_STROKE_ERASER;
+		}
+		else {
+			p->flags &= ~GP_PAINTFLAG_STROKE_ERASER;
+		}
 	}
 
 	/* special exception for start of strokes (i.e. maybe for just a dot) */
@@ -2233,7 +2475,7 @@ static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsg
 	RNA_float_set(&itemptr, "time", p->curtime - p->inittime);
 
 	/* apply the current latest drawing point */
-	gpencil_draw_apply(op, p, depsgraph);
+	gpencil_draw_apply(C, op, p, depsgraph);
 
 	/* force refresh */
 	ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
@@ -2251,7 +2493,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 
 	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op, NULL)) {
-		if (op->customdata) MEM_freeN(op->customdata);
+		MEM_SAFE_FREE(op->customdata);
 		/* printf("\tGP - no valid data\n"); */
 		return OPERATOR_CANCELLED;
 	}
@@ -2298,7 +2540,7 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 		}
 
 		/* apply this data as necessary now (as per usual) */
-		gpencil_draw_apply(op, p, depsgraph);
+		gpencil_draw_apply(C, op, p, depsgraph);
 	}
 	RNA_END;
 
@@ -2324,6 +2566,11 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	if (G.debug & G_DEBUG)
 		printf("GPencil - Starting Drawing\n");
 
+	/* support for tablets eraser pen */
+	if (gpencil_is_tablet_eraser_active(event)) {
+		RNA_enum_set(op->ptr, "mode", GP_PAINTMODE_ERASER);
+	}
+
 	/* try to initialize context data needed while drawing */
 	if (!gpencil_draw_init(C, op, event)) {
 		if (op->customdata)
@@ -2344,6 +2591,9 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
 		gpencil_draw_toggle_eraser_cursor(C, p, true);
 	}
+	else {
+		ED_gpencil_toggle_brush_cursor(C, true, NULL);
+	}
 	/* set cursor
 	 * NOTE: This may change later (i.e. intentionally via brush toggle,
 	 *       or unintentionally if the user scrolls outside the area)...
@@ -2357,7 +2607,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		p->status = GP_STATUS_PAINTING;
 
 		/* handle the initial drawing - i.e. for just doing a simple dot */
-		gpencil_draw_apply_event(op, event, CTX_data_depsgraph(C));
+		gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph(C), 0, 0);
 		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 	else {
@@ -2366,9 +2616,29 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 		op->flag |= OP_IS_MODAL_CURSOR_REGION;
 	}
 
+	/* enable paint mode */
+	if (p->sa->spacetype == SPACE_VIEW3D) {
+		Object *ob = CTX_data_active_object(C);
+		if (ob && (ob->type == OB_GPENCIL) && ((p->gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0)) {
+			/* Just set paintmode flag... */
+			p->gpd->flag |= GP_DATA_STROKE_PAINTMODE;
+			/* disable other GP modes */
+			p->gpd->flag &= ~GP_DATA_STROKE_EDITMODE;
+			p->gpd->flag &= ~GP_DATA_STROKE_SCULPTMODE;
+			p->gpd->flag &= ~GP_DATA_STROKE_WEIGHTMODE;
+			/* set workspace mode */
+			ob->restore_mode = ob->mode;
+			ob->mode = OB_MODE_GPENCIL_PAINT;
+			/* redraw mode on screen */
+			WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+		}
+	}
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_EDITED, NULL);
+
 	/* add a modal handler for this operator, so that we can then draw continuous strokes */
 	WM_event_add_modal_handler(C, op);
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -2397,7 +2667,7 @@ static tGPsdata *gpencil_stroke_begin(bContext *C, wmOperator *op)
 	/* XXX: watch it with the paintmode! in future,
 	 *      it'd be nice to allow changing paint-mode when in sketching-sessions */
 
-	if (gp_session_initdata(C, p))
+	if (gp_session_initdata(C, op, p))
 		gp_paint_initstroke(p, p->paintmode, CTX_data_depsgraph(C));
 
 	if (p->status != GP_STATUS_ERROR) {
@@ -2448,6 +2718,76 @@ static void gpencil_move_last_stroke_to_back(bContext *C)
 	BLI_insertlinkbefore(&gpf->strokes, gpf->strokes.first, gps);
 }
 
+/* add events for missing mouse movements when the artist draw very fast */
+static void gpencil_add_missing_events(bContext *C, wmOperator *op, const wmEvent *event, tGPsdata *p)
+{
+	Brush *brush = p->brush;
+	if (brush->gpencil_settings->input_samples == 0) {
+		return;
+	}
+	RegionView3D *rv3d = p->ar->regiondata;
+	float defaultpixsize = rv3d->pixsize * 1000.0f;
+	int samples = (GP_MAX_INPUT_SAMPLES - brush->gpencil_settings->input_samples + 1);
+	float thickness = (float)brush->size;
+
+	float pt[2], a[2], b[2];
+	float vec[3];
+	float scale = 1.0f;
+
+	/* get pixel scale */
+	gp_get_3d_reference(p, vec);
+	mul_m4_v3(rv3d->persmat, vec);
+	if (rv3d->is_persp) {
+		scale = vec[2] * defaultpixsize;
+	}
+	else {
+		scale = defaultpixsize;
+	}
+
+	/* The thickness of the brush is reduced of thickness to get overlap dots */
+	float dot_factor = 0.50f;
+	if (samples < 2) {
+		dot_factor = 0.05f;
+	}
+	else if (samples < 4) {
+		dot_factor = 0.10f;
+	}
+	else if (samples < 7) {
+		dot_factor = 0.3f;
+	}
+	else if (samples < 10) {
+		dot_factor = 0.4f;
+	}
+	float factor = ((thickness * dot_factor) / scale) * samples;
+
+	copy_v2fl_v2i(a, p->mvalo);
+	b[0] = event->mval[0] + 1;
+	b[1] = event->mval[1] + 1;
+
+	/* get distance in pixels */
+	float dist = len_v2v2(a, b);
+
+	/* for very small distances, add a half way point */
+	if (dist <= 2.0f) {
+		interp_v2_v2v2(pt, a, b, 0.5f);
+		sub_v2_v2v2(pt, b, pt);
+		/* create fake event */
+		gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph(C),
+		                         (int)pt[0], (int)pt[1]);
+	}
+	else if (dist >= factor) {
+		int slices = 2 + (int)((dist - 1.0) / factor);
+		float n = 1.0f / slices;
+		for (int i = 1; i < slices; i++) {
+			interp_v2_v2v2(pt, a, b, n * i);
+			sub_v2_v2v2(pt, b, pt);
+			/* create fake event */
+			gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph(C),
+			                         (int)pt[0], (int)pt[1]);
+		}
+	}
+}
+
 /* events handling during interactive drawing part of operator */
 static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -2488,10 +2828,6 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			 *   is essential for ensuring that they can quickly return to that view
 			 */
 		}
-		else if ((ELEM(event->type, p->keymodifier)) && (event->val == KM_RELEASE)) {
-			/* enable continuous if release D key in mid drawing */
-			p->scene->toolsettings->gpencil_flags |= GP_TOOL_FLAG_PAINTSESSIONS_ON;
-		}
 		else if ((event->type == BKEY) && (event->val == KM_RELEASE)) {
 			/* Add Blank Frame
 			 * - Since this operator is non-modal, we can just call it here, and keep going...
@@ -2510,7 +2846,10 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	/* exit painting mode (and/or end current stroke)
 	 * NOTE: cannot do RIGHTMOUSE (as is standard for canceling) as that would break polyline [#32647]
 	 */
-	if (ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) {
+	/* if polyline and release shift must cancel */
+	if ((ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) ||
+	    ((p->paintmode == GP_PAINTMODE_DRAW_POLY) && (event->shift == 0)))
+	{
 		/* exit() ends the current stroke before cleaning up */
 		/* printf("\t\tGP - end of paint op + end of stroke\n"); */
 		/* if drawing polygon and enable on back, must move stroke */
@@ -2537,10 +2876,8 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			int sketch = 0;
 
 			/* basically, this should be mouse-button up = end stroke
-			 * BUT what happens next depends on whether we 'painting sessions' is enabled
+			 * BUT, polyline drawing is an exception -- all knots should be added during one session
 			 */
-			sketch |= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
-			/* polyline drawing is also 'sketching' -- all knots should be added during one session */
 			sketch |= (p->paintmode == GP_PAINTMODE_DRAW_POLY);
 
 			if (sketch) {
@@ -2585,6 +2922,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 						}
 					}
 				}
+				/* drawing batch cache is dirty now */
+				gp_update_cache(p->gpd);
+
 				p->status = GP_STATUS_DONE;
 				estate = OPERATOR_FINISHED;
 			}
@@ -2689,7 +3029,9 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		if (ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE) || (p->flags & GP_PAINTFLAG_FIRSTRUN)) {
 			/* handle drawing event */
 			/* printf("\t\tGP - add point\n"); */
-			gpencil_draw_apply_event(op, event, CTX_data_depsgraph(C));
+			gpencil_add_missing_events(C, op, event, p);
+
+			gpencil_draw_apply_event(C, op, event, CTX_data_depsgraph(C), 0, 0);
 
 			/* finish painting operation if anything went wrong just now */
 			if (p->status == GP_STATUS_ERROR) {
@@ -2791,7 +3133,7 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Grease Pencil Draw";
 	ot->idname = "GPENCIL_OT_draw";
-	ot->description = "Make annotations on the active data";
+	ot->description = "Draw a new stroke in the active Grease Pencil Object";
 
 	/* api callbacks */
 	ot->exec = gpencil_draw_exec;
@@ -2811,5 +3153,11 @@ void GPENCIL_OT_draw(wmOperatorType *ot)
 
 	/* NOTE: wait for input is enabled by default, so that all UI code can work properly without needing users to know about this */
 	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input", "Wait for first click instead of painting immediately");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	prop = RNA_def_boolean(ot->srna, "disable_straight", false, "No Straight lines", "Disable key for straight lines");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+
+	prop = RNA_def_boolean(ot->srna, "disable_fill", false, "No Fill Areas", "Disable fill to use stroke as fill boundary");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }

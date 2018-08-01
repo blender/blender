@@ -72,24 +72,17 @@ ccl_device_inline float rect_light_sample(float3 P,
 	float y0 = dot(dir, y);
 	float x1 = x0 + axisu_len;
 	float y1 = y0 + axisv_len;
-	/* Create vectors to four vertices. */
-	float3 v00 = make_float3(x0, y0, z0);
-	float3 v01 = make_float3(x0, y1, z0);
-	float3 v10 = make_float3(x1, y0, z0);
-	float3 v11 = make_float3(x1, y1, z0);
-	/* Compute normals to edges. */
-	float3 n0 = normalize(cross(v00, v10));
-	float3 n1 = normalize(cross(v10, v11));
-	float3 n2 = normalize(cross(v11, v01));
-	float3 n3 = normalize(cross(v01, v00));
 	/* Compute internal angles (gamma_i). */
-	float g0 = safe_acosf(-dot(n0, n1));
-	float g1 = safe_acosf(-dot(n1, n2));
-	float g2 = safe_acosf(-dot(n2, n3));
-	float g3 = safe_acosf(-dot(n3, n0));
+	float4 diff = make_float4(x0, y1, x1, y0) - make_float4(x1, y0, x0, y1);
+	float4 nz = make_float4(y0, x1, y1, x0) * diff;
+	nz = nz / sqrt(z0 * z0 * diff * diff + nz * nz);
+	float g0 = safe_acosf(-nz.x * nz.y);
+	float g1 = safe_acosf(-nz.y * nz.z);
+	float g2 = safe_acosf(-nz.z * nz.w);
+	float g3 = safe_acosf(-nz.w * nz.x);
 	/* Compute predefined constants. */
-	float b0 = n0.z;
-	float b1 = n2.z;
+	float b0 = nz.x;
+	float b1 = nz.z;
 	float b0sq = b0 * b0;
 	float k = M_2PI_F - g2 - g3;
 	/* Compute solid angle from internal angles. */

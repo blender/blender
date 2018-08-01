@@ -17,6 +17,7 @@
 #include "device/device.h"
 #include "render/image.h"
 #include "render/scene.h"
+#include "render/stats.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
@@ -30,19 +31,57 @@
 
 CCL_NAMESPACE_BEGIN
 
+namespace {
+
 /* Some helpers to silence warning in templated function. */
-static bool isfinite(uchar /*value*/)
+bool isfinite(uchar /*value*/)
 {
 	return true;
 }
-static bool isfinite(half /*value*/)
+bool isfinite(half /*value*/)
 {
 	return true;
 }
-static bool isfinite(uint16_t  /*value*/)
+bool isfinite(uint16_t  /*value*/)
 {
 	return true;
 }
+
+/* The lower three bits of a device texture slot number indicate its type.
+ * These functions convert the slot ids from ImageManager "images" ones
+ * to device ones and vice verse.
+ */
+int type_index_to_flattened_slot(int slot, ImageDataType type)
+{
+	return (slot << IMAGE_DATA_TYPE_SHIFT) | (type);
+}
+
+int flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
+{
+	*type = (ImageDataType)(flat_slot & IMAGE_DATA_TYPE_MASK);
+	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
+}
+
+const char* name_from_type(ImageDataType type)
+{
+	switch(type) {
+		case IMAGE_DATA_TYPE_FLOAT4: return "float4";
+		case IMAGE_DATA_TYPE_BYTE4: return "byte4";
+		case IMAGE_DATA_TYPE_HALF4: return "half4";
+		case IMAGE_DATA_TYPE_FLOAT: return "float";
+		case IMAGE_DATA_TYPE_BYTE: return "byte";
+		case IMAGE_DATA_TYPE_HALF: return "half";
+		case IMAGE_DATA_TYPE_USHORT4: return "ushort4";
+		case IMAGE_DATA_TYPE_USHORT: return "ushort";
+		case IMAGE_DATA_NUM_TYPES:
+			assert(!"System enumerator type, should never be used");
+			return "";
+	}
+	assert(!"Unhandled image data type");
+	return "";
+}
+
+}  // namespace
 
 ImageManager::ImageManager(const DeviceInfo& info)
 {
@@ -90,12 +129,12 @@ bool ImageManager::set_animation_frame_update(int frame)
 
 device_memory *ImageManager::image_memory(int flat_slot)
 {
-	   ImageDataType type;
-	   int slot = flattened_slot_to_type_index(flat_slot, &type);
+	ImageDataType type;
+	int slot = flattened_slot_to_type_index(flat_slot, &type);
 
-	   Image *img = images[type][slot];
+	Image *img = images[type][slot];
 
-	   return img->mem;
+	return img->mem;
 }
 
 bool ImageManager::get_image_metadata(int flat_slot,
@@ -133,10 +172,12 @@ bool ImageManager::get_image_metadata(const string& filename,
 
 		if(metadata.is_float) {
 			metadata.is_linear = true;
-			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4
+			                                        : IMAGE_DATA_TYPE_FLOAT;
 		}
 		else {
-			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4
+			                                        : IMAGE_DATA_TYPE_BYTE;
 		}
 
 		return true;
@@ -148,7 +189,8 @@ bool ImageManager::get_image_metadata(const string& filename,
 		return false;
 	}
 	if(path_is_directory(filename)) {
-		VLOG(1) << "File '" << filename << "' is a directory, can't use as image.";
+		VLOG(1) << "File '" << filename
+		        << "' is a directory, can't use as image.";
 		return false;
 	}
 
@@ -211,66 +253,26 @@ bool ImageManager::get_image_metadata(const string& filename,
 	metadata.channels = spec.nchannels;
 
 	if(metadata.is_half) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_HALF4
+		                                        : IMAGE_DATA_TYPE_HALF;
 	}
 	else if(metadata.is_float) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4
+		                                        : IMAGE_DATA_TYPE_FLOAT;
 	}
 	else if(spec.format == TypeDesc::USHORT) {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_USHORT4 : IMAGE_DATA_TYPE_USHORT;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_USHORT4
+		                                        : IMAGE_DATA_TYPE_USHORT;
 	}
 	else {
-		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4
+		                                        : IMAGE_DATA_TYPE_BYTE;
 	}
 
 	in->close();
 	delete in;
 
 	return true;
-}
-
-int ImageManager::max_flattened_slot(ImageDataType type)
-{
-	if(tex_num_images[type] == 0) {
-		/* No textures for the type, no slots needs allocation. */
-		return 0;
-	}
-	return type_index_to_flattened_slot(tex_num_images[type], type);
-}
-
-/* The lower three bits of a device texture slot number indicate its type.
- * These functions convert the slot ids from ImageManager "images" ones
- * to device ones and vice verse.
- */
-int ImageManager::type_index_to_flattened_slot(int slot, ImageDataType type)
-{
-	return (slot << IMAGE_DATA_TYPE_SHIFT) | (type);
-}
-
-int ImageManager::flattened_slot_to_type_index(int flat_slot, ImageDataType *type)
-{
-	*type = (ImageDataType)(flat_slot & IMAGE_DATA_TYPE_MASK);
-	return flat_slot >> IMAGE_DATA_TYPE_SHIFT;
-}
-
-string ImageManager::name_from_type(int type)
-{
-	if(type == IMAGE_DATA_TYPE_FLOAT4)
-		return "float4";
-	else if(type == IMAGE_DATA_TYPE_FLOAT)
-		return "float";
-	else if(type == IMAGE_DATA_TYPE_BYTE)
-		return "byte";
-	else if(type == IMAGE_DATA_TYPE_HALF4)
-		return "half4";
-	else if(type == IMAGE_DATA_TYPE_HALF)
-		return "half";
-	else if(type == IMAGE_DATA_TYPE_USHORT)
-		return "ushort";
-	else if(type == IMAGE_DATA_TYPE_USHORT4)
-		return "ushort4";
-	else
-		return "byte4";
 }
 
 static bool image_equals(ImageManager::Image *image,
@@ -344,14 +346,16 @@ int ImageManager::add_image(const string& filename,
 	}
 
 	/* Count if we're over the limit.
-	 * Very unlikely, since max_num_images is insanely big. But better safe than sorry. */
+	 * Very unlikely, since max_num_images is insanely big. But better safe
+	 * than sorry.
+	 */
 	int tex_count = 0;
 	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_count += tex_num_images[type];
 	}
 	if(tex_count > max_num_images) {
-		printf("ImageManager::add_image: Reached image limit (%d), skipping '%s'\n",
-			max_num_images, filename.c_str());
+		printf("ImageManager::add_image: Reached image limit (%d), "
+		       "skipping '%s'\n", max_num_images, filename.c_str());
 		return -1;
 	}
 
@@ -732,7 +736,8 @@ void ImageManager::device_load_image(Device *device,
 
 	/* Slot assignment */
 	int flat_slot = type_index_to_flattened_slot(slot, type);
-	img->mem_name = string_printf("__tex_image_%s_%03d", name_from_type(type).c_str(), flat_slot);
+	img->mem_name = string_printf("__tex_image_%s_%03d",
+	                              name_from_type(type), flat_slot);
 
 	/* Free previous texture in slot. */
 	if(img->mem) {
@@ -1068,6 +1073,17 @@ void ImageManager::device_free(Device *device)
 			device_free_image(device, (ImageDataType)type, slot);
 		}
 		images[type].clear();
+	}
+}
+
+void ImageManager::collect_statistics(RenderStats *stats)
+{
+	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
+		foreach(const Image *image, images[type]) {
+			stats->image.textures.add_entry(
+			        NamedSizeEntry(path_filename(image->filename),
+			                       image->mem->memory_size()));
+		}
 	}
 }
 

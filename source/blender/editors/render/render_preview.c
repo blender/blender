@@ -198,6 +198,7 @@ typedef struct IconPreview {
 
 static Main *G_pr_main = NULL;
 static Main *G_pr_main_cycles = NULL;
+static Main *G_pr_main_grease_pencil = NULL;
 
 #ifndef WITH_HEADLESS
 static Main *load_main_from_memory(const void *blend, int blend_size)
@@ -227,6 +228,7 @@ void ED_preview_ensure_dbase(void)
 	if (!base_initialized) {
 		G_pr_main = load_main_from_memory(datatoc_preview_blend, datatoc_preview_blend_size);
 		G_pr_main_cycles = load_main_from_memory(datatoc_preview_cycles_blend, datatoc_preview_cycles_blend_size);
+		G_pr_main_grease_pencil = load_main_from_memory(datatoc_preview_grease_pencil_blend, datatoc_preview_grease_pencil_blend_size);
 		base_initialized = true;
 	}
 #endif
@@ -245,6 +247,9 @@ void ED_preview_free_dbase(void)
 
 	if (G_pr_main_cycles)
 		BKE_main_free(G_pr_main_cycles);
+
+	if (G_pr_main_grease_pencil)
+		BKE_main_free(G_pr_main_grease_pencil);
 }
 
 static Scene *preview_get_scene(Main *pr_main)
@@ -1102,6 +1107,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 		sp->id_copy = ip->id_copy;
 		sp->bmain = ip->bmain;
 		sp->own_id_copy = false;
+		Material *ma = NULL;
 
 		if (is_render) {
 			BLI_assert(ip->id);
@@ -1109,10 +1115,22 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 			 * so don't even think of using cycle's bmain for
 			 * texture icons
 			 */
-			if (GS(ip->id->name) != ID_TE)
-				sp->pr_main = G_pr_main_cycles;
-			else
+			if (GS(ip->id->name) != ID_TE) {
+				/* grease pencil use its own preview file */
+				if (GS(ip->id->name) == ID_MA) {
+					ma = (Material *)ip->id;
+				}
+
+				if ((ma == NULL) || (ma->gp_style == NULL)) {
+					sp->pr_main = G_pr_main_cycles;
+				}
+				else {
+					sp->pr_main = G_pr_main_grease_pencil;
+				}
+			}
+			else {
 				sp->pr_main = G_pr_main;
+			}
 		}
 
 		common_preview_startjob(sp, stop, do_update, progress);
@@ -1274,11 +1292,23 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->parent = parent;
 	sp->slot = slot;
 	sp->bmain = CTX_data_main(C);
+	Material *ma = NULL;
 
 	/* hardcoded preview .blend for Eevee + Cycles, this should be solved
 	 * once with custom preview .blend path for external engines */
 	if ((method != PR_NODE_RENDER) && id_type != ID_TE) {
-		sp->pr_main = G_pr_main_cycles;
+		/* grease pencil use its own preview file */
+		if (GS(id->name) == ID_MA) {
+			ma = (Material *)id;
+		}
+
+		if ((ma == NULL) || (ma->gp_style == NULL)) {
+			sp->pr_main = G_pr_main_cycles;
+		}
+		else {
+			sp->pr_main = G_pr_main_grease_pencil;
+		}
+
 	}
 	else {
 		sp->pr_main = G_pr_main;

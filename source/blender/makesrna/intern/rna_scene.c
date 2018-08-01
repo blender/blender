@@ -51,6 +51,7 @@
 #include "BKE_paint.h"
 
 #include "ED_object.h"
+#include "ED_gpencil.h"
 
 #include "GPU_extensions.h"
 
@@ -162,6 +163,14 @@ const EnumPropertyItem rna_enum_mesh_select_mode_items[] = {
 	{SCE_SELECT_VERTEX, "VERTEX", ICON_VERTEXSEL, "Vertex", "Vertex selection mode"},
 	{SCE_SELECT_EDGE, "EDGE", ICON_EDGESEL, "Edge", "Edge selection mode"},
 	{SCE_SELECT_FACE, "FACE", ICON_FACESEL, "Face", "Face selection mode"},
+	{0, NULL, 0, NULL, NULL}
+};
+
+const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[] = {
+	{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
+	{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
+	{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
+	{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -522,6 +531,13 @@ static const EnumPropertyItem transform_orientation_items[] = {
 #include "FRS_freestyle.h"
 #endif
 
+/* Grease Pencil update cache */
+static void rna_GPencil_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	DEG_id_type_tag(bmain, ID_GD);
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
+}
+
 /* Grease Pencil Interpolation settings */
 static char *rna_GPencilInterpolateSettings_path(PointerRNA *UNUSED(ptr))
 {
@@ -543,110 +559,8 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
 	{
 		settings->custom_ipo = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	}
+
 }
-
-/* Grease pencil Drawing Brushes */
-static bGPDbrush *rna_GPencil_brush_new(ToolSettings *ts, const char *name, bool setactive)
-{
-	bGPDbrush *brush = BKE_gpencil_brush_addnew(ts, name, setactive != 0);
-
-	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-
-	return brush;
-}
-
-static void rna_GPencil_brush_remove(ToolSettings *ts, ReportList *reports, PointerRNA *brush_ptr)
-{
-	bGPDbrush *brush = brush_ptr->data;
-	if (BLI_findindex(&ts->gp_brushes, brush) == -1) {
-		BKE_report(reports, RPT_ERROR, "Brush not found in grease pencil data");
-		return;
-	}
-
-	BKE_gpencil_brush_delete(ts, brush);
-	RNA_POINTER_INVALIDATE(brush_ptr);
-
-	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-}
-
-static PointerRNA rna_GPencilBrushes_active_get(PointerRNA *ptr)
-{
-	ToolSettings *ts = (ToolSettings *) ptr->data;
-
-	bGPDbrush *brush;
-
-	for (brush = ts->gp_brushes.first; brush; brush = brush->next) {
-		if (brush->flag & GP_BRUSH_ACTIVE) {
-			break;
-		}
-	}
-
-	if (brush) {
-		return rna_pointer_inherit_refine(ptr, &RNA_GPencilBrush, brush);
-	}
-
-	return rna_pointer_inherit_refine(ptr, NULL, NULL);
-}
-
-static void rna_GPencilBrushes_active_set(PointerRNA *ptr, PointerRNA value)
-{
-	ToolSettings *ts = (ToolSettings *) ptr->data;
-
-	bGPDbrush *brush;
-
-	for (brush = ts->gp_brushes.first; brush; brush = brush->next) {
-		if (brush == value.data) {
-			brush->flag |= GP_BRUSH_ACTIVE;
-		}
-		else {
-			brush->flag &= ~GP_BRUSH_ACTIVE;
-		}
-	}
-	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
-}
-
-static int rna_GPencilBrushes_index_get(PointerRNA *ptr)
-{
-	ToolSettings *ts = (ToolSettings *) ptr->data;
-	bGPDbrush *brush = BKE_gpencil_brush_getactive(ts);
-
-	return BLI_findindex(&ts->gp_brushes, brush);
-}
-
-static void rna_GPencilBrushes_index_set(PointerRNA *ptr, int value)
-{
-	ToolSettings *ts = (ToolSettings *) ptr->data;
-
-	bGPDbrush *brush = BLI_findlink(&ts->gp_brushes, value);
-
-	BKE_gpencil_brush_setactive(ts, brush);
-	WM_main_add_notifier(NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
-}
-
-static void rna_GPencilBrushes_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
-{
-	ToolSettings *ts = (ToolSettings *) ptr->data;
-
-	*min = 0;
-	*max = max_ii(0, BLI_listbase_count(&ts->gp_brushes) - 1);
-
-	*softmin = *min;
-	*softmax = *max;
-}
-
-static void rna_GPencilBrush_name_set(PointerRNA *ptr, const char *value)
-{
-	ToolSettings *ts = ((Scene *) ptr->id.data)->toolsettings;
-	bGPDbrush *brush = ptr->data;
-
-	/* copy the new name into the name slot */
-	BLI_strncpy_utf8(brush->info, value, sizeof(brush->info));
-
-	BLI_uniquename(&ts->gp_brushes, brush, DATA_("GP_Brush"), '.', offsetof(bGPDbrush, info), sizeof(brush->info));
-}
-
-/* ----------------- end of Grease pencil drawing brushes ------------*/
-
 static void rna_ToolSettings_gizmo_flag_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -2024,11 +1938,6 @@ static void rna_Stereo3dFormat_update(Main *bmain, Scene *UNUSED(scene), Pointer
 	}
 }
 
-static bool rna_gpu_is_hq_supported_get(PointerRNA *UNUSED(ptr))
-{
-	return true;
-}
-
 static ViewLayer *rna_ViewLayer_new(
         ID *id, Scene *UNUSED(sce), Main *bmain, const char *name)
 {
@@ -2187,205 +2096,6 @@ static void rna_def_gpencil_interpolate(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 }
 
-/* Grease Pencil Drawing Brushes */
-static void rna_def_gpencil_brush(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "GPencilBrush", NULL);
-	RNA_def_struct_sdna(srna, "bGPDbrush");
-	RNA_def_struct_ui_text(srna, "Grease Pencil Brush",
-	                       "Collection of brushes being used to control the line style of new strokes");
-	RNA_def_struct_ui_icon(srna, ICON_BRUSH_DATA);
-
-	/* Name */
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "info");
-	RNA_def_property_ui_text(prop, "Name", "Brush name");
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_GPencilBrush_name_set");
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Line Thickness */
-	prop = RNA_def_property(srna, "line_width", PROP_INT, PROP_PIXEL);
-	RNA_def_property_int_sdna(prop, NULL, "thickness");
-	RNA_def_property_range(prop, 1, 300);
-	RNA_def_property_ui_range(prop, 1, 10, 1, 0);
-	RNA_def_property_ui_text(prop, "Thickness", "Thickness of strokes (in pixels)");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Sensitivity factor for new strokes */
-	prop = RNA_def_property(srna, "pen_sensitivity_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_sensitivity");
-	RNA_def_property_range(prop, 0.1f, 3.0f);
-	RNA_def_property_ui_text(prop, "Sensitivity", "Pressure sensitivity factor for new strokes");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Strength factor for new strokes */
-	prop = RNA_def_property(srna, "strength", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_strength");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Strength", "Color strength for new strokes (affect alpha factor of color)");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Jitter factor for new strokes */
-	prop = RNA_def_property(srna, "jitter", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_jitter");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Jitter", "Jitter factor for new strokes");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Randomnes factor for sensitivity and strength */
-	prop = RNA_def_property(srna, "random_press", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_random_press");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Randomness", "Randomness factor for pressure and strength in new strokes");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Randomnes factor for subdivision */
-	prop = RNA_def_property(srna, "random_subdiv", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_random_sub");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Random Subdivision", "Randomness factor for new strokes after subdivision");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Angle when brush is full size */
-	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_angle");
-	RNA_def_property_range(prop, -M_PI_2, M_PI_2);
-	RNA_def_property_ui_text(prop, "Angle",
-	                         "Direction of the stroke at which brush gives maximal thickness "
-	                         "(0° for horizontal)");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Factor to change brush size depending of angle */
-	prop = RNA_def_property(srna, "angle_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_angle_factor");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Angle Factor",
-	                         "Reduce brush thickness by this factor when stroke is perpendicular to 'Angle' direction");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Smoothing factor for new strokes */
-	prop = RNA_def_property(srna, "pen_smooth_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "draw_smoothfac");
-	RNA_def_property_range(prop, 0.0, 2.0f);
-	RNA_def_property_ui_text(prop, "Smooth",
-	                         "Amount of smoothing to apply to newly created strokes, to reduce jitter/noise");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Iterations of the Smoothing factor */
-	prop = RNA_def_property(srna, "pen_smooth_steps", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "draw_smoothlvl");
-	RNA_def_property_range(prop, 1, 3);
-	RNA_def_property_ui_text(prop, "Iterations",
-	                         "Number of times to smooth newly created strokes");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Subdivision level for new strokes */
-	prop = RNA_def_property(srna, "pen_subdivision_steps", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "sublevel");
-	RNA_def_property_range(prop, 0, 3);
-	RNA_def_property_ui_text(prop, "Subdivision Steps",
-	                         "Number of times to subdivide newly created strokes, for less jagged strokes");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Curves for pressure */
-	prop = RNA_def_property(srna, "curve_sensitivity", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "cur_sensitivity");
-	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_ui_text(prop, "Curve Sensitivity", "Curve used for the sensitivity");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "curve_strength", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "cur_strength");
-	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_ui_text(prop, "Curve Strength", "Curve used for the strength");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "curve_jitter", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "cur_jitter");
-	RNA_def_property_struct_type(prop, "CurveMapping");
-	RNA_def_property_ui_text(prop, "Curve Jitter", "Curve used for the jitter effect");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	/* Flags */
-	prop = RNA_def_property(srna, "use_pressure", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_PRESSURE);
-	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
-	RNA_def_property_ui_text(prop, "Use Pressure", "Use tablet pressure");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "use_strength_pressure", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_STENGTH_PRESSURE);
-	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
-	RNA_def_property_ui_text(prop, "Use Pressure Strength", "Use tablet pressure for color strength");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "use_jitter_pressure", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_JITTER_PRESSURE);
-	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
-	RNA_def_property_ui_text(prop, "Use Pressure Jitter", "Use tablet pressure for jitter");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "use_random_pressure", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_RANDOM_PRESSURE);
-	RNA_def_property_ui_icon(prop, ICON_PARTICLES, 0);
-	RNA_def_property_ui_text(prop, "Random Pressure", "Use random value for pressure");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "use_random_strength", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_USE_RANDOM_STRENGTH);
-	RNA_def_property_ui_icon(prop, ICON_PARTICLES, 0);
-	RNA_def_property_ui_text(prop, "Random Strength", "Use random value for strength");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
-
-}
-
-/* Grease Pencil Drawing Brushes API */
-static void rna_def_gpencil_brushes(BlenderRNA *brna, PropertyRNA *cprop)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	RNA_def_property_srna(cprop, "GreasePencilBrushes");
-	srna = RNA_def_struct(brna, "GreasePencilBrushes", NULL);
-	RNA_def_struct_sdna(srna, "ToolSettings");
-	RNA_def_struct_ui_text(srna, "Grease Pencil Brushes", "Collection of grease pencil brushes");
-
-	func = RNA_def_function(srna, "new", "rna_GPencil_brush_new");
-	RNA_def_function_ui_description(func, "Add a new grease pencil brush");
-	parm = RNA_def_string(func, "name", "GPencilBrush", MAX_NAME, "Name", "Name of the brush");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	RNA_def_boolean(func, "set_active", 0, "Set Active", "Set the newly created brush to the active brush");
-	parm = RNA_def_pointer(func, "palette", "GPencilBrush", "", "The newly created brush");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "remove", "rna_GPencil_brush_remove");
-	RNA_def_function_ui_description(func, "Remove a grease pencil brush");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "brush", "GPencilBrush", "", "The brush to remove");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
-	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
-
-	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "GPencilBrush");
-	RNA_def_property_pointer_funcs(prop, "rna_GPencilBrushes_active_get", "rna_GPencilBrushes_active_set", NULL, NULL);
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Active Brush", "Current active brush");
-
-	prop = RNA_def_property(srna, "active_index", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_int_funcs(prop,
-		"rna_GPencilBrushes_index_get",
-		"rna_GPencilBrushes_index_set",
-		"rna_GPencilBrushes_index_range");
-	RNA_def_property_ui_text(prop, "Active Brush Index", "Index of active brush");
-}
-
 static void rna_def_transform_orientation(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2408,14 +2118,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static const EnumPropertyItem uv_select_mode_items[] = {
-		{UV_SELECT_VERTEX, "VERTEX", ICON_UV_VERTEXSEL, "Vertex", "Vertex selection mode"},
-		{UV_SELECT_EDGE, "EDGE", ICON_UV_EDGESEL, "Edge", "Edge selection mode"},
-		{UV_SELECT_FACE, "FACE", ICON_UV_FACESEL, "Face", "Face selection mode"},
-		{UV_SELECT_ISLAND, "ISLAND", ICON_UV_ISLANDSEL, "Island", "Island selection mode"},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	/* the construction of this enum is quite special - everything is stored as bitflags,
 	 * with 1st position only for for on/off (and exposed as boolean), while others are mutually
@@ -2458,21 +2160,20 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem gpencil_source_3d_items[] = {
-		{GP_TOOL_SOURCE_SCENE, "SCENE", 0, "Scene",
-		 "Grease Pencil data attached to the current scene is used, "
-		 "unless the active object already has Grease Pencil data (i.e. for old files)"},
-		{GP_TOOL_SOURCE_OBJECT, "OBJECT", 0, "Object",
-		 "Grease Pencil data-blocks attached to the active object are used "
-		 "(required when using pre 2.73 add-ons, e.g. BSurfaces)"},
+	static const EnumPropertyItem gpencil_stroke_placement_items[] = {
+		{GP_PROJECT_VIEWSPACE, "ORIGIN", ICON_OBJECT_ORIGIN, "Origin", "Draw stroke at Object origin"},
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", "Draw stroke at 3D cursor location" },
+		// {0, "VIEW", ICON_VISIBLE_IPO_ON, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW, "SURFACE", ICON_FACESEL, "Surface", "Stick stroke to surfaces"},
+		//{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE, "STROKE", ICON_GREASEPENCIL, "Stroke", "Stick stroke to other strokes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem gpencil_stroke_placement_items[] = {
-		{GP_PROJECT_VIEWSPACE, "CURSOR", 0, "Cursor", "Draw stroke at the 3D cursor"},
-		{0, "VIEW", 0, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
-		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW, "SURFACE", 0, "Surface", "Stick stroke to surfaces"},
-		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE, "STROKE", 0, "Stroke", "Stick stroke to other strokes"},
+	static const EnumPropertyItem annotation_stroke_placement_items[] = {
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", "Draw stroke at 3D cursor location" },
+		{0, "VIEW", ICON_VISIBLE_IPO_ON, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_VIEW, "SURFACE", ICON_FACESEL, "Surface", "Stick stroke to surfaces"},
+		{GP_PROJECT_VIEWSPACE | GP_PROJECT_DEPTH_STROKE, "STROKE", ICON_GREASEPENCIL, "Stroke", "Stick stroke to other strokes"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2516,7 +2217,8 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
 	prop = RNA_def_property(srna, "vertex_paint", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");	RNA_def_property_ui_text(prop, "Vertex Paint", "");
+	RNA_def_property_pointer_sdna(prop, NULL, "vpaint");
+	RNA_def_property_ui_text(prop, "Vertex Paint", "");
 
 	prop = RNA_def_property(srna, "weight_paint", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "wpaint");
@@ -2529,6 +2231,10 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "uv_sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "uvsculpt");
 	RNA_def_property_ui_text(prop, "UV Sculpt", "");
+
+	prop = RNA_def_property(srna, "gpencil_paint", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gp_paint");
+	RNA_def_property_ui_text(prop, "Grease Pencil Paint", "");
 
 	prop = RNA_def_property(srna, "particle_edit", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "particle");
@@ -2707,12 +2413,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_gizmo_flag_update");
 
 	/* Grease Pencil */
-	prop = RNA_def_property(srna, "use_gpencil_continuous_drawing", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_PAINTSESSIONS_ON);
-	RNA_def_property_ui_text(prop, "Use Continuous Drawing",
-	                         "Allow drawing multiple strokes at a time with Grease Pencil");
-	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* xxx: need toolbar to be redrawn... */
-
 	prop = RNA_def_property(srna, "use_gpencil_additive_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_RETAIN_LAST);
 	RNA_def_property_ui_text(prop, "Use Additive Drawing",
@@ -2726,12 +2426,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		"When draw new strokes, the new stroke is drawn below of all strokes in the layer");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
-	prop = RNA_def_property(srna, "grease_pencil_source", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_src");
-	RNA_def_property_enum_items(prop, gpencil_source_3d_items);
-	RNA_def_property_ui_text(prop, "Grease Pencil Source",
-	                         "Data-block where active Grease Pencil data is found from");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	prop = RNA_def_property(srna, "use_gpencil_thumbnail_list", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_THUMBNAIL_LIST);
+	RNA_def_property_ui_text(prop, "Compact List",
+		"Show compact list of color instead of thumbnails");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gp_sculpt");
@@ -2745,13 +2444,6 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Grease Pencil Interpolate",
 	                        "Settings for Grease Pencil Interpolation tools");
 
-	/* Grease Pencil - Drawing brushes */
-	prop = RNA_def_property(srna, "gpencil_brushes", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "gp_brushes", NULL);
-	RNA_def_property_struct_type(prop, "GPencilBrush");
-	RNA_def_property_ui_text(prop, "Grease Pencil Brushes", "Grease Pencil drawing brushes");
-	rna_def_gpencil_brushes(brna, prop);
-
 	/* Grease Pencil - 3D View Stroke Placement */
 	prop = RNA_def_property(srna, "gpencil_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v3d_align");
@@ -2764,27 +2456,41 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-	/* Grease Pencil - 2D Views Stroke Placement */
-	prop = RNA_def_property(srna, "gpencil_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
+	/* Annotations - 2D Views Stroke Placement */
+	prop = RNA_def_property(srna, "annotation_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v2d_align");
-	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
 	RNA_def_property_ui_text(prop, "Stroke Placement (2D View)", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-	/* Grease Pencil - Sequencer Preview Stroke Placement */
-	prop = RNA_def_property(srna, "gpencil_stroke_placement_sequencer_preview", PROP_ENUM, PROP_NONE);
+	/* Annotations - Sequencer Preview Stroke Placement */
+	prop = RNA_def_property(srna, "annotation_stroke_placement_sequencer_preview", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_seq_align");
-	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
 	RNA_def_property_ui_text(prop, "Stroke Placement (Sequencer Preview)", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-	/* Grease Pencil - Image Editor Stroke Placement */
-	prop = RNA_def_property(srna, "gpencil_stroke_placement_image_editor", PROP_ENUM, PROP_NONE);
+	/* Annotations - Image Editor Stroke Placement */
+	prop = RNA_def_property(srna, "annotation_stroke_placement_image_editor", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_ima_align");
-	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
+	RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
 	RNA_def_property_ui_text(prop, "Stroke Placement (Image Editor)", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
+	/* Annotations - 3D View Stroke Placement */
+	/* XXX: Do we need to decouple the stroke_endpoints setting too?  */
+	prop = RNA_def_property(srna, "annotation_stroke_placement_view3d", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "annotate_v3d_align");
+	RNA_def_property_enum_items(prop, annotation_stroke_placement_items);
+	RNA_def_property_ui_text(prop, "Annotation Stroke Placement (3D View)", "How annotation strokes are orientated in 3D space");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
+	/* Annotations - Stroke Thickness */
+	prop = RNA_def_property(srna, "annotation_thickness", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_sdna(prop, NULL, "annotate_thickness");
+	RNA_def_property_range(prop, 1, 10);
+	RNA_def_property_ui_text(prop, "Annotation Stroke Thickness", "Thickness of annotation strokes");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Auto Keying */
 	prop = RNA_def_property(srna, "use_keyframe_insert_auto", PROP_BOOLEAN, PROP_NONE);
@@ -2818,7 +2524,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	/* UV */
 	prop = RNA_def_property(srna, "uv_select_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "uv_selectmode");
-	RNA_def_property_enum_items(prop, uv_select_mode_items);
+	RNA_def_property_enum_items(prop, rna_enum_mesh_select_mode_uv_items);
 	RNA_def_property_ui_text(prop, "UV Selection Mode", "UV selection and display mode");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
@@ -4107,6 +3813,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "fstop", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "F-stop", "F-stop for dof effect");
+	RNA_def_property_float_default(prop, 128.0f);
 	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.1f, 128.0f, 10, 1);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
@@ -4125,20 +3832,9 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "ratio", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Ratio", "Distortion to simulate anamorphic lens bokeh");
+	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0.0000001f, FLT_MAX);
 	RNA_def_property_ui_range(prop, 1.0f, 2.0f, 0.1, 3);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "use_high_quality", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "high_quality", 1);
-	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
-
-	/* NOTE: high quality is always supported */
-	prop = RNA_def_property(srna, "is_hq_supported", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_gpu_is_hq_supported_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "High Quality", "Use high quality depth of field");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
@@ -4270,6 +3966,7 @@ static void rna_def_scene_render_view(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "viewflag", SCE_VIEW_DISABLE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Enabled", "Disable or enable the render view");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 }
@@ -4808,10 +4505,10 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem display_mode_items[] = {
-		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in full Screen"},
-		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in Image Editor"},
-		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in new Window"},
-		{R_OUTPUT_NONE, "NONE", 0, "Keep UI", "Images are rendered without forcing UI changes"},
+		{R_OUTPUT_SCREEN, "SCREEN", 0, "Full Screen", "Images are rendered in a maximized Image Editor"},
+		{R_OUTPUT_AREA, "AREA", 0, "Image Editor", "Images are rendered in an Image Editor"},
+		{R_OUTPUT_WINDOW, "WINDOW", 0, "New Window", "Images are rendered in a new window"},
+		{R_OUTPUT_NONE, "NONE", 0, "Keep User Interface", "Images are rendered without changing the user interface"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -4824,7 +4521,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem pixel_size_items[] = {
-		{0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the UI scale"},
+		{0, "AUTO", 0, "Automatic", "Automatic pixel size, depends on the user interface scale"},
 		{1, "1", 0, "1x", "Render at full resolution"},
 		{2, "2", 0, "2x", "Render at 50% resolution"},
 		{4, "4", 0, "4x", "Render at 25% resolution"},
@@ -5426,7 +5123,8 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_single_layer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_SINGLE_LAYER);
-	RNA_def_property_ui_text(prop, "Render Single Layer", "Only render the active layer");
+	RNA_def_property_ui_text(prop, "Render Single Layer", "Only render the active layer. Only affects rendering from the interface, ignored for rendering from command line");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	/* views (stereoscopy et al) */
@@ -5501,6 +5199,32 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "simplify_particles_render");
 	RNA_def_property_ui_text(prop, "Simplify Child Particles", "Global child particles percentage during rendering");
 	RNA_def_property_update(prop, 0, "rna_Scene_simplify_update");
+
+	/* Grease Pencil - Simplify Options */
+	prop = RNA_def_property(srna, "simplify_gpencil", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_ENABLE);
+	RNA_def_property_ui_text(prop, "Simplify", "Simplify Grease Pencil drawing");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "simplify_gpencil_onplay", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_ON_PLAY);
+	RNA_def_property_ui_text(prop, "Simplify Playback", "Simplify Grease Pencil only during animation playback");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "simplify_gpencil_view_fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_FILL);
+	RNA_def_property_ui_text(prop, "Disable Fill", "Disable fill strokes in the viewport");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "simplify_gpencil_remove_lines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_REMOVE_FILL_LINE);
+	RNA_def_property_ui_text(prop, "Disable Lines", "Disable external lines of fill strokes");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "simplify_gpencil_view_modifier", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "simplify_gpencil", SIMPLIFY_GPENCIL_MODIFIER);
+	RNA_def_property_ui_text(prop, "Disable Modifiers", "Do not apply modifiers in the viewport");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* persistent data */
 	prop = RNA_def_property(srna, "use_persistent_data", PROP_BOOLEAN, PROP_NONE);
@@ -6028,12 +5752,6 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_int_default(prop, 16);
 	RNA_def_property_range(prop, 1, 128);
 	RNA_def_property_ui_text(prop, "Volumetric Shadow Samples", "Number of samples to compute volumetric shadowing");
-	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
-
-	prop = RNA_def_property(srna, "use_volumetric_colored_transmittance", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_VOLUMETRIC_COLORED);
-	RNA_def_property_boolean_default(prop, 1);
-	RNA_def_property_ui_text(prop, "Colored Transmittance", "Enable wavelength dependent volumetric transmittance");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	/* Ambient Occlusion */
@@ -6584,8 +6302,9 @@ void RNA_def_scene(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
 	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_GPencil_datablocks_annotations_poll");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-	RNA_def_property_ui_text(prop, "Grease Pencil Data", "Grease Pencil data-block");
+	RNA_def_property_ui_text(prop, "Annotations", "Grease Pencil data-block used for annotations in the 3D view");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
 	/* active MovieClip */
@@ -6640,7 +6359,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* *** Non-Animated *** */
 	RNA_define_animate_sdna(false);
 	rna_def_tool_settings(brna);
-	rna_def_gpencil_brush(brna);
 	rna_def_gpencil_interpolate(brna);
 	rna_def_unified_paint_settings(brna);
 	rna_def_curve_paint_settings(brna);

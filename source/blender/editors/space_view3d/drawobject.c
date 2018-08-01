@@ -80,6 +80,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_unit.h"
 #include "BKE_tracking.h"
+#include "BKE_gpencil.h"
 
 #include "BKE_editmesh.h"
 

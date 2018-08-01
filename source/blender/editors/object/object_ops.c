@@ -40,6 +40,7 @@
 #include "BKE_context.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -114,6 +115,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_empty_add);
 	WM_operatortype_append(OBJECT_OT_lightprobe_add);
 	WM_operatortype_append(OBJECT_OT_drop_named_image);
+	WM_operatortype_append(OBJECT_OT_gpencil_add);
 	WM_operatortype_append(OBJECT_OT_light_add);
 	WM_operatortype_append(OBJECT_OT_camera_add);
 	WM_operatortype_append(OBJECT_OT_speaker_add);
@@ -145,6 +147,20 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_skin_loose_mark_clear);
 	WM_operatortype_append(OBJECT_OT_skin_radii_equalize);
 	WM_operatortype_append(OBJECT_OT_skin_armature_create);
+
+	/* grease pencil modifiers */
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_add);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_remove);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_up);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_move_down);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_apply);
+	WM_operatortype_append(OBJECT_OT_gpencil_modifier_copy);
+
+	/* shader fx */
+	WM_operatortype_append(OBJECT_OT_shaderfx_add);
+	WM_operatortype_append(OBJECT_OT_shaderfx_remove);
+	WM_operatortype_append(OBJECT_OT_shaderfx_move_up);
+	WM_operatortype_append(OBJECT_OT_shaderfx_move_down);
 
 	WM_operatortype_append(OBJECT_OT_correctivesmooth_bind);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
@@ -488,5 +504,28 @@ void ED_keymap_proportional_editmode(struct wmKeyConfig *UNUSED(keyconf), struct
 		RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit");
 		RNA_string_set(kmi->ptr, "value_1", "DISABLED");
 		RNA_string_set(kmi->ptr, "value_2", "CONNECTED");
+	}
+}
+
+/**
+ * Map 1..3 to Vert/Edge/Face.
+ */
+void ED_keymap_editmesh_elem_mode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)
+{
+	for (int i = 0; i < 4; i++) {
+		const bool is_extend = (i & 1);
+		const bool is_expand = (i & 2);
+		const int key_modifier = (is_extend ? KM_SHIFT : 0) | (is_expand ? KM_CTRL : 0);
+		for (int j = 0; j < 3; j++) {
+			wmKeyMapItem *kmi = WM_keymap_add_item(
+			        keymap, "MESH_OT_select_mode", ONEKEY + j, KM_PRESS, key_modifier, 0);
+			RNA_enum_set(kmi->ptr, "type", SCE_SELECT_VERTEX << j);
+			if (is_extend) {
+				RNA_boolean_set(kmi->ptr, "use_extend", true);
+			}
+			if (is_expand) {
+				RNA_boolean_set(kmi->ptr, "use_expand", true);
+			}
+		}
 	}
 }

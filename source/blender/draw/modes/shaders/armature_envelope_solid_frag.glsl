@@ -1,4 +1,6 @@
 
+uniform float alpha = 0.6;
+
 flat in vec3 finalStateColor;
 flat in vec3 finalBoneColor;
 in vec3 normalView;
@@ -12,5 +14,5 @@ void main()
 	float n = normalize(normalView).z;
 	float fac = clamp((n * (1.0 - s)) + s, 0.0, 1.0);
 	fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
-	fragColor.a = 0.6; /* Hardcoded transparency factor. */
+	fragColor.a = alpha;
 }

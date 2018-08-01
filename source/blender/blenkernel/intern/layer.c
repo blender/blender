@@ -715,6 +715,14 @@ static int layer_collection_sync(
 				lc->runtime_flag |= LAYER_COLLECTION_HAS_VISIBLE_OBJECTS;
 			}
 
+			/* Holdout and indirect only */
+			if (lc->flag & LAYER_COLLECTION_HOLDOUT) {
+				base->flag |= BASE_HOLDOUT;
+			}
+			if (lc->flag & LAYER_COLLECTION_INDIRECT_ONLY) {
+				base->flag |= BASE_INDIRECT_ONLY;
+			}
+
 			lc->runtime_flag |= LAYER_COLLECTION_HAS_OBJECTS;
 		}
 
@@ -750,7 +758,13 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
 	/* Clear visible and selectable flags to be reset. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		base->flag &= ~(BASE_VISIBLE | BASE_ENABLED | BASE_SELECTABLE | BASE_ENABLED_VIEWPORT | BASE_ENABLED_RENDER);
+		base->flag &= ~(BASE_VISIBLE |
+		                BASE_ENABLED |
+		                BASE_SELECTABLE |
+		                BASE_ENABLED_VIEWPORT |
+		                BASE_ENABLED_RENDER |
+		                BASE_HOLDOUT |
+		                BASE_INDIRECT_ONLY);
 	}
 
 	view_layer->runtime_flag = 0;

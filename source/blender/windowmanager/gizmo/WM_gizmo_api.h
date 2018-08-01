@@ -104,7 +104,7 @@ void WM_gizmo_set_matrix_offset_rotation_from_yz_axis(
         struct wmGizmo *gz, const float y_axis[3], const float z_axis[3]);
 
 void WM_gizmo_set_flag(struct wmGizmo *gz, const int flag, const bool enable);
-void WM_gizmo_set_scale(struct wmGizmo *gz, float scale);
+void WM_gizmo_set_scale(struct wmGizmo *gz, const float scale);
 void WM_gizmo_set_line_width(struct wmGizmo *gz, const float line_width);
 
 void WM_gizmo_get_color(const struct wmGizmo *gz, float color[4]);

@@ -145,6 +145,8 @@ public:
 	static int start_resumable_chunk;
 	static int end_resumable_chunk;
 
+	static bool print_render_stats;
+
 protected:
 	void do_write_update_render_result(BL::RenderResult& b_rr,
 	                                   BL::RenderLayer& b_rlay,

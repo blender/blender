@@ -95,6 +95,8 @@ static struct {
 	DRWShadingGroup *lines_ik_spline;
 
 	DRWArmaturePasses passes;
+
+	bool transparent;
 } g_data = {NULL};
 
 
@@ -139,7 +141,8 @@ static void drw_shgroup_bone_octahedral(
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_octahedral_get();
-		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
+		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom,
+		                                                                 g_data.transparent);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -160,7 +163,7 @@ static void drw_shgroup_bone_box(
 	}
 	if (g_data.bone_box_solid == NULL) {
 		struct GPUBatch *geom = DRW_cache_bone_box_get();
-		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
+		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom, g_data.transparent);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -234,13 +237,13 @@ static void drw_shgroup_bone_envelope(
 		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent);
 	}
 	if (g_data.bone_envelope_wire == NULL) {
 		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_envelope_solid == NULL) {
-		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.passes.bone_solid);
+		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.passes.bone_solid, g_data.transparent);
 		/* We can have a lot of overdraw if we don't do this. Also envelope are not subject to
 		 * inverted matrix. */
 		DRW_shgroup_state_enable(g_data.bone_envelope_solid, DRW_STATE_CULL_BACK);
@@ -329,7 +332,8 @@ static void drw_shgroup_bone_custom_solid(
 	}
 
 	if (surf) {
-		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, surf);
+		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, surf,
+		                                                                      g_data.transparent);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
 	}
 
@@ -372,7 +376,7 @@ static void drw_shgroup_bone_point(
 		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid, g_data.transparent);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -456,7 +460,7 @@ static void drw_shgroup_bone_ik_spline_lines(const float start[3], const float e
  * \{ */
 
 /* global here is reset before drawing each bone */
-struct {
+static struct {
 	const ThemeWireColor *bcolor;
 } g_color;
 
@@ -1732,11 +1736,12 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 /**
  * This function set the object space to use for all subsequent `DRW_shgroup_bone_*` calls.
  */
-static void drw_shgroup_armature(Object *ob, DRWArmaturePasses passes)
+static void drw_shgroup_armature(Object *ob, DRWArmaturePasses passes, bool transp)
 {
 	memset(&g_data, 0x0, sizeof(g_data));
 	g_data.ob = ob;
 	g_data.passes = passes;
+	g_data.transparent = transp;
 	memset(&g_color, 0x0, sizeof(g_color));
 }
 
@@ -1745,19 +1750,19 @@ void DRW_shgroup_armature_object(Object *ob, ViewLayer *view_layer, DRWArmatureP
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 	passes.bone_envelope = NULL; /* Don't do envelope distance in object mode. */
-	drw_shgroup_armature(ob, passes);
+	drw_shgroup_armature(ob, passes, false);
 	draw_armature_pose(ob, color);
 }
 
-void DRW_shgroup_armature_pose(Object *ob, DRWArmaturePasses passes)
+void DRW_shgroup_armature_pose(Object *ob, DRWArmaturePasses passes, bool transp)
 {
-	drw_shgroup_armature(ob, passes);
+	drw_shgroup_armature(ob, passes, transp);
 	draw_armature_pose(ob, NULL);
 }
 
-void DRW_shgroup_armature_edit(Object *ob, DRWArmaturePasses passes)
+void DRW_shgroup_armature_edit(Object *ob, DRWArmaturePasses passes, bool transp)
 {
-	drw_shgroup_armature(ob, passes);
+	drw_shgroup_armature(ob, passes, transp);
 	draw_armature_edit(ob);
 }
 

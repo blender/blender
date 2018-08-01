@@ -57,6 +57,7 @@ typedef struct SubdivSettings {
 typedef enum eSubdivStatsValue {
 	SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME = 0,
 	SUBDIV_STATS_SUBDIV_TO_MESH,
+	SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY,
 	SUBDIV_STATS_EVALUATOR_CREATE,
 	SUBDIV_STATS_EVALUATOR_REFINE,
 
@@ -73,6 +74,8 @@ typedef struct SubdivStats {
 			double topology_refiner_creation_time;
 			/* Total time spent in BKE_subdiv_to_mesh(). */
 			double subdiv_to_mesh_time;
+			/* Geometry (MVert and co) creation time during SUBDIV_TYO_MESH. */
+			double subdiv_to_mesh_geometry_time;
 			/* Time spent on evaluator creation from topology refiner. */
 			double evaluator_creation_time;
 			/* Time spent on evaluator->refine(). */
@@ -93,26 +96,6 @@ typedef struct Subdiv {
 	 * It is read-only after assignment in BKE_subdiv_new_from_FOO().
 	 */
 	SubdivSettings settings;
-
-	/* Total number of ptex faces on subdivision level 0.
-	 *
-	 * Ptex face is what is internally used by OpenSubdiv for evaluator. It is
-	 * a quad face, which corresponds to Blender's legacy Catmull Clark grids.
-	 *
-	 * Basically, here is a correspondence between polygons and ptex faces:
-	 * - Triangle consists of 3 PTex faces.
-	 * - Quad is a single PTex face.
-	 * - N-gon is N PTex faces.
-	 *
-	 * This value is initialized in BKE_subdiv_new_from_FOO() and is read-only
-	 * after this.
-	 */
-	int num_ptex_faces;
-
-	/* Indexed by base face index, element indicates total number of ptex faces
-	 * created for preceding base faces.
-	 */
-	int *face_ptex_offset;
 
 	/* Topology refiner includes all the glue logic to feed Blender side
 	 * topology to OpenSubdiv. It can be shared by both evaluator and GL mesh

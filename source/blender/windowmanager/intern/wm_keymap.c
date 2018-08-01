@@ -526,6 +526,25 @@ wmKeyMapItem *WM_keymap_add_tool(wmKeyMap *keymap, const char *idname, int type,
 	return kmi;
 }
 
+/** Useful for mapping numbers to an enum. */
+void WM_keymap_add_context_enum_set_items(
+        wmKeyMap *keymap, const EnumPropertyItem *items, const char *data_path,
+        int type_start, int val, int modifier, int keymodifier)
+{
+	for (int i = 0, type_offset = 0; items[i].identifier; i++) {
+		if (items[i].identifier[0] == '\0') {
+			continue;
+		}
+		wmKeyMapItem *kmi = WM_keymap_add_item(
+		        keymap, "WM_OT_context_set_enum",
+		        type_start + type_offset, val, modifier, keymodifier);
+		RNA_string_set(kmi->ptr, "data_path", data_path);
+		RNA_string_set(kmi->ptr, "value", items[i].identifier);
+		type_offset += 1;
+	}
+}
+
+
 bool WM_keymap_remove_item(wmKeyMap *keymap, wmKeyMapItem *kmi)
 {
 	if (BLI_findindex(&keymap->items, kmi) != -1) {

@@ -254,7 +254,7 @@ static void pydriver_error(ChannelDriver *driver)
 
 #define OK_OP(op) [op] = 1
 
-const char secure_opcodes[255] = {
+static const char secure_opcodes[255] = {
 	OK_OP(POP_TOP),
 	OK_OP(ROT_TWO),
 	OK_OP(ROT_THREE),

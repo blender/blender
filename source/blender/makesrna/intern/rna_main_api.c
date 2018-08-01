@@ -231,6 +231,9 @@ static Object *rna_Main_objects_new(Main *bmain, ReportList *reports, const char
 			case ID_LT:
 				type = OB_LATTICE;
 				break;
+			case ID_GD:
+				type = OB_GPENCIL;
+				break;
 			case ID_AR:
 				type = OB_ARMATURE;
 				break;
@@ -264,6 +267,11 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
 	ID *id = (ID *)BKE_material_add(bmain, safe_name);
 	id_us_min(id);
 	return (Material *)id;
+}
+
+static void rna_Main_materials_gpencil_data(Main *UNUSED(bmain), struct PointerRNA *ma)
+{
+	BKE_material_init_gpencil_settings((Material *)ma);
 }
 
 static const EnumPropertyItem *rna_Main_nodetree_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
@@ -782,6 +790,11 @@ void RNA_def_main_materials(BlenderRNA *brna, PropertyRNA *cprop)
 	/* return type */
 	parm = RNA_def_pointer(func, "material", "Material", "", "New material data-block");
 	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "create_gpencil_data", "rna_Main_materials_gpencil_data");
+	RNA_def_function_ui_description(func, "Add grease pencil material settings");
+	parm = RNA_def_pointer(func, "material", "Material", "", "Material");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);

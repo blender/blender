@@ -39,18 +39,24 @@ set(INC_SYS
 )
 
 set(SRC
+	annotate_draw.c
+	annotate_paint.c
 	drawgpencil.c
 	editaction_gpencil.c
+	gpencil_add_monkey.c
 	gpencil_brush.c
 	gpencil_convert.c
 	gpencil_data.c
 	gpencil_edit.c
 	gpencil_interpolate.c
+	gpencil_primitive.c
 	gpencil_ops.c
 	gpencil_paint.c
+	gpencil_fill.c
 	gpencil_select.c
 	gpencil_undo.c
 	gpencil_utils.c
+	gpencil_old.c
 
 	gpencil_intern.h
 )

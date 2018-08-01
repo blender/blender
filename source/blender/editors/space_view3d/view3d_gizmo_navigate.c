@@ -131,7 +131,7 @@ struct NavigateGizmoInfo {
 
 #define SHAPE_VARS(shape_id) shape = shape_id, .shape_size = ARRAY_SIZE(shape_id)
 
-struct NavigateGizmoInfo g_navigate_params[MPR_TOTAL] = {
+static struct NavigateGizmoInfo g_navigate_params[MPR_TOTAL] = {
 	{
 		.opname = "VIEW3D_OT_move",
 		.gizmo = "GIZMO_GT_button_2d",

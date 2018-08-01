@@ -2098,6 +2098,7 @@ static void mesh_calc_modifiers(
 
 			/* XXX: Is build_shapekey_layers ever even true? This should have crashed long ago... */
 			BLI_assert(!build_shapekey_layers);
+			UNUSED_VARS_NDEBUG(build_shapekey_layers);
 			//if (build_shapekey_layers)
 			//	add_shapekey_layers(*r_deform_mesh, me, ob);
 

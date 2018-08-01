@@ -1685,7 +1685,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						case SPACE_VIEW3D:
 						{
 							View3D *v3d = (View3D *)sl;
-							v3d->flag2 |= V3D_SHOW_GPENCIL;
+							v3d->flag2 |= V3D_SHOW_ANNOTATION;
 							break;
 						}
 						case SPACE_SEQ:
@@ -1709,7 +1709,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						case SPACE_CLIP:
 						{
 							SpaceClip *sclip = (SpaceClip *)sl;
-							sclip->flag |= SC_SHOW_GPENCIL;
+							sclip->flag |= SC_SHOW_ANNOTATION;
 							break;
 						}
 					}

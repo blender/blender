@@ -655,8 +655,8 @@ DerivedMesh *CDDM_from_curve(Object *ob)
 {
 	ListBase disp = {NULL, NULL};
 
-	if (ob->curve_cache) {
-		disp = ob->curve_cache->disp;
+	if (ob->runtime.curve_cache) {
+		disp = ob->runtime.curve_cache->disp;
 	}
 
 	return CDDM_from_curve_displist(ob, &disp);

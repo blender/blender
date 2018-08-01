@@ -26,6 +26,7 @@
 
 #include <assert.h>
 
+#include "GHOST_ContextSDL.h"
 #include "GHOST_SystemSDL.h"
 #include "GHOST_WindowSDL.h"
 
@@ -147,6 +148,34 @@ GHOST_TUns8
 GHOST_SystemSDL::getNumDisplays() const
 {
 	return SDL_GetNumVideoDisplays();
+}
+
+GHOST_IContext *
+GHOST_SystemSDL::createOffscreenContext()
+{
+	GHOST_Context *context = new GHOST_ContextSDL(
+	        0,
+	        0,
+	        NULL,
+	        0, // profile bit
+	        3, 3,
+	        GHOST_OPENGL_SDL_CONTEXT_FLAGS,
+	        GHOST_OPENGL_SDL_RESET_NOTIFICATION_STRATEGY);
+
+	if (context->initializeDrawingContext())
+		return context;
+	else
+		delete context;
+
+	return NULL;
+}
+
+GHOST_TSuccess
+GHOST_SystemSDL::disposeContext(GHOST_IContext *context)
+{
+	delete context;
+
+	return GHOST_kSuccess;
 }
 
 GHOST_TSuccess

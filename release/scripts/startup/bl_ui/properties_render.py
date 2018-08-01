@@ -120,7 +120,7 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         return args
 
     @staticmethod
-    def draw_framerate(sub, rd):
+    def draw_framerate(layout, sub, rd):
         if RENDER_PT_dimensions._preset_class is None:
             RENDER_PT_dimensions._preset_class = bpy.types.RENDER_MT_framerate_presets
 
@@ -130,8 +130,9 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         sub.menu("RENDER_MT_framerate_presets", text=fps_label_text)
 
         if show_framerate:
-            sub.prop(rd, "fps")
-            sub.prop(rd, "fps_base", text="/")
+            col = layout.column(align=True)
+            col.prop(rd, "fps")
+            col.prop(rd, "fps_base", text="Base")
 
     def draw(self, context):
         layout = self.layout
@@ -161,10 +162,10 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         col.prop(scene, "frame_end", text="End")
         col.prop(scene, "frame_step", text="Step")
 
-        col = layout.split(percentage=0.5)
+        col = layout.split()
         col.alignment = 'RIGHT'
         col.label(text="Frame Rate")
-        self.draw_framerate(col, rd)
+        self.draw_framerate(layout, col, rd)
 
 
 class RENDER_PT_frame_remapping(RenderButtonsPanel, Panel):
@@ -218,23 +219,35 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column(align=True)
-        col.prop(rd, "use_stamp_time", text="Time")
         col.prop(rd, "use_stamp_date", text="Date")
-        col.prop(rd, "use_stamp_render_time", text="RenderTime")
+        col.prop(rd, "use_stamp_time", text="Time")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_render_time", text="Render Time")
         col.prop(rd, "use_stamp_frame", text="Frame")
-        col.prop(rd, "use_stamp_scene", text="Scene")
+        col.prop(rd, "use_stamp_frame_range", text="Frame Range")
         col.prop(rd, "use_stamp_memory", text="Memory")
 
         col = split.column(align=True)
         col.prop(rd, "use_stamp_camera", text="Camera")
         col.prop(rd, "use_stamp_lens", text="Lens")
-        col.prop(rd, "use_stamp_filename", text="Filename")
-        col.prop(rd, "use_stamp_frame_range", text="Frame range")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_scene", text="Scene")
         col.prop(rd, "use_stamp_marker", text="Marker")
-        col.prop(rd, "use_stamp_sequencer_strip", text="Seq. Strip")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_filename", text="Filename")
+
+        col.separator()
+
+        col.prop(rd, "use_stamp_sequencer_strip", text="Strip Name")
 
         if rd.use_sequencer:
-            col.prop(rd, "use_stamp_strip_meta", text="Sequence Strip")
+            col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
 
         row = layout.split(percentage=0.3)
         row.prop(rd, "use_stamp_note", text="Note")
@@ -594,8 +607,6 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         sub = col.column()
         sub.active = props.use_volumetric_shadows
         sub.prop(props, "volumetric_shadow_samples", text="Shadow Samples")
-        col.separator()
-        col.prop(props, "use_volumetric_colored_transmittance")
 
 
 class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):

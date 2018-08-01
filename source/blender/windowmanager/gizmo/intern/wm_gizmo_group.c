@@ -296,8 +296,6 @@ static int gizmo_select_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 		BLI_assert(0);
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
-
-	return OPERATOR_PASS_THROUGH;
 }
 
 void GIZMOGROUP_OT_gizmo_select(wmOperatorType *ot)

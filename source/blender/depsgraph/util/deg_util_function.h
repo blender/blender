@@ -30,22 +30,8 @@
 
 #pragma once
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-
 #include <functional>
 
 using std::function;
 using namespace std::placeholders;
 #define function_bind std::bind
-
-#elif defined(HAVE_BOOST_FUNCTION_BINDINGS)
-
-#include <boost/bind.hpp>
-#include <boost/function.hpp>
-
-using boost::function;
-#define function_bind boost::bind
-
-#else
-#  error "Depsgraph requires either Boost or C++11 for function bindings."
-#endif

@@ -126,6 +126,9 @@ void DRW_draw_depth_loop(
         struct Depsgraph *depsgraph,
         struct ARegion *ar, struct View3D *v3d);
 
+/* grease pencil render */
+void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph);
+
 /* This is here because GPUViewport needs it */
 void DRW_pass_free(struct DRWPass *pass);
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);

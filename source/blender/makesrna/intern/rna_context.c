@@ -34,6 +34,7 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h" /* own include */
 
@@ -52,6 +53,10 @@ const EnumPropertyItem rna_enum_context_mode_items[] = {
 	{CTX_MODE_PAINT_TEXTURE, "PAINT_TEXTURE", 0, "Texture Paint", ""},
 	{CTX_MODE_PARTICLE, "PARTICLE", 0, "Particle", ""},
 	{CTX_MODE_OBJECT, "OBJECT", 0, "Object", ""},
+	{CTX_MODE_GPENCIL_PAINT, "GPENCIL_PAINT", 0, "Grease Pencil Paint", "" },
+	{CTX_MODE_GPENCIL_EDIT, "GPENCIL_EDIT", 0, "Grease Pencil Edit", "" },
+	{CTX_MODE_GPENCIL_SCULPT, "GPENCIL_SCULPT", 0, "Grease Pencil Sculpt", "" },
+	{CTX_MODE_GPENCIL_WEIGHT, "GPENCIL_WEIGHT", 0, "Grease Pencil Weight Paint", "" },
 	{0, NULL, 0, NULL, NULL}
 };
 

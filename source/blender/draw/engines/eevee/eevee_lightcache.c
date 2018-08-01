@@ -93,6 +93,7 @@ typedef struct EEVEE_LightBake {
 	LightCache *lcache;
 	Scene *scene;
 	struct Main *bmain;
+	EEVEE_ViewLayerData *sldata;
 
 	LightProbe **probe;              /* Current probe being rendered. */
 	GPUTexture *rt_color;            /* Target cube color texture. */
@@ -597,6 +598,12 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
 		lbake->lcache = NULL;
 	}
 
+	/* XXX Free the resources contained in the viewlayer data
+	 * to be able to free the context before deleting the depsgraph.  */
+	if (lbake->sldata) {
+		EEVEE_view_layer_data_free(lbake->sldata);
+	}
+
 	DRW_TEXTURE_FREE_SAFE(lbake->rt_depth);
 	DRW_TEXTURE_FREE_SAFE(lbake->rt_color);
 	DRW_TEXTURE_FREE_SAFE(lbake->grid_prev);
@@ -633,6 +640,8 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 	Scene *scene_eval = DEG_get_evaluated_scene(lbake->depsgraph);
+	lbake->sldata = sldata;
+
 	/* Disable all effects BUT high bitdepth shadows. */
 	scene_eval->eevee.flag &= SCE_EEVEE_SHADOW_HIGH_BITDEPTH;
 	scene_eval->eevee.taa_samples = 1;

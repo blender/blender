@@ -6007,10 +6007,10 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static bool edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+static bool edbm_sort_elements_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
 {
 	const char *prop_id = RNA_property_identifier(prop);
-	const int action = RNA_enum_get(ptr, "type");
+	const int action = RNA_enum_get(op->ptr, "type");
 
 	/* Only show seed for randomize action! */
 	if (STREQ(prop_id, "seed")) {
@@ -6029,18 +6029,6 @@ static bool edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *pro
 	}
 
 	return true;
-}
-
-static void edbm_sort_elements_ui(bContext *C, wmOperator *op)
-{
-	uiLayout *layout = op->layout;
-	wmWindowManager *wm = CTX_wm_manager(C);
-	PointerRNA ptr;
-
-	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
-
-	/* Main auto-draw call. */
-	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 void MESH_OT_sort_elements(wmOperatorType *ot)
@@ -6078,7 +6066,7 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 	ot->invoke = WM_menu_invoke;
 	ot->exec = edbm_sort_elements_exec;
 	ot->poll = ED_operator_editmesh;
-	ot->ui = edbm_sort_elements_ui;
+	ot->poll_property = edbm_sort_elements_poll_property;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

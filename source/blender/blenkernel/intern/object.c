@@ -41,6 +41,7 @@
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_gpencil_modifier_types.h"
 #include "DNA_group_types.h"
 #include "DNA_key_types.h"
 #include "DNA_lamp_types.h"
@@ -53,6 +54,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_shader_fx_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
@@ -86,6 +88,7 @@
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_icons.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
@@ -110,12 +113,14 @@
 #include "BKE_rigidbody.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
+#include "BKE_shader_fx.h"
 #include "BKE_speaker.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
 #include "BKE_material.h"
 #include "BKE_camera.h"
 #include "BKE_image.h"
+#include "BKE_gpencil.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -170,26 +175,30 @@ void BKE_object_free_softbody(Object *ob)
 
 void BKE_object_free_curve_cache(Object *ob)
 {
-	if (ob->curve_cache) {
-		BKE_displist_free(&ob->curve_cache->disp);
-		BKE_curve_bevelList_free(&ob->curve_cache->bev);
-		if (ob->curve_cache->path) {
-			free_path(ob->curve_cache->path);
+	if (ob->runtime.curve_cache) {
+		BKE_displist_free(&ob->runtime.curve_cache->disp);
+		BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+		if (ob->runtime.curve_cache->path) {
+			free_path(ob->runtime.curve_cache->path);
 		}
-		BKE_nurbList_free(&ob->curve_cache->deformed_nurbs);
-		MEM_freeN(ob->curve_cache);
-		ob->curve_cache = NULL;
+		BKE_nurbList_free(&ob->runtime.curve_cache->deformed_nurbs);
+		MEM_freeN(ob->runtime.curve_cache);
+		ob->runtime.curve_cache = NULL;
 	}
 }
 
 void BKE_object_free_modifiers(Object *ob, const int flag)
 {
 	ModifierData *md;
+	GpencilModifierData *gp_md;
 
 	while ((md = BLI_pophead(&ob->modifiers))) {
 		modifier_free_ex(md, flag);
 	}
 
+	while ((gp_md = BLI_pophead(&ob->greasepencil_modifiers))) {
+		BKE_gpencil_modifier_free_ex(gp_md, flag);
+	}
 	/* particle modifiers were freed, so free the particlesystems as well */
 	BKE_object_free_particlesystems(ob);
 
@@ -198,6 +207,15 @@ void BKE_object_free_modifiers(Object *ob, const int flag)
 
 	/* modifiers may have stored data in the DM cache */
 	BKE_object_free_derived_caches(ob);
+}
+
+void BKE_object_free_shaderfx(Object *ob, const int flag)
+{
+	ShaderFxData *fx;
+
+	while ((fx = BLI_pophead(&ob->shader_fx))) {
+		BKE_shaderfx_free_ex(fx, flag);
+	}
 }
 
 void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
@@ -219,6 +237,29 @@ void BKE_object_modifier_hook_reset(Object *ob, HookModifierData *hmd)
 			invert_m4_m4(hmd->object->imat, hmd->object->obmat);
 			mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
 		}
+	}
+}
+
+void BKE_object_modifier_gpencil_hook_reset(Object *ob, HookGpencilModifierData *hmd)
+{
+	if (hmd->object == NULL) {
+		return;
+	}
+	/* reset functionality */
+	bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
+
+	if (hmd->subtarget[0] && pchan) {
+		float imat[4][4], mat[4][4];
+
+		/* calculate the world-space matrix for the pose-channel target first, then carry on as usual */
+		mul_m4_m4m4(mat, hmd->object->obmat, pchan->pose_mat);
+
+		invert_m4_m4(imat, mat);
+		mul_m4_m4m4(hmd->parentinv, imat, ob->obmat);
+	}
+	else {
+		invert_m4_m4(hmd->object->imat, hmd->object->obmat);
+		mul_m4_m4m4(hmd->parentinv, hmd->object->imat, ob->obmat);
 	}
 }
 
@@ -428,6 +469,7 @@ void BKE_object_free(Object *ob)
 
 	/* BKE_<id>_free shall never touch to ID->us. Never ever. */
 	BKE_object_free_modifiers(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
+	BKE_object_free_shaderfx(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
 	MEM_SAFE_FREE(ob->mat);
 	MEM_SAFE_FREE(ob->matbits);
@@ -460,12 +502,12 @@ void BKE_object_free(Object *ob)
 	BLI_freelistN(&ob->lodlevels);
 
 	/* Free runtime curves data. */
-	if (ob->curve_cache) {
-		BKE_curve_bevelList_free(&ob->curve_cache->bev);
-		if (ob->curve_cache->path)
-			free_path(ob->curve_cache->path);
-		MEM_freeN(ob->curve_cache);
-		ob->curve_cache = NULL;
+	if (ob->runtime.curve_cache) {
+		BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
+		if (ob->runtime.curve_cache->path)
+			free_path(ob->runtime.curve_cache->path);
+		MEM_freeN(ob->runtime.curve_cache);
+		ob->runtime.curve_cache = NULL;
 	}
 
 	BKE_previewimg_free(&ob->preview);
@@ -653,6 +695,7 @@ static const char *get_obdata_defname(int type)
 		case OB_ARMATURE: return DATA_("Armature");
 		case OB_SPEAKER: return DATA_("Speaker");
 		case OB_EMPTY: return DATA_("Empty");
+		case OB_GPENCIL: return DATA_("GPencil");
 		default:
 			printf("get_obdata_defname: Internal error, bad type: %d\n", type);
 			return DATA_("Empty");
@@ -677,6 +720,7 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
 		case OB_ARMATURE:  return BKE_armature_add(bmain, name);
 		case OB_SPEAKER:   return BKE_speaker_add(bmain, name);
 		case OB_LIGHTPROBE:return BKE_lightprobe_add(bmain, name);
+		case OB_GPENCIL:   return BKE_gpencil_data_addnew(bmain, name);
 		case OB_EMPTY:     return NULL;
 		default:
 			printf("%s: Internal error, bad type: %d\n", __func__, type);
@@ -810,7 +854,7 @@ Object *BKE_object_add(
 /**
  * Add a new object, using another one as a reference
  *
- * /param ob_src object to use to determine the collections of the new object.
+ * \param ob_src object to use to determine the collections of the new object.
  */
 Object *BKE_object_add_from(
         Main *bmain, Scene *scene, ViewLayer *view_layer,
@@ -827,6 +871,41 @@ Object *BKE_object_add_from(
 
 	return ob;
 }
+
+/**
+ * Add a new object, but assign the given datablock as the ob->data
+ * for the newly created object.
+ *
+ * \param data The datablock to assign as ob->data for the new object.
+ *             This is assumed to be of the correct type.
+ * \param do_id_user If true, id_us_plus() will be called on data when
+ *                 assigning it to the object.
+ */
+Object *BKE_object_add_for_data(
+        Main *bmain, ViewLayer *view_layer,
+        int type, const char *name, ID *data, bool do_id_user)
+{
+	Object *ob;
+	Base *base;
+	LayerCollection *layer_collection;
+
+	/* same as object_add_common, except we don't create new ob->data */
+	ob = BKE_object_add_only_object(bmain, type, name);
+	ob->data = data;
+	if (do_id_user) id_us_plus(data);
+
+	BKE_view_layer_base_deselect_all(view_layer);
+	DEG_id_tag_update_ex(bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+
+	layer_collection = BKE_layer_collection_get_active(view_layer);
+	BKE_collection_object_add(bmain, layer_collection->collection, ob);
+
+	base = BKE_view_layer_base_find(view_layer, ob);
+	BKE_view_layer_base_select(view_layer, base);
+
+	return ob;
+}
+
 
 void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src, const int flag)
 {
@@ -1153,6 +1232,11 @@ void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, const int flag)
 {
 	ModifierData *md;
+	GpencilModifierData *gmd;
+	ShaderFxData *fx;
+
+	/* Do not copy runtime data. */
+	BKE_object_runtime_reset(ob_dst);
 
 	/* We never handle usercount here for own data. */
 	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
@@ -1176,11 +1260,31 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 		BLI_addtail(&ob_dst->modifiers, nmd);
 	}
 
+	BLI_listbase_clear(&ob_dst->greasepencil_modifiers);
+
+	for (gmd = ob_src->greasepencil_modifiers.first; gmd; gmd = gmd->next) {
+		GpencilModifierData *nmd = BKE_gpencil_modifier_new(gmd->type);
+		BLI_strncpy(nmd->name, gmd->name, sizeof(nmd->name));
+		BKE_gpencil_modifier_copyData_ex(gmd, nmd, flag_subdata);
+		BLI_addtail(&ob_dst->greasepencil_modifiers, nmd);
+	}
+
+	BLI_listbase_clear(&ob_dst->shader_fx);
+
+	for (fx = ob_src->shader_fx.first; fx; fx = fx->next) {
+		ShaderFxData *nfx = BKE_shaderfx_new(fx->type);
+		BLI_strncpy(nfx->name, fx->name, sizeof(nfx->name));
+		BKE_shaderfx_copyData_ex(fx, nfx, flag_subdata);
+		BLI_addtail(&ob_dst->shader_fx, nfx);
+	}
+
 	if (ob_src->pose) {
 		copy_object_pose(ob_dst, ob_src, flag_subdata);
 		/* backwards compat... non-armatures can get poses in older files? */
-		if (ob_src->type == OB_ARMATURE)
-			BKE_pose_rebuild(bmain, ob_dst, ob_dst->data);
+		if (ob_src->type == OB_ARMATURE) {
+			const bool do_pose_id_user = (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0;
+			BKE_pose_rebuild(bmain, ob_dst, ob_dst->data, do_pose_id_user);
+		}
 	}
 	defgroup_copy_list(&ob_dst->defbase, &ob_src->defbase);
 	BKE_object_facemap_copy_list(&ob_dst->fmaps, &ob_src->fmaps);
@@ -1204,17 +1308,17 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 	ob_dst->derivedDeform = NULL;
 	ob_dst->derivedFinal = NULL;
 
-	BLI_listbase_clear(&ob_dst->gpulamp);
 	BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
 	BLI_listbase_clear(&ob_dst->pc_ids);
+
+	/* grease pencil: clean derived data */
+	if (ob_dst->type == OB_GPENCIL)
+		BKE_gpencil_free_derived_frames(ob_dst->data);
 
 	ob_dst->avs = ob_src->avs;
 	ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
 
 	copy_object_lod(ob_dst, ob_src, flag_subdata);
-
-	/* Do not copy runtime curve data. */
-	ob_dst->curve_cache = NULL;
 
 	/* Do not copy object's preview (mostly due to the fact renderers create temp copy of objects). */
 	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) {  /* XXX TODO temp hack */
@@ -1434,7 +1538,7 @@ void BKE_object_make_proxy(Main *bmain, Object *ob, Object *target, Object *cob)
 	if (target->type == OB_ARMATURE) {
 		copy_object_pose(ob, target, 0);   /* data copy, object pointers in constraints */
 		BKE_pose_rest(ob->pose);            /* clear all transforms in channels */
-		BKE_pose_rebuild(bmain, ob, ob->data); /* set all internal links */
+		BKE_pose_rebuild(bmain, ob, ob->data, true); /* set all internal links */
 
 		armature_set_id_extern(ob);
 	}
@@ -1466,6 +1570,11 @@ void BKE_object_obdata_size_init(struct Object *ob, const float size)
 	/* apply radius as a scale to types that support it */
 	switch (ob->type) {
 		case OB_EMPTY:
+		{
+			ob->empty_drawsize *= size;
+			break;
+		}
+		case OB_GPENCIL:
 		{
 			ob->empty_drawsize *= size;
 			break;
@@ -1726,7 +1835,7 @@ static bool ob_parcurve(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, 
 	}
 #endif
 
-	if (par->curve_cache->path == NULL) {
+	if (par->runtime.curve_cache->path == NULL) {
 		return false;
 	}
 
@@ -1945,10 +2054,10 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		ListBase *nurb;
 
 		/* Unless there's some weird depsgraph failure the cache should exist. */
-		BLI_assert(par->curve_cache != NULL);
+		BLI_assert(par->runtime.curve_cache != NULL);
 
-		if (par->curve_cache->deformed_nurbs.first != NULL) {
-			nurb = &par->curve_cache->deformed_nurbs;
+		if (par->runtime.curve_cache->deformed_nurbs.first != NULL) {
+			nurb = &par->runtime.curve_cache->deformed_nurbs;
 		}
 		else {
 			Curve *cu = par->data;
@@ -1959,7 +2068,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	}
 	else if (par->type == OB_LATTICE) {
 		Lattice *latt  = par->data;
-		DispList *dl   = par->curve_cache ? BKE_displist_find(&par->curve_cache->disp, DL_VERTS) : NULL;
+		DispList *dl   = par->runtime.curve_cache ? BKE_displist_find(&par->runtime.curve_cache->disp, DL_VERTS) : NULL;
 		float (*co)[3] = dl ? (float (*)[3])dl->verts : NULL;
 		int tot;
 
@@ -2453,7 +2562,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3], const bool us
 		float size[3];
 
 		copy_v3_v3(size, ob->size);
-		if (ob->type == OB_EMPTY) {
+		if ((ob->type == OB_EMPTY) || (ob->type == OB_GPENCIL)) {
 			mul_v3_fl(size, ob->empty_drawsize);
 		}
 
@@ -2540,10 +2649,10 @@ void BKE_object_foreach_display_point(
 			func_cb(co, user_data);
 		}
 	}
-	else if (ob->curve_cache && ob->curve_cache->disp.first) {
+	else if (ob->runtime.curve_cache && ob->runtime.curve_cache->disp.first) {
 		DispList *dl;
 
-		for (dl = ob->curve_cache->disp.first; dl; dl = dl->next) {
+		for (dl = ob->runtime.curve_cache->disp.first; dl; dl = dl->next) {
 			const float *v3 = dl->verts;
 			int totvert = dl->nr;
 			int i;
@@ -2700,7 +2809,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
 			 * on file load */
 			if (ob->pose == NULL || (ob->pose->flag & POSE_RECALC)) {
 				/* No need to pass bmain here, we assume we do not need to rebuild DEG from here... */
-				BKE_pose_rebuild(NULL, ob, ob->data);
+				BKE_pose_rebuild(NULL, ob, ob->data, true);
 			}
 		}
 	}
@@ -3690,6 +3799,74 @@ bool BKE_object_modifier_use_time(Object *ob, ModifierData *md)
 
 		/* XXX: also, should check NLA strips, though for now assume that nobody uses
 		 * that and we can omit that for performance reasons... */
+	}
+
+	return false;
+}
+
+bool BKE_object_modifier_gpencil_use_time(Object *ob, GpencilModifierData *md)
+{
+	if (BKE_gpencil_modifier_dependsOnTime(md)) {
+		return true;
+	}
+
+	/* Check whether modifier is animated. */
+	/* TODO (Aligorith): this should be handled as part of build_animdata() */
+	if (ob->adt) {
+		AnimData *adt = ob->adt;
+		FCurve *fcu;
+
+		char pattern[MAX_NAME + 32];
+		BLI_snprintf(pattern, sizeof(pattern), "grease_pencil_modifiers[\"%s\"]", md->name);
+
+		/* action - check for F-Curves with paths containing 'grease_pencil_modifiers[' */
+		if (adt->action) {
+			for (fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
+				if (fcu->rna_path && strstr(fcu->rna_path, pattern)) {
+					return true;
+				}
+			}
+		}
+
+		/* This here allows modifier properties to get driven and still update properly */
+		for (fcu = adt->drivers.first; fcu != NULL; fcu = fcu->next) {
+			if (fcu->rna_path && strstr(fcu->rna_path, pattern)) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+bool BKE_object_shaderfx_use_time(Object *ob, ShaderFxData *fx)
+{
+	if (BKE_shaderfx_dependsOnTime(fx)) {
+		return true;
+	}
+
+	/* Check whether effect is animated. */
+	/* TODO (Aligorith): this should be handled as part of build_animdata() */
+	if (ob->adt) {
+		AnimData *adt = ob->adt;
+		FCurve *fcu;
+
+		char pattern[MAX_NAME + 32];
+		BLI_snprintf(pattern, sizeof(pattern), "shader_effects[\"%s\"]", fx->name);
+
+		/* action - check for F-Curves with paths containing string[' */
+		if (adt->action) {
+			for (fcu = adt->action->curves.first; fcu != NULL; fcu = fcu->next) {
+				if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+					return true;
+			}
+		}
+
+		/* This here allows properties to get driven and still update properly */
+		for (fcu = adt->drivers.first; fcu != NULL; fcu = fcu->next) {
+			if (fcu->rna_path && strstr(fcu->rna_path, pattern))
+				return true;
+		}
 	}
 
 	return false;

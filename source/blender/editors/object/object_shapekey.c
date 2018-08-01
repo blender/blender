@@ -378,8 +378,10 @@ static int shape_key_retime_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!key || !kb)
 		return OPERATOR_CANCELLED;
 
-	for (kb = key->block.first; kb; kb = kb->next)
-		kb->pos = (cfra += 0.1f);
+	for (kb = key->block.first; kb; kb = kb->next) {
+		kb->pos = cfra;
+		cfra += 0.1f;
+	}
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);

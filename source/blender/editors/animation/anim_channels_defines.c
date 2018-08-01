@@ -64,6 +64,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
+#include "BKE_gpencil.h"
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
@@ -661,6 +662,8 @@ static int acf_object_icon(bAnimListElem *ale)
 			return ICON_OUTLINER_OB_SURFACE;
 		case OB_EMPTY:
 			return ICON_OUTLINER_OB_EMPTY;
+		case OB_GPENCIL:
+			return ICON_OUTLINER_OB_GREASEPENCIL;
 		default:
 			return ICON_OBJECT_DATA;
 	}
@@ -4048,8 +4051,16 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 		return;
 	}
 
-	if (ale_setting->type == ANIMTYPE_GPLAYER)
+	if (ale_setting->type == ANIMTYPE_GPLAYER) {
+		/* draw cache updates for settings that affect the visible strokes */
+		if (setting == ACHANNEL_SETTING_VISIBLE) {
+			bGPdata *gpd = (bGPdata *)ale_setting->id;
+			DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		}
+
+		/* UI updates */
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, NULL);
+	}
 
 	/* tag copy-on-write flushing (so that the settings will have an effect) */
 	if (ale_setting->id) {

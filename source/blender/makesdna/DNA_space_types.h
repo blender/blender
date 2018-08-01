@@ -198,6 +198,7 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_VIEW_LAYER = 13,
 	BCONTEXT_TOOL = 14,
 	BCONTEXT_WORKSPACE = 15,
+	BCONTEXT_SHADERFX = 16,
 
 	/* always as last... */
 	BCONTEXT_TOT
@@ -1346,7 +1347,7 @@ typedef enum eSpaceClip_Flag {
 	SC_SHOW_GRID                = (1 << 9),
 	SC_SHOW_STABLE              = (1 << 10),
 	SC_MANUAL_CALIBRATION       = (1 << 11),
-	SC_SHOW_GPENCIL             = (1 << 12),
+	SC_SHOW_ANNOTATION          = (1 << 12),
 	SC_SHOW_FILTERS             = (1 << 13),
 	SC_SHOW_GRAPH_FRAMES        = (1 << 14),
 	SC_SHOW_GRAPH_TRACKS_MOTION = (1 << 15),

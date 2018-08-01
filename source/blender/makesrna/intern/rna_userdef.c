@@ -410,13 +410,8 @@ static void rna_userdef_temp_update(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 static void rna_userdef_text_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	BLF_cache_clear();
+	UI_reinit_font();
 	WM_main_add_notifier(NC_WINDOW, NULL);
-}
-
-static void rna_userdef_text_antialiasing_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	BLF_antialias_set((U.text_render & USER_TEXT_DISABLE_AA) == 0);
-	rna_userdef_text_update(bmain, scene, ptr);
 }
 
 static PointerRNA rna_Theme_space_generic_get(PointerRNA *ptr)
@@ -4351,7 +4346,12 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_text_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_AA);
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
-	RNA_def_property_update(prop, 0, "rna_userdef_text_antialiasing_update");
+	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
+
+	prop = RNA_def_property(srna, "use_text_hinting", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_HINTING);
+	RNA_def_property_ui_text(prop, "Text Hinting", "Draw user interface text with hinting");
+	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
 	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "gpu_select_method");
@@ -4369,6 +4369,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, multi_sample_levels);
 	RNA_def_property_ui_text(prop, "MultiSample",
 	                         "Enable OpenGL multi-sampling, only for systems that support it, requires restart");
+	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
+
+	/* grease pencil anti-aliasing */
+	prop = RNA_def_property(srna, "gpencil_multi_sample", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_multisamples");
+	RNA_def_property_enum_items(prop, multi_sample_levels);
+	RNA_def_property_ui_text(prop, "Gpencil MultiSample",
+		"Enable Grease Pencil OpenGL multi-sampling, only for systems that support it");
 	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
 	prop = RNA_def_property(srna, "use_region_overlap", PROP_BOOLEAN, PROP_NONE);

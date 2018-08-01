@@ -43,7 +43,10 @@ enum {
 	ICON_DATA_PREVIEW,
 	/** 2D triangles: obj is #Icon_Geom */
 	ICON_DATA_GEOM,
+	/** Studiolight */
 	ICON_DATA_STUDIOLIGHT,
+	/** GPencil Layer color preview (annotations): obj is #bGPDlayer */
+	ICON_DATA_GPLAYER,
 };
 
 struct Icon {
@@ -79,6 +82,7 @@ struct ImBuf;
 struct PreviewImage;
 struct ID;
 struct StudioLight;
+struct bGPDlayer;
 
 enum eIconSizes;
 
@@ -86,6 +90,9 @@ void BKE_icons_init(int first_dyn_id);
 
 /* return icon id for library object or create new icon if not found */
 int BKE_icon_id_ensure(struct ID *id);
+
+/* return icon id for Grease Pencil layer (color preview) or create new icon if not found */
+int BKE_icon_gplayer_color_ensure(struct bGPDlayer *gpl);
 
 int BKE_icon_preview_ensure(struct ID *id, struct PreviewImage *preview);
 

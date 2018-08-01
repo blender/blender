@@ -72,6 +72,7 @@
 #include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_brush_types.h"
 #include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_layer_types.h"
@@ -1660,7 +1661,7 @@ static size_t animdata_filter_gpencil_data(ListBase *anim_data, bDopeSheet *ads,
 	 */
 	if (filter_mode & ANIMFILTER_ANIMDATA) {
 		/* just add GPD as a channel - this will add everything needed */
-		ANIMCHANNEL_NEW_CHANNEL(gpd, ANIMTYPE_GPDATABLOCK, NULL);
+		ANIMCHANNEL_NEW_CHANNEL(gpd, ANIMTYPE_GPDATABLOCK, gpd);
 	}
 	else {
 		ListBase tmp_data = {NULL, NULL};
@@ -1711,7 +1712,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 		/* Objects in the scene */
 		for (base = view_layer->object_bases.first; base; base = base->next) {
 			/* Only consider this object if it has got some GP data (saving on all the other tests) */
-			if (base->object && base->object->gpd) {
+			if (base->object && (base->object->type == OB_GPENCIL)) {
 				Object *ob = base->object;
 
 				/* firstly, check if object can be included, by the following factors:
@@ -1748,7 +1749,7 @@ static size_t animdata_filter_gpencil(bAnimContext *ac, ListBase *anim_data, voi
 
 				/* finally, include this object's grease pencil datablock */
 				/* XXX: Should we store these under expanders per item? */
-				items += animdata_filter_gpencil_data(anim_data, ads, ob->gpd, filter_mode);
+				items += animdata_filter_gpencil_data(anim_data, ads, ob->data, filter_mode);
 			}
 		}
 	}
@@ -2613,8 +2614,10 @@ static size_t animdata_filter_dopesheet_ob(bAnimContext *ac, ListBase *anim_data
 		}
 
 		/* grease pencil */
-		if ((ob->gpd) && !(ads->filterflag & ADS_FILTER_NOGPENCIL)) {
-			tmp_items += animdata_filter_ds_gpencil(ac, &tmp_data, ads, ob->gpd, filter_mode);
+		if ((ob->type == OB_GPENCIL) &&
+		    (ob->data) && !(ads->filterflag & ADS_FILTER_NOGPENCIL))
+		{
+			tmp_items += animdata_filter_ds_gpencil(ac, &tmp_data, ads, ob->data, filter_mode);
 		}
 	}
 	END_ANIMFILTER_SUBCHANNELS;

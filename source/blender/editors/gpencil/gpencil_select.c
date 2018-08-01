@@ -43,6 +43,7 @@
 
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_object_types.h"
 
@@ -62,6 +63,9 @@
 
 #include "ED_gpencil.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "gpencil_intern.h"
 
 /* ********************************************** */
@@ -71,8 +75,8 @@ static bool gpencil_select_poll(bContext *C)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
-	/* we just need some visible strokes, and to be in editmode */
-	if ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE)) {
+	/* we just need some visible strokes, and to be in editmode or other modes only to catch event */
+	if (GPENCIL_ANY_MODE(gpd)) {
 		/* TODO: include a check for visible strokes? */
 		if (gpd->layers.first)
 			return true;
@@ -91,6 +95,11 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 
 	if (gpd == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -180,6 +189,11 @@ static int gpencil_select_all_exec(bContext *C, wmOperator *op)
 	}
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -213,6 +227,11 @@ static int gpencil_select_linked_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	/* select all points in selected strokes */
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
@@ -228,6 +247,11 @@ static int gpencil_select_linked_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -245,6 +269,86 @@ void GPENCIL_OT_select_linked(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+/* ********************************************** */
+/* Select Alternate */
+
+static int gpencil_select_alternate_exec(bContext *C, wmOperator *op)
+{
+	const bool unselect_ends = RNA_boolean_get(op->ptr, "unselect_ends");
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+
+	if (gpd == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "No Grease Pencil data");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* select all points in selected strokes */
+	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	{
+		if ((gps->flag & GP_STROKE_SELECT) && (gps->totpoints > 1)) {
+			bGPDspoint *pt;
+			int row = 0;
+			int start = 0;
+			if (unselect_ends) {
+				start = 1;
+			}
+
+			for (int i = start; i < gps->totpoints; i++) {
+				pt = &gps->points[i];
+				if ((row % 2) == 0) {
+					pt->flag |= GP_SPOINT_SELECT;
+				}
+				else {
+					pt->flag &= ~GP_SPOINT_SELECT;
+				}
+				row++;
+			}
+
+			/* unselect start and end points */
+			if (unselect_ends) {
+				pt = &gps->points[0];
+				pt->flag &= ~GP_SPOINT_SELECT;
+
+				pt = &gps->points[gps->totpoints - 1];
+				pt->flag &= ~GP_SPOINT_SELECT;
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
+	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_select_alternate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Alternated";
+	ot->idname = "GPENCIL_OT_select_alternate";
+	ot->description = "Select alternative points in same strokes as already selected points";
+
+	/* callbacks */
+	ot->exec = gpencil_select_alternate_exec;
+	ot->poll = gpencil_select_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "unselect_ends", true, "Unselect Ends", "Do not select the first and last point of the stroke");
 }
 
 /* ********************************************** */
@@ -266,11 +370,12 @@ typedef enum eGP_SelectGrouped {
 /* On each visible layer, check for selected strokes - if found, select all others */
 static void gp_select_same_layer(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
 		bGPDstroke *gps;
 		bool found = false;
 
@@ -309,10 +414,7 @@ static void gp_select_same_layer(bContext *C)
 /* Select all strokes with same colors as selected ones */
 static void gp_select_same_color(bContext *C)
 {
-	/* First, build set containing all the colors of selected strokes
-	 * - We use the palette names, so that we can select all strokes with one
-	 *   (potentially missing) color, and remap them to something else
-	 */
+	/* First, build set containing all the colors of selected strokes */
 	GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
 
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
@@ -321,7 +423,7 @@ static void gp_select_same_color(bContext *C)
 			/* add instead of insert here, otherwise the uniqueness check gets skipped,
 			 * and we get many duplicate entries...
 			 */
-			BLI_gset_add(selected_colors, gps->colorname);
+			BLI_gset_add(selected_colors, &gps->mat_nr);
 		}
 	}
 	CTX_DATA_END;
@@ -329,7 +431,7 @@ static void gp_select_same_color(bContext *C)
 	/* Second, select any visible stroke that uses these colors */
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
-		if (BLI_gset_haskey(selected_colors, gps->colorname)) {
+		if (BLI_gset_haskey(selected_colors, &gps->mat_nr)) {
 			/* select this stroke */
 			bGPDspoint *pt;
 			int i;
@@ -342,6 +444,11 @@ static void gp_select_same_color(bContext *C)
 		}
 	}
 	CTX_DATA_END;
+
+	/* free memomy */
+	if (selected_colors != NULL) {
+		BLI_gset_free(selected_colors, NULL);
+	}
 }
 
 
@@ -350,6 +457,11 @@ static void gp_select_same_color(bContext *C)
 static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	eGP_SelectGrouped mode = RNA_enum_get(op->ptr, "type");
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
 
 	switch (mode) {
 		case GP_SEL_SAME_LAYER:
@@ -365,6 +477,11 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 	}
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -399,6 +516,12 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 
 static int gpencil_select_first_exec(bContext *C, wmOperator *op)
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
@@ -429,6 +552,11 @@ static int gpencil_select_first_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -459,6 +587,12 @@ void GPENCIL_OT_select_first(wmOperatorType *ot)
 
 static int gpencil_select_last_exec(bContext *C, wmOperator *op)
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected_strokes");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
@@ -489,6 +623,11 @@ static int gpencil_select_last_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -519,6 +658,12 @@ void GPENCIL_OT_select_last(wmOperatorType *ot)
 
 static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
 		if (gps->flag & GP_STROKE_SELECT) {
@@ -565,6 +710,11 @@ static int gpencil_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -589,6 +739,12 @@ void GPENCIL_OT_select_more(wmOperatorType *ot)
 
 static int gpencil_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
 		if (gps->flag & GP_STROKE_SELECT) {
@@ -636,6 +792,11 @@ static int gpencil_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	CTX_DATA_END;
 
 	/* updates */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	return OPERATOR_FINISHED;
 }
@@ -665,7 +826,7 @@ void GPENCIL_OT_select_less(wmOperatorType *ot)
 static bool gp_stroke_do_circle_sel(
         bGPDstroke *gps, GP_SpaceConversion *gsc,
         const int mx, const int my, const int radius,
-        const bool select, rcti *rect, const bool parented, float diff_mat[4][4])
+        const bool select, rcti *rect, float diff_mat[4][4])
 {
 	bGPDspoint *pt1, *pt2;
 	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
@@ -673,14 +834,9 @@ static bool gp_stroke_do_circle_sel(
 	bool changed = false;
 
 	if (gps->totpoints == 1) {
-		if (!parented) {
-			gp_point_to_xy(gsc, gps, gps->points, &x0, &y0);
-		}
-		else {
-			bGPDspoint pt_temp;
-			gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-			gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
-		}
+		bGPDspoint pt_temp;
+		gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+		gp_point_to_xy(gsc, gps, &pt_temp, &x0, &y0);
 
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) {
@@ -708,18 +864,12 @@ static bool gp_stroke_do_circle_sel(
 			/* get points to work with */
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
-			if (!parented) {
-				gp_point_to_xy(gsc, gps, pt1, &x0, &y0);
-				gp_point_to_xy(gsc, gps, pt2, &x1, &y1);
-			}
-			else {
-				bGPDspoint npt;
-				gp_point_to_parent_space(pt1, diff_mat, &npt);
-				gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
+			bGPDspoint npt;
+			gp_point_to_parent_space(pt1, diff_mat, &npt);
+			gp_point_to_xy(gsc, gps, &npt, &x0, &y0);
 
-				gp_point_to_parent_space(pt2, diff_mat, &npt);
-				gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
-			}
+			gp_point_to_parent_space(pt2, diff_mat, &npt);
+			gp_point_to_xy(gsc, gps, &npt, &x1, &y1);
 
 			/* check that point segment of the boundbox of the selection stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(rect, x0, y0)) ||
@@ -763,6 +913,12 @@ static bool gp_stroke_do_circle_sel(
 
 static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	/* if not edit/sculpt mode, the event is catched but not processed */
+	if (GPENCIL_NONE_EDIT_MODE(gpd)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	ScrArea *sa = CTX_wm_area(C);
 
 	const int mx = RNA_int_get(op->ptr, "x");
@@ -798,13 +954,17 @@ static int gpencil_circle_select_exec(bContext *C, wmOperator *op)
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
 		changed |= gp_stroke_do_circle_sel(
-			gps, &gsc, mx, my, radius, select, &rect,
-			(gpl->parent != NULL), diff_mat);
+			gps, &gsc, mx, my, radius, select, &rect, diff_mat);
 	}
 	GP_EDITABLE_STROKES_END;
 
 	/* updates */
 	if (changed) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+		/* copy on write tag is needed, or else no refresh happens */
+		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	}
 
@@ -837,10 +997,11 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 
 static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	ScrArea *sa = CTX_wm_area(C);
 
 	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend") && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
 
 	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};
@@ -888,14 +1049,9 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 			int x0, y0;
 
 			/* convert point coords to screenspace */
-			if (gpl->parent == NULL) {
-				gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
-			}
-			else {
-				bGPDspoint pt2;
-				gp_point_to_parent_space(pt, diff_mat, &pt2);
-				gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
-			}
+			bGPDspoint pt2;
+			gp_point_to_parent_space(pt, diff_mat, &pt2);
+			gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
 
 			/* test if in selection rect */
 			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0)) {
@@ -915,8 +1071,20 @@ static int gpencil_border_select_exec(bContext *C, wmOperator *op)
 	}
 	GP_EDITABLE_STROKES_END;
 
+	/* if paint mode,delete selected points */
+	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
+		gp_delete_selected_point_wrap(C);
+		changed = true;
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	}
+
 	/* updates */
 	if (changed) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+		/* copy on write tag is needed, or else no refresh happens */
+		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	}
 
@@ -950,10 +1118,11 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 
 static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 {
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	GP_SpaceConversion gsc = {NULL};
 	rcti rect = {0};
 
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	const bool extend = RNA_boolean_get(op->ptr, "extend") && ((gpd->flag & GP_DATA_STROKE_PAINTMODE) == 0);
 	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	int mcords_tot;
@@ -997,14 +1166,9 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 			int x0, y0;
 
 			/* convert point coords to screenspace */
-			if (gpl->parent == NULL) {
-				gp_point_to_xy(&gsc, gps, pt, &x0, &y0);
-			}
-			else {
-				bGPDspoint pt2;
-				gp_point_to_parent_space(pt, diff_mat, &pt2);
-				gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
-			}
+			bGPDspoint pt2;
+			gp_point_to_parent_space(pt, diff_mat, &pt2);
+			gp_point_to_xy(&gsc, gps, &pt2, &x0, &y0);
 			/* test if in lasso boundbox + within the lasso noose */
 			if ((!ELEM(V2D_IS_CLIPPED, x0, y0)) && BLI_rcti_isect_pt(&rect, x0, y0) &&
 			    BLI_lasso_is_point_inside(mcords, mcords_tot, x0, y0, INT_MAX))
@@ -1028,8 +1192,20 @@ static int gpencil_lasso_select_exec(bContext *C, wmOperator *op)
 	/* cleanup */
 	MEM_freeN((void *)mcords);
 
+	/* if paint mode,delete selected points */
+	if (gpd->flag & GP_DATA_STROKE_PAINTMODE) {
+		gp_delete_selected_point_wrap(C);
+		changed = true;
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	}
+
 	/* updates */
 	if (changed) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+		/* copy on write tag is needed, or else no refresh happens */
+		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	}
 
@@ -1061,6 +1237,7 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 static int gpencil_select_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
 	/* "radius" is simply a threshold (screen space) to make it easier to test with a tolerance */
 	const float radius = 0.75f * U.widget_unit;
@@ -1102,14 +1279,9 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 		for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
 			int xy[2];
 
-			if (gpl->parent == NULL) {
-				gp_point_to_xy(&gsc, gps, pt, &xy[0], &xy[1]);
-			}
-			else {
-				bGPDspoint pt2;
-				gp_point_to_parent_space(pt, diff_mat, &pt2);
-				gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
-			}
+			bGPDspoint pt2;
+			gp_point_to_parent_space(pt, diff_mat, &pt2);
+			gp_point_to_xy(&gsc, gps, &pt2, &xy[0], &xy[1]);
 
 			/* do boundbox check first */
 			if (!ELEM(V2D_IS_CLIPPED, xy[0], xy[1])) {
@@ -1197,6 +1369,11 @@ static int gpencil_select_exec(bContext *C, wmOperator *op)
 
 	/* updates */
 	if (hit_point != NULL) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+
+		/* copy on write tag is needed, or else no refresh happens */
+		DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 		WM_event_add_notifier(C, NC_GPENCIL | NA_SELECTED, NULL);
 	}
 

@@ -358,7 +358,11 @@ void OUTLINER_OT_collection_objects_deselect(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_link(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_instance(struct wmOperatorType *ot);
 void OUTLINER_OT_collection_exclude_set(struct wmOperatorType *ot);
-void OUTLINER_OT_collection_include_set(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_exclude_clear(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_holdout_set(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_holdout_clear(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_indirect_only_set(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_indirect_only_clear(struct wmOperatorType *ot);
 
 /* outliner_utils.c ---------------------------------------------- */
 

@@ -291,8 +291,8 @@ void BlenderSync::sync_background_light(bool use_portal)
 /* Object */
 
 Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
+                                 BL::ViewLayer& b_view_layer,
                                  BL::DepsgraphObjectInstance& b_instance,
-                                 uint layer_flag,
                                  float motion_time,
                                  bool hide_tris,
                                  BlenderObjectCulling& culling,
@@ -314,10 +314,13 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 	}
 
 	/* light is handled separately */
-	if(object_is_light(b_ob)) {
-		/* don't use lights for excluded layers used as mask layer */
-		if(!motion && !((layer_flag & view_layer.holdout_layer) &&
-		                (layer_flag & view_layer.exclude_layer)))
+	if(!motion && object_is_light(b_ob)) {
+		/* TODO: don't use lights for excluded layers used as mask layer,
+		 * when dynamic overrides are back. */
+#if 0
+		if(!((layer_flag & view_layer.holdout_layer) &&
+		     (layer_flag & view_layer.exclude_layer)))
+#endif
 		{
 			sync_light(b_parent,
 			           persistent_id,
@@ -343,21 +346,24 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 	/* Visibility flags for both parent and child. */
 	PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
-	bool use_holdout = (layer_flag & view_layer.holdout_layer) != 0 ||
-	                   get_boolean(cobject, "is_holdout");
+	bool use_holdout = get_boolean(cobject, "is_holdout") ||
+	                   b_parent.holdout_get(b_view_layer);
 	uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
 	if(b_parent.ptr.data != b_ob.ptr.data) {
 		visibility &= object_ray_visibility(b_parent);
 	}
 
-	/* Make holdout objects on excluded layer invisible for non-camera rays. */
+	/* TODO: make holdout objects on excluded layer invisible for non-camera rays. */
+#if 0
 	if(use_holdout && (layer_flag & view_layer.exclude_layer)) {
 		visibility &= ~(PATH_RAY_ALL_VISIBILITY - PATH_RAY_CAMERA);
 	}
+#endif
 
-	/* Hide objects not on render layer from camera rays. */
-	if(!(layer_flag & view_layer.layer)) {
+	/* Clear camera visibility for indirect only objects. */
+	bool use_indirect_only = b_parent.indirect_only_get(b_view_layer);
+	if(use_indirect_only) {
 		visibility &= ~PATH_RAY_CAMERA;
 	}
 
@@ -583,6 +589,7 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 	bool cancel = false;
 	bool use_portal = false;
 
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 	BL::Depsgraph::mode_enum depsgraph_mode = b_depsgraph.mode();
 
 	BL::Depsgraph::object_instances_iterator b_instance_iter;
@@ -604,8 +611,8 @@ void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 		 if(!object_render_hide(b_ob, true, true, hide_tris, depsgraph_mode)) {
 			/* object itself */
 			sync_object(b_depsgraph,
+			            b_view_layer,
 			            b_instance,
-			            ~(0), /* until we get rid of layers */
 			            motion_time,
 			            hide_tris,
 			            culling,

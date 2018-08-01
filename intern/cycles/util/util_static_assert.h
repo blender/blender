@@ -22,27 +22,7 @@ CCL_NAMESPACE_BEGIN
 /* TODO(sergey): In theory CUDA might work with own static assert
  * implementation since it's just pure C++.
  */
-#ifndef __KERNEL_GPU__
-#  if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-/* C++11 has built-in static_assert() */
-#  elif defined(static_assert)
-/* Some platforms might have static_assert() defined even tho their
- * C++ support wouldn't be declared to be C++11.
- */
-#  else  /* C++11 or MSVC2015 */
-template <bool Test> class StaticAssertFailure;
-template <> class StaticAssertFailure<true> {};
-#    define _static_assert_private_glue_impl(A, B) A ## B
-#    define _static_assert_glue(A, B) _static_assert_private_glue_impl(A, B)
-#    ifdef __COUNTER__
-#      define static_assert(condition, message) \
-  enum {_static_assert_glue(q_static_assert_result, __COUNTER__) = sizeof(StaticAssertFailure<!!(condition)>)}  // NOLINT
-#    else  /* __COUNTER__ */
-#      define static_assert(condition, message) \
-  enum {_static_assert_glue(q_static_assert_result, __LINE__) = sizeof(StaticAssertFailure<!!(condition)>)}  // NOLINT
-#    endif  /* __COUNTER__ */
-#  endif  /* C++11 or MSVC2015 */
-#else  /* __KERNEL_GPU__ */
+#ifdef __KERNEL_GPU__
 #  ifndef static_assert
 #    define static_assert(statement, message)
 #  endif

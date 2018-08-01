@@ -59,7 +59,7 @@ typedef struct IconFile {
 /*
  * Resizable Icons for Blender
  */
-void UI_icons_init(int first_dyn_id);
+void UI_icons_init(void);
 int UI_icon_get_width(int icon_id);
 int UI_icon_get_height(int icon_id);
 

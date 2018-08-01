@@ -1150,6 +1150,9 @@ void BKE_animdata_main_cb(Main *bmain, ID_AnimData_Edit_Callback func, void *use
 	/* grease pencil */
 	ANIMDATA_IDS_CB(bmain->gpencil.first);
 
+	/* palettes */
+	ANIMDATA_IDS_CB(bmain->palettes.first);
+
 	/* cache files */
 	ANIMDATA_IDS_CB(bmain->cachefiles.first);
 }
@@ -2924,6 +2927,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Depsgraph *depsgraph, Scene 
 
 	/* grease pencil */
 	EVAL_ANIM_IDS(main->gpencil.first, ADT_RECALC_ANIM);
+
+	/* palettes */
+	EVAL_ANIM_IDS(main->palettes.first, ADT_RECALC_ANIM);
 
 	/* cache files */
 	EVAL_ANIM_IDS(main->cachefiles.first, ADT_RECALC_ANIM);

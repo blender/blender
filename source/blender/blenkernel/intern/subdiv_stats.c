@@ -37,6 +37,7 @@ void BKE_subdiv_stats_init(SubdivStats *stats)
 {
 	stats->topology_refiner_creation_time = 0.0;
 	stats->subdiv_to_mesh_time = 0.0;
+	stats->subdiv_to_mesh_geometry_time = 0.0;
 	stats->evaluator_creation_time = 0.0;
 	stats->evaluator_refine_time = 0.0;
 }
@@ -69,6 +70,9 @@ void BKE_subdiv_stats_print(const SubdivStats *stats)
 	STATS_PRINT_TIME(stats,
 	                 subdiv_to_mesh_time,
 	                 "Subdivision to mesh time");
+	STATS_PRINT_TIME(stats,
+	                 subdiv_to_mesh_geometry_time,
+	                 "    Geometry time");
 	STATS_PRINT_TIME(stats,
 	                 evaluator_creation_time,
 	                 "Evaluator creation time");

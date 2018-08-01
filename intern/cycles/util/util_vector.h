@@ -59,11 +59,7 @@ public:
 
 	void shrink_to_fit(void)
 	{
-#if __cplusplus < 201103L
-		vector<value_type>().swap(*this);
-#else
 		std::vector<value_type, allocator_type>::shrink_to_fit();
-#endif
 	}
 
 	void free_memory(void)

@@ -72,6 +72,7 @@ typedef struct DRWShaderCompiler {
 	ThreadMutex compilation_lock;
 
 	void *gl_context;
+	bool own_context;
 
 	int shaders_done; /* To compute progress. */
 } DRWShaderCompiler;
@@ -146,7 +147,7 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 	BLI_spin_end(&comp->list_lock);
 	BLI_mutex_end(&comp->compilation_lock);
 
-	if (comp->gl_context) {
+	if (comp->own_context) {
 		/* Only destroy if the job owns the context. */
 		WM_opengl_context_dispose(comp->gl_context);
 	}
@@ -189,8 +190,11 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 		BLI_movelisttolist(&comp->queue, &old_comp->queue);
 		BLI_spin_unlock(&old_comp->list_lock);
 		/* Do not recreate context, just pass ownership. */
-		comp->gl_context = old_comp->gl_context;
-		old_comp->gl_context = NULL;
+		if (old_comp->gl_context) {
+			comp->gl_context = old_comp->gl_context;
+			old_comp->own_context = false;
+			comp->own_context = true;
+		}
 	}
 
 	BLI_addtail(&comp->queue, dsh);
@@ -199,6 +203,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 	if (comp->gl_context == NULL) {
 		comp->gl_context = WM_opengl_context_create();
 		WM_opengl_context_activate(DST.gl_context);
+		comp->own_context = true;
 	}
 
 	WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);

@@ -130,8 +130,8 @@ void AbcNurbsWriter::do_write()
 	Curve *curve = static_cast<Curve *>(m_object->data);
 	ListBase *nulb;
 
-	if (m_object->curve_cache->deformed_nurbs.first != NULL) {
-		nulb = &m_object->curve_cache->deformed_nurbs;
+	if (m_object->runtime.curve_cache->deformed_nurbs.first != NULL) {
+		nulb = &m_object->runtime.curve_cache->deformed_nurbs;
 	}
 	else {
 		nulb = BKE_curve_nurbs_get(curve);

@@ -24,12 +24,7 @@ from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
     GreasePencilDrawingToolsPanel,
-    GreasePencilStrokeEditPanel,
-    GreasePencilStrokeSculptPanel,
-    GreasePencilBrushPanel,
-    GreasePencilBrushCurvesPanel,
     GreasePencilDataPanel,
-    GreasePencilPaletteColorPanel,
 )
 
 
@@ -1154,39 +1149,10 @@ class CLIP_PT_grease_pencil(GreasePencilDataPanel, CLIP_PT_clip_view_panel, Pane
     # But, this should only be visible in "clip" view
 
 
-# Grease Pencil palette colors
-class CLIP_PT_grease_pencil_palettecolor(GreasePencilPaletteColorPanel, CLIP_PT_clip_view_panel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'UI'
-    bl_options = {'DEFAULT_CLOSED'}
-
-    # NOTE: this is just a wrapper around the generic GP Panel
-    # But, this should only be visible in "clip" view
-
-
 # Grease Pencil drawing tools
 class CLIP_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
-
-
-# Grease Pencil stroke editing tools
-class CLIP_PT_tools_grease_pencil_edit(GreasePencilStrokeEditPanel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-
-
-# Grease Pencil stroke sculpting tools
-class CLIP_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-
-
-# Grease Pencil drawing brushes
-class CLIP_PT_tools_grease_pencil_brush(GreasePencilBrushPanel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-
-
-# Grease Pencil drawing curves
-class CLIP_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Panel):
-    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'TOOLS'
 
 
 class CLIP_MT_view(Menu):
@@ -1515,12 +1481,7 @@ classes = (
     CLIP_PT_footage_info,
     CLIP_PT_tools_scenesetup,
     CLIP_PT_grease_pencil,
-    CLIP_PT_grease_pencil_palettecolor,
     CLIP_PT_tools_grease_pencil_draw,
-    CLIP_PT_tools_grease_pencil_edit,
-    CLIP_PT_tools_grease_pencil_sculpt,
-    CLIP_PT_tools_grease_pencil_brush,
-    CLIP_PT_tools_grease_pencil_brushcurves,
     CLIP_MT_view,
     CLIP_MT_clip,
     CLIP_MT_proxy,

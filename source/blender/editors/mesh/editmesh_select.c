@@ -1462,6 +1462,18 @@ static int edbm_select_mode_exec(bContext *C, wmOperator *op)
 
 static int edbm_select_mode_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	/* Bypass when in UV non sync-select mode, fall through to keymap that edits. */
+	if (CTX_wm_space_image(C)) {
+		ToolSettings *ts = CTX_data_tool_settings(C);
+		if ((ts->uv_flag & UV_SYNC_SELECTION) == 0) {
+			return OPERATOR_PASS_THROUGH;
+		}
+		/* Bypass when no action is needed. */
+		if (!RNA_struct_property_is_set(op->ptr, "type")) {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
 	/* detecting these options based on shift/ctrl here is weak, but it's done
 	 * to make this work when clicking buttons or menus */
 	if (!RNA_struct_property_is_set(op->ptr, "use_extend"))

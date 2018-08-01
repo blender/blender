@@ -29,6 +29,7 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class Progress;
+class RenderStats;
 class Scene;
 
 class ImageMetaData {
@@ -93,6 +94,8 @@ public:
 
 	device_memory *image_memory(int flat_slot);
 
+	void collect_statistics(RenderStats *stats);
+
 	bool need_update;
 
 	/* NOTE: Here pixels_size is a size of storage, which equals to
@@ -153,16 +156,11 @@ private:
 	                     int texture_limit,
 	                     device_vector<DeviceType>& tex_img);
 
-	int max_flattened_slot(ImageDataType type);
-	int type_index_to_flattened_slot(int slot, ImageDataType type);
-	int flattened_slot_to_type_index(int flat_slot, ImageDataType *type);
-	string name_from_type(int type);
-
 	void device_load_image(Device *device,
 	                       Scene *scene,
 	                       ImageDataType type,
 	                       int slot,
-	                       Progress *progess);
+	                       Progress *progress);
 	void device_free_image(Device *device,
 	                       ImageDataType type,
 	                       int slot);

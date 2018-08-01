@@ -552,7 +552,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, bool transp)
 {
 	if (g_shaders.bone_envelope == NULL) {
 		g_shaders.bone_envelope = DRW_shader_create(
@@ -572,6 +572,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
 	        g_shaders.bone_envelope,
 	        pass, DRW_cache_bone_envelope_solid_get(),
 	        g_formats.instance_bone_envelope);
+	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
 
 	return grp;
 }
@@ -623,7 +624,7 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct GPUBa
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatch *geom)
+DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatch *geom, bool transp)
 {
 	if (g_shaders.shape_solid == NULL) {
 		g_shaders.shape_solid = DRW_shader_create(
@@ -641,11 +642,12 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatc
 	        g_shaders.shape_solid,
 	        pass, geom, g_formats.instance_bone);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
 
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass, bool transp)
 {
 	if (g_shaders.bone_sphere == NULL) {
 		g_shaders.bone_sphere = DRW_shader_create(
@@ -662,6 +664,8 @@ DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass)
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
 	        g_shaders.bone_sphere,
 	        pass, DRW_cache_bone_point_get(), g_formats.instance_bone);
+	/* More transparent than the shape to be less distractive. */
+	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.4f : 1.0f);
 
 	return grp;
 }

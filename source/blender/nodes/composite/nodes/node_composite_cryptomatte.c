@@ -37,7 +37,7 @@
 
 /* this is taken from the cryptomatte specification 1.0 */
 
-static inline float hash_to_float(uint32_t hash)
+BLI_INLINE float hash_to_float(uint32_t hash)
 {
 	uint32_t mantissa = hash & ((1 << 23) - 1);
 	uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);

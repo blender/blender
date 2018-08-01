@@ -70,11 +70,14 @@ void BKE_camera_init(Camera *cam)
 	cam->sensor_x = DEFAULT_SENSOR_WIDTH;
 	cam->sensor_y = DEFAULT_SENSOR_HEIGHT;
 	cam->clipsta = 0.1f;
-	cam->clipend = 100.0f;
+	cam->clipend = 1000.0f;
 	cam->drawsize = 0.5f;
 	cam->ortho_scale = 6.0;
 	cam->flag |= CAM_SHOWPASSEPARTOUT;
 	cam->passepartalpha = 0.5f;
+
+	cam->gpu_dof.fstop = 128.0f;
+	cam->gpu_dof.ratio = 1.0f;
 
 	/* stereoscopy 3d */
 	cam->stereo.interocular_distance = 0.065f;

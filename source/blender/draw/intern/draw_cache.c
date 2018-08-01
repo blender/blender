@@ -107,6 +107,7 @@ static struct DRWShapeCache {
 	GPUBatch *drw_particle_cross;
 	GPUBatch *drw_particle_circle;
 	GPUBatch *drw_particle_axis;
+	GPUBatch *drw_gpencil_axes;
 } SHC = {NULL};
 
 void DRW_shape_cache_free(void)
@@ -241,13 +242,15 @@ static GPUVertBuf *sphere_wire_vbo(const float rad)
 				cv[0] = p[(i + j) % NSEGMENTS][0];
 				cv[1] = p[(i + j) % NSEGMENTS][1];
 
-				if (axis == 0)
-					v[0] = cv[0], v[1] = cv[1], v[2] = 0.0f;
-				else if (axis == 1)
-					v[0] = cv[0], v[1] = 0.0f,  v[2] = cv[1];
-				else
-					v[0] = 0.0f,  v[1] = cv[0], v[2] = cv[1];
-
+				if (axis == 0) {
+					ARRAY_SET_ITEMS(v, cv[0], cv[1], 0.0f);
+				}
+				else if (axis == 1) {
+					ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
+				}
+				else {
+					ARRAY_SET_ITEMS(v, 0.0f, cv[0], cv[1]);
+				}
 				GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 2 + j + (NSEGMENTS * 2 * axis), v);
 			}
 		}
@@ -551,12 +554,67 @@ GPUBatch *DRW_cache_screenspace_circle_get(void)
 #undef CIRCLE_RESOL
 }
 
-/** \} */
+/* Grease Pencil object */
+GPUBatch *DRW_cache_gpencil_axes_get(void)
+{
+	if (!SHC.drw_gpencil_axes) {
+		int axis;
+		float v1[3] = { 0.0f, 0.0f, 0.0f };
+		float v2[3] = { 0.0f, 0.0f, 0.0f };
+
+		/* cube data */
+		const GLfloat verts[8][3] = {
+			{ -0.25f, -0.25f, -0.25f },
+			{ -0.25f, -0.25f,  0.25f },
+			{ -0.25f,  0.25f, -0.25f },
+			{ -0.25f,  0.25f,  0.25f },
+			{ 0.25f, -0.25f, -0.25f },
+			{ 0.25f, -0.25f,  0.25f },
+			{ 0.25f,  0.25f, -0.25f },
+			{ 0.25f,  0.25f,  0.25f }
+		};
+
+		const GLubyte indices[24] = { 0, 1, 1, 3, 3, 2, 2, 0, 0, 4, 4, 5, 5, 7, 7, 6, 6, 4, 1, 5, 3, 7, 2, 6 };
+
+		/* Position Only 3D format */
+		static GPUVertFormat format = { 0 };
+		static uint pos_id;
+		if (format.attr_len == 0) {
+			pos_id = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo =  GPU_vertbuf_create_with_format(&format);
+
+		/* alloc 30 elements for cube and 3 axis */
+		GPU_vertbuf_data_alloc(vbo, ARRAY_SIZE(indices) + 6);
+
+		/* draw axis */
+		for (axis = 0; axis < 3; axis++) {
+			v1[axis] = 1.0f;
+			v2[axis] = -1.0f;
+
+			GPU_vertbuf_attr_set(vbo, pos_id, axis * 2, v1);
+			GPU_vertbuf_attr_set(vbo, pos_id, axis * 2 + 1, v2);
+
+			/* reset v1 & v2 to zero for next axis */
+			v1[axis] = v2[axis] = 0.0f;
+		}
+
+		/* draw cube */
+		for (int i = 0; i < 24; ++i) {
+			GPU_vertbuf_attr_set(vbo, pos_id, i + 6, verts[indices[i]]);
+		}
+
+		SHC.drw_gpencil_axes = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_gpencil_axes;
+}
+
 
 /* -------------------------------------------------------------------- */
 
 /** \name Common Object API
- * \{ */
+* \{ */
 
 GPUBatch *DRW_cache_object_wire_outline_get(Object *ob)
 {
@@ -769,17 +827,17 @@ GPUBatch *DRW_cache_empty_cone_get(void)
 			cv[1] = p[(i) % NSEGMENTS][1];
 
 			/* cone sides */
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4, v);
-			v[0] = 0.0f, v[1] = 2.0f, v[2] = 0.0f;
+			ARRAY_SET_ITEMS(v, 0.0f, 2.0f, 0.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 1, v);
 
 			/* end ring */
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
-			v[0] = cv[0], v[1] = 0.0f, v[2] = cv[1];
+			ARRAY_SET_ITEMS(v, cv[0], 0.0f, cv[1]);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 3, v);
 		}
 
@@ -1522,9 +1580,9 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 			cv[1] = p[i % NSEGMENTS][1];
 
 			/* cone sides */
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4, v);
-			v[0] = 0.0f, v[1] = 0.0f, v[2] = 0.0f;
+			ARRAY_SET_ITEMS(v, 0.0f, 0.0f, 0.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 1, v);
 
 			GPU_vertbuf_attr_set(vbo, attr_id.n1, i * 4,     n[(i) % NSEGMENTS]);
@@ -1533,11 +1591,11 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 			GPU_vertbuf_attr_set(vbo, attr_id.n2, i * 4 + 1, n[(i + 1) % NSEGMENTS]);
 
 			/* end ring */
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 2, v);
 			cv[0] = p[(i + 1) % NSEGMENTS][0];
 			cv[1] = p[(i + 1) % NSEGMENTS][1];
-			v[0] = cv[0], v[1] = cv[1], v[2] = -1.0f;
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
 			GPU_vertbuf_attr_set(vbo, attr_id.pos, i * 4 + 3, v);
 
 			GPU_vertbuf_attr_set(vbo, attr_id.n1, i * 4 + 2, n[(i) % NSEGMENTS]);
@@ -2954,7 +3012,7 @@ GPUBatch *DRW_cache_curve_edge_wire_get(Object *ob)
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
+	return DRW_curve_batch_cache_get_wire_edge(cu, ob->runtime.curve_cache);
 }
 
 GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob, float normal_size)
@@ -2962,7 +3020,7 @@ GPUBatch *DRW_cache_curve_edge_normal_get(Object *ob, float normal_size)
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_normal_edge(cu, ob->curve_cache, normal_size);
+	return DRW_curve_batch_cache_get_normal_edge(cu, ob->runtime.curve_cache, normal_size);
 }
 
 GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
@@ -2986,7 +3044,7 @@ GPUBatch *DRW_cache_curve_surface_get(Object *ob)
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
 /* Return list of batches */
@@ -2996,7 +3054,7 @@ GPUBatch **DRW_cache_curve_surface_shaded_get(
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->curve_cache, gpumat_array, gpumat_array_len);
+	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->runtime.curve_cache, gpumat_array, gpumat_array_len);
 }
 
 /** \} */
@@ -3032,7 +3090,7 @@ GPUBatch *DRW_cache_text_edge_wire_get(Object *ob)
 	BLI_assert(ob->type == OB_FONT);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_wire_edge(cu, ob->curve_cache);
+	return DRW_curve_batch_cache_get_wire_edge(cu, ob->runtime.curve_cache);
 }
 
 GPUBatch *DRW_cache_text_surface_get(Object *ob)
@@ -3042,7 +3100,7 @@ GPUBatch *DRW_cache_text_surface_get(Object *ob)
 	if (cu->editfont && (cu->flag & CU_FAST)) {
 		return NULL;
 	}
-	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
 GPUBatch **DRW_cache_text_surface_shaded_get(
@@ -3053,7 +3111,7 @@ GPUBatch **DRW_cache_text_surface_shaded_get(
 	if (cu->editfont && (cu->flag & CU_FAST)) {
 		return NULL;
 	}
-	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->curve_cache, gpumat_array, gpumat_array_len);
+	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->runtime.curve_cache, gpumat_array, gpumat_array_len);
 }
 
 GPUBatch *DRW_cache_text_cursor_overlay_get(Object *ob)
@@ -3082,7 +3140,7 @@ GPUBatch *DRW_cache_surf_surface_get(Object *ob)
 	BLI_assert(ob->type == OB_SURF);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->curve_cache);
+	return DRW_curve_batch_cache_get_triangles_with_normals(cu, ob->runtime.curve_cache);
 }
 
 /* Return list of batches */
@@ -3092,7 +3150,7 @@ GPUBatch **DRW_cache_surf_surface_shaded_get(
 	BLI_assert(ob->type == OB_SURF);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->curve_cache, gpumat_array, gpumat_array_len);
+	return DRW_curve_batch_cache_get_surface_shaded(cu, ob->runtime.curve_cache, gpumat_array, gpumat_array_len);
 }
 
 /** \} */

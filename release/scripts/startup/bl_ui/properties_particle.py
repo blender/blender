@@ -662,58 +662,11 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
         if part.physics_type == 'FLUID':
             fluid = part.fluid
 
-            col.label(text="Fluid")
+            col.separator()
             col.prop(fluid, "solver")
             col.prop(fluid, "stiffness", text="Stiffness")
             col.prop(fluid, "linear_viscosity", text="Viscosity")
             col.prop(fluid, "buoyancy", text="Buoyancy", slider=True)
-
-            col.label(text="Advanced")
-
-            if fluid.solver == 'DDR':
-                sub = col.column()
-                sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
-                sub.prop(fluid, "factor_repulsion")
-
-                sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
-                sub.prop(fluid, "factor_stiff_viscosity")
-
-            sub = col.column()
-            sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
-            sub.prop(fluid, "factor_radius")
-
-            sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
-            sub.prop(fluid, "use_factor_density")
-
-            if fluid.solver == 'CLASSICAL':
-                # With the classical solver, it is possible to calculate the
-                # spacing between particles when the fluid is at rest. This
-                # makes it easier to set stable initial conditions.
-                particle_volume = part.mass / fluid.rest_density
-                spacing = pow(particle_volume, 1.0 / 3.0)
-
-                sub.label(text="Spacing: %g" % spacing)
-
-            elif fluid.solver == 'DDR':
-
-                col.label(text="Springs")
-                col.prop(fluid, "spring_force", text="Force")
-                col.prop(fluid, "use_viscoelastic_springs")
-
-                sub = col.column()
-                sub.active = fluid.use_viscoelastic_springs
-                sub.prop(fluid, "yield_ratio", slider=True)
-                sub.prop(fluid, "plasticity", slider=True)
-
-                col.label(text="Advanced")
-                sub = col.column()
-                sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
-                sub.prop(fluid, "factor_rest_length", text="")
-
-                sub = col.column()
-                sub.active = fluid.use_viscoelastic_springs
-                sub.prop(fluid, "use_initial_rest_length")
-                sub.prop(fluid, "spring_frames", text="Frames")
 
         elif part.physics_type == 'KEYED':
 
@@ -725,101 +678,320 @@ class PARTICLE_PT_physics(ParticleButtonsPanel, Panel):
 
             col.label(text="Keys")
 
-        elif part.physics_type == 'BOIDS':
-            boids = part.boids
 
-            row = layout.row()
-            row.prop(boids, "use_flight")
-            row.prop(boids, "use_land")
-            row.prop(boids, "use_climb")
+class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
+    bl_label = "Advanced"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
-            split = layout.split()
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        fluid = part.fluid
+        if part.physics_type == 'FLUID':
+            return True
+        else:
+            return False
 
-            col = split.column(align=True)
-            col.active = boids.use_flight
-            col.prop(boids, "air_speed_max")
-            col.prop(boids, "air_speed_min", slider=True)
-            col.prop(boids, "air_acc_max", slider=True)
-            col.prop(boids, "air_ave_max", slider=True)
-            col.prop(boids, "air_personal_space")
-            row = col.row(align=True)
-            row.active = (boids.use_land or boids.use_climb) and boids.use_flight
-            row.prop(boids, "land_smooth")
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
 
-            col = split.column(align=True)
-            col.active = boids.use_land or boids.use_climb
-            col.prop(boids, "land_speed_max")
-            col.prop(boids, "land_jump_speed")
-            col.prop(boids, "land_acc_max", slider=True)
-            col.prop(boids, "land_ave_max", slider=True)
-            col.prop(boids, "land_personal_space")
-            col.prop(boids, "land_stick_force")
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        fluid = part.fluid
 
-            layout.prop(part, "collision_group")
+        col = layout.column()
 
-            split = layout.split()
+        if fluid.solver == 'DDR':
+            sub = col.column()
+            sub.prop(fluid, "repulsion", slider=fluid.factor_repulsion)
+            sub.prop(fluid, "factor_repulsion")
 
-            col = split.column(align=True)
-            col.label(text="Battle:")
-            col.prop(boids, "health")
-            col.prop(boids, "strength")
-            col.prop(boids, "aggression")
-            col.prop(boids, "accuracy")
-            col.prop(boids, "range")
+            sub.prop(fluid, "stiff_viscosity", slider=fluid.factor_stiff_viscosity)
+            sub.prop(fluid, "factor_stiff_viscosity")
 
-            col = split.column()
-            col.label(text="Misc:")
-            col.prop(boids, "bank", slider=True)
-            col.prop(boids, "pitch", slider=True)
-            col.prop(boids, "height", slider=True)
+        sub = col.column()
+        sub.prop(fluid, "fluid_radius", slider=fluid.factor_radius)
+        sub.prop(fluid, "factor_radius")
 
-        if psys and part.physics_type in {'KEYED', 'BOIDS', 'FLUID'}:
-            if part.physics_type == 'BOIDS':
-                layout.label(text="Relations:")
+        sub.prop(fluid, "rest_density", slider=fluid.use_factor_density)
+        sub.prop(fluid, "use_factor_density")
+
+        if fluid.solver == 'CLASSICAL':
+            # With the classical solver, it is possible to calculate the
+            # spacing between particles when the fluid is at rest. This
+            # makes it easier to set stable initial conditions.
+            particle_volume = part.mass / fluid.rest_density
+            spacing = pow(particle_volume, 1.0 / 3.0)
+
+            sub.label(text="Spacing: %g" % spacing)
+
+
+class PARTICLE_PT_physics_fluid_springs(ParticleButtonsPanel, Panel):
+    bl_label = "Springs"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        fluid = part.fluid
+        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
+            return True
+        else:
+            return False
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        fluid = part.fluid
+
+        col = layout.column()
+
+        col.prop(fluid, "spring_force", text="Force")
+
+
+class PARTICLE_PT_physics_fluid_springs_viscoelastic(ParticleButtonsPanel, Panel):
+    bl_label = "Viscoelastic Springs"
+    bl_parent_id = "PARTICLE_PT_physics_fluid_springs"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        fluid = part.fluid
+        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
+            return True
+        else:
+            return False
+
+    def draw_header(self, context):
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        fluid = part.fluid
+
+        self.layout.prop(fluid, "use_viscoelastic_springs", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        fluid = part.fluid
+
+        col = layout.column()
+        col.active = fluid.use_viscoelastic_springs
+        col.prop(fluid, "yield_ratio", slider=True)
+        col.prop(fluid, "plasticity", slider=True)
+
+        col.separator()
+
+        col.prop(fluid, "use_initial_rest_length")
+        col.prop(fluid, "spring_frames", text="Frames")
+
+
+class PARTICLE_PT_physics_fluid_springs_advanced(ParticleButtonsPanel, Panel):
+    bl_label = "Advanced"
+    bl_parent_id = "PARTICLE_PT_physics_fluid_springs"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        fluid = part.fluid
+        if part.physics_type == 'FLUID' and fluid.solver == 'DDR':
+            return True
+        else:
+            return False
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        fluid = part.fluid
+
+        sub = layout.column()
+        sub.prop(fluid, "rest_length", slider=fluid.factor_rest_length)
+        sub.prop(fluid, "factor_rest_length")
+
+
+class PARTICLE_PT_physics_boids_movement(ParticleButtonsPanel, Panel):
+    bl_label = "Movement"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type in {'BOIDS'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        boids = part.boids
+
+        col = layout.column()
+
+        col.prop(boids, "use_flight")
+        col.prop(boids, "use_land")
+        col.prop(boids, "use_climb")
+
+        col = layout.column()
+
+        col.active = boids.use_flight
+        sub = col.column()
+        sub.prop(boids, "air_speed_max")
+        sub.prop(boids, "air_speed_min", slider=True)
+        col.prop(boids, "air_acc_max", slider=True)
+        col.prop(boids, "air_ave_max", slider=True)
+        col.prop(boids, "air_personal_space")
+        row = col.row(align=True)
+        row.active = (boids.use_land or boids.use_climb) and boids.use_flight
+        row.prop(boids, "land_smooth")
+
+        layout.separator()
+
+        col = layout.column()
+        col.active = boids.use_land or boids.use_climb
+        col.prop(boids, "land_speed_max")
+        col.prop(boids, "land_jump_speed")
+        col.prop(boids, "land_acc_max", slider=True)
+        col.prop(boids, "land_ave_max", slider=True)
+        col.prop(boids, "land_personal_space")
+        col.prop(boids, "land_stick_force")
+
+        layout.separator()
+
+        layout.prop(part, "collision_group")
+
+
+class PARTICLE_PT_physics_boids_battle(ParticleButtonsPanel, Panel):
+    bl_label = "Battle"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type in {'BOIDS'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        boids = part.boids
+
+        col = layout.column()
+
+        col.prop(boids, "health")
+        col.prop(boids, "strength")
+        col.prop(boids, "aggression")
+        col.prop(boids, "accuracy")
+        col.prop(boids, "range")
+
+
+class PARTICLE_PT_physics_boids_misc(ParticleButtonsPanel, Panel):
+    bl_label = "Misc"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type in {'BOIDS'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+        boids = part.boids
+
+        col = layout.column()
+
+        col.prop(boids, "bank", slider=True)
+        col.prop(boids, "pitch", slider=True)
+        col.prop(boids, "height", slider=True)
+
+
+class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
+    bl_label = "Relations"
+    bl_parent_id = "PARTICLE_PT_physics"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        part = particle_get_settings(context)
+        return part.physics_type in {'KEYED', 'BOIDS', 'FLUID'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        psys = context.particle_system
+        part = particle_get_settings(context)
+
+        row = layout.row()
+        row.template_list("UI_UL_list", "particle_targets", psys, "targets",
+                          psys, "active_particle_target_index", rows=4)
+
+        col = row.column()
+        sub = col.row()
+        subsub = sub.column(align=True)
+        subsub.operator("particle.new_target", icon='ZOOMIN', text="")
+        subsub.operator("particle.target_remove", icon='ZOOMOUT', text="")
+        sub = col.row()
+        subsub = sub.column(align=True)
+        subsub.operator("particle.target_move_up", icon='TRIA_UP', text="")
+        subsub.operator("particle.target_move_down", icon='TRIA_DOWN', text="")
+
+        key = psys.active_particle_target
+
+        if key:
+            if part.physics_type == 'KEYED':
+                col = layout.column()
+                # doesn't work yet
+                #col.alert = key.valid
+                col.prop(key, "object")
+                col.prop(key, "system", text="System")
+
+                col.active = psys.use_keyed_timing
+                col.prop(key, "time")
+                col.prop(key, "duration")
+            elif part.physics_type == 'BOIDS':
+                sub = layout.column()
+                # doesn't work yet
+                #sub.alert = key.valid
+                sub.prop(key, "object")
+                sub.prop(key, "system", text="System")
+                layout.prop(key, "alliance")
             elif part.physics_type == 'FLUID':
-                layout.label(text="Fluid Interaction:")
-
-            row = layout.row()
-            row.template_list("UI_UL_list", "particle_targets", psys, "targets",
-                              psys, "active_particle_target_index", rows=4)
-
-            col = row.column()
-            sub = col.row()
-            subsub = sub.column(align=True)
-            subsub.operator("particle.new_target", icon='ZOOMIN', text="")
-            subsub.operator("particle.target_remove", icon='ZOOMOUT', text="")
-            sub = col.row()
-            subsub = sub.column(align=True)
-            subsub.operator("particle.target_move_up", icon='TRIA_UP', text="")
-            subsub.operator("particle.target_move_down", icon='TRIA_DOWN', text="")
-
-            key = psys.active_particle_target
-            if key:
-                row = layout.row()
-                if part.physics_type == 'KEYED':
-                    col = row.column()
-                    # doesn't work yet
-                    #col.alert = key.valid
-                    col.prop(key, "object", text="")
-                    col.prop(key, "system", text="System")
-                    col = row.column()
-                    col.active = psys.use_keyed_timing
-                    col.prop(key, "time")
-                    col.prop(key, "duration")
-                elif part.physics_type == 'BOIDS':
-                    sub = row.row()
-                    # doesn't work yet
-                    #sub.alert = key.valid
-                    sub.prop(key, "object", text="")
-                    sub.prop(key, "system", text="System")
-
-                    layout.row().prop(key, "alliance", expand=True)
-                elif part.physics_type == 'FLUID':
-                    sub = row.row()
-                    # doesn't work yet
-                    #sub.alert = key.valid
-                    sub.prop(key, "object", text="")
-                    sub.prop(key, "system", text="System")
+                sub = layout.column()
+                # doesn't work yet
+                #sub.alert = key.valid
+                sub.prop(key, "object")
+                sub.prop(key, "system", text="System")
 
 
 class PARTICLE_PT_physics_deflection(ParticleButtonsPanel, Panel):
@@ -911,6 +1083,9 @@ class PARTICLE_PT_physics_integration(ParticleButtonsPanel, Panel):
 
 class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
     bl_label = "Boid Brain"
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "PARTICLE_PT_physics"
+
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
@@ -1941,9 +2116,17 @@ classes = (
     PARTICLE_PT_rotation,
     PARTICLE_PT_rotation_angular_velocity,
     PARTICLE_PT_physics,
+    PARTICLE_PT_physics_fluid_springs,
+    PARTICLE_PT_physics_fluid_springs_viscoelastic,
+    PARTICLE_PT_physics_fluid_springs_advanced,
+    PARTICLE_PT_physics_fluid_advanced,
+    PARTICLE_PT_physics_boids_movement,
+    PARTICLE_PT_physics_boids_battle,
+    PARTICLE_PT_physics_boids_misc,
     PARTICLE_PT_physics_forces,
     PARTICLE_PT_physics_deflection,
     PARTICLE_PT_physics_integration,
+    PARTICLE_PT_physics_relations,
     PARTICLE_PT_boidbrain,
     PARTICLE_PT_render,
     PARTICLE_PT_render_line,

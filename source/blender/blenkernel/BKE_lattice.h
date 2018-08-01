@@ -54,7 +54,6 @@ void BKE_lattice_free(struct Lattice *lt);
 void BKE_lattice_make_local(struct Main *bmain, struct Lattice *lt, const bool lib_local);
 void calc_lat_fudu(int flag, int res, float *r_fu, float *r_du);
 
-struct LatticeDeformData;
 struct LatticeDeformData *init_latt_deform(struct Object *oblatt, struct Object *ob) ATTR_WARN_UNUSED_RESULT;
 void calc_latt_deform(struct LatticeDeformData *lattice_deform_data, float co[3], float weight);
 void end_latt_deform(struct LatticeDeformData *lattice_deform_data);

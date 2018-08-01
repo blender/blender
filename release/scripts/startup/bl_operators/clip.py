@@ -238,7 +238,7 @@ class CLIP_OT_track_to_empty(Operator):
         ob = bpy.data.objects.new(name=track.name, object_data=None)
         ob.select_set(action='SELECT')
         context.scene.objects.link(ob)
-        context.scene.objects.active = ob
+        context.view_layer.objects.active = ob
 
         for con in ob.constraints:
             if con.type == 'FOLLOW_TRACK':
@@ -314,7 +314,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
             ob.matrix_world = matrix
             context.scene.objects.link(ob)
             ob.select = True
-            context.scene.objects.active = ob
+            context.view_layer.objects.active = ob
         else:
             self.report({'WARNING'}, "No usable tracks selected")
 

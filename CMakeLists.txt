@@ -62,6 +62,11 @@ if(NOT DEFINED CMAKE_BUILD_TYPE_INIT)
 	set(CMAKE_BUILD_TYPE_INIT "Release")
 endif()
 
+# Omit superfluous "Up-to-date" messages.
+if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
+	set(CMAKE_INSTALL_MESSAGE "LAZY")
+endif()
+
 # quiet output for Makefiles, 'make -s' helps too
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
@@ -485,26 +490,6 @@ if(WIN32)
 	set(CPACK_INSTALL_PREFIX ${CMAKE_GENERIC_PROGRAM_FILES}/${})
 endif()
 
-# Experimental support of C11 and C++11
-#
-# We default options to whatever default standard in the current compiler.
-if(APPLE)
-	set(_c11_init ON)
-	set(_cxx11_init ON)
-	set(WITH_C11 ON)
-	set(WITH_CXX11 ON)
-elseif(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0") AND (NOT WITH_CXX11))
-	set(_c11_init ON)
-else()
-	set(_c11_init OFF)
-endif()
-set(_cxx11_init ON)
-
-option(WITH_C11 "Build with C11 standard enabled, for development use only!" ${_c11_init})
-mark_as_advanced(WITH_C11)
-option(WITH_CXX11 "Build with C++11 standard enabled, for development use only!" ${_cxx11_init})
-mark_as_advanced(WITH_CXX11)
-
 # Compiler toolchain
 if(CMAKE_COMPILER_IS_GNUCC)
 	option(WITH_LINKER_GOLD "Use ld.gold linker which is usually faster than ld.bfd" ON)
@@ -616,12 +601,6 @@ if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE)
 	)
 endif()
 
-if(NOT WITH_CXX11)
-	if(WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE)
-		message(FATAL_ERROR "WITH_AUDASPACE requires WITH_CXX11")
-	endif()
-endif()
-
 if(NOT WITH_AUDASPACE)
 	if(WITH_OPENAL)
 		message(WARNING "WITH_OPENAL requires WITH_AUDASPACE which is disabled")
@@ -672,11 +651,8 @@ elseif(WITH_CYCLES OR WITH_OPENIMAGEIO OR WITH_INTERNATIONAL OR
        WITH_OPENVDB OR WITH_OPENCOLORIO)
 	# Keep enabled
 else()
-	# New dependency graph needs either Boost or C++11 for function bindings.
-	if(NOT WITH_CXX11)
-		# Enabled but we don't need it
-		set(WITH_BOOST OFF)
-	endif()
+	# Disable boost if not needed.
+	set(WITH_BOOST OFF)
 endif()
 
 # auto enable openimageio for cycles
@@ -732,9 +708,6 @@ if(WITH_BUILDINFO)
 		set(WITH_BUILDINFO OFF)
 	endif()
 endif()
-
-TEST_SHARED_PTR_SUPPORT()
-TEST_UNORDERED_MAP_SUPPORT()
 
 if(WITH_AUDASPACE)
 	if(NOT WITH_SYSTEM_AUDASPACE)
@@ -1292,42 +1265,8 @@ endif()
 # Configure Ceres
 
 if(WITH_LIBMV)
-	set(CERES_DEFINES)
-
-	if(WITH_CXX11)
-		# nothing to be done
-	elseif(SHARED_PTR_FOUND)
-		if(SHARED_PTR_TR1_MEMORY_HEADER)
-			list(APPEND CERES_DEFINES -DCERES_TR1_MEMORY_HEADER)
-		endif()
-		if(SHARED_PTR_TR1_NAMESPACE)
-			list(APPEND CERES_DEFINES -DCERES_TR1_SHARED_PTR)
-		endif()
-	else()
-		message(FATAL_ERROR "Ceres: Unable to find shared_ptr.")
-	endif()
-
-	if(WITH_CXX11)
-		list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
-	elseif(HAVE_STD_UNORDERED_MAP_HEADER)
-		if(HAVE_UNORDERED_MAP_IN_STD_NAMESPACE)
-			list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
-		else()
-			if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
-				list(APPEND CERES_DEFINES -DCERES_STD_UNORDERED_MAP_IN_TR1_NAMESPACE)
-			else()
-				list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
-				message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
-			endif()
-		endif()
-	else()
-		if(HAVE_UNORDERED_MAP_IN_TR1_NAMESPACE)
-			list(APPEND CERES_DEFINES -DCERES_TR1_UNORDERED_MAP)
-		else()
-			list(APPEND CERES_DEFINES -DCERES_NO_UNORDERED_MAP)
-			message(STATUS "Ceres: Replacing unordered_map/set with map/set (warning: slower!)")
-		endif()
-	endif()
+	# We always have C++11 which includes unordered_map.
+	set(CERES_DEFINES -DCERES_STD_UNORDERED_MAP)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1554,24 +1493,17 @@ if(WITH_PYTHON)
 	endif()
 endif()
 
-if(WITH_CXX11)
-	if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-		# TODO(sergey): Do we want c++11 or gnu-c++11 here?
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-	elseif(MSVC)
-		# Nothing special is needed, C++11 features are available by default.
-	else()
-		message(FATAL_ERROR "Compiler ${CMAKE_C_COMPILER_ID} is not supported for C++11 build yet")
-	endif()
+if(
+	CMAKE_COMPILER_IS_GNUCC OR
+	CMAKE_C_COMPILER_ID MATCHES "Clang" OR
+	CMAKE_C_COMPILER_ID MATCHES "Intel"
+)
+	# TODO(sergey): Do we want c++11 or gnu-c++11 here?
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+elseif(MSVC)
+	# Nothing special is needed, C++11 features are available by default.
 else()
-	# GCC-6 switched to C++11 by default, which would break linking with existing libraries
-	# by default. So we explicitly disable C++11 for a new GCC so no linking issues happens.
-	if(CMAKE_COMPILER_IS_GNUCC AND (NOT "${CMAKE_C_COMPILER_VERSION}" VERSION_LESS "6.0"))
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++98")
-		# We also disable any of C++11 ABI from usage, so we wouldn't even try to
-		# link to stuff from std::__cxx11 namespace.
-		add_definitions("-D_GLIBCXX_USE_CXX11_ABI=0")
-	endif()
+	message(FATAL_ERROR "Unknown compiler ${CMAKE_C_COMPILER_ID}, can't enable C++11 build")
 endif()
 
 # Visual Studio has all standards it supports available by default

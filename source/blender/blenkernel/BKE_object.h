@@ -37,8 +37,11 @@ extern "C" {
 
 struct Base;
 struct Depsgraph;
+struct GpencilModifierData;
 struct Scene;
+struct ShaderFxData;
 struct ViewLayer;
+struct ID;
 struct Object;
 struct BoundBox;
 struct View3D;
@@ -49,6 +52,7 @@ struct Mesh;
 struct RigidBodyWorld;
 struct HookModifierData;
 struct ModifierData;
+struct HookGpencilModifierData;
 
 #include "DNA_object_enums.h"
 
@@ -69,11 +73,16 @@ void BKE_object_free_derived_mesh_caches(struct Object *ob);
 void BKE_object_free_caches(struct Object *object);
 
 void BKE_object_modifier_hook_reset(struct Object *ob, struct HookModifierData *hmd);
+void BKE_object_modifier_gpencil_hook_reset(struct Object *ob, struct HookGpencilModifierData *hmd);
+bool BKE_object_modifier_gpencil_use_time(struct Object *ob, struct GpencilModifierData *md);
+
+bool BKE_object_shaderfx_use_time(struct Object *ob, struct ShaderFxData *md);
 
 bool BKE_object_support_modifier_type_check(const struct Object *ob, int modifier_type);
 
 void BKE_object_link_modifiers(struct Scene *scene, struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_modifiers(struct Object *ob, const int flag);
+void BKE_object_free_shaderfx(struct Object *ob, const int flag);
 
 void BKE_object_make_proxy(struct Main *bmain, struct Object *ob, struct Object *target, struct Object *gob);
 void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
@@ -108,6 +117,9 @@ struct Object *BKE_object_add_from(
         struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer,
         int type, const char *name, struct Object *ob_src)
         ATTR_NONNULL(1, 2, 3, 6) ATTR_RETURNS_NONNULL;
+struct Object *BKE_object_add_for_data(
+        struct Main *bmain, struct ViewLayer *view_layer,
+        int type, const char *name, struct ID *data, bool do_id_user) ATTR_RETURNS_NONNULL;
 void *BKE_object_obdata_add_from_type(
         struct Main *bmain,
         int type, const char *name)

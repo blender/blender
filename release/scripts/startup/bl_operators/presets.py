@@ -257,7 +257,7 @@ class PresetMenu(Panel):
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'HEADER'
     bl_label = "Presets"
-    path_menu: Menu.path_menu
+    path_menu = Menu.path_menu
 
     @classmethod
     def draw_panel_header(cls, layout):
@@ -670,6 +670,42 @@ class AddPresetUnitsLength(AddPresetBase, Operator):
     preset_subdir = "units_length"
 
 
+class AddPresetGpencilBrush(AddPresetBase, Operator):
+    """Add or remove grease pencil brush preset"""
+    bl_idname = "scene.gpencil_brush_preset_add"
+    bl_label = "Add Grease Pencil Brush Preset"
+    preset_menu = "VIEW3D_PT_gpencil_brush_presets"
+
+    preset_defines = [
+        "brush = bpy.context.active_gpencil_brush",
+        "settings = brush.gpencil_settings"
+    ]
+
+    preset_values = [
+        "settings.input_samples",
+        "settings.active_smooth_factor",
+        "settings.angle",
+        "settings.angle_factor",
+        "settings.use_stabilizer",
+        "brush.smooth_stroke_radius",
+        "brush.smooth_stroke_factor",
+        "settings.pen_smooth_factor",
+        "settings.pen_smooth_steps",
+        "settings.pen_thick_smooth_factor",
+        "settings.pen_thick_smooth_steps",
+        "settings.pen_subdivision_steps",
+        "settings.random_subdiv",
+        "settings.enable_random",
+        "settings.random_pressure",
+        "settings.random_strength",
+        "settings.uv_random",
+        "settings.pen_jitter",
+        "settings.use_jitter_pressure",
+    ]
+
+    preset_subdir = "gpencil_brush"
+
+
 classes = (
     AddPresetCamera,
     AddPresetCloth,
@@ -686,6 +722,7 @@ classes = (
     AddPresetTrackingSettings,
     AddPresetTrackingTrackColor,
     AddPresetUnitsLength,
+    AddPresetGpencilBrush,
     ExecutePreset,
     WM_MT_operator_presets,
 )

@@ -65,9 +65,7 @@ struct bPoseChannel;
 struct bGPdata;
 struct bGPDlayer;
 struct bGPDframe;
-struct bGPDpalette;
-struct bGPDpalettecolor;
-struct bGPDbrush;
+struct Brush;
 struct wmWindow;
 struct wmWindowManager;
 struct RenderEngineType;
@@ -120,6 +118,10 @@ enum {
 	CTX_MODE_PAINT_TEXTURE,
 	CTX_MODE_PARTICLE,
 	CTX_MODE_OBJECT,
+	CTX_MODE_GPENCIL_PAINT,
+	CTX_MODE_GPENCIL_EDIT,
+	CTX_MODE_GPENCIL_SCULPT,
+	CTX_MODE_GPENCIL_WEIGHT,
 	CTX_MODE_NUM /* must be last */
 };
 
@@ -313,9 +315,7 @@ int CTX_data_visible_pose_bones(const bContext *C, ListBase *list);
 struct bGPdata *CTX_data_gpencil_data(const bContext *C);
 struct bGPDlayer *CTX_data_active_gpencil_layer(const bContext *C);
 struct bGPDframe *CTX_data_active_gpencil_frame(const bContext *C);
-struct bGPDpalette *CTX_data_active_gpencil_palette(const bContext *C);
-struct bGPDpalettecolor *CTX_data_active_gpencil_palettecolor(const bContext *C);
-struct bGPDbrush *CTX_data_active_gpencil_brush(const bContext *C);
+struct Brush *CTX_data_active_gpencil_brush(const bContext *C);
 int CTX_data_visible_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);

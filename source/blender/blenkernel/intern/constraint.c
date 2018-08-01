@@ -496,7 +496,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 {
 	Lattice *lt = (Lattice *)ob->data;
 
-	DispList *dl = ob->curve_cache ? BKE_displist_find(&ob->curve_cache->disp, DL_VERTS) : NULL;
+	DispList *dl = ob->runtime.curve_cache ? BKE_displist_find(&ob->runtime.curve_cache->disp, DL_VERTS) : NULL;
 	const float *co = dl ? dl->verts : NULL;
 	BPoint *bp = lt->def;
 
@@ -1266,7 +1266,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 		 *		currently for paths to work it needs to go through the bevlist/displist system (ton)
 		 */
 
-		if (ct->tar->curve_cache && ct->tar->curve_cache->path && ct->tar->curve_cache->path->data) {
+		if (ct->tar->runtime.curve_cache && ct->tar->runtime.curve_cache->path && ct->tar->runtime.curve_cache->path->data) {
 			float quat[4];
 			if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
 				/* animated position along curve depending on time */
@@ -2037,7 +2037,7 @@ static void pycon_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 #endif
 
 	if (VALID_CONS_TARGET(ct)) {
-		if (ct->tar->type == OB_CURVE && ct->tar->curve_cache == NULL) {
+		if (ct->tar->type == OB_CURVE && ct->tar->runtime.curve_cache == NULL) {
 			unit_m4(ct->matrix);
 			return;
 		}
@@ -3104,7 +3104,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		BKE_object_minmax(ct->tar, curveMin, curveMax, true);
 
 		/* get targetmatrix */
-		if (data->tar->curve_cache &&  data->tar->curve_cache->path && data->tar->curve_cache->path->data) {
+		if (data->tar->runtime.curve_cache &&  data->tar->runtime.curve_cache->path && data->tar->runtime.curve_cache->path->data) {
 			float vec[4], dir[3], totmat[4][4];
 			float curvetime;
 			short clamp_axis;

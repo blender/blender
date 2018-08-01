@@ -282,6 +282,7 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 		case CURVE_PRESET_MID9: cuma->totpoint = 9; break;
 		case CURVE_PRESET_ROUND: cuma->totpoint = 4; break;
 		case CURVE_PRESET_ROOT: cuma->totpoint = 4; break;
+		case CURVE_PRESET_GAUSS: cuma->totpoint = 7; break;
 	}
 
 	cuma->curve = MEM_callocN(cuma->totpoint * sizeof(CurveMapPoint), "curve points");
@@ -351,6 +352,24 @@ void curvemap_reset(CurveMap *cuma, const rctf *clipr, int preset, int slope)
 			cuma->curve[2].y = 0.44;
 			cuma->curve[3].x = 1;
 			cuma->curve[3].y = 0;
+			break;
+		case CURVE_PRESET_GAUSS:
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 0.025f;
+			cuma->curve[1].x = 0.16f;
+			cuma->curve[1].y = 0.135f;
+			cuma->curve[2].x = 0.298f;
+			cuma->curve[2].y = 0.36f;
+
+			cuma->curve[3].x = 0.50f;
+			cuma->curve[3].y = 1.0f;
+
+			cuma->curve[4].x = 0.70f;
+			cuma->curve[4].y = 0.36f;
+			cuma->curve[5].x = 0.84f;
+			cuma->curve[5].y = 0.135f;
+			cuma->curve[6].x = 1.0f;
+			cuma->curve[6].y = 0.025f;
 			break;
 	}
 

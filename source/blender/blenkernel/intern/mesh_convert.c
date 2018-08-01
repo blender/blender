@@ -217,8 +217,8 @@ int BKE_mesh_nurbs_to_mdata(
 {
 	ListBase disp = {NULL, NULL};
 
-	if (ob->curve_cache) {
-		disp = ob->curve_cache->disp;
+	if (ob->runtime.curve_cache) {
+		disp = ob->runtime.curve_cache->disp;
 	}
 
 	return BKE_mesh_nurbs_displist_to_mdata(
@@ -537,8 +537,8 @@ Mesh *BKE_mesh_new_nomain_from_curve(Object *ob)
 {
 	ListBase disp = {NULL, NULL};
 
-	if (ob->curve_cache) {
-		disp = ob->curve_cache->disp;
+	if (ob->runtime.curve_cache) {
+		disp = ob->runtime.curve_cache->disp;
 	}
 
 	return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
@@ -650,8 +650,8 @@ void BKE_mesh_from_nurbs(Main *bmain, Object *ob)
 	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
 	ListBase disp = {NULL, NULL};
 
-	if (ob->curve_cache) {
-		disp = ob->curve_cache->disp;
+	if (ob->runtime.curve_cache) {
+		disp = ob->runtime.curve_cache->disp;
 	}
 
 	BKE_mesh_from_nurbs_displist(bmain, ob, &disp, use_orco_uv, cu->id.name, false);
@@ -871,11 +871,11 @@ Mesh *BKE_mesh_new_from_object(
 			 *
 			 * TODO(sergey): Look into more proper solution.
 			 */
-			if (ob->curve_cache != NULL) {
-				if (tmpobj->curve_cache == NULL) {
-					tmpobj->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
+			if (ob->runtime.curve_cache != NULL) {
+				if (tmpobj->runtime.curve_cache == NULL) {
+					tmpobj->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
 				}
-				BKE_displist_copy(&tmpobj->curve_cache->disp, &ob->curve_cache->disp);
+				BKE_displist_copy(&tmpobj->runtime.curve_cache->disp, &ob->runtime.curve_cache->disp);
 			}
 
 			/* if getting the original caged mesh, delete object modifiers */
@@ -953,8 +953,8 @@ Mesh *BKE_mesh_new_from_object(
 			}
 			else {
 				ListBase disp = {NULL, NULL};
-				if (ob->curve_cache) {
-					disp = ob->curve_cache->disp;
+				if (ob->runtime.curve_cache) {
+					disp = ob->runtime.curve_cache->disp;
 				}
 				BKE_mesh_from_metaball(&disp, tmpmesh);
 			}

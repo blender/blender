@@ -83,7 +83,7 @@ static struct bThemeState g_theme_state = {
 
 void ui_resources_init(void)
 {
-	UI_icons_init(BIFICONID_LAST);
+	UI_icons_init();
 }
 
 void ui_resources_free(void)
@@ -1536,15 +1536,6 @@ void init_userdef_do_versions(Main *bmain)
 #undef USER_VERSION_ATLEAST
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST((&(U)), ver, subver)
 
-
-	if (!USER_VERSION_ATLEAST(269, 9)) {
-		/* grease pencil - new layer color */
-		if (U.gpencil_new_layer_col[3] < 0.1f) {
-			/* defaults to black, but must at least be visible! */
-			U.gpencil_new_layer_col[3] = 0.9f;
-		}
-	}
-
 	if (!USER_VERSION_ATLEAST(271, 5)) {
 		U.pie_menu_radius = 100;
 		U.pie_menu_threshold = 12;
@@ -1581,6 +1572,17 @@ void init_userdef_do_versions(Main *bmain)
 		/* Reset theme, old themes will not be compatible with minor version updates from now on. */
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			memcpy(btheme, &U_theme_default, sizeof(*btheme));
+		}
+
+		/* Annotations - new layer color
+		 * Replace anything that used to be set if it looks like was left
+		 * on the old default (i.e. black), which most users used
+		 */
+		if ((U.gpencil_new_layer_col[3] < 0.1f) || (U.gpencil_new_layer_col[0] < 0.1f)) {
+			/* - New color matches the annotation pencil icon
+			 * - Non-full alpha looks better!
+			 */
+			ARRAY_SET_ITEMS(U.gpencil_new_layer_col, 0.38f, 0.61f, 0.78f, 0.9f);
 		}
 	}
 

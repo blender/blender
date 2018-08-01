@@ -579,7 +579,7 @@ def unwrap(operator, context, **kwargs):
     # define list of meshes
     meshes = []
     if PREF_ACT_ONLY:
-        obj = context.scene.objects.active
+        obj = context.view_layer.objects.active
         if obj and obj.type == 'MESH':
             meshes = [obj.data]
     else:

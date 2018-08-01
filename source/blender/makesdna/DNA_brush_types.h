@@ -44,12 +44,116 @@
 struct CurveMapping;
 struct MTex;
 struct Image;
+struct Material;
 
 typedef struct BrushClone {
 	struct Image *image;    /* image for clone tool */
 	float offset[2];        /* offset of clone image from canvas */
 	float alpha, pad;       /* transparency for drawing of clone image */
 } BrushClone;
+
+
+typedef struct BrushGpencilSettings {
+	float draw_smoothfac;     /* amount of smoothing to apply to newly created strokes */
+	float draw_sensitivity;   /* amount of sensivity to apply to newly created strokes */
+	float draw_strength;      /* amount of alpha strength to apply to newly created strokes */
+	float draw_jitter;        /* amount of jitter to apply to newly created strokes */
+	float draw_angle;         /* angle when the brush has full thickness */
+	float draw_angle_factor;  /* factor to apply when angle change (only 90 degrees) */
+	float draw_random_press;  /* factor of randomness for pressure */
+	float draw_random_strength;  /* factor of strength for strength */
+	float draw_random_sub;    /* factor of randomness for subdivision */
+	short draw_smoothlvl;     /* number of times to apply smooth factor to new strokes */
+	short draw_subdivide;     /* number of times to subdivide new strokes */
+	short flag;               /* internal grease pencil drawing flags */
+
+	short thick_smoothlvl; /* number of times to apply thickness smooth factor to new strokes */
+	float thick_smoothfac; /* amount of thickness smoothing to apply to newly created strokes */
+
+	float fill_threshold;  /* factor for transparency */
+	short fill_leak;       /* number of pixel to consider the leak is too small (x 2) */
+	char pad_1[6];
+
+	int   fill_simplylvl;  /* number of simplify steps */
+	int   fill_draw_mode;  /* type of control lines drawing mode */
+	int   icon_id;         /* icon identifier */
+
+	int   input_samples;   /* maximum distance before generate new point for very fast mouse movements */
+	float uv_random;       /* random factor for UV rotation */
+
+	int   brush_type;      /* type of brush (draw, fill, erase, etc..) */
+	int   eraser_mode;     /* soft, hard or stroke */
+	float active_smooth;   /* smooth while drawing factor */
+	char pad_2[4];
+
+	struct CurveMapping *curve_sensitivity;
+	struct CurveMapping *curve_strength;
+	struct CurveMapping *curve_jitter;
+
+	/* optional link of material to replace default in context */
+	struct Material *material;     /* material */
+} BrushGpencilSettings;
+
+/* BrushGpencilSettings->gp_flag */
+typedef enum eGPDbrush_Flag {
+	/* brush use pressure */
+	GP_BRUSH_USE_PRESSURE = (1 << 0),
+	/* brush use pressure for alpha factor */
+	GP_BRUSH_USE_STENGTH_PRESSURE = (1 << 1),
+	/* brush use pressure for alpha factor */
+	GP_BRUSH_USE_JITTER_PRESSURE = (1 << 2),
+	/* enable screen cursor */
+	GP_BRUSH_ENABLE_CURSOR = (1 << 5),
+	/* fill hide transparent */
+	GP_BRUSH_FILL_HIDE = (1 << 6),
+	/* show fill help lines */
+	GP_BRUSH_FILL_SHOW_HELPLINES = (1 << 7),
+	/* lazy mouse */
+	GP_BRUSH_STABILIZE_MOUSE = (1 << 8),
+	/* lazy mouse override (internal only) */
+	GP_BRUSH_STABILIZE_MOUSE_TEMP = (1 << 9),
+	/* default eraser brush for quick switch */
+	GP_BRUSH_DEFAULT_ERASER = (1 << 10),
+	/* settings group */
+	GP_BRUSH_GROUP_SETTINGS = (1 << 11),
+	/* Random settings group */
+	GP_BRUSH_GROUP_RANDOM = (1 << 12)
+} eGPDbrush_Flag;
+
+/* BrushGpencilSettings->gp_fill_draw_mode */
+typedef enum eGP_FillDrawModes {
+	GP_FILL_DMODE_BOTH = 0,
+	GP_FILL_DMODE_STROKE = 1,
+	GP_FILL_DMODE_CONTROL = 2,
+} eGP_FillDrawModes;
+
+/* BrushGpencilSettings->brush type */
+typedef enum eGP_BrushType {
+	GP_BRUSH_TYPE_DRAW = 0,
+	GP_BRUSH_TYPE_FILL = 1,
+	GP_BRUSH_TYPE_ERASE = 2,
+} eGP_BrushType;
+
+/* BrushGpencilSettings->gp_eraser_mode */
+typedef enum eGP_BrushEraserMode {
+	GP_BRUSH_ERASER_SOFT = 0,
+	GP_BRUSH_ERASER_HARD = 1,
+	GP_BRUSH_ERASER_STROKE = 2,
+} eGP_BrushEraserMode;
+
+/* BrushGpencilSettings default brush icons */
+typedef enum eGP_BrushIcons {
+	GP_BRUSH_ICON_PENCIL = 1,
+	GP_BRUSH_ICON_PEN = 2,
+	GP_BRUSH_ICON_INK = 3,
+	GP_BRUSH_ICON_INKNOISE = 4,
+	GP_BRUSH_ICON_BLOCK = 5,
+	GP_BRUSH_ICON_MARKER = 6,
+	GP_BRUSH_ICON_FILL = 7,
+	GP_BRUSH_ICON_ERASE_SOFT = 8,
+	GP_BRUSH_ICON_ERASE_HARD = 9,
+	GP_BRUSH_ICON_ERASE_STROKE = 10
+} eGP_BrushIcons;
 
 typedef struct Brush {
 	ID id;
@@ -139,8 +243,10 @@ typedef struct Brush {
 
 	float mask_stencil_pos[2];
 	float mask_stencil_dimension[2];
-} Brush;
 
+	struct BrushGpencilSettings *gpencil_settings;
+
+} Brush;
 typedef struct PaletteColor {
 	struct PaletteColor *next, *prev;
 	/* two values, one to store rgb, other to store values for sculpt/weight */
@@ -355,5 +461,6 @@ enum {
 };
 
 #define MAX_BRUSH_PIXEL_RADIUS 500
+#define GP_MAX_BRUSH_PIXEL_RADIUS 1000
 
 #endif  /* __DNA_BRUSH_TYPES_H__ */

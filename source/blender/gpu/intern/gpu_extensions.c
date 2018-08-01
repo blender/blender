@@ -66,6 +66,7 @@
 
 static struct GPUGlobal {
 	GLint maxtexsize;
+	GLint maxtexlayers;
 	GLint maxcubemapsize;
 	GLint maxtextures;
 	GLint maxubosize;
@@ -94,6 +95,11 @@ bool GPU_type_matches(GPUDeviceType device, GPUOSType os, GPUDriverType driver)
 int GPU_max_texture_size(void)
 {
 	return GG.maxtexsize;
+}
+
+int GPU_max_texture_layers(void)
+{
+	return GG.maxtexlayers;
 }
 
 int GPU_max_textures(void)
@@ -142,6 +148,7 @@ void gpu_extensions_init(void)
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GG.maxtexsize);
+	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &GG.maxtexlayers);
 	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &GG.maxcubemapsize);
 
 	if (GLEW_EXT_texture_filter_anisotropic)

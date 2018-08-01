@@ -692,10 +692,10 @@ static float displist_calc_taper(Depsgraph *depsgraph, Scene *scene, Object *tap
 	if (taperobj == NULL || taperobj->type != OB_CURVE)
 		return 1.0;
 
-	dl = taperobj->curve_cache ? taperobj->curve_cache->disp.first : NULL;
+	dl = taperobj->runtime.curve_cache ? taperobj->runtime.curve_cache->disp.first : NULL;
 	if (dl == NULL) {
 		BKE_displist_make_curveTypes(depsgraph, scene, taperobj, 0);
-		dl = taperobj->curve_cache->disp.first;
+		dl = taperobj->runtime.curve_cache->disp.first;
 	}
 	if (dl) {
 		float minx, dx, *fp;
@@ -738,17 +738,17 @@ void BKE_displist_make_mball(Depsgraph *depsgraph, Scene *scene, Object *ob)
 		return;
 
 	if (ob == BKE_mball_basis_find(scene, ob)) {
-		if (ob->curve_cache) {
-			BKE_displist_free(&(ob->curve_cache->disp));
+		if (ob->runtime.curve_cache) {
+			BKE_displist_free(&(ob->runtime.curve_cache->disp));
 		}
 		else {
-			ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
+			ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for MBall");
 		}
 
-		BKE_mball_polygonize(depsgraph, scene, ob, &ob->curve_cache->disp);
+		BKE_mball_polygonize(depsgraph, scene, ob, &ob->runtime.curve_cache->disp);
 		BKE_mball_texspace_calc(ob);
 
-		object_deform_mball(ob, &ob->curve_cache->disp);
+		object_deform_mball(ob, &ob->runtime.curve_cache->disp);
 
 		/* NOP for MBALLs anyway... */
 		boundbox_displist_object(ob);
@@ -1314,7 +1314,7 @@ void BKE_displist_make_surf(
 	}
 
 	if (!for_orco) {
-		BKE_nurbList_duplicate(&ob->curve_cache->deformed_nurbs, &nubase);
+		BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
 		curve_calc_modifiers_post(depsgraph, scene, ob, &nubase, dispbase, r_dm_final,
 		                          for_render, use_render_resolution);
 	}
@@ -1558,15 +1558,15 @@ static void do_makeDispListCurveTypes(
 		ListBase dlbev;
 		ListBase nubase = {NULL, NULL};
 
-		BKE_curve_bevelList_free(&ob->curve_cache->bev);
+		BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
 
 		/* We only re-evaluate path if evaluation is not happening for orco.
 		 * If the calculation happens for orco, we should never free data which
 		 * was needed before and only not needed for orco calculation.
 		 */
 		if (!for_orco) {
-			if (ob->curve_cache->path) free_path(ob->curve_cache->path);
-			ob->curve_cache->path = NULL;
+			if (ob->runtime.curve_cache->path) free_path(ob->runtime.curve_cache->path);
+			ob->runtime.curve_cache->path = NULL;
 		}
 
 		if (ob->type == OB_FONT) {
@@ -1590,7 +1590,7 @@ static void do_makeDispListCurveTypes(
 		}
 		else {
 			float widfac = cu->width - 1.0f;
-			BevList *bl = ob->curve_cache->bev.first;
+			BevList *bl = ob->runtime.curve_cache->bev.first;
 			Nurb *nu = nubase.first;
 
 			for (; bl && nu; bl = bl->next, nu = nu->next) {
@@ -1777,7 +1777,7 @@ static void do_makeDispListCurveTypes(
 		}
 
 		if (!for_orco) {
-			BKE_nurbList_duplicate(&ob->curve_cache->deformed_nurbs, &nubase);
+			BKE_nurbList_duplicate(&ob->runtime.curve_cache->deformed_nurbs, &nubase);
 			curve_calc_modifiers_post(depsgraph, scene, ob, &nubase, dispbase, r_dm_final, for_render, use_render_resolution);
 		}
 
@@ -1801,11 +1801,11 @@ void BKE_displist_make_curveTypes(Depsgraph *depsgraph, Scene *scene, Object *ob
 
 	BKE_object_free_derived_caches(ob);
 
-	if (!ob->curve_cache) {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
+	if (!ob->runtime.curve_cache) {
+		ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for curve types");
 	}
 
-	dispbase = &(ob->curve_cache->disp);
+	dispbase = &(ob->runtime.curve_cache->disp);
 
 	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, &ob->derivedFinal, 0, for_orco, 0);
 
@@ -1817,8 +1817,8 @@ void BKE_displist_make_curveTypes_forRender(
         DerivedMesh **r_dm_final, const bool for_orco,
         const bool use_render_resolution)
 {
-	if (ob->curve_cache == NULL) {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
+	if (ob->runtime.curve_cache == NULL) {
+		ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
 	}
 
 	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, r_dm_final, true, for_orco, use_render_resolution);
@@ -1827,8 +1827,8 @@ void BKE_displist_make_curveTypes_forRender(
 void BKE_displist_make_curveTypes_forOrco(
         Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase)
 {
-	if (ob->curve_cache == NULL) {
-		ob->curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
+	if (ob->runtime.curve_cache == NULL) {
+		ob->runtime.curve_cache = MEM_callocN(sizeof(CurveCache), "CurveCache for Curve");
 	}
 
 	do_makeDispListCurveTypes(depsgraph, scene, ob, dispbase, NULL, 1, 1, 1);
@@ -1903,7 +1903,7 @@ static void boundbox_displist_object(Object *ob)
 			float min[3], max[3];
 
 			INIT_MINMAX(min, max);
-			BKE_displist_minmax(&ob->curve_cache->disp, min, max);
+			BKE_displist_minmax(&ob->runtime.curve_cache->disp, min, max);
 			BKE_boundbox_init_from_minmax(ob->bb, min, max);
 
 			ob->bb->flag &= ~BOUNDBOX_DIRTY;

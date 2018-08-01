@@ -69,8 +69,7 @@ void GPU_framebuffer_restore(void);
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);
 
-/* internal use only */
-unsigned int GPU_framebuffer_current_get(void);
+GPUFrameBuffer *GPU_framebuffer_active_get(void);
 
 #define GPU_FRAMEBUFFER_FREE_SAFE(fb) do { \
 	if (fb != NULL) { \

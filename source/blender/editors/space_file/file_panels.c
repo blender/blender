@@ -43,6 +43,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "ED_fileselect.h"
 
@@ -71,25 +72,33 @@ static void file_panel_operator_header(const bContext *C, Panel *pa)
 	BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
 }
 
-static bool file_panel_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
-{
-	const char *prop_id = RNA_property_identifier(prop);
-	return !(STREQ(prop_id, "filepath") ||
-	         STREQ(prop_id, "directory") ||
-	         STREQ(prop_id, "filename")
-	         );
-}
-
 static void file_panel_operator(const bContext *C, Panel *pa)
 {
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	wmOperator *op = sfile->op;
-	// int empty = 1, flag;
 
 	UI_block_func_set(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, file_panel_check_prop, UI_BUT_LABEL_ALIGN_NONE,
-	                               UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
+	/* Hack: temporary hide.*/
+	const char *hide[] = {"filepath", "files", "directory", "filename"};
+	for (int i = 0; i < ARRAY_SIZE(hide); i++) {
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
+		if (prop) {
+			RNA_def_property_flag(prop, PROP_HIDDEN);
+		}
+	}
+
+	uiTemplateOperatorPropertyButs(
+	        C, pa->layout, op, UI_BUT_LABEL_ALIGN_NONE,
+	        UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
+
+	/* Hack: temporary hide.*/
+	for (int i = 0; i < ARRAY_SIZE(hide); i++) {
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, hide[i]);
+		if (prop) {
+			RNA_def_property_clear_flag(prop, PROP_HIDDEN);
+		}
+	}
 
 	UI_block_func_set(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }

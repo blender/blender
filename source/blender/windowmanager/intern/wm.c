@@ -223,65 +223,6 @@ void WM_operator_handlers_clear(wmWindowManager *wm, wmOperatorType *ot)
 	}
 }
 
-/* ************ uiListType handling ************** */
-
-static GHash *uilisttypes_hash = NULL;
-
-uiListType *WM_uilisttype_find(const char *idname, bool quiet)
-{
-	uiListType *ult;
-
-	if (idname[0]) {
-		ult = BLI_ghash_lookup(uilisttypes_hash, idname);
-		if (ult) {
-			return ult;
-		}
-	}
-
-	if (!quiet) {
-		printf("search for unknown uilisttype %s\n", idname);
-	}
-
-	return NULL;
-}
-
-bool WM_uilisttype_add(uiListType *ult)
-{
-	BLI_ghash_insert(uilisttypes_hash, ult->idname, ult);
-	return 1;
-}
-
-void WM_uilisttype_freelink(uiListType *ult)
-{
-	bool ok;
-
-	ok = BLI_ghash_remove(uilisttypes_hash, ult->idname, NULL, MEM_freeN);
-
-	BLI_assert(ok);
-	(void)ok;
-}
-
-/* called on initialize WM_init() */
-void WM_uilisttype_init(void)
-{
-	uilisttypes_hash = BLI_ghash_str_new_ex("uilisttypes_hash gh", 16);
-}
-
-void WM_uilisttype_free(void)
-{
-	GHashIterator gh_iter;
-
-	GHASH_ITER (gh_iter, uilisttypes_hash) {
-		uiListType *ult = BLI_ghashIterator_getValue(&gh_iter);
-		if (ult->ext.free) {
-			ult->ext.free(ult->ext.data);
-		}
-	}
-
-	BLI_ghash_free(uilisttypes_hash, NULL, MEM_freeN);
-	uilisttypes_hash = NULL;
-}
-
 /* ****************************************** */
 
 void WM_keymap_init(bContext *C)

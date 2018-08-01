@@ -41,13 +41,19 @@
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_space_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_workspace_types.h"
 
 #include "BLI_bitmap.h"
+#include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
+#include "BLI_string_utils.h"
 #include "BLI_math_vector.h"
 #include "BLI_listbase.h"
 
+#include "BLT_translation.h"
+
+#include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
 #include "BKE_deform.h"
@@ -55,6 +61,7 @@
 #include "BKE_context.h"
 #include "BKE_crazyspace.h"
 #include "BKE_global.h"
+#include "BKE_gpencil.h"
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
@@ -151,6 +158,8 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 				return &ts->imapaint.paint;
 			case ePaintSculptUV:
 				return &ts->uvsculpt->paint;
+			case ePaintGpencil:
+				return &ts->gp_paint->paint;
 			case ePaintInvalid:
 				return NULL;
 			default:
@@ -176,6 +185,8 @@ Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 					return &ts->wpaint->paint;
 				case OB_MODE_TEXTURE_PAINT:
 					return &ts->imapaint.paint;
+				case OB_MODE_GPENCIL_PAINT:
+					return &ts->gp_paint->paint;
 				case OB_MODE_EDIT:
 					if (ts->use_uv_sculpt)
 						return &ts->uvsculpt->paint;
@@ -430,12 +441,10 @@ PaletteColor *BKE_palette_color_add(Palette *palette)
 	return color;
 }
 
-
 bool BKE_palette_is_empty(const struct Palette *palette)
 {
 	return BLI_listbase_is_empty(&palette->colors);
 }
-
 
 /* are we in vertex paint or weight pain face select mode? */
 bool BKE_paint_select_face_test(Object *ob)

@@ -27,6 +27,7 @@
  * actual mode switching logic is per-object type.
  */
 
+#include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
@@ -71,8 +72,14 @@ static const char *object_mode_op_string(eObjectMode mode)
 		return "PARTICLE_OT_particle_edit_toggle";
 	if (mode == OB_MODE_POSE)
 		return "OBJECT_OT_posemode_toggle";
-	if (mode == OB_MODE_GPENCIL)
+	if (mode == OB_MODE_GPENCIL_EDIT)
 		return "GPENCIL_OT_editmode_toggle";
+	if (mode == OB_MODE_GPENCIL_PAINT)
+		return "GPENCIL_OT_paintmode_toggle";
+	if (mode == OB_MODE_GPENCIL_SCULPT)
+		return "GPENCIL_OT_sculptmode_toggle";
+	if (mode == OB_MODE_GPENCIL_WEIGHT)
+		return "GPENCIL_OT_weightmode_toggle";
 	return NULL;
 }
 
@@ -85,8 +92,6 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 	if (ob) {
 		if (mode == OB_MODE_OBJECT)
 			return true;
-		else if (mode == OB_MODE_GPENCIL)
-			return true; /* XXX: assume this is the case for now... */
 
 		switch (ob->type) {
 			case OB_MESH:
@@ -110,6 +115,13 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
 			case OB_ARMATURE:
 				if (mode & (OB_MODE_EDIT | OB_MODE_POSE))
 					return true;
+				break;
+			case OB_GPENCIL:
+				if (mode & (OB_MODE_EDIT | OB_MODE_GPENCIL_EDIT | OB_MODE_GPENCIL_PAINT |
+				            OB_MODE_GPENCIL_SCULPT | OB_MODE_GPENCIL_WEIGHT))
+				{
+					return true;
+				}
 				break;
 		}
 	}

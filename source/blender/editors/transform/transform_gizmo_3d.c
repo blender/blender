@@ -107,7 +107,7 @@
 #define MAN_SCALE_C		(MAN_SCALE_X | MAN_SCALE_Y | MAN_SCALE_Z)
 
 /* threshold for testing view aligned gizmo axis */
-struct {
+static struct {
 	float min, max;
 } g_tw_axis_range[2] = {
 	/* Regular range */
@@ -604,6 +604,7 @@ int ED_transform_calc_gizmo_stats(
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = sa->spacedata.first;
@@ -611,7 +612,7 @@ int ED_transform_calc_gizmo_stats(
 	Base *base;
 	Object *ob = OBACT(view_layer);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
-	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
+	const bool is_gp_edit = GPENCIL_ANY_MODE(gpd);
 	int a, totsel = 0;
 	const int pivot_point = scene->toolsettings->transform_pivot_point;
 
@@ -728,10 +729,8 @@ int ED_transform_calc_gizmo_stats(
 			/* only editable and visible layers are considered */
 			if (gpencil_layer_is_editable(gpl) && (gpl->actframe != NULL)) {
 
-				/* calculate difference matrix if parent object */
-				if (gpl->parent != NULL) {
-					ED_gpencil_parent_location(gpl, diff_mat);
-				}
+				/* calculate difference matrix */
+				ED_gpencil_parent_location(depsgraph, ob, gpd, gpl, diff_mat);
 
 				for (bGPDstroke *gps = gpl->actframe->strokes.first; gps; gps = gps->next) {
 					/* skip strokes that are invalid for current view */

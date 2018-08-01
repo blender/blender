@@ -42,6 +42,7 @@ struct ID;
 struct Main;
 struct Menu;
 struct ModifierData;
+struct ShaderFxData;
 struct Object;
 struct ReportList;
 struct Scene;
@@ -112,6 +113,7 @@ void ED_keymap_proportional_obmode(struct wmKeyConfig *keyconf, struct wmKeyMap 
 void ED_keymap_proportional_maskmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
 void ED_keymap_proportional_editmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap,
                                      const bool do_connected);
+void ED_keymap_editmesh_elem_mode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
 
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode);
 void ED_object_base_activate(struct bContext *C, struct Base *base);
@@ -259,6 +261,40 @@ bool ED_object_iter_other(
         void *callback_data);
 
 bool ED_object_multires_update_totlevels_cb(struct Object *ob, void *totlevel_v);
+
+
+/* object_greasepencil_modifier.c */
+struct GpencilModifierData *ED_object_gpencil_modifier_add(
+        struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+        struct Object *ob, const char *name, int type);
+bool ED_object_gpencil_modifier_remove(
+        struct ReportList *reports, struct Main *bmain,
+        struct Object *ob, struct GpencilModifierData *md);
+void ED_object_gpencil_modifier_clear(
+        struct Main *bmain, struct Object *ob);
+int ED_object_gpencil_modifier_move_down(
+        struct ReportList *reports, struct Object *ob, struct GpencilModifierData *md);
+int ED_object_gpencil_modifier_move_up(
+        struct ReportList *reports, struct Object *ob, struct GpencilModifierData *md);
+int ED_object_gpencil_modifier_apply(
+        struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph,
+        struct Object *ob, struct GpencilModifierData *md, int mode);
+int ED_object_gpencil_modifier_copy(
+        struct ReportList *reports, struct Object *ob, struct GpencilModifierData *md);
+
+/* object_shader_fx.c */
+struct ShaderFxData *ED_object_shaderfx_add(
+	struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+	struct Object *ob, const char *name, int type);
+bool ED_object_shaderfx_remove(
+	struct ReportList *reports, struct Main *bmain,
+	struct Object *ob, struct ShaderFxData *fx);
+void ED_object_shaderfx_clear(
+	struct Main *bmain, struct Object *ob);
+int ED_object_shaderfx_move_down(
+	struct ReportList *reports, struct Object *ob, struct ShaderFxData *fx);
+int ED_object_shaderfx_move_up(
+	struct ReportList *reports, struct Object *ob, struct ShaderFxData *fx);
 
 /* object_select.c */
 void ED_object_select_linked_by_id(struct bContext *C, struct ID *id);

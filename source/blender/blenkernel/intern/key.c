@@ -1457,7 +1457,7 @@ KeyBlock *BKE_keyblock_add(Key *key, const char *name)
 
 	kb = MEM_callocN(sizeof(KeyBlock), "Keyblock");
 	BLI_addtail(&key->block, kb);
-	kb->type = KEY_CARDINAL;
+	kb->type = KEY_LINEAR;
 
 	tot = BLI_listbase_count(&key->block);
 	if (name) {

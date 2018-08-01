@@ -67,6 +67,12 @@ void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 		}
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			flag |= DEG_TAG_COPY_ON_WRITE;
+			/* This means ID is being added to the dependency graph first
+			 * time, which is similar to "ob-visible-change"
+			 */
+			if (GS(id->name) == ID_OB) {
+				flag |= OB_RECALC_OB | OB_RECALC_DATA;
+			}
 		}
 		if (flag != 0) {
 			DEG_graph_id_tag_update(bmain,

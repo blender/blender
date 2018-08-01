@@ -66,7 +66,6 @@ struct AnimData;
 struct Editing;
 struct SceneStats;
 struct bGPdata;
-struct bGPDbrush;
 struct MovieClip;
 struct ColorSpace;
 struct SceneCollection;
@@ -686,7 +685,8 @@ typedef struct RenderData {
 	/* render simplify */
 	short simplify_subsurf;
 	short simplify_subsurf_render;
-	short pad9, pad10;
+	short simplify_gpencil;
+	short pad10;
 	float simplify_particles;
 	float simplify_particles_render;
 
@@ -905,6 +905,11 @@ typedef struct UvSculpt {
 	Paint paint;
 } UvSculpt;
 
+/* grease pencil drawing brushes */
+typedef struct GpPaint {
+	Paint paint;
+} GpPaint;
+
 /* ------------------------------------------- */
 /* Vertex Paint */
 
@@ -929,15 +934,18 @@ enum {
 typedef enum eGP_EditBrush_Types {
 	GP_EDITBRUSH_TYPE_SMOOTH    = 0,
 	GP_EDITBRUSH_TYPE_THICKNESS = 1,
-	GP_EDITBRUSH_TYPE_GRAB      = 2,
-	GP_EDITBRUSH_TYPE_PUSH      = 3,
-	GP_EDITBRUSH_TYPE_TWIST     = 4,
-	GP_EDITBRUSH_TYPE_PINCH     = 5,
-	GP_EDITBRUSH_TYPE_RANDOMIZE = 6,
-	GP_EDITBRUSH_TYPE_SUBDIVIDE = 7,
-	GP_EDITBRUSH_TYPE_SIMPLIFY  = 8,
-	GP_EDITBRUSH_TYPE_CLONE     = 9,
-	GP_EDITBRUSH_TYPE_STRENGTH  = 10,
+	GP_EDITBRUSH_TYPE_STRENGTH  = 2,
+	GP_EDITBRUSH_TYPE_GRAB      = 3,
+	GP_EDITBRUSH_TYPE_PUSH      = 4,
+	GP_EDITBRUSH_TYPE_TWIST     = 5,
+	GP_EDITBRUSH_TYPE_PINCH     = 6,
+	GP_EDITBRUSH_TYPE_RANDOMIZE = 7,
+	GP_EDITBRUSH_TYPE_CLONE     = 8,
+	GP_EDITBRUSH_TYPE_SUBDIVIDE = 9,
+	GP_EDITBRUSH_TYPE_SIMPLIFY  = 10,
+	/* add any sculpt brush above this value */
+	GP_EDITBRUSH_TYPE_WEIGHT    = 11,
+	/* add any weight paint brush below this value. Do no mix brushes */
 
 	/* !!! Update GP_EditBrush_Data brush[###]; below !!! */
 	TOT_GP_EDITBRUSH_TYPES
@@ -956,6 +964,8 @@ typedef struct GP_EditBrush_Data {
 	short size;             /* radius of brush */
 	short flag;             /* eGP_EditBrush_Flag */
 	float strength;         /* strength of effect */
+	float curcolor_add[3];  /* cursor color for add */
+	float curcolor_sub[3];  /* cursor color for sub */
 } GP_EditBrush_Data;
 
 /* GP_EditBrush_Data.flag */
@@ -969,20 +979,31 @@ typedef enum eGP_EditBrush_Flag {
 	GP_EDITBRUSH_FLAG_USE_FALLOFF  = (1 << 2),
 
 	/* smooth brush affects pressure values as well */
-	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3)
+	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3),
+	/* enable screen cursor */
+	GP_EDITBRUSH_FLAG_ENABLE_CURSOR = (1 << 4),
+	/* temporary invert action */
+	GP_EDITBRUSH_FLAG_TMP_INVERT = (1 << 5),
 } eGP_EditBrush_Flag;
 
 
 
 /* GPencil Stroke Sculpting Settings */
 typedef struct GP_BrushEdit_Settings {
-	GP_EditBrush_Data brush[11];  /* TOT_GP_EDITBRUSH_TYPES */
+	GP_EditBrush_Data brush[12];  /* TOT_GP_EDITBRUSH_TYPES */
 	void *paintcursor;            /* runtime */
 
-	int brushtype;                /* eGP_EditBrush_Types */
+	int brushtype;                /* eGP_EditBrush_Types (sculpt) */
 	int flag;                     /* eGP_BrushEdit_SettingsFlag */
 	int lock_axis;                /* eGP_Lockaxis_Types lock drawing to one axis */
-	float alpha;                  /* alpha factor for selection color */
+	char pad1[4];
+
+	/* weight paint is a submode of sculpt but use its own index. All weight paint
+	 * brushes must be defined at the end of the brush array.
+	 */
+	int weighttype;               /* eGP_EditBrush_Types (weight paint) */
+	char pad[4];
+	struct CurveMapping *cur_falloff; /* multiframe edit falloff effect by frame */
 } GP_BrushEdit_Settings;
 
 /* GP_BrushEdit_Settings.flag */
@@ -995,6 +1016,12 @@ typedef enum eGP_BrushEdit_SettingsFlag {
 	GP_BRUSHEDIT_FLAG_APPLY_STRENGTH = (1 << 2),
 	/* apply brush to thickness */
 	GP_BRUSHEDIT_FLAG_APPLY_THICKNESS = (1 << 3),
+	/* apply brush to thickness */
+	GP_BRUSHEDIT_FLAG_WEIGHT_MODE = (1 << 4),
+	/* enable falloff for multiframe editing */
+	GP_BRUSHEDIT_FLAG_FRAME_FALLOFF = (1 << 5),
+	/* apply brush to uv data */
+	GP_BRUSHEDIT_FLAG_APPLY_UV = (1 << 6),
 } eGP_BrushEdit_SettingsFlag;
 
 
@@ -1213,6 +1240,7 @@ typedef struct ToolSettings {
 	VPaint *wpaint;		/* weight paint */
 	Sculpt *sculpt;
 	UvSculpt *uvsculpt;	/* uv smooth */
+	GpPaint *gp_paint;  /* gpencil paint */
 
 	/* Vertex group weight - used only for editmode, not weight
 	 * paint */
@@ -1236,19 +1264,19 @@ typedef struct ToolSettings {
 	/* Auto-IK */
 	short autoik_chainlen;  /* runtime only */
 
-	/* SCE_MPR_LOC/SCAL */
-	char gizmo_flag;
-
 	/* Grease Pencil */
 	char gpencil_flags;		/* flags/options for how the tool works */
-	char gpencil_src;		/* for main 3D view Grease Pencil, where data comes from */
 
 	char gpencil_v3d_align; /* stroke placement settings: 3D View */
 	char gpencil_v2d_align; /*                          : General 2D Editor */
 	char gpencil_seq_align; /*                          : Sequencer Preview */
 	char gpencil_ima_align; /*                          : Image Editor */
 
-	char _pad3[3];
+	/* Annotations */
+	char annotate_v3d_align;  /* stroke placement settings - 3D View */
+
+	short annotate_thickness; /* default stroke thickness for annotation strokes */
+	char _pad3[2];
 
 	/* Grease Pencil Sculpt */
 	struct GP_BrushEdit_Settings gp_sculpt;
@@ -1256,10 +1284,7 @@ typedef struct ToolSettings {
 	/* Grease Pencil Interpolation Tool(s) */
 	struct GP_Interpolate_Settings gp_interpolate;
 
-	/* Grease Pencil Drawing Brushes (bGPDbrush) */
-	ListBase gp_brushes;
-
-	/* Image Paint (8 byttse aligned please!) */
+	/* Image Paint (8 bytes aligned please!) */
 	struct ImagePaintSettings imapaint;
 
 	/* Particle Editing */
@@ -1281,7 +1306,9 @@ typedef struct ToolSettings {
 	/* Alt+RMB option */
 	char edge_mode;
 	char edge_mode_live_unwrap;
-	char _pad1;
+
+	/* SCE_MPR_LOC/SCAL */
+	char gizmo_flag;
 
 	/* Transform */
 	char transform_pivot_point;
@@ -1507,7 +1534,7 @@ typedef struct Scene {
 	/* Units */
 	struct UnitSettings unit;
 
-	/* Grease Pencil */
+	/* Grease Pencil - Annotations */
 	struct bGPdata *gpd;
 
 	/* Movie Tracking */
@@ -1518,6 +1545,7 @@ typedef struct Scene {
 
 	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
+
 
 	/* Color Management */
 	ColorManagedViewSettings view_settings;
@@ -2031,19 +2059,27 @@ typedef enum eImagePaintMode {
 
 /* ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {
-	/* "Continuous Drawing" - The drawing operator enters a mode where multiple strokes can be drawn */
-	GP_TOOL_FLAG_PAINTSESSIONS_ON       = (1 << 0),
 	/* When creating new frames, the last frame gets used as the basis for the new one */
 	GP_TOOL_FLAG_RETAIN_LAST            = (1 << 1),
 	/* Add the strokes below all strokes in the layer */
-	GP_TOOL_FLAG_PAINT_ONBACK = (1 << 2)
+	GP_TOOL_FLAG_PAINT_ONBACK           = (1 << 2),
+	/* Show compact list of colors */
+	GP_TOOL_FLAG_THUMBNAIL_LIST           = (1 << 3),
 } eGPencil_Flags;
 
-/* ToolSettings.gpencil_src */
-typedef enum eGPencil_Source_3D {
-	GP_TOOL_SOURCE_SCENE    = 0,
-	GP_TOOL_SOURCE_OBJECT   = 1
-} eGPencil_Source_3d;
+/* scene->r.simplify_gpencil */
+typedef enum eGPencil_SimplifyFlags {
+	/* Simplify */
+	SIMPLIFY_GPENCIL_ENABLE           = (1 << 0),
+	/* Simplify on play */
+	SIMPLIFY_GPENCIL_ON_PLAY          = (1 << 1),
+	/* Simplify fill on viewport */
+	SIMPLIFY_GPENCIL_FILL             = (1 << 2),
+	/* Simplify modifier on viewport */
+	SIMPLIFY_GPENCIL_MODIFIER         = (1 << 3),
+	/* Remove fill external line */
+	SIMPLIFY_GPENCIL_REMOVE_FILL_LINE = (1 << 4)
+} eGPencil_SimplifyFlags;
 
 /* ToolSettings.gpencil_*_align - Stroke Placement mode flags */
 typedef enum eGPencil_Placement_Flags {
@@ -2059,6 +2095,7 @@ typedef enum eGPencil_Placement_Flags {
 
 	/* "Use Endpoints" */
 	GP_PROJECT_DEPTH_STROKE_ENDPOINTS = (1 << 4),
+	GP_PROJECT_CURSOR = (1 << 5),
 } eGPencil_Placement_Flags;
 
 /* ToolSettings.particle flag */
@@ -2107,7 +2144,7 @@ enum {
 	SCE_EEVEE_VOLUMETRIC_ENABLED	= (1 << 0),
 	SCE_EEVEE_VOLUMETRIC_LIGHTS		= (1 << 1),
 	SCE_EEVEE_VOLUMETRIC_SHADOWS	= (1 << 2),
-	SCE_EEVEE_VOLUMETRIC_COLORED	= (1 << 3),
+//	SCE_EEVEE_VOLUMETRIC_COLORED	= (1 << 3), /* Unused */
 	SCE_EEVEE_GTAO_ENABLED			= (1 << 4),
 	SCE_EEVEE_GTAO_BENT_NORMALS		= (1 << 5),
 	SCE_EEVEE_GTAO_BOUNCE			= (1 << 6),

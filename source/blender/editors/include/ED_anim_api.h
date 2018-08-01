@@ -197,6 +197,8 @@ typedef enum eAnim_ChannelType {
 	ANIMTYPE_NLATRACK,
 	ANIMTYPE_NLAACTION,
 
+	ANIMTYPE_PALETTE,
+
 	/* always as last item, the total number of channel types... */
 	ANIMTYPE_NUM_TYPES
 } eAnim_ChannelType;
@@ -346,6 +348,9 @@ typedef enum eAnimFilter_Flags {
 
 /* Movie clip only */
 #define EXPANDED_MCLIP(clip) (clip->flag & MCLIP_DATA_EXPAND)
+
+/* Palette only */
+#define EXPANDED_PALETTE(palette) (palette->flag & PALETTE_DATA_EXPAND)
 
 /* AnimData - NLA mostly... */
 #define SEL_ANIMDATA(adt) (adt->flag & ADT_UI_SELECTED)

@@ -279,6 +279,10 @@ static void wm_window_match_replace_by_file_wm(
 	wm->initialized = 0;
 	wm->winactive = NULL;
 
+	/* Clearing drawable of before deleting any context
+	 * to avoid clearing the wrong wm. */
+	wm_window_clear_drawable(oldwm);
+
 	/* only first wm in list has ghostwins */
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		for (wmWindow *oldwin = oldwm->windows.first; oldwin; oldwin = oldwin->next) {
@@ -365,8 +369,6 @@ static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 
 	/* update tempdir from user preferences */
 	BKE_tempdir_init(U.tempdir);
-
-	BLF_antialias_set((U.text_render & USER_TEXT_DISABLE_AA) == 0);
 }
 
 
@@ -488,13 +490,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 
 	Main *bmain = CTX_data_main(C);
 	DEG_on_visible_update(bmain, true);
-
-	if (!is_startup_file) {
-		/* When starting up, the UI hasn't been fully initialised yet, and
-		 * this call can trigger icon updates, causing a segfault due to a
-		 * not-yet-initialised ghash for the icons. */
-		wm_event_do_depsgraph(C);
-	}
+	wm_event_do_depsgraph(C);
 
 	ED_editors_init(C);
 

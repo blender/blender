@@ -100,6 +100,7 @@ void depsgraph_geometry_tag_to_component(const ID *id,
 				case OB_FONT:
 				case OB_LATTICE:
 				case OB_MBALL:
+				case OB_GPENCIL:
 					*component_type = DEG_NODE_TYPE_GEOMETRY;
 					break;
 				case OB_ARMATURE:
@@ -112,9 +113,15 @@ void depsgraph_geometry_tag_to_component(const ID *id,
 		case ID_ME:
 			*component_type = DEG_NODE_TYPE_GEOMETRY;
 			break;
-		case ID_PA:
+		case ID_PA: /* Particles */
 			return;
 		case ID_LP:
+			*component_type = DEG_NODE_TYPE_PARAMETERS;
+			break;
+		case ID_GD:
+			*component_type = DEG_NODE_TYPE_GEOMETRY;
+			break;
+		case ID_PAL: /* Palettes */
 			*component_type = DEG_NODE_TYPE_PARAMETERS;
 			break;
 		default:

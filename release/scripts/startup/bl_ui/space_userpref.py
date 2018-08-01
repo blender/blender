@@ -361,13 +361,15 @@ class USERPREF_PT_edit(Panel):
         row.separator()
 
         col = row.column()
-        col.label(text="Grease Pencil:")
+        col.label(text="Annotations:")
+        sub = col.row()
+        sub.prop(edit, "grease_pencil_default_color", text="Default Color")
         col.prop(edit, "grease_pencil_eraser_radius", text="Eraser Radius")
+        col.separator()
+        col.label(text="Grease Pencil/Annotations:")
         col.separator()
         col.prop(edit, "grease_pencil_manhattan_distance", text="Manhattan Distance")
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
-        col.separator()
-        col.prop(edit, "grease_pencil_default_color", text="Default Color")
         col.separator()
         col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
         col.separator()
@@ -527,9 +529,14 @@ class USERPREF_PT_system(Panel):
         col.prop(system, "gpu_viewport_quality")
 
         col.separator()
+        col.label(text="Grease Pencil Options:")
+        col.prop(system, "gpencil_multi_sample", text="")
 
+        col.separator()
         col.label(text="Text Draw Options:")
         col.prop(system, "use_text_antialiasing")
+        if system.use_text_antialiasing:
+            col.prop(system, "use_text_hinting")
 
         # 3. Column
         column = split.column()

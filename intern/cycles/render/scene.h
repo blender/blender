@@ -56,6 +56,7 @@ class ShaderManager;
 class Progress;
 class BakeManager;
 class BakeData;
+class RenderStats;
 
 /* Scene Device Data */
 
@@ -254,6 +255,8 @@ public:
 
 	void reset();
 	void device_free();
+
+	void collect_statistics(RenderStats *stats);
 
 protected:
 	/* Check if some heavy data worth logging was updated.

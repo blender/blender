@@ -44,6 +44,7 @@ extern const EnumPropertyItem rna_enum_id_type_items[];
 
 extern const EnumPropertyItem rna_enum_object_mode_items[];
 extern const EnumPropertyItem rna_enum_object_empty_drawtype_items[];
+extern const EnumPropertyItem rna_enum_object_gpencil_type_items[];
 extern const EnumPropertyItem rna_enum_metaelem_type_items[];
 
 extern const EnumPropertyItem rna_enum_proportional_falloff_items[];
@@ -54,6 +55,7 @@ extern const EnumPropertyItem rna_enum_snap_element_items[];
 extern const EnumPropertyItem rna_enum_snap_node_element_items[];
 extern const EnumPropertyItem rna_enum_curve_fit_method_items[];
 extern const EnumPropertyItem rna_enum_mesh_select_mode_items[];
+extern const EnumPropertyItem rna_enum_mesh_select_mode_uv_items[];
 extern const EnumPropertyItem rna_enum_mesh_delimit_mode_items[];
 extern const EnumPropertyItem rna_enum_space_graph_mode_items[];
 extern const EnumPropertyItem rna_enum_space_type_items[];
@@ -64,6 +66,8 @@ extern const EnumPropertyItem rna_enum_object_modifier_type_items[];
 extern const EnumPropertyItem rna_enum_constraint_type_items[];
 extern const EnumPropertyItem rna_enum_boidrule_type_items[];
 extern const EnumPropertyItem rna_enum_sequence_modifier_type_items[];
+extern const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[];
+extern const EnumPropertyItem rna_enum_object_shaderfx_type_items[];
 
 extern const EnumPropertyItem rna_enum_modifier_triangulate_quad_method_items[];
 extern const EnumPropertyItem rna_enum_modifier_triangulate_ngon_method_items[];
@@ -227,6 +231,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
 struct bContext;
 struct PointerRNA;
 struct PropertyRNA;
+
 const EnumPropertyItem *rna_TransformOrientation_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 const EnumPropertyItem *rna_Sensor_type_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);
 const EnumPropertyItem *rna_Actuator_type_itemf(struct bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);

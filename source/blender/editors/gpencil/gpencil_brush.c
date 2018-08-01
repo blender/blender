@@ -48,6 +48,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -60,6 +61,9 @@
 #include "BKE_library.h"
 #include "BKE_report.h"
 #include "BKE_screen.h"
+#include "BKE_object_deform.h"
+#include "BKE_colortools.h"
+#include "BKE_material.h"
 
 #include "UI_interface.h"
 
@@ -80,6 +84,9 @@
 #include "GPU_immediate_util.h"
 #include "GPU_state.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "gpencil_intern.h"
 
 /* ************************************************ */
@@ -89,7 +96,9 @@
 typedef struct tGP_BrushEditData {
 	/* Current editor/region/etc. */
 	/* NOTE: This stuff is mainly needed to handle 3D view projection stuff... */
+	Depsgraph *depsgraph;
 	Scene *scene;
+	Object *object;
 
 	ScrArea *sa;
 	ARegion *ar;
@@ -114,6 +123,10 @@ typedef struct tGP_BrushEditData {
 	/* Start of new sculpt stroke */
 	bool first;
 
+	/* Is multiframe editing enabled, and are we using falloff for that? */
+	bool is_multiframe;
+	bool use_multiframe_falloff;
+
 	/* Current frame */
 	int cfra;
 
@@ -127,6 +140,13 @@ typedef struct tGP_BrushEditData {
 
 	/* - effect vector (e.g. 2D/3D translation for grab brush) */
 	float dvec[3];
+
+	/* - multiframe falloff factor */
+	float mf_falloff;
+
+	/* active vertex group */
+	int vrgroup;
+
 
 	/* brush geometry (bounding box) */
 	rcti brush_rect;
@@ -147,11 +167,33 @@ typedef struct tGP_BrushEditData {
 
 
 /* Callback for performing some brush operation on a single point */
-typedef bool (*GP_BrushApplyCb)(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
+typedef bool (*GP_BrushApplyCb)(tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
                                 const int radius, const int co[2]);
 
 /* ************************************************ */
 /* Utility Functions */
+
+/* apply lock axis reset */
+static void gpsculpt_compute_lock_axis(tGP_BrushEditData *gso, bGPDspoint *pt, const float save_pt[3])
+{
+	if (gso->sa->spacetype != SPACE_VIEW3D) {
+		return;
+	}
+
+	ToolSettings *ts = gso->scene->toolsettings;
+	int axis = ts->gp_sculpt.lock_axis;
+
+	/* lock axis control */
+	if (axis == 1) {
+		pt->x = save_pt[0];
+	}
+	if (axis == 2) {
+		pt->y = save_pt[1];
+	}
+	if (axis == 3) {
+		pt->z = save_pt[2];
+	}
+}
 
 /* Context ---------------------------------------- */
 
@@ -162,10 +204,18 @@ static GP_BrushEdit_Settings *gpsculpt_get_settings(Scene *scene)
 }
 
 /* Get the active brush */
-static GP_EditBrush_Data *gpsculpt_get_brush(Scene *scene)
+static GP_EditBrush_Data *gpsculpt_get_brush(Scene *scene, bool is_weight_mode)
 {
 	GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
-	return &gset->brush[gset->brushtype];
+	GP_EditBrush_Data *brush = NULL;
+	if (is_weight_mode) {
+		brush = &gset->brush[gset->weighttype];
+	}
+	else {
+		brush = &gset->brush[gset->brushtype];
+	}
+
+	return brush;
 }
 
 /* Brush Operations ------------------------------- */
@@ -179,6 +229,14 @@ static bool gp_brush_invert_check(tGP_BrushEditData *gso)
 	/* During runtime, the user can hold down the Ctrl key to invert the basic behaviour */
 	if (gso->flag & GP_EDITBRUSH_FLAG_INVERT) {
 		invert ^= true;
+	}
+
+	/* set temporary status */
+	if (invert) {
+		gso->brush->flag |= GP_EDITBRUSH_FLAG_TMP_INVERT;
+	}
+	else {
+		gso->brush->flag &= ~GP_EDITBRUSH_FLAG_TMP_INVERT;
 	}
 
 	return invert;
@@ -208,6 +266,9 @@ static float gp_brush_influence_calc(tGP_BrushEditData *gso, const int radius, c
 		influence *= fac;
 	}
 
+	/* apply multiframe falloff */
+	influence *= gso->mf_falloff;
+
 	/* return influence */
 	return influence;
 }
@@ -222,29 +283,34 @@ static float gp_brush_influence_calc(tGP_BrushEditData *gso, const int radius, c
 /* Smooth Brush */
 
 /* A simple (but slower + inaccurate) smooth-brush implementation to test the algorithm for stroke smoothing */
-static bool gp_brush_smooth_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                  const int radius, const int co[2])
+static bool gp_brush_smooth_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	GP_EditBrush_Data *brush = gso->brush;
+	// GP_EditBrush_Data *brush = gso->brush;
 	float inf = gp_brush_influence_calc(gso, radius, co);
-	bool affect_pressure = (brush->flag & GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE) != 0;
 	/* need one flag enabled by default */
-	if ((gso->settings->flag & (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
-	                            GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
-	                            GP_BRUSHEDIT_FLAG_APPLY_THICKNESS)) == 0)
+	if ((gso->settings->flag &
+	     (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
+	      GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
+	      GP_BRUSHEDIT_FLAG_APPLY_THICKNESS |
+	      GP_BRUSHEDIT_FLAG_APPLY_UV)) == 0)
 	{
 		gso->settings->flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
 	}
 
 	/* perform smoothing */
 	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_POSITION) {
-		gp_smooth_stroke(gps, i, inf, affect_pressure);
+		BKE_gpencil_smooth_stroke(gps, pt_index, inf);
 	}
 	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_STRENGTH) {
-		gp_smooth_stroke_strength(gps, i, inf);
+		BKE_gpencil_smooth_stroke_strength(gps, pt_index, inf);
 	}
 	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_THICKNESS) {
-		gp_smooth_stroke_thickness(gps, i, inf);
+		BKE_gpencil_smooth_stroke_thickness(gps, pt_index, inf);
+	}
+	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_UV) {
+		BKE_gpencil_smooth_stroke_uv(gps, pt_index, inf);
 	}
 
 	return true;
@@ -254,10 +320,11 @@ static bool gp_brush_smooth_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i
 /* Line Thickness Brush */
 
 /* Make lines thicker or thinner by the specified amounts */
-static bool gp_brush_thickness_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                     const int radius, const int co[2])
+static bool gp_brush_thickness_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
 	float inf;
 
 	/* Compute strength of effect
@@ -294,28 +361,29 @@ static bool gp_brush_thickness_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 
 /* Make color more or less transparent by the specified amounts */
 static bool gp_brush_strength_apply(
-        tGP_BrushEditData *gso, bGPDstroke *gps, int i,
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
         const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
 	float inf;
 
 	/* Compute strength of effect
-	 * - We divide the strength by 10, so that users can set "sane" values.
+	 * - We divide the strength, so that users can set "sane" values.
 	 *   Otherwise, good default values are in the range of 0.093
 	 */
-	inf = gp_brush_influence_calc(gso, radius, co) / 10.0f;
+	inf = gp_brush_influence_calc(gso, radius, co) / 20.0f;
 
 	/* apply */
-	// XXX: this is much too strong, and it should probably do some smoothing with the surrounding stuff
 	if (gp_brush_invert_check(gso)) {
-		/* make line thinner - reduce stroke pressure */
+		/* make line more transparent - reduce alpha factor */
 		pt->strength -= inf;
 	}
 	else {
-		/* make line thicker - increase stroke pressure */
+		/* make line more opaque - increase stroke strength */
 		pt->strength += inf;
 	}
+	/* smooth the strength */
+	BKE_gpencil_smooth_stroke_strength(gps, pt_index, inf);
 
 	/* Strength should stay within [0.0, 1.0] */
 	CLAMP(pt->strength, 0.0f, 1.0f);
@@ -382,8 +450,9 @@ static void gp_brush_grab_stroke_init(tGP_BrushEditData *gso, bGPDstroke *gps)
 }
 
 /* store references to stroke points in the initial stage */
-static bool gp_brush_grab_store_points(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                       const int radius, const int co[2])
+static bool gp_brush_grab_store_points(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
 	tGPSB_Grab_StrokeData *data = BLI_ghash_lookup(gso->stroke_customdata, gps);
 	float inf = gp_brush_influence_calc(gso, radius, co);
@@ -392,7 +461,7 @@ static bool gp_brush_grab_store_points(tGP_BrushEditData *gso, bGPDstroke *gps, 
 	BLI_assert(data->size < data->capacity);
 
 	/* insert this point into the set of affected points */
-	data->points[data->size]  = i;
+	data->points[data->size]  = pt_index;
 	data->weights[data->size] = inf;
 	data->size++;
 
@@ -431,7 +500,7 @@ static void gp_brush_grab_calc_dvec(tGP_BrushEditData *gso)
 
 /* Apply grab transform to all relevant points of the affected strokes */
 static void gp_brush_grab_apply_cached(
-        tGP_BrushEditData *gso, bGPDstroke *gps, bool parented, float diff_mat[4][4])
+        tGP_BrushEditData *gso, bGPDstroke *gps, float diff_mat[4][4])
 {
 	tGPSB_Grab_StrokeData *data = BLI_ghash_lookup(gso->stroke_customdata, gps);
 	int i;
@@ -443,23 +512,21 @@ static void gp_brush_grab_apply_cached(
 
 		/* adjust the amount of displacement to apply */
 		mul_v3_v3fl(delta, gso->dvec, data->weights[i]);
-		if (!parented) {
-			/* apply */
-			add_v3_v3(&pt->x, delta);
-		}
-		else {
-			float fpt[3];
-			/* apply transformation */
-			mul_v3_m4v3(fpt, diff_mat, &pt->x);
-			/* apply */
-			add_v3_v3(fpt, delta);
-			copy_v3_v3(&pt->x, fpt);
-			/* undo transformation to the init parent position */
-			float inverse_diff_mat[4][4];
-			invert_m4_m4(inverse_diff_mat, diff_mat);
-			mul_m4_v3(inverse_diff_mat, &pt->x);
-		}
 
+		float fpt[3];
+		float save_pt[3];
+		copy_v3_v3(save_pt, &pt->x);
+		/* apply transformation */
+		mul_v3_m4v3(fpt, diff_mat, &pt->x);
+		/* apply */
+		add_v3_v3v3(&pt->x, fpt, delta);
+		/* undo transformation to the init parent position */
+		float inverse_diff_mat[4][4];
+		invert_m4_m4(inverse_diff_mat, diff_mat);
+		mul_m4_v3(inverse_diff_mat, &pt->x);
+
+		/* compute lock axis */
+		gpsculpt_compute_lock_axis(gso, pt, save_pt);
 	}
 }
 
@@ -480,10 +547,14 @@ static void gp_brush_grab_stroke_free(void *ptr)
 /* Push Brush */
 /* NOTE: Depends on gp_brush_grab_calc_dvec() */
 
-static bool gp_brush_push_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                const int radius, const int co[2])
+static bool gp_brush_push_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
+	float save_pt[3];
+	copy_v3_v3(save_pt, &pt->x);
+
 	float inf = gp_brush_influence_calc(gso, radius, co);
 	float delta[3] = {0.0f};
 
@@ -492,6 +563,9 @@ static bool gp_brush_push_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 
 	/* apply */
 	add_v3_v3(&pt->x, delta);
+
+	/* compute lock axis */
+	gpsculpt_compute_lock_axis(gso, pt, save_pt);
 
 	/* done */
 	return true;
@@ -512,7 +586,8 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
 		float *rvec = ED_view3d_cursor3d_get(gso->scene, v3d)->location;
 		float zfac = ED_view3d_calc_zfac(rv3d, rvec, NULL);
 
-		float mval_f[2] = {UNPACK2(gso->mval)};
+		float mval_f[2];
+		copy_v2fl_v2i(mval_f, gso->mval);
 		float mval_prj[2];
 		float dvec[3];
 
@@ -536,12 +611,15 @@ static void gp_brush_calc_midpoint(tGP_BrushEditData *gso)
 }
 
 /* Shrink distance between midpoint and this point... */
-static bool gp_brush_pinch_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                 const int radius, const int co[2])
+static bool gp_brush_pinch_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
 	float fac, inf;
 	float vec[3];
+	float save_pt[3];
+	copy_v3_v3(save_pt, &pt->x);
 
 	/* Scale down standard influence value to get it more manageable...
 	 *  - No damping = Unmanageable at > 0.5 strength
@@ -571,6 +649,9 @@ static bool gp_brush_pinch_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 	/* 3) Translate back to original space, with the shrinkage applied */
 	add_v3_v3v3(&pt->x, gso->dvec, vec);
 
+	/* compute lock axis */
+	gpsculpt_compute_lock_axis(gso, pt, save_pt);
+
 	/* done */
 	return true;
 }
@@ -582,11 +663,14 @@ static bool gp_brush_pinch_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
  * convert the rotated point and convert it into "data" space
  */
 
-static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                 const int radius, const int co[2])
+static bool gp_brush_twist_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
 	float angle, inf;
+	float save_pt[3];
+	copy_v3_v3(save_pt, &pt->x);
 
 	/* Angle to rotate by */
 	inf = gp_brush_influence_calc(gso, radius, co);
@@ -615,6 +699,9 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 		sub_v3_v3v3(vec, &pt->x, gso->dvec); /* make relative to center (center is stored in dvec) */
 		mul_m3_v3(rmat, vec);
 		add_v3_v3v3(&pt->x, vec, gso->dvec); /* restore */
+
+		/* compute lock axis */
+		gpsculpt_compute_lock_axis(gso, pt, save_pt);
 	}
 	else {
 		const float axis[3] = {0.0f, 0.0f, 1.0f};
@@ -654,10 +741,13 @@ static bool gp_brush_twist_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
 /* Randomize Brush */
 
 /* Apply some random jitter to the point */
-static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, int i,
-                                     const int radius, const int co[2])
+static bool gp_brush_randomize_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
 {
-	bGPDspoint *pt = gps->points + i;
+	bGPDspoint *pt = gps->points + pt_index;
+	float save_pt[3];
+	copy_v3_v3(save_pt, &pt->x);
 
 	/* Amount of jitter to apply depends on the distance of the point to the cursor,
 	 * as well as the strength of the brush
@@ -665,9 +755,11 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 	const float inf = gp_brush_influence_calc(gso, radius, co) / 2.0f;
 	const float fac = BLI_rng_get_float(gso->rng) * inf;
 	/* need one flag enabled by default */
-	if ((gso->settings->flag & (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
-	                            GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
-	                            GP_BRUSHEDIT_FLAG_APPLY_THICKNESS)) == 0)
+	if ((gso->settings->flag &
+	     (GP_BRUSHEDIT_FLAG_APPLY_POSITION |
+	      GP_BRUSHEDIT_FLAG_APPLY_STRENGTH |
+	      GP_BRUSHEDIT_FLAG_APPLY_THICKNESS |
+	      GP_BRUSHEDIT_FLAG_APPLY_UV)) == 0)
 	{
 		gso->settings->flag |= GP_BRUSHEDIT_FLAG_APPLY_POSITION;
 	}
@@ -710,6 +802,8 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 					float dvec[3];
 					ED_view3d_win_to_delta(gso->gsc.ar, svec, dvec, zfac);
 					add_v3_v3(&pt->x, dvec);
+					/* compute lock axis */
+					gpsculpt_compute_lock_axis(gso, pt, save_pt);
 				}
 			}
 			else {
@@ -749,10 +843,75 @@ static bool gp_brush_randomize_apply(tGP_BrushEditData *gso, bGPDstroke *gps, in
 		/* only limit lower value */
 		CLAMP_MIN(pt->pressure, 0.0f);
 	}
+	/* apply random to UV (use pressure) */
+	if (gso->settings->flag & GP_BRUSHEDIT_FLAG_APPLY_UV) {
+		if (BLI_rng_get_float(gso->rng) > 0.5f) {
+			pt->uv_rot += fac;
+		}
+		else {
+			pt->uv_rot -= fac;
+		}
+		CLAMP(pt->uv_rot, -M_PI_2, M_PI_2);
+	}
 
 	/* done */
 	return true;
 }
+
+/* Weight Paint Brush */
+
+/* Change weight paint for vertex groups */
+static bool gp_brush_weight_apply(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2])
+{
+	bGPDspoint *pt = gps->points + pt_index;
+	MDeformVert *dvert = gps->dvert + pt_index;
+	float inf;
+
+	/* Compute strength of effect
+	* - We divide the strength by 10, so that users can set "sane" values.
+	*   Otherwise, good default values are in the range of 0.093
+	*/
+	inf = gp_brush_influence_calc(gso, radius, co) / 10.0f;
+
+	/* need a vertex group */
+	if (gso->vrgroup == -1) {
+		if (gso->object) {
+			BKE_object_defgroup_add(gso->object);
+			gso->vrgroup = 0;
+		}
+	}
+	/* get current weight */
+	float curweight = 0.0f;
+	for (int i = 0; i < dvert->totweight; i++) {
+		MDeformWeight *gpw = &dvert->dw[i];
+		if (gpw->def_nr == gso->vrgroup) {
+			curweight = gpw->weight;
+			break;
+		}
+	}
+
+	if (gp_brush_invert_check(gso)) {
+		/* reduce weight */
+		curweight -= inf;
+	}
+	else {
+		/* increase weight */
+		curweight += inf;
+	}
+
+	CLAMP(curweight, 0.0f, 1.0f);
+	BKE_gpencil_vgroup_add_point_weight(dvert, gso->vrgroup, curweight);
+
+	/* weight should stay within [0.0, 1.0]	*/
+	if (pt->pressure < 0.0f)
+		pt->pressure = 0.0f;
+
+	return true;
+}
+
+
 
 /* ************************************************ */
 /* Non Callback-Based Brushes */
@@ -827,7 +986,7 @@ static void gp_brush_clone_init(bContext *C, tGP_BrushEditData *gso)
 	/* Init colormap for mapping between the pasted stroke's source colour(names)
 	 * and the final colours that will be used here instead...
 	 */
-	data->new_colors = gp_copybuf_validate_colormap(gso->gpd);
+	data->new_colors = gp_copybuf_validate_colormap(C);
 }
 
 /* Free custom data used for "clone" brush */
@@ -857,9 +1016,12 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 {
 	tGPSB_CloneBrushData *data = gso->customdata;
 
-	Scene *scene = gso->scene;
+	Object *ob = CTX_data_active_object(C);
 	bGPDlayer *gpl = CTX_data_active_gpencil_layer(C);
-	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	int cfra_eval = (int)DEG_get_ctime(depsgraph);
+
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, true);
 	bGPDstroke *gps;
 
 	float delta[3];
@@ -882,17 +1044,22 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 			new_stroke = MEM_dupallocN(gps);
 
 			new_stroke->points = MEM_dupallocN(gps->points);
+			new_stroke->dvert = MEM_dupallocN(gps->dvert);
+			BKE_gpencil_stroke_weights_duplicate(gps, new_stroke);
 			new_stroke->triangles = MEM_dupallocN(gps->triangles);
 
 			new_stroke->next = new_stroke->prev = NULL;
 			BLI_addtail(&gpf->strokes, new_stroke);
 
 			/* Fix color references */
-			BLI_assert(new_stroke->colorname[0] != '\0');
-			new_stroke->palcolor = BLI_ghash_lookup(data->new_colors, new_stroke->colorname);
-
-			BLI_assert(new_stroke->palcolor != NULL);
-			BLI_strncpy(new_stroke->colorname, new_stroke->palcolor->info, sizeof(new_stroke->colorname));
+			Material *ma = BLI_ghash_lookup(data->new_colors, &new_stroke->mat_nr);
+			if ((ma) && (BKE_object_material_slot_find_index(ob, ma) > 0)) {
+				gps->mat_nr = BKE_object_material_slot_find_index(ob, ma) - 1;
+				CLAMP_MIN(gps->mat_nr, 0);
+			}
+			else {
+				gps->mat_nr = 0; /* only if the color is not found */
+			}
 
 			/* Adjust all the stroke's points, so that the strokes
 			 * get pasted relative to where the cursor is now
@@ -977,57 +1144,6 @@ static bool gpsculpt_brush_apply_clone(bContext *C, tGP_BrushEditData *gso)
 }
 
 /* ************************************************ */
-/* Cursor drawing */
-
-/* Helper callback for drawing the cursor itself */
-static void gp_brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata))
-{
-	GP_EditBrush_Data *brush = gpsculpt_get_brush(CTX_data_scene(C));
-
-	if (brush) {
-		GPUVertFormat *format = immVertexFormat();
-		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-		GPU_line_smooth(true);
-		GPU_blend(true);
-
-		/* Inner Ring: Light color for action of the brush */
-		/* TODO: toggle between add and remove? */
-		immUniformColor4ub(255, 255, 255, 200);
-		imm_draw_circle_wire_2d(pos, x, y, brush->size, 40);
-
-		/* Outer Ring: Dark color for contrast on light backgrounds (e.g. gray on white) */
-		immUniformColor3ub(30, 30, 30);
-		imm_draw_circle_wire_2d(pos, x, y, brush->size + 1, 40);
-
-		immUnbindProgram();
-
-		GPU_blend(false);
-		GPU_line_smooth(false);
-	}
-}
-
-/* Turn brush cursor in on/off */
-static void gpencil_toggle_brush_cursor(bContext *C, bool enable)
-{
-	GP_BrushEdit_Settings *gset = gpsculpt_get_settings(CTX_data_scene(C));
-
-	if (gset->paintcursor && !enable) {
-		/* clear cursor */
-		WM_paint_cursor_end(CTX_wm_manager(C), gset->paintcursor);
-		gset->paintcursor = NULL;
-	}
-	else if (enable) {
-		/* enable cursor */
-		gset->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-		                                             NULL,
-		                                             gp_brush_drawcursor, NULL);
-	}
-}
-
-
-/* ************************************************ */
 /* Header Info for GPencil Sculpt */
 
 static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
@@ -1054,17 +1170,40 @@ static void gpsculpt_brush_header_set(bContext *C, tGP_BrushEditData *gso)
 static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Object *ob = CTX_data_active_object(C);
+
+	const bool is_weight_mode = ob->mode == OB_MODE_GPENCIL_WEIGHT;
+	/* set the brush using the tool */
+	GP_BrushEdit_Settings *gset = &ts->gp_sculpt;
+	eGP_EditBrush_Types mode = RNA_enum_get(op->ptr, "mode");
+	const bool keep_brush = RNA_boolean_get(op->ptr, "keep_brush");
+
+	if (!keep_brush) {
+		if (is_weight_mode) {
+			gset->weighttype = mode;
+		}
+		else {
+			gset->brushtype = mode;
+		}
+	}
 	tGP_BrushEditData *gso;
 
 	/* setup operator data */
 	gso = MEM_callocN(sizeof(tGP_BrushEditData), "tGP_BrushEditData");
 	op->customdata = gso;
 
+	gso->depsgraph = CTX_data_depsgraph(C);
 	/* store state */
 	gso->settings = gpsculpt_get_settings(scene);
-	gso->brush = gpsculpt_get_brush(scene);
+	gso->brush = gpsculpt_get_brush(scene, is_weight_mode);
 
-	gso->brush_type = gso->settings->brushtype;
+	if (is_weight_mode) {
+		gso->brush_type = gso->settings->weighttype;
+	}
+	else {
+		gso->brush_type = gso->settings->brushtype;
+	}
 
 	/* Random generator, only init once. */
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
@@ -1078,9 +1217,30 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 	gso->cfra = INT_MAX; /* NOTE: So that first stroke will get handled in init_stroke() */
 
 	gso->scene = scene;
+	gso->object = ob;
+	if (ob) {
+		gso->vrgroup = ob->actdef - 1;
+		if (!BLI_findlink(&ob->defbase, gso->vrgroup)) {
+			gso->vrgroup = -1;
+		}
+	}
+	else {
+		gso->vrgroup = - 1;
+	}
 
 	gso->sa = CTX_wm_area(C);
 	gso->ar = CTX_wm_region(C);
+
+	/* multiframe settings */
+	gso->is_multiframe = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gso->gpd);
+	gso->use_multiframe_falloff = (ts->gp_sculpt.flag & GP_BRUSHEDIT_FLAG_FRAME_FALLOFF) != 0;
+
+	/* init multiedit falloff curve data before doing anything,
+	 * so we won't have to do it again later
+	 */
+	if (gso->is_multiframe) {
+		curvemapping_initialize(ts->gp_sculpt.cur_falloff);
+	}
 
 	/* initialise custom data for brushes */
 	switch (gso->brush_type) {
@@ -1133,9 +1293,10 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 	gpsculpt_brush_header_set(C, gso);
 
 	/* setup cursor drawing */
-	WM_cursor_modal_set(CTX_wm_window(C), BC_CROSSCURSOR);
-	gpencil_toggle_brush_cursor(C, true);
-
+	//WM_cursor_modal_set(CTX_wm_window(C), BC_CROSSCURSOR);
+	if (gso->sa->spacetype != SPACE_VIEW3D) {
+		ED_gpencil_toggle_brush_cursor(C, true, NULL);
+	}
 	return true;
 }
 
@@ -1179,7 +1340,12 @@ static void gpsculpt_brush_exit(bContext *C, wmOperator *op)
 	/* disable cursor and headerprints */
 	ED_workspace_status_text(C, NULL);
 	WM_cursor_modal_restore(win);
-	gpencil_toggle_brush_cursor(C, false);
+	if (gso->sa->spacetype != SPACE_VIEW3D) {
+		ED_gpencil_toggle_brush_cursor(C, false, NULL);
+	}
+
+	/* disable temp invert flag */
+	gso->brush->flag &= ~GP_EDITBRUSH_FLAG_TMP_INVERT;
 
 	/* free operator data */
 	MEM_freeN(gso);
@@ -1197,13 +1363,13 @@ static bool gpsculpt_brush_poll(bContext *C)
 
 static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
 {
-	Scene *scene = gso->scene;
 	bGPdata *gpd = gso->gpd;
+
 	bGPDlayer *gpl;
-	int cfra = CFRA;
+	int cfra_eval = (int)DEG_get_ctime(gso->depsgraph);
 
 	/* only try to add a new frame if this is the first stroke, or the frame has changed */
-	if ((gpd == NULL) || (cfra == gso->cfra))
+	if ((gpd == NULL) || (cfra_eval == gso->cfra))
 		return;
 
 	/* go through each layer, and ensure that we've got a valid frame to use */
@@ -1217,21 +1383,21 @@ static void gpsculpt_brush_init_stroke(tGP_BrushEditData *gso)
 			 *   spent too much time editing the wrong frame...
 			 */
 			// XXX: should this be allowed when framelock is enabled?
-			if (gpf->framenum != cfra) {
-				BKE_gpencil_frame_addcopy(gpl, cfra);
+			if (gpf->framenum != cfra_eval) {
+				BKE_gpencil_frame_addcopy(gpl, cfra_eval);
 			}
 		}
 	}
 
 	/* save off new current frame, so that next update works fine */
-	gso->cfra = cfra;
+	gso->cfra = cfra_eval;
 }
 
 /* Apply ----------------------------------------------- */
 
 /* Apply brush operation to points in this stroke */
 static bool gpsculpt_brush_do_stroke(
-        tGP_BrushEditData *gso, bGPDstroke *gps, bool parented,
+        tGP_BrushEditData *gso, bGPDstroke *gps,
         float diff_mat[4][4], GP_BrushApplyCb apply)
 {
 	GP_SpaceConversion *gsc = &gso->gsc;
@@ -1246,14 +1412,9 @@ static bool gpsculpt_brush_do_stroke(
 	bool changed = false;
 
 	if (gps->totpoints == 1) {
-		if (!parented) {
-			gp_point_to_xy(gsc, gps, gps->points, &pc1[0], &pc1[1]);
-		}
-		else {
-			bGPDspoint pt_temp;
-			gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
-			gp_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
-		}
+		bGPDspoint pt_temp;
+		gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
+		gp_point_to_xy(gsc, gps, &pt_temp, &pc1[0], &pc1[1]);
 
 		/* do boundbox check first */
 		if ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) {
@@ -1280,19 +1441,12 @@ static bool gpsculpt_brush_do_stroke(
 					continue;
 				}
 			}
-			if (!parented) {
-				gp_point_to_xy(gsc, gps, pt1, &pc1[0], &pc1[1]);
-				gp_point_to_xy(gsc, gps, pt2, &pc2[0], &pc2[1]);
-			}
-			else {
-				bGPDspoint npt;
-				gp_point_to_parent_space(pt1, diff_mat, &npt);
-				gp_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
+			bGPDspoint npt;
+			gp_point_to_parent_space(pt1, diff_mat, &npt);
+			gp_point_to_xy(gsc, gps, &npt, &pc1[0], &pc1[1]);
 
-				gp_point_to_parent_space(pt2, diff_mat, &npt);
-				gp_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
-			}
-
+			gp_point_to_parent_space(pt2, diff_mat, &npt);
+			gp_point_to_xy(gsc, gps, &npt, &pc2[0], &pc2[1]);
 
 			/* Check that point segment of the boundbox of the selection stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
@@ -1342,9 +1496,114 @@ static bool gpsculpt_brush_do_stroke(
 	return changed;
 }
 
+/* Apply sculpt brushes to strokes in the given frame */
+static bool gpsculpt_brush_do_frame(
+        bContext *C, tGP_BrushEditData *gso,
+        bGPDlayer *gpl, bGPDframe *gpf,
+        float diff_mat[4][4])
+{
+	bool changed = false;
+	Object *ob = CTX_data_active_object(C);
+
+	for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+		/* skip strokes that are invalid for current view */
+		if (ED_gpencil_stroke_can_use(C, gps) == false) {
+			continue;
+		}
+		/* check if the color is editable */
+		if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false) {
+			continue;
+		}
+
+		switch (gso->brush_type) {
+			case GP_EDITBRUSH_TYPE_SMOOTH: /* Smooth strokes */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_smooth_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_THICKNESS: /* Adjust stroke thickness */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_thickness_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_STRENGTH: /* Adjust stroke color strength */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_strength_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_GRAB: /* Grab points */
+			{
+				if (gso->first) {
+					/* First time this brush stroke is being applied:
+					 * 1) Prepare data buffers (init/clear) for this stroke
+					 * 2) Use the points now under the cursor
+					 */
+					gp_brush_grab_stroke_init(gso, gps);
+					changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_grab_store_points);
+				}
+				else {
+					/* Apply effect to the stored points */
+					gp_brush_grab_apply_cached(gso, gps, diff_mat);
+					changed |= true;
+				}
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_PUSH: /* Push points */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_push_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_PINCH: /* Pinch points */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_pinch_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_TWIST: /* Twist points around midpoint */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_twist_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_RANDOMIZE: /* Apply jitter */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_randomize_apply);
+				break;
+			}
+
+			case GP_EDITBRUSH_TYPE_WEIGHT: /* Adjust vertex group weight */
+			{
+				changed |= gpsculpt_brush_do_stroke(gso, gps, diff_mat, gp_brush_weight_apply);
+				break;
+			}
+
+
+			default:
+				printf("ERROR: Unknown type of GPencil Sculpt brush - %u\n", gso->brush_type);
+				break;
+		}
+		/* Triangulation must be calculated if changed */
+		if (changed) {
+			gps->flag |= GP_STROKE_RECALC_CACHES;
+			gps->tot_triangles = 0;
+		}
+	}
+
+	return changed;
+}
+
 /* Perform two-pass brushes which modify the existing strokes */
 static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 {
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
+	Object *obact = gso->object;
+	bGPdata *gpd = gso->gpd;
 	bool changed = false;
 
 	/* Calculate brush-specific data which applies equally to all points */
@@ -1378,103 +1637,52 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 
 
 	/* Find visible strokes, and perform operations on those if hit */
-	float diff_mat[4][4];
-	bool parented = false;
-
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		bGPDframe *gpf = gpl->actframe;
-		if (gpf == NULL)
+		/* If no active frame, don't do anything... */
+		if (gpl->actframe == NULL) {
 			continue;
-
-		/* calculate difference matrix if parent object */
-		if (gpl->parent != NULL) {
-			ED_gpencil_parent_location(gpl, diff_mat);
-			parented = true;
-		}
-		else {
-			parented = false;
 		}
 
-		for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-			/* skip strokes that are invalid for current view */
-			if (ED_gpencil_stroke_can_use(C, gps) == false)
-				continue;
-			/* check if the color is editable */
-			if (ED_gpencil_stroke_color_use(gpl, gps) == false) {
-				continue;
+		/* calculate difference matrix */
+		float diff_mat[4][4];
+		ED_gpencil_parent_location(depsgraph, obact, gpd, gpl, diff_mat);
+
+		/* Active Frame or MultiFrame? */
+		if (gso->is_multiframe) {
+			/* init multiframe falloff options */
+			int f_init = 0;
+			int f_end = 0;
+
+			if (gso->use_multiframe_falloff) {
+				BKE_gpencil_get_range_selected(gpl, &f_init, &f_end);
 			}
 
-			switch (gso->brush_type) {
-				case GP_EDITBRUSH_TYPE_SMOOTH: /* Smooth strokes */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_smooth_apply);
-					break;
-				}
-
-				case GP_EDITBRUSH_TYPE_THICKNESS: /* Adjust stroke thickness */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_thickness_apply);
-					break;
-				}
-
-				case GP_EDITBRUSH_TYPE_STRENGTH: /* Adjust stroke color strength */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_strength_apply);
-					break;
-				}
-
-				case GP_EDITBRUSH_TYPE_GRAB: /* Grab points */
-				{
-					if (gso->first) {
-						/* First time this brush stroke is being applied:
-						 * 1) Prepare data buffers (init/clear) for this stroke
-						 * 2) Use the points now under the cursor
-						 */
-						gp_brush_grab_stroke_init(gso, gps);
-						changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_grab_store_points);
+			for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+				/* Always do active frame; Otherwise, only include selected frames */
+				if ((gpf == gpl->actframe) || (gpf->flag & GP_FRAME_SELECT)) {
+					/* compute multiframe falloff factor */
+					if (gso->use_multiframe_falloff) {
+						/* Faloff depends on distance to active frame (relative to the overall frame range) */
+						gso->mf_falloff = BKE_gpencil_multiframe_falloff_calc(
+						                    gpf, gpl->actframe->framenum,
+						                    f_init, f_end,
+						                    ts->gp_sculpt.cur_falloff);
 					}
 					else {
-						/* Apply effect to the stored points */
-						gp_brush_grab_apply_cached(gso, gps, parented, diff_mat);
-						changed |= true;
+						/* No falloff */
+						gso->mf_falloff = 1.0f;
 					}
-					break;
-				}
 
-				case GP_EDITBRUSH_TYPE_PUSH: /* Push points */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_push_apply);
-					break;
+					/* affect strokes in this frame */
+					changed |= gpsculpt_brush_do_frame(C, gso, gpl, gpf, diff_mat);
 				}
-
-				case GP_EDITBRUSH_TYPE_PINCH: /* Pinch points */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_pinch_apply);
-					break;
-				}
-
-				case GP_EDITBRUSH_TYPE_TWIST: /* Twist points around midpoint */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_twist_apply);
-					break;
-				}
-
-				case GP_EDITBRUSH_TYPE_RANDOMIZE: /* Apply jitter */
-				{
-					changed |= gpsculpt_brush_do_stroke(gso, gps, parented, diff_mat, gp_brush_randomize_apply);
-					break;
-				}
-
-				default:
-					printf("ERROR: Unknown type of GPencil Sculpt brush - %u\n", gso->brush_type);
-					break;
 			}
-			/* Triangulation must be calculated if changed */
-			if (changed) {
-				gps->flag |= GP_STROKE_RECALC_CACHES;
-				gps->tot_triangles = 0;
-			}
+		}
+		else {
+			/* Apply to active frame's strokes */
+			gso->mf_falloff = 1.0f;
+			changed |= gpsculpt_brush_do_frame(C, gso, gpl, gpl->actframe, diff_mat);
 		}
 	}
 	CTX_DATA_END;
@@ -1529,6 +1737,7 @@ static void gpsculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *itempt
 
 	/* Updates */
 	if (changed) {
+		DEG_id_tag_update(&gso->gpd->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 	}
 
@@ -1852,6 +2061,7 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 
 	/* Redraw toolsettings (brush settings)? */
 	if (redraw_toolsettings) {
+		DEG_id_tag_update(&gso->gpd->id, OB_RECALC_DATA);
 		WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 	}
 
@@ -1860,6 +2070,19 @@ static int gpsculpt_brush_modal(bContext *C, wmOperator *op, const wmEvent *even
 
 
 /* Operator --------------------------------------------- */
+static const EnumPropertyItem prop_gpencil_sculpt_brush_items[] = {
+	{GP_EDITBRUSH_TYPE_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth stroke points" },
+	{GP_EDITBRUSH_TYPE_THICKNESS, "THICKNESS", 0, "Thickness", "Adjust thickness of strokes" },
+	{GP_EDITBRUSH_TYPE_STRENGTH, "STRENGTH", 0, "Strength", "Adjust color strength of strokes" },
+	{GP_EDITBRUSH_TYPE_GRAB, "GRAB", 0, "Grab", "Translate the set of points initially within the brush circle" },
+	{GP_EDITBRUSH_TYPE_PUSH, "PUSH", 0, "Push", "Move points out of the way, as if combing them" },
+	{GP_EDITBRUSH_TYPE_TWIST, "TWIST", 0, "Twist", "Rotate points around the midpoint of the brush" },
+	{GP_EDITBRUSH_TYPE_PINCH, "PINCH", 0, "Pinch", "Pull points towards the midpoint of the brush" },
+	{GP_EDITBRUSH_TYPE_RANDOMIZE, "RANDOMIZE", 0, "Randomize", "Introduce jitter/randomness into strokes" },
+	{GP_EDITBRUSH_TYPE_CLONE, "CLONE", 0, "Clone", "Paste copies of the strokes stored on the clipboard" },
+	{GP_EDITBRUSH_TYPE_WEIGHT, "WEIGHT", 0, "Weight", "Weight Paint" },
+	{0, NULL, 0, NULL, NULL }
+};
 
 void GPENCIL_OT_brush_paint(wmOperatorType *ot)
 {
@@ -1879,13 +2102,20 @@ void GPENCIL_OT_brush_paint(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "mode", prop_gpencil_sculpt_brush_items, 0, "Mode", "Brush mode");
+	RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 	PropertyRNA *prop;
 	prop = RNA_def_collection_runtime(ot->srna, "stroke", &RNA_OperatorStrokeElement, "Stroke", "");
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	prop = RNA_def_boolean(ot->srna, "wait_for_input", true, "Wait for Input",
 	                       "Enter a mini 'sculpt-mode' if enabled, otherwise, exit after drawing a single stroke");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	prop = RNA_def_boolean(ot->srna, "keep_brush", false, "Keep Brush",
+		"Keep current brush activated");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /* ************************************************ */

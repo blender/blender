@@ -90,10 +90,12 @@ typedef struct MPATH_Data {
 	MPATH_StorageList *stl;
 } MPATH_Data;
 
-struct {
+#if 0
+static struct {
 	GPUShader *mpath_line_sh;
 	GPUShader *mpath_points_sh;
 } e_data = {0};
+#endif
 
 /* *************************** Path Cache *********************************** */
 
@@ -322,12 +324,19 @@ static void MPATH_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
+	if (DRW_pass_is_empty(psl->lines) &&
+	    DRW_pass_is_empty(psl->points))
+	{
+		/* Nothing to draw. */
+		return;
+	}
+
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
 	DRW_draw_pass(psl->lines);
 	DRW_draw_pass(psl->points);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_DISABLE_NO_DEPTH(dfbl, dtxl)
 }
 
 /* *************************** Draw Engine Defines ****************************** */

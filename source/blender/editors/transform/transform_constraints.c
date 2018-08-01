@@ -560,7 +560,9 @@ static void applyObjectConstraintRot(
 
 		/* on setup call, use first object */
 		if (td == NULL) {
-			td = TRANS_DATA_CONTAINER_FIRST_OK(t)->data;
+			BLI_assert(tc == NULL);
+			tc = TRANS_DATA_CONTAINER_FIRST_OK(t);
+			td = tc->data;
 		}
 
 		if (t->flag & T_EDIT) {

@@ -29,20 +29,27 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_color.h"
 
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_gpencil_types.h"
 
 #include "BKE_brush.h"
 #include "BKE_context.h"
 #include "BKE_paint.h"
+#include "BKE_gpencil.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_paint.h"
 #include "ED_screen.h"
 #include "ED_image.h"
+#include "ED_gpencil.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -96,6 +103,43 @@ static void BRUSH_OT_add(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+static int brush_add_gpencil_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	/*int type = RNA_enum_get(op->ptr, "type");*/
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	Paint *paint = &ts->gp_paint->paint;
+	Brush *br = BKE_paint_brush(paint);
+	Main *bmain = CTX_data_main(C);
+	// ePaintMode mode = ePaintGpencil;
+
+	if (br) {
+		br = BKE_brush_copy(bmain, br);
+	}
+	else {
+		br = BKE_brush_add(bmain, "Brush", OB_MODE_GPENCIL_PAINT);
+		id_us_min(&br->id);  /* fake user only */
+	}
+
+	BKE_paint_brush_set(paint, br);
+
+	/* TODO init grease pencil specific data */
+
+	return OPERATOR_FINISHED;
+}
+
+static void BRUSH_OT_add_gpencil(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Add Drawing Brush";
+	ot->description = "Add brush for grease pencil";
+	ot->idname = "BRUSH_OT_add_gpencil";
+
+	/* api callbacks */
+	ot->exec = brush_add_gpencil_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
 
 static int brush_scale_size_exec(bContext *C, wmOperator *op)
 {
@@ -231,7 +275,6 @@ static void PALETTE_OT_color_add(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
-
 
 static int palette_color_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
@@ -1031,6 +1074,7 @@ void ED_operatortypes_paint(void)
 
 	/* brush */
 	WM_operatortype_append(BRUSH_OT_add);
+	WM_operatortype_append(BRUSH_OT_add_gpencil);
 	WM_operatortype_append(BRUSH_OT_scale_size);
 	WM_operatortype_append(BRUSH_OT_curve_preset);
 	WM_operatortype_append(BRUSH_OT_reset);

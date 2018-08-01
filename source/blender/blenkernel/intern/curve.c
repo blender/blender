@@ -1752,11 +1752,11 @@ void BKE_curve_bevel_make(
 				BKE_displist_make_curveTypes_forRender(depsgraph, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
 				dl = bevdisp.first;
 			}
-			else if (cu->bevobj->curve_cache) {
-				dl = cu->bevobj->curve_cache->disp.first;
+			else if (cu->bevobj->runtime.curve_cache) {
+				dl = cu->bevobj->runtime.curve_cache->disp.first;
 			}
 			else {
-				BLI_assert(cu->bevobj->curve_cache != NULL);
+				BLI_assert(cu->bevobj->runtime.curve_cache != NULL);
 				dl = NULL;
 			}
 
@@ -2669,14 +2669,14 @@ void BKE_curve_bevelList_make(Object *ob, ListBase *nurbs, bool for_render)
 		ELEM(cu->bevfac2_mapping, CU_BEVFAC_MAP_SEGMENT, CU_BEVFAC_MAP_SPLINE);
 
 
-	bev = &ob->curve_cache->bev;
+	bev = &ob->runtime.curve_cache->bev;
 
 	/* do we need to calculate the radius for each point? */
 	/* do_radius = (cu->bevobj || cu->taperobj || (cu->flag & CU_FRONT) || (cu->flag & CU_BACK)) ? 0 : 1; */
 
 	/* STEP 1: MAKE POLYS  */
 
-	BKE_curve_bevelList_free(&ob->curve_cache->bev);
+	BKE_curve_bevelList_free(&ob->runtime.curve_cache->bev);
 	nu = nurbs->first;
 	if (cu->editnurb && ob->type != OB_FONT) {
 		is_editmode = 1;
