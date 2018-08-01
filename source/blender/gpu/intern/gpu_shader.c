@@ -580,7 +580,10 @@ void GPU_shader_transform_feedback_disable(GPUShader *UNUSED(shader))
 
 void GPU_shader_free(GPUShader *shader)
 {
+#if 0 /* Would be nice to have, but for now the Deferred compilation
+       * does not have a GPUContext. */
 	BLI_assert(GPU_context_active_get() != NULL);
+#endif
 	BLI_assert(shader);
 
 	if (shader->vertex)
