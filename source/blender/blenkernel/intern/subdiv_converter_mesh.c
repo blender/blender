@@ -110,6 +110,12 @@ static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
 	return BKE_subdiv_converter_fvar_linear_from_settings(&storage->settings);
 }
 
+static bool specifies_full_topology(
+        const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return false;
+}
+
 static int get_num_faces(const OpenSubdiv_Converter *converter)
 {
 	ConverterStorage *storage = converter->user_data;
@@ -480,8 +486,8 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
 static void init_functions(OpenSubdiv_Converter *converter)
 {
 	converter->getSchemeType = get_scheme_type;
-
 	converter->getFVarLinearInterpolation = get_fvar_linear_interpolation;
+	converter->specifiesFullTopology = specifies_full_topology;
 
 	converter->getNumFaces = get_num_faces;
 	converter->getNumEdges = get_num_edges;

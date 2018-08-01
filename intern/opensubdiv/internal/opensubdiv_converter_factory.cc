@@ -48,13 +48,20 @@ TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
     TopologyRefiner& refiner,
     const TopologyRefinerData& cb_data) {
   const OpenSubdiv_Converter* converter = cb_data.converter;
-  /// Faces and face-vertices.
+  // Faces and face-vertices.
   const int num_faces = converter->getNumFaces(converter);
   setNumBaseFaces(refiner, num_faces);
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     const int num_face_vertices =
         converter->getNumFaceVertices(converter, face_index);
     setNumBaseFaceVertices(refiner, face_index, num_face_vertices);
+  }
+  // Vertices.
+  const int num_vertices = converter->getNumVertices(converter);
+  setNumBaseVertices(refiner, num_vertices);
+  // If converter does not provide full topology, we are done.
+  if (!converter->specifiesFullTopology(converter)) {
+    return true;
   }
   // Edges and edge-faces.
   const int num_edges = converter->getNumEdges(converter);
@@ -64,9 +71,7 @@ TopologyRefinerFactory<TopologyRefinerData>::resizeComponentTopology(
         converter->getNumEdgeFaces(converter, edge_index);
     setNumBaseEdgeFaces(refiner, edge_index, num_edge_faces);
   }
-  // Vertices and vertex-faces and vertex-edges.
-  const int num_vertices = converter->getNumVertices(converter);
-  setNumBaseVertices(refiner, num_vertices);
+  // Vertex-faces and vertex-edges.
   for (int vertex_index = 0; vertex_index < num_vertices; ++vertex_index) {
     const int num_vert_edges =
         converter->getNumVertexEdges(converter, vertex_index);
@@ -85,13 +90,21 @@ TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
     const TopologyRefinerData& cb_data) {
   using Far::IndexArray;
   const OpenSubdiv_Converter* converter = cb_data.converter;
+  const bool full_topology_specified =
+          converter->specifiesFullTopology(converter);
   // Face relations.
   const int num_faces = converter->getNumFaces(converter);
   for (int face_index = 0; face_index < num_faces; ++face_index) {
     IndexArray dst_face_verts = getBaseFaceVertices(refiner, face_index);
     converter->getFaceVertices(converter, face_index, &dst_face_verts[0]);
-    IndexArray dst_face_edges = getBaseFaceEdges(refiner, face_index);
-    converter->getFaceEdges(converter, face_index, &dst_face_edges[0]);
+    if (full_topology_specified) {
+      IndexArray dst_face_edges = getBaseFaceEdges(refiner, face_index);
+      converter->getFaceEdges(converter, face_index, &dst_face_edges[0]);
+    }
+  }
+  // If converter does not provide full topology, we are done.
+  if (!full_topology_specified) {
+    return true;
   }
   // Edge relations.
   const int num_edges = converter->getNumEdges(converter);
@@ -103,7 +116,7 @@ TopologyRefinerFactory<TopologyRefinerData>::assignComponentTopology(
     IndexArray dst_edge_faces = getBaseEdgeFaces(refiner, edge_index);
     converter->getEdgeFaces(converter, edge_index, &dst_edge_faces[0]);
   }
-// TODO(sergey): Find a way to move this to an utility function.
+  // TODO(sergey): Find a way to move this to an utility function.
 #ifdef OPENSUBDIV_ORIENT_TOPOLOGY
   // Make face normals consistent.
   std::vector<bool> face_used(num_faces, false);
@@ -333,11 +346,28 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     const TopologyRefinerData& cb_data) {
   using OpenSubdiv::Sdc::Crease;
   const OpenSubdiv_Converter* converter = cb_data.converter;
+  const bool full_topology_specified =
+          converter->specifiesFullTopology(converter);
   const int num_edges = converter->getNumEdges(converter);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const float sharpness =
         converter->getEdgeSharpness(converter, edge_index);
-    setBaseEdgeSharpness(refiner, edge_index, sharpness);
+    if (sharpness < 1e-6f) {
+      continue;
+    }
+    if (full_topology_specified) {
+      setBaseEdgeSharpness(refiner, edge_index, sharpness);
+    } else {
+      int edge_vertices[2];
+      converter->getEdgeVertices(converter, edge_index, edge_vertices);
+      const int base_edge_index = findBaseEdge(
+          refiner, edge_vertices[0], edge_vertices[1]);
+      if (base_edge_index == OpenSubdiv::Far::INDEX_INVALID) {
+        printf("OpenSubdiv Error: failed to find reconstructed edge\n");
+        return false;
+      }
+      setBaseEdgeSharpness(refiner, base_edge_index, sharpness);
+    }
   }
   // OpenSubdiv expects non-manifold vertices to be sharp but at the time it
   // handles correct cases when vertex is a corner of plane. Currently mark
@@ -351,8 +381,8 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
           refiner, vertex_index, Crease::SHARPNESS_INFINITE);
     } else if (vertex_edges.size() == 2) {
       const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
-      const float sharpness0 = converter->getEdgeSharpness(converter, edge0);
-      const float sharpness1 = converter->getEdgeSharpness(converter, edge1);
+      const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
+      const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
       const float sharpness = std::min(sharpness0, sharpness1);
       setBaseVertexSharpness(refiner, vertex_index, sharpness);
     }

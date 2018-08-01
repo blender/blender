@@ -34,6 +34,17 @@ typedef struct OpenSubdiv_Converter {
   OpenSubdiv_FVarLinearInterpolation (*getFVarLinearInterpolation)(
       const struct OpenSubdiv_Converter* converter);
 
+  // Denotes whether this converter specifies full topology, which includes
+  // vertices, edges, faces, vertices+edges of a face and edges/faces of a
+  // vertex.
+  // Otherwise this converter will only provide number of vertices and faces,
+  // and vertices of faces. The rest of topology will be created by OpenSubdiv.
+  //
+  // NOTE: Even if converter does not provide full topology, it still needs
+  // to provide number of edges and vertices-of-edge. Those are used to assign
+  // topology tags.
+  bool (*specifiesFullTopology)(const struct OpenSubdiv_Converter* converter);
+
   //////////////////////////////////////////////////////////////////////////////
   // Global geometry counters.
 
