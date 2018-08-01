@@ -195,7 +195,7 @@ class _defs_annotate:
             layout.separator()
 
             row = layout.row(align=True)
-            row.prop(ts, "annotation_stroke_placement_view3d", text="Orientation")
+            row.prop(ts, "annotation_stroke_placement_view3d", text="Placement")
             if ts.gpencil_stroke_placement_view3d == 'CURSOR':
                 row.prop(ts.gpencil_sculpt, "lockaxis")
             elif ts.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
