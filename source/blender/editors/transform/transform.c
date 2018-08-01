@@ -4636,7 +4636,12 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 			if (t->options & CTX_GPENCIL_STROKES) {
 				/* grease pencil multiframe falloff */
 				bGPDstroke *gps = (bGPDstroke *)td->extra;
-				mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
+				if (gps != NULL) {
+					mul_v3_fl(tvec, td->factor * gps->runtime.multi_frame_falloff);
+				}
+				else {
+					mul_v3_fl(tvec, td->factor);
+				}
 			}
 			else {
 				/* proportional editing falloff */
