@@ -1192,7 +1192,7 @@ void GPENCIL_OT_stroke_change_color(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Change Stroke Color";
 	ot->idname = "GPENCIL_OT_stroke_change_color";
-	ot->description = "Move selected strokes to active color";
+	ot->description = "Move selected strokes to active material";
 
 	/* callbacks */
 	ot->exec = gp_stroke_change_color_exec;

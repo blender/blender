@@ -204,7 +204,7 @@ class GreasePencilStrokeEditPanel:
         layout.separator()
         col = layout.column(align=True)
         col.operator_menu_enum("gpencil.stroke_arrange", text="Arrange Strokes...", property="direction")
-        col.operator("gpencil.stroke_change_color", text="Move to Color")
+        col.operator("gpencil.stroke_change_color", text="Assign Material")
 
         layout.separator()
         col = layout.column(align=True)

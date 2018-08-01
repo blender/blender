@@ -3583,7 +3583,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
-        layout.operator("gpencil.stroke_change_color", text="Change Color")
+        layout.operator("gpencil.stroke_change_color", text="Assign Material")
         layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes...")
 
         layout.separator()
@@ -3633,7 +3633,7 @@ class VIEW3D_MT_sculpt_gpencil(Menu):
         layout.separator()
 
         layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
-        layout.operator("gpencil.stroke_change_color", text="Change Color")
+        layout.operator("gpencil.stroke_change_color", text="Assign Material")
         layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes...")
 
         layout.separator()
