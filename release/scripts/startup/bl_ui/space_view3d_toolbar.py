@@ -1615,7 +1615,6 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
 
 # Grease Pencil create shapes
 class VIEW3D_PT_tools_grease_pencil_shapes(View3DPanel, Panel):
->>>>>>> blender2.8
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Shapes"

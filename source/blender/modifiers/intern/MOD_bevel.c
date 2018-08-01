@@ -143,13 +143,14 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, const fl
 					BMEdge *e_next;
 					const BMEdge *e_org = l_cur->e;
 					BMLoop *lfan_pivot, *lfan_pivot_next;
+					UNUSED_VARS_NDEBUG(v_pivot);
 
 					lfan_pivot = l_cur;
 					e_next = lfan_pivot->e;
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float cn_wght[3] = { 0.0f, 0.0f, 0.0f };
 					int recon_face_count = 0;					/* Reconstructed face */
-					BMFace *recon_face;
+					BMFace *recon_face = NULL;
 
 					while (true) {
 						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
@@ -165,7 +166,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, const fl
 						if (bmd->lim_flags & MOD_BEVEL_WEIGHT) {
 							int weight = BM_elem_float_data_get(&bm->edata, lfan_pivot->f, CD_BWEIGHT);
 							if (weight) {
-								if (bmd->hnmode == MOD_BEVEL_HN_FACE) {
+								if (hnmode == MOD_BEVEL_HN_FACE) {
 									float cur[3];
 									mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
 									add_v3_v3(cn_wght, cur);
@@ -180,7 +181,7 @@ static void bevel_mod_harden_normals(BevelModifierData *bmd, BMesh *bm, const fl
 						else if (bmd->lim_flags & MOD_BEVEL_VGROUP) {
 							const bool has_vgroup = dvert != NULL;
 							const bool vert_of_group = has_vgroup && defvert_find_index(&dvert[BM_elem_index_get(l->v)], vgroup) != NULL;
-							if (vert_of_group && bmd->hnmode == MOD_BEVEL_HN_FACE) {
+							if (vert_of_group && hnmode == MOD_BEVEL_HN_FACE) {
 								float cur[3];
 								mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
 								add_v3_v3(cn_wght, cur);
