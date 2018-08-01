@@ -188,10 +188,8 @@ class _defs_annotate:
     def draw_settings_common(cls, context, layout, tool):
         ts = context.tool_settings
 
-        # For 3D view, show the stroke placement settings
-        # XXX: How to tell what editor the active tool comes from?
-        is_3d_view = True
-        if is_3d_view:
+        space_type = tool.space_type
+        if space_type == 'VIEW_3D':
             layout.separator()
 
             row = layout.row(align=True)
