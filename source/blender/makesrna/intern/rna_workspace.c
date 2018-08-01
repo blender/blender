@@ -224,6 +224,12 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Index", "");
 	RNA_def_property_int_funcs(prop, "rna_WorkspaceTool_index_get", NULL, NULL);
 
+	prop = RNA_def_property(srna, "space_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "space_type");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
+	RNA_def_property_ui_text(prop, "Space Type", "");
+
 	RNA_api_workspace_tool(srna);
 }
 
