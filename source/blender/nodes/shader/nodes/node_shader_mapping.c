@@ -88,13 +88,18 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	TexMapping *texmap = node->storage;
 	float domin = (texmap->flag & TEXMAP_CLIP_MIN) != 0;
 	float domax = (texmap->flag & TEXMAP_CLIP_MAX) != 0;
-	GPUNodeLink *tmat = GPU_uniform((float *)texmap->mat);
-	GPUNodeLink *tmin = GPU_uniform(texmap->min);
-	GPUNodeLink *tmax = GPU_uniform(texmap->max);
-	GPUNodeLink *tdomin = GPU_uniform(&domin);
-	GPUNodeLink *tdomax = GPU_uniform(&domax);
+	static float max[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX, 0.0};
+	static float min[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX, 0.0};
+	GPUNodeLink *tmin, *tmax, *tmat0, *tmat1, *tmat2, *tmat3;
 
-	GPU_stack_link(mat, node, "mapping", in, out, tmat, tmin, tmax, tdomin, tdomax);
+	tmin = GPU_uniform_buffer((domin) ? texmap->min : min, GPU_VEC3);
+	tmax = GPU_uniform_buffer((domax) ? texmap->max : max, GPU_VEC3);
+	tmat0 = GPU_uniform_buffer((float *)texmap->mat[0], GPU_VEC4);
+	tmat1 = GPU_uniform_buffer((float *)texmap->mat[1], GPU_VEC4);
+	tmat2 = GPU_uniform_buffer((float *)texmap->mat[2], GPU_VEC4);
+	tmat3 = GPU_uniform_buffer((float *)texmap->mat[3], GPU_VEC4);
+
+	GPU_stack_link(mat, node, "mapping", in, out, tmat0, tmat1, tmat2, tmat3, tmin, tmax);
 
 	if (texmap->type == TEXMAP_TYPE_NORMAL)
 		GPU_link(mat, "texco_norm", out[0].link, &out[0].link);

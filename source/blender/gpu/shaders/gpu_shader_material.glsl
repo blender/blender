@@ -238,13 +238,11 @@ void point_map_to_tube(vec3 vin, out vec3 vout)
 	vout = vec3(u, v, 0.0);
 }
 
-void mapping(vec3 vec, mat4 mat, vec3 minvec, vec3 maxvec, float domin, float domax, out vec3 outvec)
+void mapping(vec3 vec, vec4 m0, vec4 m1, vec4 m2, vec4 m3, vec3 minvec, vec3 maxvec, out vec3 outvec)
 {
+	mat4 mat = mat4(m0, m1, m2, m3);
 	outvec = (mat * vec4(vec, 1.0)).xyz;
-	if (domin == 1.0)
-		outvec = max(outvec, minvec);
-	if (domax == 1.0)
-		outvec = min(outvec, maxvec);
+	outvec = clamp(outvec, minvec, maxvec);
 }
 
 void camera(vec3 co, out vec3 outview, out float outdepth, out float outdist)
