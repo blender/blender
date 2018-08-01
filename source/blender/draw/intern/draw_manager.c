@@ -1658,7 +1658,6 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 	RenderData *r = &scene->r;
 	Render *render = engine->re;
 	/* Changing Context */
-	/* GPXX Review this context */
 	if (G.background && DST.gl_context == NULL) {
 		WM_init_opengl(G_MAIN);
 	}
