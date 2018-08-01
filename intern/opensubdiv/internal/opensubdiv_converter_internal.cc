@@ -84,13 +84,4 @@ getCAPIFVarLinearInterpolationFromOSD(
   return OSD_FVAR_LINEAR_INTERPOLATION_NONE;
 }
 
-float getCompatibleEdgeSharpness(const OpenSubdiv_Converter* converter,
-                                 int edge_index) {
-  if (converter->getNumEdgeFaces(converter, edge_index) == 2) {
-    return converter->getEdgeSharpness(converter, edge_index);
-  } else {
-    return OpenSubdiv::Sdc::Crease::SHARPNESS_INFINITE;
-  }
-}
-
 }  // namespace opensubdiv_capi

@@ -336,7 +336,7 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
   const int num_edges = converter->getNumEdges(converter);
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const float sharpness =
-        opensubdiv_capi::getCompatibleEdgeSharpness(converter, edge_index);
+        converter->getEdgeSharpness(converter, edge_index);
     setBaseEdgeSharpness(refiner, edge_index, sharpness);
   }
   // OpenSubdiv expects non-manifold vertices to be sharp but at the time it

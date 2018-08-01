@@ -46,10 +46,6 @@ OpenSubdiv_FVarLinearInterpolation
 getCAPIFVarLinearInterpolationFromOSD(
      OpenSubdiv::Sdc::Options::FVarLinearInterpolation linear_interpolation);
 
-// Get edge sharpness in a way which makes OpenSubdiv happy.
-float getCompatibleEdgeSharpness(const OpenSubdiv_Converter* converter,
-                                 int edge_index);
-
 }  // namespace opensubdiv_capi
 
 #endif  // OPENSUBDIV_CONVERTER_INTERNAL_H_

@@ -340,7 +340,7 @@ bool checkEdgeSharpnessMatch(
   for (int edge_index = 0; edge_index < num_edges; ++edge_index) {
     const float sharpness = base_level.GetEdgeSharpness(edge_index);
     const float conv_sharpness =
-        opensubdiv_capi::getCompatibleEdgeSharpness(converter, edge_index);
+        converter->getEdgeSharpness(converter, edge_index);
     if (sharpness != conv_sharpness) {
       return false;
     }
