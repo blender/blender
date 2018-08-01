@@ -1659,7 +1659,24 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 	Render *render = engine->re;
 	/* Changing Context */
 	/* GPXX Review this context */
-	DRW_opengl_context_enable();
+	if (G.background && DST.gl_context == NULL) {
+		WM_init_opengl(G_MAIN);
+	}
+
+	void *re_gl_context = RE_gl_context_get(render);
+	void *re_gpu_context = NULL;
+
+	/* Changing Context */
+	if (re_gl_context != NULL) {
+		DRW_opengl_render_context_enable(re_gl_context);
+		/* We need to query gpu context after a gl context has been bound. */
+		re_gpu_context = RE_gpu_context_get(render);
+		DRW_gawain_render_context_enable(re_gpu_context);
+	}
+	else {
+		DRW_opengl_context_enable();
+	}
+
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
 	DST.options.is_image_render = true;
