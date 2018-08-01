@@ -1522,14 +1522,17 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
         gp_settings = brush.gpencil_settings
         layout.active = gp_settings.enable_settings
 
-        layout.prop(gp_settings, "pen_smooth_factor")
-        layout.prop(gp_settings, "pen_smooth_steps")
+        col = layout.column(align=True)
+        col.prop(gp_settings, "pen_smooth_factor")
+        col.prop(gp_settings, "pen_thick_smooth_factor")
 
-        layout.prop(gp_settings, "pen_thick_smooth_factor")
-        layout.prop(gp_settings, "pen_thick_smooth_steps")
+        col = layout.column(align=True)
+        col.prop(gp_settings, "pen_smooth_steps")
+        col.prop(gp_settings, "pen_thick_smooth_steps")
 
-        layout.prop(gp_settings, "pen_subdivision_steps")
-        layout.prop(gp_settings, "random_subdiv", text="Randomness", slider=True)
+        col = layout.column(align=True)
+        col.prop(gp_settings, "pen_subdivision_steps")
+        col.prop(gp_settings, "random_subdiv", text="Randomness", slider=True)
 
 
 class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
