@@ -245,6 +245,7 @@ void VIEW3D_OT_toggle_matcap_flip(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = toggle_matcap_flip;
+	ot->poll = ED_operator_view3d_active;
 }
 
 /** \} */
