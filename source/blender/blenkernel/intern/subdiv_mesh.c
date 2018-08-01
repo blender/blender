@@ -380,47 +380,6 @@ static void loops_of_ptex_get(
 }
 
 /* =============================================================================
- * Edge custom data copy helpers.
- */
-
-#if 0
-
-typedef struct EdgesOfPtex {
-	/* First edge of the ptex, starts at ptex (0, 0) and goes in u direction. */
-	const MEdge *first_edge;
-	/* Last edge of the ptex, starts at ptex (0, 0) and goes in v direction. */
-	const MEdge *last_edge;
-	/* For quad coarse faces only. */
-	const MEdge *second_edge;
-	const MEdge *third_edge;
-} EdgesOfPtex;
-
-static void edges_of_ptex_get(
-        const SubdivMeshContext *ctx,
-        EdgesOfPtex *edges_of_ptex,
-        const MPoly *coarse_poly,
-        const int ptex_face_index)
-{
-	const MEdge *coarse_medge = ctx->coarse_mesh->medge;
-	LoopsOfPtex loops_of_ptex;
-	loops_of_ptex_get(ctx, &loops_of_ptex, coarse_poly, ptex_face_index);
-	edges_of_ptex->first_edge = &coarse_medge[loops_of_ptex.first_loop->e];
-	edges_of_ptex->last_edge = &coarse_medge[loops_of_ptex.last_loop->e];
-	if (coarse_poly->totloop == 4) {
-		edges_of_ptex->second_edge =
-		        &coarse_medge[loops_of_ptex.second_loop->e];
-		edges_of_ptex->third_edge =
-		        &coarse_medge[loops_of_ptex.third_loop->e];
-	}
-	else {
-		edges_of_ptex->second_edge = NULL;
-		edges_of_ptex->third_edge = NULL;
-	}
-}
-
-#endif
-
-/* =============================================================================
  * Vertex custom data interpolation helpers.
  */
 
@@ -2258,7 +2217,6 @@ Mesh *BKE_subdiv_to_mesh(
         const SubdivToMeshSettings *settings,
         const Mesh *coarse_mesh)
 {
-	// printf("================ MESH SUBDIVISION ================\n");
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
 	/* Make sure evaluator is up to date with possible new topology, and that
 	 * is is refined for the new positions of coarse vertices.
