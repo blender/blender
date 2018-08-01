@@ -394,26 +394,20 @@ class INFO_MT_render(Menu):
         props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
         props.use_viewport = True
-        layout.operator("sound.mixdown", text="Render Audio", icon='PLAY_AUDIO')
 
         layout.separator()
 
+        layout.operator("sound.mixdown", text="Render Audio...")
+
+        layout.separator()
+
+        layout.operator("render.view_show", text="View Render")
+        layout.operator("render.play_rendered_anim", text="View Animation")
         layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
+
+        layout.separator()
+
         layout.prop(rd, "use_lock_interface", text="Lock Interface")
-
-        layout.separator()
-
-        props = layout.operator("render.opengl", text="OpenGL Render Image", icon='RENDER_STILL')
-        props.view_context = False
-        props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
-        props.view_context = False
-        props.animation = True
-        layout.menu("INFO_MT_opengl_render")
-
-        layout.separator()
-
-        layout.operator("render.view_show")
-        layout.operator("render.play_rendered_anim", icon='PLAY')
 
 
 class INFO_MT_opengl_render(Menu):
@@ -616,7 +610,6 @@ classes = (
     INFO_MT_edit,
     INFO_MT_game,
     INFO_MT_render,
-    INFO_MT_opengl_render,
     INFO_MT_window,
     INFO_MT_help,
 )
