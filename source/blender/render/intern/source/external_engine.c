@@ -740,9 +740,15 @@ int RE_engine_render(Render *re, int do_all)
 			type->render(engine, engine->depsgraph);
 
 			/* grease pencil render over previous render result */
-			DRW_render_gpencil(engine, engine->depsgraph);
+			if (!RE_engine_test_break(engine)) {
+				DRW_render_gpencil(engine, engine->depsgraph);
+			}
 
 			engine_depsgraph_free(engine);
+
+			if (RE_engine_test_break(engine)) {
+				break;
+			}
 		}
 		FOREACH_VIEW_LAYER_TO_RENDER_END;
 	}
