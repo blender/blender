@@ -379,13 +379,18 @@ inline bool TopologyRefinerFactory<TopologyRefinerData>::assignComponentTags(
     if (converter->isInfiniteSharpVertex(converter, vertex_index)) {
       setBaseVertexSharpness(
           refiner, vertex_index, Crease::SHARPNESS_INFINITE);
-    } else if (vertex_edges.size() == 2) {
+      continue;
+    }
+    float sharpness = converter->getVertexSharpness(converter, vertex_index);
+    if (vertex_edges.size() == 2) {
       const int edge0 = vertex_edges[0], edge1 = vertex_edges[1];
       const float sharpness0 = refiner._levels[0]->getEdgeSharpness(edge0);
       const float sharpness1 = refiner._levels[0]->getEdgeSharpness(edge1);
-      const float sharpness = std::min(sharpness0, sharpness1);
-      setBaseVertexSharpness(refiner, vertex_index, sharpness);
+      // TODO(sergey): Find a better mixing between edge and vertex sharpness.
+      sharpness += std::min(sharpness0, sharpness1);
+      sharpness = std::min(sharpness, 1.0f);
     }
+    setBaseVertexSharpness(refiner, vertex_index, sharpness);
   }
   return true;
 }

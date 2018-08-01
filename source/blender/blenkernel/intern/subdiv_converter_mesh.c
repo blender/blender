@@ -171,6 +171,12 @@ static bool is_infinite_sharp_vertex(const OpenSubdiv_Converter *converter,
 	                            vertex_index);
 }
 
+static float get_vertex_sharpness(const OpenSubdiv_Converter *UNUSED(converter),
+                                  int UNUSED(manifold_vertex_index))
+{
+	return 0.0f;
+}
+
 static int get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
 	ConverterStorage *storage = converter->user_data;
@@ -278,6 +284,7 @@ static void init_functions(OpenSubdiv_Converter *converter)
 	converter->getNumVertexFaces = NULL;
 	converter->getVertexFaces = NULL;
 	converter->isInfiniteSharpVertex = is_infinite_sharp_vertex;
+	converter->getVertexSharpness = get_vertex_sharpness;
 
 	converter->getNumUVLayers = get_num_uv_layers;
 	converter->precalcUVLayer = precalc_uv_layer;
