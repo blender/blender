@@ -595,7 +595,9 @@ GPUMaterial *GPU_material_from_nodetree(
 	mat->engine_type = engine_type;
 	mat->options = options;
 
-	ntreeGPUMaterialNodes(ntree, mat, &has_surface_output, &has_volume_output);
+	/* localize tree to create links for reroute and mute */
+	bNodeTree *localtree = ntreeLocalize(ntree);
+	ntreeGPUMaterialNodes(localtree, mat, &has_surface_output, &has_volume_output);
 
 	if (has_surface_output) {
 		mat->domain |= GPU_DOMAIN_SURFACE;
@@ -639,6 +641,11 @@ GPUMaterial *GPU_material_from_nodetree(
 	else {
 		mat->status = GPU_MAT_FAILED;
 	}
+
+	/* Only free after GPU_pass_shader_get where GPUUniformBuffer
+	 * read data from the local tree. */
+	ntreeFreeTree(localtree);
+	MEM_freeN(localtree);
 
 	/* note that even if building the shader fails in some way, we still keep
 	 * it to avoid trying to compile again and again, and simply do not use

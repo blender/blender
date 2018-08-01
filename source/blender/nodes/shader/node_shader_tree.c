@@ -583,10 +583,9 @@ static void ntree_shader_tag_sss_node(bNodeTree *ntree, bNode *output_node)
 	nodeChainIter(ntree, output_node, ntree_tag_sss_bsdf_cb, &sss_id, true);
 }
 
-void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, bool *has_surface_output, bool *has_volume_output)
+/* This one needs to work on a local tree. */
+void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat, bool *has_surface_output, bool *has_volume_output)
 {
-	/* localize tree to create links for reroute and mute */
-	bNodeTree *localtree = ntreeLocalize(ntree);
 	bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 	bNodeTreeExec *exec;
 
@@ -618,9 +617,6 @@ void ntreeGPUMaterialNodes(bNodeTree *ntree, GPUMaterial *mat, bool *has_surface
 			*has_volume_output = (nodeCountSocketLinks(localtree, volume_sock) > 0);
 		}
 	}
-
-	ntreeFreeTree(localtree);
-	MEM_freeN(localtree);
 }
 
 bNodeTreeExec *ntreeShaderBeginExecTree_internal(bNodeExecContext *context, bNodeTree *ntree, bNodeInstanceKey parent_key)

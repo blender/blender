@@ -811,7 +811,7 @@ void            ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
 bool            ntreeShaderExecTree(struct bNodeTree *ntree, int thread);
 struct bNode   *ntreeShaderOutputNode(struct bNodeTree *ntree, int target);
 
-void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat,
+void            ntreeGPUMaterialNodes(struct bNodeTree *localtree, struct GPUMaterial *mat,
                                       bool *has_surface_output, bool *has_volume_output);
 
 /** \} */
