@@ -3539,6 +3539,15 @@ class VIEW3D_MT_paint_gpencil(Menu):
         layout.operator("gpencil.delete", text="Delete Frame").type = 'FRAME'
         layout.operator("gpencil.active_frames_delete_all")
 
+class VIEW3D_MT_assign_material(Menu):
+    bl_label = "Assign Material"
+
+    def draw(self, context):
+        layout = self.layout
+        ob = context.active_object;
+
+        for mat in ob.data.materials:
+            layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
 
 class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "Strokes"
@@ -3583,7 +3592,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.separator()
 
         layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
-        layout.operator("gpencil.stroke_change_color", text="Assign Material")
+        layout.menu("VIEW3D_MT_assign_material")
         layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes...")
 
         layout.separator()
@@ -3633,7 +3642,7 @@ class VIEW3D_MT_sculpt_gpencil(Menu):
         layout.separator()
 
         layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
-        layout.operator("gpencil.stroke_change_color", text="Assign Material")
+        layout.menu("VIEW3D_MT_assign_material")
         layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes...")
 
         layout.separator()
@@ -4997,6 +5006,7 @@ classes = (
     VIEW3D_MT_edit_mesh_delete,
     VIEW3D_MT_edit_mesh_showhide,
     VIEW3D_MT_paint_gpencil,
+    VIEW3D_MT_assign_material,
     VIEW3D_MT_edit_gpencil,
     VIEW3D_MT_edit_gpencil_delete,
     VIEW3D_MT_sculpt_gpencil,
