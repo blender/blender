@@ -501,7 +501,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		}
 	}
 
-	if (DRW_state_draw_support()) {
+	if (DRW_state_draw_support() && !LOOK_DEV_STUDIO_LIGHT_ENABLED(draw_ctx->v3d)) {
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
 		psl->probe_display = DRW_pass_create("LightProbe Display", state);
 
