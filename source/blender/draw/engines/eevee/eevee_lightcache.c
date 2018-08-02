@@ -755,6 +755,9 @@ static void compute_cell_id(
 	                                            probe->grid_resolution_z)));
 
 	int visited_cells = 0;
+	*r_stride = 0;
+	*r_final_idx = 0;
+	r_local_cell[0] = r_local_cell[1] = r_local_cell[2] = 0;
 	for (int lvl = max_lvl; lvl >= 0; --lvl) {
 		*r_stride = 1 << lvl;
 		int prev_stride = *r_stride << 1;
