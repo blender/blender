@@ -128,10 +128,10 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
 	        reinterpret_cast<const DEG::Depsgraph *>(graph);
 	Scene *scene_cow = deg_graph->scene_cow;
 	/* TODO(sergey): Shall we expand datablock here? Or is it OK to assume
-	 * that calleer is OK with just a pointer in case scene is not up[dated
+	 * that calleer is OK with just a pointer in case scene is not updated
 	 * yet?
 	 */
-	BLI_assert(DEG::deg_copy_on_write_is_expanded(&scene_cow->id));
+	BLI_assert(scene_cow != NULL && DEG::deg_copy_on_write_is_expanded(&scene_cow->id));
 	return scene_cow;
 }
 
@@ -140,6 +140,9 @@ ViewLayer *DEG_get_evaluated_view_layer(const Depsgraph *graph)
 	const DEG::Depsgraph *deg_graph =
 	        reinterpret_cast<const DEG::Depsgraph *>(graph);
 	Scene *scene_cow = DEG_get_evaluated_scene(graph);
+	if (scene_cow == NULL) {
+		return NULL;  /* Happens with new, not-yet-built/evaluated graphes. */
+	}
 	/* Do name-based lookup. */
 	/* TODO(sergey): Can this be optimized? */
 	ViewLayer *view_layer_orig = deg_graph->view_layer;
