@@ -756,12 +756,14 @@ class GreasePencilDataPanel:
                 sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
                 sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
 
+        tool_settings = context.tool_settings
+        if gpd and gpl:
+            layout.prop(gpl, "thickness")
+        else:
+            layout.prop(tool_settings, "annotation_thickness", text="Thickness")
+
         if gpl:
             # layout.prop(gpl, "opacity", text="Opacity", slider=True)
-            # layout.prop(gpl, "thickness", text="Thickness")
-            #
-            # layout.separator()
-
             # Full-Row - Frame Locking (and Delete Frame)
             row = layout.row(align=True)
             row.active = not gpl.lock
@@ -774,11 +776,6 @@ class GreasePencilDataPanel:
             row.prop(gpl, "lock_frame", text=lock_label, icon='UNLOCKED')
             row.operator("gpencil.active_frame_delete", text="", icon='X')
 
-        tool_settings = context.tool_settings
-        if gpd and gpl:
-            layout.prop(gpl, "thickness")
-        else:
-            layout.prop(tool_settings, "annotation_thickness", text="Thickness")
 
 
 class GreasePencilOnionPanel:
