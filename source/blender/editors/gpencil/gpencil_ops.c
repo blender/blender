@@ -299,7 +299,7 @@ static void ed_keymap_gpencil_sculpt(wmKeyMap *keymap)
 	RNA_string_set(kmi->ptr, "data_path_primary", "tool_settings.gpencil_sculpt.brush.size");
 
 	/* menu sculpt specials */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_sculpt_specials", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_gpencil_sculpt_specials", WKEY, KM_PRESS, 0, 0);
 }
 
 static void ed_keymap_gpencil_weight(wmKeyMap *keymap)
@@ -371,7 +371,7 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "GPENCIL_OT_active_frames_delete_all", DELKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* menu edit specials */
-	WM_keymap_add_menu(keymap, "GPENCIL_MT_gpencil_edit_specials", WKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu(keymap, "VIEW3D_MT_gpencil_edit_specials", WKEY, KM_PRESS, 0, 0);
 
 	/* menu separate */
 	WM_keymap_add_menu(keymap, "GPENCIL_MT_separate", PKEY, KM_PRESS, 0, 0);

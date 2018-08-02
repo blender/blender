@@ -3539,6 +3539,7 @@ class VIEW3D_MT_paint_gpencil(Menu):
         layout.operator("gpencil.delete", text="Delete Frame").type = 'FRAME'
         layout.operator("gpencil.active_frames_delete_all")
 
+
 class VIEW3D_MT_assign_material(Menu):
     bl_label = "Assign Material"
 
@@ -3548,6 +3549,7 @@ class VIEW3D_MT_assign_material(Menu):
 
         for mat in ob.data.materials:
             layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
+
 
 class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "Strokes"
@@ -4898,6 +4900,64 @@ class VIEW3D_PT_gpencil_multi_frame(Panel):
             layout.template_curve_mapping(settings, "multiframe_falloff_curve", brush=True)
 
 
+class VIEW3D_MT_gpencil_edit_specials(Menu):
+    bl_label = "Grease Pencil Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        is_3d_view = context.space_data.type == 'VIEW_3D'
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.menu("VIEW3D_MT_assign_material")
+        layout.separator()
+
+        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
+        layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
+        layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
+
+        layout.separator()
+        layout.menu("GPENCIL_MT_separate", text="Separate")
+
+        layout.separator()
+        layout.operator("gpencil.stroke_split", text="Split")
+
+        layout.separator()
+
+        layout.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
+        layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
+        layout.operator("gpencil.stroke_flip", text="Flip Direction")
+
+        layout.separator()
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
+
+        if is_3d_view:
+            layout.separator()
+            layout.operator("gpencil.reproject")
+
+
+class VIEW3D_MT_gpencil_sculpt_specials(Menu):
+    bl_label = "Grease Pencil Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        is_3d_view = context.space_data.type == 'VIEW_3D'
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.menu("VIEW3D_MT_assign_material")
+        layout.separator()
+
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
+        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
+
+        layout.separator()
+
+        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
+        layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
+        layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
+
+
 classes = (
     VIEW3D_HT_header,
     VIEW3D_MT_editor_menus,
@@ -5041,6 +5101,8 @@ classes = (
     VIEW3D_PT_object_type_visibility,
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_gpencil_multi_frame,
+    VIEW3D_MT_gpencil_edit_specials,
+    VIEW3D_MT_gpencil_sculpt_specials,
     VIEW3D_PT_quad_view,
     VIEW3D_PT_view3d_stereo,
     VIEW3D_PT_shading,

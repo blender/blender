@@ -582,59 +582,6 @@ class GPENCIL_MT_separate(Menu):
         layout.operator("gpencil.stroke_separate", text="Active Layer").mode = 'LAYER'
 
 
-class GPENCIL_MT_gpencil_edit_specials(Menu):
-    bl_label = "GPencil Specials"
-
-    def draw(self, context):
-        layout = self.layout
-        is_3d_view = context.space_data.type == 'VIEW_3D'
-
-        layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
-        layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
-        layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
-
-        layout.separator()
-        layout.menu("GPENCIL_MT_separate", text="Separate")
-
-        layout.separator()
-        layout.operator("gpencil.stroke_split", text="Split")
-
-        layout.separator()
-
-        layout.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
-        layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
-        layout.operator("gpencil.stroke_flip", text="Flip Direction")
-
-        layout.separator()
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
-
-        if is_3d_view:
-            layout.separator()
-            layout.operator("gpencil.reproject")
-
-
-class GPENCIL_MT_gpencil_sculpt_specials(Menu):
-    bl_label = "GPencil Specials"
-
-    def draw(self, context):
-        layout = self.layout
-        is_3d_view = context.space_data.type == 'VIEW_3D'
-
-        layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame")
-        layout.operator("gpencil.frame_duplicate", text="Duplicate Active Frame All Layers").mode = 'ALL'
-
-        layout.separator()
-
-        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
-        layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
-        layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
-
-
 class GPENCIL_MT_gpencil_draw_specials(Menu):
     bl_label = "GPencil Draw Specials"
 
@@ -859,8 +806,6 @@ classes = (
     GPENCIL_MT_snap,
     GPENCIL_MT_separate,
 
-    GPENCIL_MT_gpencil_edit_specials,
-    GPENCIL_MT_gpencil_sculpt_specials,
     GPENCIL_MT_gpencil_draw_specials,
     GPENCIL_MT_gpencil_draw_delete,
 
