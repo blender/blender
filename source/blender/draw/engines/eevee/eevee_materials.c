@@ -971,6 +971,13 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 					case GPU_MAT_SUCCESS:
 						grp = DRW_shgroup_material_create(gpumat, psl->background_pass);
 						DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+						/* TODO (fclem): remove thoses (need to clean the GLSL files). */
+						DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+						DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+						DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+						DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+						DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+						DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
 						DRW_shgroup_call_add(grp, geom, NULL);
 						break;
 					case GPU_MAT_QUEUED:
@@ -998,10 +1005,12 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
 		psl->depth_pass = DRW_pass_create("Depth Pass", state);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass);
+		DRW_shgroup_uniform_block(stl->g_data->depth_shgrp, "clip_block", sldata->clip_ubo);
 
 		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", state);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass_cull);
+		DRW_shgroup_uniform_block(stl->g_data->depth_shgrp_cull, "clip_block", sldata->clip_ubo);
 
 		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
 		psl->depth_pass_clip = DRW_pass_create("Depth Pass Clip", state);

@@ -227,6 +227,8 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
 		DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
+		DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		if (!effects->reflection_trace_full) {
@@ -245,6 +247,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_texture_ref(grp, "hitBuffer", &effects->ssr_hit_output);
 		DRW_shgroup_uniform_texture_ref(grp, "pdfBuffer", &effects->ssr_pdf_output);
 		DRW_shgroup_uniform_texture_ref(grp, "prevColorBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);

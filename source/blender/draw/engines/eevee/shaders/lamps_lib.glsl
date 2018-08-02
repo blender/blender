@@ -318,6 +318,8 @@ float light_specular(LightData ld, vec4 ltc_mat, vec3 N, vec3 V, vec4 l_vector)
 #define SSS_LUT_SIZE 64.0
 #define SSS_LUT_SCALE ((SSS_LUT_SIZE - 1.0) / float(SSS_LUT_SIZE))
 #define SSS_LUT_BIAS (0.5 / float(SSS_LUT_SIZE))
+
+#ifdef USE_TRANSLUCENCY
 layout(std140) uniform sssProfile {
 	vec4 kernel[MAX_SSS_SAMPLES];
 	vec4 radii_max_radius;
@@ -330,6 +332,7 @@ vec3 sss_profile(float s) {
 	s /= radii_max_radius.w;
 	return texture(sssTexProfile, saturate(s) * SSS_LUT_SCALE + SSS_LUT_BIAS).rgb;
 }
+#endif
 
 vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 {
