@@ -29,7 +29,7 @@ class MotionPathButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_label = "Motion Paths"
-    bl_options = {'DEFAULT_CLOSED'}
+    # bl_options = {'DEFAULT_CLOSED'}
 
     def draw_settings(self, context, avs, mpath, bones=False):
         layout = self.layout

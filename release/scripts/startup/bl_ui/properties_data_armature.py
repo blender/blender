@@ -211,6 +211,7 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 # TODO: this panel will soon be deprecated too
 class DATA_PT_ghost(ArmatureButtonsPanel, Panel):
     bl_label = "Ghost"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -340,9 +341,9 @@ classes = (
     DATA_MT_bone_group_specials,
     DATA_PT_bone_groups,
     DATA_PT_pose_library,
+    DATA_PT_motion_paths,
     DATA_PT_ghost,
     DATA_PT_iksolver_itasc,
-    DATA_PT_motion_paths,
     DATA_PT_custom_props_arm,
 )
 
