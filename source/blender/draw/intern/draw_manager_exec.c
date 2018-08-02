@@ -34,6 +34,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "intern/gpu_shader_private.h"
 
 #ifdef USE_GPU_SELECT
 #  include "ED_view3d.h"
@@ -48,6 +49,8 @@ void DRW_select_load_id(uint id)
 	DST.select_id = id;
 }
 #endif
+
+#define DEBUG_UBO_BINDING
 
 struct GPUUniformBuffer *view_ubo;
 
@@ -911,6 +914,53 @@ static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 	slot_flags[bind_num] = bind_type;
 }
 
+#ifndef NDEBUG
+/**
+ * Opengl specification is strict on buffer binding.
+ *
+ * " If any active uniform block is not backed by a
+ * sufficiently large buffer object, the results of shader
+ * execution are undefined, and may result in GL interruption or
+ * termination. " - Opengl 3.3 Core Specification
+ *
+ * For now we only check if the binding is correct. Not the size of
+ * the bound ubo.
+ *
+ * See T55475.
+ * */
+static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
+{
+	bool valid = true;
+#  ifdef DEBUG_UBO_BINDING
+	/* Check that all active uniform blocks have a non-zero buffer bound. */
+	GLint program = 0;
+	GLint active_blocks = 0;
+
+	glGetIntegerv(GL_CURRENT_PROGRAM, &program);
+	glGetProgramiv(program, GL_ACTIVE_UNIFORM_BLOCKS, &active_blocks);
+
+	for (uint i = 0; i < active_blocks; ++i) {
+		int binding = 0;
+		int buffer = 0;
+
+		glGetActiveUniformBlockiv(program, i, GL_UNIFORM_BLOCK_BINDING, &binding);
+		glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING, binding, &buffer);
+
+		if (buffer == 0) {
+			char blockname[64];
+			glGetActiveUniformBlockName(program, i, sizeof(blockname), NULL, blockname);
+
+			printf("Trying to draw with missing UBO binding.\n");
+			printf("Shader : %s, Block : %s\n", shgroup->shader->name, blockname);
+
+			valid = false;
+		}
+	}
+#  endif
+	return valid;
+}
+#endif
+
 static void release_texture_slots(bool with_persist)
 {
 	if (with_persist) {
@@ -1086,6 +1136,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	_count = _shgroup->instance_count;
 
 #endif
+
+	BLI_assert(ubo_bindings_validate(shgroup));
 
 	/* Rendering Calls */
 	if (!ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM)) {
