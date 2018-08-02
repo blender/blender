@@ -244,7 +244,7 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 				ARRAY_SET_ITEMS(contexts, ".paint_common", ".imagepaint");
 				break;
 			case CTX_MODE_PARTICLE:
-				ARRAY_SET_ITEMS(contexts, ".particlemode");
+				ARRAY_SET_ITEMS(contexts, ".paint_common", ".particlemode");
 				break;
 			case CTX_MODE_OBJECT:
 				ARRAY_SET_ITEMS(contexts, ".objectmode");

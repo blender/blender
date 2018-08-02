@@ -225,6 +225,7 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
     def PARTICLE(context, layout):
+        # See: 'VIEW3D_PT_tools_brush', basically a duplicate
         settings = context.tool_settings.particle_edit
         brush = settings.brush
         tool = settings.tool
@@ -235,6 +236,15 @@ class _draw_left_context_mode:
             else:
                 layout.prop(brush, "strength", slider=True)
 
+            if tool == 'ADD':
+                layout.prop(settings, "use_default_interpolate")
+                layout.prop(brush, "steps", slider=True)
+                layout.prop(settings, "default_key_count", slider=True)
+            elif tool == 'LENGTH':
+                layout.row().prop(brush, "length_mode", expand=True)
+            elif tool == 'PUFF':
+                layout.row().prop(brush, "puff_mode", expand=True)
+                layout.prop(brush, "use_puff_volume")
 
 class INFO_MT_editor_menus(Menu):
     bl_idname = "INFO_MT_editor_menus"

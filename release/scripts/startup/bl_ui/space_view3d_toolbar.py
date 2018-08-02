@@ -289,19 +289,14 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
         if context.particle_edit_object:
             tool = settings.tool
 
-
-            if self.is_popover:
-                # Topbar shows these already.
-                pass
-            else:
-                if tool != 'NONE':
-                    layout.column().prop(settings, "tool", expand=True)
-                    col = layout.column()
-                    col.prop(brush, "size", slider=True)
-                    if tool == 'ADD':
-                        col.prop(brush, "count")
-                    else:
-                        col.prop(brush, "strength", slider=True)
+            if tool != 'NONE':
+                layout.column().prop(settings, "tool")
+                col = layout.column()
+                col.prop(brush, "size", slider=True)
+                if tool == 'ADD':
+                    col.prop(brush, "count")
+                else:
+                    col.prop(brush, "strength", slider=True)
 
             if tool == 'ADD':
                 col = layout.column()
