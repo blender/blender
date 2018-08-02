@@ -49,6 +49,7 @@
 #include "BKE_workspace.h"
 
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -184,20 +185,37 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 
 	if (tref_rt->data_block[0]) {
 		Main *bmain = CTX_data_main(C);
+		if ((tref->space_type == SPACE_VIEW3D) &&
+		    (tref->mode == CTX_MODE_PARTICLE))
 
-		/* Currently only brush data-blocks supported. */
-		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
-
-		if (brush) {
-			wmWindowManager *wm = bmain->wm.first;
-			for (wmWindow *win = wm->windows.first; win; win = win->next) {
-				if (workspace == WM_window_get_active_workspace(win)) {
-					Scene *scene = WM_window_get_active_scene(win);
-					ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-					Paint *paint = BKE_paint_get_active(scene, view_layer);
-					if (paint) {
-						if (brush) {
-							BKE_paint_brush_set(paint, brush);
+		{
+			const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
+			const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
+			if (i != -1) {
+				const int value = items[i].value;
+				wmWindowManager *wm = bmain->wm.first;
+				for (wmWindow *win = wm->windows.first; win; win = win->next) {
+					if (workspace == WM_window_get_active_workspace(win)) {
+						Scene *scene = WM_window_get_active_scene(win);
+						ToolSettings *ts = scene->toolsettings;
+						ts->particle.brushtype = value;
+					}
+				}
+			}
+		}
+		else {
+			struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
+			if (brush) {
+				wmWindowManager *wm = bmain->wm.first;
+				for (wmWindow *win = wm->windows.first; win; win = win->next) {
+					if (workspace == WM_window_get_active_workspace(win)) {
+						Scene *scene = WM_window_get_active_scene(win);
+						ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+						Paint *paint = BKE_paint_get_active(scene, view_layer);
+						if (paint) {
+							if (brush) {
+								BKE_paint_brush_set(paint, brush);
+							}
 						}
 					}
 				}

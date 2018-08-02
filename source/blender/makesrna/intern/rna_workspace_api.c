@@ -84,14 +84,31 @@ static void rna_WorkspaceTool_refresh_from_context(
 		WorkSpace *workspace = WM_window_get_active_workspace(win);
 		if (&workspace->id == id) {
 			Scene *scene = WM_window_get_active_scene(win);
+			ToolSettings *ts = scene->toolsettings;
 			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-			Paint *paint = BKE_paint_get_active(scene, view_layer);
-			if (paint) {
-				const ID *brush = (ID *)paint->brush;
-				if (!STREQ(tref_rt->data_block, brush->name + 2)) {
-					STRNCPY(tref_rt->data_block, brush->name + 2);
-					STRNCPY(tref->idname, brush->name + 2);
-					printf("Found\n");
+			Object *ob = OBACT(view_layer);
+			if (ob == NULL) {
+				/* pass */
+			}
+			else if (ob->mode & OB_MODE_PARTICLE_EDIT) {
+				const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
+				const int i = RNA_enum_from_value(items, ts->particle.brushtype);
+				const EnumPropertyItem *item = &items[i];
+				if (!STREQ(tref_rt->data_block, item->identifier)) {
+					STRNCPY(tref_rt->data_block, item->identifier);
+					STRNCPY(tref->idname, item->name);
+				}
+			}
+			else {
+				Paint *paint = BKE_paint_get_active(scene, view_layer);
+				if (paint) {
+					const ID *brush = (ID *)paint->brush;
+					if (brush) {
+						if (!STREQ(tref_rt->data_block, brush->name + 2)) {
+							STRNCPY(tref_rt->data_block, brush->name + 2);
+							STRNCPY(tref->idname, brush->name + 2);
+						}
+					}
 				}
 			}
 		}

@@ -40,9 +40,6 @@ def generate_from_brushes_ex(
         brush_category_attr,
         brush_category_layout,
 ):
-    def draw_settings(context, layout, tool):
-        _defs_gpencil_paint.draw_settings_common(context, layout, tool)
-
     # Categories
     brush_categories = {}
     if context.mode != 'GPENCIL_PAINT':
@@ -60,6 +57,9 @@ def generate_from_brushes_ex(
                     )
                 )
     else:
+        def draw_settings(context, layout, tool):
+            _defs_gpencil_paint.draw_settings_common(context, layout, tool)
+
         for brush_type in brush_category_layout:
             for brush in context.blend_data.brushes:
                 if getattr(brush, brush_test_attr) and brush.gpencil_settings.gp_icon == brush_type[0]:
@@ -139,6 +139,28 @@ def generate_from_brushes_ex(
         print(brush_categories)
     assert(len(brush_categories) == 0)
     return tool_defs
+
+
+def generate_from_enum_ex(
+        context, *,
+        icon_prefix,
+        data,
+        attr,
+):
+    tool_defs = []
+    for enum in data.rna_type.properties[attr].enum_items_static:
+        name = enum.name
+        identifier = enum.identifier
+        tool_defs.append(
+            ToolDef.from_dict(
+                dict(
+                    text=name,
+                    icon=icon_prefix + identifier.lower(),
+                    data_block=identifier,
+                )
+            )
+        )
+    return tuple(tool_defs)
 
 
 class _defs_view3d_generic:
@@ -829,6 +851,18 @@ class _defs_pose:
             keymap=(
                 ("pose.relax", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+        )
+
+
+class _defs_particle:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            icon_prefix="brush.particle.",
+            data=context.tool_settings.particle_edit,
+            attr="tool",
         )
 
 
@@ -1542,9 +1576,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_edit_curve.extrude_cursor,
         ],
         'PARTICLE': [
-            # TODO(campbell): use cursor click tool to allow paint tools to run,
-            # we need to integrate particle system tools properly.
-            _defs_view3d_generic.cursor_click,
+            _defs_particle.generate_from_brushes,
         ],
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
