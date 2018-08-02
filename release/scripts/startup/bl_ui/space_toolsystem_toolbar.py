@@ -66,6 +66,7 @@ def generate_from_brushes_ex(
                     category = brush_type[0]
                     name = brush.name
 
+                    """
                     # rename default brushes for tool bar
                     if name.startswith("Draw "):
                         text = name.replace("Draw ", "")
@@ -75,6 +76,8 @@ def generate_from_brushes_ex(
                         text = name.replace(" Area", "")
                     else:
                         text = name
+                    """
+                    text = name
 
                     # define icon
                     gp_icon = brush.gpencil_settings.gp_icon

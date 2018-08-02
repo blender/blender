@@ -275,6 +275,7 @@ class ToolSelectPanelHelper:
                 mode = context.mode
             tool = context.workspace.tools.from_space_view3d_mode(mode, create)
             if tool is not None:
+                tool.refresh_from_context()
                 return tool
         elif space_type == 'IMAGE_EDITOR':
             space_data = context.space_data
@@ -282,6 +283,7 @@ class ToolSelectPanelHelper:
                 mode = space_data.mode
             tool = context.workspace.tools.from_space_image_mode(mode, create)
             if tool is not None:
+                tool.refresh_from_context()
                 return tool
         return None
 
