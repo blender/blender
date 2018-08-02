@@ -65,7 +65,9 @@ def generate_from_brushes_ex(
                 if getattr(brush, brush_test_attr) and brush.gpencil_settings.gp_icon == brush_type[0]:
                     category = brush_type[0]
                     name = brush.name
+                    text = name
 
+                    # XXX, disabled since changing the brush needs to sync back to the tool.
                     """
                     # rename default brushes for tool bar
                     if name.startswith("Draw "):
@@ -77,31 +79,19 @@ def generate_from_brushes_ex(
                     else:
                         text = name
                     """
-                    text = name
-
-                    # define icon
-                    gp_icon = brush.gpencil_settings.gp_icon
-                    if gp_icon == 'PENCIL':
-                        icon_name = 'draw_pencil'
-                    elif gp_icon == 'PEN':
-                        icon_name = 'draw_pen'
-                    elif gp_icon == 'INK':
-                        icon_name = 'draw_ink'
-                    elif gp_icon == 'INKNOISE':
-                        icon_name = 'draw_noise'
-                    elif gp_icon == 'BLOCK':
-                        icon_name = 'draw_block'
-                    elif gp_icon == 'MARKER':
-                        icon_name = 'draw_marker'
-                    elif gp_icon == 'FILL':
-                        icon_name = 'draw_fill'
-                    elif gp_icon == 'SOFT':
-                        icon_name = 'draw.eraser_soft'
-                    elif gp_icon == 'HARD':
-                        icon_name = 'draw.eraser_hard'
-                    elif gp_icon == 'STROKE':
-                        icon_name = 'draw.eraser_stroke'
-
+                    # Define icon.
+                    icon_name = {
+                        'PENCIL': 'draw_pencil',
+                        'PEN': 'draw_pen',
+                        'INK': 'draw_ink',
+                        'INKNOISE': 'draw_noise',
+                        'BLOCK': 'draw_block',
+                        'MARKER': 'draw_marker',
+                        'FILL': 'draw_fill',
+                        'SOFT': 'draw.eraser_soft',
+                        'HARD': 'draw.eraser_hard',
+                        'STROKE': 'draw.eraser_stroke',
+                    }[category]
                     brush_categories.setdefault(category, []).append(
                         ToolDef.from_dict(
                             dict(
