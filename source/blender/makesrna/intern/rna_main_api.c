@@ -269,9 +269,11 @@ static Material *rna_Main_materials_new(Main *bmain, const char *name)
 	return (Material *)id;
 }
 
-static void rna_Main_materials_gpencil_data(Main *UNUSED(bmain), struct PointerRNA *ma)
+static void rna_Main_materials_gpencil_data(Main *UNUSED(bmain), PointerRNA *id_ptr)
 {
-	BKE_material_init_gpencil_settings((Material *)ma);
+	ID *id = id_ptr->data;
+	Material *ma = (Material *)id;
+	BKE_material_init_gpencil_settings(ma);
 }
 
 static const EnumPropertyItem *rna_Main_nodetree_type_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
