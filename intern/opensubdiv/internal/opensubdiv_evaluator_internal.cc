@@ -713,7 +713,7 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   if (is_adaptive) {
     TopologyRefiner::AdaptiveOptions options(level);
     options.considerFVarChannels = has_face_varying_data;
-    options.useInfSharpPatch = false;
+    options.useInfSharpPatch = true;
     refiner->RefineAdaptive(options);
   } else {
     TopologyRefiner::UniformOptions options(level);
@@ -763,7 +763,7 @@ vector<const StencilTable*> all_face_varying_stencils;
   // subsurf code.
   PatchTableFactory::Options patch_options(level);
   patch_options.SetEndCapType(PatchTableFactory::Options::ENDCAP_BSPLINE_BASIS);
-  patch_options.useInfSharpPatch = false;
+  patch_options.useInfSharpPatch = true;
   patch_options.generateFVarTables = has_face_varying_data;
   patch_options.generateFVarLegacyLinearPatches = false;
   const PatchTable* patch_table = PatchTableFactory::Create(
