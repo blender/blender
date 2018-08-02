@@ -1195,6 +1195,26 @@ static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const c
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
 {
+	static const EnumPropertyItem prop_uv_smooth_items[] = {
+		{SUBSURF_UV_SMOOTH_NONE, "NONE", 0,
+		 "Sharp", "UVs are not smoothed, boundaries are kept sharp"},
+		{SUBSURF_UV_SMOOTH_PRESERVE_CORNERS, "PRESERVE_CORNERS", 0,
+		 "Smooth, keep corners", "UVs are smoothed, corners on discontinuous boundary are kept sharp"},
+#if 0
+		{SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS, "PRESERVE_CORNERS_AND_JUNCTIONS", 0,
+		 "Smooth, keep corners+junctions", "UVs are smoothed, corners on discontinuous boundary and "
+		 "junctions of 3 or more regions are kept sharp"},
+		{SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE, "PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE", 0,
+		 "Smooth, keep corners+junctions+concave", "UVs are smoothed, corners on discontinuous boundary, "
+		 "junctions of 3 or more regions and darts and concave corners are kept sharp"},
+		{SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES, "PRESERVE_BOUNDARIES", 0,
+		 "Smooth, keep corners", "UVs are smoothed, boundaries are kept sharp"},
+		{SUBSURF_UV_SMOOTH_ALL, "PRESERVE_BOUNDARIES", 0,
+		 "Smooth all", "UVs and boundaries are smoothed"},
+#endif
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -1224,9 +1244,10 @@ static void rna_def_modifier_subsurf(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Optimal Display", "Skip drawing/rendering of interior subdivided edges");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-	prop = RNA_def_property(srna, "use_subsurf_uv", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", eSubsurfModifierFlag_SubsurfUv);
-	RNA_def_property_ui_text(prop, "Subdivide UVs", "Use subsurf to subdivide UVs");
+	prop = RNA_def_property(srna, "uv_smooth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "uv_smooth");
+	RNA_def_property_enum_items(prop, prop_uv_smooth_items);
+	RNA_def_property_ui_text(prop, "UV Smooth", "Controls how smoothing is applied to UVs");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #ifdef WITH_OPENSUBDIV

@@ -2927,7 +2927,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 {
 	int useSimple = (smd->subdivType == ME_SIMPLE_SUBSURF) ? CCG_SIMPLE_SUBDIV : 0;
 	CCGFlags useAging = (smd->flags & eSubsurfModifierFlag_DebugIncr) ? CCG_USE_AGING : 0;
-	int useSubsurfUv = smd->flags & eSubsurfModifierFlag_SubsurfUv;
+	int useSubsurfUv = (smd->uv_smooth != SUBSURF_UV_SMOOTH_NONE);
 	int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
 	CCGDerivedMesh *result;
 	bool use_gpu_backend = subsurf_use_gpu_backend(flags);

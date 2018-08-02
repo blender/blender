@@ -729,7 +729,10 @@ static DerivedMesh *subsurf_dm_create_local(
 
 	smd.levels = smd.renderLevels = lvl;
 	if (!is_plain_uv) {
-		smd.flags |= eSubsurfModifierFlag_SubsurfUv;
+		smd.uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+	}
+	else {
+		smd.uv_smooth = SUBSURF_UV_SMOOTH_NONE;
 	}
 	if (is_simple) {
 		smd.subdivType = ME_SIMPLE_SUBSURF;

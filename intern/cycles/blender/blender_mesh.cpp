@@ -989,7 +989,7 @@ static void create_subd_mesh(Scene *scene,
                              int max_subdivisions)
 {
 	BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length()-1]);
-	bool subdivide_uvs = subsurf_mod.use_subsurf_uv();
+	bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
 
 	create_mesh(scene, mesh, b_mesh, used_shaders, true, subdivide_uvs);
 

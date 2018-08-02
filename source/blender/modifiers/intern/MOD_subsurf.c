@@ -65,7 +65,7 @@ static void initData(ModifierData *md)
 
 	smd->levels = 1;
 	smd->renderLevels = 2;
-	smd->flags |= eSubsurfModifierFlag_SubsurfUv;
+	smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -207,10 +207,32 @@ static void subdiv_settings_init(SubdivSettings *settings,
 	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
 	settings->is_adaptive = !settings->is_simple;
 	settings->level = subdiv_levels_for_modifier_get(smd, ctx);
-	settings->fvar_linear_interpolation =
-	        (smd->flags & eSubsurfModifierFlag_SubsurfUv)
-	                ? SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY
-	                : SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
+	switch (smd->uv_smooth) {
+		case SUBSURF_UV_SMOOTH_NONE:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
+			break;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY;
+			break;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS;
+			break;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_JUNCTIONS_AND_CONCAVE;
+			break;
+		case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_BOUNDARIES;
+			break;
+		case SUBSURF_UV_SMOOTH_ALL:
+			settings->fvar_linear_interpolation =
+			        SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE;
+			break;
+	}
 }
 
 static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,

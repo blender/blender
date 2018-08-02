@@ -48,6 +48,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
@@ -1838,4 +1839,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 		}
 	}
 
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "uv_smooth")) {
+			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Subsurf) {
+						SubsurfModifierData *smd = (SubsurfModifierData *)md;
+						if (smd->flags & eSubsurfModifierFlag_SubsurfUv) {
+							smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+						}
+						else {
+							smd->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
+						}
+					}
+				}
+			}
+		}
+	}
 }

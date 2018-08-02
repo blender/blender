@@ -139,6 +139,7 @@ typedef enum {
 	eSubsurfModifierFlag_Incremental  = (1 << 0),
 	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
 	eSubsurfModifierFlag_ControlEdges = (1 << 2),
+	/* DEPRECATED, ONLY USED FOR DO-VERSIONS */
 	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
 } SubsurfModifierFlag;
 
@@ -147,11 +148,22 @@ typedef enum {
 	SUBSURF_TYPE_SIMPLE = 1,
 } eSubsurfModifierType;
 
+typedef enum {
+	SUBSURF_UV_SMOOTH_NONE = 0,
+	SUBSURF_UV_SMOOTH_PRESERVE_CORNERS = 1,
+	SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS = 2,
+	SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE = 3,
+	SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES = 4,
+	SUBSURF_UV_SMOOTH_ALL = 5,
+} eSubsurfModifierUVSmooth;
+
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
 
 	short subdivType, levels, renderLevels, flags;
-	short use_opensubdiv, pad[3];
+	short uv_smooth;
+	short use_opensubdiv;
+	short pad[2];
 
 	void *emCache, *mCache;
 } SubsurfModifierData;

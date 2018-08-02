@@ -992,7 +992,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         sub = col.column()
         sub.active = (not show_adaptive_options) or (not ob.cycles.use_adaptive_subdivision)
-        sub.prop(md, "use_subsurf_uv")
+        sub.prop(md, "uv_smooth", text="")
 
         col.prop(md, "show_only_control_edges")
         if hasattr(md, "use_opensubdiv"):
