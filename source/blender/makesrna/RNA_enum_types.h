@@ -112,6 +112,8 @@ extern const EnumPropertyItem rna_enum_brush_sculpt_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_vertex_tool_items[];
 extern const EnumPropertyItem rna_enum_brush_image_tool_items[];
 
+extern const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[];
+extern const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[];
 extern const EnumPropertyItem rna_enum_gpencil_sculpt_brush_items[];
 
 extern const EnumPropertyItem rna_enum_uv_sculpt_tool_items[];

@@ -51,7 +51,7 @@
 
 #include "bmesh.h"
 
-static const EnumPropertyItem particle_edit_hair_brush_items[] = {
+const EnumPropertyItem rna_enum_particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
@@ -120,7 +120,7 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
-static const EnumPropertyItem particle_edit_disconnected_hair_brush_items[] = {
+const EnumPropertyItem rna_enum_particle_edit_disconnected_hair_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb hairs"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth hairs"},
@@ -186,8 +186,9 @@ static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 
 	pset->brushtype = value;
 }
-static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                     PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = (scene->basact) ? scene->basact->object : NULL;
@@ -204,10 +205,10 @@ static const EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerR
 
 	if (psys) {
 		if (psys->flag & PSYS_GLOBAL_HAIR) {
-			return particle_edit_disconnected_hair_brush_items;
+			return rna_enum_particle_edit_disconnected_hair_brush_items;
 		}
 		else {
-			return particle_edit_hair_brush_items;
+			return rna_enum_particle_edit_hair_brush_items;
 		}
 	}
 
@@ -888,7 +889,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brushtype");
-	RNA_def_property_enum_items(prop, particle_edit_hair_brush_items);
+	RNA_def_property_enum_items(prop, rna_enum_particle_edit_hair_brush_items);
 	RNA_def_property_enum_funcs(prop, NULL, "rna_ParticleEdit_tool_set", "rna_ParticleEdit_tool_itemf");
 	RNA_def_property_ui_text(prop, "Tool", "");
 
