@@ -515,6 +515,9 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 			DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 			DRW_shgroup_uniform_float_copy(grp, "sphere_size", scene_eval->eevee.gi_cubemap_draw_size * 0.5f);
+			/* TODO (fclem) get rid of thoses UBO. */
+			DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+			DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 		}
 
 		/* Grid Display */
@@ -531,6 +534,11 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 				DRW_shgroup_uniform_vec3(shgrp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 				DRW_shgroup_uniform_texture_ref(shgrp, "irradianceGrid", &lcache->grid_tx.tex);
 				DRW_shgroup_uniform_float_copy(shgrp, "sphere_size", scene_eval->eevee.gi_irradiance_draw_size * 0.5f);
+				/* TODO (fclem) get rid of thoses UBO. */
+				DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
+				DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
+				DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
+				DRW_shgroup_uniform_block(shgrp, "common_block", sldata->common_ubo);
 				int tri_count = egrid->resolution[0] * egrid->resolution[1] * egrid->resolution[2] * 2;
 				DRW_shgroup_call_procedural_triangles_add(shgrp, tri_count, NULL);
 			}
