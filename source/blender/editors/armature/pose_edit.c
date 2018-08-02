@@ -70,6 +70,15 @@
 
 #include "armature_intern.h"
 
+
+#define DEBUG_TIME
+
+#include "PIL_time.h"
+#ifdef DEBUG_TIME
+#  include "PIL_time_utildefines.h"
+#endif
+
+
 /* matches logic with ED_operator_posemode_context() */
 Object *ED_pose_object_from_context(bContext *C)
 {
@@ -256,9 +265,17 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
+#ifdef DEBUG_TIME
+	TIMEIT_START(recalc_pose_paths);
+#endif
+
 	/* calculate the bones that now have motionpaths... */
 	/* TODO: only make for the selected bones? */
 	ED_pose_recalculate_paths(C, scene, ob);
+
+#ifdef DEBUG_TIME
+	TIMEIT_END(recalc_pose_paths);
+#endif
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
