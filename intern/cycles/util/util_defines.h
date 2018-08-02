@@ -88,9 +88,13 @@
 #endif
 
 #if defined(__GNUC__) || defined(__clang__)
+#  if defined(__cplusplus)
 /* Some magic to be sure we don't have reference in the type. */
 template<typename T> static inline T decltype_helper(T x) { return x; }
-#  define TYPEOF(x) decltype(decltype_helper(x))
+#    define TYPEOF(x) decltype(decltype_helper(x))
+#  else
+#    define TYPEOF(x) typeof(x)
+#  endif
 #endif
 
 /* Causes warning:
