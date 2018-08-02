@@ -252,14 +252,14 @@ struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D_depth_only(void);
-struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool no_deferred);
-struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool no_deferred);
+struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options, bool deferred);
+struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options, bool deferred);
 struct GPUMaterial *DRW_shader_create_from_world(
         struct Scene *scene, struct World *wo, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool no_deferred);
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool deferred);
 struct GPUMaterial *DRW_shader_create_from_material(
         struct Scene *scene, struct Material *ma, const void *engine_type, int options,
-        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool no_deferred);
+        const char *vert, const char *geom, const char *frag_lib, const char *defines, bool deferred);
 void DRW_shader_free(struct GPUShader *shader);
 #define DRW_SHADER_FREE_SAFE(shader) do { \
 	if (shader != NULL) { \
