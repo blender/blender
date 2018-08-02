@@ -319,6 +319,8 @@ Material ***give_matarar_id(ID *id)
 			return &(((Curve *)id)->mat);
 		case ID_MB:
 			return &(((MetaBall *)id)->mat);
+		case ID_GD:
+			return &(((bGPdata *)id)->mat);
 		default:
 			break;
 	}
