@@ -31,6 +31,7 @@
 #include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_appdir.h"
 #include "BKE_global.h"
@@ -172,6 +173,8 @@ extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
 /* cache of built-in shaders (each is created on first use) */
 static GPUShader *builtin_shaders[GPU_NUM_BUILTIN_SHADERS] = { NULL };
 
+static uint g_shaderid = 0;
+
 typedef struct {
 	const char *vert;
 	const char *frag;
@@ -272,7 +275,8 @@ GPUShader *GPU_shader_create(
         const char *fragcode,
         const char *geocode,
         const char *libcode,
-        const char *defines)
+        const char *defines,
+        const char *shname)
 {
 	return GPU_shader_create_ex(
 	        vertexcode,
@@ -283,7 +287,8 @@ GPUShader *GPU_shader_create(
 	        GPU_SHADER_FLAGS_NONE,
 	        GPU_SHADER_TFB_NONE,
 	        NULL,
-	        0);
+	        0,
+	        shname);
 }
 
 #define DEBUG_SHADER_NONE ""
@@ -342,7 +347,8 @@ GPUShader *GPU_shader_create_ex(
         const int flags,
         const GPUShaderTFBType tf_type,
         const char **tf_names,
-        const int tf_count)
+        const int tf_count,
+        const char *shname)
 {
 #ifdef WITH_OPENSUBDIV
 	bool use_opensubdiv = (flags & GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV) != 0;
@@ -359,6 +365,12 @@ GPUShader *GPU_shader_create_ex(
 
 	shader = MEM_callocN(sizeof(GPUShader), "GPUShader");
 	gpu_dump_shaders(NULL, 0, DEBUG_SHADER_NONE);
+
+#ifndef NDEBUG
+	BLI_snprintf(shader->name, sizeof(shader->name), "%s_%u", shname, g_shaderid++);
+#else
+	UNUSED_VARS(shname);
+#endif
 
 	if (vertexcode)
 		shader->vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -969,7 +981,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		}
 
 		/* common case */
-		builtin_shaders[shader] = GPU_shader_create(stages->vert, stages->frag, stages->geom, NULL, defines);
+		builtin_shaders[shader] = GPU_shader_create(stages->vert, stages->frag, stages->geom, NULL, defines, __func__);
 	}
 
 	return builtin_shaders[shader];

@@ -243,7 +243,8 @@ static GPUShader *gpu_basic_shader(int options)
 			datatoc_gpu_shader_basic_frag_glsl,
 			geom_glsl,
 			NULL,
-			defines);
+			defines,
+			__func__);
 
 		if (shader) {
 			/* set texture map to first texture unit */

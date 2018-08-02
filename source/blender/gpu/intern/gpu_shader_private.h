@@ -38,6 +38,9 @@ struct GPUShader {
 	GPUShaderInterface *interface; /* cached uniform & attrib interface for shader */
 
 	int feedback_transform_type;
+#ifndef NDEBUG
+	char name[64];
+#endif
 };
 
 #endif  /* __GPU_SHADER_PRIVATE_H__ */

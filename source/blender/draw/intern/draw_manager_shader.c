@@ -257,7 +257,7 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 
 GPUShader *DRW_shader_create(const char *vert, const char *geom, const char *frag, const char *defines)
 {
-	return GPU_shader_create(vert, frag, geom, NULL, defines);
+	return GPU_shader_create(vert, frag, geom, NULL, defines, __func__);
 }
 
 GPUShader *DRW_shader_create_with_lib(
@@ -274,7 +274,7 @@ GPUShader *DRW_shader_create_with_lib(
 		geom_with_lib = BLI_string_joinN(lib, geom);
 	}
 
-	sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines);
+	sh = GPU_shader_create(vert_with_lib, frag_with_lib, geom_with_lib, NULL, defines, __func__);
 
 	MEM_freeN(vert_with_lib);
 	MEM_freeN(frag_with_lib);
@@ -290,22 +290,22 @@ GPUShader *DRW_shader_create_with_transform_feedback(
         const GPUShaderTFBType prim_type, const char **varying_names, const int varying_count)
 {
 	return GPU_shader_create_ex(vert, NULL, geom, NULL, defines, GPU_SHADER_FLAGS_NONE,
-	                            prim_type, varying_names, varying_count);
+	                            prim_type, varying_names, varying_count, __func__);
 }
 
 GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines);
+	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
 GPUShader *DRW_shader_create_3D(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines);
+	return GPU_shader_create(datatoc_gpu_shader_3D_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
 GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines)
 {
-	return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines);
+	return GPU_shader_create(datatoc_common_fullscreen_vert_glsl, frag, NULL, NULL, defines, __func__);
 }
 
 GPUShader *DRW_shader_create_3D_depth_only(void)
@@ -351,7 +351,7 @@ GPUMaterial *DRW_shader_create_from_world(
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
 		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
-		        vert, geom, frag_lib, defines);
+		        vert, geom, frag_lib, defines, wo->id.name);
 	}
 
 	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {
@@ -373,7 +373,7 @@ GPUMaterial *DRW_shader_create_from_material(
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
 		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
-		        vert, geom, frag_lib, defines);
+		        vert, geom, frag_lib, defines, ma->id.name);
 	}
 
 	if (GPU_material_status(mat) == GPU_MAT_QUEUED) {

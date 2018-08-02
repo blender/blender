@@ -1993,7 +1993,7 @@ GPUPass *GPU_generate_pass_new(
 	return pass;
 }
 
-void GPU_pass_compile(GPUPass *pass)
+void GPU_pass_compile(GPUPass *pass, const char *shname)
 {
 	if (!pass->compiled) {
 		pass->shader = GPU_shader_create(
@@ -2001,7 +2001,8 @@ void GPU_pass_compile(GPUPass *pass)
 		        pass->fragmentcode,
 		        pass->geometrycode,
 		        NULL,
-		        pass->defines);
+		        pass->defines,
+		        shname);
 		pass->compiled = true;
 	}
 }

@@ -184,7 +184,7 @@ void GPU_nodes_extract_dynamic_inputs(struct GPUShader *shader, ListBase *inputs
 void GPU_nodes_get_vertex_attributes(ListBase *nodes, struct GPUVertexAttribs *attribs);
 void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
 
-void GPU_pass_compile(GPUPass *pass);
+void GPU_pass_compile(GPUPass *pass, const char *shname);
 void GPU_pass_release(GPUPass *pass);
 void GPU_pass_free_nodes(ListBase *nodes);
 
