@@ -1746,18 +1746,20 @@ static tGPsdata *gp_session_initpaint(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = NULL;
 
-	/* create new context data */
+	/* Create new context data */
 	p = MEM_callocN(sizeof(tGPsdata), "GPencil Drawing Data");
 
-	gp_session_initdata(C, op, p);
-
-#if 0
-	/* radius for eraser circle is defined in userprefs now */
-	/* NOTE: we do this here, so that if we exit immediately,
-	 *       erase size won't get lost
+	/* Try to initialise context data
+	 * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
 	 */
-	p->radius = U.gp_eraser;
-#endif
+	if (gp_session_initdata(C, op, p) == 0) {
+		/* Invalid state - Exit
+		 * NOTE: It should be safe to just free the data, since failing context checks should
+		 * only happen when no data has been allocated.
+		 */
+		MEM_freeN(p);
+		return NULL;
+	}
 
 	/* Random generator, only init once. */
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
@@ -2092,26 +2094,7 @@ static bool gpencil_is_tablet_eraser_active(const wmEvent *event)
 static void gpencil_draw_exit(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = op->customdata;
-	bGPdata *gpd = CTX_data_gpencil_data(C);
 
-	/* clear undo stack */
-	gpencil_undo_finish();
-
-	/* restore cursor to indicate end of drawing */
-	if (p->sa->spacetype != SPACE_VIEW3D) {
-		WM_cursor_modal_restore(CTX_wm_window(C));
-	}
-	else {
-		/* or restore paint if 3D view */
-		if ((p) && (p->paintmode == GP_PAINTMODE_ERASER)) {
-			WM_cursor_modal_set(p->win, CURSOR_STD);
-		}
-		/* drawing batch cache is dirty now */
-		if (gpd) {
-			gp_update_cache(gpd);
-		}
-
-	}
 	/* don't assume that operator data exists at all */
 	if (p) {
 		/* check size of buffer before cleanup, to determine if anything happened here */
@@ -2128,6 +2111,26 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 			p->eraser->size = p->radius;
 		}
 
+		/* restore cursor to indicate end of drawing */
+		if (p->sa->spacetype != SPACE_VIEW3D) {
+			WM_cursor_modal_restore(CTX_wm_window(C));
+		}
+		else {
+			/* or restore paint if 3D view */
+			if ((p) && (p->paintmode == GP_PAINTMODE_ERASER)) {
+				WM_cursor_modal_set(p->win, CURSOR_STD);
+			}
+
+			/* drawing batch cache is dirty now */
+			bGPdata *gpd = CTX_data_gpencil_data(C);
+			if (gpd) {
+				gp_update_cache(gpd);
+			}
+		}
+
+		/* clear undo stack */
+		gpencil_undo_finish();
+
 		/* cleanup */
 		gp_paint_cleanup(p);
 		gp_session_cleanup(p);
@@ -2135,6 +2138,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 
 		/* finally, free the temp data */
 		gp_session_free(p);
+		p = NULL;
 	}
 
 	op->customdata = NULL;

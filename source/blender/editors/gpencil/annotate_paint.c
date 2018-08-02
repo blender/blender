@@ -1206,9 +1206,19 @@ static tGPsdata *gp_session_initpaint(bContext *C)
 	/* create new context data */
 	p = MEM_callocN(sizeof(tGPsdata), "Annotation Drawing Data");
 
-	gp_session_initdata(C, p);
+	/* Try to initialise context data
+	 * WARNING: This may not always succeed (e.g. using GP in an annotation-only context)
+	 */
+	if (gp_session_initdata(C, p) == 0) {
+		/* Invalid state - Exit
+		 * NOTE: It should be safe to just free the data, since failing context checks should
+		 * only happen when no data has been allocated.
+		 */
+		MEM_freeN(p);
+		return NULL;
+	}
 
-	/* radius for eraser circle is defined in userprefs now */
+	/* Radius for eraser circle is defined in userprefs */
 	/* NOTE: we do this here, so that if we exit immediately,
 	 *       erase size won't get lost
 	 */
@@ -1548,9 +1558,6 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = op->customdata;
 
-	/* clear undo stack */
-	gpencil_undo_finish();
-
 	/* restore cursor to indicate end of drawing */
 	WM_cursor_modal_restore(CTX_wm_window(C));
 
@@ -1568,10 +1575,14 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		 */
 		U.gp_eraser = p->radius;
 
+		/* clear undo stack */
+		gpencil_undo_finish();
+
 		/* cleanup */
 		gp_paint_cleanup(p);
 		gp_session_cleanup(p);
 		gp_session_free(p);
+		p = NULL;
 	}
 
 	op->customdata = NULL;
