@@ -987,7 +987,9 @@ static tGPDfill *gp_session_init_fill(bContext *C, wmOperator *UNUSED(op))
 	/* set GP datablock */
 	tgpf->gpd = gpd;
 	tgpf->gpl = BKE_gpencil_layer_getactive(gpd);
-
+	if (tgpf->gpl == NULL) {
+		tgpf->gpl = BKE_gpencil_layer_addnew(tgpf->gpd, DATA_("GP_Layer"), true);
+	}
 	tgpf->lock_axis = ts->gp_sculpt.lock_axis;
 
 	tgpf->oldkey = -1;
@@ -1087,6 +1089,12 @@ static void gpencil_fill_cancel(bContext *C, wmOperator *op)
 static int gpencil_fill_init(bContext *C, wmOperator *op)
 {
 	tGPDfill *tgpf;
+	/* cannot paint in locked layer */
+	bGPdata *gpd = CTX_data_gpencil_data(C);
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+	if ((gpl) && (gpl->flag & GP_LAYER_LOCKED)) {
+		return 0;
+	}
 
 	/* check context */
 	tgpf = op->customdata = gp_session_init_fill(C, op);
