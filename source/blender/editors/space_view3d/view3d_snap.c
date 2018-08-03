@@ -221,7 +221,7 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 /* *************************************************** */
@@ -449,7 +449,7 @@ void VIEW3D_OT_snap_selected_to_cursor(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* rna */
 	RNA_def_boolean(ot->srna, "use_offset", 1, "Offset",
@@ -483,7 +483,7 @@ void VIEW3D_OT_snap_selected_to_active(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 
@@ -712,7 +712,7 @@ void VIEW3D_OT_snap_cursor_to_selected(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 /* ********************************************** */
@@ -794,7 +794,7 @@ void VIEW3D_OT_snap_cursor_to_active(wmOperatorType *ot)
 	ot->poll = ED_operator_view3d_active;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 }
 
 /* **************************************************** */
