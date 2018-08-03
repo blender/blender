@@ -1073,7 +1073,7 @@ Material *BKE_gpencil_material_ensure(Main *bmain, Object *ob)
 			BKE_object_material_slot_add(bmain, ob);
 		}
 		ma = BKE_material_add_gpencil(bmain, DATA_("Material"));
-		assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_EXISTING);
+		assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 	}
 	else if (ma->gp_style == NULL) {
 		BKE_material_init_gpencil_settings(ma);

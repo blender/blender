@@ -134,7 +134,7 @@ static void bakeModifier(
 					if (newmat == NULL) {
 						BKE_object_material_slot_add(bmain, ob);
 						newmat = BKE_material_copy(bmain, mat);
-						assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_EXISTING);
+						assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 
 						copy_v4_v4(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
 						copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
