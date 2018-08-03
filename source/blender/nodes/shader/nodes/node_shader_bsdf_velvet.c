@@ -46,6 +46,8 @@ static int node_shader_gpu_bsdf_velvet(GPUMaterial *mat, bNode *node, bNodeExecD
 	if (!in[2].link)
 		GPU_link(mat, "world_normals_get", &in[2].link);
 
+	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
+
 	return GPU_stack_link(mat, node, "node_bsdf_velvet", in, out);
 }
 

@@ -1102,7 +1102,7 @@ void node_bsdf_anisotropic(
         vec4 color, float roughness, float anisotropy, float rotation, vec3 N, vec3 T,
         out Closure result)
 {
-	node_bsdf_diffuse(color, 0.0, N, result);
+	node_bsdf_glossy(color, roughness, N, -1, result);
 }
 
 void node_bsdf_glass(vec4 color, float roughness, float ior, vec3 N, float ssr_id, out Closure result)

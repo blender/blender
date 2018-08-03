@@ -54,6 +54,8 @@ static int node_shader_gpu_bsdf_anisotropic(GPUMaterial *mat, bNode *node, bNode
 	if (!in[4].link)
 		GPU_link(mat, "world_normals_get", &in[4].link);
 
+	GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
+
 	return GPU_stack_link(mat, node, "node_bsdf_anisotropic", in, out);
 }
 

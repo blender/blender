@@ -109,6 +109,9 @@ struct GPUMaterial {
 	 */
 	int domain;
 
+	/* Only used by Eevee to know which bsdf are used. */
+	int flag;
+
 	/* Used by 2.8 pipeline */
 	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
 
@@ -562,6 +565,16 @@ bool GPU_material_use_domain_surface(GPUMaterial *mat)
 bool GPU_material_use_domain_volume(GPUMaterial *mat)
 {
 	return (mat->domain & GPU_DOMAIN_VOLUME);
+}
+
+void GPU_material_flag_set(GPUMaterial *mat, GPUMatFlag flag)
+{
+	mat->flag |= flag;
+}
+
+bool GPU_material_flag_get(GPUMaterial *mat, GPUMatFlag flag)
+{
+	return (mat->flag & flag);
 }
 
 GPUMaterial *GPU_material_from_nodetree_find(

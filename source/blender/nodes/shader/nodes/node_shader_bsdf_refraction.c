@@ -52,6 +52,8 @@ static int node_shader_gpu_bsdf_refraction(GPUMaterial *mat, bNode *node, bNodeE
 	if (!in[3].link)
 		GPU_link(mat, "world_normals_get", &in[3].link);
 
+	GPU_material_flag_set(mat, GPU_MATFLAG_REFRACT);
+
 	return GPU_stack_link(mat, node, "node_bsdf_refraction", in, out);
 }
 

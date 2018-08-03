@@ -117,6 +117,8 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 		GPU_link(mat, "set_rgb", GPU_uniform((float *)one), &sss_scale);
 	}
 
+	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);
+
 	return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION),
 	                      GPU_uniform(&node->ssr_id), GPU_uniform(&node->sss_id), sss_scale);
 }

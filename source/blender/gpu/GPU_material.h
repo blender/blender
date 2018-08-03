@@ -124,6 +124,11 @@ typedef enum GPUMatType {
 	GPU_MATERIAL_TYPE_WORLD = 2,
 } GPUMatType;
 
+typedef enum GPUMatFlag {
+	GPU_MATFLAG_DIFFUSE       = (1 << 0),
+	GPU_MATFLAG_GLOSSY        = (1 << 1),
+	GPU_MATFLAG_REFRACT       = (1 << 2),
+} GPUMatFlag;
 
 typedef enum GPUBlendMode {
 	GPU_BLEND_SOLID = 0,
@@ -269,6 +274,9 @@ void GPU_material_vertex_attributes(
 bool GPU_material_do_color_management(GPUMaterial *mat);
 bool GPU_material_use_domain_surface(GPUMaterial *mat);
 bool GPU_material_use_domain_volume(GPUMaterial *mat);
+
+void GPU_material_flag_set(GPUMaterial *mat, GPUMatFlag flag);
+bool GPU_material_flag_get(GPUMaterial *mat, GPUMatFlag flag);
 
 void GPU_pass_cache_init(void);
 void GPU_pass_cache_garbage_collect(void);
