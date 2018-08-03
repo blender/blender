@@ -147,6 +147,9 @@ void BKE_scene_graph_update_tagged(struct Depsgraph *depsgraph,
 void BKE_scene_graph_update_for_newframe(struct Depsgraph *depsgraph,
                                          struct Main *bmain);
 
+void BKE_scene_view_layer_graph_evaluated_ensure(
+        struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer);
+
 struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);
 
