@@ -986,7 +986,7 @@ void GPENCIL_OT_select_circle(wmOperatorType *ot)
 	ot->cancel = WM_gesture_circle_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
 	WM_operator_properties_gesture_circle_select(ot);
@@ -1107,7 +1107,7 @@ void GPENCIL_OT_select_border(wmOperatorType *ot)
 	ot->poll = gpencil_select_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* rna */
 	WM_operator_properties_gesture_border_select(ot);
@@ -1225,7 +1225,7 @@ void GPENCIL_OT_select_lasso(wmOperatorType *ot)
 	ot->cancel = WM_gesture_lasso_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
 	WM_operator_properties_gesture_lasso_select(ot);
@@ -1401,7 +1401,7 @@ void GPENCIL_OT_select(wmOperatorType *ot)
 	ot->poll = gpencil_select_poll;
 
 	/* flag */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
 	WM_operator_properties_mouse_select(ot);
