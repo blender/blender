@@ -173,7 +173,9 @@ extern char datatoc_gpu_shader_gpencil_fill_frag_glsl[];
 /* cache of built-in shaders (each is created on first use) */
 static GPUShader *builtin_shaders[GPU_NUM_BUILTIN_SHADERS] = { NULL };
 
+#ifndef NDEBUG
 static uint g_shaderid = 0;
+#endif
 
 typedef struct {
 	const char *vert;
