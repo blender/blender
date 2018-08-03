@@ -145,6 +145,7 @@ enum {
 
 	OPTYPE_LOCK_BYPASS  = (1 << 7),  /* Allow operator to run when interface is locked */
 	OPTYPE_UNDO_GROUPED = (1 << 8),  /* Special type of undo which doesn't store itself multiple times */
+	OPTYPE_USE_EVAL_DATA = (1 << 9),  /* Need evaluated data (i.e. a valid, up-to-date depsgraph for current context) */
 };
 
 /* context to call operator in for WM_operator_name_call */

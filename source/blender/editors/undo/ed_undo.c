@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_layer.h"
 #include "BKE_undo_system.h"
@@ -412,6 +413,15 @@ int ED_undo_operator_repeat(bContext *C, wmOperator *op)
 						ED_region_tag_refresh_ui(ar_menu);
 					}
 				}
+			}
+
+			if (op->type->flag & OPTYPE_USE_EVAL_DATA) {
+				/* We need to force refresh of depsgraph after undo step,
+				 * redoing the operator *may* rely on some valid evaluated data. */
+				Main *bmain = CTX_data_main(C);
+				scene = CTX_data_scene(C);
+				ViewLayer *view_layer = CTX_data_view_layer(C);
+				BKE_scene_view_layer_graph_evaluated_ensure(bmain, scene, view_layer);
 			}
 
 			retval = WM_operator_repeat(C, op);

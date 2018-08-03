@@ -432,6 +432,8 @@ static const EnumPropertyItem operator_flag_items[] = {
 	                      "is enabled"},
 	{OPTYPE_PRESET, "PRESET", 0, "Preset", "Display a preset button with the operators settings"},
 	{OPTYPE_INTERNAL, "INTERNAL", 0, "Internal", "Removes the operator from search results"},
+	{OPTYPE_USE_EVAL_DATA, "USE_EVAL_DATA", 0, "Use Evaluated Data",
+	                       "Uses evaluated data (i.e. needs a valid depsgraph for current context)"},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif
