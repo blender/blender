@@ -122,7 +122,7 @@ static void drw_shgroup_uniform(DRWShadingGroup *shgroup, const char *name,
 
 	if (location == -1) {
 		if (G.debug & G_DEBUG)
-			fprintf(stderr, "Uniform '%s' not found!\n", name);
+			fprintf(stderr, "Pass : %s, Uniform '%s' not found!\n", shgroup->pass_parent->name, name);
 		/* Nice to enable eventually, for now eevee uses uniforms that might not exist. */
 		// BLI_assert(0);
 		return;
@@ -730,7 +730,7 @@ static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass 
 	shgroup->instance_vbo = NULL;
 #endif
 
-#ifdef USE_GPU_SELECT
+#if !defined(NDEBUG) || defined(USE_GPU_SELECT)
 	shgroup->pass_parent = pass;
 #endif
 
@@ -1026,7 +1026,7 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
 	DRWPass *pass = BLI_mempool_alloc(DST.vmempool->passes);
 	pass->state = state;
-	if (G.debug_value > 20) {
+	if ((G.debug_value > 20) || (G.debug & G_DEBUG)) {
 		BLI_strncpy(pass->name, name, MAX_PASS_NAME);
 	}
 

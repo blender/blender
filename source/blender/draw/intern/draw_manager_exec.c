@@ -950,10 +950,11 @@ static bool ubo_bindings_validate(DRWShadingGroup *shgroup)
 			char blockname[64];
 			glGetActiveUniformBlockName(program, i, sizeof(blockname), NULL, blockname);
 
-			printf("Trying to draw with missing UBO binding.\n");
-			printf("Shader : %s, Block : %s\n", shgroup->shader->name, blockname);
-
-			valid = false;
+			if (valid) {
+				printf("Trying to draw with missing UBO binding.\n");
+				valid = false;
+			}
+			printf("Pass : %s, Shader : %s, Block : %s\n", shgroup->pass_parent->name, shgroup->shader->name, blockname);
 		}
 	}
 #  endif

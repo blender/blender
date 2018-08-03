@@ -262,10 +262,11 @@ struct DRWShadingGroup {
 #ifndef NDEBUG
 	char attribs_count;
 #endif
-
+#if !defined(NDEBUG) || defined(USE_GPU_SELECT)
+	DRWPass *pass_parent; /* backlink to pass we're in */
+#endif
 #ifdef USE_GPU_SELECT
 	GPUVertBuf *inst_selectid;
-	DRWPass *pass_parent; /* backlink to pass we're in */
 	int override_selectid; /* Override for single object instances. */
 #endif
 };
