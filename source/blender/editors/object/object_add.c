@@ -1035,6 +1035,19 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 
 	/* create relevant geometry */
 	switch (type) {
+		case GP_STROKE:
+		{
+			float radius = RNA_float_get(op->ptr, "radius");
+			float mat[4][4];
+
+			ED_object_new_primitive_matrix(C, ob, loc, rot, mat);
+			mul_v3_fl(mat[0], radius);
+			mul_v3_fl(mat[1], radius);
+			mul_v3_fl(mat[2], radius);
+
+			ED_gpencil_create_stroke(C, mat);
+			break;
+		}
 		case GP_MONKEY:
 		{
 			float radius = RNA_float_get(op->ptr, "radius");
@@ -1048,7 +1061,6 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 			ED_gpencil_create_monkey(C, mat);
 			break;
 		}
-
 		case GP_EMPTY:
 			/* do nothing */
 			break;

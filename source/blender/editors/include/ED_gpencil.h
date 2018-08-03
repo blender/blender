@@ -208,6 +208,7 @@ void ED_gpencil_brush_draw_eraser(struct Brush *brush, int x, int y);
 /* ----------- Add Primitive Utilities -------------- */
 
 void ED_gpencil_create_monkey(struct bContext *C, float mat[4][4]);
+void ED_gpencil_create_stroke(struct bContext *C, float mat[4][4]);
 
 /* ------------ Object Utilities ------------ */
 struct Object *ED_add_gpencil_object(struct bContext *C, struct Scene *scene, const float loc[3]);

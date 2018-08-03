@@ -44,6 +44,7 @@ set(SRC
 	drawgpencil.c
 	editaction_gpencil.c
 	gpencil_add_monkey.c
+	gpencil_add_stroke.c
 	gpencil_brush.c
 	gpencil_convert.c
 	gpencil_data.c

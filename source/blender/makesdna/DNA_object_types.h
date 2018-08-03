@@ -474,7 +474,8 @@ enum {
 /* gpencil add types */
 enum {
 	GP_EMPTY = 0,
-	GP_MONKEY = 1
+	GP_STROKE = 1,
+	GP_MONKEY = 2
 };
 
 /* boundtype */
