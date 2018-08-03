@@ -1875,6 +1875,7 @@ static void single_mat_users_expand(Main *bmain)
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb;
+	bGPdata *gpd;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->id.tag & LIB_TAG_NEW)
@@ -1891,6 +1892,10 @@ static void single_mat_users_expand(Main *bmain)
 	for (mb = bmain->mball.first; mb; mb = mb->id.next)
 		if (mb->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, mb->mat, mb->totcol);
+
+	for (gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next)
+		if (gpd->id.tag & LIB_TAG_NEW)
+			new_id_matar(bmain, gpd->mat, gpd->totcol);
 }
 
 /* used for copying scenes */
