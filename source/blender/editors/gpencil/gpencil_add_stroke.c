@@ -125,7 +125,7 @@ static const float data0[175 * GP_PRIM_DATABUF_SIZE] = {-1.281f, 0.0f, -0.315f, 
 1.169f, 0.0f, 0.671f, 0.236f, 1.0f, 1.207f, 0.0f, 0.693f, 0.202f, 1.0f, 1.264f, 0.0f, 0.725f, 0.155f, 1.0f, };
 
 /* ***************************************************************** */
-/* Monkey Color Data */
+/* Color Data */
 
 static const ColorTemplate gp_stroke_material_black = {
 	"Black",
