@@ -564,6 +564,13 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.paint_weight.lighten
 	brush.paint_weight.mix
 	brush.paint_weight.multiply
+	brush.particle.add
+	brush.particle.comb
+	brush.particle.cut
+	brush.particle.length
+	brush.particle.puff
+	brush.particle.smooth
+	brush.particle.weight
 	brush.sculpt.blob
 	brush.sculpt.clay
 	brush.sculpt.clay_strips
