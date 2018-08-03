@@ -1005,12 +1005,10 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		DRWState state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
 		psl->depth_pass = DRW_pass_create("Depth Pass", state);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass);
-		DRW_shgroup_uniform_block(stl->g_data->depth_shgrp, "clip_block", sldata->clip_ubo);
 
 		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK;
 		psl->depth_pass_cull = DRW_pass_create("Depth Pass Cull", state);
 		stl->g_data->depth_shgrp_cull = DRW_shgroup_create(e_data.default_prepass_sh, psl->depth_pass_cull);
-		DRW_shgroup_uniform_block(stl->g_data->depth_shgrp_cull, "clip_block", sldata->clip_ubo);
 
 		state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CLIP_PLANES | DRW_STATE_WIRE;
 		psl->depth_pass_clip = DRW_pass_create("Depth Pass Clip", state);

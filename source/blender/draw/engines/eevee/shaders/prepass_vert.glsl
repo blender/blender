@@ -2,10 +2,12 @@
 uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ModelMatrix;
 
+#ifdef CLIP_PLANES
 /* keep in sync with DRWManager.view_data */
 layout(std140) uniform clip_block {
 	vec4 ClipPlanes[1];
 };
+#endif
 
 #ifndef HAIR_SHADER
 in vec3 pos;
