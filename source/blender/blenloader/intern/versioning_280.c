@@ -1826,7 +1826,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-
+		/* default loc axis */
+		if (!DNA_struct_elem_find(fd->filesdna, "GP_BrushEdit_Settings", "int", "lock_axis")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				/* lock axis */
+				GP_BrushEdit_Settings *gset = &scene->toolsettings->gp_sculpt;
+				if (gset) {
+					gset->lock_axis = GP_LOCKAXIS_Y;
+				}
+			}
+		}
 	}
 
 }
