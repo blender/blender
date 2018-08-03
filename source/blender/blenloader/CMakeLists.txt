@@ -52,7 +52,6 @@ set(SRC
 	intern/blend_validate.c
 	intern/readblenentry.c
 	intern/readfile.c
-	intern/runtime.c
 	intern/undofile.c
 	intern/versioning_250.c
 	intern/versioning_260.c
@@ -64,7 +63,6 @@ set(SRC
 
 	BLO_blend_defs.h
 	BLO_readfile.h
-	BLO_runtime.h
 	BLO_undofile.h
 	BLO_writefile.h
 	intern/readfile.h

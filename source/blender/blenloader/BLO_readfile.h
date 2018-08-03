@@ -143,8 +143,6 @@ void BLO_library_link_copypaste(struct Main *mainl, BlendHandle *bh);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
-BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
-
 /* internal function but we need to expose it */
 void blo_lib_link_restore(
         struct Main *newmain, struct wmWindowManager *curwm,
