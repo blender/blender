@@ -238,7 +238,7 @@ typedef struct BMesh {
 	struct BLI_mempool *looplistpool;
 #endif
 
-	struct MLoopNorSpaceArray *lnor_spacearr;  /* Stores MLoopNorSpaceArray for this BMesh */
+	struct MLoopNorSpaceArray *lnor_spacearr;
 	char spacearr_dirty;
 
 	/* should be copy of scene select mode */
