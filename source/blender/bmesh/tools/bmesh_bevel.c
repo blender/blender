@@ -1537,15 +1537,19 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 {
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
+	/* First first edge with seam or sharp edge data */
 	while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))) {
 		e = e->next;
 		if (e == efirst)
 			break;
 	}
+
+	/* If no such edge found, return */
 	if ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))))
 		return;
 
-	efirst = e;
+	efirst = e;			/* Set efirst to this first encountered edge*/
+
 	do {
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
@@ -1559,13 +1563,12 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag))))) {
 			break;
 		}
- 		if (flag == BM_ELEM_SEAM)
+ 		if (flag == BM_ELEM_SEAM)				/* Set seam_len / sharp_len of starting edge */
 			e->rightv->seam_len = flag_count;
 		else if (flag == BM_ELEM_SMOOTH)
 			e->rightv->sharp_len = flag_count;
 		e = ne;
 	} while (e != efirst);
-
 }
 
 static void bevel_extend_edge_data(BevVert *bv)
@@ -1575,10 +1578,14 @@ static void bevel_extend_edge_data(BevVert *bv)
 	BoundVert *bcur = bv->vmesh->boundstart, *start = bcur;
 
 	do {
+		/* If current boundvert has a seam length > 0 then it has a seam running along its edges */
 		if (bcur->seam_len) {
 			if (!bv->vmesh->boundstart->seam_len && start == bv->vmesh->boundstart)
-				start = bcur;
+				start = bcur;			/* set start to first boundvert with seam_len > 0 */
 
+			/* Now for all the mesh_verts starting at current index and ending at idxlen
+			*  We go through outermost ring and through all its segments and add seams
+			*  for those edges */
 			int idxlen = bcur->index + bcur->seam_len;
 			for (int i = bcur->index; i < idxlen; i++) {
 				BMVert *v1 = mesh_vert(vm, i % vm->count, 0, 0)->v, *v2;
@@ -1586,6 +1593,7 @@ static void bevel_extend_edge_data(BevVert *bv)
 				for (int k = 1; k < vm->seg; k++) {
 					v2 = mesh_vert(vm, i % vm->count, 0, k)->v;
 
+					/* Here v1 & v2 are current and next BMverts, we find common edge and set its edge data */
 					e = v1->e;
 					while (e->v1 != v2 && e->v2 != v2) {
 						if (e->v1 == v1)
@@ -1597,7 +1605,7 @@ static void bevel_extend_edge_data(BevVert *bv)
 					v1 = v2;
 				}
 				BMVert *v3 = mesh_vert(vm, (i + 1) % vm->count, 0, 0)->v;
-				e = v1->e;
+				e = v1->e;			//Do same as above for first and last vert
 				while (e->v1 != v3 && e->v2 != v3) {
 					if (e->v1 == v1)
 						e = e->v1_disk_link.next;
@@ -1672,6 +1680,7 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 	if (bp->hnmode == BEVEL_HN_FACE) {
 		GHash *tempfaceHash = BLI_ghash_int_new(__func__);
 
+		/* Iterate through all faces of current BMVert and add their normal*face_area to n_final */
 		BM_ITER_ELEM(e, &eiter, bv->v, BM_EDGES_OF_VERT) {
 			if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
 
@@ -1714,6 +1723,7 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 	}
 
 	do {
+		/* Set normals.out for vertices as computed earlier */
 		if (BMO_slot_map_contains(nslot, bcur->nv.v) != true) {
 
 			float(*vert_normal) = MEM_callocN(sizeof(*vert_normal) * 3, __func__);
