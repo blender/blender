@@ -70,7 +70,9 @@ static void initData(ModifierData *md)
 	bmd->profile = 0.5f;
 	bmd->bevel_angle = DEG2RADF(30.0f);
 	bmd->defgrp_name[0] = '\0';
+	bmd->hnmode = MOD_BEVEL_HN_NONE;
 	bmd->hn_strength = 0.5f;
+	bmd->clnordata.faceHash = NULL;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
