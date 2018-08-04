@@ -251,10 +251,10 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 {
 	BMesh *bm = em->bm;
 
-	/* We need to create clnors data if none exist yet, otherwise there is no way to edit them. */
-	/* Similar code to MESH_OT_customdata_custom_splitnormals_add operator, we want to keep same shading
-	 * in case we were using autosmooth so far... */
-	/* Note: there is a problem here, which is that if someone starts a normal editing operation on previously
+	/* We need to create clnors data if none exist yet, otherwise there is no way to edit them. 
+	 * Similar code to MESH_OT_customdata_custom_splitnormals_add operator, we want to keep same shading
+	 * in case we were using autosmooth so far... 
+	 * Note: there is a problem here, which is that if someone starts a normal editing operation on previously
 	 * autosmooth-ed mesh, and cancel that operation, generated clnors data remain, with related sharp edges
 	 * (and hence autosmooth is 'lost').
 	 * Not sure how critical this is, and how to fix that issue? */
