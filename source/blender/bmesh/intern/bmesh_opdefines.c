@@ -1736,17 +1736,17 @@ static BMOpDefine bmo_bevel_def = {
 	 {"clamp_overlap", BMO_OP_SLOT_BOOL},   /* do not allow beveled edges/vertices to overlap each other */
 	 {"material", BMO_OP_SLOT_INT},         /* material for bevel faces, -1 means get from adjacent faces */
 	 {"loop_slide", BMO_OP_SLOT_BOOL},      /* prefer to slide along edges to having even widths */
-	 {"mark_seam", BMO_OP_SLOT_BOOL},
-	 {"mark_sharp", BMO_OP_SLOT_BOOL},
-	 {"strength", BMO_OP_SLOT_FLT},
-	 {"hnmode", BMO_OP_SLOT_INT},
+	 {"mark_seam", BMO_OP_SLOT_BOOL},		/* extend edge data to allow seams to run across bevels */
+	 {"mark_sharp", BMO_OP_SLOT_BOOL},		/* extend edge data to allow sharp edges to run across bevels */
+	 {"strength", BMO_OP_SLOT_FLT},			/* strength of calculated normal in range (0, 1) for custom clnors */
+	 {"hnmode", BMO_OP_SLOT_INT},			/* harden normals mode used in bevel if enabled */
 	 {{'\0'}},
 	},
 	/* slots_out */
 	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}}, /* output faces */
 	 {"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}}, /* output edges */
 	 {"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}}, /* output verts */
-	 {"normals.out", BMO_OP_SLOT_MAPPING},
+	 {"normals.out", BMO_OP_SLOT_MAPPING},				/* output normals per vertex for beveled edges */
 	 {{'\0'}},
 	},
 

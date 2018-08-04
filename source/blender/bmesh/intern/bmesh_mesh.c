@@ -320,7 +320,6 @@ void BM_mesh_free(BMesh *bm)
  */
 
 /* We use that existing internal API flag, assuming no other tool using it would run concurrently to clnors editing. */
-/* XXX Should we rather add a new internal flag? */
 #define BM_LNORSPACE_UPDATE _FLAG_MF
 
 typedef struct BMEdgesCalcVectorsData {
@@ -1077,7 +1076,6 @@ void BM_lnorspacearr_store(BMesh *bm, float(*r_lnors)[3])
 	bm->spacearr_dirty &= ~(BM_SPACEARR_DIRTY | BM_SPACEARR_DIRTY_ALL);
 }
 
-/* will change later */
 #define CLEAR_SPACEARRAY_THRESHOLD(x) ((x) / 2)
 
 void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)

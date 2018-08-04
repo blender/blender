@@ -128,10 +128,10 @@ enum {
 };
 
 enum {
-	BEVEL_HN_NONE,
-	BEVEL_HN_FACE,
-	BEVEL_HN_ADJ,
-	BEVEL_HN_FIX_SHA,
+	BEVEL_HN_NONE,			/* Disable harden normals */
+	BEVEL_HN_FACE,			/* harden normals according to face area */
+	BEVEL_HN_ADJ,			/* harden normals according to adjacent 'beveled' faces */
+	BEVEL_HN_FIX_SHA,		/* Special mode to fix normal shading continuity */
 };
 
 extern const BMOpDefine *bmo_opdefines[];
