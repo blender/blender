@@ -138,17 +138,18 @@ static void generateStrokes(
 	int tot_strokes;
 	int i;
 
-	/* count strokes to avoid infinite loop after adding new strokes to tail of listbase */
-	tot_strokes = BLI_listbase_count(&gpf->strokes);
+	/* check each axis for mirroring */
+	for (int xi = 0; xi < 3; ++xi) {
+		if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
 
-	for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
-		if (is_stroke_affected_by_modifier(
-		            ob, mmd->layername, mmd->pass_index, 1, gpl, gps,
-		            mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
-		{
-			/* check each axis for mirroring */
-			for (int xi = 0; xi < 3; ++xi) {
-				if (mmd->flag & (GP_MIRROR_AXIS_X << xi)) {
+			/* count strokes to avoid infinite loop after adding new strokes to tail of listbase */
+			tot_strokes = BLI_listbase_count(&gpf->strokes);
+
+			for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
+				if (is_stroke_affected_by_modifier(
+					ob, mmd->layername, mmd->pass_index, 1, gpl, gps,
+					mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
+				{
 					/* clip before duplicate */
 					clip_stroke(mmd, gps);
 
