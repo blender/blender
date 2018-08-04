@@ -152,8 +152,8 @@ typedef struct BoundVert {
 	Profile profile;    /* edge profile between this and next BoundVert */
 	bool any_seam;      /* are any of the edges attached here seams? */
 	bool visited;       /* used during delta adjust pass */
-	int seam_len;
-	int sharp_len;
+	int seam_len;		/* length of seam starting from current boundvert to next boundvert with ccw ordering */
+	int sharp_len;		/* Same as seam_len but defines length of sharp edges */
 //	int _pad;
 } BoundVert;
 
@@ -185,7 +185,6 @@ typedef struct BevVert {
 	EdgeHalf *edges;        /* array of size edgecount; CCW order from vertex normal side */
 	BMEdge **wire_edges;	/* array of size wirecount of wire edges */
 	VMesh *vmesh;           /* mesh structure for replacing vertex */
-	bool fix_shading;
 } BevVert;
 
 /* Bevel parameters and state */
@@ -3208,8 +3207,6 @@ static VMesh *adj_vmesh(BevelParams *bp, BevVert *bv)
 	if (n == 3 && tri_corner_test(bp, bv) != -1 && bp->pro_super_r != PRO_SQUARE_IN_R) {
 		return tri_corner_adj_vmesh(bp, bv);
 	}
-
-	bv->fix_shading = true;
 
 	/* First construct an initial control mesh, with nseg==2 */
 	ns = bv->vmesh->seg;
