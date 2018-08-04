@@ -147,20 +147,23 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 	BMLoop *l, *l_cur, *l_first;
 	BMIter fiter;
 
-	BMOpSlot *nslot = BMO_slot_get(bmop->slots_out, "normals.out");
+	BMOpSlot *nslot = BMO_slot_get(bmop->slots_out, "normals.out");		/* Per vertex normals depending on hn_mode */
 
+	/* Similar functionality to bm_mesh_loops_calc_normals... Edges that can be smoothed are tagged */
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			if (BM_elem_flag_test(l_cur->v, BM_ELEM_SELECT) && (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) ||
 				(!BM_elem_flag_test(l_cur, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_cur))))
 			{
+				/* Both adjacent loops are sharp, set clnor to face normal */
 				if (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) && !BM_elem_flag_test(l_cur->prev->e, BM_ELEM_TAG)) {
 					const int loop_index = BM_elem_index_get(l_cur);
 					short *clnors = BM_ELEM_CD_GET_VOID_P(l_cur, cd_clnors_offset);
 					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[loop_index], f->no, clnors);
 				}
 				else {
+					/* Find next corresponding sharp edge in this smooth fan */
 					BMVert *v_pivot = l_cur->v;
 					float *calc_n = BLI_ghash_lookup(nslot->data.ghash, v_pivot);
 
@@ -173,6 +176,7 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 					BLI_SMALLSTACK_DECLARE(loops, BMLoop *);
 					float cn_wght[3] = { 0.0f, 0.0f, 0.0f }, cn_unwght[3] = { 0.0f, 0.0f, 0.0f };
 
+					/* Fan through current vert and accumulate normals and loops */
 					while (true) {
 						lfan_pivot_next = BM_vert_step_fan_loop(lfan_pivot, &e_next);
 						if (lfan_pivot_next) {
