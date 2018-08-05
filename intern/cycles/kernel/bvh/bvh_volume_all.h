@@ -212,14 +212,16 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
 #if BVH_FEATURE(BVH_INSTANCING)
+										if(object != OBJECT_NONE) {
 #  if BVH_FEATURE(BVH_MOTION)
-										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
+											float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
 #  else
-										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
-										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
+											Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+											float t_fac = 1.0f / len(transform_direction(&itfm, dir));
 #  endif
-										for(int i = 0; i < num_hits_in_instance; i++) {
-											(isect_array-i-1)->t *= t_fac;
+											for(int i = 0; i < num_hits_in_instance; i++) {
+												(isect_array-i-1)->t *= t_fac;
+											}
 										}
 #endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
@@ -257,14 +259,16 @@ uint BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 									isect_array->t = isect_t;
 									if(num_hits == max_hits) {
 #  if BVH_FEATURE(BVH_INSTANCING)
+										if(object != OBJECT_NONE) {
 #    if BVH_FEATURE(BVH_MOTION)
-										float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
+											float t_fac = 1.0f / len(transform_direction(&ob_itfm, dir));
 #    else
-										Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
-										float t_fac = 1.0f / len(transform_direction(&itfm, dir));
+											Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+											float t_fac = 1.0f / len(transform_direction(&itfm, dir));
 #    endif
-										for(int i = 0; i < num_hits_in_instance; i++) {
-											(isect_array-i-1)->t *= t_fac;
+											for(int i = 0; i < num_hits_in_instance; i++) {
+												(isect_array-i-1)->t *= t_fac;
+											}
 										}
 #  endif  /* BVH_FEATURE(BVH_INSTANCING) */
 										return num_hits;
