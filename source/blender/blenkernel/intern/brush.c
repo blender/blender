@@ -167,20 +167,12 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 	return brush;
 }
 
-/* add a new gp-brush */
-Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name)
+/* add grese pencil settings */
+void BKE_brush_init_gpencil_settings(Brush *brush)
 {
-	Brush *brush;
-	Paint *paint = BKE_brush_get_gpencil_paint(ts);
-	brush = BKE_brush_add(bmain, name, OB_MODE_GPENCIL_PAINT);
-
-	BKE_paint_brush_set(paint, brush);
-	id_us_min(&brush->id);
-
-	/* grease pencil basic settings */
-	brush->size = 3;
-
-	brush->gpencil_settings = MEM_callocN(sizeof(BrushGpencilSettings), "BrushGpencilSettings");
+	if (brush->gpencil_settings == NULL) {
+		brush->gpencil_settings = MEM_callocN(sizeof(BrushGpencilSettings), "BrushGpencilSettings");
+	}
 
 	brush->gpencil_settings->draw_smoothlvl = 1;
 	brush->gpencil_settings->flag = 0;
@@ -195,6 +187,22 @@ Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name)
 	brush->gpencil_settings->curve_sensitivity = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	brush->gpencil_settings->curve_strength = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	brush->gpencil_settings->curve_jitter = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+}
+
+/* add a new gp-brush */
+Brush *BKE_brush_add_gpencil(Main *bmain, ToolSettings *ts, const char *name)
+{
+	Brush *brush;
+	Paint *paint = BKE_brush_get_gpencil_paint(ts);
+	brush = BKE_brush_add(bmain, name, OB_MODE_GPENCIL_PAINT);
+
+	BKE_paint_brush_set(paint, brush);
+	id_us_min(&brush->id);
+
+	brush->size = 3;
+
+	/* grease pencil basic settings */
+	BKE_brush_init_gpencil_settings(brush);
 
 	/* return brush */
 	return brush;
