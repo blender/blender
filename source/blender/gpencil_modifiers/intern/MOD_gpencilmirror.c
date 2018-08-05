@@ -140,7 +140,6 @@ static void bakeModifier(
         Main *bmain, Depsgraph *depsgraph,
         GpencilModifierData *md, Object *ob)
 {
-	MirrorGpencilModifierData *mmd = (MirrorGpencilModifierData *)md;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	bGPdata *gpd = ob->data;
 	int oldframe = (int)DEG_get_ctime(depsgraph);
