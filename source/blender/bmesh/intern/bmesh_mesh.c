@@ -1114,9 +1114,10 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
 
 				/* Note that we only handle unselected neighbor vertices here, main loop will take care of
 				* selected ones. */
-				if (!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT) &&
+				if ((!BM_elem_flag_test(l->prev->v, BM_ELEM_SELECT)) &&
 					!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->prev->v)))
 				{
+
 					BMLoop *l_prev;
 					BMIter liter_prev;
 					BM_ITER_ELEM(l_prev, &liter_prev, l->prev->v, BM_LOOPS_OF_VERT) {
@@ -1125,9 +1126,10 @@ void BM_lnorspace_invalidate(BMesh *bm, const bool do_invalidate_all)
 					BLI_BITMAP_ENABLE(done_verts, BM_elem_index_get(l_prev->v));
 				}
 
-				if (!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT) &&
+				if ((!BM_elem_flag_test(l->next->v, BM_ELEM_SELECT)) &&
 					!BLI_BITMAP_TEST(done_verts, BM_elem_index_get(l->next->v)))
 				{
+
 					BMLoop *l_next;
 					BMIter liter_next;
 					BM_ITER_ELEM(l_next, &liter_next, l->next->v, BM_LOOPS_OF_VERT) {
@@ -1172,7 +1174,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 					short(*clnor)[2] = BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset);
 					int l_index = BM_elem_index_get(l);
 
-					BKE_lnor_space_custom_data_to_normal(bm->lnor_spacearr->lspacearr[l_index], *clnor, oldnors[l_index]);
+					BKE_lnor_space_custom_data_to_normal(bm->lnor_spacearr->lspacearr[l_index], *clnor,
+														 oldnors[l_index]);
 				}
 			}
 		}
@@ -1191,7 +1194,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
 				if (preserve_clnor) {
 					short(*clnor)[2] = BM_ELEM_CD_GET_VOID_P(l, cd_loop_clnors_offset);
 					int l_index = BM_elem_index_get(l);
-					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], oldnors[l_index], *clnor);
+					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], oldnors[l_index],
+														 *clnor);
 				}
 				BM_ELEM_API_FLAG_DISABLE(l, BM_LNORSPACE_UPDATE);
 			}
@@ -1398,7 +1402,8 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm)
 	BLI_assert(bm->spacearr_dirty == 0);
 
 	BMLoopNorEditDataArray *lnors_ed_arr = MEM_mallocN(sizeof(*lnors_ed_arr), __func__);
-	lnors_ed_arr->lidx_to_lnor_editdata = MEM_callocN(sizeof(*lnors_ed_arr->lidx_to_lnor_editdata) * bm->totloop, __func__);
+	lnors_ed_arr->lidx_to_lnor_editdata = MEM_callocN(sizeof(*lnors_ed_arr->lidx_to_lnor_editdata) * bm->totloop,
+													  __func__);
 
 	if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
 		BM_data_layer_add(bm, &bm->ldata, CD_CUSTOMLOOPNORMAL);

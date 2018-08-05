@@ -66,7 +66,8 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			}
 		}
 
-		BM_mesh_bevel(bm, offset, offset_type, seg, profile, vonly, false, clamp_overlap, NULL, -1, material, loop_slide, mark_seam, mark_sharp, hnmode, op);
+		BM_mesh_bevel(bm, offset, offset_type, seg, profile, vonly, false, clamp_overlap, NULL, -1, material,
+					  loop_slide, mark_seam, mark_sharp, hnmode, op);
 
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "faces.out", BM_FACE, BM_ELEM_TAG);
 		BMO_slot_buffer_from_enabled_hflag(bm, op, op->slots_out, "edges.out", BM_EDGE, BM_ELEM_TAG);

@@ -153,7 +153,8 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 	BM_ITER_MESH(f, &fiter, bm, BM_FACES_OF_MESH) {
 		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
-			if (BM_elem_flag_test(l_cur->v, BM_ELEM_SELECT) && (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) ||
+			if ((BM_elem_flag_test(l_cur->v, BM_ELEM_SELECT)) &&
+				((!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG)) ||
 				(!BM_elem_flag_test(l_cur, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_cur))))
 			{
 				/* Both adjacent loops are sharp, set clnor to face normal */
@@ -191,7 +192,7 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 						mul_v3_v3fl(cur, lfan_pivot->f->no, BM_face_calc_area(lfan_pivot->f));
 						add_v3_v3(cn_wght, cur);
 
-						if(BM_elem_flag_test(lfan_pivot->f, BM_ELEM_SELECT))
+						if (BM_elem_flag_test(lfan_pivot->f, BM_ELEM_SELECT))
 							add_v3_v3(cn_unwght, cur);
 
 						if (!BM_elem_flag_test(e_next, BM_ELEM_TAG) || (e_next == e_org)) {
@@ -215,7 +216,8 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], calc_n, clnors);
 						}
 						else
-							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], cn_unwght, clnors);
+							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], cn_unwght,
+																 clnors);
 					}
 					BLI_ghash_remove(nslot->data.ghash, v_pivot, NULL, MEM_freeN);
 				}
@@ -347,7 +349,7 @@ static bool edbm_bevel_calc(wmOperator *op)
 			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 		}
 
-		if(hnmode != BEVEL_HN_NONE)
+		if (hnmode != BEVEL_HN_NONE)
 			bevel_harden_normals(em, &bmop, hn_strength, hnmode);
 
 		/* no need to de-select existing geometry */
@@ -794,6 +796,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "mark_sharp", false, "Mark Sharp", "Mark beveled edges as sharp");
 	RNA_def_int(ot->srna, "material", -1, -1, INT_MAX, "Material",
 		"Material for bevel faces (-1 means use adjacent faces)", -1, 100);
-	RNA_def_float(ot->srna, "strength", 0.5f, 0.0f, 1.0f, "Normal Strength", "Strength of calculated normal", 0.0f, 1.0f);
-	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_NONE, "Normal Mode", "Weighting mode for Harden Normals");
+	RNA_def_float(ot->srna, "strength", 0.5f, 0.0f, 1.0f, "Normal Strength",
+		"Strength of calculated normal", 0.0f, 1.0f);
+	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_NONE, "Normal Mode",
+		"Weighting mode for Harden Normals");
 }

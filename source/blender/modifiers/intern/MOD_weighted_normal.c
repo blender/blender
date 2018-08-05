@@ -217,7 +217,8 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd, Weight
 		num_items = lnors_spacearr.num_spaces;
 		items_data = MEM_calloc_arrayN((size_t)num_items, sizeof(*items_data), __func__);
 
-		/* In this first loop, we assign each WeightedNormalDataAggregateItem to its smooth fan of loops (aka lnor space). */
+		/* In this first loop, we assign each WeightedNormalDataAggregateItem
+		*  to its smooth fan of loops (aka lnor space). */
 		MPoly *mp;
 		int mp_index;
 		int item_index;
@@ -572,7 +573,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	    .mpoly = mpoly,
 	    .polynors = polynors,
-	    .poly_strength = CustomData_get_layer_named(&result->pdata, CD_PROP_INT, MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID),
+	    .poly_strength = CustomData_get_layer_named(&result->pdata, CD_PROP_INT,
+													MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID),
 
 	    .dvert = dvert,
 	    .defgrp_index = defgrp_index,

@@ -1554,16 +1554,19 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 		
-		while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) && ne != efirst) {
+		while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
+				ne != efirst)
+		{
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
 		if (ne == e || (ne == efirst && (!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag) ||
-										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag))))) {
+										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)))))
+		{
 			break;
 		}
- 		if (flag == BM_ELEM_SEAM)				/* Set seam_len / sharp_len of starting edge */
+		if (flag == BM_ELEM_SEAM)				/* Set seam_len / sharp_len of starting edge */
 			e->rightv->seam_len = flag_count;
 		else if (flag == BM_ELEM_SMOOTH)
 			e->rightv->sharp_len = flag_count;
@@ -1687,7 +1690,7 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 				BMFace *f_a, *f_b;
 				BM_edge_face_pair(e, &f_a, &f_b);
 
-				if(f_a && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
+				if (f_a && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
 					int f_area = BM_face_calc_area(f_a);
 					float f_no[3];
 					copy_v3_v3(f_no, f_a->no);
@@ -1695,7 +1698,7 @@ static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, B
 					add_v3_v3(n_final, f_no);
 					BLI_ghash_insert(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)), NULL);
 				}
-				if(f_b && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
+				if (f_b && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
 					int f_area = BM_face_calc_area(f_b);
 					float f_no[3];
 					copy_v3_v3(f_no, f_b->no);
@@ -3794,7 +3797,7 @@ static void bevel_build_rings(BevelParams *bp, BMesh *bm, BevVert *bv)
 						                   NULL, bme1, bme2, bme3, mat_nr);
 					}
 				}
-				if(do_fix_shading_bv)
+				if (do_fix_shading_bv)
 					BLI_ghash_insert(bp->faceHash, r_f, NULL);
 			}
 		}
