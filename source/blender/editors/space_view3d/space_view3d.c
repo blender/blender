@@ -632,14 +632,14 @@ static bool view3d_ima_mesh_drop_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = drag->poin;
+	ID *id = WM_drag_ID(drag, ID_OB);
 
 	RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
 static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = drag->poin;
+	ID *id = WM_drag_ID(drag, ID_GR);
 
 	drop->opcontext = WM_OP_EXEC_DEFAULT;
 	RNA_string_set(drop->ptr, "name", id->name + 2);
@@ -647,14 +647,14 @@ static void view3d_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
 
 static void view3d_id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = drag->poin;
+	ID *id = WM_drag_ID(drag, 0);
 
 	RNA_string_set(drop->ptr, "name", id->name + 2);
 }
 
 static void view3d_id_path_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	ID *id = drag->poin;
+	ID *id = WM_drag_ID(drag, 0);
 
 	if (id) {
 		RNA_string_set(drop->ptr, "name", id->name + 2);

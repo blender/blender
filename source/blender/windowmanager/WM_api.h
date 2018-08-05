@@ -484,14 +484,16 @@ void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx
 void                WM_drag_free(struct wmDrag *drag);
 void                WM_drag_free_list(struct ListBase *lb);
 
-struct ID          *WM_drag_ID(const struct wmDrag *drag, short idcode);
-struct ID          *WM_drag_ID_from_event(const struct wmEvent *event, short idcode);
-
 struct wmDropBox	*WM_dropbox_add(
         ListBase *lb, const char *idname,
         bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event, const char **),
         void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
+
+			/* ID drag and drop */
+void                WM_drag_add_ID(struct wmDrag *drag, struct ID *id, struct ID *from_parent);
+struct ID          *WM_drag_ID(const struct wmDrag *drag, short idcode);
+struct ID          *WM_drag_ID_from_event(const struct wmEvent *event, short idcode);
 
 			/* Set OpenGL viewport and scissor */
 void		wmViewport(const struct rcti *rect);

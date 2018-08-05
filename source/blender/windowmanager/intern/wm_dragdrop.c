@@ -45,6 +45,7 @@
 #include "BIF_glutil.h"
 
 #include "BKE_context.h"
+#include "BKE_idcode.h"
 
 #include "GPU_shader.h"
 
@@ -155,10 +156,17 @@ wmDrag *WM_event_start_drag(struct bContext *C, int icon, int type, void *poin, 
 	drag->flags = flags;
 	drag->icon = icon;
 	drag->type = type;
-	if (type == WM_DRAG_PATH)
+	if (type == WM_DRAG_PATH) {
 		BLI_strncpy(drag->path, poin, FILE_MAX);
-	else
+	}
+	else if (type == WM_DRAG_ID) {
+		if (poin) {
+			WM_drag_add_ID(drag, poin, NULL);
+		}
+	}
+	else {
 		drag->poin = poin;
+	}
 	drag->value = value;
 
 	return drag;
@@ -178,6 +186,7 @@ void WM_drag_free(wmDrag *drag)
 		MEM_freeN(drag->poin);
 	}
 
+	BLI_freelistN(&drag->ids);
 	MEM_freeN(drag);
 }
 
@@ -189,26 +198,6 @@ void WM_drag_free_list(struct ListBase *lb)
 	}
 }
 
-
-ID *WM_drag_ID(const wmDrag *drag, short idcode)
-{
-	if (drag->type != WM_DRAG_ID) {
-		return NULL;
-	}
-
-	ID *id = drag->poin;
-	return (idcode == 0 || GS(id->name) == idcode) ? id : NULL;
-}
-
-ID *WM_drag_ID_from_event(const wmEvent *event, short idcode)
-{
-	if (event->custom != EVT_DATA_DRAGDROP) {
-		return NULL;
-	}
-
-	ListBase *lb = event->customdata;
-	return WM_drag_ID(lb->first, idcode);
-}
 
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, const wmEvent *event)
 {
@@ -290,6 +279,57 @@ void wm_drags_check_ops(bContext *C, const wmEvent *event)
 	}
 }
 
+/* ************** IDs ***************** */
+
+void WM_drag_add_ID(wmDrag *drag, ID *id, ID *from_parent)
+{
+	/* Don't drag the same ID twice. */
+	for (wmDragID *drag_id = drag->ids.first; drag_id; drag_id = drag_id->next) {
+		if (drag_id->id == id) {
+			if (drag_id->from_parent == NULL) {
+				drag_id->from_parent = from_parent;
+			}
+			return;
+		}
+		else if (GS(drag_id->id->name) != GS(id->name)) {
+			BLI_assert(!"All dragged IDs must have the same type");
+			return;
+		}
+	}
+
+	/* Add to list. */
+	wmDragID *drag_id = MEM_callocN(sizeof(wmDragID), __func__);
+	drag_id->id = id;
+	drag_id->from_parent = from_parent;
+	BLI_addtail(&drag->ids, drag_id);
+}
+
+ID *WM_drag_ID(const wmDrag *drag, short idcode)
+{
+	if (drag->type != WM_DRAG_ID) {
+		return NULL;
+	}
+
+	wmDragID *drag_id = drag->ids.first;
+	if (!drag_id) {
+		return NULL;
+	}
+
+	ID *id = drag_id->id;
+	return (idcode == 0 || GS(id->name) == idcode) ? id : NULL;
+
+}
+
+ID *WM_drag_ID_from_event(const wmEvent *event, short idcode)
+{
+	if (event->custom != EVT_DATA_DRAGDROP) {
+		return NULL;
+	}
+
+	ListBase *lb = event->customdata;
+	return WM_drag_ID(lb->first, idcode);
+}
+
 /* ************** draw ***************** */
 
 static void wm_drop_operator_draw(const char *name, int x, int y)
@@ -306,8 +346,15 @@ static const char *wm_drag_name(wmDrag *drag)
 	switch (drag->type) {
 		case WM_DRAG_ID:
 		{
-			ID *id = drag->poin;
-			return id->name + 2;
+			ID *id = WM_drag_ID(drag, 0);
+			bool single = (BLI_listbase_count_at_most(&drag->ids, 2) == 1);
+
+			if (single) {
+				return id->name + 2;
+			}
+			else {
+				return BKE_idcode_to_name_plural(GS(id->name));
+			}
 		}
 		case WM_DRAG_PATH:
 		case WM_DRAG_NAME:
