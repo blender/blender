@@ -60,7 +60,9 @@
 #include "DNA_workspace_types.h"
 #include "DNA_key_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_armature_types.h"
 
+#include "BKE_action.h"
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
@@ -86,6 +88,8 @@
 #include "BKE_cloth.h"
 #include "BKE_key.h"
 #include "BKE_unit.h"
+
+#include "DEG_depsgraph.h"
 
 #include "BLT_translation.h"
 
@@ -857,6 +861,51 @@ void do_versions_after_linking_280(Main *bmain)
 				}
 
 				MEM_freeN(old_data);
+			}
+		}
+	}
+
+	/* Move B-Bone custom handle settings from bPoseChannel to Bone. */
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 25)) {
+		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+			bArmature *arm = ob->data;
+
+			/* If it is an armature from the same file. */
+			if (ob->pose && arm && arm->id.lib == ob->id.lib) {
+				bool rebuild = false;
+
+				for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					/* If the 2.7 flag is enabled, processing is needed. */
+					if (pchan->bone && (pchan->bboneflag & PCHAN_BBONE_CUSTOM_HANDLES)) {
+						/* If the settings in the Bone are not set, copy. */
+						if (pchan->bone->bbone_prev_type == BBONE_HANDLE_AUTO &&
+						    pchan->bone->bbone_next_type == BBONE_HANDLE_AUTO &&
+						    pchan->bone->bbone_prev == NULL && pchan->bone->bbone_next == NULL)
+						{
+							pchan->bone->bbone_prev_type = (pchan->bboneflag & PCHAN_BBONE_CUSTOM_START_REL) ? BBONE_HANDLE_RELATIVE : BBONE_HANDLE_ABSOLUTE;
+							pchan->bone->bbone_next_type = (pchan->bboneflag & PCHAN_BBONE_CUSTOM_END_REL) ? BBONE_HANDLE_RELATIVE : BBONE_HANDLE_ABSOLUTE;
+
+							if (pchan->bbone_prev) {
+								pchan->bone->bbone_prev = pchan->bbone_prev->bone;
+							}
+							if (pchan->bbone_next) {
+								pchan->bone->bbone_next = pchan->bbone_next->bone;
+							}
+						}
+
+						rebuild = true;
+						pchan->bboneflag = 0;
+					}
+				}
+
+				/* Tag pose rebuild for all objects that use this armature. */
+				if (rebuild) {
+					for (Object *ob2 = bmain->object.first; ob2; ob2 = ob2->id.next) {
+						if (ob2->pose && ob2->data == arm) {
+							ob2->pose->flag |= POSE_RECALC;
+						}
+					}
+				}
 			}
 		}
 	}

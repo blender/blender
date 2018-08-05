@@ -131,6 +131,16 @@ void bone_free(bArmature *arm, EditBone *bone)
 		MEM_freeN(bone->prop);
 	}
 
+	/* Clear references from other edit bones. */
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+		if (ebone->bbone_next == bone) {
+			ebone->bbone_next = NULL;
+		}
+		if (ebone->bbone_prev == bone) {
+			ebone->bbone_prev = NULL;
+		}
+	}
+
 	BLI_freelinkN(arm->edbo, bone);
 }
 
@@ -426,7 +436,7 @@ void ED_armature_edit_transform_mirror_update(Object *obedit)
 /* Armature EditMode Conversions */
 
 /* converts Bones to EditBone list, used for tools as well */
-EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
+static EditBone *make_boneList_rec(ListBase *edbo, ListBase *bones, EditBone *parent, Bone *actBone)
 {
 	EditBone    *eBone;
 	EditBone    *eBoneAct = NULL;
@@ -435,6 +445,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 
 	for (curBone = bones->first; curBone; curBone = curBone->next) {
 		eBone = MEM_callocN(sizeof(EditBone), "make_editbone");
+		eBone->temp.bone = curBone;
 
 		/* Copy relevant data from bone to eBone
 		 * Keep selection logic in sync with ED_armature_edit_sync_selection.
@@ -490,6 +501,9 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 		eBone->scaleIn = curBone->scaleIn;
 		eBone->scaleOut = curBone->scaleOut;
 
+		eBone->bbone_prev_type = curBone->bbone_prev_type;
+		eBone->bbone_next_type = curBone->bbone_next_type;
+
 		if (curBone->prop)
 			eBone->prop = IDP_CopyProperty(curBone->prop);
 
@@ -497,7 +511,7 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 
 		/*	Add children if necessary */
 		if (curBone->childbase.first) {
-			eBoneTest = make_boneList(edbo, &curBone->childbase, eBone, actBone);
+			eBoneTest = make_boneList_rec(edbo, &curBone->childbase, eBone, actBone);
 			if (eBoneTest)
 				eBoneAct = eBoneTest;
 		}
@@ -507,6 +521,36 @@ EditBone *make_boneList(ListBase *edbo, ListBase *bones, EditBone *parent, Bone 
 	}
 
 	return eBoneAct;
+}
+
+static EditBone *find_ebone_link(ListBase *edbo, Bone *link)
+{
+	if (link != NULL) {
+		for (EditBone *ebone = edbo->first; ebone; ebone = ebone->next) {
+			if (ebone->temp.bone == link) {
+				return ebone;
+			}
+		}
+	}
+
+	return NULL;
+}
+
+EditBone *make_boneList(ListBase *edbo, ListBase *bones, struct Bone *actBone)
+{
+	BLI_assert(!edbo->first && !edbo->last);
+
+	EditBone *active = make_boneList_rec(edbo, bones, NULL, actBone);
+
+	for (EditBone *ebone = edbo->first; ebone; ebone = ebone->next) {
+		Bone *bone = ebone->temp.bone;
+
+		/* Convert custom B-Bone handle links. */
+		ebone->bbone_prev = find_ebone_link(edbo, bone->bbone_prev);
+		ebone->bbone_next = find_ebone_link(edbo, bone->bbone_next);
+	}
+
+	return active;
 }
 
 /* This function:
@@ -655,6 +699,8 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 		newBone->scaleIn = eBone->scaleIn;
 		newBone->scaleOut = eBone->scaleOut;
 
+		newBone->bbone_prev_type = eBone->bbone_prev_type;
+		newBone->bbone_next_type = eBone->bbone_next_type;
 
 		if (eBone->prop)
 			newBone->prop = IDP_CopyProperty(eBone->prop);
@@ -672,6 +718,14 @@ void ED_armature_from_edit(Main *bmain, bArmature *arm)
 		/*	...otherwise add this bone to the armature's bonebase */
 		else {
 			BLI_addtail(&arm->bonebase, newBone);
+		}
+
+		/* Also transfer B-Bone custom handles. */
+		if (eBone->bbone_prev) {
+			newBone->bbone_prev = eBone->bbone_prev->temp.bone;
+		}
+		if (eBone->bbone_next) {
+			newBone->bbone_next = eBone->bbone_next->temp.bone;
 		}
 	}
 
@@ -715,7 +769,7 @@ void ED_armature_to_edit(bArmature *arm)
 {
 	ED_armature_edit_free(arm);
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
-	arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, NULL, arm->act_bone);
+	arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, arm->act_bone);
 }
 
 /* *************************************************************** */

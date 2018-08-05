@@ -561,6 +561,14 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 				ebone->flag &= ~BONE_CONNECTED;
 			}
 
+			/* Update custom handle links. */
+			if (ebone_iter->bbone_prev && ebone_iter->bbone_prev->temp.ebone) {
+				ebone_iter->bbone_prev = ebone_iter->bbone_prev->temp.ebone;
+			}
+			if (ebone_iter->bbone_next && ebone_iter->bbone_next->temp.ebone) {
+				ebone_iter->bbone_next = ebone_iter->bbone_next->temp.ebone;
+			}
+
 			/* Lets try to fix any constraint subtargets that might
 			 * have been duplicated
 			 */
@@ -749,6 +757,14 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				}
 
 				ebone->parent = ebone_parent;
+			}
+
+			/* Update custom handle links. */
+			if (ebone_iter->bbone_prev && ebone_iter->bbone_prev->temp.ebone) {
+				ebone_iter->bbone_prev = ebone_iter->bbone_prev->temp.ebone;
+			}
+			if (ebone_iter->bbone_next && ebone_iter->bbone_next->temp.ebone) {
+				ebone_iter->bbone_next = ebone_iter->bbone_next->temp.ebone;
 			}
 
 			/* Lets try to fix any constraint subtargets that might

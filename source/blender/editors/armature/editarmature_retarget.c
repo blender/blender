@@ -1348,7 +1348,7 @@ RigGraph *RIG_graphFromArmature(const bContext *C, Object *ob, bArmature *arm)
 	}
 	else {
 		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
-		make_boneList(rg->editbones, &arm->bonebase, NULL, NULL);
+		make_boneList(rg->editbones, &arm->bonebase, NULL);
 		rg->flag |= RIG_FREE_BONELIST;
 	}
 
@@ -1396,7 +1396,7 @@ static RigGraph *armatureSelectedToGraph(bContext *C, Object *ob, bArmature *arm
 	}
 	else {
 		rg->editbones = MEM_callocN(sizeof(ListBase), "EditBones");
-		make_boneList(rg->editbones, &arm->bonebase, NULL, NULL);
+		make_boneList(rg->editbones, &arm->bonebase, NULL);
 		rg->flag |= RIG_FREE_BONELIST;
 	}
 

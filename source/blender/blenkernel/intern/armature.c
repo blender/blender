@@ -433,22 +433,30 @@ void equalize_bbone_bezier(float *data, int desired)
 	copy_qt_qt(fp, temp[MAX_BBONE_SUBDIV]);
 }
 
-/* get "next" and "prev" bones - these are used for handle calculations */
+/* Get "next" and "prev" bones - these are used for handle calculations. */
 void BKE_pchan_get_bbone_handles(bPoseChannel *pchan, bPoseChannel **r_prev, bPoseChannel **r_next)
 {
-	if (pchan->bboneflag & PCHAN_BBONE_CUSTOM_HANDLES) {
-		/* use the provided bones as the next/prev - leave blank to eliminate this effect altogether */
-		*r_prev = pchan->bbone_prev;
-		*r_next = pchan->bbone_next;
+	if (pchan->bone->bbone_prev_type == BBONE_HANDLE_AUTO) {
+		/* Use connected parent. */
+		if (pchan->bone->flag & BONE_CONNECTED) {
+			*r_prev = pchan->parent;
+		}
+		else {
+			*r_prev = NULL;
+		}
 	}
 	else {
-		/* evaluate next and prev bones */
-		if (pchan->bone->flag & BONE_CONNECTED)
-			*r_prev = pchan->parent;
-		else
-			*r_prev = NULL;
+		/* Use the provided bone as prev - leave blank to eliminate this effect altogether. */
+		*r_prev = pchan->bbone_prev;
+	}
 
+	if (pchan->bone->bbone_next_type == BBONE_HANDLE_AUTO) {
+		/* Use connected child. */
 		*r_next = pchan->child;
+	}
+	else {
+		/* Use the provided bone as next - leave blank to eliminate this effect altogether. */
+		*r_next = pchan->bbone_next;
 	}
 }
 
@@ -499,8 +507,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		float difmat[4][4], result[3][3], imat3[3][3];
 
 		/* transform previous point inside this bone space */
-		if ((pchan->bboneflag & PCHAN_BBONE_CUSTOM_HANDLES) &&
-		    (pchan->bboneflag & PCHAN_BBONE_CUSTOM_START_REL))
+		if (bone->bbone_prev_type == BBONE_HANDLE_RELATIVE)
 		{
 			/* Use delta movement (from restpose), and apply this relative to the current bone's head */
 			if (rest) {
@@ -555,8 +562,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		float difmat[4][4], result[3][3], imat3[3][3];
 
 		/* transform next point inside this bone space */
-		if ((pchan->bboneflag & PCHAN_BBONE_CUSTOM_HANDLES) &&
-		    (pchan->bboneflag & PCHAN_BBONE_CUSTOM_END_REL))
+		if (bone->bbone_next_type == BBONE_HANDLE_RELATIVE)
 		{
 			/* Use delta movement (from restpose), and apply this relative to the current bone's tail */
 			if (rest) {
@@ -2018,6 +2024,22 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 			BKE_pose_channel_free_ex(pchan, do_id_user);
 			BKE_pose_channels_hash_free(pose);
 			BLI_freelinkN(&pose->chanbase, pchan);
+		}
+		else {
+			/* Find the custom B-Bone handles. */
+			if (pchan->bone->bbone_prev) {
+				pchan->bbone_prev = BKE_pose_channel_find_name(pose, pchan->bone->bbone_prev->name);
+			}
+			else {
+				pchan->bbone_prev = NULL;
+			}
+
+			if (pchan->bone->bbone_next) {
+				pchan->bbone_next = BKE_pose_channel_find_name(pose, pchan->bone->bbone_next->name);
+			}
+			else {
+				pchan->bbone_next = NULL;
+			}
 		}
 	}
 	/* printf("rebuild pose %s, %d bones\n", ob->id.name, counter); */

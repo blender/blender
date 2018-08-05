@@ -887,7 +887,6 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 	pchan->iklinweight = pchan_from->iklinweight;
 
 	/* bbone settings (typically not animated) */
-	pchan->bboneflag = pchan_from->bboneflag;
 	pchan->bbone_next = pchan_from->bbone_next;
 	pchan->bbone_prev = pchan_from->bbone_prev;
 
@@ -1356,7 +1355,6 @@ void BKE_pose_copyesult_pchan_result(bPoseChannel *pchanto, const bPoseChannel *
 	pchanto->rotmode = pchanfrom->rotmode;
 	pchanto->flag = pchanfrom->flag;
 	pchanto->protectflag = pchanfrom->protectflag;
-	pchanto->bboneflag = pchanfrom->bboneflag;
 }
 
 /* both poses should be in sync */

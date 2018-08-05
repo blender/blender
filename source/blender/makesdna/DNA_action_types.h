@@ -224,7 +224,7 @@ typedef struct bPoseChannel {
 	char constflag;                 /* for quick detecting which constraints affect this channel */
 	char selectflag;                /* copy of bone flag, so you can work with library armatures, not for runtime use */
 	char drawflag;
-	char bboneflag;
+	char bboneflag DNA_DEPRECATED;
 	char pad0[4];
 
 	struct Bone         *bone;      /* set on read file or rebuild pose */
@@ -278,7 +278,7 @@ typedef struct bPoseChannel {
 	float ease1, ease2;
 	float scaleIn, scaleOut;
 
-	struct bPoseChannel *bbone_prev; /* next/prev bones to use as handle references when calculating bbones (optional) */
+	struct bPoseChannel *bbone_prev; /* B-Bone custom handles; set on read file or rebuild pose based on pchan->bone data */
 	struct bPoseChannel *bbone_next;
 
 	void        *temp;              /* use for outliner */
@@ -361,6 +361,7 @@ typedef enum ePchan_DrawFlag {
 #define PCHAN_CUSTOM_DRAW_SIZE(pchan) \
 	(pchan)->custom_scale * (((pchan)->drawflag & PCHAN_DRAW_NO_CUSTOM_BONE_SIZE) ? 1.0f : (pchan)->bone->length)
 
+#ifdef DNA_DEPRECATED_ALLOW
 /* PoseChannel->bboneflag */
 typedef enum ePchan_BBoneFlag {
 	/* Use custom reference bones (for roll and handle alignment), instead of immediate neighbors */
@@ -370,6 +371,7 @@ typedef enum ePchan_BBoneFlag {
 	/* Evaluate end handle as being "relative" */
 	PCHAN_BBONE_CUSTOM_END_REL    = (1 << 3),
 } ePchan_BBoneFlag;
+#endif
 
 /* PoseChannel->rotmode and Object->rotmode */
 typedef enum eRotationModes {

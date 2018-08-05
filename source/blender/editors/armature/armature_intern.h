@@ -213,7 +213,7 @@ void POSE_OT_propagate(struct wmOperatorType *ot);
  * within each file, but some tools still have a bit of overlap which makes things messy -- Feb 2013
  */
 
-EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct EditBone *parent, struct Bone *actBone);
+EditBone *make_boneList(struct ListBase *edbo, struct ListBase *bones, struct Bone *actBone);
 
 /* duplicate method */
 void preEditBoneDuplicate(struct ListBase *editbones);

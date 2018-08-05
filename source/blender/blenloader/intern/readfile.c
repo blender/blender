@@ -3546,7 +3546,7 @@ static void lib_link_pose(FileData *fd, Main *bmain, Object *ob, bPose *pose)
 	bool rebuild = false;
 
 	if (fd->memfile == NULL) {
-		if (ob->proxy || (ob->id.lib==NULL && arm->id.lib)) {
+		if (ob->proxy || ob->id.lib != arm->id.lib) {
 			rebuild = true;
 		}
 	}
@@ -3627,6 +3627,9 @@ static void direct_link_bones(FileData *fd, Bone *bone)
 	bone->parent = newdataadr(fd, bone->parent);
 	bone->prop = newdataadr(fd, bone->prop);
 	IDP_DirectLinkGroup_OrFree(&bone->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+
+	bone->bbone_next = newdataadr(fd, bone->bbone_next);
+	bone->bbone_prev = newdataadr(fd, bone->bbone_prev);
 
 	bone->flag &= ~BONE_DRAW_ACTIVE;
 

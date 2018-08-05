@@ -78,8 +78,10 @@ typedef struct Bone {
 	int          layer;          /* layers that bone appears on */
 	short        segments;       /*  for B-bones */
 
-	short		 pad1;
-
+	char         bbone_prev_type;	/* Type of next/prev bone handles */
+	char         bbone_next_type;
+	struct Bone *bbone_prev;	/* Next/prev bones to use as handle references when calculating bbones (optional) */
+	struct Bone *bbone_next;
 } Bone;
 
 typedef struct bArmature {
@@ -213,6 +215,13 @@ typedef enum eBone_Flag {
 	BONE_ADD_PARENT_END_ROLL    = (1 << 24)   /* it will add the parent end roll to the inroll */
 
 } eBone_Flag;
+
+/* bone->bbone_prev_type, bbone_next_type */
+typedef enum eBone_BBoneHandleType {
+	BBONE_HANDLE_AUTO = 0,	/* Default mode based on parents & children. */
+	BBONE_HANDLE_ABSOLUTE,	/* Custom handle in absolute position mode. */
+	BBONE_HANDLE_RELATIVE,	/* Custom handle in relative position mode. */
+} eBone_BBoneHandleType;
 
 #define MAXBONENAME 64
 

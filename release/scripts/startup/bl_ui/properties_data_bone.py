@@ -130,6 +130,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         bone = context.bone
         # arm = context.armature
         pchan = None
+        edit = False
 
         if ob and bone:
             pchan = ob.pose.bones[bone.name]
@@ -137,6 +138,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         elif bone is None:
             bone = context.edit_bone
             bbone = bone
+            edit = True
         else:
             bbone = bone
 
@@ -169,24 +171,27 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         col.prop(bbone, "bbone_easein", text="Ease In")
         col.prop(bbone, "bbone_easeout", text="Out")
 
-        if pchan:
-            topcol.separator()
+        col = topcol.column(align=True)
+        col.prop(bone, "bbone_handle_type_start", text="Start Handle")
 
-            col = topcol.column()
-            col.use_property_split = False
-            col.prop(pchan, "use_bbone_custom_handles")
+        col = col.column(align=True)
+        col.active = (bone.bbone_handle_type_start != "AUTO")
+        if edit:
+            col.prop_search(bone, "bbone_custom_handle_start", ob.data, "edit_bones", text="Custom")
+        else:
+            # read-only
+            col.prop(bbone, "bbone_custom_handle_start", text="Custom")
 
-            col = topcol.column(align=True)
-            col.active = pchan.use_bbone_custom_handles
-            col.use_property_split = True
+        col = topcol.column(align=True)
+        col.prop(bone, "bbone_handle_type_end", text="End Handle")
 
-            sub = col.column()
-            sub.prop_search(pchan, "bbone_custom_handle_start", ob.pose, "bones", text="Custom Handle Start")
-            sub.prop_search(pchan, "bbone_custom_handle_end", ob.pose, "bones", text="End")
-
-            sub = col.column(align=True)
-            sub.prop(pchan, "use_bbone_relative_start_handle", text="Relative Handle Start")
-            sub.prop(pchan, "use_bbone_relative_end_handle", text="End")
+        col = col.column(align=True)
+        col.active = (bone.bbone_handle_type_end != "AUTO")
+        if edit:
+            col.prop_search(bone, "bbone_custom_handle_end", ob.data, "edit_bones", text="Custom")
+        else:
+            # read-only
+            col.prop(bbone, "bbone_custom_handle_end", text="Custom")
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):
