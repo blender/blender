@@ -214,7 +214,9 @@ static Mesh *applyModifier(
 	}
 	/* Ultimate security check. */
 	if (!dvert) {
-		BKE_id_free(NULL, result);
+		if (result != mesh) {
+			BKE_id_free(NULL, result);
+		}
 		return mesh;
 	}
 
