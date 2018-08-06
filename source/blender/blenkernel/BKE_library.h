@@ -79,12 +79,14 @@ enum {
 	LIB_ID_COPY_NO_PROXY_CLEAR     = 1 << 16,  /* Object only, needed by make_local code. */
 	LIB_ID_COPY_NO_PREVIEW         = 1 << 17,  /* Do not copy preview data, when supported. */
 	LIB_ID_COPY_CACHES             = 1 << 18,  /* Copy runtime data caches. */
-	/* XXX TODO Do we want to keep that? would rather try to get rid of it... */
-	LIB_ID_COPY_ACTIONS            = 1 << 19,  /* EXCEPTION! Deep-copy actions used by animdata of copied ID. */
-	LIB_ID_COPY_KEEP_LIB           = 1 << 20,  /* Keep the library pointer when copying datablock outside of bmain. */
-	LIB_ID_COPY_NO_ANIMDATA        = 1 << 21,  /* Don't copy id->adt, used by ID datablock localization routines. */
-	LIB_ID_COPY_SHAPEKEY           = 1 << 22,  /* EXCEPTION! Deep-copy shapekeys used by copied obdata ID. */
-	LIB_ID_COPY_CD_REFERENCE       = 1 << 23,
+	LIB_ID_COPY_NO_ANIMDATA        = 1 << 19,  /* Don't copy id->adt, used by ID datablock localization routines. */
+	LIB_ID_COPY_CD_REFERENCE       = 1 << 20,  /* Mesh: Reference CD data layers instead of doing real copy. */
+
+	/* XXX Hackish/not-so-nice specific behaviors needed for some corner cases.
+	 *     Ideally we should not have those, but we need them for now... */
+	LIB_ID_COPY_ACTIONS            = 1 << 24,  /* EXCEPTION! Deep-copy actions used by animdata of copied ID. */
+	LIB_ID_COPY_KEEP_LIB           = 1 << 25,  /* Keep the library pointer when copying datablock outside of bmain. */
+	LIB_ID_COPY_SHAPEKEY           = 1 << 26,  /* EXCEPTION! Deep-copy shapekeys used by copied obdata ID. */
 };
 
 void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);
