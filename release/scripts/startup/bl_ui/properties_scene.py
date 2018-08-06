@@ -589,6 +589,7 @@ class SCENE_PT_simplify_greasepencil(SceneButtonsPanel, Panel):
         col = layout.column()
         col.prop(rd, "simplify_gpencil_onplay", text="Playback Only")
         col.prop(rd, "simplify_gpencil_view_modifier", text="Modifiers")
+        col.prop(rd, "simplify_gpencil_shader_fx", text="ShaderFX")
 
         col = layout.column(align=True)
         col.prop(rd, "simplify_gpencil_view_fill")

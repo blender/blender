@@ -2067,7 +2067,9 @@ typedef enum eGPencil_SimplifyFlags {
 	/* Simplify modifier on viewport */
 	SIMPLIFY_GPENCIL_MODIFIER         = (1 << 3),
 	/* Remove fill external line */
-	SIMPLIFY_GPENCIL_REMOVE_FILL_LINE = (1 << 4)
+	SIMPLIFY_GPENCIL_REMOVE_FILL_LINE = (1 << 4),
+	/* Simplify Shader FX */
+	SIMPLIFY_GPENCIL_FX               = (1 << 5)
 } eGPencil_SimplifyFlags;
 
 /* ToolSettings.gpencil_*_align - Stroke Placement mode flags */

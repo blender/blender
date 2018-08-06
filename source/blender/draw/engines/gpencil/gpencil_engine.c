@@ -353,6 +353,7 @@ void GPENCIL_cache_init(void *vedata)
 		/* save simplify flags (can change while drawing, so it's better to save) */
 		stl->storage->simplify_fill = GP_SIMPLIFY_FILL(scene, stl->storage->playing);
 		stl->storage->simplify_modif = GP_SIMPLIFY_MODIF(scene, stl->storage->playing);
+		stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->playing);
 
 		/* save pixsize */
 		stl->storage->pixsize = DRW_viewport_pixelsize_get();
@@ -465,7 +466,9 @@ void GPENCIL_cache_init(void *vedata)
 		}
 
 		/* create effects passes */
-		GPENCIL_create_fx_passes(psl);
+		if (!stl->storage->simplify_fx) {
+			GPENCIL_create_fx_passes(psl);
+		}
 	}
 }
 
@@ -559,7 +562,7 @@ void GPENCIL_cache_finish(void *vedata)
 			}
 			/* FX passses */
 			tGPencilObjectCache *cache = &stl->g_data->gp_object_cache[i];
-			if (!is_multiedit) {
+			if ((!stl->storage->simplify_fx) && (!is_multiedit)) {
 				DRW_gpencil_fx_prepare(&e_data, vedata, cache);
 			}
 		}
@@ -720,7 +723,9 @@ void GPENCIL_draw_scene(void *ved)
 					DRW_draw_pass(psl->drawing_pass);
 				}
 				/* fx passes */
-				if (BKE_shaderfx_has_gpencil(ob)) {
+				if ((!stl->storage->simplify_fx) &&
+					(BKE_shaderfx_has_gpencil(ob)))
+				{
 					stl->storage->tonemapping = 0;
 					DRW_gpencil_fx_draw(&e_data, vedata, cache);
 				}
