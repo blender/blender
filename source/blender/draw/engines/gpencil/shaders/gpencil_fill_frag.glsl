@@ -129,12 +129,15 @@ void main()
 
 	/* set zdepth */
 	if (xraymode == GP_XRAY_FRONT) {
-		gl_FragDepth = 0.0;
+		gl_FragDepth = 0.000001;
 	}
-	if (xraymode == GP_XRAY_3DSPACE) {
+	else if (xraymode == GP_XRAY_3DSPACE) {
 		gl_FragDepth = gl_FragCoord.z;
 	}
-	if  (xraymode == GP_XRAY_BACK) {
+	else if  (xraymode == GP_XRAY_BACK) {
 		gl_FragDepth = 0.999999;
+	}
+	else {
+		gl_FragDepth = 0.000001;
 	}
 }

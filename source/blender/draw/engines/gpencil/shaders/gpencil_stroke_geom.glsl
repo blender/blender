@@ -33,7 +33,7 @@ vec2 toScreenSpace(vec4 vertex)
 float getZdepth(vec4 point)
 {
 	if (xraymode == GP_XRAY_FRONT) {
-		return 0.0;
+		return 0.000001;
 	}
 	if (xraymode == GP_XRAY_3DSPACE) {
 		return (point.z / point.w);
@@ -43,7 +43,7 @@ float getZdepth(vec4 point)
 	}
 
 	/* in front by default */
-	return 0.0;
+	return 0.000001;
 }
 void main(void)
 {
