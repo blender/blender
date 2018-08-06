@@ -223,7 +223,7 @@ void ED_gpencil_create_stroke(bContext *C, float mat[4][4])
 	bGPDstroke *gps;
 
 	/* create colors */
-	int color_Black = gp_stroke_material(bmain, ob, &gp_stroke_material_black);
+	int color_black = gp_stroke_material(bmain, ob, &gp_stroke_material_black);
 	gp_stroke_material(bmain, ob, &gp_stroke_material_white);
 	gp_stroke_material(bmain, ob, &gp_stroke_material_red);
 	gp_stroke_material(bmain, ob, &gp_stroke_material_green);
@@ -231,15 +231,16 @@ void ED_gpencil_create_stroke(bContext *C, float mat[4][4])
 	gp_stroke_material(bmain, ob, &gp_stroke_material_grey);
 
 	/* layers */
-	bGPDlayer *Colors = BKE_gpencil_layer_addnew(gpd, "Colors", false);
-	bGPDlayer *Lines = BKE_gpencil_layer_addnew(gpd, "Lines", false);
+	bGPDlayer *colors = BKE_gpencil_layer_addnew(gpd, "Colors", false);
+	bGPDlayer *lines = BKE_gpencil_layer_addnew(gpd, "Lines", false);
 
 	/* frames */
-	bGPDframe *frameColor = BKE_gpencil_frame_addnew(Colors, cfra_eval);
-	bGPDframe *frameLines = BKE_gpencil_frame_addnew(Lines, cfra_eval);
+	bGPDframe *frame_color = BKE_gpencil_frame_addnew(colors, cfra_eval);
+	bGPDframe *frame_lines = BKE_gpencil_frame_addnew(lines, cfra_eval);
+	UNUSED_VARS(frame_color);
 
 	/* generate stroke */
-	gps = BKE_gpencil_add_stroke(frameLines, color_Black, 175, 3);
+	gps = BKE_gpencil_add_stroke(frame_lines, color_black, 175, 3);
 	BKE_gpencil_stroke_add_points(gps, data0, 175, mat);
 
 	/* update depsgraph */
