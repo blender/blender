@@ -382,6 +382,10 @@ const EnumPropertyItem rna_enum_event_type_items[] = {
 	{NDOF_BUTTON_A, "NDOF_BUTTON_A", 0, "NDOF Button A", "NdofBA"},
 	{NDOF_BUTTON_B, "NDOF_BUTTON_B", 0, "NDOF Button B", "NdofBB"},
 	{NDOF_BUTTON_C, "NDOF_BUTTON_C", 0, "NDOF Button C", "NdofBC"},
+	/* Action Zones. */
+	{EVT_ACTIONZONE_AREA, "ACTIONZONE_AREA", 0, "ActionZone Area", "AZone Area"},
+	{EVT_ACTIONZONE_REGION, "ACTIONZONE_REGION", 0, "ActionZone Region", "AZone Region"},
+	{EVT_ACTIONZONE_FULLSCREEN, "ACTIONZONE_FULLSCREEN", 0, "ActionZone Fullscreen", "AZone FullScr"},
 	{0, NULL, 0, NULL, NULL}
 };
 
