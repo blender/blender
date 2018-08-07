@@ -284,9 +284,22 @@ void item_object_mode_exit_cb(
         struct bContext *C, struct ReportList *reports, struct Scene *scene,
         TreeElement *te, struct TreeStoreElem *tsep, struct TreeStoreElem *tselem, void *user_data);
 
-TreeElement *outliner_dropzone_find(const struct SpaceOops *soops, const float fmval[2], const bool children);
-
 void outliner_set_coordinates(struct ARegion *ar, struct SpaceOops *soops);
+
+/* outliner_dragdrop.c */
+enum {
+	OUTLINER_ITEM_DRAG_CANCEL,
+	OUTLINER_ITEM_DRAG_CONFIRM,
+};
+
+void outliner_dropboxes(void);
+
+void OUTLINER_OT_item_drag_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_parent_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_parent_clear(struct wmOperatorType *ot);
+void OUTLINER_OT_scene_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_material_drop(struct wmOperatorType *ot);
+void OUTLINER_OT_collection_drop(struct wmOperatorType *ot);
 
 /* ...................................................... */
 
@@ -318,12 +331,6 @@ void OUTLINER_OT_drivers_add_selected(struct wmOperatorType *ot);
 void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_orphans_purge(struct wmOperatorType *ot);
-
-void OUTLINER_OT_parent_drop(struct wmOperatorType *ot);
-void OUTLINER_OT_parent_clear(struct wmOperatorType *ot);
-void OUTLINER_OT_scene_drop(struct wmOperatorType *ot);
-void OUTLINER_OT_material_drop(struct wmOperatorType *ot);
-void OUTLINER_OT_collection_drop(struct wmOperatorType *ot);
 
 /* outliner_tools.c ---------------------------------------------- */
 
