@@ -107,7 +107,7 @@ static TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float f
 
 /* ******************** Parent Drop Operator *********************** */
 
-static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -367,7 +367,7 @@ static bool parenting_poll(bContext *C)
 
 /* ******************** Parent Clear Operator *********************** */
 
-static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -456,7 +456,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 
 /* ******************** Scene Drop Operator *********************** */
 
-static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -563,7 +563,7 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 
 /* ******************** Material Drop Operator *********************** */
 
-static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -648,7 +648,7 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 
 /* ******************** Collection Drop Operator *********************** */
 
-static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);

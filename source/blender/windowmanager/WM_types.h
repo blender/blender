@@ -682,7 +682,7 @@ typedef struct wmDropBox {
 	struct wmDropBox *next, *prev;
 
 	/* test if the dropbox is active, then can print optype name */
-	bool (*poll)(struct bContext *, struct wmDrag *, const wmEvent *);
+	bool (*poll)(struct bContext *, struct wmDrag *, const wmEvent *, const char **);
 
 	/* before exec, this copies drag info to wmDrop properties */
 	void (*copy)(struct wmDrag *, struct wmDropBox *);

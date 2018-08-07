@@ -720,7 +720,7 @@ static void file_ui_region_listener(
 	}
 }
 
-static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event))
+static bool filepath_drop_poll(bContext *C, wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
 	if (drag->type == WM_DRAG_PATH) {
 		SpaceFile *sfile = CTX_wm_space_file(C);

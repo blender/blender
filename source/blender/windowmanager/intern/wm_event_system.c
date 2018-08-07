@@ -2368,7 +2368,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							wmDrag *drag;
 
 							for (drag = lb->first; drag; drag = drag->next) {
-								if (drop->poll(C, drag, event)) {
+								const char *tooltip = NULL;
+								if (drop->poll(C, drag, event, &tooltip)) {
 									drop->copy(drag, drop);
 
 									/* free the drags before calling operator */

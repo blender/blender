@@ -485,7 +485,8 @@ void                WM_drag_free(struct wmDrag *drag);
 void                WM_drag_free_list(struct ListBase *lb);
 
 struct wmDropBox	*WM_dropbox_add(
-        ListBase *lb, const char *idname, bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event),
+        ListBase *lb, const char *idname,
+        bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event, const char **),
         void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 

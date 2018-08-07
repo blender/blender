@@ -98,7 +98,8 @@ ListBase *WM_dropboxmap_find(const char *idname, int spaceid, int regionid)
 
 
 wmDropBox *WM_dropbox_add(
-        ListBase *lb, const char *idname, bool (*poll)(bContext *, wmDrag *, const wmEvent *),
+        ListBase *lb, const char *idname,
+        bool (*poll)(bContext *, wmDrag *, const wmEvent *, const char **),
         void (*copy)(wmDrag *, wmDropBox *))
 {
 	wmDropBox *drop = MEM_callocN(sizeof(wmDropBox), "wmDropBox");
@@ -195,10 +196,12 @@ static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag,
 		if (handler->dropboxes) {
 			wmDropBox *drop = handler->dropboxes->first;
 			for (; drop; drop = drop->next) {
-				if (drop->poll(C, drag, event))
+				const char *tooltip = NULL;
+				if (drop->poll(C, drag, event, &tooltip)) {
 					/* XXX Doing translation here might not be ideal, but later we have no more
 					 *     access to ot (and hence op context)... */
-					return RNA_struct_ui_name(drop->ot->srna);
+					return (tooltip) ? tooltip : RNA_struct_ui_name(drop->ot->srna);
+				}
 			}
 		}
 	}
