@@ -6495,6 +6495,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if (sce->master_collection) {
 		sce->master_collection = newdataadr(fd, sce->master_collection);
 		direct_link_collection(fd, sce->master_collection);
+		/* Needed because this is an ID outside of Main. */
+		sce->master_collection->id.py_instance = NULL;
 	}
 
 	/* insert into global old-new map for reading without UI (link_global accesses it again) */
