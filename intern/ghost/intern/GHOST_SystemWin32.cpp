@@ -1110,8 +1110,10 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 							break;
 #ifdef WITH_INPUT_NDOF
 						case RIM_TYPEHID:
-							if (system->processNDOF(raw))
+							if (system->processNDOF(raw)) {
+								system->m_ndofManager->sendMotionEvent();
 								eventHandled = true;
+							}
 							break;
 #endif
 					}
