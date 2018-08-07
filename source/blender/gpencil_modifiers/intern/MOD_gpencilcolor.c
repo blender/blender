@@ -35,8 +35,6 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_color.h"
@@ -130,7 +128,6 @@ static void bakeModifier(
 					if (newmat == NULL) {
 						BKE_object_material_slot_add(bmain, ob);
 						newmat = BKE_material_copy(bmain, mat);
-						newmat->gp_style = MEM_dupallocN(mat->gp_style);
 						newmat->preview = NULL;
 
 						assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
