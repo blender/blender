@@ -393,7 +393,7 @@ int bone_autoside_name(char name[MAXBONENAME], int UNUSED(strip_number), short a
 /* ************* B-Bone support ******************* */
 
 /* data has MAX_BBONE_SUBDIV+1 interpolated points, will become desired amount with equal distances */
-void equalize_bbone_bezier(float *data, int desired)
+static void equalize_bbone_bezier(float *data, int desired)
 {
 	float *fp, totdist, ddist, dist, fac1, fac2;
 	float pdist[MAX_BBONE_SUBDIV + 1];
@@ -460,59 +460,63 @@ void BKE_pchan_get_bbone_handles(bPoseChannel *pchan, bPoseChannel **r_prev, bPo
 	}
 }
 
-/* returns pointer to static array, filled with desired amount of bone->segments elements */
-/* this calculation is done  within unit bone space */
+/* Fills the array with the desired amount of bone->segments elements.
+ * This calculation is done within unit bone space. */
 void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	bPoseChannel *next, *prev;
 	Bone *bone = pchan->bone;
-	float h1[3], h2[3], scale[3], length, roll1 = 0.0f, roll2;
-	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
-	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
-	int a;
-	bool do_scale = false;
+	BBoneSplineParameters param;
+	float imat[4][4], posemat[4][4];
 
-	length = bone->length;
+	memset(&param, 0, sizeof(param));
+
+	param.segments = bone->segments;
+	param.length = bone->length;
 
 	if (!rest) {
-		/* check if we need to take non-uniform bone scaling into account */
+		float scale[3];
+
+		/* Check if we need to take non-uniform bone scaling into account. */
 		mat4_to_size(scale, pchan->pose_mat);
 
 		if (fabsf(scale[0] - scale[1]) > 1e-6f || fabsf(scale[1] - scale[2]) > 1e-6f) {
-			size_to_mat4(scalemat, scale);
-			invert_m4_m4(iscalemat, scalemat);
-
-			length *= scale[1];
-			do_scale = 1;
+			param.do_scale = true;
+			copy_v3_v3(param.scale, scale);
 		}
 	}
 
 	BKE_pchan_get_bbone_handles(pchan, &prev, &next);
 
-	/* find the handle points, since this is inside bone space, the
+	/* Find the handle points, since this is inside bone space, the
 	 * first point = (0, 0, 0)
 	 * last point =  (0, length, 0) */
 	if (rest) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 	}
-	else if (do_scale) {
+	else if (param.do_scale) {
 		copy_m4_m4(posemat, pchan->pose_mat);
 		normalize_m4(posemat);
 		invert_m4_m4(imat, posemat);
 	}
-	else
+	else {
 		invert_m4_m4(imat, pchan->pose_mat);
+	}
 
 	if (prev) {
-		float difmat[4][4], result[3][3], imat3[3][3];
+		float h1[3];
+		bool done = false;
 
-		/* transform previous point inside this bone space */
-		if (bone->bbone_prev_type == BBONE_HANDLE_RELATIVE)
-		{
-			/* Use delta movement (from restpose), and apply this relative to the current bone's head */
+		param.use_prev = true;
+		param.prev_bbone = (prev->bone->segments > 1);
+
+		/* Transform previous point inside this bone space. */
+		if (bone->bbone_prev_type == BBONE_HANDLE_RELATIVE) {
+			/* Use delta movement (from restpose), and apply this relative to the current bone's head. */
 			if (rest) {
-				/* in restpose, arm_head == pose_head */
-				h1[0] = h1[1] = h1[2] = 0.0f;
+				/* In restpose, arm_head == pose_head */
+				zero_v3(param.prev_h);
+				done = true;
 			}
 			else {
 				float delta[3];
@@ -521,16 +525,125 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 			}
 		}
 		else {
-			/* Use bone head as absolute position */
-			if (rest)
-				copy_v3_v3(h1, prev->bone->arm_head);
-			else
-				copy_v3_v3(h1, prev->pose_head);
+			/* Use bone head as absolute position. */
+			copy_v3_v3(h1, rest ? prev->bone->arm_head : prev->pose_head);
 		}
-		mul_m4_v3(imat, h1);
 
-		if (prev->bone->segments > 1) {
-			/* if previous bone is B-bone too, use average handle direction */
+		if (!done) {
+			mul_v3_m4v3(param.prev_h, imat, h1);
+		}
+
+		if (!param.prev_bbone) {
+			/* Find the previous roll to interpolate. */
+			mul_m4_m4m4(param.prev_mat, imat, rest ? prev->bone->arm_mat : prev->pose_mat);
+		}
+	}
+
+	if (next) {
+		float h2[3];
+		bool done = false;
+
+		param.use_next = true;
+		param.next_bbone = (next->bone->segments > 1);
+
+		/* Transform next point inside this bone space. */
+		if (bone->bbone_next_type == BBONE_HANDLE_RELATIVE) {
+			/* Use delta movement (from restpose), and apply this relative to the current bone's tail. */
+			if (rest) {
+				/* In restpose, arm_tail == pose_tail */
+				copy_v3_fl3(param.next_h, 0.0f, param.length, 0.0);
+				done = true;
+			}
+			else {
+				float delta[3];
+				sub_v3_v3v3(delta, next->pose_tail, next->bone->arm_tail);
+				add_v3_v3v3(h2, pchan->pose_tail, delta);
+			}
+		}
+		else {
+			/* Use bone tail as absolute position. */
+			copy_v3_v3(h2, rest ? next->bone->arm_tail : next->pose_tail);
+		}
+
+		if (!done) {
+			mul_v3_m4v3(param.next_h, imat, h2);
+		}
+
+		/* Find the next roll to interpolate as well. */
+		mul_m4_m4m4(param.next_mat, imat, rest ? next->bone->arm_mat : next->pose_mat);
+	}
+
+	/* Add effects from bbone properties over the top
+	 * - These properties allow users to hand-animate the
+	 *   bone curve/shape, without having to resort to using
+	 *   extra bones
+	 * - The "bone" level offsets are for defining the restpose
+	 *   shape of the bone (e.g. for curved eyebrows for example).
+	 *   -> In the viewport, it's needed to define what the rest pose
+	 *      looks like
+	 *   -> For "rest == 0", we also still need to have it present
+	 *      so that we can "cancel out" this restpose when it comes
+	 *      time to deform some geometry, it won't cause double transforms.
+	 * - The "pchan" level offsets are the ones that animators actually
+	 *   end up animating
+	 */
+	{
+		param.ease1 = bone->ease1 + (!rest ? pchan->ease1 : 0.0f);
+		param.ease2 = bone->ease2 + (!rest ? pchan->ease2 : 0.0f);
+
+		param.roll1 = bone->roll1 + (!rest ? pchan->roll1 : 0.0f);
+		param.roll2 = bone->roll2 + (!rest ? pchan->roll2 : 0.0f);
+
+		if (bone->flag & BONE_ADD_PARENT_END_ROLL) {
+			if (prev) {
+				if (prev->bone) {
+					param.roll1 += prev->bone->roll2;
+				}
+
+				if (!rest) {
+					param.roll1 += prev->roll2;
+				}
+			}
+		}
+
+		param.scaleIn = bone->scaleIn * (!rest ? pchan->scaleIn : 1.0f);
+		param.scaleOut = bone->scaleOut * (!rest ? pchan->scaleOut : 1.0f);
+
+		/* Extra curve x / y */
+		param.curveInX = bone->curveInX + (!rest ? pchan->curveInX : 0.0f);
+		param.curveInY = bone->curveInY + (!rest ? pchan->curveInY : 0.0f);
+
+		param.curveOutX = bone->curveOutX + (!rest ? pchan->curveOutX : 0.0f);
+		param.curveOutY = bone->curveOutY + (!rest ? pchan->curveOutY : 0.0f);
+	}
+
+	bone->segments = BKE_compute_b_bone_spline(&param, result_array);
+}
+
+/* Fills the array with the desired amount of bone->segments elements.
+ * This calculation is done within unit bone space. */
+int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV])
+{
+	float scalemat[4][4], iscalemat[4][4];
+	float result[3][3], mat3[3][3], imat3[3][3];
+	float h1[3], roll1, h2[3], roll2;
+	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
+	int a;
+
+	float length = param->length;
+
+	if (param->do_scale) {
+		size_to_mat4(scalemat, param->scale);
+		invert_m4_m4(iscalemat, scalemat);
+
+		length *= param->scale[1];
+	}
+
+	if (param->use_prev) {
+		copy_v3_v3(h1, param->prev_h);
+
+		if (param->prev_bbone) {
+			/* If previous bone is B-bone too, use average handle direction. */
 			h1[1] -= length;
 			roll1 = 0.0f;
 		}
@@ -538,13 +651,9 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		normalize_v3(h1);
 		negate_v3(h1);
 
-		if (prev->bone->segments == 1) {
-			/* find the previous roll to interpolate */
-			if (rest)
-				mul_m4_m4m4(difmat, imat, prev->bone->arm_mat);
-			else
-				mul_m4_m4m4(difmat, imat, prev->pose_mat);
-			copy_m3_m4(result, difmat); /* the desired rotation at beginning of next bone */
+		if (!param->prev_bbone) {
+			/* Find the previous roll to interpolate. */
+			copy_m3_m4(result, param->prev_mat); /* the desired rotation at beginning of next bone */
 
 			vec_roll_to_mat3(h1, 0.0f, mat3); /* the result of vec_roll without roll */
 
@@ -558,47 +667,22 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		h1[0] = 0.0f; h1[1] = 1.0; h1[2] = 0.0f;
 		roll1 = 0.0f;
 	}
-	if (next) {
-		float difmat[4][4], result[3][3], imat3[3][3];
 
-		/* transform next point inside this bone space */
-		if (bone->bbone_next_type == BBONE_HANDLE_RELATIVE)
-		{
-			/* Use delta movement (from restpose), and apply this relative to the current bone's tail */
-			if (rest) {
-				/* in restpose, arm_tail == pose_tail */
-				h2[0] = h2[1] = h2[2] = 0.0f;
-			}
-			else {
-				float delta[3];
-				sub_v3_v3v3(delta, next->pose_tail, next->bone->arm_tail);
-				add_v3_v3v3(h2, pchan->pose_tail, delta);
-			}
-		}
-		else {
-			/* Use bone tail as absolute position */
-			if (rest)
-				copy_v3_v3(h2, next->bone->arm_tail);
-			else
-				copy_v3_v3(h2, next->pose_tail);
-		}
-		mul_m4_v3(imat, h2);
+	if (param->use_next) {
+		copy_v3_v3(h2, param->next_h);
 
-		/* if next bone is B-bone too, use average handle direction */
-		if (next->bone->segments > 1) {
+		/* If next bone is B-bone too, use average handle direction. */
+		if (param->next_bbone) {
 			/* pass */
 		}
 		else {
 			h2[1] -= length;
 		}
+
 		normalize_v3(h2);
 
-		/* find the next roll to interpolate as well */
-		if (rest)
-			mul_m4_m4m4(difmat, imat, next->bone->arm_mat);
-		else
-			mul_m4_m4m4(difmat, imat, next->pose_mat);
-		copy_m3_m4(result, difmat); /* the desired rotation at beginning of next bone */
+		/* Find the next roll to interpolate as well. */
+		copy_m3_m4(result, param->next_mat); /* the desired rotation at beginning of next bone */
 
 		vec_roll_to_mat3(h2, 0.0f, mat3); /* the result of vec_roll without roll */
 
@@ -606,7 +690,6 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		mul_m3_m3m3(mat3, imat3, result); /* the matrix transforming vec_roll to desired roll */
 
 		roll2 = atan2f(mat3[2][0], mat3[2][2]);
-
 	}
 	else {
 		h2[0] = 0.0f; h2[1] = 1.0f; h2[2] = 0.0f;
@@ -616,10 +699,8 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	{
 		const float circle_factor = length * (cubic_tangent_factor_circle_v3(h1, h2) / 0.75f);
 
-		const float combined_ease1 = bone->ease1 + (!rest ? pchan->ease1 : 0.0f);
-		const float combined_ease2 = bone->ease2 + (!rest ? pchan->ease2 : 0.0f);
-		const float hlength1 = combined_ease1 * circle_factor;
-		const float hlength2 = combined_ease2 * circle_factor;
+		const float hlength1 = param->ease1 * circle_factor;
+		const float hlength2 = param->ease2 * circle_factor;
 
 		/* and only now negate h2 */
 		mul_v3_fl(h1,  hlength1);
@@ -641,67 +722,56 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	 *   end up animating
 	 */
 	{
-		/* add extra rolls */
-		roll1 += bone->roll1 + (!rest ? pchan->roll1 : 0.0f);
-		roll2 += bone->roll2 + (!rest ? pchan->roll2 : 0.0f);
+		/* Add extra rolls. */
+		roll1 += param->roll1;
+		roll2 += param->roll2;
 
-		if (bone->flag & BONE_ADD_PARENT_END_ROLL) {
-			if (prev) {
-				if (prev->bone)
-					roll1 += prev->bone->roll2;
-
-				if (!rest)
-					roll1 += prev->roll2;
-			}
-		}
-
-		/* extra curve x / y */
+		/* Extra curve x / y */
 		/* NOTE: Scale correction factors here are to compensate for some random floating-point glitches
 		 *       when scaling up the bone or it's parent by a factor of approximately 8.15/6, which results
 		 *       in the bone length getting scaled up too (from 1 to 8), causing the curve to flatten out.
 		 */
-		const float xscale_correction = (do_scale) ? scale[0] : 1.0f;
-		const float yscale_correction = (do_scale) ? scale[2] : 1.0f;
+		const float xscale_correction = (param->do_scale) ? param->scale[0] : 1.0f;
+		const float yscale_correction = (param->do_scale) ? param->scale[2] : 1.0f;
 
-		h1[0] += (bone->curveInX + (!rest ? pchan->curveInX : 0.0f)) * xscale_correction;
-		h1[2] += (bone->curveInY + (!rest ? pchan->curveInY : 0.0f)) * yscale_correction;
+		h1[0] += param->curveInX * xscale_correction;
+		h1[2] += param->curveInY * yscale_correction;
 
-		h2[0] += (bone->curveOutX + (!rest ? pchan->curveOutX : 0.0f)) * xscale_correction;
-		h2[2] += (bone->curveOutY + (!rest ? pchan->curveOutY : 0.0f)) * yscale_correction;
+		h2[0] += param->curveOutX * xscale_correction;
+		h2[2] += param->curveOutY * yscale_correction;
 	}
 
-	/* make curve */
-	if (bone->segments > MAX_BBONE_SUBDIV)
-		bone->segments = MAX_BBONE_SUBDIV;
+	/* Make curve. */
+	CLAMP_MAX(param->segments, MAX_BBONE_SUBDIV);
 
 	BKE_curve_forward_diff_bezier(0.0f,  h1[0],                               h2[0],                               0.0f,   data[0],     MAX_BBONE_SUBDIV, 4 * sizeof(float));
 	BKE_curve_forward_diff_bezier(0.0f,  h1[1],                               length + h2[1],                      length, data[0] + 1, MAX_BBONE_SUBDIV, 4 * sizeof(float));
 	BKE_curve_forward_diff_bezier(0.0f,  h1[2],                               h2[2],                               0.0f,   data[0] + 2, MAX_BBONE_SUBDIV, 4 * sizeof(float));
 	BKE_curve_forward_diff_bezier(roll1, roll1 + 0.390464f * (roll2 - roll1), roll2 - 0.390464f * (roll2 - roll1), roll2,  data[0] + 3, MAX_BBONE_SUBDIV, 4 * sizeof(float));
 
-	equalize_bbone_bezier(data[0], bone->segments); /* note: does stride 4! */
+	equalize_bbone_bezier(data[0], param->segments); /* note: does stride 4! */
 
-	/* make transformation matrices for the segments for drawing */
-	for (a = 0, fp = data[0]; a < bone->segments; a++, fp += 4) {
+	/* Make transformation matrices for the segments for drawing. */
+	for (a = 0, fp = data[0]; a < param->segments; a++, fp += 4) {
 		sub_v3_v3v3(h1, fp + 4, fp);
 		vec_roll_to_mat3(h1, fp[3], mat3); /* fp[3] is roll */
 
 		copy_m4_m3(result_array[a].mat, mat3);
 		copy_v3_v3(result_array[a].mat[3], fp);
 
-		if (do_scale) {
-			/* correct for scaling when this matrix is used in scaled space */
+		if (param->do_scale) {
+			/* Correct for scaling when this matrix is used in scaled space. */
 			mul_m4_series(result_array[a].mat, iscalemat, result_array[a].mat, scalemat);
 		}
 
 		/* BBone scale... */
 		{
-			const int num_segments = bone->segments;
+			const int num_segments = param->segments;
 
-			const float scaleIn = bone->scaleIn * (!rest ? pchan->scaleIn : 1.0f);
+			const float scaleIn = param->scaleIn;
 			const float scaleFactorIn  = 1.0f + (scaleIn  - 1.0f) * ((float)(num_segments - a) / (float)num_segments);
 
-			const float scaleOut = bone->scaleOut * (!rest ? pchan->scaleOut : 1.0f);
+			const float scaleOut = param->scaleOut;
 			const float scaleFactorOut = 1.0f + (scaleOut - 1.0f) * ((float)(a + 1)            / (float)num_segments);
 
 			const float scalefac = scaleFactorIn * scaleFactorOut;
@@ -717,8 +787,9 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 			/*mul_m4_series(result_array[a].mat, ibscalemat, result_array[a].mat, bscalemat);*/
 			mul_m4_series(result_array[a].mat, result_array[a].mat, bscalemat);
 		}
-
 	}
+
+	return param->segments;
 }
 
 /* ************ Armature Deform ******************* */

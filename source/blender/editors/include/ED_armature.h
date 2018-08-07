@@ -101,6 +101,8 @@ typedef struct EditBone {
 	/* 32 == MAX_BBONE_SUBDIV */
 	float disp_bbone_mat[32][4][4]; /*  in Armature space, rest pos matrix */
 
+	struct EditBone *bbone_child;	/* connected child temporary during drawing */
+
 	/* Used to store temporary data */
 	union {
 		struct EditBone *ebone;

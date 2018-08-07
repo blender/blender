@@ -918,80 +918,113 @@ static void draw_bone_update_disp_matrix_default(EditBone *eBone, bPoseChannel *
 	translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
 }
 
-/* XXX Direct copy from drawarmature.c... This is ugly! */
-/* A partial copy of b_bone_spline_setup(), with just the parts for previewing editmode curve settings
- *
- * This assumes that prev/next bones don't have any impact (since they should all still be in the "straight"
- * position here anyway), and that we can simply apply the bbone settings to get the desired effect...
- */
-static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_SUBDIV][4][4])
+/* compute connected child pointer for B-Bone drawing */
+static void edbo_compute_bbone_child(bArmature *arm)
 {
-	float h1[3], h2[3], length, hlength1, hlength2, roll1 = 0.0f, roll2 = 0.0f;
-	float mat3[3][3];
-	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
-	int a;
+	EditBone *eBone;
 
-	length = ebone->length;
+	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
+		eBone->bbone_child = NULL;
+	}
 
-	hlength1 = ebone->ease1 * length * 0.390464f; /* 0.5f * sqrt(2) * kappa, the handle length for near-perfect circles */
-	hlength2 = ebone->ease2 * length * 0.390464f;
-
-	/* find the handle points, since this is inside bone space, the
-	 * first point = (0, 0, 0)
-	 * last point =  (0, length, 0)
-	 *
-	 * we also just apply all the "extra effects", since they're the whole reason we're doing this...
-	 */
-	h1[0] = ebone->curveInX;
-	h1[1] = hlength1;
-	h1[2] = ebone->curveInY;
-	roll1 = ebone->roll1;
-
-	h2[0] = ebone->curveOutX;
-	h2[1] = -hlength2;
-	h2[2] = ebone->curveOutY;
-	roll2 = ebone->roll2;
-
-	/* make curve */
-	if (ebone->segments > MAX_BBONE_SUBDIV)
-		ebone->segments = MAX_BBONE_SUBDIV;
-
-	BKE_curve_forward_diff_bezier(0.0f,  h1[0],                               h2[0],                               0.0f,   data[0],     MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(0.0f,  h1[1],                               length + h2[1],                      length, data[0] + 1, MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(0.0f,  h1[2],                               h2[2],                               0.0f,   data[0] + 2, MAX_BBONE_SUBDIV, 4 * sizeof(float));
-	BKE_curve_forward_diff_bezier(roll1, roll1 + 0.390464f * (roll2 - roll1), roll2 - 0.390464f * (roll2 - roll1), roll2,  data[0] + 3, MAX_BBONE_SUBDIV, 4 * sizeof(float));
-
-	equalize_bbone_bezier(data[0], ebone->segments); /* note: does stride 4! */
-
-	/* make transformation matrices for the segments for drawing */
-	for (a = 0, fp = data[0]; a < ebone->segments; a++, fp += 4) {
-		sub_v3_v3v3(h1, fp + 4, fp);
-		vec_roll_to_mat3(h1, fp[3], mat3); /* fp[3] is roll */
-
-		copy_m4_m3(result_array[a], mat3);
-		copy_v3_v3(result_array[a][3], fp);
-
-		/* "extra" scale facs... */
-		{
-			const int num_segments = ebone->segments;
-
-			const float scaleFactorIn  = 1.0f + (ebone->scaleIn  - 1.0f) * ((float)(num_segments - a) / (float)num_segments);
-			const float scaleFactorOut = 1.0f + (ebone->scaleOut - 1.0f) * ((float)(a + 1)            / (float)num_segments);
-
-			const float scalefac = scaleFactorIn * scaleFactorOut;
-			float bscalemat[4][4], bscale[3];
-
-			bscale[0] = scalefac;
-			bscale[1] = 1.0f;
-			bscale[2] = scalefac;
-
-			size_to_mat4(bscalemat, bscale);
-
-			/* Note: don't multiply by inverse scale mat here,
-			 * as it causes problems with scaling shearing and breaking segment chains */
-			mul_m4_series(result_array[a], result_array[a], bscalemat);
+	for (eBone = arm->edbo->first; eBone; eBone = eBone->next) {
+		if (eBone->parent && (eBone->flag & BONE_CONNECTED)) {
+			eBone->parent->bbone_child = eBone;
 		}
 	}
+}
+
+/* A version of b_bone_spline_setup() for previewing editmode curve settings. */
+static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_SUBDIV][4][4])
+{
+	BBoneSplineParameters param;
+	EditBone *prev, *next;
+	float imat[4][4], bonemat[4][4];
+
+	memset(&param, 0, sizeof(param));
+
+	param.segments = ebone->segments;
+	param.length = ebone->length;
+
+	/* Get "next" and "prev" bones - these are used for handle calculations. */
+	if (ebone->bbone_prev_type == BBONE_HANDLE_AUTO) {
+		/* Use connected parent. */
+		if (ebone->flag & BONE_CONNECTED) {
+			prev = ebone->parent;
+		}
+		else {
+			prev = NULL;
+		}
+	}
+	else {
+		prev = ebone->bbone_prev;
+	}
+
+	if (ebone->bbone_next_type == BBONE_HANDLE_AUTO) {
+		/* Use connected child. */
+		next = ebone->bbone_child;
+	}
+	else {
+		next = ebone->bbone_next;
+	}
+
+	/* compute handles from connected bones */
+	if (prev || next) {
+		ED_armature_ebone_to_mat4(ebone, imat);
+		invert_m4(imat);
+
+		if (prev) {
+			param.use_prev = true;
+			param.prev_bbone = (prev->segments > 1);
+
+			if (ebone->bbone_prev_type == BBONE_HANDLE_RELATIVE) {
+				zero_v3(param.prev_h);
+			}
+			else {
+				mul_v3_m4v3(param.prev_h, imat, prev->head);
+			}
+
+			if (!param.prev_bbone) {
+				ED_armature_ebone_to_mat4(prev, bonemat);
+				mul_m4_m4m4(param.prev_mat, imat, bonemat);
+			}
+		}
+
+		if (next) {
+			param.use_next = true;
+			param.next_bbone = (next->segments > 1);
+
+			if (ebone->bbone_next_type == BBONE_HANDLE_RELATIVE) {
+				copy_v3_fl3(param.next_h, 0.0f, param.length, 0.0);
+			}
+			else {
+				mul_v3_m4v3(param.next_h, imat, next->tail);
+			}
+
+			ED_armature_ebone_to_mat4(next, bonemat);
+			mul_m4_m4m4(param.next_mat, imat, bonemat);
+		}
+	}
+
+	param.ease1 = ebone->ease1;
+	param.ease2 = ebone->ease2;
+	param.roll1 = ebone->roll1;
+	param.roll2 = ebone->roll2;
+
+	if (prev && (ebone->flag & BONE_ADD_PARENT_END_ROLL)) {
+		param.roll1 += prev->roll2;
+	}
+
+	param.scaleIn = ebone->scaleIn;
+	param.scaleOut = ebone->scaleOut;
+
+	param.curveInX = ebone->curveInX;
+	param.curveInY = ebone->curveInY;
+
+	param.curveOutX = ebone->curveOutX;
+	param.curveOutY = ebone->curveOutY;
+
+	ebone->segments = BKE_compute_b_bone_spline(&param, (Mat4*)result_array);
 }
 
 static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pchan)
@@ -1624,6 +1657,7 @@ static void draw_armature_edit(Object *ob)
 	const bool is_select = DRW_state_is_select();
 
 	update_color(ob, NULL);
+	edbo_compute_bbone_child(arm);
 
 	const bool show_text = DRW_state_show_text();
 	const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);

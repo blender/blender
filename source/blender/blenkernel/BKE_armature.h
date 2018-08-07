@@ -140,10 +140,33 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
+typedef struct BBoneSplineParameters {
+	int segments;
+	float length;
+
+	/* Non-uniform scale correction. */
+	bool do_scale;
+	float scale[3];
+
+	/* Handle control bone data. */
+	bool use_prev, prev_bbone;
+	bool use_next, next_bbone;
+
+	float prev_h[3], next_h[3];
+	float prev_mat[4][4], next_mat[4][4];
+
+	/* Control values. */
+	float ease1, ease2;
+	float roll1, roll2;
+	float scaleIn, scaleOut;
+	float curveInX, curveInY, curveOutX, curveOutY;
+} BBoneSplineParameters;
+
 void BKE_pchan_get_bbone_handles(struct bPoseChannel *pchan, struct bPoseChannel **r_prev, struct bPoseChannel **r_next);
 
-void equalize_bbone_bezier(float *data, int desired);
 void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
+
+int BKE_compute_b_bone_spline(struct BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV]);
 
 /* like EBONE_VISIBLE */
 #define PBONE_VISIBLE(arm, bone) ( \
