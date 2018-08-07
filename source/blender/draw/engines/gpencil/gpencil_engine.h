@@ -105,7 +105,7 @@ typedef struct GPENCIL_Storage {
 	int keep_size;
 	float obj_scale;
 	float pixfactor;
-	int playing;
+	bool is_playing;
 	bool is_render;
 	bool is_mat_preview;
 	const float *pixsize;

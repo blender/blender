@@ -327,9 +327,9 @@ void GPENCIL_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 
 		/* detect if playing animation */
-		stl->storage->playing = 0;
+		stl->storage->is_playing = false;
 		if (draw_ctx->evil_C) {
-			stl->storage->playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL ? 1 : 0;
+			stl->storage->is_playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL ? true : false;
 		}
 
 		if (obact_gpd) {
@@ -337,7 +337,7 @@ void GPENCIL_cache_init(void *vedata)
 			* and this produces errors. To be sure, we set cache as dirty because the frame
 			* is changing.
 			*/
-			if (stl->storage->playing == 1) {
+			if (stl->storage->is_playing == true) {
 				obact_gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 			}
 			/* if render, set as dirty to update all data */
@@ -351,9 +351,9 @@ void GPENCIL_cache_init(void *vedata)
 		stl->storage->is_mat_preview = (bool)stl->storage->is_render && STREQ(scene->id.name + 2, "preview");
 
 		/* save simplify flags (can change while drawing, so it's better to save) */
-		stl->storage->simplify_fill = GP_SIMPLIFY_FILL(scene, stl->storage->playing);
-		stl->storage->simplify_modif = GP_SIMPLIFY_MODIF(scene, stl->storage->playing);
-		stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->playing);
+		stl->storage->simplify_fill = GP_SIMPLIFY_FILL(scene, stl->storage->is_playing);
+		stl->storage->simplify_modif = GP_SIMPLIFY_MODIF(scene, stl->storage->is_playing);
+		stl->storage->simplify_fx = GP_SIMPLIFY_FX(scene, stl->storage->is_playing);
 
 		/* save pixsize */
 		stl->storage->pixsize = DRW_viewport_pixelsize_get();
@@ -364,7 +364,7 @@ void GPENCIL_cache_init(void *vedata)
 		/* detect if painting session */
 		if ((obact_gpd) &&
 		    (obact_gpd->flag & GP_DATA_STROKE_PAINTMODE) &&
-		    (stl->storage->playing == 0))
+		    (stl->storage->is_playing == false))
 		{
 			if (((obact_gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
 			    (obact_gpd->runtime.sbuffer_size > 1))
@@ -637,7 +637,7 @@ void GPENCIL_draw_scene(void *ved)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Object *obact = draw_ctx->obact;
-	const bool playing = (bool)stl->storage->playing;
+	const bool playing = stl->storage->is_playing;
 	const bool is_render = stl->storage->is_render;
 
 	/* paper pass to display a confortable area to draw over complex scenes with geometry */

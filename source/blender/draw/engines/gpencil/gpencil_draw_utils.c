@@ -754,7 +754,7 @@ static void gpencil_draw_strokes(
 	DRWShadingGroup *strokegrp;
 	float viewmatrix[4][4];
 	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
-	const bool playing = (bool)stl->storage->playing;
+	const bool playing = stl->storage->is_playing;
 	const bool is_render = (bool)stl->storage->is_render;
 	const bool is_mat_preview = (bool)stl->storage->is_mat_preview;
 	const bool overlay_multiedit = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_MULTIEDIT_LINES) : true;
@@ -1141,7 +1141,7 @@ void DRW_gpencil_populate_multiedit(GPENCIL_e_data *e_data, void *vedata, Scene 
 	cache->cache_idx = 0;
 
 	/* check if playing animation */
-	bool playing = (bool)stl->storage->playing;
+	bool playing = stl->storage->is_playing;
 
 	/* draw strokes */
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -1187,7 +1187,7 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data, void *vedata, Scene 
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 
 	/* check if playing animation */
-	bool playing = (bool)stl->storage->playing;
+	bool playing = stl->storage->is_playing;
 
 	GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra_eval);
 	cache->cache_idx = 0;
