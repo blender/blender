@@ -865,30 +865,30 @@ void GHOST_WindowCocoa::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST
 
 void GHOST_WindowCocoa::screenToClientIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
-	NSPoint screenCoord;
-	NSPoint baseCoord;
+	NSRect screenCoord;
+	NSRect baseCoord;
 	
-	screenCoord.x = inX;
-	screenCoord.y = inY;
+	screenCoord.origin.x = inX;
+	screenCoord.origin.y = inY;
 	
-	baseCoord = [m_window convertScreenToBase:screenCoord];
+	baseCoord = [m_window convertRectFromScreen:screenCoord];
 	
-	outX = baseCoord.x;
-	outY = baseCoord.y;
+	outX = baseCoord.origin.x;
+	outY = baseCoord.origin.y;
 }
 
 void GHOST_WindowCocoa::clientToScreenIntern(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
-	NSPoint screenCoord;
-	NSPoint baseCoord;
+	NSRect screenCoord;
+	NSRect baseCoord;
 	
-	baseCoord.x = inX;
-	baseCoord.y = inY;
+	baseCoord.origin.x = inX;
+	baseCoord.origin.y = inY;
 	
-	screenCoord = [m_window convertBaseToScreen:baseCoord];
+	screenCoord = [m_window convertRectToScreen:baseCoord];
 	
-	outX = screenCoord.x;
-	outY = screenCoord.y;
+	outX = screenCoord.origin.x;
+	outY = screenCoord.origin.y;
 }
 
 
