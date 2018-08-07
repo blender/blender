@@ -1814,8 +1814,17 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 {
 	tGP_BrushEditData *gso = NULL;
 	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
+	const bool is_playing = ED_screen_animation_playing(CTX_wm_manager(C)) != NULL ? true : false;
 	bool needs_timer = false;
 	float brush_rate = 0.0f;
+
+	/* the operator cannot work while play animation */
+	if (is_playing) {
+		BKE_report(op->reports, RPT_ERROR,
+			"Cannot sculpt while play animation");
+
+		return OPERATOR_CANCELLED;
+	}
 
 	/* init painting data */
 	if (!gpsculpt_brush_init(C, op))
