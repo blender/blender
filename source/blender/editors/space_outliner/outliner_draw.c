@@ -850,94 +850,45 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Tre
 /* ****************************************************** */
 /* Normal Drawing... */
 
-/* make function calls a bit compacter */
-struct DrawIconArg {
-	uiBlock *block;
-	ID *id;
-	float xmax, x, y, xb, yb;
-	float alpha;
-};
-
-static void tselem_draw_icon_uibut(struct DrawIconArg *arg, int icon)
+TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 {
-	/* restrict column clip... it has been coded by simply overdrawing, doesnt work for buttons */
-	if (arg->x >= arg->xmax) {
-		GPU_blend(true);
-		UI_icon_draw_alpha(arg->x, arg->y, icon, arg->alpha);
-		GPU_blend(false);
-	}
-	else {
-		uiBut *but = uiDefIconBut(
-		        arg->block, UI_BTYPE_LABEL, 0, icon, arg->xb, arg->yb, UI_UNIT_X, UI_UNIT_Y, NULL,
-		        0.0, 0.0, 1.0, arg->alpha,
-		        (arg->id && ID_IS_LINKED(arg->id)) ? arg->id->lib->name : "");
-
-		if (arg->id)
-			UI_but_drag_set_id(but, arg->id);
-	}
-
-}
-
-static void tselem_draw_icon(
-        uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te,
-        float alpha, const bool is_clickable)
-{
-	struct DrawIconArg arg;
-	float aspect;
-
-	/* make function calls a bit compacter */
-	arg.block = block;
-	arg.id = tselem->id;
-	arg.xmax = xmax;
-	arg.xb = x;	/* for ui buttons */
-	arg.yb = y;
-	arg.alpha = alpha;
-
-	/* placement of icons, copied from interface_widgets.c */
-	aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
-	x += 2.0f * aspect;
-	y += 2.0f * aspect;
-	arg.x = x;
-	arg.y = y;
-
-#define ICON_DRAW(_icon) UI_icon_draw_alpha(x, y, _icon, alpha)
-#define ICON_CLICK_DRAW(_icon) if (!is_clickable) ICON_DRAW(_icon); else tselem_draw_icon_uibut(&arg, _icon)
+	TreeElementIcon data = {0};
 
 	if (tselem->type) {
 		switch (tselem->type) {
 			case TSE_ANIM_DATA:
-				ICON_DRAW(ICON_ANIM_DATA); /* XXX */
+				data.icon = ICON_ANIM_DATA; /* XXX */
 				break;
 			case TSE_NLA:
-				ICON_DRAW(ICON_NLA);
+				data.icon = ICON_NLA;
 				break;
 			case TSE_NLA_TRACK:
-				ICON_DRAW(ICON_NLA); /* XXX */
+				data.icon = ICON_NLA; /* XXX */
 				break;
 			case TSE_NLA_ACTION:
-				ICON_DRAW(ICON_ACTION);
+				data.icon = ICON_ACTION;
 				break;
 			case TSE_DRIVER_BASE:
-				ICON_DRAW(ICON_DRIVER);
+				data.icon = ICON_DRIVER;
 				break;
 			case TSE_DEFGROUP_BASE:
-				ICON_DRAW(ICON_GROUP_VERTEX);
+				data.icon = ICON_GROUP_VERTEX;
 				break;
 			case TSE_BONE:
 			case TSE_EBONE:
-				ICON_DRAW(ICON_BONE_DATA);
+				data.icon = ICON_BONE_DATA;
 				break;
 			case TSE_CONSTRAINT_BASE:
-				ICON_DRAW(ICON_CONSTRAINT);
+				data.icon = ICON_CONSTRAINT;
 				break;
 			case TSE_MODIFIER_BASE:
-				ICON_DRAW(ICON_MODIFIER);
+				data.icon = ICON_MODIFIER;
 				break;
 			case TSE_LINKED_OB:
-				ICON_DRAW(ICON_OBJECT_DATA);
+				data.icon = ICON_OBJECT_DATA;
 				break;
 			case TSE_LINKED_PSYS:
-				ICON_DRAW(ICON_PARTICLES);
+				data.icon = ICON_PARTICLES;
 				break;
 			case TSE_MODIFIER:
 			{
@@ -946,154 +897,154 @@ static void tselem_draw_icon(
 					ModifierData *md = BLI_findlink(&ob->modifiers, tselem->nr);
 					switch ((ModifierType)md->type) {
 						case eModifierType_Subsurf:
-							ICON_DRAW(ICON_MOD_SUBSURF);
+							data.icon = ICON_MOD_SUBSURF;
 							break;
 						case eModifierType_Armature:
-							ICON_DRAW(ICON_MOD_ARMATURE);
+							data.icon = ICON_MOD_ARMATURE;
 							break;
 						case eModifierType_Lattice:
-							ICON_DRAW(ICON_MOD_LATTICE);
+							data.icon = ICON_MOD_LATTICE;
 							break;
 						case eModifierType_Curve:
-							ICON_DRAW(ICON_MOD_CURVE);
+							data.icon = ICON_MOD_CURVE;
 							break;
 						case eModifierType_Build:
-							ICON_DRAW(ICON_MOD_BUILD);
+							data.icon = ICON_MOD_BUILD;
 							break;
 						case eModifierType_Mirror:
-							ICON_DRAW(ICON_MOD_MIRROR);
+							data.icon = ICON_MOD_MIRROR;
 							break;
 						case eModifierType_Decimate:
-							ICON_DRAW(ICON_MOD_DECIM);
+							data.icon = ICON_MOD_DECIM;
 							break;
 						case eModifierType_Wave:
-							ICON_DRAW(ICON_MOD_WAVE);
+							data.icon = ICON_MOD_WAVE;
 							break;
 						case eModifierType_Hook:
-							ICON_DRAW(ICON_HOOK);
+							data.icon = ICON_HOOK;
 							break;
 						case eModifierType_Softbody:
-							ICON_DRAW(ICON_MOD_SOFT);
+							data.icon = ICON_MOD_SOFT;
 							break;
 						case eModifierType_Boolean:
-							ICON_DRAW(ICON_MOD_BOOLEAN);
+							data.icon = ICON_MOD_BOOLEAN;
 							break;
 						case eModifierType_ParticleSystem:
-							ICON_DRAW(ICON_MOD_PARTICLES);
+							data.icon = ICON_MOD_PARTICLES;
 							break;
 						case eModifierType_ParticleInstance:
-							ICON_DRAW(ICON_MOD_PARTICLES);
+							data.icon = ICON_MOD_PARTICLES;
 							break;
 						case eModifierType_EdgeSplit:
-							ICON_DRAW(ICON_MOD_EDGESPLIT);
+							data.icon = ICON_MOD_EDGESPLIT;
 							break;
 						case eModifierType_Array:
-							ICON_DRAW(ICON_MOD_ARRAY);
+							data.icon = ICON_MOD_ARRAY;
 							break;
 						case eModifierType_UVProject:
 						case eModifierType_UVWarp:  /* TODO, get own icon */
-							ICON_DRAW(ICON_MOD_UVPROJECT);
+							data.icon = ICON_MOD_UVPROJECT;
 							break;
 						case eModifierType_Displace:
-							ICON_DRAW(ICON_MOD_DISPLACE);
+							data.icon = ICON_MOD_DISPLACE;
 							break;
 						case eModifierType_Shrinkwrap:
-							ICON_DRAW(ICON_MOD_SHRINKWRAP);
+							data.icon = ICON_MOD_SHRINKWRAP;
 							break;
 						case eModifierType_Cast:
-							ICON_DRAW(ICON_MOD_CAST);
+							data.icon = ICON_MOD_CAST;
 							break;
 						case eModifierType_MeshDeform:
 						case eModifierType_SurfaceDeform:
-							ICON_DRAW(ICON_MOD_MESHDEFORM);
+							data.icon = ICON_MOD_MESHDEFORM;
 							break;
 						case eModifierType_Bevel:
-							ICON_DRAW(ICON_MOD_BEVEL);
+							data.icon = ICON_MOD_BEVEL;
 							break;
 						case eModifierType_Smooth:
 						case eModifierType_LaplacianSmooth:
 						case eModifierType_CorrectiveSmooth:
-							ICON_DRAW(ICON_MOD_SMOOTH);
+							data.icon = ICON_MOD_SMOOTH;
 							break;
 						case eModifierType_SimpleDeform:
-							ICON_DRAW(ICON_MOD_SIMPLEDEFORM);
+							data.icon = ICON_MOD_SIMPLEDEFORM;
 							break;
 						case eModifierType_Mask:
-							ICON_DRAW(ICON_MOD_MASK);
+							data.icon = ICON_MOD_MASK;
 							break;
 						case eModifierType_Cloth:
-							ICON_DRAW(ICON_MOD_CLOTH);
+							data.icon = ICON_MOD_CLOTH;
 							break;
 						case eModifierType_Explode:
-							ICON_DRAW(ICON_MOD_EXPLODE);
+							data.icon = ICON_MOD_EXPLODE;
 							break;
 						case eModifierType_Collision:
 						case eModifierType_Surface:
-							ICON_DRAW(ICON_MOD_PHYSICS);
+							data.icon = ICON_MOD_PHYSICS;
 							break;
 						case eModifierType_Fluidsim:
-							ICON_DRAW(ICON_MOD_FLUIDSIM);
+							data.icon = ICON_MOD_FLUIDSIM;
 							break;
 						case eModifierType_Multires:
-							ICON_DRAW(ICON_MOD_MULTIRES);
+							data.icon = ICON_MOD_MULTIRES;
 							break;
 						case eModifierType_Smoke:
-							ICON_DRAW(ICON_MOD_SMOKE);
+							data.icon = ICON_MOD_SMOKE;
 							break;
 						case eModifierType_Solidify:
-							ICON_DRAW(ICON_MOD_SOLIDIFY);
+							data.icon = ICON_MOD_SOLIDIFY;
 							break;
 						case eModifierType_Screw:
-							ICON_DRAW(ICON_MOD_SCREW);
+							data.icon = ICON_MOD_SCREW;
 							break;
 						case eModifierType_Remesh:
-							ICON_DRAW(ICON_MOD_REMESH);
+							data.icon = ICON_MOD_REMESH;
 							break;
 						case eModifierType_WeightVGEdit:
 						case eModifierType_WeightVGMix:
 						case eModifierType_WeightVGProximity:
-							ICON_DRAW(ICON_MOD_VERTEX_WEIGHT);
+							data.icon = ICON_MOD_VERTEX_WEIGHT;
 							break;
 						case eModifierType_DynamicPaint:
-							ICON_DRAW(ICON_MOD_DYNAMICPAINT);
+							data.icon = ICON_MOD_DYNAMICPAINT;
 							break;
 						case eModifierType_Ocean:
-							ICON_DRAW(ICON_MOD_OCEAN);
+							data.icon = ICON_MOD_OCEAN;
 							break;
 						case eModifierType_Warp:
-							ICON_DRAW(ICON_MOD_WARP);
+							data.icon = ICON_MOD_WARP;
 							break;
 						case eModifierType_Skin:
-							ICON_DRAW(ICON_MOD_SKIN);
+							data.icon = ICON_MOD_SKIN;
 							break;
 						case eModifierType_Triangulate:
-							ICON_DRAW(ICON_MOD_TRIANGULATE);
+							data.icon = ICON_MOD_TRIANGULATE;
 							break;
 						case eModifierType_MeshCache:
-							ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+							data.icon = ICON_MOD_MESHDEFORM; /* XXX, needs own icon */
 							break;
 						case eModifierType_MeshSequenceCache:
-							ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+							data.icon = ICON_MOD_MESHDEFORM; /* XXX, needs own icon */
 							break;
 						case eModifierType_Wireframe:
-							ICON_DRAW(ICON_MOD_WIREFRAME);
+							data.icon = ICON_MOD_WIREFRAME;
 							break;
 						case eModifierType_LaplacianDeform:
-							ICON_DRAW(ICON_MOD_MESHDEFORM); /* XXX, needs own icon */
+							data.icon = ICON_MOD_MESHDEFORM; /* XXX, needs own icon */
 							break;
 						case eModifierType_DataTransfer:
-							ICON_DRAW(ICON_MOD_DATA_TRANSFER);
+							data.icon = ICON_MOD_DATA_TRANSFER;
 							break;
 						case eModifierType_NormalEdit:
 						case eModifierType_WeightedNormal:
-							ICON_DRAW(ICON_MOD_NORMALEDIT);
+							data.icon = ICON_MOD_NORMALEDIT;
 							break;
 							/* Default */
 						case eModifierType_None:
 						case eModifierType_ShapeKey:
 
 						case NUM_MODIFIER_TYPES:
-							ICON_DRAW(ICON_DOT);
+							data.icon = ICON_DOT;
 							break;
 					}
 				}
@@ -1102,172 +1053,182 @@ static void tselem_draw_icon(
 					GpencilModifierData *md = BLI_findlink(&ob->greasepencil_modifiers, tselem->nr);
 					switch ((GpencilModifierType)md->type) {
 						case eGpencilModifierType_Noise:
-							ICON_DRAW(ICON_RNDCURVE);
+							data.icon = ICON_RNDCURVE;
 							break;
 						case eGpencilModifierType_Subdiv:
-							ICON_DRAW(ICON_MOD_SUBSURF);
+							data.icon = ICON_MOD_SUBSURF;
 							break;
 						case eGpencilModifierType_Thick:
-							ICON_DRAW(ICON_MAN_ROT);
+							data.icon = ICON_MAN_ROT;
 							break;
 						case eGpencilModifierType_Tint:
-							ICON_DRAW(ICON_COLOR);
+							data.icon = ICON_COLOR;
 							break;
 						case eGpencilModifierType_Instance:
-							ICON_DRAW(ICON_MOD_ARRAY);
+							data.icon = ICON_MOD_ARRAY;
 							break;
 						case eGpencilModifierType_Build:
-							ICON_DRAW(ICON_MOD_BUILD);
+							data.icon = ICON_MOD_BUILD;
 							break;
 						case eGpencilModifierType_Opacity:
-							ICON_DRAW(ICON_MOD_MASK);
+							data.icon = ICON_MOD_MASK;
 							break;
 						case eGpencilModifierType_Color:
-							ICON_DRAW(ICON_GROUP_VCOL);
+							data.icon = ICON_GROUP_VCOL;
 							break;
 						case eGpencilModifierType_Lattice:
-							ICON_DRAW(ICON_MOD_LATTICE);
+							data.icon = ICON_MOD_LATTICE;
 							break;
 						case eGpencilModifierType_Mirror:
-							ICON_DRAW(ICON_MOD_MIRROR);
+							data.icon = ICON_MOD_MIRROR;
 							break;
 						case eGpencilModifierType_Simplify:
-							ICON_DRAW(ICON_MOD_DECIM);
+							data.icon = ICON_MOD_DECIM;
 							break;
 						case eGpencilModifierType_Smooth:
-							ICON_DRAW(ICON_MOD_SMOOTH);
+							data.icon = ICON_MOD_SMOOTH;
 							break;
 						case eGpencilModifierType_Hook:
-							ICON_DRAW(ICON_HOOK);
+							data.icon = ICON_HOOK;
 							break;
 						case eGpencilModifierType_Offset:
-							ICON_DRAW(ICON_MOD_DISPLACE);
+							data.icon = ICON_MOD_DISPLACE;
 							break;
 
 							/* Default */
 						default:
-							ICON_DRAW(ICON_DOT);
+							data.icon = ICON_DOT;
 							break;
 					}
 				}
 				break;
 			}
 			case TSE_POSE_BASE:
-				ICON_DRAW(ICON_ARMATURE_DATA);
+				data.icon = ICON_ARMATURE_DATA;
 				break;
 			case TSE_POSE_CHANNEL:
-				ICON_DRAW(ICON_BONE_DATA);
+				data.icon = ICON_BONE_DATA;
 				break;
 			case TSE_PROXY:
-				ICON_DRAW(ICON_GHOST);
+				data.icon = ICON_GHOST;
 				break;
 			case TSE_R_LAYER_BASE:
-				ICON_DRAW(ICON_RENDERLAYERS);
+				data.icon = ICON_RENDERLAYERS;
 				break;
 			case TSE_SCENE_OBJECTS_BASE:
-				ICON_DRAW(ICON_OUTLINER_OB_GROUP_INSTANCE);
+				data.icon = ICON_OUTLINER_OB_GROUP_INSTANCE;
 				break;
 			case TSE_R_LAYER:
-				ICON_DRAW(ICON_RENDER_RESULT);
+				data.icon = ICON_RENDER_RESULT;
 				break;
 			case TSE_LINKED_LAMP:
-				ICON_DRAW(ICON_LIGHT_DATA);
+				data.icon = ICON_LIGHT_DATA;
 				break;
 			case TSE_LINKED_MAT:
-				ICON_DRAW(ICON_MATERIAL_DATA);
+				data.icon = ICON_MATERIAL_DATA;
 				break;
 			case TSE_POSEGRP_BASE:
-				ICON_DRAW(ICON_GROUP_BONE);
+				data.icon = ICON_GROUP_BONE;
 				break;
 			case TSE_SEQUENCE:
 				if (te->idcode == SEQ_TYPE_MOVIE)
-					ICON_DRAW(ICON_SEQUENCE);
+					data.icon = ICON_SEQUENCE;
 				else if (te->idcode == SEQ_TYPE_META)
-					ICON_DRAW(ICON_DOT);
+					data.icon = ICON_DOT;
 				else if (te->idcode == SEQ_TYPE_SCENE)
-					ICON_DRAW(ICON_SCENE);
+					data.icon = ICON_SCENE;
 				else if (te->idcode == SEQ_TYPE_SOUND_RAM)
-					ICON_DRAW(ICON_SOUND);
+					data.icon = ICON_SOUND;
 				else if (te->idcode == SEQ_TYPE_IMAGE)
-					ICON_DRAW(ICON_IMAGE_COL);
+					data.icon = ICON_IMAGE_COL;
 				else
-					ICON_DRAW(ICON_PARTICLES);
+					data.icon = ICON_PARTICLES;
 				break;
 			case TSE_SEQ_STRIP:
-				ICON_DRAW(ICON_LIBRARY_DATA_DIRECT);
+				data.icon = ICON_LIBRARY_DATA_DIRECT;
 				break;
 			case TSE_SEQUENCE_DUP:
-				ICON_DRAW(ICON_OBJECT_DATA);
+				data.icon = ICON_OBJECT_DATA;
 				break;
 			case TSE_RNA_STRUCT:
 				if (RNA_struct_is_ID(te->rnaptr.type)) {
-					arg.id = (ID *)te->rnaptr.data;
-					tselem_draw_icon_uibut(&arg, RNA_struct_ui_icon(te->rnaptr.type));
+					data.drag_id = (ID *)te->rnaptr.data;
+					data.icon = RNA_struct_ui_icon(te->rnaptr.type);
 				}
 				else {
-					int icon = RNA_struct_ui_icon(te->rnaptr.type);
-					ICON_DRAW(icon);
+					data.icon = RNA_struct_ui_icon(te->rnaptr.type);
 				}
 				break;
 			case TSE_LAYER_COLLECTION:
 			case TSE_SCENE_COLLECTION_BASE:
 			case TSE_VIEW_COLLECTION_BASE:
-				ICON_DRAW(ICON_GROUP);
+			{
+				Collection *collection = outliner_collection_from_tree_element(te);
+				if (collection && !(collection->flag & COLLECTION_IS_MASTER)) {
+					data.drag_id = tselem->id;
+					data.drag_parent = (data.drag_id && te->parent) ? TREESTORE(te->parent)->id : NULL;
+				}
+
+				data.icon = ICON_GROUP;
 				break;
+			}
 			/* Removed the icons from outliner. Need a better structure with Layers, Palettes and Colors */
 			case TSE_GP_LAYER:
 			{
 				/* indicate whether layer is active */
 				bGPDlayer *gpl = te->directdata;
 				if (gpl->flag & GP_LAYER_ACTIVE) {
-					ICON_DRAW(ICON_GREASEPENCIL);
+					data.icon = ICON_GREASEPENCIL;
 				}
 				else {
-					ICON_DRAW(ICON_DOT);
+					data.icon = ICON_DOT;
 				}
 				break;
 			}
 			default:
-				ICON_DRAW(ICON_DOT);
+				data.icon = ICON_DOT;
 				break;
 		}
 	}
 	else if (tselem->id) {
+		data.drag_id = tselem->id;
+		data.drag_parent = (data.drag_id && te->parent) ? TREESTORE(te->parent)->id : NULL;
+
 		if (GS(tselem->id->name) == ID_OB) {
 			Object *ob = (Object *)tselem->id;
 			switch (ob->type) {
 				case OB_LAMP:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_LIGHT); break;
+					data.icon = ICON_OUTLINER_OB_LIGHT; break;
 				case OB_MESH:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_MESH); break;
+					data.icon = ICON_OUTLINER_OB_MESH; break;
 				case OB_CAMERA:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_CAMERA); break;
+					data.icon = ICON_OUTLINER_OB_CAMERA; break;
 				case OB_CURVE:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_CURVE); break;
+					data.icon = ICON_OUTLINER_OB_CURVE; break;
 				case OB_MBALL:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_META); break;
+					data.icon = ICON_OUTLINER_OB_META; break;
 				case OB_LATTICE:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_LATTICE); break;
+					data.icon = ICON_OUTLINER_OB_LATTICE; break;
 				case OB_ARMATURE:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_ARMATURE); break;
+					data.icon = ICON_OUTLINER_OB_ARMATURE; break;
 				case OB_FONT:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_FONT); break;
+					data.icon = ICON_OUTLINER_OB_FONT; break;
 				case OB_SURF:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_SURFACE); break;
+					data.icon = ICON_OUTLINER_OB_SURFACE; break;
 				case OB_SPEAKER:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_SPEAKER); break;
+					data.icon = ICON_OUTLINER_OB_SPEAKER; break;
 				case OB_LIGHTPROBE:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_LIGHTPROBE); break;
+					data.icon = ICON_OUTLINER_OB_LIGHTPROBE; break;
 				case OB_EMPTY:
 					if (ob->dup_group) {
-						ICON_CLICK_DRAW(ICON_OUTLINER_OB_GROUP_INSTANCE);
+						data.icon = ICON_OUTLINER_OB_GROUP_INSTANCE;
 					}
 					else {
-						ICON_CLICK_DRAW(ICON_OUTLINER_OB_EMPTY);
+						data.icon = ICON_OUTLINER_OB_EMPTY;
 					}
 					break;
 				case OB_GPENCIL:
-					ICON_CLICK_DRAW(ICON_OUTLINER_OB_GREASEPENCIL); break;
+					data.icon = ICON_OUTLINER_OB_GREASEPENCIL; break;
 					break;
 			}
 		}
@@ -1277,101 +1238,132 @@ static void tselem_draw_icon(
 			 */
 			switch ((short)GS(tselem->id->name)) {
 				case ID_SCE:
-					tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
+					data.icon = ICON_SCENE_DATA; break;
 				case ID_ME:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_MESH); break;
+					data.icon = ICON_OUTLINER_DATA_MESH; break;
 				case ID_CU:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CURVE); break;
+					data.icon = ICON_OUTLINER_DATA_CURVE; break;
 				case ID_MB:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_META); break;
+					data.icon = ICON_OUTLINER_DATA_META; break;
 				case ID_LT:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LATTICE); break;
+					data.icon = ICON_OUTLINER_DATA_LATTICE; break;
 				case ID_LA:
 				{
 					Lamp *la = (Lamp *)tselem->id;
 					switch (la->type) {
 						case LA_LOCAL:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHT_POINT); break;
+							data.icon = ICON_LIGHT_POINT; break;
 						case LA_SUN:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHT_SUN); break;
+							data.icon = ICON_LIGHT_SUN; break;
 						case LA_SPOT:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHT_SPOT); break;
+							data.icon = ICON_LIGHT_SPOT; break;
 						case LA_HEMI:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHT_HEMI); break;
+							data.icon = ICON_LIGHT_HEMI; break;
 						case LA_AREA:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHT_AREA); break;
+							data.icon = ICON_LIGHT_AREA; break;
 						default:
-							tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_LIGHT); break;
+							data.icon = ICON_OUTLINER_DATA_LIGHT; break;
 					}
 					break;
 				}
 				case ID_MA:
-					tselem_draw_icon_uibut(&arg, ICON_MATERIAL_DATA); break;
+					data.icon = ICON_MATERIAL_DATA; break;
 				case ID_TE:
-					tselem_draw_icon_uibut(&arg, ICON_TEXTURE_DATA); break;
+					data.icon = ICON_TEXTURE_DATA; break;
 				case ID_IM:
-					tselem_draw_icon_uibut(&arg, ICON_IMAGE_DATA); break;
+					data.icon = ICON_IMAGE_DATA; break;
 				case ID_SPK:
 				case ID_SO:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_SPEAKER); break;
+					data.icon = ICON_OUTLINER_DATA_SPEAKER; break;
 				case ID_AR:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_ARMATURE); break;
+					data.icon = ICON_OUTLINER_DATA_ARMATURE; break;
 				case ID_CA:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_CAMERA); break;
+					data.icon = ICON_OUTLINER_DATA_CAMERA; break;
 				case ID_KE:
-					tselem_draw_icon_uibut(&arg, ICON_SHAPEKEY_DATA); break;
+					data.icon = ICON_SHAPEKEY_DATA; break;
 				case ID_WO:
-					tselem_draw_icon_uibut(&arg, ICON_WORLD_DATA); break;
+					data.icon = ICON_WORLD_DATA; break;
 				case ID_AC:
-					tselem_draw_icon_uibut(&arg, ICON_ACTION); break;
+					data.icon = ICON_ACTION; break;
 				case ID_NLA:
-					tselem_draw_icon_uibut(&arg, ICON_NLA); break;
+					data.icon = ICON_NLA; break;
 				case ID_TXT:
-					tselem_draw_icon_uibut(&arg, ICON_SCRIPT); break;
+					data.icon = ICON_SCRIPT; break;
 				case ID_GR:
-					tselem_draw_icon_uibut(&arg, ICON_GROUP); break;
+					data.icon = ICON_GROUP; break;
 				case ID_LI:
 					if (tselem->id->tag & LIB_TAG_MISSING) {
-						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_BROKEN);
+						data.icon = ICON_LIBRARY_DATA_BROKEN;
 					}
 					else if (((Library *)tselem->id)->parent) {
-						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_INDIRECT);
+						data.icon = ICON_LIBRARY_DATA_INDIRECT;
 					}
 					else {
-						tselem_draw_icon_uibut(&arg, ICON_LIBRARY_DATA_DIRECT);
+						data.icon = ICON_LIBRARY_DATA_DIRECT;
 					}
 					break;
 				case ID_LS:
-					tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
+					data.icon = ICON_LINE_DATA; break;
 				case ID_GD:
-					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_DATA_GREASEPENCIL); break;
+					data.icon = ICON_OUTLINER_DATA_GREASEPENCIL; break;
 				case ID_LP:
 				{
 					LightProbe * lp = (LightProbe *)tselem->id;
 					switch (lp->type) {
 						case LIGHTPROBE_TYPE_CUBE:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_CUBEMAP); break;
+							data.icon = ICON_LIGHTPROBE_CUBEMAP; break;
 						case LIGHTPROBE_TYPE_PLANAR:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_PLANAR); break;
+							data.icon = ICON_LIGHTPROBE_PLANAR; break;
 						case LIGHTPROBE_TYPE_GRID:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_GRID); break;
+							data.icon = ICON_LIGHTPROBE_GRID; break;
 						default:
-							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_CUBEMAP); break;
+							data.icon = ICON_LIGHTPROBE_CUBEMAP; break;
 					}
 					break;
 				}
 				case ID_BR:
-					tselem_draw_icon_uibut(&arg, ICON_BRUSH_DATA); break;
+					data.icon = ICON_BRUSH_DATA; break;
 				case ID_SCR:
 				case ID_WS:
-					tselem_draw_icon_uibut(&arg, ICON_SPLITSCREEN); break;
+					data.icon = ICON_SPLITSCREEN; break;
 				default:
 					break;
 			}
 		}
 	}
 
-#undef ICON_DRAW
+	return data;
+}
+
+static void tselem_draw_icon(
+        uiBlock *block, int xmax, float x, float y, TreeStoreElem *tselem, TreeElement *te,
+        float alpha, const bool is_clickable)
+{
+	TreeElementIcon data = tree_element_get_icon(tselem, te);
+
+	if (data.icon == 0) {
+		return;
+	}
+
+	if (!is_clickable || x >= xmax) {
+		/* placement of icons, copied from interface_widgets.c */
+		float aspect = (0.8f * UI_UNIT_Y) / ICON_DEFAULT_HEIGHT;
+		x += 2.0f * aspect;
+		y += 2.0f * aspect;
+
+		/* restrict column clip... it has been coded by simply overdrawing,
+		 * doesnt work for buttons */
+		UI_icon_draw_alpha(x, y, data.icon, alpha);
+	}
+	else {
+		uiBut *but = uiDefIconBut(
+		        block, UI_BTYPE_LABEL, 0, data.icon, x, y, UI_UNIT_X, UI_UNIT_Y, NULL,
+		        0.0, 0.0, 1.0, alpha,
+		        (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->name : "");
+
+		if (data.drag_id)
+			UI_but_drag_set_id(but, data.drag_id);
+	}
 }
 
 /**

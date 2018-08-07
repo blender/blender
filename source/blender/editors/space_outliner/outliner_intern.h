@@ -112,6 +112,11 @@ typedef struct TreeElement {
 	} *drag_data;
 } TreeElement;
 
+typedef struct TreeElementIcon {
+	struct ID *drag_id, *drag_parent;
+	int icon;
+} TreeElementIcon;
+
 #define TREESTORE_ID_TYPE(_id) \
 	(ELEM(GS((_id)->name), ID_SCE, ID_LI, ID_OB, ID_ME, ID_CU, ID_MB, ID_NT, ID_MA, ID_TE, ID_IM, ID_LT, ID_LA, ID_CA) || \
 	 ELEM(GS((_id)->name), ID_KE, ID_WO, ID_SPK, ID_GR, ID_AR, ID_AC, ID_BR, ID_PA, ID_GD, ID_LS, ID_LP) || \
@@ -208,6 +213,8 @@ TreeTraversalAction outliner_find_selected_objects(struct TreeElement *te, void 
 
 void draw_outliner(const struct bContext *C);
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag);
+
+TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te);
 
 /* outliner_select.c -------------------------------------------- */
 eOLDrawState tree_element_type_active(
