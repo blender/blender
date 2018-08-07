@@ -48,7 +48,6 @@
 #include "BKE_main.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph.h"
 
 #include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
