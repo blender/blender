@@ -484,6 +484,9 @@ void				WM_event_drag_image(struct wmDrag *, struct ImBuf *, float scale, int sx
 void                WM_drag_free(struct wmDrag *drag);
 void                WM_drag_free_list(struct ListBase *lb);
 
+struct ID          *WM_drag_ID(const struct wmDrag *drag, short idcode);
+struct ID          *WM_drag_ID_from_event(const struct wmEvent *event, short idcode);
+
 struct wmDropBox	*WM_dropbox_add(
         ListBase *lb, const char *idname,
         bool (*poll)(struct bContext *, struct wmDrag *, const struct wmEvent *event, const char **),

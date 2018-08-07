@@ -172,29 +172,22 @@ static void console_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 
 static bool id_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
-//	SpaceConsole *sc = CTX_wm_space_console(C);
-	if (drag->type == WM_DRAG_ID)
-		return 1;
-	return 0;
+	return WM_drag_ID(drag, 0) != NULL;
 }
 
 static void id_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
-	char *text;
-	ID *id = drag->poin;
+	ID *id = WM_drag_ID(drag, 0);
 
 	/* copy drag path to properties */
-	text = RNA_path_full_ID_py(id);
+	char *text = RNA_path_full_ID_py(id);
 	RNA_string_set(drop->ptr, "text", text);
 	MEM_freeN(text);
 }
 
 static bool path_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
-	// SpaceConsole *sc = CTX_wm_space_console(C);
-	if (drag->type == WM_DRAG_PATH)
-		return 1;
-	return 0;
+	return (drag->type == WM_DRAG_PATH);
 }
 
 static void path_drop_copy(wmDrag *drag, wmDropBox *drop)

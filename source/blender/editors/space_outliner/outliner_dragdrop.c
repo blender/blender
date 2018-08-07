@@ -39,6 +39,7 @@
 #include "DNA_space_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_string.h"
 
 #include "BLT_translation.h"
 
@@ -105,64 +106,77 @@ static TreeElement *outliner_dropzone_find(const SpaceOops *soops, const float f
 	return NULL;
 }
 
-/* ******************** Parent Drop Operator *********************** */
-
-static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
+static TreeElement *outliner_drop_find(bContext *C, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	float fmval[2];
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if (drag->type == WM_DRAG_ID) {
-		ID *id = drag->poin;
-		if (GS(id->name) == ID_OB) {
-			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
-			TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
+	return outliner_dropzone_find(soops, fmval, true);
+}
 
-			if (!te) {
-				/* pass */
-			}
-			else if (te->idcode == ID_OB && tselem->type == 0) {
-				Scene *scene;
-				ID *te_id = tselem->id;
+static ID *outliner_ID_drop_find(bContext *C, const wmEvent *event, short idcode)
+{
+	TreeElement *te = outliner_drop_find(C, event);
+	TreeStoreElem *tselem = (te) ? TREESTORE(te) : NULL;
 
-				/* check if dropping self or parent */
-				if (te_id == id || (Object *)te_id == ((Object *)id)->parent)
-					return 0;
+	if (te && te->idcode == idcode && tselem->type == 0) {
+		return tselem->id;
+	}
+	else {
+		return NULL;
+	}
+}
 
-				/* check that parent/child are both in the same scene */
-				scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
+/* ******************** Parent Drop Operator *********************** */
 
-				/* currently outliner organized in a way that if there's no parent scene
-				 * element for object it means that all displayed objects belong to
-				 * active scene and parenting them is allowed (sergey)
-				 */
-				if (!scene) {
-					return 1;
-				}
-				else {
-					for (ViewLayer *view_layer = scene->view_layers.first;
-					     view_layer;
-					     view_layer = view_layer->next)
-					{
-						if (BKE_view_layer_base_find(view_layer, (Object *)id)) {
-							return 1;
-						}
-					}
+static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+	if (!ob) {
+		return false;
+	}
+
+	/* Ensure item under cursor is valid drop target */
+	TreeElement *te = outliner_drop_find(C, event);
+	TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
+
+	if (!te) {
+		/* pass */
+	}
+	else if (te->idcode == ID_OB && tselem->type == 0) {
+		Scene *scene;
+		ID *te_id = tselem->id;
+
+		/* check if dropping self or parent */
+		if (te_id == &ob->id || (Object *)te_id == ob->parent)
+			return false;
+
+		/* check that parent/child are both in the same scene */
+		scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
+
+		/* currently outliner organized in a way that if there's no parent scene
+		 * element for object it means that all displayed objects belong to
+		 * active scene and parenting them is allowed (sergey)
+		 */
+		if (!scene) {
+			return true;
+		}
+		else {
+			for (ViewLayer *view_layer = scene->view_layers.first;
+				 view_layer;
+				 view_layer = view_layer->next)
+			{
+				if (BKE_view_layer_base_find(view_layer, ob)) {
+					return true;
 				}
 			}
 		}
 	}
-	return 0;
-}
 
-static void parent_drop_copy(wmDrag *drag, wmDropBox *drop)
-{
-	ID *id = drag->poin;
-
-	RNA_string_set(drop->ptr, "child", id->name + 2);
+	return false;
 }
 
 static int parent_drop_exec(bContext *C, wmOperator *op)
@@ -195,131 +209,121 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 
 static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Object *par = NULL;
-	Object *ob = NULL;
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = NULL;
-	TreeElement *te = NULL;
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te = outliner_drop_find(C, event);
+	TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
+
+	if (!(te && te->idcode == ID_OB && tselem->type == 0)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	Object *par = (Object *)tselem->id;
+	Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
+
+	if (ELEM(NULL, ob, par)) {
+		return OPERATOR_CANCELLED;
+	}
+	if (ob == par) {
+		return OPERATOR_CANCELLED;
+	}
+	if (ID_IS_LINKED(ob)) {
+		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
+		return OPERATOR_CANCELLED;
+	}
+
 	char childname[MAX_ID_NAME];
 	char parname[MAX_ID_NAME];
-	int partype = 0;
-	float fmval[2];
+	STRNCPY(childname, ob->id.name);
+	STRNCPY(parname, par->id.name);
+	RNA_string_set(op->ptr, "child", childname);
+	RNA_string_set(op->ptr, "parent", parname);
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+	Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
-	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, true);
+	if (scene == NULL) {
+		/* currently outlier organized in a way, that if there's no parent scene
+		 * element for object it means that all displayed objects belong to
+		 * active scene and parenting them is allowed (sergey)
+		 */
 
-	if (te) {
-		RNA_string_set(op->ptr, "parent", te->name);
-		/* Identify parent and child */
-		RNA_string_get(op->ptr, "child", childname);
-		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
-		RNA_string_get(op->ptr, "parent", parname);
-		par = (Object *)BKE_libblock_find_name(bmain, ID_OB, parname);
+		scene = CTX_data_scene(C);
+	}
 
-		if (ELEM(NULL, ob, par)) {
-			if (par == NULL) printf("par==NULL\n");
-			return OPERATOR_CANCELLED;
-		}
-		if (ob == par) {
-			return OPERATOR_CANCELLED;
-		}
-		if (ID_IS_LINKED(ob)) {
-			BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
-			return OPERATOR_CANCELLED;
-		}
-
-		scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
-
-		if (scene == NULL) {
-			/* currently outlier organized in a way, that if there's no parent scene
-			 * element for object it means that all displayed objects belong to
-			 * active scene and parenting them is allowed (sergey)
-			 */
-
-			scene = CTX_data_scene(C);
-		}
-
-		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
-			if (ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL)) {
-				DEG_relations_tag_update(bmain);
-				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-				WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
-			}
-		}
-		else {
-			/* Menu creation */
-			wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_parent_drop", false);
-			uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
-			uiLayout *layout = UI_popup_menu_layout(pup);
-			PointerRNA ptr;
-
-			/* Cannot use uiItemEnumO()... have multiple properties to set. */
-			uiItemFullO_ptr(layout, ot, IFACE_("Object"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-			RNA_string_set(&ptr, "parent", parname);
-			RNA_string_set(&ptr, "child", childname);
-			RNA_enum_set(&ptr, "type", PAR_OBJECT);
-
-			/* par becomes parent, make the associated menus */
-			if (par->type == OB_ARMATURE) {
-				uiItemFullO_ptr(layout, ot, IFACE_("Armature Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_ARMATURE);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("   With Empty Groups"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_ARMATURE_NAME);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("   With Envelope Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_ARMATURE_ENVELOPE);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("   With Automatic Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_ARMATURE_AUTO);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("Bone"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_BONE);
-			}
-			else if (par->type == OB_CURVE) {
-				uiItemFullO_ptr(layout, ot, IFACE_("Curve Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_CURVE);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("Follow Path"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_FOLLOW);
-
-				uiItemFullO_ptr(layout, ot, IFACE_("Path Constraint"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_PATH_CONST);
-			}
-			else if (par->type == OB_LATTICE) {
-				uiItemFullO_ptr(layout, ot, IFACE_("Lattice Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
-				RNA_string_set(&ptr, "parent", parname);
-				RNA_string_set(&ptr, "child", childname);
-				RNA_enum_set(&ptr, "type", PAR_LATTICE);
-			}
-
-			UI_popup_menu_end(C, pup);
-
-			return OPERATOR_INTERFACE;
+	if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
+		int partype = 0;
+		if (ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL)) {
+			DEG_relations_tag_update(bmain);
+			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+			WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 		}
 	}
 	else {
-		return OPERATOR_CANCELLED;
+		/* Menu creation */
+		wmOperatorType *ot = WM_operatortype_find("OUTLINER_OT_parent_drop", false);
+		uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Set Parent To"), ICON_NONE);
+		uiLayout *layout = UI_popup_menu_layout(pup);
+		PointerRNA ptr;
+
+		/* Cannot use uiItemEnumO()... have multiple properties to set. */
+		uiItemFullO_ptr(layout, ot, IFACE_("Object"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+		RNA_string_set(&ptr, "parent", parname);
+		RNA_string_set(&ptr, "child", childname);
+		RNA_enum_set(&ptr, "type", PAR_OBJECT);
+
+		/* par becomes parent, make the associated menus */
+		if (par->type == OB_ARMATURE) {
+			uiItemFullO_ptr(layout, ot, IFACE_("Armature Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_ARMATURE);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("   With Empty Groups"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_ARMATURE_NAME);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("   With Envelope Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_ARMATURE_ENVELOPE);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("   With Automatic Weights"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_ARMATURE_AUTO);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("Bone"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_BONE);
+		}
+		else if (par->type == OB_CURVE) {
+			uiItemFullO_ptr(layout, ot, IFACE_("Curve Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_CURVE);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("Follow Path"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_FOLLOW);
+
+			uiItemFullO_ptr(layout, ot, IFACE_("Path Constraint"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_PATH_CONST);
+		}
+		else if (par->type == OB_LATTICE) {
+			uiItemFullO_ptr(layout, ot, IFACE_("Lattice Deform"), 0, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr);
+			RNA_string_set(&ptr, "parent", parname);
+			RNA_string_set(&ptr, "child", childname);
+			RNA_enum_set(&ptr, "type", PAR_LATTICE);
+		}
+
+		UI_popup_menu_end(C, pup);
+
+		return OPERATOR_INTERFACE;
 	}
 
 	return OPERATOR_FINISHED;
@@ -369,64 +373,42 @@ static bool parenting_poll(bContext *C)
 
 static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
-	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te = NULL;
-	float fmval[2];
-
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	if (!ELEM(soops->outlinevis, SO_VIEW_LAYER)) {
 		return false;
 	}
 
-	if (drag->type == WM_DRAG_ID) {
-		ID *id = drag->poin;
-		if (GS(id->name) == ID_OB) {
-			if (((Object *)id)->parent) {
-				if ((te = outliner_dropzone_find(soops, fmval, true))) {
-					TreeStoreElem *tselem = TREESTORE(te);
+	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+	if (!(ob && ob->parent)) {
+		return false;
+	}
 
-					switch (te->idcode) {
-						case ID_SCE:
-							return (ELEM(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER));
-						case ID_OB:
-							return (ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE));
-						/* Other codes to ignore? */
-					}
-				}
-				return (te == NULL);
-			}
+	TreeElement *te = outliner_drop_find(C, event);
+	if (te) {
+		TreeStoreElem *tselem = TREESTORE(te);
+
+		switch (te->idcode) {
+			case ID_SCE:
+				return (ELEM(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER));
+			case ID_OB:
+				return (ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE));
+			/* Other codes to ignore? */
 		}
 	}
-	return 0;
+	return (te == NULL);
 }
 
-static void parent_clear_copy(wmDrag *drag, wmDropBox *drop)
-{
-	ID *id = drag->poin;
-	RNA_string_set(drop->ptr, "dragged_obj", id->name + 2);
-
-	/* Set to simple parent clear type. Avoid menus for drag and drop if possible.
-	 * If desired, user can toggle the different "Clear Parent" types in the operator
-	 * menu on tool shelf. */
-	RNA_enum_set(drop->ptr, "type", 0);
-}
-
-static int parent_clear_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
+static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = NULL;
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	char obname[MAX_ID_NAME];
+	Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
 
-	RNA_string_get(op->ptr, "dragged_obj", obname);
-	ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, obname);
+	if (ob == NULL) {
+		return OPERATOR_CANCELLED;
+	}
 
-	/* search forwards to find the object */
-	outliner_find_id(soops, &soops->tree, (ID *)ob);
-
-	ED_object_parent_clear(ob, RNA_enum_get(op->ptr, "type"));
+	ED_object_parent_clear(ob, 0);
 
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -448,97 +430,55 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-	/* properties */
-	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");
-	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
 }
 
 /* ******************** Scene Drop Operator *********************** */
 
 static bool scene_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
-	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	float fmval[2];
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
-
-	if (drag->type == WM_DRAG_ID) {
-		ID *id = drag->poin;
-		if (GS(id->name) == ID_OB) {
-			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, false);
-			return (te && te->idcode == ID_SCE && TREESTORE(te)->type == 0);
-		}
-	}
-	return 0;
+	/* Ensure item under cursor is valid drop target */
+	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+	return (ob && (outliner_ID_drop_find(C, event, ID_SCE) != NULL));
 }
 
-static void scene_drop_copy(wmDrag *drag, wmDropBox *drop)
+static int scene_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	ID *id = drag->poin;
-
-	RNA_string_set(drop->ptr, "object", id->name + 2);
-}
-
-static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	Scene *scene = NULL;
-	Object *ob = NULL;
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
-	TreeElement *te = NULL;
-	char obname[MAX_ID_NAME];
-	float fmval[2];
+	Scene *scene = (Scene *)outliner_ID_drop_find(C, event, ID_SCE);
+	Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
-
-	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, false);
-
-	if (te) {
-		RNA_string_set(op->ptr, "scene", te->name);
-		scene = (Scene *)BKE_libblock_find_name(bmain, ID_SCE, te->name);
-
-		RNA_string_get(op->ptr, "object", obname);
-		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, obname);
-
-		if (ELEM(NULL, ob, scene) || ID_IS_LINKED(scene)) {
-			return OPERATOR_CANCELLED;
-		}
-
-		if (BKE_scene_has_object(scene, ob)) {
-			return OPERATOR_CANCELLED;
-		}
-
-		Collection *collection;
-		if (scene != CTX_data_scene(C)) {
-			/* when linking to an inactive scene link to the master collection */
-			collection = BKE_collection_master(scene);
-		}
-		else {
-			collection = CTX_data_collection(C);
-		}
-
-		BKE_collection_object_add(bmain, collection, ob);
-
-		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
-			Base *base = BKE_view_layer_base_find(view_layer, ob);
-			if (base) {
-				ED_object_base_select(base, BA_SELECT);
-			}
-		}
-
-		DEG_relations_tag_update(bmain);
-
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
-		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
-
-		return OPERATOR_FINISHED;
+	if (ELEM(NULL, ob, scene) || ID_IS_LINKED(scene)) {
+		return OPERATOR_CANCELLED;
 	}
 
-	return OPERATOR_CANCELLED;
+	if (BKE_scene_has_object(scene, ob)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	Collection *collection;
+	if (scene != CTX_data_scene(C)) {
+		/* when linking to an inactive scene link to the master collection */
+		collection = BKE_collection_master(scene);
+	}
+	else {
+		collection = CTX_data_collection(C);
+	}
+
+	BKE_collection_object_add(bmain, collection, ob);
+
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		Base *base = BKE_view_layer_base_find(view_layer, ob);
+		if (base) {
+			ED_object_base_select(base, BA_SELECT);
+		}
+	}
+
+	DEG_relations_tag_update(bmain);
+
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
+
+	return OPERATOR_FINISHED;
 }
 
 void OUTLINER_OT_scene_drop(wmOperatorType *ot)
@@ -555,75 +495,33 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-	/* properties */
-	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
-	RNA_def_string(ot->srna, "scene", "Scene", MAX_ID_NAME, "Scene", "Target Scene");
 }
 
 /* ******************** Material Drop Operator *********************** */
 
 static bool material_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
-	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	float fmval[2];
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
-
-	if (drag->type == WM_DRAG_ID) {
-		ID *id = drag->poin;
-		if (GS(id->name) == ID_MA) {
-			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
-			return (te && te->idcode == ID_OB && TREESTORE(te)->type == 0);
-		}
-	}
-	return 0;
+	/* Ensure item under cursor is valid drop target */
+	Material *ma = (Material *)WM_drag_ID(drag, ID_MA);
+	return (ma && (outliner_ID_drop_find(C, event, ID_OB) != NULL));
 }
 
-static void material_drop_copy(wmDrag *drag, wmDropBox *drop)
+static int material_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	ID *id = drag->poin;
-
-	RNA_string_set(drop->ptr, "material", id->name + 2);
-}
-
-static int material_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	Material *ma = NULL;
-	Object *ob = NULL;
 	Main *bmain = CTX_data_main(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	ARegion *ar = CTX_wm_region(C);
-	TreeElement *te = NULL;
-	char mat_name[MAX_ID_NAME - 2];
-	float fmval[2];
+	Object *ob = (Object *)outliner_ID_drop_find(C, event, ID_OB);
+	Material *ma = (Material *)WM_drag_ID_from_event(event, ID_MA);
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
-
-	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, true);
-
-	if (te) {
-		RNA_string_set(op->ptr, "object", te->name);
-		ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, te->name);
-
-		RNA_string_get(op->ptr, "material", mat_name);
-		ma = (Material *)BKE_libblock_find_name(bmain, ID_MA, mat_name);
-
-		if (ELEM(NULL, ob, ma)) {
-			return OPERATOR_CANCELLED;
-		}
-
-		assign_material(bmain, ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
-
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
-		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
-
-		return OPERATOR_FINISHED;
+	if (ELEM(NULL, ob, ma)) {
+		return OPERATOR_CANCELLED;
 	}
 
-	return OPERATOR_CANCELLED;
+	assign_material(bmain, ob, ma, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
+
+	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);
+
+	return OPERATOR_FINISHED;
 }
 
 void OUTLINER_OT_material_drop(wmOperatorType *ot)
@@ -640,80 +538,28 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-	/* properties */
-	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
-	RNA_def_string(ot->srna, "material", "Material", MAX_ID_NAME, "Material", "Target Material");
 }
 
 /* ******************** Collection Drop Operator *********************** */
 
 static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
-	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	float fmval[2];
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
+	Collection *collection = (Collection *)WM_drag_ID(drag, ID_GR);
 
-	if (drag->type == WM_DRAG_ID) {
-		ID *id = drag->poin;
-		if (ELEM(GS(id->name), ID_OB, ID_GR)) {
-			/* Ensure item under cursor is valid drop target */
-			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
-			return (te && outliner_is_collection_tree_element(te));
-		}
+	if (ob || collection) {
+		TreeElement *te = outliner_drop_find(C, event);
+		return (te && outliner_is_collection_tree_element(te));
 	}
-	return 0;
-}
-
-static void collection_drop_copy(wmDrag *drag, wmDropBox *drop)
-{
-	ID *id = drag->poin;
-	RNA_string_set(drop->ptr, "child", id->name + 2);
-}
-
-static int collection_drop_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
-{
-	/* TODO: implement */
-#if 0
-	Object *par = NULL, *ob = NULL;
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	int partype = -1;
-	char parname[MAX_ID_NAME], childname[MAX_ID_NAME];
-
-	RNA_string_get(op->ptr, "parent", parname);
-	par = (Object *)BKE_libblock_find_name(ID_OB, parname);
-	RNA_string_get(op->ptr, "child", childname);
-	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
-
-	if (ID_IS_LINKED(ob)) {
-		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
-		return OPERATOR_CANCELLED;
+	else {
+		return false;
 	}
-
-	ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL);
-
-	DEG_relations_tag_update(bmain);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
-	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
-#endif
-
-	return OPERATOR_FINISHED;
 }
 
-static int collection_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
-	char childname[MAX_ID_NAME];
-	float fmval[2];
-
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
-
-	/* Find object hovered over */
-	TreeElement *te = outliner_dropzone_find(soops, fmval, true);
+	TreeElement *te = outliner_drop_find(C, event);
 
 	if (!te || !outliner_is_collection_tree_element(te)) {
 		return OPERATOR_CANCELLED;
@@ -724,9 +570,11 @@ static int collection_drop_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 	// TODO: don't use scene, makes no sense anymore
 	// TODO: move rather than link, change hover text
 	Scene *scene = BKE_scene_find_from_collection(bmain, collection);
-	BLI_assert(scene);
-	RNA_string_get(op->ptr, "child", childname);
-	Object *ob = (Object *)BKE_libblock_find_name(bmain, ID_OB, childname);
+	Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
+	if (ELEM(NULL, ob, scene, collection)) {
+		return OPERATOR_CANCELLED;
+	}
+
 	BKE_collection_object_add(bmain, collection, ob);
 
 	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
@@ -745,16 +593,10 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = collection_drop_invoke;
-	ot->exec = collection_drop_exec;
-
 	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-
-	/* properties */
-	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
-	RNA_def_string(ot->srna, "parent", "Collection", MAX_ID_NAME, "Parent", "Parent Collection");
 }
 
 /* ********************* Outliner Drag Operator ******************** */
@@ -1107,9 +949,9 @@ void outliner_dropboxes(void)
 {
 	ListBase *lb = WM_dropboxmap_find("Outliner", SPACE_OUTLINER, RGN_TYPE_WINDOW);
 
-	WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", parent_drop_poll, parent_drop_copy);
-	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, parent_clear_copy);
-	WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", scene_drop_poll, scene_drop_copy);
-	WM_dropbox_add(lb, "OUTLINER_OT_material_drop", material_drop_poll, material_drop_copy);
-	WM_dropbox_add(lb, "OUTLINER_OT_collection_drop", collection_drop_poll, collection_drop_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", parent_drop_poll, NULL);
+	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", parent_clear_poll, NULL);
+	WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", scene_drop_poll, NULL);
+	WM_dropbox_add(lb, "OUTLINER_OT_material_drop", material_drop_poll, NULL);
+	WM_dropbox_add(lb, "OUTLINER_OT_collection_drop", collection_drop_poll, NULL);
 }

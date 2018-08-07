@@ -189,6 +189,27 @@ void WM_drag_free_list(struct ListBase *lb)
 	}
 }
 
+
+ID *WM_drag_ID(const wmDrag *drag, short idcode)
+{
+	if (drag->type != WM_DRAG_ID) {
+		return NULL;
+	}
+
+	ID *id = drag->poin;
+	return (idcode == 0 || GS(id->name) == idcode) ? id : NULL;
+}
+
+ID *WM_drag_ID_from_event(const wmEvent *event, short idcode)
+{
+	if (event->custom != EVT_DATA_DRAGDROP) {
+		return NULL;
+	}
+
+	ListBase *lb = event->customdata;
+	return WM_drag_ID(lb->first, idcode);
+}
+
 static const char *dropbox_active(bContext *C, ListBase *handlers, wmDrag *drag, const wmEvent *event)
 {
 	wmEventHandler *handler = handlers->first;

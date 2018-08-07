@@ -493,10 +493,7 @@ static void text_drop_copy(wmDrag *drag, wmDropBox *drop)
 
 static bool text_drop_paste_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
-	if (drag->type == WM_DRAG_ID)
-		return true;
-
-	return false;
+	return (drag->type == WM_DRAG_ID);
 }
 
 static void text_drop_paste(wmDrag *drag, wmDropBox *drop)
