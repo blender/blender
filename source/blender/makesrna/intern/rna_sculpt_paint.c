@@ -35,6 +35,7 @@
 #include "rna_internal.h"
 
 #include "DNA_ID.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
@@ -120,7 +121,12 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 static void rna_GPencil_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	DEG_id_type_tag(bmain, ID_GD);
+	/* mark all grease pencil datablocks */
+	for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+		gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	}
+
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
