@@ -35,6 +35,8 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
 #include "BLI_math_color.h"
@@ -120,18 +122,24 @@ static void bakeModifier(
 				copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
 				copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
 
+				deformStroke(md, depsgraph, ob, gpl, gps);
+
 				/* look for color */
-				if (mmd->flag & GP_TINT_CREATE_COLORS) {
+				if (mmd->flag & GP_COLOR_CREATE_COLORS) {
 					Material *newmat = BLI_ghash_lookup(gh_color, mat->id.name);
 					if (newmat == NULL) {
 						BKE_object_material_slot_add(bmain, ob);
 						newmat = BKE_material_copy(bmain, mat);
+						newmat->gp_style = MEM_dupallocN(mat->gp_style);
+						newmat->preview = NULL;
+
 						assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 
-						copy_v4_v4(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
-						copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
+						copy_v3_v3(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
+						copy_v3_v3(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
 
 						BLI_ghash_insert(gh_color, mat->id.name, newmat);
+						DEG_id_tag_update(&newmat->id, DEG_TAG_COPY_ON_WRITE);
 					}
 					/* reasign color index */
 					int idx = BKE_object_material_slot_find_index(ob, newmat);
@@ -139,11 +147,10 @@ static void bakeModifier(
 				}
 				else {
 					/* reuse existing color */
-					copy_v4_v4(gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
-					copy_v4_v4(gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
+					copy_v3_v3(gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
+					copy_v3_v3(gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
 				}
 
-				deformStroke(md, depsgraph, ob, gpl, gps);
 			}
 		}
 	}

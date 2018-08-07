@@ -681,9 +681,9 @@ static void rna_def_modifier_gpenciltint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "Factor for mixing color");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "create_colors", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "create_materials", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TINT_CREATE_COLORS);
-	RNA_def_property_ui_text(prop, "Create Colors", "When apply modifier, create new color in the palette");
+	RNA_def_property_ui_text(prop, "Create Materials", "When apply modifier, create new material");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);
@@ -739,9 +739,9 @@ static void rna_def_modifier_gpencilcolor(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Value", "Color Value");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "create_colors", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "create_materials", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_COLOR_CREATE_COLORS);
-	RNA_def_property_ui_text(prop, "Create Colors", "When apply modifier, create new color in the palette");
+	RNA_def_property_ui_text(prop, "Create Materials", "When apply modifier, create new material");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);

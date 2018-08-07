@@ -1756,7 +1756,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
 
         row = layout.row()
-        row.prop(md, "create_colors")
+        row.prop(md, "create_materials")
 
     def GP_COLOR(self, layout, ob, md):
         gpd = ob.data
@@ -1778,7 +1778,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
 
         row = layout.row()
-        row.prop(md, "create_colors")
+        row.prop(md, "create_materials")
 
     def GP_OPACITY(self, layout, ob, md):
         gpd = ob.data
