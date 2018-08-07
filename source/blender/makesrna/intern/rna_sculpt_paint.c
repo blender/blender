@@ -107,6 +107,7 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
 
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_particle.h"
 #include "BKE_pbvh.h"
@@ -119,13 +120,22 @@ const EnumPropertyItem rna_enum_symmetrize_direction_items[] = {
 
 #include "ED_particle.h"
 
-static void rna_GPencil_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	/* mark all grease pencil datablocks */
-	for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
-		gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
-		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+	/* mark all grease pencil datablocks of the scene */
+	FOREACH_SCENE_COLLECTION_BEGIN(scene, collection)
+	{
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, ob)
+		{
+			if (ob->type == OB_GPENCIL) {
+				bGPdata *gpd = (bGPdata *)ob->data;
+				gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
+				DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+			}
+		}
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
+	FOREACH_SCENE_COLLECTION_END;
 
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
