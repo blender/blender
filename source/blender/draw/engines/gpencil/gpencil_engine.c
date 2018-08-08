@@ -331,6 +331,9 @@ void GPENCIL_cache_init(void *vedata)
 		if (draw_ctx->evil_C) {
 			stl->storage->is_playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL;
 		}
+		/* save render state */
+		stl->storage->is_render = DRW_state_is_image_render();
+		stl->storage->is_mat_preview = (bool)stl->storage->is_render && STREQ(scene->id.name + 2, "preview");
 
 		if (obact_gpd) {
 			/* for some reason, when press play there is a delay in the animation flag check
@@ -345,10 +348,6 @@ void GPENCIL_cache_init(void *vedata)
 				obact_gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 			}
 		}
-
-		/* save render state */
-		stl->storage->is_render = DRW_state_is_image_render();
-		stl->storage->is_mat_preview = (bool)stl->storage->is_render && STREQ(scene->id.name + 2, "preview");
 
 		/* save simplify flags (can change while drawing, so it's better to save) */
 		stl->storage->simplify_fill = GP_SIMPLIFY_FILL(scene, stl->storage->is_playing);
