@@ -1263,6 +1263,8 @@ static void gp_instance_modifier_make_instances(GPENCIL_StorageList *stl, Object
 {
 	/* reset random */
 	mmd->rnd[0] = 1;
+	char buf[8];
+	int e = 0;
 
 	/* Generate instances */
 	for (int x = 0; x < mmd->count[0]; x++) {
@@ -1284,6 +1286,14 @@ static void gp_instance_modifier_make_instances(GPENCIL_StorageList *stl, Object
 
 				/* add object to cache */
 				newob = MEM_dupallocN(ob);
+
+				/* create a unique name or the object hash used in draw will fail.
+				 * the name must be unique in the hash, not in the scene because
+				 * the object never is linked to scene.
+				 */
+				sprintf(buf, "___%d", e++);
+				strncat(newob->id.name, buf, sizeof(newob->id.name));
+
 				mul_m4_m4m4(newob->obmat, ob->obmat, mat);
 
 				/* apply scale */
