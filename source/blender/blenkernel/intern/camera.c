@@ -108,16 +108,6 @@ void *BKE_camera_add(Main *bmain, const char *name)
 void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *cam_dst, const Camera *cam_src, const int flag)
 {
 	BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		for (CameraBGImage *bgpic = cam_dst->bg_images.first; bgpic; bgpic = bgpic->next) {
-			if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-				id_us_plus((ID *)bgpic->ima);
-			}
-			else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-				id_us_plus((ID *)bgpic->clip);
-			}
-		}
-	}
 }
 
 Camera *BKE_camera_copy(Main *bmain, const Camera *cam)
@@ -135,14 +125,6 @@ void BKE_camera_make_local(Main *bmain, Camera *cam, const bool lib_local)
 /** Free (or release) any data used by this camera (does not free the camera itself). */
 void BKE_camera_free(Camera *ca)
 {
-	for (CameraBGImage *bgpic = ca->bg_images.first; bgpic; bgpic = bgpic->next) {
-		if (bgpic->source == CAM_BGIMG_SOURCE_IMAGE) {
-			id_us_min((ID *)bgpic->ima);
-		}
-		else if (bgpic->source == CAM_BGIMG_SOURCE_MOVIE) {
-			id_us_min((ID *)bgpic->clip);
-		}
-	}
 	BLI_freelistN(&ca->bg_images);
 
 	BKE_animdata_free((ID *)ca, false);
