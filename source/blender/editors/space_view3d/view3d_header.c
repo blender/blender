@@ -321,7 +321,9 @@ static void uiTemplatePaintModeSelection(uiLayout *layout, struct bContext *C)
 		else {
 			uiLayout *row = uiLayoutRow(layout, true);
 			uiItemR(row, &meshptr, "use_paint_mask", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-			uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			if (ob->mode & OB_MODE_WEIGHT_PAINT) {
+				uiItemR(row, &meshptr, "use_paint_mask_vertex", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+			}
 		}
 	}
 }
