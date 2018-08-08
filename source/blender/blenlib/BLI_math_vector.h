@@ -357,6 +357,8 @@ void range_vn_u(unsigned int *array_tar, const int size, const unsigned int star
 void range_vn_fl(float *array_tar, const int size, const float start, const float step);
 void negate_vn(float *array_tar, const int size);
 void negate_vn_vn(float *array_tar, const float *array_src, const int size);
+void mul_vn_vn(float *array_tar, const float *array_src, const int size);
+void mul_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const int size);
 void mul_vn_fl(float *array_tar, const int size, const float f);
 void mul_vn_vn_fl(float *array_tar, const float *array_src, const int size, const float f);
 void add_vn_vn(float *array_tar, const float *array_src, const int size);
