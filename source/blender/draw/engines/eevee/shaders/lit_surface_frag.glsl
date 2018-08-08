@@ -230,7 +230,7 @@ void CLOSURE_NAME(
 	#endif
 
 	#ifdef CLOSURE_CLEARCOAT
-		out_spec_clear += l_color_vis * light_specular(ld, ltc_mat_clear, C_N, V, l_vector) * C_intensity * ld.l_spec;
+		out_spec_clear += l_color_vis * light_specular(ld, ltc_mat_clear, C_N, V, l_vector) * ld.l_spec;
 	#endif
 	}
 
@@ -241,8 +241,8 @@ void CLOSURE_NAME(
 
 #ifdef CLOSURE_CLEARCOAT
 	vec3 brdf_lut_lamps_clear = texture(utilTex, vec3(lut_uv_clear, 1.0)).rgb;
-	out_spec_clear *= F_area(f0, brdf_lut_lamps_clear.xy) * brdf_lut_lamps_clear.z;
-	out_spec += out_spec_clear;
+	out_spec_clear *= F_area(vec3(0.04), brdf_lut_lamps_clear.xy) * brdf_lut_lamps_clear.z;
+	out_spec += out_spec_clear * C_intensity;
 #endif
 
 	/* ---------------------------------------------------------------- */
@@ -432,7 +432,7 @@ void CLOSURE_NAME(
 	NV = dot(C_N, V);
 	vec2 C_uv = lut_coords(NV, C_roughness);
 	vec2 C_brdf_lut = texture(utilTex, vec3(C_uv, 1.0)).rg;
-	vec3 C_fresnel = F_ibl(vec3(0.04), brdf_lut) * specular_occlusion(NV, final_ao, C_roughness);
+	vec3 C_fresnel = F_ibl(vec3(0.04), C_brdf_lut) * specular_occlusion(NV, final_ao, C_roughness);
 
 	out_spec += C_spec_accum.rgb * C_fresnel * C_intensity;
 #endif
