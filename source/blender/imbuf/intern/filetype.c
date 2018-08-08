@@ -77,7 +77,7 @@ const ImFileType IMB_FILE_TYPES[] = {
 	{imb_initopenexr, NULL, imb_is_a_openexr, NULL, imb_ftype_default, imb_load_openexr, NULL, imb_save_openexr, NULL, IM_FTYPE_FLOAT, IMB_FTYPE_OPENEXR, COLOR_ROLE_DEFAULT_FLOAT},
 #endif
 #ifdef WITH_OPENJPEG
-	{NULL, NULL, imb_is_a_jp2, NULL, imb_ftype_default, imb_jp2_decode, NULL, imb_savejp2, NULL, IM_FTYPE_FLOAT, IMB_FTYPE_JP2, COLOR_ROLE_DEFAULT_BYTE},
+	{NULL, NULL, imb_is_a_jp2, NULL, imb_ftype_default, imb_load_jp2, NULL, imb_save_jp2, NULL, IM_FTYPE_FLOAT, IMB_FTYPE_JP2, COLOR_ROLE_DEFAULT_BYTE},
 #endif
 #ifdef WITH_DDS
 	{NULL, NULL, imb_is_a_dds, NULL, imb_ftype_default, imb_load_dds, NULL, NULL, NULL, 0, IMB_FTYPE_DDS, COLOR_ROLE_DEFAULT_BYTE},
