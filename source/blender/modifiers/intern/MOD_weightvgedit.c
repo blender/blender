@@ -203,23 +203,18 @@ static Mesh *applyModifier(
 		}
 	}
 
-	Mesh *result = mesh;
-
 	if (has_mdef) {
-		dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, numVerts);
+		dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, numVerts);
 	}
 	else {
 		/* Add a valid data layer! */
-		dvert = CustomData_add_layer(&result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
+		dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
 	}
 	/* Ultimate security check. */
 	if (!dvert) {
-		if (result != mesh) {
-			BKE_id_free(NULL, result);
-		}
 		return mesh;
 	}
-	result->dvert = dvert;
+	mesh->dvert = dvert;
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, org_w");
@@ -252,7 +247,7 @@ static Mesh *applyModifier(
 
 	/* Do masking. */
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	weightvg_do_mask(ctx, numVerts, NULL, org_w, new_w, ctx->object, result, wmd->mask_constant,
+	weightvg_do_mask(ctx, numVerts, NULL, org_w, new_w, ctx->object, mesh, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
@@ -273,7 +268,7 @@ static Mesh *applyModifier(
 	MEM_freeN(dw);
 
 	/* Return the vgroup-modified mesh. */
-	return result;
+	return mesh;
 }
 
 

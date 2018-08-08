@@ -422,23 +422,12 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		return mesh;
 	}
 
-	Mesh *result = mesh;
-
-	if (has_mdef) {
-		dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, numVerts);
-	}
-	else {
-		/* Add a valid data layer! */
-		dvert = CustomData_add_layer(&result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
-	}
+	dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, numVerts);
 	/* Ultimate security check. */
 	if (!dvert) {
-		if (result != mesh) {
-			BKE_id_free(NULL, result);
-		}
 		return mesh;
 	}
-	result->dvert = dvert;
+	mesh->dvert = dvert;
 
 	/* Find out which vertices to work on (all vertices in vgroup), and get their relevant weight. */
 	tidx = MEM_malloc_arrayN(numVerts, sizeof(int), "WeightVGProximity Modifier, tidx");
@@ -457,7 +446,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		MEM_freeN(tidx);
 		MEM_freeN(tw);
 		MEM_freeN(tdw);
-		BKE_id_free(NULL, result);
 		return mesh;
 	}
 	if (numIdx != numVerts) {
@@ -479,7 +467,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	/* Get our vertex coordinates. */
 	if (numIdx != numVerts) {
-		float (*tv_cos)[3] = BKE_mesh_vertexCos_get(result, NULL);
+		float (*tv_cos)[3] = BKE_mesh_vertexCos_get(mesh, NULL);
 		v_cos = MEM_malloc_arrayN(numIdx, sizeof(float[3]), "WeightVGProximity Modifier, v_cos");
 		for (i = 0; i < numIdx; i++) {
 			copy_v3_v3(v_cos[i], tv_cos[indices[i]]);
@@ -487,7 +475,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		MEM_freeN(tv_cos);
 	}
 	else {
-		v_cos = BKE_mesh_vertexCos_get(result, NULL);
+		v_cos = BKE_mesh_vertexCos_get(mesh, NULL);
 	}
 
 	/* Compute wanted distances. */
@@ -547,7 +535,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	/* Do masking. */
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ob, result, wmd->mask_constant,
+	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ob, mesh, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
@@ -573,7 +561,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 #endif
 
 	/* Return the vgroup-modified mesh. */
-	return result;
+	return mesh;
 }
 
 

@@ -243,23 +243,18 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		}
 	}
 
-	Mesh *result = mesh;
-
 	if (has_mdef) {
-		dvert = CustomData_duplicate_referenced_layer(&result->vdata, CD_MDEFORMVERT, numVerts);
+		dvert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MDEFORMVERT, numVerts);
 	}
 	else {
 		/* Add a valid data layer! */
-		dvert = CustomData_add_layer(&result->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
+		dvert = CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, numVerts);
 	}
 	/* Ultimate security check. */
 	if (!dvert) {
-		if (result != mesh) {
-			BKE_id_free(NULL, result);
-		}
 		return mesh;
 	}
-	result->dvert = dvert;
+	mesh->dvert = dvert;
 
 	/* Find out which vertices to work on. */
 	tidx = MEM_malloc_arrayN(numVerts, sizeof(int), "WeightVGMix Modifier, tidx");
@@ -327,7 +322,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		MEM_freeN(tdw1);
 		MEM_freeN(tdw2);
 		MEM_freeN(tidx);
-		BKE_id_free(NULL, result);
 		return mesh;
 	}
 	if (numIdx != -1) {
@@ -363,7 +357,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	/* Do masking. */
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ctx->object, result, wmd->mask_constant,
+	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ctx->object, mesh, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);
@@ -387,7 +381,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	MEM_SAFE_FREE(indices);
 
 	/* Return the vgroup-modified mesh. */
-	return result;
+	return mesh;
 }
 
 
