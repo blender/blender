@@ -7063,7 +7063,7 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_RESET), WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_3DCURSOR),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_INVERT), WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
-	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE), 
+	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
 				 WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_ALIGN), WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
 

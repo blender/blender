@@ -1553,7 +1553,7 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 	do {
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
-		
+
 		while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
 				ne != efirst)
 		{

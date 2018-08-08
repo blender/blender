@@ -722,7 +722,7 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					handled = true;
 					break;
 				}
-				
+
 		}
 
 		/* Modal numinput inactive, try to handle numeric inputs last... */
