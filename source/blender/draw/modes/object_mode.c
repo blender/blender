@@ -2090,11 +2090,15 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 	if (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) {
 		return;
 	}
+	const Object *obact = OBACT(view_layer);
+	if (obact->mode & OB_MODE_ALL_PAINT) {
+		return;
+	}
 
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
-	if (ob == OBACT(view_layer)) {
+	if (ob == obact) {
 		shgroup = stl->g_data->center_active;
 	}
 	else if (ob->base_flag & BASE_SELECTED) {
