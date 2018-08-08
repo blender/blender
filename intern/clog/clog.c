@@ -559,7 +559,7 @@ static void CLG_ctx_free(CLogContext *ctx)
  * \{ */
 
 /* We could support multiple at once, for now this seems not needed. */
-struct CLogContext *g_ctx = NULL;
+static struct CLogContext *g_ctx = NULL;
 
 void CLG_init(void)
 {
