@@ -254,6 +254,7 @@ void BKE_undosys_stack_clear_active(UndoStack *ustack)
 static bool undosys_stack_push_main(UndoStack *ustack, const char *name, struct Main *bmain)
 {
 	UNDO_NESTED_ASSERT(false);
+	BLI_assert(ustack->step_init == NULL);
 	CLOG_INFO(&LOG, 1, "'%s'", name);
 	bContext *C_temp = CTX_create();
 	CTX_data_main_set(C_temp, bmain);
@@ -434,7 +435,13 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 		Main *bmain = G.main;
 		if (bmain->is_memfile_undo_written == false) {
 			const char *name_internal = "MemFile Internal";
-			if (undosys_stack_push_main(ustack, name_internal, bmain)) {
+			/* Don't let 'step_init' cause issues when adding memfile undo step. */
+			void *step_init = ustack->step_init;
+			ustack->step_init = NULL;
+			const bool ok = undosys_stack_push_main(ustack, name_internal, bmain);
+			/* Restore 'step_init'. */
+			ustack->step_init = step_init;
+			if (ok) {
 				UndoStep *us = ustack->steps.last;
 				BLI_assert(STREQ(us->name, name_internal));
 				us->skip = true;
