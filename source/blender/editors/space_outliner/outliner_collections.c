@@ -138,8 +138,10 @@ static TreeTraversalAction collection_find_selected_to_add(TreeElement *te, void
 static int collection_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	struct CollectionNewData data = {
 		.error = false,
@@ -147,6 +149,8 @@ static int collection_new_exec(bContext *C, wmOperator *op)
 	};
 
 	if (RNA_boolean_get(op->ptr, "nested")) {
+		outliner_build_tree(bmain, scene, view_layer, soops, ar);
+
 		outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, collection_find_selected_to_add, &data);
 
 		if (data.error) {
