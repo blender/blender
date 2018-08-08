@@ -224,7 +224,7 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 static PyGetSetDef bpy_bmvertskin_getseters[] = {
 	/* attributes match rna_mesh_gen  */
 	{(char *)"radius",    (getter)bpy_bmvertskin_radius_get, (setter)bpy_bmvertskin_radius_set, (char *)bpy_bmvertskin_radius_doc, NULL},
-    {(char *)"use_root",  (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_root_doc,  (void *)MVERT_SKIN_ROOT},
+	{(char *)"use_root",  (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_root_doc,  (void *)MVERT_SKIN_ROOT},
 	{(char *)"use_loose", (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_loose_doc, (void *)MVERT_SKIN_LOOSE},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
