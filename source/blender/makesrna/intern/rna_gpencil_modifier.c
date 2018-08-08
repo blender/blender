@@ -788,6 +788,11 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "Factor of Opacity");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+	prop = RNA_def_property(srna, "create_materials", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_OPACITY_CREATE_COLORS);
+	RNA_def_property_ui_text(prop, "Create Materials", "When apply modifier, create new material");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
 	prop = RNA_def_property(srna, "pass_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "pass_index");
 	RNA_def_property_range(prop, 0, 100);

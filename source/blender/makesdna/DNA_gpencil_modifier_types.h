@@ -182,6 +182,7 @@ typedef enum eOpacityGpencil_Flag {
 	GP_OPACITY_INVERT_LAYER  = (1 << 0),
 	GP_OPACITY_INVERT_PASS   = (1 << 1),
 	GP_OPACITY_INVERT_VGROUP = (1 << 2),
+	GP_OPACITY_CREATE_COLORS = (1 << 3),
 } eOpacityGpencil_Flag;
 
 typedef struct InstanceGpencilModifierData {

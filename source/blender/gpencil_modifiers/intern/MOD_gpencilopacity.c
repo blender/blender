@@ -31,6 +31,8 @@
 #include <stdio.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
@@ -44,6 +46,7 @@
 #include "BKE_material.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_main.h"
 
 #include "DEG_depsgraph.h"
 
@@ -57,6 +60,7 @@ static void initData(GpencilModifierData *md)
 	gpmd->factor = 1.0f;
 	gpmd->layername[0] = '\0';
 	gpmd->vgname[0] = '\0';
+	gpmd->flag |= GP_OPACITY_CREATE_COLORS;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -70,29 +74,28 @@ static void deformStroke(
         Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
 {
 	OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
-	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 	int vindex = defgroup_name_index(ob, mmd->vgname);
 
 	if (!is_stroke_affected_by_modifier(
 	            ob,
-	            mmd->layername, mmd->pass_index, 3, gpl, gps,
+	            mmd->layername, mmd->pass_index, 1, gpl, gps,
 	            mmd->flag & GP_OPACITY_INVERT_LAYER, mmd->flag & GP_OPACITY_INVERT_PASS))
 	{
 		return;
 	}
 
-	gp_style->fill_rgba[3] *= mmd->factor;
+	gps->runtime.tmp_fill_rgba[3] *= mmd->factor;
 
 	/* if factor is > 1, then force opacity */
 	if (mmd->factor > 1.0f) {
-		gp_style->stroke_rgba[3] += mmd->factor - 1.0f;
-		if (gp_style->fill_rgba[3] > 1e-5) {
-			gp_style->fill_rgba[3] += mmd->factor - 1.0f;
+		gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
+		if (gps->runtime.tmp_fill_rgba[3] > 1e-5) {
+			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
 		}
 	}
 
-	CLAMP(gp_style->stroke_rgba[3], 0.0f, 1.0f);
-	CLAMP(gp_style->fill_rgba[3], 0.0f, 1.0f);
+	CLAMP(gps->runtime.tmp_stroke_rgba[3], 0.0f, 1.0f);
+	CLAMP(gps->runtime.tmp_fill_rgba[3], 0.0f, 1.0f);
 
 	/* if opacity > 1.0, affect the strength of the stroke */
 	if (mmd->factor > 1.0f) {
@@ -111,39 +114,42 @@ static void deformStroke(
 			CLAMP(pt->strength, 0.0f, 1.0f);
 		}
 	}
-	else {
-		for (int i = 0; i < gps->totpoints; i++) {
-			bGPDspoint *pt = &gps->points[i];
-			MDeformVert *dvert = &gps->dvert[i];
-
-			/* verify vertex group */
-			if (mmd->vgname == NULL) {
-				pt->strength *= mmd->factor;
-			}
-			else {
-				float weight = get_modifier_point_weight(dvert, ((mmd->flag & GP_OPACITY_INVERT_VGROUP) != 0), vindex);
-				if (weight >= 0) {
-					pt->strength *= mmd->factor * weight;
-				}
-			}
-			CLAMP(pt->strength, 0.0f, 1.0f);
-		}
-	}
-
 }
 
 static void bakeModifier(
-        struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-        GpencilModifierData *md, Object *ob)
+	Main *bmain, Depsgraph *depsgraph,
+	GpencilModifierData *md, Object *ob)
 {
+	OpacityGpencilModifierData *mmd = (OpacityGpencilModifierData *)md;
 	bGPdata *gpd = ob->data;
 
+	GHash *gh_color = BLI_ghash_str_new("GP_Opacity modifier");
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
+
+				Material *mat = give_current_material(ob, gps->mat_nr + 1);
+				if (mat == NULL)
+					continue;
+				MaterialGPencilStyle *gp_style = mat->gp_style;
+				/* skip stroke if it doesn't have color info */
+				if (ELEM(NULL, gp_style))
+					continue;
+
+				copy_v4_v4(gps->runtime.tmp_stroke_rgba, gp_style->stroke_rgba);
+				copy_v4_v4(gps->runtime.tmp_fill_rgba, gp_style->fill_rgba);
+
 				deformStroke(md, depsgraph, ob, gpl, gps);
+
+				gpencil_apply_modifier_material(bmain, ob, mat, gh_color, gps,
+					(bool)(mmd->flag & GP_OPACITY_CREATE_COLORS));
 			}
 		}
+	}
+	/* free hash buffers */
+	if (gh_color) {
+		BLI_ghash_free(gh_color, NULL, NULL);
+		gh_color = NULL;
 	}
 }
 
