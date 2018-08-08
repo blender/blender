@@ -864,7 +864,7 @@ ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID 
 		return id_prev_match[1];
 	}
 	else {
-		ID *id_dst = BKE_undosys_ID_map_lookup(map, id_src);
+		ID *id_dst = (id_src->lib == NULL) ? BKE_undosys_ID_map_lookup(map, id_src) : id_src;
 		id_prev_match[0] = id_src;
 		id_prev_match[1] = id_dst;
 		return id_dst;
