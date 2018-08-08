@@ -598,13 +598,15 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
 }
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-static void destroyICCallback(XIC /*xic*/, XPointer ptr, XPointer /*data*/)
+static Bool destroyICCallback(XIC /*xic*/, XPointer ptr, XPointer /*data*/)
 {
 	GHOST_PRINT("XIM input context destroyed\n");
 
 	if (ptr) {
 		*(XIC *)ptr = NULL;
 	}
+	/* Ignored by X11. */
+	return True;
 }
 
 bool GHOST_WindowX11::createX11_XIC()
