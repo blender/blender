@@ -44,7 +44,7 @@ static unity_event_loop_t unity_event_loop;
 
 static bool libunity_initialized = false;
 static bool libunity_available = false;
-void* libunity_handle = NULL;
+static void *libunity_handle = NULL;
 
 void GHOST_TaskBarX11::free()
 {

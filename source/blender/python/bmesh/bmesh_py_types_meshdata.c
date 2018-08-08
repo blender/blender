@@ -192,7 +192,7 @@ static int bpy_bmvertskin_radius_set(BPy_BMVertSkin *self, PyObject *value, void
 }
 
 PyDoc_STRVAR(bpy_bmvertskin_flag__use_root_doc,
-"Use as root vertex.\n\n:type: boolean"
+"Use as root vertex. Setting this flag does not clear other roots in the same mesh island.\n\n:type: boolean"
 );
 PyDoc_STRVAR(bpy_bmvertskin_flag__use_loose_doc,
 "Use loose vertex.\n\n:type: boolean"
@@ -221,17 +221,16 @@ static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *
 	}
 }
 
-/* XXX Todo: Make root settable, currently the code to disable all other verts as roots sits within the modifier */
 static PyGetSetDef bpy_bmvertskin_getseters[] = {
 	/* attributes match rna_mesh_gen  */
 	{(char *)"radius",    (getter)bpy_bmvertskin_radius_get, (setter)bpy_bmvertskin_radius_set, (char *)bpy_bmvertskin_radius_doc, NULL},
-	{(char *)"use_root",  (getter)bpy_bmvertskin_flag_get,   (setter)NULL,					   (char *)bpy_bmvertskin_flag__use_root_doc,  (void *)MVERT_SKIN_ROOT},
+    {(char *)"use_root",  (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_root_doc,  (void *)MVERT_SKIN_ROOT},
 	{(char *)"use_loose", (getter)bpy_bmvertskin_flag_get,   (setter)bpy_bmvertskin_flag_set,   (char *)bpy_bmvertskin_flag__use_loose_doc, (void *)MVERT_SKIN_LOOSE},
 
 	{NULL, NULL, NULL, NULL, NULL} /* Sentinel */
 };
 
-static PyTypeObject BPy_BMVertSkin_Type; /* bm.loops.layers.uv.active */
+static PyTypeObject BPy_BMVertSkin_Type; /* bm.loops.layers.skin.active */
 
 static void bm_init_types_bmvertskin(void)
 {
