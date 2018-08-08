@@ -688,11 +688,6 @@ void RNA_def_material(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Screen Space Refraction", "Use raytraced screen space refractions");
 	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
 
-	prop = RNA_def_property(srna, "use_screen_subsurface", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_SS_SUBSURFACE);
-	RNA_def_property_ui_text(prop, "Screen Space Subsurface Scattering", "Use post process subsurface scattering");
-	RNA_def_property_update(prop, 0, "rna_Material_draw_update");
-
 	prop = RNA_def_property(srna, "use_sss_translucency", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MA_BL_TRANSLUCENCY);
 	RNA_def_property_ui_text(prop, "Subsurface Translucency", "Add translucency effect to subsurface");

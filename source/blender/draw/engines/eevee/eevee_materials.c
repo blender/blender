@@ -404,7 +404,6 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_texture_ref(shgrp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_int(shgrp, "outputSsrId", ssr_id, 1);
 	}
-
 	if (use_refract || use_ssrefraction) {
 		BLI_assert(refract_depth != NULL);
 		DRW_shgroup_uniform_float(shgrp, "refractionDepth", refract_depth, 1);
@@ -1128,8 +1127,7 @@ static void material_opaque(
 	const bool use_gpumat = (ma->use_nodes && ma->nodetree);
 	const bool use_ssrefract = ((ma->blend_flag & MA_BL_SS_REFRACTION) != 0) &&
 	                         ((effects->enabled_effects & EFFECT_REFRACT) != 0);
-	const bool use_sss = ((ma->blend_flag & MA_BL_SS_SUBSURFACE) != 0) &&
-	                     ((effects->enabled_effects & EFFECT_SSS) != 0);
+	bool use_sss = ((effects->enabled_effects & EFFECT_SSS) != 0);
 	const bool use_translucency = use_sss && ((ma->blend_flag & MA_BL_TRANSLUCENCY) != 0);
 
 	EeveeMaterialShadingGroups *emsg = BLI_ghash_lookup(material_hash, (const void *)ma);
@@ -1213,6 +1211,7 @@ static void material_opaque(
 				use_diffuse = GPU_material_flag_get(*gpumat, GPU_MATFLAG_DIFFUSE);
 				use_glossy = GPU_material_flag_get(*gpumat, GPU_MATFLAG_GLOSSY);
 				use_refract = GPU_material_flag_get(*gpumat, GPU_MATFLAG_REFRACT);
+				use_sss = use_sss && GPU_material_flag_get(*gpumat, GPU_MATFLAG_SSS);
 
 				*shgrp = DRW_shgroup_material_create(
 				        *gpumat,
