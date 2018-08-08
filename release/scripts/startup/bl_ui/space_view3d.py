@@ -1481,12 +1481,12 @@ class INFO_MT_add(Menu):
         layout.menu("INFO_MT_surface_add", icon='OUTLINER_OB_SURFACE')
         layout.menu("INFO_MT_metaball_add", text="Metaball", icon='OUTLINER_OB_META')
         layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
+        layout.operator_menu_enum("object.gpencil_add", "type", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
         layout.separator()
 
         layout.menu("INFO_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
-        layout.operator_menu_enum("object.gpencil_add", "type", text="Grease Pencil", icon='OUTLINER_OB_GREASEPENCIL')
         layout.separator()
 
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
