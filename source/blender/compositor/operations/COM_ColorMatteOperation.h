@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ColorMatteOperation_h
-#define _COM_ColorMatteOperation_h
+#ifndef __COM_COLORMATTEOPERATION_H__
+#define __COM_COLORMATTEOPERATION_H__
 #include "COM_MixOperation.h"
 
 

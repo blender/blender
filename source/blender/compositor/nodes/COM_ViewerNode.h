@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ViewerNode_h_
-#define _COM_ViewerNode_h_
+#ifndef __COM_VIEWERNODE_H__
+#define __COM_VIEWERNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

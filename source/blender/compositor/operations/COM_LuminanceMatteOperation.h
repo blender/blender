@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_LuminanceMatteOperation_h
-#define _COM_LuminanceMatteOperation_h
+#ifndef __COM_LUMINANCEMATTEOPERATION_H__
+#define __COM_LUMINANCEMATTEOPERATION_H__
 #include "COM_MixOperation.h"
 
 

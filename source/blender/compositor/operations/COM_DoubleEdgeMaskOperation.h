@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_DoubleEdgeMaskOperation_h
-#define _COM_DoubleEdgeMaskOperation_h
+#ifndef __COM_DOUBLEEDGEMASKOPERATION_H__
+#define __COM_DOUBLEEDGEMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

@@ -20,8 +20,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_CornerPinWarpImageOperation_h
-#define _COM_CornerPinWarpImageOperation_h
+#ifndef __COM_PLANECORNERPINOPERATION_H__
+#define __COM_PLANECORNERPINOPERATION_H__
 
 #include <string.h>
 

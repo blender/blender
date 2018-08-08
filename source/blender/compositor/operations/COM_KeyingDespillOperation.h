@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_KeyingDespillOperation_h
-#define _COM_KeyingDespillOperation_h
+#ifndef __COM_KEYINGDESPILLOPERATION_H__
+#define __COM_KEYINGDESPILLOPERATION_H__
 
 #include "COM_NodeOperation.h"
 

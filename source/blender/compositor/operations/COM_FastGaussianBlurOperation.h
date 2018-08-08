@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_FastGaussianBlurOperation_h
-#define _COM_FastGaussianBlurOperation_h
+#ifndef __COM_FASTGAUSSIANBLUROPERATION_H__
+#define __COM_FASTGAUSSIANBLUROPERATION_H__
 
 #include "COM_BlurBaseOperation.h"
 #include "DNA_node_types.h"

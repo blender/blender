@@ -20,8 +20,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_PlaneTrackWarpImageOperation_h
-#define _COM_PlaneTrackWarpImageOperation_h
+#ifndef __COM_PLANETRACKOPERATION_H__
+#define __COM_PLANETRACKOPERATION_H__
 
 #include <string.h>
 

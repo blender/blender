@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SocketReader_h
-#define _COM_SocketReader_h
+#ifndef __COM_SOCKETREADER_H__
+#define __COM_SOCKETREADER_H__
 #include "BLI_rect.h"
 #include "COM_defines.h"
 
@@ -121,4 +121,4 @@ public:
 #endif
 };
 
-#endif /* _COM_SocketReader_h */
+#endif /* __COM_SOCKETREADER_H__ */

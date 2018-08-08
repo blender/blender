@@ -19,8 +19,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_NodeGraph_h
-#define _COM_NodeGraph_h
+#ifndef __COM_NODEGRAPH_H__
+#define __COM_NODEGRAPH_H__
 
 #include <map>
 #include <set>
@@ -113,4 +113,4 @@ protected:
 #endif
 };
 
-#endif /* _COM_NodeGraph_h */
+#endif /* __COM_NODEGRAPH_H__ */

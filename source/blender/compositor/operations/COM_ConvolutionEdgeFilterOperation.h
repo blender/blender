@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvolutionEdgeFilterOperation_h_
-#define _COM_ConvolutionEdgeFilterOperation_h_
+#ifndef __COM_CONVOLUTIONEDGEFILTEROPERATION_H__
+#define __COM_CONVOLUTIONEDGEFILTEROPERATION_H__
 
 #include "COM_ConvolutionFilterOperation.h"
 

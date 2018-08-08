@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_GlareSimpleStarOperation_h
-#define _COM_GlareSimpleStarOperation_h
+#ifndef __COM_GLARESIMPLESTAROPERATION_H__
+#define __COM_GLARESIMPLESTAROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 #include "COM_GlareBaseOperation.h"

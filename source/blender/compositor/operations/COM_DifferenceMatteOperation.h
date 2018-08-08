@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_DifferenceMatteOperation_h
-#define _COM_DifferenceMatteOperation_h
+#ifndef __COM_DIFFERENCEMATTEOPERATION_H__
+#define __COM_DIFFERENCEMATTEOPERATION_H__
 #include "COM_MixOperation.h"
 
 

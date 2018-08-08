@@ -22,8 +22,8 @@
  */
 
 
-#ifndef _COM_KeyingOperation_h
-#define _COM_KeyingOperation_h
+#ifndef __COM_KEYINGOPERATION_H__
+#define __COM_KEYINGOPERATION_H__
 
 #include <string.h>
 

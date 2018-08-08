@@ -22,8 +22,8 @@
 
 class OpenCLDevice;
 
-#ifndef _COM_OpenCLDevice_h
-#define _COM_OpenCLDevice_h
+#ifndef __COM_OPENCLDEVICE_H__
+#define __COM_OPENCLDEVICE_H__
 
 #include "COM_Device.h"
 #include "clew.h"

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MovieClipAttributeOperation_h
-#define _COM_MovieClipAttributeOperation_h
+#ifndef __COM_MOVIECLIPATTRIBUTEOPERATION_H__
+#define __COM_MOVIECLIPATTRIBUTEOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
 

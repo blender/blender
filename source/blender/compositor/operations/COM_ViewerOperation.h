@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ViewerOperation_h
-#define _COM_ViewerOperation_h
+#ifndef __COM_VIEWEROPERATION_H__
+#define __COM_VIEWEROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
 #include "BLI_rect.h"

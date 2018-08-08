@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BrightnessOperation_h
-#define _COM_BrightnessOperation_h
+#ifndef __COM_BRIGHTNESSOPERATION_H__
+#define __COM_BRIGHTNESSOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

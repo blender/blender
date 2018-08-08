@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_CPUDevice_h
-#define _COM_CPUDevice_h
+#ifndef __COM_CPUDEVICE_H__
+#define __COM_CPUDEVICE_H__
 
 #include "COM_Device.h"
 

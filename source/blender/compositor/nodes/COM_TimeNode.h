@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_TimeNode_h_
-#define _COM_TimeNode_h_
+#ifndef __COM_TIMENODE_H__
+#define __COM_TIMENODE_H__
 
 #include "COM_Node.h"
 

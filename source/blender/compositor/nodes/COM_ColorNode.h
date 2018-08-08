@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColorNode_h_
-#define _COM_ColorNode_h_
+#ifndef __COM_COLORNODE_H__
+#define __COM_COLORNODE_H__
 
 #include "COM_Node.h"
 

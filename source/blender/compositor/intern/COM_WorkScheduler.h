@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_WorkScheduler_h_
-#define _COM_WorkScheduler_h_
+#ifndef __COM_WORKSCHEDULER_H__
+#define __COM_WORKSCHEDULER_H__
 
 #include "COM_ExecutionGroup.h"
 extern "C" {
@@ -120,4 +120,4 @@ public:
 #endif
 };
 
-#endif /* _COM_WorkScheduler_h_ */
+#endif /* __COM_WORKSCHEDULER_H__ */

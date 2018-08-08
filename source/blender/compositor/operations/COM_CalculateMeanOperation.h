@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_CalculateMeanOperation_h
-#define _COM_CalculateMeanOperation_h
+#ifndef __COM_CALCULATEMEANOPERATION_H__
+#define __COM_CALCULATEMEANOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 

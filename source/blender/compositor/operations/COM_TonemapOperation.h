@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_TonemapOperation_h
-#define _COM_TonemapOperation_h
+#ifndef __COM_TONEMAPOPERATION_H__
+#define __COM_TONEMAPOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 

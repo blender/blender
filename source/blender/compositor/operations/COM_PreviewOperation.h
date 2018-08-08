@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_PreviewOperation_h
-#define _COM_PreviewOperation_h
+#ifndef __COM_PREVIEWOPERATION_H__
+#define __COM_PREVIEWOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_image_types.h"
 #include "DNA_color_types.h"

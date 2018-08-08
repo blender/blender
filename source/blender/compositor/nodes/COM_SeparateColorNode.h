@@ -21,8 +21,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_SeparateColorNode_h_
-#define _COM_SeparateColorNode_h_
+#ifndef __COM_SEPARATECOLORNODE_H__
+#define __COM_SEPARATECOLORNODE_H__
 
 #include "COM_Node.h"
 

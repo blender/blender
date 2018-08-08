@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ChannelMatteOperation_h
-#define _COM_ChannelMatteOperation_h
+#ifndef __COM_CHANNELMATTEOPERATION_H__
+#define __COM_CHANNELMATTEOPERATION_H__
 #include "COM_MixOperation.h"
 
 

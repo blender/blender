@@ -22,8 +22,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_OutputFileMultiViewOperation_h
-#define _COM_OutputFileMultiViewOperation_h
+#ifndef __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
+#define __COM_OUTPUTFILEMULTIVIEWOPERATION_H__
 #include "COM_NodeOperation.h"
 
 #include "BLI_rect.h"

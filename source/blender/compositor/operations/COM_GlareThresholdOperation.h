@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_GlareScaleOperation_h
-#define _COM_GlareScaleOperation_h
+#ifndef __COM_GLARETHRESHOLDOPERATION_H__
+#define __COM_GLARETHRESHOLDOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_lamp_types.h"
 

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvertOperation_h
-#define _COM_ConvertOperation_h
+#ifndef __COM_CONVERTOPERATION_H__
+#define __COM_CONVERTOPERATION_H__
 
 #include "COM_NodeOperation.h"
 

@@ -21,8 +21,8 @@
  *		Campbell Barton
  */
 
-#ifndef _COM_GaussianAlphaYBlurOperation_h
-#define _COM_GaussianAlphaYBlurOperation_h
+#ifndef __COM_GAUSSIANALPHAYBLUROPERATION_H__
+#define __COM_GAUSSIANALPHAYBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_BlurBaseOperation.h"
 

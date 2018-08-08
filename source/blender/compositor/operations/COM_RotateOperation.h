@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_RotateOperation_h_
-#define _COM_RotateOperation_h_
+#ifndef __COM_ROTATEOPERATION_H__
+#define __COM_ROTATEOPERATION_H__
 
 #include "COM_NodeOperation.h"
 

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SingleThreadedOperation_h
-#define _COM_SingleThreadedOperation_h
+#ifndef __COM_SINGLETHREADEDOPERATION_H__
+#define __COM_SINGLETHREADEDOPERATION_H__
 #include "COM_NodeOperation.h"
 
 class SingleThreadedOperation : public NodeOperation {

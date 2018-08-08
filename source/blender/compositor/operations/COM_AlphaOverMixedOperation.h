@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_AlphaOverMixedOperation_h_
-#define _COM_AlphaOverMixedOperation_h_
+#ifndef __COM_ALPHAOVERMIXEDOPERATION_H__
+#define __COM_ALPHAOVERMIXEDOPERATION_H__
 #include "COM_MixOperation.h"
 
 

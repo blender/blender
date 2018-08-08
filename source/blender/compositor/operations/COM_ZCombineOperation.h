@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ZCombineOperation_h
-#define _COM_ZCombineOperation_h
+#ifndef __COM_ZCOMBINEOPERATION_H__
+#define __COM_ZCOMBINEOPERATION_H__
 #include "COM_MixOperation.h"
 
 

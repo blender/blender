@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SetAlphaOperation_h
-#define _COM_SetAlphaOperation_h
+#ifndef __COM_SETALPHAOPERATION_H__
+#define __COM_SETALPHAOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

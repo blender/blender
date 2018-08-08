@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_InvertOperation_h
-#define _COM_InvertOperation_h
+#ifndef __COM_INVERTOPERATION_H__
+#define __COM_INVERTOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

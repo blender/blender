@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_WrapOperation_h_
-#define _COM_WrapOperation_h_
+#ifndef __COM_WRAPOPERATION_H__
+#define __COM_WRAPOPERATION_H__
 
 #include "COM_ReadBufferOperation.h"
 

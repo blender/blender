@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_EllipseMaskOperation_h
-#define _COM_EllipseMaskOperation_h
+#ifndef __COM_ELLIPSEMASKOPERATION_H__
+#define __COM_ELLIPSEMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_MaskOperation_h
-#define _COM_MaskOperation_h
+#ifndef __COM_MASKOPERATION_H__
+#define __COM_MASKOPERATION_H__
 
 
 #include "COM_NodeOperation.h"

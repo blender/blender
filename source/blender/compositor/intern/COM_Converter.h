@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Converter_h
-#define _COM_Converter_h
+#ifndef __COM_CONVERTER_H__
+#define __COM_CONVERTER_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"

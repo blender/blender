@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Device_h
-#define _COM_Device_h
+#ifndef __COM_DEVICE_H__
+#define __COM_DEVICE_H__
 
 #include "COM_WorkPackage.h"
 

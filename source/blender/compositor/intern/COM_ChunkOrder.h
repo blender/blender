@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ChunkOrder_h_
-#define _COM_ChunkOrder_h_
+#ifndef __COM_CHUNKORDER_H__
+#define __COM_CHUNKORDER_H__
 
 #include "COM_ChunkOrderHotspot.h"
 class ChunkOrder {

@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_MapUVNode_h_
-#define _COM_MapUVNode_h_
+#ifndef __COM_MAPUVNODE_H__
+#define __COM_MAPUVNODE_H__
 
 #include "COM_Node.h"
 

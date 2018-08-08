@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_VectorCurveOperation_h
-#define _COM_VectorCurveOperation_h
+#ifndef __COM_VECTORCURVEOPERATION_H__
+#define __COM_VECTORCURVEOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_CurveBaseOperation.h"
 

@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_MovieDistortionOperation_h_
-#define _COM_MovieDistortionOperation_h_
+#ifndef __COM_MOVIEDISTORTIONOPERATION_H__
+#define __COM_MOVIEDISTORTIONOPERATION_H__
 
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"

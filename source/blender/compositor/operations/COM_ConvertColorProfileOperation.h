@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvertColorProfileOperation_h
-#define _COM_ConvertColorProfileOperation_h
+#ifndef __COM_CONVERTCOLORPROFILEOPERATION_H__
+#define __COM_CONVERTCOLORPROFILEOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

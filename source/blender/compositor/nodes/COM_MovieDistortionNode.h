@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MovieDistortionNode_h_
-#define _COM_MovieDistortionNode_h_
+#ifndef __COM_MOVIEDISTORTIONNODE_H__
+#define __COM_MOVIEDISTORTIONNODE_H__
 
 #include "COM_Node.h"
 

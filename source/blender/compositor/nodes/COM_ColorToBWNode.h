@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColorToBWNode_h_
-#define _COM_ColorToBWNode_h_
+#ifndef __COM_COLORTOBWNODE_H__
+#define __COM_COLORTOBWNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

@@ -22,8 +22,8 @@
 
 class WorkPackage;
 
-#ifndef _COM_WorkPackage_h_
-#define _COM_WorkPackage_h_
+#ifndef __COM_WORKPACKAGE_H__
+#define __COM_WORKPACKAGE_H__
 class ExecutionGroup;
 #include "COM_ExecutionGroup.h"
 

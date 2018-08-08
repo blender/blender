@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_CurveBaseOperation_h
-#define _COM_CurveBaseOperation_h
+#ifndef __COM_CURVEBASEOPERATION_H__
+#define __COM_CURVEBASEOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_color_types.h"
 

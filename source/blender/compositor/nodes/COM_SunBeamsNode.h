@@ -19,8 +19,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_SunBeamsNode_h_
-#define _COM_SunBeamsNode_h_
+#ifndef __COM_SUNBEAMSNODE_H__
+#define __COM_SUNBEAMSNODE_H__
 
 #include "COM_Node.h"
 

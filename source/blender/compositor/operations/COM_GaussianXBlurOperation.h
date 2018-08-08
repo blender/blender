@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_GaussianXBlurOperation_h
-#define _COM_GaussianXBlurOperation_h
+#ifndef __COM_GAUSSIANXBLUROPERATION_H__
+#define __COM_GAUSSIANXBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "COM_BlurBaseOperation.h"
 

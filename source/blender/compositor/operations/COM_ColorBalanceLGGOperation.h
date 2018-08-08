@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColorBalanceLGGOperation_h
-#define _COM_ColorBalanceLGGOperation_h
+#ifndef __COM_COLORBALANCELGGOPERATION_H__
+#define __COM_COLORBALANCELGGOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

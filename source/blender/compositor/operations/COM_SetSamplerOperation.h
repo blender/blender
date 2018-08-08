@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SetSamplerOperation_h
-#define _COM_SetSamplerOperation_h
+#ifndef __COM_SETSAMPLEROPERATION_H__
+#define __COM_SETSAMPLEROPERATION_H__
 #include "COM_NodeOperation.h"
 
 

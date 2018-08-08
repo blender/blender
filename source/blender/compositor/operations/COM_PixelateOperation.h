@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_PixelateOperation_h_
-#define _COM_PixelateOperation_h_
+#ifndef __COM_PIXELATEOPERATION_H__
+#define __COM_PIXELATEOPERATION_H__
 
 #include "COM_NodeOperation.h"
 
