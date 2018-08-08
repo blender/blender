@@ -267,6 +267,12 @@ static void GPENCIL_engine_free(void)
 
 	DRW_TEXTURE_FREE_SAFE(e_data.gpencil_blank_texture);
 
+	GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_stroke);
+	MEM_SAFE_FREE(e_data.batch_buffer_stroke);
+
+	GPU_BATCH_DISCARD_SAFE(e_data.batch_buffer_fill);
+	MEM_SAFE_FREE(e_data.batch_buffer_fill);
+
 	/* effects */
 	GPENCIL_delete_fx_shaders(&e_data);
 }

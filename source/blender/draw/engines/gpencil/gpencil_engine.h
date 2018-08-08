@@ -108,6 +108,8 @@ typedef struct GPENCIL_Storage {
 	bool is_playing;
 	bool is_render;
 	bool is_mat_preview;
+	bool buffer_stroke;
+	bool buffer_fill;
 	const float *pixsize;
 	float render_pixsize;
 	int tonemapping;
@@ -189,10 +191,6 @@ typedef struct g_data {
 	struct DRWShadingGroup *shgrps_drawing_fill;
 	struct DRWShadingGroup *shgrps_grid;
 
-	/* for buffer only one batch is nedeed because the drawing is only of one stroke */
-	GPUBatch *batch_buffer_stroke;
-	GPUBatch *batch_buffer_fill;
-
 	/* grid geometry */
 	GPUBatch *batch_grid;
 
@@ -256,6 +254,11 @@ typedef struct GPENCIL_e_data {
 
 	struct GPUTexture *temp_color_tx_rim;
 	struct GPUTexture *temp_depth_tx_rim;
+
+	/* for buffer only one batch is nedeed because the drawing is only of one stroke */
+	GPUBatch *batch_buffer_stroke;
+	GPUBatch *batch_buffer_fill;
+
 } GPENCIL_e_data; /* Engine data */
 
 /* GPUBatch Cache */
