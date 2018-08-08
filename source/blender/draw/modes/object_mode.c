@@ -2090,15 +2090,11 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 	if (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) {
 		return;
 	}
-	const Object *obact = OBACT(view_layer);
-	if (obact->mode & OB_MODE_ALL_PAINT) {
-		return;
-	}
 
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
-	if (ob == obact) {
+	if (ob == OBACT(view_layer)) {
 		shgroup = stl->g_data->center_active;
 	}
 	else if (ob->base_flag & BASE_SELECTED) {
@@ -2348,8 +2344,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
-	bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
-	bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
+	const bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
+	const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 	const bool hide_object_extra = (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0;
 
 	if (do_outlines) {
@@ -2510,7 +2506,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	/* don't show object extras in set's */
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
-		DRW_shgroup_object_center(stl, ob, view_layer, v3d);
+		if ((draw_ctx->object_mode & OB_MODE_ALL_PAINT) == 0) {
+			DRW_shgroup_object_center(stl, ob, view_layer, v3d);
+		}
 
 		if (show_relations) {
 			DRW_shgroup_relationship_lines(stl, ob);
