@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_KeyingBlurOperation_h
-#define _COM_KeyingBlurOperation_h
+#ifndef __COM_KEYINGBLUROPERATION_H__
+#define __COM_KEYINGBLUROPERATION_H__
 
 #include "COM_NodeOperation.h"
 

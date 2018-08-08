@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SplitOperation_h
-#define _COM_SplitOperation_h
+#ifndef __COM_SPLITOPERATION_H__
+#define __COM_SPLITOPERATION_H__
 #include "COM_NodeOperation.h"
 
 class SplitOperation : public NodeOperation {

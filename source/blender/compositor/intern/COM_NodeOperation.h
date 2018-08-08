@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Operation_h
-#define _COM_Operation_h
+#ifndef __COM_NODEOPERATION_H__
+#define __COM_NODEOPERATION_H__
 
 #include <list>
 #include <string>

@@ -22,8 +22,8 @@
  */
 
 
-#ifndef _COM_TrackPositionOperation_h
-#define _COM_TrackPositionOperation_h
+#ifndef __COM_TRACKPOSITIONOPERATION_H__
+#define __COM_TRACKPOSITIONOPERATION_H__
 
 #include <string.h>
 

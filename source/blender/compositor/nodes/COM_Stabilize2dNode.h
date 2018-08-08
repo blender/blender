@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_Stabilize2dNode_h_
-#define _COM_Stabilize2dNode_h_
+#ifndef __COM_STABILIZE2DNODE_H__
+#define __COM_STABILIZE2DNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

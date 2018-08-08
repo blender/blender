@@ -21,8 +21,8 @@
  *		Lukas Tönne
  */
 
-#ifndef _COM_OutputFileOperation_h
-#define _COM_OutputFileOperation_h
+#ifndef __COM_OUTPUTFILEOPERATION_H__
+#define __COM_OUTPUTFILEOPERATION_H__
 #include "COM_NodeOperation.h"
 
 #include "BLI_rect.h"

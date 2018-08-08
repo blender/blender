@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SetVectorOperation_h
-#define _COM_SetVectorOperation_h
+#ifndef __COM_SETVECTOROPERATION_H__
+#define __COM_SETVECTOROPERATION_H__
 #include "COM_NodeOperation.h"
 
 

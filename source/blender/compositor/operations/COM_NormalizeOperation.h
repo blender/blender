@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_NormalizeOperation_h
-#define _COM_NormalizeOperation_h
+#ifndef __COM_NORMALIZEOPERATION_H__
+#define __COM_NORMALIZEOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 

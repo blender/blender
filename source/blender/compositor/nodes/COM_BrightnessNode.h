@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BrightnessNode_h_
-#define _COM_BrightnessNode_h_
+#ifndef __COM_BRIGHTNESSNODE_H__
+#define __COM_BRIGHTNESSNODE_H__
 
 #include "COM_Node.h"
 

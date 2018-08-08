@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ChannelMatteNode_h_
-#define _COM_ChannelMatteNode_h_
+#ifndef __COM_CHANNELMATTENODE_H__
+#define __COM_CHANNELMATTENODE_H__
 
 #include "COM_Node.h"
 

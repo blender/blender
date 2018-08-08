@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_GammaOperation_h
-#define _COM_GammaOperation_h
+#ifndef __COM_GAMMAOPERATION_H__
+#define __COM_GAMMAOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

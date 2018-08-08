@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MapValueOperation_h
-#define _COM_MapValueOperation_h
+#ifndef __COM_MAPVALUEOPERATION_H__
+#define __COM_MAPVALUEOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 

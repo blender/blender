@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SplitViewerNode_h_
-#define _COM_SplitViewerNode_h_
+#ifndef __COM_SPLITVIEWERNODE_H__
+#define __COM_SPLITVIEWERNODE_H__
 
 #include "COM_Node.h"
 #include "DNA_node_types.h"

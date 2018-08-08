@@ -18,8 +18,8 @@
  * Contributor: Lukas Stockner, Stefan Werner
  */
 
-#ifndef _COM_CryptomatteOperation_h
-#define _COM_CryptomatteOperation_h
+#ifndef __COM_CRYPTOMATTEOPERATION_H__
+#define __COM_CRYPTOMATTEOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

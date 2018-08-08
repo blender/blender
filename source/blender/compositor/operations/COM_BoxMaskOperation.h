@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BoxMaskOperation_h
-#define _COM_BoxMaskOperation_h
+#ifndef __COM_BOXMASKOPERATION_H__
+#define __COM_BOXMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

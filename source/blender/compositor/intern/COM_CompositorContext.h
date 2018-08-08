@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_CompositorContext_h
-#define _COM_CompositorContext_h
+#ifndef __COM_COMPOSITORCONTEXT_H__
+#define __COM_COMPOSITORCONTEXT_H__
 
 #include <vector>
 #include <string>

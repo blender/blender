@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_AntiAliasOperation_h
-#define _COM_AntiAliasOperation_h
+#ifndef __COM_ANTIALIASOPERATION_H__
+#define __COM_ANTIALIASOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 

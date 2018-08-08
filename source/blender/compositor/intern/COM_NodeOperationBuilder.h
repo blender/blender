@@ -19,8 +19,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_NodeCompilerImpl_h
-#define _COM_NodeCompilerImpl_h
+#ifndef __COM_NODEOPERATIONBUILDER_H__
+#define __COM_NODEOPERATIONBUILDER_H__
 
 #include <map>
 #include <set>
@@ -167,4 +167,4 @@ private:
 #endif
 };
 
-#endif /* _COM_NodeCompilerImpl_h */
+#endif /* __COM_NODEOPERATIONBUILDER_H__ */

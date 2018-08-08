@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ScreenLensDistortionOperation_h
-#define _COM_ScreenLensDistortionOperation_h
+#ifndef __COM_SCREENLENSDISTORTIONOPERATION_H__
+#define __COM_SCREENLENSDISTORTIONOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 

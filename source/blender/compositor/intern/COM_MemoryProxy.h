@@ -23,8 +23,8 @@
 class MemoryProxy;
 
 
-#ifndef _COM_MemoryProxy_h_
-#define _COM_MemoryProxy_h_
+#ifndef __COM_MEMORYPROXY_H__
+#define __COM_MEMORYPROXY_H__
 #include "COM_ExecutionGroup.h"
 
 class ExecutionGroup;

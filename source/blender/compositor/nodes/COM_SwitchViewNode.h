@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_SwitchViewNode_h_
-#define _COM_SwitchViewNode_h_
+#ifndef __COM_SWITCHVIEWNODE_H__
+#define __COM_SWITCHVIEWNODE_H__
 
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ConvertDepthToRadiusOperation_h
-#define _COM_ConvertDepthToRadiusOperation_h
+#ifndef __COM_CONVERTDEPTHTORADIUSOPERATION_H__
+#define __COM_CONVERTDEPTHTORADIUSOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_object_types.h"
 #include "COM_FastGaussianBlurOperation.h"

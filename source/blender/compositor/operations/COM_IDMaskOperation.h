@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_IDMaskOperation_h
-#define _COM_IDMaskOperation_h
+#ifndef __COM_IDMASKOPERATION_H__
+#define __COM_IDMASKOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

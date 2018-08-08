@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_BokehImageOperation_h
-#define _COM_BokehImageOperation_h
+#ifndef __COM_BOKEHIMAGEOPERATION_H__
+#define __COM_BOKEHIMAGEOPERATION_H__
 #include "COM_NodeOperation.h"
 
 /**

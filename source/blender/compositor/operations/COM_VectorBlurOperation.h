@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_VectorBlurOperation_h
-#define _COM_VectorBlurOperation_h
+#ifndef __COM_VECTORBLUROPERATION_H__
+#define __COM_VECTORBLUROPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 #include "COM_QualityStepHelper.h"

@@ -22,8 +22,8 @@
 
 class MemoryBuffer;
 
-#ifndef _COM_MemoryBuffer_h_
-#define _COM_MemoryBuffer_h_
+#ifndef __COM_MEMORYBUFFER_H__
+#define __COM_MEMORYBUFFER_H__
 
 #include "COM_ExecutionGroup.h"
 #include "COM_MemoryProxy.h"

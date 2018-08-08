@@ -21,8 +21,8 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_KeyingClipOperation_h
-#define _COM_KeyingClipOperation_h
+#ifndef __COM_KEYINGCLIPOPERATION_H__
+#define __COM_KEYINGCLIPOPERATION_H__
 
 #include "COM_NodeOperation.h"
 

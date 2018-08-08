@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ReadBufferOperation_h
-#define _COM_ReadBufferOperation_h
+#ifndef __COM_READBUFFEROPERATION_H__
+#define __COM_READBUFFEROPERATION_H__
 
 #include "COM_NodeOperation.h"
 #include "COM_MemoryProxy.h"

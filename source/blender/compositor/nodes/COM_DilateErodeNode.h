@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_DilateErodeNode_h_
-#define _COM_DilateErodeNode_h_
+#ifndef __COM_DILATEERODENODE_H__
+#define __COM_DILATEERODENODE_H__
 
 #include "COM_Node.h"
 

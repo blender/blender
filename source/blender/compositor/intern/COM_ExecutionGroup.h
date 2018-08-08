@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ExecutionGroup_h
-#define _COM_ExecutionGroup_h
+#ifndef __COM_EXECUTIONGROUP_H__
+#define __COM_EXECUTIONGROUP_H__
 
 #include "COM_Node.h"
 #include "COM_NodeOperation.h"

@@ -19,8 +19,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_Debug_h
-#define _COM_Debug_h
+#ifndef __COM_DEBUG_H__
+#define __COM_DEBUG_H__
 
 #include <map>
 #include <string>

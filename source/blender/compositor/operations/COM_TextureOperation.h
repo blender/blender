@@ -21,8 +21,8 @@
  */
 
 
-#ifndef _COM_TextureOperation_h
-#define _COM_TextureOperation_h
+#ifndef __COM_TEXTUREOPERATION_H__
+#define __COM_TEXTUREOPERATION_H__
 
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"

@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_MixBaseOperation_h
-#define _COM_MixBaseOperation_h
+#ifndef __COM_MIXOPERATION_H__
+#define __COM_MIXOPERATION_H__
 #include "COM_NodeOperation.h"
 
 

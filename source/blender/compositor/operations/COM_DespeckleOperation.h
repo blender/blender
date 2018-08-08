@@ -18,8 +18,8 @@
  * Contributor: Campbell Barton
  */
 
-#ifndef _COM_DespeckleOperation_h
-#define _COM_DespeckleOperation_h
+#ifndef __COM_DESPECKLEOPERATION_H__
+#define __COM_DESPECKLEOPERATION_H__
 #include "COM_NodeOperation.h"
 
 class DespeckleOperation : public NodeOperation {

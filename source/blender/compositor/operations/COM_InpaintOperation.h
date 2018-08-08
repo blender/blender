@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_InpaintOperation_h
-#define _COM_InpaintOperation_h
+#ifndef __COM_INPAINTOPERATION_H__
+#define __COM_INPAINTOPERATION_H__
 #include "COM_NodeOperation.h"
 
 class InpaintSimpleOperation : public NodeOperation {

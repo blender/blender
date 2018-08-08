@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_SocketProxyOperation_h_
-#define _COM_SocketProxyOperation_h_
+#ifndef __COM_SOCKETPROXYOPERATION_H__
+#define __COM_SOCKETPROXYOPERATION_H__
 
 #include "COM_NodeOperation.h"
 

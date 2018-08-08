@@ -21,8 +21,8 @@
  */
 
 
-#ifndef _COM_RenderLayersBaseProg_h
-#define _COM_RenderLayersBaseProg_h
+#ifndef __COM_RENDERLAYERSPROG_H__
+#define __COM_RENDERLAYERSPROG_H__
 
 #include "COM_NodeOperation.h"
 #include "DNA_scene_types.h"

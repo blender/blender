@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColorRampOperation_h
-#define _COM_ColorRampOperation_h
+#ifndef __COM_COLORRAMPOPERATION_H__
+#define __COM_COLORRAMPOPERATION_H__
 #include "COM_NodeOperation.h"
 #include "DNA_texture_types.h"
 

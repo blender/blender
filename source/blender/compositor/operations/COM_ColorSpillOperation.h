@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_ColorSpillOperation_h
-#define _COM_ColorSpillOperation_h
+#ifndef __COM_COLORSPILLOPERATION_H__
+#define __COM_COLORSPILLOPERATION_H__
 #include "COM_NodeOperation.h"
 
 /**

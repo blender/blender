@@ -22,8 +22,8 @@
  */
 
 
-#ifndef _COM_MultilayerImageOperation_h
-#define _COM_MultilayerImageOperation_h
+#ifndef __COM_MULTILAYERIMAGEOPERATION_H__
+#define __COM_MULTILAYERIMAGEOPERATION_H__
 
 #include "COM_ImageOperation.h"
 

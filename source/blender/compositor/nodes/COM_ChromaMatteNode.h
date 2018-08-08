@@ -19,8 +19,8 @@
  *		Dalai Felinto
  */
 
-#ifndef _COM_ChromaMatteNode_h_
-#define _COM_ChromaMatteNode_h_
+#ifndef __COM_CHROMAMATTENODE_H__
+#define __COM_CHROMAMATTENODE_H__
 
 #include "COM_Node.h"
 

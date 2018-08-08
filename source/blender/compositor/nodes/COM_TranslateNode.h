@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_TranslateNode_h_
-#define _COM_TranslateNode_h_
+#ifndef __COM_TRANSLATENODE_H__
+#define __COM_TRANSLATENODE_H__
 
 #include "COM_Node.h"
 

@@ -19,8 +19,8 @@
  *		Lukas Toenne
  */
 
-#ifndef _COM_NodeCompiler_h
-#define _COM_NodeCompiler_h
+#ifndef __COM_NODECONVERTER_H__
+#define __COM_NODECONVERTER_H__
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #  include "MEM_guardedalloc.h"
@@ -118,4 +118,4 @@ private:
 #endif
 };
 
-#endif /* _COM_NodeCompiler_h */
+#endif /* __COM_NODECONVERTER_H__ */
