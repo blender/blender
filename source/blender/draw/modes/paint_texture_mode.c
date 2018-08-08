@@ -227,6 +227,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 						DRWShadingGroup *grp = DRW_shgroup_create(e_data.image_sh, psl->image_faces);
 						DRW_shgroup_uniform_texture(grp, "image", tex);
 						DRW_shgroup_uniform_float(grp, "alpha", &draw_ctx->v3d->overlay.texture_paint_mode_opacity, 1);
+						DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 						stl->g_data->shgroup_image_array[i] = grp;
 					}
 					else {
@@ -259,6 +260,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
 
 		stl->g_data->lwire_shgrp = DRW_shgroup_create(e_data.wire_overlay_shader, psl->wire_overlay);
+		DRW_shgroup_uniform_block(stl->g_data->lwire_shgrp, "globalsBlock", globals_ubo);
 	}
 
 	{
