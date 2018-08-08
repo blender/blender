@@ -21,8 +21,8 @@
  */
 
 
-#ifndef __COM_IMAGEOPERATION_H__
-#define __COM_IMAGEOPERATION_H__
+#ifndef __COM_MOVIECLIPOPERATION_H__
+#define __COM_MOVIECLIPOPERATION_H__
 
 #include "COM_NodeOperation.h"
 #include "DNA_movieclip_types.h"
