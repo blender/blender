@@ -1894,9 +1894,8 @@ void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 
 static bool gpu_pass_is_valid(GPUPass *pass)
 {
-	/* Shader is not null if compilation is successful,
-	 * refcount is positive if compilation as not yet been done. */
-	return (pass->shader != NULL || pass->refcount > 0);
+	/* Shader is not null if compilation is successful. */
+	return (pass->compiled == false || pass->shader != NULL);
 }
 
 GPUPass *GPU_generate_pass_new(
