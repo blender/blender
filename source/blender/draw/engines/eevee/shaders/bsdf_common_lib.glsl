@@ -548,6 +548,14 @@ float F_eta(float eta, float cos_theta)
 	return result;
 }
 
+/* Fresnel color blend base on fresnel factor */
+vec3 F_color_blend(float eta, float fresnel, vec3 f0_color)
+{
+	float f0 = F_eta(eta, 1.0);
+	float fac = saturate((fresnel - f0) / max(1e-8, 1.0 - f0));
+	return mix(f0_color, vec3(1.0), fac);
+}
+
 /* Fresnel */
 vec3 F_schlick(vec3 f0, float cos_theta)
 {

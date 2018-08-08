@@ -54,6 +54,13 @@ uniform int hairThicknessRes = 1;
 	#define CLOSURE_SUBSURFACE
 #endif /* SURFACE_PRINCIPLED */
 
+#if !defined(SURFACE_CLEARCOAT) && !defined(CLOSURE_NAME)
+	#define SURFACE_CLEARCOAT
+	#define CLOSURE_NAME eevee_closure_clearcoat
+	#define CLOSURE_GLOSSY
+	#define CLOSURE_CLEARCOAT
+#endif /* SURFACE_CLEARCOAT */
+
 #if !defined(SURFACE_DIFFUSE) && !defined(CLOSURE_NAME)
 	#define SURFACE_DIFFUSE
 	#define CLOSURE_NAME eevee_closure_diffuse
@@ -66,6 +73,14 @@ uniform int hairThicknessRes = 1;
 	#define CLOSURE_DIFFUSE
 	#define CLOSURE_SUBSURFACE
 #endif /* SURFACE_SUBSURFACE */
+
+#if !defined(SURFACE_SKIN) && !defined(CLOSURE_NAME)
+	#define SURFACE_SKIN
+	#define CLOSURE_NAME eevee_closure_skin
+	#define CLOSURE_DIFFUSE
+	#define CLOSURE_SUBSURFACE
+	#define CLOSURE_GLOSSY
+#endif /* SURFACE_SKIN */
 
 #if !defined(SURFACE_GLOSSY) && !defined(CLOSURE_NAME)
 	#define SURFACE_GLOSSY

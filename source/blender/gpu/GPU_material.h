@@ -128,6 +128,7 @@ typedef enum GPUMatFlag {
 	GPU_MATFLAG_DIFFUSE       = (1 << 0),
 	GPU_MATFLAG_GLOSSY        = (1 << 1),
 	GPU_MATFLAG_REFRACT       = (1 << 2),
+	GPU_MATFLAG_SSS           = (1 << 3),
 } GPUMatFlag;
 
 typedef enum GPUBlendMode {

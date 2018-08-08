@@ -64,22 +64,12 @@ static void node_shader_init_principled(bNodeTree *UNUSED(ntree), bNode *node)
 	node->custom2 = SHD_SUBSURFACE_BURLEY;
 }
 
+#define socket_not_zero(sock) (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) > 1e-5f))
+#define socket_not_one(sock)  (in[sock].link || (clamp_f(in[sock].vec[0], 0.0f, 1.0f) < 1.0f - 1e-5f))
+
 static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
 	GPUNodeLink *sss_scale;
-#if 0 /* Old 2.7 glsl viewport */
-	// normal
-	if (!in[17].link)
-		in[17].link = GPU_builtin(GPU_VIEW_NORMAL);
-	else
-		GPU_link(mat, "direction_transform_m4v3", in[17].link, GPU_builtin(GPU_VIEW_MATRIX), &in[17].link);
-
-	// clearcoat normal
-	if (!in[18].link)
-		in[18].link = GPU_builtin(GPU_VIEW_NORMAL);
-	else
-		GPU_link(mat, "direction_transform_m4v3", in[18].link, GPU_builtin(GPU_VIEW_MATRIX), &in[18].link);
-#endif
 
 	/* Normals */
 	if (!in[17].link) {
@@ -117,9 +107,48 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 		GPU_link(mat, "set_rgb", GPU_uniform((float *)one), &sss_scale);
 	}
 
-	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT);
+	bool use_diffuse = socket_not_one(4) && socket_not_one(15);
+	bool use_subsurf = socket_not_zero(1) && use_diffuse;
+	bool use_refract = socket_not_one(4) && socket_not_zero(15);
+	bool use_clear = socket_not_zero(12);
 
-	return GPU_stack_link(mat, node, "node_bsdf_principled_clearcoat", in, out, GPU_builtin(GPU_VIEW_POSITION),
+	/* Due to the manual effort done per config, we only optimize the most common permutations. */
+	char *node_name;
+	uint flag = 0;
+	if (!use_subsurf && use_diffuse && !use_refract && !use_clear) {
+		static char name[] = "node_bsdf_principled_dielectric";
+		node_name = name;
+		flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY;
+	}
+	else if (!use_subsurf && !use_diffuse && !use_refract && !use_clear) {
+		static char name[] = "node_bsdf_principled_metallic";
+		node_name = name;
+		flag = GPU_MATFLAG_GLOSSY;
+	}
+	else if (!use_subsurf && !use_diffuse && !use_refract && use_clear) {
+		static char name[] = "node_bsdf_principled_clearcoat";
+		node_name = name;
+		flag = GPU_MATFLAG_GLOSSY;
+	}
+	else if (use_subsurf && use_diffuse && !use_refract && !use_clear) {
+		static char name[] = "node_bsdf_principled_subsurface";
+		node_name = name;
+		flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS | GPU_MATFLAG_GLOSSY;
+	}
+	else if (!use_subsurf && !use_diffuse && use_refract && !use_clear && !socket_not_zero(4)) {
+		static char name[] = "node_bsdf_principled_glass";
+		node_name = name;
+		flag = GPU_MATFLAG_GLOSSY | GPU_MATFLAG_REFRACT;
+	}
+	else {
+		static char name[] = "node_bsdf_principled";
+		node_name = name;
+		flag = GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_GLOSSY | GPU_MATFLAG_SSS | GPU_MATFLAG_REFRACT;
+	}
+
+	GPU_material_flag_set(mat, flag);
+
+	return GPU_stack_link(mat, node, node_name, in, out, GPU_builtin(GPU_VIEW_POSITION),
 	                      GPU_uniform(&node->ssr_id), GPU_uniform(&node->sss_id), sss_scale);
 }
 

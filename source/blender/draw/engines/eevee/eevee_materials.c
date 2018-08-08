@@ -405,7 +405,7 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_int(shgrp, "outputSsrId", ssr_id, 1);
 	}
 
-	if (use_ssrefraction) {
+	if (use_refract || use_ssrefraction) {
 		BLI_assert(refract_depth != NULL);
 		DRW_shgroup_uniform_float(shgrp, "refractionDepth", refract_depth, 1);
 		DRW_shgroup_uniform_texture_ref(shgrp, "colorBuffer", &vedata->txl->refract_color);
@@ -555,6 +555,8 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		        datatoc_ltc_lib_glsl,
 		        datatoc_lamps_lib_glsl,
 		        /* Add one for each Closure */
+		        datatoc_lit_surface_frag_glsl,
+		        datatoc_lit_surface_frag_glsl,
 		        datatoc_lit_surface_frag_glsl,
 		        datatoc_lit_surface_frag_glsl,
 		        datatoc_lit_surface_frag_glsl,
