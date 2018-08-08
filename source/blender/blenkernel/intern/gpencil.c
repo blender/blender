@@ -1630,3 +1630,18 @@ void BKE_gpencil_stats_update(bGPdata *gpd)
 	}
 
 }
+
+/* get material index */
+int BKE_gpencil_get_material_index(Object *ob, Material *ma)
+{
+	short *totcol = give_totcolp(ob);
+	Material *read_ma = NULL;
+	for (short i = 0; i < *totcol; i++) {
+		read_ma = give_current_material(ob, i + 1);
+		if (ma == read_ma) {
+			return i + 1;
+		}
+	}
+
+	return 0;
+}

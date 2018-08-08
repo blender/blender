@@ -732,7 +732,7 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 		int *key = BLI_ghashIterator_getKey(&gh_iter);
 		Material *ma = BLI_ghashIterator_getValue(&gh_iter);
 
-		if (BKE_object_material_slot_find_index(ob, ma) == 0) {
+		if (BKE_gpencil_get_material_index(ob, ma) == 0) {
 			BKE_object_material_slot_add(bmain, ob);
 			assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 		}
@@ -980,8 +980,8 @@ static int gp_strokes_paste_exec(bContext *C, wmOperator *op)
 
 				/* Remap material */
 				Material *ma = BLI_ghash_lookup(new_colors, &new_stroke->mat_nr);
-				if ((ma) && (BKE_object_material_slot_find_index(ob, ma) > 0)) {
-					gps->mat_nr = BKE_object_material_slot_find_index(ob, ma) - 1;
+				if ((ma) && (BKE_gpencil_get_material_index(ob, ma) > 0)) {
+					gps->mat_nr = BKE_gpencil_get_material_index(ob, ma) - 1;
 					CLAMP_MIN(gps->mat_nr, 0);
 				}
 				else {
@@ -3184,7 +3184,7 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 
 							/* add duplicate materials */
 							ma = give_current_material(ob, gps->mat_nr + 1);
-							idx = BKE_object_material_slot_find_index(ob_dst, ma);
+							idx = BKE_gpencil_get_material_index(ob_dst, ma);
 							if (idx == 0) {
 
 								totadd++;

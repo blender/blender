@@ -1150,7 +1150,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	}
 
 	/* Save material index */
-	gps->mat_nr = BKE_object_material_slot_find_index(p->ob, p->material) - 1;
+	gps->mat_nr = BKE_gpencil_get_material_index(p->ob, p->material) - 1;
 
 	/* calculate UVs along the stroke */
 	ED_gpencil_calc_stroke_uv(obact, gps);
@@ -1602,7 +1602,7 @@ static void gp_init_colors(tGPsdata *p)
 	}
 
 	/* check if the material is already on object material slots and add it if missing */
-	if (BKE_object_material_slot_find_index(p->ob, p->material) == 0) {
+	if (BKE_gpencil_get_material_index(p->ob, p->material) == 0) {
 		BKE_object_material_slot_add(p->bmain, p->ob);
 		assign_material(p->bmain, p->ob, ma, p->ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 	}

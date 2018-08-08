@@ -3545,9 +3545,10 @@ class VIEW3D_MT_assign_material(Menu):
 
     def draw(self, context):
         layout = self.layout
-        ob = context.active_object;
+        ob = context.active_object
 
-        for mat in ob.data.materials:
+        for slot in ob.material_slots:
+            mat = slot.material
             layout.operator("gpencil.stroke_change_color", text=mat.name).material = mat.name
 
 

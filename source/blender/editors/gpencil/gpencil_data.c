@@ -1150,8 +1150,8 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 		}
 	}
 	/* try to find slot */
-	int idx = BKE_object_material_slot_find_index(ob, ma) - 1;
-	if (idx == 0) {
+	int idx = BKE_gpencil_get_material_index(ob, ma) - 1;
+	if (idx <= 0) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1230,7 +1230,6 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 
 	Object *ob = CTX_data_active_object(C);
 
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
 
 	/* sanity checks */
@@ -1239,9 +1238,8 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* first lock all colors */
 	for (short i = 0; i < *totcol; i++) {
-		Material *tmp_ma = (*matar)[i];
+		Material *tmp_ma = give_current_material(ob, i + 1);
 		tmp_ma->gp_style->flag |= GP_STYLE_COLOR_LOCKED;
-
 	}
 
 	/* loop all selected strokes and unlock any color */
@@ -1256,7 +1254,8 @@ static int gp_stroke_lock_color_exec(bContext *C, wmOperator *UNUSED(op))
 						continue;
 					}
 					/* unlock color */
-					Material *tmp_ma = (*matar)[gps->mat_nr];
+					Material *tmp_ma = give_current_material(ob, gps->mat_nr + 1);
+
 					tmp_ma->gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
 				}
 			}
@@ -1896,12 +1895,11 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 					obact->actdef = 1;
 
 				/* add missing materials reading source materials and checking in destination object */
-				Material ***matar = give_matarar(ob_src);
 				short *totcol = give_totcolp(ob_src);
 
 				for (short i = 0; i < *totcol; i++) {
-					Material *tmp_ma = (*matar)[i];
-					if (BKE_object_material_slot_find_index(ob_dst, tmp_ma) == 0) {
+					Material *tmp_ma = give_current_material(ob_src, i + 1);
+					if (BKE_gpencil_get_material_index(ob_dst, tmp_ma) == 0) {
 						BKE_object_material_slot_add(bmain, ob_dst);
 						assign_material(bmain, ob_dst, tmp_ma, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
 					}
@@ -1941,7 +1939,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 							/* reasign material. Look old material and try to find in dst */
 							ma_src = give_current_material(ob_src, gps->mat_nr + 1);
 							if (ma_src != NULL) {
-								idx = BKE_object_material_slot_find_index(ob_dst, ma_src);
+								idx = BKE_gpencil_get_material_index(ob_dst, ma_src);
 								if (idx > 0) {
 									gps->mat_nr = idx - 1;
 								}
@@ -2041,13 +2039,12 @@ static int gpencil_lock_layer_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* first lock and hide all colors */
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
-	if ((totcol == 0) || (matar == NULL))
+	if (totcol == 0)
 		return OPERATOR_CANCELLED;
 
 	for (short i = 0; i < *totcol; i++) {
-		ma = (*matar)[i];
+		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag |= GP_STYLE_COLOR_LOCKED;
 		gp_style->flag |= GP_STYLE_COLOR_HIDE;
@@ -2113,10 +2110,9 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 
 	/* Test whether to isolate or clear all flags */
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
 	for (short i = 0; i < *totcol; i++) {
-		ma = (*matar)[i];
+		ma = give_current_material(ob, i + 1);
 		/* Skip if this is the active one */
 		if (ma == active_ma)
 			continue;
@@ -2135,7 +2131,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 	if (isolate) {
 		/* Set flags on all "other" colors */
 		for (short i = 0; i < *totcol; i++) {
-			ma = (*matar)[i];
+			ma = give_current_material(ob, i + 1);
 			gp_style = ma->gp_style;
 			if (gp_style == active_color)
 				continue;
@@ -2146,7 +2142,7 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 	else {
 		/* Clear flags - Restore everything else */
 		for (short i = 0; i < *totcol; i++) {
-			ma = (*matar)[i];
+			ma = give_current_material(ob, i + 1);
 			gp_style = ma->gp_style;
 			gp_style->flag &= ~flags;
 		}
@@ -2188,16 +2184,15 @@ static int gpencil_color_hide_exec(bContext *C, wmOperator *op)
 	bool unselected = RNA_boolean_get(op->ptr, "unselected");
 
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
-	if ((totcol == 0) || (matar == NULL))
+	if (totcol == 0)
 		return OPERATOR_CANCELLED;
 
 	if (unselected) {
 		/* hide unselected */
 		MaterialGPencilStyle *color = NULL;
 		for (short i = 0; i < *totcol; i++) {
-			ma = (*matar)[i];
+			ma = give_current_material(ob, i + 1);
 			color = ma->gp_style;
 			if (active_color != color) {
 				color->flag |= GP_STYLE_COLOR_HIDE;
@@ -2239,17 +2234,16 @@ static int gpencil_color_reveal_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_active_object(C);
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
 
-	if ((totcol == 0) || (matar == NULL))
+	if (totcol == 0)
 		return OPERATOR_CANCELLED;
 
 	/* make all colors visible */
 	MaterialGPencilStyle *gp_style = NULL;
 
 	for (short i = 0; i < *totcol; i++) {
-		ma = (*matar)[i];
+		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag &= ~GP_STYLE_COLOR_HIDE;
 	}
@@ -2282,17 +2276,16 @@ static int gpencil_color_lock_all_exec(bContext *C, wmOperator *UNUSED(op))
 
 	Object *ob = CTX_data_active_object(C);
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
 
-	if ((totcol == 0) || (matar == NULL))
+	if (totcol == 0)
 		return OPERATOR_CANCELLED;
 
 	/* make all layers non-editable */
 	MaterialGPencilStyle *gp_style = NULL;
 
 	for (short i = 0; i < *totcol; i++) {
-		ma = (*matar)[i];
+		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag |= GP_STYLE_COLOR_LOCKED;
 	}
@@ -2324,17 +2317,16 @@ static int gpencil_color_unlock_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_active_object(C);
 	Material *ma = NULL;
-	Material ***matar = give_matarar(ob);
 	short *totcol = give_totcolp(ob);
 
-	if ((totcol == 0) || (matar == NULL))
+	if (totcol == 0)
 		return OPERATOR_CANCELLED;
 
 	/* make all layers editable again*/
 	MaterialGPencilStyle *gp_style = NULL;
 
 	for (short i = 0; i < *totcol; i++) {
-		ma = (*matar)[i];
+		ma = give_current_material(ob, i + 1);
 		gp_style = ma->gp_style;
 		gp_style->flag &= ~GP_STYLE_COLOR_LOCKED;
 	}
