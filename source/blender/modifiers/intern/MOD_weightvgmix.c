@@ -259,6 +259,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		}
 		return mesh;
 	}
+	result->dvert = dvert;
 
 	/* Find out which vertices to work on. */
 	tidx = MEM_malloc_arrayN(numVerts, sizeof(int), "WeightVGMix Modifier, tidx");

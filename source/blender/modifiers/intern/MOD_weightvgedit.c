@@ -219,6 +219,7 @@ static Mesh *applyModifier(
 		}
 		return mesh;
 	}
+	result->dvert = dvert;
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_malloc_arrayN(numVerts, sizeof(float), "WeightVGEdit Modifier, org_w");
