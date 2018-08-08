@@ -105,7 +105,7 @@ void *BKE_camera_add(Main *bmain, const char *name)
  *
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *cam_dst, const Camera *cam_src, const int flag)
+void BKE_camera_copy_data(Main *UNUSED(bmain), Camera *cam_dst, const Camera *cam_src, const int UNUSED(flag))
 {
 	BLI_duplicatelist(&cam_dst->bg_images, &cam_src->bg_images);
 }
