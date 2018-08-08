@@ -60,6 +60,7 @@
 #include "BKE_deform.h"
 #include "BKE_object.h"
 #include "BKE_object_deform.h"
+#include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1223,10 +1224,14 @@ void VIEW3D_OT_properties(wmOperatorType *ot)
 	ot->flag = 0;
 }
 
-static int view3d_object_mode_menu(bContext *C, wmOperator *UNUSED(op))
+static int view3d_object_mode_menu(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_active_object(C);
-	if (ob && ((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
+	if (ob == NULL) {
+		BKE_report(op->reports, RPT_WARNING, "No active object found");
+		return OPERATOR_CANCELLED;
+	}
+	else if (((ob->mode & OB_MODE_EDIT) == 0) && (ELEM(ob->type, OB_ARMATURE))) {
 		ED_object_mode_toggle(C, OB_MODE_POSE);
 		return OPERATOR_CANCELLED;
 	}
