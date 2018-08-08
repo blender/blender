@@ -1233,9 +1233,9 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 			                             DEG_NODE_TYPE_GEOMETRY,
 			                             function_bind(BKE_gpencil_eval_geometry,
 			                                           _1,
-													   (bGPdata *)obdata_cow),
-													   DEG_OPCODE_PLACEHOLDER,
-			                                           "Geometry Eval");
+			                                           (bGPdata *)obdata_cow),
+			                             DEG_OPCODE_PLACEHOLDER,
+			                             "Geometry Eval");
 			op_node->set_as_entry();
 			break;
 		}

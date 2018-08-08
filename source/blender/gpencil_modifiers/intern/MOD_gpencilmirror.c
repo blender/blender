@@ -124,8 +124,8 @@ static void generateStrokes(
 
 			for (i = 0, gps = gpf->strokes.first; i < tot_strokes; i++, gps = gps->next) {
 				if (is_stroke_affected_by_modifier(
-					ob, mmd->layername, mmd->pass_index, 1, gpl, gps,
-					mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
+				            ob, mmd->layername, mmd->pass_index, 1, gpl, gps,
+				            mmd->flag & GP_MIRROR_INVERT_LAYER, mmd->flag & GP_MIRROR_INVERT_PASS))
 				{
 					gps_new = BKE_gpencil_stroke_duplicate(gps);
 					update_position(ob, mmd, gps_new, xi);

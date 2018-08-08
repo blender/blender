@@ -122,11 +122,11 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 		     vertex_index < num_face_vertices;
 		     vertex_index++, mluv++)
 		{
-		evaluator->setFaceVaryingData(evaluator,
-                                      layer_index,
-		                              mluv->uv,
-		                              uv_indicies[vertex_index],
-		                              1);
+			evaluator->setFaceVaryingData(evaluator,
+			                              layer_index,
+			                              mluv->uv,
+			                              uv_indicies[vertex_index],
+			                              1);
 		}
 	}
 }

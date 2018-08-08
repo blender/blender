@@ -1814,7 +1814,7 @@ static int gpsculpt_brush_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 {
 	tGP_BrushEditData *gso = NULL;
 	const bool is_modal = RNA_boolean_get(op->ptr, "wait_for_input");
-	const bool is_playing = ED_screen_animation_playing(CTX_wm_manager(C)) != NULL ? true : false;
+	const bool is_playing = ED_screen_animation_playing(CTX_wm_manager(C)) != NULL;
 	bool needs_timer = false;
 	float brush_rate = 0.0f;
 

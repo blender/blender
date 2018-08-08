@@ -2251,7 +2251,7 @@ static void points_for_loose_edges_interpolation_get(
         SubdivMeshContext *ctx,
         const MEdge *coarse_edge,
         const MEdge *neighbors[2],
-		float points_r[4][3])
+        float points_r[4][3])
 {
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MVert *coarse_mvert = coarse_mesh->mvert;

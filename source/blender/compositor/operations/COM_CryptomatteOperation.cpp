@@ -22,7 +22,7 @@
 
 CryptomatteOperation::CryptomatteOperation(size_t num_inputs) : NodeOperation()
 {
-	for(size_t i = 0; i < num_inputs; i++) {
+	for (size_t i = 0; i < num_inputs; i++) {
 		this->addInputSocket(COM_DT_COLOR);
 	}
 	inputs.resize(num_inputs);

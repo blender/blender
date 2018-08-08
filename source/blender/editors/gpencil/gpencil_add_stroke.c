@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/gpencil/gpencil_add_monkey.c
+/** \file blender/editors/gpencil/gpencil_add_stroke.c
  *  \ingroup edgpencil
  */
 

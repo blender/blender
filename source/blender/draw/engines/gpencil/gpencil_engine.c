@@ -329,7 +329,7 @@ void GPENCIL_cache_init(void *vedata)
 		/* detect if playing animation */
 		stl->storage->is_playing = false;
 		if (draw_ctx->evil_C) {
-			stl->storage->is_playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL ? true : false;
+			stl->storage->is_playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL;
 		}
 
 		if (obact_gpd) {
@@ -724,7 +724,7 @@ void GPENCIL_draw_scene(void *ved)
 				}
 				/* fx passes */
 				if ((!stl->storage->simplify_fx) &&
-					(BKE_shaderfx_has_gpencil(ob)))
+				    (BKE_shaderfx_has_gpencil(ob)))
 				{
 					stl->storage->tonemapping = 0;
 					DRW_gpencil_fx_draw(&e_data, vedata, cache);
