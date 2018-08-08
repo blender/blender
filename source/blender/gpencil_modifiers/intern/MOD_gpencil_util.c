@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_ghash.h"
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_color.h"
@@ -45,12 +46,15 @@
 #include "DNA_gpencil_modifier_types.h"
 
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_lattice.h"
 #include "BKE_material.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 #include "BKE_colortools.h"
+
+#include "DEG_depsgraph.h"
 
 #include "MOD_gpencil_modifiertypes.h"
 #include "MOD_gpencil_util.h"
@@ -139,4 +143,47 @@ float get_modifier_point_weight(MDeformVert *dvert, int inverse, int vindex)
 	}
 
 	return weight;
+}
+
+/* set material when apply modifiers (used in tint and color modifier) */
+void gpencil_apply_modifier_material(
+	Main *bmain, Object *ob, Material *mat,
+	GHash *gh_color, bGPDstroke *gps, bool crt_material)
+{
+	MaterialGPencilStyle *gp_style = mat->gp_style;
+
+	/* look for color */
+	if (crt_material) {
+		Material *newmat = BLI_ghash_lookup(gh_color, mat->id.name);
+		if (newmat == NULL) {
+			BKE_object_material_slot_add(bmain, ob);
+			newmat = BKE_material_copy(bmain, mat);
+			newmat->preview = NULL;
+
+			assign_material(bmain, ob, newmat, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+
+			copy_v4_v4(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
+			copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
+
+			BLI_ghash_insert(gh_color, mat->id.name, newmat);
+			DEG_id_tag_update(&newmat->id, DEG_TAG_COPY_ON_WRITE);
+		}
+		/* reasign color index */
+		int idx = BKE_object_material_slot_find_index(ob, newmat);
+		gps->mat_nr = idx - 1;
+	}
+	else {
+		/* reuse existing color (but update only first time) */
+		if (BLI_ghash_lookup(gh_color, mat->id.name) == NULL) {
+			copy_v4_v4(gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
+			copy_v4_v4(gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
+			BLI_ghash_insert(gh_color, mat->id.name, mat);
+		}
+		/* update previews (icon and thumbnail) */
+		if (mat->preview != NULL) {
+			mat->preview->flag[ICON_SIZE_ICON] |= PRV_CHANGED;
+			mat->preview->flag[ICON_SIZE_PREVIEW] |= PRV_CHANGED;
+		}
+		DEG_id_tag_update(&mat->id, DEG_TAG_COPY_ON_WRITE);
+	}
 }

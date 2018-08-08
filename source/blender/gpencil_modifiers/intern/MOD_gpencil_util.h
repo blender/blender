@@ -33,15 +33,22 @@
 #ifndef __MOD_GPENCIL_UTIL_H__
 #define __MOD_GPENCIL_UTIL_H__
 
+struct Main;
 struct Object;
 struct bGPDlayer;
 struct bGPDstroke;
 struct MDeformVert;
+struct Material;
+struct GHash;
 
 bool is_stroke_affected_by_modifier(
         struct Object *ob, char *mlayername, int mpassindex, int minpoints,
         bGPDlayer *gpl, bGPDstroke *gps, bool inv1, bool inv2);
 
 float get_modifier_point_weight(struct MDeformVert *dvert, int inverse, int vindex);
+
+void gpencil_apply_modifier_material(
+	struct Main *bmain, struct Object *ob, struct Material *mat,
+	struct GHash *gh_color, struct bGPDstroke *gps, bool crt_material);
 
 #endif  /* __MOD_GPENCIL_UTIL_H__ */
