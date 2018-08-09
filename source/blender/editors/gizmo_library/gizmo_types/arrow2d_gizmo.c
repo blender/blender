@@ -140,15 +140,15 @@ static int gizmo_arrow2d_invoke(
 }
 
 static int gizmo_arrow2d_test_select(
-        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+        bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
 {
-	const float mval[2] = {event->mval[0], event->mval[1]};
+	const float mval_fl[2] = {UNPACK2(mval)};
 	const float arrow_length = RNA_float_get(gz->ptr, "length");
 	const float arrow_angle = RNA_float_get(gz->ptr, "angle");
 	const float line_len = arrow_length * gz->scale_final;
 	float mval_local[2];
 
-	copy_v2_v2(mval_local, mval);
+	copy_v2_v2(mval_local, mval_fl);
 	sub_v2_v2(mval_local, gz->matrix_basis[3]);
 
 	float line[2][2];

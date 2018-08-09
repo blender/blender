@@ -343,9 +343,9 @@ static void gizmo_axis_draw(const bContext *C, wmGizmo *gz)
 }
 
 static int gizmo_axis_test_select(
-        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+        bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
 {
-	float point_local[2] = {UNPACK2(event->mval)};
+	float point_local[2] = {UNPACK2(mval)};
 	sub_v2_v2(point_local, gz->matrix_basis[3]);
 	mul_v2_fl(point_local, 1.0f / (gz->scale_basis * UI_DPI_FAC));
 

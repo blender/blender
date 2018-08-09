@@ -799,10 +799,10 @@ static void gizmo_ruler_draw(const bContext *C, wmGizmo *gz)
 }
 
 static int gizmo_ruler_test_select(
-        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+        bContext *UNUSED(C), wmGizmo *gz, const int mval[2])
 {
 	RulerItem *ruler_item_pick = (RulerItem *)gz;
-	float mval_fl[2] = {UNPACK2(event->mval)};
+	float mval_fl[2] = {UNPACK2(mval)};
 	int co_index;
 
 	/* select and drag */

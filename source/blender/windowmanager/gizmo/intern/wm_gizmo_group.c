@@ -153,7 +153,7 @@ wmGizmo *wm_gizmogroup_find_intersected_gizmo(
 {
 	for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
 		if (gz->type->test_select && (gz->flag & WM_GIZMO_HIDDEN) == 0) {
-			if ((*r_part = gz->type->test_select(C, gz, event)) != -1) {
+			if ((*r_part = gz->type->test_select(C, gz, event->mval)) != -1) {
 				return gz;
 			}
 		}

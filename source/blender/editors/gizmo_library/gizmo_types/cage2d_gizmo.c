@@ -718,7 +718,7 @@ static int gizmo_cage2d_get_cursor(wmGizmo *gz)
 }
 
 static int gizmo_cage2d_test_select(
-        bContext *C, wmGizmo *gz, const wmEvent *event)
+        bContext *C, wmGizmo *gz, const int mval[2])
 {
 	float point_local[2];
 	float dims[2];
@@ -726,7 +726,7 @@ static int gizmo_cage2d_test_select(
 	const float size_real[2] = {dims[0] / 2.0f, dims[1] / 2.0f};
 
 	if (gizmo_window_project_2d(
-	        C, gz, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
+	        C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) == false)
 	{
 		return -1;
 	}

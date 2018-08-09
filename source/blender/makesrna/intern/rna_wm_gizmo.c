@@ -111,7 +111,7 @@ static void rna_gizmo_draw_select_cb(
 }
 
 static int rna_gizmo_test_select_cb(
-        struct bContext *C, struct wmGizmo *gz, const struct wmEvent *event)
+        struct bContext *C, struct wmGizmo *gz, const int location[2])
 {
 	extern FunctionRNA rna_Gizmo_test_select_func;
 	wmGizmoGroup *gzgroup = gz->parent_gzgroup;
@@ -123,7 +123,7 @@ static int rna_gizmo_test_select_cb(
 	func = &rna_Gizmo_test_select_func;
 	RNA_parameter_list_create(&list, &gz_ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
-	RNA_parameter_set_lookup(&list, "event", &event);
+	RNA_parameter_set_lookup(&list, "location", location);
 	gzgroup->type->ext.call((bContext *)C, &gz_ptr, func, &list);
 
 	void *ret;
@@ -966,7 +966,7 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "event", "Event", "", "");
+	parm = RNA_def_int_array(func, "location", 2, NULL, INT_MIN, INT_MAX, "Location", "Region coordinates", INT_MIN, INT_MAX);
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_int(func, "intersect_id", 0, 0, INT_MAX, "", "", 0, INT_MAX);
 	RNA_def_function_return(func, parm);

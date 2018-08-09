@@ -51,7 +51,7 @@ typedef void (*wmGizmoGroupFnMsgBusSubscribe)(
 typedef void    (*wmGizmoFnSetup)(struct wmGizmo *);
 typedef void    (*wmGizmoFnDraw)(const struct bContext *, struct wmGizmo *);
 typedef void    (*wmGizmoFnDrawSelect)(const struct bContext *, struct wmGizmo *, int);
-typedef int     (*wmGizmoFnTestSelect)(struct bContext *, struct wmGizmo *, const struct wmEvent *);
+typedef int     (*wmGizmoFnTestSelect)(struct bContext *, struct wmGizmo *, const int mval[2]);
 typedef int     (*wmGizmoFnModal)(struct bContext *, struct wmGizmo *, const struct wmEvent *, eWM_GizmoFlagTweak);
 typedef void    (*wmGizmoFnPropertyUpdate)(struct wmGizmo *, struct wmGizmoProperty *);
 typedef void    (*wmGizmoFnMatrixBasisGet)(const struct wmGizmo *, float[4][4]);

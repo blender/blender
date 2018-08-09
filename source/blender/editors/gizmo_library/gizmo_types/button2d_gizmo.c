@@ -232,20 +232,20 @@ static void gizmo_button2d_draw(const bContext *C, wmGizmo *gz)
 }
 
 static int gizmo_button2d_test_select(
-        bContext *C, wmGizmo *gz, const wmEvent *event)
+        bContext *C, wmGizmo *gz, const int mval[2])
 {
 	float point_local[2];
 
 	if (0) {
 		/* correct, but unnecessarily slow. */
 		if (gizmo_window_project_2d(
-		        C, gz, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
+		        C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) == false)
 		{
 			return -1;
 		}
 	}
 	else {
-		copy_v2_v2(point_local, (float[2]){UNPACK2(event->mval)});
+		copy_v2_v2(point_local, (float[2]){UNPACK2(mval)});
 		sub_v2_v2(point_local, gz->matrix_basis[3]);
 		mul_v2_fl(point_local, 1.0f / (gz->scale_basis * UI_DPI_FAC));
 	}

@@ -293,12 +293,12 @@ static int gizmo_grab_invoke(
 
 
 static int gizmo_grab_test_select(
-        bContext *C, wmGizmo *gz, const wmEvent *event)
+        bContext *C, wmGizmo *gz, const int mval[2])
 {
 	float point_local[2];
 
 	if (gizmo_window_project_2d(
-	        C, gz, (const float[2]){UNPACK2(event->mval)}, 2, true, point_local) == false)
+	        C, gz, (const float[2]){UNPACK2(mval)}, 2, true, point_local) == false)
 	{
 		return -1;
 	}
