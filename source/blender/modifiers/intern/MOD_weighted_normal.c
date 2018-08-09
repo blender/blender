@@ -514,8 +514,6 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	MVert *mvert = result->mvert;
 	MLoop *mloop = result->mloop;
 
-	bool free_polynors = false;
-
 	/* Right now:
 	 * If weight = 50 then all faces are given equal weight.
 	 * If weight > 50 then more weight given to faces with larger vals (face area / corner angle).
@@ -538,7 +536,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (!polynors) {
 		polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, numPolys);
 	}
-	BKE_mesh_calc_normals_poly(mvert, NULL, numVerts, mloop, mpoly, numLoops, numPolys, polynors, false);	
+	BKE_mesh_calc_normals_poly(mvert, NULL, numVerts, mloop, mpoly, numLoops, numPolys, polynors, false);
 
 
 	const float split_angle = mesh->smoothresh;
@@ -573,8 +571,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	    .mpoly = mpoly,
 	    .polynors = polynors,
-	    .poly_strength = CustomData_get_layer_named(&result->pdata, CD_PROP_INT,
-													MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID),
+	    .poly_strength = CustomData_get_layer_named(
+	            &result->pdata, CD_PROP_INT,
+	            MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID),
 
 	    .dvert = dvert,
 	    .defgrp_index = defgrp_index,

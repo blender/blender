@@ -7064,7 +7064,7 @@ static void point_normals_update_header(bContext *C, wmOperator *op)
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SET_USE_SELECTED),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_INVERT), WM_bool_as_string(RNA_boolean_get(op->ptr, "invert")),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_SPHERIZE),
-				 WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
+	             WM_bool_as_string(RNA_boolean_get(op->ptr, "spherize")),
 	             WM_MODALKEY(EDBM_CLNOR_MODAL_POINTTO_ALIGN), WM_bool_as_string(RNA_boolean_get(op->ptr, "align")));
 
 #undef WM_MODALKEY
@@ -8064,8 +8064,8 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
 				if (BLI_BITMAP_TEST(loop_set, BM_elem_index_get(l))) {
 					const int loop_index = BM_elem_index_get(l);
 					short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
-					BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[loop_index], vnors[v_index],
-														 clnors);
+					BKE_lnor_space_custom_normal_to_data(
+					        bm->lnor_spacearr->lspacearr[loop_index], vnors[v_index], clnors);
 				}
 			}
 		}

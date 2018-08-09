@@ -1831,7 +1831,7 @@ static void drawHelpline(bContext *C, int x, int y, void *customdata)
 		 * an update
 		 */
 		if ((t->flag & T_POINTS) && (t->options & CTX_GPENCIL_STROKES) &&
-			(t->around != V3D_AROUND_ACTIVE))
+		    (t->around != V3D_AROUND_ACTIVE))
 		{
 			Object *ob = CTX_data_active_object(C);
 			if ((ob) && (ob->type == OB_GPENCIL)) {
@@ -4298,7 +4298,6 @@ static void applyRotationValue(TransInfo *t, float angle, float axis[3])
 static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 {
 	char str[UI_MAX_DRAW_STR];
-	size_t ofs = 0;
 
 	float final;
 
@@ -4458,7 +4457,7 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 static void storeCustomLNorValue(TransDataContainer *tc, BMesh *bm)
 {
 	BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
-	BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
+	// BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
 
 	tc->custom.mode.data = lnors_ed_arr;
 	tc->custom.mode.free_cb = freeCustomNormalArray;

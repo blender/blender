@@ -136,7 +136,7 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 	}
 }
 
-static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_strength, int hnmode)
+static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_strength)
 {
 	BKE_editmesh_lnorspace_update(em);
 	BM_normals_loops_edges_tag(em->bm, true);
@@ -154,8 +154,8 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 		l_cur = l_first = BM_FACE_FIRST_LOOP(f);
 		do {
 			if ((BM_elem_flag_test(l_cur->v, BM_ELEM_SELECT)) &&
-				((!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG)) ||
-				(!BM_elem_flag_test(l_cur, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_cur))))
+			    ((!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG)) ||
+			     (!BM_elem_flag_test(l_cur, BM_ELEM_TAG) && BM_loop_check_cyclic_smooth_fan(l_cur))))
 			{
 				/* Both adjacent loops are sharp, set clnor to face normal */
 				if (!BM_elem_flag_test(l_cur->e, BM_ELEM_TAG) && !BM_elem_flag_test(l_cur->prev->e, BM_ELEM_TAG)) {
@@ -213,11 +213,13 @@ static void bevel_harden_normals(BMEditMesh *em, BMOperator *bmop, float face_st
 						const int l_index = BM_elem_index_get(l);
 						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
 						if (calc_n) {
-							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], calc_n, clnors);
+							BKE_lnor_space_custom_normal_to_data(
+							        bm->lnor_spacearr->lspacearr[l_index], calc_n, clnors);
 						}
-						else
-							BKE_lnor_space_custom_normal_to_data(bm->lnor_spacearr->lspacearr[l_index], cn_unwght,
-																 clnors);
+						else {
+							BKE_lnor_space_custom_normal_to_data(
+							        bm->lnor_spacearr->lspacearr[l_index], cn_unwght, clnors);
+						}
 					}
 					BLI_ghash_remove(nslot->data.ghash, v_pivot, NULL, MEM_freeN);
 				}
@@ -334,11 +336,12 @@ static bool edbm_bevel_calc(wmOperator *op)
 			material = CLAMPIS(material, -1, em->ob->totcol - 1);
 		}
 
-		EDBM_op_init(em, &bmop, op,
-			"bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-			"material=%i loop_slide=%b mark_seam=%b mark_sharp=%b strength=%f hnmode=%i",
-			BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-			clamp_overlap, material, loop_slide, mark_seam, mark_sharp, hn_strength, hnmode);
+		EDBM_op_init(
+		        em, &bmop, op,
+		        "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
+		        "material=%i loop_slide=%b mark_seam=%b mark_sharp=%b strength=%f hnmode=%i",
+		        BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
+		        clamp_overlap, material, loop_slide, mark_seam, mark_sharp, hn_strength, hnmode);
 
 		BMO_op_exec(em->bm, &bmop);
 
@@ -349,8 +352,9 @@ static bool edbm_bevel_calc(wmOperator *op)
 			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 		}
 
-		if (hnmode != BEVEL_HN_NONE)
-			bevel_harden_normals(em, &bmop, hn_strength, hnmode);
+		if (hnmode != BEVEL_HN_NONE) {
+			bevel_harden_normals(em, &bmop, hn_strength);
+		}
 
 		/* no need to de-select existing geometry */
 		if (!EDBM_op_finish(em, &bmop, op, true)) {

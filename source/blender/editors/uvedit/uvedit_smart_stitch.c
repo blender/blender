@@ -1033,7 +1033,7 @@ static int stitch_process_data(
 	/* remember stitchable candidates as places the 'I' button	*/
 	/* will stop at.											*/
 	for (int island_idx = 0; island_idx < state->element_map->totalIslands; island_idx++) {
-		state->island_is_stitchable[island_idx] = island_stitch_data[island_idx].stitchableCandidate?true:false;
+		state->island_is_stitchable[island_idx] = island_stitch_data[island_idx].stitchableCandidate ? true : false;
 	}
 
 	if (is_active_state) {
@@ -1810,7 +1810,7 @@ static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
 	return BLI_ghash_lookup(state->edge_hash, &tmp_edge);
 }
 
-static StitchState* stitch_init(
+static StitchState *stitch_init(
         bContext *C, wmOperator *op,
         StitchStateContainer *ssc, Object *obedit)
 {
@@ -2132,7 +2132,7 @@ static bool goto_next_island(StitchStateContainer *ssc)
 
 	int original_island = ssc->static_island;
 
-	 do {
+	do {
 		ssc->static_island++;
 		if (ssc->static_island >= active_state->element_map->totalIslands) {
 			/* go to next object */
@@ -2147,8 +2147,8 @@ static bool goto_next_island(StitchStateContainer *ssc)
 			/* We're at an island to make active */
 			return true;
 		}
-	} while (!(active_state == original_active_state
-		&& ssc->static_island == original_island));
+	} while (!(active_state == original_active_state &&
+	           ssc->static_island == original_island));
 
 	return false;
 }
@@ -2201,15 +2201,14 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
-	if (!objects_len)
-	{
+	if (objects_len == 0) {
 		MEM_freeN(objects);
 		state_delete_all(ssc);
 		return 0;
 	}
 
-	ssc->objects = MEM_callocN(sizeof(Object*) * objects_len, "Object *ssc->objects");
-	ssc->states = MEM_callocN(sizeof(StitchState*) * objects_len, "StitchState");
+	ssc->objects = MEM_callocN(sizeof(Object *) * objects_len, "Object *ssc->objects");
+	ssc->states = MEM_callocN(sizeof(StitchState *) * objects_len, "StitchState");
 	ssc->objects_len = 0;
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -2350,7 +2349,7 @@ static int stitch_exec(bContext *C, wmOperator *op)
 	}
 }
 
-static StitchState* stitch_select(
+static StitchState *stitch_select(
 	bContext *C, Scene *scene, const wmEvent *event, StitchStateContainer *ssc)
 {
 	/* add uv under mouse to processed uv's */

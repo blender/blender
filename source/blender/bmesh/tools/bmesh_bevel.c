@@ -1553,28 +1553,32 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 	if ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))
 		return;
 
-	efirst = e;			/* Set efirst to this first encountered edge*/
+	/* Set efirst to this first encountered edge. */
+	efirst = e;
 
 	do {
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 
 		while (((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag)) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
-				ne != efirst)
+		       ne != efirst)
 		{
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
 		if (ne == e || (ne == efirst && ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)) ||
-										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)))))
+		                                 (neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)))))
 		{
 			break;
 		}
-		if (flag == BM_ELEM_SEAM)				/* Set seam_len / sharp_len of starting edge */
+		/* Set seam_len / sharp_len of starting edge */
+		if (flag == BM_ELEM_SEAM) {
 			e->rightv->seam_len = flag_count;
-		else if (flag == BM_ELEM_SMOOTH)
+		}
+		else if (flag == BM_ELEM_SMOOTH) {
 			e->rightv->sharp_len = flag_count;
+		}
 		e = ne;
 	} while (e != efirst);
 }
@@ -5635,7 +5639,7 @@ void BM_mesh_bevel(
         const bool vertex_only, const bool use_weights, const bool limit_offset,
         const struct MDeformVert *dvert, const int vertex_group, const int mat,
         const bool loop_slide, const bool mark_seam, const bool mark_sharp,
-		const int hnmode, void *mod_bmop_customdata)
+        const int hnmode, void *mod_bmop_customdata)
 {
 	BMIter iter;
 	BMVert *v, *v_next;
