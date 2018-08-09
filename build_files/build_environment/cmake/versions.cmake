@@ -103,12 +103,15 @@ set(OPENCOLLADA_HASH 23db5087faed4bc4cc1dfe456c0d4701)
 set(OPENCOLORIO_URI https://github.com/imageworks/OpenColorIO/archive/6de971097c7f552300f669ed69ca0b6cf5a70843.zip)
 set(OPENCOLORIO_HASH c9de0fd98f26ce6f2e08d617ca68b8e4)
 
-set(LLVM_VERSION 3.4.2)
-set(LLVM_URI http://releases.llvm.org/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.gz)
-set(LLVM_HASH a20669f75967440de949ac3b1bad439c)
+set(LLVM_VERSION 6.0.1)
+set(LLVM_URI http://releases.llvm.org/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz)
+set(LLVM_HASH c88c98709300ce2c285391f387fecce0)
 
-set(CLANG_URI http://releases.llvm.org/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.gz)
-set(CLANG_HASH 87945973b7c73038871c5f849a818588)
+set(CLANG_URI http://releases.llvm.org/${LLVM_VERSION}/cfe-${LLVM_VERSION}.src.tar.xz)
+set(CLANG_HASH 4e419bd4e3b55aa06d872320f754bd85)
+
+set(OPENMP_URI http://releases.llvm.org/${LLVM_VERSION}/openmp-${LLVM_VERSION}.src.tar.xz)
+set(OPENMP_HASH 4826402ae3633c36c51ba4d0e5527d30)
 
 set(OPENIMAGEIO_VERSION 1.7.15)
 set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/Release-${OPENIMAGEIO_VERSION}.zip)
