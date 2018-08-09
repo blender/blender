@@ -54,7 +54,7 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *node, 
 	if (!in[5].link)
 		GPU_link(mat, "world_normals_get", &in[5].link);
 
-	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE);
+	GPU_material_flag_set(mat, GPU_MATFLAG_DIFFUSE | GPU_MATFLAG_SSS);
 
 	if (node->sss_id == 1) {
 		bNodeSocket *socket = BLI_findlink(&node->original->inputs, 2);
