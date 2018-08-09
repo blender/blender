@@ -1230,19 +1230,33 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data, void *vedata, Scene 
 			gpl->runtime.derived_data = (GHash *)BLI_ghash_str_new(gpl->info);
 		}
 
-		derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
+		if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+			derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
+		}
+		else {
+			derived_gpf = NULL;
+		}
+
 		if (derived_gpf == NULL) {
 			cache->is_dirty = true;
 		}
 		if (cache->is_dirty) {
 			if (derived_gpf != NULL) {
 				/* first clear temp data */
+				if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+					BLI_ghash_remove(gpl->runtime.derived_data, ob->id.name, NULL, NULL);
+				}
+
 				BKE_gpencil_free_frame_runtime_data(derived_gpf);
-				BLI_ghash_remove(gpl->runtime.derived_data, ob->id.name, NULL, NULL);
 			}
 			/* create new data */
 			derived_gpf = BKE_gpencil_frame_duplicate(gpf);
-			BLI_ghash_insert(gpl->runtime.derived_data, ob->id.name, derived_gpf);
+			if (!BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+				BLI_ghash_insert(gpl->runtime.derived_data, ob->id.name, derived_gpf);
+			}
+			else {
+				BLI_ghash_reinsert(gpl->runtime.derived_data, ob->id.name, derived_gpf, NULL, NULL);
+			}
 		}
 
 		/* draw onion skins */
