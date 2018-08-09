@@ -1065,15 +1065,27 @@ float floorfrac(float x, out int i)
 
 /* bsdfs */
 
+vec3 tint_from_color(vec3 color)
+{
+	float lum = dot(color, vec3(0.3, 0.6, 0.1)); /* luminance approx. */
+	return (lum > 0) ? color / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
+}
+
 void convert_metallic_to_specular_tinted(
-        vec3 basecol, float metallic, float specular_fac, float specular_tint,
+        vec3 basecol, vec3 basecol_tint, float metallic, float specular_fac, float specular_tint,
         out vec3 diffuse, out vec3 f0)
 {
-	float lum = dot(basecol, vec3(0.3, 0.6, 0.1)); /* luminance approx. */
-	vec3 tint = lum > 0 ? basecol / lum : vec3(1.0); /* normalize lum. to isolate hue+sat */
-	vec3 tmp_col = mix(vec3(1.0), tint, specular_tint);
+	vec3 tmp_col = mix(vec3(1.0), basecol_tint, specular_tint);
 	f0 = mix((0.08 * specular_fac) * tmp_col, basecol, metallic);
 	diffuse = basecol * (1.0 - metallic);
+}
+
+vec3 principled_sheen(float NV, vec3 basecol_tint, float sheen_tint)
+{
+	float f = 1.0 - NV;
+	/* Empirical approximation (manual curve fitting). Can be refined. */
+	float sheen = f*f*f*0.077 + f*0.01 + 0.00026;
+	return sheen * mix(vec3(1.0), basecol_tint, sheen_tint);
 }
 
 #ifndef VOLUMETRICS
@@ -1137,16 +1149,21 @@ void node_bsdf_principled(
 	transmission = saturate(transmission);
 	float dielectric = 1.0 - metallic;
 	transmission *= dielectric;
+	sheen *= dielectric;
 	subsurface_color *= dielectric;
 
 	vec3 diffuse, f0, out_diff, out_spec, out_trans, out_refr, ssr_spec;
-	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
+	vec3 ctint = tint_from_color(base_color.rgb);
+	convert_metallic_to_specular_tinted(base_color.rgb, ctint, metallic, specular, specular_tint, diffuse, f0);
+
+	float NV = dot(N, cameraVec);
+	vec3 out_sheen = sheen * principled_sheen(NV, ctint, sheen_tint);
 
 	/* Far from being accurate, but 2 glossy evaluation is too expensive.
 	 * Most noticeable difference is at grazing angles since the bsdf lut
 	 * f0 color interpolation is done on top of this interpolation. */
 	vec3 f0_glass = mix(vec3(1.0), base_color.rgb, specular_tint);
-	float fresnel = F_eta(ior, dot(N, cameraVec));
+	float fresnel = F_eta(ior, NV);
 	vec3 spec_col = F_color_blend(ior, fresnel, f0_glass) * fresnel;
 	f0 = mix(f0, spec_col, transmission);
 
@@ -1164,6 +1181,7 @@ void node_bsdf_principled(
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = CLOSURE_DEFAULT;
 	result.radiance = out_spec + out_refr;
+	result.radiance += out_diff * out_sheen; /* Coarse approx. */
 #ifndef USE_SSS
 	result.radiance += (out_diff + out_trans) * mixed_ss_base_color *  (1.0 - transmission);
 #endif
@@ -1192,13 +1210,17 @@ void node_bsdf_principled_dielectric(
 	float dielectric = 1.0 - metallic;
 
 	vec3 diffuse, f0, out_diff, out_spec, ssr_spec;
-	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
+	vec3 ctint = tint_from_color(base_color.rgb);
+	convert_metallic_to_specular_tinted(base_color.rgb, ctint, metallic, specular, specular_tint, diffuse, f0);
+
+	float NV = dot(N, cameraVec);
+	vec3 out_sheen = sheen * principled_sheen(NV, ctint, sheen_tint);
 
 	eevee_closure_default(N, diffuse, f0, int(ssr_id), roughness, 1.0, out_diff, out_spec, ssr_spec);
 
 	vec3 vN = normalize(mat3(ViewMatrix) * N);
 	result = CLOSURE_DEFAULT;
-	result.radiance = out_spec + out_diff * diffuse;
+	result.radiance = out_spec + out_diff * (diffuse + out_sheen);
 	result.ssr_data = vec4(ssr_spec, roughness);
 	result.ssr_normal = normal_encode(vN, viewCameraVec);
 	result.ssr_id = int(ssr_id);
@@ -1250,11 +1272,15 @@ void node_bsdf_principled_subsurface(
 	metallic = saturate(metallic);
 
 	vec3 diffuse, f0, out_diff, out_spec, out_trans, ssr_spec;
-	convert_metallic_to_specular_tinted(base_color.rgb, metallic, specular, specular_tint, diffuse, f0);
+	vec3 ctint = tint_from_color(base_color.rgb);
+	convert_metallic_to_specular_tinted(base_color.rgb, ctint, metallic, specular, specular_tint, diffuse, f0);
 
 	subsurface_color = subsurface_color * (1.0 - metallic);
 	vec3 mixed_ss_base_color = mix(diffuse, subsurface_color.rgb, subsurface);
 	float sss_scalef = dot(sss_scale, vec3(1.0 / 3.0)) * subsurface;
+
+	float NV = dot(N, cameraVec);
+	vec3 out_sheen = sheen * principled_sheen(NV, ctint, sheen_tint);
 
 	eevee_closure_skin(N, mixed_ss_base_color, f0, int(ssr_id), roughness, 1.0, sss_scalef,
 	                   out_diff, out_trans, out_spec, ssr_spec);
@@ -1276,6 +1302,7 @@ void node_bsdf_principled_subsurface(
 #else
 	result.radiance += (out_diff + out_trans) * mixed_ss_base_color;
 #endif
+	result.radiance += out_diff * out_sheen;
 }
 
 void node_bsdf_principled_glass(
