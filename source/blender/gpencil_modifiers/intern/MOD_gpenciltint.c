@@ -60,6 +60,7 @@ static void initData(GpencilModifierData *md)
 	gpmd->layername[0] = '\0';
 	ARRAY_SET_ITEMS(gpmd->rgb, 1.0f, 1.0f, 1.0f);
 	gpmd->flag |= GP_TINT_CREATE_COLORS;
+	gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -81,19 +82,23 @@ static void deformStroke(
 		return;
 	}
 
-	interp_v3_v3v3(gps->runtime.tmp_stroke_rgba, gps->runtime.tmp_stroke_rgba, mmd->rgb, mmd->factor);
-	interp_v3_v3v3(gps->runtime.tmp_fill_rgba, gps->runtime.tmp_fill_rgba, mmd->rgb, mmd->factor);
-
-	/* if factor is > 1, the alpha must be changed to get full tint */
-	if (mmd->factor > 1.0f) {
-		gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
-		if (gps->runtime.tmp_fill_rgba[3] > 1e-5) {
-			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
+	if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+		interp_v3_v3v3(gps->runtime.tmp_stroke_rgba, gps->runtime.tmp_stroke_rgba, mmd->rgb, mmd->factor);
+		/* if factor is > 1, the alpha must be changed to get full tint */
+		if (mmd->factor > 1.0f) {
+			gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
 		}
+		CLAMP4(gps->runtime.tmp_stroke_rgba, 0.0f, 1.0f);
 	}
 
-	CLAMP4(gps->runtime.tmp_stroke_rgba, 0.0f, 1.0f);
-	CLAMP4(gps->runtime.tmp_fill_rgba, 0.0f, 1.0f);
+	if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+		interp_v3_v3v3(gps->runtime.tmp_fill_rgba, gps->runtime.tmp_fill_rgba, mmd->rgb, mmd->factor);
+		/* if factor is > 1, the alpha must be changed to get full tint */
+		if (mmd->factor > 1.0f && gps->runtime.tmp_fill_rgba[3] > 1e-5) {
+			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
+		}
+		CLAMP4(gps->runtime.tmp_fill_rgba, 0.0f, 1.0f);
+	}
 
 	/* if factor > 1.0, affect the strength of the stroke */
 	if (mmd->factor > 1.0f) {

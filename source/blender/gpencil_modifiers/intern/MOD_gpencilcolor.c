@@ -60,6 +60,7 @@ static void initData(GpencilModifierData *md)
 	ARRAY_SET_ITEMS(gpmd->hsv, 1.0f, 1.0f, 1.0f);
 	gpmd->layername[0] = '\0';
 	gpmd->flag |= GP_COLOR_CREATE_COLORS;
+	gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -86,15 +87,19 @@ static void deformStroke(
 	copy_v3_v3(factor, mmd->hsv);
 	add_v3_fl(factor, -1.0f);
 
-	rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);
-	add_v3_v3(hsv, factor);
-	CLAMP3(hsv, 0.0f, 1.0f);
-	hsv_to_rgb_v(hsv, gps->runtime.tmp_stroke_rgba);
+	if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+		rgb_to_hsv_v(gps->runtime.tmp_stroke_rgba, hsv);
+		add_v3_v3(hsv, factor);
+		CLAMP3(hsv, 0.0f, 1.0f);
+		hsv_to_rgb_v(hsv, gps->runtime.tmp_stroke_rgba);
+	}
 
-	rgb_to_hsv_v(gps->runtime.tmp_fill_rgba, hsv);
-	add_v3_v3(hsv, factor);
-	CLAMP3(hsv, 0.0f, 1.0f);
-	hsv_to_rgb_v(hsv, gps->runtime.tmp_fill_rgba);
+	if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+		rgb_to_hsv_v(gps->runtime.tmp_fill_rgba, hsv);
+		add_v3_v3(hsv, factor);
+		CLAMP3(hsv, 0.0f, 1.0f);
+		hsv_to_rgb_v(hsv, gps->runtime.tmp_fill_rgba);
+	}
 }
 
 static void bakeModifier(

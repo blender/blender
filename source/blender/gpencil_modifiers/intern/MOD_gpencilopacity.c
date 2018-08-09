@@ -61,6 +61,7 @@ static void initData(GpencilModifierData *md)
 	gpmd->layername[0] = '\0';
 	gpmd->vgname[0] = '\0';
 	gpmd->flag |= GP_OPACITY_CREATE_COLORS;
+	gpmd->modify_color = GP_MODIFY_COLOR_BOTH;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -84,18 +85,23 @@ static void deformStroke(
 		return;
 	}
 
-	gps->runtime.tmp_fill_rgba[3] *= mmd->factor;
-
-	/* if factor is > 1, then force opacity */
-	if (mmd->factor > 1.0f) {
-		gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
-		if (gps->runtime.tmp_fill_rgba[3] > 1e-5) {
-			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
+	if (mmd->modify_color != GP_MODIFY_COLOR_FILL) {
+		gps->runtime.tmp_stroke_rgba[3] *= mmd->factor;
+		/* if factor is > 1, then force opacity */
+		if (mmd->factor > 1.0f) {
+			gps->runtime.tmp_stroke_rgba[3] += mmd->factor - 1.0f;
 		}
+		CLAMP(gps->runtime.tmp_stroke_rgba[3], 0.0f, 1.0f);
 	}
 
-	CLAMP(gps->runtime.tmp_stroke_rgba[3], 0.0f, 1.0f);
-	CLAMP(gps->runtime.tmp_fill_rgba[3], 0.0f, 1.0f);
+	if (mmd->modify_color != GP_MODIFY_COLOR_STROKE) {
+		gps->runtime.tmp_fill_rgba[3] *= mmd->factor;
+		/* if factor is > 1, then force opacity */
+		if (mmd->factor > 1.0f && gps->runtime.tmp_fill_rgba[3] > 1e-5) {
+			gps->runtime.tmp_fill_rgba[3] += mmd->factor - 1.0f;
+		}
+		CLAMP(gps->runtime.tmp_fill_rgba[3], 0.0f, 1.0f);
+	}
 
 	/* if opacity > 1.0, affect the strength of the stroke */
 	if (mmd->factor > 1.0f) {
