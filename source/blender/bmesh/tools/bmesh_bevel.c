@@ -776,6 +776,11 @@ static void offset_meet(EdgeHalf *e1, EdgeHalf *e2, BMVert *v, BMFace *f, bool e
 		sub_v3_v3v3(dir1n, BM_edge_other_vert(e1next->e, v)->co, v->co);
 		sub_v3_v3v3(dir2p, v->co, BM_edge_other_vert(e2prev->e, v)->co);
 	}
+	else {
+		/* shup up 'maybe unused' warnings */
+		zero_v3(dir1n);
+		zero_v3(dir2p);
+	}
 
 	ang = angle_v3v3(dir1, dir2);
 	if (ang < BEVEL_EPSILON_ANG) {
@@ -1538,14 +1543,14 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 	EdgeHalf *e = &bv->edges[0], *efirst = &bv->edges[0];
 
 	/* First first edge with seam or sharp edge data */
-	while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))) {
+	while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))) {
 		e = e->next;
 		if (e == efirst)
 			break;
 	}
 
 	/* If no such edge found, return */
-	if ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag))))
+	if ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(e, flag)) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(e, flag)))
 		return;
 
 	efirst = e;			/* Set efirst to this first encountered edge*/
@@ -1554,14 +1559,14 @@ static void check_edge_data_seam_sharp_edges(BevVert *bv, int flag, bool neg)
 		int flag_count = 0;
 		EdgeHalf *ne = e->next;
 
-		while ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
+		while (((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(ne, flag)) || (neg && BEV_EXTEND_EDGE_DATA_CHECK(ne, flag))) &&
 				ne != efirst)
 		{
 			if (ne->is_bev)
 				flag_count++;
 			ne = ne->next;
 		}
-		if (ne == e || (ne == efirst && (!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag) ||
+		if (ne == e || (ne == efirst && ((!neg && !BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)) ||
 										(neg && BEV_EXTEND_EDGE_DATA_CHECK(efirst, flag)))))
 		{
 			break;
@@ -1665,14 +1670,13 @@ static void bevel_extend_edge_data(BevVert *bv)
 	} while (bcur != start);
 }
 
-static void bevel_harden_normals_mode(BMesh *bm, BevelParams *bp, BevVert *bv, BMOperator *op)
+static void bevel_harden_normals_mode(BevelParams *bp, BevVert *bv, BMOperator *op)
 {
 	if (bp->hnmode == BEVEL_HN_NONE)
 		return;
 
 	VMesh *vm = bv->vmesh;
 	BoundVert *bcur = vm->boundstart, *bstart = bcur;
-	int ns = vm->seg, ns2 = ns / 2;
 
 	BMEdge *e;
 	BMIter eiter;
@@ -5640,7 +5644,7 @@ void BM_mesh_bevel(
 	BevelParams bp = {NULL};
 	GHashIterator giter;
 
-	BMOperator *op;
+	BMOperator *op = NULL;
 	BevelModNorEditData *clnordata;
 
 	bp.offset = offset;
@@ -5729,7 +5733,7 @@ void BM_mesh_bevel(
 			bv = BLI_ghashIterator_getValue(&giter);
 			bevel_extend_edge_data(bv);
 			if (bm->use_toolflags) {
-				bevel_harden_normals_mode(bm, &bp, bv, op);
+				bevel_harden_normals_mode(&bp, bv, op);
 			}
 		}
 
