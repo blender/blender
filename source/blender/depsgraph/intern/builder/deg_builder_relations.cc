@@ -185,6 +185,23 @@ static bool check_id_has_anim_component(ID *id)
 	       (!BLI_listbase_is_empty(&adt->nla_tracks));
 }
 
+static eDepsOperation_Code bone_target_opcode(ID *target, const char *subtarget, ID *id, const char *component_subdata, RootPChanMap *root_map)
+{
+	/* same armature  */
+	if (target == id) {
+		/* Using "done" here breaks in-chain deps, while using
+		 * "ready" here breaks most production rigs instead.
+		 * So, we do a compromise here, and only do this when an
+		 * IK chain conflict may occur.
+		 */
+		if (root_map->has_common_root(component_subdata, subtarget)) {
+			return DEG_OPCODE_BONE_READY;
+		}
+	}
+
+	return DEG_OPCODE_BONE_DONE;
+}
+
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -907,38 +924,42 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					add_relation(target_transform_key, constraint_op_key, cti->name);
 				}
 				else if ((ct->tar->type == OB_ARMATURE) && (ct->subtarget[0])) {
-					/* bone */
-					if (&ct->tar->id == id) {
-						/* same armature  */
-						eDepsOperation_Code target_key_opcode;
-						/* Using "done" here breaks in-chain deps, while using
-						 * "ready" here breaks most production rigs instead.
-						 * So, we do a compromise here, and only do this when an
-						 * IK chain conflict may occur.
-						 */
-						if (root_map->has_common_root(component_subdata,
-						                              ct->subtarget))
-						{
-							target_key_opcode = DEG_OPCODE_BONE_READY;
+					eDepsOperation_Code opcode;
+					/* relation to bone */
+					opcode = bone_target_opcode(&ct->tar->id, ct->subtarget,
+					                            id, component_subdata, root_map);
+					OperationKey target_key(&ct->tar->id,
+					                        DEG_NODE_TYPE_BONE,
+					                        ct->subtarget,
+					                        opcode);
+					add_relation(target_key, constraint_op_key, cti->name);
+					/* if needs bbone shape, also reference handles */
+					if (con->flag & CONSTRAINT_BBONE_SHAPE) {
+						bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
+						/* actually a bbone */
+						if (pchan && pchan->bone && pchan->bone->segments > 1) {
+							bPoseChannel *prev, *next;
+							BKE_pchan_get_bbone_handles(pchan, &prev, &next);
+							/* add handle links */
+							if (prev) {
+								opcode = bone_target_opcode(&ct->tar->id, prev->name,
+								                            id, component_subdata, root_map);
+								OperationKey prev_key(&ct->tar->id,
+								                      DEG_NODE_TYPE_BONE,
+								                      prev->name,
+								                      opcode);
+								add_relation(prev_key, constraint_op_key, cti->name);
+							}
+							if (next) {
+								opcode = bone_target_opcode(&ct->tar->id, next->name,
+								                            id, component_subdata, root_map);
+								OperationKey next_key(&ct->tar->id,
+								                      DEG_NODE_TYPE_BONE,
+								                      next->name,
+								                      opcode);
+								add_relation(next_key, constraint_op_key, cti->name);
+							}
 						}
-						else {
-							target_key_opcode = DEG_OPCODE_BONE_DONE;
-						}
-						OperationKey target_key(&ct->tar->id,
-						                        DEG_NODE_TYPE_BONE,
-						                        ct->subtarget,
-						                        target_key_opcode);
-						add_relation(target_key, constraint_op_key, cti->name);
-					}
-					else {
-						/* Different armature - we can safely use the result
-						 * of that.
-						 */
-						OperationKey target_key(&ct->tar->id,
-						                        DEG_NODE_TYPE_BONE,
-						                        ct->subtarget,
-						                        DEG_OPCODE_BONE_DONE);
-						add_relation(target_key, constraint_op_key, cti->name);
 					}
 				}
 				else if (ELEM(ct->tar->type, OB_MESH, OB_LATTICE) &&

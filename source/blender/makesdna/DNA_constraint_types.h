@@ -524,7 +524,7 @@ typedef enum eBConstraint_Flags {
 	CONSTRAINT_PROXY_LOCAL = (1<<8),
 		/* indicates that constraint is temporarily disabled (only used in GE) */
 	CONSTRAINT_OFF = (1<<9),
-		/* use bbone curve shape when calculating headtail values */
+		/* use bbone curve shape when calculating headtail values (also used by dependency graph!) */
 	CONSTRAINT_BBONE_SHAPE = (1<<10),
 		/* That constraint has been inserted in local override (i.e. it can be fully edited!). */
 	CONSTRAINT_STATICOVERRIDE_LOCAL = (1 << 11),

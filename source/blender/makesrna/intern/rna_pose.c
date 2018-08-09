@@ -127,6 +127,14 @@ static void rna_Pose_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
 }
 
+static void rna_Pose_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	DEG_relations_tag_update(bmain);
+
+	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
+}
+
 static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
@@ -963,7 +971,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	                         "Use custom reference bones as handles for B-Bones instead of next/previous bones, "
 	                         "leave these blank to use only B-Bone offset properties to control the shape");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
 
 	prop = RNA_def_property(srna, "bbone_custom_handle_start", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "bbone_prev");
@@ -972,7 +980,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "B-Bone Start Handle",
 	                         "Bone that serves as the start handle for the B-Bone curve");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
 
 	prop = RNA_def_property(srna, "use_bbone_relative_start_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bboneflag", PCHAN_BBONE_CUSTOM_START_REL);
@@ -988,7 +996,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "B-Bone End Handle",
 	                         "Bone that serves as the end handle for the B-Bone curve");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
-	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
 
 	prop = RNA_def_property(srna, "use_bbone_relative_end_handle", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bboneflag", PCHAN_BBONE_CUSTOM_END_REL);

@@ -140,6 +140,8 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
+void BKE_pchan_get_bbone_handles(struct bPoseChannel *pchan, struct bPoseChannel **r_prev, struct bPoseChannel **r_next);
+
 void equalize_bbone_bezier(float *data, int desired);
 void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BBONE_SUBDIV]);
 

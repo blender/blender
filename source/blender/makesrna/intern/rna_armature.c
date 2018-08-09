@@ -52,6 +52,7 @@
 #include "BKE_armature.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -62,6 +63,15 @@ static void rna_Armature_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	/*WM_main_add_notifier(NC_OBJECT|ND_POSE, NULL); */
 }
 
+static void rna_Armature_dependency_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+
+	DEG_relations_tag_update(bmain);
+
+	DEG_id_tag_update(id, 0);
+	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
 
 static void rna_Armature_act_bone_set(PointerRNA *ptr, PointerRNA value)
 {
@@ -722,7 +732,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_int_sdna(prop, NULL, "segments");
 	RNA_def_property_range(prop, 1, 32);
 	RNA_def_property_ui_text(prop, "B-Bone Segments", "Number of subdivisions of bone (for B-Bones only)");
-	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
+	RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 
 	prop = RNA_def_property(srna, "bbone_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "xwidth");

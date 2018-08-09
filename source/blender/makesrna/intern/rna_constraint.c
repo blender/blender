@@ -517,7 +517,7 @@ static void rna_def_constraint_headtail_common(StructRNA *srna)
 	prop = RNA_def_property(srna, "use_bbone_shape", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, "bConstraint", "flag", CONSTRAINT_BBONE_SHAPE);
 	RNA_def_property_ui_text(prop, "Follow B-Bone", "Follow shape of B-Bone segments when calculating Head/Tail position");
-	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 }
 
 static void rna_def_constraint_target_common(StructRNA *srna)
