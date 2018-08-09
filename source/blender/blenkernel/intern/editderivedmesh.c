@@ -203,7 +203,7 @@ static void emDM_calcLoopNormalsSpaceArray(
 	cd_loop_clnors_offset = clnors_data ? -1 : CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
 
 	BM_loops_calc_normal_vcos(bm, vertexCos, vertexNos, polyNos, use_split_normals, split_angle, loopNos,
-	                          r_lnors_spacearr, clnors_data, cd_loop_clnors_offset);
+	                          r_lnors_spacearr, clnors_data, cd_loop_clnors_offset, false);
 #ifdef DEBUG_CLNORS
 	if (r_lnors_spacearr) {
 		int i;

@@ -290,5 +290,6 @@ void modifier_type_init(ModifierTypeInfo *types[])
 	INIT_TYPE(CorrectiveSmooth);
 	INIT_TYPE(MeshSequenceCache);
 	INIT_TYPE(SurfaceDeform);
+	INIT_TYPE(WeightedNormal);
 #undef INIT_TYPE
 }

@@ -1085,6 +1085,7 @@ static void tselem_draw_icon(
 							ICON_DRAW(ICON_MOD_DATA_TRANSFER);
 							break;
 						case eModifierType_NormalEdit:
+						case eModifierType_WeightedNormal:
 							ICON_DRAW(ICON_MOD_NORMALEDIT);
 							break;
 							/* Default */

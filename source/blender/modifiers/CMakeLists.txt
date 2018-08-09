@@ -100,6 +100,7 @@ set(SRC
 	intern/MOD_uvproject.c
 	intern/MOD_warp.c
 	intern/MOD_wave.c
+	intern/MOD_weighted_normal.c
 	intern/MOD_weightvg_util.c
 	intern/MOD_weightvgedit.c
 	intern/MOD_weightvgmix.c

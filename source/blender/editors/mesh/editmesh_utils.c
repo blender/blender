@@ -1348,7 +1348,10 @@ void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_d
 		/* in debug mode double check we didn't need to recalculate */
 		BLI_assert(BM_mesh_elem_table_check(em->bm) == true);
 	}
-
+	if (em->bm->spacearr_dirty & BM_SPACEARR_BMO_SET) {
+		BM_lnorspace_invalidate(em->bm, false);
+		em->bm->spacearr_dirty &= ~BM_SPACEARR_BMO_SET;
+	}
 	/* don't keep stale derivedMesh data around, see: [#38872] */
 	BKE_editmesh_free_derivedmesh(em);
 

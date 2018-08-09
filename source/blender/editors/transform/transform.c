@@ -41,6 +41,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_mask_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"  /* PET modes */
 #include "DNA_workspace_types.h"
@@ -65,6 +66,7 @@
 #include "BKE_unit.h"
 #include "BKE_scene.h"
 #include "BKE_mask.h"
+#include "BKE_mesh.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
 
@@ -97,6 +99,7 @@
 #include "UI_resources.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"
@@ -117,6 +120,7 @@ static void postInputRotation(TransInfo *t, float values[3]);
 static void ElementRotation(TransInfo *t, TransDataContainer *tc, TransData *td, float mat[3][3], const short around);
 static void initSnapSpatial(TransInfo *t, float r_snap[3]);
 
+static void storeCustomLNorValue(TransDataContainer *t, BMesh *bm);
 
 /* Transform Callbacks */
 static void initBend(TransInfo *t);
@@ -141,6 +145,9 @@ static void applyToSphere(TransInfo *t, const int mval[2]);
 
 static void initRotation(TransInfo *t);
 static void applyRotation(TransInfo *t, const int mval[2]);
+
+static void initNormalRotation(TransInfo *t);
+static void applyNormalRotation(TransInfo *t, const int mval[2]);
 
 static void initShrinkFatten(TransInfo *t);
 static void applyShrinkFatten(TransInfo *t, const int mval[2]);
@@ -1552,6 +1559,18 @@ int transformEvent(TransInfo *t, const wmEvent *event)
 					handled = true;
 				}
 				break;
+			case NKEY:
+				if (ELEM(t->mode, TFM_ROTATION)) {
+					if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
+						restoreTransObjects(t);
+						resetTransModal(t);
+						resetTransRestrictions(t);
+						initNormalRotation(t);
+						t->redraw = TREDRAW_HARD;
+						handled = true;
+					}
+				}
+				break;
 			default:
 				break;
 		}
@@ -2535,11 +2554,47 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		case TFM_SEQ_SLIDE:
 			initSeqSlide(t);
 			break;
+		case TFM_NORMAL_ROTATION:
+			initNormalRotation(t);
+			break;
 	}
 
 	if (t->state == TRANS_CANCEL) {
 		postTrans(C, t);
 		return 0;
+	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "preserve_clnor"))) {
+		if ((t->flag & T_EDIT) && t->obedit_type == OB_MESH) {
+
+			FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+				if ((((Mesh *)(tc->obedit->data))->flag & ME_AUTOSMOOTH)) {
+					BMEditMesh *em = NULL;// BKE_editmesh_from_object(t->obedit);
+					bool do_skip = false;
+
+					/* Currently only used for two of three most frequent transform ops, can include more ops.
+					* Note that scaling cannot be included here, non-uniform scaling will affect normals. */
+					if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
+						if (em->bm->totvertsel == em->bm->totvert) {
+							/* No need to invalidate if whole mesh is selected. */
+							do_skip = true;
+						}
+					}
+
+					if (t->flag & T_MODAL) {
+						RNA_property_boolean_set(op->ptr, prop, false);
+					}
+					else if (!do_skip) {
+						const bool preserve_clnor = RNA_property_boolean_get(op->ptr, prop);
+						if (preserve_clnor) {
+							BKE_editmesh_lnorspace_update(em);
+							t->flag |= T_CLNOR_REBUILD;
+						}
+						BM_lnorspace_invalidate(em->bm, true);
+					}
+				}
+			}
+		}
 	}
 
 	t->context = NULL;
@@ -2602,6 +2657,12 @@ int transformEnd(bContext *C, TransInfo *t)
 			restoreTransObjects(t); // calls recalcData()
 		}
 		else {
+			if (t->flag & T_CLNOR_REBUILD) {
+				FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+					BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+					BM_lnorspace_rebuild(em->bm, true);
+				}
+			}
 			exit_code = OPERATOR_FINISHED;
 		}
 
@@ -3938,6 +3999,28 @@ static void initRotation(TransInfo *t)
 	copy_v3_v3(t->axis_orig, t->axis);
 }
 
+/* Used by Transform Rotation and Transform Normal Rotation */
+static void headerRotation(TransInfo *t, char str[UI_MAX_DRAW_STR], float final)
+{
+	size_t ofs = 0;
+
+	if (hasNumInput(&t->num)) {
+		char c[NUM_STR_REP_LEN];
+
+		outputNumInput(&(t->num), c, &t->scene->unit);
+
+		ofs += BLI_snprintf(str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
+	}
+	else {
+		ofs += BLI_snprintf(str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_("Rot: %.2f%s %s"),
+			RAD2DEGF(final), t->con.text, t->proptext);
+	}
+
+	if (t->flag & T_PROP_EDIT_ALL) {
+		ofs += BLI_snprintf(str + ofs, UI_MAX_DRAW_STR - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
+	}
+}
+
 /**
  * Applies values of rotation to `td->loc` and `td->ext->quat`
  * based on a rotation matrix (mat) and a pivot (center).
@@ -4238,21 +4321,7 @@ static void applyRotation(TransInfo *t, const int UNUSED(mval[2]))
 
 	t->values[0] = final;
 
-	if (hasNumInput(&t->num)) {
-		char c[NUM_STR_REP_LEN];
-
-		outputNumInput(&(t->num), c, &t->scene->unit);
-
-		ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("Rot: %s %s %s"), &c[0], t->con.text, t->proptext);
-	}
-	else {
-		ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_("Rot: %.2f%s %s"),
-		                    RAD2DEGF(final), t->con.text, t->proptext);
-	}
-
-	if (t->flag & T_PROP_EDIT_ALL) {
-		ofs += BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_(" Proportional size: %.2f"), t->prop_size);
-	}
+	headerRotation(t, str, final);
 
 	applyRotationValue(t, final, t->axis);
 
@@ -4377,6 +4446,127 @@ static void applyTrackball(TransInfo *t, const int UNUSED(mval[2]))
 
 	ED_area_status_text(t->sa, str);
 }
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/* Transform (Normal Rotation) */
+
+/** \name Transform Normal Rotation
+* \{ */
+
+static void storeCustomLNorValue(TransDataContainer *tc, BMesh *bm)
+{
+	BMLoopNorEditDataArray *lnors_ed_arr = BM_loop_normal_editdata_array_init(bm);
+	BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
+
+	tc->custom.mode.data = lnors_ed_arr;
+	tc->custom.mode.free_cb = freeCustomNormalArray;
+}
+
+void freeCustomNormalArray(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data)
+{
+	BMLoopNorEditDataArray *lnors_ed_arr = custom_data->data;
+
+	if (t->state == TRANS_CANCEL) {
+		BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		BMesh *bm = em->bm;
+
+		for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {  /* Restore custom loop normal on cancel */
+			BKE_lnor_space_custom_normal_to_data(
+				bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->niloc, lnor_ed->clnors_data);
+		}
+	}
+
+	BM_loop_normal_editdata_array_free(lnors_ed_arr);
+
+	tc->custom.mode.data = NULL;
+	tc->custom.mode.free_cb = NULL;
+}
+
+static void initNormalRotation(TransInfo *t)
+{
+	t->mode = TFM_NORMAL_ROTATION;
+	t->transform = applyNormalRotation;
+
+	setInputPostFct(&t->mouse, postInputRotation);
+	initMouseInputMode(t, &t->mouse, INPUT_ANGLE);
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = DEG2RAD(5.0);
+	t->snap[2] = DEG2RAD(1.0);
+
+	copy_v3_fl(t->num.val_inc, t->snap[2]);
+	t->num.unit_sys = t->scene->unit.system;
+	t->num.unit_use_radians = (t->scene->unit.system_rotation == USER_UNIT_ROT_RADIANS);
+	t->num.unit_type[0] = B_UNIT_ROTATION;
+
+	FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		BMesh *bm = em->bm;
+
+		BKE_editmesh_lnorspace_update(em);
+
+		storeCustomLNorValue(tc, bm);
+	}
+
+	negate_v3_v3(t->axis, t->viewinv[2]);
+	normalize_v3(t->axis);
+
+	copy_v3_v3(t->axis_orig, t->axis);
+}
+
+/* Works by getting custom normal from clnor_data, transform, then store */
+static void applyNormalRotation(TransInfo *t, const int UNUSED(mval[2]))
+{
+	char str[UI_MAX_DRAW_STR];
+
+	if ((t->con.mode & CON_APPLY) && t->con.applyRot) {
+		t->con.applyRot(t, NULL, NULL, t->axis, NULL);
+	}
+	else {
+		/* reset axis if constraint is not set */
+		copy_v3_v3(t->axis, t->axis_orig);
+	}
+
+	FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		BMesh *bm = em->bm;
+
+		BMLoopNorEditDataArray *lnors_ed_arr = tc->custom.mode.data;
+		BMLoopNorEditData *lnor_ed = lnors_ed_arr->lnor_editdata;
+
+		float axis[3];
+		float mat[3][3];
+		float angle = t->values[0];
+		copy_v3_v3(axis, t->axis);
+
+		snapGridIncrement(t, &angle);
+
+		applySnapping(t, &angle);
+
+		applyNumInput(&t->num, &angle);
+
+		headerRotation(t, str, angle);
+
+		axis_angle_normalized_to_mat3(mat, axis, angle);
+
+		for (int i = 0; i < lnors_ed_arr->totloop; i++, lnor_ed++) {
+			mul_v3_m3v3(lnor_ed->nloc, mat, lnor_ed->niloc);
+
+			BKE_lnor_space_custom_normal_to_data(
+				bm->lnor_spacearr->lspacearr[lnor_ed->loop_index], lnor_ed->nloc, lnor_ed->clnors_data);
+		}
+	}
+
+	recalcData(t);
+
+	ED_area_status_text(t->sa, str);
+}
+
 /** \} */
 
 

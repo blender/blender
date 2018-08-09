@@ -47,6 +47,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_node_types.h"
 #include "DNA_workspace_types.h"
@@ -356,6 +357,15 @@ bool ED_operator_editmesh_region_view3d(bContext *C)
 		return 1;
 
 	CTX_wm_operator_poll_msg_set(C, "expected a view3d region & editmesh");
+	return 0;
+}
+
+bool ED_operator_editmesh_auto_smooth(bContext *C)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	if (obedit && obedit->type == OB_MESH && (((Mesh *)(obedit->data))->flag & ME_AUTOSMOOTH)) {
+		return NULL != BKE_editmesh_from_object(obedit);
+	}
 	return 0;
 }
 

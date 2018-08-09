@@ -3051,6 +3051,30 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.operator("mesh.flip_normals")
         layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
 
+        layout.operator("transform.rotate_normal", text="Rotate Normal")
+        layout.operator("mesh.point_normals", text="Point normals to target")
+
+        layout.operator("mesh.merge_normals", text="Merge")
+        layout.operator("mesh.split_normals", text="Split")
+
+        layout.operator("mesh.average_normals", text="Average Normals")
+
+        layout.label(text="Normal Vector")
+
+        layout.operator("mesh.normals_tools", text="Copy").mode = 'COPY'
+        layout.operator("mesh.normals_tools", text="Paste").mode = 'PASTE'
+
+        layout.operator("mesh.normals_tools", text="Multiply").mode = 'MULTIPLY'
+        layout.operator("mesh.normals_tools", text="Add").mode = 'ADD'
+
+        layout.operator("mesh.normals_tools", text="Reset").mode = 'RESET'
+
+        layout.operator("mesh.smoothen_normals", text="Smoothen")
+
+        layout.label(text="Face Strength")
+        layout.operator("mesh.mod_weighted_strength", text="Face select", icon = "FACESEL").set = False
+        layout.operator("mesh.mod_weighted_strength", text="Set Strength", icon = "ZOOMIN").set = True
+
 
 class VIEW3D_MT_edit_mesh_shading(Menu):
     bl_label = "Shading"

@@ -270,6 +270,8 @@ typedef struct MLoopNorSpace {
 	 *     - BMLoop pointers. */
 	struct LinkNode *loops;
 	char flags;
+
+	void *user_data;  /* To be used for extended processing related to loop normal spaces (aka smooth fans). */
 } MLoopNorSpace;
 /**
  * MLoopNorSpace.flags
@@ -285,6 +287,7 @@ typedef struct MLoopNorSpaceArray {
 	MLoopNorSpace **lspacearr;    /* MLoop aligned array */
 	struct LinkNode *loops_pool;  /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
 	char data_type;               /* Whether we store loop indices, or pointers to BMLoop. */
+	int num_spaces;               /* Number of clnors spaces defined in this array. */
 	struct MemArena *mem;
 } MLoopNorSpaceArray;
 /**

@@ -427,7 +427,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 			int totloop = bm->totloop;
 			if (is_auto_smooth) {
 				rdata->loop_normals = MEM_mallocN(sizeof(*rdata->loop_normals) * totloop, __func__);
-				BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL, -1);
+				int cd_loop_clnors_offset = CustomData_get_layer_index(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+				BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL,
+										  cd_loop_clnors_offset, false);
 			}
 			rdata->loop_len = totloop;
 			bm_ensure_types |= BM_LOOP;
@@ -726,7 +728,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 					/* Should we store the previous array of `loop_normals` in somewhere? */
 					rdata->loop_len = bm->totloop;
 					rdata->loop_normals = MEM_mallocN(sizeof(*rdata->loop_normals) * rdata->loop_len, __func__);
-					BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL, -1);
+					BM_loops_calc_normal_vcos(bm, NULL, NULL, NULL, true, split_angle, rdata->loop_normals, NULL, NULL, -1, false);
 				}
 
 				bool calc_active_tangent = false;

@@ -145,6 +145,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "use_only_vertices")
         col.prop(md, "use_clamp_overlap")
         col.prop(md, "loop_slide")
+        col.prop(md, "mark_seam")
+        col.prop(md, "mark_sharp")
 
         layout.label(text="Limit Method:")
         layout.row().prop(md, "limit_method", expand=True)
@@ -156,6 +158,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.label(text="Width Method:")
         layout.row().prop(md, "offset_type", expand=True)
+
+        layout.label(text="Normal Mode")
+        layout.row().prop(md, "hnmode", expand=True)
+        layout.prop(md, "hn_strength")
+        layout.prop(md, "set_wn_strength")
+
 
     def BOOLEAN(self, layout, ob, md):
         split = layout.split()
@@ -1566,6 +1574,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.prop(md, "rest_source")
         if md.rest_source == 'BIND':
             layout.operator("object.correctivesmooth_bind", text="Unbind" if is_bind else "Bind")
+
+    def WEIGHTED_NORMAL(self, layout, ob, md):
+        layout.label("Weighting Mode:")
+        split = layout.split(align=True)
+        col = split.column(align=True)
+        col.prop(md, "mode", text="")
+        col.prop(md, "weight", text="Weight")
+        col.prop(md, "keep_sharp")
+
+        col = split.column(align=True)
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row.active = bool(md.vertex_group)
+        row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        col.prop(md, "thresh", text="Threshold")
+        col.prop(md, "face_influence")
 
 
 class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):

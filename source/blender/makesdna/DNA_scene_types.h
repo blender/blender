@@ -1349,6 +1349,10 @@ typedef struct ToolSettings {
 	struct CurvePaintSettings curve_paint_settings;
 
 	struct MeshStatVis statvis;
+
+	/* Normal Editing */
+	float normal_vector[3];
+	int face_strength;
 } ToolSettings;
 
 /* *************************************************************** */
@@ -1882,6 +1886,13 @@ enum {
 	OB_DRAW_GROUPUSER_NONE      = 0,
 	OB_DRAW_GROUPUSER_ACTIVE    = 1,
 	OB_DRAW_GROUPUSER_ALL       = 2
+};
+
+/* toolsettings->face_strength */
+enum {
+	FACE_STRENGTH_WEAK = -16384,
+	FACE_STRENGTH_MEDIUM = 0,
+	FACE_STRENGTH_STRONG = 16384,
 };
 
 /* object_vgroup.c */

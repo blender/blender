@@ -480,6 +480,8 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoo
 		mem = lnors_spacearr->mem;
 		lnors_spacearr->lspacearr = BLI_memarena_calloc(mem, sizeof(MLoopNorSpace *) * (size_t)numLoops);
 		lnors_spacearr->loops_pool = BLI_memarena_alloc(mem, sizeof(LinkNode) * (size_t)numLoops);
+
+		lnors_spacearr->num_spaces = 0;
 	}
 	BLI_assert(ELEM(data_type, MLNOR_SPACEARR_BMLOOP_PTR, MLNOR_SPACEARR_LOOP_INDEX));
 	lnors_spacearr->data_type = data_type;
@@ -487,21 +489,24 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoo
 
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
 {
-	BLI_memarena_clear(lnors_spacearr->mem);
+	lnors_spacearr->num_spaces = 0;
 	lnors_spacearr->lspacearr = NULL;
 	lnors_spacearr->loops_pool = NULL;
+	BLI_memarena_clear(lnors_spacearr->mem);
 }
 
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr)
 {
-	BLI_memarena_free(lnors_spacearr->mem);
+	lnors_spacearr->num_spaces = 0;
 	lnors_spacearr->lspacearr = NULL;
 	lnors_spacearr->loops_pool = NULL;
+	BLI_memarena_free(lnors_spacearr->mem);
 	lnors_spacearr->mem = NULL;
 }
 
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr)
 {
+	lnors_spacearr->num_spaces++;
 	return BLI_memarena_calloc(lnors_spacearr->mem, sizeof(MLoopNorSpace));
 }
 
