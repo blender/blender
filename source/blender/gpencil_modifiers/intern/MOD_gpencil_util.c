@@ -165,7 +165,7 @@ void gpencil_apply_modifier_material(
 			copy_v4_v4(newmat->gp_style->stroke_rgba, gps->runtime.tmp_stroke_rgba);
 			copy_v4_v4(newmat->gp_style->fill_rgba, gps->runtime.tmp_fill_rgba);
 
-			BLI_ghash_insert(gh_color, newmat->id.name, newmat);
+			BLI_ghash_insert(gh_color, mat->id.name, newmat);
 			DEG_id_tag_update(&newmat->id, DEG_TAG_COPY_ON_WRITE);
 		}
 		/* reasign color index */
