@@ -237,7 +237,13 @@ void ED_preview_ensure_dbase(void)
 static bool check_engine_supports_textures(Scene *scene)
 {
 	RenderEngineType *type = RE_engines_find(scene->r.engine);
-	return type->flag & RE_USE_TEXTURE_PREVIEW;
+	return (type->flag & RE_USE_TEXTURE_PREVIEW) != 0;
+}
+
+static bool check_engine_supports_preview(Scene *scene)
+{
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	return (type->flag & RE_USE_PREVIEW) != 0;
 }
 
 void ED_preview_free_dbase(void)
@@ -753,6 +759,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		sce->r.size = 100;
 	}
 
+
 	/* get the stuff from the builtin preview dbase */
 	sce = preview_prepare_scene(sp->bmain, sp->scene, id_eval, idtype, sp);
 	if (sce == NULL) return;
@@ -1092,6 +1099,10 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 			continue;
 		}
 
+		if (!check_engine_supports_preview(ip->scene)) {
+			continue;
+		}
+
 		ShaderPreview *sp = MEM_callocN(sizeof(ShaderPreview), "Icon ShaderPreview");
 		const bool is_render = !(prv->tag & PRV_TAG_DEFFERED);
 
@@ -1267,6 +1278,10 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	short id_type = GS(id->name);
 
 	/* Use workspace render only for buttons Window, since the other previews are related to the datablock. */
+
+	if (!check_engine_supports_preview(scene)) {
+		return;
+	}
 
 	/* Only texture node preview is supported with Cycles. */
 	if (method == PR_NODE_RENDER && id_type != ID_TE) {
