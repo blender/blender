@@ -1790,7 +1790,7 @@ static bool helpline_poll(bContext *C)
 	return 0;
 }
 
-static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
+static void drawHelpline(bContext *C, int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo *)customdata;
 
@@ -1806,23 +1806,31 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 		    (float)t->mval[1],
 		};
 
-
-#if 0 /* XXX: Fix from 1c9690e7607bc990cc4a3e6ba839949bb83a78af cannot be used anymore */
-		if ((t->flag & T_POINTS) && (t->options & CTX_GPENCIL_STROKES)) {
-			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-				Object *ob = tc->obedit;
-				float vecrot[3];
-				copy_v3_v3(vecrot, t->center);
-				mul_m4_v3(ob->obmat, vecrot);
-				projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
+		/* grease pencil only can edit one object at time because GP has
+		 * multiframe edition that replaces multiobject edition.
+		 * If multiobject edition is added, maybe this code will need
+		 * an update
+		 */
+		if ((t->flag & T_POINTS) && (t->options & CTX_GPENCIL_STROKES) &&
+			(t->around != V3D_AROUND_ACTIVE))
+		{
+			Object *ob = CTX_data_active_object(C);
+			if ((ob) && (ob->type == OB_GPENCIL)) {
+				FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+					float vecrot[3];
+					copy_v3_v3(vecrot, t->center_global);
+					mul_m4_v3(ob->obmat, vecrot);
+					projectFloatViewEx(t, vecrot, cent, V3D_PROJ_TEST_CLIP_ZERO);
+				}
+			}
+			else {
+				/* normally, never must be used */
+				projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
 			}
 		}
 		else {
 			projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
 		}
-#else
-		projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
-#endif
 
 		/* Offset the values for the area region. */
 		const float offset[2] = {
