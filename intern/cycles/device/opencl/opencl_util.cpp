@@ -1136,6 +1136,21 @@ string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 		name = get_device_name(device_id);
 	}
 
+	/* Special exception for AMD Vega, need to be able to tell
+	 * Vega 56 from 64 apart.
+	 */
+	if (name == "Radeon RX Vega") {
+		cl_int max_compute_units = 0;
+		if (clGetDeviceInfo(device_id,
+		                    CL_DEVICE_MAX_COMPUTE_UNITS,
+		                    sizeof(max_compute_units),
+		                    &max_compute_units,
+		                    NULL) == CL_SUCCESS)
+		{
+			name += " " + to_string(max_compute_units);
+		}
+	}
+
 	/* Distinguish from our native CPU device. */
 	if(get_device_type(device_id) & CL_DEVICE_TYPE_CPU) {
 		name += " (OpenCL)";
