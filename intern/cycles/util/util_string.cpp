@@ -168,6 +168,11 @@ string string_from_bool(bool var)
 		return "False";
 }
 
+string to_string(const char *str)
+{
+	return string(str);
+}
+
 /* Wide char strings helpers for Windows. */
 
 #ifdef _WIN32
