@@ -673,7 +673,7 @@ bGPDlayer *BKE_gpencil_layer_duplicate(const bGPDlayer *gpl_src)
  *
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_gpencil_copy_data(Main *UNUSED(bmain), bGPdata *gpd_dst, const bGPdata *gpd_src, const int UNUSED(flag))
+void BKE_gpencil_copy_data(bGPdata *gpd_dst, const bGPdata *gpd_src, const int UNUSED(flag))
 {
 	/* cache data is not duplicated */
 	gpd_dst->runtime.batch_cache_data = NULL;
@@ -727,7 +727,7 @@ bGPdata *BKE_gpencil_data_duplicate(Main *bmain, const bGPdata *gpd_src, bool in
 	}
 
 	/* Copy internal data (layers, etc.) */
-	BKE_gpencil_copy_data(bmain, gpd_dst, gpd_src, 0);
+	BKE_gpencil_copy_data(gpd_dst, gpd_src, 0);
 
 	/* return new */
 	return gpd_dst;

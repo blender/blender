@@ -633,7 +633,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 			BKE_particlesettings_copy_data(bmain, (ParticleSettings *)*r_newid, (ParticleSettings *)id, flag);
 			break;
 		case ID_GD:
-			BKE_gpencil_copy_data(bmain, (bGPdata *)*r_newid, (bGPdata *)id, flag);
+			BKE_gpencil_copy_data((bGPdata *)*r_newid, (bGPdata *)id, flag);
 			break;
 		case ID_MC:
 			BKE_movieclip_copy_data(bmain, (MovieClip *)*r_newid, (MovieClip *)id, flag);
