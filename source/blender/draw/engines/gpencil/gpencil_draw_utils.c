@@ -1200,91 +1200,91 @@ void DRW_gpencil_populate_datablock(GPENCIL_e_data *e_data, void *vedata, Scene 
 	ToolSettings *ts = scene->toolsettings;
 	bGPDframe *derived_gpf = NULL;
 	const bool main_onion = v3d != NULL ? ((v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) == 0) : true;
-	const bool no_onion = (bool)(gpd->flag & GP_DATA_STROKE_WEIGHTMODE) || main_onion;
-	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+const bool no_onion = (bool)(gpd->flag & GP_DATA_STROKE_WEIGHTMODE) || main_onion;
+const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 
-	/* check if playing animation */
-	bool playing = stl->storage->is_playing;
+/* check if playing animation */
+bool playing = stl->storage->is_playing;
 
-	GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra_eval);
-	cache->cache_idx = 0;
+GpencilBatchCache *cache = gpencil_batch_cache_get(ob, cfra_eval);
+cache->cache_idx = 0;
 
-	/* init general modifiers data */
-	if (!stl->storage->simplify_modif) {
-		if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
-			BKE_gpencil_lattice_init(ob);
-		}
+/* init general modifiers data */
+if (!stl->storage->simplify_modif) {
+	if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
+		BKE_gpencil_lattice_init(ob);
 	}
-	/* draw normal strokes */
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		/* don't draw layer if hidden */
-		if (gpl->flag & GP_LAYER_HIDE)
-			continue;
+}
+/* draw normal strokes */
+for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+	/* don't draw layer if hidden */
+	if (gpl->flag & GP_LAYER_HIDE)
+		continue;
 
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
-		if (gpf == NULL)
-			continue;
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
+	if (gpf == NULL)
+		continue;
 
-		/* create GHash if need */
-		if (gpl->runtime.derived_data == NULL) {
-			gpl->runtime.derived_data = (GHash *)BLI_ghash_str_new(gpl->info);
+	/* create GHash if need */
+	if (gpl->runtime.derived_data == NULL) {
+		gpl->runtime.derived_data = (GHash *)BLI_ghash_str_new(gpl->info);
+	}
+
+	if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+		derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
+	}
+	else {
+		derived_gpf = NULL;
+	}
+
+	if (derived_gpf == NULL) {
+		cache->is_dirty = true;
+	}
+	if (cache->is_dirty) {
+		if (derived_gpf != NULL) {
+			/* first clear temp data */
+			if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+				BLI_ghash_remove(gpl->runtime.derived_data, ob->id.name, NULL, NULL);
+			}
+
+			BKE_gpencil_free_frame_runtime_data(derived_gpf);
 		}
-
-		if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-			derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
+		/* create new data */
+		derived_gpf = BKE_gpencil_frame_duplicate(gpf);
+		if (!BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
+			BLI_ghash_insert(gpl->runtime.derived_data, ob->id.name, derived_gpf);
 		}
 		else {
-			derived_gpf = NULL;
+			BLI_ghash_reinsert(gpl->runtime.derived_data, ob->id.name, derived_gpf, NULL, NULL);
 		}
+	}
 
-		if (derived_gpf == NULL) {
-			cache->is_dirty = true;
-		}
-		if (cache->is_dirty) {
-			if (derived_gpf != NULL) {
-				/* first clear temp data */
-				if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-					BLI_ghash_remove(gpl->runtime.derived_data, ob->id.name, NULL, NULL);
-				}
-
-				BKE_gpencil_free_frame_runtime_data(derived_gpf);
-			}
-			/* create new data */
-			derived_gpf = BKE_gpencil_frame_duplicate(gpf);
-			if (!BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-				BLI_ghash_insert(gpl->runtime.derived_data, ob->id.name, derived_gpf);
-			}
-			else {
-				BLI_ghash_reinsert(gpl->runtime.derived_data, ob->id.name, derived_gpf, NULL, NULL);
-			}
-		}
-
-		/* draw onion skins */
-		if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
-		    (!no_onion) && (overlay) &&
-		    (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
-		    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
+	/* draw onion skins */
+	if ((gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
+		(!no_onion) && (overlay) &&
+		(gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
+		((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
+	{
+		if ((!stl->storage->is_render) ||
+			((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
 		{
-			if ((!stl->storage->is_render) ||
-			    ((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
-			{
-				gpencil_draw_onionskins(cache, e_data, vedata, ob, gpd, gpl, gpf);
-			}
+			gpencil_draw_onionskins(cache, e_data, vedata, ob, gpd, gpl, gpf);
 		}
-
-		/* draw normal strokes */
-		gpencil_draw_strokes(
-		        cache, e_data, vedata, ts, ob, gpd, gpl, gpf, derived_gpf,
-		        gpl->opacity, gpl->tintcolor, false);
-
 	}
 
-	/* clear any lattice data */
-	if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
-		BKE_gpencil_lattice_clear(ob);
-	}
+	/* draw normal strokes */
+	gpencil_draw_strokes(
+		cache, e_data, vedata, ts, ob, gpd, gpl, gpf, derived_gpf,
+		gpl->opacity, gpl->tintcolor, false);
 
-	cache->is_dirty = false;
+}
+
+/* clear any lattice data */
+if ((cache->is_dirty) && (ob->greasepencil_modifiers.first)) {
+	BKE_gpencil_lattice_clear(ob);
+}
+
+cache->is_dirty = false;
 }
 
 /* Helper for gpencil_instance_modifiers()
@@ -1300,8 +1300,11 @@ static void gp_instance_modifier_make_instances(GPENCIL_StorageList *stl, Object
 	for (int x = 0; x < mmd->count[0]; x++) {
 		for (int y = 0; y < mmd->count[1]; y++) {
 			for (int z = 0; z < mmd->count[2]; z++) {
-				Object *newob;
+				if ((x == 0) && (y == 0) && (z == 0)) {
+					continue;
+				}
 
+				Object *newob = NULL;
 				const int elem_idx[3] = {x, y, z};
 				float mat[4][4];
 				int sh;
@@ -1316,6 +1319,7 @@ static void gp_instance_modifier_make_instances(GPENCIL_StorageList *stl, Object
 
 				/* add object to cache */
 				newob = MEM_dupallocN(ob);
+				printf("Dupli %p\n", &newob);
 
 				/* Create a unique name or the object hash used in draw will fail.
 				 * the name must be unique in the hash, not in the scene because
