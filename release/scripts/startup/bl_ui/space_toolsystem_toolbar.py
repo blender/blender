@@ -289,6 +289,10 @@ class _defs_transform:
 
     @ToolDef.from_fn
     def translate():
+        def draw_settings(context, layout, tool):
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_gizmo_apron")
+
         return dict(
             text="Grab",
             # cursor='SCROLL_XY',
@@ -299,10 +303,15 @@ class _defs_transform:
             # keymap=(
             #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def rotate():
+        def draw_settings(context, layout, tool):
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_gizmo_apron")
+
         return dict(
             text="Rotate",
             # cursor='SCROLL_XY',
@@ -313,10 +322,15 @@ class _defs_transform:
             # keymap=(
             #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def scale():
+        def draw_settings(context, layout, tool):
+            tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_gizmo_apron")
+
         return dict(
             text="Scale",
             # cursor='SCROLL_XY',
@@ -327,6 +341,7 @@ class _defs_transform:
             # keymap=(
             #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
             # ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -342,6 +357,7 @@ class _defs_transform:
     def transform():
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
+            layout.prop(tool_settings, "use_gizmo_apron")
             layout.prop(tool_settings, "use_gizmo_mode")
 
         return dict(

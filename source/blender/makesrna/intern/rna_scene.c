@@ -2426,6 +2426,11 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Gizmo Mode",  "");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_gizmo_flag_update");
 
+	prop = RNA_def_property(srna, "use_gizmo_apron", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCE_MANIP_DISABLE_APRON);
+	RNA_def_property_ui_text(prop, "Apron", "Handle input not directly over the gizmo");
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
 	/* Grease Pencil */
 	prop = RNA_def_property(srna, "use_gpencil_additive_drawing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_flags", GP_TOOL_FLAG_RETAIN_LAST);

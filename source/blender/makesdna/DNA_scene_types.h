@@ -2053,9 +2053,13 @@ typedef enum eImagePaintMode {
 #define EDGE_MODE_TAG_FREESTYLE			5
 
 /* ToolSettings.gizmo_flag */
-#define SCE_MANIP_TRANSLATE	1
-#define SCE_MANIP_ROTATE		2
-#define SCE_MANIP_SCALE		4
+enum {
+	SCE_MANIP_TRANSLATE      = (1 << 0),
+	SCE_MANIP_ROTATE         = (1 << 1),
+	SCE_MANIP_SCALE          = (1 << 2),
+
+	SCE_MANIP_DISABLE_APRON  = (1 << 3),
+};
 
 /* ToolSettings.gpencil_flags */
 typedef enum eGPencil_Flags {

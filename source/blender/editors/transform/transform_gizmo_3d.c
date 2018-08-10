@@ -148,7 +148,9 @@ enum {
 #define MAN_AXIS_RANGE_SCALE_START MAN_AXIS_SCALE_X
 #define MAN_AXIS_RANGE_SCALE_END (MAN_AXIS_SCALE_ZX + 1)
 
-	MAN_AXIS_LAST = MAN_AXIS_RANGE_SCALE_END,
+	MAN_AXIS_APRON_C,
+
+	MAN_AXIS_LAST = MAN_AXIS_APRON_C + 1,
 };
 
 /* axis types */
@@ -162,6 +164,7 @@ enum {
 typedef struct GizmoGroup {
 	bool all_hidden;
 	int twtype;
+	int axis_type_default;
 
 	/* Users may change the twtype, detect changes to re-setup gizmo options. */
 	int twtype_init;
@@ -193,7 +196,7 @@ static wmGizmo *gizmo_get_axis_from_index(const GizmoGroup *man, const short axi
 	return man->gizmos[axis_idx];
 }
 
-static short gizmo_get_axis_type(const int axis_idx)
+static short gizmo_get_axis_type(const int axis_idx, const int axis_type_default)
 {
 	if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 		return MAN_AXES_TRANSLATE;
@@ -203,6 +206,9 @@ static short gizmo_get_axis_type(const int axis_idx)
 	}
 	if (axis_idx >= MAN_AXIS_RANGE_SCALE_START && axis_idx < MAN_AXIS_RANGE_SCALE_END) {
 		return MAN_AXES_SCALE;
+	}
+	if (axis_idx == MAN_AXIS_APRON_C) {
+		return axis_type_default;
 	}
 	BLI_assert(0);
 	return -1;
@@ -326,6 +332,8 @@ static bool gizmo_is_axis_visible(
 			        rv3d->twdrawflag & MAN_SCALE_X &&
 			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
 			        (twtype & SCE_MANIP_ROTATE) == 0);
+		case MAN_AXIS_APRON_C:
+			return true;
 	}
 	return false;
 }
@@ -1169,9 +1177,11 @@ static void gizmo_xform_message_subscribe(
 	if (type_fn == TRANSFORM_GGT_gizmo) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
 		extern PropertyRNA rna_ToolSettings_use_gizmo_mode;
+		extern PropertyRNA rna_ToolSettings_use_gizmo_apron;
 		const PropertyRNA *props[] = {
 			&rna_ToolSettings_transform_pivot_point,
 			&rna_ToolSettings_use_gizmo_mode,
+			&rna_ToolSettings_use_gizmo_apron,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
@@ -1203,6 +1213,12 @@ static GizmoGroup *gizmogroup_init(wmGizmoGroup *gzgroup)
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 	const wmGizmoType *gzt_prim = WM_gizmotype_find("GIZMO_GT_primitive_3d", true);
+
+	/* Fallback action. */
+	{
+		const wmGizmoType *gzt_mask = WM_gizmotype_find("GIZMO_GT_blank_3d", true);
+		man->gizmos[MAN_AXIS_APRON_C] = WM_gizmo_new_ptr(gzt_mask, gzgroup, NULL);
+	}
 
 #define GIZMO_NEW_ARROW(v, draw_style) { \
 	man->gizmos[v] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL); \
@@ -1291,9 +1307,23 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 		wmOperatorType *translate, *rotate, *trackball, *resize;
 	} ot_store = {NULL};
 	GizmoGroup *man = gzgroup->customdata;
+
+	if (man->twtype & SCE_MANIP_TRANSLATE) {
+		man->axis_type_default = MAN_AXES_TRANSLATE;
+	}
+	else if (man->twtype & SCE_MANIP_ROTATE) {
+		man->axis_type_default = MAN_AXES_ROTATE;
+	}
+	else if (man->twtype & SCE_MANIP_SCALE) {
+		man->axis_type_default = MAN_AXES_SCALE;
+	}
+	else {
+		man->axis_type_default = 0;
+	}
+
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = gizmo_get_axis_type(axis_idx);
+		const short axis_type = gizmo_get_axis_type(axis_idx, man->axis_type_default);
 		bool constraint_axis[3] = {1, 0, 0};
 		PointerRNA *ptr;
 
@@ -1355,6 +1385,9 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 				else {
 					WM_gizmo_set_scale(axis, 0.2f);
 				}
+				break;
+			case MAN_AXIS_APRON_C:
+				WM_gizmo_set_scale(axis, 1.2f);
 				break;
 		}
 
@@ -1472,7 +1505,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = gizmo_get_axis_type(axis_idx);
+		const short axis_type = gizmo_get_axis_type(axis_idx, man->axis_type_default);
 		const int aidx_norm = gizmo_orientation_axis(axis_idx, NULL);
 
 		WM_gizmo_set_matrix_location(axis, rv3d->twmat[3]);
@@ -1537,6 +1570,7 @@ static void WIDGETGROUP_gizmo_message_subscribe(
 
 static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
+	const Scene *scene = CTX_data_scene(C);
 	GizmoGroup *man = gzgroup->customdata;
 	// ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -1560,9 +1594,13 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 
 	MAN_ITER_AXES_BEGIN(axis, axis_idx)
 	{
-		const short axis_type = gizmo_get_axis_type(axis_idx);
+		const short axis_type = gizmo_get_axis_type(axis_idx, man->axis_type_default);
 		/* XXX maybe unset _HIDDEN flag on redraw? */
-		if (gizmo_is_axis_visible(rv3d, man->twtype, idot, axis_type, axis_idx)) {
+
+		if (axis_idx == MAN_AXIS_APRON_C) {
+			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, (scene->toolsettings->gizmo_flag & SCE_MANIP_DISABLE_APRON) != 0);
+		}
+		else if (gizmo_is_axis_visible(rv3d, man->twtype, idot, axis_type, axis_idx)) {
 			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
 		}
 		else {
@@ -1580,6 +1618,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 			case MAN_AXIS_ROT_C:
 			case MAN_AXIS_SCALE_C:
 			case MAN_AXIS_ROT_T:
+			case MAN_AXIS_APRON_C:
 				WM_gizmo_set_matrix_rotation_from_z_axis(axis, rv3d->viewinv[2]);
 				break;
 		}

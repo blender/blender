@@ -47,6 +47,7 @@ set(SRC
 	geometry/geom_dial_gizmo.c
 	gizmo_types/arrow2d_gizmo.c
 	gizmo_types/arrow3d_gizmo.c
+	gizmo_types/blank3d_gizmo.c
 	gizmo_types/button2d_gizmo.c
 	gizmo_types/cage2d_gizmo.c
 	gizmo_types/cage3d_gizmo.c
