@@ -61,12 +61,12 @@ if(WIN32)
 	message("POutput = ${PYTHON_OUTPUTDIR}")
 else()
 	if(APPLE)
-		# we need to manually add homebrew headers to get ssl module building
-		set(PYTHON_CFLAGS "-I/usr/local/opt/openssl/include -I${OSX_SYSROOT}/usr/include ${PLATFORM_CFLAGS}")
-		set(PYTHON_LDFLAGS "-L/usr/local/opt/openssl/lib ${PLATFORM_LDFLAGS}")
-		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export CFLAGS=${PYTHON_CFLAGS} && export LDFLAGS=${PYTHON_LDFLAGS})
+		# we need to add homebrew pkgconfig directories to get ssl, xz
+
+                set(BREW_PKG_CONFIG "/usr/local/opt/openssl/lib/pkgconfig:/usr/local/opt/xz/lib/pkgconfig")
+		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export PKG_CONFIG_PATH=${BREW_PKG_CONFIG})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
-		set(PYTHON_PATCH ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_apple.diff)
+		set(PYTHON_PATCH echo .)
 	else()
 		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python)
