@@ -126,7 +126,7 @@ else()
 		)
 		set(OSX_ARCHITECTURES x86_64)
 		set(OSX_DEPLOYMENT_TARGET 10.9)
-		set(OSX_SDK_VERSION 10.12)
+		set(OSX_SDK_VERSION 10.13)
 		set(OSX_SYSROOT ${XCODE_DEV_PATH}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX${OSX_SDK_VERSION}.sdk)
 
 		set(PLATFORM_CFLAGS "-isysroot ${OSX_SYSROOT} -mmacosx-version-min=${OSX_DEPLOYMENT_TARGET}")

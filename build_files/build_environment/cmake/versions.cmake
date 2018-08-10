@@ -32,11 +32,11 @@ set(JPEG_VERSION 1.4.2)
 set(JPEG_URI https://github.com/libjpeg-turbo/libjpeg-turbo/archive/${JPEG_VERSION}.tar.gz)
 set(JPEG_HASH f9804884c1c41eb7f4febb9353a2cb27)
 
-set(BOOST_VERSION 1.60.0)
-set(BOOST_VERSION_NODOTS 1_60_0)
-set(BOOST_URI http://sourceforge.net/projects/boost/files/boost/${BOOST_VERSION}/boost_${BOOST_VERSION_NODOTS}.tar.bz2/download)
-set(BOOST_MD5 65a840e1a0b13a558ff19eeb2c4f0cbe)
-
+set(BOOST_VERSION 1.68.0)
+set(BOOST_VERSION_NODOTS 1_68_0)
+set(BOOST_URI https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION_NODOTS}.tar.gz)
+set(BOOST_HASH 5d8b4503582fffa9eefdb9045359c239)
+  
 set(BLOSC_VERSION 1.7.1)
 set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.zip)
 set(BLOSC_HASH ff5cc729a5a25934ef714217218eed26)
