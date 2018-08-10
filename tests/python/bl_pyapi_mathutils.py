@@ -104,7 +104,7 @@ class MatrixTesting(unittest.TestCase):
         self.assertEqual(mat[1][3], 2)
         self.assertEqual(mat[2][3], 3)
 
-    def test_non_square_mult(self):
+    def test_matrix_non_square_matmul(self):
         mat1 = Matrix(((1, 2, 3),
                        (4, 5, 6)))
         mat2 = Matrix(((1, 2),
@@ -117,10 +117,10 @@ class MatrixTesting(unittest.TestCase):
                             (19, 26, 33),
                             (29, 40, 51)))
 
-        self.assertEqual(mat1 * mat2, prod_mat1)
-        self.assertEqual(mat2 * mat1, prod_mat2)
+        self.assertEqual(mat1 @ mat2, prod_mat1)
+        self.assertEqual(mat2 @ mat1, prod_mat2)
 
-    def test_mat4x4_vec3D_mult(self):
+    def test_mat4x4_vec3D_matmul(self):
         mat = Matrix(((1, 0, 2, 0),
                       (0, 6, 0, 0),
                       (0, 0, 1, 1),
@@ -131,23 +131,58 @@ class MatrixTesting(unittest.TestCase):
         prod_mat_vec = Vector((7, 12, 4))
         prod_vec_mat = Vector((1, 12, 5))
 
-        self.assertEqual(mat * vec, prod_mat_vec)
-        self.assertEqual(vec * mat, prod_vec_mat)
+        self.assertEqual(mat @ vec, prod_mat_vec)
+        self.assertEqual(vec @ mat, prod_vec_mat)
 
-    def test_mat_vec_mult(self):
+    def test_mat_vec_matmul(self):
         mat1 = Matrix()
 
         vec = Vector((1, 2))
 
-        self.assertRaises(ValueError, mat1.__mul__, vec)
-        self.assertRaises(ValueError, vec.__mul__, mat1)
+        self.assertRaises(ValueError, mat1.__matmul__, vec)
+        self.assertRaises(ValueError, vec.__matmul__, mat1)
 
         mat2 = Matrix(((1, 2),
                        (-2, 3)))
 
         prod = Vector((5, 4))
 
-        self.assertEqual(mat2 * vec, prod)
+        self.assertEqual(mat2 @ vec, prod)
+
+    def test_matrix_square_matmul(self):
+        mat1 = Matrix(((1, 0),
+                       (1, 2)))
+        mat2 = Matrix(((1, 2),
+                       (-2, 3)))
+
+        prod1 = Matrix(((1, 2),
+                        (-3, 8)))
+        prod2 = Matrix(((3, 4),
+                        (1, 6)))
+
+        self.assertEqual(mat1 @ mat2, prod1)
+        self.assertEqual(mat2 @ mat1, prod2)
+
+    """
+    # tests for element-wise multiplication
+
+    def test_matrix_mul(self):
+        mat1 = Matrix(((1, 0),
+                       (1, 2)))
+        mat2 = Matrix(((1, 2),
+                       (-2, 3)))
+        mat3 = Matrix(((1, 0, 2, 0),
+                       (0, 6, 0, 0),
+                       (0, 0, 1, 1),
+                       (0, 0, 0, 1)))
+
+        prod = Matrix(((1, 0),
+                       (-2, 6)))
+
+        self.assertEqual(mat1 * mat2, prod)
+        self.assertEqual(mat2 * mat1, prod)
+        self.assertRaises(ValueError, mat1.__mul__, mat3)
+    """
 
     def test_matrix_inverse(self):
         mat = Matrix(((1, 4, 0, -1),
@@ -185,7 +220,7 @@ class MatrixTesting(unittest.TestCase):
 
         self.assertEqual(mat.inverted_safe(), inv_mat_safe)
 
-    def test_matrix_mult(self):
+    def test_matrix_matmult(self):
         mat = Matrix(((1, 4, 0, -1),
                       (2, -1, 2, -2),
                       (0, 3, 8, 3),
@@ -196,7 +231,7 @@ class MatrixTesting(unittest.TestCase):
                            (0, 48, 73, 18),
                            (16, -14, 26, -13)))
 
-        self.assertEqual(mat * mat, prod_mat)
+        self.assertEqual(mat @ mat, prod_mat)
 
 
 class VectorTesting(unittest.TestCase):
@@ -208,6 +243,49 @@ class VectorTesting(unittest.TestCase):
             v = Vector(v)
             if v.length_squared != 0.0:
                 self.assertAlmostEqual(v.angle(v.orthogonal()), angle_90d)
+
+    def test_vector_matmul(self):
+        # produces dot product for vectors
+        vec1 = Vector((1, 3, 5))
+        vec2 = Vector((1, 2))
+
+        self.assertRaises(ValueError, vec1.__matmul__, vec2)
+        self.assertEqual(vec1 @ vec1, 35)
+        self.assertEqual(vec2 @ vec2, 5)
+
+    def test_vector_imatmul(self):
+        vec = Vector((1, 3, 5))
+
+        with self.assertRaises(TypeError):
+            vec @= vec
+
+    """
+    # tests for element-wise multiplication
+
+    def test_vector_mul(self):
+        # element-wise multiplication
+        vec1 = Vector((1, 3, 5))
+        vec2 = Vector((1, 2))
+
+        prod1 = Vector((1, 9, 25))
+        prod2 = Vector((2, 6, 10))
+
+        self.assertRaises(ValueError, vec1.__mul__, vec2)
+        self.assertEqual(vec1 * vec1, prod1)
+        self.assertEqual(2 * vec1, prod2)
+
+    def test_vector_imul(self):
+        # inplace element-wise multiplication
+        vec = Vector((1, 3, 5))
+        prod1 = Vector((1, 9, 25))
+        prod2 = Vector((2, 18, 50))
+
+        vec *= vec
+        self.assertEqual(vec, prod1)
+
+        vec *= 2
+        self.assertEqual(vec, prod2)
+    """
 
 
 class QuaternionTesting(unittest.TestCase):
