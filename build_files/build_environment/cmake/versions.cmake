@@ -24,13 +24,13 @@ set(OPENAL_VERSION 1.17.2)
 set(OPENAL_URI http://kcat.strangesoft.net/openal-releases/openal-soft-${OPENAL_VERSION}.tar.bz2)
 set(OPENAL_HASH 1764e0d8fec499589b47ebc724e0913d)
 
-set(PNG_VERSION 1.6.21)
-set(PNG_URI http://prdownloads.sourceforge.net/libpng/libpng-${PNG_VERSION}.tar.gz)
-set(PNG_HASH aca36ec8e0a3b406a5912243bc243717)
+set(PNG_VERSION 1.6.35)
+set(PNG_URI http://prdownloads.sourceforge.net/libpng/libpng-${PNG_VERSION}.tar.xz)
+set(PNG_HASH 678b7e696a62a193ed3503b04bf449d6)
 
-set(JPEG_VERSION 1.4.2)
+set(JPEG_VERSION 1.5.3)
 set(JPEG_URI https://github.com/libjpeg-turbo/libjpeg-turbo/archive/${JPEG_VERSION}.tar.gz)
-set(JPEG_HASH f9804884c1c41eb7f4febb9353a2cb27)
+set(JPEG_HASH 5b7549d440b86c98a517355c102d155e)
 
 set(BOOST_VERSION 1.68.0)
 set(BOOST_VERSION_NODOTS 1_68_0)
@@ -45,13 +45,13 @@ set(PTHREADS_VERSION 2-9-1)
 set(PTHREADS_URI ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-${PTHREADS_VERSION}-release.tar.gz)
 set(PTHREADS_SHA512 9c06e85310766834370c3dceb83faafd397da18a32411ca7645c8eb6b9495fea54ca2872f4a3e8d83cb5fdc5dea7f3f0464be5bb9af3222a6534574a184bd551)
 
-set(ILMBASE_VERSION 2.2.0)
+set(ILMBASE_VERSION 2.2.1)
 set(ILMBASE_URI http://download.savannah.nongnu.org/releases/openexr/ilmbase-${ILMBASE_VERSION}.tar.gz)
-set(ILMBASE_HASH b540db502c5fa42078249f43d18a4652)
+set(ILMBASE_HASH 7b86128b04f0541b6bb33633e299cb44)
 
-set(OPENEXR_VERSION 2.2.0)
-set(OPENEXR_URI http://download.savannah.nongnu.org/releases/openexr/openexr-2.2.0.tar.gz)
-set(OPENEXR_HASH b64e931c82aa3790329c21418373db4e)
+set(OPENEXR_VERSION 2.2.1)
+set(OPENEXR_URI http://download.savannah.nongnu.org/releases/openexr/openexr-${OPENEXR_VERSION}.tar.gz)
+set(OPENEXR_HASH 421815c32989e1b98fc4798ee754c433)
 
 set(FREETYPE_VERSION 291)
 set(FREETYPE_URI http://download.savannah.gnu.org/releases/freetype/ft${FREETYPE_VERSION}.zip)
@@ -122,9 +122,9 @@ set(OPENIMAGEIO_HASH_1715 e2ece0f62c013d64c478f82265988b0b)
 set(OPENIMAGEIO_HASH ${OPENIMAGEIO_HASH_1715})
 
 
-set(TIFF_VERSION 4.0.6)
+set(TIFF_VERSION 4.0.9)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
-set(TIFF_HASH d1d2e940dea0b5ad435f21f03d96dd72)
+set(TIFF_HASH 54bad211279cc93eb4fca31ba9bfdc79)
 
 set(FLEXBISON_VERSION 2.5.5)
 set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
@@ -190,14 +190,6 @@ set(VPX_VERSION 1.5.0)
 set(VPX_URI http://storage.googleapis.com/downloads.webmproject.org/releases/webm/libvpx-${VPX_VERSION}.tar.bz2)
 set(VPX_HASH 306d67908625675f8e188d37a81fbfafdf5068b09d9aa52702b6fbe601c76797)
 
-set(ORC_VERSION 0.4.25)
-set(ORC_URI https://gstreamer.freedesktop.org/src/orc/orc-${ORC_VERSION}.tar.xz)
-set(ORC_HASH c1b1d54a58f26d483f0b3881538984789fe5d5460ab8fab74a1cacbd3d1c53d1)
-
-set(SCHROEDINGER_VERSION 1.0.11)
-set(SCHROEDINGER_URI https://download.videolan.org/contrib/schroedinger/schroedinger-${SCHROEDINGER_VERSION}.tar.gz)
-set(SCHROEDINGER_HASH 1e572a0735b92aca5746c4528f9bebd35aa0ccf8619b22fa2756137a8cc9f912)
-
 set(X264_URI http://download.videolan.org/pub/videolan/x264/snapshots/x264-snapshot-20160401-2245-stable.tar.bz2)
 set(X264_HASH 1e9a7b835e80313aade53a9b6ff353e099de3856bf5f30a4d8dfc91281f786f5)
 
@@ -206,18 +198,19 @@ set(XVIDCORE_URI http://downloads.xvid.org/downloads/xvidcore-${XVIDCORE_VERSION
 set(XVIDCORE_HASH 4e9fd62728885855bc5007fe1be58df42e5e274497591fec37249e1052ae316f)
 
 #this has to be in sync with the version in blenders /extern folder
-set(OPENJPEG_VERSION 1.5.2)
-set(OPENJPEG_SHORT_VERSION 1.5)
-set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/version.${OPENJPEG_VERSION}.tar.gz)
-set(OPENJPEG_HASH 3734e95edd0bef6e056815591755efd822228dc3cd866894e00a2c929026b16d)
+set(OPENJPEG_VERSION 2.3.0)
+set(OPENJPEG_SHORT_VERSION 2.3)
+# Use slightly newer commit after release which includes a cmake fix
+set(OPENJPEG_URI https://github.com/uclouvain/openjpeg/archive/66297f07a43.zip)
+set(OPENJPEG_HASH 8242b18d908c7c42174e4231a741cfa7ce7c26b6ed5c9644feb9df7b3054310b)
 
 set(FAAD_VERSION 2-2.7)
 set(FAAD_URI http://downloads.sourceforge.net/faac/faad${FAAD_VERSION}.tar.bz2)
 set(FAAD_HASH 4c332fa23febc0e4648064685a3d4332)
 
-set(FFMPEG_VERSION 3.2.1)
+set(FFMPEG_VERSION 3.4.1)
 set(FFMPEG_URI http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2)
-set(FFMPEG_HASH cede174178e61f882844f5870c35ce72)
+set(FFMPEG_HASH bbf3fcded80c33968c91bf323a744286)
 
 set(FFTW_VERSION 3.3.4)
 set(FFTW_URI http://www.fftw.org/fftw-${FFTW_VERSION}.tar.gz)
@@ -243,9 +236,9 @@ set(HIDAPI_UID 89a6c75dc6f45ecabd4ddfbd2bf5ba6ad8ba38b5)
 set(HIDAPI_URI https://github.com/TheOnlyJoey/hidapi/archive/${HIDAPI_UID}.zip)
 set(HIDAPI_HASH b6e22f6b514f8bcf594989f20ffc46fb)
 
-set(WEBP_VERSION 0.5.1)
+set(WEBP_VERSION 0.6.1)
 set(WEBP_URI https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-${WEBP_VERSION}.tar.gz)
-set(WEBP_HASH 3d7db92ebba5b4f679413d25c6040881)
+set(WEBP_HASH b49ce9c3e3e9acae4d91bca44bb85a72)
 
 set(SPNAV_VERSION 0.2.3)
 set(SPNAV_URI http://downloads.sourceforge.net/project/spacenav/spacenav%20library%20%28SDK%29/libspnav%20${SPNAV_VERSION}/libspnav-${SPNAV_VERSION}.tar.gz)

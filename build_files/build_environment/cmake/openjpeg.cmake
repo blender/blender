@@ -58,7 +58,7 @@ if(MSVC)
 	endif()
 endif()
 
-set(OPENJPEG_LIBRARY libopenjpeg${LIBEXT})
+set(OPENJPEG_LIBRARY libopenjp2${LIBEXT})
 if(MSVC)
 	set_target_properties(external_openjpeg PROPERTIES FOLDER Mingw)
 endif()

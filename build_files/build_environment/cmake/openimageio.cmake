@@ -51,8 +51,8 @@ if(MSVC)
 	set(OPENJPEG_FLAGS
 		-DOPENJPEG_HOME=${LIBDIR}/openjpeg_msvc
 		-DOPENJPEG_INCLUDE_DIR=${LIBDIR}/openjpeg_msvc/include/openjpeg-${OPENJPEG_SHORT_VERSION}
-		-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
-		-DOPENJPEG_LIBRARY_DEBUG=${LIBDIR}/openjpeg_msvc/lib/openjpeg${LIBEXT}
+		-DOPENJPEG_LIBRARY=${LIBDIR}/openjpeg_msvc/lib/openjp2${LIBEXT}
+		-DOPENJPEG_LIBRARY_DEBUG=${LIBDIR}/openjpeg_msvc/lib/openjp2${LIBEXT}
 	)
 else()
 	set(OPENJPEG_FLAGS

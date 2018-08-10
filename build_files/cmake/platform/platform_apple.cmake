@@ -159,7 +159,10 @@ if(WITH_CODEC_FFMPEG)
 	set(FFMPEG_LIBRARIES
 		avcodec avdevice avformat avutil
 		mp3lame swscale x264 xvidcore theora theoradec theoraenc vorbis vorbisenc vorbisfile ogg
-	)
+		)
+	      # commenting out until libs are updated on svn. schroedinger and orc
+	      # will be removed then
+	      #	set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} vpx webp swresample)
 	set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} schroedinger orc vpx webp swresample)
 	set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 endif()
@@ -169,6 +172,8 @@ if(WITH_IMAGE_OPENJPEG OR WITH_CODEC_FFMPEG)
 	set(OPENJPEG ${LIBDIR}/openjpeg)
 	set(WITH_SYSTEM_OPENJPEG ON)
 	set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
+	# same as with ffmpeg libs, update when svn are updated
+	#set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjp2.a)
 	set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjpeg.a)
 endif()
 
