@@ -53,9 +53,9 @@ set(OPENEXR_VERSION 2.2.0)
 set(OPENEXR_URI http://download.savannah.nongnu.org/releases/openexr/openexr-2.2.0.tar.gz)
 set(OPENEXR_HASH b64e931c82aa3790329c21418373db4e)
 
-set(FREETYPE_VERSION 263)
+set(FREETYPE_VERSION 291)
 set(FREETYPE_URI http://download.savannah.gnu.org/releases/freetype/ft${FREETYPE_VERSION}.zip)
-set(FREETYPE_HASH 0db2a43301572e5c2b4a0864f237aeeb)
+set(FREETYPE_HASH 6ca68fc28e443a05f756075d3b1dcb54)
 
 set(GLEW_VERSION 1.13.0)
 set(GLEW_URI http://prdownloads.sourceforge.net/glew/glew/${GLEW_VERSION}/glew-${GLEW_VERSION}.tgz)
