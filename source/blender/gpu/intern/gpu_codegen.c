@@ -257,6 +257,9 @@ static void gpu_parse_functions_string(GHash *hash, char *code)
 			if (!type && gpu_str_prefix(code, "sampler2DShadow")) {
 				type = GPU_SHADOW2D;
 			}
+			if (!type && gpu_str_prefix(code, "sampler1DArray")) {
+				type = GPU_TEX1D_ARRAY;
+			}
 			if (!type && gpu_str_prefix(code, "sampler2D")) {
 				type = GPU_TEX2D;
 			}
@@ -617,6 +620,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 				if (codegen_input_has_texture(input) && input->bindtex) {
 					BLI_dynstr_appendf(
 					        ds, "uniform %s samp%d;\n",
+					        (input->textype == GPU_TEX1D_ARRAY) ? "sampler1DArray" :
 					        (input->textype == GPU_TEX2D) ? "sampler2D" :
 					        (input->textype == GPU_TEXCUBE) ? "samplerCube" : "sampler2DShadow",
 					        input->texid);
@@ -1330,15 +1334,9 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		/* small texture created on the fly, like for colorbands */
 		input->type = GPU_VEC4;
 		input->source = GPU_SOURCE_TEX;
-		input->textype = type;
-
-#if 0
-		input->tex = GPU_texture_create_2D(link->texturesize, link->texturesize, link->ptr2, NULL);
-#endif
-		input->tex = GPU_texture_create_2D(link->texturesize, 1, GPU_RGBA8, link->ptr1, NULL);
-		input->textarget = GL_TEXTURE_2D;
-
-		MEM_freeN(link->ptr1);
+		input->textype = GPU_TEX1D_ARRAY;
+		input->tex = link->ptr1; /* HACK ptr1 is actually a (GPUTexture **). */
+		input->textarget = GL_TEXTURE_1D_ARRAY;
 		MEM_freeN(link);
 	}
 	else if (link->image) {
@@ -1687,13 +1685,14 @@ GPUNodeLink *GPU_image_preview(PreviewImage *prv)
 }
 
 
-GPUNodeLink *GPU_texture(int size, float *pixels)
+GPUNodeLink *GPU_texture_ramp(GPUMaterial *mat, int size, float *pixels, float *row)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
 	link->texture = true;
-	link->texturesize = size;
-	link->ptr1 = pixels;
+	link->ptr1 = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
+
+	MEM_freeN(pixels);
 
 	return link;
 }

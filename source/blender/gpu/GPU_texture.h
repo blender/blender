@@ -163,6 +163,8 @@ GPUTexture *GPU_texture_create_nD(
 
 GPUTexture *GPU_texture_create_1D(
         int w, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_1D_array(
+        int w, int h, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2D(
         int w, int h, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_2D_multisample(

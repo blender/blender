@@ -871,6 +871,13 @@ GPUTexture *GPU_texture_create_1D(
 	return GPU_texture_create_nD(w, 0, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
 }
 
+GPUTexture *GPU_texture_create_1D_array(
+        int w, int h, GPUTextureFormat tex_format, const float *pixels, char err_out[256])
+{
+	GPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex_format);
+	return GPU_texture_create_nD(w, h, 0, 1, pixels, tex_format, data_format, 0, false, err_out);
+}
+
 GPUTexture *GPU_texture_create_2D(
         int w, int h, GPUTextureFormat tex_format, const float *pixels, char err_out[256])
 {

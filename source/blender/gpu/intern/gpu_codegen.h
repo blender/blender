@@ -197,6 +197,7 @@ void gpu_codegen_exit(void);
 
 const char *GPU_builtin_name(GPUBuiltin builtin);
 void gpu_material_add_node(struct GPUMaterial *material, struct GPUNode *node);
+struct GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat, int size, float *pixels, float *row);
 int GPU_link_changed(struct GPUNodeLink *link);
 
 #endif

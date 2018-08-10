@@ -776,7 +776,9 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 		}
 		/* Color Ramps */
 		else if (input->tex) {
-			DRW_shgroup_uniform_texture(grp, input->shadername, input->tex);
+			/* HACK : input->tex is a (GPUTexture **) in this case. */
+			GPUTexture *tex = *((GPUTexture **)input->tex);
+			DRW_shgroup_uniform_texture(grp, input->shadername, tex);
 		}
 		/* Floats */
 		else {

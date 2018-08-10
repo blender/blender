@@ -40,12 +40,15 @@ static bNodeSocketTemplate sh_node_blackbody_out[] = {
 
 static int node_shader_gpu_blackbody(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	const int size = 256;
+	const int size = CM_TABLE + 1;
 	float *data = MEM_mallocN(sizeof(float) * size * 4, "blackbody texture");
 
 	blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
 
-	return GPU_stack_link(mat, node, "node_blackbody", in, out, GPU_texture(size, data));
+	float layer;
+	GPUNodeLink *ramp_texture = GPU_texture_ramp(mat, size, data, &layer);
+
+	return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_uniform(&layer));
 }
 
 /* node type definition */

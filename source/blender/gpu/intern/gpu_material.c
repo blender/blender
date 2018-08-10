@@ -63,6 +63,12 @@
 #endif
 
 /* Structs */
+#define MAX_COLOR_BAND 128
+
+typedef struct GPUColorBandBuilder {
+	float pixels[MAX_COLOR_BAND][CM_TABLE + 1][4];
+	int current_layer;
+} GPUColorBandBuilder;
 
 struct GPUMaterial {
 	Scene *scene; /* DEPRECATED was only usefull for lamps */
@@ -125,6 +131,9 @@ struct GPUMaterial {
 	float sss_sharpness;
 	bool sss_dirty;
 
+	GPUTexture *coba_tex; /* 1D Texture array containing all color bands. */
+	GPUColorBandBuilder *coba_builder;
+
 #ifndef NDEBUG
 	char name[64];
 #endif
@@ -138,6 +147,47 @@ enum {
 
 /* Functions */
 
+/* Returns the adress of the future pointer to coba_tex */
+GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat, int size, float *pixels, float *row)
+{
+	/* In order to put all the colorbands into one 1D array texture,
+	 * we need them to be the same size. */
+	BLI_assert(size == CM_TABLE + 1);
+
+	if (mat->coba_builder == NULL) {
+		mat->coba_builder = MEM_mallocN(sizeof(GPUColorBandBuilder), "GPUColorBandBuilder");
+		mat->coba_builder->current_layer = 0;
+	}
+
+	int layer = mat->coba_builder->current_layer;
+	*row = (float)layer;
+
+	if (*row == MAX_COLOR_BAND) {
+		printf("Too many color band in shader! Remove some Curve, Black Body or Color Ramp Node.\n");
+	}
+	else {
+		float *dst = (float *)mat->coba_builder->pixels[layer];
+		memcpy(dst, pixels, sizeof(float) * (CM_TABLE + 1) * 4);
+		mat->coba_builder->current_layer += 1;
+	}
+
+	return &mat->coba_tex;
+}
+
+static void gpu_material_ramp_texture_build(GPUMaterial *mat)
+{
+	if (mat->coba_builder == NULL)
+		return;
+
+	GPUColorBandBuilder *builder = mat->coba_builder;
+
+	mat->coba_tex = GPU_texture_create_1D_array(CM_TABLE + 1, builder->current_layer, GPU_RGBA16F,
+	                                            (float *)builder->pixels, NULL);
+
+	MEM_freeN(builder);
+	mat->coba_builder = NULL;
+}
+
 static void gpu_material_free_single(GPUMaterial *material)
 {
 	/* Cancel / wait any pending lazy compilation. */
@@ -146,19 +196,20 @@ static void gpu_material_free_single(GPUMaterial *material)
 	GPU_pass_free_nodes(&material->nodes);
 	GPU_inputs_free(&material->inputs);
 
-	if (material->pass)
+	if (material->pass != NULL) {
 		GPU_pass_release(material->pass);
-
+	}
 	if (material->ubo != NULL) {
 		GPU_uniformbuffer_free(material->ubo);
 	}
-
 	if (material->sss_tex_profile != NULL) {
 		GPU_texture_free(material->sss_tex_profile);
 	}
-
 	if (material->sss_profile != NULL) {
 		GPU_uniformbuffer_free(material->sss_profile);
+	}
+	if (material->coba_tex != NULL) {
+		GPU_texture_free(material->coba_tex);
 	}
 }
 
@@ -621,6 +672,8 @@ GPUMaterial *GPU_material_from_nodetree(
 	/* localize tree to create links for reroute and mute */
 	bNodeTree *localtree = ntreeLocalize(ntree);
 	ntreeGPUMaterialNodes(localtree, mat, &has_surface_output, &has_volume_output);
+
+	gpu_material_ramp_texture_build(mat);
 
 	if (has_surface_output) {
 		mat->domain |= GPU_DOMAIN_SURFACE;

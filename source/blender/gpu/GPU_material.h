@@ -80,6 +80,7 @@ typedef enum GPUType {
 	GPU_MAT4 = 16,
 
 	/* Values not in GPU_DATATYPE_STR */
+	GPU_TEX1D_ARRAY = 1001,
 	GPU_TEX2D = 1002,
 	GPU_TEX3D = 1003,
 	GPU_SHADOW2D = 1004,
@@ -229,7 +230,7 @@ GPUNodeLink *GPU_uniform_buffer(float *num, GPUType gputype);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);
 GPUNodeLink *GPU_cube_map(struct Image *ima, struct ImageUser *iuser, bool is_data);
 GPUNodeLink *GPU_image_preview(struct PreviewImage *prv);
-GPUNodeLink *GPU_texture(int size, float *pixels);
+GPUNodeLink *GPU_texture_ramp(GPUMaterial *mat, int size, float *pixels, float *layer);
 GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, GPUDynamicType dynamictype, void *data);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
 GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin);

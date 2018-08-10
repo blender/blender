@@ -480,27 +480,26 @@ void normal_new_shading(vec3 dir, vec3 nor, out vec3 outnor, out float outdot)
 	outdot = dot(normalize(dir), nor);
 }
 
-void curves_vec(float fac, vec3 vec, sampler2D curvemap, out vec3 outvec)
+void curves_vec(float fac, vec3 vec, sampler1DArray curvemap, float layer, out vec3 outvec)
 {
-	outvec.x = texture(curvemap, vec2((vec.x + 1.0) * 0.5, 0.0)).x;
-	outvec.y = texture(curvemap, vec2((vec.y + 1.0) * 0.5, 0.0)).y;
-	outvec.z = texture(curvemap, vec2((vec.z + 1.0) * 0.5, 0.0)).z;
-
-	if (fac != 1.0)
-		outvec = (outvec * fac) + (vec * (1.0 - fac));
-
+	vec4 co = vec4(vec * 0.5 + 0.5, layer);
+	outvec.x = texture(curvemap, co.xw).x;
+	outvec.y = texture(curvemap, co.yw).y;
+	outvec.z = texture(curvemap, co.zw).z;
+	outvec = mix(vec, outvec, fac);
 }
 
-void curves_rgb(float fac, vec4 col, sampler2D curvemap, out vec4 outcol)
+void curves_rgb(float fac, vec4 col, sampler1DArray curvemap, float layer, out vec4 outcol)
 {
-	outcol.r = texture(curvemap, vec2(texture(curvemap, vec2(col.r, 0.0)).a, 0.0)).r;
-	outcol.g = texture(curvemap, vec2(texture(curvemap, vec2(col.g, 0.0)).a, 0.0)).g;
-	outcol.b = texture(curvemap, vec2(texture(curvemap, vec2(col.b, 0.0)).a, 0.0)).b;
-
-	if (fac != 1.0)
-		outcol = (outcol * fac) + (col * (1.0 - fac));
-
+	vec4 co = vec4(col.rgb, layer);
+	co.x = texture(curvemap, co.xw).a;
+	co.y = texture(curvemap, co.yw).a;
+	co.z = texture(curvemap, co.zw).a;
+	outcol.r = texture(curvemap, co.xw).r;
+	outcol.g = texture(curvemap, co.yw).g;
+	outcol.b = texture(curvemap, co.zw).b;
 	outcol.a = col.a;
+	outcol = mix(col, outcol, fac);
 }
 
 void set_value(float val, out float outval)
@@ -813,9 +812,9 @@ void mix_linear(float fac, vec4 col1, vec4 col2, out vec4 outcol)
 	outcol = col1 + fac * (2.0 * (col2 - vec4(0.5)));
 }
 
-void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha)
+void valtorgb(float fac, sampler1DArray colormap, float layer, out vec4 outcol, out float outalpha)
 {
-	outcol = texture(colormap, vec2(fac, 0.0));
+	outcol = texture(colormap, vec2(fac, layer));
 	outalpha = outcol.a;
 }
 
@@ -1464,17 +1463,17 @@ void node_volume_absorption(vec4 color, float density, out Closure result)
 #endif
 }
 
-void node_blackbody(float temperature, sampler2D spectrummap, out vec4 color)
+void node_blackbody(float temperature, sampler1DArray spectrummap, float layer, out vec4 color)
 {
-    if(temperature >= 12000.0) {
+    if (temperature >= 12000.0) {
         color = vec4(0.826270103, 0.994478524, 1.56626022, 1.0);
     }
-    else if(temperature < 965.0) {
+    else if (temperature < 965.0) {
         color = vec4(4.70366907, 0.0, 0.0, 1.0);
     }
 	else {
 		float t = (temperature - 965.0) / (12000.0 - 965.0);
-		color = vec4(texture(spectrummap, vec2(t, 0.0)).rgb, 1.0);
+		color = vec4(texture(spectrummap, vec2(t, layer)).rgb, 1.0);
 	}
 }
 
@@ -1491,7 +1490,8 @@ void node_volume_principled(
 	float density_attribute,
 	vec4 color_attribute,
 	float temperature_attribute,
-	sampler2D spectrummap,
+	sampler1DArray spectrummap,
+	float layer,
 	out Closure result)
 {
 #ifdef VOLUMETRICS
@@ -1533,7 +1533,7 @@ void node_volume_principled(
 
 		if(intensity > 1e-5) {
 			vec4 bb;
-			node_blackbody(T, spectrummap, bb);
+			node_blackbody(T, spectrummap, layer, bb);
 			emission_coeff += bb.rgb * blackbody_tint.rgb * intensity;
 		}
 	}
