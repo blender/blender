@@ -53,7 +53,6 @@ if(WIN32)
 	if(BUILD_MODE STREQUAL Release)
 		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_60/ ${HARVEST_TARGET}/boost/include/)
 	endif()
-	set(BOOST_PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/boost/src/external_boost < ${PATCH_DIR}/boost.diff)
 
 elseif(APPLE)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
