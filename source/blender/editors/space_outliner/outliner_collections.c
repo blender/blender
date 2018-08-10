@@ -99,6 +99,24 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 	return NULL;
 }
 
+TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
+{
+	struct ObjectsSelectedData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if (outliner_is_collection_tree_element(te)) {
+		return TRAVERSE_CONTINUE;
+	}
+
+	if (tselem->type || (tselem->id == NULL) || (GS(tselem->id->name) != ID_OB)) {
+		return TRAVERSE_SKIP_CHILDS;
+	}
+
+	BLI_addtail(&data->objects_selected_array, BLI_genericNodeN(te));
+
+	return TRAVERSE_CONTINUE;
+}
+
 /* -------------------------------------------------------------------- */
 /* Poll functions. */
 

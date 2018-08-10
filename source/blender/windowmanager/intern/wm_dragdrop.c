@@ -352,9 +352,10 @@ static const char *wm_drag_name(wmDrag *drag)
 			if (single) {
 				return id->name + 2;
 			}
-			else {
+			else if (id) {
 				return BKE_idcode_to_name_plural(GS(id->name));
 			}
+			break;
 		}
 		case WM_DRAG_PATH:
 		case WM_DRAG_NAME:

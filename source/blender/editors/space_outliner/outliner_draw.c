@@ -1356,13 +1356,10 @@ static void tselem_draw_icon(
 		UI_icon_draw_alpha(x, y, data.icon, alpha);
 	}
 	else {
-		uiBut *but = uiDefIconBut(
+		uiDefIconBut(
 		        block, UI_BTYPE_LABEL, 0, data.icon, x, y, UI_UNIT_X, UI_UNIT_Y, NULL,
 		        0.0, 0.0, 1.0, alpha,
 		        (data.drag_id && ID_IS_LINKED(data.drag_id)) ? data.drag_id->lib->name : "");
-
-		if (data.drag_id)
-			UI_but_drag_set_id(but, data.drag_id);
 	}
 }
 
@@ -1578,7 +1575,7 @@ static void outliner_set_coord_tree_element(TreeElement *te, int startx, int sta
 static void outliner_draw_tree_element(
         bContext *C, uiBlock *block, const uiFontStyle *fstyle, Scene *scene, ViewLayer *view_layer,
         ARegion *ar, SpaceOops *soops, TreeElement *te, bool draw_grayed_out,
-        int startx, int *starty, TreeElement **te_edit, TreeElement **te_floating)
+        int startx, int *starty, TreeElement **te_edit)
 {
 	TreeStoreElem *tselem;
 	float ufac = UI_UNIT_X / 20.0f;
@@ -1594,9 +1591,6 @@ static void outliner_draw_tree_element(
 
 		if ((tselem->flag & TSE_TEXTBUT) && (*te_edit == NULL)) {
 			*te_edit = te;
-		}
-		if ((te->drag_data != NULL) && (*te_floating == NULL)) {
-			*te_floating = te;
 		}
 
 		/* icons can be ui buts, we don't want it to overlap with restrict */
@@ -1799,11 +1793,11 @@ static void outliner_draw_tree_element(
 		for (TreeElement *ten = te->subtree.first; ten; ten = ten->next) {
 			/* check if element needs to be drawn grayed out, but also gray out
 			 * childs of a grayed out parent (pass on draw_grayed_out to childs) */
-			bool draw_childs_grayed_out = draw_grayed_out || (ten->drag_data != NULL);
+			bool draw_childs_grayed_out = draw_grayed_out || (ten->flag & TE_DRAGGING);
 			outliner_draw_tree_element(
 			        C, block, fstyle, scene, view_layer,
 			        ar, soops, ten, draw_childs_grayed_out,
-			        startx + UI_UNIT_X, starty, te_edit, te_floating);
+			        startx + UI_UNIT_X, starty, te_edit);
 		}
 	}
 	else {
@@ -1813,54 +1807,6 @@ static void outliner_draw_tree_element(
 
 		*starty -= UI_UNIT_Y;
 	}
-}
-
-static void outliner_draw_tree_element_floating(
-        const ARegion *ar, const TreeElement *te_floating)
-{
-	const TreeElement *te_insert = te_floating->drag_data->insert_handle;
-	const int line_width = 2;
-
-	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-	int coord_y = te_insert->ys;
-	int coord_x = te_insert->xs;
-	float col[4];
-
-	if (te_insert == te_floating) {
-		/* don't draw anything */
-		return;
-	}
-
-	UI_GetThemeColorShade4fv(TH_BACK, -40, col);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	GPU_blend(true);
-
-	if (ELEM(te_floating->drag_data->insert_type, TE_INSERT_BEFORE, TE_INSERT_AFTER)) {
-		if (te_floating->drag_data->insert_type == TE_INSERT_BEFORE) {
-			coord_y += UI_UNIT_Y;
-		}
-		immUniformColor4fv(col);
-		GPU_line_width(line_width);
-
-		immBegin(GPU_PRIM_LINE_STRIP, 2);
-		immVertex2f(pos, coord_x, coord_y);
-		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
-		immEnd();
-	}
-	else {
-		BLI_assert(te_floating->drag_data->insert_type == TE_INSERT_INTO);
-		immUniformColor3fvAlpha(col, col[3] * 0.5f);
-
-		immBegin(GPU_PRIM_TRI_STRIP, 4);
-		immVertex2f(pos, coord_x, coord_y + UI_UNIT_Y);
-		immVertex2f(pos, coord_x, coord_y);
-		immVertex2f(pos, ar->v2d.cur.xmax, coord_y + UI_UNIT_Y);
-		immVertex2f(pos, ar->v2d.cur.xmax, coord_y);
-		immEnd();
-	}
-
-	GPU_blend(false);
-	immUnbindProgram();
 }
 
 static void outliner_draw_hierarchy_lines_recursive(
@@ -1880,7 +1826,7 @@ static void outliner_draw_hierarchy_lines_recursive(
 	/* For vertical lines between objects. */
 	y1 = y2 = *starty;
 	for (te = lb->first; te; te = te->next) {
-		bool draw_childs_grayed_out = draw_grayed_out || (te->drag_data != NULL);
+		bool draw_childs_grayed_out = draw_grayed_out || (te->flag & TE_DRAGGING);
 		TreeStoreElem *tselem = TREESTORE(te);
 
 		if (draw_childs_grayed_out) {
@@ -1997,18 +1943,42 @@ static void outliner_draw_highlights_recursive(
 			immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
 		}
 
-		/* search match highlights
-		 *   we don't expand items when searching in the datablocks but we
-		 *   still want to highlight any filter matches. */
-		if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
-			immUniformColor4fv(col_searchmatch);
-			immRecti(pos, start_x, start_y + 1, ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
-		}
+		/* highlights */
+		if (tselem->flag & (TSE_DRAG_ANY | TSE_HIGHLIGHTED | TSE_SEARCHMATCH)) {
+			const int end_x = (int)ar->v2d.cur.xmax;
 
-		/* mouse hover highlights */
-		if ((tselem->flag & TSE_HIGHLIGHTED) || (te->drag_data != NULL)) {
-			immUniformColor4fv(col_highlight);
-			immRecti(pos, 0, start_y + 1, (int)ar->v2d.cur.xmax, start_y + UI_UNIT_Y - 1);
+			if (tselem->flag & TSE_DRAG_ANY) {
+				/* drag and drop highlight */
+				float col[4];
+				UI_GetThemeColorShade4fv(TH_BACK, -40, col);
+
+				if (tselem->flag & TSE_DRAG_BEFORE) {
+					immUniformColor4fv(col);
+					immRecti(pos, start_x, start_y + UI_UNIT_Y - 1, end_x, start_y + UI_UNIT_Y + 1);
+				}
+				else if (tselem->flag & TSE_DRAG_AFTER) {
+					immUniformColor4fv(col);
+					immRecti(pos, start_x, start_y - 1, end_x, start_y + 1);
+				}
+				else {
+					immUniformColor3fvAlpha(col, col[3] * 0.5f);
+					immRecti(pos, start_x, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+				}
+			}
+			else {
+				if (is_searching && (tselem->flag & TSE_SEARCHMATCH)) {
+					/* search match highlights
+					 *   we don't expand items when searching in the datablocks but we
+					 *   still want to highlight any filter matches. */
+					immUniformColor4fv(col_searchmatch);
+					immRecti(pos, start_x, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+				}
+				else if (tselem->flag & TSE_HIGHLIGHTED) {
+					/* mouse hover highlight */
+					immUniformColor4fv(col_highlight);
+					immRecti(pos, 0, start_y + 1, end_x, start_y + UI_UNIT_Y - 1);
+				}
+			}
 		}
 
 		*io_start_y -= UI_UNIT_Y;
@@ -2047,7 +2017,6 @@ static void outliner_draw_tree(
         TreeElement **te_edit)
 {
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	TreeElement *te_floating = NULL;
 	int starty, startx;
 
 	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA); // only once
@@ -2085,11 +2054,8 @@ static void outliner_draw_tree(
 	for (TreeElement *te = soops->tree.first; te; te = te->next) {
 		outliner_draw_tree_element(
 		        C, block, fstyle, scene, view_layer,
-		        ar, soops, te, te->drag_data != NULL,
-		        startx, &starty, te_edit, &te_floating);
-	}
-	if (te_floating && te_floating->drag_data->insert_handle) {
-		outliner_draw_tree_element_floating(ar, te_floating);
+		        ar, soops, te, (te->flag & TE_DRAGGING) != 0,
+		        startx, &starty, te_edit);
 	}
 
 	if (has_restrict_icons) {

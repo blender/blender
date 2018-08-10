@@ -95,6 +95,12 @@
 
 static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
+	/* Drag and drop does own highlighting. */
+	wmWindowManager *wm = CTX_wm_manager(C);
+	if (wm->drags.first) {
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+	}
+
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	const float my = UI_view2d_region_to_view_y(&ar->v2d, event->mval[1]);
@@ -103,7 +109,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 	bool changed = false;
 
 	if (!hovered_te || !(hovered_te->store_elem->flag & TSE_HIGHLIGHTED)) {
-		changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
+		changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
 		if (hovered_te) {
 			hovered_te->store_elem->flag |= TSE_HIGHLIGHTED;
 			changed = true;

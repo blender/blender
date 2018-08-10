@@ -129,6 +129,101 @@ static ID *outliner_ID_drop_find(bContext *C, const wmEvent *event, short idcode
 	}
 }
 
+/* Find tree element to drop into, with additional before and after reorder support. */
+static TreeElement *outliner_drop_insert_find(
+        bContext *C, const wmEvent *event,
+        TreeElementInsertType *r_insert_type)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ARegion *ar = CTX_wm_region(C);
+	TreeElement *te_hovered;
+	float view_mval[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
+	te_hovered = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+
+	if (te_hovered) {
+		/* mouse hovers an element (ignoring x-axis), now find out how to insert the dragged item exactly */
+		const float margin = UI_UNIT_Y * (1.0f / 4);
+
+		if (view_mval[1] < (te_hovered->ys + margin)) {
+			if (TSELEM_OPEN(TREESTORE(te_hovered), soops)) {
+				/* inserting after a open item means we insert into it, but as first child */
+				if (BLI_listbase_is_empty(&te_hovered->subtree)) {
+					*r_insert_type = TE_INSERT_INTO;
+					return te_hovered;
+				}
+				else {
+					*r_insert_type = TE_INSERT_BEFORE;
+					return te_hovered->subtree.first;
+				}
+			}
+			else {
+				*r_insert_type = TE_INSERT_AFTER;
+				return te_hovered;
+			}
+		}
+		else if (view_mval[1] > (te_hovered->ys + (3 * margin))) {
+			*r_insert_type = TE_INSERT_BEFORE;
+			return te_hovered;
+		}
+		else {
+			*r_insert_type = TE_INSERT_INTO;
+			return te_hovered;
+		}
+	}
+	else {
+		/* mouse doesn't hover any item (ignoring x-axis), so it's either above list bounds or below. */
+		TreeElement *first = soops->tree.first;
+		TreeElement *last = soops->tree.last;
+
+		if (view_mval[1] < last->ys) {
+			*r_insert_type = TE_INSERT_AFTER;
+			return last;
+		}
+		else if (view_mval[1] > (first->ys + UI_UNIT_Y)) {
+			*r_insert_type = TE_INSERT_BEFORE;
+			return first;
+		}
+		else {
+			BLI_assert(0);
+			return NULL;
+		}
+	}
+}
+
+static TreeElement *outliner_drop_insert_collection_find(
+        bContext *C, const wmEvent *event,
+        TreeElementInsertType *r_insert_type)
+{
+	TreeElement *te = outliner_drop_insert_find(C, event, r_insert_type);
+	if (!te) {
+		return NULL;
+	}
+
+	Collection *collection = outliner_collection_from_tree_element(te);
+	if (!collection) {
+		return NULL;
+	}
+
+	/* We can't insert/before after master collection. */
+	if (collection->flag & COLLECTION_IS_MASTER) {
+		if (*r_insert_type == TE_INSERT_BEFORE) {
+			/* can't go higher than master collection, insert into it */
+			*r_insert_type = TE_INSERT_INTO;
+		}
+		else if (*r_insert_type == TE_INSERT_AFTER) {
+			te = te->subtree.last;
+			collection = outliner_collection_from_tree_element(te);
+			if (!collection) {
+				return NULL;
+			}
+		}
+	}
+
+	return te;
+}
+
 /* ******************** Parent Drop Operator *********************** */
 
 static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
@@ -542,42 +637,204 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 
 /* ******************** Collection Drop Operator *********************** */
 
-static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
-{
-	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
-	Collection *collection = (Collection *)WM_drag_ID(drag, ID_GR);
+typedef struct CollectionDrop {
+	Collection *from;
+	Collection *to;
 
-	if (ob || collection) {
-		TreeElement *te = outliner_drop_find(C, event);
-		return (te && outliner_is_collection_tree_element(te));
+	TreeElement *te;
+	TreeElementInsertType insert_type;
+} CollectionDrop;
+
+static Collection *collection_parent_from_ID(ID *id)
+{
+	/* Can't change linked parent collections. */
+	if (!id || ID_IS_LINKED(id)) {
+		return NULL;
 	}
-	else {
+
+	/* Also support dropping into/from scene collection. */
+	if (GS(id->name) == ID_SCE) {
+		return ((Scene *)id)->master_collection;
+	}
+	else if (GS(id->name) == ID_GR) {
+		return (Collection *)id;
+	}
+
+	return NULL;
+}
+
+static bool collection_drop_init(bContext *C, wmDrag *drag, const wmEvent *event, CollectionDrop *data)
+{
+	/* Get collection to drop into. */
+	TreeElementInsertType insert_type;
+	TreeElement *te = outliner_drop_insert_collection_find(C, event, &insert_type);
+	if (!te) {
 		return false;
 	}
+
+	Collection *to_collection = outliner_collection_from_tree_element(te);
+	if (ID_IS_LINKED(to_collection)) {
+		return false;
+	}
+
+	/* Get drag datablocks. */
+	if (drag->type != WM_DRAG_ID) {
+		return false;
+	}
+
+	wmDragID *drag_id = drag->ids.first;
+	if (drag_id == NULL) {
+		return false;
+	}
+
+	ID *id = drag_id->id;
+	if (!(id && ELEM(GS(id->name), ID_GR, ID_OB))) {
+		return false;
+	}
+
+	/* Get collection to drag out of. */
+	ID *parent = drag_id->from_parent;
+	Collection *from_collection = collection_parent_from_ID(parent);
+	if (event->ctrl) {
+		from_collection = NULL;
+	}
+
+	/* Get collections. */
+	if (GS(id->name) == ID_GR) {
+		if (id == &to_collection->id) {
+			return false;
+		}
+	}
+	else {
+		insert_type = TE_INSERT_INTO;
+	}
+
+	data->from = from_collection;
+	data->to = to_collection;
+	data->te = te;
+	data->insert_type = insert_type;
+
+	return true;
+}
+
+static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **tooltip)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ARegion *ar = CTX_wm_region(C);
+	bool changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
+
+	CollectionDrop data;
+	if (collection_drop_init(C, drag, event, &data)) {
+		if (!data.from || event->ctrl) {
+			*tooltip = IFACE_("Link inside Collection");
+		}
+		else {
+			TreeElement *te = data.te;
+			TreeStoreElem *tselem = TREESTORE(te);
+
+			switch (data.insert_type) {
+				case TE_INSERT_BEFORE:
+					tselem->flag |= TSE_DRAG_BEFORE;
+					changed = true;
+					if (te->prev && outliner_is_collection_tree_element(te->prev)) {
+						*tooltip = TIP_("Move between collections");
+					}
+					else {
+						*tooltip = TIP_("Move before collection");
+					}
+					break;
+				case TE_INSERT_AFTER:
+					tselem->flag |= TSE_DRAG_AFTER;
+					changed = true;
+					if (te->next && outliner_is_collection_tree_element(te->next)) {
+						*tooltip = TIP_("Move between collections");
+					}
+					else {
+						*tooltip = TIP_("Move after collection");
+					}
+					break;
+				case TE_INSERT_INTO:
+					tselem->flag |= TSE_DRAG_INTO;
+					changed = true;
+					*tooltip = TIP_("Move inside collection (Ctrl to link)");
+					break;
+			}
+		}
+	}
+
+	if (changed) {
+		ED_region_tag_redraw_no_rebuild(ar);
+	}
+
+	return true;
 }
 
 static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
-	TreeElement *te = outliner_drop_find(C, event);
+	Scene *scene = CTX_data_scene(C);
 
-	if (!te || !outliner_is_collection_tree_element(te)) {
+	if (event->custom != EVT_DATA_DRAGDROP) {
 		return OPERATOR_CANCELLED;
 	}
 
-	Collection *collection = outliner_collection_from_tree_element(te);
+	ListBase *lb = event->customdata;
+	wmDrag *drag = lb->first;
 
-	// TODO: don't use scene, makes no sense anymore
-	// TODO: move rather than link, change hover text
-	Scene *scene = BKE_scene_find_from_collection(bmain, collection);
-	Object *ob = (Object *)WM_drag_ID_from_event(event, ID_OB);
-	if (ELEM(NULL, ob, scene, collection)) {
+	CollectionDrop data;
+	if (!collection_drop_init(C, drag, event, &data)) {
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_collection_object_add(bmain, collection, ob);
+	/* Before/after insert handling. */
+	Collection *relative = NULL;
+	bool relative_after = false;
 
-	DEG_id_tag_update(&collection->id, DEG_TAG_COPY_ON_WRITE);
+	if (ELEM(data.insert_type, TE_INSERT_BEFORE, TE_INSERT_AFTER)) {
+		SpaceOops *soops = CTX_wm_space_outliner(C);
+
+		relative = data.to;
+		relative_after = (data.insert_type == TE_INSERT_AFTER);
+
+		TreeElement *parent_te = outliner_find_parent_element(&soops->tree, NULL, data.te);
+		data.to = (parent_te) ? outliner_collection_from_tree_element(parent_te) : NULL;
+	}
+
+	if (!data.to) {
+		return OPERATOR_CANCELLED;
+	}
+
+	for (wmDragID *drag_id = drag->ids.first; drag_id; drag_id = drag_id->next) {
+		/* Ctrl enables linking, so we don't need a from collection then. */
+		Collection *from = (event->ctrl) ? NULL : collection_parent_from_ID(drag_id->from_parent);
+
+		if (GS(drag_id->id->name) == ID_OB) {
+			/* Move/link object into collection. */
+			Object *object = (Object *)drag_id->id;
+
+			if (from) {
+				BKE_collection_object_move(bmain, scene, data.to, from, object);
+			}
+			else {
+				BKE_collection_object_add(bmain, data.to, object);
+			}
+		}
+		else if (GS(drag_id->id->name) == ID_GR) {
+			/* Move/link collection into collection. */
+			Collection *collection = (Collection *)drag_id->id;
+
+			if (collection != from) {
+				BKE_collection_move(bmain, data.to, from, relative, relative_after, collection);
+			}
+		}
+
+		if (from) {
+			DEG_id_tag_update(&from->id, DEG_TAG_COPY_ON_WRITE);
+		}
+	}
+
+	/* Update dependency graph. */
+	DEG_id_tag_update(&data.to->id, DEG_TAG_COPY_ON_WRITE);
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 
@@ -587,7 +844,7 @@ static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmE
 void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Link to Collection"; // TODO: rename to move?
+	ot->name = "Move to Collection";
 	ot->description = "Drag to move to collection in Outliner";
 	ot->idname = "OUTLINER_OT_collection_drop";
 
@@ -601,19 +858,6 @@ void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 
 /* ********************* Outliner Drag Operator ******************** */
 
-typedef struct OutlinerDragDropTooltip {
-	TreeElement *te;
-	void *handle;
-} OutlinerDragDropTooltip;
-
-static bool outliner_item_drag_drop_poll(bContext *C)
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	return ED_operator_outliner_active(C) &&
-	       /* Only collection display modes supported for now. Others need more design work */
-	       ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_LIBRARIES);
-}
-
 static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *ar, const wmEvent *event)
 {
 	/* note: using EVT_TWEAK_ events to trigger dragging is fine,
@@ -622,324 +866,77 @@ static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *a
 	return outliner_find_item_at_y(soops, &soops->tree, my);
 }
 
-static void outliner_item_drag_end(wmWindow *win, OutlinerDragDropTooltip *data)
+static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	MEM_SAFE_FREE(data->te->drag_data);
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te = outliner_item_drag_element_find(soops, ar, event);
 
-	if (data->handle) {
-		WM_draw_cb_exit(win, data->handle);
+	if (!te) {
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
 
-	MEM_SAFE_FREE(data);
-}
+	TreeElementIcon data = tree_element_get_icon(TREESTORE(te), te);
+	if (!data.drag_id) {
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+	}
 
-static void outliner_item_drag_get_insert_data(
-        const SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged,
-        TreeElement **r_te_insert_handle, TreeElementInsertType *r_insert_type)
-{
-	TreeElement *te_hovered;
-	float view_mval[2];
+	wmDrag *drag = WM_event_start_drag(C, data.icon, WM_DRAG_ID, NULL, 0.0, WM_DRAG_NOP);
 
-	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &view_mval[0], &view_mval[1]);
-	te_hovered = outliner_find_item_at_y(soops, &soops->tree, view_mval[1]);
+	if (GS(data.drag_id->name) == ID_OB) {
+		/* For objects we cheat and drag all selected objects. */
+		TREESTORE(te)->flag |= TSE_SELECTED;
 
-	if (te_hovered) {
-		/* mouse hovers an element (ignoring x-axis), now find out how to insert the dragged item exactly */
+		struct ObjectsSelectedData selected = {
+			.objects_selected_array  = {NULL, NULL},
+		};
 
-		if (te_hovered == te_dragged) {
-			*r_te_insert_handle = te_dragged;
-		}
-		else if (te_hovered != te_dragged) {
-			const float margin = UI_UNIT_Y * (1.0f / 4);
+		outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &selected);
+		LISTBASE_FOREACH (LinkData *, link, &selected.objects_selected_array) {
+			TreeElement *ten_selected = (TreeElement *)link->data;
+			Object *ob = (Object *)TREESTORE(ten_selected)->id;
 
-			*r_te_insert_handle = te_hovered;
-			if (view_mval[1] < (te_hovered->ys + margin)) {
-				if (TSELEM_OPEN(TREESTORE(te_hovered), soops)) {
-					/* inserting after a open item means we insert into it, but as first child */
-					if (BLI_listbase_is_empty(&te_hovered->subtree)) {
-						*r_insert_type = TE_INSERT_INTO;
-					}
-					else {
-						*r_insert_type = TE_INSERT_BEFORE;
-						*r_te_insert_handle = te_hovered->subtree.first;
+			/* Find parent collection of object. */
+			Collection *parent = NULL;
+
+			if (ten_selected->parent) {
+				for (TreeElement *te_ob_parent = ten_selected->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
+					if (outliner_is_collection_tree_element(te_ob_parent)) {
+						parent = outliner_collection_from_tree_element(te_ob_parent);
+						break;
 					}
 				}
-				else {
-					*r_insert_type = TE_INSERT_AFTER;
-				}
-			}
-			else if (view_mval[1] > (te_hovered->ys + (3 * margin))) {
-				*r_insert_type = TE_INSERT_BEFORE;
 			}
 			else {
-				*r_insert_type = TE_INSERT_INTO;
+				Scene *scene = CTX_data_scene(C);
+				parent = BKE_collection_master(scene);
 			}
+
+			WM_drag_add_ID(drag, &ob->id, &parent->id);
 		}
+
+		BLI_freelistN(&selected.objects_selected_array);
 	}
 	else {
-		/* mouse doesn't hover any item (ignoring x-axis), so it's either above list bounds or below. */
-
-		TreeElement *first = soops->tree.first;
-		TreeElement *last = soops->tree.last;
-
-		if (view_mval[1] < last->ys) {
-			*r_te_insert_handle = last;
-			*r_insert_type = TE_INSERT_AFTER;
-		}
-		else if (view_mval[1] > (first->ys + UI_UNIT_Y)) {
-			*r_te_insert_handle = first;
-			*r_insert_type = TE_INSERT_BEFORE;
-		}
-		else {
-			BLI_assert(0);
-		}
+		/* Add single ID. */
+		WM_drag_add_ID(drag, data.drag_id, data.drag_parent);
 	}
+
+	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
 }
 
-static void outliner_item_drag_handle(
-        SpaceOops *soops, ARegion *ar, const wmEvent *event, TreeElement *te_dragged)
-{
-	TreeElement *te_insert_handle;
-	TreeElementInsertType insert_type;
+/* Outliner drag and drop. This operator mostly exists to support dragging
+ * from outliner text instead of only from the icon, and also to show a
+ * hint in the statusbar keymap. */
 
-	outliner_item_drag_get_insert_data(soops, ar, event, te_dragged, &te_insert_handle, &insert_type);
-
-	if (!te_dragged->reinsert_poll &&
-	    /* there is no reinsert_poll, so we do some generic checks (same types and reinsert callback is available) */
-	    (TREESTORE(te_dragged)->type == TREESTORE(te_insert_handle)->type) &&
-	    te_dragged->reinsert)
-	{
-		/* pass */
-	}
-	else if (te_dragged == te_insert_handle) {
-		/* nothing will happen anyway, no need to do poll check */
-	}
-	else if (!te_dragged->reinsert_poll ||
-	         !te_dragged->reinsert_poll(te_dragged, &te_insert_handle, &insert_type))
-	{
-		te_insert_handle = NULL;
-	}
-	te_dragged->drag_data->insert_type = insert_type;
-	te_dragged->drag_data->insert_handle = te_insert_handle;
-}
-
-/**
- * Returns true if it is a collection and empty.
- */
-static bool is_empty_collection(TreeElement *te)
-{
-	Collection *collection = outliner_collection_from_tree_element(te);
-
-	if (!collection) {
-		return false;
-	}
-
-	return BLI_listbase_is_empty(&collection->gobject) &&
-	       BLI_listbase_is_empty(&collection->children);
-}
-
-static bool outliner_item_drag_drop_apply(
-        Main *bmain,
-        Scene *scene,
-        SpaceOops *soops,
-        OutlinerDragDropTooltip *data,
-        const wmEvent *event)
-{
-	TreeElement *dragged_te = data->te;
-	TreeElement *insert_handle = dragged_te->drag_data->insert_handle;
-	TreeElementInsertType insert_type = dragged_te->drag_data->insert_type;
-
-	if ((insert_handle == dragged_te) || !insert_handle) {
-		/* No need to do anything */
-	}
-	else if (dragged_te->reinsert) {
-		BLI_assert(!dragged_te->reinsert_poll || dragged_te->reinsert_poll(dragged_te, &insert_handle,
-		                                                                   &insert_type));
-		/* call of assert above should not have changed insert_handle and insert_type at this point */
-		BLI_assert(dragged_te->drag_data->insert_handle == insert_handle &&
-		           dragged_te->drag_data->insert_type == insert_type);
-
-		/* If the collection was just created and you moved objects/collections inside it,
-		 * it is strange to have it closed and we not see the newly dragged elements. */
-		const bool should_open_collection = (insert_type == TE_INSERT_INTO) && is_empty_collection(insert_handle);
-
-		dragged_te->reinsert(bmain, scene, soops, dragged_te, insert_handle, insert_type, event);
-
-		if (should_open_collection && !is_empty_collection(insert_handle)) {
-			TREESTORE(insert_handle)->flag &= ~TSE_CLOSED;
-		}
-		return true;
-	}
-
-	return false;
-}
-
-static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	OutlinerDragDropTooltip *data = op->customdata;
-	TreeElement *te_dragged = data->te;
-	int retval = OPERATOR_RUNNING_MODAL;
-	bool redraw = false;
-	bool skip_rebuild = true;
-
-	switch (event->type) {
-		case EVT_MODAL_MAP:
-			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(bmain, scene, soops, data, event)) {
-					skip_rebuild = false;
-				}
-				retval = OPERATOR_FINISHED;
-			}
-			else if (event->val == OUTLINER_ITEM_DRAG_CANCEL) {
-				retval = OPERATOR_CANCELLED;
-			}
-			else {
-				BLI_assert(0);
-			}
-			WM_event_add_mousemove(C); /* update highlight */
-			outliner_item_drag_end(CTX_wm_window(C), data);
-			redraw = true;
-			break;
-		case MOUSEMOVE:
-			outliner_item_drag_handle(soops, ar, event, te_dragged);
-			redraw = true;
-			break;
-	}
-
-	if (redraw) {
-		if (skip_rebuild) {
-			ED_region_tag_redraw_no_rebuild(ar);
-		}
-		else {
-			ED_region_tag_redraw(ar);
-		}
-	}
-
-	return retval;
-}
-
-static const char *outliner_drag_drop_tooltip_get(
-        const TreeElement *te_float)
-{
-	const char *name = NULL;
-
-	const TreeElement *te_insert = te_float->drag_data->insert_handle;
-	if (te_float && outliner_is_collection_tree_element(te_float)) {
-		if (te_insert == NULL) {
-			name = TIP_("Move collection");
-		}
-		else {
-			switch (te_float->drag_data->insert_type) {
-				case TE_INSERT_BEFORE:
-					if (te_insert->prev && outliner_is_collection_tree_element(te_insert->prev)) {
-						name = TIP_("Move between collections");
-					}
-					else {
-						name = TIP_("Move before collection");
-					}
-					break;
-				case TE_INSERT_AFTER:
-					if (te_insert->next && outliner_is_collection_tree_element(te_insert->next)) {
-						name = TIP_("Move between collections");
-					}
-					else {
-						name = TIP_("Move after collection");
-					}
-					break;
-				case TE_INSERT_INTO:
-					name = TIP_("Move inside collection");
-					break;
-			}
-		}
-	}
-	else if ((TREESTORE(te_float)->type == 0) && (te_float->idcode == ID_OB)) {
-		name = TIP_("Move to collection (Ctrl to link)");
-	}
-
-	return name;
-}
-
-static void outliner_drag_drop_tooltip_cb(const wmWindow *win, void *vdata)
-{
-	OutlinerDragDropTooltip *data = vdata;
-	const char *tooltip;
-
-	int cursorx, cursory;
-	int x, y;
-
-	tooltip = outliner_drag_drop_tooltip_get(data->te);
-	if (tooltip == NULL) {
-		return;
-	}
-
-	cursorx = win->eventstate->x;
-	cursory = win->eventstate->y;
-
-	x = cursorx + U.widget_unit;
-	y = cursory - U.widget_unit;
-
-	/* Drawing. */
-	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-
-	const float col_fg[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-	const float col_bg[4] = {0.0f, 0.0f, 0.0f, 0.2f};
-
-	GPU_blend(true);
-	UI_fontstyle_draw_simple_backdrop(fstyle, x, y, tooltip, col_fg, col_bg);
-	GPU_blend(false);
-}
-
-static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
-{
-	ARegion *ar = CTX_wm_region(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	TreeElement *te_dragged = outliner_item_drag_element_find(soops, ar, event);
-
-	if (!te_dragged) {
-		return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
-	}
-
-	OutlinerDragDropTooltip *data = MEM_mallocN(sizeof(OutlinerDragDropTooltip), __func__);
-	data->te = te_dragged;
-
-	op->customdata = data;
-	te_dragged->drag_data = MEM_callocN(sizeof(*te_dragged->drag_data), __func__);
-	/* by default we don't change the item position */
-	te_dragged->drag_data->insert_handle = te_dragged;
-	/* unset highlighted tree element, dragged one will be highlighted instead */
-	outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED, false);
-
-	ED_region_tag_redraw_no_rebuild(ar);
-
-	WM_event_add_modal_handler(C, op);
-
-	data->handle = WM_draw_cb_activate(CTX_wm_window(C), outliner_drag_drop_tooltip_cb, data);
-
-	return OPERATOR_RUNNING_MODAL;
-}
-
-/**
- * Notes about Outliner Item Drag 'n Drop:
- * Right now only collections display mode is supported. But ideally all/most modes would support this. There are
- * just some open design questions that have to be answered: do we want to allow mixing order of different data types
- * (like render-layers and objects)? Would that be a purely visual change or would that have any other effect? ...
- */
 void OUTLINER_OT_item_drag_drop(wmOperatorType *ot)
 {
 	ot->name = "Drag and Drop";
 	ot->idname = "OUTLINER_OT_item_drag_drop";
-	ot->description = "Change the hierarchical position of an item by repositioning it using drag and drop";
+	ot->description = "Drag and drop element to another place";
 
 	ot->invoke = outliner_item_drag_drop_invoke;
-	ot->modal = outliner_item_drag_drop_modal;
-
-	ot->poll = outliner_item_drag_drop_poll;
-
-	ot->flag = OPTYPE_UNDO;
+	ot->poll = ED_operator_outliner_active;
 }
 
 /* *************************** Drop Boxes ************************** */

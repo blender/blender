@@ -60,6 +60,10 @@ enum {
 	TSE_CHILDSEARCH = (1 << 3),
 	TSE_SEARCHMATCH = (1 << 4),
 	TSE_HIGHLIGHTED = (1 << 5),
+	TSE_DRAG_INTO   = (1 << 6),
+	TSE_DRAG_BEFORE = (1 << 7),
+	TSE_DRAG_AFTER  = (1 << 8),
+	TSE_DRAG_ANY    = (TSE_DRAG_INTO | TSE_DRAG_BEFORE | TSE_DRAG_AFTER),
 };
 
 /* TreeStoreElem->types */

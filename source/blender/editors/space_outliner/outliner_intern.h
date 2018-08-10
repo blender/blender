@@ -67,23 +67,6 @@ typedef enum TreeTraversalAction {
 	TRAVERSE_SKIP_CHILDS,
 } TreeTraversalAction;
 
-/**
- * Callback type for reinserting elements at a different position, used to allow user customizable element order.
- */
-typedef void (*TreeElementReinsertFunc)(struct Main *bmain,
-                                        struct Scene *scene,
-                                        struct SpaceOops *soops,
-                                        struct TreeElement *insert_element,
-                                        struct TreeElement *insert_handle,
-                                        TreeElementInsertType action,
-                                        const struct wmEvent *event);
-/**
- * Executed on (almost) each mouse move while dragging. It's supposed to give info
- * if reinserting insert_element before/after/into insert_handle would be allowed.
- * It's allowed to change the reinsert info here for non const pointers.
- */
-typedef bool (*TreeElementReinsertPollFunc)(const struct TreeElement *insert_element,
-                                            struct TreeElement **io_insert_handle, TreeElementInsertType *io_action);
 typedef TreeTraversalAction (*TreeTraversalFunc)(struct TreeElement *te, void *customdata);
 
 
@@ -99,17 +82,6 @@ typedef struct TreeElement {
 	const char *name;
 	void *directdata;          // Armature Bones, Base, Sequence, Strip...
 	PointerRNA rnaptr;         // RNA Pointer
-
-	/* callbacks - TODO should be moved into a type (like TreeElementType) */
-	TreeElementReinsertFunc reinsert;
-	TreeElementReinsertPollFunc reinsert_poll;
-
-	struct {
-		TreeElementInsertType insert_type;
-		/* the element before/after/into which we may insert the dragged one (NULL to insert at top) */
-		struct TreeElement *insert_handle;
-		void *tooltip_draw_handle;
-	} *drag_data;
 } TreeElement;
 
 typedef struct TreeElementIcon {
@@ -131,6 +103,7 @@ enum {
 	TE_LAZY_CLOSED = (1 << 2),
 	TE_FREE_NAME   = (1 << 3),
 	TE_DISABLED    = (1 << 4),
+	TE_DRAGGING    = (1 << 5),
 };
 
 /* button events */
@@ -294,11 +267,6 @@ void item_object_mode_exit_cb(
 void outliner_set_coordinates(struct ARegion *ar, struct SpaceOops *soops);
 
 /* outliner_dragdrop.c */
-enum {
-	OUTLINER_ITEM_DRAG_CANCEL,
-	OUTLINER_ITEM_DRAG_CONFIRM,
-};
-
 void outliner_dropboxes(void);
 
 void OUTLINER_OT_item_drag_drop(struct wmOperatorType *ot);

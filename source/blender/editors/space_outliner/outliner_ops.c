@@ -117,36 +117,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_collection_indirect_only_clear);
 }
 
-static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
-{
-	static EnumPropertyItem modal_items[] = {
-		{OUTLINER_ITEM_DRAG_CANCEL,  "CANCEL",  0, "Cancel", ""},
-		{OUTLINER_ITEM_DRAG_CONFIRM, "CONFIRM", 0, "Confirm/Drop", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-	const char *map_name = "Outliner Item Drag & Drop Modal Map";
-
-	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, map_name);
-
-	/* this function is called for each spacetype, only needs to add map once */
-	if (keymap && keymap->modal_items)
-		return NULL;
-
-	keymap = WM_modalkeymap_add(keyconf, map_name, modal_items);
-
-	/* items for modal map */
-	WM_modalkeymap_add_item(keymap, ESCKEY, KM_PRESS, KM_ANY, 0, OUTLINER_ITEM_DRAG_CANCEL);
-	WM_modalkeymap_add_item(keymap, RIGHTMOUSE, KM_PRESS, KM_ANY, 0, OUTLINER_ITEM_DRAG_CANCEL);
-
-	WM_modalkeymap_add_item(keymap, LEFTMOUSE, KM_RELEASE, KM_ANY, 0, OUTLINER_ITEM_DRAG_CONFIRM);
-	WM_modalkeymap_add_item(keymap, RETKEY, KM_RELEASE, KM_ANY, 0, OUTLINER_ITEM_DRAG_CONFIRM);
-	WM_modalkeymap_add_item(keymap, PADENTER, KM_RELEASE, KM_ANY, 0, OUTLINER_ITEM_DRAG_CONFIRM);
-
-	WM_modalkeymap_assign(keymap, "OUTLINER_OT_item_drag_drop");
-
-	return keymap;
-}
-
 void outliner_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Outliner", SPACE_OUTLINER, 0);
@@ -236,6 +206,4 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "unselected", false);
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "unselected", true);
-
-	outliner_item_drag_drop_modal_keymap(keyconf);
 }
