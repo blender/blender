@@ -65,12 +65,19 @@ static void node_shader_init_valtorgb(bNodeTree *UNUSED(ntree), bNode *node)
 
 static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
+	struct ColorBand *coba = node->storage;
 	float *array, layer;
 	int size;
 
-	BKE_colorband_evaluate_table_rgba(node->storage, &array, &size);
+	BKE_colorband_evaluate_table_rgba(coba, &array, &size);
 	GPUNodeLink *tex = GPU_texture_ramp(mat, size, array, &layer);
-	return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_uniform(&layer));
+
+	if (coba->ipotype == COLBAND_INTERP_CONSTANT) {
+		return GPU_stack_link(mat, node, "valtorgb_nearest", in, out, tex, GPU_uniform(&layer));
+	}
+	else {
+		return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_uniform(&layer));
+	}
 }
 
 void register_node_type_sh_valtorgb(void)

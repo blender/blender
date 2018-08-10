@@ -818,6 +818,12 @@ void valtorgb(float fac, sampler1DArray colormap, float layer, out vec4 outcol, 
 	outalpha = outcol.a;
 }
 
+void valtorgb_nearest(float fac, sampler1DArray colormap, float layer, out vec4 outcol, out float outalpha)
+{
+	outcol = texelFetch(colormap, ivec2(fac * textureSize(colormap, 0).x, layer), 0);
+	outalpha = outcol.a;
+}
+
 void rgbtobw(vec4 color, out float outval)
 {
 	vec3 factors = vec3(0.2126, 0.7152, 0.0722);
