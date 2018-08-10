@@ -3353,7 +3353,16 @@ static bool node_link_bezier_handles(View2D *v2d, SpaceNode *snode, bNodeLink *l
 	}
 
 	/* may be called outside of drawing (so pass spacetype) */
-	dist = UI_GetThemeValueType(TH_NODE_CURVING, SPACE_NODE) * 0.10f * fabsf(vec[0][0] - vec[3][0]);
+	int curving = UI_GetThemeValueType(TH_NODE_CURVING, SPACE_NODE);
+
+	if (curving == 0) {
+		/* Straight line: align all points. */
+		mid_v2_v2v2(vec[1], vec[0], vec[3]);
+		mid_v2_v2v2(vec[2], vec[1], vec[3]);
+		return 1;
+	}
+
+	dist = curving * 0.10f * fabsf(vec[0][0] - vec[3][0]);
 	deltax = vec[3][0] - vec[0][0];
 	deltay = vec[3][1] - vec[0][1];
 	/* check direction later, for top sockets */
