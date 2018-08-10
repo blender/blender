@@ -453,7 +453,9 @@ void WM_gizmomap_draw(
 	BLI_assert(BLI_listbase_is_empty(&draw_gizmos));
 }
 
-static void gizmo_draw_select_3D_loop(const bContext *C, ListBase *visible_gizmos)
+static void gizmo_draw_select_3D_loop(
+        const bContext *C, ListBase *visible_gizmos,
+        const wmGizmo *gz_stop)
 {
 	int select_id = 0;
 	wmGizmo *gz;
@@ -462,8 +464,14 @@ static void gizmo_draw_select_3D_loop(const bContext *C, ListBase *visible_gizmo
 	bool is_depth_prev = false;
 	bool is_depth_skip_prev = false;
 
-	for (LinkData *link = visible_gizmos->first; link; link = link->next) {
+	for (LinkData *link = visible_gizmos->first; link; link = link->next, select_id++) {
 		gz = link->data;
+		if (gz == gz_stop) {
+			break;
+		}
+		if (gz->type->draw_select == NULL) {
+			continue;
+		}
 
 		bool is_depth = (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_DEPTH_3D) != 0;
 		if (is_depth == is_depth_prev) {
@@ -490,9 +498,6 @@ static void gizmo_draw_select_3D_loop(const bContext *C, ListBase *visible_gizmo
 		/* pass the selection id shifted by 8 bits. Last 8 bits are used for selected gizmo part id */
 
 		gz->type->draw_select(C, gz, select_id << 8);
-
-
-		select_id++;
 	}
 
 	if (is_depth_prev) {
@@ -505,7 +510,7 @@ static void gizmo_draw_select_3D_loop(const bContext *C, ListBase *visible_gizmo
 
 static int gizmo_find_intersected_3d_intern(
         ListBase *visible_gizmos, const bContext *C, const int co[2],
-        const int hotspot)
+        const int hotspot, const wmGizmo *gz_stop)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -525,13 +530,13 @@ static int gizmo_find_intersected_3d_intern(
 	else
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_ALL, 0);
 	/* do the drawing */
-	gizmo_draw_select_3D_loop(C, visible_gizmos);
+	gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
 
 	hits = GPU_select_end();
 
 	if (do_passes && (hits > 0)) {
 		GPU_select_begin(buffer, ARRAY_SIZE(buffer), &rect, GPU_SELECT_NEAREST_SECOND_PASS, hits);
-		gizmo_draw_select_3D_loop(C, visible_gizmos);
+		gizmo_draw_select_3D_loop(C, visible_gizmos, gz_stop);
 		GPU_select_end();
 	}
 
@@ -552,36 +557,56 @@ static wmGizmo *gizmo_find_intersected_3d(
 	wmGizmo *result = NULL;
 	int hit = -1;
 
-	int hotspot_radii[] = {
-		3 * U.pixelsize,
-		/* This runs on mouse move, careful doing too many tests! */
-		10 * U.pixelsize,
-	};
-
 	*r_part = 0;
 
 	/* set up view matrices */
 	view3d_operator_needs_opengl(C);
 
-	hit = -1;
-
-	for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
-		hit = gizmo_find_intersected_3d_intern(visible_gizmos, C, co, hotspot_radii[i]);
-		if (hit != -1) {
-			break;
+	/* Search for 3D gizmo's that use the 2D callback for checking intersections. */
+	bool has_3d = false;
+	{
+		int select_id = 0;
+		for (LinkData *link = visible_gizmos->first; link; link = link->next, select_id++) {
+			wmGizmo *gz = link->data;
+			if (gz->type->test_select) {
+				if ((*r_part = gz->type->test_select(C, gz, co)) != -1) {
+					hit = select_id;
+					result = gz;
+					break;
+				}
+			}
+			else {
+				has_3d = true;
+			}
 		}
 	}
 
-	if (hit != -1) {
-		LinkData *link = BLI_findlink(visible_gizmos, hit >> 8);
-		if (link != NULL) {
-			*r_part = hit & 255;
-			result = link->data;
+	/* Search for 3D intersections if they're before 2D that have been found (if any).
+	 * This way we always use the first hit. */
+	if (has_3d) {
+		const int hotspot_radii[] = {
+			3 * U.pixelsize,
+			/* This runs on mouse move, careful doing too many tests! */
+			10 * U.pixelsize,
+		};
+		for (int i = 0; i < ARRAY_SIZE(hotspot_radii); i++) {
+			hit = gizmo_find_intersected_3d_intern(visible_gizmos, C, co, hotspot_radii[i], result);
+			if (hit != -1) {
+				break;
+			}
 		}
-		else {
-			/* All gizmos should use selection ID they're given as part of the callback,
-			 * if they don't it will attempt tp lookup non-existing index. */
-			BLI_assert(0);
+
+		if (hit != -1) {
+			LinkData *link = BLI_findlink(visible_gizmos, hit >> 8);
+			if (link != NULL) {
+				*r_part = hit & 255;
+				result = link->data;
+			}
+			else {
+				/* All gizmos should use selection ID they're given as part of the callback,
+				 * if they don't it will attempt tp lookup non-existing index. */
+				BLI_assert(0);
+			}
 		}
 	}
 

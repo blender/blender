@@ -169,7 +169,7 @@ void wm_gizmogroup_intersectable_gizmos_to_list(const wmGizmoGroup *gzgroup, Lis
 {
 	for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
 		if ((gz->flag & WM_GIZMO_HIDDEN) == 0) {
-			if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) && gz->type->draw_select) ||
+			if (((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) && (gz->type->draw_select || gz->type->test_select)) ||
 			    ((gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) == 0 && gz->type->test_select))
 			{
 				BLI_addhead(listbase, BLI_genericNodeN(gz));
