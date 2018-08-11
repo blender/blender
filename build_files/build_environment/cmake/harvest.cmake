@@ -28,11 +28,7 @@ message("HARVEST_TARGET = ${HARVEST_TARGET}")
 if(WIN32)
 if(BUILD_MODE STREQUAL Release)
 	add_custom_target(Harvest_Release_Results
-				# Zlib Rename the lib file and copy the include/bin folders
-		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zlib/lib/zlibstatic.lib ${HARVEST_TARGET}/zlib/lib/libz_st.lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/zlib/include/ ${HARVEST_TARGET}/zlib/include/ &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/zlib/bin/ ${HARVEST_TARGET}/zlib/bin/ &&
-				# jpeg rename libfile + copy include
+		COMMAND # jpeg rename libfile + copy include
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/jpg/lib/jpeg-static.lib ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/jpg/include/ ${HARVEST_TARGET}/jpeg/include/ &&
 				# pthreads, rename include dir
