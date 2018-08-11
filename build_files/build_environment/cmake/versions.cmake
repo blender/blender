@@ -20,9 +20,9 @@ set(ZLIB_VERSION 1.2.11)
 set(ZLIB_URI https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz)
 set(ZLIB_HASH 1c9f62f0778697a09d36121ead88e08e)
 
-set(OPENAL_VERSION 1.17.2)
+set(OPENAL_VERSION 1.18.2)
 set(OPENAL_URI http://kcat.strangesoft.net/openal-releases/openal-soft-${OPENAL_VERSION}.tar.bz2)
-set(OPENAL_HASH 1764e0d8fec499589b47ebc724e0913d)
+set(OPENAL_HASH d4eeb0889812e2fdeaa1843523d76190)
 
 set(PNG_VERSION 1.6.35)
 set(PNG_URI http://prdownloads.sourceforge.net/libpng/libpng-${PNG_VERSION}.tar.xz)
