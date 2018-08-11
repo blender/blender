@@ -1319,7 +1319,6 @@ static void gp_instance_modifier_make_instances(GPENCIL_StorageList *stl, Object
 
 				/* add object to cache */
 				newob = MEM_dupallocN(ob);
-				printf("Dupli %p\n", &newob);
 
 				/* Create a unique name or the object hash used in draw will fail.
 				 * the name must be unique in the hash, not in the scene because
