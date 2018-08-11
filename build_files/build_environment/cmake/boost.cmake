@@ -26,15 +26,9 @@ if(WIN32)
 		set(PYTHON_ARCH2 win32)
 		set(PYTHON_OUTPUTDIR ${BUILD_DIR}/python/src/external_python/pcbuild/win32/)
 	endif()
-	if(MSVC12)
-		set(BOOST_TOOLSET toolset=msvc-12.0)
-		set(BOOST_COMPILER_STRING -vc120)
-		set(PYTHON_COMPILER_STRING v120)
-	endif()
 	if(MSVC14)
 		set(BOOST_TOOLSET toolset=msvc-14.0)
 		set(BOOST_COMPILER_STRING -vc140)
-		set(PYTHON_COMPILER_STRING v140)
 	endif()
 	set(JAM_FILE ${BUILD_DIR}/boost/src/external_boost/user-config.jam)
 	set(semi_path "${PATCH_DIR}/semi.txt")
@@ -53,18 +47,17 @@ if(WIN32)
 	if(BUILD_MODE STREQUAL Release)
 		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_60/ ${HARVEST_TARGET}/boost/include/)
 	endif()
-	set(BOOST_PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/boost/src/external_boost < ${PATCH_DIR}/boost.diff)
 
 elseif(APPLE)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
-	set(BOOST_BUILD_COMMAND ./bjam)
-	set(BOOST_BUILD_OPTIONS toolset=clang cxxflags=${PLATFORM_CXXFLAGS} linkflags=${PLATFORM_LDFLAGS} --disable-icu boost.locale.icu=off)
+	set(BOOST_BUILD_COMMAND ./b2)
+	set(BOOST_BUILD_OPTIONS toolset=darwin cxxflags=${PLATFORM_CXXFLAGS} linkflags=${PLATFORM_LDFLAGS} --disable-icu boost.locale.icu=off)
 	set(BOOST_HARVEST_CMD echo .)
 	set(BOOST_PATCH_COMMAND echo .)
 else()
 	set(BOOST_HARVEST_CMD echo .)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
-	set(BOOST_BUILD_COMMAND ./bjam)
+	set(BOOST_BUILD_COMMAND ./b2)
 	set(BOOST_BUILD_OPTIONS cxxflags=${PLATFORM_CXXFLAGS} --disable-icu boost.locale.icu=off)
 	set(BOOST_PATCH_COMMAND echo .)
 endif()
@@ -85,23 +78,20 @@ set(BOOST_OPTIONS
 	${BOOST_TOOLSET}
 )
 
-if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
 	set(BOOST_ADDRESS_MODEL 64)
-else()
-	set(BOOST_ADDRESS_MODEL 32)
-endif()
+
 
 string(TOLOWER ${BUILD_MODE} BOOST_BUILD_TYPE)
 
 ExternalProject_Add(external_boost
 	URL ${BOOST_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${BOOST_MD5}
+	URL_HASH MD5=${BOOST_HASH}
 	PREFIX ${BUILD_DIR}/boost
 	UPDATE_COMMAND	""
 	PATCH_COMMAND ${BOOST_PATCH_COMMAND}
 	CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
-	BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=x86 address-model=${BOOST_ADDRESS_MODEL} variant=${BOOST_BUILD_TYPE} link=static threading=multi ${BOOST_OPTIONS}	--prefix=${LIBDIR}/boost install
+	BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=x86 address-model=${BOOST_ADDRESS_MODEL} link=static threading=multi ${BOOST_OPTIONS}	--prefix=${LIBDIR}/boost install
 	BUILD_IN_SOURCE 1
 	INSTALL_COMMAND "${BOOST_HARVEST_CMD}"
 )

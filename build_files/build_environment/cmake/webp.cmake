@@ -37,14 +37,5 @@ ExternalProject_Add(external_webp
 	URL_HASH MD5=${WEBP_HASH}
 	PREFIX ${BUILD_DIR}/webp
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/webp -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${WEBP_EXTRA_ARGS}
-	INSTALL_COMMAND COMMAND ${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp-build/${WEBP_BUILD_DIR}${LIBPREFIX}webp${LIBEXT} ${LIBDIR}/webp/lib/${LIBPREFIX}webp${LIBEXT} &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/decode.h ${LIBDIR}/webp/include/webp/decode.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/encode.h ${LIBDIR}/webp/include/webp/encode.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/demux.h ${LIBDIR}/webp/include/webp/demux.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/extras.h ${LIBDIR}/webp/include/webp/extras.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/format_constants.h ${LIBDIR}/webp/include/webp/format_constants.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/mux.h ${LIBDIR}/webp/include/webp/mux.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/mux_types.h ${LIBDIR}/webp/include/webp/mux_types.h &&
-		${CMAKE_COMMAND} -E copy ${BUILD_DIR}/webp/src/external_webp/src/webp/types.h ${LIBDIR}/webp/include/webp/types.h
 	INSTALL_DIR ${LIBDIR}/webp
 )

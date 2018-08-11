@@ -78,24 +78,24 @@ if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/pkg-config.exe") AND (EXISTS "
 endif()
 
 message("Checking for nasm")
-if(NOT EXISTS "${DOWNLOAD_DIR}/nasm-2.12.01-win32.zip")
+if(NOT EXISTS "${DOWNLOAD_DIR}/nasm-2.13.02-win32.zip")
 	message("Downloading nasm")
-	file(DOWNLOAD "http://www.nasm.us/pub/nasm/releasebuilds/2.12.01/win32/nasm-2.12.01-win32.zip" "${DOWNLOAD_DIR}/nasm-2.12.01-win32.zip")
+	file(DOWNLOAD "http://www.nasm.us/pub/nasm/releasebuilds/2.13.02/win32/nasm-2.13.02-win32.zip" "${DOWNLOAD_DIR}/nasm-2.13.02-win32.zip")
 endif()
 
 # extract nasm
-if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/nasm.exe") AND (EXISTS "${DOWNLOAD_DIR}/nasm-2.12.01-win32.zip"))
+if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/nasm.exe") AND (EXISTS "${DOWNLOAD_DIR}/nasm-2.13.02-win32.zip"))
 	message("Extracting nasm")
 	execute_process(
-		COMMAND ${CMAKE_COMMAND} -E tar jxf "${DOWNLOAD_DIR}/nasm-2.12.01-win32.zip"
+		COMMAND ${CMAKE_COMMAND} -E tar jxf "${DOWNLOAD_DIR}/nasm-2.13.02-win32.zip"
 		WORKING_DIRECTORY ${DOWNLOAD_DIR}/
 	)
 	execute_process(
-		COMMAND ${CMAKE_COMMAND} -E copy "${DOWNLOAD_DIR}/nasm-2.12.01/nasm.exe" "${DOWNLOAD_DIR}/mingw/mingw32/bin/nasm.exe"
+		COMMAND ${CMAKE_COMMAND} -E copy "${DOWNLOAD_DIR}/nasm-2.13.02/nasm.exe" "${DOWNLOAD_DIR}/mingw/mingw32/bin/nasm.exe"
 	)
 
 endif()
-
+SET(NASM_PATH ${DOWNLOAD_DIR}/mingw/mingw32/bin/nasm.exe)
 message("Checking for mingwGet")
 if(NOT EXISTS "${DOWNLOAD_DIR}/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip")
 	message("Downloading mingw-get")

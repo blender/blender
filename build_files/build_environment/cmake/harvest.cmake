@@ -35,8 +35,6 @@ if(BUILD_MODE STREQUAL Release)
 				# jpeg rename libfile + copy include
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/jpg/lib/jpeg-static.lib ${HARVEST_TARGET}/jpeg/lib/libjpeg.lib &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/jpg/include/ ${HARVEST_TARGET}/jpeg/include/ &&
-				# FreeType, straight up copy
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freetype ${HARVEST_TARGET}/freetype &&
 				# pthreads, rename include dir
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/pthreads/inc/ ${HARVEST_TARGET}/pthreads/include/ &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/pthreads/lib/ ${HARVEST_TARGET}/pthreads/lib &&
@@ -98,17 +96,11 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencollada/ ${HARVEST_TARGET}/opencollada/ &&
 				# opensubdiv
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opensubdiv ${HARVEST_TARGET}/opensubdiv &&
-				# python
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ &&
 				# alembic
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/alembic ${HARVEST_TARGET}/alembic &&
 				# BlendThumb
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&
-				# python
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz &&
-				# numpy
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}_numpy_${NUMPY_SHORT_VERSION}.tar.gz &&
 				# hidapi
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hidapi/ ${HARVEST_TARGET}/hidapi/ &&
 				# webp, straight up copy
@@ -238,13 +230,12 @@ harvest(openimageio/bin openimageio/bin "maketx")
 harvest(openimageio/bin openimageio/bin "oiiotool")
 harvest(openimageio/include openimageio/include "*")
 harvest(openimageio/lib openimageio/lib "*.a")
-harvest(openjpeg/include/openjpeg-1.5 openjpeg/include "*.h")
+harvest(openjpeg/include/openjpeg-2.3 openjpeg/include "*.h")
 harvest(openjpeg/lib openjpeg/lib "*.a")
 harvest(opensubdiv/include opensubdiv/include "*.h")
 harvest(opensubdiv/lib opensubdiv/lib "*.a")
 harvest(openvdb/include/openvdb/openvdb openvdb/include/openvdb "*.h")
 harvest(openvdb/lib openvdb/lib "*.a")
-harvest(orc/lib/liborc-0.4.a ffmpeg/lib/liborc.a)
 harvest(osl/bin osl/bin "oslc")
 harvest(osl/include osl/include "*.h")
 harvest(osl/lib osl/lib "*.a")
@@ -254,7 +245,6 @@ harvest(png/lib png/lib "*.a")
 harvest(python/bin python/bin "python${PYTHON_SHORT_VERSION}m")
 harvest(python/include python/include "*h")
 harvest(python/lib python/lib "*")
-harvest(schroedinger/lib/libschroedinger-1.0.a ffmpeg/lib/libschroedinger.a)
 harvest(sdl/include/SDL2 sdl/include "*.h")
 harvest(sdl/lib sdl/lib "libSDL2.a")
 harvest(sndfile/include sndfile/include "*.h")

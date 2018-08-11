@@ -26,7 +26,7 @@ set(LLVM_EXTRA_ARGS
 )
 
 if(WIN32)
-	set(LLVM_GENERATOR "NMake Makefiles")
+	set(LLVM_GENERATOR "Ninja")
 else()
 	set(LLVM_GENERATOR "Unix Makefiles")
 endif()

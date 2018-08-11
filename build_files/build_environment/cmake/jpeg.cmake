@@ -18,7 +18,7 @@
 
 if(WIN32)
 	# cmake for windows
-	set(JPEG_EXTRA_ARGS  -DWITH_JPEG8=ON  -DCMAKE_DEBUG_POSTFIX=d)
+	set(JPEG_EXTRA_ARGS -DNASM=${NASM_PATH} -DWITH_JPEG8=ON  -DCMAKE_DEBUG_POSTFIX=d)
 
 	ExternalProject_Add(external_jpeg
 		URL ${JPEG_URI}

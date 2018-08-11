@@ -32,5 +32,13 @@ ExternalProject_Add(external_freetype
 	URL_HASH MD5=${FREETYPE_HASH}
 	PREFIX ${BUILD_DIR}/freetype
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/freetype ${DEFAULT_CMAKE_FLAGS} ${FREETYPE_EXTRA_ARGS}
+	PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/freetype/src/external_freetype < ${PATCH_DIR}/freetype.diff
 	INSTALL_DIR ${LIBDIR}/freetype
 )
+
+if(BUILD_MODE STREQUAL Release AND WIN32)
+	ExternalProject_Add_Step(external_freetype after_install
+		COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freetype ${HARVEST_TARGET}/freetype
+		DEPENDEES install
+	)
+endif()

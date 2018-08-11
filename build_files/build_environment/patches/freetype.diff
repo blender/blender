@@ -1,0 +1,18 @@
+diff -NaurBb b/CMakeLists.txt a/CMakeLists.txt
+--- b/CMakeLists.txt	2018-05-01 12:45:46 -0600
++++ a/CMakeLists.txt	2018-08-08 13:03:22 -0600
+@@ -229,9 +229,12 @@
+   endif ()
+   string(REPLACE "/undef " "#undef "
+     FTCONFIG_H "${FTCONFIG_H}")
+-  file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
+-    "${FTCONFIG_H}")
++else()
++  file(READ "${PROJECT_SOURCE_DIR}/include/freetype/config/ftconfig.h"
++    FTCONFIG_H)
+ endif ()
++file(WRITE "${PROJECT_BINARY_DIR}/include/freetype/config/ftconfig.h"
++  "${FTCONFIG_H}")
+ 
+ 
+ # Create the options file
