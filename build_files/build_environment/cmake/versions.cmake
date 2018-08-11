@@ -16,9 +16,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(ZLIB_VERSION 1.2.8)
-set(ZLIB_URI https://netcologne.dl.sourceforge.net/project/libpng/zlib/${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz)
-set(ZLIB_HASH 44d667c142d7cda120332623eab69f40)
+set(ZLIB_VERSION 1.2.11)
+set(ZLIB_URI https://zlib.net/zlib-${ZLIB_VERSION}.tar.gz)
+set(ZLIB_HASH 1c9f62f0778697a09d36121ead88e08e)
 
 set(OPENAL_VERSION 1.17.2)
 set(OPENAL_URI http://kcat.strangesoft.net/openal-releases/openal-soft-${OPENAL_VERSION}.tar.bz2)
