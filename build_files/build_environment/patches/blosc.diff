@@ -10,24 +10,22 @@ diff -Naur src/blosc/CMakeLists.txt external_blosc/blosc/CMakeLists.txt
      endif(NOT Threads_FOUND)
  else(WIN32)
      find_package(Threads REQUIRED)
-diff -Naur src/blosc/blosc.c external_blosc/blosc/blosc.c
---- src/blosc/blosc.c	2016-02-03 10:26:28 -0700
-+++ external_blosc/blosc/blosc.c	2017-03-03 09:01:50 -0700
-@@ -49,12 +49,12 @@
+diff -Naur external_blosc.orig/blosc/blosc.c external_blosc/blosc/blosc.c
+--- external_blosc.orig/blosc/blosc.c   2018-07-30 04:56:38 -0600
++++ external_blosc/blosc/blosc.c        2018-08-11 15:27:26 -0600
+@@ -56,14 +56,7 @@
    #include <inttypes.h>
  #endif  /* _WIN32 */
- 
--#if defined(_WIN32) && !defined(__GNUC__)
+
+-/* Include the win32/pthread.h library for all the Windows builds. See #224. */
+-#if defined(_WIN32)
 -  #include "win32/pthread.h"
 -  #include "win32/pthread.c"
 -#else
-+//#if defined(_WIN32) && !defined(__GNUC__)
-+//  #include "win32/pthread.h"
-+  //#include "win32/pthread.c"
-+//#else
-   #include <pthread.h>
+-  #include <pthread.h>
 -#endif
-+//#endif
- 
- /* If C11 is supported, use it's built-in aligned allocation. */
- #if __STDC_VERSION__ >= 201112L
+-
++#include <pthread.h>
+
+ /* Some useful units */
+ #define KB 1024

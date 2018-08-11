@@ -37,9 +37,9 @@ set(BOOST_VERSION_NODOTS 1_68_0)
 set(BOOST_URI https://dl.bintray.com/boostorg/release/${BOOST_VERSION}/source/boost_${BOOST_VERSION_NODOTS}.tar.gz)
 set(BOOST_HASH 5d8b4503582fffa9eefdb9045359c239)
   
-set(BLOSC_VERSION 1.7.1)
-set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.zip)
-set(BLOSC_HASH ff5cc729a5a25934ef714217218eed26)
+set(BLOSC_VERSION 1.14.4)
+set(BLOSC_URI https://github.com/Blosc/c-blosc/archive/v${BLOSC_VERSION}.tar.gz)
+set(BLOSC_HASH e80dfc71e4cba03b8d01ed0876547ffe)
 
 set(PTHREADS_VERSION 2-9-1)
 set(PTHREADS_URI ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-${PTHREADS_VERSION}-release.tar.gz)

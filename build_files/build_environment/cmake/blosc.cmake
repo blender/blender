@@ -33,7 +33,7 @@ ExternalProject_Add(external_blosc
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${BLOSC_HASH}
 	PREFIX ${BUILD_DIR}/blosc
-	PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/blosc/src/external_blosc < ${PATCH_DIR}/blosc.diff
+	#PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/blosc/src/external_blosc < ${PATCH_DIR}/blosc.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/blosc ${DEFAULT_CMAKE_FLAGS} ${BLOSC_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/blosc
 )
@@ -48,3 +48,20 @@ if(WIN32)
 		external_pthreads
 	)
 endif()
+
+if (WIN32)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_blosc after_install
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/blosc/lib/libblosc.lib ${HARVEST_TARGET}/blosc/lib/libblosc.lib
+			COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/blosc/include/ ${HARVEST_TARGET}/blosc/include/
+			DEPENDEES install
+		)
+	endif()
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(external_blosc after_install
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/blosc/lib/libblosc_d.lib ${HARVEST_TARGET}/blosc/lib/libblosc_d.lib
+			DEPENDEES install
+		)
+	endif()
+endif()
+
