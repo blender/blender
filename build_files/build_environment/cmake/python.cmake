@@ -64,8 +64,23 @@ else()
 		# we need to add homebrew pkgconfig directories to get ssl, xz
 
                 set(BREW_PKG_CONFIG "/usr/local/opt/openssl/lib/pkgconfig:/usr/local/opt/xz/lib/pkgconfig")
-		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export PKG_CONFIG_PATH=${BREW_PKG_CONFIG})
+		# disable functions that can be in 10.13 sdk but aren't available on 10.9 target
+		set(PYTHON_FUNC_CONFIGS
+		  export ac_cv_func_futimens=no &&
+		  export ac_cv_func_utimensat=no &&
+		  export ac_cv_func_basename_r=no &&
+		  export ac_cv_func_clock_getres=no &&
+		  export ac_cv_func_clock_gettime=no &&
+		  export ac_cv_func_clock_settime=no &&
+		  export ac_cv_func_dirname_r=no &&
+		  export ac_cv_func_getentropy=no &&
+		  export ac_cv_func_mkostemp=no &&
+		  export ac_cv_func_mkostemps=no &&
+		  export ac_cv_func_timingsafe_bcmp=no)
+
+		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export PKG_CONFIG_PATH=${BREW_PKG_CONFIG} && ${PYTHON_FUNC_CONFIGS})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
+		#set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_apple.diff)
 		set(PYTHON_PATCH echo .)
 	else()
 		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
