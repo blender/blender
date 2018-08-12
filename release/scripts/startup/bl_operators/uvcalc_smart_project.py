@@ -89,7 +89,7 @@ def pointInTri2D(v, v1, v2, v3):
 
         dict_matrix[key] = mtx
 
-    uvw = (v - v1) * mtx
+    uvw = (v - v1) @ mtx
     return 0 <= uvw[0] and 0 <= uvw[1] and uvw[0] + uvw[1] <= 1
 
 
@@ -258,7 +258,7 @@ def rotate_uvs(uv_points, angle):
     if angle != 0.0:
         mat = Matrix.Rotation(angle, 2)
         for uv in uv_points:
-            uv[:] = mat * uv
+            uv[:] = mat @ uv
 
 
 def optiRotateUvIsland(faces):
@@ -858,7 +858,7 @@ def main(context,
         # Initialize projectVecs
         if USER_VIEW_INIT:
             # Generate Projection
-            projectVecs = [Vector(Window.GetViewVector()) * ob.matrix_world.inverted().to_3x3()]  # We add to this along the way
+            projectVecs = [Vector(Window.GetViewVector()) @ ob.matrix_world.inverted().to_3x3()]  # We add to this along the way
         else:
             projectVecs = []
 
@@ -975,7 +975,7 @@ def main(context,
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
                     # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
-                    f_uv[j][:] = (MatQuat * v.co).xy
+                    f_uv[j][:] = (MatQuat @ v.co).xy
 
         if USER_SHARE_SPACE:
             # Should we collect and pack later?

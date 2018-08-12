@@ -75,7 +75,7 @@ def worldspace_bounds_from_object_data(scene, obj):
     me = obj.to_mesh(scene=scene, apply_modifiers=True, settings='PREVIEW')
     verts = me.vertices
 
-    val = matrix_world * (verts[-1].co if verts else Vector((0.0, 0.0, 0.0)))
+    val = matrix_world @ (verts[-1].co if verts else Vector((0.0, 0.0, 0.0)))
 
     left, right, front, back, down, up = (
         val[0],
@@ -88,7 +88,7 @@ def worldspace_bounds_from_object_data(scene, obj):
 
     # Test against all other verts
     for v in verts:
-        vco = matrix_world * v.co
+        vco = matrix_world @ v.co
 
         # X Range
         val = vco[0]
@@ -146,7 +146,7 @@ def align_objects(context,
 
     for obj in context.selected_objects:
         matrix_world = obj.matrix_world.copy()
-        bb_world = [matrix_world * Vector(v) for v in obj.bound_box]
+        bb_world = [matrix_world @ Vector(v) for v in obj.bound_box]
         objects.append((obj, bb_world))
 
     if not objects:
@@ -216,7 +216,7 @@ def align_objects(context,
 
     for obj, bb_world in objects:
         matrix_world = obj.matrix_world.copy()
-        bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
+        bb_world = [matrix_world @ Vector(v[:]) for v in obj.bound_box]
 
         if bb_quality and obj.type == 'MESH':
             GBB = worldspace_bounds_from_object_data(scene, obj)

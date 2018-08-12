@@ -54,7 +54,7 @@ def region_2d_to_vector_3d(region, rv3d, coord):
 
         w = out.dot(persinv[3].xyz) + persinv[3][3]
 
-        view_vector = ((persinv * out) / w) - viewinv.translation
+        view_vector = ((persinv @ out) / w) - viewinv.translation
     else:
         view_vector = -viewinv.col[2].xyz
 
@@ -179,7 +179,7 @@ def location_3d_to_region_2d(region, rv3d, coord, default=None):
     """
     from mathutils import Vector
 
-    prj = rv3d.perspective_matrix * Vector((coord[0], coord[1], coord[2], 1.0))
+    prj = rv3d.perspective_matrix @ Vector((coord[0], coord[1], coord[2], 1.0))
     if prj.w > 0.0:
         width_half = region.width / 2.0
         height_half = region.height / 2.0

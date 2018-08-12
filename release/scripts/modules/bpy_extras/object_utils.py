@@ -100,7 +100,7 @@ def add_object_align_init(context, operator):
         if operator:
             properties.rotation = rotation.to_euler()
 
-    return location * rotation
+    return location @ rotation
 
 
 def object_data_add(context, obdata, operator=None, name=None):
