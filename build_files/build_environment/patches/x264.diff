@@ -1,0 +1,22 @@
+--- x264-snapshot-20180811-2245-stable\configure	2018-08-11 14:45:05 -0600
++++ external_x264\configure	2018-08-11 23:51:35 -0600
+@@ -396,7 +396,7 @@
+ # list of all preprocessor HAVE values we can define
+ CONFIG_HAVE="MALLOC_H ALTIVEC ALTIVEC_H MMX ARMV6 ARMV6T2 NEON BEOSTHREAD POSIXTHREAD WIN32THREAD THREAD LOG2F SWSCALE \
+              LAVF FFMS GPAC AVS GPL VECTOREXT INTERLACED CPU_COUNT OPENCL THP LSMASH X86_INLINE_ASM AS_FUNC INTEL_DISPATCHER \
+-             MSA MMAP WINRT VSX ARM_INLINE_ASM STRTOK_R BITDEPTH8 BITDEPTH10"
++             MSA MMAP WINRT VSX ARM_INLINE_ASM BITDEPTH8 BITDEPTH10"
+ 
+ # parse options
+ 
+@@ -1071,10 +1071,6 @@
+     define HAVE_LOG2F
+ fi
+ 
+-if cc_check 'string.h' '' 'strtok_r(0, 0, 0);' ; then
+-    define HAVE_STRTOK_R
+-fi
+-
+ if [ "$SYS" != "WINDOWS" ] && cpp_check "sys/mman.h unistd.h" "" "defined(MAP_PRIVATE)"; then
+     define HAVE_MMAP
+ fi

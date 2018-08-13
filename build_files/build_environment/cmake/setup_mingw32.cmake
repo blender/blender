@@ -119,6 +119,15 @@ if((EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/mingw-get.exe") AND (NOT EXISTS "$
 	)
 endif()
 
+if((EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/bin/mingw-get.exe") AND (NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/msys/1.0/bin/mktemp.exe"))
+	message("Installing mktemp")
+	execute_process(
+		COMMAND ${DOWNLOAD_DIR}/mingw/mingw32/bin/mingw-get install msys msys-mktemp
+		WORKING_DIRECTORY  ${DOWNLOAD_DIR}/mingw/mingw32/bin/
+	)
+endif()
+
+
 message("Checking for CoreUtils")
 # download old core_utils for pr.exe (ffmpeg needs it to build)
 if(NOT EXISTS "${DOWNLOAD_DIR}/coreutils-5.97-MSYS-1.0.11-snapshot.tar.bz2")

@@ -36,7 +36,7 @@ ExternalProject_Add(external_lame
 		--disable-mp3x
 		--disable-mp3rtp
 		--disable-gtktest
-		--enable-export=full
+		--disable-frontend
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/lame/src/external_lame/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/lame/src/external_lame/ && make install
 	INSTALL_DIR ${LIBDIR}/lame
