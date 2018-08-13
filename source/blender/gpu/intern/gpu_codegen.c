@@ -137,12 +137,8 @@ static GPUPass *gpu_pass_cache_resolve_collision(
 
 /* type definitions and constants */
 
-enum {
-	MAX_FUNCTION_NAME = 64
-};
-enum {
-	MAX_PARAMETER = 32
-};
+#define MAX_FUNCTION_NAME    64
+#define MAX_PARAMETER        32
 
 typedef enum {
 	FUNCTION_QUAL_IN,
@@ -467,10 +463,8 @@ static int codegen_input_has_texture(GPUInput *input)
 {
 	if (input->link)
 		return 0;
-	else if (input->ima || input->prv)
-		return 1;
 	else
-		return input->tex != NULL;
+		return (input->source == GPU_SOURCE_TEX);
 }
 
 const char *GPU_builtin_name(GPUBuiltin builtin)
@@ -535,70 +529,44 @@ static void codegen_set_texid(GHash *bindhash, GPUInput *input, int *texid, void
 
 static void codegen_set_unique_ids(ListBase *nodes)
 {
-	GHash *bindhash, *definehash;
+	GHash *bindhash;
 	GPUNode *node;
 	GPUInput *input;
 	GPUOutput *output;
 	int id = 1, texid = 0;
 
 	bindhash = BLI_ghash_ptr_new("codegen_set_unique_ids1 gh");
-	definehash = BLI_ghash_ptr_new("codegen_set_unique_ids2 gh");
 
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			/* set id for unique names of uniform variables */
 			input->id = id++;
-			input->bindtex = false;
-			input->definetex = false;
 
-			/* set texid used for settings texture slot with multitexture */
-			if (codegen_input_has_texture(input) &&
-			    ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)))
-			{
-				/* assign only one texid per buffer to avoid sampling
-				 * the same texture twice */
-				if (input->link) {
-					/* input is texture from buffer */
-					codegen_set_texid(bindhash, input, &texid, input->link);
-				}
-				else if (input->ima) {
+			/* set texid used for settings texture slot */
+			if (codegen_input_has_texture(input)) {
+				input->bindtex = false;
+				if (input->ima) {
 					/* input is texture from image */
 					codegen_set_texid(bindhash, input, &texid, input->ima);
 				}
-				else if (input->prv) {
-					/* input is texture from preview render */
-					codegen_set_texid(bindhash, input, &texid, input->prv);
+				else if (input->coba) {
+					/* input is color band texture, check coba pointer */
+					codegen_set_texid(bindhash, input, &texid, input->coba);
 				}
-				else if (input->tex) {
-					/* input is user created texture, check tex pointer */
-					codegen_set_texid(bindhash, input, &texid, input->tex);
-				}
-
-				/* make sure this pixel is defined exactly once */
-				if (input->source == GPU_SOURCE_TEX_PIXEL) {
-					if (input->ima) {
-						if (!BLI_ghash_haskey(definehash, input->ima)) {
-							input->definetex = true;
-							BLI_ghash_insert(definehash, input->ima, SET_INT_IN_POINTER(input->texid));
-						}
-					}
-					else {
-						if (!BLI_ghash_haskey(definehash, input->link)) {
-							input->definetex = true;
-							BLI_ghash_insert(definehash, input->link, SET_INT_IN_POINTER(input->texid));
-						}
-					}
+				else {
+					/* Either input->ima or input->coba should be non-NULL. */
+					BLI_assert(0);
 				}
 			}
 		}
 
-		for (output = node->outputs.first; output; output = output->next)
+		for (output = node->outputs.first; output; output = output->next) {
 			/* set id for unique names of tmp variables storing output */
 			output->id = id++;
+		}
 	}
 
 	BLI_ghash_free(bindhash, NULL, NULL);
-	BLI_ghash_free(definehash, NULL, NULL);
 }
 
 /**
@@ -615,14 +583,12 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 	/* print uniforms */
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)) {
+			if (input->source == GPU_SOURCE_TEX) {
 				/* create exactly one sampler for each texture */
 				if (codegen_input_has_texture(input) && input->bindtex) {
 					BLI_dynstr_appendf(
 					        ds, "uniform %s samp%d;\n",
-					        (input->textype == GPU_TEX1D_ARRAY) ? "sampler1DArray" :
-					        (input->textype == GPU_TEX2D) ? "sampler2D" :
-					        (input->textype == GPU_TEXCUBE) ? "samplerCube" : "sampler2DShadow",
+					        (input->coba) ? "sampler1DArray" : "sampler2D",
 					        input->texid);
 				}
 			}
@@ -656,26 +622,18 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 				/* Add other struct here if needed. */
 				BLI_dynstr_appendf(ds, "Closure strct%d = CLOSURE_DEFAULT;\n", input->id);
 			}
-			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
-				if (input->dynamictype == GPU_DYNAMIC_UBO) {
-					if (!input->link) {
-						/* We handle the UBOuniforms separately. */
-						BLI_addtail(&ubo_inputs, BLI_genericNodeN(input));
-					}
+			else if (input->source == GPU_SOURCE_UNIFORM) {
+				if (!input->link) {
+					/* We handle the UBOuniforms separately. */
+					BLI_addtail(&ubo_inputs, BLI_genericNodeN(input));
 				}
-				else if (input->dynamicvec) {
-					/* only create uniforms for dynamic vectors */
-					BLI_dynstr_appendf(
-					        ds, "uniform %s unf%d;\n",
-					        GPU_DATATYPE_STR[input->type], input->id);
-				}
-				else {
-					BLI_dynstr_appendf(
-					        ds, "const %s cons%d = ",
-					        GPU_DATATYPE_STR[input->type], input->id);
-					codegen_print_datatype(ds, input->type, input->vec);
-					BLI_dynstr_append(ds, ";\n");
-				}
+			}
+			else if (input->source == GPU_SOURCE_CONSTANT) {
+				BLI_dynstr_appendf(
+				        ds, "const %s cons%d = ",
+				        GPU_DATATYPE_STR[input->type], input->id);
+				codegen_print_datatype(ds, input->type, input->vec);
+				BLI_dynstr_append(ds, ";\n");
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 #ifdef WITH_OPENSUBDIV
@@ -722,23 +680,9 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 static void codegen_declare_tmps(DynStr *ds, ListBase *nodes)
 {
 	GPUNode *node;
-	GPUInput *input;
 	GPUOutput *output;
 
 	for (node = nodes->first; node; node = node->next) {
-		/* load pixels from textures */
-		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_TEX_PIXEL) {
-				if (codegen_input_has_texture(input) && input->definetex) {
-					BLI_dynstr_appendf(
-					        ds, "\tvec4 tex%d = texture2D(", input->texid);
-					BLI_dynstr_appendf(
-					        ds, "samp%d, gl_TexCoord[%d].st);\n",
-					        input->texid, input->texid);
-				}
-			}
-		}
-
 		/* declare temporary variables for node output storage */
 		for (output = node->outputs.first; output; output = output->next) {
 			if (output->type == GPU_CLOSURE) {
@@ -768,15 +712,14 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_TEX) {
 				BLI_dynstr_appendf(ds, "samp%d", input->texid);
-				if (input->link)
-					BLI_dynstr_appendf(ds, ", gl_TexCoord[%d].st", input->texid);
 			}
-			else if (input->source == GPU_SOURCE_TEX_PIXEL) {
+			else if (input->source == GPU_SOURCE_OUTPUT) {
 				codegen_convert_datatype(
 				        ds, input->link->output->type, input->type,
 				        "tmp", input->link->output->id);
 			}
 			else if (input->source == GPU_SOURCE_BUILTIN) {
+				/* TODO(fclem) get rid of that. */
 				if (input->builtin == GPU_INVERSE_VIEW_MATRIX)
 					BLI_dynstr_append(ds, "viewinv");
 				else if (input->builtin == GPU_VIEW_MATRIX)
@@ -797,20 +740,14 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 			else if (input->source == GPU_SOURCE_STRUCT) {
 				BLI_dynstr_appendf(ds, "strct%d", input->id);
 			}
-			else if (input->source == GPU_SOURCE_VEC_UNIFORM) {
-				if (input->dynamicvec)
-					BLI_dynstr_appendf(ds, "unf%d", input->id);
-				else
-					BLI_dynstr_appendf(ds, "cons%d", input->id);
+			else if (input->source == GPU_SOURCE_UNIFORM) {
+				BLI_dynstr_appendf(ds, "unf%d", input->id);
+			}
+			else if (input->source == GPU_SOURCE_CONSTANT) {
+				BLI_dynstr_appendf(ds, "cons%d", input->id);
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB) {
 				BLI_dynstr_appendf(ds, "var%d", input->attribid);
-			}
-			else if (input->source == GPU_SOURCE_OPENGL_BUILTIN) {
-				if (input->oglbuiltin == GPU_MATCAP_NORMAL)
-					BLI_dynstr_append(ds, "gl_SecondaryColor");
-				else if (input->oglbuiltin == GPU_COLOR)
-					BLI_dynstr_append(ds, "gl_Color");
 			}
 
 			BLI_dynstr_append(ds, ", ");
@@ -855,6 +792,7 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 
 	BLI_dynstr_append(ds, "Closure nodetree_exec(void)\n{\n");
 
+	/* TODO(fclem) get rid of that. */
 	if (builtins & GPU_VIEW_MATRIX)
 		BLI_dynstr_append(ds, "\tmat4 viewmat = ViewMatrix;\n");
 	if (builtins & GPU_CAMERA_TEXCO_FACTORS)
@@ -1174,7 +1112,6 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 {
 	GPUNode *node;
 	GPUInput *next, *input;
-	int extract, z;
 
 	BLI_listbase_clear(inputs);
 
@@ -1184,48 +1121,30 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 	GPU_shader_bind(shader);
 
 	for (node = nodes->first; node; node = node->next) {
-		z = 0;
+		int z = 0;
 		for (input = node->inputs.first; input; input = next, z++) {
 			next = input->next;
 
 			/* attributes don't need to be bound, they already have
-			 * an id that the drawing functions will use */
-			if (input->source == GPU_SOURCE_ATTRIB) {
+			 * an id that the drawing functions will use. Builtins have
+			 * constant names. */
+			if (ELEM(input->source, GPU_SOURCE_ATTRIB, GPU_SOURCE_BUILTIN)) {
 				continue;
 			}
 
-			if (input->source == GPU_SOURCE_BUILTIN ||
-			    input->source == GPU_SOURCE_OPENGL_BUILTIN)
-			{
-				continue;
-			}
-
-			if (input->ima || input->tex || input->prv)
+			if (input->source == GPU_SOURCE_TEX)
 				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
-			else
+			else {
 				BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
-
-			/* pass non-dynamic uniforms to opengl */
-			extract = 0;
-
-			if (input->ima || input->tex || input->prv) {
-				if (input->bindtex)
-					extract = 1;
-			}
-			else if (input->dynamictype == GPU_DYNAMIC_UBO) {
-				/* Don't extract UBOs */
-			}
-			else if (input->dynamicvec) {
-				extract = 1;
 			}
 
-			if (extract)
-				input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
-
-			/* extract nodes */
-			if (extract) {
-				BLI_remlink(&node->inputs, input);
-				BLI_addtail(inputs, input);
+			if (input->source == GPU_SOURCE_TEX) {
+				if (input->bindtex) {
+					input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
+					/* extract nodes */
+					BLI_remlink(&node->inputs, input);
+					BLI_addtail(inputs, input);
+				}
 			}
 		}
 	}
@@ -1238,7 +1157,6 @@ void GPU_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListB
 static GPUNodeLink *GPU_node_link_create(void)
 {
 	GPUNodeLink *link = MEM_callocN(sizeof(GPUNodeLink), "GPUNodeLink");
-	link->type = GPU_NONE;
 	link->users++;
 
 	return link;
@@ -1275,7 +1193,7 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 	GPUNode *outnode;
 	const char *name;
 
-	if (link->output) {
+	if (link->link_type == GPU_NODE_LINK_OUTPUT) {
 		outnode = link->output->node;
 		name = outnode->name;
 		input = outnode->inputs.first;
@@ -1284,7 +1202,6 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 		    (input->type == type))
 		{
 			input = MEM_dupallocN(outnode->inputs.first);
-			input->type = type;
 			if (input->link)
 				input->link->users++;
 			BLI_addtail(&node->inputs, input);
@@ -1294,107 +1211,50 @@ static void gpu_node_input_link(GPUNode *node, GPUNodeLink *link, const GPUType 
 
 	input = MEM_callocN(sizeof(GPUInput), "GPUInput");
 	input->node = node;
+	input->type = type;
 
-	if (link->builtin) {
-		/* builtin uniform */
-		input->type = type;
-		input->source = GPU_SOURCE_BUILTIN;
-		input->builtin = link->builtin;
-
-		MEM_freeN(link);
-	}
-	else if (link->oglbuiltin) {
-		/* builtin uniform */
-		input->type = type;
-		input->source = GPU_SOURCE_OPENGL_BUILTIN;
-		input->oglbuiltin = link->oglbuiltin;
-
-		MEM_freeN(link);
-	}
-	else if (link->output) {
-		/* link to a node output */
-		input->type = type;
-		input->source = GPU_SOURCE_TEX_PIXEL;
-		input->link = link;
-		link->users++;
-	}
-	else if (link->dynamictex) {
-		/* dynamic texture, GPUTexture is updated/deleted externally */
-		input->type = type;
-		input->source = GPU_SOURCE_TEX;
-
-		input->tex = link->dynamictex;
-		input->textarget = GL_TEXTURE_2D;
-		input->textype = type;
-		input->dynamictex = true;
-		input->dynamicdata = link->ptr2;
-		MEM_freeN(link);
-	}
-	else if (link->texture) {
-		/* small texture created on the fly, like for colorbands */
-		input->type = GPU_VEC4;
-		input->source = GPU_SOURCE_TEX;
-		input->textype = GPU_TEX1D_ARRAY;
-		input->tex = link->ptr1; /* HACK ptr1 is actually a (GPUTexture **). */
-		input->textarget = GL_TEXTURE_1D_ARRAY;
-		MEM_freeN(link);
-	}
-	else if (link->image) {
-		/* blender image */
-		input->type = GPU_VEC4;
-		input->source = GPU_SOURCE_TEX;
-
-		if (link->image == GPU_NODE_LINK_IMAGE_PREVIEW) {
-			input->prv = link->ptr1;
-			input->textarget = GL_TEXTURE_2D;
-			input->textype = GPU_TEX2D;
-		}
-		else if (link->image == GPU_NODE_LINK_IMAGE_BLENDER) {
-			input->ima = link->ptr1;
-			input->iuser = link->ptr2;
+	switch (link->link_type) {
+		case GPU_NODE_LINK_BUILTIN:
+			input->source = GPU_SOURCE_BUILTIN;
+			input->builtin = link->builtin;
+			break;
+		case GPU_NODE_LINK_OUTPUT:
+			input->source = GPU_SOURCE_OUTPUT;
+			input->link = link;
+			link->users++;
+			break;
+		case GPU_NODE_LINK_COLORBAND:
+			input->source = GPU_SOURCE_TEX;
+			input->coba = link->coba;
+			break;
+		case GPU_NODE_LINK_IMAGE_BLENDER:
+			input->source = GPU_SOURCE_TEX;
+			input->ima = link->ima;
+			input->iuser = link->iuser;
 			input->image_isdata = link->image_isdata;
-			input->textarget = GL_TEXTURE_2D;
-			input->textype = GPU_TEX2D;
-		}
-		else if (link->image == GPU_NODE_LINK_IMAGE_CUBE_MAP) {
-			input->ima = link->ptr1;
-			input->iuser = link->ptr2;
-			input->image_isdata = link->image_isdata;
-			input->textarget = GL_TEXTURE_CUBE_MAP;
-			input->textype = GPU_TEXCUBE;
-		}
-		MEM_freeN(link);
-	}
-	else if (link->attribtype) {
-		/* vertex attribute */
-		input->type = type;
-		input->source = GPU_SOURCE_ATTRIB;
-
-		input->attribtype = link->attribtype;
-		BLI_strncpy(input->attribname, link->attribname, sizeof(input->attribname));
-		MEM_freeN(link);
-	}
-	else if (type == GPU_CLOSURE) {
-		input->type = type;
-		input->source = GPU_SOURCE_STRUCT;
-
-		MEM_freeN(link);
-	}
-	else {
-		/* uniform vector */
-		input->type = type;
-		input->source = GPU_SOURCE_VEC_UNIFORM;
-
-		memcpy(input->vec, link->ptr1, type * sizeof(float));
-		if (link->dynamic) {
-			input->dynamicvec = link->ptr1;
-			input->dynamictype = link->dynamictype;
-			input->dynamicdata = link->ptr2;
-		}
-
-		MEM_freeN(link);
+			break;
+		case GPU_NODE_LINK_ATTRIB:
+			input->source = GPU_SOURCE_ATTRIB;
+			input->attribtype = link->attribtype;
+			BLI_strncpy(input->attribname, link->attribname, sizeof(input->attribname));
+			break;
+		case GPU_NODE_LINK_CONSTANT:
+			input->source = (type == GPU_CLOSURE) ? GPU_SOURCE_STRUCT : GPU_SOURCE_CONSTANT;
+			break;
+		case GPU_NODE_LINK_UNIFORM:
+			input->source = GPU_SOURCE_UNIFORM;
+			break;
+		default:
+			break;
 	}
 
+	if (ELEM(input->source, GPU_SOURCE_CONSTANT, GPU_SOURCE_UNIFORM)) {
+		memcpy(input->vec, link->data, type * sizeof(float));
+	}
+
+	if (link->link_type != GPU_NODE_LINK_OUTPUT) {
+		MEM_freeN(link);
+	}
 	BLI_addtail(&node->inputs, input);
 }
 
@@ -1484,9 +1344,7 @@ static void gpu_node_input_socket(GPUMaterial *material, bNode *bnode, GPUNode *
 		gpu_node_input_link(node, sock->link, sock->type);
 	}
 	else {
-		GPUNodeLink *link = GPU_node_link_create();
-		link->ptr1 = sock->vec;
-		gpu_node_input_link(node, link, sock->type);
+		gpu_node_input_link(node, GPU_constant(sock->vec), sock->type);
 	}
 }
 
@@ -1499,7 +1357,7 @@ static void gpu_node_output(GPUNode *node, const GPUType type, GPUNodeLink **lin
 
 	if (link) {
 		*link = output->link = GPU_node_link_create();
-		output->link->type = type;
+		output->link->link_type = GPU_NODE_LINK_OUTPUT;
 		output->link->output = output;
 
 		/* note: the caller owns the reference to the link, GPUOutput
@@ -1517,8 +1375,6 @@ void GPU_inputs_free(ListBase *inputs)
 	for (input = inputs->first; input; input = input->next) {
 		if (input->link)
 			gpu_node_link_free(input->link);
-		else if (input->tex && !input->dynamictex)
-			GPU_texture_free(input->tex);
 	}
 
 	BLI_freelistN(inputs);
@@ -1576,7 +1432,7 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 				if (a < GPU_MAX_ATTRIB) {
 					if (a == attribs->totlayer) {
 						input->attribid = attribs->totlayer++;
-						input->attribfirst = 1;
+						input->attribfirst = true;
 
 						attribs->layer[a].type = input->attribtype;
 						attribs->layer[a].attribid = input->attribid;
@@ -1598,7 +1454,8 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-
+	link->link_type = GPU_NODE_LINK_ATTRIB;
+	link->attribname = name;
 	/* Fall back to the UV layer, which matches old behavior. */
 	if (type == CD_AUTO_FROM_NAME && name[0] == '\0') {
 		link->attribtype = CD_MTFACE;
@@ -1606,63 +1463,49 @@ GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 	else {
 		link->attribtype = type;
 	}
-
-	link->attribname = name;
-
 	return link;
 }
 
 GPUNodeLink *GPU_constant(float *num)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-
-	link->ptr1 = num;
-	link->ptr2 = NULL;
-
+	link->link_type = GPU_NODE_LINK_CONSTANT;
+	link->data = num;
 	return link;
 }
 
 GPUNodeLink *GPU_uniform(float *num)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-	link->ptr1 = num;
-	link->ptr2 = NULL;
-	link->dynamic = true;
-	link->dynamictype = GPU_DYNAMIC_UBO;
-
+	link->link_type = GPU_NODE_LINK_UNIFORM;
+	link->data = num;
 	return link;
 }
 
 GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-
-	link->image = GPU_NODE_LINK_IMAGE_BLENDER;
-	link->ptr1 = ima;
-	link->ptr2 = iuser;
+	link->link_type = GPU_NODE_LINK_IMAGE_BLENDER;
+	link->ima = ima;
+	link->iuser = iuser;
 	link->image_isdata = is_data;
-
 	return link;
 }
 
-GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer)
+GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *row)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-
-	link->texture = true;
-	link->ptr1 = gpu_material_ramp_texture_row_set(mat, size, pixels, layer);
-
+	link->link_type = GPU_NODE_LINK_COLORBAND;
+	link->coba = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
 	MEM_freeN(pixels);
-
 	return link;
 }
 
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 {
 	GPUNodeLink *link = GPU_node_link_create();
-
+	link->link_type = GPU_NODE_LINK_BUILTIN;
 	link->builtin = builtin;
-
 	return link;
 }
 

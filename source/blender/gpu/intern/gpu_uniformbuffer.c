@@ -159,7 +159,7 @@ GPUUniformBuffer *GPU_uniformbuffer_dynamic_create(ListBase *inputs, char err_ou
 	float *offset = ubo->data;
 	for (LinkData *link = inputs->first; link; link = link->next) {
 		GPUInput *input = link->data;
-		memcpy(offset, input->dynamicvec, input->type * sizeof(float));
+		memcpy(offset, input->vec, input->type * sizeof(float));
 		offset += get_padded_gpu_type(link);
 	}
 
