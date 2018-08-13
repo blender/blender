@@ -113,9 +113,6 @@ static DerivedMesh *applyModifier(
 	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
 	const bool isFinalCalc = (ctx->flag & MOD_APPLY_USECACHE) != 0;
 
-#ifdef WITH_OPENSUBDIV
-	const bool allow_gpu = (ctx->flag & MOD_APPLY_ALLOW_GPU) != 0;
-#endif
 	bool do_cddm_convert = useRenderParams || !isFinalCalc;
 
 	if (useRenderParams)
@@ -124,31 +121,6 @@ static DerivedMesh *applyModifier(
 		subsurf_flags |= SUBSURF_IS_FINAL_CALC;
 	if (ctx->object->mode & OB_MODE_EDIT)
 		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
-
-#ifdef WITH_OPENSUBDIV
-	/* TODO(sergey): Not entirely correct, modifiers on top of subsurf
-	 * could be disabled.
-	 */
-	if (md->next == NULL &&
-	    allow_gpu &&
-	    do_cddm_convert == false &&
-	    smd->use_opensubdiv)
-	{
-		if (U.opensubdiv_compute_type == USER_OPENSUBDIV_COMPUTE_NONE) {
-			modifier_setError(md, "OpenSubdiv is disabled in User Preferences");
-		}
-		else if ((ctx->object->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
-			modifier_setError(md, "OpenSubdiv is not supported in paint modes");
-		}
-		else if ((DEG_get_eval_flags_for_id(ctx->depsgraph, &ctx->object->id) & DAG_EVAL_NEED_CPU) == 0) {
-			subsurf_flags |= SUBSURF_USE_GPU_BACKEND;
-			do_cddm_convert = false;
-		}
-		else {
-			modifier_setError(md, "OpenSubdiv is disabled due to dependencies");
-		}
-	}
-#endif
 
 	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, subsurf_flags);
 	result->cd_flag = derivedData->cd_flag;
@@ -159,9 +131,7 @@ static DerivedMesh *applyModifier(
 		result = cddm;
 	}
 
-#ifndef WITH_OPESUBDIV
 	(void) do_cddm_convert;
-#endif
 
 	return result;
 }
@@ -176,12 +146,6 @@ static DerivedMesh *applyModifierEM(
 	DerivedMesh *result;
 	/* 'orco' using editmode flags would cause cache to be used twice in editbmesh_calc_modifiers */
 	SubsurfFlags ss_flags = (ctx->flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
-#ifdef WITH_OPENSUBDIV
-	const bool allow_gpu = (ctx->flag & MOD_APPLY_ALLOW_GPU) != 0;
-	if (md->next == NULL && allow_gpu && smd->use_opensubdiv) {
-		modifier_setError(md, "OpenSubdiv is not supported in edit mode");
-	}
-#endif
 
 	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, ss_flags);
 	return result;
@@ -271,19 +235,6 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 }
 #endif
 
-static bool dependsOnNormals(ModifierData *md)
-{
-#ifdef WITH_OPENSUBDIV
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
-	if (smd->use_opensubdiv && md->next == NULL) {
-		return true;
-	}
-#else
-	UNUSED_VARS(md);
-#endif
-	return false;
-}
-
 ModifierTypeInfo modifierType_Subsurf = {
 	/* name */              "Subsurf",
 	/* structName */        "SubsurfModifierData",
@@ -321,7 +272,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* isDisabled */        isDisabled,
 	/* updateDepsgraph */   NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	dependsOnNormals,
+	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
