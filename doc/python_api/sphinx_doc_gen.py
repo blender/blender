@@ -1679,7 +1679,7 @@ def write_rst_contents(basepath):
     '''
     Write the rst file of the main page, needed for sphinx (index.html)
     '''
-    filepath = os.path.join(basepath, "contents.rst")
+    filepath = os.path.join(basepath, "index.rst")
     file = open(filepath, "w", encoding="utf-8")
     fw = file.write
 
@@ -1692,7 +1692,6 @@ def write_rst_contents(basepath):
     # fw("`A PDF version of this document is also available <%s>`_\n" % BLENDER_PDF_FILENAME)
     fw("This site can be downloaded for offline use `Download the full Documentation (zipped HTML files) <%s>`_\n" %
        BLENDER_ZIP_FILENAME)
-
     fw("\n")
 
     if not EXCLUDE_INFO_DOCS:
@@ -2109,8 +2108,6 @@ def main():
             shutil.copytree(SPHINX_OUT,
                             REFERENCE_PATH,
                             ignore=shutil.ignore_patterns(*ignores))
-            shutil.copy(os.path.join(REFERENCE_PATH, "contents.html"),
-                        os.path.join(REFERENCE_PATH, "index.html"))
 
             # zip REFERENCE_PATH
             basename = os.path.join(ARGS.output_dir, REFERENCE_NAME)

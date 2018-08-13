@@ -163,7 +163,6 @@ def main():
     os.rename(zip_path, os.path.join(api_dir, "%s.zip" % zip_name))
 
     # VII) Create symlinks and html redirects.
-    os.symlink("./contents.html", os.path.join(api_dir, "index.html"))
     if is_release:
         symlink = os.path.join(args.mirror_dir, "current")
         os.remove(symlink)
