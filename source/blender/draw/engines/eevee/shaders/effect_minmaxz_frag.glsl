@@ -4,8 +4,6 @@
  * Adapted from http://rastergrid.com/blog/2010/10/hierarchical-z-map-based-occlusion-culling/
  **/
 
-#extension GL_ARB_texture_gather : enable
-
 #ifdef LAYERED
 uniform sampler2DArray depthBuffer;
 uniform int depthLayer;

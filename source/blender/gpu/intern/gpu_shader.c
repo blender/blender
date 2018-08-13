@@ -221,6 +221,13 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 	 * don't use an extension for something already available!
 	 */
 
+	if (GLEW_ARB_texture_gather) {
+		/* There is a bug on older Nvidia GPU where GL_ARB_texture_gather
+		 * is reported to be supported but yield a compile error (see T55802). */
+		if (!GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) || GLEW_VERSION_4_0) {
+			strcat(defines, "#extension GL_ARB_texture_gather: enable\n");
+		}
+	}
 	if (GLEW_ARB_texture_query_lod) {
 		/* a #version 400 feature, but we use #version 330 maximum so use extension */
 		strcat(defines, "#extension GL_ARB_texture_query_lod: enable\n");
