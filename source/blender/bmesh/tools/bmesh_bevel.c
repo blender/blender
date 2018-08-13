@@ -3158,6 +3158,8 @@ static int tri_corner_test(BevelParams *bp, BevVert *bv)
 	int i;
 	int in_plane_e = 0;
 
+	if (bp->vertex_only)
+		return -1;
 	totang = 0.0f;
 	for (i = 0; i < bv->edgecount; i++) {
 		e = &bv->edges[i];
