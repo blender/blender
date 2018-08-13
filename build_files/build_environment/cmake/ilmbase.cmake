@@ -16,13 +16,15 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if(WIN32)
-	set(ILMBASE_CMAKE_CXX_STANDARD_LIBRARIES "kernel32${LIBEXT} user32${LIBEXT} gdi32${LIBEXT} winspool${LIBEXT} shell32${LIBEXT} ole32${LIBEXT} oleaut32${LIBEXT} uuid${LIBEXT} comdlg32${LIBEXT} advapi32${LIBEXT} psapi${LIBEXT}")
-endif()
+# commenting out, Ray will clean if needed.
+# if(WIN32)
+# 	set(ILMBASE_CMAKE_CXX_STANDARD_LIBRARIES "kernel32${LIBEXT} user32${LIBEXT} gdi32${LIBEXT} winspool${LIBEXT} shell32${LIBEXT} ole32${LIBEXT} oleaut32${LIBEXT} uuid${LIBEXT} comdlg32${LIBEXT} advapi32${LIBEXT} psapi${LIBEXT}")
+# endif()
 
 set(ILMBASE_EXTRA_ARGS
-	-DBUILD_SHARED_LIBS=OFF
-	-DCMAKE_CXX_STANDARD_LIBRARIES=${ILMBASE_CMAKE_CXX_STANDARD_LIBRARIES}
+  --enable-static
+  --disable-shared
+  --enable-cxxstd=11
 )
 
 ExternalProject_Add(external_ilmbase
@@ -30,6 +32,8 @@ ExternalProject_Add(external_ilmbase
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${ILMBASE_HASH}
 	PREFIX ${BUILD_DIR}/ilmbase
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ilmbase ${DEFAULT_CMAKE_FLAGS} ${ILMBASE_EXTRA_ARGS}
+	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ilmbase/src/external_ilmbase/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/ilmbase ${ILMBASE_EXTRA_ARGS}
+	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ilmbase/src/external_ilmbase/ && make -j${MAKE_THREADS}
+	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ilmbase/src/external_ilmbase/ && make install
 	INSTALL_DIR ${LIBDIR}/openexr
 )
