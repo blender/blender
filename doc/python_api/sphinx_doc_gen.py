@@ -1622,7 +1622,7 @@ def write_sphinx_conf_py(basepath):
     fw("extensions = ['sphinx.ext.intersphinx']\n\n")
     fw("intersphinx_mapping = {'blender_manual': ('https://docs.blender.org/manual/en/dev/', None)}\n\n")
     fw("project = 'Blender'\n")
-    # fw("master_doc = 'index'\n")
+    fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
     fw("version = '%s - API'\n" % BLENDER_VERSION_DOTS)
     fw("release = '%s - API'\n" % BLENDER_VERSION_DOTS)
@@ -1724,7 +1724,8 @@ def write_rst_contents(basepath):
 
     for mod in app_modules:
         if mod not in EXCLUDE_MODULES:
-            fw("   %s\n\n" % mod)
+            fw("   %s\n" % mod)
+    fw("\n")
 
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n")
@@ -1738,7 +1739,8 @@ def write_rst_contents(basepath):
 
     for mod in standalone_modules:
         if mod not in EXCLUDE_MODULES:
-            fw("   %s\n\n" % mod)
+            fw("   %s\n" % mod)
+    fw("\n")
 
     # special case, this 'bmesh.ops.rst' is extracted from C source
     if "bmesh.ops" not in EXCLUDE_MODULES:
