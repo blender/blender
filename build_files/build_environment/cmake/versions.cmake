@@ -50,8 +50,13 @@ set(ILMBASE_URI https://github.com/openexr/openexr/releases/download/v${ILMBASE_
 set(ILMBASE_HASH 354bf86de3b930ab87ac63619d60c860)
 
 set(OPENEXR_VERSION 2.3.0)
-set(OPENEXR_URI https://github.com/openexr/openexr/releases/download/v${OPENEXR_VERSION}/openexr-${OPENEXR_VERSION}.tar.gz)
-set(OPENEXR_HASH a157e8a46596bc185f2472a5a4682174)
+if (WIN32) #release 2.3.0 tarball has broken cmake support
+	set(OPENEXR_URI https://github.com/openexr/openexr/archive/0ac2ea34c8f3134148a5df4052e40f155b76f6fb.tar.gz)
+	set(OPENEXR_HASH ed159435d508240712fbaaa21d94bafb)
+else()
+	set(OPENEXR_URI https://github.com/openexr/openexr/releases/download/v${OPENEXR_VERSION}/openexr-${OPENEXR_VERSION}.tar.gz)
+	set(OPENEXR_HASH a157e8a46596bc185f2472a5a4682174)
+endif()
 
 set(FREETYPE_VERSION 2.9.1)
 set(FREETYPE_URI http://download.savannah.gnu.org/releases/freetype/freetype-${FREETYPE_VERSION}.tar.gz)
