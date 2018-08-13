@@ -699,6 +699,10 @@ static void do_twist(const ParticleChildModifierContext *modifier_ctx,
 	ParticleTexture *ptex = modifier_ctx->ptex;
 	ParticleSettings *part = sim->psys->part;
 	/* Early output checks. */
+	if (modifier_ctx->parent_keys == NULL) {
+		/* Cannot get axis of rotation... */
+		return;
+	}
 	if (part->childtype != PART_CHILD_PARTICLES) {
 		/* Interpolated children behave weird with twist. */
 		return;
