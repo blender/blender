@@ -226,6 +226,7 @@ static void gpu_shader_standard_extensions(char defines[MAX_EXT_DEFINE_LENGTH])
 		 * is reported to be supported but yield a compile error (see T55802). */
 		if (!GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY) || GLEW_VERSION_4_0) {
 			strcat(defines, "#extension GL_ARB_texture_gather: enable\n");
+			strcat(defines, "#define GPU_ARB_texture_gather\n");
 		}
 	}
 	if (GLEW_ARB_texture_query_lod) {

@@ -48,7 +48,7 @@ void main()
 	float val = sampleLowerMip(texelPos);
 #else
 	vec4 samp;
-#  ifdef GL_ARB_texture_gather
+#  ifdef GPU_ARB_texture_gather
 	samp = gatherLowerMip(vec2(texelPos) / vec2(mipsize));
 #  else
 	samp.x = sampleLowerMip(texelPos);
@@ -66,7 +66,7 @@ void main()
 			samp.x = sampleLowerMip(texelPos + ivec2(2, 2));
 			val = minmax2(val, samp.x);
 		}
-#  ifdef GL_ARB_texture_gather
+#  ifdef GPU_ARB_texture_gather
 		samp = gatherLowerMip((vec2(texelPos) + vec2(1.0, 0.0)) / vec2(mipsize));
 #  else
 		samp.y = sampleLowerMip(texelPos + ivec2(2, 0));
@@ -76,7 +76,7 @@ void main()
 	}
 	/* if we are reducing an odd-height texture then fetch the edge texels */
 	if (((mipsize.y & 1) != 0) && (texelPos.y == mipsize.y - 3)) {
-#  ifdef GL_ARB_texture_gather
+#  ifdef GPU_ARB_texture_gather
 		samp = gatherLowerMip((vec2(texelPos) + vec2(0.0, 1.0)) / vec2(mipsize));
 #  else
 		samp.x = sampleLowerMip(texelPos + ivec2(0, 2));

@@ -32,7 +32,7 @@ void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 
-#ifdef GL_ARB_texture_gather
+#ifdef GPU_ARB_texture_gather
 	vec2 texel_size = 1.0 / vec2(textureSize(outlineId, 0).xy);
 	vec2 uv = ceil(gl_FragCoord.xy) * texel_size;
 
