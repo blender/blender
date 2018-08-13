@@ -144,8 +144,8 @@ if(WITH_INTERNATIONAL)
 	add_definitions(-DWITH_INTERNATIONAL)
 endif()
 
-if(WITH_OPENSUBDIV)
-	add_definitions(-DWITH_OPENSUBDIV)
+if(WITH_OPENSUBDIV_MODIFIER)
+	add_definitions(-DWITH_OPENSUBDIV_MODIFIER)
 endif()
 
 # So we can have special tricks in modifier system.

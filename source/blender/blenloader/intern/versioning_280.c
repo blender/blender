@@ -1855,5 +1855,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "quality")) {
+			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Subsurf) {
+						SubsurfModifierData *smd = (SubsurfModifierData *)md;
+						smd->quality = 3;
+					}
+				}
+			}
+		}
 	}
 }

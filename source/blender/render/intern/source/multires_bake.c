@@ -684,6 +684,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 		if (ss_lvl > 0) {
 			smd.levels = smd.renderLevels = ss_lvl;
 			smd.uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+			smd.quality = 3;
 
 			if (bkr->simple)
 				smd.subdivType = ME_SIMPLE_SUBSURF;

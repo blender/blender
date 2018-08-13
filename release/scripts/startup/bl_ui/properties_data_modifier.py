@@ -986,6 +986,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col.label(text="Subdivisions:")
             col.prop(md, "levels", text="View")
             col.prop(md, "render_levels", text="Render")
+            if hasattr(md, "quality"):
+                col.prop(md, "quality")
 
         col = split.column()
         col.label(text="Options:")

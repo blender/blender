@@ -728,6 +728,7 @@ static DerivedMesh *subsurf_dm_create_local(
 	SubsurfFlags flags = 0;
 
 	smd.levels = smd.renderLevels = lvl;
+	smd.quality = 3;
 	if (!is_plain_uv) {
 		smd.uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 	}

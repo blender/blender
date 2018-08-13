@@ -305,6 +305,10 @@ if(WITH_OPENSUBDIV)
 	add_definitions(-DWITH_OPENSUBDIV)
 endif()
 
+if(WITH_OPENSUBDIV_MODIFIER)
+	add_definitions(-DWITH_OPENSUBDIV_MODIFIER)
+endif()
+
 if(WITH_OPENVDB)
 	add_definitions(-DWITH_OPENVDB)
 

@@ -39,10 +39,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "DNA_userdef_types.h"
-#endif
-
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
@@ -57,8 +53,6 @@
 
 #include "intern/CCGSubSurf.h"
 
-// #define USE_OPENSUBDIV
-
 static void initData(ModifierData *md)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
@@ -66,6 +60,7 @@ static void initData(ModifierData *md)
 	smd->levels = 1;
 	smd->renderLevels = 2;
 	smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+	smd->quality = 3;
 }
 
 static void copyData(const ModifierData *md, ModifierData *target, const int flag)
@@ -151,26 +146,25 @@ static DerivedMesh *applyModifierEM(
 	return result;
 }
 
-#ifdef USE_OPENSUBDIV
+#ifdef WITH_OPENSUBDIV_MODIFIER
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
                                           const ModifierEvalContext *ctx)
 {
-	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
-	const int requested_levels = (use_render_params) ? smd->renderLevels
-	                                                 : smd->levels;
-	return get_render_subsurf_level(&scene->r,
-	                                requested_levels,
-	                                use_render_params);
+       Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+       const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+       const int requested_levels = (use_render_params) ? smd->renderLevels
+                                                        : smd->levels;
+       return get_render_subsurf_level(&scene->r,
+                                       requested_levels,
+                                       use_render_params);
 }
 
 static void subdiv_settings_init(SubdivSettings *settings,
-                                 const SubsurfModifierData *smd,
-                                 const ModifierEvalContext *ctx)
+                                 const SubsurfModifierData *smd)
 {
 	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
 	settings->is_adaptive = !settings->is_simple;
-	settings->level = subdiv_levels_for_modifier_get(smd, ctx);
+	settings->level = smd->quality;
 	switch (smd->uv_smooth) {
 		case SUBSURF_UV_SMOOTH_NONE:
 			settings->fvar_linear_interpolation =
@@ -200,9 +194,11 @@ static void subdiv_settings_init(SubdivSettings *settings,
 }
 
 static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
-                                      const SubdivSettings *subdiv_settings)
+                                      const SubsurfModifierData *smd,
+                                      const ModifierEvalContext *ctx)
 {
-	settings->resolution = (1 << subdiv_settings->level) + 1;
+	const int level = subdiv_levels_for_modifier_get(smd, ctx);
+	settings->resolution = (1 << level) + 1;
 }
 
 static Mesh *applyModifier_subdiv(ModifierData *md,
@@ -212,7 +208,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	Mesh *result = mesh;
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	SubdivSettings subdiv_settings;
-	subdiv_settings_init(&subdiv_settings, smd, ctx);
+	subdiv_settings_init(&subdiv_settings, smd);
 	if (subdiv_settings.level == 0) {
 		/* NOTE: Shouldn't really happen, is supposed to be catched by
 		 * isDisabled() callback.
@@ -226,7 +222,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 		return result;
 	}
 	SubdivToMeshSettings mesh_settings;
-	subdiv_mesh_settings_init(&mesh_settings, &subdiv_settings);
+	subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
 	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
 	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);
@@ -259,7 +255,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-#ifdef USE_OPENSUBDIV
+#ifdef WITH_OPENSUBDIV_MODIFIER
 	/* applyModifier */     applyModifier_subdiv,
 #else
 	/* applyModifier */     NULL,
