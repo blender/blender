@@ -135,22 +135,6 @@ def handle_args():
                         help="Path of the API docs (default=<script dir>)",
                         required=False)
 
-    parser.add_argument("-T", "--sphinx-theme",
-                        dest="sphinx_theme",
-                        type=str,
-                        default="classic",
-                        help="Sphinx theme (default='classic'), "
-                        "see: http://sphinx-doc.org/theming.html",
-                        required=False)
-
-    parser.add_argument("-N", "--sphinx-named-output",
-                        dest="sphinx_named_output",
-                        default=False,
-                        action='store_true',
-                        help="Add the theme name to the html dir name.\n"
-                             "Example: \"sphinx-out_haiku\" (default=False)",
-                        required=False)
-
     parser.add_argument("-B", "--sphinx-build",
                         dest="sphinx_build",
                         default=False,
@@ -443,15 +427,9 @@ BLENDER_ZIP_FILENAME = "%s.zip" % REFERENCE_NAME
 
 # -------------------------------SPHINX-----------------------------------------
 
-if ARGS.sphinx_theme == "blender-org":
-    SPHINX_THEME_DIR = os.path.join(ARGS.output_dir, ARGS.sphinx_theme)
-    SPHINX_THEME_SVN_DIR = os.path.join(SCRIPT_DIR, ARGS.sphinx_theme)
-
 SPHINX_IN = os.path.join(ARGS.output_dir, "sphinx-in")
 SPHINX_IN_TMP = SPHINX_IN + "-tmp"
 SPHINX_OUT = os.path.join(ARGS.output_dir, "sphinx-out")
-if ARGS.sphinx_named_output:
-    SPHINX_OUT += "_%s" % ARGS.sphinx_theme
 
 # html build
 if ARGS.sphinx_build:
@@ -1654,12 +1632,7 @@ def write_sphinx_conf_py(basepath):
     fw("    'include__bmesh.rst',\n")
     fw("]\n\n")
 
-    if ARGS.sphinx_theme != 'default':
-        fw("html_theme = '%s'\n" % ARGS.sphinx_theme)
-
-    if ARGS.sphinx_theme == "blender-org":
-        fw("html_theme_path = ['../']\n")
-
+    fw("html_theme = 'classic'\n")
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
@@ -2073,15 +2046,6 @@ def main():
                         examples_dir_copy,
                         ignore=shutil.ignore_patterns(*(".svn",)),
                         copy_function=shutil.copy)
-
-        # eventually, copy the theme dir
-        if ARGS.sphinx_theme == "blender-org":
-            if os.path.exists(SPHINX_THEME_DIR):
-                shutil.rmtree(SPHINX_THEME_DIR, True)
-            shutil.copytree(SPHINX_THEME_SVN_DIR,
-                            SPHINX_THEME_DIR,
-                            ignore=shutil.ignore_patterns(*(".svn",)),
-                            copy_function=shutil.copy)
 
     # dump the api in rst files
     if os.path.exists(SPHINX_IN_TMP):
