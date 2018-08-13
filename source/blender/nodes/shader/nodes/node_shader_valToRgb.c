@@ -70,13 +70,13 @@ static int gpu_shader_valtorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNU
 	int size;
 
 	BKE_colorband_evaluate_table_rgba(coba, &array, &size);
-	GPUNodeLink *tex = GPU_texture_ramp(mat, size, array, &layer);
+	GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
 	if (coba->ipotype == COLBAND_INTERP_CONSTANT) {
-		return GPU_stack_link(mat, node, "valtorgb_nearest", in, out, tex, GPU_uniform(&layer));
+		return GPU_stack_link(mat, node, "valtorgb_nearest", in, out, tex, GPU_constant(&layer));
 	}
 	else {
-		return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_uniform(&layer));
+		return GPU_stack_link(mat, node, "valtorgb", in, out, tex, GPU_constant(&layer));
 	}
 }
 

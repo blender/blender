@@ -66,7 +66,7 @@ static int node_shader_gpu_tex_voronoi(GPUMaterial *mat, bNode *node, bNodeExecD
 	NodeTexVoronoi *tex = (NodeTexVoronoi *)node->storage;
 	float coloring = tex->coloring;
 
-	return GPU_stack_link(mat, node, "node_tex_voronoi", in, out, GPU_uniform(&coloring));
+	return GPU_stack_link(mat, node, "node_tex_voronoi", in, out, GPU_constant(&coloring));
 }
 
 static void node_shader_update_tex_voronoi(bNodeTree *UNUSED(ntree), bNode *node)

@@ -92,12 +92,12 @@ static int gpu_shader_mapping(GPUMaterial *mat, bNode *node, bNodeExecData *UNUS
 	static float min[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 	GPUNodeLink *tmin, *tmax, *tmat0, *tmat1, *tmat2, *tmat3;
 
-	tmin = GPU_uniform_buffer((domin) ? texmap->min : min, GPU_VEC3);
-	tmax = GPU_uniform_buffer((domax) ? texmap->max : max, GPU_VEC3);
-	tmat0 = GPU_uniform_buffer((float *)texmap->mat[0], GPU_VEC4);
-	tmat1 = GPU_uniform_buffer((float *)texmap->mat[1], GPU_VEC4);
-	tmat2 = GPU_uniform_buffer((float *)texmap->mat[2], GPU_VEC4);
-	tmat3 = GPU_uniform_buffer((float *)texmap->mat[3], GPU_VEC4);
+	tmin = GPU_uniform((domin) ? texmap->min : min);
+	tmax = GPU_uniform((domax) ? texmap->max : max);
+	tmat0 = GPU_uniform((float *)texmap->mat[0]);
+	tmat1 = GPU_uniform((float *)texmap->mat[1]);
+	tmat2 = GPU_uniform((float *)texmap->mat[2]);
+	tmat3 = GPU_uniform((float *)texmap->mat[3]);
 
 	GPU_stack_link(mat, node, "mapping", in, out, tmat0, tmat1, tmat2, tmat3, tmin, tmax);
 

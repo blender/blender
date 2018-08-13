@@ -53,7 +53,7 @@ static int node_shader_gpu_bsdf_glossy(GPUMaterial *mat, bNode *node, bNodeExecD
 
 	GPU_material_flag_set(mat, GPU_MATFLAG_GLOSSY);
 
-	return GPU_stack_link(mat, node, "node_bsdf_glossy", in, out, GPU_uniform(&node->ssr_id));
+	return GPU_stack_link(mat, node, "node_bsdf_glossy", in, out, GPU_constant(&node->ssr_id));
 }
 
 /* node type definition */

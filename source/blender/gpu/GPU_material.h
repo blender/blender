@@ -224,16 +224,11 @@ typedef enum GPUDynamicType {
 } GPUDynamicType;
 
 GPUNodeLink *GPU_attribute(CustomDataType type, const char *name);
+GPUNodeLink *GPU_constant(float *num);
 GPUNodeLink *GPU_uniform(float *num);
-GPUNodeLink *GPU_dynamic_uniform(float *num, GPUDynamicType dynamictype, void *data);
-GPUNodeLink *GPU_uniform_buffer(float *num, GPUType gputype);
 GPUNodeLink *GPU_image(struct Image *ima, struct ImageUser *iuser, bool is_data);
-GPUNodeLink *GPU_cube_map(struct Image *ima, struct ImageUser *iuser, bool is_data);
-GPUNodeLink *GPU_image_preview(struct PreviewImage *prv);
-GPUNodeLink *GPU_texture_ramp(GPUMaterial *mat, int size, float *pixels, float *layer);
-GPUNodeLink *GPU_dynamic_texture(struct GPUTexture *tex, GPUDynamicType dynamictype, void *data);
+GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer);
 GPUNodeLink *GPU_builtin(GPUBuiltin builtin);
-GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin);
 void GPU_node_link_set_type(GPUNodeLink *link, GPUType type);
 
 bool GPU_link(GPUMaterial *mat, const char *name, ...);

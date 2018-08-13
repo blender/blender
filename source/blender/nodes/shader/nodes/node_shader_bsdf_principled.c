@@ -104,7 +104,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 	}
 	else {
 		float one[3] = {1.0f, 1.0f, 1.0f};
-		GPU_link(mat, "set_rgb", GPU_uniform((float *)one), &sss_scale);
+		GPU_link(mat, "set_rgb", GPU_constant((float *)one), &sss_scale);
 	}
 
 	bool use_diffuse = socket_not_one(4) && socket_not_one(15);
@@ -149,7 +149,7 @@ static int node_shader_gpu_bsdf_principled(GPUMaterial *mat, bNode *node, bNodeE
 	GPU_material_flag_set(mat, flag);
 
 	return GPU_stack_link(mat, node, node_name, in, out, GPU_builtin(GPU_VIEW_POSITION),
-	                      GPU_uniform(&node->ssr_id), GPU_uniform(&node->sss_id), sss_scale);
+	                      GPU_constant(&node->ssr_id), GPU_constant(&node->sss_id), sss_scale);
 }
 
 static void node_shader_update_principled(bNodeTree *UNUSED(ntree), bNode *node)

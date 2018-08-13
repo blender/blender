@@ -66,9 +66,9 @@ static int gpu_shader_curve_vec(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 	int size;
 
 	curvemapping_table_RGBA(node->storage, &array, &size);
-	GPUNodeLink *tex = GPU_texture_ramp(mat, size, array, &layer);
+	GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
-	return GPU_stack_link(mat, node, "curves_vec", in, out, tex, GPU_uniform(&layer));
+	return GPU_stack_link(mat, node, "curves_vec", in, out, tex, GPU_constant(&layer));
 }
 
 void register_node_type_sh_curve_vec(void)
@@ -126,9 +126,9 @@ static int gpu_shader_curve_rgb(GPUMaterial *mat, bNode *node, bNodeExecData *UN
 
 	curvemapping_initialize(node->storage);
 	curvemapping_table_RGBA(node->storage, &array, &size);
-	GPUNodeLink *tex = GPU_texture_ramp(mat, size, array, &layer);
+	GPUNodeLink *tex = GPU_color_band(mat, size, array, &layer);
 
-	return GPU_stack_link(mat, node, "curves_rgb", in, out, tex, GPU_uniform(&layer));
+	return GPU_stack_link(mat, node, "curves_rgb", in, out, tex, GPU_constant(&layer));
 }
 
 void register_node_type_sh_curve_rgb(void)

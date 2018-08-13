@@ -239,13 +239,8 @@ static void gpu_shader_standard_defines(
         bool use_opensubdiv)
 {
 	/* some useful defines to detect GPU type */
-	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY)) {
+	if (GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_ANY, GPU_DRIVER_ANY))
 		strcat(defines, "#define GPU_ATI\n");
-		if (GLEW_VERSION_3_0) {
-			/* TODO(merwin): revisit this version check; GLEW_VERSION_3_0 means GL 3.0 or newer */
-			strcat(defines, "#define CLIP_WORKAROUND\n");
-		}
-	}
 	else if (GPU_type_matches(GPU_DEVICE_NVIDIA, GPU_OS_ANY, GPU_DRIVER_ANY))
 		strcat(defines, "#define GPU_NVIDIA\n");
 	else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))

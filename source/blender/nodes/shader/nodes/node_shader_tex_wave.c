@@ -67,7 +67,7 @@ static int node_shader_gpu_tex_wave(GPUMaterial *mat, bNode *node, bNodeExecData
 	float wave_type = tex->wave_type;
 	float wave_profile = tex->wave_profile;
 
-	return GPU_stack_link(mat, node, "node_tex_wave", in, out, GPU_uniform(&wave_type), GPU_uniform(&wave_profile));
+	return GPU_stack_link(mat, node, "node_tex_wave", in, out, GPU_constant(&wave_type), GPU_constant(&wave_profile));
 }
 
 /* node type definition */

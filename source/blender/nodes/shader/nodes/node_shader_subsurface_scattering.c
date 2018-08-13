@@ -67,7 +67,7 @@ static int node_shader_gpu_subsurface_scattering(GPUMaterial *mat, bNode *node, 
 		                                     &socket_data_sharp->value);
 	}
 
-	return GPU_stack_link(mat, node, "node_subsurface_scattering", in, out, GPU_uniform(&node->sss_id));
+	return GPU_stack_link(mat, node, "node_subsurface_scattering", in, out, GPU_constant(&node->sss_id));
 }
 
 static void node_shader_update_subsurface_scattering(bNodeTree *UNUSED(ntree), bNode *node)

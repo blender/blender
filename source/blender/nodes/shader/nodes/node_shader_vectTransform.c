@@ -106,7 +106,7 @@ static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecDat
 	if (in[0].hasinput)
 		inputlink = in[0].link;
 	else
-		inputlink = GPU_uniform(in[0].vec);
+		inputlink = GPU_constant(in[0].vec);
 
 	fromto = get_gpulink_matrix_from_to(nodeprop->convert_from, nodeprop->convert_to);
 

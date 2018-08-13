@@ -64,7 +64,7 @@ static int node_shader_gpu_tex_magic(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);
 
-	return GPU_stack_link(mat, node, "node_tex_magic", in, out, GPU_uniform(&depth));
+	return GPU_stack_link(mat, node, "node_tex_magic", in, out, GPU_constant(&depth));
 }
 
 /* node type definition */

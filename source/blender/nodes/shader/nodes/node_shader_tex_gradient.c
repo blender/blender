@@ -61,7 +61,7 @@ static int node_shader_gpu_tex_gradient(GPUMaterial *mat, bNode *node, bNodeExec
 
 	NodeTexGradient *tex = (NodeTexGradient *)node->storage;
 	float gradient_type = tex->gradient_type;
-	return GPU_stack_link(mat, node, "node_tex_gradient", in, out, GPU_uniform(&gradient_type));
+	return GPU_stack_link(mat, node, "node_tex_gradient", in, out, GPU_constant(&gradient_type));
 }
 
 /* node type definition */

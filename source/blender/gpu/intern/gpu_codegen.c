@@ -1447,19 +1447,19 @@ static GPUNodeLink *gpu_uniformbuffer_link(
 			case SOCK_FLOAT:
 			{
 				bNodeSocketValueFloat *socket_data = socket->default_value;
-				link = GPU_uniform_buffer(&socket_data->value, GPU_FLOAT);
+				link = GPU_uniform(&socket_data->value);
 				break;
 			}
 			case SOCK_VECTOR:
 			{
 				bNodeSocketValueRGBA *socket_data = socket->default_value;
-				link = GPU_uniform_buffer(socket_data->value, GPU_VEC3);
+				link = GPU_uniform(socket_data->value);
 				break;
 			}
 			case SOCK_RGBA:
 			{
 				bNodeSocketValueRGBA *socket_data = socket->default_value;
-				link = GPU_uniform_buffer(socket_data->value, GPU_VEC4);
+				link = GPU_uniform(socket_data->value);
 				break;
 			}
 			default:
@@ -1612,7 +1612,7 @@ GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
 	return link;
 }
 
-GPUNodeLink *GPU_uniform(float *num)
+GPUNodeLink *GPU_constant(float *num)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
@@ -1622,30 +1622,13 @@ GPUNodeLink *GPU_uniform(float *num)
 	return link;
 }
 
-GPUNodeLink *GPU_dynamic_uniform(float *num, GPUDynamicType dynamictype, void *data)
-{
-	GPUNodeLink *link = GPU_node_link_create();
-
-	link->ptr1 = num;
-	link->ptr2 = data;
-	link->dynamic = true;
-	link->dynamictype = dynamictype;
-
-
-	return link;
-}
-
-/**
- * Add uniform to UBO struct of GPUMaterial.
- */
-GPUNodeLink *GPU_uniform_buffer(float *num, GPUType gputype)
+GPUNodeLink *GPU_uniform(float *num)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 	link->ptr1 = num;
 	link->ptr2 = NULL;
 	link->dynamic = true;
 	link->dynamictype = GPU_DYNAMIC_UBO;
-	link->type = gputype;
 
 	return link;
 }
@@ -1662,49 +1645,14 @@ GPUNodeLink *GPU_image(Image *ima, ImageUser *iuser, bool is_data)
 	return link;
 }
 
-GPUNodeLink *GPU_cube_map(Image *ima, ImageUser *iuser, bool is_data)
-{
-	GPUNodeLink *link = GPU_node_link_create();
-
-	link->image = GPU_NODE_LINK_IMAGE_CUBE_MAP;
-	link->ptr1 = ima;
-	link->ptr2 = iuser;
-	link->image_isdata = is_data;
-
-	return link;
-}
-
-GPUNodeLink *GPU_image_preview(PreviewImage *prv)
-{
-	GPUNodeLink *link = GPU_node_link_create();
-
-	link->image = GPU_NODE_LINK_IMAGE_PREVIEW;
-	link->ptr1 = prv;
-
-	return link;
-}
-
-
-GPUNodeLink *GPU_texture_ramp(GPUMaterial *mat, int size, float *pixels, float *row)
+GPUNodeLink *GPU_color_band(GPUMaterial *mat, int size, float *pixels, float *layer)
 {
 	GPUNodeLink *link = GPU_node_link_create();
 
 	link->texture = true;
-	link->ptr1 = gpu_material_ramp_texture_row_set(mat, size, pixels, row);
+	link->ptr1 = gpu_material_ramp_texture_row_set(mat, size, pixels, layer);
 
 	MEM_freeN(pixels);
-
-	return link;
-}
-
-GPUNodeLink *GPU_dynamic_texture(GPUTexture *tex, GPUDynamicType dynamictype, void *data)
-{
-	GPUNodeLink *link = GPU_node_link_create();
-
-	link->dynamic = true;
-	link->dynamictex = tex;
-	link->dynamictype = dynamictype;
-	link->ptr2 = data;
 
 	return link;
 }
@@ -1714,15 +1662,6 @@ GPUNodeLink *GPU_builtin(GPUBuiltin builtin)
 	GPUNodeLink *link = GPU_node_link_create();
 
 	link->builtin = builtin;
-
-	return link;
-}
-
-GPUNodeLink *GPU_opengl_builtin(GPUOpenGLBuiltin builtin)
-{
-	GPUNodeLink *link = GPU_node_link_create();
-
-	link->oglbuiltin = builtin;
 
 	return link;
 }
@@ -1824,27 +1763,6 @@ bool GPU_stack_link(GPUMaterial *material, bNode *bnode, const char *name, GPUNo
 	gpu_material_add_node(material, node);
 
 	return true;
-}
-
-int GPU_link_changed(GPUNodeLink *link)
-{
-	GPUNode *node;
-	GPUInput *input;
-	const char *name;
-
-	if (link->output) {
-		node = link->output->node;
-		name = node->name;
-
-		if (STREQ(name, "set_value") || STREQ(name, "set_rgb")) {
-			input = node->inputs.first;
-			return (input->link != NULL);
-		}
-
-		return 1;
-	}
-	else
-		return 0;
 }
 
 GPUNodeLink *GPU_uniformbuffer_link_out(GPUMaterial *mat, bNode *node, GPUNodeStack *stack, const int index)

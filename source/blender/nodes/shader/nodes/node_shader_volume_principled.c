@@ -120,15 +120,15 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat, bNode *node, bNod
 	/* Default values if attributes not found. */
 	if (!density) {
 		static float one = 1.0f;
-		density = GPU_uniform(&one);
+		density = GPU_constant(&one);
 	}
 	if (!color) {
 		static float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-		color = GPU_uniform(white);
+		color = GPU_constant(white);
 	}
 	if (!temperature) {
 		static float one = 1.0f;
-		temperature = GPU_uniform(&one);
+		temperature = GPU_constant(&one);
 	}
 
 	/* Create blackbody spectrum. */
@@ -141,10 +141,10 @@ static int node_shader_gpu_volume_principled(GPUMaterial *mat, bNode *node, bNod
 	else {
 		data = MEM_callocN(sizeof(float) * size * 4, "blackbody black");
 	}
-	GPUNodeLink *spectrummap = GPU_texture_ramp(mat, size, data, &layer);
+	GPUNodeLink *spectrummap = GPU_color_band(mat, size, data, &layer);
 
 	return GPU_stack_link(mat, node, "node_volume_principled", in, out, density, color, temperature, spectrummap,
-	                                                           GPU_uniform(&layer));
+	                                                           GPU_constant(&layer));
 }
 
 /* node type definition */

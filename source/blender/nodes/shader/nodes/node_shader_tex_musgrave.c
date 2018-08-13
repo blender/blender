@@ -68,7 +68,7 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, bNodeExec
 	NodeTexMusgrave *tex = (NodeTexMusgrave *)node->storage;
 	float type = tex->musgrave_type;
 
-	return GPU_stack_link(mat, node, "node_tex_musgrave", in, out, GPU_uniform(&type));
+	return GPU_stack_link(mat, node, "node_tex_musgrave", in, out, GPU_constant(&type));
 }
 
 /* node type definition */

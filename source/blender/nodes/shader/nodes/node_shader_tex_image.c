@@ -124,7 +124,7 @@ static int node_shader_gpu_tex_image(GPUMaterial *mat, bNode *node, bNodeExecDat
 			                                    norm,
 			                                    col1, col2, col3,
 			                                    GPU_image(ima, iuser, isdata),
-			                                    GPU_uniform(&blend),
+			                                    GPU_constant(&blend),
 			                                    &out[0].link,
 			                                    &out[1].link);
 			break;

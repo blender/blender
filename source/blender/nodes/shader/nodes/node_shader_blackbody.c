@@ -46,9 +46,9 @@ static int node_shader_gpu_blackbody(GPUMaterial *mat, bNode *node, bNodeExecDat
 	blackbody_temperature_to_rgb_table(data, size, 965.0f, 12000.0f);
 
 	float layer;
-	GPUNodeLink *ramp_texture = GPU_texture_ramp(mat, size, data, &layer);
+	GPUNodeLink *ramp_texture = GPU_color_band(mat, size, data, &layer);
 
-	return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_uniform(&layer));
+	return GPU_stack_link(mat, node, "node_blackbody", in, out, ramp_texture, GPU_constant(&layer));
 }
 
 /* node type definition */
