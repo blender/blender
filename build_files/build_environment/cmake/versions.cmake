@@ -217,9 +217,9 @@ set(FFMPEG_VERSION 4.0.2)
 set(FFMPEG_URI http://ffmpeg.org/releases/ffmpeg-${FFMPEG_VERSION}.tar.bz2)
 set(FFMPEG_HASH 5576e8a22f80b6a336db39808f427cfb)
 
-set(FFTW_VERSION 3.3.4)
+set(FFTW_VERSION 3.3.8)
 set(FFTW_URI http://www.fftw.org/fftw-${FFTW_VERSION}.tar.gz)
-set(FFTW_HASH 2edab8c06b24feeb3b82bbb3ebf3e7b3)
+set(FFTW_HASH 8aac833c943d8e90d51b697b27d4384d)
 
 set(ICONV_VERSION 1.14)
 set(ICONV_URI http://ftp.gnu.org/pub/gnu/libiconv/libiconv-${ICONV_VERSION}.tar.gz)

@@ -37,4 +37,11 @@ ExternalProject_Add(external_fftw3
 
 if(MSVC)
 	set_target_properties(external_fftw3 PROPERTIES FOLDER Mingw)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_fftw3 after_install
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/lib/libfftw3.a ${HARVEST_TARGET}/fftw3/lib/libfftw.lib
+			COMMAND	${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/include/fftw3.h ${HARVEST_TARGET}/fftw3/include/fftw3.h
+			DEPENDEES install
+		)
+	endif()
 endif()
