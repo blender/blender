@@ -1696,7 +1696,7 @@ def write_rst_contents(basepath):
 
     if not EXCLUDE_INFO_DOCS:
         fw(".. toctree::\n")
-        fw("   :maxdepth: 1\n)
+        fw("   :maxdepth: 1\n")
         fw("   :caption: Blender/Python Documentation\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n\n" % (info_desc, info))
