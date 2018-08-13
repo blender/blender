@@ -74,9 +74,9 @@ set(HDF5_VERSION 1.8.17)
 set(HDF5_URI https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-${HDF5_VERSION}/src/hdf5-${HDF5_VERSION}.tar.gz)
 set(HDF5_HASH 7d572f8f3b798a628b8245af0391a0ca)
 
-set(ALEMBIC_VERSION 1.7.1)
-set(ALEMBIC_URI https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.zip)
-set(ALEMBIC_MD5 cf7705055501d5ea0cb8256866496f79)
+set(ALEMBIC_VERSION 1.7.8)
+set(ALEMBIC_URI https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.tar.gz)
+set(ALEMBIC_MD5 d095c2feb5e183b824904db7b63c1d30)
 
 ## hash is for 3.1.2
 set(GLFW_GIT_UID 30306e54705c3adae9fe082c816a3be71963485c)

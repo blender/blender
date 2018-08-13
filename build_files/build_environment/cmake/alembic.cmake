@@ -40,10 +40,10 @@ set(ALEMBIC_EXTRA_ARGS
 	-DBoost_NO_SYSTEM_PATHS=ON
 	-DILMBASE_ROOT=${LIBDIR}/ilmbase
 	-DALEMBIC_ILMBASE_INCLUDE_DIRECTORY=${LIBDIR}/ilmbase/include/OpenEXR
-	-DALEMBIC_ILMBASE_HALF_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half${LIBEXT}
-	-DALEMBIC_ILMBASE_IMATH_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Imath-2_2${LIBEXT}
-	-DALEMBIC_ILMBASE_ILMTHREAD_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread-2_2${LIBEXT}
-	-DALEMBIC_ILMBASE_IEX_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex-2_2${LIBEXT}
+	-DALEMBIC_ILMBASE_HALF_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half-2_3_s${LIBEXT}
+	-DALEMBIC_ILMBASE_IEXMATH_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Imath-2_3_s${LIBEXT}
+	-DALEMBIC_ILMBASE_ILMTHREAD_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread-2_3_s${LIBEXT}
+	-DALEMBIC_ILMBASE_IEX_LIB=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex-2_3_s${LIBEXT}
 	-DUSE_PYILMBASE=0
 	-DUSE_PYALEMBIC=0
 	-DUSE_ARNOLD=0
@@ -54,7 +54,7 @@ set(ALEMBIC_EXTRA_ARGS
 	-DHDF5_ROOT=${LIBDIR}/hdf5
 	-DUSE_TESTS=Off
 	-DALEMBIC_NO_OPENGL=1
-	-DUSE_BINARIES=ON
+	-DUSE_BINARIES=OFF
 	-DALEMBIC_ILMBASE_LINK_STATIC=On
 	-DALEMBIC_SHARED_LIBS=OFF
 	-DGLUT_INCLUDE_DIR=""
@@ -68,13 +68,32 @@ ExternalProject_Add(external_alembic
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${ALEMBIC_MD5}
 	PREFIX ${BUILD_DIR}/alembic
+	PATCH_COMMAND ${CMAKE_COMMAND} -E copy_directory ${BUILD_DIR}/openexr/src/external_openexr/cmake ${BUILD_DIR}/alembic/src/external_alembic/cmake/modules
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/alembic -Wno-dev ${DEFAULT_CMAKE_FLAGS} ${ALEMBIC_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/alembic
 )
+
+if(WIN32)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_alembic after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/alembic ${HARVEST_TARGET}/alembic
+			DEPENDEES install
+		)
+	endif()
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(external_alembic after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/alembic/lib/alembic.lib ${HARVEST_TARGET}/alembic/lib/alembic_d.lib &&
+			DEPENDEES install
+		)
+	endif()	
+endif()
+
+
 
 add_dependencies(
 	external_alembic
 	external_boost
 	external_zlib
 	external_ilmbase
+	external_openexr
 )
