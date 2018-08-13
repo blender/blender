@@ -52,10 +52,12 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_movieclip.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_image.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 
 #include "ED_view3d.h"
 
@@ -136,6 +138,9 @@ typedef struct OBJECT_Data {
 	OBJECT_PassList *psl;
 	OBJECT_StorageList *stl;
 } OBJECT_Data;
+
+/* Prototypes. */
+static void DRW_shgroup_empty_ex(OBJECT_StorageList *stl, float mat[4][4], float *draw_size, char draw_type, float *color);
 
 /* *********** STATIC *********** */
 
@@ -1572,8 +1577,7 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	}
 
 	/* draw the rest in normalize object space */
-	copy_m4_m4(cam->drwnormalmat, ob->obmat);
-	normalize_m4(cam->drwnormalmat);
+	normalize_m4_m4(cam->drwnormalmat, ob->obmat);
 
 	if (cam->flag & CAM_SHOWLIMITS) {
 		static float col[3] = {0.5f, 0.5f, 0.25f}, col_hi[3] = {1.0f, 1.0f, 0.5f};
@@ -1611,6 +1615,126 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 			        &world->miststa, &world->mistend, cam->drwnormalmat);
 		}
 	}
+
+	/* Motion Tracking. */
+	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
+	if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) && (clip != NULL)){
+		const bool is_select = DRW_state_is_select();
+
+		MovieTracking *tracking = &clip->tracking;
+		/* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
+		int track_index = 1;
+
+		uchar text_color_selected[4], text_color_unselected[4];
+		float bundle_color_unselected[4];
+
+		UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
+		UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
+		UI_GetThemeColor4fv(TH_WIRE, bundle_color_unselected);
+
+		float camera_mat[4][4];
+		BKE_tracking_get_camera_object_matrix(draw_ctx->depsgraph, scene, ob, camera_mat);
+
+		for (MovieTrackingObject *tracking_object = tracking->objects.first;
+		     tracking_object != NULL;
+		     tracking_object = tracking_object->next)
+		{
+			float tracking_object_mat[4][4];
+
+			if (tracking_object->flag & TRACKING_OBJECT_CAMERA){
+				copy_m4_m4(tracking_object_mat, camera_mat);
+			}
+			else {
+				const int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, DEG_get_ctime(draw_ctx->depsgraph));
+				float object_mat[4][4];
+				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, object_mat);
+
+				invert_m4(object_mat);
+				mul_m4_m4m4(tracking_object_mat, cam->drwnormalmat, object_mat);
+			}
+
+			ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
+			for (MovieTrackingTrack *track = tracksbase->first; track; track = track->next) {
+
+				if ((track->flag & TRACK_HAS_BUNDLE) == 0) {
+					continue;
+				}
+
+				bool is_selected = TRACK_SELECTED(track);
+
+				float bundle_mat[4][4];
+				copy_m4_m4(bundle_mat, tracking_object_mat);
+				translate_m4(bundle_mat, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
+
+				float *bundle_color;
+				if (track->flag & TRACK_CUSTOMCOLOR) {
+					bundle_color = track->color;
+				}
+				else if (is_selected) {
+					bundle_color = color;
+				}
+				else {
+					bundle_color = bundle_color_unselected;
+				}
+
+				if (is_select) {
+					DRW_select_load_id(camera_object->select_color | (track_index << 16));
+					track_index++;
+				}
+
+				DRW_shgroup_empty_ex(stl,
+				                     bundle_mat,
+				                     &v3d->bundle_size,
+				                     v3d->bundle_drawtype,
+				                     bundle_color);
+
+				if (v3d->flag2 & V3D_SHOW_BUNDLENAME) {
+					struct DRWTextStore *dt = DRW_text_cache_ensure();
+
+					DRW_text_cache_add(dt,
+					                   bundle_mat[3],
+					                   track->name,
+					                   strlen(track->name),
+					                   10,
+					                   DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
+					                   is_selected ? text_color_selected : text_color_unselected);
+				}
+			}
+		}
+	}
+}
+
+static void DRW_shgroup_empty_ex(
+        OBJECT_StorageList *stl, float mat[4][4], float *draw_size, char draw_type, float *color)
+{
+	switch (draw_type) {
+		case OB_PLAINAXES:
+			DRW_shgroup_call_dynamic_add(stl->g_data->plain_axes, color, draw_size, mat);
+			break;
+		case OB_SINGLE_ARROW:
+			DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow, color, draw_size, mat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow_line, color, draw_size, mat);
+			break;
+		case OB_CUBE:
+			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, draw_size, mat);
+			break;
+		case OB_CIRCLE:
+			DRW_shgroup_call_dynamic_add(stl->g_data->circle, color, draw_size, mat);
+			break;
+		case OB_EMPTY_SPHERE:
+			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, draw_size, mat);
+			break;
+		case OB_EMPTY_CONE:
+			DRW_shgroup_call_dynamic_add(stl->g_data->cone, color, draw_size, mat);
+			break;
+		case OB_ARROWS:
+			DRW_shgroup_call_dynamic_add(stl->g_data->arrows, color, draw_size, mat);
+			DRW_shgroup_call_dynamic_add(stl->g_data->axis_names, color, draw_size, mat);
+			break;
+		case OB_EMPTY_IMAGE:
+			BLI_assert(!"Should never happen, use DRW_shgroup_empty instead.");
+			break;
+	}
 }
 
 static void DRW_shgroup_empty(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, ViewLayer *view_layer)
@@ -1620,27 +1744,13 @@ static void DRW_shgroup_empty(OBJECT_StorageList *stl, OBJECT_PassList *psl, Obj
 
 	switch (ob->empty_drawtype) {
 		case OB_PLAINAXES:
-			DRW_shgroup_call_dynamic_add(stl->g_data->plain_axes, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_SINGLE_ARROW:
-			DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow, color, &ob->empty_drawsize, ob->obmat);
-			DRW_shgroup_call_dynamic_add(stl->g_data->single_arrow_line, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_CUBE:
-			DRW_shgroup_call_dynamic_add(stl->g_data->cube, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_CIRCLE:
-			DRW_shgroup_call_dynamic_add(stl->g_data->circle, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_EMPTY_SPHERE:
-			DRW_shgroup_call_dynamic_add(stl->g_data->sphere, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_EMPTY_CONE:
-			DRW_shgroup_call_dynamic_add(stl->g_data->cone, color, &ob->empty_drawsize, ob->obmat);
-			break;
 		case OB_ARROWS:
-			DRW_shgroup_call_dynamic_add(stl->g_data->arrows, color, &ob->empty_drawsize, ob->obmat);
-			DRW_shgroup_call_dynamic_add(stl->g_data->axis_names, color, &ob->empty_drawsize, ob->obmat);
+			DRW_shgroup_empty_ex(stl, ob->obmat, &ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_EMPTY_IMAGE:
 			DRW_shgroup_empty_image(stl, psl, ob, color);
