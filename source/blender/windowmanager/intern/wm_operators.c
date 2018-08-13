@@ -1495,7 +1495,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
 	 *  avoids recreating splash for version updates */
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
-		version_suffix = "Alpha";
+		version_suffix = "Alpha 2";
 	}
 	else if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "beta")) {
 		version_suffix = "Beta";
