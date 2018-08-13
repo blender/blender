@@ -1723,17 +1723,16 @@ def write_rst_contents(basepath):
     fw("\n")
 
     if not EXCLUDE_INFO_DOCS:
-        fw(title_string("Blender/Python Documentation", "=", double=True))
-
         fw(".. toctree::\n")
-        fw("   :maxdepth: 1\n\n")
+        fw("   :maxdepth: 1\n)
+        fw("   :caption: Blender/Python Documentation\n\n")
         for info, info_desc in INFO_DOCS:
             fw("   %s <%s>\n\n" % (info_desc, info))
         fw("\n")
 
-    fw(title_string("Application Modules", "=", double=True))
     fw(".. toctree::\n")
-    fw("   :maxdepth: 1\n\n")
+    fw("   :maxdepth: 1\n")
+    fw("   :caption: Application Modules\n")
 
     app_modules = (
         "bpy.context",  # note: not actually a module
@@ -1755,9 +1754,9 @@ def write_rst_contents(basepath):
         if mod not in EXCLUDE_MODULES:
             fw("   %s\n\n" % mod)
 
-    fw(title_string("Standalone Modules", "=", double=True))
     fw(".. toctree::\n")
-    fw("   :maxdepth: 1\n\n")
+    fw("   :maxdepth: 1\n")
+    fw("   :caption: Standalone Modules\n\n")
 
     standalone_modules = (
         # submodules are added in parent page
