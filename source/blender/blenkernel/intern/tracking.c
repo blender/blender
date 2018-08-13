@@ -213,13 +213,17 @@ static void tracking_tracks_copy(ListBase *tracks_dst, const ListBase *tracks_sr
 /* copy the whole list of plane tracks (need whole MovieTracking structures due to embedded pointers to tracks).
  * WARNING: implies tracking_[dst/src] and their tracks have already been copied. */
 static void tracking_plane_tracks_copy(
-        ListBase *plane_tracks_dst, const ListBase *plane_tracks_src, GHash *tracks_mapping, const int flag)
+        ListBase *plane_tracks_list_dst, const ListBase *plane_tracks_list_src,
+        GHash *tracks_mapping, const int flag)
 {
 	MovieTrackingPlaneTrack *plane_track_dst, *plane_track_src;
 
-	BLI_listbase_clear(plane_tracks_dst);
+	BLI_listbase_clear(plane_tracks_list_dst);
 
-	for (plane_track_src = plane_tracks_src->first; plane_track_src != NULL; plane_track_src = plane_track_src->next) {
+	for (plane_track_src = plane_tracks_list_src->first;
+	     plane_track_src != NULL;
+	     plane_track_src = plane_track_src->next)
+	{
 		plane_track_dst = MEM_dupallocN(plane_track_src);
 		if (plane_track_src->markers) {
 			plane_track_dst->markers = MEM_dupallocN(plane_track_src->markers);
@@ -231,7 +235,7 @@ static void tracking_plane_tracks_copy(
 		if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
 			id_us_plus(&plane_track_dst->image->id);
 		}
-		BLI_addtail(plane_tracks_dst, plane_track_dst);
+		BLI_addtail(plane_tracks_list_dst, plane_track_dst);
 	}
 }
 
