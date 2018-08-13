@@ -365,6 +365,7 @@ INFO_DOCS = (
      "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
      "Gotcha's: some of the problems you may come up against when writing scripts"),
+     ("change_log.rst", "List of changes since last Blender release"),
 )
 
 # only support for properties atm.
@@ -1771,12 +1772,6 @@ def write_rst_contents(basepath):
     # special case, this 'bmesh.ops.rst' is extracted from C source
     if "bmesh.ops" not in EXCLUDE_MODULES:
         execfile(os.path.join(SCRIPT_DIR, "rst_from_bmesh_opdefines.py"))
-
-    # rna generated change log
-    fw(title_string("API Info", "=", double=True))
-    fw(".. toctree::\n")
-    fw("   :maxdepth: 1\n\n")
-    fw("   change_log.rst\n\n")
 
     file.close()
 
