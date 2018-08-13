@@ -31,6 +31,7 @@ add_subdirectory(guardedalloc)
 add_subdirectory(libmv)
 add_subdirectory(memutil)
 add_subdirectory(opencolorio)
+add_subdirectory(opensubdiv)
 add_subdirectory(mikktspace)
 add_subdirectory(glew-mx)
 add_subdirectory(eigen)
@@ -69,10 +70,6 @@ endif()
 
 if(WITH_BULLET)
 	add_subdirectory(rigidbody)
-endif()
-
-if(WITH_OPENSUBDIV)
-	add_subdirectory(opensubdiv)
 endif()
 
 # only windows needs utf16 converter

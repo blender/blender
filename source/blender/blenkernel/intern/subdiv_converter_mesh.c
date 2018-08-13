@@ -40,12 +40,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_capi.h"
-#  include "opensubdiv_converter_capi.h"
-#endif
+#include "opensubdiv_capi.h"
+#include "opensubdiv_converter_capi.h"
 
-#ifdef WITH_OPENSUBDIV
 typedef struct ConverterStorage {
 	SubdivSettings settings;
 	const Mesh *mesh;
@@ -391,16 +388,11 @@ static void init_user_data(OpenSubdiv_Converter *converter,
 	initialize_manifold_indices(user_data);
 	converter->user_data = user_data;
 }
-#endif
 
 void BKE_subdiv_converter_init_for_mesh(struct OpenSubdiv_Converter *converter,
                                         const SubdivSettings *settings,
                                         const Mesh *mesh)
 {
-#ifdef WITH_OPENSUBDIV
 	init_functions(converter);
 	init_user_data(converter, settings, mesh);
-#else
-	UNUSED_VARS(converter, settings, mesh);
-#endif
 }

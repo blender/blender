@@ -281,7 +281,7 @@ struct OpenSubdiv_GLMesh *openSubdiv_createOsdGLMeshFromTopologyRefiner(
   return gl_mesh;
 }
 
-void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh *gl_mesh) {
+void openSubdiv_deleteOsdGLMesh(OpenSubdiv_GLMesh* gl_mesh) {
   delete gl_mesh->internal;
   OBJECT_GUARDED_DELETE(gl_mesh, OpenSubdiv_GLMesh);
 }

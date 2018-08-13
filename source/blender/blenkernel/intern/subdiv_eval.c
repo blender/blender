@@ -40,32 +40,32 @@
 
 #include "MEM_guardedalloc.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_evaluator_capi.h"
-#  include "opensubdiv_topology_refiner_capi.h"
-#endif
+#include "opensubdiv_evaluator_capi.h"
+#include "opensubdiv_topology_refiner_capi.h"
 
-void BKE_subdiv_eval_begin(Subdiv *subdiv)
+bool BKE_subdiv_eval_begin(Subdiv *subdiv)
 {
-#ifdef WITH_OPENSUBDIV
 	if (subdiv->topology_refiner == NULL) {
-		/* Happens on input mesh with just loose geometry. */
+		/* Happens on input mesh with just loose geometry,
+		 * or when OpenSubdiv is disabled
+		 */
+		return false;
 	}
 	else if (subdiv->evaluator == NULL) {
 		BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
 		subdiv->evaluator = openSubdiv_createEvaluatorFromTopologyRefiner(
 		        subdiv->topology_refiner);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_CREATE);
+		if (subdiv->evaluator == NULL) {
+			return false;
+		}
 	}
 	else {
 		/* TODO(sergey): Check for topology change. */
 	}
-#else
-	UNUSED_VARS(subdiv);
-#endif
+	return true;
 }
 
-#ifdef WITH_OPENSUBDIV
 static void set_coarse_positions(Subdiv *subdiv, const Mesh *mesh)
 {
 	const MVert *mvert = mesh->mvert;
@@ -130,14 +130,16 @@ static void set_face_varying_data_from_uv(Subdiv *subdiv,
 		}
 	}
 }
-#endif
 
-void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
+bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 {
-#ifdef WITH_OPENSUBDIV
-	BKE_subdiv_eval_begin(subdiv);
+	if (!BKE_subdiv_eval_begin(subdiv)) {
+		return false;
+	}
 	if (subdiv->evaluator == NULL) {
-		return;
+		/* NOTE: This situation is supposed to be handled by begin(). */
+		BLI_assert(!"Is not supposed to happen");
+		return false;
 	}
 	/* Set coordinates of base mesh vertices. */
 	set_coarse_positions(subdiv, mesh);
@@ -153,9 +155,7 @@ void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const Mesh *mesh)
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
 	subdiv->evaluator->refine(subdiv->evaluator);
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_EVALUATOR_REFINE);
-#else
-	UNUSED_VARS(subdiv, mesh);
-#endif
+	return true;
 }
 
 /* ========================== Single point queries ========================== */
@@ -178,14 +178,10 @@ void BKE_subdiv_eval_limit_point_and_derivatives(
         const float u, const float v,
         float P[3], float dPdu[3], float dPdv[3])
 {
-#ifdef WITH_OPENSUBDIV
 	subdiv->evaluator->evaluateLimit(subdiv->evaluator,
 	                                 ptex_face_index,
 	                                 u, v,
 	                                 P, dPdu, dPdv);
-#else
-	UNUSED_VARS(subdiv, ptex_face_index, u, v, P, dPdu, dPdv);
-#endif
 }
 
 void BKE_subdiv_eval_limit_point_and_normal(
@@ -224,15 +220,11 @@ void BKE_subdiv_eval_face_varying(
         const float u, const float v,
         float face_varying[2])
 {
-#ifdef WITH_OPENSUBDIV
 	subdiv->evaluator->evaluateFaceVarying(subdiv->evaluator,
 	                                       face_varying_channel,
 	                                       ptex_face_index,
 	                                       u, v,
 	                                       face_varying);
-#else
-	UNUSED_VARS(subdiv, face_varying_channel, ptex_face_index, u, v, face_varying);
-#endif
 }
 
 /* ===================  Patch queries at given resolution =================== */

@@ -130,8 +130,9 @@ void BKE_subdiv_free(Subdiv *subdiv);
 
 /* ============================= EVALUATION API ============================= */
 
-void BKE_subdiv_eval_begin(Subdiv *subdiv);
-void BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const struct Mesh *mesh);
+/* Returns true if evaluator is ready for use. */
+bool BKE_subdiv_eval_begin(Subdiv *subdiv);
+bool BKE_subdiv_eval_update_from_mesh(Subdiv *subdiv, const struct Mesh *mesh);
 
 /* Single point queries. */
 

@@ -37,17 +37,14 @@
 
 #include "subdiv_converter.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "opensubdiv_capi.h"
-#  include "opensubdiv_converter_capi.h"
-#  include "opensubdiv_evaluator_capi.h"
-#  include "opensubdiv_topology_refiner_capi.h"
-#endif
+#include "opensubdiv_capi.h"
+#include "opensubdiv_converter_capi.h"
+#include "opensubdiv_evaluator_capi.h"
+#include "opensubdiv_topology_refiner_capi.h"
 
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)
 {
-#ifdef WITH_OPENSUBDIV
 	SubdivStats stats;
 	BKE_subdiv_stats_init(&stats);
 	BKE_subdiv_stats_begin(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
@@ -74,16 +71,11 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
 	subdiv->stats = stats;
 	return subdiv;
-#else
-	UNUSED_VARS(settings, converter);
-	return NULL;
-#endif
 }
 
 Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
                                  struct Mesh *mesh)
 {
-#ifdef WITH_OPENSUBDIV
 	if (mesh->totvert == 0) {
 		return NULL;
 	}
@@ -92,15 +84,10 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
 	Subdiv *subdiv = BKE_subdiv_new_from_converter(settings, &converter);
 	BKE_subdiv_converter_free(&converter);
 	return subdiv;
-#else
-	UNUSED_VARS(settings, mesh);
-	return NULL;
-#endif
 }
 
 void BKE_subdiv_free(Subdiv *subdiv)
 {
-#ifdef WITH_OPENSUBDIV
 	if (subdiv->evaluator != NULL) {
 		openSubdiv_deleteEvaluator(subdiv->evaluator);
 	}
@@ -108,7 +95,4 @@ void BKE_subdiv_free(Subdiv *subdiv)
 		openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
 	}
 	MEM_freeN(subdiv);
-#else
-	UNUSED_VARS(subdiv);
-#endif
 }

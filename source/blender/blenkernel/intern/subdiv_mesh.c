@@ -227,7 +227,7 @@ static void subdiv_mesh_ctx_count(SubdivMeshContext *ctx)
 			        num_polys_per_ptex_get(no_quad_patch_resolution);
 		}
 	}
-	/* Calculate extra edges createdd by loose edges. */
+	/* Calculate extra vertices createdd by loose edges. */
 	for (int edge_index = 0; edge_index < coarse_mesh->totedge; edge_index++) {
 		if (!BLI_BITMAP_TEST_BOOL(ctx->coarse_edges_used_map, edge_index)) {
 			ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge;
@@ -2388,7 +2388,18 @@ Mesh *BKE_subdiv_to_mesh(
 	/* Make sure evaluator is up to date with possible new topology, and that
 	 * is is refined for the new positions of coarse vertices.
 	 */
-	BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh);
+	if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
+		/* This could happen in two situations:
+		 * - OpenSubdiv is disabled.
+		 * - Something totally bad happened, and OpenSubdiv rejected our
+		 *   topology.
+		 * In either way, we can't safely continue.
+		 */
+		if (coarse_mesh->totpoly) {
+			BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
+			return NULL;
+		}
+	}
 	SubdivMeshContext ctx = {0};
 	ctx.coarse_mesh = coarse_mesh;
 	ctx.subdiv = subdiv;
