@@ -1778,22 +1778,6 @@ def write_rst_contents(basepath):
     fw("   :maxdepth: 1\n\n")
     fw("   change_log.rst\n\n")
 
-    fw("\n")
-    fw("\n")
-    fw(".. note:: The Blender Python API has areas which are still in development.\n")
-    fw("   \n")
-    fw("   The following areas are subject to change.\n")
-    fw("      * operator behavior, names and arguments\n")
-    fw("      * mesh creation and editing functions\n")
-    fw("   \n")
-    fw("   These parts of the API are relatively stable and are unlikely to change significantly\n")
-    fw("      * data API, access to attributes of Blender data such as mesh verts, material color,\n")
-    fw("        timeline frames and scene objects\n")
-    fw("      * user interface functions for defining buttons, creation of menus, headers, panels\n")
-    fw("      * render engine integration\n")
-    fw("      * modules: bgl & mathutils\n")
-    fw("\n")
-
     file.close()
 
 
