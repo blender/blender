@@ -23,9 +23,14 @@ if(WIN32)
 		-DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
 		-DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include/
 		-DILMBASE_PACKAGE_PREFIX=${LIBDIR}/ilmbase
+		-DOPENEXR_BUILD_ILMBASE=On
+		-DOPENEXR_BUILD_OPENEXR=On
+		-DOPENEXR_BUILD_PYTHON_LIBS=Off
 		-DOPENEXR_BUILD_STATIC=On
 		-DOPENEXR_BUILD_SHARED=Off
-		-DOPENEXR_BUILD_PYTHON_LIBS=Off
+		-DOPENEXR_BUILD_TESTS=Off
+		-DOPENEXR_BUILD_VIEWERS=Off
+		-DOPENEXR_BUILD_UTILS=Off
 	)
 	ExternalProject_Add(external_openexr
 		URL ${OPENEXR_URI}
@@ -35,6 +40,13 @@ if(WIN32)
 		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openexr ${DEFAULT_CMAKE_FLAGS} ${OPENEXR_EXTRA_ARGS}
 		INSTALL_DIR ${LIBDIR}/openexr
 	)
+	
+	ExternalProject_Add_Step(external_openexr after_install
+		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib
+		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include 
+		DEPENDEES install
+	)
+	
 else()
 	set(OPENEXR_PKG_CONFIG_PATH ${LIBDIR}/zlib/share/pkgconfig)
 	set(OPENEXR_EXTRA_ARGS

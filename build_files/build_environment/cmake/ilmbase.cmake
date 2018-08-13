@@ -22,6 +22,7 @@ if(WIN32)
 		-DBUILD_SHARED_LIBS=OFF
 		-DCMAKE_CXX_STANDARD_LIBRARIES=${ILMBASE_CMAKE_CXX_STANDARD_LIBRARIES}
 	)
+
 	ExternalProject_Add(external_ilmbase
 		URL ${ILMBASE_URI}
 		DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -30,6 +31,14 @@ if(WIN32)
 		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/ilmbase ${DEFAULT_CMAKE_FLAGS} ${ILMBASE_EXTRA_ARGS}
 		INSTALL_DIR ${LIBDIR}/openexr
 	)
+
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_ilmbase after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/ilmbase ${HARVEST_TARGET}/openexr
+			DEPENDEES install
+		)
+	endif()
+
 else()
 	set(ILMBASE_EXTRA_ARGS
 		--enable-static
