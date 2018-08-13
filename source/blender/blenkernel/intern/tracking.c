@@ -220,7 +220,7 @@ static void tracking_plane_tracks_copy(
 	BLI_listbase_clear(plane_tracks_dst);
 
 	for (plane_track_src = plane_tracks_src->first; plane_track_src != NULL; plane_track_src = plane_track_src->next) {
-		plane_track_dst = MEM_dupallocN(plane_tracks_src);
+		plane_track_dst = MEM_dupallocN(plane_track_src);
 		if (plane_track_src->markers) {
 			plane_track_dst->markers = MEM_dupallocN(plane_track_src->markers);
 		}
