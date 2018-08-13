@@ -113,8 +113,4 @@ if(WITH_BOOST)
 	add_definitions(-DHAVE_BOOST_FUNCTION_BINDINGS)
 endif()
 
-if(WITH_OPENSUBDIV)
-	add_definitions(-DWITH_OPENSUBDIV)
-endif()
-
 blender_add_lib(bf_depsgraph "${SRC}" "${INC}" "${INC_SYS}")

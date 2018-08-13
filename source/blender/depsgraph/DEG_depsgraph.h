@@ -80,10 +80,6 @@ enum {
 	 * who're using curve deform, where_on_path and so.
 	 */
 	DAG_EVAL_NEED_CURVE_PATH = 1,
-	/* Scene evaluation would need to have object's data on CPU,
-	 * meaning no GPU shortcuts is allowed.
-	 */
-	DAG_EVAL_NEED_CPU        = 2,
 };
 
 #ifdef __cplusplus
