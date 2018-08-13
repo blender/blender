@@ -345,7 +345,7 @@ bool checkEdgeSharpnessMatch(
       return false;
     }
   }
-  return false;
+  return true;
 }
 
 bool checkTopologyAttributesMatch(
