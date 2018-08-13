@@ -94,6 +94,12 @@ static OpenSubdiv_FVarLinearInterpolation conv_dm_get_fvar_linear_interpolation(
 	return OSD_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
+static bool conv_dm_specifies_full_topology(
+        const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return true;
+}
+
 static int conv_dm_get_num_faces(const OpenSubdiv_Converter *converter)
 {
 	ConvDMStorage *storage = converter->user_data;
@@ -306,6 +312,20 @@ static void conv_dm_get_vert_faces(const OpenSubdiv_Converter *converter,
 #endif
 }
 
+static bool conv_dm_is_infinite_sharp_vertex(
+        const OpenSubdiv_Converter *UNUSED(converter),
+        int UNUSED(manifold_vertex_index))
+{
+	return false;
+}
+
+static float conv_dm_get_vertex_sharpness(
+        const OpenSubdiv_Converter *UNUSED(converter),
+        int UNUSED(manifold_vertex_index))
+{
+	return 0.0f;
+}
+
 static int conv_dm_get_num_uv_layers(const OpenSubdiv_Converter *converter)
 {
 	ConvDMStorage *storage = converter->user_data;
@@ -430,6 +450,7 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 
 	converter->getFVarLinearInterpolation =
 	        conv_dm_get_fvar_linear_interpolation;
+	converter->specifiesFullTopology = conv_dm_specifies_full_topology;
 
 	converter->getNumFaces = conv_dm_get_num_faces;
 	converter->getNumEdges = conv_dm_get_num_edges;
@@ -448,6 +469,8 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 	converter->getVertexEdges = conv_dm_get_vert_edges;
 	converter->getNumVertexFaces = conv_dm_get_num_vert_faces;
 	converter->getVertexFaces = conv_dm_get_vert_faces;
+	converter->isInfiniteSharpVertex = conv_dm_is_infinite_sharp_vertex;
+	converter->getVertexSharpness = conv_dm_get_vertex_sharpness;
 
 	converter->getNumUVLayers = conv_dm_get_num_uv_layers;
 	converter->precalcUVLayer = conv_dm_precalc_uv_layer;
@@ -531,6 +554,12 @@ conv_ccg_get_fvar_linear_interpolation(const OpenSubdiv_Converter *converter)
 		return OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY;
 	}
 	return OSD_FVAR_LINEAR_INTERPOLATION_ALL;
+}
+
+static bool conv_ccg_specifies_full_topology(
+        const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return true;
 }
 
 static int conv_ccg_get_num_faces(const OpenSubdiv_Converter *converter)
@@ -676,6 +705,20 @@ static void conv_ccg_get_vert_faces(const OpenSubdiv_Converter *converter,
 	}
 }
 
+static bool conv_ccg_is_infinite_sharp_vertex(
+        const OpenSubdiv_Converter *UNUSED(converter),
+        int UNUSED(manifold_vertex_index))
+{
+	return false;
+}
+
+static float conv_ccg_get_vertex_sharpness(
+        const OpenSubdiv_Converter *UNUSED(converter),
+        int UNUSED(manifold_vertex_index))
+{
+	return 0.0f;
+}
+
 static int conv_ccg_get_num_uv_layers(const OpenSubdiv_Converter *UNUSED(converter))
 {
 	return 0;
@@ -709,6 +752,7 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 
 	converter->getFVarLinearInterpolation =
 	        conv_ccg_get_fvar_linear_interpolation;
+	converter->specifiesFullTopology = conv_ccg_specifies_full_topology;
 
 	converter->getNumFaces = conv_ccg_get_num_faces;
 	converter->getNumEdges = conv_ccg_get_num_edges;
@@ -727,6 +771,8 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 	converter->getVertexEdges = conv_ccg_get_vert_edges;
 	converter->getNumVertexFaces = conv_ccg_get_num_vert_faces;
 	converter->getVertexFaces = conv_ccg_get_vert_faces;
+	converter->isInfiniteSharpVertex = conv_ccg_is_infinite_sharp_vertex;
+	converter->getVertexSharpness = conv_ccg_get_vertex_sharpness;
 
 	converter->getNumUVLayers = conv_ccg_get_num_uv_layers;
 	converter->precalcUVLayer = conv_ccg_precalc_uv_layer;
