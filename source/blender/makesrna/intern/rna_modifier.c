@@ -4958,7 +4958,7 @@ static void rna_def_modifier_weightednormal(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_WEIGHTEDNORMAL_KEEP_SHARP);
 	RNA_def_property_ui_text(prop, "Keep Sharp",
 	                         "Keep sharp edges as computed for default split normals, "
-	                         "instead of setting a single weighted normal for each vertex.");
+	                         "instead of setting a single weighted normal for each vertex");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
