@@ -54,7 +54,7 @@ void main()
 
 	/* Clip the bone to the camera origin plane (not the clip plane)
 	 * to avoid glitches if one end is behind the camera origin (in persp). */
-	const float clip_dist = -1e-7; /* hardcoded, -1e-8 is giving gliches. */
+	float clip_dist = (ProjectionMatrix[3][3] == 0.0) ? -1e-7 : 1e20; /* hardcoded, -1e-8 is giving gliches. */
 	vec3 bvec = v1.xyz - v0.xyz;
 	vec3 clip_pt = v0.xyz + bvec * ((v0.z - clip_dist) / -bvec.z);
 	if (v0.z > clip_dist) {
