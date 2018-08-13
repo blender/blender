@@ -152,6 +152,10 @@ void depsgraph_select_tag_to_component_opcode(
 		*component_type = DEG_NODE_TYPE_OBJECT_FROM_LAYER;
 		*operation_code = DEG_OPCODE_OBJECT_BASE_FLAGS;
 	}
+	else if (id_type == ID_MC) {
+		*component_type = DEG_NODE_TYPE_BATCH_CACHE;
+		*operation_code = DEG_OPCODE_MOVIECLIP_SELECT_UPDATE;
+	}
 	else {
 		*component_type = DEG_NODE_TYPE_BATCH_CACHE;
 		*operation_code = DEG_OPCODE_GEOMETRY_SELECT_UPDATE;

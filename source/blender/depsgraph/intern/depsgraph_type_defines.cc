@@ -175,6 +175,7 @@ const char *operationCodeAsString(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(WORLD_UPDATE);
 		/* Movie clip. */
 		STRINGIFY_OPCODE(MOVIECLIP_EVAL);
+		STRINGIFY_OPCODE(MOVIECLIP_SELECT_UPDATE);
 
 		case DEG_NUM_OPCODES: return "SpecialCase";
 #undef STRINGIFY_OPCODE

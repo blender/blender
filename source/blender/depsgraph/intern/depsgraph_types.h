@@ -152,7 +152,7 @@ typedef enum eDepsNode_Type {
 	DEG_NODE_TYPE_SHADING_PARAMETERS,
 	/* Cache Component */
 	DEG_NODE_TYPE_CACHE,
-	/* Batch Cache Component */
+	/* Batch Cache Component - TODO (dfelinto/sergey) rename to make it more generic. */
 	DEG_NODE_TYPE_BATCH_CACHE,
 
 	/* Total number of meaningful node types. */
@@ -274,6 +274,7 @@ typedef enum eDepsOperation_Code {
 
 	/* Movie clips. ------------------------------------ */
 	DEG_OPCODE_MOVIECLIP_EVAL,
+	DEG_OPCODE_MOVIECLIP_SELECT_UPDATE,
 
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;

@@ -1639,6 +1639,7 @@ static bool ed_object_select_pick(
 								retval = true;
 
 								DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+								DEG_id_tag_update(&clip->id, DEG_TAG_SELECT_UPDATE);
 								WM_event_add_notifier(C, NC_MOVIECLIP | ND_SELECT, track);
 								WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 
