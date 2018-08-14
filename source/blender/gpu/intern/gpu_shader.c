@@ -158,10 +158,6 @@ extern char datatoc_gpu_shader_keyframe_diamond_frag_glsl[];
 extern char datatoc_gpu_shader_fire_frag_glsl[];
 extern char datatoc_gpu_shader_smoke_vert_glsl[];
 extern char datatoc_gpu_shader_smoke_frag_glsl[];
-extern char datatoc_gpu_shader_vsm_store_vert_glsl[];
-extern char datatoc_gpu_shader_vsm_store_frag_glsl[];
-extern char datatoc_gpu_shader_sep_gaussian_blur_vert_glsl[];
-extern char datatoc_gpu_shader_sep_gaussian_blur_frag_glsl[];
 
 extern char datatoc_gpu_shader_gpencil_stroke_vert_glsl[];
 extern char datatoc_gpu_shader_gpencil_stroke_frag_glsl[];
@@ -722,9 +718,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 	BLI_assert(shader != GPU_NUM_BUILTIN_SHADERS); /* don't be a troll */
 
 	static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
-		[GPU_SHADER_VSM_STORE] = { datatoc_gpu_shader_vsm_store_vert_glsl, datatoc_gpu_shader_vsm_store_frag_glsl },
-		[GPU_SHADER_SEP_GAUSSIAN_BLUR] = { datatoc_gpu_shader_sep_gaussian_blur_vert_glsl,
-		                                   datatoc_gpu_shader_sep_gaussian_blur_frag_glsl },
 		[GPU_SHADER_SMOKE] = { datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl },
 		[GPU_SHADER_SMOKE_FIRE] = { datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl },
 		[GPU_SHADER_SMOKE_COBA] = { datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl },

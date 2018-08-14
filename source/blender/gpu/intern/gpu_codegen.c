@@ -63,8 +63,6 @@
 #include <stdarg.h>
 
 extern char datatoc_gpu_shader_material_glsl[];
-extern char datatoc_gpu_shader_vertex_glsl[];
-extern char datatoc_gpu_shader_vertex_world_glsl[];
 extern char datatoc_gpu_shader_geometry_glsl[];
 
 static char *glsl_material_library = NULL;
