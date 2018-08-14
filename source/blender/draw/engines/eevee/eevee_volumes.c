@@ -458,6 +458,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Scene *scene, Object *ob)
 {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
 	struct ModifierData *md = NULL;
@@ -501,7 +503,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		SmokeDomainSettings *sds = smd->domain;
 		/* Don't show smoke before simulation starts, this could be made an option in the future. */
-		const bool show_smoke = (CFRA >= sds->point_cache[0]->startframe);
+		const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >= sds->point_cache[0]->startframe);
 
 		if (sds->fluid && show_smoke) {
 			if (!sds->wt || !(sds->viewsettings & MOD_SMOKE_VIEW_SHOWBIG)) {
