@@ -67,7 +67,7 @@ typedef struct uiFont {
 	short blf_id;		/* from blfont lib */
 	short uifont_id;	/* own id (eUIFont_ID) */
 	short r_to_l;		/* fonts that read from left to right */
-	short hinting;
+	short pad;
 } uiFont;
 
 /* this state defines appearance of text */
@@ -805,7 +805,10 @@ typedef enum eWM_DrawMethod {
  * UserDef.text_render */
 typedef enum eText_Draw_Options {
 	USER_TEXT_DISABLE_AA	  = (1 << 0),
-	USER_TEXT_DISABLE_HINTING = (1 << 1),
+
+	USER_TEXT_HINTING_NONE    = (1 << 1),
+	USER_TEXT_HINTING_SLIGHT  = (1 << 2),
+	USER_TEXT_HINTING_FULL    = (1 << 3),
 } eText_Draw_Options;
 
 /* tw_flag (transform widget) */
