@@ -48,6 +48,7 @@
 
 #include "ED_paint.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_image.h"
 #include "ED_gpencil.h"
 #include "UI_resources.h"
@@ -1444,9 +1445,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", false);
+	RNA_enum_set(kmi->ptr, "mode", SEL_OP_ADD);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "deselect", true);
+	RNA_enum_set(kmi->ptr, "mode", SEL_OP_SUB);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */

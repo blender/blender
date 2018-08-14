@@ -62,6 +62,7 @@
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "WM_api.h"
 #include "WM_types.h"

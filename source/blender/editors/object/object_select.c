@@ -72,6 +72,7 @@
 
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_keyframing.h"
 
 #include "UI_interface.h"

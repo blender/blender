@@ -55,6 +55,7 @@
 #include "ED_mask.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
 #include "ED_uvedit.h"  /* just for ED_image_draw_cursor */

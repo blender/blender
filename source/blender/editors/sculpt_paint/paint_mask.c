@@ -258,7 +258,7 @@ static void mask_box_select_task_cb(
 	} BKE_pbvh_vertex_iter_end;
 }
 
-int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select, bool UNUSED(extend))
+int ED_sculpt_mask_box_select(struct bContext *C, ViewContext *vc, const rcti *rect, bool select)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Sculpt *sd = vc->scene->toolsettings->sculpt;

@@ -45,6 +45,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_mask.h"  /* own include */
 
 #include "RNA_access.h"

@@ -50,6 +50,7 @@
 
 #include "ED_screen.h"
 #include "ED_sequencer.h"
+#include "ED_select_utils.h"
 
 #include "UI_view2d.h"
 

@@ -40,6 +40,7 @@
 #include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "mesh_intern.h"  /* own include */
 

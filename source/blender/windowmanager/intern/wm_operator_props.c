@@ -39,6 +39,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "ED_select_utils.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -248,6 +250,20 @@ void WM_operator_properties_gesture_border_select(wmOperatorType *ot)
 void WM_operator_properties_gesture_border(wmOperatorType *ot)
 {
 	WM_operator_properties_gesture_border_ex(ot, false, false);
+}
+
+void WM_operator_properties_select_operation(wmOperatorType *ot)
+{
+	static const EnumPropertyItem select_mode_items[] = {
+		{SEL_OP_ADD, "ADD", 0, "Add", ""},
+		{SEL_OP_SUB, "SUB", 0, "Subtract", ""},
+		{SEL_OP_SET, "SET", 0, "Set", ""},
+		{SEL_OP_AND, "AND", 0, "And", ""},
+		{SEL_OP_XOR, "XOR", 0, "Xor", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_ADD, "Mode", "");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
 void WM_operator_properties_gesture_border_zoom(wmOperatorType *ot)

@@ -35,6 +35,7 @@
 
 #include "ED_armature.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 
 #include "armature_intern.h"

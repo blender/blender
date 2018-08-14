@@ -46,6 +46,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_clip.h"
 
 #include "RNA_access.h"

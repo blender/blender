@@ -43,6 +43,7 @@ set(SRC
 	ed_transverts.c
 	ed_util.c
 	numinput.c
+	select_utils.c
 
 	# general includes
 	../include/BIF_gl.h
@@ -54,6 +55,7 @@ set(SRC
 	../include/ED_curve.h
 	../include/ED_datafiles.h
 	../include/ED_fileselect.h
+	../include/ED_gizmo_library.h
 	../include/ED_gpencil.h
 	../include/ED_image.h
 	../include/ED_info.h
@@ -63,7 +65,6 @@ set(SRC
 	../include/ED_lattice.h
 	../include/ED_logic.h
 	../include/ED_markers.h
-	../include/ED_gizmo_library.h
 	../include/ED_mask.h
 	../include/ED_mball.h
 	../include/ED_mesh.h
@@ -79,6 +80,7 @@ set(SRC
 	../include/ED_screen.h
 	../include/ED_screen_types.h
 	../include/ED_sculpt.h
+	../include/ED_select_utils.h
 	../include/ED_sequencer.h
 	../include/ED_sound.h
 	../include/ED_space_api.h

@@ -75,6 +75,7 @@
 #include "ED_mesh.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
@@ -418,6 +419,7 @@ typedef struct PEData {
 	float dist;
 	float dval;
 	int select;
+	eSelectOp sel_op;
 
 	float *dvec;
 	float combfac;
@@ -610,10 +612,15 @@ static bool point_is_selected(PTCacheEditPoint *point)
 /*************************** iterators *******************************/
 
 typedef void (*ForPointFunc)(PEData *data, int point_index);
-typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index);
+typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index, bool is_inside);
 typedef void (*ForKeyMatFunc)(PEData *data, float mat[4][4], float imat[4][4], int point_index, int key_index, PTCacheEditKey *key);
 
-static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, bool nearest)
+enum eParticleSelectFlag {
+	PSEL_NEAREST = (1 << 0),
+	PSEL_ALL_KEYS = (1 << 1),
+};
+
+static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, const enum eParticleSelectFlag flag)
 {
 	ParticleEditSettings *pset = PE_settings(data->scene);
 	PTCacheEdit *edit = data->edit;
@@ -634,34 +641,45 @@ static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, bool nearest)
 				/* only do end keys */
 				key = point->keys + point->totkey - 1;
 
-				if (nearest) {
+				if (flag & PSEL_NEAREST) {
 					if (key_inside_circle(data, dist, KEY_WCO, &dist)) {
 						nearest_point = p;
 						nearest_key = point->totkey - 1;
 					}
 				}
-				else if (key_inside_test(data, KEY_WCO))
-					func(data, p, point->totkey - 1);
+				else {
+					const bool is_inside = key_inside_test(data, KEY_WCO);
+					if (is_inside || (flag & PSEL_ALL_KEYS)) {
+						func(data, p, point->totkey - 1, is_inside);
+					}
+				}
 			}
 		}
 		else {
 			/* do all keys */
 			LOOP_VISIBLE_KEYS {
-				if (nearest) {
+				if (flag & PSEL_NEAREST) {
 					if (key_inside_circle(data, dist, KEY_WCO, &dist)) {
 						nearest_point = p;
 						nearest_key = k;
 					}
 				}
-				else if (key_inside_test(data, KEY_WCO))
-					func(data, p, k);
+				else {
+					const bool is_inside = key_inside_test(data, KEY_WCO);
+					if (is_inside || (flag & PSEL_ALL_KEYS)) {
+						func(data, p, k, is_inside);
+					}
+				}
 			}
 		}
 	}
 
 	/* do nearest only */
-	if (nearest && nearest_point > -1)
-		func(data, nearest_point, nearest_key);
+	if (flag & PSEL_NEAREST) {
+		if (nearest_point != -1) {
+			func(data, nearest_point, nearest_key, true);
+		}
+	}
 }
 
 static void foreach_mouse_hit_point(PEData *data, ForPointFunc func, int selected)
@@ -797,7 +815,7 @@ static void foreach_selected_key(PEData *data, ForKeyFunc func)
 
 	LOOP_VISIBLE_POINTS {
 		LOOP_SELECTED_KEYS {
-			func(data, p, k);
+			func(data, p, k, true);
 		}
 	}
 }
@@ -1496,7 +1514,7 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
 
 /*-----selection callbacks-----*/
 
-static void select_key(PEData *data, int point_index, int key_index)
+static void select_key(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1510,7 +1528,20 @@ static void select_key(PEData *data, int point_index, int key_index)
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void select_keys(PEData *data, int point_index, int UNUSED(key_index))
+static void select_key_op(PEData *data, int point_index, int key_index, bool is_inside)
+{
+	PTCacheEdit *edit = data->edit;
+	PTCacheEditPoint *point = edit->points + point_index;
+	PTCacheEditKey *key = point->keys + key_index;
+	const bool is_select = key->flag & PEK_SELECT;
+	const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
+	if (sel_op_result != -1) {
+		SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
+		point->flag |= PEP_EDIT_RECALC;
+	}
+}
+
+static void select_keys(PEData *data, int point_index, int UNUSED(key_index), bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1526,7 +1557,7 @@ static void select_keys(PEData *data, int point_index, int UNUSED(key_index))
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void extend_key_select(PEData *data, int point_index, int key_index)
+static void extend_key_select(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1536,7 +1567,7 @@ static void extend_key_select(PEData *data, int point_index, int key_index)
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void deselect_key_select(PEData *data, int point_index, int key_index)
+static void deselect_key_select(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1546,7 +1577,7 @@ static void deselect_key_select(PEData *data, int point_index, int key_index)
 	point->flag |= PEP_EDIT_RECALC;
 }
 
-static void toggle_key_select(PEData *data, int point_index, int key_index)
+static void toggle_key_select(PEData *data, int point_index, int key_index, bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 	PTCacheEditPoint *point = edit->points + point_index;
@@ -1664,12 +1695,15 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 	data.rad = ED_view3d_select_dist_px();
 
 	/* 1 = nearest only */
-	if (extend)
-		for_mouse_hit_keys(&data, extend_key_select, true);
-	else if (deselect)
-		for_mouse_hit_keys(&data, deselect_key_select, true);
-	else
-		for_mouse_hit_keys(&data, toggle_key_select, true);
+	if (extend) {
+		for_mouse_hit_keys(&data, extend_key_select, PSEL_NEAREST);
+	}
+	else if (deselect) {
+		for_mouse_hit_keys(&data, deselect_key_select, PSEL_NEAREST);
+	}
+	else {
+		for_mouse_hit_keys(&data, toggle_key_select, PSEL_NEAREST);
+	}
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
@@ -1900,7 +1934,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	data.rad = 75.0f;
 	data.select = !RNA_boolean_get(op->ptr, "deselect");
 
-	for_mouse_hit_keys(&data, select_keys, true);
+	for_mouse_hit_keys(&data, select_keys, PSEL_NEAREST);
 	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
 
@@ -1946,7 +1980,7 @@ void PE_deselect_all_visible(PTCacheEdit *edit)
 	}
 }
 
-int PE_border_select(bContext *C, const rcti *rect, bool select, bool extend)
+int PE_border_select(bContext *C, const rcti *rect, const int sel_op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -1956,14 +1990,15 @@ int PE_border_select(bContext *C, const rcti *rect, bool select, bool extend)
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	if (extend == 0 && select)
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		PE_deselect_all_visible(edit);
+	}
 
 	PE_set_view3d_data(C, &data);
 	data.rect = rect;
-	data.select = select;
+	data.sel_op = sel_op;
 
-	for_mouse_hit_keys(&data, select_key, false);
+	for_mouse_hit_keys(&data, select_key_op, PSEL_ALL_KEYS);
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
@@ -1988,7 +2023,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 	data.rad = rad;
 	data.select = selecting;
 
-	for_mouse_hit_keys(&data, select_key, false);
+	for_mouse_hit_keys(&data, select_key, 0);
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
@@ -1998,7 +2033,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 
 /************************ lasso select operator ************************/
 
-int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool extend, bool select)
+int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, const int sel_op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -2018,8 +2053,9 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool 
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	if (extend == 0 && select)
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		PE_deselect_all_visible(edit);
+	}
 
 	/* only for depths */
 	PE_set_view3d_data(C, &data);
@@ -2032,47 +2068,32 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool 
 			LOOP_KEYS {
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
-				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
-				    key_test_depth(&data, co, screen_co))
-				{
-					if (select) {
-						if (!(key->flag & PEK_SELECT)) {
-							key->flag |= PEK_SELECT;
-							point->flag |= PEP_EDIT_RECALC;
-						}
-					}
-					else {
-						if (key->flag & PEK_SELECT) {
-							key->flag &= ~PEK_SELECT;
-							point->flag |= PEP_EDIT_RECALC;
-						}
-					}
+				const bool is_select = key->flag & PEK_SELECT;
+				const bool is_inside = (
+				        (ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
+				        BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+				        key_test_depth(&data, co, screen_co));
+				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+				if (sel_op_result != -1) {
+					SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
+					point->flag |= PEP_EDIT_RECALC;
 				}
 			}
 		}
 		else if (pset->selectmode == SCE_SELECT_END) {
 			if (point->totkey) {
 				key = point->keys + point->totkey - 1;
-
 				copy_v3_v3(co, key->co);
 				mul_m4_v3(mat, co);
-				if ((ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
-				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
-				    key_test_depth(&data, co, screen_co))
-				{
-					if (select) {
-						if (!(key->flag & PEK_SELECT)) {
-							key->flag |= PEK_SELECT;
-							point->flag |= PEP_EDIT_RECALC;
-						}
-					}
-					else {
-						if (key->flag & PEK_SELECT) {
-							key->flag &= ~PEK_SELECT;
-							point->flag |= PEP_EDIT_RECALC;
-						}
-					}
+				const bool is_select = key->flag & PEK_SELECT;
+				const bool is_inside = (
+				        (ED_view3d_project_int_global(ar, co, screen_co, V3D_PROJ_TEST_CLIP_WIN) == V3D_PROJ_RET_OK) &&
+				        BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], IS_CLIPPED) &&
+				        key_test_depth(&data, co, screen_co));
+				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+				if (sel_op_result != -1) {
+					SET_FLAG_FROM_TEST(key->flag, sel_op_result, PEK_SELECT);
+					point->flag |= PEP_EDIT_RECALC;
 				}
 			}
 		}
@@ -2944,7 +2965,7 @@ static void set_delete_particle(PEData *data, int pa_index)
 	edit->points[pa_index].flag |= PEP_TAG;
 }
 
-static void set_delete_particle_key(PEData *data, int pa_index, int key_index)
+static void set_delete_particle_key(PEData *data, int pa_index, int key_index, bool UNUSED(is_inside))
 {
 	PTCacheEdit *edit = data->edit;
 

@@ -59,6 +59,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_view3d.h"
 
 #include "DNA_mesh_types.h"

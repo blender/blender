@@ -40,6 +40,7 @@
 #include "ED_markers.h"
 #include "ED_transform.h"
 #include "ED_object.h"
+#include "ED_select_utils.h"
 
 #include "action_intern.h"
 

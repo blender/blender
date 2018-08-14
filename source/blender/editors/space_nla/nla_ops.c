@@ -39,6 +39,7 @@
 #include "ED_anim_api.h"
 #include "ED_markers.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_transform.h"
 
 #include "WM_api.h"

@@ -373,18 +373,22 @@ class _defs_view3d_select:
 
     @ToolDef.from_fn
     def border():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("view3d.select_border")
+            layout.prop(props, "mode", expand=True)
         return dict(
             text="Select Border",
             icon="ops.generic.select_border",
             widget=None,
             keymap=(
                 ("view3d.select_border",
-                 dict(deselect=False),
+                 dict(mode='ADD'),
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 ("view3d.select_border",
-                 dict(deselect=True),
+                 dict(mode='SUB'),
                  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -405,18 +409,22 @@ class _defs_view3d_select:
 
     @ToolDef.from_fn
     def lasso():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("view3d.select_lasso")
+            layout.prop(props, "mode", expand=True)
         return dict(
             text="Select Lasso",
             icon="ops.generic.select_lasso",
             widget=None,
             keymap=(
                 ("view3d.select_lasso",
-                 dict(deselect=False),
+                 dict(mode='ADD'),
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 ("view3d.select_lasso",
-                 dict(deselect=True),
+                 dict(mode='SUB'),
                  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
             ),
+            draw_settings=draw_settings,
         )
 # -----------------------------------------------------------------------------
 # Object Modes (named based on context.mode)

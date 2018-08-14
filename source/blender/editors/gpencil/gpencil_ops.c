@@ -50,6 +50,7 @@
 #include "RNA_access.h"
 
 #include "ED_gpencil.h"
+#include "ED_select_utils.h"
 #include "ED_object.h"
 #include "ED_transform.h"
 

@@ -49,6 +49,7 @@
 #include "wm_event_system.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -86,13 +87,22 @@ static void gesture_modal_state_to_operator(wmOperator *op, int modal_state)
 		case GESTURE_MODAL_SELECT:
 		case GESTURE_MODAL_DESELECT:
 			if ((prop = RNA_struct_find_property(op->ptr, "deselect"))) {
-				RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT));
+				if (!RNA_property_is_set(op->ptr, prop)) {
+					RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT));
+				}
+			}
+			if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
+				if (!RNA_property_is_set(op->ptr, prop)) {
+					RNA_property_enum_set(op->ptr, prop, (modal_state == GESTURE_MODAL_DESELECT) ? SEL_OP_SUB : SEL_OP_ADD);
+				}
 			}
 			break;
 		case GESTURE_MODAL_IN:
 		case GESTURE_MODAL_OUT:
 			if ((prop = RNA_struct_find_property(op->ptr, "zoom_out"))) {
-				RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_OUT));
+				if (!RNA_property_is_set(op->ptr, prop)) {
+					RNA_property_boolean_set(op->ptr, prop, (modal_state == GESTURE_MODAL_OUT));
+				}
 			}
 			break;
 	}
@@ -105,6 +115,11 @@ static int gesture_modal_state_from_operator(wmOperator *op)
 	if ((prop = RNA_struct_find_property(op->ptr, "deselect"))) {
 		if (RNA_property_is_set(op->ptr, prop)) {
 			return RNA_property_boolean_get(op->ptr, prop) ? GESTURE_MODAL_DESELECT : GESTURE_MODAL_SELECT;
+		}
+	}
+	if ((prop = RNA_struct_find_property(op->ptr, "mode"))) {
+		if (RNA_property_is_set(op->ptr, prop)) {
+			return RNA_property_enum_get(op->ptr, prop) == SEL_OP_SUB ? GESTURE_MODAL_DESELECT : GESTURE_MODAL_SELECT;
 		}
 	}
 	if ((prop = RNA_struct_find_property(op->ptr, "zoom_out"))) {

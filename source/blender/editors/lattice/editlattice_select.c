@@ -53,6 +53,7 @@
 #include "BKE_layer.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_lattice.h"
 #include "ED_view3d.h"
 

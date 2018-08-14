@@ -45,6 +45,7 @@
 
 #include "ED_node.h"  /* own include */
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"

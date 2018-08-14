@@ -15,37 +15,38 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- *
- * Contributor(s): Nicholas Bishop
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ED_sculpt.h
+/** \file ED_select_utils.h
  *  \ingroup editors
  */
 
-#ifndef __ED_SCULPT_H__
-#define __ED_SCULPT_H__
+#ifndef __ED_SELECT_UTILS_H__
+#define __ED_SELECT_UTILS_H__
 
-struct ARegion;
-struct bContext;
-struct Object;
-struct RegionView3D;
-struct ViewContext;
-struct rcti;
-struct UndoStep;
-struct UndoType;
-struct ListBase;
+enum {
+	SEL_TOGGLE		 = 0,
+	SEL_SELECT		 = 1,
+	SEL_DESELECT	 = 2,
+	SEL_INVERT		 = 3,
+};
 
-/* sculpt.c */
-void ED_operatortypes_sculpt(void);
-void ED_sculpt_redraw_planes_get(float planes[4][4], struct ARegion *ar, struct Object *ob);
-int  ED_sculpt_mask_box_select(struct bContext *C, struct ViewContext *vc, const struct rcti *rect, bool select);
+/** See #WM_operator_properties_select_operation */
+typedef enum {
+	SEL_OP_ADD = 1,
+	SEL_OP_SUB,
+	SEL_OP_SET,
+	SEL_OP_AND,
+	SEL_OP_XOR,
+} eSelectOp;
 
-/* sculpt_undo.c */
-void ED_sculpt_undosys_type(struct UndoType *ut);
+#define SEL_OP_USE_OUTSIDE(sel_op) (ELEM(sel_op, SEL_OP_AND))
+#define SEL_OP_USE_PRE_DESELECT(sel_op) (ELEM(sel_op, SEL_OP_SET))
+#define SEL_OP_CAN_DESELECT(sel_op) (!ELEM(sel_op, SEL_OP_ADD))
 
-#endif /* __ED_SCULPT_H__ */
+/* Use when we've de-selected all first for 'SEL_OP_SET' */
+int ED_select_op_action(const eSelectOp sel_op, const bool is_select, const bool is_inside);
+int ED_select_op_action_deselected(const eSelectOp sel_op, const bool is_select, const bool is_inside);
+
+#endif  /* __ED_SELECT_UTILS_H__ */

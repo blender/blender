@@ -52,6 +52,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 
 #include "outliner_intern.h"
 

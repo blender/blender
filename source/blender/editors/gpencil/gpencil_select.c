@@ -62,6 +62,7 @@
 #include "UI_view2d.h"
 
 #include "ED_gpencil.h"
+#include "ED_select_utils.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"

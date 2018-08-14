@@ -46,6 +46,7 @@
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
+#include "ED_select_utils.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"
@@ -391,7 +392,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	return true;
 }
 
-int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool extend)
+int do_paintface_box_select(ViewContext *vc, rcti *rect, int sel_op)
 {
 	Object *ob = vc->obact;
 	Mesh *me;
@@ -412,7 +413,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 
 	selar = MEM_callocN(me->totpoly + 1, "selar");
 
-	if (extend == false && select) {
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, false);
 	}
 
@@ -439,13 +440,12 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 
 	mpoly = me->mpoly;
 	for (a = 1; a <= me->totpoly; a++, mpoly++) {
-		if (selar[a]) {
-			if (mpoly->flag & ME_HIDE) {
-				/* pass */
-			}
-			else {
-				if (select) mpoly->flag |= ME_FACE_SEL;
-				else mpoly->flag &= ~ME_FACE_SEL;
+		if ((mpoly->flag & ME_HIDE) == 0) {
+			const bool is_select = mpoly->flag & ME_FACE_SEL;
+			const bool is_inside = (selar[a] != 0);
+			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+			if (sel_op_result != -1) {
+				SET_FLAG_FROM_TEST(mpoly->flag, sel_op_result, ME_FACE_SEL);
 			}
 		}
 	}
