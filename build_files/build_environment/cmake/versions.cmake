@@ -97,9 +97,9 @@ set(OPENSUBDIV_VERSION v3_3_3)
 set(OPENSUBDIV_Hash 29c79dc01ef616aab02670bed5544ddd)
 set(OPENSUBDIV_URI https://github.com/PixarAnimationStudios/OpenSubdiv/archive/${OPENSUBDIV_VERSION}.tar.gz)
 
-set(SDL_VERSION 2.0.4)
+set(SDL_VERSION 2.0.8)
 set(SDL_URI https://www.libsdl.org/release/SDL2-${SDL_VERSION}.tar.gz)
-set(SDL_HASH 44fc4a023349933e7f5d7a582f7b886e)
+set(SDL_HASH 3800d705cef742c6a634f202c37f263f)
 
 set(OPENCOLLADA_VERSION v1.6.51)
 set(OPENCOLLADA_URI https://github.com/KhronosGroup/OpenCOLLADA/archive/${OPENCOLLADA_VERSION}.tar.gz)
