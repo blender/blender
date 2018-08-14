@@ -1344,25 +1344,29 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
 
 	/* flag all particles to be updated if not using flag */
 	if (!useflag)
-		LOOP_POINTS
-		point->flag |= PEP_EDIT_RECALC;
+		LOOP_POINTS {
+			point->flag |= PEP_EDIT_RECALC;
+		}
 
 	/* flush edit key flag to hair key flag to preserve selection
 	 * on save */
-	if (edit->psys) LOOP_POINTS {
+	if (edit->psys) {
+		LOOP_POINTS {
 			hkey = edit->psys->particles[p].hair;
 			LOOP_KEYS {
 				hkey->editflag = key->flag;
 				hkey++;
 			}
 		}
+	}
 
 	psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
 
 
 	/* disable update flag */
-	LOOP_POINTS
+	LOOP_POINTS {
 		point->flag &= ~PEP_EDIT_RECALC;
+	}
 
 	DEG_id_tag_update(&ob->id, DEG_TAG_SELECT_UPDATE);
 }
@@ -2097,8 +2101,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 			point->flag |= PEP_HIDE;
 			point->flag |= PEP_EDIT_RECALC;
 
-			LOOP_KEYS
-			key->flag &= ~PEK_SELECT;
+			LOOP_KEYS {
+				key->flag &= ~PEK_SELECT;
+			}
 		}
 	}
 	else {
@@ -2106,8 +2111,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 			point->flag |= PEP_HIDE;
 			point->flag |= PEP_EDIT_RECALC;
 
-			LOOP_KEYS
-			key->flag &= ~PEK_SELECT;
+			LOOP_KEYS {
+				key->flag &= ~PEK_SELECT;
+			}
 		}
 	}
 
