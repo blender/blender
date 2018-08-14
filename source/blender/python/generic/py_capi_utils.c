@@ -784,7 +784,7 @@ bool PyC_IsInterpreterActive(void)
 }
 
 /* Would be nice if python had this built in
- * See: http://wiki.blender.org/index.php/Dev:Doc/Tools/Debugging/PyFromC
+ * See: https://wiki.blender.org/wiki/Tools/Debugging/PyFromC
  */
 void PyC_RunQuicky(const char *filepath, int n, ...)
 {

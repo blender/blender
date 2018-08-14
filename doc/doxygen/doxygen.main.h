@@ -7,11 +7,11 @@
  * These pages document the source code of blender.
  *
  * \subsection implinks Important Links
- * - <a href="http://developer.blender.org">developer.blender.org</a> with bug tracker.
- * - <a href="http://wiki.blender.org/index.php/Dev:Contents">Development documents</a> on our wiki.
+ * - <a href="https://developer.blender.org">developer.blender.org</a> with bug tracker.
+ * - <a href="https://wiki.blender.org">Development documents</a> on our wiki.
  *
  * \subsection blother Other
- * For more information on using Blender browse to http://www.blender.org
+ * For more information on using Blender browse to https://www.blender.org
  *
  */
 
