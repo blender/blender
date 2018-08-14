@@ -1813,7 +1813,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *basen = NULL, *basact = NULL;
-	Object *ob1, *newob, *obact = CTX_data_active_object(C);
+	Object *ob1, *obact = CTX_data_active_object(C);
 	DerivedMesh *dm;
 	Curve *cu;
 	Nurb *nu;
@@ -1880,6 +1880,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	}
 
 	for (CollectionPointerLink *link = selected_editable_bases.first; link; link = link->next) {
+		Object *newob = NULL;
 		Base *base = link->ptr.data;
 		Object *ob = base->object;
 
@@ -2099,7 +2100,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 		}
 
 		/* Ensure new object has consistent material data with its new obdata. */
-		test_object_materials(bmain, newob, newob->data);
+		if (newob) {
+			test_object_materials(bmain, newob, newob->data);
+		}
 
 		/* tag obdata if it was been changed */
 
