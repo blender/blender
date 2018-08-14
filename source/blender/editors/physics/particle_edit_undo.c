@@ -70,15 +70,15 @@ static void undoptcache_from_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
 	size_t mem_used_prev = MEM_get_memory_in_use();
 
-	undo->totpoint= edit->totpoint;
+	undo->totpoint = edit->totpoint;
 
 	if (edit->psys) {
 		ParticleData *pa;
 
-		pa= undo->particles= MEM_dupallocN(edit->psys->particles);
+		pa = undo->particles = MEM_dupallocN(edit->psys->particles);
 
-		for (i=0; i<edit->totpoint; i++, pa++) {
-			pa->hair= MEM_dupallocN(pa->hair);
+		for (i = 0; i < edit->totpoint; i++, pa++) {
+			pa->hair = MEM_dupallocN(pa->hair);
 		}
 
 		undo->psys_flag = edit->psys->flag;
@@ -89,18 +89,18 @@ static void undoptcache_from_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 		BLI_duplicatelist(&undo->mem_cache, &edit->pid.cache->mem_cache);
 		pm = undo->mem_cache.first;
 
-		for (; pm; pm=pm->next) {
-			for (i=0; i<BPHYS_TOT_DATA; i++) {
+		for (; pm; pm = pm->next) {
+			for (i = 0; i < BPHYS_TOT_DATA; i++) {
 				pm->data[i] = MEM_dupallocN(pm->data[i]);
 			}
 		}
 	}
 
-	point= undo->points = MEM_dupallocN(edit->points);
+	point = undo->points = MEM_dupallocN(edit->points);
 	undo->totpoint = edit->totpoint;
 
-	for (i=0; i<edit->totpoint; i++, point++) {
-		point->keys= MEM_dupallocN(point->keys);
+	for (i = 0; i < edit->totpoint; i++, point++) {
+		point->keys = MEM_dupallocN(point->keys);
 		/* no need to update edit key->co & key->time pointers here */
 	}
 
@@ -133,28 +133,28 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 	}
 	if (edit->mirror_cache) {
 		MEM_freeN(edit->mirror_cache);
-		edit->mirror_cache= NULL;
+		edit->mirror_cache = NULL;
 	}
 
-	edit->points= MEM_dupallocN(undo->points);
+	edit->points = MEM_dupallocN(undo->points);
 	edit->totpoint = undo->totpoint;
 
 	LOOP_POINTS {
-		point->keys= MEM_dupallocN(point->keys);
+		point->keys = MEM_dupallocN(point->keys);
 	}
 
 	if (psys) {
-		psys->particles= MEM_dupallocN(undo->particles);
+		psys->particles = MEM_dupallocN(undo->particles);
 
-		psys->totpart= undo->totpoint;
+		psys->totpart = undo->totpoint;
 
 		LOOP_POINTS {
 			pa = psys->particles + p;
-			hkey= pa->hair = MEM_dupallocN(pa->hair);
+			hkey = pa->hair = MEM_dupallocN(pa->hair);
 
 			LOOP_KEYS {
-				key->co= hkey->co;
-				key->time= &hkey->time;
+				key->co = hkey->co;
+				key->time = &hkey->time;
 				hkey++;
 			}
 		}
@@ -171,7 +171,7 @@ static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 
 		pm = edit->pid.cache->mem_cache.first;
 
-		for (; pm; pm=pm->next) {
+		for (; pm; pm = pm->next) {
 			for (i = 0; i < BPHYS_TOT_DATA; i++) {
 				pm->data[i] = MEM_dupallocN(pm->data[i]);
 			}
@@ -197,7 +197,7 @@ static void undoptcache_free_data(PTCacheUndo *undo)
 	PTCacheEditPoint *point;
 	int i;
 
-	for (i = 0, point=undo->points; i < undo->totpoint; i++, point++) {
+	for (i = 0, point = undo->points; i < undo->totpoint; i++, point++) {
 		if (undo->particles && (undo->particles + i)->hair) {
 			MEM_freeN((undo->particles + i)->hair);
 		}
