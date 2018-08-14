@@ -60,6 +60,7 @@ static struct {
 	struct GPUShader *prepass_sh_cache[MAX_SHADERS];
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
 	struct GPUShader *cavity_sh;
+	struct GPUShader *ghost_resolve_sh;
 	struct GPUShader *shadow_fail_sh;
 	struct GPUShader *shadow_fail_manifold_sh;
 	struct GPUShader *shadow_pass_sh;
@@ -67,6 +68,7 @@ static struct {
 	struct GPUShader *shadow_caps_sh;
 	struct GPUShader *shadow_caps_manifold_sh;
 
+	struct GPUTexture *ghost_depth_tx; /* ref only, not alloced */
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *cavity_buffer_tx; /* ref only, not alloced */
@@ -90,6 +92,7 @@ extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_prepass_frag_glsl[];
 extern char datatoc_workbench_cavity_frag_glsl[];
 extern char datatoc_workbench_deferred_composite_frag_glsl[];
+extern char datatoc_workbench_ghost_resolve_frag_glsl[];
 
 extern char datatoc_workbench_shadow_vert_glsl[];
 extern char datatoc_workbench_shadow_geom_glsl[];
@@ -332,6 +335,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		char *cavity_frag = workbench_build_cavity_frag();
 		e_data.cavity_sh = DRW_shader_create_fullscreen(cavity_frag, NULL);
 		MEM_freeN(cavity_frag);
+
+		e_data.ghost_resolve_sh = DRW_shader_create_fullscreen(datatoc_workbench_ghost_resolve_frag_glsl, NULL);
 	}
 	workbench_volume_engine_init();
 	workbench_fxaa_engine_init();
@@ -408,11 +413,20 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 
 	/* Prepass */
 	{
+		DRWShadingGroup *grp;
 		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
 
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->prepass_pass = DRW_pass_create("Prepass", (do_cull) ? state | DRW_STATE_CULL_BACK : state);
 		psl->prepass_hair_pass = DRW_pass_create("Prepass", state);
+
+		psl->ghost_prepass_pass = DRW_pass_create("Prepass Ghost", (do_cull) ? state | DRW_STATE_CULL_BACK : state);
+		psl->ghost_prepass_hair_pass = DRW_pass_create("Prepass Ghost", state);
+
+		psl->ghost_resolve_pass = DRW_pass_create("Resolve Ghost Depth", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+		grp = DRW_shgroup_create(e_data.ghost_resolve_sh, psl->ghost_resolve_pass);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.ghost_depth_tx);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
 	{
@@ -438,6 +452,21 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 	}
 }
 
+static void workbench_setup_ghost_framebuffer(WORKBENCH_FramebufferList *fbl)
+{
+	const float *viewport_size = DRW_viewport_size_get();
+	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+
+	e_data.ghost_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_solid);
+	GPU_framebuffer_ensure_config(&fbl->ghost_prepass_fb, {
+		GPU_ATTACHMENT_TEXTURE(e_data.ghost_depth_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.specular_buffer_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
+	});
+}
+
 void workbench_deferred_engine_free(void)
 {
 	for (int index = 0; index < MAX_SHADERS; index++) {
@@ -445,6 +474,7 @@ void workbench_deferred_engine_free(void)
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.cavity_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ghost_resolve_sh);
 	DRW_UBO_FREE_SAFE(e_data.sampling_ubo);
 	DRW_TEXTURE_FREE_SAFE(e_data.jitter_tx);
 
@@ -577,21 +607,23 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_drawdata_ensure(
 	        &ob->id, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
+	const bool is_ghost = (ob->dtx & OB_DRAWXRAY);
 
 	/* Solid */
 	workbench_material_update_data(wpd, ob, mat, &material_template);
 	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.color_type = color_type;
 	material_template.ima = ima;
-	uint hash = workbench_material_get_hash(&material_template);
+	uint hash = workbench_material_get_hash(&material_template, is_ghost);
 
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
 		material->shgrp = DRW_shgroup_create(
-		        color_type == V3D_SHADING_TEXTURE_COLOR ? wpd->prepass_texture_sh: wpd->prepass_solid_sh, psl->prepass_pass);
+		        (color_type == V3D_SHADING_TEXTURE_COLOR) ? wpd->prepass_texture_sh: wpd->prepass_solid_sh,
+		        (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_pass : psl->prepass_pass);
 		workbench_material_copy(material, &material_template);
-		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
+		DRW_shgroup_stencil_mask(material->shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
 		workbench_material_shgroup_uniform(wpd, material->shgrp, material);
 
@@ -635,9 +667,9 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			        wpd->prepass_texture_hair_sh;
 			DRWShadingGroup *shgrp = DRW_shgroup_hair_create(
 			        ob, psys, md,
-			        psl->prepass_hair_pass,
+			        (ob->dtx & OB_DRAWXRAY) ? psl->ghost_prepass_hair_pass : psl->prepass_hair_pass,
 			        shader);
-			DRW_shgroup_stencil_mask(shgrp, 0xFF);
+			DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
 			workbench_material_shgroup_uniform(wpd, shgrp, material);
 		}
@@ -856,6 +888,19 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	DRW_draw_pass(psl->prepass_pass);
 	DRW_draw_pass(psl->prepass_hair_pass);
 
+	if (GHOST_ENABLED(psl)) {
+		/* meh, late init to not request a depth buffer we won't use. */
+		workbench_setup_ghost_framebuffer(fbl);
+
+		GPU_framebuffer_bind(fbl->ghost_prepass_fb);
+		GPU_framebuffer_clear_depth(fbl->ghost_prepass_fb, 1.0f);
+		DRW_draw_pass(psl->ghost_prepass_pass);
+		DRW_draw_pass(psl->ghost_prepass_hair_pass);
+
+		GPU_framebuffer_bind(dfbl->depth_only_fb);
+		DRW_draw_pass(psl->ghost_resolve_pass);
+	}
+
 	if (CAVITY_ENABLED(wpd)) {
 		GPU_framebuffer_bind(fbl->cavity_fb);
 		DRW_draw_pass(psl->cavity_pass);
@@ -874,6 +919,16 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->shadow_depth_fail_mani_pass);
 		DRW_draw_pass(psl->shadow_depth_fail_caps_pass);
 		DRW_draw_pass(psl->shadow_depth_fail_caps_mani_pass);
+
+		if (GHOST_ENABLED(psl)) {
+			/* We need to set the stencil buffer to 0 where Ghost objects
+			 * else they will get shadow and even badly shadowed. */
+			DRW_pass_state_set(psl->ghost_prepass_pass, DRW_STATE_WRITE_STENCIL);
+			DRW_pass_state_set(psl->ghost_prepass_hair_pass, DRW_STATE_WRITE_STENCIL);
+
+			DRW_draw_pass(psl->ghost_prepass_pass);
+			DRW_draw_pass(psl->ghost_prepass_hair_pass);
+		}
 #ifndef DEBUG_SHADOW_VOLUME
 		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);

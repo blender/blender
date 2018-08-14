@@ -51,6 +51,7 @@
 #define STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd) (MATCAP_ENABLED(wpd) && (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_VIEWNORMAL))
 #define CAVITY_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_CAVITY)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
+#define GHOST_ENABLED(psl) (!DRW_pass_is_empty(psl->ghost_prepass_pass) || !DRW_pass_is_empty(psl->ghost_prepass_hair_pass))
 
 #define IS_NAVIGATING(wpd) ((DRW_context_state_get()->rv3d) && (DRW_context_state_get()->rv3d->rflag & RV3D_NAVIGATING))
 #define FXAA_ENABLED(wpd) ((!DRW_state_is_opengl_render()) && \
@@ -72,6 +73,7 @@ struct rcti;
 typedef struct WORKBENCH_FramebufferList {
 	/* Deferred render buffers */
 	struct GPUFrameBuffer *prepass_fb;
+	struct GPUFrameBuffer *ghost_prepass_fb;
 	struct GPUFrameBuffer *cavity_fb;
 	struct GPUFrameBuffer *composite_fb;
 
@@ -100,6 +102,8 @@ typedef struct WORKBENCH_PassList {
 	/* deferred rendering */
 	struct DRWPass *prepass_pass;
 	struct DRWPass *prepass_hair_pass;
+	struct DRWPass *ghost_prepass_pass;
+	struct DRWPass *ghost_prepass_hair_pass;
 	struct DRWPass *cavity_pass;
 	struct DRWPass *shadow_depth_pass_pass;
 	struct DRWPass *shadow_depth_pass_mani_pass;
@@ -109,6 +113,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
+	struct DRWPass *ghost_resolve_pass;
 	struct DRWPass *effect_aa_pass;
 	struct DRWPass *volume_pass;
 
@@ -279,7 +284,7 @@ int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
 int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
-uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
+uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_set_normal_world_matrix(
         DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);

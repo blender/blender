@@ -153,7 +153,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	material_template.object_id = OBJECT_ID_PASS_ENABLED(wpd) ? engine_object_data->object_id : 1;
 	material_template.color_type = color_type;
 	material_template.ima = ima;
-	uint hash = workbench_material_get_hash(&material_template);
+	uint hash = workbench_material_get_hash(&material_template, false);
 
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {

@@ -110,7 +110,7 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_text
 	return str;
 }
 
-uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
+uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost)
 {
 	uint input[4];
 	uint result;
@@ -127,6 +127,8 @@ uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template)
 	input[2] = (uint)(color[2] * 512);
 	input[3] = (uint)(material_template->roughness * 512);
 	result += BLI_ghashutil_uinthash_v4_murmur(input);
+
+	result += BLI_ghashutil_uinthash((uint)is_ghost);
 
 	/* add texture reference */
 	if (material_template->ima) {
