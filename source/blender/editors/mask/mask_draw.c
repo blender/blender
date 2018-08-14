@@ -58,6 +58,7 @@
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
@@ -453,27 +454,30 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 			break;
 
 		case MASK_DT_DASH:
-			/* TODO(merwin): use dashed line shader here
-			 * probably better with geometry shader (after core profile switch)
-			 */
-#if 0
-			GPU_line_width(1.0f);
-
-			GPU_basic_shader_bind_enable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
-			GPU_basic_shader_line_stipple(3, 0xAAAA);
+		{
+			float colors[8];
 
 			mask_color_active_tint(rgb_tmp, rgb_spline, is_active);
-			immUniformColor4ubv(rgb_tmp);
-			mask_draw_array(pos, draw_method, points, tot_point);
-
+			rgba_uchar_to_float(colors, rgb_tmp);
 			mask_color_active_tint(rgb_tmp, rgb_black, is_active);
-			immUniformColor4ubv(rgb_tmp);
-			GPU_basic_shader_line_stipple(3, 0x5555);
+			rgba_uchar_to_float(colors+4, rgb_tmp);
+
+			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
+
+			float viewport_size[4];
+			GPU_viewport_size_get_f(viewport_size);
+			immUniform2f("viewport_size", viewport_size[2] / UI_DPI_FAC, viewport_size[3] / UI_DPI_FAC);
+
+			immUniform1i("colors_len", 2);  /* "advanced" mode */
+			immUniformArray4fv("colors", colors, 2);
+			immUniform1f("dash_width", 4.0f);
+			GPU_line_width(1.0f);
+
 			mask_draw_array(pos, draw_method, points, tot_point);
 
-			GPU_basic_shader_bind_disable(GPU_SHADER_LINE | GPU_SHADER_STIPPLE);
-#endif
+			immUnbindProgram();
 			break;
+		}
 
 		default:
 			BLI_assert(false);
