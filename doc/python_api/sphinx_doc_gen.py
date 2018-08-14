@@ -1625,8 +1625,8 @@ def write_sphinx_conf_py(basepath):
     fw("project = 'Blender'\n")
     fw("master_doc = 'index'\n")
     fw("copyright = u'Blender Foundation'\n")
-    fw("version = '%s - API'\n" % BLENDER_VERSION_DOTS)
-    fw("release = '%s - API'\n" % BLENDER_VERSION_DOTS)
+    fw("version = '%s'\n" % BLENDER_VERSION_DOTS)
+    fw("release = '%s'\n" % BLENDER_VERSION_DOTS)
 
     # Quiet file not in table-of-contents warnings.
     fw("exclude_patterns = [\n")
