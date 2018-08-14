@@ -414,12 +414,6 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool exten
 
 	if (extend == false && select) {
 		paintface_deselect_all_visible(vc->obact, SEL_DESELECT, false);
-
-		mpoly = me->mpoly;
-		for (a = 1; a <= me->totpoly; a++, mpoly++) {
-			if ((mpoly->flag & ME_HIDE) == 0)
-				mpoly->flag &= ~ME_FACE_SEL;
-		}
 	}
 
 	ED_view3d_backbuf_validate(vc);
