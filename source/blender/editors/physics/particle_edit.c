@@ -1141,25 +1141,29 @@ static void PE_update_selection(Main *bmain, Scene *scene, Object *ob, int usefl
 
 	/* flag all particles to be updated if not using flag */
 	if (!useflag)
-		LOOP_POINTS
-		point->flag |= PEP_EDIT_RECALC;
+		LOOP_POINTS {
+			point->flag |= PEP_EDIT_RECALC;
+		}
 
 	/* flush edit key flag to hair key flag to preserve selection
 	 * on save */
-	if (edit->psys) LOOP_POINTS {
+	if (edit->psys) {
+		LOOP_POINTS {
 			hkey = edit->psys->particles[p].hair;
 			LOOP_KEYS {
 				hkey->editflag = key->flag;
 				hkey++;
 			}
 		}
+	}
 
-		psys_cache_edit_paths(scene, ob, edit, CFRA, G.is_rendering);
+	psys_cache_edit_paths(scene, ob, edit, CFRA, G.is_rendering);
 
 
 	/* disable update flag */
-	LOOP_POINTS
-	point->flag &= ~PEP_EDIT_RECALC;
+	LOOP_POINTS {
+		point->flag &= ~PEP_EDIT_RECALC;
+	}
 }
 
 void update_world_cos(Object *ob, PTCacheEdit *edit)
@@ -1894,8 +1898,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 			point->flag |= PEP_HIDE;
 			point->flag |= PEP_EDIT_RECALC;
 
-			LOOP_KEYS
-			key->flag &= ~PEK_SELECT;
+			LOOP_KEYS {
+				key->flag &= ~PEK_SELECT;
+			}
 		}
 	}
 	else {
@@ -1903,8 +1908,9 @@ static int hide_exec(bContext *C, wmOperator *op)
 			point->flag |= PEP_HIDE;
 			point->flag |= PEP_EDIT_RECALC;
 
-			LOOP_KEYS
-			key->flag &= ~PEK_SELECT;
+			LOOP_KEYS {
+				key->flag &= ~PEK_SELECT;
+			}
 		}
 	}
 

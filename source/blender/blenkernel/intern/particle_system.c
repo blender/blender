@@ -169,8 +169,9 @@ void psys_reset(ParticleSystem *psys, int mode)
 	}
 	else if (mode == PSYS_RESET_CACHE_MISS) {
 		/* set all particles to be skipped */
-		LOOP_PARTICLES
+		LOOP_PARTICLES {
 			pa->flag |= PARS_NO_DISP;
+		}
 	}
 
 	/* reset children */
@@ -273,8 +274,9 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 		psys->totpart=totpart;
 
 		if (newboids) {
-			LOOP_PARTICLES
+			LOOP_PARTICLES {
 				pa->boid = newboids++;
+			}
 		}
 	}
 
@@ -4129,14 +4131,16 @@ void psys_check_boid_data(ParticleSystem *psys)
 			if (!pa->boid) {
 				bpa = MEM_callocN(psys->totpart * sizeof(BoidParticle), "Boid Data");
 
-				LOOP_PARTICLES
+				LOOP_PARTICLES {
 					pa->boid = bpa++;
+				}
 			}
 		}
 		else if (pa->boid) {
 			MEM_freeN(pa->boid);
-			LOOP_PARTICLES
+			LOOP_PARTICLES {
 				pa->boid = NULL;
+			}
 		}
 }
 
