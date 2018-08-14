@@ -53,7 +53,6 @@
 
 #include "interface_intern.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_immediate.h"

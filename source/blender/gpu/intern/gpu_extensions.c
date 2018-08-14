@@ -38,7 +38,6 @@
 
 #include "BKE_global.h"
 
-#include "GPU_basic_shader.h"
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
 #include "GPU_texture.h"
@@ -259,12 +258,10 @@ void gpu_extensions_init(void)
 
 
 	GPU_invalid_tex_init();
-	GPU_basic_shaders_init();
 }
 
 void gpu_extensions_exit(void)
 {
-	GPU_basic_shaders_exit();
 	GPU_invalid_tex_free();
 }
 

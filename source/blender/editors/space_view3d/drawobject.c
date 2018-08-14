@@ -95,7 +95,6 @@
 
 #include "GPU_draw.h"
 #include "GPU_select.h"
-#include "GPU_basic_shader.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"

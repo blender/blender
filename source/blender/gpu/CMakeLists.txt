@@ -58,7 +58,6 @@ set(INC_SYS
 
 set(SRC
 	intern/gpu_attr_binding.c
-	intern/gpu_basic_shader.c
 	intern/gpu_batch.c
 	intern/gpu_batch_presets.c
 	intern/gpu_batch_utils.c
@@ -98,9 +97,6 @@ set(SRC
 	shaders/gpu_shader_material.glsl
 	shaders/gpu_shader_sep_gaussian_blur_frag.glsl
 	shaders/gpu_shader_sep_gaussian_blur_vert.glsl
-	shaders/gpu_shader_basic_frag.glsl
-	shaders/gpu_shader_basic_vert.glsl
-	shaders/gpu_shader_basic_geom.glsl
 	shaders/gpu_shader_vertex.glsl
 	shaders/gpu_shader_vsm_store_frag.glsl
 	shaders/gpu_shader_vsm_store_vert.glsl
@@ -110,7 +106,6 @@ set(SRC
 	shaders/gpu_shader_smoke_vert.glsl
 
 	GPU_attr_binding.h
-	GPU_basic_shader.h
 	GPU_batch.h
 	GPU_buffers.h
 	GPU_common.h
@@ -252,9 +247,6 @@ data_to_c_simple(shaders/gpu_shader_smoke_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_material.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_sep_gaussian_blur_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_basic_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_basic_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_basic_geom.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vertex.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vertex_world.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
