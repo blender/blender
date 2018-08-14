@@ -1633,7 +1633,7 @@ def write_sphinx_conf_py(basepath):
     fw("    'include__bmesh.rst',\n")
     fw("]\n\n")
 
-    fw("html_theme = 'classic'\n")
+    fw("html_theme = 'sphinx_rtd_theme'\n")
     # not helpful since the source is generated, adds to upload size.
     fw("html_copy_source = False\n")
     fw("html_show_sphinx = False\n")
