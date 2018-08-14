@@ -500,22 +500,7 @@ def is_struct_seq(value):
 
 
 def undocumented_message(module_name, type_name, identifier):
-    return "Undocumented"
-
-    """
-    if str(type_name).startswith('<module'):
-        preloadtitle = '%s.%s' % (module_name, identifier)
-    else:
-        preloadtitle = '%s.%s.%s' % (module_name, type_name, identifier)
-    message = ("Undocumented (`contribute "
-               "<http://wiki.blender.org/index.php/"
-               "Dev:2.5/Py/API/Generating_API_Reference/Contribute"
-               "?action=edit"
-               "&section=new"
-               "&preload=Dev:2.5/Py/API/Generating_API_Reference/Contribute/Howto-message"
-               "&preloadtitle=%s>`_)\n\n" % preloadtitle)
-    return message
-    """
+    return "Undocumented `contribute <https://developer.blender.org/T51061>`"
 
 
 def range_str(val):
