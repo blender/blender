@@ -823,7 +823,8 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
             for submod_name, submod in submod_ls:
                 submod_name_full = "%s.%s" % (module_name, submod_name)
-                fw("   %s.rst\n\n" % submod_name_full)
+                fw("   %s.rst\n" % submod_name_full)
+            fw("\n")
 
                 pymodule2sphinx(basepath, submod_name_full, submod, "%s submodule" % module_name)
         del submod_ls
@@ -1699,7 +1700,7 @@ def write_rst_contents(basepath):
         fw("   :maxdepth: 1\n")
         fw("   :caption: Blender/Python Documentation\n\n")
         for info, info_desc in INFO_DOCS:
-            fw("   %s <%s>\n\n" % (info_desc, info))
+            fw("   %s <%s>\n" % (info_desc, info))
         fw("\n")
 
     fw(".. toctree::\n")
@@ -1847,6 +1848,7 @@ def write_rst_importable_modules(basepath):
         "bpy.app": "Application Data",
         "bpy.app.handlers": "Application Handlers",
         "bpy.app.translations": "Application Translations",
+        "bpy.app.icons": "Application Icons",
         "bpy.props": "Property Definitions",
         "idprop.types": "ID Property Access",
         "mathutils": "Math Types & Utilities",
