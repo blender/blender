@@ -630,7 +630,7 @@ static int modifier_apply_obdata(ReportList *reports, Depsgraph *depsgraph, Scen
 		ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 		if (ELEM(mti->type, eModifierTypeType_Constructive, eModifierTypeType_Nonconstructive)) {
-			BKE_report(reports, RPT_ERROR, "Cannot apply constructive modifiers on curve");
+			BKE_report(reports, RPT_ERROR, "Transform curve to mesh in order to apply constructive modifiers");
 			return 0;
 		}
 
