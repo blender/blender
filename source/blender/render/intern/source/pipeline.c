@@ -1043,12 +1043,14 @@ void RE_gl_context_create(Render *re)
 void RE_gl_context_destroy(Render *re)
 {
 	/* Needs to be called from the thread which used the ogl context for rendering. */
-	if (re->gpu_context) {
-		GPU_context_active_set(re->gpu_context);
-		GPU_context_discard(re->gpu_context);
-		re->gpu_context = NULL;
-	}
 	if (re->gl_context) {
+		if (re->gpu_context) {
+			WM_opengl_context_activate(re->gl_context);
+			GPU_context_active_set(re->gpu_context);
+			GPU_context_discard(re->gpu_context);
+			re->gpu_context = NULL;
+		}
+
 		WM_opengl_context_dispose(re->gl_context);
 		re->gl_context = NULL;
 	}

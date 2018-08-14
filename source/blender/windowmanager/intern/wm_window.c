@@ -631,6 +631,10 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	wm_get_screensize(&scr_w, &scr_h);
 	posy = (scr_h - win->posy - win->sizey);
 
+	/* Clear drawable so we can set the new window. */
+	wmWindow *prev_windrawable = wm->windrawable;
+	wm_window_clear_drawable(wm);
+
 	ghostwin = GHOST_CreateWindow(g_system, title,
 	                              win->posx, posy, win->sizex, win->sizey,
 	                              (GHOST_TWindowState)win->windowstate,
@@ -640,9 +644,6 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
 
-		/* Clear drawable so we can set the new window. */
-		wm_window_clear_drawable(wm);
-
 		win->gpuctx = GPU_context_create();
 
 		/* needed so we can detect the graphics card below */
@@ -650,8 +651,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 
 		/* Set window as drawable upon creation. Note this has already been
 		 * it has already been activated by GHOST_CreateWindow. */
-		bool activate = false;
-		wm_window_set_drawable(wm, win, activate);
+		wm_window_set_drawable(wm, win, false);
 
 		win->ghostwin = ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win); /* pointer back */
@@ -688,6 +688,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 
 		/* standard state vars for window */
 		GPU_state_init();
+	}
+	else {
+		wm_window_set_drawable(wm, prev_windrawable, false);
 	}
 }
 
