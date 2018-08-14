@@ -157,7 +157,6 @@ class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("view3d.cursor3d")
             layout.prop(props, "use_depth")
             layout.prop(props, "orientation")
@@ -511,7 +510,6 @@ class _defs_edit_mesh:
     @ToolDef.from_fn
     def rip_region():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("mesh.rip_move")
             props_macro = props.MESH_OT_rip
             layout.prop(props_macro, "use_fill")
@@ -611,7 +609,6 @@ class _defs_edit_mesh:
     @ToolDef.from_fn
     def inset():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("mesh.inset")
             layout.prop(props, "use_outset")
             layout.prop(props, "use_individual")
@@ -726,7 +723,6 @@ class _defs_edit_mesh:
     @ToolDef.from_fn
     def shrink_fatten():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("transform.shrink_fatten")
             layout.prop(props, "use_even_offset")
 
@@ -756,7 +752,6 @@ class _defs_edit_mesh:
     @ToolDef.from_fn
     def knife():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("mesh.knife_tool")
             layout.prop(props, "use_occlude_geometry")
             layout.prop(props, "only_selected")
@@ -996,7 +991,6 @@ class _defs_weight_paint:
     @ToolDef.from_fn
     def gradient():
         def draw_settings(context, layout, tool):
-            wm = context.window_manager
             props = tool.operator_properties("paint.weight_gradient")
             layout.prop(props, "type")
 
