@@ -67,6 +67,7 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
+#include "BKE_screen.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
@@ -5926,25 +5927,37 @@ static void SCULPT_OT_detail_flood_fill(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void sample_detail(bContext *C, int ss_co[2])
+static void sample_detail(bContext *C, int mx, int my)
 {
+	/* Find 3D view to pick from. */
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_VIEW3D, mx, my);
+	ARegion *ar = (sa) ? BKE_area_find_region_xy(sa, RGN_TYPE_WINDOW, mx, my) : NULL;
+	if (ar == NULL) {
+		return;
+	}
+
+	/* Set context to 3D view. */
+	ScrArea *prev_sa = CTX_wm_area(C);
+	ARegion *prev_ar = CTX_wm_region(C);
+	CTX_wm_area_set(C, sa);
+	CTX_wm_region_set(C, ar);
+
 	ViewContext vc;
-	Object *ob;
-	Sculpt *sd;
-	float ray_start[3], ray_end[3], ray_normal[3], depth;
-	SculptDetailRaycastData srd;
-	float mouse[2] = {ss_co[0], ss_co[1]};
 	ED_view3d_viewcontext_init(C, &vc);
 
-	sd = CTX_data_tool_settings(C)->sculpt;
-	ob = vc.obact;
-
+	/* Pick sample detail. */
+	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+	Object *ob = vc.obact;
 	Brush *brush = BKE_paint_brush(&sd->paint);
 
 	sculpt_stroke_modifiers_check(C, ob, brush);
 
-	depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
+	float mouse[2] = {mx - ar->winrct.xmin, my - ar->winrct.ymin};
+	float ray_start[3], ray_end[3], ray_normal[3];
+	float depth = sculpt_raycast_init(&vc, mouse, ray_start, ray_end, ray_normal, false);
 
+	SculptDetailRaycastData srd;
 	srd.hit = 0;
 	srd.ray_start = ray_start;
 	srd.ray_normal = ray_normal;
@@ -5958,13 +5971,17 @@ static void sample_detail(bContext *C, int ss_co[2])
 		/* convert edge length to detail resolution */
 		sd->constant_detail = 1.0f / srd.detail;
 	}
+
+	/* Restore context. */
+	CTX_wm_area_set(C, prev_sa);
+	CTX_wm_region_set(C, prev_ar);
 }
 
 static int sculpt_sample_detail_size_exec(bContext *C, wmOperator *op)
 {
 	int ss_co[2];
 	RNA_int_get_array(op->ptr, "location", ss_co);
-	sample_detail(C, ss_co);
+	sample_detail(C, ss_co[0], ss_co[1]);
 	return OPERATOR_FINISHED;
 }
 
@@ -5977,14 +5994,14 @@ static int sculpt_sample_detail_size_invoke(bContext *C, wmOperator *op, const w
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wmEvent *e)
+static int sculpt_sample_detail_size_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	switch (e->type) {
+	switch (event->type) {
 		case LEFTMOUSE:
-			if (e->val == KM_PRESS) {
-				int ss_co[2] = {e->mval[0], e->mval[1]};
+			if (event->val == KM_PRESS) {
+				int ss_co[2] = {event->x, event->y};
 
-				sample_detail(C, ss_co);
+				sample_detail(C, ss_co[0], ss_co[1]);
 
 				RNA_int_set_array(op->ptr, "location", ss_co);
 				WM_cursor_modal_restore(CTX_wm_window(C));
