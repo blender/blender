@@ -73,6 +73,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_glew.h"
 #include "GPU_material.h"
 #include "GPU_matrix.h"
 #include "GPU_shader.h"
