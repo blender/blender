@@ -1,16 +1,13 @@
- opensubdiv/osd/d3d11VertexBuffer.cpp | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/opensubdiv/osd/d3d11VertexBuffer.cpp b/opensubdiv/osd/d3d11VertexBuffer.cpp
-index 603cbf4..07e7e0a 100644
---- a/opensubdiv/osd/d3d11VertexBuffer.cpp
-+++ b/opensubdiv/osd/d3d11VertexBuffer.cpp
-@@ -81,7 +81,7 @@ D3D11VertexBuffer::UpdateData(const float *src, int startVertex, int numVertices
+diff --git a/opensubdiv/far/topologyRefiner.cpp b/opensubdiv/far/topologyRefiner.cpp
+index 3754b36e..7fe42bcc 100644
+--- a/opensubdiv/far/topologyRefiner.cpp
++++ b/opensubdiv/far/topologyRefiner.cpp
+@@ -263,7 +263,7 @@ namespace internal {
+         bool IsEmpty() const { return *((int_type*)this) == 0; }
  
-     deviceContext->Unmap(_uploadBuffer, 0);
+         FeatureMask() { Clear(); }
+-        FeatureMask(Options const & options, Sdc::SchemeType sType) { InitializeFeatures(options, sType); }
++        FeatureMask(Options const & options, Sdc::SchemeType sType) { Clear(); InitializeFeatures(options, sType); }
  
--    D3D11_BOX srcBox = { 0, 0, 0, size, 1, 1 };
-+    D3D11_BOX srcBox = { 0, 0, 0, (UINT) size, 1, 1 };
-     deviceContext->CopySubresourceRegion(_buffer, 0, 0, 0, 0,
-                                          _uploadBuffer, 0, &srcBox);
- }
+         //  These are the two primary methods intended for use -- intialization via a set of Options
+         //  and reduction of the subsequent feature set (which presumes prior initialization with the
