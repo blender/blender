@@ -173,11 +173,14 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
                                   const ModifierEvalContext *ctx,
                                   Mesh *mesh)
 {
+	Object *object = ctx->object;
 	Mesh *result = mesh;
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	SubdivSettings subdiv_settings;
 	subdiv_settings_init(&subdiv_settings, mmd);
-	if (subdiv_settings.level == 0) {
+	SubdivToMeshSettings mesh_settings;
+	subdiv_mesh_settings_init(&mesh_settings, mmd, ctx);
+	if (subdiv_settings.level == 0 || mesh_settings.resolution < 3) {
 		/* NOTE: Shouldn't really happen, is supposed to be catched by
 		 * isDisabled() callback.
 		 */
@@ -189,8 +192,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 		/* Happens on bad topology, ut also on empty input mesh. */
 		return result;
 	}
-	SubdivToMeshSettings mesh_settings;
-	subdiv_mesh_settings_init(&mesh_settings, mmd, ctx);
+	BKE_subdiv_displacement_attach_from_multires(subdiv, object, mmd);
 	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
 	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);

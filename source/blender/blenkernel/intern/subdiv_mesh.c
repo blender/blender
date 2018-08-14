@@ -668,6 +668,50 @@ static void loop_interpolation_end(LoopsForInterpolation *loop_interpolation)
 }
 
 /* =============================================================================
+ * Helper evaluation functions.
+ */
+
+static void eval_final_point_and_vertex_normal(
+        Subdiv *subdiv,
+        const int ptex_face_index,
+        const float u, const float v,
+        float r_P[3], short r_N[3])
+{
+	if (subdiv->displacement_evaluator == NULL) {
+		BKE_subdiv_eval_limit_point_and_short_normal(
+		        subdiv, ptex_face_index, u, v, r_P, r_N);
+	}
+	else {
+		BKE_subdiv_eval_final_point(
+		        subdiv, ptex_face_index, u, v, r_P);
+	}
+}
+
+/* =============================================================================
+ * Displacement helpers
+ */
+
+static void subdiv_accumulate_vertex_displacement(
+        Subdiv *subdiv,
+        const int ptex_face_index,
+        const float u, const float v,
+        MVert *subdiv_vert)
+{
+	float dummy_P[3], dPdu[3], dPdv[3], D[3];
+	BKE_subdiv_eval_limit_point_and_derivatives(
+	        subdiv, ptex_face_index, u, v, dummy_P, dPdu, dPdv);
+	BKE_subdiv_eval_displacement(subdiv,
+	                             ptex_face_index, u, v,
+	                             dPdu, dPdv,
+	                             D);
+	add_v3_v3(subdiv_vert->co, D);
+	if (subdiv_vert->flag & ME_VERT_TMP_TAG) {
+		mul_v3_fl(subdiv_vert->co, 0.5f);
+	}
+	subdiv_vert->flag |= ME_VERT_TMP_TAG;
+}
+
+/* =============================================================================
  * Vertex subdivision process.
  */
 
@@ -682,6 +726,7 @@ static void subdiv_vertex_data_copy(
 	Mesh *subdiv_mesh = ctx->subdiv_mesh;
 	const int coarse_vertex_index = coarse_vertex - coarse_mesh->mvert;
 	const int subdiv_vertex_index = subdiv_vertex - subdiv_mesh->mvert;
+	subdiv_vertex->flag &= ~ME_VERT_TMP_TAG;
 	CustomData_copy_data(&coarse_mesh->vdata,
 	                     &ctx->subdiv_mesh->vdata,
 	                     coarse_vertex_index,
@@ -700,6 +745,7 @@ static void subdiv_vertex_data_interpolate(
 	                          u * (1.0f - v),
 	                          u * v,
 	                          (1.0f - u) * v};
+	subdiv_vertex->flag &= ~ME_VERT_TMP_TAG;
 	CustomData_interp(vertex_interpolation->vertex_data,
 	                  &ctx->subdiv_mesh->vdata,
 	                  vertex_interpolation->vertex_indices,
@@ -710,6 +756,7 @@ static void subdiv_vertex_data_interpolate(
 		ctx->vert_origindex[subdiv_vertex_index] = ORIGINDEX_NONE;
 	}
 }
+
 
 /* Evaluation of corner vertices. They are coming from coarse vertices. */
 
@@ -740,12 +787,19 @@ static void subdiv_evaluate_corner_vertices_regular(
 		const MVert *coarse_vert = &coarse_mvert[coarse_loop->v];
 		MVert *subdiv_vert = &subdiv_mvert[
 		        ctx->vertices_corner_offset + coarse_loop->v];
+		/* Displacement is accumulated in subdiv vertex position.
+		 * need to back it up before copying data fro original vertex.
+		 */
+		float D[3];
+		copy_v3_v3(D, subdiv_vert->co);
 		subdiv_vertex_data_copy(ctx, coarse_vert, subdiv_vert);
 		BKE_subdiv_eval_limit_point_and_short_normal(
 		        subdiv,
 		        ptex_face_index,
 		        weights[corner][0], weights[corner][1],
 		        subdiv_vert->co, subdiv_vert->no);
+		/* Apply displacement. */
+		add_v3_v3(subdiv_vert->co, D);
 	}
 }
 
@@ -775,12 +829,19 @@ static void subdiv_evaluate_corner_vertices_special(
 		const MVert *coarse_vert = &coarse_mvert[coarse_loop->v];
 		MVert *subdiv_vert = &subdiv_mvert[
 		        ctx->vertices_corner_offset + coarse_loop->v];
+		/* Displacement is accumulated in subdiv vertex position.
+		 * need to back it up before copying data fro original vertex.
+		 */
+		float D[3];
+		copy_v3_v3(D, subdiv_vert->co);
 		subdiv_vertex_data_copy(ctx, coarse_vert, subdiv_vert);
 		BKE_subdiv_eval_limit_point_and_short_normal(
 		        subdiv,
 		        ptex_face_index,
 		        0.0f, 0.0f,
 		        subdiv_vert->co, subdiv_vert->no);
+		/* Apply displacement. */
+		add_v3_v3(subdiv_vert->co, D);
 	}
 }
 
@@ -792,6 +853,76 @@ static void subdiv_evaluate_corner_vertices(SubdivMeshContext *ctx,
 	}
 	else {
 		subdiv_evaluate_corner_vertices_special(ctx, coarse_poly);
+	}
+}
+
+static void subdiv_displace_corner_vertices_regular(
+        SubdivMeshContext *ctx,
+        const MPoly *coarse_poly)
+{
+	const float weights[4][2] = {{0.0f, 0.0f},
+	                             {1.0f, 0.0f},
+	                             {1.0f, 1.0f},
+	                             {0.0f, 1.0f}};
+	Subdiv *subdiv = ctx->subdiv;
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MLoop *coarse_mloop = coarse_mesh->mloop;
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	const int poly_index = coarse_poly - coarse_mesh->mpoly;
+	const int ptex_face_index = ctx->face_ptex_offset[poly_index];
+	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
+		const MLoop *coarse_loop =
+		    &coarse_mloop[coarse_poly->loopstart + corner];
+		MVert *subdiv_vert = &subdiv_mvert[
+		        ctx->vertices_corner_offset + coarse_loop->v];
+		const float u = weights[corner][0];
+		const float v = weights[corner][1];
+		subdiv_accumulate_vertex_displacement(
+		        subdiv, ptex_face_index, u, v, subdiv_vert);
+	}
+}
+
+static void subdiv_displace_corner_vertices_special(
+        SubdivMeshContext *ctx,
+        const MPoly *coarse_poly)
+{
+	Subdiv *subdiv = ctx->subdiv;
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MLoop *coarse_mloop = coarse_mesh->mloop;
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	const int poly_index = coarse_poly - coarse_mesh->mpoly;
+	int ptex_face_index = ctx->face_ptex_offset[poly_index];
+	for (int corner = 0;
+	     corner < coarse_poly->totloop;
+	     corner++, ptex_face_index++)
+	{
+		const MLoop *coarse_loop =
+		    &coarse_mloop[coarse_poly->loopstart + corner];
+		MVert *subdiv_vert = &subdiv_mvert[
+		        ctx->vertices_corner_offset + coarse_loop->v];
+		subdiv_accumulate_vertex_displacement(
+		        subdiv, ptex_face_index, 0.0f, 0.0f, subdiv_vert);
+	}
+}
+
+static void subdiv_displace_corner_vertices(SubdivMeshContext *ctx)
+{
+	Subdiv *subdiv = ctx->subdiv;
+	if (subdiv->displacement_evaluator == NULL) {
+		return;
+	}
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
+		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
+		if (coarse_poly->totloop == 4) {
+			subdiv_displace_corner_vertices_regular(ctx, coarse_poly);
+		}
+		else {
+			subdiv_displace_corner_vertices_special(ctx, coarse_poly);
+		}
 	}
 }
 
@@ -851,6 +982,11 @@ static void subdiv_evaluate_edge_vertices_regular(
 				u = (corner == 1) ? 1.0f : 0.0f;
 				v = fac;
 			}
+			/* Displacement is accumulated in subdiv vertex position.
+			 * need to back it up before copying data fro original vertex.
+			 */
+			float D[3];
+			copy_v3_v3(D, subdiv_vert->co);
 			subdiv_vertex_data_interpolate(ctx,
 			                               subdiv_vert,
 			                               vertex_interpolation,
@@ -860,6 +996,8 @@ static void subdiv_evaluate_edge_vertices_regular(
 			        ptex_face_index,
 			        u, v,
 			        subdiv_vert->co, subdiv_vert->no);
+			/* Apply displacement. */
+			add_v3_v3(subdiv_vert->co, D);
 		}
 	}
 }
@@ -913,6 +1051,11 @@ static void subdiv_evaluate_edge_vertices_special(
 		     vertex_index++, subdiv_vert += veretx_delta)
 		{
 			float u = vertex_index * inv_ptex_resolution_1;
+			/* Displacement is accumulated in subdiv vertex position.
+			 * need to back it up before copying data fro original vertex.
+			 */
+			float D[3];
+			copy_v3_v3(D, subdiv_vert->co);
 			subdiv_vertex_data_interpolate(ctx,
 			                               subdiv_vert,
 			                               vertex_interpolation,
@@ -922,6 +1065,8 @@ static void subdiv_evaluate_edge_vertices_special(
 			        ptex_face_index,
 			        u, 0.0f,
 			        subdiv_vert->co, subdiv_vert->no);
+			/* Apply displacement. */
+			add_v3_v3(subdiv_vert->co, D);
 		}
 		const int next_ptex_face_index =
 		        ptex_face_start_index + (corner + 1) % coarse_poly->totloop;
@@ -930,6 +1075,11 @@ static void subdiv_evaluate_edge_vertices_special(
 		     vertex_index++, subdiv_vert += veretx_delta)
 		{
 			float v = 1.0f - vertex_index * inv_ptex_resolution_1;
+			/* Displacement is accumulated in subdiv vertex position.
+			 * need to back it up before copying data fro original vertex.
+			 */
+			float D[3];
+			copy_v3_v3(D, subdiv_vert->co);
 			subdiv_vertex_data_interpolate(ctx,
 			                               subdiv_vert,
 			                               vertex_interpolation,
@@ -939,6 +1089,8 @@ static void subdiv_evaluate_edge_vertices_special(
 			        next_ptex_face_index,
 			        0.0f, v,
 			        subdiv_vert->co, subdiv_vert->no);
+			/* Apply displacement. */
+			add_v3_v3(subdiv_vert->co, D);
 		}
 	}
 }
@@ -955,6 +1107,129 @@ static void subdiv_evaluate_edge_vertices(
 	else {
 		subdiv_evaluate_edge_vertices_special(
 		        ctx, coarse_poly, vertex_interpolation);
+	}
+}
+
+static void subdiv_displace_edge_vertices_regular(
+        SubdivMeshContext *ctx,
+        const MPoly *coarse_poly)
+{
+	const int resolution = ctx->settings->resolution;
+	const int resolution_1 = resolution - 1;
+	const float inv_resolution_1 = 1.0f / (float)resolution_1;
+	const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
+	Subdiv *subdiv = ctx->subdiv;
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MEdge *coarse_medge = coarse_mesh->medge;
+	const MLoop *coarse_mloop = coarse_mesh->mloop;
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	const int poly_index = coarse_poly - coarse_mesh->mpoly;
+	const int ptex_face_index = ctx->face_ptex_offset[poly_index];
+	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
+		const MLoop *coarse_loop =
+		    &coarse_mloop[coarse_poly->loopstart + corner];
+		const MEdge *coarse_edge = &coarse_medge[coarse_loop->e];
+		const bool flip = (coarse_edge->v2 == coarse_loop->v);
+		MVert *subdiv_vert = &subdiv_mvert[
+		        ctx->vertices_edge_offset +
+		        coarse_loop->e * num_subdiv_vertices_per_coarse_edge];
+		for (int vertex_index = 0;
+		     vertex_index < num_subdiv_vertices_per_coarse_edge;
+		     vertex_index++, subdiv_vert++)
+		{
+			float fac = (vertex_index + 1) * inv_resolution_1;
+			if (flip) {
+				fac = 1.0f - fac;
+			}
+			if (corner >= 2) {
+				fac = 1.0f - fac;
+			}
+			float u, v;
+			if ((corner & 1) == 0) {
+				u = fac;
+				v = (corner == 2) ? 1.0f : 0.0f;
+			}
+			else {
+				u = (corner == 1) ? 1.0f : 0.0f;
+				v = fac;
+			}
+			subdiv_accumulate_vertex_displacement(
+			        subdiv, ptex_face_index, u, v, subdiv_vert);
+		}
+	}
+}
+
+static void subdiv_displace_edge_vertices_special(
+        SubdivMeshContext *ctx,
+        const MPoly *coarse_poly)
+{
+	const int resolution = ctx->settings->resolution;
+	const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
+	const int num_vertices_per_ptex_edge = ((resolution >> 1) + 1);
+	const float inv_ptex_resolution_1 =
+	        1.0f / (float)(num_vertices_per_ptex_edge - 1);
+	Subdiv *subdiv = ctx->subdiv;
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MEdge *coarse_medge = coarse_mesh->medge;
+	const MLoop *coarse_mloop = coarse_mesh->mloop;
+	Mesh *subdiv_mesh = ctx->subdiv_mesh;
+	MVert *subdiv_mvert = subdiv_mesh->mvert;
+	const int poly_index = coarse_poly - coarse_mesh->mpoly;
+	const int ptex_face_start_index = ctx->face_ptex_offset[poly_index];
+	int ptex_face_index = ptex_face_start_index;
+	for (int corner = 0;
+	     corner < coarse_poly->totloop;
+	     corner++, ptex_face_index++)
+	{
+		const MLoop *coarse_loop =
+		        &coarse_mloop[coarse_poly->loopstart + corner];
+		const MEdge *coarse_edge = &coarse_medge[coarse_loop->e];
+		const bool flip = (coarse_edge->v2 == coarse_loop->v);
+		MVert *subdiv_vert = &subdiv_mvert[
+		        ctx->vertices_edge_offset +
+		        coarse_loop->e * num_subdiv_vertices_per_coarse_edge];
+		int veretx_delta = 1;
+		if (flip) {
+			subdiv_vert += num_subdiv_vertices_per_coarse_edge - 1;
+			veretx_delta = -1;
+		}
+		for (int vertex_index = 1;
+		     vertex_index < num_vertices_per_ptex_edge;
+		     vertex_index++, subdiv_vert += veretx_delta)
+		{
+			float u = vertex_index * inv_ptex_resolution_1;
+			subdiv_accumulate_vertex_displacement(
+			        subdiv, ptex_face_index, u, 0.0f, subdiv_vert);
+		}
+		const int next_ptex_face_index =
+		        ptex_face_start_index + (corner + 1) % coarse_poly->totloop;
+		for (int vertex_index = 1;
+		     vertex_index < num_vertices_per_ptex_edge - 1;
+		     vertex_index++, subdiv_vert += veretx_delta)
+		{
+			float v = 1.0f - vertex_index * inv_ptex_resolution_1;
+			subdiv_accumulate_vertex_displacement(
+			        subdiv, next_ptex_face_index, 0.0f, v, subdiv_vert);
+		}
+	}
+}
+static void subdiv_displace_edge_vertices(SubdivMeshContext *ctx)
+{
+	Subdiv *subdiv = ctx->subdiv;
+	if (subdiv->displacement_evaluator == NULL) {
+		return;
+	}
+	const Mesh *coarse_mesh = ctx->coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
+		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
+		if (coarse_poly->totloop == 4) {
+			subdiv_displace_edge_vertices_regular(ctx, coarse_poly);
+		}
+		else {
+			subdiv_displace_edge_vertices_special(ctx, coarse_poly);
+		}
 	}
 }
 
@@ -988,7 +1263,7 @@ static void subdiv_evaluate_inner_vertices_regular(
 			                               subdiv_vert,
 			                               vertex_interpolation,
 			                               u, v);
-			BKE_subdiv_eval_limit_point_and_short_normal(
+			eval_final_point_and_vertex_normal(
 			        subdiv,
 			        ptex_face_index,
 			        u, v,
@@ -1024,7 +1299,7 @@ static void subdiv_evaluate_inner_vertices_special(
 	                               subdiv_vert,
 	                               vertex_interpolation,
 	                               1.0f, 1.0f);
-	BKE_subdiv_eval_limit_point_and_short_normal(
+	eval_final_point_and_vertex_normal(
 	        subdiv,
 	        ptex_face_index,
 	        1.0f, 1.0f,
@@ -1048,7 +1323,7 @@ static void subdiv_evaluate_inner_vertices_special(
 				                               subdiv_vert,
 				                               vertex_interpolation,
 				                               u, v);
-				BKE_subdiv_eval_limit_point_and_short_normal(
+				eval_final_point_and_vertex_normal(
 				        subdiv,
 				        ptex_face_index,
 				        u, v,
@@ -2415,9 +2690,14 @@ Mesh *BKE_subdiv_to_mesh(
 	ctx.subdiv_mesh = result;
 	subdiv_mesh_ctx_init_result(&ctx);
 	/* Multi-threaded evaluation. */
-	ParallelRangeSettings parallel_range_settings;
 	BKE_subdiv_stats_begin(&subdiv->stats,
 	                       SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
+	/* Single threaded passes to average displacement on the corner vertices
+	 * and boundary edges.
+	 */
+	subdiv_displace_corner_vertices(&ctx);
+	subdiv_displace_edge_vertices(&ctx);
+	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
 	BLI_task_parallel_range(0, coarse_mesh->totpoly,
 	                        &ctx,
@@ -2439,5 +2719,8 @@ Mesh *BKE_subdiv_to_mesh(
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
 	// BKE_mesh_validate(result, true, true);
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_MESH);
+	if (subdiv->displacement_evaluator != NULL) {
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+	}
 	return result;
 }

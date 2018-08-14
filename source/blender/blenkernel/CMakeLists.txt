@@ -194,6 +194,8 @@ set(SRC
 	intern/subdiv.c
 	intern/subdiv_converter.c
 	intern/subdiv_converter_mesh.c
+	intern/subdiv_displacement.c
+	intern/subdiv_displacement_multires.c
 	intern/subdiv_eval.c
 	intern/subdiv_mesh.c
 	intern/subdiv_stats.c

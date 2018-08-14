@@ -164,53 +164,53 @@ void BKE_subdiv_eval_limit_point(
         Subdiv *subdiv,
         const int ptex_face_index,
         const float u, const float v,
-        float P[3])
+        float r_P[3])
 {
 	BKE_subdiv_eval_limit_point_and_derivatives(subdiv,
 	                                            ptex_face_index,
 	                                            u, v,
-	                                            P, NULL, NULL);
+	                                            r_P, NULL, NULL);
 }
 
 void BKE_subdiv_eval_limit_point_and_derivatives(
         Subdiv *subdiv,
         const int ptex_face_index,
         const float u, const float v,
-        float P[3], float dPdu[3], float dPdv[3])
+        float r_P[3], float r_dPdu[3], float r_dPdv[3])
 {
 	subdiv->evaluator->evaluateLimit(subdiv->evaluator,
 	                                 ptex_face_index,
 	                                 u, v,
-	                                 P, dPdu, dPdv);
+	                                 r_P, r_dPdu, r_dPdv);
 }
 
 void BKE_subdiv_eval_limit_point_and_normal(
         Subdiv *subdiv,
         const int ptex_face_index,
         const float u, const float v,
-        float P[3], float N[3])
+        float r_P[3], float r_N[3])
 {
 	float dPdu[3], dPdv[3];
 	BKE_subdiv_eval_limit_point_and_derivatives(subdiv,
 	                                            ptex_face_index,
 	                                            u, v,
-	                                            P, dPdu, dPdv);
-	cross_v3_v3v3(N, dPdu, dPdv);
-	normalize_v3(N);
+	                                            r_P, dPdu, dPdv);
+	cross_v3_v3v3(r_N, dPdu, dPdv);
+	normalize_v3(r_N);
 }
 
 void BKE_subdiv_eval_limit_point_and_short_normal(
         Subdiv *subdiv,
         const int ptex_face_index,
         const float u, const float v,
-        float P[3], short N[3])
+        float r_P[3], short r_N[3])
 {
 	float N_float[3];
 	BKE_subdiv_eval_limit_point_and_normal(subdiv,
 	                                       ptex_face_index,
 	                                       u, v,
-	                                       P, N_float);
-	normal_float_to_short_v3(N, N_float);
+	                                       r_P, N_float);
+	normal_float_to_short_v3(r_N, N_float);
 }
 
 void BKE_subdiv_eval_face_varying(
@@ -218,13 +218,53 @@ void BKE_subdiv_eval_face_varying(
         const int face_varying_channel,
         const int ptex_face_index,
         const float u, const float v,
-        float face_varying[2])
+        float r_face_varying[2])
 {
 	subdiv->evaluator->evaluateFaceVarying(subdiv->evaluator,
 	                                       face_varying_channel,
 	                                       ptex_face_index,
 	                                       u, v,
-	                                       face_varying);
+	                                       r_face_varying);
+}
+
+void BKE_subdiv_eval_displacement(
+        Subdiv *subdiv,
+        const int ptex_face_index,
+        const float u, const float v,
+        const float dPdu[3], const float dPdv[3],
+        float r_D[3])
+{
+	if (subdiv->displacement_evaluator == NULL) {
+		zero_v3(r_D);
+		return;
+	}
+	subdiv->displacement_evaluator->eval_displacement(
+	        subdiv->displacement_evaluator,
+	        ptex_face_index,
+	        u, v,
+	        dPdu, dPdv,
+	        r_D);
+}
+
+void BKE_subdiv_eval_final_point(
+        Subdiv *subdiv,
+        const int ptex_face_index,
+        const float u, const float v,
+        float r_P[3])
+{
+	if (subdiv->displacement_evaluator) {
+		float dPdu[3], dPdv[3], D[3];
+		BKE_subdiv_eval_limit_point_and_derivatives(
+		        subdiv, ptex_face_index, u, v, r_P, dPdu, dPdv);
+		BKE_subdiv_eval_displacement(subdiv,
+		                             ptex_face_index, u, v,
+		                             dPdu, dPdv,
+		                             D);
+		add_v3_v3(r_P, D);
+	}
+	else {
+		BKE_subdiv_eval_limit_point(subdiv, ptex_face_index, u, v, r_P);
+	}
 }
 
 /* ===================  Patch queries at given resolution =================== */

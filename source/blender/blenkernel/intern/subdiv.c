@@ -90,6 +90,7 @@ Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
 	subdiv->settings = *settings;
 	subdiv->topology_refiner = osd_topology_refiner;
 	subdiv->evaluator = NULL;
+	subdiv->displacement_evaluator = NULL;
 	BKE_subdiv_stats_end(&stats, SUBDIV_STATS_TOPOLOGY_REFINER_CREATION_TIME);
 	subdiv->stats = stats;
 	return subdiv;
@@ -116,5 +117,6 @@ void BKE_subdiv_free(Subdiv *subdiv)
 	if (subdiv->topology_refiner != NULL) {
 		openSubdiv_deleteTopologyRefiner(subdiv->topology_refiner);
 	}
+	BKE_subdiv_displacement_detach(subdiv);
 	MEM_freeN(subdiv);
 }
