@@ -322,24 +322,6 @@ struct bThemeState {
 
 // THE CODERS API FOR THEMES:
 
-// sets the color
-void    UI_ThemeColor(int colorid);
-
-// sets the color plus alpha
-void	UI_ThemeColor4(int colorid);
-
-// sets color plus offset for shade
-void	UI_ThemeColorShade(int colorid, int offset);
-
-// sets color plus offset for alpha
-void	UI_ThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset);
-
-// sets color, which is blend between two theme colors
-void    UI_ThemeColorBlend(int colorid1, int colorid2, float fac);
-// same, with shade offset
-void    UI_ThemeColorBlendShade(int colorid1, int colorid2, float fac, int offset);
-void    UI_ThemeColorBlendShadeAlpha(int colorid1, int colorid2, float fac, int offset, int alphaoffset);
-
 // returns one value, not scaled
 float   UI_GetThemeValuef(int colorid);
 int     UI_GetThemeValue(int colorid);
@@ -378,9 +360,6 @@ void UI_GetThemeColor4ubv(int colorid, unsigned char col[4]);
 
 // get a theme color from specified space type
 void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4]);
-
-// blends and shades between two color pointers
-void    UI_ColorPtrBlendShade3ubv(const unsigned char cp1[3], const unsigned char cp2[3], float fac, int offset);
 
 // shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor)
 void    UI_GetColorPtrShade3ubv(const unsigned char cp1[3], unsigned char col[3], int offset);
