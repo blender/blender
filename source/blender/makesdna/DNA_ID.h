@@ -419,9 +419,10 @@ typedef enum ID_Type {
                                          ID_IS_STATIC_OVERRIDE((_id)) && \
                                          (((ID *)(_id))->override_static->flag & STATICOVERRIDE_AUTO))
 
-/* No copy-on-write for these types. */
+/* No copy-on-write for these types.
+ * Keep in sync with check_datablocks_copy_on_writable and deg_copy_on_write_is_needed */
 #define ID_TYPE_IS_COW(_id_type) \
-	(!ELEM(_id_type, ID_WM, ID_SCR, ID_SCRN, ID_IM, ID_MC, ID_LI))
+	(!ELEM(_id_type, ID_BR, ID_LS, ID_PAL, ID_IM))
 
 #ifdef GS
 #  undef GS
