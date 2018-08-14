@@ -204,9 +204,10 @@ class USERPREF_PT_interface(Panel):
         userpref = context.user_preferences
         view = userpref.view
 
-        row = layout.row()
-
+        split = layout.split()
+        row = split.row()
         col = row.column()
+
         col.label(text="Display:")
         col.prop(view, "ui_scale", text="Scale")
         col.prop(view, "ui_line_width", text="Line Width")
@@ -224,7 +225,7 @@ class USERPREF_PT_interface(Panel):
         sub = col.column(align=True)
 
         sub.label("3D Viewport Axis:")
-        sub.row().prop(view, "mini_axis_type", expand=True)
+        sub.row().prop(view, "mini_axis_type", text="")
 
         sub = col.column(align=True)
         sub.active = view.mini_axis_type == 'MINIMAL'
@@ -250,10 +251,10 @@ class USERPREF_PT_interface(Panel):
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_developer_ui")
 
+        row = split.row()
         row.separator()
-        row.separator()
-
         col = row.column()
+
         col.label(text="View Gizmos:")
         col.prop(view, "use_mouse_depth_cursor")
         col.prop(view, "use_cursor_lock_adjust")
@@ -280,9 +281,8 @@ class USERPREF_PT_interface(Panel):
         elif view.view_frame_type == 'KEYFRAMES':
             col.prop(view, "view_frame_keyframes")
 
+        row = split.row()
         row.separator()
-        row.separator()
-
         col = row.column()
 
         col.label(text="Menus:")
@@ -333,9 +333,10 @@ class USERPREF_PT_edit(Panel):
         userpref = context.user_preferences
         edit = userpref.edit
 
-        row = layout.row()
-
+        split = layout.split()
+        row = split.row()
         col = row.column()
+
         col.label(text="Link Materials To:")
         col.prop(edit, "material_link", text="")
 
@@ -357,10 +358,10 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "undo_steps", text="Steps")
         col.prop(edit, "undo_memory_limit", text="Memory Limit")
 
+        row = split.row()
         row.separator()
-        row.separator()
-
         col = row.column()
+
         col.label(text="Annotations:")
         sub = col.row()
         sub.prop(edit, "grease_pencil_default_color", text="Default Color")
@@ -386,10 +387,10 @@ class USERPREF_PT_edit(Panel):
         col.label(text="Animation Editors:")
         col.prop(edit, "fcurve_unselected_alpha", text="F-Curve Visibility")
 
+        row = split.row()
         row.separator()
-        row.separator()
-
         col = row.column()
+
         col.label(text="Keyframing:")
         col.prop(edit, "use_visual_keying")
         col.prop(edit, "use_keyframe_insert_needed", text="Only Insert Needed")
@@ -419,10 +420,10 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "use_drag_immediately")
         col.prop(edit, "use_numeric_input_advanced")
 
+        row = split.row()
         row.separator()
-        row.separator()
-
         col = row.column()
+
         col.prop(edit, "sculpt_paint_overlay_color", text="Sculpt Overlay Color")
 
         col.separator()
