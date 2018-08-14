@@ -353,7 +353,7 @@ void drw_state_set(DRWState state)
 				/* disable write & test */
 				DST.stencil_mask = 0;
 				glStencilMask(0x00);
-				glStencilFunc(GL_ALWAYS, 1, 0xFF);
+				glStencilFunc(GL_ALWAYS, 0, 0xFF);
 				glDisable(GL_STENCIL_TEST);
 			}
 		}
