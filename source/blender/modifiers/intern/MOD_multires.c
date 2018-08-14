@@ -37,6 +37,7 @@
 
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -44,6 +45,7 @@
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
+#include "BKE_subdiv.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph_query.h"
@@ -139,6 +141,63 @@ static DerivedMesh *applyModifier(
 	return result;
 }
 
+#ifdef WITH_OPENSUBDIV_MODIFIER
+static int subdiv_levels_for_modifier_get(const MultiresModifierData *mmd,
+                                          const ModifierEvalContext *ctx)
+{
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	return multires_get_level(
+	        scene, ctx->object, mmd, use_render_params, false);
+}
+
+static void subdiv_settings_init(SubdivSettings *settings,
+                                 const MultiresModifierData *mmd)
+{
+	settings->is_simple = (mmd->simple != 0);
+	settings->is_adaptive = !settings->is_simple;
+	settings->level = mmd->quality;
+	settings->fvar_linear_interpolation =
+	        BKE_subdiv_fvar_interpolation_from_uv_smooth(mmd->uv_smooth);
+}
+
+static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
+                                      const MultiresModifierData *mmd,
+                                      const ModifierEvalContext *ctx)
+{
+	const int level = subdiv_levels_for_modifier_get(mmd, ctx);
+	settings->resolution = (1 << level) + 1;
+}
+
+static Mesh *applyModifier_subdiv(ModifierData *md,
+                                  const ModifierEvalContext *ctx,
+                                  Mesh *mesh)
+{
+	Mesh *result = mesh;
+	MultiresModifierData *mmd = (MultiresModifierData *)md;
+	SubdivSettings subdiv_settings;
+	subdiv_settings_init(&subdiv_settings, mmd);
+	if (subdiv_settings.level == 0) {
+		/* NOTE: Shouldn't really happen, is supposed to be catched by
+		 * isDisabled() callback.
+		 */
+		return result;
+	}
+	/* TODO(sergey): Try to re-use subdiv when possible. */
+	Subdiv *subdiv = BKE_subdiv_new_from_mesh(&subdiv_settings, mesh);
+	if (subdiv == NULL) {
+		/* Happens on bad topology, ut also on empty input mesh. */
+		return result;
+	}
+	SubdivToMeshSettings mesh_settings;
+	subdiv_mesh_settings_init(&mesh_settings, mmd, ctx);
+	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	/* TODO(sergey): Cache subdiv somehow. */
+	// BKE_subdiv_stats_print(&subdiv->stats);
+	BKE_subdiv_free(subdiv);
+	return result;
+}
+#endif
 
 ModifierTypeInfo modifierType_Multires = {
 	/* name */              "Multires",
@@ -162,7 +221,11 @@ ModifierTypeInfo modifierType_Multires = {
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
+#ifdef WITH_OPENSUBDIV_MODIFIER
+	/* applyModifier */     applyModifier_subdiv,
+#else
 	/* applyModifier */     NULL,
+#endif
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

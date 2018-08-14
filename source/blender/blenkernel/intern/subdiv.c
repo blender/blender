@@ -30,6 +30,7 @@
 #include "BKE_subdiv.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -41,6 +42,27 @@
 #include "opensubdiv_converter_capi.h"
 #include "opensubdiv_evaluator_capi.h"
 #include "opensubdiv_topology_refiner_capi.h"
+
+eSubdivFVarLinearInterpolation
+BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
+{
+	switch (uv_smooth) {
+		case SUBSURF_UV_SMOOTH_NONE:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS;
+		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_JUNCTIONS_AND_CONCAVE;
+		case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_BOUNDARIES;
+		case SUBSURF_UV_SMOOTH_ALL:
+			return SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE;
+	}
+	BLI_assert(!"Unknown uv smooth flag");
+	return SUBSURF_UV_SMOOTH_NONE;
+}
 
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
                                       struct OpenSubdiv_Converter *converter)

@@ -111,6 +111,12 @@ typedef struct Subdiv {
 	SubdivStats stats;
 } Subdiv;
 
+/* ================================ HELPERS ================================= */
+
+/* NOTE: uv_smooth is eSubsurfUVSmooth. */
+eSubdivFVarLinearInterpolation
+BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth);
+
 /* =============================== STATISTICS =============================== */
 
 void BKE_subdiv_stats_init(SubdivStats *stats);

@@ -150,13 +150,13 @@ static DerivedMesh *applyModifierEM(
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
                                           const ModifierEvalContext *ctx)
 {
-       Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-       const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
-       const int requested_levels = (use_render_params) ? smd->renderLevels
-                                                        : smd->levels;
-       return get_render_subsurf_level(&scene->r,
-                                       requested_levels,
-                                       use_render_params);
+	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	const int requested_levels = (use_render_params) ? smd->renderLevels
+	                                                 : smd->levels;
+	return get_render_subsurf_level(&scene->r,
+	                                requested_levels,
+	                                use_render_params);
 }
 
 static void subdiv_settings_init(SubdivSettings *settings,
@@ -165,32 +165,8 @@ static void subdiv_settings_init(SubdivSettings *settings,
 	settings->is_simple = (smd->subdivType == SUBSURF_TYPE_SIMPLE);
 	settings->is_adaptive = !settings->is_simple;
 	settings->level = smd->quality;
-	switch (smd->uv_smooth) {
-		case SUBSURF_UV_SMOOTH_NONE:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
-			break;
-		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY;
-			break;
-		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS;
-			break;
-		case SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_JUNCTIONS_AND_CONCAVE;
-			break;
-		case SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_BOUNDARIES;
-			break;
-		case SUBSURF_UV_SMOOTH_ALL:
-			settings->fvar_linear_interpolation =
-			        SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE;
-			break;
-	}
+	settings->fvar_linear_interpolation =
+	        BKE_subdiv_fvar_interpolation_from_uv_smooth(smd->uv_smooth);
 }
 
 static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,

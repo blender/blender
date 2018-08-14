@@ -337,8 +337,8 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, bool use_f
 	return mmd;
 }
 
-static int multires_get_level(Scene *scene, Object *ob, MultiresModifierData *mmd,
-                              bool render, bool ignore_simplify)
+int multires_get_level(Scene *scene, Object *ob, const MultiresModifierData *mmd,
+                       bool render, bool ignore_simplify)
 {
 	if (render)
 		return (scene != NULL) ? get_render_subsurf_level(&scene->r, mmd->renderlvl, true) : mmd->renderlvl;
