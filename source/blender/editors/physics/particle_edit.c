@@ -413,7 +413,7 @@ typedef struct PEData {
 	RNG *rng;
 
 	const int *mval;
-	rcti *rect;
+	const rcti *rect;
 	float rad;
 	float dist;
 	float dval;
