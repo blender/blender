@@ -613,7 +613,7 @@ typedef void (*ForPointFunc)(PEData *data, int point_index);
 typedef void (*ForKeyFunc)(PEData *data, int point_index, int key_index);
 typedef void (*ForKeyMatFunc)(PEData *data, float mat[4][4], float imat[4][4], int point_index, int key_index, PTCacheEditKey *key);
 
-static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, int nearest)
+static void for_mouse_hit_keys(PEData *data, ForKeyFunc func, bool nearest)
 {
 	ParticleEditSettings *pset = PE_settings(data->scene);
 	PTCacheEdit *edit = data->edit;
@@ -1665,11 +1665,11 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 
 	/* 1 = nearest only */
 	if (extend)
-		for_mouse_hit_keys(&data, extend_key_select, 1);
+		for_mouse_hit_keys(&data, extend_key_select, true);
 	else if (deselect)
-		for_mouse_hit_keys(&data, deselect_key_select, 1);
+		for_mouse_hit_keys(&data, deselect_key_select, true);
 	else
-		for_mouse_hit_keys(&data, toggle_key_select, 1);
+		for_mouse_hit_keys(&data, toggle_key_select, true);
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
@@ -1900,7 +1900,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	data.rad = 75.0f;
 	data.select = !RNA_boolean_get(op->ptr, "deselect");
 
-	for_mouse_hit_keys(&data, select_keys, 1);  /* nearest only */
+	for_mouse_hit_keys(&data, select_keys, true);
 	PE_update_selection(data.depsgraph, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, data.ob);
 
@@ -1946,7 +1946,7 @@ void PE_deselect_all_visible(PTCacheEdit *edit)
 	}
 }
 
-int PE_border_select(bContext *C, rcti *rect, bool select, bool extend)
+int PE_border_select(bContext *C, const rcti *rect, bool select, bool extend)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -1963,7 +1963,7 @@ int PE_border_select(bContext *C, rcti *rect, bool select, bool extend)
 	data.rect = rect;
 	data.select = select;
 
-	for_mouse_hit_keys(&data, select_key, 0);
+	for_mouse_hit_keys(&data, select_key, false);
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
@@ -1988,7 +1988,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 	data.rad = rad;
 	data.select = selecting;
 
-	for_mouse_hit_keys(&data, select_key, 0);
+	for_mouse_hit_keys(&data, select_key, false);
 
 	PE_update_selection(data.depsgraph, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARTICLE | NA_SELECTED, ob);
