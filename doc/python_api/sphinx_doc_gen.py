@@ -1704,7 +1704,7 @@ def write_rst_contents(basepath):
 
     fw(".. toctree::\n")
     fw("   :maxdepth: 1\n")
-    fw("   :caption: Application Modules\n")
+    fw("   :caption: Application Modules\n\n")
 
     app_modules = (
         "bpy.context",  # note: not actually a module

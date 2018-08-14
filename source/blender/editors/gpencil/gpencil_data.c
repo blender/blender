@@ -2259,7 +2259,7 @@ void GPENCIL_OT_color_reveal(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Show All Colors";
 	ot->idname = "GPENCIL_OT_color_reveal";
-	ot->description = "Unhide all hidden Grease Pencil gpencil_ colors";
+	ot->description = "Unhide all hidden Grease Pencil colors";
 
 	/* callbacks */
 	ot->exec = gpencil_color_reveal_exec;
