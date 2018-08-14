@@ -2727,7 +2727,7 @@ static void paint_vertsel_circle_select(ViewContext *vc, const bool select, cons
 		meshobject_foreachScreenVert(vc, paint_vertsel_circle_select_doSelectVert, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 	}
 
-	if (select != LEFTMOUSE) {
+	if (select == false) {
 		BKE_mesh_mselect_validate(me);
 	}
 	paintvert_flush_flags(ob);

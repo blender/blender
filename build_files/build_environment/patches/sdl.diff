@@ -1,33 +1,4 @@
 diff -ru /Users/brecht/dev/lib/deps/Downloads/SDL2-2.0.4/src/video/SDL_video.c ./src/video/SDL_video.c
---- /Users/brecht/dev/lib/deps/Downloads/SDL2-2.0.4/src/video/SDL_video.c	2016-01-02 20:56:31.000000000 +0100
-+++ ./src/video/SDL_video.c	2016-05-15 02:58:27.000000000 +0200
-@@ -137,7 +137,7 @@
- 
- #define FULLSCREEN_MASK (SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_FULLSCREEN)
- 
--#ifdef __MACOSX__
-+#if SDL_VIDEO_DRIVER_COCOA
- /* Support for Mac OS X fullscreen spaces */
- extern SDL_bool Cocoa_IsWindowInFullscreenSpace(SDL_Window * window);
- extern SDL_bool Cocoa_SetWindowFullscreenSpace(SDL_Window * window, SDL_bool state);
-@@ -1141,7 +1141,7 @@
-     if ( window->is_hiding && fullscreen )
-         return 0;
- 
--#ifdef __MACOSX__
-+#if SDL_VIDEO_DRIVER_COCOA
-     /* if the window is going away and no resolution change is necessary,
-      do nothing, or else we may trigger an ugly double-transition
-      */
-@@ -2365,7 +2365,7 @@
-         return SDL_FALSE;
-     }
- 
--#ifdef __MACOSX__
-+#if SDL_VIDEO_DRIVER_COCOA
-     if (Cocoa_IsWindowInFullscreenSpace(window)) {
-         return SDL_FALSE;
-     }
 --- CMakeLists.txt.old	2016-01-02 12:56:31 -0700
 +++ CMakeLists.txt	2016-10-03 11:24:24 -0600
 @@ -609,7 +609,7 @@
@@ -39,12 +10,3 @@ diff -ru /Users/brecht/dev/lib/deps/Downloads/SDL2-2.0.4/src/video/SDL_video.c .
      if(HAVE_LIBICONV)
        list(APPEND EXTRA_LIBS iconv)
        set(HAVE_ICONV 1)
-@@ -1455,7 +1455,7 @@
- set(_INSTALL_LIBS "SDL2main")
- 
- if(SDL_SHARED)
--  add_library(SDL2 SHARED ${SOURCE_FILES})
-+  add_library(SDL2 SHARED ${SOURCE_FILES} ${VERSION_SOURCES})
-   if(UNIX)
-     set_target_properties(SDL2 PROPERTIES
-       VERSION ${LT_VERSION}
