@@ -808,8 +808,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
             for submod_name, submod in submod_ls:
                 submod_name_full = "%s.%s" % (module_name, submod_name)
-                fw("   %s.rst\n" % submod_name_full)
-            fw("\n")
+                fw("   %s.rst\n\n" % submod_name_full)
 
                 pymodule2sphinx(basepath, submod_name_full, submod, "%s submodule" % module_name)
         del submod_ls
