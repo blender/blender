@@ -58,6 +58,8 @@ static void initData(ModifierData *md)
 	mmd->sculptlvl = 0;
 	mmd->renderlvl = 0;
 	mmd->totlvl = 0;
+	mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+	mmd->quality = 3;
 }
 
 static DerivedMesh *applyModifier(

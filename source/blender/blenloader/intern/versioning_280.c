@@ -1840,12 +1840,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 	}
 
 	{
+		/* Versioning code for Subsurf modifier. */
 		if (!DNA_struct_elem_find(fd->filesdna, "SubsurfModifier", "short", "uv_smooth")) {
 			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
 				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Subsurf) {
 						SubsurfModifierData *smd = (SubsurfModifierData *)md;
-						if (smd->flags & eSubsurfModifierFlag_SubsurfUv) {
+						if (smd->flags & eSubsurfModifierFlag_SubsurfUv_DEPRECATED) {
 							smd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 						}
 						else {
@@ -1862,6 +1863,23 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					if (md->type == eModifierType_Subsurf) {
 						SubsurfModifierData *smd = (SubsurfModifierData *)md;
 						smd->quality = 3;
+					}
+				}
+			}
+		}
+		/* Versioning code for Multires modifier. */
+		if (!DNA_struct_elem_find(fd->filesdna, "MultiresModifier", "short", "quality")) {
+			for (Object *object = bmain->object.first; object != NULL; object = object->id.next) {
+				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Multires) {
+						MultiresModifierData *mmd = (MultiresModifierData *)md;
+						mmd->quality = 3;
+						if (mmd->flags & eMultiresModifierFlag_PlainUv_DEPRECATED) {
+							mmd->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
+						}
+						else {
+							mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+						}
 					}
 				}
 			}

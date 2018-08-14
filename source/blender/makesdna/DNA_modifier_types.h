@@ -140,7 +140,7 @@ typedef enum {
 	eSubsurfModifierFlag_DebugIncr    = (1 << 1),
 	eSubsurfModifierFlag_ControlEdges = (1 << 2),
 	/* DEPRECATED, ONLY USED FOR DO-VERSIONS */
-	eSubsurfModifierFlag_SubsurfUv    = (1 << 3),
+	eSubsurfModifierFlag_SubsurfUv_DEPRECATED    = (1 << 3),
 } SubsurfModifierFlag;
 
 typedef enum {
@@ -155,7 +155,7 @@ typedef enum {
 	SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE = 3,
 	SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES = 4,
 	SUBSURF_UV_SMOOTH_ALL = 5,
-} eSubsurfModifierUVSmooth;
+} eSubsurfUVSmooth;
 
 typedef struct SubsurfModifierData {
 	ModifierData modifier;
@@ -844,11 +844,15 @@ typedef struct MultiresModifierData {
 
 	char lvl, sculptlvl, renderlvl, totlvl;
 	char simple, flags, pad[2];
+	short quality;
+	short uv_smooth;
+	short pad2[2];
 } MultiresModifierData;
 
 typedef enum {
 	eMultiresModifierFlag_ControlEdges = (1 << 0),
-	eMultiresModifierFlag_PlainUv      = (1 << 1),
+	/* DEPRECATED, only used for versioning. */
+	eMultiresModifierFlag_PlainUv_DEPRECATED      = (1 << 1),
 } MultiresModifierFlag;
 
 typedef struct FluidsimModifierData {

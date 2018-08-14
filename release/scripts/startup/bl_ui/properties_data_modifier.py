@@ -613,6 +613,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "levels", text="Preview")
         col.prop(md, "sculpt_levels", text="Sculpt")
         col.prop(md, "render_levels", text="Render")
+        if hasattr(md, "quality"):
+            col.prop(md, "quality")
 
         col = split.column()
 
@@ -621,7 +623,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_reshape", text="Reshape")
         col.operator("object.multires_base_apply", text="Apply Base")
-        col.prop(md, "use_subsurf_uv")
+        col.prop(md, "uv_smooth", text="")
         col.prop(md, "show_only_control_edges")
 
         layout.separator()

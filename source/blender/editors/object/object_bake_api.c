@@ -792,7 +792,7 @@ static int bake(
 		mmd_low = (MultiresModifierData *) modifiers_findByType(ob_low, eModifierType_Multires);
 		if (mmd_low) {
 			mmd_flags_low = mmd_low->flags;
-			mmd_low->flags |= eMultiresModifierFlag_PlainUv;
+			mmd_low->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
 		}
 	}
 
