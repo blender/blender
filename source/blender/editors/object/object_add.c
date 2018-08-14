@@ -1903,6 +1903,9 @@ static int convert_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
+		/* Ensure new object has consistent material data with its new obdata. */
+		test_object_materials(bmain, newob, newob->data);
+
 		/* tag obdata if it was been changed */
 
 		/* If the original object is active then make this object active */
