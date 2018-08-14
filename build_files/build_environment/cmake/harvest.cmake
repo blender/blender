@@ -42,16 +42,9 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/include ${HARVEST_TARGET}/OpenImageIO/include &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenImageIO/lib ${HARVEST_TARGET}/OpenImageIO/lib &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenImageIO/bin/idiff.exe ${HARVEST_TARGET}/OpenImageIO/bin/idiff.exe &&
-				# openEXR
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/ilmbase ${HARVEST_TARGET}/openexr &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib &&
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include &&
 				# png
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/png/lib/libpng16_static.lib ${HARVEST_TARGET}/png/lib/libpng.lib &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/png/include/ ${HARVEST_TARGET}/png/include/ &&
-				# fftw3
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/lib/libfftw3.a ${HARVEST_TARGET}/fftw3/lib/libfftw.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/fftw3/include/fftw3.h ${HARVEST_TARGET}/fftw3/include/fftw3.h &&
 				# freeglut-> opengl
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/freeglut/lib/freeglut_static.lib ${HARVEST_TARGET}/opengl/lib/freeglut_static.lib &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freeglut/include/ ${HARVEST_TARGET}/opengl/include/ &&
@@ -65,9 +58,6 @@ if(BUILD_MODE STREQUAL Release)
 				# tiff
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/tiff/lib/tiff.lib ${HARVEST_TARGET}/tiff/lib/libtiff.lib &&
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/tiff/include/ ${HARVEST_TARGET}/tiff/include/ &&
-				# iconv
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/iconv/lib/libiconv.a ${HARVEST_TARGET}/iconv/lib/iconv.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/iconv/include/iconv.h ${HARVEST_TARGET}/iconv/include/iconv.h &&
 				# opencolorIO
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/OpenColorIO/ ${HARVEST_TARGET}/opencolorio &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/OpenColorIO/lib/OpenColorIO.dll ${HARVEST_TARGET}/opencolorio/bin/OpenColorIO.dll &&
@@ -82,8 +72,6 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencollada/ ${HARVEST_TARGET}/opencollada/ &&
 				# opensubdiv
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opensubdiv ${HARVEST_TARGET}/opensubdiv &&
-				# alembic
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/alembic ${HARVEST_TARGET}/alembic &&
 				# BlendThumb
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&
@@ -100,14 +88,6 @@ if(BUILD_MODE STREQUAL Debug)
 				# OpenImageIO
 		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_d.lib &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/openimageio/lib/OpenImageIO_Util.lib ${HARVEST_TARGET}/openimageio/lib/OpenImageIO_Util_d.lib &&
-				# ilmbase+openexr
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/ilmbase/lib/Half.lib ${HARVEST_TARGET}/openexr/lib/Half_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/ilmbase/lib/Iex-2_2.lib ${HARVEST_TARGET}/openexr/lib/Iex-2_2_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/ilmbase/lib/IexMath-2_2.lib ${HARVEST_TARGET}/openexr/lib/IexMath-2_2_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/ilmbase/lib/IlmThread-2_2.lib ${HARVEST_TARGET}/openexr/lib/IlmThread-2_2_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/ilmbase/lib/Imath-2_2.lib ${HARVEST_TARGET}/openexr/lib/Imath-2_2_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/lib/IlmImf-2_2.lib ${HARVEST_TARGET}/openexr/lib/IlmImf-2_2_d.lib &&
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/openexr/lib/IlmImfUtil-2_2.lib ${HARVEST_TARGET}/openexr/lib/IlmImfUtil-2_2_d.lib &&
 				# opencollada
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/buffer.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/buffer_d.lib &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/ftoa.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/ftoa_d.lib &&
@@ -133,8 +113,6 @@ if(BUILD_MODE STREQUAL Debug)
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/openvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb_d.lib &&
 				# python
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ &&
-				# alembic
-				${CMAKE_COMMAND} -E copy ${LIBDIR}/alembic/lib/alembic.lib ${HARVEST_TARGET}/alembic/lib/alembic_d.lib &&
 				# hdf5
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5/lib ${HARVEST_TARGET}/hdf5/lib &&
 				# numpy

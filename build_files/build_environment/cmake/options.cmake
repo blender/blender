@@ -202,7 +202,11 @@ endif()
 
 
 if(WIN32)
-	set(ZLIB_LIBRARY zlibstatic${LIBEXT})
+	if(BUILD_MODE STREQUAL Debug)
+		set(ZLIB_LIBRARY zlibstaticd${LIBEXT})
+	else()
+		set(ZLIB_LIBRARY zlibstatic${LIBEXT})
+	endif()
 else()
 	set(ZLIB_LIBRARY libz${LIBEXT})
 endif()
