@@ -515,7 +515,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 				ima = bgpic->ima;
 				if (ima == NULL)
 					continue;
-				BKE_image_user_frame_calc(&bgpic->iuser, CFRA, 0);
+				BKE_image_user_frame_calc(&bgpic->iuser, (int)DEG_get_ctime(depsgraph), 0);
 				if (ima->source == IMA_SRC_SEQUENCE && !(bgpic->iuser.flag & IMA_USER_FRAME_IN_RANGE)) {
 					ibuf = NULL; /* frame is out of range, dont show */
 				}
@@ -543,7 +543,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 				if (clip == NULL)
 					continue;
 
-				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
+				BKE_movieclip_user_set_frame(&bgpic->cuser, (int)DEG_get_ctime(depsgraph));
 				ibuf = BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
 
 				image_aspect[0] = clip->aspx;
