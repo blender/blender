@@ -91,7 +91,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene = BKE_scene_add(freestyle_bmain, name);
 	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode = old_scene->r.mode &
-	                          ~(R_EDGE_FRS | R_PANORAMA | R_MBLUR | R_BORDER);
+	                          ~(R_EDGE_FRS | R_BORDER);
 	freestyle_scene->r.xsch = re->rectx; // old_scene->r.xsch
 	freestyle_scene->r.ysch = re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp = 1.0f; // old_scene->r.xasp;

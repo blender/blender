@@ -1580,15 +1580,15 @@ typedef struct Scene {
 /* RenderData.mode */
 #define R_OSA			0x0001
 /* #define R_SHADOW		0x0002 */
-/* #define R_GAMMA			0x0004 */
-#define R_ORTHO			0x0008
+/* #define R_GAMMA		0x0004 */
+/* #define R_ORTHO		0x0008 */
 /* #define R_ENVMAP		0x0010 */
-/* #define R_EDGE			0x0020 */
+/* #define R_EDGE		0x0020 */
 /* #define R_FIELDS		0x0040 */
 /*#define R_FIELDSTILL	0x0080 */
-/*#define R_RADIO			0x0100 */ /* deprecated */
+/*#define R_RADIO		0x0100 */ /* deprecated */
 #define R_BORDER		0x0200
-#define R_PANORAMA		0x0400
+#define R_PANORAMA		0x0400 /* deprecated */
 #define R_CROP			0x0800
 		/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
 #define R_NO_CAMERA_SWITCH	0x1000

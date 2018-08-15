@@ -62,7 +62,6 @@ void BKE_camera_free(struct Camera *ca);
 /* Camera Usage */
 
 float BKE_camera_object_dof_distance(struct Object *ob);
-void BKE_camera_object_mode(struct RenderData *rd, struct Object *ob);
 
 int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey);
 float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);

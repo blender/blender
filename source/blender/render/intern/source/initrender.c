@@ -157,8 +157,6 @@ static void re_camera_params_get(Render *re, CameraParams *params, Object *cam_o
 	re->clipend = params->clipend;
 
 	re->viewplane = params->viewplane;
-
-	BKE_camera_object_mode(&re->r, cam_ob);
 }
 
 void RE_SetOverrideCamera(Render *re, Object *camera)

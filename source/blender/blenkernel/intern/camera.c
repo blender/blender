@@ -132,17 +132,6 @@ void BKE_camera_free(Camera *ca)
 
 /******************************** Camera Usage *******************************/
 
-void BKE_camera_object_mode(RenderData *rd, Object *cam_ob)
-{
-	rd->mode &= ~(R_ORTHO | R_PANORAMA);
-
-	if (cam_ob && cam_ob->type == OB_CAMERA) {
-		Camera *cam = cam_ob->data;
-		if (cam->type == CAM_ORTHO) rd->mode |= R_ORTHO;
-		if (cam->type == CAM_PANO) rd->mode |= R_PANORAMA;
-	}
-}
-
 /* get the camera's dof value, takes the dof object into account */
 float BKE_camera_object_dof_distance(Object *ob)
 {

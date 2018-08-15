@@ -939,7 +939,6 @@ void RE_SetWindow(Render *re, const rctf *viewplane, float clipsta, float clipen
 	re->viewplane = *viewplane;
 	re->clipsta = clipsta;
 	re->clipend = clipend;
-	re->r.mode &= ~R_ORTHO;
 
 	perspective_m4(re->winmat,
 	               re->viewplane.xmin, re->viewplane.xmax,
@@ -954,7 +953,6 @@ void RE_SetOrtho(Render *re, const rctf *viewplane, float clipsta, float clipend
 	re->viewplane = *viewplane;
 	re->clipsta = clipsta;
 	re->clipend = clipend;
-	re->r.mode |= R_ORTHO;
 
 	orthographic_m4(re->winmat,
 	                re->viewplane.xmin, re->viewplane.xmax,
@@ -1858,24 +1856,6 @@ bool RE_is_rendering_allowed(Scene *scene, ViewLayer *single_layer, Object *came
 	/* check valid camera, without camera render is OK (compo, seq) */
 	if (!check_valid_camera(scene, camera_override, reports)) {
 		return 0;
-	}
-
-	/* get panorama & ortho, only after camera is set */
-	BKE_camera_object_mode(&scene->r, camera_override ? camera_override : scene->camera);
-
-	/* forbidden combinations */
-	if (scene->r.mode & R_PANORAMA) {
-		if (scene->r.mode & R_ORTHO) {
-			BKE_report(reports, RPT_ERROR, "No ortho render possible for panorama");
-			return 0;
-		}
-
-#ifdef WITH_FREESTYLE
-		if (scene->r.mode & R_EDGE_FRS) {
-			BKE_report(reports, RPT_ERROR, "Panoramic camera not supported in Freestyle");
-			return 0;
-		}
-#endif
 	}
 
 	if (RE_seq_render_active(scene, &scene->r)) {
