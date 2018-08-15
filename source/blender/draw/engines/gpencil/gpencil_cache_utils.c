@@ -152,7 +152,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 }
 
 /* get current cache data */
-static GpencilBatchCache *gpencil_batch_get_element(Object *ob)
+GpencilBatchCache *gpencil_batch_get_element(Object *ob)
 {
 	bGPdata *gpd = ob->data;
 	if (gpd->runtime.batch_cache_data == NULL) {
