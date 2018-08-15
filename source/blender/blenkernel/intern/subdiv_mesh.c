@@ -1086,7 +1086,6 @@ static void subdiv_evaluate_vertices(SubdivMeshContext *ctx,
 	 */
 	VerticesForInterpolation vertex_interpolation;
 	vertex_interpolation_init(ctx, &vertex_interpolation, coarse_poly);
-	(void) vertex_interpolation;
 	subdiv_evaluate_corner_vertices(ctx, coarse_poly);
 	subdiv_evaluate_edge_vertices(ctx, coarse_poly, &vertex_interpolation);
 	subdiv_evaluate_inner_vertices(ctx, coarse_poly, &vertex_interpolation);
