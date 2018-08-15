@@ -258,8 +258,8 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 		{SEL_OP_ADD, "ADD", 0, "Add", ""},
 		{SEL_OP_SUB, "SUB", 0, "Subtract", ""},
 		{SEL_OP_SET, "SET", 0, "New", ""},
-		{SEL_OP_AND, "AND", 0, "Difference", ""},
-		{SEL_OP_XOR, "XOR", 0, "Intersect", ""},
+		{SEL_OP_XOR, "XOR", 0, "Difference", ""},
+		{SEL_OP_AND, "AND", 0, "Intersect", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	PropertyRNA *prop = RNA_def_enum(ot->srna, "mode", select_mode_items, SEL_OP_ADD, "Mode", "");
