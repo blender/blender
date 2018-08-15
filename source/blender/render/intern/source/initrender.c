@@ -149,7 +149,7 @@ struct Object *RE_GetCamera(Render *re)
 	return BKE_camera_multiview_render(re->scene, camera, re->viewname);
 }
 
-static void re_camera_params_get(Render *re, CameraParams *params, Object *cam_ob)
+static void re_camera_params_get(Render *re, CameraParams *params)
 {
 	copy_m4_m4(re->winmat, params->winmat);
 
@@ -185,7 +185,7 @@ void RE_SetCamera(Render *re, Object *cam_ob)
 	BKE_camera_params_compute_matrix(&params);
 
 	/* extract results */
-	re_camera_params_get(re, &params, cam_ob);
+	re_camera_params_get(re, &params);
 }
 
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4])
