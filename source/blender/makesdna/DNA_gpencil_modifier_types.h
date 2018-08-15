@@ -217,7 +217,6 @@ typedef enum eInstanceGpencil_Flag {
 	GP_INSTANCE_RANDOM_ROT    = (1 << 1),
 	GP_INSTANCE_INVERT_LAYER  = (1 << 2),
 	GP_INSTANCE_INVERT_PASS   = (1 << 3),
-	GP_INSTANCE_MAKE_OBJECTS  = (1 << 4),
 } eInstanceGpencil_Flag;
 
 typedef struct BuildGpencilModifierData {

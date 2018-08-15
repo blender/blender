@@ -1843,7 +1843,6 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(md, "count")
-        col.prop(md, "use_make_objects")
 
         split = layout.split()
         col = split.column()

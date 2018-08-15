@@ -37,9 +37,44 @@
 
 #include "draw_cache_impl.h"
 
+static bool gpencil_check_ob_duplicated(tGPencilObjectCache *cache_array, int gp_cache_used, Object *ob)
+{
+	if (gp_cache_used == 0) {
+		return false;
+	}
+
+	for (int i = 0; i < gp_cache_used + 1; i++) {
+		tGPencilObjectCache *cache_elem = &cache_array[i];
+		if (STREQ(cache_elem->ob_name, ob->id.name) &&
+			(cache_elem->is_dup_ob == false))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+static bool gpencil_check_datablock_duplicated(tGPencilObjectCache *cache_array, int gp_cache_used,
+									Object *ob, bGPdata *gpd)
+{
+	if (gp_cache_used == 0) {
+		return false;
+	}
+
+	for (int i = 0; i < gp_cache_used + 1; i++) {
+		tGPencilObjectCache *cache_elem = &cache_array[i];
+		if (!STREQ(cache_elem->ob_name, ob->id.name) &&
+			(cache_elem->gpd == gpd))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
  /* add a gpencil object to cache to defer drawing */
 tGPencilObjectCache *gpencil_object_cache_add(
-        tGPencilObjectCache *cache_array, Object *ob, bool is_temp,
+        tGPencilObjectCache *cache_array, Object *ob,
         int *gp_cache_size, int *gp_cache_used)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -61,15 +96,25 @@ tGPencilObjectCache *gpencil_object_cache_add(
 		}
 		cache_array = p;
 	}
-
 	/* zero out all pointers */
 	cache_elem = &cache_array[*gp_cache_used];
 	memset(cache_elem, 0, sizeof(*cache_elem));
 
-	/* save object */
-	cache_elem->ob = ob;
-	cache_elem->temp_ob = is_temp;
+	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(cache_array, *gp_cache_used, ob);
+
+	sprintf(cache_elem->ob_name, "%s", ob->id.name);
+	cache_elem->gpd = (bGPdata *)ob->data;
+
+	copy_v3_v3(cache_elem->loc, ob->loc);
+	copy_m4_m4(cache_elem->obmat, ob->obmat);
 	cache_elem->idx = *gp_cache_used;
+
+	cache_elem->is_dup_onion = gpencil_check_datablock_duplicated(cache_array, *gp_cache_used,
+																ob, cache_elem->gpd);
+
+	/* save FXs */
+	cache_elem->pixfactor = cache_elem->gpd->pixfactor;
+	cache_elem->shader_fx = ob->shader_fx;
 
 	cache_elem->init_grp = 0;
 	cache_elem->end_grp = -1;
@@ -203,7 +248,7 @@ static void gpencil_batch_cache_init(Object *ob, int cfra)
 }
 
 /* clear cache */
-static void gpencil_batch_cache_clear(GpencilBatchCache *cache, bGPdata *gpd)
+static void gpencil_batch_cache_clear(GpencilBatchCache *cache)
 {
 	if (!cache) {
 		return;
@@ -211,10 +256,6 @@ static void gpencil_batch_cache_clear(GpencilBatchCache *cache, bGPdata *gpd)
 
 	if (cache->cache_size == 0) {
 		return;
-	}
-
-	if (G.debug_value >= 664) {
-		printf("gpencil_batch_cache_clear: %s\n", gpd->id.name);
 	}
 
 	if (cache->cache_size > 0) {
@@ -245,7 +286,7 @@ GpencilBatchCache *gpencil_batch_cache_get(Object *ob, int cfra)
 
 		GpencilBatchCache *cache = gpencil_batch_get_element(ob);
 		if (cache) {
-			gpencil_batch_cache_clear(cache, gpd);
+			gpencil_batch_cache_clear(cache);
 			BLI_ghash_remove(gpd->runtime.batch_cache_data, ob->id.name, NULL, NULL);
 		}
 		gpencil_batch_cache_init(ob, cfra);
@@ -283,7 +324,7 @@ void DRW_gpencil_batch_cache_free(bGPdata *gpd)
 	while (!BLI_ghashIterator_done(ihash)) {
 		GpencilBatchCache *cache = (GpencilBatchCache *)BLI_ghashIterator_getValue(ihash);
 		if (cache) {
-			gpencil_batch_cache_clear(cache, gpd);
+			gpencil_batch_cache_clear(cache);
 		}
 		BLI_ghashIterator_step(ihash);
 	}

@@ -52,12 +52,11 @@
 
 /* Helper to add stroke point to vbo */
 static void gpencil_set_stroke_point(
-        GPUVertBuf *vbo, float matrix[4][4], const bGPDspoint *pt, int idx,
+        GPUVertBuf *vbo, const bGPDspoint *pt, int idx,
         uint pos_id, uint color_id,
         uint thickness_id, uint uvdata_id, short thickness,
         const float ink[4])
 {
-	float viewfpt[3];
 
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
@@ -71,7 +70,6 @@ static void gpencil_set_stroke_point(
 	GPU_vertbuf_attr_set(vbo, uvdata_id, idx, uvdata);
 
 	/* the thickness of the stroke must be affected by zoom, so a pixel scale is calculated */
-	mul_v3_m4v3(viewfpt, matrix, &pt->x);
 	float thick = max_ff(pt->pressure * thickness, 1.0f);
 	GPU_vertbuf_attr_set(vbo, thickness_id, idx, &thick);
 
@@ -132,7 +130,7 @@ GPUBatch *DRW_gpencil_get_point_geom(bGPDstroke *gps, short thickness, const flo
 }
 
 /* create batch geometry data for stroke shader */
-GPUBatch *DRW_gpencil_get_stroke_geom(bGPDframe *gpf, bGPDstroke *gps, short thickness, const float ink[4])
+GPUBatch *DRW_gpencil_get_stroke_geom(bGPDstroke *gps, short thickness, const float ink[4])
 {
 	bGPDspoint *points = gps->points;
 	int totpoints = gps->totpoints;
@@ -159,20 +157,20 @@ GPUBatch *DRW_gpencil_get_stroke_geom(bGPDframe *gpf, bGPDstroke *gps, short thi
 		if (i == 0) {
 			if (gps->flag & GP_STROKE_CYCLIC && totpoints > 2) {
 				gpencil_set_stroke_point(
-				        vbo, gpf->runtime.viewmatrix, &points[totpoints - 1], idx,
+				        vbo, &points[totpoints - 1], idx,
 				        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 				idx++;
 			}
 			else {
 				gpencil_set_stroke_point(
-				        vbo, gpf->runtime.viewmatrix, &points[1], idx,
+				        vbo, &points[1], idx,
 				        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 				idx++;
 			}
 		}
 		/* set point */
 		gpencil_set_stroke_point(
-		        vbo, gpf->runtime.viewmatrix, pt, idx,
+		        vbo, pt, idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 	}
@@ -180,19 +178,19 @@ GPUBatch *DRW_gpencil_get_stroke_geom(bGPDframe *gpf, bGPDstroke *gps, short thi
 	if (gps->flag & GP_STROKE_CYCLIC && totpoints > 2) {
 		/* draw line to first point to complete the cycle */
 		gpencil_set_stroke_point(
-		        vbo, gpf->runtime.viewmatrix, &points[0], idx,
+		        vbo, &points[0], idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 		/* now add adjacency point (not drawn) */
 		gpencil_set_stroke_point(
-		        vbo, gpf->runtime.viewmatrix, &points[1], idx,
+		        vbo, &points[1], idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 		idx++;
 	}
 	/* last adjacency point (not drawn) */
 	else {
 		gpencil_set_stroke_point(
-		        vbo, gpf->runtime.viewmatrix, &points[totpoints - 2], idx,
+		        vbo, &points[totpoints - 2], idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, ink);
 	}
 
@@ -200,7 +198,7 @@ GPUBatch *DRW_gpencil_get_stroke_geom(bGPDframe *gpf, bGPDstroke *gps, short thi
 }
 
 /* create batch geometry data for current buffer stroke shader */
-GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, float matrix[4][4], short thickness)
+GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, short thickness)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -244,19 +242,19 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, float matrix[4][4], s
 			if (totpoints > 1) {
 				ED_gpencil_tpoint_to_point(ar, origin, &points[1], &pt2);
 				gpencil_set_stroke_point(
-				        vbo, matrix, &pt2, idx,
+				        vbo, &pt2, idx,
 				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 			}
 			else {
 				gpencil_set_stroke_point(
-				        vbo, matrix, &pt, idx,
+				        vbo, &pt, idx,
 				        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 			}
 			idx++;
 		}
 		/* set point */
 		gpencil_set_stroke_point(
-		        vbo, matrix, &pt, idx,
+		        vbo, &pt, idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 		idx++;
 	}
@@ -265,12 +263,12 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, float matrix[4][4], s
 	if (totpoints > 2) {
 		ED_gpencil_tpoint_to_point(ar, origin, &points[totpoints - 2], &pt2);
 		gpencil_set_stroke_point(
-		        vbo, matrix, &pt2, idx,
+		        vbo, &pt2, idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 	}
 	else {
 		gpencil_set_stroke_point(
-		        vbo, matrix, &pt, idx,
+		        vbo, &pt, idx,
 		        pos_id, color_id, thickness_id, uvdata_id, thickness, gpd->runtime.scolor);
 	}
 
@@ -278,7 +276,7 @@ GPUBatch *DRW_gpencil_get_buffer_stroke_geom(bGPdata *gpd, float matrix[4][4], s
 }
 
 /* create batch geometry data for current buffer point shader */
-GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, float matrix[4][4], short thickness)
+GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, short thickness)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
@@ -319,7 +317,7 @@ GPUBatch *DRW_gpencil_get_buffer_point_geom(bGPdata *gpd, float matrix[4][4], sh
 
 		/* set point */
 		gpencil_set_stroke_point(
-		        vbo, matrix, &pt, idx,
+		        vbo, &pt, idx,
 		        pos_id, color_id, thickness_id, uvdata_id,
 		        thickness, gpd->runtime.scolor);
 		idx++;

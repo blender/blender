@@ -785,6 +785,14 @@ bool id_single_user(bContext *C, ID *id, PointerRNA *ptr, PropertyRNA *prop)
 				RNA_property_pointer_set(ptr, prop, idptr);
 				RNA_property_update(C, ptr, prop);
 
+				/* tag grease pencil datablock and disable onion */
+				if (GS(id->name) == ID_GD) {
+					DEG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA);
+					DEG_id_tag_update(newid, OB_RECALC_OB | OB_RECALC_DATA);
+					bGPdata *gpd = (bGPdata *)newid;
+					gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
+				}
+
 				return true;
 			}
 		}

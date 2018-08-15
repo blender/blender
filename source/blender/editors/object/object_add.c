@@ -1365,6 +1365,12 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
+		/* if grease pencil object, set cache as dirty */
+		if (ob->type == OB_GPENCIL) {
+			bGPdata *gpd = (bGPdata *)ob->data;
+			DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		}
+
 		/* This is sort of a quick hack to address T51243 - Proper thing to do here would be to nuke most of all this
 		 * custom scene/object/base handling, and use generic lib remap/query for that.
 		 * But this is for later (aka 2.8, once layers & co are settled and working).
