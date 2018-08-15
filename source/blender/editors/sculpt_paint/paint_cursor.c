@@ -634,14 +634,10 @@ static void paint_draw_tex_overlay(
 			}
 
 			if (ups->draw_anchored) {
-				float aim[2] = {
-				    ups->anchored_initial_mouse[0] + vc->ar->winrct.xmin,
-				    ups->anchored_initial_mouse[1] + vc->ar->winrct.ymin,
-				};
-				quad.xmin = aim[0] - ups->anchored_size;
-				quad.ymin = aim[1] - ups->anchored_size;
-				quad.xmax = aim[0] + ups->anchored_size;
-				quad.ymax = aim[1] + ups->anchored_size;
+				quad.xmin = ups->anchored_initial_mouse[0] - ups->anchored_size;
+				quad.ymin = ups->anchored_initial_mouse[1] - ups->anchored_size;
+				quad.xmax = ups->anchored_initial_mouse[0] + ups->anchored_size;
+				quad.ymax = ups->anchored_initial_mouse[1] + ups->anchored_size;
 			}
 			else {
 				const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
@@ -738,15 +734,11 @@ static void paint_draw_cursor_overlay(
 		glDepthFunc(GL_ALWAYS);
 
 		if (ups->draw_anchored) {
-			float aim[2] = {
-			    ups->anchored_initial_mouse[0] + vc->ar->winrct.xmin,
-			    ups->anchored_initial_mouse[1] + vc->ar->winrct.ymin,
-			};
-			copy_v2_v2(center, aim);
-			quad.xmin = aim[0] - ups->anchored_size;
-			quad.ymin = aim[1] - ups->anchored_size;
-			quad.xmax = aim[0] + ups->anchored_size;
-			quad.ymax = aim[1] + ups->anchored_size;
+			copy_v2_v2(center, ups->anchored_initial_mouse);
+			quad.xmin = ups->anchored_initial_mouse[0] - ups->anchored_size;
+			quad.ymin = ups->anchored_initial_mouse[1] - ups->anchored_size;
+			quad.xmax = ups->anchored_initial_mouse[0] + ups->anchored_size;
+			quad.ymax = ups->anchored_initial_mouse[1] + ups->anchored_size;
 		}
 		else {
 			const int radius = BKE_brush_size_get(vc->scene, brush) * zoom;
@@ -763,7 +755,6 @@ static void paint_draw_cursor_overlay(
 		if (ups->stroke_active && BKE_brush_use_size_pressure(vc->scene, brush)) {
 			do_pop = true;
 			GPU_matrix_push();
-			GPU_matrix_identity_set();
 			GPU_matrix_translate_2fv(center);
 			GPU_matrix_scale_1f(ups->size_pressure_value);
 			GPU_matrix_translate_2f(-center[0], -center[1]);
@@ -809,6 +800,12 @@ static void paint_draw_alpha_overlay(
 	eOverlayControlFlags flags = BKE_paint_get_overlay_flags();
 	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_BLEND_BIT);
 
+	/* Translate to region. */
+	GPU_matrix_push();
+	GPU_matrix_translate_2f(vc->ar->winrct.xmin, vc->ar->winrct.ymin);
+	x -= vc->ar->winrct.xmin;
+	y -= vc->ar->winrct.ymin;
+
 	/* coloured overlay should be drawn separately */
 	if (col) {
 		if (!(flags & PAINT_OVERLAY_OVERRIDE_PRIMARY))
@@ -825,6 +822,7 @@ static void paint_draw_alpha_overlay(
 			paint_draw_cursor_overlay(ups, brush, vc, x, y, zoom);
 	}
 
+	GPU_matrix_pop();
 	gpuPopAttrib();
 }
 

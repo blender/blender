@@ -96,8 +96,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 		for (pc = wm->paintcursors.first; pc; pc = pc->next) {
 			if (pc->poll == NULL || pc->poll(C)) {
 				/* Prevent drawing outside region. */
-				GLint scissor[4];
-				glGetIntegerv(GL_SCISSOR_BOX, scissor);
+				glEnable(GL_SCISSOR_TEST);
 				glScissor(ar->winrct.xmin,
 				          ar->winrct.ymin,
 				          BLI_rcti_size_x(&ar->winrct) + 1,
@@ -112,7 +111,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 					pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
 				}
 
-				glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+				glDisable(GL_SCISSOR_TEST);
 			}
 		}
 	}
