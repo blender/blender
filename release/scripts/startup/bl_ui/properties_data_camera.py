@@ -284,6 +284,8 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                 row.prop(bg.image, "name", text="", emboss=False)
             elif bg.source == 'MOVIE_CLIP' and bg.clip:
                 row.prop(bg.clip, "name", text="", emboss=False)
+            elif bg.source and bg.use_camera_clip:
+                row.label(text="Camera Clip")
             else:
                 row.label(text="Not Set")
 
