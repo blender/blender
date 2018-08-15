@@ -1438,6 +1438,10 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		}
 	}
 
+	if ((type == PROP_ENUM) && (RNA_property_flag(prop) & PROP_ENUM_FLAG)) {
+		flag |= UI_ITEM_R_EXPAND;
+	}
+
 	slider = (flag & UI_ITEM_R_SLIDER) != 0;
 	toggle = (flag & UI_ITEM_R_TOGGLE) != 0;
 	expand = (flag & UI_ITEM_R_EXPAND) != 0;
@@ -1463,8 +1467,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			uiDefButR_prop(block, UI_BTYPE_ROW, 0, name, 0, 0, w, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 	}
 	/* expanded enum */
-	else if (type == PROP_ENUM && (expand || RNA_property_flag(prop) & PROP_ENUM_FLAG))
+	else if (type == PROP_ENUM && expand) {
 		ui_item_enum_expand(layout, block, ptr, prop, name, h, icon_only);
+	}
 	/* property with separate label */
 	else if (type == PROP_ENUM || type == PROP_STRING || type == PROP_POINTER) {
 		but = ui_item_with_label(layout, block, name, icon, ptr, prop, index, 0, 0, w, h, flag);
