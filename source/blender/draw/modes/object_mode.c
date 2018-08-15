@@ -2553,7 +2553,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	const bool hide_object_extra = (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0;
 
 	if (do_outlines) {
-		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
+		if (!BKE_object_is_in_editmode(ob) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
 			struct GPUBatch *geom;
 			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
 			                           (v3d->shading.type < OB_MATERIAL);

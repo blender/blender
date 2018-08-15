@@ -56,6 +56,7 @@ typedef struct OVERLAY_PrivateData {
 	DRWShadingGroup *face_orientation_shgrp;
 	View3DOverlay overlay;
 	float wire_step_param[2];
+	bool ghost_stencil_test;
 } OVERLAY_PrivateData; /* Transient data */
 
 /* *********** STATIC *********** */
@@ -87,6 +88,7 @@ static void overlay_engine_init(void *vedata)
 		/* Alloc transient pointers */
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
+	stl->g_data->ghost_stencil_test = false;
 
 	if (!e_data.face_orientation_sh) {
 		/* Face orientation */
@@ -146,20 +148,22 @@ static void overlay_cache_init(void *vedata)
 		                                                                          : e_data.face_wireframe_pretty_sh;
 		DRWShadingGroup *shgrp = DRW_shgroup_create(stl->g_data->wire_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", stl->g_data->wire_step_param, 1);
+		if (stl->g_data->overlay.wireframe_threshold < 1.0f) {
+			/**
+			 * The wireframe threshold ranges from 0.0 to 1.0
+			 * When 1.0 we show all the edges, when 0.5 we show as many as 2.7.
+			 *
+			 * If we wanted 0.0 to match 2.7, factor would need to be 0.003f.
+			 * The range controls the falloff effect. If range was 0.0f we would get a hard cut (as in 2.7).
+			 * That said we are using a different algorithm so the results will always differ.
+			 */
+			const float factor = 0.0045f;
+			const float range = 0.00125f;
+			stl->g_data->wire_step_param[1] = (1.0f - factor) + stl->g_data->overlay.wireframe_threshold * factor;
+			stl->g_data->wire_step_param[0] = stl->g_data->wire_step_param[1] + range;
 
-		/**
-		 * The wireframe threshold ranges from 0.0 to 1.0
-		 * When 1.0 we show all the edges, when 0.5 we show as many as 2.7.
-		 *
-		 * If we wanted 0.0 to match 2.7, factor would need to be 0.003f.
-		 * The range controls the falloff effect. If range was 0.0f we would get a hard cut (as in 2.7).
-		 * That said we are using a different algorithm so the results will always differ.
-		 */
-		const float factor = 0.0045f;
-		const float range = 0.00125f;
-		stl->g_data->wire_step_param[1] = (1.0f - factor) + stl->g_data->overlay.wireframe_threshold * factor;
-		stl->g_data->wire_step_param[0] = stl->g_data->wire_step_param[1] + range;
+			DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", stl->g_data->wire_step_param, 1);
+		}
 	}
 }
 
@@ -193,6 +197,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 					rim_col = (ob == draw_ctx->obact) ? ts.colorActive : ts.colorSelect;
 				}
 				DRWShadingGroup *shgrp = DRW_shgroup_create(stl->g_data->wire_sh, psl->face_wireframe_pass);
+				DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 				DRW_shgroup_uniform_texture(shgrp, "vertData", verts);
 				DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
 				DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
@@ -201,10 +206,26 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			}
 		}
 	}
+
+	if (ob->dtx & OB_DRAWXRAY) {
+		stl->g_data->ghost_stencil_test = true;
+	}
 }
 
-static void overlay_cache_finish(void *UNUSED(vedata))
+static void overlay_cache_finish(void *vedata)
 {
+	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_PassList *psl = data->psl;
+	OVERLAY_StorageList *stl = data->stl;
+
+	const DRWContextState *ctx = DRW_context_state_get();
+	View3D *v3d = ctx->v3d;
+
+	/* only in solid mode */
+	if (v3d->shading.type == OB_SOLID && (v3d->shading.flag & V3D_SHADING_XRAY) == 0) {
+		if (stl->g_data->ghost_stencil_test)
+			DRW_pass_state_add(psl->face_wireframe_pass, DRW_STATE_STENCIL_EQUAL);
+	}
 }
 
 static void overlay_draw_scene(void *vedata)

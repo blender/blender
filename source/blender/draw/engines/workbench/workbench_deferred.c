@@ -923,8 +923,8 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 		if (GHOST_ENABLED(psl)) {
 			/* We need to set the stencil buffer to 0 where Ghost objects
 			 * else they will get shadow and even badly shadowed. */
-			DRW_pass_state_set(psl->ghost_prepass_pass, DRW_STATE_WRITE_STENCIL);
-			DRW_pass_state_set(psl->ghost_prepass_hair_pass, DRW_STATE_WRITE_STENCIL);
+			DRW_pass_state_set(psl->ghost_prepass_pass, DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL);
+			DRW_pass_state_set(psl->ghost_prepass_hair_pass, DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL);
 
 			DRW_draw_pass(psl->ghost_prepass_pass);
 			DRW_draw_pass(psl->ghost_prepass_hair_pass);
@@ -938,6 +938,21 @@ void workbench_deferred_draw_scene(WORKBENCH_Data *vedata)
 	else {
 		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);
+	}
+
+	/* TODO(fclem): only enable when needed (when there is overlays). */
+	if (GHOST_ENABLED(psl)) {
+		/* In order to not draw on top of ghost objects, we clear the stencil
+		 * to 0xFF and the ghost object to 0x00 and only draw overlays on top if
+		 * stencil is not 0. */
+		GPU_framebuffer_bind(dfbl->depth_only_fb);
+		GPU_framebuffer_clear_stencil(dfbl->depth_only_fb, 0xFF);
+
+		DRW_pass_state_set(psl->ghost_prepass_pass, DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL);
+		DRW_pass_state_set(psl->ghost_prepass_hair_pass, DRW_STATE_DEPTH_EQUAL | DRW_STATE_WRITE_STENCIL);
+
+		DRW_draw_pass(psl->ghost_prepass_pass);
+		DRW_draw_pass(psl->ghost_prepass_hair_pass);
 	}
 
 	if (wpd->volumes_do) {
