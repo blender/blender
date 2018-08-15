@@ -608,23 +608,25 @@ static void image_widgets(void)
 static void image_main_region_set_view2d(SpaceImage *sima, ARegion *ar)
 {
 	Image *ima = ED_space_image(sima);
-	float x1, y1, w, h;
-	int width, height, winx, winy;
 
-#if 0
-	if (image_preview_active(curarea, &width, &height)) {}
-	else
-#endif
+	int width, height;
 	ED_space_image_get_size(sima, &width, &height);
 
-	w = width;
-	h = height;
+	float w = width;
+	float h = height;
 
 	if (ima)
 		h *= ima->aspy / ima->aspx;
 
-	winx = BLI_rcti_size_x(&ar->winrct) + 1;
-	winy = BLI_rcti_size_y(&ar->winrct) + 1;
+	int winx = BLI_rcti_size_x(&ar->winrct) + 1;
+	int winy = BLI_rcti_size_y(&ar->winrct) + 1;
+
+	/* For region overlap, move center so image doesn't overlap header. */
+	rcti visible_rect;
+	ED_region_visible_rect(ar, &visible_rect);
+	const int visible_winy = BLI_rcti_size_y(&visible_rect) + 1;
+	int visible_centerx = 0;
+	int visible_centery = visible_rect.ymin + (visible_winy - winy) / 2;
 
 	ar->v2d.tot.xmin = 0;
 	ar->v2d.tot.ymin = 0;
@@ -636,8 +638,8 @@ static void image_main_region_set_view2d(SpaceImage *sima, ARegion *ar)
 	ar->v2d.mask.ymax = winy;
 
 	/* which part of the image space do we see? */
-	x1 = ar->winrct.xmin + (winx - sima->zoom * w) / 2.0f;
-	y1 = ar->winrct.ymin + (winy - sima->zoom * h) / 2.0f;
+	float x1 = ar->winrct.xmin + visible_centerx + (winx - sima->zoom * w) / 2.0f;
+	float y1 = ar->winrct.ymin + visible_centery + (winy - sima->zoom * h) / 2.0f;
 
 	x1 -= sima->zoom * sima->xof;
 	y1 -= sima->zoom * sima->yof;
