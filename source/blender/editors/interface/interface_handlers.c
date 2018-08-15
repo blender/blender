@@ -8228,7 +8228,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 
 static void ui_mouse_motion_towards_init_ex(uiPopupBlockHandle *menu, const int xy[2], const bool force)
 {
-	BLI_assert(((uiBlock *)menu->region->uiblocks.first)->flag & UI_BLOCK_MOVEMOUSE_QUIT);
+	BLI_assert(((uiBlock *)menu->region->uiblocks.first)->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER));
 
 	if (!menu->dotowards || force) {
 		menu->dotowards = true;
@@ -8263,7 +8263,7 @@ static bool ui_mouse_motion_towards_check(
 	const float margin = MENU_TOWARDS_MARGIN;
 	rctf rect_px;
 
-	BLI_assert(block->flag & UI_BLOCK_MOVEMOUSE_QUIT);
+	BLI_assert(block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER));
 
 
 	/* annoying fix for [#36269], this is a bit odd but in fact works quite well
@@ -8579,7 +8579,7 @@ static int ui_handle_menu_event(
 #endif
 
 	if (but && button_modal_state(but->active->state)) {
-		if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+		if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
 			/* if a button is activated modal, always reset the start mouse
 			 * position of the towards mechanism to avoid loosing focus,
 			 * and don't handle events */
@@ -8593,7 +8593,7 @@ static int ui_handle_menu_event(
 	else {
 		/* for ui_mouse_motion_towards_block */
 		if (event->type == MOUSEMOVE) {
-			if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+			if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
 				ui_mouse_motion_towards_init(menu, &event->x);
 			}
 
@@ -8910,7 +8910,8 @@ static int ui_handle_menu_event(
 			else {
 
 				/* check mouse moving outside of the menu */
-				if (inside == 0 && (block->flag & UI_BLOCK_MOVEMOUSE_QUIT)) {
+				//printf("inside %d mm quit %d\n", inside, block->flag & (UI_BLOCK_MOVEMOUSE_QUIT);
+				if (inside == 0 && (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER))) {
 					uiSafetyRct *saferct;
 
 					ui_mouse_motion_towards_check(block, menu, &event->x, is_parent_inside == false);
@@ -9019,7 +9020,7 @@ static int ui_handle_menu_return_submenu(bContext *C, const wmEvent *event, uiPo
 			submenu->menuretval = 0;
 	}
 
-	if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+	if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
 		/* for cases where close does not cascade, allow the user to
 		 * move the mouse back towards the menu without closing */
 		ui_mouse_motion_towards_reinit(menu, &event->x);
@@ -9419,7 +9420,7 @@ static int ui_handle_menus_recursive(
 
 			retval = ui_handle_menu_button(C, event, menu);
 
-			if (block->flag & UI_BLOCK_MOVEMOUSE_QUIT) {
+			if (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER)) {
 				/* when there is a active search button and we close it,
 				 * we need to reinit the mouse coords [#35346] */
 				if (ui_but_find_active_in_region(menu->region) != but) {

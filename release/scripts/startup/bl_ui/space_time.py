@@ -87,12 +87,16 @@ class TIME_MT_editor_menus(Menu):
     bl_label = ""
 
     def draw(self, context):
-        self.draw_menus(self.layout, context)
+        self.draw_menus(self.layout, context, horizontal=False)
 
     @staticmethod
-    def draw_menus(layout, context):
-        row = layout.row()
-        sub = row.row(align=True)
+    def draw_menus(layout, context, horizontal=True):
+        if horizontal:
+            row = layout.row()
+            sub = row.row(align=True)
+        else:
+            sub = layout
+
         sub.popover(
             panel="TIME_PT_playback",
             text="Playback",
@@ -102,7 +106,9 @@ class TIME_MT_editor_menus(Menu):
             text="Keying",
         )
 
-        sub = row.row(align=True)
+        if horizontal:
+            sub = row.row(align=True)
+
         sub.menu("TIME_MT_view")
         sub.menu("TIME_MT_marker")
 

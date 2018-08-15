@@ -155,7 +155,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		UI_block_bounds_set_normal(block, block_margin);
 
 		/* If menu slides out of other menu, override direction. */
-		bool slideout = false; //ui_block_is_menu(pup->but->block);
+		bool slideout = ui_block_is_menu(pup->but->block);
 		if (slideout)
 			UI_block_direction_set(block, UI_DIR_RIGHT);
 
