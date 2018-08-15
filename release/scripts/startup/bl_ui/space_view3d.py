@@ -3633,7 +3633,7 @@ class VIEW3D_MT_edit_gpencil(Menu):
 
         layout.separator()
 
-        layout.operator_menu_enum("gpencil.frame_clean_fill", text="Clean Boundary Strokes...", property="mode")
+        layout.menu("GPENCIL_MT_cleanup")
 
 
 class VIEW3D_MT_sculpt_gpencil(Menu):
@@ -4959,7 +4959,7 @@ class VIEW3D_MT_gpencil_edit_specials(Menu):
 
         if is_3d_view:
             layout.separator()
-            layout.operator("gpencil.reproject")
+            layout.menu("GPENCIL_MT_cleanup")
 
 
 class VIEW3D_MT_gpencil_sculpt_specials(Menu):

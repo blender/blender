@@ -599,10 +599,6 @@ class GPENCIL_MT_gpencil_draw_specials(Menu):
         layout.operator("gpencil.primitive", text="Rectangle", icon='UV_FACESEL').type = 'BOX'
         layout.operator("gpencil.primitive", text="Circle", icon='ANTIALIASED').type = 'CIRCLE'
 
-        # Colors.
-        layout.separator()
-        layout.operator("gpencil.colorpick", text="Colors", icon="GROUP_VCOL")
-
 
 class GPENCIL_MT_gpencil_draw_delete(Menu):
     bl_label = "GPencil Draw Delete"
@@ -614,6 +610,21 @@ class GPENCIL_MT_gpencil_draw_delete(Menu):
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("gpencil.active_frames_delete_all", text="Delete Frame")
+
+
+class GPENCIL_MT_cleanup(Menu):
+    bl_label = "Clean Up"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("gpencil.frame_clean_loose", text="Loose Points")
+        layout.separator()
+
+        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes").mode = 'ACTIVE'
+        layout.operator("gpencil.frame_clean_fill", text="Boundary Strokes all Frames").mode = 'ALL'
+        layout.separator()
+
+        layout.operator("gpencil.reproject")
 
 
 class GPENCIL_UL_annotation_layer(UIList):
@@ -805,6 +816,7 @@ classes = (
 
     GPENCIL_MT_snap,
     GPENCIL_MT_separate,
+    GPENCIL_MT_cleanup,
 
     GPENCIL_MT_gpencil_draw_specials,
     GPENCIL_MT_gpencil_draw_delete,

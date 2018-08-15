@@ -565,6 +565,74 @@ void GPENCIL_OT_frame_clean_fill(wmOperatorType *ot)
 	ot->prop = RNA_def_enum(ot->srna, "mode", duplicate_mode, GP_FRAME_DUP_ACTIVE, "Mode", "");
 }
 
+/* ********************* Clean Loose Boundaries on Frame ************************** */
+static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
+{
+	bool changed = false;
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	int limit = RNA_int_get(op->ptr, "limit");
+
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
+	{
+		bGPDframe *gpf = gpl->actframe;
+		bGPDstroke *gps, *gpsn;
+
+		if (gpf == NULL)
+			continue;
+
+		/* simply delete strokes which are no loose */
+		for (gps = gpf->strokes.first; gps; gps = gpsn) {
+			gpsn = gps->next;
+
+			/* skip strokes that are invalid for current view */
+			if (ED_gpencil_stroke_can_use(C, gps) == false)
+				continue;
+
+			/* free stroke */
+			if (gps->totpoints <= limit) {
+				/* free stroke memory arrays, then stroke itself */
+				if (gps->points) {
+					MEM_freeN(gps->points);
+				}
+				if (gps->dvert) {
+					BKE_gpencil_free_stroke_weights(gps);
+					MEM_freeN(gps->dvert);
+				}
+				MEM_SAFE_FREE(gps->triangles);
+				BLI_freelinkN(&gpf->strokes, gps);
+
+				changed = true;
+			}
+		}
+	}
+	CTX_DATA_END;
+
+	/* notifiers */
+	if (changed) {
+		DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_frame_clean_loose(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clean Loose points";
+	ot->idname = "GPENCIL_OT_frame_clean_loose";
+	ot->description = "Remove loose points";
+
+	/* callbacks */
+	ot->exec = gp_frame_clean_loose_exec;
+	ot->poll = gp_active_layer_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_int(ot->srna, "limit", 1, 1, INT_MAX, "Limit", "Number of points to consider stroke as loose", 1, INT_MAX);
+}
+
 /* *********************** Hide Layers ******************************** */
 
 static int gp_hide_exec(bContext *C, wmOperator *op)
