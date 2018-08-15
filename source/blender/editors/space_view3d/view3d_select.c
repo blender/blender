@@ -2328,14 +2328,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, c
 			if (BASE_SELECTABLE(base)) {
 				if ((base->object->select_color & 0x0000FFFF) != 0) {
 					BLI_array_append(bases, base);
-				}
-				else {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = false;  /* we know there are no hits. */
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-					}
+					base->object->id.tag &= ~LIB_TAG_DOIT;
 				}
 			}
 		}
@@ -2368,11 +2361,14 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, c
 					changed = true;
 				}
 				else if (!bone_only) {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = true;
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result  != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+					if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
+						base->object->id.tag |= LIB_TAG_DOIT;
+						const bool is_select = base->flag & BASE_SELECTED;
+						const bool is_inside = true;
+						const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+						if (sel_op_result  != -1) {
+							ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+						}
 					}
 				}
 
@@ -2406,6 +2402,20 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, c
 
 					/* copy on write tag is needed (for the armature), or else no refresh happens */
 					DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+				}
+			}
+		}
+
+		if (SEL_OP_USE_OUTSIDE(sel_op)) {
+			for (int i = 0; i < BLI_array_len(bases); i++) {
+				Base *base = bases[i];
+				if ((base->object->flag & OB_DONE) == 0) {
+					const bool is_select = base->flag & BASE_SELECTED;
+					const bool is_inside = false;  /* we know there are no hits. */
+					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+					if (sel_op_result != -1) {
+						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+					}
 				}
 			}
 		}
