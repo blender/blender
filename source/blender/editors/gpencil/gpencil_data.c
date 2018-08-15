@@ -571,37 +571,54 @@ static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	int limit = RNA_int_get(op->ptr, "limit");
+	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		bGPDframe *gpf = gpl->actframe;
-		bGPDstroke *gps, *gpsn;
+		bGPDframe *init_gpf = gpl->actframe;
+		bGPDstroke *gps = NULL;
+		bGPDstroke *gpsn = NULL;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
 
-		if (gpf == NULL)
-			continue;
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
 
-		/* simply delete strokes which are no loose */
-		for (gps = gpf->strokes.first; gps; gps = gpsn) {
-			gpsn = gps->next;
+				if (gpf == NULL)
+					continue;
 
-			/* skip strokes that are invalid for current view */
-			if (ED_gpencil_stroke_can_use(C, gps) == false)
-				continue;
+				/* simply delete strokes which are no loose */
+				for (gps = gpf->strokes.first; gps; gps = gpsn) {
+					gpsn = gps->next;
 
-			/* free stroke */
-			if (gps->totpoints <= limit) {
-				/* free stroke memory arrays, then stroke itself */
-				if (gps->points) {
-					MEM_freeN(gps->points);
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					/* free stroke */
+					if (gps->totpoints <= limit) {
+						/* free stroke memory arrays, then stroke itself */
+						if (gps->points) {
+							MEM_freeN(gps->points);
+						}
+						if (gps->dvert) {
+							BKE_gpencil_free_stroke_weights(gps);
+							MEM_freeN(gps->dvert);
+						}
+						MEM_SAFE_FREE(gps->triangles);
+						BLI_freelinkN(&gpf->strokes, gps);
+
+						changed = true;
+					}
 				}
-				if (gps->dvert) {
-					BKE_gpencil_free_stroke_weights(gps);
-					MEM_freeN(gps->dvert);
-				}
-				MEM_SAFE_FREE(gps->triangles);
-				BLI_freelinkN(&gpf->strokes, gps);
+			}
 
-				changed = true;
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
 			}
 		}
 	}
