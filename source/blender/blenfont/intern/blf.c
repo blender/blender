@@ -570,6 +570,15 @@ void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t l
 	BLF_draw_ascii(global_font_default, str, len); /* XXX, use real length */
 }
 
+int BLF_set_default(void)
+{
+	ASSERT_DEFAULT_SET;
+
+	BLF_size(global_font_default, global_font_points, global_font_dpi);
+
+	return global_font_default;
+}
+
 static void blf_draw_gl__start(FontBLF *font)
 {
 	/*

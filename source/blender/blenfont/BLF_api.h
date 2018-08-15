@@ -102,6 +102,9 @@ void BLF_batch_draw_end(void);
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
 void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
 
+/* Set size and DPI, and return default font ID. */
+int BLF_set_default(void);
+
 /* Draw the string using the current font. */
 void BLF_draw_ex(int fontid, const char *str, size_t len, struct ResultBLF *r_info) ATTR_NONNULL(2);
 void BLF_draw(int fontid, const char *str, size_t len) ATTR_NONNULL(2);

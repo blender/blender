@@ -779,6 +779,21 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
 }
 
 /**
+ * Strip whitespace from end of the string.
+ */
+void BLI_str_rstrip(char *str)
+{
+	for (int i = strlen(str) - 1; i > 0; i--) {
+		if (isspace(str[i])) {
+			str[i] = '\0';
+		}
+		else {
+			break;
+		}
+	}
+}
+
+/**
  * Strip trailing zeros from a float, eg:
  *   0.0000 -> 0.0
  *   2.0010 -> 2.001
