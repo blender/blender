@@ -96,7 +96,13 @@ if(WITH_WEBP)
 	include(cmake/webp.cmake)
 endif()
 if(WIN32)
+	#hmd_branch_deps
 	include(cmake/hidapi.cmake)
+	#ocio deps
+	include(cmake/tinyxml.cmake)
+	include(cmake/yamlcpp.cmake)
+	#lcms is an ocio dep, but only if you build the apps, leaving it here for convenience 
+	#include(cmake/lcms.cmake)
 endif()
 
 if(NOT WIN32 OR ENABLE_MINGW64)

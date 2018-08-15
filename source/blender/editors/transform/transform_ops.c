@@ -650,7 +650,7 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 	ot->poll_property = transform_poll_property;
 
-	RNA_def_float_vector_xyz(ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "value", 3, NULL, -FLT_MAX, FLT_MAX, "Move", "", -FLT_MAX, FLT_MAX);
 
 	WM_operatortype_props_advanced_begin(ot);
 
@@ -676,7 +676,7 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	ot->poll   = ED_operator_screenactive;
 	ot->poll_property = transform_poll_property;
 
-	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Scale", "", -FLT_MAX, FLT_MAX);
 
 	WM_operatortype_props_advanced_begin(ot);
 
@@ -710,7 +710,7 @@ static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
 	ot->poll   = skin_resize_poll;
 	ot->poll_property = transform_poll_property;
 
-	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Scale", "", -FLT_MAX, FLT_MAX);
 
 	WM_operatortype_props_advanced_begin(ot);
 
@@ -1075,7 +1075,7 @@ static void TRANSFORM_OT_seq_slide(struct wmOperatorType *ot)
 	ot->cancel = transform_cancel;
 	ot->poll   = ED_operator_sequencer_active;
 
-	RNA_def_float_vector_xyz(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+	RNA_def_float_vector_xyz(ot->srna, "value", 2, NULL, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
 
 	WM_operatortype_props_advanced_begin(ot);
 
