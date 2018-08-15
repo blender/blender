@@ -625,6 +625,7 @@ static void loop_interpolation_from_ptex(
 		LoopsOfPtex loops_of_ptex;
 		loops_of_ptex_get(ctx, &loops_of_ptex, coarse_poly, ptex_face_index);
 		/* Ptex face corner corresponds to a poly loop with same index. */
+		CustomData_free_elem(&loop_interpolation->loop_data_storage, 0, 1);
 		CustomData_copy_data(loop_data,
 		                     &loop_interpolation->loop_data_storage,
 		                     coarse_poly->loopstart + ptex_face_index,
