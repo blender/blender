@@ -61,9 +61,10 @@
 
 #include "ED_view3d.h"
 
+#include "GPU_batch.h"
+#include "GPU_draw.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
-#include "GPU_draw.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -223,6 +224,7 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *camera_clip_points;
 	DRWShadingGroup *camera_mist;
 	DRWShadingGroup *camera_mist_points;
+	ListBase camera_path;
 
 	/* Outlines */
 	DRWShadingGroup *outlines_active;
@@ -1188,6 +1190,8 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->camera_clip_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 		stl->g_data->camera_mist_points = shgroup_distance_lines_instance(psl->non_meshes, geom);
 
+		BLI_listbase_clear(&stl->g_data->camera_path);
+
 		/* Texture Space */
 		geom = DRW_cache_empty_cube_get();
 		stl->g_data->texspace = shgroup_instance(psl->non_meshes, geom);
@@ -1523,7 +1527,41 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	DRW_shgroup_call_dynamic_add(stl->g_data->lamp_groundpoint, ob->obmat[3]);
 }
 
-static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
+static GPUBatch *batch_camera_path_get(
+        ListBase *camera_paths, const MovieTrackingReconstruction *reconstruction)
+{
+	GPUBatch *geom;
+	static GPUVertFormat format = { 0 };
+	static struct { uint pos; } attr_id;
+	if (format.attr_len == 0) {
+		attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	}
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+	GPU_vertbuf_data_alloc(vbo, reconstruction->camnr);
+
+	MovieReconstructedCamera *camera = reconstruction->cameras;
+	for (int a = 0; a < reconstruction->camnr; a++, camera++) {
+		GPU_vertbuf_attr_set(vbo, attr_id.pos, a, camera->mat[3]);
+	}
+
+	geom = GPU_batch_create_ex(GPU_PRIM_LINE_STRIP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+
+	/* Store the batch to do cleanup after drawing. */
+	BLI_addtail(camera_paths, BLI_genericNodeN(geom));
+	return geom;
+}
+
+static void batch_camera_path_free(ListBase *camera_paths)
+{
+	LinkData *link;
+	while ((link = BLI_pophead(camera_paths))) {
+		GPUBatch *camera_path = link->data;
+		GPU_batch_discard(camera_path);
+		MEM_freeN(link);
+	}
+}
+
+static void DRW_shgroup_camera(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, ViewLayer *view_layer)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
@@ -1623,6 +1661,7 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	/* Motion Tracking. */
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) && (clip != NULL)){
+		BLI_assert(BLI_listbase_is_empty(&stl->g_data->camera_path));
 		const bool is_select = DRW_state_is_select();
 		const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
 		                             ((v3d->shading.type != OB_SOLID) ||
@@ -1738,6 +1777,22 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 					                   10,
 					                   DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
 					                   is_selected ? text_color_selected : text_color_unselected);
+				}
+			}
+
+			if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA) && !is_select) {
+				MovieTrackingReconstruction *reconstruction;
+				reconstruction = BKE_tracking_object_get_reconstruction(tracking, tracking_object);
+
+				if (reconstruction->camnr) {
+					static float camera_path_color[4];
+					UI_GetThemeColor4fv(TH_CAMERA_PATH, camera_path_color);
+
+					GPUBatch *geom = batch_camera_path_get(&stl->g_data->camera_path, reconstruction);
+					GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+					DRWShadingGroup *shading_group = DRW_shgroup_create(shader, psl->non_meshes);
+					DRW_shgroup_uniform_vec4(shading_group, "color", camera_path_color, 1);
+					DRW_shgroup_call_add(shading_group, geom, camera_mat);
 				}
 			}
 		}
@@ -2601,7 +2656,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			 DRW_shgroup_camera(stl, ob, view_layer);
+			 DRW_shgroup_camera(stl, psl, ob, view_layer);
 			break;
 		case OB_EMPTY:
 			if (hide_object_extra) {
@@ -2793,6 +2848,7 @@ static void OBJECT_draw_scene(void *vedata)
 	}
 
 	volumes_free_smoke_textures();
+	batch_camera_path_free(&stl->g_data->camera_path);
 }
 
 static const DrawEngineDataSize OBJECT_data_size = DRW_VIEWPORT_DATA_SIZE(OBJECT_Data);
