@@ -1,0 +1,51 @@
+project(lcms2)
+
+cmake_minimum_required(VERSION 2.8)
+
+include_directories(include)
+
+set(HEADERS
+	include/lcms2.h
+	include/lcms2_plugin.h
+)
+set(SOURCES
+    src/cmscam02.c
+    src/cmscgats.c
+    src/cmscnvrt.c
+    src/cmserr.c
+    src/cmsgamma.c
+    src/cmsgmt.c
+    src/cmsintrp.c
+    src/cmsio0.c
+    src/cmsio1.c
+    src/cmslut.c
+    src/cmsmd5.c
+    src/cmsmtrx.c
+    src/cmsnamed.c
+    src/cmsopt.c
+    src/cmspack.c
+    src/cmspcs.c
+    src/cmsplugin.c
+    src/cmsps2.c
+    src/cmssamp.c
+    src/cmssm.c
+    src/cmstypes.c
+    src/cmsvirt.c
+    src/cmswtpnt.c
+    src/cmsxform.c
+    src/lcms2_internal.h
+)
+
+add_library(${PROJECT_NAME} STATIC ${HEADERS} ${SOURCES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES
+	LIBRARY_OUTPUT_NAME "${PROJECT_NAME}"
+	PUBLIC_HEADER 		"${HEADERS}"
+)
+
+install(TARGETS 		${PROJECT_NAME}
+		RUNTIME         DESTINATION		bin
+        LIBRARY         DESTINATION     lib
+        ARCHIVE         DESTINATION     lib
+        PUBLIC_HEADER	DESTINATION     include
+)

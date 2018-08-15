@@ -1,0 +1,51 @@
+diff -Naur external_opencolorio/CMakeLists.txt external_opencolorio.patched/CMakeLists.txt
+--- external_opencolorio/CMakeLists.txt	2018-01-04 18:38:27 -0700
++++ external_opencolorio.patched/CMakeLists.txt	2018-08-15 11:46:53 -0600
+@@ -251,25 +251,30 @@
+ if(USE_EXTERNAL_YAML)
+     # Set minimum yaml version for non-patched sources.
+     set(YAML_VERSION_MIN "0.3.0")
+-    include(FindPkgConfig)
+-    pkg_check_modules(PC_YAML_CPP REQUIRED QUIET yaml-cpp)
+-    find_path(YAML_CPP_INCLUDE_DIR yaml-cpp/yaml.h
+-        HINTS  ${PC_YAML_CPP_INCLUDEDIR} ${PC_YAML_CPP_INCLUDE_DIRS} )
+-    find_library(YAML_CPP_LIBRARY LIBRARY_NAMES yaml-cpp libyaml-cpp
+-        HINTS ${PC_YAML_CPP_LIBRARY_DIRS} )
+-    set(YAML_CPP_LIBRARIES ${YAML_CPP_LIBRARY})
+-    set(YAML_CPP_INCLUDE_DIRS ${YAML_CPP_INCLUDE_DIR})
+-    set(YAML_CPP_VERSION ${PC_YAML_CPP_VERSION})
++    if(NOT WIN32)
++		include(FindPkgConfig)
++		pkg_check_modules(PC_YAML_CPP REQUIRED QUIET yaml-cpp)
++		find_path(YAML_CPP_INCLUDE_DIR yaml-cpp/yaml.h
++			HINTS  ${PC_YAML_CPP_INCLUDEDIR} ${PC_YAML_CPP_INCLUDE_DIRS} )
++		find_library(YAML_CPP_LIBRARY LIBRARY_NAMES yaml-cpp libyaml-cpp
++			HINTS ${PC_YAML_CPP_LIBRARY_DIRS} )
++		set(YAML_CPP_LIBRARIES ${YAML_CPP_LIBRARY})
++		set(YAML_CPP_INCLUDE_DIRS ${YAML_CPP_INCLUDE_DIR})
++		set(YAML_CPP_VERSION ${PC_YAML_CPP_VERSION})
+ 
+-    if(YAML_CPP_VERSION VERSION_LESS ${YAML_VERSION_MIN})
+-        message(FATAL_ERROR "ERROR: yaml-cpp ${YAML_VERSION_MIN} or greater is required.")
+-    endif()
+-
+-    find_package_handle_standard_args(yaml-cpp
+-                                      REQUIRED_VARS YAML_CPP_LIBRARIES YAML_CPP_INCLUDE_DIRS )
+-    set(YAML_CPP_FOUND ${YAML-CPP_FOUND})
+-    mark_as_advanced(YAML_CPP_INCLUDE_DIR YAML_CPP_LIBRARY YAML-CPP_FOUND)
++		if(YAML_CPP_VERSION VERSION_LESS ${YAML_VERSION_MIN})
++			message(FATAL_ERROR "ERROR: yaml-cpp ${YAML_VERSION_MIN} or greater is required.")
++		endif()
+ 
++		find_package_handle_standard_args(yaml-cpp
++										  REQUIRED_VARS YAML_CPP_LIBRARIES YAML_CPP_INCLUDE_DIRS )
++		set(YAML_CPP_FOUND ${YAML-CPP_FOUND})
++		mark_as_advanced(YAML_CPP_INCLUDE_DIR YAML_CPP_LIBRARY YAML-CPP_FOUND)
++	else()
++		set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} ${INC_1})
++		set(EXTERNAL_INCLUDE_DIRS ${EXTERNAL_INCLUDE_DIRS} ${INC_2})
++		message("INCLUDE DIRS = i:${EXTERNAL_INCLUDE_DIRS} |1:${INC_1} |2:${INC_2}")
++	endif()
+     if(YAML_CPP_FOUND)
+         if(YAML_CPP_VERSION VERSION_GREATER "0.5.0")
+             # Need to also get the boost headers here, as yaml-cpp 0.5.0+ requires them.

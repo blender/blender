@@ -105,8 +105,9 @@ set(OPENCOLLADA_VERSION v1.6.63)
 set(OPENCOLLADA_URI https://github.com/KhronosGroup/OpenCOLLADA/archive/${OPENCOLLADA_VERSION}.tar.gz)
 set(OPENCOLLADA_HASH e937c3897b86fc0da53cde97257f5156)
 
-set(OPENCOLORIO_URI https://github.com/imageworks/OpenColorIO/archive/6de971097c7f552300f669ed69ca0b6cf5a70843.zip)
-set(OPENCOLORIO_HASH c9de0fd98f26ce6f2e08d617ca68b8e4)
+set(OPENCOLORIO_VERSION 1.1.0)
+set(OPENCOLORIO_URI https://github.com/imageworks/OpenColorIO/archive/v${OPENCOLORIO_VERSION}.tar.gz)
+set(OPENCOLORIO_HASH 802d8f5b1d1fe316ec5f76511aa611b8)
 
 set(LLVM_VERSION 6.0.1)
 set(LLVM_URI http://releases.llvm.org/${LLVM_VERSION}/llvm-${LLVM_VERSION}.src.tar.xz)
@@ -249,3 +250,19 @@ set(JEMALLOC_HASH 507f7b6b882d868730d644510491d18f)
 set(XML2_VERSION 2.9.4)
 set(XML2_URI ftp://xmlsoft.org/libxml2/libxml2-${XML2_VERSION}.tar.gz)
 set(XML2_HASH ae249165c173b1ff386ee8ad676815f5)
+
+set(TINYXML_VERSION 2_6_2)
+set(TINYXML_VERSION_DOTS 2.6.2)
+set(TINYXML_URI https://nchc.dl.sourceforge.net/project/tinyxml/tinyxml/${TINYXML_VERSION_DOTS}/tinyxml_${TINYXML_VERSION}.tar.gz)
+set(TINYXML_HASH c1b864c96804a10526540c664ade67f0)
+
+set(YAMLCPP_VERSION 0.6.2)
+set(YAMLCPP_URI https://codeload.github.com/jbeder/yaml-cpp/tar.gz/yaml-cpp-${YAMLCPP_VERSION})
+set(YAMLCPP_HASH 5b943e9af0060d0811148b037449ef82)
+
+set(LCMS_VERSION 2.9)
+set(LCMS_URI https://nchc.dl.sourceforge.net/project/lcms/lcms/${LCMS_VERSION}/lcms2-${LCMS_VERSION}.tar.gz)
+set(LCMS_HASH 8de1b7724f578d2995c8fdfa35c3ad0e)
+
+
+

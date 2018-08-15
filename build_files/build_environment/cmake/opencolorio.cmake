@@ -22,7 +22,7 @@ set(OPENCOLORIO_EXTRA_ARGS
 	-DBoost_USE_STATIC_LIBS=ON
 	-DBoost_USE_STATIC_RUNTIME=ON
 	-DBOOST_ROOT=${LIBDIR}/boost
-	-DBOOST_INCLUDEDIR=${LIBDIR}/boost/include/boost_1_60/boost
+	-DBOOST_INCLUDEDIR=${LIBDIR}/boost/include/boost_1_68/boost
 	-DBoost_NO_SYSTEM_PATHS=ON
 	-DBoost_DEBUG=ON
 	-DBoost_MAJOR_VERSION=1
@@ -33,13 +33,38 @@ set(OPENCOLORIO_EXTRA_ARGS
 )
 
 if(WIN32)
+	set(OCIO_PATCH opencolorio_win.diff)
 	set(OPENCOLORIO_EXTRA_ARGS
 		${OPENCOLORIO_EXTRA_ARGS}
-		-DOCIO_USE_BOOST_PTR=ON
-		-DOCIO_BUILD_STATIC=OFF
-		-DOCIO_BUILD_SHARED=ON
+		-DOCIO_BUILD_SHARED=OFF
+		-DOCIO_BUILD_STATIC=ON
+		-DOCIO_BUILD_TRUELIGHT=OFF
+		-DOCIO_BUILD_APPS=OFF
+		-DOCIO_BUILD_NUKE=OFF
+		-DOCIO_BUILD_DOCS=OFF
+		-DOCIO_BUILD_TESTS=OFF
+		-DOCIO_BUILD_PYGLUE=OFF
+		-DOCIO_BUILD_JNIGLUE=OFF
+		-DOCIO_STATIC_JNIGLUE=OFF
+		-DOCIO_USE_SSE=ON
+		-DOCIO_INLINES_HIDDEN=OFF
+		-DOCIO_USE_BOOST_PTR=OFF
+		-DOCIO_PYGLUE_LINK=OFF
+		-DOCIO_PYGLUE_RESPECT_ABI=OFF
+		-DOCIO_PYGLUE_SONAME=OFF
+		-DOCIO_PYGLUE_LIB_PREFIX=OFF
+		-DUSE_EXTERNAL_TINYXML=ON
+		-DTINYXML_INCLUDE_DIR=${LIBDIR}/tinyxml/include
+		-DTINYXML_LIBRARY=${LIBDIR}/tinyxml/lib/tinyxml${libext}
+		-DUSE_EXTERNAL_YAML=ON
+		-DYAML_CPP_FOUND=ON
+		-DYAML_CPP_VERSION=${YAMLCPP_VERSION}
+		-DUSE_EXTERNAL_LCMS=ON
+		-DINC_1=${LIBDIR}/tinyxml/include
+		-DINC_2=${LIBDIR}/yamlcpp/include
 	)
 else()
+	set(OCIO_PATCH opencolorio.diff)
 	set(OPENCOLORIO_EXTRA_ARGS
 		${OPENCOLORIO_EXTRA_ARGS}
 		-DOCIO_USE_BOOST_PTR=OFF
@@ -53,7 +78,7 @@ ExternalProject_Add(external_opencolorio
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${OPENCOLORIO_HASH}
 	PREFIX ${BUILD_DIR}/opencolorio
-	PATCH_COMMAND ${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/opencolorio/src/external_opencolorio < ${PATCH_DIR}/opencolorio.diff
+	PATCH_COMMAND ${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/opencolorio/src/external_opencolorio < ${PATCH_DIR}/${OCIO_PATCH}
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/opencolorio ${DEFAULT_CMAKE_FLAGS} ${OPENCOLORIO_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/opencolorio
 )
@@ -71,3 +96,22 @@ add_dependencies(
 	external_opencolorio
 	external_boost
 )
+
+if(WIN32)
+	add_dependencies(
+		external_opencolorio
+		external_tinyxml
+		external_yamlcpp
+	)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_opencolorio after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/include ${HARVEST_TARGET}/opencolorio/include
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/opencolorio/lib/static ${HARVEST_TARGET}/opencolorio/lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/yamlcpp/lib/libyaml-cppmt.lib ${HARVEST_TARGET}/opencolorio/lib/libyaml-cpp.lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tinyxml/lib/tinyxml.lib ${HARVEST_TARGET}/opencolorio/lib/tinyxml.lib
+			DEPENDEES install
+		)
+	endif()
+	
+endif()
+
