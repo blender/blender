@@ -271,7 +271,7 @@ public:
 
 	class OpenCLProgram {
 	public:
-		OpenCLProgram() : loaded(false), device(NULL) {}
+		OpenCLProgram() : loaded(false), program(NULL), device(NULL) {}
 		OpenCLProgram(OpenCLDeviceBase *device,
 		              const string& program_name,
 		              const string& kernel_name,
