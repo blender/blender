@@ -1609,20 +1609,20 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip,
 	return result;
 }
 
-static void movieclip_selection_synchronize(MovieClip *clip_dst, MovieClip *clip_src)
+static void movieclip_selection_synchronize(MovieClip *clip_dst, const MovieClip *clip_src)
 {
 	BLI_assert(clip_dst != clip_src);
-	MovieTracking *tracking_dst = &clip_dst->tracking, *tracking_src = &clip_src->tracking;
+	MovieTracking *tracking_dst = &clip_dst->tracking, tracking_src = clip_src->tracking;
 	/* Syncs the active object, track and plane track. */
-	tracking_dst->objectnr = tracking_src->objectnr;
-	const int active_track_index = BLI_findindex(&tracking_src->tracks, tracking_src->act_track);
-	const int active_plane_track_index = BLI_findindex(&tracking_src->plane_tracks, tracking_src->act_plane_track);
+	tracking_dst->objectnr = tracking_src.objectnr;
+	const int active_track_index = BLI_findindex(&tracking_src.tracks, tracking_src.act_track);
+	const int active_plane_track_index = BLI_findindex(&tracking_src.plane_tracks, tracking_src.act_plane_track);
 	tracking_dst->act_track = BLI_findlink(&tracking_dst->tracks, active_track_index);
 	tracking_dst->act_plane_track = BLI_findlink(&tracking_dst->plane_tracks, active_plane_track_index);
 
 	/* Syncs the tracking selection flag. */
 	MovieTrackingObject *tracking_object_dst, *tracking_object_src;
-	tracking_object_src = tracking_src->objects.first;
+	tracking_object_src = tracking_src.objects.first;
 
 	for (tracking_object_dst = tracking_dst->objects.first;
 	     tracking_object_dst != NULL;
@@ -1631,7 +1631,7 @@ static void movieclip_selection_synchronize(MovieClip *clip_dst, MovieClip *clip
 	{
 		ListBase *tracksbase_dst, *tracksbase_src;
 		tracksbase_dst = BKE_tracking_object_get_tracks(tracking_dst, tracking_object_dst);
-		tracksbase_src = BKE_tracking_object_get_tracks(tracking_src, tracking_object_src);
+		tracksbase_src = BKE_tracking_object_get_tracks(&tracking_src, tracking_object_src);
 
 		MovieTrackingTrack *track_dst, *track_src;
 		track_src = tracksbase_src->first;
