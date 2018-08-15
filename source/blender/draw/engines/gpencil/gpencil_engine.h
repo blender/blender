@@ -320,7 +320,6 @@ struct tGPencilObjectCache *gpencil_object_cache_add(
 /* geometry batch cache functions */
 void gpencil_batch_cache_check_free_slots(struct Object *ob);
 struct GpencilBatchCache *gpencil_batch_cache_get(struct Object *ob, int cfra);
-struct GpencilBatchCache *gpencil_batch_get_element(struct Object *ob);
 
 /* effects */
 void GPENCIL_create_fx_shaders(struct GPENCIL_e_data *e_data);
