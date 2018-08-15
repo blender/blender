@@ -846,7 +846,8 @@ bool edit_modifier_poll(bContext *C)
 
 void edit_modifier_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "modifier", NULL, MAX_NAME, "Modifier", "Name of the modifier to edit");
+	PropertyRNA *prop = RNA_def_string(ot->srna, "modifier", NULL, MAX_NAME, "Modifier", "Name of the modifier to edit");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 int edit_modifier_invoke_properties(bContext *C, wmOperator *op)

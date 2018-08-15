@@ -315,7 +315,8 @@ static bool edit_shaderfx_poll(bContext *C)
 
 static void edit_shaderfx_properties(wmOperatorType *ot)
 {
-	RNA_def_string(ot->srna, "shaderfx", NULL, MAX_NAME, "Shader", "Name of the shaderfx to edit");
+	PropertyRNA *prop = RNA_def_string(ot->srna, "shaderfx", NULL, MAX_NAME, "Shader", "Name of the shaderfx to edit");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static int edit_shaderfx_invoke_properties(bContext *C, wmOperator *op)
