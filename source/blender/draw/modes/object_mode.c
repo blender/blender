@@ -1688,7 +1688,7 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 				                     v3d->bundle_drawtype,
 				                     bundle_color);
 
-				if (v3d->flag2 & V3D_SHOW_BUNDLENAME) {
+				if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_select) {
 					struct DRWTextStore *dt = DRW_text_cache_ensure();
 
 					DRW_text_cache_add(dt,
