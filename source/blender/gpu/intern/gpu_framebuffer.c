@@ -500,7 +500,8 @@ void GPU_framebuffer_clear(
 		glClearDepth(clear_depth);
 	}
 	if (buffers & GPU_STENCIL_BIT) {
-		glStencilMask(clear_stencil);
+		glStencilMask(0xFF);
+		glClearStencil(clear_stencil);
 	}
 
 	GLbitfield mask = convert_buffer_bits_to_gl(buffers);

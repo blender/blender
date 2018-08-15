@@ -466,7 +466,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	while (render_samples < tot_sample && !RE_engine_test_break(engine)) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		float clear_depth = 1.0f;
-		uint clear_stencil = 0xFF;
+		uint clear_stencil = 0x00;
 		uint primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];

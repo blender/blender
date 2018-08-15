@@ -861,7 +861,7 @@ void workbench_deferred_draw_background(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	const float clear_depth = 1.0f;
 	const float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	uint clear_stencil = 0xFF;
+	uint clear_stencil = 0x00;
 
 	DRW_stats_group_start("Clear Background");
 	GPU_framebuffer_bind(fbl->prepass_fb);
