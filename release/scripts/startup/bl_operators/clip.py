@@ -38,29 +38,30 @@ def CLIP_spaces_walk(context, all_screens, tarea, tspace, callback, *args):
                         callback(space, *args)
 
 
-def CLIP_set_viewport_background(context, all_screens, clip, clip_user):
-    def set_background(space_v3d, clip, user):
+def CLIP_set_viewport_background(context, clip, clip_user):
+    def set_background(cam, clip, user):
         bgpic = None
 
-        for x in space_v3d.background_images:
+        for x in cam.background_images:
             if x.source == 'MOVIE_CLIP':
                 bgpic = x
                 break
 
         if not bgpic:
-            bgpic = space_v3d.background_images.new()
+            bgpic = cam.background_images.new()
 
         bgpic.source = 'MOVIE_CLIP'
         bgpic.clip = clip
         bgpic.clip_user.proxy_render_size = user.proxy_render_size
         bgpic.clip_user.use_render_undistorted = True
         bgpic.use_camera_clip = False
-        bgpic.view_axis = 'CAMERA'
 
-        space_v3d.show_background_images = True
+        cam.show_background_images = True
 
-    CLIP_spaces_walk(context, all_screens, 'VIEW_3D', 'VIEW_3D',
-                     set_background, clip, clip_user)
+    scene_camera = context.scene.camera
+    if (not scene_camera) or (scene_camera.type != 'CAMERA'):
+        return
+    set_background(scene_camera.data, clip, clip_user)
 
 
 def CLIP_camera_for_clip(context, clip):
@@ -236,8 +237,8 @@ class CLIP_OT_track_to_empty(Operator):
         ob = None
 
         ob = bpy.data.objects.new(name=track.name, object_data=None)
+        context.collection.objects.link(ob)
         ob.select_set(action='SELECT')
-        context.scene.objects.link(ob)
         context.view_layer.objects.active = ob
 
         for con in ob.constraints:
@@ -312,8 +313,8 @@ class CLIP_OT_bundles_to_mesh(Operator):
             mesh.vertices.foreach_set("co", unpack_list(new_verts))
             ob = bpy.data.objects.new(name="Tracks", object_data=mesh)
             ob.matrix_world = matrix
-            context.scene.objects.link(ob)
-            ob.select = True
+            context.collection.objects.link(ob)
+            ob.select_set('SELECT')
             context.view_layer.objects.active = ob
         else:
             self.report({'WARNING'}, "No usable tracks selected")
@@ -417,7 +418,7 @@ class CLIP_OT_set_viewport_background(Operator):
 
     def execute(self, context):
         sc = context.space_data
-        CLIP_set_viewport_background(context, False, sc.clip, sc.clip_user)
+        CLIP_set_viewport_background(context, sc.clip, sc.clip_user)
 
         return {'FINISHED'}
 
@@ -612,7 +613,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
     @staticmethod
     def _setupViewport(context):
         sc = context.space_data
-        CLIP_set_viewport_background(context, True, sc.clip, sc.clip_user)
+        CLIP_set_viewport_background(context, sc.clip, sc.clip_user)
 
     @staticmethod
     def _setupViewLayers(context):
@@ -859,7 +860,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             scene.cycles.film_transparent = True
 
     @staticmethod
-    def _createMesh(scene, name, vertices, faces):
+    def _createMesh(collection, name, vertices, faces):
         from bpy_extras.io_utils import unpack_list
 
         mesh = bpy.data.meshes.new(name=name)
@@ -879,8 +880,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         mesh.update()
 
         ob = bpy.data.objects.new(name=name, object_data=mesh)
-
-        scene.objects.link(ob)
+        collection.objects.link(ob)
 
         return ob
 
@@ -892,11 +892,11 @@ class CLIP_OT_setup_tracking_scene(Operator):
                 (half_size, half_size, z),
                 (-half_size, half_size, z)]
 
-    def _createGround(self, scene):
+    def _createGround(self, collection):
         vertices = self._getPlaneVertices(4.0, 0.0)
         faces = [0, 1, 2, 3]
 
-        ob = self._createMesh(scene, "Ground", vertices, faces)
+        ob = self._createMesh(collection, "Ground", vertices, faces)
         ob["is_ground"] = True
 
         return ob
@@ -929,7 +929,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         return lightob
 
-    def _createSampleObject(self, scene):
+    def _createSampleObject(self, collection):
         vertices = self._getPlaneVertices(1.0, -1.0) + \
             self._getPlaneVertices(1.0, 1.0)
         faces = (0, 1, 2, 3,
@@ -939,10 +939,11 @@ class CLIP_OT_setup_tracking_scene(Operator):
                  2, 6, 7, 3,
                  3, 7, 4, 0)
 
-        return self._createMesh(scene, "Cube", vertices, faces)
+        return self._createMesh(collection, "Cube", vertices, faces)
 
     def _setupObjects(self, context):
         scene = context.scene
+        collection = context.collection
 
         fg = scene.view_layers.get("Foreground")
         bg = scene.view_layers.get("Background")
@@ -966,13 +967,13 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         # create sample object if there's no meshes in the scene
         if not has_mesh:
-            ob = self._createSampleObject(scene)
+            ob = self._createSampleObject(collection)
             ob.layers = fg.layers
 
         # create ground object if needed
         ground = self._findGround(context)
         if not ground:
-            ground = self._createGround(scene)
+            ground = self._createGround(collection)
             ground.layers = bg.layers
         else:
             # make sure ground is available on Background layer
