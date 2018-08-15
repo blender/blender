@@ -150,6 +150,7 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *cube;
 	DRWShadingGroup *circle;
 	DRWShadingGroup *sphere;
+	DRWShadingGroup *sphere_solid;
 	DRWShadingGroup *cylinder;
 	DRWShadingGroup *capsule_cap;
 	DRWShadingGroup *capsule_body;
@@ -1103,6 +1104,9 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_empty_sphere_get();
 		stl->g_data->sphere = shgroup_instance(psl->non_meshes, geom);
 
+		geom = DRW_cache_sphere_get();
+		stl->g_data->sphere_solid = shgroup_instance_solid(psl->non_meshes, geom);
+
 		geom = DRW_cache_empty_cylinder_get();
 		stl->g_data->cylinder = shgroup_instance(psl->non_meshes, geom);
 
@@ -1620,20 +1624,29 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
 	if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) && (clip != NULL)){
 		const bool is_select = DRW_state_is_select();
+		const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
+		                             ((v3d->shading.type != OB_SOLID) ||
+		                              ((v3d->shading.flag & V3D_SHADING_XRAY) == 0));
 
 		MovieTracking *tracking = &clip->tracking;
 		/* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */
 		int track_index = 1;
 
 		uchar text_color_selected[4], text_color_unselected[4];
-		float bundle_color_unselected[4];
+		float bundle_color_unselected[4], bundle_color_solid[4];
 
 		UI_GetThemeColor4ubv(TH_SELECT, text_color_selected);
 		UI_GetThemeColor4ubv(TH_TEXT, text_color_unselected);
 		UI_GetThemeColor4fv(TH_WIRE, bundle_color_unselected);
+		UI_GetThemeColor4fv(TH_BUNDLE_SOLID, bundle_color_solid);
 
 		float camera_mat[4][4];
 		BKE_tracking_get_camera_object_matrix(draw_ctx->depsgraph, scene, ob, camera_mat);
+
+		float bundle_scale_mat[4][4];
+		if (is_solid_bundle) {
+			scale_m4_fl(bundle_scale_mat, v3d->bundle_size);
+		}
 
 		for (MovieTrackingObject *tracking_object = tracking->objects.first;
 		     tracking_object != NULL;
@@ -1670,6 +1683,9 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 				if (track->flag & TRACK_CUSTOMCOLOR) {
 					bundle_color = track->color;
 				}
+				else if (is_solid_bundle) {
+					bundle_color = bundle_color_solid;
+				}
 				else if (is_selected) {
 					bundle_color = color;
 				}
@@ -1682,11 +1698,35 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 					track_index++;
 				}
 
-				DRW_shgroup_empty_ex(stl,
-				                     bundle_mat,
-				                     &v3d->bundle_size,
-				                     v3d->bundle_drawtype,
-				                     bundle_color);
+				if (is_solid_bundle) {
+
+					if (is_selected) {
+						DRW_shgroup_empty_ex(stl,
+						                     bundle_mat,
+						                     &v3d->bundle_size,
+						                     v3d->bundle_drawtype,
+						                     color);
+					}
+
+					float bundle_color_v4[4] = {
+					    bundle_color[0],
+					    bundle_color[1],
+					    bundle_color[2],
+					    1.0f,
+					};
+
+					mul_m4_m4m4(bundle_mat, bundle_mat, bundle_scale_mat);
+					DRW_shgroup_call_dynamic_add(stl->g_data->sphere_solid,
+					                             bundle_mat,
+					                             bundle_color_v4);
+				}
+				else {
+					DRW_shgroup_empty_ex(stl,
+					                     bundle_mat,
+					                     &v3d->bundle_size,
+					                     v3d->bundle_drawtype,
+					                     bundle_color);
+				}
 
 				if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_select) {
 					struct DRWTextStore *dt = DRW_text_cache_ensure();
