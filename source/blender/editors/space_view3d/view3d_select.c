@@ -2415,7 +2415,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, c
 		if (SEL_OP_USE_OUTSIDE(sel_op)) {
 			for (int i = 0; i < BLI_array_len(bases); i++) {
 				Base *base = bases[i];
-				if ((base->object->flag & OB_DONE) == 0) {
+				if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
 					const bool is_select = base->flag & BASE_SELECTED;
 					const bool is_inside = false;  /* we know there are no hits. */
 					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
