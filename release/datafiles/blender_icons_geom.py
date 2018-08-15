@@ -43,6 +43,11 @@ the ``.dat`` file extension should be used.
 # This script writes out geometry-icons.
 import bpy
 
+# Generic functions
+
+def area_tri_signed_2x_v2(v1, v2, v3):
+	return (v1[0] - v2[0]) * (v2[1] - v3[1]) + (v1[1] - v2[1]) * (v3[0] - v2[0])
+
 
 class TriMesh:
     """
@@ -116,10 +121,7 @@ def mesh_data_lists_from_mesh(me, material_colors):
     tris_data = []
 
     for p in me_polys:
-        # Backface culling (allows using spheres without tedious manual deleting).
-        if p.normal.z <= 0.0:
-            continue
-
+        # Note, all faces are handled, backfacing/zero area is checked just before writing.
         material_index = p.material_index
         if material_index < len(material_colors):
             base_color = material_colors[p.material_index]
@@ -179,7 +181,7 @@ def mesh_data_lists_from_objects(ob_parent, ob_children):
     for ob in (ob_parent, *ob_children):
         with TriMesh(ob) as me:
             if has_parent:
-                me.transform(parent_matrix_inverted * ob.matrix_world)
+                me.transform(parent_matrix_inverted @ ob.matrix_world)
 
             tris_data.extend(
                 mesh_data_lists_from_mesh(
@@ -243,10 +245,18 @@ def write_mesh_to_py(fh, ob, ob_children):
     # X, Y
     fw(bytes((0, 0)))
 
-    for (_, tri_coords, _) in tris_data:
-        for vert in tri_coords:
-            fw(bytes(vert_as_byte_pair(vert)))
-    for (_, _, tri_color) in tris_data:
+    # Once converted into bytes, the triangle might become zero area
+    tri_skip = [False] * len(tris_data)
+    for i, (_, tri_coords, _) in enumerate(tris_data):
+        tri_coords_as_byte = [vert_as_byte_pair(vert) for vert in tri_coords]
+        if area_tri_signed_2x_v2(*tri_coords_as_byte) <= 0:
+            tri_skip[i] = True
+            continue
+        for vert_byte in tri_coords_as_byte:
+            fw(bytes(vert_byte))
+    for i, (_, _, tri_color) in enumerate(tris_data):
+        if tri_skip[i]:
+            continue
         for color in tri_color:
             fw(bytes(color))
 
