@@ -549,9 +549,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
-	tGPencilObjectCache *cache_ob = NULL;
 
-	/* object datablock (this is not draw now) */
 	if (ob->type == OB_GPENCIL && ob->data) {
 		bGPdata *gpd = (bGPdata *)ob->data;
 
@@ -572,8 +570,6 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			stl->g_data->gp_object_cache = gpencil_object_cache_add(
 				stl->g_data->gp_object_cache, ob,
 				&stl->g_data->gp_cache_size, &stl->g_data->gp_cache_used);
-
-			cache_ob = &stl->g_data->gp_object_cache[stl->g_data->gp_cache_used - 1];
 
 			/* load drawing data */
 			gpencil_add_draw_data(vedata, ob);
