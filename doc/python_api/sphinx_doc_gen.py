@@ -982,8 +982,6 @@ context_type_map = {
     "active_gpencil_brush": ("GPencilSculptBrush", False),
     "active_gpencil_frame": ("GreasePencilLayer", True),
     "active_gpencil_layer": ("GPencilLayer", True),
-    "active_gpencil_palette": ("GPencilPalette", True),
-    "active_gpencil_palettecolor": ("GPencilPaletteColor", True),
     "active_node": ("Node", False),
     "active_object": ("Object", False),
     "active_operator": ("Operator", False),
@@ -1012,7 +1010,7 @@ context_type_map = {
     "gpencil_data": ("GreasePencel", False),
     "gpencil_data_owner": ("ID", False),
     "image_paint_object": ("Object", False),
-    "lamp": ("Lamp", False),
+    "light": ("Light", False),
     "lattice": ("Lattice", False),
     "lightprobe": ("LightProbe", False),
     "line_style": ("FreestyleLineStyle", False),
@@ -1026,7 +1024,6 @@ context_type_map = {
     "particle_system": ("ParticleSystem", False),
     "particle_system_editable": ("ParticleSystem", False),
     "pose_bone": ("PoseBone", False),
-    "render_layer": ("SceneLayer", False),
     "scene": ("Scene", False),
     "sculpt_object": ("Object", False),
     "selectable_bases": ("ObjectBase", True),
@@ -1058,6 +1055,7 @@ context_type_map = {
     "visible_pose_bones": ("PoseBone", True),
     "weight_paint_object": ("Object", False),
     "world": ("World", False),
+    "view_layer": ("ViewLayer", False),
 }
 
 
@@ -1832,7 +1830,8 @@ def write_rst_importable_modules(basepath):
         "bpy.app": "Application Data",
         "bpy.app.handlers": "Application Handlers",
         "bpy.app.translations": "Application Translations",
-        "bpy.app.icons": "Application Icons",
+        # TODO(campbell)
+        # "bpy.app.icons": "Application Icons",
         "bpy.props": "Property Definitions",
         "idprop.types": "ID Property Access",
         "mathutils": "Math Types & Utilities",
