@@ -569,8 +569,8 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA
 	};
 
 	static const EnumPropertyItem prop_fill_deepen_items[] = {
-		{0, "FILL", 0, "Fill", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEEPEN", 0, "Deepen", "Subtract effect of brush"},
+		{0, "FILL", ICON_ZOOMIN, "Fill", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEEPEN", ICON_ZOOMOUT, "Deepen", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
