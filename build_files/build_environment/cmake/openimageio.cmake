@@ -109,7 +109,7 @@ set(OPENIMAGEIO_EXTRA_ARGS
 	-DILMBASE_INCLUDE_PATH=${LIBDIR}/ilmbase/
 	-DILMBASE_PACKAGE_PREFIX=${LIBDIR}/ilmbase/
 	-DILMBASE_INCLUDE_DIR=${LIBDIR}/ilmbase/include/
-	-DOPENEXR_HALF_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half${LIBEXT}
+	-DOPENEXR_HALF_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_IMATH_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Imath${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_ILMTHREAD_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_IEX_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex${ILMBASE_VERSION_POSTFIX}${LIBEXT}
@@ -127,7 +127,7 @@ ExternalProject_Add(external_openimageio
 	PREFIX ${BUILD_DIR}/openimageio
 	PATCH_COMMAND
 		${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/src/include < ${PATCH_DIR}/openimageio_gdi.diff &&
-		${PATCH_CMD} -p 0 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio_staticexr.diff
+		${PATCH_CMD} -p 1 -N -d ${BUILD_DIR}/openimageio/src/external_openimageio/ < ${PATCH_DIR}/openimageio_static_libs.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openimageio ${DEFAULT_CMAKE_FLAGS} ${OPENIMAGEIO_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/openimageio
 )
