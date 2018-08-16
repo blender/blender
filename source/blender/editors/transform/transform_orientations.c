@@ -1122,9 +1122,9 @@ void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[3
 				type = ORIENTATION_NONE;
 			}
 			break;
-	}
-
-	if (type == ORIENTATION_NONE) {
-		unit_m3(orientation_mat);
+		default:
+			BLI_assert(type == ORIENTATION_NONE);
+			unit_m3(orientation_mat);
+			break;
 	}
 }

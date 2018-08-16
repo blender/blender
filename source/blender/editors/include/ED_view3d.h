@@ -103,6 +103,7 @@ typedef struct ViewDepths {
 enum eV3DCursorOrient {
 	V3D_CURSOR_ORIENT_NONE = 0,
 	V3D_CURSOR_ORIENT_VIEW,
+	V3D_CURSOR_ORIENT_XFORM,
 	V3D_CURSOR_ORIENT_GEOM,
 };
 

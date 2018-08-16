@@ -198,6 +198,14 @@ bool snapNodesTransform(
         /* return args */
         float r_loc[2], float *r_dist_px, char *r_node_border);
 
+void ED_transform_calc_orientation_from_type(
+        const struct bContext *C, float r_mat[3][3]);
+ void ED_transform_calc_orientation_from_type_ex(
+         const struct bContext *C, float r_mat[3][3],
+         /* extra args */
+         struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d, struct Object *ob, struct Object *obedit,
+         const short orientation_type, const int pivot_point);
+
 struct TransformBounds {
 	float center[3];		/* Center for transform widget. */
 	float min[3], max[3];	/* Boundbox of selection for transform widget. */

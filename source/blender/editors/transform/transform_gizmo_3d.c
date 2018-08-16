@@ -601,6 +601,101 @@ bool gimbal_axis(Object *ob, float gmat[3][3])
 	return 0;
 }
 
+void ED_transform_calc_orientation_from_type(
+        const bContext *C, float r_mat[3][3])
+{
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = sa->spacedata.first;
+	RegionView3D *rv3d = ar->regiondata;
+	Object *ob = OBACT(view_layer);
+	const short orientation_type = scene->orientation_type;
+	const int pivot_point = scene->toolsettings->transform_pivot_point;
+
+	ED_transform_calc_orientation_from_type_ex(
+	        C, r_mat,
+	        scene, v3d, rv3d, ob, obedit, orientation_type, pivot_point);
+}
+
+void ED_transform_calc_orientation_from_type_ex(
+        const bContext *C, float r_mat[3][3],
+        /* extra args (can be accessed from context) */
+        Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob, Object *obedit,
+        const short orientation_type, const int pivot_point)
+{
+	bool ok = false;
+
+	switch (orientation_type) {
+		case V3D_MANIP_GLOBAL:
+		{
+			break; /* nothing to do */
+		}
+		case V3D_MANIP_GIMBAL:
+		{
+			if (gimbal_axis(ob, r_mat)) {
+				ok = true;
+				break;
+			}
+			/* if not gimbal, fall through to normal */
+			ATTR_FALLTHROUGH;
+		}
+		case V3D_MANIP_NORMAL:
+		{
+			if (obedit || ob->mode & OB_MODE_POSE) {
+				ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
+				ok = true;
+				break;
+			}
+			/* no break we define 'normal' as 'local' in Object mode */
+			ATTR_FALLTHROUGH;
+		}
+		case V3D_MANIP_LOCAL:
+		{
+			if (ob->mode & OB_MODE_POSE) {
+				/* each bone moves on its own local axis, but  to avoid confusion,
+				 * use the active pones axis for display [#33575], this works as expected on a single bone
+				 * and users who select many bones will understand whats going on and what local means
+				 * when they start transforming */
+				ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
+				ok = true;
+				break;
+			}
+			copy_m3_m4(r_mat, ob->obmat);
+			normalize_m3(r_mat);
+			ok = true;
+			break;
+		}
+		case V3D_MANIP_VIEW:
+		{
+			copy_m3_m4(r_mat, rv3d->viewinv);
+			normalize_m3(r_mat);
+			ok = true;
+			break;
+		}
+		case V3D_MANIP_CURSOR:
+		{
+			ED_view3d_cursor3d_calc_mat3(scene, v3d, r_mat);
+			ok = true;
+			break;
+		}
+		case V3D_MANIP_CUSTOM:
+		{
+			TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
+			        scene, scene->orientation_index_custom);
+			if (applyTransformOrientation(custom_orientation, r_mat, NULL)) {
+				ok = true;
+			}
+			break;
+		}
+	}
+
+	if (!ok) {
+		unit_m3(r_mat);
+	}
+}
 
 /* centroid, boundbox, of selection */
 /* returns total items selected */
@@ -637,77 +732,11 @@ int ED_transform_calc_gizmo_stats(
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
 	if (ob && !is_gp_edit) {
 		const short orientation_type = params->orientation_type ? (params->orientation_type - 1) : scene->orientation_type;
-
-		switch (orientation_type) {
-
-			case V3D_MANIP_GLOBAL:
-			{
-				break; /* nothing to do */
-			}
-			case V3D_MANIP_GIMBAL:
-			{
-				float mat[3][3];
-				if (gimbal_axis(ob, mat)) {
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				/* if not gimbal, fall through to normal */
-				ATTR_FALLTHROUGH;
-			}
-			case V3D_MANIP_NORMAL:
-			{
-				if (obedit || ob->mode & OB_MODE_POSE) {
-					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, pivot_point);
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				/* no break we define 'normal' as 'local' in Object mode */
-				ATTR_FALLTHROUGH;
-			}
-			case V3D_MANIP_LOCAL:
-			{
-				if (ob->mode & OB_MODE_POSE) {
-					/* each bone moves on its own local axis, but  to avoid confusion,
-					 * use the active pones axis for display [#33575], this works as expected on a single bone
-					 * and users who select many bones will understand whats going on and what local means
-					 * when they start transforming */
-					float mat[3][3];
-					ED_getTransformOrientationMatrix(C, mat, pivot_point);
-					copy_m4_m3(rv3d->twmat, mat);
-					break;
-				}
-				copy_m4_m4(rv3d->twmat, ob->obmat);
-				normalize_m4(rv3d->twmat);
-				break;
-			}
-			case V3D_MANIP_VIEW:
-			{
-				float mat[3][3];
-				copy_m3_m4(mat, rv3d->viewinv);
-				normalize_m3(mat);
-				copy_m4_m3(rv3d->twmat, mat);
-				break;
-			}
-			case V3D_MANIP_CURSOR:
-			{
-				float mat[3][3];
-				ED_view3d_cursor3d_calc_mat3(scene, v3d, mat);
-				copy_m4_m3(rv3d->twmat, mat);
-				break;
-			}
-			case V3D_MANIP_CUSTOM:
-			{
-				TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
-				        scene, scene->orientation_index_custom);
-				float mat[3][3];
-
-				if (applyTransformOrientation(custom_orientation, mat, NULL)) {
-					copy_m4_m3(rv3d->twmat, mat);
-				}
-				break;
-			}
-		}
+		float mat[3][3];
+		ED_transform_calc_orientation_from_type_ex(
+		        C, mat,
+		        scene, v3d, rv3d, ob, obedit, orientation_type, pivot_point);
+		copy_m4_m3(rv3d->twmat, mat);
 	}
 
 	/* transform widget centroid/center */

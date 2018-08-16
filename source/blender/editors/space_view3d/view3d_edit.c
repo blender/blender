@@ -4685,6 +4685,11 @@ void ED_view3d_cursor3d_position_rotation(
 		copy_qt_qt(cursor_quat, rv3d->viewquat);
 		cursor_quat[0] *= -1.0f;
 	}
+	else if (orientation == V3D_CURSOR_ORIENT_XFORM) {
+		float mat[3][3];
+		ED_transform_calc_orientation_from_type(C, mat);
+		mat3_to_quat(cursor_quat, mat);
+	}
 	else if (orientation == V3D_CURSOR_ORIENT_GEOM) {
 		copy_qt_qt(cursor_quat, rv3d->viewquat);
 		cursor_quat[0] *= -1.0f;
@@ -4833,9 +4838,10 @@ void VIEW3D_OT_cursor3d(wmOperatorType *ot)
 
 	PropertyRNA *prop;
 	static const EnumPropertyItem orientation_items[] = {
-		{V3D_CURSOR_ORIENT_NONE,    "NONE", 0, "None", "Leave orientation unchanged"},
-		{V3D_CURSOR_ORIENT_VIEW,    "VIEW", 0, "View", "Orient to the viewport"},
-		{V3D_CURSOR_ORIENT_GEOM,    "GEOM", 0, "Geometry", "Match the surface normal"},
+		{V3D_CURSOR_ORIENT_NONE,    "NONE",  0, "None", "Leave orientation unchanged"},
+		{V3D_CURSOR_ORIENT_VIEW,    "VIEW",  0, "View", "Orient to the viewport"},
+		{V3D_CURSOR_ORIENT_XFORM,   "XFORM", 0, "Transform", "Orient to the current transform setting"},
+		{V3D_CURSOR_ORIENT_GEOM,    "GEOM",  0, "Geometry", "Match the surface normal"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
