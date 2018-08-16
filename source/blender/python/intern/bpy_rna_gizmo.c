@@ -480,7 +480,6 @@ PyDoc_STRVAR(bpy_gizmo_target_get_range_doc,
 "   Get the range for this target property.\n"
 "\n"
 "   :arg target: Target property name.\n"
-"   :Get the range for this target property"
 "   :return: The range of this property (min, max).\n"
 "   :rtype: tuple pair.\n"
 );
