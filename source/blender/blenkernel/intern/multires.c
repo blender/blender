@@ -307,13 +307,7 @@ Mesh *get_multires_mesh(
 	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
 	Mesh *result = modifier_applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
 	if (result == deformed_mesh) {
-		/* TODO(sergey): De-duplicate with copy in modifier stack. */
-		BKE_id_copy_ex(NULL, &deformed_mesh->id, (ID **)&result,
-		               (LIB_ID_CREATE_NO_MAIN |
-		                LIB_ID_CREATE_NO_USER_REFCOUNT |
-		                LIB_ID_CREATE_NO_DEG_TAG |
-		                LIB_ID_COPY_CD_REFERENCE),
-		               false);
+		result = BKE_mesh_copy_for_eval(deformed_mesh);
 	}
 	return result;
 }

@@ -1287,13 +1287,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
 		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 	}
 	else {
-		BKE_id_copy_ex(
-		        NULL, &me->id, (ID **)&mesh,
-		        (LIB_ID_CREATE_NO_MAIN |
-		         LIB_ID_CREATE_NO_USER_REFCOUNT |
-		         LIB_ID_CREATE_NO_DEG_TAG |
-		         LIB_ID_COPY_CD_REFERENCE),
-		        false);
+		mesh = BKE_mesh_copy_for_eval(me);
 	}
 
 	orco = get_orco_coords_dm(ob, em, layer, &free);
@@ -2088,13 +2082,7 @@ static void mesh_calc_modifiers(
 		 * coordinates (vpaint, etc.)
 		 */
 		if (r_deform_mesh) {
-			BKE_id_copy_ex(
-			        NULL, &me->id, (ID **)r_deform_mesh,
-			        (LIB_ID_CREATE_NO_MAIN |
-			         LIB_ID_CREATE_NO_USER_REFCOUNT |
-			         LIB_ID_CREATE_NO_DEG_TAG |
-			         LIB_ID_COPY_CD_REFERENCE),
-			        false);
+			*r_deform_mesh = BKE_mesh_copy_for_eval(me);
 
 			/* XXX: Is build_shapekey_layers ever even true? This should have crashed long ago... */
 			BLI_assert(!build_shapekey_layers);
@@ -2234,13 +2222,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 			else {
-				BKE_id_copy_ex(
-				        NULL, &me->id, (ID **)&mesh,
-				        (LIB_ID_CREATE_NO_MAIN |
-				         LIB_ID_CREATE_NO_USER_REFCOUNT |
-				         LIB_ID_CREATE_NO_DEG_TAG |
-				         LIB_ID_COPY_CD_REFERENCE),
-				        false);
+				mesh = BKE_mesh_copy_for_eval(me);
 				ASSERT_IS_VALID_MESH(mesh);
 
 				// XXX: port to Mesh if build_shapekey_layers can ever be true
@@ -2409,13 +2391,7 @@ static void mesh_calc_modifiers(
 #endif
 	}
 	else {
-		BKE_id_copy_ex(
-		        NULL, &me->id, (ID **)&final_mesh,
-		        (LIB_ID_CREATE_NO_MAIN |
-		         LIB_ID_CREATE_NO_USER_REFCOUNT |
-		         LIB_ID_CREATE_NO_DEG_TAG |
-		         LIB_ID_COPY_CD_REFERENCE),
-		        false);
+		final_mesh = BKE_mesh_copy_for_eval(me);
 
 		//if (build_shapekey_layers) {
 		//	add_shapekey_layers(final_mesh, me, ob);

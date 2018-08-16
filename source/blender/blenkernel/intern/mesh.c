@@ -695,6 +695,19 @@ Mesh * BKE_mesh_new_nomain_from_template(
 	        CD_MASK_EVERYTHING);
 }
 
+Mesh *BKE_mesh_copy_for_eval(struct Mesh *source)
+{
+	Mesh *result;
+	BKE_id_copy_ex(
+	        NULL, &source->id, (ID **)&result,
+	        (LIB_ID_CREATE_NO_MAIN |
+	         LIB_ID_CREATE_NO_USER_REFCOUNT |
+	         LIB_ID_CREATE_NO_DEG_TAG |
+	         LIB_ID_COPY_CD_REFERENCE),
+	        false);
+	return result;
+}
+
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 {
 	Mesh *me_copy;
