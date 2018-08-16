@@ -1619,4 +1619,8 @@ void ED_spacetype_clip(void)
 	art->draw = clip_channels_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: hud */
+	art = ED_area_type_hud(st->spaceid);
+	BLI_addhead(&st->regiontypes, art);
 }
