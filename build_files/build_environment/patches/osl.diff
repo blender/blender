@@ -10,29 +10,3 @@ diff -Naur osl/src/external_osl/src/cmake/flexbison.cmake osl_bak/src/external_o
            MAIN_DEPENDENCY ${flexsrc}
            DEPENDS ${${compiler_headers}}
            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} )
---- osl/src/external_osl/src/include/OSL/oslconfig.h	2016-10-31 16:48:19 -0600
-+++ osl/src/external_osl/src/include/OSL/oslconfig.h	2018-05-27 11:18:08 -0600
-@@ -44,12 +44,18 @@
- // same if another packages is compiling against OSL and using these headers
- // (OSL may be C++11 but the client package may be older, or vice versa --
- // use these two symbols to differentiate these cases, when important).
--#if (__cplusplus >= 201402L)
--#  define OSL_CPLUSPLUS_VERSION  14
--#elif (__cplusplus >= 201103L)
--#  define OSL_CPLUSPLUS_VERSION  11
-+
-+// Force C++03 for MSVC in blender since svn the libraries are build with that
-+#if !defined(_MSC_VER)
-+	#if (__cplusplus >= 201402L)
-+	#  define OSL_CPLUSPLUS_VERSION  14
-+	#elif (__cplusplus >= 201103L)
-+	#  define OSL_CPLUSPLUS_VERSION  11
-+	#else
-+	#  define OSL_CPLUSPLUS_VERSION  3 /* presume C++03 */
-+	#endif
- #else
--#  define OSL_CPLUSPLUS_VERSION  3 /* presume C++03 */
-+	#  define OSL_CPLUSPLUS_VERSION  3 /* presume C++03 */
- #endif
- 
- // Symbol export defines

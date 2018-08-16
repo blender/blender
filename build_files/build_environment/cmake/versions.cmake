@@ -134,13 +134,9 @@ set(TIFF_VERSION 4.0.9)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_HASH 54bad211279cc93eb4fca31ba9bfdc79)
 
-set(FLEXBISON_VERSION 2.5.5)
-set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
-set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
-
-set(OSL_VERSION 1.7.5)
-set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.zip)
-set(OSL_HASH 6924dd5d453159e7b6eb106a08c358cf)
+set(OSL_VERSION 1.9.9)
+set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.tar.gz)
+set(OSL_HASH 44ad511e424965a10fce051a053b0605)
 
 set(PYTHON_VERSION 3.7.0)
 set(PYTHON_SHORT_VERSION 3.7)
@@ -265,6 +261,10 @@ set(YAMLCPP_HASH 5b943e9af0060d0811148b037449ef82)
 set(LCMS_VERSION 2.9)
 set(LCMS_URI https://nchc.dl.sourceforge.net/project/lcms/lcms/${LCMS_VERSION}/lcms2-${LCMS_VERSION}.tar.gz)
 set(LCMS_HASH 8de1b7724f578d2995c8fdfa35c3ad0e)
+
+set(PUGIXML_VERSION 1.9)
+set(PUGIXML_URI https://github.com/zeux/pugixml/archive/v1.9.tar.gz)
+set(PUGIXML_HASH 9346ca1dce2c48f1748c12fdac41a714)
 
 
 

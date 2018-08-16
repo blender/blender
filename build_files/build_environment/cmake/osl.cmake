@@ -31,7 +31,7 @@ else()
 	set(OSL_OPENIMAGEIO_LIBRARY "${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO${LIBEXT};${LIBDIR}/openimageio/lib/${LIBPREFIX}OpenImageIO_Util${LIBEXT};${LIBDIR}/png/lib/${LIBPREFIX}png16${LIBEXT};${LIBDIR}/jpg/lib/${LIBPREFIX}jpeg${LIBEXT};${LIBDIR}/tiff/lib/${LIBPREFIX}tiff${LIBEXT};${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf${OPENEXR_VERSION_POSTFIX}${LIBEXT}")
 endif()
 
-set(OSL_ILMBASE_CUSTOM_LIBRARIES "${LIBDIR}/ilmbase/lib/Imath${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Half.lib^^${LIBDIR}/ilmbase/lib/IlmThread${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Iex${ILMBASE_VERSION_POSTFIX}.lib")
+set(OSL_ILMBASE_CUSTOM_LIBRARIES "${LIBDIR}/ilmbase/lib/Imath${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Half{ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/IlmThread${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Iex${ILMBASE_VERSION_POSTFIX}.lib")
 set(OSL_LLVM_LIBRARY "${LIBDIR}/llvm/lib/LLVMAnalysis${LIBEXT};${LIBDIR}/llvm/lib/LLVMAsmParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMAsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/LLVMBitReader${LIBEXT};${LIBDIR}/llvm/lib/LLVMBitWriter${LIBEXT};${LIBDIR}/llvm/lib/LLVMCodeGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMCore${LIBEXT};${LIBDIR}/llvm/lib/LLVMDebugInfo${LIBEXT};${LIBDIR}/llvm/lib/LLVMExecutionEngine${LIBEXT};${LIBDIR}/llvm/lib/LLVMInstCombine${LIBEXT};${LIBDIR}/llvm/lib/LLVMInstrumentation${LIBEXT};${LIBDIR}/llvm/lib/LLVMInterpreter${LIBEXT};${LIBDIR}/llvm/lib/LLVMJIT${LIBEXT};${LIBDIR}/llvm/lib/LLVMLinker${LIBEXT};${LIBDIR}/llvm/lib/LLVMMC${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCDisassembler${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCJIT${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMObject${LIBEXT};${LIBDIR}/llvm/lib/LLVMRuntimeDyld${LIBEXT};${LIBDIR}/llvm/lib/LLVMScalarOpts${LIBEXT};${LIBDIR}/llvm/lib/LLVMSelectionDAG${LIBEXT};${LIBDIR}/llvm/lib/LLVMSupport${LIBEXT};${LIBDIR}/llvm/lib/LLVMTableGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMTarget${LIBEXT};${LIBDIR}/llvm/lib/LLVMTransformUtils${LIBEXT};${LIBDIR}/llvm/lib/LLVMVectorize${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86AsmParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86AsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86CodeGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Desc${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Disassembler${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Info${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Utils${LIBEXT};${LIBDIR}/llvm/lib/LLVMipa${LIBEXT};${LIBDIR}/llvm/lib/LLVMipo${LIBEXT}")
 
 set(OSL_EXTRA_ARGS
@@ -50,6 +50,7 @@ set(OSL_EXTRA_ARGS
 	-DOPENEXR_HOME=${LIBDIR}/openexr/
 	-DILMBASE_HOME=${LIBDIR}/ilmbase/
 	-DILMBASE_INCLUDE_DIR=${LIBDIR}/ilmbase/include/
+	-DOPENEXR_HALF_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Half${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_IMATH_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Imath${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_ILMTHREAD_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread${ILMBASE_VERSION_POSTFIX}${LIBEXT}
 	-DOPENEXR_IEX_LIBRARY=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex${ILMBASE_VERSION_POSTFIX}${LIBEXT}
@@ -69,7 +70,10 @@ set(OSL_EXTRA_ARGS
 	-DSTOP_ON_WARNING=OFF
 	-DOSL_BUILD_CPP11=ON
 	-DUSE_LLVM_BITCODE=OFF
+	-DUSE_PARTIO=OFF
 	${OSL_SIMD_FLAGS}
+	-DPUGIXML_HOME=${LIBDIR}/pugixml
+	-DPARTIO_LIBRARIES=
 )
 
 ExternalProject_Add(external_osl
@@ -78,9 +82,8 @@ ExternalProject_Add(external_osl
 	LIST_SEPARATOR ^^
 	URL_HASH MD5=${OSL_HASH}
 	PREFIX ${BUILD_DIR}/osl
-	PATCH_COMMAND
-		${PATCH_CMD} -p 3 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff &&
-		${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
+	PATCH_COMMAND ${PATCH_CMD} -p 3 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff 
+	#	${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${DEFAULT_CMAKE_FLAGS} ${OSL_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/osl
 )
@@ -95,4 +98,5 @@ add_dependencies(
 	external_zlib
 	external_flexbison
 	external_openimageio
+	external_pugixml
 )

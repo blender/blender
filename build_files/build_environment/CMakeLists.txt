@@ -91,6 +91,7 @@ include(cmake/openvdb.cmake)
 include(cmake/python.cmake)
 include(cmake/python_site_packages.cmake)
 include(cmake/numpy.cmake)
+include(cmake/pugixml.cmake)
 
 if(WITH_WEBP)
 	include(cmake/webp.cmake)
