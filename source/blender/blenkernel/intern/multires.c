@@ -64,6 +64,8 @@
 
 #include "CCGSubSurf.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include <math.h>
 #include <string.h>
 
@@ -300,10 +302,11 @@ Mesh *get_multires_mesh(
         MultiresModifierData *mmd,
         Object *ob)
 {
-	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob_eval, CD_MASK_BAREMESH);
 	ModifierEvalContext modifier_ctx = {
 	        .depsgraph = depsgraph,
-	        .object = ob,
+	        .object = ob_eval,
 	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
 	Mesh *result = modifier_applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
 	if (result == deformed_mesh) {
