@@ -840,6 +840,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 				}
 
 				nu = nu->next;
+				newnu = newnu->next;
 			}
 
 			if (apply_offset) {
