@@ -1,11 +1,76 @@
-diff -Naur k:\BlenderDev\lib\win64_vc12_Harvest\openVDB\/include/openvdb/math/Coord.h .\openVDB/include/openvdb/math/Coord.h
---- k:\BlenderDev\lib\win64_vc12_Harvest\openVDB\/include/openvdb/math/Coord.h	2016-03-30 15:09:49 -0600
-+++ .\openVDB/include/openvdb/math/Coord.h	2016-04-01 06:53:47 -0600
-@@ -34,6 +34,7 @@
+diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
+--- openvdb.orig/openvdb/CMakeLists.txt	2018-04-10 12:22:17 -0600
++++ openvdb/openvdb/CMakeLists.txt	2018-08-15 19:04:52 -0600
+@@ -82,6 +82,9 @@
+ IF (WIN32 AND OPENVDB_DISABLE_BOOST_IMPLICIT_LINKING)
+   ADD_DEFINITIONS ( -DBOOST_ALL_NO_LIB )
+ ENDIF ()
++if(WIN32)
++ADD_DEFINITIONS ( -D__TBB_NO_IMPLICIT_LINKAGE )
++endif()
+ 
+ FIND_PACKAGE ( Blosc REQUIRED )
+ FIND_PACKAGE ( TBB REQUIRED )
+@@ -225,13 +228,16 @@
+   ${VDB_PRINT_SOURCE_FILES}
+   )
+ 
++if(NOT WIN32)
++	set(EXTRA_LIBS m stdc++)
++endif()
++  
+ TARGET_LINK_LIBRARIES ( vdb_print
+   openvdb_shared
+   ${CMAKE_THREAD_LIBS_INIT}
+   ${BLOSC_blosc_LIBRARY}
+-  m
+-  stdc++
+-  )
++  ${EXTRA_LIBS}
++)
+ 
+ SET ( VDB_RENDER_SOURCE_FILES cmd/openvdb_render/main.cc )
+ SET_SOURCE_FILES_PROPERTIES ( ${VDB_RENDER_SOURCE_FILES}
+@@ -249,8 +255,7 @@
+   ${Openexr_ILMIMF_LIBRARY}
+   ${Ilmbase_ILMTHREAD_LIBRARY}
+   ${Ilmbase_IEX_LIBRARY}
+-  m
+-  stdc++
++  ${EXTRA_LIBS}
+   )
+ 
+ SET ( VDB_VIEW_SOURCE_FILES
+@@ -283,9 +288,8 @@
+     ${GLFW_LINK_LIBRARY}
+     ${GLFW_DEPENDENT_LIBRARIES}
+     ${GLEW_GLEW_LIBRARY}
+-    m
+-    stdc++
+-    )
++	${EXTRA_LIBS}
++  )
+ ENDIF ()
+ 
+ SET ( UNITTEST_SOURCE_FILES
+@@ -392,8 +396,7 @@
+   TARGET_LINK_LIBRARIES ( vdb_test
+     ${CPPUnit_cppunit_LIBRARY}
+     openvdb_shared
+-    m
+-    stdc++
++    ${EXTRA_LIBS}
+     )
+ 
+   ADD_TEST ( vdb_unit_test vdb_test )
+diff -Naur openvdb.orig/openvdb/math/Coord.h openvdb/openvdb/math/Coord.h
+--- openvdb.orig/openvdb/math/Coord.h	2018-04-10 12:22:17 -0600
++++ openvdb/openvdb/math/Coord.h	2018-08-15 20:32:43 -0600
+@@ -35,6 +35,7 @@
+ #include <array> // for std::array
+ #include <iostream>
+ #include <limits>
++#define NOMINMAX
  #include <openvdb/Platform.h>
  #include "Math.h"
  #include "Vec3.h"
-+#define NOMINMAX
- 
- namespace tbb { class split; } // forward declaration
- 

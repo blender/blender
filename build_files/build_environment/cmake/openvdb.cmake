@@ -21,23 +21,6 @@ if(BUILD_MODE STREQUAL Debug)
 endif()
 
 set(OPENVDB_EXTRA_ARGS
-	-DILMBASE_HOME=${LIBDIR}/ilmbase/
-	-DILMBASE_CUSTOM=ON
-	-DILMBASE_CUSTOM_LIBRARIES=Half;Imath-2_2;IlmThread-2_2;Iex-2_2
-	-DILMBASE_INCLUDE_DIR=${LIBDIR}/ilmbase/include/
-	-DILMBASE_HALF_LIBRARIES=${LIBDIR}/ilmbase/lib/Half${LIBEXT}
-	-DILMBASE_IMATH_LIBRARIES=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Imath-2_2${LIBEXT}
-	-DILMBASE_ILMTHREAD_LIBRARIES=${LIBDIR}/ilmbase/lib/${LIBPREFIX}IlmThread-2_2${LIBEXT}
-	-DILMBASE_IEX_LIBRARIES=${LIBDIR}/ilmbase/lib/${LIBPREFIX}Iex-2_2${LIBEXT}
-	-DOPENEXR_HOME=${LIBDIR}/openexr/
-	-DOPENEXR_USE_STATIC_LIBS=ON
-	-DOPENEXR_CUSTOM=ON
-	-DOPENEXR_CUSTOM_LIBRARY=IlmImf-2_2
-	-DOPENEXR_INCLUDE_DIR=${LIBDIR}/openexr/include/
-	-DOPENEXR_ILMIMF_LIBRARIES=${LIBDIR}/openexr/lib/${LIBPREFIX}IlmImf-2_2${LIBEXT}
-	-DTBB_ROOT_DIR=${LIBDIR}/tbb/
-	-DTBB_INCLUDE_DIRS=${LIBDIR}/tbb/include
-	-DTBB_LIBRARY=${LIBDIR}/tbb/lib/tbb_static${LIBEXT}
 	-DBoost_COMPILER:STRING=${BOOST_COMPILER_STRING}
 	-DBoost_USE_MULTITHREADED=ON
 	-DBoost_USE_STATIC_LIBS=ON
@@ -49,22 +32,32 @@ set(OPENVDB_EXTRA_ARGS
 	-DWITH_BLOSC=ON
 	-DBLOSC_INCLUDE_DIR=${LIBDIR}/blosc/include/
 	-DBLOSC_LIBRARY=${LIBDIR}/blosc/lib/libblosc${BLOSC_POST}${LIBEXT}
+	-DOPENVDB_ABI_VERSION_NUMBER=3
+	-DOPENVDB_ENABLE_3_ABI_COMPATIBLE=Off
+	-DOPENVDB_BUILD_UNITTESTS=Off
+	-DOPENVDB_BUILD_PYTHON_MODULE=Off
+	-DGLEW_LOCATION=${LIBDIR}/glew/
+	-DBLOSC_LOCATION=${LIBDIR}/blosc/
+	-DTBB_LOCATION=${LIBDIR}/tbb/
+	-DTBB_ROOT=${LIBDIR}/tbb/
+	-DOPENEXR_LOCATION=${LIBDIR}/openexr
+	-DILMBASE_LOCATION=${LIBDIR}/openexr
+	-DIlmbase_HALF_LIBRARY=${LIBDIR}/openexr/lib/Half-2_3_s${LIBEXT}
+	-DIlmbase_IEX_LIBRARY=${LIBDIR}/openexr/lib/Iex-2_3_s${LIBEXT}
+	-DIlmbase_ILMTHREAD_LIBRARY=${LIBDIR}/openexr/lib/IlmThread-2_3_s${LIBEXT}
+	-DOpenexr_ILMIMF_LIBRARY=${LIBDIR}/openexr/lib/IlmImf-2_3_s${LIBEXT}
+	-DTBB_LIBRARYDIR=${LIBDIR}/tbb/lib
+	-DTbb_TBB_LIBRARY=${LIBDIR}/tbb/lib/tbb_static${LIBEXT}
+	-DTBB_LIBRARY_DIR=${LIBDIR}/tbb/lib
+	-DTBB_LIBRARY_PATH=${LIBDIR}/tbb/lib
 )
-
-set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS})
-
-# CMake script for OpenVDB based on https://raw.githubusercontent.com/diekev/openvdb-cmake/master/CMakeLists.txt
-# can't be in external_openvdb because of how the includes are setup.
 
 ExternalProject_Add(openvdb
 	URL ${OPENVDB_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${OPENVDB_HASH}
 	PREFIX ${BUILD_DIR}/openvdb
-	PATCH_COMMAND COMMAND
-		${CMAKE_COMMAND} -E copy ${PATCH_DIR}/cmakelists_openvdb.txt  ${BUILD_DIR}/openvdb/src/openvdb/CMakeLists.txt &&
-		${CMAKE_COMMAND} -E copy_directory ${PATCH_DIR}/cmake/  ${BUILD_DIR}/openvdb/src/openvdb/cmake/ &&
-		${PATCH_CMD} --verbose -p 0 -N -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb_vc2013.diff
+	PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/openvdb/src/openvdb < ${PATCH_DIR}/openvdb.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openvdb ${DEFAULT_CMAKE_FLAGS} ${OPENVDB_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/openvdb
 )
