@@ -706,6 +706,49 @@ class AddPresetGpencilBrush(AddPresetBase, Operator):
     preset_subdir = "gpencil_brush"
 
 
+class AddPresetGpencilMaterial(AddPresetBase, Operator):
+    """Add or remove grease pencil material preset"""
+    bl_idname = "scene.gpencil_material_preset_add"
+    bl_label = "Add Grease Pencil Material Preset"
+    preset_menu = "MATERIAL_PT_gpencil_material_presets"
+
+    preset_defines = [
+        "material = bpy.context.object.active_material",
+        "gpcolor = material.grease_pencil"
+    ]
+
+    preset_values = [
+        "gpcolor.mode",
+        "gpcolor.stroke_style",
+        "gpcolor.color",
+        "gpcolor.stroke_image",
+        "gpcolor.pixel_size",
+        "gpcolor.use_stroke_pattern",
+        "gpcolor.fill_style",
+        "gpcolor.fill_color",
+        "gpcolor.fill_image",
+        "gpcolor.gradient_type",
+        "gpcolor.mix_color",
+        "gpcolor.mix_factor",
+        "gpcolor.flip",
+        "gpcolor.pattern_shift",
+        "gpcolor.pattern_scale",
+        "gpcolor.pattern_radius",
+        "gpcolor.pattern_angle",
+        "gpcolor.pattern_gridsize",
+        "gpcolor.use_fill_pattern",
+        "gpcolor.texture_offset",
+        "gpcolor.texture_scale",
+        "gpcolor.texture_angle",
+        "gpcolor.texture_opacity",
+        "gpcolor.texture_clamp",
+        "gpcolor.texture_mix",
+        "gpcolor.mix_factor",
+    ]
+
+    preset_subdir = "gpencil_material"
+
+
 classes = (
     AddPresetCamera,
     AddPresetCloth,
@@ -723,6 +766,7 @@ classes = (
     AddPresetTrackingTrackColor,
     AddPresetUnitsLength,
     AddPresetGpencilBrush,
+    AddPresetGpencilMaterial,
     ExecutePreset,
     WM_MT_operator_presets,
 )
