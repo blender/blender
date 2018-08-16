@@ -16,7 +16,7 @@ diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
    )
  
 +if(NOT WIN32)
-+	set(EXTRA_LIBS m stdc++)
++	set(EXTRA_LIBS m stdc++ dl)
 +endif()
 +  
  TARGET_LINK_LIBRARIES ( vdb_print
@@ -41,6 +41,15 @@ diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
    )
  
  SET ( VDB_VIEW_SOURCE_FILES
+@@ -270,7 +270,7 @@
+   PROPERTIES
+   COMPILE_FLAGS "-DOPENVDB_USE_BLOSC ${OPENVDB_USE_GLFW_FLAG} -DGL_GLEXT_PROTOTYPES=1"
+   )
+-IF (NOT WIN32)
++IF (FALSE)
+   ADD_EXECUTABLE ( vdb_view
+     ${VDB_VIEW_SOURCE_FILES}
+     )
 @@ -283,9 +288,8 @@
      ${GLFW_LINK_LIBRARY}
      ${GLFW_DEPENDENT_LIBRARIES}
@@ -63,6 +72,15 @@ diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
      )
  
    ADD_TEST ( vdb_unit_test vdb_test )
+@@ -422,7 +422,7 @@
+ ENDIF ()
+ 
+ # Installation
+-IF ( NOT WIN32 )
++IF ( FALSE )
+   INSTALL ( TARGETS
+     vdb_view
+     DESTINATION
 diff -Naur openvdb.orig/openvdb/math/Coord.h openvdb/openvdb/math/Coord.h
 --- openvdb.orig/openvdb/math/Coord.h	2018-04-10 12:22:17 -0600
 +++ openvdb/openvdb/math/Coord.h	2018-08-15 20:32:43 -0600
