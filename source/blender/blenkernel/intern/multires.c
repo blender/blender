@@ -427,16 +427,18 @@ int multiresModifier_reshape(struct Depsgraph *depsgraph, Scene *scene, Multires
 	return multiresModifier_reshapeFromDM(depsgraph, scene, mmd, dst, srcdm);
 }
 
-int multiresModifier_reshapeFromDeformMod(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
-                                          Object *ob, ModifierData *md)
+bool multiresModifier_reshapeFromDeformModifier(
+        struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
+        Object *ob, ModifierData *md)
 {
 	DerivedMesh *dm, *ndm;
-	int numVerts, result;
+	int numVerts;
 	float (*deformedVerts)[3];
 	const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
-	if (multires_get_level(scene, ob, mmd, false, true) == 0)
-		return 0;
+	if (multires_get_level(scene, ob, mmd, false, true) == 0) {
+		return false;
+	}
 
 	/* Create DerivedMesh for deformation modifier */
 	dm = get_multires_dm(depsgraph, scene, mmd, ob);
@@ -453,7 +455,7 @@ int multiresModifier_reshapeFromDeformMod(struct Depsgraph *depsgraph, Scene *sc
 	dm->release(dm);
 
 	/* Reshaping */
-	result = multiresModifier_reshapeFromDM(depsgraph, scene, mmd, ob, ndm);
+	bool result = (multiresModifier_reshapeFromDM(depsgraph, scene, mmd, ob, ndm) != 0);
 
 	/* Cleanup */
 	ndm->release(ndm);

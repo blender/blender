@@ -95,8 +95,9 @@ int multiresModifier_reshape(struct Depsgraph *depsgraph, struct Scene *scene, s
                              struct Object *dst, struct Object *src);
 int multiresModifier_reshapeFromDM(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                    struct Object *ob, struct DerivedMesh *srcdm);
-int multiresModifier_reshapeFromDeformMod(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
-                                          struct Object *ob, struct ModifierData *md);
+bool multiresModifier_reshapeFromDeformModifier(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
+        struct Object *ob, struct ModifierData *md);
 
 void multires_stitch_grids(struct Object *);
 
