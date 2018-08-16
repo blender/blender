@@ -49,6 +49,7 @@
 #include "BKE_pbvh.h"
 #include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
@@ -291,6 +292,30 @@ DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, Scene *scene, Multires
 	}
 
 	return dm;
+}
+
+Mesh *get_multires_mesh(
+        struct Depsgraph *depsgraph,
+        Scene *scene,
+        MultiresModifierData *mmd,
+        Object *ob)
+{
+	Mesh *deformed_mesh = mesh_get_eval_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
+	ModifierEvalContext modifier_ctx = {
+	        .depsgraph = depsgraph,
+	        .object = ob,
+	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
+	Mesh *result = modifier_applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
+	if (result == deformed_mesh) {
+		/* TODO(sergey): De-duplicate with copy in modifier stack. */
+		BKE_id_copy_ex(NULL, &deformed_mesh->id, (ID **)&result,
+		               (LIB_ID_CREATE_NO_MAIN |
+		                LIB_ID_CREATE_NO_USER_REFCOUNT |
+		                LIB_ID_CREATE_NO_DEG_TAG |
+		                LIB_ID_COPY_CD_REFERENCE),
+		               false);
+	}
+	return result;
 }
 
 MultiresModifierData *find_multires_modifier_before(Scene *scene, ModifierData *lastmd)
