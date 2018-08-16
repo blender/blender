@@ -834,23 +834,7 @@ DrawData *DRW_drawdata_ensure(
 	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
 
 	/* Allocate new data. */
-	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROMDUPLI) != 0) {
-		/* NOTE: data is not persistent in this case. It is reset each redraw. */
-		BLI_assert(free_cb == NULL); /* No callback allowed. */
-		/* Round to sizeof(float) for DRW_instance_data_request(). */
-		const size_t t = sizeof(float) - 1;
-		size = (size + t) & ~t;
-		size_t fsize = size / sizeof(float);
-		BLI_assert(fsize < MAX_INSTANCE_DATA_SIZE);
-		if (DST.object_instance_data[fsize] == NULL) {
-			DST.object_instance_data[fsize] = DRW_instance_data_request(DST.idatalist, fsize);
-		}
-		dd = (DrawData *)DRW_instance_data_next(DST.object_instance_data[fsize]);
-		memset(dd, 0, size);
-	}
-	else {
-		dd = MEM_callocN(size, "DrawData");
-	}
+	dd = MEM_callocN(size, "DrawData");
 	dd->engine_type = engine_type;
 	dd->free = free_cb;
 	/* Perform user-side initialization, if needed. */
