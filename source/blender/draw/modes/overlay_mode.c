@@ -223,8 +223,9 @@ static void overlay_cache_finish(void *vedata)
 
 	/* only in solid mode */
 	if (v3d->shading.type == OB_SOLID && (v3d->shading.flag & V3D_SHADING_XRAY) == 0) {
-		if (stl->g_data->ghost_stencil_test)
+		if (stl->g_data->ghost_stencil_test && (psl->face_wireframe_pass != NULL)) {
 			DRW_pass_state_add(psl->face_wireframe_pass, DRW_STATE_STENCIL_EQUAL);
+		}
 	}
 }
 
