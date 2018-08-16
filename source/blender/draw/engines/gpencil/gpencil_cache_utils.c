@@ -102,7 +102,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 
 	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(cache_array, *gp_cache_used, ob);
 
-	sprintf(cache_elem->ob_name, "%s", ob->id.name);
+	STRNCPY(cache_elem->ob_name, ob->id.name);
 	cache_elem->gpd = (bGPdata *)ob->data;
 
 	copy_v3_v3(cache_elem->loc, ob->loc);

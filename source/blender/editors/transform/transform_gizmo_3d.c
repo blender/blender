@@ -1354,7 +1354,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 	{
 		const short axis_type = gizmo_get_axis_type(axis_idx, man->axis_type_default);
 		bool constraint_axis[3] = {1, 0, 0};
-		PointerRNA *ptr;
+		PointerRNA *ptr = NULL;
 
 		gizmo_get_axis_constraint(axis_idx, constraint_axis);
 
@@ -1455,14 +1455,14 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 			}
 		}
 
-		{
+		if (ptr) {
 			PropertyRNA *prop;
 			if ((prop = RNA_struct_find_property(ptr, "constraint_axis"))) {
 				RNA_property_boolean_set_array(ptr, prop, constraint_axis);
 			}
-		}
 
-		RNA_boolean_set(ptr, "release_confirm", 1);
+			RNA_boolean_set(ptr, "release_confirm", 1);
+		}
 	}
 	MAN_ITER_AXES_END;
 }
