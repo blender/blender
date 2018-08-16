@@ -51,7 +51,7 @@
  * \{ */
 
 /* Offset from screen edge. */
-#define GIZMO_OFFSET_FAC 1.5f
+#define GIZMO_OFFSET_FAC 1.2f
 /* Size of main icon. */
 #define GIZMO_SIZE 80
 /* Factor for size of smaller button. */
@@ -204,8 +204,16 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 		navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, NULL);
 		wmGizmo *gz = navgroup->gz_array[i];
 		gz->flag |= WM_GIZMO_GRAB_CURSOR | WM_GIZMO_DRAW_MODAL;
-		gz->color[3] = 0.2f;
-		gz->color_hi[3] = 0.4f;
+
+		if (i == MPR_ROTATE) {
+			gz->color[3] = 0.0f;
+			gz->color_hi[3] = 0.1f;
+		}
+		else {
+			gz->color[3] = 0.2f;
+			gz->color_hi[3] = 0.4f;
+		}
+
 
 		/* may be overwritten later */
 		gz->scale_basis = (GIZMO_SIZE * GIZMO_MINI_FAC) / 2;

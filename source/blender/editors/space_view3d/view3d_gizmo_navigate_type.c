@@ -218,7 +218,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 		if ((draw_center_done == false) && (axis_order[axis_index].depth > -0.01f)) {
 
 			/* Circle defining active area (revert back to 2D space). */
-			{
+			if (color[3] != 0.0f) {
 				GPU_matrix_pop();
 				immUniformColor4fv(color);
 				imm_draw_circle_fill_3d(pos_id, 0, 0, 1.0f, DIAL_RESOLUTION);
