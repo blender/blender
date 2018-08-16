@@ -50,6 +50,8 @@ if(WIN32)
 		-DUSE_EXTERNAL_LCMS=ON
 		-DINC_1=${LIBDIR}/tinyxml/include
 		-DINC_2=${LIBDIR}/yamlcpp/include
+		#lie because ocio cmake is demanding boost even though it is not needed 
+		-DYAML_CPP_VERSION=0.5.0
 	)
 else()
 	set(OCIO_PATCH opencolorio.diff)
@@ -87,6 +89,7 @@ if(WIN32)
 		external_opencolorio
 		external_tinyxml
 		external_yamlcpp
+		
 	)
 	if(BUILD_MODE STREQUAL Release)
 		ExternalProject_Add_Step(external_opencolorio after_install
