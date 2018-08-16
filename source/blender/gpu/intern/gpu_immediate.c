@@ -387,8 +387,10 @@ void immEnd(void)
 			immDrawSetup();
 			glDrawArrays(convert_prim_type_to_gl(imm.prim_type), 0, imm.vertex_len);
 		}
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		/* These lines are causing crash on startup on some old GPU + drivers.
+		 * They are not required so just comment them. (T55722) */
+		// glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// glBindVertexArray(0);
 		/* prep for next immBegin */
 		imm.buffer_offset += buffer_bytes_used;
 	}
