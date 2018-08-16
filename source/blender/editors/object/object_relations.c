@@ -2225,6 +2225,14 @@ static void make_override_static_tag_object(Object *obact, Object *ob)
 	}
 }
 
+static void make_override_static_tag_collections(Collection *collection)
+{
+	collection->id.tag |= LIB_TAG_DOIT;
+	for (CollectionChild *coll_child = collection->children.first; coll_child != NULL; coll_child = coll_child->next) {
+		make_override_static_tag_collections(coll_child->collection);
+	}
+}
+
 /* Set the object to override. */
 static int make_override_static_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
@@ -2273,14 +2281,15 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 	bool success = false;
 
 	if (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group)) {
-		const ListBase dup_collection_objects = BKE_collection_object_cache_get(obact->dup_group);
-		Base *base = BLI_findlink(&dup_collection_objects, RNA_enum_get(op->ptr, "object"));
 		Object *obcollection = obact;
-		obact = base->object;
 		Collection *collection = obcollection->dup_group;
 
-		/* First, we make a static override of the linked collection itself. */
-		collection->id.tag |= LIB_TAG_DOIT;
+		const ListBase dup_collection_objects = BKE_collection_object_cache_get(collection);
+		Base *base = BLI_findlink(&dup_collection_objects, RNA_enum_get(op->ptr, "object"));
+		obact = base->object;
+
+		/* First, we make a static override of the linked collection itself, and all its children. */
+		make_override_static_tag_collections(collection);
 
 		/* Then, we make static override of the whole set of objects in the Collection. */
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, ob)
