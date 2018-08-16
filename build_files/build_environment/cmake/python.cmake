@@ -132,10 +132,14 @@ if(MSVC)
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/select${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/select${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/unicodedata${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/unicodedata${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/winsound${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/winsound${PYTHON_POSTFIX}.pyd
-		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/xxlimited${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/xxlimited${PYTHON_POSTFIX}.pyd
+		#xxlimited is an example extention module, we don't need to ship it and debug doesn't build it
+		#leaving it commented out, so I won't get confused again with the next update. 
+		#COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/xxlimited${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/xxlimited${PYTHON_POSTFIX}.pyd
+		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libssl-1_1-x64.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libssl-1_1-x64.dll
+		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libcrypto-1_1-x64.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libcrypto-1_1-x64.dll
 		COMMAND ${CMAKE_COMMAND} -E chdir "${BUILD_DIR}/python/src/external_python/redist" ${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz" "."
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ 
-		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}.tar.gz 
+		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz 
 	)
 
 	add_custom_target(Package_Python ALL DEPENDS external_python ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz ${BUILD_DIR}/python/src/external_python/redist/bin/python${PYTHON_POSTFIX}.exe)
