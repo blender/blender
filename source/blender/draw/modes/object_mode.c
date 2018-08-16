@@ -397,15 +397,13 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 
 		/* Empty images */
-		e_data.object_empty_image_sh = DRW_shader_create_with_lib(
+		e_data.object_empty_image_sh = DRW_shader_create(
 		           datatoc_object_empty_image_vert_glsl, NULL,
-		           datatoc_object_empty_image_frag_glsl,
-		           datatoc_common_globals_lib_glsl, NULL);
+		           datatoc_object_empty_image_frag_glsl, NULL);
 
-		e_data.object_empty_image_wire_sh = DRW_shader_create_with_lib(
+		e_data.object_empty_image_wire_sh = DRW_shader_create(
 		           datatoc_object_empty_image_vert_glsl, NULL,
 		           datatoc_object_empty_image_frag_glsl,
-		           datatoc_common_globals_lib_glsl,
 		           "#define USE_WIRE\n");
 
 		/* Grid */

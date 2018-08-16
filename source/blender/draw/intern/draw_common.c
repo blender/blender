@@ -641,7 +641,6 @@ DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct GPUBatc
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(
 	        g_shaders.shape_solid,
 	        pass, geom, g_formats.instance_bone);
-	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float_copy(grp, "alpha", transp ? 0.6f : 1.0f);
 
 	return grp;
