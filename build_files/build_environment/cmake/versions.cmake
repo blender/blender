@@ -46,14 +46,21 @@ set(PTHREADS_URI ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-${PTHREADS
 set(PTHREADS_SHA512 9c06e85310766834370c3dceb83faafd397da18a32411ca7645c8eb6b9495fea54ca2872f4a3e8d83cb5fdc5dea7f3f0464be5bb9af3222a6534574a184bd551)
 
 set(ILMBASE_VERSION 2.3.0)
+if (WIN32)
+	set(ILMBASE_VERSION_POSTFIX -2_3_s)
+else()
+	set(ILMBASE_VERSION_POSTFIX)
+endif()
 set(ILMBASE_URI https://github.com/openexr/openexr/releases/download/v${ILMBASE_VERSION}/ilmbase-${ILMBASE_VERSION}.tar.gz)
 set(ILMBASE_HASH 354bf86de3b930ab87ac63619d60c860)
 
 set(OPENEXR_VERSION 2.3.0)
 if (WIN32) #release 2.3.0 tarball has broken cmake support
+	set(OPENEXR_VERSION_POSTFIX -2_3_s)
 	set(OPENEXR_URI https://github.com/openexr/openexr/archive/0ac2ea34c8f3134148a5df4052e40f155b76f6fb.tar.gz)
 	set(OPENEXR_HASH ed159435d508240712fbaaa21d94bafb)
 else()
+	set(OPENEXR_VERSION_POSTFIX)
 	set(OPENEXR_URI https://github.com/openexr/openexr/releases/download/v${OPENEXR_VERSION}/openexr-${OPENEXR_VERSION}.tar.gz)
 	set(OPENEXR_HASH a157e8a46596bc185f2472a5a4682174)
 endif()
