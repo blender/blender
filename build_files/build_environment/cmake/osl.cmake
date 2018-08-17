@@ -32,7 +32,7 @@ else()
 endif()
 
 set(OSL_ILMBASE_CUSTOM_LIBRARIES "${LIBDIR}/ilmbase/lib/Imath${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Half{ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/IlmThread${ILMBASE_VERSION_POSTFIX}.lib^^${LIBDIR}/ilmbase/lib/Iex${ILMBASE_VERSION_POSTFIX}.lib")
-set(OSL_LLVM_LIBRARY "${LIBDIR}/llvm/lib/LLVMAnalysis${LIBEXT};${LIBDIR}/llvm/lib/LLVMAsmParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMAsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/LLVMBitReader${LIBEXT};${LIBDIR}/llvm/lib/LLVMBitWriter${LIBEXT};${LIBDIR}/llvm/lib/LLVMCodeGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMCore${LIBEXT};${LIBDIR}/llvm/lib/LLVMDebugInfo${LIBEXT};${LIBDIR}/llvm/lib/LLVMExecutionEngine${LIBEXT};${LIBDIR}/llvm/lib/LLVMInstCombine${LIBEXT};${LIBDIR}/llvm/lib/LLVMInstrumentation${LIBEXT};${LIBDIR}/llvm/lib/LLVMInterpreter${LIBEXT};${LIBDIR}/llvm/lib/LLVMJIT${LIBEXT};${LIBDIR}/llvm/lib/LLVMLinker${LIBEXT};${LIBDIR}/llvm/lib/LLVMMC${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCDisassembler${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCJIT${LIBEXT};${LIBDIR}/llvm/lib/LLVMMCParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMObject${LIBEXT};${LIBDIR}/llvm/lib/LLVMRuntimeDyld${LIBEXT};${LIBDIR}/llvm/lib/LLVMScalarOpts${LIBEXT};${LIBDIR}/llvm/lib/LLVMSelectionDAG${LIBEXT};${LIBDIR}/llvm/lib/LLVMSupport${LIBEXT};${LIBDIR}/llvm/lib/LLVMTableGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMTarget${LIBEXT};${LIBDIR}/llvm/lib/LLVMTransformUtils${LIBEXT};${LIBDIR}/llvm/lib/LLVMVectorize${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86AsmParser${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86AsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86CodeGen${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Desc${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Disassembler${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Info${LIBEXT};${LIBDIR}/llvm/lib/LLVMX86Utils${LIBEXT};${LIBDIR}/llvm/lib/LLVMipa${LIBEXT};${LIBDIR}/llvm/lib/LLVMipo${LIBEXT}")
+set(OSL_LLVM_LIBRARY "${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMAnalysis${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMAsmParser${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMAsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMBitReader${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMBitWriter${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMCodeGen${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMCore${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMDebugInfo${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMExecutionEngine${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMInstCombine${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMInstrumentation${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMInterpreter${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMJIT${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMLinker${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMMC${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMMCDisassembler${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMMCJIT${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMMCParser${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMObject${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMRuntimeDyld${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMScalarOpts${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMSelectionDAG${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMSupport${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMTableGen${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMTarget${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMTransformUtils${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMVectorize${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86AsmParser${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86AsmPrinter${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86CodeGen${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86Desc${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86Disassembler${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86Info${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMX86Utils${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMipa${LIBEXT};${LIBDIR}/llvm/lib/${LIBPREFIX}LLVMipo${LIBEXT}")
 
 set(OSL_EXTRA_ARGS
 	-DBoost_COMPILER:STRING=${BOOST_COMPILER_STRING}
@@ -65,10 +65,10 @@ set(OSL_EXTRA_ARGS
 	${OSL_FLEX_BISON}
 	-DCMAKE_CXX_STANDARD_LIBRARIES=${OSL_CMAKE_CXX_STANDARD_LIBRARIES}
 	-DBUILDSTATIC=ON
-	-DLINKSTATIC=ON
+	# Don't use because it statically links pthreads, same as OIIO.
+	# -DLINKSTATIC=ON
 	-DOSL_BUILD_PLUGINS=Off
 	-DSTOP_ON_WARNING=OFF
-	-DOSL_BUILD_CPP11=ON
 	-DUSE_LLVM_BITCODE=OFF
 	-DUSE_PARTIO=OFF
 	${OSL_SIMD_FLAGS}

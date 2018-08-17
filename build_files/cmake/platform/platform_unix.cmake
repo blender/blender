@@ -353,15 +353,18 @@ if(WITH_OPENCOLORIO)
 endif()
 
 if(WITH_LLVM)
-	# Symbol conflicts with same UTF library used by OpenCollada
 	if(EXISTS ${LIBDIR})
 		set(LLVM_STATIC ON)
-		if(WITH_OPENCOLLADA)
-			list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
-		endif()
 	endif()
 
 	find_package_wrapper(LLVM)
+
+	# Symbol conflicts with same UTF library used by OpenCollada
+	if(EXISTS ${LIBDIR})
+		if(WITH_OPENCOLLADA AND (${LLVM_VERSION} VERSION_LESS "4.0.0"))
+			list(REMOVE_ITEM OPENCOLLADA_LIBRARIES ${OPENCOLLADA_UTF_LIBRARY})
+		endif()
+	endif()
 
 	if(NOT LLVM_FOUND)
 		set(WITH_LLVM OFF)
