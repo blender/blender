@@ -17,14 +17,15 @@
 # ##### END GPL LICENSE BLOCK #####
 
 # <pep8 compliant>
-import bpy
-from bpy.types import Panel
 
+import bpy
+from bpy.types import (
+    Panel,
+)
 from .properties_physics_common import (
     point_cache_ui,
     effector_weights_ui,
 )
-
 
 COMPAT_OB_TYPES = {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}
 
@@ -50,27 +51,61 @@ class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         md = context.soft_body
-        ob = context.object
-
         softbody = md.settings
 
-        # General
-        split = layout.split()
-        split.enabled = softbody_panel_enabled(md)
-
-        col = split.column()
-        col.label(text="Object:")
-        col.prop(softbody, "friction")
-        col.prop(softbody, "mass")
-        col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Mass")
-
-        col = split.column()
-        col.label(text="Simulation:")
-        col.prop(softbody, "speed")
-
         layout.prop(softbody, "collision_group")
+
+
+class PHYSICS_PT_softbody_object(PhysicButtonsPanel, Panel):
+    bl_label = "Object"
+    bl_parent_id = 'PHYSICS_PT_softbody'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+        ob = context.object
+
+        layout.enabled = softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(softbody, "friction")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(softbody, "mass")
+
+        # Note: TODO prop_search doesn't align on the right.
+        row = col.row(align=True)
+        row.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Control Point")
+        row.label(text="", icon='BLANK1')
+
+
+class PHYSICS_PT_softbody_simulation(PhysicButtonsPanel, Panel):
+    bl_label = "Simulation"
+    bl_parent_id = 'PHYSICS_PT_softbody'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.enabled = softbody_panel_enabled(md)
+
+        layout.prop(softbody, "speed")
 
 
 class PHYSICS_PT_softbody_cache(PhysicButtonsPanel, Panel):
@@ -98,6 +133,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         md = context.soft_body
         softbody = md.settings
@@ -105,24 +141,59 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
 
         layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
-        split = layout.split()
+        # Note: TODO prop_search doesn't align on the right.
+        row = layout.row(align=True)
+        row.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
+        row.label(text="", icon='BLANK1')
 
-        # Goal
-        split = layout.split()
 
-        col = split.column()
-        col.label(text="Goal Strengths:")
+class PHYSICS_PT_softbody_goal_strenghts(PhysicButtonsPanel, Panel):
+    bl_label = "Strengths"
+    bl_parent_id = 'PHYSICS_PT_softbody_goal'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.active = softbody.use_goal and softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
         col.prop(softbody, "goal_default", text="Default")
-        sub = col.column(align=True)
-        sub.prop(softbody, "goal_min", text="Minimum")
-        sub.prop(softbody, "goal_max", text="Maximum")
 
-        col = split.column()
-        col.label(text="Goal Settings:")
+        col.separator()
+
+        col = flow.column(align=True)
+        col.prop(softbody, "goal_min", text="Min")
+        col.prop(softbody, "goal_max", text="Max")
+
+
+class PHYSICS_PT_softbody_goal_settings(PhysicButtonsPanel, Panel):
+    bl_label = "Settings"
+    bl_parent_id = 'PHYSICS_PT_softbody_goal'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.active = softbody.use_goal and softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
         col.prop(softbody, "goal_spring", text="Stiffness")
-        col.prop(softbody, "goal_friction", text="Damping")
 
-        layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
+        col = flow.column()
+        col.prop(softbody, "goal_friction", text="Damping")
 
 
 class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
@@ -139,41 +210,87 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         md = context.soft_body
         softbody = md.settings
         ob = context.object
 
         layout.active = softbody.use_edges and softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
-        split = layout.split()
+        col = flow.column()
 
-        col = split.column()
-        col.label(text="Springs:")
+        # Note: TODO prop_search doesn't align on the right.
+        row = col.row(align=True)
+        row.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs")
+        row.label(text="", icon='BLANK1')
+
+        col.separator()
+
         col.prop(softbody, "pull")
         col.prop(softbody, "push")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(softbody, "damping")
         col.prop(softbody, "plastic")
         col.prop(softbody, "bend")
+
+        col.separator()
+
+        col = flow.column()
         col.prop(softbody, "spring_length", text="Length")
-        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs")
+        col.prop(softbody, "use_edge_collision", text="Collision Edge")
+        col.prop(softbody, "use_face_collision", text="Face")
 
-        col = split.column()
-        col.prop(softbody, "use_stiff_quads")
-        sub = col.column()
-        sub.active = softbody.use_stiff_quads
-        sub.prop(softbody, "shear")
 
-        col.label(text="Aerodynamics:")
-        col.row().prop(softbody, "aerodynamics_type", expand=True)
+class PHYSICS_PT_softbody_edge_aerodynamics(PhysicButtonsPanel, Panel):
+    bl_label = "Aerodynamics"
+    bl_parent_id = 'PHYSICS_PT_softbody_edge'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        md = context.soft_body
+        softbody = md.settings
+
+        flow.active = softbody.use_edges and softbody_panel_enabled(md)
+
+        col = flow.column()
+        col.prop(softbody, "aerodynamics_type", text="Type")
+
+        col = flow.column()
         col.prop(softbody, "aero", text="Factor")
 
-        #sub = col.column()
-        #sub.enabled = softbody.aero > 0
 
-        col.label(text="Collision:")
-        col.prop(softbody, "use_edge_collision", text="Edge")
-        col.prop(softbody, "use_face_collision", text="Face")
+class PHYSICS_PT_softbody_edge_stiffness(PhysicButtonsPanel, Panel):
+    bl_label = "Stiffness"
+    bl_parent_id = 'PHYSICS_PT_softbody_edge'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw_header(self, context):
+        softbody = context.soft_body.settings
+
+        self.layout.active = softbody_panel_enabled(context.soft_body)
+        self.layout.prop(softbody, "use_stiff_quads", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.active = softbody.use_edges and softbody.use_stiff_quads and softbody_panel_enabled(md)
+
+        layout.prop(softbody, "shear")
 
 
 class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
@@ -190,18 +307,23 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         md = context.soft_body
         softbody = md.settings
 
         layout.active = softbody.use_self_collision and softbody_panel_enabled(md)
 
-        layout.label(text="Collision Ball Size Calculation:")
-        layout.row().prop(softbody, "collision_type", expand=True)
+        layout.prop(softbody, "collision_type", text="Calculation Type")
 
-        col = layout.column(align=True)
-        col.label(text="Ball:")
-        col.prop(softbody, "ball_size", text="Size")
+        layout.separator()
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column(align=True)
+        col.prop(softbody, "ball_size", text="Ball Size")
+
+        col = flow.column(align=True)
         col.prop(softbody, "ball_stiff", text="Stiffness")
         col.prop(softbody, "ball_damp", text="Dampening")
 
@@ -214,30 +336,63 @@ class PHYSICS_PT_softbody_solver(PhysicButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.active = softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column(align=True)
+        col.prop(softbody, "step_min", text="Step Size Min")
+        col.prop(softbody, "step_max", text="Max")
+
+        col = flow.column()
+        col.prop(softbody, "use_auto_step", text="Auto-Step")
+        col.prop(softbody, "error_threshold")
+
+
+class PHYSICS_PT_softbody_solver_diagnostics(PhysicButtonsPanel, Panel):
+    bl_label = "Diagnostics"
+    bl_parent_id = 'PHYSICS_PT_softbody_solver'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
 
         md = context.soft_body
         softbody = md.settings
 
         layout.active = softbody_panel_enabled(md)
 
-        # Solver
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.label(text="Step Size:")
-        col.prop(softbody, "step_min")
-        col.prop(softbody, "step_max")
-        col.prop(softbody, "use_auto_step", text="Auto-Step")
-
-        col = split.column()
-        col.prop(softbody, "error_threshold")
-        col.label(text="Helpers:")
-        col.prop(softbody, "choke")
-        col.prop(softbody, "fuzzy")
-
-        layout.label(text="Diagnostics:")
         layout.prop(softbody, "use_diagnose")
         layout.prop(softbody, "use_estimate_matrix")
+
+
+class PHYSICS_PT_softbody_solver_helpers(PhysicButtonsPanel, Panel):
+    bl_label = "Helpers"
+    bl_parent_id = 'PHYSICS_PT_softbody_solver'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.soft_body
+        softbody = md.settings
+
+        layout.active = softbody_panel_enabled(md)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(softbody, "choke")
+
+        col = flow.column()
+        col.prop(softbody, "fuzzy")
 
 
 class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
@@ -255,13 +410,22 @@ class PHYSICS_PT_softbody_field_weights(PhysicButtonsPanel, Panel):
 
 classes = (
     PHYSICS_PT_softbody,
+    PHYSICS_PT_softbody_object,
+    PHYSICS_PT_softbody_simulation,
     PHYSICS_PT_softbody_cache,
     PHYSICS_PT_softbody_goal,
+    PHYSICS_PT_softbody_goal_settings,
+    PHYSICS_PT_softbody_goal_strenghts,
     PHYSICS_PT_softbody_edge,
+    PHYSICS_PT_softbody_edge_aerodynamics,
+    PHYSICS_PT_softbody_edge_stiffness,
     PHYSICS_PT_softbody_collision,
     PHYSICS_PT_softbody_solver,
+    PHYSICS_PT_softbody_solver_diagnostics,
+    PHYSICS_PT_softbody_solver_helpers,
     PHYSICS_PT_softbody_field_weights,
 )
+
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
