@@ -116,7 +116,7 @@ struct DRWShadingGroup *shgroup_instance_screenspace(struct DRWPass *pass, struc
 struct DRWShadingGroup *shgroup_instance_solid(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_wire(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_screen_aligned(struct DRWPass *pass, struct GPUBatch *geom);
-struct DRWShadingGroup *shgroup_instance_axis_names(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWShadingGroup *shgroup_instance_empty_axes(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_image_plane(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct GPUBatch *geom);

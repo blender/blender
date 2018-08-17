@@ -162,8 +162,7 @@ typedef struct OBJECT_ShadingGroupList {
 	DRWShadingGroup *cone;
 	DRWShadingGroup *single_arrow;
 	DRWShadingGroup *single_arrow_line;
-	DRWShadingGroup *arrows;
-	DRWShadingGroup *axis_names;
+	DRWShadingGroup *empty_axes;
 	/* GPUTexture -> EmptyImageShadingGroupData */
 	GHash *image_plane_map;
 
@@ -1136,11 +1135,8 @@ static void OBJECT_cache_init(void *vedata)
 		geom = DRW_cache_single_line_get();
 		sgl->single_arrow_line = shgroup_instance(sgl->non_meshes, geom);
 
-		geom = DRW_cache_arrows_get();
-		sgl->arrows = shgroup_instance(sgl->non_meshes, geom);
-
-		geom = DRW_cache_axis_names_get();
-		sgl->axis_names = shgroup_instance_axis_names(sgl->non_meshes, geom);
+		geom = DRW_cache_bone_arrows_get();
+		sgl->empty_axes = shgroup_instance_empty_axes(sgl->non_meshes, geom);
 
 		/* initialize on first use */
 		sgl->image_plane_map = NULL;
@@ -1798,8 +1794,7 @@ static void DRW_shgroup_empty_ex(
 			DRW_shgroup_call_dynamic_add(sgl->cone, color, draw_size, mat);
 			break;
 		case OB_ARROWS:
-			DRW_shgroup_call_dynamic_add(sgl->arrows, color, draw_size, mat);
-			DRW_shgroup_call_dynamic_add(sgl->axis_names, color, draw_size, mat);
+			DRW_shgroup_call_dynamic_add(sgl->empty_axes, color, draw_size, mat);
 			break;
 		case OB_EMPTY_IMAGE:
 			BLI_assert(!"Should never happen, use DRW_shgroup_empty instead.");

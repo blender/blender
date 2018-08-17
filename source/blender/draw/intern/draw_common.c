@@ -186,6 +186,7 @@ extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
 
 extern char datatoc_object_mball_handles_vert_glsl[];
+extern char datatoc_object_empty_axes_vert_glsl[];
 
 static struct {
 	struct GPUShader *shape_outline;
@@ -203,6 +204,7 @@ static struct {
 
 	struct GPUShader *volume_velocity_needle_sh;
 	struct GPUShader *volume_velocity_sh;
+	struct GPUShader *empty_axes_sh;
 
 	struct GPUShader *mball_handles;
 } g_shaders = {NULL};
@@ -368,22 +370,6 @@ DRWShadingGroup *shgroup_instance_screen_aligned(DRWPass *pass, struct GPUBatch 
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_axis_names(DRWPass *pass, struct GPUBatch *geom)
-{
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS);
-
-	DRW_shgroup_instance_format(g_formats.instance_screen_aligned, {
-		{"color",               DRW_ATTRIB_FLOAT, 3},
-		{"size",                DRW_ATTRIB_FLOAT, 1},
-		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
-	});
-
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom, g_formats.instance_screen_aligned);
-	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
-
-	return grp;
-}
-
 DRWShadingGroup *shgroup_instance_scaled(DRWPass *pass, struct GPUBatch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SCALE);
@@ -410,6 +396,26 @@ DRWShadingGroup *shgroup_instance(DRWPass *pass, struct GPUBatch *geom)
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_sized);
+
+	return grp;
+}
+
+DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geom)
+{
+	if (g_shaders.empty_axes_sh == NULL) {
+		g_shaders.empty_axes_sh = DRW_shader_create(
+		        datatoc_object_empty_axes_vert_glsl, NULL,
+	            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	}
+
+	DRW_shgroup_instance_format(g_formats.instance_sized, {
+		{"color",               DRW_ATTRIB_FLOAT, 3},
+		{"size",                DRW_ATTRIB_FLOAT, 1},
+		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.empty_axes_sh, pass, geom, g_formats.instance_sized);
+	DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
 
 	return grp;
 }
