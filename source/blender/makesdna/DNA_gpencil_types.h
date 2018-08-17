@@ -359,9 +359,10 @@ typedef struct bGPdata {
 	/* stats */
 	short totlayer;
 	short totframe;
-	short totstroke;
-	short totpoint;
 	char pad_2[6];
+	int   totstroke;
+	int   totpoint;
+	char pad_3[4];
 	bGPdata_runtime runtime;
 } bGPdata;
 
