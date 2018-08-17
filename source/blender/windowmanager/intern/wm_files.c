@@ -638,6 +638,33 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 }
 
+struct {
+	char app_template[64];
+	bool override;
+} wm_init_state_app_template = {0};
+
+/**
+ * Used for setting app-template from the command line:
+ * - non-empty string: overrides.
+ * - empty string: override, using no app template.
+ * - NULL: clears override.
+ */
+void WM_init_state_app_template_set(const char *app_template)
+{
+	if (app_template) {
+		STRNCPY(wm_init_state_app_template.app_template, app_template);
+		wm_init_state_app_template.override = true;
+	}
+	else {
+		wm_init_state_app_template.app_template[0] = '\0';
+		wm_init_state_app_template.override = false;
+	}
+}
+
+const char *WM_init_state_app_template_get(void)
+{
+	return wm_init_state_app_template.override ? wm_init_state_app_template.app_template : NULL;
+}
 
 /**
  * Called on startup, (context entirely filled with NULLs)
@@ -1614,9 +1641,13 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 
 		/* Always load preferences when switching templates. */
 		use_userdef = true;
+
+		/* Turn override off, since we're explicitly loading a different app-template. */
+		WM_init_state_app_template_set(NULL);
 	}
 	else {
-		app_template = NULL;
+		/* Normally NULL, only set when overriding from the command-line. */
+		app_template = WM_init_state_app_template_get();
 	}
 
 	if (wm_homefile_read(C, op->reports, use_factory_settings, use_empty_data, use_userdef, filepath, app_template)) {
