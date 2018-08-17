@@ -280,7 +280,10 @@ class ToolSelectPanelHelper:
         elif space_type == 'IMAGE_EDITOR':
             space_data = context.space_data
             if mode is None:
-                mode = space_data.mode
+                if space_data is None:
+                    mode = 'VIEW'
+                else:
+                    mode = space_data.mode
             tool = context.workspace.tools.from_space_image_mode(mode, create)
             if tool is not None:
                 tool.refresh_from_context()

@@ -1395,9 +1395,9 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_from_context(cls, context, mode=None):
         if mode is None:
             if context.space_data is None:
-                mode = context.space_data.mode
-            else:
                 mode = 'VIEW'
+            else:
+                mode = context.space_data.mode
         for tools in (cls._tools[None], cls._tools.get(mode, ())):
             for item in tools:
                 if not (type(item) is ToolDef) and callable(item):
