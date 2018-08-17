@@ -1128,11 +1128,12 @@ bool ED_region_is_overlap(int spacetype, int regiontype)
 static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rcti *overlap_remainder, int quad)
 {
 	rcti *remainder_prev = remainder;
-	int prefsizex, prefsizey;
-	int alignment;
 
 	if (ar == NULL)
 		return;
+
+	int prev_winx = ar->winx;
+	int prev_winy = ar->winy;
 
 	/* no returns in function, winrct gets set in the end again */
 	BLI_rcti_init(&ar->winrct, 0, 0, 0, 0);
@@ -1142,7 +1143,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 		if (ar->prev)
 			remainder = &ar->prev->winrct;
 
-	alignment = ar->alignment & ~RGN_SPLIT_PREV;
+	int alignment = ar->alignment & ~RGN_SPLIT_PREV;
 
 	/* set here, assuming userpref switching forces to call this again */
 	ar->overlap = ED_region_is_overlap(sa->spacetype, ar->regiontype);
@@ -1155,7 +1156,8 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 	}
 
 	/* prefsize, taking into account DPI */
-	prefsizex = UI_DPI_FAC * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
+	int prefsizex = UI_DPI_FAC * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
+	int prefsizey;
 
 	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
@@ -1377,6 +1379,11 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 	}
 
 	region_rect_recursive(sa, ar->next, remainder, overlap_remainder, quad);
+
+	/* Tag for redraw if size changes. */
+	if (ar->winx != prev_winx || ar->winy != prev_winy) {
+		ED_region_tag_redraw(ar);
+	}
 }
 
 static void area_calc_totrct(ScrArea *sa, const rcti *window_rect)
