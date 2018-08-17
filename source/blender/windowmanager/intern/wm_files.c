@@ -773,7 +773,10 @@ int wm_homefile_read(
 	}
 
 	if ((app_template != NULL) && (app_template[0] != '\0')) {
-		BKE_appdir_app_template_id_search(app_template, app_template_system, sizeof(app_template_system));
+		if (!BKE_appdir_app_template_id_search(app_template, app_template_system, sizeof(app_template_system))) {
+			/* Can safely continue with code below, just warn it's not found. */
+			BKE_reportf(reports, RPT_WARNING, "Application Template '%s' not found.", app_template);
+		}
 
 		/* Insert template name into startup file. */
 
