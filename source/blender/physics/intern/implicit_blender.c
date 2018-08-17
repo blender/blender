@@ -456,6 +456,13 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][3], float fro
 	to[2] += dot_v3v3(matrix[2], from);
 }
 
+DO_INLINE void muladd_fmatrixT_fvector(float to[3], float matrix[3][3], float from[3])
+{
+	to[0] += matrix[0][0] * from[0] + matrix[1][0] * from[1] + matrix[2][0] * from[2];
+	to[1] += matrix[0][1] * from[0] + matrix[1][1] * from[1] + matrix[2][1] * from[2];
+	to[2] += matrix[0][2] * from[0] + matrix[1][2] * from[1] + matrix[2][2] * from[2];
+}
+
 BLI_INLINE void outerproduct(float r[3][3], const float a[3], const float b[3])
 {
 	mul_v3_v3fl(r[0], a, b[0]);
@@ -599,7 +606,9 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 #pragma omp section
 		{
 			for (i = from[0].vcount; i < from[0].vcount+from[0].scount; i++) {
-				muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+				/* This is the lower triangle of the sparse matrix,
+				 * therefore multiplication occurs with transposed submatrices. */
+				muladd_fmatrixT_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
 			}
 		}
 #pragma omp section
@@ -612,8 +621,6 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector
 	add_lfvector_lfvector(to, to, temp, from[0].vcount);
 
 	del_lfvector(temp);
-
-
 }
 
 /* SPARSE SYMMETRIC sub big matrix with big matrix*/
