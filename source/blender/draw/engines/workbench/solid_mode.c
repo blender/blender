@@ -85,6 +85,17 @@ static void workbench_solid_view_update(void *vedata)
 	workbench_taa_view_updated(data);
 }
 
+static void workbench_solid_id_update(void *UNUSED(vedata), struct ID *id)
+{
+	if (GS(id->name) == ID_OB) {
+		WORKBENCH_ObjectData *oed = (WORKBENCH_ObjectData *)DRW_drawdata_get(id, &draw_engine_workbench_solid);
+		if (oed != NULL && oed->dd.recalc != 0) {
+			oed->shadow_bbox_dirty = (oed->dd.recalc & ID_RECALC_ALL) != 0;
+			oed->dd.recalc = 0;
+		}
+	}
+}
+
 static void workbench_render_to_image(void *vedata, RenderEngine *engine, RenderLayer *render_layer, const rcti *rect)
 {
 	workbench_render(vedata, engine, render_layer, rect);
@@ -104,6 +115,6 @@ DrawEngineType draw_engine_workbench_solid = {
 	&workbench_solid_draw_background,
 	&workbench_solid_draw_scene,
 	&workbench_solid_view_update,
-	NULL,
+	&workbench_solid_id_update,
 	&workbench_render_to_image,
 };
