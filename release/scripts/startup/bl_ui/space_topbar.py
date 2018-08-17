@@ -504,6 +504,11 @@ class INFO_MT_window(Menu):
 
         layout.separator()
 
+        layout.prop(context.screen, "show_topbar")
+        layout.prop(context.screen, "show_statusbar")
+
+        layout.separator()
+
         layout.operator("screen.screenshot")
 
         if sys.platform[:3] == "win":

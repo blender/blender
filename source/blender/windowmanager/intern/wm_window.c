@@ -784,9 +784,7 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 		wm_window_title(wm, win);
 
 		/* add topbar */
-		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {
-			ED_screen_global_areas_create(win);
-		}
+		ED_screen_global_areas_refresh(win);
 	}
 }
 

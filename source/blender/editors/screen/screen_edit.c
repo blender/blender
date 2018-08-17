@@ -240,6 +240,8 @@ void screen_data_copy(bScreen *to, bScreen *from)
 	/* free contents of 'to', is from blenkernel screen.c */
 	BKE_screen_free(to);
 
+	to->flag = from->flag;
+
 	BLI_duplicatelist(&to->vertbase, &from->vertbase);
 	BLI_duplicatelist(&to->edgebase, &from->edgebase);
 	BLI_duplicatelist(&to->areabase, &from->areabase);
@@ -441,6 +443,8 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	if (!G.background) {
 		/* header size depends on DPI, let's verify */
 		WM_window_set_dpi(win);
+
+		ED_screen_global_areas_refresh(win);
 		screen_refresh_headersizes();
 
 		screen_geom_vertices_scale(win, screen);
@@ -476,9 +480,6 @@ void ED_screens_initialize(Main *bmain, wmWindowManager *wm)
 			BKE_workspace_active_set(win->workspace_hook, bmain->workspaces.first);
 		}
 
-		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {
-			ED_screen_global_areas_create(win);
-		}
 		ED_screen_refresh(wm, win);
 		if (win->eventstate) {
 			ED_screen_set_active_region(NULL, win, &win->eventstate->x);
@@ -742,64 +743,118 @@ static ScrArea *screen_area_create_with_geometry(
 	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, spacetype);
 }
 
-static void screen_global_area_create(
-        wmWindow *win, eSpace_Type space_type, GlobalAreaAlign align, const rcti *rect,
+static void screen_area_set_geometry_rect(ScrArea *sa, const rcti *rect)
+{
+	sa->v1->vec.x = rect->xmin;
+	sa->v1->vec.y = rect->ymin;
+	sa->v2->vec.x = rect->xmin;
+	sa->v2->vec.y = rect->ymax;
+	sa->v3->vec.x = rect->xmax;
+	sa->v3->vec.y = rect->ymax;
+	sa->v4->vec.x = rect->xmax;
+	sa->v4->vec.y = rect->ymin;
+}
+
+static void screen_global_area_refresh(
+        wmWindow *win, bScreen *screen,
+        eSpace_Type space_type, GlobalAreaAlign align, const rcti *rect,
         const short height_cur, const short height_min, const short height_max)
 {
-	ScrArea *area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
-	SpaceType *stype = BKE_spacetype_from_id(space_type);
-	SpaceLink *slink = stype->new(area, WM_window_get_active_scene(win));
+	ScrArea *area;
 
-	area->regionbase = slink->regionbase;
-
-	/* Data specific to global areas. */
-	area->global = MEM_callocN(sizeof(*area->global), __func__);
-	area->global->cur_fixed_height = height_cur;
-	area->global->size_max = height_max;
-	area->global->size_min = height_min;
-	area->global->align = align;
-
-	BLI_addhead(&area->spacedata, slink);
-	BLI_listbase_clear(&slink->regionbase);
-}
-
-static void screen_global_topbar_area_create(wmWindow *win)
-{
-	const short size_y = 2.25 * HEADERY;
-	rcti rect;
-
-	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
-	rect.ymin = rect.ymax - size_y;
-
-	screen_global_area_create(win, SPACE_TOPBAR, GLOBAL_AREA_ALIGN_TOP, &rect, size_y, HEADERY, size_y);
-}
-
-static void screen_global_statusbar_area_create(wmWindow *win)
-{
-	const short size_y = 0.8f * HEADERY;
-	rcti rect;
-
-	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
-	rect.ymax = rect.ymin + size_y;
-
-	screen_global_area_create(win, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size_y, 0, size_y);
-}
-
-void ED_screen_global_areas_create(wmWindow *win)
-{
-	/* Don't create global areas for child windows. */
-	if (win->parent) {
-		return;
+	for (area = win->global_areas.areabase.first; area; area = area->next) {
+		if (area->spacetype == space_type) {
+			break;
+		}
 	}
 
-	/* Don't create global area for temporary windows. */
+	if (area) {
+		screen_area_set_geometry_rect(area, rect);
+	}
+	else {
+		area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
+		SpaceType *stype = BKE_spacetype_from_id(space_type);
+		SpaceLink *slink = stype->new(area, WM_window_get_active_scene(win));
+
+		area->regionbase = slink->regionbase;
+
+		BLI_addhead(&area->spacedata, slink);
+		BLI_listbase_clear(&slink->regionbase);
+
+		/* Data specific to global areas. */
+		area->global = MEM_callocN(sizeof(*area->global), __func__);
+		area->global->size_max = height_max;
+		area->global->size_min = height_min;
+		area->global->align = align;
+	}
+
+	if (area->global->cur_fixed_height != height_cur) {
+		/* Refresh layout if size changes. */
+		area->global->cur_fixed_height = height_cur;
+		screen->do_refresh = true;
+	}
+}
+
+static void screen_global_topbar_area_refresh(wmWindow *win, bScreen *screen)
+{
+	const short size_min = HEADERY;
+	const short size_max = 2.25 * HEADERY;
+	const short size = (screen->flag & SCREEN_COLLAPSE_TOPBAR) ? size_min : size_max;
+	rcti rect;
+
+	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
+	rect.ymin = rect.ymax - size_max;
+
+	screen_global_area_refresh(win, screen, SPACE_TOPBAR, GLOBAL_AREA_ALIGN_TOP, &rect, size, size_min, size_max);
+}
+
+static void screen_global_statusbar_area_refresh(wmWindow *win, bScreen *screen)
+{
+	const short size_min = 1;
+	const short size_max = 0.8f * HEADERY;
+	const short size = (screen->flag & SCREEN_COLLAPSE_STATUSBAR) ? size_min : size_max;
+	rcti rect;
+
+	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
+	rect.ymax = rect.ymin + size_max;
+
+	screen_global_area_refresh(win, screen, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size, size_min, size_max);
+}
+
+void ED_screen_global_areas_sync(wmWindow *win)
+{
+	/* Update screen flags from height in window, this is weak and perhaps
+	 * global areas should just become part of the screen instead. */
 	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-	if (screen->temp) {
+
+	screen->flag &= ~(SCREEN_COLLAPSE_STATUSBAR | SCREEN_COLLAPSE_TOPBAR);
+
+	for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+		if (area->global->cur_fixed_height == area->global->size_min) {
+			if (area->spacetype == SPACE_TOPBAR) {
+				screen->flag |= SCREEN_COLLAPSE_TOPBAR;
+			}
+			else if (area->spacetype == SPACE_STATUSBAR) {
+				screen->flag |= SCREEN_COLLAPSE_STATUSBAR;
+			}
+		}
+	}
+}
+
+void ED_screen_global_areas_refresh(wmWindow *win)
+{
+	/* Don't create global area for child and temporary windows. */
+	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+	if ((win->parent != NULL) || screen->temp) {
+		if (win->global_areas.areabase.first) {
+			screen->do_refresh = true;
+		    BKE_screen_area_map_free(&win->global_areas);
+		}
 		return;
 	}
 
-	screen_global_topbar_area_create(win);
-	screen_global_statusbar_area_create(win);
+	screen_global_topbar_area_refresh(win, screen);
+	screen_global_statusbar_area_refresh(win, screen);
 }
 
 

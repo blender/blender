@@ -68,6 +68,12 @@ const EnumPropertyItem rna_enum_region_type_items[] = {
 #  include "BPY_extern.h"
 #endif
 
+static void rna_Screen_bar_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	bScreen *screen = (bScreen *)ptr->data;
+	screen->do_draw = true;
+	screen->do_refresh = true;
+}
 
 static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -529,6 +535,16 @@ static void rna_def_screen(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Screen_fullscreen_get", NULL);
 	RNA_def_property_ui_text(prop, "Maximize", "An area is maximized, filling this screen");
+
+	prop = RNA_def_property(srna, "show_topbar", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCREEN_COLLAPSE_TOPBAR);
+	RNA_def_property_ui_text(prop, "Show Top Bar", "Show top bar with tool settings");
+	RNA_def_property_update(prop, 0, "rna_Screen_bar_update");
+
+	prop = RNA_def_property(srna, "show_statusbar", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SCREEN_COLLAPSE_STATUSBAR);
+	RNA_def_property_ui_text(prop, "Show Status Bar", "Show status bar");
+	RNA_def_property_update(prop, 0, "rna_Screen_bar_update");
 
 	/* Define Anim Playback Areas */
 	prop = RNA_def_property(srna, "use_play_top_left_3d_editor", PROP_BOOLEAN, PROP_NONE);
