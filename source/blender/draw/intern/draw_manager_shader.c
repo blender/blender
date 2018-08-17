@@ -37,6 +37,8 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "GPU_shader.h"
 #include "GPU_material.h"
 
@@ -173,7 +175,9 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 	BLI_assert(DST.draw_ctx.evil_C);
 	wmWindowManager *wm = CTX_wm_manager(DST.draw_ctx.evil_C);
 	wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
-	Scene *scene = DST.draw_ctx.scene;
+
+	/* Use original scene ID since this is what the jobs template tests for. */
+	Scene *scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
 
 	/* Get the running job or a new one if none is running. Can only have one job per type & owner.  */
 	wmJob *wm_job = WM_jobs_get(wm, win, scene, "Shaders Compilation",
@@ -215,6 +219,7 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
 	Scene *scene = GPU_material_scene(mat);
+	scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
 
 	for (wmWindowManager *wm = G_MAIN->wm.first; wm; wm = wm->id.next) {
 		if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SHADER_COMPILATION) == false) {
