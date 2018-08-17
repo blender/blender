@@ -19,7 +19,9 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Panel
+from bpy.types import (
+    Panel,
+)
 from bpy.app.translations import contexts as i18n_contexts
 
 
@@ -42,7 +44,9 @@ def physics_add(self, layout, md, name, type, typeicon, toggles):
             row.prop(md, "show_render", text="")
             row.prop(md, "show_viewport", text="")
     else:
-        row.operator("object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon=typeicon).type = type
+        row.operator(
+            "object.modifier_add", text=name, text_ctxt=i18n_contexts.default, icon=typeicon
+        ).type = type
 
 
 def physics_add_special(self, layout, data, name, addop, removeop, typeicon):
@@ -59,12 +63,17 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw(self, context):
+        layout = self.layout
+
+        row = layout.row(align=True)
+        row.alignment = 'RIGHT'
+        row.label("Enable physics for:")
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
         obj = context.object
 
-        layout = self.layout
-        layout.label("Enable physics for:")
-        split = layout.split()
-        col = split.column()
+        col = flow.column()
 
         if obj.field.type == 'NONE':
             col.operator("object.forcefield_toggle", text="Force Field", icon='FORCE_FORCE')
@@ -74,9 +83,11 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
         if obj.type == 'MESH':
             physics_add(self, col, context.collision, "Collision", 'COLLISION', 'MOD_PHYSICS', False)
             physics_add(self, col, context.cloth, "Cloth", 'CLOTH', 'MOD_CLOTH', True)
-            physics_add(self, col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True)
+            physics_add(
+                self, col, context.dynamic_paint, "Dynamic Paint", 'DYNAMIC_PAINT', 'MOD_DYNAMICPAINT', True
+            )
 
-        col = split.column()
+        col = flow.column()
 
         if obj.type in {'MESH', 'LATTICE', 'CURVE', 'SURFACE', 'FONT'}:
             physics_add(self, col, context.soft_body, "Soft Body", 'SOFT_BODY', 'MOD_SOFT', True)
@@ -85,49 +96,57 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
             physics_add(self, col, context.fluid, "Fluid", 'FLUID_SIMULATION', 'MOD_FLUIDSIM', True)
             physics_add(self, col, context.smoke, "Smoke", 'SMOKE', 'MOD_SMOKE', True)
 
-            physics_add_special(self, col, obj.rigid_body, "Rigid Body",
-                                "rigidbody.object_add",
-                                "rigidbody.object_remove",
-                                'MESH_ICOSPHERE')  # XXX: need dedicated icon
+            physics_add_special(
+                self, col, obj.rigid_body, "Rigid Body",
+                "rigidbody.object_add",
+                "rigidbody.object_remove",
+                'MESH_ICOSPHERE'
+            )  # XXX: need dedicated icon.
 
-        # all types of objects can have rigid body constraint
-        physics_add_special(self, col, obj.rigid_body_constraint, "Rigid Body Constraint",
-                            "rigidbody.constraint_add",
-                            "rigidbody.constraint_remove",
-                            'CONSTRAINT')  # RB_TODO needs better icon
+        # all types of objects can have rigid body constraint.
+        physics_add_special(
+            self, col, obj.rigid_body_constraint, "Rigid Body Constraint",
+            "rigidbody.constraint_add",
+            "rigidbody.constraint_remove",
+            'CONSTRAINT'
+        )  # RB_TODO needs better icon.
 
 
 # cache-type can be 'PSYS' 'HAIR' 'SMOKE' etc.
 
 def point_cache_ui(self, context, cache, enabled, cachetype):
     layout = self.layout
+    layout.use_property_split = True
 
     layout.context_pointer_set("point_cache", cache)
 
+    is_saved = bpy.data.is_saved
+
+    # NOTE: TODO temporarly used until the animate properties are properly skipped.
+    layout.use_property_decorate = False  # No animation (remove this later on).
+
     if not cachetype == 'RIGID_BODY':
         row = layout.row()
-        row.template_list("UI_UL_list", "point_caches", cache, "point_caches",
-                          cache.point_caches, "active_index", rows=1)
+        row.template_list(
+            "UI_UL_list", "point_caches", cache, "point_caches",
+            cache.point_caches, "active_index", rows=1
+        )
         col = row.column(align=True)
         col.operator("ptcache.add", icon='ZOOMIN', text="")
         col.operator("ptcache.remove", icon='ZOOMOUT', text="")
 
     if cachetype in {'PSYS', 'HAIR', 'SMOKE'}:
-        row = layout.row()
-        row.prop(cache, "use_external")
+        col = layout.column()
 
         if cachetype == 'SMOKE':
-            row.prop(cache, "use_library_path", "Use Lib Path")
+            col.prop(cache, "use_library_path", text="Use Library Path")
+
+        col.prop(cache, "use_external")
 
     if cache.use_external:
-        split = layout.split(percentage=0.35)
-        col = split.column()
-        col.label(text="Index Number:")
-        col.label(text="File Path:")
-
-        col = split.column()
-        col.prop(cache, "index", text="")
-        col.prop(cache, "filepath", text="")
+        col = layout.column()
+        col.prop(cache, "index", text="Index")
+        col.prop(cache, "filepath", text="Path")
 
         cache_info = cache.info
         if cache_info:
@@ -136,16 +155,16 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             col.label(text=cache_info)
     else:
         if cachetype in {'SMOKE', 'DYNAMIC_PAINT'}:
-            if not bpy.data.is_saved:
-                layout.label(text="Cache is disabled until the file is saved")
+            if not is_saved:
+                col = layout.column(align=True)
+                col.alignment = 'RIGHT'
+                col.label(text="Cache is disabled until the file is saved")
                 layout.enabled = False
 
     if not cache.use_external or cachetype == 'SMOKE':
         col = layout.column(align=True)
-        col.use_property_split = True
 
         if cachetype not in {'PSYS', 'DYNAMIC_PAINT'}:
-
             col.enabled = enabled
             col.prop(cache, "frame_start", text="Simulation Start")
             col.prop(cache, "frame_end")
@@ -162,13 +181,13 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
         can_bake = True
 
         if cachetype not in {'SMOKE', 'DYNAMIC_PAINT', 'RIGID_BODY'}:
+            if not is_saved:
+                col = layout.column(align=True)
+                col.alignment = 'RIGHT'
+                col.label("Options are disabled until the file is saved")
+
             flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
-            flow.enabled = enabled and bpy.data.is_saved
-
-            flow.use_property_split = True
-
-            # NOTE: TODO temporarly used until the animate properties are properly skipped.
-            flow.use_property_decorate = False  # No animation (remove this later on)
+            flow.enabled = enabled and is_saved
 
             col = flow.column()
             col.prop(cache, "use_disk_cache")
@@ -178,9 +197,8 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             subcol.prop(cache, "use_library_path", "Use Lib Path")
 
             col = flow.column()
-            col.enabled = enabled and bpy.data.is_saved
             col.active = cache.use_disk_cache
-            col.prop(cache, "compression", text="Compression", expand=True)
+            col.prop(cache, "compression", text="Compression")
 
             if cache.id_data.library and not cache.use_disk_cache:
                 can_bake = False
@@ -223,8 +241,8 @@ def effector_weights_ui(self, context, weights, weight_type):
 
     layout.prop(weights, "group")
 
-    # NOTE: TODO temporarly used until the animate properties are properly skipped
-    layout.use_property_decorate = False  # No animation (remove this later on)
+    # NOTE: TODO temporarly used until the animate properties are properly skipped.
+    layout.use_property_decorate = False  # No animation (remove this later on).
 
     flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
@@ -244,6 +262,7 @@ def effector_weights_ui(self, context, weights, weight_type):
     col.prop(weights, "wind", slider=True)
     col.prop(weights, "curve_guide", slider=True)
     col.prop(weights, "texture", slider=True)
+
     if weight_type != 'SMOKE':
         col.prop(weights, "smokeflow", slider=True)
 
@@ -260,7 +279,9 @@ def basic_force_field_settings_ui(self, context, field):
     if not field or field.type == 'NONE':
         return
 
-    col = layout.column()
+    flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+    col = flow.column()
 
     if field.type == 'DRAG':
         col.prop(field, "linear_drag", text="Linear")
@@ -270,29 +291,37 @@ def basic_force_field_settings_ui(self, context, field):
     if field.type == 'TURBULENCE':
         col.prop(field, "size")
         col.prop(field, "flow")
+
     elif field.type == 'HARMONIC':
         col.prop(field, "harmonic_damping", text="Damping")
         col.prop(field, "rest_length")
+
     elif field.type == 'VORTEX' and field.shape != 'POINT':
         col.prop(field, "inflow")
+
     elif field.type == 'DRAG':
         col.prop(field, "quadratic_drag", text="Quadratic")
+
     else:
         col.prop(field, "flow")
 
-    col = layout.column()
+    col.prop(field, "apply_to_location", text="Affect Location")
+    col.prop(field, "apply_to_rotation", text="Rotation")
+
+    col = flow.column()
     sub = col.column(align=True)
-    sub.prop(field, "noise")
-    sub.prop(field, "seed", text="Noise Seed")
+    sub.prop(field, "noise", text="Noise Amount")
+    sub.prop(field, "seed", text="Seed")
+
     if field.type == 'TURBULENCE':
         col.prop(field, "use_global_coords", text="Global")
+
     elif field.type == 'HARMONIC':
         col.prop(field, "use_multiple_springs")
+
     if field.type == 'FORCE':
         col.prop(field, "use_gravity_falloff", text="Gravitation")
 
-    col.prop(field, "apply_to_location", text="Affect Location")
-    col.prop(field, "apply_to_rotation", text="Affect Rotation")
     col.prop(field, "use_absorption")
 
 
@@ -302,27 +331,31 @@ def basic_force_field_falloff_ui(self, context, field):
     if not field or field.type == 'NONE':
         return
 
-    col = layout.column()
-    col.prop(field, "z_direction")
+    flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
+    col = flow.column()
+    col.prop(field, "z_direction")
     col.prop(field, "falloff_power", text="Power")
 
-    split = layout.split()
-    split.prop(field, "use_min_distance", text="Min Distance")
-    sub = split.column(align=True)
-    sub.active = field.use_min_distance
-    sub.prop(field, "distance_min", text="")
+    col = flow.column()
+    col.prop(field, "use_min_distance", text="Use Minimum")
 
-    split = layout.split()
-    split.prop(field, "use_max_distance", text="Max Distance")
-    sub = split.column(align=True)
+    sub = col.column(align=True)
+    sub.active = field.use_min_distance
+    sub.prop(field, "distance_min", text="Min Distance")
+
+    col = flow.column()
+    col.prop(field, "use_max_distance", text="Use Maximum")
+
+    sub = col.column(align=True)
     sub.active = field.use_max_distance
-    sub.prop(field, "distance_max", text="")
+    sub.prop(field, "distance_max", text="Max Distance")
 
 
 classes = (
     PHYSICS_PT_add,
 )
+
 
 if __name__ == "__main__":  # only for live edit.
     from bpy.utils import register_class
