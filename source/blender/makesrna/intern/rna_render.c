@@ -613,6 +613,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_boolean(func, "use_spherical_stereo", 0, "Spherical Stereo", "");
 	parm = RNA_def_float_matrix(func, "r_model_matrix", 4, 4, NULL, 0.0f, 0.0f, "Model Matrix", "Normalized camera model matrix", 0.0f, 0.0f);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_function_output(func, parm);
 
 	func = RNA_def_function(srna, "use_spherical_stereo", "RE_engine_get_spherical_stereo");
 	parm = RNA_def_pointer(func, "camera", "Object", "", "");
