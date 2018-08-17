@@ -2715,6 +2715,13 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_bounds(sgl, ob, theme_id);
 		}
 
+		if (ob->dtx & OB_AXIS) {
+			float *color, axes_size = 1.0f;
+			DRW_object_wire_theme_get(ob, view_layer, &color);
+
+			DRW_shgroup_call_dynamic_add(sgl->empty_axes, color, &axes_size, ob->obmat);
+		}
+
 		if ((md = modifiers_findByType(ob, eModifierType_Smoke)) &&
 		    (modifier_isEnabled(scene, md, eModifierMode_Realtime)) &&
 		    (((SmokeModifierData *)md)->domain != NULL))
