@@ -44,7 +44,7 @@ if(WIN32)
 	ExternalProject_Add_Step(external_openexr after_install
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib
 		#libs have moved between versions, just duplicate it for now. 
-		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/ilmbase/lib
+		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${LIBDIR}/ilmbase/lib
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include 
 		DEPENDEES install
 	)

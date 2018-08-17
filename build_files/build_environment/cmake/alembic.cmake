@@ -82,7 +82,7 @@ if(WIN32)
 	endif()
 	if(BUILD_MODE STREQUAL Debug)
 		ExternalProject_Add_Step(external_alembic after_install
-			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/alembic/lib/alembic.lib ${HARVEST_TARGET}/alembic/lib/alembic_d.lib &&
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/alembic/lib/alembic.lib ${HARVEST_TARGET}/alembic/lib/alembic_d.lib
 			DEPENDEES install
 		)
 	endif()	
