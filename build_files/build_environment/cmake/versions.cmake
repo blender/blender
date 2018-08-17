@@ -46,14 +46,21 @@ set(PTHREADS_URI ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-${PTHREADS
 set(PTHREADS_SHA512 9c06e85310766834370c3dceb83faafd397da18a32411ca7645c8eb6b9495fea54ca2872f4a3e8d83cb5fdc5dea7f3f0464be5bb9af3222a6534574a184bd551)
 
 set(ILMBASE_VERSION 2.3.0)
+if (WIN32)
+	set(ILMBASE_VERSION_POSTFIX -2_3_s)
+else()
+	set(ILMBASE_VERSION_POSTFIX)
+endif()
 set(ILMBASE_URI https://github.com/openexr/openexr/releases/download/v${ILMBASE_VERSION}/ilmbase-${ILMBASE_VERSION}.tar.gz)
 set(ILMBASE_HASH 354bf86de3b930ab87ac63619d60c860)
 
 set(OPENEXR_VERSION 2.3.0)
 if (WIN32) #release 2.3.0 tarball has broken cmake support
+	set(OPENEXR_VERSION_POSTFIX -2_3_s)
 	set(OPENEXR_URI https://github.com/openexr/openexr/archive/0ac2ea34c8f3134148a5df4052e40f155b76f6fb.tar.gz)
 	set(OPENEXR_HASH ed159435d508240712fbaaa21d94bafb)
 else()
+	set(OPENEXR_VERSION_POSTFIX)
 	set(OPENEXR_URI https://github.com/openexr/openexr/releases/download/v${OPENEXR_VERSION}/openexr-${OPENEXR_VERSION}.tar.gz)
 	set(OPENEXR_HASH a157e8a46596bc185f2472a5a4682174)
 endif()
@@ -119,26 +126,17 @@ set(CLANG_HASH 4e419bd4e3b55aa06d872320f754bd85)
 set(OPENMP_URI http://releases.llvm.org/${LLVM_VERSION}/openmp-${LLVM_VERSION}.src.tar.xz)
 set(OPENMP_HASH 4826402ae3633c36c51ba4d0e5527d30)
 
-set(OPENIMAGEIO_VERSION 1.7.15)
-set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/Release-${OPENIMAGEIO_VERSION}.zip)
-set(OPENIMAGEIO_HASH_178 e156e3669af0e1373142ab5e8f13de66)
-set(OPENIMAGEIO_HASH_179 4121cb0e0433bda6a7ef32c8628a149f)
-set(OPENIMAGEIO_HASH_1713 42a662775b834161ba88c6abdb299360)
-set(OPENIMAGEIO_HASH_1715 e2ece0f62c013d64c478f82265988b0b)
-set(OPENIMAGEIO_HASH ${OPENIMAGEIO_HASH_1715})
-
+set(OPENIMAGEIO_VERSION 1.8.13)
+set(OPENIMAGEIO_URI https://github.com/OpenImageIO/oiio/archive/Release-${OPENIMAGEIO_VERSION}.tar.gz)
+set(OPENIMAGEIO_HASH f5526c3c9878029ee900d84856683f93)
 
 set(TIFF_VERSION 4.0.9)
 set(TIFF_URI http://download.osgeo.org/libtiff/tiff-${TIFF_VERSION}.tar.gz)
 set(TIFF_HASH 54bad211279cc93eb4fca31ba9bfdc79)
 
-set(FLEXBISON_VERSION 2.5.5)
-set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
-set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
-
-set(OSL_VERSION 1.7.5)
-set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.zip)
-set(OSL_HASH 6924dd5d453159e7b6eb106a08c358cf)
+set(OSL_VERSION 1.9.9)
+set(OSL_URI https://github.com/imageworks/OpenShadingLanguage/archive/Release-${OSL_VERSION}.tar.gz)
+set(OSL_HASH 44ad511e424965a10fce051a053b0605)
 
 set(PYTHON_VERSION 3.7.0)
 set(PYTHON_SHORT_VERSION 3.7)
@@ -154,11 +152,11 @@ set(OPENVDB_VERSION 5.1.0)
 set(OPENVDB_URI https://github.com/dreamworksanimation/openvdb/archive/v${OPENVDB_VERSION}.tar.gz)
 set(OPENVDB_HASH 5310101f874dcfd2165f9cee68c22624)
 
-set(IDNA_VERSION 2.6)
-set(CHARDET_VERSION 3.0.2)
-set(URLLIB3_VERSION 1.22)
-set(CERTIFI_VERSION 2017.7.27.1)
-set(REQUESTS_VERSION 2.18.4)
+set(IDNA_VERSION 2.7)
+set(CHARDET_VERSION 3.0.4)
+set(URLLIB3_VERSION 1.23)
+set(CERTIFI_VERSION 2018.8.13)
+set(REQUESTS_VERSION 2.19.1)
 
 set(NUMPY_VERSION v1.15.0)
 set(NUMPY_SHORT_VERSION 1.15)
@@ -263,6 +261,10 @@ set(YAMLCPP_HASH 5b943e9af0060d0811148b037449ef82)
 set(LCMS_VERSION 2.9)
 set(LCMS_URI https://nchc.dl.sourceforge.net/project/lcms/lcms/${LCMS_VERSION}/lcms2-${LCMS_VERSION}.tar.gz)
 set(LCMS_HASH 8de1b7724f578d2995c8fdfa35c3ad0e)
+
+set(PUGIXML_VERSION 1.9)
+set(PUGIXML_URI https://github.com/zeux/pugixml/archive/v1.9.tar.gz)
+set(PUGIXML_HASH 9346ca1dce2c48f1748c12fdac41a714)
 
 
 

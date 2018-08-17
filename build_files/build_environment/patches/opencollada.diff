@@ -1,8 +1,8 @@
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index 3fc9be5..5112ce6 100644
+index 95abbe2..4f14f30 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -254,11 +254,11 @@
+@@ -254,11 +254,11 @@ if(USE_STATIC_MSVC_RUNTIME)
  endif()
  
  #adding PCRE
@@ -16,10 +16,10 @@ index 3fc9be5..5112ce6 100644
  		message("WARNING: Native PCRE not found, taking PCRE from ./Externals")
  		add_definitions(-DPCRE_STATIC)
  		add_subdirectory(${EXTERNAL_LIBRARIES}/pcre)
-diff --git a/DAEValidator/library/include/no_warning_begin.orig b/DAEValidator/library/include/no_warning_begin
-index 3fc9be5..5112ce6 100644
---- a/DAEValidator/library/include/no_warning_begin.orig	2017-05-31 16:56:39 -0600
-+++ b/DAEValidator/library/include/no_warning_begin	2017-06-07 10:18:45 -0600
+diff --git a/DAEValidator/library/include/no_warning_begin b/DAEValidator/library/include/no_warning_begin
+index 7a69c32..defb315 100644
+--- a/DAEValidator/library/include/no_warning_begin
++++ b/DAEValidator/library/include/no_warning_begin
 @@ -2,6 +2,9 @@
  #if defined(_WIN32)
  #	pragma warning(push)
@@ -30,3 +30,16 @@ index 3fc9be5..5112ce6 100644
  #	if defined(_MSC_VER) && defined(_DEBUG)
  #		pragma warning(disable:4548)
  #	endif
+diff --git a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
+index 1f9a3ee..d151e9a 100644
+--- a/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
++++ b/GeneratedSaxParser/src/GeneratedSaxParserUtils.cpp
+@@ -1553,7 +1553,7 @@ namespace GeneratedSaxParser
+ #if defined(COLLADABU_OS_WIN) && !defined(__MINGW32__)
+         return _isnan( value ) ? true : false;
+ #else
+-#ifdef isnan
++#if defined(isnan) || defined(__APPLE__)
+         return isnan( value );
+ #else
+         return std::isnan(value);
