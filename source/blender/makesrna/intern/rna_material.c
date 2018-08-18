@@ -115,9 +115,20 @@ static void rna_MaterialGpencil_update(Main *bmain, Scene *scene, PointerRNA *pt
 
 	/* update previews (icon and thumbnail) */
 	if (preview != NULL) {
-		preview->flag[ICON_SIZE_ICON] |= PRV_CHANGED;
-		preview->flag[ICON_SIZE_PREVIEW] |= PRV_CHANGED;
-		WM_main_add_notifier(NC_MATERIAL | ND_SHADING_PREVIEW, ma);
+		bool changed = false;
+		if ((preview->flag[ICON_SIZE_ICON] & PRV_CHANGED) == 0) {
+			preview->flag[ICON_SIZE_ICON] |= PRV_CHANGED;
+			changed = true;
+		}
+
+		if ((preview->flag[ICON_SIZE_PREVIEW] & PRV_CHANGED) == 0) {
+			preview->flag[ICON_SIZE_PREVIEW] |= PRV_CHANGED;
+			changed = true;
+		}
+
+		if (changed) {
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING_PREVIEW, ma);
+		}
 	}
 	WM_main_add_notifier(NC_GPENCIL | ND_DATA, ma);
 }
