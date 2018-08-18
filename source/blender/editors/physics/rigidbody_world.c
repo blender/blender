@@ -42,8 +42,12 @@
 #endif
 
 #include "BKE_context.h"
+#include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "RNA_access.h"
 
@@ -83,6 +87,10 @@ static int rigidbody_world_add_exec(bContext *C, wmOperator *UNUSED(op))
 //	BKE_rigidbody_validate_sim_world(scene, rbw, false);
 	scene->rigidbody_world = rbw;
 
+	/* Full rebuild of DEG! */
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update_ex(bmain, &scene->id, DEG_TAG_TIME);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -105,6 +113,7 @@ void RIGIDBODY_OT_world_add(wmOperatorType *ot)
 
 static int rigidbody_world_remove_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 
@@ -115,6 +124,10 @@ static int rigidbody_world_remove_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_rigidbody_free_world(scene);
+
+	/* Full rebuild of DEG! */
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update_ex(bmain, &scene->id, DEG_TAG_TIME);
 
 	/* done */
 	return OPERATOR_FINISHED;
