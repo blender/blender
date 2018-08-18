@@ -80,6 +80,7 @@ static bool ED_rigidbody_world_add_poll(bContext *C)
 
 static int rigidbody_world_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	RigidBodyWorld *rbw;
 
