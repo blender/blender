@@ -82,6 +82,9 @@ typedef struct wmGizmoMap wmGizmoMap;
 typedef struct wmGizmoMapType wmGizmoMapType;
 
 /* general API */
+void		WM_init_state_app_template_set(const char *app_template);
+const char *WM_init_state_app_template_get(void);
+
 void		WM_init_state_size_set		(int stax, int stay, int sizx, int sizy);
 void		WM_init_state_fullscreen_set(void);
 void		WM_init_state_normal_set(void);

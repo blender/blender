@@ -565,6 +565,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 
 	printf("\n");
 	printf("Misc Options:\n");
+	BLI_argsPrintArgDoc(ba, "--app-template");
 	BLI_argsPrintArgDoc(ba, "--factory-startup");
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "--env-system-datafiles");
@@ -972,6 +973,22 @@ static int arg_handle_debug_fpe_set(int UNUSED(argc), const char **UNUSED(argv),
 {
 	main_signal_setup_fpe();
 	return 0;
+}
+
+static const char arg_handle_app_template_doc[] =
+"\n\tSet the application template, use 'default' for none."
+;
+static int arg_handle_app_template(int argc, const char **argv, void *UNUSED(data))
+{
+	if (argc > 1) {
+		const char *app_template = STREQ(argv[1], "default") ? "" : argv[1];
+		WM_init_state_app_template_set(app_template);
+		return 1;
+	}
+	else {
+		printf("\nError: App template must follow '--app-template'.\n");
+		return 0;
+	}
 }
 
 static const char arg_handle_factory_startup_set_doc[] =
@@ -1898,6 +1915,7 @@ void main_args_setup(bContext *C, bArgs *ba)
 
 	BLI_argsAdd(ba, 1, NULL, "--verbose", CB(arg_handle_verbosity_set), NULL);
 
+	BLI_argsAdd(ba, 1, NULL, "--app-template", CB(arg_handle_app_template), NULL);
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", CB(arg_handle_factory_startup_set), NULL);
 
 	/* TODO, add user env vars? */

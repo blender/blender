@@ -31,16 +31,6 @@ if(WIN32)
 		-DOPENEXR_BUILD_TESTS=Off
 		-DOPENEXR_BUILD_VIEWERS=Off
 		-DOPENEXR_BUILD_UTILS=Off
-		#yaml-cpp > 0.5.0 requires boost.
-		-DBoost_COMPILER:STRING=${BOOST_COMPILER_STRING}
-		-DBoost_USE_MULTITHREADED=ON
-		-DUSE_STATIC_BOOST=On
-		-DBoost_USE_STATIC_LIBS=ON
-		-DBoost_USE_STATIC_RUNTIME=ON
-		-DBoost_DEBUG=ON
-		-DBOOST_ROOT=${LIBDIR}/boost
-		-DBoost_NO_SYSTEM_PATHS=ON
-		-DOCIO_USE_BOOST_PTR=On
 	)
 	ExternalProject_Add(external_openexr
 		URL ${OPENEXR_URI}
@@ -54,7 +44,7 @@ if(WIN32)
 	ExternalProject_Add_Step(external_openexr after_install
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib
 		#libs have moved between versions, just duplicate it for now. 
-		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/ilmbase/lib
+		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${LIBDIR}/ilmbase/lib
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include 
 		DEPENDEES install
 	)
