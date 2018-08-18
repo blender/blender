@@ -2317,6 +2317,8 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		Scene *scene = CTX_data_scene(C);
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Collection *new_collection = (Collection *)collection->id.newid;
+
+		BKE_collection_child_add(bmain, scene->master_collection, new_collection);
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(new_collection, new_ob)
 		{
 			if (new_ob != NULL && new_ob->id.override_static != NULL) {
