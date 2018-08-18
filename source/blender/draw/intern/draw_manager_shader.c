@@ -219,7 +219,6 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
 	Scene *scene = GPU_material_scene(mat);
-	scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
 
 	for (wmWindowManager *wm = G_MAIN->wm.first; wm; wm = wm->id.next) {
 		if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SHADER_COMPILATION) == false) {
@@ -354,6 +353,7 @@ GPUMaterial *DRW_shader_create_from_world(
 	}
 
 	if (mat == NULL) {
+		scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
 		mat = GPU_material_from_nodetree(
 		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
 		        vert, geom, frag_lib, defines, wo->id.name);
@@ -376,6 +376,7 @@ GPUMaterial *DRW_shader_create_from_material(
 	}
 
 	if (mat == NULL) {
+		scene = (Scene *)DEG_get_original_id(&DST.draw_ctx.scene->id);
 		mat = GPU_material_from_nodetree(
 		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
 		        vert, geom, frag_lib, defines, ma->id.name);
