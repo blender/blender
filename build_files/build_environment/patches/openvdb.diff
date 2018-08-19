@@ -11,6 +11,14 @@ diff -Naur openvdb.orig/openvdb/CMakeLists.txt openvdb/openvdb/CMakeLists.txt
  
  FIND_PACKAGE ( Blosc REQUIRED )
  FIND_PACKAGE ( TBB REQUIRED )
+@@ -195,6 +198,7 @@
+   ${Ilmbase_HALF_LIBRARY}
+   ${ZLIB_LIBRARY}
+   ${BLOSC_blosc_LIBRARY}
++  ${EXTRA_LIBS}
+   )
+
+ IF (WIN32)
 @@ -225,13 +228,16 @@
    ${VDB_PRINT_SOURCE_FILES}
    )
