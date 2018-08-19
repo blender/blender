@@ -3991,19 +3991,26 @@ class VIEW3D_PT_shading_color(Panel):
         shading = VIEW3D_PT_shading.get_shading(context)
         return shading.type == 'SOLID'
 
-    def draw(self, context):
+    def _draw_color_type(self, context):
         layout = self.layout
-
         shading = VIEW3D_PT_shading.get_shading(context)
 
         layout.row().prop(shading, 'color_type', expand=True)
         if shading.color_type == 'SINGLE':
             layout.row().prop(shading, 'single_color', text="")
 
+    def _draw_background_color(self, context):
+        layout = self.layout
+        shading = VIEW3D_PT_shading.get_shading(context)
+
         layout.row().label("Background")
         layout.row().prop(shading, 'background_type', expand=True)
         if shading.background_type == 'VIEWPORT':
             layout.row().prop(shading, "background_color", text="")
+
+    def draw(self, context):
+        self._draw_color_type(context)
+        self._draw_background_color(context)
 
 
 class VIEW3D_PT_shading_options(Panel):

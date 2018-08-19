@@ -853,7 +853,7 @@ class RENDER_PT_opengl_color(RenderButtonsPanel, Panel):
         return (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
-        VIEW3D_PT_shading_color.draw(self, context)
+        VIEW3D_PT_shading_color._draw_color_type(self, context)
 
 
 class RENDER_PT_opengl_options(RenderButtonsPanel, Panel):
