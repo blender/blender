@@ -75,6 +75,15 @@ static void initData(ModifierData *md)
 	bmd->clnordata.faceHash = NULL;
 }
 
+static void copyData(const ModifierData *md_src, ModifierData *md_dst, const int UNUSED(flag))
+{
+	BevelModifierData *bmd_src = (BevelModifierData *)md_src;
+	BevelModifierData *bmd_dst = (BevelModifierData *)md_dst;
+
+	*bmd_dst = *bmd_src;
+	bmd_dst->clnordata.faceHash = NULL;
+}
+
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
@@ -469,7 +478,7 @@ ModifierTypeInfo modifierType_Bevel = {
 	                        eModifierTypeFlag_EnableInEditmode |
 	                        eModifierTypeFlag_AcceptsCVs,
 
-	/* copyData */          modifier_copyData_generic,
+	/* copyData */          copyData,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
