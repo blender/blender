@@ -22,6 +22,12 @@ if(BUILD_MODE STREQUAL Debug)
 endif()
 
 if(WIN32)
+	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+		set(SSL_POSTFIX -x64)
+	else()
+		set(SSL_POSTFIX)
+	endif()
+	
 	set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/run/python${PYTHON_POSTFIX}.exe)
 
 	macro(cmake_to_dos_path MsysPath ResultingPath)
@@ -135,8 +141,8 @@ if(MSVC)
 		#xxlimited is an example extention module, we don't need to ship it and debug doesn't build it
 		#leaving it commented out, so I won't get confused again with the next update. 
 		#COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/xxlimited${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/xxlimited${PYTHON_POSTFIX}.pyd
-		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libssl-1_1-x64.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libssl-1_1-x64.dll
-		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libcrypto-1_1-x64.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libcrypto-1_1-x64.dll
+		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libssl-1_1${SSL_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libssl-1_1${SSL_POSTFIX}.dll
+		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libcrypto-1_1${SSL_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libcrypto-1_1${SSL_POSTFIX}.dll
 		COMMAND ${CMAKE_COMMAND} -E chdir "${BUILD_DIR}/python/src/external_python/redist" ${CMAKE_COMMAND} -E tar "cfvz" "${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz" "."
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ 
 		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz ${HARVEST_TARGET}/Release/python${PYTHON_SHORT_VERSION_NO_DOTS}${PYTHON_POSTFIX}.tar.gz 
