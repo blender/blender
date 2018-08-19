@@ -100,6 +100,14 @@ if(WIN32)
 			DEPENDEES install
 		)
 	endif()
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(external_opencolorio after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/lib/static/Opencolorio.lib ${HARVEST_TARGET}/opencolorio/lib/OpencolorIO_d.lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/yamlcpp/lib/libyaml-cppmtd.lib ${HARVEST_TARGET}/opencolorio/lib/libyaml-cpp_d.lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tinyxml/lib/tinyxml.lib ${HARVEST_TARGET}/opencolorio/lib/tinyxml_d.lib
+			DEPENDEES install
+		)
+	endif()
 	
 endif()
 
