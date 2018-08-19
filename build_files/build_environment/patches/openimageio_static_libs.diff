@@ -9,3 +9,14 @@ diff -Naur external_openimageio.orig/src/cmake/compiler.cmake external_openimage
  endif (MSVC)
  
  # Use ccache if found
+--- external_openimageio.orig/CMakeLists.txt	2018-07-31 23:45:19 -0600
++++ external_openimageio/CMakeLists.txt	2018-08-17 15:22:56 -0600
+@@ -169,7 +169,7 @@
+   add_subdirectory (src/iinfo)
+   add_subdirectory (src/maketx)
+   add_subdirectory (src/oiiotool)
+-  add_subdirectory (src/testtex)
++# add_subdirectory (src/testtex)
+   add_subdirectory (src/iv)
+ endif ()
+ 
