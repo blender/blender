@@ -1418,13 +1418,22 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         ),
     )
 
+    _tools_annotate = (
+        (
+            _defs_annotate.scribble,
+            _defs_annotate.line,
+            _defs_annotate.poly,
+            _defs_annotate.eraser,
+        ),
+    )
+
     _tools = {
         None: [
             # for all modes
         ],
         'VIEW': [
             *_tools_select,
-
+            *_tools_annotate,
         ],
         'MASK': [
             None,
