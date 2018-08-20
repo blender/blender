@@ -54,7 +54,7 @@ if(WIN32)
 			-DNO_CUDA=ON
 		)
 	endif()
-	
+
 else()
 	set(OPENSUBDIV_EXTRA_ARGS
 		${OPENSUBDIV_EXTRA_ARGS}
@@ -89,7 +89,7 @@ if(WIN32)
 			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opensubdiv/lib/osdGPU.lib ${HARVEST_TARGET}/opensubdiv/lib/osdGPU_d.lib
 			DEPENDEES install
 		)
-	endif()	
+	endif()
 endif()
 
 add_dependencies(

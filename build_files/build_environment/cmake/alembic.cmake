@@ -85,7 +85,7 @@ if(WIN32)
 			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/alembic/lib/alembic.lib ${HARVEST_TARGET}/alembic/lib/alembic_d.lib
 			DEPENDEES install
 		)
-	endif()	
+	endif()
 endif()
 
 

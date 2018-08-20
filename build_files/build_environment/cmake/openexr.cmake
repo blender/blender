@@ -41,15 +41,15 @@ if(WIN32)
 		CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/openexr ${DEFAULT_CMAKE_FLAGS} ${OPENEXR_EXTRA_ARGS}
 		INSTALL_DIR ${LIBDIR}/openexr
 	)
-	
+
 	ExternalProject_Add_Step(external_openexr after_install
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${HARVEST_TARGET}/openexr/lib
-		#libs have moved between versions, just duplicate it for now. 
+		#libs have moved between versions, just duplicate it for now.
 		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/lib ${LIBDIR}/ilmbase/lib
-		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include 
+		COMMAND	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openexr/include ${HARVEST_TARGET}/openexr/include
 		DEPENDEES install
 	)
-	
+
 else()
 	set(OPENEXR_PKG_CONFIG_PATH ${LIBDIR}/zlib/share/pkgconfig)
 	set(OPENEXR_EXTRA_ARGS
