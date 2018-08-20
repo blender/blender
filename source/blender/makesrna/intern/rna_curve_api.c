@@ -49,6 +49,11 @@ static void rna_Curve_transform(Curve *cu, float *mat, bool shape_keys)
 
 	DAG_id_tag_update(&cu->id, 0);
 }
+static float rna_Nurb_calc_length(Nurb *nu, int resolution_u)
+{
+	return BKE_nurb_calc_length(nu, resolution_u);
+}
+
 #else
 
 void RNA_api_curve(StructRNA *srna)
@@ -66,6 +71,22 @@ void RNA_api_curve(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Validate material indices of splines or letters, return True when the curve "
 	                                "has had invalid indices corrected (to default 0)");
 	parm = RNA_def_boolean(func, "result", 0, "Result", "");
+	RNA_def_function_return(func, parm);
+}
+
+void RNA_api_curve_nurb(StructRNA *srna)
+{
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	func = RNA_def_function(srna, "calc_length", "rna_Nurb_calc_length");
+	RNA_def_function_ui_description(func, "Calculate spline length");
+	RNA_def_int(
+	        func, "resolution", 0, 0, 1024, "Resolution",
+	        "Spline resolution to be used, 0 defaults to the resolution_u", 0, 64);
+	parm = RNA_def_float_distance(
+	        func, "length", 0.0f, 0.0f, FLT_MAX, "Length",
+	        "Length of the polygonaly approximated spline", 0.0f, FLT_MAX);
 	RNA_def_function_return(func, parm);
 }
 

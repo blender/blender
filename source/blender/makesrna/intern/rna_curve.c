@@ -1759,6 +1759,8 @@ static void rna_def_curve_nurb(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	RNA_def_struct_path_func(srna, "rna_Curve_spline_path");
+
+	RNA_api_curve_nurb(srna);
 }
 
 void RNA_def_curve(BlenderRNA *brna)
