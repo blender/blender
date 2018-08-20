@@ -165,7 +165,6 @@ static void add_lat_lon_vert(
 	GPU_vertbuf_attr_set(vbo, nor_id, *v_idx, nor);
 	GPU_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, pos);
 }
-#endif
 
 static GPUVertBuf *fill_arrows_vbo(const float scale)
 {
@@ -212,6 +211,7 @@ static GPUVertBuf *fill_arrows_vbo(const float scale)
 
 	return vbo;
 }
+#endif  /* UNUSED */
 
 static GPUVertBuf *sphere_wire_vbo(const float rad)
 {
