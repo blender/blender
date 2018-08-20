@@ -1705,7 +1705,7 @@ void node_tangent(vec3 N, vec3 orco, mat4 objmat, mat4 toworld, out vec3 T)
 }
 
 void node_geometry(
-        vec3 I, vec3 N, vec3 orco, mat4 objmat, mat4 toworld,
+        vec3 I, vec3 N, vec3 orco, mat4 objmat, mat4 toworld, vec2 barycentric,
         out vec3 position, out vec3 normal, out vec3 tangent,
         out vec3 true_normal, out vec3 incoming, out vec3 parametric,
         out float backfacing, out float pointiness)
@@ -1720,7 +1720,7 @@ void node_geometry(
 	vec3 I_view = (ProjectionMatrix[3][3] == 0.0) ? normalize(I) : vec3(0.0, 0.0, -1.0);
 	incoming = -(toworld * vec4(I_view, 0.0)).xyz;
 
-	parametric = vec3(0.0);
+	parametric = vec3(barycentric, 0.0);
 	backfacing = (gl_FrontFacing) ? 0.0 : 1.0;
 	pointiness = 0.5;
 }
