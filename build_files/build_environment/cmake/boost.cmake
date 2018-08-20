@@ -16,6 +16,8 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
+set(BOOST_ADDRESS_MODEL 64)
+
 if(WIN32)
 	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
 		set(PYTHON_ARCH x64)
@@ -25,6 +27,7 @@ if(WIN32)
 		set(PYTHON_ARCH x86)
 		set(PYTHON_ARCH2 win32)
 		set(PYTHON_OUTPUTDIR ${BUILD_DIR}/python/src/external_python/pcbuild/win32/)
+		set(BOOST_ADDRESS_MODEL 32)
 	endif()
 	if(MSVC14)
 		set(BOOST_TOOLSET toolset=msvc-14.0)
@@ -45,7 +48,7 @@ if(WIN32)
 	#set(BOOST_WITH_PYTHON --with-python)
 	set(BOOST_HARVEST_CMD 	${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/lib/ ${HARVEST_TARGET}/boost/lib/ )
 	if(BUILD_MODE STREQUAL Release)
-		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_60/ ${HARVEST_TARGET}/boost/include/)
+		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_68/ ${HARVEST_TARGET}/boost/include/)
 	endif()
 
 elseif(APPLE)
@@ -77,9 +80,6 @@ set(BOOST_OPTIONS
 	${BOOST_WITH_PYTHON}
 	${BOOST_TOOLSET}
 )
-
-	set(BOOST_ADDRESS_MODEL 64)
-
 
 string(TOLOWER ${BUILD_MODE} BOOST_BUILD_TYPE)
 

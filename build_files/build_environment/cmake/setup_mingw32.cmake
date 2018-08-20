@@ -35,9 +35,9 @@ message("mingw_LIBDIR = ${mingw_LIBDIR}")
 
 message("Checking for mingw32")
 # download mingw32
-if(NOT EXISTS "${DOWNLOAD_DIR}/i686-w64-mingw32-gcc-4.8.0-win32_rubenvb.7z")
+if(NOT EXISTS "${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z")
 	message("Downloading mingw32")
-	file(DOWNLOAD "https://nchc.dl.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/rubenvb/gcc-4.8-release/i686-w64-mingw32-gcc-4.8.0-win32_rubenvb.7z" "${DOWNLOAD_DIR}/i686-w64-mingw32-gcc-4.8.0-win32_rubenvb.7z")
+	file(DOWNLOAD "https://astuteinternet.dl.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/4.9.4/threads-win32/sjlj/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z" "${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z")
 endif()
 
 # make mingw root directory
@@ -49,10 +49,10 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/mingw")
 endif()
 
 # extract mingw32
-if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/mingw32env.cmd") AND (EXISTS "${DOWNLOAD_DIR}/i686-w64-mingw32-gcc-4.8.0-win32_rubenvb.7z"))
+if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/mingw32env.cmd") AND (EXISTS "${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z"))
 	message("Extracting mingw32")
 	execute_process(
-		COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/i686-w64-mingw32-gcc-4.8.0-win32_rubenvb.7z
+		COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z
 		WORKING_DIRECTORY ${DOWNLOAD_DIR}/mingw
 	)
 endif()

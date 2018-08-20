@@ -52,6 +52,16 @@ set(OPENVDB_EXTRA_ARGS
 	-DTBB_LIBRARY_PATH=${LIBDIR}/tbb/lib
 )
 
+if(WIN32)
+	#Namespaces seem to be buggy and cause linker erorrs due to things not
+	#being in the correct namespace
+	#needs to link pthreads due to it being a blosc dependency
+	set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
+		-DOPENEXR_NAMESPACE_VERSIONING=OFF
+		-DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC2.lib
+	)
+endif()
+
 ExternalProject_Add(openvdb
 	URL ${OPENVDB_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
@@ -71,3 +81,20 @@ add_dependencies(
 	external_zlib
 	external_blosc
 )
+
+if(WIN32)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(openvdb after_install
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/openvdb/include ${HARVEST_TARGET}/openvdb/include
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/libopenvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb.lib
+			DEPENDEES install
+		)
+	endif()
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(openvdb after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/openvdb/lib/libopenvdb.lib ${HARVEST_TARGET}/openvdb/lib/openvdb_d.lib
+			DEPENDEES install
+		)
+	endif()
+endif()
+

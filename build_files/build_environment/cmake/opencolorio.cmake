@@ -50,7 +50,7 @@ if(WIN32)
 		-DUSE_EXTERNAL_LCMS=ON
 		-DINC_1=${LIBDIR}/tinyxml/include
 		-DINC_2=${LIBDIR}/yamlcpp/include
-		#lie because ocio cmake is demanding boost even though it is not needed 
+		#lie because ocio cmake is demanding boost even though it is not needed
 		-DYAML_CPP_VERSION=0.5.0
 	)
 else()
@@ -89,7 +89,7 @@ if(WIN32)
 		external_opencolorio
 		external_tinyxml
 		external_yamlcpp
-		
+
 	)
 	if(BUILD_MODE STREQUAL Release)
 		ExternalProject_Add_Step(external_opencolorio after_install
@@ -100,6 +100,14 @@ if(WIN32)
 			DEPENDEES install
 		)
 	endif()
-	
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(external_opencolorio after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencolorio/lib/static/Opencolorio.lib ${HARVEST_TARGET}/opencolorio/lib/OpencolorIO_d.lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/yamlcpp/lib/libyaml-cppmtd.lib ${HARVEST_TARGET}/opencolorio/lib/libyaml-cpp_d.lib
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/tinyxml/lib/tinyxml.lib ${HARVEST_TARGET}/opencolorio/lib/tinyxml_d.lib
+			DEPENDEES install
+		)
+	endif()
+
 endif()
 
