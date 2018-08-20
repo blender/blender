@@ -1449,6 +1449,43 @@ void OBJECT_OT_paths_clear(wmOperatorType *ot)
 	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
+/* --------- */
+
+static int object_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+
+	/* loop over all edtiable objects in scene */
+	CTX_DATA_BEGIN(C, Object *, ob, editable_objects)
+	{
+		/* use Preview Range or Full Frame Range - whichever is in use */
+		ob->avs.path_sf = PSFRA;
+		ob->avs.path_ef = PEFRA;
+
+		/* tag for updates */
+		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+	}
+	CTX_DATA_END;
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_paths_range_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Update Range from Scene";
+	ot->idname = "OBJECT_OT_paths_range_update";
+	ot->description = "Update frame range for motion paths from the Scene's current frame range";
+
+	/* callbacks */
+	ot->exec = object_update_paths_range_exec;
+	ot->poll = ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 
 /********************** Smooth/Flat *********************/
 

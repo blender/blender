@@ -128,6 +128,7 @@ void POSE_OT_group_deselect(struct wmOperatorType *ot);
 void POSE_OT_paths_calculate(struct wmOperatorType *ot);
 void POSE_OT_paths_update(struct wmOperatorType *ot);
 void POSE_OT_paths_clear(struct wmOperatorType *ot);
+void POSE_OT_paths_range_update(struct wmOperatorType *ot);
 
 void POSE_OT_autoside_names(struct wmOperatorType *ot);
 void POSE_OT_flip_names(struct wmOperatorType *ot);

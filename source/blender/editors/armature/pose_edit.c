@@ -436,6 +436,43 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 	RNA_def_property_flag(ot->prop, PROP_SKIP_SAVE);
 }
 
+/* --------- */
+
+static int pose_update_paths_range_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+
+	if (ELEM(NULL, scene, ob, ob->pose)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	/* use Preview Range or Full Frame Range - whichever is in use */
+	ob->pose->avs.path_sf = PSFRA;
+	ob->pose->avs.path_ef = PEFRA;
+
+	/* tag for updates */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_paths_range_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Update Range from Scene";
+	ot->idname = "POSE_OT_paths_range_update";
+	ot->description = "Update frame range for motion paths from the Scene's current frame range";
+
+	/* callbacks */
+	ot->exec = pose_update_paths_range_exec;
+	ot->poll = ED_operator_posemode_exclusive;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
 /* ********************************************** */
 #if 0 /* UNUSED 2.5 */
 static void pose_copy_menu(Scene *scene)

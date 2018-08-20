@@ -52,6 +52,12 @@ class MotionPathButtonsPanel:
 
         sub.prop(mps, "frame_step", text="Step")
 
+        if mps.type == 'RANGE':
+            if bones:
+                sub.operator("pose.paths_range_update")
+            else:
+                sub.operator("object.paths_range_update")
+
         col = layout.column(align=True)
         if bones:
             col.label(text="Cache for Bone:")

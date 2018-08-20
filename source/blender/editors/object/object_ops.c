@@ -78,6 +78,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_paths_calculate);
 	WM_operatortype_append(OBJECT_OT_paths_update);
 	WM_operatortype_append(OBJECT_OT_paths_clear);
+	WM_operatortype_append(OBJECT_OT_paths_range_update);
 	WM_operatortype_append(OBJECT_OT_forcefield_toggle);
 
 	WM_operatortype_append(OBJECT_OT_parent_set);
