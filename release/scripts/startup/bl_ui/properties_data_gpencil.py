@@ -243,7 +243,6 @@ class DATA_PT_gpencil_layer_display(LayerDataButtonsPanel, Panel):
 
 class DATA_PT_gpencil_onion_skinning(DataButtonsPanel, Panel):
     bl_label = "Onion Skinning"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         gpd = context.gpencil
