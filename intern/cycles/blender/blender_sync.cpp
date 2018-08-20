@@ -828,8 +828,7 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine& b_engine,
 		params.shadingsystem = SHADINGSYSTEM_OSL;
 
 	/* color managagement */
-	params.display_buffer_linear = GLEW_ARB_half_float_pixel &&
-	                               b_engine.support_display_space_shader(b_scene);
+	params.display_buffer_linear = b_engine.support_display_space_shader(b_scene);
 
 	if(b_engine.is_preview()) {
 		/* For preview rendering we're using same timeout as
