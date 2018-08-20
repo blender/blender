@@ -115,6 +115,7 @@ void BLO_blendhandle_close(BlendHandle *bh);
 /***/
 
 #define BLO_GROUP_MAX 32
+#define BLO_EMBEDDED_STARTUP_BLEND "<startup.blend>"
 
 bool BLO_has_bfile_extension(const char *str);
 bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, char **r_name);

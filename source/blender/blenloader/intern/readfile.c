@@ -1412,6 +1412,9 @@ bool BLO_library_path_explode(const char *path, char *r_dir, char **r_group, cha
 		if (BLO_has_bfile_extension(r_dir) && BLI_is_file(r_dir)) {
 			break;
 		}
+		else if (STREQ(r_dir, BLO_EMBEDDED_STARTUP_BLEND)) {
+			break;
+		}
 
 		if (prev_slash) {
 			*prev_slash = c;

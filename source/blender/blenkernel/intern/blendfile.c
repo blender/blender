@@ -561,12 +561,18 @@ bool BKE_blendfile_userdef_write_app_template(const char *filepath, ReportList *
 	return ok;
 }
 
-WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath, ReportList *reports)
+WorkspaceConfigFileData *BKE_blendfile_workspace_config_read(const char *filepath, const void *filebuf, int filelength, ReportList *reports)
 {
 	BlendFileData *bfd;
 	WorkspaceConfigFileData *workspace_config = NULL;
 
-	bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_USERDEF);
+	if (filepath) {
+		bfd = BLO_read_from_file(filepath, reports, BLO_READ_SKIP_USERDEF);
+	}
+	else {
+		bfd = BLO_read_from_memory(filebuf, filelength, reports, BLO_READ_SKIP_USERDEF);
+	}
+
 	if (bfd) {
 		workspace_config = MEM_mallocN(sizeof(*workspace_config), __func__);
 		workspace_config->main = bfd->main;

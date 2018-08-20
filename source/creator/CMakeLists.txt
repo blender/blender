@@ -422,13 +422,6 @@ if(WITH_OPENCOLORIO)
 	)
 endif()
 
-# Add default workspaces.blend to build (under [version]/datafiles
-install(
-	FILES ${CMAKE_SOURCE_DIR}/release/datafiles/workspaces.blend
-	DESTINATION ${TARGETDIR_VER}/datafiles
-)
-
-
 # helpful tip when using make
 if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
 	# message after building.

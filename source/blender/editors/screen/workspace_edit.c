@@ -50,6 +50,7 @@
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
 
+#include "ED_datafiles.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 
@@ -388,14 +389,13 @@ static WorkspaceConfigFileData *workspace_config_file_read(
 	if (BLI_exists(workspace_config_path)) {
 		has_path = true;
 	}
-	else {
-		workspace_config_file_path_from_folder_id(bmain, BLENDER_SYSTEM_DATAFILES, workspace_config_path);
-		if (BLI_exists(workspace_config_path)) {
-			has_path = true;
-		}
-	}
 
-	return has_path ? BKE_blendfile_workspace_config_read(workspace_config_path, reports) : NULL;
+	if (has_path) {
+		return BKE_blendfile_workspace_config_read(workspace_config_path, NULL, 0, reports);
+	}
+	else {
+		return BKE_blendfile_workspace_config_read(NULL, datatoc_startup_blend, datatoc_startup_blend_size, reports);
+	}
 }
 
 static void workspace_append_button(
@@ -404,9 +404,14 @@ static void workspace_append_button(
 	const ID *id = (ID *)workspace;
 	PointerRNA opptr;
 	char lib_path[FILE_MAX_LIBEXTRA];
+	const char *filepath = from_main->name;
+
+	if (strlen(filepath) == 0) {
+		filepath = BLO_EMBEDDED_STARTUP_BLEND;
+	}
 
 	BLI_path_join(
-	        lib_path, sizeof(lib_path), from_main->name, BKE_idcode_to_name(GS(id->name)), NULL);
+	        lib_path, sizeof(lib_path), filepath, BKE_idcode_to_name(GS(id->name)), NULL);
 
 	BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
 	uiItemFullO_ptr(
@@ -426,7 +431,9 @@ static void workspace_config_file_append_buttons(
 		wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
 
 		for (WorkSpace *workspace = workspace_config->workspaces.first; workspace; workspace = workspace->id.next) {
-			workspace_append_button(layout, ot_append, workspace, workspace_config->main);
+			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name)) == NULL) {
+				workspace_append_button(layout, ot_append, workspace, workspace_config->main);
+			}
 		}
 
 		BKE_blendfile_workspace_config_data_free(workspace_config);

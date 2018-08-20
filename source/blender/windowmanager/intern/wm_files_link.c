@@ -74,6 +74,7 @@
 
 #include "IMB_colormanagement.h"
 
+#include "ED_datafiles.h"
 #include "ED_screen.h"
 
 #include "RNA_access.h"
@@ -228,7 +229,12 @@ static void wm_link_do(
 	for (lib_idx = 0, liblink = lapp_data->libraries.list; liblink; lib_idx++, liblink = liblink->next) {
 		char *libname = liblink->link;
 
-		bh = BLO_blendhandle_from_file(libname, reports);
+		if (STREQ(libname, BLO_EMBEDDED_STARTUP_BLEND)) {
+			bh = BLO_blendhandle_from_memory(datatoc_startup_blend, datatoc_startup_blend_size);
+		}
+		else {
+			bh = BLO_blendhandle_from_file(libname, reports);
+		}
 
 		if (bh == NULL) {
 			/* Unlikely since we just browsed it, but possible
