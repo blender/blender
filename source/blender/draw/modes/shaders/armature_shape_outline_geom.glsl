@@ -23,17 +23,18 @@ vec2 compute_dir(vec2 v0, vec2 v1)
 void emit_edge(vec2 edge_dir, vec2 hidden_dir, vec2 thick, bool is_persp)
 {
 	float fac = dot(-hidden_dir, edge_dir);
+	edge_dir *= (fac < 0.0) ? -1.0 : 1.0;
 
 	vec2 t = thick * (is_persp ? abs(vPos[1].z) : 1.0);
 	gl_Position = pPos[1];
 	EmitVertex();
-	gl_Position.xy += t * edge_dir * sign(fac);
+	gl_Position.xy += t * edge_dir;
 	EmitVertex();
 
 	t = thick * (is_persp ? abs(vPos[2].z) : 1.0);
 	gl_Position = pPos[2];
 	EmitVertex();
-	gl_Position.xy += t * edge_dir * sign(fac);
+	gl_Position.xy += t * edge_dir;
 	EmitVertex();
 }
 
@@ -75,9 +76,18 @@ void main(void)
 	vec2 thick = vColSize[0].w * (lineThickness / viewportSize);
 	vec2 edge_dir = compute_dir(ssPos[1], ssPos[2]);
 
+	vec2 hidden_point;
 	/* Take the farthest point to compute edge direction
-	 * (avoid problems with point behind near plane). */
-	vec2 hidden_point = (vPos[0].z < vPos[3].z) ? ssPos[0] : ssPos[3];
+	 * (avoid problems with point behind near plane).
+	 * If the chosen point is parallel to the edge in screen space,
+	 * choose the other point anyway.
+	 * This fixes some issue with cubes in orthographic views.*/
+	if (vPos[0].z < vPos[3].z) {
+		hidden_point = (abs(fac0) > 1e-5) ? ssPos[0] : ssPos[3];
+	}
+	else {
+		hidden_point = (abs(fac3) > 1e-5) ? ssPos[3] : ssPos[0];
+	}
 	vec2 hidden_dir = normalize(hidden_point - ssPos[1]);
 
 	emit_corner(1, thick, is_persp);

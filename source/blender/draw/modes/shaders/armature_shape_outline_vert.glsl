@@ -7,7 +7,6 @@ uniform vec2 viewportSize;
 
 /* ---- Instanciated Attribs ---- */
 in vec3 pos;
-in vec3 nor;
 in vec3 snor;
 
 /* ---- Per instance Attribs ---- */
