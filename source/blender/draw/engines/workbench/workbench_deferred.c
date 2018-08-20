@@ -625,7 +625,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		workbench_material_copy(material, &material_template);
 		DRW_shgroup_stencil_mask(material->shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
-		workbench_material_shgroup_uniform(wpd, material->shgrp, material);
+		workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob);
 
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
@@ -659,7 +659,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			Image *image = NULL;
 			Material *mat = give_current_material(ob, part->omat);
 			ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
-			int color_type = workbench_material_determine_color_type(wpd, image);
+			int color_type = workbench_material_determine_color_type(wpd, image, ob);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 
 			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR) ?
@@ -671,7 +671,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 			        shader);
 			DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
 			DRW_shgroup_uniform_int(shgrp, "object_id", &material->object_id, 1);
-			workbench_material_shgroup_uniform(wpd, shgrp, material);
+			workbench_material_shgroup_uniform(wpd, shgrp, material, ob);
 		}
 	}
 }
@@ -725,7 +725,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						Material *mat = give_current_material(ob, i + 1);
 						Image *image;
 						ED_object_get_active_image(ob, i + 1, &image, NULL, NULL, NULL);
-						int color_type = workbench_material_determine_color_type(wpd, image);
+						int color_type = workbench_material_determine_color_type(wpd, image, ob);
 						material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}

@@ -281,14 +281,15 @@ void workbench_taa_view_updated(WORKBENCH_Data *vedata);
 int workbench_taa_calculate_num_iterations(WORKBENCH_Data *vedata);
 
 /* workbench_materials.c */
-int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima);
+int workbench_material_determine_color_type(WORKBENCH_PrivateData *wpd, Image *ima, Object *ob);
 char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_update_data(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, WORKBENCH_MaterialData *data);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template, bool is_ghost);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, bool use_textures, bool is_hair);
 void workbench_material_set_normal_world_matrix(
         DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
-void workbench_material_shgroup_uniform(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material);
+void workbench_material_shgroup_uniform(
+        WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp, WORKBENCH_MaterialData *material, Object *ob);
 void workbench_material_copy(WORKBENCH_MaterialData *dest_material, const WORKBENCH_MaterialData *source_material);
 
 /* workbench_studiolight.c */

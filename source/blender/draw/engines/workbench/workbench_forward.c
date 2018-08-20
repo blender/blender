@@ -176,11 +176,11 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 			DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		}
 
-		workbench_material_shgroup_uniform(wpd, grp, material);
+		workbench_material_shgroup_uniform(wpd, grp, material, ob);
 		material->shgrp = grp;
 
 		/* Depth */
-		if (workbench_material_determine_color_type(wpd, material->ima) == V3D_SHADING_TEXTURE_COLOR) {
+		if (workbench_material_determine_color_type(wpd, material->ima, ob) == V3D_SHADING_TEXTURE_COLOR) {
 			material->shgrp_object_outline = DRW_shgroup_create(
 			        e_data.object_outline_texture_sh, psl->object_outline_pass);
 			GPUTexture *tex = GPU_texture_from_blender(material->ima, NULL, GL_TEXTURE_2D, false, 0.0f);
@@ -419,7 +419,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			Image *image = NULL;
 			Material *mat = give_current_material(ob, part->omat);
 			ED_object_get_active_image(ob, part->omat, &image, NULL, NULL, NULL);
-			int color_type = workbench_material_determine_color_type(wpd, image);
+			int color_type = workbench_material_determine_color_type(wpd, image, ob);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, mat, image, color_type);
 
 			struct GPUShader *shader = (color_type != V3D_SHADING_TEXTURE_COLOR)
@@ -431,7 +431,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			                                shader);
 			workbench_material_set_normal_world_matrix(shgrp, wpd, e_data.normal_world_matrix);
 			DRW_shgroup_uniform_block(shgrp, "world_block", wpd->world_ubo);
-			workbench_material_shgroup_uniform(wpd, shgrp, material);
+			workbench_material_shgroup_uniform(wpd, shgrp, material, ob);
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 			/* Hairs have lots of layer and can rapidly become the most prominent surface.
 			 * So lower their alpha artificially. */
