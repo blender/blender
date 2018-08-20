@@ -28,6 +28,7 @@
 
 #include "DNA_userdef_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
@@ -47,6 +48,7 @@
 
 #include "BKE_anim.h"
 #include "BKE_camera.h"
+#include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mball.h"
@@ -210,6 +212,7 @@ typedef struct OBJECT_ShadingGroupList {
 
 	/* Helpers */
 	DRWShadingGroup *relationship_lines;
+	DRWShadingGroup *constraint_lines;
 
 	/* Camera */
 	DRWShadingGroup *camera;
@@ -1274,6 +1277,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		/* Relationship Lines */
 		sgl->relationship_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, ts.colorWire);
+		sgl->constraint_lines = shgroup_dynlines_dashed_uniform_color(sgl->non_meshes, ts.colorGridAxisZ);
 
 		/* Force Field Curve Guide End (here because of stipple) */
 		/* TODO port to shader stipple */
@@ -2240,7 +2244,11 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 	}
 }
 
-static void DRW_shgroup_relationship_lines(OBJECT_ShadingGroupList *sgl, Object *ob)
+static void DRW_shgroup_relationship_lines(
+        OBJECT_ShadingGroupList *sgl,
+        Depsgraph *depsgraph,
+        Scene *scene,
+        Object *ob)
 {
 	if (ob->parent && DRW_check_object_visible_within_active_context(ob->parent)) {
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->parent->obmat[3]);
@@ -2258,6 +2266,74 @@ static void DRW_shgroup_relationship_lines(OBJECT_ShadingGroupList *sgl, Object 
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, rbc_ob2->obmat[3]);
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 		}
+	}
+
+	/* Drawing the constraint lines */
+	if (!BLI_listbase_is_empty(&ob->constraints)) {
+		bConstraint *curcon;
+		bConstraintOb *cob;
+		ListBase *list = &ob->constraints;
+
+		cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+
+		for (curcon = list->first; curcon; curcon = curcon->next) {
+			if (ELEM(curcon->type, CONSTRAINT_TYPE_FOLLOWTRACK, CONSTRAINT_TYPE_OBJECTSOLVER)) {
+				/* special case for object solver and follow track constraints because they don't fill
+				 * constraint targets properly (design limitation -- scene is needed for their target
+				 * but it can't be accessed from get_targets callback) */
+
+				Object *camob = NULL;
+
+				if (curcon->type == CONSTRAINT_TYPE_FOLLOWTRACK) {
+					bFollowTrackConstraint *data = (bFollowTrackConstraint *)curcon->data;
+
+					camob = data->camera ? data->camera : scene->camera;
+				}
+				else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
+					bObjectSolverConstraint *data = (bObjectSolverConstraint *)curcon->data;
+
+					camob = data->camera ? data->camera : scene->camera;
+				}
+
+				if (camob) {
+					DRW_shgroup_call_dynamic_add(sgl->constraint_lines, camob->obmat[3]);
+					DRW_shgroup_call_dynamic_add(sgl->constraint_lines, ob->obmat[3]);
+				}
+			}
+			else {
+				const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(curcon);
+
+				if ((cti && cti->get_constraint_targets) && (curcon->flag & CONSTRAINT_EXPAND)) {
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+
+					cti->get_constraint_targets(curcon, &targets);
+
+					for (ct = targets.first; ct; ct = ct->next) {
+						/* calculate target's matrix */
+						if (cti->get_target_matrix) {
+							cti->get_target_matrix(depsgraph,
+							                       curcon,
+							                       cob,
+							                       ct,
+							                       DEG_get_ctime(depsgraph));
+						}
+						else {
+							unit_m4(ct->matrix);
+						}
+
+						DRW_shgroup_call_dynamic_add(sgl->constraint_lines, ct->matrix[3]);
+						DRW_shgroup_call_dynamic_add(sgl->constraint_lines, ob->obmat[3]);
+					}
+
+					if (cti->flush_constraint_targets) {
+						cti->flush_constraint_targets(curcon, &targets, 1);
+					}
+				}
+			}
+		}
+
+		BKE_constraints_clear_evalob(cob);
 	}
 }
 
@@ -2689,7 +2765,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 
 		if (show_relations) {
-			DRW_shgroup_relationship_lines(sgl, ob);
+			DRW_shgroup_relationship_lines(sgl, draw_ctx->depsgraph, scene, ob);
 		}
 
 		if ((ob->dtx != 0) && theme_id == TH_UNDEFINED) {
