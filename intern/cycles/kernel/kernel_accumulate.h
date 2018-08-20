@@ -320,7 +320,13 @@ ccl_device_inline void path_radiance_accum_ao(PathRadiance *L,
                                               float3 bsdf,
                                               float3 ao)
 {
+	/* Store AO pass. */
+	if(L->use_light_pass && state->bounce == 0) {
+		L->ao += alpha*throughput*ao;
+	}
+
 #ifdef __SHADOW_TRICKS__
+	/* For shadow catcher, accumulate ratio. */
 	if(state->flag & PATH_RAY_STORE_SHADOW_INFO) {
 		float3 light = throughput * bsdf;
 		L->path_total += light;
@@ -335,12 +341,11 @@ ccl_device_inline void path_radiance_accum_ao(PathRadiance *L,
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		if(state->bounce == 0) {
-			/* directly visible lighting */
+			/* Directly visible lighting. */
 			L->direct_diffuse += throughput*bsdf*ao;
-			L->ao += alpha*throughput*ao;
 		}
 		else {
-			/* indirectly visible lighting after BSDF bounce */
+			/* Indirectly visible lighting after BSDF bounce. */
 			L->indirect += throughput*bsdf*ao;
 		}
 	}
