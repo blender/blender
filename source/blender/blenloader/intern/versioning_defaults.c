@@ -102,32 +102,6 @@ void BLO_update_defaults_userpref_blend(void)
 }
 
 /**
- * New workspace design: Remove all screens/workspaces except of "Default" one and rename the workspace to "General".
- * For compatibility, a new workspace has been created for each screen of old files,
- * we only want one workspace and one screen in the default startup file however.
- */
-static void update_defaults_startup_workspaces(Main *bmain)
-{
-	WorkSpace *workspace_default = NULL;
-
-	for (WorkSpace *workspace = bmain->workspaces.first, *workspace_next; workspace; workspace = workspace_next) {
-		workspace_next = workspace->id.next;
-
-		if (STREQ(workspace->id.name + 2, "Default")) {
-			/* don't rename within iterator, renaming causes listbase to be re-sorted */
-			workspace_default = workspace;
-		}
-		else {
-			BKE_workspace_remove(bmain, workspace);
-		}
-	}
-
-	/* rename "Default" workspace to "General" */
-	BKE_libblock_rename(bmain, (ID *)workspace_default, "General");
-	BLI_assert(BLI_listbase_count(BKE_workspace_layouts_get(workspace_default)) == 1);
-}
-
-/**
  * Update defaults in startup.blend, without having to save and embed the file.
  * This function can be emptied each time the startup.blend is updated. */
 void BLO_update_defaults_startup_blend(Main *bmain)
@@ -273,8 +247,6 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		linestyle->texstep = 1.0;
 		linestyle->chain_count = 10;
 	}
-
-	update_defaults_startup_workspaces(bmain);
 
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
