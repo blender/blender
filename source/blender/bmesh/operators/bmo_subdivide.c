@@ -1363,6 +1363,9 @@ void bmo_bisect_edges_exec(BMesh *bm, BMOperator *op)
 
 	bmo_subd_init_shape_info(bm, &params);
 
+	/* tag edges in map */
+	BMO_slot_map_to_flag(bm, op->slots_in, "edge_percents", BM_EDGE, EDGE_PERCENT);
+
 	/* go through and split edges */
 	BMO_ITER (e, &siter, op->slots_in, "edges", BM_EDGE) {
 		bm_subdivide_multicut(bm, e, &params, e->v1, e->v2);
