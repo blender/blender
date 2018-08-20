@@ -2764,7 +2764,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_object_center(stl, ob, view_layer, v3d);
 		}
 
-		if (show_relations) {
+		if (show_relations && !DRW_state_is_select()) {
 			DRW_shgroup_relationship_lines(sgl, draw_ctx->depsgraph, scene, ob);
 		}
 
