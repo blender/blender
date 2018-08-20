@@ -168,7 +168,7 @@ BLI_INLINE float BMO_slot_map_float_get(BMOpSlot *slot, const void *element)
 
 	data = BMO_slot_map_data_get(slot, element);
 	if (data) {
-		return **(float **)data;
+		return *(float *)data;
 	}
 	else {
 		return 0.0f;
@@ -183,7 +183,7 @@ BLI_INLINE int BMO_slot_map_int_get(BMOpSlot *slot, const void *element)
 
 	data = BMO_slot_map_data_get(slot, element);
 	if (data) {
-		return **(int **)data;
+		return *(int *)data;
 	}
 	else {
 		return 0;
@@ -198,7 +198,7 @@ BLI_INLINE bool BMO_slot_map_bool_get(BMOpSlot *slot, const void *element)
 
 	data = BMO_slot_map_data_get(slot, element);
 	if (data) {
-		return **(bool **)data;
+		return *(bool *)data;
 	}
 	else {
 		return false;
