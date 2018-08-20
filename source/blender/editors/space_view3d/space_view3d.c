@@ -621,15 +621,6 @@ static bool view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent 
 	return 0;
 }
 
-static bool view3d_ima_mesh_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **tooltip)
-{
-	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
-
-	if (base && base->object->type == OB_MESH)
-		return view3d_ima_drop_poll(C, drag, event, tooltip);
-	return 0;
-}
-
 static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id = WM_drag_ID(drag, ID_OB);
@@ -693,7 +684,6 @@ static void view3d_dropboxes(void)
 
 	WM_dropbox_add(lb, "OBJECT_OT_add_named", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-	WM_dropbox_add(lb, "MESH_OT_drop_named_image", view3d_ima_mesh_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_collection_instance_add", view3d_collection_drop_poll, view3d_collection_drop_copy);
