@@ -1220,11 +1220,9 @@ static void drw_engines_enable_from_mode(int mode)
 	use_drw_engine(&draw_engine_gpencil_type);
 }
 
-static void drw_engines_enable_from_overlays(int overlay_flag)
+static void drw_engines_enable_from_overlays(int UNUSED(overlay_flag))
 {
-	if (overlay_flag) {
-		use_drw_engine(&draw_engine_overlay_type);
-	}
+	use_drw_engine(&draw_engine_overlay_type);
 }
 /**
  * Use for select and depth-drawing.
