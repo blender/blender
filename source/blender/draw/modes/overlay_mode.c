@@ -182,17 +182,20 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	if (!stl->g_data->show_overlays)
 		return;
 
-	if (!DRW_object_is_renderable(ob))
+	if (!DRW_object_is_renderable(ob) && (ob->dt != OB_WIRE))
 		return;
 
-	if (stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
+	if (DRW_object_is_renderable(ob) && stl->g_data->overlay.flag & V3D_OVERLAY_FACE_ORIENTATION) {
 		struct GPUBatch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			DRW_shgroup_call_add(pd->face_orientation_shgrp, geom, ob->obmat);
 		}
 	}
 
-	if ((stl->g_data->overlay.flag & V3D_OVERLAY_WIREFRAMES) || (ob->dtx & OB_DRAWWIRE)) {
+	if ((stl->g_data->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+	    (ob->dtx & OB_DRAWWIRE) ||
+	    (ob->dt == OB_WIRE))
+	{
 		/* Don't do that in edit mode. */
 		if ((ob != draw_ctx->object_edit) && !BKE_object_is_in_editmode(ob)) {
 			int tri_count;

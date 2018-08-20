@@ -2521,7 +2521,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
-	const bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0);
+	const bool do_outlines = (draw_ctx->v3d->flag & V3D_SELECT_OUTLINE) && ((ob->base_flag & BASE_SELECTED) != 0) &&
+	                         (DRW_object_is_renderable(ob) || (ob->dt == OB_WIRE));
 	const bool show_relations = ((draw_ctx->v3d->flag & V3D_HIDE_HELPLINES) == 0);
 	const bool hide_object_extra = (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_XTRAS) != 0;
 
@@ -2711,7 +2712,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_texture_space(sgl, ob, theme_id);
 		}
 
-		if (ob->dtx & OB_DRAWBOUNDOX) {
+		if (ob->dtx & OB_DRAWBOUNDOX || ob->dt == OB_BOUNDBOX) {
 			DRW_shgroup_bounds(sgl, ob, theme_id);
 		}
 
