@@ -139,7 +139,7 @@ class PHYSICS_PT_smoke_settings(PhysicButtonsPanel, Panel):
 
                 if flow_smoke.smoke_flow_type in {'SMOKE', 'BOTH'}:
                     col.prop(flow_smoke, "density")
-                    col.prop(flow_smoke, "temperature")
+                    col.prop(flow_smoke, "temperature", text="Temperature Diff.")
 
                     col.separator()
 
@@ -150,6 +150,13 @@ class PHYSICS_PT_smoke_settings(PhysicButtonsPanel, Panel):
                     col.prop(flow_smoke, "fuel_amount")
 
                 col.prop(flow_smoke, "subframes", text="Sampling Subframes")
+
+            col.separator()
+
+            # Note: TODO prop_search doesn't align on the right.
+            row = col.row(align=True)
+            row.prop_search(flow_smoke, "density_vertex_group", ob, "vertex_groups", text="Vertex Group")
+            row.label(text="", icon='BLANK1')
 
         elif md.smoke_type == 'COLLISION':
             coll = md.coll_settings
@@ -256,20 +263,52 @@ class PHYSICS_PT_smoke_behavior(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "alpha")
-        col.prop(domain, "beta", text="Temp. Diff.")
+        col.prop(domain, "beta", text="Temperature Diff.")
+        col = flow.column()
         col.prop(domain, "vorticity")
 
+
+
+class PHYSICS_PT_smoke_behavior_dissolve(PhysicButtonsPanel, Panel):
+    bl_label = "Dissolve"
+    bl_parent_id = 'PHYSICS_PT_smoke_behavior'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        if not PhysicButtonsPanel.poll_smoke_domain(context):
+            return False
+
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        md = context.smoke
+        domain = md.domain_settings
+
+        self.layout.prop(domain, "use_dissolve_smoke", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.smoke
+        domain = md.domain_settings
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        flow.enabled = (not domain.point_cache.is_baked)
+
+        layout.active = domain.use_dissolve_smoke
+
         col = flow.column()
-        col.prop(domain, "use_dissolve_smoke", text="Dissolve")
+        col.prop(domain, "dissolve_speed", text="Time")
 
-        sub = col.column()
-        sub.active = domain.use_dissolve_smoke
-        sub.prop(domain, "dissolve_speed", text="Time")
-        sub.prop(domain, "use_dissolve_smoke_log", text="Slow")
+        col = flow.column()
+        col.prop(domain, "use_dissolve_smoke_log", text="Slow")
 
 
-class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
-    bl_label = "Advanced"
+class PHYSICS_PT_smoke_flow_texture(PhysicButtonsPanel, Panel):
+    bl_label = "Texture"
     bl_parent_id = 'PHYSICS_PT_smoke'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
@@ -284,6 +323,13 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
                 and (md.flow_settings.smoke_flow_source == 'MESH')
                 and (context.engine in cls.COMPAT_ENGINES))
 
+    def draw_header(self, context):
+        md = context.smoke
+        flow_smoke = md.flow_settings
+
+        self.layout.prop(flow_smoke, "use_texture", text="")
+
+
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
@@ -292,10 +338,8 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
         ob = context.object
         flow_smoke = context.smoke.flow_settings
 
-        col = flow.column()
-        col.prop(flow_smoke, "use_texture")
 
-        sub = col.column()
+        sub = flow.column()
         sub.active = flow_smoke.use_texture
         sub.prop(flow_smoke, "noise_texture")
         sub.prop(flow_smoke, "texture_map_type", text="Mapping")
@@ -314,14 +358,6 @@ class PHYSICS_PT_smoke_flow_advanced(PhysicButtonsPanel, Panel):
             sub.prop(flow_smoke, "texture_size")
 
         sub.prop(flow_smoke, "texture_offset")
-
-        sub.separator()
-
-        # Note: TODO prop_search doesn't align on the right.
-        row = col.row(align=True)
-        row.prop_search(flow_smoke, "density_vertex_group", ob, "vertex_groups", text="Vertex Group")
-        row.label(text="", icon='BLANK1')
-
 
 class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
     bl_label = "Flames"
@@ -345,7 +381,7 @@ class PHYSICS_PT_smoke_fire(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         flow.enabled = (not domain.point_cache.is_baked)
 
-        col = flow.column(align=True)
+        col = flow.column()
         col.prop(domain, "burning_rate", text="Reaction Speed")
         col.prop(domain, "flame_smoke")
         col.prop(domain, "flame_vorticity")
@@ -390,7 +426,7 @@ class PHYSICS_PT_smoke_adaptive_domain(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
         flow.enabled = (not domain.point_cache.is_baked)
 
-        col = flow.column(align=True)
+        col = flow.column()
         col.prop(domain, "additional_res", text="Add Resolution")
         col.prop(domain, "adapt_margin")
 
@@ -442,8 +478,8 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
         layout.prop(md, "show_high_resolution")
 
 
-class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
-    bl_label = "Groups"
+class PHYSICS_PT_smoke_collections(PhysicButtonsPanel, Panel):
+    bl_label = "Collections"
     bl_parent_id = 'PHYSICS_PT_smoke'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
@@ -607,13 +643,18 @@ class PHYSICS_PT_smoke_viewport_display_color(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_smoke_viewport_display_debug(PhysicButtonsPanel, Panel):
-    bl_label = "Debug"
+    bl_label = "Debug Velocity"
     bl_parent_id = 'PHYSICS_PT_smoke_viewport_display'
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         return (PhysicButtonsPanel.poll_smoke_domain(context))
+
+    def draw_header(self, context):
+        md = context.smoke.domain_settings
+
+        self.layout.prop(md, "draw_velocity", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -623,11 +664,8 @@ class PHYSICS_PT_smoke_viewport_display_debug(PhysicButtonsPanel, Panel):
         domain = context.smoke.domain_settings
 
         col = flow.column()
-        col.prop(domain, "draw_velocity")
-
-        col = flow.column()
         col.enabled = domain.draw_velocity
-        col.prop(domain, "vector_draw_type")
+        col.prop(domain, "vector_draw_type", text="Display As")
         col.prop(domain, "vector_scale")
 
 
@@ -637,12 +675,13 @@ classes = (
     PHYSICS_PT_smoke_settings_initial_velocity,
     PHYSICS_PT_smoke_settings_particle_size,
     PHYSICS_PT_smoke_behavior,
+    PHYSICS_PT_smoke_behavior_dissolve,
     PHYSICS_PT_smoke_adaptive_domain,
     PHYSICS_PT_smoke_cache,
     PHYSICS_PT_smoke_field_weights,
     PHYSICS_PT_smoke_fire,
-    PHYSICS_PT_smoke_flow_advanced,
-    PHYSICS_PT_smoke_groups,
+    PHYSICS_PT_smoke_flow_texture,
+    PHYSICS_PT_smoke_collections,
     PHYSICS_PT_smoke_highres,
     PHYSICS_PT_smoke_viewport_display,
     PHYSICS_PT_smoke_viewport_display_color,
