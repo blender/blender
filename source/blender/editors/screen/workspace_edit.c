@@ -64,6 +64,8 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
+#include "BLT_translation.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_toolsystem.h"
@@ -371,7 +373,7 @@ static void workspace_config_file_path_from_folder_id(
 	const char * const cfgdir = BKE_appdir_folder_id(folder_id, app_template);
 
 	if (cfgdir) {
-		BLI_make_file_string(bmain->name, r_path, cfgdir, BLENDER_WORKSPACES_FILE);
+		BLI_make_file_string(bmain->name, r_path, cfgdir, BLENDER_STARTUP_FILE);
 	}
 	else {
 		r_path[0] = '\0';
@@ -390,12 +392,7 @@ static WorkspaceConfigFileData *workspace_config_file_read(
 		has_path = true;
 	}
 
-	if (has_path) {
-		return BKE_blendfile_workspace_config_read(workspace_config_path, NULL, 0, reports);
-	}
-	else {
-		return BKE_blendfile_workspace_config_read(NULL, datatoc_startup_blend, datatoc_startup_blend_size, reports);
-	}
+	return (has_path) ? BKE_blendfile_workspace_config_read(workspace_config_path, NULL, 0, reports) : NULL;
 }
 
 static void workspace_append_button(
@@ -425,18 +422,56 @@ ATTR_NONNULL(1, 2)
 static void workspace_config_file_append_buttons(
         uiLayout *layout, const Main *bmain, ReportList *reports)
 {
-	WorkspaceConfigFileData *workspace_config = workspace_config_file_read(bmain, reports);
+	wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
+	WorkspaceConfigFileData *startup_config = workspace_config_file_read(bmain, reports);
+	WorkspaceConfigFileData *builtin_config = BKE_blendfile_workspace_config_read(NULL, datatoc_startup_blend, datatoc_startup_blend_size, reports);
 
-	if (workspace_config) {
-		wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
+	if (startup_config) {
+		bool has_title = false;
 
-		for (WorkSpace *workspace = workspace_config->workspaces.first; workspace; workspace = workspace->id.next) {
+		for (WorkSpace *workspace = startup_config->workspaces.first; workspace; workspace = workspace->id.next) {
+			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
+				continue;
+			}
+
+			if (!has_title) {
+				uiItemS(layout);
+				uiItemL(layout, IFACE_("Startup File"), ICON_NONE);
+				has_title = true;
+			}
+
+			workspace_append_button(layout, ot_append, workspace, startup_config->main);
+		}
+	}
+
+	if (builtin_config) {
+		bool has_title = false;
+
+		for (WorkSpace *workspace = builtin_config->workspaces.first; workspace; workspace = workspace->id.next) {
+			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
+				continue;
+			}
+			if (startup_config && BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name))) {
+				continue;
+			}
+
+			if (!has_title) {
+				uiItemS(layout);
+				uiItemL(layout, IFACE_("Builtin"), ICON_NONE);
+				has_title = true;
+			}
+
 			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name)) == NULL) {
-				workspace_append_button(layout, ot_append, workspace, workspace_config->main);
+				workspace_append_button(layout, ot_append, workspace, builtin_config->main);
 			}
 		}
+	}
 
-		BKE_blendfile_workspace_config_data_free(workspace_config);
+	if (startup_config) {
+		BKE_blendfile_workspace_config_data_free(startup_config);
+	}
+	if (builtin_config) {
+		BKE_blendfile_workspace_config_data_free(builtin_config);
 	}
 }
 
@@ -448,7 +483,6 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	uiItemO(layout, "Duplicate Current", ICON_NONE, "WORKSPACE_OT_workspace_duplicate");
-	uiItemS(layout);
 	workspace_config_file_append_buttons(layout, bmain, op->reports);
 
 	UI_popup_menu_end(C, pup);

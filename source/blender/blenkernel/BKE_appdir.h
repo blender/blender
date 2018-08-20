@@ -82,7 +82,6 @@ enum {
 
 #define BLENDER_STARTUP_FILE    "startup.blend"
 #define BLENDER_USERPREF_FILE   "userpref.blend"
-#define BLENDER_WORKSPACES_FILE "workspaces.blend"
 #define BLENDER_QUIT_FILE       "quit.blend"
 #define BLENDER_BOOKMARK_FILE   "bookmarks.txt"
 #define BLENDER_HISTORY_FILE    "recent-files.txt"

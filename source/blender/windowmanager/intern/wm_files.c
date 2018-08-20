@@ -1603,42 +1603,6 @@ void WM_OT_save_userpref(wmOperatorType *ot)
 	ot->exec = wm_userpref_write_exec;
 }
 
-static int wm_workspace_configuration_file_write_exec(bContext *C, wmOperator *op)
-{
-	Main *bmain = CTX_data_main(C);
-	char filepath[FILE_MAX];
-
-	const char *app_template = U.app_template[0] ? U.app_template : NULL;
-	const char * const cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, app_template);
-	if (cfgdir == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Unable to create workspace configuration file path");
-		return OPERATOR_CANCELLED;
-	}
-
-	BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_WORKSPACES_FILE, NULL);
-	printf("trying to save workspace configuration file at %s ", filepath);
-
-	if (BKE_blendfile_workspace_config_write(bmain, filepath, op->reports) != 0) {
-		printf("ok\n");
-		return OPERATOR_FINISHED;
-	}
-	else {
-		printf("fail\n");
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-void WM_OT_save_workspace_file(wmOperatorType *ot)
-{
-	ot->name = "Save Workspace Configuration";
-	ot->idname = "WM_OT_save_workspace_file";
-	ot->description = "Save workspaces of the current file as part of the user configuration";
-
-	ot->invoke = WM_operator_confirm;
-	ot->exec = wm_workspace_configuration_file_write_exec;
-}
-
 static int wm_history_file_read_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
 	ED_file_read_bookmarks();
