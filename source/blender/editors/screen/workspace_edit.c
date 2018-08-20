@@ -389,7 +389,7 @@ static WorkspaceConfigFileData *workspace_config_file_read(
 		has_path = true;
 	}
 	else {
-		workspace_config_file_path_from_folder_id(bmain, BLENDER_DATAFILES, workspace_config_path);
+		workspace_config_file_path_from_folder_id(bmain, BLENDER_SYSTEM_DATAFILES, workspace_config_path);
 		if (BLI_exists(workspace_config_path)) {
 			has_path = true;
 		}
