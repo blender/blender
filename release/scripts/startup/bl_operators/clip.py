@@ -641,7 +641,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
         master_collection = context.scene.collection
         collection = bpy.data.collections.get(collection_name)
 
-        if collection.library:
+        if collection and collection.library:
             # We need a local collection instead.
             collection = None
 
@@ -965,7 +965,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         # And set everything on background layer to shadow catcher.
         if hasattr(scene, "cycles"):
-            self.setup_shadow_catcher_collection(bg_coll)
+            setup_shadow_catcher_objects(bg_coll)
 
     def execute(self, context):
         scene = context.scene
