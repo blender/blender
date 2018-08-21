@@ -77,8 +77,8 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
                                      void *user_data)
 {
 	/* Start with getting ID node from the graph. */
-	IDDepsNode *id_node = graph->find_id_node(id);
-	if (id_node == NULL) {
+	IDDepsNode *target_id_node = graph->find_id_node(id);
+	if (target_id_node == NULL) {
 		/* TODO(sergey): Shall we inform or assert here about attempt to start
 		 * iterating over non-existing ID?
 		 */
@@ -88,7 +88,7 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 	deg_foreach_clear_flags(graph);
 	/* Start with scheduling all operations from ID node. */
 	TraversalQueue queue;
-	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, target_id_node->components)
 	{
 		foreach (OperationDepsNode *op_node, comp_node->operations) {
 			queue.push_back(op_node);
@@ -96,7 +96,7 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 		}
 	}
 	GHASH_FOREACH_END();
-	id_node->done = true;
+	target_id_node->done = true;
 	/* Process the queue. */
 	while (!queue.empty()) {
 		/* get next operation node to process. */
