@@ -269,7 +269,6 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 	GlyphBLF *g;
 	FT_Error err;
 	FT_Bitmap bitmap, tempbitmap;
-	int flags = FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP;
 	FT_BBox bbox;
 	unsigned int key;
 
@@ -290,13 +289,27 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 		return g;
 	}
 
-	if (font->flags & BLF_HINTING)
-		flags &= ~FT_LOAD_NO_HINTING;
-
 	if (font->flags & BLF_MONOCHROME) {
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, FT_LOAD_TARGET_MONO);
 	}
 	else {
+		int flags = FT_LOAD_NO_BITMAP;
+
+		if (font->flags & BLF_HINTING_NONE) {
+			flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
+		}
+		else if (font->flags & BLF_HINTING_SLIGHT) {
+			flags |= FT_LOAD_TARGET_LIGHT;
+		}
+		else if (font->flags & BLF_HINTING_FULL) {
+			flags |= FT_LOAD_TARGET_NORMAL;
+		}
+		else {
+			/* Default, hinting disabled until FreeType has been upgraded
+			 * to give good results on all platforms. */
+			flags |= FT_LOAD_TARGET_NORMAL | FT_LOAD_NO_HINTING;
+		}
+
 		err = FT_Load_Glyph(font->face, (FT_UInt)index, flags);
 	}
 

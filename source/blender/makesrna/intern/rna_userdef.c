@@ -4125,6 +4125,14 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	    {0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem text_hinting_items[] = {
+	    {0, "AUTO", 0, "Auto", ""},
+	    {USER_TEXT_HINTING_NONE, "NONE", 0, "None", ""},
+	    {USER_TEXT_HINTING_SLIGHT, "SLIGHT", 0, "Slight", ""},
+	    {USER_TEXT_HINTING_FULL, "FULL", 0, "Full", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "UserPreferencesSystem", NULL);
 	RNA_def_struct_sdna(srna, "UserDef");
 	RNA_def_struct_nested(brna, srna, "UserPreferences");
@@ -4348,9 +4356,10 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Text Anti-aliasing", "Draw user interface text anti-aliased");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
-	prop = RNA_def_property(srna, "use_text_hinting", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "text_render", USER_TEXT_DISABLE_HINTING);
-	RNA_def_property_ui_text(prop, "Text Hinting", "Draw user interface text with hinting");
+	prop = RNA_def_property(srna, "text_hinting", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "text_render");
+	RNA_def_property_enum_items(prop, text_hinting_items);
+	RNA_def_property_ui_text(prop, "Text Hinting", "Method for making user interface text render sharp");
 	RNA_def_property_update(prop, 0, "rna_userdef_text_update");
 
 	prop = RNA_def_property(srna, "select_method", PROP_ENUM, PROP_NONE);

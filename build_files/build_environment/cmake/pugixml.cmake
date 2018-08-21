@@ -27,10 +27,17 @@ ExternalProject_Add(external_pugixml
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/pugixml ${DEFAULT_CMAKE_FLAGS} ${PUGIXML_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/pugixml
 )
-
-#if(BUILD_MODE STREQUAL Release AND WIN32)
-	#ExternalProject_Add_Step(external_freetype after_install
-	#	COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freetype ${HARVEST_TARGET}/freetype
-	#	DEPENDEES install
-	#)
-#endif()
+if(WIN32)
+	if(BUILD_MODE STREQUAL Release)
+		ExternalProject_Add_Step(external_pugixml after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/osl/lib/pugixml.lib
+			DEPENDEES install
+		)
+	endif()
+	if(BUILD_MODE STREQUAL Debug)
+		ExternalProject_Add_Step(external_pugixml after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/pugixml/lib/pugixml.lib ${HARVEST_TARGET}/osl/lib/pugixml_d.lib
+			DEPENDEES install
+		)
+	endif()	
+endif()

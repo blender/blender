@@ -533,9 +533,10 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
         col.label(text="Text Draw Options:")
-        col.prop(system, "use_text_antialiasing")
-        if system.use_text_antialiasing:
-            col.prop(system, "use_text_hinting")
+        col.prop(system, "use_text_antialiasing", text="Anti-aliasing")
+        sub = col.column()
+        sub.active = system.use_text_antialiasing
+        sub.prop(system, "text_hinting", text="Hinting")
 
         # 3. Column
         column = split.column()
