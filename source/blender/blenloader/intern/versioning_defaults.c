@@ -25,30 +25,24 @@
  *  \ingroup blenloader
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 
-#include "DNA_camera_types.h"
-#include "DNA_brush_types.h"
-#include "DNA_freestyle_types.h"
-#include "DNA_lamp_types.h"
-#include "DNA_linestyle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_workspace_types.h"
 
-#include "BKE_brush.h"
-#include "BKE_library.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
-#include "BKE_scene.h"
-#include "BKE_workspace.h"
+#include "BKE_node.h"
+#include "BKE_screen.h"
 
 #include "BLO_readfile.h"
 
@@ -86,7 +80,7 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 			for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
 				/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
-				BLI_freelistN(&ar->panels);
+				BKE_area_region_panels_free(&ar->panels);
 
 				/* some toolbars have been saved as initialized,
 				 * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
@@ -94,6 +88,53 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 					ar->v2d.flag &= ~V2D_IS_INITIALISED;
 				}
 			}
+
+			if (area->spacetype == SPACE_FILE) {
+				SpaceFile *sfile = area->spacedata.first;
+
+				if (sfile->params) {
+					if (STREQ(screen->id.name, "SRDefault.003")) {
+						/* Shading. */
+						sfile->params->filter = FILE_TYPE_FOLDER |
+						                        FILE_TYPE_IMAGE;
+					}
+					else {
+						/* Video Editing. */
+						sfile->params->filter = FILE_TYPE_FOLDER |
+						                        FILE_TYPE_IMAGE |
+						                        FILE_TYPE_MOVIE |
+						                        FILE_TYPE_SOUND;
+					}
+				}
+			}
+		}
+	}
+
+	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+		BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+
+		scene->r.cfra = 1.0f;
+
+		/* Don't enable compositing nodes. */
+		if (scene->nodetree) {
+			ntreeFreeTree(scene->nodetree);
+			MEM_freeN(scene->nodetree);
+			scene->nodetree = NULL;
+			scene->use_nodes = false;
+		}
+
+		/* Select only cube by default. */
+		for (ViewLayer *layer = scene->view_layers.first; layer; layer = layer->next) {
+			for (Base *base = layer->object_bases.first; base; base = base->next) {
+				if (STREQ(base->object->id.name + 2, "Cube")) {
+					base->flag |= BASE_SELECTED;
+				}
+				else {
+					base->flag &= ~BASE_SELECTED;
+				}
+			}
+
+			BKE_layer_collection_sync(scene, layer);
 		}
 	}
 }

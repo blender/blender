@@ -325,6 +325,7 @@ void BKE_spacedata_id_unref(struct ScrArea *sa, struct SpaceLink *sl, struct ID 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
 void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
+void            BKE_area_region_panels_free(struct ListBase *panels);
 void            BKE_screen_area_free(struct ScrArea *sa);
 /* Gizmo-maps of a region need to be freed with the region. Uses callback to avoid low-level call. */
 void BKE_region_callback_free_gizmomap_set(void (*callback)(struct wmGizmoMap *));
