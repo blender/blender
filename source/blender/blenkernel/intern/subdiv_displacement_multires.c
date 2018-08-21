@@ -388,7 +388,7 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement,
 			ptex_poly_corner[ptex_face_index].poly_index = poly_index;
 			ptex_poly_corner[ptex_face_index].corner = 0;
 			ptex_face_index++;
-		} 
+		}
 		else {
 			for (int corner = 0; corner < poly->totloop; corner++) {
 				ptex_poly_corner[ptex_face_index].poly_index = poly_index;

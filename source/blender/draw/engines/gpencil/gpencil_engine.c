@@ -563,7 +563,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 		if ((draw_ctx->obact != ob) && GPENCIL_ANY_EDIT_MODE(gpd)) {
 			return;
 		}
-		
+
 		if ((stl->g_data->session_flag & GP_DRW_PAINT_READY) == 0) {
 
 			/* save gp objects for drawing later */
@@ -740,7 +740,7 @@ void GPENCIL_draw_scene(void *ved)
 				}
 
 				/* Current buffer drawing */
-				if ((!is_render) && (cache_ob->is_dup_ob == false)) 
+				if ((!is_render) && (cache_ob->is_dup_ob == false))
 				{
 					DRW_draw_pass(psl->drawing_pass);
 				}

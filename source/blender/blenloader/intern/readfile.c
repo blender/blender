@@ -10980,4 +10980,3 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	}
 	BKE_main_free(main_newid);
 }
-
