@@ -69,6 +69,7 @@ static void workbench_transparent_draw_scene(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
 	workbench_forward_draw_scene(data);
+	workbench_forward_draw_finish(data);
 }
 
 static void workbench_transparent_engine_free(void)

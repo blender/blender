@@ -258,6 +258,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata);
 void workbench_forward_engine_free(void);
 void workbench_forward_draw_background(WORKBENCH_Data *vedata);
 void workbench_forward_draw_scene(WORKBENCH_Data *vedata);
+void workbench_forward_draw_finish(WORKBENCH_Data *vedata);
 void workbench_forward_cache_init(WORKBENCH_Data *vedata);
 void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_forward_cache_finish(WORKBENCH_Data *vedata);

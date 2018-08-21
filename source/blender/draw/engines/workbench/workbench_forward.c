@@ -626,6 +626,12 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	/* Apply checker pattern */
 	GPU_framebuffer_bind(dfbl->depth_only_fb);
 	DRW_draw_pass(psl->checker_depth_pass);
+}
+
+void workbench_forward_draw_finish(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
 
 	workbench_private_data_free(wpd);
 	workbench_volume_smoke_textures_free(wpd);
