@@ -436,6 +436,25 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
+	/* When accessed as a tool, get the active edge from the preselection gizmo. */
+	{
+		ARegion *ar = CTX_wm_region(C);
+		wmGizmoMap *gzmap = ar->gizmo_map;
+		wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_mesh_preselect_edgering") : NULL;
+		if (gzgroup != NULL) {
+			wmGizmo *gz = gzgroup->gizmos.first;
+			const int object_index = RNA_int_get(gz->ptr, "object_index");
+			const int edge_index = RNA_int_get(gz->ptr, "edge_index");
+
+			if (object_index != -1 && edge_index != -1) {
+				RNA_int_set(op->ptr, "object_index", object_index);
+				RNA_int_set(op->ptr, "edge_index", edge_index);
+				return loopcut_init(C, op, NULL);
+			}
+			return OPERATOR_CANCELLED;
+		}
+	}
+
 	return loopcut_init(C, op, event);
 }
 

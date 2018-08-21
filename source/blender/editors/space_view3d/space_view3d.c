@@ -705,6 +705,7 @@ static void view3d_widgets(void)
 
 	WM_gizmogrouptype_append(TRANSFORM_GGT_gizmo);
 	WM_gizmogrouptype_append(VIEW3D_GGT_xform_cage);
+	WM_gizmogrouptype_append(VIEW3D_GGT_mesh_preselect_edgering);
 
 	WM_gizmogrouptype_append(VIEW3D_GGT_ruler);
 	WM_gizmotype_append(VIEW3D_GT_ruler_item);

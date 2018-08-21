@@ -135,6 +135,7 @@ void ED_spacetypes_init(void)
 	ED_gizmotypes_grab_3d();
 	ED_gizmotypes_arrow_2d();
 	ED_gizmotypes_arrow_3d();
+	ED_gizmotypes_preselect_3d();
 	ED_gizmotypes_primitive_3d();
 	ED_gizmotypes_blank_3d();
 	ED_gizmotypes_cage_2d();

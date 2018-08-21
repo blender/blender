@@ -63,6 +63,8 @@ set(SRC
 	view3d_gizmo_navigate.c
 	view3d_gizmo_navigate_type.c
 	view3d_gizmo_ruler.c
+	view3d_gizmo_preselect.c
+	view3d_gizmo_preselect_type.c
 	view3d_ops.c
 	view3d_project.c
 	view3d_ruler.c

@@ -263,6 +263,7 @@ void VIEW3D_GGT_force_field(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_empty_image(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_armature_spline(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GGT_navigate(struct wmGizmoGroupType *gzgt);
+void VIEW3D_GGT_mesh_preselect_edgering(struct wmGizmoGroupType *gzgt);
 
 void VIEW3D_GGT_ruler(struct wmGizmoGroupType *gzgt);
 void VIEW3D_GT_ruler_item(struct wmGizmoType *gzt);

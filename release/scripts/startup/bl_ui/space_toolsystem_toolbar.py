@@ -679,7 +679,7 @@ class _defs_edit_mesh:
         return dict(
             text="Loop Cut",
             icon="ops.mesh.loopcut_slide",
-            widget=None,
+            widget="VIEW3D_GGT_mesh_preselect_edgering",
             keymap=(
                 ("mesh.loopcut_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
