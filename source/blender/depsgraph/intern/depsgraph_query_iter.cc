@@ -83,7 +83,7 @@ void deg_invalidate_iterator_work_data(DEGObjectIterData *data)
 #endif
 }
 
-void verify_id_proeprties_freed(DEGObjectIterData *data)
+void verify_id_properties_freed(DEGObjectIterData *data)
 {
 	if (data->dupli_object_current == NULL) {
 		// We didn't enter duplication yet, so we can't have any dangling
@@ -127,7 +127,7 @@ bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 			continue;
 		}
 
-		verify_id_proeprties_freed(data);
+		verify_id_properties_freed(data);
 
 		data->dupli_object_current = dob;
 
@@ -260,7 +260,7 @@ void DEG_iterator_objects_next(BLI_Iterator *iter)
 				return;
 			}
 			else {
-				verify_id_proeprties_freed(data);
+				verify_id_properties_freed(data);
 				free_object_duplilist(data->dupli_list);
 				data->dupli_parent = NULL;
 				data->dupli_list = NULL;
