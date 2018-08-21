@@ -1156,6 +1156,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		oldscreen = WM_window_get_active_screen(win); /* the one disappearing */
 
 		sc->state = SCREENNORMAL;
+		sc->flag = oldscreen->flag;
 
 		/* find old area to restore from */
 		ScrArea *fullsa = NULL;
@@ -1223,6 +1224,7 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		sc->state = state;
 		sc->redraws_flag = oldscreen->redraws_flag;
 		sc->temp = oldscreen->temp;
+		sc->flag = oldscreen->flag;
 
 		/* timer */
 		sc->animtimer = oldscreen->animtimer;
