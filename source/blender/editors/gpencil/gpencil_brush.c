@@ -313,6 +313,8 @@ static bool gp_brush_smooth_apply(
 		BKE_gpencil_smooth_stroke_uv(gps, pt_index, inf);
 	}
 
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+
 	return true;
 }
 
@@ -528,6 +530,7 @@ static void gp_brush_grab_apply_cached(
 		/* compute lock axis */
 		gpsculpt_compute_lock_axis(gso, pt, save_pt);
 	}
+	gps->flag |= GP_STROKE_RECALC_CACHES;
 }
 
 /* free customdata used for handling this stroke */
@@ -566,6 +569,8 @@ static bool gp_brush_push_apply(
 
 	/* compute lock axis */
 	gpsculpt_compute_lock_axis(gso, pt, save_pt);
+
+	gps->flag |= GP_STROKE_RECALC_CACHES;
 
 	/* done */
 	return true;
@@ -652,6 +657,8 @@ static bool gp_brush_pinch_apply(
 	/* compute lock axis */
 	gpsculpt_compute_lock_axis(gso, pt, save_pt);
 
+	gps->flag |= GP_STROKE_RECALC_CACHES;
+
 	/* done */
 	return true;
 }
@@ -731,6 +738,8 @@ static bool gp_brush_twist_apply(
 			copy_v2_v2(&pt->x, vec);
 		}
 	}
+
+	gps->flag |= GP_STROKE_RECALC_CACHES;
 
 	/* done */
 	return true;
@@ -853,6 +862,8 @@ static bool gp_brush_randomize_apply(
 		}
 		CLAMP(pt->uv_rot, -M_PI_2, M_PI_2);
 	}
+
+	gps->flag |= GP_STROKE_RECALC_CACHES;
 
 	/* done */
 	return true;
