@@ -1086,6 +1086,13 @@ static bool unified_findnearest(
 #undef FAKE_SELECT_MODE_BEGIN
 #undef FAKE_SELECT_MODE_END
 
+bool EDBM_unified_findnearest(
+        ViewContext *vc,
+        Base **r_base, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
+{
+	return unified_findnearest(vc, r_base, r_eve, r_eed, r_efa);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

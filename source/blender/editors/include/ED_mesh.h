@@ -35,6 +35,7 @@
 extern "C" {
 #endif
 
+struct Base;
 struct ID;
 struct View3D;
 struct ARegion;
@@ -168,6 +169,13 @@ struct BMFace *EDBM_face_find_nearest_ex(
         struct BMFace **r_efa_zbuf);
 struct BMFace *EDBM_face_find_nearest(
         struct ViewContext *vc, float *r_dist);
+
+bool EDBM_unified_findnearest(
+        struct ViewContext *vc,
+        struct Base **r_base,
+        struct BMVert **r_eve,
+        struct BMEdge **r_eed,
+        struct BMFace **r_efa);
 
 bool EDBM_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
