@@ -79,11 +79,7 @@ typedef struct RingSelOpData {
 	ARegion *ar;        /* region that ringsel was activated in */
 	void *draw_handle;  /* for drawing preview loop */
 
-	float (*edges)[2][3];
-	int totedge;
-
-	float (*points)[3];
-	int totpoint;
+	struct EditMesh_PreSelEdgeRing *presel_edgering;
 
 	ViewContext vc;
 
@@ -109,283 +105,7 @@ typedef struct RingSelOpData {
 static void ringsel_draw(const bContext *UNUSED(C), ARegion *UNUSED(ar), void *arg)
 {
 	RingSelOpData *lcd = arg;
-
-	if ((lcd->totedge > 0) || (lcd->totpoint > 0)) {
-		GPU_depth_test(false);
-
-		GPU_matrix_push();
-		GPU_matrix_mul(lcd->ob->obmat);
-
-		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-		immUniformColor3ub(255, 0, 255);
-
-		if (lcd->totedge > 0) {
-			immBegin(GPU_PRIM_LINES, lcd->totedge * 2);
-
-			for (int i = 0; i < lcd->totedge; i++) {
-				immVertex3fv(pos, lcd->edges[i][0]);
-				immVertex3fv(pos, lcd->edges[i][1]);
-			}
-
-			immEnd();
-		}
-
-		if (lcd->totpoint > 0) {
-			GPU_point_size(3.0f);
-
-			immBegin(GPU_PRIM_POINTS, lcd->totpoint);
-
-			for (int i = 0; i < lcd->totpoint; i++) {
-				immVertex3fv(pos, lcd->points[i]);
-			}
-
-			immEnd();
-		}
-
-		immUnbindProgram();
-
-		GPU_matrix_pop();
-
-		/* Reset default */
-		GPU_depth_test(true);
-	}
-}
-
-/* given two opposite edges in a face, finds the ordering of their vertices so
- * that cut preview lines won't cross each other */
-static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
-                                BMVert *lastv1, BMVert *v[2][2])
-{
-	BMIter liter;
-	BMLoop *l, *l2;
-	int rev;
-
-	l = eed->l;
-
-	/* find correct order for v[1] */
-	if (!(BM_edge_in_face(eed, l->f) && BM_edge_in_face(lasteed, l->f))) {
-		BM_ITER_ELEM (l, &liter, l, BM_LOOPS_OF_LOOP) {
-			if (BM_edge_in_face(eed, l->f) && BM_edge_in_face(lasteed, l->f))
-				break;
-		}
-	}
-
-	/* this should never happen */
-	if (!l) {
-		v[0][0] = eed->v1;
-		v[0][1] = eed->v2;
-		v[1][0] = lasteed->v1;
-		v[1][1] = lasteed->v2;
-		return;
-	}
-
-	l2 = BM_loop_other_edge_loop(l, eed->v1);
-	rev = (l2 == l->prev);
-	while (l2->v != lasteed->v1 && l2->v != lasteed->v2) {
-		l2 = rev ? l2->prev : l2->next;
-	}
-
-	if (l2->v == lastv1) {
-		v[0][0] = eed->v1;
-		v[0][1] = eed->v2;
-	}
-	else {
-		v[0][0] = eed->v2;
-		v[0][1] = eed->v1;
-	}
-}
-
-static void edgering_vcos_get(DerivedMesh *dm, BMVert *v[2][2], float r_cos[2][2][3])
-{
-	if (dm) {
-		int j, k;
-		for (j = 0; j < 2; j++) {
-			for (k = 0; k < 2; k++) {
-				dm->getVertCo(dm, BM_elem_index_get(v[j][k]), r_cos[j][k]);
-			}
-		}
-	}
-	else {
-		int j, k;
-		for (j = 0; j < 2; j++) {
-			for (k = 0; k < 2; k++) {
-				copy_v3_v3(r_cos[j][k], v[j][k]->co);
-			}
-		}
-	}
-}
-
-static void edgering_vcos_get_pair(DerivedMesh *dm, BMVert *v[2], float r_cos[2][3])
-{
-	if (dm) {
-		int j;
-		for (j = 0; j < 2; j++) {
-			dm->getVertCo(dm, BM_elem_index_get(v[j]), r_cos[j]);
-		}
-	}
-	else {
-		int j;
-		for (j = 0; j < 2; j++) {
-			copy_v3_v3(r_cos[j], v[j]->co);
-		}
-	}
-}
-
-static void edgering_preview_free(RingSelOpData *lcd)
-{
-	MEM_SAFE_FREE(lcd->edges);
-	lcd->totedge = 0;
-
-	MEM_SAFE_FREE(lcd->points);
-	lcd->totpoint = 0;
-}
-
-static void edgering_preview_calc_edges(RingSelOpData *lcd, DerivedMesh *dm, const int previewlines)
-{
-	BMesh *bm = lcd->em->bm;
-	BMWalker walker;
-	BMEdge *eed_start = lcd->eed;
-	BMEdge *eed, *eed_last;
-	BMVert *v[2][2] = {{NULL}}, *v_last;
-	float (*edges)[2][3] = NULL;
-	BLI_Stack *edge_stack;
-
-	int i, tot = 0;
-
-	BMW_init(&walker, bm, BMW_EDGERING,
-	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
-	         BMW_FLAG_TEST_HIDDEN,
-	         BMW_NIL_LAY);
-
-
-	edge_stack = BLI_stack_new(sizeof(BMEdge *), __func__);
-
-	eed_last = NULL;
-	for (eed = eed_last = BMW_begin(&walker, lcd->eed); eed; eed = BMW_step(&walker)) {
-		BLI_stack_push(edge_stack, &eed);
-	}
-	BMW_end(&walker);
-
-
-	eed_start = *(BMEdge **)BLI_stack_peek(edge_stack);
-
-	edges = MEM_mallocN(
-	        (sizeof(*edges) * (BLI_stack_count(edge_stack) + (eed_last != eed_start))) * previewlines, __func__);
-
-	v_last   = NULL;
-	eed_last = NULL;
-
-	while (!BLI_stack_is_empty(edge_stack)) {
-		BLI_stack_pop(edge_stack, &eed);
-
-		if (eed_last) {
-			if (v_last) {
-				v[1][0] = v[0][0];
-				v[1][1] = v[0][1];
-			}
-			else {
-				v[1][0] = eed_last->v1;
-				v[1][1] = eed_last->v2;
-				v_last  = eed_last->v1;
-			}
-
-			edgering_find_order(eed_last, eed, v_last, v);
-			v_last = v[0][0];
-
-			for (i = 1; i <= previewlines; i++) {
-				const float fac = (i / ((float)previewlines + 1));
-				float v_cos[2][2][3];
-
-				edgering_vcos_get(dm, v, v_cos);
-
-				interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
-				interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
-				tot++;
-			}
-		}
-		eed_last = eed;
-	}
-
-	if ((eed_last != eed_start) &&
-#ifdef BMW_EDGERING_NGON
-	    BM_edge_share_face_check(eed_last, eed_start)
-#else
-	    BM_edge_share_quad_check(eed_last, eed_start)
-#endif
-	    )
-	{
-		v[1][0] = v[0][0];
-		v[1][1] = v[0][1];
-
-		edgering_find_order(eed_last, eed_start, v_last, v);
-
-		for (i = 1; i <= previewlines; i++) {
-			const float fac = (i / ((float)previewlines + 1));
-			float v_cos[2][2][3];
-
-			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1]) {
-				continue;
-			}
-
-			edgering_vcos_get(dm, v, v_cos);
-
-			interp_v3_v3v3(edges[tot][0], v_cos[0][0], v_cos[0][1], fac);
-			interp_v3_v3v3(edges[tot][1], v_cos[1][0], v_cos[1][1], fac);
-			tot++;
-		}
-	}
-
-	BLI_stack_free(edge_stack);
-
-	lcd->edges = edges;
-	lcd->totedge = tot;
-}
-
-static void edgering_preview_calc_points(RingSelOpData *lcd, DerivedMesh *dm, const int previewlines)
-{
-	float v_cos[2][3];
-	float (*points)[3];
-	int i, tot = 0;
-
-	if (dm) {
-		BM_mesh_elem_table_ensure(lcd->em->bm, BM_VERT);
-	}
-
-	points = MEM_mallocN(sizeof(*lcd->points) * previewlines, __func__);
-
-	edgering_vcos_get_pair(dm, &lcd->eed->v1, v_cos);
-
-	for (i = 1; i <= previewlines; i++) {
-		const float fac = (i / ((float)previewlines + 1));
-		interp_v3_v3v3(points[tot], v_cos[0], v_cos[1], fac);
-		tot++;
-	}
-
-	lcd->points = points;
-	lcd->totpoint = previewlines;
-}
-
-static void edgering_preview_calc(RingSelOpData *lcd, const int previewlines)
-{
-	DerivedMesh *dm;
-
-	BLI_assert(lcd->eed != NULL);
-
-	edgering_preview_free(lcd);
-
-	dm = EDBM_mesh_deform_dm_get(lcd->em);
-	if (dm) {
-		BM_mesh_elem_table_ensure(lcd->em->bm, BM_VERT);
-	}
-
-	if (BM_edge_is_wire(lcd->eed)) {
-		edgering_preview_calc_points(lcd, dm, previewlines);
-	}
-	else {
-		edgering_preview_calc_edges(lcd, dm, previewlines);
-	}
+	EDBM_preselect_edgering_draw(lcd->presel_edgering, lcd->ob->obmat);
 }
 
 static void edgering_select(RingSelOpData *lcd)
@@ -422,10 +142,10 @@ static void edgering_select(RingSelOpData *lcd)
 static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
 {
 	if (lcd->eed) {
-		edgering_preview_calc(lcd, previewlines);
+		EDBM_preselect_edgering_update_from_edge(lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines);
 	}
 	else {
-		edgering_preview_free(lcd);
+		EDBM_preselect_edgering_clear(lcd->presel_edgering);
 	}
 }
 
@@ -510,7 +230,7 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
 
-	edgering_preview_free(lcd);
+	EDBM_preselect_edgering_destroy(lcd->presel_edgering);
 
 	MEM_freeN(lcd->objects);
 
@@ -536,6 +256,7 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar = CTX_wm_region(C);
 	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
+	lcd->presel_edgering = EDBM_preselect_edgering_create();
 	/* Initialize once the cursor is over a mesh. */
 	lcd->ob = NULL;
 	lcd->em = NULL;

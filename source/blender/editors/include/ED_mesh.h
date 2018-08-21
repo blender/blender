@@ -192,6 +192,16 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* renam
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
+/* editmesh_preselect.c */
+struct EditMesh_PreSelEdgeRing;
+struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void);
+void EDBM_preselect_edgering_destroy(struct EditMesh_PreSelEdgeRing *psel);
+void EDBM_preselect_edgering_clear(struct EditMesh_PreSelEdgeRing *psel);
+void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const float matrix[4][4]);
+void EDBM_preselect_edgering_update_from_edge(
+        struct EditMesh_PreSelEdgeRing *psel,
+        struct BMesh *bm, struct BMEdge *eed_start, int previewlines);
+
 /* mesh_ops.c */
 void        ED_operatortypes_mesh(void);
 void        ED_operatormacros_mesh(void);
