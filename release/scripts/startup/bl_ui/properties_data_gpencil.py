@@ -367,6 +367,8 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         layout.prop(gpd, "edit_line_color", text="Edit Line Color")
         layout.prop(ob, "empty_draw_size", text="Marker Size")
 
+        layout.prop(gpd, "force_fill_recalc", text="Force Fill Update")
+
         col = layout.column(align=True)
         col.prop(gpd, "show_constant_thickness")
         sub = col.column()

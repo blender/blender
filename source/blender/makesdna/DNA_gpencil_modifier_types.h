@@ -408,7 +408,4 @@ typedef enum eSmoothGpencil_Flag {
 	GP_SMOOTH_MOD_UV         = (1 << 6),
 } eSmoothGpencil_Flag;
 
-#define MOD_MESHSEQ_READ_ALL \
-	(MOD_MESHSEQ_READ_VERT | MOD_MESHSEQ_READ_POLY | MOD_MESHSEQ_READ_UV | MOD_MESHSEQ_READ_COLOR)
-
 #endif  /* __DNA_GPENCIL_MODIFIER_TYPES_H__ */
