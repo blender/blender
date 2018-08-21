@@ -90,6 +90,16 @@ endif
 
 
 # -----------------------------------------------------------------------------
+# Blender binary path
+
+ifeq ($(OS), darwin)
+	BLENDER_BIN="$(BUILD_DIR)/bin/blender.app/Contents/MacOS/blender"
+else
+	BLENDER_BIN="$(BUILD_DIR)/bin/blender"
+endif
+
+
+# -----------------------------------------------------------------------------
 # Get the number of cores for threaded build
 ifndef NPROCS
 	NPROCS:=1
@@ -140,7 +150,7 @@ all: .FORCE
 	$(MAKE) -C "$(BUILD_DIR)" -s -j $(NPROCS) install
 	@echo
 	@echo edit build configuration with: "$(BUILD_DIR)/CMakeCache.txt" run make again to rebuild.
-	@echo Blender successfully built, run from: "$(BUILD_DIR)/bin/blender"
+	@echo Blender successfully built, run from: $(BLENDER_BIN)
 	@echo
 
 debug: all
@@ -411,7 +421,7 @@ check_spelling_osl: .FORCE
 	    "$(BLENDER_DIR)/intern/cycles/kernel/shaders"
 
 check_descriptions: .FORCE
-	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup --python \
+	$(BLENDER_BIN) --background -noaudio --factory-startup --python \
 	    "$(BLENDER_DIR)/source/tools/check_source/check_descriptions.py"
 
 # -----------------------------------------------------------------------------
@@ -445,7 +455,7 @@ update: .FORCE
 
 # Simple version of ./doc/python_api/sphinx_doc_gen.sh with no PDF generation.
 doc_py: .FORCE
-	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup \
+	$(BLENDER_BIN) --background -noaudio --factory-startup \
 		--python doc/python_api/sphinx_doc_gen.py
 	cd doc/python_api ; sphinx-build -b html sphinx-in sphinx-out
 	@echo "docs written into: '$(BLENDER_DIR)/doc/python_api/sphinx-out/contents.html'"
@@ -455,12 +465,12 @@ doc_doxy: .FORCE
 	@echo "docs written into: '$(BLENDER_DIR)/doc/doxygen/html/index.html'"
 
 doc_dna: .FORCE
-	"$(BUILD_DIR)/bin/blender" --background -noaudio --factory-startup \
+	$(BLENDER_BIN) --background -noaudio --factory-startup \
 		--python doc/blender_file_format/BlendFileDnaExporter_25.py
 	@echo "docs written into: '$(BLENDER_DIR)/doc/blender_file_format/dna.html'"
 
 doc_man: .FORCE
-	$(PYTHON) doc/manpage/blender.1.py "$(BUILD_DIR)/bin/blender"
+	$(PYTHON) doc/manpage/blender.1.py $(BLENDER_BIN) blender.1
 
 help_features: .FORCE
 	@$(PYTHON) -c \
