@@ -66,7 +66,6 @@ def CLIP_set_viewport_background(context, clip, clip_user):
 
 def CLIP_camera_for_clip(context, clip):
     scene = context.scene
-
     camera = scene.camera
 
     for ob in scene.objects:
@@ -368,7 +367,7 @@ class CLIP_OT_delete_proxy(Operator):
         proxy = os.path.join(proxydir, clipfile)
         absproxy = bpy.path.abspath(proxy)
 
-        # proxy_<quality>[_undostorted]
+        # proxy_<quality>[_undistorted]
         for x in (25, 50, 75, 100):
             d = os.path.join(absproxy, "proxy_%d" % x)
 
@@ -383,13 +382,13 @@ class CLIP_OT_delete_proxy(Operator):
         for x in tc:
             self._rmproxy(os.path.join(absproxy, x))
 
-        # remove proxy per-clip directory
+        # Remove proxy per-clip directory.
         try:
             os.rmdir(absproxy)
         except OSError:
             pass
 
-        # remove [custom] proxy directory if empty
+        # Remove [custom] proxy directory if empty.
         try:
             absdir = bpy.path.abspath(proxydir)
             os.rmdir(absdir)
@@ -424,8 +423,8 @@ class CLIP_OT_set_viewport_background(Operator):
 
 
 class CLIP_OT_constraint_to_fcurve(Operator):
-    """Create F-Curves for object which will copy \
-object's movement caused by this constraint"""
+    """Create F-Curves for object which will copy """ \
+        """object's movement caused by this constraint"""
 
     bl_idname = "clip.constraint_to_fcurve"
     bl_label = "Constraint to F-Curve"
@@ -452,7 +451,7 @@ object's movement caused by this constraint"""
 
             return {'CANCELLED'}
 
-        # Get clip used for parenting
+        # Get clip used for parenting.
         if con.use_active_clip:
             clip = scene.active_clip
         else:
@@ -471,7 +470,7 @@ object's movement caused by this constraint"""
 
             return {'FINISHED'}
 
-        # Find start and end frames
+        # Find start and end frames.
         for track in clip.tracking.tracks:
             if sfra is None:
                 sfra = track.markers[0].frame
@@ -486,14 +485,14 @@ object's movement caused by this constraint"""
         if sfra is None or efra is None:
             return
 
-        # Store object matrices
+        # Store object matrices.
         for x in range(sfra, efra + 1):
             scene.frame_set(x)
             matrices.append(ob.matrix_world.copy())
 
         ob.animation_data_create()
 
-        # Apply matrices on object and insert key-frames
+        # Apply matrices on object and insert key-frames.
         i = 0
         for x in range(sfra, efra + 1):
             scene.frame_set(x)
