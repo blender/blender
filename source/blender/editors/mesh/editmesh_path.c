@@ -563,7 +563,7 @@ static bool edbm_shortest_path_pick_ex(
         BMElem *ele_src, BMElem *ele_dst)
 {
 
-	if (ELEM(NULL, ele_src, ele_dst) && (ele_src->head.htype != ele_dst->head.htype)) {
+	if (ELEM(NULL, ele_src, ele_dst) || (ele_src->head.htype != ele_dst->head.htype)) {
 		/* pass */
 	}
 	else if (ele_src->head.htype == BM_VERT) {
