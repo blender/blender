@@ -894,6 +894,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	GPUNode *node;
 	GPUInput *input;
 	char *code;
+	int builtins = 0;
 
 	/* Hairs uv and col attribs are passed by bufferTextures. */
 	BLI_dynstr_append(
@@ -908,11 +909,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
 			if (input->source == GPU_SOURCE_BUILTIN) {
-				if (input->builtin == GPU_BARYCENTRIC_TEXCO) {
-					BLI_dynstr_appendf(
-					        ds, "out vec2 barycentricTexCo%s;\n",
-					        use_geom ? "g" : "");
-				}
+				builtins |= input->builtin;
 			}
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				/* XXX FIXME : see notes in mesh_render_data_create() */
@@ -947,6 +944,12 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 		}
 	}
 
+	if (builtins & GPU_BARYCENTRIC_TEXCO) {
+		BLI_dynstr_appendf(
+		        ds, "out vec2 barycentricTexCo%s;\n",
+		        use_geom ? "g" : "");
+	}
+
 	BLI_dynstr_append(ds, "\n");
 
 	BLI_dynstr_append(
@@ -977,23 +980,22 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	BLI_dynstr_append(ds, "#ifdef HAIR_SHADER\n");
 
+	if (builtins & GPU_BARYCENTRIC_TEXCO) {
+		/* To match cycles without breaking into individual segment we encode if we need to invert
+		 * the first component into the second component. We invert if the barycentricTexCo.y
+		 * is NOT 0.0 or 1.0. */
+		BLI_dynstr_appendf(
+		        ds, "\tint _base_id = hair_get_base_id();\n");
+		BLI_dynstr_appendf(
+		        ds, "\tbarycentricTexCo%s.x = float((_base_id %% 2) == 1);\n",
+		        use_geom ? "g" : "");
+		BLI_dynstr_appendf(
+		        ds, "\tbarycentricTexCo%s.y = float(((_base_id %% 4) %% 3) > 0);\n",
+		        use_geom ? "g" : "");
+	}
+
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_BUILTIN) {
-				if (input->builtin == GPU_BARYCENTRIC_TEXCO) {
-					/* To match cycles without breaking into individual segment we encode if we need to invert
-					 * the first component into the second component. We invert if the barycentricTexCo.y
-					 * is NOT 0.0 or 1.0. */
-					BLI_dynstr_appendf(
-					        ds, "\tint _base_id = hair_get_base_id();\n");
-					BLI_dynstr_appendf(
-					        ds, "\tbarycentricTexCo%s.x = float((_base_id %% 2) == 1);\n",
-					        use_geom ? "g" : "");
-					BLI_dynstr_appendf(
-					        ds, "\tbarycentricTexCo%s.y = float(((_base_id %% 4) %% 3) > 0);\n",
-					        use_geom ? "g" : "");
-				}
-			}
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				if (input->attribtype == CD_TANGENT) {
 					/* Not supported by hairs */
@@ -1017,18 +1019,17 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	BLI_dynstr_append(ds, "#else /* MESH_SHADER */\n");
 
+	if (builtins & GPU_BARYCENTRIC_TEXCO) {
+		BLI_dynstr_appendf(
+		        ds, "\tbarycentricTexCo%s.x = float((gl_VertexID %% 3) == 0);\n",
+		        use_geom ? "g" : "");
+		BLI_dynstr_appendf(
+		        ds, "\tbarycentricTexCo%s.y = float((gl_VertexID %% 3) == 1);\n",
+		        use_geom ? "g" : "");
+	}
+
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_BUILTIN) {
-				if (input->builtin == GPU_BARYCENTRIC_TEXCO) {
-					BLI_dynstr_appendf(
-					        ds, "\tbarycentricTexCo%s.x = float((gl_VertexID %% 3) == 0);\n",
-					        use_geom ? "g" : "");
-					BLI_dynstr_appendf(
-					        ds, "\tbarycentricTexCo%s.y = float((gl_VertexID %% 3) == 1);\n",
-					        use_geom ? "g" : "");
-				}
-			}
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				if (input->attribtype == CD_TANGENT) { /* silly exception */
 					BLI_dynstr_appendf(
@@ -1085,6 +1086,7 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 	GPUNode *node;
 	GPUInput *input;
 	char *code;
+	int builtins = 0;
 
 	/* Create prototype because attributes cannot be declared before layout. */
 	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert);\n");
@@ -1095,9 +1097,8 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 	/* Generate varying declarations. */
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_BUILTIN && input->builtin == GPU_BARYCENTRIC_TEXCO) {
-				BLI_dynstr_appendf(ds, "in vec2 barycentricTexCog[];\n");
-				BLI_dynstr_appendf(ds, "out vec2 barycentricTexCo[];\n");
+			if (input->source == GPU_SOURCE_BUILTIN) {
+				builtins |= input->builtin;
 			}
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				BLI_dynstr_appendf(
@@ -1112,15 +1113,20 @@ static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 		}
 	}
 
+	if (builtins & GPU_BARYCENTRIC_TEXCO) {
+		BLI_dynstr_appendf(ds, "in vec2 barycentricTexCog[];\n");
+		BLI_dynstr_appendf(ds, "out vec2 barycentricTexCo[];\n");
+	}
+
 	/* Generate varying assignments. */
 	BLI_dynstr_appendf(ds, "void pass_attrib(in int vert) {\n");
+
+	if (builtins & GPU_BARYCENTRIC_TEXCO) {
+		BLI_dynstr_appendf(ds, "\tbarycentricTexCo = barycentricTexCog;\n");
+	}
+
 	for (node = nodes->first; node; node = node->next) {
 		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_BUILTIN) {
-				if (input->builtin == GPU_BARYCENTRIC_TEXCO) {
-					BLI_dynstr_appendf(ds, "\tbarycentricTexCo = barycentricTexCog;\n");
-				}
-			}
 			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				/* TODO let shader choose what to do depending on what the attrib is. */
 				BLI_dynstr_appendf(ds, "\tvar%d = var%dg[vert];\n", input->attribid, input->attribid);
