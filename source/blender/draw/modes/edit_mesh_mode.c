@@ -644,6 +644,7 @@ static void EDIT_MESH_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.normals_loop_sh);
 	DRW_SHADER_FREE_SAFE(e_data.normals_face_sh);
 	DRW_SHADER_FREE_SAFE(e_data.normals_sh);
+	DRW_SHADER_FREE_SAFE(e_data.ghost_clear_depth_sh);
 
 	for (int i = 0; i < MAX_SHADERS; i++) {
 		DRW_SHADER_FREE_SAFE(e_data.overlay_tri_sh_cache[i]);
