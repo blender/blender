@@ -162,7 +162,7 @@ def mesh_data_lists_from_mesh(me, material_colors):
                 ),
                 # RGBA color.
                 tuple((
-                    [int(c * b * 255) for c, b in zip(cn.color, base_color)]
+                    [min(max(int(c * b * 255), 0), 255) for c, b in zip(cn.color, base_color)]
                     for cn in (c0, c1, c2)
                 )),
             ))
