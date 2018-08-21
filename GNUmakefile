@@ -92,7 +92,7 @@ endif
 # -----------------------------------------------------------------------------
 # Blender binary path
 
-ifeq ($(OS), darwin)
+ifeq ($(OS), Darwin)
 	BLENDER_BIN="$(BUILD_DIR)/bin/blender.app/Contents/MacOS/blender"
 else
 	BLENDER_BIN="$(BUILD_DIR)/bin/blender"
