@@ -197,6 +197,9 @@ typedef void (*DEGForeachIDCallback)(ID *id, void *user_data);
 /* NOTE: Modifies runtime flags in depsgraph nodes, so can not be used in
  * parallel. Keep an eye on that!
  */
+void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,
+                             const ID *id,
+                             DEGForeachIDCallback callback, void *user_data);
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
                               DEGForeachIDCallback callback, void *user_data);

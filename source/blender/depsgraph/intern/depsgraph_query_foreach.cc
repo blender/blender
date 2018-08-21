@@ -136,6 +136,71 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 	}
 }
 
+static void deg_foreach_ancestor_ID(const Depsgraph *graph,
+                                     const ID *id,
+                                     DEGForeachIDCallback callback,
+                                     void *user_data)
+{
+	/* Start with getting ID node from the graph. */
+	IDDepsNode *target_id_node = graph->find_id_node(id);
+	if (target_id_node == NULL) {
+		/* TODO(sergey): Shall we inform or assert here about attempt to start
+		 * iterating over non-existing ID?
+		 */
+		return;
+	}
+	/* Make sure all runtime flags are ready and clear. */
+	deg_foreach_clear_flags(graph);
+	/* Start with scheduling all operations from ID node. */
+	TraversalQueue queue;
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, target_id_node->components)
+	{
+		foreach (OperationDepsNode *op_node, comp_node->operations) {
+			queue.push_back(op_node);
+			op_node->scheduled = true;
+		}
+	}
+	GHASH_FOREACH_END();
+	target_id_node->done = true;
+	/* Process the queue. */
+	while (!queue.empty()) {
+		/* get next operation node to process. */
+		OperationDepsNode *op_node = queue.front();
+		queue.pop_front();
+		for (;;) {
+			/* Check whether we need to inform callee about corresponding ID node. */
+			ComponentDepsNode *comp_node = op_node->owner;
+			IDDepsNode *id_node = comp_node->owner;
+			if (!id_node->done) {
+				/* TODO(sergey): Is it orig or CoW? */
+				callback(id_node->id_orig, user_data);
+				id_node->done = true;
+			}
+			/* Schedule incoming operation nodes. */
+			if (op_node->inlinks.size() == 1) {
+				OperationDepsNode *from_node = (OperationDepsNode *)op_node->inlinks[0]->from;
+				if (from_node->scheduled == false) {
+					from_node->scheduled = true;
+					op_node = from_node;
+				}
+				else {
+					break;
+				}
+			}
+			else {
+				foreach (DepsRelation *rel, op_node->inlinks) {
+					OperationDepsNode *from_node = (OperationDepsNode *)rel->from;
+					if (from_node->scheduled == false) {
+						queue.push_front(from_node);
+						from_node->scheduled = true;
+					}
+				}
+				break;
+			}
+		}
+	}
+}
+
 static void deg_foreach_id(const Depsgraph *depsgraph,
                            DEGForeachIDCallback callback, void *user_data)
 {
@@ -153,6 +218,15 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
 	DEG::deg_foreach_dependent_ID((const DEG::Depsgraph *)depsgraph,
 	                              id,
 	                              callback, user_data);
+}
+
+void DEG_foreach_ancestor_ID(const Depsgraph *depsgraph,
+                             const ID *id,
+                             DEGForeachIDCallback callback, void *user_data)
+{
+	DEG::deg_foreach_ancestor_ID((const DEG::Depsgraph *)depsgraph,
+	                             id,
+	                             callback, user_data);
 }
 
 void DEG_foreach_ID(const Depsgraph *depsgraph,
