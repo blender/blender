@@ -46,4 +46,3 @@ if(BUILD_MODE STREQUAL Release AND WIN32)
 		DEPENDEES install
 	)
 endif()
-
