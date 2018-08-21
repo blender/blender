@@ -199,16 +199,16 @@ void WM_gizmo_target_property_clear_rna(
 bool WM_gizmo_target_property_is_valid_any(struct wmGizmo *gz);
 bool WM_gizmo_target_property_is_valid(
         const struct wmGizmoProperty *gz_prop);
-float WM_gizmo_target_property_value_get(
+float WM_gizmo_target_property_float_get(
         const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop);
-void  WM_gizmo_target_property_value_set(
+void  WM_gizmo_target_property_float_set(
         struct bContext *C, const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop,
         const float value);
 
-void WM_gizmo_target_property_value_get_array(
+void WM_gizmo_target_property_float_get_array(
         const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop,
         float *value);
-void WM_gizmo_target_property_value_set_array(
+void WM_gizmo_target_property_float_set_array(
         struct bContext *C, const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop,
         const float *value);
 

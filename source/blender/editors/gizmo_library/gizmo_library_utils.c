@@ -121,7 +121,7 @@ void gizmo_property_data_update(
 		return;
 	}
 
-	float value = WM_gizmo_target_property_value_get(gz, gz_prop);
+	float value = WM_gizmo_target_property_float_get(gz, gz_prop);
 
 	if (constrained) {
 		if ((data->flag & GIZMO_CUSTOM_RANGE_SET) == 0) {
@@ -145,7 +145,7 @@ void gizmo_property_value_reset(
         bContext *C, const wmGizmo *gz, GizmoInteraction *inter,
         wmGizmoProperty *gz_prop)
 {
-	WM_gizmo_target_property_value_set(C, gz, gz_prop, inter->init_value);
+	WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init_value);
 }
 
 /* -------------------------------------------------------------------- */

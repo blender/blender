@@ -309,9 +309,9 @@ static int gizmo_arrow_modal(
 		const bool use_precision = (tweak_flag & WM_GIZMO_TWEAK_PRECISE) != 0;
 		float value = gizmo_value_from_offset(data, inter, ofs_new, constrained, inverted, use_precision);
 
-		WM_gizmo_target_property_value_set(C, gz, gz_prop, value);
+		WM_gizmo_target_property_float_set(C, gz, gz_prop, value);
 		/* get clamped value */
-		value = WM_gizmo_target_property_value_get(gz, gz_prop);
+		value = WM_gizmo_target_property_float_get(gz, gz_prop);
 
 		data->offset = gizmo_offset_from_value(data, value, constrained, inverted);
 	}
@@ -344,7 +344,7 @@ static int gizmo_arrow_invoke(
 
 	/* Some gizmos don't use properties. */
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		inter->init_value = WM_gizmo_target_property_value_get(gz, gz_prop);
+		inter->init_value = WM_gizmo_target_property_float_get(gz, gz_prop);
 	}
 
 	inter->init_offset = arrow->data.offset;
@@ -380,7 +380,7 @@ static void gizmo_arrow_exit(bContext *C, wmGizmo *gz, const bool cancel)
 		/* Assign incase applying the opetration needs an updated offset
 		 * editmesh bisect needs this. */
 		if (is_prop_valid) {
-			data->offset = WM_gizmo_target_property_value_get(gz, gz_prop);
+			data->offset = WM_gizmo_target_property_float_get(gz, gz_prop);
 		}
 		return;
 	}

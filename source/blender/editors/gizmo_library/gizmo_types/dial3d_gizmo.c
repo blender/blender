@@ -415,7 +415,7 @@ static int gizmo_dial_modal(
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_value_set(C, gz, gz_prop, inter->init_prop_angle + angle_delta);
+		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init_prop_angle + angle_delta);
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -439,7 +439,7 @@ static int gizmo_dial_invoke(
 
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		inter->init_prop_angle = WM_gizmo_target_property_value_get(gz, gz_prop);
+		inter->init_prop_angle = WM_gizmo_target_property_float_get(gz, gz_prop);
 	}
 
 	gz->interaction_data = inter;

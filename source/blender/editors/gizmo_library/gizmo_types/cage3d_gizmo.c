@@ -508,7 +508,7 @@ static int gizmo_cage3d_modal(
 
 	gz_prop = WM_gizmo_target_property_find(gz, "matrix");
 	if (gz_prop->type != NULL) {
-		WM_gizmo_target_property_value_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
+		WM_gizmo_target_property_float_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
 	}
 
 	if (gz->highlight_part == ED_GIZMO_CAGE3D_PART_TRANSLATE) {
@@ -591,7 +591,7 @@ static int gizmo_cage3d_modal(
 	}
 
 	if (gz_prop->type != NULL) {
-		WM_gizmo_target_property_value_set_array(C, gz, gz_prop, &gz->matrix_offset[0][0]);
+		WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &gz->matrix_offset[0][0]);
 	}
 
 	/* tag the region for redraw */
@@ -605,7 +605,7 @@ static void gizmo_cage3d_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
 	if (STREQ(gz_prop->type->idname, "matrix")) {
 		if (WM_gizmo_target_property_array_length(gz, gz_prop) == 16) {
-			WM_gizmo_target_property_value_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
+			WM_gizmo_target_property_float_get_array(gz, gz_prop, &gz->matrix_offset[0][0]);
 		}
 		else {
 			BLI_assert(0);
@@ -628,7 +628,7 @@ static void gizmo_cage3d_exit(bContext *C, wmGizmo *gz, const bool cancel)
 	/* reset properties */
 	gz_prop = WM_gizmo_target_property_find(gz, "matrix");
 	if (gz_prop->type != NULL) {
-		WM_gizmo_target_property_value_set_array(C, gz, gz_prop, &data->orig_matrix_offset[0][0]);
+		WM_gizmo_target_property_float_set_array(C, gz, gz_prop, &data->orig_matrix_offset[0][0]);
 	}
 
 	copy_m4_m4(gz->matrix_offset, data->orig_matrix_offset);

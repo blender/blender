@@ -256,7 +256,7 @@ static int gizmo_grab_modal(
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_value_set_array(C, gz, gz_prop, grab->prop_co);
+		WM_gizmo_target_property_float_set_array(C, gz, gz_prop, grab->prop_co);
 	}
 	else {
 		zero_v3(grab->prop_co);
@@ -280,7 +280,7 @@ static int gizmo_grab_invoke(
 #else
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_value_get_array(gz, gz_prop, inter->init_prop_co);
+		WM_gizmo_target_property_float_get_array(gz, gz_prop, inter->init_prop_co);
 	}
 #endif
 
@@ -315,7 +315,7 @@ static void gizmo_grab_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
 	GrabGizmo3D *grab = (GrabGizmo3D *)gz;
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_value_get_array(gz, gz_prop, grab->prop_co);
+		WM_gizmo_target_property_float_get_array(gz, gz_prop, grab->prop_co);
 	}
 	else {
 		zero_v3(grab->prop_co);

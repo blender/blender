@@ -378,11 +378,11 @@ static PyObject *bpy_gizmo_target_get_value(PyObject *UNUSED(self), PyObject *ar
 		{
 			if (array_len != 0) {
 				float *value = BLI_array_alloca(value, array_len);
-				WM_gizmo_target_property_value_get_array(gz, gz_prop, value);
+				WM_gizmo_target_property_float_get_array(gz, gz_prop, value);
 				return PyC_Tuple_PackArray_F32(value, array_len);
 			}
 			else {
-				float value = WM_gizmo_target_property_value_get(gz, gz_prop);
+				float value = WM_gizmo_target_property_float_get(gz, gz_prop);
 				return PyFloat_FromDouble(value);
 			}
 			break;
@@ -451,14 +451,14 @@ static PyObject *bpy_gizmo_target_set_value(PyObject *UNUSED(self), PyObject *ar
 				{
 					goto fail;
 				}
-				WM_gizmo_target_property_value_set_array(BPy_GetContext(), gz, gz_prop, value);
+				WM_gizmo_target_property_float_set_array(BPy_GetContext(), gz, gz_prop, value);
 			}
 			else {
 				float value;
 				if ((value = PyFloat_AsDouble(params.value)) == -1.0f && PyErr_Occurred()) {
 					goto fail;
 				}
-				WM_gizmo_target_property_value_set(BPy_GetContext(), gz, gz_prop, value);
+				WM_gizmo_target_property_float_set(BPy_GetContext(), gz, gz_prop, value);
 			}
 			Py_RETURN_NONE;
 		}

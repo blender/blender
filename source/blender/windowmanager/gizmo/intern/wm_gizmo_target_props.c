@@ -189,7 +189,7 @@ bool WM_gizmo_target_property_is_valid(const wmGizmoProperty *gz_prop)
 	         (gz_prop->custom_func.value_get_fn && gz_prop->custom_func.value_set_fn));
 }
 
-float WM_gizmo_target_property_value_get(
+float WM_gizmo_target_property_float_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
 	if (gz_prop->custom_func.value_get_fn) {
@@ -207,7 +207,7 @@ float WM_gizmo_target_property_value_get(
 	}
 }
 
-void WM_gizmo_target_property_value_set(
+void WM_gizmo_target_property_float_set(
         bContext *C, const wmGizmo *gz,
         wmGizmoProperty *gz_prop, const float value)
 {
@@ -227,7 +227,7 @@ void WM_gizmo_target_property_value_set(
 	RNA_property_update(C, &gz_prop->ptr, gz_prop->prop);
 }
 
-void WM_gizmo_target_property_value_get_array(
+void WM_gizmo_target_property_float_get_array(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         float *value)
 {
@@ -238,7 +238,7 @@ void WM_gizmo_target_property_value_get_array(
 	RNA_property_float_get_array(&gz_prop->ptr, gz_prop->prop, value);
 }
 
-void WM_gizmo_target_property_value_set_array(
+void WM_gizmo_target_property_float_set_array(
         bContext *C, const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const float *value)
 {
