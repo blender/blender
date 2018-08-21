@@ -36,11 +36,15 @@ class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        pass
+        workspace = context.workspace
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.prop(workspace, "object_mode", text="Mode")
 
 
-class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
-    bl_label = "Workspace Add-ons"
+class WORKSPACE_PT_addons(WorkSpaceButtonsPanel, Panel):
+    bl_label = "Filter Add-ons"
     bl_parent_id = "WORKSPACE_PT_main"
 
     def draw_header(self, context):
@@ -102,7 +106,7 @@ class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
 
 classes = (
     WORKSPACE_PT_main,
-    WORKSPACE_PT_owner_ids,
+    WORKSPACE_PT_addons,
     WORKSPACE_PT_custom_props,
 )
 

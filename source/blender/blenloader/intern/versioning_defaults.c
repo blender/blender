@@ -76,6 +76,26 @@ void BLO_update_defaults_userpref_blend(void)
  * This function can be emptied each time the startup.blend is updated. */
 void BLO_update_defaults_startup_blend(Main *bmain)
 {
+	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		const char *name = workspace->id.name + 2;
+
+		if (STREQ(name, "2D Animation")) {
+			workspace->object_mode = OB_MODE_GPENCIL_PAINT;
+		}
+		if (STREQ(name, "3D Animation")) {
+			workspace->object_mode = OB_MODE_POSE;
+		}
+		else if (STREQ(name, "Texture Paint")) {
+			workspace->object_mode = OB_MODE_TEXTURE_PAINT;
+		}
+		else if (STREQ(name, "Sculpting")) {
+			workspace->object_mode = OB_MODE_SCULPT;
+		}
+		else if (STREQ(name, "UV Editing")) {
+			workspace->object_mode = OB_MODE_EDIT;
+		}
+	}
+
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 			for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {

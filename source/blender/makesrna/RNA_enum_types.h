@@ -43,6 +43,7 @@ extern const EnumPropertyItem DummyRNA_DEFAULT_items[];
 extern const EnumPropertyItem rna_enum_id_type_items[];
 
 extern const EnumPropertyItem rna_enum_object_mode_items[];
+extern const EnumPropertyItem rna_enum_workspace_object_mode_items[];
 extern const EnumPropertyItem rna_enum_object_empty_drawtype_items[];
 extern const EnumPropertyItem rna_enum_object_gpencil_type_items[];
 extern const EnumPropertyItem rna_enum_metaelem_type_items[];

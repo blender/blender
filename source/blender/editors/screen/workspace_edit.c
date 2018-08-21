@@ -172,24 +172,29 @@ bool ED_workspace_change(
 	screen_new = screen_change_prepare(screen_old, screen_new, bmain, C, win);
 	BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
 
-	if (screen_new) {
-		BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace_new, layout_new);
-		BKE_workspace_active_set(win->workspace_hook, workspace_new);
-
-		/* update screen *after* changing workspace - which also causes the
-		 * actual screen change and updates context (including CTX_wm_workspace) */
-		screen_change_update(C, win, screen_new);
-		workspace_change_update(workspace_new, workspace_old, C, wm);
-
-		BLI_assert(CTX_wm_workspace(C) == workspace_new);
-
-		WM_toolsystem_unlink_all(C, workspace_old);
-		WM_toolsystem_reinit_all(C, win);
-
-		return true;
+	if (screen_new == NULL) {
+		return false;
 	}
 
-	return false;
+	BKE_workspace_hook_layout_for_workspace_set(win->workspace_hook, workspace_new, layout_new);
+	BKE_workspace_active_set(win->workspace_hook, workspace_new);
+
+	/* update screen *after* changing workspace - which also causes the
+	 * actual screen change and updates context (including CTX_wm_workspace) */
+	screen_change_update(C, win, screen_new);
+	workspace_change_update(workspace_new, workspace_old, C, wm);
+
+	BLI_assert(CTX_wm_workspace(C) == workspace_new);
+
+	WM_toolsystem_unlink_all(C, workspace_old);
+	WM_toolsystem_reinit_all(C, win);
+
+	/* Automatic mode switching. */
+	if (workspace_new->object_mode != workspace_old->object_mode) {
+		ED_object_mode_generic_enter(C, workspace_new->object_mode);
+	}
+
+	return true;
 }
 
 /**

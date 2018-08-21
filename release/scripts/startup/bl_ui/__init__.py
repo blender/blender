@@ -92,7 +92,7 @@ _modules = [
     "space_view3d_toolbar",
 
     # XXX, keep last so panels show after all other tool options.
-    "properties_data_workspace",
+    "properties_workspace",
 ]
 
 import bpy
