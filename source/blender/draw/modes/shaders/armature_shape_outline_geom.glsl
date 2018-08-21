@@ -64,10 +64,14 @@ void main(void)
 	float fac0 = dot(view_vec, n0);
 	float fac3 = dot(view_vec, n3);
 
-	/* If both adjacent verts are facing the camera the same way,
-	 * then it isn't an outline edge. */
-	if (sign(fac0) == sign(fac3))
-		return;
+	/* If one of the face is perpendicular to the view,
+	 * consider it and outline edge. */
+	if (abs(fac0) > 1e-5 && abs(fac3) > 1e-5) {
+		/* If both adjacent verts are facing the camera the same way,
+		 * then it isn't an outline edge. */
+		if (sign(fac0) == sign(fac3))
+			return;
+	}
 
 	/* Don't outline if concave edge. */
 	if (dot(n0, v13) > 0.0001)
