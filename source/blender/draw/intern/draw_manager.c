@@ -1458,9 +1458,9 @@ void DRW_draw_render_loop_ex(
 	}
 
 	if (do_bg_image) {
+		GPU_framebuffer_bind(DST.default_framebuffer);
 		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 	}
-
 
 	DRW_draw_callbacks_pre_scene();
 	if (DST.draw_ctx.evil_C) {

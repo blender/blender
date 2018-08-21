@@ -63,11 +63,6 @@ static void workbench_transparent_draw_background(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
 	workbench_forward_draw_background(data);
-}
-
-static void workbench_transparent_draw_scene(void *vedata)
-{
-	WORKBENCH_Data *data = vedata;
 	workbench_forward_draw_scene(data);
 	workbench_forward_draw_finish(data);
 }
@@ -95,7 +90,7 @@ DrawEngineType draw_engine_workbench_transparent = {
 	&workbench_transparent_cache_populate,
 	&workbench_transparent_cache_finish,
 	&workbench_transparent_draw_background,
-	&workbench_transparent_draw_scene,
+	NULL,
 	&workbench_transparent_view_update,
 	NULL,
 	NULL,

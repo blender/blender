@@ -65,11 +65,6 @@ static void workbench_solid_draw_background(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
 	workbench_deferred_draw_background(data);
-}
-
-static void workbench_solid_draw_scene(void *vedata)
-{
-	WORKBENCH_Data *data = vedata;
 	workbench_deferred_draw_scene(data);
 	workbench_deferred_draw_finish(data);
 }
@@ -113,7 +108,7 @@ DrawEngineType draw_engine_workbench_solid = {
 	&workbench_solid_cache_populate,
 	&workbench_solid_cache_finish,
 	&workbench_solid_draw_background,
-	&workbench_solid_draw_scene,
+	NULL,
 	&workbench_solid_view_update,
 	&workbench_solid_id_update,
 	&workbench_render_to_image,

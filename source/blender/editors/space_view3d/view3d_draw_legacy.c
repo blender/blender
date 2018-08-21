@@ -679,7 +679,7 @@ static void view3d_draw_bgpic(Scene *scene, Depsgraph *depsgraph,
 					ibuf = ibuf->mipmap[mip - 1];
 			}
 
-			GPU_depth_test(false);
+			GPU_depth_test(!do_foreground);
 			glDepthMask(GL_FALSE);
 
 			GPU_blend(true);
