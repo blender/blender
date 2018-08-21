@@ -142,44 +142,20 @@ static DerivedMesh *applyModifier(
 }
 
 #ifdef WITH_OPENSUBDIV_MODIFIER
-static int subdiv_levels_for_modifier_get(const MultiresModifierData *mmd,
-                                          const ModifierEvalContext *ctx)
-{
-	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
-	return multires_get_level(
-	        scene, ctx->object, mmd, use_render_params, false);
-}
-
-static void subdiv_settings_init(SubdivSettings *settings,
-                                 const MultiresModifierData *mmd)
-{
-	settings->is_simple = (mmd->simple != 0);
-	settings->is_adaptive = !settings->is_simple;
-	settings->level = mmd->quality;
-	settings->fvar_linear_interpolation =
-	        BKE_subdiv_fvar_interpolation_from_uv_smooth(mmd->uv_smooth);
-}
-
-static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
-                                      const MultiresModifierData *mmd,
-                                      const ModifierEvalContext *ctx)
-{
-	const int level = subdiv_levels_for_modifier_get(mmd, ctx);
-	settings->resolution = (1 << level) + 1;
-}
-
 static Mesh *applyModifier_subdiv(ModifierData *md,
                                   const ModifierEvalContext *ctx,
                                   Mesh *mesh)
 {
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Object *object = ctx->object;
 	Mesh *result = mesh;
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	SubdivSettings subdiv_settings;
-	subdiv_settings_init(&subdiv_settings, mmd);
+	BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 	SubdivToMeshSettings mesh_settings;
-	subdiv_mesh_settings_init(&mesh_settings, mmd, ctx);
+	BKE_multires_subdiv_mesh_settings_init(
+        &mesh_settings, scene, object, mmd, use_render_params);
 	if (subdiv_settings.level == 0 || mesh_settings.resolution < 3) {
 		/* NOTE: Shouldn't really happen, is supposed to be catched by
 		 * isDisabled() callback.

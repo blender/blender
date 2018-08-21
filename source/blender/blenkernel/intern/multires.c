@@ -359,7 +359,7 @@ MultiresModifierData *get_multires_modifier(Scene *scene, Object *ob, bool use_f
 	return mmd;
 }
 
-int multires_get_level(Scene *scene, Object *ob, const MultiresModifierData *mmd,
+int multires_get_level(const Scene *scene, const Object *ob, const MultiresModifierData *mmd,
                        bool render, bool ignore_simplify)
 {
 	if (render)
@@ -419,70 +419,6 @@ void multires_force_render_update(Object *ob)
 {
 	if (ob && (ob->mode & OB_MODE_SCULPT) && modifiers_findByType(ob, eModifierType_Multires))
 		multires_force_update(ob);
-}
-
-int multiresModifier_reshapeFromDM(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
-                                   Object *ob, DerivedMesh *srcdm)
-{
-	DerivedMesh *mrdm = get_multires_dm(depsgraph, scene, mmd, ob);
-
-	if (mrdm && srcdm && mrdm->getNumVerts(mrdm) == srcdm->getNumVerts(srcdm)) {
-		multires_mvert_to_ss(mrdm, srcdm->getVertArray(srcdm));
-
-		multires_dm_mark_as_modified(mrdm, MULTIRES_COORDS_MODIFIED);
-		multires_force_update(ob);
-
-		mrdm->release(mrdm);
-
-		return 1;
-	}
-
-	if (mrdm) mrdm->release(mrdm);
-
-	return 0;
-}
-
-/* Returns 1 on success, 0 if the src's totvert doesn't match */
-int multiresModifier_reshape(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd, Object *dst, Object *src)
-{
-	DerivedMesh *srcdm = mesh_get_derived_final(depsgraph, scene, src, CD_MASK_BAREMESH);
-	return multiresModifier_reshapeFromDM(depsgraph, scene, mmd, dst, srcdm);
-}
-
-bool multiresModifier_reshapeFromDeformModifier(
-        struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
-        Object *ob, ModifierData *md)
-{
-	DerivedMesh *dm, *ndm;
-	int numVerts;
-	float (*deformedVerts)[3];
-	const ModifierEvalContext mectx = {depsgraph, ob, 0};
-
-	if (multires_get_level(scene, ob, mmd, false, true) == 0) {
-		return false;
-	}
-
-	/* Create DerivedMesh for deformation modifier */
-	dm = get_multires_dm(depsgraph, scene, mmd, ob);
-	numVerts = dm->getNumVerts(dm);
-	deformedVerts = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "multiresReshape_deformVerts");
-
-	dm->getVertCos(dm, deformedVerts);
-	modifier_deformVerts_DM_deprecated(md, &mectx, dm, deformedVerts, numVerts);
-
-	ndm = CDDM_copy(dm);
-	CDDM_apply_vert_coords(ndm, deformedVerts);
-
-	MEM_freeN(deformedVerts);
-	dm->release(dm);
-
-	/* Reshaping */
-	bool result = (multiresModifier_reshapeFromDM(depsgraph, scene, mmd, ob, ndm) != 0);
-
-	/* Cleanup */
-	ndm->release(ndm);
-
-	return result;
 }
 
 /* reset the multires levels to match the number of mdisps */
