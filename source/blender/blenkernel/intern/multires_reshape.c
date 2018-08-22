@@ -395,7 +395,7 @@ static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
 	/* Initialize mesh rasterization settings. */
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
-        &mesh_settings, scene_eval, object, mmd, use_render_params);
+        &mesh_settings, scene_eval, object, mmd, use_render_params, true);
 	/* Run all the callbacks. */
 	BKE_subdiv_foreach_subdiv_geometry(
 	        ctx.subdiv,
@@ -434,20 +434,34 @@ bool multiresModifier_reshapeFromDeformModifier(
         Object *object,
         ModifierData *md)
 {
+	/* It is possible that the current subdivision level of multires is lower
+	 * that it's maximum possible one (i.e., viewport is set to a lower level
+	 * for the performance purposes). But even then, we want all the multires
+	 * levels to be reshaped. Most accurate way to do so is to ignore all
+	 * simplifications and calculate deformation modifier for the highest
+	 * possible multires level.
+	 * Alternative would be propagate displacement from current level to a
+	 * higher ones, but that is likely to cause artifacts.
+	 */
+	MultiresModifierData highest_mmd = *mmd;
+	highest_mmd.lvl = highest_mmd.totlvl;
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* Perform sanity checks and early output. */
-	if (multires_get_level(scene_eval, object, mmd, false, true) == 0) {
+	if (multires_get_level(
+	        scene_eval, object, &highest_mmd, false, true) == 0) {
 		return false;
 	}
 	/* Create mesh for the multires, ignoring any further modifiers (leading
 	 * deformation modifiers will be applied though).
 	 */
-	Mesh *multires_mesh = get_multires_mesh(depsgraph, scene_eval, mmd, object);
+	Mesh *multires_mesh = get_multires_mesh(
+	        depsgraph, scene_eval, &highest_mmd, object);
 	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(multires_mesh, NULL);
 	/* Apply deformation modifier on the multires, */
-	const ModifierEvalContext modifier_ctx = {.depsgraph = depsgraph,
-	                                          .object = object,
-	                                          .flag = 0};
+	const ModifierEvalContext modifier_ctx = {
+	        .depsgraph = depsgraph,
+	        .object = object,
+	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
 	modifier_deformVerts_ensure_normals(
 	        md, &modifier_ctx, multires_mesh, deformed_verts,
 	        multires_mesh->totvert);
@@ -457,7 +471,7 @@ bool multiresModifier_reshapeFromDeformModifier(
 	bool result = multires_reshape_from_vertcos(
 	        depsgraph,
 	        object,
-	        mmd,
+	        &highest_mmd,
 	        deformed_verts,
 	        num_deformed_verts,
 	        false);

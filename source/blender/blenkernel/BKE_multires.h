@@ -133,11 +133,13 @@ void BKE_multires_subdiv_settings_init(
         struct SubdivSettings *settings,
         const struct MultiresModifierData *mmd);
 
+/* TODO(sergey): Replace this set of boolean flags with bitmask. */
 void BKE_multires_subdiv_mesh_settings_init(
         struct SubdivToMeshSettings *mesh_settings,
         const struct Scene *scene,
         const struct Object *object,
         const struct MultiresModifierData *mmd,
-        const bool use_render_params);
+        const bool use_render_params,
+        const bool ignore_simplify);
 
 #endif  /* __BKE_MULTIRES_H__ */

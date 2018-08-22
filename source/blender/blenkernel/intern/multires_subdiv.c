@@ -56,9 +56,10 @@ void BKE_multires_subdiv_mesh_settings_init(
         const Scene *scene,
         const Object *object,
         const MultiresModifierData *mmd,
-        const bool use_render_params)
+        const bool use_render_params,
+        const bool ignore_simplify)
 {
 	const int level = multires_get_level(
-	        scene, object, mmd, use_render_params, false);
+	        scene, object, mmd, use_render_params, ignore_simplify);
 	mesh_settings->resolution = (1 << level) + 1;
 }

@@ -147,6 +147,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
                                   Mesh *mesh)
 {
 	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
 	const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Object *object = ctx->object;
 	Mesh *result = mesh;
@@ -155,7 +156,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
-        &mesh_settings, scene, object, mmd, use_render_params);
+        &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
 	if (subdiv_settings.level == 0 || mesh_settings.resolution < 3) {
 		/* NOTE: Shouldn't really happen, is supposed to be catched by
 		 * isDisabled() callback.
