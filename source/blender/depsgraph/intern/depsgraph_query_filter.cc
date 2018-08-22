@@ -51,6 +51,7 @@ extern "C" {
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
+#include "DEG_depsgraph_debug.h"
 
 #include "util/deg_util_foreach.h"
 
@@ -264,6 +265,17 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	/* Free temp data */
 	BLI_gset_free(retained_ids, NULL);
 	retained_ids = NULL;
+	
+	/* Print Stats */
+	// XXX: Hide behind debug flags
+	size_t s_outer, s_operations, s_relations;
+	size_t n_outer, n_operations, n_relations;
+	
+	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
+	DEG_stats_simple(graph_new, &n_outer, &n_operations, &n_relations);
+	
+	printf("%s: src = (Out: %u, Op: %u, Rel: %u)\n", __func__, s_outer, s_operations, s_relations); // XXX
+	printf("%s: new = (Out: %u, Op: %u, Rel: %u)\n", __func__, n_outer, n_operations, n_relations); // XXX
 	
 	/* Return this new graph instance */
 	return graph_new;
