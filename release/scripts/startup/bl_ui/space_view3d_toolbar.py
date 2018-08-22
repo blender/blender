@@ -1048,6 +1048,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Appearance"
+    bl_parent_id = "VIEW3D_PT_tools_brush_overlay"
 
     @classmethod
     def poll(cls, context):
