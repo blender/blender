@@ -417,7 +417,6 @@ static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
  */
 bool multiresModifier_reshape(
         struct Depsgraph *UNUSED(depsgraph),
-        Scene *UNUSED(scene),
         MultiresModifierData *UNUSED(mmd),
         Object *UNUSED(dst),
         Object *UNUSED(src))
