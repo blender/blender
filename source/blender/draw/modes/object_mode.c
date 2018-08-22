@@ -1635,7 +1635,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 
 	/* Motion Tracking. */
 	MovieClip *clip = BKE_object_movieclip_get(scene, ob, false);
-	if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) && (clip != NULL)){
+	if ((v3d->flag2 & V3D_SHOW_RECONSTRUCTION) && (clip != NULL)) {
 		BLI_assert(BLI_listbase_is_empty(&sgl->camera_path));
 		const bool is_select = DRW_state_is_select();
 		const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
@@ -1668,7 +1668,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		{
 			float tracking_object_mat[4][4];
 
-			if (tracking_object->flag & TRACKING_OBJECT_CAMERA){
+			if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
 				copy_m4_m4(tracking_object_mat, camera_mat);
 			}
 			else {
@@ -2833,7 +2833,7 @@ static void OBJECT_draw_scene(void *vedata)
 
 //	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
 	/* This needs to be drawn after the oultine */
 	DRW_draw_pass(stl->g_data->sgl.bone_solid);
@@ -2907,10 +2907,10 @@ static void OBJECT_draw_scene(void *vedata)
 	batch_camera_path_free(&stl->g_data->sgl.camera_path);
 
 	if (!DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_solid) ||
-		!DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_wire) ||
-		!DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_outline) ||
-		!DRW_pass_is_empty(stl->g_data->sgl_ghost.non_meshes) ||
-		!DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_axes))
+	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_wire) ||
+	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_outline) ||
+	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.non_meshes) ||
+	    !DRW_pass_is_empty(stl->g_data->sgl_ghost.bone_axes))
 	{
 		if (DRW_state_is_fbo()) {
 			/* meh, late init to not request a depth buffer we won't use. */

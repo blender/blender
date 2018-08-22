@@ -331,7 +331,7 @@ static void MPATH_draw_scene(void *vedata)
 		return;
 	}
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
 	DRW_draw_pass(psl->lines);
 	DRW_draw_pass(psl->points);

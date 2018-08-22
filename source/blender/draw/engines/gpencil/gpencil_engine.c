@@ -517,8 +517,9 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 		/* save init shading group */
 		cache_ob->init_grp = stl->storage->shgroup_id;
 
-		DRW_gpencil_populate_datablock(&e_data, vedata, scene, ob,
-									cache_ob);
+		DRW_gpencil_populate_datablock(
+		        &e_data, vedata, scene, ob,
+		        cache_ob);
 
 		/* save end shading group */
 		cache_ob->end_grp = stl->storage->shgroup_id - 1;
@@ -527,7 +528,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-		(BKE_shaderfx_has_gpencil(ob)))
+	    (BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;
 		if ((!stl->storage->simplify_fx) && (!is_multiedit)) {
@@ -590,9 +591,10 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			MEM_SAFE_FREE(e_data.batch_grid);
 
 			e_data.batch_grid = DRW_gpencil_get_grid();
-			DRW_shgroup_call_add(stl->g_data->shgrps_grid,
-								e_data.batch_grid,
-								ob->obmat);
+			DRW_shgroup_call_add(
+			        stl->g_data->shgrps_grid,
+			        e_data.batch_grid,
+			        ob->obmat);
 		}
 	}
 }
@@ -740,13 +742,11 @@ void GPENCIL_draw_scene(void *ved)
 				}
 
 				/* Current buffer drawing */
-				if ((!is_render) && (cache_ob->is_dup_ob == false))
-				{
+				if ((!is_render) && (cache_ob->is_dup_ob == false)) {
 					DRW_draw_pass(psl->drawing_pass);
 				}
 				/* fx passes */
-				if (cache_ob->has_fx == true)
-				{
+				if (cache_ob->has_fx == true) {
 					stl->storage->tonemapping = 0;
 					DRW_gpencil_fx_draw(&e_data, vedata, cache_ob);
 				}

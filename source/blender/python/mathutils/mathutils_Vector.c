@@ -1712,8 +1712,8 @@ static PyObject *vector_mul_vec(VectorObject *vec1, VectorObject *vec2)
 	float *tvec = PyMem_Malloc(vec1->size * sizeof(float));
 	if (tvec == NULL) {
 		PyErr_SetString(PyExc_MemoryError,
-						"vec * vec: "
-						"problem allocating pointer space");
+		                "vec * vec: "
+		                "problem allocating pointer space");
 		return NULL;
 	}
 
@@ -1766,7 +1766,7 @@ static PyObject *Vector_mul(PyObject *v1, PyObject *v2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Element-wise multiplication: "
+	             "Element-wise multiplication: "
 	             "not supported between '%.200s' and '%.200s' types",
 	             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
@@ -1798,8 +1798,8 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 #ifdef USE_MATHUTILS_ELEM_MUL
 		if (vec1->size != vec2->size) {
 			PyErr_SetString(PyExc_ValueError,
-							"Vector multiplication: "
-							"vectors must have the same dimensions for this operation");
+			                "Vector multiplication: "
+			                "vectors must have the same dimensions for this operation");
 			return NULL;
 		}
 
@@ -1807,9 +1807,9 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 		mul_vn_vn(vec1->vec, vec2->vec, vec1->size);
 #else
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+		             "Inplace element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 #endif
 	}
@@ -1818,9 +1818,9 @@ static PyObject *Vector_imul(PyObject *v1, PyObject *v2)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+		             "Inplace element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 		return NULL;
 	}
 
@@ -1852,8 +1852,8 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
 	if (vec1 && vec2) {
 		if (vec1->size != vec2->size) {
 			PyErr_SetString(PyExc_ValueError,
-							"Vector multiplication: "
-							"vectors must have the same dimensions for this operation");
+			                "Vector multiplication: "
+			                "vectors must have the same dimensions for this operation");
 			return NULL;
 		}
 
@@ -1883,18 +1883,18 @@ static PyObject *Vector_matmul(PyObject *v1, PyObject *v2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Vector multiplication: "
-				 "not supported between '%.200s' and '%.200s' types",
-				 Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	             "Vector multiplication: "
+	             "not supported between '%.200s' and '%.200s' types",
+	             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
 }
 
 static PyObject *Vector_imatmul(PyObject *v1, PyObject *v2)
 {
 	PyErr_Format(PyExc_TypeError,
-				 "Inplace vector multiplication: "
-				 "not supported between '%.200s' and '%.200s' types",
-				 Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
+	             "Inplace vector multiplication: "
+	             "not supported between '%.200s' and '%.200s' types",
+	             Py_TYPE(v1)->tp_name, Py_TYPE(v2)->tp_name);
 	return NULL;
 }
 

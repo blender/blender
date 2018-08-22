@@ -744,7 +744,7 @@ static void gpencil_draw_strokes(
         GpencilBatchCache *cache, GPENCIL_e_data *e_data, void *vedata, ToolSettings *ts, Object *ob,
         bGPdata *gpd, bGPDlayer *gpl, bGPDframe *src_gpf, bGPDframe *derived_gpf,
         const float opacity, const float tintcolor[4],
-		const bool custonion, tGPencilObjectCache *cache_ob)
+        const bool custonion, tGPencilObjectCache *cache_ob)
 {
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
@@ -866,19 +866,19 @@ static void gpencil_draw_strokes(
 			if ((fillgrp) && (!stl->storage->simplify_fill)) {
 				gpencil_add_fill_shgroup(
 				        cache, fillgrp, ob, gpl, derived_gpf, gps,
-						tintcolor, false, custonion);
+				        tintcolor, false, custonion);
 			}
 			/* stroke */
 			if (strokegrp) {
 				gpencil_add_stroke_shgroup(
 				        cache, strokegrp, ob, gpl, derived_gpf, gps,
-						opacity, tintcolor, false, custonion);
+				        opacity, tintcolor, false, custonion);
 			}
 		}
 
 		/* edit points (only in edit mode and not play animation not render) */
 		if ((draw_ctx->obact == ob) && (src_gps) &&
-			(!playing) && (!is_render) && (!cache_ob->is_dup_ob))
+		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob))
 		{
 			if (!stl->g_data->shgrps_edit_line) {
 				stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh, psl->edit_pass);
@@ -1156,8 +1156,9 @@ static void gpencil_draw_onionskins(
 }
 
 /* populate a datablock for multiedit (no onions, no modifiers) */
-void DRW_gpencil_populate_multiedit(GPENCIL_e_data *e_data, void *vedata, Scene *scene, Object *ob,
-								tGPencilObjectCache *cache_ob)
+void DRW_gpencil_populate_multiedit(
+        GPENCIL_e_data *e_data, void *vedata, Scene *scene, Object *ob,
+        tGPencilObjectCache *cache_ob)
 {
 	bGPdata *gpd = (bGPdata *)ob->data;
 	bGPDframe *gpf = NULL;
@@ -1204,9 +1205,9 @@ void DRW_gpencil_populate_multiedit(GPENCIL_e_data *e_data, void *vedata, Scene 
 
 /* helper for populate a complete grease pencil datablock */
 void DRW_gpencil_populate_datablock(
-						GPENCIL_e_data *e_data, void *vedata,
-						Scene *scene, Object *ob,
-						tGPencilObjectCache *cache_ob)
+        GPENCIL_e_data *e_data, void *vedata,
+        Scene *scene, Object *ob,
+        tGPencilObjectCache *cache_ob)
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -1246,7 +1247,7 @@ void DRW_gpencil_populate_datablock(
 			gpl->runtime.derived_data = (GHash *)BLI_ghash_str_new(gpl->info);
 		}
 
-		if (BLI_ghash_haskey(gpl->runtime.derived_data,ob->id.name)) {
+		if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
 			derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
 		}
 		else {
@@ -1285,12 +1286,12 @@ void DRW_gpencil_populate_datablock(
 			* with instances
 			*/
 			if ((!cache_ob->is_dup_onion) && (gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
-				(do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
-				((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&
-				(!cache_ob->is_dup_ob) && (orig_id->us <= 1))
+			    (do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
+			    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&
+			    (!cache_ob->is_dup_ob) && (orig_id->us <= 1))
 			{
 				if (((!stl->storage->is_render) && (overlay)) ||
-					((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
+				    ((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))
 				{
 					gpencil_draw_onionskins(cache, e_data, vedata, ob, gpd, gpl, gpf);
 				}

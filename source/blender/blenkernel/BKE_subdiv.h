@@ -211,7 +211,7 @@ void BKE_subdiv_eval_displacement(
         Subdiv *subdiv,
         const int ptex_face_index,
         const float u, const float v,
-		const float dPdu[3], const float dPdv[3],
+        const float dPdu[3], const float dPdv[3],
         float r_D[3]);
 
 void BKE_subdiv_eval_final_point(

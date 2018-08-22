@@ -291,12 +291,15 @@ typedef struct GpencilBatchCache {
 struct DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
         struct GPENCIL_e_data *e_data, struct GPENCIL_Data *vedata, struct DRWPass *pass, struct GPUShader *shader,
         struct Object *ob, struct bGPdata *gpd, struct MaterialGPencilStyle *gp_style, int id, bool onion);
-void DRW_gpencil_populate_datablock(struct GPENCIL_e_data *e_data, void *vedata,
-		struct Scene *scene,
-		struct Object *ob, struct tGPencilObjectCache *cache_ob);
-void DRW_gpencil_populate_buffer_strokes(struct GPENCIL_e_data *e_data, void *vedata, struct ToolSettings *ts, struct Object *ob);
-void DRW_gpencil_populate_multiedit(struct GPENCIL_e_data *e_data, void *vedata,
-		struct Scene *scene, struct Object *ob, struct tGPencilObjectCache *cache_ob);
+void DRW_gpencil_populate_datablock(
+        struct GPENCIL_e_data *e_data, void *vedata,
+        struct Scene *scene,
+        struct Object *ob, struct tGPencilObjectCache *cache_ob);
+void DRW_gpencil_populate_buffer_strokes(
+        struct GPENCIL_e_data *e_data, void *vedata, struct ToolSettings *ts, struct Object *ob);
+void DRW_gpencil_populate_multiedit(
+        struct GPENCIL_e_data *e_data, void *vedata,
+        struct Scene *scene, struct Object *ob, struct tGPencilObjectCache *cache_ob);
 void DRW_gpencil_triangulate_stroke_fill(struct bGPDstroke *gps);
 
 void DRW_gpencil_multisample_ensure(struct GPENCIL_Data *vedata, int rect_w, int rect_h);

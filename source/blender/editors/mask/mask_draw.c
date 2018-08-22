@@ -460,7 +460,7 @@ static void mask_draw_curve_type(const bContext *C, MaskSpline *spline, float (*
 			mask_color_active_tint(rgb_tmp, rgb_spline, is_active);
 			rgba_uchar_to_float(colors, rgb_tmp);
 			mask_color_active_tint(rgb_tmp, rgb_black, is_active);
-			rgba_uchar_to_float(colors+4, rgb_tmp);
+			rgba_uchar_to_float(colors + 4, rgb_tmp);
 
 			immBindBuiltinProgram(GPU_SHADER_2D_LINE_DASHED_UNIFORM_COLOR);
 

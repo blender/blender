@@ -144,7 +144,7 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 		DRW_draw_pass(psl->bone_solid[0]);
 	}
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
 	if (!stl->g_data->transparent_bones) {
 		DRW_draw_pass(psl->bone_solid[0]);
@@ -154,13 +154,13 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->bone_wire[0]);
 	DRW_draw_pass(psl->relationship[0]);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl);
 
 	if (!DRW_pass_is_empty(psl->bone_envelope[1]) ||
-		!DRW_pass_is_empty(psl->bone_solid[1]) ||
-		!DRW_pass_is_empty(psl->bone_outline[1]) ||
-		!DRW_pass_is_empty(psl->bone_wire[1]) ||
-		!DRW_pass_is_empty(psl->relationship[1]))
+	    !DRW_pass_is_empty(psl->bone_solid[1]) ||
+	    !DRW_pass_is_empty(psl->bone_outline[1]) ||
+	    !DRW_pass_is_empty(psl->bone_wire[1]) ||
+	    !DRW_pass_is_empty(psl->relationship[1]))
 	{
 		if (DRW_state_is_fbo()) {
 			GPU_framebuffer_bind(dfbl->default_fb);

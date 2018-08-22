@@ -196,8 +196,9 @@ static void generate_geometry(
 	MEM_SAFE_FREE(valid_strokes);
 }
 
-static void bakeModifier(Main *UNUSED(bmain), Depsgraph *depsgraph,
-					GpencilModifierData *md, Object *ob)
+static void bakeModifier(
+        Main *UNUSED(bmain), Depsgraph *depsgraph,
+        GpencilModifierData *md, Object *ob)
 {
 
 	bGPdata *gpd = ob->data;

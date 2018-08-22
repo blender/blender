@@ -848,7 +848,7 @@ void ED_screen_global_areas_refresh(wmWindow *win)
 	if ((win->parent != NULL) || screen->temp) {
 		if (win->global_areas.areabase.first) {
 			screen->do_refresh = true;
-		    BKE_screen_area_map_free(&win->global_areas);
+			BKE_screen_area_map_free(&win->global_areas);
 		}
 		return;
 	}

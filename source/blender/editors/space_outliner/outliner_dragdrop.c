@@ -261,8 +261,8 @@ static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, co
 		}
 		else {
 			for (ViewLayer *view_layer = scene->view_layers.first;
-				 view_layer;
-				 view_layer = view_layer->next)
+			     view_layer;
+			     view_layer = view_layer->next)
 			{
 				if (BKE_view_layer_base_find(view_layer, ob)) {
 					return true;

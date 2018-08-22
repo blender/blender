@@ -635,7 +635,7 @@ static void constraint_target_to_mat4(Object *ob, const char *substring, float m
 				/* apply full transformation of the segment if requested */
 				if (full_bbone) {
 					int index = floorf(fac);
-					CLAMP(index, 0, pchan->bone->segments-1);
+					CLAMP(index, 0, pchan->bone->segments - 1);
 
 					mul_m4_m4m4(tempmat, pchan->pose_mat, bbone[index].mat);
 				}

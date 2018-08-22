@@ -405,7 +405,7 @@ DRWShadingGroup *shgroup_instance_empty_axes(DRWPass *pass, struct GPUBatch *geo
 	if (g_shaders.empty_axes_sh == NULL) {
 		g_shaders.empty_axes_sh = DRW_shader_create(
 		        datatoc_object_empty_axes_vert_glsl, NULL,
-	            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+		        datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_sized, {

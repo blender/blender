@@ -2353,8 +2353,8 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 
 		if ((mat1->num_row != mat2->num_row) || (mat1->num_col != mat2->num_col)) {
 			PyErr_SetString(PyExc_ValueError,
-							"matrix1 * matrix2: matrix1 number of rows/columns "
-							"and the matrix2 number of rows/columns must be the same");
+			                "matrix1 * matrix2: matrix1 number of rows/columns "
+			                "and the matrix2 number of rows/columns must be the same");
 			return NULL;
 		}
 
@@ -2377,9 +2377,9 @@ static PyObject *Matrix_mul(PyObject *m1, PyObject *m2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Element-wise multiplication: "
-				 "not supported between '%.200s' and '%.200s' types",
-				 Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
+	             "Element-wise multiplication: "
+	             "not supported between '%.200s' and '%.200s' types",
+	             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 	return NULL;
 }
 /*------------------------obj *= obj------------------------------
@@ -2406,17 +2406,17 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
 		/* MATRIX *= MATRIX */
 		if ((mat1->num_row != mat2->num_row) || (mat1->num_col != mat2->num_col)) {
 			PyErr_SetString(PyExc_ValueError,
-							"matrix1 *= matrix2: matrix1 number of rows/columns "
-							"and the matrix2 number of rows/columns must be the same");
+			                "matrix1 *= matrix2: matrix1 number of rows/columns "
+			                "and the matrix2 number of rows/columns must be the same");
 			return NULL;
 		}
 
 		mul_vn_vn(mat1->matrix, mat2->matrix, mat1->num_col * mat1->num_row);
 #else
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
+		             "Inplace element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 #endif
 	}
@@ -2426,9 +2426,9 @@ static PyObject *Matrix_imul(PyObject *m1, PyObject *m2)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
+		             "Inplace element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 
@@ -2463,8 +2463,8 @@ static PyObject *Matrix_matmul(PyObject *m1, PyObject *m2)
 
 		if (mat1->num_col != mat2->num_row) {
 			PyErr_SetString(PyExc_ValueError,
-							"matrix1 * matrix2: matrix1 number of columns "
-							"and the matrix2 number of rows must be the same");
+			                "matrix1 * matrix2: matrix1 number of columns "
+			                "and the matrix2 number of rows must be the same");
 			return NULL;
 		}
 
@@ -2503,9 +2503,9 @@ static PyObject *Matrix_matmul(PyObject *m1, PyObject *m2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Matrix multiplication: "
-				 "not supported between '%.200s' and '%.200s' types",
-				 Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
+	             "Matrix multiplication: "
+	             "not supported between '%.200s' and '%.200s' types",
+	             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 	return NULL;
 }
 /*------------------------obj @= obj------------------------------
@@ -2532,8 +2532,8 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
 
 		if (mat1->num_col != mat2->num_row) {
 			PyErr_SetString(PyExc_ValueError,
-							"matrix1 * matrix2: matrix1 number of columns "
-							"and the matrix2 number of rows must be the same");
+			                "matrix1 * matrix2: matrix1 number of columns "
+			                "and the matrix2 number of rows must be the same");
 			return NULL;
 		}
 
@@ -2554,9 +2554,9 @@ static PyObject *Matrix_imatmul(PyObject *m1, PyObject *m2)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace matrix multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
+		             "Inplace matrix multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(m1)->tp_name, Py_TYPE(m2)->tp_name);
 		return NULL;
 	}
 

@@ -46,7 +46,7 @@ static bool gpencil_check_ob_duplicated(tGPencilObjectCache *cache_array, int gp
 	for (int i = 0; i < gp_cache_used + 1; i++) {
 		tGPencilObjectCache *cache_elem = &cache_array[i];
 		if (STREQ(cache_elem->ob_name, ob->id.name) &&
-			(cache_elem->is_dup_ob == false))
+		    (cache_elem->is_dup_ob == false))
 		{
 			return true;
 		}
@@ -54,8 +54,9 @@ static bool gpencil_check_ob_duplicated(tGPencilObjectCache *cache_array, int gp
 	return false;
 }
 
-static bool gpencil_check_datablock_duplicated(tGPencilObjectCache *cache_array, int gp_cache_used,
-									Object *ob, bGPdata *gpd)
+static bool gpencil_check_datablock_duplicated(
+        tGPencilObjectCache *cache_array, int gp_cache_used,
+        Object *ob, bGPdata *gpd)
 {
 	if (gp_cache_used == 0) {
 		return false;
@@ -64,7 +65,7 @@ static bool gpencil_check_datablock_duplicated(tGPencilObjectCache *cache_array,
 	for (int i = 0; i < gp_cache_used + 1; i++) {
 		tGPencilObjectCache *cache_elem = &cache_array[i];
 		if (!STREQ(cache_elem->ob_name, ob->id.name) &&
-			(cache_elem->gpd == gpd))
+		    (cache_elem->gpd == gpd))
 		{
 			return true;
 		}
@@ -109,8 +110,9 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	copy_m4_m4(cache_elem->obmat, ob->obmat);
 	cache_elem->idx = *gp_cache_used;
 
-	cache_elem->is_dup_onion = gpencil_check_datablock_duplicated(cache_array, *gp_cache_used,
-																ob, cache_elem->gpd);
+	cache_elem->is_dup_onion = gpencil_check_datablock_duplicated(
+	        cache_array, *gp_cache_used,
+	        ob, cache_elem->gpd);
 
 	/* save FXs */
 	cache_elem->pixfactor = cache_elem->gpd->pixfactor;

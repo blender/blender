@@ -288,7 +288,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 
 	UNUSED_VARS(fbl);
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
 	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
 	/*

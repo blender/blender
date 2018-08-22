@@ -407,10 +407,10 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 				/* some modifiers could require a recalc of fill triangulation data */
 				if (gpd->flag & GP_DATA_STROKE_FORCE_RECALC) {
 					if (ELEM(md->type,
-							eGpencilModifierType_Hook,
-							eGpencilModifierType_Lattice,
-							eGpencilModifierType_Offset)) {
-
+					         eGpencilModifierType_Hook,
+					         eGpencilModifierType_Lattice,
+					         eGpencilModifierType_Offset))
+					{
 						gps->flag |= GP_STROKE_RECALC_CACHES;
 					}
 				}

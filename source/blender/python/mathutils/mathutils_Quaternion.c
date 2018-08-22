@@ -868,7 +868,7 @@ static PyObject *Quaternion_mul(PyObject *q1, PyObject *q2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Element-wise multiplication: "
+	             "Element-wise multiplication: "
 	             "not supported between '%.200s' and '%.200s' types",
 	             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 	return NULL;
@@ -896,9 +896,9 @@ static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
 		mul_vn_vn(quat1->quat, quat2->quat, QUAT_SIZE);
 #else
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
+		             "Inplace element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 #endif
 	}
@@ -908,9 +908,9 @@ static PyObject *Quaternion_imul(PyObject *q1, PyObject *q2)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-					 "Element-wise multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
+		             "Element-wise multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 
@@ -948,9 +948,9 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
 
 			if (vec2->size != 3) {
 				PyErr_SetString(PyExc_ValueError,
-								"Vector multiplication: "
-								"only 3D vector rotations (with quats) "
-								"currently supported");
+				                "Vector multiplication: "
+				                "only 3D vector rotations (with quats) "
+				                "currently supported");
 				return NULL;
 			}
 			if (BaseMath_ReadCallback(vec2) == -1) {
@@ -965,9 +965,9 @@ static PyObject *Quaternion_matmul(PyObject *q1, PyObject *q2)
 	}
 
 	PyErr_Format(PyExc_TypeError,
-				 "Quaternion multiplication: "
-				 "not supported between '%.200s' and '%.200s' types",
-				 Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
+	             "Quaternion multiplication: "
+	             "not supported between '%.200s' and '%.200s' types",
+	             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 	return NULL;
 }
 /*------------------------obj @= obj------------------------------
@@ -994,9 +994,9 @@ static PyObject *Quaternion_imatmul(PyObject *q1, PyObject *q2)
 	}
 	else {
 		PyErr_Format(PyExc_TypeError,
-					 "Inplace quaternion multiplication: "
-					 "not supported between '%.200s' and '%.200s' types",
-					 Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
+		             "Inplace quaternion multiplication: "
+		             "not supported between '%.200s' and '%.200s' types",
+		             Py_TYPE(q1)->tp_name, Py_TYPE(q2)->tp_name);
 		return NULL;
 	}
 

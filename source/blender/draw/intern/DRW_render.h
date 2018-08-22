@@ -114,7 +114,7 @@ typedef char DRWViewportEmptyList;
 		GPU_framebuffer_clear_color_depth(dfbl->multisample_fb, (const float[4]){0.0f}, 1.0f); \
 		DRW_stats_query_end(); \
 	} \
-}
+} ((void)0)
 
 #define MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
