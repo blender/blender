@@ -120,6 +120,7 @@ struct DRWShadingGroup *shgroup_instance_empty_axes(struct DRWPass *pass, struct
 struct DRWShadingGroup *shgroup_instance_image_plane(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct GPUBatch *geom);
+struct DRWShadingGroup *shgroup_instance_alpha(struct DRWPass *pass, struct GPUBatch *geom, float alpha);
 struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct GPUBatch *geom, int *baseid);
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct GPUBatch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct GPUBatch *geom);

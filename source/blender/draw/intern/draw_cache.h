@@ -91,7 +91,9 @@ struct GPUBatch *DRW_cache_lamp_area_square_get(void);
 struct GPUBatch *DRW_cache_lamp_area_disk_get(void);
 struct GPUBatch *DRW_cache_lamp_hemi_get(void);
 struct GPUBatch *DRW_cache_lamp_spot_get(void);
+struct GPUBatch *DRW_cache_lamp_spot_volume_get(void);
 struct GPUBatch *DRW_cache_lamp_spot_square_get(void);
+struct GPUBatch *DRW_cache_lamp_spot_square_volume_get(void);
 
 /* Camera */
 struct GPUBatch *DRW_cache_camera_get(void);

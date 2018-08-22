@@ -84,7 +84,9 @@ static struct DRWShapeCache {
 	GPUBatch *drw_lamp_area_disk;
 	GPUBatch *drw_lamp_hemi;
 	GPUBatch *drw_lamp_spot;
+	GPUBatch *drw_lamp_spot_volume;
 	GPUBatch *drw_lamp_spot_square;
+	GPUBatch *drw_lamp_spot_square_volume;
 	GPUBatch *drw_speaker;
 	GPUBatch *drw_lightprobe_cube;
 	GPUBatch *drw_lightprobe_planar;
@@ -1491,7 +1493,6 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 			negate_v3_v3(neg[i], n[i]);
 		}
 
-		/* Position Only 3D format */
 		static GPUVertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
 		if (format.attr_len == 0) {
@@ -1539,6 +1540,51 @@ GPUBatch *DRW_cache_lamp_spot_get(void)
 #undef NSEGMENTS
 }
 
+GPUBatch *DRW_cache_lamp_spot_volume_get(void)
+{
+#define NSEGMENTS 32
+	if (!SHC.drw_lamp_spot_volume) {
+		/* a single ring of vertices */
+		float p[NSEGMENTS][2];
+		for (int i = 0; i < NSEGMENTS; ++i) {
+			float angle = 2 * M_PI * ((float)i / (float)NSEGMENTS);
+			p[i][0] = cosf(angle);
+			p[i][1] = sinf(angle);
+		}
+
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, NSEGMENTS * 3);
+
+		uint v_idx = 0;
+		for (int i = 0; i < NSEGMENTS; ++i) {
+			float cv[2], v[3];
+
+			ARRAY_SET_ITEMS(v, 0.0f, 0.0f, 0.0f);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v);
+
+			cv[0] = p[i % NSEGMENTS][0];
+			cv[1] = p[i % NSEGMENTS][1];
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v);
+
+			cv[0] = p[(i + 1) % NSEGMENTS][0];
+			cv[1] = p[(i + 1) % NSEGMENTS][1];
+			ARRAY_SET_ITEMS(v, cv[0], cv[1], -1.0f);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, v);
+		}
+
+		SHC.drw_lamp_spot_volume = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_lamp_spot_volume;
+#undef NSEGMENTS
+}
+
 GPUBatch *DRW_cache_lamp_spot_square_get(void)
 {
 	if (!SHC.drw_lamp_spot_square) {
@@ -1572,6 +1618,39 @@ GPUBatch *DRW_cache_lamp_spot_square_get(void)
 		SHC.drw_lamp_spot_square = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_lamp_spot_square;
+}
+
+GPUBatch *DRW_cache_lamp_spot_square_volume_get(void)
+{
+	if (!SHC.drw_lamp_spot_square_volume) {
+		float p[5][3] = {{ 0.0f,  0.0f,  0.0f},
+		                 { 1.0f,  1.0f, -1.0f},
+		                 { 1.0f, -1.0f, -1.0f},
+		                 {-1.0f, -1.0f, -1.0f},
+		                 {-1.0f,  1.0f, -1.0f}};
+
+		uint v_idx = 0;
+
+		/* Position Only 3D format */
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, 12);
+
+		/* piramid sides */
+		for (int i = 1; i <= 4; ++i) {
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[0]);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[((i + 1) % 4) + 1]);
+			GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, p[(i % 4) + 1]);
+		}
+
+		SHC.drw_lamp_spot_square_volume = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_lamp_spot_square_volume;
 }
 
 /** \} */
