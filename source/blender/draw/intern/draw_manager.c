@@ -881,6 +881,19 @@ void DRW_drawdata_free(ID *id)
 	BLI_freelistN((ListBase *)drawdata);
 }
 
+/* Unlink (but don't free) the drawdata from the DrawDataList if the ID is an OB from dupli. */
+static void drw_drawdata_unlink_dupli(ID *id)
+{
+	if ((GS(id->name) == ID_OB) && (((Object *)id)->base_flag & BASE_FROMDUPLI) != 0) {
+		DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
+
+		if (drawdata == NULL)
+			return;
+
+		BLI_listbase_clear((ListBase *)drawdata);
+	}
+}
+
 /** \} */
 
 
@@ -944,6 +957,12 @@ static void drw_engines_cache_populate(Object *ob)
 {
 	DST.ob_state = NULL;
 
+	/* HACK: DrawData is copied by COW from the duplicated object.
+	 * This is valid for IDs that cannot be instanciated but this
+	 * is not what we want in this case so we clear the pointer
+	 * ourselves here. */
+	drw_drawdata_unlink_dupli((ID *)ob);
+
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
@@ -956,6 +975,10 @@ static void drw_engines_cache_populate(Object *ob)
 			engine->cache_populate(data, ob);
 		}
 	}
+
+	/* ... and clearing it here too because theses draw data are
+	 * from a mempool and must not be free individually by depsgraph. */
+	drw_drawdata_unlink_dupli((ID *)ob);
 }
 
 static void drw_engines_cache_finish(void)
