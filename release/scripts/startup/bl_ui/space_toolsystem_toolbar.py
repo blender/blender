@@ -640,7 +640,7 @@ class _defs_edit_mesh:
             icon="ops.mesh.bevel",
             widget=None,
             keymap=(
-                ("mesh.bevel", dict(),
+                ("mesh.bevel", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
             draw_settings=draw_settings,

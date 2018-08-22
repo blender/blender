@@ -582,7 +582,9 @@ static int edbm_bevel_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE:
 			case PADENTER:
 			case RETKEY:
-				if (event->val == KM_PRESS) {
+				if ((event->val == KM_PRESS) ||
+				    ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm")))
+				{
 					edbm_bevel_calc(op);
 					edbm_bevel_exit(C, op);
 					return OPERATOR_FINISHED;
@@ -804,4 +806,7 @@ void MESH_OT_bevel(wmOperatorType *ot)
 		"Strength of calculated normal", 0.0f, 1.0f);
 	RNA_def_enum(ot->srna, "hnmode", harden_normals_items, BEVEL_HN_NONE, "Normal Mode",
 		"Weighting mode for Harden Normals");
+	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 }
