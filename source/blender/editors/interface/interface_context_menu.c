@@ -642,7 +642,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		/* We want to know if this op has a shortcut, be it hotkey or not. */
 		wmKeyMapItem *kmi = WM_key_event_operator(C, but->optype->idname, but->opcontext, prop, false, &km);
 
-		/* We do have a shortcut, but only keyboard ones are editbale that way... */
+		/* We do have a shortcut, but only keyboard ones are editable that way... */
 		if (kmi) {
 			if (ISKEYBOARD(kmi->type)) {
 #if 0			/* would rather use a block but, but gets weirdly positioned... */
@@ -658,7 +658,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 				UI_but_func_set(but2, popup_change_shortcut_func, but, NULL);
 
 				but2 = uiDefIconTextBut(
-				        block, UI_BTYPE_BUT, 0, ICON_NONE,
+				        block, UI_BTYPE_BUT, 0, ICON_BLANK1,
 				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
 				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, remove_shortcut_func, but, NULL);
@@ -672,11 +672,11 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 				UI_but_flag_enable(but2, UI_BUT_DISABLED);
 			}
 		}
-		/* only show 'add' if there's a suitable key map for it to go in */
+		/* only show 'assign' if there's a suitable key map for it to go in */
 		else if (WM_keymap_guess_opname(C, but->optype->idname)) {
 			but2 = uiDefIconTextBut(
 			        block, UI_BTYPE_BUT, 0, ICON_HAND,
-			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add Shortcut"),
+			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Assign Shortcut"),
 			        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			UI_but_func_set(but2, popup_add_shortcut_func, but, NULL);
 		}
@@ -695,7 +695,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 		but2 = uiDefIconTextBut(
 		        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
-		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Favorites Menu"),
+		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
 		        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
 		        "Add to a user defined context menu (stored in the user preferences)");
 		UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
@@ -706,7 +706,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 			if (umi != NULL) {
 				but2 = uiDefIconTextBut(
 				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
-				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Favorites Menu"),
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
 				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 				UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
 			}
