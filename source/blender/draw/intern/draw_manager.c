@@ -1496,8 +1496,9 @@ void DRW_draw_render_loop_ex(
 		}
 	}
 
+	GPU_framebuffer_bind(DST.default_framebuffer);
+
 	if (do_bg_image) {
-		GPU_framebuffer_bind(DST.default_framebuffer);
 		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, false, true);
 	}
 
