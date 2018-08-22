@@ -1124,7 +1124,7 @@ Mesh *BKE_subdiv_to_mesh(
 	                       SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY);
 	SubdivForeachContext foreach_context;
 	setup_foreach_callbacks(&foreach_context, subdiv);
-	SubdivMeshTLS tls = {};
+	SubdivMeshTLS tls = {0};
 	foreach_context.user_data = &subdiv_context;
 	foreach_context.user_data_tls_size = sizeof(SubdivMeshTLS);
 	foreach_context.user_data_tls = &tls;
