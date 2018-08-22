@@ -731,11 +731,13 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Manual"),
 			        ICON_URL, "WM_OT_doc_view_manual_ui_context");
 
-			uiItemFullO(
-			        layout, "WM_OT_doc_view",
-			        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
-			        ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr_props);
-			RNA_string_set(&ptr_props, "doc_id", buf);
+			if (U.flag & USER_DEVELOPER_UI) {
+				uiItemFullO(
+				        layout, "WM_OT_doc_view",
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Online Python Reference"),
+				        ICON_NONE, NULL, WM_OP_EXEC_DEFAULT, 0, &ptr_props);
+				RNA_string_set(&ptr_props, "doc_id", buf);
+			}
 
 			/* XXX inactive option, not for public! */
 #if 0
@@ -748,7 +750,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		}
 	}
 
-	if (but->optype) {
+	if (but->optype && U.flag & USER_DEVELOPER_UI) {
 		uiItemO(layout, NULL,
 		        ICON_NONE, "UI_OT_copy_python_command_button");
 	}
