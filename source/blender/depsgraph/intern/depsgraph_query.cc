@@ -27,7 +27,7 @@
 /** \file blender/depsgraph/intern/depsgraph_query.cc
  *  \ingroup depsgraph
  *
- * Implementation of Querying and Filtering API's
+ * Implementation of Querying API
  */
 
 #include "MEM_guardedalloc.h"

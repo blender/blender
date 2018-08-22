@@ -71,6 +71,7 @@ struct ViewLayer;
 typedef enum eEvaluationMode {
 	DAG_EVAL_VIEWPORT       = 0,    /* evaluate for OpenGL viewport */
 	DAG_EVAL_RENDER         = 1,    /* evaluate for render purposes */
+	DAG_EVAL_BACKGROUND     = 2,    /* evaluate in background for baking/caching */
 } eEvaluationMode;
 
 /* DagNode->eval_flags */
