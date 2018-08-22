@@ -628,6 +628,13 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def bevel():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.bevel")
+            layout.prop(props, "offset_type")
+            layout.prop(props, "segments")
+            layout.prop(props, "profile", slider=True)
+            layout.prop(props, "vertex_only")
+
         return dict(
             text="Bevel",
             icon="ops.mesh.bevel",
@@ -636,6 +643,7 @@ class _defs_edit_mesh:
                 ("mesh.bevel", dict(),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
