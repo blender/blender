@@ -676,6 +676,14 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def loopcut_slide():
+
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.loopcut_slide")
+            props_macro = props.MESH_OT_loopcut
+            layout.prop(props_macro, "number_cuts")
+            props_macro = props.TRANSFORM_OT_edge_slide
+            layout.prop(props_macro, "correct_uv")
+
         return dict(
             text="Loop Cut",
             icon="ops.mesh.loopcut_slide",
@@ -683,6 +691,7 @@ class _defs_edit_mesh:
             keymap=(
                 ("mesh.loopcut_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
