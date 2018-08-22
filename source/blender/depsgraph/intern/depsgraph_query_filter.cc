@@ -91,7 +91,7 @@ void deg_add_retained_id_cb(ID *id, void *user_data)
 
 /* Remove relations pointing to the given OperationDepsNode */
 /* TODO: Make this part of OperationDepsNode? */
-void deg_unlink_opnode(OperationDepsNode *op_node)
+void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 {
 	std::vector<DepsRelation *> all_links;
 	
@@ -129,18 +129,22 @@ bool deg_filter_free_idnode(Depsgraph *graph, IDDepsNode *id_node,
 		/* This means builder "stole" ownership of the copy-on-written
 		 * datablock for her own dirty needs.
 		 */
+		printf("  no id_cow ");
 		return false;
 	}
 	else if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
+		printf("  id_cow collapsed ");
 		return false;
 	}
 	else {
 		const ID_Type id_type = GS(id_node->id_cow->name);
 		if (filter(id_type)) {
+			printf("  id_type (T) = %d ");
 			id_node->destroy();
 			return true;
 		}
 		else {
+			printf("  id_type (F) = %d ");
 			return false;
 		}
 	}
@@ -165,12 +169,14 @@ void deg_filter_clear_ids_conditional(
 		
 		if (deg_filter_free_idnode(graph, id_node, filter)) {
 			/* Node data got destroyed. Remove from collections, and free */
+			printf("  culling %s\n", id->name);
 			BLI_ghash_remove(graph->id_hash, id, NULL, NULL);
-			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 			it = graph->id_nodes.erase(it);
+			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 		}
 		else {
 			/* Node wasn't freed. Increment iterator */
+			printf("  skipping %s\n", id->name);
 			++it;
 		}
 	}
@@ -189,7 +195,7 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 			GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 			{
 				foreach (OperationDepsNode *op_node, comp_node->operations) {
-					deg_unlink_opnode(op_node);
+					deg_unlink_opnode(graph, op_node);
 				}
 			}
 			GHASH_FOREACH_END();
@@ -215,7 +221,9 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	 * NOTE: See clear_id_nodes() for more details about what's happening here
 	 *       (e.g. regarding the lambdas used for freeing order hacks)
 	 */
+	printf("Culling ID's scene:\n");
 	deg_filter_clear_ids_conditional(graph,  [](ID_Type id_type) { return id_type == ID_SCE; });
+	printf("Culling ID's other:\n");
 	deg_filter_clear_ids_conditional(graph,  [](ID_Type id_type) { return id_type != ID_PA; });
 }
 
@@ -268,16 +276,27 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	BLI_gset_free(retained_ids, NULL);
 	retained_ids = NULL;
 	
+	/* Debug - Are the desired targets still in there? */
+	printf("Filtered graph sanity check:\n");
+	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
+		printf("   %s -> %d\n", target->id->name, BLI_ghash_haskey(deg_graph_new->id_hash, target->id));
+	}
+	
 	/* Print Stats */
 	// XXX: Hide behind debug flags
 	size_t s_outer, s_operations, s_relations;
+	size_t s_ids = deg_graph_src->id_nodes.size();
+	unsigned int s_idh = BLI_ghash_len(deg_graph_src->id_hash);
+	
 	size_t n_outer, n_operations, n_relations;
+	size_t n_ids = deg_graph_src->id_nodes.size();
+	unsigned int n_idh = BLI_ghash_len(deg_graph_new->id_hash);
 	
 	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
 	DEG_stats_simple(graph_new, &n_outer, &n_operations, &n_relations);
 	
-	printf("%s: src = (Out: %u, Op: %u, Rel: %u)\n", __func__, s_outer, s_operations, s_relations); // XXX
-	printf("%s: new = (Out: %u, Op: %u, Rel: %u)\n", __func__, n_outer, n_operations, n_relations); // XXX
+	printf("%s: src = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, s_ids, s_idh, s_outer, s_operations, s_relations); // XXX
+	printf("%s: new = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, n_ids, n_idh, n_outer, n_operations, n_relations); // XXX
 	
 	/* Return this new graph instance */
 	return graph_new;
