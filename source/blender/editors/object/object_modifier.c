@@ -1250,7 +1250,6 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = ED_object_active_context(C), *secondob = NULL;
-	Scene *scene = CTX_data_scene(C);
 	MultiresModifierData *mmd = (MultiresModifierData *)edit_modifier_property_get(op, ob, eModifierType_Multires);
 
 	if (!mmd)
