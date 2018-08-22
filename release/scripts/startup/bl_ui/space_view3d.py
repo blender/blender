@@ -20,7 +20,7 @@
 import bpy
 from bpy.types import Header, Menu, Panel
 from .properties_paint_common import UnifiedPaintPanel
-from .properties_grease_pencil_common import GreasePencilDataPanel
+from .properties_grease_pencil_common import AnnotationDataPanel
 from bpy.app.translations import contexts as i18n_contexts
 
 
@@ -4823,7 +4823,7 @@ class VIEW3D_PT_quad_view(Panel):
 
 
 # Annotation properties
-class VIEW3D_PT_grease_pencil(GreasePencilDataPanel, Panel):
+class VIEW3D_PT_grease_pencil(AnnotationDataPanel, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
 

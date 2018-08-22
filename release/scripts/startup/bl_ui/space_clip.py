@@ -23,8 +23,8 @@ from bpy.types import Panel, Header, Menu, UIList
 from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
-    GreasePencilDrawingToolsPanel,
-    GreasePencilDataPanel,
+    AnnotationDrawingToolsPanel,
+    AnnotationDataPanel,
 )
 
 
@@ -1140,7 +1140,7 @@ class CLIP_PT_tools_scenesetup(Panel):
 
 
 # Grease Pencil properties
-class CLIP_PT_grease_pencil(GreasePencilDataPanel, CLIP_PT_clip_view_panel, Panel):
+class CLIP_PT_grease_pencil(AnnotationDataPanel, CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
@@ -1150,7 +1150,7 @@ class CLIP_PT_grease_pencil(GreasePencilDataPanel, CLIP_PT_clip_view_panel, Pane
 
 
 # Grease Pencil drawing tools
-class CLIP_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
+class CLIP_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
 

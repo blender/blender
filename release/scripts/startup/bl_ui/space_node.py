@@ -23,8 +23,8 @@ from bpy.types import Header, Menu, Panel
 from bpy.app.translations import pgettext_iface as iface_
 from bl_operators.presets import PresetMenu
 from .properties_grease_pencil_common import (
-    GreasePencilDrawingToolsPanel,
-    GreasePencilDataPanel,
+    AnnotationDrawingToolsPanel,
+    AnnotationDataPanel,
     GreasePencilToolsPanel,
 )
 
@@ -521,7 +521,7 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
 
 
 # Grease Pencil properties
-class NODE_PT_grease_pencil(GreasePencilDataPanel, Panel):
+class NODE_PT_grease_pencil(AnnotationDataPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
@@ -548,7 +548,7 @@ class NODE_PT_grease_pencil_tools(GreasePencilToolsPanel, Panel):
 
 
 # Grease Pencil drawing tools
-class NODE_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
+class NODE_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
     bl_space_type = 'NODE_EDITOR'
     bl_region_type = 'TOOLS'
 

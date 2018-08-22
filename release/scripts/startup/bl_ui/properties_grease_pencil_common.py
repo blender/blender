@@ -76,11 +76,11 @@ def gpencil_active_brush_settings_simple(context, layout):
 
 
 # XXX: To be replaced with active tools
-class GreasePencilDrawingToolsPanel:
+class AnnotationDrawingToolsPanel:
     # subclass must set
     # bl_space_type = 'IMAGE_EDITOR'
-    bl_label = "Grease Pencil"
-    bl_category = "Grease Pencil"
+    bl_label = "Annotation"
+    bl_category = "Annotation"
     bl_region_type = 'TOOLS'
 
     @classmethod
@@ -649,7 +649,7 @@ class GPENCIL_UL_annotation_layer(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class GreasePencilDataPanel:
+class AnnotationDataPanel:
     bl_label = "Annotations"
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}

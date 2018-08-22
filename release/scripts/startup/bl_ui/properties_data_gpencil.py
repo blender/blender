@@ -21,7 +21,6 @@ import bpy
 from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
-    GreasePencilDataPanel,
     GreasePencilOnionPanel,
 )
 
