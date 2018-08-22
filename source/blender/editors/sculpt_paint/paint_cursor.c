@@ -685,6 +685,7 @@ static void paint_draw_tex_overlay(
 			immUniformColor4f(1.0f, 1.0f, 1.0f, overlay_alpha * 0.01f);
 		}
 		else {
+			GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA_COLOR);
 			immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, overlay_alpha * 0.01f);
 		}
@@ -704,6 +705,7 @@ static void paint_draw_tex_overlay(
 		immEnd();
 
 		immUnbindProgram();
+		GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 
 		if (ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_STENCIL, MTEX_MAP_MODE_VIEW)) {
 			GPU_matrix_pop();
@@ -764,7 +766,8 @@ static void paint_draw_cursor_overlay(
 		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 		uint texCoord = GPU_vertformat_attr_add(format, "texCoord", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
+		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
+		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA_COLOR);
 
 		immUniformColor3fvAlpha(U.sculpt_paint_overlay_col, brush->cursor_overlay_alpha * 0.01f);
 
@@ -785,6 +788,8 @@ static void paint_draw_cursor_overlay(
 		immEnd();
 
 		immUnbindProgram();
+
+		GPU_blend_set_func(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA);
 
 		if (do_pop)
 			GPU_matrix_pop();
