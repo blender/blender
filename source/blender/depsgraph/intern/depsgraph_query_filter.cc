@@ -93,22 +93,19 @@ void deg_add_retained_id_cb(ID *id, void *user_data)
 /* TODO: Make this part of OperationDepsNode? */
 void deg_unlink_opnode(OperationDepsNode *op_node)
 {
-	/* Delete inlinks to this operation */
-	for (DepsNode::Relations::const_iterator it_rel = op_node->inlinks.begin();
-	     it_rel != op_node->inlinks.end();
-	     )
-	{
-		DepsRelation *rel = *it_rel;
-		rel->unlink();
-		OBJECT_GUARDED_DELETE(rel, DepsRelation);
+	std::vector<DepsRelation *> all_links;
+	
+	/* Collect all inlinks to this operation */
+	foreach (DepsRelation *rel, op_node->inlinks) {
+		all_links.push_back(rel);
+	}
+	/* Collect all outlinks from this operation */
+	foreach (DepsRelation *rel, op_node->outlinks) {
+		all_links.push_back(rel);
 	}
 	
-	/* Delete outlinks from this operation */
-	for (DepsNode::Relations::const_iterator it_rel = op_node->outlinks.begin();
-	     it_rel != op_node->outlinks.end();
-	     )
-	{
-		DepsRelation *rel = *it_rel;
+	/* Delete all collected entries */
+	foreach (DepsRelation *rel, all_links) {
 		rel->unlink();
 		OBJECT_GUARDED_DELETE(rel, DepsRelation);
 	}

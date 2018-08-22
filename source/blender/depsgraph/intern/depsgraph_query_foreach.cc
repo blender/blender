@@ -178,21 +178,27 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 			}
 			/* Schedule incoming operation nodes. */
 			if (op_node->inlinks.size() == 1) {
-				OperationDepsNode *from_node = (OperationDepsNode *)op_node->inlinks[0]->from;
-				if (from_node->scheduled == false) {
-					from_node->scheduled = true;
-					op_node = from_node;
-				}
-				else {
-					break;
+				DepsNode *from = op_node->inlinks[0]->from;
+				if (from->get_class() == DEG_NODE_CLASS_OPERATION) {
+					OperationDepsNode *from_node = (OperationDepsNode *)from;
+					if (from_node->scheduled == false) {
+						from_node->scheduled = true;
+						op_node = from_node;
+					}
+					else {
+						break;
+					}
 				}
 			}
 			else {
 				foreach (DepsRelation *rel, op_node->inlinks) {
-					OperationDepsNode *from_node = (OperationDepsNode *)rel->from;
-					if (from_node->scheduled == false) {
-						queue.push_front(from_node);
-						from_node->scheduled = true;
+					DepsNode *from = rel->from;
+					if (from->get_class() == DEG_NODE_CLASS_OPERATION) {
+						OperationDepsNode *from_node = (OperationDepsNode *)from;
+						if (from_node->scheduled == false) {
+							queue.push_front(from_node);
+							from_node->scheduled = true;
+						}
 					}
 				}
 				break;
