@@ -104,10 +104,15 @@ void deg_unlink_opnode(OperationDepsNode *op_node)
 		all_links.push_back(rel);
 	}
 	
-	/* Delete all collected entries */
+	/* Delete all collected relations */
 	foreach (DepsRelation *rel, all_links) {
 		rel->unlink();
 		OBJECT_GUARDED_DELETE(rel, DepsRelation);
+	}
+	
+	/* Remove from entry tags */
+	if (BLI_gset_haskey(graph->entry_tags, op_node)) {
+		BLI_gset_remove(graph->entry_tags, op_node, NULL);
 	}
 }
 
