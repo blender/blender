@@ -406,32 +406,8 @@ static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
 	return true;
 }
 
-/* =============================================================================
- * Public entry points..
- */
-
-/* Returns truth on success, false otherwise.
- *
- * This function might fail in cases like source and destination not having
- * matched amount of vertices.
- */
-bool multiresModifier_reshape(
-        struct Depsgraph *UNUSED(depsgraph),
-        MultiresModifierData *UNUSED(mmd),
-        Object *UNUSED(dst),
-        Object *UNUSED(src))
-{
-	/* TODO(sergey): Need to port to a new rehape routines. Old ones were
-	 * based on DerivedMesh and can not used anymore.
-	 */
-	return false;
-}
-
-bool multiresModifier_reshapeFromDeformModifier(
-        struct Depsgraph *depsgraph,
-        MultiresModifierData *mmd,
-        Object *object,
-        ModifierData *md)
+static void multires_reshape_init_mmd(MultiresModifierData *reshape_mmd,
+                                      const MultiresModifierData *mmd)
 {
 	/* It is possible that the current subdivision level of multires is lower
 	 * that it's maximum possible one (i.e., viewport is set to a lower level
@@ -442,8 +418,61 @@ bool multiresModifier_reshapeFromDeformModifier(
 	 * Alternative would be propagate displacement from current level to a
 	 * higher ones, but that is likely to cause artifacts.
 	 */
-	MultiresModifierData highest_mmd = *mmd;
-	highest_mmd.lvl = highest_mmd.totlvl;
+	*reshape_mmd = *mmd;
+	reshape_mmd->lvl = reshape_mmd->totlvl;
+}
+
+/* =============================================================================
+ * Public entry points..
+ */
+
+/* Returns truth on success, false otherwise.
+ *
+ * This function might fail in cases like source and destination not having
+ * matched amount of vertices.
+ */
+bool multiresModifier_reshape(
+        struct Depsgraph *depsgraph,
+        MultiresModifierData *mmd,
+        Object *dst,
+        Object *src)
+{
+	/* Would be cool to support this eventually, but it is very tricky to match
+	 * vertices order even for meshes, when mixing meshes and other objects it's
+	 * even more tricky.
+	 */
+	if (src->type != OB_MESH) {
+		return false;
+	}
+	MultiresModifierData highest_mmd;
+	multires_reshape_init_mmd(&highest_mmd, mmd);
+	/* Get evaluated vertices locations to reshape to. */
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
+	Mesh *src_mesh_eval = mesh_get_eval_final(
+	        depsgraph, scene_eval, src_eval, CD_MASK_BAREMESH);
+	int num_deformed_verts;
+	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(
+	        src_mesh_eval, &num_deformed_verts);
+	bool result = multires_reshape_from_vertcos(
+	        depsgraph,
+	        dst,
+	        &highest_mmd,
+	        deformed_verts,
+	        num_deformed_verts,
+	        false);
+	MEM_freeN(deformed_verts);
+	return result;
+}
+
+bool multiresModifier_reshapeFromDeformModifier(
+        struct Depsgraph *depsgraph,
+        MultiresModifierData *mmd,
+        Object *object,
+        ModifierData *md)
+{
+	MultiresModifierData highest_mmd;
+	multires_reshape_init_mmd(&highest_mmd, mmd);
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* Perform sanity checks and early output. */
 	if (multires_get_level(
@@ -455,7 +484,9 @@ bool multiresModifier_reshapeFromDeformModifier(
 	 */
 	Mesh *multires_mesh = get_multires_mesh(
 	        depsgraph, scene_eval, &highest_mmd, object);
-	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(multires_mesh, NULL);
+	int num_deformed_verts;
+	float (*deformed_verts)[3] = BKE_mesh_vertexCos_get(
+	        multires_mesh, &num_deformed_verts);
 	/* Apply deformation modifier on the multires, */
 	const ModifierEvalContext modifier_ctx = {
 	        .depsgraph = depsgraph,
@@ -464,7 +495,6 @@ bool multiresModifier_reshapeFromDeformModifier(
 	modifier_deformVerts_ensure_normals(
 	        md, &modifier_ctx, multires_mesh, deformed_verts,
 	        multires_mesh->totvert);
-	const int num_deformed_verts = multires_mesh->totvert;
 	BKE_id_free(NULL, multires_mesh);
 	/* Reshaping */
 	bool result = multires_reshape_from_vertcos(
