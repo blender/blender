@@ -430,7 +430,6 @@ bool multiresModifier_reshape(
 
 bool multiresModifier_reshapeFromDeformModifier(
         struct Depsgraph *depsgraph,
-        Scene *UNUSED(scene),
         MultiresModifierData *mmd,
         Object *object,
         ModifierData *md)

@@ -119,8 +119,10 @@ int mdisp_rot_face_to_crn(struct MVert *mvert, struct MPoly *mpoly, struct MLoop
 bool multiresModifier_reshape(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                               struct Object *dst, struct Object *src);
 bool multiresModifier_reshapeFromDeformModifier(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
-        struct Object *ob, struct ModifierData *md);
+        struct Depsgraph *depsgraph,
+        struct MultiresModifierData *mmd,
+        struct Object *ob,
+        struct ModifierData *md);
 
 /* Subdivision integration, defined in multires_subdiv.c */
 
