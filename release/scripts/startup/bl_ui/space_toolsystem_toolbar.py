@@ -689,7 +689,11 @@ class _defs_edit_mesh:
             icon="ops.mesh.loopcut_slide",
             widget="VIEW3D_GGT_mesh_preselect_edgering",
             keymap=(
-                ("mesh.loopcut_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+                (
+                    "mesh.loopcut_slide",
+                    dict(TRANSFORM_OT_edge_slide=dict(release_confirm=True)),
+                    dict(type='ACTIONMOUSE', value='PRESS'),
+                ),
             ),
             draw_settings=draw_settings,
         )
