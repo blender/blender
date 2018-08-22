@@ -302,14 +302,8 @@ void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object)
 	BKE_object_eval_proxy_copy(depsgraph, object);
 }
 
-void BKE_object_eval_uber_data(Depsgraph *depsgraph,
-                               Scene *scene,
-                               Object *ob)
+void BKE_object_batch_cache_dirty(Object *ob)
 {
-	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
-	BLI_assert(ob->type != OB_ARMATURE);
-	BKE_object_handle_data_update(depsgraph, scene, ob);
-
 	switch (ob->type) {
 		case OB_MESH:
 			BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -329,6 +323,16 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 			BKE_gpencil_batch_cache_dirty(ob->data);
 			break;
 	}
+}
+
+void BKE_object_eval_uber_data(Depsgraph *depsgraph,
+                               Scene *scene,
+                               Object *ob)
+{
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
+	BLI_assert(ob->type != OB_ARMATURE);
+	BKE_object_handle_data_update(depsgraph, scene, ob);
+	BKE_object_batch_cache_dirty(ob);
 }
 
 void BKE_object_eval_cloth(Depsgraph *depsgraph,
