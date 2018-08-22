@@ -1020,7 +1020,7 @@ void GPENCIL_OT_paste(wmOperatorType *ot)
 	ot->poll = gp_strokes_paste_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", copy_type, 0, "Type", "");
