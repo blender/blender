@@ -198,7 +198,7 @@ void        ED_operatormacros_mesh(void);
 void        ED_keymap_mesh(struct wmKeyConfig *keyconf);
 
 /* editmesh_tools.c (could be moved) */
-void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEditMesh *em);
+void EDBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct BMEditMesh *em);
 
 
 /* editface.c */

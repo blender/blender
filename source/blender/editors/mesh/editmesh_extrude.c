@@ -661,7 +661,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 
 			/* also project the source, for retopo workflow */
 			if (use_proj)
-				EMBM_project_snap_verts(C, vc.ar, vc.em);
+				EDBM_project_snap_verts(C, vc.ar, vc.em);
 		}
 
 		edbm_extrude_ex(vc.obedit, vc.em, extrude_htype, BM_ELEM_SELECT, true, true);
@@ -693,7 +693,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 	}
 
 	if (use_proj)
-		EMBM_project_snap_verts(C, vc.ar, vc.em);
+		EDBM_project_snap_verts(C, vc.ar, vc.em);
 
 	/* This normally happens when pushing undo but modal operators
 	 * like this one don't push undo data until after modal mode is
