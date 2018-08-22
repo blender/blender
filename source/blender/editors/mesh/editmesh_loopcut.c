@@ -38,6 +38,8 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_context.h"
 #include "BKE_modifier.h"
 #include "BKE_report.h"
@@ -66,6 +68,7 @@
 #include "WM_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "mesh_intern.h"  /* own include */
 
@@ -82,6 +85,8 @@ typedef struct RingSelOpData {
 	struct EditMesh_PreSelEdgeRing *presel_edgering;
 
 	ViewContext vc;
+
+	Depsgraph *depsgraph;
 
 	Object **objects;
 	uint     objects_len;
@@ -142,7 +147,14 @@ static void edgering_select(RingSelOpData *lcd)
 static void ringsel_find_edge(RingSelOpData *lcd, const int previewlines)
 {
 	if (lcd->eed) {
-		EDBM_preselect_edgering_update_from_edge(lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines);
+		const float (*coords)[3] = NULL;
+		{
+			Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(lcd->depsgraph, lcd->ob->data);
+			if (me_eval->runtime.edit_data) {
+				coords = me_eval->runtime.edit_data->vertexCos;
+			}
+		}
+		EDBM_preselect_edgering_update_from_edge(lcd->presel_edgering, lcd->em->bm, lcd->eed, previewlines, coords);
 	}
 	else {
 		EDBM_preselect_edgering_clear(lcd->presel_edgering);
@@ -252,6 +264,8 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd = op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data");
 
 	em_setup_viewcontext(C, &lcd->vc);
+
+	lcd->depsgraph = CTX_data_depsgraph(C);
 
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar = CTX_wm_region(C);

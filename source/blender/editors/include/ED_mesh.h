@@ -200,7 +200,7 @@ void EDBM_preselect_edgering_clear(struct EditMesh_PreSelEdgeRing *psel);
 void EDBM_preselect_edgering_draw(struct EditMesh_PreSelEdgeRing *psel, const float matrix[4][4]);
 void EDBM_preselect_edgering_update_from_edge(
         struct EditMesh_PreSelEdgeRing *psel,
-        struct BMesh *bm, struct BMEdge *eed_start, int previewlines);
+        struct BMesh *bm, struct BMEdge *eed_start, int previewlines, const float (*coords)[3]);
 
 /* mesh_ops.c */
 void        ED_operatortypes_mesh(void);

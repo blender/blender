@@ -32,9 +32,14 @@
 
 #include "BLI_math.h"
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_context.h"
 #include "BKE_layer.h"
 #include "BKE_editmesh.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -134,9 +139,16 @@ static int gizmo_preselect_edgering_test_select(
 	}
 	else {
 		if (best.eed) {
-			EDBM_preselect_edgering_update_from_edge(
-			        gz_ring->psel,
-			        bm, best.eed, 1);
+			const float (*coords)[3] = NULL;
+			{
+				Object *ob = gz_ring->objects[gz_ring->object_index];
+				Depsgraph *depsgraph = CTX_data_depsgraph(C);
+				Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(depsgraph, ob->data);
+				if (me_eval->runtime.edit_data) {
+					coords = me_eval->runtime.edit_data->vertexCos;
+				}
+			}
+			EDBM_preselect_edgering_update_from_edge(gz_ring->psel, bm, best.eed, 1, coords);
 		}
 		else {
 			EDBM_preselect_edgering_clear(gz_ring->psel);
