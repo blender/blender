@@ -232,7 +232,7 @@ static void bevel_mod_harden_normals(
 						short *clnors = BM_ELEM_CD_GET_VOID_P(l, cd_clnors_offset);
 
 						/* If vertex is edge vert with 1 reconnected face */
-						if (recon_face_count == 1 || do_normal_to_recon) {
+						if (recon_face_count == 1 || (recon_face != NULL && do_normal_to_recon)) {
 							BKE_lnor_space_custom_normal_to_data(
 							        bm->lnor_spacearr->lspacearr[l_index], recon_face->no, clnors);
 						}
