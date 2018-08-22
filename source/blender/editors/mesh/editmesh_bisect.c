@@ -38,6 +38,7 @@
 #include "BKE_global.h"
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_report.h"
 
 #include "RNA_define.h"
@@ -68,19 +69,21 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op);
 
 typedef struct {
 	/* modal only */
-	BMBackup mesh_backup;
-	bool is_first;
+
+	/* Aligned with objects array. */
+	struct {
+		BMBackup mesh;
+		bool is_valid;
+		bool is_dirty;
+	} *backup;
+	int backup_len;
 	short gizmo_flag;
 } BisectData;
 
-static bool mesh_bisect_interactive_calc(
+static void mesh_bisect_interactive_calc(
         bContext *C, wmOperator *op,
-        BMEditMesh *em,
         float plane_co[3], float plane_no[3])
 {
-	wmGesture *gesture = op->customdata;
-	BisectData *opdata;
-
 	View3D *v3d = CTX_wm_view3d(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = ar->regiondata;
@@ -96,8 +99,6 @@ static bool mesh_bisect_interactive_calc(
 	float co_a[3], co_b[3];
 	const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
 
-	opdata = gesture->userdata;
-
 	/* view vector */
 	ED_view3d_win_to_vector(ar, co_a_ss, co_a);
 
@@ -111,29 +112,15 @@ static bool mesh_bisect_interactive_calc(
 
 	/* point on plane, can use either start or endpoint */
 	ED_view3d_win_to_3d(v3d, ar, co_ref, co_a_ss, plane_co);
-
-	if (opdata->is_first == false)
-		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
-
-	opdata->is_first = false;
-
-	return true;
 }
 
 static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	int ret;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	int valid_objects = 0;
 
-	if (em->bm->totedgesel == 0) {
-		BKE_report(op->reports, RPT_ERROR, "Selected edges/faces required");
-		return OPERATOR_CANCELLED;
-	}
-
-	/* if the properties are set or there is no rv3d,
-	 * skip model and exec immediately */
-
+	/* If the properties are set or there is no rv3d,
+	 * skip model and exec immediately. */
 	if ((CTX_wm_region_view3d(C) == NULL) ||
 	    (RNA_struct_property_is_set(op->ptr, "plane_co") &&
 	     RNA_struct_property_is_set(op->ptr, "plane_no")))
@@ -141,36 +128,71 @@ static int mesh_bisect_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return mesh_bisect_exec(C, op);
 	}
 
-	ret = WM_gesture_straightline_invoke(C, op, event);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totedgesel != 0) {
+			valid_objects++;
+		}
+	}
+
+	if (valid_objects == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Selected edges/faces required");
+		MEM_freeN(objects);
+		return OPERATOR_CANCELLED;
+	}
+
+	int ret = WM_gesture_straightline_invoke(C, op, event);
 	if (ret & OPERATOR_RUNNING_MODAL) {
 		View3D *v3d = CTX_wm_view3d(C);
 
 		wmGesture *gesture = op->customdata;
 		BisectData *opdata;
 
-
 		opdata = MEM_mallocN(sizeof(BisectData), "inset_operator_data");
-		opdata->mesh_backup = EDBM_redo_state_store(em);
-		opdata->is_first = true;
 		gesture->userdata = opdata;
 
-		/* misc other vars */
+		opdata->backup_len = objects_len;
+		opdata->backup = MEM_callocN(sizeof(*opdata->backup) * objects_len, __func__);
+
+		/* Store the mesh backups. */
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *obedit = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+			if (em->bm->totedgesel != 0) {
+				opdata->backup[ob_index].is_valid = true;
+				opdata->backup[ob_index].mesh = EDBM_redo_state_store(em);
+			}
+		}
+
+		/* Misc other vars. */
 		G.moving = G_TRANSFORM_EDIT;
 		opdata->gizmo_flag = v3d->gizmo_flag;
 		v3d->gizmo_flag = V3D_GIZMO_HIDE;
 
-		/* initialize modal callout */
+		/* Initialize modal callout. */
 		ED_workspace_status_text(C, IFACE_("LMB: Click and drag to draw cut line"));
 	}
+	MEM_freeN(objects);
 	return ret;
 }
 
 static void edbm_bisect_exit(bContext *C, BisectData *opdata)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
 	v3d->gizmo_flag = opdata->gizmo_flag;
 	G.moving = 0;
+
+	for (int ob_index = 0; ob_index < opdata->backup_len; ob_index++) {
+		if (opdata->backup[ob_index].is_valid) {
+			EDBM_redo_state_free(&opdata->backup[ob_index].mesh, NULL, false);
+		}
+	}
+	MEM_freeN(opdata->backup);
 }
 
 static int mesh_bisect_modal(bContext *C, wmOperator *op, const wmEvent *event)
@@ -222,10 +244,8 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm;
-	BMOperator bmop;
+	int ret = OPERATOR_CANCELLED;
+
 	float plane_co[3];
 	float plane_no[3];
 	float imat[4][4];
@@ -262,75 +282,102 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 		RNA_property_float_set_array(op->ptr, prop_plane_no, plane_no);
 	}
 
-
+	wmGesture *gesture = op->customdata;
+	BisectData *opdata = (gesture != NULL) ? gesture->userdata : NULL;
 
 	/* -------------------------------------------------------------------- */
 	/* Modal support */
 	/* Note: keep this isolated, exec can work wihout this */
-	if ((op->customdata != NULL) &&
-	    mesh_bisect_interactive_calc(C, op, em, plane_co, plane_no))
-	{
-		/* write back to the props */
+	if (opdata != NULL) {
+		mesh_bisect_interactive_calc(C, op, plane_co, plane_no);
+		/* Write back to the props. */
 		RNA_property_float_set_array(op->ptr, prop_plane_no, plane_no);
 		RNA_property_float_set_array(op->ptr, prop_plane_co, plane_co);
 	}
 	/* End Modal */
 	/* -------------------------------------------------------------------- */
 
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(CTX_data_view_layer(C), &objects_len);
 
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	bm = em->bm;
-
-	invert_m4_m4(imat, obedit->obmat);
-	mul_m4_v3(imat, plane_co);
-	mul_transposed_mat3_m4_v3(obedit->obmat, plane_no);
-
-	EDBM_op_init(em, &bmop, op,
-	             "bisect_plane geom=%hvef plane_co=%v plane_no=%v dist=%f clear_inner=%b clear_outer=%b",
-	             BM_ELEM_SELECT, plane_co, plane_no, thresh, clear_inner, clear_outer);
-	BMO_op_exec(bm, &bmop);
-
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	if (use_fill) {
-		float normal_fill[3];
-		BMOperator bmop_fill;
-		BMOperator bmop_attr;
-
-		normalize_v3_v3(normal_fill, plane_no);
-		if (clear_outer == true && clear_inner == false) {
-			negate_v3(normal_fill);
+		if (opdata != NULL) {
+			if (opdata->backup[ob_index].is_dirty) {
+				EDBM_redo_state_restore(opdata->backup[ob_index].mesh, em, false);
+				opdata->backup[ob_index].is_dirty = false;
+			}
 		}
 
-		/* Fill */
-		BMO_op_initf(
-		        bm, &bmop_fill, 0,
-		        "triangle_fill edges=%S normal=%v use_dissolve=%b",
-		        &bmop, "geom_cut.out", normal_fill, true);
-		BMO_op_exec(bm, &bmop_fill);
+		if (bm->totedgesel == 0) {
+			continue;
+		}
 
-		/* Copy Attributes */
-		BMO_op_initf(bm, &bmop_attr, 0,
-		             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
-		             &bmop_fill, "geom.out", false, true);
-		BMO_op_exec(bm, &bmop_attr);
+		if (opdata != NULL) {
+			if (opdata->backup[ob_index].is_valid) {
+				opdata->backup[ob_index].is_dirty = true;
+			}
+		}
 
-		BMO_slot_buffer_hflag_enable(bm, bmop_fill.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
+		float plane_co_local[3];
+		float plane_no_local[3];
+		copy_v3_v3(plane_co_local, plane_co);
+		copy_v3_v3(plane_no_local, plane_no);
 
-		BMO_op_finish(bm, &bmop_attr);
-		BMO_op_finish(bm, &bmop_fill);
+		invert_m4_m4(imat, obedit->obmat);
+		mul_m4_v3(imat, plane_co_local);
+		mul_transposed_mat3_m4_v3(obedit->obmat, plane_no_local);
+
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op,
+		             "bisect_plane geom=%hvef plane_co=%v plane_no=%v dist=%f clear_inner=%b clear_outer=%b",
+		             BM_ELEM_SELECT, plane_co_local, plane_no_local, thresh, clear_inner, clear_outer);
+		BMO_op_exec(bm, &bmop);
+
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+		if (use_fill) {
+			float normal_fill[3];
+			BMOperator bmop_fill;
+			BMOperator bmop_attr;
+
+			normalize_v3_v3(normal_fill, plane_no_local);
+			if (clear_outer == true && clear_inner == false) {
+				negate_v3(normal_fill);
+			}
+
+			/* Fill */
+			BMO_op_initf(
+			            bm, &bmop_fill, 0,
+			            "triangle_fill edges=%S normal=%v use_dissolve=%b",
+			            &bmop, "geom_cut.out", normal_fill, true);
+			BMO_op_exec(bm, &bmop_fill);
+
+			/* Copy Attributes */
+			BMO_op_initf(bm, &bmop_attr, 0,
+			             "face_attribute_fill faces=%S use_normals=%b use_data=%b",
+			             &bmop_fill, "geom.out", false, true);
+			BMO_op_exec(bm, &bmop_attr);
+
+			BMO_slot_buffer_hflag_enable(bm, bmop_fill.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
+
+			BMO_op_finish(bm, &bmop_attr);
+			BMO_op_finish(bm, &bmop_fill);
+		}
+
+		BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom_cut.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
+
+		if (EDBM_op_finish(em, &bmop, op, true)) {
+			EDBM_update_generic(em, true, true);
+			EDBM_selectmode_flush(em);
+			ret = OPERATOR_FINISHED;
+		}
 	}
-
-	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom_cut.out", BM_VERT | BM_EDGE, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
-		EDBM_update_generic(em, true, true);
-		EDBM_selectmode_flush(em);
-		return OPERATOR_FINISHED;
-	}
+	MEM_freeN(objects);
+	return ret;
 }
 
 #ifdef USE_GIZMO
