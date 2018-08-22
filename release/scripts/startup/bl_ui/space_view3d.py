@@ -305,6 +305,7 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_edit_mesh_vertices")
                 layout.menu("VIEW3D_MT_edit_mesh_edges")
                 layout.menu("VIEW3D_MT_edit_mesh_faces")
+                layout.menu("VIEW3D_MT_uv_map", text="UV")
 
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
@@ -2663,10 +2664,6 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.menu("VIEW3D_MT_transform")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_uv_map", text="UV Unwrap...")
 
         layout.separator()
 
