@@ -559,6 +559,10 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def edge_slide():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("transform.edge_slide")
+            layout.prop(props, "correct_uv")
+
         return dict(
             text="Edge Slide",
             icon="ops.transform.edge_slide",
@@ -568,10 +572,15 @@ class _defs_edit_mesh:
                  dict(type='ACTIONMOUSE', value='PRESS')
                  ),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def vert_slide():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("transform.vert_slide")
+            layout.prop(props, "correct_uv")
+
         return dict(
             text="Vertex Slide",
             icon="ops.transform.vert_slide",
@@ -580,6 +589,7 @@ class _defs_edit_mesh:
                 ("transform.vert_slide", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -697,11 +707,9 @@ class _defs_edit_mesh:
             icon="ops.mesh.loopcut_slide",
             widget="VIEW3D_GGT_mesh_preselect_edgering",
             keymap=(
-                (
-                    "mesh.loopcut_slide",
-                    dict(TRANSFORM_OT_edge_slide=dict(release_confirm=True)),
-                    dict(type='ACTIONMOUSE', value='PRESS'),
-                ),
+                ("mesh.loopcut_slide",
+                 dict(TRANSFORM_OT_edge_slide=dict(release_confirm=True)),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
             ),
             draw_settings=draw_settings,
         )
