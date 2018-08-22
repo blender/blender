@@ -249,7 +249,9 @@ static void overlay_draw_scene(void *vedata)
 {
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
 	OVERLAY_PassList *psl = data->psl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
+	GPU_framebuffer_bind(dfbl->default_fb);
 	DRW_draw_pass(psl->face_orientation_pass);
 	DRW_draw_pass(psl->face_wireframe_pass);
 	DRW_draw_pass(psl->face_wireframe_full_pass);
