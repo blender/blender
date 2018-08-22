@@ -121,7 +121,7 @@ eDepsNode_Class DepsNode::get_class() const {
 /*******************************************************************************
  * Generic nodes definition.
  */
-\
+
 DEG_DEPSNODE_DEFINE(TimeSourceDepsNode, DEG_NODE_TYPE_TIMESOURCE, "Time Source");
 static DepsNodeFactoryImpl<TimeSourceDepsNode> DNTI_TIMESOURCE;
 
