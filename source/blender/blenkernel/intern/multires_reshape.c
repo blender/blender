@@ -270,8 +270,9 @@ static void multires_reshape_vertex(
 		ptex_uv_to_grid_uv(u, v, &grid_u, &grid_v);
 	}
 	/* Convert object coordinate to a tangent space of displacement grid. */
+	const float *final_P = ctx->deformed_verts[subdiv_vertex_index];
 	float D[3];
-	sub_v3_v3v3(D, ctx->deformed_verts[subdiv_vertex_index], P);
+	sub_v3_v3v3(D, final_P, P);
 	float tangent_matrix[3][3];
 	construct_tangent_matrix(tangent_matrix, dPdu, dPdv, grid_corner);
 	float inv_tangent_matrix[3][3];
@@ -306,7 +307,7 @@ static void multires_reshape_vertex_inner(
 	        subdiv_vertex_index);
 }
 
-static void multires_reshape_vertex_corner(
+static void multires_reshape_vertex_every_corner(
         const struct SubdivForeachContext *foreach_context,
         void *UNUSED(tls_v),
         const int ptex_face_index,
@@ -383,7 +384,7 @@ static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
 	        .topology_info = multires_reshape_topology_info,
 	        .vertex_inner = multires_reshape_vertex_inner,
 	        .vertex_every_edge = multires_reshape_vertex_every_edge,
-	        .vertex_corner = multires_reshape_vertex_corner,
+	        .vertex_every_corner = multires_reshape_vertex_every_corner,
 	        .user_data = &ctx,
 	};
 	/* Initialize subdivision surface. */
