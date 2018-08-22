@@ -363,7 +363,7 @@ void MESH_OT_unsubdivide(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "iterations", 2, 1, 1000, "Iterations", "Number of times to unsubdivide", 1, 100);
 }
 
-void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
+void EDBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *obedit = em->ob;
