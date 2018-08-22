@@ -704,6 +704,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 
 		bf_intern_glew_mx
 		bf_intern_clog
+		bf_intern_opensubdiv
 	)
 
 	if(NOT WITH_SYSTEM_GLOG)
@@ -774,10 +775,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 
 	if(WIN32)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_gpudirect)
-	endif()
-
-	if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_opensubdiv)
 	endif()
 
 	if(WITH_OPENVDB)
