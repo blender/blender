@@ -34,6 +34,8 @@
 #include "DNA_object_types.h"
 #include "DNA_ID.h"
 
+#include "BLI_stack.h"
+
 extern "C" {
 #include "BKE_animsys.h"
 }
@@ -43,6 +45,8 @@ extern "C" {
 #include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_id.h"
+#include "intern/nodes/deg_node_component.h"
+#include "intern/nodes/deg_node_operation.h"
 
 #include "util/deg_util_foreach.h"
 
@@ -50,8 +54,61 @@ extern "C" {
 
 namespace DEG {
 
+namespace {
+
+void deg_graph_build_flush_layers(Depsgraph *graph)
+{
+	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode*),
+	                                 "DEG flush layers stack");
+	foreach (OperationDepsNode *op_node, graph->operations) {
+		op_node->done = 0;
+		op_node->num_links_pending = 0;
+		foreach (DepsRelation *rel, op_node->outlinks) {
+			if ((rel->from->type == DEG_NODE_TYPE_OPERATION) &&
+			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
+			{
+				++op_node->num_links_pending;
+			}
+		}
+		if (op_node->num_links_pending == 0) {
+			BLI_stack_push(stack, &op_node);
+			op_node->done = 1;
+		}
+	}
+	while (!BLI_stack_is_empty(stack)) {
+		OperationDepsNode *op_node;
+		BLI_stack_pop(stack, &op_node);
+		/* Flush layers to parents. */
+		foreach (DepsRelation *rel, op_node->inlinks) {
+			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
+				OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
+				op_from->owner->owner->is_visible |=
+				        op_node->owner->owner->is_visible;
+			}
+		}
+		/* Schedule parent nodes. */
+		foreach (DepsRelation *rel, op_node->inlinks) {
+			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
+				OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
+				if ((rel->flag & DEPSREL_FLAG_CYCLIC) == 0) {
+					BLI_assert(op_from->num_links_pending > 0);
+					--op_from->num_links_pending;
+				}
+				if (op_from->num_links_pending == 0 && op_from->done == 0) {
+					BLI_stack_push(stack, &op_from);
+					op_from->done = 1;
+				}
+			}
+		}
+	}
+	BLI_stack_free(stack);
+}
+
+}  // namespace
+
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
+	deg_graph_build_flush_layers(graph);
 	/* Re-tag IDs for update if it was tagged before the relations
 	 * update tag.
 	 */

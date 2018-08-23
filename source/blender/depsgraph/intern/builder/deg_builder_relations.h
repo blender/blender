@@ -203,9 +203,7 @@ struct DepsgraphRelationBuilder
 	void build_id(ID *id);
 	void build_layer_collections(ListBase *lb);
 	void build_view_layer(Scene *scene, ViewLayer *view_layer);
-	void build_collection(eDepsNode_CollectionOwner owner_type,
-	                      Object *object,
-	                      Collection *collection);
+	void build_collection(Object *object, Collection *collection);
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);

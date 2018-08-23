@@ -77,6 +77,11 @@ struct IDDepsNode : public DepsNode {
 
 	eDepsNode_LinkedState_Type linked_state;
 
+	/* Indicates the datablock is visible, meaning, it is to be evaluated by
+	 * the dependency graph.
+	 */
+	bool is_visible;
+
 	DEG_DEPSNODE_DECLARE;
 };
 

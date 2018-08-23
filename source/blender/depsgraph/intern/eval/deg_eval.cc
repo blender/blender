@@ -103,6 +103,19 @@ typedef struct CalculatePengindData {
 	Depsgraph *graph;
 } CalculatePengindData;
 
+static bool check_operation_node_visible(OperationDepsNode *op_node)
+{
+	const ComponentDepsNode *comp_node = op_node->owner;
+	/* Special exception, copy on write component is to be always evaluated,
+	 * to keep copied "database" in a consistent state.
+	 */
+	if (comp_node->type == DEG_NODE_TYPE_COPY_ON_WRITE) {
+		return true;
+	}
+	const IDDepsNode *id_node = comp_node->owner;
+	return id_node->is_visible;
+}
+
 static void calculate_pending_func(
         void *__restrict data_v,
         const int i,
@@ -111,21 +124,35 @@ static void calculate_pending_func(
 	CalculatePengindData *data = (CalculatePengindData *)data_v;
 	Depsgraph *graph = data->graph;
 	OperationDepsNode *node = graph->operations[i];
-
+	/* Update counters, applies for both visible and invisible IDs. */
 	node->num_links_pending = 0;
 	node->scheduled = false;
-
-	/* count number of inputs that need updates */
-	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0) {
-		foreach (DepsRelation *rel, node->inlinks) {
-			if (rel->from->type == DEG_NODE_TYPE_OPERATION &&
-			    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
-			{
-				OperationDepsNode *from = (OperationDepsNode *)rel->from;
-				if ((from->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0) {
-					++node->num_links_pending;
-				}
+	/* Invisible IDs requires no pending operations. */
+	if (!check_operation_node_visible(node)) {
+		return;
+	}
+	/* No need to bother with anything if node is not tagged for update. */
+	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
+		return;
+	}
+	foreach (DepsRelation *rel, node->inlinks) {
+		if (rel->from->type == DEG_NODE_TYPE_OPERATION &&
+		    (rel->flag & DEPSREL_FLAG_CYCLIC) == 0)
+		{
+			OperationDepsNode *from = (OperationDepsNode *)rel->from;
+			/* TODO(sergey): This is how old layer system was checking for the
+			 * calculation, but how is it possible that visible object depends
+			 * on an invisible? This is something what is prohibited after
+			 * deg_graph_build_flush_layers().
+			 */
+			if (!check_operation_node_visible(from)) {
+				continue;
 			}
+			/* No need to vait for operation which is up to date. */
+			if ((from->flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
+				continue;
+			}
+			++node->num_links_pending;
 		}
 	}
 }
@@ -166,30 +193,44 @@ static void schedule_node(TaskPool *pool, Depsgraph *graph,
                           OperationDepsNode *node, bool dec_parents,
                           const int thread_id)
 {
-	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) != 0) {
-		if (dec_parents) {
-			BLI_assert(node->num_links_pending > 0);
-			atomic_sub_and_fetch_uint32(&node->num_links_pending, 1);
+	/* No need to schedule nodes of invisible ID. */
+	if (!check_operation_node_visible(node)) {
+		return;
+	}
+	/* No need to schedule operations which are not tagged for update, they are
+	 * considered to be up to date.
+	 */
+	if ((node->flag & DEPSOP_FLAG_NEEDS_UPDATE) == 0) {
+		return;
+	}
+	/* TODO(sergey): This is not strictly speaking safe to read
+	 * num_links_pending.
+  */
+	if (dec_parents) {
+		BLI_assert(node->num_links_pending > 0);
+		atomic_sub_and_fetch_uint32(&node->num_links_pending, 1);
+	}
+	/* Cal not schedule operation while its dependencies are not yet
+	 * evaluated.
+	 */
+	if (node->num_links_pending != 0) {
+		return;
+	}
+	bool is_scheduled = atomic_fetch_and_or_uint8(
+	        (uint8_t *)&node->scheduled, (uint8_t)true);
+	if (!is_scheduled) {
+		if (node->is_noop()) {
+			/* skip NOOP node, schedule children right away */
+			schedule_children(pool, graph, node, thread_id);
 		}
-
-		if (node->num_links_pending == 0) {
-			bool is_scheduled = atomic_fetch_and_or_uint8(
-			        (uint8_t *)&node->scheduled, (uint8_t)true);
-			if (!is_scheduled) {
-				if (node->is_noop()) {
-					/* skip NOOP node, schedule children right away */
-					schedule_children(pool, graph, node, thread_id);
-				}
-				else {
-					/* children are scheduled once this task is completed */
-					BLI_task_pool_push_from_thread(pool,
-					                               deg_task_run_func,
-					                               node,
-					                               false,
-					                               TASK_PRIORITY_HIGH,
-					                               thread_id);
-				}
-			}
+		else {
+			/* children are scheduled once this task is completed */
+			BLI_task_pool_push_from_thread(pool,
+			                               deg_task_run_func,
+			                               node,
+			                               false,
+			                               TASK_PRIORITY_HIGH,
+			                               thread_id);
 		}
 	}
 }

@@ -163,11 +163,11 @@ struct DepsgraphNodeBuilder {
 	void build_view_layer(Scene *scene,
 	                      ViewLayer *view_layer,
 	                      eDepsNode_LinkedState_Type linked_state);
-	void build_collection(eDepsNode_CollectionOwner owner_type,
-	                      Collection *collection);
+	void build_collection(Collection *collection);
 	void build_object(int base_index,
 	                  Object *object,
-	                  eDepsNode_LinkedState_Type linked_state);
+	                  eDepsNode_LinkedState_Type linked_state,
+	                  bool is_visible = true);
 	void build_object_flags(int base_index,
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
@@ -245,6 +245,10 @@ protected:
 	Scene *scene_;
 	ViewLayer *view_layer_;
 	int view_layer_index_;
+	/* NOTE: Collection are possibly built recursively, so be careful when
+	 * setting the current state.
+	 */
+	Collection *collection_;
 
 	GHash *cow_id_hash_;
 	BuilderMap built_map_;

@@ -75,7 +75,7 @@ void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
 			continue;
 		}
 		if ((lc->flag & LAYER_COLLECTION_EXCLUDE) == 0) {
-			build_collection(DEG_COLLECTION_OWNER_SCENE, lc->collection);
+			build_collection(lc->collection);
 		}
 		build_layer_collections(&lc->layer_collections);
 	}
@@ -108,10 +108,9 @@ void DepsgraphNodeBuilder::build_view_layer(
 		BASE_ENABLED_VIEWPORT : BASE_ENABLED_RENDER;
 	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		if (base->flag & base_flag) {
-			build_object(base_index, base->object, linked_state);
-			base->object->select_color = select_color++;
-		}
+		const bool is_object_visible = (base->flag & base_flag);
+		build_object(base_index, base->object, linked_state, is_object_visible);
+		base->object->select_color = select_color++;
 		++base_index;
 	}
 	build_layer_collections(&view_layer->layer_collections);

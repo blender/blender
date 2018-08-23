@@ -141,6 +141,8 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
       graph_(graph),
       scene_(NULL),
       view_layer_(NULL),
+      view_layer_index_(-1),
+      collection_(NULL),
       cow_id_hash_(NULL)
 {
 }
@@ -394,7 +396,7 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 			build_camera((Camera *)id);
 			break;
 		case ID_GR:
-			build_collection(DEG_COLLECTION_OWNER_UNKNOWN, (Collection *)id);
+			build_collection((Collection *)id);
 			break;
 		case ID_OB:
 			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
@@ -445,46 +447,49 @@ void DepsgraphNodeBuilder::build_id(ID *id) {
 	}
 }
 
-void DepsgraphNodeBuilder::build_collection(
-        eDepsNode_CollectionOwner owner_type,
-        Collection *collection)
+void DepsgraphNodeBuilder::build_collection(Collection *collection)
 {
 	if (built_map_.checkIsBuiltAndTag(collection)) {
+		/* NOTE: Currently collections restrict flags only depend on collection
+		 * itself and do not depend on a "context" (like, particle system
+		 * visibility).
+		 *
+		 * If we ever change this, we need to update restrict flag here for an
+		 * already built collection.
+		 */
 		return;
 	}
-	const bool allow_restrict_flags = (owner_type == DEG_COLLECTION_OWNER_SCENE);
-	if (allow_restrict_flags) {
-		const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
-		        ? COLLECTION_RESTRICT_VIEW
-		        : COLLECTION_RESTRICT_RENDER;
-		if (collection->flag & restrict_flag) {
-			return;
-		}
-	}
+	Collection *current_state_collection = collection_;
+	collection_ = collection;
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+	        ? COLLECTION_RESTRICT_VIEW
+	        : COLLECTION_RESTRICT_RENDER;
+	const bool is_parent_collection_restricted =
+	        (current_state_collection == NULL)
+	                ? false
+	                : (current_state_collection->flag & restrict_flag);
+	const bool is_collection_restricted = (collection->flag & restrict_flag);
+	const bool is_collection_visible =
+	        !is_collection_restricted && !is_parent_collection_restricted;
 	/* Collection itself. */
-	add_id_node(&collection->id);
+	IDDepsNode *id_node = add_id_node(&collection->id);
+	id_node->is_visible = is_collection_visible;
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
-		if (allow_restrict_flags) {
-			const int restrict_flag = (
-			        (graph_->mode == DAG_EVAL_VIEWPORT) ?
-			        OB_RESTRICT_VIEW :
-			        OB_RESTRICT_RENDER);
-			if (cob->ob->restrictflag & restrict_flag) {
-				continue;
-			}
-		}
-		build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY);
+		build_object(
+		        -1, cob->ob, DEG_ID_LINKED_INDIRECTLY, is_collection_visible);
 	}
 	/* Build child collections. */
 	LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
-		build_collection(owner_type, child->collection);
+		build_collection(child->collection);
 	}
+	collection_ = current_state_collection;
 }
 
 void DepsgraphNodeBuilder::build_object(int base_index,
                                         Object *object,
-                                        eDepsNode_LinkedState_Type linked_state)
+                                        eDepsNode_LinkedState_Type linked_state,
+                                        bool is_visible)
 {
 	const bool has_object = built_map_.checkIsBuiltAndTag(object);
 	/* Skip rest of components if the ID node was already there. */
@@ -497,11 +502,13 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 			build_object_flags(base_index, object, linked_state);
 		}
 		id_node->linked_state = max(id_node->linked_state, linked_state);
+		id_node->is_visible |= is_visible;
 		return;
 	}
 	/* Create ID node for object and begin init. */
 	IDDepsNode *id_node = add_id_node(&object->id);
 	id_node->linked_state = linked_state;
+	id_node->is_visible = is_visible;
 	object->customdata_mask = 0;
 	/* Various flags, flushing from bases/collections. */
 	build_object_flags(base_index, object, linked_state);
@@ -562,7 +569,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
-		build_collection(DEG_COLLECTION_OWNER_OBJECT, object->dup_group);
+		build_collection(object->dup_group);
 	}
 }
 
@@ -953,7 +960,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		build_collection(DEG_COLLECTION_OWNER_OBJECT, rbw->group);
+		build_collection(rbw->group);
 
 		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 		{
@@ -1029,7 +1036,7 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
-					build_collection(DEG_COLLECTION_OWNER_OBJECT, part->dup_group);
+					build_collection(part->dup_group);
 				}
 				break;
 		}
