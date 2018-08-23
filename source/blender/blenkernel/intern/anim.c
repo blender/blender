@@ -340,7 +340,7 @@ static void motionpaths_calc_update_scene(Main *bmain,
 /* ........ */
 
 /* perform baking for the targets on the current frame */
-static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
+static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 {
 	MPathTarget *mpt;
 
@@ -352,12 +352,12 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		/* current frame must be within the range the cache works for
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
-		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame)) {
+		if ((cframe < mpath->start_frame) || (cframe >= mpath->end_frame)) {
 			continue;
 		}
 
 		/* get the relevant cache vert to write to */
-		mpv = mpath->points + (CFRA - mpath->start_frame);
+		mpv = mpath->points + (cframe - mpath->start_frame);
 
 		Object *ob_eval = mpt->ob_eval;
 
@@ -386,7 +386,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 			copy_v3_v3(mpv->co, ob_eval->obmat[3]);
 		}
 
-		float mframe = (float)(CFRA);
+		float mframe = (float)(cframe);
 
 		/* Tag if it's a keyframe */
 		if (BLI_dlrbTree_search_exact(&mpt->keys, compare_ak_cfraPtr, &mframe)) {
@@ -471,7 +471,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		motionpaths_calc_update_scene(bmain, depsgraph);
 
 		/* perform baking for targets */
-		motionpaths_calc_bake_targets(scene, targets);
+		motionpaths_calc_bake_targets(targets, CFRA);
 	}
 
 	/* reset original environment */
