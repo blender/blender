@@ -81,7 +81,7 @@ struct RetainedIdUserData {
 /* Helper for DEG_foreach_ancestor_id()
  * Keep track of all ID's encountered in a set
  */
-void deg_add_retained_id_cb(ID *id, void *user_data)
+static void deg_add_retained_id_cb(ID *id, void *user_data)
 {
 	RetainedIdUserData *data = (RetainedIdUserData *)user_data;
 	BLI_gset_add(data->set, (void *)id);
@@ -91,7 +91,7 @@ void deg_add_retained_id_cb(ID *id, void *user_data)
 
 /* Remove relations pointing to the given OperationDepsNode */
 /* TODO: Make this part of OperationDepsNode? */
-void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
+static void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 {
 	std::vector<DepsRelation *> all_links;
 
@@ -117,7 +117,7 @@ void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 }
 
 /* Remove every ID Node (and its associated subnodes, COW data) */
-void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
+static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 {
 	/* 1) First pass over ID nodes + their operations
 	 * - Identify and tag ID's (via "done = 1") to be removed
@@ -163,7 +163,7 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	{
 		IDDepsNode *id_node = *it_id;
 		ID *id = id_node->id_orig;
-		
+
 		if (id_node->done) {
 			/* Destroy node data, then remove from collections, and free */
 			id_node->destroy();
@@ -213,7 +213,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
 		/* Target Itself */
 		BLI_gset_add(retained_ids, (void *)target->id);
-		
+
 		/* Target's Ancestors (i.e. things it depends on) */
 		DEG_foreach_ancestor_ID(graph_new,
 		                        target->id,
@@ -244,7 +244,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 
 	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
 	DEG_stats_simple(graph_new, &n_outer, &n_operations, &n_relations);
-	
+
 	printf("%s: src = (ID's: %zu (%u), Out: %zu, Op: %zu, Rel: %zu)\n",
 	       __func__, s_ids, s_idh, s_outer, s_operations, s_relations);
 	printf("%s: new = (ID's: %zu (%u), Out: %zu, Op: %zu, Rel: %zu)\n",
