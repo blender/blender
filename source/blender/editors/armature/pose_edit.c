@@ -203,24 +203,21 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	/* Override depsgraph with a filtered, simpler copy */
 	if (G.debug_value == 555) {
 TIMEIT_START(filter_pose_depsgraph);
-		
 		DEG_FilterQuery query = {0};
-		
+
 		DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
 		dft_ob->id = &ob->id;
 		BLI_addtail(&query.targets, dft_ob);
-		
+
 		depsgraph = DEG_graph_filter(depsgraph, bmain, &query);
 		free_depsgraph = true;
-		
+
 		MEM_freeN(dft_ob);
 TIMEIT_END(filter_pose_depsgraph);
-		
+
 TIMEIT_START(filter_pose_update);
 		BKE_scene_graph_update_tagged(depsgraph, bmain);
 TIMEIT_END(filter_pose_update);
-
-		//scene = DEG_get_evaluated_scene(depsgraph);  /* NOTE: Don't pass in evaluated scene, or else COW will keep overwriting the cfra */
 	}
 
 	/* set flag to force recalc, then grab the relevant bones to target */
@@ -235,7 +232,7 @@ TIMEIT_END(pose_path_calc);
 
 	/* tag armature object for copy on write - so paths will draw/redraw */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
-	
+
 	/* Free temporary depsgraph instance */
 	if (free_depsgraph) {
 		DEG_graph_free(depsgraph);

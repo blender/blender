@@ -94,7 +94,7 @@ void deg_add_retained_id_cb(ID *id, void *user_data)
 void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 {
 	std::vector<DepsRelation *> all_links;
-	
+
 	/* Collect all inlinks to this operation */
 	foreach (DepsRelation *rel, op_node->inlinks) {
 		all_links.push_back(rel);
@@ -103,13 +103,13 @@ void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 	foreach (DepsRelation *rel, op_node->outlinks) {
 		all_links.push_back(rel);
 	}
-	
+
 	/* Delete all collected relations */
 	foreach (DepsRelation *rel, all_links) {
 		rel->unlink();
 		OBJECT_GUARDED_DELETE(rel, DepsRelation);
 	}
-	
+
 	/* Remove from entry tags */
 	if (BLI_gset_haskey(graph->entry_tags, op_node)) {
 		BLI_gset_remove(graph->entry_tags, op_node, NULL);
@@ -135,7 +135,7 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 			GHASH_FOREACH_END();
 		}
 	}
-	
+
 	/* 2) Remove unwanted operations from graph->operations */
 	for (Depsgraph::OperationNodes::const_iterator it_opnode = graph->operations.begin();
 	     it_opnode != graph->operations.end();
@@ -150,7 +150,7 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 			++it_opnode;
 		}
 	}
-	
+
 	/* Free ID nodes that are no longer wanted
 	 *
 	 * This is loosely based on Depsgraph::clear_id_nodes().
@@ -166,17 +166,15 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 		
 		if (id_node->done) {
 			/* Destroy node data, then remove from collections, and free */
-			//printf("  culling %s\n", id->name);
 			id_node->destroy();
-			
+
 			BLI_ghash_remove(graph->id_hash, id, NULL, NULL);
 			it_id = graph->id_nodes.erase(it_id);
-			
+
 			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 		}
 		else {
 			/* This node has not been marked for deletion. Increment iterator */
-			//printf("  skipping %s\n", id->name);
 			++it_id;
 		}
 	}
@@ -194,7 +192,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	if (deg_graph_src == NULL) {
 		return NULL;
 	}
-	
+
 	/* Construct a full new depsgraph based on the one we got */
 	/* TODO: Improve the builders to not add any ID nodes we don't need later (e.g. ProxyBuilder?) */
 	Depsgraph *graph_new = DEG_graph_new(deg_graph_src->scene,
@@ -204,11 +202,11 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	                                bmain,
 	                                deg_graph_src->scene,
 	                                deg_graph_src->view_layer);
-	
+
 	/* Build a set of all the id's we want to keep */
 	GSet *retained_ids = BLI_gset_ptr_new(__func__);
 	DEG::RetainedIdUserData retained_id_data = {query, retained_ids};
-	
+
 	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
 		/* Target Itself */
 		BLI_gset_add(retained_ids, (void *)target->id);
@@ -219,47 +217,36 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 		                        DEG::deg_add_retained_id_cb,
 		                        &retained_id_data);
 	}
-	
+
 	/* Remove everything we don't want to keep around anymore */
 	DEG::Depsgraph *deg_graph_new = reinterpret_cast<DEG::Depsgraph *>(graph_new);
 	if (BLI_gset_len(retained_ids) > 0) {
 		DEG::deg_filter_remove_unwanted_ids(deg_graph_new, retained_ids);
 	}
 	// TODO: query->LOD filters
-	
+
 	/* Free temp data */
 	BLI_gset_free(retained_ids, NULL);
 	retained_ids = NULL;
-	
+
 	/* Debug - Are the desired targets still in there? */
-#if 0
-	printf("Filtered Graph Sanity Check - Do targets exist?:\n");
-	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
-		printf("   %s -> %d\n", target->id->name, BLI_ghash_haskey(deg_graph_new->id_hash, target->id));
-	}
-	printf("Filtered Graph Sanity Check - Remaining ID Nodes:\n");
-	size_t id_node_idx = 0;
-	foreach (DEG::IDDepsNode *id_node, deg_graph_new->id_nodes) {
-		printf("  %d: %s\n", id_node_idx++, id_node->id_orig->name);
-	}
-#endif
-	
+
 	/* Print Stats */
 	// XXX: Hide behind debug flags
 	size_t s_outer, s_operations, s_relations;
 	size_t s_ids = deg_graph_src->id_nodes.size();
 	unsigned int s_idh = BLI_ghash_len(deg_graph_src->id_hash);
-	
+
 	size_t n_outer, n_operations, n_relations;
 	size_t n_ids = deg_graph_new->id_nodes.size();
 	unsigned int n_idh = BLI_ghash_len(deg_graph_new->id_hash);
-	
+
 	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
 	DEG_stats_simple(graph_new, &n_outer, &n_operations, &n_relations);
 	
 	printf("%s: src = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, s_ids, s_idh, s_outer, s_operations, s_relations); // XXX
 	printf("%s: new = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, n_ids, n_idh, n_outer, n_operations, n_relations); // XXX
-	
+
 	/* Return this new graph instance */
 	return graph_new;
 }
