@@ -150,7 +150,6 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -165,31 +164,70 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
             col.prop(cscene, "preview_samples", text="Viewport")
             col.separator()
             col.prop(cscene, "use_square_samples")  # Duplicate below.
+
+
+class CYCLES_RENDER_PT_sampling_aa_samples(CyclesButtonsPanel, Panel):
+    bl_label = "AA Samples"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+
+    @classmethod
+    def poll(self, context):
+        scene = context.scene
+        cscene = scene.cycles
+        if cscene.progressive == 'PATH' or use_branched_path(context) is False:
+            return False
         else:
+            return True
 
-            col = layout.column(align=True)
-            col.label(text="AA Samples")
-            col.prop(cscene, "aa_samples", text="Render")
-            col.prop(cscene, "preview_aa_samples", text="Preview")
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
 
-            col = layout.column(align=True)
-            col.label(text="Samples")
-            col.prop(cscene, "diffuse_samples", text="Diffuse")
-            col.prop(cscene, "glossy_samples", text="Glossy")
-            col.prop(cscene, "transmission_samples", text="Transmission")
-            col.prop(cscene, "ao_samples", text="AO")
+        scene = context.scene
+        cscene = scene.cycles
 
-            sub = col.row(align=True)
-            sub.active = use_sample_all_lights(context)
-            sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
-            col.prop(cscene, "subsurface_samples", text="Subsurface")
-            col.prop(cscene, "volume_samples", text="Volume")
-            col.separator()
-            col.prop(cscene, "use_square_samples")  # Duplicate above.
+        col = layout.column(align=True)
+        col.prop(cscene, "aa_samples", text="Render")
+        col.prop(cscene, "preview_aa_samples", text="Preview")
 
-            col = layout.column(align=True)
-            col.prop(cscene, "sample_all_lights_direct")
-            col.prop(cscene, "sample_all_lights_indirect")
+
+class CYCLES_RENDER_PT_sampling_samples(CyclesButtonsPanel, Panel):
+    bl_label = "Samples"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+
+    @classmethod
+    def poll(self, context):
+        scene = context.scene
+        cscene = scene.cycles
+        if cscene.progressive == 'PATH' or use_branched_path(context) is False:
+            return False
+        else:
+            return True
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        col = layout.column(align=True)
+        col.prop(cscene, "diffuse_samples", text="Diffuse")
+        col.prop(cscene, "glossy_samples", text="Glossy")
+        col.prop(cscene, "transmission_samples", text="Transmission")
+        col.prop(cscene, "ao_samples", text="AO")
+
+        sub = col.row(align=True)
+        sub.active = use_sample_all_lights(context)
+        sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
+        col.prop(cscene, "subsurface_samples", text="Subsurface")
+        col.prop(cscene, "volume_samples", text="Volume")
+        col.separator()
+        col.prop(cscene, "use_square_samples")  # Duplicate above.
+
+        col = layout.column(align=True)
+        col.prop(cscene, "sample_all_lights_direct")
+        col.prop(cscene, "sample_all_lights_indirect")
 
         row = layout.row(align=True)
         row.prop(cscene, "seed")
@@ -1810,6 +1848,8 @@ classes = (
     CYCLES_MT_sampling_presets,
     CYCLES_MT_integrator_presets,
     CYCLES_RENDER_PT_sampling,
+    CYCLES_RENDER_PT_sampling_aa_samples,
+    CYCLES_RENDER_PT_sampling_samples,
     CYCLES_RENDER_PT_sampling_light,
     CYCLES_RENDER_PT_geometry,
     CYCLES_RENDER_PT_geometry_subdivision,
