@@ -1033,7 +1033,7 @@ void uiTemplateIDPreview(
 void uiTemplateIDTabs(
         uiLayout *layout, struct bContext *C,
         PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *unlinkop,
+        const char *newop, const char *openop, const char *menu,
         int filter);
 void uiTemplateAnyID(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,
@@ -1221,6 +1221,7 @@ void UI_context_active_but_prop_get_filebrowser(
 void UI_context_active_but_prop_get_templateID(
         struct bContext *C,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop);
+struct ID *UI_context_active_but_get_tab_ID(struct bContext *C);
 
 uiBut *UI_region_active_but_get(struct ARegion *ar);
 

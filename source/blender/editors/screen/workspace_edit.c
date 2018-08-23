@@ -256,23 +256,36 @@ void ED_workspace_scene_data_sync(
  *
  * \{ */
 
+static WorkSpace *workspace_context_get(bContext *C)
+{
+	ID *id = UI_context_active_but_get_tab_ID(C);
+	if (id && GS(id->name) == ID_WS) {
+		return (WorkSpace *)id;
+	}
+
+	wmWindow *win = CTX_wm_window(C);
+	return WM_window_get_active_workspace(win);
+}
+
 static int workspace_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	wmWindow *win = CTX_wm_window(C);
-	WorkSpace *workspace = ED_workspace_duplicate(WM_window_get_active_workspace(win), bmain, win);
+	WorkSpace *workspace = workspace_context_get(C);
+
+	workspace = ED_workspace_duplicate(workspace, bmain, win);
 
 	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace);
 
 	return OPERATOR_FINISHED;
 }
 
-static void WORKSPACE_OT_workspace_duplicate(wmOperatorType *ot)
+static void WORKSPACE_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "New Workspace";
 	ot->description = "Add a new workspace";
-	ot->idname = "WORKSPACE_OT_workspace_duplicate";
+	ot->idname = "WORKSPACE_OT_duplicate";
 
 	/* api callbacks */
 	ot->exec = workspace_new_exec;
@@ -281,19 +294,18 @@ static void WORKSPACE_OT_workspace_duplicate(wmOperatorType *ot)
 
 static int workspace_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	wmWindow *win = CTX_wm_window(C);
-
-	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, WM_window_get_active_workspace(win));
+	WorkSpace *workspace = workspace_context_get(C);
+	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, workspace);
 
 	return OPERATOR_FINISHED;
 }
 
-static void WORKSPACE_OT_workspace_delete(wmOperatorType *ot)
+static void WORKSPACE_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Workspace";
 	ot->description = "Delete the active workspace";
-	ot->idname = "WORKSPACE_OT_workspace_delete";
+	ot->idname = "WORKSPACE_OT_delete";
 
 	/* api callbacks */
 	ot->exec = workspace_delete_exec;
@@ -482,7 +494,7 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
-	uiItemO(layout, "Duplicate Current", ICON_NONE, "WORKSPACE_OT_workspace_duplicate");
+	uiItemO(layout, "Duplicate Current", ICON_NONE, "WORKSPACE_OT_duplicate");
 	workspace_config_file_append_buttons(layout, bmain, op->reports);
 
 	UI_popup_menu_end(C, pup);
@@ -490,13 +502,13 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 	return OPERATOR_INTERFACE;
 }
 
-static void WORKSPACE_OT_workspace_add_menu(wmOperatorType *ot)
+static void WORKSPACE_OT_add_menu(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Workspace";
 	ot->description = "Add a new workspace by duplicating the current one or appending one "
 	                  "from the user configuration";
-	ot->idname = "WORKSPACE_OT_workspace_add_menu";
+	ot->idname = "WORKSPACE_OT_add_menu";
 
 	/* api callbacks */
 	ot->invoke = workspace_add_invoke;
@@ -504,9 +516,9 @@ static void WORKSPACE_OT_workspace_add_menu(wmOperatorType *ot)
 
 void ED_operatortypes_workspace(void)
 {
-	WM_operatortype_append(WORKSPACE_OT_workspace_duplicate);
-	WM_operatortype_append(WORKSPACE_OT_workspace_delete);
-	WM_operatortype_append(WORKSPACE_OT_workspace_add_menu);
+	WM_operatortype_append(WORKSPACE_OT_duplicate);
+	WM_operatortype_append(WORKSPACE_OT_delete);
+	WM_operatortype_append(WORKSPACE_OT_add_menu);
 	WM_operatortype_append(WORKSPACE_OT_append_activate);
 }
 

@@ -322,7 +322,7 @@ struct uiBut {
 
 typedef struct uiButTab {
 	uiBut but;
-	struct wmOperatorType *unlink_ot;
+	struct MenuType *menu;
 } uiButTab;
 
 typedef struct ColorPicker {

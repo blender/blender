@@ -47,8 +47,8 @@ class TOPBAR_HT_upper_bar(Header):
         if not screen.show_fullscreen:
             layout.template_ID_tabs(
                 window, "workspace",
-                new="workspace.workspace_add_menu",
-                unlink="workspace.workspace_delete",
+                new="workspace.add_menu",
+                menu="TOPBAR_MT_workspace_menu",
             )
         else:
             layout.operator(
@@ -622,11 +622,23 @@ class TOPBAR_MT_window_specials(Menu):
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
 
+class TOPBAR_MT_workspace_menu(Menu):
+    bl_label = "Workspace"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("workspace.duplicate", text="Duplicate")
+        if len(bpy.data.workspaces) > 1:
+            layout.operator("workspace.delete", text="Delete")
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
     TOPBAR_MT_file_specials,
     TOPBAR_MT_window_specials,
+    TOPBAR_MT_workspace_menu,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,

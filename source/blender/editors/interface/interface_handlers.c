@@ -3763,17 +3763,6 @@ static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			return WM_UI_HANDLER_BREAK;
 		}
 		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && (event->val == KM_CLICK)) {
-			const bool has_icon_extra = ui_but_icon_extra_get(but) == UI_BUT_ICONEXTRA_CLEAR;
-
-			if (has_icon_extra && ui_but_is_mouse_over_icon_extra(data->region, but, &event->x)) {
-				uiButTab *tab = (uiButTab *)but;
-				wmOperatorType *ot_backup = but->optype;
-
-				but->optype = tab->unlink_ot;
-				/* Force calling unlink/delete operator. */
-				ui_apply_but(C, block, but, data, true);
-				but->optype = ot_backup;
-			}
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_BREAK;
 		}
@@ -8910,7 +8899,6 @@ static int ui_handle_menu_event(
 			else {
 
 				/* check mouse moving outside of the menu */
-				//printf("inside %d mm quit %d\n", inside, block->flag & (UI_BLOCK_MOVEMOUSE_QUIT);
 				if (inside == 0 && (block->flag & (UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_POPOVER))) {
 					uiSafetyRct *saferct;
 

@@ -2075,7 +2075,7 @@ static bool ui_but_icon_extra_is_visible_text_clear(const uiBut *but)
 
 static bool ui_but_icon_extra_is_visible_search_unlink(const uiBut *but)
 {
-	BLI_assert(ELEM(but->type, UI_BTYPE_SEARCH_MENU, UI_BTYPE_TAB));
+	BLI_assert(ELEM(but->type, UI_BTYPE_SEARCH_MENU));
 	return ((but->editstr == NULL) &&
 	        (but->drawstr[0] != '\0') &&
 	        (but->flag & UI_BUT_VALUE_CLEAR));
@@ -2116,11 +2116,6 @@ uiButExtraIconType ui_but_icon_extra_get(uiBut *but)
 			}
 			else if (ui_but_icon_extra_is_visible_search_eyedropper(but)) {
 				return UI_BUT_ICONEXTRA_EYEDROPPER;
-			}
-			break;
-		case UI_BTYPE_TAB:
-			if (ui_but_icon_extra_is_visible_search_unlink(but)) {
-				return UI_BUT_ICONEXTRA_CLEAR;
 			}
 			break;
 		default:
@@ -3095,7 +3090,6 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 
 		case UI_BTYPE_TEXT:
 		case UI_BTYPE_SEARCH_MENU:
-		case UI_BTYPE_TAB:
 			if (!but->editstr) {
 				char str[UI_MAX_DRAW_STR];
 

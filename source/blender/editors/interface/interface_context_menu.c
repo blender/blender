@@ -361,7 +361,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 	}
 
-	if (but->rnapoin.data && but->rnaprop) {
+	if (but->type == UI_BTYPE_TAB) {
+		uiButTab *tab = (uiButTab *)but;
+		if (tab->menu) {
+			UI_menutype_draw(C, tab->menu, layout);
+			uiItemS(layout);
+		}
+	}
+	else if (but->rnapoin.data && but->rnaprop) {
 		PointerRNA *ptr = &but->rnapoin;
 		PropertyRNA *prop = but->rnaprop;
 		const PropertyType type = RNA_property_type(prop);

@@ -822,38 +822,45 @@ static void template_ID(
 	UI_block_align_end(block);
 }
 
+
+ID *UI_context_active_but_get_tab_ID(bContext *C)
+{
+	uiBut *but = UI_context_active_but_get(C);
+
+	if (but && but->type == UI_BTYPE_TAB) {
+		return but->custom_data;
+	}
+	else {
+		return NULL;
+	}
+}
+
 static void template_ID_tabs(
         bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag,
-        const char *newop, const char *UNUSED(openop), const char *unlinkop)
+        const char *newop, const char *UNUSED(openop), const char *menu)
 {
 	const ARegion *region = CTX_wm_region(C);
 	const PointerRNA active_ptr = RNA_property_pointer_get(&template->ptr, template->prop);
+	MenuType *mt = WM_menutype_find(menu, false);
+
 	const int but_align = (region->alignment == RGN_ALIGN_TOP) ? UI_BUT_ALIGN_DOWN : UI_BUT_ALIGN_TOP;
 	const int but_height = UI_UNIT_Y * 1.1;
 
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiStyle *style = UI_style_get_dpi();
 
-
 	for (ID *id = template->idlb->first; id; id = id->next) {
-		wmOperatorType *unlink_ot = WM_operatortype_find(unlinkop, false);
-		const bool is_active = active_ptr.data == id;
-		const unsigned int but_width = (
-		        UI_fontstyle_string_width(&style->widgetlabel, id->name + 2) + UI_UNIT_X +
-		        (is_active ? ICON_DEFAULT_WIDTH_SCALE : 0));
-		uiButTab *tab;
+		const int name_width = UI_fontstyle_string_width(&style->widgetlabel, id->name + 2);
+		const int but_width = name_width + UI_UNIT_X;
 
-		tab = (uiButTab *)uiDefButR_prop(
-		        block, UI_BTYPE_TAB, 0, "", 0, 0, but_width, UI_UNIT_Y * 1.1,
+		uiButTab *tab = (uiButTab *)uiDefButR_prop(
+		        block, UI_BTYPE_TAB, 0, id->name + 2, 0, 0, but_width, but_height,
 		        &template->ptr, template->prop, 0, 0.0f,
 		        sizeof(id->name) - 2, 0.0f, 0.0f, "");
 		UI_but_funcN_set(&tab->but, template_ID_set_property_cb, MEM_dupallocN(template), id);
 		tab->but.custom_data = (void *)id;
-		tab->unlink_ot = unlink_ot;
+		tab->menu = mt;
 
-		if (is_active) {
-			UI_but_flag_enable(&tab->but, UI_BUT_VALUE_CLEAR);
-		}
 		UI_but_drawflag_enable(&tab->but, but_align);
 	}
 
