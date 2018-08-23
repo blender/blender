@@ -191,7 +191,7 @@ class AddTorus(Operator, object_utils.AddObjectHelper):
     generate_uvs: BoolProperty(
         name="Generate UVs",
         description="Generate a default UV map",
-        default=False,
+        default=True,
     )
 
     def draw(self, context):
