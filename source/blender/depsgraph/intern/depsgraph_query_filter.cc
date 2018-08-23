@@ -116,61 +116,6 @@ void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 	}
 }
 
-/* Remove and free given ID Node */
-// XXX: Use id_cow or id_orig?
-bool deg_filter_free_idnode(Depsgraph *graph, IDDepsNode *id_node,
-                            const std::function <bool (ID_Type id_type)>& filter)
-{
-	if (id_node->done == 0) {
-		/* This node has not been marked for deletion */
-		return false;
-	}
-	else {
-		const ID_Type id_type = GS(id_node->id_orig->name);
-		if (filter(id_type)) {
-			//printf("  id_type (T) = %d ");
-			id_node->destroy();
-			return true;
-		}
-		else {
-			//printf("  id_type (F) = %d ");
-			return false;
-		}
-	}
-}
-
-/* Remove and free ID Nodes of a particular type from the graph
- *
- * See Depsgraph::clear_id_nodes() and Depsgraph::clear_id_nodes_conditional()
- * for more details about why we need these type filters
- */
-void deg_filter_clear_ids_conditional(
-        Depsgraph *graph,
-        const std::function <bool (ID_Type id_type)>& filter)
-{
-	/* Based on Depsgraph::clear_id_nodes_conditional()... */
-	for (Depsgraph::IDDepsNodes::const_iterator it = graph->id_nodes.begin();
-	     it != graph->id_nodes.end();
-	     )
-	{
-		IDDepsNode *id_node = *it;
-		ID *id = id_node->id_orig;
-		
-		if (deg_filter_free_idnode(graph, id_node, filter)) {
-			/* Node data got destroyed. Remove from collections, and free */
-			//printf("  culling %s\n", id->name);
-			BLI_ghash_remove(graph->id_hash, id, NULL, NULL);
-			it = graph->id_nodes.erase(it);
-			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
-		}
-		else {
-			/* Node wasn't freed. Increment iterator */
-			//printf("  skipping %s\n", id->name);
-			++it;
-		}
-	}
-}
-
 /* Remove every ID Node (and its associated subnodes, COW data) */
 void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 {
@@ -207,13 +152,34 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	}
 	
 	/* Free ID nodes that are no longer wanted
-	 * NOTE: See clear_id_nodes() for more details about what's happening here
-	 *       (e.g. regarding the lambdas used for freeing order hacks)
+	 *
+	 * This is loosely based on Depsgraph::clear_id_nodes().
+	 * However, we don't worry about the conditional freeing for physics
+	 * stuff, since it's rarely needed currently.
 	 */
-	printf("Culling ID's scene:\n");
-	deg_filter_clear_ids_conditional(graph,  [](ID_Type id_type) { return id_type == ID_SCE; });
-	printf("Culling ID's other:\n");
-	deg_filter_clear_ids_conditional(graph,  [](ID_Type id_type) { return id_type != ID_PA; });
+	for (Depsgraph::IDDepsNodes::const_iterator it_id = graph->id_nodes.begin();
+	     it_id != graph->id_nodes.end();
+	     )
+	{
+		IDDepsNode *id_node = *it_id;
+		ID *id = id_node->id_orig;
+		
+		if (id_node->done) {
+			/* Destroy node data, then remove from collections, and free */
+			//printf("  culling %s\n", id->name);
+			id_node->destroy();
+			
+			BLI_ghash_remove(graph->id_hash, id, NULL, NULL);
+			it_id = graph->id_nodes.erase(it_id);
+			
+			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
+		}
+		else {
+			/* This node has not been marked for deletion. Increment iterator */
+			//printf("  skipping %s\n", id->name);
+			++it_id;
+		}
+	}
 }
 
 } //namespace DEG
