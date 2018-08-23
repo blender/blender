@@ -295,7 +295,7 @@ static void axis_geom_draw(const wmGizmo *gz, const float color[4], const bool U
 				GPU_line_width(1.0f);
 				float m3[3][3];
 				copy_m3_m4(m3, gz->matrix_offset);
-				immUniformColor4fv(is_highlight ? axis_black : axis_highlight);
+				immUniformColor4fv(axis_black);
 				draw_xyz_wire(pos_id, m3, v_final, 1.0, axis);
 			}
 		}
