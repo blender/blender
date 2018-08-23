@@ -4330,6 +4330,18 @@ void MESH_OT_select_ungrouped(wmOperatorType *ot)
 /** \name Select Axis Operator
  * \{ */
 
+enum {
+	SELECT_AXIS_POSITIVE = 0,
+	SELECT_AXIS_NEGATIVE = 1,
+	SELECT_AXIS_ALIGNED = 2,
+};
+
+enum {
+	SELECT_AXIS_X = 0,
+	SELECT_AXIS_Y = 1,
+	SELECT_AXIS_Z = 2,
+};
+
 /* BMESH_TODO - some way to select on an arbitrary axis */
 static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 {
@@ -4338,7 +4350,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 	BMesh *bm = em->bm;
 	BMVert *v_act = BM_mesh_active_vert_get(bm);
 	const int axis = RNA_enum_get(op->ptr, "axis");
-	const int mode = RNA_enum_get(op->ptr, "mode"); /* -1 == aligned, 0 == neg, 1 == pos */
+	const int mode = RNA_enum_get(op->ptr, "mode");
 
 	if (v_act == NULL) {
 		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
@@ -4350,23 +4362,25 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		const float limit = RNA_float_get(op->ptr, "threshold");
 		float value = v_act->co[axis];
 
-		if (mode == 0)
+		if (mode == SELECT_AXIS_NEGATIVE) {
 			value -= limit;
-		else if (mode == 1)
+		}
+		else if (mode == SELECT_AXIS_POSITIVE) {
 			value += limit;
+		}
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 				switch (mode) {
-					case -1: /* aligned */
+					case SELECT_AXIS_ALIGNED:
 						if (fabsf(v->co[axis] - value) < limit)
 							BM_vert_select_set(bm, v, true);
 						break;
-					case 0: /* neg */
+					case SELECT_AXIS_NEGATIVE:
 						if (v->co[axis] > value)
 							BM_vert_select_set(bm, v, true);
 						break;
-					case 1: /* pos */
+					case SELECT_AXIS_POSITIVE:
 						if (v->co[axis] < value)
 							BM_vert_select_set(bm, v, true);
 						break;
@@ -4384,16 +4398,16 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 void MESH_OT_select_axis(wmOperatorType *ot)
 {
 	static const EnumPropertyItem axis_mode_items[] = {
-		{0,  "POSITIVE", 0, "Positive Axis", ""},
-		{1,  "NEGATIVE", 0, "Negative Axis", ""},
-		{-1, "ALIGNED",  0, "Aligned Axis", ""},
+		{SELECT_AXIS_POSITIVE,  "POSITIVE", 0, "Positive Axis", ""},
+		{SELECT_AXIS_NEGATIVE,  "NEGATIVE", 0, "Negative Axis", ""},
+		{SELECT_AXIS_ALIGNED, "ALIGNED",  0, "Aligned Axis", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem axis_items_xyz[] = {
-		{0, "X_AXIS", 0, "X Axis", ""},
-		{1, "Y_AXIS", 0, "Y Axis", ""},
-		{2, "Z_AXIS", 0, "Z Axis", ""},
+		{SELECT_AXIS_X, "X_AXIS", 0, "X Axis", ""},
+		{SELECT_AXIS_Y, "Y_AXIS", 0, "Y Axis", ""},
+		{SELECT_AXIS_Z, "Z_AXIS", 0, "Z Axis", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -4410,8 +4424,8 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "mode", axis_mode_items, 0, "Axis Mode", "Axis side to use when selecting");
-	RNA_def_enum(ot->srna, "axis", axis_items_xyz, 0, "Axis", "Select the axis to compare each vertex on");
+	RNA_def_enum(ot->srna, "mode", axis_mode_items, SELECT_AXIS_NEGATIVE, "Axis Mode", "Axis side to use when selecting");
+	RNA_def_enum(ot->srna, "axis", axis_items_xyz, SELECT_AXIS_X, "Axis", "Select the axis to compare each vertex on");
 	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Threshold", "", 0.00001f, 10.0f);
 }
 
