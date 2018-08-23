@@ -198,8 +198,8 @@ class _defs_view3d_generic:
 
 
 class _defs_annotate:
-    @classmethod
-    def draw_settings_common(cls, context, layout, tool):
+    @staticmethod
+    def draw_settings_common(context, layout, tool):
         ts = context.tool_settings
 
         space_type = tool.space_type
@@ -1110,8 +1110,8 @@ class _defs_uv_select:
 
 
 class _defs_gpencil_paint:
-    @classmethod
-    def draw_color_selector(cls, context, layout):
+    @staticmethod
+    def draw_color_selector(context, layout):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
         ts = context.tool_settings
@@ -1122,8 +1122,8 @@ class _defs_gpencil_paint:
         else:
             row.template_greasepencil_color(gp_settings, "material", rows=3, cols=8, scale=0.8)
 
-    @classmethod
-    def draw_settings_common(cls, context, layout, tool):
+    @staticmethod
+    def draw_settings_common(context, layout, tool):
         ob = context.active_object
         if ob and ob.mode == 'GPENCIL_PAINT':
             brush = context.active_gpencil_brush
@@ -1232,8 +1232,8 @@ class _defs_gpencil_edit:
 
 
 class _defs_gpencil_sculpt:
-    @classmethod
-    def draw_settings_common(cls, context, layout, tool):
+    @staticmethod
+    def draw_settings_common(context, layout, tool):
         ob = context.active_object
         if ob and ob.mode == 'GPENCIL_SCULPT':
             ts = context.tool_settings
@@ -1403,8 +1403,8 @@ class _defs_gpencil_sculpt:
 
 
 class _defs_gpencil_weight:
-    @classmethod
-    def draw_settings_common(cls, context, layout, tool):
+    @staticmethod
+    def draw_settings_common(context, layout, tool):
         ob = context.active_object
         if ob and ob.mode == 'GPENCIL_WEIGHT':
             settings = context.tool_settings.gpencil_sculpt
