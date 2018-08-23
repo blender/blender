@@ -2442,7 +2442,7 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 		bb = BKE_curve_boundbox_get(ob);
 	}
 	else if (ob->type == OB_MBALL) {
-		bb = ob->bb;
+		bb = BKE_mball_boundbox_get(ob);
 	}
 	else if (ob->type == OB_LATTICE) {
 		bb = BKE_lattice_boundbox_get(ob);
