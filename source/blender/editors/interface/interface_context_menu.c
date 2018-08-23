@@ -639,6 +639,33 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		}
 	}
 
+	/* Favorites Menu */
+	if (ui_but_is_user_menu_compatible(C, but)) {
+		uiBlock *block = uiLayoutGetBlock(layout);
+		const int w = uiLayoutGetWidth(layout);
+		uiBut *but2;
+
+		but2 = uiDefIconTextBut(
+		        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
+		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
+		        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
+		        "Add to a user defined context menu (stored in the user preferences)");
+		UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
+
+		bUserMenu *um = ED_screen_user_menu_find(C);
+		if (um) {
+			bUserMenuItem *umi = ui_but_user_menu_find(C, but, um);
+			if (umi != NULL) {
+				but2 = uiDefIconTextBut(
+				        block, UI_BTYPE_BUT, 0, ICON_BLANK1,
+				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
+				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+				UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
+			}
+		}
+		uiItemS(layout);
+	}
+
 	/* Operator buttons */
 	if (but->optype) {
 		uiBlock *block = uiLayoutGetBlock(layout);
@@ -694,42 +721,6 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 		uiItemS(layout);
 	}
 
-	/* Favorites Menu */
-	if (ui_but_is_user_menu_compatible(C, but)) {
-		uiBlock *block = uiLayoutGetBlock(layout);
-		const int w = uiLayoutGetWidth(layout);
-		uiBut *but2;
-
-		but2 = uiDefIconTextBut(
-		        block, UI_BTYPE_BUT, 0, ICON_MENU_PANEL,
-		        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Quick Favorites"),
-		        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0,
-		        "Add to a user defined context menu (stored in the user preferences)");
-		UI_but_func_set(but2, popup_user_menu_add_or_replace_func, but, NULL);
-
-		bUserMenu *um = ED_screen_user_menu_find(C);
-		if (um) {
-			bUserMenuItem *umi = ui_but_user_menu_find(C, but, um);
-			if (umi != NULL) {
-				but2 = uiDefIconTextBut(
-				        block, UI_BTYPE_BUT, 0, ICON_CANCEL,
-				        CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Quick Favorites"),
-				        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
-				UI_but_func_set(but2, popup_user_menu_remove_func, um, umi);
-			}
-		}
-		uiItemS(layout);
-	}
-
-	/* Show header tools for header buttons. */
-	if (ui_block_is_popup_any(but->block) == false) {
-		ARegion *ar = CTX_wm_region(C);
-		if (ar && (ar->regiontype == RGN_TYPE_HEADER)) {
-			uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
-			uiItemS(layout);
-		}
-	}
-
 	{   /* Docs */
 		char buf[512];
 
@@ -771,6 +762,14 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 	if (BKE_addon_find(&U.addons, "ui_translate")) {
 		uiItemFullO(layout, "UI_OT_edittranslation_init", NULL, ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+	}
+
+	/* Show header tools for header buttons. */
+	if (ui_block_is_popup_any(but->block) == false) {
+		ARegion *ar = CTX_wm_region(C);
+		if (ar && (ar->regiontype == RGN_TYPE_HEADER)) {
+			uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
+		}
 	}
 
 	MenuType *mt = WM_menutype_find("WM_MT_button_context", true);
