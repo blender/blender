@@ -1390,7 +1390,15 @@ bool paint_poll(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	return p && ob && BKE_paint_brush(p) &&
-	       (sa && ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
-	       (ar && ar->regiontype == RGN_TYPE_WINDOW);
+	if (p && ob && BKE_paint_brush(p) &&
+	    (sa && ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) &&
+	    (ar && ar->regiontype == RGN_TYPE_WINDOW))
+	{
+		/* Check the current tool is a brush. */
+		bToolRef *tref = sa->runtime.tool;
+		if (tref && tref->runtime && tref->runtime->data_block[0]) {
+			return true;
+		}
+	}
+	return false;
 }
