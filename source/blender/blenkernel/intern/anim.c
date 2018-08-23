@@ -466,10 +466,8 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	}
 
 	/* calculate path over requested range */
-	printf("Calculating Paths over Frame Range:\n");
+	printf("Calculating MotionPaths between frames %d - %d (%d frames)\n", sfra, efra, efra - sfra + 1);
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
-		printf("  Frame %d\n", CFRA);
-		
 		/* update relevant data for new frame */
 		motionpaths_calc_update_scene(bmain, depsgraph);
 
@@ -478,8 +476,12 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	}
 
 	/* reset original environment */
+	/* NOTE: We shouldn't need to reevaluate the main scene,
+	 * as the depsgraph passed in calculates the results on a
+	 * a copy-on-write copy of the data. That said, we have to
+	 * restore the current frame settings
+	 */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, depsgraph);  // XXX: Soon to be obsolete
 
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
