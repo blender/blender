@@ -201,7 +201,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	bool free_depsgraph = false;
 
 	/* Override depsgraph with a filtered, simpler copy */
-	if (G.debug_value == 555) {
+	if (G.debug_value != -1) {
 TIMEIT_START(filter_pose_depsgraph);
 		DEG_FilterQuery query = {0};
 
