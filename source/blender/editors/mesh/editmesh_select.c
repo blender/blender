@@ -4360,29 +4360,39 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		BMVert *v;
 		BMIter iter;
 		const float limit = RNA_float_get(op->ptr, "threshold");
-		float value = v_act->co[axis];
+
+		float value;
+		float vertex_world[3];
+
+		mul_v3_m4v3(vertex_world, obedit->obmat, v_act->co);
+		value = vertex_world[axis];
 
 		if (mode == SELECT_AXIS_NEGATIVE) {
-			value -= limit;
+			value += limit;
 		}
 		else if (mode == SELECT_AXIS_POSITIVE) {
-			value += limit;
+			value -= limit;
 		}
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+				float v_iter_world[3];
+				mul_v3_m4v3(v_iter_world, obedit->obmat, v->co);
 				switch (mode) {
 					case SELECT_AXIS_ALIGNED:
-						if (fabsf(v->co[axis] - value) < limit)
+						if (fabsf(v_iter_world[axis] - value) < limit) {
 							BM_vert_select_set(bm, v, true);
+						}
 						break;
 					case SELECT_AXIS_NEGATIVE:
-						if (v->co[axis] > value)
+						if (v_iter_world[axis] < value) {
 							BM_vert_select_set(bm, v, true);
+						}
 						break;
 					case SELECT_AXIS_POSITIVE:
-						if (v->co[axis] < value)
+						if (v_iter_world[axis] > value) {
 							BM_vert_select_set(bm, v, true);
+						}
 						break;
 				}
 			}
@@ -4424,7 +4434,7 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "mode", axis_mode_items, SELECT_AXIS_NEGATIVE, "Axis Mode", "Axis side to use when selecting");
+	RNA_def_enum(ot->srna, "mode", axis_mode_items, SELECT_AXIS_POSITIVE, "Axis Mode", "Axis side to use when selecting");
 	RNA_def_enum(ot->srna, "axis", axis_items_xyz, SELECT_AXIS_X, "Axis", "Select the axis to compare each vertex on");
 	RNA_def_float(ot->srna, "threshold", 0.0001f, 0.000001f, 50.0f,  "Threshold", "", 0.00001f, 10.0f);
 }
