@@ -39,6 +39,7 @@ void DRW_shape_cache_reset(void);
 struct GPUBatch *DRW_cache_cursor_get(bool crosshair_lines);
 
 /* Common Shapes */
+struct GPUBatch *DRW_cache_grid_get(void);
 struct GPUBatch *DRW_cache_fullscreen_quad_get(void);
 struct GPUBatch *DRW_cache_quad_get(void);
 struct GPUBatch *DRW_cache_cube_get(void);

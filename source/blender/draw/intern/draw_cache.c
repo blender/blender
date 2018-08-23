@@ -53,6 +53,7 @@ static struct DRWShapeCache {
 	GPUBatch *drw_fullscreen_quad;
 	GPUBatch *drw_fullscreen_quad_texcoord;
 	GPUBatch *drw_quad;
+	GPUBatch *drw_grid;
 	GPUBatch *drw_sphere;
 	GPUBatch *drw_screenspace_circle;
 	GPUBatch *drw_plain_axes;
@@ -320,6 +321,48 @@ GPUBatch *DRW_cache_quad_get(void)
 		SHC.drw_quad = GPU_batch_create_ex(GPU_PRIM_TRI_FAN, vbo, NULL, GPU_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_quad;
+}
+
+/* Grid */
+GPUBatch *DRW_cache_grid_get(void)
+{
+	if (!SHC.drw_grid) {
+		/* Position Only 2D format */
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, 8 * 8 * 2 * 3);
+
+		uint v_idx = 0;
+		for (int i = 0; i < 8; ++i) {
+			for (int j = 0; j < 8; ++j) {
+				float pos0[2] = {(float)i / 8.0f, (float)j / 8.0f};
+				float pos1[2] = {(float)(i+1) / 8.0f, (float)j / 8.0f};
+				float pos2[2] = {(float)i / 8.0f, (float)(j+1) / 8.0f};
+				float pos3[2] = {(float)(i+1) / 8.0f, (float)(j+1) / 8.0f};
+
+				madd_v2_v2v2fl(pos0, (float[2]){-1.0f, -1.0f}, pos0, 2.0f);
+				madd_v2_v2v2fl(pos1, (float[2]){-1.0f, -1.0f}, pos1, 2.0f);
+				madd_v2_v2v2fl(pos2, (float[2]){-1.0f, -1.0f}, pos2, 2.0f);
+				madd_v2_v2v2fl(pos3, (float[2]){-1.0f, -1.0f}, pos3, 2.0f);
+
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos0);
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos1);
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos2);
+
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos2);
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos1);
+				GPU_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, pos3);
+			}
+		}
+
+		SHC.drw_grid = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_grid;
 }
 
 /* Sphere */
