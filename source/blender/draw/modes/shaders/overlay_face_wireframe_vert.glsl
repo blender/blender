@@ -11,6 +11,11 @@ uniform float nearDist;
 uniform samplerBuffer vertData;
 uniform usamplerBuffer faceIds;
 
+#ifdef USE_SCULPT
+in vec3 pos;
+in vec3 nor;
+#endif
+
 #ifdef USE_GEOM_SHADER
 out vec2 ssPos;
 out float facingOut; /* abs(facing) > 1.0 if we do edge */
@@ -99,6 +104,7 @@ float get_edge_sharpness(vec3 fnor, vec3 vnor)
 void main()
 {
 #ifdef USE_GEOM_SHADER
+#ifndef USE_SCULPT
 	uint v_id = texelFetch(faceIds, gl_VertexID).r;
 
 	bool do_edge = (v_id & (1u << 30u)) != 0u;
@@ -107,6 +113,11 @@ void main()
 
 	vec3 pos = get_vertex_pos(v_id);
 	vec3 nor = get_vertex_nor(v_id);
+#else
+	const bool do_edge = true;
+	const bool force_edge = false;
+#endif
+
 	facingOut = normalize(NormalMatrix * nor).z;
 	facingOut += (do_edge) ? ((facingOut > 0.0) ? 2.0 : -2.0) : 0.0;
 
