@@ -145,38 +145,38 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         layout.prop(bone, "bbone_segments", text="Segments")
 
-        col = layout.column()
-        col.active = bone.bbone_segments > 1
+        topcol = layout.column()
+        topcol.active = bone.bbone_segments > 1
 
-        col = layout.column(align=True)
+        col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveinx", text="Curve In X")
         col.prop(bbone, "bbone_curveiny", text="In Y")
 
-        col = layout.column(align=True)
+        col = topcol.column(align=True)
         col.prop(bbone, "bbone_curveoutx", text="Curve Out X")
         col.prop(bbone, "bbone_curveouty", text="Out Y")
 
-        col = layout.column(align=True)
+        col = topcol.column(align=True)
         col.prop(bbone, "bbone_rollin", text="Roll In")
         col.prop(bbone, "bbone_rollout", text="Out")
         col.prop(bone, "use_endroll_as_inroll")
 
-        col = layout.column(align=True)
+        col = topcol.column(align=True)
         col.prop(bbone, "bbone_scalein", text="Scale In")
         col.prop(bbone, "bbone_scaleout", text="Out")
 
-        col = layout.column(align=True)
+        col = topcol.column(align=True)
         col.prop(bbone, "bbone_easein", text="Ease In")
         col.prop(bbone, "bbone_easeout", text="Out")
 
         if pchan:
-            layout.separator()
+            topcol.separator()
 
-            col = layout.column()
+            col = topcol.column()
             col.use_property_split = False
             col.prop(pchan, "use_bbone_custom_handles")
 
-            col = layout.column(align=True)
+            col = topcol.column(align=True)
             col.active = pchan.use_bbone_custom_handles
             col.use_property_split = True
 
