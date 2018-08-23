@@ -221,8 +221,8 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 static void do_vert_pair(GPUVertBuf *vbo, uint pos, uint *vidx, int corner, int i)
 {
 	float inter[2], exter[2];
-	inter[0] = cosf((corner * 2.0f * M_PI / 4.0f) + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
-	inter[1] = sinf((corner * 2.0f * M_PI / 4.0f) + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
+	inter[0] = cosf(corner * M_PI_2 + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
+	inter[1] = sinf(corner * M_PI_2 + (i * M_PI_2 / (CORNER_RESOLUTION - 1.0f)));
 
 	/* Snap point to edge */
 	float div = 1.0f / max_ff(fabsf(inter[0]), fabsf(inter[1]));
@@ -377,6 +377,20 @@ void ED_screen_draw_edges(wmWindow *win)
 
 	ScrArea *sa;
 
+	rcti scissor_rect;
+	BLI_rcti_init_minmax(&scissor_rect);
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
+		BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){sa->v1->vec.x, sa->v1->vec.y});
+		BLI_rcti_do_minmax_v(&scissor_rect, (int[2]){sa->v3->vec.x, sa->v3->vec.y});
+	}
+
+	GPU_scissor(scissor_rect.xmin,
+	            scissor_rect.ymin,
+	            BLI_rcti_size_x(&scissor_rect) + 1,
+	            BLI_rcti_size_y(&scissor_rect) + 1);
+
+	glEnable(GL_SCISSOR_TEST);
+
 	UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, col);
 	col[3] = 1.0f / 8.0f;
 	corner_scale = U.pixelsize * 8.0f;
@@ -405,6 +419,8 @@ void ED_screen_draw_edges(wmWindow *win)
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y, edge_thickness);
 	}
+
+	glDisable(GL_SCISSOR_TEST);
 
 	screen->do_draw = false;
 }
