@@ -2754,6 +2754,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_empty(sgl, ob, view_layer);
 			break;
 		case OB_GPENCIL:
+			if (hide_object_extra) {
+				break;
+			}
 			DRW_shgroup_gpencil(sgl, ob, view_layer);
 			break;
 		case OB_SPEAKER:
