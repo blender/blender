@@ -199,13 +199,16 @@ void main()
 		vec3 axes = get_axes(axes_dist, axes_fwidth, 0.1);
 
 		if ((gridFlag & AXIS_X) != 0) {
-			FragColor = mix(FragColor, colorGridAxisX, axes.x);
+			FragColor.a = max(FragColor.a, axes.x);
+			FragColor.rgb = (axes.x < 1e-8) ? FragColor.rgb : colorGridAxisX.rgb;
 		}
 		if ((gridFlag & AXIS_Y) != 0) {
-			FragColor = mix(FragColor, colorGridAxisY, axes.y);
+			FragColor.a = max(FragColor.a, axes.y);
+			FragColor.rgb = (axes.y < 1e-8) ? FragColor.rgb : colorGridAxisY.rgb;
 		}
 		if ((gridFlag & AXIS_Z) != 0) {
-			FragColor = mix(FragColor, colorGridAxisZ, axes.z);
+			FragColor.a = max(FragColor.a, axes.z);
+			FragColor.rgb = (axes.z < 1e-8) ? FragColor.rgb : colorGridAxisZ.rgb;
 		}
 	}
 
