@@ -232,8 +232,6 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	BLI_gset_free(retained_ids, NULL);
 	retained_ids = NULL;
 
-	/* Debug - Are the desired targets still in there? */
-
 	/* Print Stats */
 	// XXX: Hide behind debug flags
 	size_t s_outer, s_operations, s_relations;
@@ -247,8 +245,10 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
 	DEG_stats_simple(graph_new, &n_outer, &n_operations, &n_relations);
 	
-	printf("%s: src = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, s_ids, s_idh, s_outer, s_operations, s_relations); // XXX
-	printf("%s: new = (ID's: %u (%u), Out: %u, Op: %u, Rel: %u)\n", __func__, n_ids, n_idh, n_outer, n_operations, n_relations); // XXX
+	printf("%s: src = (ID's: %zu (%u), Out: %zu, Op: %zu, Rel: %zu)\n",
+	       __func__, s_ids, s_idh, s_outer, s_operations, s_relations);
+	printf("%s: new = (ID's: %zu (%u), Out: %zu, Op: %zu, Rel: %zu)\n",
+	       __func__, n_ids, n_idh, n_outer, n_operations, n_relations);
 
 	/* Return this new graph instance */
 	return graph_new;
