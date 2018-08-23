@@ -198,6 +198,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	struct Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ListBase targets = {NULL, NULL};
+	bool free_depsgraph = false;
 
 	/* Override depsgraph with a filtered, simpler copy */
 	if (G.debug_value == 555) {
@@ -210,6 +211,7 @@ TIMEIT_START(filter_pose_depsgraph);
 		BLI_addtail(&query.targets, dft_ob);
 		
 		depsgraph = DEG_graph_filter(depsgraph, bmain, &query);
+		free_depsgraph = true;
 		
 		MEM_freeN(dft_ob);
 TIMEIT_END(filter_pose_depsgraph);
@@ -233,6 +235,11 @@ TIMEIT_END(pose_path_calc);
 
 	/* tag armature object for copy on write - so paths will draw/redraw */
 	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	
+	/* Free temporary depsgraph instance */
+	if (free_depsgraph) {
+		DEG_graph_free(depsgraph);
+	}
 }
 
 
