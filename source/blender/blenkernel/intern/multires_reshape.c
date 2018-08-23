@@ -301,7 +301,7 @@ static void multires_reshape_vertex_inner(
 	MultiresReshapeContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
-	        ptex_face_index, u, v, 
+	        ptex_face_index, u, v,
 	        coarse_poly_index,
 	        coarse_corner,
 	        subdiv_vertex_index);
@@ -320,7 +320,7 @@ static void multires_reshape_vertex_every_corner(
 	MultiresReshapeContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
-	        ptex_face_index, u, v, 
+	        ptex_face_index, u, v,
 	        coarse_poly_index,
 	        coarse_corner,
 	        subdiv_vertex_index);
@@ -339,7 +339,7 @@ static void multires_reshape_vertex_every_edge(
 	MultiresReshapeContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
-	        ptex_face_index, u, v, 
+	        ptex_face_index, u, v,
 	        coarse_poly_index,
 	        coarse_corner,
 	        subdiv_vertex_index);

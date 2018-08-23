@@ -335,7 +335,7 @@ static void subdiv_foreach_corner_vertices_regular_do(
 			continue;
 		}
 		const int coarse_vertex_index = coarse_loop->v;
-		const int subdiv_vertex_index = 
+		const int subdiv_vertex_index =
 		        ctx->vertices_corner_offset + coarse_vertex_index;
 		const float u = weights[corner][0];
 		const float v = weights[corner][1];
@@ -1862,7 +1862,7 @@ static void subdiv_foreach_polys(SubdivForeachTaskContext *ctx,
 			        ctx->foreach_context,
 			        tls,
 			        poly_index,
-			        subdiv_polyon_index, 
+			        subdiv_polyon_index,
 			        loopstart, 4);
 		}
 	}
