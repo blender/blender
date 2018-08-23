@@ -50,6 +50,8 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+#include "DEG_depsgraph_build.h"
+
 #include "ED_node.h"  /* own include */
 #include "ED_screen.h"
 #include "ED_render.h"
@@ -961,6 +963,7 @@ static int node_group_make_exec(bContext *C, wmOperator *op)
 
 	snode_notify(C, snode);
 	snode_dag_update(C, snode);
+	DEG_relations_tag_update(bmain);  /* We broke relations in node tree, need to rebuild them in the grahes. */
 
 	return OPERATOR_FINISHED;
 }
