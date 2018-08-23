@@ -466,7 +466,10 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	}
 
 	/* calculate path over requested range */
+	printf("Calculating Paths over Frame Range:\n");
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
+		printf("  Frame %d\n", CFRA);
+		
 		/* update relevant data for new frame */
 		motionpaths_calc_update_scene(bmain, depsgraph);
 
@@ -475,9 +478,8 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	}
 
 	/* reset original environment */
-	// XXX: Soon to be obsolete
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, depsgraph);
+	motionpaths_calc_update_scene(bmain, depsgraph);  // XXX: Soon to be obsolete
 
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

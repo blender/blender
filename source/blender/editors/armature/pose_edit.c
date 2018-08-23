@@ -46,12 +46,15 @@
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
+#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -196,12 +199,36 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ListBase targets = {NULL, NULL};
 
+	/* Override depsgraph with a filtered, simpler copy */
+	if (G.debug_value == 555) {
+TIMEIT_START(filter_pose_depsgraph);
+		
+		DEG_FilterQuery query = {0};
+		
+		DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
+		dft_ob->id = &ob->id;
+		BLI_addtail(&query.targets, dft_ob);
+		
+		depsgraph = DEG_graph_filter(depsgraph, bmain, &query);
+		
+		MEM_freeN(dft_ob);
+TIMEIT_END(filter_pose_depsgraph);
+		
+TIMEIT_START(filter_pose_update);
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
+TIMEIT_END(filter_pose_update);
+
+		//scene = DEG_get_evaluated_scene(depsgraph);  /* NOTE: Don't pass in evaluated scene, or else COW will keep overwriting the cfra */
+	}
+
 	/* set flag to force recalc, then grab the relevant bones to target */
 	ob->pose->avs.recalc |= ANIMVIZ_RECALC_PATHS;
 	animviz_get_object_motionpaths(ob, &targets);
 
 	/* recalculate paths, then free */
+TIMEIT_START(pose_path_calc);
 	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
+TIMEIT_END(pose_path_calc);
 	BLI_freelistN(&targets);
 
 	/* tag armature object for copy on write - so paths will draw/redraw */
