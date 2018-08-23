@@ -125,19 +125,8 @@ bool deg_filter_free_idnode(Depsgraph *graph, IDDepsNode *id_node,
 		/* This node has not been marked for deletion */
 		return false;
 	}
-	else if (id_node->id_cow == NULL) {
-		/* This means builder "stole" ownership of the copy-on-written
-		 * datablock for her own dirty needs.
-		 */
-		printf("  no id_cow ");
-		return false;
-	}
-	else if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-		printf("  id_cow collapsed ");
-		return false;
-	}
 	else {
-		const ID_Type id_type = GS(id_node->id_cow->name);
+		const ID_Type id_type = GS(id_node->id_orig->name);
 		if (filter(id_type)) {
 			printf("  id_type (T) = %d ");
 			id_node->destroy();
@@ -277,9 +266,14 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	retained_ids = NULL;
 	
 	/* Debug - Are the desired targets still in there? */
-	printf("Filtered graph sanity check:\n");
+	printf("Filtered Graph Sanity Check - Do targets exist?:\n");
 	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
 		printf("   %s -> %d\n", target->id->name, BLI_ghash_haskey(deg_graph_new->id_hash, target->id));
+	}
+	printf("Filtered Graph Sanity Check - Remaining ID Nodes:\n");
+	size_t id_node_idx = 0;
+	foreach (DEG::IDDepsNode *id_node, deg_graph_new->id_nodes) {
+		printf("  %d: %s\n", id_node_idx++, id_node->id_orig->name);
 	}
 	
 	/* Print Stats */
@@ -289,7 +283,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	unsigned int s_idh = BLI_ghash_len(deg_graph_src->id_hash);
 	
 	size_t n_outer, n_operations, n_relations;
-	size_t n_ids = deg_graph_src->id_nodes.size();
+	size_t n_ids = deg_graph_new->id_nodes.size();
 	unsigned int n_idh = BLI_ghash_len(deg_graph_new->id_hash);
 	
 	DEG_stats_simple(graph_src, &s_outer, &s_operations, &s_relations);
