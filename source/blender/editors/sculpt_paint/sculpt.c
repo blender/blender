@@ -4906,7 +4906,7 @@ static void sculpt_flush_update(bContext *C)
 	}
 
 	/* 2.8x - avoid full mesh update! */
-	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_SCULPT_COORDS);
+	BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_SCULPT_COORDS);
 }
 
 /* Returns whether the mouse/stylus is over the mesh (1)

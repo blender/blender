@@ -102,7 +102,7 @@ void paintface_flush_flags(Object *ob, short flag)
 		}
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 }
 
 void paintface_hide(Object *ob, const bool unselected)
@@ -507,7 +507,7 @@ void paintvert_flush_flags(Object *ob)
 		}
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 }
 /*  note: if the caller passes false to flush_flags, then they will need to run paintvert_flush_flags(ob) themselves */
 void paintvert_deselect_all_visible(Object *ob, int action, bool flush_flags)

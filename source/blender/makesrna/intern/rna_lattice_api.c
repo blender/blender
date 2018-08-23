@@ -50,7 +50,7 @@ static void rna_Lattice_transform(Lattice *lt, float *mat, bool shape_keys)
 
 static void rna_Lattice_update_gpu_tag(Lattice *lt)
 {
-	BKE_lattice_batch_cache_dirty(lt, BKE_LATTICE_BATCH_DIRTY_ALL);
+	BKE_lattice_batch_cache_dirty_tag(lt, BKE_LATTICE_BATCH_DIRTY_ALL);
 }
 
 #else

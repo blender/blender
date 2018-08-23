@@ -4349,13 +4349,13 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 
 
 /* Draw Engine */
-void (*BKE_particle_batch_cache_dirty_cb)(ParticleSystem *psys, int mode) = NULL;
+void (*BKE_particle_batch_cache_dirty_tag_cb)(ParticleSystem *psys, int mode) = NULL;
 void (*BKE_particle_batch_cache_free_cb)(ParticleSystem *psys) = NULL;
 
-void BKE_particle_batch_cache_dirty(ParticleSystem *psys, int mode)
+void BKE_particle_batch_cache_dirty_tag(ParticleSystem *psys, int mode)
 {
 	if (psys->batch_cache) {
-		BKE_particle_batch_cache_dirty_cb(psys, mode);
+		BKE_particle_batch_cache_dirty_tag_cb(psys, mode);
 	}
 }
 void BKE_particle_batch_cache_free(ParticleSystem *psys)

@@ -186,7 +186,7 @@ static void rna_ParticleEdit_redo(bContext *C, PointerRNA *UNUSED(ptr))
 
 	if (ob) DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	BKE_particle_batch_cache_dirty(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
+	BKE_particle_batch_cache_dirty_tag(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 	psys_free_path_cache(edit->psys, edit);
 	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_COPY_ON_WRITE);
 }

@@ -81,7 +81,7 @@ struct Depsgraph;
 enum {
 	BKE_MBALL_BATCH_DIRTY_ALL = 0,
 };
-void BKE_mball_batch_cache_dirty(struct MetaBall *mb, int mode);
+void BKE_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void BKE_mball_batch_cache_free(struct MetaBall *mb);
 
 #endif

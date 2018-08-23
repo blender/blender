@@ -162,7 +162,7 @@ static int gpencil_convert_old_files_exec(bContext *C, wmOperator *UNUSED(op))
 		ED_gpencil_setup_modes(C, gpd, 0);
 
 		/* set cache as dirty */
-		BKE_gpencil_batch_cache_dirty(ob->data);
+		BKE_gpencil_batch_cache_dirty_tag(ob->data);
 
 		scene->gpd = NULL;
 	}

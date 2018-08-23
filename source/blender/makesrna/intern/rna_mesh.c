@@ -239,7 +239,7 @@ static void rna_Mesh_update_data_edit_color(Main *bmain, Scene *scene, PointerRN
 
 static void rna_Mesh_update_data_edit_weight(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	BKE_mesh_batch_cache_dirty(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_ALL);
 
 	rna_Mesh_update_data(bmain, scene, ptr);
 }
@@ -247,7 +247,7 @@ static void rna_Mesh_update_data_edit_weight(Main *bmain, Scene *scene, PointerR
 
 static void rna_Mesh_update_data_edit_active_color(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	BKE_mesh_batch_cache_dirty(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(rna_mesh(ptr), BKE_MESH_BATCH_DIRTY_ALL);
 
 	rna_Mesh_update_data(bmain, scene, ptr);
 }
@@ -277,7 +277,7 @@ static void rna_Mesh_update_vertmask(Main *bmain, Scene *scene, PointerRNA *ptr)
 		me->editflag &= ~ME_EDIT_PAINT_FACE_SEL;
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }
@@ -289,7 +289,7 @@ static void rna_Mesh_update_facemask(Main *bmain, Scene *scene, PointerRNA *ptr)
 		me->editflag &= ~ME_EDIT_PAINT_VERT_SEL;
 	}
 
-	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_ALL);
+	BKE_mesh_batch_cache_dirty_tag(me, BKE_MESH_BATCH_DIRTY_ALL);
 
 	rna_Mesh_update_draw(bmain, scene, ptr);
 }

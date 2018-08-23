@@ -205,13 +205,13 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
  * \{ */
 
 /* Draw Engine */
-void (*BKE_mesh_batch_cache_dirty_cb)(Mesh *me, int mode) = NULL;
+void (*BKE_mesh_batch_cache_dirty_tag_cb)(Mesh *me, int mode) = NULL;
 void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
 
-void BKE_mesh_batch_cache_dirty(Mesh *me, int mode)
+void BKE_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 {
 	if (me->runtime.batch_cache) {
-		BKE_mesh_batch_cache_dirty_cb(me, mode);
+		BKE_mesh_batch_cache_dirty_tag_cb(me, mode);
 	}
 }
 void BKE_mesh_batch_cache_free(Mesh *me)

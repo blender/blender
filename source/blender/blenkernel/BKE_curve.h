@@ -231,7 +231,7 @@ enum {
 	BKE_CURVE_BATCH_DIRTY_ALL = 0,
 	BKE_CURVE_BATCH_DIRTY_SELECT,
 };
-void BKE_curve_batch_cache_dirty(struct Curve *cu, int mode);
+void BKE_curve_batch_cache_dirty_tag(struct Curve *cu, int mode);
 void BKE_curve_batch_cache_free(struct Curve *cu);
 
 /* curve_decimate.c */

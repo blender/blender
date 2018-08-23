@@ -75,7 +75,7 @@ bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 	defgroup_unique_name(defgroup, ob);
 
 	if (ob->type != OB_GPENCIL) {
-		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+		BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 	}
 
 	return defgroup;

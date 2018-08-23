@@ -474,5 +474,5 @@ void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
 enum {
 	BKE_PARTICLE_BATCH_DIRTY_ALL = 0,
 };
-void BKE_particle_batch_cache_dirty(struct ParticleSystem *psys, int mode);
+void BKE_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, int mode);
 void BKE_particle_batch_cache_free(struct ParticleSystem *psys);

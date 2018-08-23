@@ -52,7 +52,7 @@ static void rna_Meta_transform(struct MetaBall *mb, float *mat)
 
 static void rna_Mball_update_gpu_tag(MetaBall *mb)
 {
-	BKE_mball_batch_cache_dirty(mb, BKE_MBALL_BATCH_DIRTY_ALL);
+	BKE_mball_batch_cache_dirty_tag(mb, BKE_MBALL_BATCH_DIRTY_ALL);
 }
 #else
 

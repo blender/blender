@@ -91,7 +91,7 @@ static MetaBallBatchCache *metaball_batch_cache_get(MetaBall *mb)
 	return mb->batch_cache;
 }
 
-void DRW_mball_batch_cache_dirty(MetaBall *mb, int mode)
+void DRW_mball_batch_cache_dirty_tag(MetaBall *mb, int mode)
 {
 	MetaBallBatchCache *cache = mb->batch_cache;
 	if (cache == NULL) {

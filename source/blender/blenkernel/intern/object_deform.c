@@ -412,7 +412,7 @@ void BKE_object_defgroup_remove(Object *ob, bDeformGroup *defgroup)
 		else
 			object_defgroup_remove_object_mode(ob, defgroup);
 
-		BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
+		BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
 	}
 }
 

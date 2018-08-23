@@ -52,7 +52,7 @@ static void rna_Curve_transform(Curve *cu, float *mat, bool shape_keys)
 
 static void rna_Curve_update_gpu_tag(Curve *cu)
 {
-	BKE_curve_batch_cache_dirty(cu, BKE_CURVE_BATCH_DIRTY_ALL);
+	BKE_curve_batch_cache_dirty_tag(cu, BKE_CURVE_BATCH_DIRTY_ALL);
 }
 
 static float rna_Nurb_calc_length(Nurb *nu, int resolution_u)

@@ -298,7 +298,7 @@ GpencilBatchCache *gpencil_batch_cache_get(Object *ob, int cfra)
 }
 
 /* set cache as dirty */
-void DRW_gpencil_batch_cache_dirty(bGPdata *gpd)
+void DRW_gpencil_batch_cache_dirty_tag(bGPdata *gpd)
 {
 	if (gpd->runtime.batch_cache_data == NULL) {
 		return;

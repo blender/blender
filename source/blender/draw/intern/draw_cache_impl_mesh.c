@@ -1734,7 +1734,7 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 	return me->runtime.batch_cache;
 }
 
-void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
+void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 {
 	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (cache == NULL) {

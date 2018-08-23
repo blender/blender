@@ -44,22 +44,22 @@ struct MetaBall;
 struct bGPdata;
 
 /* Expose via BKE callbacks */
-void DRW_mball_batch_cache_dirty(struct MetaBall *mb, int mode);
+void DRW_mball_batch_cache_dirty_tag(struct MetaBall *mb, int mode);
 void DRW_mball_batch_cache_free(struct MetaBall *mb);
 
-void DRW_curve_batch_cache_dirty(struct Curve *cu, int mode);
+void DRW_curve_batch_cache_dirty_tag(struct Curve *cu, int mode);
 void DRW_curve_batch_cache_free(struct Curve *cu);
 
-void DRW_mesh_batch_cache_dirty(struct Mesh *me, int mode);
+void DRW_mesh_batch_cache_dirty_tag(struct Mesh *me, int mode);
 void DRW_mesh_batch_cache_free(struct Mesh *me);
 
-void DRW_lattice_batch_cache_dirty(struct Lattice *lt, int mode);
+void DRW_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void DRW_lattice_batch_cache_free(struct Lattice *lt);
 
-void DRW_particle_batch_cache_dirty(struct ParticleSystem *psys, int mode);
+void DRW_particle_batch_cache_dirty_tag(struct ParticleSystem *psys, int mode);
 void DRW_particle_batch_cache_free(struct ParticleSystem *psys);
 
-void DRW_gpencil_batch_cache_dirty(struct bGPdata *gpd);
+void DRW_gpencil_batch_cache_dirty_tag(struct bGPdata *gpd);
 void DRW_gpencil_batch_cache_free(struct bGPdata *gpd);
 
 /* Curve */

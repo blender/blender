@@ -565,13 +565,13 @@ void BKE_mball_select_swap(struct MetaBall *mb)
 
 /* Draw Engine */
 
-void (*BKE_mball_batch_cache_dirty_cb)(MetaBall *mb, int mode) = NULL;
+void (*BKE_mball_batch_cache_dirty_tag_cb)(MetaBall *mb, int mode) = NULL;
 void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = NULL;
 
-void BKE_mball_batch_cache_dirty(MetaBall *mb, int mode)
+void BKE_mball_batch_cache_dirty_tag(MetaBall *mb, int mode)
 {
 	if (mb->batch_cache) {
-		BKE_mball_batch_cache_dirty_cb(mb, mode);
+		BKE_mball_batch_cache_dirty_tag_cb(mb, mode);
 	}
 }
 void BKE_mball_batch_cache_free(MetaBall *mb)

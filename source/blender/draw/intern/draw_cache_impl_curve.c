@@ -422,7 +422,7 @@ static CurveBatchCache *curve_batch_cache_get(Curve *cu)
 	return cu->batch_cache;
 }
 
-void DRW_curve_batch_cache_dirty(Curve *cu, int mode)
+void DRW_curve_batch_cache_dirty_tag(Curve *cu, int mode)
 {
 	CurveBatchCache *cache = cu->batch_cache;
 	if (cache == NULL) {

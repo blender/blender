@@ -141,7 +141,7 @@ static ParticleBatchCache *particle_batch_cache_get(ParticleSystem *psys)
 	return psys->batch_cache;
 }
 
-void DRW_particle_batch_cache_dirty(ParticleSystem *psys, int mode)
+void DRW_particle_batch_cache_dirty_tag(ParticleSystem *psys, int mode)
 {
 	ParticleBatchCache *cache = psys->batch_cache;
 	if (cache == NULL) {

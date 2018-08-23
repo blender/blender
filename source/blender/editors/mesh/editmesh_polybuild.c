@@ -510,7 +510,7 @@ static int edbm_polybuild_hover_invoke(
 		}
 		BM_elem_select_set(bm, ele_hover, true);
 		BM_select_history_store(em->bm, ele_hover);
-		BKE_mesh_batch_cache_dirty(obedit->data, BKE_MESH_BATCH_DIRTY_SELECT);
+		BKE_mesh_batch_cache_dirty_tag(obedit->data, BKE_MESH_BATCH_DIRTY_SELECT);
 
 		ED_region_tag_redraw(vc.ar);
 

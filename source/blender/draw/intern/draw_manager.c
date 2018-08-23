@@ -2472,40 +2472,40 @@ void DRW_engines_register(void)
 	/* setup callbacks */
 	{
 		/* BKE: mball.c */
-		extern void *BKE_mball_batch_cache_dirty_cb;
+		extern void *BKE_mball_batch_cache_dirty_tag_cb;
 		extern void *BKE_mball_batch_cache_free_cb;
 		/* BKE: curve.c */
-		extern void *BKE_curve_batch_cache_dirty_cb;
+		extern void *BKE_curve_batch_cache_dirty_tag_cb;
 		extern void *BKE_curve_batch_cache_free_cb;
 		/* BKE: mesh.c */
-		extern void *BKE_mesh_batch_cache_dirty_cb;
+		extern void *BKE_mesh_batch_cache_dirty_tag_cb;
 		extern void *BKE_mesh_batch_cache_free_cb;
 		/* BKE: lattice.c */
-		extern void *BKE_lattice_batch_cache_dirty_cb;
+		extern void *BKE_lattice_batch_cache_dirty_tag_cb;
 		extern void *BKE_lattice_batch_cache_free_cb;
 		/* BKE: particle.c */
-		extern void *BKE_particle_batch_cache_dirty_cb;
+		extern void *BKE_particle_batch_cache_dirty_tag_cb;
 		extern void *BKE_particle_batch_cache_free_cb;
 		/* BKE: gpencil.c */
-		extern void *BKE_gpencil_batch_cache_dirty_cb;
+		extern void *BKE_gpencil_batch_cache_dirty_tag_cb;
 		extern void *BKE_gpencil_batch_cache_free_cb;
 
-		BKE_mball_batch_cache_dirty_cb = DRW_mball_batch_cache_dirty;
+		BKE_mball_batch_cache_dirty_tag_cb = DRW_mball_batch_cache_dirty_tag;
 		BKE_mball_batch_cache_free_cb = DRW_mball_batch_cache_free;
 
-		BKE_curve_batch_cache_dirty_cb = DRW_curve_batch_cache_dirty;
+		BKE_curve_batch_cache_dirty_tag_cb = DRW_curve_batch_cache_dirty_tag;
 		BKE_curve_batch_cache_free_cb = DRW_curve_batch_cache_free;
 
-		BKE_mesh_batch_cache_dirty_cb = DRW_mesh_batch_cache_dirty;
+		BKE_mesh_batch_cache_dirty_tag_cb = DRW_mesh_batch_cache_dirty_tag;
 		BKE_mesh_batch_cache_free_cb = DRW_mesh_batch_cache_free;
 
-		BKE_lattice_batch_cache_dirty_cb = DRW_lattice_batch_cache_dirty;
+		BKE_lattice_batch_cache_dirty_tag_cb = DRW_lattice_batch_cache_dirty_tag;
 		BKE_lattice_batch_cache_free_cb = DRW_lattice_batch_cache_free;
 
-		BKE_particle_batch_cache_dirty_cb = DRW_particle_batch_cache_dirty;
+		BKE_particle_batch_cache_dirty_tag_cb = DRW_particle_batch_cache_dirty_tag;
 		BKE_particle_batch_cache_free_cb = DRW_particle_batch_cache_free;
 
-		BKE_gpencil_batch_cache_dirty_cb = DRW_gpencil_batch_cache_dirty;
+		BKE_gpencil_batch_cache_dirty_tag_cb = DRW_gpencil_batch_cache_dirty_tag;
 		BKE_gpencil_batch_cache_free_cb = DRW_gpencil_batch_cache_free;
 	}
 }

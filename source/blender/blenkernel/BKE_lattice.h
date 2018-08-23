@@ -111,7 +111,7 @@ enum {
 	BKE_LATTICE_BATCH_DIRTY_ALL = 0,
 	BKE_LATTICE_BATCH_DIRTY_SELECT,
 };
-void BKE_lattice_batch_cache_dirty(struct Lattice *lt, int mode);
+void BKE_lattice_batch_cache_dirty_tag(struct Lattice *lt, int mode);
 void BKE_lattice_batch_cache_free(struct Lattice *lt);
 
 #endif  /* __BKE_LATTICE_H__ */
