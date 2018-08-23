@@ -201,6 +201,8 @@ void BKE_main_lib_objects_recalc_all(struct Main *bmain);
 /* (MAX_ID_NAME - 2) + 3 */
 void BKE_id_ui_prefix(char name[66 + 1], const struct ID *id);
 
+char *BKE_id_to_unique_string_key(const struct ID *id);
+
 void BKE_library_free(struct Library *lib);
 
 void BKE_library_make_local(
