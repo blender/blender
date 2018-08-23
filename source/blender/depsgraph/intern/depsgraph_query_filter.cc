@@ -128,12 +128,12 @@ bool deg_filter_free_idnode(Depsgraph *graph, IDDepsNode *id_node,
 	else {
 		const ID_Type id_type = GS(id_node->id_orig->name);
 		if (filter(id_type)) {
-			printf("  id_type (T) = %d ");
+			//printf("  id_type (T) = %d ");
 			id_node->destroy();
 			return true;
 		}
 		else {
-			printf("  id_type (F) = %d ");
+			//printf("  id_type (F) = %d ");
 			return false;
 		}
 	}
@@ -158,14 +158,14 @@ void deg_filter_clear_ids_conditional(
 		
 		if (deg_filter_free_idnode(graph, id_node, filter)) {
 			/* Node data got destroyed. Remove from collections, and free */
-			printf("  culling %s\n", id->name);
+			//printf("  culling %s\n", id->name);
 			BLI_ghash_remove(graph->id_hash, id, NULL, NULL);
 			it = graph->id_nodes.erase(it);
 			OBJECT_GUARDED_DELETE(id_node, IDDepsNode);
 		}
 		else {
 			/* Node wasn't freed. Increment iterator */
-			printf("  skipping %s\n", id->name);
+			//printf("  skipping %s\n", id->name);
 			++it;
 		}
 	}
@@ -266,6 +266,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	retained_ids = NULL;
 	
 	/* Debug - Are the desired targets still in there? */
+#if 0
 	printf("Filtered Graph Sanity Check - Do targets exist?:\n");
 	LISTBASE_FOREACH(DEG_FilterTarget *, target, &query->targets) {
 		printf("   %s -> %d\n", target->id->name, BLI_ghash_haskey(deg_graph_new->id_hash, target->id));
@@ -275,6 +276,7 @@ Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQ
 	foreach (DEG::IDDepsNode *id_node, deg_graph_new->id_nodes) {
 		printf("  %d: %s\n", id_node_idx++, id_node->id_orig->name);
 	}
+#endif
 	
 	/* Print Stats */
 	// XXX: Hide behind debug flags
