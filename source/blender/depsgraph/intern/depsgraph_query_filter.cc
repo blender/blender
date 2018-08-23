@@ -185,7 +185,10 @@ void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 /* *************************************************** */
 /* Graph Filtering API */
 
-/* Obtain a new graph instance that only contains the nodes needed */
+/* Obtain a new graph instance that only contains the subset of desired nodes
+ * WARNING: Do NOT pass an already filtered depsgraph through this function again,
+ *          as we are currently unable to accurately recreate it.
+ */
 Depsgraph *DEG_graph_filter(const Depsgraph *graph_src, Main *bmain, DEG_FilterQuery *query)
 {
 	const DEG::Depsgraph *deg_graph_src = reinterpret_cast<const DEG::Depsgraph *>(graph_src);

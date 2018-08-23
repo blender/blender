@@ -233,7 +233,10 @@ typedef struct DEG_FilterQuery {
 	eDEG_FilterQuery_Granularity detail_level;
 } DEG_FilterQuery;
 
-/* Obtain a new graph instance that only contains the subset of desired nodes */
+/* Obtain a new graph instance that only contains the subset of desired nodes
+ * WARNING: Do NOT pass an already filtered depsgraph through this function again,
+ *          as we are currently unable to accurately recreate it.
+ */
 Depsgraph *DEG_graph_filter(const Depsgraph *depsgraph, struct Main *bmain, DEG_FilterQuery *query);
 
 
