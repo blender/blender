@@ -320,10 +320,10 @@ class PHYSICS_PT_softbody_collision(PhysicButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
-        col = flow.column(align=True)
+        col = flow.column()
         col.prop(softbody, "ball_size", text="Ball Size")
 
-        col = flow.column(align=True)
+        col = flow.column()
         col.prop(softbody, "ball_stiff", text="Stiffness")
         col.prop(softbody, "ball_damp", text="Dampening")
 

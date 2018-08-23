@@ -112,7 +112,7 @@ class PHYSICS_PT_cloth_pinning(PhysicButtonsPanel, Panel):
         md = context.cloth
         cloth = md.settings
 
-        self.layout.active = cloth_panel_enabled(md) and cloth.use_pin_cloth
+        self.layout.active = cloth_panel_enabled(md)
         self.layout.prop(cloth, "use_pin_cloth", text="")
 
     def draw(self, context):

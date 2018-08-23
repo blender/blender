@@ -86,6 +86,78 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
         col.prop(fluid, "type")
 
 
+class PHYSICS_PT_fluid_flow(PhysicButtonsPanel, Panel):
+    bl_label = "Flow"
+    bl_parent_id = "PHYSICS_PT_fluid"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        md = context.fluid
+        fluid = md.settings
+
+        if not PhysicButtonsPanel.poll_fluid_settings(context):
+            return False
+        return fluid.type in {'INFLOW', 'OUTFLOW', 'CONTROL'} and (context.engine in cls.COMPAT_ENGINES)
+
+    def draw_header(self, context):
+        md = context.fluid
+        fluid = md.settings
+
+        self.layout.prop(fluid, "use", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.fluid
+        fluid = md.settings
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
+
+        flow.active = fluid.use
+
+        if fluid.type == 'INFLOW':
+            col = flow.column()
+            col.prop(fluid, "volume_initialization", text="Volume Initialization")
+            col.prop(fluid, "use_animated_mesh")
+
+            row = col.row()
+            row.active = not fluid.use_animated_mesh
+            row.prop(fluid, "use_local_coords")
+
+            col = flow.column()
+            col.prop(fluid, "inflow_velocity", text="Inflow Velocity")
+
+        elif fluid.type == 'OUTFLOW':
+            col = flow.column()
+            col.prop(fluid, "volume_initialization", text="Volume Initialization")
+
+            col = flow.column()
+            col.prop(fluid, "use_animated_mesh")
+
+        elif fluid.type == 'CONTROL':
+            col = flow.column()
+            col.prop(fluid, "quality", slider=True)
+            col.prop(fluid, "use_reverse_frames")
+
+            col = flow.column()
+            col.prop(fluid, "start_time", text="Time Start")
+            col.prop(fluid, "end_time", text="End")
+
+            col.separator()
+
+            col = flow.column()
+            col.prop(fluid, "attraction_strength", text="Attraction Strength")
+            col.prop(fluid, "attraction_radius", text="Radius")
+
+            col.separator()
+
+            col = flow.column(align=True)
+            col.prop(fluid, "velocity_strength", text="Velocity Strength")
+            col.prop(fluid, "velocity_radius", text="Radius")
+
+
 class PHYSICS_PT_fluid_settings(PhysicButtonsPanel, Panel):
     bl_label = "Settings"
     bl_parent_id = "PHYSICS_PT_fluid"
@@ -93,16 +165,12 @@ class PHYSICS_PT_fluid_settings(PhysicButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        if not PhysicButtonsPanel.poll_fluid_settings(context):
-            return False
-
-        return (context.engine in cls.COMPAT_ENGINES)
-
-    def draw_header(self, context):
         md = context.fluid
         fluid = md.settings
-        if fluid.type not in {'NONE', 'DOMAIN', 'PARTICLE', 'FLUID', 'OBSTACLE'}:
-            self.layout.prop(fluid, "use", text="")
+
+        if not PhysicButtonsPanel.poll_fluid_settings(context):
+            return False
+        return fluid.type in {'DOMAIN', 'FLUID', 'OBSTACLE', 'PARTICLE'} and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -168,25 +236,6 @@ class PHYSICS_PT_fluid_settings(PhysicButtonsPanel, Panel):
 
             col.prop(fluid, "impact_factor", text="Impact Factor")
 
-        elif fluid.type == 'INFLOW':
-            col = flow.column()
-            col.prop(fluid, "volume_initialization", text="Volume Initialization")
-            col.prop(fluid, "use_animated_mesh")
-
-            row = col.row()
-            row.active = not fluid.use_animated_mesh
-            row.prop(fluid, "use_local_coords")
-
-            col = flow.column()
-            col.prop(fluid, "inflow_velocity", text="Inflow Velocity")
-
-        elif fluid.type == 'OUTFLOW':
-            col = flow.column()
-            col.prop(fluid, "volume_initialization", text="Volume Initialization")
-
-            col = flow.column()
-            col.prop(fluid, "use_animated_mesh")
-
         elif fluid.type == 'PARTICLE':
             col = flow.column()
             col.prop(fluid, "particle_influence", text="Influence Size")
@@ -196,27 +245,6 @@ class PHYSICS_PT_fluid_settings(PhysicButtonsPanel, Panel):
             col.prop(fluid, "use_drops")
             col.prop(fluid, "use_floats")
             col.prop(fluid, "show_tracer")
-
-        elif fluid.type == 'CONTROL':
-            col = flow.column()
-            col.prop(fluid, "quality", slider=True)
-            col.prop(fluid, "use_reverse_frames")
-
-            col = flow.column()
-            col.prop(fluid, "start_time", text="Time Start")
-            col.prop(fluid, "end_time", text="End")
-
-            col.separator()
-
-            col = flow.column()
-            col.prop(fluid, "attraction_strength", text="Attraction Strength")
-            col.prop(fluid, "attraction_radius", text="Radius")
-
-            col.separator()
-
-            col = flow.column(align=True)
-            col.prop(fluid, "velocity_strength", text="Velocity Strength")
-            col.prop(fluid, "velocity_radius", text="Radius")
 
 
 class PHYSICS_PT_fluid_particle_cache(PhysicButtonsPanel, Panel):
@@ -421,6 +449,7 @@ classes = (
     FLUID_PT_presets,
     PHYSICS_PT_fluid,
     PHYSICS_PT_fluid_settings,
+    PHYSICS_PT_fluid_flow,
     PHYSICS_PT_fluid_particle_cache,
     PHYSICS_PT_domain_bake,
     PHYSICS_PT_domain_boundary,
