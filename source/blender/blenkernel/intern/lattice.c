@@ -624,7 +624,7 @@ static bool calc_curve_deform(Scene *scene, Object *par, float co[3],
 	if (is_neg_axis) {
 		index = axis - 3;
 		if (cu->flag & CU_STRETCH)
-			fac = (-co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
+			fac = -(co[index] - cd->dmax[index]) / (cd->dmax[index] - cd->dmin[index]);
 		else
 			fac = -(co[index] - cd->dmax[index]) / (par->curve_cache->path->totdist);
 	}
