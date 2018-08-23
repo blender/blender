@@ -188,7 +188,7 @@ class _defs_view3d_generic:
     @ToolDef.from_fn
     def ruler():
         return dict(
-            text="Ruler",
+            text="Measure",
             icon="ops.view3d.ruler",
             widget="VIEW3D_GGT_ruler",
             keymap=(
