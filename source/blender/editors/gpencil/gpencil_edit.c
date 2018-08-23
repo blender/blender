@@ -683,6 +683,40 @@ ListBase gp_strokes_copypastebuf = {NULL, NULL};
  */
 static GHash *gp_strokes_copypastebuf_colors = NULL;
 
+static GHash *gp_strokes_copypastebuf_colors_material_to_name_create(Main *bmain)
+{
+	GHash *ma_to_name = BLI_ghash_ptr_new(__func__);
+
+	for (Material *ma = bmain->mat.first; ma != NULL; ma = ma->id.next) {
+		char *name = BKE_id_to_unique_string_key(&ma->id);
+		BLI_ghash_insert(ma_to_name, ma, name);
+	}
+
+	return ma_to_name;
+}
+
+static void gp_strokes_copypastebuf_colors_material_to_name_free(GHash *ma_to_name)
+{
+	BLI_ghash_free(ma_to_name, NULL, MEM_freeN);
+}
+
+static GHash *gp_strokes_copypastebuf_colors_name_to_material_create(Main *bmain)
+{
+	GHash *name_to_ma = BLI_ghash_str_new(__func__);
+
+	for (Material *ma = bmain->mat.first; ma != NULL; ma = ma->id.next) {
+		char *name = BKE_id_to_unique_string_key(&ma->id);
+		BLI_ghash_insert(name_to_ma, name, ma);
+	}
+
+	return name_to_ma;
+}
+
+static void gp_strokes_copypastebuf_colors_name_to_material_free(GHash *name_to_ma)
+{
+	BLI_ghash_free(name_to_ma, MEM_freeN, NULL);
+}
+
 /* Free copy/paste buffer data */
 void ED_gpencil_strokes_copybuf_free(void)
 {
@@ -692,7 +726,7 @@ void ED_gpencil_strokes_copybuf_free(void)
 	 * NOTE: This is done before the strokes so that the ptrs are still safe
 	 */
 	if (gp_strokes_copypastebuf_colors) {
-		BLI_ghash_free(gp_strokes_copypastebuf_colors, NULL, NULL);
+		BLI_ghash_free(gp_strokes_copypastebuf_colors, NULL, MEM_freeN);
 		gp_strokes_copypastebuf_colors = NULL;
 	}
 
@@ -723,16 +757,18 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_active_object(C);
-	GHash *new_colors = BLI_ghash_str_new("GPencil Paste Dst Colors");
+	GHash *new_colors = BLI_ghash_int_new("GPencil Paste Dst Colors");
 	GHashIterator gh_iter;
 
 	/* For each color, check if exist and add if not */
+	GHash *name_to_ma = gp_strokes_copypastebuf_colors_name_to_material_create(bmain);
+
 	GHASH_ITER(gh_iter, gp_strokes_copypastebuf_colors) {
-
 		int *key = BLI_ghashIterator_getKey(&gh_iter);
-		Material *ma = BLI_ghashIterator_getValue(&gh_iter);
+		char *ma_name = BLI_ghashIterator_getValue(&gh_iter);
+		Material *ma = BLI_ghash_lookup(name_to_ma, ma_name);
 
-		if (BKE_gpencil_get_material_index(ob, ma) == 0) {
+		if (ma != NULL && BKE_gpencil_get_material_index(ob, ma) == 0) {
 			BKE_object_material_slot_add(bmain, ob);
 			assign_material(bmain, ob, ma, ob->totcol, BKE_MAT_ASSIGN_USERPREF);
 		}
@@ -740,6 +776,8 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 		/* Store this mapping (for use later when pasting) */
 		BLI_ghash_insert(new_colors, key, ma);
 	}
+
+	gp_strokes_copypastebuf_colors_name_to_material_free(name_to_ma);
 
 	return new_colors;
 }
@@ -749,6 +787,7 @@ GHash *gp_copybuf_validate_colormap(bContext *C)
 
 static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 
@@ -817,16 +856,19 @@ static int gp_strokes_copy_exec(bContext *C, wmOperator *op)
 
 	/* Build up hash of material colors used in these strokes */
 	if (gp_strokes_copypastebuf.first) {
-		gp_strokes_copypastebuf_colors = BLI_ghash_str_new("GPencil CopyBuf Colors");
-		Material *ma = NULL;
+		gp_strokes_copypastebuf_colors = BLI_ghash_int_new("GPencil CopyBuf Colors");
+		GHash *ma_to_name = gp_strokes_copypastebuf_colors_material_to_name_create(bmain);
 		for (bGPDstroke *gps = gp_strokes_copypastebuf.first; gps; gps = gps->next) {
 			if (ED_gpencil_stroke_can_use(C, gps)) {
-				ma = give_current_material(ob, gps->mat_nr + 1);
-				if (BLI_ghash_haskey(gp_strokes_copypastebuf_colors, &gps->mat_nr) == false) {
-					BLI_ghash_insert(gp_strokes_copypastebuf_colors, &gps->mat_nr, ma);
+				char **ma_name_val;
+				if (!BLI_ghash_ensure_p(gp_strokes_copypastebuf_colors, &gps->mat_nr, (void ***)&ma_name_val)) {
+					Material *ma = give_current_material(ob, gps->mat_nr + 1);
+					char *ma_name = BLI_ghash_lookup(ma_to_name, ma);
+					*ma_name_val = MEM_dupallocN(ma_name);
 				}
 			}
 		}
+		gp_strokes_copypastebuf_colors_material_to_name_free(ma_to_name);
 	}
 
 	/* updates (to ensure operator buttons are refreshed, when used via hotkeys) */
