@@ -2942,7 +2942,7 @@ static void curvemap_buttons_reset(bContext *C, void *cb_v, void *cumap_v)
 /* still unsure how this call evolves... we use labeltype for defining what curve-channels to show */
 static void curvemap_buttons_layout(
         uiLayout *layout, PointerRNA *ptr, char labeltype, bool levels,
-        bool brush, bool neg_slope, RNAUpdateCb *cb)
+        bool brush, bool neg_slope, bool tone, RNAUpdateCb *cb)
 {
 	CurveMapping *cumap = ptr->data;
 	CurveMap *cm = &cumap->cm[cumap->cur];
@@ -2955,6 +2955,11 @@ static void curvemap_buttons_layout(
 	int bg = -1, i;
 
 	block = uiLayoutGetBlock(layout);
+
+	if (tone) {
+		split = uiLayoutSplit(layout, 0.0f, false);
+		uiItemR(uiLayoutRow(split, false), ptr, "tone", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
 
 	/* curve chooser */
 	row = uiLayoutRow(layout, false);
@@ -3107,7 +3112,7 @@ static void curvemap_buttons_layout(
 
 void uiTemplateCurveMapping(
         uiLayout *layout, PointerRNA *ptr, const char *propname, int type,
-        bool levels, bool brush, bool neg_slope)
+        bool levels, bool brush, bool neg_slope, bool tone)
 {
 	RNAUpdateCb *cb;
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
@@ -3138,7 +3143,7 @@ void uiTemplateCurveMapping(
 	id = cptr.id.data;
 	UI_block_lock_set(block, (id && ID_IS_LINKED(id)), ERROR_LIBDATA_MESSAGE);
 
-	curvemap_buttons_layout(layout, &cptr, type, levels, brush, neg_slope, cb);
+	curvemap_buttons_layout(layout, &cptr, type, levels, brush, neg_slope, tone, cb);
 
 	UI_block_lock_clear(block);
 
@@ -4797,7 +4802,7 @@ void uiTemplateColormanagedViewSettings(uiLayout *layout, bContext *UNUSED(C), P
 	col = uiLayoutColumn(layout, false);
 	uiItemR(col, &view_transform_ptr, "use_curve_mapping", 0, NULL, ICON_NONE);
 	if (view_settings->flag & COLORMANAGE_VIEW_USE_CURVES)
-		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', true, false, false);
+		uiTemplateCurveMapping(col, &view_transform_ptr, "curve_mapping", 'c', true, false, false, false);
 }
 
 /********************************* Component Menu *************************************/

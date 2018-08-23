@@ -82,6 +82,9 @@ typedef struct CurveMapping {
 	float bwmul[3];					/* black/white point multiply value, for speed */
 
 	float sample[3];				/* sample values, if flag set it draws line and intersection */
+
+	short tone;
+	short pad[3];
 } CurveMapping;
 
 /* cumapping->flag */
@@ -101,6 +104,12 @@ typedef enum eCurveMappingPreset {
 	CURVE_PRESET_ROOT   = 6,
 	CURVE_PRESET_GAUSS  = 7,
 } eCurveMappingPreset;
+
+/* CurveMapping->tone */
+typedef enum eCurveMappingTone {
+	CURVE_TONE_STANDARD = 0,
+	CURVE_TONE_FILMLIKE = 1,
+} eCurveMappingTone;
 
 /* histogram->mode */
 enum {

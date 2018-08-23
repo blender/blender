@@ -114,6 +114,12 @@ static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *value
 	curvemapping_set_black_white(cumap, NULL, NULL);
 }
 
+static void rna_CurveMapping_tone_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_main_add_notifier(NC_NODE | NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
+}
+
 static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max,
                                             float *UNUSED(softmin), float *UNUSED(softmax))
 {
@@ -757,10 +763,23 @@ static void rna_def_curvemapping(BlenderRNA *brna)
 	PropertyRNA *prop;
 	FunctionRNA *func;
 
+	static const EnumPropertyItem tone_items[] = {
+		{CURVE_TONE_STANDARD, "STANDARD", 0, "Standard",  ""},
+		{CURVE_TONE_FILMLIKE, "FILMLIKE", 0, "Film like", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "CurveMapping", NULL);
 	RNA_def_struct_ui_text(srna, "CurveMapping",
 	                       "Curve mapping to map color, vector and scalar values to other values using "
 	                       "a user defined curve");
+
+	prop = RNA_def_property(srna, "tone", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tone");
+	RNA_def_property_enum_items(prop, tone_items);
+	RNA_def_property_ui_text(prop, "Tone", "Tone of the curve");
+	RNA_def_property_update(prop, 0, "rna_CurveMapping_tone_update");
+
 
 	prop = RNA_def_property(srna, "use_clip", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CUMA_DO_CLIP);

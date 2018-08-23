@@ -883,6 +883,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_boolean(func, "levels", false, "", "Show black/white levels");
 	RNA_def_boolean(func, "brush", false, "", "Show brush options");
 	RNA_def_boolean(func, "use_negative_slope", false, "", "Use a negative slope by default");
+	RNA_def_boolean(func, "show_tone", false, "", "Show tone options");
 
 	func = RNA_def_function(srna, "template_color_ramp", "uiTemplateColorRamp");
 	RNA_def_function_ui_description(func, "Item. A color ramp widget");

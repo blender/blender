@@ -1074,7 +1074,7 @@ void uiTemplateWaveform(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 void uiTemplateVectorscope(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateCurveMapping(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, int type,
-        bool levels, bool brush, bool neg_slope);
+        bool levels, bool brush, bool neg_slope, bool tone);
 void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool value_slider, bool lock, bool lock_luminosity, bool cubic);
 void uiTemplatePalette(uiLayout *layout, struct PointerRNA *ptr, const char *propname, bool color);
 void uiTemplateCryptoPicker(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
