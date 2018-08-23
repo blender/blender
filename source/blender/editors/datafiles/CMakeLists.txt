@@ -642,6 +642,8 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.paint.vertex_color_fill
 	ops.paint.weight_fill
 	ops.paint.weight_gradient
+	ops.sculpt.border_hide
+	ops.sculpt.border_mask
 	ops.transform.edge_slide
 	ops.transform.push_pull
 	ops.transform.resize.cage

@@ -939,7 +939,7 @@ class _defs_sculpt:
     def hide_border():
         return dict(
             text="Border Hide",
-            icon="none",
+            icon="ops.sculpt.border_hide",
             widget=None,
             keymap=(
                 ("paint.hide_show", dict(action='HIDE'), dict(type='EVT_TWEAK_A', value='ANY')),
@@ -952,7 +952,7 @@ class _defs_sculpt:
     def mask_border():
         return dict(
             text="Border Mask",
-            icon="none",
+            icon="ops.sculpt.border_mask",
             widget=None,
             keymap=(
                 ("view3d.select_border", dict(mode='ADD'), dict(type='EVT_TWEAK_A', value='ANY')),
