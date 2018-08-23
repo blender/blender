@@ -1729,21 +1729,32 @@ static void mouse_mesh_loop_edge(BMEditMesh *em, BMEdge *eed, bool select, bool 
 
 static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool ring)
 {
+	Base *basact = NULL;
+	BMVert *eve = NULL;
+	BMEdge *eed = NULL;
+	BMFace *efa = NULL;
+
 	ViewContext vc;
 	BMEditMesh *em;
-	BMEdge *eed;
 	bool select = true;
 	bool select_clear = false;
 	bool select_cycle = true;
-	float dist = ED_view3d_select_dist_px() * 0.6666f;
 	float mvalf[2];
 
 	em_setup_viewcontext(C, &vc);
 	mvalf[0] = (float)(vc.mval[0] = mval[0]);
 	mvalf[1] = (float)(vc.mval[1] = mval[1]);
-	em = vc.em;
 
-	eed = EDBM_edge_find_nearest_ex(&vc, &dist, NULL, true, true, NULL);
+	BMEditMesh *em_original = vc.em;
+	const short selectmode = em_original->selectmode;
+	em_original->selectmode = SCE_SELECT_EDGE;
+
+	if (EDBM_unified_findnearest(&vc, &basact, &eve, &eed, &efa)) {
+		ED_view3d_viewcontext_init_object(&vc, basact->object);
+		em = vc.em;
+	}
+	em_original->selectmode = selectmode;
+
 	if (eed == NULL) {
 		return false;
 	}
@@ -1814,9 +1825,10 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 		}
 		else if (em->selectmode & SCE_SELECT_FACE) {
 			/* Select the face of eed which is the nearest of mouse. */
-			BMFace *f, *efa = NULL;
+			BMFace *f;
 			BMIter iterf;
 			float best_dist = FLT_MAX;
+			efa = NULL;
 
 			/* We can't be sure this has already been set... */
 			ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
