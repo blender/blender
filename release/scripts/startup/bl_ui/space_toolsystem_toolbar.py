@@ -929,6 +929,30 @@ class _defs_sculpt:
             )
         )
 
+    @ToolDef.from_fn
+    def hide_border():
+        return dict(
+            text="Border Hide",
+            icon="none",
+            widget=None,
+            keymap=(
+                ("paint.hide_show", dict(action='HIDE'), dict(type='EVT_TWEAK_A', value='ANY')),
+                ("paint.hide_show", dict(action='SHOW'), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                ("paint.hide_show", dict(action='SHOW', area='ALL'), dict(type='SELECTMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def mask_border():
+        return dict(
+            text="Border Mask",
+            icon="none",
+            widget=None,
+            keymap=(
+                ("view3d.select_border", dict(mode='ADD'), dict(type='EVT_TWEAK_A', value='ANY')),
+                ("view3d.select_border", dict(mode='SUB'), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+            ),
+        )
 
 class _defs_vertex_paint:
 
@@ -1637,6 +1661,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
+            None,
+            _defs_sculpt.hide_border,
+            _defs_sculpt.mask_border,
         ],
         'PAINT_TEXTURE': [
             _defs_texture_paint.generate_from_brushes,
