@@ -108,11 +108,11 @@ static void deformVerts(
 	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Mesh *mesh_src = mesh;
 
-	if (mesh_src == NULL) {
+	if (mesh_src == NULL && ctx->object->type == OB_MESH) {
 		mesh_src = ctx->object->data;
 	}
 
-	BLI_assert(mesh_src->totvert == numVerts);
+	BLI_assert(mesh_src == NULL || mesh_src->totvert == numVerts);
 
 	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, scene, ctx->object, mesh_src, vertexCos, numVerts);
 }
