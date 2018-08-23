@@ -93,6 +93,9 @@ def object_material_colors(ob):
                     for node in node_tree.nodes
                     if node.type == 'RGB'
                 ), color_default)
+        if min(color) < 0.0 or max(color) > 1.0:
+            print(f"Material: {material.name!r} has color out of 0..1 range {color!r}")
+            color = tuple(max(min(c, 1.0), 0.0) for c in color)
         material_colors.append(color)
     return material_colors
 
