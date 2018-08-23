@@ -144,11 +144,14 @@ typedef struct WorkSpace {
 	char tools_space_type;
 	/** Type is different for each space-type. */
 	char tools_mode;
-	char _pad[6];
+	char _pad[2];
 
 	int object_mode;
 
 	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
+
+	/* Number for workspace tab reordering in the UI. */
+	int order;
 
 	/* Info text from modal operators (runtime). */
 	char *status_text;

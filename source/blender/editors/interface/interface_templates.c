@@ -850,7 +850,11 @@ static void template_ID_tabs(
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiStyle *style = UI_style_get_dpi();
 
-	for (ID *id = template->idlb->first; id; id = id->next) {
+	ListBase ordered;
+	BKE_id_ordered_list(&ordered, template->idlb);
+
+	for (LinkData *link = ordered.first; link; link = link->next) {
+		ID *id = link->data;
 		const int name_width = UI_fontstyle_string_width(&style->widgetlabel, id->name + 2);
 		const int but_width = name_width + UI_UNIT_X;
 
@@ -860,10 +864,13 @@ static void template_ID_tabs(
 		        sizeof(id->name) - 2, 0.0f, 0.0f, "");
 		UI_but_funcN_set(&tab->but, template_ID_set_property_cb, MEM_dupallocN(template), id);
 		tab->but.custom_data = (void *)id;
+		tab->but.dragpoin = id;
 		tab->menu = mt;
 
 		UI_but_drawflag_enable(&tab->but, but_align);
 	}
+
+	BLI_freelistN(&ordered);
 
 	if (flag & UI_ID_ADD_NEW) {
 		const bool editable = RNA_property_editable(&template->ptr, template->prop);

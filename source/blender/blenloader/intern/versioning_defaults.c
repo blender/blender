@@ -79,20 +79,46 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		const char *name = workspace->id.name + 2;
 
-		if (STREQ(name, "2D Animation")) {
-			workspace->object_mode = OB_MODE_GPENCIL_PAINT;
-		}
-		if (STREQ(name, "3D Animation")) {
-			workspace->object_mode = OB_MODE_POSE;
-		}
-		else if (STREQ(name, "Texture Paint")) {
-			workspace->object_mode = OB_MODE_TEXTURE_PAINT;
+		if (STREQ(name, "Modeling")) {
+			workspace->order = 0;
 		}
 		else if (STREQ(name, "Sculpting")) {
 			workspace->object_mode = OB_MODE_SCULPT;
+			workspace->order = 1;
 		}
 		else if (STREQ(name, "UV Editing")) {
 			workspace->object_mode = OB_MODE_EDIT;
+			workspace->order = 2;
+		}
+		else if (STREQ(name, "Texture Paint")) {
+			workspace->object_mode = OB_MODE_TEXTURE_PAINT;
+			workspace->order = 3;
+		}
+		else if (STREQ(name, "Shading")) {
+			workspace->order = 4;
+		}
+		else if (STREQ(name, "3D Animation")) {
+			workspace->object_mode = OB_MODE_POSE;
+			workspace->order = 5;
+		}
+		else if (STREQ(name, "Rendering")) {
+			workspace->order = 6;
+		}
+		else if (STREQ(name, "Compositing")) {
+			workspace->order = 7;
+		}
+		else if (STREQ(name, "2D Animation")) {
+			workspace->object_mode = OB_MODE_GPENCIL_PAINT;
+			workspace->order = 8;
+		}
+		else if (STREQ(name, "Video Editing")) {
+			workspace->order = 9;
+		}
+		else if (STREQ(name, "Motion Tracking")) {
+			workspace->order = 10;
+		}
+		else if (STREQ(name, "Scripting")) {
+			workspace->order = 11;
 		}
 	}
 

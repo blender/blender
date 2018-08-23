@@ -613,6 +613,11 @@ class TOPBAR_MT_workspace_menu(Menu):
         if len(bpy.data.workspaces) > 1:
             layout.operator("workspace.delete", text="Delete")
 
+        layout.separator()
+
+        layout.operator("workspace.reorder_to_front", text="Reorder to Front")
+        layout.operator("workspace.reorder_to_back", text="Reorder to Back")
+
 
 class TOPBAR_PT_active_tool(Panel):
     bl_space_type = 'PROPERTIES'

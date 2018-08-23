@@ -272,6 +272,11 @@ static WorkSpace *workspace_context_get(bContext *C)
 	return WM_window_get_active_workspace(win);
 }
 
+static bool workspace_context_poll(bContext *C)
+{
+	return workspace_context_get(C) != NULL;
+}
+
 static int workspace_new_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
@@ -293,8 +298,8 @@ static void WORKSPACE_OT_duplicate(wmOperatorType *ot)
 	ot->idname = "WORKSPACE_OT_duplicate";
 
 	/* api callbacks */
+	ot->poll = workspace_context_poll;
 	ot->exec = workspace_new_exec;
-	ot->poll = WM_operator_winactive;
 }
 
 static int workspace_delete_exec(bContext *C, wmOperator *UNUSED(op))
@@ -313,6 +318,7 @@ static void WORKSPACE_OT_delete(wmOperatorType *ot)
 	ot->idname = "WORKSPACE_OT_delete";
 
 	/* api callbacks */
+	ot->poll = workspace_context_poll;
 	ot->exec = workspace_delete_exec;
 }
 
@@ -519,12 +525,60 @@ static void WORKSPACE_OT_add_menu(wmOperatorType *ot)
 	ot->invoke = workspace_add_invoke;
 }
 
+static int workspace_reorder_to_back_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain = CTX_data_main(C);
+	WorkSpace *workspace = workspace_context_get(C);
+
+	BKE_id_reorder(&bmain->workspaces, &workspace->id, NULL, true);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return OPERATOR_INTERFACE;
+}
+
+static void WORKSPACE_OT_reorder_to_back(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Workspace Reorder to Back";
+	ot->description = "Reorder workspace to be first in the list";
+	ot->idname = "WORKSPACE_OT_reorder_to_back";
+
+	/* api callbacks */
+	ot->poll = workspace_context_poll;
+	ot->exec = workspace_reorder_to_back_exec;
+}
+
+static int workspace_reorder_to_front_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Main *bmain = CTX_data_main(C);
+	WorkSpace *workspace = workspace_context_get(C);
+
+	BKE_id_reorder(&bmain->workspaces, &workspace->id, NULL, false);
+	WM_event_add_notifier(C, NC_WINDOW, NULL);
+
+	return OPERATOR_INTERFACE;
+}
+
+static void WORKSPACE_OT_reorder_to_front(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Workspace Reorder to Front";
+	ot->description = "Reorder workspace to be first in the list";
+	ot->idname = "WORKSPACE_OT_reorder_to_front";
+
+	/* api callbacks */
+	ot->poll = workspace_context_poll;
+	ot->exec = workspace_reorder_to_front_exec;
+}
+
 void ED_operatortypes_workspace(void)
 {
 	WM_operatortype_append(WORKSPACE_OT_duplicate);
 	WM_operatortype_append(WORKSPACE_OT_delete);
 	WM_operatortype_append(WORKSPACE_OT_add_menu);
 	WM_operatortype_append(WORKSPACE_OT_append_activate);
+	WM_operatortype_append(WORKSPACE_OT_reorder_to_back);
+	WM_operatortype_append(WORKSPACE_OT_reorder_to_front);
 }
 
 /** \} Workspace Operators */

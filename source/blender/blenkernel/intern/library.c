@@ -2596,3 +2596,98 @@ bool BKE_id_is_in_gobal_main(ID *id)
 	/* We do not want to fail when id is NULL here, even though this is a bit strange behavior... */
 	return (id == NULL || BLI_findindex(which_libbase(G_MAIN, GS(id->name)), id) != -1);
 }
+
+/************************* Datablock order in UI **************************/
+
+static int *id_order_get(ID *id)
+{
+	/* Only for workspace tabs currently. */
+	switch (GS(id->name)) {
+		case ID_WS:
+			return &((WorkSpace *)id)->order;
+		default:
+			return NULL;
+	}
+}
+
+static int id_order_compare(const void *a, const void *b)
+{
+	ID *id_a = ((LinkData *)a)->data;
+	ID *id_b = ((LinkData *)b)->data;
+
+	int *order_a = id_order_get(id_a);
+	int *order_b = id_order_get(id_b);
+
+	if (order_a && order_b) {
+		if (*order_a < *order_b) {
+			return -1;
+		}
+		else if (*order_a > *order_b) {
+			return 1;
+		}
+	}
+
+	return strcmp(id_a->name, id_b->name);
+}
+
+/**
+ * Returns ordered list of datablocks for display in the UI.
+ * Result is list of LinkData of IDs that must be freed.
+ */
+void BKE_id_ordered_list(ListBase *ordered_lb, const ListBase *lb)
+{
+	BLI_listbase_clear(ordered_lb);
+
+	for (ID *id = lb->first; id; id = id->next) {
+		BLI_addtail(ordered_lb, BLI_genericNodeN(id));
+	}
+
+	BLI_listbase_sort(ordered_lb, id_order_compare);
+
+	int num = 0;
+	for (LinkData *link = ordered_lb->first; link; link = link->next) {
+		int *order = id_order_get(link->data);
+		if (order) {
+			*order = num++;
+		}
+	}
+}
+
+/**
+ * Reorder ID in the list, before or after the "relative" ID.
+ */
+void BKE_id_reorder(const ListBase *lb, ID *id, ID *relative, bool after)
+{
+	int *id_order = id_order_get(id);
+	int relative_order;
+
+	if (relative) {
+		relative_order = *id_order_get(relative);
+	}
+	else {
+		relative_order = (after) ? BLI_listbase_count(lb) : 0;
+	}
+
+	if (after) {
+		/* Insert after. */
+		for (ID *other = lb->first; other; other = other->next) {
+			int *order = id_order_get(other);
+			if (*order > relative_order) {
+				(*order)++;
+			}
+		}
+
+		*id_order = relative_order + 1;
+	}
+	else {
+		/* Insert before. */
+		for (ID *other = lb->first; other; other = other->next) {
+			int *order = id_order_get(other);
+			if (*order < relative_order) {
+				(*order)--;
+			}
+		}
+
+		*id_order = relative_order - 1;
+	}
+}
