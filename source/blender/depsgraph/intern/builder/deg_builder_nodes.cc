@@ -143,6 +143,7 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
       view_layer_(NULL),
       view_layer_index_(-1),
       collection_(NULL),
+	  is_parent_collection_visible_(true),
       cow_id_hash_(NULL)
 {
 }
@@ -459,18 +460,19 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 		 */
 		return;
 	}
+	/* Backup state. */
 	Collection *current_state_collection = collection_;
+	const bool is_current_parent_collection_visible =
+	        is_parent_collection_visible_;
+	/* Modify state as we've entered new collection/ */
 	collection_ = collection;
 	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
 	        ? COLLECTION_RESTRICT_VIEW
 	        : COLLECTION_RESTRICT_RENDER;
-	const bool is_parent_collection_restricted =
-	        (current_state_collection == NULL)
-	                ? false
-	                : (current_state_collection->flag & restrict_flag);
 	const bool is_collection_restricted = (collection->flag & restrict_flag);
 	const bool is_collection_visible =
-	        !is_collection_restricted && !is_parent_collection_restricted;
+	        !is_collection_restricted && is_parent_collection_visible_;
+	is_parent_collection_visible_ = is_collection_visible;
 	/* Collection itself. */
 	IDDepsNode *id_node = add_id_node(&collection->id);
 	id_node->is_visible = is_collection_visible;
@@ -483,7 +485,9 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 	LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
 		build_collection(child->collection);
 	}
+	/* Restore state. */
 	collection_ = current_state_collection;
+	is_parent_collection_visible_ = is_current_parent_collection_visible;
 }
 
 void DepsgraphNodeBuilder::build_object(int base_index,
@@ -491,6 +495,9 @@ void DepsgraphNodeBuilder::build_object(int base_index,
                                         eDepsNode_LinkedState_Type linked_state,
                                         bool is_visible)
 {
+	if (string(object->id.name) == "OBGEO-icicles_large_03") {
+		printf(">> %d\n", is_visible);
+	}
 	const bool has_object = built_map_.checkIsBuiltAndTag(object);
 	/* Skip rest of components if the ID node was already there. */
 	if (has_object) {
@@ -569,7 +576,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
+		const bool is_current_parent_collection_visible =
+		        is_parent_collection_visible_;
+		is_parent_collection_visible_ = is_visible;
 		build_collection(object->dup_group);
+		is_parent_collection_visible_ = is_current_parent_collection_visible;
 	}
 }
 
