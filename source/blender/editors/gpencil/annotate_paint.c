@@ -163,7 +163,6 @@ typedef struct tGPsdata {
 	void *erasercursor; /* radial cursor data for drawing eraser */
 
 	short straight[2];   /* 1: line horizontal, 2: line vertical, other: not defined, second element position */
-	int lock_axis;       /* lock drawing to one axis */
 
 	short keymodifier;   /* key used for invoking the operator */
 } tGPsdata;
@@ -299,33 +298,6 @@ static void gp_project_points_to_plane(RegionView3D *rv3d, bGPDstroke *gps, cons
 			copy_v3_v3(&pt->x, rpoint);
 		}
 	}
-}
-
-/* reproject stroke to plane locked to axis in 3d cursor location */
-static void gp_reproject_toplane(tGPsdata *p, bGPDstroke *gps)
-{
-	bGPdata *gpd = p->gpd;
-	float origin[3];
-	float cursor[3];
-	RegionView3D *rv3d = p->ar->regiondata;
-
-	/* verify the stroke mode is CURSOR 3d space mode */
-	if ((gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) == 0) {
-		return;
-	}
-	if ((*p->align_flag & GP_PROJECT_VIEWSPACE) == 0) {
-		return;
-	}
-	if ((*p->align_flag & GP_PROJECT_DEPTH_VIEW) || (*p->align_flag & GP_PROJECT_DEPTH_STROKE)) {
-		return;
-	}
-
-	/* get 3d cursor and set origin for locked axis only. Uses axis-1 because the enum for XYZ start with 1 */
-	gp_get_3d_reference(p, cursor);
-	zero_v3(origin);
-	origin[p->lock_axis - 1] = cursor[p->lock_axis - 1];
-
-	gp_project_points_to_plane(rv3d, gps, origin, p->lock_axis - 1);
 }
 
 /* convert screen-coordinates to buffer-coordinates */
@@ -498,10 +470,6 @@ static short gp_stroke_addpoint(
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
 
 			/* copy pressure and time */
 			pts->pressure = pt->pressure;
@@ -665,10 +633,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
+
 			/* copy pressure and time */
 			pt->pressure = ptc->pressure;
 			pt->strength = ptc->strength;
@@ -684,10 +649,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-			/* if axis locked, reproject to plane locked (only in 3d space) */
-			if (p->lock_axis > GP_LOCKAXIS_NONE) {
-				gp_reproject_toplane(p, gps);
-			}
 
 			/* copy pressure and time */
 			pt->pressure = ptc->pressure;
@@ -702,10 +663,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 		/* convert screen-coordinates to appropriate coordinates (and store them) */
 		gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-		/* if axis locked, reproject to plane locked (only in 3d space) */
-		if (p->lock_axis > GP_LOCKAXIS_NONE) {
-			gp_reproject_toplane(p, gps);
-		}
+
 		/* copy pressure and time */
 		pt->pressure = ptc->pressure;
 		pt->strength = ptc->strength;
@@ -786,11 +744,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
-		}
-
-		/* if axis locked, reproject to plane locked (only in 3d space) */
-		if (p->lock_axis > GP_LOCKAXIS_NONE) {
-			gp_reproject_toplane(p, gps);
 		}
 
 		if (depth_arr)
@@ -1191,9 +1144,6 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 
 	/* clear out buffer (stored in gp-data), in case something contaminated it */
 	gp_session_validatebuffer(p);
-
-	/* lock axis */
-	p->lock_axis = ts->gp_sculpt.lock_axis;
 
 	return 1;
 }
