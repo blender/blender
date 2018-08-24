@@ -32,6 +32,11 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 	da[2] = 1e10f;
 	da[3] = 1e10f;
 
+	pa[0] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[1] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[2] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[3] = make_float3(0.0f, 0.0f, 0.0f);
+
 	int3 xyzi = quick_floor_to_int3(p);
 
 	for(int xx = -1; xx <= 1; xx++) {
