@@ -58,7 +58,7 @@ namespace {
 
 void deg_graph_build_flush_layers(Depsgraph *graph)
 {
-	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode*),
+	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode *),
 	                                 "DEG flush layers stack");
 	foreach (OperationDepsNode *op_node, graph->operations) {
 		op_node->done = 0;

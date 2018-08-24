@@ -556,7 +556,7 @@ static void evaluate_vertex_and_apply_displacement_copy(
         const int ptex_face_index,
         const float u, const float v,
         const MVert *coarse_vert,
-		MVert *subdiv_vert)
+        MVert *subdiv_vert)
 {
 	/* Displacement is accumulated in subdiv vertex position.
 	 * need to back it up before copying data fro original vertex.
@@ -578,7 +578,7 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
         const int ptex_face_index,
         const float u, const float v,
         VerticesForInterpolation *vertex_interpolation,
-		MVert *subdiv_vert)
+        MVert *subdiv_vert)
 {
 	/* Displacement is accumulated in subdiv vertex position.
 	 * need to back it up before copying data fro original vertex.
@@ -685,10 +685,11 @@ static void subdiv_mesh_ensure_vertex_interpolation(
 	}
 	/* Update it for a new corner if needed. */
 	if (!tls->vertex_interpolation_initialized ||
-	     tls->vertex_interpolation_coarse_corner != coarse_corner) {
+	    tls->vertex_interpolation_coarse_corner != coarse_corner)
+	{
 		vertex_interpolation_from_corner(
 		        ctx, &tls->vertex_interpolation, coarse_poly, coarse_corner);
-	 }
+	}
 	/* Store settings used for the current state of interpolator. */
 	tls->vertex_interpolation_initialized = true;
 	tls->vertex_interpolation_coarse_poly = coarse_poly;
@@ -861,10 +862,11 @@ static void subdiv_mesh_ensure_loop_interpolation(
 	}
 	/* Update it for a new corner if needed. */
 	if (!tls->loop_interpolation_initialized ||
-	     tls->loop_interpolation_coarse_corner != coarse_corner) {
+	    tls->loop_interpolation_coarse_corner != coarse_corner)
+	{
 		loop_interpolation_from_corner(
 		        ctx, &tls->loop_interpolation, coarse_poly, coarse_corner);
-	 }
+	}
 	/* Store settings used for the current state of interpolator. */
 	tls->loop_interpolation_initialized = true;
 	tls->loop_interpolation_coarse_poly = coarse_poly;
@@ -878,7 +880,7 @@ static void subdiv_mesh_loop(
         const float u, const float v,
         const int UNUSED(coarse_loop_index),
         const int coarse_poly_index,
-		const int coarse_corner,
+        const int coarse_corner,
         const int subdiv_loop_index,
         const int subdiv_vertex_index, const int subdiv_edge_index)
 {

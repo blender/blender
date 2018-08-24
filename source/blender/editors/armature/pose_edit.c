@@ -202,7 +202,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 
 	/* Override depsgraph with a filtered, simpler copy */
 	if (G.debug_value != -1) {
-TIMEIT_START(filter_pose_depsgraph);
+		TIMEIT_START(filter_pose_depsgraph);
 		DEG_FilterQuery query = {0};
 
 		DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
@@ -213,11 +213,11 @@ TIMEIT_START(filter_pose_depsgraph);
 		free_depsgraph = true;
 
 		MEM_freeN(dft_ob);
-TIMEIT_END(filter_pose_depsgraph);
+		TIMEIT_END(filter_pose_depsgraph);
 
-TIMEIT_START(filter_pose_update);
+		TIMEIT_START(filter_pose_update);
 		BKE_scene_graph_update_tagged(depsgraph, bmain);
-TIMEIT_END(filter_pose_update);
+		TIMEIT_END(filter_pose_update);
 	}
 
 	/* set flag to force recalc, then grab the relevant bones to target */
@@ -225,9 +225,10 @@ TIMEIT_END(filter_pose_update);
 	animviz_get_object_motionpaths(ob, &targets);
 
 	/* recalculate paths, then free */
-TIMEIT_START(pose_path_calc);
+	TIMEIT_START(pose_path_calc);
 	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
-TIMEIT_END(pose_path_calc);
+	TIMEIT_END(pose_path_calc);
+
 	BLI_freelistN(&targets);
 
 	/* tag armature object for copy on write - so paths will draw/redraw */

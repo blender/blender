@@ -962,15 +962,15 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap, float 
  * \param black Use instead of cumap->black
  * \param bwmul Use instead of cumap->bwmul
  */
-void curvemapping_evaluate_premulRGBF_ex(const CurveMapping *cumap, float vecout[3], const float vecin[3],
-                                         const float black[3], const float bwmul[3])
+void curvemapping_evaluate_premulRGBF_ex(
+        const CurveMapping *cumap, float vecout[3], const float vecin[3],
+        const float black[3], const float bwmul[3])
 {
 	const float r = (vecin[0] - black[0]) * bwmul[0];
 	const float g = (vecin[1] - black[1]) * bwmul[1];
 	const float b = (vecin[2] - black[2]) * bwmul[2];
 
-	switch (cumap->tone)
-	{
+	switch (cumap->tone) {
 		default:
 		case CURVE_TONE_STANDARD:
 		{

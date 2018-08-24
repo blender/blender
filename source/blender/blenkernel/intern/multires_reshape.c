@@ -363,12 +363,13 @@ static Subdiv *multires_subdiv_for_reshape(struct Depsgraph *depsgraph,
 	return subdiv;
 }
 
-static bool multires_reshape_from_vertcos(struct Depsgraph *depsgraph,
-	                                      Object *object,
-                                          const MultiresModifierData *mmd,
-                                          const float (*deformed_verts)[3],
-                                          const int num_deformed_verts,
-                                          const bool use_render_params)
+static bool multires_reshape_from_vertcos(
+        struct Depsgraph *depsgraph,
+        Object *object,
+        const MultiresModifierData *mmd,
+        const float (*deformed_verts)[3],
+        const int num_deformed_verts,
+        const bool use_render_params)
 {
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Mesh *coarse_mesh = object->data;
@@ -476,7 +477,8 @@ bool multiresModifier_reshapeFromDeformModifier(
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* Perform sanity checks and early output. */
 	if (multires_get_level(
-	        scene_eval, object, &highest_mmd, false, true) == 0) {
+	            scene_eval, object, &highest_mmd, false, true) == 0)
+	{
 		return false;
 	}
 	/* Create mesh for the multires, ignoring any further modifiers (leading

@@ -341,9 +341,9 @@ GPUBatch *DRW_cache_grid_get(void)
 		for (int i = 0; i < 8; ++i) {
 			for (int j = 0; j < 8; ++j) {
 				float pos0[2] = {(float)i / 8.0f, (float)j / 8.0f};
-				float pos1[2] = {(float)(i+1) / 8.0f, (float)j / 8.0f};
-				float pos2[2] = {(float)i / 8.0f, (float)(j+1) / 8.0f};
-				float pos3[2] = {(float)(i+1) / 8.0f, (float)(j+1) / 8.0f};
+				float pos1[2] = {(float)(i + 1) / 8.0f, (float)j / 8.0f};
+				float pos2[2] = {(float)i / 8.0f, (float)(j + 1) / 8.0f};
+				float pos3[2] = {(float)(i + 1) / 8.0f, (float)(j + 1) / 8.0f};
 
 				madd_v2_v2v2fl(pos0, (float[2]){-1.0f, -1.0f}, pos0, 2.0f);
 				madd_v2_v2v2fl(pos1, (float[2]){-1.0f, -1.0f}, pos1, 2.0f);

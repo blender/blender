@@ -853,17 +853,17 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 }
 
 static libmv_CacheKey accessor_get_image_callback(
-		struct libmv_FrameAccessorUserData *user_data,
-		int clip_index,
-		int frame,
-		libmv_InputMode input_mode,
-		int downscale,
-		const libmv_Region *region,
-		const libmv_FrameTransform *transform,
-		float **destination,
-		int *width,
-		int *height,
-		int *channels)
+        struct libmv_FrameAccessorUserData *user_data,
+        int clip_index,
+        int frame,
+        libmv_InputMode input_mode,
+        int downscale,
+        const libmv_Region *region,
+        const libmv_FrameTransform *transform,
+        float **destination,
+        int *width,
+        int *height,
+        int *channels)
 {
 	TrackingImageAccessor *accessor = (TrackingImageAccessor *) user_data;
 	ImBuf *ibuf;
