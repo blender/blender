@@ -118,9 +118,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
 	 * or they can just lead to freezing job in some other cases */
-	if (WM_jobs_test(wm, scene, WM_JOB_TYPE_ANY)) {
-		return OPERATOR_CANCELLED;
-	}
+	WM_jobs_kill_all(wm);
 
 	/* TODO(campbell): undo_system: use undo system */
 	/* grease pencil can be can be used in plenty of spaces, so check it first */
