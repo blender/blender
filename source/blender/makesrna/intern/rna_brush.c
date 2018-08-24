@@ -171,6 +171,7 @@ static EnumPropertyItem rna_enum_gpencil_brush_icons_items[] = {
 #include "BKE_colorband.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
+#include "BKE_gpencil.h"
 #include "BKE_paint.h"
 
 #include "WM_api.h"
@@ -409,6 +410,31 @@ static void rna_Brush_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	Brush *br = (Brush *)ptr->data;
 	WM_main_add_notifier(NC_BRUSH | NA_EDITED, br);
 	/*WM_main_add_notifier(NC_SPACE|ND_SPACE_VIEW3D, NULL); */
+}
+
+static void rna_Brush_material_update(bContext *C, PointerRNA *ptr)
+{
+	Main *bmain = CTX_data_main(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = OBACT(view_layer);
+	Brush *br = (Brush *)ptr->id.data;
+	int index;
+
+	/* set material slot to same material */
+	if ((ob) && (ob->type == OB_GPENCIL) && (br->gpencil_settings != NULL)) {
+		BrushGpencilSettings *gpencil_settings = br->gpencil_settings;
+		if (gpencil_settings->material != NULL) {
+
+			index = BKE_gpencil_get_material_index(ob, gpencil_settings->material);
+			if ((index > 0) && (ob->actcol != index)) {
+				ob->actcol = index;
+				/* update other brushes to keep all synchro */
+				BKE_brush_update_material(bmain, gpencil_settings->material, br);
+			}
+
+		}
+		WM_main_add_notifier(NC_SPACE | ND_SPACE_PROPERTIES, NULL);
+	}
 }
 
 static void rna_Brush_main_tex_update(bContext *C, PointerRNA *ptr)
@@ -1202,10 +1228,10 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Material");
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_BrushGpencilSettings_material_poll");
-	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK | PROP_CONTEXT_UPDATE);
 	RNA_def_property_ui_text(prop, "Material", "Material used for strokes drawn using this brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_Brush_material_update");
 
 	prop = RNA_def_property(srna, "gpencil_fill_show_boundary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_SHOW_HELPLINES);
@@ -1235,6 +1261,12 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "enable_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_GROUP_RANDOM);
 	RNA_def_property_ui_text(prop, "Random Settings", "Enable random settings for brush");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
+	prop = RNA_def_property(srna, "pin_material", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_MATERIAL_PINNED);
+	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
+	RNA_def_property_ui_text(prop, "Pin Material", "Keep material assigned to brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 }
 

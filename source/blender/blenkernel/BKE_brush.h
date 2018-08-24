@@ -37,6 +37,8 @@ struct Main;
 struct Scene;
 struct ToolSettings;
 struct UnifiedPaintSettings;
+struct Material;
+
 // enum eCurveMappingPreset;
 
 #include "DNA_object_enums.h"
@@ -58,6 +60,7 @@ void BKE_brush_free(struct Brush *brush);
 
 void BKE_brush_sculpt_reset(struct Brush *brush);
 void BKE_brush_gpencil_presets(struct bContext *C);
+void BKE_brush_update_material(struct Main *bmain, struct Material *ma, struct Brush *exclude_brush);
 struct Brush *BKE_brush_getactive_gpencil(struct ToolSettings *ts);
 struct Paint *BKE_brush_get_gpencil_paint(struct ToolSettings *ts);
 

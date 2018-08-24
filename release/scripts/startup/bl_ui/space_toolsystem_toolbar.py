@@ -1127,6 +1127,8 @@ class _defs_gpencil_paint:
             row.template_ID(gp_settings, "material", live_icon=True)
         else:
             row.template_greasepencil_color(gp_settings, "material", rows=3, cols=8, scale=0.8)
+        row.prop(gp_settings, "pin_material", text="")
+
 
     @staticmethod
     def draw_settings_common(context, layout, tool):

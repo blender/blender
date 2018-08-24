@@ -117,7 +117,9 @@ typedef enum eGPDbrush_Flag {
 	/* settings group */
 	GP_BRUSH_GROUP_SETTINGS = (1 << 11),
 	/* Random settings group */
-	GP_BRUSH_GROUP_RANDOM = (1 << 12)
+	GP_BRUSH_GROUP_RANDOM = (1 << 12),
+	/* Keep material assigned to brush */
+	GP_BRUSH_MATERIAL_PINNED = (1 << 13)
 } eGPDbrush_Flag;
 
 /* BrushGpencilSettings->gp_fill_draw_mode */

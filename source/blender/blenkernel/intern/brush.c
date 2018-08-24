@@ -525,6 +525,24 @@ void BKE_brush_gpencil_presets(bContext *C)
 
 }
 
+void BKE_brush_update_material(Main *bmain, Material *ma, Brush *exclude_brush)
+{
+	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+		if ((exclude_brush != NULL) && (brush == exclude_brush)) {
+			continue;
+		}
+
+		if (brush->gpencil_settings != NULL) {
+			BrushGpencilSettings *gpencil_settings = brush->gpencil_settings;
+			if (((gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) == 0) &&
+				(gpencil_settings->material != ma))
+			{
+				gpencil_settings->material = ma;
+			}
+		}
+	}
+}
+
 /* get the active gp-brush for editing */
 Brush *BKE_brush_getactive_gpencil(ToolSettings *ts)
 {
