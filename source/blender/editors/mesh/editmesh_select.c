@@ -4406,6 +4406,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		}
 		EDBM_selectmode_flush(em);
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit_iter->data);
+		DEG_id_tag_update(obedit_iter->data, DEG_TAG_SELECT_UPDATE);
 	}
 	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
