@@ -495,9 +495,6 @@ void DepsgraphNodeBuilder::build_object(int base_index,
                                         eDepsNode_LinkedState_Type linked_state,
                                         bool is_visible)
 {
-	if (string(object->id.name) == "OBGEO-icicles_large_03") {
-		printf(">> %d\n", is_visible);
-	}
 	const bool has_object = built_map_.checkIsBuiltAndTag(object);
 	/* Skip rest of components if the ID node was already there. */
 	if (has_object) {
