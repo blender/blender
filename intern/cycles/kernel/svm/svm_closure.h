@@ -757,7 +757,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 			const AttributeDescriptor attr_descr_random = find_attribute(kg, sd, data_node4.y);
 			float random = 0.0f;
-			if (attr_descr_random.offset != ATTR_STD_NOT_FOUND) {
+			if(attr_descr_random.offset != ATTR_STD_NOT_FOUND) {
 				random = primitive_attribute_float(kg, sd, attr_descr_random, NULL, NULL);
 			}
 			else {
@@ -769,7 +769,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			if(bsdf) {
 				PrincipledHairExtra *extra = (PrincipledHairExtra*)closure_alloc_extra(sd, sizeof(PrincipledHairExtra));
 
-				if (!extra)
+				if(!extra)
 					break;
 
 				/* Random factors range: [-randomization/2, +randomization/2]. */

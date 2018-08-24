@@ -1025,7 +1025,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.num = 0;
 	info.advanced_shading = true;
 	info.bvh_layout_mask = BVH_LAYOUT_BVH2;
-	if (system_cpu_support_sse2()) {
+	if(system_cpu_support_sse2()) {
 		info.bvh_layout_mask |= BVH_LAYOUT_BVH4;
 	}
 	info.has_volume_decoupled = true;

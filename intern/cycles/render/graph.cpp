@@ -245,7 +245,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
 		ShaderNode *convert;
 		ShaderInput *convert_in;
 
-		if (to->type() == SocketType::CLOSURE) {
+		if(to->type() == SocketType::CLOSURE) {
 			EmissionNode *emission = new EmissionNode();
 			emission->color = make_float3(1.0f, 1.0f, 1.0f);
 			emission->strength = 1.0f;

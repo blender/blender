@@ -98,11 +98,11 @@ ccl_device void svm_node_ao(KernelGlobals *kg,
 	float3 normal = stack_valid(normal_offset)? stack_load_float3(stack, normal_offset): sd->N;
 	float ao = svm_ao(kg, sd, normal, state, dist, samples, flags);
 
-	if (stack_valid(out_ao_offset)) {
+	if(stack_valid(out_ao_offset)) {
 		stack_store_float(stack, out_ao_offset, ao);
 	}
 
-	if (stack_valid(out_color_offset)) {
+	if(stack_valid(out_color_offset)) {
 		float3 color = stack_load_float3(stack, color_offset);
 		stack_store_float3(stack, out_color_offset, ao * color);
 	}

@@ -300,7 +300,7 @@ size_t system_physical_ram()
 #elif defined(__APPLE__)
 	uint64_t ram = 0;
 	size_t len = sizeof(ram);
-	if (sysctlbyname("hw.memsize", &ram, &len, NULL, 0) == 0) {
+	if(sysctlbyname("hw.memsize", &ram, &len, NULL, 0) == 0) {
 		return ram;
 	}
 	return 0;

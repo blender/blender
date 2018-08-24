@@ -148,11 +148,11 @@ ccl_device_noinline float3 svm_bevel(
 			int prim = kernel_tex_fetch(__prim_index, isect.hits[hit].prim);
 			int shader = kernel_tex_fetch(__tri_shader, prim);
 
-			if (shader & SHADER_SMOOTH_NORMAL) {
+			if(shader & SHADER_SMOOTH_NORMAL) {
 				float u = isect.hits[hit].u;
 				float v = isect.hits[hit].v;
 
-				if (sd->type & PRIMITIVE_TRIANGLE) {
+				if(sd->type & PRIMITIVE_TRIANGLE) {
 					N = triangle_smooth_normal(kg, N, prim, u, v);
 				}
 #ifdef __OBJECT_MOTION__

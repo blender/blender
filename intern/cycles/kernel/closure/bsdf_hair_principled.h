@@ -120,7 +120,7 @@ ccl_device_inline float bessel_I0(float x)
 /* Logarithm of the Bessel function of the first kind. */
 ccl_device_inline float log_bessel_I0(float x)
 {
-	if (x > 12.0f) {
+	if(x > 12.0f) {
 		/* log(1/x) == -log(x) iff x > 0.
 		 * This is only used with positive cosines */
 		return x + 0.5f * (1.f / (8.0f * x) - M_LN_2PI_F - logf(x));

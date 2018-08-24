@@ -443,7 +443,7 @@ template<typename T>
 void array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	const array<T>& a = *(const array<T>*)(((char*)node) + socket.struct_offset);
-	for (size_t i = 0; i < a.size(); i++) {
+	for(size_t i = 0; i < a.size(); i++) {
 		md5.append((uint8_t*)&a[i], sizeof(T));
 	}
 }
@@ -452,7 +452,7 @@ void float3_array_hash(const Node *node, const SocketType& socket, MD5Hash& md5)
 {
 	/* Don't compare 4th element used for padding. */
 	const array<float3>& a = *(const array<float3>*)(((char*)node) + socket.struct_offset);
-	for (size_t i = 0; i < a.size(); i++) {
+	for(size_t i = 0; i < a.size(); i++) {
 		md5.append((uint8_t*)&a[i], sizeof(float) * 3);
 	}
 }

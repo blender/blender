@@ -170,7 +170,7 @@ ccl_device_inline bool path_state_volume_next(KernelGlobals *kg, ccl_addr_space 
 	/* For volume bounding meshes we pass through without counting transparent
 	 * bounces, only sanity check in case self intersection gets us stuck. */
 	state->volume_bounds_bounce++;
-	if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+	if(state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
 		return false;
 	}
 

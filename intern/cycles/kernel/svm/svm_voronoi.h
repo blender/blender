@@ -70,7 +70,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 				}
 
 				/* To keep the shortest four distances and associated points we have to keep them in sorted order. */
-				if (d < da[0]) {
+				if(d < da[0]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = da[0];
@@ -81,7 +81,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 					pa[1] = pa[0];
 					pa[0] = vp;
 				}
-				else if (d < da[1]) {
+				else if(d < da[1]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = d;
@@ -90,14 +90,14 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 					pa[2] = pa[1];
 					pa[1] = vp;
 				}
-				else if (d < da[2]) {
+				else if(d < da[2]) {
 					da[3] = da[2];
 					da[2] = d;
 
 					pa[3] = pa[2];
 					pa[2] = vp;
 				}
-				else if (d < da[3]) {
+				else if(d < da[3]) {
 					da[3] = d;
 					pa[3] = vp;
 				}

@@ -200,11 +200,9 @@ public:
 
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
-		if(!skip(sd, path_flag, LABEL_GLOSSY))
-		{
+		if(!skip(sd, path_flag, LABEL_GLOSSY)) {
 			PrincipledHairBSDF *bsdf = (PrincipledHairBSDF*)alloc(sd, path_flag, weight);
-			if (!bsdf)
-			{
+			if(!bsdf) {
 				return;
 			}
 
