@@ -1051,8 +1051,10 @@ void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int
 void uiItemFullR(uiLayout *layout, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, int value, int flag, const char *name, int icon);
 void uiItemEnumR_prop(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, PropertyRNA *prop, int value);
 void uiItemEnumR(uiLayout *layout, const char *name, int icon, struct PointerRNA *ptr, const char *propname, int value);
+void uiItemEnumR_string_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *value, const char *name, int icon);
 void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value, const char *name, int icon);
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname);
+void uiItemPointerR_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, struct PointerRNA *searchptr, PropertyRNA *searchprop, const char *name, int icon);
 void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *searchptr, const char *searchpropname, const char *name, int icon);
 void uiItemsFullEnumO(
         uiLayout *layout, const char *opname, const char *propname,

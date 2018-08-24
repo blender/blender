@@ -580,7 +580,9 @@ void uiLayoutSetRedAlert(uiLayout *layout, bool redalert) RET_NONE
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname) RET_NONE
 void uiItemMenuEnumR_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *name, int icon) RET_NONE
 void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name, int icon) RET_NONE
+void uiItemEnumR_string_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *value, const char *name, int icon) RET_NONE
 void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value, const char *name, int icon) RET_NONE
+void uiItemPointerR_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, struct PointerRNA *searchptr, PropertyRNA *searchprop, const char *name, int icon) RET_NONE
 void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *searchptr, const char *searchpropname, const char *name, int icon) RET_NONE
 void uiItemsEnumO(uiLayout *layout, const char *opname, const char *propname) RET_NONE
 void uiItemEnumO_string(uiLayout *layout, const char *name, int icon, const char *opname, const char *propname, const char *value) RET_NONE
