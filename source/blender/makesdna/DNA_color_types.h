@@ -107,8 +107,9 @@ typedef enum eCurveMappingPreset {
 
 /* CurveMapping->tone */
 typedef enum eCurveMappingTone {
-	CURVE_TONE_STANDARD = 0,
-	CURVE_TONE_FILMLIKE = 1,
+	CURVE_TONE_STANDARD =          0,
+	CURVE_TONE_WEIGHTED_STANDARD = 1,
+	CURVE_TONE_FILMLIKE =          2,
 } eCurveMappingTone;
 
 /* histogram->mode */
