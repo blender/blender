@@ -678,7 +678,8 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	PropertySubType subtype;
 	int labelw;
 
-	sub = uiLayoutRow(layout, layout->align);
+	/* Always align item with label since text is already given enough space not to overlap. */
+	sub = uiLayoutRow(layout, true);
 	UI_block_layout_set_current(block, sub);
 
 	if (name[0]) {
