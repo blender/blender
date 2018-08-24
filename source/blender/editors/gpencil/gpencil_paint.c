@@ -733,6 +733,9 @@ static short gp_stroke_addpoint(
 	}
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 
+		/* enable special flag for drawing engine */
+		gpd->flag |= GP_DATA_STROKE_POLYGON;
+
 		bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 		/* get pointer to destination point */
 		pt = (tGPspoint *)(gpd->runtime.sbuffer);
@@ -2124,6 +2127,7 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 			/* drawing batch cache is dirty now */
 			bGPdata *gpd = CTX_data_gpencil_data(C);
 			if (gpd) {
+				gpd->flag &= ~GP_DATA_STROKE_POLYGON;
 				gp_update_cache(gpd);
 			}
 		}

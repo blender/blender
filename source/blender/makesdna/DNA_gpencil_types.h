@@ -427,6 +427,8 @@ typedef enum eGPdata_Flag {
 	 * not valid.
 	 */
 	GP_DATA_STROKE_FORCE_RECALC = (1 << 17),
+	/* Special mode drawing polygons */
+	GP_DATA_STROKE_POLYGON = (1 << 18),
 } eGPdata_Flag;
 
 /* gpd->onion_flag */
