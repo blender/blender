@@ -156,8 +156,7 @@ static void rna_uiItemEnumR_string(
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
 
-	/* XXX This will search property again :( */
-	uiItemEnumR_string(layout, ptr, propname, value, name, icon);
+	uiItemEnumR_string_prop(layout, ptr, prop, value, name, icon);
 }
 
 static void rna_uiItemPointerR(
@@ -166,17 +165,20 @@ static void rna_uiItemPointerR(
         const char *name, const char *text_ctxt, bool translate, int icon)
 {
 	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-
 	if (!prop) {
 		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	PropertyRNA *searchprop = RNA_struct_find_property(searchptr, searchpropname);
+	if (!searchprop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(searchptr->type), searchpropname);
 		return;
 	}
 
 	/* Get translated name (label). */
 	name = rna_translate_ui_text(name, text_ctxt, NULL, prop, translate);
 
-	/* XXX This will search property again :( */
-	uiItemPointerR(layout, ptr, propname, searchptr, searchpropname, name, icon);
+	uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon);
 }
 
 static PointerRNA rna_uiItemO(

@@ -1831,22 +1831,26 @@ void uiItemEnumR(uiLayout *layout, const char *name, int icon, struct PointerRNA
 	uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, 0, name, icon);
 }
 
-void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value, const char *name, int icon)
+
+void uiItemEnumR_string_prop(
+        uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop,
+        const char *value, const char *name, int icon)
 {
-	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
 	const EnumPropertyItem *item;
 	int ivalue, a;
 	bool free;
 
-	if (!prop || RNA_property_type(prop) != PROP_ENUM) {
+	if (UNLIKELY(RNA_property_type(prop) != PROP_ENUM)) {
+		const char *propname = RNA_property_identifier(prop);
 		ui_item_disabled(layout, propname);
-		RNA_warning("enum property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		RNA_warning("not an enum property: %s.%s", RNA_struct_identifier(ptr->type), propname);
 		return;
 	}
 
 	RNA_property_enum_items(layout->root->block->evil_C, ptr, prop, &item, NULL, &free);
 
 	if (!RNA_enum_value_from_id(item, value, &ivalue)) {
+		const char *propname = RNA_property_identifier(prop);
 		if (free) {
 			MEM_freeN((void *)item);
 		}
@@ -1868,6 +1872,19 @@ void uiItemEnumR_string(uiLayout *layout, struct PointerRNA *ptr, const char *pr
 	if (free) {
 		MEM_freeN((void *)item);
 	}
+}
+
+void uiItemEnumR_string(
+        uiLayout *layout, struct PointerRNA *ptr, const char *propname,
+        const char *value, const char *name, int icon)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+	if (UNLIKELY(prop == NULL)) {
+		ui_item_disabled(layout, propname);
+		RNA_warning("enum property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	uiItemEnumR_string_prop(layout, ptr, prop, value, name, icon);
 }
 
 void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname)
@@ -2008,9 +2025,12 @@ void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRN
 	}
 }
 
-void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, struct PointerRNA *searchptr, const char *searchpropname, const char *name, int icon)
+void uiItemPointerR_prop(
+        uiLayout *layout,
+        PointerRNA *ptr, PropertyRNA *prop,
+        PointerRNA *searchptr, PropertyRNA *searchprop,
+        const char *name, int icon)
 {
-	PropertyRNA *prop, *searchprop;
 	PropertyType type;
 	uiBut *but;
 	uiBlock *block;
@@ -2019,32 +2039,15 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	char namestr[UI_MAX_NAME_STR];
 	const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
-	/* validate arguments */
-	prop = RNA_struct_find_property(ptr, propname);
-
-	if (!prop) {
-		RNA_warning("property not found: %s.%s",
-		            RNA_struct_identifier(ptr->type), propname);
-		return;
-	}
-
 	type = RNA_property_type(prop);
 	if (!ELEM(type, PROP_POINTER, PROP_STRING, PROP_ENUM)) {
-		RNA_warning("Property %s must be a pointer, string or enum", propname);
+		RNA_warning("Property %s.%s must be a pointer, string or enum",
+		            RNA_struct_identifier(ptr->type), RNA_property_identifier(prop));
 		return;
 	}
-
-	searchprop = RNA_struct_find_property(searchptr, searchpropname);
-
-
-	if (!searchprop) {
-		RNA_warning("search collection property not found: %s.%s",
-		            RNA_struct_identifier(searchptr->type), searchpropname);
-		return;
-	}
-	else if (RNA_property_type(searchprop) != PROP_COLLECTION) {
+	if (RNA_property_type(searchprop) != PROP_COLLECTION) {
 		RNA_warning("search collection property is not a collection type: %s.%s",
-		            RNA_struct_identifier(searchptr->type), searchpropname);
+		            RNA_struct_identifier(searchptr->type), RNA_property_identifier(searchprop));
 		return;
 	}
 
@@ -2072,6 +2075,31 @@ void uiItemPointerR(uiLayout *layout, struct PointerRNA *ptr, const char *propna
 	but = ui_item_with_label(layout, block, name, icon, ptr, prop, 0, 0, 0, w, h, 0);
 
 	ui_but_add_search(but, ptr, prop, searchptr, searchprop);
+}
+
+void uiItemPointerR(
+        uiLayout *layout,
+        PointerRNA *ptr, const char *propname,
+        PointerRNA *searchptr, const char *searchpropname,
+        const char *name, int icon)
+{
+	PropertyRNA *prop, *searchprop;
+
+	/* validate arguments */
+	prop = RNA_struct_find_property(ptr, propname);
+	if (!prop) {
+		RNA_warning("property not found: %s.%s",
+		            RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	searchprop = RNA_struct_find_property(searchptr, searchpropname);
+	if (!searchprop) {
+		RNA_warning("search collection property not found: %s.%s",
+		            RNA_struct_identifier(searchptr->type), searchpropname);
+		return;
+	}
+
+	uiItemPointerR_prop(layout, ptr, prop, searchptr, searchprop, name, icon);
 }
 
 /* menu item */
