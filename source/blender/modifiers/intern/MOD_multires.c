@@ -169,7 +169,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 		/* Happens on bad topology, ut also on empty input mesh. */
 		return result;
 	}
-	BKE_subdiv_displacement_attach_from_multires(subdiv, object, mmd);
+	BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
 	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
 	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);

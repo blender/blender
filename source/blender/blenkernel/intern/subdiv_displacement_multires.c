@@ -369,10 +369,9 @@ static int count_num_ptex_faces(const Mesh *mesh)
 }
 
 static void displacement_data_init_mapping(SubdivDisplacement *displacement,
-                                           const Object *object)
+                                           const Mesh *mesh)
 {
 	MultiresDisplacementData *data = displacement->user_data;
-	const Mesh *mesh = (Mesh *)object->data;
 	const MPoly *mpoly = mesh->mpoly;
 	const int num_ptex_faces = count_num_ptex_faces(mesh);
 	/* Allocate memory. */
@@ -400,15 +399,14 @@ static void displacement_data_init_mapping(SubdivDisplacement *displacement,
 }
 
 static void displacement_init_data(SubdivDisplacement *displacement,
-                                   const Object *object,
+                                   const Mesh *mesh,
                                    const MultiresModifierData *mmd)
 {
 	MultiresDisplacementData *data = displacement->user_data;
-	Mesh *mesh = (Mesh *)object->data;
 	data->grid_size = (1 << (mmd->totlvl - 1)) + 1;
 	data->mpoly = mesh->mpoly;
 	data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
-	displacement_data_init_mapping(displacement, object);
+	displacement_data_init_mapping(displacement, mesh);
 }
 
 static void displacement_init_functions(SubdivDisplacement *displacement)
@@ -419,13 +417,9 @@ static void displacement_init_functions(SubdivDisplacement *displacement)
 
 void BKE_subdiv_displacement_attach_from_multires(
         Subdiv *subdiv,
-        const Object *object,
+        const Mesh *mesh,
         const MultiresModifierData *mmd)
 {
-	if (object->type != OB_MESH) {
-		BLI_assert(!"Should never be called for non-mesh objects");
-		return;
-	}
 	/* Make sure we dont' have previously assigned displacement. */
 	BKE_subdiv_displacement_detach(subdiv);
 	/* Allocate all required memory. */
@@ -433,7 +427,7 @@ void BKE_subdiv_displacement_attach_from_multires(
 	                                               "multires displacement");
 	displacement->user_data = MEM_callocN(sizeof(MultiresDisplacementData),
 	                                      "multires displacement data");
-	displacement_init_data(displacement, object, mmd);
+	displacement_init_data(displacement, mesh, mmd);
 	displacement_init_functions(displacement);
 	/* Finish. */
 	subdiv->displacement_evaluator = displacement;

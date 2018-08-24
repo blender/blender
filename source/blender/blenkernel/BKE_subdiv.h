@@ -416,7 +416,7 @@ struct Mesh *BKE_subdiv_to_mesh(
 
 void BKE_subdiv_displacement_attach_from_multires(
         Subdiv *subdiv,
-        const struct Object *object,
+        const struct Mesh *mesh,
         const struct MultiresModifierData *mmd);
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv);
