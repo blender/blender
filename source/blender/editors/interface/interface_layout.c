@@ -748,7 +748,8 @@ static uiBut *ui_item_with_label(
 	int prop_but_width = w_hint;
 	const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
-	sub = uiLayoutRow(layout, layout->align);
+	/* Always align item with label since text is already given enough space not to overlap. */
+	sub = uiLayoutRow(layout, true);
 	UI_block_layout_set_current(block, sub);
 
 	if (name[0]) {
