@@ -564,6 +564,21 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 	scene->basact = NULL;
 }
 
+static void do_version_collection_propagate_lib_to_children(Collection *collection)
+{
+	if (collection->id.lib != NULL) {
+		for (CollectionChild *collection_child = collection->children.first;
+		     collection_child != NULL;
+		     collection_child = collection_child->next)
+		{
+			if (collection_child->collection->id.lib == NULL) {
+				collection_child->collection->id.lib = collection->id.lib;
+			}
+			do_version_collection_propagate_lib_to_children(collection_child->collection);
+		}
+	}
+}
+
 void do_versions_after_linking_280(Main *bmain)
 {
 	bool use_collection_compat_28 = true;
@@ -588,7 +603,6 @@ void do_versions_after_linking_280(Main *bmain)
 				if (!(ob->lay & collection->layer)) {
 					if (collection_hidden == NULL) {
 						collection_hidden = BKE_collection_add(bmain, collection, "Hidden");
-						collection_hidden->id.lib = collection->id.lib;
 						collection_hidden->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
 					}
 
@@ -596,6 +610,13 @@ void do_versions_after_linking_280(Main *bmain)
 					BKE_collection_object_remove(bmain, collection, ob, true);
 				}
 			}
+		}
+
+		/* We need to assign lib pointer to generated hidden collections *after* all have been created, otherwise we'll
+		 * end up with several datablocks sharing same name/library, which is FORBIDDEN!
+		 * Note: we need this to be recursive, since a child collection may be sorted before its parent in bmain... */
+		for (Collection *collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+			do_version_collection_propagate_lib_to_children(collection);
 		}
 
 		/* Convert layers to collections. */
