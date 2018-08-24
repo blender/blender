@@ -1107,7 +1107,6 @@ void pbvh_update_BB_redraw(PBVH *bvh, PBVHNode **nodes, int totnode, int flag)
 static int pbvh_get_buffers_update_flags(PBVH *bvh)
 {
 	int update_flags = 0;
-	update_flags |= bvh->show_diffuse_color ? GPU_PBVH_BUFFERS_SHOW_DIFFUSE_COLOR : 0;
 	update_flags |= bvh->show_mask ? GPU_PBVH_BUFFERS_SHOW_MASK : 0;
 	return update_flags;
 }
@@ -2053,33 +2052,11 @@ bool BKE_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data)
 	return test_planes_aabb(bb_min, bb_max, data) != ISECT_INSIDE;
 }
 
-static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
-{
-	if (!node->draw_buffers)
-		return;
-
-	if (GPU_pbvh_buffers_diffuse_changed(node->draw_buffers, node->bm_faces, bvh->show_diffuse_color))
-		node->flag |= PBVH_UpdateDrawBuffers;
-}
-
-/* TODO: not needed anymore in 2.8? */
-#if 0
-static void pbvh_node_check_mask_changed(PBVH *bvh, PBVHNode *node)
-{
-	if (!node->draw_buffers) {
-		return;
-	}
-	if (GPU_pbvh_buffers_mask_changed(node->draw_buffers, bvh->show_mask)) {
-		node->flag |= PBVH_UpdateDrawBuffers;
-	}
-}
-#endif
-
 struct PBVHNodeDrawCallbackData {
-
 	void (*draw_fn)(void *user_data, GPUBatch *batch);
 	void *user_data;
 	bool fast;
+	bool only_mask; /* Only draw nodes that have mask data. */
 };
 
 static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
@@ -2088,8 +2065,11 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
 
 	if (!(node->flag & PBVH_FullyHidden)) {
 		GPUBatch *triangles = GPU_pbvh_buffers_batch_get(node->draw_buffers, data->fast);
-		if (triangles != NULL) {
-			data->draw_fn(data->user_data, triangles);
+		bool show_mask = GPU_pbvh_buffers_has_mask(node->draw_buffers);
+		if (!data->only_mask || show_mask) {
+			if (triangles != NULL) {
+				data->draw_fn(data->user_data, triangles);
+			}
 		}
 	}
 }
@@ -2098,19 +2078,17 @@ static void pbvh_node_draw_cb(PBVHNode *node, void *data_v)
  * Version of #BKE_pbvh_draw that runs a callback.
  */
 void BKE_pbvh_draw_cb(
-        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
+        PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast, bool only_mask,
         void (*draw_fn)(void *user_data, GPUBatch *batch), void *user_data)
 {
 	struct PBVHNodeDrawCallbackData draw_data = {
+		.only_mask = only_mask,
 		.fast = fast,
 		.draw_fn = draw_fn,
 		.user_data = user_data,
 	};
 	PBVHNode **nodes;
 	int totnode;
-
-	for (int a = 0; a < bvh->totnode; a++)
-		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
 
 	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
 	                       &nodes, &totnode);

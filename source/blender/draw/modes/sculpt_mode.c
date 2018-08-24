@@ -43,6 +43,10 @@
 
 #include "draw_mode_engines.h"
 
+extern char datatoc_sculpt_mask_vert_glsl[];
+extern char datatoc_gpu_shader_flat_color_frag_glsl[];
+extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
+
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
  * They are all free when viewport changes engines
@@ -121,26 +125,14 @@ static void SCULPT_engine_init(void *vedata)
 
 	UNUSED_VARS(txl, fbl, stl);
 
-	/* Init Framebuffers like this: order is attachment order (for color texs) */
-	/*
-	 * DRWFboTexture tex[2] = {{&txl->depth, GPU_DEPTH_COMPONENT24, 0},
-	 *                         {&txl->color, GPU_RGBA8, DRW_TEX_FILTER}};
-	 */
-
-	/* DRW_framebuffer_init takes care of checking if
-	 * the framebuffer is valid and has the right size*/
-	/*
-	 * float *viewport_size = DRW_viewport_size_get();
-	 * DRW_framebuffer_init(&fbl->occlude_wire_fb,
-	 *                     (int)viewport_size[0], (int)viewport_size[1],
-	 *                     tex, 2);
-	 */
-
 	if (!e_data.shader_flat) {
-		e_data.shader_flat = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
+		e_data.shader_flat = DRW_shader_create(datatoc_sculpt_mask_vert_glsl, NULL,
+		                                       datatoc_gpu_shader_flat_color_frag_glsl,
+		                                       "#define SHADE_FLAT");
 	}
 	if (!e_data.shader_smooth) {
-		e_data.shader_smooth = GPU_shader_get_builtin_shader(GPU_SHADER_3D_SMOOTH_COLOR);
+		e_data.shader_smooth = DRW_shader_create(datatoc_sculpt_mask_vert_glsl, NULL,
+		                                         datatoc_gpu_shader_3D_smooth_color_frag_glsl, NULL);
 	}
 }
 
@@ -183,6 +175,21 @@ static bool object_is_flat(const Object *ob)
 	}
 }
 
+static void sculpt_draw_mask_cb(
+        DRWShadingGroup *shgroup,
+        void (*draw_fn)(DRWShadingGroup *shgroup, struct GPUBatch *geom),
+        void *user_data)
+{
+	Object *ob = user_data;
+	PBVH *pbvh = ob->sculpt->pbvh;
+
+	if (pbvh) {
+		BKE_pbvh_draw_cb(
+		        pbvh, NULL, NULL, false, true,
+		        (void (*)(void *, struct GPUBatch *))draw_fn, shgroup);
+	}
+}
+
 /* Add geometry to shadingGroups. Execute for each objects */
 static void SCULPT_cache_populate(void *vedata, Object *ob)
 {
@@ -210,8 +217,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 				/* Get geometry cache */
 				DRWShadingGroup *shgroup = object_is_flat(ob) ? stl->g_data->group_flat : stl->g_data->group_smooth;
 
-				/* Add geom to a shading group */
-				DRW_shgroup_call_sculpt_add(shgroup, ob, ob->obmat);
+				DRW_shgroup_call_generate_add(shgroup, sculpt_draw_mask_cb, ob, ob->obmat);
 			}
 		}
 	}
@@ -260,7 +266,8 @@ static void SCULPT_draw_scene(void *vedata)
  * Mostly used for freeing shaders */
 static void SCULPT_engine_free(void)
 {
-	// DRW_SHADER_FREE_SAFE(custom_shader);
+	DRW_SHADER_FREE_SAFE(e_data.shader_flat);
+	DRW_SHADER_FREE_SAFE(e_data.shader_smooth);
 }
 
 static const DrawEngineDataSize SCULPT_data_size = DRW_VIEWPORT_DATA_SIZE(SCULPT_Data);

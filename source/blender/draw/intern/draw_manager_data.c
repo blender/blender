@@ -539,7 +539,7 @@ static void sculpt_draw_cb(
 
 	if (pbvh) {
 		BKE_pbvh_draw_cb(
-		        pbvh, NULL, NULL, false,
+		        pbvh, NULL, NULL, false, false,
 		        (void (*)(void *, GPUBatch *))draw_fn, shgroup);
 	}
 }
