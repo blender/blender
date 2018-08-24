@@ -249,7 +249,6 @@ void GPU_pbvh_mesh_buffers_update(
 	}
 
 	buffers->show_mask = !empty_mask;
-	printf("buffers->show_mask %d\n", buffers->show_mask);
 	buffers->mvert = mvert;
 }
 
