@@ -4345,10 +4345,10 @@ enum {
 /* BMESH_TODO - some way to select on an arbitrary axis */
 static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMVert *v_act = BM_mesh_active_vert_get(bm);
+	BMVert *v_act = BM_mesh_active_vert_get(em->bm);
 	const int axis = RNA_enum_get(op->ptr, "axis");
 	const int mode = RNA_enum_get(op->ptr, "mode");
 
@@ -4356,28 +4356,35 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "This operator requires an active vertex (last selected)");
 		return OPERATOR_CANCELLED;
 	}
-	else {
-		BMVert *v;
-		BMIter iter;
-		const float limit = RNA_float_get(op->ptr, "threshold");
 
-		float value;
-		float vertex_world[3];
+	BMVert *v;
+	BMIter iter;
+	const float limit = RNA_float_get(op->ptr, "threshold");
 
-		mul_v3_m4v3(vertex_world, obedit->obmat, v_act->co);
-		value = vertex_world[axis];
+	float value;
+	float vertex_world[3];
 
-		if (mode == SELECT_AXIS_NEGATIVE) {
-			value += limit;
-		}
-		else if (mode == SELECT_AXIS_POSITIVE) {
-			value -= limit;
-		}
+	mul_v3_m4v3(vertex_world, obedit->obmat, v_act->co);
+	value = vertex_world[axis];
+
+	if (mode == SELECT_AXIS_NEGATIVE) {
+		value += limit;
+	}
+	else if (mode == SELECT_AXIS_POSITIVE) {
+		value -= limit;
+	}
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit_iter = objects[ob_index];
+		BMEditMesh *em_iter = BKE_editmesh_from_object(obedit_iter);
+		BMesh *bm = em_iter->bm;
 
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
 				float v_iter_world[3];
-				mul_v3_m4v3(v_iter_world, obedit->obmat, v->co);
+				mul_v3_m4v3(v_iter_world, obedit_iter->obmat, v->co);
 				switch (mode) {
 					case SELECT_AXIS_ALIGNED:
 						if (fabsf(v_iter_world[axis] - value) < limit) {
@@ -4397,11 +4404,10 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
+		EDBM_selectmode_flush(em);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit_iter->data);
 	}
-
-	EDBM_selectmode_flush(em);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
