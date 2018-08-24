@@ -4952,6 +4952,9 @@ class VIEW3D_MT_gpencil_edit_specials(Menu):
         layout.operator("gpencil.stroke_split", text="Split")
 
         layout.separator()
+        layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes")
+
+        layout.separator()
 
         layout.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
         layout.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
