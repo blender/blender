@@ -4578,8 +4578,9 @@ static void initSnapSpatial(TransInfo *t, float r_snap[3])
 		RegionView3D *rv3d = t->ar->regiondata;
 
 		if (rv3d) {
+			View3D *v3d = t->sa->spacedata.first;
 			r_snap[0] = 0.0f;
-			r_snap[1] = rv3d->gridview * 1.0f;
+			r_snap[1] = ED_view3d_grid_scale(t->scene, v3d, NULL) * 1.0f;
 			r_snap[2] = r_snap[1] * 0.1f;
 		}
 	}
