@@ -397,10 +397,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 
             col = flow.column()
 
-            # Note: TODO prop_search doesn't align on the right.
-            row = col.row(align=True)
-            row.prop_search(surface, "uv_layer", ob.data, "uv_layers", text="UV Map")
-            row.label(text="", icon='BLANK1')
+            col.prop_search(surface, "uv_layer", ob.data, "uv_layers", text="UV Map")
 
             col = flow.column()
             col.prop(surface, "image_fileformat")
@@ -539,16 +536,10 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
 
         elif surface.init_color_type == 'TEXTURE':
             col.prop(surface, "init_texture")
-            # Note: TODO prop_search doesn't align on the right.
-            row = col.row(align=True)
-            row.prop_search(surface, "init_layername", ob.data, "uv_layers", text="UV Map")
-            row.label(text="", icon='BLANK1')
+            col.prop_search(surface, "init_layername", ob.data, "uv_layers", text="UV Map")
 
         elif surface.init_color_type == 'VERTEX_COLOR':
-            # Note: TODO prop_search doesn't align on the right.
-            row = col.row(align=True)
-            row.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer")
-            row.label(text="", icon='BLANK1')
+            col.prop_search(surface, "init_layername", ob.data, "vertex_colors", text="Color Layer")
 
 
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
@@ -742,10 +733,7 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
 
             col.separator()
 
-            # Note: TODO prop_search doesn't align on the right.
-            row = col.row(align=True)
-            row.prop_search(brush, "particle_system", ob, "particle_systems")
-            row.label(text="", icon='BLANK1')
+            col.prop_search(brush, "particle_system", ob, "particle_systems")
 
             if brush.particle_system:
                 col = flow.column()

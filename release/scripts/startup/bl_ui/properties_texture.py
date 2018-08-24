@@ -738,10 +738,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 ob = context.object
 
                 if ob and ob.type == 'MESH':
-                    # Note: TODO prop_search doesn't align on the right.
-                    row = col.row(align=True)
-                    row.prop_search(tex, "uv_layer", ob.data, "uv_layers", text="Map")
-                    row.label(text="", icon='BLANK1')
+                    col.prop_search(tex, "uv_layer", ob.data, "uv_layers", text="Map")
                 else:
                     col.prop(tex, "uv_layer", text="Map")
 

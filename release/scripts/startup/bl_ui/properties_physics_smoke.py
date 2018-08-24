@@ -123,13 +123,10 @@ class PHYSICS_PT_smoke_settings(PhysicButtonsPanel, Panel):
                 col.prop(flow_smoke, "smoke_flow_source", expand=False, text="Flow Source")
 
                 if flow_smoke.smoke_flow_source == 'PARTICLES':
-                    # Note: TODO prop_search doesn't align on the right.
-                    row = col.row(align=True)
-                    row.prop_search(
+                    col.prop_search(
                         flow_smoke, "particle_system", ob, "particle_systems",
                         text="Particle System"
                     )
-                    row.label(text="", icon='BLANK1')
                 else:
                     col.prop(flow_smoke, "surface_distance")
                     col.prop(flow_smoke, "volume_density")
@@ -153,10 +150,7 @@ class PHYSICS_PT_smoke_settings(PhysicButtonsPanel, Panel):
 
             col.separator()
 
-            # Note: TODO prop_search doesn't align on the right.
-            row = col.row(align=True)
-            row.prop_search(flow_smoke, "density_vertex_group", ob, "vertex_groups", text="Vertex Group")
-            row.label(text="", icon='BLANK1')
+            col.prop_search(flow_smoke, "density_vertex_group", ob, "vertex_groups", text="Vertex Group")
 
         elif md.smoke_type == 'COLLISION':
             coll = md.coll_settings
@@ -349,10 +343,7 @@ class PHYSICS_PT_smoke_flow_texture(PhysicButtonsPanel, Panel):
         sub.active = flow_smoke.use_texture
 
         if flow_smoke.texture_map_type == 'UV':
-            # Note: TODO prop_search doesn't align on the right.
-            row = sub.row(align=True)
-            row.prop_search(flow_smoke, "uv_layer", ob.data, "uv_layers")
-            row.label(text="", icon='BLANK1')
+            sub.prop_search(flow_smoke, "uv_layer", ob.data, "uv_layers")
 
         if flow_smoke.texture_map_type == 'AUTO':
             sub.prop(flow_smoke, "texture_size")

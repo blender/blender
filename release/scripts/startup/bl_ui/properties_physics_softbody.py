@@ -84,10 +84,7 @@ class PHYSICS_PT_softbody_object(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(softbody, "mass")
 
-        # Note: TODO prop_search doesn't align on the right.
-        row = col.row(align=True)
-        row.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Control Point")
-        row.label(text="", icon='BLANK1')
+        col.prop_search(softbody, "vertex_group_mass", ob, "vertex_groups", text="Control Point")
 
 
 class PHYSICS_PT_softbody_simulation(PhysicButtonsPanel, Panel):
@@ -141,10 +138,7 @@ class PHYSICS_PT_softbody_goal(PhysicButtonsPanel, Panel):
 
         layout.active = softbody.use_goal and softbody_panel_enabled(md)
 
-        # Note: TODO prop_search doesn't align on the right.
-        row = layout.row(align=True)
-        row.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
-        row.label(text="", icon='BLANK1')
+        layout.prop_search(softbody, "vertex_group_goal", ob, "vertex_groups", text="Vertex Group")
 
 
 class PHYSICS_PT_softbody_goal_strenghts(PhysicButtonsPanel, Panel):
@@ -221,10 +215,7 @@ class PHYSICS_PT_softbody_edge(PhysicButtonsPanel, Panel):
 
         col = flow.column()
 
-        # Note: TODO prop_search doesn't align on the right.
-        row = col.row(align=True)
-        row.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs")
-        row.label(text="", icon='BLANK1')
+        col.prop_search(softbody, "vertex_group_spring", ob, "vertex_groups", text="Springs")
 
         col.separator()
 
