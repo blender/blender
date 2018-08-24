@@ -108,19 +108,19 @@ void ui_but_anim_decorate_update_from_flag(uiBut *but)
 	BLI_assert(UI_but_is_decorator(but) && but->prev);
 	int flag = but->prev->flag;
 	if (flag & UI_BUT_DRIVEN) {
-		but->icon = ICON_AUTO;
+		but->icon = ICON_DECORATE_DRIVER;
 	}
 	else if (flag & UI_BUT_ANIMATED_KEY) {
-		but->icon = ICON_SPACE2;
+		but->icon = ICON_DECORATE_KEYFRAME;
 	}
 	else if (flag & UI_BUT_ANIMATED) {
-		but->icon = ICON_SPACE3;
+		but->icon = ICON_DECORATE_ANIMATE;
 	}
 	else if (flag & UI_BUT_OVERRIDEN) {
-		but->icon = ICON_LIBRARY_DATA_OVERRIDE;
+		but->icon = ICON_DECORATE_OVERRIDE;
 	}
 	else {
-		but->icon = ICON_DOT;
+		but->icon = ICON_DECORATE;
 	}
 
 	const int flag_copy = (UI_BUT_DISABLED | UI_BUT_INACTIVE);

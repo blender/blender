@@ -232,7 +232,7 @@ class VIEW3D_HT_header(Header):
         )
 
         row = layout.row(align=True)
-        row.prop(overlay, "show_overlays", icon='WIRE', text="")
+        row.prop(overlay, "show_overlays", icon='OVERLAY', text="")
         sub = row.row(align=True)
         sub.active = overlay.show_overlays
         sub.popover(panel="VIEW3D_PT_overlay")
