@@ -51,10 +51,8 @@ DenoisingTask::~DenoisingTask()
 	storage.XtWY.free();
 	storage.transform.free();
 	storage.rank.free();
-	storage.temporary_1.free();
-	storage.temporary_2.free();
-	storage.temporary_color.free();
 	buffer.mem.free();
+	buffer.temporary_mem.free();
 	tile_info_mem.free();
 }
 
@@ -99,6 +97,16 @@ void DenoisingTask::setup_denoising_buffer()
 	/* Pad the total size by four floats since the SIMD kernels might go a bit over the end. */
 	int mem_size = align_up(buffer.pass_stride * buffer.passes + 4, alignment_floats);
 	buffer.mem.alloc_to_device(mem_size, false);
+
+	/* CPUs process shifts sequentially while GPUs process them in parallel. */
+	int num_shifts = 1;
+	if(buffer.gpu_temporary_mem) {
+		/* Shadowing prefiltering uses a radius of 6, so allocate at least that much. */
+		int max_radius = max(radius, 6);
+		num_shifts = (2*max_radius + 1) * (2*max_radius + 1);
+	}
+	/* Allocate two layers per shift as well as one for the weight accumulation. */
+	buffer.temporary_mem.alloc_to_device((2*num_shifts + 1) * buffer.pass_stride);
 }
 
 void DenoisingTask::prefilter_shadowing()
@@ -111,13 +119,6 @@ void DenoisingTask::prefilter_shadowing()
 	device_sub_ptr sample_var_var (buffer.mem, 3*buffer.pass_stride, buffer.pass_stride);
 	device_sub_ptr buffer_var     (buffer.mem, 5*buffer.pass_stride, buffer.pass_stride);
 	device_sub_ptr filtered_var   (buffer.mem, 6*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_1(buffer.mem, 7*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_2(buffer.mem, 8*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_3(buffer.mem, 9*buffer.pass_stride, buffer.pass_stride);
-
-	nlm_state.temporary_1_ptr = *nlm_temporary_1;
-	nlm_state.temporary_2_ptr = *nlm_temporary_2;
-	nlm_state.temporary_3_ptr = *nlm_temporary_3;
 
 	/* Get the A/B unfiltered passes, the combined sample variance, the estimated variance of the sample variance and the buffer variance. */
 	functions.divide_shadow(*unfiltered_a, *unfiltered_b, *sample_var, *sample_var_var, *buffer_var);
@@ -154,13 +155,6 @@ void DenoisingTask::prefilter_features()
 {
 	device_sub_ptr unfiltered     (buffer.mem,  8*buffer.pass_stride, buffer.pass_stride);
 	device_sub_ptr variance       (buffer.mem,  9*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_1(buffer.mem, 10*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_2(buffer.mem, 11*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_3(buffer.mem, 12*buffer.pass_stride, buffer.pass_stride);
-
-	nlm_state.temporary_1_ptr = *nlm_temporary_1;
-	nlm_state.temporary_2_ptr = *nlm_temporary_2;
-	nlm_state.temporary_3_ptr = *nlm_temporary_3;
 
 	int mean_from[]     = { 0, 1, 2, 12, 6,  7, 8 };
 	int variance_from[] = { 3, 4, 5, 13, 9, 10, 11};
@@ -183,17 +177,11 @@ void DenoisingTask::prefilter_color()
 	int variance_to[]   = {11, 12, 13};
 	int num_color_passes = 3;
 
-	storage.temporary_color.alloc_to_device(3*buffer.pass_stride, false);
-	device_sub_ptr nlm_temporary_1(storage.temporary_color, 0*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_2(storage.temporary_color, 1*buffer.pass_stride, buffer.pass_stride);
-	device_sub_ptr nlm_temporary_3(storage.temporary_color, 2*buffer.pass_stride, buffer.pass_stride);
-
-	nlm_state.temporary_1_ptr = *nlm_temporary_1;
-	nlm_state.temporary_2_ptr = *nlm_temporary_2;
-	nlm_state.temporary_3_ptr = *nlm_temporary_3;
+	device_only_memory<float> temporary_color(device, "denoising temporary color");
+	temporary_color.alloc_to_device(3*buffer.pass_stride, false);
 
 	for(int pass = 0; pass < num_color_passes; pass++) {
-		device_sub_ptr color_pass(storage.temporary_color, pass*buffer.pass_stride, buffer.pass_stride);
+		device_sub_ptr color_pass(temporary_color, pass*buffer.pass_stride, buffer.pass_stride);
 		device_sub_ptr color_var_pass(buffer.mem, variance_to[pass]*buffer.pass_stride, buffer.pass_stride);
 		functions.get_feature(mean_from[pass], variance_from[pass], *color_pass, *color_var_pass);
 	}
@@ -201,9 +189,7 @@ void DenoisingTask::prefilter_color()
 	device_sub_ptr depth_pass    (buffer.mem,                                 0,   buffer.pass_stride);
 	device_sub_ptr color_var_pass(buffer.mem, variance_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
 	device_sub_ptr output_pass   (buffer.mem,     mean_to[0]*buffer.pass_stride, 3*buffer.pass_stride);
-	functions.detect_outliers(storage.temporary_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
-
-	storage.temporary_color.free();
+	functions.detect_outliers(temporary_color.device_pointer, *color_var_pass, *depth_pass, *output_pass);
 }
 
 void DenoisingTask::construct_transform()
@@ -219,14 +205,6 @@ void DenoisingTask::construct_transform()
 
 void DenoisingTask::reconstruct()
 {
-
-	device_only_memory<float> temporary_1(device, "Denoising NLM temporary 1");
-	device_only_memory<float> temporary_2(device, "Denoising NLM temporary 2");
-	temporary_1.alloc_to_device(buffer.pass_stride, false);
-	temporary_2.alloc_to_device(buffer.pass_stride, false);
-	reconstruction_state.temporary_1_ptr = temporary_1.device_pointer;
-	reconstruction_state.temporary_2_ptr = temporary_2.device_pointer;
-
 	storage.XtWX.alloc_to_device(storage.w*storage.h*XTWX_SIZE, false);
 	storage.XtWY.alloc_to_device(storage.w*storage.h*XTWY_SIZE, false);
 

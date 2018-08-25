@@ -738,7 +738,6 @@ bool OpenCLDeviceBase::denoising_non_local_means(device_ptr image_ptr,
                                                  device_ptr out_ptr,
                                                  DenoisingTask *task)
 {
-
 	int stride = task->buffer.stride;
 	int w = task->buffer.width;
 	int h = task->buffer.h;
@@ -747,24 +746,23 @@ bool OpenCLDeviceBase::denoising_non_local_means(device_ptr image_ptr,
 	float a = task->nlm_state.a;
 	float k_2 = task->nlm_state.k_2;
 
-	int shift_stride = stride*h;
+	int pass_stride = task->buffer.pass_stride;
 	int num_shifts = (2*r+1)*(2*r+1);
-	int mem_size = sizeof(float)*shift_stride*num_shifts;
 
-	cl_mem weightAccum = CL_MEM_PTR(task->nlm_state.temporary_3_ptr);
-
-	cl_mem difference = clCreateBuffer(cxContext, CL_MEM_READ_WRITE, mem_size, NULL, &ciErr);
-	opencl_assert_err(ciErr, "clCreateBuffer denoising_non_local_means");
-	cl_mem blurDifference = clCreateBuffer(cxContext, CL_MEM_READ_WRITE, mem_size, NULL, &ciErr);
-	opencl_assert_err(ciErr, "clCreateBuffer denoising_non_local_means");
+	device_sub_ptr difference(task->buffer.temporary_mem, 0, pass_stride*num_shifts);
+	device_sub_ptr blurDifference(task->buffer.temporary_mem, pass_stride*num_shifts, pass_stride*num_shifts);
+	device_sub_ptr weightAccum(task->buffer.temporary_mem, 2*pass_stride*num_shifts, pass_stride);
+	cl_mem weightAccum_mem = CL_MEM_PTR(*weightAccum);
+	cl_mem difference_mem = CL_MEM_PTR(*difference);
+	cl_mem blurDifference_mem = CL_MEM_PTR(*blurDifference);
 
 	cl_mem image_mem = CL_MEM_PTR(image_ptr);
 	cl_mem guide_mem = CL_MEM_PTR(guide_ptr);
 	cl_mem variance_mem = CL_MEM_PTR(variance_ptr);
 	cl_mem out_mem = CL_MEM_PTR(out_ptr);
 
-	mem_zero_kernel(task->nlm_state.temporary_3_ptr, sizeof(float)*w*h);
-	mem_zero_kernel(out_ptr, sizeof(float)*w*h);
+	mem_zero_kernel(*difference, sizeof(float)*pass_stride);
+	mem_zero_kernel(out_ptr, sizeof(float)*pass_stride);
 
 	cl_kernel ckNLMCalcDifference = denoising_program(ustring("filter_nlm_calc_difference"));
 	cl_kernel ckNLMBlur           = denoising_program(ustring("filter_nlm_blur"));
@@ -775,29 +773,29 @@ bool OpenCLDeviceBase::denoising_non_local_means(device_ptr image_ptr,
 	kernel_set_args(ckNLMCalcDifference, 0,
 	                guide_mem,
 	                variance_mem,
-	                difference,
+	                difference_mem,
 	                w, h, stride,
-	                shift_stride,
+	                pass_stride,
 	                r, 0, a, k_2);
 	kernel_set_args(ckNLMBlur, 0,
-	                difference,
-	                blurDifference,
+	                difference_mem,
+	                blurDifference_mem,
 	                w, h, stride,
-	                shift_stride,
+	                pass_stride,
 	                r, f);
 	kernel_set_args(ckNLMCalcWeight, 0,
-	                blurDifference,
-	                difference,
+	                blurDifference_mem,
+	                difference_mem,
 	                w, h, stride,
-	                shift_stride,
+	                pass_stride,
 	                r, f);
 	kernel_set_args(ckNLMUpdateOutput, 0,
-	                blurDifference,
+	                blurDifference_mem,
 	                image_mem,
 	                out_mem,
-	                weightAccum,
+	                weightAccum_mem,
 	                w, h, stride,
-	                shift_stride,
+	                pass_stride,
 	                r, f);
 
 	enqueue_kernel(ckNLMCalcDifference, w*h, num_shifts, true);
@@ -806,11 +804,8 @@ bool OpenCLDeviceBase::denoising_non_local_means(device_ptr image_ptr,
 	enqueue_kernel(ckNLMBlur,           w*h, num_shifts, true);
 	enqueue_kernel(ckNLMUpdateOutput,   w*h, num_shifts, true);
 
-	opencl_assert(clReleaseMemObject(difference));
-	opencl_assert(clReleaseMemObject(blurDifference));
-
 	kernel_set_args(ckNLMNormalize, 0,
-	                out_mem, weightAccum, w, h, stride);
+	                out_mem, weightAccum_mem, w, h, stride);
 	enqueue_kernel(ckNLMNormalize, w, h);
 
 	return true;
@@ -1081,6 +1076,7 @@ void OpenCLDeviceBase::denoise(RenderTile &rtile, DenoisingTask& denoising)
 
 	denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 	denoising.render_buffer.samples = rtile.sample;
+	denoising.buffer.gpu_temporary_mem = true;
 
 	denoising.run_denoising(&rtile);
 }

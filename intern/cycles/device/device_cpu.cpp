@@ -471,9 +471,10 @@ public:
 		int w = align_up(rect.z-rect.x, 4);
 		int h = rect.w-rect.y;
 
-		float *blurDifference = (float*) task->nlm_state.temporary_1_ptr;
-		float *difference     = (float*) task->nlm_state.temporary_2_ptr;
-		float *weightAccum    = (float*) task->nlm_state.temporary_3_ptr;
+		float *temporary_mem = (float*) task->buffer.temporary_mem.device_pointer;
+		float *blurDifference = temporary_mem;
+		float *difference     = temporary_mem + task->buffer.pass_stride;
+		float *weightAccum    = temporary_mem + 2*task->buffer.pass_stride;
 
 		memset(weightAccum, 0, sizeof(float)*w*h);
 		memset((float*) out_ptr, 0, sizeof(float)*w*h);
@@ -537,8 +538,9 @@ public:
 		mem_zero(task->storage.XtWX);
 		mem_zero(task->storage.XtWY);
 
-		float *difference     = (float*) task->reconstruction_state.temporary_1_ptr;
-		float *blurDifference = (float*) task->reconstruction_state.temporary_2_ptr;
+		float *temporary_mem = (float*) task->buffer.temporary_mem.device_pointer;
+		float *difference     = temporary_mem;
+		float *blurDifference = temporary_mem + task->buffer.pass_stride;
 
 		int r = task->radius;
 		for(int i = 0; i < (2*r+1)*(2*r+1); i++) {
@@ -713,6 +715,7 @@ public:
 
 		denoising.filter_area = make_int4(tile.x, tile.y, tile.w, tile.h);
 		denoising.render_buffer.samples = tile.sample;
+		denoising.buffer.gpu_temporary_mem = false;
 
 		denoising.run_denoising(&tile);
 	}
