@@ -758,13 +758,16 @@ static short gp_stroke_addpoint(
 			/* first time point is adding to temporary buffer -- need to allocate new point in stroke */
 			if (gpd->runtime.sbuffer_size == 0) {
 				gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
-				gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * (gps->totpoints + 1));
+				if (gps->dvert != NULL) {
+					gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * (gps->totpoints + 1));
+				}
 				gps->totpoints++;
 			}
 
 			pts = &gps->points[gps->totpoints - 1];
-			dvert = &gps->dvert[gps->totpoints - 1];
-
+			if (gps->dvert != NULL) {
+				dvert = &gps->dvert[gps->totpoints - 1];
+			}
 			/* special case for poly lines: normally,
 			 * depth is needed only when creating new stroke from buffer,
 			 * but poly lines are converting to stroke instantly,
@@ -789,8 +792,10 @@ static short gp_stroke_addpoint(
 			pts->uv_fac = pt->uv_fac;
 			pts->uv_rot = pt->uv_rot;
 
-			dvert->totweight = 0;
-			dvert->dw = NULL;
+			if (gps->dvert != NULL) {
+				dvert->totweight = 0;
+				dvert->dw = NULL;
+			}
 
 			/* force fill recalc */
 			gps->flag |= GP_STROKE_RECALC_CACHES;
@@ -895,7 +900,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	bGPDstroke *gps;
 	bGPDspoint *pt;
 	tGPspoint *ptc;
-	MDeformVert *dvert;
+	MDeformVert *dvert = NULL;
 	Brush *brush = p->brush;
 	ToolSettings *ts = p->scene->toolsettings;
 	Depsgraph *depsgraph = p->depsgraph;
@@ -949,7 +954,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	const int subdivide = brush->gpencil_settings->draw_subdivide;
 
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-	gps->dvert = MEM_callocN(sizeof(MDeformVert) * gps->totpoints, "gp_stroke_weights");
 
 	/* initialize triangle memory to dummy data */
 	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
@@ -959,7 +963,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	gp_update_cache(p->gpd);
 	/* set pointer to first non-initialized point */
 	pt = gps->points + (gps->totpoints - totelem);
-	dvert = gps->dvert + (gps->totpoints - totelem);
+	if (gps->dvert != NULL) {
+		dvert = gps->dvert + (gps->totpoints - totelem);
+	}
 
 	/* copy points from the buffer to the stroke */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
@@ -975,12 +981,14 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			pt->strength = ptc->strength;
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
-
-			dvert->totweight = 0;
-			dvert->dw = NULL;
-
 			pt++;
-			dvert++;
+
+			if (dvert != NULL) {
+				dvert->totweight = 0;
+				dvert->dw = NULL;
+
+				dvert++;
+			}
 		}
 
 		if (totelem == 2) {
@@ -995,8 +1003,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 			pt->time = ptc->time;
 
-			dvert->totweight = 0;
-			dvert->dw = NULL;
+			if (dvert != NULL) {
+				dvert->totweight = 0;
+				dvert->dw = NULL;
+			}
 		}
 
 		/* reproject to plane (only in 3d space) */
@@ -1023,9 +1033,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 		pt->time = ptc->time;
 
-		dvert->totweight = 0;
-		dvert->dw = NULL;
-
+		if (dvert != NULL) {
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+		}
 	}
 	else {
 		float *depth_arr = NULL;

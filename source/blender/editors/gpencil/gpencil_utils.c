@@ -946,7 +946,9 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 		/* resize the points arrys */
 		gps->totpoints += totnewpoints;
 		gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
-		gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+		if (gps->dvert != NULL) {
+			gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+		}
 		gps->flag |= GP_STROKE_RECALC_CACHES;
 
 		/* move points from last to first to new place */
@@ -954,8 +956,6 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 		for (int i = oldtotpoints - 1; i > 0; i--) {
 			bGPDspoint *pt = &temp_points[i];
 			bGPDspoint *pt_final = &gps->points[i2];
-			MDeformVert *dvert = &gps->dvert[i];
-			MDeformVert *dvert_final = &gps->dvert[i2];
 
 			copy_v3_v3(&pt_final->x, &pt->x);
 			pt_final->pressure = pt->pressure;
@@ -965,8 +965,13 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 			pt_final->uv_fac = pt->uv_fac;
 			pt_final->uv_rot = pt->uv_rot;
 
-			dvert_final->totweight = dvert->totweight;
-			dvert_final->dw = dvert->dw;
+			if (gps->dvert != NULL) {
+				MDeformVert *dvert = &gps->dvert[i];
+				MDeformVert *dvert_final = &gps->dvert[i2];
+
+				dvert_final->totweight = dvert->totweight;
+				dvert_final->dw = dvert->dw;
+			}
 
 			i2 -= 2;
 		}
@@ -976,7 +981,6 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 			bGPDspoint *pt = &temp_points[i];
 			bGPDspoint *next = &temp_points[i + 1];
 			bGPDspoint *pt_final = &gps->points[i2];
-			MDeformVert *dvert_final = &gps->dvert[i2];
 
 			/* add a half way point */
 			interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
@@ -987,8 +991,11 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 			pt_final->uv_fac = interpf(pt->uv_fac, next->uv_fac, 0.5f);
 			pt_final->uv_rot = interpf(pt->uv_rot, next->uv_rot, 0.5f);
 
-			dvert_final->totweight = 0;
-			dvert_final->dw = NULL;
+			if (gps->dvert != NULL) {
+				MDeformVert *dvert_final = &gps->dvert[i2];
+				dvert_final->totweight = 0;
+				dvert_final->dw = NULL;
+			}
 
 			i2 += 2;
 		}
@@ -1211,6 +1218,9 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 	{
 		if (gps->flag & GP_STROKE_SELECT) {
+			/* verify the weight array is created */
+			BKE_gpencil_dvert_ensure(gps);
+
 			for (int i = 0; i < gps->totpoints; i++) {
 				bGPDspoint *pt = &gps->points[i];
 				MDeformVert *dvert = &gps->dvert[i];
@@ -1234,6 +1244,9 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 	{
 		for (int i = 0; i < gps->totpoints; i++) {
 			bGPDspoint *pt = &gps->points[i];
+			if (gps->dvert == NULL) {
+				continue;
+			}
 			MDeformVert *dvert = &gps->dvert[i];
 
 			if ((pt->flag & GP_SPOINT_SELECT) && (dvert->totweight > 0)) {
@@ -1255,6 +1268,9 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 	{
 		for (int i = 0; i < gps->totpoints; i++) {
 			bGPDspoint *pt = &gps->points[i];
+			if (gps->dvert == NULL) {
+				continue;
+			}
 			MDeformVert *dvert = &gps->dvert[i];
 
 			if (BKE_gpencil_vgroup_use_index(dvert, def_nr) > -1.0f) {
@@ -1277,6 +1293,9 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 	{
 		for (int i = 0; i < gps->totpoints; i++) {
 			bGPDspoint *pt = &gps->points[i];
+			if (gps->dvert == NULL) {
+				continue;
+			}
 			MDeformVert *dvert = &gps->dvert[i];
 
 			if (BKE_gpencil_vgroup_use_index(dvert, def_nr) > -1.0f) {

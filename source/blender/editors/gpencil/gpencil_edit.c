@@ -2921,6 +2921,8 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDspoint *temp_points;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
+	MDeformVert *temp_dvert = NULL;
+	MDeformVert *dvert_final = NULL;
 
 	int totnewpoints, oldtotpoints;
 	int i2;
@@ -2942,7 +2944,9 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 				/* duplicate points in a temp area */
 				temp_points = MEM_dupallocN(gps->points);
 				oldtotpoints = gps->totpoints;
-
+				if (gps->dvert != NULL) {
+					temp_dvert = MEM_dupallocN(gps->dvert);
+				}
 				/* resize the points arrys */
 				gps->totpoints += totnewpoints;
 				gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
@@ -2957,7 +2961,10 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 					bGPDspoint *pt = &temp_points[i];
 					bGPDspoint *pt_final = &gps->points[i2];
 
-					MDeformVert *dvert_final = &gps->dvert[i2];
+					MDeformVert *dvert = NULL;
+					if (gps->dvert != NULL) {
+						dvert = &temp_dvert[i];
+					}
 
 					/* copy current point */
 					copy_v3_v3(&pt_final->x, &pt->x);
@@ -2966,8 +2973,11 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 					pt_final->time = pt->time;
 					pt_final->flag = pt->flag;
 
-					dvert_final->totweight = 0;
-					dvert_final->dw = NULL;
+					if (gps->dvert != NULL) {
+						dvert_final = &gps->dvert[i2];
+						dvert_final->totweight = dvert->totweight;
+						dvert_final->dw = dvert->dw;
+					}
 					i2++;
 
 					/* if next point is selected add a half way point */
@@ -2987,16 +2997,18 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 								pt_final->time = interpf(pt->time, next->time, 0.5f);
 								pt_final->flag |= GP_SPOINT_SELECT;
 
-								dvert_final->totweight = 0;
-								dvert_final->dw = NULL;
-
+								if (gps->dvert != NULL) {
+									dvert_final->totweight = 0;
+									dvert_final->dw = NULL;
+								}
 								i2++;
 							}
 						}
 					}
 				}
 				/* free temp memory */
-				MEM_freeN(temp_points);
+				MEM_SAFE_FREE(temp_points);
+				MEM_SAFE_FREE(temp_dvert);
 			}
 		}
 	}

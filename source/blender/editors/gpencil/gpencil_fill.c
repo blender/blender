@@ -846,7 +846,6 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	/* allocate memory for storage points */
 	gps->totpoints = tgpf->sbuffer_size;
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * tgpf->sbuffer_size, "gp_stroke_points");
-	gps->dvert = MEM_callocN(sizeof(MDeformVert) * tgpf->sbuffer_size, "gp_stroke_weights");
 
 	/* initialize triangle memory to dummy data */
 	gps->tot_triangles = 0;
@@ -865,7 +864,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	pt = gps->points;
 	dvert = gps->dvert;
 	point2D = (tGPspoint *)tgpf->sbuffer;
-	for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++, dvert++) {
+	for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++) {
 		/* convert screen-coordinates to 3D coordinates */
 		gp_stroke_convertcoords_tpoint(
 		        tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
@@ -877,8 +876,11 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 		pt->strength = 1.0f;;
 		pt->time = 0.0f;
 
-		dvert->totweight = 0;
-		dvert->dw = NULL;
+		if (gps->dvert != NULL) {
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+			dvert++;
+		}
 	}
 
 	/* smooth stroke */

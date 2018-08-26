@@ -876,6 +876,9 @@ static bool gp_brush_weight_apply(
         tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
         const int radius, const int co[2])
 {
+	/* create dvert */
+	BKE_gpencil_dvert_ensure(gps);
+
 	bGPDspoint *pt = gps->points + pt_index;
 	MDeformVert *dvert = gps->dvert + pt_index;
 	float inf;
@@ -1055,8 +1058,10 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 			new_stroke = MEM_dupallocN(gps);
 
 			new_stroke->points = MEM_dupallocN(gps->points);
-			new_stroke->dvert = MEM_dupallocN(gps->dvert);
-			BKE_gpencil_stroke_weights_duplicate(gps, new_stroke);
+			if (gps->dvert != NULL) {
+				new_stroke->dvert = MEM_dupallocN(gps->dvert);
+				BKE_gpencil_stroke_weights_duplicate(gps, new_stroke);
+			}
 			new_stroke->triangles = MEM_dupallocN(gps->triangles);
 
 			new_stroke->next = new_stroke->prev = NULL;

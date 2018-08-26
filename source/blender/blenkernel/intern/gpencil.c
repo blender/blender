@@ -519,7 +519,6 @@ bGPDstroke *BKE_gpencil_add_stroke(bGPDframe *gpf, int mat_idx, int totpoints, s
 
 	gps->totpoints = totpoints;
 	gps->points = MEM_callocN(sizeof(bGPDspoint) * gps->totpoints, "gp_stroke_points");
-	gps->dvert = MEM_callocN(sizeof(MDeformVert) * gps->totpoints, "gp_stroke_weights");
 
 	/* initialize triangle memory to dummy data */
 	gps->triangles = MEM_callocN(sizeof(bGPDtriangle), "GP Stroke triangulation");
@@ -573,8 +572,13 @@ bGPDstroke *BKE_gpencil_stroke_duplicate(bGPDstroke *gps_src)
 
 	gps_dst->points = MEM_dupallocN(gps_src->points);
 
-	gps_dst->dvert = MEM_dupallocN(gps_src->dvert);
-	BKE_gpencil_stroke_weights_duplicate(gps_src, gps_dst);
+	if (gps_src->dvert != NULL) {
+		gps_dst->dvert = MEM_dupallocN(gps_src->dvert);
+		BKE_gpencil_stroke_weights_duplicate(gps_src, gps_dst);
+	}
+	else {
+		gps_dst->dvert = NULL;
+	}
 
 	/* Don't clear triangles, so that modifier evaluation can just use
 	 * this without extra work first. Most places that need to force
@@ -1253,6 +1257,13 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 	BLI_freelinkN(&ob->defbase, defgroup);
 }
 
+
+void BKE_gpencil_dvert_ensure(bGPDstroke *gps)
+{
+	if (gps->dvert == NULL) {
+		gps->dvert = MEM_callocN(sizeof(MDeformVert) * gps->totpoints, "gp_stroke_weights");
+	}
+}
 /* add a new weight */
 MDeformWeight *BKE_gpencil_vgroup_add_point_weight(MDeformVert *dvert, int index, float weight)
 {

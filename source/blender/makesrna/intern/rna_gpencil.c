@@ -494,7 +494,9 @@ static void rna_GPencil_stroke_point_pop(bGPDstroke *stroke, ReportList *reports
 	stroke->totpoints--;
 
 	stroke->points = MEM_callocN(sizeof(bGPDspoint) * stroke->totpoints, "gp_stroke_points");
-	stroke->dvert = MEM_callocN(sizeof(MDeformVert) * stroke->totpoints, "gp_stroke_weights");
+	if (pt_dvert != NULL) {
+		stroke->dvert = MEM_callocN(sizeof(MDeformVert) * stroke->totpoints, "gp_stroke_weights");
+	}
 
 	if (index > 0) {
 		memcpy(stroke->points, pt_tmp, sizeof(bGPDspoint) * index);

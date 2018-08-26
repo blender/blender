@@ -151,6 +151,7 @@ struct BoundBox *BKE_gpencil_boundbox_get(struct Object *ob);
 void BKE_gpencil_centroid_3D(struct bGPdata *gpd, float r_centroid[3]);
 
 /* vertex groups */
+void BKE_gpencil_dvert_ensure(struct bGPDstroke *gps);
 float BKE_gpencil_vgroup_use_index(struct MDeformVert *dvert, int index);
 void BKE_gpencil_vgroup_remove(struct Object *ob, struct bDeformGroup *defgroup);
 struct MDeformWeight *BKE_gpencil_vgroup_add_point_weight(struct MDeformVert *dvert, int index, float weight);

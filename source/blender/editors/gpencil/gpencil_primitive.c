@@ -182,7 +182,6 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	/* allocate memory for storage points, but keep empty */
 	gps->totpoints = 0;
 	gps->points = MEM_callocN(sizeof(bGPDspoint), "gp_stroke_points");
-	gps->dvert = MEM_callocN(sizeof(MDeformVert), "gp_stroke_weights");
 	/* initialize triangle memory to dummy data */
 	gps->tot_triangles = 0;
 	gps->triangles = NULL;
@@ -322,7 +321,9 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* realloc points to new size */
 	/* TODO: only do this if the size has changed? */
 	gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * tgpi->tot_edges);
-	gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * tgpi->tot_edges);
+	if (gps->dvert != NULL) {
+		gps->dvert = MEM_reallocN(gps->dvert, sizeof(MDeformVert) * tgpi->tot_edges);
+	}
 	gps->totpoints = tgpi->tot_edges;
 
 	/* compute screen-space coordinates for points */
@@ -344,7 +345,6 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 	/* convert screen-coordinates to 3D coordinates */
 	for (int i = 0; i < gps->totpoints; i++) {
 		bGPDspoint *pt = &gps->points[i];
-		MDeformVert *dvert = &gps->dvert[i];
 		tGPspoint *p2d = &points2D[i];
 
 
@@ -355,8 +355,11 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 		pt->strength = tgpi->brush->gpencil_settings->draw_strength;
 		pt->time = 0.0f;
 
-		dvert->totweight = 0;
-		dvert->dw = NULL;
+		if (gps->dvert != NULL) {
+			MDeformVert *dvert = &gps->dvert[i];
+			dvert->totweight = 0;
+			dvert->dw = NULL;
+		}
 	}
 
 	/* if axis locked, reproject to plane locked */
