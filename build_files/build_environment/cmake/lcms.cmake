@@ -29,10 +29,3 @@ ExternalProject_Add(external_lcms
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/lcms ${DEFAULT_CMAKE_FLAGS} ${LCMS_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/lcms
 )
-
-#if(BUILD_MODE STREQUAL Release AND WIN32)
-	#ExternalProject_Add_Step(external_freetype after_install
-	#	COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/freetype ${HARVEST_TARGET}/freetype
-	#	DEPENDEES install
-	#)
-#endif()
