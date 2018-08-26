@@ -143,7 +143,7 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
       view_layer_(NULL),
       view_layer_index_(-1),
       collection_(NULL),
-	  is_parent_collection_visible_(true),
+      is_parent_collection_visible_(true),
       cow_id_hash_(NULL)
 {
 }

@@ -89,7 +89,7 @@ bool stat_entry_comparator(const StatsEntry& a, const StatsEntry& b)
 
 string gnuplotify_id_code(const string& name)
 {
-	return string("") + name[0] + name [1];
+	return string("") + name[0] + name[1];
 }
 
 string gnuplotify_name(const string& name)

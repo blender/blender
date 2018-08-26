@@ -535,7 +535,7 @@ void BKE_brush_update_material(Main *bmain, Material *ma, Brush *exclude_brush)
 		if (brush->gpencil_settings != NULL) {
 			BrushGpencilSettings *gpencil_settings = brush->gpencil_settings;
 			if (((gpencil_settings->flag & GP_BRUSH_MATERIAL_PINNED) == 0) &&
-				(gpencil_settings->material != ma))
+			    (gpencil_settings->material != ma))
 			{
 				gpencil_settings->material = ma;
 			}

@@ -270,7 +270,8 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 }
 
 /* reproject the points of the stroke to a plane locked to axis to avoid stroke offset */
-static void gp_project_points_to_plane(RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
+static void UNUSED_FUNCTION(gp_project_points_to_plane)(
+        RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
 {
 	float plane_normal[3];
 	float vn[3];

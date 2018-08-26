@@ -383,7 +383,7 @@ void GPENCIL_cache_init(void *vedata)
 		{
 			if (((obact_gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) &&
 			    (obact_gpd->runtime.sbuffer_size > 0) &&
-				((obact_gpd->flag & GP_DATA_STROKE_POLYGON) == 0))
+			    ((obact_gpd->flag & GP_DATA_STROKE_POLYGON) == 0))
 			{
 				stl->g_data->session_flag |= GP_DRW_PAINT_PAINTING;
 			}

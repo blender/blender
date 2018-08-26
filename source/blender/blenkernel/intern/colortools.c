@@ -956,17 +956,15 @@ static void curvemapping_evaluateRGBF_filmlike(const CurveMapping *cumap, float 
 
 static float curvemapping_weighted_standard_triangle(float a, float b, float a1)
 {
-	if (a != b)
-	{
+	if (a != b) {
 		float b1;
 		float a2 = a1 - a;
 
-		if (b < a)
-		{
-				b1 = b + a2 *      b  /     a ;
+		if (b < a) {
+			b1 = b + a2 * b / a ;
 		}
 		else {
-				b1 = b + a2 * (65535.f - b) / (65535.f - a);
+			b1 = b + a2 * (65535.0f - b) / (65535.0f - a);
 		}
 
 		return b1;
@@ -992,8 +990,7 @@ void curvemapping_evaluate_premulRGBF_ex(
 	const float g = (vecin[1] - black[1]) * bwmul[1];
 	const float b = (vecin[2] - black[2]) * bwmul[2];
 
-	switch (cumap->tone)
-	{
+	switch (cumap->tone) {
 		default:
 		case CURVE_TONE_STANDARD:
 		{
