@@ -125,7 +125,7 @@ static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContex
 	if (clmd) {
 		/* Actual code uses get_collisionobjects */
 #ifdef WITH_LEGACY_DEPSGRAPH
-		dag_add_collision_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, clmd->coll_parms->group, ctx->object->lay|ctx->scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
+		dag_add_collision_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, clmd->coll_parms->group, ctx->object->lay | ctx->scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
 		dag_add_forcefield_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 #else
 	(void)ctx;
@@ -138,7 +138,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	ClothModifierData *clmd = (ClothModifierData *)md;
 	if (clmd != NULL) {
 		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, clmd->coll_parms->group, ctx->object->lay|ctx->scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
+		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, clmd->coll_parms->group, ctx->object->lay | ctx->scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
 
 		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}

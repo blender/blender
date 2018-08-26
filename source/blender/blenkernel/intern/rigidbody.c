@@ -701,9 +701,9 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 /* --------------------- */
 
 static void rigidbody_constraint_init_spring(
-	RigidBodyCon *rbc, void (*set_spring)(rbConstraint*,int,int),
-	void (*set_stiffness)(rbConstraint*,int,float), void (*set_damping)(rbConstraint*,int,float)
-) {
+        RigidBodyCon *rbc, void (*set_spring)(rbConstraint *, int, int),
+        void (*set_stiffness)(rbConstraint *, int, float), void (*set_damping)(rbConstraint *, int, float))
+{
 	set_spring(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->flag & RBC_FLAG_USE_SPRING_X);
 	set_stiffness(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->spring_stiffness_x);
 	set_damping(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->spring_damping_x);
@@ -729,7 +729,7 @@ static void rigidbody_constraint_init_spring(
 	set_damping(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->spring_damping_ang_z);
 }
 
-static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits)(rbConstraint*,int,float,float))
+static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits)(rbConstraint *, int, float, float))
 {
 	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
 		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);

@@ -126,7 +126,7 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
-	void build_id(ID* id);
+	void build_id(ID *id);
 	void build_scene(Scene *scene);
 	void build_group(Base *base, Group *group);
 	void build_object(Base *base, Object *object);

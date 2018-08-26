@@ -221,7 +221,7 @@ static opj_stream_t *opj_stream_create_from_buffer(
 	if (l_stream == NULL) {
 		return NULL;
 	}
-	opj_stream_set_user_data(l_stream, p_file , opj_read_from_buffer_free);
+	opj_stream_set_user_data(l_stream, p_file, opj_read_from_buffer_free);
 	opj_stream_set_user_data_length(l_stream, p_file->len);
 	opj_stream_set_read_function(l_stream,  opj_read_from_buffer);
 #if 0  /* UNUSED */

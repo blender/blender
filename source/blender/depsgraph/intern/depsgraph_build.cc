@@ -287,7 +287,7 @@ void DEG_scene_relations_update(Main *bmain, Scene *scene)
 	BLI_gset_clear(graph->entry_tags, NULL);
 
 	/* Build new nodes and relations. */
-	DEG_graph_build_from_scene(reinterpret_cast< ::Depsgraph * >(graph),
+	DEG_graph_build_from_scene(reinterpret_cast< ::Depsgraph *>(graph),
 	                           bmain,
 	                           scene);
 
@@ -349,7 +349,7 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
 	if (effectors == NULL) {
 		return;
 	}
-	for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
+	for (EffectorCache *eff = (EffectorCache *)effectors->first; eff; eff = eff->next) {
 		if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
 			DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
 			if (eff->psys) {
