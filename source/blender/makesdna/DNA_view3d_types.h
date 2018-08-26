@@ -96,7 +96,7 @@ typedef struct RegionView3D {
 	float tw_axis_min[3], tw_axis_max[3];
 	float tw_axis_matrix[3][3];
 
-	float gridview DNA_DEPRECATED;
+	float gridview;
 
 	float viewquat[4];			/* view rotation, must be kept normalized */
 	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */
