@@ -60,6 +60,12 @@ if(WIN32)
 		-DOPENEXR_NAMESPACE_VERSIONING=OFF
 		-DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC2.lib
 	)
+	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "4")
+		set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
+			-DCMAKE_SHARED_LINKER_FLAGS="/safeseh:no"
+			-DCMAKE_EXE_LINKER_FLAGS="/safeseh:no"
+		)
+	endif()
 endif()
 
 ExternalProject_Add(openvdb
