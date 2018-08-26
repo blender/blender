@@ -59,7 +59,7 @@ if(WIN32)
 	if(MSVC_VERSION GREATER 1909)
 		set(COMMON_MSVC_FLAGS "/Wv:18") #some deps with warnings as error aren't quite ready for dealing with the new 2017 warnings.
 	endif()
-
+	set(COMMON_MSVC_FLAGS "${COMMON_MSVC_FLAGS} /bigobj") 
 	if(WITH_OPTIMIZED_DEBUG)
 		set(BLENDER_CMAKE_C_FLAGS_DEBUG "/MTd ${COMMON_MSVC_FLAGS} /O2 /Ob2 /DNDEBUG /DPSAPI_VERSION=1 /DOIIO_STATIC_BUILD /DTINYFORMAT_ALLOW_WCHAR_STRINGS")
 	else()
