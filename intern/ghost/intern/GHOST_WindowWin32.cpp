@@ -265,23 +265,22 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		GHOST_WIN32_WTInfo fpWTInfo = (GHOST_WIN32_WTInfo) ::GetProcAddress(m_wintab, "WTInfoA");
 		GHOST_WIN32_WTOpen fpWTOpen = (GHOST_WIN32_WTOpen) ::GetProcAddress(m_wintab, "WTOpenA");
 
-		// let's see if we can initialize tablet here
-		/* check if WinTab available. */
-		if (fpWTInfo && fpWTInfo(0, 0, NULL)) {
+		// Let's see if we can initialize tablet here.
+		// Check if WinTab available by getting system context info.
+		LOGCONTEXT lc = { 0 };
+		lc.lcOptions |= CXO_SYSTEM;
+		if (fpWTInfo && fpWTInfo(WTI_DEFSYSCTX, 0, &lc)) {
 			// Now init the tablet
-			LOGCONTEXT lc;
 			/* The maximum tablet size, pressure and orientation (tilt) */
 			AXIS TabletX, TabletY, Pressure, Orientation[3];
 
 			// Open a Wintab context
 
-			// Get default context information
-			fpWTInfo(WTI_DEFCONTEXT, 0, &lc);
-
 			// Open the context
 			lc.lcPktData = PACKETDATA;
 			lc.lcPktMode = PACKETMODE;
-			lc.lcOptions |= CXO_MESSAGES | CXO_SYSTEM;
+			lc.lcOptions |= CXO_MESSAGES;
+			lc.lcMoveMask = PACKETDATA;
 
 			/* Set the entire tablet as active */
 			fpWTInfo(WTI_DEVICES, DVC_X, &TabletX);
@@ -309,10 +308,16 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 			}
 
 			if (fpWTOpen) {
-				m_tablet = fpWTOpen(m_hWnd, &lc, TRUE);
+				// The Wintab spec says we must open the context disabled if we are using cursor masks.
+				m_tablet = fpWTOpen(m_hWnd, &lc, FALSE);
 				if (m_tablet) {
 					m_tabletData = new GHOST_TabletData();
 					m_tabletData->Active = GHOST_kTabletModeNone;
+				}
+
+				GHOST_WIN32_WTEnable fpWTEnable = (GHOST_WIN32_WTEnable) ::GetProcAddress(m_wintab, "WTEnable");
+				if (fpWTEnable) {
+					fpWTEnable(m_tablet, TRUE);
 				}
 			}
 		}
@@ -855,6 +860,23 @@ GHOST_TSuccess GHOST_WindowWin32::setWindowCursorShape(GHOST_TStandardCursor cur
 	}
 
 	return GHOST_kSuccess;
+}
+
+void GHOST_WindowWin32::processWin32TabletActivateEvent(WORD state)
+{
+	if (!m_tablet) {
+		return;
+	}
+
+	GHOST_WIN32_WTEnable fpWTEnable = (GHOST_WIN32_WTEnable) ::GetProcAddress(m_wintab, "WTEnable");
+	GHOST_WIN32_WTOverlap fpWTOverlap = (GHOST_WIN32_WTOverlap) ::GetProcAddress(m_wintab, "WTOverlap");
+
+	if (fpWTEnable) {
+		fpWTEnable(m_tablet, state);
+		if (fpWTOverlap && state) {
+			fpWTOverlap(m_tablet, TRUE);
+		}
+	}
 }
 
 void GHOST_WindowWin32::processWin32TabletInitEvent()
