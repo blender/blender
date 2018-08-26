@@ -49,7 +49,7 @@ if(NOT EXISTS "${DOWNLOAD_DIR}/mingw")
 endif()
 
 # extract mingw32
-if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/mingw32env.cmd") AND (EXISTS "${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z"))
+if((NOT EXISTS "${DOWNLOAD_DIR}/mingw/mingw32/ming32sh.cmd") AND (EXISTS "${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z"))
 	message("Extracting mingw32")
 	execute_process(
 		COMMAND ${CMAKE_COMMAND} -E tar jxf ${DOWNLOAD_DIR}/i686-4.9.4-release-win32-sjlj-rt_v5-rev0.7z
