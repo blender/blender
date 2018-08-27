@@ -274,3 +274,7 @@ set(PUGIXML_HASH 9346ca1dce2c48f1748c12fdac41a714)
 set(FLEXBISON_VERSION 2.5.5)
 set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
 set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
+
+set(SSL_VERSION 1.1.0i)
+set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
+set(SSL_HASH ebbfc844a8c8cc0ea5dc10b86c9ce97f401837f3fa08c17b2cdadc118253cf99)

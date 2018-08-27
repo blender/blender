@@ -137,4 +137,8 @@ if(NOT WIN32 OR ENABLE_MINGW64)
 	endif()
 endif()
 
+if(UNIX AND NOT APPLE)
+	include(cmake/ssl.cmake)
+endif()
+
 include(cmake/harvest.cmake)
