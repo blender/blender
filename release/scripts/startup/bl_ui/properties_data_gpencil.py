@@ -124,6 +124,9 @@ class GPENCIL_MT_layer_specials(Menu):
 
         layout.operator("gpencil.layer_merge", icon='NLA', text="Merge Down")
 
+        layout.separator()
+        layout.menu("VIEW3D_MT_gpencil_copy_layer")
+
 
 class DATA_PT_gpencil_datapanel(Panel):
     bl_space_type = 'PROPERTIES'

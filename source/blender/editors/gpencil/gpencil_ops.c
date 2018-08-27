@@ -718,6 +718,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_layer_remove);
 	WM_operatortype_append(GPENCIL_OT_layer_move);
 	WM_operatortype_append(GPENCIL_OT_layer_duplicate);
+	WM_operatortype_append(GPENCIL_OT_layer_duplicate_object);
 
 	WM_operatortype_append(GPENCIL_OT_hide);
 	WM_operatortype_append(GPENCIL_OT_reveal);

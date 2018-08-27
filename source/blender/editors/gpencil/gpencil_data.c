@@ -418,6 +418,144 @@ void GPENCIL_OT_layer_duplicate(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* ********************* Duplicate Layer in a new object ************************** */
+enum {
+	GP_LAYER_COPY_OBJECT_ALL_FRAME = 0,
+	GP_LAYER_COPY_OBJECT_ACT_FRAME = 1
+};
+
+bool gp_layer_duplicate_object_poll(bContext *C)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob = CTX_data_active_object(C);
+	if ((ob == NULL) || (ob->type != OB_GPENCIL))
+		return false;
+
+	bGPdata *gpd = (bGPdata *)ob->data;
+	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
+
+	if (gpl == NULL)
+		return false;
+
+	/* check there are more grease pencil objects */
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if ((base->object != ob) && (base->object->type == OB_GPENCIL))
+			return true;
+	}
+
+	return false;
+}
+
+static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	char name[MAX_ID_NAME - 2];
+	RNA_string_get(op->ptr, "object", name);
+
+	if (name[0] == '\0') {
+		return OPERATOR_CANCELLED;
+	}
+
+	Object *ob_dst = (Object *)BKE_scene_object_find_by_name(scene, name);
+
+	int mode = RNA_enum_get(op->ptr, "mode");
+
+	Object *ob_src = CTX_data_active_object(C);
+	bGPdata *gpd_src = (bGPdata *)ob_src->data;
+	bGPDlayer *gpl_src = BKE_gpencil_layer_getactive(gpd_src);
+
+	/* sanity checks */
+	if (ELEM(NULL, gpd_src, gpl_src, ob_dst)) {
+		return OPERATOR_CANCELLED;
+	}
+	/* cannot copy itself and check destination type */
+	if ((ob_src == ob_dst) || (ob_dst->type != OB_GPENCIL)) {
+		return OPERATOR_CANCELLED;
+	}
+
+	bGPdata *gpd_dst = (bGPdata *)ob_dst->data;
+
+	/* make copy of layer */
+	bGPDlayer *gpl_dst = MEM_dupallocN(gpl_src);
+	gpl_dst->prev = gpl_dst->next = NULL;
+	gpl_dst->runtime.derived_data = NULL;
+	BLI_addtail(&gpd_dst->layers, gpl_dst);
+	BLI_uniquename(&gpd_dst->layers, gpl_dst, DATA_("GP_Layer"), '.', offsetof(bGPDlayer, info), sizeof(gpl_dst->info));
+
+	/* copy frames */
+	BLI_listbase_clear(&gpl_dst->frames);
+	for (bGPDframe *gpf_src = gpl_src->frames.first; gpf_src; gpf_src = gpf_src->next) {
+
+		if ((mode == GP_LAYER_COPY_OBJECT_ACT_FRAME) && (gpf_src != gpl_src->actframe)) {
+			continue;
+		}
+
+		/* make a copy of source frame */
+		bGPDframe *gpf_dst = MEM_dupallocN(gpf_src);
+		gpf_dst->prev = gpf_dst->next = NULL;
+		BLI_addtail(&gpl_dst->frames, gpf_dst);
+
+		/* copy strokes */
+		BLI_listbase_clear(&gpf_dst->strokes);
+		for (bGPDstroke *gps_src = gpf_src->strokes.first; gps_src; gps_src = gps_src->next) {
+
+			/* make copy of source stroke */
+			bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src);
+
+			/* check if material is in destination object,
+			 * otherwise add the slot with the material
+			 */
+			Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
+			int idx = BKE_object_material_slot_find_index(ob_dst, ma_src);
+			if (idx == 0) {
+				BKE_object_material_slot_add(bmain, ob_dst);
+				assign_material(bmain, ob_dst, ma_src, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
+				idx = ob_dst->totcol;
+			}
+
+			/* reasign the stroke material to the right slot in destination object */
+			gps_dst->mat_nr = idx - 1;
+
+			/* add new stroke to frame */
+			BLI_addtail(&gpf_dst->strokes, gps_dst);
+		}
+	}
+
+	/* notifiers */
+	DEG_id_tag_update(&gpd_dst->id, OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
+	DEG_id_tag_update(&ob_dst->id, DEG_TAG_COPY_ON_WRITE);
+	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_layer_duplicate_object(wmOperatorType *ot)
+{
+	static const EnumPropertyItem copy_mode[] = {
+		{GP_LAYER_COPY_OBJECT_ALL_FRAME, "ALL", 0, "All Frames", ""},
+		{GP_LAYER_COPY_OBJECT_ACT_FRAME, "ACTIVE", 0, "Active Frame", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	/* identifiers */
+	ot->name = "Duplicate Layer to new Object";
+	ot->idname = "GPENCIL_OT_layer_duplicate_object";
+	ot->description = "Make a copy of the active Grease Pencil layer to new object";
+
+	/* callbacks */
+	ot->exec = gp_layer_duplicate_object_exec;
+	ot->poll = gp_layer_duplicate_object_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	ot->prop = RNA_def_string(ot->srna, "object", NULL, MAX_ID_NAME - 2, "Object", "Name of the destination object");
+	RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
+	RNA_def_enum(ot->srna, "mode", copy_mode, GP_LAYER_COPY_OBJECT_ALL_FRAME, "Mode", "");
+}
+
 /* ********************* Duplicate Frame ************************** */
 enum {
 	GP_FRAME_DUP_ACTIVE = 0,
