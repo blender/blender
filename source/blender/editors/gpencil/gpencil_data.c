@@ -1683,14 +1683,15 @@ static int gpencil_vertex_group_invert_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		for (int i = 0; i < gps->totpoints; i++) {
 			dvert = &gps->dvert[i];
-			if (dvert->dw == NULL) {
-				BKE_gpencil_vgroup_add_point_weight(dvert, def_nr, 1.0f);
+			MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+			if (dw == NULL) {
+				defvert_add_index_notest(dvert, def_nr, 1.0f);
 			}
-			else if (dvert->dw->weight == 1.0f) {
-				BKE_gpencil_vgroup_remove_point_weight(dvert, def_nr);
+			else if (dw->weight == 1.0f) {
+				defvert_remove_group(dvert, dw);
 			}
 			else {
-				dvert->dw->weight = 1.0f - dvert->dw->weight;
+				dw->weight = 1.0f - dw->weight;
 			}
 		}
 	}
