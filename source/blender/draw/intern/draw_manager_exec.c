@@ -263,7 +263,7 @@ void drw_state_set(DRWState state)
 			}
 			else {
 				glDisable(GL_BLEND);
-				// glBlendFunc(GL_ONE, GL_ONE); /* Don't multiply incoming color by alpha. */
+				glBlendFunc(GL_ONE, GL_ONE); /* Don't multiply incoming color by alpha. */
 			}
 		}
 	}
@@ -1023,11 +1023,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	release_ubo_slots(shader_changed);
 	release_texture_slots(shader_changed);
 
-	/* Only set the state if there is something to draw. */
-	if (!DRW_shgroup_is_empty(shgroup)) {
-		drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
-		drw_stencil_set(shgroup->stencil_mask);
-	}
+	drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
+	drw_stencil_set(shgroup->stencil_mask);
 
 	/* Binding Uniform */
 	for (DRWUniform *uni = shgroup->uniforms; uni; uni = uni->next) {
@@ -1237,6 +1234,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	if (use_tfeedback) {
 		GPU_shader_transform_feedback_disable(shgroup->shader);
 	}
+
+	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */
+	DRW_state_reset();
 }
 
 static void drw_update_view(void)
@@ -1274,10 +1274,6 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	DST.shader = NULL;
 
 	BLI_assert(DST.buffer_finish_called && "DRW_render_instance_buffer_finish had not been called before drawing");
-
-	if (DRW_pass_is_empty(pass)) {
-		return;
-	}
 
 	drw_update_view();
 
