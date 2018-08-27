@@ -46,6 +46,8 @@
 #include "../generic/python_utildefines.h"
 #include "../generic/py_capi_utils.h"
 
+BLI_STATIC_ASSERT(sizeof(PyC_FlagSet) == sizeof(BMO_FlagSet), "size mismatch");
+
 static int bpy_bm_op_as_py_error(BMesh *bm)
 {
 	if (BMO_error_occurred(bm)) {
@@ -169,16 +171,46 @@ static int bpy_slot_from_py(
 		}
 		case BMO_OP_SLOT_INT:
 		{
-			const int param = PyC_Long_AsI32(value);
+			if (slot->slot_subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_ENUM) {
+				int enum_val = -1;
+				PyC_FlagSet *items = (PyC_FlagSet *)slot->data.enum_flags;
+				const char *enum_str = _PyUnicode_AsString(value);
 
-			if (param == -1 && PyErr_Occurred()) {
-				PyErr_Format(PyExc_TypeError,
-				             "%.200s: keyword \"%.200s\" expected an int, not %.200s",
-				             opname, slot_name, Py_TYPE(value)->tp_name);
-				return -1;
+				if (enum_str == NULL) {
+					PyErr_Format(PyExc_TypeError,
+					             "%.200s: keyword \"%.200s\" expected a string, not %.200s",
+					             opname, slot_name, Py_TYPE(value)->tp_name);
+					return -1;
+				}
+
+				if (PyC_FlagSet_ValueFromID(items, enum_str, &enum_val, slot_name) == -1) {
+					return -1;
+				}
+
+				BMO_SLOT_AS_INT(slot) = enum_val;
+			}
+			else if (slot->slot_subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_FLAG) {
+				int flag = 0;
+				PyC_FlagSet *items = (PyC_FlagSet *)slot->data.enum_flags;
+
+				if (PyC_FlagSet_ToBitfield(items, value, &flag, slot_name) == -1) {
+					return -1;
+				}
+
+				BMO_SLOT_AS_INT(slot) = flag;
 			}
 			else {
-				BMO_SLOT_AS_INT(slot) = param;
+				const int param = PyC_Long_AsI32(value);
+
+				if (param == -1 && PyErr_Occurred()) {
+					PyErr_Format(PyExc_TypeError,
+					             "%.200s: keyword \"%.200s\" expected an int, not %.200s",
+					             opname, slot_name, Py_TYPE(value)->tp_name);
+					return -1;
+				}
+				else {
+					BMO_SLOT_AS_INT(slot) = param;
+				}
 			}
 			break;
 		}

@@ -75,10 +75,14 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
 {
 	DynStr *dyn_str = BLI_dynstr_new();
 	char *ret;
+	bool quoted;
+	bool set;
 
 	int i = 0;
 
 	while (*slot_types[i].name) {
+		quoted = false;
+		set = false;
 		/* cut off '.out' by using a string size arg */
 		const int name_len = is_out ?
 		        (strchr(slot_types[i].name, '.') - slot_types[i].name) :
@@ -86,7 +90,19 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
 		const char *value = "<Unknown>";
 		switch (slot_types[i].type) {
 			case BMO_OP_SLOT_BOOL:          value = "False"; break;
-			case BMO_OP_SLOT_INT:           value = "0"; break;
+			case BMO_OP_SLOT_INT:
+				if (slot_types[i].subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_ENUM) {
+					value = slot_types[i].enum_flags[0].identifier;
+					quoted = true;
+				}
+				else if (slot_types[i].subtype.intg == BMO_OP_SLOT_SUBTYPE_INT_FLAG) {
+					value = "";
+					set = true;
+				}
+				else {
+					value = "0";
+				}
+				break;
 			case BMO_OP_SLOT_FLT:           value = "0.0"; break;
 			case BMO_OP_SLOT_PTR:           value = "None"; break;
 			case BMO_OP_SLOT_MAT:           value = "Matrix()"; break;
@@ -95,7 +111,11 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
 			     (slot_types[i].subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) ? "None" : "[]"; break;
 			case BMO_OP_SLOT_MAPPING:       value = "{}"; break;
 		}
-		BLI_dynstr_appendf(dyn_str, i ? ", %.*s=%s" : "%.*s=%s", name_len, slot_types[i].name, value);
+		BLI_dynstr_appendf(dyn_str, i ? ", %.*s=%s%s%s%s%s" : "%.*s=%s%s%s%s%s",
+		                   name_len, slot_types[i].name,
+						   set ? "{" : "", quoted ? "'" : "",
+						   value,
+						   quoted ? "'" : "", set ? "}" : "");
 		i++;
 	}
 

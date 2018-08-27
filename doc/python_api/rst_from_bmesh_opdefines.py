@@ -31,6 +31,7 @@
 # - campbell
 
 import os
+import re
 
 CURRENT_DIR = os.path.abspath(os.path.dirname(__file__))
 SOURCE_DIR = os.path.normpath(os.path.abspath(os.path.normpath(os.path.join(CURRENT_DIR, "..", ".."))))
@@ -75,7 +76,8 @@ def main():
     for l in fsrc:
         l = l[:-1]
         # weak but ok
-        if ("BMOpDefine" in l and l.split()[1] == "BMOpDefine") and "bmo_opdefines[]" not in l:
+        if ((("BMOpDefine" in l and l.split()[1] == "BMOpDefine") and "bmo_opdefines[]" not in l) or
+            ("static BMO_FlagSet " in l)):
             is_block = True
             block_ctx = []
             blocks.append((comment_ctx, block_ctx))
@@ -92,9 +94,12 @@ def main():
                 if cpp_comment != -1:
                     l = l[:cpp_comment]
 
+                # remove sentinel from enums
+                l = l.replace("{0, NULL}", "")
+
                 block_ctx.append(l)
 
-            if l.strip() == "};":
+            if l.strip().endswith("};"):
                 is_block = False
                 comment_ctx = None
 
@@ -136,6 +141,9 @@ def main():
         "BMO_OP_SLOT_SUBTYPE_PTR_MESH",
         "BMO_OP_SLOT_SUBTYPE_PTR_BMESH",
 
+        "BMO_OP_SLOT_SUBTYPE_INT_ENUM",
+        "BMO_OP_SLOT_SUBTYPE_INT_FLAG",
+
         "BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE",
 
         "BM_VERT",
@@ -160,6 +168,7 @@ def main():
     for comment, b in blocks:
         # magic, translate into python
         b[0] = b[0].replace("static BMOpDefine ", "")
+        is_enum = False
 
         for i, l in enumerate(b):
             l = l.strip()
@@ -178,10 +187,34 @@ def main():
             # exec func. eg: bmo_rotate_edges_exec,
             if l.startswith("bmo_") and l.endswith("_exec,"):
                 l = "None,"
+
+            # enums
+            if l.startswith("static BMO_FlagSet "):
+                is_enum = True
+
             b[i] = l
 
         # for l in b:
         #     print(l)
+
+        if is_enum:
+            text = "".join(b)
+            text = text.replace("static BMO_FlagSet ", "")
+            text = text.replace("[]", "")
+            text = text.strip(";")
+            text = text.replace("(", "[").replace(")", "]")
+            text = text.replace("\"", "'")
+
+            k, v = text.split("=", 1)
+
+            v = repr(re.findall(r"'([^']*)'", v))
+
+            k = k.strip()
+            v = v.strip()
+
+            vars_dict[k] = v
+
+            continue
 
         text = "\n".join(b)
         global_namespace = {
@@ -225,6 +258,7 @@ def main():
 
         # -- wash the comment
         comment_washed = []
+        comment = [] if comment is None else comment
         for i, l in enumerate(comment):
             assert((l.strip() == "") or
                    (l in {"/*", " *"}) or
@@ -246,7 +280,9 @@ def main():
             args_wash = []
             for i in args_index:
                 arg = args[i]
-                if len(arg) == 3:
+                if len(arg) == 4:
+                    name, tp, tp_sub, enums = arg
+                elif len(arg) == 3:
                     name, tp, tp_sub = arg
                 elif len(arg) == 2:
                     name, tp = arg
@@ -282,7 +318,12 @@ def main():
                 if tp == BMO_OP_SLOT_FLT:
                     tp_str = "float"
                 elif tp == BMO_OP_SLOT_INT:
-                    tp_str = "int"
+                    if tp_sub == BMO_OP_SLOT_SUBTYPE_INT_ENUM:
+                        tp_str = "enum in " + enums + ", default " + enums.split(",", 1)[0].strip("[")
+                    elif tp_sub == BMO_OP_SLOT_SUBTYPE_INT_FLAG:
+                        tp_str = "set of flags from " + enums + ", default {}"
+                    else:
+                        tp_str = "int"
                 elif tp == BMO_OP_SLOT_BOOL:
                     tp_str = "bool"
                 elif tp == BMO_OP_SLOT_MAT:

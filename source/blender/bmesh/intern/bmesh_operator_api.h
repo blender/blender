@@ -193,12 +193,22 @@ typedef enum eBMOpSlotSubType_Ptr {
 	BMO_OP_SLOT_SUBTYPE_PTR_OBJECT = 102,
 	BMO_OP_SLOT_SUBTYPE_PTR_MESH   = 103,
 } eBMOpSlotSubType_Ptr;
+typedef enum eBMOpSlotSubType_Int {
+	BMO_OP_SLOT_SUBTYPE_INT_ENUM = 200,
+	BMO_OP_SLOT_SUBTYPE_INT_FLAG = 201,
+} eBMOpSlotSubType_Int;
 
 typedef union eBMOpSlotSubType_Union {
 	eBMOpSlotSubType_Elem elem;
 	eBMOpSlotSubType_Ptr ptr;
 	eBMOpSlotSubType_Map map;
+	eBMOpSlotSubType_Int intg;
 } eBMOpSlotSubType_Union;
+
+typedef struct BMO_FlagSet {
+	int value;
+	const char *identifier;
+} BMO_FlagSet;
 
 /* please ignore all these structures, don't touch them in tool code, except
  * for when your defining an operator with BMOpDefine.*/
@@ -218,6 +228,7 @@ typedef struct BMOpSlot {
 		float vec[3];
 		void **buf;
 		GHash *ghash;
+		BMO_FlagSet *enum_flags;
 	} data;
 } BMOpSlot;
 
@@ -269,6 +280,7 @@ typedef struct BMOSlotType {
 	char name[MAX_SLOTNAME];
 	eBMOpSlotType          type;
 	eBMOpSlotSubType_Union subtype;
+	BMO_FlagSet            *enum_flags;
 } BMOSlotType;
 
 typedef struct BMOpDefine {
