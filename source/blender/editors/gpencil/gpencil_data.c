@@ -1373,7 +1373,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 		}
 	}
 	/* try to find slot */
-	int idx = BKE_gpencil_get_material_index(ob, ma) - 1;
+	int idx = BKE_object_material_slot_find_index(ob, ma) - 1;
 	if (idx <= 0) {
 		return OPERATOR_CANCELLED;
 	}
@@ -2123,7 +2123,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 
 				for (short i = 0; i < *totcol; i++) {
 					Material *tmp_ma = give_current_material(ob_src, i + 1);
-					if (BKE_gpencil_get_material_index(ob_dst, tmp_ma) == 0) {
+					if (BKE_object_material_slot_find_index(ob_dst, tmp_ma) == 0) {
 						BKE_object_material_slot_add(bmain, ob_dst);
 						assign_material(bmain, ob_dst, tmp_ma, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
 					}
@@ -2163,7 +2163,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 							/* reasign material. Look old material and try to find in dst */
 							ma_src = give_current_material(ob_src, gps->mat_nr + 1);
 							if (ma_src != NULL) {
-								idx = BKE_gpencil_get_material_index(ob_dst, ma_src);
+								idx = BKE_object_material_slot_find_index(ob_dst, ma_src);
 								if (idx > 0) {
 									gps->mat_nr = idx - 1;
 								}
