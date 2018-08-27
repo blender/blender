@@ -81,6 +81,8 @@
 #include "BKE_paint.h"
 #include "BKE_object.h"
 
+#include "BLT_translation.h"
+
 #include "BLO_readfile.h"
 #include "readfile.h"
 
@@ -408,7 +410,7 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 					BLI_snprintf(name,
 					             sizeof(collection_master->id.name),
-					             "Collection %d",
+					             DATA_("Collection %d"),
 					             layer + 1);
 
 					Collection *collection = BKE_collection_add(bmain, collection_master, name);
@@ -595,18 +597,31 @@ void do_versions_after_linking_280(Main *bmain)
 				continue;
 			}
 
-			Collection *collection_hidden = NULL;
+			Collection *hidden_collection_array[20] = {NULL};
 			for (CollectionObject *cob = collection->gobject.first, *cob_next = NULL; cob; cob = cob_next) {
 				cob_next = cob->next;
 				Object *ob = cob->ob;
 
 				if (!(ob->lay & collection->layer)) {
-					if (collection_hidden == NULL) {
-						collection_hidden = BKE_collection_add(bmain, collection, "Hidden");
-						collection_hidden->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
+					/* Find or create hidden collection matching object's first layer. */
+					Collection **collection_hidden = NULL;
+					int coll_idx = 0;
+					for (; coll_idx < 20; coll_idx++) {
+						if (ob->lay & (1 << coll_idx)) {
+							collection_hidden = &hidden_collection_array[coll_idx];
+							break;
+						}
+					}
+					BLI_assert(collection_hidden != NULL);
+
+					if (*collection_hidden == NULL) {
+						char name[MAX_ID_NAME];
+						BLI_snprintf(name, sizeof(name), DATA_("Hidden %d"), coll_idx + 1);
+						*collection_hidden = BKE_collection_add(bmain, collection, name);
+						(*collection_hidden)->flag |= COLLECTION_RESTRICT_VIEW | COLLECTION_RESTRICT_RENDER;
 					}
 
-					BKE_collection_object_add(bmain, collection_hidden, ob);
+					BKE_collection_object_add(bmain, *collection_hidden, ob);
 					BKE_collection_object_remove(bmain, collection, ob, true);
 				}
 			}
