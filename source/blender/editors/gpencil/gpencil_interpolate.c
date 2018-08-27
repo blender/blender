@@ -110,16 +110,14 @@ static bool gpencil_view3d_poll(bContext *C)
 }
 
 /* Perform interpolation */
-static void gp_interpolate_update_points(bGPDstroke *gps_from, bGPDstroke *gps_to, bGPDstroke *new_stroke, float factor)
+static void gp_interpolate_update_points(
+        const bGPDstroke *gps_from, const bGPDstroke *gps_to, bGPDstroke *new_stroke, float factor)
 {
-	bGPDspoint *prev, *pt, *next;
-	MDeformVert *dvert;
-
 	/* update points */
 	for (int i = 0; i < new_stroke->totpoints; i++) {
-		prev = &gps_from->points[i];
-		pt = &new_stroke->points[i];
-		next = &gps_to->points[i];
+		const bGPDspoint *prev = &gps_from->points[i];
+		const bGPDspoint *next = &gps_to->points[i];
+		bGPDspoint *pt = &new_stroke->points[i];
 
 		/* Interpolate all values */
 		interp_v3_v3v3(&pt->x, &prev->x, &next->x, factor);
@@ -128,9 +126,11 @@ static void gp_interpolate_update_points(bGPDstroke *gps_from, bGPDstroke *gps_t
 		CLAMP(pt->strength, GPENCIL_STRENGTH_MIN, 1.0f);
 
 		/* GPXX interpolate dverts */
-		//dvert = &new_stroke->dvert[i];
-		//dvert->totweight = 0;
-		//dvert->dw = NULL;
+#if 0
+		MDeformVert *dvert = &new_stroke->dvert[i];
+		dvert->totweight = 0;
+		dvert->dw = NULL;
+#endif
 	}
 }
 
