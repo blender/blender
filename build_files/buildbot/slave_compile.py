@@ -48,7 +48,7 @@ if 'cmake' in builder:
     # cmake
 
     # Some fine-tuning configuration
-    blender_dir = os.path.join('..', blender_dir)
+    blender_dir = os.path.abspath(blender_dir)
     build_dir = os.path.abspath(os.path.join('..', 'build', builder))
     install_dir = os.path.abspath(os.path.join('..', 'install', builder))
     targets = ['blender']
@@ -159,10 +159,6 @@ if 'cmake' in builder:
         if target != 'blender':
             target_build_dir += '_' + target
         target_name = 'install'
-        # Make sure build directory exists and enter it
-        if not os.path.isdir(target_build_dir):
-            os.mkdir(target_build_dir)
-        os.chdir(target_build_dir)
         # Tweaking CMake options to respect the target
         target_cmake_options = cmake_options[:]
         if target == 'player':
@@ -175,6 +171,19 @@ if 'cmake' in builder:
         # other targets don't compile cuda binaries.
         if 'cuda' in targets and target != 'cuda':
             target_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=OFF")
+        # Do extra git fetch because not all platform/git/buildbot combinations
+        # update the origin remote, causing buildinfo to detect local changes.
+        os.chdir(blender_dir)
+        print("Fetching remotes")
+        command = ['git', 'fetch', '--all']
+        print(command)
+        retcode = subprocess.call(target_chroot_prefix + command)
+        if retcode != 0:
+            sys.exit(retcode)
+        # Make sure build directory exists and enter it
+        if not os.path.isdir(target_build_dir):
+            os.mkdir(target_build_dir)
+        os.chdir(target_build_dir)
         # Configure the build
         print("CMake options:")
         print(target_cmake_options)
@@ -189,11 +198,11 @@ if 'cmake' in builder:
         if 'win32' in builder or 'win64' in builder:
             command = ['cmake', '--build', '.', '--target', target_name, '--config', 'Release']
         else:
-            command = target_chroot_prefix + ['make', '-s', '-j2', target_name]
+            command = ['make', '-s', '-j2', target_name]
 
         print("Executing command:")
         print(command)
-        retcode = subprocess.call(command)
+        retcode = subprocess.call(target_chroot_prefix + command)
 
         if retcode != 0:
             sys.exit(retcode)
