@@ -50,6 +50,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
+#include "BKE_deform.h"
 #include "BKE_main.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
@@ -1225,7 +1226,10 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 				bGPDspoint *pt = &gps->points[i];
 				MDeformVert *dvert = &gps->dvert[i];
 				if (pt->flag & GP_SPOINT_SELECT) {
-					BKE_gpencil_vgroup_add_point_weight(dvert, def_nr, weight);
+					MDeformWeight *dw = defvert_verify_index(dvert, def_nr);
+					if (dw) {
+						dw->weight = weight;
+					}
 				}
 			}
 		}
@@ -1250,7 +1254,10 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 			MDeformVert *dvert = &gps->dvert[i];
 
 			if ((pt->flag & GP_SPOINT_SELECT) && (dvert->totweight > 0)) {
-				BKE_gpencil_vgroup_remove_point_weight(dvert, def_nr);
+				MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+				if (dw != NULL) {
+					defvert_remove_group(dvert, dw);
+				}
 			}
 		}
 	}
@@ -1273,7 +1280,7 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 			}
 			MDeformVert *dvert = &gps->dvert[i];
 
-			if (BKE_gpencil_vgroup_use_index(dvert, def_nr) > -1.0f) {
+			if (defvert_find_index(dvert, def_nr) != NULL) {
 				pt->flag |= GP_SPOINT_SELECT;
 				gps->flag |= GP_STROKE_SELECT;
 			}
@@ -1298,7 +1305,7 @@ void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 			}
 			MDeformVert *dvert = &gps->dvert[i];
 
-			if (BKE_gpencil_vgroup_use_index(dvert, def_nr) > -1.0f) {
+			if (defvert_find_index(dvert, def_nr) != NULL) {
 				pt->flag &= ~GP_SPOINT_SELECT;
 				gps->flag |= GP_STROKE_SELECT;
 			}

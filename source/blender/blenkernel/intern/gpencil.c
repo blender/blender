@@ -57,6 +57,7 @@
 #include "BKE_context.h"
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_colortools.h"
@@ -545,21 +546,7 @@ void BKE_gpencil_stroke_weights_duplicate(bGPDstroke *gps_src, bGPDstroke *gps_d
 	}
 	BLI_assert(gps_src->totpoints == gps_dst->totpoints);
 
-	if ((gps_src->dvert == NULL) || (gps_dst->dvert == NULL)) {
-		return;
-	}
-
-	for (int i = 0; i < gps_src->totpoints; i++) {
-		MDeformVert *dvert_src = &gps_src->dvert[i];
-		MDeformVert *dvert_dst = &gps_dst->dvert[i];
-		if (dvert_src->totweight > 0) {
-			dvert_dst->dw = MEM_dupallocN(dvert_src->dw);
-		}
-		else {
-			dvert_dst->dw = NULL;
-		}
-
-	}
+	BKE_defvert_array_copy(gps_dst->dvert, gps_src->dvert, gps_src->totpoints);
 }
 
 /* make a copy of a given gpencil stroke */
@@ -1227,7 +1214,6 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 {
 	bGPdata *gpd = ob->data;
 	MDeformVert *dvert = NULL;
-	MDeformWeight *gpw = NULL;
 	const int def_nr = BLI_findindex(&ob->defbase, defgroup);
 
 	/* Remove points data */
@@ -1237,15 +1223,9 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 				for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
 					for (int i = 0; i < gps->totpoints; i++) {
 						dvert = &gps->dvert[i];
-						for (int i2 = 0; i2 < dvert->totweight; i2++) {
-							gpw = &dvert->dw[i2];
-							if (gpw->def_nr == def_nr) {
-								BKE_gpencil_vgroup_remove_point_weight(dvert, def_nr);
-							}
-							/* if index is greater, must be moved one back */
-							if (gpw->def_nr > def_nr) {
-								gpw->def_nr--;
-							}
+						MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+						if (dw != NULL) {
+							defvert_remove_group(dvert, dw);
 						}
 					}
 				}
@@ -1264,84 +1244,6 @@ void BKE_gpencil_dvert_ensure(bGPDstroke *gps)
 		gps->dvert = MEM_callocN(sizeof(MDeformVert) * gps->totpoints, "gp_stroke_weights");
 	}
 }
-/* add a new weight */
-MDeformWeight *BKE_gpencil_vgroup_add_point_weight(MDeformVert *dvert, int index, float weight)
-{
-	MDeformWeight *new_gpw = NULL;
-	MDeformWeight *tmp_gpw;
-
-	/* need to verify if was used before to update */
-	for (int i = 0; i < dvert->totweight; i++) {
-		tmp_gpw = &dvert->dw[i];
-		if (tmp_gpw->def_nr == index) {
-			tmp_gpw->weight = weight;
-			return tmp_gpw;
-		}
-	}
-
-	dvert->totweight++;
-	if (dvert->totweight == 1) {
-		dvert->dw = MEM_callocN(sizeof(MDeformWeight), "gp_weight");
-	}
-	else {
-		dvert->dw = MEM_reallocN(dvert->dw, sizeof(MDeformWeight) * dvert->totweight);
-	}
-	new_gpw = &dvert->dw[dvert->totweight - 1];
-	new_gpw->def_nr = index;
-	new_gpw->weight = weight;
-
-	return new_gpw;
-}
-
-/* return the weight if use index  or -1*/
-float BKE_gpencil_vgroup_use_index(MDeformVert *dvert, int index)
-{
-	MDeformWeight *gpw;
-	for (int i = 0; i < dvert->totweight; i++) {
-		gpw = &dvert->dw[i];
-		if (gpw->def_nr == index) {
-			return gpw->weight;
-		}
-	}
-	return -1.0f;
-}
-
-/* add a new weight */
-bool BKE_gpencil_vgroup_remove_point_weight(MDeformVert *dvert, int index)
-{
-	int e = 0;
-
-	if (BKE_gpencil_vgroup_use_index(dvert, index) < 0.0f) {
-		return false;
-	}
-
-	/* if the array get empty, exit */
-	if (dvert->totweight == 1) {
-		dvert->totweight = 0;
-		MEM_SAFE_FREE(dvert->dw);
-		return true;
-	}
-
-	/* realloc weights */
-	MDeformWeight *tmp = MEM_dupallocN(dvert->dw);
-	MEM_SAFE_FREE(dvert->dw);
-	dvert->dw = MEM_callocN(sizeof(MDeformWeight) * dvert->totweight - 1, "gp_weights");
-
-	for (int x = 0; x < dvert->totweight; x++) {
-		MDeformWeight *gpw = &tmp[e];
-		MDeformWeight *final_gpw = &dvert->dw[e];
-		if (gpw->def_nr != index) {
-			final_gpw->def_nr = gpw->def_nr;
-			final_gpw->weight = gpw->weight;
-			e++;
-		}
-	}
-	MEM_SAFE_FREE(tmp);
-	dvert->totweight--;
-
-	return true;
-}
-
 
 /* ************************************************** */
 
