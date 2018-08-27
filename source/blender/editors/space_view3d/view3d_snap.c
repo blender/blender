@@ -80,12 +80,13 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	RegionView3D *rv3d = CTX_wm_region_data(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
 
-	gridf = rv3d->gridview;
+	gridf = ED_view3d_grid_scale(scene, v3d, NULL);
 
 	if (obedit) {
 		ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -497,7 +498,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = CTX_wm_view3d(C);
 	float gridf, *curs;
 
-	gridf = rv3d->gridview;
+	gridf = ED_view3d_grid_scale(scene, v3d, NULL);
 	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	curs[0] = gridf * floorf(0.5f + curs[0] / gridf);
