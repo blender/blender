@@ -73,9 +73,15 @@ set(OSL_EXTRA_ARGS
 	-DUSE_LLVM_BITCODE=OFF
 	-DUSE_PARTIO=OFF
 	${OSL_SIMD_FLAGS}
-	-DPUGIXML_HOME=${LIBDIR}/pugixml
 	-DPARTIO_LIBRARIES=
 )
+
+if(WIN32)
+set(OSL_EXTRA_ARGS
+	${OSL_EXTRA_FLAGS}
+	-DPUGIXML_HOME=${LIBDIR}/pugixml
+)
+endif()
 
 ExternalProject_Add(external_osl
 	URL ${OSL_URI}
