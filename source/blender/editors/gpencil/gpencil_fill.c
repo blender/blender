@@ -841,7 +841,12 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	gps->flag |= GP_STROKE_CYCLIC;
 	gps->flag |= GP_STROKE_3DSPACE;
 
-	gps->mat_nr = BKE_gpencil_get_material_index(tgpf->ob, tgpf->mat) - 1;
+	gps->mat_nr = BKE_object_material_slot_find_index(tgpf->ob, tgpf->mat) - 1;
+	if (gps->mat_nr < 0) {
+		BKE_object_material_slot_add(tgpf->bmain, tgpf->ob);
+		assign_material(tgpf->bmain, tgpf->ob, tgpf->mat, tgpf->ob->totcol, BKE_MAT_ASSIGN_USERPREF);
+		gps->mat_nr = tgpf->ob->totcol - 1;
+	}
 
 	/* allocate memory for storage points */
 	gps->totpoints = tgpf->sbuffer_size;
