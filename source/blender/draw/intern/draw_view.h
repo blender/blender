@@ -26,7 +26,6 @@
 #ifndef __DRAW_VIEW_H__
 #define __DRAW_VIEW_H__
 
-void DRW_draw_grid(void);
 void DRW_draw_region_info(void);
 void DRW_draw_background(void);
 void DRW_draw_cursor(void);
