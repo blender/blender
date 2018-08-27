@@ -670,9 +670,11 @@ void ED_transform_calc_orientation_from_type_ex(
 		}
 		case V3D_MANIP_VIEW:
 		{
-			copy_m3_m4(r_mat, rv3d->viewinv);
-			normalize_m3(r_mat);
-			ok = true;
+			if (rv3d != NULL) {
+				copy_m3_m4(r_mat, rv3d->viewinv);
+				normalize_m3(r_mat);
+				ok = true;
+			}
 			break;
 		}
 		case V3D_MANIP_CURSOR:

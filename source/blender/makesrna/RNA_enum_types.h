@@ -164,6 +164,7 @@ extern const EnumPropertyItem rna_enum_operator_context_items[];
 extern const EnumPropertyItem rna_enum_wm_report_items[];
 
 extern const EnumPropertyItem rna_enum_transform_pivot_items_full[];
+extern const EnumPropertyItem rna_enum_transform_orientation_items[];
 extern const EnumPropertyItem rna_enum_transform_mode_types[];
 
 extern const EnumPropertyItem rna_enum_posebone_rotmode_items[];
