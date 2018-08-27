@@ -45,7 +45,7 @@ bool is_stroke_affected_by_modifier(
         struct Object *ob, char *mlayername, int mpassindex, int minpoints,
         bGPDlayer *gpl, bGPDstroke *gps, bool inv1, bool inv2);
 
-float get_modifier_point_weight(struct MDeformVert *dvert, int inverse, int vindex);
+float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
 
 void gpencil_apply_modifier_material(
 	struct Main *bmain, struct Object *ob, struct Material *mat,

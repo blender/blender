@@ -122,12 +122,12 @@ bool is_stroke_affected_by_modifier(
 }
 
 /* verify if valid vertex group *and return weight */
-float get_modifier_point_weight(MDeformVert *dvert, int inverse, int vindex)
+float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
 {
 	float weight = 1.0f;
 
-	if (vindex >= 0) {
-		MDeformWeight *dw = defvert_find_index(dvert, vindex);
+	if (def_nr != -1) {
+		MDeformWeight *dw = defvert_find_index(dvert, def_nr);
 		weight = dw ? dw->weight : -1.0f;
 		if ((weight >= 0.0f) && (inverse == 1)) {
 			return -1.0f;

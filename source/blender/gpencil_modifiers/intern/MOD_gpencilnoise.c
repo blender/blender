@@ -110,8 +110,7 @@ static void deformStroke(
 #endif
 	int sc_frame = 0;
 	int sc_diff = 0;
-	int vindex = defgroup_name_index(ob, mmd->vgname);
-	float weight = 1.0f;
+	const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
 	/* Random generator, only init once. */
 	if (mmd->rng == NULL) {
@@ -154,8 +153,8 @@ static void deformStroke(
 		}
 
 		/* verify vertex group */
-		weight = get_modifier_point_weight(dvert, (int)((mmd->flag & GP_NOISE_INVERT_VGROUP) != 0), vindex);
-		if (weight < 0) {
+		const float weight = get_modifier_point_weight(dvert, (mmd->flag & GP_NOISE_INVERT_VGROUP) != 0, def_nr);
+		if (weight < 0.0f) {
 			continue;
 		}
 
