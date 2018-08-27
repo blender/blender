@@ -2655,6 +2655,9 @@ static short transform_snap_context_project_view3d_mixed_impl(
 				negate_v4(new_clipplane);
 			}
 
+			/* Small offset to simulate a kind of volume for edges and vertices. */
+			new_clipplane[3] += 0.01f;
+
 			/* Try to snap only to the polygon. */
 			elem = snap_mesh_polygon(
 			        sctx, &snapdata, ob, obmat,
