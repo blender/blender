@@ -166,6 +166,10 @@ static void draw_uvs_shadow(Object *obedit)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
+	if (bm->totloop == 0) {
+		return;
+	}
+
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -632,6 +636,10 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		if (((ts->uv_flag & UV_SYNC_SELECTION) == 0) || is_cage_like_final_meshes) {
 			draw_uvs_shadow(ob_cage_eval);
 		}
+	}
+
+	if (bm->totloop == 0) {
+		return;
 	}
 
 	/* 2. draw colored faces */
