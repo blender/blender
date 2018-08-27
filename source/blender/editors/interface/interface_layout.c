@@ -143,6 +143,7 @@ enum {
 	/* Show an icon button next to each property (to set keyframes, show status).
 	 * Enabled by default, depends on 'UI_ITEM_PROP_SEP'. */
 	UI_ITEM_PROP_DECORATE = 1 << 4,
+	UI_ITEM_PROP_DECORATE_NO_PAD  = 1 << 5,
 };
 
 typedef struct uiButtonItem {
@@ -810,10 +811,14 @@ static uiBut *ui_item_with_label(
 		        x, y, prop_but_width, h);
 	}
 
+#ifdef UI_PROP_DECORATE
 	/* Only for alignment. */
-	if ((layout->item.flag & UI_ITEM_PROP_DECORATE) != 0) {
+	if ((layout->item.flag & UI_ITEM_PROP_DECORATE) &&
+	    (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0)
+	{
 		uiItemL(sub, NULL, ICON_BLANK1);
 	}
+#endif  /* UI_PROP_DECORATE */
 
 	UI_block_layout_set_current(block, layout);
 	return but;
@@ -1515,8 +1520,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 #ifdef UI_PROP_DECORATE
 	struct {
 		bool use_prop_decorate;
-		/* For button types that handle own decorations (or add own padding for alignment). */
-		bool use_prop_decorate_done;
 		int len;
 		uiLayout *layout;
 		uiBut *but;
@@ -1705,6 +1708,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			ui_decorate.layout->space = 0;
 			UI_block_layout_set_current(block, layout);
 			ui_decorate.but = block->buttons.last;
+
+			/* Clear after. */
+			layout->item.flag |= UI_ITEM_PROP_DECORATE_NO_PAD;
 		}
 #endif  /* UI_PROP_DECORATE */
 	}
@@ -1736,11 +1742,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 
 		if (layout->redalert)
 			UI_but_flag_enable(but, UI_BUT_REDALERT);
-
-#ifdef UI_PROP_DECORATE
-		/* ui_item_with_label handles this. */
-		ui_decorate.use_prop_decorate_done = true;
-#endif
 	}
 	/* single button */
 	else {
@@ -1762,10 +1763,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 
 #ifdef UI_PROP_DECORATE
-	if (ui_decorate.use_prop_decorate_done) {
-		/* pass */
-	}
-	else if (ui_decorate.use_prop_decorate) {
+	if (ui_decorate.use_prop_decorate) {
 		const bool is_anim = RNA_property_animateable(ptr, prop);
 		uiBut *but_decorate = ui_decorate.but ? ui_decorate.but->next : block->buttons.first;
 		uiLayout *layout_col = uiLayoutColumn(ui_decorate.layout, false);
@@ -1795,6 +1793,8 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			but_decorate = but->next;
 		}
 		BLI_assert(ELEM(i, 1, ui_decorate.len));
+
+		layout->item.flag &= ~UI_ITEM_PROP_DECORATE_NO_PAD;
 	}
 #endif  /* UI_PROP_DECORATE */
 
