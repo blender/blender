@@ -157,11 +157,11 @@ class WindowManager(bpy_types.ID):
         try:
             draw_func(popup, bpy.context)
         finally:
-            self.popover_end__internal(popup, keymap)
+            self.popover_end__internal(popup, keymap=keymap)
 
     def popup_menu_pie(self, event, draw_func, title="", icon='NONE'):
         import bpy
-        pie = self.piemenu_begin__internal(title, icon, event)
+        pie = self.piemenu_begin__internal(title, icon=icon, event=event)
 
         if pie:
             try:
