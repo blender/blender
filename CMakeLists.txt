@@ -167,6 +167,7 @@ option_defaults_init(
 	_init_FFTW3
 	_init_GAMEENGINE
 	_init_OPENSUBDIV
+	_init_SYSTEM_OPENJPG
 )
 
 # customize...
@@ -183,11 +184,13 @@ if(UNIX AND NOT APPLE)
 	set(_init_SDL                            OFF)
 	set(_init_FFTW3                          OFF)
 	set(_init_OPENSUBDIV                     OFF)
+	set(_init_SYSTEM_OPENJPG                 OFF)
 elseif(WIN32)
 	set(_init_JACK                           OFF)
 elseif(APPLE)
 	set(_init_JACK                           OFF)
 	set(_init_OPENSUBDIV                     OFF)
+	set(_init_SYSTEM_OPENJPG                 OFF)
 endif()
 
 
@@ -302,7 +305,7 @@ endif()
 
 
 # (unix defaults to System OpenJPEG On)
-option(WITH_SYSTEM_OPENJPEG "Use the operating systems OpenJPEG library" OFF)
+option(WITH_SYSTEM_OPENJPEG "Use the operating systems OpenJPEG library" ${_init_SYSTEM_OPENJPG})
 
 if(UNIX AND NOT APPLE)
 	option(WITH_SYSTEM_EIGEN3 "Use the systems Eigen3 library" OFF)
