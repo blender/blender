@@ -1754,9 +1754,13 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 		ED_view3d_viewcontext_init_object(&vc, basact->object);
 		em = vc.em;
 	}
+	else {
+		em = NULL;
+	}
+
 	em_original->selectmode = selectmode;
 
-	if (eed == NULL) {
+	if (em == NULL || eed == NULL) {
 		return false;
 	}
 

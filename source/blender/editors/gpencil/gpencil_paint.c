@@ -753,7 +753,7 @@ static short gp_stroke_addpoint(
 		if (gp_stroke_added_check(p)) {
 			bGPDstroke *gps = p->gpf->strokes.last;
 			bGPDspoint *pts;
-			MDeformVert *dvert;
+			MDeformVert *dvert = NULL;
 
 			/* first time point is adding to temporary buffer -- need to allocate new point in stroke */
 			if (gpd->runtime.sbuffer_size == 0) {
@@ -792,7 +792,7 @@ static short gp_stroke_addpoint(
 			pts->uv_fac = pt->uv_fac;
 			pts->uv_rot = pt->uv_rot;
 
-			if (gps->dvert != NULL) {
+			if (dvert != NULL) {
 				dvert->totweight = 0;
 				dvert->dw = NULL;
 			}
