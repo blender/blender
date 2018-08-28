@@ -94,6 +94,7 @@ void BKE_gpencil_frame_delete_laststroke(struct bGPDlayer *gpl, struct bGPDframe
 /* materials */
 void BKE_gpencil_material_index_remove(struct bGPdata *gpd, int index);
 void BKE_gpencil_material_remap(struct bGPdata *gpd, const unsigned int *remap, unsigned int remap_len);
+int BKE_gpencil_get_material_index(struct Object *ob, struct Material *ma);
 
 /* statistics functions */
 void BKE_gpencil_stats_update(struct bGPdata *gpd);

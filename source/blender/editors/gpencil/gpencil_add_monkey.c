@@ -72,7 +72,7 @@ static int gpencil_monkey_color(Main *bmain, Object *ob, const ColorTemplate *pc
 	copy_v4_v4(ma->gp_style->stroke_rgba, pct->line);
 	copy_v4_v4(ma->gp_style->fill_rgba, pct->fill);
 
-	return BKE_object_material_slot_find_index(ob, ma) - 1;
+	return BKE_gpencil_get_material_index(ob, ma) - 1;
 }
 
 /* ***************************************************************** */

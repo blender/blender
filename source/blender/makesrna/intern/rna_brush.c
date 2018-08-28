@@ -171,7 +171,6 @@ static EnumPropertyItem rna_enum_gpencil_brush_icons_items[] = {
 #include "BKE_colorband.h"
 #include "BKE_brush.h"
 #include "BKE_icons.h"
-#include "BKE_material.h"
 #include "BKE_gpencil.h"
 #include "BKE_paint.h"
 
@@ -426,7 +425,7 @@ static void rna_Brush_material_update(bContext *C, PointerRNA *ptr)
 		BrushGpencilSettings *gpencil_settings = br->gpencil_settings;
 		if (gpencil_settings->material != NULL) {
 
-			index = BKE_object_material_slot_find_index(ob, gpencil_settings->material);
+			index = BKE_gpencil_get_material_index(ob, gpencil_settings->material);
 			if ((index > 0) && (ob->actcol != index)) {
 				ob->actcol = index;
 				/* update other brushes to keep all synchro */

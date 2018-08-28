@@ -177,7 +177,7 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	gps->flag |= GP_STROKE_CYCLIC;
 	gps->flag |= GP_STROKE_3DSPACE;
 
-	gps->mat_nr = BKE_object_material_slot_find_index(tgpi->ob, tgpi->mat) - 1;
+	gps->mat_nr = BKE_gpencil_get_material_index(tgpi->ob, tgpi->mat) - 1;
 
 	/* allocate memory for storage points, but keep empty */
 	gps->totpoints = 0;
