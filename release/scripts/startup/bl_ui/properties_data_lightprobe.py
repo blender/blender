@@ -78,7 +78,6 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         elif probe.type == 'PLANAR':
             col = layout.column()
             col.prop(probe, "influence_distance", text="Distance")
-            col.prop(probe, "falloff")
         else:
             col = layout.column()
             col.prop(probe, "influence_type")

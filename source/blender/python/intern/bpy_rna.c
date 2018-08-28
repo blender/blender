@@ -5654,6 +5654,17 @@ static PyObject *pyrna_func_call(BPy_FunctionRNA *self, PyObject *args, PyObject
 		item = NULL;
 
 		if (i < pyargs_len) {
+			/* New in 2.8x, optional arguments must be keywords.  */
+			if (UNLIKELY((flag_parameter & PARM_REQUIRED) == 0)) {
+				PyErr_Format(PyExc_TypeError,
+				             "%.200s.%.200s(): required parameter \"%.200s\" to be a keyword argument!",
+				             RNA_struct_identifier(self_ptr->type),
+				             RNA_function_identifier(self_func),
+				             RNA_property_identifier(parm));
+				err = -1;
+				break;
+			}
+
 			item = PyTuple_GET_ITEM(args, i);
 			kw_arg = false;
 		}
