@@ -177,6 +177,7 @@ if(UNIX AND NOT APPLE)
 	add_dependencies(
 		external_python
 		external_bzip2
+		external_ffi
 		external_lzma
 		external_ssl
 		external_sqlite

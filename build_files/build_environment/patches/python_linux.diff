@@ -1,5 +1,5 @@
 diff --git a/setup.py.orig b/setup.py
-index a97a755..ee2bfad 100644
+index a97a755..07ce853 100644
 --- a/setup.py.orig
 +++ b/setup.py
 @@ -1422,13 +1422,13 @@ class PyBuildExt(build_ext):
@@ -27,3 +27,12 @@ index a97a755..ee2bfad 100644
              extra_link_args = zlib_extra_link_args
          else:
              extra_compile_args = []
+@@ -1991,7 +1991,7 @@ class PyBuildExt(build_ext):
+                 print('Header file {} does not exist'.format(ffi_h))
+         ffi_lib = None
+         if ffi_inc is not None:
+-            for lib_name in ('ffi', 'ffi_pic'):
++            for lib_name in ('ffi_pic', ):
+                 if (self.compiler.find_library_file(lib_dirs, lib_name)):
+                     ffi_lib = lib_name
+                     break

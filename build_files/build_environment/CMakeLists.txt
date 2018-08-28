@@ -139,6 +139,7 @@ endif()
 
 if(UNIX AND NOT APPLE)
 	include(cmake/bzip2.cmake)
+	include(cmake/ffi.cmake)
 	include(cmake/lzma.cmake)
 	include(cmake/ssl.cmake)
 	include(cmake/sqlite.cmake)
