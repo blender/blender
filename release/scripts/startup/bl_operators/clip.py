@@ -674,14 +674,16 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
         # rendersettings
         setup_collection_recursively(
-                vlayers["Foreground"].collections[0].children,
-                "background",
-                "holdout")
+            vlayers["Foreground"].collections[0].children,
+            "background",
+            "holdout",
+        )
 
         setup_collection_recursively(
-                vlayers["Background"].collections[0].children,
-                "foreground",
-                "indirect_only")
+            vlayers["Background"].collections[0].children,
+            "foreground",
+            "indirect_only",
+        )
 
     @staticmethod
     def _wipeDefaultNodes(tree):

@@ -349,7 +349,7 @@ INFO_DOCS = (
      "Tips and Tricks: Hints to help you while writing scripts for Blender"),
     ("info_gotcha.rst",
      "Gotcha's: some of the problems you may come up against when writing scripts"),
-     ("change_log.rst", "List of changes since last Blender release"),
+    ("change_log.rst", "List of changes since last Blender release"),
 )
 
 # only support for properties atm.

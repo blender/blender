@@ -196,6 +196,7 @@ class _defs_view3d_generic:
             ),
         )
 
+
 def _defs_annotate_factory():
 
     class _defs_annotate:
@@ -284,6 +285,7 @@ def _defs_annotate_factory():
                 draw_settings=draw_settings,
             )
     return _defs_annotate
+
 
 # Needed so annotation gets a keymap per space type.
 _defs_annotate_image = _defs_annotate_factory()
@@ -984,6 +986,7 @@ class _defs_sculpt:
             ),
         )
 
+
 class _defs_vertex_paint:
 
     @staticmethod
@@ -1152,7 +1155,6 @@ class _defs_gpencil_paint:
         else:
             row.template_greasepencil_color(gp_settings, "material", rows=3, cols=8, scale=0.8)
         row.prop(gp_settings, "pin_material", text="")
-
 
     @staticmethod
     def draw_settings_common(context, layout, tool):

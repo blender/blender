@@ -306,6 +306,7 @@ class MATERIAL_PT_gpencil_options(GPMaterialButtonsPanel, Panel):
             gpcolor = ma.grease_pencil
             layout.prop(gpcolor, "pass_index")
 
+
 class MATERIAL_PT_gpencil_material_presets(PresetMenu):
     """Material settings"""
     bl_label = "Material Presets"

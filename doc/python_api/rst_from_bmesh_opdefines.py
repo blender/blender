@@ -76,8 +76,10 @@ def main():
     for l in fsrc:
         l = l[:-1]
         # weak but ok
-        if ((("BMOpDefine" in l and l.split()[1] == "BMOpDefine") and "bmo_opdefines[]" not in l) or
-            ("static BMO_FlagSet " in l)):
+        if (
+            (("BMOpDefine" in l and l.split()[1] == "BMOpDefine") and "bmo_opdefines[]" not in l) or
+            ("static BMO_FlagSet " in l)
+        ):
             is_block = True
             block_ctx = []
             blocks.append((comment_ctx, block_ctx))

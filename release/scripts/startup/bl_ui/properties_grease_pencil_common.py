@@ -735,7 +735,6 @@ class AnnotationDataPanel:
             row.operator("gpencil.active_frame_delete", text="", icon='X')
 
 
-
 class GreasePencilOnionPanel:
     @staticmethod
     def draw_settings(layout, gp):
