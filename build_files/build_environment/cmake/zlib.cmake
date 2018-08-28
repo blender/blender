@@ -46,4 +46,10 @@ else()
 			DEPENDEES install
 		)
 	endif()
+	if (UNIX AND NOT APPLE)
+		ExternalProject_Add_Step(external_zlib after_install
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/zlib/lib/libz.a ${LIBDIR}/zlib/lib/libz_pic.a
+			DEPENDEES install
+		)
+	endif()
 endif()
