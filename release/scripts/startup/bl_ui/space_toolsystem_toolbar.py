@@ -756,6 +756,30 @@ class _defs_edit_mesh:
         )
 
     @ToolDef.from_fn
+    def shear():
+        return dict(
+            text="Shear",
+            icon="ops.transform.shear",
+            widget=None,
+            keymap=(
+                ("transform.shear", dict(release_confirm=True),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def tosphere():
+        return dict(
+            text="To Sphere",
+            icon="ops.transform.tosphere",
+            widget=None,
+            keymap=(
+                ("transform.tosphere", dict(release_confirm=True),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def shrink_fatten():
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("transform.shrink_fatten")
@@ -1646,6 +1670,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_edit_mesh.shrink_fatten,
                 _defs_edit_mesh.push_pull,
+            ),
+            (
+                _defs_edit_mesh.shear,
+                _defs_edit_mesh.tosphere,
             ),
             (
                 _defs_edit_mesh.rip_region,
