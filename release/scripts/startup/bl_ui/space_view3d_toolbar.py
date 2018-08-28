@@ -625,14 +625,14 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         col.active = ipaint.use_stencil_layer
 
         stencil_text = mesh.uv_layer_stencil.name if mesh.uv_layer_stencil else ""
-        split = col.split(0.5)
+        split = col.split(factor=0.5)
         colsub = split.column()
         colsub.alignment = 'RIGHT'
         colsub.label(text="UV Layer")
         split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
         # todo this should be combinded into a single row
-        split = col.split(0.5)
+        split = col.split(factor=0.5)
         colsub = split.column()
         colsub.alignment = 'RIGHT'
         colsub.label(text="Stencil Image")
@@ -814,7 +814,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             if brush.sculpt_capabilities.has_jitter:
                 col.separator()
 
-                colsub = col.split(0.5)
+                colsub = col.split(factor=0.5)
                 row = colsub.row(align=True)
                 row.alignment = 'RIGHT'
                 row.label(text="Jitter")
@@ -1180,7 +1180,7 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
         ipaint = toolsettings.image_paint
 
         col = layout.column()
-        row = col.split(align=True, percentage=0.55)
+        row = col.split(factor=0.55, align=True)
         row.operator("image.project_edit", text="Quick Edit")
         row.operator("image.project_apply", text="Apply")
 

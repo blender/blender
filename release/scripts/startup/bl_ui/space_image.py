@@ -1372,7 +1372,7 @@ class IMAGE_PT_view_waveform(ImageScopesPanel, Panel):
         sima = context.space_data
 
         layout.template_waveform(sima, "scopes")
-        row = layout.split(percentage=0.75)
+        row = layout.split(factor=0.75)
         row.prop(sima.scopes, "waveform_alpha")
         row.prop(sima.scopes, "waveform_mode", text="")
 

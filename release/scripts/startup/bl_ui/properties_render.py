@@ -249,7 +249,7 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         if rd.use_sequencer:
             col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
 
-        row = layout.split(percentage=0.3)
+        row = layout.split(factor=0.3)
         row.prop(rd, "use_stamp_note", text="Note")
         sub = row.row()
         sub.active = rd.use_stamp_note
@@ -749,7 +749,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
 
         layout.use_property_split = False
-        row = layout.split(percentage=0.5)
+        row = layout.split(factor=0.5)
         row.alignment = 'RIGHT'
         row.label(text="Cubemap Display")
 
@@ -760,7 +760,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         else:
             sub.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_ON')
 
-        row = layout.split(percentage=0.5)
+        row = layout.split(factor=0.5)
         row.alignment = 'RIGHT'
         row.label(text="Irradiance Display")
 

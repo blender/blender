@@ -36,7 +36,7 @@ def act_strip(context):
 
 def draw_color_balance(layout, color_balance):
     box = layout.box()
-    split = box.split(percentage=0.35)
+    split = box.split(factor=0.35)
     col = split.column(align=True)
     col.label(text="Lift:")
     col.separator()
@@ -46,7 +46,7 @@ def draw_color_balance(layout, color_balance):
     split.template_color_picker(color_balance, "lift", value_slider=True, cubic=True)
 
     box = layout.box()
-    split = box.split(percentage=0.35)
+    split = box.split(factor=0.35)
     col = split.column(align=True)
     col.label(text="Gamma:")
     col.separator()
@@ -56,7 +56,7 @@ def draw_color_balance(layout, color_balance):
     split.template_color_picker(color_balance, "gamma", value_slider=True, lock_luminosity=True, cubic=True)
 
     box = layout.box()
-    split = box.split(percentage=0.35)
+    split = box.split(factor=0.35)
     col = split.column(align=True)
     col.label(text="Gain:")
     col.separator()
@@ -537,16 +537,16 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         frame_current = scene.frame_current
         strip = act_strip(context)
 
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
         split.label(text="Name:")
         split.prop(strip, "name", text="")
 
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
         split.label(text="Type:")
         split.prop(strip, "type", text="")
 
         if strip.type != 'SOUND':
-            split = layout.split(percentage=0.25)
+            split = layout.split(factor=0.25)
             split.label(text="Blend:")
             split.prop(strip, "blend_type", text="")
 
@@ -764,7 +764,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             row.prop(strip, "size_x")
             row.prop(strip, "size_y")
         elif strip.type == 'COLORMIX':
-            split = layout.split(percentage=0.35)
+            split = layout.split(factor=0.35)
             split.label(text="Blend Mode:")
             split.prop(strip, "blend_effect", text="")
             row = layout.row(align=True)
@@ -802,7 +802,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
         # draw a filename if we have one
         if seq_type == 'IMAGE':
-            split = layout.split(percentage=0.2)
+            split = layout.split(factor=0.2)
             split.label(text="Path:")
             split.prop(strip, "directory", text="")
 
@@ -810,26 +810,26 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
 
             elem = strip.strip_elem_from_frame(scene.frame_current)
             if elem:
-                split = layout.split(percentage=0.2)
+                split = layout.split(factor=0.2)
                 split.label(text="File:")
                 split.prop(elem, "filename", text="")  # strip.elements[0] could be a fallback
 
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Color Space:")
             split.prop(strip.colorspace_settings, "name", text="")
 
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Alpha:")
             split.prop(strip, "alpha_mode", text="")
 
             layout.operator("sequencer.change_path", icon='FILESEL').filter_image = True
 
         elif seq_type == 'MOVIE':
-            split = layout.split(percentage=0.2)
+            split = layout.split(factor=0.2)
             split.label(text="Path:")
             split.prop(strip, "filepath", text="")
 
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Color Space:")
             split.prop(strip.colorspace_settings, "name", text="")
 
@@ -1049,7 +1049,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
             col.label(text="Distortion:")
             col.prop(strip, "undistort")
 
-        split = layout.split(percentage=0.6)
+        split = layout.split(factor=0.6)
         col = split.column()
         col.prop(strip, "use_reverse_frames", text="Reverse")
         col.prop(strip, "use_deinterlace")

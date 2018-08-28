@@ -145,7 +145,7 @@ class TEXTURE_PT_context(TextureButtonsPanel, Panel):
             if tex:
                 col.separator()
 
-                split = col.split(percentage=0.2)
+                split = col.split(factor=0.2)
                 split.label(text="Type")
                 split.prop(tex, "type", text="")
 

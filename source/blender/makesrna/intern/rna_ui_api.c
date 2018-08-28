@@ -543,7 +543,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "split", "uiLayoutSplit");
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
-	RNA_def_float(func, "percentage", 0.0f, 0.0f, 1.0f, "Percentage", "Percentage of width to split at", 0.0f, 1.0f);
+	RNA_def_float(
+	        func, "factor", 0.0f, 0.0f, 1.0f, "Percentage",
+	        "Percentage of width to split at (leave unset for automatic calculation)",
+	        0.0f, 1.0f);
 	RNA_def_boolean(func, "align", false, "", "Align buttons to each other");
 
 	/* radial/pie layout */

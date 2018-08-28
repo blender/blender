@@ -3948,13 +3948,13 @@ class VIEW3D_PT_shading_lighting(Panel):
         shading = VIEW3D_PT_shading.get_shading(context)
 
         col = layout.column()
-        split = col.split(0.9)
+        split = col.split(factor=0.9)
 
         if shading.type == 'SOLID':
             split.row().prop(shading, "light", expand=True)
             col = split.column()
 
-            split = layout.split(0.9)
+            split = layout.split(factor=0.9)
             col = split.column()
             sub = col.row()
             sub.scale_y = 0.6  # smaller matcap/hdri preview
@@ -3981,7 +3981,7 @@ class VIEW3D_PT_shading_lighting(Panel):
 
             if not shading.use_scene_world:
                 col = layout.column()
-                split = col.split(0.9)
+                split = col.split(factor=0.9)
 
                 col = split.column()
                 sub = col.row()
@@ -3992,7 +3992,7 @@ class VIEW3D_PT_shading_lighting(Panel):
                 col.operator('wm.studiolight_userpref_show', emboss=False, text="", icon='PREFERENCES')
 
                 if shading.selected_studio_light.orientation == 'WORLD':
-                    split = layout.split(0.9)
+                    split = layout.split(factor=0.9)
                     col = split.column()
                     col.prop(shading, "studiolight_rotate_z", text="Rotation")
                     col.prop(shading, "studiolight_background_alpha")

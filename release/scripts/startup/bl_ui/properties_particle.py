@@ -174,7 +174,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             layout.prop(part, "type", text="Type")
 
         elif not psys.settings:
-            split = layout.split(percentage=0.32)
+            split = layout.split(factor=0.32)
 
             col = split.column()
             col.label(text="Settings:")
@@ -184,7 +184,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
         else:
             part = psys.settings
 
-            split = layout.split(percentage=0.32)
+            split = layout.split(factor=0.32)
             col = split.column()
             if part.is_fluid is False:
                 col.label(text="Settings:")
@@ -206,7 +206,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             row.prop(psys, "seed")
 
         if part:
-            split = layout.split(percentage=0.65)
+            split = layout.split(factor=0.65)
             if part.type == 'HAIR':
                 if psys is not None and psys.is_edited:
                     split.operator("particle.edited_clear", text="Free Edit")

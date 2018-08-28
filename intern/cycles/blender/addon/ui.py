@@ -802,28 +802,28 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
 
         layout.use_property_split = False
 
-        split = layout.split(percentage=0.5)
+        split = layout.split(factor=0.5)
         split.label(text="Diffuse")
         col = split.column()
         row = col.row(align=True)
         row.prop(cycles_view_layer, "denoising_diffuse_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_diffuse_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(percentage=0.5)
+        split = layout.split(factor=0.5)
         split.label(text="Glossy")
         col = split.column()
         row = col.row(align=True)
         row.prop(cycles_view_layer, "denoising_glossy_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_glossy_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(percentage=0.5)
+        split = layout.split(factor=0.5)
         split.label(text="Transmission")
         col = split.column()
         row = col.row(align=True)
         row.prop(cycles_view_layer, "denoising_transmission_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_transmission_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(percentage=0.5)
+        split = layout.split(factor=0.5)
         split.label(text="Subsurface")
         col = split.column()
         row = col.row(align=True)
@@ -974,7 +974,7 @@ class CYCLES_PT_context_material(CyclesButtonsPanel, Panel):
                 row.operator("object.material_slot_select", text="Select")
                 row.operator("object.material_slot_deselect", text="Deselect")
 
-        split = layout.split(percentage=0.65)
+        split = layout.split(factor=0.65)
 
         if ob:
             split.template_ID(ob, "active_material", new="material.new")

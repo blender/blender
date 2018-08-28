@@ -465,7 +465,7 @@ class USERPREF_PT_system(Panel):
 
         # 1. Column
         column = split.column()
-        colsplit = column.split(percentage=0.85)
+        colsplit = column.split(factor=0.85)
 
         col = colsplit.column()
         col.label(text="General:")
@@ -498,7 +498,7 @@ class USERPREF_PT_system(Panel):
 
         # 2. Column
         column = split.column()
-        colsplit = column.split(percentage=0.85)
+        colsplit = column.split(factor=0.85)
 
         col = colsplit.column()
         col.label(text="OpenGL:")
@@ -637,14 +637,14 @@ class USERPREF_PT_theme(Panel):
         def theme_generic_recurse(data):
             col.label(text=data.rna_type.name)
             row = col.row()
-            subsplit = row.split(percentage=0.95)
+            subsplit = row.split(factor=0.95)
 
-            padding1 = subsplit.split(percentage=0.15)
+            padding1 = subsplit.split(factor=0.15)
             padding1.column()
 
-            subsplit = row.split(percentage=0.85)
+            subsplit = row.split(factor=0.85)
 
-            padding2 = subsplit.split(percentage=0.15)
+            padding2 = subsplit.split(factor=0.15)
             padding2.column()
 
             colsub_pair = padding1.column(), padding2.column()
@@ -689,9 +689,9 @@ class USERPREF_PT_theme(Panel):
 
         row = layout.row()
 
-        subsplit = row.split(percentage=0.95)
+        subsplit = row.split(factor=0.95)
 
-        padding = subsplit.split(percentage=0.15)
+        padding = subsplit.split(factor=0.15)
         colsub = padding.column()
         colsub = padding.column()
         colsub.row().prop(widget_style, "outline")
@@ -700,9 +700,9 @@ class USERPREF_PT_theme(Panel):
         colsub.row().prop(widget_style, "inner_sel", slider=True)
         colsub.row().prop(widget_style, "roundness")
 
-        subsplit = row.split(percentage=0.85)
+        subsplit = row.split(factor=0.85)
 
-        padding = subsplit.split(percentage=0.15)
+        padding = subsplit.split(factor=0.15)
         colsub = padding.column()
         colsub = padding.column()
         colsub.row().prop(widget_style, "text")
@@ -747,7 +747,7 @@ class USERPREF_PT_theme(Panel):
 
         theme = context.user_preferences.themes[0]
 
-        split_themes = layout.split(percentage=0.2)
+        split_themes = layout.split(factor=0.2)
 
         sub = split_themes.column()
 
@@ -761,7 +761,7 @@ class USERPREF_PT_theme(Panel):
 
         sub.prop(theme, "theme_area", expand=True)
 
-        split = layout.split(percentage=0.4)
+        split = layout.split(factor=0.4)
 
         layout.separator()
         layout.separator()
@@ -837,9 +837,9 @@ class USERPREF_PT_theme(Panel):
 
             row = col.row()
 
-            subsplit = row.split(percentage=0.95)
+            subsplit = row.split(factor=0.95)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui_state, "inner_anim")
@@ -848,9 +848,9 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui_state, "inner_driven_sel")
             colsub.row().prop(ui_state, "blend")
 
-            subsplit = row.split(percentage=0.85)
+            subsplit = row.split(factor=0.85)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui_state, "inner_key")
@@ -865,9 +865,9 @@ class USERPREF_PT_theme(Panel):
 
             row = col.row()
 
-            subsplit = row.split(percentage=0.95)
+            subsplit = row.split(factor=0.95)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "menu_shadow_fac")
@@ -875,9 +875,9 @@ class USERPREF_PT_theme(Panel):
             colsub.row().prop(ui, "icon_saturation")
             colsub.row().prop(ui, "editor_outline")
 
-            subsplit = row.split(percentage=0.85)
+            subsplit = row.split(factor=0.85)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "menu_shadow_width")
@@ -890,18 +890,18 @@ class USERPREF_PT_theme(Panel):
 
             row = col.row()
 
-            subsplit = row.split(percentage=0.95)
+            subsplit = row.split(factor=0.95)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "axis_x")
             colsub.row().prop(ui, "axis_y")
             colsub.row().prop(ui, "axis_z")
 
-            subsplit = row.split(percentage=0.85)
+            subsplit = row.split(factor=0.85)
 
-            padding = subsplit.split(percentage=0.15)
+            padding = subsplit.split(factor=0.15)
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "gizmo_primary")
@@ -919,18 +919,18 @@ class USERPREF_PT_theme(Panel):
 
                 row = col.row()
 
-                subsplit = row.split(percentage=0.95)
+                subsplit = row.split(factor=0.95)
 
-                padding = subsplit.split(percentage=0.15)
+                padding = subsplit.split(factor=0.15)
                 colsub = padding.column()
                 colsub = padding.column()
                 colsub.row().prop(ui, "normal")
                 colsub.row().prop(ui, "select")
                 colsub.row().prop(ui, "active")
 
-                subsplit = row.split(percentage=0.85)
+                subsplit = row.split(factor=0.85)
 
-                padding = subsplit.split(percentage=0.15)
+                padding = subsplit.split(factor=0.15)
                 colsub = padding.column()
                 colsub = padding.column()
                 colsub.row().prop(ui, "show_colored_constraints")
@@ -973,13 +973,13 @@ class USERPREF_PT_file(Panel):
         paths = userpref.filepaths
         system = userpref.system
 
-        split = layout.split(percentage=0.7)
+        split = layout.split(factor=0.7)
 
         col = split.column()
         col.label(text="File Paths:")
 
-        colsplit = col.split(percentage=0.95)
-        col1 = colsplit.split(percentage=0.3)
+        colsplit = col.split(factor=0.95)
+        col1 = colsplit.split(factor=0.3)
 
         sub = col1.column()
         sub.label(text="Fonts:")
@@ -1003,17 +1003,17 @@ class USERPREF_PT_file(Panel):
         sub.prop(paths, "render_cache_directory", text="")
         sub.prop(paths, "i18n_branches_directory", text="")
         sub.prop(paths, "image_editor", text="")
-        subsplit = sub.split(percentage=0.3)
+        subsplit = sub.split(factor=0.3)
         subsplit.prop(paths, "animation_player_preset", text="")
         subsplit.prop(paths, "animation_player", text="")
 
         col.separator()
         col.separator()
 
-        colsplit = col.split(percentage=0.95)
+        colsplit = col.split(factor=0.95)
         sub = colsplit.column()
 
-        row = sub.split(percentage=0.3)
+        row = sub.split(factor=0.3)
         row.label(text="Auto Execution:")
         row.prop(system, "use_scripts_auto_execute")
 
@@ -1059,8 +1059,8 @@ class USERPREF_PT_file(Panel):
         col.label(text="Text Editor:")
         col.prop(system, "use_tabs_as_spaces")
 
-        colsplit = col.split(percentage=0.95)
-        col1 = colsplit.split(percentage=0.3)
+        colsplit = col.split(factor=0.95)
+        col1 = colsplit.split(factor=0.3)
 
         sub = col1.column()
         sub.label(text="Author:")
@@ -1258,7 +1258,7 @@ class USERPREF_PT_input(Panel):
 
         inputs = userpref.inputs
 
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         # Input settings
         self.draw_input_prefs(inputs, split)
@@ -1358,7 +1358,7 @@ class USERPREF_PT_addons(Panel):
             for mod in addon_utils.modules(refresh=False)
         ]
 
-        split = layout.split(percentage=0.2)
+        split = layout.split(factor=0.2)
         col = split.column()
         col.prop(context.window_manager, "addon_search", text="", icon='VIEWZOOM')
 
@@ -1458,27 +1458,27 @@ class USERPREF_PT_addons(Panel):
                 # Expanded UI (only if additional info is available)
                 if info["show_expanded"]:
                     if info["description"]:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Description:")
                         split.label(text=info["description"])
                     if info["location"]:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Location:")
                         split.label(text=info["location"])
                     if mod:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="File:")
                         split.label(text=mod.__file__, translate=False)
                     if info["author"]:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Author:")
                         split.label(text=info["author"], translate=False)
                     if info["version"]:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Version:")
                         split.label(text=".".join(str(x) for x in info["version"]), translate=False)
                     if info["warning"]:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Warning:")
                         split.label(text="  " + info["warning"], icon='ERROR')
 
@@ -1486,7 +1486,7 @@ class USERPREF_PT_addons(Panel):
                     tot_row = bool(info["wiki_url"]) + bool(user_addon)
 
                     if tot_row:
-                        split = colsub.row().split(percentage=0.15)
+                        split = colsub.row().split(factor=0.15)
                         split.label(text="Internet:")
                         if info["wiki_url"]:
                             split.operator(
@@ -1634,11 +1634,11 @@ class USERPREF_PT_studiolight_specular(Panel, StudioLightPanelMixin):
         system = userpref.system
 
         light = system.solid_lights[0]
-        colsplit = column.split(percentage=0.85)
+        colsplit = column.split(factor=0.85)
         self.opengl_light_buttons(colsplit, light)
 
         light = system.solid_lights[1]
-        colsplit = column.split(percentage=0.85)
+        colsplit = column.split(factor=0.85)
         self.opengl_light_buttons(colsplit, light)
 
         light = system.solid_lights[2]

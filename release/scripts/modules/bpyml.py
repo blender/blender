@@ -182,7 +182,7 @@ if __name__ == "__main__":
                     prop(data='context.scene.render', property='stamp_font_size', text='Font Size')
                 ]
             ],
-            split(percentage=0.2)[
+            split(factor=0.2)[
                 prop(data='context.scene.render', property='use_stamp_note', text='Note'),
                 row()[
                     active(expr='context.scene.render.use_stamp_note'),

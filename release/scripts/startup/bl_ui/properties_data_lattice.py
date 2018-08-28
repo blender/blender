@@ -43,7 +43,7 @@ class DATA_PT_context_lattice(DataButtonsPanel, Panel):
         lat = context.lattice
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
+        split = layout.split(factor=0.65)
         if ob:
             split.template_ID(ob, "data")
             split.separator()

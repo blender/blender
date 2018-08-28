@@ -756,7 +756,7 @@ class CLIP_PT_tracking_lens(Panel):
         clip = sc.clip
 
         row = layout.row(align=True)
-        sub = row.split(percentage=0.65, align=True)
+        sub = row.split(factor=0.65, align=True)
         if clip.tracking.camera.units == 'MILLIMETERS':
             sub.prop(clip.tracking.camera, "focal_length")
         else:

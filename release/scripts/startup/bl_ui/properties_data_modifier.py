@@ -226,12 +226,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
                 layout.prop(md, "eval_factor")
 
         layout.label(text="Axis Mapping:")
-        split = layout.split(percentage=0.5, align=True)
+        split = layout.split(factor=0.5, align=True)
         split.alert = (md.forward_axis[-1] == md.up_axis[-1])
         split.label(text="Forward/Up Axis:")
         split.prop(md, "forward_axis", text="")
         split.prop(md, "up_axis", text="")
-        split = layout.split(percentage=0.5)
+        split = layout.split(factor=0.5)
         split.label(text="Flip Axis:")
         row = split.row()
         row.prop(md, "flip_axis")
@@ -253,12 +253,12 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             box.row().prop(md, "read_data")
 
     def CAST(self, layout, ob, md):
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         split.label(text="Cast Type:")
         split.prop(md, "cast_type", text="")
 
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         col = split.column()
         col.prop(md, "use_x")
@@ -325,7 +325,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.prop(md, "vertex_group_factor")
 
             col.prop(md, "use_collapse_triangulate")
-            row = col.split(percentage=0.75)
+            row = col.split(factor=0.75)
             row.prop(md, "use_symmetry")
             row.prop(md, "symmetry_axis", text="")
 
@@ -481,7 +481,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def LAPLACIANSMOOTH(self, layout, ob, md):
         layout.prop(md, "iterations")
 
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         col = split.column()
         col.label(text="Axis:")
@@ -567,7 +567,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             layout.operator("object.meshdeform_bind", text="Bind")
 
     def MIRROR(self, layout, ob, md):
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         col = split.column()
         col.label(text="Axis:")
@@ -833,7 +833,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             col = split.column()
 
             col.prop(md, "project_limit", text="Limit")
-            split = layout.split(percentage=0.25)
+            split = layout.split(factor=0.25)
 
             col = split.column()
             col.label(text="Axis:")
@@ -898,7 +898,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Settings are inside the Physics tab")
 
     def SMOOTH(self, layout, ob, md):
-        split = layout.split(percentage=0.25)
+        split = layout.split(factor=0.25)
 
         col = split.column()
         col.label(text="Axis:")
@@ -956,7 +956,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Material Index Offset:")
 
         sub = col.column()
-        row = sub.split(align=True, percentage=0.4)
+        row = sub.split(factor=0.4, align=True)
         row.prop(md, "material_offset", text="")
         row = row.row(align=True)
         row.active = md.use_rim
@@ -1129,7 +1129,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.prop(md, "start_position_object")
         layout.prop_search(md, "vertex_group", ob, "vertex_groups")
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         col = split.column()
         col.label(text="Texture")
         col = split.column()
@@ -1176,17 +1176,17 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
     def vertex_weight_mask(layout, ob, md):
         layout.label(text="Influence/Mask Options:")
 
-        split = layout.split(percentage=0.4)
+        split = layout.split(factor=0.4)
         split.label(text="Global Influence:")
         split.prop(md, "mask_constant", text="")
 
         if not md.mask_texture:
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Vertex Group Mask:")
             split.prop_search(md, "mask_vertex_group", ob, "vertex_groups", text="")
 
         if not md.mask_vertex_group:
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Texture Mask:")
             split.template_ID(md, "mask_texture", new="texture.new")
             if md.mask_texture:
@@ -1415,7 +1415,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        split = layout.split(0.333)
+        split = layout.split(factor=0.333)
         split.prop(md, "use_vert_data")
         use_vert = md.use_vert_data
         row = split.row()
@@ -1423,7 +1423,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "vert_mapping", text="")
         if use_vert:
             col = layout.column(align=True)
-            split = col.split(0.333, align=True)
+            split = col.split(factor=0.333, align=True)
             sub = split.column(align=True)
             sub.prop(md, "data_types_verts")
             sub = split.column(align=True)
@@ -1436,7 +1436,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        split = layout.split(0.333)
+        split = layout.split(factor=0.333)
         split.prop(md, "use_edge_data")
         use_edge = md.use_edge_data
         row = split.row()
@@ -1444,13 +1444,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "edge_mapping", text="")
         if use_edge:
             col = layout.column(align=True)
-            split = col.split(0.333, align=True)
+            split = col.split(factor=0.333, align=True)
             sub = split.column(align=True)
             sub.prop(md, "data_types_edges")
 
         layout.separator()
 
-        split = layout.split(0.333)
+        split = layout.split(factor=0.333)
         split.prop(md, "use_loop_data")
         use_loop = md.use_loop_data
         row = split.row()
@@ -1458,7 +1458,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "loop_mapping", text="")
         if use_loop:
             col = layout.column(align=True)
-            split = col.split(0.333, align=True)
+            split = col.split(factor=0.333, align=True)
             sub = split.column(align=True)
             sub.prop(md, "data_types_loops")
             sub = split.column(align=True)
@@ -1476,7 +1476,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        split = layout.split(0.333)
+        split = layout.split(factor=0.333)
         split.prop(md, "use_poly_data")
         use_poly = md.use_poly_data
         row = split.row()
@@ -1484,7 +1484,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "poly_mapping", text="")
         if use_poly:
             col = layout.column(align=True)
-            split = col.split(0.333, align=True)
+            split = col.split(factor=0.333, align=True)
             sub = split.column(align=True)
             sub.prop(md, "data_types_polys")
 

@@ -45,7 +45,7 @@ class DATA_PT_context_speaker(DataButtonsPanel, Panel):
         speaker = context.speaker
         space = context.space_data
 
-        split = layout.split(percentage=0.65)
+        split = layout.split(factor=0.65)
 
         if ob:
             split.template_ID(ob, "data")

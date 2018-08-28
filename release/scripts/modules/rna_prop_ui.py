@@ -165,7 +165,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
         box = row.box()
 
         if use_edit:
-            split = box.split(percentage=0.75)
+            split = box.split(factor=0.75)
             row = split.row(align=True)
         else:
             row = box.row(align=True)

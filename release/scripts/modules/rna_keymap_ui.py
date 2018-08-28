@@ -39,7 +39,7 @@ def _indented_layout(layout, level):
         level = 0.0001   # Tweak so that a percentage of 0 won't split by half
     indent = level * indentpx / bpy.context.region.width
 
-    split = layout.split(percentage=indent)
+    split = layout.split(factor=indent)
     col = split.column()
     col = split.column()
     return col
@@ -103,7 +103,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
 
             # "Add New" at end of keymap item list
             subcol = _indented_layout(col, kmi_level)
-            subcol = subcol.split(percentage=0.2).column()
+            subcol = subcol.split(factor=0.2).column()
             subcol.operator("wm.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
                             icon='ZOOMIN')
 
@@ -167,7 +167,7 @@ def draw_kmi(display_keymaps, kc, km, kmi, layout, level):
     if kmi.show_expanded:
         box = col.box()
 
-        split = box.split(percentage=0.4)
+        split = box.split(factor=0.4)
         sub = split.row()
 
         if km.is_modal:
@@ -349,7 +349,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
             # "Add New" at end of keymap item list
             col = _indented_layout(layout, 1)
-            subcol = col.split(percentage=0.2).column()
+            subcol = col.split(factor=0.2).column()
             subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
     return True
 
@@ -386,7 +386,7 @@ def draw_keymaps(context, layout):
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
     # row.operator("wm.keyconfig_remove", text="", icon='X')
     row.separator()
-    rowsub = row.split(align=True, percentage=0.33)
+    rowsub = row.split(factor=0.33, align=True)
     # postpone drawing into rowsub, so we can set alert!
 
     col.separator()

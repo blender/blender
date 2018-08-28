@@ -42,7 +42,7 @@ class ConstraintButtonsPanel:
     def space_template(layout, con, target=True, owner=True):
         if target or owner:
 
-            split = layout.split(percentage=0.2)
+            split = layout.split(factor=0.2)
 
             split.label(text="Space:")
             row = split.row()
@@ -85,7 +85,7 @@ class ConstraintButtonsPanel:
             row.label()
             row.prop(con, "pole_angle")
 
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         col = split.column()
         col.prop(con, "use_tail")
         col.prop(con, "use_stretch")
@@ -183,12 +183,12 @@ class ConstraintButtonsPanel:
         row = layout.row()
         row.label(text="Axis Ref:")
         row.prop(con, "reference_axis", expand=True)
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         split.row().prop(con, "use_location")
         row = split.row()
         row.prop(con, "weight", text="Weight", slider=True)
         row.active = con.use_location
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         row = split.row()
         row.label(text="Lock:")
         row = split.row()
@@ -197,12 +197,12 @@ class ConstraintButtonsPanel:
         row.prop(con, "lock_location_z", text="Z")
         split.active = con.use_location
 
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         split.row().prop(con, "use_rotation")
         row = split.row()
         row.prop(con, "orient_weight", text="Weight", slider=True)
         row.active = con.use_rotation
-        split = layout.split(percentage=0.33)
+        split = layout.split(factor=0.33)
         row = split.row()
         row.label(text="Lock:")
         row = split.row()
@@ -751,7 +751,7 @@ class ConstraintButtonsPanel:
         if con.shrinkwrap_type == 'PROJECT':
             row = layout.row(align=True)
             row.prop(con, "project_axis", expand=True)
-            split = layout.split(percentage=0.4)
+            split = layout.split(factor=0.4)
             split.label(text="Axis Space:")
             rowsub = split.row()
             rowsub.prop(con, "project_axis_space", text="")

@@ -637,7 +637,7 @@ class GPENCIL_UL_annotation_layer(UIList):
             if gpl.lock:
                 layout.active = False
 
-            split = layout.split(percentage=0.2)
+            split = layout.split(factor=0.2)
             split.prop(gpl, "color", text="", emboss=True)
             split.prop(gpl, "info", text="", emboss=False)
 
