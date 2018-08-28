@@ -842,7 +842,7 @@ class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
 
         col = layout.column(align=True)
         row = col.row(align=True)
-        row.prop(sc, "show_disabled", "Disabled")
+        row.prop(sc, "show_disabled", text="Disabled")
         row.prop(sc, "show_names", text="Info")
 
         row = col.row(align=True)

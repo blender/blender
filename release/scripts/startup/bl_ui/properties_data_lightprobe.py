@@ -65,7 +65,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         if probe.type == 'GRID':
             col = layout.column()
-            col.prop(probe, "influence_distance", "Distance")
+            col.prop(probe, "influence_distance", text="Distance")
             col.prop(probe, "falloff")
             col.prop(probe, "intensity")
 
@@ -77,16 +77,16 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         elif probe.type == 'PLANAR':
             col = layout.column()
-            col.prop(probe, "influence_distance", "Distance")
+            col.prop(probe, "influence_distance", text="Distance")
             col.prop(probe, "falloff")
         else:
             col = layout.column()
             col.prop(probe, "influence_type")
 
             if probe.influence_type == 'ELIPSOID':
-                col.prop(probe, "influence_distance", "Radius")
+                col.prop(probe, "influence_distance", text="Radius")
             else:
-                col.prop(probe, "influence_distance", "Size")
+                col.prop(probe, "influence_distance", text="Size")
 
             col.prop(probe, "falloff")
             col.prop(probe, "intensity")
@@ -101,9 +101,9 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         if probe.type == 'GRID':
             col.separator()
             col.label(text="Visibility")
-            col.prop(probe, "visibility_buffer_bias", "Bias")
-            col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
-            col.prop(probe, "visibility_blur", "Blur")
+            col.prop(probe, "visibility_buffer_bias", text="Bias")
+            col.prop(probe, "visibility_bleed_bias", text="Bleed Bias")
+            col.prop(probe, "visibility_blur", text="Blur")
 
         col.separator()
 
@@ -137,9 +137,9 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
         col.prop(probe, "parallax_type")
 
         if probe.parallax_type == 'ELIPSOID':
-            col.prop(probe, "parallax_distance", "Radius")
+            col.prop(probe, "parallax_distance", text="Radius")
         else:
-            col.prop(probe, "parallax_distance", "Size")
+            col.prop(probe, "parallax_distance", text="Size")
 
 
 class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):

@@ -1068,7 +1068,7 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
         if brush.use_anchor:
             col.separator()
-            col.prop(brush, "use_edge_to_edge", "Edge To Edge")
+            col.prop(brush, "use_edge_to_edge", text="Edge To Edge")
 
         if brush.use_airbrush:
             col.separator()

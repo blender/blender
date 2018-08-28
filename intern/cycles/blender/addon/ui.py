@@ -655,13 +655,13 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         view_layer = context.view_layer
 
         col = layout.column()
-        col.prop(view_layer, "use_sky", "Use Environment")
-        col.prop(view_layer, "use_ao", "Use Ambient Occlusion")
-        col.prop(view_layer, "use_solid", "Use Surfaces")
-        col.prop(view_layer, "use_strand", "Use Hair")
+        col.prop(view_layer, "use_sky", text="Use Environment")
+        col.prop(view_layer, "use_ao", text="Use Ambient Occlusion")
+        col.prop(view_layer, "use_solid", text="Use Surfaces")
+        col.prop(view_layer, "use_strand", text="Use Hair")
         if with_freestyle:
             row = col.row()
-            row.prop(view_layer, "use_freestyle", "Use Freestyle")
+            row.prop(view_layer, "use_freestyle", text="Use Freestyle")
             row.active = rd.use_freestyle
 
 

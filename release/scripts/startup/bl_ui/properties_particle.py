@@ -1801,7 +1801,7 @@ class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
             sub.prop(part, "roughness_1_size", text="Size")
 
             sub = col.column(align=True)
-            sub.prop(part, "roughness_endpoint", "Endpoint")
+            sub.prop(part, "roughness_endpoint", text="Endpoint")
             sub.prop(part, "roughness_end_shape")
 
             sub = col.column(align=True)

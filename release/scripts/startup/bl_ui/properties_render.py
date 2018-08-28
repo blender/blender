@@ -401,7 +401,7 @@ class RENDER_UL_renderviews(UIList):
         view = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if view.name in {"left", "right"}:
-                layout.label(view.name, icon_value=icon + (not view.use))
+                layout.label(text=view.name, icon_value=icon + (not view.use))
             else:
                 layout.prop(view, "name", text="", index=index, icon_value=icon, emboss=False)
             layout.prop(view, "use", text="", index=index)

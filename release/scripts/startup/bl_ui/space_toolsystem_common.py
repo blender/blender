@@ -273,7 +273,7 @@ class ToolSelectPanelHelper:
         if space_type == 'VIEW_3D':
             if mode is None:
                 mode = context.mode
-            tool = context.workspace.tools.from_space_view3d_mode(mode, create)
+            tool = context.workspace.tools.from_space_view3d_mode(mode, create=create)
             if tool is not None:
                 tool.refresh_from_context()
                 return tool
@@ -284,7 +284,7 @@ class ToolSelectPanelHelper:
                     mode = 'VIEW'
                 else:
                     mode = space_data.mode
-            tool = context.workspace.tools.from_space_image_mode(mode, create)
+            tool = context.workspace.tools.from_space_image_mode(mode, create=create)
             if tool is not None:
                 tool.refresh_from_context()
                 return tool

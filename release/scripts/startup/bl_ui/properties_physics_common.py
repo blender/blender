@@ -194,7 +194,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
 
             subcol = col.column()
             subcol.active = cache.use_disk_cache
-            subcol.prop(cache, "use_library_path", "Use Lib Path")
+            subcol.prop(cache, "use_library_path", text="Use Lib Path")
 
             col = flow.column()
             col.active = cache.use_disk_cache
