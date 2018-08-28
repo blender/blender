@@ -163,6 +163,10 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
 
+	if (!id_node->is_visible) {
+		return;
+	}
+
 	DEGObjectIterData *data = (DEGObjectIterData *)iter->data;
 	const ID_Type id_type = GS(id_node->id_orig->name);
 
@@ -298,7 +302,11 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node, 
 {
 	ID *id_cow = id_node->id_cow;
 
-	if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
+	if (!id_node->is_visible) {
+		iter->skip = true;
+		return;
+	}
+	else if (only_updated && !(id_cow->recalc & ID_RECALC_ALL)) {
 		bNodeTree *ntree = ntreeFromID(id_cow);
 
 		/* Nodetree is considered part of the datablock. */
