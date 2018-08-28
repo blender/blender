@@ -424,7 +424,7 @@ enum {
 	GP_LAYER_COPY_OBJECT_ACT_FRAME = 1
 };
 
-bool gp_layer_duplicate_object_poll(bContext *C)
+static bool gp_layer_duplicate_object_poll(bContext *C)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C);

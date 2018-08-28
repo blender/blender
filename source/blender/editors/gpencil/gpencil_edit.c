@@ -2024,7 +2024,6 @@ static bool gp_snap_poll(bContext *C)
 static int gp_snap_to_grid(bContext *C, wmOperator *UNUSED(op))
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	RegionView3D *rv3d = CTX_wm_region_data(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
