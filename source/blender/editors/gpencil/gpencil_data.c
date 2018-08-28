@@ -507,7 +507,7 @@ static int gp_layer_duplicate_object_exec(bContext *C, wmOperator *op)
 			 * otherwise add the slot with the material
 			 */
 			Material *ma_src = give_current_material(ob_src, gps_src->mat_nr + 1);
-			int idx = BKE_object_material_slot_find_index(ob_dst, ma_src);
+			int idx = BKE_gpencil_get_material_index(ob_dst, ma_src);
 			if (idx == 0) {
 				BKE_object_material_slot_add(bmain, ob_dst);
 				assign_material(bmain, ob_dst, ma_src, ob_dst->totcol, BKE_MAT_ASSIGN_USERPREF);
