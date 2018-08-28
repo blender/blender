@@ -60,17 +60,17 @@ class TEXT_HT_header(Header):
             if text.filepath:
                 if text.is_dirty:
                     row.label(
-                        iface_(f"File: *{text.filepath:s} (unsaved)"),
+                        text=iface_(f"File: *{text.filepath:s} (unsaved)"),
                         translate=False,
                     )
                 else:
                     row.label(
-                        iface_(f"File: {text.filepath:s}"),
+                        text=iface_(f"File: {text.filepath:s}"),
                         translate=False,
                     )
             else:
                 row.label(
-                    "Text: External"
+                    text="Text: External"
                     if text.library
                     else "Text: Internal"
                 )
