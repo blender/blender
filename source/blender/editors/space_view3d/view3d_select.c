@@ -342,7 +342,7 @@ static bool edge_inside_rect(const rctf *rect, const float v1[2], const float v2
 	return 1;
 }
 
-static void do_lasso_select_pose__doSelectBone(
+static void do_lasso_select_pose__do_tag(
         void *userData, struct bPoseChannel *pchan, const float screen_co_a[2], const float screen_co_b[2])
 {
 	LassoSelectUserData *data = userData;
@@ -352,26 +352,21 @@ static void do_lasso_select_pose__doSelectBone(
 		bool is_point_done = false;
 		int points_proj_tot = 0;
 
-		const int x0 = screen_co_a[0];
-		const int y0 = screen_co_a[1];
-		const int x1 = screen_co_b[0];
-		const int y1 = screen_co_b[1];
-
 		/* project head location to screenspace */
-		if (x0 != IS_CLIPPED) {
+		if (screen_co_a[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (BLI_rcti_isect_pt(data->rect, x0, y0) &&
-			    BLI_lasso_is_point_inside(data->mcords, data->moves, x0, y0, INT_MAX))
+			if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_a)) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_a), INT_MAX))
 			{
 				is_point_done = true;
 			}
 		}
 
 		/* project tail location to screenspace */
-		if (x1 != IS_CLIPPED) {
+		if (screen_co_b[0] != IS_CLIPPED) {
 			points_proj_tot++;
-			if (BLI_rcti_isect_pt(data->rect, x1, y1) &&
-			    BLI_lasso_is_point_inside(data->mcords, data->moves, x1, y1, INT_MAX))
+			if (BLI_rcti_isect_pt(data->rect, UNPACK2(screen_co_b)) &&
+			    BLI_lasso_is_point_inside(data->mcords, data->moves, UNPACK2(screen_co_b), INT_MAX))
 			{
 				is_point_done = true;
 			}
@@ -379,22 +374,15 @@ static void do_lasso_select_pose__doSelectBone(
 
 		/* if one of points selected, we skip the bone itself */
 		if ((is_point_done == true) ||
-		    ((is_point_done == false) && (points_proj_tot == 2)))
+		    ((is_point_done == false) && (points_proj_tot == 2) &&
+		     BLI_lasso_is_edge_inside(data->mcords, data->moves, UNPACK2(screen_co_a), UNPACK2(screen_co_b), INT_MAX)))
 		{
-			const bool is_select = pchan->bone->flag & BONE_SELECTED;
-			const bool is_inside = BLI_lasso_is_edge_inside(data->mcords, data->moves, x0, y0, x1, y1, INT_MAX);
-			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
-			if (sel_op_result != -1) {
-				SET_FLAG_FROM_TEST(pchan->bone->flag, sel_op_result, BONE_SELECTED);
-				data->is_changed = true;
-			}
+			pchan->bone->flag |= BONE_DONE;
 		}
 		data->is_changed |= is_point_done;
 	}
 }
-static void do_lasso_select_pose(
-        ViewContext *vc, Object *ob, const int mcords[][2], short moves,
-        const eSelectOp sel_op)
+static void do_lasso_tag_pose(ViewContext *vc, Object *ob, const int mcords[][2], short moves)
 {
 	ViewContext vc_tmp;
 	LassoSelectUserData data;
@@ -409,21 +397,11 @@ static void do_lasso_select_pose(
 
 	BLI_lasso_boundbox(&rect, mcords, moves);
 
-	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, sel_op);
+	view3d_userdata_lassoselect_init(&data, vc, &rect, mcords, moves, 0);
 
-	ED_view3d_init_mats_rv3d(vc->obact, vc->rv3d);
+	ED_view3d_init_mats_rv3d(vc_tmp.obact, vc->rv3d);
 
-	pose_foreachScreenBone(&vc_tmp, do_lasso_select_pose__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
-
-	if (data.is_changed) {
-		bArmature *arm = ob->data;
-		if (arm->flag & ARM_HAS_VIZ_DEPS) {
-			/* mask modifier ('armature' mode), etc. */
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-		/* bone selection status is on armature not object */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-	}
+	pose_foreachScreenBone(&vc_tmp, do_lasso_select_pose__do_tag, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 }
 
 static void object_deselect_all_visible(ViewLayer *view_layer)
@@ -441,30 +419,132 @@ static void do_lasso_select_objects(
         ViewContext *vc, const int mcords[][2], const short moves,
         const eSelectOp sel_op)
 {
-	bool is_pose_mode = vc->obact ? (vc->obact->mode & OB_MODE_POSE) : false;
 	Base *base;
 
 	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
 		object_deselect_all_visible(vc->view_layer);
 	}
 
+	bool changed = false;
 	for (base = vc->view_layer->object_bases.first; base; base = base->next) {
 		if (BASE_SELECTABLE(base)) { /* use this to avoid un-needed lasso lookups */
-			if (((vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
-			     (is_pose_mode == false) : true) &&
-			    ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK)
-			{
-				const bool is_select = base->flag & BASE_SELECTED;
-				const bool is_inside = BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED);
-				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-				if (sel_op_result != -1) {
-					ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-				}
-			}
-			if (is_pose_mode && (base->object->mode & OB_MODE_POSE)) {
-				do_lasso_select_pose(vc, base->object, mcords, moves, sel_op);
+			const bool is_select = base->flag & BASE_SELECTED;
+			const bool is_inside = (
+			        (ED_view3d_project_base(vc->ar, base) == V3D_PROJ_RET_OK) &&
+			        BLI_lasso_is_point_inside(mcords, moves, base->sx, base->sy, IS_CLIPPED));
+			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+			if (sel_op_result != -1) {
+				ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
+				changed = true;
 			}
 		}
+	}
+
+	if (changed) {
+		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, vc->scene);
+	}
+}
+
+
+/**
+ * Use for lasso & border select.
+ */
+static Base **do_pose_tag_select_op_prepare(ViewContext *vc, uint *r_bases_len)
+{
+	Base **bases = NULL;
+	BLI_array_declare(bases);
+	FOREACH_BASE_IN_MODE_BEGIN (vc->view_layer, OB_MODE_POSE, base_iter) {
+		Object *ob_iter = base_iter->object;
+		bArmature *arm = ob_iter->data;
+		for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+			Bone *bone = pchan->bone;
+			bone->flag &= ~BONE_DONE;
+		}
+		arm->id.tag |= LIB_TAG_DOIT;
+		ob_iter->id.tag &= ~LIB_TAG_DOIT;
+		BLI_array_append(bases, base_iter);
+	}
+	FOREACH_BASE_IN_MODE_END;
+	*r_bases_len = BLI_array_len(bases);
+	return bases;
+}
+
+static bool do_pose_tag_select_op_exec(Base **bases, const uint bases_len, const eSelectOp sel_op)
+{
+	bool changed_multi = false;
+
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		for (int i = 0; i < bases_len; i++) {
+			Base *base_iter = bases[i];
+			Object *ob_iter = base_iter->object;
+			if (ED_pose_deselect_all(ob_iter, SEL_DESELECT, false)) {
+				ED_pose_bone_select_tag_update(ob_iter);
+				changed_multi = true;
+			}
+		}
+	}
+
+	for (int i = 0; i < bases_len; i++) {
+		Base *base_iter = bases[i];
+		Object *ob_iter = base_iter->object;
+		bArmature *arm = ob_iter->data;
+
+		/* Don't handle twice. */
+		if (arm->id.tag & LIB_TAG_DOIT) {
+			arm->id.tag &= ~LIB_TAG_DOIT;
+		}
+		else {
+			continue;
+		}
+
+		bool changed = true;
+		for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+			Bone *bone = pchan->bone;
+			if ((bone->flag & BONE_UNSELECTABLE) == 0) {
+				const bool is_select = bone->flag & BONE_SELECTED;
+				const bool is_inside = bone->flag & BONE_DONE;
+				const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+				if (sel_op_result != -1) {
+					SET_FLAG_FROM_TEST(bone->flag, sel_op_result, BONE_SELECTED);
+					if (sel_op_result == 0) {
+						if (arm->act_bone == bone) {
+							arm->act_bone = NULL;
+						}
+					}
+					changed = true;
+				}
+			}
+		}
+		if (changed) {
+			ED_pose_bone_select_tag_update(ob_iter);
+			changed_multi = true;
+		}
+	}
+	return changed_multi;
+}
+
+static void do_lasso_select_pose(
+        ViewContext *vc, const int mcords[][2], const short moves,
+        const eSelectOp sel_op)
+{
+	uint bases_len;
+	Base **bases = do_pose_tag_select_op_prepare(vc, &bases_len);
+
+	for (int i = 0; i < bases_len; i++) {
+		Base *base_iter = bases[i];
+		Object *ob_iter = base_iter->object;
+		do_lasso_tag_pose(vc, ob_iter, mcords, moves);
+	}
+
+	const bool changed_multi = do_pose_tag_select_op_exec(bases, bases_len, sel_op);
+	if (changed_multi) {
+		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
+		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, vc->scene);
+	}
+
+	if (bases != NULL) {
+		MEM_freeN(bases);
 	}
 }
 
@@ -910,10 +990,11 @@ static void view3d_lasso_select(
 		else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
 			PE_lasso_select(C, mcords, moves, sel_op);
 		}
+		else if (ob && (ob->mode & OB_MODE_POSE)) {
+			do_lasso_select_pose(vc, mcords, moves, sel_op);
+		}
 		else {
 			do_lasso_select_objects(vc, mcords, moves, sel_op);
-			DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
-			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
 		}
 	}
 	else { /* Edit Mode */
@@ -2255,181 +2336,62 @@ static int opengl_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_
 
 static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
-	unsigned int *vbuffer = NULL; /* selection buffer */
-	int bone_only;
 	int totobj = MAXPICKBUF; /* XXX solve later */
-	int hits;
-
-	if (vc->obact && (vc->obact->mode & OB_MODE_POSE))
-		bone_only = 1;
-	else
-		bone_only = 0;
-
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		if (bone_only) {
-			FOREACH_OBJECT_IN_MODE_BEGIN (vc->view_layer, OB_MODE_POSE, ob_iter) {
-				bArmature *arm = ob_iter->data;
-				for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-					if (PBONE_VISIBLE(arm, pchan->bone)) {
-						if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-							pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						}
-					}
-				}
-			}
-			FOREACH_OBJECT_IN_MODE_END;
-		}
-		else {
-			object_deselect_all_visible(vc->view_layer);
-		}
-	}
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
-	vbuffer = MEM_mallocN(4 * (totobj + MAXPICKELEMS) * sizeof(unsigned int), "selection buffer");
+	uint *vbuffer = MEM_mallocN(4 * (totobj + MAXPICKELEMS) * sizeof(uint[4]), "selection buffer");
 	const eV3DSelectObjectFilter select_filter = (
 	        (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
 	        VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK : VIEW3D_SELECT_FILTER_NOP);
-	hits = view3d_opengl_select(
+	const int hits = view3d_opengl_select(
 	        vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect,
 	        VIEW3D_SELECT_ALL, select_filter);
-	/*
-	 * LOGIC NOTES (theeth):
-	 * The buffer and ListBase have the same relative order, which makes the selection
-	 * very simple. Loop through both data sets at the same time, if the color
-	 * is the same as the object, we have a hit and can move to the next color
-	 * and object pair, if not, just move to the next object,
-	 * keeping the same color until we have a hit.
-	 */
 
-	if (hits <= 0) {
-		if (SEL_OP_USE_OUTSIDE(sel_op)) {
-			for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
-				if (BASE_SELECTABLE(base)) {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = false;  /* we know there are no hits. */
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-					}
+	for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
+		base->object->id.tag &= ~LIB_TAG_DOIT;
+	}
+
+	Base **bases = NULL;
+	BLI_array_declare(bases);
+
+	/* The draw order doesn't always match the order we populate the engine, see: T51695. */
+	if (hits > 0) {
+		qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
+
+		for (Base *base = vc->view_layer->object_bases.first; base; base = base->next) {
+			if (BASE_SELECTABLE(base)) {
+				if ((base->object->select_color & 0x0000FFFF) != 0) {
+					BLI_array_append(bases, base);
 				}
 			}
 		}
 	}
-	else {
-		/* no need to loop if there's no hit */
 
-		/* The draw order doesn't always match the order we populate the engine, see: T51695. */
-		qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
+	for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
+		Bone *bone;
+		Base *base = ED_armature_base_and_bone_from_select_buffer(bases, BLI_array_len(bases), *col, &bone);
+		base->object->id.tag |= LIB_TAG_DOIT;
+	}
 
-		Base **bases = NULL;
-		BLI_array_declare(bases);
+	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
+		object_deselect_all_visible(vc->view_layer);
+	}
 
-		for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
-			if (BASE_SELECTABLE(base)) {
-				if ((base->object->select_color & 0x0000FFFF) != 0) {
-					BLI_array_append(bases, base);
-					base->object->id.tag &= ~LIB_TAG_DOIT;
-				}
+	for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
+		if (BASE_SELECTABLE(base)) {
+			const bool is_select = base->flag & BASE_SELECTED;
+			const bool is_inside = base->object->id.tag & LIB_TAG_DOIT;
+			const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
+			if (sel_op_result != -1) {
+				ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
 			}
 		}
-
-		for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
-			Bone *bone;
-			Base *base = ED_armature_base_and_bone_from_select_buffer(bases, BLI_array_len(bases), *col, &bone);
-
-			if (base == NULL) {
-				continue;
-			}
-			/* Loop over contiguous bone hits for 'base'. */
-			bool changed = false;
-			for (; col != col_end; col += 4) {
-				/* should never fail */
-				if (bone != NULL) {
-					const bool is_select = (bone->flag & BONE_SELECTED) != 0;
-					const bool is_inside = true;
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-
-					if (sel_op_result != -1) {
-						if (sel_op_result) {
-							if ((bone->flag & BONE_UNSELECTABLE) == 0) {
-								bone->flag |= BONE_SELECTED;
-							}
-						}
-						else {
-							bArmature *arm = base->object->data;
-							if ((bone->flag & BONE_UNSELECTABLE) == 0) {
-								bone->flag &= ~BONE_SELECTED;
-								if (arm->act_bone == bone)
-									arm->act_bone = NULL;
-							}
-						}
-					}
-					changed = true;
-				}
-				else if (!bone_only) {
-					if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
-						base->object->id.tag |= LIB_TAG_DOIT;
-						const bool is_select = base->flag & BASE_SELECTED;
-						const bool is_inside = true;
-						const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-						if (sel_op_result  != -1) {
-							ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-						}
-					}
-				}
-
-				/* Select the next bone if we're not switching bases. */
-				if (col + 4 != col_end) {
-					if ((base->object->select_color & 0x0000FFFF) != (col[4] & 0x0000FFFF)) {
-						break;
-					}
-
-					if ((base->object->pose != NULL) && bone_only) {
-						const uint hit_bone = (col[4] & ~BONESEL_ANY) >> 16;
-						bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
-						bone = pchan ? pchan->bone : NULL;
-					}
-					else {
-						bone = NULL;
-					}
-				}
-			}
-
-			if (changed) {
-				if (base->object && (base->object->type == OB_ARMATURE)) {
-					bArmature *arm = base->object->data;
-
-					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
-
-					if (vc->obact && arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
-						/* mask modifier ('armature' mode), etc. */
-						DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
-					}
-
-					/* copy on write tag is needed (for the armature), or else no refresh happens */
-					DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-				}
-			}
-		}
-
-		if (SEL_OP_USE_OUTSIDE(sel_op)) {
-			for (int i = 0; i < BLI_array_len(bases); i++) {
-				Base *base = bases[i];
-				if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = false;  /* we know there are no hits. */
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-					}
-				}
-			}
-		}
-
-		MEM_freeN(bases);
-
 		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
+	}
+
+	if (bases != NULL) {
+		MEM_freeN(bases);
 	}
 	MEM_freeN(vbuffer);
 
@@ -2438,41 +2400,17 @@ static int do_object_box_select(bContext *C, ViewContext *vc, rcti *rect, const 
 
 static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
-	unsigned int *vbuffer = NULL; /* selection buffer */
-	int bone_only;
+	uint bases_len;
+	Base **bases = do_pose_tag_select_op_prepare(vc, &bases_len);
+
 	int totobj = MAXPICKBUF; /* XXX solve later */
-	int hits;
-
-	if (vc->obact && (vc->obact->mode & OB_MODE_POSE))
-		bone_only = 1;
-	else
-		bone_only = 0;
-
-	if (SEL_OP_USE_PRE_DESELECT(sel_op)) {
-		if (bone_only) {
-			FOREACH_OBJECT_IN_MODE_BEGIN (vc->view_layer, OB_MODE_POSE, ob_iter) {
-				bArmature *arm = ob_iter->data;
-				for (bPoseChannel *pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-					if (PBONE_VISIBLE(arm, pchan->bone)) {
-						if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
-							pchan->bone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-						}
-					}
-				}
-			}
-			FOREACH_OBJECT_IN_MODE_END;
-		}
-		else {
-			object_deselect_all_visible(vc->view_layer);
-		}
-	}
 
 	/* selection buffer now has bones potentially too, so we add MAXPICKBUF */
-	vbuffer = MEM_mallocN(4 * (totobj + MAXPICKELEMS) * sizeof(unsigned int), "selection buffer");
+	uint *vbuffer = MEM_mallocN((totobj + MAXPICKELEMS) * sizeof(uint[4]), "selection buffer");
 	const eV3DSelectObjectFilter select_filter = (
 	        (vc->scene->toolsettings->object_flag & SCE_OBJECT_MODE_LOCK) ?
 	        VIEW3D_SELECT_FILTER_OBJECT_MODE_LOCK : VIEW3D_SELECT_FILTER_NOP);
-	hits = view3d_opengl_select(
+	const int hits = view3d_opengl_select(
 	        vc, vbuffer, 4 * (totobj + MAXPICKELEMS), rect,
 	        VIEW3D_SELECT_ALL, select_filter);
 	/*
@@ -2484,81 +2422,26 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 	 * keeping the same color until we have a hit.
 	 */
 
-	if (hits <= 0) {
-		if (SEL_OP_USE_OUTSIDE(sel_op)) {
-			for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
-				if (BASE_SELECTABLE(base)) {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = false;  /* we know there are no hits. */
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-					}
-				}
-			}
-		}
-	}
-	else {
+	if (hits > 0) {
 		/* no need to loop if there's no hit */
 
 		/* The draw order doesn't always match the order we populate the engine, see: T51695. */
 		qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
 
-		Base **bases = NULL;
-		BLI_array_declare(bases);
-
-		for (Base *base = vc->view_layer->object_bases.first; base && hits; base = base->next) {
-			if (BASE_SELECTABLE(base)) {
-				if ((base->object->select_color & 0x0000FFFF) != 0) {
-					BLI_array_append(bases, base);
-					base->object->id.tag &= ~LIB_TAG_DOIT;
-				}
-			}
-		}
-
 		for (const uint *col = vbuffer + 3, *col_end = col + (hits * 4); col < col_end; col += 4) {
 			Bone *bone;
-			Base *base = ED_armature_base_and_bone_from_select_buffer(bases, BLI_array_len(bases), *col, &bone);
+			Base *base = ED_armature_base_and_bone_from_select_buffer(bases, bases_len, *col, &bone);
 
 			if (base == NULL) {
 				continue;
 			}
+
 			/* Loop over contiguous bone hits for 'base'. */
-			bool changed = false;
 			for (; col != col_end; col += 4) {
 				/* should never fail */
 				if (bone != NULL) {
-					const bool is_select = (bone->flag & BONE_SELECTED) != 0;
-					const bool is_inside = true;
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-
-					if (sel_op_result != -1) {
-						if (sel_op_result) {
-							if ((bone->flag & BONE_UNSELECTABLE) == 0) {
-								bone->flag |= BONE_SELECTED;
-							}
-						}
-						else {
-							bArmature *arm = base->object->data;
-							if ((bone->flag & BONE_UNSELECTABLE) == 0) {
-								bone->flag &= ~BONE_SELECTED;
-								if (arm->act_bone == bone)
-									arm->act_bone = NULL;
-							}
-						}
-					}
-					changed = true;
-				}
-				else if (!bone_only) {
-					if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
-						base->object->id.tag |= LIB_TAG_DOIT;
-						const bool is_select = base->flag & BASE_SELECTED;
-						const bool is_inside = true;
-						const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-						if (sel_op_result  != -1) {
-							ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-						}
-					}
+					base->object->id.tag |= LIB_TAG_DOIT;
+					bone->flag |= BONE_DONE;
 				}
 
 				/* Select the next bone if we're not switching bases. */
@@ -2566,8 +2449,7 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 					if ((base->object->select_color & 0x0000FFFF) != (col[4] & 0x0000FFFF)) {
 						break;
 					}
-
-					if ((base->object->pose != NULL) && bone_only) {
+					if (base->object->pose != NULL) {
 						const uint hit_bone = (col[4] & ~BONESEL_ANY) >> 16;
 						bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
 						bone = pchan ? pchan->bone : NULL;
@@ -2577,42 +2459,17 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 					}
 				}
 			}
-
-			if (changed) {
-				if (base->object && (base->object->type == OB_ARMATURE)) {
-					bArmature *arm = base->object->data;
-
-					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
-
-					if (vc->obact && arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
-						/* mask modifier ('armature' mode), etc. */
-						DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
-					}
-
-					/* copy on write tag is needed (for the armature), or else no refresh happens */
-					DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-				}
-			}
 		}
+	}
 
-		if (SEL_OP_USE_OUTSIDE(sel_op)) {
-			for (int i = 0; i < BLI_array_len(bases); i++) {
-				Base *base = bases[i];
-				if ((base->object->id.tag & LIB_TAG_DOIT) == 0) {
-					const bool is_select = base->flag & BASE_SELECTED;
-					const bool is_inside = false;  /* we know there are no hits. */
-					const int sel_op_result = ED_select_op_action_deselected(sel_op, is_select, is_inside);
-					if (sel_op_result != -1) {
-						ED_object_base_select(base, sel_op_result ? BA_SELECT : BA_DESELECT);
-					}
-				}
-			}
-		}
-
-		MEM_freeN(bases);
-
+	const bool changed_multi = do_pose_tag_select_op_exec(bases, bases_len, sel_op);
+	if (changed_multi) {
 		DEG_id_tag_update(&vc->scene->id, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
+	}
+
+	if (bases != NULL) {
+		MEM_freeN(bases);
 	}
 	MEM_freeN(vbuffer);
 
@@ -3181,17 +3038,7 @@ static void pose_circle_select(ViewContext *vc, const bool select, const int mva
 	pose_foreachScreenBone(vc, do_circle_select_pose__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_changed) {
-		bArmature *arm = vc->obact->data;
-
-		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obact);
-
-		if (arm->flag & ARM_HAS_VIZ_DEPS) {
-			/* mask modifier ('armature' mode), etc. */
-			DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
-		}
-
-		/* copy on write tag is needed (for the armature), or else no refresh happens */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+		ED_pose_bone_select_tag_update(vc->obact);
 	}
 }
 

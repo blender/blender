@@ -95,6 +95,23 @@ static void pose_do_bone_select(bPoseChannel *pchan, const int select_mode)
 	}
 }
 
+void ED_pose_bone_select_tag_update(Object *ob)
+{
+	BLI_assert(ob->type == OB_ARMATURE);
+	bArmature *arm = ob->data;
+	WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, ob);
+	WM_main_add_notifier(NC_GEOM | ND_DATA, ob);
+
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	/* copy on write tag is needed (for the armature), or else no refresh happens */
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+}
+
+
 /* Utility method for changing the selection status of a bone */
 void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 {
@@ -120,19 +137,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 		}
 
 		// TODO: select and activate corresponding vgroup?
-
-		/* tag necessary depsgraph updates
-		 * (see rna_Bone_select_update() in rna_armature.c for details)
-		 */
-		if (arm->flag & ARM_HAS_VIZ_DEPS) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-
-		/* send necessary notifiers */
-		WM_main_add_notifier(NC_GEOM | ND_DATA, ob);
-
-		/* tag armature for copy-on-write update (since act_bone is in armature not object) */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+		ED_pose_bone_select_tag_update(ob);
 	}
 }
 
@@ -235,14 +240,14 @@ bool ED_armature_pose_select_pick_with_buffer(
 
 /* 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.
  * When true, 'ignore_visibility' makes this func also affect invisible bones (hidden or on hidden layers). */
-void ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibility)
+bool ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibility)
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;
 
 	/* we call this from outliner too */
 	if (ob->pose == NULL) {
-		return;
+		return false;
 	}
 
 	/* Determine if we're selecting or deselecting */
@@ -259,12 +264,16 @@ void ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibil
 	}
 
 	/* Set the flags accordingly */
+	bool changed = false;
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		/* ignore the pchan if it isn't visible or if its selection cannot be changed */
 		if (ignore_visibility || PBONE_VISIBLE(arm, pchan->bone)) {
+			int flag_prev = pchan->bone->flag;
 			pose_do_bone_select(pchan, select_mode);
+			changed = (changed || flag_prev != pchan->bone->flag);
 		}
 	}
+	return changed;
 }
 
 static bool ed_pose_is_any_selected(Object *ob, bool ignore_visibility)
@@ -300,22 +309,9 @@ void ED_pose_deselect_all_multi(Object **objects, uint objects_len, int select_m
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];
-		bArmature *arm = ob_iter->data;
-
-		ED_pose_deselect_all(ob_iter, select_mode, ignore_visibility);
-
-		/* if there are some dependencies for visualizing armature state
-		 * (e.g. Mask Modifier in 'Armature' mode), force update
-		 */
-		if (arm->flag & ARM_HAS_VIZ_DEPS) {
-			/* NOTE: ob not ob_act here is intentional - it's the source of the
-			 *       bones being selected  [T37247]
-			 */
-			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+		if (ED_pose_deselect_all(ob_iter, select_mode, ignore_visibility)) {
+			ED_pose_bone_select_tag_update(ob_iter);
 		}
-
-		/* need to tag armature for cow updates, or else selection doesn't update */
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 
@@ -353,8 +349,6 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	if (!bone)
 		return OPERATOR_CANCELLED;
 
-	bArmature *arm = base->object->data;
-
 	/* Select parents */
 	for (curBone = bone; curBone; curBone = next) {
 		/* ignore bone if cannot be selected */
@@ -377,16 +371,7 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 	for (curBone = bone->childbase.first; curBone; curBone = next)
 		selectconnected_posebonechildren(base->object, curBone, extend);
 
-	/* updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
-
-	if (arm->flag & ARM_HAS_VIZ_DEPS) {
-		/* mask modifier ('armature' mode), etc. */
-		DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
-	}
-
-	/* need to tag armature for cow updates, or else selection doesn't update */
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	ED_pose_bone_select_tag_update(base->object);
 
 	return OPERATOR_FINISHED;
 }
@@ -496,18 +481,7 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 			else {
 				continue;
 			}
-
-			/* updates */
-			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
-			if (arm->flag & ARM_HAS_VIZ_DEPS) {
-				/* mask modifier ('armature' mode), etc. */
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			}
-
-			/* tag armature for copy-on-write update (since act_bone is in armature not object) */
-			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-
+			ED_pose_bone_select_tag_update(ob);
 		}
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 	}
@@ -541,7 +515,6 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 
 	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
 	{
-		bArmature *arm = ob->data;
 		if (pchan->bone->flag & BONE_SELECTED) {
 			for (con = pchan->constraints.first; con; con = con->next) {
 				const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
@@ -559,14 +532,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 								found = 1;
 
 								if (ob != ob_prev) {
-									/* updates */
-									WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-									if (arm->flag & ARM_HAS_VIZ_DEPS) {
-										/* mask modifier ('armature' mode), etc. */
-										DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-									}
-									/* tag armature for copy on write, since selection status is armature data */
-									DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+									ED_pose_bone_select_tag_update(ob);
 									ob_prev = ob;
 								}
 							}
@@ -670,16 +636,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
-	if (arm->flag & ARM_HAS_VIZ_DEPS) {
-		/* mask modifier ('armature' mode), etc. */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	}
-
-	/* tag armature for copy-on-write update (since act_bone is in armature not object) */
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	ED_pose_bone_select_tag_update(ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -890,7 +847,6 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object 
 static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bArmature *arm = (bArmature *)ob->data;
 	const ePose_SelectSame_Mode type = RNA_enum_get(op->ptr, "type");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool changed = false;
@@ -919,15 +875,9 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	}
 
 	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-
-	if (arm->flag & ARM_HAS_VIZ_DEPS) {
-		/* mask modifier ('armature' mode), etc. */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	if (changed) {
+		ED_pose_bone_select_tag_update(ob);
 	}
-
-	/* need to tag armature for cow updates, or else selection doesn't update */
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 
 	/* report done status */
 	if (changed)
