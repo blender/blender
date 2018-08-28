@@ -111,11 +111,12 @@ static char *bmp_slots_as_args(const BMOSlotType slot_types[BMO_OP_MAX_SLOTS], c
 			     (slot_types[i].subtype.elem & BMO_OP_SLOT_SUBTYPE_ELEM_IS_SINGLE) ? "None" : "[]"; break;
 			case BMO_OP_SLOT_MAPPING:       value = "{}"; break;
 		}
-		BLI_dynstr_appendf(dyn_str, i ? ", %.*s=%s%s%s%s%s" : "%.*s=%s%s%s%s%s",
-		                   name_len, slot_types[i].name,
-						   set ? "{" : "", quoted ? "'" : "",
-						   value,
-						   quoted ? "'" : "", set ? "}" : "");
+		BLI_dynstr_appendf(
+		        dyn_str, i ? ", %.*s=%s%s%s%s%s" : "%.*s=%s%s%s%s%s",
+		        name_len, slot_types[i].name,
+		        set ? "{" : "", quoted ? "'" : "",
+		        value,
+		        quoted ? "'" : "", set ? "}" : "");
 		i++;
 	}
 

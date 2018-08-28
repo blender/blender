@@ -147,8 +147,9 @@ static void bakeModifier(
 
 				deformStroke(md, depsgraph, ob, gpl, gps);
 
-				gpencil_apply_modifier_material(bmain, ob, mat, gh_color, gps,
-					(bool)(mmd->flag & GP_OPACITY_CREATE_COLORS));
+				gpencil_apply_modifier_material(
+				        bmain, ob, mat, gh_color, gps,
+				        (bool)(mmd->flag & GP_OPACITY_CREATE_COLORS));
 			}
 		}
 	}
