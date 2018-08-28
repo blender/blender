@@ -2704,7 +2704,7 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 /*	PropertyRNA *prop; */
 
 	FunctionRNA *func;
-/*	PropertyRNA *parm; */
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshVertices");
 	srna = RNA_def_struct(brna, "MeshVertices", NULL);
@@ -2713,7 +2713,8 @@ static void rna_def_mesh_vertices(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "ED_mesh_vertices_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of vertices to add", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 #if 0 /* BMESH_TODO Remove until BMesh merge */
 	func = RNA_def_function(srna, "remove", "ED_mesh_vertices_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -2728,7 +2729,7 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 /*	PropertyRNA *prop; */
 
 	FunctionRNA *func;
-/*	PropertyRNA *parm; */
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshEdges");
 	srna = RNA_def_struct(brna, "MeshEdges", NULL);
@@ -2737,7 +2738,8 @@ static void rna_def_mesh_edges(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "ED_mesh_edges_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of edges to add", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of edges to add", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 #if 0 /* BMESH_TODO Remove until BMesh merge */
 	func = RNA_def_function(srna, "remove", "ED_mesh_edges_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -2752,7 +2754,7 @@ static void rna_def_mesh_tessfaces(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *prop;
 
 	FunctionRNA *func;
-/*	PropertyRNA *parm; */
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshTessFaces");
 	srna = RNA_def_struct(brna, "MeshTessFaces", NULL);
@@ -2765,7 +2767,8 @@ static void rna_def_mesh_tessfaces(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "ED_mesh_tessfaces_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of faces to add", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of faces to add", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 #if 0 /* BMESH_TODO Remove until BMesh merge */
 	func = RNA_def_function(srna, "remove", "ED_mesh_faces_remove");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
@@ -2781,7 +2784,7 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 	/*PropertyRNA *prop;*/
 
 	FunctionRNA *func;
-	/*PropertyRNA *parm;*/
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshLoops");
 	srna = RNA_def_struct(brna, "MeshLoops", NULL);
@@ -2790,7 +2793,8 @@ static void rna_def_mesh_loops(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "ED_mesh_loops_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of loops to add", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of loops to add", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 /* mesh.polygons */
@@ -2801,7 +2805,7 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *prop;
 
 	FunctionRNA *func;
-	/* PropertyRNA *parm; */
+	PropertyRNA *parm;
 
 	RNA_def_property_srna(cprop, "MeshPolygons");
 	srna = RNA_def_struct(brna, "MeshPolygons", NULL);
@@ -2814,7 +2818,8 @@ static void rna_def_mesh_polygons(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "add", "ED_mesh_polys_add");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 0, 0, INT_MAX, "Count", "Number of polygons to add", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 
