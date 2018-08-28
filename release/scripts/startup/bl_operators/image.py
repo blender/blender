@@ -103,7 +103,7 @@ class EditExternally(Operator):
             return {'CANCELLED'}
 
         if sd.type == 'IMAGE_EDITOR':
-            filepath = image.filepath_from_user(sd.image_user)
+            filepath = image.filepath_from_user(image_user=sd.image_user)
         else:
             filepath = image.filepath
 

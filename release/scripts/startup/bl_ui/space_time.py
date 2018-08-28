@@ -182,7 +182,7 @@ def marker_menu_generic(layout):
     # layout.operator_context = 'EXEC_REGION_WIN'
 
     layout.column()
-    layout.operator("marker.add", "Add Marker")
+    layout.operator("marker.add", text="Add Marker")
     layout.operator("marker.duplicate", text="Duplicate Marker")
 
     if len(bpy.data.scenes) > 10:

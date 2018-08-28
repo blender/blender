@@ -219,7 +219,7 @@ class IMAGE_MT_image(Menu):
                 layout.operator("image.replace", text="Replace...")
                 layout.operator("image.reload", text="Reload")
 
-            layout.operator("image.external_edit", "Edit Externally")
+            layout.operator("image.external_edit", text="Edit Externally")
 
         layout.separator()
 
