@@ -100,7 +100,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         if probe.type == 'GRID':
             col.separator()
-            col.label("Visibility")
+            col.label(text="Visibility")
             col.prop(probe, "visibility_buffer_bias", "Bias")
             col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
             col.prop(probe, "visibility_blur", "Blur")

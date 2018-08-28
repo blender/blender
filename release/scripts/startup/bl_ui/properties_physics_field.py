@@ -297,7 +297,7 @@ class PHYSICS_PT_field_falloff_radial(PhysicButtonsPanel, Panel):
 def collision_warning(layout):
     row = layout.row(align=True)
     row.alignment = 'RIGHT'
-    row.label("No collision settings available")
+    row.label(text="No collision settings available")
 
 
 class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):

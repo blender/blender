@@ -245,7 +245,7 @@ class TIME_PT_playback(TimelinePanelButtons, Panel):
         layout.separator()
 
         col = layout.column()
-        col.label("Play Animation In:")
+        col.label(text="Play Animation In:")
         layout.prop(screen, "use_play_top_left_3d_editor", text="Active Editor Only")
         layout.prop(screen, "use_play_3d_editors")
         layout.prop(screen, "use_play_animation_editors")
@@ -280,18 +280,18 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         userprefs = context.user_preferences
 
         col = layout.column(align=True)
-        col.label("Active Keying Set:")
+        col.label(text="Active Keying Set:")
         row = col.row(align=True)
         row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
         row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
         row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
         col = layout.column(align=True)
-        col.label("New Keyframe Type:")
+        col.label(text="New Keyframe Type:")
         col.prop(toolsettings, "keyframe_type", text="")
 
         col = layout.column(align=True)
-        col.label("Auto Keyframing:")
+        col.label(text="Auto Keyframing:")
         row = col.row()
         row.prop(toolsettings, "auto_keying_mode", text="")
         row.prop(toolsettings, "use_keyframe_insert_keyingset", text="")

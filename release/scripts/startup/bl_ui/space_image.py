@@ -292,7 +292,7 @@ class IMAGE_MT_uvs_proportional(Menu):
 
         layout.separator()
 
-        layout.label("Falloff:")
+        layout.label(text="Falloff:")
         layout.props_enum(context.tool_settings, "proportional_edit_falloff")
 
 

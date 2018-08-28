@@ -107,10 +107,10 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         row.prop(mesh, "use_mirror_topology")
 
         col = layout.column(align=True)
-        col.label("Edge Select Mode:")
+        col.label(text="Edge Select Mode:")
         col.prop(tool_settings, "edge_path_mode", text="")
         col.prop(tool_settings, "edge_path_live_unwrap")
-        col.label("Double Threshold:")
+        col.label(text="Double Threshold:")
         col.prop(tool_settings, "double_threshold", text="")
         col.prop(tool_settings, "use_mesh_automerge")  # , icon='AUTOMERGE_ON'
 
@@ -134,7 +134,7 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
         col.prop(cps, "curve_type")
 
         if cps.curve_type == 'BEZIER':
-            col.label("Bezier Options:")
+            col.label(text="Bezier Options:")
             col.prop(cps, "error_threshold")
             col.prop(cps, "fit_method")
             col.prop(cps, "use_corners_detect")
@@ -143,7 +143,7 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
             col.active = cps.use_corners_detect
             col.prop(cps, "corner_angle")
 
-        col.label("Pressure Radius:")
+        col.label(text="Pressure Radius:")
         row = layout.row(align=True)
         rowsub = row.row(align=True)
         rowsub.prop(cps, "radius_min", text="Min")
@@ -152,13 +152,13 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
         row.prop(cps, "use_pressure_radius", text="", icon_only=True)
 
         col = layout.column()
-        col.label("Taper Radius:")
+        col.label(text="Taper Radius:")
         row = layout.row(align=True)
         row.prop(cps, "radius_taper_start", text="Start")
         row.prop(cps, "radius_taper_end", text="End")
 
         col = layout.column()
-        col.label("Projection Depth:")
+        col.label(text="Projection Depth:")
         row = layout.row(align=True)
         row.prop(cps, "depth_mode", expand=True)
 
@@ -222,18 +222,18 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
         toolsettings = context.tool_settings.image_paint
 
         col = layout.column()
-        col.label("Missing Data", icon='ERROR')
+        col.label(text="Missing Data", icon='ERROR')
         if toolsettings.missing_uvs:
             col.separator()
-            col.label("Missing UVs", icon='INFO')
-            col.label("Unwrap the mesh in edit mode or generate a simple UV layer")
+            col.label(text="Missing UVs", icon='INFO')
+            col.label(text="Unwrap the mesh in edit mode or generate a simple UV layer")
             col.operator("paint.add_simple_uvs")
 
         if toolsettings.mode == 'MATERIAL':
             if toolsettings.missing_materials:
                 col.separator()
-                col.label("Missing Materials", icon='INFO')
-                col.label("Add a material and paint slot below")
+                col.label(text="Missing Materials", icon='INFO')
+                col.label(text="Add a material and paint slot below")
                 col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
             elif toolsettings.missing_texture:
                 ob = context.active_object
@@ -241,27 +241,27 @@ class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
 
                 col.separator()
                 if mat:
-                    col.label("Missing Texture Slots", icon='INFO')
-                    col.label("Add a paint slot below")
+                    col.label(text="Missing Texture Slots", icon='INFO')
+                    col.label(text="Add a paint slot below")
                     col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
                 else:
-                    col.label("Missing Materials", icon='INFO')
-                    col.label("Add a material and paint slot below")
+                    col.label(text="Missing Materials", icon='INFO')
+                    col.label(text="Add a material and paint slot below")
                     col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
 
         elif toolsettings.mode == 'IMAGE':
             if toolsettings.missing_texture:
                 col.separator()
-                col.label("Missing Canvas", icon='INFO')
-                col.label("Add or assign a canvas image below")
-                col.label("Canvas Image:")
+                col.label(text="Missing Canvas", icon='INFO')
+                col.label(text="Add or assign a canvas image below")
+                col.label(text="Canvas Image:")
                 col.template_ID(toolsettings, "canvas", new="image.new", open="image.open")
 
         if toolsettings.missing_stencil:
             col.separator()
-            col.label("Missing Stencil", icon='INFO')
-            col.label("Add or assign a stencil image below")
-            col.label("Stencil Image:")
+            col.label(text="Missing Stencil", icon='INFO')
+            col.label(text="Add or assign a stencil image below")
+            col.label(text="Stencil Image:")
             col.template_ID(toolsettings, "stencil_image", new="image.new", open="image.open")
 
 
@@ -558,20 +558,20 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         ob = context.active_object
         col = layout.column()
 
-        col.label("Painting Mode:")
+        col.label(text="Painting Mode:")
         col.prop(settings, "mode", text="")
         col.separator()
 
         if settings.mode == 'MATERIAL':
             if len(ob.material_slots) > 1:
-                col.label("Materials:")
+                col.label(text="Materials:")
                 col.template_list("MATERIAL_UL_matslots", "layers",
                                   ob, "material_slots",
                                   ob, "active_material_index", rows=2)
 
             mat = ob.active_material
             if mat:
-                col.label("Available Paint Slots:")
+                col.label(text="Available Paint Slots:")
                 col.template_list("TEXTURE_UL_texpaintslots", "",
                                   mat, "texture_paint_images",
                                   mat, "paint_active_slot", rows=2)
@@ -582,15 +582,15 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                     slot = None
 
                 if slot and slot.is_valid:
-                    col.label("UV Map:")
+                    col.label(text="UV Map:")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
             uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
-            col.label("Canvas Image:")
+            col.label(text="Canvas Image:")
             col.template_ID(settings, "canvas", new="image.new", open="image.open")
-            col.label("UV Map:")
+            col.label(text="UV Map:")
             col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
 
         col.separator()
@@ -628,14 +628,14 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
         split = col.split(0.5)
         colsub = split.column()
         colsub.alignment = 'RIGHT'
-        colsub.label("UV Layer")
+        colsub.label(text="UV Layer")
         split.column().menu("VIEW3D_MT_tools_projectpaint_stencil", text=stencil_text, translate=False)
 
         # todo this should be combinded into a single row
         split = col.split(0.5)
         colsub = split.column()
         colsub.alignment = 'RIGHT'
-        colsub.label("Stencil Image")
+        colsub.label(text="Stencil Image")
         colsub = split.column()
         colsub.template_ID(ipaint, "stencil_image", new="image.new", open="image.open")
 
@@ -817,7 +817,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
                 colsub = col.split(0.5)
                 row = colsub.row(align=True)
                 row.alignment = 'RIGHT'
-                row.label("Jitter")
+                row.label(text="Jitter")
                 row = colsub.row(align=True)
                 row.prop(brush, "use_relative_jitter", icon_only=True)
                 if brush.use_relative_jitter:
@@ -1126,7 +1126,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
             row.active = mesh.use_mirror_x
             row.prop(mesh, "use_mirror_topology")
 
-        col.label("Show Zero Weights:")
+        col.label(text="Show Zero Weights:")
         sub = col.row()
         sub.prop(tool_settings, "vertex_group_user", expand=True)
 
@@ -1607,13 +1607,13 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
         gp_settings = brush.gpencil_settings
 
         # Brush
-        layout.label("Sensitivity")
+        layout.label(text="Sensitivity")
         layout.template_curve_mapping(gp_settings, "curve_sensitivity", brush=True)
 
-        layout.label("Strength")
+        layout.label(text="Strength")
         layout.template_curve_mapping(gp_settings, "curve_strength", brush=True)
 
-        layout.label("Jitter")
+        layout.label(text="Jitter")
         layout.template_curve_mapping(gp_settings, "curve_jitter", brush=True)
 
 
@@ -1666,7 +1666,7 @@ class VIEW3D_PT_tools_grease_pencil_interpolate(Panel):
         settings = context.tool_settings.gpencil_interpolate
 
         col = layout.column(align=True)
-        col.label("Interpolate Strokes")
+        col.label(text="Interpolate Strokes")
         col.operator("gpencil.interpolate", text="Interpolate")
         col.operator("gpencil.interpolate_sequence", text="Sequence")
         col.operator("gpencil.interpolate_reverse", text="Remove Breakdowns")

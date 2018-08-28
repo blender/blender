@@ -282,7 +282,7 @@ class MATERIAL_PT_gpencil_preview(GPMaterialButtonsPanel, Panel):
 
     def draw(self, context):
         ma = context.object.active_material
-        self.layout.label(ma.name)
+        self.layout.label(text=ma.name)
         self.layout.template_preview(ma)
 
 

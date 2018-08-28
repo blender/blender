@@ -27,7 +27,7 @@ from bpy.types import (
 def rigid_body_warning(layout):
     row = layout.row(align=True)
     row.alignment = 'RIGHT'
-    row.label("Object does not have a Rigid Body")
+    row.label(text="Object does not have a Rigid Body")
 
 
 class PHYSICS_PT_rigidbody_panel:

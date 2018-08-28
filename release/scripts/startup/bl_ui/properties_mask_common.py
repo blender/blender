@@ -177,7 +177,7 @@ class MASK_PT_point:
         # so do not over-complicate things for now by using single template_ID
         #col.template_any_ID(parent, "id", "id_type", text="")
 
-        col.label("Parent:")
+        col.label(text="Parent:")
         col.prop(parent, "id", text="")
 
         if parent.id_type == 'MOVIECLIP' and parent.id:

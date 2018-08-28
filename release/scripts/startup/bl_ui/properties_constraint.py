@@ -898,7 +898,7 @@ class ConstraintButtonsPanel:
             box.prop_search(con, "object_path", cache_file, "object_paths")
 
     def SCRIPT(self, context, layout, con):
-        layout.label("Blender 2.6 doesn't support python constraints yet")
+        layout.label(text="Blender 2.6 doesn't support python constraints yet")
 
 
 class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):

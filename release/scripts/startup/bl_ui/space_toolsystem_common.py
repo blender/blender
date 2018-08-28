@@ -377,7 +377,7 @@ class ToolSelectPanelHelper:
         while True:
             if is_sep is True:
                 if column_index != column_last:
-                    row.label("")
+                    row.label(text="")
                 col = layout.column(align=True)
                 row = col.row(align=True)
                 row.scale_x = scale_x
@@ -387,7 +387,7 @@ class ToolSelectPanelHelper:
             is_sep = yield row
             if is_sep is None:
                 if column_index == column_last:
-                    row.label("")
+                    row.label(text="")
                     yield None
                     return
 
@@ -522,7 +522,7 @@ class ToolSelectPanelHelper:
         if item is None:
             return
         # Note: we could show 'item.text' here but it makes the layout jitter when switcuing tools.
-        layout.label(" ", icon_value=icon_value)
+        layout.label(text=" ", icon_value=icon_value)
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)
@@ -553,7 +553,7 @@ class WM_MT_toolsystem_submenu(Menu):
         cls, item_group = self._tool_group_from_button(context)
         if item_group is None:
             # Should never happen, just in case
-            layout.label("Unable to find toolbar group")
+            layout.label(text="Unable to find toolbar group")
             return
 
         for item in item_group:

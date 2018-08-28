@@ -427,7 +427,7 @@ class NODE_PT_active_node_properties(Panel):
         value_inputs = [socket for socket in node.inputs if socket.enabled and not socket.is_linked]
         if value_inputs:
             layout.separator()
-            layout.label("Inputs:")
+            layout.label(text="Inputs:")
             for socket in value_inputs:
                 row = layout.row()
                 socket.draw(context, row, node, iface_(socket.name, socket.bl_rna.translation_context))

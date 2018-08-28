@@ -129,15 +129,15 @@ def draw_samples_info(layout, context):
     if use_branched_path(context) or (cscene.use_square_samples and integrator == 'PATH'):
         col = layout.column(align=True)
         col.scale_y = 0.6
-        col.label("Total Samples:")
+        col.label(text="Total Samples:")
         col.separator()
         if integrator == 'PATH':
-            col.label("%s AA" % aa)
+            col.label(text="%s AA" % aa)
         else:
-            col.label("%s AA, %s Diffuse, %s Glossy, %s Transmission" %
+            col.label(text="%s AA, %s Diffuse, %s Glossy, %s Transmission" %
                       (aa, d * aa, g * aa, t * aa))
             col.separator()
-            col.label("%s AO, %s Mesh Light, %s Subsurface, %s Volume" %
+            col.label(text="%s AO, %s Mesh Light, %s Subsurface, %s Volume" %
                       (ao * aa, ml * aa, sss * aa, vol * aa))
 
 
@@ -1671,7 +1671,7 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.label('CPU Flags:')
+        col.label(text="CPU Flags:")
         row = col.row(align=True)
         row.prop(cscene, "debug_use_cpu_sse2", toggle=True)
         row.prop(cscene, "debug_use_cpu_sse3", toggle=True)
@@ -1684,14 +1684,14 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
         col.separator()
 
         col = layout.column()
-        col.label('CUDA Flags:')
+        col.label(text="CUDA Flags:")
         col.prop(cscene, "debug_use_cuda_adaptive_compile")
         col.prop(cscene, "debug_use_cuda_split_kernel")
 
         col.separator()
 
         col = layout.column()
-        col.label('OpenCL Flags:')
+        col.label(text="OpenCL Flags:")
         col.prop(cscene, "debug_opencl_kernel_type", text="Kernel")
         col.prop(cscene, "debug_opencl_device_type", text="Device")
         col.prop(cscene, "debug_opencl_kernel_single_program", text="Single Program")

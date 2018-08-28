@@ -271,7 +271,7 @@ class DATA_PT_gpencil_onionpanel(Panel):
         layout.enabled = gpd.use_onion_skinning and gpd.users <= 1
 
         if gpd.use_onion_skinning and gpd.users > 1:
-            layout.label("Multiuser datablock not supported", icon='ERROR')
+            layout.label(text="Multiuser datablock not supported", icon='ERROR')
 
         GreasePencilOnionPanel.draw_settings(layout, gpd)
 

@@ -408,7 +408,7 @@ class RENDER_UL_renderviews(UIList):
 
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon + (not view.use))
+            layout.label(text="", icon_value=icon + (not view.use))
 
 
 class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
@@ -751,7 +751,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         layout.use_property_split = False
         row = layout.split(percentage=0.5)
         row.alignment = 'RIGHT'
-        row.label("Cubemap Display")
+        row.label(text="Cubemap Display")
 
         sub = row.row(align=True)
         sub.prop(props, "gi_cubemap_draw_size", text="Size")
@@ -762,7 +762,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
 
         row = layout.split(percentage=0.5)
         row.alignment = 'RIGHT'
-        row.label("Irradiance Display")
+        row.label(text="Irradiance Display")
 
         sub = row.row(align=True)
         sub.prop(props, "gi_irradiance_draw_size", text="Size")

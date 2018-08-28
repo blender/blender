@@ -87,7 +87,7 @@ class DopesheetFilterPopoverBase:
         is_nla = context.area.type == 'NLA_EDITOR'
 
         col = layout.column(align=True)
-        col.label("With Name:")
+        col.label(text="With Name:")
         if not is_nla:
             row = col.row(align=True)
             row.prop(dopesheet, "filter_fcurve_name", text="")
@@ -97,7 +97,7 @@ class DopesheetFilterPopoverBase:
 
         if (not generic_filters_only) and (bpy.data.collections):
             col = layout.column(align=True)
-            col.label("In Collection:")
+            col.label(text="In Collection:")
             col.prop(dopesheet, "filter_collection", text="")
 
     # Standard = Present in all panels
@@ -106,7 +106,7 @@ class DopesheetFilterPopoverBase:
         dopesheet = context.space_data.dopesheet
 
         # Object Data Filters
-        layout.label("Include Sub-Object Data:")
+        layout.label(text="Include Sub-Object Data:")
         split = layout.split()
 
         # TODO: Add per-channel/axis convenience toggles?
@@ -119,7 +119,7 @@ class DopesheetFilterPopoverBase:
         layout.separator()
 
         # datablock filters
-        layout.label("Include From Types:")
+        layout.label(text="Include From Types:")
         flow = layout.grid_flow(row_major=True, columns=2, even_rows=False, align=False)
 
         flow.prop(dopesheet, "show_scenes", text="Scenes")
@@ -159,7 +159,7 @@ class DopesheetFilterPopoverBase:
 
         # performance-related options (users will mostly have these enabled)
         col = layout.column(align=True)
-        col.label("Options:")
+        col.label(text="Options:")
         col.prop(dopesheet, "use_datablock_sort", icon='NONE')
 
 

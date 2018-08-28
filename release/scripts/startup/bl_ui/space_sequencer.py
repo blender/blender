@@ -707,7 +707,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             if strip_channel > 2:
                 BT_ROW = 4
 
-                col.label("Cut To:")
+                col.label(text="Cut To:")
                 row = col.row()
 
                 for i in range(1, strip_channel):
@@ -726,7 +726,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
                 if strip.channel > BT_ROW and (strip_channel - 1) % BT_ROW:
                     for i in range(strip.channel, strip_channel + ((BT_ROW + 1 - strip_channel) % BT_ROW)):
-                        row.label("")
+                        row.label(text="")
             else:
                 col.separator()
                 col.label(text="Two or more channels are needed below this strip", icon='INFO')
@@ -746,7 +746,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
 
             col.prop(strip, "align_x")
             col.prop(strip, "align_y")
-            col.label("Location")
+            col.label(text="Location")
             row = col.row(align=True)
             row.prop(strip, "location", text="")
             col.prop(strip, "wrap_width")
@@ -971,7 +971,7 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
             if scene:
                 # Warning, this is not a good convention to follow.
                 # Expose here because setting the alpha from the 'Render' menu is very inconvenient.
-                layout.label("Preview")
+                layout.label(text="Preview")
                 layout.prop(scene.render, "alpha_mode")
 
         if scene:
@@ -1058,7 +1058,7 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         col.prop(strip, "use_flip_x", text="X Flip")
         col.prop(strip, "use_flip_y", text="Y Flip")
 
-        layout.label("Color:")
+        layout.label(text="Color:")
         col = layout.column(align=True)
         col.prop(strip, "color_saturation", text="Saturation")
         col.prop(strip, "color_multiply", text="Multiply")

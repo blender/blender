@@ -97,7 +97,7 @@ class VIEWLAYER_UL_linesets(UIList):
             layout.prop(lineset, "show_render", text="", index=index)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
+            layout.label(text="", icon_value=icon)
 
 
 class RENDER_MT_lineset_specials(Menu):
@@ -151,7 +151,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
 
         if freestyle.mode == 'SCRIPT':
             row = layout.row()
-            row.label("Style modules:")
+            row.label(text="Style modules:")
             row.operator("scene.freestyle_module_add", text="Add")
             for i, module in enumerate(freestyle.modules):
                 box = layout.box()

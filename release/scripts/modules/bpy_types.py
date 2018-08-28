@@ -848,7 +848,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         layout = self.layout
 
         if not searchpaths:
-            layout.label("* Missing Paths *")
+            layout.label(text="* Missing Paths *")
 
         # collect paths
         files = []

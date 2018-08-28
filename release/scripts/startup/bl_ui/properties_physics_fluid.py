@@ -76,7 +76,7 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
         if not bpy.app.build_options.mod_fluid:
             col = layout.column()
             col.alignment = 'RIGHT'
-            col.label("Built without fluids")
+            col.label(text="Built without fluids")
             return
 
         md = context.fluid
@@ -290,7 +290,7 @@ class PHYSICS_PT_domain_bake(PhysicButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.alignment = 'RIGHT'
-        row.label("Cache Path")
+        row.label(text="Cache Path")
 
         layout.prop(fluid, "filepath", text="")
 

@@ -396,10 +396,10 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
             else:
                 label = "ERROR"
                 icon = 'ERROR'
-            box.label(label, icon=icon)
-            box.label("Iterations: %d .. %d (avg. %d)" %
+            box.label(text=label, icon=icon)
+            box.label(text="Iterations: %d .. %d (avg. %d)" %
                       (result.min_iterations, result.max_iterations, result.avg_iterations))
-            box.label("Error: %.5f .. %.5f (avg. %.5f)" % (result.min_error, result.max_error, result.avg_error))
+            box.label(text="Error: %.5f .. %.5f (avg. %.5f)" % (result.min_error, result.max_error, result.avg_error))
 
 
 class PARTICLE_PT_hair_dynamics_structure(ParticleButtonsPanel, Panel):

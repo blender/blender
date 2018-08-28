@@ -103,7 +103,7 @@ class MyCustomNode(Node, MyCustomTreeNode):
 
     # Additional buttons displayed on the node.
     def draw_buttons(self, context, layout):
-        layout.label("Node settings")
+        layout.label(text="Node settings")
         layout.prop(self, "my_float_prop")
 
     # Detail buttons in the sidebar.

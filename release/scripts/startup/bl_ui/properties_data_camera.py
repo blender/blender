@@ -251,7 +251,7 @@ class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):
             col.prop(dof_options, "ratio")
         else:
             col = flow.column()
-            col.label("Viewport")
+            col.label(text="Viewport")
             col.prop(dof_options, "fstop")
             col.prop(dof_options, "blades")
 

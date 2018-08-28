@@ -76,7 +76,7 @@ class MESH_UL_vgroups_slow(bpy.types.UIList):
         subrow.prop(self, "use_filter_empty_reverse", text="", icon=icon)
 
         row = layout.row(align=True)
-        row.label("Order by:")
+        row.label(text="Order by:")
         row.prop(self, "use_order_name", toggle=True)
         row.prop(self, "use_order_importance", toggle=True)
         icon = 'TRIA_UP' if self.use_filter_orderby_invert else 'TRIA_DOWN'

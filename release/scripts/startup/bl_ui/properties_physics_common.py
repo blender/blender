@@ -67,7 +67,7 @@ class PHYSICS_PT_add(PhysicButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.alignment = 'RIGHT'
-        row.label("Enable physics for:")
+        row.label(text="Enable physics for:")
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
@@ -184,7 +184,7 @@ def point_cache_ui(self, context, cache, enabled, cachetype):
             if not is_saved:
                 col = layout.column(align=True)
                 col.alignment = 'RIGHT'
-                col.label("Options are disabled until the file is saved")
+                col.label(text="Options are disabled until the file is saved")
 
             flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
             flow.enabled = enabled and is_saved

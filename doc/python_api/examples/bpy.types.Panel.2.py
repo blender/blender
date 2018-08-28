@@ -21,7 +21,7 @@ class PanelOne(View3DPanel, bpy.types.Panel):
     bl_label = "Panel One"
 
     def draw(self, context):
-        self.layout.label("Small Class")
+        self.layout.label(text="Small Class")
 
 
 class PanelTwo(View3DPanel, bpy.types.Panel):
@@ -29,7 +29,7 @@ class PanelTwo(View3DPanel, bpy.types.Panel):
     bl_label = "Panel Two"
 
     def draw(self, context):
-        self.layout.label("Also Small Class")
+        self.layout.label(text="Also Small Class")
 
 
 bpy.utils.register_class(PanelOne)

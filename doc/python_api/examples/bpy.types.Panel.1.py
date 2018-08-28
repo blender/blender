@@ -34,7 +34,7 @@ class ObjectSelectPanel(bpy.types.Panel):
         row.prop(obj, "hide_render")
 
         box = layout.box()
-        box.label("Selection Tools")
+        box.label(text="Selection Tools")
         box.operator("object.select_all").action = 'TOGGLE'
         row = box.row()
         row.operator("object.select_all").action = 'INVERT'

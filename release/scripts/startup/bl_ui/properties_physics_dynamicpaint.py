@@ -466,7 +466,7 @@ class PHYSICS_PT_dp_canvas_output_bake(PhysicButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.alignment = 'RIGHT'
-        row.label("Cache Path")
+        row.label(text="Cache Path")
 
         layout.prop(surface, "image_output_path", text="")
         layout.operator("dpaint.bake", text="Bake Image Sequence", icon='MOD_DYNAMICPAINT')

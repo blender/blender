@@ -159,17 +159,17 @@ class USERPREF_MT_splash(Menu):
         row = split.row()
 
         if any(bpy.utils.app_template_paths()):
-            row.label("Template:")
+            row.label(text="Template:")
             template = context.user_preferences.app_template
             row.menu(
                 "USERPREF_MT_templates_splash",
                 text=bpy.path.display_name(template) if template else "Default",
             )
         else:
-            row.label("")
+            row.label(text="")
 
         row = split.row()
-        row.label("Interaction:")
+        row.label(text="Interaction:")
 
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
         if not text:
@@ -222,7 +222,7 @@ class USERPREF_PT_interface(Panel):
 
         sub = col.column(align=True)
 
-        sub.label("3D Viewport Axis:")
+        sub.label(text="3D Viewport Axis:")
         sub.row().prop(view, "mini_axis_type", text="")
 
         sub = col.column(align=True)
@@ -245,7 +245,7 @@ class USERPREF_PT_interface(Panel):
 
         col.separator()
 
-        col.label("Development:")
+        col.label(text="Development:")
         col.prop(view, "show_tooltips_python")
         col.prop(view, "show_developer_ui")
 
@@ -303,7 +303,7 @@ class USERPREF_PT_interface(Panel):
 
         col.prop(view, "show_splash")
 
-        col.label("Warnings:")
+        col.label(text="Warnings:")
         col.prop(view, "use_quit_dialog")
 
         col.separator()
@@ -635,7 +635,7 @@ class USERPREF_PT_theme(Panel):
         col = split.column()
 
         def theme_generic_recurse(data):
-            col.label(data.rna_type.name)
+            col.label(text=data.rna_type.name)
             row = col.row()
             subsplit = row.split(percentage=0.95)
 
@@ -677,9 +677,9 @@ class USERPREF_PT_theme(Panel):
                             if prop.identifier in th_delimiters:
                                 if i:
                                     colsub = colsub_pair[1]
-                                    colsub.row().label("")
-                                colsub_pair[0].row().label("")
-                                colsub_pair[1].row().label("")
+                                    colsub.row().label(text="")
+                                colsub_pair[0].row().label(text="")
+                                colsub_pair[1].row().label(text="")
                                 i = 0
 
         theme_generic_recurse(themedata)
@@ -861,7 +861,7 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            col.label("Styles:")
+            col.label(text="Styles:")
 
             row = col.row()
 
@@ -886,7 +886,7 @@ class USERPREF_PT_theme(Panel):
             col.separator()
             col.separator()
 
-            col.label("Axis & Gizmo Colors:")
+            col.label(text="Axis & Gizmo Colors:")
 
             row = col.row()
 
@@ -915,7 +915,7 @@ class USERPREF_PT_theme(Panel):
             col = split.column()
 
             for i, ui in enumerate(theme.bone_color_sets, 1):
-                col.label(iface_(f"Color Set {i:d}"), translate=False)
+                col.label(text=iface_(f"Color Set {i:d}"), translate=False)
 
                 row = col.row()
 
@@ -1335,10 +1335,10 @@ class USERPREF_PT_addons(Panel):
         lines = message.split("\n")
         box = layout.box()
         sub = box.row()
-        sub.label(lines[0])
+        sub.label(text=lines[0])
         sub.label(icon='ERROR')
         for l in lines[1:]:
-            box.label(l)
+            box.label(text=l)
 
     def draw(self, context):
         import os
@@ -1374,15 +1374,15 @@ class USERPREF_PT_addons(Panel):
         if addon_utils.error_duplicates:
             box = col.box()
             row = box.row()
-            row.label("Multiple add-ons with the same name found!")
+            row.label(text="Multiple add-ons with the same name found!")
             row.label(icon='ERROR')
-            box.label("Please delete one of each pair:")
+            box.label(text="Please delete one of each pair:")
             for (addon_name, addon_file, addon_path) in addon_utils.error_duplicates:
                 box.separator()
                 sub_col = box.column(align=True)
-                sub_col.label(addon_name + ":")
-                sub_col.label("    " + addon_file)
-                sub_col.label("    " + addon_path)
+                sub_col.label(text=addon_name + ":")
+                sub_col.label(text="    " + addon_file)
+                sub_col.label(text="    " + addon_path)
 
         if addon_utils.error_encoding:
             self.draw_error(
@@ -1517,7 +1517,7 @@ class USERPREF_PT_addons(Panel):
                             if draw is not None:
                                 addon_preferences_class = type(addon_preferences)
                                 box_prefs = col_box.box()
-                                box_prefs.label("Preferences:")
+                                box_prefs.label(text="Preferences:")
                                 addon_preferences_class.layout = box_prefs
                                 try:
                                     draw(context)
@@ -1575,7 +1575,7 @@ class StudioLightPanelMixin():
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
-            layout.label("No custom {} configured".format(self.bl_label))
+            layout.label(text="No custom {} configured".format(self.bl_label))
 
     def draw_studio_light(self, layout, studio_light):
         box = layout.box()

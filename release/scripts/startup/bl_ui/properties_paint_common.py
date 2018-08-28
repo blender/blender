@@ -116,11 +116,11 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                 col.template_palette(settings, "palette", color=True)
 
             if brush.use_gradient:
-                col.label("Gradient Colors")
+                col.label(text="Gradient Colors")
                 col.template_color_ramp(brush, "gradient", expand=True)
 
                 if brush.image_tool == 'DRAW':
-                    col.label("Background Color")
+                    col.label(text="Background Color")
                     row = col.row(align=True)
                     panel.prop_unified_color(row, context, brush, "secondary_color", text="")
                     col.prop(brush, "gradient_stroke_mode", text="Mode")
@@ -167,14 +167,14 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
 
                 if settings.mode == 'MATERIAL':
                     if len(ob.material_slots) > 1:
-                        col.label("Materials")
+                        col.label(text="Materials")
                         col.template_list("MATERIAL_UL_matslots", "",
                                           ob, "material_slots",
                                           ob, "active_material_index", rows=2)
 
                     mat = ob.active_material
                     if mat:
-                        col.label("Source Clone Slot")
+                        col.label(text="Source Clone Slot")
                         col.template_list("TEXTURE_UL_texpaintslots", "",
                                           mat, "texture_paint_images",
                                           mat, "paint_clone_slot", rows=2)
@@ -183,9 +183,9 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                     mesh = ob.data
 
                     clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
-                    col.label("Source Clone Image")
+                    col.label(text="Source Clone Image")
                     col.template_ID(settings, "clone_image")
-                    col.label("Source Clone UV Map")
+                    col.label(text="Source Clone UV Map")
                     col.menu("VIEW3D_MT_tools_projectpaint_clone", text=clone_text, translate=False)
         else:
             col.prop(brush, "clone_image", text="Image")

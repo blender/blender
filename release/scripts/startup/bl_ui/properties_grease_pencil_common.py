@@ -47,11 +47,11 @@ def gpencil_stroke_placement_settings(context, layout):
 def gpencil_active_brush_settings_simple(context, layout):
     brush = context.active_gpencil_brush
     if brush is None:
-        layout.label("No Active Brush")
+        layout.label(text="No Active Brush")
         return
 
     col = layout.column()
-    col.label("Active Brush:      ")
+    col.label(text="Active Brush:      ")
 
     row = col.row(align=True)
     row.operator_context = 'EXEC_REGION_WIN'
@@ -121,7 +121,7 @@ class AnnotationDrawingToolsPanel:
 
         if context.space_data.type in {'CLIP_EDITOR'}:
             col.separator()
-            col.label("Data Source:")
+            col.label(text="Data Source:")
             row = col.row(align=True)
             if is_3d_view:
                 row.prop(context.tool_settings, "grease_pencil_source", expand=True)
@@ -360,7 +360,7 @@ class GPENCIL_MT_pie_tool_palette(Menu):
                 row.operator("transform.rotate", icon='MAN_ROT')
                 row.operator("transform.resize", text="Scale", icon='MAN_SCALE')
                 row = col.row(align=True)
-                row.label("Proportional Edit:")
+                row.label(text="Proportional Edit:")
                 row.prop(context.tool_settings, "proportional_edit", text="", icon_only=True)
                 row.prop(context.tool_settings, "proportional_edit_falloff", text="", icon_only=True)
 
@@ -430,7 +430,7 @@ class GPENCIL_MT_pie_settings_palette(Menu):
 
         # N - Active Layer
         col = pie.column()
-        col.label("Active Layer:      ")
+        col.label(text="Active Layer:      ")
 
         row = col.row()
         row.operator_context = 'EXEC_REGION_WIN'
@@ -448,13 +448,13 @@ class GPENCIL_MT_pie_settings_palette(Menu):
         if is_editmode:
             # NW - Move stroke Down
             col = pie.column(align=True)
-            col.label("Arrange Strokes")
+            col.label(text="Arrange Strokes")
             col.operator("gpencil.stroke_arrange", text="Send to Back").direction = 'BOTTOM'
             col.operator("gpencil.stroke_arrange", text="Send Backward").direction = 'DOWN'
 
             # NE - Move stroke Up
             col = pie.column(align=True)
-            col.label("Arrange Strokes")
+            col.label(text="Arrange Strokes")
             col.operator("gpencil.stroke_arrange", text="Bring to Front").direction = 'TOP'
             col.operator("gpencil.stroke_arrange", text="Bring Forward").direction = 'UP'
 
@@ -464,7 +464,7 @@ class GPENCIL_MT_pie_settings_palette(Menu):
 
             # SE - Join strokes
             col = pie.column(align=True)
-            col.label("Join Strokes")
+            col.label(text="Join Strokes")
             row = col.row()
             row.operator("gpencil.stroke_join", text="Join").type = 'JOIN'
             row.operator("gpencil.stroke_join", text="Join & Copy").type = 'JOINCOPY'
@@ -524,7 +524,7 @@ class GPENCIL_MT_pie_sculpt(Menu):
 
         # W - Launch Sculpt Mode
         col = pie.column()
-        # col.label("Tool:")
+        # col.label(text="Tool:")
         col.prop(settings, "tool", text="")
         col.operator("gpencil.brush_paint", text="Sculpt", icon='SCULPTMODE_HLT')
 
@@ -793,7 +793,7 @@ class GreasePencilToolsPanel:
 
         layout.separator()
 
-        layout.label("Proportional Edit:")
+        layout.label(text="Proportional Edit:")
         row = layout.row()
         row.prop(context.tool_settings, "proportional_edit", text="")
         row.prop(context.tool_settings, "proportional_edit_falloff", text="")

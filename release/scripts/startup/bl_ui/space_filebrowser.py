@@ -68,7 +68,7 @@ class FILEBROWSER_HT_header(Header):
             if params.filter_glob:
                 # if st.active_operator and hasattr(st.active_operator, "filter_glob"):
                 #     row.prop(params, "filter_glob", text="")
-                row.label(params.filter_glob)
+                row.label(text=params.filter_glob)
             else:
                 row.prop(params, "use_filter_blender", text="")
                 row.prop(params, "use_filter_backup", text="")

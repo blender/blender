@@ -66,7 +66,7 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
                 text="",
                 emboss=False,
             ).owner_id = module_name
-            row.label("%s: %s" % (info["category"], info["name"]))
+            row.label(text="%s: %s" % (info["category"], info["name"]))
             if is_enabled:
                 owner_ids.remove(module_name)
 
@@ -82,7 +82,7 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
                     text="",
                     emboss=False,
                 ).owner_id = module_name
-                row.label(module_name)
+                row.label(text=module_name)
 
 
 class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):

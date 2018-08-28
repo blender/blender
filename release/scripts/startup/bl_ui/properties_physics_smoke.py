@@ -65,7 +65,7 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
         if not bpy.app.build_options.mod_smoke:
             col = layout.column(align=True)
             col.alignment = 'RIGHT'
-            col.label("Built without Smoke modifier")
+            col.label(text="Built without Smoke modifier")
             return
 
         md = context.smoke
@@ -529,7 +529,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
             if not bpy.app.build_options.openvdb:
                 row = layout.row(align=True)
                 row.alignment = 'RIGHT'
-                row.label("Built without OpenVDB support")
+                row.label(text="Built without OpenVDB support")
                 return
 
             col = flow.column()

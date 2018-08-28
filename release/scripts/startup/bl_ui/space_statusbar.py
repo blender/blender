@@ -37,7 +37,7 @@ class STATUSBAR_HT_header(Header):
 
         row = layout.row(align=True)
         if bpy.app.autoexec_fail is True and bpy.app.autoexec_fail_quiet is False:
-            row.label("Auto-run disabled", icon='ERROR')
+            row.label(text="Auto-run disabled", icon='ERROR')
             if bpy.data.is_saved:
                 props = row.operator("wm.revert_mainfile", icon='SCREEN_BACK', text="Reload Trusted")
                 props.use_scripts = True
@@ -45,7 +45,7 @@ class STATUSBAR_HT_header(Header):
             row.operator("script.autoexec_warn_clear", text="Ignore")
 
             # include last so text doesn't push buttons out of the header
-            row.label(bpy.app.autoexec_fail_message)
+            row.label(text=bpy.app.autoexec_fail_message)
 
         layout.template_running_jobs()
 
