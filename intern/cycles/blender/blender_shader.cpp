@@ -1038,7 +1038,7 @@ static void add_nodes(Scene *scene,
 			for(b_node->internal_links.begin(b_link); b_link != b_node->internal_links.end(); ++b_link) {
 				BL::NodeSocket to_socket(b_link->to_socket());
 				SocketType::Type to_socket_type = convert_socket_type(to_socket);
-				if (to_socket_type == SocketType::UNDEFINED) {
+				if(to_socket_type == SocketType::UNDEFINED) {
 					continue;
 				}
 
@@ -1065,7 +1065,7 @@ static void add_nodes(Scene *scene,
 			 */
 			for(b_node->inputs.begin(b_input); b_input != b_node->inputs.end(); ++b_input) {
 				SocketType::Type input_type = convert_socket_type(*b_input);
-				if (input_type == SocketType::UNDEFINED) {
+				if(input_type == SocketType::UNDEFINED) {
 					continue;
 				}
 
@@ -1081,7 +1081,7 @@ static void add_nodes(Scene *scene,
 			}
 			for(b_node->outputs.begin(b_output); b_output != b_node->outputs.end(); ++b_output) {
 				SocketType::Type output_type = convert_socket_type(*b_output);
-				if (output_type == SocketType::UNDEFINED) {
+				if(output_type == SocketType::UNDEFINED) {
 					continue;
 				}
 

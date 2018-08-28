@@ -1139,13 +1139,13 @@ string OpenCLInfo::get_readable_device_name(cl_device_id device_id)
 	/* Special exception for AMD Vega, need to be able to tell
 	 * Vega 56 from 64 apart.
 	 */
-	if (name == "Radeon RX Vega") {
+	if(name == "Radeon RX Vega") {
 		cl_int max_compute_units = 0;
-		if (clGetDeviceInfo(device_id,
-		                    CL_DEVICE_MAX_COMPUTE_UNITS,
-		                    sizeof(max_compute_units),
-		                    &max_compute_units,
-		                    NULL) == CL_SUCCESS)
+		if(clGetDeviceInfo(device_id,
+		                   CL_DEVICE_MAX_COMPUTE_UNITS,
+		                   sizeof(max_compute_units),
+		                   &max_compute_units,
+		                   NULL) == CL_SUCCESS)
 		{
 			name += " " + to_string(max_compute_units);
 		}

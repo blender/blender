@@ -274,3 +274,27 @@ set(PUGIXML_HASH 9346ca1dce2c48f1748c12fdac41a714)
 set(FLEXBISON_VERSION 2.5.5)
 set(FLEXBISON_URI http://prdownloads.sourceforge.net/winflexbison//win_flex_bison-2.5.5.zip)
 set(FLEXBISON_HASH d87a3938194520d904013abef3df10ce)
+
+# Libraries to keep Python modules static on Linux.
+
+# NOTE: bzip.org domain does no longer belong to BZip 2 project, so we download
+# sources from Debian packaging.
+set(BZIP2_VERSION 1.0.6)
+set(BZIP2_URI http://http.debian.net/debian/pool/main/b/bzip2/bzip2_${BZIP2_VERSION}.orig.tar.bz2)
+set(BZIP2_HASH d70a9ccd8bdf47e302d96c69fecd54925f45d9c7b966bb4ef5f56b770960afa7)
+
+set(FFI_VERSION 3.2.1)
+set(FFI_URI ftp://sourceware.org/pub/libffi/libffi-${FFI_VERSION}.tar.gz)
+set(FFI_HASH d06ebb8e1d9a22d19e38d63fdb83954253f39bedc5d46232a05645685722ca37)
+
+set(LZMA_VERSION 5.2.4)
+set(LZMA_URI https://tukaani.org/xz/xz-${LZMA_VERSION}.tar.bz2)
+set(LZMA_HASH 3313fd2a95f43d88e44264e6b015e7d03053e681860b0d5d3f9baca79c57b7bf)
+
+set(SSL_VERSION 1.1.0i)
+set(SSL_URI https://www.openssl.org/source/openssl-${SSL_VERSION}.tar.gz)
+set(SSL_HASH ebbfc844a8c8cc0ea5dc10b86c9ce97f401837f3fa08c17b2cdadc118253cf99)
+
+set(SQLITE_VERSION 3.24.0)
+set(SQLITE_URI https://www.sqlite.org/2018/sqlite-src-3240000.zip)
+set(SQLITE_HASH fb558c49ee21a837713c4f1e7e413309aabdd9c7)

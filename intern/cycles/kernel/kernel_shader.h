@@ -1010,7 +1010,7 @@ ccl_device void shader_eval_surface(KernelGlobals *kg, ShaderData *sd,
 		DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd,
 		                                             sizeof(DiffuseBsdf),
 		                                             make_float3(0.8f, 0.8f, 0.8f));
-		if (bsdf != NULL) {
+		if(bsdf != NULL) {
 			bsdf->N = sd->N;
 			sd->flag |= bsdf_diffuse_setup(bsdf);
 		}

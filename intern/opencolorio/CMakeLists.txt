@@ -64,6 +64,9 @@ if(WITH_OPENCOLORIO)
 		list(APPEND INC_SYS
 			${BOOST_INCLUDE_DIR}
 		)
+		add_definitions(
+			-DOpenColorIO_STATIC
+		)
 	endif()
 
 	data_to_c_simple(gpu_shader_display_transform.glsl SRC)

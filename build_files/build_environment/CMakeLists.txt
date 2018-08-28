@@ -137,4 +137,12 @@ if(NOT WIN32 OR ENABLE_MINGW64)
 	endif()
 endif()
 
+if(UNIX AND NOT APPLE)
+	include(cmake/bzip2.cmake)
+	include(cmake/ffi.cmake)
+	include(cmake/lzma.cmake)
+	include(cmake/ssl.cmake)
+	include(cmake/sqlite.cmake)
+endif()
+
 include(cmake/harvest.cmake)

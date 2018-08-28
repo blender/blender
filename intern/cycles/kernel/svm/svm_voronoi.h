@@ -32,6 +32,11 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 	da[2] = 1e10f;
 	da[3] = 1e10f;
 
+	pa[0] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[1] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[2] = make_float3(0.0f, 0.0f, 0.0f);
+	pa[3] = make_float3(0.0f, 0.0f, 0.0f);
+
 	int3 xyzi = quick_floor_to_int3(p);
 
 	for(int xx = -1; xx <= 1; xx++) {
@@ -65,7 +70,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 				}
 
 				/* To keep the shortest four distances and associated points we have to keep them in sorted order. */
-				if (d < da[0]) {
+				if(d < da[0]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = da[0];
@@ -76,7 +81,7 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 					pa[1] = pa[0];
 					pa[0] = vp;
 				}
-				else if (d < da[1]) {
+				else if(d < da[1]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = d;
@@ -85,14 +90,14 @@ ccl_device void voronoi_neighbors(float3 p, NodeVoronoiDistanceMetric distance, 
 					pa[2] = pa[1];
 					pa[1] = vp;
 				}
-				else if (d < da[2]) {
+				else if(d < da[2]) {
 					da[3] = da[2];
 					da[2] = d;
 
 					pa[3] = pa[2];
 					pa[2] = vp;
 				}
-				else if (d < da[3]) {
+				else if(d < da[3]) {
 					da[3] = d;
 					pa[3] = vp;
 				}

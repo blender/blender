@@ -951,9 +951,9 @@ void VoronoiTextureNode::compile(SVMCompiler& compiler)
 	ShaderOutput *color_out = output("Color");
 	ShaderOutput *fac_out = output("Fac");
 
-	if (vector_in->link) compiler.stack_assign(vector_in);
-	if (scale_in->link) compiler.stack_assign(scale_in);
-	if (exponent_in->link) compiler.stack_assign(exponent_in);
+	if(vector_in->link) compiler.stack_assign(vector_in);
+	if(scale_in->link) compiler.stack_assign(scale_in);
+	if(exponent_in->link) compiler.stack_assign(exponent_in);
 
 	int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
 
@@ -2853,7 +2853,7 @@ void AmbientOcclusionNode::compile(SVMCompiler& compiler)
 
 	int flags = (inside? NODE_AO_INSIDE : 0) | (only_local? NODE_AO_ONLY_LOCAL : 0);
 
-	if (!distance_in->link && distance == 0.0f) {
+	if(!distance_in->link && distance == 0.0f) {
 		flags |= NODE_AO_GLOBAL_RADIUS;
 	}
 

@@ -16,19 +16,23 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(YAMLCPP_EXTRA_ARGS
-	-DBUILD_GMOCK=OFF
-	-DYAML_CPP_BUILD_TESTS=OFF
-	-DYAML_CPP_BUILD_TOOLS=OFF
-	-DYAML_CPP_BUILD_CONTRIB=OFF
-	-DMSVC_SHARED_RT=OFF
+ExternalProject_Add(external_ffi
+	URL ${FFI_URI}
+	URL_HASH SHA256=${FFI_HASH}
+	DOWNLOAD_DIR ${DOWNLOAD_DIR}
+	PREFIX ${BUILD_DIR}/ffi
+	CONFIGURE_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && ${CONFIGURE_COMMAND} --prefix=${LIBDIR}/ffi
+		--enable-shared=no
+		--enable-static=yes
+		--with-pic
+	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && make -j${MAKE_THREADS}
+	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && make install
+	INSTALL_DIR ${LIBDIR}/ffi
 )
 
-ExternalProject_Add(external_yamlcpp
-	URL ${YAMLCPP_URI}
-	DOWNLOAD_DIR ${DOWNLOAD_DIR}
-	URL_HASH MD5=${YAMLCPP_HASH}
-	PREFIX ${BUILD_DIR}/yamlcpp
-	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/yamlcpp ${DEFAULT_CMAKE_FLAGS} ${YAMLCPP_EXTRA_ARGS}
-	INSTALL_DIR ${LIBDIR}/yamlcpp
-)
+if (UNIX AND NOT APPLE)
+	ExternalProject_Add_Step(external_ffi after_install
+		COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/ffi/lib/libffi.a ${LIBDIR}/ffi/lib/libffi_pic.a
+		DEPENDEES install
+	)
+endif()

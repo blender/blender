@@ -1772,8 +1772,9 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			/* BOX WIPE IS NOT WORKING YET */
 #if 0
 		case DO_BOX_WIPE:
-			if (!wipe->forward)
+			if (!wipe->forward) {
 				facf0 = 1.0f - facf0;  /* Go the other direction */
+			}
 
 			width = (int)(wipe->edgeWidth * ((xo + yo) / 2.0));
 			hwidth = (float)width / 2.0;

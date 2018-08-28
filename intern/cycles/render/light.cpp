@@ -549,7 +549,7 @@ void LightManager::device_update_background(Device *device,
 	/* get the resolution from the light's size (we stuff it in there) */
 	int2 res = make_int2(background_light->map_resolution, background_light->map_resolution/2);
 	/* If the resolution isn't set manually, try to find an environment texture. */
-	if (res.x == 0) {
+	if(res.x == 0) {
 		Shader *shader = (scene->background->shader) ? scene->background->shader : scene->default_background;
 		foreach(ShaderNode *node, shader->graph->nodes) {
 			if(node->type == EnvironmentTextureNode::node_type) {
@@ -561,12 +561,12 @@ void LightManager::device_update_background(Device *device,
 				}
 			}
 		}
-		if (res.x > 0 && res.y > 0) {
+		if(res.x > 0 && res.y > 0) {
 			VLOG(2) << "Automatically set World MIS resolution to " << res.x << " by " << res.y << "\n";
 		}
 	}
 	/* If it's still unknown, just use the default. */
-	if (res.x == 0 || res.y == 0) {
+	if(res.x == 0 || res.y == 0) {
 		res = make_int2(1024, 512);
 		VLOG(2) << "Setting World MIS resolution to default\n";
 	}

@@ -18,13 +18,6 @@
 
 set(FFMPEG_CFLAGS "-I${mingw_LIBDIR}/lame/include -I${mingw_LIBDIR}/openjpeg/include/ -I${mingw_LIBDIR}/ogg/include -I${mingw_LIBDIR}/vorbis/include -I${mingw_LIBDIR}/theora/include -I${mingw_LIBDIR}/vpx/include -I${mingw_LIBDIR}/x264/include -I${mingw_LIBDIR}/xvidcore/include -I${mingw_LIBDIR}/zlib/include")
 set(FFMPEG_LDFLAGS "-L${mingw_LIBDIR}/lame/lib -L${mingw_LIBDIR}/openjpeg/lib -L${mingw_LIBDIR}/ogg/lib -L${mingw_LIBDIR}/vorbis/lib -L${mingw_LIBDIR}/theora/lib -L${mingw_LIBDIR}/vpx/lib -L${mingw_LIBDIR}/x264/lib -L${mingw_LIBDIR}/xvidcore/lib -L${mingw_LIBDIR}/zlib/lib")
-if(UNIX AND NOT APPLE)
-	# OpenJpeg is compiled with pthread support on Linux, which is all fine and is what we
-	# want for maximum runtime performance, but due to static nature of that library we
-	# need to force FFpeg to link against pthread, otherwise test program used by autoconf
-	# will fail.
-	set(FFMPEG_LDFLAGS "${FFMPEG_LDFLAGS} -lpthread")
-endif()
 set(FFMPEG_EXTRA_FLAGS --pkg-config-flags=--static --extra-cflags=${FFMPEG_CFLAGS} --extra-ldflags=${FFMPEG_LDFLAGS})
 set(FFMPEG_ENV PKG_CONFIG_PATH=${mingw_LIBDIR}/openjpeg/lib/pkgconfig:${mingw_LIBDIR}/x264/lib/pkgconfig:${mingw_LIBDIR}/vorbis/lib/pkgconfig:${mingw_LIBDIR}/ogg/lib/pkgconfig:${mingw_LIBDIR})
 
@@ -38,6 +31,12 @@ if(WIN32)
 		--disable-pthreads
 		--enable-libopenjpeg
 	)
+	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "4")
+		set(FFMPEG_EXTRA_FLAGS
+			${FFMPEG_EXTRA_FLAGS}
+			--x86asmexe=yasm
+		)
+	endif()
 else()
 	set(FFMPEG_EXTRA_FLAGS
 		${FFMPEG_EXTRA_FLAGS}
@@ -58,6 +57,11 @@ ExternalProject_Add(external_ffmpeg
 	URL ${FFMPEG_URI}
 	DOWNLOAD_DIR ${DOWNLOAD_DIR}
 	URL_HASH MD5=${FFMPEG_HASH}
+	# OpenJpeg is compiled with pthread support on Linux, which is all fine and is what we
+	# want for maximum runtime performance, but due to static nature of that library we
+	# need to force ffmpeg to link against pthread, otherwise test program used by autoconf
+	# will fail. This patch does that in a way that is compatible with multiple distributions.
+	PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/ffmpeg/src/external_ffmpeg < ${PATCH_DIR}/ffmpeg.diff
 	PREFIX ${BUILD_DIR}/ffmpeg
 	CONFIGURE_COMMAND ${CONFIGURE_ENV_NO_PERL} &&
 		cd ${BUILD_DIR}/ffmpeg/src/external_ffmpeg/ &&

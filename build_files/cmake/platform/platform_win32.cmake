@@ -265,9 +265,7 @@ if(WITH_OPENCOLLADA)
 		${OPENCOLLADA}/lib/opencollada/ftoa.lib
 	)
 
-	if(NOT WITH_LLVM)
-		list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
-	endif()
+	list(APPEND OPENCOLLADA_LIBRARIES ${OPENCOLLADA}/lib/opencollada/UTF.lib)
 
 	set(PCRE_LIBRARIES
 		${OPENCOLLADA}/lib/opencollada/pcre.lib
@@ -282,8 +280,6 @@ if(WITH_CODEC_FFMPEG)
 	windows_find_package(FFMPEG)
 	if(NOT FFMPEG_FOUND)
 		warn_hardcoded_paths(ffmpeg)
-		set(FFMPEG_LIBRARY_VERSION 57)
-		set(FFMPEG_LIBRARY_VERSION_AVU 55)
 		set(FFMPEG_LIBRARIES
 			${LIBDIR}/ffmpeg/lib/avcodec.lib
 			${LIBDIR}/ffmpeg/lib/avformat.lib
@@ -305,16 +301,16 @@ if(WITH_IMAGE_OPENEXR)
 		set(OPENEXR_INCLUDE_DIRS ${OPENEXR_INCLUDE_DIR} ${OPENEXR}/include/OpenEXR)
 		set(OPENEXR_LIBPATH ${OPENEXR}/lib)
 		set(OPENEXR_LIBRARIES
-			optimized ${OPENEXR_LIBPATH}/Iex-2_2.lib
-			optimized ${OPENEXR_LIBPATH}/Half.lib
-			optimized ${OPENEXR_LIBPATH}/IlmImf-2_2.lib
-			optimized ${OPENEXR_LIBPATH}/Imath-2_2.lib
-			optimized ${OPENEXR_LIBPATH}/IlmThread-2_2.lib
-			debug ${OPENEXR_LIBPATH}/Iex-2_2_d.lib
-			debug ${OPENEXR_LIBPATH}/Half_d.lib
-			debug ${OPENEXR_LIBPATH}/IlmImf-2_2_d.lib
-			debug ${OPENEXR_LIBPATH}/Imath-2_2_d.lib
-			debug ${OPENEXR_LIBPATH}/IlmThread-2_2_d.lib
+			optimized ${OPENEXR_LIBPATH}/Iex_s.lib
+			optimized ${OPENEXR_LIBPATH}/Half_s.lib
+			optimized ${OPENEXR_LIBPATH}/IlmImf_s.lib
+			optimized ${OPENEXR_LIBPATH}/Imath_s.lib
+			optimized ${OPENEXR_LIBPATH}/IlmThread_s.lib
+			debug ${OPENEXR_LIBPATH}/Iex_s_d.lib
+			debug ${OPENEXR_LIBPATH}/Half_s_d.lib
+			debug ${OPENEXR_LIBPATH}/IlmImf_s_d.lib
+			debug ${OPENEXR_LIBPATH}/Imath_s_d.lib
+			debug ${OPENEXR_LIBPATH}/IlmThread_s_d.lib
 		)
 	endif()
 endif()
@@ -338,7 +334,7 @@ if(WITH_JACK)
 endif()
 
 if(WITH_PYTHON)
-	set(PYTHON_VERSION 3.6) # CACHE STRING)
+	set(PYTHON_VERSION 3.7) # CACHE STRING)
 
 	string(REPLACE "." "" _PYTHON_VERSION_NO_DOTS ${PYTHON_VERSION})
 	# Use shared libs for vc2008 and vc2010 until we actually have vc2010 libs
@@ -373,14 +369,13 @@ if(WITH_BOOST)
 		warn_hardcoded_paths(BOOST)
 		set(BOOST ${LIBDIR}/boost)
 		set(BOOST_INCLUDE_DIR ${BOOST}/include)
-		if(MSVC12)
-			set(BOOST_LIBPATH ${BOOST}/lib)
-			set(BOOST_POSTFIX "vc120-mt-s-1_60.lib")
-			set(BOOST_DEBUG_POSTFIX "vc120-mt-sgd-1_60.lib")
+		set(BOOST_LIBPATH ${BOOST}/lib)
+		if(CMAKE_CL_64)
+			set(BOOST_POSTFIX "vc140-mt-s-x64-1_68.lib")
+			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-x64-1_68.lib")
 		else()
-			set(BOOST_LIBPATH ${BOOST}/lib)
-			set(BOOST_POSTFIX "vc140-mt-s-1_60.lib")
-			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-1_60.lib")
+			set(BOOST_POSTFIX "vc140-mt-s-x32-1_68.lib")
+			set(BOOST_DEBUG_POSTFIX "vc140-mt-sgd-x32-1_68.lib")
 		endif()
 		set(BOOST_LIBRARIES
 			optimized ${BOOST_LIBPATH}/libboost_date_time-${BOOST_POSTFIX}
@@ -459,7 +454,14 @@ if(WITH_OPENCOLORIO)
 	set(OPENCOLORIO ${LIBDIR}/opencolorio)
 	set(OPENCOLORIO_INCLUDE_DIRS ${OPENCOLORIO}/include)
 	set(OPENCOLORIO_LIBPATH ${LIBDIR}/opencolorio/lib)
-	set(OPENCOLORIO_LIBRARIES ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib)
+	set(OPENCOLORIO_LIBRARIES 
+		optimized ${OPENCOLORIO_LIBPATH}/OpenColorIO.lib
+		optimized ${OPENCOLORIO_LIBPATH}/tinyxml.lib
+		optimized ${OPENCOLORIO_LIBPATH}/libyaml-cpp.lib
+		debug ${OPENCOLORIO_LIBPATH}/OpenColorIO_d.lib
+		debug ${OPENCOLORIO_LIBPATH}/tinyxml_d.lib
+		debug ${OPENCOLORIO_LIBPATH}/libyaml-cpp_d.lib
+	)
 	set(OPENCOLORIO_DEFINITIONS)
 endif()
 
@@ -471,7 +473,7 @@ if(WITH_OPENVDB)
 	set(OPENVDB_LIBPATH ${LIBDIR}/openvdb/lib)
 	set(OPENVDB_INCLUDE_DIRS ${OPENVDB}/include ${TBB_INCLUDE_DIR})
 	set(OPENVDB_LIBRARIES optimized ${OPENVDB_LIBPATH}/openvdb.lib debug ${OPENVDB_LIBPATH}/openvdb_d.lib ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
-
+	set(OPENVDB_DEFINITIONS -DNOMINMAX)
 endif()
 
 if(WITH_ALEMBIC)
@@ -492,6 +494,12 @@ if(WITH_MOD_CLOTH_ELTOPO)
 		${LIBDIR}/lapack/lib/clapack_nowrap.lib
 		${LIBDIR}/lapack/lib/BLAS_nowrap.lib
 	)
+endif()
+
+if(WITH_IMAGE_OPENJPEG)
+	set(OPENJPEG ${LIBDIR}/openjpeg)
+	set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include/openjpeg-2.3)
+	set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/openjp2.lib)
 endif()
 
 if(WITH_OPENSUBDIV OR WITH_CYCLES_OPENSUBDIV)
@@ -582,9 +590,11 @@ if(WITH_CYCLES_OSL)
 		optimized ${OSL_LIB_COMP}
 		optimized ${OSL_LIB_EXEC}
 		optimized ${OSL_LIB_QUERY}
+		optimized ${CYCLES_OSL}/lib/pugixml.lib
 		debug ${OSL_LIB_EXEC_DEBUG}
 		debug ${OSL_LIB_COMP_DEBUG}
 		debug ${OSL_LIB_QUERY_DEBUG}
+		debug ${CYCLES_OSL}/lib/pugixml_d.lib
 	)
 	find_path(OSL_INCLUDE_DIR OSL/oslclosure.h PATHS ${CYCLES_OSL}/include)
 	find_program(OSL_COMPILER NAMES oslc PATHS ${CYCLES_OSL}/bin)

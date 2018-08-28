@@ -412,21 +412,19 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 
 	PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
 	bool use_denoising = get_boolean(crl, "use_denoising");
-	buffer_params.denoising_data_pass = use_denoising;
+
 	session->tile_manager.schedule_denoising = use_denoising;
+	buffer_params.denoising_data_pass = use_denoising;
+	buffer_params.denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
+
 	session->params.use_denoising = use_denoising;
+	session->params.denoising_radius = get_int(crl, "denoising_radius");
+	session->params.denoising_strength = get_float(crl, "denoising_strength");
+	session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");
+	session->params.denoising_relative_pca = get_boolean(crl, "denoising_relative_pca");
+
 	scene->film->denoising_data_pass = buffer_params.denoising_data_pass;
-	scene->film->denoising_flags = 0;
-	if(!get_boolean(crl, "denoising_diffuse_direct"))        scene->film->denoising_flags |= DENOISING_CLEAN_DIFFUSE_DIR;
-	if(!get_boolean(crl, "denoising_diffuse_indirect"))      scene->film->denoising_flags |= DENOISING_CLEAN_DIFFUSE_IND;
-	if(!get_boolean(crl, "denoising_glossy_direct"))         scene->film->denoising_flags |= DENOISING_CLEAN_GLOSSY_DIR;
-	if(!get_boolean(crl, "denoising_glossy_indirect"))       scene->film->denoising_flags |= DENOISING_CLEAN_GLOSSY_IND;
-	if(!get_boolean(crl, "denoising_transmission_direct"))   scene->film->denoising_flags |= DENOISING_CLEAN_TRANSMISSION_DIR;
-	if(!get_boolean(crl, "denoising_transmission_indirect")) scene->film->denoising_flags |= DENOISING_CLEAN_TRANSMISSION_IND;
-	if(!get_boolean(crl, "denoising_subsurface_direct"))     scene->film->denoising_flags |= DENOISING_CLEAN_SUBSURFACE_DIR;
-	if(!get_boolean(crl, "denoising_subsurface_indirect"))   scene->film->denoising_flags |= DENOISING_CLEAN_SUBSURFACE_IND;
-	scene->film->denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
-	buffer_params.denoising_clean_pass = scene->film->denoising_clean_pass;
+	scene->film->denoising_clean_pass = buffer_params.denoising_clean_pass;
 	session->params.denoising_radius = get_int(crl, "denoising_radius");
 	session->params.denoising_strength = get_float(crl, "denoising_strength");
 	session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");

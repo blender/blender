@@ -1294,23 +1294,19 @@ public:
 		float a = task->nlm_state.a;
 		float k_2 = task->nlm_state.k_2;
 
-		int shift_stride = stride*h;
+		int pass_stride = task->buffer.pass_stride;
 		int num_shifts = (2*r+1)*(2*r+1);
-		int mem_size = sizeof(float)*shift_stride*num_shifts;
 		int channel_offset = 0;
-
-		device_only_memory<uchar> temporary_mem(this, "Denoising temporary_mem");
-		temporary_mem.alloc_to_device(2*mem_size);
 
 		if(have_error())
 			return false;
 
-		CUdeviceptr difference     = cuda_device_ptr(temporary_mem.device_pointer);
-		CUdeviceptr blurDifference = difference + mem_size;
+		CUdeviceptr difference     = cuda_device_ptr(task->buffer.temporary_mem.device_pointer);
+		CUdeviceptr blurDifference = difference + sizeof(float)*pass_stride*num_shifts;
+		CUdeviceptr weightAccum = difference + 2*sizeof(float)*pass_stride*num_shifts;
 
-		CUdeviceptr weightAccum = task->nlm_state.temporary_3_ptr;
-		cuda_assert(cuMemsetD8(weightAccum, 0, sizeof(float)*shift_stride));
-		cuda_assert(cuMemsetD8(out_ptr, 0, sizeof(float)*shift_stride));
+		cuda_assert(cuMemsetD8(weightAccum, 0, sizeof(float)*pass_stride));
+		cuda_assert(cuMemsetD8(out_ptr, 0, sizeof(float)*pass_stride));
 
 		{
 			CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMUpdateOutput;
@@ -1326,10 +1322,10 @@ public:
 
 			CUDA_GET_BLOCKSIZE_1D(cuNLMCalcDifference, w*h, num_shifts);
 
-			void *calc_difference_args[] = {&guide_ptr, &variance_ptr, &difference, &w, &h, &stride, &shift_stride, &r, &channel_offset, &a, &k_2};
-			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &shift_stride, &r, &f};
-			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &shift_stride, &r, &f};
-			void *update_output_args[]   = {&blurDifference, &image_ptr, &out_ptr, &weightAccum, &w, &h, &stride, &shift_stride, &r, &f};
+			void *calc_difference_args[] = {&guide_ptr, &variance_ptr, &difference, &w, &h, &stride, &pass_stride, &r, &channel_offset, &a, &k_2};
+			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &pass_stride, &r, &f};
+			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &pass_stride, &r, &f};
+			void *update_output_args[]   = {&blurDifference, &image_ptr, &out_ptr, &weightAccum, &w, &h, &stride, &pass_stride, &r, &f};
 
 			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcDifference, calc_difference_args);
 			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
@@ -1337,8 +1333,6 @@ public:
 			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
 			CUDA_LAUNCH_KERNEL_1D(cuNLMUpdateOutput, update_output_args);
 		}
-
-		temporary_mem.free();
 
 		{
 			CUfunction cuNLMNormalize;
@@ -1614,6 +1608,7 @@ public:
 
 		denoising.filter_area = make_int4(rtile.x, rtile.y, rtile.w, rtile.h);
 		denoising.render_buffer.samples = rtile.sample;
+		denoising.buffer.gpu_temporary_mem = true;
 
 		denoising.run_denoising(&rtile);
 	}

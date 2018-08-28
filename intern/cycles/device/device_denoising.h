@@ -96,9 +96,6 @@ public:
 	/* Stores state of the current Reconstruction operation,
 	 * which is accessed by the device in order to perform the operation. */
 	struct ReconstructionState {
-		device_ptr temporary_1_ptr; /* There two images are used as temporary storage. */
-		device_ptr temporary_2_ptr;
-
 		int4 filter_window;
 		int4 buffer_params;
 
@@ -109,10 +106,6 @@ public:
 	/* Stores state of the current NLM operation,
 	 * which is accessed by the device in order to perform the operation. */
 	struct NLMState {
-		device_ptr temporary_1_ptr; /* There three images are used as temporary storage. */
-		device_ptr temporary_2_ptr;
-		device_ptr temporary_3_ptr;
-
 		int r;      /* Search radius of the filter. */
 		int f;      /* Patch size of the filter. */
 		float a;    /* Variance compensation factor in the MSE estimation. */
@@ -126,9 +119,6 @@ public:
 		device_only_memory<int>    rank;
 		device_only_memory<float>  XtWX;
 		device_only_memory<float3> XtWY;
-		device_only_memory<float>  temporary_1;
-		device_only_memory<float>  temporary_2;
-		device_only_memory<float>  temporary_color;
 		int w;
 		int h;
 
@@ -136,10 +126,7 @@ public:
 		: transform(device, "denoising transform"),
 		  rank(device, "denoising rank"),
 		  XtWX(device, "denoising XtWX"),
-		  XtWY(device, "denoising XtWY"),
-		  temporary_1(device, "denoising NLM temporary 1"),
-		  temporary_2(device, "denoising NLM temporary 2"),
-		  temporary_color(device, "denoising temporary color")
+		  XtWY(device, "denoising XtWY")
 		{}
 	} storage;
 
@@ -155,9 +142,13 @@ public:
 		int h;
 		int width;
 		device_only_memory<float> mem;
+		device_only_memory<float> temporary_mem;
+
+		bool gpu_temporary_mem;
 
 		DenoiseBuffers(Device *device)
-		: mem(device, "denoising pixel buffer")
+		: mem(device, "denoising pixel buffer"),
+		  temporary_mem(device, "denoising temporary mem")
 	    {}
 	} buffer;
 

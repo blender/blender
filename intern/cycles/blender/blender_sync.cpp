@@ -473,6 +473,7 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 	MAP_PASS("Shadow B", DENOISING_PASS_SHADOW_B);
 	MAP_PASS("Image", DENOISING_PASS_COLOR);
 	MAP_PASS("Image Variance", DENOISING_PASS_COLOR_VAR);
+	MAP_PASS("Clean", DENOISING_PASS_CLEAN);
 #undef MAP_PASS
 
 	return -1;
@@ -502,6 +503,7 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 			Pass::add(pass_type, passes);
 	}
 
+	scene->film->denoising_flags = 0;
 	PointerRNA crp = RNA_pointer_get(&b_view_layer.ptr, "cycles");
 	if(get_boolean(crp, "denoising_store_passes") &&
 	   get_boolean(crp, "use_denoising"))
@@ -516,6 +518,21 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_view_layer.name().c_str());
 		b_engine.add_pass("Denoising Image",           3, "RGB", b_view_layer.name().c_str());
 		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_view_layer.name().c_str());
+
+#define MAP_OPTION(name, flag) if(!get_boolean(crp, name)) scene->film->denoising_flags |= flag;
+		MAP_OPTION("denoising_diffuse_direct",        DENOISING_CLEAN_DIFFUSE_DIR);
+		MAP_OPTION("denoising_diffuse_indirect",      DENOISING_CLEAN_DIFFUSE_IND);
+		MAP_OPTION("denoising_glossy_direct",         DENOISING_CLEAN_GLOSSY_DIR);
+		MAP_OPTION("denoising_glossy_indirect",       DENOISING_CLEAN_GLOSSY_IND);
+		MAP_OPTION("denoising_transmission_direct",   DENOISING_CLEAN_TRANSMISSION_DIR);
+		MAP_OPTION("denoising_transmission_indirect", DENOISING_CLEAN_TRANSMISSION_IND);
+		MAP_OPTION("denoising_subsurface_direct",     DENOISING_CLEAN_SUBSURFACE_DIR);
+		MAP_OPTION("denoising_subsurface_indirect",   DENOISING_CLEAN_SUBSURFACE_IND);
+#undef MAP_OPTION
+
+		if(scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
+			b_engine.add_pass("Denoising Clean", 3, "RGB", b_view_layer.name().c_str());
+		}
 	}
 #ifdef __KERNEL_DEBUG__
 	if(get_boolean(crp, "pass_debug_bvh_traversed_nodes")) {

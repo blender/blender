@@ -28,6 +28,7 @@
 #include "kernel/osl/osl_globals.h"
 #include "kernel/osl/osl_services.h"
 #include "kernel/osl/osl_shader.h"
+#include "OSL/llvm_util.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
@@ -66,6 +67,14 @@ OSLShaderManager::~OSLShaderManager()
 {
 	shading_system_free();
 	texture_system_free();
+#ifdef OSL_HAS_BLENDER_CLEANUP_FIX
+	/* There is a problem with llvm+osl: The order global destructors across
+	 * different compilation units run cannot be guaranteed, on windows this means
+	 * that the llvm destructors run before the osl destructors, causing a crash
+	 * when the process exits. the OSL in svn has a special cleanup hack to
+	 * sidestep this behavior */
+	OSL::pvt::LLVM_Util::Cleanup();
+#endif
 }
 
 void OSLShaderManager::reset(Scene * /*scene*/)

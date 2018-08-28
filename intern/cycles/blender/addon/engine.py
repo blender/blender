@@ -268,3 +268,10 @@ def register_passes(engine, scene, srl):
         engine.register_pass(scene, srl, "Denoising Shadow B",        3, "XYV", 'VECTOR')
         engine.register_pass(scene, srl, "Denoising Image",           3, "RGB", 'COLOR')
         engine.register_pass(scene, srl, "Denoising Image Variance",  3, "RGB", 'COLOR')
+
+        clean_options = ("denoising_diffuse_direct", "denoising_diffuse_indirect",
+                         "denoising_glossy_direct", "denoising_glossy_indirect",
+                         "denoising_transmission_direct", "denoising_transmission_indirect",
+                         "denoising_subsurface_direct", "denoising_subsurface_indirect")
+        if any(getattr(crl, option) for option in clean_options):
+            engine.register_pass(scene, srl, "Denoising Clean", 3, "RGB", 'COLOR')

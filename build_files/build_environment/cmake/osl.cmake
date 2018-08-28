@@ -73,9 +73,15 @@ set(OSL_EXTRA_ARGS
 	-DUSE_LLVM_BITCODE=OFF
 	-DUSE_PARTIO=OFF
 	${OSL_SIMD_FLAGS}
-	-DPUGIXML_HOME=${LIBDIR}/pugixml
 	-DPARTIO_LIBRARIES=
 )
+
+if(WIN32)
+set(OSL_EXTRA_ARGS
+	${OSL_EXTRA_FLAGS}
+	-DPUGIXML_HOME=${LIBDIR}/pugixml
+)
+endif()
 
 ExternalProject_Add(external_osl
 	URL ${OSL_URI}
@@ -83,7 +89,7 @@ ExternalProject_Add(external_osl
 	LIST_SEPARATOR ^^
 	URL_HASH MD5=${OSL_HASH}
 	PREFIX ${BUILD_DIR}/osl
-	PATCH_COMMAND ${PATCH_CMD} -p 3 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff
+	PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff
 	#	${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${DEFAULT_CMAKE_FLAGS} ${OSL_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/osl

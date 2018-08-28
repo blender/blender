@@ -43,4 +43,13 @@ if(WIN32)
 				${CMAKE_COMMAND} -E copy ${BUILD_DIR}/pthreads/src/external_pthreads/semaphore.h ${LIBDIR}/pthreads/inc/semaphore.h
 			INSTALL_DIR ${LIBDIR}/pthreads
 		)
+
+		if(BUILD_MODE STREQUAL Release)
+			ExternalProject_Add_Step(external_pthreads after_install
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/pthreads/inc/ ${HARVEST_TARGET}/pthreads/include/
+				COMMAND ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/pthreads/lib/ ${HARVEST_TARGET}/pthreads/lib
+				DEPENDEES install
+			)
+		endif()
+
 endif()
