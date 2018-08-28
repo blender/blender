@@ -237,7 +237,7 @@ def _defs_annotate_factory():
                 _defs_annotate.draw_settings_common(context, layout, tool)
 
             return dict(
-                text="Draw Line",
+                text="Annotate Line",
                 icon="ops.gpencil.draw.line",
                 cursor='CROSSHAIR',
                 keymap=(
@@ -254,7 +254,7 @@ def _defs_annotate_factory():
                 _defs_annotate.draw_settings_common(context, layout, tool)
 
             return dict(
-                text="Draw Polygon",
+                text="Annotate Polygon",
                 icon="ops.gpencil.draw.poly",
                 cursor='CROSSHAIR',
                 keymap=(
@@ -273,7 +273,7 @@ def _defs_annotate_factory():
                 layout.prop(user_prefs.edit, "grease_pencil_eraser_radius", text="Radius")
 
             return dict(
-                text="Eraser",
+                text="Annotate Eraser",
                 icon="ops.gpencil.draw.eraser",
                 cursor='CROSSHAIR',  # XXX: Always show brush circle when enabled
                 keymap=(
@@ -1218,7 +1218,7 @@ class _defs_gpencil_edit:
             widget=None,
             keymap=(
                 ("transform.bend",
-                 dict(),
+                 dict(release_confirm=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
@@ -1231,7 +1231,7 @@ class _defs_gpencil_edit:
             widget=None,
             keymap=(
                 ("transform.mirror",
-                 dict(),
+                 dict(release_confirm=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
@@ -1244,7 +1244,7 @@ class _defs_gpencil_edit:
             widget=None,
             keymap=(
                 ("transform.shear",
-                 dict(),
+                 dict(release_confirm=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
@@ -1257,7 +1257,7 @@ class _defs_gpencil_edit:
             widget=None,
             keymap=(
                 ("transform.tosphere",
-                 dict(),
+                 dict(release_confirm=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
