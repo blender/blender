@@ -696,6 +696,25 @@ const char *WM_init_state_app_template_get(void)
 	return wm_init_state_app_template.override ? wm_init_state_app_template.app_template : NULL;
 }
 
+
+static bool wm_app_template_has_userpref(const char *app_template)
+{
+	/* Test if app template provides a userpref.blend. If not, we will
+	 * share user preferences with the rest of Blender. */
+	if (!app_template && app_template[0]) {
+		return false;
+	}
+
+	char app_template_path[FILE_MAX];
+	if (!BKE_appdir_app_template_id_search(app_template, app_template_path, sizeof(app_template_path))) {
+		return false;
+	}
+
+	char userpref_path[FILE_MAX];
+	BLI_path_join(userpref_path, sizeof(userpref_path), app_template_path, BLENDER_USERPREF_FILE, NULL);
+	return BLI_exists(userpref_path);
+}
+
 /**
  * Called on startup, (context entirely filled with NULLs)
  * or called for 'New File' both startup.blend and userpref.blend are checked.
@@ -1489,7 +1508,7 @@ void WM_OT_save_homefile(wmOperatorType *ot)
 {
 	ot->name = "Save Startup File";
 	ot->idname = "WM_OT_save_homefile";
-	ot->description = "Make the current file the default .blend file, includes preferences";
+	ot->description = "Make the current file the default .blend file";
 
 	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_homefile_write_exec;
@@ -1543,6 +1562,7 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	char filepath[FILE_MAX];
 	const char *cfgdir;
 	bool ok = true;
+	bool use_template_userpref = wm_app_template_has_userpref(U.app_template);
 
 	/* update keymaps in user preferences */
 	WM_keyconfig_update(wm);
@@ -1550,9 +1570,8 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 	if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, NULL))) {
 		bool ok_write;
 		BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
-		printf("trying to save userpref at %s ", filepath);
 
-		if (U.app_template[0]) {
+		if (use_template_userpref) {
 			ok_write = BKE_blendfile_userdef_write_app_template(filepath, op->reports);
 		}
 		else {
@@ -1571,11 +1590,10 @@ static int wm_userpref_write_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Unable to create userpref path");
 	}
 
-	if (U.app_template[0]) {
+	if (use_template_userpref) {
 		if ((cfgdir = BKE_appdir_folder_id_create(BLENDER_USER_CONFIG, U.app_template))) {
 			/* Also save app-template prefs */
 			BLI_path_join(filepath, sizeof(filepath), cfgdir, BLENDER_USERPREF_FILE, NULL);
-			printf("trying to save app-template userpref at %s ", filepath);
 			if (BKE_blendfile_userdef_write(filepath, op->reports) != 0) {
 				printf("ok\n");
 			}
@@ -1664,8 +1682,9 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
 		app_template = app_template_buf;
 
-		/* Always load preferences when switching templates. */
-		use_userdef = true;
+		/* Always load preferences when switching templates with own preferences. */
+		use_userdef = wm_app_template_has_userpref(app_template) ||
+		              wm_app_template_has_userpref(U.app_template);
 
 		/* Turn override off, since we're explicitly loading a different app-template. */
 		WM_init_state_app_template_set(NULL);
@@ -1686,6 +1705,22 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 	}
 }
 
+static int wm_homefile_read_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+	/* Draw menu which includes default startup and application templates. */
+	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("New File"), ICON_NEW);
+	uiLayout *layout = UI_popup_menu_layout(pup);
+
+	MenuType *mt = WM_menutype_find("TOPBAR_MT_file_new", false);
+	if (mt) {
+		UI_menutype_draw(C, mt, layout);
+	}
+
+	UI_popup_menu_end(C, pup);
+
+	return OPERATOR_INTERFACE;
+}
+
 void WM_OT_read_homefile(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -1693,7 +1728,7 @@ void WM_OT_read_homefile(wmOperatorType *ot)
 	ot->idname = "WM_OT_read_homefile";
 	ot->description = "Open the default file (doesn't save the current file)";
 
-	ot->invoke = WM_operator_confirm;
+	ot->invoke = wm_homefile_read_invoke;
 	ot->exec = wm_homefile_read_exec;
 
 	prop = RNA_def_string_file_path(ot->srna, "filepath", NULL,

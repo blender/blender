@@ -928,6 +928,48 @@ bool BLI_path_frame_check_chars(const char *path)
 }
 
 /**
+ * Creates a display string from path to be used menus and the user interface.
+ * Like bpy.path.display_name().
+ */
+void BLI_path_to_display_name(char *display_name, int maxlen, const char *name)
+{
+	/* Strip leading underscores and spaces. */
+	int strip_offset = 0;
+	while (ELEM(name[strip_offset], '_', ' ')) {
+		strip_offset++;
+	}
+
+	BLI_strncpy(display_name, name + strip_offset, maxlen);
+
+	/* Replace underscores with spaces. */
+	BLI_str_replace_char(display_name, '_', ' ');
+
+	/* Strip extension. */
+	BLI_path_extension_replace(display_name, maxlen, "");
+
+	/* Test if string has any upper case characters. */
+	bool all_lower = true;
+	for (int i = 0; display_name[i]; i++) {
+		if (isupper(display_name[i])) {
+			all_lower = false;
+			break;
+		}
+	}
+
+	if (all_lower) {
+		/* For full lowercase string, use title case. */
+		bool prevspace = true;
+		for (int i = 0; display_name[i]; i++) {
+			if (prevspace) {
+				display_name[i] = toupper(display_name[i]);
+			}
+
+			prevspace = isspace(display_name[i]);
+		}
+	}
+}
+
+/**
  * If path begins with "//", strips that and replaces it with basepath directory.
  *
  * \note Also converts drive-letter prefix to something more sensible

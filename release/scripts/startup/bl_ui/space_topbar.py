@@ -47,7 +47,7 @@ class TOPBAR_HT_upper_bar(Header):
         if not screen.show_fullscreen:
             layout.template_ID_tabs(
                 window, "workspace",
-                new="workspace.add_menu",
+                new="workspace.add",
                 menu="TOPBAR_MT_workspace_menu",
             )
         else:
@@ -287,7 +287,7 @@ class TOPBAR_MT_file(Menu):
         layout = self.layout
 
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.read_homefile", text="New", icon='NEW')
+        layout.menu("TOPBAR_MT_file_new", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
         layout.menu("TOPBAR_MT_file_open_recent")
         layout.operator("wm.revert_mainfile")
@@ -305,10 +305,27 @@ class TOPBAR_MT_file(Menu):
         layout.operator("wm.save_as_mainfile", text="Save Copy...").copy = True
 
         layout.separator()
-
         layout.operator_context = 'INVOKE_AREA'
-        layout.operator("wm.save_homefile")
-        layout.operator("wm.read_factory_settings")
+
+        if any(bpy.utils.app_template_paths()):
+            app_template = context.user_preferences.app_template
+        else:
+            app_template = None
+
+        if app_template:
+            layout.label(text=bpy.path.display_name(app_template))
+            layout.operator("wm.save_homefile")
+            layout.operator(
+                "wm.read_factory_settings",
+                text="Load Factory Settings",
+            ).app_template = app_template
+        else:
+            layout.operator("wm.save_homefile")
+            layout.operator("wm.read_factory_settings")
+
+        layout.separator()
+
+        layout.operator("wm.app_template_install", text="Install Application Template...")
 
         layout.separator()
 
@@ -332,6 +349,49 @@ class TOPBAR_MT_file(Menu):
         if bpy.data.is_dirty and context.user_preferences.view.use_quit_dialog:
             layout.operator_context = 'INVOKE_SCREEN'  # quit dialog
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
+
+
+class TOPBAR_MT_file_new(Menu):
+    bl_label = "New File"
+
+    @staticmethod
+    def app_template_paths():
+        import os
+
+        template_paths = bpy.utils.app_template_paths()
+
+        # expand template paths
+        app_templates = []
+        for path in template_paths:
+            for d in os.listdir(path):
+                if d.startswith(("__", ".")):
+                    continue
+                template = os.path.join(path, d)
+                if os.path.isdir(template):
+                    # template_paths_expand.append(template)
+                    app_templates.append(d)
+
+        return sorted(app_templates)
+
+    def draw_ex(self, context, *, use_splash=False, use_default=False):
+        layout = self.layout
+
+        # now draw the presets
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        if use_default:
+            props = layout.operator("wm.read_homefile", text="General")
+            props.app_template = ""
+
+        for d in TOPBAR_MT_file_new.app_template_paths():
+            props = layout.operator(
+                "wm.read_homefile",
+                text=bpy.path.display_name(d),
+            )
+            props.app_template = d
+
+    def draw(self, context):
+        self.draw_ex(context, use_splash=False, use_default=True)
 
 
 class TOPBAR_MT_file_import(Menu):
@@ -647,6 +707,7 @@ classes = (
     TOPBAR_MT_workspace_menu,
     TOPBAR_MT_editor_menus,
     TOPBAR_MT_file,
+    TOPBAR_MT_file_new,
     TOPBAR_MT_file_import,
     TOPBAR_MT_file_export,
     TOPBAR_MT_file_external_data,

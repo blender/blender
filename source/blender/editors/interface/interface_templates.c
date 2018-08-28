@@ -838,7 +838,7 @@ ID *UI_context_active_but_get_tab_ID(bContext *C)
 
 static void template_ID_tabs(
         bContext *C, uiLayout *layout, TemplateID *template, StructRNA *type, int flag,
-        const char *newop, const char *UNUSED(openop), const char *menu)
+        const char *newop, const char *menu)
 {
 	const ARegion *region = CTX_wm_region(C);
 	const PointerRNA active_ptr = RNA_property_pointer_get(&template->ptr, template->prop);
@@ -934,7 +934,7 @@ static void ui_template_id(
 	if (template_ui->idlb) {
 		if (use_tabs) {
 			uiLayoutRow(layout, true);
-			template_ID_tabs(C, layout, template_ui, type, flag, newop, openop, unlinkop);
+			template_ID_tabs(C, layout, template_ui, type, flag, newop, unlinkop);
 		}
 		else {
 			uiLayoutRow(layout, true);
@@ -996,13 +996,13 @@ void uiTemplateGpencilColorPreview(
 void uiTemplateIDTabs(
         uiLayout *layout, bContext *C,
         PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *unlinkop,
+        const char *newop, const char *unlinkop,
         int filter)
 {
 	ui_template_id(
 	        layout, C, ptr, propname,
-	        newop, openop, unlinkop,
-	        UI_ID_BROWSE | UI_ID_RENAME | UI_ID_DELETE,
+	        newop, NULL, unlinkop,
+	        UI_ID_BROWSE | UI_ID_RENAME,
 	        0, 0, filter, true, 1.0f, false);
 }
 

@@ -81,60 +81,12 @@ class USERPREF_MT_interaction_presets(Menu):
     draw = Menu.draw_preset
 
 
-class USERPREF_MT_app_templates(Menu):
-    bl_label = "Application Templates"
-    preset_subdir = "app_templates"
-
-    def draw_ex(self, context, *, use_splash=False, use_default=False, use_install=False):
-        import os
-
-        layout = self.layout
-
-        # now draw the presets
-        layout.operator_context = 'EXEC_DEFAULT'
-
-        if use_default:
-            props = layout.operator("wm.read_homefile", text="Default")
-            props.use_splash = True
-            props.app_template = ""
-            layout.separator()
-
-        template_paths = bpy.utils.app_template_paths()
-
-        # expand template paths
-        app_templates = []
-        for path in template_paths:
-            for d in os.listdir(path):
-                if d.startswith(("__", ".")):
-                    continue
-                template = os.path.join(path, d)
-                if os.path.isdir(template):
-                    # template_paths_expand.append(template)
-                    app_templates.append(d)
-
-        for d in sorted(app_templates):
-            props = layout.operator(
-                "wm.read_homefile",
-                text=bpy.path.display_name(d),
-            )
-            props.use_splash = True
-            props.app_template = d
-
-        if use_install:
-            layout.separator()
-            layout.operator_context = 'INVOKE_DEFAULT'
-            props = layout.operator("wm.app_template_install")
-
-    def draw(self, context):
-        self.draw_ex(context, use_splash=False, use_default=True, use_install=True)
-
-
 class USERPREF_MT_templates_splash(Menu):
     bl_label = "Startup Templates"
     preset_subdir = "templates"
 
     def draw(self, context):
-        USERPREF_MT_app_templates.draw_ex(self, context, use_splash=True, use_default=True)
+        bpy.types.TOPBAR_MT_file_new.draw_ex(self, context, use_splash=True, use_default=True)
 
 
 class USERPREF_MT_appconfigs(Menu):
@@ -1650,7 +1602,6 @@ classes = (
     USERPREF_PT_tabs,
     USERPREF_MT_interaction_presets,
     USERPREF_MT_templates_splash,
-    USERPREF_MT_app_templates,
     USERPREF_MT_appconfigs,
     USERPREF_MT_splash,
     USERPREF_MT_splash_footer,

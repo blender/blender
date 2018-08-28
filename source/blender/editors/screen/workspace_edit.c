@@ -349,20 +349,23 @@ static int workspace_append(bContext *C, const char *directory, const char *idna
 static int workspace_append_activate_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	char idname[MAX_ID_NAME - 2], directory[FILE_MAX];
+	char idname[MAX_ID_NAME - 2], filepath[FILE_MAX];
 
 	if (!RNA_struct_property_is_set(op->ptr, "idname") ||
-	    !RNA_struct_property_is_set(op->ptr, "directory"))
+	    !RNA_struct_property_is_set(op->ptr, "filepath"))
 	{
 		return OPERATOR_CANCELLED;
 	}
 	RNA_string_get(op->ptr, "idname", idname);
-	RNA_string_get(op->ptr, "directory", directory);
+	RNA_string_get(op->ptr, "filepath", filepath);
 
-	if (workspace_append(C, directory, idname) != OPERATOR_CANCELLED) {
+	if (workspace_append(C, filepath, idname) != OPERATOR_CANCELLED) {
 		WorkSpace *appended_workspace = BLI_findstring(&bmain->workspaces, idname, offsetof(ID, name) + 2);
-
 		BLI_assert(appended_workspace != NULL);
+
+		/* Reorder to last position. */
+		BKE_id_reorder(&bmain->workspaces, &appended_workspace->id, NULL, true);
+
 		/* Changing workspace changes context. Do delayed! */
 		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
 
@@ -385,37 +388,39 @@ static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
 
 	RNA_def_string(ot->srna, "idname", NULL, MAX_ID_NAME - 2, "Identifier",
 	               "Name of the workspace to append and activate");
-	RNA_def_string(ot->srna, "directory", NULL, FILE_MAX, "Directory",
+	RNA_def_string(ot->srna, "filepath", NULL, FILE_MAX, "Filepath",
 	               "Path to the library");
 }
 
-static void workspace_config_file_path_from_folder_id(
-        const Main *bmain, int folder_id, char *r_path)
+static WorkspaceConfigFileData *workspace_config_file_read(const char *app_template)
 {
-	const char *app_template = U.app_template[0] ? U.app_template : NULL;
-	const char * const cfgdir = BKE_appdir_folder_id(folder_id, app_template);
+	const char *cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, app_template);
+	char startup_file_path[FILE_MAX] = {0};
 
 	if (cfgdir) {
-		BLI_make_file_string(bmain->name, r_path, cfgdir, BLENDER_STARTUP_FILE);
+		BLI_join_dirfile(startup_file_path, sizeof(startup_file_path), cfgdir, BLENDER_STARTUP_FILE);
 	}
-	else {
-		r_path[0] = '\0';
-	}
+
+	bool has_path = BLI_exists(startup_file_path);
+	return (has_path) ? BKE_blendfile_workspace_config_read(startup_file_path, NULL, 0, NULL) : NULL;
 }
 
-ATTR_NONNULL(1)
-static WorkspaceConfigFileData *workspace_config_file_read(
-        const Main *bmain, ReportList *reports)
+static WorkspaceConfigFileData *workspace_system_file_read(const char *app_template)
 {
-	char workspace_config_path[FILE_MAX];
-	bool has_path = false;
-
-	workspace_config_file_path_from_folder_id(bmain, BLENDER_USER_CONFIG, workspace_config_path);
-	if (BLI_exists(workspace_config_path)) {
-		has_path = true;
+	if (app_template == NULL) {
+		return BKE_blendfile_workspace_config_read(NULL, datatoc_startup_blend, datatoc_startup_blend_size, NULL);
 	}
 
-	return (has_path) ? BKE_blendfile_workspace_config_read(workspace_config_path, NULL, 0, reports) : NULL;
+	char template_dir[FILE_MAX];
+	if (!BKE_appdir_app_template_id_search(app_template, template_dir, sizeof(template_dir))) {
+		return NULL;
+	}
+
+	char startup_file_path[FILE_MAX];
+	BLI_join_dirfile(startup_file_path, sizeof(startup_file_path), template_dir, BLENDER_STARTUP_FILE);
+
+	bool has_path = BLI_exists(startup_file_path);
+	return (has_path) ? BKE_blendfile_workspace_config_read(startup_file_path, NULL, 0, NULL) : NULL;
 }
 
 static void workspace_append_button(
@@ -438,32 +443,28 @@ static void workspace_append_button(
 	        layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL,
 	        WM_OP_EXEC_DEFAULT, 0, &opptr);
 	RNA_string_set(&opptr, "idname", id->name + 2);
-	RNA_string_set(&opptr, "directory", lib_path);
+	RNA_string_set(&opptr, "filepath", lib_path);
 }
 
-ATTR_NONNULL(1, 2)
-static void workspace_config_file_append_buttons(
-        uiLayout *layout, const Main *bmain, ReportList *reports)
+static void workspace_add_menu(bContext *C, uiLayout *layout, void *template_v)
 {
+	Main *bmain = CTX_data_main(C);
+	const char *app_template = template_v;
+	bool has_startup_items = false;
+
 	wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
-	WorkspaceConfigFileData *startup_config = workspace_config_file_read(bmain, reports);
-	WorkspaceConfigFileData *builtin_config = BKE_blendfile_workspace_config_read(NULL, datatoc_startup_blend, datatoc_startup_blend_size, reports);
+	WorkspaceConfigFileData *startup_config = workspace_config_file_read(app_template);
+	WorkspaceConfigFileData *builtin_config = workspace_system_file_read(app_template);
 
 	if (startup_config) {
-		bool has_title = false;
-
 		for (WorkSpace *workspace = startup_config->workspaces.first; workspace; workspace = workspace->id.next) {
+			uiLayout *row = uiLayoutRow(layout, false);
 			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
-				continue;
+				uiLayoutSetActive(row, false);
 			}
 
-			if (!has_title) {
-				uiItemS(layout);
-				uiItemL(layout, IFACE_("Startup File"), ICON_NONE);
-				has_title = true;
-			}
-
-			workspace_append_button(layout, ot_append, workspace, startup_config->main);
+			workspace_append_button(row, ot_append, workspace, startup_config->main);
+			has_startup_items = true;
 		}
 	}
 
@@ -471,22 +472,23 @@ static void workspace_config_file_append_buttons(
 		bool has_title = false;
 
 		for (WorkSpace *workspace = builtin_config->workspaces.first; workspace; workspace = workspace->id.next) {
-			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
-				continue;
-			}
 			if (startup_config && BLI_findstring(&startup_config->workspaces, workspace->id.name, offsetof(ID, name))) {
 				continue;
 			}
 
 			if (!has_title) {
-				uiItemS(layout);
-				uiItemL(layout, IFACE_("Builtin"), ICON_NONE);
+				if (has_startup_items) {
+					uiItemS(layout);
+				}
 				has_title = true;
 			}
 
-			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name)) == NULL) {
-				workspace_append_button(layout, ot_append, workspace, builtin_config->main);
+			uiLayout *row = uiLayoutRow(layout, false);
+			if (BLI_findstring(&bmain->workspaces, workspace->id.name, offsetof(ID, name))) {
+				uiLayoutSetActive(row, false);
 			}
+
+			workspace_append_button(row, ot_append, workspace, builtin_config->main);
 		}
 	}
 
@@ -500,26 +502,41 @@ static void workspace_config_file_append_buttons(
 
 static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	const Main *bmain = CTX_data_main(C);
-
 	uiPopupMenu *pup = UI_popup_menu_begin(C, op->type->name, ICON_NONE);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
+	uiItemMenuF(layout, IFACE_("General"), ICON_NONE, workspace_add_menu, NULL);
+
+	ListBase templates;
+	BKE_appdir_app_templates(&templates);
+
+	for (LinkData *link = templates.first; link; link = link->next) {
+		char *template = link->data;
+		char display_name[FILE_MAX];
+
+		BLI_path_to_display_name(display_name, sizeof(display_name), template);
+
+		/* Steals ownership of link data string. */
+		uiItemMenuF(layout, display_name, ICON_NONE, workspace_add_menu, template);
+	}
+
+	BLI_freelistN(&templates);
+
+	uiItemS(layout);
 	uiItemO(layout, "Duplicate Current", ICON_NONE, "WORKSPACE_OT_duplicate");
-	workspace_config_file_append_buttons(layout, bmain, op->reports);
 
 	UI_popup_menu_end(C, pup);
 
 	return OPERATOR_INTERFACE;
 }
 
-static void WORKSPACE_OT_add_menu(wmOperatorType *ot)
+static void WORKSPACE_OT_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Workspace";
 	ot->description = "Add a new workspace by duplicating the current one or appending one "
 	                  "from the user configuration";
-	ot->idname = "WORKSPACE_OT_add_menu";
+	ot->idname = "WORKSPACE_OT_add";
 
 	/* api callbacks */
 	ot->invoke = workspace_add_invoke;
@@ -575,7 +592,7 @@ void ED_operatortypes_workspace(void)
 {
 	WM_operatortype_append(WORKSPACE_OT_duplicate);
 	WM_operatortype_append(WORKSPACE_OT_delete);
-	WM_operatortype_append(WORKSPACE_OT_add_menu);
+	WM_operatortype_append(WORKSPACE_OT_add);
 	WM_operatortype_append(WORKSPACE_OT_append_activate);
 	WM_operatortype_append(WORKSPACE_OT_reorder_to_back);
 	WM_operatortype_append(WORKSPACE_OT_reorder_to_front);

@@ -791,7 +791,6 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	RNA_def_string(func, "new", NULL, 0, "", "Operator identifier to create a new ID block");
-	RNA_def_string(func, "open", NULL, 0, "", "Operator identifier to open a file for creating a new ID block");
 	RNA_def_string(func, "menu", NULL, 0, "", "Context menu identifier");
 	RNA_def_enum(func, "filter", id_template_filter_items, UI_TEMPLATE_ID_FILTER_ALL,
 	             "", "Optionally limit the items which can be selected");

@@ -8938,6 +8938,9 @@ static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 
 	link_list(fd, &user->uistyles);
 
+	/* Don't read the active app template, use the default one. */
+	user->app_template[0] = '\0';
+
 	/* free fd->datamap again */
 	oldnewmap_free_unused(fd->datamap);
 	oldnewmap_clear(fd->datamap);

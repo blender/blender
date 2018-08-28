@@ -108,6 +108,8 @@ void BLI_path_rel(char *file, const char *relfile) ATTR_NONNULL();
 bool BLI_path_is_rel(const char *path) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 bool BLI_path_is_unc(const char *path);
 
+void BLI_path_to_display_name(char *display_name, int maxlen, const char *name) ATTR_NONNULL();
+
 #if defined(WIN32)
 void BLI_cleanup_unc_16(wchar_t *path_16);
 void BLI_cleanup_unc(char *path_16, int maxlen);

@@ -1039,7 +1039,7 @@ void uiTemplateIDPreview(
 void uiTemplateIDTabs(
         uiLayout *layout, struct bContext *C,
         PointerRNA *ptr, const char *propname,
-        const char *newop, const char *openop, const char *menu,
+        const char *newop, const char *menu,
         int filter);
 void uiTemplateAnyID(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname,

@@ -28,9 +28,11 @@
 #include <stdio.h>
 
 #include "BLI_utildefines.h"
-#include "BLI_string.h"
 #include "BLI_fileops.h"
+#include "BLI_fileops_types.h"
+#include "BLI_listbase.h"
 #include "BLI_path_util.h"
+#include "BLI_string.h"
 
 #include "BKE_blender_version.h"
 #include "BKE_appdir.h"  /* own include */
@@ -736,6 +738,32 @@ bool BKE_appdir_app_template_id_search(const char *app_template, char *path, siz
 		}
 	}
 	return false;
+}
+
+void BKE_appdir_app_templates(ListBase *templates)
+{
+	BLI_listbase_clear(templates);
+
+	for (int i = 0; i < 2; i++) {
+		char subdir[FILE_MAX];
+		if (!BKE_appdir_folder_id_ex(
+		        app_template_directory_id[i], app_template_directory_search[i],
+		        subdir, sizeof(subdir)))
+		{
+			continue;
+		}
+
+		struct direntry *dir;
+		uint totfile = BLI_filelist_dir_contents(subdir, &dir);
+		for (int f = 0; f < totfile; f++) {
+			if (!FILENAME_IS_CURRPAR(dir[f].relname) && S_ISDIR(dir[f].type)) {
+				char *template = BLI_strdup(dir[f].relname);
+				BLI_addtail(templates, BLI_genericNodeN(template));
+			}
+		}
+
+		BLI_filelist_free(dir, totfile);
+	}
 }
 
 /**
