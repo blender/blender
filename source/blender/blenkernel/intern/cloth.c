@@ -85,13 +85,18 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->gravity[0] = 0.0;
 	clmd->sim_parms->gravity[1] = 0.0;
 	clmd->sim_parms->gravity[2] = -9.81;
-	clmd->sim_parms->structural = 15.0;
-	clmd->sim_parms->max_struct = 15.0;
-	clmd->sim_parms->shear = 15.0;
+	clmd->sim_parms->tension = 15.0;
+	clmd->sim_parms->max_tension = 15.0;
+	clmd->sim_parms->compression = 15.0;
+	clmd->sim_parms->max_compression = 15.0;
+	clmd->sim_parms->shear = 5.0;
+	clmd->sim_parms->max_shear = 5.0;
 	clmd->sim_parms->bending = 0.5;
 	clmd->sim_parms->max_bend = 0.5;
+	clmd->sim_parms->tension_damp = 5.0;
+	clmd->sim_parms->compression_damp = 5.0;
+	clmd->sim_parms->shear_damp = 5.0;
 	clmd->sim_parms->bending_damping = 0.5;
-	clmd->sim_parms->Cdis = 5.0;
 	clmd->sim_parms->Cvi = 1.0;
 	clmd->sim_parms->mass = 0.3f;
 	clmd->sim_parms->stepsPerFrame = 5;
@@ -133,6 +138,8 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->sim_parms->velocity_smooth = 0.0f;
 
 	clmd->sim_parms->voxel_cell_size = 0.1f;
+
+	clmd->sim_parms->bending_model = CLOTH_BENDING_ANGULAR;
 
 	if (!clmd->sim_parms->effector_weights)
 		clmd->sim_parms->effector_weights = BKE_add_effector_weights(NULL);
@@ -728,6 +735,9 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, Mesh *mesh )
 					if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) {
 						if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_struct-1)) {
 							verts->struct_stiff = dvert->dw [j].weight;
+						}
+
+						if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_shear-1)) {
 							verts->shear_stiff = dvert->dw [j].weight;
 						}
 

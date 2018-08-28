@@ -49,17 +49,17 @@
 typedef struct ClothSimSettings {
 	struct	LinkNode *cache; /* UNUSED atm */
 	float 	mingoal; 	/* see SB */
-	float	Cdis;		/* Mechanical damping of springs.		*/
+	float	Cdis DNA_DEPRECATED;	/* Mechanical damping of springs. */
 	float	Cvi;		/* Viscous/fluid damping.			*/
 	float	gravity[3];	/* Gravity/external force vector.		*/
 	float	dt;		/* This is the duration of our time step, computed.	*/
 	float	mass;		/* The mass of the entire cloth.		*/
-	float	structural;	/* Structural spring stiffness.			*/
+	float	structural DNA_DEPRECATED;	/* Structural spring stiffness. */
 	float	shear;		/* Shear spring stiffness.			*/
 	float	bending;	/* Flexion spring stiffness.			*/
 	float	max_bend; 	/* max bending scaling value, min is "bending" */
-	float	max_struct; 	/* max structural scaling value, min is "structural" */
-	float	max_shear; 	/* max shear scaling value, UNUSED */
+	float	max_struct DNA_DEPRECATED;	/* max structural scaling value, min is "structural" */
+	float	max_shear; 	/* max shear scaling value */
 	float	max_sewing; 	/* max sewing force */
 	float 	avg_spring_len; /* used for normalized springs */
 	float 	timescale; /* parameter how fast cloth runs */
@@ -101,6 +101,16 @@ typedef struct ClothSimSettings {
 
 	char pad0[4];
 	struct EffectorWeights *effector_weights;
+
+	short	bending_model;
+	short	vgroup_shear;		/* Vertex group for scaling structural stiffness. */
+	float	tension;
+	float	compression;
+	float	max_tension;
+	float	max_compression;
+	float	tension_damp;		/* Mechanical damping of tension springs. */
+	float	compression_damp;	/* Mechanical damping of compression springs. */
+	float	shear_damp;			/* Mechanical damping of shear springs. */
 } ClothSimSettings;
 
 

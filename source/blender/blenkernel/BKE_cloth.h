@@ -167,10 +167,16 @@ typedef enum {
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
 	CLOTH_SIMSETTINGS_FLAG_SCALING = ( 1 << 8 ), /* is advanced scaling active? */
 	CLOTH_SIMSETTINGS_FLAG_CCACHE_EDIT = (1 << 12),	/* edit cache in editmode */
-	CLOTH_SIMSETTINGS_FLAG_NO_SPRING_COMPRESS = (1 << 13), /* don't allow spring compression */
+	CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS = (1 << 13), /* don't allow spring compression */
 	CLOTH_SIMSETTINGS_FLAG_SEW = (1 << 14), /* pull ends of loose edges together */
 	CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH = (1 << 15), /* make simulation respect deformations in the base object */
 } CLOTH_SIMSETTINGS_FLAGS;
+
+/* ClothSimSettings.bending_model. */
+typedef enum {
+	CLOTH_BENDING_LINEAR	= 0,
+	CLOTH_BENDING_ANGULAR	= 1,
+} CLOTH_BENDING_MODEL;
 
 /* COLLISION FLAGS */
 typedef enum {

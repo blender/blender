@@ -1585,9 +1585,13 @@ BLI_INLINE void apply_spring(Implicit_Data *data, int i, int j, const float f[3]
 }
 
 bool BPH_mass_spring_force_spring_linear(Implicit_Data *data, int i, int j, float restlen,
-                                         float stiffness, float damping, bool no_compress, float clamp_force)
+                                         float stiffness_tension, float damping_tension,
+                                         float stiffness_compression, float damping_compression,
+                                         bool resist_compress, bool new_compress, float clamp_force)
 {
 	float extent[3], length, dir[3], vel[3];
+	float f[3], dfdx[3][3], dfdv[3][3];
+	float damping = 0;
 
 	// calculate elonglation
 	spring_length(data, i, j, extent, dir, &length, vel);
@@ -1595,29 +1599,41 @@ bool BPH_mass_spring_force_spring_linear(Implicit_Data *data, int i, int j, floa
 	/* This code computes not only the force, but also its derivative.
 	   Zero derivative effectively disables the spring for the implicit solver.
 	   Thus length > restlen makes cloth unconstrained at the start of simulation. */
-	if ((length >= restlen && length > 0) || no_compress) {
-		float stretch_force, f[3], dfdx[3][3], dfdv[3][3];
+	if ((length >= restlen && length > 0) || resist_compress) {
+		float stretch_force;
 
-		stretch_force = stiffness * (length - restlen);
+		damping = damping_tension;
+
+		stretch_force = stiffness_tension * (length - restlen);
 		if (clamp_force > 0.0f && stretch_force > clamp_force) {
 			stretch_force = clamp_force;
 		}
 		mul_v3_v3fl(f, dir, stretch_force);
 
-		// Ascher & Boxman, p.21: Damping only during elonglation
-		// something wrong with it...
-		madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
+		dfdx_spring(dfdx, dir, length, restlen, stiffness_tension);
+	}
+	else if (new_compress) {
+		/* This is based on the Choi and Ko bending model, which works surprisingly well for compression. */
+		float kb = stiffness_compression;
+		float cb = kb; /* cb equal to kb seems to work, but a factor can be added if necessary */
 
-		dfdx_spring(dfdx, dir, length, restlen, stiffness);
-		dfdv_damp(dfdv, dir, damping);
+		damping = damping_compression;
 
-		apply_spring(data, i, j, f, dfdx, dfdv);
+		mul_v3_v3fl(f, dir, fbstar(length, restlen, kb, cb));
 
-		return true;
+		outerproduct(dfdx, dir, dir);
+		mul_m3_fl(dfdx, fbstar_jacobi(length, restlen, kb, cb));
 	}
 	else {
 		return false;
 	}
+
+	madd_v3_v3fl(f, dir, damping * dot_v3v3(vel, dir));
+	dfdv_damp(dfdv, dir, damping);
+
+	apply_spring(data, i, j, f, dfdx, dfdv);
+
+	return true;
 }
 
 /* See "Stable but Responsive Cloth" (Choi, Ko 2005) */

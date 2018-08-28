@@ -40,6 +40,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpu_types.h"
@@ -80,6 +81,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_paint.h"
 #include "BKE_object.h"
+#include "BKE_cloth.h"
 
 #include "BLT_translation.h"
 
@@ -1916,6 +1918,28 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						else {
 							mmd->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
 						}
+					}
+				}
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "ClothSimSettings", "short", "bending_model")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Cloth) {
+						ClothModifierData *clmd = (ClothModifierData *)md;
+
+						clmd->sim_parms->bending_model = CLOTH_BENDING_LINEAR;
+						clmd->sim_parms->tension = clmd->sim_parms->structural;
+						clmd->sim_parms->compression = clmd->sim_parms->structural;
+						clmd->sim_parms->shear = clmd->sim_parms->structural;
+						clmd->sim_parms->max_tension = clmd->sim_parms->max_struct;
+						clmd->sim_parms->max_compression = clmd->sim_parms->max_struct;
+						clmd->sim_parms->max_shear = clmd->sim_parms->max_struct;
+						clmd->sim_parms->vgroup_shear = clmd->sim_parms->vgroup_struct;
+						clmd->sim_parms->tension_damp = clmd->sim_parms->Cdis;
+						clmd->sim_parms->compression_damp = clmd->sim_parms->Cdis;
+						clmd->sim_parms->shear_damp = clmd->sim_parms->Cdis;
 					}
 				}
 			}

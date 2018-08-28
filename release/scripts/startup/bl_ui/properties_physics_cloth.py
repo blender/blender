@@ -74,20 +74,38 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         col = flow.column()
         col.prop(cloth, "quality", text="Quality Steps")
         col.prop(cloth, "time_scale", text="Speed Multiplier")
+        col.prop(cloth, "bending_model")
 
         col.separator()
 
         col = flow.column()
         col.prop(cloth, "mass", text="Material Mass")
-        col.prop(cloth, "structural_stiffness", text="Structural")
+        col.prop(cloth, "air_damping", text="Air")
+        col.prop(cloth, "vel_damping", text="Velocity")
+
+        col.separator()
+
+        col = flow.column()
+        if cloth.bending_model == 'ANGULAR':
+            col.prop(cloth, "tension_stiffness", text="Stiffness Tension")
+            col.prop(cloth, "compression_stiffness", text="Compression")
+        else:
+            col.prop(cloth, "tension_stiffness", text="Stiffness Structural")
+
+        col.prop(cloth, "shear_stiffness", text="Shear")
         col.prop(cloth, "bending_stiffness", text="Bending")
 
         col.separator()
 
         col = flow.column()
-        col.prop(cloth, "spring_damping", text="Damping Spring")
-        col.prop(cloth, "air_damping", text="Air")
-        col.prop(cloth, "vel_damping", text="Velocity")
+        if cloth.bending_model == 'ANGULAR':
+            col.prop(cloth, "tension_damping", text="Damping Tension")
+            col.prop(cloth, "compression_damping", text="Compression")
+        else:
+            col.prop(cloth, "tension_damping", text="Damping Structural")
+
+        col.prop(cloth, "shear_damping", text="Shear")
+        col.prop(cloth, "bending_damping", text="Bending")
 
         col = flow.column()
         col.prop(cloth, "use_dynamic_mesh", text="Dynamic Mesh")
@@ -248,7 +266,17 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
             cloth, "vertex_group_structural_stiffness", ob, "vertex_groups",
             text="Structural Group"
         )
-        col.prop(cloth, "structural_stiffness_max", text="Max")
+        col.prop(cloth, "tension_stiffness_max", text="Max Tension")
+        col.prop(cloth, "compression_stiffness_max", text="Compression")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop_search(
+            cloth, "vertex_group_shear_stiffness", ob, "vertex_groups",
+            text="Shear Group"
+        )
+        col.prop(cloth, "shear_stiffness_max", text="Max")
 
         col.separator()
 
