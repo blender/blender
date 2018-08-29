@@ -485,7 +485,9 @@ class _defs_edit_armature:
             icon="ops.armature.extrude_move",
             widget=None,
             keymap=(
-                ("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+                ("armature.extrude_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
@@ -672,7 +674,8 @@ class _defs_edit_mesh:
             widget="MESH_GGT_extrude",
             operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(
-                ("mesh.extrude_context_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
+                ("mesh.extrude_context_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
