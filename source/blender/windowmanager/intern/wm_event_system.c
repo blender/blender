@@ -1871,13 +1871,15 @@ static void wm_event_modalkeymap(const bContext *C, wmOperator *op, wmEvent *eve
 
 		for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 			if (wm_eventmatch(event, kmi)) {
-
-				event->prevtype = event->type;
-				event->prevval = event->val;
-				event->type = EVT_MODAL_MAP;
-				event->val = kmi->propvalue;
-
-				break;
+				if ((keymap->poll_modal_item == NULL) ||
+				    (keymap->poll_modal_item(op, kmi->propvalue)))
+				{
+					event->prevtype = event->type;
+					event->prevval = event->val;
+					event->type = EVT_MODAL_MAP;
+					event->val = kmi->propvalue;
+					break;
+				}
 			}
 		}
 	}
