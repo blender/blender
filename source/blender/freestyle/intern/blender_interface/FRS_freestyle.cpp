@@ -307,60 +307,17 @@ static void prepare(Render *re, ViewLayer *view_layer)
 			if (G.debug & G_DEBUG_FREESTYLE) {
 				cout << "Modules :" << endl;
 			}
-		}
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << endl;
-		}
-		controller->setComputeRidgesAndValleysFlag((config->flags & FREESTYLE_RIDGES_AND_VALLEYS_FLAG) ? true : false);
-		controller->setComputeSuggestiveContoursFlag((config->flags & FREESTYLE_SUGGESTIVE_CONTOURS_FLAG) ? true : false);
-		controller->setComputeMaterialBoundariesFlag((config->flags & FREESTYLE_MATERIAL_BOUNDARIES_FLAG) ? true : false);
-		break;
-	case FREESTYLE_CONTROL_EDITOR_MODE:
-		int use_ridges_and_valleys = 0;
-		int use_suggestive_contours = 0;
-		int use_material_boundaries = 0;
-		struct edge_type_condition conditions[] = {
-			{FREESTYLE_FE_SILHOUETTE, 0},
-			{FREESTYLE_FE_BORDER, 0},
-			{FREESTYLE_FE_CREASE, 0},
-			{FREESTYLE_FE_RIDGE_VALLEY, 0},
-			{FREESTYLE_FE_SUGGESTIVE_CONTOUR, 0},
-			{FREESTYLE_FE_MATERIAL_BOUNDARY, 0},
-			{FREESTYLE_FE_CONTOUR, 0},
-			{FREESTYLE_FE_EXTERNAL_CONTOUR, 0},
-			{FREESTYLE_FE_EDGE_MARK, 0}
-		};
-		int num_edge_types = sizeof(conditions) / sizeof(struct edge_type_condition);
-		if (G.debug & G_DEBUG_FREESTYLE) {
-			cout << "Linesets:" << endl;
-		}
-		for (FreestyleLineSet *lineset = (FreestyleLineSet *)config->linesets.first;
-		     lineset;
-		     lineset = lineset->next)
-		{
-			if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
-				if (G.debug & G_DEBUG_FREESTYLE) {
-					cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
-					        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
-				}
-				char *buffer = create_lineset_handler(view_layer->name, lineset->name);
-				controller->InsertStyleModule(layer_count, lineset->name, buffer);
-				controller->toggleLayer(layer_count, true);
-				MEM_freeN(buffer);
-				if (!(lineset->selection & FREESTYLE_SEL_EDGE_TYPES) || !lineset->edge_types) {
-					++use_ridges_and_valleys;
-					++use_suggestive_contours;
-					++use_material_boundaries;
-				}
-				else {
-					// conditions for feature edge selection by edge types
-					for (int i = 0; i < num_edge_types; i++) {
-						if (!(lineset->edge_types & conditions[i].edge_type))
-							conditions[i].value = 0; // no condition specified
-						else if (!(lineset->exclude_edge_types & conditions[i].edge_type))
-							conditions[i].value = 1; // condition: X
-						else
-							conditions[i].value = -1; // condition: NOT X
+			for (FreestyleModuleConfig *module_conf = (FreestyleModuleConfig *)config->modules.first;
+			     module_conf;
+			     module_conf = module_conf->next)
+			{
+				if (module_conf->script && module_conf->is_displayed) {
+					const char *id_name = module_conf->script->id.name + 2;
+					if (G.debug & G_DEBUG_FREESTYLE) {
+						cout << "  " << layer_count + 1 << ": " << id_name;
+						if (module_conf->script->name)
+							cout << " (" << module_conf->script->name << ")";
+						cout << endl;
 					}
 					controller->InsertStyleModule(layer_count, id_name, module_conf->script);
 					controller->toggleLayer(layer_count, true);
@@ -400,9 +357,9 @@ static void prepare(Render *re, ViewLayer *view_layer)
 				if (lineset->flags & FREESTYLE_LINESET_ENABLED) {
 					if (G.debug & G_DEBUG_FREESTYLE) {
 						cout << "  " << layer_count+1 << ": " << lineset->name << " - " <<
-							(lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
+						        (lineset->linestyle ? (lineset->linestyle->id.name + 2) : "<NULL>") << endl;
 					}
-					char *buffer = create_lineset_handler(srl->name, lineset->name);
+					char *buffer = create_lineset_handler(view_layer->name, lineset->name);
 					controller->InsertStyleModule(layer_count, lineset->name, buffer);
 					controller->toggleLayer(layer_count, true);
 					MEM_freeN(buffer);
