@@ -34,7 +34,7 @@ struct avxb
 	////////////////////////////////////////////////////////////////////////////////
 	/// Constructors, Assignment & Cast Operators
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	__forceinline avxb           ( ) {}
 	__forceinline avxb           ( const avxb& other ) { m256 = other.m256; }
 	__forceinline avxb& operator=( const avxb& other ) { m256 = other.m256; return *this; }
@@ -43,10 +43,10 @@ struct avxb
 	__forceinline operator const __m256&( void ) const { return m256; }
 	__forceinline operator const __m256i( void ) const { return _mm256_castps_si256(m256); }
 	__forceinline operator const __m256d( void ) const { return _mm256_castps_pd(m256); }
-	
+
 	//__forceinline avxb           ( bool  a )
 	//	: m256(_mm_lookupmask_ps[(size_t(a) << 3) | (size_t(a) << 2) | (size_t(a) << 1) | size_t(a)]) {}
-	//__forceinline avxb           ( bool  a, bool  b) 
+	//__forceinline avxb           ( bool  a, bool  b)
 	//	: m256(_mm_lookupmask_ps[(size_t(b) << 3) | (size_t(a) << 2) | (size_t(b) << 1) | size_t(a)]) {}
 	//__forceinline avxb           ( bool  a, bool  b, bool  c, bool  d)
 	//	: m256(_mm_lookupmask_ps[(size_t(d) << 3) | (size_t(c) << 2) | (size_t(b) << 1) | size_t(a)]) {}
@@ -101,9 +101,9 @@ __forceinline const avxb operator ==( const avxb& a, const avxb& b ) { return _m
 
 __forceinline const avxb select( const avxb& m, const avxb& t, const avxb& f ) {
 #if defined(__KERNEL_SSE41__)
-	return _mm256_blendv_ps(f, t, m); 
+	return _mm256_blendv_ps(f, t, m);
 #else
-	return _mm256_or_ps(_mm256_and_ps(m, t), _mm256_andnot_ps(m, f)); 
+	return _mm256_or_ps(_mm256_and_ps(m, t), _mm256_andnot_ps(m, f));
 #endif
 }
 
@@ -189,4 +189,3 @@ ccl_device_inline void print_avxb(const char *label, const avxb &a)
 CCL_NAMESPACE_END
 
 //#endif
-

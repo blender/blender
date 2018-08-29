@@ -237,4 +237,3 @@ __forceinline const avxb operator <=(const avxf& a, const avxf& b) {
     _mm256_set_m128(_mm_loadu_ps(hiaddr), _mm_loadu_ps(loaddr))
 
 CCL_NAMESPACE_END
-
