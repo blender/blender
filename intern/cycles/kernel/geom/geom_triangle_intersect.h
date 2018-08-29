@@ -70,6 +70,8 @@ ccl_device_inline bool triangle_intersect(KernelGlobals *kg,
 	return false;
 }
 
+#ifdef __KERNEL_AVX2__
+
 #define	cross256(A,B, C,D) _mm256_fmsub_ps(A,B, _mm256_mul_ps(C,D))
 #if defined(__KERNEL_CUDA__) && __CUDA_ARCH__ < 300
 ccl_device_inline
@@ -541,6 +543,8 @@ int triangle_intersect8(KernelGlobals *kg,
 	                                     isec_t);
 	return result;
 }
+
+#endif /* __KERNEL_AVX2__ */
 
 /* Special ray intersection routines for subsurface scattering. In that case we
  * only want to intersect with primitives in the same object, and if case of
