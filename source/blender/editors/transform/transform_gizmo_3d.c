@@ -1459,8 +1459,10 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 
 		if (ptr) {
 			PropertyRNA *prop;
-			if ((prop = RNA_struct_find_property(ptr, "constraint_axis"))) {
-				RNA_property_boolean_set_array(ptr, prop, constraint_axis);
+			if (ELEM(true, UNPACK3(constraint_axis))) {
+				if ((prop = RNA_struct_find_property(ptr, "constraint_axis"))) {
+					RNA_property_boolean_set_array(ptr, prop, constraint_axis);
+				}
 			}
 
 			RNA_boolean_set(ptr, "release_confirm", 1);
