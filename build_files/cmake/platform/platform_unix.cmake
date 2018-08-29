@@ -30,7 +30,10 @@ set(LIBDIR ${CMAKE_SOURCE_DIR}/../lib/${LIBDIR_NAME})
 
 if(EXISTS ${LIBDIR})
 	file(GLOB LIB_SUBDIRS ${LIBDIR}/*)
-	set(CMAKE_PREFIX_PATH ${LIB_SUBDIRS})
+	# NOTE: Make sure "proper" compiled zlib comes first before the one
+	# which is a part of OpenCollada. They have different ABI, and we
+	# do need to use the official one.
+	set(CMAKE_PREFIX_PATH ${LIBDIR}/zlib ${LIB_SUBDIRS})
 	set(WITH_STATIC_LIBS ON)
 	set(WITH_OPENMP_STATIC ON)
 endif()
