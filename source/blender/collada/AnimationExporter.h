@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file AnimationExporter.h
+ *  \ingroup collada
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>

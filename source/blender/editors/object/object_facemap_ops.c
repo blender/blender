@@ -24,6 +24,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/editors/object/object_facemap_ops.c
+ *  \ingroup edobj
+ */
+
 #include <string.h>
 
 #include "MEM_guardedalloc.h"

@@ -22,6 +22,10 @@
  *
  */
 
+/** \file blender/editors/io/io_alembic.c
+ *  \ingroup editor/io
+ */
+
 #ifdef WITH_ALEMBIC
 
 /* needed for directory lookup */

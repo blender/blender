@@ -25,6 +25,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/intern/gpu_shader.c
+ *  \ingroup gpu
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

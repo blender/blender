@@ -26,6 +26,10 @@
 #ifndef __SUBDIV_CONVERTER_H__
 #define __SUBDIV_CONVERTER_H__
 
+/** \file blender/blenkernel/intern/subdiv_converter.h
+ *  \ingroup bke
+ */
+
 #include "BKE_subdiv.h"
 
 /* NOTE: Was initially used to get proper enumerator types, but this makes

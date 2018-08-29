@@ -20,6 +20,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file AnimationExporter.cpp
+ *  \ingroup collada
+ */
+
 #include "GeometryExporter.h"
 #include "AnimationExporter.h"
 #include "MaterialExporter.h"

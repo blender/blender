@@ -26,6 +26,10 @@
  * Defines and code for core node types
  */
 
+/** \file blender/blenkernel/intern/armature_update.c
+ *  \ingroup bke
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"

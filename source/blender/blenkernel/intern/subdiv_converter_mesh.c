@@ -23,6 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/blenkernel/intern/subdiv_converter_mesh.c
+ *  \ingroup bke
+ */
+
 #include "subdiv_converter.h"
 
 #include <string.h>

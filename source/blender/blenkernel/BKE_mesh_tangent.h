@@ -20,6 +20,10 @@
 #ifndef __BKE_MESH_TANGENT_H__
 #define __BKE_MESH_TANGENT_H__
 
+/** \file BKE_mesh_tangent.h
+ *  \ingroup bke
+ */
+
 void BKE_mesh_calc_loop_tangent_single_ex(
         const struct MVert *mverts, const int numVerts, const struct MLoop *mloops,
         float (*r_looptangent)[4], float (*loopnors)[3], const struct MLoopUV *loopuv,

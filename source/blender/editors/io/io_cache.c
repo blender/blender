@@ -22,6 +22,10 @@
  *
  */
 
+/** \file blender/editors/io/io_cache.c
+ *  \ingroup editor/io
+ */
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_cachefile_types.h"

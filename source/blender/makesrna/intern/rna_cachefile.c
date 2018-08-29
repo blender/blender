@@ -23,6 +23,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/makesrna/intern/rna_cachefile.c
+ *  \ingroup RNA
+ */
+
 #include "DNA_cachefile_types.h"
 #include "DNA_scene_types.h"
 

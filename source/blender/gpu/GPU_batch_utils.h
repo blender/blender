@@ -18,6 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/gpu/GPU_batch_utils.h
+ *  \ingroup gpu
+ */
+
 #ifndef __GPU_BATCH_UTILS_H__
 #define __GPU_BATCH_UTILS_H__
 

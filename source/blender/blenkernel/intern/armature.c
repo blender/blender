@@ -27,7 +27,6 @@
  *  \ingroup bke
  */
 
-
 #include <ctype.h>
 #include <stdlib.h>
 #include <math.h>

@@ -21,6 +21,10 @@
 #ifndef __BLI_POLYFILL_2D_BEAUTIFY_H__
 #define __BLI_POLYFILL_2D_BEAUTIFY_H__
 
+/** \file BLI_polyfill_2d_beautify.h
+ *  \ingroup bli
+ */
+
 struct Heap;
 struct MemArena;
 
