@@ -357,7 +357,7 @@ void BVH8::pack_nodes(const BVHNode *root)
 					idx = nextNodeIdx;
 					nextNodeIdx += node_is_unaligned(nodes[i], bvh8)
 						? BVH_UNALIGNED_ONODE_SIZE
-						: BVH_ONODE_SIZE; 
+						: BVH_ONODE_SIZE;
 				}
 				stack.push_back(BVHStackEntry(nodes[i], idx));
 			}
