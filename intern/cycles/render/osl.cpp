@@ -28,7 +28,6 @@
 #include "kernel/osl/osl_globals.h"
 #include "kernel/osl/osl_services.h"
 #include "kernel/osl/osl_shader.h"
-#include "OSL/llvm_util.h"
 
 #include "util/util_foreach.h"
 #include "util/util_logging.h"
