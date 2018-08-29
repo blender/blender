@@ -400,6 +400,9 @@ class _defs_view3d_select:
 
     @ToolDef.from_fn
     def circle():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("view3d.select_circle")
+            layout.prop(props, "radius")
         return dict(
             text="Select Circle",
             icon="ops.generic.select_circle",
@@ -412,6 +415,7 @@ class _defs_view3d_select:
                  dict(deselect=True),
                  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
