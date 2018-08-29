@@ -164,24 +164,24 @@ int BlenderFileLoader::countClippedFaces(float v1[3], float v2[3], float v3[3], 
 		sum += clip[i];
 	}
 	switch (numClipped) {
-	case 0:
-		numTris = 1; // triangle
-		break;
-	case 1:
-		numTris = 2; // tetragon
-		break;
-	case 2:
-		if (sum == 0)
-			numTris = 3; // pentagon
-		else
+		case 0:
 			numTris = 1; // triangle
-		break;
-	case 3:
-		if (sum == 3 || sum == -3)
-			numTris = 0;
-		else
+			break;
+		case 1:
 			numTris = 2; // tetragon
-		break;
+			break;
+		case 2:
+			if (sum == 0)
+				numTris = 3; // pentagon
+			else
+				numTris = 1; // triangle
+			break;
+		case 3:
+			if (sum == 3 || sum == -3)
+				numTris = 0;
+			else
+				numTris = 2; // tetragon
+			break;
 	}
 	return numTris;
 }

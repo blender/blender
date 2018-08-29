@@ -1947,7 +1947,8 @@ int ViewMapBuilder::ComputeRayCastingVisibility(FEdge *fe, Grid *iGrid, real eps
 	int viewport[4];
 	SilhouetteGeomEngine::retrieveViewport(viewport);
 	if ((A.x() < viewport[0]) || (A.x() > viewport[2]) || (A.y() < viewport[1]) || (A.y() > viewport[3]) ||
-	    (B.x() < viewport[0]) || (B.x() > viewport[2]) || (B.y() < viewport[1]) || (B.y() > viewport[3])) {
+	    (B.x() < viewport[0]) || (B.x() > viewport[2]) || (B.y() < viewport[1]) || (B.y() > viewport[3]))
+	{
 		cerr << "Warning: point is out of the grid for fedge " << fe->getId() << endl;
 		//return 0;
 	}

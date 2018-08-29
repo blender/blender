@@ -1660,7 +1660,7 @@ void ViewShape::SplitEdge(FEdge *fe, const vector<TVertex*>& iViewVertices, vect
 				sv = sv2;
 		}
 		else {
-		// if the shape is the same we can safely differ the two vertices using their ids:
+			// if the shape is the same we can safely differ the two vertices using their ids:
 			if (sv->getId() != fe->vertexA()->getId())
 				sv = sv2;
 		}

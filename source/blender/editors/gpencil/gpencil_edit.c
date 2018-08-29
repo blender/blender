@@ -3330,10 +3330,10 @@ static int gp_stroke_separate_exec(bContext *C, wmOperator *op)
 void GPENCIL_OT_stroke_separate(wmOperatorType *ot)
 {
 	static const EnumPropertyItem separate_type[] = {
-	{GP_SEPARATE_POINT, "POINT", 0, "Selected Points", "Separate the selected points" },
-	{GP_SEPARATE_STROKE, "STROKE", 0, "Selected Strokes", "Separate the selected strokes"},
-	{GP_SEPARATE_LAYER, "LAYER", 0, "Active Layer", "Separate the strokes of the current layer" },
-	{ 0, NULL, 0, NULL, NULL }
+		{GP_SEPARATE_POINT, "POINT", 0, "Selected Points", "Separate the selected points"},
+		{GP_SEPARATE_STROKE, "STROKE", 0, "Selected Strokes", "Separate the selected strokes"},
+		{GP_SEPARATE_LAYER, "LAYER", 0, "Active Layer", "Separate the strokes of the current layer"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */

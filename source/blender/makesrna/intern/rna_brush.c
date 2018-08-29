@@ -961,8 +961,8 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 
 	/*  Grease Pencil Drawing - generated dynamically */
 	static const EnumPropertyItem prop_dynamic_gpencil_type[] = {
-		{ 1, "DRAW", 0, "Draw", "" },
-	{ 0, NULL, 0, NULL, NULL }
+		{1, "DRAW", 0, "Draw", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	srna = RNA_def_struct(brna, "BrushGpencilSettings", NULL);

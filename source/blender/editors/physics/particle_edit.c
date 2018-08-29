@@ -3764,7 +3764,8 @@ static void brush_add_count_iter(
 	                            &min_d,
 	                            &add_pars[iter].num_dmcache,
 	                            add_pars[iter].fuv,
-	                            0, 0, 0, 0)) {
+	                            0, 0, 0, 0))
+	{
 		if (psys->part->use_modifier_stack && !psmd_eval->mesh_final->runtime.deformed_only) {
 			add_pars[iter].num = add_pars[iter].num_dmcache;
 			add_pars[iter].num_dmcache = DMCACHE_ISCHILD;
@@ -4645,7 +4646,8 @@ int PE_minmax(Scene *scene, ViewLayer *view_layer, float min[3], float max[3])
 static struct ParticleSystem *psys_eval_get(
         Depsgraph *depsgraph,
         Object *object,
-        ParticleSystem *psys){
+        ParticleSystem *psys)
+{
 	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
 	if (object_eval == object) {
 		return psys;

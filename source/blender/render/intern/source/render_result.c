@@ -882,7 +882,8 @@ bool RE_WriteRenderResult(ReportList *reports, RenderResult *rr, const char *fil
 			/* Skip non-RGBA and Z passes if not using multi layer. */
 			if (!multi_layer && !(STREQ(rp->name, RE_PASSNAME_COMBINED) ||
 			                      STREQ(rp->name, "") ||
-			                      (STREQ(rp->name, RE_PASSNAME_Z) && write_z))) {
+			                      (STREQ(rp->name, RE_PASSNAME_Z) && write_z)))
+			{
 				continue;
 			}
 

@@ -283,8 +283,8 @@ static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *b
 		if (f_b)
 			has_f_b = BLI_ghash_haskey(faceHash, f_b);
 		if (has_f_a ^ has_f_b) {
-		/* If one of both faces is present in faceHash then we are at a border
-		*  between new vmesh created and reconstructed face */
+			/* If one of both faces is present in faceHash then we are at a border
+			 * between new vmesh created and reconstructed face */
 
 			for (int i = 0; i < 2; i++) {
 				BMVert *v = (i == 0) ? e->v1 : e->v2;
@@ -316,8 +316,8 @@ static void bevel_fix_normal_shading_continuity(BevelModifierData *bmd, BMesh *b
 			}
 		}
 		else if (has_f_a == true  && has_f_b == true) {
-		/* Else if both faces are present we assign clnor corresponding
-		*  to vert normal and face normal */
+			/* Else if both faces are present we assign clnor corresponding
+			 * to vert normal and face normal */
 			for (int i = 0; i < 2; i++) {
 				BMVert *v = (i == 0) ? e->v1 : e->v2;
 				BM_ITER_ELEM(l, &liter, v, BM_LOOPS_OF_VERT) {

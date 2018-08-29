@@ -573,7 +573,8 @@ void FEdgeXDetector::ProcessSuggestiveContourFace(WXFace *iFace)
 	real threshold = _meanKr;
 	if (faceLayer->nPosDotP()!=numVertices) {
 		if ((fabs(faceLayer->dotP(0)) < threshold) && (fabs(faceLayer->dotP(1)) < threshold) &&
-		    (fabs(faceLayer->dotP(2)) < threshold)) {
+		    (fabs(faceLayer->dotP(2)) < threshold))
+		{
 			faceLayer->ReplaceDotP(0, 0);
 			faceLayer->ReplaceDotP(1, 0);
 			faceLayer->ReplaceDotP(2, 0);
