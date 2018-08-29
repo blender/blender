@@ -884,6 +884,19 @@ class _defs_edit_curve:
         )
 
     @ToolDef.from_fn
+    def extrude():
+        return dict(
+            text="Extrude",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("curve.extrude_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def extrude_cursor():
         return dict(
             text="Extrude Cursor",
@@ -1698,7 +1711,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_annotate,
             None,
             _defs_edit_curve.draw,
-            _defs_edit_curve.extrude_cursor,
+            (
+                _defs_edit_curve.extrude,
+                _defs_edit_curve.extrude_cursor,
+            )
         ],
         'PARTICLE': [
             _defs_view3d_generic.cursor,
