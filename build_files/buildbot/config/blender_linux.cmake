@@ -9,10 +9,12 @@ if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")
 	message(STATUS "Building in GLibc-2.24 environment")
 	set(GLIBC "2.24")
 	set(MULTILIB "/x86_64-linux-gnu")
+	set(LIBDIR_NAME "linux_x86_64")
 elseif(EXISTS "/lib/i386-linux-gnu//libc-2.24.so")
 	message(STATUS "Building in GLibc-2.24 environment")
 	set(GLIBC "2.24")
 	set(MULTILIB "/i386-linux-gnu")
+	set(LIBDIR_NAME "linux_i686")
 elseif(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
 	message(STATUS "Building in GLibc-2.19 environment")
 	set(GLIBC "2.19")
@@ -161,13 +163,10 @@ set(BLOSC_LIBRARY
 
 else()
 
-# Set path to precompiled libraries.
-set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
-string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
-set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}")
+set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}" CACHE BOOL "" FORCE)
 
 # TODO(sergey): Remove once Python is oficially bumped to 3.7.
-set(PYTHON_VERSION 3.7)
+set(PYTHON_VERSION    3.7 CACHE BOOL "" FORCE)
 
 # Ensure specific configuration of various libraries.
 set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
