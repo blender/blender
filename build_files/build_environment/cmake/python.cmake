@@ -86,7 +86,6 @@ else()
 
 		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export PKG_CONFIG_PATH=${BREW_PKG_CONFIG} && ${PYTHON_FUNC_CONFIGS})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
-		#set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_apple.diff)
 		set(PYTHON_PATCH echo .)
 		set(PYTHON_CONFIGURE_EXTRA_ENV echo .)
 		set(PYTHON_CONFIGURE_EXTRA_ARGS)

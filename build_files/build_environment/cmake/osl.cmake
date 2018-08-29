@@ -90,7 +90,6 @@ ExternalProject_Add(external_osl
 	URL_HASH MD5=${OSL_HASH}
 	PREFIX ${BUILD_DIR}/osl
 	PATCH_COMMAND ${PATCH_CMD} -p 1 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl.diff
-	#	${PATCH_CMD} -p 0 -d ${BUILD_DIR}/osl/src/external_osl < ${PATCH_DIR}/osl_simd_oiio.diff
 	CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${LIBDIR}/osl -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} ${DEFAULT_CMAKE_FLAGS} ${OSL_EXTRA_ARGS}
 	INSTALL_DIR ${LIBDIR}/osl
 )
