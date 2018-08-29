@@ -32,6 +32,9 @@ CCL_NAMESPACE_BEGIN
 /* Common QBVH functions. */
 #ifdef __QBVH__
 #  include "kernel/bvh/qbvh_nodes.h"
+#ifdef __KERNEL_AVX2__
+#  include "kernel/bvh/obvh_nodes.h"
+#endif
 #endif
 
 /* Regular BVH traversal */

@@ -54,6 +54,7 @@ enum_displacement_methods = (
 enum_bvh_layouts = (
     ('BVH2', "BVH2", "", 1),
     ('BVH4', "BVH4", "", 2),
+    ('BVH8', "BVH8", "", 4),
 )
 
 enum_bvh_types = (
@@ -678,7 +679,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
     debug_bvh_layout: EnumProperty(
         name="BVH Layout",
         items=enum_bvh_layouts,
-        default='BVH4',
+        default='BVH8',
     )
     debug_use_cpu_split_kernel: BoolProperty(name="Split Kernel", default=False)
 

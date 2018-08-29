@@ -71,15 +71,13 @@ CCL_NAMESPACE_BEGIN
 /* Texture types to be compatible with CUDA textures. These are really just
  * simple arrays and after inlining fetch hopefully revert to being a simple
  * pointer lookup. */
-
 template<typename T> struct texture  {
 	ccl_always_inline const T& fetch(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return data[index];
 	}
-
-#ifdef __KERNEL_AVX__
+#if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
 	/* Reads 256 bytes but indexes in blocks of 128 bytes to maintain
 	 * compatibility with existing indicies and data structures.
 	 */
@@ -90,7 +88,6 @@ template<typename T> struct texture  {
 		ssef *ssef_node_data = &ssef_data[index];
 		return _mm256_loadu_ps((float *)ssef_node_data);
 	}
-
 #endif
 
 #ifdef __KERNEL_SSE2__
@@ -147,6 +144,10 @@ ccl_device_inline void print_sse3i(const char *label, sse3i& a)
 	print_ssei(label, a.y);
 	print_ssei(label, a.z);
 }
+
+#if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
+typedef vector3<avxf> avx3f;
+#endif
 
 #endif
 

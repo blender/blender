@@ -20,6 +20,9 @@
 #ifdef __QBVH__
 #  include "kernel/bvh/qbvh_traversal.h"
 #endif
+#ifdef __KERNEL_AVX2__
+#  include "kernel/bvh/obvh_traversal.h"
+#endif
 
 #if BVH_FEATURE(BVH_HAIR)
 #  define NODE_INTERSECT bvh_node_intersect
@@ -427,6 +430,19 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          )
 {
 	switch(kernel_data.bvh.bvh_layout) {
+#ifdef __KERNEL_AVX2__
+		case BVH_LAYOUT_BVH8:
+			return BVH_FUNCTION_FULL_NAME(OBVH)(kg,
+			                                    ray,
+			                                    isect,
+			                                    visibility
+#  if BVH_FEATURE(BVH_HAIR_MINIMUM_WIDTH)
+			                                    , lcg_state,
+			                                    difl,
+			                                    extmax
+#  endif
+			                                    );
+#endif
 #ifdef __QBVH__
 		case BVH_LAYOUT_BVH4:
 			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,

@@ -25,13 +25,6 @@
 
 CCL_NAMESPACE_BEGIN
 
-static bool node_bvh_is_unaligned(const BVHNode *node)
-{
-	const BVHNode *node0 = node->get_child(0),
-	              *node1 = node->get_child(1);
-	return node0->is_unaligned || node1->is_unaligned;
-}
-
 BVH2::BVH2(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
 {
@@ -195,7 +188,7 @@ void BVH2::pack_nodes(const BVHNode *root)
 	}
 	else {
 		stack.push_back(BVHStackEntry(root, nextNodeIdx));
-		nextNodeIdx += node_bvh_is_unaligned(root)
+		nextNodeIdx += node_is_unaligned(root, bvh2)
 		                       ? BVH_UNALIGNED_NODE_SIZE
 		                       : BVH_NODE_SIZE;
 	}
@@ -218,7 +211,7 @@ void BVH2::pack_nodes(const BVHNode *root)
 				}
 				else {
 					idx[i] = nextNodeIdx;
-					nextNodeIdx += node_bvh_is_unaligned(e.node->get_child(i))
+					nextNodeIdx += node_is_unaligned(e.node->get_child(i), bvh2)
 					                       ? BVH_UNALIGNED_NODE_SIZE
 					                       : BVH_NODE_SIZE;
 				}

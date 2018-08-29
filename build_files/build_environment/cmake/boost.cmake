@@ -63,6 +63,11 @@ else()
 	set(BOOST_BUILD_COMMAND ./b2)
 	set(BOOST_BUILD_OPTIONS cxxflags=${PLATFORM_CXXFLAGS} --disable-icu boost.locale.icu=off)
 	set(BOOST_PATCH_COMMAND echo .)
+	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+		set(BOOST_ADDRESS_MODEL 64)
+	else()
+		set(BOOST_ADDRESS_MODEL 32)
+	endif()
 endif()
 
 set(BOOST_OPTIONS

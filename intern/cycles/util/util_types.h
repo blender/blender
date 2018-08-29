@@ -121,6 +121,7 @@ CCL_NAMESPACE_END
 #include "util/util_types_float2.h"
 #include "util/util_types_float3.h"
 #include "util/util_types_float4.h"
+#include "util/util_types_float8.h"
 
 #include "util/util_types_vector3.h"
 
@@ -140,6 +141,7 @@ CCL_NAMESPACE_END
 #include "util/util_types_float2_impl.h"
 #include "util/util_types_float3_impl.h"
 #include "util/util_types_float4_impl.h"
+#include "util/util_types_float8_impl.h"
 
 #include "util/util_types_vector3_impl.h"
 
@@ -148,7 +150,10 @@ CCL_NAMESPACE_END
 #  include "util/util_sseb.h"
 #  include "util/util_ssei.h"
 #  include "util/util_ssef.h"
+#if defined(__KERNEL_AVX__) || defined(__KERNEL_AVX2__)
+#  include "util/util_avxb.h"
 #  include "util/util_avxf.h"
+#endif
 #endif
 
 #endif /* __UTIL_TYPES_H__ */

@@ -57,7 +57,19 @@ void DebugFlags::CPU::reset()
 #undef STRINGIFY
 #undef CHECK_CPU_FLAGS
 
-	bvh_layout = BVH_LAYOUT_DEFAULT;
+	if (getenv("CYCLES_BVH2") != NULL) {
+		bvh_layout = BVH_LAYOUT_BVH2;
+	}
+	else if (getenv("CYCLES_BVH4") != NULL) {
+		bvh_layout = BVH_LAYOUT_BVH4;
+	}
+	else if (getenv("CYCLES_BVH8") != NULL) {
+		bvh_layout = BVH_LAYOUT_BVH8;
+	}
+	else {
+		bvh_layout = BVH_LAYOUT_DEFAULT;
+	}
+
 	split_kernel = false;
 }
 
