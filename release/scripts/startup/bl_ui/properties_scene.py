@@ -71,6 +71,7 @@ class SCENE_PT_scene(SceneButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
 
@@ -92,6 +93,7 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         unit = context.scene.unit_settings
 
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
 
