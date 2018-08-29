@@ -127,7 +127,9 @@ class TOPBAR_HT_lower_bar(Header):
         elif mode == 'POSE':
             pass
         elif mode == 'PARTICLE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            # Disable, only shows "Brush" panel, which is already in the top-bar.
+            # layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            pass
         elif mode == 'GPENCIL_PAINT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
 
