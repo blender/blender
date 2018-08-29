@@ -5,7 +5,15 @@ include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_full.cmake")
 # Detect which libc we'll be linking against.
 # Some of the paths will depend on this
 
-if(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
+if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")
+	message(STATUS "Building in GLibc-2.24 environment")
+	set(GLIBC "2.24")
+	set(MULTILIB "/x86_64-linux-gnu")
+elseif(EXISTS "/lib/i386-linux-gnu//libc-2.24.so")
+	message(STATUS "Building in GLibc-2.24 environment")
+	set(GLIBC "2.24")
+	set(MULTILIB "/i386-linux-gnu")
+elseif(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
 	message(STATUS "Building in GLibc-2.19 environment")
 	set(GLIBC "2.19")
 	set(MULTILIB "/x86_64-linux-gnu")
@@ -41,7 +49,10 @@ set(WITH_PYTHON_INSTALL_NUMPY    ON CACHE BOOL "" FORCE)
 set(WITH_PYTHON_INSTALL_REQUESTS ON CACHE BOOL "" FORCE)
 
 # ######## Release environment specific settings ########
-# All the hardcoded libraru paths and such
+
+if (NOT ${GLIBC} STREQUAL "2.24")
+
+# All the hardcoded library paths and such
 
 # LLVM libraries
 set(LLVM_VERSION             "3.4"  CACHE STRING "" FORCE)
@@ -147,6 +158,21 @@ set(BLOSC_LIBRARY
 	/opt/lib/blosc/lib/libblosc.a
 	CACHE BOOL "" FORCE
 )
+
+else()
+
+# Set path to precompiled libraries.
+set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
+string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
+set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}")
+
+# TODO(sergey): Remove once Python is oficially bumped to 3.7.
+set(PYTHON_VERSION 3.7)
+
+# Ensure specific configuration of various libraries.
+set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
+
+endif()
 
 # Additional linking libraries
 set(CMAKE_EXE_LINKER_FLAGS   "-lrt -static-libstdc++"  CACHE STRING "" FORCE)

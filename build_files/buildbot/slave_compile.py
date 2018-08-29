@@ -102,7 +102,9 @@ if 'cmake' in builder:
     elif builder.startswith('linux'):
         tokens = builder.split("_")
         glibc = tokens[1]
-        if glibc == 'glibc219':
+        if glibc == 'glibc224':
+            deb_name = "stretch"
+        elif glibc == 'glibc219':
             deb_name = "jessie"
         elif glibc == 'glibc211':
             deb_name = "squeeze"
@@ -115,8 +117,9 @@ if 'cmake' in builder:
             bits = 32
             chroot_name = 'buildbot_' + deb_name + '_i686'
             targets = ['player', 'blender']
-        cmake_extra_options.extend(["-DCMAKE_C_COMPILER=/usr/bin/gcc-7",
-                                    "-DCMAKE_CXX_COMPILER=/usr/bin/g++-7"])
+        if deb_name != "stretch":
+            cmake_extra_options.extend(["-DCMAKE_C_COMPILER=/usr/bin/gcc-7",
+                                        "-DCMAKE_CXX_COMPILER=/usr/bin/g++-7"])
 
     cmake_options.append("-C" + os.path.join(blender_dir, cmake_config_file))
 
