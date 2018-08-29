@@ -214,7 +214,7 @@ bool gizmo_window_project_2d(
 		float co[3] = {mval[0], mval[1], 0.0f};
 		float imat[4][4];
 		invert_m4_m4(imat, mat);
-		mul_mat3_m4_v3(imat, co);
+		mul_m4_v3(imat, co);
 		copy_v2_v2(r_co, co);
 		return true;
 	}
