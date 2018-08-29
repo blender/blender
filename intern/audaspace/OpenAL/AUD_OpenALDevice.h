@@ -37,8 +37,8 @@
 #include "AUD_Buffer.h"
 //struct AUD_OpenALBufferedFactory;
 
-#include <AL/al.h>
-#include <AL/alc.h>
+#include <al.h>
+#include <alc.h>
 #include <list>
 #include <pthread.h>
 
