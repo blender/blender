@@ -168,8 +168,18 @@ set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}" CACHE BOOL "" FORCE)
 # TODO(sergey): Remove once Python is oficially bumped to 3.7.
 set(PYTHON_VERSION    3.7 CACHE BOOL "" FORCE)
 
-# Ensure specific configuration of various libraries.
+# Platform specific configuration, to ensure static linking against everything.
+
 set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
+
+# Force using our precompiled openjpeg library.
+#
+# Also, FindOpenJPEG is stupid and is not aware about library called libopenjp2.
+set(WITH_SYSTEM_OPENJPEG     ON CACHE BOOL "" FORCE)
+set(OPENJPEG_LIBRARY "${LIBDIR}/openjpeg/lib/libopenjp2.a" CACHE BOOL "" FORCE)
+
+set(PCRE_INCLUDE_DIR          "/usr/include"                        CACHE STRING "" FORCE)
+set(PCRE_LIBRARY              "${LIBDIR}/opencollada/lib/libpcre.a" CACHE STRING "" FORCE)
 
 endif()
 
