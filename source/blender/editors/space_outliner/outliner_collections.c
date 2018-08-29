@@ -99,9 +99,26 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 	return NULL;
 }
 
+TreeTraversalAction outliner_find_selected_collections(TreeElement *te, void *customdata)
+{
+	struct IDsSelectedData *data = customdata;
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if (outliner_is_collection_tree_element(te)) {
+		BLI_addtail(&data->selected_array, BLI_genericNodeN(te));
+		return TRAVERSE_CONTINUE;
+	}
+
+	if (tselem->type || (tselem->id && GS(tselem->id->name) != ID_GR)) {
+		return TRAVERSE_SKIP_CHILDS;
+	}
+
+	return TRAVERSE_CONTINUE;
+}
+
 TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
 {
-	struct ObjectsSelectedData *data = customdata;
+	struct IDsSelectedData *data = customdata;
 	TreeStoreElem *tselem = TREESTORE(te);
 
 	if (outliner_is_collection_tree_element(te)) {
@@ -112,7 +129,7 @@ TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *custom
 		return TRAVERSE_SKIP_CHILDS;
 	}
 
-	BLI_addtail(&data->objects_selected_array, BLI_genericNodeN(te));
+	BLI_addtail(&data->selected_array, BLI_genericNodeN(te));
 
 	return TRAVERSE_CONTINUE;
 }
@@ -811,12 +828,12 @@ void OUTLINER_OT_collection_indirect_only_clear(wmOperatorType *ot)
 void ED_outliner_selected_objects_get(const bContext *C, ListBase *objects)
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	struct ObjectsSelectedData data = {{NULL}};
+	struct IDsSelectedData data = {{NULL}};
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
-	LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+	LISTBASE_FOREACH (LinkData *, link, &data.selected_array) {
 		TreeElement *ten_selected = (TreeElement *)link->data;
 		Object *ob = (Object *)TREESTORE(ten_selected)->id;
 		BLI_addtail(objects, BLI_genericNodeN(ob));
 	}
-	BLI_freelistN(&data.objects_selected_array);
+	BLI_freelistN(&data.selected_array);
 }

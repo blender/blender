@@ -176,10 +176,11 @@ void outliner_build_tree(
         struct Scene *scene, struct ViewLayer *view_layer,
         struct SpaceOops *soops, struct ARegion *ar);
 
-typedef struct ObjectsSelectedData {
-	struct ListBase objects_selected_array;
-} ObjectsSelectedData;
+typedef struct IDsSelectedData {
+	struct ListBase selected_array;
+} IDsSelectedData;
 
+TreeTraversalAction outliner_find_selected_collections(struct TreeElement *te, void *customdata);
 TreeTraversalAction outliner_find_selected_objects(struct TreeElement *te, void *customdata);
 
 /* outliner_draw.c ---------------------------------------------- */

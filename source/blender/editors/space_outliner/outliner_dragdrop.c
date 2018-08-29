@@ -883,26 +883,55 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *UNUSED(op), c
 
 	wmDrag *drag = WM_event_start_drag(C, data.icon, WM_DRAG_ID, NULL, 0.0, WM_DRAG_NOP);
 
-	if (GS(data.drag_id->name) == ID_OB) {
-		/* For objects we cheat and drag all selected objects. */
+	if (ELEM(GS(data.drag_id->name), ID_OB, ID_GR)) {
+		/* For collections and objects we cheat and drag all selected. */
 		TREESTORE(te)->flag |= TSE_SELECTED;
 
-		struct ObjectsSelectedData selected = {
-			.objects_selected_array  = {NULL, NULL},
+		/* Gather all selected elements. */
+		struct IDsSelectedData selected = {
+			.selected_array  = {NULL, NULL},
 		};
 
-		outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &selected);
-		LISTBASE_FOREACH (LinkData *, link, &selected.objects_selected_array) {
-			TreeElement *ten_selected = (TreeElement *)link->data;
-			Object *ob = (Object *)TREESTORE(ten_selected)->id;
+		if (GS(data.drag_id->name) == ID_OB) {
+			outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &selected);
+		}
+		else {
+			outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_collections, &selected);
+		}
 
-			/* Find parent collection of object. */
+		LISTBASE_FOREACH (LinkData *, link, &selected.selected_array) {
+			TreeElement *te_selected = (TreeElement *)link->data;
+			ID *id;
+
+			if (GS(data.drag_id->name) == ID_OB) {
+				id = TREESTORE(te_selected)->id;
+			}
+			else {
+				/* Keep collection hierarchies intact when dragging. */
+				bool parent_selected = false;
+				for (TreeElement *te_parent = te_selected->parent; te_parent; te_parent = te_parent->parent) {
+					if (outliner_is_collection_tree_element(te_parent)) {
+						if (TREESTORE(te_parent)->flag & TSE_SELECTED) {
+							parent_selected = true;
+							break;
+						}
+					}
+				}
+
+				if (parent_selected) {
+					continue;
+				}
+
+				id = &outliner_collection_from_tree_element(te_selected)->id;
+			}
+
+			/* Find parent collection. */
 			Collection *parent = NULL;
 
-			if (ten_selected->parent) {
-				for (TreeElement *te_ob_parent = ten_selected->parent; te_ob_parent; te_ob_parent = te_ob_parent->parent) {
-					if (outliner_is_collection_tree_element(te_ob_parent)) {
-						parent = outliner_collection_from_tree_element(te_ob_parent);
+			if (te_selected->parent) {
+				for (TreeElement *te_parent = te_selected->parent; te_parent; te_parent = te_parent->parent) {
+					if (outliner_is_collection_tree_element(te_parent)) {
+						parent = outliner_collection_from_tree_element(te_parent);
 						break;
 					}
 				}
@@ -912,10 +941,10 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *UNUSED(op), c
 				parent = BKE_collection_master(scene);
 			}
 
-			WM_drag_add_ID(drag, &ob->id, &parent->id);
+			WM_drag_add_ID(drag, id, &parent->id);
 		}
 
-		BLI_freelistN(&selected.objects_selected_array);
+		BLI_freelistN(&selected.selected_array);
 	}
 	else {
 		/* Add single ID. */
