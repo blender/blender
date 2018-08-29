@@ -200,10 +200,12 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *
 
 static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 {
-	const char *contexts[3] = {NULL};
-
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	const int mode = CTX_data_mode_enum(C);
+
+	const char *contexts_base[4] = {NULL};
+	contexts_base[0] = ".active_tool";
+	const char **contexts = &contexts_base[1];
 
 	if (workspace->tools_space_type == SPACE_VIEW3D) {
 		switch (mode) {
@@ -283,7 +285,7 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 	}
 
 	const bool vertical = true;
-	ED_region_panels_layout_ex(C, ar, contexts, -1, vertical);
+	ED_region_panels_layout_ex(C, ar, contexts_base, -1, vertical);
 }
 
 static void buttons_main_region_layout(const bContext *C, ARegion *ar)
@@ -364,6 +366,10 @@ static void buttons_header_region_message_subscribe(
 
 	if (!ELEM(sbuts->mainb, BCONTEXT_RENDER, BCONTEXT_SCENE, BCONTEXT_WORLD)) {
 		WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
+	}
+
+	if (sbuts->mainb == BCONTEXT_TOOL) {
+		WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 	}
 }
 

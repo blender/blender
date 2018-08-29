@@ -614,6 +614,26 @@ class TOPBAR_MT_workspace_menu(Menu):
             layout.operator("workspace.delete", text="Delete")
 
 
+class TOPBAR_PT_active_tool(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_category = ""
+    bl_context = ".active_tool"  # dot on purpose (access from tool settings)
+    bl_label = "Active Tool"
+
+    def draw(self, context):
+        layout = self.layout
+
+        # Panel display of topbar tool settings.
+        # currently displays in tool settings, keep here since the same functionality is used for the topbar.
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout, show_tool_name=True)
+
+
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
@@ -630,6 +650,7 @@ classes = (
     TOPBAR_MT_render,
     TOPBAR_MT_window,
     TOPBAR_MT_help,
+    TOPBAR_PT_active_tool,
 )
 
 if __name__ == "__main__":  # only for live edit.

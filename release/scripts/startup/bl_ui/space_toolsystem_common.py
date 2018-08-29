@@ -513,16 +513,21 @@ class ToolSelectPanelHelper:
         self.draw_cls(self.layout, context)
 
     @staticmethod
-    def draw_active_tool_header(context, layout):
+    def draw_active_tool_header(
+            context, layout,
+            *,
+            show_tool_name=False,
+    ):
         # BAD DESIGN WARNING: last used tool
         workspace = context.workspace
         space_type = workspace.tools_space_type
         mode = workspace.tools_mode
         item, tool, icon_value = ToolSelectPanelHelper._tool_get_active(context, space_type, mode, with_icon=True)
         if item is None:
-            return
-        # Note: we could show 'item.text' here but it makes the layout jitter when switcuing tools.
-        layout.label(text=" ", icon_value=icon_value)
+            return None
+        # Note: we could show 'item.text' here but it makes the layout jitter when switching tools.
+        # Add some spacing since the icon is currently assuming regular small icon size.
+        layout.label(text="    " + item.text if show_tool_name else " ", icon_value=icon_value)
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)
