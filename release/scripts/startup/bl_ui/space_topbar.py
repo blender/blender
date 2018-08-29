@@ -233,18 +233,18 @@ class _draw_left_context_mode:
             layout.prop(brush, "size", slider=True)
             if tool == 'ADD':
                 layout.prop(brush, "count")
-            else:
-                layout.prop(brush, "strength", slider=True)
 
-            if tool == 'ADD':
                 layout.prop(settings, "use_default_interpolate")
                 layout.prop(brush, "steps", slider=True)
                 layout.prop(settings, "default_key_count", slider=True)
-            elif tool == 'LENGTH':
-                layout.row().prop(brush, "length_mode", expand=True)
-            elif tool == 'PUFF':
-                layout.row().prop(brush, "puff_mode", expand=True)
-                layout.prop(brush, "use_puff_volume")
+            else:
+                layout.prop(brush, "strength", slider=True)
+
+                if tool == 'LENGTH':
+                    layout.row().prop(brush, "length_mode", expand=True)
+                elif tool == 'PUFF':
+                    layout.row().prop(brush, "puff_mode", expand=True)
+                    layout.prop(brush, "use_puff_volume")
 
 
 class INFO_MT_editor_menus(Menu):
