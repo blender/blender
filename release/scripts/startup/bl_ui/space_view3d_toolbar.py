@@ -94,6 +94,9 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
         ob = context.active_object
 
         tool_settings = context.tool_settings
@@ -106,13 +109,10 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
         row.active = ob.data.use_mirror_x
         row.prop(mesh, "use_mirror_topology")
 
-        col = layout.column(align=True)
-        col.label(text="Edge Select Mode:")
-        col.prop(tool_settings, "edge_path_mode", text="")
-        col.prop(tool_settings, "edge_path_live_unwrap")
-        col.label(text="Double Threshold:")
-        col.prop(tool_settings, "double_threshold", text="")
-        col.prop(tool_settings, "use_mesh_automerge")  # , icon='AUTOMERGE_ON'
+        layout.prop(tool_settings, "edge_path_mode")
+        layout.prop(tool_settings, "edge_path_live_unwrap")
+        layout.prop(tool_settings, "double_threshold")
+        layout.prop(tool_settings, "use_mesh_automerge")  # , icon='AUTOMERGE_ON'
 
 
 # ********** default tools for editmode_curve ****************
