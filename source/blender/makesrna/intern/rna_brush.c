@@ -589,8 +589,8 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA
 
 	/* sculpt mode */
 	static const EnumPropertyItem prop_flatten_contrast_items[] = {
-		{0, "FLATTEN", 0, "Flatten", "Add effect of brush"},
-		{BRUSH_DIR_IN, "CONTRAST", 0, "Contrast", "Subtract effect of brush"},
+		{BRUSH_DIR_IN, "CONTRAST", ICON_ZOOMIN, "Contrast", "Subtract effect of brush"},
+		{0, "FLATTEN", ICON_ZOOMOUT, "Flatten", "Add effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -601,27 +601,27 @@ static const EnumPropertyItem *rna_Brush_direction_itemf(bContext *C, PointerRNA
 	};
 
 	static const EnumPropertyItem prop_scrape_peaks_items[] = {
-		{0, "SCRAPE", 0, "Scrape", "Add effect of brush"},
-		{BRUSH_DIR_IN, "PEAKS", 0, "Peaks", "Subtract effect of brush"},
+		{0, "SCRAPE", ICON_ZOOMIN, "Scrape", "Add effect of brush"},
+		{BRUSH_DIR_IN, "PEAKS", ICON_ZOOMOUT, "Peaks", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem prop_pinch_magnify_items[] = {
-		{0, "PINCH", 0, "Pinch", "Add effect of brush"},
-		{BRUSH_DIR_IN, "MAGNIFY", 0, "Magnify", "Subtract effect of brush"},
+		{BRUSH_DIR_IN, "MAGNIFY", ICON_ZOOMIN, "Magnify", "Subtract effect of brush"},
+		{0, "PINCH", ICON_ZOOMOUT, "Pinch", "Add effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	static const EnumPropertyItem prop_inflate_deflate_items[] = {
-		{0, "INFLATE", 0, "Inflate", "Add effect of brush"},
-		{BRUSH_DIR_IN, "DEFLATE", 0, "Deflate", "Subtract effect of brush"},
+		{0, "INFLATE", ICON_ZOOMIN, "Inflate", "Add effect of brush"},
+		{BRUSH_DIR_IN, "DEFLATE", ICON_ZOOMOUT, "Deflate", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* texture paint mode */
 	static const EnumPropertyItem prop_soften_sharpen_items[] = {
-		{0, "SOFTEN", 0, "Soften", "Blur effect of brush"},
-		{BRUSH_DIR_IN, "SHARPEN", 0, "Sharpen", "Sharpen effect of brush"},
+		{BRUSH_DIR_IN, "SHARPEN", ICON_ZOOMIN, "Sharpen", "Sharpen effect of brush"},
+		{0, "SOFTEN", ICON_ZOOMOUT, "Soften", "Blur effect of brush"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
