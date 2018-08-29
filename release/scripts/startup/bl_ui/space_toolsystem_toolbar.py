@@ -513,7 +513,7 @@ class _defs_edit_mesh:
     def cube_add():
         return dict(
             text="Add Cube",
-            icon="ops.mesh.primitive_cube_add_manipulator",
+            icon="ops.mesh.primitive_cube_add_gizmo",
             widget=None,
             keymap=(
                 ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
