@@ -685,6 +685,24 @@ class _defs_edit_mesh:
         )
 
     @ToolDef.from_fn
+    def extrude_normals():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.extrude_region_shrink_fatten")
+            props_macro = props.TRANSFORM_OT_shrink_fatten
+            layout.prop(props_macro, "use_even_offset")
+        return dict(
+            text="Extrude Along Normals",
+            icon="ops.mesh.extrude_region_shrink_fatten",
+            widget=None,
+            keymap=(
+                ("mesh.extrude_region_shrink_fatten",
+                 dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+            draw_settings=draw_settings,
+        )
+
+    @ToolDef.from_fn
     def extrude_individual():
         return dict(
             text="Extrude Individual",
@@ -1673,6 +1691,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             (
                 _defs_edit_mesh.extrude,
+                _defs_edit_mesh.extrude_normals,
                 _defs_edit_mesh.extrude_individual,
                 _defs_edit_mesh.extrude_cursor,
             ),
