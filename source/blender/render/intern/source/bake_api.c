@@ -568,7 +568,8 @@ bool RE_bake_pixels_populate_from_objects(
 		/* cast ray */
 		if (!cast_ray_highpoly(treeData, tri_low, tris_high,
 		                       pixel_array_from, pixel_array_to, mat_low,
-		                       highpoly, co, dir, i, tot_highpoly)) {
+		                       highpoly, co, dir, i, tot_highpoly))
+		{
 			/* if it fails mask out the original pixel array */
 			pixel_array_from[i].primitive_id = -1;
 		}

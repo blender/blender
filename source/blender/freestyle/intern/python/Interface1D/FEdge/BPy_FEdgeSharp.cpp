@@ -110,24 +110,24 @@ static int FEdgeSharp_mathutils_get(BaseMathObject *bmo, int subtype)
 {
 	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
 	switch (subtype) {
-	case MATHUTILS_SUBTYPE_NORMAL_A:
-		{
-			Vec3r p(self->fes->normalA());
-			bmo->data[0] = p[0];
-			bmo->data[1] = p[1];
-			bmo->data[2] = p[2];
-		}
-		break;
-	case MATHUTILS_SUBTYPE_NORMAL_B:
-		{
-			Vec3r p(self->fes->normalB());
-			bmo->data[0] = p[0];
-			bmo->data[1] = p[1];
-			bmo->data[2] = p[2];
-		}
-		break;
-	default:
-		return -1;
+		case MATHUTILS_SUBTYPE_NORMAL_A:
+			{
+				Vec3r p(self->fes->normalA());
+				bmo->data[0] = p[0];
+				bmo->data[1] = p[1];
+				bmo->data[2] = p[2];
+			}
+			break;
+		case MATHUTILS_SUBTYPE_NORMAL_B:
+			{
+				Vec3r p(self->fes->normalB());
+				bmo->data[0] = p[0];
+				bmo->data[1] = p[1];
+				bmo->data[2] = p[2];
+			}
+			break;
+		default:
+			return -1;
 	}
 	return 0;
 }
@@ -136,20 +136,20 @@ static int FEdgeSharp_mathutils_set(BaseMathObject *bmo, int subtype)
 {
 	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
 	switch (subtype) {
-	case MATHUTILS_SUBTYPE_NORMAL_A:
-		{
-			Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
-			self->fes->setNormalA(p);
-		}
-		break;
-	case MATHUTILS_SUBTYPE_NORMAL_B:
-		{
-			Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
-			self->fes->setNormalB(p);
-		}
-		break;
-	default:
-		return -1;
+		case MATHUTILS_SUBTYPE_NORMAL_A:
+			{
+				Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
+				self->fes->setNormalA(p);
+			}
+			break;
+		case MATHUTILS_SUBTYPE_NORMAL_B:
+			{
+				Vec3r p(bmo->data[0], bmo->data[1], bmo->data[2]);
+				self->fes->setNormalB(p);
+			}
+			break;
+		default:
+			return -1;
 	}
 	return 0;
 }
@@ -158,20 +158,20 @@ static int FEdgeSharp_mathutils_get_index(BaseMathObject *bmo, int subtype, int 
 {
 	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
 	switch (subtype) {
-	case MATHUTILS_SUBTYPE_NORMAL_A:
-		{
-			Vec3r p(self->fes->normalA());
-			bmo->data[index] = p[index];
-		}
-		break;
-	case MATHUTILS_SUBTYPE_NORMAL_B:
-		{
-			Vec3r p(self->fes->normalB());
-			bmo->data[index] = p[index];
-		}
-		break;
-	default:
-		return -1;
+		case MATHUTILS_SUBTYPE_NORMAL_A:
+			{
+				Vec3r p(self->fes->normalA());
+				bmo->data[index] = p[index];
+			}
+			break;
+		case MATHUTILS_SUBTYPE_NORMAL_B:
+			{
+				Vec3r p(self->fes->normalB());
+				bmo->data[index] = p[index];
+			}
+			break;
+		default:
+			return -1;
 	}
 	return 0;
 }
@@ -180,22 +180,22 @@ static int FEdgeSharp_mathutils_set_index(BaseMathObject *bmo, int subtype, int 
 {
 	BPy_FEdgeSharp *self = (BPy_FEdgeSharp *)bmo->cb_user;
 	switch (subtype) {
-	case MATHUTILS_SUBTYPE_NORMAL_A:
-		{
-			Vec3r p(self->fes->normalA());
-			p[index] = bmo->data[index];
-			self->fes->setNormalA(p);
-		}
-		break;
-	case MATHUTILS_SUBTYPE_NORMAL_B:
-		{
-			Vec3r p(self->fes->normalB());
-			p[index] = bmo->data[index];
-			self->fes->setNormalB(p);
-		}
-		break;
-	default:
-		return -1;
+		case MATHUTILS_SUBTYPE_NORMAL_A:
+			{
+				Vec3r p(self->fes->normalA());
+				p[index] = bmo->data[index];
+				self->fes->setNormalA(p);
+			}
+			break;
+		case MATHUTILS_SUBTYPE_NORMAL_B:
+			{
+				Vec3r p(self->fes->normalB());
+				p[index] = bmo->data[index];
+				self->fes->setNormalB(p);
+			}
+			break;
+		default:
+			return -1;
 	}
 	return 0;
 }

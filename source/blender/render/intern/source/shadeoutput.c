@@ -1048,18 +1048,18 @@ static void do_specular_ramp(ShadeInput *shi, float is, float t, float spec[3])
 
 		/* input */
 		switch (ma->rampin_spec) {
-		case MA_RAMP_IN_ENERGY:
-			fac= t;
-			break;
-		case MA_RAMP_IN_SHADER:
-			fac= is;
-			break;
-		case MA_RAMP_IN_NOR:
-			fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
-			break;
-		default:
-			fac= 0.0f;
-			break;
+			case MA_RAMP_IN_ENERGY:
+				fac= t;
+				break;
+			case MA_RAMP_IN_SHADER:
+				fac= is;
+				break;
+			case MA_RAMP_IN_NOR:
+				fac= shi->view[0]*shi->vn[0] + shi->view[1]*shi->vn[1] + shi->view[2]*shi->vn[2];
+				break;
+			default:
+				fac= 0.0f;
+				break;
 		}
 
 		BKE_colorband_evaluate(ma->ramp_spec, fac, col);
@@ -1833,7 +1833,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 
 	/* AO pass */
 	if (((passflag & SCE_PASS_COMBINED) && (shi->combinedflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) ||
-	    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT))) {
+	    (passflag & (SCE_PASS_AO|SCE_PASS_ENVIRONMENT|SCE_PASS_INDIRECT)))
+	{
 		if ((R.wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (R.r.mode & R_SHADOW)) {
 			/* AO was calculated for scanline already */
 			if (shi->depth || shi->volume_depth)

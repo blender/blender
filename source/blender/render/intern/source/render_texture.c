@@ -1453,127 +1453,127 @@ void texture_rgb_blend(float in[3], const float tex[3], const float out[3], floa
 	float facm;
 
 	switch (blendtype) {
-	case MTEX_BLEND:
-		fact*= facg;
-		facm= 1.0f-fact;
+		case MTEX_BLEND:
+			fact*= facg;
+			facm= 1.0f-fact;
 
-		in[0]= (fact*tex[0] + facm*out[0]);
-		in[1]= (fact*tex[1] + facm*out[1]);
-		in[2]= (fact*tex[2] + facm*out[2]);
-		break;
+			in[0]= (fact*tex[0] + facm*out[0]);
+			in[1]= (fact*tex[1] + facm*out[1]);
+			in[2]= (fact*tex[2] + facm*out[2]);
+			break;
 
-	case MTEX_MUL:
-		fact*= facg;
-		facm= 1.0f-fact;
-		in[0]= (facm+fact*tex[0])*out[0];
-		in[1]= (facm+fact*tex[1])*out[1];
-		in[2]= (facm+fact*tex[2])*out[2];
-		break;
+		case MTEX_MUL:
+			fact*= facg;
+			facm= 1.0f-fact;
+			in[0]= (facm+fact*tex[0])*out[0];
+			in[1]= (facm+fact*tex[1])*out[1];
+			in[2]= (facm+fact*tex[2])*out[2];
+			break;
 
-	case MTEX_SCREEN:
-		fact*= facg;
-		facm= 1.0f-fact;
-		in[0]= 1.0f - (facm+fact*(1.0f-tex[0])) * (1.0f-out[0]);
-		in[1]= 1.0f - (facm+fact*(1.0f-tex[1])) * (1.0f-out[1]);
-		in[2]= 1.0f - (facm+fact*(1.0f-tex[2])) * (1.0f-out[2]);
-		break;
+		case MTEX_SCREEN:
+			fact*= facg;
+			facm= 1.0f-fact;
+			in[0]= 1.0f - (facm+fact*(1.0f-tex[0])) * (1.0f-out[0]);
+			in[1]= 1.0f - (facm+fact*(1.0f-tex[1])) * (1.0f-out[1]);
+			in[2]= 1.0f - (facm+fact*(1.0f-tex[2])) * (1.0f-out[2]);
+			break;
 
-	case MTEX_OVERLAY:
-		fact*= facg;
-		facm= 1.0f-fact;
+		case MTEX_OVERLAY:
+			fact*= facg;
+			facm= 1.0f-fact;
 
-		if (out[0] < 0.5f)
-			in[0] = out[0] * (facm + 2.0f*fact*tex[0]);
-		else
-			in[0] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[0])) * (1.0f - out[0]);
-		if (out[1] < 0.5f)
-			in[1] = out[1] * (facm + 2.0f*fact*tex[1]);
-		else
-			in[1] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[1])) * (1.0f - out[1]);
-		if (out[2] < 0.5f)
-			in[2] = out[2] * (facm + 2.0f*fact*tex[2]);
-		else
-			in[2] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[2])) * (1.0f - out[2]);
-		break;
+			if (out[0] < 0.5f)
+				in[0] = out[0] * (facm + 2.0f*fact*tex[0]);
+			else
+				in[0] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[0])) * (1.0f - out[0]);
+			if (out[1] < 0.5f)
+				in[1] = out[1] * (facm + 2.0f*fact*tex[1]);
+			else
+				in[1] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[1])) * (1.0f - out[1]);
+			if (out[2] < 0.5f)
+				in[2] = out[2] * (facm + 2.0f*fact*tex[2]);
+			else
+				in[2] = 1.0f - (facm + 2.0f*fact*(1.0f - tex[2])) * (1.0f - out[2]);
+			break;
 
-	case MTEX_SUB:
-		fact= -fact;
-		ATTR_FALLTHROUGH;
-	case MTEX_ADD:
-		fact*= facg;
-		in[0]= (fact*tex[0] + out[0]);
-		in[1]= (fact*tex[1] + out[1]);
-		in[2]= (fact*tex[2] + out[2]);
-		break;
+		case MTEX_SUB:
+			fact= -fact;
+			ATTR_FALLTHROUGH;
+		case MTEX_ADD:
+			fact*= facg;
+			in[0]= (fact*tex[0] + out[0]);
+			in[1]= (fact*tex[1] + out[1]);
+			in[2]= (fact*tex[2] + out[2]);
+			break;
 
-	case MTEX_DIV:
-		fact*= facg;
-		facm= 1.0f-fact;
+		case MTEX_DIV:
+			fact*= facg;
+			facm= 1.0f-fact;
 
-		if (tex[0]!=0.0f)
-			in[0]= facm*out[0] + fact*out[0]/tex[0];
-		if (tex[1]!=0.0f)
-			in[1]= facm*out[1] + fact*out[1]/tex[1];
-		if (tex[2]!=0.0f)
-			in[2]= facm*out[2] + fact*out[2]/tex[2];
+			if (tex[0]!=0.0f)
+				in[0]= facm*out[0] + fact*out[0]/tex[0];
+			if (tex[1]!=0.0f)
+				in[1]= facm*out[1] + fact*out[1]/tex[1];
+			if (tex[2]!=0.0f)
+				in[2]= facm*out[2] + fact*out[2]/tex[2];
 
-		break;
+			break;
 
-	case MTEX_DIFF:
-		fact*= facg;
-		facm= 1.0f-fact;
-		in[0]= facm*out[0] + fact*fabsf(tex[0]-out[0]);
-		in[1]= facm*out[1] + fact*fabsf(tex[1]-out[1]);
-		in[2]= facm*out[2] + fact*fabsf(tex[2]-out[2]);
-		break;
+		case MTEX_DIFF:
+			fact*= facg;
+			facm= 1.0f-fact;
+			in[0]= facm*out[0] + fact*fabsf(tex[0]-out[0]);
+			in[1]= facm*out[1] + fact*fabsf(tex[1]-out[1]);
+			in[2]= facm*out[2] + fact*fabsf(tex[2]-out[2]);
+			break;
 
-	case MTEX_DARK:
-		fact*= facg;
-		facm= 1.0f-fact;
+		case MTEX_DARK:
+			fact*= facg;
+			facm= 1.0f-fact;
 
-		in[0] = min_ff(out[0], tex[0])*fact + out[0]*facm;
-		in[1] = min_ff(out[1], tex[1])*fact + out[1]*facm;
-		in[2] = min_ff(out[2], tex[2])*fact + out[2]*facm;
-		break;
+			in[0] = min_ff(out[0], tex[0])*fact + out[0]*facm;
+			in[1] = min_ff(out[1], tex[1])*fact + out[1]*facm;
+			in[2] = min_ff(out[2], tex[2])*fact + out[2]*facm;
+			break;
 
-	case MTEX_LIGHT:
-		fact*= facg;
+		case MTEX_LIGHT:
+			fact*= facg;
 
-		in[0] = max_ff(fact * tex[0], out[0]);
-		in[1] = max_ff(fact * tex[1], out[1]);
-		in[2] = max_ff(fact * tex[2], out[2]);
-		break;
+			in[0] = max_ff(fact * tex[0], out[0]);
+			in[1] = max_ff(fact * tex[1], out[1]);
+			in[2] = max_ff(fact * tex[2], out[2]);
+			break;
 
-	case MTEX_BLEND_HUE:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_HUE, in, fact, tex);
-		break;
-	case MTEX_BLEND_SAT:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_SAT, in, fact, tex);
-		break;
-	case MTEX_BLEND_VAL:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_VAL, in, fact, tex);
-		break;
-	case MTEX_BLEND_COLOR:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_COLOR, in, fact, tex);
-		break;
-	case MTEX_SOFT_LIGHT:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_SOFT, in, fact, tex);
-		break;
-	case MTEX_LIN_LIGHT:
-		fact*= facg;
-		copy_v3_v3(in, out);
-		ramp_blend(MA_RAMP_LINEAR, in, fact, tex);
-		break;
+		case MTEX_BLEND_HUE:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_HUE, in, fact, tex);
+			break;
+		case MTEX_BLEND_SAT:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_SAT, in, fact, tex);
+			break;
+		case MTEX_BLEND_VAL:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_VAL, in, fact, tex);
+			break;
+		case MTEX_BLEND_COLOR:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_COLOR, in, fact, tex);
+			break;
+		case MTEX_SOFT_LIGHT:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_SOFT, in, fact, tex);
+			break;
+		case MTEX_LIN_LIGHT:
+			fact*= facg;
+			copy_v3_v3(in, out);
+			ramp_blend(MA_RAMP_LINEAR, in, fact, tex);
+			break;
 	}
 }
 
@@ -1589,64 +1589,64 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 	if (flip) SWAP(float, fact, facm);
 
 	switch (blendtype) {
-	case MTEX_BLEND:
-		in= fact*tex + facm*out;
-		break;
+		case MTEX_BLEND:
+			in= fact*tex + facm*out;
+			break;
 
-	case MTEX_MUL:
-		facm= 1.0f-facg;
-		in= (facm+fact*tex)*out;
-		break;
+		case MTEX_MUL:
+			facm= 1.0f-facg;
+			in= (facm+fact*tex)*out;
+			break;
 
-	case MTEX_SCREEN:
-		facm= 1.0f-facg;
-		in= 1.0f-(facm+fact*(1.0f-tex))*(1.0f-out);
-		break;
+		case MTEX_SCREEN:
+			facm= 1.0f-facg;
+			in= 1.0f-(facm+fact*(1.0f-tex))*(1.0f-out);
+			break;
 
-	case MTEX_OVERLAY:
-		facm= 1.0f-facg;
-		if (out < 0.5f)
-			in = out * (facm + 2.0f*fact*tex);
-		else
-			in = 1.0f - (facm + 2.0f*fact*(1.0f - tex)) * (1.0f - out);
-		break;
+		case MTEX_OVERLAY:
+			facm= 1.0f-facg;
+			if (out < 0.5f)
+				in = out * (facm + 2.0f*fact*tex);
+			else
+				in = 1.0f - (facm + 2.0f*fact*(1.0f - tex)) * (1.0f - out);
+			break;
 
-	case MTEX_SUB:
-		fact= -fact;
-		ATTR_FALLTHROUGH;
-	case MTEX_ADD:
-		in= fact*tex + out;
-		break;
+		case MTEX_SUB:
+			fact= -fact;
+			ATTR_FALLTHROUGH;
+		case MTEX_ADD:
+			in= fact*tex + out;
+			break;
 
-	case MTEX_DIV:
-		if (tex!=0.0f)
-			in= facm*out + fact*out/tex;
-		break;
+		case MTEX_DIV:
+			if (tex!=0.0f)
+				in= facm*out + fact*out/tex;
+			break;
 
-	case MTEX_DIFF:
-		in= facm*out + fact*fabsf(tex-out);
-		break;
+		case MTEX_DIFF:
+			in= facm*out + fact*fabsf(tex-out);
+			break;
 
-	case MTEX_DARK:
-		in = min_ff(out, tex)*fact + out*facm;
-		break;
+		case MTEX_DARK:
+			in = min_ff(out, tex)*fact + out*facm;
+			break;
 
-	case MTEX_LIGHT:
-		col= fact*tex;
-		if (col > out) in= col; else in= out;
-		break;
+		case MTEX_LIGHT:
+			col= fact*tex;
+			if (col > out) in= col; else in= out;
+			break;
 
-	case MTEX_SOFT_LIGHT:
-		scf=1.0f - (1.0f - tex) * (1.0f - out);
-		in= facm*out + fact * ((1.0f - out) * tex * out) + (out * scf);
-		break;
+		case MTEX_SOFT_LIGHT:
+			scf=1.0f - (1.0f - tex) * (1.0f - out);
+			in= facm*out + fact * ((1.0f - out) * tex * out) + (out * scf);
+			break;
 
-	case MTEX_LIN_LIGHT:
-		if (tex > 0.5f)
-			in = out + fact*(2.0f*(tex - 0.5f));
-		else
-			in = out + fact*(2.0f*tex - 1.0f);
-		break;
+		case MTEX_LIN_LIGHT:
+			if (tex > 0.5f)
+				in = out + fact*(2.0f*(tex - 0.5f));
+			else
+				in = out + fact*(2.0f*tex - 1.0f);
+			break;
 	}
 
 	return in;
@@ -3201,76 +3201,76 @@ void do_sky_tex(
 
 			/* Grab the mapping settings for this texture */
 			switch (mtex->texco) {
-			case TEXCO_ANGMAP:
-				/* only works with texture being "real" */
-				/* use saacos(), fixes bug [#22398], float precision caused lo[2] to be slightly less than -1.0 */
-				if (lo[0] || lo[1]) { /* check for zero case [#24807] */
-					fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrtf(lo[0]*lo[0] + lo[1]*lo[1]));
-					tempvec[0]= lo[0]*fact;
-					tempvec[1]= lo[1]*fact;
-					tempvec[2]= 0.0;
-				}
-				else {
-					/* this value has no angle, the vector is directly along the view.
-					 * avoid divide by zero and use a dummy value. */
-					tempvec[0]= 1.0f;
-					tempvec[1]= 0.0;
-					tempvec[2]= 0.0;
-				}
-				co= tempvec;
-				break;
-
-			case TEXCO_H_SPHEREMAP:
-			case TEXCO_H_TUBEMAP:
-				if (skyflag & WO_ZENUP) {
-					if (mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
-					else map_to_sphere(tempvec, tempvec+1, lo[0], lo[2], lo[1]);
-					/* tube/spheremap maps for outside view, not inside */
-					tempvec[0]= 1.0f-tempvec[0];
-					/* only top half */
-					tempvec[1]= 2.0f*tempvec[1]-1.0f;
-					tempvec[2]= 0.0;
-					/* and correction for do_2d_mapping */
-					tempvec[0]= 2.0f*tempvec[0]-1.0f;
-					tempvec[1]= 2.0f*tempvec[1]-1.0f;
+				case TEXCO_ANGMAP:
+					/* only works with texture being "real" */
+					/* use saacos(), fixes bug [#22398], float precision caused lo[2] to be slightly less than -1.0 */
+					if (lo[0] || lo[1]) { /* check for zero case [#24807] */
+						fact= (1.0f/(float)M_PI)*saacos(lo[2])/(sqrtf(lo[0]*lo[0] + lo[1]*lo[1]));
+						tempvec[0]= lo[0]*fact;
+						tempvec[1]= lo[1]*fact;
+						tempvec[2]= 0.0;
+					}
+					else {
+						/* this value has no angle, the vector is directly along the view.
+						 * avoid divide by zero and use a dummy value. */
+						tempvec[0]= 1.0f;
+						tempvec[1]= 0.0;
+						tempvec[2]= 0.0;
+					}
 					co= tempvec;
-				}
-				else {
-					/* potentially dangerous... check with multitex! */
-					continue;
-				}
-				break;
-			case TEXCO_EQUIRECTMAP:
-				tempvec[0]= -atan2f(lo[2], lo[0]) / (float)M_PI;
-				tempvec[1]=  atan2f(lo[1], hypot(lo[0], lo[2])) / (float)M_PI_2;
-				tempvec[2]= 0.0f;
-				co= tempvec;
-				break;
-			case TEXCO_OBJECT:
-				if (mtex->object) {
-					copy_v3_v3(tempvec, lo);
-					mul_m4_v3(mtex->object->imat_ren, tempvec);
-					co= tempvec;
-				}
-				break;
+					break;
 
-			case TEXCO_GLOB:
-				if (rco) {
-					copy_v3_v3(tempvec, rco);
-					mul_m4_v3(R.viewinv, tempvec);
+				case TEXCO_H_SPHEREMAP:
+				case TEXCO_H_TUBEMAP:
+					if (skyflag & WO_ZENUP) {
+						if (mtex->texco==TEXCO_H_TUBEMAP) map_to_tube( tempvec, tempvec+1, lo[0], lo[2], lo[1]);
+						else map_to_sphere(tempvec, tempvec+1, lo[0], lo[2], lo[1]);
+						/* tube/spheremap maps for outside view, not inside */
+						tempvec[0]= 1.0f-tempvec[0];
+						/* only top half */
+						tempvec[1]= 2.0f*tempvec[1]-1.0f;
+						tempvec[2]= 0.0;
+						/* and correction for do_2d_mapping */
+						tempvec[0]= 2.0f*tempvec[0]-1.0f;
+						tempvec[1]= 2.0f*tempvec[1]-1.0f;
+						co= tempvec;
+					}
+					else {
+						/* potentially dangerous... check with multitex! */
+						continue;
+					}
+					break;
+				case TEXCO_EQUIRECTMAP:
+					tempvec[0]= -atan2f(lo[2], lo[0]) / (float)M_PI;
+					tempvec[1]=  atan2f(lo[1], hypot(lo[0], lo[2])) / (float)M_PI_2;
+					tempvec[2]= 0.0f;
 					co= tempvec;
-				}
-				else
-					co= lo;
+					break;
+				case TEXCO_OBJECT:
+					if (mtex->object) {
+						copy_v3_v3(tempvec, lo);
+						mul_m4_v3(mtex->object->imat_ren, tempvec);
+						co= tempvec;
+					}
+					break;
 
-//				copy_v3_v3(shi->dxgl, shi->dxco);
-//				mul_m3_v3(R.imat, shi->dxco);
-//				copy_v3_v3(shi->dygl, shi->dyco);
-//				mul_m3_v3(R.imat, shi->dyco);
-				break;
-			case TEXCO_VIEW:
-				co = view;
-				break;
+				case TEXCO_GLOB:
+					if (rco) {
+						copy_v3_v3(tempvec, rco);
+						mul_m4_v3(R.viewinv, tempvec);
+						co= tempvec;
+					}
+					else
+						co= lo;
+
+//					copy_v3_v3(shi->dxgl, shi->dxco);
+//					mul_m3_v3(R.imat, shi->dxco);
+//					copy_v3_v3(shi->dygl, shi->dyco);
+//					mul_m3_v3(R.imat, shi->dyco);
+					break;
+				case TEXCO_VIEW:
+					co = view;
+					break;
 			}
 
 			/* placement */

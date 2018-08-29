@@ -7851,32 +7851,32 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 
 			for (m = linestyle->color_modifiers.first; m; m = m->next) {
 				switch (m->type) {
-				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-					{
-						LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
-						cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
-					}
-					break;
+					case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+						{
+							LineStyleColorModifier_DistanceFromObject *cm = (LineStyleColorModifier_DistanceFromObject *)m;
+							cm->target = newlibadr(fd, linestyle->id.lib, cm->target);
+						}
+						break;
 				}
 			}
 			for (m = linestyle->alpha_modifiers.first; m; m = m->next) {
 				switch (m->type) {
-				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-					{
-						LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
-						am->target = newlibadr(fd, linestyle->id.lib, am->target);
-					}
-					break;
+					case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+						{
+							LineStyleAlphaModifier_DistanceFromObject *am = (LineStyleAlphaModifier_DistanceFromObject *)m;
+							am->target = newlibadr(fd, linestyle->id.lib, am->target);
+						}
+						break;
 				}
 			}
 			for (m = linestyle->thickness_modifiers.first; m; m = m->next) {
 				switch (m->type) {
-				case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-					{
-						LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
-						tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
-					}
-					break;
+					case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+						{
+							LineStyleThicknessModifier_DistanceFromObject *tm = (LineStyleThicknessModifier_DistanceFromObject *)m;
+							tm->target = newlibadr(fd, linestyle->id.lib, tm->target);
+						}
+						break;
 				}
 			}
 			for (int a = 0; a < MAX_MTEX; a++) {
@@ -7899,171 +7899,171 @@ static void lib_link_linestyle(FileData *fd, Main *main)
 static void direct_link_linestyle_color_modifier(FileData *fd, LineStyleModifier *modifier)
 {
 	switch (modifier->type) {
-	case LS_MODIFIER_ALONG_STROKE:
-		{
-			LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-		{
-			LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-		{
-			LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_MATERIAL:
-		{
-			LineStyleColorModifier_Material *m = (LineStyleColorModifier_Material *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_TANGENT:
-		{
-			LineStyleColorModifier_Tangent *m = (LineStyleColorModifier_Tangent *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_NOISE:
-		{
-			LineStyleColorModifier_Noise *m = (LineStyleColorModifier_Noise *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_CREASE_ANGLE:
-		{
-			LineStyleColorModifier_CreaseAngle *m = (LineStyleColorModifier_CreaseAngle *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
-	case LS_MODIFIER_CURVATURE_3D:
-		{
-			LineStyleColorModifier_Curvature_3D *m = (LineStyleColorModifier_Curvature_3D *)modifier;
-			m->color_ramp = newdataadr(fd, m->color_ramp);
-		}
-		break;
+		case LS_MODIFIER_ALONG_STROKE:
+			{
+				LineStyleColorModifier_AlongStroke *m = (LineStyleColorModifier_AlongStroke *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			{
+				LineStyleColorModifier_DistanceFromCamera *m = (LineStyleColorModifier_DistanceFromCamera *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			{
+				LineStyleColorModifier_DistanceFromObject *m = (LineStyleColorModifier_DistanceFromObject *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_MATERIAL:
+			{
+				LineStyleColorModifier_Material *m = (LineStyleColorModifier_Material *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_TANGENT:
+			{
+				LineStyleColorModifier_Tangent *m = (LineStyleColorModifier_Tangent *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_NOISE:
+			{
+				LineStyleColorModifier_Noise *m = (LineStyleColorModifier_Noise *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_CREASE_ANGLE:
+			{
+				LineStyleColorModifier_CreaseAngle *m = (LineStyleColorModifier_CreaseAngle *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
+		case LS_MODIFIER_CURVATURE_3D:
+			{
+				LineStyleColorModifier_Curvature_3D *m = (LineStyleColorModifier_Curvature_3D *)modifier;
+				m->color_ramp = newdataadr(fd, m->color_ramp);
+			}
+			break;
 	}
 }
 
 static void direct_link_linestyle_alpha_modifier(FileData *fd, LineStyleModifier *modifier)
 {
 	switch (modifier->type) {
-	case LS_MODIFIER_ALONG_STROKE:
-		{
-			LineStyleAlphaModifier_AlongStroke *m = (LineStyleAlphaModifier_AlongStroke *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-		{
-			LineStyleAlphaModifier_DistanceFromCamera *m = (LineStyleAlphaModifier_DistanceFromCamera *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-		{
-			LineStyleAlphaModifier_DistanceFromObject *m = (LineStyleAlphaModifier_DistanceFromObject *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_MATERIAL:
-		{
-			LineStyleAlphaModifier_Material *m = (LineStyleAlphaModifier_Material *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_TANGENT:
-		{
-			LineStyleAlphaModifier_Tangent *m = (LineStyleAlphaModifier_Tangent *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_NOISE:
-		{
-			LineStyleAlphaModifier_Noise *m = (LineStyleAlphaModifier_Noise *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_CREASE_ANGLE:
-		{
-			LineStyleAlphaModifier_CreaseAngle *m = (LineStyleAlphaModifier_CreaseAngle *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_CURVATURE_3D:
-		{
-			LineStyleAlphaModifier_Curvature_3D *m = (LineStyleAlphaModifier_Curvature_3D *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
+		case LS_MODIFIER_ALONG_STROKE:
+			{
+				LineStyleAlphaModifier_AlongStroke *m = (LineStyleAlphaModifier_AlongStroke *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			{
+				LineStyleAlphaModifier_DistanceFromCamera *m = (LineStyleAlphaModifier_DistanceFromCamera *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			{
+				LineStyleAlphaModifier_DistanceFromObject *m = (LineStyleAlphaModifier_DistanceFromObject *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_MATERIAL:
+			{
+				LineStyleAlphaModifier_Material *m = (LineStyleAlphaModifier_Material *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_TANGENT:
+			{
+				LineStyleAlphaModifier_Tangent *m = (LineStyleAlphaModifier_Tangent *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_NOISE:
+			{
+				LineStyleAlphaModifier_Noise *m = (LineStyleAlphaModifier_Noise *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_CREASE_ANGLE:
+			{
+				LineStyleAlphaModifier_CreaseAngle *m = (LineStyleAlphaModifier_CreaseAngle *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_CURVATURE_3D:
+			{
+				LineStyleAlphaModifier_Curvature_3D *m = (LineStyleAlphaModifier_Curvature_3D *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
 	}
 }
 
 static void direct_link_linestyle_thickness_modifier(FileData *fd, LineStyleModifier *modifier)
 {
 	switch (modifier->type) {
-	case LS_MODIFIER_ALONG_STROKE:
-		{
-			LineStyleThicknessModifier_AlongStroke *m = (LineStyleThicknessModifier_AlongStroke *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_CAMERA:
-		{
-			LineStyleThicknessModifier_DistanceFromCamera *m = (LineStyleThicknessModifier_DistanceFromCamera *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_DISTANCE_FROM_OBJECT:
-		{
-			LineStyleThicknessModifier_DistanceFromObject *m = (LineStyleThicknessModifier_DistanceFromObject *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_MATERIAL:
-		{
-			LineStyleThicknessModifier_Material *m = (LineStyleThicknessModifier_Material *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_TANGENT:
-		{
-			LineStyleThicknessModifier_Tangent *m = (LineStyleThicknessModifier_Tangent *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_CREASE_ANGLE:
-		{
-			LineStyleThicknessModifier_CreaseAngle *m = (LineStyleThicknessModifier_CreaseAngle *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
-	case LS_MODIFIER_CURVATURE_3D:
-		{
-			LineStyleThicknessModifier_Curvature_3D *m = (LineStyleThicknessModifier_Curvature_3D *)modifier;
-			m->curve = newdataadr(fd, m->curve);
-			direct_link_curvemapping(fd, m->curve);
-		}
-		break;
+		case LS_MODIFIER_ALONG_STROKE:
+			{
+				LineStyleThicknessModifier_AlongStroke *m = (LineStyleThicknessModifier_AlongStroke *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_CAMERA:
+			{
+				LineStyleThicknessModifier_DistanceFromCamera *m = (LineStyleThicknessModifier_DistanceFromCamera *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_DISTANCE_FROM_OBJECT:
+			{
+				LineStyleThicknessModifier_DistanceFromObject *m = (LineStyleThicknessModifier_DistanceFromObject *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_MATERIAL:
+			{
+				LineStyleThicknessModifier_Material *m = (LineStyleThicknessModifier_Material *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_TANGENT:
+			{
+				LineStyleThicknessModifier_Tangent *m = (LineStyleThicknessModifier_Tangent *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_CREASE_ANGLE:
+			{
+				LineStyleThicknessModifier_CreaseAngle *m = (LineStyleThicknessModifier_CreaseAngle *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
+		case LS_MODIFIER_CURVATURE_3D:
+			{
+				LineStyleThicknessModifier_Curvature_3D *m = (LineStyleThicknessModifier_Curvature_3D *)modifier;
+				m->curve = newdataadr(fd, m->curve);
+				direct_link_curvemapping(fd, m->curve);
+			}
+			break;
 	}
 }
 
@@ -8704,49 +8704,49 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 
 	while (bhead) {
 		switch (bhead->code) {
-		case DATA:
-		case DNA1:
-		case TEST: /* used as preview since 2.5x */
-		case REND:
-			bhead = blo_nextbhead(fd, bhead);
-			break;
-		case GLOB:
-			bhead = read_global(bfd, fd, bhead);
-			break;
-		case USER:
-			if (fd->skip_flags & BLO_READ_SKIP_USERDEF) {
+			case DATA:
+			case DNA1:
+			case TEST: /* used as preview since 2.5x */
+			case REND:
 				bhead = blo_nextbhead(fd, bhead);
-			}
-			else {
-				bhead = read_userdef(bfd, fd, bhead);
-			}
-			break;
-		case ENDB:
-			bhead = NULL;
-			break;
+				break;
+			case GLOB:
+				bhead = read_global(bfd, fd, bhead);
+				break;
+			case USER:
+				if (fd->skip_flags & BLO_READ_SKIP_USERDEF) {
+					bhead = blo_nextbhead(fd, bhead);
+				}
+				else {
+					bhead = read_userdef(bfd, fd, bhead);
+				}
+				break;
+			case ENDB:
+				bhead = NULL;
+				break;
 
-		case ID_ID:
-			/* Always adds to the most recently loaded ID_LI block, see direct_link_library.
-			 * This is part of the file format definition. */
-			if (fd->skip_flags & BLO_READ_SKIP_DATA) {
-				bhead = blo_nextbhead(fd, bhead);
-			}
-			else {
-				bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
-			}
-			break;
-			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
-		case ID_SCRN:
-			bhead->code = ID_SCR;
-			/* pass on to default */
-			ATTR_FALLTHROUGH;
-		default:
-			if (fd->skip_flags & BLO_READ_SKIP_DATA) {
-				bhead = blo_nextbhead(fd, bhead);
-			}
-			else {
-				bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, NULL);
-			}
+			case ID_ID:
+				/* Always adds to the most recently loaded ID_LI block, see direct_link_library.
+				 * This is part of the file format definition. */
+				if (fd->skip_flags & BLO_READ_SKIP_DATA) {
+					bhead = blo_nextbhead(fd, bhead);
+				}
+				else {
+					bhead = read_libblock(fd, mainlist.last, bhead, LIB_TAG_READ | LIB_TAG_EXTERN, NULL);
+				}
+				break;
+				/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
+			case ID_SCRN:
+				bhead->code = ID_SCR;
+				/* pass on to default */
+				ATTR_FALLTHROUGH;
+			default:
+				if (fd->skip_flags & BLO_READ_SKIP_DATA) {
+					bhead = blo_nextbhead(fd, bhead);
+				}
+				else {
+					bhead = read_libblock(fd, bfd->main, bhead, LIB_TAG_LOCAL, NULL);
+				}
 		}
 	}
 
@@ -9883,86 +9883,86 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 					expand_idprops(fd, mainvar, id->properties);
 
 					switch (GS(id->name)) {
-					case ID_OB:
-						expand_object(fd, mainvar, (Object *)id);
-						break;
-					case ID_ME:
-						expand_mesh(fd, mainvar, (Mesh *)id);
-						break;
-					case ID_CU:
-						expand_curve(fd, mainvar, (Curve *)id);
-						break;
-					case ID_MB:
-						expand_mball(fd, mainvar, (MetaBall *)id);
-						break;
-					case ID_SCE:
-						expand_scene(fd, mainvar, (Scene *)id);
-						break;
-					case ID_MA:
-						expand_material(fd, mainvar, (Material *)id);
-						break;
-					case ID_TE:
-						expand_texture(fd, mainvar, (Tex *)id);
-						break;
-					case ID_WO:
-						expand_world(fd, mainvar, (World *)id);
-						break;
-					case ID_LT:
-						expand_lattice(fd, mainvar, (Lattice *)id);
-						break;
-					case ID_LA:
-						expand_lamp(fd, mainvar, (Lamp *)id);
-						break;
-					case ID_KE:
-						expand_key(fd, mainvar, (Key *)id);
-						break;
-					case ID_CA:
-						expand_camera(fd, mainvar, (Camera *)id);
-						break;
-					case ID_SPK:
-						expand_speaker(fd, mainvar, (Speaker *)id);
-						break;
-					case ID_SO:
-						expand_sound(fd, mainvar, (bSound *)id);
-						break;
-					case ID_AR:
-						expand_armature(fd, mainvar, (bArmature *)id);
-						break;
-					case ID_AC:
-						expand_action(fd, mainvar, (bAction *)id); // XXX deprecated - old animation system
-						break;
-					case ID_GR:
-						expand_group(fd, mainvar, (Group *)id);
-						break;
-					case ID_NT:
-						expand_nodetree(fd, mainvar, (bNodeTree *)id);
-						break;
-					case ID_BR:
-						expand_brush(fd, mainvar, (Brush *)id);
-						break;
-					case ID_IP:
-						expand_ipo(fd, mainvar, (Ipo *)id); // XXX deprecated - old animation system
-						break;
-					case ID_PA:
-						expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
-						break;
-					case ID_MC:
-						expand_movieclip(fd, mainvar, (MovieClip *)id);
-						break;
-					case ID_MSK:
-						expand_mask(fd, mainvar, (Mask *)id);
-						break;
-					case ID_LS:
-						expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
-						break;
-					case ID_GD:
-						expand_gpencil(fd, mainvar, (bGPdata *)id);
-						break;
-					case ID_CF:
-						expand_cachefile(fd, mainvar, (CacheFile *)id);
-						break;
-					default:
-						break;
+						case ID_OB:
+							expand_object(fd, mainvar, (Object *)id);
+							break;
+						case ID_ME:
+							expand_mesh(fd, mainvar, (Mesh *)id);
+							break;
+						case ID_CU:
+							expand_curve(fd, mainvar, (Curve *)id);
+							break;
+						case ID_MB:
+							expand_mball(fd, mainvar, (MetaBall *)id);
+							break;
+						case ID_SCE:
+							expand_scene(fd, mainvar, (Scene *)id);
+							break;
+						case ID_MA:
+							expand_material(fd, mainvar, (Material *)id);
+							break;
+						case ID_TE:
+							expand_texture(fd, mainvar, (Tex *)id);
+							break;
+						case ID_WO:
+							expand_world(fd, mainvar, (World *)id);
+							break;
+						case ID_LT:
+							expand_lattice(fd, mainvar, (Lattice *)id);
+							break;
+						case ID_LA:
+							expand_lamp(fd, mainvar, (Lamp *)id);
+							break;
+						case ID_KE:
+							expand_key(fd, mainvar, (Key *)id);
+							break;
+						case ID_CA:
+							expand_camera(fd, mainvar, (Camera *)id);
+							break;
+						case ID_SPK:
+							expand_speaker(fd, mainvar, (Speaker *)id);
+							break;
+						case ID_SO:
+							expand_sound(fd, mainvar, (bSound *)id);
+							break;
+						case ID_AR:
+							expand_armature(fd, mainvar, (bArmature *)id);
+							break;
+						case ID_AC:
+							expand_action(fd, mainvar, (bAction *)id); // XXX deprecated - old animation system
+							break;
+						case ID_GR:
+							expand_group(fd, mainvar, (Group *)id);
+							break;
+						case ID_NT:
+							expand_nodetree(fd, mainvar, (bNodeTree *)id);
+							break;
+						case ID_BR:
+							expand_brush(fd, mainvar, (Brush *)id);
+							break;
+						case ID_IP:
+							expand_ipo(fd, mainvar, (Ipo *)id); // XXX deprecated - old animation system
+							break;
+						case ID_PA:
+							expand_particlesettings(fd, mainvar, (ParticleSettings *)id);
+							break;
+						case ID_MC:
+							expand_movieclip(fd, mainvar, (MovieClip *)id);
+							break;
+						case ID_MSK:
+							expand_mask(fd, mainvar, (Mask *)id);
+							break;
+						case ID_LS:
+							expand_linestyle(fd, mainvar, (FreestyleLineStyle *)id);
+							break;
+						case ID_GD:
+							expand_gpencil(fd, mainvar, (bGPdata *)id);
+							break;
+						case ID_CF:
+							expand_cachefile(fd, mainvar, (CacheFile *)id);
+							break;
+						default:
+							break;
 					}
 
 					do_it = true;

@@ -186,10 +186,10 @@ static int StrokeVertex_mathutils_get_index(BaseMathObject *bmo, int /*subtype*/
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	switch (index) {
-	case 0: bmo->data[0] = (float)self->sv->x(); break;
-	case 1: bmo->data[1] = (float)self->sv->y(); break;
-	default:
-		return -1;
+		case 0: bmo->data[0] = (float)self->sv->x(); break;
+		case 1: bmo->data[1] = (float)self->sv->y(); break;
+		default:
+			return -1;
 	}
 	return 0;
 }
@@ -198,10 +198,10 @@ static int StrokeVertex_mathutils_set_index(BaseMathObject *bmo, int /*subtype*/
 {
 	BPy_StrokeVertex *self = (BPy_StrokeVertex *)bmo->cb_user;
 	switch (index) {
-	case 0: self->sv->setX((real)bmo->data[0]); break;
-	case 1: self->sv->setY((real)bmo->data[1]); break;
-	default:
-		return -1;
+		case 0: self->sv->setX((real)bmo->data[0]); break;
+		case 1: self->sv->setY((real)bmo->data[1]); break;
+		default:
+			return -1;
 	}
 	return 0;
 }
