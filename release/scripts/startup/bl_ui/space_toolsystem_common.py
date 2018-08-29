@@ -526,6 +526,7 @@ class ToolSelectPanelHelper:
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout, tool)
+        return tool
 
 
 # The purpose of this menu is to be a generic popup to select between tools
