@@ -8,7 +8,7 @@ keyconfig_data = \
     ("wm.call_menu",
      {"type": 'O', "value": 'PRESS', "shift": True, "ctrl": True},
      {"properties":
-      [("name", 'INFO_MT_file_open_recent'),
+      [("name", 'TOPBAR_MT_file_open_recent'),
        ],
       },
      ),
@@ -1020,7 +1020,7 @@ keyconfig_data = \
     ("wm.call_menu",
      {"type": 'A', "value": 'PRESS', "shift": True},
      {"properties":
-      [("name", 'INFO_MT_add'),
+      [("name", 'VIEW3D_MT_add'),
        ],
       },
      ),
@@ -1321,7 +1321,7 @@ keyconfig_data = \
     ("wm.call_menu",
      {"type": 'A', "value": 'PRESS', "shift": True},
      {"properties":
-      [("name", 'INFO_MT_add'),
+      [("name", 'VIEW3D_MT_add'),
        ],
       },
      ),
@@ -1460,7 +1460,7 @@ keyconfig_data = \
    [("wm.call_menu",
      {"type": 'A', "value": 'PRESS', "shift": True},
      {"properties":
-      [("name", 'INFO_MT_edit_curve_add'),
+      [("name", 'TOPBAR_MT_edit_curve_add'),
        ],
       },
      ),
@@ -3249,7 +3249,7 @@ keyconfig_data = \
     ("wm.call_menu",
      {"type": 'A', "value": 'PRESS', "shift": True},
      {"properties":
-      [("name", 'INFO_MT_mesh_add'),
+      [("name", 'VIEW3D_MT_mesh_add'),
        ],
       },
      ),

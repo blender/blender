@@ -306,35 +306,6 @@ static void info_header_region_message_subscribe(
 	WM_msg_subscribe_rna_anon_prop(mbus, ViewLayer, name, &msg_sub_value_region_tag_redraw);
 }
 
-static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
-{
-	struct RecentFile *recent;
-	uiLayout *layout = menu->layout;
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
-	if (!BLI_listbase_is_empty(&G.recent_files)) {
-		for (recent = G.recent_files.first; (recent); recent = recent->next) {
-			const char *file = BLI_path_basename(recent->filepath);
-			const int icon = BLO_has_bfile_extension(file) ? ICON_FILE_BLEND : ICON_FILE_BACKUP;
-			uiItemStringO(layout, file, icon, "WM_OT_open_mainfile", "filepath", recent->filepath);
-		}
-	}
-	else {
-		uiItemL(layout, IFACE_("No Recent Files"), ICON_NONE);
-	}
-}
-
-static void recent_files_menu_register(void)
-{
-	MenuType *mt;
-
-	mt = MEM_callocN(sizeof(MenuType), "spacetype info menu recent files");
-	strcpy(mt->idname, "INFO_MT_file_open_recent");
-	strcpy(mt->label, N_("Open Recent..."));
-	strcpy(mt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	mt->draw = recent_files_menu_draw;
-	WM_menutype_add(mt);
-}
-
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_info(void)
 {
@@ -374,8 +345,6 @@ void ED_spacetype_info(void)
 	art->draw = info_header_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
-
-	recent_files_menu_register();
 
 	BKE_spacetype_register(st);
 }

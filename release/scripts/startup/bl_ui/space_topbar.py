@@ -40,7 +40,7 @@ class TOPBAR_HT_upper_bar(Header):
 
         layout.operator("wm.splash", text="", icon='BLENDER', emboss=False)
 
-        INFO_MT_editor_menus.draw_collapsible(context, layout)
+        TOPBAR_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.separator()
 
@@ -262,8 +262,8 @@ class _draw_left_context_mode:
                     layout.prop(brush, "use_puff_volume")
 
 
-class INFO_MT_editor_menus(Menu):
-    bl_idname = "INFO_MT_editor_menus"
+class TOPBAR_MT_editor_menus(Menu):
+    bl_idname = "TOPBAR_MT_editor_menus"
     bl_label = ""
 
     def draw(self, context):
@@ -271,16 +271,16 @@ class INFO_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        layout.menu("INFO_MT_file")
-        layout.menu("INFO_MT_edit")
+        layout.menu("TOPBAR_MT_file")
+        layout.menu("TOPBAR_MT_edit")
 
-        layout.menu("INFO_MT_render")
+        layout.menu("TOPBAR_MT_render")
 
-        layout.menu("INFO_MT_window")
-        layout.menu("INFO_MT_help")
+        layout.menu("TOPBAR_MT_window")
+        layout.menu("TOPBAR_MT_help")
 
 
-class INFO_MT_file(Menu):
+class TOPBAR_MT_file(Menu):
     bl_label = "File"
 
     def draw(self, context):
@@ -289,7 +289,7 @@ class INFO_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.read_homefile", text="New", icon='NEW')
         layout.operator("wm.open_mainfile", text="Open...", icon='FILE_FOLDER')
-        layout.menu("INFO_MT_file_open_recent")
+        layout.menu("TOPBAR_MT_file_open_recent")
         layout.operator("wm.revert_mainfile")
         layout.operator("wm.recover_last_session")
         layout.operator("wm.recover_auto_save", text="Recover Auto Save...")
@@ -315,16 +315,16 @@ class INFO_MT_file(Menu):
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.link", text="Link...", icon='LINK_BLEND')
         layout.operator("wm.append", text="Append...", icon='APPEND_BLEND')
-        layout.menu("INFO_MT_file_previews")
+        layout.menu("TOPBAR_MT_file_previews")
 
         layout.separator()
 
-        layout.menu("INFO_MT_file_import", icon='IMPORT')
-        layout.menu("INFO_MT_file_export", icon='EXPORT')
+        layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
+        layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
         layout.separator()
 
-        layout.menu("INFO_MT_file_external_data")
+        layout.menu("TOPBAR_MT_file_external_data")
 
         layout.separator()
 
@@ -334,8 +334,8 @@ class INFO_MT_file(Menu):
         layout.operator("wm.quit_blender", text="Quit", icon='QUIT')
 
 
-class INFO_MT_file_import(Menu):
-    bl_idname = "INFO_MT_file_import"
+class TOPBAR_MT_file_import(Menu):
+    bl_idname = "TOPBAR_MT_file_import"
     bl_label = "Import"
 
     def draw(self, context):
@@ -345,8 +345,8 @@ class INFO_MT_file_import(Menu):
             self.layout.operator("wm.alembic_import", text="Alembic (.abc)")
 
 
-class INFO_MT_file_export(Menu):
-    bl_idname = "INFO_MT_file_export"
+class TOPBAR_MT_file_export(Menu):
+    bl_idname = "TOPBAR_MT_file_export"
     bl_label = "Export"
 
     def draw(self, context):
@@ -356,7 +356,7 @@ class INFO_MT_file_export(Menu):
             self.layout.operator("wm.alembic_export", text="Alembic (.abc)")
 
 
-class INFO_MT_file_external_data(Menu):
+class TOPBAR_MT_file_external_data(Menu):
     bl_label = "External Data"
 
     def draw(self, context):
@@ -383,7 +383,7 @@ class INFO_MT_file_external_data(Menu):
         layout.operator("file.find_missing_files")
 
 
-class INFO_MT_file_previews(Menu):
+class TOPBAR_MT_file_previews(Menu):
     bl_label = "Data Previews"
 
     def draw(self, context):
@@ -398,28 +398,7 @@ class INFO_MT_file_previews(Menu):
         layout.operator("wm.previews_batch_clear")
 
 
-class INFO_MT_game(Menu):
-    bl_label = "Game"
-
-    def draw(self, context):
-        layout = self.layout
-
-        gs = context.scene.game_settings
-
-        layout.operator("view3d.game_start")
-
-        layout.separator()
-
-        layout.prop(gs, "show_debug_properties")
-        layout.prop(gs, "show_framerate_profile")
-        layout.prop(gs, "show_physics_visualization")
-        layout.prop(gs, "use_deprecation_warnings")
-        layout.prop(gs, "use_animation_record")
-        layout.separator()
-        layout.prop(gs, "use_auto_start")
-
-
-class INFO_MT_render(Menu):
+class TOPBAR_MT_render(Menu):
     bl_label = "Render"
 
     def draw(self, context):
@@ -447,21 +426,7 @@ class INFO_MT_render(Menu):
         layout.prop(rd, "use_lock_interface", text="Lock Interface")
 
 
-class INFO_MT_opengl_render(Menu):
-    bl_label = "OpenGL Render Options"
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        layout.prop(rd, "use_antialiasing")
-        layout.prop(rd, "use_full_sample")
-
-        layout.prop_menu_enum(rd, "antialiasing_samples")
-        layout.prop_menu_enum(rd, "alpha_mode")
-
-
-class INFO_MT_edit(Menu):
+class TOPBAR_MT_edit(Menu):
     bl_label = "Edit"
 
     def draw(self, context):
@@ -498,7 +463,7 @@ class INFO_MT_edit(Menu):
         layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
 
-class INFO_MT_window(Menu):
+class TOPBAR_MT_window(Menu):
     bl_label = "Window"
 
     def draw(self, context):
@@ -536,7 +501,7 @@ class INFO_MT_window(Menu):
             layout.operator("wm.set_stereo_3d")
 
 
-class INFO_MT_help(Menu):
+class TOPBAR_MT_help(Menu):
     bl_label = "Help"
 
     def draw(self, context):
@@ -607,8 +572,8 @@ class TOPBAR_MT_file_specials(Menu):
 
         layout.separator()
 
-        layout.menu("INFO_MT_file_import", icon='IMPORT')
-        layout.menu("INFO_MT_file_export", icon='EXPORT')
+        layout.menu("TOPBAR_MT_file_import", icon='IMPORT')
+        layout.menu("TOPBAR_MT_file_export", icon='EXPORT')
 
 
 class TOPBAR_MT_window_specials(Menu):
@@ -655,17 +620,16 @@ classes = (
     TOPBAR_MT_file_specials,
     TOPBAR_MT_window_specials,
     TOPBAR_MT_workspace_menu,
-    INFO_MT_editor_menus,
-    INFO_MT_file,
-    INFO_MT_file_import,
-    INFO_MT_file_export,
-    INFO_MT_file_external_data,
-    INFO_MT_file_previews,
-    INFO_MT_edit,
-    INFO_MT_game,
-    INFO_MT_render,
-    INFO_MT_window,
-    INFO_MT_help,
+    TOPBAR_MT_editor_menus,
+    TOPBAR_MT_file,
+    TOPBAR_MT_file_import,
+    TOPBAR_MT_file_export,
+    TOPBAR_MT_file_external_data,
+    TOPBAR_MT_file_previews,
+    TOPBAR_MT_edit,
+    TOPBAR_MT_render,
+    TOPBAR_MT_window,
+    TOPBAR_MT_help,
 )
 
 if __name__ == "__main__":  # only for live edit.

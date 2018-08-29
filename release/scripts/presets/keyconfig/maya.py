@@ -12,7 +12,7 @@ kmi = km.keymap_items.new('wm.window_new', 'W', 'PRESS', ctrl=True, alt=True)
 kmi = km.keymap_items.new('wm.read_homefile', 'N', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.save_homefile', 'U', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'O', 'PRESS', shift=True, ctrl=True)
-kmi.properties.name = 'INFO_MT_file_open_recent'
+kmi.properties.name = 'TOPBAR_MT_file_open_recent'
 kmi = km.keymap_items.new('wm.open_mainfile', 'O', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.open_mainfile', 'F1', 'PRESS')
 kmi = km.keymap_items.new('wm.link', 'O', 'PRESS', ctrl=True, alt=True)
@@ -274,7 +274,7 @@ km = kc.keymaps.new('Pose', space_type='EMPTY', region_type='WINDOW', modal=Fals
 
 kmi = km.keymap_items.new('object.parent_set', 'P', 'PRESS')
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
-kmi.properties.name = 'INFO_MT_add'
+kmi.properties.name = 'VIEW3D_MT_add'
 kmi = km.keymap_items.new('pose.hide', 'H', 'PRESS', ctrl=True)
 kmi.properties.unselected = False
 kmi = km.keymap_items.new('pose.hide', 'H', 'PRESS', alt=True)
@@ -383,7 +383,7 @@ kmi.properties.unselected = True
 kmi = km.keymap_items.new('object.delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('object.delete', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
-kmi.properties.name = 'INFO_MT_add'
+kmi.properties.name = 'VIEW3D_MT_add'
 kmi = km.keymap_items.new('object.duplicates_make_real', 'A', 'PRESS', shift=True, ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', ctrl=True, alt=True)
 kmi.properties.name = 'VIEW3D_MT_object_apply'
@@ -650,7 +650,7 @@ kmi = km.keymap_items.new('mesh.merge', 'M', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.edge_face_add', 'F', 'PRESS', alt=True)
 kmi = km.keymap_items.new('mesh.duplicate_move', 'D', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
-kmi.properties.name = 'INFO_MT_mesh_add'
+kmi.properties.name = 'VIEW3D_MT_mesh_add'
 kmi = km.keymap_items.new('mesh.dupli_extrude_cursor', 'MIDDLEMOUSE', 'CLICK', ctrl=True)
 kmi = km.keymap_items.new('wm.call_menu', 'BACK_SPACE', 'PRESS')
 kmi.properties.name = 'VIEW3D_MT_edit_mesh_delete'
@@ -720,7 +720,7 @@ kmi = km.keymap_items.new_modal('CUT_THROUGH_TOGGLE', 'Z', 'PRESS')
 km = kc.keymaps.new('Curve', space_type='EMPTY', region_type='WINDOW', modal=False)
 
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
-kmi.properties.name = 'INFO_MT_edit_curve_add'
+kmi.properties.name = 'TOPBAR_MT_edit_curve_add'
 kmi = km.keymap_items.new('curve.handle_type_set', 'RIGHTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('curve.vertex_add', 'MIDDLEMOUSE', 'CLICK', ctrl=True)
 kmi = km.keymap_items.new('curve.select_all', 'A', 'PRESS', ctrl=True)
