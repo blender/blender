@@ -1010,6 +1010,11 @@ class _defs_sculpt:
 class _defs_vertex_paint:
 
     @staticmethod
+    def poll_select_mask(context):
+        mesh = context.object.data
+        return mesh.use_paint_mask
+
+    @staticmethod
     def generate_from_brushes(context):
         return generate_from_brushes_ex(
             context,
@@ -1051,6 +1056,11 @@ class _defs_texture_paint:
 
 
 class _defs_weight_paint:
+
+    @staticmethod
+    def poll_select_mask(context):
+        mesh = context.object.data
+        return (mesh.use_paint_mask or mesh.use_paint_mask_vertex)
 
     @staticmethod
     def generate_from_brushes(context):
@@ -1731,6 +1741,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT_VERTEX': [
             _defs_vertex_paint.generate_from_brushes,
+            None,
+            lambda context: (
+                VIEW3D_PT_tools_active._tools_select
+                if _defs_vertex_paint.poll_select_mask(context)
+                else ()
+            ),
         ],
         'PAINT_WEIGHT': [
             # TODO, check for mixed pose mode
@@ -1740,8 +1756,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_weight_paint.sample_weight,
             _defs_weight_paint.sample_weight_group,
             None,
-            # TODO, override brush events
-            *_tools_select,
+            lambda context: (
+                VIEW3D_PT_tools_active._tools_select
+                if _defs_weight_paint.poll_select_mask(context)
+                else ()
+            ),
             None,
             _defs_weight_paint.gradient,
         ],
