@@ -57,13 +57,13 @@ variables on the UI for now
 #include "MEM_guardedalloc.h"
 
 /* types */
+#include "DNA_collection_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_lattice_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_group_types.h"
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"

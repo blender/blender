@@ -40,9 +40,9 @@
 
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_gpu_types.h"
-#include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_lightprobe_types.h"

@@ -47,7 +47,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_gpu_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_userdef_types.h"

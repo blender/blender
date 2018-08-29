@@ -37,7 +37,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_smoke_types.h"

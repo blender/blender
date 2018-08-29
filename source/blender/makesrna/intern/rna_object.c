@@ -29,8 +29,8 @@
 
 #include "DNA_action_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"

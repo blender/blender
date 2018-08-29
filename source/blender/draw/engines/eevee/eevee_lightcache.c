@@ -37,8 +37,8 @@
 
 #include "BKE_object.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_lightprobe_types.h"
-#include "DNA_group_types.h"
 
 #include "PIL_time.h"
 

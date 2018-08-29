@@ -44,8 +44,8 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 
-#include "DNA_group_types.h"
 #include "DNA_ID.h"
+#include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"

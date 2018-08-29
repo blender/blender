@@ -99,7 +99,7 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_text_types.h"
 #include "DNA_texture_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"

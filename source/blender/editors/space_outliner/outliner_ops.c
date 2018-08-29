@@ -33,7 +33,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 
 #include "BLT_translation.h"
 

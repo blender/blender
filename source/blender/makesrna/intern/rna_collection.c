@@ -20,13 +20,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/makesrna/intern/rna_group.c
+/** \file blender/makesrna/intern/rna_collection.c
  *  \ingroup RNA
  */
 
 #include <stdlib.h>
 
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 
 #include "BLI_utildefines.h"
 

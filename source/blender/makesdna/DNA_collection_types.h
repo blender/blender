@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file DNA_group_types.h
+/** \file DNA_collection_types.h
  *  \ingroup DNA
  *
  * \brief Object groups, one object can be in many groups at once.

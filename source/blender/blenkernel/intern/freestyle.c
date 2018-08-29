@@ -31,8 +31,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_freestyle_types.h"
-#include "DNA_group_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"

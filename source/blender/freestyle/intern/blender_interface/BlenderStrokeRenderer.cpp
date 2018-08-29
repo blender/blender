@@ -34,7 +34,7 @@ extern "C" {
 #include "RNA_types.h"
 
 #include "DNA_camera_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_listBase.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"

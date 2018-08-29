@@ -34,7 +34,7 @@
 #include <string.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"

@@ -48,10 +48,10 @@ set(SRC
 	object_add.c
 	object_bake.c
 	object_bake_api.c
+	object_collection.c
 	object_constraint.c
 	object_edit.c
 	object_facemap_ops.c
-	object_group.c
 	object_hook.c
 	object_modes.c
 	object_modifier.c

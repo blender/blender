@@ -37,7 +37,7 @@
 #include <errno.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_image_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"

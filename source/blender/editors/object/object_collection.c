@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/object/object_group.c
+/** \file blender/editors/object/object_collection.c
  *  \ingroup edobj
  */
 
@@ -35,7 +35,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 

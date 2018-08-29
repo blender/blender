@@ -39,7 +39,7 @@ extern "C" {
 #include "BKE_modifier.h"
 } /* extern "C" */
 
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
 

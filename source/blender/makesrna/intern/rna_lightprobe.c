@@ -42,8 +42,8 @@
 #include "BKE_main.h"
 #include "DEG_depsgraph.h"
 
+#include "DNA_collection_types.h"
 #include "DNA_object_types.h"
-#include "DNA_group_types.h"
 
 #include "WM_api.h"
 

@@ -33,7 +33,7 @@
 #include <stdio.h>
 
 #include "DNA_anim_types.h"
-#include "DNA_group_types.h"
+#include "DNA_collection_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
