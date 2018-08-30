@@ -316,6 +316,8 @@ static DRWPass *edit_mesh_create_overlay_pass(
         DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_ledges_shgrp,
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
 {
+	static float edge_width_scale;
+
 	GPUShader *tri_sh, *ledge_sh;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
@@ -329,24 +331,32 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	        "Edit Mesh Face Overlay Pass",
 	        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT | statemod);
 
+
+	/* Applies on top of the theme edge width, so edge-mode can have thick edges. */
+	edge_width_scale = (tsettings->selectmode & (SCE_SELECT_EDGE)) ? 1.75f : 1.0f;
+
 	*r_face_shgrp = DRW_shgroup_create(tri_sh, pass);
 	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_face_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", faceAlpha, 1);
+	DRW_shgroup_uniform_float(*r_face_shgrp, "edgeScale", &edge_width_scale, 1);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
 	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_ledges_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", &edge_width_scale, 1);
 
 	if ((tsettings->selectmode & (SCE_SELECT_VERTEX)) != 0) {
 		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
 		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", &edge_width_scale, 1);
 	}
 
 	if ((tsettings->selectmode & (SCE_SELECT_FACE)) != 0) {
 		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
 		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", &edge_width_scale, 1);
 	}
 
 	return pass;
