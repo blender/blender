@@ -59,7 +59,6 @@
 #include "BKE_screen.h"
 #include "BKE_texture.h"
 #include "BKE_linestyle.h"
-#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 
@@ -186,14 +185,6 @@ static int buttons_context_path_linestyle(ButsContextPath *path, wmWindow *windo
 
 	/* no path to a linestyle possible */
 	return 0;
-}
-
-static int buttons_context_path_workspace(ButsContextPath *path)
-{
-	PointerRNA *ptr = &path->ptr[path->len - 1];
-
-	/* This one just verifies. */
-	return RNA_struct_is_a(ptr->type, &RNA_WorkSpace);
 }
 
 static int buttons_context_path_object(ButsContextPath *path)
@@ -497,7 +488,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	wmWindow *window = CTX_wm_window(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	ID *id;
 	int found;
 	Object *ob = CTX_data_active_object(C);
@@ -513,19 +503,13 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 		path->len++;
 	}
 	/* No pinned root, use scene as initial root. */
-	else {
-		if (mainb == BCONTEXT_TOOL) {
-			RNA_id_pointer_create(&workspace->id, &path->ptr[0]);
-			path->len++;
-		}
-		else {
-			RNA_id_pointer_create(&scene->id, &path->ptr[0]);
-			path->len++;
+	else if (mainb != BCONTEXT_TOOL) {
+		RNA_id_pointer_create(&scene->id, &path->ptr[0]);
+		path->len++;
 
-			if (!ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD)) {
-				RNA_pointer_create(NULL, &RNA_ViewLayer, view_layer, &path->ptr[path->len]);
-				path->len++;
-			}
+		if (!ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD)) {
+			RNA_pointer_create(NULL, &RNA_ViewLayer, view_layer, &path->ptr[path->len]);
+			path->len++;
 		}
 	}
 
@@ -551,7 +535,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			found = buttons_context_path_world(path);
 			break;
 		case BCONTEXT_TOOL:
-			found = buttons_context_path_workspace(path);
+			found = true;
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
@@ -1064,7 +1048,13 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	}
 }
 
-static void buttons_panel_context(const bContext *C, Panel *pa)
+static bool buttons_panel_context_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
+	return (sbuts->mainb != BCONTEXT_TOOL);
+}
+
+static void buttons_panel_context_draw(const bContext *C, Panel *pa)
 {
 	buttons_context_draw(C, pa->layout);
 }
@@ -1077,7 +1067,8 @@ void buttons_context_register(ARegionType *art)
 	strcpy(pt->idname, "BUTTONS_PT_context");
 	strcpy(pt->label, N_("Context"));  /* XXX C panels are not available through RNA (bpy.types)! */
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw = buttons_panel_context;
+	pt->poll = buttons_panel_context_poll;
+	pt->draw = buttons_panel_context_draw;
 	pt->flag = PNL_NO_HEADER;
 	BLI_addtail(&art->paneltypes, pt);
 }
