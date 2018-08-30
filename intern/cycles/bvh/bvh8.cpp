@@ -1,28 +1,29 @@
 /*
-Copyright (c) 2017, Intel Corporation
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-* Redistributions of source code must retain the above copyright notice,
-this list of conditions and the following disclaimer.
-* Redistributions in binary form must reproduce the above copyright
-notice, this list of conditions and the following disclaimer in the
-documentation and/or other materials provided with the distribution.
-* Neither the name of Intel Corporation nor the names of its contributors
-may be used to endorse or promote products derived from this software
-without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+* Original code Copyright 2017, Intel Corporation
+* Modifications Copyright 2018, Blender Foundation.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* * Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+* * Redistributions in binary form must reproduce the above copyright
+* notice, this list of conditions and the following disclaimer in the
+* documentation and/or other materials provided with the distribution.
+* * Neither the name of Intel Corporation nor the names of its contributors
+* may be used to endorse or promote products derived from this software
+* without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+* FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+* DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+* SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+* CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+* OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+* OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "bvh/bvh8.h"
@@ -459,26 +460,22 @@ void BVH8::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		memcpy(&pack.leaf_nodes[idx], leaf_data, sizeof(float4)*BVH_ONODE_LEAF_SIZE);
 	}
 	else {
-		int4 *data = &pack.nodes[idx];
-		bool is_unaligned = (data[0].x & PATH_RAY_NODE_UNALIGNED) != 0;
-		int4 c;
-		if(is_unaligned) {
-			c = data[BVH_UNALIGNED_ONODE_SIZE-1];
-		}
-		else {
-			c = data[BVH_ONODE_SIZE-1];
-		}
+		float8 *data = (float8*)&pack.nodes[idx];
+		bool is_unaligned = (__float_as_uint(data[0].a) & PATH_RAY_NODE_UNALIGNED) != 0;
 		/* Refit inner node, set bbox from children. */
 		BoundBox child_bbox[8] = { BoundBox::empty, BoundBox::empty,
 		                           BoundBox::empty, BoundBox::empty,
 		                           BoundBox::empty, BoundBox::empty,
 		                           BoundBox::empty, BoundBox::empty };
+		int child[8];
 		uint child_visibility[8] = { 0 };
 		int num_nodes = 0;
 
 		for(int i = 0; i < 8; ++i) {
-			if(c[i] != 0) {
-				refit_node((c[i] < 0)? -c[i]-1: c[i], (c[i] < 0),
+			child[i] = __float_as_int(data[(is_unaligned) ? 13: 7][i]);
+
+			if(child[i] != 0) {
+				refit_node((child[i] < 0)? -child[i]-1: child[i], (child[i] < 0),
 				           child_bbox[i], child_visibility[i]);
 				++num_nodes;
 				bbox.grow(child_bbox[i]);
@@ -494,7 +491,7 @@ void BVH8::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			pack_unaligned_node(idx,
 			                    aligned_space,
 			                    child_bbox,
-			                    &c[0],
+			                    child,
 			                    visibility,
 			                    0.0f,
 			                    1.0f,
@@ -503,7 +500,7 @@ void BVH8::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 		else {
 			pack_aligned_node(idx,
 			                  child_bbox,
-			                  &c[0],
+			                  child,
 			                  visibility,
 			                  0.0f,
 			                  1.0f,

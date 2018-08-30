@@ -144,7 +144,7 @@ static void rna_Image_save(Image *image, Main *bmain, bContext *C, ReportList *r
 		BKE_reportf(reports, RPT_ERROR, "Image '%s' does not have any image data", image->id.name + 2);
 	}
 
-	BKE_image_release_ibuf(image, ibuf, &lock);
+	BKE_image_release_ibuf(image, ibuf, lock);
 	WM_event_add_notifier(C, NC_IMAGE | NA_EDITED, image);
 }
 

@@ -107,25 +107,26 @@ unsigned short system_cpu_process_groups(unsigned short max_groups,
 #if !defined(_WIN32) || defined(FREE_WINDOWS)
 static void __cpuid(int data[4], int selector)
 {
-#ifdef __x86_64__
+#if defined(__x86_64__)
 	asm("cpuid" : "=a" (data[0]), "=b" (data[1]), "=c" (data[2]), "=d" (data[3]) : "a"(selector));
-#else
-#ifdef __i386__
+#elif defined(__i386__)
 	asm("pushl %%ebx    \n\t"
-		"cpuid          \n\t"
-		"movl %%ebx, %1 \n\t"
-		"popl %%ebx     \n\t" : "=a" (data[0]), "=r" (data[1]), "=c" (data[2]), "=d" (data[3]) : "a"(selector));
+	    "cpuid          \n\t"
+	    "movl %%ebx, %1 \n\t"
+	    "popl %%ebx     \n\t"
+	    : "=a" (data[0]), "=r" (data[1]), "=c" (data[2]), "=d" (data[3])
+	    : "a"(selector)
+	    : "ebx");
 #else
 	data[0] = data[1] = data[2] = data[3] = 0;
-#endif
 #endif
 }
 #endif
 
 string system_cpu_brand_string()
 {
-	char buf[48];
-	int result[4];
+	char buf[48] = {0};
+	int result[4] = {0};
 
 	__cpuid(result, 0x80000000);
 

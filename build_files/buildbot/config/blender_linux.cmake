@@ -9,10 +9,12 @@ if(EXISTS "/lib/x86_64-linux-gnu/libc-2.24.so")
 	message(STATUS "Building in GLibc-2.24 environment")
 	set(GLIBC "2.24")
 	set(MULTILIB "/x86_64-linux-gnu")
+	set(LIBDIR_NAME "linux_x86_64")
 elseif(EXISTS "/lib/i386-linux-gnu//libc-2.24.so")
 	message(STATUS "Building in GLibc-2.24 environment")
 	set(GLIBC "2.24")
 	set(MULTILIB "/i386-linux-gnu")
+	set(LIBDIR_NAME "linux_i686")
 elseif(EXISTS "/lib/x86_64-linux-gnu/libc-2.19.so")
 	message(STATUS "Building in GLibc-2.19 environment")
 	set(GLIBC "2.19")
@@ -160,16 +162,24 @@ set(BLOSC_LIBRARY
 
 else()
 
-# Set path to precompiled libraries.
-set(LIBDIR_NAME ${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_PROCESSOR})
-string(TOLOWER ${LIBDIR_NAME} LIBDIR_NAME)
-set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}")
+set(LIBDIR "/opt/blender-deps/${LIBDIR_NAME}" CACHE BOOL "" FORCE)
 
 # TODO(sergey): Remove once Python is oficially bumped to 3.7.
-set(PYTHON_VERSION 3.7)
+set(PYTHON_VERSION    3.7 CACHE BOOL "" FORCE)
 
-# Ensure specific configuration of various libraries.
+# Platform specific configuration, to ensure static linking against everything.
+
 set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
+
+# TODO(sergey): Move up to the rest of WITH_SYSTEM and DYNLOAD configuration,
+# once old chroot is officially retired.
+set(WITH_SYSTEM_OPENJPEG     ON CACHE BOOL "" FORCE)
+
+# We need to link OpenCOLLADA against PCRE library. Even though it is not installed
+# on /usr, we do not really care -- all we care is PCRE_FOUND be TRUE and its
+# library pointing to a valid one.
+set(PCRE_INCLUDE_DIR          "/usr/include"                        CACHE STRING "" FORCE)
+set(PCRE_LIBRARY              "${LIBDIR}/opencollada/lib/libpcre.a" CACHE STRING "" FORCE)
 
 endif()
 
