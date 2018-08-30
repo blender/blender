@@ -86,8 +86,8 @@ enum {
 #define DEFAULT_DECAY 0.8f
 
 static int gpencil_bone_looper(
-						Object *ob, Bone *bone, void *data,
-						int(*bone_func)(Object *, Bone *, void *))
+        Object *ob, Bone *bone, void *data,
+        int(*bone_func)(Object *, Bone *, void *))
 {
 	/* We want to apply the function bone_func to every bone
 	 * in an armature -- feed bone_looper the first bone and
@@ -262,14 +262,12 @@ static float get_weight(float dist, float decay_rad, float dif_rad)
 
 /* This functions implements the automatic computation of vertex group weights */
 static void gpencil_add_verts_to_dgroups(
-					const bContext *C, ReportList *reports,
-					Depsgraph *depsgraph, 
-					Object *ob, Object *ob_arm, const float ratio, const float decay)
+        const bContext *C,
+        Object *ob, Object *ob_arm, const float ratio, const float decay)
 {
 	bArmature *arm = ob_arm->data;
 	Bone **bonelist, *bone;
 	bDeformGroup **dgrouplist;
-	bDeformGroup *dgroup;
 	bPoseChannel *pchan;
 	bGPdata *gpd = (bGPdata *)ob->data;
 	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
@@ -315,7 +313,6 @@ static void gpencil_add_verts_to_dgroups(
 
 	for (j = 0; j < numbones; j++) {
 		bone = bonelist[j];
-		dgroup = dgrouplist[j];
 
 		/* handle bbone */
 		if (segments == 0) {
@@ -452,9 +449,9 @@ static void gpencil_add_verts_to_dgroups(
 }
 
 static void gpencil_object_vgroup_calc_from_armature(
-						const bContext *C,	ReportList *reports,
-						Depsgraph *depsgraph, Object *ob, Object *ob_arm,
-						const int mode, const float ratio, const float decay)
+        const bContext *C,
+        Object *ob, Object *ob_arm,
+        const int mode, const float ratio, const float decay)
 {
 	/* Lets try to create some vertex groups
 	 * based on the bones of the parent armature.
@@ -475,23 +472,23 @@ static void gpencil_object_vgroup_calc_from_armature(
 			* objects deform groups, in this case the new groups wont be empty */
 		ED_vgroup_data_clamp_range(ob->data, defbase_tot);
 	}
-	
+
 	if (mode == GP_ARMATURE_AUTO) {
 		/* Traverse the bone list, trying to fill vertex groups
 		 * with the corresponding vertice weights for which the
 		 * bone is closest.
 		 */
-		gpencil_add_verts_to_dgroups(C, reports, depsgraph, ob, ob_arm,
-									ratio, decay);
+		gpencil_add_verts_to_dgroups(
+		        C, ob, ob_arm,
+		        ratio, decay);
 	}
 }
 
 bool ED_gpencil_add_armature_weights(
-							const bContext *C, ReportList *reports,
-							Object *ob, Object *ob_arm, int mode)
+        const bContext *C, ReportList *reports,
+        Object *ob, Object *ob_arm, int mode)
 {
 	Main *bmain = CTX_data_main(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 
 	/* if no armature modifier, add a new one */
@@ -521,19 +518,18 @@ bool ED_gpencil_add_armature_weights(
 	}
 
 	/* add weights */
-	gpencil_object_vgroup_calc_from_armature(C, reports, depsgraph,
-											ob, ob_arm, mode,
-											DEFAULT_RATIO, DEFAULT_DECAY);
+	gpencil_object_vgroup_calc_from_armature(
+	        C,
+	        ob, ob_arm, mode,
+	        DEFAULT_RATIO, DEFAULT_DECAY);
 
 	return true;
 }
 /* ***************** Generate armature weights ************************** */
-bool gpencil_generate_weights_poll(bContext *C)
+static bool gpencil_generate_weights_poll(bContext *C)
 {
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *ob = CTX_data_active_object(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
 	bGPdata *gpd = (bGPdata *)ob->data;
 
 	if (BLI_listbase_count(&gpd->layers) == 0) {
@@ -598,8 +594,9 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	gpencil_object_vgroup_calc_from_armature(C, op->reports,depsgraph,
-											ob, ob_arm, mode, ratio, decay);
+	gpencil_object_vgroup_calc_from_armature(
+	        C,
+	        ob, ob_arm, mode, ratio, decay);
 
 	/* notifiers */
 	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
@@ -609,7 +606,8 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 }
 
 /* Dynamically populate an enum of Armatures */
-static const EnumPropertyItem *gpencil_armatures_enum_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *gpencil_armatures_enum_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	EnumPropertyItem *item = NULL, item_tmp = { 0 };
