@@ -57,13 +57,13 @@ void DebugFlags::CPU::reset()
 #undef STRINGIFY
 #undef CHECK_CPU_FLAGS
 
-	if (getenv("CYCLES_BVH2") != NULL) {
+	if(getenv("CYCLES_BVH2") != NULL) {
 		bvh_layout = BVH_LAYOUT_BVH2;
 	}
-	else if (getenv("CYCLES_BVH4") != NULL) {
+	else if(getenv("CYCLES_BVH4") != NULL) {
 		bvh_layout = BVH_LAYOUT_BVH4;
 	}
-	else if (getenv("CYCLES_BVH8") != NULL) {
+	else if(getenv("CYCLES_BVH8") != NULL) {
 		bvh_layout = BVH_LAYOUT_BVH8;
 	}
 	else {
