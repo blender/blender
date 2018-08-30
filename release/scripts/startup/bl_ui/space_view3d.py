@@ -4354,6 +4354,9 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub.prop(data, "show_edges", text="Edges")
         sub = split.column()
         sub.prop(data, "show_faces", text="Faces")
+        sub = split.column()
+        sub.active = view.use_occlude_geometry
+        sub.prop(data, "show_face_center", text="Center")
 
         row = col.row(align=True)
         row.prop(data, "show_edge_crease", text="Creases", toggle=True)

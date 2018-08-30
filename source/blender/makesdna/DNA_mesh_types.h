@@ -243,7 +243,7 @@ enum {
 	ME_DRAW_VNORMALS       = 1 << 3,
 
 	ME_DRAWEIGHT           = 1 << 4,
-	/* ME_HIDDENEDGES      = 1 << 5, */  /* DEPRECATED */
+	ME_DRAW_FACE_DOT       = 1 << 5,
 
 	ME_DRAWCREASES         = 1 << 6,
 	ME_DRAWSEAMS           = 1 << 7,

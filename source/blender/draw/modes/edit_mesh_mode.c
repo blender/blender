@@ -559,14 +559,21 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 			if (stl->g_data->do_zbufclip) {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob, stl->g_data->face_occluded_shgrp, stl->g_data->ledges_occluded_shgrp,
-				        stl->g_data->lverts_occluded_shgrp, stl->g_data->facedot_occluded_shgrp,
+				        scene, ob,
+				        stl->g_data->face_occluded_shgrp,
+				        stl->g_data->ledges_occluded_shgrp,
+				        stl->g_data->lverts_occluded_shgrp,
+				        stl->g_data->facedot_occluded_shgrp,
 				        stl->g_data->facefill_occluded_shgrp);
 			}
 			else {
 				edit_mesh_add_ob_to_pass(
-				        scene, ob, stl->g_data->face_overlay_shgrp, stl->g_data->ledges_overlay_shgrp,
-				        stl->g_data->lverts_overlay_shgrp, NULL, NULL);
+				        scene, ob,
+				        stl->g_data->face_overlay_shgrp,
+				        stl->g_data->ledges_overlay_shgrp,
+				        stl->g_data->lverts_overlay_shgrp,
+				        (me->drawflag & ME_DRAW_FACE_DOT) ? stl->g_data->facedot_overlay_shgrp : NULL,
+				        NULL);
 			}
 
 			stl->g_data->ghost_ob += (ob->dtx & OB_DRAWXRAY) ? 1 : 0;
