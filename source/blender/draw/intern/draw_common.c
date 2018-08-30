@@ -119,11 +119,10 @@ void DRW_globals_update(void)
 	ts.sizeLampCircleShadow = ts.sizeLampCircle + U.pixelsize * 3.0f;
 
 	/* M_SQRT2 to be at least the same size of the old square */
-	ts.sizeVertex = max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f);
-	ts.sizeFaceDot = UI_GetThemeValuef(TH_FACEDOT_SIZE);
-	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
-	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2);
-
+	ts.sizeVertex = U.pixelsize * (max_ff(1.0f, UI_GetThemeValuef(TH_VERTEX_SIZE) * (float)M_SQRT2 / 2.0f));
+	ts.sizeFaceDot = U.pixelsize * UI_GetThemeValuef(TH_FACEDOT_SIZE);
+	ts.sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO Theme */
+	ts.sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2));
 
 	if (globals_ubo == NULL) {
 		globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
