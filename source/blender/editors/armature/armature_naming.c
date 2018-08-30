@@ -34,6 +34,8 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
+#include "DNA_gpencil_types.h"
+#include "DNA_gpencil_modifier_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_ghash.h"
@@ -51,6 +53,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
+#include "BKE_gpencil_modifier.h"
 
 #include "DEG_depsgraph.h"
 
@@ -265,6 +268,46 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 						break;
 				}
 			}
+
+			/* fix grease pencil modifiers and vertex groups */
+			if (ob->type == OB_GPENCIL) {
+
+				bGPdata *gpd = (bGPdata *)ob->data;
+				for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+					if ((gpl->parent != NULL) && (gpl->parent->data == arm)) {
+						if (STREQ(gpl->parsubstr, oldname))
+							BLI_strncpy(gpl->parsubstr, newname, MAXBONENAME);
+					}
+				}
+
+				for (GpencilModifierData *gp_md = ob->greasepencil_modifiers.first; gp_md; gp_md = gp_md->next) {
+					switch (gp_md->type) {
+						case eGpencilModifierType_Armature:
+						{
+							ArmatureGpencilModifierData *mmd = (ArmatureGpencilModifierData *)gp_md;
+							if (mmd->object && mmd->object->data == arm) {
+								bDeformGroup *dg = defgroup_find_name(ob, oldname);
+								if (dg) {
+									BLI_strncpy(dg->name, newname, MAXBONENAME);
+								}
+							}
+							break;
+						}
+						case eGpencilModifierType_Hook:
+						{
+							HookGpencilModifierData *hgp_md = (HookGpencilModifierData *)gp_md;
+							if (hgp_md->object && (hgp_md->object->data == arm)) {
+								if (STREQ(hgp_md->subtarget, oldname))
+									BLI_strncpy(hgp_md->subtarget, newname, MAXBONENAME);
+							}
+							break;
+						}
+						default:
+							break;
+					}
+				}
+			}
+			DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 		}
 
 		/* Fix all animdata that may refer to this bone - we can't just do the ones attached to objects, since

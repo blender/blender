@@ -43,6 +43,7 @@ set(SRC
 	intern/MOD_gpencil_util.h
 
 	intern/MOD_gpencil_util.c
+	intern/MOD_gpencilarmature.c
 	intern/MOD_gpencilnoise.c
 	intern/MOD_gpencilsubdiv.c
 	intern/MOD_gpencilsimplify.c

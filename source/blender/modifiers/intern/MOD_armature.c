@@ -122,7 +122,7 @@ static void deformVerts(
 	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
 	armature_deform_verts(amd->object, ctx->object, mesh, vertexCos, NULL,
-	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
+	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name, NULL);
 
 	/* free cache */
 	if (amd->prevCos) {
@@ -141,7 +141,7 @@ static void deformVertsEM(
 	MOD_previous_vcos_store(md, vertexCos); /* if next modifier needs original vertices */
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, NULL,
-	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
+	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name, NULL);
 
 	/* free cache */
 	if (amd->prevCos) {
@@ -163,7 +163,7 @@ static void deformMatricesEM(
 	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, em, mesh, NULL, false, false);
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
-	                      amd->deformflag, NULL, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name, NULL);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -178,7 +178,7 @@ static void deformMatrices(
 	Mesh *mesh_src = MOD_get_mesh_eval(ctx->object, NULL, mesh, NULL, false, false);
 
 	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
-	                      amd->deformflag, NULL, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name, NULL);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);

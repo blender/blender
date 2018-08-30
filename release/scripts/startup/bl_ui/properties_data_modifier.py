@@ -2034,6 +2034,29 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "pass_index", text="Pass")
         row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
 
+    def GP_ARMATURE(self, layout, ob, md):
+        split = layout.split()
+
+        col = split.column()
+        col.label(text="Object:")
+        col.prop(md, "object", text="")
+        col.prop(md, "use_deform_preserve_volume")
+
+        col = split.column()
+        col.label(text="Bind To:")
+        col.prop(md, "use_vertex_groups", text="Vertex Groups")
+        col.prop(md, "use_bone_envelopes", text="Bone Envelopes")
+
+        layout.separator()
+
+        split = layout.split()
+
+        row = split.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        sub = row.row(align=True)
+        sub.active = bool(md.vertex_group)
+        sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+
 
 classes = (
     DATA_PT_modifiers,

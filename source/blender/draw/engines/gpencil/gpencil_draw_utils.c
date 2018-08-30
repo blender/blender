@@ -553,14 +553,14 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 static void gpencil_add_fill_shgroup(
         GpencilBatchCache *cache, DRWShadingGroup *fillgrp,
         Object *ob, bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps,
-        const float tintcolor[4], const bool onion, const bool custonion)
+		float opacity, const float tintcolor[4], const bool onion, const bool custonion)
 {
 	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 	if (gps->totpoints >= 3) {
 		float tfill[4];
 		/* set color using material, tint color and opacity */
 		interp_v3_v3v3(tfill, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
-		tfill[3] = gps->runtime.tmp_fill_rgba[3] * gpl->opacity;
+		tfill[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
 		if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) {
 			const float *color;
 			if (!onion) {
@@ -866,7 +866,7 @@ static void gpencil_draw_strokes(
 			if ((fillgrp) && (!stl->storage->simplify_fill)) {
 				gpencil_add_fill_shgroup(
 				        cache, fillgrp, ob, gpl, derived_gpf, gps,
-				        tintcolor, false, custonion);
+						opacity, tintcolor, false, custonion);
 			}
 			/* stroke */
 			if (strokegrp) {
@@ -1219,6 +1219,7 @@ void DRW_gpencil_populate_datablock(
 	const bool main_onion = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && main_onion;
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	float opacity;
 
 	/* check if playing animation */
 	bool playing = stl->storage->is_playing;
@@ -1241,6 +1242,16 @@ void DRW_gpencil_populate_datablock(
 		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
 		if (gpf == NULL)
 			continue;
+
+		/* if pose mode, maybe the overlay to fade geometry is enabled */
+		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
+			(v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
+		{
+			opacity = gpl->opacity * v3d->overlay.bone_select_alpha;
+		}
+		else {
+			opacity = gpl->opacity;
+		}
 
 		/* create GHash if need */
 		if (gpl->runtime.derived_data == NULL) {
@@ -1308,7 +1319,7 @@ void DRW_gpencil_populate_datablock(
 
 		gpencil_draw_strokes(
 			cache, e_data, vedata, ts, ob, gpd, gpl, gpf, derived_gpf,
-			gpl->opacity, gpl->tintcolor, false, cache_ob);
+			opacity, gpl->tintcolor, false, cache_ob);
 
 	}
 

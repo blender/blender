@@ -1094,6 +1094,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 						case eGpencilModifierType_Offset:
 							data.icon = ICON_MOD_DISPLACE;
 							break;
+						case eGpencilModifierType_Armature:
+							data.icon = ICON_MOD_ARMATURE;
+							break;
 
 							/* Default */
 						default:

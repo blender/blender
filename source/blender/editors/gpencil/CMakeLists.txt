@@ -58,6 +58,7 @@ set(SRC
 	gpencil_undo.c
 	gpencil_utils.c
 	gpencil_old.c
+	gpencil_armature.c
 
 	gpencil_intern.h
 )

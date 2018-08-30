@@ -109,6 +109,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_gpencil.h"
 #include "ED_keyframing.h"
 #include "ED_object.h"
 #include "ED_mesh.h"
@@ -789,6 +790,23 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
 					ED_object_vgroup_calc_from_armature(reports, depsgraph, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
+					WM_cursor_wait(0);
+				}
+				/* get corrected inverse */
+				ob->partype = PAROBJECT;
+				BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
+
+				invert_m4_m4(ob->parentinv, workob.obmat);
+			}
+			else if (pararm && (ob->type == OB_GPENCIL) && (par->type == OB_ARMATURE)) {
+				if (partype == PAR_ARMATURE_NAME) {
+					ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
+				}
+				else if ((partype == PAR_ARMATURE_AUTO) ||
+					(partype == PAR_ARMATURE_ENVELOPE))
+				{
+					WM_cursor_wait(1);
+					ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */

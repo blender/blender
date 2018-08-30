@@ -44,6 +44,7 @@ struct Scene;
 struct BPoint;
 struct MDeformVert;
 struct Depsgraph;
+struct bGPDstroke;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);
@@ -73,7 +74,8 @@ void lattice_deform_verts(struct Object *laOb, struct Object *target,
 void armature_deform_verts(struct Object *armOb, struct Object *target,
                            const struct Mesh *mesh, float (*vertexCos)[3],
                            float (*defMats)[3][3], int numVerts, int deformflag,
-                           float (*prevCos)[3], const char *defgrp_name);
+                           float (*prevCos)[3], const char *defgrp_name,
+						   struct bGPDstroke *gps);
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);

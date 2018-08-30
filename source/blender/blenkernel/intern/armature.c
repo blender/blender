@@ -46,6 +46,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_gpencil_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_listBase.h"
@@ -970,7 +971,7 @@ static void armature_bbone_defmats_cb(void *userdata, Link *iter, int index)
 
 void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, float (*vertexCos)[3],
                            float (*defMats)[3][3], int numVerts, int deformflag,
-                           float (*prevCos)[3], const char *defgrp_name)
+                           float (*prevCos)[3], const char *defgrp_name, bGPDstroke *gps)
 {
 	bPoseChanDeform *pdef_info_array;
 	bPoseChanDeform *pdef_info = NULL;
@@ -1024,7 +1025,7 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 	/* get the def_nr for the overall armature vertex group if present */
 	armature_def_nr = defgroup_name_index(target, defgrp_name);
 
-	if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
+	if (ELEM(target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
 		defbase_tot = BLI_listbase_count(&target->defbase);
 
 		if (target->type == OB_MESH) {
@@ -1033,17 +1034,22 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 			if (dverts)
 				target_totvert = me->totvert;
 		}
-		else {
+		else if (target->type == OB_LATTICE) {
 			Lattice *lt = target->data;
 			dverts = lt->dvert;
 			if (dverts)
 				target_totvert = lt->pntsu * lt->pntsv * lt->pntsw;
 		}
+		else if (target->type == OB_GPENCIL) {
+			dverts = gps->dvert;
+			if (dverts)
+				target_totvert = gps->totpoints;
+		}
 	}
 
 	/* get a vertex-deform-index to posechannel array */
 	if (deformflag & ARM_DEF_VGROUP) {
-		if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
+		if (ELEM(target->type, OB_MESH, OB_LATTICE, OB_GPENCIL)) {
 			/* if we have a Mesh, only use dverts if it has them */
 			if (mesh) {
 				use_dverts = (mesh->dvert != NULL);

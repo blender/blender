@@ -49,6 +49,7 @@ struct Depsgraph;
 struct ScrArea;
 struct ARegion;
 struct RegionView3D;
+struct ReportList;
 struct Scene;
 struct ToolSettings;
 struct ViewLayer;
@@ -192,6 +193,14 @@ bool ED_gpencil_anim_copybuf_paste(struct bAnimContext *ac, const short copy_mod
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);
 int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
+
+/* ------------ Grease-Pencil Armature weights ------------------ */
+bool ED_gpencil_add_armature_weights(const struct bContext *C, struct ReportList *reports,
+									struct Object *ob, struct Object *ob_arm, int mode);
+
+/* keep this aligned with gpencil_armature enum */
+#define GP_PAR_ARMATURE_NAME     0
+#define GP_PAR_ARMATURE_AUTO     1
 
 /* ------------ Transformation Utilities ------------ */
 

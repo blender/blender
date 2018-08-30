@@ -3535,6 +3535,15 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 
 
 # ********** Grease Pencil Stroke menus **********
+class VIEW3D_MT_gpencil_autoweights(Menu):
+    bl_label = "Generate Weights"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("gpencil.generate_weights", text="With Empty Groups").mode = 'NAME'
+        layout.operator("gpencil.generate_weights", text="With Automatic Weights").mode = 'AUTO'
+
+
 class VIEW3D_MT_gpencil_simplify(Menu):
     bl_label = "Simplify"
 
@@ -3703,6 +3712,9 @@ class VIEW3D_MT_weight_gpencil(Menu):
 
         layout.operator("gpencil.vertex_group_invert", text="Invert")
         layout.operator("gpencil.vertex_group_smooth", text="Smooth")
+
+        layout.separator()
+        layout.menu("VIEW3D_MT_gpencil_autoweights")
 
 
 class VIEW3D_MT_gpencil_animation(Menu):
@@ -5001,7 +5013,6 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
-        is_3d_view = context.space_data.type == 'VIEW_3D'
 
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.menu("VIEW3D_MT_assign_material")
@@ -5016,6 +5027,9 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
         layout.operator("gpencil.stroke_simplify_fixed", text="Simplify")
         layout.operator("gpencil.stroke_simplify", text="Simplify Adaptative")
 
+        if context.mode == 'GPENCIL_WEIGHT':
+            layout.separator()
+            layout.menu("VIEW3D_MT_gpencil_autoweights")
 
 classes = (
     VIEW3D_HT_header,
@@ -5161,6 +5175,7 @@ classes = (
     VIEW3D_PT_object_type_visibility,
     VIEW3D_PT_grease_pencil,
     VIEW3D_PT_gpencil_multi_frame,
+    VIEW3D_MT_gpencil_autoweights,
     VIEW3D_MT_gpencil_edit_specials,
     VIEW3D_MT_gpencil_sculpt_specials,
     VIEW3D_PT_quad_view,

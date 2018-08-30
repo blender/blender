@@ -422,6 +422,9 @@ void GPENCIL_OT_color_select(struct wmOperatorType *ot);
 /* convert old 2.7 files to 2.8 */
 void GPENCIL_OT_convert_old_files(struct wmOperatorType *ot);
 
+/* armatures */
+void GPENCIL_OT_generate_weights(struct wmOperatorType *ot);
+
 /* ****************************************************** */
 /* FILTERED ACTION DATA - TYPES  ---> XXX DEPRECEATED OLD ANIM SYSTEM CODE! */
 
