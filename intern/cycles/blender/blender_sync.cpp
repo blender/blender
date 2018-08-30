@@ -525,6 +525,9 @@ PassType BlenderSync::get_pass_type(BL::RenderPass& b_pass)
 int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 {
 	string name = b_pass.name();
+
+	if(name == "Noisy Image") return DENOISING_PASS_COLOR;
+
 	if(name.substr(0, 10) != "Denoising ") {
 		return -1;
 	}
@@ -539,7 +542,6 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 	MAP_PASS("Depth Variance", DENOISING_PASS_DEPTH_VAR);
 	MAP_PASS("Shadow A", DENOISING_PASS_SHADOW_A);
 	MAP_PASS("Shadow B", DENOISING_PASS_SHADOW_B);
-	MAP_PASS("Image", DENOISING_PASS_COLOR);
 	MAP_PASS("Image Variance", DENOISING_PASS_COLOR_VAR);
 	MAP_PASS("Clean", DENOISING_PASS_CLEAN);
 #undef MAP_PASS
@@ -573,20 +575,8 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 
 	scene->film->denoising_flags = 0;
 	PointerRNA crp = RNA_pointer_get(&b_srlay.ptr, "cycles");
-	if(get_boolean(crp, "denoising_store_passes") &&
-	   get_boolean(crp, "use_denoising"))
+	if(get_boolean(crp, "use_denoising"))
 	{
-		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Depth",           1, "Z",   b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Image",           3, "RGB", b_srlay.name().c_str());
-		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_srlay.name().c_str());
-
 #define MAP_OPTION(name, flag) if(!get_boolean(crp, name)) scene->film->denoising_flags |= flag;
 		MAP_OPTION("denoising_diffuse_direct",        DENOISING_CLEAN_DIFFUSE_DIR);
 		MAP_OPTION("denoising_diffuse_indirect",      DENOISING_CLEAN_DIFFUSE_IND);
@@ -598,8 +588,21 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		MAP_OPTION("denoising_subsurface_indirect",   DENOISING_CLEAN_SUBSURFACE_IND);
 #undef MAP_OPTION
 
-		if(scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
-			b_engine.add_pass("Denoising Clean", 3, "RGB", b_srlay.name().c_str());
+		b_engine.add_pass("Noisy Image", 4, "RGBA", b_srlay.name().c_str());
+		if(get_boolean(crp, "denoising_store_passes")) {
+			b_engine.add_pass("Denoising Normal",          3, "XYZ", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Albedo",          3, "RGB", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Depth",           1, "Z",   b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_srlay.name().c_str());
+			b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_srlay.name().c_str());
+
+			if(scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
+				b_engine.add_pass("Denoising Clean",   3, "RGB", b_srlay.name().c_str());
+			}
 		}
 	}
 #ifdef __KERNEL_DEBUG__
