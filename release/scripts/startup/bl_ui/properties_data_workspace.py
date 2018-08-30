@@ -31,9 +31,17 @@ class WorkSpaceButtonsPanel:
     bl_context = ".workspace"
 
 
+class WORKSPACE_PT_main(WorkSpaceButtonsPanel, Panel):
+    bl_label = "Workspace"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        pass
+
+
 class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
     bl_label = "Workspace Add-ons"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "WORKSPACE_PT_main"
 
     def draw_header(self, context):
         workspace = context.workspace
@@ -86,11 +94,14 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
 
 
 class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
+    bl_parent_id = "WORKSPACE_PT_main"
+
     _context_path = "workspace"
     _property_type = bpy.types.WorkSpace
 
 
 classes = (
+    WORKSPACE_PT_main,
     WORKSPACE_PT_owner_ids,
     WORKSPACE_PT_custom_props,
 )
