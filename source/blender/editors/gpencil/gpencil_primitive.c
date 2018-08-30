@@ -25,9 +25,9 @@
  * Operators for creating new Grease Pencil primitives (boxes, circles, ...)
  */
 
-/** \file blender/editors/gpencil/gpencil_primitive.c
- *  \ingroup edgpencil
- */
+ /** \file blender/editors/gpencil/gpencil_primitive.c
+  *  \ingroup edgpencil
+  */
 
 
 #include <stdio.h>
@@ -56,6 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_brush.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
@@ -89,10 +90,10 @@
 #define IDLE 0
 #define IN_PROGRESS 1
 
-/* ************************************************ */
-/* Core/Shared Utilities */
+  /* ************************************************ */
+  /* Core/Shared Utilities */
 
-/* Poll callback for primitive operators */
+  /* Poll callback for primitive operators */
 static bool gpencil_primitive_add_poll(bContext *C)
 {
 	/* only 3D view */
@@ -230,26 +231,26 @@ static void gpencil_primitive_status_indicators(bContext *C, tGPDprimitive *tgpi
 		else {
 			if (tgpi->flag == IN_PROGRESS) {
 				BLI_snprintf(
-				        status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
-				        tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
+					status_str, sizeof(status_str), "%s: %d (%d, %d) (%d, %d)", msg_str, (int)tgpi->tot_edges,
+					tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
 			}
 			else {
 				BLI_snprintf(
-				        status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, (int)tgpi->tot_edges,
-				        tgpi->bottom[0], tgpi->bottom[1]);
+					status_str, sizeof(status_str), "%s: %d (%d, %d)", msg_str, (int)tgpi->tot_edges,
+					tgpi->bottom[0], tgpi->bottom[1]);
 			}
 		}
 	}
 	else {
 		if (tgpi->flag == IN_PROGRESS) {
 			BLI_snprintf(
-			        status_str, sizeof(status_str), "%s: (%d, %d) (%d, %d)", msg_str,
-			        tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
+				status_str, sizeof(status_str), "%s: (%d, %d) (%d, %d)", msg_str,
+				tgpi->top[0], tgpi->top[1], tgpi->bottom[0], tgpi->bottom[1]);
 		}
 		else {
 			BLI_snprintf(
-			        status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
-			        tgpi->bottom[0], tgpi->bottom[1]);
+				status_str, sizeof(status_str), "%s: (%d, %d)", msg_str,
+				tgpi->bottom[0], tgpi->bottom[1]);
 		}
 	}
 	ED_workspace_status_text(C, status_str);
@@ -367,12 +368,12 @@ static void gp_primitive_update_strokes(bContext *C, tGPDprimitive *tgpi)
 		bGPDspoint *tpt = gps->points;
 		float origin[3];
 		ED_gp_get_drawing_reference(tgpi->v3d, tgpi->scene, tgpi->ob, tgpi->gpl,
-		                            ts->gpencil_v3d_align, origin);
+			ts->gpencil_v3d_align, origin);
 
 		for (int i = 0; i < gps->totpoints; i++, tpt++) {
 			ED_gp_project_point_to_plane(tgpi->ob, tgpi->rv3d, origin,
-			                             ts->gp_sculpt.lock_axis - 1,
-			                             tpt);
+				ts->gp_sculpt.lock_axis - 1,
+				tpt);
 		}
 	}
 
@@ -531,6 +532,11 @@ static void gpencil_primitive_done(bContext *C, wmOperator *op, wmWindow *win, t
 	bGPDframe *gpf;
 	bGPDstroke *gps;
 
+	ToolSettings *ts = tgpi->scene->toolsettings;
+
+	const int def_nr = tgpi->ob->actdef - 1;
+	const bool have_weight = (bool)BLI_findlink(&tgpi->ob->defbase, def_nr);
+
 	/* return to normal cursor and header status */
 	ED_workspace_status_text(C, NULL);
 	WM_cursor_modal_restore(win);
@@ -548,6 +554,19 @@ static void gpencil_primitive_done(bContext *C, wmOperator *op, wmWindow *win, t
 	/* transfer stroke from temporary buffer to the actual frame */
 	BLI_movelisttolist(&gpf->strokes, &tgpi->gpf->strokes);
 	BLI_assert(BLI_listbase_is_empty(&tgpi->gpf->strokes));
+
+	/* add weights if required */
+	if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
+		BKE_gpencil_dvert_ensure(gps);
+		for (int i = 0; i < gps->totpoints; i++) {
+			MDeformVert *ve = &gps->dvert[i];
+			MDeformWeight *dw = defvert_verify_index(ve, def_nr);
+			if (dw) {
+				dw->weight = ts->vgroup_weight;
+			}
+
+		}
+	}
 
 	/* clean up temp data */
 	gpencil_primitive_exit(C, op);

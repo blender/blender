@@ -179,6 +179,7 @@ class TOPBAR_HT_lower_bar(Header):
             if context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR'):
                 layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
             layout.prop(context.tool_settings, "use_gpencil_draw_onback", text="", icon='ORTHO')
+            layout.prop(context.tool_settings, "add_gpencil_weight_data", text="", icon='WPAINT_HLT')
             layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
 
         elif mode == 'GPENCIL_SCULPT':

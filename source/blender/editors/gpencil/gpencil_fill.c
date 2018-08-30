@@ -23,9 +23,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/gpencil/gpencil_fill.c
- *  \ingroup edgpencil
- */
+ /** \file blender/editors/gpencil/gpencil_fill.c
+  *  \ingroup edgpencil
+  */
 
 #include <stdio.h>
 
@@ -47,6 +47,7 @@
 
 #include "BKE_main.h"
 #include "BKE_brush.h"
+#include "BKE_deform.h"
 #include "BKE_image.h"
 #include "BKE_gpencil.h"
 #include "BKE_material.h"
@@ -84,7 +85,7 @@
 #define LEAK_VERT 1
 
 
-/* Temporary fill operation data (op->customdata) */
+  /* Temporary fill operation data (op->customdata) */
 typedef struct tGPDfill {
 	struct Main *bmain;
 	struct Depsgraph *depsgraph;
@@ -124,10 +125,10 @@ typedef struct tGPDfill {
 } tGPDfill;
 
 
- /* draw a given stroke using same thickness and color for all points */
+/* draw a given stroke using same thickness and color for all points */
 static void gp_draw_basic_stroke(
-        tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
-        bool cyclic, float ink[4], int flag, float thershold)
+	tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
+	bool cyclic, float ink[4], int flag, float thershold)
 {
 	bGPDspoint *points = gps->points;
 
@@ -247,7 +248,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* normal strokes */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE) ||
-			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				ED_gp_draw_fill(&tgpw);
 
@@ -255,7 +256,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* 3D Lines with basic shapes and invisible lines */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
-			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				gp_draw_basic_stroke(tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
 					tgpf->flag, tgpf->fill_threshold);
@@ -266,7 +267,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 	glDisable(GL_BLEND);
 }
 
- /* draw strokes in offscreen buffer */
+/* draw strokes in offscreen buffer */
 static void gp_render_offscreen(tGPDfill *tgpf)
 {
 	bool is_ortho = false;
@@ -298,8 +299,8 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 	int bwiny = tgpf->ar->winy;
 	rcti brect = tgpf->ar->winrct;
 
-	tgpf->ar->winx = (short) tgpf->sizex;
-	tgpf->ar->winy = (short) tgpf->sizey;
+	tgpf->ar->winx = (short)tgpf->sizex;
+	tgpf->ar->winy = (short)tgpf->sizey;
 	tgpf->ar->winrct.xmin = 0;
 	tgpf->ar->winrct.ymin = 0;
 	tgpf->ar->winrct.xmax = tgpf->sizex;
@@ -314,8 +315,8 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	ED_view3d_update_viewmat(
-	        tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
-	        NULL, winmat, NULL);
+		tgpf->depsgraph, tgpf->scene, tgpf->v3d, tgpf->ar,
+		NULL, winmat, NULL);
 	/* set for opengl */
 	GPU_matrix_projection_set(tgpf->rv3d->winmat);
 	GPU_matrix_set(tgpf->rv3d->viewmat);
@@ -419,7 +420,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
 			if (pt <= maxpixel) {
 				get_pixel(ibuf, pt, rgba);
 				if (rgba[0] == 1.0f) {
-					t_a =  true;
+					t_a = true;
 					break;
 				}
 			}
@@ -675,7 +676,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		int cur_back_offset = -1;
 		for (int i = 0; i < NEIGHBOR_COUNT; i++) {
 			if (backtracked_offset[0][0] == offset[i][0] &&
-			    backtracked_offset[0][1] == offset[i][1])
+				backtracked_offset[0][1] == offset[i][1])
 			{
 				/* Finding the bracktracked pixel offset index */
 				cur_back_offset = i;
@@ -709,7 +710,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		}
 		/* current pixel is equal to starting pixel */
 		if (boundary_co[0] == start_co[0] &&
-		    boundary_co[1] == start_co[1])
+			boundary_co[1] == start_co[1])
 		{
 			BLI_stack_pop(tgpf->stack, &v);
 			// boundary_found = true;
@@ -757,9 +758,9 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 			copy_v2_v2_int(mval, &ptc->x);
 
 			if ((ED_view3d_autodist_depth(
-			             tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
-			    (i && (ED_view3d_autodist_depth_seg(
-			                   tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
+				tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
+				(i && (ED_view3d_autodist_depth_seg(
+					tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
 			{
 				interp_depth = true;
 			}
@@ -822,7 +823,7 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	}
 
 	bGPDspoint *pt;
-	MDeformVert *dvert;
+	MDeformVert *dvert = NULL;
 	tGPspoint *point2D;
 
 	if (tgpf->sbuffer_size == 0) {
@@ -867,24 +868,42 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 
 	/* add points */
 	pt = gps->points;
-	dvert = gps->dvert;
 	point2D = (tGPspoint *)tgpf->sbuffer;
+
+	const int def_nr = tgpf->ob->actdef - 1;
+	const bool have_weight = (bool)BLI_findlink(&tgpf->ob->defbase, def_nr);
+
+	if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
+		BKE_gpencil_dvert_ensure(gps);
+		dvert = gps->dvert;
+	}
+
 	for (int i = 0; i < tgpf->sbuffer_size && point2D; i++, point2D++, pt++) {
 		/* convert screen-coordinates to 3D coordinates */
 		gp_stroke_convertcoords_tpoint(
-		        tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
-		        tgpf->gpl, point2D,
-		        tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
-		        &pt->x);
+			tgpf->scene, tgpf->ar, tgpf->v3d, tgpf->ob,
+			tgpf->gpl, point2D,
+			tgpf->depth_arr ? tgpf->depth_arr + i : NULL,
+			&pt->x);
 
 		pt->pressure = 1.0f;
 		pt->strength = 1.0f;
 		pt->time = 0.0f;
 
-		if (gps->dvert != NULL) {
-			dvert->totweight = 0;
-			dvert->dw = NULL;
+		if ((ts->gpencil_flags & GP_TOOL_FLAG_CREATE_WEIGHTS) && (have_weight)) {
+			MDeformWeight *dw = defvert_verify_index(dvert, def_nr);
+			if (dw) {
+				dw->weight = ts->vgroup_weight;
+			}
+
 			dvert++;
+		}
+		else {
+			if (dvert != NULL) {
+				dvert->totweight = 0;
+				dvert->dw = NULL;
+				dvert++;
+			}
 		}
 	}
 

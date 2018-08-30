@@ -2068,7 +2068,9 @@ typedef enum eGPencil_Flags {
 	/* Add the strokes below all strokes in the layer */
 	GP_TOOL_FLAG_PAINT_ONBACK           = (1 << 2),
 	/* Show compact list of colors */
-	GP_TOOL_FLAG_THUMBNAIL_LIST           = (1 << 3),
+	GP_TOOL_FLAG_THUMBNAIL_LIST         = (1 << 3),
+	/* Generate wheight data for new strokes */
+	GP_TOOL_FLAG_CREATE_WEIGHTS         = (1 << 4),
 } eGPencil_Flags;
 
 /* scene->r.simplify_gpencil */
