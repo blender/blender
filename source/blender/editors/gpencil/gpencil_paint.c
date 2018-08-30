@@ -369,6 +369,15 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 
 	/* in 3d-space - pt->x/y/z are 3 side-by-side floats */
 	if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
+
+		/* add small offset to keep stroke over the surface.
+		* This could be a UI parameter, but the value is too sensitive for
+		* the user to use it and don't improve the result.
+		*/
+		if (depth) {
+			*depth *= 0.99998f;
+		}
+
 		if (gpencil_project_check(p) && (ED_view3d_autodist_simple(p->ar, mval, out, 0, depth))) {
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
