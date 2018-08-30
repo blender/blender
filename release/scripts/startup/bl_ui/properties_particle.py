@@ -119,10 +119,20 @@ class PARTICLE_UL_particle_systems(bpy.types.UIList):
 
             layout.prop(psys, "name", text="", emboss=False, icon_value=icon)
             if md:
-                layout.prop(md, "show_render", emboss=False, icon_only=True,
-                            icon='RESTRICT_RENDER_OFF' if md.show_render else 'RESTRICT_RENDER_ON')
-                layout.prop(md, "show_viewport", emboss=False, icon_only=True,
-                            icon='RESTRICT_VIEW_OFF' if md.show_viewport else 'RESTRICT_VIEW_ON')
+                layout.prop(
+                    md,
+                    "show_render",
+                    emboss=False,
+                    icon_only=True,
+                    icon='RESTRICT_RENDER_OFF' if md.show_render else 'RESTRICT_RENDER_ON',
+                )
+                layout.prop(
+                    md,
+                    "show_viewport",
+                    emboss=False,
+                    icon_only=True,
+                    icon='RESTRICT_VIEW_OFF' if md.show_viewport else 'RESTRICT_VIEW_ON',
+                )
 
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'

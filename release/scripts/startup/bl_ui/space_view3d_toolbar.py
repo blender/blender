@@ -672,11 +672,13 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
         col.label(text="Curve:")
 
         row = col.row(align=True)
-        if brush.use_cursor_overlay:
-            row.prop(brush, "use_cursor_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-        else:
-            row.prop(brush, "use_cursor_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
-
+        row.prop(
+            brush,
+            "use_cursor_overlay",
+            text="",
+            toggle=True,
+            icon='RESTRICT_VIEW_OFF' if brush.use_cursor_overlay else 'RESTRICT_VIEW_ON',
+        )
         sub = row.row(align=True)
         sub.prop(brush, "cursor_overlay_alpha", text="Alpha")
         sub.prop(brush, "use_cursor_overlay_override", toggle=True, text="", icon='BRUSH_DATA')
@@ -687,10 +689,13 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
             col.label(text="Texture:")
             row = col.row(align=True)
             if tex_slot.map_mode != 'STENCIL':
-                if brush.use_primary_overlay:
-                    row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-                else:
-                    row.prop(brush, "use_primary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+                row.prop(
+                    brush,
+                    "use_primary_overlay",
+                    text="",
+                    toggle=True,
+                    icon='RESTRICT_VIEW_OFF' if brush.use_primary_overlay else 'RESTRICT_VIEW_ON',
+                )
 
             sub = row.row(align=True)
             sub.prop(brush, "texture_overlay_alpha", text="Alpha")
@@ -701,10 +706,13 @@ class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
 
             row = col.row(align=True)
             if tex_slot_mask.map_mode != 'STENCIL':
-                if brush.use_secondary_overlay:
-                    row.prop(brush, "use_secondary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_OFF')
-                else:
-                    row.prop(brush, "use_secondary_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
+                row.prop(
+                    brush,
+                    "use_secondary_overlay",
+                    text="",
+                    toggle=True,
+                    icon='RESTRICT_VIEW_OFF' if brush.use_secondary_overlay else 'RESTRICT_VIEW_ON',
+                )
 
             sub = row.row(align=True)
             sub.prop(brush, "mask_overlay_alpha", text="Alpha")

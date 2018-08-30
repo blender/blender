@@ -43,7 +43,10 @@ class PHYSICS_UL_dynapaint_surfaces(UIList):
 
             if surf.use_color_preview:
                 row.prop(
-                    surf, "show_preview", text="", emboss=False,
+                    surf,
+                    "show_preview",
+                    text="",
+                    emboss=False,
                     icon='RESTRICT_VIEW_OFF' if surf.show_preview else 'RESTRICT_VIEW_ON'
                 )
             row.prop(surf, "is_active", text="")
