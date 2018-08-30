@@ -166,7 +166,6 @@ endif()
 if(WITH_IMAGE_OPENJPEG OR WITH_CODEC_FFMPEG)
 	# use openjpeg from libdir that is linked into ffmpeg
 	set(OPENJPEG ${LIBDIR}/openjpeg)
-	set(WITH_SYSTEM_OPENJPEG ON)
 	set(OPENJPEG_INCLUDE_DIRS ${OPENJPEG}/include)
 	set(OPENJPEG_LIBRARIES ${OPENJPEG}/lib/libopenjp2.a)
 endif()

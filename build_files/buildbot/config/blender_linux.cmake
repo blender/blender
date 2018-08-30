@@ -172,10 +172,6 @@ set(PYTHON_VERSION    3.7 CACHE BOOL "" FORCE)
 
 set(Boost_USE_STATIC_LIBS    ON CACHE BOOL "" FORCE)
 
-# TODO(sergey): Move up to the rest of WITH_SYSTEM and DYNLOAD configuration,
-# once old chroot is officially retired.
-set(WITH_SYSTEM_OPENJPEG     ON CACHE BOOL "" FORCE)
-
 # We need to link OpenCOLLADA against PCRE library. Even though it is not installed
 # on /usr, we do not really care -- all we care is PCRE_FOUND be TRUE and its
 # library pointing to a valid one.
