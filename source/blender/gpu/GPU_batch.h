@@ -196,4 +196,14 @@ void gpu_batch_exit(void);
 	} \
 } while (0)
 
+#define GPU_BATCH_DISCARD_ARRAY_SAFE(_batch_array, _len) do { \
+	if (_batch_array != NULL) { \
+		BLI_assert(_len > 0); \
+		for (int _i = 0; _i < _len; _i++) { \
+			GPU_BATCH_DISCARD_SAFE(_batch_array[_i]); \
+		} \
+		MEM_freeN(_batch_array); \
+	} \
+} while (0)
+
 #endif /* __GPU_BATCH_H__ */
