@@ -783,7 +783,7 @@ void BLI_str_toupper_ascii(char *str, const size_t len)
  */
 void BLI_str_rstrip(char *str)
 {
-	for (int i = strlen(str) - 1; i > 0; i--) {
+	for (int i = (int)strlen(str) - 1; i > 0; i--) {
 		if (isspace(str[i])) {
 			str[i] = '\0';
 		}
