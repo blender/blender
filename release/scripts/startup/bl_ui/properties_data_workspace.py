@@ -28,7 +28,7 @@ from rna_prop_ui import PropertyPanel
 class WorkSpaceButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
-    bl_context = "workspace"
+    bl_context = ".workspace"
 
 
 class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):

@@ -153,9 +153,6 @@ static void buttons_main_region_layout_properties(const bContext *C, SpaceButs *
 		case BCONTEXT_WORLD:
 			contexts[0] = "world";
 			break;
-		case BCONTEXT_WORKSPACE:
-			contexts[0] = "workspace";
-			break;
 		case BCONTEXT_OBJECT:
 			contexts[0] = "object";
 			break;
@@ -203,7 +200,7 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	const int mode = CTX_data_mode_enum(C);
 
-	const char *contexts_base[4] = {NULL};
+	const char *contexts_base[5] = {NULL};
 	contexts_base[0] = ".active_tool";
 	const char **contexts = &contexts_base[1];
 
@@ -283,6 +280,13 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 			ARRAY_SET_ITEMS(contexts, ".greasepencil_edit");
 			break;
 	}
+
+	int i = 0;
+	while (contexts_base[i]) {
+		i++;
+	}
+	BLI_assert(i < ARRAY_SIZE(contexts_base));
+	contexts_base[i] = ".workspace";
 
 	const bool vertical = true;
 	ED_region_panels_layout_ex(C, ar, contexts_base, -1, vertical);
