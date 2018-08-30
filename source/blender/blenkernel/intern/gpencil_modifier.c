@@ -425,8 +425,8 @@ void BKE_gpencil_stroke_modifiers(Depsgraph *depsgraph, Object *ob, bGPDlayer *g
 					if (ELEM(md->type,
 						eGpencilModifierType_Hook,
 						eGpencilModifierType_Lattice,
-						eGpencilModifierType_Noise,
-						eGpencilModifierType_Offset)) {
+						eGpencilModifierType_Offset))
+					{
 
 						gps->flag |= GP_STROKE_RECALC_CACHES;
 					}
