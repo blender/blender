@@ -273,8 +273,7 @@ static void text_update_edited(bContext *C, Object *obedit, int mode)
 		}
 	}
 
-	BKE_curve_batch_cache_dirty_tag(cu, BKE_CURVE_BATCH_DIRTY_SELECT);
-
+	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 }
 
