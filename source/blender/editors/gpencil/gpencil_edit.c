@@ -2899,7 +2899,7 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 /* ******************* Stroke subdivide ************************** */
 
 /* helper: Count how many points need to be inserted */
-static int UNUSED_FUNCTION(gp_count_subdivision_cuts)(bGPDstroke *gps)
+static int gp_count_subdivision_cuts(bGPDstroke *gps)
 {
 	bGPDspoint *pt;
 	int i;
@@ -2920,7 +2920,11 @@ static int UNUSED_FUNCTION(gp_count_subdivision_cuts)(bGPDstroke *gps)
 static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
+	bGPDspoint *temp_points;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
+
+	int totnewpoints, oldtotpoints;
+	int i2;
 
 	/* sanity checks */
 	if (ELEM(NULL, gpd))
@@ -2930,7 +2934,99 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
 		if (gps->flag & GP_STROKE_SELECT) {
-			BKE_gpencil_subdivide(gps, cuts, 0);
+			/* loop as many times as cuts */
+			for (int s = 0; s < cuts; s++) {
+				totnewpoints = gp_count_subdivision_cuts(gps);
+				if (totnewpoints == 0) {
+					continue;
+				}
+				/* duplicate points in a temp area */
+				temp_points = MEM_dupallocN(gps->points);
+				oldtotpoints = gps->totpoints;
+
+				MDeformVert *temp_dverts = NULL;
+				MDeformVert *dvert_final = NULL;
+				MDeformVert *dvert = NULL;
+				MDeformVert *dvert_next = NULL;
+				if (gps->dvert != NULL) {
+					temp_dverts = MEM_dupallocN(gps->dvert);
+				}
+
+				/* resize the points arrys */
+				gps->totpoints += totnewpoints;
+				gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
+				if (gps->dvert != NULL) {
+					gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
+				}
+				gps->flag |= GP_STROKE_RECALC_CACHES;
+
+				/* loop and interpolate */
+				i2 = 0;
+				for (int i = 0; i < oldtotpoints; i++) {
+					bGPDspoint *pt = &temp_points[i];
+					bGPDspoint *pt_final = &gps->points[i2];
+
+					/* copy current point */
+					copy_v3_v3(&pt_final->x, &pt->x);
+					pt_final->pressure = pt->pressure;
+					pt_final->strength = pt->strength;
+					pt_final->time = pt->time;
+					pt_final->flag = pt->flag;
+
+					if (gps->dvert != NULL) {
+						dvert = &temp_dverts[i];
+						dvert_final = &gps->dvert[i2];
+						dvert_final->totweight = dvert->totweight;
+						dvert_final->dw = dvert->dw;
+					}
+					i2++;
+
+					/* if next point is selected add a half way point */
+					if (pt->flag & GP_SPOINT_SELECT) {
+						if (i + 1 < oldtotpoints) {
+							if (temp_points[i + 1].flag & GP_SPOINT_SELECT) {
+								pt_final = &gps->points[i2];
+								if (gps->dvert != NULL) {
+									dvert_final = &gps->dvert[i2];
+								}
+								/* Interpolate all values */
+								bGPDspoint *next = &temp_points[i + 1];
+								interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
+								pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
+								pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
+								CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
+								pt_final->time = interpf(pt->time, next->time, 0.5f);
+								pt_final->flag |= GP_SPOINT_SELECT;
+
+								/* interpolate weights */
+								if (gps->dvert != NULL) {
+									dvert = &temp_dverts[i];
+									dvert_next = &temp_dverts[i + 1];
+									dvert_final = &gps->dvert[i2];
+
+									dvert_final->totweight = dvert->totweight;
+									dvert_final->dw = MEM_dupallocN(dvert->dw);
+
+									/* interpolate weight values */
+									for (int d = 0; d < dvert->totweight; d++) {
+										MDeformWeight *dw_a = &dvert->dw[d];
+										if (dvert_next->totweight > d) {
+											MDeformWeight *dw_b = &dvert_next->dw[d];
+											MDeformWeight *dw_final = &dvert_final->dw[d];
+											dw_final->weight = interpf(dw_a->weight, dw_b->weight, 0.5f);
+										}
+									}
+								}
+
+							i2++;
+							}
+						}
+					}
+				}
+				/* free temp memory */
+				MEM_SAFE_FREE(temp_points);
+				MEM_SAFE_FREE(temp_dverts);
+			}
 		}
 	}
 	GP_EDITABLE_STROKES_END;
