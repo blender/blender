@@ -552,8 +552,8 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 /* add fill shading group to pass */
 static void gpencil_add_fill_shgroup(
         GpencilBatchCache *cache, DRWShadingGroup *fillgrp,
-        Object *ob, bGPDlayer *gpl, bGPDframe *gpf, bGPDstroke *gps,
-		float opacity, const float tintcolor[4], const bool onion, const bool custonion)
+        Object *ob, bGPDlayer *UNUSED(gpl), bGPDframe *gpf, bGPDstroke *gps,
+        float opacity, const float tintcolor[4], const bool onion, const bool custonion)
 {
 	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 	if (gps->totpoints >= 3) {
