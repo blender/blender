@@ -262,8 +262,7 @@ static float get_weight(float dist, float decay_rad, float dif_rad)
 
 /* This functions implements the automatic computation of vertex group weights */
 static void gpencil_add_verts_to_dgroups(
-        const bContext *C,
-        Object *ob, Object *ob_arm, const float ratio, const float decay)
+        const bContext *C, Object *ob, Object *ob_arm, const float ratio, const float decay)
 {
 	bArmature *arm = ob_arm->data;
 	Bone **bonelist, *bone;
@@ -518,10 +517,7 @@ bool ED_gpencil_add_armature_weights(
 	}
 
 	/* add weights */
-	gpencil_object_vgroup_calc_from_armature(
-	        C,
-	        ob, ob_arm, mode,
-	        DEFAULT_RATIO, DEFAULT_DECAY);
+	gpencil_object_vgroup_calc_from_armature(C, ob, ob_arm, mode, DEFAULT_RATIO, DEFAULT_DECAY);
 
 	return true;
 }
@@ -594,9 +590,7 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	gpencil_object_vgroup_calc_from_armature(
-	        C,
-	        ob, ob_arm, mode, ratio, decay);
+	gpencil_object_vgroup_calc_from_armature(C, ob, ob_arm, mode, ratio, decay);
 
 	/* notifiers */
 	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
@@ -644,9 +638,9 @@ static const EnumPropertyItem *gpencil_armatures_enum_itemf(
 void GPENCIL_OT_generate_weights(wmOperatorType *ot)
 {
 	static const EnumPropertyItem mode_type[] = {
-	{GP_ARMATURE_NAME, "NAME", 0, "Empty Groups", ""},
-	{GP_ARMATURE_AUTO, "AUTO", 0, "Automatic Weights", ""},
-	{0, NULL, 0, NULL, NULL}
+		{GP_ARMATURE_NAME, "NAME", 0, "Empty Groups", ""},
+		{GP_ARMATURE_AUTO, "AUTO", 0, "Automatic Weights", ""},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	PropertyRNA *prop;
@@ -667,9 +661,11 @@ void GPENCIL_OT_generate_weights(wmOperatorType *ot)
 	prop = RNA_def_enum(ot->srna, "armature", DummyRNA_DEFAULT_items, 0, "Armature", "Armature to use");
 	RNA_def_enum_funcs(prop, gpencil_armatures_enum_itemf);
 
-	RNA_def_float(ot->srna, "ratio", DEFAULT_RATIO, 0.0f, 2.0f, "Ratio",
-		"Ratio between bone length and influence radius", 0.001f, 1.0f);
+	RNA_def_float(
+	        ot->srna, "ratio", DEFAULT_RATIO, 0.0f, 2.0f, "Ratio",
+	        "Ratio between bone length and influence radius", 0.001f, 1.0f);
 
-	RNA_def_float(ot->srna, "decay", DEFAULT_DECAY, 0.0f, 1.0f, "Decay",
-		"Factor to reduce influence depending of distance to bone axis", 0.0f, 1.0f);
+	RNA_def_float(
+	        ot->srna, "decay", DEFAULT_DECAY, 0.0f, 1.0f, "Decay",
+	        "Factor to reduce influence depending of distance to bone axis", 0.0f, 1.0f);
 }

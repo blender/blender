@@ -813,10 +813,12 @@ static uiBut *ui_item_with_label(
 
 #ifdef UI_PROP_DECORATE
 	/* Only for alignment. */
-	if ((layout->item.flag & UI_ITEM_PROP_DECORATE) &&
-	    (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0)
-	{
-		uiItemL(sub, NULL, ICON_BLANK1);
+	if (layout->item.flag & UI_ITEM_PROP_SEP) {
+		if ((layout->item.flag & UI_ITEM_PROP_DECORATE) &&
+		    (layout->item.flag & UI_ITEM_PROP_DECORATE_NO_PAD) == 0)
+		{
+			uiItemL(sub, NULL, ICON_BLANK1);
+		}
 	}
 #endif  /* UI_PROP_DECORATE */
 
