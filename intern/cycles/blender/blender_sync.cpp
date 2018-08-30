@@ -638,7 +638,7 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 	/* TODO(sergey): Once OSL supports per-microarchitecture optimization get
 	 * rid of this.
 	 */
-	if (params.shadingsystem == SHADINGSYSTEM_OSL) {
+	if(params.shadingsystem == SHADINGSYSTEM_OSL) {
 		params.bvh_layout = BVH_LAYOUT_BVH4;
 	}
 	else {
