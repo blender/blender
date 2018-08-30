@@ -383,34 +383,38 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			/* projecting onto 3D-Geometry
 			 *	- nothing more needs to be done here, since view_autodist_simple() has already done it
 			 */
+
+			 /* if no valid zdepth, use default mode drawing. */
+			if (*depth <= 1.0f) {
+				return;
+			}
+		}
+
+		float mval_prj[2];
+		float rvec[3], dvec[3];
+		float mval_f[2];
+		copy_v2fl_v2i(mval_f, mval);
+		float zfac;
+
+		/* Current method just converts each point in screen-coordinates to
+		 * 3D-coordinates using the 3D-cursor as reference. In general, this
+		 * works OK, but it could of course be improved.
+		 *
+		 * TODO:
+		 *	- investigate using nearest point(s) on a previous stroke as
+		 *	  reference point instead or as offset, for easier stroke matching
+		 */
+
+		gp_get_3d_reference(p, rvec);
+		zfac = ED_view3d_calc_zfac(p->ar->regiondata, rvec, NULL);
+
+		if (ED_view3d_project_float_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+			sub_v2_v2v2(mval_f, mval_prj, mval_f);
+			ED_view3d_win_to_delta(p->ar, mval_f, dvec, zfac);
+			sub_v3_v3v3(out, rvec, dvec);
 		}
 		else {
-			float mval_prj[2];
-			float rvec[3], dvec[3];
-			float mval_f[2];
-			copy_v2fl_v2i(mval_f, mval);
-			float zfac;
-
-			/* Current method just converts each point in screen-coordinates to
-			 * 3D-coordinates using the 3D-cursor as reference. In general, this
-			 * works OK, but it could of course be improved.
-			 *
-			 * TODO:
-			 *	- investigate using nearest point(s) on a previous stroke as
-			 *	  reference point instead or as offset, for easier stroke matching
-			 */
-
-			gp_get_3d_reference(p, rvec);
-			zfac = ED_view3d_calc_zfac(p->ar->regiondata, rvec, NULL);
-
-			if (ED_view3d_project_float_global(p->ar, rvec, mval_prj, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				sub_v2_v2v2(mval_f, mval_prj, mval_f);
-				ED_view3d_win_to_delta(p->ar, mval_f, dvec, zfac);
-				sub_v3_v3v3(out, rvec, dvec);
-			}
-			else {
-				zero_v3(out);
-			}
+			zero_v3(out);
 		}
 	}
 }
