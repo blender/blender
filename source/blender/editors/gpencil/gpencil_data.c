@@ -725,9 +725,6 @@ static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
 				if (gpf == NULL)
 					continue;
 
-				if (gpf == NULL)
-					continue;
-
 				/* simply delete strokes which are no loose */
 				for (gps = gpf->strokes.first; gps; gps = gpsn) {
 					gpsn = gps->next;

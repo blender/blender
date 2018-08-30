@@ -6601,8 +6601,10 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 				gps->points = newdataadr(fd, gps->points);
 
 				/* relink weight data */
-				gps->dvert = newdataadr(fd, gps->dvert);
-				direct_link_dverts(fd, gps->totpoints, gps->dvert);
+				if (gps->dvert) {
+					gps->dvert = newdataadr(fd, gps->dvert);
+					direct_link_dverts(fd, gps->totpoints, gps->dvert);
+				}
 
 				/* the triangulation is not saved, so need to be recalculated */
 				gps->triangles = NULL;

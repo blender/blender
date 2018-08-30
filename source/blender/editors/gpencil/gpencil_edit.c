@@ -25,9 +25,9 @@
  * Operators for editing Grease Pencil strokes
  */
 
-/** \file blender/editors/gpencil/gpencil_edit.c
- *  \ingroup edgpencil
- */
+ /** \file blender/editors/gpencil/gpencil_edit.c
+  *  \ingroup edgpencil
+  */
 
 
 #include <stdio.h>
@@ -92,8 +92,8 @@
 
 #include "gpencil_intern.h"
 
-/* ************************************************ */
-/* Stroke Edit Mode Management */
+  /* ************************************************ */
+  /* Stroke Edit Mode Management */
 static bool gpencil_editmode_toggle_poll(bContext *C)
 {
 	/* if using gpencil object, use this gpd */
@@ -108,7 +108,7 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const int back = RNA_boolean_get(op->ptr, "back");
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-	bGPdata *gpd = ED_gpencil_data_get_active(C);
+		bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bool is_object = false;
 	short mode;
 	/* if using a gpencil object, use this datablock */
@@ -672,8 +672,8 @@ void GPENCIL_OT_duplicate(wmOperatorType *ot)
  *   from several different layers into a single layer.
  */
 
-/* list of bGPDstroke instances */
-/* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
+ /* list of bGPDstroke instances */
+ /* NOTE: is exposed within the editors/gpencil module so that other tools can use it too */
 ListBase gp_strokes_copypastebuf = {NULL, NULL};
 
 /* Hash for hanging on to all the colors used by strokes in the buffer
@@ -1252,7 +1252,7 @@ void GPENCIL_OT_blank_frame_add(wmOperatorType *ot)
 	ot->name = "Insert Blank Frame";
 	ot->idname = "GPENCIL_OT_blank_frame_add";
 	ot->description = "Insert a blank frame on the current frame "
-	                  "(all subsequently existing frames, if any, are shifted right by one frame)";
+		"(all subsequently existing frames, if any, are shifted right by one frame)";
 
 	/* callbacks */
 	ot->exec = gp_blank_frame_add_exec;
@@ -1774,7 +1774,7 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 		/* Create each new stroke... */
 		for (idx = 0; idx < num_islands; idx++) {
 			tGPDeleteIsland *island = &islands[idx];
-			bGPDstroke *new_stroke  = MEM_dupallocN(gps);
+			bGPDstroke *new_stroke = MEM_dupallocN(gps);
 
 			/* initialize triangle memory  - to be calculated on next redraw */
 			new_stroke->triangles = NULL;
@@ -1785,13 +1785,13 @@ void gp_stroke_delete_tagged_points(bGPDframe *gpf, bGPDstroke *gps, bGPDstroke 
 			new_stroke->totpoints = island->end_idx - island->start_idx + 1;
 
 			/* Copy over the relevant point data */
-			new_stroke->points    = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints, "gp delete stroke fragment");
+			new_stroke->points = MEM_callocN(sizeof(bGPDspoint) * new_stroke->totpoints, "gp delete stroke fragment");
 			memcpy(new_stroke->points, gps->points + island->start_idx, sizeof(bGPDspoint) * new_stroke->totpoints);
 
 			/* Copy over vertex weight data (if available) */
 			if (new_stroke->dvert != NULL) {
 				/* Copy over the relevant vertex-weight points */
-				new_stroke->dvert     = MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints, "gp delete stroke fragment weight");
+				new_stroke->dvert = MEM_callocN(sizeof(MDeformVert) * new_stroke->totpoints, "gp delete stroke fragment weight");
 				memcpy(new_stroke->dvert, gps->dvert + island->start_idx, sizeof(MDeformVert) * new_stroke->totpoints);
 
 				/* Copy weights */
@@ -2101,9 +2101,9 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-	Object *obact = CTX_data_active_object(C);                                          \
+		Object *obact = CTX_data_active_object(C);                                          \
 
-	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+		const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
 	const float *cursor_global = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -2177,7 +2177,7 @@ void GPENCIL_OT_snap_to_cursor(wmOperatorType *ot)
 
 	/* props */
 	ot->prop = RNA_def_boolean(ot->srna, "use_offset", true, "With Offset",
-	                           "Offset the entire stroke instead of selected points only");
+		"Offset the entire stroke instead of selected points only");
 }
 
 /* ------------------------------- */
@@ -2189,9 +2189,9 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-	Object *obact = CTX_data_active_object(C);                                          \
+		Object *obact = CTX_data_active_object(C);                                          \
 
-	float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
+		float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
 	float centroid[3] = {0.0f};
 	float min[3], max[3];
 	size_t count = 0;
@@ -2228,7 +2228,7 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 						float fpt[3];
 						mul_v3_m4v3(fpt, diff_mat, &pt->x);
 
-							add_v3_v3(centroid, fpt);
+						add_v3_v3(centroid, fpt);
 						minmax_v3v3_v3(min, max, fpt);
 
 						count++;
@@ -2454,7 +2454,7 @@ static void gpencil_flip_stroke(bGPDstroke *gps)
 
 /* Helper: copy point between strokes */
 static void gpencil_stroke_copy_point(bGPDstroke *gps, bGPDspoint *point, int idx, float delta[3],
-                                      float pressure, float strength, float deltatime)
+	float pressure, float strength, float deltatime)
 {
 	bGPDspoint *newpoint;
 
@@ -2881,8 +2881,8 @@ void GPENCIL_OT_reproject(wmOperatorType *ot)
 	ot->name = "Reproject Strokes";
 	ot->idname = "GPENCIL_OT_reproject";
 	ot->description = "Reproject the selected strokes from the current viewpoint as if they had been newly drawn "
-	                  "(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
-	                  "or for matching deforming geometry)";
+		"(e.g. to fix problems from accidental 3D cursor movement or accidental viewport changes, "
+		"or for matching deforming geometry)";
 
 	/* callbacks */
 	ot->invoke = WM_menu_invoke;
@@ -2920,13 +2920,7 @@ static int gp_count_subdivision_cuts(bGPDstroke *gps)
 static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDspoint *temp_points;
 	const int cuts = RNA_int_get(op->ptr, "number_cuts");
-	MDeformVert *temp_dvert = NULL;
-	MDeformVert *dvert_final = NULL;
-
-	int totnewpoints, oldtotpoints;
-	int i2;
 
 	/* sanity checks */
 	if (ELEM(NULL, gpd))
@@ -2936,81 +2930,7 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 	GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)
 	{
 		if (gps->flag & GP_STROKE_SELECT) {
-			/* loop as many times as cuts */
-			for (int s = 0; s < cuts; s++) {
-				totnewpoints = gp_count_subdivision_cuts(gps);
-				if (totnewpoints == 0) {
-					continue;
-				}
-				/* duplicate points in a temp area */
-				temp_points = MEM_dupallocN(gps->points);
-				oldtotpoints = gps->totpoints;
-				if (gps->dvert != NULL) {
-					temp_dvert = MEM_dupallocN(gps->dvert);
-				}
-				/* resize the points arrys */
-				gps->totpoints += totnewpoints;
-				gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
-				if (gps->dvert != NULL) {
-					gps->dvert = MEM_recallocN(gps->dvert, sizeof(*gps->dvert) * gps->totpoints);
-				}
-				gps->flag |= GP_STROKE_RECALC_CACHES;
-
-				/* loop and interpolate */
-				i2 = 0;
-				for (int i = 0; i < oldtotpoints; i++) {
-					bGPDspoint *pt = &temp_points[i];
-					bGPDspoint *pt_final = &gps->points[i2];
-
-					MDeformVert *dvert = NULL;
-					if (gps->dvert != NULL) {
-						dvert = &temp_dvert[i];
-					}
-
-					/* copy current point */
-					copy_v3_v3(&pt_final->x, &pt->x);
-					pt_final->pressure = pt->pressure;
-					pt_final->strength = pt->strength;
-					pt_final->time = pt->time;
-					pt_final->flag = pt->flag;
-
-					if (gps->dvert != NULL) {
-						dvert_final = &gps->dvert[i2];
-						dvert_final->totweight = dvert->totweight;
-						dvert_final->dw = dvert->dw;
-					}
-					i2++;
-
-					/* if next point is selected add a half way point */
-					if (pt->flag & GP_SPOINT_SELECT) {
-						if (i + 1 < oldtotpoints) {
-							if (temp_points[i + 1].flag & GP_SPOINT_SELECT) {
-								pt_final = &gps->points[i2];
-								if (gps->dvert != NULL) {
-									dvert_final = &gps->dvert[i2];
-								}
-								/* Interpolate all values */
-								bGPDspoint *next = &temp_points[i + 1];
-								interp_v3_v3v3(&pt_final->x, &pt->x, &next->x, 0.5f);
-								pt_final->pressure = interpf(pt->pressure, next->pressure, 0.5f);
-								pt_final->strength = interpf(pt->strength, next->strength, 0.5f);
-								CLAMP(pt_final->strength, GPENCIL_STRENGTH_MIN, 1.0f);
-								pt_final->time = interpf(pt->time, next->time, 0.5f);
-								pt_final->flag |= GP_SPOINT_SELECT;
-
-								if (gps->dvert != NULL) {
-									dvert_final->totweight = 0;
-									dvert_final->dw = NULL;
-								}
-								i2++;
-							}
-						}
-					}
-				}
-				/* free temp memory */
-				MEM_SAFE_FREE(temp_points);
-				MEM_SAFE_FREE(temp_dvert);
-			}
+			BKE_gpencil_subdivide(gps, cuts, 0);
 		}
 	}
 	GP_EDITABLE_STROKES_END;
