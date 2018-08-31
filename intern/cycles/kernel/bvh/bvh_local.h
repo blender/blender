@@ -73,10 +73,9 @@ bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals *kg,
 	int object = OBJECT_NONE;
 	float isect_t = ray->t;
 
-	if(local_isect) {
+	if(local_isect != NULL) {
 		local_isect->num_hits = 0;
 	}
-
 	kernel_assert((local_isect == NULL) == (max_hits == 0));
 
 	const int object_flag = kernel_tex_fetch(__object_flag, local_object);
