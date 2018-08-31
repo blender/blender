@@ -1839,6 +1839,11 @@ static bool ob_parcurve(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, 
 		}
 		BKE_displist_make_curveTypes(depsgraph, scene, par, 0);
 	}
+#else
+	/* See: T56619 */
+	if (par->runtime.curve_cache == NULL) {
+		return false;
+	}
 #endif
 
 	if (par->runtime.curve_cache->path == NULL) {
