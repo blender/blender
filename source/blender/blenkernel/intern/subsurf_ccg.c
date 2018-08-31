@@ -2274,8 +2274,9 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	if (ob->sculpt->pbvh) {
 		/* Note that we have to clean up exisitng pbvh instead of updating it in case it does not match current
 		 * grid_pbvh status. */
+		const PBVHType pbvh_type = BKE_pbvh_type(ob->sculpt->pbvh);
 		if (grid_pbvh) {
-			if (BKE_pbvh_get_ccgdm(ob->sculpt->pbvh) != NULL) {
+			if (pbvh_type == PBVH_GRIDS) {
 				/* pbvh's grids, gridadj and gridfaces points to data inside ccgdm
 				 * but this can be freed on ccgdm release, this updates the pointers
 				 * when the ccgdm gets remade, the assumption is that the topology
@@ -2289,7 +2290,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 				ob->sculpt->pbvh = NULL;
 			}
 		}
-		else if (BKE_pbvh_get_ccgdm(ob->sculpt->pbvh) != NULL) {
+		else if (pbvh_type == PBVH_GRIDS) {
 			BKE_pbvh_free(ob->sculpt->pbvh);
 			ob->sculpt->pbvh = NULL;
 		}
@@ -2298,10 +2299,6 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 	}
 
 	if (ccgdm->pbvh) {
-		/* For grid pbvh, keep track of ccgdm */
-		if (grid_pbvh) {
-			BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
-		}
 		return ccgdm->pbvh;
 	}
 
@@ -2353,10 +2350,6 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		pbvh_show_mask_set(ccgdm->pbvh, ob->sculpt->show_mask);
 	}
 
-	/* For grid pbvh, keep track of ccgdm. */
-	if (grid_pbvh && ccgdm->pbvh) {
-		BKE_pbvh_set_ccgdm(ccgdm->pbvh, ccgdm);
-	}
 	return ccgdm->pbvh;
 }
 

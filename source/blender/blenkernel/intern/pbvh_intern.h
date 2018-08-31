@@ -149,8 +149,6 @@ struct PBVH {
 	 * objects in sculpt mode with different sizes at the same time, so now storing that common gpu buffer
 	 * in an opaque pointer per pbvh. See T47637. */
 	struct GridCommonGPUBuffer *grid_common_gpu_buffer;
-	/* The ccgdm is required for CD_ORIGINDEX lookup in vertex paint + multires */
-	struct CCGDerivedMesh *ccgdm;
 
 	/* Only used during BVH build and update,
 	 * don't need to remain valid after */
