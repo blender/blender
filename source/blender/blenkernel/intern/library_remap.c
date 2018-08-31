@@ -263,81 +263,9 @@ static int foreach_libblock_remap_callback(void *user_data, ID *id_self, ID **id
 	return IDWALK_RET_NOP;
 }
 
-/* Some remapping unfortunately require extra and/or specific handling, tackle those here. */
-static void libblock_remap_data_preprocess_scene_object_unlink(
-        IDRemap *r_id_remap_data, Scene *sce, Object *ob, const bool skip_indirect, const bool is_indirect)
-{
-	if (skip_indirect && is_indirect) {
-		r_id_remap_data->skipped_indirect++;
-		r_id_remap_data->skipped_refcounted++;
-	}
-	else {
-		/* Remove object from all collections in the scene. free_use is false
-		 * to avoid recursively calling object free again. */
-		BKE_scene_collections_object_remove(r_id_remap_data->bmain, sce, ob, false);
-		if (!is_indirect) {
-			r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
-		}
-	}
-}
-
-static void libblock_remap_data_preprocess_collection_unlink(
-        IDRemap *r_id_remap_data, Object *ob, const bool skip_indirect, const bool is_indirect)
-{
-	Main *bmain = r_id_remap_data->bmain;
-	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
-		if (!BKE_collection_is_in_scene(collection) && BKE_collection_has_object(collection, ob)) {
-			if (skip_indirect && is_indirect) {
-				r_id_remap_data->skipped_indirect++;
-				r_id_remap_data->skipped_refcounted++;
-			}
-			else {
-				BKE_collection_object_remove(bmain, collection, ob, false);
-				if (!is_indirect) {
-					r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
-				}
-			}
-		}
-	}
-}
-
 static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 {
 	switch (GS(r_id_remap_data->id->name)) {
-		case ID_SCE:
-		{
-			Scene *sce = (Scene *)r_id_remap_data->id;
-
-			if (!r_id_remap_data->new_id) {
-				const bool is_indirect = (sce->id.lib != NULL);
-				const bool skip_indirect = (r_id_remap_data->flag & ID_REMAP_SKIP_INDIRECT_USAGE) != 0;
-
-				/* In case we are unlinking... */
-				if (!r_id_remap_data->old_id) {
-					/* TODO: how is it valid to iterator over a scene while
-					 * removing objects from it? can't this crash? */
-					/* ... everything from scene. */
-					FOREACH_SCENE_OBJECT_BEGIN(sce, ob_iter)
-					{
-						libblock_remap_data_preprocess_scene_object_unlink(
-						            r_id_remap_data, sce, ob_iter, skip_indirect, is_indirect);
-						libblock_remap_data_preprocess_collection_unlink(
-						            r_id_remap_data, ob_iter, skip_indirect, is_indirect);
-					}
-					FOREACH_SCENE_OBJECT_END;
-				}
-				else if (GS(r_id_remap_data->old_id->name) == ID_OB) {
-					/* ... a specific object from scene. */
-					Object *old_ob = (Object *)r_id_remap_data->old_id;
-					libblock_remap_data_preprocess_scene_object_unlink(
-					            r_id_remap_data, sce, old_ob, skip_indirect, is_indirect);
-					libblock_remap_data_preprocess_collection_unlink(
-					            r_id_remap_data, old_ob, skip_indirect, is_indirect);
-				}
-
-			}
-			break;
-		}
 		case ID_OB:
 		{
 			ID *old_id = r_id_remap_data->old_id;

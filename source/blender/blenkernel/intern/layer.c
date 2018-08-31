@@ -80,7 +80,7 @@ static LayerCollection *layer_collection_add(ListBase *lb_parent, Collection *co
 static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc)
 {
 	if (lc == view_layer->active_collection) {
-		view_layer->active_collection = view_layer->layer_collections.first;
+		view_layer->active_collection = NULL;
 	}
 
 	for (LayerCollection *nlc = lc->layer_collections.first; nlc; nlc = nlc->next) {
@@ -311,7 +311,9 @@ static void view_layer_bases_hash_create(ViewLayer *view_layer)
 		view_layer->object_bases_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-			BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
+			if (base->object) {
+				BLI_ghash_insert(view_layer->object_bases_hash, base->object, base);
+			}
 		}
 
 		BLI_mutex_unlock(&hash_lock);
@@ -786,7 +788,9 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 			view_layer->basact = NULL;
 		}
 
-		BLI_ghash_remove(view_layer->object_bases_hash, base->object, NULL, NULL);
+		if (base->object) {
+			BLI_ghash_remove(view_layer->object_bases_hash, base->object, NULL, NULL);
+		}
 	}
 
 	BLI_freelistN(&view_layer->object_bases);
