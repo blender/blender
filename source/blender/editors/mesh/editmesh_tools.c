@@ -6720,102 +6720,113 @@ static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 {
 	const float eps = 0.00001f;
 	const float eps_sq = eps * eps;
-
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	int *index = MEM_mallocN(bm->totvert * sizeof(*index), __func__);
 	const bool use_topology = false;
 
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const float fac = RNA_float_get(op->ptr, "factor");
 	const bool use_center = RNA_boolean_get(op->ptr, "use_center");
-
-	/* stats */
-	int totmirr = 0, totfail = 0, totfound = 0;
-
-	/* axix */
 	const int axis_dir = RNA_enum_get(op->ptr, "direction");
+
+	/* Vertices stats (total over all selected objects). */
+	int totvertfound = 0, totvertmirr = 0, totvertfail = 0;
+
+	/* Axis. */
 	int axis = axis_dir % 3;
 	bool axis_sign = axis != axis_dir;
 
-	/* vertex iter */
-	BMIter iter;
-	BMVert *v;
-	int i;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, use_topology, thresh, index);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	BM_mesh_elem_table_ensure(bm, BM_VERT);
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+		/* Only allocate memory after checking whether to skip object. */
+		int *index = MEM_mallocN(bm->totvert * sizeof(*index), __func__);
 
+		/* Vertex iter. */
+		BMIter iter;
+		BMVert *v;
+		int i;
 
-	BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-		if ((BM_elem_flag_test(v, BM_ELEM_SELECT) != false) &&
-		    (BM_elem_flag_test(v, BM_ELEM_TAG) == false))
-		{
-			int i_mirr = index[i];
-			if (i_mirr != -1) {
+		EDBM_verts_mirror_cache_begin_ex(em, axis, true, true, use_topology, thresh, index);
 
-				BMVert *v_mirr = BM_vert_at_index(bm, index[i]);
+		BM_mesh_elem_table_ensure(bm, BM_VERT);
 
-				if (v != v_mirr) {
-					float co[3], co_mirr[3];
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-					if ((v->co[axis] > v_mirr->co[axis]) == axis_sign) {
-						SWAP(BMVert *, v, v_mirr);
-					}
+		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+			if ((BM_elem_flag_test(v, BM_ELEM_SELECT) != false) &&
+			    (BM_elem_flag_test(v, BM_ELEM_TAG) == false))
+			{
+				int i_mirr = index[i];
+				if (i_mirr != -1) {
 
-					copy_v3_v3(co_mirr, v_mirr->co);
-					co_mirr[axis] *= -1.0f;
+					BMVert *v_mirr = BM_vert_at_index(bm, index[i]);
 
-					if (len_squared_v3v3(v->co, co_mirr) > eps_sq) {
-						totmirr++;
-					}
+					if (v != v_mirr) {
+						float co[3], co_mirr[3];
 
-					interp_v3_v3v3(co, v->co, co_mirr, fac);
-
-					copy_v3_v3(v->co, co);
-
-					co[axis] *= -1.0f;
-					copy_v3_v3(v_mirr->co, co);
-
-					BM_elem_flag_enable(v, BM_ELEM_TAG);
-					BM_elem_flag_enable(v_mirr, BM_ELEM_TAG);
-					totfound++;
-				}
-				else {
-					if (use_center) {
-
-						if (fabsf(v->co[axis]) > eps) {
-							totmirr++;
+						if ((v->co[axis] > v_mirr->co[axis]) == axis_sign) {
+							SWAP(BMVert *, v, v_mirr);
 						}
 
-						v->co[axis] = 0.0f;
+						copy_v3_v3(co_mirr, v_mirr->co);
+						co_mirr[axis] *= -1.0f;
+
+						if (len_squared_v3v3(v->co, co_mirr) > eps_sq) {
+							totvertmirr++;
+						}
+
+						interp_v3_v3v3(co, v->co, co_mirr, fac);
+
+						copy_v3_v3(v->co, co);
+
+						co[axis] *= -1.0f;
+						copy_v3_v3(v_mirr->co, co);
+
+						BM_elem_flag_enable(v, BM_ELEM_TAG);
+						BM_elem_flag_enable(v_mirr, BM_ELEM_TAG);
+						totvertfound++;
 					}
-					BM_elem_flag_enable(v, BM_ELEM_TAG);
-					totfound++;
+					else {
+						if (use_center) {
+
+							if (fabsf(v->co[axis]) > eps) {
+								totvertmirr++;
+							}
+
+							v->co[axis] = 0.0f;
+						}
+						BM_elem_flag_enable(v, BM_ELEM_TAG);
+						totvertfound++;
+					}
+				}
+				else {
+					totvertfail++;
 				}
 			}
-			else {
-				totfail++;
-			}
 		}
+
+		/* No need to end cache, just free the array. */
+		MEM_freeN(index);
 	}
+	MEM_freeN(objects);
 
-
-	if (totfail) {
+	if (totvertfail) {
 		BKE_reportf(op->reports, RPT_WARNING, "%d already symmetrical, %d pairs mirrored, %d failed",
-		            totfound - totmirr, totmirr, totfail);
+		            totvertfound - totvertmirr, totvertmirr, totvertfail);
 	}
 	else {
 		BKE_reportf(op->reports, RPT_INFO, "%d already symmetrical, %d pairs mirrored",
-		            totfound - totmirr, totmirr);
+		            totvertfound - totvertmirr, totvertmirr);
 	}
-
-	/* no need to end cache, just free the array */
-	MEM_freeN(index);
 
 	return OPERATOR_FINISHED;
 }
