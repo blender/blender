@@ -1782,6 +1782,28 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 		select_cycle = false;
 	}
 
+	if (select_clear) {
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob_iter = objects[ob_index];
+			BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+
+			if (em_iter->bm->totvertsel == 0) {
+				continue;
+			}
+
+			if (em_iter == em) {
+				continue;
+			}
+
+			EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
+			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+		}
+		MEM_freeN(objects);
+	}
+
 	if (em->selectmode & SCE_SELECT_FACE) {
 		mouse_mesh_loop_face(em, eed, select, select_clear);
 	}
