@@ -2247,23 +2247,19 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
-	bool usex = true, usey = true, usez = true, preserve_volume = true;
-	int i, repeat;
-	float lambda_factor;
-	float lambda_border;
 	BMIter fiter;
 	BMFace *f;
 	int tot_invalid = 0;
 	int tot_unselected = 0;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	repeat = RNA_int_get(op->ptr, "repeat");
-	lambda_factor = RNA_float_get(op->ptr, "lambda_factor");
-	lambda_border = RNA_float_get(op->ptr, "lambda_border");
-	usex = RNA_boolean_get(op->ptr, "use_x");
-	usey = RNA_boolean_get(op->ptr, "use_y");
-	usez = RNA_boolean_get(op->ptr, "use_z");
-	preserve_volume = RNA_boolean_get(op->ptr, "preserve_volume");
+	const float lambda_factor = RNA_float_get(op->ptr, "lambda_factor");
+	const float lambda_border = RNA_float_get(op->ptr, "lambda_border");
+	const bool usex = RNA_boolean_get(op->ptr, "use_x");
+	const bool usey = RNA_boolean_get(op->ptr, "use_y");
+	const bool usez = RNA_boolean_get(op->ptr, "use_z");
+	const bool preserve_volume = RNA_boolean_get(op->ptr, "preserve_volume");
+	int repeat = RNA_int_get(op->ptr, "repeat");
 
 	if (!repeat) {
 		repeat = 1;
@@ -2303,7 +2299,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 			EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
 		}
 
-		for (i = 0; i < repeat; i++) {
+		for (int i = 0; i < repeat; i++) {
 			if (!EDBM_op_callf(
 			        em, op,
 			        "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
