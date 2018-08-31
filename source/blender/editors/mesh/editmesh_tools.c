@@ -2274,7 +2274,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 		Mesh *me = obedit->data;
 		bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-		if (em->bm->totfacesel == 0){
+		if (em->bm->totvertsel == 0) {
 			tot_unselected++;
 			tot_invalid++;
 			continue;
@@ -2300,14 +2300,19 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 			EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
 		}
 
+		bool failed_repeat_loop = false;
 		for (int i = 0; i < repeat; i++) {
 			if (!EDBM_op_callf(
 			        em, op,
 			        "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
 			        BM_ELEM_SELECT, lambda_factor, lambda_border, usex, usey, usez, preserve_volume))
 			{
-				return OPERATOR_CANCELLED;
+				failed_repeat_loop = true;
+				break;
 			}
+		}
+		if (failed_repeat_loop) {
+			continue;
 		}
 
 		/* Apply mirror. */
@@ -2321,7 +2326,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	MEM_freeN(objects);
 
 	if (tot_unselected == objects_len){
-		BKE_report(op->reports, RPT_WARNING, "No selected faces");
+		BKE_report(op->reports, RPT_WARNING, "No selected vertex");
 		return OPERATOR_CANCELLED;
 	}
 	else if (tot_invalid == objects_len){
