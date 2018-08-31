@@ -771,7 +771,7 @@ wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int
 	return NULL;
 }
 
-wmKeyMap *WM_keymap_find(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid)
+wmKeyMap *WM_keymap_ensure(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid)
 {
 	wmKeyMap *km = WM_keymap_list_find(&keyconf->keymaps, idname, spaceid, regionid);
 
@@ -798,7 +798,7 @@ wmKeyMap *WM_keymap_find_all(const bContext *C, const char *idname, int spaceid,
 
 wmKeyMap *WM_modalkeymap_add(wmKeyConfig *keyconf, const char *idname, const EnumPropertyItem *items)
 {
-	wmKeyMap *km = WM_keymap_find(keyconf, idname, 0, 0);
+	wmKeyMap *km = WM_keymap_ensure(keyconf, idname, 0, 0);
 	km->flag |= KEYMAP_MODAL;
 	km->modal_items = items;
 

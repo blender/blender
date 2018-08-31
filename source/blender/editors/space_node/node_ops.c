@@ -231,13 +231,13 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* Entire Editor only ----------------- */
-	keymap = WM_keymap_find(keyconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(keyconf, "Node Generic", SPACE_NODE, 0);
 
 	WM_keymap_add_item(keymap, "NODE_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_toolbar", TKEY, KM_PRESS, 0, 0);
 
 	/* Main Region only ----------------- */
-	keymap = WM_keymap_find(keyconf, "Node Editor", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(keyconf, "Node Editor", SPACE_NODE, 0);
 
 	/* mouse select in nodes used to be both keys, but perhaps this should be reduced?
 	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize

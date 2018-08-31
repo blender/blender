@@ -232,13 +232,13 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap = WM_keymap_find(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_ensure(keyconf, "3D View Generic", SPACE_VIEW3D, 0);
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toolshelf", TKEY, KM_PRESS, 0, 0);
 
 	/* only for region 3D window */
-	keymap = WM_keymap_find(keyconf, "3D View", SPACE_VIEW3D, 0);
+	keymap = WM_keymap_ensure(keyconf, "3D View", SPACE_VIEW3D, 0);
 
 	/* Shift+LMB behavior first, so it has priority over KM_ANY item below. */
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_manipulator", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);

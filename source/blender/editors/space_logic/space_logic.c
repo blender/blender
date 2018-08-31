@@ -179,7 +179,7 @@ static void logic_operatortypes(void)
 
 static void logic_keymap(struct wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Logic Editor", SPACE_LOGIC, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Logic Editor", SPACE_LOGIC, 0);
 
 	WM_keymap_add_item(keymap, "LOGIC_OT_properties", NKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "LOGIC_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
@@ -242,7 +242,7 @@ static void logic_main_region_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymaps */
-	keymap = WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -281,7 +281,7 @@ static void logic_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap = WM_keymap_find(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Logic Editor", SPACE_LOGIC, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

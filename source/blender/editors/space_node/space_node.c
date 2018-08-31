@@ -593,7 +593,7 @@ static void node_buttons_region_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -609,7 +609,7 @@ static void node_toolbar_region_init(wmWindowManager *wm, ARegion *ar)
 
 	ED_region_panels_init(wm, ar);
 
-	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 
@@ -644,10 +644,10 @@ static void node_main_region_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_CUSTOM, ar->winx, ar->winy);
 
 	/* own keymaps */
-	keymap = WM_keymap_find(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Node Generic", SPACE_NODE, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 
-	keymap = WM_keymap_find(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "Node Editor", SPACE_NODE, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	/* add drop boxes */

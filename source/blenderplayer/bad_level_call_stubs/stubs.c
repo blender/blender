@@ -422,7 +422,7 @@ void PE_current_changed(struct Main *bmain, struct Scene *scene, struct Object *
 
 /* rna keymap */
 struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap) RET_NULL
-struct wmKeyMap *WM_keymap_find(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid) RET_NULL
+struct wmKeyMap *WM_keymap_ensure(struct wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid) RET_NULL
 struct wmKeyMapItem *WM_keymap_add_item(struct wmKeyMap *keymap, const char *idname, int type,  int val, int modifier, int keymodifier) RET_NULL
 struct wmKeyMap *WM_keymap_list_find(ListBase *lb, const char *idname, int spaceid, int regionid) RET_NULL
 struct wmKeyConfig *WM_keyconfig_new(struct wmWindowManager *wm, const char *idname) RET_NULL

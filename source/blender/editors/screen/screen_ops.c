@@ -4604,7 +4604,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* Screen Editing ------------------------------------------------ */
-	keymap = WM_keymap_find(keyconf, "Screen Editing", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Screen Editing", 0, 0);
 
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, 0, 0)->ptr, "modifier", 0);
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_actionzone", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0)->ptr, "modifier", 1);
@@ -4627,12 +4627,12 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
 	/* Header Editing ------------------------------------------------ */
 	/* note: this is only used when the cursor is inside the header */
-	keymap = WM_keymap_find(keyconf, "Header", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Header", 0, 0);
 
 	WM_keymap_add_item(keymap, "SCREEN_OT_header_toolbox", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	/* Screen General ------------------------------------------------ */
-	keymap = WM_keymap_find(keyconf, "Screen", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Screen", 0, 0);
 
 	/* standard timers */
 	WM_keymap_add_item(keymap, "SCREEN_OT_animation_step", TIMER0, KM_ANY, KM_ANY, 0);
@@ -4696,7 +4696,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
 
 	/* Anim Playback ------------------------------------------------ */
-	keymap = WM_keymap_find(keyconf, "Frames", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Frames", 0, 0);
 
 	/* frame offsets */
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_frame_offset", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "delta", 10);
@@ -4735,7 +4735,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
 	/* Alternative keys for animation and sequencer playing */
 #if 0 /* XXX: disabled for restoring later... bad implementation */
-	keymap = WM_keymap_find(keyconf, "Frames", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Frames", 0, 0);
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_animation_play", RIGHTARROWKEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "cycle_speed", true);
 

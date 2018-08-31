@@ -253,7 +253,7 @@ static void rna_KeyMap_item_remove(wmKeyMap *km, ReportList *reports, PointerRNA
 static wmKeyMap *rna_keymap_new(wmKeyConfig *keyconf, const char *idname, int spaceid, int regionid, bool modal)
 {
 	if (modal == 0) {
-		return WM_keymap_find(keyconf, idname, spaceid, regionid);
+		return WM_keymap_ensure(keyconf, idname, spaceid, regionid);
 	}
 	else {
 		return WM_modalkeymap_add(keyconf, idname, NULL); /* items will be lazy init */

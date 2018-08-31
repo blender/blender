@@ -4458,7 +4458,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap = WM_keymap_find(keyconf, "UV Editor", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "UV Editor", 0, 0);
 	keymap->poll = ED_operator_uvedit_can_uv_sculpt;
 
 	/* Uv sculpt toggle */

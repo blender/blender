@@ -55,7 +55,7 @@
 /* Generic Drawing Keymap */
 static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* Draw  --------------------------------------- */
@@ -123,7 +123,7 @@ static bool gp_stroke_editmode_poll(bContext *C)
 /* Stroke Editing Keymap - Only when editmode is enabled */
 static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback - so that this keymap only gets enabled when stroke editmode is enabled */
