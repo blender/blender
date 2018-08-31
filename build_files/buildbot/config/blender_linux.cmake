@@ -1,6 +1,6 @@
 # ######## Global feature set settings ########
 
-include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_full.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/../../cmake/config/blender_release.cmake")
 
 # Detect which libc we'll be linking against.
 # Some of the paths will depend on this
