@@ -1903,7 +1903,7 @@ ghost_key_from_keycode(const XkbDescPtr xkb_descr, const KeyCode keycode)
 #endif
 		}
 	}
-	else {
+	else if (keycode != 0) {
 		GHOST_ASSERT(false, "KeyCode out of range!");
 	}
 	return GHOST_kKeyUnknown;

@@ -5,6 +5,7 @@
 #
 
 set(WITH_ALEMBIC             ON  CACHE BOOL "" FORCE)
+set(WITH_ASSERT_ABORT        OFF CACHE BOOL "" FORCE)
 set(WITH_BUILDINFO           ON  CACHE BOOL "" FORCE)
 set(WITH_BULLET              ON  CACHE BOOL "" FORCE)
 set(WITH_CODEC_AVI           ON  CACHE BOOL "" FORCE)
