@@ -2247,31 +2247,15 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	Mesh *me = obedit->data;
-	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 	bool usex = true, usey = true, usez = true, preserve_volume = true;
 	int i, repeat;
 	float lambda_factor;
 	float lambda_border;
 	BMIter fiter;
 	BMFace *f;
-
-	/* Check if select faces are triangles */
-	BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
-		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-			if (f->len > 4) {
-				BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
-				return OPERATOR_CANCELLED;
-			}
-		}
-	}
-
-	/* mirror before smooth */
-	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
-	}
+	int tot_invalid = 0;
+	int tot_unselected = 0;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	repeat = RNA_int_get(op->ptr, "repeat");
 	lambda_factor = RNA_float_get(op->ptr, "lambda_factor");
@@ -2280,26 +2264,73 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	usey = RNA_boolean_get(op->ptr, "use_y");
 	usez = RNA_boolean_get(op->ptr, "use_z");
 	preserve_volume = RNA_boolean_get(op->ptr, "preserve_volume");
-	if (!repeat)
+
+	if (!repeat) {
 		repeat = 1;
+	}
 
-	for (i = 0; i < repeat; i++) {
-		if (!EDBM_op_callf(
-		            em, op,
-		            "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
-		            BM_ELEM_SELECT, lambda_factor, lambda_border, usex, usey, usez, preserve_volume))
-		{
-			return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		Mesh *me = obedit->data;
+		bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+
+		if (em->bm->totfacesel == 0){
+			tot_unselected++;
+			tot_invalid++;
+			continue;
 		}
-	}
 
-	/* apply mirror */
-	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
-		EDBM_verts_mirror_cache_end(em);
-	}
+		bool is_invalid = false;
+		/* Check if select faces are triangles. */
+		BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				if (f->len > 4) {
+					tot_invalid++;
+					is_invalid = true;
+					break;
+				}
+			}
+		}
+		if (is_invalid) {
+			continue;
+		}
 
-	EDBM_update_generic(em, true, false);
+		/* Mirror before smooth. */
+		if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+			EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
+		}
+
+		for (i = 0; i < repeat; i++) {
+			if (!EDBM_op_callf(
+			        em, op,
+			        "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
+			        BM_ELEM_SELECT, lambda_factor, lambda_border, usex, usey, usez, preserve_volume))
+			{
+				return OPERATOR_CANCELLED;
+			}
+		}
+
+		/* Apply mirror. */
+		if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+			EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+			EDBM_verts_mirror_cache_end(em);
+		}
+
+		EDBM_update_generic(em, true, false);
+	}
+	MEM_freeN(objects);
+
+	if (tot_unselected == objects_len){
+		BKE_report(op->reports, RPT_WARNING, "No selected faces");
+		return OPERATOR_CANCELLED;
+	}
+	else if (tot_invalid == objects_len){
+		BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
+		return OPERATOR_CANCELLED;
+	}
 
 	return OPERATOR_FINISHED;
 }
