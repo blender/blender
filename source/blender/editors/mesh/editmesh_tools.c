@@ -3056,6 +3056,7 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int tot_shapekeys = 0;
+	int tot_selected_verts_objects = 0;
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -3063,6 +3064,11 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		Mesh *me = obedit->data;
 		BMEditMesh *em = me->edit_btmesh;
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+		tot_selected_verts_objects++;
 
 		if (shape_propagate(em)){
 			tot_shapekeys++;
@@ -3072,7 +3078,11 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 	}
 	MEM_freeN(objects);
 
-	if (tot_shapekeys == 0){
+	if (tot_selected_verts_objects == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No selected vertex");
+		return OPERATOR_CANCELLED;
+	}
+	else if (tot_shapekeys == 0){
 		BKE_report(op->reports,
 		           RPT_ERROR,
 		           objects_len > 1 ?
