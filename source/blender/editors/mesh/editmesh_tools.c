@@ -6466,8 +6466,16 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 
 static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 {
+	bool mode_change = false;
 	const bool use_cap_endpoint = RNA_boolean_get(op->ptr, "use_cap_endpoint");
 	int ret = OPERATOR_CANCELLED;
+
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em_edit = BKE_editmesh_from_object(obedit);
+	if (em_edit->selectmode == SCE_SELECT_FACE) {
+		EDBM_selectmode_to_scene(C);
+		mode_change = true;
+	}
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
@@ -6475,6 +6483,16 @@ static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		/** If in face-only select mode, switch to edge select mode so that
+		 * an edge-only selection is not inconsistent state.
+		 *
+		 * We need to run this for all objects, even when nothing is selected.
+		 * This way we keep them in sync. */
+		if (mode_change) {
+			em->selectmode = SCE_SELECT_EDGE;
+			EDBM_selectmode_set(em);
+		}
 
 		if (em->bm->totedgesel == 0) {
 			continue;
@@ -6489,14 +6507,6 @@ static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 		BMO_op_exec(em->bm, &bmop);
 
 		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-
-		/* If in face-only select mode, switch to edge select mode so that
-		 * an edge-only selection is not inconsistent state */
-		if (em->selectmode == SCE_SELECT_FACE) {
-			em->selectmode = SCE_SELECT_EDGE;
-			EDBM_selectmode_set(em);
-			EDBM_selectmode_to_scene(C);
-		}
 
 		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
 
