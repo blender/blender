@@ -1226,7 +1226,7 @@ static bool ui_drag_toggle_but_is_supported(const uiBut *but)
 		return true;
 	}
 	else if (UI_but_is_decorator(but)) {
-		return ELEM(but->icon, ICON_SPACE2, ICON_SPACE3, ICON_DOT, ICON_LIBRARY_DATA_OVERRIDE);
+		return ELEM(but->icon, ICON_DECORATE, ICON_DECORATE_KEYFRAME, ICON_DECORATE_ANIMATE, ICON_DECORATE_OVERRIDE);
 	}
 	else {
 		return false;
@@ -1239,7 +1239,7 @@ static bool ui_drag_toggle_but_is_pushed(uiBut *but)
 		return ui_but_is_pushed(but);
 	}
 	else if (UI_but_is_decorator(but)) {
-		return (but->icon == ICON_SPACE2);
+		return (but->icon == ICON_DECORATE_KEYFRAME);
 	}
 	else {
 		return false;
