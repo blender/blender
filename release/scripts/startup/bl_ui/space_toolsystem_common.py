@@ -23,8 +23,13 @@ from bpy.types import (
 )
 
 __all__ = (
-    "ToolSelectPanelHelper",
     "ToolDef",
+    "ToolSelectPanelHelper",
+    "activate_by_name",
+    "activate_by_name_or_cycle",
+    "description_from_name",
+    "keymap_from_name",
+    "keymap_from_context",
 )
 
 # Support reloading icons.
@@ -70,6 +75,8 @@ ToolDef = namedtuple(
     (
         # The name to display in the interface.
         "text",
+        # Description (for tooltip), when not set, use the description of 'operator'.
+        "description",
         # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
         "icon",
         # An optional cursor to use when this tool is active.
@@ -104,6 +111,7 @@ def from_dict(kw_args):
     (since keymap is a callback).
     """
     kw = {
+        "description": None,
         "icon": None,
         "cursor": None,
         "widget": None,
@@ -629,6 +637,44 @@ def activate_by_name_or_cycle(context, space_type, text, offset=1):
     item_found = item_group[index_found]
     _activate_by_item(context, space_type, item_found, index_found)
     return True
+
+
+def description_from_name(context, space_type, text, *, use_operator=True):
+    # Used directly for tooltips.
+    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    if item is None:
+        return False
+
+    # Custom description.
+    description = item.description
+    if description is not None:
+        return description
+
+    # Extract from the operator.
+    if use_operator:
+        operator = item.operator
+
+        if operator is None:
+            if item.keymap is not None:
+                operator = item.keymap[0].keymap_items[0].idname
+
+        if operator is not None:
+            import _bpy
+            return _bpy.ops.get_rna(operator).bl_rna.description
+    return ""
+
+
+def keymap_from_name(context, space_type, text):
+    # Used directly for tooltips.
+    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    if item is None:
+        return False
+
+    keymap = item.keymap
+    # List container of one.
+    if keymap:
+        return keymap[0]
+    return ""
 
 
 def keymap_from_context(context, space_type):

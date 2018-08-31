@@ -163,6 +163,9 @@ class _defs_view3d_generic:
 
         return dict(
             text="Cursor",
+            description=(
+                "Set the 3D cursor location, drag to transform"
+            ),
             icon="ops.generic.cursor",
             keymap=(
                 ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -369,6 +372,9 @@ class _defs_transform:
 
         return dict(
             text="Transform",
+            description=(
+                "Supports any combination of grab, rotate & scale at once"
+            ),
             icon="ops.transform.transform",
             widget="TRANSFORM_GGT_gizmo",
             # No keymap default action, only for gizmo!

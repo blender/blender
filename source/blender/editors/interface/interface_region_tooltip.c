@@ -67,6 +67,10 @@
 #include "BLF_api.h"
 #include "BLT_translation.h"
 
+#ifdef WITH_PYTHON
+#  include "BPY_extern.h"
+#endif
+
 #include "ED_screen.h"
 
 #include "interface_intern.h"
@@ -306,12 +310,12 @@ static void ui_tooltip_region_free_cb(ARegion *ar)
 /** \name ToolTip Creation
  * \{ */
 
-static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
+static bool ui_tooltip_data_append_from_keymap(
+        bContext *C, uiTooltipData *data,
+        wmKeyMap *keymap)
 {
+	const int fields_len_init = data->fields_len;
 	char buf[512];
-
-	/* create tooltip data */
-	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
 	for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
 		wmOperatorType *ot = WM_operatortype_find(kmi->idname, true);
@@ -341,7 +345,7 @@ static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
 			}
 
 			/* Python */
-			{
+			if (U.flag & USER_TOOLTIPS_PYTHON) {
 				uiTooltipField *field = text_field_add(
 				        data, &(uiTooltipFormat){
 				            .style = UI_TIP_STYLE_NORMAL,
@@ -354,6 +358,88 @@ static uiTooltipData *ui_tooltip_data_from_keymap(bContext *C, wmKeyMap *keymap)
 			}
 		}
 	}
+
+	return (fields_len_init != data->fields_len);
+}
+
+
+/**
+ * Special tool-system exception.
+ */
+static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
+{
+	if (but->optype == NULL) {
+		return NULL;
+	}
+
+	if (!STREQ(but->optype->idname, "WM_OT_tool_set_by_name")) {
+		return NULL;
+	}
+
+	char tool_name[MAX_NAME];
+	RNA_string_get(but->opptr, "name", tool_name);
+	BLI_assert(tool_name[0] != '\0');
+
+	/* We have a tool, now extract the info. */
+	uiTooltipData *data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
+
+#ifdef WITH_PYTHON
+	/* it turns out to be most simple to do this via Python since C
+	 * doesn't have access to information about non-active tools.
+	 */
+	char expr[256];
+
+	/* Tip */
+	{
+		SNPRINTF(
+		        expr,
+		        "__import__('bl_ui').space_toolsystem_common.description_from_name("
+		        "__import__('bpy').context, "
+		        "__import__('bpy').context.space_data.type, "
+		        "'%s') + '.'",
+		        tool_name);
+
+		char *expr_result = NULL;
+		if (BPY_execute_string_as_string(C, expr, true, &expr_result)) {
+			if (!STREQ(expr_result, ".")) {
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_MAIN,
+				            .is_pad = true,
+				        });
+				field->text = expr_result;
+			}
+			else {
+				MEM_freeN(expr_result);
+			}
+		}
+	}
+
+	/* Keymap */
+
+	/* This is too handy not to expose somehow, let's be sneaky for now. */
+	if (CTX_wm_window(C)->eventstate->shift) {
+		SNPRINTF(
+		        expr,
+		        "getattr("
+		        "__import__('bl_ui').space_toolsystem_common.keymap_from_name("
+		        "__import__('bpy').context, "
+		        "__import__('bpy').context.space_data.type, "
+		        "'%s'), "
+		        "'as_pointer', lambda: 0)()",
+		        tool_name);
+
+		intptr_t expr_result = 0;
+		if (BPY_execute_string_as_intptr(C, expr, true, &expr_result)) {
+			if (expr_result != 0) {
+				wmKeyMap *keymap = (wmKeyMap *)expr_result;
+				ui_tooltip_data_append_from_keymap(C, data, keymap);
+			}
+		}
+	}
+#endif  /* WITH_PYTHON */
+
 	if (data->fields_len == 0) {
 		MEM_freeN(data);
 		return NULL;
@@ -894,31 +980,14 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	}
 	uiTooltipData *data = NULL;
 
-	/* custom tips for pre-defined operators */
-	if (but->optype) {
-		/* TODO(campbell): we now use 'WM_OT_tool_set_by_name', this logic will be moved into the status bar. */
-		if (false && STREQ(but->optype->idname, "WM_OT_tool_set")) {
-			char keymap[64] = "";
-			RNA_string_get(but->opptr, "keymap", keymap);
-			if (keymap[0]) {
-				ScrArea *sa = CTX_wm_area(C);
-				/* It happens in rare cases, for tooltips originated from the toolbar.
-				 * It is hard to reproduce, but it happens when the mouse is nowhere near the actual tool. */
-				if (sa == NULL) {
-					return NULL;
-				}
-				wmKeyMap *km = WM_keymap_find_all(C, keymap, sa->spacetype, RGN_TYPE_WINDOW);
-				if (km != NULL) {
-					data = ui_tooltip_data_from_keymap(C, km);
-				}
-			}
-		}
+	if (data == NULL) {
+		data = ui_tooltip_data_from_tool(C, but);
 	}
-	/* toolsystem exception */
 
 	if (data == NULL) {
 		data = ui_tooltip_data_from_button(C, but);
 	}
+
 	if (data == NULL) {
 		return NULL;
 	}
