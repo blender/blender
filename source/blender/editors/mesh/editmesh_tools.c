@@ -6466,37 +6466,50 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 
 static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
 	const bool use_cap_endpoint = RNA_boolean_get(op->ptr, "use_cap_endpoint");
+	int ret = OPERATOR_CANCELLED;
 
-	EDBM_op_init(
-	        em, &bmop, op,
-	        "offset_edgeloops edges=%he use_cap_endpoint=%b",
-	        BM_ELEM_SELECT, use_cap_endpoint);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BMO_op_exec(em->bm, &bmop);
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
 
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+		BMOperator bmop;
+		EDBM_op_init(
+		            em, &bmop, op,
+		            "offset_edgeloops edges=%he use_cap_endpoint=%b",
+		            BM_ELEM_SELECT, use_cap_endpoint);
 
-	/* If in face-only select mode, switch to edge select mode so that
-	 * an edge-only selection is not inconsistent state */
-	if (em->selectmode == SCE_SELECT_FACE) {
-		em->selectmode = SCE_SELECT_EDGE;
-		EDBM_selectmode_set(em);
-		EDBM_selectmode_to_scene(C);
+		BMO_op_exec(em->bm, &bmop);
+
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+
+		/* If in face-only select mode, switch to edge select mode so that
+		 * an edge-only selection is not inconsistent state */
+		if (em->selectmode == SCE_SELECT_FACE) {
+			em->selectmode = SCE_SELECT_EDGE;
+			EDBM_selectmode_set(em);
+			EDBM_selectmode_to_scene(C);
+		}
+
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		else {
+			EDBM_update_generic(em, true, true);
+			ret = OPERATOR_FINISHED;
+		}
 	}
-
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
-		EDBM_update_generic(em, true, true);
-		return OPERATOR_FINISHED;
-	}
+	MEM_freeN(objects);
+	return ret;
 }
 
 void MESH_OT_offset_edge_loops(wmOperatorType *ot)
