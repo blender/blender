@@ -621,21 +621,21 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 			}
 
 			global_transverts_tot += tvs.transverts_tot;
-			if (global_transverts_tot == 0) {
-				continue;
-			}
+			if (global_transverts_tot != 0) {
 
-			Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-			copy_m3_m4(bmat, obedit_eval->obmat);
+				Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+				copy_m3_m4(bmat, obedit_eval->obmat);
 
-			tv = tvs.transverts;
-			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-				copy_v3_v3(vec, tv->loc);
-				mul_m3_v3(bmat, vec);
-				add_v3_v3(vec, obedit_eval->obmat[3]);
-				add_v3_v3(centroid, vec);
-				minmax_v3v3_v3(min, max, vec);
+				tv = tvs.transverts;
+				for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+					copy_v3_v3(vec, tv->loc);
+					mul_m3_v3(bmat, vec);
+					add_v3_v3(vec, obedit_eval->obmat[3]);
+					add_v3_v3(centroid, vec);
+					minmax_v3v3_v3(min, max, vec);
+				}
 			}
+			ED_transverts_free(&tvs);
 		}
 		MEM_freeN(objects);
 
@@ -646,8 +646,6 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 		else {
 			mid_v3_v3v3(cursor, min, max);
 		}
-
-		ED_transverts_free(&tvs);
 	}
 	else {
 		Object *obact = CTX_data_active_object(C);
