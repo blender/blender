@@ -61,6 +61,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_key.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -3119,56 +3120,88 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
 static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = obedit->data;
-	Key *key = me->key;
-	KeyBlock *kb = NULL;
-	BMEditMesh *em = me->edit_btmesh;
+	Object *obedit_ref = CTX_data_edit_object(C);
+	Mesh *me_ref = obedit_ref->data;
+	Key *key_ref = me_ref->key;
+	KeyBlock *kb_ref = NULL;
+	BMEditMesh *em_ref = me_ref->edit_btmesh;
 	BMVert *eve;
 	BMIter iter;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	float co[3], *sco;
-	int totshape;
+	int totshape_ref = 0;
 
 	const float blend = RNA_float_get(op->ptr, "blend");
-	const int shape = RNA_enum_get(op->ptr, "shape");
+	int shape_ref = RNA_enum_get(op->ptr, "shape");
 	const bool use_add = RNA_boolean_get(op->ptr, "add");
 
-	/* sanity check */
-	totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
-	if (totshape == 0 || shape < 0 || shape >= totshape)
-		return OPERATOR_CANCELLED;
+	/* Sanity check. */
+	totshape_ref = CustomData_number_of_layers(&em_ref->bm->vdata, CD_SHAPEKEY);
 
-	/* get shape key - needed for finding reference shape (for add mode only) */
-	if (key) {
-		kb = BLI_findlink(&key->block, shape);
+	if (totshape_ref == 0 || shape_ref < 0) {
+		BKE_report(op->reports, RPT_ERROR, "Active mesh does not have shape keys");
+		return OPERATOR_CANCELLED;
+	}
+	else if (shape_ref >= totshape_ref) {
+		/* This case occurs if operator was used before on object with more keys than current one. */
+		shape_ref = 0; /* default to basis */
 	}
 
-	/* perform blending on selected vertices*/
-	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
+	/* Get shape key - needed for finding reference shape (for add mode only). */
+	if (key_ref) {
+		kb_ref = BLI_findlink(&key_ref->block, shape_ref);
+	}
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Mesh *me = obedit->data;
+		Key *key = me->key;
+		KeyBlock *kb = NULL;
+		BMEditMesh *em = me->edit_btmesh;
+		int shape;
+
+		if (em->bm->totvertsel == 0) {
 			continue;
+		}
 
-		/* get coordinates of shapekey we're blending from */
-		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
-		copy_v3_v3(co, sco);
-
-		if (use_add) {
-			/* in add mode, we add relative shape key offset */
-			if (kb) {
-				const float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
-				sub_v3_v3v3(co, co, rco);
-			}
-
-			madd_v3_v3fl(eve->co, co, blend);
+		if (!key) {
+			continue;
 		}
 		else {
-			/* in blend mode, we interpolate to the shape key */
-			interp_v3_v3v3(eve->co, eve->co, co, blend);
+			kb = BKE_keyblock_find_name(key, kb_ref->name);
+			shape = BLI_findindex(&key->block, kb);
+		}
+
+		if (kb) {
+			/* Perform blending on selected vertices. */
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+				if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
+					continue;
+
+				/* Get coordinates of shapekey we're blending from. */
+				sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
+				copy_v3_v3(co, sco);
+
+				if (use_add) {
+					/* In add mode, we add relative shape key offset. */
+					if (kb) {
+						const float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
+						sub_v3_v3v3(co, co, rco);
+					}
+
+					madd_v3_v3fl(eve->co, co, blend);
+				}
+				else {
+					/* In blend mode, we interpolate to the shape key. */
+					interp_v3_v3v3(eve->co, eve->co, co, blend);
+				}
+			}
+			EDBM_update_generic(em, true, false);
 		}
 	}
-
-	EDBM_update_generic(em, true, false);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
