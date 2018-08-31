@@ -3028,48 +3028,58 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
  * \{ */
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
-static void shape_propagate(BMEditMesh *em, wmOperator *op)
+static bool shape_propagate(BMEditMesh *em)
 {
 	BMIter iter;
 	BMVert *eve = NULL;
 	float *co;
-	int i, totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
+	int totshape = CustomData_number_of_layers(&em->bm->vdata, CD_SHAPEKEY);
 
 	if (!CustomData_has_layer(&em->bm->vdata, CD_SHAPEKEY)) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh does not have shape keys");
-		return;
+		return false;
 	}
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
+		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 			continue;
+		}
 
-		for (i = 0; i < totshape; i++) {
+		for (int i = 0; i < totshape; i++) {
 			co = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, i);
 			copy_v3_v3(co, eve->co);
 		}
 	}
-
-#if 0
-	//TAG Mesh Objects that share this data
-	for (base = scene->base.first; base; base = base->next) {
-		if (base->object && base->object->data == me) {
-			DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
-		}
-	}
-#endif
+	return true;
 }
-
 
 static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = obedit->data;
-	BMEditMesh *em = me->edit_btmesh;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	int tot_shapekeys = 0;
 
-	shape_propagate(em, op);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Mesh *me = obedit->data;
+		BMEditMesh *em = me->edit_btmesh;
 
-	EDBM_update_generic(em, false, false);
+		if (shape_propagate(em)){
+			tot_shapekeys++;
+		};
+
+		EDBM_update_generic(em, false, false);
+	}
+	MEM_freeN(objects);
+
+	if (tot_shapekeys == 0){
+		BKE_report(op->reports,
+		           RPT_ERROR,
+		           objects_len > 1 ?
+		               "Meshes do not have shape keys" :
+		               "Mesh does not have shape keys");
+		return OPERATOR_CANCELLED;
+	}
 
 	return OPERATOR_FINISHED;
 }
