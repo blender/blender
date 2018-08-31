@@ -121,6 +121,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 	{PROP_UNIT_TIME, "TIME", 0, "Time", ""},
 	{PROP_UNIT_VELOCITY, "VELOCITY", 0, "Velocity", ""},
 	{PROP_UNIT_ACCELERATION, "ACCELERATION", 0, "Acceleration", ""},
+	{PROP_UNIT_MASS, "MASS", 0, "Mass", ""},
 	{PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{0, NULL, 0, NULL, NULL}
 };

@@ -1904,7 +1904,7 @@ static void bpy_prop_callback_assign_enum(struct PropertyRNA *prop, PyObject *ge
 "   :type description: string\n" \
 
 #define BPY_PROPDEF_UNIT_DOC \
-"   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION'].\n" \
+"   :arg unit: Enumerator in ['NONE', 'LENGTH', 'AREA', 'VOLUME', 'ROTATION', 'TIME', 'VELOCITY', 'ACCELERATION', 'MASS', 'CAMERA'].\n" \
 "   :type unit: string\n"	\
 
 #define BPY_PROPDEF_NUM_MIN_DOC \
