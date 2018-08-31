@@ -6650,6 +6650,7 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {
+	const float thresh = RNA_float_get(op->ptr, "threshold");
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -6661,10 +6662,8 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 		if (em->bm->totvertsel == 0 ) {
 			continue;
 		}
+
 		BMOperator bmop;
-
-		const float thresh = RNA_float_get(op->ptr, "threshold");
-
 		EDBM_op_init(
 		        em, &bmop, op,
 		        "symmetrize input=%hvef direction=%i dist=%f",
