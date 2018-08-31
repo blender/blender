@@ -3152,6 +3152,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		kb_ref = BLI_findlink(&key_ref->block, shape_ref);
 	}
 
+	int tot_selected_verts_objects = 0;
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -3165,6 +3166,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		if (em->bm->totvertsel == 0) {
 			continue;
 		}
+		tot_selected_verts_objects++;
 
 		if (!key) {
 			continue;
@@ -3202,6 +3204,12 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 		}
 	}
 	MEM_freeN(objects);
+
+	if (tot_selected_verts_objects == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No selected vertex");
+		return OPERATOR_CANCELLED;
+	}
+
 	return OPERATOR_FINISHED;
 }
 
