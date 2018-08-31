@@ -656,7 +656,7 @@ wmKeyMap *WM_gizmogroup_keymap_common(
         const wmGizmoGroupType *gzgt, wmKeyConfig *config)
 {
 	/* Use area and region id since we might have multiple gizmos with the same name in different areas/regions */
-	wmKeyMap *km = WM_keymap_find(config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
+	wmKeyMap *km = WM_keymap_ensure(config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
 
 	WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", LEFTMOUSE, KM_PRESS, KM_ANY, 0);
 	gizmogroup_tweak_modal_keymap(config, gzgt->name);
@@ -671,7 +671,7 @@ wmKeyMap *WM_gizmogroup_keymap_common_select(
         const wmGizmoGroupType *gzgt, wmKeyConfig *config)
 {
 	/* Use area and region id since we might have multiple gizmos with the same name in different areas/regions */
-	wmKeyMap *km = WM_keymap_find(config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
+	wmKeyMap *km = WM_keymap_ensure(config, gzgt->name, gzgt->gzmap_params.spaceid, gzgt->gzmap_params.regionid);
 
 	WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", ACTIONMOUSE, KM_PRESS, KM_ANY, 0);
 	WM_keymap_add_item(km, "GIZMOGROUP_OT_gizmo_tweak", EVT_TWEAK_S, KM_ANY, 0, 0);

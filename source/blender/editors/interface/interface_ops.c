@@ -1372,7 +1372,7 @@ void ED_operatortypes_ui(void)
  */
 void ED_keymap_ui(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "User Interface", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "User Interface", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* eyedroppers - notice they all have the same shortcut, but pass the event

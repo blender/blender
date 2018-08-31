@@ -1131,7 +1131,7 @@ void wm_gizmomaptypes_free(void)
 void wm_gizmos_keymap(wmKeyConfig *keyconf)
 {
 	/* we add this item-less keymap once and use it to group gizmo-group keymaps into it */
-	WM_keymap_find(keyconf, "Gizmos", 0, 0);
+	WM_keymap_ensure(keyconf, "Gizmos", 0, 0);
 
 	for (wmGizmoMapType *gzmap_type = gizmomaptypes.first; gzmap_type; gzmap_type = gzmap_type->next) {
 		for (wmGizmoGroupTypeRef *gzgt_ref = gzmap_type->grouptype_refs.first; gzgt_ref; gzgt_ref = gzgt_ref->next) {

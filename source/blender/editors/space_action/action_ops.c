@@ -281,7 +281,7 @@ void action_keymap(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 
 	/* keymap for all regions */
-	keymap = WM_keymap_find(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
+	keymap = WM_keymap_ensure(keyconf, "Dopesheet Generic", SPACE_ACTION, 0);
 
 	/* region management... */
 	WM_keymap_add_item(keymap, "ACTION_OT_properties", NKEY, KM_PRESS, 0, 0);
@@ -294,6 +294,6 @@ void action_keymap(wmKeyConfig *keyconf)
 	 */
 
 	/* keyframes */
-	keymap = WM_keymap_find(keyconf, "Dopesheet", SPACE_ACTION, 0);
+	keymap = WM_keymap_ensure(keyconf, "Dopesheet", SPACE_ACTION, 0);
 	action_keymap_keyframes(keyconf, keymap);
 }

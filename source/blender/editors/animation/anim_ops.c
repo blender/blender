@@ -536,7 +536,7 @@ void ED_operatortypes_anim(void)
 
 void ED_keymap_anim(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Animation", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* frame management */

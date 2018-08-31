@@ -3194,7 +3194,7 @@ void ED_operatortypes_animchannels(void)
 // TODO: check on a poll callback for this, to get hotkeys into menus
 void ED_keymap_animchannels(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Animation Channels", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Animation Channels", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* click-select */

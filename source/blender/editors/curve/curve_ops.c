@@ -170,7 +170,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap = WM_keymap_find(keyconf, "Font", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Font", 0, 0);
 	keymap->poll = ED_operator_editfont;
 
 	/* only set in editmode font, by space_view3d listener */
@@ -230,7 +230,7 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "accent", true); /* accented characters */
 
 	/* only set in editmode curve, by space_view3d listener */
-	keymap = WM_keymap_find(keyconf, "Curve", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Curve", 0, 0);
 	keymap->poll = ED_operator_editsurfcurve;
 
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_edit_curve_add", AKEY, KM_PRESS, KM_SHIFT, 0);

@@ -314,7 +314,7 @@ void nla_keymap(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* keymap for all regions ------------------------------------------- */
-	keymap = WM_keymap_find(keyconf, "NLA Generic", SPACE_NLA, 0);
+	keymap = WM_keymap_ensure(keyconf, "NLA Generic", SPACE_NLA, 0);
 
 	/* region management */
 	WM_keymap_add_item(keymap, "NLA_OT_properties", NKEY, KM_PRESS, 0, 0);
@@ -346,10 +346,10 @@ void nla_keymap(wmKeyConfig *keyconf)
 	 *
 	 * However, those operations which involve clicking on channels and/or the placement of them in the view are implemented here instead
 	 */
-	keymap = WM_keymap_find(keyconf, "NLA Channels", SPACE_NLA, 0);
+	keymap = WM_keymap_ensure(keyconf, "NLA Channels", SPACE_NLA, 0);
 	nla_keymap_channels(keymap);
 
 	/* data ------------------------------------------------------------- */
-	keymap = WM_keymap_find(keyconf, "NLA Editor", SPACE_NLA, 0);
+	keymap = WM_keymap_ensure(keyconf, "NLA Editor", SPACE_NLA, 0);
 	nla_keymap_main(keyconf, keymap);
 }

@@ -1441,7 +1441,7 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 
 	/* XXX it would be good to have boundbox checks for some of these... */
 	if (flag & ED_KEYMAP_UI) {
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "User Interface", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "User Interface", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 
 		/* user interface widgets */
@@ -1449,12 +1449,12 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if (flag & ED_KEYMAP_VIEW2D) {
 		/* 2d-viewport handling+manipulation */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "View2D", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "View2D", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if (flag & ED_KEYMAP_MARKERS) {
 		/* time-markers */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Markers", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Markers", 0, 0);
 
 		/* use a boundbox restricted map */
 		ARegion *ar;
@@ -1468,12 +1468,12 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 	if (flag & ED_KEYMAP_ANIMATION) {
 		/* frame changing and timeline operators (for time spaces) */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Animation", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Animation", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if (flag & ED_KEYMAP_FRAMES) {
 		/* frame changing/jumping (for all spaces) */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Frames", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Frames", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 	if (flag & ED_KEYMAP_GPENCIL) {
@@ -1484,30 +1484,30 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 		 *       For now, it's easier to just include all,
 		 *       since you hardly want one without the others.
 		 */
-		wmKeyMap *keymap_general = WM_keymap_find(wm->defaultconf, "Grease Pencil", 0, 0);
+		wmKeyMap *keymap_general = WM_keymap_ensure(wm->defaultconf, "Grease Pencil", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_general);
 
-		wmKeyMap *keymap_edit = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
+		wmKeyMap *keymap_edit = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Edit Mode", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_edit);
 
-		wmKeyMap *keymap_paint = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint Mode", 0, 0);
+		wmKeyMap *keymap_paint = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Paint Mode", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_paint);
 
-		wmKeyMap *keymap_paint_draw = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
+		wmKeyMap *keymap_paint_draw = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_paint_draw);
 
-		wmKeyMap *keymap_paint_erase = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
+		wmKeyMap *keymap_paint_erase = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_paint_erase);
 
-		wmKeyMap *keymap_paint_fill = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
+		wmKeyMap *keymap_paint_fill = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_paint_fill);
 
-		wmKeyMap *keymap_sculpt = WM_keymap_find(wm->defaultconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
+		wmKeyMap *keymap_sculpt = WM_keymap_ensure(wm->defaultconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap_sculpt);
 	}
 	if (flag & ED_KEYMAP_HEADER) {
 		/* standard keymap for headers regions */
-		wmKeyMap *keymap = WM_keymap_find(wm->defaultconf, "Header", 0, 0);
+		wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Header", 0, 0);
 		WM_event_add_keymap_handler(handlers, keymap);
 	}
 }
@@ -2307,7 +2307,7 @@ void ED_region_panels_init(wmWindowManager *wm, ARegion *ar)
 
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
 
-	keymap = WM_keymap_find(wm->defaultconf, "View2D Buttons List", 0, 0);
+	keymap = WM_keymap_ensure(wm->defaultconf, "View2D Buttons List", 0, 0);
 	WM_event_add_keymap_handler(&ar->handlers, keymap);
 }
 

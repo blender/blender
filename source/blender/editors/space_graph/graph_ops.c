@@ -693,7 +693,7 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* keymap for all regions */
-	keymap = WM_keymap_find(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(keyconf, "Graph Editor Generic", SPACE_IPO, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_properties", NKEY, KM_PRESS, 0, 0);
 
 	/* extrapolation works on channels, not keys */
@@ -719,6 +719,6 @@ void graphedit_keymap(wmKeyConfig *keyconf)
 	 */
 
 	/* keyframes */
-	keymap = WM_keymap_find(keyconf, "Graph Editor", SPACE_IPO, 0);
+	keymap = WM_keymap_ensure(keyconf, "Graph Editor", SPACE_IPO, 0);
 	graphedit_keymap_keyframes(keyconf, keymap);
 }

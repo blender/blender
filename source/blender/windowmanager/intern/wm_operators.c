@@ -3444,7 +3444,7 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 /* default keymap for windows and screens, only call once per WM */
 void wm_window_keymap(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Window", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Window", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* note, this doesn't replace existing keymap items */

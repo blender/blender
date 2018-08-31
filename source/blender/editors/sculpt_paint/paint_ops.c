@@ -1297,13 +1297,13 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 	int i;
 
-	keymap = WM_keymap_find(keyconf, "Paint Curve", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Paint Curve", 0, 0);
 	keymap->poll = paint_curve_poll;
 
 	paint_keymap_curve(keymap);
 
 	/* Sculpt mode */
-	keymap = WM_keymap_find(keyconf, "Sculpt", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Sculpt", 0, 0);
 	keymap->poll = sculpt_mode_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "SCULPT_OT_brush_stroke", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
@@ -1378,7 +1378,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_angle_control", RKEY, KM_PRESS, 0, 0);
 
 	/* Vertex Paint mode */
-	keymap = WM_keymap_find(keyconf, "Vertex Paint", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Vertex Paint", 0, 0);
 	keymap->poll = vertex_paint_mode_poll;
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_vertex_paint", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -1404,7 +1404,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.vertex_paint.brush.stroke_method");
 
 	/* Weight Paint mode */
-	keymap = WM_keymap_find(keyconf, "Weight Paint", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Weight Paint", 0, 0);
 	keymap->poll = weight_paint_mode_poll;
 
 	WM_keymap_verify_item(keymap, "PAINT_OT_weight_paint", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -1435,7 +1435,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.weight_paint.brush.use_smooth_stroke");
 
 	/*Weight paint's Vertex Selection Mode */
-	keymap = WM_keymap_find(keyconf, "Weight Paint Vertex Selection", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Weight Paint Vertex Selection", 0, 0);
 	keymap->poll = vert_paint_poll;
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_vert_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
@@ -1451,7 +1451,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	/* Image/Texture Paint mode */
-	keymap = WM_keymap_find(keyconf, "Image Paint", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Image Paint", 0, 0);
 	keymap->poll = image_texture_paint_poll;
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "PAINT_OT_image_paint", LEFTMOUSE, KM_PRESS, 0,        0)->ptr, "mode", BRUSH_STROKE_NORMAL);
@@ -1479,7 +1479,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.image_paint.brush.stroke_method");
 
 	/* face-mask mode */
-	keymap = WM_keymap_find(keyconf, "Face Mask", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Face Mask", 0, 0);
 	keymap->poll = facemask_paint_poll;
 
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_all", AKEY, KM_PRESS, 0, 0);
@@ -1500,7 +1500,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "PAINT_OT_face_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", true);
 
-	keymap = WM_keymap_find(keyconf, "UV Sculpt", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "UV Sculpt", 0, 0);
 	keymap->poll = uv_sculpt_keymap_poll;
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);

@@ -62,7 +62,7 @@
 /* Generic Drawing Keymap - Annotations */
 static void ed_keymap_gpencil_general(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* Draw  --------------------------------------- */
@@ -335,7 +335,7 @@ static void ed_keymap_gpencil_weight(wmKeyMap *keymap)
 /* Stroke Editing Keymap - Only when editmode is enabled */
 static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Edit Mode", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback - so that this keymap only gets enabled when stroke editmode is enabled */
@@ -463,7 +463,7 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 /* keys for draw with a drawing brush (no fill) */
 static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Draw brush)", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback */
@@ -518,7 +518,7 @@ static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 /* keys for draw with a eraser brush (erase) */
 static void ed_keymap_gpencil_painting_erase(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Erase)", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback */
@@ -545,7 +545,7 @@ static void ed_keymap_gpencil_painting_erase(wmKeyConfig *keyconf)
 /* keys for draw with a fill brush */
 static void ed_keymap_gpencil_painting_fill(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint (Fill)", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback */
@@ -577,7 +577,7 @@ static void ed_keymap_gpencil_painting_fill(wmKeyConfig *keyconf)
 /* Stroke Painting Keymap - Only when paintmode is enabled */
 static void ed_keymap_gpencil_painting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Paint Mode", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Paint Mode", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback - so that this keymap only gets enabled when stroke paintmode is enabled */
@@ -602,7 +602,7 @@ static void ed_keymap_gpencil_painting(wmKeyConfig *keyconf)
 /* Stroke Sculpting Keymap - Only when sculptmode is enabled */
 static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Sculpt Mode", 0, 0);
 
 	/* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */
 	keymap->poll = gp_stroke_sculptmode_poll;
@@ -620,7 +620,7 @@ static void ed_keymap_gpencil_sculpting(wmKeyConfig *keyconf)
 /* Stroke Weight Paint Keymap - Only when weight is enabled */
 static void ed_keymap_gpencil_weightpainting(wmKeyConfig *keyconf)
 {
-	wmKeyMap *keymap = WM_keymap_find(keyconf, "Grease Pencil Stroke Weight Mode", 0, 0);
+	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Grease Pencil Stroke Weight Mode", 0, 0);
 	wmKeyMapItem *kmi;
 
 	/* set poll callback - so that this keymap only gets enabled when stroke sculptmode is enabled */

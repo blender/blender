@@ -193,7 +193,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	/* Armature ------------------------ */
-	keymap = WM_keymap_find(keyconf, "Armature", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Armature", 0, 0);
 	keymap->poll = ED_operator_editarmature;
 
 	/* only set in editmode armature, by space_view3d listener */
@@ -294,7 +294,7 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 
 	/* Pose ------------------------ */
 	/* only set in posemode, by space_view3d listener */
-	keymap = WM_keymap_find(keyconf, "Pose", 0, 0);
+	keymap = WM_keymap_ensure(keyconf, "Pose", 0, 0);
 	keymap->poll = ED_operator_posemode;
 
 	/* set parent and add object are object-based operators, but we make them
