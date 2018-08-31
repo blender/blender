@@ -658,6 +658,42 @@ bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verb
 	return ok;
 }
 
+/**
+ * Support both int and pointers.
+ *
+ * \return success
+ */
+bool BPY_execute_string_as_intptr(bContext *C, const char *expr, const bool verbose, intptr_t *r_value)
+{
+	PyGILState_STATE gilstate;
+	bool ok = true;
+
+	if (!r_value || !expr) {
+		return -1;
+	}
+
+	if (expr[0] == '\0') {
+		*r_value = 0;
+		return ok;
+	}
+
+	bpy_context_set(C, &gilstate);
+
+	ok = PyC_RunString_AsIntPtr(expr, "<blender button>", r_value);
+
+	if (ok == false) {
+		if (verbose) {
+			BPy_errors_to_report_ex(CTX_wm_reports(C), false, false);
+		}
+		else {
+			PyErr_Clear();
+		}
+	}
+
+	bpy_context_clear(C, &gilstate);
+
+	return ok;
+}
 
 bool BPY_execute_string_ex(bContext *C, const char *expr, bool use_eval)
 {
