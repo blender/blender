@@ -260,104 +260,116 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 	if (obedit) {
 		float snap_target_local[3];
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			obedit = objects[ob_index];
 
-		if (ED_transverts_check_obedit(obedit))
-			ED_transverts_create_from_obedit(&tvs, obedit, 0);
-		if (tvs.transverts_tot == 0)
-			return OPERATOR_CANCELLED;
-
-		copy_m3_m4(bmat, obedit->obmat);
-		invert_m3_m3(imat, bmat);
-
-		/* get the cursor in object space */
-		sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
-		mul_m3_v3(imat, snap_target_local);
-
-		if (use_offset) {
-			float offset_local[3];
-
-			mul_v3_m3v3(offset_local, imat, offset_global);
-
-			tv = tvs.transverts;
-			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-				add_v3_v3(tv->loc, offset_local);
+			if (ED_transverts_check_obedit(obedit)) {
+				ED_transverts_create_from_obedit(&tvs, obedit, 0);
 			}
-		}
-		else {
-			tv = tvs.transverts;
-			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-				copy_v3_v3(tv->loc, snap_target_local);
+			if (tvs.transverts_tot == 0) {
+				continue;
 			}
-		}
 
-		ED_transverts_update_obedit(&tvs, obedit);
-		ED_transverts_free(&tvs);
+			copy_m3_m4(bmat, obedit->obmat);
+			invert_m3_m3(imat, bmat);
+
+			/* get the cursor in object space */
+			sub_v3_v3v3(snap_target_local, snap_target_global, obedit->obmat[3]);
+			mul_m3_v3(imat, snap_target_local);
+
+			if (use_offset) {
+				float offset_local[3];
+
+				mul_v3_m3v3(offset_local, imat, offset_global);
+
+				tv = tvs.transverts;
+				for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+					add_v3_v3(tv->loc, offset_local);
+				}
+			}
+			else {
+				tv = tvs.transverts;
+				for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+					copy_v3_v3(tv->loc, snap_target_local);
+				}
+			}
+
+			ED_transverts_update_obedit(&tvs, obedit);
+			ED_transverts_free(&tvs);
+		}
+		MEM_freeN(objects);
 	}
 	else if (obact && (obact->mode & OB_MODE_POSE)) {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
+		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+		{
+			bPoseChannel *pchan;
+			bArmature *arm = ob->data;
+			float snap_target_local[3];
 
-		bPoseChannel *pchan;
-		bArmature *arm = obact->data;
-		float snap_target_local[3];
+			invert_m4_m4(ob->imat, ob->obmat);
+			mul_v3_m4v3(snap_target_local, ob->imat, snap_target_global);
 
-		invert_m4_m4(obact->imat, obact->obmat);
-		mul_v3_m4v3(snap_target_local, obact->imat, snap_target_global);
-
-		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
-			if ((pchan->bone->flag & BONE_SELECTED) &&
-			    (PBONE_VISIBLE(arm, pchan->bone)) &&
-			    /* if the bone has a parent and is connected to the parent,
-			     * don't do anything - will break chain unless we do auto-ik.
-			     */
-			    (pchan->bone->flag & BONE_CONNECTED) == 0)
-			{
-				pchan->bone->flag |= BONE_TRANSFORM;
-			}
-			else {
-				pchan->bone->flag &= ~BONE_TRANSFORM;
-			}
-		}
-
-		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
-			if ((pchan->bone->flag & BONE_TRANSFORM) &&
-			    /* check that our parents not transformed (if we have one) */
-			    ((pchan->bone->parent &&
-			      BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
-			{
-				/* Get position in pchan (pose) space. */
-				float cursor_pose[3];
-
-				if (use_offset) {
-					mul_v3_m4v3(cursor_pose, obact->obmat, pchan->pose_mat[3]);
-					add_v3_v3(cursor_pose, offset_global);
-
-					mul_m4_v3(obact->imat, cursor_pose);
-					BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
+			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				if ((pchan->bone->flag & BONE_SELECTED) &&
+					(PBONE_VISIBLE(arm, pchan->bone)) &&
+					/* if the bone has a parent and is connected to the parent,
+					 * don't do anything - will break chain unless we do auto-ik.
+					 */
+					(pchan->bone->flag & BONE_CONNECTED) == 0)
+				{
+					pchan->bone->flag |= BONE_TRANSFORM;
 				}
 				else {
-					BKE_armature_loc_pose_to_bone(pchan, snap_target_local, cursor_pose);
+					pchan->bone->flag &= ~BONE_TRANSFORM;
 				}
-
-				/* copy new position */
-				if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
-					pchan->loc[0] = cursor_pose[0];
-				if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
-					pchan->loc[1] = cursor_pose[1];
-				if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
-					pchan->loc[2] = cursor_pose[2];
-
-				/* auto-keyframing */
-				ED_autokeyframe_pchan(C, scene, obact, pchan, ks);
 			}
+
+			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				if ((pchan->bone->flag & BONE_TRANSFORM) &&
+					/* check that our parents not transformed (if we have one) */
+					((pchan->bone->parent &&
+					  BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
+				{
+					/* Get position in pchan (pose) space. */
+					float cursor_pose[3];
+
+					if (use_offset) {
+						mul_v3_m4v3(cursor_pose, ob->obmat, pchan->pose_mat[3]);
+						add_v3_v3(cursor_pose, offset_global);
+
+						mul_m4_v3(ob->imat, cursor_pose);
+						BKE_armature_loc_pose_to_bone(pchan, cursor_pose, cursor_pose);
+					}
+					else {
+						BKE_armature_loc_pose_to_bone(pchan, snap_target_local, cursor_pose);
+					}
+
+					/* copy new position */
+					if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
+						pchan->loc[0] = cursor_pose[0];
+					if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
+						pchan->loc[1] = cursor_pose[1];
+					if ((pchan->protectflag & OB_LOCK_LOCZ) == 0)
+						pchan->loc[2] = cursor_pose[2];
+
+					/* auto-keyframing */
+					ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+				}
+			}
+
+			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+				pchan->bone->flag &= ~BONE_TRANSFORM;
+			}
+
+			ob->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
+
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
-
-		for (pchan = obact->pose->chanbase.first; pchan; pchan = pchan->next) {
-			pchan->bone->flag &= ~BONE_TRANSFORM;
-		}
-
-		obact->pose->flag |= (POSE_LOCKED | POSE_DO_UNLOCK);
-
-		DEG_id_tag_update(&obact->id, OB_RECALC_DATA);
+		CTX_DATA_END;
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
@@ -597,27 +609,38 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 	zero_v3(centroid);
 
 	if (obedit) {
-		if (ED_transverts_check_obedit(obedit))
-			ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+		int global_transverts_tot = 0;
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			obedit = objects[ob_index];
 
-		if (tvs.transverts_tot == 0) {
-			return false;
+			if (ED_transverts_check_obedit(obedit)) {
+				ED_transverts_create_from_obedit(&tvs, obedit, TM_ALL_JOINTS | TM_SKIP_HANDLES);
+			}
+
+			global_transverts_tot += tvs.transverts_tot;
+			if (global_transverts_tot == 0) {
+				continue;
+			}
+
+			Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+			copy_m3_m4(bmat, obedit_eval->obmat);
+
+			tv = tvs.transverts;
+			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+				copy_v3_v3(vec, tv->loc);
+				mul_m3_v3(bmat, vec);
+				add_v3_v3(vec, obedit_eval->obmat[3]);
+				add_v3_v3(centroid, vec);
+				minmax_v3v3_v3(min, max, vec);
+			}
 		}
-
-		Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-		copy_m3_m4(bmat, obedit_eval->obmat);
-
-		tv = tvs.transverts;
-		for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-			copy_v3_v3(vec, tv->loc);
-			mul_m3_v3(bmat, vec);
-			add_v3_v3(vec, obedit_eval->obmat[3]);
-			add_v3_v3(centroid, vec);
-			minmax_v3v3_v3(min, max, vec);
-		}
+		MEM_freeN(objects);
 
 		if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CENTER_MEAN) {
-			mul_v3_fl(centroid, 1.0f / (float)tvs.transverts_tot);
+			mul_v3_fl(centroid, 1.0f / (float)global_transverts_tot);
 			copy_v3_v3(cursor, centroid);
 		}
 		else {
