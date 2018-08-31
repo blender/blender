@@ -628,12 +628,9 @@ bool BPY_execute_string_as_number(bContext *C, const char *expr, const bool verb
  */
 bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verbose, char **r_value)
 {
+	BLI_assert(r_value && expr);
 	PyGILState_STATE gilstate;
 	bool ok = true;
-
-	if (!r_value || !expr) {
-		return -1;
-	}
 
 	if (expr[0] == '\0') {
 		*r_value = NULL;
@@ -665,12 +662,9 @@ bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verb
  */
 bool BPY_execute_string_as_intptr(bContext *C, const char *expr, const bool verbose, intptr_t *r_value)
 {
+	BLI_assert(r_value && expr);
 	PyGILState_STATE gilstate;
 	bool ok = true;
-
-	if (!r_value || !expr) {
-		return -1;
-	}
 
 	if (expr[0] == '\0') {
 		*r_value = 0;
@@ -697,13 +691,12 @@ bool BPY_execute_string_as_intptr(bContext *C, const char *expr, const bool verb
 
 bool BPY_execute_string_ex(bContext *C, const char *expr, bool use_eval)
 {
+	BLI_assert(expr);
 	PyGILState_STATE gilstate;
 	PyObject *main_mod = NULL;
 	PyObject *py_dict, *retval;
 	bool ok = true;
 	Main *bmain_back; /* XXX, quick fix for release (Copy Settings crash), needs further investigation */
-
-	if (!expr) return -1;
 
 	if (expr[0] == '\0') {
 		return ok;
