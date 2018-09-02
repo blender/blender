@@ -40,6 +40,7 @@ set(INC_SYS
 )
 
 set(SRC
+	keymap_templates.c
 	ed_transverts.c
 	ed_util.c
 	numinput.c
@@ -62,6 +63,7 @@ set(SRC
 	../include/ED_keyframes_draw.h
 	../include/ED_keyframes_edit.h
 	../include/ED_keyframing.h
+	../include/ED_keymap_templates.h
 	../include/ED_lattice.h
 	../include/ED_logic.h
 	../include/ED_markers.h

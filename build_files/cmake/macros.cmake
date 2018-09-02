@@ -595,7 +595,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_space_clip
 
 		bf_editor_transform
-		bf_editor_util
 		bf_editor_uvedit
 		bf_editor_curve
 		bf_editor_interface
@@ -616,6 +615,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_datafiles
 		bf_editor_mask
 		bf_editor_io
+		bf_editor_util
 
 		bf_render
 		bf_python

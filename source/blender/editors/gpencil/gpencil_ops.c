@@ -51,6 +51,7 @@
 
 #include "ED_gpencil.h"
 #include "ED_select_utils.h"
+#include "ED_keymap_templates.h"
 #include "ED_object.h"
 #include "ED_transform.h"
 
@@ -197,13 +198,7 @@ static void ed_keymap_gpencil_selection(wmKeyMap *keymap)
 	wmKeyMapItem *kmi;
 
 	/* select all */
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_SELECT);
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", AKEY, KM_PRESS, KM_ALT, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
-
-	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+	ED_keymap_template_select_all(keymap, "GPENCIL_OT_select_all");
 
 	/* circle select */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_circle", CKEY, KM_PRESS, 0, 0);
