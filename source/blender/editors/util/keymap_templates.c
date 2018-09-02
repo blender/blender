@@ -40,4 +40,8 @@ void ED_keymap_template_select_all(wmKeyMap *keymap, const char *idname)
 	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
 	kmi = WM_keymap_add_item(keymap, idname, IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	/* Double tap to de-select (experimental, see: D3640). */
+	kmi = WM_keymap_add_item(keymap, idname, AKEY, KM_DBL_CLICK, 0, 0);
+	RNA_enum_set(kmi->ptr, "action", SEL_DESELECT);
 }
