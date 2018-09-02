@@ -6470,11 +6470,13 @@ static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 	const bool use_cap_endpoint = RNA_boolean_get(op->ptr, "use_cap_endpoint");
 	int ret = OPERATOR_CANCELLED;
 
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em_edit = BKE_editmesh_from_object(obedit);
-	if (em_edit->selectmode == SCE_SELECT_FACE) {
-		EDBM_selectmode_to_scene(C);
-		mode_change = true;
+	{
+		Object *obedit = CTX_data_edit_object(C);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->selectmode == SCE_SELECT_FACE) {
+			EDBM_selectmode_to_scene(C);
+			mode_change = true;
+		}
 	}
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
