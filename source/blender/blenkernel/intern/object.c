@@ -3647,7 +3647,7 @@ bool BKE_object_modifier_update_subframe(
 		if (ob->track) no_update |= BKE_object_modifier_update_subframe(bmain, eval_ctx, scene, ob->track, 0, recursion, frame, type);
 
 		/* skip subframe if object is parented
-		 *  to vertex of a dynamic paint canvas */
+		 * to vertex of a dynamic paint canvas */
 		if (no_update && (ob->partype == PARVERT1 || ob->partype == PARVERT3))
 			return false;
 

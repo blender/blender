@@ -36,44 +36,50 @@ class NodeOperationBuilder;
 
 class ViewerOperation;
 
-/** Interface type for converting a \a Node into \a NodeOperation.
- *  This is passed to \a Node::convertToOperation methods and allows them
- *  to register any number of operations, create links between them,
- *  and map original node sockets to their inputs or outputs.
+/**
+ * Interface type for converting a \a Node into \a NodeOperation.
+ * This is passed to \a Node::convertToOperation methods and allows them
+ * to register any number of operations, create links between them,
+ * and map original node sockets to their inputs or outputs.
  */
 class NodeConverter {
 public:
 	NodeConverter(NodeOperationBuilder *builder);
 
-	/** Insert a new operation into the operations graph.
-	 *  The operation must be created by the node.
+	/**
+	 * Insert a new operation into the operations graph.
+	 * The operation must be created by the node.
 	 */
 	void addOperation(NodeOperation *operation);
 
-	/** Map input socket of the node to an operation socket.
-	 *  Links between nodes will then generate equivalent links between
-	 *  the mapped operation sockets.
+	/**
+	 * Map input socket of the node to an operation socket.
+	 * Links between nodes will then generate equivalent links between
+	 * the mapped operation sockets.
 	 *
-	 *  \note A \a Node input can be mapped to multiple \a NodeOperation inputs.
+	 * \note A \a Node input can be mapped to multiple \a NodeOperation inputs.
 	 */
 	void mapInputSocket(NodeInput *node_socket, NodeOperationInput *operation_socket);
-	/** Map output socket of the node to an operation socket.
-	 *  Links between nodes will then generate equivalent links between
-	 *  the mapped operation sockets.
+	/**
+	 * Map output socket of the node to an operation socket.
+	 * Links between nodes will then generate equivalent links between
+	 * the mapped operation sockets.
 	 *
 	 * \note A \a Node output can only be mapped to one \a NodeOperation output.
 	 * Any existing operation output mapping will be replaced.
 	 */
 	void mapOutputSocket(NodeOutput *node_socket, NodeOperationOutput *operation_socket);
 
-	/** Create a proxy operation for a node input.
-	 *  This operation will be removed later and replaced
-	 *  by direct links between the connected operations.
+	/**
+	 * Create a proxy operation for a node input.
+	 * This operation will be removed later and replaced
+	 * by direct links between the connected operations.
 	 */
 	NodeOperationOutput *addInputProxy(NodeInput *input, bool use_conversion);
-	/** Create a proxy operation for a node output.
-	 *  This operation will be removed later and replaced
-	 *  by direct links between the connected operations.
+	/**
+	 * Create a proxy operation for a node output.
+	 * This operation will be removed later and replaced
+	 * by direct links between the connected operations.
 	 */
 	NodeOperationInput *addOutputProxy(NodeOutput *output, bool use_conversion);
 
@@ -99,8 +105,9 @@ public:
 	/** Add a preview operation for a node input. */
 	void addNodeInputPreview(NodeInput *input);
 
-	/** When a node has no valid data
-	 *  @note missing image / group pointer, or missing renderlayer from EXR
+	/**
+	 * When a node has no valid data
+	 * \note missing image / group pointer, or missing renderlayer from EXR
 	 */
 	NodeOperation *setInvalidOutput(NodeOutput *output);
 

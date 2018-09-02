@@ -583,18 +583,19 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		int sides;
 		int y;
 
-		/*
-		 *  mdisps is a grid of displacements, ordered thus:
-		 *
-		 *                     v4/next
-		 *                       |
-		 *   |      v1/cent-----mid2 ---> x
-		 *   |         |         |
-		 *   |         |         |
-		 *  v2/prev---mid1-----v3/cur
-		 *             |
-		 *             V
-		 *             y
+		/**
+		 * mdisps is a grid of displacements, ordered thus:
+		 * <pre>
+		 *                    v4/next
+		 *                      |
+		 *  |      v1/cent-----mid2 ---> x
+		 *  |         |         |
+		 *  |         |         |
+		 * v2/prev---mid1-----v3/cur
+		 *            |
+		 *            V
+		 *            y
+		 * </pre>
 		 */
 
 		sides = (int)sqrt(mdp->totdisp);
@@ -613,18 +614,19 @@ void BM_face_multires_bounds_smooth(BMesh *bm, BMFace *f)
 		int sides;
 		int y;
 
-		/*
-		 *  mdisps is a grid of displacements, ordered thus:
-		 *
-		 *                     v4/next
-		 *                       |
-		 *   |      v1/cent-----mid2 ---> x
-		 *   |         |         |
-		 *   |         |         |
-		 *  v2/prev---mid1-----v3/cur
-		 *             |
-		 *             V
-		 *             y
+		/**
+		 * mdisps is a grid of displacements, ordered thus:
+		 * <pre>
+		 *                    v4/next
+		 *                      |
+		 *  |      v1/cent-----mid2 ---> x
+		 *  |         |         |
+		 *  |         |         |
+		 * v2/prev---mid1-----v3/cur
+		 *            |
+		 *            V
+		 *            y
+		 * </pre>
 		 */
 
 		if (l->radial_next == l)

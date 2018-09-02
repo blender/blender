@@ -1283,11 +1283,11 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		short prev_proxylock, show_upbut, show_downbut;
 
 		/* Up/Down buttons:
-		 *	Proxy-constraints are not allowed to occur after local (non-proxy) constraints
-		 *	as that poses problems when restoring them, so disable the "up" button where
-		 *	it may cause this situation.
+		 * Proxy-constraints are not allowed to occur after local (non-proxy) constraints
+		 * as that poses problems when restoring them, so disable the "up" button where
+		 * it may cause this situation.
 		 *
-		 *  Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
+		 * Up/Down buttons should only be shown (or not grayed - todo) if they serve some purpose.
 		 */
 		if (BKE_constraints_proxylocked_owner(ob, pchan)) {
 			if (con->prev) {

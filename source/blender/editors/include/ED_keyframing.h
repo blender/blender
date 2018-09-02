@@ -327,11 +327,11 @@ bool ANIM_driver_vars_paste(struct ReportList *reports, struct FCurve *fcu, bool
 /* ************ Auto-Keyframing ********************** */
 /* Notes:
  * - All the defines for this (User-Pref settings and Per-Scene settings)
- *  are defined in DNA_userdef_types.h
+ *   are defined in DNA_userdef_types.h
  * - Scene settings take precedence over those for userprefs, with old files
- *  inheriting userpref settings for the scene settings
+ *   inheriting userpref settings for the scene settings
  * - "On/Off + Mode" are stored per Scene, but "settings" are currently stored
- *  as userprefs
+ *   as userprefs
  */
 
 /* Auto-Keying macros for use by various tools */

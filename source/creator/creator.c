@@ -539,7 +539,7 @@ int main(
 	WM_main(C);
 
 	return 0;
-} /* end of int main(argc, argv)	*/
+} /* end of int main(argc, argv) */
 
 #ifdef WITH_PYTHON_MODULE
 void main_python_exit(void)

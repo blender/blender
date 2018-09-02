@@ -377,7 +377,7 @@ private:
 	char m_keyboard_vector[32];
 
 	/* to prevent multiple warp, we store the time of the last warp event
-	 *  and stop accumulating all events generated before that */
+	 * and stop accumulating all events generated before that */
 	Time m_last_warp;
 
 	/* detect autorepeat glitch */

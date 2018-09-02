@@ -66,16 +66,18 @@ typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, bo
 
 /* ....... */
 
-/* Constraint Type-Info (shorthand in code = cti):
- *  This struct provides function pointers for runtime, so that functions can be
- *  written more generally (with fewer/no special exceptions for various constraints).
+/**
+ * Constraint Type-Info (shorthand in code = cti):
+ * This struct provides function pointers for runtime, so that functions can be
+ * written more generally (with fewer/no special exceptions for various constraints).
  *
- *  Callers of these functions must check that they actually point to something useful,
- *  as some constraints don't define some of these.
+ * Callers of these functions must check that they actually point to something useful,
+ * as some constraints don't define some of these.
  *
- *  Warning: it is not too advisable to reorder order of members of this struct,
- *			as you'll have to edit quite a few ($NUM_CONSTRAINT_TYPES) of these
- *			structs.
+ * Warning:
+ * it is not too advisable to reorder order of members of this struct,
+ * as you'll have to edit quite a few #NUM_CONSTRAINT_TYPES of these
+ * structs.
  */
 typedef struct bConstraintTypeInfo {
 	/* admin/ident */

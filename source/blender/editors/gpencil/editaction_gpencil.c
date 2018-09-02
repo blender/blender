@@ -55,9 +55,9 @@
 
 /* ***************************************** */
 /* NOTE ABOUT THIS FILE:
- *  This file contains code for editing Grease Pencil data in the Action Editor
- *  as a 'keyframes', so that a user can adjust the timing of Grease Pencil drawings.
- *  Therefore, this file mostly contains functions for selecting Grease-Pencil frames.
+ * This file contains code for editing Grease Pencil data in the Action Editor
+ * as a 'keyframes', so that a user can adjust the timing of Grease Pencil drawings.
+ * Therefore, this file mostly contains functions for selecting Grease-Pencil frames.
  */
 /* ***************************************** */
 /* Generics - Loopers */

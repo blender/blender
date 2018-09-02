@@ -735,7 +735,7 @@ static bool gp_stroke_do_circle_sel(
 				if (gp_stroke_inside_circle(mval, mvalo, radius, x0, y0, x1, y1)) {
 					/* change selection of stroke, and then of both points
 					 * (as the last point otherwise wouldn't get selected
-					 *  as we only do n-1 loops through)
+					 * as we only do n-1 loops through).
 					 */
 					if (select) {
 						pt1->flag |= GP_SPOINT_SELECT;

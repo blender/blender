@@ -60,7 +60,7 @@ GHOST_DropTargetWin32::~GHOST_DropTargetWin32()
 
 
 /*
- *  IUnknown::QueryInterface
+ * IUnknown::QueryInterface
  */
 HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvObj)
 {
@@ -82,7 +82,7 @@ HRESULT __stdcall GHOST_DropTargetWin32::QueryInterface(REFIID riid, void **ppvO
 
 
 /*
- *	IUnknown::AddRef
+ * IUnknown::AddRef
  */
 
 ULONG __stdcall GHOST_DropTargetWin32::AddRef(void)

@@ -1097,7 +1097,7 @@ BVHTree *bvhtree_from_mesh_get(
 					int looptri_num = dm->getNumLoopTri(dm);
 
 					/* this assert checks we have looptris,
-					* if not caller should use DM_ensure_looptri() */
+					 * if not caller should use DM_ensure_looptri() */
 					BLI_assert(!(looptri_num == 0 && dm->getNumPolys(dm) != 0));
 
 					tree = bvhtree_from_mesh_looptri_create_tree(

@@ -296,9 +296,9 @@ public:
 	}
 
 	/**
-	* Returns the recommended DPI for this window.
-	* \return The recommended DPI for this window.
-	*/
+	 * Returns the recommended DPI for this window.
+	 * \return The recommended DPI for this window.
+	 */
 	virtual inline GHOST_TUns16 getDPIHint()
 	{
 		return 96;

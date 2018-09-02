@@ -191,16 +191,16 @@ public:
 };
 
 /* a map to store bone extension maps
-| std:string     : an armature name
-| BoneExtended * : a map that contains extra data for bones
-*/
+ * std:string     : an armature name
+ * BoneExtended * : a map that contains extra data for bones
+ */
 typedef std::map<std::string, BoneExtended *> BoneExtensionMap;
 
 /*
-| A class to organise bone extendion data for multiple Armatures.
-| this is needed for the case where a Collada file contains 2 or more
-| separate armatures.
-*/
+ * A class to organise bone extendion data for multiple Armatures.
+ * this is needed for the case where a Collada file contains 2 or more
+ * separate armatures.
+ */
 class BoneExtensionManager {
 private:
 	std::map<std::string, BoneExtensionMap *> extended_bone_maps;

@@ -113,7 +113,7 @@ public:
 	 *      0 : the arrays are not copied. The pointers passed as arguments are used. IndexedFaceSet takes these
 	 *          arrays desallocation in charge.
 	 *      1 : the arrays are copied. The caller is in charge of the arrays, passed as arguments desallocation.
-	*/
+	 */
 	IndexedFaceSet(float *iVertices, unsigned iVSize, float *iNormals, unsigned iNSize, FrsMaterial **iMaterials,
 	               unsigned iMSize, float *iTexCoords, unsigned iTSize, unsigned iNumFaces, unsigned *iNumVertexPerFace,
 	               TRIANGLES_STYLE *iFaceStyle, FaceEdgeMark *iFaceEdgeMarks, unsigned *iVIndices, unsigned iVISize,

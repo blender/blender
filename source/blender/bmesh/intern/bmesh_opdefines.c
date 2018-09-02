@@ -1424,7 +1424,7 @@ static BMOpDefine bmo_similar_faces_def = {
 /*
  * Similar Edges Search.
  *
- *  Find similar edges (length, direction, edge, seam, ...).
+ * Find similar edges (length, direction, edge, seam, ...).
  */
 static BMOpDefine bmo_similar_edges_def = {
 	"similar_edges",

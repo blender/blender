@@ -127,7 +127,7 @@ static void rna_DynamicPaintSurface_changePreview(Main *bmain, Scene *scene, Poi
 	DynamicPaintSurface *surface = act_surface->canvas->surfaces.first;
 
 	/* since only one color surface can show preview at time
-	 *  disable preview on other surfaces*/
+	 * disable preview on other surfaces. */
 	for (; surface; surface = surface->next) {
 		if (surface != act_surface)
 			surface->flags &= ~MOD_DPAINT_PREVIEW;

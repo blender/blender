@@ -112,9 +112,10 @@ public:
 		return GHOST_kFailure;
 	}
 
-	/** Stereo visual created. Only necessary for 'real' stereo support,
-	 *  ie quad buffered stereo. This is not always possible, depends on
-	 *  the graphics h/w
+	/**
+	 * Stereo visual created. Only necessary for 'real' stereo support,
+	 * ie quad buffered stereo. This is not always possible, depends on
+	 * the graphics h/w
 	 */
 	inline bool isStereoVisual() const {
 		return m_stereoVisual;

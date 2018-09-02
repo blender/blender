@@ -349,9 +349,9 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	}
 
 	/* - if destination mesh had shapekeys, move them somewhere safe, and set up placeholders
-	 *  with arrays that are large enough to hold shapekey data for all meshes
-	 * -	if destination mesh didn't have shapekeys, but we encountered some in the meshes we're
-	 *	joining, set up a new keyblock and assign to the mesh
+	 *   with arrays that are large enough to hold shapekey data for all meshes
+	 * - if destination mesh didn't have shapekeys, but we encountered some in the meshes we're
+	 *   joining, set up a new keyblock and assign to the mesh
 	 */
 	if (key) {
 		/* make a duplicate copy that will only be used here... (must remember to free it!) */

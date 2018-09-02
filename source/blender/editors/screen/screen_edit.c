@@ -572,7 +572,7 @@ int area_getorientation(ScrArea *sa, ScrArea *sb)
 }
 
 /* Helper function to join 2 areas, it has a return value, 0=failed 1=success
- *  used by the split, join operators
+ * used by the split, join operators
  */
 int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 {

@@ -776,8 +776,8 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		 * - the context iterator contains both selected bones and their mirrored copies,
 		 *   so we assume that unselected bones are mirrored copies of some selected bone
 		 * - since the active one (and/or its mirror) will also be selected, we also need
-		 *  to check that we are not trying to operate on them, since such an operation
-		 *	would cause errors
+		 *   to check that we are not trying to operate on them, since such an operation
+		 *   would cause errors
 		 */
 
 		/* parent selected bones to the active one */

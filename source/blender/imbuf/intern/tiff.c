@@ -178,10 +178,10 @@ static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n)
  * \param handle: Handle of the TIFF file (pointer to ImbTIFFMemFile).
  * \param ofs:    Offset value (interpreted according to whence below).
  * \param whence: This can be one of three values:
- *  SEEK_SET - The offset is set to ofs bytes.
- *  SEEK_CUR - The offset is set to its current location plus ofs bytes.
- *  SEEK_END - (This is unsupported and will return -1, indicating an
- *              error).
+ * SEEK_SET - The offset is set to ofs bytes.
+ * SEEK_CUR - The offset is set to its current location plus ofs bytes.
+ * SEEK_END - (This is unsupported and will return -1, indicating an
+ *             error).
  *
  * \return: Resulting offset location within the file, measured in bytes from
  *          the beginning of the file.  (-1) indicates an error.

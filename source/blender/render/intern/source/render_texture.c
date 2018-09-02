@@ -358,8 +358,8 @@ static int wood(Tex *tex, const float texvec[3], TexResult *texres)
 static float marble_int(Tex *tex, float x, float y, float z)
 {
 	float n, mi;
-	short wf = tex->noisebasis2;	/* wave form:	TEX_SIN=0,  TEX_SAW=1,  TEX_TRI=2						*/
-	short mt = tex->stype;			/* marble type:	TEX_SOFT=0,	TEX_SHARP=1,TEX_SHAPER=2 					*/
+	short wf = tex->noisebasis2;	/* wave form:   TEX_SIN=0, TEX_SAW=1, TEX_TRI=2 */
+	short mt = tex->stype;			/* marble type: TEX_SOFT=0, TEX_SHARP=1, TEX_SHAPER=2 */
 
 	float (*waveform[3])(float);	/* create array of pointers to waveform functions */
 	waveform[0] = tex_sin;			/* assign address of tex_sin() function to pointer array */

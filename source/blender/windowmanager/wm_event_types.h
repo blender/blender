@@ -26,9 +26,8 @@
 
 
 /*
- *  These define have its origin at sgi, where all device defines were written down in device.h.
- *  Blender copied the conventions quite some, and expanded it with internal new defines (ton)
- *
+ * These define have its origin at sgi, where all device defines were written down in device.h.
+ * Blender copied the conventions quite some, and expanded it with internal new defines (ton)
  */
 
 

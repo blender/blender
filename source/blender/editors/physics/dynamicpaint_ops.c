@@ -316,7 +316,7 @@ static void dpaint_bake_endjob(void *customdata)
 	WM_set_locked_interface(G_MAIN->wm.first, false);
 
 	/* Bake was successful:
-	 *  Report for ended bake and how long it took */
+	 * Report for ended bake and how long it took */
 	if (job->success) {
 		/* Show bake info */
 		WM_reportf(RPT_INFO, "DynamicPaint: Bake complete! (%.2f)", PIL_check_seconds_timer() - job->start);

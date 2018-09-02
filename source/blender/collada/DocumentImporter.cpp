@@ -703,8 +703,10 @@ finally:
 	return root_objects;
 }
 
-/** When this method is called, the writer must write the entire visual scene.
- *  Return The writer should return true, if writing succeeded, false otherwise. */
+/**
+ * When this method is called, the writer must write the entire visual scene.
+ * Return The writer should return true, if writing succeeded, false otherwise.
+ */
 bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScene)
 {
 	if (mImportStage != General)

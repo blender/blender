@@ -955,9 +955,9 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 	/* store indices to editVerts and Faces. May be unneeded but ensuring anyway */
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
-	/*****************************************
-	 *  First determine stitchability of uvs *
-	 *****************************************/
+	/****************************************
+	 * First determine stitchability of uvs *
+	 ****************************************/
 
 	for (i = 0; i < state->selection_size; i++) {
 		if (state->mode == STITCH_VERT) {

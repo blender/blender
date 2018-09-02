@@ -273,7 +273,7 @@ static void fcm_fn_generator_new_data(void *mdata)
 }
 
 /* Unary 'normalized sine' function
- *  y = sin(PI + x) / (PI * x),
+ * y = sin(PI + x) / (PI * x),
  * except for x = 0 when y = 1.
  */
 static double sinc(double x)

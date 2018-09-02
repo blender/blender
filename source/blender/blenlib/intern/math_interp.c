@@ -44,7 +44,7 @@
  ***************************************************************************/
 
 /* BICUBIC Interpolation functions
- *  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
+ * More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
  * function assumes out to be zero'ed, only does RGBA */
 
 static float P(float k)

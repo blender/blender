@@ -973,18 +973,18 @@ short paste_animedit_keys(bAnimContext *ac, ListBase *anim_data,
 	}
 	else {
 		/* from selected channels
-		 *  This "passes" system aims to try to find "matching" channels to paste keyframes
-		 *  into with increasingly loose matching heuristics. The process finishes when at least
-		 *  one F-Curve has been pasted into.
+		 * This "passes" system aims to try to find "matching" channels to paste keyframes
+		 * into with increasingly loose matching heuristics. The process finishes when at least
+		 * one F-Curve has been pasted into.
 		 */
 		for (pass = 0; pass < 3; pass++) {
 			unsigned int totmatch = 0;
 
 			for (ale = anim_data->first; ale; ale = ale->next) {
 				/* find buffer item to paste from
-				 *	- if names don't matter (i.e. only 1 channel in buffer), don't check id/group
-				 *	- if names do matter, only check if id-type is ok for now (group check is not that important)
-				 *	- most importantly, rna-paths should match (array indices are unimportant for now)
+				 * - if names don't matter (i.e. only 1 channel in buffer), don't check id/group
+				 * - if names do matter, only check if id-type is ok for now (group check is not that important)
+				 * - most importantly, rna-paths should match (array indices are unimportant for now)
 				 */
 				AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 				FCurve *fcu = (FCurve *)ale->data;  /* destination F-Curve */

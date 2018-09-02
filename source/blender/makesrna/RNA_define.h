@@ -25,7 +25,9 @@
 
 /** \file RNA_define.h
  *  \ingroup RNA
- *  Functions used during preprocess and runtime, for defining the RNA. */
+ *
+ * Functions used during preprocess and runtime, for defining the RNA.
+ */
 
 #include <float.h>
 #include <limits.h>
