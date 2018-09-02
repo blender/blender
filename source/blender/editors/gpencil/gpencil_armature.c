@@ -144,7 +144,7 @@ static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap
 	if (!(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose &&
-				BKE_pose_channel_find_name(data->armob->pose, bone->name))
+			    BKE_pose_channel_find_name(data->armob->pose, bone->name))
 			{
 				segments = bone->segments;
 			}
@@ -157,7 +157,7 @@ static int gpencil_bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap
 
 				for (a = 0; a < segments; a++) {
 					**hbone = bone;
-					++*hbone;
+					(*hbone)++;
 				}
 			}
 			return segments;
@@ -214,7 +214,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 	if (!(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
 			if (data->heat && data->armob->pose &&
-				BKE_pose_channel_find_name(data->armob->pose, bone->name))
+			    BKE_pose_channel_find_name(data->armob->pose, bone->name))
 			{
 				segments = bone->segments;
 			}
@@ -237,7 +237,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 
 				for (a = 0; a < segments; a++) {
 					**hgroup = defgroup;
-					++*hgroup;
+					(*hgroup)++;
 				}
 			}
 			return segments;
@@ -319,7 +319,7 @@ static void gpencil_add_verts_to_dgroups(
 			bbone = NULL;
 
 			if ((ob_arm->pose) &&
-				(pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name)))
+			    (pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name)))
 			{
 				if (bone->segments > 1) {
 					segments = bone->segments;
@@ -366,7 +366,7 @@ static void gpencil_add_verts_to_dgroups(
 
 		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
 			if ((gpf == gpl->actframe) ||
-				((gpf->flag & GP_FRAME_SELECT) && (is_multiedit)))
+			    ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit)))
 			{
 
 				if (gpf == NULL)
@@ -463,8 +463,9 @@ static void gpencil_object_vgroup_calc_from_armature(
 	/* Traverse the bone list, trying to create empty vertex
 		* groups corresponding to the bone.
 		*/
-	defbase_add = gpencil_bone_looper(ob, arm->bonebase.first, NULL,
-									vgroup_add_unique_bone_cb);
+	defbase_add = gpencil_bone_looper(
+	        ob, arm->bonebase.first, NULL,
+	        vgroup_add_unique_bone_cb);
 
 	if (defbase_add) {
 		/* its possible there are DWeight's outside the range of the current
@@ -493,11 +494,12 @@ bool ED_gpencil_add_armature_weights(
 	/* if no armature modifier, add a new one */
 	GpencilModifierData *md = BKE_gpencil_modifiers_findByType(ob, eGpencilModifierType_Armature);
 	if (md == NULL) {
-		md = ED_object_gpencil_modifier_add(reports, bmain, scene,
-										ob, "Armature", eGpencilModifierType_Armature);
+		md = ED_object_gpencil_modifier_add(
+		        reports, bmain, scene,
+		        ob, "Armature", eGpencilModifierType_Armature);
 		if (md == NULL) {
 			BKE_report(reports, RPT_ERROR,
-				"Unable to add a new Armature modifier to object");
+			           "Unable to add a new Armature modifier to object");
 			return false;
 		}
 		DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
@@ -511,7 +513,7 @@ bool ED_gpencil_add_armature_weights(
 	else {
 		if (ob_arm != mmd->object) {
 			BKE_report(reports, RPT_ERROR,
-				"The existing Armature modifier is already using a different Armature object");
+			           "The existing Armature modifier is already using a different Armature object");
 			return false;
 		}
 	}
@@ -586,7 +588,7 @@ static int gpencil_generate_weights_exec(bContext *C, wmOperator *op)
 
 	if (ob_arm == NULL) {
 		BKE_report(op->reports, RPT_ERROR,
-				"No Armature object in the view layer");
+		           "No Armature object in the view layer");
 		return OPERATOR_CANCELLED;
 	}
 

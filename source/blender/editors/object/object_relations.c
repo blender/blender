@@ -803,7 +803,7 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 					ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_NAME);
 				}
 				else if ((partype == PAR_ARMATURE_AUTO) ||
-					(partype == PAR_ARMATURE_ENVELOPE))
+				         (partype == PAR_ARMATURE_ENVELOPE))
 				{
 					WM_cursor_wait(1);
 					ED_gpencil_add_armature_weights(C, reports, ob, par, GP_PAR_ARMATURE_AUTO);

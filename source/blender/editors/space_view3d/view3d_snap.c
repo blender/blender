@@ -321,11 +321,11 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if ((pchan->bone->flag & BONE_SELECTED) &&
-					(PBONE_VISIBLE(arm, pchan->bone)) &&
-					/* if the bone has a parent and is connected to the parent,
-					 * don't do anything - will break chain unless we do auto-ik.
-					 */
-					(pchan->bone->flag & BONE_CONNECTED) == 0)
+				    (PBONE_VISIBLE(arm, pchan->bone)) &&
+				    /* if the bone has a parent and is connected to the parent,
+				     * don't do anything - will break chain unless we do auto-ik.
+				     */
+				    (pchan->bone->flag & BONE_CONNECTED) == 0)
 				{
 					pchan->bone->flag |= BONE_TRANSFORM;
 				}
@@ -336,9 +336,9 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if ((pchan->bone->flag & BONE_TRANSFORM) &&
-					/* check that our parents not transformed (if we have one) */
-					((pchan->bone->parent &&
-					  BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
+				    /* check that our parents not transformed (if we have one) */
+				    ((pchan->bone->parent &&
+				      BKE_armature_bone_flag_test_recursive(pchan->bone->parent, BONE_TRANSFORM)) == 0))
 				{
 					/* Get position in pchan (pose) space. */
 					float cursor_pose[3];

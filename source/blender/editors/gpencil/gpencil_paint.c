@@ -639,7 +639,7 @@ static short gp_stroke_addpoint(
 		}
 		/* apply randomness to pressure */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_press > 0.0f))
+		    (brush->gpencil_settings->draw_random_press > 0.0f))
 		{
 			float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_sensitivity, 0, pressure);
 			float tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
@@ -668,7 +668,7 @@ static short gp_stroke_addpoint(
 
 		/* apply angle of stroke to brush size */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_angle_factor > 0.0f))
+		    (brush->gpencil_settings->draw_angle_factor > 0.0f))
 		{
 			gp_brush_angle(gpd, brush, pt, mval);
 		}
@@ -687,7 +687,7 @@ static short gp_stroke_addpoint(
 
 		/* apply randomness to color strength */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_strength > 0.0f))
+		    (brush->gpencil_settings->draw_random_strength > 0.0f))
 		{
 			if (BLI_rng_get_float(p->rng) > 0.5f) {
 				pt->strength -= pt->strength * brush->gpencil_settings->draw_random_strength * BLI_rng_get_float(p->rng);
@@ -1109,7 +1109,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 				copy_v2_v2_int(mval, &ptc->x);
 
 				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr + i) == 0) &&
-					(i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
+				    (i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
 				{
 					interp_depth = true;
 				}
@@ -1185,7 +1185,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		/* apply randomness to stroke */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_random_sub > 0.0f))
+		    (brush->gpencil_settings->draw_random_sub > 0.0f))
 		{
 			gp_randomize_stroke(gps, brush, p->rng);
 		}
@@ -1195,7 +1195,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		 * the original stroke
 		 */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
-			(brush->gpencil_settings->draw_smoothfac > 0.0f))
+		    (brush->gpencil_settings->draw_smoothfac > 0.0f))
 		{
 			float reduce = 0.0f;
 			for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
@@ -1208,7 +1208,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		}
 		/* smooth thickness */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_SETTINGS) &&
-			(brush->gpencil_settings->thick_smoothfac > 0.0f))
+		    (brush->gpencil_settings->thick_smoothfac > 0.0f))
 		{
 			for (int r = 0; r < brush->gpencil_settings->thick_smoothlvl * 2; r++) {
 				for (i = 0; i < gps->totpoints; i++) {
@@ -1276,7 +1276,7 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 	Object *obact = (Object *)p->ownerPtr.data;
 
 	if ((p->sa->spacetype == SPACE_VIEW3D) &&
-		(p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
+	    (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH))
 	{
 		RegionView3D *rv3d = p->ar->regiondata;
 		bGPDlayer *gpl = p->gpl;
@@ -1448,7 +1448,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 			/* Check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
-				((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
+			    ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
 			{
 				/* Check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
@@ -1456,7 +1456,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				 */
 				if (gp_stroke_inside_circle(mval, mvalo, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
 					if ((gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
-						(gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
+					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Point is affected: */
 						/* 1) Adjust thickness
@@ -1468,13 +1468,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 						/* 2) Tag any point with overly low influence for removal in the next pass */
 						if ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-							(eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
 						{
 							pt1->flag |= GP_SPOINT_TAG;
 							do_cull = true;
 						}
 						if ((pt2->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
-							(eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
+						    (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_HARD))
 						{
 							pt2->flag |= GP_SPOINT_TAG;
 							do_cull = true;
@@ -1587,7 +1587,7 @@ static Brush *gp_get_default_eraser(Main *bmain, ToolSettings *ts)
 	Brush *brush_old = paint->brush;
 	for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
 		if ((brush->ob_mode == OB_MODE_GPENCIL_PAINT) &&
-			(brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+		    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
 		{
 			/* save first eraser to use later if no default */
 			if (brush_dft == NULL) {
@@ -2293,7 +2293,7 @@ static void gpencil_draw_cursor_set(tGPsdata *p)
 {
 	Brush *brush = p->brush;
 	if ((p->paintmode == GP_PAINTMODE_ERASER) ||
-		(brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
+	    (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE))
 	{
 		WM_cursor_modal_set(p->win, BC_CROSSCURSOR);  /* XXX need a better cursor */
 	}
@@ -2436,7 +2436,7 @@ static void gpencil_draw_apply(bContext *C, wmOperator *op, tGPsdata *p, Depsgra
 		}
 	}
 	else if ((p->brush->gpencil_settings->flag & GP_BRUSH_STABILIZE_MOUSE_TEMP) &&
-		(gpd->runtime.sbuffer_size > 0))
+	         (gpd->runtime.sbuffer_size > 0))
 	{
 		pt = (tGPspoint *)gpd->runtime.sbuffer + gpd->runtime.sbuffer_size - 1;
 		if (p->paintmode != GP_PAINTMODE_ERASER) {
@@ -2942,7 +2942,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	 */
 	 /* if polyline and release shift must cancel */
 	if ((ELEM(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, EKEY)) ||
-		((p->paintmode == GP_PAINTMODE_DRAW_POLY) && (event->shift == 0)))
+	    ((p->paintmode == GP_PAINTMODE_DRAW_POLY) && (event->shift == 0)))
 	{
 		/* exit() ends the current stroke before cleaning up */
 		/* printf("\t\tGP - end of paint op + end of stroke\n"); */
@@ -3140,7 +3140,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		}
 		/* eraser size */
 		else if ((p->paintmode == GP_PAINTMODE_ERASER) &&
-			ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS))
+		         ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS))
 		{
 			/* just resize the brush (local version)
 			 * TODO: fix the hardcoded size jumps (set to make a visible difference) and hardcoded keys

@@ -2325,11 +2325,11 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	}
 	MEM_freeN(objects);
 
-	if (tot_unselected == objects_len){
+	if (tot_unselected == objects_len) {
 		BKE_report(op->reports, RPT_WARNING, "No selected vertex");
 		return OPERATOR_CANCELLED;
 	}
-	else if (tot_invalid == objects_len){
+	else if (tot_invalid == objects_len) {
 		BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
 		return OPERATOR_CANCELLED;
 	}
@@ -3076,9 +3076,9 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 		}
 		tot_selected_verts_objects++;
 
-		if (shape_propagate(em)){
+		if (shape_propagate(em)) {
 			tot_shapekeys++;
-		};
+		}
 
 		EDBM_update_generic(em, false, false);
 	}
@@ -3088,12 +3088,13 @@ static int edbm_shape_propagate_to_all_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No selected vertex");
 		return OPERATOR_CANCELLED;
 	}
-	else if (tot_shapekeys == 0){
-		BKE_report(op->reports,
-		           RPT_ERROR,
-		           objects_len > 1 ?
-		               "Meshes do not have shape keys" :
-		               "Mesh does not have shape keys");
+	else if (tot_shapekeys == 0) {
+		BKE_report(
+		        op->reports,
+		        RPT_ERROR,
+		        objects_len > 1 ?
+		        "Meshes do not have shape keys" :
+		        "Mesh does not have shape keys");
 		return OPERATOR_CANCELLED;
 	}
 

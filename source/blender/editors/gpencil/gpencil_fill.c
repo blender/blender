@@ -248,7 +248,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* normal strokes */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_STROKE) ||
-				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				ED_gp_draw_fill(&tgpw);
 
@@ -256,7 +256,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 
 			/* 3D Lines with basic shapes and invisible lines */
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
-				(tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
+			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
 				gp_draw_basic_stroke(tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
 					tgpf->flag, tgpf->fill_threshold);
@@ -676,7 +676,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		int cur_back_offset = -1;
 		for (int i = 0; i < NEIGHBOR_COUNT; i++) {
 			if (backtracked_offset[0][0] == offset[i][0] &&
-				backtracked_offset[0][1] == offset[i][1])
+			    backtracked_offset[0][1] == offset[i][1])
 			{
 				/* Finding the bracktracked pixel offset index */
 				cur_back_offset = i;
@@ -710,7 +710,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 		}
 		/* current pixel is equal to starting pixel */
 		if (boundary_co[0] == start_co[0] &&
-			boundary_co[1] == start_co[1])
+		    boundary_co[1] == start_co[1])
 		{
 			BLI_stack_pop(tgpf->stack, &v);
 			// boundary_found = true;
@@ -758,9 +758,9 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 			copy_v2_v2_int(mval, &ptc->x);
 
 			if ((ED_view3d_autodist_depth(
-				tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
-				(i && (ED_view3d_autodist_depth_seg(
-					tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
+			             tgpf->ar, mval, depth_margin, tgpf->depth_arr + i) == 0) &&
+			    (i && (ED_view3d_autodist_depth_seg(
+			                   tgpf->ar, mval, mval_prev, depth_margin + 1, tgpf->depth_arr + i) == 0)))
 			{
 				interp_depth = true;
 			}

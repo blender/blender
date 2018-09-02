@@ -866,7 +866,7 @@ static void gpencil_draw_strokes(
 			if ((fillgrp) && (!stl->storage->simplify_fill)) {
 				gpencil_add_fill_shgroup(
 				        cache, fillgrp, ob, derived_gpf, gps,
-						opacity, tintcolor, false, custonion);
+				        opacity, tintcolor, false, custonion);
 			}
 			/* stroke */
 			if (strokegrp) {
@@ -1245,7 +1245,7 @@ void DRW_gpencil_populate_datablock(
 
 		/* if pose mode, maybe the overlay to fade geometry is enabled */
 		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
-			(v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
+		    (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
 		{
 			opacity = gpl->opacity * v3d->overlay.bone_select_alpha;
 		}

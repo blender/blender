@@ -70,9 +70,10 @@ static void deformStroke(
 {
 	SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
 
-	if (!is_stroke_affected_by_modifier(ob,
-		mmd->layername, mmd->pass_index, 3, gpl, gps,
-		mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS))
+	if (!is_stroke_affected_by_modifier(
+	            ob,
+	            mmd->layername, mmd->pass_index, 3, gpl, gps,
+	            mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS))
 	{
 		return;
 	}

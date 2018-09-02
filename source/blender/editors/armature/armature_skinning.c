@@ -104,7 +104,7 @@ static int bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap)
 
 				for (a = 0; a < segments; a++) {
 					**hbone = bone;
-					++*hbone;
+					(*hbone)++;
 				}
 			}
 			return segments;
@@ -180,7 +180,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 
 				for (a = 0; a < segments; a++) {
 					**hgroup = defgroup;
-					++*hgroup;
+					(*hgroup)++;
 				}
 			}
 			return segments;

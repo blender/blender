@@ -62,20 +62,24 @@ void end_latt_deform(struct LatticeDeformData *lattice_deform_data);
 bool object_deform_mball(struct Object *ob, struct ListBase *dispbase);
 void outside_lattice(struct Lattice *lt);
 
-void curve_deform_verts(struct Object *cuOb, struct Object *target,
+void curve_deform_verts(
+        struct Object *cuOb, struct Object *target,
         struct Mesh *mesh, float (*vertexCos)[3],
         int numVerts, const char *vgroup, short defaxis);
-void curve_deform_vector(struct Object *cuOb, struct Object *target,
-                         float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
+void curve_deform_vector(
+        struct Object *cuOb, struct Object *target,
+        float orco[3], float vec[3], float mat[3][3], int no_rot_axis);
 
-void lattice_deform_verts(struct Object *laOb, struct Object *target,
-                          struct Mesh *mesh, float (*vertexCos)[3],
-                          int numVerts, const char *vgroup, float influence);
-void armature_deform_verts(struct Object *armOb, struct Object *target,
-                           const struct Mesh *mesh, float (*vertexCos)[3],
-                           float (*defMats)[3][3], int numVerts, int deformflag,
-                           float (*prevCos)[3], const char *defgrp_name,
-						   struct bGPDstroke *gps);
+void lattice_deform_verts(
+        struct Object *laOb, struct Object *target,
+        struct Mesh *mesh, float (*vertexCos)[3],
+        int numVerts, const char *vgroup, float influence);
+void armature_deform_verts(
+        struct Object *armOb, struct Object *target,
+        const struct Mesh *mesh, float (*vertexCos)[3],
+        float (*defMats)[3][3], int numVerts, int deformflag,
+        float (*prevCos)[3], const char *defgrp_name,
+        struct bGPDstroke *gps);
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);

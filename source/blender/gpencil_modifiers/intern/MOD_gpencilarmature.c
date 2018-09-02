@@ -92,12 +92,13 @@ static void gpencil_deform_verts(
 	}
 
 	/* deform verts */
-	armature_deform_verts(mmd->object, target, NULL,
-						(float(*)[3])all_vert_coords,
-						NULL, gps->totpoints,
-						mmd->deformflag,
-						(float(*)[3])mmd->prevCos,
-						mmd->vgname, gps);
+	armature_deform_verts(
+	        mmd->object, target, NULL,
+	        (float(*)[3])all_vert_coords,
+	        NULL, gps->totpoints,
+	        mmd->deformflag,
+	        (float(*)[3])mmd->prevCos,
+	        mmd->vgname, gps);
 
 	/* Apply deformed coordinates */
 	pt = gps->points;

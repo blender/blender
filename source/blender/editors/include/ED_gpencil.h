@@ -195,8 +195,9 @@ int ED_gpencil_session_active(void);
 int ED_undo_gpencil_step(struct bContext *C, int step, const char *name);
 
 /* ------------ Grease-Pencil Armature weights ------------------ */
-bool ED_gpencil_add_armature_weights(const struct bContext *C, struct ReportList *reports,
-									struct Object *ob, struct Object *ob_arm, int mode);
+bool ED_gpencil_add_armature_weights(
+        const struct bContext *C, struct ReportList *reports,
+        struct Object *ob, struct Object *ob_arm, int mode);
 
 /* keep this aligned with gpencil_armature enum */
 #define GP_PAR_ARMATURE_NAME     0
