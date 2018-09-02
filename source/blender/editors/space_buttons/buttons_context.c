@@ -118,6 +118,13 @@ static int buttons_context_path_scene(ButsContextPath *path)
 
 static int buttons_context_path_view_layer(ButsContextPath *path, wmWindow *win)
 {
+	PointerRNA *ptr = &path->ptr[path->len - 1];
+
+	/* View Layer may have already been resolved in a previous call (e.g. in buttons_context_path_linestyle). */
+	if (RNA_struct_is_a(ptr->type, &RNA_ViewLayer)) {
+		return 1;
+	}
+
 	if (buttons_context_path_scene(path)) {
 		Scene *scene = path->ptr[path->len - 1].data;
 		ViewLayer *view_layer = (win->scene == scene) ?
