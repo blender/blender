@@ -869,7 +869,7 @@ void BM_face_normal_flip(BMesh *bm, BMFace *f)
 }
 
 /**
- *  BM POINT IN FACE
+ * BM POINT IN FACE
  *
  * Projects co onto face f, and returns true if it is inside
  * the face bounds.
@@ -1284,7 +1284,7 @@ void BM_face_splits_check_optimal(BMFace *f, BMLoop *(*loops)[2], int len)
  * Small utility functions for fast access
  *
  * faster alternative to:
- *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
+ * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
  */
 void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
 {
@@ -1299,7 +1299,7 @@ void BM_face_as_array_vert_tri(BMFace *f, BMVert *r_verts[3])
 
 /**
  * faster alternative to:
- *  BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
+ * BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 4);
  */
 void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
 {
@@ -1318,7 +1318,7 @@ void BM_face_as_array_vert_quad(BMFace *f, BMVert *r_verts[4])
  * Small utility functions for fast access
  *
  * faster alternative to:
- *  BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 3);
+ * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 3);
  */
 void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
 {
@@ -1333,7 +1333,7 @@ void BM_face_as_array_loop_tri(BMFace *f, BMLoop *r_loops[3])
 
 /**
  * faster alternative to:
- *  BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
+ * BM_iter_as_array(bm, BM_LOOPS_OF_FACE, f, (void **)l, 4);
  */
 void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
 {
@@ -1352,7 +1352,7 @@ void BM_face_as_array_loop_quad(BMFace *f, BMLoop *r_loops[4])
  * \brief BM_mesh_calc_tessellation get the looptris and its number from a certain bmesh
  * \param looptris
  *
- * \note \a looptris  Must be pre-allocated to at least the size of given by: poly_to_tri_count
+ * \note \a looptris Must be pre-allocated to at least the size of given by: poly_to_tri_count
  */
 void BM_mesh_calc_tessellation(BMesh *bm, BMLoop *(*looptris)[3], int *r_looptris_tot)
 {

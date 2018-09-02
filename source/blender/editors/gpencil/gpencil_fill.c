@@ -448,8 +448,7 @@ static bool is_leak_narrow(ImBuf *ibuf, const int maxpixel, int limit, int index
 
 	/* Vertical leak (check horizontal pixels)
 	 *
-	 *  XXXxB7XX
-	 *
+	 * XXXxB7XX
 	 */
 	if (type == LEAK_VERT) {
 		/* get pixel range of the row */
@@ -515,17 +514,17 @@ static void gpencil_boundaryfill_area(tGPDfill *tgpf)
 	}
 
 	/* the fill use a stack to save the pixel list instead of the common recursive
-	* 4-contact point method.
-	* The problem with recursive calls is that for big fill areas, we can get max limit
-	* of recursive calls and STACK_OVERFLOW error.
-	*
-	* The 4-contact point analyze the pixels to the left, right, bottom and top
-	*      -----------
-	*      |    X    |
-	*      |   XoX   |
-	*      |    X    |
-	*      -----------
-	*/
+	 * 4-contact point method.
+	 * The problem with recursive calls is that for big fill areas, we can get max limit
+	 * of recursive calls and STACK_OVERFLOW error.
+	 *
+	 * The 4-contact point analyze the pixels to the left, right, bottom and top
+	 *      -----------
+	 *      |    X    |
+	 *      |   XoX   |
+	 *      |    X    |
+	 *      -----------
+	 */
 	while (!BLI_stack_is_empty(stack)) {
 		int v;
 		BLI_stack_pop(stack, &v);
@@ -737,8 +736,8 @@ static void gpencil_get_depth_array(tGPDfill *tgpf)
 	}
 
 	/* for surface sketching, need to set the right OpenGL context stuff so that
-	* the conversions will project the values correctly...
-	*/
+	 * the conversions will project the values correctly...
+	 */
 	if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) {
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(tgpf->win, tgpf->ar);

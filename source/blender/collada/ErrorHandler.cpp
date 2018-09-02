@@ -50,8 +50,8 @@ ErrorHandler::~ErrorHandler()
 bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 {
 	/* This method must return true when Collada should continue.
-	   See https://github.com/KhronosGroup/OpenCOLLADA/issues/442
-	*/
+	 * See https://github.com/KhronosGroup/OpenCOLLADA/issues/442
+	 */
 	bool isWarning = false;
 
 	if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER) {

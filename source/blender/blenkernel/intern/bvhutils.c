@@ -1243,7 +1243,7 @@ BVHTree *bvhtree_from_mesh_get(
 					int looptri_num = dm->getNumLoopTri(dm);
 
 					/* this assert checks we have looptris,
-					* if not caller should use DM_ensure_looptri() */
+					 * if not caller should use DM_ensure_looptri() */
 					BLI_assert(!(looptri_num == 0 && dm->getNumPolys(dm) != 0));
 
 					tree = bvhtree_from_mesh_looptri_create_tree(
@@ -1445,7 +1445,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(
 				if (data_cp.cached == false) {
 					int looptri_num = BKE_mesh_runtime_looptri_len(mesh);
 					/* this assert checks we have looptris,
-					* if not caller should use DM_ensure_looptri() */
+					 * if not caller should use DM_ensure_looptri() */
 					BLI_assert(!(looptri_num == 0 && mesh->totpoly != 0));
 
 					data_cp.tree = bvhtree_from_mesh_looptri_create_tree(

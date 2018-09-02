@@ -2573,7 +2573,7 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 					bool do_skip = false;
 
 					/* Currently only used for two of three most frequent transform ops, can include more ops.
-					* Note that scaling cannot be included here, non-uniform scaling will affect normals. */
+					 * Note that scaling cannot be included here, non-uniform scaling will affect normals. */
 					if (ELEM(t->mode, TFM_TRANSLATION, TFM_ROTATION)) {
 						if (em->bm->totvertsel == em->bm->totvert) {
 							/* No need to invalidate if whole mesh is selected. */

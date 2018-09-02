@@ -216,8 +216,8 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	/* see eView2D_CommonViewTypes in UI_view2d.h for available view presets */
 	switch (type) {
 		/* 'standard view' - optimum setup for 'standard' view behavior,
-		 *  that should be used new views as basis for their
-		 *  own unique View2D settings, which should be used instead of this in most cases...
+		 * that should be used new views as basis for their
+		 * own unique View2D settings, which should be used instead of this in most cases...
 		 */
 		case V2D_COMMONVIEW_STANDARD:
 		{
@@ -227,9 +227,9 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			v2d->maxzoom = 1000.0f;
 
 			/* tot rect and cur should be same size, and aligned using 'standard' OpenGL coordinates for now
-			 *	- region can resize 'tot' later to fit other data
-			 *	- keeptot is only within bounds, as strict locking is not that critical
-			 *	- view is aligned for (0,0) -> (winx-1, winy-1) setup
+			 * - region can resize 'tot' later to fit other data
+			 * - keeptot is only within bounds, as strict locking is not that critical
+			 * - view is aligned for (0,0) -> (winx-1, winy-1) setup
 			 */
 			v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_NEG_Y);
 			v2d->keeptot = V2D_KEEPTOT_BOUNDS;
@@ -261,7 +261,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 			break;
 		}
 		/* 'stack view' - practically the same as list/channel view, except is located in the pos y half instead.
-		 *  zoom, aspect ratio, and alignment restrictions are set here */
+		 * zoom, aspect ratio, and alignment restrictions are set here */
 		case V2D_COMMONVIEW_STACK:
 		{
 			/* zoom + aspect ratio are locked */
@@ -634,7 +634,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 			}
 			else if (cur->xmax > tot->xmax) {
 				/* - only offset by difference of cur-xmax and tot-xmax if that would not move
-				 *  cur-xmin to lie past tot-xmin
+				 *   cur-xmin to lie past tot-xmin
 				 * - otherwise, simply shift to tot-xmin???
 				 */
 				temp = cur->xmax - tot->xmax;
@@ -678,7 +678,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 			}
 			else if (cur->xmax > tot->xmax) {
 				/* - only offset by difference of cur-xmax and tot-xmax if that would not move
-				 *  cur-xmin to lie past tot-xmin
+				 *   cur-xmin to lie past tot-xmin
 				 * - otherwise, simply shift to tot-xmin???
 				 */
 				temp = cur->xmax - tot->xmax;

@@ -196,7 +196,7 @@ static void button2d_draw_intern(
 			if (is_3d) {
 				const float fac = 2.0f;
 				GPU_matrix_translate_2f(-(fac / 2), -(fac / 2));
-				GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH *  UI_DPI_FAC), fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
+				GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH * UI_DPI_FAC), fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
 				size[0] = 1.0f;
 				size[1] = 1.0f;
 			}

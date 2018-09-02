@@ -287,8 +287,8 @@ static int add_driver_with_target(
 }
 
 /* Main Driver Management API calls:
- *  Add a new driver for the specified property on the given ID block,
- *  and make it be driven by the specified target.
+ * Add a new driver for the specified property on the given ID block,
+ * and make it be driven by the specified target.
  *
  * This is intended to be used in conjunction with a modal "eyedropper"
  * for picking the variable that is going to be used to drive this one.
@@ -370,7 +370,7 @@ int ANIM_add_driver_with_target(
 /* --------------------------------- */
 
 /* Main Driver Management API calls:
- *  Add a new driver for the specified property on the given ID block
+ * Add a new driver for the specified property on the given ID block
  */
 int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int array_index, short flag, int type)
 {
@@ -477,7 +477,7 @@ int ANIM_add_driver(ReportList *reports, ID *id, const char rna_path[], int arra
 }
 
 /* Main Driver Management API calls:
- *  Remove the driver for the specified property on the given ID block (if available)
+ * Remove the driver for the specified property on the given ID block (if available)
  */
 bool ANIM_remove_driver(ReportList *UNUSED(reports), ID *id, const char rna_path[], int array_index, short UNUSED(flag))
 {

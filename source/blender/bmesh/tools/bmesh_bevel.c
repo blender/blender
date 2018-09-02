@@ -1596,8 +1596,8 @@ static void bevel_extend_edge_data(BevVert *bv)
 				start = bcur;			/* set start to first boundvert with seam_len > 0 */
 
 			/* Now for all the mesh_verts starting at current index and ending at idxlen
-			*  We go through outermost ring and through all its segments and add seams
-			*  for those edges */
+			 * We go through outermost ring and through all its segments and add seams
+			 * for those edges */
 			int idxlen = bcur->index + bcur->seam_len;
 			for (int i = bcur->index; i < idxlen; i++) {
 				BMVert *v1 = mesh_vert(vm, i % vm->count, 0, 0)->v, *v2;
@@ -2345,7 +2345,7 @@ static void adjust_the_cycle_or_chain(BoundVert *vstart, bool iscycle)
 
 			/* residue np + 2*i (if cycle) else np - 1 + 2*i:
 			 * right offset for parm i matches its spec; weighted */
-			row = iscycle ? np + 2 * i : np - 1 + 2 *  i;
+			row = iscycle ? np + 2 * i : np - 1 + 2 * i;
 			EIG_linear_solver_matrix_add(solver, row, i, weight);
 			EIG_linear_solver_right_hand_side_add(solver, 0, row, weight * eright->offset_r);
 #ifdef DEBUG_ADJUST

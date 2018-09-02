@@ -885,9 +885,9 @@ static bool gp_brush_weight_apply(
 	float inf;
 
 	/* Compute strength of effect
-	* - We divide the strength by 10, so that users can set "sane" values.
-	*   Otherwise, good default values are in the range of 0.093
-	*/
+	 * - We divide the strength by 10, so that users can set "sane" values.
+	 *   Otherwise, good default values are in the range of 0.093
+	 */
 	inf = gp_brush_influence_calc(gso, radius, co) / 10.0f;
 
 	/* need a vertex group */

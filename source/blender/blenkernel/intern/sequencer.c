@@ -2420,21 +2420,21 @@ void BKE_sequencer_color_balance_apply(StripColorBalance *cb, ImBuf *ibuf, float
 }
 
 /*
- *  input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE
+ * input preprocessing for SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_MOVIECLIP and SEQ_TYPE_SCENE
  *
- *  Do all the things you can't really do afterwards using sequence effects
- *  (read: before rescaling to render resolution has been done)
+ * Do all the things you can't really do afterwards using sequence effects
+ * (read: before rescaling to render resolution has been done)
  *
- *  Order is important!
+ * Order is important!
  *
- *  - Deinterlace
- *  - Crop and transform in image source coordinate space
- *  - Flip X + Flip Y (could be done afterwards, backward compatibility)
- *  - Promote image to float data (affects pipeline operations afterwards)
- *  - Color balance (is most efficient in the byte -> float
- *    (future: half -> float should also work fine!)
- *    case, if done on load, since we can use lookup tables)
- *  - Premultiply
+ * - Deinterlace
+ * - Crop and transform in image source coordinate space
+ * - Flip X + Flip Y (could be done afterwards, backward compatibility)
+ * - Promote image to float data (affects pipeline operations afterwards)
+ * - Color balance (is most efficient in the byte -> float
+ *   (future: half -> float should also work fine!)
+ *   case, if done on load, since we can use lookup tables)
+ * - Premultiply
  */
 
 bool BKE_sequencer_input_have_to_preprocess(const SeqRenderData *context, Sequence *seq, float UNUSED(cfra))

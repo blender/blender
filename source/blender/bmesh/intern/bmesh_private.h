@@ -31,9 +31,9 @@
 /** \file blender/bmesh/intern/bmesh_private.h
  *  \ingroup bmesh
  *
- *  Private function prototypes for bmesh public API.
- *  This file is a grab-bag of functions from various
- *  parts of the bmesh internals.
+ * Private function prototypes for bmesh public API.
+ * This file is a grab-bag of functions from various
+ * parts of the bmesh internals.
  */
 
 /* returns positive nonzero on error */

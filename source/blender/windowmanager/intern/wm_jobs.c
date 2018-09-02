@@ -64,12 +64,12 @@
  *   - add timer notifier to handle progress
  *
  * Stop job
- *   - signal job to end
- *  on end, job will tag itself as sleeping
+ * - signal job to end
+ * on end, job will tag itself as sleeping
  *
  * Remove job
  * - signal job to end
- *  on end, job will remove itself
+ * on end, job will remove itself
  *
  * When job is done:
  * - it puts timer to sleep (or removes?)

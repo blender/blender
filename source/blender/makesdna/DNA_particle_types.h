@@ -106,15 +106,15 @@ typedef struct ParticleData {
 
 	int totkey;				/* amount of hair or keyed keys*/
 
-	float time, lifetime;	/* dietime is not nescessarily time+lifetime as	*/
-	float dietime;			/* particles can die unnaturally (collision)	*/
+	float time, lifetime;	/* dietime is not nescessarily time+lifetime as */
+	float dietime;			/* particles can die unnaturally (collision). */
 
 	/* WARNING! Those two indices, when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS! */
 	int num;				/* index to vert/edge/face */
 	int num_dmcache;		/* index to derived mesh data (face) to avoid slow lookups */
 
 	float fuv[4], foffset;	/* coordinates on face/edge number "num" and depth along*/
-							/* face normal for volume emission						*/
+							/* face normal for volume emission. */
 
 	float size;				/* size and multiplier so that we can update size when ever */
 

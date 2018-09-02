@@ -474,15 +474,15 @@ typedef enum ACTCONT_TYPES {
 /* Stroke Iteration Utilities */
 
 /**
-* Iterate over all editable strokes in the current context,
-* stopping on each usable layer + stroke pair (i.e. gpl and gps)
-* to perform some operations on the stroke.
-*
-* \param gpl  The identifier to use for the layer of the stroke being processed.
-*                    Choose a suitable value to avoid name clashes.
-* \param gps The identifier to use for current stroke being processed.
-*                    Choose a suitable value to avoid name clashes.
-*/
+ * Iterate over all editable strokes in the current context,
+ * stopping on each usable layer + stroke pair (i.e. gpl and gps)
+ * to perform some operations on the stroke.
+ *
+ * \param gpl  The identifier to use for the layer of the stroke being processed.
+ *                    Choose a suitable value to avoid name clashes.
+ * \param gps The identifier to use for current stroke being processed.
+ *                    Choose a suitable value to avoid name clashes.
+ */
 #define GP_EDITABLE_STROKES_BEGIN(C, gpl, gps)                                          \
 {                                                                                       \
 	Depsgraph *depsgraph_ = CTX_data_depsgraph(C);                                      \

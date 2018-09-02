@@ -900,8 +900,8 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 	*r_length = len_v3(r_extent);
 
 	if (*r_length > ALMOST_ZERO) {
-		/*
-		if (length>L) {
+#if 0
+		if (length > L) {
 			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
 			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen ))
 			{
@@ -910,7 +910,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 				return false;
 			}
 		}
-		*/
+#endif
 		mul_v3_v3fl(r_dir, r_extent, 1.0f/(*r_length));
 	}
 	else {

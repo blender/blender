@@ -2313,8 +2313,8 @@ void BKE_object_where_is_calc(Depsgraph *depsgraph, Scene *scene, Object *ob)
  *
  * It assumes the object parent is already in the depsgraph.
  * Otherwise, after changing ob->parent you need to call:
- *  DEG_relations_tag_update(bmain);
- *  BKE_scene_graph_update_tagged(depsgraph, bmain);
+ * - #DEG_relations_tag_update(bmain);
+ * - #BKE_scene_graph_update_tagged(depsgraph, bmain);
  */
 void BKE_object_workob_calc_parent(Depsgraph *depsgraph, Scene *scene, Object *ob, Object *workob)
 {
@@ -3934,7 +3934,7 @@ bool BKE_object_modifier_update_subframe(
 		if (ob->track) no_update |= BKE_object_modifier_update_subframe(depsgraph, scene, ob->track, 0, recursion, frame, type);
 
 		/* skip subframe if object is parented
-		 *  to vertex of a dynamic paint canvas */
+		 * to vertex of a dynamic paint canvas */
 		if (no_update && (ob->partype == PARVERT1 || ob->partype == PARVERT3))
 			return false;
 
@@ -3963,7 +3963,7 @@ bool BKE_object_modifier_update_subframe(
 	BKE_animsys_evaluate_animdata(depsgraph, scene, &ob->id, ob->adt, frame, ADT_RECALC_ANIM);
 	if (update_mesh) {
 		/* ignore cache clear during subframe updates
-		 *  to not mess up cache validity */
+		 * to not mess up cache validity */
 		object_cacheIgnoreClear(ob, 1);
 		BKE_object_handle_update(depsgraph, scene, ob);
 		object_cacheIgnoreClear(ob, 0);

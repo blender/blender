@@ -1903,8 +1903,8 @@ static int gpencil_vertex_group_smooth_exec(bContext *C, wmOperator *op)
 				float wb = defvert_find_weight(dvertb, def_nr);
 
 				/* the optimal value is the corresponding to the interpolation of the weight
-				*  at the distance of point b
-				*/
+				 * at the distance of point b
+				 */
 				const float opfac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
 				const float optimal = interpf(wa, wb, opfac);
 				/* Based on influence factor, blend between original and optimal */
@@ -2339,8 +2339,8 @@ static int gpencil_color_isolate_exec(bContext *C, wmOperator *op)
 			continue;
 
 		/* If the flags aren't set, that means that the color is
-		* not alone, so we have some colors to isolate still
-		*/
+		 * not alone, so we have some colors to isolate still
+		 */
 		gp_style = ma->gp_style;
 		if ((gp_style->flag & flags) == 0) {
 			isolate = true;

@@ -315,9 +315,9 @@ typedef struct bGPdata_runtime {
 	short bfill_style;          /* buffer style for filling areas (used to select shader type) */
 
 	/* Stroke Buffer data (only used during paint-session)
-	* 	- buffer must be initialized before use, but freed after
-	*	  whole paint operation is over
-	*/
+	 * - buffer must be initialized before use, but freed after
+	 *   whole paint operation is over
+	 */
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
 	char pad_[6];

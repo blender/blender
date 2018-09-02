@@ -218,7 +218,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd, Weight
 		items_data = MEM_calloc_arrayN((size_t)num_items, sizeof(*items_data), __func__);
 
 		/* In this first loop, we assign each WeightedNormalDataAggregateItem
-		*  to its smooth fan of loops (aka lnor space). */
+		 * to its smooth fan of loops (aka lnor space). */
 		MPoly *mp;
 		int mp_index;
 		int item_index;
@@ -484,8 +484,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	Object *ob = ctx->object;
 
 	/* XXX TODO ARG GRRR XYQWNMPRXTYY
-	* Once we fully switch to Mesh evaluation of modifiers, we can expect to get that flag from the COW copy.
-	* But for now, it is lost in the DM intermediate step, so we need to directly check orig object's data. */
+	 * Once we fully switch to Mesh evaluation of modifiers, we can expect to get that flag from the COW copy.
+	 * But for now, it is lost in the DM intermediate step, so we need to directly check orig object's data. */
 #if 0
 	if (!(mesh->flag & ME_AUTOSMOOTH)) {
 #else

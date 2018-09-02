@@ -29,12 +29,12 @@
 /** \file blender/windowmanager/WM_api.h
  *  \ingroup wm
  *
- *  \page wmpage windowmanager
- *  \section wmabout About windowmanager
- *  \ref wm handles events received from \ref GHOST and manages
- *  the screens, areas and input for Blender
- *  \section wmnote NOTE
- *  \todo document
+ * \page wmpage windowmanager
+ * \section wmabout About windowmanager
+ * \ref wm handles events received from \ref GHOST and manages
+ * the screens, areas and input for Blender
+ * \section wmnote NOTE
+ * \todo document
  */
 
 /* dna-savable wmStructs here */

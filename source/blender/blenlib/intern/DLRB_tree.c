@@ -572,7 +572,7 @@ DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb,
 		node->tree_col = DLRBT_RED;
 
 		/* perform BST balancing steps:
-		 *  start from case 1, an trek through the tail-recursive insertion checks
+		 * start from case 1, an trek through the tail-recursive insertion checks
 		 */
 		insert_check_1(tree, node);
 	}

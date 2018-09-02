@@ -1997,10 +1997,10 @@ void DepsgraphRelationBuilder::build_object_data_geometry_datablock(ID *obdata)
 			bGPdata *gpd = (bGPdata *)obdata;
 
 			/* Geometry cache needs to be recalculated on frame change
-			* (e.g. to fix crashes after scrubbing the timeline when
-			*  onion skinning is enabled, since the ghosts need to be
-			*  re-added to the cache once scrubbing ends)
-			*/
+			 * (e.g. to fix crashes after scrubbing the timeline when
+			 * onion skinning is enabled, since the ghosts need to be
+			 * re-added to the cache once scrubbing ends)
+			 */
 			TimeSourceKey time_key;
 			ComponentKey geometry_key(obdata, DEG_NODE_TYPE_GEOMETRY);
 			add_relation(time_key,

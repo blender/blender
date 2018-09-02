@@ -1514,7 +1514,7 @@ static void sample_derivedmesh(
 				velocity_map[index * 3 + 1] += hit_normal[1] * sfs->vel_normal * 0.25f;
 				velocity_map[index * 3 + 2] += hit_normal[2] * sfs->vel_normal * 0.25f;
 				/* TODO: for fire emitted from mesh surface we can use
-				 *  Vf = Vs + (Ps/Pf - 1)*S to model gaseous expansion from solid to fuel */
+				 * Vf = Vs + (Ps/Pf - 1)*S to model gaseous expansion from solid to fuel */
 			}
 			/* apply object velocity */
 			if (has_velocity && sfs->vel_multi) {
@@ -2711,7 +2711,7 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 		ml[0].v = 1; ml[1].v = 0; ml[2].v = 4; ml[3].v = 5;
 
 		/* calculate required shift to match domain's global position
-		 *  it was originally simulated at (if object moves without smoke step) */
+		 * it was originally simulated at (if object moves without smoke step) */
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->obmat, ob_loc);
 		mul_m4_v3(sds->obmat, ob_cache_loc);
@@ -3067,7 +3067,7 @@ static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_la
 }
 
 /* get smoke velocity and density at given coordinates
- *  returns fluid density or -1.0f if outside domain*/
+ * returns fluid density or -1.0f if outside domain. */
 float smoke_get_velocity_at(struct Object *ob, float position[3], float velocity[3])
 {
 	SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);

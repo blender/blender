@@ -691,7 +691,7 @@ PyObject *PyC_UnicodeFromByte(const char *str)
  * Description: This function creates a new Python dictionary object.
  * note: dict is owned by sys.modules["__main__"] module, reference is borrowed
  * note: important we use the dict from __main__, this is what python expects
- *  for 'pickle' to work as well as strings like this...
+ * for 'pickle' to work as well as strings like this...
  * >> foo = 10
  * >> print(__import__("__main__").foo)
  *

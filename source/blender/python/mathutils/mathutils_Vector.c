@@ -847,7 +847,7 @@ static PyObject *Vector_orthogonal(VectorObject *self)
 /**
  * Vector.reflect(mirror): return a reflected vector on the mirror normal.
  * <pre>
- *  vec - ((2 * dot(vec, mirror)) * mirror)
+ * vec - ((2 * dot(vec, mirror)) * mirror)
  * </pre>
  */
 PyDoc_STRVAR(Vector_reflect_doc,
@@ -1650,7 +1650,7 @@ static PyObject *Vector_isub(PyObject *v1, PyObject *v2)
 
 
 /**
- *  column vector multiplication (Matrix * Vector)
+ * Column vector multiplication (Matrix * Vector).
  * <pre>
  * [1][4][7]   [a]
  * [2][5][8] * [b]
@@ -2391,7 +2391,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 }
 
 /**
- *  Set the items of this vector using a swizzle.
+ * Set the items of this vector using a swizzle.
  * - If value is a vector or list this operates like an array copy, except that
  *   the destination is effectively re-ordered as defined by the swizzle. At
  *   most min(len(source), len(dest)) values will be copied.

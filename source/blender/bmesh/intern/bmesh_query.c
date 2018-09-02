@@ -1206,7 +1206,7 @@ bool BM_face_share_face_check(BMFace *f1, BMFace *f2)
 }
 
 /**
- *  Counts the number of edges two faces share (if any)
+ * Counts the number of edges two faces share (if any)
  */
 int BM_face_share_edge_count(BMFace *f_a, BMFace *f_b)
 {
@@ -1225,7 +1225,7 @@ int BM_face_share_edge_count(BMFace *f_a, BMFace *f_b)
 }
 
 /**
- *  Returns true if the faces share an edge
+ * Returns true if the faces share an edge
  */
 bool BM_face_share_edge_check(BMFace *f1, BMFace *f2)
 {
@@ -1243,7 +1243,7 @@ bool BM_face_share_edge_check(BMFace *f1, BMFace *f2)
 }
 
 /**
- *  Counts the number of verts two faces share (if any).
+ * Counts the number of verts two faces share (if any).
  */
 int BM_face_share_vert_count(BMFace *f_a, BMFace *f_b)
 {
@@ -1262,7 +1262,7 @@ int BM_face_share_vert_count(BMFace *f_a, BMFace *f_b)
 }
 
 /**
- *  Returns true if the faces share a vert.
+ * Returns true if the faces share a vert.
  */
 bool BM_face_share_vert_check(BMFace *f_a, BMFace *f_b)
 {
@@ -1656,8 +1656,8 @@ void BM_loop_calc_face_tangent(const BMLoop *l, float r_tangent[3])
 /**
  * \brief BMESH EDGE/FACE ANGLE
  *
- *  Calculates the angle between two faces.
- *  Assumes the face normals are correct.
+ * Calculates the angle between two faces.
+ * Assumes the face normals are correct.
  *
  * \return angle in radians
  */
@@ -1680,8 +1680,8 @@ float BM_edge_calc_face_angle(const BMEdge *e)
 /**
  * \brief BMESH EDGE/FACE ANGLE
  *
- *  Calculates the angle between two faces.
- *  Assumes the face normals are correct.
+ * Calculates the angle between two faces.
+ * Assumes the face normals are correct.
  *
  * \return angle in radians
  */

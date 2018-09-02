@@ -1529,7 +1529,7 @@ static BMO_FlagSet bmo_enum_similar_edges_types[] = {
 /*
  * Similar Edges Search.
  *
- *  Find similar edges (length, direction, edge, seam, ...).
+ * Find similar edges (length, direction, edge, seam, ...).
  */
 static BMOpDefine bmo_similar_edges_def = {
 	"similar_edges",

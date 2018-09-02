@@ -2193,12 +2193,12 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 
 		/*
 		 * NOTE: Should in theory be the same as:
-		 cpa_num = psys_particle_dm_face_lookup(
-		        ctx->sim.psmd->dm_final,
-		        ctx->sim.psmd->dm_deformed,
-		        pa->num, pa->fuv,
-		        NULL);
-		*/
+		 * cpa_num = psys_particle_dm_face_lookup(
+		 *        ctx->sim.psmd->dm_final,
+		 *        ctx->sim.psmd->dm_deformed,
+		 *        pa->num, pa->fuv,
+		 *        NULL);
+		 */
 		cpa_num = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND))
 		        ? pa->num
 		        : pa->num_dmcache;

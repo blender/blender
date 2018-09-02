@@ -1493,7 +1493,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	UI_block_func_set(block, wm_block_splash_refreshmenu, block, NULL);
 
 	/* label for 'a' bugfix releases, or 'Release Candidate 1'...
-	 *  avoids recreating splash for version updates */
+	 * avoids recreating splash for version updates */
 	if (STREQ(STRINGIFY(BLENDER_VERSION_CYCLE), "alpha")) {
 		version_suffix = "Alpha 2";
 	}

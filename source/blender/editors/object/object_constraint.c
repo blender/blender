@@ -799,10 +799,10 @@ static void child_get_inverse_matrix(const bContext *C, Scene *scene, Object *ob
 		if (ob && ob->pose && (pchan = BKE_pose_channel_active(ob))) {
 			bConstraint *con_last;
 			/* calculate/set inverse matrix:
-			 *  We just calculate all transform-stack eval up to but not including this constraint.
-			 *  This is because inverse should just inverse correct for just the constraint's influence
-			 *  when it gets applied; that is, at the time of application, we don't know anything about
-			 *  what follows.
+			 * We just calculate all transform-stack eval up to but not including this constraint.
+			 * This is because inverse should just inverse correct for just the constraint's influence
+			 * when it gets applied; that is, at the time of application, we don't know anything about
+			 * what follows.
 			 */
 			float imat[4][4], tmat[4][4];
 			float pmat[4][4];

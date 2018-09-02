@@ -358,9 +358,9 @@ GPUBatch *DRW_gpencil_get_buffer_fill_geom(bGPdata *gpd)
 	float (*points2d)[2] = MEM_mallocN(sizeof(*points2d) * totpoints, __func__);
 
 	/* Convert points to array and triangulate
-	* Here a cache is not used because while drawing the information changes all the time, so the cache
-	* would be recalculated constantly, so it is better to do direct calculation for each function call
-	*/
+	 * Here a cache is not used because while drawing the information changes all the time, so the cache
+	 * would be recalculated constantly, so it is better to do direct calculation for each function call
+	 */
 	for (int i = 0; i < totpoints; i++) {
 		const tGPspoint *pt = &points[i];
 		points2d[i][0] = pt->x;
@@ -460,10 +460,10 @@ GPUBatch *DRW_gpencil_get_edit_geom(bGPDstroke *gps, float alpha, short dflag)
 	}
 
 	/* Get size of verts:
-	* - The selected state needs to be larger than the unselected state so that
-	*   they stand out more.
-	* - We use the theme setting for size of the unselected verts
-	*/
+	 * - The selected state needs to be larger than the unselected state so that
+	 *   they stand out more.
+	 * - We use the theme setting for size of the unselected verts
+	 */
 	float bsize = UI_GetThemeValuef(TH_GP_VERTEX_SIZE);
 	float vsize;
 	if ((int)bsize > 8) {

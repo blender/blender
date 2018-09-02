@@ -665,7 +665,7 @@ static int RIG_parentControl(RigControl *ctrl, EditBone *link)
 		}
 
 		/* if there's already a link
-		 *  overwrite only if new link is higher in the chain */
+		 * overwrite only if new link is higher in the chain */
 		if (ctrl->link && flag == ctrl->flag) {
 			EditBone *bone = NULL;
 

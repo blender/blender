@@ -1384,7 +1384,7 @@ static void DRW_shgroup_mball_handles(OBJECT_ShadingGroupList *sgl, Object *ob, 
 		float scamat[3][3];
 		copy_m3_m4(scamat, ob->obmat);
 		/* Get the normalized inverse matrix to extract only
-		* the scale of Scamat */
+		 * the scale of Scamat */
 		float iscamat[3][3];
 		invert_m3_m3(iscamat, scamat);
 		normalize_m3(iscamat);

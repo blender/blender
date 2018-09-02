@@ -66,16 +66,16 @@ typedef enum {
 	eGpencilModifierTypeFlag_SupportsEditmode = (1 << 1),
 
 	/* For modifiers that support editmode this determines if the
-	* modifier should be enabled by default in editmode. This should
-	* only be used by modifiers that are relatively speedy and
-	* also generally used in editmode, otherwise let the user enable
-	* it by hand.
-	*/
+	 * modifier should be enabled by default in editmode. This should
+	 * only be used by modifiers that are relatively speedy and
+	 * also generally used in editmode, otherwise let the user enable
+	 * it by hand.
+	 */
 	eGpencilModifierTypeFlag_EnableInEditmode = (1 << 2),
 
 	/* For modifiers that require original data and so cannot
-	* be placed after any non-deformative modifier.
-	*/
+	 * be placed after any non-deformative modifier.
+	 */
 	eGpencilModifierTypeFlag_RequiresOriginalData = (1 << 3),
 
 	/* max one per type */

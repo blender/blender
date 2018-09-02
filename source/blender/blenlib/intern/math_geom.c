@@ -2906,8 +2906,9 @@ float line_plane_factor_v3(const float plane_co[3], const float plane_no[3],
 	return (dot != 0.0f) ? -dot_v3v3(plane_no, h) / dot : 0.0f;
 }
 
-/** Ensure the distance between these points is no greater than 'dist'.
- *  If it is, scale then both into the center.
+/**
+ * Ensure the distance between these points is no greater than 'dist'.
+ * If it is, scale then both into the center.
  */
 void limit_dist_v3(float v1[3], float v2[3], const float dist)
 {
@@ -3468,8 +3469,8 @@ void transform_point_by_tri_v3(
 {
 	/* this works by moving the source triangle so its normal is pointing on the Z
 	 * axis where its barycentric weights can be calculated in 2D and its Z offset can
-	 *  be re-applied. The weights are applied directly to the targets 3D points and the
-	 *  z-depth is used to scale the targets normal as an offset.
+	 * be re-applied. The weights are applied directly to the targets 3D points and the
+	 * z-depth is used to scale the targets normal as an offset.
 	 * This saves transforming the target into its Z-Up orientation and back (which could also work) */
 	float no_tar[3], no_src[3];
 	float mat_src[3][3];

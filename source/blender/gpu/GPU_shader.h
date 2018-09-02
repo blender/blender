@@ -361,10 +361,10 @@ typedef enum GPUBuiltinShader {
 	GPU_NUM_BUILTIN_SHADERS /* (not an actual shader) */
 } GPUBuiltinShader;
 
-/* Keep these in sync with:
- *  gpu_shader_image_interlace_frag.glsl
- *  gpu_shader_image_rect_interlace_frag.glsl
- **/
+/** Keep these in sync with:
+ * - `gpu_shader_image_interlace_frag.glsl`
+ * - `gpu_shader_image_rect_interlace_frag.glsl`
+ */
 typedef enum GPUInterlaceShader {
 	GPU_SHADER_INTERLACE_ROW               = 0,
 	GPU_SHADER_INTERLACE_COLUMN            = 1,

@@ -570,11 +570,11 @@ void cloth_free_modifier(ClothModifierData *clmd )
 		if (cloth->edgeset)
 			BLI_edgeset_free(cloth->edgeset);
 
-
-		/*
-		if (clmd->clothObject->facemarks)
-		MEM_freeN(clmd->clothObject->facemarks);
-		*/
+#if 0
+		if (clmd->clothObject->facemarks) {
+			MEM_freeN(clmd->clothObject->facemarks);
+		}
+#endif
 		MEM_freeN ( cloth );
 		clmd->clothObject = NULL;
 	}
@@ -640,10 +640,11 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 			BLI_edgeset_free(cloth->edgeset);
 
 
-		/*
-		if (clmd->clothObject->facemarks)
-		MEM_freeN(clmd->clothObject->facemarks);
-		*/
+#if 0
+		if (clmd->clothObject->facemarks) {
+			MEM_freeN(clmd->clothObject->facemarks);
+		}
+#endif
 		MEM_freeN ( cloth );
 		clmd->clothObject = NULL;
 	}

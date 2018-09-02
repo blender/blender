@@ -961,8 +961,8 @@ static void UNUSED_FUNCTION(draw_rotation_guide)(RegionView3D *rv3d)
 /* ******************** info ***************** */
 
 /**
-* Render and camera border
-*/
+ * Render and camera border
+ */
 static void view3d_draw_border(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -979,16 +979,16 @@ static void view3d_draw_border(const bContext *C, ARegion *ar)
 }
 
 /**
-* Grease Pencil
-*/
+ * Grease Pencil
+ */
 static void view3d_draw_grease_pencil(const bContext *UNUSED(C))
 {
 	/* TODO viewport */
 }
 
 /**
-* Viewport Name
-*/
+ * Viewport Name
+ */
 static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 {
 	const char *name = NULL;
@@ -1182,8 +1182,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 /* ******************** view loop ***************** */
 
 /**
-* Information drawn on top of the solid plates and composed data
-*/
+ * Information drawn on top of the solid plates and composed data
+ */
 void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(offset))
 {
 	RegionView3D *rv3d = ar->regiondata;

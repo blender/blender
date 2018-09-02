@@ -68,14 +68,15 @@
 static float I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 static float ZERO[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
-/*
+#if 0
 #define C99
 #ifdef C99
 #defineDO_INLINE inline
 #else
 #defineDO_INLINE static
 #endif
-*/
+#endif  /* if 0 */
+
 struct Cloth;
 
 //////////////////////////////////////////
@@ -383,14 +384,18 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 			int i2=(i+2)%3;
 			int j1=(j+1)%3;
 			int j2=(j+2)%3;
-			// reverse indexs i&j to take transpose
+			/** Reverse indexs i&j to take transpose. */
 			to[j][i] = (from[i1][j1]*from[i2][j2]-from[i1][j2]*from[i2][j1])/d;
-			/*
-			if (i==j)
-			to[i][j] = 1.0f / from[i][j];
-			else
-			to[i][j] = 0;
-			*/
+			/**
+			 * <pre>
+			 * if (i == j) {
+			 *     to[i][j] = 1.0f / from[i][j];
+			 * }
+			 * else {
+			 *     to[i][j] = 0;
+			 * }
+			 * </pre>
+			 */
 		}
 	}
 
@@ -923,7 +928,8 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 
 	}
 }
-/*
+
+#if 0
 // version 1.3
 static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
@@ -995,7 +1001,8 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 
 	return iterations<conjgrad_looplimit;
 }
-*/
+#endif
+
 // version 1.4
 static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv, fmatrix3x3 *bigI)
 {
@@ -1038,7 +1045,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	// deltaNew = r^TP
 	deltaNew = dot_lfvector(r, p, numverts);
 
-	/*
+#if 0
 	filter(dv, S);
 	add_lfvector_lfvector(dv, dv, z, numverts);
 
@@ -1052,7 +1059,7 @@ static int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector 
 	deltaNew = dot_lfvector(r, p, numverts);
 
 	delta0 = deltaNew * sqrt(conjgrad_epsilon);
-	*/
+#endif
 
 #ifdef DEBUG_TIME
 	double start = PIL_check_seconds_timer();
@@ -1548,8 +1555,8 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 	*r_length = len_v3(r_extent);
 
 	if (*r_length > ALMOST_ZERO) {
-		/*
-		if (length>L) {
+#if 0
+		if (length > L) {
 			if ((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) &&
 			    ( ((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen ))
 			{
@@ -1558,7 +1565,7 @@ BLI_INLINE bool spring_length(Implicit_Data *data, int i, int j, float r_extent[
 				return false;
 			}
 		}
-		*/
+#endif
 		mul_v3_v3fl(r_dir, r_extent, 1.0f/(*r_length));
 	}
 	else {

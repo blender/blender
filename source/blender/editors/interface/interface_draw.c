@@ -2053,7 +2053,9 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 
 static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, float maxx, float maxy, float shadsize, unsigned char alpha)
 {
-	/*          v1-_
+	/**
+	 * <pre>
+	 *          v1-_
 	 *          |   -_v2
 	 *          |     |
 	 *          |     |
@@ -2062,6 +2064,7 @@ static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, f
 	 * \        |     /
 	 *  \       |   _v5
 	 *  v8______v6_-
+	 * </pre>
 	 */
 	const float v1[2] = {maxx,                   maxy - 0.3f * shadsize};
 	const float v2[2] = {maxx + shadsize,        maxy - 0.75f * shadsize};

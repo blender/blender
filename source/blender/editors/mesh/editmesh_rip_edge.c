@@ -99,7 +99,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 		/* not essential, but gives more expected results with edge selection */
 		if (bm->totedgesel) {
 			/* angle against center can give odd result,
-			* try re-position the center to the closest edge */
+			 * try re-position the center to the closest edge */
 			BMIter eiter;
 			BMEdge *e;
 			float dist_sq_best = len_squared_v2v2(cent_sco, mval_fl);

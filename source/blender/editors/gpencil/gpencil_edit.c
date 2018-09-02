@@ -442,9 +442,9 @@ static bool gp_stroke_edit_poll(bContext *C)
 static bool gp_strokes_edit3d_poll(bContext *C)
 {
 	/* 2 Requirements:
-	*  - 1) Editable GP data
-	*  - 2) 3D View only
-	*/
+	 * - 1) Editable GP data
+	 * - 2) 3D View only
+	 */
 	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
 }
 

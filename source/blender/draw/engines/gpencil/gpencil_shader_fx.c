@@ -76,11 +76,12 @@ static bool effect_is_active(bGPdata *gpd, ShaderFxData *fx, bool is_render)
 	return false;
 }
 
-/* get normal of draw using one stroke of visible layer
-* /param gpd        GP datablock
-* /param r_point    Point on plane
-* /param r_normal   Normal vector
-*/
+/**
+ * Get normal of draw using one stroke of visible layer
+ * \param gpd        GP datablock
+ * \param r_point    Point on plane
+ * \param r_normal   Normal vector
+ */
 static bool get_normal_vector(bGPdata *gpd, float r_point[3], float r_normal[3])
 {
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -123,9 +124,9 @@ static void GPENCIL_dof_nearfar(Object *camera, float coc, float nearfar[2])
 	float focal_len = cam->lens;
 
 	/* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
-	* unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
-	* because the shader reads coordinates in world space, which is in blender units.
-	* Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
+	 * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
+	 * because the shader reads coordinates in world space, which is in blender units.
+	 * Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
 	float scale = (scene->unit.system) ? scene->unit.scale_length : 1.0f;
 	float scale_camera = 0.001f / scale;
 	/* we want radius here for the aperture number  */
@@ -308,8 +309,8 @@ static void DRW_gpencil_fx_light(
 	copy_v3_v3(fxd->loc, &fxd->object->loc[0]);
 
 	/* Calc distance to strokes plane
-	* The w component of location is used to transfer the distance to drawing plane
-	*/
+	 * The w component of location is used to transfer the distance to drawing plane
+	 */
 	float r_point[3], r_normal[3];
 	float r_plane[4];
 	bGPdata *gpd = cache->gpd;

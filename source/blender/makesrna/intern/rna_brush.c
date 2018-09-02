@@ -1949,16 +1949,16 @@ static void rna_def_brush(BlenderRNA *brna)
 
 }
 
-
-/* A brush stroke is a list of changes to the brush that
+/**
+ * A brush stroke is a list of changes to the brush that
  * can occur during a stroke
  *
- *  o 3D location of the brush
- *  o 2D mouse location
- *  o Tablet pressure
- *  o Direction flip
- *  o Tool switch
- *  o Time
+ * - 3D location of the brush
+ * - 2D mouse location
+ * - Tablet pressure
+ * - Direction flip
+ * - Tool switch
+ * - Time
  */
 static void rna_def_operator_stroke_element(BlenderRNA *brna)
 {

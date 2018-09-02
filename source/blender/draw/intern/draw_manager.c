@@ -1670,7 +1670,7 @@ void DRW_render_gpencil(struct RenderEngine *engine, struct Depsgraph *depsgraph
 	/* This function is only valid for Cycles
 	 * Eevee done all work in the Eevee render directly.
 	 * Maybe it can be done equal for both engines?
-	*/
+	 */
 	if (STREQ(engine->type->name, "Eevee")) {
 		return;
 	}
@@ -2371,8 +2371,8 @@ bool DRW_state_is_scene_render(void)
 }
 
 /**
-* Whether we are rendering simple opengl render
-*/
+ * Whether we are rendering simple opengl render
+ */
 bool DRW_state_is_opengl_render(void)
 {
 	return DST.options.is_image_render && !DST.options.is_scene_render;

@@ -777,8 +777,8 @@ void gp_stroke_convertcoords_tpoint(
 
 	if ((depth != NULL) && (ED_view3d_autodist_simple(ar, mval, r_out, 0, depth))) {
 		/* projecting onto 3D-Geometry
-		*	- nothing more needs to be done here, since view_autodist_simple() has already done it
-		*/
+		 * - nothing more needs to be done here, since view_autodist_simple() has already done it
+		 */
 	}
 	else {
 		float mval_f[2] = {(float)point2D->x, (float)point2D->y};
@@ -849,8 +849,8 @@ void ED_gp_project_stroke_to_plane(Object *ob, RegionView3D *rv3d, bGPDstroke *g
 	zero_v3(plane_normal);
 	if (axis < 0) {
 		/* if the axis is not locked, need a vector to the view direction
-		* in order to get the right size of the stroke.
-		*/
+		 * in order to get the right size of the stroke.
+		 */
 		ED_view3d_global_to_vector(rv3d, origin, plane_normal);
 	}
 	else {
@@ -1370,10 +1370,11 @@ void ED_gpencil_brush_draw_eraser(Brush *brush, int x, int y)
 	immUniform1f("dash_width", 12.0f);
 	immUniform1f("dash_factor", 0.5f);
 
-	imm_draw_circle_wire_2d(shdr_pos, x, y, radius,
-		/* XXX Dashed shader gives bad results with sets of small segments currently,
-		*     temp hack around the issue. :( */
-		max_ii(8, radius / 2));  /* was fixed 40 */
+	imm_draw_circle_wire_2d(
+	        shdr_pos, x, y, radius,
+	        /* XXX Dashed shader gives bad results with sets of small segments currently,
+	         *     temp hack around the issue. :( */
+	        max_ii(8, radius / 2));  /* was fixed 40 */
 
 	immUnbindProgram();
 

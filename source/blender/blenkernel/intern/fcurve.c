@@ -2022,8 +2022,8 @@ float evaluate_driver(PathResolvedRNA *anim_rna, ChannelDriver *driver, ChannelD
 		default:
 		{
 			/* special 'hack' - just use stored value
-			 *	This is currently used as the mechanism which allows animated settings to be able
-			 *  to be changed via the UI.
+			 * This is currently used as the mechanism which allows animated settings to be able
+			 * to be changed via the UI.
 			 */
 			break;
 		}

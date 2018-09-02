@@ -777,7 +777,7 @@ static void deg_restore_object_runtime(
 			/* Evaluated mesh simply copied edit_btmesh pointer from
 			 * original mesh during update, need to make sure no dead
 			 * pointers are left behind.
-			*/
+			 */
 			mesh_eval->edit_btmesh = mesh_orig->edit_btmesh;
 		}
 	}

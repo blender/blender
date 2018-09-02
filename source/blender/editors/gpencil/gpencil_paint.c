@@ -314,20 +314,20 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 		}
 		else {
 			/* If the mouse is moving within the radius of the last move,
-			* don't update the mouse position. This allows sharp turns. */
+			 * don't update the mouse position. This allows sharp turns. */
 			copy_v2_v2_int(p->mval, p->mvalo);
 			return false;
 		}
 	}
 	/* check if mouse moved at least certain distance on both axes (best case)
-	 *	- aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
+	 * - aims to eliminate some jitter-noise from input when trying to draw straight lines freehand
 	 */
 	else if ((dx > MIN_MANHATTEN_PX) && (dy > MIN_MANHATTEN_PX))
 		return true;
 
 	/* check if the distance since the last point is significant enough
-	 *	- prevents points being added too densely
-	 *	- distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
+	 * - prevents points being added too densely
+	 * - distance here doesn't use sqrt to prevent slowness... we should still be safe from overflows though
 	 */
 	else if ((dx * dx + dy * dy) > MIN_EUCLIDEAN_PX * MIN_EUCLIDEAN_PX)
 		return true;
@@ -372,9 +372,9 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 	if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
 
 		/* add small offset to keep stroke over the surface.
-		* This could be a UI parameter, but the value is too sensitive for
-		* the user to use it and don't improve the result.
-		*/
+		 * This could be a UI parameter, but the value is too sensitive for
+		 * the user to use it and don't improve the result.
+		 */
 		if (depth) {
 			*depth *= 0.99998f;
 		}
@@ -500,14 +500,14 @@ static void gp_brush_angle(bGPdata *gpd, Brush *brush, tGPspoint *pt, const int 
 }
 
 /* Apply smooth to buffer while drawing
-* to smooth point C, use 2 before (A, B) and current point (D):
-*
-*   A----B-----C------D
-*
-* \param p	    Temp data
-* \param inf    Influence factor
-* \param idx	Index of the last point (need minimum 3 points in the array)
-*/
+ * to smooth point C, use 2 before (A, B) and current point (D):
+ *
+ *   A----B-----C------D
+ *
+ * \param p	    Temp data
+ * \param inf    Influence factor
+ * \param idx	Index of the last point (need minimum 3 points in the array)
+ */
 static void gp_smooth_buffer(tGPsdata *p, float inf, int idx)
 {
 	bGPdata *gpd = p->gpd;
@@ -1656,10 +1656,9 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 	p->radius = (short)p->eraser->size;
 
 	/* GPXX: Need this update to synchronize brush with draw manager.
-	* Maybe this update can be removed when the new tool system
-	* will be in place, but while, we need this to keep drawing working.
-	*
-	*/
+	 * Maybe this update can be removed when the new tool system
+	 * will be in place, but while, we need this to keep drawing working.
+	 */
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
@@ -2495,10 +2494,10 @@ static void gpencil_draw_apply_event(bContext *C, wmOperator *op, const wmEvent 
 		p->pressure = wmtab->Pressure;
 
 		/* Hack for pressure sensitive eraser on D+RMB when using a tablet:
-		 *  The pen has to float over the tablet surface, resulting in
-		 *  zero pressure (T47101). Ignore pressure values if floating
-		 *  (i.e. "effectively zero" pressure), and only when the "active"
-		 *  end is the stylus (i.e. the default when not eraser)
+		 * The pen has to float over the tablet surface, resulting in
+		 * zero pressure (T47101). Ignore pressure values if floating
+		 * (i.e. "effectively zero" pressure), and only when the "active"
+		 * end is the stylus (i.e. the default when not eraser)
 		 */
 		if (p->paintmode == GP_PAINTMODE_ERASER) {
 			if ((wmtab->Active != EVT_TABLET_ERASER) && (p->pressure < 0.001f)) {
@@ -2539,7 +2538,7 @@ static void gpencil_draw_apply_event(bContext *C, wmOperator *op, const wmEvent 
 		p->straight[1] = 0;
 
 		/* special exception here for too high pressure values on first touch in
-		 *  windows for some tablets, then we just skip first touch...
+		 * windows for some tablets, then we just skip first touch...
 		 */
 		if (tablet && (p->pressure >= 0.99f))
 			return;

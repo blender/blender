@@ -45,7 +45,7 @@
 
 
 /**
- *  Generic randomize vertices function
+ * Generic randomize vertices function
  */
 
 static bool object_rand_transverts(

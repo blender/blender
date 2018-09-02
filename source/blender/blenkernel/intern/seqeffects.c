@@ -1727,10 +1727,10 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			break;
 		case DO_CLOCK_WIPE:
 			/*
-			 *  temp1: angle of effect center in rads
-			 *  temp2: angle of line through (halfx, halfy) and (x, y) in rads
-			 *  temp3: angle of low side of blur
-			 *  temp4: angle of high side of blur
+			 * temp1: angle of effect center in rads
+			 * temp2: angle of line through (halfx, halfy) and (x, y) in rads
+			 * temp3: angle of low side of blur
+			 * temp4: angle of high side of blur
 			 */
 			output = 1.0f - facf0;
 			widthf = wipe->edgeWidth * 2.0f * (float)M_PI;

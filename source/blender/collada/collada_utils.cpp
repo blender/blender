@@ -377,8 +377,8 @@ void bc_match_scale(std::vector<Object *> *objects_done,
 }
 
 /*
-    Convenience function to get only the needed components of a matrix
-*/
+ * Convenience function to get only the needed components of a matrix
+ */
 void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size)
 {
 	if (size) {
@@ -399,17 +399,17 @@ void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], floa
 }
 
 /*
-* Create rotation_quaternion from a delta rotation and a reference quat
-*
-* Input:
-* mat_from: The rotation matrix before rotation
-* mat_to  : The rotation matrix after rotation
-* qref    : the quat corresponding to mat_from
-*
-* Output:
-* rot     : the calculated result (quaternion)
-*
-*/
+ * Create rotation_quaternion from a delta rotation and a reference quat
+ *
+ * Input:
+ * mat_from: The rotation matrix before rotation
+ * mat_to  : The rotation matrix after rotation
+ * qref    : the quat corresponding to mat_from
+ *
+ * Output:
+ * rot     : the calculated result (quaternion)
+ *
+ */
 void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float mat_to[4][4])
 {
 	float qd[4];
@@ -488,11 +488,11 @@ int bc_set_layer(int bitfield, int layer, bool enable)
 	return bitfield;
 }
 
-/*
- | This method creates a new extension map when needed.
- | Note: The ~BoneExtensionManager destructor takes care
- | to delete the created maps when the manager is removed.
-*/
+/**
+ * This method creates a new extension map when needed.
+ * \note The ~BoneExtensionManager destructor takes care
+ * to delete the created maps when the manager is removed.
+ */
 BoneExtensionMap &BoneExtensionManager::getExtensionMap(bArmature *armature)
 {
 	std::string key = armature->id.name;
@@ -690,8 +690,8 @@ int BoneExtended::get_use_connect()
 }
 
 /**
-* Stores a 4*4 matrix as a custom bone property array of size 16
-*/
+ * Stores a 4*4 matrix as a custom bone property array of size 16
+ */
 void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 {
 	IDProperty *idgroup = (IDProperty *)ebone->prop;
@@ -717,10 +717,10 @@ void bc_set_IDPropertyMatrix(EditBone *ebone, const char *key, float mat[4][4])
 
 #if 0
 /**
-* Stores a Float value as a custom bone property
-*
-* Note: This function is currently not needed. Keep for future usage
-*/
+ * Stores a Float value as a custom bone property
+ *
+ * Note: This function is currently not needed. Keep for future usage
+ */
 static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 {
 	if (ebone->prop == NULL)
@@ -738,19 +738,19 @@ static void bc_set_IDProperty(EditBone *ebone, const char *key, float value)
 }
 #endif
 
-/*
-* Get a custom property when it exists.
-* This function is also used to check if a property exists.
-*/
+/**
+ * Get a custom property when it exists.
+ * This function is also used to check if a property exists.
+ */
 IDProperty *bc_get_IDProperty(Bone *bone, std::string key)
 {
 	return (bone->prop == NULL) ? NULL : IDP_GetPropertyFromGroup(bone->prop, key.c_str());
 }
 
 /**
-* Read a custom bone property and convert to float
-* Return def if the property does not exist.
-*/
+ * Read a custom bone property and convert to float
+ * Return def if the property does not exist.
+ */
 float bc_get_property(Bone *bone, std::string key, float def)
 {
 	float result = def;
@@ -774,13 +774,13 @@ float bc_get_property(Bone *bone, std::string key, float def)
 }
 
 /**
-* Read a custom bone property and convert to matrix
-* Return true if conversion was succesfull
-*
-* Return false if:
-* - the property does not exist
-* - is not an array of size 16
-*/
+ * Read a custom bone property and convert to matrix
+ * Return true if conversion was succesfull
+ *
+ * Return false if:
+ * - the property does not exist
+ * - is not an array of size 16
+ */
 bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
 {
 	IDProperty *property = bc_get_IDProperty(bone, key);
@@ -795,8 +795,8 @@ bool bc_get_property_matrix(Bone *bone, std::string key, float mat[4][4])
 }
 
 /**
-* get a vector that is stored in 3 custom properties (used in Blender <= 2.78)
-*/
+ * get a vector that is stored in 3 custom properties (used in Blender <= 2.78)
+ */
 void bc_get_property_vector(Bone *bone, std::string key, float val[3], const float def[3])
 {
 	val[0] = bc_get_property(bone, key + "_x", def[0]);
@@ -805,8 +805,8 @@ void bc_get_property_vector(Bone *bone, std::string key, float val[3], const flo
 }
 
 /**
-* Check if vector exist stored in 3 custom properties (used in Blender <= 2.78)
-*/
+ * Check if vector exist stored in 3 custom properties (used in Blender <= 2.78)
+ */
 static bool has_custom_props(Bone *bone, bool enabled, std::string key)
 {
 	if (!enabled)
@@ -819,11 +819,11 @@ static bool has_custom_props(Bone *bone, bool enabled, std::string key)
 }
 
 /**
-* Check if custom information about bind matrix exists and modify the from_mat
-* accordingly.
-*
-* Note: This is old style for Blender <= 2.78 only kept for compatibility
-*/
+ * Check if custom information about bind matrix exists and modify the from_mat
+ * accordingly.
+ *
+ * Note: This is old style for Blender <= 2.78 only kept for compatibility
+ */
 void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, float to_mat[4][4], float from_mat[4][4], bool use_local_space)
 {
 	float loc[3];
@@ -877,8 +877,8 @@ void bc_create_restpose_mat(const ExportSettings *export_settings, Bone *bone, f
 }
 
 /*
-    Make 4*4 matrices better readable
-*/
+ * Make 4*4 matrices better readable
+ */
 void bc_sanitize_mat(float mat[4][4], int precision)
 {
 	for (int i = 0; i < 4; i++)
@@ -908,7 +908,7 @@ void bc_copy_farray_m4(float *r, float a[4][4])
 
 }
 
-/*
+/**
  * Returns name of Active UV Layer or empty String if no active UV Layer defined
  */
 std::string bc_get_active_uvlayer_name(Mesh *me)
@@ -923,17 +923,17 @@ std::string bc_get_active_uvlayer_name(Mesh *me)
 	return "";
 }
 
-/*
-* Returns name of Active UV Layer or empty String if no active UV Layer defined.
-* Assuming the Object is of type MESH
-*/
+/**
+ * Returns name of Active UV Layer or empty String if no active UV Layer defined.
+ * Assuming the Object is of type MESH
+ */
 std::string bc_get_active_uvlayer_name(Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
 	return bc_get_active_uvlayer_name(me);
 }
 
-/*
+/**
  * Returns UV Layer name or empty string if layer index is out of range
  */
 std::string bc_get_uvlayer_name(Mesh *me, int layer)

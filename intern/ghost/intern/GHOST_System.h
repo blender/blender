@@ -184,7 +184,7 @@ public:
 	/**
 	 * Inherited from GHOST_ISystem but left pure virtual
 	 *
-	 *  virtual bool processEvents(bool waitForEvent) = 0;
+	 * virtual bool processEvents(bool waitForEvent) = 0;
 	 */
 
 
@@ -213,9 +213,12 @@ public:
 	 * Cursor management functionality
 	 ***************************************************************************************/
 
-	/** Inherited from GHOST_ISystem but left pure virtual
-	 *	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;
-	 *  GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+	/**
+	 * Inherited from GHOST_ISystem but left pure virtual
+	 * <pre>
+	 * GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;
+	 * GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y)
+	 * </pre>
 	 */
 
 	/***************************************************************************************

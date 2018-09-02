@@ -1015,9 +1015,9 @@ static int stitch_process_data(
 	/* store indices to editVerts and Faces. May be unneeded but ensuring anyway */
 	BM_mesh_elem_index_ensure(bm, BM_VERT | BM_FACE);
 
-	/*****************************************
-	 *  First determine stitchability of uvs *
-	 *****************************************/
+	/****************************************
+	 * First determine stitchability of uvs *
+	 ****************************************/
 
 	for (i = 0; i < state->selection_size; i++) {
 		if (ssc->mode == STITCH_VERT) {
@@ -1153,9 +1153,9 @@ static int stitch_process_data(
 		return 1;
 	}
 
-	/*****************************************
-	 *  Setup preview for stitchable islands *
-	 *****************************************/
+	/****************************************
+	 * Setup preview for stitchable islands *
+	 ****************************************/
 	if (ssc->snap_islands) {
 		for (i = 0; i < state->element_map->totalIslands; i++) {
 			if (island_stitch_data[i].addedForPreview) {
@@ -1417,7 +1417,7 @@ static int stitch_process_data(
 					luv = CustomData_bmesh_get(&bm->ldata, l->head.data, CD_MLOOPUV);
 
 					/* accumulate each islands' translation from stitchable elements. it is important to do here
-					* because in final pass MTFaces get modified and result is zero. */
+					 * because in final pass MTFaces get modified and result is zero. */
 					island_stitch_data[element->island].translation[0] += final_position[i].uv[0] - luv->uv[0];
 					island_stitch_data[element->island].translation[1] += final_position[i].uv[1] - luv->uv[1];
 					island_stitch_data[element->island].medianPoint[0] += luv->uv[0];

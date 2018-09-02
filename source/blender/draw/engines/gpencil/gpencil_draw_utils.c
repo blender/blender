@@ -928,8 +928,8 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 	if (ED_gpencil_session_active() && (gpd->runtime.sbuffer_size > 0)) {
 		if ((gpd->runtime.sbuffer_sflag & GP_STROKE_ERASER) == 0) {
 			/* It should also be noted that sbuffer contains temporary point types
-			* i.e. tGPspoints NOT bGPDspoints
-			*/
+			 * i.e. tGPspoints NOT bGPDspoints
+			 */
 			short lthick = brush->size * obscale;
 			/* if only one point, don't need to draw buffer because the user has no time to see it */
 			if (gpd->runtime.sbuffer_size > 1) {
@@ -1294,8 +1294,8 @@ void DRW_gpencil_populate_datablock(
 		if (!ID_IS_LINKED(&gpd->id)) {
 			ID *orig_id = gpd->id.orig_id;
 			/* GPXX: Now only a datablock with one use is allowed to be compatible
-			* with instances
-			*/
+			 * with instances
+			 */
 			if ((!cache_ob->is_dup_onion) && (gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
 			    (do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
 			    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&

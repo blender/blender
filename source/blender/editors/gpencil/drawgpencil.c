@@ -1781,7 +1781,7 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 	if (gpd == NULL) return;
 
 	/* when rendering to the offscreen buffer we don't want to
-	* deal with the camera border, otherwise map the coords to the camera border. */
+	 * deal with the camera border, otherwise map the coords to the camera border. */
 	if ((rv3d->persp == RV3D_CAMOB) && !(G.f & G_RENDER_OGL)) {
 		rctf rectf;
 		ED_view3d_calc_camera_border(scene, depsgraph, ar, v3d, rv3d, &rectf, true); /* no shift */
@@ -1801,9 +1801,9 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 	/* set flags */
 	if (only3d) {
 		/* 3D strokes/3D space:
-		* - only 3D space points
-		* - don't status text either (as it's the wrong space)
-		*/
+		 * - only 3D space points
+		 * - don't status text either (as it's the wrong space)
+		 */
 		dflag |= (GP_DRAWDATA_ONLY3D | GP_DRAWDATA_NOSTATUS);
 	}
 
@@ -1814,8 +1814,8 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 
 	if ((wm == NULL) || ED_screen_animation_playing(wm)) {
 		/* don't show onionskins during animation playback/scrub (i.e. it obscures the poses)
-		* OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
-		*/
+		 * OpenGL Renders (i.e. final output), or depth buffer (i.e. not real strokes)
+		 */
 		dflag |= GP_DRAWDATA_NO_ONIONS;
 	}
 

@@ -65,9 +65,9 @@ bool AnimationExporter::is_flat_line(std::vector<float> &values, int channel_cou
 	return true;
 }
 /*
- *  This function creates a complete LINEAR Collada <Animation> Entry with all needed
- *  <source>, <sampler>, and <channel> entries.
- *  This is is used for creating sampled Transformation Animations for either:
+ * This function creates a complete LINEAR Collada <Animation> Entry with all needed
+ * <source>, <sampler>, and <channel> entries.
+ * This is is used for creating sampled Transformation Animations for either:
  *
  *		1-axis animation:
  *		    times contains the time points in seconds from within the timeline

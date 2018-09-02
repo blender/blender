@@ -63,8 +63,8 @@ typedef enum {
 	eShaderFxTypeFlag_SupportsEditmode = (1 << 0),
 
 	/* For effects that support editmode this determines if the
-	* effect should be enabled by default in editmode.
-	*/
+	 * effect should be enabled by default in editmode.
+	 */
 	eShaderFxTypeFlag_EnableInEditmode = (1 << 2),
 
 	/* max one per type */
@@ -95,8 +95,8 @@ typedef struct ShaderFxTypeInfo {
 	ShaderFxTypeFlag flags;
 
 	/* Copy instance data for this effect type. Should copy all user
-	* level settings to the target effect.
-	*/
+	 * level settings to the target effect.
+	 */
 	void(*copyData)(const struct ShaderFxData *fx, struct ShaderFxData *target);
 
 	/* Initialize new instance data for this effect type, this function

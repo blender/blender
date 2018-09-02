@@ -5917,7 +5917,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
 }
 
 /* auto-keyframing feature - for objects
- *  tmode: should be a transform mode
+ * tmode: should be a transform mode
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
 void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
@@ -6038,8 +6038,8 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, O
 }
 
 /* auto-keyframing feature - for poses/pose-channels
- *  tmode: should be a transform mode
- *	targetless_ik: has targetless ik been done on any channels?
+ * tmode: should be a transform mode
+ * targetless_ik: has targetless ik been done on any channels?
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
 void autokeyframe_pose_cb_func(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)

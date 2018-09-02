@@ -798,7 +798,7 @@ static void rna_def_gpencil_mvert_group(BlenderRNA *brna)
 	RNA_def_struct_ui_icon(srna, ICON_GROUP_VERTEX);
 
 	/* we can't point to actual group, it is in the object and so
-	* there is no unique group to point to, hence the index */
+	 * there is no unique group to point to, hence the index */
 	prop = RNA_def_property(srna, "group", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "def_nr");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

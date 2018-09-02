@@ -28,10 +28,10 @@
 /** \file GPU_legacy_stubs.h
  *  \ingroup gpu
  *
- *  This is to mark the transition to OpenGL core profile
- *  The idea is to allow Blender 2.8 to be built with OpenGL 3.3 even if it means breaking things
+ * This is to mark the transition to OpenGL core profile
+ * The idea is to allow Blender 2.8 to be built with OpenGL 3.3 even if it means breaking things
  *
- *  This file should be removed in the future
+ * This file should be removed in the future
  */
 
 #ifndef __GPU_LEGACY_STUBS_H__

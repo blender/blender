@@ -353,9 +353,9 @@ void GPENCIL_cache_init(void *vedata)
 
 		if (obact_gpd) {
 			/* for some reason, when press play there is a delay in the animation flag check
-			* and this produces errors. To be sure, we set cache as dirty because the frame
-			* is changing.
-			*/
+			 * and this produces errors. To be sure, we set cache as dirty because the frame
+			 * is changing.
+			 */
 			if (stl->storage->is_playing == true) {
 				obact_gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 			}

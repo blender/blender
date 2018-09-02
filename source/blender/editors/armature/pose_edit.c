@@ -904,8 +904,8 @@ static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* use RNA to set the layers
-	 *  although it would be faster to just set directly using bitflags, we still
-	 *	need to setup a RNA pointer so that we get the "update" callbacks for free...
+	 * although it would be faster to just set directly using bitflags, we still
+	 * need to setup a RNA pointer so that we get the "update" callbacks for free...
 	 */
 	RNA_id_pointer_create(&arm->id, &ptr);
 

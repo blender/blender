@@ -1265,8 +1265,8 @@ bool BKE_gpencil_smooth_stroke(bGPDstroke *gps, int i, float inf)
 	}
 
 	/* Only affect endpoints by a fraction of the normal strength,
-	* to prevent the stroke from shrinking too much
-	*/
+	 * to prevent the stroke from shrinking too much
+	 */
 	if ((i == 0) || (i == gps->totpoints - 1)) {
 		inf *= 0.1f;
 	}
@@ -1332,8 +1332,8 @@ bool BKE_gpencil_smooth_stroke_strength(bGPDstroke *gps, int point_index, float 
 	ptc = &gps->points[after];
 
 	/* the optimal value is the corresponding to the interpolation of the strength
-	*  at the distance of point b
-	*/
+	 * at the distance of point b
+	 */
 	const float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
 	const float optimal = (1.0f - fac) * pta->strength + fac * ptc->strength;
 
@@ -1366,8 +1366,8 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
 	ptc = &gps->points[after];
 
 	/* the optimal value is the corresponding to the interpolation of the pressure
-	*  at the distance of point b
-	*/
+	 * at the distance of point b
+	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
 	float optimal = interpf(ptc->pressure, pta->pressure, fac);
 
@@ -1400,8 +1400,8 @@ bool BKE_gpencil_smooth_stroke_uv(bGPDstroke *gps, int point_index, float influe
 	ptc = &gps->points[after];
 
 	/* the optimal value is the corresponding to the interpolation of the pressure
-	*  at the distance of point b
-	*/
+	 * at the distance of point b
+	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
 	float optimal = interpf(ptc->uv_rot, pta->uv_rot, fac);
 

@@ -765,17 +765,16 @@ fail:
 	return DIRTY_FLAG_ENCODING;
 }
 
-/*
- *	output_iris -
- *		copy an array of ints to an iris image file.  Each int
- *	represents one pixel.  xsize and ysize specify the dimensions of
- *	the pixel array.  zsize specifies what kind of image file to
- *	write out.  if zsize is 1, the luminance of the pixels are
- *	calculated, and a single channel black and white image is saved.
- *	If zsize is 3, an RGB image file is saved.  If zsize is 4, an
- *	RGBA image file is saved.
+/**
+ * Copy an array of ints to an iris image file.
+ * Each int represents one pixel.  xsize and ysize specify the dimensions of
+ * the pixel array.  zsize specifies what kind of image file to
+ * write out.  if zsize is 1, the luminance of the pixels are
+ * calculated, and a single channel black and white image is saved.
+ * If zsize is 3, an RGB image file is saved.  If zsize is 4, an
+ * RGBA image file is saved.
  *
- *  Added: zbuf write
+ * Added: zbuf write
  */
 
 static int output_iris(uint *lptr, int xsize, int ysize, int zsize, const char *name, int *zptr)
