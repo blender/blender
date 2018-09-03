@@ -299,22 +299,44 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         layout.use_property_split = True
 
-        col = layout.column(align=True)
-        sub = col.column(align=True)
-        sub.active = not rd.is_movie_format
-        sub.prop(rd, "use_overwrite")
-        sub.prop(rd, "use_placeholder")
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        col = flow.column()
+        col.active = not rd.is_movie_format
+        col.prop(rd, "use_overwrite")
+        col = flow.column()
+        col.active = not rd.is_movie_format
+        col.prop(rd, "use_placeholder")
+        col = flow.column()
         col.prop(rd, "use_file_extension")
+        col = flow.column()
         col.prop(rd, "use_render_cache")
 
-        layout.use_property_split = False
         layout.template_image_settings(image_settings, color_management=False)
-        if rd.use_multiview:
-            layout.template_image_views(image_settings)
+
+
+class RENDER_PT_output_views(RenderButtonsPanel, Panel):
+    bl_label = "Views"
+    bl_parent_id = "RENDER_PT_output"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(self, context):
+        rd = context.scene.render
+        return rd.use_multiview
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = False
+        layout.use_property_decorate = False  # No animation.
+
+        rd = context.scene.render
+        layout.template_image_views(rd.image_settings)
 
 
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = "Encoding"
+    bl_parent_id ="RENDER_PT_output"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -328,27 +350,35 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         rd = context.scene.render
         ffmpeg = rd.ffmpeg
 
-        split = layout.split()
-        split.prop(rd.ffmpeg, "format")
-        split.prop(ffmpeg, "use_autosplit")
+        layout.prop(rd.ffmpeg, "format")
+        layout.prop(ffmpeg, "use_autosplit")
 
-        # Video:
-        layout.separator()
+class RENDER_PT_encoding_video(RenderButtonsPanel, Panel):
+    bl_label = "Video"
+    bl_parent_id ="RENDER_PT_encoding"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return rd.image_settings.file_format in {'FFMPEG', 'XVID', 'H264', 'THEORA'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        rd = context.scene.render
+        ffmpeg = rd.ffmpeg
+
         self.draw_vcodec(context)
 
-        # Audio:
-        layout.separator()
-        if ffmpeg.format != 'MP3':
-            layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
-
-        if ffmpeg.audio_codec != 'NONE':
-            row = layout.row()
-            row.prop(ffmpeg, "audio_bitrate")
-            row.prop(ffmpeg, "audio_volume", slider=True)
 
     def draw_vcodec(self, context):
         """Video codec options."""
@@ -375,25 +405,52 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         # I-frames
         layout.prop(ffmpeg, "gopsize")
         # B-Frames
-        row = layout.row()
-        row.prop(ffmpeg, "use_max_b_frames", text="Max B-frames")
-        pbox = row.split()
+        split = layout.split(factor=0.5)
+        split.prop(ffmpeg, "use_max_b_frames", text="Max B-frames")
+        pbox = split.column()
         pbox.prop(ffmpeg, "max_b_frames", text="")
         pbox.enabled = ffmpeg.use_max_b_frames
 
         if not use_crf or ffmpeg.constant_rate_factor == 'NONE':
-            split = layout.split()
-            col = split.column()
-            col.label(text="Rate:")
-            col.prop(ffmpeg, "video_bitrate")
-            col.prop(ffmpeg, "minrate", text="Minimum")
-            col.prop(ffmpeg, "maxrate", text="Maximum")
+            col = layout.column()
+
+            sub = col.column(align=True)
+            sub.prop(ffmpeg, "video_bitrate")
+            sub.prop(ffmpeg, "minrate", text="Minimum")
+            sub.prop(ffmpeg, "maxrate", text="Maximum")
+
             col.prop(ffmpeg, "buffersize", text="Buffer")
 
-            col = split.column()
-            col.label(text="Mux:")
-            col.prop(ffmpeg, "muxrate", text="Rate")
-            col.prop(ffmpeg, "packetsize", text="Packet Size")
+            col.separator()
+
+            col.prop(ffmpeg, "muxrate", text="Mux Rate")
+            col.prop(ffmpeg, "packetsize", text="Mux Packet Size")
+
+
+class RENDER_PT_encoding_audio(RenderButtonsPanel, Panel):
+    bl_label = "Audio"
+    bl_parent_id ="RENDER_PT_encoding"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    @classmethod
+    def poll(cls, context):
+        rd = context.scene.render
+        return rd.image_settings.file_format in {'FFMPEG', 'XVID', 'H264', 'THEORA'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        rd = context.scene.render
+        ffmpeg = rd.ffmpeg
+
+        if ffmpeg.format != 'MP3':
+            layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
+
+        if ffmpeg.audio_codec != 'NONE':
+            layout.prop(ffmpeg, "audio_bitrate")
+            layout.prop(ffmpeg, "audio_volume", slider=True)
 
 
 class RENDER_UL_renderviews(UIList):
@@ -877,7 +934,10 @@ classes = (
     RENDER_PT_frame_remapping,
     RENDER_PT_post_processing,
     RENDER_PT_output,
+    RENDER_PT_output_views,
     RENDER_PT_encoding,
+    RENDER_PT_encoding_video,
+    RENDER_PT_encoding_audio,
     RENDER_PT_stamp,
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
