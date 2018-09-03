@@ -45,6 +45,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
+#include "DNA_brush_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -54,6 +55,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_library.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -422,9 +424,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 
 	/* Shortcut. */
 	{
-		/* There are two kinds of shortcuts, either direct access to the tool,
-		 * when a key is bound directly to the tool (as if the toolbar button is pressed),
-		 * or when a key is assigned to the operator it's self (bypassing the tool).
+		/* There are different kinds of shortcuts:
+		 *
+		 * - Direct access to the tool (as if the toolbar button is pressed).
+		 * - The key is bound to a brush type (not the exact brush name).
+		 * - The key is assigned to the operator it's self (bypassing the tool, executing the operator).
 		 *
 		 * Either way case it's useful to show the shortcut.
 		 */
@@ -434,6 +438,57 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 			uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
 			UI_but_string_info_get(C, but, &op_keymap, NULL);
 			shortcut = op_keymap.strinfo;
+		}
+
+		if (shortcut == NULL) {
+			int mode = CTX_data_mode_enum(C);
+			const char *tool_attr = NULL;
+			uint tool_offset = 0;
+
+			switch (mode) {
+				case CTX_MODE_SCULPT:
+					tool_attr = "sculpt_tool";
+					tool_offset = offsetof(Brush, sculpt_tool);
+					break;
+				case CTX_MODE_PAINT_VERTEX:
+					tool_attr = "vertex_paint_tool";
+					tool_offset = offsetof(Brush, vertexpaint_tool);
+					break;
+				case CTX_MODE_PAINT_WEIGHT:
+					tool_attr = "weight_paint_tool";
+					tool_offset = offsetof(Brush, vertexpaint_tool);
+					break;
+				case CTX_MODE_PAINT_TEXTURE:
+					tool_attr = "texture_paint_tool";
+					tool_offset = offsetof(Brush, imagepaint_tool);
+					break;
+				default:
+					break;
+			}
+
+			if (tool_attr != NULL) {
+				struct Main *bmain = CTX_data_main(C);
+				Brush *brush = (Brush *)BKE_libblock_find_name(bmain, ID_BR, tool_name);
+				if (brush) {
+					Object *ob = CTX_data_active_object(C);
+					wmOperatorType *ot = WM_operatortype_find("paint.brush_select", true);
+
+					PointerRNA op_props;
+					WM_operator_properties_create_ptr(&op_props, ot);
+					RNA_enum_set(&op_props, "paint_mode", ob->mode);
+					RNA_enum_set(&op_props, tool_attr, *(((char *)brush) + tool_offset));
+
+					/* Check for direct access to the tool. */
+					char shortcut_brush[128] = "";
+					if (WM_key_event_operator_string(
+					            C, ot->idname, WM_OP_INVOKE_REGION_WIN, op_props.data, true,
+					            shortcut_brush, ARRAY_SIZE(shortcut_brush)))
+					{
+						shortcut = BLI_strdup(shortcut_brush);
+					}
+					WM_operator_properties_free(&op_props);
+				}
+			}
 		}
 
 		if (shortcut == NULL) {
