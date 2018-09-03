@@ -705,6 +705,9 @@ def keymap_from_context(context, space_type):
     # Generate items when no keys are mapped.
     use_auto_keymap = True
 
+    # Temporary, only create so we can pass 'properties' to find_item_from_operator.
+    use_hack_properties = True
+
     km_name = "Toolbar Popup"
     wm = context.window_manager
     keyconf = wm.keyconfigs.active
@@ -727,6 +730,10 @@ def keymap_from_context(context, space_type):
         if item is not None
     ]
 
+    if use_hack_properties:
+        kmi_hack = keymap.keymap_items.new("wm.tool_set_by_name", 'A', 'PRESS')
+        kmi_hack_properties = kmi_hack.properties
+
     if use_simple_keymap:
         # Simply assign a key from A-Z.
         for i, (item, _, _) in enumerate(items_all):
@@ -737,7 +744,22 @@ def keymap_from_context(context, space_type):
         for item_container in items_all:
             item = item_container[0]
             # Only check the first item in the tools key-map (a little arbitrary).
-            if item.operator is not None:
+
+            if use_hack_properties:
+                # First check for direct assignment.
+                kmi_hack_properties.name = item.text
+                kmi_found = wm.keyconfigs.find_item_from_operator(
+                    idname="wm.tool_set_by_name",
+                    context='INVOKE_REGION_WIN',
+                    # properties={"name": item.text},
+                    properties=kmi_hack_properties,
+                )[1]
+            else:
+                kmi_found = None
+
+            if kmi_found is not None:
+                pass
+            elif item.operator is not None:
                 kmi_found = wm.keyconfigs.find_item_from_operator(
                     idname=item.operator,
                     context='INVOKE_REGION_WIN',
@@ -762,7 +784,11 @@ def keymap_from_context(context, space_type):
             kmi_found_type = kmi_found.type
 
             # Only for single keys.
-            if len(kmi_found_type) == 1:
+            if (
+                    (len(kmi_found_type) == 1) or
+                    # When a tool is being activated instead of running an operator, just copy the shortcut.
+                    (kmi_found.idname in {"wm.tool_set_by_name", "WM_OT_tool_set_by_name"})
+            ):
                 kmi_args = {"type": kmi_found_type, **modifier_keywords_from_item(kmi_found)}
                 kmi = keymap.keymap_items.new(idname="wm.tool_set_by_name", value='PRESS', **kmi_args)
                 kmi.properties.name = item.text
@@ -862,6 +888,9 @@ def keymap_from_context(context, space_type):
                             kmi.properties.name = item.text
                             if use_auto_keymap:
                                 kmi_unique_args.add(kmi_tuple)
+
+    if use_hack_properties:
+        keymap.keymap_items.remove(kmi_hack)
 
     if True:
         # The shortcut will show, so we better support running it.
