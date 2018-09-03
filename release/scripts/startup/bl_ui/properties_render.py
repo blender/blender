@@ -735,7 +735,7 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.operator("scene.light_cache_bake", text="Bake Indirect Lighting", icon='RENDER_STILL')
-        col.operator("scene.light_cache_bake", text="Bake Cubemap Only", icon='LIGHTPROBE_CUBEMAP').subset = "CUBEMAPS"
+        col.operator("scene.light_cache_bake", text="Bake Cubemap Only", icon='LIGHTPROBE_CUBEMAP').subset = 'CUBEMAPS'
         col.operator("scene.light_cache_free", text="Free Lighting Cache")
 
         cache_info = scene.eevee.gi_cache_info

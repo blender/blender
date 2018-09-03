@@ -94,7 +94,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         sub = col.column()
         sub.prop(probe, "clip_start", text="Clipping Start")
 
-        if probe.type != "PLANAR":
+        if probe.type != 'PLANAR':
             sub.prop(probe, "clip_end", text="End")
 
         if probe.type == 'GRID':

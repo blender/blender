@@ -1203,7 +1203,7 @@ class _defs_gpencil_paint:
         gp_settings = brush.gpencil_settings
         ts = context.tool_settings
         row = layout.row(align=True)
-        row.prop(ts, "use_gpencil_thumbnail_list", text="", icon="IMGDISPLAY")
+        row.prop(ts, "use_gpencil_thumbnail_list", text="", icon='IMGDISPLAY')
         if ts.use_gpencil_thumbnail_list is False:
             row.template_ID(gp_settings, "material", live_icon=True)
         else:

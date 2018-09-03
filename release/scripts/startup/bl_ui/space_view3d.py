@@ -90,7 +90,7 @@ class VIEW3D_HT_header(Header):
 
             if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode or gpd.is_stroke_weight_mode:
                 row = layout.row(align=True)
-                row.prop(gpd, "use_multiedit", text="", icon="FORCE_HARMONIC")
+                row.prop(gpd, "use_multiedit", text="", icon='FORCE_HARMONIC')
 
                 sub = row.row(align=True)
                 sub.active = gpd.use_multiedit
@@ -3593,9 +3593,9 @@ class VIEW3D_MT_gpencil_copy_layer(Menu):
                     done = True
 
             if done is False:
-                layout.label(text="No destination object", icon="ERROR")
+                layout.label(text="No destination object", icon='ERROR')
         else:
-            layout.label(text="No layer to copy", icon="ERROR")
+            layout.label(text="No layer to copy", icon='ERROR')
 
 
 class VIEW3D_MT_edit_gpencil(Menu):

@@ -36,9 +36,11 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
 
     type: EnumProperty(
         name="Type", description="Type of the modifier to work on",
-        items=(("COLOR", "Color", "Color modifier type"),
-               ("ALPHA", "Alpha", "Alpha modifier type"),
-               ("THICKNESS", "Thickness", "Thickness modifier type")),
+        items=(
+            ('COLOR', "Color", "Color modifier type"),
+            ('ALPHA', "Alpha", "Alpha modifier type"),
+            ('THICKNESS', "Thickness", "Thickness modifier type"),
+        ),
     )
     name: StringProperty(
         name="Name",

@@ -155,14 +155,14 @@ class VertexPaintDirt(Operator):
         description="Less than 90 limits the angle used in the tonal range",
         min=0.0, max=pi,
         default=pi,
-        unit="ROTATION",
+        unit='ROTATION',
     )
     dirt_angle: FloatProperty(
         name="Dirt Angle",
         description="Less than 90 limits the angle used in the tonal range",
         min=0.0, max=pi,
         default=0.0,
-        unit="ROTATION",
+        unit='ROTATION',
     )
     dirt_only: BoolProperty(
         name="Dirt Only",

@@ -1627,7 +1627,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         row = col.row(align=True)
         row.prop(md, "factor")
-        row.prop(md, "random", text="", icon="TIME", toggle=True)
+        row.prop(md, "random", text="", icon='TIME', toggle=True)
         row = col.row()
         row.enabled = md.random
         row.prop(md, "step")
@@ -1638,16 +1638,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row(align=True)
         row.label(text="Affect:")
@@ -1668,17 +1668,17 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col = split.column()
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row(align=True)
         row.label(text="Affect:")
@@ -1695,16 +1695,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         row = col.row(align=True)
         row.prop(md, "level")
-        row.prop(md, "simple", text="", icon="PARTICLE_POINT")
+        row.prop(md, "simple", text="", icon='PARTICLE_POINT')
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         col = split.column()
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
     def GP_SIMPLIFY(self, layout, ob, md):
         gpd = ob.data
@@ -1731,7 +1731,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
     def GP_THICK(self, layout, ob, md):
         gpd = ob.data
@@ -1742,7 +1742,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "thickness")
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         col.prop(md, "normalize_thickness")
 
@@ -1750,12 +1750,12 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         if not md.normalize_thickness:
             split = layout.split()
@@ -1777,10 +1777,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row()
         row.prop(md, "create_materials")
@@ -1800,10 +1800,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row()
         row.prop(md, "create_materials")
@@ -1821,16 +1821,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row()
         row.prop(md, "create_materials")
@@ -1859,7 +1859,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "rotation", text="")
         col.separator()
         row = col.row(align=True)
-        row.prop(md, "random_rot", text="", icon="TIME", toggle=True)
+        row.prop(md, "random_rot", text="", icon='TIME', toggle=True)
         row.prop(md, "rot_factor", text="")
 
         col = split.column()
@@ -1867,7 +1867,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "scale", text="")
         col.separator()
         row = col.row(align=True)
-        row.prop(md, "random_scale", text="", icon="TIME", toggle=True)
+        row.prop(md, "random_scale", text="", icon='TIME', toggle=True)
         row.prop(md, "scale_factor", text="")
 
         split = layout.split()
@@ -1875,10 +1875,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
     def GP_BUILD(self, layout, ob, md):
         gpd = ob.data
@@ -1910,7 +1910,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
     def GP_LATTICE(self, layout, ob, md):
         gpd = ob.data
@@ -1924,16 +1924,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         layout.separator()
         layout.prop(md, "strength", slider=True)
@@ -1953,11 +1953,11 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Layer:")
         row = layout.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         layout.label(text="Object:")
         layout.prop(md, "object", text="")
@@ -1977,16 +1977,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
         use_falloff = (md.falloff_type != 'NONE')
         split = layout.split()
@@ -2023,16 +2023,16 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col.label(text="Layer:")
         row = col.row(align=True)
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
-        row.prop(md, "invert_layers", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         col.label(text="Vertex Group:")
         row = col.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
-        row.prop(md, "invert_vertex", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_vertex", text="", icon='ARROW_LEFTRIGHT')
 
         row = col.row(align=True)
         row.prop(md, "pass_index", text="Pass")
-        row.prop(md, "invert_pass", text="", icon="ARROW_LEFTRIGHT")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
     def GP_ARMATURE(self, layout, ob, md):
         split = layout.split()
