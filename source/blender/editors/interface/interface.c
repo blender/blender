@@ -1234,6 +1234,10 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 				if (but->drawstr[0] == '\0') {
 					continue;
 				}
+				else if (((block->flag & UI_BLOCK_POPOVER) == 0) && UI_but_is_tool(but)) {
+					/* For non-popovers, shown in shortcut only (has special shortcut handling code). */
+					continue;
+				}
 			}
 			else if (but->dt != UI_EMBOSS_PULLDOWN) {
 				continue;
