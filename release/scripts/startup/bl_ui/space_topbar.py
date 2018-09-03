@@ -79,7 +79,6 @@ class TOPBAR_HT_lower_bar(Header):
     bl_region_type = 'WINDOW'
 
     def draw(self, context):
-        layout = self.layout
         region = context.region
 
         if region.alignment == 'LEFT':
