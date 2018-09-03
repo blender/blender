@@ -122,11 +122,15 @@ namespace DEG {
 
 namespace {
 
-void free_copy_on_write_datablock(void *id_v)
+void free_copy_on_write_datablock(void *id_info_v)
 {
-	ID *id = (ID *)id_v;
-	deg_free_copy_on_write_datablock(id);
-	MEM_freeN(id);
+	DepsgraphNodeBuilder::IDInfo *id_info =
+	    (DepsgraphNodeBuilder::IDInfo *)id_info_v;
+	if (id_info->id_cow != NULL) {
+		deg_free_copy_on_write_datablock(id_info->id_cow);
+		MEM_freeN(id_info->id_cow);
+	}
+	MEM_freeN(id_info);
 }
 
 }  /* namespace */
@@ -144,26 +148,25 @@ DepsgraphNodeBuilder::DepsgraphNodeBuilder(Main *bmain, Depsgraph *graph)
       view_layer_index_(-1),
       collection_(NULL),
       is_parent_collection_visible_(true),
-      cow_id_hash_(NULL)
+      id_info_hash_(NULL)
 {
 }
 
 DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 {
-	if (cow_id_hash_ != NULL) {
-		BLI_ghash_free(cow_id_hash_, NULL, free_copy_on_write_datablock);
+	if (id_info_hash_ != NULL) {
+		BLI_ghash_free(id_info_hash_, NULL, free_copy_on_write_datablock);
 	}
 }
 
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
 	IDDepsNode *id_node = NULL;
-	ID *id_cow = (ID *)BLI_ghash_lookup(cow_id_hash_, id);
+	IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
+	ID *id_cow = (id_info != NULL) ? id_info->id_cow : NULL;
 	if (id_cow != NULL) {
-		/* TODO(sergey): Is it possible to lookup and pop element from GHash
-		 * at the same time?
-		 */
-		BLI_ghash_remove(cow_id_hash_, id, NULL, NULL);
+		/* Tag ID info to not free the CoW ID pointer. */
+		id_info->id_cow = NULL;
 	}
 	id_node = graph_->add_id_node(id, id_cow);
 	/* Currently all ID nodes are supposed to have copy-on-write logic.
@@ -333,7 +336,7 @@ void DepsgraphNodeBuilder::begin_build()
 	/* Store existing copy-on-write versions of datablock, so we can re-use
 	 * them for new ID nodes.
 	 */
-	cow_id_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
+	id_info_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
 	foreach (IDDepsNode *id_node, graph_->id_nodes) {
 		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
 			continue;
@@ -341,7 +344,10 @@ void DepsgraphNodeBuilder::begin_build()
 		if (id_node->id_orig == id_node->id_cow) {
 			continue;
 		}
-		BLI_ghash_insert(cow_id_hash_, id_node->id_orig, id_node->id_cow);
+		IDInfo *id_info = (IDInfo *)MEM_mallocN(
+		        sizeof(IDInfo), "depsgraph id info");
+		id_info->id_cow = id_node->id_cow;
+		BLI_ghash_insert(id_info_hash_, id_node->id_orig, id_info);
 		id_node->id_cow = NULL;
 	}
 
