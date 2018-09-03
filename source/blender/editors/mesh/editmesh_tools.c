@@ -6240,22 +6240,20 @@ static int edbm_bridge_tag_boundary_edges(BMesh *bm)
 	return totface_del;
 }
 
-static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
+static int edbm_bridge_edge_loops_for_single_editmesh(
+        wmOperator *op,
+        BMEditMesh *em,
+        const bool use_pairs,
+        const bool use_cyclic,
+        const bool use_merge,
+        const float merge_factor,
+        const int twist_offset)
 {
 	BMOperator bmop;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int type = RNA_enum_get(op->ptr, "type");
-	const bool use_pairs = (type == MESH_BRIDGELOOP_PAIRS);
-	const bool use_cyclic = (type == MESH_BRIDGELOOP_CLOSED);
-	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
-	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
-	const int twist_offset = RNA_int_get(op->ptr, "twist_offset");
-	const bool use_faces = (em->bm->totfacesel != 0);
 	char edge_hflag;
-
 	int totface_del = 0;
 	BMFace **totface_del_arr = NULL;
+	const bool use_faces = (em->bm->totfacesel != 0);
 
 	if (use_faces) {
 		BMIter iter;
@@ -6278,9 +6276,9 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 	}
 
 	EDBM_op_init(
-	        em, &bmop, op,
-	        "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
-	        edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
+	            em, &bmop, op,
+	            "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
+	            edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
 
 	if (use_faces && totface_del) {
 		int i;
@@ -6289,9 +6287,9 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 			BM_elem_flag_enable(totface_del_arr[i], BM_ELEM_TAG);
 		}
 		BMO_op_callf(
-		        em->bm, BMO_FLAG_DEFAULTS,
-		        "delete geom=%hf context=%i",
-		        BM_ELEM_TAG, DEL_FACES_KEEP_BOUNDARY);
+		            em->bm, BMO_FLAG_DEFAULTS,
+		            "delete geom=%hf context=%i",
+		            BM_ELEM_TAG, DEL_FACES_KEEP_BOUNDARY);
 	}
 
 	BMO_op_exec(em->bm, &bmop);
@@ -6313,18 +6311,15 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 				EDBM_mesh_normals_update(em);
 
 				BMO_op_initf(
-				        em->bm, &bmop_subd, 0,
-				        "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
-				        "profile_shape=%i profile_shape_factor=%f",
-				        &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
-				        op_props.profile_shape, op_props.profile_shape_factor
-				        );
+				            em->bm, &bmop_subd, 0,
+				            "subdivide_edgering edges=%S interp_mode=%i cuts=%i smooth=%f "
+				            "profile_shape=%i profile_shape_factor=%f",
+				            &bmop, "edges.out", op_props.interp_mode, op_props.cuts, op_props.smooth,
+				            op_props.profile_shape, op_props.profile_shape_factor
+				            );
 				BMO_op_exec(em->bm, &bmop_subd);
-
 				BMO_slot_buffer_hflag_enable(em->bm, bmop_subd.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-
 				BMO_op_finish(em->bm, &bmop_subd);
-
 			}
 		}
 	}
@@ -6333,15 +6328,44 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		MEM_freeN(totface_del_arr);
 	}
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		/* grr, need to return finished so the user can select different options */
-		//return OPERATOR_CANCELLED;
-		return OPERATOR_FINISHED;
-	}
-	else {
+	if (EDBM_op_finish(em, &bmop, op, true)) {
 		EDBM_update_generic(em, true, true);
-		return OPERATOR_FINISHED;
 	}
+
+	/* Always return finished so the user can select different options. */
+	return OPERATOR_FINISHED;
+}
+
+static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
+{
+	const int type = RNA_enum_get(op->ptr, "type");
+	const bool use_pairs = (type == MESH_BRIDGELOOP_PAIRS);
+	const bool use_cyclic = (type == MESH_BRIDGELOOP_CLOSED);
+	const bool use_merge = RNA_boolean_get(op->ptr, "use_merge");
+	const float merge_factor = RNA_float_get(op->ptr, "merge_factor");
+	const int twist_offset = RNA_int_get(op->ptr, "twist_offset");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for(uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+
+		edbm_bridge_edge_loops_for_single_editmesh(op,
+		                                           em,
+		                                           use_pairs,
+		                                           use_cyclic,
+		                                           use_merge,
+		                                           merge_factor,
+		                                           twist_offset);
+	}
+	MEM_freeN(objects);
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
