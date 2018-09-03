@@ -216,37 +216,42 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        split = layout.split()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        col = split.column(align=True)
+
+        col = flow.column()
         col.prop(rd, "use_stamp_date", text="Date")
+        col = flow.column()
         col.prop(rd, "use_stamp_time", text="Time")
 
-        col.separator()
-
+        col = flow.column()
         col.prop(rd, "use_stamp_render_time", text="Render Time")
+        col = flow.column()
         col.prop(rd, "use_stamp_frame", text="Frame")
+        col = flow.column()
         col.prop(rd, "use_stamp_frame_range", text="Frame Range")
+        col = flow.column()
         col.prop(rd, "use_stamp_memory", text="Memory")
 
-        col = split.column(align=True)
+        col = flow.column()
         col.prop(rd, "use_stamp_camera", text="Camera")
+        col = flow.column()
         col.prop(rd, "use_stamp_lens", text="Lens")
 
-        col.separator()
 
+        col = flow.column()
         col.prop(rd, "use_stamp_scene", text="Scene")
+        col = flow.column()
         col.prop(rd, "use_stamp_marker", text="Marker")
 
-        col.separator()
-
+        col = flow.column()
         col.prop(rd, "use_stamp_filename", text="Filename")
 
-        col.separator()
-
+        col = flow.column()
         col.prop(rd, "use_stamp_sequencer_strip", text="Strip Name")
 
         if rd.use_sequencer:
+            col = flow.column()
             col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
 
         row = layout.split(factor=0.3)
