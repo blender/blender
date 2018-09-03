@@ -67,6 +67,7 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 
 #include "intern/builder/deg_builder.h"
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
@@ -519,33 +520,49 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 
 void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 {
-	/* Make sure objects are up to date. */
 	foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
-		const ID_Type id_type = GS(id_node->id_orig->name);
-		int flag = DEG_TAG_COPY_ON_WRITE;
+		if (!id_node->is_visible) {
+			/* ID is not visible within the current dependency graph, no need
+			 * botherwith it to tag or anything.
+			 */
+			continue;
+		}
+		if (id_node->is_previous_visible) {
+			/* The ID was already visible and evaluated, all the subsequent
+			 * updates and tags are to be done explicitly.
+			 */
+			continue;
+		}
+		int flag = 0;
+		if (!DEG::deg_copy_on_write_is_expanded(id_node->id_cow)) {
+			flag |= DEG_TAG_COPY_ON_WRITE;
+		}
 		/* We only tag components which needs an update. Tagging everything is
 		 * not a good idea because that might reset particles cache (or any
 		 * other type of cache).
 		 *
 		 * TODO(sergey): Need to generalize this somehow.
 		 */
+		const ID_Type id_type = GS(id_node->id_orig->name);
 		if (id_type == ID_OB) {
 			flag |= OB_RECALC_OB | OB_RECALC_DATA;
 		}
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
-	}
-	/* Make sure collection properties are up to date. */
-	for (Scene *scene_iter = graph->scene;
-	     scene_iter != NULL;
-	     scene_iter = scene_iter->set)
-	{
-		IDDepsNode *scene_id_node = graph->find_id_node(&scene_iter->id);
-		if (scene_id_node != NULL) {
-			scene_id_node->tag_update(graph);
+		if (id_type == ID_SCE) {
+			/* Make sure collection properties are up to date. */
+			id_node->tag_update(graph);
 		}
-		else {
-			BLI_assert(graph->need_update);
-		}
+		/* Now when ID is updated to the new visibility state, prevent it from
+		 * being re-tagged again. Simplest way to do so is to pretend that it
+		 * was already updated by the "previous" dependency graph.
+		 *
+		 * NOTE: Even if the on_visible_update() is called from the state when
+		 * dependency graph is tagged for relations update, it will be fine:
+		 * since dependency graph builder re-schedules entry tags, all the
+		 * tags we request from here will be applied in the updated state of
+		 * dependency graph.
+		 */
+		id_node->is_previous_visible = true;
 	}
 }
 

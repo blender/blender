@@ -114,7 +114,7 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
-	/* Maker sure dependencies of visible ID datablocks are visible. */
+	/* Make sure dependencies of visible ID datablocks are visible. */
 	deg_graph_build_flush_visibility(graph);
 	/* Re-tag IDs for update if it was tagged before the relations
 	 * update tag.

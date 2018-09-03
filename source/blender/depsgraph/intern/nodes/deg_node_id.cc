@@ -105,6 +105,7 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	eval_flags = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
 	is_visible = true;
+	is_previous_visible = false;
 
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,

@@ -221,6 +221,10 @@ struct DepsgraphNodeBuilder {
 	struct IDInfo {
 		/* Copy-on-written pointer of the corresponding ID. */
 		ID *id_cow;
+		/* State of the is_visible from ID node from previous state of the
+		 * dependency graph.
+		 */
+		bool is_visible;
 	};
 
 protected:

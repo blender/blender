@@ -198,69 +198,49 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
 		start_time = PIL_check_seconds_timer();
 	}
-
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	/* Perform sanity checks. */
 	BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
-
 	BLI_assert(deg_graph->scene == scene);
 	BLI_assert(deg_graph->view_layer == view_layer);
-
-	/* TODO(sergey): This is a bit tricky, but ensures that all the data
-	 * is evaluated properly when depsgraph is becoming "visible".
-	 *
-	 * This now could happen for both visible scene is changed and extra
-	 * dependency graph was created for render engine.
-	 */
-	const bool need_on_visible_update = (deg_graph->id_nodes.size() == 0);
-
-	/* 1) Generate all the nodes in the graph first */
+	/* Generate all the nodes in the graph first */
 	DEG::DepsgraphNodeBuilder node_builder(bmain, deg_graph);
 	node_builder.begin_build();
 	node_builder.build_view_layer(scene,
 	                               view_layer,
 	                               DEG::DEG_ID_LINKED_DIRECTLY);
 	node_builder.end_build();
-
-	/* 2) Hook up relationships between operations - to determine evaluation
-	 *    order.
+	/* Hook up relationships between operations - to determine evaluation
+	 * order.
 	 */
 	DEG::DepsgraphRelationBuilder relation_builder(bmain, deg_graph);
 	relation_builder.begin_build();
 	relation_builder.build_view_layer(scene, view_layer);
 	relation_builder.build_copy_on_write_relations();
-
 	/* Detect and solve cycles. */
 	DEG::deg_graph_detect_cycles(deg_graph);
-
-	/* 3) Simplify the graph by removing redundant relations (to optimize
-	 *    traversal later). */
+	/* Simplify the graph by removing redundant relations (to optimize
+	 * traversal later). */
 	/* TODO: it would be useful to have an option to disable this in cases where
 	 *       it is causing trouble.
 	 */
 	if (G.debug_value == 799) {
 		DEG::deg_graph_transitive_reduction(deg_graph);
 	}
-
-	/* 4) Flush visibility layer and re-schedule nodes for update. */
+	/* Store pointers to commonly used valuated datablocks. */
+	deg_graph->scene_cow = (Scene *)deg_graph->get_cow_id(&deg_graph->scene->id);
+	/* Flush visibility layer and re-schedule nodes for update. */
 	DEG::deg_graph_build_finalize(bmain, deg_graph);
-
+	DEG_graph_on_visible_update(bmain, graph);
 #if 0
 	if (!DEG_debug_consistency_check(deg_graph)) {
 		printf("Consistency validation failed, ABORTING!\n");
 		abort();
 	}
 #endif
-
 	/* Relations are up to date. */
 	deg_graph->need_update = false;
-
-	/* Store pointers to commonly used valuated datablocks. */
-	deg_graph->scene_cow = (Scene *)deg_graph->get_cow_id(&deg_graph->scene->id);
-
-	if (need_on_visible_update) {
-		DEG_graph_on_visible_update(bmain, graph);
-	}
-
+	/* Finish statistics. */
 	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
 		printf("Depsgraph built in %f seconds.\n",
 		       PIL_check_seconds_timer() - start_time);

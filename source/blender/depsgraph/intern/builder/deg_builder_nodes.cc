@@ -162,13 +162,17 @@ DepsgraphNodeBuilder::~DepsgraphNodeBuilder()
 IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
 	IDDepsNode *id_node = NULL;
+	ID *id_cow = NULL;
+	bool is_previous_visible = false;
 	IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
-	ID *id_cow = (id_info != NULL) ? id_info->id_cow : NULL;
-	if (id_cow != NULL) {
+	if (id_info != NULL) {
+		id_cow = id_info->id_cow;
+		is_previous_visible= id_info->is_visible;
 		/* Tag ID info to not free the CoW ID pointer. */
 		id_info->id_cow = NULL;
 	}
 	id_node = graph_->add_id_node(id, id_cow);
+	id_node->is_previous_visible = is_previous_visible;
 	/* Currently all ID nodes are supposed to have copy-on-write logic.
 	 *
 	 * NOTE: Zero number of components indicates that ID node was just created.
@@ -338,15 +342,17 @@ void DepsgraphNodeBuilder::begin_build()
 	 */
 	id_info_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
 	foreach (IDDepsNode *id_node, graph_->id_nodes) {
-		if (!deg_copy_on_write_is_expanded(id_node->id_cow)) {
-			continue;
-		}
-		if (id_node->id_orig == id_node->id_cow) {
-			continue;
-		}
 		IDInfo *id_info = (IDInfo *)MEM_mallocN(
 		        sizeof(IDInfo), "depsgraph id info");
-		id_info->id_cow = id_node->id_cow;
+		if (deg_copy_on_write_is_expanded(id_node->id_cow) &&
+		    id_node->id_orig != id_node->id_cow)
+		{
+			id_info->id_cow = id_node->id_cow;
+		}
+		else {
+			id_info->id_cow = NULL;
+		}
+		id_info->is_visible = id_node->is_visible;
 		BLI_ghash_insert(id_info_hash_, id_node->id_orig, id_info);
 		id_node->id_cow = NULL;
 	}
