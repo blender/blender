@@ -1179,8 +1179,13 @@ string OpenCLDeviceBase::kernel_build_options(const string *debug_src)
 			build_options += "-g -s \"" + *debug_src + "\" ";
 	}
 
-	if(OpenCLInfo::use_debug())
+	if(info.has_half_images) {
+		build_options += "-D__KERNEL_CL_KHR_FP16__ ";
+	}
+
+	if(OpenCLInfo::use_debug()) {
 		build_options += "-D__KERNEL_OPENCL_DEBUG__ ";
+	}
 
 #ifdef WITH_CYCLES_DEBUG
 	build_options += "-D__KERNEL_DEBUG__ ";
