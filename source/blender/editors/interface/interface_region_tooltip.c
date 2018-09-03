@@ -387,20 +387,21 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 	/* it turns out to be most simple to do this via Python since C
 	 * doesn't have access to information about non-active tools.
 	 */
-	char expr[256];
 
 	/* Tip. */
 	{
+		const char *expr_imports[] = {"bpy", "bl_ui", NULL};
+		char expr[256];
 		SNPRINTF(
 		        expr,
-		        "__import__('bl_ui').space_toolsystem_common.description_from_name("
-		        "__import__('bpy').context, "
-		        "__import__('bpy').context.space_data.type, "
+		        "bl_ui.space_toolsystem_common.description_from_name("
+		        "bpy.context, "
+		        "bpy.context.space_data.type, "
 		        "'%s') + '.'",
 		        tool_name);
 
 		char *expr_result = NULL;
-		if (BPY_execute_string_as_string(C, NULL, expr, true, &expr_result)) {
+		if (BPY_execute_string_as_string(C, expr_imports, expr, true, &expr_result)) {
 			if (!STREQ(expr_result, ".")) {
 				uiTooltipField *field = text_field_add(
 				        data, &(uiTooltipFormat){
@@ -444,15 +445,16 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 			{
 				/* Generate keymap in order to inspect it.
 				 * Note, we could make a utility to avoid the keymap generation part of this. */
-				const char *expr_ptr = (
+				const char *expr_imports[] = {"bpy", "bl_ui", NULL};
+				const char *expr = (
 				        "getattr("
-				        "__import__('bl_ui').space_toolsystem_common.keymap_from_context("
-				        "__import__('bpy').context, "
-				        "__import__('bpy').context.space_data.type), "
+				        "bl_ui.space_toolsystem_common.keymap_from_context("
+				        "bpy.context, "
+				        "bpy.context.space_data.type), "
 				        "'as_pointer', lambda: 0)()");
 
 				intptr_t expr_result = 0;
-				if (BPY_execute_string_as_intptr(C, NULL, expr_ptr, true, &expr_result)) {
+				if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
 					if (expr_result != 0) {
 						wmKeyMap *keymap = (wmKeyMap *)expr_result;
 						for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
@@ -491,19 +493,20 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 
 	/* This is too handy not to expose somehow, let's be sneaky for now. */
 	if (CTX_wm_window(C)->eventstate->shift) {
-
+		const char *expr_imports[] = {"bpy", "bl_ui", NULL};
+		char expr[256];
 		SNPRINTF(
 		        expr,
 		        "getattr("
-		        "__import__('bl_ui').space_toolsystem_common.keymap_from_name("
-		        "__import__('bpy').context, "
-		        "__import__('bpy').context.space_data.type, "
+		        "bl_ui.space_toolsystem_common.keymap_from_name("
+		        "bpy.context, "
+		        "bpy.context.space_data.type, "
 		        "'%s'), "
 		        "'as_pointer', lambda: 0)()",
 		        tool_name);
 
 		intptr_t expr_result = 0;
-		if (BPY_execute_string_as_intptr(C, NULL, expr, true, &expr_result)) {
+		if (BPY_execute_string_as_intptr(C, expr_imports, expr, true, &expr_result)) {
 			if (expr_result != 0) {
 				{
 					uiTooltipField *field = text_field_add(
