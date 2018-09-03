@@ -527,6 +527,11 @@ bool ED_gpencil_add_armature_weights(
 static bool gpencil_generate_weights_poll(bContext *C)
 {
 	Object *ob = CTX_data_active_object(C);
+
+	if (ob->type != OB_GPENCIL) {
+		return false;
+	}
+
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bGPdata *gpd = (bGPdata *)ob->data;
 
