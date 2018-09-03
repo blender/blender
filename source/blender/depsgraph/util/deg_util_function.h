@@ -32,6 +32,10 @@
 
 #include <functional>
 
+namespace DEG {
+
 using std::function;
 using namespace std::placeholders;
 #define function_bind std::bind
+
+}  // namespace
