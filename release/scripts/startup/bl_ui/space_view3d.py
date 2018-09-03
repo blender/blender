@@ -526,11 +526,6 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.operator("uv.reset")
 
-        layout.separator()
-
-        layout.operator("mesh.uvs_rotate")
-        layout.operator("mesh.uvs_reverse")
-
 
 class VIEW3D_MT_edit_proportional(Menu):
     bl_label = "Proportional Editing"
