@@ -389,7 +389,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 	 */
 	char expr[256];
 
-	/* Tip */
+	/* Tip. */
 	{
 		SNPRINTF(
 		        expr,
@@ -414,12 +414,84 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 				MEM_freeN(expr_result);
 			}
 		}
+		else {
+			BLI_assert(0);
+		}
+	}
+
+	/* Shortcut. */
+	{
+		/* There are two kinds of shortcuts, either direct access to the tool,
+		 * when a key is bound directly to the tool (as if the toolbar button is pressed),
+		 * or when a key is assigned to the operator it's self (bypassing the tool).
+		 *
+		 * Either way case it's useful to show the shortcut.
+		 */
+		char *shortcut = NULL;
+
+		{
+			uiStringInfo op_keymap = {BUT_GET_OP_KEYMAP, NULL};
+			UI_but_string_info_get(C, but, &op_keymap, NULL);
+			shortcut = op_keymap.strinfo;
+		}
+
+		if (shortcut == NULL) {
+			/* Check for direct access to the tool. */
+			char shortcut_toolbar[128] = "";
+			if (WM_key_event_operator_string(
+			            C, "WM_OT_toolbar", WM_OP_INVOKE_REGION_WIN, NULL, true,
+			            shortcut_toolbar, ARRAY_SIZE(shortcut_toolbar)))
+			{
+				/* Generate keymap in order to inspect it.
+				 * Note, we could make a utility to avoid the keymap generation part of this. */
+				const char *expr_ptr = (
+				        "getattr("
+				        "__import__('bl_ui').space_toolsystem_common.keymap_from_context("
+				        "__import__('bpy').context, "
+				        "__import__('bpy').context.space_data.type), "
+				        "'as_pointer', lambda: 0)()");
+
+				intptr_t expr_result = 0;
+				if (BPY_execute_string_as_intptr(C, expr_ptr, true, &expr_result)) {
+					if (expr_result != 0) {
+						wmKeyMap *keymap = (wmKeyMap *)expr_result;
+						for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
+							if (STREQ(kmi->idname, but->optype->idname)) {
+								char tool_name_test[MAX_NAME];
+								RNA_string_get(kmi->ptr, "name", tool_name_test);
+								if (STREQ(tool_name, tool_name_test)) {
+									char buf[128];
+									WM_keymap_item_to_string(kmi, false, buf, sizeof(buf));
+									shortcut = BLI_sprintfN("%s, %s", shortcut_toolbar, buf);
+									break;
+								}
+							}
+						}
+					}
+				}
+				else {
+					BLI_assert(0);
+				}
+			}
+		}
+
+		if (shortcut != NULL) {
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_NORMAL,
+			            .color_id = UI_TIP_LC_VALUE,
+			            .is_pad = true,
+			        });
+			field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
+			MEM_freeN(shortcut);
+		}
 	}
 
 	/* Keymap */
 
 	/* This is too handy not to expose somehow, let's be sneaky for now. */
 	if (CTX_wm_window(C)->eventstate->shift) {
+
 		SNPRINTF(
 		        expr,
 		        "getattr("
@@ -433,9 +505,21 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		intptr_t expr_result = 0;
 		if (BPY_execute_string_as_intptr(C, expr, true, &expr_result)) {
 			if (expr_result != 0) {
+				{
+					uiTooltipField *field = text_field_add(
+					        data, &(uiTooltipFormat){
+					            .style = UI_TIP_STYLE_NORMAL,
+					            .color_id = UI_TIP_LC_NORMAL,
+					            .is_pad = true,
+					        });
+					field->text = BLI_strdup("Tool Keymap:");
+				}
 				wmKeyMap *keymap = (wmKeyMap *)expr_result;
 				ui_tooltip_data_append_from_keymap(C, data, keymap);
 			}
+		}
+		else {
+			BLI_assert(0);
 		}
 	}
 #endif  /* WITH_PYTHON */
