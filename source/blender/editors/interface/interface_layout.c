@@ -1647,7 +1647,6 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			uiLayout *layout_split;
 #ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
 			if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
-				w = UI_UNIT_X;
 				layout_split = uiLayoutRow(layout_row ? layout_row : layout, true);
 			}
 			else
@@ -1702,6 +1701,12 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 			else {
 				name = "";
 			}
+
+#ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
+			if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
+				w = UI_UNIT_X;
+			}
+#endif  /* UI_PROP_SEP_ICON_WIDTH_EXCEPTION */
 		}
 
 #ifdef UI_PROP_DECORATE
