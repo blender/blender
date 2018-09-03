@@ -763,22 +763,21 @@ def keymap_from_context(context, space_type):
                         # PAINT_OT_brush_select
                         brush = bpy.data.brushes.get(item.data_block)
                         if brush is not None:
-                            # print(dir(brush))
-                            mode = context.mode
-                            attr = {
-                                'SCULPT': "sculpt_tool",
-                                'VERTEX_PAINT': "vertex_paint_tool",
-                                'WEIGHT_PAINT': "weight_paint_tool",
-                                'TEXTURE_PAINT': "texture_paint_tool",
+                            mode = context.active_object.mode
+                            attr_op, attr_brush = {
+                                'SCULPT': ("sculpt_tool", "sculpt_tool"),
+                                'WEIGHT_PAINT': ("weight_paint_tool", "vertex_tool"),
+                                'VERTEX_PAINT': ("vertex_paint_tool", "vertex_tool"),
+                                'TEXTURE_PAINT': ("texture_paint_tool", "image_tool"),
                             }[mode]
                             kmi_hack_brush_select_properties.paint_mode = mode
-                            setattr(kmi_hack_brush_select_properties, attr, getattr(brush, attr))
+                            setattr(kmi_hack_brush_select_properties, attr_op, getattr(brush, attr_brush))
                             kmi_found = wm.keyconfigs.find_item_from_operator(
                                 idname="paint.brush_select",
                                 context='INVOKE_REGION_WIN',
                                 properties=kmi_hack_brush_select_properties,
                             )[1]
-                            del mode, attr
+                            del mode, attr_op, attr_brush
 
             else:
                 kmi_found = None
