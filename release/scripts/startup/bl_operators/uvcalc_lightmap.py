@@ -450,7 +450,7 @@ def lightmap_uvpack(meshes,
             max_int_dimension = int(((side_len / float_to_int_factor)) / PREF_BOX_DIV)
             ok = True
         else:
-            max_int_dimension = 0.0  # wont be used
+            max_int_dimension = 0.0  # won't be used
             ok = False
 
         # RECURSIVE pretty face grouping

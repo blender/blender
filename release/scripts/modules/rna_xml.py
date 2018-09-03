@@ -32,7 +32,7 @@ def build_property_typemap(skip_classes, skip_typemap):
         if issubclass(cls, skip_classes):
             continue
 
-        # # to support skip-save we cant get all props
+        # # to support skip-save we can't get all props
         # properties = cls.bl_rna.properties.keys()
         properties = []
         for prop_id, prop in cls.bl_rna.properties.items():
@@ -149,7 +149,7 @@ def rna2xml(fw=print_ln,
                     subvalue_rna = value.path_resolve(prop, False)
                     if type(subvalue_rna).__name__ == "bpy_prop_array":
                         # check if this is a 0-1 color (rgb, rgba)
-                        # in that case write as a hexidecimal
+                        # in that case write as a hexadecimal
                         prop_rna = value.bl_rna.properties[prop]
                         if (prop_rna.subtype == 'COLOR_GAMMA' and
                                 prop_rna.hard_min == 0.0 and
@@ -274,7 +274,7 @@ def xml2rna(root_xml,
                     tp_name = 'STR'
                 elif hasattr(subvalue, "__len__"):
                     if value_xml.startswith("#"):
-                        # read hexidecimal value as float array
+                        # read hexadecimal value as float array
                         value_xml_split = value_xml[1:]
                         value_xml_coerce = [int(value_xml_split[i:i + 2], 16) /
                                             255 for i in range(0, len(value_xml_split), 2)]

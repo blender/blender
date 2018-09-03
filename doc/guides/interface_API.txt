@@ -35,7 +35,7 @@ Contents
 4.4 specials
 	15. KEYEVT
 	16. LINK and INLINK
-4.5 uiButton control fuctions
+4.5 uiButton control functions
 
 
 ----------------1. General notes
@@ -130,7 +130,7 @@ It walks through the lists in a rather complex manner:
 	/* so we create a 2nd loop for it */
 	- while first block is a menu
 		- if block is a menu and not initialized: 
-			- initalize 'saveunder'
+			- initialize 'saveunder'
 			- draw it 
 		- get event from queue
 		- call uiDoBlock (handles buttons for single block)
@@ -177,7 +177,7 @@ font:
 With the new truetype option in Blender, this is used for all font families
 
 When a uiBlock is created, each uiButton that is defined gets the uiBlock properties.
-Changing Block properties inbetween will affact uiButtons defined thereafter.
+Changing Block properties in between will affact uiButtons defined thereafter.
 
 
 
@@ -217,7 +217,7 @@ void uiBlockSetButmFunc(uiBlock *block, void (*menufunc)(void *arg, int event), 
 void uiAutoBlock(uiBlock *block, float minx, float miny, float sizex, float sizey, UI_BLOCK_ROWS)
 
 	Sets the buttons in this block to automatically align, and fit within boundaries. 
-	Internally it allows multiple colums or rows as well. Only 'row order' has been implemented.
+	Internally it allows multiple columns or rows as well. Only 'row order' has been implemented.
 	The uiDefBut definitions don't need coordinates as input here, but instead:
 	- first value (x1) to indicate row number
 	- width and height values (if filled in) will be used to define a relative width/height.
@@ -253,7 +253,7 @@ In Blender a button can do four things:
 Internally, each button or menu item is a 'uiButton', with a generic API and handling:
 ui_def_but(block, type, retval, str, x1, y1, x2, y2, poin, min, max, a1, a2, tip);
 
-Beacause a lot of obscure generic (re-use) happens here, translation calls have been made 
+Because a lot of obscure generic (re-use) happens here, translation calls have been made
 for each most button types individually.
 
 
@@ -442,7 +442,7 @@ uiDefIconBut(block, INLINK, 0, ICON_INLINK, x1, y1, w, h, void *poin, short from
 	
 
 
-------------- 4.5 uiButton control fuctions
+------------- 4.5 uiButton control functions
 
 
 void uiButSetFunc(uiBut *but, void (*func)(void *arg1, void *arg2), void *arg1, void *arg2)

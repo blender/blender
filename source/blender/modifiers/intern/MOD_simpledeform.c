@@ -50,7 +50,7 @@
 
 #define BEND_EPS 0.000001f
 
-/* Re-maps the indicies for X Y Z by shifting them up and wrapping, such that
+/* Re-maps the indices for X Y Z by shifting them up and wrapping, such that
  * X = Y, Y = Z, Z = X (for X axis), and X = Z, Y = X, Z = Y (for Y axis). This
  * exists because the deformations (excluding bend) are based on the Z axis.
  * Having this helps avoid long, drawn out switches. */
@@ -199,7 +199,7 @@ static void SimpleDeformModifier_do(
 	/* This is historically the lock axis, _not_ the deform axis as the name would imply */
 	const int deform_axis = smd->deform_axis;
 	int lock_axis = smd->axis;
-	if (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) { /* Bend mode shouln't have any lock axis */
+	if (smd->mode == MOD_SIMPLEDEFORM_MODE_BEND) { /* Bend mode shouldn't have any lock axis */
 		lock_axis = 0;
 	}
 	else {
@@ -263,7 +263,7 @@ static void SimpleDeformModifier_do(
 		}
 
 
-		/* SMD values are normalized to the BV, calculate the absolut values */
+		/* SMD values are normalized to the BV, calculate the absolute values */
 		smd_limit[1] = lower + (upper - lower) * smd->limit[1];
 		smd_limit[0] = lower + (upper - lower) * smd->limit[0];
 

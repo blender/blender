@@ -881,7 +881,7 @@ class pyBluePrintCirclesShader(StrokeShader):
         # times as possible.
         #
         # This works because the phases and directions are only
-        # dependant on the stroke length, and the chance that
+        # dependent on the stroke length, and the chance that
         # stroke.resample() above produces strokes of the same length
         # is quite high.
         #

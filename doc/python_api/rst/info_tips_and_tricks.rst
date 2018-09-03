@@ -209,7 +209,7 @@ Bundled Python & Extensions
 ===========================
 
 The Blender releases distributed from blender.org include a complete Python installation on all platforms,
-this has the disadvantage that any extensions you have installed in your systems Python wont be found by Blender.
+this has the disadvantage that any extensions you have installed in your systems Python won't be found by Blender.
 
 There are 2 ways around this:
 

@@ -438,7 +438,7 @@ PyDoc_STRVAR(bpy_bm_utils_face_split_doc,
 "   :type vert_a: :class:`bmesh.types.BMVert`\n"
 "   :arg vert_b: Second vertex to cut in the face (face must contain the vert).\n"
 "   :type vert_b: :class:`bmesh.types.BMVert`\n"
-"   :arg coords: Optional argument to define points inbetween *vert_a* and *vert_b*.\n"
+"   :arg coords: Optional argument to define points in between *vert_a* and *vert_b*.\n"
 "   :type coords: sequence of float triplets\n"
 "   :arg use_exist: .Use an existing edge if it exists (Only used when *coords* argument is empty or omitted)\n"
 "   :type use_exist: boolean\n"

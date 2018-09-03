@@ -271,7 +271,7 @@ def optiRotateUvIsland(faces):
     # orient them vertically (could be an option)
     minx, miny, maxx, maxy = boundsIsland(faces)
     w, h = maxx - minx, maxy - miny
-    # use epsilon so we dont randomly rotate (almost) perfect squares.
+    # use epsilon so we don't randomly rotate (almost) perfect squares.
     if h + 0.00001 < w:
         from math import pi
         angle = pi / 2.0
@@ -357,7 +357,7 @@ def mergeUvIslands(islandList):
                     BREAK = True
                     break
 
-                # Now we have 2 islands, if the efficiency of the islands lowers theres an
+                # Now we have 2 islands, if the efficiency of the islands lowers there's an
                 # increasing likely hood that we can fit merge into the bigger UV island.
                 # this ensures a tight fit.
 
@@ -625,7 +625,7 @@ def packIslands(islandList):
             h = SMALL_NUM
 
         """Save the offset to be applied later,
-        we could apply to the UVs now and allign them to the bottom left hand area
+        we could apply to the UVs now and align them to the bottom left hand area
         of the UV coords like the box packer imagines they are
         but, its quicker just to remember their offset and
         apply the packing and offset in 1 pass """
@@ -873,7 +873,7 @@ def main(context,
 
         # This while only gathers projection vecs, faces are assigned later on.
         while 1:
-            # If theres none there then start with the largest face
+            # If there's none there then start with the largest face
 
             # add all the faces that are close.
             for fIdx in range(len(tempMeshFaces) - 1, -1, -1):

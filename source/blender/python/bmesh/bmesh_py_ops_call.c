@@ -510,7 +510,7 @@ static int bpy_slot_from_py(
 }
 
 /**
- * Use for getting return values from an operator thats already executed.
+ * Use for getting return values from an operator that's already executed.
  *
  * \note Don't throw any exceptions and should always return a valid (PyObject *).
  */

@@ -473,7 +473,7 @@ class ShapeTransfer(Operator):
         objects = [ob for ob in context.selected_editable_objects
                    if ob != ob_act]
 
-        if 1:  # swap from/to, means we cant copy to many at once.
+        if 1:  # swap from/to, means we can't copy to many at once.
             if len(objects) != 1:
                 self.report({'ERROR'},
                             ("Expected one other selected "

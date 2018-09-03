@@ -551,7 +551,7 @@ static DerivedMesh *arrayModifier_doArray(
 	DM_copy_loop_data(dm, result, 0, 0, chunk_nloops);
 	DM_copy_poly_data(dm, result, 0, 0, chunk_npolys);
 
-	/* Subsurf for eg wont have mesh data in the custom data arrays.
+	/* Subsurf for eg won't have mesh data in the custom data arrays.
 	 * now add mvert/medge/mpoly layers. */
 
 	if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {

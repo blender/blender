@@ -303,7 +303,7 @@ def main():
                     elif tp_sub == BMO_OP_SLOT_SUBTYPE_PTR_MESH:
                         tp_str = ":class:`bpy.types.Mesh`"
                     else:
-                        print("Cant find", vars_dict_reverse[tp_sub])
+                        print("Can't find", vars_dict_reverse[tp_sub])
                         assert(0)
 
                 elif tp == BMO_OP_SLOT_ELEMENT_BUF:
@@ -340,10 +340,10 @@ def main():
                         elif tp_sub == BMO_OP_SLOT_SUBTYPE_MAP_INTERNAL:
                             tp_str += "unknown internal data, not compatible with python"
                         else:
-                            print("Cant find", vars_dict_reverse[tp_sub])
+                            print("Can't find", vars_dict_reverse[tp_sub])
                             assert(0)
                 else:
-                    print("Cant find", vars_dict_reverse[tp])
+                    print("Can't find", vars_dict_reverse[tp])
                     assert(0)
 
                 args_wash.append((name, tp_str, comment))

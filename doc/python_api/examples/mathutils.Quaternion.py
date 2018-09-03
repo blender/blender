@@ -15,7 +15,7 @@ quat_a = mathutils.Quaternion((0.0, 1.0, 0.0), math.radians(90.0))
 quat_b = mathutils.Quaternion((0.0, 0.0, 1.0), math.radians(45.0))
 quat_out = quat_a * quat_b
 
-# print the quat, euler degrees for mear mortals and (axis, angle)
+# print the quat, euler degrees for mere mortals and (axis, angle)
 print("Final Rotation:")
 print(quat_out)
 print("%.2f, %.2f, %.2f" % tuple(math.degrees(a) for a in quat_out.to_euler()))

@@ -161,7 +161,7 @@ PyDoc_STRVAR(Euler_to_matrix_doc,
 "\n"
 "   Return a matrix representation of the euler.\n"
 "\n"
-"   :return: A 3x3 roation matrix representation of the euler.\n"
+"   :return: A 3x3 rotation matrix representation of the euler.\n"
 "   :rtype: :class:`Matrix`\n"
 );
 static PyObject *Euler_to_matrix(EulerObject *self)

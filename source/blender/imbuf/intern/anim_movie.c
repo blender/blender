@@ -1269,7 +1269,7 @@ static ImBuf *anim_getnew(struct anim *anim)
 #ifdef WITH_AVI
 		case ANIM_AVI:
 			if (startavi(anim)) {
-				printf("couldnt start avi\n");
+				printf("couldn't start avi\n");
 				return (NULL);
 			}
 			ibuf = IMB_allocImBuf(anim->x, anim->y, 24, 0);

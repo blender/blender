@@ -57,7 +57,7 @@
 /* used for gathering edge connectivity */
 typedef struct ScrewVertConnect {
 	float dist;  /* distance from the center axis */
-	float co[3]; /* loaction relative to the transformed axis */
+	float co[3]; /* location relative to the transformed axis */
 	float no[3]; /* calc normal of the vertex */
 	unsigned int v[2]; /* 2  verts on either side of this one */
 	MEdge *e[2]; /* edges on either side, a bit of a waste since each edge ref's 2 edges */
@@ -297,7 +297,7 @@ static DerivedMesh *applyModifier(
 
 		/* angle */
 
-#if 0   /* cant incluide this, not predictable enough, though quite fun. */
+#if 0   /* can't include this, not predictable enough, though quite fun. */
 		if (ltmd->flag & MOD_SCREW_OBJECT_ANGLE) {
 			float mtx3_tx[3][3];
 			copy_m3_m4(mtx3_tx, mtx_tx);
@@ -673,7 +673,7 @@ static DerivedMesh *applyModifier(
 							if (tmpf1[ltmd->axis] < vc_tmp->co[ltmd->axis]) { /* best is above */
 								ed_loop_flip = 1;
 							}
-							else { /* best is below or even... in even case we cant know whet  to do. */
+							else { /* best is below or even... in even case we can't know what to do. */
 								ed_loop_flip = 0;
 							}
 
@@ -809,7 +809,7 @@ static DerivedMesh *applyModifier(
 					copy_v3_v3(vc->no, vc->co);
 				}
 
-				/* we wont be looping on this data again so copy normals here */
+				/* we won't be looping on this data again so copy normals here */
 				if ((angle < 0.0f) != do_flip)
 					negate_v3(vc->no);
 
@@ -897,7 +897,7 @@ static DerivedMesh *applyModifier(
 	}
 
 	if (close) {
-		/* last loop of edges, previous loop dosnt account for the last set of edges */
+		/* last loop of edges, previous loop doesn't account for the last set of edges */
 		const unsigned int varray_stride = (step_tot - 1) * totvert;
 
 		for (i = 0; i < totvert; i++) {

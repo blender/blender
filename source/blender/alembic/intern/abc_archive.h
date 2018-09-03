@@ -53,7 +53,7 @@ public:
 
 	/**
 	 * Returns true when either Blender is compiled with HDF5 support and
-	 * the archive was succesfully opened (valid() will also return true),
+	 * the archive was successfully opened (valid() will also return true),
 	 * or when Blender was built without HDF5 support but a HDF5 file was
 	 * detected (valid() will return false).
 	 */

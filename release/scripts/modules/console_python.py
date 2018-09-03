@@ -68,7 +68,7 @@ def get_console(console_id):
         # check if clearing the namespace is needed to avoid a memory leak.
         # the window manager is normally loaded with new blend files
         # so this is a reasonable way to deal with namespace clearing.
-        # bpy.data hashing is reset by undo so cant be used.
+        # bpy.data hashing is reset by undo so can't be used.
         hash_prev = getattr(get_console, "consoles_namespace_hash", 0)
 
         if hash_prev != hash_next:

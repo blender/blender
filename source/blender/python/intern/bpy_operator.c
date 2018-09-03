@@ -124,7 +124,7 @@ static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 	CTX_py_dict_set(C, (void *)context_dict);
 	Py_XINCREF(context_dict); /* so we done loose it */
 
-	/* main purpose of thsi function */
+	/* main purpose of this function */
 	ret = WM_operator_poll_context((bContext *)C, ot, context) ? Py_True : Py_False;
 
 	/* restore with original context dict, probably NULL but need this for nested operator calls */

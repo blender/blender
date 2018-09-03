@@ -154,7 +154,7 @@ void AbcCurveWriter::do_write()
 		if (nurbs->knotsu != NULL) {
 			const size_t num_knots = KNOTSU(nurbs);
 
-			/* Add an extra knot at the beggining and end of the array since most apps
+			/* Add an extra knot at the beginning and end of the array since most apps
 			 * require/expect them. */
 			knots.resize(num_knots + 2);
 

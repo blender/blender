@@ -32,7 +32,7 @@ __all__ = (
 
 def mesh_linked_uv_islands(mesh):
     """
-    Splits the mesh into connected polygons, use this for seperating cubes from
+    Splits the mesh into connected polygons, use this for separating cubes from
     other mesh elements within 1 mesh datablock.
 
     :arg mesh: the mesh used to group with.
@@ -92,7 +92,7 @@ def mesh_linked_uv_islands(mesh):
 
 def mesh_linked_tessfaces(mesh):
     """
-    Splits the mesh into connected faces, use this for seperating cubes from
+    Splits the mesh into connected faces, use this for separating cubes from
     other mesh elements within 1 mesh datablock.
 
     :arg mesh: the mesh used to group with.
@@ -182,7 +182,7 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
     Edge loops defined by faces
 
     Takes me.tessfaces or a list of faces and returns the edge loops
-    These edge loops are the edges that sit between quads, so they dont touch
+    These edge loops are the edges that sit between quads, so they don't touch
     1 quad, note: not connected will make 2 edge loops,
     both only containing 2 edges.
 
@@ -252,7 +252,7 @@ def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
                 i = ed_adj.index(context_loop[-2])
                 context_loop.append(ed_adj[not i])
 
-                # Dont look at this again
+                # Don't look at this again
                 del ed_adj[:]
 
     return edge_loops
@@ -377,7 +377,7 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
 
     else:
         """
-        Seperate this loop into multiple loops be finding edges that are
+        Separate this loop into multiple loops be finding edges that are
         used twice. This is used by lightwave LWO files a lot
         """
 

@@ -383,7 +383,7 @@ def usage():
     print("Options:")
     print("\t--dna-keep-blend:      doesn't delete the produced blend file DNA export to html")
     print("\t--dna-debug:           sets the logging level to DEBUG (lots of additional info)")
-    print("\t--dna-versioned        saves version informations in the html and blend filenames")
+    print("\t--dna-versioned        saves version information in the html and blend filenames")
     print("\t--dna-overwrite-css    overwrite dna.css, useful when modifying css in the script")
     print("Examples:")
     print("\tdefault:       % blender2.5 --background -noaudio --python BlendFileDnaExporter_25.py")

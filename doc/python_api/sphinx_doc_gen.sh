@@ -58,7 +58,7 @@ SPHINX_WORKDIR="$(mktemp --directory --suffix=.sphinx)"
 # Generate reStructuredText (blender/python only)
 
 if $DO_EXE_BLENDER ; then
-	# dont delete existing docs, now partial updates are used for quick builds.
+	# don't delete existing docs, now partial updates are used for quick builds.
 	$BLENDER_BIN \
 		--background \
 		-noaudio \
@@ -89,7 +89,7 @@ if $DO_OUT_HTML ; then
 	# and zip up there, for now this is OK
 	rm -rf sphinx-out/.doctrees
 
-	# incase we have a zip already
+	# in case we have a zip already
 	rm -f blender_python_reference_$BLENDER_VERSION.zip
 
 	# ------------------------------------------------------------------------

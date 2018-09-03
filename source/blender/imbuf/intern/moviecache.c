@@ -380,7 +380,7 @@ static void do_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf, boo
 	if (need_lock)
 		BLI_mutex_unlock(&limitor_lock);
 
-	/* cache limiter can't remove unused keys which points to destoryed values */
+	/* cache limiter can't remove unused keys which points to destroyed values */
 	check_unused_keys(cache);
 
 	if (cache->points) {

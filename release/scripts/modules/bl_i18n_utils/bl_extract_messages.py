@@ -248,7 +248,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
         # Now here is the *ugly* hack!
         # Unfortunately, all classes we want to access are not available from bpy.types (OperatorProperties subclasses
         # are not here, as they have the same name as matching Operator ones :( ). So we use __subclasses__() calls
-        # to walk through all rna hierachy.
+        # to walk through all rna hierarchy.
         # But unregistered classes remain listed by relevant __subclasses__() calls (be it a Py or BPY/RNA bug),
         # and obviously the matching RNA struct exists no more, so trying to access their data (even the identifier)
         # quickly leads to segfault!
@@ -498,7 +498,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
     def extract_strings_split(node):
         """
         Returns a list args as returned by 'extract_strings()', but split into groups based on separate_nodes, this way
-        expressions like ("A" if test else "B") wont be merged but "A" + "B" will.
+        expressions like ("A" if test else "B") won't be merged but "A" + "B" will.
         """
         estr_ls = []
         nds_ls = []

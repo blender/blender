@@ -67,7 +67,7 @@ typedef struct LaplacianSystem {
 	float (*co)[3];				/* Original vertex coordinates */
 	float (*no)[3];				/* Original vertex normal */
 	float (*delta)[3];			/* Differential Coordinates */
-	unsigned int (*tris)[3];	/* Copy of MLoopTri (tesselation triangle) v1-v3 */
+	unsigned int (*tris)[3];	/* Copy of MLoopTri (tessellation triangle) v1-v3 */
 	int *index_anchors;			/* Static vertex index list */
 	int *unit_verts;			/* Unit vectors of projected edges onto the plane orthogonal to n */
 	int *ringf_indices;			/* Indices of faces per vertex */
@@ -209,7 +209,7 @@ static void createVertRingMap(
 /**
  * This method computes the Laplacian Matrix and Differential Coordinates for all vertex in the mesh.
  * The Linear system is LV = d
- * Where L is Laplacian Matrix, V as the vertexes in Mesh, d is the differential coordinates
+ * Where L is Laplacian Matrix, V as the vertices in Mesh, d is the differential coordinates
  * The Laplacian Matrix is computes as a
  * Lij = sum(Wij) (if i == j)
  * Lij = Wij (if i != j)
@@ -219,7 +219,7 @@ static void createVertRingMap(
  * di = Vi * sum(Wij) - sum(Wij * Vj)
  * Where :
  * di is the Differential Coordinate i
- * sum (Wij) is the sum of all weights between vertex Vi and its vertexes neighbors (Vj)
+ * sum (Wij) is the sum of all weights between vertex Vi and its vertices neighbors (Vj)
  * sum (Wij * Vj) is the sum of the product between vertex neighbor Vj and weight Wij for all neighborhood.
  *
  * This Laplacian Matrix is described in the paper:

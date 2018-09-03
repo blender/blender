@@ -1294,7 +1294,7 @@ class INFO_MT_add(Menu):
     def draw(self, context):
         layout = self.layout
 
-        # note, don't use 'EXEC_SCREEN' or operators wont get the 'v3d' context.
+        # note, don't use 'EXEC_SCREEN' or operators won't get the 'v3d' context.
 
         # Note: was EXEC_AREA, but this context does not have the 'rv3d', which prevents
         #       "align_view" to work on first call (see [#32719]).

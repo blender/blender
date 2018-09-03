@@ -362,7 +362,7 @@ static ImBuf *thumb_create_ex(
 		}
 		else {
 			if (ELEM(source, THB_SOURCE_IMAGE, THB_SOURCE_BLEND, THB_SOURCE_FONT)) {
-				/* only load if we didnt give an image */
+				/* only load if we didn't give an image */
 				if (img == NULL) {
 					switch (source) {
 						case THB_SOURCE_IMAGE:

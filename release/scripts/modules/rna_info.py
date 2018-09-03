@@ -83,7 +83,7 @@ def float_as_string(f):
 
 
 def get_py_class_from_rna(rna_type):
-    """ Get's the Python type for a class which isn't necessarily added to ``bpy.types``.
+    """ Gets the Python type for a class which isn't necessarily added to ``bpy.types``.
     """
     identifier = rna_type.identifier
     py_class = getattr(bpy.types, identifier, None)

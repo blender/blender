@@ -1035,7 +1035,7 @@ static bool surfacedeformBind(
 	}
 	else if (data.success == MOD_SDEF_BIND_RESULT_GENERIC_ERR) {
 		/* I know this message is vague, but I could not think of a way
-		 * to explain this whith a reasonably sized message.
+		 * to explain this with a reasonably sized message.
 		 * Though it shouldn't really matter all that much,
 		 * because this is very unlikely to occur */
 		modifier_setError((ModifierData *)smd, "Target contains invalid polygons");

@@ -367,7 +367,7 @@ static void complete_partial_load(struct ImBuf *ibuf, unsigned int *rect)
 		memset(rect, 0, size);
 	}
 	else {
-		/* shouldnt happen */
+		/* shouldn't happen */
 		printf("decodetarga: incomplete file, all pixels written\n");
 	}
 }

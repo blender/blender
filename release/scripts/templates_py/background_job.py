@@ -95,7 +95,7 @@ def main():
         help="Render an image to the specified path",
     )
 
-    args = parser.parse_args(argv)  # In this example we wont use the args
+    args = parser.parse_args(argv)  # In this example we won't use the args
 
     if not argv:
         parser.print_help()

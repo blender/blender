@@ -1021,7 +1021,7 @@ void IMB_exr_write_channels(void *handle)
 		}
 
 		for (echan = (ExrChannel *)data->channels.first; echan; echan = echan->next) {
-			/* Writting starts from last scanline, stride negative. */
+			/* Writing starts from last scanline, stride negative. */
 			if (echan->use_half_float) {
 				float *rect = echan->rect;
 				half *cur = current_rect_half;

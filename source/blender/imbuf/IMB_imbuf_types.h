@@ -67,7 +67,7 @@ typedef struct DDSData {
  */
 
 /* ibuf->ftype flag, main image types */
-/* Warning: Keep explicit value assignements here, this file is included in areas where not all format defines
+/* Warning: Keep explicit value assignments here, this file is included in areas where not all format defines
  *          are set (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined). See T46524. */
 enum eImbTypes {
 	IMB_FTYPE_PNG       = 1,
@@ -254,7 +254,7 @@ typedef struct ImBuf {
 #define IB_tilecache		(1 << 11)
 #define IB_alphamode_premul	(1 << 12)  /* indicates whether image on disk have premul alpha */
 #define IB_alphamode_detect	(1 << 13)  /* if this flag is set, alpha mode would be guessed from file */
-#define IB_ignore_alpha		(1 << 14)  /* ignore alpha on load and substitude it with 1.0f */
+#define IB_ignore_alpha		(1 << 14)  /* ignore alpha on load and substitute it with 1.0f */
 #define IB_thumbnail		(1 << 15)
 #define IB_multiview		(1 << 16)
 
