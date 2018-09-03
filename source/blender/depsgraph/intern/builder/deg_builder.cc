@@ -56,7 +56,7 @@ namespace DEG {
 
 namespace {
 
-void deg_graph_build_flush_layers(Depsgraph *graph)
+void deg_graph_build_flush_visibility(Depsgraph *graph)
 {
 	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode *),
 	                                 "DEG flush layers stack");
@@ -108,7 +108,8 @@ void deg_graph_build_flush_layers(Depsgraph *graph)
 
 void deg_graph_build_finalize(Main *bmain, Depsgraph *graph)
 {
-	deg_graph_build_flush_layers(graph);
+	/* Maker sure dependencies of visible ID datablocks are visible. */
+	deg_graph_build_flush_visibility(graph);
 	/* Re-tag IDs for update if it was tagged before the relations
 	 * update tag.
 	 */
