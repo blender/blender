@@ -1365,6 +1365,7 @@ void cloth_find_point_contacts(Depsgraph *depsgraph, Object *ob, ClothModifierDa
 	if (!collobjs) {
 		*r_collider_contacts = NULL;
 		*r_totcolliders = 0;
+		BLI_bvhtree_free(cloth_bvh);
 		return;
 	}
 
