@@ -40,6 +40,13 @@ flat out int hairStrandID;
 
 void main()
 {
+#ifdef GPU_INTEL
+	/* Due to some shader compiler bug, we somewhat
+	 * need to access gl_VertexID to make it work. even
+	 * if it's actually dead code. */
+	gl_Position.x = float(gl_VertexID);
+#endif
+
 #ifdef HAIR_SHADER
 	hairStrandID = hair_get_strand_id();
 	vec3 pos, binor;
