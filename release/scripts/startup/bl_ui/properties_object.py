@@ -222,6 +222,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         obj = context.object
@@ -231,44 +232,51 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
         is_dupli = (obj.dupli_type != 'NONE')
 
-        col = flow.column(align=True)
+        col = flow.column()
         col.prop(obj, "show_name", text="Name")
+
+        col = flow.column()
         col.prop(obj, "show_axis", text="Axis")
 
         # Makes no sense for cameras, armatures, etc.!
         # but these settings do apply to dupli instances
-        col = flow.column(align=True)
         if is_geometry or is_dupli:
+            col = flow.column()
             col.prop(obj, "show_wire", text="Wireframe")
         if obj_type == 'MESH' or is_dupli:
-            col.prop(obj, "show_all_edges")
-
-        col = flow.column()
-        col.prop(obj, "show_bounds", text="Bounds")
-        sub = col.column()
-        sub.active = obj.show_bounds
-        sub.prop(obj, "draw_bounds_type")
+            col = flow.column()
+            col.prop(obj, "show_all_edges", text="All Edges")
 
         col = flow.column()
         if is_geometry:
             col.prop(obj, "show_texture_space", text="Texture Space")
+            col = flow.column()
             col.prop(obj.display, "show_shadows", text="Shadow")
 
-        col.prop(obj, "show_x_ray", text="X-Ray")
+        col = flow.column()
+        col.prop(obj, "show_x_ray", text="In Front")
         # if obj_type == 'MESH' or is_empty_image:
         #    col.prop(obj, "show_transparent", text="Transparency")
+
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
         if is_wire:
             # wire objects only use the max. draw type for duplis
             col.active = is_dupli
-        col.prop(
-            obj, "draw_type",
-            text="Maximum Draw Type" if is_wire else "Maximum Draw Type",
-        )
+        col.prop(obj, "draw_type", text="Display As")
+
+        split = flow.split(factor=0.6)
+        split.prop(obj, "show_bounds", text="Bounds")
+        row = split.row()
+        row.active = obj.show_bounds or (obj.draw_type == 'BOUNDS')
+        row.prop(obj, "draw_bounds_type", text="")
+
 
         if is_geometry or is_empty_image:
             # Only useful with object having faces/materials...
+            col = flow.column()
             col.prop(obj, "color")
 
 
