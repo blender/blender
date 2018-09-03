@@ -1357,6 +1357,7 @@ void cloth_find_point_contacts(Object *ob, ClothModifierData *clmd, float step, 
 	if (!collobjs) {
 		*r_collider_contacts = NULL;
 		*r_totcolliders = 0;
+		BLI_bvhtree_free(cloth_bvh);
 		return;
 	}
 
