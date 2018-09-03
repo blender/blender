@@ -6244,7 +6244,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	sce->depsgraph_hash = NULL;
 	sce->fps_info = NULL;
 	sce->customdata_mask_modal = 0;
-	sce->lay_updated = 0;
 
 	BKE_sound_create_scene(sce);
 

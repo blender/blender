@@ -734,24 +734,11 @@ static void render_endjob(void *rjv)
 
 	/* Finally unlock the user interface (if it was locked). */
 	if (rj->interface_locked) {
-		Scene *scene;
-
 		/* Interface was locked, so window manager couldn't have been changed
 		 * and using one from Global will unlock exactly the same manager as
 		 * was locked before running the job.
 		 */
 		WM_set_locked_interface(G_MAIN->wm.first, false);
-
-		/* We've freed all the derived caches before rendering, which is
-		 * effectively the same as if we re-loaded the file.
-		 *
-		 * So let's not try being smart here and just reset all updated
-		 * scene layers and use generic DAG_on_visible_update.
-		 */
-		for (scene = G_MAIN->scene.first; scene; scene = scene->id.next) {
-			scene->lay_updated = 0;
-		}
-
 		DEG_on_visible_update(G_MAIN, false);
 	}
 }
