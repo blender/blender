@@ -5771,6 +5771,9 @@ static void lib_link_view_layer(FileData *fd, Library *lib, ViewLayer *view_laye
 		if (base->object == NULL) {
 			/* Free in case linked object got lost. */
 			BLI_freelinkN(&view_layer->object_bases, base);
+			if (view_layer->basact == base) {
+				view_layer->basact = NULL;
+			}
 		}
 	}
 
