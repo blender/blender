@@ -725,17 +725,17 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "register_pass", "RE_engine_register_pass");
 	RNA_def_function_ui_description(func, "Register a render pass that will be part of the render with the current settings");
-	prop = RNA_def_pointer(func, "scene", "Scene", "", "");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
+	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
+	parm = RNA_def_string(func, "name", NULL, MAX_NAME, "Name", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_int(func, "channels", 1, 1, 8, "Channels", "", 1, 4);
+	parm = RNA_def_int(func, "channels", 1, 1, 8, "Channels", "", 1, 4);
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_string(func, "chanid", NULL, 8, "Channel IDs", "");
+	parm = RNA_def_string(func, "chanid", NULL, 8, "Channel IDs", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	prop = RNA_def_enum(func, "type", render_pass_type_items, SOCK_FLOAT, "Type", "");
+	parm = RNA_def_enum(func, "type", render_pass_type_items, SOCK_FLOAT, "Type", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* registration */
