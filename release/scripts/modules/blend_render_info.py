@@ -22,7 +22,7 @@
 
 # This module can get render info without running from inside blender.
 #
-# This struct wont change according to Ton.
+# This struct won't change according to Ton.
 # Note that the size differs on 32/64bit
 #
 # typedef struct BHead {

@@ -37,7 +37,7 @@ changes have been made:
 - limit list of modules to prefix in case of "from w"
 - sorted modules
 - added sphinx documentation
-- complete() returns a blank list of the module isnt found
+- complete() returns a blank list of the module isn't found
 """
 
 

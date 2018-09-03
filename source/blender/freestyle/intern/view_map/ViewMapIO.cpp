@@ -979,7 +979,7 @@ int load(istream& in, ViewMap *vm, ProgressBar *pb)
 	READ(flags);
 	Options::setFlags(flags);
 
-	// Read the size of the five ViewMap's lists (with some extra informations for the ViewVertices)
+	// Read the size of the five ViewMap's lists (with some extra information for the ViewVertices)
 	// and instantiate them (with default costructors)
 	unsigned vs_s, fe_s, fe_rle1, fe_rle2, sv_s, ve_s, vv_s, vv_rle1, vv_rle2;
 	READ(vs_s);
@@ -1118,7 +1118,7 @@ int save(ostream& out, ViewMap *vm, ProgressBar *pb)
 	unsigned char flags = Options::getFlags();
 	WRITE(flags);
 
-	// Write the size of the five lists (with some extra informations for the ViewVertices)
+	// Write the size of the five lists (with some extra information for the ViewVertices)
 	unsigned size;
 	size = vm->ViewShapes().size();
 	WRITE(size);

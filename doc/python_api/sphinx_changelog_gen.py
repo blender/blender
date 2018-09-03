@@ -113,7 +113,7 @@ def api_dump():
             )
         del props
 
-        # python props, tricky since we dont know much about them.
+        # python props, tricky since we don't know much about them.
         for prop_id, attr in struct_info.get_py_properties():
 
             dump_class[prop_id] = (
@@ -289,7 +289,7 @@ def api_changelog(api_from, api_to, api_out):
         if props_old:
             write_title("Removed", "^")
             for prop_id in props_old:
-                fw("* **%s**\n" % prop_id)  # cant link to remvoed docs
+                fw("* **%s**\n" % prop_id)  # can't link to removed docs
             fw("\n")
 
         if props_moved:
@@ -351,7 +351,7 @@ def main():
         "--api_out", dest="api_out", metavar='FILE',
         help="Output sphinx changelog")
 
-    args = parser.parse_args(argv)  # In this example we wont use the args
+    args = parser.parse_args(argv)  # In this example we won't use the args
 
     if not argv:
         print("No args given!")

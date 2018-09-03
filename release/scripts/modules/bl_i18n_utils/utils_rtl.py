@@ -28,7 +28,7 @@
 #        Windows or OsX.
 #        This uses ctypes, as there is no py3 binding for fribidi currently.
 #        This implies you only need the compiled C library to run it.
-#        Finally, note that it handles some formating/escape codes (like
+#        Finally, note that it handles some formatting/escape codes (like
 #        \", %s, %x12, %.4f, etc.), protecting them from ugly (evil) fribidi,
 #        which seems completely unaware of such things (as unicode is...).
 
@@ -79,7 +79,7 @@ MENU_DETECT_REGEX = re.compile("%x\\d+\\|")
 ##### Kernel processing funcs. #####
 def protect_format_seq(msg):
     """
-    Find some specific escaping/formating sequences (like \", %s, etc.,
+    Find some specific escaping/formatting sequences (like \", %s, etc.,
     and protect them from any modification!
     """
 #    LRM = "\u200E"

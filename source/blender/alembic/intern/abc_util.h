@@ -167,7 +167,7 @@ typedef enum {
 } AbcAxisSwapMode;
 
 /* Create a rotation matrix for each axis from euler angles.
- * Euler angles are swaped to change coordinate system. */
+ * Euler angles are swapped to change coordinate system. */
 void create_swapped_rotation_matrix(
         float rot_x_mat[3][3], float rot_y_mat[3][3],
         float rot_z_mat[3][3], const float euler[3],
@@ -197,7 +197,7 @@ public:
 /* *************************** */
 
 /**
- * Utility class whose purpose is to more easily log related informations. An
+ * Utility class whose purpose is to more easily log related information. An
  * instance of the SimpleLogger can be created in any context, and will hold a
  * copy of all the strings passed to its output stream.
  *

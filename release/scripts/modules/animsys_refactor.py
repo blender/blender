@@ -34,7 +34,7 @@ IS_TESTING = False
 
 def drepr(string):
     # is there a less crappy way to do this in python?, re.escape also escapes
-    # single quotes strings so cant use it.
+    # single quotes strings so can't use it.
     return '"%s"' % repr(string)[1:-1].replace("\"", "\\\"").replace("\\'", "'")
 
 

@@ -579,7 +579,7 @@ PyDoc_STRVAR(py_bvhtree_overlap_doc,
 "\n"
 "   Find overlapping indices between 2 trees.\n"
 "\n"
-"   :arg other_tree: Other tree to preform overlap test on.\n"
+"   :arg other_tree: Other tree to perform overlap test on.\n"
 "   :type other_tree: :class:`BVHTree`\n"
 "   :return: Returns a list of unique index pairs,"
 "      the first index referencing this tree, the second referencing the **other_tree**.\n"

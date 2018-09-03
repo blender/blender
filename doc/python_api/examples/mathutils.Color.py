@@ -26,5 +26,5 @@ col += mathutils.Color((0.25, 0.0, 0.0))
 # can printed as integers
 print("Color: %d, %d, %d" % (col * 255.0)[:])
 
-# This example prints the color as hexidecimal
-print("Hexidecimal: %.2x%.2x%.2x" % (col * 255.0)[:])
+# This example prints the color as hexadecimal
+print("Hexadecimal: %.2x%.2x%.2x" % (col * 255.0)[:])

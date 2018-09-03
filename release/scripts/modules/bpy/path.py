@@ -301,7 +301,7 @@ def resolve_ncase(path):
         if f_iter_nocase:
             return _os.path.join(dirpath, f_iter_nocase) + suffix, True
         else:
-            # cant find the right one, just return the path as is.
+            # can't find the right one, just return the path as is.
             return path, False
 
     ncase_path, found = _ncase_path_found(path)

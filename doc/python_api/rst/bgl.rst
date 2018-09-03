@@ -69,7 +69,7 @@ offers a set of extensive examples, including advanced features.
 
 .. function:: glBegin(mode):
 
-   Delimit the vertices of a primitive or a group of like primatives
+   Delimit the vertices of a primitive or a group of like primitives
 
    .. seealso:: `OpenGL Docs <https://www.opengl.org/sdk/docs/man2/xhtml/glBegin.xml>`__
 

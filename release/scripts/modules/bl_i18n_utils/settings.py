@@ -262,7 +262,7 @@ PYGETTEXT_KEYWORDS = (() +
 
 # Check printf mismatches between msgid and msgstr.
 CHECK_PRINTF_FORMAT = (
-    r"(?!<%)(?:%%)*%"          # Begining, with handling for crazy things like '%%%%%s'
+    r"(?!<%)(?:%%)*%"          # Beginning, with handling for crazy things like '%%%%%s'
     r"[-+#0]?"                 # Flags (note: do not add the ' ' (space) flag here, generates too much false positives!)
     r"(?:\*|[0-9]+)?"          # Width
     r"(?:\.(?:\*|[0-9]+))?"    # Precision

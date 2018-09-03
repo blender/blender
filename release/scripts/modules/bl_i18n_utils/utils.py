@@ -457,7 +457,7 @@ class I18nMessages:
     def check(self, fix=False):
         """
         Check consistency between messages and their keys!
-        Check messages using format stuff are consistant between msgid and msgstr!
+        Check messages using format stuff are consistent between msgid and msgstr!
         If fix is True, tries to fix the issues.
         Return a list of found errors (empty if everything went OK!).
         """

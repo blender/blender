@@ -388,7 +388,7 @@ PyObject *BPy_BMLoopColor_CreatePyObject(struct MLoopCol *data)
  * This type could eventually be used to access lattice weights.
  *
  * \note: Many of blender-api's dict-like-wrappers act like ordered dicts,
- * This is intentional _not_ ordered, the weights can be in any order and it wont matter,
+ * This is intentionally _not_ ordered, the weights can be in any order and it won't matter,
  * the order should not be used in the api in any meaningful way (as with a python dict)
  * only expose as mapping, not a sequence.
  */

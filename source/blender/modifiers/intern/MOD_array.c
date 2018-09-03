@@ -505,7 +505,7 @@ static Mesh *arrayModifier_doArray(
 	CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
 	CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
 
-	/* Subsurf for eg wont have mesh data in the custom data arrays.
+	/* Subsurf for eg won't have mesh data in the custom data arrays.
 	 * now add mvert/medge/mpoly layers. */
 	if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
 		memcpy(result->mvert, mesh->mvert, sizeof(*result->mvert) * mesh->totvert);

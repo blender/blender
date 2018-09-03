@@ -1347,6 +1347,14 @@ void cloth_find_point_contacts(Depsgraph *depsgraph, Object *ob, ClothModifierDa
 	// static collisions
 	////////////////////////////////////////////////////////////
 
+	/* Check we do have collision objects to test against, before doing anything else. */
+	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+	if (!collobjs) {
+		*r_collider_contacts = NULL;
+		*r_totcolliders = 0;
+		return;
+	}
+
 	// create temporary cloth points bvh
 	cloth_bvh = BLI_bvhtree_new(mvert_num, max_ff(clmd->coll_parms->epsilon, clmd->coll_parms->distance_repel), 4, 6);
 	/* fill tree */
@@ -1360,14 +1368,6 @@ void cloth_find_point_contacts(Depsgraph *depsgraph, Object *ob, ClothModifierDa
 	}
 	/* balance tree */
 	BLI_bvhtree_balance(cloth_bvh);
-
-	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
-	if (!collobjs) {
-		*r_collider_contacts = NULL;
-		*r_totcolliders = 0;
-		BLI_bvhtree_free(cloth_bvh);
-		return;
-	}
 
 	/* move object to position (step) in time */
 	for (i = 0; i < numcollobj; i++) {
