@@ -782,7 +782,7 @@ void BKE_gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 	/* if frame has no strokes after this, delete it */
 	if (BLI_listbase_is_empty(&gpf->strokes)) {
 		BKE_gpencil_layer_delframe(gpl, gpf);
-		BKE_gpencil_layer_getframe(gpl, cfra, 0);
+		BKE_gpencil_layer_getframe(gpl, cfra, GP_GETFRAME_USE_PREV);
 	}
 }
 

@@ -1190,7 +1190,7 @@ void DRW_gpencil_populate_multiedit(
 			}
 		}
 		else {
-			gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
+			gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
 			if (gpf) {
 				gpencil_draw_strokes(
 				        cache, e_data, vedata, ts, ob, gpd, gpl, gpf, gpf,
@@ -1239,7 +1239,7 @@ void DRW_gpencil_populate_datablock(
 		if (gpl->flag & GP_LAYER_HIDE)
 			continue;
 
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
 		if (gpf == NULL)
 			continue;
 

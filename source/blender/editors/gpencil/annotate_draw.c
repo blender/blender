@@ -735,7 +735,7 @@ static void gp_draw_data_layers(
 			continue;
 
 		/* get frame to draw */
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra, GP_GETFRAME_USE_PREV);
 		if (gpf == NULL)
 			continue;
 

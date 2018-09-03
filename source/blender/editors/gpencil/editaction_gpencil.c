@@ -477,7 +477,7 @@ bool ED_gpencil_anim_copybuf_paste(bAnimContext *ac, const short offset_mode)
 			gpfs->framenum += offset;
 
 			/* get frame to copy data into (if no frame returned, then just ignore) */
-			gpf = BKE_gpencil_layer_getframe(gpld, gpfs->framenum, 1);
+			gpf = BKE_gpencil_layer_getframe(gpld, gpfs->framenum, GP_GETFRAME_ADD_NEW);
 			if (gpf) {
 				bGPDstroke *gps, *gpsn;
 

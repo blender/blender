@@ -410,7 +410,7 @@ static bool view3d_ruler_to_gpencil(bContext *C, wmGizmoGroup *gzgroup)
 		gpl->flag |= GP_LAYER_HIDE;
 	}
 
-	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, true);
+	gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_ADD_NEW);
 	BKE_gpencil_free_strokes(gpf);
 
 	for (ruler_item = gzgroup->gizmos.first; ruler_item; ruler_item = (RulerItem *)ruler_item->gz.next) {
@@ -460,7 +460,7 @@ static bool view3d_ruler_from_gpencil(const bContext *C, wmGizmoGroup *gzgroup)
 		gpl = BLI_findstring(&scene->gpd->layers, ruler_name, offsetof(bGPDlayer, info));
 		if (gpl) {
 			bGPDframe *gpf;
-			gpf = BKE_gpencil_layer_getframe(gpl, CFRA, false);
+			gpf = BKE_gpencil_layer_getframe(gpl, CFRA, GP_GETFRAME_USE_PREV);
 			if (gpf) {
 				bGPDstroke *gps;
 				for (gps = gpf->strokes.first; gps; gps = gps->next) {

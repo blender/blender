@@ -219,7 +219,7 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 			continue;
 
 		/* get frame to draw */
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
+		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
 		if (gpf == NULL)
 			continue;
 

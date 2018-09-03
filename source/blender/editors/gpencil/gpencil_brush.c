@@ -1032,7 +1032,7 @@ static void gp_brush_clone_add(bContext *C, tGP_BrushEditData *gso)
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
-	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, true);
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_ADD_NEW);
 	bGPDstroke *gps;
 
 	float delta[3];

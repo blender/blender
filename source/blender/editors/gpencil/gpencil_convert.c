@@ -1131,7 +1131,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int cfra_eval = (int)DEG_get_ctime(depsgraph);
 
-	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0);
+	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
 	bGPDstroke *gps, *prev_gps = NULL;
 	Object *ob;
 	Curve *cu;
@@ -1246,7 +1246,7 @@ static bool gp_convert_check_has_valid_timing(bContext *C, bGPDlayer *gpl, wmOpe
 	int i;
 	bool valid = true;
 
-	if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0)) || !(gps = gpf->strokes.first))
+	if (!gpl || !(gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) || !(gps = gpf->strokes.first))
 		return false;
 
 	do {
@@ -1307,7 +1307,7 @@ static bool gp_convert_poll(bContext *C)
 	 */
 	return ((sa && sa->spacetype == SPACE_VIEW3D) &&
 	        (gpl = BKE_gpencil_layer_getactive(gpd)) &&
-	        (gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, 0)) &&
+	        (gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV)) &&
 	        (gpf->strokes.first) &&
 	        (OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL));
 }
