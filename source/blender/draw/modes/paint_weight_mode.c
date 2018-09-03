@@ -90,14 +90,6 @@ typedef struct PAINT_WEIGHT_PrivateData {
 
 static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 {
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-
-	if (e_data.actdef != draw_ctx->obact->actdef) {
-		e_data.actdef = draw_ctx->obact->actdef;
-
-		BKE_mesh_batch_cache_dirty_tag(draw_ctx->obact->data, BKE_MESH_BATCH_DIRTY_ALL);
-	}
-
 	if (!e_data.weight_face_shader) {
 		e_data.weight_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA);
 	}
