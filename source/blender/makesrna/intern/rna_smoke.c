@@ -523,8 +523,8 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem vector_draw_items[] = {
-	    {VECTOR_DRAW_NEEDLE, "NEEDLE", 0, "Needle", "Draw vectors as needles"},
-	    {VECTOR_DRAW_STREAMLINE, "STREAMLINE", 0, "Streamlines", "Draw vectors as streamlines"},
+	    {VECTOR_DRAW_NEEDLE, "NEEDLE", 0, "Needle", "Display vectors as needles"},
+	    {VECTOR_DRAW_STREAMLINE, "STREAMLINE", 0, "Streamlines", "Display vectors as streamlines"},
 	    {0, NULL, 0, NULL, NULL}
 	};
 
@@ -856,15 +856,15 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Thickness", "Thickness of smoke drawing in the viewport");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 
-	prop = RNA_def_property(srna, "draw_velocity", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "display_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw_velocity", 0);
-	RNA_def_property_ui_text(prop, "Draw Velocity", "Toggle visualization of the velocity field as needles");
+	RNA_def_property_ui_text(prop, "Display Velocity", "Toggle visualization of the velocity field as needles");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
-	prop = RNA_def_property(srna, "vector_draw_type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "vector_display_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "vector_draw_type");
 	RNA_def_property_enum_items(prop, vector_draw_items);
-	RNA_def_property_ui_text(prop, "Draw Type", "");
+	RNA_def_property_ui_text(prop, "Display Type", "");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	prop = RNA_def_property(srna, "vector_scale", PROP_FLOAT, PROP_NONE);

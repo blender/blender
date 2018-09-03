@@ -40,9 +40,9 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
         ob = context.object
 
-        layout.prop(ob, "empty_draw_type", text="Display As")
+        layout.prop(ob, "empty_display_type", text="Display As")
 
-        if ob.empty_draw_type == 'IMAGE':
+        if ob.empty_display_type == 'IMAGE':
             layout.template_ID(ob, "data", open="image.open", unlink="object.unlink_data")
             layout.template_image(ob, "data", ob.image_user, compact=True)
 
@@ -56,7 +56,7 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
 
         layout.separator()
 
-        layout.prop(ob, "empty_draw_size", text="Size")
+        layout.prop(ob, "empty_display_size", text="Size")
 
 
 classes = (

@@ -22,7 +22,7 @@ class BUILTIN_KSI_hello(bpy.types.KeyingSetInfo):
         for i in range(5):
             ks.paths.add(id_block, "layers", i, group_method='NAMED', group_name="5x Hello Layers")
 
-        ks.paths.add(id_block, "show_x_ray", group_method='NONE')
+        ks.paths.add(id_block, "show_in_front", group_method='NONE')
 
 
 def register():

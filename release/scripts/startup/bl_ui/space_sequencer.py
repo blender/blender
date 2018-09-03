@@ -224,7 +224,7 @@ class SEQUENCER_MT_view(Menu):
             layout.prop(st, "show_frame_indicator")
             layout.prop(st, "show_strip_offset")
 
-            layout.prop_menu_enum(st, "waveform_draw_type")
+            layout.prop_menu_enum(st, "waveform_display_type")
 
         if is_preview:
             if st.display_mode == 'IMAGE':
@@ -912,7 +912,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
             layout.prop(sound, "use_mono")
 
-        if st.waveform_draw_type == 'DEFAULT_WAVEFORMS':
+        if st.waveform_display_type == 'DEFAULT_WAVEFORMS':
             layout.prop(strip, "show_waveform")
 
         col = layout.column(align=True)
@@ -1160,7 +1160,7 @@ class SEQUENCER_PT_view(SequencerButtonsPanel_Output, Panel):
 
         col = layout.column()
         if st.display_mode == 'IMAGE':
-            col.prop(st, "draw_overexposed")
+            col.prop(st, "show_overexposed")
             col.separator()
 
         elif st.display_mode == 'WAVEFORM':

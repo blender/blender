@@ -1614,29 +1614,29 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         psys = context.particle_system
         part = particle_get_settings(context)
 
-        layout.prop(part, "draw_method", text="Display As")
+        layout.prop(part, "display_method", text="Display As")
 
-        if part.draw_method == 'NONE' or (part.render_type == 'NONE' and part.draw_method == 'RENDER'):
+        if part.display_method == 'NONE' or (part.render_type == 'NONE' and part.display_method == 'RENDER'):
             return
 
-        path = (part.render_type == 'PATH' and part.draw_method == 'RENDER') or part.draw_method == 'PATH'
+        path = (part.render_type == 'PATH' and part.display_method == 'RENDER') or part.display_method == 'PATH'
 
         layout.separator()
 
         col = layout.column()
-        col.prop(part, "draw_color", text="Color")
-        if part.draw_color in {'VELOCITY', 'ACCELERATION'}:
+        col.prop(part, "display_color", text="Color")
+        if part.display_color in {'VELOCITY', 'ACCELERATION'}:
             col.prop(part, "color_maximum", text="Fade Distance")
 
         col = layout.column()
 
         if path:
-            col.prop(part, "draw_step", text="Strand Steps")
-        col.prop(part, "draw_percentage", slider=True, text="Amount")
-        if part.draw_method != 'RENDER' or part.render_type == 'HALO':
-            col.prop(part, "draw_size", text="Size")
+            col.prop(part, "display_step", text="Strand Steps")
+        col.prop(part, "display_percentage", slider=True, text="Amount")
+        if part.display_method != 'RENDER' or part.render_type == 'HALO':
+            col.prop(part, "display_size", text="Size")
 
-        if part.draw_percentage != 100 and psys is not None:
+        if part.display_percentage != 100 and psys is not None:
             if part.type == 'HAIR':
                 if psys.use_hair_dynamics and psys.point_cache.is_baked is False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking")

@@ -1345,8 +1345,8 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.active = pe.is_editable
-        col.label(text="Draw:")
-        col.prop(pe, "draw_step", text="Path Steps")
+        col.label(text="Display:")
+        col.prop(pe, "display_step", text="Path Steps")
         if pe.is_hair:
             col.prop(pe, "show_particles", text="Children")
         else:

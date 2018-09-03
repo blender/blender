@@ -246,7 +246,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 
 	{
 		extern PropertyRNA rna_Camera_dof_distance;
-		extern PropertyRNA rna_Camera_draw_size;
+		extern PropertyRNA rna_Camera_display_size;
 		extern PropertyRNA rna_Camera_ortho_scale;
 		extern PropertyRNA rna_Camera_sensor_fit;
 		extern PropertyRNA rna_Camera_sensor_width;
@@ -256,7 +256,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 		extern PropertyRNA rna_Camera_lens;
 		const PropertyRNA *props[] = {
 			&rna_Camera_dof_distance,
-			&rna_Camera_draw_size,
+			&rna_Camera_display_size,
 			&rna_Camera_ortho_scale,
 			&rna_Camera_sensor_fit,
 			&rna_Camera_sensor_width,

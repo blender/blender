@@ -229,7 +229,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         obj_type = obj.type
         is_geometry = (obj_type in {'MESH', 'CURVE', 'SURFACE', 'META', 'FONT'})
         is_wire = (obj_type in {'CAMERA', 'EMPTY'})
-        is_empty_image = (obj_type == 'EMPTY' and obj.empty_draw_type == 'IMAGE')
+        is_empty_image = (obj_type == 'EMPTY' and obj.empty_display_type == 'IMAGE')
         is_dupli = (obj.dupli_type != 'NONE')
 
         col = flow.column()
@@ -254,7 +254,7 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
             col.prop(obj.display, "show_shadows", text="Shadow")
 
         col = flow.column()
-        col.prop(obj, "show_x_ray", text="In Front")
+        col.prop(obj, "show_in_front", text="In Front")
         # if obj_type == 'MESH' or is_empty_image:
         #    col.prop(obj, "show_transparent", text="Transparency")
 
@@ -262,15 +262,15 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
 
         col = flow.column()
         if is_wire:
-            # wire objects only use the max. draw type for duplis
+            # wire objects only use the max. display type for duplis
             col.active = is_dupli
-        col.prop(obj, "draw_type", text="Display As")
+        col.prop(obj, "display_type", text="Display As")
 
         split = flow.split(factor=0.6)
         split.prop(obj, "show_bounds", text="Bounds")
         row = split.row()
-        row.active = obj.show_bounds or (obj.draw_type == 'BOUNDS')
-        row.prop(obj, "draw_bounds_type", text="")
+        row.active = obj.show_bounds or (obj.display_type == 'BOUNDS')
+        row.prop(obj, "display_bounds_type", text="")
 
         if is_geometry or is_empty_image:
             # Only useful with object having faces/materials...

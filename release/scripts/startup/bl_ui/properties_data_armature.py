@@ -75,7 +75,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         ob = context.object
         arm = context.armature
 
-        layout.row().prop(arm, "draw_type", expand=True)
+        layout.row().prop(arm, "display_type", expand=True)
 
         layout.use_property_split = True
 
@@ -85,7 +85,7 @@ class DATA_PT_display(ArmatureButtonsPanel, Panel):
         col.prop(arm, "show_bone_custom_shapes", text="Shapes")
         col.prop(arm, "show_group_colors", text="Group Colors")
         if ob:
-            col.prop(ob, "show_x_ray", text="In Front")
+            col.prop(ob, "show_in_front", text="In Front")
         col.prop(arm, "use_deform_delay", text="Delay Refresh")
 
 

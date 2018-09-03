@@ -2537,7 +2537,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 
 	prop = RNA_def_property(srna, "show_uv_local_view", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "uv_flag", UV_SHOW_SAME_IMAGE);
-	RNA_def_property_ui_text(prop, "UV Local View", "Draw only faces with the currently displayed image assigned");
+	RNA_def_property_ui_text(prop, "UV Local View", "Display only faces with the currently displayed image assigned");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	/* Mesh */
@@ -2775,9 +2775,9 @@ static void rna_def_curve_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Depth", "Method of projecting depth");
 
 	static const EnumPropertyItem surface_plane_items[] = {
-		{CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,  "NORMAL_VIEW", 0, "Normal/View", "Draw perpendicular to the surface"},
-		{CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE, "NORMAL_SURFACE", 0, "Normal/Surface", "Draw aligned to the surface"},
-		{CURVE_PAINT_SURFACE_PLANE_VIEW, "VIEW", 0, "View", "Draw aligned to the viewport"},
+		{CURVE_PAINT_SURFACE_PLANE_NORMAL_VIEW,  "NORMAL_VIEW", 0, "Normal/View", "Display perpendicular to the surface"},
+		{CURVE_PAINT_SURFACE_PLANE_NORMAL_SURFACE, "NORMAL_SURFACE", 0, "Normal/Surface", "Display aligned to the surface"},
+		{CURVE_PAINT_SURFACE_PLANE_VIEW, "VIEW", 0, "View", "Display aligned to the viewport"},
 		{0, NULL, 0, NULL, NULL}};
 
 	prop = RNA_def_property(srna, "surface_plane", PROP_ENUM, PROP_NONE);
@@ -5057,7 +5057,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_stamp_labels", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "stamp", R_STAMP_HIDE_LABELS);
-	RNA_def_property_ui_text(prop, "Stamp Labels", "Draw stamp labels (\"Camera\" in front of camera name, etc.)");
+	RNA_def_property_ui_text(prop, "Stamp Labels", "Display stamp labels (\"Camera\" in front of camera name, etc.)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_stamp_strip_meta", PROP_BOOLEAN, PROP_NONE);
@@ -5114,7 +5114,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_sequencer_gl_textured_solid", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "seq_flag", R_SEQ_SOLID_TEX);
-	RNA_def_property_ui_text(prop, "Textured Solid", "Draw face-assigned textures in solid draw method");
+	RNA_def_property_ui_text(prop, "Textured Solid", "Display face-assigned textures in solid draw method");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_SceneSequencer_update");
 
 	prop = RNA_def_property(srna, "use_sequencer_gl_dof", PROP_BOOLEAN, PROP_NONE);
@@ -5581,15 +5581,17 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Cubemap Cache", "Display captured cubemaps in the viewport");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
-	prop = RNA_def_property(srna, "gi_irradiance_draw_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gi_irradiance_display_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "gi_irradiance_draw_size");
 	RNA_def_property_range(prop, 0.05f, 10.0f);
 	RNA_def_property_float_default(prop, 0.1f);
-	RNA_def_property_ui_text(prop, "Irradiance Draw Size", "Size of the irradiance sample spheres to debug captured light");
+	RNA_def_property_ui_text(prop, "Irradiance Display Size", "Size of the irradiance sample spheres to debug captured light");
 
-	prop = RNA_def_property(srna, "gi_cubemap_draw_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gi_cubemap_display_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "gi_cubemap_draw_size");
 	RNA_def_property_range(prop, 0.05f, 10.0f);
 	RNA_def_property_float_default(prop, 0.3f);
-	RNA_def_property_ui_text(prop, "Cubemap Draw Size", "Size of the cubemap spheres to debug captured light");
+	RNA_def_property_ui_text(prop, "Cubemap Display Size", "Size of the cubemap spheres to debug captured light");
 
 	prop = RNA_def_property(srna, "gi_auto_bake", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_GI_AUTOBAKE);

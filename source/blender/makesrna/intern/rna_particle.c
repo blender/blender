@@ -2371,7 +2371,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Strand Render", "Use the strand primitive for rendering");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "draw_method", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "display_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_as");
 	RNA_def_property_enum_items(prop, part_draw_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_draw_as_itemf");
@@ -2385,13 +2385,14 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Particle Rendering", "How particles are rendered");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "draw_color", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "display_color", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "draw_col");
 	RNA_def_property_enum_items(prop, draw_col_items);
 	RNA_def_property_ui_text(prop, "Draw Color", "Draw additional particle data as a color");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
-	prop = RNA_def_property(srna, "draw_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "display_size", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "draw_size");
 	RNA_def_property_range(prop, 0, 1000);
 	RNA_def_property_ui_range(prop, 0, 100, 1, -1);
 	RNA_def_property_ui_text(prop, "Draw Size", "Size of particles on viewport in BU");
@@ -2403,7 +2404,8 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Children From", "Create child particles");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
-	prop = RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "display_step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "draw_step");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_range(prop, 0, 7, 1, -1);
 	RNA_def_property_ui_text(prop, "Steps", "How many steps paths are drawn with (power of 2)");
@@ -2443,7 +2445,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0, 50);
 	RNA_def_property_ui_text(prop, "Pixel", "How many pixels path has to cover to make another render segment");
 
-	prop = RNA_def_property(srna, "draw_percentage", PROP_INT, PROP_PERCENTAGE);
+	prop = RNA_def_property(srna, "display_percentage", PROP_INT, PROP_PERCENTAGE);
 	RNA_def_property_int_sdna(prop, NULL, "disp");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Display", "Percentage of particles to display in 3D view");

@@ -155,7 +155,7 @@ class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
         col = layout.column()
 
         if probe.type == 'PLANAR':
-            col.prop(ob, "empty_draw_size", text="Arrow Size")
+            col.prop(ob, "empty_display_size", text="Arrow Size")
             col.prop(probe, "show_data")
 
         if probe.type in {'GRID', 'CUBEMAP'}:

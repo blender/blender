@@ -270,7 +270,7 @@ class ConnectRigidBodies(Operator):
 
         bpy.ops.rigidbody.constraint_add()
         con_obj = context.active_object
-        con_obj.empty_draw_type = 'ARROWS'
+        con_obj.empty_display_type = 'ARROWS'
         con = con_obj.rigid_body_constraint
         con.type = self.con_type
 

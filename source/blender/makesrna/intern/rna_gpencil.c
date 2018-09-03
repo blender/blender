@@ -816,7 +816,7 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem stroke_draw_mode_items[] = {
+	static const EnumPropertyItem stroke_display_mode_items[] = {
 		{0, "SCREEN", 0, "Screen", "Stroke is in screen-space"},
 		{GP_STROKE_3DSPACE, "3DSPACE", 0, "3D Space", "Stroke is in 3D-space"},
 		{GP_STROKE_2DSPACE, "2DSPACE", 0, "2D Space", "Stroke is in 2D-space"},
@@ -855,9 +855,9 @@ static void rna_def_gpencil_stroke(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Settings */
-	prop = RNA_def_property(srna, "draw_mode", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "display_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
-	RNA_def_property_enum_items(prop, stroke_draw_mode_items);
+	RNA_def_property_enum_items(prop, stroke_display_mode_items);
 	RNA_def_property_ui_text(prop, "Draw Mode", "Coordinate space that stroke is in");
 	RNA_def_property_update(prop, 0, "rna_GPencil_update");
 
@@ -1125,10 +1125,10 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Points", "Draw the points which make up the strokes (for debugging purposes)");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	/* X-Ray */
-	prop = RNA_def_property(srna, "show_x_ray", PROP_BOOLEAN, PROP_NONE);
+	/* In Front */
+	prop = RNA_def_property(srna, "show_in_front", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_NO_XRAY);
-	RNA_def_property_ui_text(prop, "X Ray", "Make the layer draw in front of objects");
+	RNA_def_property_ui_text(prop, "In Front", "Make the layer draw in front of objects");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
 	/* Parent object */

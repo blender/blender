@@ -578,7 +578,7 @@ class IMAGE_HT_header(Header):
 
             # draw options.
             row = layout.row()
-            row.prop(sima, "draw_channels", icon_only=True)
+            row.prop(sima, "display_channels", icon_only=True)
 
             row = layout.row(align=True)
             if ima.type == 'COMPOSITE':
@@ -755,7 +755,7 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
 
         col = layout.column()
 
-        col.prop(uvedit, "edge_draw_type", text="Edges")
+        col.prop(uvedit, "edge_display_type", text="Edges")
         col.prop(uvedit, "show_faces", text="Faces")
 
         col = layout.column()
@@ -796,7 +796,7 @@ class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
 
         sub = col.column()
         sub.active = uvedit.show_stretch
-        sub.prop(uvedit, "draw_stretch_type", text="Type")
+        sub.prop(uvedit, "display_stretch_type", text="Type")
 
 
 class IMAGE_UL_render_slots(UIList):

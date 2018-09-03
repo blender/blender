@@ -345,7 +345,7 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
                 if has_bg:
                     col = box.column()
                     col.prop(bg, "alpha", slider=True)
-                    col.row().prop(bg, "draw_depth", expand=True)
+                    col.row().prop(bg, "display_depth", expand=True)
 
                     col.row().prop(bg, "frame_method", expand=True)
 
@@ -380,7 +380,7 @@ class DATA_PT_camera_display(CameraButtonsPanel, Panel):
         col = layout.column(align=True)
 
         col.separator()
-        col.prop(cam, "draw_size", text="Size")
+        col.prop(cam, "display_size", text="Size")
         col.separator()
         col.prop(cam, "show_passepartout", text="Passepartout")
         sub = col.column()

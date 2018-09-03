@@ -219,7 +219,7 @@ class MASK_PT_display:
         space_data = context.space_data
         row = layout.row(align=True)
         row.prop(space_data, "show_mask_smooth", text="Smooth")
-        row.prop(space_data, "mask_draw_type", text="")
+        row.prop(space_data, "mask_display_type", text="")
         row = layout.row(align=True)
         row.prop(space_data, "show_mask_overlay", text="Overlay")
         sub = row.row()

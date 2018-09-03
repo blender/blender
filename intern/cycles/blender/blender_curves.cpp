@@ -134,9 +134,9 @@ static bool ObtainCacheParticleData(Mesh *mesh,
 
 			if((b_part.render_type() == BL::ParticleSettings::render_type_PATH) && (b_part.type() == BL::ParticleSettings::type_HAIR)) {
 				int shader = clamp(b_part.material()-1, 0, mesh->used_shaders.size()-1);
-				int draw_step = background ? b_part.render_step() : b_part.draw_step();
+				int display_step = background ? b_part.render_step() : b_part.display_step();
 				int totparts = b_psys.particles.length();
-				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.display_percentage() / 100.0f);
 				int totcurves = totchild;
 
 				if(b_part.child_type() == 0 || totchild == 0)
@@ -145,7 +145,7 @@ static bool ObtainCacheParticleData(Mesh *mesh,
 				if(totcurves == 0)
 					continue;
 
-				int ren_step = (1 << draw_step) + 1;
+				int ren_step = (1 << display_step) + 1;
 				if(b_part.kink() == BL::ParticleSettings::kink_SPIRAL)
 					ren_step += b_part.kink_extra_steps();
 
@@ -227,7 +227,7 @@ static bool ObtainCacheParticleUV(Mesh *mesh,
 
 			if((b_part.render_type() == BL::ParticleSettings::render_type_PATH) && (b_part.type() == BL::ParticleSettings::type_HAIR)) {
 				int totparts = b_psys.particles.length();
-				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.display_percentage() / 100.0f);
 				int totcurves = totchild;
 
 				if(b_part.child_type() == 0 || totchild == 0)
@@ -286,7 +286,7 @@ static bool ObtainCacheParticleVcol(Mesh *mesh,
 
 			if((b_part.render_type() == BL::ParticleSettings::render_type_PATH) && (b_part.type() == BL::ParticleSettings::type_HAIR)) {
 				int totparts = b_psys.particles.length();
-				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.draw_percentage() / 100.0f);
+				int totchild = background ? b_psys.child_particles.length() : (int)((float)b_psys.child_particles.length() * (float)b_part.display_percentage() / 100.0f);
 				int totcurves = totchild;
 
 				if(b_part.child_type() == 0 || totchild == 0)

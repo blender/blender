@@ -7,7 +7,7 @@ to perform the common task of managing presets.
 
 This example shows how you can add a preset menu.
 
-This example uses the object draw options,
+This example uses the object display options,
 however you can use properties defined by your own scripts too.
 """
 
@@ -16,18 +16,18 @@ from bpy.types import Operator, Menu
 from bl_operators.presets import AddPresetBase
 
 
-class OBJECT_MT_draw_presets(Menu):
-    bl_label = "Object Draw Presets"
-    preset_subdir = "object/draw"
+class OBJECT_MT_display_presets(Menu):
+    bl_label = "Object Display Presets"
+    preset_subdir = "object/display"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    display = Menu.display_preset
 
 
-class AddPresetObjectDraw(AddPresetBase, Operator):
-    '''Add a Object Draw Preset'''
-    bl_idname = "camera.object_draw_preset_add"
-    bl_label = "Add Object Draw Preset"
-    preset_menu = "OBJECT_MT_draw_presets"
+class AddPresetObjectDisplay(AddPresetBase, Operator):
+    '''Add a Object Display Preset'''
+    bl_idname = "camera.object_display_preset_add"
+    bl_label = "Add Object Display Preset"
+    preset_menu = "OBJECT_MT_display_presets"
 
     # variable used for all preset values
     preset_defines = [
@@ -36,31 +36,31 @@ class AddPresetObjectDraw(AddPresetBase, Operator):
 
     # properties to store in the preset
     preset_values = [
-        "obj.draw_type",
+        "obj.display_type",
         "obj.show_bounds",
-        "obj.draw_bounds_type",
+        "obj.display_bounds_type",
         "obj.show_name",
         "obj.show_axis",
         "obj.show_wire",
     ]
 
     # where to store the preset
-    preset_subdir = "object/draw"
+    preset_subdir = "object/display"
 
 
-# Draw into an existing panel
+# Display into an existing panel
 def panel_func(self, context):
     layout = self.layout
 
     row = layout.row(align=True)
-    row.menu(OBJECT_MT_draw_presets.__name__, text=OBJECT_MT_draw_presets.bl_label)
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMIN')
-    row.operator(AddPresetObjectDraw.bl_idname, text="", icon='ZOOMOUT').remove_active = True
+    row.menu(OBJECT_MT_display_presets.__name__, text=OBJECT_MT_display_presets.bl_label)
+    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOMIN')
+    row.operator(AddPresetObjectDisplay.bl_idname, text="", icon='ZOOMOUT').remove_active = True
 
 
 classes = (
-    OBJECT_MT_draw_presets,
-    AddPresetObjectDraw,
+    OBJECT_MT_display_presets,
+    AddPresetObjectDisplay,
 )
 
 

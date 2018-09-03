@@ -1011,10 +1011,11 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_pointer_funcs(prop, "rna_ParticleEdit_brush_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Brush", "");
 
-	prop = RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "display_step", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "draw_step");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_range(prop, 1, 10);
-	RNA_def_property_ui_text(prop, "Steps", "How many steps to draw the path with");
+	RNA_def_property_ui_text(prop, "Steps", "How many steps to display the path with");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "fade_frames", PROP_INT, PROP_NONE);
