@@ -740,12 +740,14 @@ def keymap_from_context(context, space_type):
             if item.operator is not None:
                 kmi_found = wm.keyconfigs.find_item_from_operator(
                     idname=item.operator,
+                    context='INVOKE_REGION_WIN',
                 )[1]
             elif item.keymap is not None:
                 kmi_first = item.keymap[0].keymap_items[0]
                 kmi_found = wm.keyconfigs.find_item_from_operator(
                     idname=kmi_first.idname,
                     # properties=kmi_first.properties,  # prevents matches, don't use.
+                    context='INVOKE_REGION_WIN',
                 )[1]
                 del kmi_first
             else:
@@ -863,7 +865,10 @@ def keymap_from_context(context, space_type):
 
     if True:
         # The shortcut will show, so we better support running it.
-        kmi_search = wm.keyconfigs.find_item_from_operator(idname="wm.search_menu")[1]
+        kmi_search = wm.keyconfigs.find_item_from_operator(
+            idname="wm.search_menu",
+            context='INVOKE_REGION_WIN',
+        )[1]
         if kmi_search:
             keymap.keymap_items.new(
                 "wm.search_menu",
