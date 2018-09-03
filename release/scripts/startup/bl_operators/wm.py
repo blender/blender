@@ -2389,6 +2389,10 @@ class WM_OT_toolbar(Operator):
     bl_idname = "wm.toolbar"
     bl_label = "Toolbar"
 
+    @classmethod
+    def poll(cls, context):
+        return context.space_data is not None
+
     def execute(self, context):
         from bl_ui.space_toolsystem_common import (
             ToolSelectPanelHelper,
