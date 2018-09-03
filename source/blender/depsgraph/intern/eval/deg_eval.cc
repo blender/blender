@@ -178,7 +178,6 @@ static void initialize_execution(DepsgraphEvalState *state, Depsgraph *graph)
 	calculate_pending_parents(graph);
 	/* Clear tags and other things which needs to be clear. */
 	foreach (OperationDepsNode *node, graph->operations) {
-		node->done = 0;
 		if (do_stats) {
 			node->stats.reset_current();
 		}

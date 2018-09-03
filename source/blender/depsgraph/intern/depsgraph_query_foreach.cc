@@ -60,6 +60,9 @@ extern "C" {
 namespace DEG {
 
 typedef std::deque<OperationDepsNode *> TraversalQueue;
+enum {
+	DEG_NODE_VISITED = (1 << 0),
+};
 
 static void deg_foreach_clear_flags(const Depsgraph *graph)
 {
@@ -67,7 +70,7 @@ static void deg_foreach_clear_flags(const Depsgraph *graph)
 		op_node->scheduled = false;
 	}
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
-		id_node->done = false;
+		id_node->custom_flags = 0;
 	}
 }
 
@@ -96,7 +99,7 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 		}
 	}
 	GHASH_FOREACH_END();
-	target_id_node->done = true;
+	target_id_node->custom_flags |= DEG_NODE_VISITED;
 	/* Process the queue. */
 	while (!queue.empty()) {
 		/* get next operation node to process. */
@@ -106,10 +109,10 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 			/* Check whether we need to inform callee about corresponding ID node. */
 			ComponentDepsNode *comp_node = op_node->owner;
 			IDDepsNode *id_node = comp_node->owner;
-			if (!id_node->done) {
+			if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
 				/* TODO(sergey): Is it orig or CoW? */
 				callback(id_node->id_orig, user_data);
-				id_node->done = true;
+				id_node->custom_flags |= DEG_NODE_VISITED;
 			}
 			/* Schedule outgoing operation nodes. */
 			if (op_node->outlinks.size() == 1) {
@@ -161,7 +164,7 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 		}
 	}
 	GHASH_FOREACH_END();
-	target_id_node->done = true;
+	target_id_node->custom_flags |= DEG_NODE_VISITED;
 	/* Process the queue. */
 	while (!queue.empty()) {
 		/* get next operation node to process. */
@@ -171,10 +174,10 @@ static void deg_foreach_ancestor_ID(const Depsgraph *graph,
 			/* Check whether we need to inform callee about corresponding ID node. */
 			ComponentDepsNode *comp_node = op_node->owner;
 			IDDepsNode *id_node = comp_node->owner;
-			if (!id_node->done) {
+			if ((id_node->custom_flags & DEG_NODE_VISITED) == 0) {
 				/* TODO(sergey): Is it orig or CoW? */
 				callback(id_node->id_orig, user_data);
-				id_node->done = true;
+				id_node->custom_flags |= DEG_NODE_VISITED;
 			}
 			/* Schedule incoming operation nodes. */
 			if (op_node->inlinks.size() == 1) {

@@ -171,11 +171,11 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 	/* Validate node valency calculated in both directions. */
 	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
 		node->num_links_pending = 0;
-		node->done = 0;
+		node->custom_flags = 0;
 	}
 
 	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {
-		if (node->done) {
+		if (node->custom_flags) {
 			printf("Node %s is twice in the operations!\n",
 			       node->identifier().c_str());
 			return false;
@@ -187,7 +187,7 @@ bool DEG_debug_consistency_check(Depsgraph *graph)
 				++to->num_links_pending;
 			}
 		}
-		node->done = 1;
+		node->custom_flags = 1;
 	}
 
 	foreach (DEG::OperationDepsNode *node, deg_graph->operations) {

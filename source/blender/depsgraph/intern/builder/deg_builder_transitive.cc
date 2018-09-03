@@ -65,16 +65,16 @@ enum {
 
 static void deg_graph_tag_paths_recursive(DepsNode *node)
 {
-	if (node->done & OP_VISITED) {
+	if (node->custom_flags & OP_VISITED) {
 		return;
 	}
-	node->done |= OP_VISITED;
+	node->custom_flags |= OP_VISITED;
 	foreach (DepsRelation *rel, node->inlinks) {
 		deg_graph_tag_paths_recursive(rel->from);
 		/* Do this only in inlinks loop, so the target node does not get
 		 * flagged.
 		 */
-		rel->from->done |= OP_REACHABLE;
+		rel->from->custom_flags |= OP_REACHABLE;
 	}
 }
 
@@ -84,13 +84,13 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 	foreach (OperationDepsNode *target, graph->operations) {
 		/* Clear tags. */
 		foreach (OperationDepsNode *node, graph->operations) {
-			node->done = 0;
+			node->custom_flags = 0;
 		}
 		/* Mark nodes from which we can reach the target
 		 * start with children, so the target node and direct children are not
 		 * flagged.
 		 */
-		target->done |= OP_VISITED;
+		target->custom_flags |= OP_VISITED;
 		foreach (DepsRelation *rel, target->inlinks) {
 			deg_graph_tag_paths_recursive(rel->from);
 		}
@@ -101,13 +101,14 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 		{
 			DepsRelation *rel = *it_rel;
 			if (rel->from->type == DEG_NODE_TYPE_TIMESOURCE) {
-				/* HACK: time source nodes don't get "done" flag set/cleared. */
+				/* HACK: time source nodes don't get "custom_flags" flag
+				 * set/cleared. */
 				/* TODO: there will be other types in future, so iterators above
 				 * need modifying.
 				 */
 				++it_rel;
 			}
-			else if (rel->from->done & OP_REACHABLE) {
+			else if (rel->from->custom_flags & OP_REACHABLE) {
 				rel->unlink();
 				OBJECT_GUARDED_DELETE(rel, DepsRelation);
 				++num_removed_relations;

@@ -58,10 +58,14 @@ namespace {
 
 void deg_graph_build_flush_visibility(Depsgraph *graph)
 {
+	enum {
+		DEG_NODE_VISITED = (1 << 0),
+	};
+
 	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode *),
 	                                 "DEG flush layers stack");
 	foreach (OperationDepsNode *op_node, graph->operations) {
-		op_node->done = 0;
+		op_node->custom_flags = 0;
 		op_node->num_links_pending = 0;
 		foreach (DepsRelation *rel, op_node->outlinks) {
 			if ((rel->from->type == DEG_NODE_TYPE_OPERATION) &&
@@ -72,7 +76,7 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 		}
 		if (op_node->num_links_pending == 0) {
 			BLI_stack_push(stack, &op_node);
-			op_node->done = 1;
+			op_node->custom_flags |= DEG_NODE_VISITED;
 		}
 	}
 	while (!BLI_stack_is_empty(stack)) {
@@ -94,9 +98,11 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 					BLI_assert(op_from->num_links_pending > 0);
 					--op_from->num_links_pending;
 				}
-				if (op_from->num_links_pending == 0 && op_from->done == 0) {
+				if ((op_from->num_links_pending == 0) &&
+				    (op_from->custom_flags & DEG_NODE_VISITED) == 0)
+				{
 					BLI_stack_push(stack, &op_from);
-					op_from->done = 1;
+					op_from->custom_flags |= DEG_NODE_VISITED;
 				}
 			}
 		}

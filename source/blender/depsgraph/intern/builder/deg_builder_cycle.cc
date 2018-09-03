@@ -86,22 +86,22 @@ struct CyclesSolverState {
 BLI_INLINE void set_node_visited_state(DepsNode *node,
                                        eCyclicCheckVisitedState state)
 {
-	node->done = (node->done & ~0x3) | (int)state;
+	node->custom_flags = (node->custom_flags & ~0x3) | (int)state;
 }
 
 BLI_INLINE eCyclicCheckVisitedState get_node_visited_state(DepsNode *node)
 {
-	return (eCyclicCheckVisitedState)(node->done & 0x3);
+	return (eCyclicCheckVisitedState)(node->custom_flags & 0x3);
 }
 
 BLI_INLINE void set_node_num_visited_children(DepsNode *node, int num_children)
 {
-	node->done = (node->done & 0x3) | (num_children << 2);
+	node->custom_flags = (node->custom_flags & 0x3) | (num_children << 2);
 }
 
 BLI_INLINE int get_node_num_visited_children(DepsNode *node)
 {
-	return node->done >> 2;
+	return node->custom_flags >> 2;
 }
 
 void schedule_node_to_stack(CyclesSolverState *state, OperationDepsNode *node)
@@ -124,7 +124,7 @@ void schedule_leaf_nodes(CyclesSolverState *state)
 				has_inlinks = true;
 			}
 		}
-		node->done = 0;
+		node->custom_flags = 0;
 		if (has_inlinks == false) {
 			schedule_node_to_stack(state, node);
 		}

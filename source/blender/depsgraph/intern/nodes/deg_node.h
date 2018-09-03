@@ -80,8 +80,14 @@ struct DepsNode {
 	eDepsNode_Type type;  /* Structural type of node. */
 	Relations inlinks;    /* Nodes which this one depends on. */
 	Relations outlinks;   /* Nodes which depend on this one. */
-	int done;     /* Generic tags for traversal algorithms. */
 	Stats stats;  /* Evaluation statistics. */
+
+	/* Generic tags for traversal algorithms and such.
+	 *
+	 * Actual meaning of values depends on a specific area. Every area is to
+	 * clean this before use.
+	 */
+	int custom_flags;
 
 	/* Methods. */
 	DepsNode();

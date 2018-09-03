@@ -120,12 +120,12 @@ static void deg_unlink_opnode(Depsgraph *graph, OperationDepsNode *op_node)
 static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 {
 	/* 1) First pass over ID nodes + their operations
-	 * - Identify and tag ID's (via "done = 1") to be removed
+	 * - Identify and tag ID's (via "custom_flags = 1") to be removed
 	 * - Remove all links to/from operations that will be removed
 	 */
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
-		id_node->done = !BLI_gset_haskey(retained_ids, (void *)id_node->id_orig);
-		if (id_node->done) {
+		id_node->custom_flags = !BLI_gset_haskey(retained_ids, (void *)id_node->id_orig);
+		if (id_node->custom_flags) {
 			GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 			{
 				foreach (OperationDepsNode *op_node, comp_node->operations) {
@@ -143,7 +143,7 @@ static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	{
 		OperationDepsNode *op_node = *it_opnode;
 		IDDepsNode *id_node = op_node->owner->owner;
-		if (id_node->done) {
+		if (id_node->custom_flags) {
 			it_opnode = graph->operations.erase(it_opnode);
 		}
 		else {
@@ -164,7 +164,7 @@ static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 		IDDepsNode *id_node = *it_id;
 		ID *id = id_node->id_orig;
 
-		if (id_node->done) {
+		if (id_node->custom_flags) {
 			/* Destroy node data, then remove from collections, and free */
 			id_node->destroy();
 
