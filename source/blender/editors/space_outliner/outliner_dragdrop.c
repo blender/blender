@@ -280,7 +280,7 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int partype = -1;
-	char parname[MAX_ID_NAME], childname[MAX_ID_NAME];
+	char parname[MAX_NAME], childname[MAX_NAME];
 
 	partype = RNA_enum_get(op->ptr, "type");
 	RNA_string_get(op->ptr, "parent", parname);
@@ -327,10 +327,10 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	char childname[MAX_ID_NAME];
-	char parname[MAX_ID_NAME];
-	STRNCPY(childname, ob->id.name);
-	STRNCPY(parname, par->id.name);
+	char childname[MAX_NAME];
+	char parname[MAX_NAME];
+	STRNCPY(childname, ob->id.name + 2);
+	STRNCPY(parname, par->id.name + 2);
 	RNA_string_set(op->ptr, "child", childname);
 	RNA_string_set(op->ptr, "parent", parname);
 
@@ -441,8 +441,8 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
-	RNA_def_string(ot->srna, "parent", "Object", MAX_ID_NAME, "Parent", "Parent Object");
+	RNA_def_string(ot->srna, "child", "Object", MAX_NAME, "Child", "Child Object");
+	RNA_def_string(ot->srna, "parent", "Object", MAX_NAME, "Parent", "Parent Object");
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
