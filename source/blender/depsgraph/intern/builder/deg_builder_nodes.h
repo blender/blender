@@ -229,7 +229,7 @@ protected:
 	 * since it will change during dependency graph construction.
 	 */
 	struct SavedEntryTag {
-		ID *id;
+		ID *id_orig;
 		eDepsNode_Type component_type;
 		eDepsOperation_Code opcode;
 	};

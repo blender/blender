@@ -357,7 +357,7 @@ void DepsgraphNodeBuilder::begin_build()
 		IDDepsNode *id_node = comp_node->owner;
 
 		SavedEntryTag entry_tag;
-		entry_tag.id = id_node->id_orig;
+		entry_tag.id_orig = id_node->id_orig;
 		entry_tag.component_type = comp_node->type;
 		entry_tag.opcode = op_node->opcode;
 		saved_entry_tags_.push_back(entry_tag);
@@ -373,7 +373,7 @@ void DepsgraphNodeBuilder::begin_build()
 void DepsgraphNodeBuilder::end_build()
 {
 	foreach (const SavedEntryTag& entry_tag, saved_entry_tags_) {
-		IDDepsNode *id_node = find_id_node(entry_tag.id);
+		IDDepsNode *id_node = find_id_node(entry_tag.id_orig);
 		if (id_node == NULL) {
 			continue;
 		}
