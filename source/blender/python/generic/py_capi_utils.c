@@ -716,6 +716,26 @@ PyObject *PyC_DefaultNameSpace(const char *filename)
 	return PyModule_GetDict(mod_main);
 }
 
+bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[])
+{
+	for (int i = 0; imports[i]; i++) {
+		PyObject *name = PyUnicode_FromString(imports[i]);
+		PyObject *mod = PyImport_ImportModuleLevelObject(name, NULL, NULL, 0, 0);
+		bool ok = false;
+		if (mod) {
+			PyDict_SetItem(py_dict, name, mod);
+			ok = true;
+			Py_DECREF(mod);
+		}
+		Py_DECREF(name);
+
+		if (!ok) {
+			return false;
+		}
+	}
+	return true;
+}
+
 /* restore MUST be called after this */
 void PyC_MainModule_Backup(PyObject **main_mod)
 {
@@ -1076,7 +1096,7 @@ PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag)
  *
  * \note it is caller's responsibility to acquire & release GIL!
  */
-bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_value)
+bool PyC_RunString_AsNumber(const char *imports[], const char *expr, const char *filename, double *r_value)
 {
 	PyObject *py_dict, *mod, *retval;
 	bool ok = true;
@@ -1096,9 +1116,10 @@ bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_va
 		PyErr_Clear();
 	}
 
-	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
-
-	if (retval == NULL) {
+	if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+		ok = false;
+	}
+	else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {
 		ok = false;
 	}
 	else {
@@ -1140,7 +1161,7 @@ bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_va
 	return ok;
 }
 
-bool PyC_RunString_AsIntPtr(const char *expr, const char *filename, intptr_t *r_value)
+bool PyC_RunString_AsIntPtr(const char *imports[], const char *expr, const char *filename, intptr_t *r_value)
 {
 	PyObject *py_dict, *retval;
 	bool ok = true;
@@ -1150,9 +1171,10 @@ bool PyC_RunString_AsIntPtr(const char *expr, const char *filename, intptr_t *r_
 
 	py_dict = PyC_DefaultNameSpace(filename);
 
-	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
-
-	if (retval == NULL) {
+	if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+		ok = false;
+	}
+	else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {
 		ok = false;
 	}
 	else {
@@ -1174,7 +1196,7 @@ bool PyC_RunString_AsIntPtr(const char *expr, const char *filename, intptr_t *r_
 	return ok;
 }
 
-bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_value)
+bool PyC_RunString_AsString(const char *imports[], const char *expr, const char *filename, char **r_value)
 {
 	PyObject *py_dict, *retval;
 	bool ok = true;
@@ -1184,9 +1206,10 @@ bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_val
 
 	py_dict = PyC_DefaultNameSpace(filename);
 
-	retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict);
-
-	if (retval == NULL) {
+	if (imports && (!PyC_NameSpace_ImportArray(py_dict, imports))) {
+		ok = false;
+	}
+	else if ((retval = PyRun_String(expr, Py_eval_input, py_dict, py_dict)) == NULL) {
 		ok = false;
 	}
 	else {

@@ -77,8 +77,9 @@ const char *    PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerc
 const char *    PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
 /* name namespace function for bpy & bge */
-PyObject *		PyC_DefaultNameSpace(const char *filename);
-void			PyC_RunQuicky(const char *filepath, int n, ...);
+PyObject *PyC_DefaultNameSpace(const char *filename);
+void PyC_RunQuicky(const char *filepath, int n, ...);
+bool PyC_NameSpace_ImportArray(PyObject *py_dict, const char *imports[]);
 
 void PyC_MainModule_Backup(PyObject **main_mod);
 void PyC_MainModule_Restore(PyObject *main_mod);
@@ -101,9 +102,9 @@ int       PyC_FlagSet_ValueFromID(PyC_FlagSet *item, const char *identifier, int
 int       PyC_FlagSet_ToBitfield(PyC_FlagSet *items, PyObject *value, int *r_value, const char *error_prefix);
 PyObject *PyC_FlagSet_FromBitfield(PyC_FlagSet *items, int flag);
 
-bool PyC_RunString_AsNumber(const char *expr, const char *filename, double *r_value);
-bool PyC_RunString_AsIntPtr(const char *expr, const char *filename, intptr_t *r_value);
-bool PyC_RunString_AsString(const char *expr, const char *filename, char **r_value);
+bool PyC_RunString_AsNumber(const char **imports, const char *expr, const char *filename, double *r_value);
+bool PyC_RunString_AsIntPtr(const char **imports, const char *expr, const char *filename, intptr_t *r_value);
+bool PyC_RunString_AsString(const char **imports, const char *expr, const char *filename, char **r_value);
 
 int PyC_ParseBool(PyObject *o, void *p);
 

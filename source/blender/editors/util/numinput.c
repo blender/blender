@@ -498,7 +498,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		                    n->unit_sys, n->unit_type[idx]);
 
 		/* Note: with angles, we always get values as radians here... */
-		if (BPY_execute_string_as_number(C, str_unit_convert, false, &val)) {
+		if (BPY_execute_string_as_number(C, NULL, str_unit_convert, false, &val)) {
 			n->val[idx] = (float)val;
 			n->val_flag[idx] &= ~NUM_INVALID;
 		}
