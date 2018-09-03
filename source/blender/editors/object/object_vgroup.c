@@ -3119,21 +3119,32 @@ void OBJECT_OT_vertex_group_invert(wmOperatorType *ot)
 
 static int vertex_group_smooth_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = ED_object_context(C);
 	const float fac = RNA_float_get(op->ptr, "factor");
 	const int repeat = RNA_int_get(op->ptr, "repeat");
 	eVGroupSelect subset_type  = RNA_enum_get(op->ptr, "group_select_mode");
 	const float fac_expand = RNA_float_get(op->ptr, "expand");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	int subset_count, vgroup_tot;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
 
-	const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob, subset_type, &vgroup_tot, &subset_count);
-	vgroup_smooth_subset(ob, vgroup_validmap, vgroup_tot, subset_count, fac, repeat, fac_expand);
-	MEM_freeN((void *)vgroup_validmap);
+		int subset_count, vgroup_tot;
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+		const bool *vgroup_validmap = BKE_object_defgroup_subset_from_select_type(ob,
+		                                                                          subset_type,
+		                                                                          &vgroup_tot,
+		                                                                          &subset_count);
+
+		vgroup_smooth_subset(ob, vgroup_validmap, vgroup_tot, subset_count, fac, repeat, fac_expand);
+		MEM_freeN((void *)vgroup_validmap);
+
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
