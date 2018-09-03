@@ -58,7 +58,6 @@ void ED_operatortypes_lattice(void)
 void ED_keymap_lattice(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap;
-	wmKeyMapItem *kmi;
 
 	keymap = WM_keymap_ensure(keyconf, "Lattice", 0, 0);
 	keymap->poll = ED_operator_editlattice;
