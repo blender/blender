@@ -591,7 +591,9 @@ void BPY_DECREF_RNA_INVALIDATE(void *pyob_ptr)
 /**
  * \return success
  */
-bool BPY_execute_string_as_number(bContext *C, const char *expr, const bool verbose, double *r_value)
+bool BPY_execute_string_as_number(
+        bContext *C, const char *imports[],
+        const char *expr, const bool verbose, double *r_value)
 {
 	PyGILState_STATE gilstate;
 	bool ok = true;
@@ -607,7 +609,7 @@ bool BPY_execute_string_as_number(bContext *C, const char *expr, const bool verb
 
 	bpy_context_set(C, &gilstate);
 
-	ok = PyC_RunString_AsNumber(expr, "<blender button>", r_value);
+	ok = PyC_RunString_AsNumber(imports, expr, "<expr as number>", r_value);
 
 	if (ok == false) {
 		if (verbose) {
@@ -626,7 +628,9 @@ bool BPY_execute_string_as_number(bContext *C, const char *expr, const bool verb
 /**
  * \return success
  */
-bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verbose, char **r_value)
+bool BPY_execute_string_as_string(
+        bContext *C, const char *imports[],
+        const char *expr, const bool verbose, char **r_value)
 {
 	BLI_assert(r_value && expr);
 	PyGILState_STATE gilstate;
@@ -639,7 +643,7 @@ bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verb
 
 	bpy_context_set(C, &gilstate);
 
-	ok = PyC_RunString_AsString(expr, "<blender button>", r_value);
+	ok = PyC_RunString_AsString(imports, expr, "<expr as str>", r_value);
 
 	if (ok == false) {
 		if (verbose) {
@@ -660,7 +664,9 @@ bool BPY_execute_string_as_string(bContext *C, const char *expr, const bool verb
  *
  * \return success
  */
-bool BPY_execute_string_as_intptr(bContext *C, const char *expr, const bool verbose, intptr_t *r_value)
+bool BPY_execute_string_as_intptr(
+        bContext *C, const char *imports[],
+        const char *expr, const bool verbose, intptr_t *r_value)
 {
 	BLI_assert(r_value && expr);
 	PyGILState_STATE gilstate;
@@ -673,7 +679,7 @@ bool BPY_execute_string_as_intptr(bContext *C, const char *expr, const bool verb
 
 	bpy_context_set(C, &gilstate);
 
-	ok = PyC_RunString_AsIntPtr(expr, "<blender button>", r_value);
+	ok = PyC_RunString_AsIntPtr(imports, expr, "<expr as intptr>", r_value);
 
 	if (ok == false) {
 		if (verbose) {

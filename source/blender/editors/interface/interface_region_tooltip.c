@@ -400,7 +400,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		        tool_name);
 
 		char *expr_result = NULL;
-		if (BPY_execute_string_as_string(C, expr, true, &expr_result)) {
+		if (BPY_execute_string_as_string(C, NULL, expr, true, &expr_result)) {
 			if (!STREQ(expr_result, ".")) {
 				uiTooltipField *field = text_field_add(
 				        data, &(uiTooltipFormat){
@@ -452,7 +452,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 				        "'as_pointer', lambda: 0)()");
 
 				intptr_t expr_result = 0;
-				if (BPY_execute_string_as_intptr(C, expr_ptr, true, &expr_result)) {
+				if (BPY_execute_string_as_intptr(C, NULL, expr_ptr, true, &expr_result)) {
 					if (expr_result != 0) {
 						wmKeyMap *keymap = (wmKeyMap *)expr_result;
 						for (wmKeyMapItem *kmi = keymap->items.first; kmi; kmi = kmi->next) {
@@ -503,7 +503,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		        tool_name);
 
 		intptr_t expr_result = 0;
-		if (BPY_execute_string_as_intptr(C, expr, true, &expr_result)) {
+		if (BPY_execute_string_as_intptr(C, NULL, expr, true, &expr_result)) {
 			if (expr_result != 0) {
 				{
 					uiTooltipField *field = text_field_add(
