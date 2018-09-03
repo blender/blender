@@ -340,12 +340,6 @@ static void oldnewmap_insert(OldNewMap *onm, const void *oldaddr, void *newaddr,
 
 	if (oldaddr==NULL || newaddr==NULL) return;
 
-	for (int i = 0; i < onm->nentries; i++) {
-		if (onm->entries[i].old == oldaddr && onm->entries[i].newp != newaddr) {
-			abort();
-		}
-	}
-
 	if (UNLIKELY(onm->nentries == onm->entriessize)) {
 		onm->entriessize *= 2;
 		onm->entries = MEM_reallocN(onm->entries, sizeof(*onm->entries) * onm->entriessize);
