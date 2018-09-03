@@ -258,7 +258,6 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         # if obj_type == 'MESH' or is_empty_image:
         #    col.prop(obj, "show_transparent", text="Transparency")
 
-
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
@@ -272,7 +271,6 @@ class OBJECT_PT_display(ObjectButtonsPanel, Panel):
         row = split.row()
         row.active = obj.show_bounds or (obj.draw_type == 'BOUNDS')
         row.prop(obj, "draw_bounds_type", text="")
-
 
         if is_geometry or is_empty_image:
             # Only useful with object having faces/materials...

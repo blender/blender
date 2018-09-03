@@ -5026,6 +5026,7 @@ class VIEW3D_MT_gpencil_sculpt_specials(Menu):
             layout.separator()
             layout.menu("VIEW3D_MT_gpencil_autoweights")
 
+
 classes = (
     VIEW3D_HT_header,
     VIEW3D_MT_editor_menus,

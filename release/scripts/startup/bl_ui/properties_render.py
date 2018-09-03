@@ -218,7 +218,6 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-
         col = flow.column()
         col.prop(rd, "use_stamp_date", text="Date")
         col = flow.column()
@@ -237,7 +236,6 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
         col.prop(rd, "use_stamp_camera", text="Camera")
         col = flow.column()
         col.prop(rd, "use_stamp_lens", text="Lens")
-
 
         col = flow.column()
         col.prop(rd, "use_stamp_scene", text="Scene")
@@ -341,7 +339,7 @@ class RENDER_PT_output_views(RenderButtonsPanel, Panel):
 
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = "Encoding"
-    bl_parent_id ="RENDER_PT_output"
+    bl_parent_id = "RENDER_PT_output"
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -364,9 +362,10 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         layout.prop(rd.ffmpeg, "format")
         layout.prop(ffmpeg, "use_autosplit")
 
+
 class RENDER_PT_encoding_video(RenderButtonsPanel, Panel):
     bl_label = "Video"
-    bl_parent_id ="RENDER_PT_encoding"
+    bl_parent_id = "RENDER_PT_encoding"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
@@ -383,7 +382,6 @@ class RENDER_PT_encoding_video(RenderButtonsPanel, Panel):
         ffmpeg = rd.ffmpeg
 
         self.draw_vcodec(context)
-
 
     def draw_vcodec(self, context):
         """Video codec options."""
@@ -434,7 +432,7 @@ class RENDER_PT_encoding_video(RenderButtonsPanel, Panel):
 
 class RENDER_PT_encoding_audio(RenderButtonsPanel, Panel):
     bl_label = "Audio"
-    bl_parent_id ="RENDER_PT_encoding"
+    bl_parent_id = "RENDER_PT_encoding"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     @classmethod
