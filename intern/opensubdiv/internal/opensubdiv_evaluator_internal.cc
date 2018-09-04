@@ -702,7 +702,7 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
     return NULL;
   }
   // TODO(sergey): Base this on actual topology.
-  // const bool bas_varying_data = false;
+  // const bool has_varying_data = false;
   const int num_face_varying_channels = refiner->GetNumFVarChannels();
   const bool has_face_varying_data = (num_face_varying_channels != 0);
   const int level = topology_refiner->getSubdivisionLevel(topology_refiner);
