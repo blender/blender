@@ -479,6 +479,10 @@ GPUBatch *DRW_gpencil_get_edit_geom(bGPDstroke *gps, float alpha, short dflag)
 	UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, selectColor);
 	selectColor[3] = alpha;
 
+	float unselectColor[4];
+	UI_GetThemeColor3fv(TH_GP_VERTEX, unselectColor);
+	unselectColor[3] = alpha;
+
 	static GPUVertFormat format = { 0 };
 	static uint pos_id, color_id, size_id;
 	if (format.attr_len == 0) {
@@ -526,7 +530,7 @@ GPUBatch *DRW_gpencil_get_edit_geom(bGPDstroke *gps, float alpha, short dflag)
 				fsize = vsize;
 			}
 			else {
-				copy_v4_v4(fcolor, gps->runtime.tmp_stroke_rgba);
+				copy_v4_v4(fcolor, unselectColor);
 				fsize = bsize;
 			}
 		}
