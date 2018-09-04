@@ -390,6 +390,17 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 	 * doesn't have access to information about non-active tools.
 	 */
 
+	/* Title (when icon-only). */
+	if (but->drawstr[0] == '\0') {
+		uiTooltipField *field = text_field_add(
+		        data, &(uiTooltipFormat){
+		            .style = UI_TIP_STYLE_NORMAL,
+		            .color_id = UI_TIP_LC_MAIN,
+		            .is_pad = true,
+		        });
+		field->text = BLI_strdup(tool_name);
+	}
+
 	/* Tip. */
 	{
 		const char *expr_imports[] = {"bpy", "bl_ui", NULL};
