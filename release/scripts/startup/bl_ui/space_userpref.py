@@ -1376,7 +1376,7 @@ class USERPREF_PT_addons(Panel):
             row = box.row()
             row.label(text="Multiple add-ons with the same name found!")
             row.label(icon='ERROR')
-            box.label(text="Please delete one of each pair:")
+            box.label(text="Delete one of each pair to resolve:")
             for (addon_name, addon_file, addon_path) in addon_utils.error_duplicates:
                 box.separator()
                 sub_col = box.column(align=True)

@@ -1,6 +1,6 @@
 #include "testing/testing.h"
 
-// Keep first since utildefines defines AT which conflicts with fucking STL
+// Keep first since utildefines defines AT which conflicts with STL
 #include "intern/abc_util.h"
 
 extern "C" {

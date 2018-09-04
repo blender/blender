@@ -842,7 +842,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 	return theme_id;
 }
 
-/* XXX This is utter shit, better find something more general */
+/* XXX This is very stupid, better find something more general. */
 float *DRW_color_background_blend_get(int theme_id)
 {
 	static float colors[11][4];
