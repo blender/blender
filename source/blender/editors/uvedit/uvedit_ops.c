@@ -1389,8 +1389,8 @@ static int uv_select_more_less(bContext *C, const bool select)
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
 
-	#define IS_SEL   1
-	#define IS_UNSEL 2
+#define IS_SEL   1
+#define IS_UNSEL 2
 
 					int sel_state = 0;
 
@@ -1411,8 +1411,8 @@ static int uv_select_more_less(bContext *C, const bool select)
 						}
 					}
 
-	#undef IS_SEL
-	#undef IS_UNSEL
+#undef IS_SEL
+#undef IS_UNSEL
 
 				}
 			}
