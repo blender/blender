@@ -366,10 +366,7 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         gpl = context.active_gpencil_layer
 
         layout.prop(gpd, "xray_mode", text="Depth Ordering")
-        layout.prop(gpd, "edit_line_color", text="Edit Line Color")
         layout.prop(ob, "empty_draw_size", text="Marker Size")
-
-        layout.prop(gpd, "use_force_fill_recalc", text="Force Fill Update")
 
         col = layout.column(align=True)
         col.prop(gpd, "show_constant_thickness")
@@ -377,8 +374,11 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         sub.active = not gpd.show_constant_thickness
         sub.prop(gpd, "pixel_factor", text="Thickness Scale")
 
+        layout.prop(gpd, "edit_line_color", text="Edit Line Color")
         if gpl:
             layout.prop(gpd, "show_stroke_direction", text="Show Stroke Directions")
+
+        layout.prop(gpd, "use_force_fill_recalc", text="Force Fill Update")
 
 
 class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):
