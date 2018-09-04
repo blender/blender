@@ -407,6 +407,7 @@ typedef bool (*uiMenuStepFunc)(struct bContext *C, int direction, void *arg1);
 
 
 /* interface_query.c */
+bool UI_but_is_tooltip_no_overlap(const uiBut *but);
 bool UI_but_is_tool(const uiBut *but);
 #define UI_but_is_decorator(but) \
 	((but)->func == ui_but_anim_decorate_cb)
@@ -1281,6 +1282,8 @@ void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *ar)
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5
+/* For cases when the tooltips don't overlap, use an 'instant' tip. */
+#define UI_TOOLTIP_DELAY_QUICK 0.05
 
 /* Float precision helpers */
 #define UI_PRECISION_FLOAT_MAX 6

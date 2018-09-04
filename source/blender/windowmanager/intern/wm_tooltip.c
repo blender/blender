@@ -39,7 +39,7 @@
 
 void WM_tooltip_timer_init(
         bContext *C, wmWindow *win, ARegion *ar,
-        wmTooltipInitFn init)
+        wmTooltipInitFn init, bool quick)
 {
 	WM_tooltip_timer_clear(C, win);
 
@@ -49,7 +49,8 @@ void WM_tooltip_timer_init(
 		screen->tool_tip = MEM_callocN(sizeof(*screen->tool_tip), __func__);
 	}
 	screen->tool_tip->region_from = ar;
-	screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, UI_TOOLTIP_DELAY);
+	screen->tool_tip->timer = WM_event_add_timer(
+	        wm, win, TIMER, quick ? UI_TOOLTIP_DELAY_QUICK : UI_TOOLTIP_DELAY);
 	screen->tool_tip->init = init;
 }
 

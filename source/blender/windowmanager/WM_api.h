@@ -628,7 +628,7 @@ typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, 
 
 void WM_tooltip_timer_init(
         struct bContext *C, struct wmWindow *win, struct ARegion *ar,
-        wmTooltipInitFn init);
+        wmTooltipInitFn init, bool quick);
 void WM_tooltip_timer_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_init(struct bContext *C, struct wmWindow *win);

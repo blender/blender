@@ -7066,7 +7066,8 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 	if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
 		if (!but->block->tooltipdisabled) {
 			if (!wm->drags.first) {
-				WM_tooltip_timer_init(C, data->window, data->region, ui_but_tooltip_init);
+				bool quick = UI_but_is_tooltip_no_overlap(but);
+				WM_tooltip_timer_init(C, data->window, data->region, ui_but_tooltip_init, quick);
 			}
 		}
 	}

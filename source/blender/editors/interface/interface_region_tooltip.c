@@ -962,7 +962,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 
 static ARegion *ui_tooltip_create_with_data(
         bContext *C, uiTooltipData *data,
-        const float init_position[2],
+        const float init_position[2], const rcti *init_rect_overlap,
         const float aspect)
 {
 	const float pad_px = UI_TIP_PADDING;
@@ -1066,19 +1066,98 @@ static ARegion *ui_tooltip_create_with_data(
 #undef TIP_BORDER_X
 #undef TIP_BORDER_Y
 
+
 	/* Clamp to window bounds. */
 	{
 		/* Ensure at least 5 px above screen bounds
 		 * UI_UNIT_Y is just a guess to be above the menu item */
-		const int pad = max_ff(1.0f, U.pixelsize) * 5;
-		const rcti rect_clamp = {
-			.xmin = pad,
-			.xmax = winx - pad,
-			.ymin = pad + (UI_UNIT_Y * 2),
-			.ymax = winy - pad,
-		};
-		int offset_dummy[2];
-		BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
+		if (init_rect_overlap != NULL) {
+			const int pad = max_ff(1.0f, U.pixelsize) * 5;
+			const rcti init_rect = {
+				.xmin = init_rect_overlap->xmin - pad,
+				.xmax = init_rect_overlap->xmax + pad,
+				.ymin = init_rect_overlap->ymin - pad,
+				.ymax = init_rect_overlap->ymax + pad,
+			};
+			const rcti rect_clamp = {
+				.xmin = 0,
+				.xmax = winx,
+				.ymin = 0,
+				.ymax = winy,
+			};
+			/* try right. */
+			const int size_x = BLI_rcti_size_x(&rect_i);
+			const int size_y = BLI_rcti_size_y(&rect_i);
+			const int cent_overlap_x = BLI_rcti_cent_x(&init_rect);
+			const int cent_overlap_y = BLI_rcti_cent_y(&init_rect);
+			struct {
+				rcti xpos;
+				rcti xneg;
+				rcti ypos;
+				rcti yneg;
+			} rect;
+
+			{	/* xpos */
+				rcti r = rect_i;
+				r.xmin = init_rect.xmax;
+				r.xmax = r.xmin + size_x;
+				r.ymin = cent_overlap_y - (size_y / 2);
+				r.ymax = r.ymin + size_y;
+				rect.xpos = r;
+			}
+			{	/* xneg */
+				rcti r = rect_i;
+				r.xmin = init_rect.xmin - size_x;
+				r.xmax = r.xmin + size_x;
+				r.ymin = cent_overlap_y - (size_y / 2);
+				r.ymax = r.ymin + size_y;
+				rect.xneg = r;
+			}
+			{	/* ypos */
+				rcti r = rect_i;
+				r.xmin = cent_overlap_x - (size_x / 2);
+				r.xmax = r.xmin + size_x;
+				r.ymin = init_rect.ymax;
+				r.ymax = r.ymin + size_y;
+				rect.ypos = r;
+			}
+			{	/* yneg */
+				rcti r = rect_i;
+				r.xmin = cent_overlap_x - (size_x / 2);
+				r.xmax = r.xmin + size_x;
+				r.ymin = init_rect.ymin - size_y;
+				r.ymax = r.ymin + size_y;
+				rect.yneg = r;
+			}
+
+			bool found = false;
+			for (int j = 0; j < 4; j++) {
+				const rcti *r = (&rect.xpos) + j;
+				if (BLI_rcti_inside_rcti(&rect_clamp, r)) {
+					rect_i = *r;
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				/* Fallback, we could pick the best fallback, for now just use xpos. */
+				int offset_dummy[2];
+				rect_i = rect.xpos;
+				BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
+			}
+
+		}
+		else {
+			const int pad = max_ff(1.0f, U.pixelsize) * 5;
+			const rcti rect_clamp = {
+				.xmin = pad,
+				.xmax = winx - pad,
+				.ymin = pad + (UI_UNIT_Y * 2),
+				.ymax = winy - pad,
+			};
+			int offset_dummy[2];
+			BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
+		}
 	}
 
 	/* add padding */
@@ -1088,7 +1167,9 @@ static ARegion *ui_tooltip_create_with_data(
 
 	/* widget rect, in region coords */
 	{
+		/* Compensate for margin offset, visually this corrects the position. */
 		const int margin = UI_POPUP_MARGIN;
+		BLI_rcti_translate(&rect_i, margin, margin / 2);
 
 		data->bbox.xmin = margin;
 		data->bbox.xmax = BLI_rcti_size_x(&rect_i) - margin;
@@ -1142,15 +1223,33 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 		return NULL;
 	}
 
-	init_position[0] = BLI_rctf_cent_x(&but->rect);
-	init_position[1] = but->rect.ymin;
-
-	if (butregion) {
-		ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
-		init_position[0] = win->eventstate->x;
+	const bool is_no_overlap = UI_but_is_tooltip_no_overlap(but);
+	rcti init_rect;
+	if (is_no_overlap) {
+		rctf overlap_rect_fl;
+		init_position[0] = BLI_rctf_cent_x(&but->rect);
+		init_position[1] = BLI_rctf_cent_y(&but->rect);
+		if (butregion) {
+			ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
+			ui_block_to_window_rctf(butregion, but->block, &overlap_rect_fl, &but->rect);
+		}
+		else {
+			overlap_rect_fl = but->rect;
+		}
+		BLI_rcti_rctf_copy_round(&init_rect, &overlap_rect_fl);
+	}
+	else {
+		init_position[0] = BLI_rctf_cent_x(&but->rect);
+		init_position[1] = but->rect.ymin - (UI_POPUP_MARGIN / 2);
+		if (butregion) {
+			ui_block_to_window_fl(butregion, but->block, &init_position[0], &init_position[1]);
+			init_position[0] = win->eventstate->x;
+		}
 	}
 
-	return ui_tooltip_create_with_data(C, data, init_position, aspect);
+	ARegion *ar = ui_tooltip_create_with_data(C, data, init_position, is_no_overlap ? &init_rect : NULL, aspect);
+
+	return ar;
 }
 
 ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
@@ -1167,7 +1266,7 @@ ARegion *UI_tooltip_create_from_gizmo(bContext *C, wmGizmo *gz)
 	init_position[0] = win->eventstate->x;
 	init_position[1] = win->eventstate->y;
 
-	return ui_tooltip_create_with_data(C, data, init_position, aspect);
+	return ui_tooltip_create_with_data(C, data, init_position, NULL, aspect);
 }
 
 void UI_tooltip_free(bContext *C, bScreen *sc, ARegion *ar)
