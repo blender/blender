@@ -194,6 +194,7 @@ set(SRC
 	intern/speaker.c
 	intern/studiolight.c
 	intern/subdiv.c
+	intern/subdiv_ccg.c
 	intern/subdiv_converter.c
 	intern/subdiv_converter_mesh.c
 	intern/subdiv_displacement.c
@@ -325,6 +326,7 @@ set(SRC
 	BKE_speaker.h
 	BKE_studiolight.h
 	BKE_subdiv.h
+	BKE_subdiv_ccg.h
 	BKE_subdiv_eval.h
 	BKE_subdiv_foreach.h
 	BKE_subdiv_mesh.h
