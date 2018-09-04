@@ -25,7 +25,7 @@
 
 /** \file BKE_subdiv_foreach.h
  *  \ingroup bke
- *  \since July 2018
+ *  \since September 2018
  *  \author Sergey Sharybin
  */
 
