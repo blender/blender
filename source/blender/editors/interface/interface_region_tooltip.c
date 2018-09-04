@@ -378,6 +378,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		return NULL;
 	}
 
+	/* Needed to get the space-data's type (below). */
+	if (CTX_wm_space_data(C) == NULL) {
+		return NULL;
+	}
+
 	char tool_name[MAX_NAME];
 	RNA_string_get(but->opptr, "name", tool_name);
 	BLI_assert(tool_name[0] != '\0');
