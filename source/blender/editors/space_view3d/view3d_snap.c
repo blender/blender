@@ -93,10 +93,13 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
-			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-			if (em->bm->totvertsel == 0) {
-				continue;
+			if (obedit->type == OB_MESH) {
+				BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+				if (em->bm->totvertsel == 0) {
+					continue;
+				}
 			}
 
 			if (ED_transverts_check_obedit(obedit)) {
@@ -268,10 +271,13 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
-			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-			if (em->bm->totvertsel == 0) {
-				continue;
+			if (obedit->type == OB_MESH) {
+				BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+				if (em->bm->totvertsel == 0) {
+					continue;
+				}
 			}
 
 			if (ED_transverts_check_obedit(obedit)) {
