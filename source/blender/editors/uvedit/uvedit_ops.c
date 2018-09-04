@@ -1347,99 +1347,110 @@ static float *uv_sel_co_from_eve(Scene *scene, Object *obedit, Image *ima, BMEdi
 static int uv_select_more_less(bContext *C, const bool select)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Image *ima = CTX_data_edit_image(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
 	ToolSettings *ts = scene->toolsettings;
 
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		if (select) {
-			EDBM_select_more(em, true);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		bool changed = false;
+
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		if (ts->uv_flag & UV_SYNC_SELECTION) {
+			if (select) {
+				EDBM_select_more(em, true);
+			}
+			else {
+				EDBM_select_less(em, true);
+			}
+
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			continue;
+		}
+
+		if (ts->uv_selectmode == UV_SELECT_FACE) {
+
+			/* clear tags */
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+
+			/* mark loops to be selected */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
+
+	#define IS_SEL   1
+	#define IS_UNSEL 2
+
+					int sel_state = 0;
+
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+						if (luv->flag & MLOOPUV_VERTSEL) {
+							sel_state |= IS_SEL;
+						}
+						else {
+							sel_state |= IS_UNSEL;
+						}
+
+						/* if we have a mixed selection, tag to grow it */
+						if (sel_state == (IS_SEL | IS_UNSEL)) {
+							BM_elem_flag_enable(efa, BM_ELEM_TAG);
+							changed = true;
+							break;
+						}
+					}
+
+	#undef IS_SEL
+	#undef IS_UNSEL
+
+				}
+			}
 		}
 		else {
-			EDBM_select_less(em, true);
-		}
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		return OPERATOR_FINISHED;
-	}
 
-	if (ts->uv_selectmode == UV_SELECT_FACE) {
-
-		/* clear tags */
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-
-		/* mark loops to be selected */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-
-#define IS_SEL   1
-#define IS_UNSEL 2
-
-				int sel_state = 0;
-
+			/* clear tags */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					if (luv->flag & MLOOPUV_VERTSEL) {
-						sel_state |= IS_SEL;
-					}
-					else {
-						sel_state |= IS_UNSEL;
-					}
-
-					/* if we have a mixed selection, tag to grow it */
-					if (sel_state == (IS_SEL | IS_UNSEL)) {
-						BM_elem_flag_enable(efa, BM_ELEM_TAG);
-						break;
-					}
+					BM_elem_flag_disable(l, BM_ELEM_TAG);
 				}
-
-#undef IS_SEL
-#undef IS_UNSEL
-
 			}
-		}
 
-		/* select tagged faces */
-		uv_select_flush_from_tag_face(sima, scene, obedit, select);
-	}
-	else {
+			/* mark loops to be selected */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 
-		/* clear tags */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				BM_elem_flag_disable(l, BM_ELEM_TAG);
-			}
-		}
+						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-		/* mark loops to be selected */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-					if (((luv->flag & MLOOPUV_VERTSEL) != 0) == select) {
-						BM_elem_flag_enable(l->next, BM_ELEM_TAG);
-						BM_elem_flag_enable(l->prev, BM_ELEM_TAG);
+						if (((luv->flag & MLOOPUV_VERTSEL) != 0) == select) {
+							BM_elem_flag_enable(l->next, BM_ELEM_TAG);
+							BM_elem_flag_enable(l->prev, BM_ELEM_TAG);
+							changed = true;
+						}
 					}
 				}
 			}
 		}
 
-		/* select tagged loops */
-		uv_select_flush_from_tag_loop(sima, scene, obedit, select);
+		if (changed) {
+			/* Select tagged loops. */
+			uv_select_flush_from_tag_loop(sima, scene, obedit, select);
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
 	}
-
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
