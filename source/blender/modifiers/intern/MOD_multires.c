@@ -46,6 +46,7 @@
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph_query.h"

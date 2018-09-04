@@ -44,6 +44,7 @@
 #include "BKE_subdiv.h"
 #include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
+#include "BKE_subdiv_mesh.h"
 
 #include "DEG_depsgraph_query.h"
 

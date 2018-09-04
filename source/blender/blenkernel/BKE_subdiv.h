@@ -171,22 +171,6 @@ Subdiv *BKE_subdiv_new_from_mesh(const SubdivSettings *settings,
 
 void BKE_subdiv_free(Subdiv *subdiv);
 
-/* =========================== SUBDIV TO MESH API =========================== */
-
-typedef struct SubdivToMeshSettings {
-	/* Resolution at which ptex are being evaluated.
-	 * This defines how many vertices final mesh will have: every ptex has
-	 * resolution^2 vertices.
-	 */
-	int resolution;
-} SubdivToMeshSettings;
-
-/* Create real hi-res mesh from subdivision, all geometry is "real". */
-struct Mesh *BKE_subdiv_to_mesh(
-        Subdiv *subdiv,
-        const SubdivToMeshSettings *settings,
-        const struct Mesh *coarse_mesh);
-
 /* ============================ DISPLACEMENT API ============================ */
 
 void BKE_subdiv_displacement_attach_from_multires(

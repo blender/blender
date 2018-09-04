@@ -44,6 +44,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
 #include "BKE_subsurf.h"
 
 #include "DEG_depsgraph.h"

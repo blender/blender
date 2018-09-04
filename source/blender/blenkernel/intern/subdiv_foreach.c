@@ -43,6 +43,7 @@
 #include "BKE_mesh.h"
 #include "BKE_key.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
 
 #include "MEM_guardedalloc.h"
 

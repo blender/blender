@@ -39,6 +39,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_mesh.h"
 
 void BKE_multires_subdiv_settings_init(
         SubdivSettings *settings,

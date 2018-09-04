@@ -327,6 +327,7 @@ set(SRC
 	BKE_subdiv.h
 	BKE_subdiv_eval.h
 	BKE_subdiv_foreach.h
+	BKE_subdiv_mesh.h
 	BKE_subsurf.h
 	BKE_suggestions.h
 	BKE_text.h
