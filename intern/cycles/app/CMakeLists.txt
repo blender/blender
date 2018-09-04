@@ -134,7 +134,7 @@ if(WITH_CYCLES_CUBIN_COMPILER)
 	# to be build to compile the cubins.
 	if(MSVC AND NOT CMAKE_CL_64)
 		message("Building with CUDA not supported on 32 bit, skipped")
-		set(WITH_CYCLES_CUDA_BINARIES OFF)
+		set(WITH_CYCLES_CUDA_BINARIES OFF CACHE BOOL "" FORCE)
 	else()
 		set(SRC
 			cycles_cubin_cc.cpp
