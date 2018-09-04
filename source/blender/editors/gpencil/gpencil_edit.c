@@ -96,11 +96,17 @@
   /* Stroke Edit Mode Management */
 static bool gpencil_editmode_toggle_poll(bContext *C)
 {
-	/* if using gpencil object, use this gpd */
+	/* edit only supported with grease pencil objects */
 	Object *ob = CTX_data_active_object(C);
-	if ((ob) && (ob->type == OB_GPENCIL)) {
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
+	/* if using gpencil object, use this gpd */
+	if (ob->type == OB_GPENCIL) {
 		return ob->data != NULL;
 	}
+
 	return ED_gpencil_data_get_active(C) != NULL;
 }
 
@@ -434,6 +440,12 @@ void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot)
 /* poll callback for all stroke editing operators */
 static bool gp_stroke_edit_poll(bContext *C)
 {
+	/* edit only supported with grease pencil objects */
+	Object *ob = CTX_data_active_object(C);
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
 	/* NOTE: this is a bit slower, but is the most accurate... */
 	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;
 }
@@ -441,6 +453,13 @@ static bool gp_stroke_edit_poll(bContext *C)
 /* poll callback to verify edit mode in 3D view only */
 static bool gp_strokes_edit3d_poll(bContext *C)
 {
+	/* edit only supported with grease pencil objects */
+	Object *ob = CTX_data_active_object(C);
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
+
 	/* 2 Requirements:
 	 * - 1) Editable GP data
 	 * - 2) 3D View only
