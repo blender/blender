@@ -67,6 +67,7 @@ static struct {
 	/* Face orientation shader */
 	struct GPUShader *face_orientation_sh;
 	/* Wireframe shader */
+	struct GPUShader *select_wireframe_sh;
 	struct GPUShader *face_wireframe_sh;
 	struct GPUShader *face_wireframe_pretty_sh;
 	struct GPUShader *face_wireframe_sculpt_sh;
@@ -104,6 +105,14 @@ static void overlay_engine_init(void *vedata)
 
 	if (!e_data.face_wireframe_sh) {
 		bool use_geom = GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY);
+
+		e_data.select_wireframe_sh = DRW_shader_create(
+		        datatoc_overlay_face_wireframe_vert_glsl,
+		        datatoc_overlay_face_wireframe_geom_glsl,
+		        datatoc_overlay_face_wireframe_frag_glsl,
+		        "#define SELECT_EDGES\n"
+		        "#define LIGHT_EDGES\n"
+		        "#define USE_GEOM_SHADER\n");
 
 		e_data.face_wireframe_sh = DRW_shader_create(
 		        datatoc_overlay_face_wireframe_vert_glsl,
@@ -207,6 +216,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	OVERLAY_PrivateData *pd = stl->g_data;
 	OVERLAY_PassList *psl = data->psl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
 
 	if (!stl->g_data->show_overlays)
 		return;
@@ -250,13 +260,31 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 					DRWPass *pass = (all_wires) ? psl->face_wireframe_full_pass : psl->face_wireframe_pass;
 					GPUShader *sh = (all_wires) ? e_data.face_wireframe_sh : e_data.face_wireframe_pretty_sh;
 
-					DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
-					DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
-					DRW_shgroup_uniform_texture(shgrp, "vertData", verts);
-					DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
-					DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
-					DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
-					DRW_shgroup_call_object_procedural_triangles_culled_add(shgrp, tri_count, ob);
+					if ((DRW_state_is_select() || DRW_state_is_depth()) &&
+						(v3d->shading.flag & V3D_SHADING_XRAY) != 0)
+					{
+						static float params[2] = {1.2f, 1.0f}; /* Parameters for all wires */
+
+						sh = e_data.select_wireframe_sh;
+						DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
+						DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
+						DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
+						                                                 ? params
+						                                                 : stl->g_data->wire_step_param, 1);
+						DRW_shgroup_uniform_texture(shgrp, "vertData", verts);
+						DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
+						DRW_shgroup_call_object_procedural_triangles_culled_add(shgrp, tri_count, ob);
+					}
+					else {
+						DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
+						DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
+						DRW_shgroup_uniform_texture(shgrp, "vertData", verts);
+						DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
+						DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
+						DRW_shgroup_uniform_vec3(shgrp, "rimColor", rim_col, 1);
+						DRW_shgroup_call_object_procedural_triangles_culled_add(shgrp, tri_count, ob);
+					}
+
 				}
 			}
 		}
@@ -291,7 +319,9 @@ static void overlay_draw_scene(void *vedata)
 	OVERLAY_PassList *psl = data->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-	GPU_framebuffer_bind(dfbl->default_fb);
+	if (DRW_state_is_fbo()) {
+		GPU_framebuffer_bind(dfbl->default_fb);
+	}
 	DRW_draw_pass(psl->face_orientation_pass);
 	DRW_draw_pass(psl->face_wireframe_pass);
 	DRW_draw_pass(psl->face_wireframe_full_pass);
@@ -300,6 +330,7 @@ static void overlay_draw_scene(void *vedata)
 static void overlay_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.face_orientation_sh);
+	DRW_SHADER_FREE_SAFE(e_data.select_wireframe_sh);
 	DRW_SHADER_FREE_SAFE(e_data.face_wireframe_sh);
 	DRW_SHADER_FREE_SAFE(e_data.face_wireframe_pretty_sh);
 	DRW_SHADER_FREE_SAFE(e_data.face_wireframe_sculpt_sh);

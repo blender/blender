@@ -119,7 +119,7 @@ void DRW_draw_render_loop_offscreen(
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         struct ARegion *ar, struct View3D *v3d,
-        bool use_obedit_skip, bool use_nearest, const struct rcti *rect,
+        bool use_obedit_skip, bool draw_surface, bool use_nearest, const struct rcti *rect,
         DRW_SelectPassFn select_pass_fn, void *select_pass_user_data,
         DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data);
 void DRW_draw_depth_loop(

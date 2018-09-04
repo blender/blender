@@ -1987,7 +1987,7 @@ void DRW_render_instance_buffer_finish(void)
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d,
-        bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect,
+        bool UNUSED(use_obedit_skip), bool draw_surface, bool UNUSED(use_nearest), const rcti *rect,
         DRW_SelectPassFn select_pass_fn, void *select_pass_user_data,
         DRW_ObjectFilterFn object_filter_fn, void *object_filter_user_data)
 {
@@ -2036,6 +2036,10 @@ void DRW_draw_select_loop(
 	if (use_obedit) {
 		drw_engines_enable_from_paint_mode(obedit_mode);
 		drw_engines_enable_from_mode(obedit_mode);
+	}
+	else if (!draw_surface) {
+		drw_engines_enable_from_overlays(v3d->overlay.flag);
+		drw_engines_enable_from_object_mode();
 	}
 	else {
 		drw_engines_enable_basic();

@@ -27,13 +27,13 @@ out float facing;
 #endif
 
 #ifdef LIGHT_EDGES
-#ifdef USE_GEOM_SHADER
+#  ifdef USE_GEOM_SHADER
 out vec3 obPos;
 out vec3 vNor;
 out float forceEdge;
-#else
+#  else
 flat out vec3 edgeSharpness;
-#endif
+#  endif
 #endif
 
 /* project to screen space */
