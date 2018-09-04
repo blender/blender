@@ -553,7 +553,8 @@ class _defs_edit_mesh:
             icon="ops.mesh.rip_edge",
             widget=None,
             keymap=(
-                ("mesh.rip_edge_edge_move", dict(),
+                ("mesh.rip_edge_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
