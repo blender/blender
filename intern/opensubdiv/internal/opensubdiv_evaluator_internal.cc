@@ -702,7 +702,7 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
     return NULL;
   }
   // TODO(sergey): Base this on actual topology.
-  // const bool has_varying_data = false;
+  const bool has_varying_data = false;
   const int num_face_varying_channels = refiner->GetNumFVarChannels();
   const bool has_face_varying_data = (num_face_varying_channels != 0);
   const int level = topology_refiner->getSubdivisionLevel(topology_refiner);
@@ -733,13 +733,15 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   // TODO(sergey): Seems currently varying stencils are always required in
   // OpenSubdiv itself.
   const StencilTable* varying_stencils = NULL;
-  StencilTableFactory::Options varying_stencil_options;
-  varying_stencil_options.generateOffsets = true;
-  varying_stencil_options.generateIntermediateLevels = is_adaptive;
-  varying_stencil_options.interpolationMode =
-      StencilTableFactory::INTERPOLATE_VARYING;
-  varying_stencils =
-      StencilTableFactory::Create(*refiner, varying_stencil_options);
+  if (has_varying_data) {
+    StencilTableFactory::Options varying_stencil_options;
+    varying_stencil_options.generateOffsets = true;
+    varying_stencil_options.generateIntermediateLevels = is_adaptive;
+    varying_stencil_options.interpolationMode =
+        StencilTableFactory::INTERPOLATE_VARYING;
+    varying_stencils =
+        StencilTableFactory::Create(*refiner, varying_stencil_options);
+  }
   // Face warying stencil.
 vector<const StencilTable*> all_face_varying_stencils;
 #ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
@@ -769,6 +771,7 @@ vector<const StencilTable*> all_face_varying_stencils;
   const PatchTable* patch_table = PatchTableFactory::Create(
       *refiner, patch_options);
   // Append local points stencils.
+  // Point stencils.
   const StencilTable* local_point_stencil_table =
       patch_table->GetLocalPointStencilTable();
   if (local_point_stencil_table != NULL) {
@@ -778,14 +781,17 @@ vector<const StencilTable*> all_face_varying_stencils;
     delete vertex_stencils;
     vertex_stencils = table;
   }
-  const StencilTable* local_point_varying_stencil_table =
-      patch_table->GetLocalPointVaryingStencilTable();
-  if (local_point_varying_stencil_table != NULL) {
-    const StencilTable* table =
-        StencilTableFactory::AppendLocalPointStencilTable(
-            *refiner, varying_stencils, local_point_varying_stencil_table);
-    delete varying_stencils;
-    varying_stencils = table;
+  // Varying stencils.
+  if (has_varying_data) {
+    const StencilTable* local_point_varying_stencil_table =
+        patch_table->GetLocalPointVaryingStencilTable();
+    if (local_point_varying_stencil_table != NULL) {
+      const StencilTable* table =
+          StencilTableFactory::AppendLocalPointStencilTable(
+              *refiner, varying_stencils, local_point_varying_stencil_table);
+      delete varying_stencils;
+      varying_stencils = table;
+    }
   }
 #ifdef OPENSUBDIV_HAS_FVAR_EVALUATION
   for (int face_varying_channel = 0;
