@@ -27,7 +27,7 @@
  *  \ingroup bke
  */
 
-#include "BKE_subdiv.h"
+#include "BKE_subdiv_eval.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -37,6 +37,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
+#include "BKE_subdiv.h"
 
 #include "MEM_guardedalloc.h"
 

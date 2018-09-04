@@ -42,6 +42,7 @@
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
 
 #include "DEG_depsgraph_query.h"

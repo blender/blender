@@ -42,6 +42,7 @@
 
 #include "BKE_mesh.h"
 #include "BKE_key.h"
+#include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
 
 #include "MEM_guardedalloc.h"
