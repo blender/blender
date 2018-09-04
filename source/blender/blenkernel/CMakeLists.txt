@@ -325,6 +325,7 @@ set(SRC
 	BKE_speaker.h
 	BKE_studiolight.h
 	BKE_subdiv.h
+	BKE_subdiv_foreach.h
 	BKE_subsurf.h
 	BKE_suggestions.h
 	BKE_text.h
