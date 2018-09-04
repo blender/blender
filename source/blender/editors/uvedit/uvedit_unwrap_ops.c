@@ -598,8 +598,8 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 
 typedef struct MinStretch {
 	Scene *scene;
-	Object *obedit;
-	BMEditMesh *em;
+	Object **objects_edit;
+	uint objects_len;
 	ParamHandle *handle;
 	float blend;
 	double lasttime;
@@ -610,24 +610,28 @@ typedef struct MinStretch {
 static bool minimize_stretch_init(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
 	MinStretch *ms;
 	const bool fill_holes = RNA_boolean_get(op->ptr, "fill_holes");
 	bool implicit = true;
 
-	if (!uvedit_have_selection(scene, em, implicit)) {
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	if (!uvedit_have_selection_multi(scene, objects, objects_len, implicit)) {
+		MEM_freeN(objects);
 		return false;
 	}
 
 	ms = MEM_callocN(sizeof(MinStretch), "MinStretch");
 	ms->scene = scene;
-	ms->obedit = obedit;
-	ms->em = em;
+	ms->objects_edit = objects;
+	ms->objects_len = objects_len;
 	ms->blend = RNA_float_get(op->ptr, "blend");
 	ms->iterations = RNA_int_get(op->ptr, "iterations");
 	ms->i = 0;
-	ms->handle = construct_param_handle(scene, obedit, em->bm, implicit, fill_holes, 1, 1);
+	ms->handle = construct_param_handle_multi(scene, objects, objects_len, implicit, fill_holes, true, true);
 	ms->lasttime = PIL_check_seconds_timer();
 
 	param_stretch_begin(ms->handle);
@@ -643,6 +647,9 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 {
 	MinStretch *ms = op->customdata;
 	ScrArea *sa = CTX_wm_area(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
 	param_stretch_blend(ms->handle, ms->blend);
 	param_stretch_iter(ms->handle);
@@ -663,8 +670,17 @@ static void minimize_stretch_iteration(bContext *C, wmOperator *op, bool interac
 
 		ms->lasttime = PIL_check_seconds_timer();
 
-		DEG_id_tag_update(ms->obedit->data, 0);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
+		for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
+			Object *obedit = ms->objects_edit[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+			if (synced_selection && (em->bm->totfacesel == 0)) {
+				continue;
+			}
+
+			DEG_id_tag_update(obedit->data, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		}
 	}
 }
 
@@ -672,6 +688,9 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 {
 	MinStretch *ms = op->customdata;
 	ScrArea *sa = CTX_wm_area(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
 	ED_area_status_text(sa, NULL);
 	ED_workspace_status_text(C, NULL);
@@ -687,9 +706,19 @@ static void minimize_stretch_exit(bContext *C, wmOperator *op, bool cancel)
 	param_stretch_end(ms->handle);
 	param_delete(ms->handle);
 
-	DEG_id_tag_update(ms->obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ms->obedit->data);
+	for (uint ob_index = 0; ob_index < ms->objects_len; ob_index++) {
+		Object *obedit = ms->objects_edit[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+		if (synced_selection && (em->bm->totfacesel == 0)) {
+			continue;
+		}
+
+		DEG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
+
+	MEM_freeN(ms->objects_edit);
 	MEM_freeN(ms);
 	op->customdata = NULL;
 }
