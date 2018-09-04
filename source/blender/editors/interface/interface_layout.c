@@ -1692,15 +1692,23 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 				}
 			}
 
-			/* Watch out! We can only write into the new column now. */
-			layout = uiLayoutColumn(layout_split, true);
-			layout->space = 0;
+			/* Watch out! We can only write into the new layout now. */
 			if ((type == PROP_ENUM) && (flag & UI_ITEM_R_EXPAND)) {
-				/* pass (expanded enums each have their own name) */
+				/* Expanded enums each have their own name. */
+
+				/* Often expanded enum's are better arranged into a row, so check the existing layout. */
+				if (ui_layout_local_dir(layout) == UI_LAYOUT_HORIZONTAL) {
+					layout = uiLayoutRow(layout_split, true);
+				}
+				else {
+					layout = uiLayoutColumn(layout_split, true);
+				}
 			}
 			else {
 				name = "";
+				layout = uiLayoutColumn(layout_split, true);
 			}
+			layout->space = 0;
 
 #ifdef UI_PROP_SEP_ICON_WIDTH_EXCEPTION
 			if (type == PROP_BOOLEAN && (icon == ICON_NONE) && !icon_only) {
