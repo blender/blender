@@ -621,10 +621,14 @@ static bool snap_curs_to_sel_ex(bContext *C, float cursor[3])
 		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			obedit = objects[ob_index];
-			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-			if (em->bm->totvertsel == 0) {
-				continue;
+			/* We can do that quick check for meshes only... */
+			if (obedit->type == OB_MESH) {
+				BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+				if (em->bm->totvertsel == 0) {
+					continue;
+				}
 			}
 
 			if (ED_transverts_check_obedit(obedit)) {
