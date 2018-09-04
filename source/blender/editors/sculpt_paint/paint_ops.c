@@ -540,16 +540,22 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* props */
-	RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, OB_MODE_ACTIVE, "Paint Mode", "");
-	RNA_def_enum(ot->srna, "sculpt_tool", rna_enum_brush_sculpt_tool_items, 0, "Sculpt Tool", "");
-	RNA_def_enum(ot->srna, "vertex_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
-	RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Weight Paint Tool", "");
-	RNA_def_enum(ot->srna, "texture_paint_tool", rna_enum_brush_image_tool_items, 0, "Texture Paint Tool", "");
+	/* All properties are hidden, so as not to show the redo panel. */
+	prop = RNA_def_enum(ot->srna, "paint_mode", paint_mode_items, OB_MODE_ACTIVE, "Paint Mode", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_enum(ot->srna, "sculpt_tool", rna_enum_brush_sculpt_tool_items, 0, "Sculpt Tool", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_enum(ot->srna, "vertex_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_enum(ot->srna, "weight_paint_tool", rna_enum_brush_vertex_tool_items, 0, "Weight Paint Tool", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+	prop = RNA_def_enum(ot->srna, "texture_paint_tool", rna_enum_brush_image_tool_items, 0, "Texture Paint Tool", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 
 	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "create_missing", 0, "Create Missing", "If the requested brush type does not exist, create a new brush");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static wmKeyMapItem *keymap_brush_select(
