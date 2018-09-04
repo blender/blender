@@ -1063,7 +1063,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 	uiLayoutSetPropDecorate(col, false);
 
 	uiItemR(col, imfptr, "file_format", 0, NULL, ICON_NONE);
-	uiItemR(col, imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
+	uiItemR(uiLayoutRow(col, true), imfptr, "color_mode", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
 
 	/* only display depth setting if multiple depths can be used */
 	if ((ELEM(depth_ok,
@@ -1075,7 +1075,7 @@ void uiTemplateImageSettings(uiLayout *layout, PointerRNA *imfptr, bool color_ma
 	          R_IMF_CHAN_DEPTH_24,
 	          R_IMF_CHAN_DEPTH_32)) == 0)
 	{
-		uiItemR(col, imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+		uiItemR(uiLayoutRow(col, true), imfptr, "color_depth", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
 	if (BKE_imtype_supports_quality(imf->imtype)) {
