@@ -573,12 +573,12 @@ static ARegion *ui_tooltip_create_with_data(
 	const float pad_px = UI_TIP_PADDING;
 	wmWindow *win = CTX_wm_window(C);
 	const int winx = WM_window_pixels_x(win);
+	const int winy = WM_window_pixels_y(win);
 	uiStyle *style = UI_style_get();
 	static ARegionType type;
 	ARegion *ar;
 	int fonth, fontw;
 	int h, i;
-	rctf rect_fl;
 	rcti rect_i;
 	int font_flag = 0;
 
@@ -658,35 +658,32 @@ static ARegion *ui_tooltip_create_with_data(
 	data->toth = fonth;
 	data->lineh = h;
 
-	/* compute position */
-
-	rect_fl.xmin = init_position[0] - TIP_BORDER_X;
-	rect_fl.xmax = rect_fl.xmin + fontw + pad_px;
-	rect_fl.ymax = init_position[1] - TIP_BORDER_Y;
-	rect_fl.ymin = rect_fl.ymax - fonth  - TIP_BORDER_Y;
-
-	BLI_rcti_rctf_copy(&rect_i, &rect_fl);
+	/* Compute position. */
+	{
+		rctf rect_fl;
+		rect_fl.xmin = init_position[0] - TIP_BORDER_X;
+		rect_fl.xmax = rect_fl.xmin + fontw + pad_px;
+		rect_fl.ymax = init_position[1] - TIP_BORDER_Y;
+		rect_fl.ymin = rect_fl.ymax - fonth - TIP_BORDER_Y;
+		BLI_rcti_rctf_copy(&rect_i, &rect_fl);
+	}
 
 #undef TIP_BORDER_X
 #undef TIP_BORDER_Y
 
-	/* clip with window boundaries */
-	if (rect_i.xmax > winx) {
-		/* super size */
-		if (rect_i.xmax > winx + rect_i.xmin) {
-			rect_i.xmax = winx;
-			rect_i.xmin = 0;
-		}
-		else {
-			rect_i.xmin -= rect_i.xmax - winx;
-			rect_i.xmax = winx;
-		}
-	}
-	/* ensure at least 5 px above screen bounds
-	 * 25 is just a guess to be above the menu item */
-	if (rect_i.ymin < 5) {
-		rect_i.ymax += (-rect_i.ymin) + 30;
-		rect_i.ymin = 30;
+	/* Clamp to window bounds. */
+	{
+		/* Ensure at least 5 px above screen bounds
+		 * UI_UNIT_Y is just a guess to be above the menu item */
+		const int pad = max_ff(1.0f, U.pixelsize) * 5;
+		const rcti rect_clamp = {
+			.xmin = pad,
+			.xmax = winx - pad,
+			.ymin = pad + (UI_UNIT_Y * 2),
+			.ymax = winy - pad,
+		};
+		int offset_dummy[2];
+		BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
 	}
 
 	/* add padding */
