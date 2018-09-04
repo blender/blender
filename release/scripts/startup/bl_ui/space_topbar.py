@@ -110,16 +110,16 @@ class TOPBAR_HT_lower_bar(Header):
 
         # Note: general mode options should be added to 'draw_right'.
         if mode == 'SCULPT':
-            if tool.has_datablock:
+            if (tool is not None) and tool.has_datablock:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_VERTEX':
-            if tool.has_datablock:
+            if (tool is not None) and tool.has_datablock:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_WEIGHT':
-            if tool.has_datablock:
+            if (tool is not None) and tool.has_datablock:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'PAINT_TEXTURE':
-            if tool.has_datablock:
+            if (tool is not None) and tool.has_datablock:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
         elif mode == 'EDIT_ARMATURE':
             pass
@@ -188,7 +188,7 @@ class TOPBAR_HT_lower_bar(Header):
 class _draw_left_context_mode:
     @staticmethod
     def SCULPT(context, layout, tool):
-        if not tool.has_datablock:
+        if (tool is None) or (not tool.has_datablock):
             return
         brush = context.tool_settings.sculpt.brush
         if brush is None:
@@ -201,7 +201,7 @@ class _draw_left_context_mode:
         layout.prop(brush, "direction", text="", expand=True)
 
     def PAINT_TEXTURE(context, layout, tool):
-        if not tool.has_datablock:
+        if (tool is None) or (not tool.has_datablock):
             return
         brush = context.tool_settings.vertex_paint.brush
         if brush is None:
@@ -214,7 +214,7 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
     def PAINT_VERTEX(context, layout, tool):
-        if not tool.has_datablock:
+        if (tool is None) or (not tool.has_datablock):
             return
         brush = context.tool_settings.vertex_paint.brush
         if brush is None:
@@ -227,7 +227,7 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
     def PAINT_WEIGHT(context, layout, tool):
-        if not tool.has_datablock:
+        if (tool is None) or (not tool.has_datablock):
             return
         brush = context.tool_settings.weight_paint.brush
         if brush is None:
