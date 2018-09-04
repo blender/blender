@@ -3674,36 +3674,55 @@ static void UV_OT_snap_selected(wmOperatorType *ot)
 static int uv_pin_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Image *ima = CTX_data_edit_image(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
+	ToolSettings *ts = scene->toolsettings;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		bool changed = false;
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
 			continue;
+		}
 
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-			if (!clear) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
-					luv->flag |= MLOOPUV_PINNED;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+				continue;
 			}
-			else {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))
-					luv->flag &= ~MLOOPUV_PINNED;
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					changed = true;
+					if (clear) {
+						luv->flag &= ~MLOOPUV_PINNED;
+					}
+					else {
+						luv->flag |= MLOOPUV_PINNED;
+					}
+				}
 			}
 		}
-	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		if (changed) {
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		}
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
