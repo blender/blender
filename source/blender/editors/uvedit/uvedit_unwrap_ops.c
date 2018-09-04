@@ -885,23 +885,37 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 static int average_islands_scale_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+	const bool implicit = true;
 	ParamHandle *handle;
-	bool implicit = true;
 
-	if (!uvedit_have_selection(scene, em, implicit)) {
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	if (!uvedit_have_selection_multi(scene, objects, objects_len, implicit)) {
+		MEM_freeN(objects);
 		return OPERATOR_CANCELLED;
 	}
 
-	handle = construct_param_handle(scene, obedit, em->bm, implicit, 0, 1, 1);
+	handle = construct_param_handle_multi(scene, objects, objects_len, implicit, false, true, true);
 	param_average(handle);
 	param_flush(handle);
 	param_delete(handle);
 
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		DEG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
