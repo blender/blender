@@ -137,7 +137,7 @@ class WindowManager(bpy_types.ID):
 
     def popup_menu(self, draw_func, title="", icon='NONE'):
         import bpy
-        popup = self.popmenu_begin__internal(title, icon)
+        popup = self.popmenu_begin__internal(title, icon=icon)
 
         try:
             draw_func(popup, bpy.context)
