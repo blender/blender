@@ -3111,9 +3111,8 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = scene->toolsettings;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	BMFace *efa;
 	BMLoop *l;
@@ -3122,13 +3121,11 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	int x, y, radius, width, height;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	const bool select = !RNA_boolean_get(op->ptr, "deselect");
-	bool changed = false;
+
 	const bool use_face_center = (
 	        (ts->uv_flag & UV_SYNC_SELECTION) ?
 	        (ts->selectmode == SCE_SELECT_FACE) :
 	        (ts->uv_selectmode == UV_SELECT_FACE));
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
 	/* get operator properties */
 	x = RNA_int_get(op->ptr, "x");
@@ -3145,54 +3142,71 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 
 	UI_view2d_region_to_view(&ar->v2d, x, y, &offset[0], &offset[1]);
 
-	/* do selection */
-	if (use_face_center) {
-		changed = false;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
-			/* assume not touched */
-			if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
-				float cent[2];
-				uv_poly_center(efa, cent, cd_loop_uv_offset);
-				if (uv_inside_circle(cent, offset, ellipse)) {
-					BM_elem_flag_enable(efa, BM_ELEM_TAG);
-					changed = true;
+	bool changed_multi = false;
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		bool changed = false;
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		/* do selection */
+		if (use_face_center) {
+			changed = false;
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
+				/* assume not touched */
+				if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+					float cent[2];
+					uv_poly_center(efa, cent, cd_loop_uv_offset);
+					if (uv_inside_circle(cent, offset, ellipse)) {
+						BM_elem_flag_enable(efa, BM_ELEM_TAG);
+						changed = true;
+					}
 				}
+			}
+
+			/* (de)selects all tagged faces and deals with sticky modes */
+			if (changed) {
+				uv_select_flush_from_tag_face(sima, scene, obedit, select);
+			}
+		}
+		else {
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					if (uv_inside_circle(luv->uv, offset, ellipse)) {
+						changed = true;
+						uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+						BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+					}
+				}
+			}
+
+			if (sima->sticky == SI_STICKY_VERTEX) {
+				uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
 			}
 		}
 
-		/* (de)selects all tagged faces and deals with sticky modes */
 		if (changed) {
-			uv_select_flush_from_tag_face(sima, scene, obedit, select);
+			changed_multi = true;
+
+			uv_select_sync_flush(ts, em, select);
+
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
-	else {
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+	MEM_freeN(objects);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				if (uv_inside_circle(luv->uv, offset, ellipse)) {
-					changed = true;
-					uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-				}
-			}
-		}
-
-		if (sima->sticky == SI_STICKY_VERTEX) {
-			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
-		}
-	}
-
-	if (changed) {
-		uv_select_sync_flush(ts, em, select);
-
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-	}
-
-	return OPERATOR_FINISHED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void UV_OT_circle_select(wmOperatorType *ot)
