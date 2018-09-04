@@ -1558,6 +1558,7 @@ void DRW_draw_render_loop_ex(
 		if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 			/* Draw 2D after region info so we can draw on top of the camera passepartout overlay.
 			 * 'DRW_draw_region_info' sets the projection in pixel-space. */
+			glDisable(GL_DEPTH_TEST);
 			DRW_draw_gizmo_2d();
 			glEnable(GL_DEPTH_TEST);
 		}
