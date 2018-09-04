@@ -1117,19 +1117,21 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 			switch (bvh->type) {
 				case PBVH_GRIDS:
 					node->draw_buffers =
-						GPU_pbvh_grid_buffers_build(node->prim_indices,
-					                           node->totprim,
-					                           bvh->grid_hidden,
-					                           bvh->gridkey.grid_size,
-					                           &bvh->gridkey, &bvh->grid_common_gpu_buffer);
+						GPU_pbvh_grid_buffers_build(
+						        node->prim_indices,
+						        node->totprim,
+						        bvh->grid_hidden,
+						        bvh->gridkey.grid_size,
+						        bvh->gridkey, &bvh->grid_common_gpu_buffer);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =
-						GPU_pbvh_mesh_buffers_build(node->face_vert_indices,
-					                           bvh->mpoly, bvh->mloop, bvh->looptri,
-					                           bvh->verts,
-					                           node->prim_indices,
-					                           node->totprim);
+						GPU_pbvh_mesh_buffers_build(
+						        node->face_vert_indices,
+						        bvh->mpoly, bvh->mloop, bvh->looptri,
+						        bvh->verts,
+						        node->prim_indices,
+						        node->totprim);
 					break;
 				case PBVH_BMESH:
 					node->draw_buffers =
