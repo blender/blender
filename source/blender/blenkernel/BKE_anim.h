@@ -73,16 +73,6 @@ struct ListBase *object_duplilist(struct Depsgraph *depsgraph, struct Scene *sce
 void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);
 
-typedef struct DupliExtraData {
-	float obmat[4][4];
-	unsigned int lay;
-} DupliExtraData;
-
-typedef struct DupliApplyData {
-	int num_objects;
-	DupliExtraData *extra;
-} DupliApplyData;
-
 typedef struct DupliObject {
 	struct DupliObject *next, *prev;
 	struct Object *ob;
@@ -102,9 +92,5 @@ typedef struct DupliObject {
 	/* Random ID for shading */
 	unsigned int random_id;
 } DupliObject;
-
-DupliApplyData *duplilist_apply(struct Depsgraph *depsgraph, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
-void duplilist_restore(struct ListBase *duplilist, DupliApplyData *apply_data);
-void duplilist_free_apply_data(DupliApplyData *apply_data);
 
 #endif

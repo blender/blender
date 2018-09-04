@@ -216,8 +216,8 @@ typedef struct View3D {
 	char bundle_drawtype;		/* display style for bundle */
 	char pad[3];
 
-	unsigned int lay_prev; /* for active layer toggle */
-	unsigned int lay_used; /* used while drawing */
+	unsigned int lay_prev DNA_DEPRECATED; /* for active layer toggle */
+	unsigned int lay_used DNA_DEPRECATED; /* used while drawing */
 
 	int object_type_exclude_viewport;
 	int object_type_exclude_select;
@@ -232,8 +232,8 @@ typedef struct View3D {
 
 	char ob_centre_bone[64];		/* optional string for armature bone to define center, MAXBONENAME */
 
-	unsigned int lay;
-	int layact;
+	unsigned int lay DNA_DEPRECATED;
+	int layact DNA_DEPRECATED;
 
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock;

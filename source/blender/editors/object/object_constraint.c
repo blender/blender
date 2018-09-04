@@ -1699,16 +1699,11 @@ static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob
 		Main *bmain = CTX_data_main(C);
 		Scene *scene = CTX_data_scene(C);
 		ViewLayer *view_layer = CTX_data_view_layer(C);
-		Base *base = BASACT(view_layer), *newbase = NULL;
+		Base *base = BASACT(view_layer);
 		Object *obt;
 
 		/* add new target object */
 		obt = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, NULL);
-
-		/* set layers OK */
-		newbase = BASACT(view_layer);
-		newbase->lay = base->lay;
-		obt->lay = newbase->lay;
 
 		/* transform cent to global coords for loc */
 		if (pchanact) {

@@ -263,7 +263,7 @@ void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 /* make or free the dbase */
 void RE_Database_CameraOnly(
         struct Render *re, struct Main *bmain, struct Scene *scene,
-        unsigned int lay, int use_camera_view);
+        int use_camera_view);
 
 /* set the render threads based on the commandline and autothreads setting */
 void RE_init_threadcount(Render *re);
@@ -278,9 +278,9 @@ bool RE_WriteRenderViewsMovie(
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene,
                      struct ViewLayer *single_layer, struct Object *camera_override,
-                     unsigned int lay_override, int frame, const bool write_still);
+                     int frame, const bool write_still);
 void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override,
-                    unsigned int lay_override, int sfra, int efra, int tfra);
+                    int sfra, int efra, int tfra);
 #ifdef WITH_FREESTYLE
 void RE_RenderFreestyleStrokes(struct Render *re, struct Main *bmain, struct Scene *scene, int render);
 void RE_RenderFreestyleExternal(struct Render *re);

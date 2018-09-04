@@ -450,14 +450,12 @@ static bool hook_op_edit_poll(bContext *C)
 
 static Object *add_hook_object_new(Main *bmain, Scene *scene, ViewLayer *view_layer, Object *obedit)
 {
-	Base *base, *basedit;
+	Base *basedit;
 	Object *ob;
 
 	ob = BKE_object_add(bmain, scene, view_layer, OB_EMPTY, NULL);
 
 	basedit = BKE_view_layer_base_find(view_layer, obedit);
-	base = view_layer->basact;
-	base->lay = ob->lay = obedit->lay;
 	BLI_assert(view_layer->basact->object == ob);
 
 	/* icky, BKE_object_add sets new base as active.

@@ -316,9 +316,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 
 	v3d = MEM_callocN(sizeof(View3D), "initview3d");
 	v3d->spacetype = SPACE_VIEW3D;
-	v3d->lay = v3d->layact = 1;
 	if (scene) {
-		v3d->lay = v3d->layact = scene->lay;
 		v3d->camera = scene->camera;
 	}
 	v3d->scenelock = true;
@@ -432,7 +430,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 	if (v3dn->localvd) {
 		v3dn->localvd = NULL;
 		v3dn->properties_storage = NULL;
-		v3dn->lay = v3do->localvd->lay & 0xFFFFFF;
 	}
 
 	if (v3dn->shading.type == OB_RENDER)
@@ -766,25 +763,6 @@ static void *view3d_main_region_duplicate(void *poin)
 	return NULL;
 }
 
-static void view3d_recalc_used_layers(ARegion *ar, wmNotifier *wmn, const Scene *UNUSED(scene))
-{
-	wmWindow *win = wmn->wm->winactive;
-	unsigned int lay_used = 0;
-
-	if (!win) return;
-
-	const bScreen *screen = WM_window_get_active_screen(win);
-	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-		if (sa->spacetype == SPACE_VIEW3D) {
-			if (BLI_findindex(&sa->regionbase, ar) != -1) {
-				View3D *v3d = sa->spacedata.first;
-				v3d->lay_used = lay_used;
-				break;
-			}
-		}
-	}
-}
-
 static void view3d_main_region_listener(
         wmWindow *UNUSED(win), ScrArea *sa, ARegion *ar,
         wmNotifier *wmn, const Scene *scene)
@@ -821,8 +799,6 @@ static void view3d_main_region_listener(
 			switch (wmn->data) {
 				case ND_SCENEBROWSE:
 				case ND_LAYER_CONTENT:
-					if (wmn->reference)
-						view3d_recalc_used_layers(ar, wmn, wmn->reference);
 					ED_region_tag_redraw(ar);
 					WM_gizmomap_tag_refresh(gzmap);
 					break;

@@ -1165,11 +1165,11 @@ void ED_gpencil_reset_layers_parent(Depsgraph *depsgraph, Object *obact, bGPdata
 /* GP Object Stuff */
 
 /* Helper function to create new OB_GPENCIL Object */
-Object *ED_add_gpencil_object(bContext *C, Scene *scene, const float loc[3])
+Object *ED_add_gpencil_object(bContext *C, Scene *UNUSED(scene), const float loc[3])
 {
 	float rot[3] = {0.0f};
 
-	Object *ob = ED_object_add_type(C, OB_GPENCIL, NULL, loc, rot, false, scene->lay);
+	Object *ob = ED_object_add_type(C, OB_GPENCIL, NULL, loc, rot, false);
 
 	/* define size */
 	BKE_object_obdata_size_init(ob, GP_OBGPENCIL_DEFAULT_SIZE);

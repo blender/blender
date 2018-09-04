@@ -860,7 +860,6 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	ob = BKE_object_add_only_object(freestyle_bmain, OB_MESH, name);
 	BLI_snprintf(name, MAX_ID_NAME, "0%08xME", mesh_id);
 	ob->data = BKE_mesh_add(freestyle_bmain, name);
-	ob->lay = 1;
 
 	Collection *collection_master = BKE_collection_master(freestyle_scene);
 	BKE_collection_object_add(freestyle_bmain, collection_master, ob);

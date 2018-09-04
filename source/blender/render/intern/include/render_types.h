@@ -118,7 +118,6 @@ struct Render {
 	ListBase view_layers;
 	int active_view_layer;
 	struct Object *camera_override;
-	unsigned int lay, layer_override;
 
 	ThreadRWMutex partsmutex;
 	ListBase parts;

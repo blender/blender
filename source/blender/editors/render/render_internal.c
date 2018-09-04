@@ -111,7 +111,6 @@ typedef struct RenderJob {
 	Depsgraph *depsgraph;
 	Render *re;
 	struct Object *camera_override;
-	int lay_override;
 	bool v3d_override;
 	bool anim, write_still;
 	Image *image;
@@ -307,7 +306,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Image *ima;
 	View3D *v3d = CTX_wm_view3d(C);
 	Main *mainp = CTX_data_main(C);
-	unsigned int lay_override;
 	const bool is_animation = RNA_boolean_get(op->ptr, "animation");
 	const bool is_write_still = RNA_boolean_get(op->ptr, "write_still");
 	struct Object *camera_override = v3d ? V3D_CAMERA_LOCAL(v3d) : NULL;
@@ -326,7 +324,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 
 	re = RE_NewSceneRender(scene);
-	lay_override = (v3d && v3d->lay != scene->lay) ? v3d->lay : 0;
 
 	G.is_break = false;
 	RE_test_break_cb(re, NULL, render_break);
@@ -345,9 +342,9 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	BLI_threaded_malloc_begin();
 	if (is_animation)
-		RE_BlenderAnim(re, mainp, scene, camera_override, lay_override, scene->r.sfra, scene->r.efra, scene->r.frame_step);
+		RE_BlenderAnim(re, mainp, scene, camera_override, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
-		RE_BlenderFrame(re, mainp, scene, single_layer, camera_override, lay_override, scene->r.cfra, is_write_still);
+		RE_BlenderFrame(re, mainp, scene, single_layer, camera_override, scene->r.cfra, is_write_still);
 	BLI_threaded_malloc_end();
 
 	RE_SetReports(re, NULL);
@@ -620,9 +617,9 @@ static void render_startjob(void *rjv, short *stop, short *do_update, float *pro
 	RE_SetReports(rj->re, rj->reports);
 
 	if (rj->anim)
-		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->lay_override, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
+		RE_BlenderAnim(rj->re, rj->main, rj->scene, rj->camera_override, rj->scene->r.sfra, rj->scene->r.efra, rj->scene->r.frame_step);
 	else
-		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->single_layer, rj->camera_override, rj->lay_override, rj->scene->r.cfra, rj->write_still);
+		RE_BlenderFrame(rj->re, rj->main, rj->scene, rj->single_layer, rj->camera_override, rj->scene->r.cfra, rj->write_still);
 
 	RE_SetReports(rj->re, NULL);
 }
@@ -928,7 +925,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* TODO(sergey): Render engine should be using own depsgraph. */
 	rj->depsgraph = CTX_data_depsgraph(C);
 	rj->camera_override = camera_override;
-	rj->lay_override = 0;
 	rj->anim = is_animation;
 	rj->write_still = is_write_still && !is_animation;
 	rj->iuser.scene = scene;
@@ -948,15 +944,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	}
 
 	if (v3d) {
-		if (scene->lay != v3d->lay) {
-			rj->lay_override = v3d->lay;
+		if (camera_override && camera_override != scene->camera)
 			rj->v3d_override = true;
-		}
-		else if (camera_override && camera_override != scene->camera)
-			rj->v3d_override = true;
-
-		if (v3d->localvd)
-			rj->lay_override |= v3d->localvd->lay;
 	}
 
 	/* Lock the user interface depending on render settings. */

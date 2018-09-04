@@ -216,7 +216,7 @@ typedef struct Object {
 	 */
 	float imat_ren[4][4];
 
-	unsigned int lay;	/* copy of Base's layer in the scene */
+	unsigned int lay DNA_DEPRECATED;	/* copy of Base's layer in the scene */
 
 	short flag;			/* copy of Base */
 	short colbits DNA_DEPRECATED;		/* deprecated, use 'matbits' */

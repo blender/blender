@@ -516,9 +516,12 @@ static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, bool val
 
 	if (value) {
 		Scene *scene = ED_screen_scene_find(sc, G_MAIN->wm.first);
-		int bit;
 
+		/* TODO: restore local view. */
+#if 0
+		int bit;
 		v3d->lay = scene->lay;
+
 		/* seek for layact */
 		bit = 0;
 		while (bit < 32) {
@@ -528,6 +531,7 @@ static void rna_SpaceView3D_lock_camera_and_layers_set(PointerRNA *ptr, bool val
 			}
 			bit++;
 		}
+#endif
 		v3d->camera = scene->camera;
 	}
 }
@@ -580,25 +584,6 @@ static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 	Scene *scene = ED_screen_scene_find(screen, G_MAIN->wm.first);
 
 	return ED_view3d_grid_scale(scene, v3d, NULL);
-}
-
-static void rna_SpaceView3D_layer_set(PointerRNA *ptr, const bool *values)
-{
-	View3D *v3d = (View3D *)(ptr->data);
-
-	v3d->lay = ED_view3d_view_layer_set(v3d->lay, values, &v3d->layact);
-}
-
-static int rna_SpaceView3D_active_layer_get(PointerRNA *ptr)
-{
-	View3D *v3d = (View3D *)(ptr->data);
-
-	return (int)(log(v3d->layact) / M_LN2);
-}
-
-static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-	DEG_on_visible_update(bmain, false);
 }
 
 static PointerRNA rna_SpaceView3D_region_3d_get(PointerRNA *ptr)
@@ -3105,30 +3090,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	                         "Use the scene's active camera and layers in this view, rather than local layers");
 	RNA_def_property_ui_icon(prop, ICON_LOCKVIEW_OFF, 1);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceView3D_layer_set");
-	RNA_def_property_ui_text(prop, "Visible Layers", "Layers visible in this 3D View");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_layer_update");
-
-	prop = RNA_def_property(srna, "active_layer", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_SpaceView3D_active_layer_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Layer", "Active 3D view layer index");
-
-	prop = RNA_def_property(srna, "layers_local_view", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 0x01000000);
-	RNA_def_property_array(prop, 8);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Local View Layers", "Local view layers visible in this 3D View");
-
-	prop = RNA_def_property(srna, "layers_used", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay_used", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Used Layers", "Layers that contain something");
 
 	prop = RNA_def_property(srna, "region_3d", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "RegionView3D");

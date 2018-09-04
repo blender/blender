@@ -40,7 +40,7 @@ typedef struct Base {
 	short pad;
 	short sx, sy;
 	struct Object *object;
-	unsigned int lay;
+	unsigned int lay DNA_DEPRECATED;
 	int flag_legacy;
 } Base;
 

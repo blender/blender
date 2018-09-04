@@ -964,7 +964,7 @@ static int query_external_colliders(Depsgraph *depsgraph, Collection *collection
 
 
 /* +++ the aabb "force" section*/
-static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int UNUSED(par_layer), struct Object *vertexowner, float UNUSED(time))
+static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), struct Object *vertexowner, float UNUSED(time))
 {
 	Object *ob;
 	SoftBody *sb=vertexowner->soft;
@@ -1025,7 +1025,7 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int U
 
 /* +++ the face external section*/
 static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float face_v3[3], float *damp,
-                                      float force[3], unsigned int UNUSED(par_layer), struct Object *vertexowner, float time)
+                                      float force[3], struct Object *vertexowner, float time)
 {
 	Object *ob;
 	GHash *hash;
@@ -1126,7 +1126,7 @@ static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float 
 
 
 static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], float face_v3[3], float *damp,
-                                          float force[3], unsigned int UNUSED(par_layer), struct Object *vertexowner, float time)
+                                          float force[3], struct Object *vertexowner, float time)
 {
 	Object *ob;
 	GHash *hash;
@@ -1263,7 +1263,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 			zero_v3(feedback);
 			if (sb_detect_face_collisionCached(
 			        sb->bpoint[bf->v1].pos, sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos,
-			        &damp, feedback, ob->lay, ob, timenow))
+			        &damp, feedback, ob, timenow))
 			{
 				madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
 				madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
@@ -1281,7 +1281,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 				zero_v3(feedback);
 				if (sb_detect_face_pointCached(
 				        sb->bpoint[bf->v1].pos, sb->bpoint[bf->v2].pos, sb->bpoint[bf->v3].pos,
-				        &damp,	feedback, ob->lay, ob, timenow))
+				        &damp,	feedback, ob, timenow))
 				{
 					madd_v3_v3fl(sb->bpoint[bf->v1].force, feedback, tune);
 					madd_v3_v3fl(sb->bpoint[bf->v2].force, feedback, tune);
@@ -1310,7 +1310,7 @@ static void scan_for_ext_face_forces(Object *ob, float timenow)
 /* +++ the spring external section*/
 
 static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], float *damp,
-								   float force[3], unsigned int UNUSED(par_layer), struct Object *vertexowner, float time)
+								   float force[3], struct Object *vertexowner, float time)
 {
 	Object *ob;
 	GHash *hash;
@@ -1447,7 +1447,7 @@ static void _scan_for_ext_spring_forces(Scene *scene, Object *ob, float timenow,
 				/* +++ springs colliding */
 				if (ob->softflag & OB_SB_EDGECOLL) {
 					if ( sb_detect_edge_collisionCached (sb->bpoint[bs->v1].pos, sb->bpoint[bs->v2].pos,
-						&damp, feedback, ob->lay, ob, timenow)) {
+						&damp, feedback, ob, timenow)) {
 							add_v3_v3(bs->ext_force, feedback);
 							bs->flag |= BSF_INTERSECT;
 							//bs->cf=damp;
@@ -1606,7 +1606,7 @@ static int choose_winner(float*w, float* pos, float*a, float*b, float*c, float*c
 
 static int sb_detect_vertex_collisionCached(
         float opco[3], float facenormal[3], float *damp,
-        float force[3], unsigned int UNUSED(par_layer), struct Object *vertexowner,
+        float force[3], struct Object *vertexowner,
         float time, float vel[3], float *intrusion)
 {
 	Object *ob= NULL;
@@ -1802,8 +1802,8 @@ static int sb_deflect_face(Object *ob, float *actpos, float *facenormal, float *
 	float s_actpos[3];
 	int deflected;
 	copy_v3_v3(s_actpos, actpos);
-	deflected= sb_detect_vertex_collisionCached(s_actpos, facenormal, cf, force, ob->lay, ob, time, vel, intrusion);
-	//deflected= sb_detect_vertex_collisionCachedEx(s_actpos, facenormal, cf, force, ob->lay, ob, time, vel, intrusion);
+	deflected= sb_detect_vertex_collisionCached(s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
+	//deflected= sb_detect_vertex_collisionCachedEx(s_actpos, facenormal, cf, force, ob, time, vel, intrusion);
 	return(deflected);
 }
 
@@ -2217,7 +2217,7 @@ static void softbody_calc_forcesEx(struct Depsgraph *depsgraph, Scene *scene, Ob
 
 	if (do_deflector) {
 		float defforce[3];
-		do_deflector = sb_detect_aabb_collisionCached(defforce, ob->lay, ob, timenow);
+		do_deflector = sb_detect_aabb_collisionCached(defforce, ob, timenow);
 	}
 
 	sb_cf_threads_run(scene, ob, forcetime, timenow, sb->totpoint, NULL, effectors, do_deflector, fieldfactor, windfactor);
@@ -2278,7 +2278,7 @@ static void softbody_calc_forces(struct Depsgraph *depsgraph, Scene *scene, Obje
 
 		if (do_deflector) {
 			float defforce[3];
-			do_deflector = sb_detect_aabb_collisionCached(defforce, ob->lay, ob, timenow);
+			do_deflector = sb_detect_aabb_collisionCached(defforce, ob, timenow);
 		}
 
 		bp = sb->bpoint;

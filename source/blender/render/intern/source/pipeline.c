@@ -1202,7 +1202,6 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	/* still unsure entity this... */
 	resc->main = re->main;
 	resc->scene = sce;
-	resc->lay = sce->lay;
 
 	/* ensure scene has depsgraph, base flags etc OK */
 	BKE_scene_set_background(re->main, sce);
@@ -1911,7 +1910,7 @@ const char *RE_GetActiveRenderView(Render *re)
 
 /* evaluating scene options for general Blender render */
 static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene,
-                                       ViewLayer *single_layer, Object *camera_override, unsigned int lay_override,
+                                       ViewLayer *single_layer, Object *camera_override,
                                        int anim, int anim_init)
 {
 	int winx, winy;
@@ -1941,9 +1940,6 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	re->main = bmain;
 	re->scene = scene;
 	re->camera_override = camera_override;
-	re->lay = lay_override ? lay_override : scene->lay;
-	re->layer_override = lay_override;
-	re->i.localview = (re->lay & 0xFF000000) != 0;
 	re->viewname[0] = '\0';
 
 	/* not too nice, but it survives anim-border render */
@@ -1992,7 +1988,7 @@ void RE_SetReports(Render *re, ReportList *reports)
 
 /* general Blender frame render call */
 void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_layer, Object *camera_override,
-                     unsigned int lay_override, int frame, const bool write_still)
+                     int frame, const bool write_still)
 {
 	BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
@@ -2002,7 +1998,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_la
 	scene->r.cfra = frame;
 
 	if (render_initialize_from_main(re, &scene->r, bmain, scene, single_layer,
-	                                camera_override, lay_override, 0, 0))
+	                                camera_override, 0, 0))
 	{
 		MEM_reset_peak_memory();
 
@@ -2045,7 +2041,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *single_la
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
 	re->result_ok= 0;
-	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, 0, 0)) {
 		if (render)
 			do_render_3d(re);
 	}
@@ -2347,7 +2343,7 @@ static void re_movie_free_all(Render *re, bMovieHandle *mh, int totvideos)
 
 /* saves images to disk */
 void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override,
-                    unsigned int lay_override, int sfra, int efra, int tfra)
+                    int sfra, int efra, int tfra)
 {
 	RenderData rd = scene->r;
 	bMovieHandle *mh = NULL;
@@ -2361,7 +2357,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
 	/* do not fully call for each frame, it initializes & pops output window */
-	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 0, 1))
+	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, 0, 1))
 		return;
 
 	if (is_movie) {
@@ -2448,7 +2444,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			/* only border now, todo: camera lens. (ton) */
 			render_initialize_from_main(re, &rd, bmain, scene,
-			                            NULL, camera_override, lay_override, 1, 0);
+			                            NULL, camera_override, 1, 0);
 
 			if (nfra != scene->r.cfra) {
 				/* Skip this frame, but could update for physics and particles system. */
@@ -2612,7 +2608,6 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 
 	re->main = bmain;
 	re->scene = sce;
-	re->lay = sce->lay;
 
 	camera = RE_GetCamera(re);
 	RE_SetCamera(re, camera);

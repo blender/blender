@@ -1598,7 +1598,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	ar.regiontype = RGN_TYPE_WINDOW;
 
 	v3d.camera = camera;
-	v3d.lay = scene->lay;
 	v3d.shading.type = drawtype;
 	v3d.flag2 = V3D_RENDER_OVERRIDE;
 

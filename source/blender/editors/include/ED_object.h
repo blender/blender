@@ -183,12 +183,12 @@ void ED_object_add_generic_props(struct wmOperatorType *ot, bool do_editmode);
 void ED_object_add_mesh_props(struct wmOperatorType *ot);
 bool ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, const char view_align_axis,
                                     float loc[3], float rot[3],
-                                    bool *enter_editmode, unsigned int *layer, bool *is_view_aligned);
+                                    bool *enter_editmode, bool *is_view_aligned);
 
 struct Object *ED_object_add_type(
         struct bContext *C,
         int type, const char *name, const float loc[3], const float rot[3],
-        bool enter_editmode, unsigned int layer)
+        bool enter_editmode)
         ATTR_NONNULL(1) ATTR_RETURNS_NONNULL;
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, const bool full, const bool copy_groups);

@@ -845,7 +845,6 @@ static void import_endjob(void *user_data)
 
 		for (iter = data->readers.begin(); iter != data->readers.end(); ++iter) {
 			Object *ob = (*iter)->object();
-			ob->lay = data->scene->lay;
 
 			BKE_collection_object_add(data->bmain, lc->collection, ob);
 

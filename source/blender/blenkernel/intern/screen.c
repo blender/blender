@@ -475,26 +475,6 @@ void BKE_screen_free(bScreen *sc)
 	MEM_SAFE_FREE(sc->tool_tip);
 }
 
-/* for depsgraph */
-unsigned int BKE_screen_visible_layers(bScreen *screen, Scene *scene)
-{
-	ScrArea *sa;
-	unsigned int layer = 0;
-
-	if (screen) {
-		/* get all used view3d layers */
-		for (sa = screen->areabase.first; sa; sa = sa->next)
-			if (sa->spacetype == SPACE_VIEW3D)
-				layer |= ((View3D *)sa->spacedata.first)->lay;
-	}
-
-	if (!layer)
-		return scene->lay;
-
-	return layer;
-}
-
-
 /* ***************** Screen edges & verts ***************** */
 
 ScrEdge *BKE_screen_find_edge(bScreen *sc, ScrVert *v1, ScrVert *v2)
@@ -767,56 +747,9 @@ ScrArea *BKE_screen_find_area_xy(bScreen *sc, const int spacetype, int x, int y)
 	return BKE_screen_area_map_find_area_xy(AREAMAP_FROM_SCREEN(sc), spacetype, x, y);
 }
 
-
-/**
- * Utility function to get the active layer to use when adding new objects.
- */
-unsigned int BKE_screen_view3d_layer_active_ex(const View3D *v3d, const Scene *scene, bool use_localvd)
-{
-	unsigned int lay;
-	if ((v3d == NULL) || (v3d->scenelock && !v3d->localvd)) {
-		lay = scene->layact;
-	}
-	else {
-		lay = v3d->layact;
-	}
-
-	if (use_localvd) {
-		if (v3d && v3d->localvd) {
-			lay |= v3d->lay;
-		}
-	}
-
-	return lay;
-}
-unsigned int BKE_screen_view3d_layer_active(const struct View3D *v3d, const struct Scene *scene)
-{
-	return BKE_screen_view3d_layer_active_ex(v3d, scene, true);
-}
-
-/**
- * Accumulate all visible layers on this screen.
- */
-unsigned int BKE_screen_view3d_layer_all(const bScreen *sc)
-{
-	const ScrArea *sa;
-	unsigned int lay = 0;
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa->spacetype == SPACE_VIEW3D) {
-			View3D *v3d = sa->spacedata.first;
-			lay |= v3d->lay;
-		}
-	}
-
-	return lay;
-}
-
 void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 {
-	int bit;
-
 	if (v3d->scenelock && v3d->localvd == NULL) {
-		v3d->lay = scene->lay;
 		v3d->camera = scene->camera;
 
 		if (v3d->camera == NULL) {
@@ -827,15 +760,6 @@ void BKE_screen_view3d_sync(View3D *v3d, struct Scene *scene)
 					RegionView3D *rv3d = ar->regiondata;
 					if (rv3d->persp == RV3D_CAMOB)
 						rv3d->persp = RV3D_PERSP;
-				}
-			}
-		}
-
-		if ((v3d->lay & v3d->layact) == 0) {
-			for (bit = 0; bit < 32; bit++) {
-				if (v3d->lay & (1u << bit)) {
-					v3d->layact = (1u << bit);
-					break;
 				}
 			}
 		}

@@ -653,37 +653,12 @@ void rna_Scene_set_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 	}
 }
 
-static void rna_Scene_layer_set(PointerRNA *ptr, const bool *values)
-{
-	Scene *scene = (Scene *)ptr->data;
-
-	scene->lay = ED_view3d_view_layer_set(scene->lay, values, &scene->layact);
-}
-
-static int rna_Scene_active_layer_get(PointerRNA *ptr)
-{
-	Scene *scene = (Scene *)ptr->data;
-
-	return (int)(log(scene->layact) / M_LN2);
-}
-
 static void rna_Scene_view3d_update(Main *bmain, Scene *UNUSED(scene_unused), PointerRNA *ptr)
 {
 	wmWindowManager *wm = bmain->wm.first;
 	Scene *scene = (Scene *)ptr->data;
 
 	WM_windows_scene_data_sync(&wm->windows, scene);
-}
-
-static void rna_Scene_layer_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
-{
-	/* XXX We would need do_time=true here, else we can have update issues like [#36289]...
-	 *     However, this has too much drawbacks (like slower layer switch, undesired updates...).
-	 *     That's TODO for future DAG updates.
-	 */
-	DEG_on_visible_update(bmain, false);
-
-	/* No need to sync scene data here (WM_windows_scene_data_sync), handled through notifier. */
 }
 
 static void rna_Scene_fps_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
@@ -6012,22 +5987,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	                                  "rna_Scene_objects_get",
 	                                  NULL, NULL, NULL, NULL);
 	rna_def_scene_objects(brna, prop);
-
-	/* Layers */
-	prop = RNA_def_property(srna, "layers", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	/* this seems to be too much trouble with depsgraph updates/etc. currently (20110420) */
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_boolean_funcs(prop, NULL, "rna_Scene_layer_set");
-	RNA_def_property_ui_text(prop, "Layers", "Visible layers - Shift-Click/Drag to select multiple layers");
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER, "rna_Scene_layer_update");
-
-	/* active layer */
-	prop = RNA_def_property(srna, "active_layer", PROP_INT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Scene_active_layer_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Active Layer", "Active scene layer index");
 
 	/* Frame Range Stuff */
 	prop = RNA_def_property(srna, "frame_current", PROP_INT, PROP_TIME);
