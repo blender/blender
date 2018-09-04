@@ -4340,33 +4340,55 @@ static void UV_OT_seams_from_islands(wmOperatorType *ot)
 
 static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
-	Mesh *me = (Mesh *)ob->data;
-	BMEditMesh *em = me->edit_btmesh;
-	BMesh *bm = em->bm;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	ToolSettings *ts = scene->toolsettings;
+
 	BMFace *efa;
 	BMLoop *loop;
 	BMIter iter, liter;
-	bool flag_set = !RNA_boolean_get(op->ptr, "clear");
 
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+	const bool flag_set = !RNA_boolean_get(op->ptr, "clear");
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
-				BM_elem_flag_set(loop->e, BM_ELEM_SEAM, flag_set);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		Mesh *me = (Mesh *)ob->data;
+		BMEditMesh *em = me->edit_btmesh;
+		BMesh *bm = em->bm;
+
+		if (synced_selection && (bm->totedgesel == 0)) {
+			continue;
+		}
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+
+		bool changed = false;
+
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+			BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
+					BM_elem_flag_set(loop->e, BM_ELEM_SEAM, flag_set);
+					changed = true;
+				}
 			}
 		}
+
+		if (changed) {
+			me->drawflag |= ME_DRAWSEAMS;
+
+			if (scene->toolsettings->edge_mode_live_unwrap) {
+				ED_unwrap_lscm(scene, ob, false, false);
+			}
+
+			DEG_id_tag_update(&me->id, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+		}
 	}
-
-	me->drawflag |= ME_DRAWSEAMS;
-
-	if (scene->toolsettings->edge_mode_live_unwrap)
-		ED_unwrap_lscm(scene, ob, false, false);
-
-	DEG_id_tag_update(&me->id, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
