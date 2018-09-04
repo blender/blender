@@ -2634,67 +2634,76 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 static int uv_select_split_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = scene->toolsettings;
 	Image *ima = CTX_data_edit_image(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
 
 	BMFace *efa;
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
-	bool changed = false;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	if (ts->uv_flag & UV_SYNC_SELECTION) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot split selection when sync selection is enabled");
 		return OPERATOR_CANCELLED;
 	}
 
+	bool changed_multi = false;
 
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		bool is_sel = false;
-		bool is_unsel = false;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMesh *bm = BKE_editmesh_from_object(obedit)->bm;
 
-		if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-			continue;
+		bool changed = false;
 
-		/* are we all selected? */
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+		const int cd_loop_uv_offset  = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-			if (luv->flag & MLOOPUV_VERTSEL) {
-				is_sel = true;
+		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+			bool is_sel = false;
+			bool is_unsel = false;
+
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+				continue;
 			}
-			else {
-				is_unsel = true;
-			}
 
-			/* we have mixed selection, bail out */
-			if (is_sel && is_unsel) {
-				break;
-			}
-		}
-
-		if (is_sel && is_unsel) {
+			/* are we all selected? */
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				luv->flag &= ~MLOOPUV_VERTSEL;
+
+				if (luv->flag & MLOOPUV_VERTSEL) {
+					is_sel = true;
+				}
+				else {
+					is_unsel = true;
+				}
+
+				/* we have mixed selection, bail out */
+				if (is_sel && is_unsel) {
+					break;
+				}
 			}
 
-			changed = true;
+			if (is_sel && is_unsel) {
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					luv->flag &= ~MLOOPUV_VERTSEL;
+				}
+
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			changed_multi = true;
+			WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
 		}
 	}
+	MEM_freeN(objects);
 
-	if (changed) {
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_IMAGE, NULL);
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 
