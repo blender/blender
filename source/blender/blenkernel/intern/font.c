@@ -1037,8 +1037,19 @@ makebreak:
 		if (tb_scale.h != 0.0f) {
 			if (i_textbox < slen) {
 				/* All previous textboxes are 'full', only align the last used text-box. */
-				struct CharTrans *ct_textbox = chartransdata + i_textbox;
+				struct CharTrans *ct_last, *ct_textbox;
 				float yoff = 0.0f;
+				int lines;
+
+				ct_last = chartransdata + slen - 1;
+				ct_textbox = chartransdata + i_textbox;
+
+				/* Do not use `lnr`. `lnr` correspond to all the text's lines.
+				 * While `lines` is only for the ones from the last text box. */
+				lines = ct_last->linenr - ct_textbox->linenr + 1;
+				if (mem[slen - 1] == '\n') {
+					lines++;
+				}
 
 				/* The initial Y origin of the textbox is harcoded to 1.0f * text scale. */
 				const float textbox_y_origin = 1.0f;
@@ -1050,14 +1061,14 @@ makebreak:
 						yoff = textbox_y_origin - ASCENT(vfd);
 						break;
 					case CU_ALIGN_Y_CENTER:
-						yoff = ((((vfd->em_height + (lnr - 1) * linedist) * 0.5f) - ASCENT(vfd)) -
+						yoff = ((((vfd->em_height + (lines - 1) * linedist) * 0.5f) - ASCENT(vfd)) -
 						        (tb_scale.h  * 0.5f) + textbox_y_origin);
 						break;
 					case CU_ALIGN_Y_BOTTOM_BASELINE:
-						yoff = textbox_y_origin + ((lnr - 1) * linedist) - tb_scale.h;
+						yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h;
 						break;
 					case CU_ALIGN_Y_BOTTOM:
-						yoff = textbox_y_origin + ((lnr - 1) * linedist) - tb_scale.h + DESCENT(vfd);
+						yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h + DESCENT(vfd);
 						break;
 				}
 
