@@ -179,30 +179,6 @@ def island2Edge(island):
     return length_sorted_edges, [v.to_3d() for v in unique_points.values()]
 
 
-# ========================= NOT WORKING????
-# Find if a points inside an edge loop, unordered.
-# pt is and x/y
-# edges are a non ordered loop of edges.
-# offsets are the edge x and y offset.
-"""
-def pointInEdges(pt, edges):
-    #
-    x1 = pt[0]
-    y1 = pt[1]
-
-    # Point to the left of this line.
-    x2 = -100000
-    y2 = -10000
-    intersectCount = 0
-    for ed in edges:
-        xi, yi = lineIntersection2D(x1,y1, x2,y2, ed[0][0], ed[0][1], ed[1][0], ed[1][1])
-        if xi is not None: # Is there an intersection.
-            intersectCount+=1
-
-    return intersectCount % 2
-"""
-
-
 def pointInIsland(pt, island):
     vec1, vec2, vec3 = Vector(), Vector(), Vector()
     for f in island:
