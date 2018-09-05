@@ -481,8 +481,8 @@ static DerivedMesh *fluidsim_read_cache(
 		const char *strEnvName2 = "BLENDER_ELBEEMBOBJABORT"; // from blendercall.cpp
 
 		if (G.background == 1) {
-			if (getenv(strEnvName2)) {
-				int elevel = atoi(getenv(strEnvName2));
+			if (BLI_getenv(strEnvName2)) {
+				int elevel = atoi(BLI_getenv(strEnvName2));
 				if (elevel > 0) {
 					printf("Env. var %s set, fluid sim mesh '%s' not found, aborting render...\n",
 					       strEnvName2, targetFile);

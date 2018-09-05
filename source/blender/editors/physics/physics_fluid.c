@@ -42,6 +42,7 @@
 #include "DNA_object_fluidsim_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_path_util.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -868,8 +869,8 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 
 	fb= MEM_callocN(sizeof(FluidBakeJob), "fluid bake job");
 
-	if (getenv(strEnvName)) {
-		int dlevel = atoi(getenv(strEnvName));
+	if (BLI_getenv(strEnvName)) {
+		int dlevel = atoi(BLI_getenv(strEnvName));
 		elbeemSetDebugLevel(dlevel);
 		BLI_snprintf(debugStrBuffer, sizeof(debugStrBuffer), "fluidsimBake::msg: Debug messages activated due to envvar '%s'\n", strEnvName);
 		elbeemDebugOut(debugStrBuffer);
