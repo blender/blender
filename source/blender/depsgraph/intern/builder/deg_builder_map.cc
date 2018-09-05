@@ -42,7 +42,6 @@ BuilderMap::BuilderMap()
 	set = BLI_gset_ptr_new("deg builder gset");
 }
 
-
 BuilderMap::~BuilderMap()
 {
 	BLI_gset_free(set, NULL);
