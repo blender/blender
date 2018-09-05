@@ -182,7 +182,7 @@ class MeshMirrorUV(Operator):
 
         if total_duplicates and total_no_active_UV:
             self.report({'WARNING'}, "%d %s with no active UV layer. "
-                        "%d duplicates found in %d mesh%s, mirror may be incomplete."
+                        "%d duplicates found in %d %s, mirror may be incomplete."
                         % (total_no_active_UV,
                            "mesh" if total_no_active_UV == 1 else "meshes",
                            total_duplicates,
