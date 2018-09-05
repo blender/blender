@@ -142,6 +142,8 @@ typedef struct EDIT_MESH_PrivateData {
 	int ghost_ob;
 	int edit_ob;
 	bool do_zbufclip;
+	bool do_faces;
+	bool do_edges;
 	float edge_width_scale;
 } EDIT_MESH_PrivateData; /* Transient data */
 
@@ -316,7 +318,7 @@ static void EDIT_MESH_engine_init(void *vedata)
 }
 
 static DRWPass *edit_mesh_create_overlay_pass(
-        float *face_alpha, float *edge_width_scale, int *data_mask,
+        float *face_alpha, float *edge_width_scale, int *data_mask, bool do_edges,
         DRWState statemod,
         DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_ledges_shgrp,
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
@@ -340,21 +342,23 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", face_alpha, 1);
 	DRW_shgroup_uniform_float(*r_face_shgrp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(*r_face_shgrp, "dataMask", data_mask, 1);
+	DRW_shgroup_uniform_bool_copy(*r_face_shgrp, "doEdges", do_edges);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
 	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_ledges_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", edge_width_scale, 1);
 	DRW_shgroup_uniform_ivec4(*r_ledges_shgrp, "dataMask", data_mask, 1);
+	DRW_shgroup_uniform_bool_copy(*r_ledges_shgrp, "doEdges", do_edges);
 
-	if ((tsettings->selectmode & (SCE_SELECT_VERTEX)) != 0) {
+	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
 		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
 		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
 	}
 
-	if ((tsettings->selectmode & (SCE_SELECT_FACE)) != 0) {
+	if ((tsettings->selectmode & SCE_SELECT_FACE) != 0) {
 		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
 		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", edge_width_scale, 1);
@@ -386,6 +390,8 @@ static void EDIT_MESH_cache_init(void *vedata)
 	}
 	stl->g_data->ghost_ob = 0;
 	stl->g_data->edit_ob = 0;
+	stl->g_data->do_faces = true;
+	stl->g_data->do_edges = true;
 
 	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
 	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
@@ -405,6 +411,10 @@ static void EDIT_MESH_cache_init(void *vedata)
 			if ((me->drawflag & ME_DRAW_FREESTYLE_FACE) == 0) {
 				stl->g_data->data_mask[0] &= ~VFLAG_FACE_FREESTYLE;
 			}
+			if ((me->drawflag & ME_DRAWFACES) == 0) {
+				stl->g_data->data_mask[0] &= ~(VFLAG_FACE_SELECTED & VFLAG_FACE_FREESTYLE);
+				stl->g_data->do_faces = false;
+			}
 			if ((me->drawflag & ME_DRAWSEAMS) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SEAM;
 			}
@@ -413,6 +423,12 @@ static void EDIT_MESH_cache_init(void *vedata)
 			}
 			if ((me->drawflag & ME_DRAW_FREESTYLE_EDGE) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_FREESTYLE;
+			}
+			if ((me->drawflag & ME_DRAWEDGES) == 0) {
+				if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
+					stl->g_data->data_mask[1] &= ~(VFLAG_EDGE_ACTIVE & VFLAG_EDGE_SELECTED);
+					stl->g_data->do_edges = false;
+				}
 			}
 			if ((me->drawflag & ME_DRAWCREASES) == 0) {
 				stl->g_data->data_mask[2] = 0x0;
@@ -478,7 +494,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (!stl->g_data->do_zbufclip) {
 		psl->edit_face_overlay = edit_mesh_create_overlay_pass(
-		        &face_mod, &stl->g_data->edge_width_scale, stl->g_data->data_mask,
+		        &face_mod, &stl->g_data->edge_width_scale, stl->g_data->data_mask, stl->g_data->do_edges,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
 		        &stl->g_data->face_overlay_shgrp, &stl->g_data->ledges_overlay_shgrp,
 		        &stl->g_data->lverts_overlay_shgrp, &stl->g_data->facedot_overlay_shgrp);
@@ -486,7 +502,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
 		psl->edit_face_occluded = edit_mesh_create_overlay_pass(
-		        &zero, &stl->g_data->edge_width_scale, stl->g_data->data_mask,
+		        &zero, &stl->g_data->edge_width_scale, stl->g_data->data_mask, stl->g_data->do_edges,
 		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
 		        &stl->g_data->face_occluded_shgrp, &stl->g_data->ledges_occluded_shgrp,
 		        &stl->g_data->lverts_occluded_shgrp, &stl->g_data->facedot_occluded_shgrp);
@@ -546,6 +562,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
+	ToolSettings *tsettings = scene->toolsettings;
 	struct GPUBatch *geom;
 
 	if (ob->type == OB_MESH) {
@@ -553,17 +570,30 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			const Mesh *me = ob->data;
 			bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
 			bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
-
-			/* Updating uniform */
-			backwire_opacity = v3d->overlay.backwire_opacity;
-
 			bool fnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
 			bool vnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_VERT_NORMALS) != 0;
 			bool lnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_LOOP_NORMALS) != 0;
+
+			bool show_face_dots = ((Mesh *)draw_ctx->object_edit->data)->drawflag & ME_DRAW_FACE_DOT;
+
+			if (stl->g_data->do_faces == false &&
+				stl->g_data->do_edges == false &&
+				(tsettings->selectmode & SCE_SELECT_FACE))
+			{
+				/* Force display of face centers in this case because that's
+				 * the only way to see if a face is selected. */
+				show_face_dots = true;
+			}
+
 			/* Updating uniform */
+			backwire_opacity = v3d->overlay.backwire_opacity;
 			size_normal = v3d->overlay.normals_length;
 
 			face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
+
+			if (!stl->g_data->do_faces) {
+				face_mod = 0.0f;
+			}
 
 			if (do_show_weight) {
 				geom = DRW_cache_mesh_surface_weights_get(ob);
@@ -602,7 +632,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 				        stl->g_data->ledges_occluded_shgrp,
 				        stl->g_data->lverts_occluded_shgrp,
 				        stl->g_data->facedot_occluded_shgrp,
-				        stl->g_data->facefill_occluded_shgrp);
+				        (stl->g_data->do_faces) ? stl->g_data->facefill_occluded_shgrp : NULL);
 			}
 			else {
 				edit_mesh_add_ob_to_pass(
@@ -610,7 +640,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 				        stl->g_data->face_overlay_shgrp,
 				        stl->g_data->ledges_overlay_shgrp,
 				        stl->g_data->lverts_overlay_shgrp,
-				        (me->drawflag & ME_DRAW_FACE_DOT) ? stl->g_data->facedot_overlay_shgrp : NULL,
+				        (show_face_dots) ? stl->g_data->facedot_overlay_shgrp : NULL,
 				        NULL);
 			}
 
