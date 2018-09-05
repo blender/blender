@@ -100,8 +100,11 @@ EnumPropertyItem sequencer_prop_effect_types[] = {
 
 /* mute operator */
 
+#define SEQ_SIDE_MOUSE -1
+
 EnumPropertyItem prop_side_types[] = {
-	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", ""},
+	{SEQ_SIDE_MOUSE, "MOUSE", 0, "Mouse position", "" },
+	{SEQ_SIDE_LEFT, "LEFT", 0, "Left", "" },
 	{SEQ_SIDE_RIGHT, "RIGHT", 0, "Right", ""},
 	{SEQ_SIDE_BOTH, "BOTH", 0, "Both", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -2117,16 +2120,20 @@ static int sequencer_cut_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = UI_view2d_fromcontext(C);
 
-	int cut_side = SEQ_SIDE_BOTH;
+	int cut_side = RNA_enum_get(op->ptr, "side");
 	int cut_frame = CFRA;
 
-	if (ED_operator_sequencer_active(C) && v2d)
-		cut_side = mouse_frame_side(v2d, event->mval[0], cut_frame);
-
+	if (cut_side == SEQ_SIDE_MOUSE) {
+		if (ED_operator_sequencer_active(C) && v2d) {
+			cut_side = mouse_frame_side(v2d, event->mval[0], cut_frame);
+		}
+		else {
+			cut_side = SEQ_SIDE_BOTH;
+		}
+	}
 	RNA_int_set(op->ptr, "frame", cut_frame);
 	RNA_enum_set(op->ptr, "side", cut_side);
 	/*RNA_enum_set(op->ptr, "type", cut_hard); */ /*This type is set from the key shortcut */
-
 	return sequencer_cut_exec(C, op);
 }
 
@@ -2146,10 +2153,14 @@ void SEQUENCER_OT_cut(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
+	PropertyRNA *prop;
 	RNA_def_int(ot->srna, "frame", 0, INT_MIN, INT_MAX, "Frame", "Frame where selected strips will be cut", INT_MIN, INT_MAX);
 	RNA_def_enum(ot->srna, "type", prop_cut_types, SEQ_CUT_SOFT, "Type", "The type of cut operation to perform on strips");
-	RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_BOTH, "Side", "The side that remains selected after cutting");
+	prop = RNA_def_enum(ot->srna, "side", prop_side_types, SEQ_SIDE_MOUSE, "Side", "The side that remains selected after cutting");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
+
+#undef SEQ_SIDE_MOUSE
 
 /* duplicate operator */
 static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
