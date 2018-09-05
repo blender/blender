@@ -624,7 +624,7 @@ void colormanagement_init(void)
 
 	OCIO_init();
 
-	ocio_env = getenv("OCIO");
+	ocio_env = BLI_getenv("OCIO");
 
 	if (ocio_env && ocio_env[0] != '\0') {
 		config = OCIO_configCreateFromEnv();

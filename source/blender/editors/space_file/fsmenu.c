@@ -575,7 +575,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 #else
 	/* unix */
 	{
-		const char *home = getenv("HOME");
+		const char *home = BLI_getenv("HOME");
 
 		if (read_bookmarks && home) {
 			BLI_snprintf(line, sizeof(line), "%s/", home);

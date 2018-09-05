@@ -99,10 +99,10 @@ static bool get_thumb_dir(char *dir, ThumbSize size)
 	s += strlen(dir);
 #else
 #if defined(USE_FREEDESKTOP)
-	const char *home_cache = getenv("XDG_CACHE_HOME");
-	const char *home = home_cache ? home_cache : getenv("HOME");
+	const char *home_cache = BLI_getenv("XDG_CACHE_HOME");
+	const char *home = home_cache ? home_cache : BLI_getenv("HOME");
 #else
-	const char *home = getenv("HOME");
+	const char *home = BLI_getenv("HOME");
 #endif
 	if (!home) return 0;
 	s += BLI_strncpy_rlen(s, home, FILE_MAX);

@@ -1095,7 +1095,7 @@ bool BLI_path_program_extensions_add_win32(char *name, const size_t maxlen)
 	if ((type == 0) || S_ISDIR(type)) {
 		/* typically 3-5, ".EXE", ".BAT"... etc */
 		const int ext_max = 12;
-		const char *ext = getenv("PATHEXT");
+		const char *ext = BLI_getenv("PATHEXT");
 		if (ext) {
 			const int name_len = strlen(name);
 			char *filename = alloca(name_len + ext_max);
@@ -1152,7 +1152,7 @@ bool BLI_path_program_search(
 	const char separator = ':';
 #endif
 
-	path = getenv("PATH");
+	path = BLI_getenv("PATH");
 	if (path) {
 		char filename[FILE_MAX];
 		const char *temp;
@@ -1220,9 +1220,26 @@ void BLI_setenv(const char *env, const char *val)
  */
 void BLI_setenv_if_new(const char *env, const char *val)
 {
-	if (getenv(env) == NULL)
+	if (BLI_getenv(env) == NULL)
 		BLI_setenv(env, val);
 }
+
+/**
+* get an env var, result has to be used immediately
+*/
+const char* BLI_getenv(const char *env)
+{
+#ifdef _MSC_VER
+	static char buffer[32767]; /* 32767 is the total size of the environment block on windows*/
+	if (GetEnvironmentVariableA(env, buffer, sizeof(buffer)))
+		return buffer;
+	else
+		return NULL;
+#else
+	return getenv(env);
+#endif
+}
+
 
 /**
  * Strips off nonexistent (or non-accessible) subdirectories from the end of *dir, leaving the path of
