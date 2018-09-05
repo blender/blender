@@ -72,7 +72,6 @@ typedef struct CCGKey {
 	 * true */
 	int mask_offset;
 
-	int num_layers;
 	int has_normals;
 	int has_mask;
 } CCGKey;

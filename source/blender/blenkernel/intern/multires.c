@@ -578,7 +578,7 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 			for (x = 0; x < keyB->grid_size; x++, j++)
 				memcpy(CCG_elem_offset_co(keyA, gridA, y * skip * keyA->grid_size + x * skip),
 				       CCG_elem_offset_co(keyB, gridB, j),
-				       sizeof(float) * keyA->num_layers);
+				       keyA->elem_size);
 	}
 	else {
 		skip = (keyB->grid_size - 1) / (keyA->grid_size - 1);
@@ -587,7 +587,7 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 			for (x = 0; x < keyA->grid_size; x++, j++)
 				memcpy(CCG_elem_offset_co(keyA, gridA, j),
 				       CCG_elem_offset_co(keyB, gridB, y * skip * keyB->grid_size + x * skip),
-				       sizeof(float) * keyA->num_layers);
+				       keyA->elem_size);
 	}
 }
 

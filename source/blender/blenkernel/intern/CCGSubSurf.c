@@ -1553,7 +1553,6 @@ void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
 
 	key->elem_size = ss->meshIFC.vertDataSize;
 	key->has_normals = ss->calcVertNormals;
-	key->num_layers = ss->meshIFC.numLayers;
 
 	/* if normals are present, always the last three floats of an
 	 * element */
