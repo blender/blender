@@ -647,11 +647,35 @@ class LightMapPack(Operator):
         default=0.1,
     )
 
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        is_editmode = context.active_object.mode == 'EDIT'
+        if is_editmode:
+            layout.prop(self, "PREF_CONTEXT")
+
+        layout.prop(self, "PREF_PACK_IN_ONE")
+        layout.prop(self, "PREF_NEW_UVLAYER")
+        layout.prop(self, "PREF_APPLY_IMAGE")
+        layout.prop(self, "PREF_IMG_PX_SIZE")
+        layout.prop(self, "PREF_BOX_DIV")
+        layout.prop(self, "PREF_MARGIN_DIV")
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.active_object
+        return ob and ob.type == 'MESH'
+
     def execute(self, context):
         kwargs = self.as_keywords()
         PREF_CONTEXT = kwargs.pop("PREF_CONTEXT")
 
-        if PREF_CONTEXT == 'SEL_FACES':
+        is_editmode = context.active_object.mode == 'EDIT'
+
+        if not is_editmode:
+            kwargs["PREF_SEL_ONLY"] = False
+        elif PREF_CONTEXT == 'SEL_FACES':
             kwargs["PREF_SEL_ONLY"] = True
         elif PREF_CONTEXT == 'ALL_FACES':
             kwargs["PREF_SEL_ONLY"] = False
