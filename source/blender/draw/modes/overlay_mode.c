@@ -267,7 +267,6 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 						sh = e_data.select_wireframe_sh;
 						DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
-						DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 						DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
 						                                                 ? params
 						                                                 : stl->g_data->wire_step_param, 1);
