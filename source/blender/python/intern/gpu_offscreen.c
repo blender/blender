@@ -37,6 +37,7 @@
 
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_scene.h"
 
 #include "ED_screen.h"
 
@@ -166,8 +167,6 @@ PyDoc_STRVAR(pygpu_offscreen_draw_view3d_doc,
 );
 static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	/* TODO: This doesn't work currently because of missing depsgraph. */
-#if 0
 	static const char *kwlist[] = {"scene", "view_layer", "view3d", "region", "projection_matrix", "modelview_matrix", NULL};
 
 	MatrixObject *py_mat_modelview, *py_mat_projection;
@@ -177,8 +176,6 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 	ViewLayer *view_layer;
 	View3D *v3d;
 	ARegion *ar;
-	GPUFX *fx;
-	GPUFXSettings fx_settings;
 	struct RV3DMatrixStore *rv3d_mats;
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
@@ -198,32 +195,34 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	BLI_assert(BKE_id_is_in_gobal_main(&scene->id));
 
-	fx = GPU_fx_compositor_create();
-
-	fx_settings = v3d->fx_settings;  /* full copy */
-
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
 	GPU_offscreen_bind(self->ofs, true); /* bind */
 
-	ED_view3d_draw_offscreen(
-	        scene, view_layer, v3d, ar, GPU_offscreen_width(self->ofs), GPU_offscreen_height(self->ofs),
-	        (float(*)[4])py_mat_modelview->matrix, (float(*)[4])py_mat_projection->matrix,
-	        false, true, true, "",
-	        fx, &fx_settings,
-	        self->ofs);
+	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 
-	GPU_fx_compositor_destroy(fx);
+	ED_view3d_draw_offscreen(depsgraph,
+	                         scene,
+	                         v3d->shading.type,
+	                         v3d,
+	                         ar,
+	                         GPU_offscreen_width(self->ofs),
+	                         GPU_offscreen_height(self->ofs),
+	                         (float(*)[4])py_mat_modelview->matrix,
+	                         (float(*)[4])py_mat_projection->matrix,
+	                         false,
+	                         true,
+	                         "",
+	                         NULL,
+	                         self->ofs,
+	                         NULL);
+
 	GPU_offscreen_unbind(self->ofs, true); /* unbind */
 
 	ED_view3d_mats_rv3d_restore(ar->regiondata, rv3d_mats);
 	MEM_freeN(rv3d_mats);
 
 	Py_RETURN_NONE;
-#else
-	UNUSED_VARS(self, args, kwds);
-#endif
-	return NULL;
 }
 
 PyDoc_STRVAR(pygpu_offscreen_free_doc,
