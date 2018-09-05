@@ -432,9 +432,9 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
 
         # add Keying Set entry for this...
         if use_groups:
-            ks.paths.add(id_block, path, index, group_method='NAMED', group_name=bone.name)
+            ks.paths.add(id_block, path, index=index, group_method='NAMED', group_name=bone.name)
         else:
-            ks.paths.add(id_block, path, index)
+            ks.paths.add(id_block, path, index=index)
 
     # ----------------
 
