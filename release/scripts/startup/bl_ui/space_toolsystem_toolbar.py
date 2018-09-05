@@ -1132,12 +1132,12 @@ class _defs_weight_paint:
     @ToolDef.from_fn
     def gradient():
         def draw_settings(context, layout, tool):
-            props = tool.operator_properties("paint.weight_gradient")
-            layout.prop(props, "type")
             brush = context.tool_settings.weight_paint.brush
             if brush is not None:
                 from .properties_paint_common import UnifiedPaintPanel
                 UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
+            props = tool.operator_properties("paint.weight_gradient")
+            layout.prop(props, "type")
 
         return dict(
             text="Gradient",
