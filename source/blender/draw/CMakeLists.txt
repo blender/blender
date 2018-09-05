@@ -344,4 +344,8 @@ data_to_c_simple(engines/gpencil/shaders/fx/gpencil_fx_wave_frag.glsl SRC)
 list(APPEND INC
 )
 
+if(WITH_FREESTYLE)
+	add_definitions(-DWITH_FREESTYLE)
+endif()
+
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}")

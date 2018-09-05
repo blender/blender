@@ -21,13 +21,14 @@ layout(std140) uniform globalsBlock {
 	vec4 colorEdgeCrease;
 	vec4 colorEdgeBWeight;
 	vec4 colorEdgeFaceSelect;
+	vec4 colorEdgeFreestyle;
 	vec4 colorFace;
 	vec4 colorFaceSelect;
+	vec4 colorFaceFreestyle;
 	vec4 colorNormal;
 	vec4 colorVNormal;
 	vec4 colorLNormal;
 	vec4 colorFaceDot;
-
 	vec4 colorDeselect;
 	vec4 colorOutline;
 	vec4 colorLampNoAlpha;

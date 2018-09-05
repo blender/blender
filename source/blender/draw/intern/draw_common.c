@@ -78,6 +78,14 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_FACE_DOT, ts.colorFaceDot);
 	UI_GetThemeColor4fv(TH_BACK, ts.colorBackground);
 
+#ifdef WITH_FREESTYLE
+	UI_GetThemeColor4fv(TH_FREESTYLE_EDGE_MARK, ts.colorEdgeFreestyle);
+	UI_GetThemeColor4fv(TH_FREESTYLE_FACE_MARK, ts.colorFaceFreestyle);
+#else
+	zero_v4(ts.colorEdgeFreestyle);
+	zero_v4(ts.colorFaceFreestyle);
+#endif
+
 	/* Curve */
 	UI_GetThemeColor4fv(TH_HANDLE_FREE, ts.colorHandleFree);
 	UI_GetThemeColor4fv(TH_HANDLE_AUTO, ts.colorHandleAuto);

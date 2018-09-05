@@ -56,6 +56,7 @@ flat out vec2 ssPos[3];
 
 #define FACE_ACTIVE     (1 << 2)
 #define FACE_SELECTED   (1 << 3)
+#define FACE_FREESTYLE  (1 << 4)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -108,6 +109,8 @@ void main()
 		faceColor = colorFaceSelect;
 	else if ((vData[0].x & FACE_SELECTED) != 0)
 		faceColor = colorFaceSelect;
+	else if ((vData[0].x & FACE_FREESTYLE) != 0)
+		faceColor = colorFaceFreestyle;
 	else
 		faceColor = colorFace;
 
