@@ -359,10 +359,27 @@ static VFontData *objfnt_to_ftvfontdata(PackedFile *pf)
 		lcode = charcode = FT_Get_First_Char(face, &glyph_index);
 	}
 
+	/* Blender default BFont is not "complete". */
+	const bool complete_font = (face->ascender != 0) && (face->descender != 0) &&
+	                           (face->ascender != face->descender);
+
+	if (complete_font) {
+		/* We can get descender as well, but we simple store descender in relation to the ascender.
+		 * Also note that descender is stored as a negative number. */
+		vfd->ascender = (float)face->ascender / (face->ascender - face->descender);
+	}
+	else {
+		vfd->ascender = 0.8f;
+		vfd->em_height = 1.0f;
+	}
 
 	/* Adjust font size */
 	if (face->bbox.yMax != face->bbox.yMin) {
 		vfd->scale = (float)(1.0 / (double)(face->bbox.yMax - face->bbox.yMin));
+
+		if (complete_font) {
+			vfd->em_height = (float)(face->ascender - face->descender) / (face->bbox.yMax - face->bbox.yMin);
+		}
 	}
 	else {
 		vfd->scale = 1.0f / 1000.0f;

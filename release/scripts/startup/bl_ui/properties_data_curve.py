@@ -398,12 +398,13 @@ class DATA_PT_paragraph_alignment(CurveButtonsPanelText, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = False
+        layout.use_property_split = True
 
         text = context.curve
 
-        layout.row().prop(text, "align_x", expand=True)
-        layout.row().prop(text, "align_y", expand=True)
+        col = layout.column()
+        col.prop(text, "align_x", text="Horizontal")
+        col.prop(text, "align_y", text="Vertical")
 
 
 class DATA_PT_paragraph_spacing(CurveButtonsPanelText, Panel):

@@ -969,6 +969,8 @@ static void rna_def_font(BlenderRNA *UNUSED(brna), StructRNA *srna)
 		{CU_ALIGN_Y_TOP, "TOP", 0, "Top", "Align text to the top"},
 		{CU_ALIGN_Y_CENTER, "CENTER", 0, "Center", "Align text to the middle"},
 		{CU_ALIGN_Y_BOTTOM, "BOTTOM", 0, "Bottom", "Align text to the bottom"},
+		{CU_ALIGN_Y_BOTTOM_BASELINE, "BOTTOM_BASELINE", 0, "Bottom Base-Line",
+		"Align text to the bottom but use the base-line of the text"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

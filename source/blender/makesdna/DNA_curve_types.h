@@ -334,7 +334,8 @@ enum {
 	CU_ALIGN_Y_TOP_BASELINE       = 0,
 	CU_ALIGN_Y_TOP                = 1,
 	CU_ALIGN_Y_CENTER             = 2,
-	CU_ALIGN_Y_BOTTOM             = 3,
+	CU_ALIGN_Y_BOTTOM_BASELINE    = 3,
+	CU_ALIGN_Y_BOTTOM             = 4,
 };
 
 /* Nurb.flag */
