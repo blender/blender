@@ -1400,7 +1400,9 @@ void OBJECT_OT_delete(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "use_global", 0, "Delete Globally", "Remove object from all scenes");
+	PropertyRNA *prop;
+	prop = RNA_def_boolean(ot->srna, "use_global", 0, "Delete Globally", "Remove object from all scenes");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 /**************************** Copy Utilities ******************************/
