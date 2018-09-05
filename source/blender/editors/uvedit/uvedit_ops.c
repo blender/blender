@@ -52,6 +52,7 @@
 #include "BLI_lasso_2d.h"
 #include "BLI_blenlib.h"
 #include "BLI_array.h"
+#include "BLI_kdtree.h"
 
 #include "BLT_translation.h"
 
@@ -1782,147 +1783,273 @@ static void UV_OT_align(wmOperatorType *ot)
 /** \name Remove Doubles Operator
  * \{ */
 
-typedef struct UVvert {
-	MLoopUV *uv_loop;
-	bool weld;
-} UVvert;
+static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Image *ima = CTX_data_edit_image(C);
+	ToolSettings *ts = scene->toolsettings;
+
+	const float threshold = RNA_float_get(op->ptr, "threshold");
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	bool *changed = MEM_callocN(sizeof(bool) * objects_len, "uv_remove_doubles_selected.changed");
+
+	/* Maximum index of an objects[i]'s MLoopUVs in MLoopUV_arr.
+	 * It helps find which MLoopUV in *MLoopUV_arr belongs to which object. */
+	uint *ob_mloopuv_max_idx = MEM_callocN(sizeof(uint) * objects_len,
+	                                       "uv_remove_doubles_selected.ob_mloopuv_max_idx");
+
+	/* Calculate max possible number of kdtree nodes. */
+	int uv_maxlen = 0;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		uv_maxlen += em->bm->totloop;
+	}
+
+	KDTree *tree = BLI_kdtree_new(uv_maxlen);
+
+	int *duplicates = NULL;
+	BLI_array_declare(duplicates);
+
+	MLoopUV **mloopuv_arr = NULL;
+	BLI_array_declare(mloopuv_arr);
+
+	int mloopuv_count = 0;  /* Also used for *duplicates count. */
+
+	float uvw[3];
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		BMIter iter, liter;
+		BMFace *efa;
+		BMLoop *l;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+				continue;
+			}
+
+			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
+					BLI_kdtree_insert(tree, mloopuv_count, uvw);
+					BLI_array_append(duplicates, -1);
+					BLI_array_append(mloopuv_arr, luv);
+					mloopuv_count++;
+				}
+			}
+		}
+
+		ob_mloopuv_max_idx[ob_index] = mloopuv_count - 1;
+	}
+
+	BLI_kdtree_balance(tree);
+	int found_duplicates = BLI_kdtree_calc_duplicates_fast(tree, threshold, false, duplicates);
+
+	if (found_duplicates > 0) {
+		/* Calculate average uv for duplicates. */
+		int *uv_duplicate_count = MEM_callocN(sizeof(int) * mloopuv_count,
+		                                      "uv_remove_doubles_selected.uv_duplicate_count");
+		for (int i = 0; i < mloopuv_count; i++) {
+			if (duplicates[i] == -1) {		/* If doesn't reference another */
+				uv_duplicate_count[i]++;	/* self */
+				continue;
+			}
+
+			if (duplicates[i] != i) {
+				/* If not self then accumulate uv for averaging.
+				 * Self uv is already present in accumulator */
+				add_v2_v2(mloopuv_arr[duplicates[i]]->uv, mloopuv_arr[i]->uv);
+			}
+			uv_duplicate_count[duplicates[i]]++;
+		}
+
+		for (int i = 0; i < mloopuv_count; i++) {
+			if (uv_duplicate_count[i] < 2) {
+				continue;
+			}
+
+			mul_v2_fl(mloopuv_arr[i]->uv, 1.0f/(float)uv_duplicate_count[i]);
+		}
+		MEM_freeN(uv_duplicate_count);
+
+		/* Update duplicated uvs. */
+		uint ob_index = 0;
+		for (int i = 0; i < mloopuv_count; i++) {
+			/* Make sure we know which object owns the MLoopUV at this index.
+			 * Remember that in some cases the object will have no loop uv,
+			 * thus we need the while loop, and not simply an if check. */
+			while (ob_mloopuv_max_idx[ob_index] < i) {
+				ob_index++;
+			}
+
+			if (duplicates[i] == -1) {
+				continue;
+			}
+
+			copy_v2_v2(mloopuv_arr[i]->uv, mloopuv_arr[duplicates[i]]->uv);
+			changed[ob_index] = true;
+		}
+
+		for (ob_index = 0; ob_index < objects_len; ob_index++) {
+			if (changed[ob_index]) {
+				Object *obedit = objects[ob_index];
+				uvedit_live_unwrap_update(sima, scene, obedit);
+				DEG_id_tag_update(obedit->data, 0);
+				WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			}
+		}
+	}
+
+	BLI_kdtree_free(tree);
+	BLI_array_free(mloopuv_arr);
+	BLI_array_free(duplicates);
+	MEM_freeN(changed);
+	MEM_freeN(objects);
+	MEM_freeN(ob_mloopuv_max_idx);
+
+	return OPERATOR_FINISHED;
+}
+
+static int uv_remove_doubles_to_unselected(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Image *ima = CTX_data_edit_image(C);
+	ToolSettings *ts = scene->toolsettings;
+
+	const float threshold = RNA_float_get(op->ptr, "threshold");
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	/* Calculate max possible number of kdtree nodes. */
+	int uv_maxlen = 0;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		uv_maxlen += em->bm->totloop;
+	}
+
+	KDTree *tree = BLI_kdtree_new(uv_maxlen);
+
+	MLoopUV **mloopuv_arr = NULL;
+	BLI_array_declare(mloopuv_arr);
+
+	int mloopuv_count = 0;
+
+	float uvw[3];
+	/* Add visible non-selected uvs to tree */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		BMIter iter, liter;
+		BMFace *efa;
+		BMLoop *l;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == em->bm->totvert)) {
+			continue;
+		}
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+				continue;
+			}
+
+			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (!uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
+					BLI_kdtree_insert(tree, mloopuv_count, uvw);
+					BLI_array_append(mloopuv_arr, luv);
+					mloopuv_count++;
+				}
+			}
+		}
+	}
+
+	BLI_kdtree_balance(tree);
+
+	/* For each selected uv, find duplicate non selected uv. */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		BMIter iter, liter;
+		BMFace *efa;
+		BMLoop *l;
+		bool changed = false;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
+				continue;
+			}
+
+			BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					copy_v3_fl3(uvw, luv->uv[0], luv->uv[1], 0.0f);
+
+					KDTreeNearest nearest;
+					const int i = BLI_kdtree_find_nearest(tree, uvw, &nearest);
+
+					if (i != -1 && nearest.dist < threshold) {
+						copy_v2_v2(luv->uv, mloopuv_arr[i]->uv);
+						changed = true;
+					}
+				}
+			}
+		}
+
+		if (changed) {
+			uvedit_live_unwrap_update(sima, scene, obedit);
+			DEG_id_tag_update(obedit->data, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		}
+	}
+
+	BLI_kdtree_free(tree);
+	BLI_array_free(mloopuv_arr);
+	MEM_freeN(objects);
+
+	return OPERATOR_FINISHED;
+}
 
 static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 {
-	const float threshold = RNA_float_get(op->ptr, "threshold");
-	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
-
-	SpaceImage *sima;
-	Scene *scene;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	Image *ima;
-	int uv_a_index;
-	int uv_b_index;
-	float *uv_a;
-	const float *uv_b;
-
-	BMIter iter, liter;
-	BMFace *efa;
-	BMLoop *l;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-	sima = CTX_wm_space_image(C);
-	scene = CTX_data_scene(C);
-	ima = CTX_data_edit_image(C);
-
-	if (use_unselected == false) {
-		UVvert *vert_arr = NULL;
-		BLI_array_declare(vert_arr);
-		MLoopUV **loop_arr = NULL;
-		BLI_array_declare(loop_arr);
-
-		/* TODO, use kd-tree as with MESH_OT_remove_doubles, this isn't optimal */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-				continue;
-
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					UVvert vert;
-					vert.uv_loop = luv;
-					vert.weld = false;
-					BLI_array_append(vert_arr, vert);
-				}
-
-			}
-		}
-
-		for (uv_a_index = 0; uv_a_index < BLI_array_len(vert_arr); uv_a_index++) {
-			if (vert_arr[uv_a_index].weld == false) {
-				float uv_min[2];
-				float uv_max[2];
-
-				BLI_array_clear(loop_arr);
-				BLI_array_append(loop_arr, vert_arr[uv_a_index].uv_loop);
-
-				uv_a = vert_arr[uv_a_index].uv_loop->uv;
-
-				copy_v2_v2(uv_max, uv_a);
-				copy_v2_v2(uv_min, uv_a);
-
-				vert_arr[uv_a_index].weld = true;
-				for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_len(vert_arr); uv_b_index++) {
-					uv_b = vert_arr[uv_b_index].uv_loop->uv;
-					if ((vert_arr[uv_b_index].weld == false) &&
-					    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
-					{
-						minmax_v2v2_v2(uv_min, uv_max, uv_b);
-						BLI_array_append(loop_arr, vert_arr[uv_b_index].uv_loop);
-						vert_arr[uv_b_index].weld = true;
-					}
-				}
-				if (BLI_array_len(loop_arr)) {
-					float uv_mid[2];
-					mid_v2_v2v2(uv_mid, uv_min, uv_max);
-					for (uv_b_index = 0; uv_b_index < BLI_array_len(loop_arr); uv_b_index++) {
-						copy_v2_v2(loop_arr[uv_b_index]->uv, uv_mid);
-					}
-				}
-			}
-		}
-
-		BLI_array_free(vert_arr);
-		BLI_array_free(loop_arr);
+	if (RNA_boolean_get(op->ptr, "use_unselected")) {
+		return uv_remove_doubles_to_unselected(C, op);
 	}
 	else {
-		/* selected -> unselected
-		 *
-		 * No need to use 'UVvert' here */
-		MLoopUV **loop_arr = NULL;
-		BLI_array_declare(loop_arr);
-		MLoopUV **loop_arr_unselected = NULL;
-		BLI_array_declare(loop_arr_unselected);
-
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-				continue;
-
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					BLI_array_append(loop_arr, luv);
-				}
-				else {
-					BLI_array_append(loop_arr_unselected, luv);
-				}
-			}
-		}
-
-		for (uv_a_index = 0; uv_a_index < BLI_array_len(loop_arr); uv_a_index++) {
-			float dist_best = FLT_MAX, dist;
-			const float *uv_best = NULL;
-
-			uv_a = loop_arr[uv_a_index]->uv;
-			for (uv_b_index = 0; uv_b_index < BLI_array_len(loop_arr_unselected); uv_b_index++) {
-				uv_b = loop_arr_unselected[uv_b_index]->uv;
-				dist = len_manhattan_v2v2(uv_a, uv_b);
-				if ((dist < threshold) && (dist < dist_best)) {
-					uv_best = uv_b;
-					dist_best = dist;
-				}
-			}
-			if (uv_best) {
-				copy_v2_v2(uv_a, uv_best);
-			}
-		}
-
-		BLI_array_free(loop_arr);
-		BLI_array_free(loop_arr_unselected);
+		return uv_remove_doubles_to_selected(C, op);
 	}
-
-	uvedit_live_unwrap_update(sima, scene, obedit);
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
-	return OPERATOR_FINISHED;
 }
 
 static void UV_OT_remove_doubles(wmOperatorType *ot)
