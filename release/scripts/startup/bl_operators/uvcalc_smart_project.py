@@ -771,23 +771,11 @@ def main(context,
     else:
         ob = "Unwrap %i Selected Meshes"
 
-    # HACK, loop until mouse is lifted.
-    '''
-    while Window.GetMouseButtons() != 0:
-        time.sleep(10)
-    '''
-
-# ~ XXX	if not Draw.PupBlock(ob % len(obList), pup_block):
-# ~ XXX		return
-# ~ XXX	del ob
-
     # Convert from being button types
-
     USER_PROJECTION_LIMIT_CONVERTED = cos(USER_PROJECTION_LIMIT * DEG_TO_RAD)
     USER_PROJECTION_LIMIT_HALF_CONVERTED = cos((USER_PROJECTION_LIMIT / 2) * DEG_TO_RAD)
 
     # Toggle Edit mode
-    is_editmode = (context.active_object.mode == 'EDIT')
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT')
     # Assume face select mode! an annoying hack to toggle face select mode because Mesh doesn't like faceSelectMode.
@@ -797,12 +785,9 @@ def main(context,
         obList.sort(key=lambda ob: ob.data.name)
         collected_islandList = []
 
-# XXX	Window.WaitCursor(1)
-
     time1 = time.time()
 
     # Tag as False so we don't operate on the same mesh twice.
-# XXX	bpy.data.meshes.tag = False
     for me in bpy.data.meshes:
         me.tag = False
 
@@ -825,8 +810,6 @@ def main(context,
             meshFaces = [thickface(f, uv_layer, me_verts) for i, f in enumerate(me.polygons) if f.select]
         else:
             meshFaces = [thickface(f, uv_layer, me_verts) for i, f in enumerate(me.polygons)]
-
-# XXX		Window.DrawProgressBar(0.1, 'SmartProj UV Unwrapper, mapping "%s", %i faces.' % (me.name, len(meshFaces)))
 
         # =======
         # Generate a projection list from face normals, this is meant to be smart :)
@@ -973,7 +956,6 @@ def main(context,
             for f in faceProjectionGroupList[i]:
                 f_uv = f.uv
                 for j, v in enumerate(f.v):
-                    # XXX - note, between mathutils in 2.4 and 2.5 the order changed.
                     f_uv[j][:] = (MatQuat @ v.co).xy
 
         if USER_SHARE_SPACE:
@@ -990,11 +972,9 @@ def main(context,
 
     # We want to pack all in 1 go, so pack now
     if USER_SHARE_SPACE:
-        # XXX        Window.DrawProgressBar(0.9, "Box Packing for all objects...")
         packIslands(collected_islandList)
 
     print("Smart Projection time: %.2f" % (time.time() - time1))
-    # Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec" % (time.time() - time1))
 
     # aspect correction is only done in edit mode - and only smart unwrap supports currently
     if is_editmode:
@@ -1023,25 +1003,6 @@ def main(context,
 
     dict_matrix.clear()
 
-# XXX	Window.DrawProgressBar(1.0, "")
-# XXX	Window.WaitCursor(0)
-# XXX	Window.RedrawAll()
-
-
-"""
-    pup_block = [\
-    'Projection',\
-    ('Selected Faces Only', USER_ONLY_SELECTED_FACES, 'Use only selected faces from all selected meshes.'),\
-    ('Init from view', USER_VIEW_INIT, 'The first projection will be from the view vector.'),\
-    '',\
-    'UV Layout',\
-    ('Share Tex Space', USER_SHARE_SPACE, 'Objects Share texture space, map all objects into 1 uvmap.'),\
-    ('Island Margin:', USER_ISLAND_MARGIN, 0.0, 0.5, ''),\
-    'Fill in empty areas',\
-    ('Fill Holes', USER_FILL_HOLES, 'Fill in empty areas reduced texture waistage (slow).'),\
-    ('Fill Quality:', USER_FILL_HOLES_QUALITY, 1, 100, 'Depends on fill holes, how tightly to fill UV holes, (higher is slower)'),\
-    ]
-"""
 
 from bpy.props import FloatProperty, BoolProperty
 
