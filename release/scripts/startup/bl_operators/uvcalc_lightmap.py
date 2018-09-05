@@ -558,32 +558,13 @@ def lightmap_uvpack(meshes,
 
 
 def unwrap(operator, context, **kwargs):
-
-    # only unwrap active object if True
-    PREF_ACT_ONLY = kwargs.pop("PREF_ACT_ONLY")
-
-    # ensure object(s) are selected if necessary and active object is set
-    if context.object is None:
-        if PREF_ACT_ONLY:
-            operator.report({'WARNING'}, "Active object not set")
-            return {'CANCELLED'}
-        elif len(context.selected_objects) == 0:
-            operator.report({'WARNING'}, "No selected objects")
-            return {'CANCELLED'}
-
      # switch to object mode
     is_editmode = context.object and context.object.mode == 'EDIT'
     if is_editmode:
         bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 
     # define list of meshes
-    meshes = []
-    if PREF_ACT_ONLY:
-        obj = context.view_layer.objects.active
-        if obj and obj.type == 'MESH':
-            meshes = [obj.data]
-    else:
-        meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.polygons and me.library is None})
+    meshes = list({me for obj in context.selected_objects if obj.type == 'MESH' for me in (obj.data,) if me.polygons and me.library is None})
 
     if not meshes:
         operator.report({'ERROR'}, "No mesh object")
@@ -621,7 +602,6 @@ class LightMapPack(Operator):
         items=(
             ('SEL_FACES', "Selected Faces", "Space all UVs evenly"),
             ('ALL_FACES', "All Faces", "Average space UVs edge length of each loop"),
-            ('ALL_OBJECTS', "Selected Mesh Object", "Average space UVs edge length of each loop")
         ),
     )
 
@@ -672,13 +652,8 @@ class LightMapPack(Operator):
         PREF_CONTEXT = kwargs.pop("PREF_CONTEXT")
 
         if PREF_CONTEXT == 'SEL_FACES':
-            kwargs["PREF_ACT_ONLY"] = True
             kwargs["PREF_SEL_ONLY"] = True
         elif PREF_CONTEXT == 'ALL_FACES':
-            kwargs["PREF_ACT_ONLY"] = True
-            kwargs["PREF_SEL_ONLY"] = False
-        elif PREF_CONTEXT == 'ALL_OBJECTS':
-            kwargs["PREF_ACT_ONLY"] = False
             kwargs["PREF_SEL_ONLY"] = False
         else:
             raise Exception("invalid context")
