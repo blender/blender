@@ -1438,6 +1438,9 @@ void ED_gpencil_create_monkey(bContext *C, float mat[4][4])
 	int color_Eyes = gpencil_monkey_color(bmain, ob, &gp_monkey_pct_eyes);
 	int color_Pupils = gpencil_monkey_color(bmain, ob, &gp_monkey_pct_pupils);
 
+	/* set first color as active */
+	ob->actcol = color_Black + 1;
+
 	/* layers */
 	/* NOTE: For now, we just add new layers, to make it easier to separate out old/new instances */
 	bGPDlayer *Colors = BKE_gpencil_layer_addnew(gpd, "Colors", false);
