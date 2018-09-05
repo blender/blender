@@ -1525,14 +1525,16 @@ void MESH_OT_select_mode(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
+	/* Hide all, not to show redo panel. */
 	prop = RNA_def_boolean(ot->srna, "use_extend", false, "Extend", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "use_expand", false, "Expand", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 	ot->prop = prop = RNA_def_enum(ot->srna, "type", elem_items, 0, "Type", "");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
-	RNA_def_enum(ot->srna, "action", actions_items, 2, "Action", "Selection action to execute");
+	prop = RNA_def_enum(ot->srna, "action", actions_items, 2, "Action", "Selection action to execute");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 /** \} */
