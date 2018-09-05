@@ -2064,14 +2064,10 @@ static void DRW_shgroup_speaker(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLa
 typedef struct OBJECT_LightProbeEngineData {
 	DrawData dd;
 
-	float prb_mats[6][4][4];
-	float probe_cube_mat[4][4];
-	float draw_size;
 	float increment_x[3];
 	float increment_y[3];
 	float increment_z[3];
 	float corner[3];
-	uint cell_count;
 } OBJECT_LightProbeEngineData;
 
 static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, ViewLayer *view_layer)
@@ -2128,7 +2124,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			mul_m4_v3(ob->obmat, prb_data->increment_z);
 			sub_v3_v3(prb_data->increment_z, prb_data->corner);
 
-			prb_data->cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
+			uint cell_count = prb->grid_resolution_x * prb->grid_resolution_y * prb->grid_resolution_z;
 			DRWShadingGroup *grp = DRW_shgroup_create(e_data.lightprobe_grid_sh, psl->lightprobes);
 			DRW_shgroup_uniform_int_copy(grp, "call_id", *call_id);
 			DRW_shgroup_uniform_int(grp, "baseId", call_id, 1); /* that's correct */
@@ -2137,9 +2133,11 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			DRW_shgroup_uniform_vec3(grp, "increment_y", prb_data->increment_y, 1);
 			DRW_shgroup_uniform_vec3(grp, "increment_z", prb_data->increment_z, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", &prb->grid_resolution_x, 1);
-			DRW_shgroup_call_procedural_points_add(grp, prb_data->cell_count, NULL);
+			DRW_shgroup_call_procedural_points_add(grp, cell_count, NULL);
 		}
 		else if (prb->type == LIGHTPROBE_TYPE_CUBE) {
+			float draw_size = 1.0f;
+			float probe_cube_mat[4][4];
 			// prb_data->draw_size = prb->data_draw_size * 0.1f;
 			// unit_m4(prb_data->probe_cube_mat);
 			// copy_v3_v3(prb_data->probe_cube_mat[3], ob->obmat[3]);
@@ -2147,14 +2145,13 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			DRWShadingGroup *grp = shgroup_theme_id_to_probe_cube_outline_shgrp(stl, theme_id);
 			/* TODO remove or change the drawing of the cube probes. Theses line draws nothing on purpose
 			 * to keep the call ids correct. */
-			zero_m4(prb_data->probe_cube_mat);
-			DRW_shgroup_call_dynamic_add(grp, call_id, &prb_data->draw_size, prb_data->probe_cube_mat);
+			zero_m4(probe_cube_mat);
+			DRW_shgroup_call_dynamic_add(grp, call_id, &draw_size, probe_cube_mat);
 		}
 		else {
-			prb_data->draw_size = 1.0f;
-
+			float draw_size = 1.0f;
 			DRWShadingGroup *grp = shgroup_theme_id_to_probe_planar_outline_shgrp(stl, theme_id);
-			DRW_shgroup_call_dynamic_add(grp, call_id, &prb_data->draw_size, ob->obmat);
+			DRW_shgroup_call_dynamic_add(grp, call_id, &draw_size, ob->obmat);
 		}
 
 		*call_id += 1;
@@ -2176,15 +2173,13 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 
 
 	if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
-		float (*mat)[4];
-		mat = (float (*)[4])(prb_data->prb_mats[0]);
+		float mat[4][4];
 		copy_m4_m4(mat, ob->obmat);
 		normalize_m4(mat);
 
 		DRW_shgroup_call_dynamic_add(sgl->single_arrow, color, &ob->empty_drawsize, mat);
 		DRW_shgroup_call_dynamic_add(sgl->single_arrow_line, color, &ob->empty_drawsize, mat);
 
-		mat = (float (*)[4])(prb_data->prb_mats[1]);
 		copy_m4_m4(mat, ob->obmat);
 		zero_v3(mat[2]);
 
@@ -2208,15 +2203,13 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			DRW_shgroup_call_dynamic_add(sgl->cube, color, &prb->distfalloff, ob->obmat);
 		}
 		else if (prb->type == LIGHTPROBE_TYPE_PLANAR) {
-			float (*rangemat)[4];
-			rangemat = (float (*)[4])(prb_data->prb_mats[2]);
+			float rangemat[4][4];
 			copy_m4_m4(rangemat, ob->obmat);
 			normalize_v3(rangemat[2]);
 			mul_v3_fl(rangemat[2], prb->distinf);
 
 			DRW_shgroup_call_dynamic_add(sgl->cube, color, &one, rangemat);
 
-			rangemat = (float (*)[4])(prb_data->prb_mats[3]);
 			copy_m4_m4(rangemat, ob->obmat);
 			normalize_v3(rangemat[2]);
 			mul_v3_fl(rangemat[2], prb->distfalloff);
@@ -2264,9 +2257,7 @@ static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl
 			};
 
 			for (int i = 0; i < 6; ++i) {
-				float (*clipmat)[4];
-				clipmat = (float (*)[4])(prb_data->prb_mats[i]);
-
+				float clipmat[4][4];
 				normalize_m4_m4(clipmat, ob->obmat);
 				mul_m4_m4m4(clipmat, clipmat, cubefacemat[i]);
 
