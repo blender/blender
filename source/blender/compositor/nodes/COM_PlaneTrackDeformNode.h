@@ -27,8 +27,8 @@ extern "C" {
 }
 
 /**
- * @brief PlaneTrackDeformNode
- * @ingroup Node
+ * \brief PlaneTrackDeformNode
+ * \ingroup Node
  */
 class PlaneTrackDeformNode : public Node {
 public:

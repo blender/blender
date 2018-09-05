@@ -33,70 +33,70 @@ class OpenCLDevice;
 using std::list;
 
 /**
- * @brief device representing an GPU OpenCL device.
+ * \brief device representing an GPU OpenCL device.
  * an instance of this class represents a single cl_device
  */
 class OpenCLDevice : public Device {
 private:
 	/**
-	 * @brief opencl context
+	 * \brief opencl context
 	 */
 	cl_context m_context;
 
 	/**
-	 * @brief opencl device
+	 * \brief opencl device
 	 */
 	cl_device_id m_device;
 
 	/**
-	 * @brief opencl program
+	 * \brief opencl program
 	 */
 	cl_program m_program;
 
 	/**
-	 * @brief opencl command queue
+	 * \brief opencl command queue
 	 */
 	cl_command_queue m_queue;
 
 	/**
-	 * @brief opencl vendor ID
+	 * \brief opencl vendor ID
 	 */
 	cl_int m_vendorID;
 
 public:
 	/**
-	 * @brief constructor with opencl device
-	 * @param context
-	 * @param device
-	 * @param program
-	 * @param vendorID
+	 * \brief constructor with opencl device
+	 * \param context
+	 * \param device
+	 * \param program
+	 * \param vendorID
 	 */
 	OpenCLDevice(cl_context context, cl_device_id device, cl_program program, cl_int vendorId);
 
 
 	/**
-	 * @brief initialize the device
+	 * \brief initialize the device
 	 * During initialization the OpenCL cl_command_queue is created
 	 * the command queue is stored in the field queue.
-	 * @see queue
+	 * \see queue
 	 */
 	bool initialize();
 
 	/**
-	 * @brief deinitialize the device
+	 * \brief deinitialize the device
 	 * During deintiialization the command queue is cleared
 	 */
 	void deinitialize();
 
 	/**
-	 * @brief execute a WorkPackage
-	 * @param work the WorkPackage to execute
+	 * \brief execute a WorkPackage
+	 * \param work the WorkPackage to execute
 	 */
 	void execute(WorkPackage *work);
 
 	/**
-	 * @brief determine an image format
-	 * @param memorybuffer
+	 * \brief determine an image format
+	 * \param memorybuffer
 	 */
 	static const cl_image_format *determineImageFormat(MemoryBuffer *memoryBuffer);
 

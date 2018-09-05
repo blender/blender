@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief MovieDistortionNode
- * @ingroup Node
+ * \brief MovieDistortionNode
+ * \ingroup Node
  */
 class MovieDistortionNode : public Node {
 public:

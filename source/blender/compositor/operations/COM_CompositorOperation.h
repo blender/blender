@@ -29,58 +29,58 @@
 struct Scene;
 
 /**
- * @brief Compositor output operation
+ * \brief Compositor output operation
  */
 class CompositorOperation : public NodeOperation {
 private:
 	const struct Scene *m_scene;
 	/**
-	 * @brief Scene name, used for getting the render output, includes 'SC' prefix.
+	 * \brief Scene name, used for getting the render output, includes 'SC' prefix.
 	 */
 	char m_sceneName[MAX_ID_NAME];
 
 	/**
-	 * @brief local reference to the scene
+	 * \brief local reference to the scene
 	 */
 	const RenderData *m_rd;
 
 	/**
-	 * @brief reference to the output float buffer
+	 * \brief reference to the output float buffer
 	 */
 	float *m_outputBuffer;
 
 	/**
-	 * @brief reference to the output depth float buffer
+	 * \brief reference to the output depth float buffer
 	 */
 	float *m_depthBuffer;
 
 	/**
-	 * @brief local reference to the input image operation
+	 * \brief local reference to the input image operation
 	 */
 	SocketReader *m_imageInput;
 
 	/**
-	 * @brief local reference to the input alpha operation
+	 * \brief local reference to the input alpha operation
 	 */
 	SocketReader *m_alphaInput;
 
 	/**
-	 * @brief local reference to the depth operation
+	 * \brief local reference to the depth operation
 	 */
 	SocketReader *m_depthInput;
 
 	/**
-	 * @brief Ignore any alpha input
+	 * \brief Ignore any alpha input
 	 */
 	bool m_useAlphaInput;
 
 	/**
-	 * @brief operation is active for calculating final compo result
+	 * \brief operation is active for calculating final compo result
 	 */
 	bool m_active;
 
 	/**
-	 * @brief View name, used for multiview
+	 * \brief View name, used for multiview
 	 */
 	const char *m_viewName;
 public:

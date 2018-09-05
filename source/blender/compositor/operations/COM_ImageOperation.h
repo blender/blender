@@ -35,7 +35,7 @@ extern "C" {
 }
 
 /**
- * @brief Base class for all image operations
+ * \brief Base class for all image operations
  */
 class BaseImageOperation : public NodeOperation {
 protected:

@@ -26,8 +26,8 @@
 #include "COM_NodeOperation.h"
 #include "DNA_node_types.h"
 /**
- * @brief SwitchViewNode
- * @ingroup Node
+ * \brief SwitchViewNode
+ * \ingroup Node
  */
 class SwitchViewNode : public Node {
 public:

@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief NormalizeNode
- * @ingroup Node
+ * \brief NormalizeNode
+ * \ingroup Node
  */
 class NormalizeNode : public Node {
 public:

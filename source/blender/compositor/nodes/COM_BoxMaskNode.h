@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief BoxMaskNode
- * @ingroup Node
+ * \brief BoxMaskNode
+ * \ingroup Node
  */
 class BoxMaskNode : public Node {
 public:

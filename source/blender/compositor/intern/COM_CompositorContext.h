@@ -32,98 +32,98 @@
 #include "COM_defines.h"
 
 /**
- * @brief Overall context of the compositor
+ * \brief Overall context of the compositor
  */
 class CompositorContext {
 private:
 	/**
-	 * @brief The rendering field describes if we are rendering (F12) or if we are editing (Node editor)
+	 * \brief The rendering field describes if we are rendering (F12) or if we are editing (Node editor)
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
-	 * @see ExecutionSystem
+	 * \see ExecutionSystem
 	 */
 	bool m_rendering;
 
 	/**
-	 * @brief The quality of the composite.
+	 * \brief The quality of the composite.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
-	 * @see ExecutionSystem
+	 * \see ExecutionSystem
 	 */
 	CompositorQuality m_quality;
 
 	Scene *m_scene;
 
 	/**
-	 * @brief Reference to the render data that is being composited.
+	 * \brief Reference to the render data that is being composited.
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
-	 * @see ExecutionSystem
+	 * \see ExecutionSystem
 	 */
 	RenderData *m_rd;
 
 	/**
-	 * @brief reference to the bNodeTree
+	 * \brief reference to the bNodeTree
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
-	 * @see ExecutionSystem
+	 * \see ExecutionSystem
 	 */
 	bNodeTree *m_bnodetree;
 
 	/**
-	 * @brief Preview image hash table
+	 * \brief Preview image hash table
 	 * This field is initialized in ExecutionSystem and must only be read from that point on.
 	 */
 	bNodeInstanceHash *m_previews;
 
 	/**
-	 * @brief does this system have active opencl devices?
+	 * \brief does this system have active opencl devices?
 	 */
 	bool m_hasActiveOpenCLDevices;
 
 	/**
-	 * @brief Skip slow nodes
+	 * \brief Skip slow nodes
 	 */
 	bool m_fastCalculation;
 
-	/* @brief color management settings */
+	/* \brief color management settings */
 	const ColorManagedViewSettings *m_viewSettings;
 	const ColorManagedDisplaySettings *m_displaySettings;
 
 	/**
-	 * @brief active rendering view name
+	 * \brief active rendering view name
 	 */
 	const char *m_viewName;
 
 public:
 	/**
-	 * @brief constructor initializes the context with default values.
+	 * \brief constructor initializes the context with default values.
 	 */
 	CompositorContext();
 
 	/**
-	 * @brief set the rendering field of the context
+	 * \brief set the rendering field of the context
 	 */
 	void setRendering(bool rendering) { this->m_rendering = rendering; }
 
 	/**
-	 * @brief get the rendering field of the context
+	 * \brief get the rendering field of the context
 	 */
 	bool isRendering() const { return this->m_rendering; }
 
 	/**
-	 * @brief set the scene of the context
+	 * \brief set the scene of the context
 	 */
 	void setRenderData(RenderData *rd) { this->m_rd = rd; }
 
 	/**
-	 * @brief set the bnodetree of the context
+	 * \brief set the bnodetree of the context
 	 */
 	void setbNodeTree(bNodeTree *bnodetree) { this->m_bnodetree = bnodetree; }
 
 	/**
-	 * @brief get the bnodetree of the context
+	 * \brief get the bnodetree of the context
 	 */
 	const bNodeTree *getbNodeTree() const { return this->m_bnodetree; }
 
 	/**
-	 * @brief get the scene of the context
+	 * \brief get the scene of the context
 	 */
 	const RenderData *getRenderData() const { return this->m_rd; }
 
@@ -131,67 +131,67 @@ public:
 	Scene *getScene() const { return m_scene; }
 
 	/**
-	 * @brief set the preview image hash table
+	 * \brief set the preview image hash table
 	 */
 	void setPreviewHash(bNodeInstanceHash *previews) { this->m_previews = previews; }
 
 	/**
-	 * @brief get the preview image hash table
+	 * \brief get the preview image hash table
 	 */
 	bNodeInstanceHash *getPreviewHash() const { return this->m_previews; }
 
 	/**
-	 * @brief set view settings of color color management
+	 * \brief set view settings of color color management
 	 */
 	void setViewSettings(const ColorManagedViewSettings *viewSettings) { this->m_viewSettings = viewSettings; }
 
 	/**
-	 * @brief get view settings of color color management
+	 * \brief get view settings of color color management
 	 */
 	const ColorManagedViewSettings *getViewSettings() const { return this->m_viewSettings; }
 
 	/**
-	 * @brief set display settings of color color management
+	 * \brief set display settings of color color management
 	 */
 	void setDisplaySettings(const ColorManagedDisplaySettings *displaySettings) { this->m_displaySettings = displaySettings; }
 
 	/**
-	 * @brief get display settings of color color management
+	 * \brief get display settings of color color management
 	 */
 	const ColorManagedDisplaySettings *getDisplaySettings() const { return this->m_displaySettings; }
 
 	/**
-	 * @brief set the quality
+	 * \brief set the quality
 	 */
 	void setQuality(CompositorQuality quality) { this->m_quality = quality; }
 
 	/**
-	 * @brief get the quality
+	 * \brief get the quality
 	 */
 	const CompositorQuality getQuality() const { return this->m_quality; }
 
 	/**
-	 * @brief get the current framenumber of the scene in this context
+	 * \brief get the current framenumber of the scene in this context
 	 */
 	const int getFramenumber() const;
 
 	/**
-	 * @brief has this system active openclDevices?
+	 * \brief has this system active openclDevices?
 	 */
 	const bool getHasActiveOpenCLDevices() const { return this->m_hasActiveOpenCLDevices; }
 
 	/**
-	 * @brief set has this system active openclDevices?
+	 * \brief set has this system active openclDevices?
 	 */
 	void setHasActiveOpenCLDevices(bool hasAvtiveOpenCLDevices) { this->m_hasActiveOpenCLDevices = hasAvtiveOpenCLDevices; }
 
 	/**
-	 * @brief get the active rendering view
+	 * \brief get the active rendering view
 	 */
 	const char *getViewName() const { return this->m_viewName; }
 
 	/**
-	 * @brief set the active rendering view
+	 * \brief set the active rendering view
 	 */
 	void setViewName(const char *viewName) { this->m_viewName = viewName; }
 

@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DefocusNode
- * @ingroup Node
+ * \brief DefocusNode
+ * \ingroup Node
  */
 class DefocusNode : public Node {
 public:

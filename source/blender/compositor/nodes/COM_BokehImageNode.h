@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief BokehImageNode
- * @ingroup Node
+ * \brief BokehImageNode
+ * \ingroup Node
  */
 class BokehImageNode : public Node {
 public:

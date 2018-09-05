@@ -24,8 +24,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief TextureNode
- * @ingroup Node
+ * \brief TextureNode
+ * \ingroup Node
  */
 class TextureNode : public Node {
 public:

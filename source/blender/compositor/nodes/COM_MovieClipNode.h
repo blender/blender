@@ -27,8 +27,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief MovieClipNode
- * @ingroup Node
+ * \brief MovieClipNode
+ * \ingroup Node
  */
 class MovieClipNode : public Node {
 public:

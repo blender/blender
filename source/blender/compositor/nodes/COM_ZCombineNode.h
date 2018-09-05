@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ZCombineNode
- * @ingroup Node
+ * \brief ZCombineNode
+ * \ingroup Node
  */
 class ZCombineNode : public Node {
 public:

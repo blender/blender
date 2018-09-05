@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DilateErodeNode
- * @ingroup Node
+ * \brief DilateErodeNode
+ * \ingroup Node
  */
 class DilateErodeNode : public Node {
 	NodeBlurData m_alpha_blur; /* only used for blurring alpha, since the dilate/erode node doesnt have this */

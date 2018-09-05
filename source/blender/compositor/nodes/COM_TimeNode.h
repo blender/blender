@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief TimeNode
- * @ingroup Node
+ * \brief TimeNode
+ * \ingroup Node
  */
 class TimeNode : public Node {
 public:

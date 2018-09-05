@@ -428,7 +428,7 @@ public:
 
 /*! [ Geometry Shader. ]
  *  Resamples the stroke.
- *  @see Stroke::Resample(float).
+ *  \see Stroke::Resample(float).
  */
 class SamplingShader: public StrokeShader
 {
@@ -479,7 +479,7 @@ public:
 /*! [ Geometry Shader ].
  *  Transforms the stroke backbone geometry so that it corresponds to a Bezier Curve approximation of the
  *  original backbone geometry.
- *  @see \htmlonly <a href=bezier/bezier.html>bezier/bezier.html</a> \endhtmlonly
+ *  \see \htmlonly <a href=bezier/bezier.html>bezier/bezier.html</a> \endhtmlonly
  */
 class BezierCurveShader : public StrokeShader
 {

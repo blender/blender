@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief MapUVNode
- * @ingroup Node
+ * \brief MapUVNode
+ * \ingroup Node
  */
 class MapUVNode : public Node {
 public:

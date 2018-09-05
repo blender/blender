@@ -26,8 +26,8 @@
 #include "DNA_node_types.h"
 #include "COM_CalculateMeanOperation.h"
 /**
- * @brief base class of CalculateStandardDeviation, implementing the simple CalculateStandardDeviation
- * @ingroup operation
+ * \brief base class of CalculateStandardDeviation, implementing the simple CalculateStandardDeviation
+ * \ingroup operation
  */
 class CalculateStandardDeviationOperation : public CalculateMeanOperation {
 protected:

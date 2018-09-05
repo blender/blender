@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
- * @brief CompositorNode
- * @ingroup Node
+ * \brief CompositorNode
+ * \ingroup Node
  */
 class CompositorNode : public Node {
 public:

@@ -33,7 +33,7 @@ protected:
 	unsigned char *m_outputBuffer;
 
 	/**
-	 * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
+	 * \brief holds reference to the SDNA bNode, where this nodes will render the preview image for
 	 */
 	bNodePreview *m_preview;
 	SocketReader *m_input;

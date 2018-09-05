@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief PixelateNode
- * @ingroup Node
+ * \brief PixelateNode
+ * \ingroup Node
  */
 class PixelateNode : public Node {
 public:

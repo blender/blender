@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DisplaceNode
- * @ingroup Node
+ * \brief DisplaceNode
+ * \ingroup Node
  */
 class DisplaceNode : public Node {
 public:

@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ValueNode
- * @ingroup Node
+ * \brief ValueNode
+ * \ingroup Node
  */
 class ValueNode : public Node {
 public:

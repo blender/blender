@@ -176,7 +176,7 @@ NodeOutput *NodeGraph::find_output(const NodeRange &node_range, bNodeSocket *b_s
 
 void NodeGraph::add_bNodeLink(const NodeRange &node_range, bNodeLink *b_nodelink)
 {
-	/// @note: ignore invalid links
+	/// \note: ignore invalid links
 	if (!(b_nodelink->flag & NODE_LINK_VALID))
 		return;
 	if ((b_nodelink->fromsock->flag & SOCK_UNAVAIL) || (b_nodelink->tosock->flag & SOCK_UNAVAIL))

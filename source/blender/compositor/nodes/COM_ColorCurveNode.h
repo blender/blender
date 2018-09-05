@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ColorCurveNode
- * @ingroup Node
+ * \brief ColorCurveNode
+ * \ingroup Node
  */
 class ColorCurveNode : public Node {
 public:

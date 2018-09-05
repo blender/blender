@@ -25,8 +25,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief TrackPositionNode
- * @ingroup Node
+ * \brief TrackPositionNode
+ * \ingroup Node
  */
 class TrackPositionNode : public Node {
 public:

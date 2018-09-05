@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief RotateNode
- * @ingroup Node
+ * \brief RotateNode
+ * \ingroup Node
  */
 class RotateNode : public Node {
 public:

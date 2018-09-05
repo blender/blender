@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief AlphaOverNode
- * @ingroup Node
+ * \brief AlphaOverNode
+ * \ingroup Node
  */
 class AlphaOverNode : public Node {
 public:

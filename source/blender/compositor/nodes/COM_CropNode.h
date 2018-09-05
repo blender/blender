@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief CropNode
- * @ingroup Node
+ * \brief CropNode
+ * \ingroup Node
  */
 class CropNode : public Node {
 public:

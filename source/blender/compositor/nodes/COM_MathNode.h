@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief MathNode
- * @ingroup Node
+ * \brief MathNode
+ * \ingroup Node
  */
 class MathNode : public Node {
 public:

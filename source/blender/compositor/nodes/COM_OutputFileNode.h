@@ -28,8 +28,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief OutputFileNode
- * @ingroup Node
+ * \brief OutputFileNode
+ * \ingroup Node
  */
 class OutputFileNode : public Node {
 public:

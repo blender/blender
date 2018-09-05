@@ -49,25 +49,25 @@
 #endif
 
 
-/// @brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created
+/// \brief list of all CPUDevices. for every hardware thread an instance of CPUDevice is created
 static vector<CPUDevice*> g_cpudevices;
 static ThreadLocal(CPUDevice *) g_thread_device;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-/// @brief list of all thread for every CPUDevice in cpudevices a thread exists
+/// \brief list of all thread for every CPUDevice in cpudevices a thread exists
 static ListBase g_cputhreads;
 static bool g_cpuInitialized = false;
-/// @brief all scheduled work for the cpu
+/// \brief all scheduled work for the cpu
 static ThreadQueue *g_cpuqueue;
 static ThreadQueue *g_gpuqueue;
 #ifdef COM_OPENCL_ENABLED
 static cl_context g_context;
 static cl_program g_program;
-/// @brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is created
+/// \brief list of all OpenCLDevices. for every OpenCL GPU device an instance of OpenCLDevice is created
 static vector<OpenCLDevice *> g_gpudevices;
-/// @brief list of all thread for every GPUDevice in cpudevices a thread exists
+/// \brief list of all thread for every GPUDevice in cpudevices a thread exists
 static ListBase g_gputhreads;
-/// @brief all scheduled work for the gpu
+/// \brief all scheduled work for the gpu
 #ifdef COM_OPENCL_ENABLED
 static bool g_openclActive = false;
 static bool g_openclInitialized = false;

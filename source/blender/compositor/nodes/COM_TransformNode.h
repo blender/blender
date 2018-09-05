@@ -27,8 +27,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief TransformNode
- * @ingroup Node
+ * \brief TransformNode
+ * \ingroup Node
  */
 class TransformNode : public Node {
 public:

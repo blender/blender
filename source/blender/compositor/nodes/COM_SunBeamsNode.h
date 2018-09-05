@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief SunBeamsNode
- * @ingroup Node
+ * \brief SunBeamsNode
+ * \ingroup Node
  */
 class SunBeamsNode : public Node {
 public:

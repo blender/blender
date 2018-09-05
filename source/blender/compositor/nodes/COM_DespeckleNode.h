@@ -24,8 +24,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DespeckleNode
- * @ingroup Node
+ * \brief DespeckleNode
+ * \ingroup Node
  */
 class DespeckleNode : public Node {
 public:

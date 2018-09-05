@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ConvertAlphaNode
- * @ingroup Node
+ * \brief ConvertAlphaNode
+ * \ingroup Node
  */
 class ConvertAlphaNode : public Node {
 public:

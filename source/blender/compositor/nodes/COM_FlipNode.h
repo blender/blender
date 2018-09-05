@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief FlipNode
- * @ingroup Node
+ * \brief FlipNode
+ * \ingroup Node
  */
 class FlipNode : public Node {
 public:

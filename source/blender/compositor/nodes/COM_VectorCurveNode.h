@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief VectorCurveNode
- * @ingroup Node
+ * \brief VectorCurveNode
+ * \ingroup Node
  */
 class VectorCurveNode : public Node {
 public:

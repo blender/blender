@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief EllipseMaskNode
- * @ingroup Node
+ * \brief EllipseMaskNode
+ * \ingroup Node
  */
 class EllipseMaskNode : public Node {
 public:
