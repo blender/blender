@@ -7046,14 +7046,26 @@ void UI_but_tooltip_timer_remove(bContext *C, uiBut *but)
 	}
 }
 
-static ARegion *ui_but_tooltip_init(bContext *C, ARegion *ar, bool *r_exit_on_event)
+static ARegion *ui_but_tooltip_init_ex(
+        bContext *C, ARegion *ar, bool *r_exit_on_event,
+        bool is_label)
 {
 	uiBut *but = UI_region_active_but_get(ar);
 	*r_exit_on_event = false;
 	if (but) {
-		return UI_tooltip_create_from_button(C, ar, but);
+		return UI_tooltip_create_from_button(C, ar, but, is_label);
 	}
 	return NULL;
+}
+
+static ARegion *ui_but_tooltip_init(bContext *C, ARegion *ar, bool *r_exit_on_event)
+{
+	return ui_but_tooltip_init_ex(C, ar, r_exit_on_event, false);
+}
+
+static ARegion *ui_but_tooltip_init_label(bContext *C, ARegion *ar, bool *r_exit_on_event)
+{
+	return ui_but_tooltip_init_ex(C, ar, r_exit_on_event, true);
 }
 
 static void button_tooltip_timer_reset(bContext *C, uiBut *but)
@@ -7066,8 +7078,7 @@ static void button_tooltip_timer_reset(bContext *C, uiBut *but)
 	if ((U.flag & USER_TOOLTIPS) || (data->tooltip_force)) {
 		if (!but->block->tooltipdisabled) {
 			if (!wm->drags.first) {
-				bool quick = UI_but_is_tooltip_no_overlap(but);
-				WM_tooltip_timer_init(C, data->window, data->region, ui_but_tooltip_init, quick);
+				WM_tooltip_timer_init(C, data->window, data->region, ui_but_tooltip_init);
 			}
 		}
 	}
@@ -7251,6 +7262,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 
 	/* activate button */
 	but->flag |= UI_ACTIVE;
+
 	but->active = data;
 
 	/* we disable auto_open in the block after a threshold, because we still
@@ -7300,6 +7312,13 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 	}
 	else if (but->type == UI_BTYPE_NUM) {
 		ui_numedit_set_active(but);
+	}
+
+	if (UI_but_has_tooltip_label(but)) {
+		/* Show a label for this button. */
+		WM_tooltip_immediate_init(
+		        C, CTX_wm_window(C), ar,
+		        ui_but_tooltip_init_label);
 	}
 }
 
@@ -7822,11 +7841,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				}
 				else if (event->x != event->prevx || event->y != event->prevy) {
 					/* re-enable tooltip on mouse move */
-					if (!UI_but_is_tooltip_no_overlap(but)) {
-						/* Since this may overlap, close on mouse-move. */
-						ui_blocks_set_tooltips(ar, true);
-						button_tooltip_timer_reset(C, but);
-					}
+					ui_blocks_set_tooltips(ar, true);
+					button_tooltip_timer_reset(C, but);
 				}
 
 				break;

@@ -626,9 +626,12 @@ bool WM_window_modal_keymap_status_draw(
 /* wm_tooltip.c */
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, bool *);
 
+void WM_tooltip_immediate_init(
+        struct bContext *C, struct wmWindow *win, struct ARegion *ar,
+        wmTooltipInitFn init);
 void WM_tooltip_timer_init(
         struct bContext *C, struct wmWindow *win, struct ARegion *ar,
-        wmTooltipInitFn init, bool quick);
+        wmTooltipInitFn init);
 void WM_tooltip_timer_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_init(struct bContext *C, struct wmWindow *win);

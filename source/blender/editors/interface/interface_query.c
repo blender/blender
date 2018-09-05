@@ -96,7 +96,7 @@ bool UI_but_is_tool(const uiBut *but)
 	return false;
 }
 
-bool UI_but_is_tooltip_no_overlap(const uiBut *but)
+bool UI_but_has_tooltip_label(const uiBut *but)
 {
 	if (!ui_block_is_popover(but->block)) {
 		return UI_but_is_tool(but);

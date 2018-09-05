@@ -368,7 +368,7 @@ static bool ui_tooltip_data_append_from_keymap(
 /**
  * Special tool-system exception.
  */
-static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
+static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is_label)
 {
 	if (but->optype == NULL) {
 		return NULL;
@@ -395,6 +395,8 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 	 * doesn't have access to information about non-active tools.
 	 */
 
+	uiTooltipField *field_title = NULL;
+
 	/* Title (when icon-only). */
 	if (but->drawstr[0] == '\0') {
 		uiTooltipField *field = text_field_add(
@@ -404,10 +406,11 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		            .is_pad = true,
 		        });
 		field->text = BLI_strdup(tool_name);
+		field_title = field;
 	}
 
 	/* Tip. */
-	{
+	if (is_label == false) {
 		const char *expr_imports[] = {"bpy", "bl_ui", NULL};
 		char expr[256];
 		SNPRINTF(
@@ -549,13 +552,20 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 		}
 
 		if (shortcut != NULL) {
-			uiTooltipField *field = text_field_add(
-			        data, &(uiTooltipFormat){
-			            .style = UI_TIP_STYLE_NORMAL,
-			            .color_id = UI_TIP_LC_VALUE,
-			            .is_pad = true,
-			        });
-			field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
+			if (is_label && field_title) {
+				char *text_prev = field_title->text;
+				field_title->text = BLI_sprintfN(TIP_("%s, %s"), text_prev, shortcut);
+				MEM_freeN(text_prev);
+			}
+			else {
+				uiTooltipField *field = text_field_add(
+				        data, &(uiTooltipFormat){
+				            .style = UI_TIP_STYLE_NORMAL,
+				            .color_id = UI_TIP_LC_VALUE,
+				            .is_pad = true,
+				        });
+				field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
+			}
 			MEM_freeN(shortcut);
 		}
 	}
@@ -563,7 +573,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but)
 	/* Keymap */
 
 	/* This is too handy not to expose somehow, let's be sneaky for now. */
-	if (CTX_wm_window(C)->eventstate->shift) {
+	if ((is_label == false) && CTX_wm_window(C)->eventstate->shift) {
 		const char *expr_imports[] = {"bpy", "bl_ui", NULL};
 		char expr[256];
 		SNPRINTF(
@@ -1204,7 +1214,7 @@ static ARegion *ui_tooltip_create_with_data(
  * \{ */
 
 
-ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but)
+ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *but, bool is_label)
 {
 	wmWindow *win = CTX_wm_window(C);
 	/* aspect values that shrink text are likely unreadable */
@@ -1217,7 +1227,7 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 	uiTooltipData *data = NULL;
 
 	if (data == NULL) {
-		data = ui_tooltip_data_from_tool(C, but);
+		data = ui_tooltip_data_from_tool(C, but, is_label);
 	}
 
 	if (data == NULL) {
@@ -1228,7 +1238,7 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 		return NULL;
 	}
 
-	const bool is_no_overlap = UI_but_is_tooltip_no_overlap(but);
+	const bool is_no_overlap = is_label && UI_but_has_tooltip_label(but);
 	rcti init_rect;
 	if (is_no_overlap) {
 		rctf overlap_rect_fl;
