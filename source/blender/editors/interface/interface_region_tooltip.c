@@ -1184,7 +1184,9 @@ static ARegion *ui_tooltip_create_with_data(
 	{
 		/* Compensate for margin offset, visually this corrects the position. */
 		const int margin = UI_POPUP_MARGIN;
-		BLI_rcti_translate(&rect_i, margin, margin / 2);
+		if (init_rect_overlap != NULL) {
+			BLI_rcti_translate(&rect_i, margin, margin / 2);
+		}
 
 		data->bbox.xmin = margin;
 		data->bbox.xmax = BLI_rcti_size_x(&rect_i) - margin;
