@@ -25,8 +25,12 @@ import bpy
 from bpy.types import Operator
 
 
-def extend(obj, operator, EXTEND_MODE):
+STATUS_OK =               (1 << 0)
+STATUS_ERR_ACTIVE_FACE =  (1 << 1)
+STATUS_ERR_NOT_SELECTED = (1 << 2)
+STATUS_ERR_NOT_QUAD =     (1 << 3)
 
+def extend(obj, operator, EXTEND_MODE):
     import bmesh
     me = obj.data
     # script will fail without UVs
@@ -39,14 +43,11 @@ def extend(obj, operator, EXTEND_MODE):
     uv_act = bm.loops.layers.uv.active
 
     if f_act is None:
-        operator.report({'ERROR'}, "No active face")
-        return
+        return STATUS_ERR_ACTIVE_FACE
     if not f_act.select:
-        operator.report({'ERROR'}, "No active face is not selected")
-        return
+        return STATUS_ERR_NOT_SELECTED
     elif len(f_act.verts) != 4:
-        operator.report({'ERROR'}, "Active face must be a quad")
-        return
+        return STATUS_ERR_NOT_QUAD
 
     faces = [f for f in bm.faces if f.select and len(f.verts) == 4]
 
@@ -212,12 +213,38 @@ def extend(obj, operator, EXTEND_MODE):
         apply_uv(*f_triple)
 
     bmesh.update_edit_mesh(me, False)
+    return STATUS_OK
 
 
 def main(context, operator):
-    obj = context.active_object
+    num_meshes = 0
+    num_errors = 0
+    status = 0
 
-    extend(obj, operator, operator.properties.mode)
+    ob_list = [ob for ob in context.selected_objects if ob and ob.type == 'MESH']
+    for ob in ob_list:
+        ob.data.tag = False
+
+    for ob in ob_list:
+        if ob.data.tag:
+            continue
+
+        num_meshes += 1
+        ob.data.tag = True
+
+        ret = extend(ob, operator, operator.properties.mode)
+        if ret != STATUS_OK:
+            num_errors += 1
+            status |= ret
+
+    if num_errors == num_meshes:
+        if status & STATUS_ERR_NOT_QUAD:
+            operator.report({'ERROR'}, "Active face must be a quad")
+        elif status & STATUS_ERR_NOT_SELECTED:
+            operator.report({'ERROR'}, "Active face not selected")
+        else:
+            assert((status & STATUS_ERR_ACTIVE_FACE) != 0)
+            operator.report({'ERROR'}, "No active face")
 
 
 class FollowActiveQuads(Operator):
