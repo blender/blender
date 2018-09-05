@@ -554,7 +554,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 		if (shortcut != NULL) {
 			if (is_label && field_title) {
 				char *text_prev = field_title->text;
-				field_title->text = BLI_sprintfN(TIP_("%s, %s"), text_prev, shortcut);
+				field_title->text = BLI_sprintfN(TIP_("%s: %s"), text_prev, shortcut);
 				MEM_freeN(text_prev);
 			}
 			else {
