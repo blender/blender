@@ -209,7 +209,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 #endif
 
 ModifierTypeInfo modifierType_Subsurf = {
-	/* name */              "Subsurf",
+	/* name */              "Subdivision",
 	/* structName */        "SubsurfModifierData",
 	/* structSize */        sizeof(SubsurfModifierData),
 	/* type */              eModifierTypeType_Constructive,
