@@ -33,6 +33,7 @@
 
 #include "draw_common.h"
 
+#include "draw_cache_impl.h"
 #include "draw_mode_engines.h"
 
 #include "edit_mesh_mode_intern.h" /* own include */
@@ -137,9 +138,11 @@ typedef struct EDIT_MESH_PrivateData {
 	DRWShadingGroup *facedot_occluded_shgrp;
 	DRWShadingGroup *facefill_occluded_shgrp;
 
+	int data_mask[4];
 	int ghost_ob;
 	int edit_ob;
 	bool do_zbufclip;
+	float edge_width_scale;
 } EDIT_MESH_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -309,15 +312,15 @@ static void EDIT_MESH_engine_init(void *vedata)
 		e_data.ghost_clear_depth_sh = DRW_shader_create(datatoc_edit_mesh_overlay_ghost_clear_vert_glsl,
 		                                                NULL, NULL, NULL);
 	}
+
 }
 
 static DRWPass *edit_mesh_create_overlay_pass(
-        float *faceAlpha, DRWState statemod,
+        float *face_alpha, float *edge_width_scale, int *data_mask,
+        DRWState statemod,
         DRWShadingGroup **r_face_shgrp, DRWShadingGroup **r_ledges_shgrp,
         DRWShadingGroup **r_lverts_shgrp, DRWShadingGroup **r_facedot_shgrp)
 {
-	static float edge_width_scale;
-
 	GPUShader *tri_sh, *ledge_sh;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	RegionView3D *rv3d = draw_ctx->rv3d;
@@ -331,32 +334,30 @@ static DRWPass *edit_mesh_create_overlay_pass(
 	        "Edit Mesh Face Overlay Pass",
 	        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT | statemod);
 
-
-	/* Applies on top of the theme edge width, so edge-mode can have thick edges. */
-	edge_width_scale = (tsettings->selectmode & (SCE_SELECT_EDGE)) ? 1.75f : 1.0f;
-
 	*r_face_shgrp = DRW_shgroup_create(tri_sh, pass);
 	DRW_shgroup_uniform_block(*r_face_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_face_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", faceAlpha, 1);
-	DRW_shgroup_uniform_float(*r_face_shgrp, "edgeScale", &edge_width_scale, 1);
+	DRW_shgroup_uniform_float(*r_face_shgrp, "faceAlphaMod", face_alpha, 1);
+	DRW_shgroup_uniform_float(*r_face_shgrp, "edgeScale", edge_width_scale, 1);
+	DRW_shgroup_uniform_ivec4(*r_face_shgrp, "dataMask", data_mask, 1);
 
 	*r_ledges_shgrp = DRW_shgroup_create(ledge_sh, pass);
 	DRW_shgroup_uniform_block(*r_ledges_shgrp, "globalsBlock", globals_ubo);
 	DRW_shgroup_uniform_vec2(*r_ledges_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", &edge_width_scale, 1);
+	DRW_shgroup_uniform_float(*r_ledges_shgrp, "edgeScale", edge_width_scale, 1);
+	DRW_shgroup_uniform_ivec4(*r_ledges_shgrp, "dataMask", data_mask, 1);
 
 	if ((tsettings->selectmode & (SCE_SELECT_VERTEX)) != 0) {
 		*r_lverts_shgrp = DRW_shgroup_create(e_data.overlay_vert_sh, pass);
 		DRW_shgroup_uniform_block(*r_lverts_shgrp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(*r_lverts_shgrp, "viewportSize", DRW_viewport_size_get(), 1);
-		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", &edge_width_scale, 1);
+		DRW_shgroup_uniform_float(*r_lverts_shgrp, "edgeScale", edge_width_scale, 1);
 	}
 
 	if ((tsettings->selectmode & (SCE_SELECT_FACE)) != 0) {
 		*r_facedot_shgrp = DRW_shgroup_create(e_data.overlay_facedot_sh, pass);
 		DRW_shgroup_uniform_block(*r_facedot_shgrp, "globalsBlock", globals_ubo);
-		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", &edge_width_scale, 1);
+		DRW_shgroup_uniform_float(*r_facedot_shgrp, "edgeScale", edge_width_scale, 1);
 	}
 
 	return pass;
@@ -374,6 +375,8 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
+	Scene *scene = draw_ctx->scene;
+	ToolSettings *tsettings = scene->toolsettings;
 
 	static float zero = 0.0f;
 
@@ -387,6 +390,38 @@ static void EDIT_MESH_cache_init(void *vedata)
 	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
 	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
 	stl->g_data->do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0) || xray_enabled;
+
+	/* Applies on top of the theme edge width, so edge-mode can have thick edges. */
+	stl->g_data->edge_width_scale = (tsettings->selectmode & (SCE_SELECT_EDGE)) ? 1.75f : 1.0f;
+
+	stl->g_data->data_mask[0] = 0xFF; /* Face Flag */
+	stl->g_data->data_mask[1] = 0xFF; /* Edge Flag */
+	stl->g_data->data_mask[2] = 0xFF; /* Crease */
+	stl->g_data->data_mask[3] = 0xFF; /* BWeight */
+
+	if (draw_ctx->object_edit->type == OB_MESH) {
+		if (BKE_object_is_in_editmode(draw_ctx->object_edit)) {
+			const Mesh *me = draw_ctx->object_edit->data;
+			if ((me->drawflag & ME_DRAW_FREESTYLE_FACE) == 0) {
+				stl->g_data->data_mask[0] &= ~VFLAG_FACE_FREESTYLE;
+			}
+			if ((me->drawflag & ME_DRAWSEAMS) == 0) {
+				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SEAM;
+			}
+			if ((me->drawflag & ME_DRAWSHARP) == 0) {
+				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SHARP;
+			}
+			if ((me->drawflag & ME_DRAW_FREESTYLE_EDGE) == 0) {
+				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_FREESTYLE;
+			}
+			if ((me->drawflag & ME_DRAWCREASES) == 0) {
+				stl->g_data->data_mask[2] = 0x0;
+			}
+			if ((me->drawflag & ME_DRAWBWEIGHTS) == 0) {
+				stl->g_data->data_mask[3] = 0x0;
+			}
+		}
+	}
 
 	{
 		psl->vcolor_faces = DRW_pass_create(
@@ -443,14 +478,16 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (!stl->g_data->do_zbufclip) {
 		psl->edit_face_overlay = edit_mesh_create_overlay_pass(
-		        &face_mod, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
+		        &face_mod, &stl->g_data->edge_width_scale, stl->g_data->data_mask,
+		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND,
 		        &stl->g_data->face_overlay_shgrp, &stl->g_data->ledges_overlay_shgrp,
 		        &stl->g_data->lverts_overlay_shgrp, &stl->g_data->facedot_overlay_shgrp);
 	}
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
 		psl->edit_face_occluded = edit_mesh_create_overlay_pass(
-		        &zero, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
+		        &zero, &stl->g_data->edge_width_scale, stl->g_data->data_mask,
+		        DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
 		        &stl->g_data->face_occluded_shgrp, &stl->g_data->ledges_occluded_shgrp,
 		        &stl->g_data->lverts_occluded_shgrp, &stl->g_data->facedot_occluded_shgrp);
 
@@ -461,6 +498,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 		stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(e_data.overlay_facefill_sh, psl->facefill_occlude);
 		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
+		DRW_shgroup_uniform_ivec4(stl->g_data->facefill_occluded_shgrp, "dataMask", stl->g_data->data_mask, 1);
 
 		/* we need a full screen pass to combine the result */
 		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();

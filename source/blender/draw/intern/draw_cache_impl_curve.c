@@ -292,10 +292,6 @@ static int curve_render_data_normal_len_get(const CurveRenderData *rdata)
 	return rdata->normal.len;
 }
 
-enum {
-	VFLAG_VERTEX_SELECTED = 1 << 0,
-	VFLAG_VERTEX_ACTIVE   = 1 << 1,
-};
 
 /* ---------------------------------------------------------------------- */
 /* Curve GPUBatch Cache */

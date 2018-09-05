@@ -273,11 +273,6 @@ static void lattice_render_data_weight_col_get(const LatticeRenderData *rdata, c
 	}
 }
 
-enum {
-	VFLAG_VERTEX_SELECTED = 1 << 0,
-	VFLAG_VERTEX_ACTIVE   = 1 << 1,
-};
-
 /* ---------------------------------------------------------------------- */
 /* Lattice GPUBatch Cache */
 

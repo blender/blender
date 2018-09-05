@@ -7,6 +7,7 @@
 
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
+uniform ivec4 dataMask = ivec4(0xFF);
 
 in vec3 pos;
 in ivec4 data;
@@ -27,7 +28,7 @@ void main()
 {
 	vPos = ModelViewMatrix * vec4(pos, 1.0);
 	pPos = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	vData = data;
+	vData = data & dataMask;
 #ifdef VERTEX_FACING
 	vec3 view_normal = normalize(NormalMatrix * vnor);
 	vec3 view_vec = (ProjectionMatrix[3][3] == 0.0)

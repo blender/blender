@@ -1,5 +1,6 @@
 
 uniform mat4 ModelViewProjectionMatrix;
+uniform ivec4 dataMask = ivec4(0xFF);
 
 in vec3 pos;
 in ivec4 data;
@@ -14,11 +15,13 @@ void main()
 {
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
 
-	if ((data.x & FACE_ACTIVE) != 0)
+	ivec4 data_m = data & dataMask;
+
+	if ((data_m.x & FACE_ACTIVE) != 0)
 		faceColor = colorFaceSelect;
-	else if ((data.x & FACE_SELECTED) != 0)
+	else if ((data_m.x & FACE_SELECTED) != 0)
 		faceColor = colorFaceSelect;
-	else if ((data.x & FACE_FREESTYLE) != 0)
+	else if ((data_m.x & FACE_FREESTYLE) != 0)
 		faceColor = colorFaceFreestyle;
 	else
 		faceColor = colorFace;

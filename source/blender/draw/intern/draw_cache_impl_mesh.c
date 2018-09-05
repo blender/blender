@@ -1331,29 +1331,6 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 	return true;
 }
 
-
-/* First 2 bytes are bit flags
- * 3rd is for sharp edges
- * 4rd is for creased edges */
-enum {
-	VFLAG_VERTEX_ACTIVE   = 1 << 0,
-	VFLAG_VERTEX_SELECTED = 1 << 1,
-	VFLAG_FACE_ACTIVE     = 1 << 2,
-	VFLAG_FACE_SELECTED   = 1 << 3,
-	VFLAG_FACE_FREESTYLE  = 1 << 4,
-};
-
-enum {
-	VFLAG_EDGE_EXISTS   = 1 << 0,
-	VFLAG_EDGE_ACTIVE   = 1 << 1,
-	VFLAG_EDGE_SELECTED = 1 << 2,
-	VFLAG_EDGE_SEAM     = 1 << 3,
-	VFLAG_EDGE_SHARP    = 1 << 4,
-	VFLAG_EDGE_FREESTYLE = 1 << 5,
-	/* Beware to not go over 1 << 7
-	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
-};
-
 static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *efa)
 {
 	uchar fflag = 0;

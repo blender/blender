@@ -220,6 +220,11 @@ void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const
 	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize);
 }
 
+void DRW_shgroup_uniform_ivec4(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
+{
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 4, arraysize);
+}
+
 void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float (*value)[3])
 {
 	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, (float *)value, 9, 1);

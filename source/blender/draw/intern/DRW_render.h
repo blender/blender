@@ -405,6 +405,7 @@ void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const 
 void DRW_shgroup_uniform_int(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
 void DRW_shgroup_uniform_ivec2(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
 void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
+void DRW_shgroup_uniform_ivec4(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize);
 void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float (*value)[3]);
 void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float (*value)[4]);
 /* Store value instead of referencing it. */
