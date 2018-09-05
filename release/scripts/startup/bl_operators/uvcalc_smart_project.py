@@ -756,11 +756,10 @@ def main(context,
     USER_FILL_HOLES_QUALITY = 50  # Only for hole filling.
     USER_VIEW_INIT = 0  # Only for hole filling.
 
+    obList = [ob for ob in context.selected_editable_objects if ob and ob.type == 'MESH']
     is_editmode = (context.active_object.mode == 'EDIT')
-    if is_editmode:
-        obList = [ob for ob in [context.active_object] if ob and ob.type == 'MESH']
-    else:
-        obList = [ob for ob in context.selected_editable_objects if ob and ob.type == 'MESH']
+
+    if not is_editmode:
         USER_ONLY_SELECTED_FACES = False
 
     if not obList:
