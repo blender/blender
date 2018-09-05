@@ -1499,222 +1499,249 @@ static void UV_OT_select_less(wmOperatorType *ot)
 
 static void uv_weld_align(bContext *C, int tool)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	SpaceImage *sima;
-	Scene *scene;
-	Image *ima;
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
+	Image *ima = CTX_data_edit_image(C);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 	float cent[2], min[2], max[2];
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-	scene = CTX_data_scene(C);
-	ima = CTX_data_edit_image(C);
-	sima = CTX_wm_space_image(C);
 
 	INIT_MINMAX2(min, max);
 
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
 	if (tool == 'a') {
-		BMIter iter, liter;
-		BMFace *efa;
-		BMLoop *l;
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *obedit = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+			if (synced_selection && (em->bm->totvertsel == 0)) {
 				continue;
+			}
 
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					minmax_v2v2_v2(min, max, luv->uv);
+			const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+			BMIter iter, liter;
+			BMFace *efa;
+			BMLoop *l;
+
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+					continue;
+
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+						minmax_v2v2_v2(min, max, luv->uv);
+					}
 				}
 			}
 		}
-
 		tool = (max[0] - min[0] >= max[1] - min[1]) ? 'y' : 'x';
 	}
 
-	ED_uvedit_center(scene, ima, obedit, cent, 0);
+	ED_uvedit_center_multi(scene, ima, objects, objects_len, cent, 0);
 
-	if (tool == 'x' || tool == 'w') {
-		BMIter iter, liter;
-		BMFace *efa;
-		BMLoop *l;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		bool changed = false;
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-				continue;
-
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					luv->uv[0] = cent[0];
-				}
-
-			}
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
 		}
-	}
 
-	if (tool == 'y' || tool == 'w') {
-		BMIter iter, liter;
-		BMFace *efa;
-		BMLoop *l;
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-				continue;
+		if (tool == 'x' || tool == 'w') {
+			BMIter iter, liter;
+			BMFace *efa;
+			BMLoop *l;
 
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					luv->uv[1] = cent[1];
-				}
-
-			}
-		}
-	}
-
-	if (tool == 's' || tool == 't' || tool == 'u') {
-		BMEdge *eed;
-		BMLoop *l;
-		BMVert *eve;
-		BMVert *eve_start;
-		BMIter iter, liter, eiter;
-
-		/* clear tag */
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
-
-		/* tag verts with a selected UV */
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_ITER_ELEM (l, &liter, eve, BM_LOOPS_OF_VERT) {
-				if (!uvedit_face_visible_test(scene, obedit, ima, l->f))
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!uvedit_face_visible_test(scene, obedit, ima, efa))
 					continue;
 
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					BM_elem_flag_enable(eve, BM_ELEM_TAG);
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+						luv->uv[0] = cent[0];
+						changed = true;
+					}
+
+				}
+			}
+		}
+
+		if (tool == 'y' || tool == 'w') {
+			BMIter iter, liter;
+			BMFace *efa;
+			BMLoop *l;
+
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+					continue;
+
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+						luv->uv[1] = cent[1];
+						changed = true;
+					}
+
+				}
+			}
+		}
+
+		if (tool == 's' || tool == 't' || tool == 'u') {
+			BMEdge *eed;
+			BMLoop *l;
+			BMVert *eve;
+			BMVert *eve_start;
+			BMIter iter, liter, eiter;
+
+			/* clear tag */
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+			/* tag verts with a selected UV */
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+				BM_ITER_ELEM (l, &liter, eve, BM_LOOPS_OF_VERT) {
+					if (!uvedit_face_visible_test(scene, obedit, ima, l->f))
+						continue;
+
+					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+						BM_elem_flag_enable(eve, BM_ELEM_TAG);
+						break;
+					}
+				}
+			}
+
+			/* flush vertex tags to edges */
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(
+				            eed, BM_ELEM_TAG,
+				            (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) &&
+				             BM_elem_flag_test(eed->v2, BM_ELEM_TAG)));
+			}
+
+			/* find a vertex with only one tagged edge */
+			eve_start = NULL;
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+				int tot_eed_tag = 0;
+				BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
+					if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
+						tot_eed_tag++;
+					}
+				}
+
+				if (tot_eed_tag == 1) {
+					eve_start = eve;
 					break;
 				}
 			}
-		}
 
-		/* flush vertex tags to edges */
-		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_set(
-			        eed, BM_ELEM_TAG,
-			        (BM_elem_flag_test(eed->v1, BM_ELEM_TAG) &&
-			         BM_elem_flag_test(eed->v2, BM_ELEM_TAG)));
-		}
+			if (eve_start) {
+				BMVert **eve_line = NULL;
+				BMVert *eve_next = NULL;
+				BLI_array_declare(eve_line);
+				int i;
 
-		/* find a vertex with only one tagged edge */
-		eve_start = NULL;
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			int tot_eed_tag = 0;
-			BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
-				if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
-					tot_eed_tag++;
+				eve = eve_start;
+
+				/* walk over edges, building an array of verts in a line */
+				while (eve) {
+					BLI_array_append(eve_line, eve);
+					/* don't touch again */
+					BM_elem_flag_disable(eve, BM_ELEM_TAG);
+
+					eve_next = NULL;
+
+					/* find next eve */
+					BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
+						if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
+							BMVert *eve_other = BM_edge_other_vert(eed, eve);
+							if (BM_elem_flag_test(eve_other, BM_ELEM_TAG)) {
+								/* this is a tagged vert we didnt walk over yet, step onto it */
+								eve_next = eve_other;
+								break;
+							}
+						}
+					}
+
+					eve = eve_next;
 				}
-			}
 
-			if (tot_eed_tag == 1) {
-				eve_start = eve;
-				break;
-			}
-		}
+				/* now we have all verts, make into a line */
+				if (BLI_array_len(eve_line) > 2) {
 
-		if (eve_start) {
-			BMVert **eve_line = NULL;
-			BMVert *eve_next = NULL;
-			BLI_array_declare(eve_line);
-			int i;
+					/* we know the returns from these must be valid */
+					const float *uv_start = uv_sel_co_from_eve(
+							scene, obedit, ima, em, eve_line[0]);
+					const float *uv_end   = uv_sel_co_from_eve(
+							scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
+					/* For t & u modes */
+					float a = 0.0f;
+					int tool_local = tool;
 
-			eve = eve_start;
+					if (tool_local == 't') {
+						if (uv_start[1] == uv_end[1])
+							tool_local = 's';
+						else
+							a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
+					}
+					else if (tool_local == 'u') {
+						if (uv_start[0] == uv_end[0])
+							tool_local = 's';
+						else
+							a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
+					}
 
-			/* walk over edges, building an array of verts in a line */
-			while (eve) {
-				BLI_array_append(eve_line, eve);
-				/* don't touch again */
-				BM_elem_flag_disable(eve, BM_ELEM_TAG);
+					/* go over all verts except for endpoints */
+					for (i = 0; i < BLI_array_len(eve_line); i++) {
+						BM_ITER_ELEM (l, &liter, eve_line[i], BM_LOOPS_OF_VERT) {
+							if (!uvedit_face_visible_test(scene, obedit, ima, l->f))
+								continue;
 
-				eve_next = NULL;
-
-				/* find next eve */
-				BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
-					if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
-						BMVert *eve_other = BM_edge_other_vert(eed, eve);
-						if (BM_elem_flag_test(eve_other, BM_ELEM_TAG)) {
-							/* this is a tagged vert we didnt walk over yet, step onto it */
-							eve_next = eve_other;
-							break;
+							if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+								MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+								/* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
+								 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
+								 * Maybe this should be a BLI func? Or is it already existing?
+								 * Could use interp_v2_v2v2, but not sure it's worth it here...*/
+								if (tool_local == 't')
+									luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
+								else if (tool_local == 'u')
+									luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
+								else
+									closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
+								changed = true;
+							}
 						}
 					}
 				}
-
-				eve = eve_next;
-			}
-
-			/* now we have all verts, make into a line */
-			if (BLI_array_len(eve_line) > 2) {
-
-				/* we know the returns from these must be valid */
-				const float *uv_start = uv_sel_co_from_eve(
-				        scene, obedit, ima, em, eve_line[0]);
-				const float *uv_end   = uv_sel_co_from_eve(
-				        scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
-				/* For t & u modes */
-				float a = 0.0f;
-
-				if (tool == 't') {
-					if (uv_start[1] == uv_end[1])
-						tool = 's';
-					else
-						a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
-				}
-				else if (tool == 'u') {
-					if (uv_start[0] == uv_end[0])
-						tool = 's';
-					else
-						a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
+				else {
+					/* error - not a line, needs 3+ points  */
 				}
 
-				/* go over all verts except for endpoints */
-				for (i = 0; i < BLI_array_len(eve_line); i++) {
-					BM_ITER_ELEM (l, &liter, eve_line[i], BM_LOOPS_OF_VERT) {
-						if (!uvedit_face_visible_test(scene, obedit, ima, l->f))
-							continue;
-
-						if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-							MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-							/* Projection of point (x, y) over line (x1, y1, x2, y2) along X axis:
-							 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
-							 * Maybe this should be a BLI func? Or is it already existing?
-							 * Could use interp_v2_v2v2, but not sure it's worth it here...*/
-							if (tool == 't')
-								luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
-							else if (tool == 'u')
-								luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
-							else
-								closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
-						}
-					}
+				if (eve_line) {
+					MEM_freeN(eve_line);
 				}
 			}
 			else {
-				/* error - not a line, needs 3+ points  */
-			}
-
-			if (eve_line) {
-				MEM_freeN(eve_line);
+				/* error - cant find an endpoint */
 			}
 		}
-		else {
-			/* error - cant find an endpoint */
+
+		if (changed) {
+			uvedit_live_unwrap_update(sima, scene, obedit);
+			DEG_id_tag_update(obedit->data, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 		}
 	}
 
-
-	uvedit_live_unwrap_update(sima, scene, obedit);
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	MEM_freeN(objects);
 }
 
 static int uv_align_exec(bContext *C, wmOperator *op)
