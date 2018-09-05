@@ -58,7 +58,7 @@ public:
 	void deinitExecution();
 
 	/**
-	 * @brief set the TexMapping settings
+	 * \brief set the TexMapping settings
 	 */
 	void setSettings(TexMapping *settings) { this->m_settings = settings; }
 

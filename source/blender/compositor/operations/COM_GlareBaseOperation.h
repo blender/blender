@@ -39,12 +39,12 @@ typedef float fRGB[4];
 class GlareBaseOperation : public SingleThreadedOperation {
 private:
 	/**
-	 * @brief Cached reference to the inputProgram
+	 * \brief Cached reference to the inputProgram
 	 */
 	SocketReader *m_inputProgram;
 
 	/**
-	 * @brief settings of the glare node.
+	 * \brief settings of the glare node.
 	 */
 	NodeGlare *m_settings;
 public:

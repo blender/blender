@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DifferenceMatteNode
- * @ingroup Node
+ * \brief DifferenceMatteNode
+ * \ingroup Node
  */
 class DifferenceMatteNode : public Node {
 public:

@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DistanceMatteNode
- * @ingroup Node
+ * \brief DistanceMatteNode
+ * \ingroup Node
  */
 class DistanceMatteNode : public Node {
 public:

@@ -24,8 +24,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief KeyingNode
- * @ingroup Node
+ * \brief KeyingNode
+ * \ingroup Node
  */
 class KeyingNode : public Node {
 protected:

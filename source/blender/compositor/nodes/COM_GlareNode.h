@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief GlareNode
- * @ingroup Node
+ * \brief GlareNode
+ * \ingroup Node
  */
 class GlareNode : public Node {
 public:

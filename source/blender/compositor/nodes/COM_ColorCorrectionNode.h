@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ColorCorrectionNode
- * @ingroup Node
+ * \brief ColorCorrectionNode
+ * \ingroup Node
  */
 class ColorCorrectionNode : public Node {
 public:

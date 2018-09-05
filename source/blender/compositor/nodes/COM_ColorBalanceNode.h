@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ColorBalanceNode
- * @ingroup Node
+ * \brief ColorBalanceNode
+ * \ingroup Node
  */
 class ColorBalanceNode : public Node {
 public:

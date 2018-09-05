@@ -269,12 +269,12 @@ protected:
 	 * Saves screenshot data to a file. The actual compression and disk I/O is performed in
 	 * a separate thread.
 	 *
-	 * @param filename name of the file, can contain "###" for sequential numbering. A copy of the string
+	 * \param filename name of the file, can contain "###" for sequential numbering. A copy of the string
 	 *                 is made, so the pointer can be freed by the caller.
-	 * @param dumpsx width in pixels.
-	 * @param dumpsy height in pixels.
-	 * @param dumprect pixel data; ownership is passed to this function, which also frees the data.
-	 * @param im_format image format for the file; ownership is passed to this function, which also frees the data.
+	 * \param dumpsx width in pixels.
+	 * \param dumpsy height in pixels.
+	 * \param dumprect pixel data; ownership is passed to this function, which also frees the data.
+	 * \param im_format image format for the file; ownership is passed to this function, which also frees the data.
 	 */
 	void save_screenshot(const char *filename, int dumpsx, int dumpsy, unsigned int *dumprect,
 	                     ImageFormatData * im_format);

@@ -27,8 +27,8 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief Stabilize2dNode
- * @ingroup Node
+ * \brief Stabilize2dNode
+ * \ingroup Node
  */
 class Stabilize2dNode : public Node {
 public:

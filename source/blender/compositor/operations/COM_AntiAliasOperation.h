@@ -26,14 +26,14 @@
 #include "DNA_node_types.h"
 
 /**
- * @brief AntiAlias operations
+ * \brief AntiAlias operations
  * it only supports anti aliasing on BW buffers.
- * @ingroup operation
+ * \ingroup operation
  */
 class AntiAliasOperation : public NodeOperation {
 protected:
 	/**
-	 * @brief Cached reference to the reader
+	 * \brief Cached reference to the reader
 	 */
 	SocketReader *m_valueReader;
 public:

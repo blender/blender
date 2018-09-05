@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief HueSaturationValueCorrectNode
- * @ingroup Node
+ * \brief HueSaturationValueCorrectNode
+ * \ingroup Node
  */
 class HueSaturationValueCorrectNode : public Node {
 public:

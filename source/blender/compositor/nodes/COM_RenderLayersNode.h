@@ -27,8 +27,8 @@
 struct Render;
 
 /**
- * @brief RenderLayersNode
- * @ingroup Node
+ * \brief RenderLayersNode
+ * \ingroup Node
  */
 class RenderLayersNode : public Node {
 public:

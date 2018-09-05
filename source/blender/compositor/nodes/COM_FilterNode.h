@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief FilterNode
- * @ingroup Node
+ * \brief FilterNode
+ * \ingroup Node
  */
 class FilterNode : public Node {
 public:

@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief InpaintNode
- * @ingroup Node
+ * \brief InpaintNode
+ * \ingroup Node
  */
 class InpaintNode : public Node {
 public:

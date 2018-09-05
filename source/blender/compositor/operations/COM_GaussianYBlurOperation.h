@@ -47,7 +47,7 @@ public:
 	                   list<cl_kernel> *clKernelsToCleanUp);
 
 	/**
-	 * @brief initialize the execution
+	 * \brief initialize the execution
 	 */
 	void initExecution();
 

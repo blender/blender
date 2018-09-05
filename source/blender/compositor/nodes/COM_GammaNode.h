@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief GammaNode
- * @ingroup Node
+ * \brief GammaNode
+ * \ingroup Node
  */
 class GammaNode : public Node {
 public:

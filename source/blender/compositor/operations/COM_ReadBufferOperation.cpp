@@ -44,7 +44,7 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[2], unsign
 		operation->determineResolution(resolution, preferredResolution);
 		operation->setResolution(resolution);
 
-		/// @todo: may not occur!, but does with blur node
+		/// \todo: may not occur!, but does with blur node
 		if (this->m_memoryProxy->getExecutor()) {
 			this->m_memoryProxy->getExecutor()->setResolution(resolution);
 		}

@@ -33,23 +33,23 @@ class ExecutionGroup;
 #include "COM_NodeOperation.h"
 
 /**
- * @page execution Execution model
+ * \page execution Execution model
  * In order to get to an efficient model for execution, several steps are being done. these steps are explained below.
  *
- * @section EM_Step1 Step 1: translating blender node system to the new compsitor system
+ * \section EM_Step1 Step 1: translating blender node system to the new compsitor system
  * Blenders node structure is based on C structs (DNA). These structs are not efficient in the new architecture.
  * We want to use classes in order to simplify the system.
  * during this step the blender node_tree is evaluated and converted to a CPP node system.
  *
- * @see ExecutionSystem
- * @see Converter.convert
- * @see Node
+ * \see ExecutionSystem
+ * \see Converter.convert
+ * \see Node
  *
- * @section EM_Step2 Step2: translating nodes to operations
+ * \section EM_Step2 Step2: translating nodes to operations
  * Ungrouping the GroupNodes. Group nodes are node_tree's in node_tree's.
  * The new system only supports a single level of node_tree. We will 'flatten' the system in a single level.
- * @see GroupNode
- * @see ExecutionSystemHelper.ungroup
+ * \see GroupNode
+ * \see ExecutionSystemHelper.ungroup
  *
  * Every node has the ability to convert itself to operations. The node itself is responsible to create a correct
  * NodeOperation setup based on its internal settings.
@@ -59,11 +59,11 @@ class ExecutionGroup;
  * based on the selected Mixtype a different operation will be used.
  * for more information see the page about creating new Nodes. [@subpage newnode]
  *
- * @see ExecutionSystem.convertToOperations
- * @see Node.convertToOperations
- * @see NodeOperation base class for all operations in the system
+ * \see ExecutionSystem.convertToOperations
+ * \see Node.convertToOperations
+ * \see NodeOperation base class for all operations in the system
  *
- * @section EM_Step3 Step3: add additional conversions to the operation system
+ * \section EM_Step3 Step3: add additional conversions to the operation system
  *   - Data type conversions: the system has 3 data types COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR.
  *     The user can connect a Value socket to a color socket.
  *     As values are ordered differently than colors a conversion happens.
@@ -77,10 +77,10 @@ class ExecutionGroup;
  *     - [@ref InputSocketResizeMode.COM_SC_STRETCH]: The width and the height of both images are aligned
  *     - [@ref InputSocketResizeMode.COM_SC_NO_RESIZE]: bottom left of the images are aligned.
  *
- * @see Converter.convertDataType Datatype conversions
- * @see Converter.convertResolution Image size conversions
+ * \see Converter.convertDataType Datatype conversions
+ * \see Converter.convertResolution Image size conversions
  *
- * @section EM_Step4 Step4: group operations in executions groups
+ * \section EM_Step4 Step4: group operations in executions groups
  * ExecutionGroup are groups of operations that are calculated as being one bigger operation.
  * All operations will be part of an ExecutionGroup.
  * Complex nodes will be added to separate groups. Between ExecutionGroup's the data will be stored in MemoryBuffers.
@@ -101,14 +101,14 @@ class ExecutionGroup;
  * |cFAA  |           |cFAA  |         |cFAA   |           |cFAA   |
  * +------+           +------+         +-------+           +-------+
  * </pre>
- * @see ExecutionSystem.groupOperations method doing this step
- * @see ExecutionSystem.addReadWriteBufferOperations
- * @see NodeOperation.isComplex
- * @see ExecutionGroup class representing the ExecutionGroup
+ * \see ExecutionSystem.groupOperations method doing this step
+ * \see ExecutionSystem.addReadWriteBufferOperations
+ * \see NodeOperation.isComplex
+ * \see ExecutionGroup class representing the ExecutionGroup
  */
 
 /**
- * @brief the ExecutionSystem contains the whole compositor tree.
+ * \brief the ExecutionSystem contains the whole compositor tree.
  */
 class ExecutionSystem {
 public:
@@ -117,17 +117,17 @@ public:
 
 private:
 	/**
-	 * @brief the context used during execution
+	 * \brief the context used during execution
 	 */
 	CompositorContext m_context;
 
 	/**
-	 * @brief vector of operations
+	 * \brief vector of operations
 	 */
 	Operations m_operations;
 
 	/**
-	 * @brief vector of groups
+	 * \brief vector of groups
 	 */
 	Groups m_groups;
 
@@ -144,11 +144,11 @@ private: //methods
 
 public:
 	/**
-	 * @brief Create a new ExecutionSystem and initialize it with the
+	 * \brief Create a new ExecutionSystem and initialize it with the
 	 * editingtree.
 	 *
-	 * @param editingtree [bNodeTree *]
-	 * @param rendering [true false]
+	 * \param editingtree [bNodeTree *]
+	 * \param rendering [true false]
 	 */
 	ExecutionSystem(RenderData *rd, Scene *scene, bNodeTree *editingtree, bool rendering, bool fastcalculation,
 	                const ColorManagedViewSettings *viewSettings, const ColorManagedDisplaySettings *displaySettings,
@@ -162,7 +162,7 @@ public:
 	void set_operations(const Operations &operations, const Groups &groups);
 
 	/**
-	 * @brief execute this system
+	 * \brief execute this system
 	 *  - initialize the NodeOperation's and ExecutionGroup's
 	 *  - schedule the output ExecutionGroup's based on their priority
 	 *  - deinitialize the ExecutionGroup's and NodeOperation's
@@ -170,7 +170,7 @@ public:
 	void execute();
 
 	/**
-	 * @brief get the reference to the compositor context
+	 * \brief get the reference to the compositor context
 	 */
 	const CompositorContext &getContext() const { return this->m_context; }
 

@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief TranslateNode
- * @ingroup Node
+ * \brief TranslateNode
+ * \ingroup Node
  */
 class TranslateNode : public Node {
 public:

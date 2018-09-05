@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
- * @brief MapValueNode
- * @ingroup Node
+ * \brief MapValueNode
+ * \ingroup Node
  */
 class MapValueNode : public Node {
 public:

@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ChannelMatteNode
- * @ingroup Node
+ * \brief ChannelMatteNode
+ * \ingroup Node
  */
 class ChannelMatteNode : public Node {
 public:

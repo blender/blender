@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief LensDistortionNode
- * @ingroup Node
+ * \brief LensDistortionNode
+ * \ingroup Node
  */
 class LensDistortionNode : public Node {
 public:

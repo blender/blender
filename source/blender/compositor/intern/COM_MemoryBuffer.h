@@ -35,15 +35,15 @@ extern "C" {
 }
 
 /**
- * @brief state of a memory buffer
- * @ingroup Memory
+ * \brief state of a memory buffer
+ * \ingroup Memory
  */
 typedef enum MemoryBufferState {
-	/** @brief memory has been allocated on creator device and CPU machine, but kernel has not been executed */
+	/** \brief memory has been allocated on creator device and CPU machine, but kernel has not been executed */
 	COM_MB_ALLOCATED = 1,
-	/** @brief memory is available for use, content has been created */
+	/** \brief memory is available for use, content has been created */
 	COM_MB_AVAILABLE = 2,
-	/** @brief chunk is consolidated from other chunks. special state.*/
+	/** \brief chunk is consolidated from other chunks. special state.*/
 	COM_MB_TEMPORARILY = 6
 } MemoryBufferState;
 
@@ -56,44 +56,44 @@ typedef enum MemoryBufferExtend {
 class MemoryProxy;
 
 /**
- * @brief a MemoryBuffer contains access to the data of a chunk
+ * \brief a MemoryBuffer contains access to the data of a chunk
  */
 class MemoryBuffer {
 private:
 	/**
-	 * @brief proxy of the memory (same for all chunks in the same buffer)
+	 * \brief proxy of the memory (same for all chunks in the same buffer)
 	 */
 	MemoryProxy *m_memoryProxy;
 
 	/**
-	 * @brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
+	 * \brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
 	 */
 	DataType m_datatype;
 
 
 	/**
-	 * @brief region of this buffer inside relative to the MemoryProxy
+	 * \brief region of this buffer inside relative to the MemoryProxy
 	 */
 	rcti m_rect;
 
 	/**
 	 * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
-	 * @see memoryProxy
+	 * \see memoryProxy
 	 */
 	unsigned int m_chunkNumber;
 
 	/**
-	 * @brief state of the buffer
+	 * \brief state of the buffer
 	 */
 	MemoryBufferState m_state;
 
 	/**
-	 * @brief the actual float buffer/data
+	 * \brief the actual float buffer/data
 	 */
 	float *m_buffer;
 
 	/**
-	 * @brief the number of channels of a single value in the buffer.
+	 * \brief the number of channels of a single value in the buffer.
 	 * For value buffers this is 1, vector 3 and color 4
 	 */
 	unsigned int m_num_channels;
@@ -103,40 +103,40 @@ private:
 
 public:
 	/**
-	 * @brief construct new MemoryBuffer for a chunk
+	 * \brief construct new MemoryBuffer for a chunk
 	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
 
 	/**
-	 * @brief construct new temporarily MemoryBuffer for an area
+	 * \brief construct new temporarily MemoryBuffer for an area
 	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
 
 	/**
-	 * @brief construct new temporarily MemoryBuffer for an area
+	 * \brief construct new temporarily MemoryBuffer for an area
 	 */
 	MemoryBuffer(DataType datatype, rcti *rect);
 
 	/**
-	 * @brief destructor
+	 * \brief destructor
 	 */
 	~MemoryBuffer();
 
 	/**
-	 * @brief read the ChunkNumber of this MemoryBuffer
+	 * \brief read the ChunkNumber of this MemoryBuffer
 	 */
 	unsigned int getChunkNumber() { return this->m_chunkNumber; }
 
 	unsigned int get_num_channels() { return this->m_num_channels; }
 
 	/**
-	 * @brief get the data of this MemoryBuffer
-	 * @note buffer should already be available in memory
+	 * \brief get the data of this MemoryBuffer
+	 * \note buffer should already be available in memory
 	 */
 	float *getBuffer() { return this->m_buffer; }
 
 	/**
-	 * @brief after execution the state will be set to available by calling this method
+	 * \brief after execution the state will be set to available by calling this method
 	 */
 	void setCreatedState()
 	{
@@ -273,36 +273,36 @@ public:
 	void readEWA(float *result, const float uv[2], const float derivatives[2][2]);
 
 	/**
-	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
+	 * \brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
 	 */
 	inline const bool isTemporarily() const { return this->m_state == COM_MB_TEMPORARILY; }
 
 	/**
-	 * @brief add the content from otherBuffer to this MemoryBuffer
-	 * @param otherBuffer source buffer
+	 * \brief add the content from otherBuffer to this MemoryBuffer
+	 * \param otherBuffer source buffer
 	 *
-	 * @note take care when running this on a new buffer since it wont fill in
+	 * \note take care when running this on a new buffer since it wont fill in
 	 *       uninitialized values in areas where the buffers don't overlap.
 	 */
 	void copyContentFrom(MemoryBuffer *otherBuffer);
 
 	/**
-	 * @brief get the rect of this MemoryBuffer
+	 * \brief get the rect of this MemoryBuffer
 	 */
 	rcti *getRect() { return &this->m_rect; }
 
 	/**
-	 * @brief get the width of this MemoryBuffer
+	 * \brief get the width of this MemoryBuffer
 	 */
 	int getWidth() const;
 
 	/**
-	 * @brief get the height of this MemoryBuffer
+	 * \brief get the height of this MemoryBuffer
 	 */
 	int getHeight() const;
 
 	/**
-	 * @brief clear the buffer. Make all pixels black transparent.
+	 * \brief clear the buffer. Make all pixels black transparent.
 	 */
 	void clear();
 

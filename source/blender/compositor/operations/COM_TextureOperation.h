@@ -37,7 +37,7 @@ extern "C" {
 /**
  * Base class for all renderlayeroperations
  *
- * @todo: rename to operation.
+ * \todo: rename to operation.
  */
 class TextureBaseOperation : public NodeOperation {
 private:

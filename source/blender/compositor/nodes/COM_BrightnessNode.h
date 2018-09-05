@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief BrightnessNode
- * @ingroup Node
+ * \brief BrightnessNode
+ * \ingroup Node
  */
 class BrightnessNode : public Node {
 public:

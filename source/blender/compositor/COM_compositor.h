@@ -31,26 +31,26 @@ extern "C" {
 #include "DNA_node_types.h"
 
 /**
- * @defgroup Model The data model of the compositor
- * @defgroup Memory The memory management stuff
- * @defgroup Execution The execution logic
- * @defgroup Conversion Conversion logic
- * @defgroup Node All nodes of the compositor
- * @defgroup Operation All operations of the compositor
+ * \defgroup Model The data model of the compositor
+ * \defgroup Memory The memory management stuff
+ * \defgroup Execution The execution logic
+ * \defgroup Conversion Conversion logic
+ * \defgroup Node All nodes of the compositor
+ * \defgroup Operation All operations of the compositor
  *
- * @page Introduction of the Blender Compositor
+ * \page Introduction of the Blender Compositor
  *
- * @section bcomp Blender compositor
+ * \section bcomp Blender compositor
  * This project redesigns the internals of Blender's compositor. The project has been executed in 2011 by At Mind.
  * At Mind is a technology company located in Amsterdam, The Netherlands.
  * The project has been crowd-funded. This code has been released under GPL2 to be used in Blender.
  *
- * @section goals The goals of the project
+ * \section goals The goals of the project
  * the new compositor has 2 goals.
  *   - Make a faster compositor (speed of calculation)
  *   - Make the compositor work faster for you (workflow)
  *
- * @section speed Faster compositor
+ * \section speed Faster compositor
  * The speedup has been done by making better use of the hardware Blenders is working on. The previous compositor only
  * used a single threaded model to calculate a node. The only exception to this is the Defocus node.
  * Only when it is possible to calculate two full nodes in parallel a second thread was used.
@@ -59,27 +59,27 @@ extern "C" {
  * In the new compositor we want to use as much of threads as possible. Even new OpenCL capable GPU-hardware can be
  * used for calculation.
  *
- * @section workflow Work faster
+ * \section workflow Work faster
  * The previous compositor only showed the final image. The compositor could wait a long time before seeing the result
  * of his work. The new compositor will work in a way that it will focus on getting information back to the user.
  * It will prioritize its work to get earlier user feedback.
  *
- * @page memory Memory model
+ * \page memory Memory model
  * The main issue is the type of memory model to use. Blender is used by consumers and professionals.
  * Ranging from low-end machines to very high-end machines.
  * The system should work on high-end machines and on low-end machines.
  *
  *
- * @page executing Executing
- * @section prepare Prepare execution
+ * \page executing Executing
+ * \section prepare Prepare execution
  *
  * during the preparation of the execution All ReadBufferOperation will receive an offset.
  * This offset is used during execution as an optimization trick
- * Next all operations will be initialized for execution @see NodeOperation.initExecution
- * Next all ExecutionGroup's will be initialized for execution @see ExecutionGroup.initExecution
- * this all is controlled from @see ExecutionSystem.execute
+ * Next all operations will be initialized for execution \see NodeOperation.initExecution
+ * Next all ExecutionGroup's will be initialized for execution \see ExecutionGroup.initExecution
+ * this all is controlled from \see ExecutionSystem.execute
  *
- * @section priority Render priority
+ * \section priority Render priority
  * Render priority is an priority of an output node. A user has a different need of Render priorities of output nodes
  * than during editing.
  * for example. the Active ViewerNode has top priority during editing, but during rendering a CompositeNode has.
@@ -88,11 +88,11 @@ extern "C" {
  * priority do match.
  * When match the ExecutionGroup will be executed (this happens in serial)
  *
- * @see ExecutionSystem.execute control of the Render priority
- * @see NodeOperation.getRenderPriority receive the render priority
- * @see ExecutionGroup.execute the main loop to execute a whole ExecutionGroup
+ * \see ExecutionSystem.execute control of the Render priority
+ * \see NodeOperation.getRenderPriority receive the render priority
+ * \see ExecutionGroup.execute the main loop to execute a whole ExecutionGroup
  *
- * @section order Chunk order
+ * \section order Chunk order
  *
  * When a ExecutionGroup is executed, first the order of chunks are determined.
  * The settings are stored in the ViewerNode inside the ExecutionGroup. ExecutionGroups that have no viewer-node,
@@ -109,11 +109,11 @@ extern "C" {
  *  - [@ref ChunkExecutionState.COM_ES_SCHEDULED]: All dependencies are met, chunk is scheduled, but not finished
  *  - [@ref ChunkExecutionState.COM_ES_EXECUTED]: Chunk is finished
  *
- * @see ExecutionGroup.execute
- * @see ViewerOperation.getChunkOrder
- * @see OrderOfChunks
+ * \see ExecutionGroup.execute
+ * \see ViewerOperation.getChunkOrder
+ * \see OrderOfChunks
  *
- * @section interest Area of interest
+ * \section interest Area of interest
  * An ExecutionGroup can have dependencies to other ExecutionGroup's. Data passing from one ExecutionGroup to another
  * one are stored in 'chunks'.
  * If not all input chunks are available the chunk execution will not be scheduled.
@@ -206,40 +206,40 @@ extern "C" {
  *
  * </pre>
  *
- * @see ExecutionGroup.execute Execute a complete ExecutionGroup. Halts until finished or breaked by user
- * @see ExecutionGroup.scheduleChunkWhenPossible Tries to schedule a single chunk,
+ * \see ExecutionGroup.execute Execute a complete ExecutionGroup. Halts until finished or breaked by user
+ * \see ExecutionGroup.scheduleChunkWhenPossible Tries to schedule a single chunk,
  * checks if all input data is available. Can trigger dependent chunks to be calculated
- * @see ExecutionGroup.scheduleAreaWhenPossible Tries to schedule an area. This can be multiple chunks
+ * \see ExecutionGroup.scheduleAreaWhenPossible Tries to schedule an area. This can be multiple chunks
  * (is called from [@ref ExecutionGroup.scheduleChunkWhenPossible])
- * @see ExecutionGroup.scheduleChunk Schedule a chunk on the WorkScheduler
- * @see NodeOperation.determineDependingAreaOfInterest Influence the area of interest of a chunk.
- * @see WriteBufferOperation Operation to write to a MemoryProxy/MemoryBuffer
- * @see ReadBufferOperation Operation to read from a MemoryProxy/MemoryBuffer
- * @see MemoryProxy proxy for information about memory image (a image consist out of multiple chunks)
- * @see MemoryBuffer Allocated memory for a single chunk
+ * \see ExecutionGroup.scheduleChunk Schedule a chunk on the WorkScheduler
+ * \see NodeOperation.determineDependingAreaOfInterest Influence the area of interest of a chunk.
+ * \see WriteBufferOperation Operation to write to a MemoryProxy/MemoryBuffer
+ * \see ReadBufferOperation Operation to read from a MemoryProxy/MemoryBuffer
+ * \see MemoryProxy proxy for information about memory image (a image consist out of multiple chunks)
+ * \see MemoryBuffer Allocated memory for a single chunk
  *
- * @section workscheduler WorkScheduler
+ * \section workscheduler WorkScheduler
  * the WorkScheduler is implemented as a static class. the responsibility of the WorkScheduler is to balance
  * WorkPackages to the available and free devices.
  * the work-scheduler can work in 2 states. For witching these between the state you need to recompile blender
  *
- * @subsection multithread Multi threaded
+ * \subsection multithread Multi threaded
  * Default the work-scheduler will place all work as WorkPackage in a queue.
  * For every CPUcore a working thread is created. These working threads will ask the WorkScheduler if there is work
  * for a specific Device.
  * the work-scheduler will find work for the device and the device will be asked to execute the WorkPackage
  *
- * @subsection singlethread Single threaded
+ * \subsection singlethread Single threaded
  * For debugging reasons the multi-threading can be disabled. This is done by changing the COM_CURRENT_THREADING_MODEL
  * to COM_TM_NOTHREAD. When compiling the work-scheduler
  * will be changes to support no threading and run everything on the CPU.
  *
- * @section devices Devices
+ * \section devices Devices
  * A Device within the compositor context is a Hardware component that can used to calculate chunks.
  * This chunk is encapsulated in a WorkPackage.
  * the WorkScheduler controls the devices and selects the device where a WorkPackage will be calculated.
  *
- * @subsection WS_Devices Workscheduler
+ * \subsection WS_Devices Workscheduler
  * The WorkScheduler controls all Devices. When initializing the compositor the WorkScheduler selects
  * all devices that will be used during compositor.
  * There are two types of Devices, CPUDevice and OpenCLDevice.
@@ -251,63 +251,63 @@ extern "C" {
  *
  * A thread will read the work-list and sends a workpackage to its device.
  *
- * @see WorkScheduler.schedule method that is called to schedule a chunk
- * @see Device.execute method called to execute a chunk
+ * \see WorkScheduler.schedule method that is called to schedule a chunk
+ * \see Device.execute method called to execute a chunk
  *
- * @subsection CPUDevice CPUDevice
+ * \subsection CPUDevice CPUDevice
  * When a CPUDevice gets a WorkPackage the Device will get the inputbuffer that is needed to calculate the chunk.
  * Allocation is already done by the ExecutionGroup.
  * The outputbuffer of the chunk is being created.
  * The OutputOperation of the ExecutionGroup is called to execute the area of the outputbuffer.
  *
- * @see ExecutionGroup
- * @see NodeOperation.executeRegion executes a single chunk of a NodeOperation
- * @see CPUDevice.execute
+ * \see ExecutionGroup
+ * \see NodeOperation.executeRegion executes a single chunk of a NodeOperation
+ * \see CPUDevice.execute
  *
- * @subsection GPUDevice OpenCLDevice
+ * \subsection GPUDevice OpenCLDevice
  *
  * To be completed!
- * @see NodeOperation.executeOpenCLRegion
- * @see OpenCLDevice.execute
+ * \see NodeOperation.executeOpenCLRegion
+ * \see OpenCLDevice.execute
  *
- * @section executePixel executing a pixel
+ * \section executePixel executing a pixel
  * Finally the last step, the node functionality :)
  *
- * @page newnode Creating new nodes
+ * \page newnode Creating new nodes
  */
 
 /**
- * @brief The main method that is used to execute the compositor tree.
+ * \brief The main method that is used to execute the compositor tree.
  * It can be executed during editing (blenkernel/node.c) or rendering
  * (renderer/pipeline.c)
  *
- * @param rd [struct RenderData]
+ * \param rd [struct RenderData]
  *   Render data for this composite, this won't always belong to a scene.
  *
- * @param editingtree [struct bNodeTree]
+ * \param editingtree [struct bNodeTree]
  *   reference to the compositor editing tree
  *
- * @param rendering [true false]
+ * \param rendering [true false]
  *    This parameter determines whether the function is called from rendering (true) or editing (false).
  *    based on this setting the system will work differently:
  *     - during rendering only Composite & the File output node will be calculated
- * @see NodeOperation.isOutputProgram(int rendering) of the specific operations
+ * \see NodeOperation.isOutputProgram(int rendering) of the specific operations
  *
  *     - during editing all output nodes will be calculated
- * @see NodeOperation.isOutputProgram(int rendering) of the specific operations
+ * \see NodeOperation.isOutputProgram(int rendering) of the specific operations
  *
  *     - another quality setting can be used bNodeTree. The quality is determined by the bNodeTree fields.
  *       quality can be modified by the user from within the node panels.
- * @see bNodeTree.edit_quality
- * @see bNodeTree.render_quality
+ * \see bNodeTree.edit_quality
+ * \see bNodeTree.render_quality
  *
  *     - output nodes can have different priorities in the WorkScheduler.
  * This is implemented in the COM_execute function.
  *
- * @param viewSettings
+ * \param viewSettings
  *   reference to view settings used for color management
  *
- * @param displaySettings
+ * \param displaySettings
  *   reference to display settings used for color management
  *
  * OCIO_TODO: this options only used in rare cases, namely in output file node,
@@ -320,13 +320,13 @@ void COM_execute(RenderData *rd, Scene *scene, bNodeTree *editingtree, int rende
                  const char *viewName);
 
 /**
- * @brief Deinitialize the compositor caches and allocated memory.
+ * \brief Deinitialize the compositor caches and allocated memory.
  * Use COM_clearCaches to only free the caches.
  */
 void COM_deinitialize(void);
 
 /**
- * @brief Clear all compositor caches. (Compositor system will still remain available).
+ * \brief Clear all compositor caches. (Compositor system will still remain available).
  * To deinitialize the compositor use the COM_deinitialize method.
  */
 // void COM_clearCaches(void); // NOT YET WRITTEN

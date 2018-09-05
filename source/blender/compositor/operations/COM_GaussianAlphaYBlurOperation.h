@@ -43,7 +43,7 @@ public:
 	void executePixel(float output[4], int x, int y, void *data);
 
 	/**
-	 * @brief initialize the execution
+	 * \brief initialize the execution
 	 */
 	void initExecution();
 

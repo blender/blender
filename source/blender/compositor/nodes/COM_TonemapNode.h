@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief TonemapNode
- * @ingroup Node
+ * \brief TonemapNode
+ * \ingroup Node
  */
 class TonemapNode : public Node {
 public:

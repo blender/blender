@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief SetAlphaNode
- * @ingroup Node
+ * \brief SetAlphaNode
+ * \ingroup Node
  */
 class SetAlphaNode : public Node {
 public:

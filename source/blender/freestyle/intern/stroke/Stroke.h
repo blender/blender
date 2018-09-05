@@ -583,8 +583,8 @@ public:
 	 *  \param iNVertices
 	 *    The number of StrokeVertices we eventually want in our Stroke.
 	 *  \return the sampling that must be used in the Resample(float) method.
-	 *  @see Resample(int)
-	 *  @see Resample(float)
+	 *  \see Resample(int)
+	 *  \see Resample(float)
 	 */
 	float ComputeSampling(int iNVertices);
 

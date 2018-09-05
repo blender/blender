@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief InvertNode
- * @ingroup Node
+ * \brief InvertNode
+ * \ingroup Node
  */
 class InvertNode : public Node {
 public:

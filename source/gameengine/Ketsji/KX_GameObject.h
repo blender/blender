@@ -523,7 +523,7 @@ public:
 		m_pGraphicController = graphiccontroller;
 	}
 	/*
-	 * @add/remove the graphic controller to the physic system
+	 * add/remove the graphic controller to the physic system
 	 */
 	void ActivateGraphicController(bool recurse);
 

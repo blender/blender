@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DoubleEdgeMaskNode
- * @ingroup Node
+ * \brief DoubleEdgeMaskNode
+ * \ingroup Node
  */
 class DoubleEdgeMaskNode : public Node {
 public:

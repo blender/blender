@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
- * @brief MixNode
- * @ingroup Node
+ * \brief MixNode
+ * \ingroup Node
  */
 class MixNode : public Node {
 public:

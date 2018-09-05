@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief SocketProxyNode
- * @ingroup Node
+ * \brief SocketProxyNode
+ * \ingroup Node
  */
 class SocketProxyNode : public Node {
 public:

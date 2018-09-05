@@ -25,8 +25,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief CryptomatteNode
- * @ingroup Node
+ * \brief CryptomatteNode
+ * \ingroup Node
  */
 class CryptomatteNode : public Node {
 public:

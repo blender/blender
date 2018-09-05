@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ScaleNode
- * @ingroup Node
+ * \brief ScaleNode
+ * \ingroup Node
  */
 class ScaleNode : public Node {
 public:

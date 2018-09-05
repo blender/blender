@@ -30,8 +30,8 @@ extern "C" {
 }
 
 /**
- * @brief ImageNode
- * @ingroup Node
+ * \brief ImageNode
+ * \ingroup Node
  */
 class ImageNode : public Node {
 private:

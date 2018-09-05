@@ -29,8 +29,8 @@ extern "C" {
 }
 
 /**
- * @brief CornerPinNode
- * @ingroup Node
+ * \brief CornerPinNode
+ * \ingroup Node
  */
 class CornerPinNode : public Node {
 public:

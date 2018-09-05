@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief DirectionalBlurNode
- * @ingroup Node
+ * \brief DirectionalBlurNode
+ * \ingroup Node
  */
 class DirectionalBlurNode : public Node {
 public:

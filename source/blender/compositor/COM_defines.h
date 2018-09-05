@@ -24,42 +24,42 @@
 #define __COM_DEFINES_H__
 
 /**
- * @brief possible data types for sockets
- * @ingroup Model
+ * \brief possible data types for sockets
+ * \ingroup Model
  */
 typedef enum DataType {
-	/** @brief Value data type */
+	/** \brief Value data type */
 	COM_DT_VALUE   = 1,
-	/** @brief Vector data type */
+	/** \brief Vector data type */
 	COM_DT_VECTOR  = 2,
-	/** @brief Color data type */
+	/** \brief Color data type */
 	COM_DT_COLOR   = 4
 } DataType;
 
 /**
- * @brief Possible quality settings
- * @see CompositorContext.quality
- * @ingroup Execution
+ * \brief Possible quality settings
+ * \see CompositorContext.quality
+ * \ingroup Execution
  */
 typedef enum CompositorQuality {
-	/** @brief High quality setting */
+	/** \brief High quality setting */
 	COM_QUALITY_HIGH   = 0,
-	/** @brief Medium quality setting */
+	/** \brief Medium quality setting */
 	COM_QUALITY_MEDIUM = 1,
-	/** @brief Low quality setting */
+	/** \brief Low quality setting */
 	COM_QUALITY_LOW    = 2
 } CompositorQuality;
 
 /**
- * @brief Possible priority settings
- * @ingroup Execution
+ * \brief Possible priority settings
+ * \ingroup Execution
  */
 typedef enum CompositorPriority {
-	/** @brief High quality setting */
+	/** \brief High quality setting */
 	COM_PRIORITY_HIGH   = 2,
-	/** @brief Medium quality setting */
+	/** \brief Medium quality setting */
 	COM_PRIORITY_MEDIUM = 1,
-	/** @brief Low quality setting */
+	/** \brief Low quality setting */
 	COM_PRIORITY_LOW    = 0
 } CompositorPriority;
 
@@ -87,17 +87,17 @@ typedef enum CompositorPriority {
 #define COM_CURRENT_THREADING_MODEL COM_TM_QUEUE
 // chunk order
 /**
- * @brief The order of chunks to be scheduled
- * @ingroup Execution
+ * \brief The order of chunks to be scheduled
+ * \ingroup Execution
  */
 typedef enum OrderOfChunks {
-	/** @brief order from a distance to centerX/centerY */
+	/** \brief order from a distance to centerX/centerY */
 	COM_TO_CENTER_OUT = 0,
-	/** @brief order randomly */
+	/** \brief order randomly */
 	COM_TO_RANDOM = 1,
-	/** @brief no ordering */
+	/** \brief no ordering */
 	COM_TO_TOP_DOWN = 2,
-	/** @brief experimental ordering with 9 hotspots */
+	/** \brief experimental ordering with 9 hotspots */
 	COM_TO_RULE_OF_THIRDS = 3
 } OrderOfChunks;
 

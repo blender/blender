@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ViewLevelsNode
- * @ingroup Node
+ * \brief ViewLevelsNode
+ * \ingroup Node
  */
 class ViewLevelsNode : public Node {
 public:

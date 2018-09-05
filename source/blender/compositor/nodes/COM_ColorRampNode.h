@@ -26,8 +26,8 @@
 #include "COM_Node.h"
 
 /**
- * @brief ColorRampNode
- * @ingroup Node
+ * \brief ColorRampNode
+ * \ingroup Node
  */
 class ColorRampNode : public Node {
 public:
