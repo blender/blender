@@ -648,21 +648,28 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+
         with_freestyle = bpy.app.build_options.freestyle
 
         scene = context.scene
         rd = scene.render
         view_layer = context.view_layer
 
-        col = layout.column()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        col = flow.column()
         col.prop(view_layer, "use_sky", text="Use Environment")
+        col = flow.column()
         col.prop(view_layer, "use_ao", text="Use Ambient Occlusion")
+        col = flow.column()
         col.prop(view_layer, "use_solid", text="Use Surfaces")
+        col = flow.column()
         col.prop(view_layer, "use_strand", text="Use Hair")
         if with_freestyle:
-            row = col.row()
-            row.prop(view_layer, "use_freestyle", text="Use Freestyle")
-            row.active = rd.use_freestyle
+            col = flow.column()
+            col.prop(view_layer, "use_freestyle", text="Use Freestyle")
+            col.active = rd.use_freestyle
 
 
 class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
@@ -1048,7 +1055,17 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
                         (ob.dupli_type == 'COLLECTION' and ob.dupli_group)))
 
     def draw(self, context):
+        pass
+
+
+class CYCLES_OBJECT_PT_cycles_settings_ray_visibility(CyclesButtonsPanel, Panel):
+    bl_label = "Ray Visibility"
+    bl_parent_id = "CYCLES_OBJECT_PT_cycles_settings"
+    bl_context = "object"
+
+    def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
 
         scene = context.scene
         cscene = scene.cycles
@@ -1056,32 +1073,58 @@ class CYCLES_OBJECT_PT_cycles_settings(CyclesButtonsPanel, Panel):
         cob = ob.cycles
         visibility = ob.cycles_visibility
 
-        layout.label(text="Ray Visibility:")
-        flow = layout.column_flow()
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        flow.prop(visibility, "camera")
-        flow.prop(visibility, "diffuse")
-        flow.prop(visibility, "glossy")
-        flow.prop(visibility, "transmission")
-        flow.prop(visibility, "scatter")
+        col = flow.column()
+        col.prop(visibility, "camera")
+        col = flow.column()
+        col.prop(visibility, "diffuse")
+        col = flow.column()
+        col.prop(visibility, "glossy")
+        col = flow.column()
+        col.prop(visibility, "transmission")
+        col = flow.column()
+        col.prop(visibility, "scatter")
 
         if ob.type != 'LIGHT':
-            flow.prop(visibility, "shadow")
+            col = flow.column()
+            col.prop(visibility, "shadow")
 
-        row = layout.row()
-        row.prop(cob, "is_shadow_catcher")
-        row.prop(cob, "is_holdout")
+        layout.separator()
 
-        col = layout.column()
-        col.label(text="Performance:")
-        row = col.row()
-        sub = row.row()
-        sub.active = scene.render.use_simplify and cscene.use_camera_cull
-        sub.prop(cob, "use_camera_cull")
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        sub = row.row()
-        sub.active = scene.render.use_simplify and cscene.use_distance_cull
-        sub.prop(cob, "use_distance_cull")
+        col = flow.column()
+        col.prop(cob, "is_shadow_catcher")
+        col = flow.column()
+        col.prop(cob, "is_holdout")
+
+
+class CYCLES_OBJECT_PT_cycles_settings_performance(CyclesButtonsPanel, Panel):
+    bl_label = "Performance"
+    bl_parent_id = "CYCLES_OBJECT_PT_cycles_settings"
+    bl_context = "object"
+
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        cscene = scene.cycles
+        ob = context.object
+        cob = ob.cycles
+        visibility = ob.cycles_visibility
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        col = flow.column()
+        col.active = scene.render.use_simplify and cscene.use_camera_cull
+        col.prop(cob, "use_camera_cull")
+
+        col = flow.column()
+        col.active = scene.render.use_simplify and cscene.use_distance_cull
+        col.prop(cob, "use_distance_cull")
 
 
 class CYCLES_OT_use_shading_nodes(Operator):
@@ -1879,6 +1922,8 @@ classes = (
     CYCLES_PT_context_material,
     CYCLES_OBJECT_PT_motion_blur,
     CYCLES_OBJECT_PT_cycles_settings,
+    CYCLES_OBJECT_PT_cycles_settings_ray_visibility,
+    CYCLES_OBJECT_PT_cycles_settings_performance,
     CYCLES_OT_use_shading_nodes,
     CYCLES_LIGHT_PT_preview,
     CYCLES_LIGHT_PT_light,
