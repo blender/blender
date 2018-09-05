@@ -3665,42 +3665,62 @@ static bool uv_snap_uvs_to_pixels(SpaceImage *sima, Scene *scene, Object *obedit
 
 static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 {
-	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
-	bool changed = false;
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+	const int target = RNA_enum_get(op->ptr, "target");
+	float offset[2];
 
-	switch (RNA_enum_get(op->ptr, "target")) {
-		case 0:
-			changed = uv_snap_uvs_to_pixels(sima, scene, obedit);
-			break;
-		case 1:
-			changed = uv_snap_uvs_to_cursor(scene, ima, obedit, sima->cursor);
-			break;
-		case 2:
-		{
-			float center[2];
-			if (ED_uvedit_center(scene, ima, obedit, center, sima->around)) {
-				float offset[2];
-				sub_v2_v2v2(offset, sima->cursor, center);
-				changed = uv_snap_uvs_offset(scene, ima, obedit, offset);
-			}
-			break;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+
+	if (target == 2) {
+		float center[2];
+		if (!ED_uvedit_center_multi(scene, ima, objects, objects_len, center, sima->around)) {
+			MEM_freeN(objects);
+			return OPERATOR_CANCELLED;
 		}
-		case 3:
-			changed = uv_snap_uvs_to_adjacent_unselected(scene, ima, obedit);
-			break;
+		sub_v2_v2v2(offset, sima->cursor, center);
 	}
 
-	if (!changed)
-		return OPERATOR_CANCELLED;
+	bool changed_multi = false;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	uvedit_live_unwrap_update(sima, scene, obedit);
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
 
-	return OPERATOR_FINISHED;
+		bool changed = false;
+		switch (target) {
+			case 0:
+				changed = uv_snap_uvs_to_pixels(sima, scene, obedit);
+				break;
+			case 1:
+				changed = uv_snap_uvs_to_cursor(scene, ima, obedit, sima->cursor);
+				break;
+			case 2:
+				changed = uv_snap_uvs_offset(scene, ima, obedit, offset);
+				break;
+			case 3:
+				changed = uv_snap_uvs_to_adjacent_unselected(scene, ima, obedit);
+				break;
+		}
+
+		if (changed) {
+			changed_multi = true;
+			uvedit_live_unwrap_update(sima, scene, obedit);
+			DEG_id_tag_update(obedit->data, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		}
+	}
+	MEM_freeN(objects);
+
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void UV_OT_snap_selected(wmOperatorType *ot)
