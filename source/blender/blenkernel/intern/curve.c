@@ -4657,18 +4657,18 @@ float (*BKE_curve_nurbs_keyVertexCos_get(ListBase *lb, float *key))[3]
 			BezTriple *bezt = nu->bezt;
 
 			for (i = 0; i < nu->pntsu; i++, bezt++) {
-				copy_v3_v3(co, key); co += 3; key += 3;
-				copy_v3_v3(co, key); co += 3; key += 3;
-				copy_v3_v3(co, key); co += 3; key += 3;
-				key += 3; /* skip tilt */
+				copy_v3_v3(co, &key[0]); co += 3;
+				copy_v3_v3(co, &key[3]); co += 3;
+				copy_v3_v3(co, &key[6]); co += 3;
+				key += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
 		}
 		else {
 			BPoint *bp = nu->bp;
 
 			for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-				copy_v3_v3(co, key); co += 3; key += 3;
-				key++; /* skip tilt */
+				copy_v3_v3(co, key); co += 3;
+				key += KEYELEM_FLOAT_LEN_BPOINT;
 			}
 		}
 	}
@@ -4686,18 +4686,18 @@ void BKE_curve_nurbs_keyVertexTilts_apply(ListBase *lb, float *key)
 			BezTriple *bezt = nu->bezt;
 
 			for (i = 0; i < nu->pntsu; i++, bezt++) {
-				key += 3 * 3;
-				bezt->alfa = *key;
-				key += 3;
+				bezt->alfa = key[9];
+				bezt->radius = key[10];
+				key += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
 		}
 		else {
 			BPoint *bp = nu->bp;
 
 			for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
-				key += 3;
-				bp->alfa = *key;
-				key++;
+				bp->alfa = key[3];
+				bp->radius = key[4];
+				key += KEYELEM_FLOAT_LEN_BPOINT;
 			}
 		}
 	}
@@ -5167,8 +5167,29 @@ void BKE_curve_transform_ex(
 		KeyBlock *kb;
 		for (kb = cu->key->block.first; kb; kb = kb->next) {
 			float *fp = kb->data;
-			for (i = kb->totelem; i--; fp += 3) {
-				mul_m4_v3(mat, fp);
+			int n = kb->totelem;
+
+			for (nu = cu->nurb.first; nu; nu = nu->next) {
+				if (nu->type == CU_BEZIER) {
+					for (i = nu->pntsu; i && (n -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0; i--) {
+						mul_m4_v3(mat, &fp[0]);
+						mul_m4_v3(mat, &fp[3]);
+						mul_m4_v3(mat, &fp[6]);
+						if (do_props) {
+							fp[10] *= unit_scale; /* radius */
+						}
+						fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+					}
+				}
+				else {
+					for (i = nu->pntsu * nu->pntsv; i && (n -= KEYELEM_ELEM_LEN_BPOINT) >= 0; i--) {
+						mul_m4_v3(mat, fp);
+						if (do_props) {
+							fp[4] *= unit_scale; /* radius */
+						}
+						fp += KEYELEM_FLOAT_LEN_BPOINT;
+					}
+				}
 			}
 		}
 	}
@@ -5212,8 +5233,23 @@ void BKE_curve_translate(Curve *cu, float offset[3], const bool do_keys)
 		KeyBlock *kb;
 		for (kb = cu->key->block.first; kb; kb = kb->next) {
 			float *fp = kb->data;
-			for (i = kb->totelem; i--; fp += 3) {
-				add_v3_v3(fp, offset);
+			int n = kb->totelem;
+
+			for (nu = cu->nurb.first; nu; nu = nu->next) {
+				if (nu->type == CU_BEZIER) {
+					for (i = nu->pntsu; i && (n -= KEYELEM_ELEM_LEN_BEZTRIPLE) >= 0; i--) {
+						add_v3_v3(&fp[0], offset);
+						add_v3_v3(&fp[3], offset);
+						add_v3_v3(&fp[6], offset);
+						fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+					}
+				}
+				else {
+					for (i = nu->pntsu * nu->pntsv; i && (n -= KEYELEM_ELEM_LEN_BPOINT) >= 0; i--) {
+						add_v3_v3(fp, offset);
+						fp += KEYELEM_FLOAT_LEN_BPOINT;
+					}
+				}
 			}
 		}
 	}

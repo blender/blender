@@ -86,6 +86,7 @@ void    BKE_keyblock_update_from_lattice(struct Lattice *lt, struct KeyBlock *kb
 void    BKE_keyblock_convert_from_lattice(struct Lattice *lt, struct KeyBlock *kb);
 void    BKE_keyblock_convert_to_lattice(struct KeyBlock *kb, struct Lattice *lt);
 
+int     BKE_keyblock_curve_element_count(struct ListBase *nurb);
 void    BKE_keyblock_update_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 void    BKE_keyblock_convert_from_curve(struct Curve *cu, struct KeyBlock *kb, struct ListBase *nurb);
 void    BKE_keyblock_convert_to_curve(struct KeyBlock *kb, struct Curve  *cu, struct ListBase *nurb);

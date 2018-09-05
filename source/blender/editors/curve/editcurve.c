@@ -165,7 +165,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 				*origbezt_cpy = *origbezt;
 				keyIndex = init_cvKeyIndex(origbezt_cpy, key_index, nu_index, pt_index, vertex_index);
 				BLI_ghash_insert(gh, bezt, keyIndex);
-				key_index += 12;
+				key_index += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 				vertex_index += 3;
 				bezt++;
 				origbezt++;
@@ -185,7 +185,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 				*origbp_cpy = *origbp;
 				keyIndex = init_cvKeyIndex(origbp_cpy, key_index, nu_index, pt_index, vertex_index);
 				BLI_ghash_insert(gh, bp, keyIndex);
-				key_index += 4;
+				key_index += KEYELEM_FLOAT_LEN_BPOINT;
 				bp++;
 				origbp++;
 				pt_index++;
@@ -468,13 +468,13 @@ static void switch_keys_direction(Curve *cu, Nurb *actnu)
 						if (getKeyIndexOrig_bezt(editnurb, bezt)) {
 							swap_v3_v3(fp, fp + 6);
 							*(fp + 9) = -*(fp + 9);
-							fp += 12;
+							fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 						}
 						bezt++;
 					}
 				}
 				else {
-					fp += a * 12;
+					fp += a * KEYELEM_FLOAT_LEN_BEZTRIPLE;
 				}
 			}
 			else {
@@ -484,13 +484,13 @@ static void switch_keys_direction(Curve *cu, Nurb *actnu)
 					while (a--) {
 						if (getKeyIndexOrig_bp(editnurb, bp)) {
 							*(fp + 3) = -*(fp + 3);
-							fp += 4;
+							fp += KEYELEM_FLOAT_LEN_BPOINT;
 						}
 						bp++;
 					}
 				}
 				else {
-					fp += a * 4;
+					fp += a * KEYELEM_FLOAT_LEN_BPOINT;
 				}
 			}
 
@@ -541,12 +541,14 @@ static void key_to_bezt(float *key, BezTriple *basebezt, BezTriple *bezt)
 	memcpy(bezt, basebezt, sizeof(BezTriple));
 	memcpy(bezt->vec, key, sizeof(float) * 9);
 	bezt->alfa = key[9];
+	bezt->radius = key[10];
 }
 
 static void bezt_to_key(BezTriple *bezt, float *key)
 {
 	memcpy(key, bezt->vec, sizeof(float) * 9);
 	key[9] = bezt->alfa;
+	key[10] = bezt->radius;
 }
 
 static void calc_keyHandles(ListBase *nurb, float *key)
@@ -569,7 +571,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 
 			if (nu->flagu & CU_NURB_CYCLIC) {
 				prevp = bezt + (a - 1);
-				prevfp = fp + (12 * (a - 1));
+				prevfp = fp + (KEYELEM_FLOAT_LEN_BEZTRIPLE * (a - 1));
 			}
 			else {
 				prevp = NULL;
@@ -577,7 +579,7 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 			}
 
 			nextp = bezt + 1;
-			nextfp = fp + 12;
+			nextfp = fp + KEYELEM_FLOAT_LEN_BEZTRIPLE;
 
 			while (a--) {
 				key_to_bezt(fp, bezt, &cur);
@@ -602,16 +604,16 @@ static void calc_keyHandles(ListBase *nurb, float *key)
 				}
 				else {
 					nextp++;
-					nextfp += 12;
+					nextfp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 				}
 
 				bezt++;
-				fp += 12;
+				fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 			}
 		}
 		else {
 			a = nu->pntsu * nu->pntsv;
-			fp += a * 4;
+			fp += a * KEYELEM_FLOAT_LEN_BPOINT;
 		}
 
 		nu = nu->next;
@@ -631,7 +633,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 		BezTriple *bezt, *oldbezt;
 		BPoint *bp, *oldbp;
 		Nurb *nu, *newnu;
-		int totvert = BKE_nurbList_verts_count(&editnurb->nurbs);
+		int totvert = BKE_keyblock_curve_element_count(&editnurb->nurbs);
 
 		float (*ofs)[3] = NULL;
 		float *oldkey, *newkey, *ofp;
@@ -671,7 +673,9 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									sub_v3_v3v3(ofs[i], bezt->vec[j], oldbezt->vec[j]);
 									i++;
 								}
-								ofs[i++][0] = bezt->alfa - oldbezt->alfa;
+								ofs[i][0] = bezt->alfa - oldbezt->alfa;
+								ofs[i][1] = bezt->radius - oldbezt->radius;
+								i++;
 							}
 							else {
 								i += 4;
@@ -687,6 +691,7 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 							if (oldbp) {
 								sub_v3_v3v3(ofs[i], bp->vec, oldbp->vec);
 								ofs[i + 1][0] = bp->alfa - oldbp->alfa;
+								ofs[i + 1][1] = bp->radius - oldbp->radius;
 							}
 							i += 2;
 							bp++;
@@ -723,22 +728,23 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 							int j;
 							oldbezt = getKeyIndexOrig_bezt(editnurb, bezt);
 
-							for (j = 0; j < 3; ++j, ++i) {
-								copy_v3_v3(fp, bezt->vec[j]);
+							for (j = 0; j < 3; j++, i++) {
+								copy_v3_v3(&fp[j * 3], bezt->vec[j]);
 
 								if (restore && oldbezt) {
 									copy_v3_v3(newbezt->vec[j], oldbezt->vec[j]);
 								}
-
-								fp += 3;
 							}
-							fp[0] = bezt->alfa;
+							fp[9] = bezt->alfa;
+							fp[10] = bezt->radius;
 
 							if (restore && oldbezt) {
 								newbezt->alfa = oldbezt->alfa;
+								newbezt->radius = oldbezt->radius;
 							}
 
-							fp += 3; ++i; /* alphas */
+							fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
+							i++;
 							bezt++;
 							newbezt++;
 						}
@@ -753,13 +759,15 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 							copy_v3_v3(fp, bp->vec);
 
 							fp[3] = bp->alfa;
+							fp[4] = bp->radius;
 
 							if (restore && oldbp) {
 								copy_v3_v3(newbp->vec, oldbp->vec);
 								newbp->alfa = oldbp->alfa;
+								newbp->radius = oldbp->radius;
 							}
 
-							fp += 4;
+							fp += KEYELEM_FLOAT_LEN_BPOINT;
 							bp++;
 							newbp++;
 							i += 2;
@@ -781,34 +789,33 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									int j;
 									curofp = ofp + index;
 
-									for (j = 0; j < 3; ++j, ++i) {
-										copy_v3_v3(fp, curofp);
+									for (j = 0; j < 3; j++, i++) {
+										copy_v3_v3(&fp[j * 3], &curofp[j * 3]);
 
 										if (apply_offset) {
-											add_v3_v3(fp, ofs[i]);
+											add_v3_v3(&fp[j * 3], ofs[i]);
 										}
-
-										fp += 3; curofp += 3;
 									}
-									fp[0] = curofp[0];
+									fp[9] = curofp[9];
+									fp[10] = curofp[10];
 
 									if (apply_offset) {
 										/* apply alfa offsets */
-										add_v3_v3(fp, ofs[i]);
+										add_v3_v3(fp + 9, ofs[i]);
 										i++;
 									}
 
-									fp += 3; /* alphas */
+									fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 								}
 								else {
 									int j;
-									for (j = 0; j < 3; ++j, ++i) {
-										copy_v3_v3(fp, bezt->vec[j]);
-										fp += 3;
+									for (j = 0; j < 3; j++, i++) {
+										copy_v3_v3(&fp[j * 3], bezt->vec[j]);
 									}
-									fp[0] = bezt->alfa;
+									fp[9] = bezt->alfa;
+									fp[10] = bezt->radius;
 
-									fp += 3; /* alphas */
+									fp += KEYELEM_FLOAT_LEN_BEZTRIPLE;
 								}
 								bezt++;
 							}
@@ -823,18 +830,20 @@ static void calc_shapeKeys(Object *obedit, ListBase *newnurbs)
 									curofp = ofp + index;
 									copy_v3_v3(fp, curofp);
 									fp[3] = curofp[3];
+									fp[4] = curofp[4];
 
 									if (apply_offset) {
 										add_v3_v3(fp, ofs[i]);
-										fp[3] += ofs[i + 1][0];
+										add_v3_v3(&fp[3], ofs[i + 1]);
 									}
 								}
 								else {
 									copy_v3_v3(fp, bp->vec);
 									fp[3] = bp->alfa;
+									fp[4] = bp->radius;
 								}
 
-								fp += 4;
+								fp += KEYELEM_FLOAT_LEN_BPOINT;
 								bp++;
 								i += 2;
 							}

@@ -813,7 +813,7 @@ static void curve_calc_modifiers_pre(
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
-	int numVerts = 0;
+	int numElems = 0, numVerts = 0;
 	const bool editmode = (!for_render && (cu->editnurb || cu->editfont));
 	ModifierApplyFlag app_flag = 0;
 	float (*deformedVerts)[3] = NULL;
@@ -839,15 +839,17 @@ static void curve_calc_modifiers_pre(
 		required_mode |= eModifierMode_Editmode;
 
 	if (!editmode) {
-		keyVerts = BKE_key_evaluate_object(ob, &numVerts);
+		keyVerts = BKE_key_evaluate_object(ob, &numElems);
 
 		if (keyVerts) {
+			BLI_assert(BKE_keyblock_curve_element_count(nurb) == numElems);
+
 			/* split coords from key data, the latter also includes
 			 * tilts, which is passed through in the modifier stack.
 			 * this is also the reason curves do not use a virtual
 			 * shape key modifier yet. */
 			deformedVerts = BKE_curve_nurbs_keyVertexCos_get(nurb, keyVerts);
-			BLI_assert(BKE_nurbList_verts_count(nurb) == numVerts);
+			numVerts = BKE_nurbList_verts_count(nurb);
 		}
 	}
 
