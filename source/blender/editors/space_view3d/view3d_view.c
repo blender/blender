@@ -1027,6 +1027,9 @@ int view3d_opengl_select(
 		        drw_select_loop_pass, &drw_select_loop_user_data,
 		        object_filter.fn, object_filter.user_data);
 		hits = drw_select_loop_user_data.hits;
+		/* FIX: This cleanup the state before doing another selection pass.
+		 * (see T56695) */
+		GPU_select_cache_end();
 	}
 
 	if (hits == 0) {
