@@ -1282,6 +1282,7 @@ void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *ar)
 
 /* How long before a tool-tip shows. */
 #define UI_TOOLTIP_DELAY 0.5
+#define UI_TOOLTIP_DELAY_LABEL 0.2
 
 /* Float precision helpers */
 #define UI_PRECISION_FLOAT_MAX 6

@@ -718,9 +718,13 @@ typedef struct wmTooltipState {
 	/** The tooltip region. */
 	struct ARegion *region;
 	/** Create the tooltip region (assign to 'region'). */
-	struct ARegion *(*init)(struct bContext *, struct ARegion *, bool *r_exit_on_event);
+	struct ARegion *(*init)(
+	        struct bContext *C, struct ARegion *ar,
+	        int *pass, double *pass_delay, bool *r_exit_on_event);
 	/** Exit on any event, not needed for buttons since their highlight state is used. */
 	bool exit_on_event;
+	/** Pass, use when we want multiple tips, count down to zero. */
+	int pass;
 } wmTooltipState;
 
 /* *************** migrated stuff, clean later? ************** */

@@ -267,7 +267,7 @@ bool WM_gizmomap_minmax(
         float r_min[3], float r_max[3]);
 
 struct ARegion *WM_gizmomap_tooltip_init(
-        struct bContext *C, struct ARegion *ar, bool *r_exit_on_event);
+        struct bContext *C, struct ARegion *ar, int *pass, double *pass_delay, bool *r_exit_on_event);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMapType */

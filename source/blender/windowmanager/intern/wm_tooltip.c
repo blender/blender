@@ -52,9 +52,9 @@ void WM_tooltip_immediate_init(
 	WM_tooltip_init(C, win);
 }
 
-void WM_tooltip_timer_init(
+void WM_tooltip_timer_init_ex(
         bContext *C, wmWindow *win, ARegion *ar,
-        wmTooltipInitFn init)
+        wmTooltipInitFn init, double delay)
 {
 	WM_tooltip_timer_clear(C, win);
 
@@ -64,9 +64,15 @@ void WM_tooltip_timer_init(
 		screen->tool_tip = MEM_callocN(sizeof(*screen->tool_tip), __func__);
 	}
 	screen->tool_tip->region_from = ar;
-	screen->tool_tip->timer = WM_event_add_timer(
-	        wm, win, TIMER, UI_TOOLTIP_DELAY);
+	screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, delay);
 	screen->tool_tip->init = init;
+}
+
+void WM_tooltip_timer_init(
+        bContext *C, wmWindow *win, ARegion *ar,
+        wmTooltipInitFn init)
+{
+	WM_tooltip_timer_init_ex(C, win, ar, init, UI_TOOLTIP_DELAY);
 }
 
 void WM_tooltip_timer_clear(bContext *C, wmWindow *win)
@@ -103,8 +109,16 @@ void WM_tooltip_init(bContext *C, wmWindow *win)
 		UI_tooltip_free(C, screen, screen->tool_tip->region);
 		screen->tool_tip->region = NULL;
 	}
+	const int pass_prev = screen->tool_tip->pass;
+	double pass_delay = 0.0;
 	screen->tool_tip->region = screen->tool_tip->init(
-	        C, screen->tool_tip->region_from, &screen->tool_tip->exit_on_event);
+	        C, screen->tool_tip->region_from,
+	        &screen->tool_tip->pass, &pass_delay, &screen->tool_tip->exit_on_event);
+	if (pass_prev != screen->tool_tip->pass) {
+		/* The pass changed, add timer for next pass. */
+		wmWindowManager *wm = CTX_wm_manager(C);
+		screen->tool_tip->timer = WM_event_add_timer(wm, win, TIMER, pass_delay);
+	}
 	if (screen->tool_tip->region == NULL) {
 		WM_tooltip_clear(C, win);
 	}

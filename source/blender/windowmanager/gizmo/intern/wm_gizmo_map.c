@@ -1056,7 +1056,7 @@ void WM_gizmomap_message_subscribe(
  * \{ */
 
 struct ARegion *WM_gizmomap_tooltip_init(
-        struct bContext *C, struct ARegion *ar, bool *r_exit_on_event)
+        struct bContext *C, struct ARegion *ar, int *UNUSED(r_pass), double *UNUSED(pass_delay), bool *r_exit_on_event)
 {
 	wmGizmoMap *gzmap = ar->gizmo_map;
 	*r_exit_on_event = true;
