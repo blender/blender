@@ -2411,7 +2411,6 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 	bNode *node = ptr->data;
 
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL, UI_TEMPLATE_ID_FILTER_ALL);
-	uiItemR(layout, ptr, "use_antialiasing", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "use_feather", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "size_source", 0, "", ICON_NONE);

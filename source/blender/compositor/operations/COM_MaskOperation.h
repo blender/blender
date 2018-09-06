@@ -48,7 +48,6 @@ protected:
 	float m_frame_shutter;
 	int   m_frame_number;
 
-	bool m_do_smooth;
 	bool m_do_feather;
 
 	struct MaskRasterHandle *m_rasterMaskHandles[CMP_NODE_MASK_MBLUR_SAMPLES_MAX];
@@ -80,7 +79,6 @@ public:
 		this->m_mask_px_ofs[1] = this->m_maskHeightInv * 0.5f;
 	}
 	void setFramenumber(int frame_number) { this->m_frame_number = frame_number; }
-	void setSmooth(bool smooth) { this->m_do_smooth = smooth; }
 	void setFeather(bool feather) { this->m_do_feather = feather; }
 
 	void setMotionBlurSamples(int samples) { this->m_rasterMaskHandleTot = min(max(1, samples), CMP_NODE_MASK_MBLUR_SAMPLES_MAX); }
