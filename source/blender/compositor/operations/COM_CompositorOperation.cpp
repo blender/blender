@@ -94,6 +94,7 @@ void CompositorOperation::deinitExecution()
 				MEM_freeN(rv->rectz);
 			}
 			rv->rectz = this->m_depthBuffer;
+			rr->have_combined = true;
 		}
 		else {
 			if (this->m_outputBuffer) {
