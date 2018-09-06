@@ -577,8 +577,8 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			bool show_face_dots = ((Mesh *)draw_ctx->object_edit->data)->drawflag & ME_DRAW_FACE_DOT;
 
 			if (stl->g_data->do_faces == false &&
-				stl->g_data->do_edges == false &&
-				(tsettings->selectmode & SCE_SELECT_FACE))
+			    stl->g_data->do_edges == false &&
+			    (tsettings->selectmode & SCE_SELECT_FACE))
 			{
 				/* Force display of face centers in this case because that's
 				 * the only way to see if a face is selected. */

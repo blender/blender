@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_api.h
+/** \file blender/python/gpu/gpu_py_select.h
  *  \ingroup bpygpu
  */
 

@@ -1679,9 +1679,9 @@ static void uv_weld_align(bContext *C, int tool)
 
 					/* we know the returns from these must be valid */
 					const float *uv_start = uv_sel_co_from_eve(
-							scene, obedit, ima, em, eve_line[0]);
+					        scene, obedit, ima, em, eve_line[0]);
 					const float *uv_end   = uv_sel_co_from_eve(
-							scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
+					        scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
 					/* For t & u modes */
 					float a = 0.0f;
 					int tool_local = tool;

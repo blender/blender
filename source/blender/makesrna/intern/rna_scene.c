@@ -2432,7 +2432,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		"When creating new strokes, the weight data is added according to the current vertex group and weight, "
 		"if no vertex group selected, weight is not added");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
-	
+
 	prop = RNA_def_property(srna, "gpencil_sculpt", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "gp_sculpt");
 	RNA_def_property_struct_type(prop, "GPencilSculptSettings");
