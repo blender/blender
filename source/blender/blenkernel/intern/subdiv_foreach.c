@@ -229,16 +229,13 @@ static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
 	int vertex_offset = 0;
 	int edge_offset = 0;
 	int polygon_offset = 0;
-	int face_ptex_offset = 0;
 	for (int poly_index = 0; poly_index < coarse_mesh->totpoly; poly_index++) {
 		const MPoly *coarse_poly = &coarse_mpoly[poly_index];
 		const int num_ptex_faces_per_poly =
 		        num_ptex_faces_per_poly_get(coarse_poly);
-		ctx->face_ptex_offset[poly_index] = face_ptex_offset;
 		ctx->subdiv_vertex_offset[poly_index] = vertex_offset;
 		ctx->subdiv_edge_offset[poly_index] = edge_offset;
 		ctx->subdiv_polygon_offset[poly_index] = polygon_offset;
-		face_ptex_offset += num_ptex_faces_per_poly;
 		if (num_ptex_faces_per_poly == 1) {
 			vertex_offset += resolution_2_squared;
 			edge_offset += num_edges_per_ptex_face_get(resolution - 2) +
@@ -265,7 +262,8 @@ static void subdiv_foreach_ctx_init_offsets(SubdivForeachTaskContext *ctx)
 	}
 }
 
-static void subdiv_foreach_ctx_init(SubdivForeachTaskContext *ctx)
+static void subdiv_foreach_ctx_init(Subdiv *subdiv,
+                                    SubdivForeachTaskContext *ctx)
 {
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	/* Allocate maps and offsets. */
@@ -285,15 +283,13 @@ static void subdiv_foreach_ctx_init(SubdivForeachTaskContext *ctx)
 	        coarse_mesh->totpoly,
 	        sizeof(*ctx->subdiv_polygon_offset),
 	        "subdiv_edge_offset");
-	ctx->face_ptex_offset = MEM_malloc_arrayN(coarse_mesh->totpoly,
-	                                          sizeof(*ctx->face_ptex_offset),
-	                                          "face_ptex_offset");
 	/* Initialize all offsets. */
 	subdiv_foreach_ctx_init_offsets(ctx);
 	/* Calculate number of geometry in the result subdivision mesh. */
 	subdiv_foreach_ctx_count(ctx);
 	/* Re-set maps which were used at this step. */
 	BLI_BITMAP_SET_ALL(ctx->coarse_edges_used_map, false, coarse_mesh->totedge);
+	ctx->face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
 }
 
 static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
@@ -303,7 +299,6 @@ static void subdiv_foreach_ctx_free(SubdivForeachTaskContext *ctx)
 	MEM_freeN(ctx->subdiv_vertex_offset);
 	MEM_freeN(ctx->subdiv_edge_offset);
 	MEM_freeN(ctx->subdiv_polygon_offset);
-	MEM_freeN(ctx->face_ptex_offset);
 }
 
 /* =============================================================================
@@ -1982,16 +1977,16 @@ static void subdiv_foreach_finalize(void *__restrict userdata,
 }
 
 bool BKE_subdiv_foreach_subdiv_geometry(
-        struct Subdiv *UNUSED(subdiv),
+        Subdiv *subdiv,
         const SubdivForeachContext *context,
         const SubdivToMeshSettings *mesh_settings,
-        const struct Mesh *coarse_mesh)
+        const Mesh *coarse_mesh)
 {
 	SubdivForeachTaskContext ctx = {0};
 	ctx.coarse_mesh = coarse_mesh;
 	ctx.settings = mesh_settings;
 	ctx.foreach_context = context;
-	subdiv_foreach_ctx_init(&ctx);
+	subdiv_foreach_ctx_init(subdiv, &ctx);
 	if (context->topology_info != NULL) {
 		if (!context->topology_info(context,
 		                            ctx.num_subdiv_vertices,

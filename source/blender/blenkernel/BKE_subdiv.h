@@ -144,6 +144,14 @@ typedef struct Subdiv {
 	struct SubdivDisplacement *displacement_evaluator;
 	/* Statistics for debugging. */
 	SubdivStats stats;
+
+	/* Cached values, are not supposed to be accessed directly. */
+	struct {
+		/* Indexed by base face index, element indicates total number of ptex
+		 *faces created for preceding base faces.
+		 */
+		int *face_ptex_offset;
+	} cache_;
 } Subdiv;
 
 /* ================================ HELPERS ================================= */
@@ -179,5 +187,9 @@ void BKE_subdiv_displacement_attach_from_multires(
         const struct MultiresModifierData *mmd);
 
 void BKE_subdiv_displacement_detach(Subdiv *subdiv);
+
+/* ============================ TOPOLOGY HELPERS ============================ */
+
+int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv);
 
 #endif  /* __BKE_SUBDIV_H__ */
