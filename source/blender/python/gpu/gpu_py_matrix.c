@@ -18,13 +18,16 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/intern/gpu_py_matrix.c
- *  \ingroup pythonintern
+/** \file blender/python/gpu/gpu_py_matrix.c
+ *  \ingroup bpygpu
  *
  * This file defines the gpu.matrix stack API.
  *
  * \warning While these functions attempt to ensure correct stack usage.
  * Mixing Python and C functions may still crash on invalid use.
+ *
+ * - Use ``bpygpu_`` for local API.
+ * - Use ``BPyGPU`` for public API.
  */
 
 #include <Python.h>
@@ -36,17 +39,17 @@
 
 #include "../generic/py_capi_utils.h"
 
-#include "gpu.h"
-
 #define USE_GPU_PY_MATRIX_API
 #include "GPU_matrix.h"
 #undef USE_GPU_PY_MATRIX_API
+
+#include "gpu_py_matrix.h" /* own include */
 
 /* -------------------------------------------------------------------- */
 /** \name Helper Functions
  * \{ */
 
-static bool pygpu_stack_is_push_model_view_ok_or_error(void)
+static bool bpygpu_stack_is_push_model_view_ok_or_error(void)
 {
 	if (GPU_matrix_stack_level_get_model_view() >= GPU_PY_MATRIX_STACK_LEN) {
 		PyErr_SetString(PyExc_RuntimeError,
@@ -56,7 +59,7 @@ static bool pygpu_stack_is_push_model_view_ok_or_error(void)
 	return true;
 }
 
-static bool pygpu_stack_is_push_projection_ok_or_error(void)
+static bool bpygpu_stack_is_push_projection_ok_or_error(void)
 {
 	if (GPU_matrix_stack_level_get_projection() >= GPU_PY_MATRIX_STACK_LEN) {
 		PyErr_SetString(PyExc_RuntimeError,
@@ -66,7 +69,7 @@ static bool pygpu_stack_is_push_projection_ok_or_error(void)
 	return true;
 }
 
-static bool pygpu_stack_is_pop_model_view_ok_or_error(void)
+static bool bpygpu_stack_is_pop_model_view_ok_or_error(void)
 {
 	if (GPU_matrix_stack_level_get_model_view() == 0) {
 		PyErr_SetString(PyExc_RuntimeError,
@@ -76,7 +79,7 @@ static bool pygpu_stack_is_pop_model_view_ok_or_error(void)
 	return true;
 }
 
-static bool pygpu_stack_is_pop_projection_ok_or_error(void)
+static bool bpygpu_stack_is_pop_projection_ok_or_error(void)
 {
 	if (GPU_matrix_stack_level_get_projection() == 0) {
 		PyErr_SetString(PyExc_RuntimeError,
@@ -92,56 +95,56 @@ static bool pygpu_stack_is_pop_projection_ok_or_error(void)
 /** \name Manage Stack
  * \{ */
 
-PyDoc_STRVAR(pygpu_matrix_push_doc,
+PyDoc_STRVAR(bpygpu_matrix_push_doc,
 "push()\n"
 "\n"
 "   Add to the model-view matrix stack.\n"
 );
-static PyObject *pygpu_matrix_push(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_push(PyObject *UNUSED(self))
 {
-	if (!pygpu_stack_is_push_model_view_ok_or_error()) {
+	if (!bpygpu_stack_is_push_model_view_ok_or_error()) {
 		return NULL;
 	}
 	GPU_matrix_push();
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_pop_doc,
+PyDoc_STRVAR(bpygpu_matrix_pop_doc,
 "pop()\n"
 "\n"
 "   Remove the last model-view matrix from the stack.\n"
 );
-static PyObject *pygpu_matrix_pop(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_pop(PyObject *UNUSED(self))
 {
-	if (!pygpu_stack_is_pop_model_view_ok_or_error()) {
+	if (!bpygpu_stack_is_pop_model_view_ok_or_error()) {
 		return NULL;
 	}
 	GPU_matrix_pop();
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_push_projection_doc,
+PyDoc_STRVAR(bpygpu_matrix_push_projection_doc,
 "push_projection()\n"
 "\n"
 "   Add to the projection matrix stack.\n"
 );
-static PyObject *pygpu_matrix_push_projection(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_push_projection(PyObject *UNUSED(self))
 {
-	if (!pygpu_stack_is_push_projection_ok_or_error()) {
+	if (!bpygpu_stack_is_push_projection_ok_or_error()) {
 		return NULL;
 	}
 	GPU_matrix_push_projection();
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_pop_projection_doc,
+PyDoc_STRVAR(bpygpu_matrix_pop_projection_doc,
 "pop_projection()\n"
 "\n"
 "   Remove the last projection matrix from the stack.\n"
 );
-static PyObject *pygpu_matrix_pop_projection(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_pop_projection(PyObject *UNUSED(self))
 {
-	if (!pygpu_stack_is_pop_projection_ok_or_error()) {
+	if (!bpygpu_stack_is_pop_projection_ok_or_error()) {
 		return NULL;
 	}
 	GPU_matrix_pop_projection();
@@ -161,31 +164,31 @@ typedef struct {
 	PyObject_HEAD /* required python macro */
 	int type;
 	int level;
-} BPy_GPU_MatrixStackContext;
+} BPyGPU_MatrixStackContext;
 
 enum {
 	PYGPU_MATRIX_TYPE_MODEL_VIEW = 1,
 	PYGPU_MATRIX_TYPE_PROJECTION = 2,
 };
 
-static PyObject *pygpu_matrix_stack_context_enter(BPy_GPU_MatrixStackContext *self);
-static PyObject *pygpu_matrix_stack_context_exit(BPy_GPU_MatrixStackContext *self, PyObject *args);
+static PyObject *bpygpu_matrix_stack_context_enter(BPyGPU_MatrixStackContext *self);
+static PyObject *bpygpu_matrix_stack_context_exit(BPyGPU_MatrixStackContext *self, PyObject *args);
 
-static PyMethodDef pygpu_matrix_stack_context_methods[] = {
-	{"__enter__", (PyCFunction)pygpu_matrix_stack_context_enter, METH_NOARGS},
-	{"__exit__",  (PyCFunction)pygpu_matrix_stack_context_exit,  METH_VARARGS},
+static PyMethodDef bpygpu_matrix_stack_context_methods[] = {
+	{"__enter__", (PyCFunction)bpygpu_matrix_stack_context_enter, METH_NOARGS},
+	{"__exit__",  (PyCFunction)bpygpu_matrix_stack_context_exit,  METH_VARARGS},
 	{NULL}
 };
 
-static PyTypeObject pygpu_matrix_stack_context_Type = {
+static PyTypeObject BPyGPU_matrix_stack_context_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
 	.tp_name = "GPUMatrixStackContext",
-	.tp_basicsize = sizeof(BPy_GPU_MatrixStackContext),
+	.tp_basicsize = sizeof(BPyGPU_MatrixStackContext),
 	.tp_flags = Py_TPFLAGS_DEFAULT,
-	.tp_methods = pygpu_matrix_stack_context_methods,
+	.tp_methods = bpygpu_matrix_stack_context_methods,
 };
 
-static PyObject *pygpu_matrix_stack_context_enter(BPy_GPU_MatrixStackContext *self)
+static PyObject *bpygpu_matrix_stack_context_enter(BPyGPU_MatrixStackContext *self)
 {
 	/* sanity - should never happen */
 	if (self->level != -1) {
@@ -194,14 +197,14 @@ static PyObject *pygpu_matrix_stack_context_enter(BPy_GPU_MatrixStackContext *se
 	}
 
 	if (self->type == PYGPU_MATRIX_TYPE_MODEL_VIEW) {
-		if (!pygpu_stack_is_push_model_view_ok_or_error()) {
+		if (!bpygpu_stack_is_push_model_view_ok_or_error()) {
 			return NULL;
 		}
 		GPU_matrix_push();
 		self->level = GPU_matrix_stack_level_get_model_view();
 	}
 	else if (self->type == PYGPU_MATRIX_TYPE_PROJECTION) {
-		if (!pygpu_stack_is_push_projection_ok_or_error()) {
+		if (!bpygpu_stack_is_push_projection_ok_or_error()) {
 			return NULL;
 		}
 		GPU_matrix_push_projection();
@@ -213,7 +216,7 @@ static PyObject *pygpu_matrix_stack_context_enter(BPy_GPU_MatrixStackContext *se
 	Py_RETURN_NONE;
 }
 
-static PyObject *pygpu_matrix_stack_context_exit(BPy_GPU_MatrixStackContext *self, PyObject *UNUSED(args))
+static PyObject *bpygpu_matrix_stack_context_exit(BPyGPU_MatrixStackContext *self, PyObject *UNUSED(args))
 {
 	/* sanity - should never happen */
 	if (self->level == -1) {
@@ -246,32 +249,32 @@ finally:
 	Py_RETURN_NONE;
 }
 
-static PyObject *pygpu_matrix_push_pop_impl(int type)
+static PyObject *bpygpu_matrix_push_pop_impl(int type)
 {
-	BPy_GPU_MatrixStackContext *ret = PyObject_New(BPy_GPU_MatrixStackContext, &pygpu_matrix_stack_context_Type);
+	BPyGPU_MatrixStackContext *ret = PyObject_New(BPyGPU_MatrixStackContext, &BPyGPU_matrix_stack_context_Type);
 	ret->type = type;
 	ret->level = -1;
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(pygpu_matrix_push_pop_doc,
+PyDoc_STRVAR(bpygpu_matrix_push_pop_doc,
 "push_pop()\n"
 "\n"
 "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
 );
-static PyObject *pygpu_matrix_push_pop(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_push_pop(PyObject *UNUSED(self))
 {
-	return pygpu_matrix_push_pop_impl(PYGPU_MATRIX_TYPE_MODEL_VIEW);
+	return bpygpu_matrix_push_pop_impl(PYGPU_MATRIX_TYPE_MODEL_VIEW);
 }
 
-PyDoc_STRVAR(pygpu_matrix_push_pop_projection_doc,
+PyDoc_STRVAR(bpygpu_matrix_push_pop_projection_doc,
 "push_pop_projection()\n"
 "\n"
 "   Context manager to ensure balanced push/pop calls, even in the case of an error.\n"
 );
-static PyObject *pygpu_matrix_push_pop_projection(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_push_pop_projection(PyObject *UNUSED(self))
 {
-	return pygpu_matrix_push_pop_impl(PYGPU_MATRIX_TYPE_PROJECTION);
+	return bpygpu_matrix_push_pop_impl(PYGPU_MATRIX_TYPE_PROJECTION);
 }
 
 /** \} */
@@ -280,7 +283,7 @@ static PyObject *pygpu_matrix_push_pop_projection(PyObject *UNUSED(self))
 /** \name Manipulate State
  * \{ */
 
-PyDoc_STRVAR(pygpu_matrix_multiply_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_multiply_matrix_doc,
 "multiply_matrix(matrix)\n"
 "\n"
 "   Multiply the current stack matrix.\n"
@@ -288,7 +291,7 @@ PyDoc_STRVAR(pygpu_matrix_multiply_matrix_doc,
 "   :param matrix: A 4x4 matrix.\n"
 "   :type matrix: :class:`mathutils.Matrix`\n"
 );
-static PyObject *pygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject *value)
 {
 	MatrixObject *pymat;
 	if (!Matrix_Parse4x4(value, &pymat)) {
@@ -298,7 +301,7 @@ static PyObject *pygpu_matrix_multiply_matrix(PyObject *UNUSED(self), PyObject *
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_scale_doc,
+PyDoc_STRVAR(bpygpu_matrix_scale_doc,
 "scale(scale)\n"
 "\n"
 "   Scale the current stack matrix.\n"
@@ -306,7 +309,7 @@ PyDoc_STRVAR(pygpu_matrix_scale_doc,
 "   :param scale: Scale the current stack matrix.\n"
 "   :type scale: sequence of 2 or 3 floats\n"
 );
-static PyObject *pygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 {
 	float scale[3];
 	int len;
@@ -322,13 +325,13 @@ static PyObject *pygpu_matrix_scale(PyObject *UNUSED(self), PyObject *value)
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_scale_uniform_doc,
+PyDoc_STRVAR(bpygpu_matrix_scale_uniform_doc,
 "scale_uniform(scale)\n"
 "\n"
 "   :param scale: Scale the current stack matrix.\n"
 "   :type scale: sequence of 2 or 3 floats\n"
 );
-static PyObject *pygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *value)
 {
 	float scalar;
 	if ((scalar = PyFloat_AsDouble(value)) == -1.0f && PyErr_Occurred()) {
@@ -341,7 +344,7 @@ static PyObject *pygpu_matrix_scale_uniform(PyObject *UNUSED(self), PyObject *va
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_translate_doc,
+PyDoc_STRVAR(bpygpu_matrix_translate_doc,
 "translate(offset)\n"
 "\n"
 "   Scale the current stack matrix.\n"
@@ -349,7 +352,7 @@ PyDoc_STRVAR(pygpu_matrix_translate_doc,
 "   :param offset: Translate the current stack matrix.\n"
 "   :type offset: sequence of 2 or 3 floats\n"
 );
-static PyObject *pygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value)
 {
 	float offset[3];
 	int len;
@@ -371,29 +374,29 @@ static PyObject *pygpu_matrix_translate(PyObject *UNUSED(self), PyObject *value)
 /** \name Write State
  * \{ */
 
-PyDoc_STRVAR(pygpu_matrix_reset_doc,
+PyDoc_STRVAR(bpygpu_matrix_reset_doc,
 "reset()\n"
 "\n"
 "   Empty stack and set to identity.\n"
 );
-static PyObject *pygpu_matrix_reset(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_reset(PyObject *UNUSED(self))
 {
 	GPU_matrix_reset();
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_load_identity_doc,
+PyDoc_STRVAR(bpygpu_matrix_load_identity_doc,
 "load_identity()\n"
 "\n"
 "   Empty stack and set to identity.\n"
 );
-static PyObject *pygpu_matrix_load_identity(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_load_identity(PyObject *UNUSED(self))
 {
 	GPU_matrix_identity_set();
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(pygpu_matrix_load_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_load_matrix_doc,
 "load_matrix(matrix)\n"
 "\n"
 "   Load a matrix into the stack.\n"
@@ -401,7 +404,7 @@ PyDoc_STRVAR(pygpu_matrix_load_matrix_doc,
 "   :param matrix: A 4x4 matrix.\n"
 "   :type matrix: :class:`mathutils.Matrix`\n"
 );
-static PyObject *pygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *value)
+static PyObject *bpygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *value)
 {
 	MatrixObject *pymat;
 	if (!Matrix_Parse4x4(value, &pymat)) {
@@ -417,7 +420,7 @@ static PyObject *pygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *valu
 /** \name Read State
  * \{ */
 
-PyDoc_STRVAR(pygpu_matrix_get_projection_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_get_projection_matrix_doc,
 "get_projection_matrix()\n"
 "\n"
 "   Return a copy of the projection matrix.\n"
@@ -425,7 +428,7 @@ PyDoc_STRVAR(pygpu_matrix_get_projection_matrix_doc,
 "   :return: A 4x4 projection matrix.\n"
 "   :rtype: :class:`mathutils.Matrix`\n"
 );
-static PyObject *pygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
 	GPU_matrix_model_view_get(matrix);
@@ -433,7 +436,7 @@ static PyObject *pygpu_matrix_get_projection_matrix(PyObject *UNUSED(self))
 }
 
 
-PyDoc_STRVAR(pygpu_matrix_get_modal_view_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_get_modal_view_matrix_doc,
 "get_view_matrix()\n"
 "\n"
 "   Return a copy of the view matrix.\n"
@@ -441,14 +444,14 @@ PyDoc_STRVAR(pygpu_matrix_get_modal_view_matrix_doc,
 "   :return: A 4x4 view matrix.\n"
 "   :rtype: :class:`mathutils.Matrix`\n"
 );
-static PyObject *pygpu_matrix_get_modal_view_matrix(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_get_modal_view_matrix(PyObject *UNUSED(self))
 {
 	float matrix[4][4];
 	GPU_matrix_projection_get(matrix);
 	return Matrix_CreatePyObject(&matrix[0][0], 4, 4, NULL);
 }
 
-PyDoc_STRVAR(pygpu_matrix_get_normal_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_get_normal_matrix_doc,
 "get_normal_matrix()\n"
 "\n"
 "   Return a copy of the normal matrix.\n"
@@ -456,7 +459,7 @@ PyDoc_STRVAR(pygpu_matrix_get_normal_matrix_doc,
 "   :return: A 3x3 normal matrix.\n"
 "   :rtype: :class:`mathutils.Matrix`\n"
 );
-static PyObject *pygpu_matrix_get_normal_matrix(PyObject *UNUSED(self))
+static PyObject *bpygpu_matrix_get_normal_matrix(PyObject *UNUSED(self))
 {
 	float matrix[3][3];
 	GPU_matrix_normal_get(matrix);
@@ -469,80 +472,80 @@ static PyObject *pygpu_matrix_get_normal_matrix(PyObject *UNUSED(self))
 /** \name Module
  * \{ */
 
-static struct PyMethodDef BPy_GPU_matrix_methods[] = {
+static struct PyMethodDef bpygpu_matrix_methods[] = {
 	/* Manage Stack */
-	{"push", (PyCFunction)pygpu_matrix_push,
-	 METH_NOARGS, pygpu_matrix_push_doc},
-	{"pop", (PyCFunction)pygpu_matrix_pop,
-	 METH_NOARGS, pygpu_matrix_pop_doc},
+	{"push", (PyCFunction)bpygpu_matrix_push,
+	 METH_NOARGS, bpygpu_matrix_push_doc},
+	{"pop", (PyCFunction)bpygpu_matrix_pop,
+	 METH_NOARGS, bpygpu_matrix_pop_doc},
 
-	{"push_projection", (PyCFunction)pygpu_matrix_push_projection,
-	 METH_NOARGS, pygpu_matrix_push_projection_doc},
-	{"pop_projection", (PyCFunction)pygpu_matrix_pop_projection,
-	 METH_NOARGS, pygpu_matrix_pop_projection_doc},
+	{"push_projection", (PyCFunction)bpygpu_matrix_push_projection,
+	 METH_NOARGS, bpygpu_matrix_push_projection_doc},
+	{"pop_projection", (PyCFunction)bpygpu_matrix_pop_projection,
+	 METH_NOARGS, bpygpu_matrix_pop_projection_doc},
 
 	/* Stack (Context Manager) */
-	{"push_pop", (PyCFunction)pygpu_matrix_push_pop,
-	 METH_NOARGS, pygpu_matrix_push_pop_doc},
-	{"push_pop_projection", (PyCFunction)pygpu_matrix_push_pop_projection,
-	 METH_NOARGS, pygpu_matrix_push_pop_projection_doc},
+	{"push_pop", (PyCFunction)bpygpu_matrix_push_pop,
+	 METH_NOARGS, bpygpu_matrix_push_pop_doc},
+	{"push_pop_projection", (PyCFunction)bpygpu_matrix_push_pop_projection,
+	 METH_NOARGS, bpygpu_matrix_push_pop_projection_doc},
 
 	/* Manipulate State */
-	{"multiply_matrix", (PyCFunction)pygpu_matrix_multiply_matrix,
-	 METH_O, pygpu_matrix_multiply_matrix_doc},
-	{"scale", (PyCFunction)pygpu_matrix_scale,
-	 METH_O, pygpu_matrix_scale_doc},
-	{"scale_uniform", (PyCFunction)pygpu_matrix_scale_uniform,
-	 METH_O, pygpu_matrix_scale_uniform_doc},
-	{"translate", (PyCFunction)pygpu_matrix_translate,
-	 METH_O, pygpu_matrix_translate_doc},
+	{"multiply_matrix", (PyCFunction)bpygpu_matrix_multiply_matrix,
+	 METH_O, bpygpu_matrix_multiply_matrix_doc},
+	{"scale", (PyCFunction)bpygpu_matrix_scale,
+	 METH_O, bpygpu_matrix_scale_doc},
+	{"scale_uniform", (PyCFunction)bpygpu_matrix_scale_uniform,
+	 METH_O, bpygpu_matrix_scale_uniform_doc},
+	{"translate", (PyCFunction)bpygpu_matrix_translate,
+	 METH_O, bpygpu_matrix_translate_doc},
 
 	/* TODO */
 #if 0
-	{"rotate", (PyCFunction)pygpu_matrix_rotate,
-	 METH_O, pygpu_matrix_rotate_doc},
-	{"rotate_axis", (PyCFunction)pygpu_matrix_rotate_axis,
-	 METH_O, pygpu_matrix_rotate_axis_doc},
-	{"look_at", (PyCFunction)pygpu_matrix_look_at,
-	 METH_O, pygpu_matrix_look_at_doc},
+	{"rotate", (PyCFunction)bpygpu_matrix_rotate,
+	 METH_O, bpygpu_matrix_rotate_doc},
+	{"rotate_axis", (PyCFunction)bpygpu_matrix_rotate_axis,
+	 METH_O, bpygpu_matrix_rotate_axis_doc},
+	{"look_at", (PyCFunction)bpygpu_matrix_look_at,
+	 METH_O, bpygpu_matrix_look_at_doc},
 #endif
 
 	/* Write State */
-	{"reset", (PyCFunction)pygpu_matrix_reset,
-	 METH_NOARGS, pygpu_matrix_reset_doc},
-	{"load_identity", (PyCFunction)pygpu_matrix_load_identity,
-	 METH_NOARGS, pygpu_matrix_load_identity_doc},
-	{"load_matrix", (PyCFunction)pygpu_matrix_load_matrix,
-	 METH_O, pygpu_matrix_load_matrix_doc},
+	{"reset", (PyCFunction)bpygpu_matrix_reset,
+	 METH_NOARGS, bpygpu_matrix_reset_doc},
+	{"load_identity", (PyCFunction)bpygpu_matrix_load_identity,
+	 METH_NOARGS, bpygpu_matrix_load_identity_doc},
+	{"load_matrix", (PyCFunction)bpygpu_matrix_load_matrix,
+	 METH_O, bpygpu_matrix_load_matrix_doc},
 
 	/* Read State */
-	{"get_projection_matrix", (PyCFunction)pygpu_matrix_get_projection_matrix,
-	 METH_NOARGS, pygpu_matrix_get_projection_matrix_doc},
-	{"get_model_view_matrix", (PyCFunction)pygpu_matrix_get_modal_view_matrix,
-	 METH_NOARGS, pygpu_matrix_get_modal_view_matrix_doc},
-	{"get_normal_matrix", (PyCFunction)pygpu_matrix_get_normal_matrix,
-	 METH_NOARGS, pygpu_matrix_get_normal_matrix_doc},
+	{"get_projection_matrix", (PyCFunction)bpygpu_matrix_get_projection_matrix,
+	 METH_NOARGS, bpygpu_matrix_get_projection_matrix_doc},
+	{"get_model_view_matrix", (PyCFunction)bpygpu_matrix_get_modal_view_matrix,
+	 METH_NOARGS, bpygpu_matrix_get_modal_view_matrix_doc},
+	{"get_normal_matrix", (PyCFunction)bpygpu_matrix_get_normal_matrix,
+	 METH_NOARGS, bpygpu_matrix_get_normal_matrix_doc},
 
 	{NULL, NULL, 0, NULL}
 };
 
-PyDoc_STRVAR(BPy_GPU_matrix_doc,
+PyDoc_STRVAR(bpygpu_matrix_doc,
 "This module provides access to the matrix stack."
 );
-static PyModuleDef BPy_GPU_matrix_module_def = {
+static PyModuleDef BPyGPU_matrix_module_def = {
 	PyModuleDef_HEAD_INIT,
 	.m_name = "gpu.matrix",
-	.m_doc = BPy_GPU_matrix_doc,
-	.m_methods = BPy_GPU_matrix_methods,
+	.m_doc = bpygpu_matrix_doc,
+	.m_methods = bpygpu_matrix_methods,
 };
 
 PyObject *BPyInit_gpu_matrix(void)
 {
 	PyObject *submodule;
 
-	submodule = PyModule_Create(&BPy_GPU_matrix_module_def);
+	submodule = PyModule_Create(&BPyGPU_matrix_module_def);
 
-	if (PyType_Ready(&pygpu_matrix_stack_context_Type) < 0) {
+	if (PyType_Ready(&BPyGPU_matrix_stack_context_Type) < 0) {
 		return NULL;
 	}
 

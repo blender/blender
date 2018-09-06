@@ -18,12 +18,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file blender/python/gpu/gpu_py_api.h
+ *  \ingroup bpygpu
+ */
+
 #ifndef __GPU_PY_API_H__
 #define __GPU_PY_API_H__
-
-/** \file blender/python/gpu/gpu_py_api.h
- *  \ingroup pygpu
- */
 
 PyObject *BPyInit_gpu(void);
 

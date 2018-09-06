@@ -18,18 +18,13 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_matrix.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_MATRIX_H__
+#define __GPU_PY_MATRIX_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
+PyObject *BPyInit_gpu_matrix(void);
 
-PyObject *BPyInit_gpu_types(void);
-
-#endif /* __GPU_PY_TYPES_H__ */
+#endif  /* __GPU_PY_MATRIX_H__ */

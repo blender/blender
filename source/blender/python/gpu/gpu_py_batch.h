@@ -18,18 +18,31 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_batch.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_BATCH_H__
+#define __GPU_PY_BATCH_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
+#include "BLI_compiler_attrs.h"
 
-PyObject *BPyInit_gpu_types(void);
+#define USE_GPU_PY_REFERENCES
 
-#endif /* __GPU_PY_TYPES_H__ */
+extern PyTypeObject BPyGPUBatch_Type;
+
+#define BPyGPUBatch_Check(v)          (Py_TYPE(v) == &BPyGPUBatch_Type)
+
+typedef struct BPyGPUBatch {
+	PyObject_VAR_HEAD
+	/* The batch is owned, we may support thin wrapped batches later. */
+	struct GPUBatch *batch;
+#ifdef USE_GPU_PY_REFERENCES
+	/* Just to keep a user to prevent freeing buf's we're using */
+	PyObject *references;
+#endif
+} BPyGPUBatch;
+
+PyObject *BPyGPUBatch_CreatePyObject(struct GPUBatch *batch) ATTR_NONNULL(1);
+
+#endif /* __GPU_PY_BATCH_H__ */

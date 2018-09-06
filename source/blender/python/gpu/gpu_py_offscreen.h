@@ -18,18 +18,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_offscreen.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_OFFSCREEN_H__
+#define __GPU_PY_OFFSCREEN_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
+#include "BLI_compiler_attrs.h"
 
-PyObject *BPyInit_gpu_types(void);
+extern PyTypeObject BPyGPUOffScreen_Type;
 
-#endif /* __GPU_PY_TYPES_H__ */
+#define BPyGPUOffScreen_Check(v)      (Py_TYPE(v) == &BPyGPUOffScreen_Type)
+
+typedef struct BPyGPUOffScreen {
+	PyObject_HEAD
+	struct GPUOffScreen *ofs;
+} BPyGPUOffScreen;
+
+PyObject *BPyGPUOffScreen_CreatePyObject(struct GPUOffScreen *ofs) ATTR_NONNULL(1);
+
+#endif /* __GPU_PY_OFFSCREEN_H__ */

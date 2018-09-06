@@ -18,18 +18,25 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_vertex_buffer.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_VERTEX_BUFFER_H__
+#define __GPU_PY_VERTEX_BUFFER_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
+#include "BLI_compiler_attrs.h"
 
-PyObject *BPyInit_gpu_types(void);
+extern PyTypeObject BPyGPUVertBuf_Type;
 
-#endif /* __GPU_PY_TYPES_H__ */
+#define BPyGPUVertBuf_Check(v)        (Py_TYPE(v) == &BPyGPUVertBuf_Type)
+
+typedef struct BPyGPUVertBuf {
+	PyObject_VAR_HEAD
+	/* The buf is owned, we may support thin wrapped batches later. */
+	struct GPUVertBuf *buf;
+} BPyGPUVertBuf;
+
+PyObject *BPyGPUVertBuf_CreatePyObject(struct GPUVertBuf *vbo) ATTR_NONNULL(1);
+
+#endif /* __GPU_PY_VERTEX_BUFFER_H__ */

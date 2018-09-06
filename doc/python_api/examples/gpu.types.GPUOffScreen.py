@@ -42,7 +42,7 @@ class OffScreenDraw(bpy.types.Operator):
         aspect_ratio = scene.render.resolution_x / scene.render.resolution_y
 
         try:
-            offscreen = gpu.offscreen.new(512, int(512 / aspect_ratio))
+            offscreen = gpu.types.GPUOffScreen(512, int(512 / aspect_ratio))
         except Exception as e:
             print(e)
             offscreen = None
@@ -52,7 +52,7 @@ class OffScreenDraw(bpy.types.Operator):
     @staticmethod
     def _update_offscreen(context, offscreen):
         scene = context.scene
-        render_layer = context.render_layer
+        view_layer = context.view_layer
         render = scene.render
         camera = scene.camera
 

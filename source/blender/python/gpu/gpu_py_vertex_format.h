@@ -15,29 +15,27 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Benoit Bolsee.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/intern/gpu.h
- *  \ingroup pythonintern
- *
- * Initializes the gpu Python module.
+/** \file blender/python/gpu/gpu_py_vertex_format.h
+ *  \ingroup bpygpu
  */
 
-#ifndef __GPU_H__
-#define __GPU_H__
+#ifndef __GPU_PY_VERTEX_FORMAT_H__
+#define __GPU_PY_VERTEX_FORMAT_H__
 
-PyObject *GPU_initPython(void);
+#include "GPU_vertex_format.h"
 
-PyObject *BPyInit_gpu_offscreen(void);
-PyObject *BPyInit_gpu_matrix(void);
-PyObject *BPyInit_gpu_select(void);
+extern PyTypeObject BPyGPUVertFormat_Type;
 
-#endif /* __GPU_H__ */
+#define BPyGPUVertFormat_Check(v)     (Py_TYPE(v) == &BPyGPUVertFormat_Type)
+
+typedef struct BPyGPUVertFormat {
+	PyObject_VAR_HEAD
+	struct GPUVertFormat fmt;
+} BPyGPUVertFormat;
+
+PyObject *BPyGPUVertFormat_CreatePyObject(struct GPUVertFormat *fmt);
+
+#endif /* __GPU_PY_VERTEX_FORMAT_H__ */
