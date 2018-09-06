@@ -1966,7 +1966,6 @@ static void mesh_calc_modifiers(
         int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
-        const bool allow_gpu,
         /* return args */
         Mesh **r_deform_mesh, Mesh **r_final_mesh)
 {
@@ -2008,8 +2007,6 @@ static void mesh_calc_modifiers(
 
 	if (useCache)
 		app_flags |= MOD_APPLY_USECACHE;
-	if (allow_gpu)
-		app_flags |= MOD_APPLY_ALLOW_GPU;
 	if (useDeform)
 		deform_app_flags |= MOD_APPLY_USECACHE;
 
@@ -2466,7 +2463,6 @@ static void mesh_calc_modifiers_dm(
         int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
-        const bool allow_gpu,
         /* return args */
         DerivedMesh **r_deformdm, DerivedMesh **r_finaldm)
 {
@@ -2474,7 +2470,7 @@ static void mesh_calc_modifiers_dm(
 
 	mesh_calc_modifiers(
 	        depsgraph, scene, ob, inputVertexCos, useDeform,
-	        need_mapping, dataMask, index, useCache, build_shapekey_layers, allow_gpu,
+	        need_mapping, dataMask, index, useCache, build_shapekey_layers,
 	        (r_deformdm ? &deform_mesh : NULL), &final_mesh);
 
 	if (deform_mesh) {
@@ -2550,7 +2546,7 @@ static void editbmesh_calc_modifiers(
 	/* TODO(sybren): do we really need multiple objects, or shall we change the flags where needed? */
 	const ModifierEvalContext mectx = {depsgraph, ob, 0};
 	const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
-	const ModifierEvalContext mectx_cache_gpu = {depsgraph, ob, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU};
+	const ModifierEvalContext mectx_cache = {depsgraph, ob, MOD_APPLY_USECACHE};
 
 	const bool do_loop_normals = (((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH) != 0;
 	const float loop_normals_split_angle = ((Mesh *)(ob->data))->smoothresh;
@@ -2688,9 +2684,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->applyModifierEM || mti->applyModifierEM_DM)
-				ndm = modwrap_applyModifierEM(md, &mectx_cache_gpu, em, dm);
+				ndm = modwrap_applyModifierEM(md, &mectx_cache, em, dm);
 			else
-				ndm = modwrap_applyModifier(md, &mectx_cache_gpu, dm);
+				ndm = modwrap_applyModifier(md, &mectx_cache, dm);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
@@ -2886,7 +2882,6 @@ static void mesh_build_data(
 
 	mesh_calc_modifiers(
 	        depsgraph, scene, ob, NULL, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
-	        true,
 	        &ob->runtime.mesh_deform_eval, &ob->runtime.mesh_eval);
 
 	mesh_finalize_eval(ob);
@@ -3082,7 +3077,7 @@ DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scen
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3095,7 +3090,7 @@ DerivedMesh *mesh_create_derived_index_render(struct Depsgraph *depsgraph, Scene
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3108,7 +3103,7 @@ struct Mesh *mesh_create_eval_final_index_render(
 	Mesh *final;
 
 	mesh_calc_modifiers(
-	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3129,7 +3124,7 @@ DerivedMesh *mesh_create_derived_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false,
 	        NULL, &final);
 
 	ob->transflag &= ~OB_NO_PSYS_UPDATE;
@@ -3151,7 +3146,7 @@ Mesh *mesh_create_eval_final_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers(
-	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false,
 	        NULL, &final);
 
 	ob->transflag &= ~OB_NO_PSYS_UPDATE;
@@ -3166,7 +3161,7 @@ DerivedMesh *mesh_create_derived_no_deform(
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, vertCos, 0, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, 0, false, dataMask, -1, false, false,
 	        NULL, &final);
 
 	return final;
