@@ -265,9 +265,9 @@ PyDoc_STRVAR(py_gpu_vertex_buffer_doc,
 "Contains a VBO."
 "\n"
 "   :param len: number of elements to allocate\n"
-"   :type type: int`\n"
+"   :type type: `int`\n"
 "   :param format: Vertex format.\n"
-"   :type buf: GPUVertFormat`\n"
+"   :type buf: `gpu.types.GPUVertFormat`\n"
 );
 PyTypeObject BPyGPUVertBuf_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)

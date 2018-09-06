@@ -152,7 +152,6 @@ static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *
 	Py_RETURN_NONE;
 }
 
-/* Currently magic number from Py perspective. */
 PyDoc_STRVAR(bpygpu_VertBatch_program_set_builtin_doc,
 "TODO"
 );
@@ -352,21 +351,20 @@ PyDoc_STRVAR(py_gpu_batch_doc,
 "Contains VAOs + VBOs + Shader representing a drawable entity."
 "\n"
 "   :param type: One of these primitive types: {\n"
-"   \"GPU_PRIM_POINTS\",\n"
-"   \"GPU_PRIM_LINES\",\n"
-"   \"GPU_PRIM_TRIS\",\n"
-"   \"GPU_PRIM_LINE_STRIP\",\n"
-"   \"GPU_PRIM_LINE_LOOP\",\n"
-"   \"GPU_PRIM_TRI_STRIP\",\n"
-"   \"GPU_PRIM_TRI_FAN\",\n"
-"   \"GPU_PRIM_LINES_ADJ\",\n"
-"   \"GPU_PRIM_TRIS_ADJ\",\n"
-"   \"GPU_PRIM_LINE_STRIP_ADJ\",\n"
-"   \"GPU_PRIM_NONE\n"
-"   }.\n"
-"   :type type: str`\n"
+"       \"POINTS\",\n"
+"       \"LINES\",\n"
+"       \"TRIS\",\n"
+"       \"LINE_STRIP\",\n"
+"       \"LINE_LOOP\",\n"
+"       \"TRI_STRIP\",\n"
+"       \"TRI_FAN\",\n"
+"       \"LINES_ADJ\",\n"
+"       \"TRIS_ADJ\",\n"
+"       \"LINE_STRIP_ADJ\",\n"
+"       \"NONE}\n"
+"   :type type: `str`\n"
 "   :param buf: Vertex buffer.\n"
-"   :type buf: GPUVertBuf`\n"
+"   :type buf: :class: `gpu.types.GPUVertBuf`\n"
 );
 PyTypeObject BPyGPUBatch_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
