@@ -40,6 +40,8 @@ void BKE_subdiv_stats_init(SubdivStats *stats)
 	stats->subdiv_to_mesh_geometry_time = 0.0;
 	stats->evaluator_creation_time = 0.0;
 	stats->evaluator_refine_time = 0.0;
+	stats->subdiv_to_ccg_time = 0.0;
+	stats->subdiv_to_ccg_elements_time = 0.0;
 }
 
 void BKE_subdiv_stats_begin(SubdivStats *stats, eSubdivStatsValue value)
@@ -79,6 +81,12 @@ void BKE_subdiv_stats_print(const SubdivStats *stats)
 	STATS_PRINT_TIME(stats,
 	                 evaluator_refine_time,
 	                 "Evaluator refine time");
+	STATS_PRINT_TIME(stats,
+	                 subdiv_to_ccg_time,
+	                 "Subdivision to CCG time");
+	STATS_PRINT_TIME(stats,
+	                 subdiv_to_ccg_elements_time,
+	                 "    Elements time");
 
 #undef STATS_PRINT_TIME
 }

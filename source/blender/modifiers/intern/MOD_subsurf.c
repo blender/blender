@@ -44,6 +44,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_scene.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_mesh.h"
 #include "BKE_subsurf.h"
 
@@ -170,6 +171,8 @@ static void subdiv_settings_init(SubdivSettings *settings,
 	        BKE_subdiv_fvar_interpolation_from_uv_smooth(smd->uv_smooth);
 }
 
+/* Subdivide into fully qualified mesh. */
+
 static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
                                       const SubsurfModifierData *smd,
                                       const ModifierEvalContext *ctx)
@@ -177,6 +180,50 @@ static void subdiv_mesh_settings_init(SubdivToMeshSettings *settings,
 	const int level = subdiv_levels_for_modifier_get(smd, ctx);
 	settings->resolution = (1 << level) + 1;
 }
+
+static Mesh *subdiv_as_mesh(SubsurfModifierData *smd,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            Subdiv *subdiv)
+{
+	Mesh *result = mesh;
+	SubdivToMeshSettings mesh_settings;
+	subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
+	if (mesh_settings.resolution < 3) {
+		return result;
+	}
+	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	return result;
+}
+
+/* Subdivide into CCG. */
+
+static void subdiv_ccg_settings_init(SubdivToCCGSettings *settings,
+                                     const SubsurfModifierData *smd,
+                                     const ModifierEvalContext *ctx)
+{
+	const int level = subdiv_levels_for_modifier_get(smd, ctx);
+	settings->resolution = (1 << level) + 1;
+	settings->need_normal = true;
+	settings->need_mask = false;
+}
+
+static Mesh *subdiv_as_ccg(SubsurfModifierData *smd,
+                            const ModifierEvalContext *ctx,
+                            Mesh *mesh,
+                            Subdiv *subdiv)
+{
+	Mesh *result = mesh;
+	SubdivToCCGSettings ccg_settings;
+	subdiv_ccg_settings_init(&ccg_settings, smd, ctx);
+	if (ccg_settings.resolution < 3) {
+		return result;
+	}
+	result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+	return result;
+}
+
+/* Modifier itself. */
 
 static Mesh *applyModifier_subdiv(ModifierData *md,
                                   const ModifierEvalContext *ctx,
@@ -186,12 +233,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	SubdivSettings subdiv_settings;
 	subdiv_settings_init(&subdiv_settings, smd);
-	SubdivToMeshSettings mesh_settings;
-	subdiv_mesh_settings_init(&mesh_settings, smd, ctx);
-	if (subdiv_settings.level == 0 || mesh_settings.resolution < 3) {
-		/* NOTE: Shouldn't really happen, is supposed to be catched by
-		 * isDisabled() callback.
-		 */
+	if (subdiv_settings.level == 0) {
 		return result;
 	}
 	/* TODO(sergey): Try to re-use subdiv when possible. */
@@ -200,7 +242,15 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 		/* Happens on bad topology, ut also on empty input mesh. */
 		return result;
 	}
-	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	/* TODO(sergey): Decide whether we ever want to use CCG for subsurf,
+	 * maybe when it is a last modifier in the stack?
+	 */
+	if (true) {
+		result = subdiv_as_mesh(smd, ctx, mesh, subdiv);
+	}
+	else {
+		result = subdiv_as_ccg(smd, ctx, mesh, subdiv);
+	}
 	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);
 	BKE_subdiv_free(subdiv);

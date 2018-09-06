@@ -391,8 +391,7 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 
 	clip_planes_from_rect(C, clip_planes, &rect);
 
-	Mesh *me_eval_deform = mesh_get_eval_deform(depsgraph, CTX_data_scene(C), ob, CD_MASK_BAREMESH);
-	pbvh = BKE_sculpt_object_pbvh_ensure(ob, me_eval_deform);
+	pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 	BLI_assert(ob->sculpt->pbvh == pbvh);
 
 	get_pbvh_nodes(pbvh, &nodes, &totnode, clip_planes, area);

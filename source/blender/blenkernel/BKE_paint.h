@@ -261,7 +261,7 @@ int BKE_sculpt_mask_layers_ensure(struct Object *ob,
                                   struct MultiresModifierData *mmd);
 void BKE_sculpt_toolsettings_data_ensure(struct Scene *scene);
 
-struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Object *ob, struct Mesh *me_eval_deform);
+struct PBVH *BKE_sculpt_object_pbvh_ensure(struct Depsgraph *depsgraph, struct Object *ob);
 
 enum {
 	SCULPT_MASK_LAYER_CALC_VERT = (1 << 0),

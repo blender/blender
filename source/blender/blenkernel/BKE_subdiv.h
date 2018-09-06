@@ -66,6 +66,8 @@ typedef enum eSubdivStatsValue {
 	SUBDIV_STATS_SUBDIV_TO_MESH_GEOMETRY,
 	SUBDIV_STATS_EVALUATOR_CREATE,
 	SUBDIV_STATS_EVALUATOR_REFINE,
+	SUBDIV_STATS_SUBDIV_TO_CCG,
+	SUBDIV_STATS_SUBDIV_TO_CCG_ELEMENTS,
 
 	NUM_SUBDIV_STATS_VALUES,
 } eSubdivStatsValue;
@@ -86,6 +88,10 @@ typedef struct SubdivStats {
 			double evaluator_creation_time;
 			/* Time spent on evaluator->refine(). */
 			double evaluator_refine_time;
+			/* Total time spent on whole CCG creation. */
+			double subdiv_to_ccg_time;
+			/* Time spent on CCG elements evaluation/initialization. */
+			double subdiv_to_ccg_elements_time;
 		};
 		double values_[NUM_SUBDIV_STATS_VALUES];
 	};

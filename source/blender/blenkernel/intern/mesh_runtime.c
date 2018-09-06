@@ -43,6 +43,7 @@
 #include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
+#include "BKE_subdiv_ccg.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Mesh Runtime Struct Utils
@@ -196,6 +197,11 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
 	bvhcache_free(&mesh->runtime.bvh_cache);
 	MEM_SAFE_FREE(mesh->runtime.looptris.array);
+	/* TODO(sergey): Does this really belong here? */
+	if (mesh->runtime.subsurf_ccg != NULL) {
+		BKE_subdiv_ccg_destroy(mesh->runtime.subsurf_ccg);
+		mesh->runtime.subsurf_ccg = NULL;
+	}
 }
 
 /** \} */

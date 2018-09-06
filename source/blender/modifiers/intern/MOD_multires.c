@@ -42,10 +42,12 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
 #include "BKE_modifier.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_mesh.h"
 #include "BKE_subsurf.h"
 
@@ -143,25 +145,74 @@ static DerivedMesh *applyModifier(
 }
 
 #ifdef WITH_OPENSUBDIV_MODIFIER
-static Mesh *applyModifier_subdiv(ModifierData *md,
-                                  const ModifierEvalContext *ctx,
-                                  Mesh *mesh)
+
+/* Subdivide into fully qualified mesh. */
+
+static Mesh *multires_as_mesh(MultiresModifierData *mmd,
+                              const ModifierEvalContext *ctx,
+                              Mesh *mesh,
+                              Subdiv *subdiv)
 {
+	Mesh *result = mesh;
 	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
 	const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
 	const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 	Object *object = ctx->object;
+	SubdivToMeshSettings mesh_settings;
+	BKE_multires_subdiv_mesh_settings_init(
+        &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
+	if (mesh_settings.resolution < 3) {
+		return result;
+	}
+	BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
+	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	return result;
+}
+
+/* Subdivide into CCG. */
+
+static void multires_ccg_settings_init(SubdivToCCGSettings *settings,
+                                       const MultiresModifierData *mmd,
+                                       const ModifierEvalContext *ctx,
+                                       Mesh *mesh)
+{
+	const bool has_mask =
+	        CustomData_has_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER);
+	const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY);
+	const Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+	Object *object = ctx->object;
+	const int level = multires_get_level(
+	        scene, object, mmd, use_render_params, ignore_simplify);
+	settings->resolution = (1 << level) + 1;
+	settings->need_normal = true;
+	settings->need_mask = has_mask;
+}
+
+static Mesh *multires_as_ccg(MultiresModifierData *mmd,
+                             const ModifierEvalContext *ctx,
+                             Mesh *mesh,
+                             Subdiv *subdiv)
+{
+	Mesh *result = mesh;
+	SubdivToCCGSettings ccg_settings;
+	multires_ccg_settings_init(&ccg_settings, mmd, ctx, mesh);
+	if (ccg_settings.resolution < 3) {
+		return result;
+	}
+	result = BKE_subdiv_to_ccg_mesh(subdiv, &ccg_settings, mesh);
+	return result;
+}
+
+static Mesh *applyModifier_subdiv(ModifierData *md,
+                                  const ModifierEvalContext *ctx,
+                                  Mesh *mesh)
+{
 	Mesh *result = mesh;
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	SubdivSettings subdiv_settings;
 	BKE_multires_subdiv_settings_init(&subdiv_settings, mmd);
-	SubdivToMeshSettings mesh_settings;
-	BKE_multires_subdiv_mesh_settings_init(
-        &mesh_settings, scene, object, mmd, use_render_params, ignore_simplify);
-	if (subdiv_settings.level == 0 || mesh_settings.resolution < 3) {
-		/* NOTE: Shouldn't really happen, is supposed to be catched by
-		 * isDisabled() callback.
-		 */
+	if (subdiv_settings.level == 0) {
 		return result;
 	}
 	/* TODO(sergey): Try to re-use subdiv when possible. */
@@ -170,8 +221,17 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 		/* Happens on bad topology, ut also on empty input mesh. */
 		return result;
 	}
-	BKE_subdiv_displacement_attach_from_multires(subdiv, mesh, mmd);
-	result = BKE_subdiv_to_mesh(subdiv, &mesh_settings, mesh);
+	/* TODO(sergey): Some of production machines are using OpenSubdiv already.
+	 * so better not enable semi-finished multires sculpting for now. Will give
+	 * a wrong impression that things do work, eben though crucial areas are
+	 * styill missing in implementation.
+	 */
+	if ((ctx->object->mode & OB_MODE_SCULPT) && G.debug_value == 128) {
+		result = multires_as_ccg(mmd, ctx, mesh, subdiv);
+	}
+	else {
+		result = multires_as_mesh(mmd, ctx, mesh, subdiv);
+	}
 	/* TODO(sergey): Cache subdiv somehow. */
 	// BKE_subdiv_stats_print(&subdiv->stats);
 	BKE_subdiv_free(subdiv);

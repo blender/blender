@@ -33,10 +33,12 @@
 #define __BKE_SUBDIV_CCG_H__
 
 #include "BKE_customdata.h"
+#include "BLI_bitmap.h"
 #include "BLI_sys_types.h"
 
 struct CCGElem;
 struct CCGKey;
+struct DMFlagMat;
 struct Mesh;
 struct Subdiv;
 
@@ -67,7 +69,12 @@ typedef struct SubdivCCG {
 	 * corresponding to face-corners of coarse mesh, each grid has
 	 * grid_size^2 elements.
 	 */
+	/* Indexed by a grid index, points to a grid data which is stored in
+	 * grids_storage.
+	 */
 	struct CCGElem **grids;
+	/* Flat array of all grids' data. */
+	unsigned char *grids_storage;
 	int num_grids;
 	/* Loose edges, each array element contains grid_size elements
 	 * corresponding to vertices created by subdividing coarse edges.
@@ -91,6 +98,9 @@ typedef struct SubdivCCG {
 	int normal_offset;
 	int mask_offset;
 
+	struct DMFlagMat *grid_flag_mats;
+	BLI_bitmap **grid_hidden;
+
 	/* TODO(sergey): Consider adding some accessors to a "decoded" geometry,
 	 * to make integration with draw manager and such easy.
 	 */
@@ -106,8 +116,17 @@ struct SubdivCCG *BKE_subdiv_to_ccg(
         const SubdivToCCGSettings *settings,
         const struct Mesh *coarse_mesh);
 
+
 /* Destroy CCG representation of subdivision surface. */
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);
+
+/* Helper function, creates Mesh structure which is properly setup to use
+ * grids.
+ */
+struct Mesh *BKE_subdiv_to_ccg_mesh(
+        struct Subdiv *subdiv,
+        const SubdivToCCGSettings *settings,
+        const struct Mesh *coarse_mesh);
 
 /* Create a key for accessing grid elements at a given level. */
 void BKE_subdiv_ccg_key(
