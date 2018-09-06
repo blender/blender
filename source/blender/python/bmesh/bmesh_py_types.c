@@ -1246,15 +1246,15 @@ static PyObject *bpy_bmesh_calc_volume(BPy_BMElem *self, PyObject *args, PyObjec
 	}
 }
 
-PyDoc_STRVAR(bpy_bmesh_calc_tessface_doc,
-".. method:: calc_tessface()\n"
+PyDoc_STRVAR(bpy_bmesh_calc_loop_triangles_doc,
+".. method:: calc_loop_triangles()\n"
 "\n"
 "   Calculate triangle tessellation from quads/ngons.\n"
 "\n"
 "   :return: The triangulated faces.\n"
 "   :rtype: list of :class:`BMLoop` tuples\n"
 );
-static PyObject *bpy_bmesh_calc_tessface(BPy_BMElem *self)
+static PyObject *bpy_bmesh_calc_loop_triangles(BPy_BMElem *self)
 {
 	BMesh *bm;
 
@@ -2733,7 +2733,7 @@ static struct PyMethodDef bpy_bmesh_methods[] = {
 
 	/* calculations */
 	{"calc_volume", (PyCFunction)bpy_bmesh_calc_volume, METH_VARARGS | METH_KEYWORDS, bpy_bmesh_calc_volume_doc},
-	{"calc_tessface", (PyCFunction)bpy_bmesh_calc_tessface, METH_NOARGS, bpy_bmesh_calc_tessface_doc},
+	{"calc_loop_triangles", (PyCFunction)bpy_bmesh_calc_loop_triangles, METH_NOARGS, bpy_bmesh_calc_loop_triangles_doc},
 	{NULL, NULL, 0, NULL}
 };
 

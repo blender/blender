@@ -164,26 +164,26 @@ for list removal, but these are slower.
 Sometimes its faster (but more memory hungry) to just rebuild the list.
 
 
-Say you want to remove all triangular faces in a list.
+Say you want to remove all triangular polygons in a list.
 
 Rather than...
 
 .. code-block:: python
 
-   faces = mesh.tessfaces[:]  # make a list copy of the meshes faces
-   f_idx = len(faces)     # Loop backwards
-   while f_idx:           # while the value is not 0
-       f_idx -= 1
+   polygons = mesh.polygons[:]  # make a list copy of the meshes polygons
+   p_idx = len(polygons)     # Loop backwards
+   while p_idx:           # while the value is not 0
+       p_idx -= 1
 
-       if len(faces[f_idx].vertices) == 3:
-           faces.pop(f_idx)  # remove the triangle
+       if len(polygons[p_idx].vertices) == 3:
+           polygons.pop(p_idx)  # remove the triangle
 
 
 It's faster to build a new list with list comprehension.
 
 .. code-block:: python
 
-   faces = [f for f in mesh.tessfaces if len(f.vertices) != 3]
+   polygons = [p for p in mesh.polygons if len(p.vertices) != 3]
 
 
 Adding List Items

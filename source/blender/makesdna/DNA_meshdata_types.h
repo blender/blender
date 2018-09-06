@@ -174,8 +174,6 @@ typedef struct MLoop {
  *
  * \note A #MLoopTri may be in the middle of an ngon and not reference **any** edges.
  */
-#
-#
 typedef struct MLoopTri {
 	unsigned int tri[3];
 	unsigned int poly;

@@ -468,7 +468,7 @@ class MeshEdge(StructRNA):
         return ord_ind(*tuple(self.vertices))
 
 
-class MeshTessFace(StructRNA):
+class MeshLoopTriangle(StructRNA):
     __slots__ = ()
 
     @property
@@ -476,32 +476,18 @@ class MeshTessFace(StructRNA):
         """The midpoint of the face."""
         face_verts = self.vertices[:]
         mesh_verts = self.id_data.vertices
-        if len(face_verts) == 3:
-            return (mesh_verts[face_verts[0]].co +
-                    mesh_verts[face_verts[1]].co +
-                    mesh_verts[face_verts[2]].co
-                    ) / 3.0
-        else:
-            return (mesh_verts[face_verts[0]].co +
-                    mesh_verts[face_verts[1]].co +
-                    mesh_verts[face_verts[2]].co +
-                    mesh_verts[face_verts[3]].co
-                    ) / 4.0
+        return (mesh_verts[face_verts[0]].co +
+                mesh_verts[face_verts[1]].co +
+                mesh_verts[face_verts[2]].co
+                ) / 3.0
 
     @property
     def edge_keys(self):
         verts = self.vertices[:]
-        if len(verts) == 3:
-            return (ord_ind(verts[0], verts[1]),
-                    ord_ind(verts[1], verts[2]),
-                    ord_ind(verts[2], verts[0]),
-                    )
-        else:
-            return (ord_ind(verts[0], verts[1]),
-                    ord_ind(verts[1], verts[2]),
-                    ord_ind(verts[2], verts[3]),
-                    ord_ind(verts[3], verts[0]),
-                    )
+        return (ord_ind(verts[0], verts[1]),
+                ord_ind(verts[1], verts[2]),
+                ord_ind(verts[2], verts[0]),
+                )
 
 
 class MeshPolygon(StructRNA):

@@ -20,13 +20,12 @@
 
 __all__ = (
     "mesh_linked_uv_islands",
-    "mesh_linked_tessfaces",
+    "mesh_linked_triangles",
     "edge_face_count_dict",
     "edge_face_count",
-    "edge_loops_from_tessfaces",
     "edge_loops_from_edges",
     "ngon_tessellate",
-    "face_random_points",
+    "triangle_random_points",
 )
 
 
@@ -90,41 +89,41 @@ def mesh_linked_uv_islands(mesh):
     return poly_islands
 
 
-def mesh_linked_tessfaces(mesh):
+def mesh_linked_triangles(mesh):
     """
-    Splits the mesh into connected faces, use this for separating cubes from
+    Splits the mesh into connected triangles, use this for separating cubes from
     other mesh elements within 1 mesh datablock.
 
     :arg mesh: the mesh used to group with.
     :type mesh: :class:`bpy.types.Mesh`
-    :return: lists of lists containing faces.
+    :return: lists of lists containing triangles.
     :rtype: list
     """
 
     # Build vert face connectivity
-    vert_faces = [[] for i in range(len(mesh.vertices))]
-    for f in mesh.tessfaces:
-        for v in f.vertices:
-            vert_faces[v].append(f)
+    vert_tris = [[] for i in range(len(mesh.vertices))]
+    for t in mesh.loop_triangles:
+        for v in t.vertices:
+            vert_tris[v].append(t)
 
-    # sort faces into connectivity groups
-    face_groups = [[f] for f in mesh.tessfaces]
-    # map old, new face location
-    face_mapping = list(range(len(mesh.tessfaces)))
+    # sort triangles into connectivity groups
+    tri_groups = [[t] for t in mesh.loop_triangles]
+    # map old, new tri location
+    tri_mapping = list(range(len(mesh.loop_triangles)))
 
-    # Now clump faces iteratively
+    # Now clump triangles iteratively
     ok = True
     while ok:
         ok = False
 
-        for i, f in enumerate(mesh.tessfaces):
-            mapped_index = face_mapping[f.index]
-            mapped_group = face_groups[mapped_index]
+        for i, t in enumerate(mesh.loop_triangles):
+            mapped_index = tri_mapping[t.index]
+            mapped_group = tri_groups[mapped_index]
 
-            for v in f.vertices:
-                for nxt_f in vert_faces[v]:
-                    if nxt_f != f:
-                        nxt_mapped_index = face_mapping[nxt_f.index]
+            for v in t.vertices:
+                for nxt_t in vert_tris[v]:
+                    if nxt_t != t:
+                        nxt_mapped_index = tri_mapping[nxt_t.index]
 
                         # We are not a part of the same group
                         if mapped_index != nxt_mapped_index:
@@ -132,18 +131,18 @@ def mesh_linked_tessfaces(mesh):
 
                             # Assign mapping to this group so they
                             # all map to this group
-                            for grp_f in face_groups[nxt_mapped_index]:
-                                face_mapping[grp_f.index] = mapped_index
+                            for grp_t in tri_groups[nxt_mapped_index]:
+                                tri_mapping[grp_t.index] = mapped_index
 
-                            # Move faces into this group
-                            mapped_group.extend(face_groups[nxt_mapped_index])
+                            # Move triangles into this group
+                            mapped_group.extend(tri_groups[nxt_mapped_index])
 
                             # remove reference to the list
-                            face_groups[nxt_mapped_index] = None
+                            tri_groups[nxt_mapped_index] = None
 
-    # return all face groups that are not null
-    # this is all the faces that are connected in their own lists.
-    return [fg for fg in face_groups if fg]
+    # return all tri groups that are not null
+    # this is all the triangles that are connected in their own lists.
+    return [tg for tg in tri_groups if tg]
 
 
 def edge_face_count_dict(mesh):
@@ -175,87 +174,6 @@ def edge_face_count(mesh):
     edge_face_count = edge_face_count_dict(mesh)
     get = dict.get
     return [get(edge_face_count, ed.key, 0) for ed in mesh.edges]
-
-
-def edge_loops_from_tessfaces(mesh, tessfaces=None, seams=()):
-    """
-    Edge loops defined by faces
-
-    Takes me.tessfaces or a list of faces and returns the edge loops
-    These edge loops are the edges that sit between quads, so they don't touch
-    1 quad, note: not connected will make 2 edge loops,
-    both only containing 2 edges.
-
-    return a list of edge key lists
-    [[(0, 1), (4, 8), (3, 8)], ...]
-
-    :arg mesh: the mesh used to get edge loops from.
-    :type mesh: :class:`bpy.types.Mesh`
-    :arg tessfaces: optional face list to only use some of the meshes faces.
-    :type tessfaces: :class:`bpy.types.MeshTessFace`, sequence or or NoneType
-    :return: return a list of edge vertex index lists.
-    :rtype: list
-    """
-
-    OTHER_INDEX = 2, 3, 0, 1  # opposite face index
-
-    if tessfaces is None:
-        tessfaces = mesh.tessfaces
-
-    edges = {}
-
-    for f in tessfaces:
-        if len(f.vertices) == 4:
-            edge_keys = f.edge_keys
-            for i, edkey in enumerate(f.edge_keys):
-                edges.setdefault(edkey, []).append(edge_keys[OTHER_INDEX[i]])
-
-    for edkey in seams:
-        edges[edkey] = []
-
-    # Collect edge loops here
-    edge_loops = []
-
-    for edkey, ed_adj in edges.items():
-        if 0 < len(ed_adj) < 3:  # 1 or 2
-            # Seek the first edge
-            context_loop = [edkey, ed_adj[0]]
-            edge_loops.append(context_loop)
-            if len(ed_adj) == 2:
-                other_dir = ed_adj[1]
-            else:
-                other_dir = None
-
-            del ed_adj[:]
-
-            flipped = False
-
-            while 1:
-                # from knowing the last 2, look for the next.
-                ed_adj = edges[context_loop[-1]]
-                if len(ed_adj) != 2:
-                    # the original edge had 2 other edges
-                    if other_dir and flipped is False:
-                        flipped = True  # only flip the list once
-                        context_loop.reverse()
-                        del ed_adj[:]
-                        context_loop.append(other_dir)  # save 1 look-up
-
-                        ed_adj = edges[context_loop[-1]]
-                        if len(ed_adj) != 2:
-                            del ed_adj[:]
-                            break
-                    else:
-                        del ed_adj[:]
-                        break
-
-                i = ed_adj.index(context_loop[-2])
-                context_loop.append(ed_adj[not i])
-
-                # Don't look at this again
-                del ed_adj[:]
-
-    return edge_loops
 
 
 def edge_loops_from_edges(mesh, edges=None):
@@ -511,54 +429,42 @@ def ngon_tessellate(from_data, indices, fix_loops=True):
     return fill
 
 
-def face_random_points(num_points, tessfaces):
+def triangle_random_points(num_points, loop_triangles):
     """
-    Generates a list of random points over mesh tessfaces.
+    Generates a list of random points over mesh loop triangles.
 
-    :arg num_points: the number of random points to generate on each face.
+    :arg num_points: the number of random points to generate on each triangle.
     :type int:
-    :arg tessfaces: list of the faces to generate points on.
-    :type tessfaces: :class:`bpy.types.MeshTessFace`, sequence
-    :return: list of random points over all faces.
+    :arg loop_triangles: list of the triangles to generate points on.
+    :type loop_triangles: :class:`bpy.types.MeshLoopTriangle`, sequence
+    :return: list of random points over all triangles.
     :rtype: list
     """
 
     from random import random
     from mathutils.geometry import area_tri
 
-    # Split all quads into 2 tris, tris remain unchanged
-    tri_faces = []
-    for f in tessfaces:
-        tris = []
-        verts = f.id_data.vertices
-        fv = f.vertices[:]
-        tris.append((verts[fv[0]].co,
-                     verts[fv[1]].co,
-                     verts[fv[2]].co,
-                     ))
-        if len(fv) == 4:
-            tris.append((verts[fv[0]].co,
-                         verts[fv[3]].co,
-                         verts[fv[2]].co,
-                         ))
-        tri_faces.append(tris)
+    # For each triangle, generate the required number of random points
+    sampled_points = [None] * (num_points * len(loop_triangles))
+    for i, lt in enumerate(loop_triangles):
+        # Get triangle vertex coordinates
+        verts = lt.id_data.vertices
+        ltv = lt.vertices[:]
+        tv = (verts[ltv[0]].co, verts[ltv[1]].co, verts[ltv[2]].co)
 
-    # For each face, generate the required number of random points
-    sampled_points = [None] * (num_points * len(tessfaces))
-    for i, tf in enumerate(tri_faces):
         for k in range(num_points):
             # If this is a quad, we need to weight its 2 tris by their area
-            if len(tf) != 1:
-                area1 = area_tri(*tf[0])
-                area2 = area_tri(*tf[1])
+            if len(tv) != 1:
+                area1 = area_tri(*tv[0])
+                area2 = area_tri(*tv[1])
                 area_tot = area1 + area2
 
                 area1 = area1 / area_tot
                 area2 = area2 / area_tot
 
-                vecs = tf[0 if (random() < area1) else 1]
+                vecs = tv[0 if (random() < area1) else 1]
             else:
-                vecs = tf[0]
+                vecs = tv[0]
 
             u1 = random()
             u2 = random()

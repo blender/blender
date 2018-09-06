@@ -113,30 +113,30 @@ static PyObject *bpy_bm_from_edit_mesh(PyObject *UNUSED(self), PyObject *value)
 }
 
 PyDoc_STRVAR(bpy_bm_update_edit_mesh_doc,
-".. method:: update_edit_mesh(mesh, tessface=True, destructive=True)\n"
+".. method:: update_edit_mesh(mesh, loop_triangles=True, destructive=True)\n"
 "\n"
 "   Update the mesh after changes to the BMesh in editmode, \n"
 "   optionally recalculating n-gon tessellation.\n"
 "\n"
 "   :arg mesh: The editmode mesh.\n"
 "   :type mesh: :class:`bpy.types.Mesh`\n"
-"   :arg tessface: Option to recalculate n-gon tessellation.\n"
-"   :type tessface: boolean\n"
+"   :arg loop_triangles: Option to recalculate n-gon tessellation.\n"
+"   :type loop_triangles: boolean\n"
 "   :arg destructive: Use when geometry has been added or removed.\n"
 "   :type destructive: boolean\n"
 );
 static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
-	static const char *kwlist[] = {"mesh", "tessface", "destructive", NULL};
+	static const char *kwlist[] = {"mesh", "loop_triangles", "destructive", NULL};
 	PyObject *py_me;
 	Mesh *me;
-	bool do_tessface = true;
+	bool do_loop_triangles = true;
 	bool is_destructive = true;
 
 	if (!PyArg_ParseTupleAndKeywords(
 	        args, kw, "O|O&O&:update_edit_mesh", (char **)kwlist,
 	        &py_me,
-	        PyC_ParseBool, &do_tessface,
+	        PyC_ParseBool, &do_loop_triangles,
 	        PyC_ParseBool, &is_destructive))
 	{
 		return NULL;
@@ -157,7 +157,7 @@ static PyObject *bpy_bm_update_edit_mesh(PyObject *UNUSED(self), PyObject *args,
 	{
 		extern void EDBM_update_generic(BMEditMesh *em, const bool do_tessface, const bool is_destructive);
 
-		EDBM_update_generic(me->edit_btmesh, do_tessface, is_destructive);
+		EDBM_update_generic(me->edit_btmesh, do_loop_triangles, is_destructive);
 	}
 
 	Py_RETURN_NONE;

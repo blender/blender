@@ -247,11 +247,11 @@ static bool ObtainCacheParticleUV(Mesh *mesh,
 				b_psys.particles.begin(b_pa);
 				for(; pa_no < totparts+totchild; pa_no++) {
 					/* Add UVs */
-					BL::Mesh::tessface_uv_textures_iterator l;
-					b_mesh->tessface_uv_textures.begin(l);
+					BL::Mesh::uv_layers_iterator l;
+					b_mesh->uv_layers.begin(l);
 
 					float3 uv = make_float3(0.0f, 0.0f, 0.0f);
-					if(b_mesh->tessface_uv_textures.length())
+					if(b_mesh->uv_layers.length())
 						b_psys.uv_on_emitter(psmd, *b_pa, pa_no, uv_num, &uv.x);
 					CData->curve_uv.push_back_slow(uv);
 
@@ -306,11 +306,11 @@ static bool ObtainCacheParticleVcol(Mesh *mesh,
 				b_psys.particles.begin(b_pa);
 				for(; pa_no < totparts+totchild; pa_no++) {
 					/* Add vertex colors */
-					BL::Mesh::tessface_vertex_colors_iterator l;
-					b_mesh->tessface_vertex_colors.begin(l);
+					BL::Mesh::vertex_colors_iterator l;
+					b_mesh->vertex_colors.begin(l);
 
 					float3 vcol = make_float3(0.0f, 0.0f, 0.0f);
-					if(b_mesh->tessface_vertex_colors.length())
+					if(b_mesh->vertex_colors.length())
 						b_psys.mcol_on_emitter(psmd, *b_pa, pa_no, vcol_num, &vcol.x);
 					CData->curve_vcol.push_back_slow(vcol);
 
@@ -968,10 +968,10 @@ void BlenderSync::sync_curves(Mesh *mesh,
 
 	/* create vertex color attributes */
 	if(!motion) {
-		BL::Mesh::tessface_vertex_colors_iterator l;
+		BL::Mesh::vertex_colors_iterator l;
 		int vcol_num = 0;
 
-		for(b_mesh.tessface_vertex_colors.begin(l); l != b_mesh.tessface_vertex_colors.end(); ++l, vcol_num++) {
+		for(b_mesh.vertex_colors.begin(l); l != b_mesh.vertex_colors.end(); ++l, vcol_num++) {
 			if(!mesh->need_attribute(scene, ustring(l->name().c_str())))
 				continue;
 
@@ -1005,10 +1005,10 @@ void BlenderSync::sync_curves(Mesh *mesh,
 
 	/* create UV attributes */
 	if(!motion) {
-		BL::Mesh::tessface_uv_textures_iterator l;
+		BL::Mesh::uv_layers_iterator l;
 		int uv_num = 0;
 
-		for(b_mesh.tessface_uv_textures.begin(l); l != b_mesh.tessface_uv_textures.end(); ++l, uv_num++) {
+		for(b_mesh.uv_layers.begin(l); l != b_mesh.uv_layers.end(); ++l, uv_num++) {
 			bool active_render = l->active_render();
 			AttributeStandard std = (active_render)? ATTR_STD_UV: ATTR_STD_NONE;
 			ustring name = ustring(l->name().c_str());

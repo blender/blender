@@ -173,25 +173,25 @@ In this situation you can...
 
 .. _info_gotcha_mesh_faces:
 
-N-Gons and Tessellation Faces
-=============================
+N-Gons and Tessellation
+=======================
 
 Since 2.63 NGons are supported, this adds some complexity
-since in some cases you need to access triangles/quads still (some exporters for example).
+since in some cases you need to access triangles still (some exporters for example).
 
 There are now 3 ways to access faces:
 
 - :class:`bpy.types.MeshPolygon` -
   this is the data structure which now stores faces in object mode
   (access as ``mesh.polygons`` rather than ``mesh.faces``).
-- :class:`bpy.types.MeshTessFace` -
-  the result of triangulating (tessellated) polygons,
-  the main method of face access in 2.62 or older (access as ``mesh.tessfaces``).
+- :class:`bpy.types.MeshLoopTriangle` -
+  the result of tessellating polygons into triangles
+  (access as ``mesh.loop_triangles``).
 - :class:`bmesh.types.BMFace` -
   the polygons as used in editmode.
 
 For the purpose of the following documentation,
-these will be referred to as polygons, tessfaces and bmesh-faces respectively.
+these will be referred to as polygons, loop triangles and bmesh-faces respectively.
 
 5+ sided faces will be referred to as ``ngons``.
 
@@ -234,13 +234,8 @@ All 3 datatypes can be used for face creation.
 
 - polygons are the most efficient way to create faces but the data structure is _very_ rigid and inflexible,
   you must have all your vertes and faces ready and create them all at once.
-  This is further complicated by the fact that each polygon does not store its own verts (as with tessfaces),
+  This is further complicated by the fact that each polygon does not store its own verts,
   rather they reference an index and size in :class:`bpy.types.Mesh.loops` which are a fixed array too.
-- tessfaces ideally should not be used for creating faces since they are really only tessellation cache of polygons,
-  however for scripts upgrading from 2.62 this is by far the most straightforward option.
-  This works by creating tessfaces and when finished -
-  they can be converted into polygons by calling :class:`bpy.types.Mesh.update`.
-  The obvious limitation is ngons can't be created this way.
 - bmesh-faces are most likely the easiest way for new scripts to create faces,
   since faces can be added one by one and the api has features intended for mesh manipulation.
   While :class:`bmesh.types.BMesh` uses more memory it can be managed by only operating on one mesh at a time.
@@ -269,30 +264,6 @@ the choice mostly depends on whether the target format supports ngons or not.
   in fact this is the only place where their use is encouraged.
 - BMesh-Faces can work for exporting too but may not be necessary if polygons can be used
   since using bmesh gives some overhead because its not the native storage format in object mode.
-
-
-Upgrading Importers from 2.62
------------------------------
-
-Importers can be upgraded to work with only minor changes.
-
-The main change to be made is used the tessellation versions of each attribute.
-
-- mesh.faces --> :class:`bpy.types.Mesh.tessfaces`
-- mesh.uv_textures --> :class:`bpy.types.Mesh.tessface_uv_textures`
-- mesh.vertex_colors --> :class:`bpy.types.Mesh.tessface_vertex_colors`
-
-Once the data is created call :class:`bpy.types.Mesh.update` to convert the tessfaces into polygons.
-
-
-Upgrading Exporters from 2.62
------------------------------
-
-For exporters the most direct way to upgrade is to use tessfaces as with importing
-however its important to know that tessfaces may **not** exist for a mesh,
-the array will be empty as if there are no faces.
-
-So before accessing tessface data call: :class:`bpy.types.Mesh.update` ``(calc_tessface=True)``.
 
 
 EditBones, PoseBones, Bone... Bones

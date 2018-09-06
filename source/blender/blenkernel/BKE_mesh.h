@@ -179,7 +179,7 @@ void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
 struct Mesh *BKE_mesh_new_from_object(
         struct Depsgraph *depsgraph, struct Main *bmain, struct Scene *sce, struct Object *ob,
-        const bool apply_modifiers, const bool calc_tessface, const bool calc_undeformed);
+        const bool apply_modifiers, const bool calc_loop_triangles, const bool calc_undeformed);
 struct Mesh *BKE_mesh_create_derived_for_modifier(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         struct ModifierData *md, int build_shapekey_layers);

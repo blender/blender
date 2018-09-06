@@ -840,7 +840,7 @@ void BKE_mesh_to_curve(Main *bmain, Depsgraph *depsgraph, Scene *scene, Object *
 /* settings: 1 - preview, 2 - render */
 Mesh *BKE_mesh_new_from_object(
         Depsgraph *depsgraph, Main *bmain, Scene *sce, Object *ob,
-        const bool apply_modifiers, const bool calc_tessface, const bool calc_undeformed)
+        const bool apply_modifiers, const bool calc_loop_triangles, const bool calc_undeformed)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
@@ -1069,9 +1069,9 @@ Mesh *BKE_mesh_new_from_object(
 			break;
 	} /* end copy materials */
 
-	if (calc_tessface) {
+	if (calc_loop_triangles) {
 		/* cycles and exporters rely on this still */
-		BKE_mesh_tessface_ensure(tmpmesh);
+		BKE_mesh_runtime_looptri_ensure(tmpmesh);
 	}
 
 	return tmpmesh;

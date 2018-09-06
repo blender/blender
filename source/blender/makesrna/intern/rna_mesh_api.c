@@ -50,6 +50,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_mesh_runtime.h"
 #include "ED_mesh.h"
 
 static const char *rna_Mesh_unit_test_compare(struct Mesh *mesh, struct Mesh *mesh2)
@@ -101,9 +102,9 @@ static void rna_Mesh_free_tangents(Mesh *mesh)
 	CustomData_free_layers(&mesh->ldata, CD_MLOOPTANGENT, mesh->totloop);
 }
 
-static void rna_Mesh_calc_tessface(Mesh *mesh, bool free_mpoly)
+static void rna_Mesh_calc_looptri(Mesh *mesh)
 {
-	ED_mesh_calc_tessface(mesh, free_mpoly != 0);
+	BKE_mesh_runtime_looptri_ensure(mesh);
 }
 
 static void rna_Mesh_calc_smooth_groups(Mesh *mesh, bool use_bitflags, int *r_poly_group_len,
@@ -206,6 +207,7 @@ static void rna_Mesh_flip_normals(Mesh *mesh)
 	BKE_mesh_polygons_flip(mesh->mpoly, mesh->mloop, &mesh->ldata, mesh->totpoly);
 	BKE_mesh_tessface_clear(mesh);
 	BKE_mesh_calc_normals(mesh);
+	BKE_mesh_runtime_clear_geometry(mesh);
 
 	DEG_id_tag_update(&mesh->id, 0);
 }
@@ -269,12 +271,8 @@ void RNA_api_mesh(StructRNA *srna)
 	func = RNA_def_function(srna, "free_tangents", "rna_Mesh_free_tangents");
 	RNA_def_function_ui_description(func, "Free tangents");
 
-	func = RNA_def_function(srna, "calc_tessface", "rna_Mesh_calc_tessface");
-	RNA_def_function_ui_description(func, "Calculate face tessellation (supports editmode too)");
-	RNA_def_boolean(func, "free_mpoly", 0, "Free MPoly", "Free data used by polygons and loops. "
-	                "WARNING: This destructive operation removes regular faces, "
-	                "only used on temporary mesh data-blocks to reduce memory footprint of render "
-	                "engines and export scripts");
+	func = RNA_def_function(srna, "calc_loop_triangles", "rna_Mesh_calc_looptri");
+	RNA_def_function_ui_description(func, "Calculate loop triangle tessellation (supports editmode too)");
 
 	func = RNA_def_function(srna, "calc_smooth_groups", "rna_Mesh_calc_smooth_groups");
 	RNA_def_function_ui_description(func, "Calculate smooth groups from sharp edges");
@@ -308,7 +306,7 @@ void RNA_api_mesh(StructRNA *srna)
 
 	func = RNA_def_function(srna, "update", "ED_mesh_update");
 	RNA_def_boolean(func, "calc_edges", 0, "Calculate Edges", "Force recalculation of edges");
-	RNA_def_boolean(func, "calc_tessface", 0, "Calculate Tessellation", "Force recalculation of tessellation faces");
+	RNA_def_boolean(func, "calc_loop_triangles", 0, "Calculate Triangules", "Force recalculation of triangle tessellation");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 	RNA_def_function(srna, "update_gpu_tag", "rna_Mesh_update_gpu_tag");
