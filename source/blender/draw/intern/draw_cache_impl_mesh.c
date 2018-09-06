@@ -4466,5 +4466,3 @@ void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
 }
 
 /** \} */
-
-#undef MESH_RENDER_FUNCTION
