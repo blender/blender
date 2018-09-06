@@ -18,14 +18,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file grab3d_gizmo.c
+/** \file move3d_gizmo.c
  *  \ingroup wm
  *
- * \name Grab Gizmo
+ * \name Move Gizmo
  *
  * 3D Gizmo, also works in 2D views.
  *
- * \brief Simple gizmo to grab and translate.
+ * \brief Simple gizmo to move and translate.
  *
  * - `matrix[0]` is derived from Y and Z.
  * - `matrix[1]` currently not used.
@@ -62,46 +62,46 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-typedef struct GrabGizmo3D {
+typedef struct MoveGizmo3D {
 	wmGizmo gizmo;
 	/* Added to 'matrix_basis' when calculating the matrix. */
 	float prop_co[3];
-} GrabGizmo3D;
+} MoveGizmo3D;
 
-static void gizmo_grab_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
+static void gizmo_move_matrix_basis_get(const wmGizmo *gz, float r_matrix[4][4])
 {
-	GrabGizmo3D *grab = (GrabGizmo3D *)gz;
+	MoveGizmo3D *move = (MoveGizmo3D *)gz;
 
-	copy_m4_m4(r_matrix, grab->gizmo.matrix_basis);
-	add_v3_v3(r_matrix[3], grab->prop_co);
+	copy_m4_m4(r_matrix, move->gizmo.matrix_basis);
+	add_v3_v3(r_matrix[3], move->prop_co);
 }
 
-static int gizmo_grab_modal(
+static int gizmo_move_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak tweak_flag);
 
-typedef struct GrabInteraction {
+typedef struct MoveInteraction {
 	float init_mval[2];
 
 	/* only for when using properties */
 	float init_prop_co[3];
 
 	float init_matrix_final[4][4];
-} GrabInteraction;
+} MoveInteraction;
 
 #define DIAL_RESOLUTION 32
 
 /* -------------------------------------------------------------------- */
 
-static void grab_geom_draw(
+static void move_geom_draw(
         const wmGizmo *gz, const float color[4], const bool select, const int draw_options)
 {
 #ifdef USE_GIZMO_CUSTOM_DIAL
-	UNUSED_VARS(grab3d, col, axis_modal_mat);
-	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_grab3d, select);
+	UNUSED_VARS(move3d, col, axis_modal_mat);
+	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_move3d, select);
 #else
 	const int draw_style = RNA_enum_get(gz->ptr, "draw_style");
-	const bool filled = (draw_options & ED_GIZMO_GRAB_DRAW_FLAG_FILL) != 0;
+	const bool filled = (draw_options & ED_GIZMO_MOVE_DRAW_FLAG_FILL) != 0;
 
 	GPU_line_width(gz->line_width);
 
@@ -112,7 +112,7 @@ static void grab_geom_draw(
 
 	immUniformColor4fv(color);
 
-	if (draw_style == ED_GIZMO_GRAB_STYLE_RING_2D) {
+	if (draw_style == ED_GIZMO_MOVE_STYLE_RING_2D) {
 		if (filled) {
 			imm_draw_circle_fill_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
@@ -120,7 +120,7 @@ static void grab_geom_draw(
 			imm_draw_circle_wire_2d(pos, 0, 0, 1.0f, DIAL_RESOLUTION);
 		}
 	}
-	else if (draw_style == ED_GIZMO_GRAB_STYLE_CROSS_2D) {
+	else if (draw_style == ED_GIZMO_MOVE_STYLE_CROSS_2D) {
 		immBegin(GPU_PRIM_LINES, 4);
 		immVertex2f(pos,  1.0f,  1.0f);
 		immVertex2f(pos, -1.0f, -1.0f);
@@ -139,11 +139,11 @@ static void grab_geom_draw(
 #endif
 }
 
-static void grab3d_get_translate(
+static void move3d_get_translate(
         const wmGizmo *gz, const wmEvent *event, const ARegion *ar,
         float co_delta[3])
 {
-	GrabInteraction *inter = gz->interaction_data;
+	MoveInteraction *inter = gz->interaction_data;
 	const float mval_delta[2] = {
 	    event->mval[0] - inter->init_mval[0],
 	    event->mval[1] - inter->init_mval[1],
@@ -162,13 +162,13 @@ static void grab3d_get_translate(
 	mul_m3_v3(matrix_space_inv, co_delta);
 }
 
-static void grab3d_draw_intern(
+static void move3d_draw_intern(
         const bContext *C, wmGizmo *gz,
         const bool select, const bool highlight)
 {
-	GrabInteraction *inter = gz->interaction_data;
+	MoveInteraction *inter = gz->interaction_data;
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
-	const bool align_view = (draw_options & ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW) != 0;
+	const bool align_view = (draw_options & ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW) != 0;
 	float color[4];
 	float matrix_final[4][4];
 	float matrix_align[4][4];
@@ -190,7 +190,7 @@ static void grab3d_draw_intern(
 	}
 
 	GPU_blend(true);
-	grab_geom_draw(gz, color, select, draw_options);
+	move_geom_draw(gz, color, select, draw_options);
 	GPU_blend(false);
 	GPU_matrix_pop();
 
@@ -203,19 +203,19 @@ static void grab3d_draw_intern(
 		}
 
 		GPU_blend(true);
-		grab_geom_draw(gz, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
+		move_geom_draw(gz, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
 		GPU_blend(false);
 		GPU_matrix_pop();
 	}
 }
 
-static void gizmo_grab_draw_select(const bContext *C, wmGizmo *gz, int select_id)
+static void gizmo_move_draw_select(const bContext *C, wmGizmo *gz, int select_id)
 {
 	GPU_select_load_id(select_id);
-	grab3d_draw_intern(C, gz, true, false);
+	move3d_draw_intern(C, gz, true, false);
 }
 
-static void gizmo_grab_draw(const bContext *C, wmGizmo *gz)
+static void gizmo_move_draw(const bContext *C, wmGizmo *gz)
 {
 	const bool is_modal = gz->state & WM_GIZMO_STATE_MODAL;
 	const bool is_highlight = (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
@@ -223,21 +223,21 @@ static void gizmo_grab_draw(const bContext *C, wmGizmo *gz)
 	(void)is_modal;
 
 	GPU_blend(true);
-	grab3d_draw_intern(C, gz, false, is_highlight);
+	move3d_draw_intern(C, gz, false, is_highlight);
 	GPU_blend(false);
 }
 
-static int gizmo_grab_modal(
+static int gizmo_move_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
-	GrabGizmo3D *grab = (GrabGizmo3D *)gz;
-	GrabInteraction *inter = gz->interaction_data;
+	MoveGizmo3D *move = (MoveGizmo3D *)gz;
+	MoveInteraction *inter = gz->interaction_data;
 	ARegion *ar = CTX_wm_region(C);
 
 	float prop_delta[3];
 	if (CTX_wm_area(C)->spacetype == SPACE_VIEW3D) {
-		grab3d_get_translate(gz, event, ar, prop_delta);
+		move3d_get_translate(gz, event, ar, prop_delta);
 	}
 	else {
 		float mval_proj_init[2], mval_proj_curr[2];
@@ -251,15 +251,15 @@ static int gizmo_grab_modal(
 		sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
 		prop_delta[2] = 0.0f;
 	}
-	add_v3_v3v3(grab->prop_co, inter->init_prop_co, prop_delta);
+	add_v3_v3v3(move->prop_co, inter->init_prop_co, prop_delta);
 
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_float_set_array(C, gz, gz_prop, grab->prop_co);
+		WM_gizmo_target_property_float_set_array(C, gz, gz_prop, move->prop_co);
 	}
 	else {
-		zero_v3(grab->prop_co);
+		zero_v3(move->prop_co);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -267,16 +267,16 @@ static int gizmo_grab_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int gizmo_grab_invoke(
+static int gizmo_move_invoke(
         bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
-	GrabInteraction *inter = MEM_callocN(sizeof(GrabInteraction), __func__);
+	MoveInteraction *inter = MEM_callocN(sizeof(MoveInteraction), __func__);
 
 	inter->init_mval[0] = event->mval[0];
 	inter->init_mval[1] = event->mval[1];
 
 #if 0
-	copy_v3_v3(inter->init_prop_co, grab->prop_co);
+	copy_v3_v3(inter->init_prop_co, move->prop_co);
 #else
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
@@ -292,7 +292,7 @@ static int gizmo_grab_invoke(
 }
 
 
-static int gizmo_grab_test_select(
+static int gizmo_move_test_select(
         bContext *C, wmGizmo *gz, const int mval[2])
 {
 	float point_local[2];
@@ -311,65 +311,65 @@ static int gizmo_grab_test_select(
 	return -1;
 }
 
-static void gizmo_grab_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
+static void gizmo_move_property_update(wmGizmo *gz, wmGizmoProperty *gz_prop)
 {
-	GrabGizmo3D *grab = (GrabGizmo3D *)gz;
+	MoveGizmo3D *move = (MoveGizmo3D *)gz;
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_float_get_array(gz, gz_prop, grab->prop_co);
+		WM_gizmo_target_property_float_get_array(gz, gz_prop, move->prop_co);
 	}
 	else {
-		zero_v3(grab->prop_co);
+		zero_v3(move->prop_co);
 	}
 }
 
-static int gizmo_grab_cursor_get(wmGizmo *UNUSED(gz))
+static int gizmo_move_cursor_get(wmGizmo *UNUSED(gz))
 {
 	return BC_NSEW_SCROLLCURSOR;
 }
 
 /* -------------------------------------------------------------------- */
-/** \name Grab Gizmo API
+/** \name Move Gizmo API
  *
  * \{ */
 
-static void GIZMO_GT_grab_3d(wmGizmoType *gzt)
+static void GIZMO_GT_move_3d(wmGizmoType *gzt)
 {
 	/* identifiers */
-	gzt->idname = "GIZMO_GT_grab_3d";
+	gzt->idname = "GIZMO_GT_move_3d";
 
 	/* api callbacks */
-	gzt->draw = gizmo_grab_draw;
-	gzt->draw_select = gizmo_grab_draw_select;
-	gzt->test_select = gizmo_grab_test_select;
-	gzt->matrix_basis_get = gizmo_grab_matrix_basis_get;
-	gzt->invoke = gizmo_grab_invoke;
-	gzt->property_update = gizmo_grab_property_update;
-	gzt->modal = gizmo_grab_modal;
-	gzt->cursor_get = gizmo_grab_cursor_get;
+	gzt->draw = gizmo_move_draw;
+	gzt->draw_select = gizmo_move_draw_select;
+	gzt->test_select = gizmo_move_test_select;
+	gzt->matrix_basis_get = gizmo_move_matrix_basis_get;
+	gzt->invoke = gizmo_move_invoke;
+	gzt->property_update = gizmo_move_property_update;
+	gzt->modal = gizmo_move_modal;
+	gzt->cursor_get = gizmo_move_cursor_get;
 
-	gzt->struct_size = sizeof(GrabGizmo3D);
+	gzt->struct_size = sizeof(MoveGizmo3D);
 
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_style[] = {
-		{ED_GIZMO_GRAB_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
-		{ED_GIZMO_GRAB_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
+		{ED_GIZMO_MOVE_STYLE_RING_2D, "RING_2D", 0, "Ring", ""},
+		{ED_GIZMO_MOVE_STYLE_CROSS_2D, "CROSS_2D", 0, "Ring", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static EnumPropertyItem rna_enum_draw_options[] = {
-		{ED_GIZMO_GRAB_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
-		{ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
+		{ED_GIZMO_MOVE_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
+		{ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW, "ALIGN_VIEW", 0, "Align View", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	RNA_def_enum(gzt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_GRAB_STYLE_RING_2D, "Draw Style", "");
+	RNA_def_enum(gzt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_MOVE_STYLE_RING_2D, "Draw Style", "");
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 
 	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 3);
 }
 
-void ED_gizmotypes_grab_3d(void)
+void ED_gizmotypes_move_3d(void)
 {
-	WM_gizmotype_append(GIZMO_GT_grab_3d);
+	WM_gizmotype_append(GIZMO_GT_move_3d);
 }
 
-/** \} */ // Grab Gizmo API
+/** \} */ // Move Gizmo API

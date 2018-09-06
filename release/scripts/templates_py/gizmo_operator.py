@@ -114,20 +114,20 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         from mathutils import Matrix, Vector
 
         # ----
-        # Grab
+        # Move
 
-        def grab_get_cb():
+        def move_get_cb():
             op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             return op.plane_co
 
-        def grab_set_cb(value):
+        def move_set_cb(value):
             op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             op.plane_co = value
             # XXX, this may change!
             op.execute(context)
 
-        mpr = self.gizmos.new("GIZMO_GT_grab_3d")
-        mpr.target_set_handler("offset", get=grab_get_cb, set=grab_set_cb)
+        mpr = self.gizmos.new("GIZMO_GT_move_3d")
+        mpr.target_set_handler("offset", get=move_get_cb, set=move_set_cb)
 
         mpr.use_draw_value = True
 
@@ -139,7 +139,7 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
 
         mpr.scale_basis = 0.2
 
-        self.widget_grab = mpr
+        self.widget_move = mpr
 
         # ----
         # Dial
@@ -189,12 +189,12 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
         co = Vector(op.plane_co)
         no = Vector(op.plane_no).normalized()
 
-        # Grab
+        # Move
         no_z = no
         no_y = no_z.orthogonal()
         no_x = no_z.cross(no_y)
 
-        matrix = self.widget_grab.matrix_basis
+        matrix = self.widget_move.matrix_basis
         matrix.identity()
         matrix.col[0].xyz = no_x
         matrix.col[1].xyz = no_y

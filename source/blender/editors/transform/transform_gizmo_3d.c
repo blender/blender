@@ -1487,7 +1487,7 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 			man->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
 			man->use_twtype_refresh = true;
 		}
-		else if (STREQ(tref->idname, "Grab")) {
+		else if (STREQ(tref->idname, "Move")) {
 			man->twtype |= SCE_MANIP_TRANSLATE;
 		}
 		else if (STREQ(tref->idname, "Rotate")) {
@@ -1782,7 +1782,7 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
 		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
 
 		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
-		WM_gizmo_set_flag(gz, WM_GIZMO_GRAB_CURSOR, true);
+		WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
 
 		float dims[3];
 		sub_v3_v3v3(dims, rv3d->tw_axis_max, rv3d->tw_axis_min);

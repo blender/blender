@@ -83,7 +83,7 @@ typedef enum eWM_GizmoFlagFlag {
 	/**
 	 * Hide the cursor and lock it's position while interacting with this gizmo.
 	 */
-	WM_GIZMO_GRAB_CURSOR = (1 << 6),
+	WM_GIZMO_MOVE_CURSOR = (1 << 6),
 	/** Don't write into the depth buffer when selecting. */
 	WM_GIZMO_SELECT_BACKGROUND  = (1 << 7),
 } eWM_GizmoFlagFlag;

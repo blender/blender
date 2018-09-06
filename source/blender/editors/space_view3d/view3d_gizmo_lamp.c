@@ -261,7 +261,7 @@ static bool WIDGETGROUP_lamp_target_poll(const bContext *C, wmGizmoGroupType *UN
 static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	wmGizmoWrapper *wwrapper = MEM_mallocN(sizeof(wmGizmoWrapper), __func__);
-	wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_grab_3d", gzgroup, NULL);
+	wwrapper->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, NULL);
 	wmGizmo *gz = wwrapper->gizmo;
 
 	gzgroup->customdata = wwrapper;
@@ -274,7 +274,7 @@ static void WIDGETGROUP_lamp_target_setup(const bContext *UNUSED(C), wmGizmoGrou
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_transform_axis_target", true);
 
 	RNA_enum_set(gz->ptr, "draw_options",
-	             ED_GIZMO_GRAB_DRAW_FLAG_FILL | ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW);
+	             ED_GIZMO_MOVE_DRAW_FLAG_FILL | ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW);
 
 	WM_gizmo_operator_set(gz, 0, ot, NULL);
 }

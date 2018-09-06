@@ -132,7 +132,7 @@ void ED_spacetypes_init(void)
 	/* gizmo types */
 	ED_gizmotypes_button_2d();
 	ED_gizmotypes_dial_3d();
-	ED_gizmotypes_grab_3d();
+	ED_gizmotypes_move_3d();
 	ED_gizmotypes_arrow_2d();
 	ED_gizmotypes_arrow_3d();
 	ED_gizmotypes_preselect_3d();

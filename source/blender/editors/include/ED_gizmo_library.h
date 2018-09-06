@@ -37,7 +37,7 @@ void ED_gizmotypes_button_2d(void);
 void ED_gizmotypes_cage_2d(void);
 void ED_gizmotypes_cage_3d(void);
 void ED_gizmotypes_dial_3d(void);
-void ED_gizmotypes_grab_3d(void);
+void ED_gizmotypes_move_3d(void);
 void ED_gizmotypes_facemap_3d(void);
 void ED_gizmotypes_preselect_3d(void);
 void ED_gizmotypes_primitive_3d(void);
@@ -189,19 +189,19 @@ enum {
 };
 
 /* -------------------------------------------------------------------- */
-/* Grab Gizmo */
+/* Move Gizmo */
 
 /* draw_options */
 enum {
-	ED_GIZMO_GRAB_DRAW_FLAG_NOP               = 0,
+	ED_GIZMO_MOVE_DRAW_FLAG_NOP               = 0,
 	/* only for solid shapes */
-	ED_GIZMO_GRAB_DRAW_FLAG_FILL              = (1 << 0),
-	ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW        = (1 << 1),
+	ED_GIZMO_MOVE_DRAW_FLAG_FILL              = (1 << 0),
+	ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW        = (1 << 1),
 };
 
 enum {
-	ED_GIZMO_GRAB_STYLE_RING_2D = 0,
-	ED_GIZMO_GRAB_STYLE_CROSS_2D = 1,
+	ED_GIZMO_MOVE_STYLE_RING_2D = 0,
+	ED_GIZMO_MOVE_STYLE_CROSS_2D = 1,
 };
 
 /* -------------------------------------------------------------------- */

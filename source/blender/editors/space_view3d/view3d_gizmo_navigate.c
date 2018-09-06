@@ -203,7 +203,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 		const struct NavigateGizmoInfo *info = &g_navigate_params[i];
 		navgroup->gz_array[i] = WM_gizmo_new(info->gizmo, gzgroup, NULL);
 		wmGizmo *gz = navgroup->gz_array[i];
-		gz->flag |= WM_GIZMO_GRAB_CURSOR | WM_GIZMO_DRAW_MODAL;
+		gz->flag |= WM_GIZMO_MOVE_CURSOR | WM_GIZMO_DRAW_MODAL;
 
 		if (i == MPR_ROTATE) {
 			gz->color[3] = 0.0f;

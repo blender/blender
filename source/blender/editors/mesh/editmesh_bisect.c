@@ -662,11 +662,11 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	gzgroup->customdata = man;
 
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
-	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_grab_3d", true);
+	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 
 	man->translate_z = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-	man->translate_c = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
+	man->translate_c = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
 	man->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
 
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_z->color);
@@ -674,7 +674,7 @@ static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, man->rotate_c->color);
 
 	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
-	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_GIZMO_GRAB_STYLE_RING_2D);
+	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
 
 	WM_gizmo_set_flag(man->translate_c, WM_GIZMO_DRAW_VALUE, true);
 	WM_gizmo_set_flag(man->rotate_c, WM_GIZMO_DRAW_VALUE, true);

@@ -111,7 +111,7 @@ struct wmGizmoMap {
 		struct wmGizmo *modal;
 		/* array for all selected gizmos */
 		struct wmGizmoMapSelectState select;
-		/* cursor location at point of entering modal (see: WM_GIZMO_GRAB_CURSOR) */
+		/* cursor location at point of entering modal (see: WM_GIZMO_MOVE_CURSOR) */
 		int event_xy[2];
 		short event_grabcursor;
 		/* until we have nice cursor push/pop API. */

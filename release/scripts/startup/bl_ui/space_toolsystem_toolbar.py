@@ -304,7 +304,7 @@ class _defs_transform:
             layout.prop(tool_settings, "use_gizmo_apron")
 
         return dict(
-            text="Grab",
+            text="Move",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_GGT_gizmo",

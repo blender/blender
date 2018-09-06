@@ -437,11 +437,11 @@ static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gz
 	gzgroup->customdata = man;
 
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
-	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_button_2d", true);
+	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
 	for (int i = 0; i < 4; i++) {
 		man->adjust_xyz_no[i] = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-		man->invoke_xyz_no[i] = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
+		man->invoke_xyz_no[i] = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
 		man->invoke_xyz_no[i]->flag |= WM_GIZMO_DRAW_OFFSET_SCALE;
 	}
 

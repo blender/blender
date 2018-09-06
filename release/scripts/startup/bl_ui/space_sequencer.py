@@ -389,8 +389,8 @@ class SEQUENCER_MT_strip_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.transform", text="Grab/Move").mode = 'TRANSLATION'
-        layout.operator("transform.transform", text="Grab/Extend from Frame").mode = 'TIME_EXTEND'
+        layout.operator("transform.transform", text="Move").mode = 'TRANSLATION'
+        layout.operator("transform.transform", text="Move/Extend from Frame").mode = 'TIME_EXTEND'
         layout.operator("sequencer.slip", text="Slip Strip Contents")
 
         layout.separator()

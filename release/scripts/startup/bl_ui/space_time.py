@@ -196,7 +196,7 @@ def marker_menu_generic(layout):
     layout.separator()
 
     layout.operator("marker.rename", text="Rename Marker")
-    layout.operator("marker.move", text="Grab/Move Marker")
+    layout.operator("marker.move", text="Move Marker")
 
     layout.separator()
 

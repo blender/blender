@@ -637,8 +637,8 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name   = "Translate";
-	ot->description = "Translate (move) selected items";
+	ot->name   = "Move";
+	ot->description = "Move selected items";
 	ot->idname = OP_TRANSLATION;
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 

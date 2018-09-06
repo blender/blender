@@ -955,7 +955,7 @@ void wm_gizmomap_modal_set(
 		gz->state |= WM_GIZMO_STATE_MODAL;
 		gzmap->gzmap_context.modal = gz;
 
-		if ((gz->flag & WM_GIZMO_GRAB_CURSOR) &&
+		if ((gz->flag & WM_GIZMO_MOVE_CURSOR) &&
 		    (event->is_motion_absolute == false))
 		{
 			WM_cursor_grab_enable(win, true, true, NULL);

@@ -155,7 +155,7 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 
-	const wmGizmoType *gzt_grab = WM_gizmotype_find("GIZMO_GT_grab_3d", true);
+	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 
 	struct BoneSplineWidgetGroup *bspline_group = MEM_callocN(sizeof(struct BoneSplineWidgetGroup), __func__);
 	gzgroup->customdata = bspline_group;
@@ -163,10 +163,10 @@ static void WIDGETGROUP_armature_spline_setup(const bContext *C, wmGizmoGroup *g
 	/* Handles */
 	for (int i = 0; i < ARRAY_SIZE(bspline_group->handles); i++) {
 		wmGizmo *gz;
-		gz = bspline_group->handles[i].gizmo = WM_gizmo_new_ptr(gzt_grab, gzgroup, NULL);
-		RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_GRAB_STYLE_RING_2D);
+		gz = bspline_group->handles[i].gizmo = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
+		RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
 		RNA_enum_set(gz->ptr, "draw_options",
-		             ED_GIZMO_GRAB_DRAW_FLAG_FILL | ED_GIZMO_GRAB_DRAW_FLAG_ALIGN_VIEW);
+		             ED_GIZMO_MOVE_DRAW_FLAG_FILL | ED_GIZMO_MOVE_DRAW_FLAG_ALIGN_VIEW);
 		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
 
 		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);

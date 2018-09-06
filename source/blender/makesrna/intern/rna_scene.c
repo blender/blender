@@ -423,7 +423,7 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_gizmo_items[] = {
-	{SCE_MANIP_TRANSLATE, "TRANSLATE", 0, "Translate", ""},
+	{SCE_MANIP_TRANSLATE, "TRANSLATE", 0, "Move", ""},
 	{SCE_MANIP_ROTATE, "ROTATE", 0, "Rotate", ""},
 	{SCE_MANIP_SCALE, "SCALE", 0, "Scale", ""},
 	{0, NULL, 0, NULL, NULL}

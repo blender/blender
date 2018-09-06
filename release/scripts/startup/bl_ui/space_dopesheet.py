@@ -489,7 +489,7 @@ class DOPESHEET_MT_key_transform(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.transform", text="Grab/Move").mode = 'TIME_TRANSLATE'
+        layout.operator("transform.transform", text="Move").mode = 'TIME_TRANSLATE'
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Slide").mode = 'TIME_SLIDE'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'

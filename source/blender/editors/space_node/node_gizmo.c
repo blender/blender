@@ -431,10 +431,10 @@ static void WIDGETGROUP_node_sbeam_setup(const bContext *UNUSED(C), wmGizmoGroup
 {
 	struct NodeSunBeamsWidgetGroup *sbeam_group = MEM_mallocN(sizeof(struct NodeSunBeamsWidgetGroup), __func__);
 
-	sbeam_group->gizmo = WM_gizmo_new("GIZMO_GT_grab_3d", gzgroup, NULL);
+	sbeam_group->gizmo = WM_gizmo_new("GIZMO_GT_move_3d", gzgroup, NULL);
 	wmGizmo *gz = sbeam_group->gizmo;
 
-	RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_GRAB_STYLE_CROSS_2D);
+	RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
 	gz->scale_basis = 0.05f;
 
@@ -535,13 +535,13 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType
 static void WIDGETGROUP_node_corner_pin_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	struct NodeCornerPinWidgetGroup *cpin_group = MEM_mallocN(sizeof(struct NodeCornerPinWidgetGroup), __func__);
-	const wmGizmoType *gzt_grab_3d = WM_gizmotype_find("GIZMO_GT_grab_3d", false);
+	const wmGizmoType *gzt_move_3d = WM_gizmotype_find("GIZMO_GT_move_3d", false);
 
 	for (int i = 0; i < 4; i++) {
-		cpin_group->gizmos[i] = WM_gizmo_new_ptr(gzt_grab_3d, gzgroup, NULL);
+		cpin_group->gizmos[i] = WM_gizmo_new_ptr(gzt_move_3d, gzgroup, NULL);
 		wmGizmo *gz = cpin_group->gizmos[i];
 
-		RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_GRAB_STYLE_CROSS_2D);
+		RNA_enum_set(gz->ptr, "draw_style",  ED_GIZMO_MOVE_STYLE_CROSS_2D);
 
 		gz->scale_basis = 0.01f;
 	}
