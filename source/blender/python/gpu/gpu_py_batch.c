@@ -361,7 +361,7 @@ PyDoc_STRVAR(py_gpu_batch_doc,
 "       \"LINES_ADJ\",\n"
 "       \"TRIS_ADJ\",\n"
 "       \"LINE_STRIP_ADJ\",\n"
-"       \"NONE}\n"
+"       \"NONE\"}\n"
 "   :type type: `str`\n"
 "   :param buf: Vertex buffer.\n"
 "   :type buf: :class: `gpu.types.GPUVertBuf`\n"
