@@ -1135,12 +1135,12 @@ static void uv_map_transform_center(
 	}
 }
 
-static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Object *ob,
-                                   float upangledeg, float sideangledeg, float radius)
+static void uv_map_rotation_matrix_ex(
+        float result[4][4], RegionView3D *rv3d, Object *ob,
+        float upangledeg, float sideangledeg, float radius, float offset[4])
 {
 	float rotup[4][4], rotside[4][4], viewmatrix[4][4], rotobj[4][4];
 	float sideangle = 0.0f, upangle = 0.0f;
-	int k;
 
 	/* get rotation of the current view matrix */
 	if (rv3d)
@@ -1149,15 +1149,14 @@ static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Objec
 		unit_m4(viewmatrix);
 
 	/* but shifting */
-	for (k = 0; k < 4; k++)
-		viewmatrix[3][k] = 0.0f;
+	copy_v4_fl(viewmatrix[3], 0.0f);
 
 	/* get rotation of the current object matrix */
 	copy_m4_m4(rotobj, ob->obmat);
 
 	/* but shifting */
-	for (k = 0; k < 4; k++)
-		rotobj[3][k] = 0.0f;
+	add_v4_v4(rotobj[3], offset);
+	rotobj[3][3] = 0.0f;
 
 	zero_m4(rotup);
 	zero_m4(rotside);
@@ -1181,6 +1180,14 @@ static void uv_map_rotation_matrix(float result[4][4], RegionView3D *rv3d, Objec
 
 	/* calculate transforms*/
 	mul_m4_series(result, rotup, rotside, viewmatrix, rotobj);
+}
+
+static void uv_map_rotation_matrix(
+        float result[4][4], RegionView3D *rv3d, Object *ob,
+        float upangledeg, float sideangledeg, float radius)
+{
+	float offset[4] = {0};
+	uv_map_rotation_matrix_ex(result, rv3d, ob, upangledeg, sideangledeg, radius, offset);
 }
 
 static void uv_map_transform(bContext *C, wmOperator *op, float rotmat[4][4])
@@ -1552,11 +1559,27 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	BMIter iter, liter;
 	MLoopUV *luv;
 	float rotmat[4][4];
+	float objects_pos_offset[4];
 	bool changed_multi = false;
+
+	const bool use_orthographic = RNA_boolean_get(op->ptr, "orthographic");
 
 	/* Note: objects that aren't touched are set to NULL (to skip clipping). */
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	if (use_orthographic) {
+		/* Calculate average object position. */
+		float objects_pos_avg[4] = {0};
+
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			add_v4_v4(objects_pos_avg, objects[ob_index]->obmat[3]);
+		}
+
+		mul_v4_fl(objects_pos_avg, 1.0f / objects_len);
+		negate_v4_v4(objects_pos_offset, objects_pos_avg);
+	}
+
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -1569,8 +1592,8 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-		if (RNA_boolean_get(op->ptr, "orthographic")) {
-			uv_map_rotation_matrix(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f);
+		if (use_orthographic) {
+			uv_map_rotation_matrix_ex(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f, objects_pos_offset);
 
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
