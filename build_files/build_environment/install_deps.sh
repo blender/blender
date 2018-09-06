@@ -287,89 +287,89 @@ NO_BUILD=false
 NO_CONFIRM=false
 USE_CXX11=true
 
-PYTHON_VERSION="3.6.2"
-PYTHON_VERSION_MIN="3.6"
+PYTHON_VERSION="3.7.0"
+PYTHON_VERSION_MIN="3.7"
 PYTHON_FORCE_BUILD=false
 PYTHON_FORCE_REBUILD=false
 PYTHON_SKIP=false
 
-NUMPY_VERSION="1.13.1"
+NUMPY_VERSION="1.15.0"
 NUMPY_VERSION_MIN="1.8"
 NUMPY_FORCE_BUILD=false
 NUMPY_FORCE_REBUILD=false
 NUMPY_SKIP=false
 
-BOOST_VERSION="1.60.0"
+BOOST_VERSION="1.68.0"
 BOOST_VERSION_MIN="1.49"
 BOOST_FORCE_BUILD=false
 BOOST_FORCE_REBUILD=false
 BOOST_SKIP=false
 
-OCIO_VERSION="1.0.9"
+OCIO_VERSION="1.1.0"
 OCIO_VERSION_MIN="1.0"
 OCIO_FORCE_BUILD=false
 OCIO_FORCE_REBUILD=false
 OCIO_SKIP=false
 
-OPENEXR_VERSION="2.2.0"
+OPENEXR_VERSION="2.3.0"
 OPENEXR_VERSION_MIN="2.0.1"
-ILMBASE_VERSION="2.2.0"
-ILMBASE_VERSION_MIN="2.2"
+ILMBASE_VERSION="2.3.0"
+ILMBASE_VERSION_MIN="2.3"
 OPENEXR_FORCE_BUILD=false
 OPENEXR_FORCE_REBUILD=false
 OPENEXR_SKIP=false
 _with_built_openexr=false
 
-OIIO_VERSION="1.7.15"
-OIIO_VERSION_MIN="1.7.15"
-OIIO_VERSION_MAX="1.9.0"  # UNKNOWN currently # Not supported by current OSL...
+OIIO_VERSION="1.8.13"
+OIIO_VERSION_MIN="1.8.13"
+OIIO_VERSION_MAX="99.99.0"  # UNKNOWN currently # Not supported by current OSL...
 OIIO_FORCE_BUILD=false
 OIIO_FORCE_REBUILD=false
 OIIO_SKIP=false
 
-LLVM_VERSION="3.4"
-LLVM_VERSION_MIN="3.4"
+LLVM_VERSION="6.0.1"
+LLVM_VERSION_MIN="6.0"
 LLVM_VERSION_FOUND=""
 LLVM_FORCE_BUILD=false
 LLVM_FORCE_REBUILD=false
 LLVM_SKIP=false
 
 # OSL needs to be compiled for now!
-OSL_VERSION="1.7.5"
+OSL_VERSION="1.9.9"
 OSL_VERSION_MIN=$OSL_VERSION
 OSL_FORCE_BUILD=false
 OSL_FORCE_REBUILD=false
 OSL_SKIP=false
 
 # OpenSubdiv needs to be compiled for now
-OSD_VERSION="3.1.1"
+OSD_VERSION="3.3.3"
 OSD_VERSION_MIN=$OSD_VERSION
 OSD_FORCE_BUILD=false
 OSD_FORCE_REBUILD=false
 OSD_SKIP=false
 
 # OpenVDB needs to be compiled for now
-OPENVDB_BLOSC_VERSION="1.7.0"
+OPENVDB_BLOSC_VERSION="1.14.4"
 
-OPENVDB_VERSION="3.1.0"
+OPENVDB_VERSION="5.1.0"
 OPENVDB_VERSION_MIN=$OPENVDB_VERSION
 OPENVDB_FORCE_BUILD=false
 OPENVDB_FORCE_REBUILD=false
 OPENVDB_SKIP=false
 
 # Alembic needs to be compiled for now
-ALEMBIC_VERSION="1.7.1"
+ALEMBIC_VERSION="1.7.8"
 ALEMBIC_VERSION_MIN=$ALEMBIC_VERSION
 ALEMBIC_FORCE_BUILD=false
 ALEMBIC_FORCE_REBUILD=false
 ALEMBIC_SKIP=false
 
-OPENCOLLADA_VERSION="1.6.51"
+OPENCOLLADA_VERSION="1.6.63"
 OPENCOLLADA_FORCE_BUILD=false
 OPENCOLLADA_FORCE_REBUILD=false
 OPENCOLLADA_SKIP=false
 
-FFMPEG_VERSION="3.2.1"
+FFMPEG_VERSION="4.0.2"
 FFMPEG_VERSION_MIN="2.8.4"
 FFMPEG_FORCE_BUILD=false
 FFMPEG_FORCE_REBUILD=false
@@ -737,43 +737,44 @@ _boost_version_nodots=`echo "$BOOST_VERSION" | sed -r 's/\./_/g'`
 BOOST_SOURCE=( "http://sourceforge.net/projects/boost/files/boost/$BOOST_VERSION/boost_$_boost_version_nodots.tar.bz2/download" )
 BOOST_BUILD_MODULES="--with-system --with-filesystem --with-thread --with-regex --with-locale --with-date_time --with-wave --with-iostreams --with-python --with-program_options"
 
-OCIO_USE_REPO=true
-OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/tarball/v$OCIO_VERSION" )
-OCIO_SOURCE_REPO=( "https://github.com/imageworks/OpenColorIO.git" )
-OCIO_SOURCE_REPO_UID="6de971097c7f552300f669ed69ca0b6cf5a70843"
+OCIO_USE_REPO=false
+OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/archive/v$OCIO_VERSION.tar.gz")
+#~ OCIO_SOURCE_REPO=( "https://github.com/imageworks/OpenColorIO.git" )
+#~ OCIO_SOURCE_REPO_UID="6de971097c7f552300f669ed69ca0b6cf5a70843"
 
 OPENEXR_USE_REPO=false
 OPENEXR_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/openexr-$OPENEXR_VERSION.tar.gz" )
-OPENEXR_SOURCE_REPO=( "https://github.com/mont29/openexr.git" )
-OPENEXR_SOURCE_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
+#~ OPENEXR_SOURCE_REPO=( "https://github.com/mont29/openexr.git" )
+#~ OPENEXR_SOURCE_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_SOURCE=( "http://download.savannah.nongnu.org/releases/openexr/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
 OIIO_USE_REPO=false
 OIIO_SOURCE=( "https://github.com/OpenImageIO/oiio/archive/Release-$OIIO_VERSION.tar.gz" )
-OIIO_SOURCE_REPO=( "https://github.com/OpenImageIO/oiio.git" )
-OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
+#~ OIIO_SOURCE_REPO=( "https://github.com/OpenImageIO/oiio.git" )
+#~ OIIO_SOURCE_REPO_UID="c9e67275a0b248ead96152f6d2221cc0c0f278a4"
 
-LLVM_SOURCE=( "http://releases.llvm.org/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.gz" )
-LLVM_CLANG_SOURCE=( "http://releases.llvm.org/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.gz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.gz" )
+LLVM_SOURCE=( "http://releases.llvm.org/$LLVM_VERSION/llvm-$LLVM_VERSION.src.tar.xz" )
+LLVM_CLANG_SOURCE=( "http://releases.llvm.org/$LLVM_VERSION/clang-$LLVM_VERSION.src.tar.xz" "http://llvm.org/releases/$LLVM_VERSION/cfe-$LLVM_VERSION.src.tar.xz" )
 
 OSL_USE_REPO=false
 OSL_SOURCE=( "https://github.com/imageworks/OpenShadingLanguage/archive/Release-$OSL_VERSION.tar.gz" )
-#~ OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.5.11.tar.gz" )
 #~ OSL_SOURCE_REPO=( "https://github.com/imageworks/OpenShadingLanguage.git" )
+#~ OSL_SOURCE_REPO_BRANCH="master"
+#~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
+#~ OSL_SOURCE=( "https://github.com/Nazg-Gul/OpenShadingLanguage/archive/Release-1.5.11.tar.gz" )
 #~ OSL_SOURCE_REPO=( "https://github.com/mont29/OpenShadingLanguage.git" )
 #~ OSL_SOURCE_REPO_UID="85179714e1bc69cd25ecb6bb711c1a156685d395"
-#~ OSL_SOURCE_REPO_BRANCH="master"
-OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
-OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
-OSL_SOURCE_REPO_BRANCH="blender-fixes"
+#~ OSL_SOURCE_REPO=( "https://github.com/Nazg-Gul/OpenShadingLanguage.git" )
+#~ OSL_SOURCE_REPO_UID="7d40ff5fe8e47b030042afb92d0e955f5aa96f48"
+#~ OSL_SOURCE_REPO_BRANCH="blender-fixes"
 
 OSD_USE_REPO=false
 # Script foo to make the version string compliant with the archive name:
 # ${Varname//SearchForThisChar/ReplaceWithThisChar}
 OSD_SOURCE=( "https://github.com/PixarAnimationStudios/OpenSubdiv/archive/v${OSD_VERSION//./_}.tar.gz" )
-OSD_SOURCE_REPO=( "https://github.com/PixarAnimationStudios/OpenSubdiv.git" )
-OSD_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
-OSD_SOURCE_REPO_BRANCH="dev"
+#~ OSD_SOURCE_REPO=( "https://github.com/PixarAnimationStudios/OpenSubdiv.git" )
+#~ OSD_SOURCE_REPO_UID="404659fffa659da075d1c9416e4fc939139a84ee"
+#~ OSD_SOURCE_REPO_BRANCH="dev"
 
 OPENVDB_USE_REPO=false
 OPENVDB_BLOSC_SOURCE=( "https://github.com/Blosc/c-blosc/archive/v${OPENVDB_BLOSC_VERSION}.tar.gz" )
@@ -788,9 +789,11 @@ ALEMBIC_SOURCE=( "https://github.com/alembic/alembic/archive/${ALEMBIC_VERSION}.
 # ALEMBIC_SOURCE_REPO_UID="e6c90d4faa32c4550adeaaf3f556dad4b73a92bb"
 # ALEMBIC_SOURCE_REPO_BRANCH="master"
 
-OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
-OPENCOLLADA_REPO_UID="0c2cdc17c22cf42050e4d42154bed2176363549c"
-OPENCOLLADA_REPO_BRANCH="master"
+OPENCOLLADA_USE_REPO=false
+OPENCOLLADA_SOURCE=( "https://github.com/KhronosGroup/OpenCOLLADA/archive/v${OPENCOLLADA_VERSION}.tar.gz" )
+#~ OPENCOLLADA_SOURCE_REPO=( "https://github.com/KhronosGroup/OpenCOLLADA.git" )
+#~ OPENCOLLADA_REPO_UID="e937c3897b86fc0da53cde97257f5156"
+#~ OPENCOLLADA_REPO_BRANCH="master"
 
 FFMPEG_SOURCE=( "http://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.bz2" )
 
@@ -831,7 +834,7 @@ You may also want to build them yourself (optional ones are [between brackets]):
     * [OpenShadingLanguage $OSL_VERSION_MIN] (from $OSL_SOURCE_REPO, branch $OSL_SOURCE_REPO_BRANCH, commit $OSL_SOURCE_REPO_UID).
     * [OpenSubDiv $OSD_VERSION_MIN] (from $OSD_SOURCE_REPO, branch $OSD_SOURCE_REPO_BRANCH, commit $OSD_SOURCE_REPO_UID).
     * [OpenVDB $OPENVDB_VERSION_MIN] (from $OPENVDB_SOURCE), [Blosc $OPENVDB_BLOSC_VERSION] (from $OPENVDB_BLOSC_SOURCE).
-    * [OpenCollada] (from $OPENCOLLADA_SOURCE, branch $OPENCOLLADA_REPO_BRANCH, commit $OPENCOLLADA_REPO_UID).
+    * [OpenCollada $OPENCOLLADA_VERSION] (from $OPENCOLLADA_SOURCE).
     * [Alembic $ALEMBIC_VERSION] (from $ALEMBIC_SOURCE).\""
 
 if [ "$DO_SHOW_DEPS" = true ]; then
@@ -1315,12 +1318,14 @@ compile_OCIO() {
     cmake_d="$cmake_d -D CMAKE_INSTALL_PREFIX=$_inst"
     cmake_d="$cmake_d -D OCIO_BUILD_APPS=OFF"
     cmake_d="$cmake_d -D OCIO_BUILD_PYGLUE=OFF"
+    cmake_d="$cmake_d -D STOP_ON_WARNING=OFF"
 
     if file /bin/cp | grep -q '32-bit'; then
       cflags="-fPIC -m32 -march=i686"
     else
       cflags="-fPIC"
     fi
+    cflags="$cflags -Wno-error=unused-function -Wno-error=deprecated-declarations"
 
     cmake $cmake_d -D CMAKE_CXX_FLAGS="$cflags" -D CMAKE_EXE_LINKER_FLAGS="-lgcc_s -lgcc" ..
 
@@ -1746,22 +1751,19 @@ compile_LLVM() {
 
     if [ ! -d $_src -o true ]; then
       mkdir -p $SRC
-      download LLVM_SOURCE[@] "$_src.tar.gz"
-      download LLVM_CLANG_SOURCE[@] "$_src_clang.tar.gz"
+      download LLVM_SOURCE[@] "$_src.tar.xz"
+      download LLVM_CLANG_SOURCE[@] "$_src_clang.tar.xz"
 
       INFO "Unpacking LLVM-$LLVM_VERSION"
       tar -C $SRC --transform "s,([^/]*/?)llvm-[^/]*(.*),\1LLVM-$LLVM_VERSION\2,x" \
-          -xf $_src.tar.gz
+          -xf $_src.tar.xz
       INFO "Unpacking CLANG-$LLVM_VERSION to $_src/tools/clang"
       # Stupid clang guys renamed 'clang' to 'cfe' for now handle both cases... :(
       tar -C $_src/tools \
           --transform "s,([^/]*/?)(clang|cfe)-[^/]*(.*),\1clang\3,x" \
-          -xf $_src_clang.tar.gz
+          -xf $_src_clang.tar.xz
 
       cd $_src
-
-      # XXX Ugly patching hack!
-      patch -p1 -i "$SCRIPT_DIR/patches/install_deps_llvm.diff"
 
       cd $CWD
 
@@ -1865,9 +1867,6 @@ compile_OSL() {
       # Stick to same rev as windows' libs...
       git checkout $OSL_SOURCE_REPO_UID
       git reset --hard
-
-      # XXX Ugly patching hack!
-      patch -p1 -i "$SCRIPT_DIR/patches/install_deps_osl.diff"
     fi
 
     # Always refresh the whole build!
@@ -2354,17 +2353,24 @@ compile_OpenCOLLADA() {
 
     if [ ! -d $_src ]; then
       mkdir -p $SRC
-      git clone $OPENCOLLADA_SOURCE $_src
+      if [ "$OPENCOLLADA_USE_REPO" = true ]; then
+        git clone $OPENCOLLADA_SOURCE_REPO $_src
+      else
+        download OPENCOLLADA_SOURCE[@] "$_src.tar.gz"
+        INFO "Unpacking OpenCOLLADA-$OPENCOLLADA_VERSION"
+        tar -C $SRC -xf $_src.tar.gz
+      fi
     fi
 
     cd $_src
 
-    # XXX For now, always update from latest repo...
-    git pull origin $OPENCOLLADA_REPO_BRANCH
+    if [ "$OPENCOLLADA_USE_REPO" = true ]; then
+      git pull origin $OPENCOLLADA_REPO_BRANCH
 
-    # Stick to same rev as windows' libs...
-    git checkout $OPENCOLLADA_REPO_UID
-    git reset --hard
+      # Stick to same rev as windows' libs...
+      git checkout $OPENCOLLADA_REPO_UID
+      git reset --hard
+    fi
 
     # Always refresh the whole build!
     if [ -d build ]; then
@@ -2862,11 +2868,11 @@ install_DEB() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_DEB clang-$LLVM_VERSION
+    check_package_DEB clang-$LLVM_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_DEB llvm-$LLVM_VERSION-dev clang-$LLVM_VERSION
+      install_packages_DEB llvm-$LLVM_VERSION_MIN-dev clang-$LLVM_VERSION_MIN
       have_llvm=true
-      LLVM_VERSION_FOUND=$LLVM_VERSION
+      LLVM_VERSION_FOUND=$LLVM_VERSION_MIN
       clean_LLVM
     else
       _do_compile_llvm=true
@@ -4352,6 +4358,10 @@ print_info() {
   PRINT ""
   PRINT "Or even simpler, just run (in your blender-source dir):"
   PRINT "  make -j$THREADS BUILD_CMAKE_ARGS=\"$_buildargs\""
+
+  PRINT ""
+  PRINT "Or in all your build directories:"
+  PRINT "  cmake $_buildargs ."
 }
 
 #### "Main" ####

@@ -54,7 +54,7 @@ void MaskOperation::initExecution()
 
 			BKE_maskrasterize_handle_init(this->m_rasterMaskHandles[0], this->m_mask,
 			        this->m_maskWidth, this->m_maskHeight,
-			        true, this->m_do_smooth, this->m_do_feather);
+			        true, true, this->m_do_feather);
 		}
 		else {
 			/* make a throw away copy of the mask */
@@ -88,7 +88,7 @@ void MaskOperation::initExecution()
 
 				BKE_maskrasterize_handle_init(this->m_rasterMaskHandles[i], mask_temp,
 				                              this->m_maskWidth, this->m_maskHeight,
-				                              true, this->m_do_smooth, this->m_do_feather);
+				                              true, true, this->m_do_feather);
 
 				frame_iter += frame_step;
 			}
