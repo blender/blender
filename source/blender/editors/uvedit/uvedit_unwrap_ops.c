@@ -964,10 +964,14 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 
 /**************** Live Unwrap *****************/
 
-static ParamHandle *liveHandle = NULL;
+static struct {
+	ParamHandle **handles;
+	uint len, len_alloc;
+} g_live_unwrap = {NULL};
 
 void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 {
+	ParamHandle *handle = NULL;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool abf = (scene->toolsettings->unwrapper == 0);
 	const bool fillholes = (scene->toolsettings->uvcalc_flag & UVCALC_FILLHOLES) != 0;
@@ -980,29 +984,49 @@ void ED_uvedit_live_unwrap_begin(Scene *scene, Object *obedit)
 	}
 
 	if (use_subsurf)
-		liveHandle = construct_param_handle_subsurfed(scene, obedit, em, fillholes, false, true);
+		handle = construct_param_handle_subsurfed(scene, obedit, em, fillholes, false, true);
 	else
-		liveHandle = construct_param_handle(scene, obedit, em->bm, false, fillholes, false, true);
+		handle = construct_param_handle(scene, obedit, em->bm, false, fillholes, false, true);
 
-	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
+	param_lscm_begin(handle, PARAM_TRUE, abf);
+
+	/* Create or increase size of g_live_unwrap.handles array */
+	if (g_live_unwrap.handles == NULL) {
+		g_live_unwrap.len_alloc = 32;
+		g_live_unwrap.handles = MEM_mallocN(sizeof(ParamHandle *) * g_live_unwrap.len_alloc, "uvedit_live_unwrap_liveHandles");
+		g_live_unwrap.len = 0;
+	}
+	if (g_live_unwrap.len >= g_live_unwrap.len_alloc) {
+		g_live_unwrap.len_alloc *= 2;
+		g_live_unwrap.handles = MEM_reallocN(g_live_unwrap.handles, sizeof(ParamHandle *) * g_live_unwrap.len_alloc);
+	}
+	g_live_unwrap.handles[g_live_unwrap.len] = handle;
+	g_live_unwrap.len++;
 }
 
 void ED_uvedit_live_unwrap_re_solve(void)
 {
-	if (liveHandle) {
-		param_lscm_solve(liveHandle);
-		param_flush(liveHandle);
+	if (g_live_unwrap.handles) {
+		for (int i = 0; i < g_live_unwrap.len; i++) {
+			param_lscm_solve(g_live_unwrap.handles[i]);
+			param_flush(g_live_unwrap.handles[i]);
+		}
 	}
 }
 
 void ED_uvedit_live_unwrap_end(short cancel)
 {
-	if (liveHandle) {
-		param_lscm_end(liveHandle);
-		if (cancel)
-			param_flush_restore(liveHandle);
-		param_delete(liveHandle);
-		liveHandle = NULL;
+	if (g_live_unwrap.handles) {
+		for (int i = 0; i < g_live_unwrap.len; i++) {
+			param_lscm_end(g_live_unwrap.handles[i]);
+			if (cancel)
+				param_flush_restore(g_live_unwrap.handles[i]);
+			param_delete(g_live_unwrap.handles[i]);
+		}
+		MEM_freeN(g_live_unwrap.handles);
+		g_live_unwrap.handles = NULL;
+		g_live_unwrap.len = 0;
+		g_live_unwrap.len_alloc = 0;
 	}
 }
 

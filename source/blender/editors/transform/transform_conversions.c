@@ -3197,11 +3197,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 		}
 
 		if (sima->flag & SI_LIVE_UNWRAP) {
-			/* TODO(campbell): xform: Only active object currently!
-			 * it uses a static variable. */
-			if (tc->is_active) {
-				ED_uvedit_live_unwrap_begin(t->scene, tc->obedit);
-			}
+			ED_uvedit_live_unwrap_begin(t->scene, tc->obedit);
 		}
 
 finally:
