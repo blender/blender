@@ -1212,25 +1212,52 @@ void ED_gpencil_add_defaults(bContext *C)
 /* assign points to vertex group */
 void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 {
+	bGPdata *gpd = (bGPdata *)ob->data;
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 	const int def_nr = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, def_nr))
 		return;
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		if (gps->flag & GP_STROKE_SELECT) {
-			/* verify the weight array is created */
-			BKE_gpencil_dvert_ensure(gps);
+		bGPDframe *init_gpf = gpl->actframe;
+		bGPDstroke *gps = NULL;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
 
-			for (int i = 0; i < gps->totpoints; i++) {
-				bGPDspoint *pt = &gps->points[i];
-				MDeformVert *dvert = &gps->dvert[i];
-				if (pt->flag & GP_SPOINT_SELECT) {
-					MDeformWeight *dw = defvert_verify_index(dvert, def_nr);
-					if (dw) {
-						dw->weight = weight;
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					if (gps->flag & GP_STROKE_SELECT) {
+						/* verify the weight array is created */
+						BKE_gpencil_dvert_ensure(gps);
+
+						for (int i = 0; i < gps->totpoints; i++) {
+							bGPDspoint *pt = &gps->points[i];
+							MDeformVert *dvert = &gps->dvert[i];
+							if (pt->flag & GP_SPOINT_SELECT) {
+								MDeformWeight *dw = defvert_verify_index(dvert, def_nr);
+								if (dw) {
+									dw->weight = weight;
+								}
+							}
+						}
 					}
 				}
+			}
+
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
 			}
 		}
 	}
@@ -1240,24 +1267,51 @@ void ED_gpencil_vgroup_assign(bContext *C, Object *ob, float weight)
 /* remove points from vertex group */
 void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 {
+	bGPdata *gpd = (bGPdata *)ob->data;
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 	const int def_nr = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, def_nr))
 		return;
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		for (int i = 0; i < gps->totpoints; i++) {
-			bGPDspoint *pt = &gps->points[i];
-			if (gps->dvert == NULL) {
-				continue;
-			}
-			MDeformVert *dvert = &gps->dvert[i];
+		bGPDframe *init_gpf = gpl->actframe;
+		bGPDstroke *gps = NULL;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
 
-			if ((pt->flag & GP_SPOINT_SELECT) && (dvert->totweight > 0)) {
-				MDeformWeight *dw = defvert_find_index(dvert, def_nr);
-				if (dw != NULL) {
-					defvert_remove_group(dvert, dw);
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					for (int i = 0; i < gps->totpoints; i++) {
+						bGPDspoint *pt = &gps->points[i];
+						if (gps->dvert == NULL) {
+							continue;
+						}
+						MDeformVert *dvert = &gps->dvert[i];
+
+						if ((pt->flag & GP_SPOINT_SELECT) && (dvert->totweight > 0)) {
+							MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+							if (dw != NULL) {
+								defvert_remove_group(dvert, dw);
+							}
+						}
+					}
 				}
+			}
+
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
 			}
 		}
 	}
@@ -1267,22 +1321,49 @@ void ED_gpencil_vgroup_remove(bContext *C, Object *ob)
 /* select points of vertex group */
 void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 {
+	bGPdata *gpd = (bGPdata *)ob->data;
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 	const int def_nr = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, def_nr))
 		return;
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		for (int i = 0; i < gps->totpoints; i++) {
-			bGPDspoint *pt = &gps->points[i];
-			if (gps->dvert == NULL) {
-				continue;
-			}
-			MDeformVert *dvert = &gps->dvert[i];
+		bGPDframe *init_gpf = gpl->actframe;
+		bGPDstroke *gps = NULL;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
 
-			if (defvert_find_index(dvert, def_nr) != NULL) {
-				pt->flag |= GP_SPOINT_SELECT;
-				gps->flag |= GP_STROKE_SELECT;
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					for (int i = 0; i < gps->totpoints; i++) {
+						bGPDspoint *pt = &gps->points[i];
+						if (gps->dvert == NULL) {
+							continue;
+						}
+						MDeformVert *dvert = &gps->dvert[i];
+
+						if (defvert_find_index(dvert, def_nr) != NULL) {
+							pt->flag |= GP_SPOINT_SELECT;
+							gps->flag |= GP_STROKE_SELECT;
+						}
+					}
+				}
+			}
+
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
 			}
 		}
 	}
@@ -1292,22 +1373,48 @@ void ED_gpencil_vgroup_select(bContext *C, Object *ob)
 /* unselect points of vertex group */
 void ED_gpencil_vgroup_deselect(bContext *C, Object *ob)
 {
+	bGPdata *gpd = (bGPdata *)ob->data;
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 	const int def_nr = ob->actdef - 1;
 	if (!BLI_findlink(&ob->defbase, def_nr))
 		return;
 
-	CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
+	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
-		for (int i = 0; i < gps->totpoints; i++) {
-			bGPDspoint *pt = &gps->points[i];
-			if (gps->dvert == NULL) {
-				continue;
-			}
-			MDeformVert *dvert = &gps->dvert[i];
+		bGPDframe *init_gpf = gpl->actframe;
+		bGPDstroke *gps = NULL;
+		if (is_multiedit) {
+			init_gpf = gpl->frames.first;
+		}
 
-			if (defvert_find_index(dvert, def_nr) != NULL) {
-				pt->flag &= ~GP_SPOINT_SELECT;
-				gps->flag |= GP_STROKE_SELECT;
+		for (bGPDframe *gpf = init_gpf; gpf; gpf = gpf->next) {
+			if ((gpf == gpl->actframe) || ((gpf->flag & GP_FRAME_SELECT) && (is_multiedit))) {
+				if (gpf == NULL)
+					continue;
+
+				for (gps = gpf->strokes.first; gps; gps = gps->next) {
+
+					/* skip strokes that are invalid for current view */
+					if (ED_gpencil_stroke_can_use(C, gps) == false)
+						continue;
+
+					for (int i = 0; i < gps->totpoints; i++) {
+						bGPDspoint *pt = &gps->points[i];
+						if (gps->dvert == NULL) {
+							continue;
+						}
+						MDeformVert *dvert = &gps->dvert[i];
+
+						if (defvert_find_index(dvert, def_nr) != NULL) {
+							pt->flag &= ~GP_SPOINT_SELECT;
+						}
+					}
+				}
+			}
+
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
 			}
 		}
 	}
