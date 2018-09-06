@@ -395,8 +395,6 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 	 * doesn't have access to information about non-active tools.
 	 */
 
-	uiTooltipField *field_title = NULL;
-
 	/* Title (when icon-only). */
 	if (but->drawstr[0] == '\0') {
 		uiTooltipField *field = text_field_add(
@@ -406,7 +404,6 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 		            .is_pad = true,
 		        });
 		field->text = BLI_strdup(tool_name);
-		field_title = field;
 	}
 
 	/* Tip. */
@@ -442,7 +439,7 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 	}
 
 	/* Shortcut. */
-	{
+	if (is_label == false) {
 		/* There are different kinds of shortcuts:
 		 *
 		 * - Direct access to the tool (as if the toolbar button is pressed).
@@ -552,20 +549,13 @@ static uiTooltipData *ui_tooltip_data_from_tool(bContext *C, uiBut *but, bool is
 		}
 
 		if (shortcut != NULL) {
-			if (is_label && field_title) {
-				char *text_prev = field_title->text;
-				field_title->text = BLI_sprintfN(TIP_("%s: %s"), text_prev, shortcut);
-				MEM_freeN(text_prev);
-			}
-			else {
-				uiTooltipField *field = text_field_add(
-				        data, &(uiTooltipFormat){
-				            .style = UI_TIP_STYLE_NORMAL,
-				            .color_id = UI_TIP_LC_VALUE,
-				            .is_pad = true,
-				        });
-				field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
-			}
+			uiTooltipField *field = text_field_add(
+			        data, &(uiTooltipFormat){
+			            .style = UI_TIP_STYLE_NORMAL,
+			            .color_id = UI_TIP_LC_VALUE,
+			            .is_pad = true,
+			        });
+			field->text = BLI_sprintfN(TIP_("Shortcut: %s"), shortcut);
 			MEM_freeN(shortcut);
 		}
 	}
@@ -1081,6 +1071,7 @@ static ARegion *ui_tooltip_create_with_data(
 #undef TIP_BORDER_X
 #undef TIP_BORDER_Y
 
+// #define USE_ALIGN_Y_CENTER
 
 	/* Clamp to window bounds. */
 	{
@@ -1104,7 +1095,9 @@ static ARegion *ui_tooltip_create_with_data(
 			const int size_x = BLI_rcti_size_x(&rect_i);
 			const int size_y = BLI_rcti_size_y(&rect_i);
 			const int cent_overlap_x = BLI_rcti_cent_x(&init_rect);
+#ifdef USE_ALIGN_Y_CENTER
 			const int cent_overlap_y = BLI_rcti_cent_y(&init_rect);
+#endif
 			struct {
 				rcti xpos;
 				rcti xneg;
@@ -1116,16 +1109,30 @@ static ARegion *ui_tooltip_create_with_data(
 				rcti r = rect_i;
 				r.xmin = init_rect.xmax;
 				r.xmax = r.xmin + size_x;
+#ifdef USE_ALIGN_Y_CENTER
 				r.ymin = cent_overlap_y - (size_y / 2);
 				r.ymax = r.ymin + size_y;
+#else
+				r.ymin = init_rect.ymax - BLI_rcti_size_y(&rect_i);
+				r.ymax = init_rect.ymax;
+				r.ymin -= UI_POPUP_MARGIN;
+				r.ymax -= UI_POPUP_MARGIN;
+#endif
 				rect.xpos = r;
 			}
 			{	/* xneg */
 				rcti r = rect_i;
 				r.xmin = init_rect.xmin - size_x;
 				r.xmax = r.xmin + size_x;
+#ifdef USE_ALIGN_Y_CENTER
 				r.ymin = cent_overlap_y - (size_y / 2);
 				r.ymax = r.ymin + size_y;
+#else
+				r.ymin = init_rect.ymax - BLI_rcti_size_y(&rect_i);
+				r.ymax = init_rect.ymax;
+				r.ymin -= UI_POPUP_MARGIN;
+				r.ymax -= UI_POPUP_MARGIN;
+#endif
 				rect.xneg = r;
 			}
 			{	/* ypos */
@@ -1174,6 +1181,8 @@ static ARegion *ui_tooltip_create_with_data(
 			BLI_rcti_clamp(&rect_i, &rect_clamp, offset_dummy);
 		}
 	}
+
+#undef USE_ALIGN_Y_CENTER
 
 	/* add padding */
 	BLI_rcti_resize(&rect_i,
@@ -1240,7 +1249,7 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 		return NULL;
 	}
 
-	const bool is_no_overlap = is_label && UI_but_has_tooltip_label(but);
+	const bool is_no_overlap = UI_but_has_tooltip_label(but) || UI_but_is_tool(but);
 	rcti init_rect;
 	if (is_no_overlap) {
 		rctf overlap_rect_fl;
