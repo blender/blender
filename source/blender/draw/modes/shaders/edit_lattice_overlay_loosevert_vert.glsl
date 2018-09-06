@@ -3,7 +3,6 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 uniform vec2 viewportSize;
-uniform ivec4 dataMask = ivec4(0xFF);
 
 in vec3 pos;
 in int data;
@@ -33,7 +32,7 @@ void main()
 	eData1 = eData2 = vec4(1e10);
 	eData2.zw = proj(pPos);
 
-	vertFlag = data & dataMask;
+	vertFlag = data;
 
 	gl_PointSize = sizeVertex;
 	gl_Position = pPos;
