@@ -508,7 +508,7 @@ static void OBJECT_engine_init(void *vedata)
 				if (show_axis_y) {
 					e_data.grid_flag |= SHOW_AXIS_Y;
 				}
-				if (show_axis_z) {
+				{
 					e_data.grid_flag |= SHOW_AXIS_Z;
 				}
 				if (show_floor) {
@@ -534,7 +534,7 @@ static void OBJECT_engine_init(void *vedata)
 				if (show_axis_x) {
 					e_data.grid_flag |= SHOW_AXIS_X;
 				}
-				if (show_axis_z) {
+				{
 					e_data.grid_flag |= SHOW_AXIS_Z;
 				}
 				if (show_floor) {
