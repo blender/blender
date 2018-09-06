@@ -41,50 +41,6 @@
 
 /* -------------------------------------------------------------------- */
 
-/** \name Enum Conversion
- *
- * Use with PyArg_ParseTuple's "O&" formatting.
- * \{ */
-
-static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
-{
-	Py_ssize_t mode_id_len;
-	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
-	if (mode_id == NULL) {
-		PyErr_Format(PyExc_ValueError,
-		             "expected a string, got %s",
-		             Py_TYPE(o)->tp_name);
-		return 0;
-	}
-#define MATCH_ID(id) \
-	if (mode_id_len == strlen(STRINGIFY(id))) { \
-		if (STREQ(mode_id, STRINGIFY(id))) { \
-			mode = GPU_FETCH_##id; \
-			goto success; \
-		} \
-	} ((void)0)
-
-	GPUVertFetchMode mode;
-	MATCH_ID(FLOAT);
-	MATCH_ID(INT);
-	MATCH_ID(INT_TO_FLOAT_UNIT);
-	MATCH_ID(INT_TO_FLOAT);
-#undef MATCH_ID
-	PyErr_Format(PyExc_ValueError,
-	             "unknown type literal: '%s'",
-	             mode_id);
-	return 0;
-
-success:
-	(*(GPUVertFetchMode *)p) = mode;
-	return 1;
-}
-
-/** \} */
-
-
-/* -------------------------------------------------------------------- */
-
 /** \name Utility Functions
  * \{ */
 
