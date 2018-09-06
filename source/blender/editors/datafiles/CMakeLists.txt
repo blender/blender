@@ -674,7 +674,6 @@ if(WITH_BLENDER)
 		# blender UI only
 
 		# blends
-		data_to_c_simple(../../../../release/datafiles/preview.blend SRC)
 		data_to_c_simple(../../../../release/datafiles/preview_cycles.blend SRC)
 		data_to_c_simple(../../../../release/datafiles/preview_grease_pencil.blend SRC)
 

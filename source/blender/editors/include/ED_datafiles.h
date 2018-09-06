@@ -36,9 +36,6 @@
 extern int datatoc_startup_blend_size;
 extern char datatoc_startup_blend[];
 
-extern int datatoc_preview_blend_size;
-extern char datatoc_preview_blend[];
-
 extern int datatoc_preview_cycles_blend_size;
 extern char datatoc_preview_cycles_blend[];
 
