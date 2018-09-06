@@ -202,12 +202,12 @@ ccl_device float3 ensure_valid_reflection(float3 Ng, float3 I, float3 N)
 	float Ix2 = sqr(dot(I, X)), Iz2 = sqr(Iz);
 	float Ix2Iz2 = Ix2 + Iz2;
 
-	float a = sqrtf(Ix2*(Ix2Iz2 - sqr(0.05f)));
+	float a = safe_sqrtf(Ix2*(Ix2Iz2 - sqr(0.05f)));
 	float b = Iz*0.05f + Ix2Iz2;
 	float c = (a + b > 0.0f)? (a + b) : (-a + b);
 
-	float Nz = sqrtf(0.5f * c * (1.0f / Ix2Iz2));
-	float Nx = sqrtf(1.0f - sqr(Nz));
+	float Nz = safe_sqrtf(0.5f * c * (1.0f / Ix2Iz2));
+	float Nx = safe_sqrtf(1.0f - sqr(Nz));
 
 	/* Transform back into global coordinates. */
 	return Nx*X + Nz*Ng;
