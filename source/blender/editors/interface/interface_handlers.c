@@ -7319,14 +7319,18 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		ui_numedit_set_active(but);
 	}
 
-#if 0
 	if (UI_but_has_tooltip_label(but)) {
 		/* Show a label for this button. */
-		WM_tooltip_immediate_init(
-		        C, CTX_wm_window(C), ar,
-		        ui_but_tooltip_init);
+		bScreen *sc = WM_window_get_active_screen(data->window);
+		if ((PIL_check_seconds_timer() - WM_tooltip_time_closed()) < 0.1) {
+			WM_tooltip_immediate_init(
+			        C, CTX_wm_window(C), ar,
+			        ui_but_tooltip_init);
+			if (sc->tool_tip) {
+				sc->tool_tip->pass = 1;
+			}
+		}
 	}
-#endif
 }
 
 static void button_activate_exit(

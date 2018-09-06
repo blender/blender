@@ -37,6 +37,14 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "PIL_time.h"
+
+static double g_tooltip_time_closed;
+double WM_tooltip_time_closed(void)
+{
+	return g_tooltip_time_closed;
+}
+
 void WM_tooltip_immediate_init(
         bContext *C, wmWindow *win, ARegion *ar,
         wmTooltipInitFn init)
@@ -95,6 +103,7 @@ void WM_tooltip_clear(bContext *C, wmWindow *win)
 		if (screen->tool_tip->region) {
 			UI_tooltip_free(C, screen, screen->tool_tip->region);
 			screen->tool_tip->region = NULL;
+			g_tooltip_time_closed = PIL_check_seconds_timer();
 		}
 		MEM_freeN(screen->tool_tip);
 		screen->tool_tip = NULL;
