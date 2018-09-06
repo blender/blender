@@ -364,6 +364,13 @@ Scene *RE_GetScene(Render *re)
 	return NULL;
 }
 
+void RE_SetScene(Render *re, Scene* sce)
+{
+	if (re) {
+		re->scene = sce;
+	}
+}
+
 /**
  * Same as #RE_AcquireResultImage but creating the necessary views to store the result
  * fill provided result struct with a copy of thew views of what is done so far the

@@ -336,6 +336,7 @@ struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int pas
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
+void RE_SetScene(struct Render *re, struct Scene *sce);
 
 bool RE_is_rendering_allowed(struct Scene *scene, struct ViewLayer *single_layer, struct Object *camera_override, struct ReportList *reports);
 

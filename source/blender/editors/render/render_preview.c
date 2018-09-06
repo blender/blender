@@ -95,6 +95,7 @@
 
 #include "RE_pipeline.h"
 #include "RE_engine.h"
+#include "RE_shader_ext.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -727,6 +728,61 @@ static void shader_preview_updatejob(void *spv)
 	}
 }
 
+/* Renders texture directly to render buffer. */
+static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene* sce, Render *re)
+{
+	/* Setup output buffer. */
+	int width = sp->sizex;
+	int height = sp->sizey;
+
+	/* This is needed otherwise no RenderResult is created. */
+	sce->r.scemode &= ~R_BUTS_PREVIEW;
+	RE_InitState(re, NULL, &sce->r, &sce->view_layers, NULL, width, height, NULL);
+	RE_SetScene(re, sce);
+
+	/* Create buffer in empty RenderView created in the init step. */
+	RenderResult *rr = RE_AcquireResultWrite(re);
+	RenderView *rv = (RenderView *)rr->views.first;
+	rv->rectf = MEM_callocN(sizeof(float) * 4 * width * height, "texture render result");
+	RE_ReleaseResult(re);
+
+	/* Get texture image pool (if any) */
+	struct ImagePool *img_pool = BKE_image_pool_new();
+	BKE_texture_fetch_images_for_pool(tex, img_pool);
+
+	/* Fill in image buffer. */
+	float *rect_float = rv->rectf;
+	float tex_coord[3] = {0.0f, 0.0f, 0.0f};
+	bool color_manage = true;
+
+	for (int y = 0; y < height; y++) {
+		/* Tex coords between -1.0f and 1.0f. */
+		tex_coord[1] = ((float)y / (float)height) * 2.0f - 1.0f;
+
+		for (int x = 0; x < width; x++) {
+			tex_coord[0] = ((float)x / (float)height) * 2.0f - 1.0f;
+
+			/* Evaluate texture at tex_coord .*/
+			TexResult texres = {0};
+			BKE_texture_get_value_ex(sce, tex, tex_coord, &texres, img_pool, color_manage);
+
+			rect_float[0] = texres.tr;
+			rect_float[1] = texres.tg;
+			rect_float[2] = texres.tb;
+			rect_float[3] = 1.0f;
+
+			rect_float += 4;
+		}
+
+		/* Check if we should cancel texture preview. */
+		if (shader_preview_break(sp)) {
+			break;
+		}
+	}
+
+	BKE_image_pool_free(img_pool);
+}
+
 static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int first)
 {
 	Render *re;
@@ -803,7 +859,13 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 		((Camera *)sce->camera->data)->lens *= (float)sp->sizey / (float)sizex;
 
 	/* entire cycle for render engine */
-	RE_PreviewRender(re, pr_main, sce);
+	if (idtype == ID_TE) {
+		shader_preview_texture(sp, (Tex *)id, sce, re);
+	}
+	else {
+		/* Render preview scene */
+		RE_PreviewRender(re, pr_main, sce);
+	}
 
 	((Camera *)sce->camera->data)->lens = oldlens;
 
