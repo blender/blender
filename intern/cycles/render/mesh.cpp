@@ -2162,10 +2162,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 				num_bvh++;
 			}
 		}
-	}
 
-	/* TODO: properly handle cancel halfway displacement */
-	if(progress.get_cancel()) return;
+		if(progress.get_cancel()) return;
+	}
 
 	/* Device re-update after displacement. */
 	if(displacement_done) {
