@@ -2017,7 +2017,7 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 		if (wmd->type == WM_DRAG_ID) {
 			/* align these types with UI_but_active_drop_name */
 			if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-				ID *id = (ID *)wmd->poin;
+				ID *id = WM_drag_ID(wmd, 0);
 
 				button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
 
