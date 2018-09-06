@@ -524,6 +524,11 @@ class VIEW3D_MT_uv_map(Menu):
 
         layout.separator()
 
+        layout.operator("mesh.mark_seam").clear = False
+        layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
+
+        layout.separator()
+
         layout.operator("uv.reset")
 
 
