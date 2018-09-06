@@ -94,8 +94,11 @@ set(SRC
 
 	GPU_attr_binding.h
 	GPU_batch.h
+	GPU_batch_presets.h
+	GPU_batch_utils.h
 	GPU_buffers.h
 	GPU_common.h
+	GPU_context.h
 	GPU_debug.h
 	GPU_draw.h
 	GPU_element.h

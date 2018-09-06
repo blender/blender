@@ -92,6 +92,7 @@ set(SRC
 
 	WM_api.h
 	WM_keymap.h
+	WM_message.h
 	WM_toolsystem.h
 	WM_types.h
 	wm.h
