@@ -552,7 +552,7 @@ static bool rna_NodeTree_poll(const bContext *C, bNodeTreeType *ntreetype)
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-	int visible;
+	bool visible;
 
 	RNA_pointer_create(NULL, ntreetype->ext.srna, NULL, &ptr); /* dummy */
 	func = &rna_NodeTree_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */

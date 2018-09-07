@@ -113,7 +113,7 @@ static bool panel_poll(const bContext *C, PanelType *pt)
 	ParameterList list;
 	FunctionRNA *func;
 	void *ret;
-	int visible;
+	bool visible;
 
 	RNA_pointer_create(NULL, pt->ext.srna, NULL, &ptr); /* dummy */
 	func = &rna_Panel_poll_func; /* RNA_struct_find_function(&ptr, "poll"); */
