@@ -875,6 +875,8 @@ bool applyTransformOrientation(const struct TransformOrientation *ts, float r_ma
 #define ORIENTATION_VERT	2
 #define ORIENTATION_EDGE	3
 #define ORIENTATION_FACE	4
+#define ORIENTATION_USE_PLANE(ty) \
+	ELEM(ty, ORIENTATION_NORMAL, ORIENTATION_EDGE, ORIENTATION_FACE)
 
 int getTransformOrientation_ex(const struct bContext *C, float normal[3], float plane[3], const short around);
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3]);

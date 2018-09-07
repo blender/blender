@@ -793,12 +793,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 						}
 					}
 
-					if (is_zero_v3(plane)) {
-						result = ORIENTATION_VERT;
-					}
-					else {
-						result = ORIENTATION_EDGE;
-					}
+					result = ORIENTATION_EDGE;
 				}
 				else if (em->bm->totvertsel > 3) {
 					BMIter iter;
@@ -1100,6 +1095,11 @@ void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[3
 	int type;
 
 	type = getTransformOrientation_ex(C, normal, plane, around);
+
+	/* Fallback, when the plane can't be calculated. */
+	if (ORIENTATION_USE_PLANE(type) && is_zero_v3(plane)) {
+		type = ORIENTATION_VERT;
+	}
 
 	switch (type) {
 		case ORIENTATION_NORMAL:
