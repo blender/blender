@@ -1,6 +1,6 @@
 # Example of an operator which uses gizmos to control its properties.
 #
-# Usage: Run this script, then in mesh edit-mode press Spacebar
+# Usage: Run this script, then in mesh edit-mode press F3
 # to activate the operator "Select Side of Plane"
 # The gizmos can then be used to adjust the plane in the 3D view.
 #
