@@ -209,11 +209,21 @@ static void rna_def_area_spaces(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Active Space", "Space currently being displayed in this area");
 }
 
+static void rna_def_area_api(StructRNA *srna)
+{
+	FunctionRNA *func;
+
+	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
+
+	func = RNA_def_function(srna, "header_text_set", "ED_area_headerprint");
+	RNA_def_function_ui_description(func, "Set the header text");
+	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
+}
+
 static void rna_def_area(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	FunctionRNA *func;
 
 	srna = RNA_def_struct(brna, "Area", NULL);
 	RNA_def_struct_ui_text(srna, "Area", "Area in a subdivided screen, containing an editor");
@@ -267,11 +277,7 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Height", "Area height");
 
-	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
-
-	func = RNA_def_function(srna, "header_text_set", "ED_area_headerprint");
-	RNA_def_function_ui_description(func, "Set the header text");
-	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
+	rna_def_area_api(srna);
 }
 
 static void rna_def_view2d_api(StructRNA *srna)
