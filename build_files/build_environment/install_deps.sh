@@ -3422,16 +3422,15 @@ install_RPM() {
     else
       CLANG_DEV="clang-devel"
     fi
-    # XXX RHEL has 3.4 in repo but OSL complains about not finding MCJIT_LIBRARY, so compile for now...
-    #check_package_version_match_RPM $CLANG_DEV $LLVM_VERSION
-    #if [ $? -eq 0 ]; then
-    #  install_packages_RPM llvm-devel $CLANG_DEV
-    #  have_llvm=true
-    #  LLVM_VERSION_FOUND=$LLVM_VERSION
-    #  clean_LLVM
-    #else
+    check_package_version_match_RPM $CLANG_DEV $LLVM_VERSION
+    if [ $? -eq 0 ]; then
+      install_packages_RPM llvm-devel $CLANG_DEV
+      have_llvm=true
+      LLVM_VERSION_FOUND=$LLVM_VERSION
+      clean_LLVM
+    else
       _do_compile_llvm=true
-    #fi
+    fi
   fi
 
   if [ "$_do_compile_llvm" = true ]; then
@@ -3832,11 +3831,11 @@ install_ARCH() {
     INFO "Forced LLVM building, as requested..."
     _do_compile_llvm=true
   else
-    check_package_version_match_ARCH llvm35 $LLVM_VERSION_MIN
+    check_package_version_match_ARCH llvm $LLVM_VERSION_MIN
     if [ $? -eq 0 ]; then
-      install_packages_ARCH llvm35 clang35
+      install_packages_ARCH llvm clang
       have_llvm=true
-      LLVM_VERSION=`get_package_version_ARCH llvm35`
+      LLVM_VERSION=`get_package_version_ARCH llvm`
       LLVM_VERSION_FOUND=$LLVM_VERSION
       clean_LLVM
     else
