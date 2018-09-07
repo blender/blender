@@ -233,6 +233,18 @@ enum StitchModes {
 	STITCH_EDGE
 };
 
+/* UvElement identification. */
+typedef struct UvElementID {
+	int faceIndex;
+	int elementIndex;
+} UvElementID;
+
+/* StitchState initializition. */
+typedef struct StitchStateInit {
+	int uv_selected_count;
+	UvElementID *to_select;
+} StitchStateInit;
+
 /* constructor */
 static StitchPreviewer *stitch_preview_init(void)
 {
@@ -1812,7 +1824,7 @@ static UvEdge *uv_edge_get(BMLoop *l, StitchState *state)
 
 static StitchState *stitch_init(
         bContext *C, wmOperator *op,
-        StitchStateContainer *ssc, Object *obedit)
+        StitchStateContainer *ssc, Object *obedit, StitchStateInit *state_init)
 {
 	/* for fast edge lookup... */
 	GHash *edge_hash;
@@ -1997,36 +2009,34 @@ static StitchState *stitch_init(
 	state->selection_size = 0;
 
 	/* Load old selection if redoing operator with different settings */
-	/* WIP */
-	if (false && RNA_struct_property_is_set(op->ptr, "selection")) {
+	if (state_init != NULL) {
 		int faceIndex, elementIndex;
 		UvElement *element;
 		enum StitchModes stored_mode = RNA_enum_get(op->ptr, "stored_mode");
 
 		BM_mesh_elem_table_ensure(em->bm, BM_FACE);
 
+		int selected_count = state_init->uv_selected_count;
+
 		if (stored_mode == STITCH_VERT) {
 			state->selection_stack = MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_uvs, "uv_stitch_selection_stack");
 
-			RNA_BEGIN (op->ptr, itemptr, "selection")
-			{
-				faceIndex = RNA_int_get(&itemptr, "face_index");
-				elementIndex = RNA_int_get(&itemptr, "element_index");
+			while (selected_count--) {
+				faceIndex = state_init->to_select[selected_count].faceIndex;
+				elementIndex = state_init->to_select[selected_count].elementIndex;
 				efa = BM_face_at_index(em->bm, faceIndex);
 				element = BM_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
 				stitch_select_uv(element, state, 1);
 			}
-			RNA_END;
 		}
 		else {
 			state->selection_stack = MEM_mallocN(sizeof(*state->selection_stack) * state->total_separate_edges, "uv_stitch_selection_stack");
 
-			RNA_BEGIN (op->ptr, itemptr, "selection")
-			{
+			while (selected_count--) {
 				UvEdge tmp_edge, *edge;
 				int uv1, uv2;
-				faceIndex = RNA_int_get(&itemptr, "face_index");
-				elementIndex = RNA_int_get(&itemptr, "element_index");
+				faceIndex = state_init->to_select[selected_count].faceIndex;
+				elementIndex = state_init->to_select[selected_count].elementIndex;
 				efa = BM_face_at_index(em->bm, faceIndex);
 				element = BM_uv_element_get(state->element_map, efa, BM_iter_at_index(NULL, BM_LOOPS_OF_FACE, efa, elementIndex));
 				uv1 = map[element - state->element_map->buf];
@@ -2047,16 +2057,12 @@ static StitchState *stitch_init(
 
 				stitch_select_edge(edge, state, true);
 			}
-			RNA_END;
 		}
 		/* if user has switched the operator mode after operation, we need to convert
 		 * the stored format */
 		if (ssc->mode != stored_mode) {
 			stitch_set_selection_mode(state, stored_mode);
 		}
-		/* Clear the selection */
-		RNA_collection_clear(op->ptr, "selection");
-
 	}
 	else {
 		if (ssc->mode == STITCH_VERT) {
@@ -2211,10 +2217,54 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 	ssc->states = MEM_callocN(sizeof(StitchState *) * objects_len, "StitchState");
 	ssc->objects_len = 0;
 
+	int *objs_selection_count = NULL;
+	UvElementID *selected_uvs_arr = NULL;
+	StitchStateInit *state_init = NULL;
+
+	if (RNA_struct_property_is_set(op->ptr, "selection") &&
+	    RNA_struct_property_is_set(op->ptr, "objects_selection_count"))
+	{
+		/* Retrieve list of selected UVs, one list contains all selected UVs
+		 * for all objects. */
+
+		objs_selection_count = MEM_mallocN(sizeof(int *) * objects_len, "objects_selection_count");
+		RNA_int_get_array(op->ptr, "objects_selection_count", objs_selection_count);
+
+		int total_selected = 0;
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			total_selected += objs_selection_count[ob_index];
+		}
+
+		selected_uvs_arr = MEM_callocN(sizeof(UvElementID) * total_selected, "selected_uvs_arr");
+		int sel_idx = 0;
+		RNA_BEGIN (op->ptr, itemptr, "selection")
+		{
+			BLI_assert(sel_idx < total_selected);
+			selected_uvs_arr[sel_idx].faceIndex = RNA_int_get(&itemptr, "face_index");
+			selected_uvs_arr[sel_idx].elementIndex = RNA_int_get(&itemptr, "element_index");
+			sel_idx++;
+		}
+		RNA_END;
+
+		RNA_collection_clear(op->ptr, "selection");
+
+		state_init = MEM_callocN(sizeof(StitchStateInit), "UV_init_selected");
+		state_init->to_select = selected_uvs_arr;
+	}
+
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 
-		StitchState *stitch_state_ob = stitch_init(C, op, ssc, obedit);
+		if (state_init != NULL) {
+			state_init->uv_selected_count = objs_selection_count[ob_index];
+		}
+
+		StitchState *stitch_state_ob = stitch_init(C, op, ssc, obedit, state_init);
+
+		if (state_init != NULL) {
+			/* Move pointer to beginning of next object's data. */
+			state_init->to_select += state_init->uv_selected_count;
+		}
 
 		if (stitch_state_ob) {
 			ssc->objects[ssc->objects_len] = obedit;
@@ -2224,6 +2274,9 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
+	MEM_SAFE_FREE(selected_uvs_arr);
+	MEM_SAFE_FREE(objs_selection_count);
+	MEM_SAFE_FREE(state_init);
 
 	if (ssc->objects_len == 0) {
 		state_delete_all(ssc);
@@ -2257,31 +2310,41 @@ static int stitch_init_all(bContext *C, wmOperator *op)
 
 static int stitch_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	Object *obedit = CTX_data_edit_object(C);
 	if (!stitch_init_all(C, op))
 		return OPERATOR_CANCELLED;
 
 	WM_event_add_modal_handler(C, op);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	StitchStateContainer *ssc = (StitchStateContainer *)op->customdata;
+
+	for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
+		StitchState *state = ssc->states[ob_index];
+		Object *obedit = state->obedit;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
 static void stitch_exit(bContext *C, wmOperator *op, int finished)
 {
-	Scene *scene;
-	SpaceImage *sima;
+	Scene *scene = CTX_data_scene(C);
+	SpaceImage *sima = CTX_wm_space_image(C);
 	ScrArea *sa = CTX_wm_area(C);
 
-	scene = CTX_data_scene(C);
-	sima = CTX_wm_space_image(C);
-
 	StitchStateContainer *ssc = (StitchStateContainer *)op->customdata;
-	StitchState *state = ssc->states[ssc->active_object_index];
-	Object *obedit = state->obedit;
 
 	if (finished) {
-		int i;
-
 		RNA_float_set(op->ptr, "limit", ssc->limit_dist);
 		RNA_boolean_set(op->ptr, "use_limit", ssc->use_limit);
 		RNA_boolean_set(op->ptr, "snap_islands", ssc->snap_islands);
@@ -2293,24 +2356,41 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 
 		RNA_int_set(op->ptr, "static_island", ssc->static_island);
 
-		/* Store selection for re-execution of stitch */
-		/* WIP */
-		for (i = 0; i < state->selection_size; i++) {
-			UvElement *element;
-			PointerRNA itemptr;
-			if (ssc->mode == STITCH_VERT) {
-				element = state->selection_stack[i];
-			}
-			else {
-				element = ((UvEdge *)state->selection_stack[i])->element;
-			}
-			RNA_collection_add(op->ptr, "selection", &itemptr);
+		int *objs_selection_count = NULL;
+		objs_selection_count = MEM_mallocN(sizeof(int *) * ssc->objects_len, "objects_selection_count");
 
-			RNA_int_set(&itemptr, "face_index", BM_elem_index_get(element->l->f));
-			RNA_int_set(&itemptr, "element_index", element->loop_of_poly_index);
+		/* Store selection for re-execution of stitch
+		 * - Store all selected UVs in "selection"
+		 * - Store how many each object has in "objects_selection_count". */
+		RNA_collection_clear(op->ptr, "selection");
+		for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
+			StitchState *state = ssc->states[ob_index];
+			Object *obedit = state->obedit;
+
+			PointerRNA itemptr;
+			for (int i = 0; i < state->selection_size; i++) {
+				UvElement *element;
+
+				if (ssc->mode == STITCH_VERT) {
+					element = state->selection_stack[i];
+				}
+				else {
+					element = ((UvEdge *)state->selection_stack[i])->element;
+				}
+				RNA_collection_add(op->ptr, "selection", &itemptr);
+
+				RNA_int_set(&itemptr, "face_index", BM_elem_index_get(element->l->f));
+				RNA_int_set(&itemptr, "element_index", element->loop_of_poly_index);
+			}
+			uvedit_live_unwrap_update(sima, scene, obedit);
+
+			objs_selection_count[ob_index] = state->selection_size;
 		}
 
-		uvedit_live_unwrap_update(sima, scene, obedit);
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "objects_selection_count");
+		RNA_def_property_array(prop, ssc->objects_len);
+		RNA_int_set_array(op->ptr, "objects_selection_count", objs_selection_count);
+		MEM_freeN(objs_selection_count);
 	}
 
 	if (sa)
@@ -2318,8 +2398,21 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 
 	ED_region_draw_cb_exit(CTX_wm_region(C)->type, ssc->draw_handle);
 
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	ToolSettings *ts = scene->toolsettings;
+	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
+
+	for (uint ob_index = 0; ob_index < ssc->objects_len; ob_index++) {
+		StitchState *state = ssc->states[ob_index];
+		Object *obedit = state->obedit;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (synced_selection && (em->bm->totvertsel == 0)) {
+			continue;
+		}
+
+		DEG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
 
 	state_delete_all(ssc);
 
@@ -2627,5 +2720,10 @@ void UV_OT_stitch(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_collection_runtime(ot->srna, "selection", &RNA_SelectedUvElement, "Selection", "");
 	/* Selection should not be editable or viewed in toolbar */
+	RNA_def_property_flag(prop, PROP_HIDDEN);
+
+	/* test should not be editable or viewed in toolbar */
+	prop = RNA_def_int_array(ot->srna, "objects_selection_count", 1, NULL, 0, INT_MAX, "objects_selection_count", "objects_selection_count", 0, INT_MAX);
+	RNA_def_property_array(prop, 6);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
