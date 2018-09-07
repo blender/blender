@@ -238,7 +238,7 @@ def _defs_annotate_factory():
                 keymap=(
                     ("gpencil.annotate",
                      dict(mode='DRAW', wait_for_input=False),
-                     dict(type='EVT_TWEAK_A', value='ANY')),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
                 ),
                 draw_settings=draw_settings,
             )
