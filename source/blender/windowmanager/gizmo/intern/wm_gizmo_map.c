@@ -569,7 +569,8 @@ static wmGizmo *gizmo_find_intersected_3d(
 		int select_id = 0;
 		for (LinkData *link = visible_gizmos->first; link; link = link->next, select_id++) {
 			wmGizmo *gz = link->data;
-			if (gz->type->test_select) {
+			/* With both defined, favor the 3D, incase the manipulator can be used in 2D or 3D views. */
+			if (gz->type->test_select && (gz->type->draw_select == NULL)) {
 				if ((*r_part = gz->type->test_select(C, gz, co)) != -1) {
 					hit = select_id;
 					result = gz;
