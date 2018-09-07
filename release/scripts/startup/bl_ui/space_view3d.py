@@ -1603,8 +1603,9 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.delete", text="Delete...").use_global = False
-        layout.operator("object.delete", text="Delete Global...").use_global = True
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("object.delete", text="Delete").use_global = False
+        layout.operator("object.delete", text="Delete Global").use_global = True
 
 
 class VIEW3D_MT_object_animation(Menu):
