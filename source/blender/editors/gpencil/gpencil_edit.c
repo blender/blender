@@ -73,6 +73,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -113,8 +115,10 @@ static bool gpencil_editmode_toggle_poll(bContext *C)
 static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const int back = RNA_boolean_get(op->ptr, "back");
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-		bGPdata *gpd = ED_gpencil_data_get_active(C);
+
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bool is_object = false;
 	short mode;
 	/* if using a gpencil object, use this datablock */
@@ -161,6 +165,13 @@ static int gpencil_editmode_toggle_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_GPENCIL | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 
+	if (is_object) {
+		WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+	}
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -201,6 +212,7 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const bool back = RNA_boolean_get(op->ptr, "back");
 
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 
@@ -250,6 +262,13 @@ static int gpencil_paintmode_toggle_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
 
+	if (is_object) {
+		WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+	}
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -290,6 +309,7 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const bool back = RNA_boolean_get(op->ptr, "back");
 
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bool is_object = false;
 	short mode;
@@ -329,6 +349,13 @@ static int gpencil_sculptmode_toggle_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+
+	if (is_object) {
+		WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+	}
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -370,6 +397,7 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 {
 	const bool back = RNA_boolean_get(op->ptr, "back");
 
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bool is_object = false;
 	short mode;
@@ -409,6 +437,13 @@ static int gpencil_weightmode_toggle_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | ND_GPENCIL_EDITMODE, NULL);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, NULL);
+
+	if (is_object) {
+		WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+	}
+	if (G.background == false) {
+		WM_toolsystem_update_from_context_view3d(C);
+	}
 
 	return OPERATOR_FINISHED;
 }
