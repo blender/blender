@@ -2777,6 +2777,7 @@ install_DEB() {
   fi
 
   if $_do_compile_python; then
+    install_packages_DEB libffi-dev
     compile_Python
     PRINT ""
     if [ "$NUMPY_SKIP" = true ]; then
@@ -3315,6 +3316,7 @@ install_RPM() {
   fi
 
   if [ "$_do_compile_python" = true ]; then
+    install_packages_RPM libffi-devel
     compile_Python
     PRINT ""
     if [ "$NUMPY_SKIP" = true ]; then
@@ -3744,6 +3746,7 @@ install_ARCH() {
   fi
 
   if [ "$_do_compile_python" = true ]; then
+    install_packages_ARCH libffi
     compile_Python
     PRINT ""
     if [ "$NUMPY_SKIP" = true ]; then
