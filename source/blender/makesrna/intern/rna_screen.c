@@ -325,12 +325,14 @@ static void rna_def_area_spaces(BlenderRNA *brna, PropertyRNA *cprop)
 static void rna_def_area_api(StructRNA *srna)
 {
 	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	RNA_def_function(srna, "tag_redraw", "ED_area_tag_redraw");
 
 	func = RNA_def_function(srna, "header_text_set", "ED_area_status_text");
 	RNA_def_function_ui_description(func, "Set the header status text");
-	RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
+	parm = RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, no argument clears the text");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 }
 
 static void rna_def_area(BlenderRNA *brna)
