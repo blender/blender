@@ -386,7 +386,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 
 			 /* verify valid zdepth, if it's wrong, the default darwing mode is used
 			  * and the function doesn't return now */
-			if (*depth <= 1.0f) {
+			if ((depth == NULL) || (*depth <= 1.0f)) {
 				return;
 			}
 		}
