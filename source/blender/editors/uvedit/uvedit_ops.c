@@ -1887,7 +1887,7 @@ static int uv_remove_doubles_to_selected(bContext *C, wmOperator *op)
 				continue;
 			}
 
-			mul_v2_fl(mloopuv_arr[i]->uv, 1.0f/(float)uv_duplicate_count[i]);
+			mul_v2_fl(mloopuv_arr[i]->uv, 1.0f / (float)uv_duplicate_count[i]);
 		}
 		MEM_freeN(uv_duplicate_count);
 

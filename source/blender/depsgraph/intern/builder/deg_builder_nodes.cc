@@ -167,7 +167,7 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 	IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
 	if (id_info != NULL) {
 		id_cow = id_info->id_cow;
-		is_previous_visible= id_info->is_visible;
+		is_previous_visible = id_info->is_visible;
 		/* Tag ID info to not free the CoW ID pointer. */
 		id_info->id_cow = NULL;
 	}

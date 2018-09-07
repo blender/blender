@@ -724,7 +724,7 @@ static void shader_preview_updatejob(void *spv)
 }
 
 /* Renders texture directly to render buffer. */
-static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene* sce, Render *re)
+static void shader_preview_texture(ShaderPreview *sp, Tex *tex, Scene *sce, Render *re)
 {
 	/* Setup output buffer. */
 	int width = sp->sizex;
