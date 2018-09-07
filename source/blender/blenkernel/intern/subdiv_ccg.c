@@ -68,6 +68,7 @@ static int grid_size_for_level_get(const SubdivCCG *subdiv_ccg, int level)
 {
 	BLI_assert(level >= 1);
 	BLI_assert(level <= subdiv_ccg->level);
+	UNUSED_VARS_NDEBUG(subdiv_ccg);
 	return (1 << (level - 1)) + 1;
 }
 
