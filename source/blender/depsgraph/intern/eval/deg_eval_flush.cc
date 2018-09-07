@@ -221,12 +221,12 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 
 void flush_engine_data_update(ID *id)
 {
-	DrawDataList *drawdata = DRW_drawdatalist_from_id(id);
-	if (drawdata == NULL) {
+	DrawDataList *draw_data_list = DRW_drawdatalist_from_id(id);
+	if (draw_data_list == NULL) {
 		return;
 	}
-	LISTBASE_FOREACH(DrawData *, dd, drawdata) {
-		dd->recalc |= id->recalc;
+	LISTBASE_FOREACH(DrawData *, draw_data, draw_data_list) {
+		draw_data->recalc |= id->recalc;
 	}
 }
 
