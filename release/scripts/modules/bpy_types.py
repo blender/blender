@@ -638,7 +638,7 @@ class Gizmo(StructRNA):
         :return: The newly created shape.
         :rtype: Undefined (it may change).
         """
-        from _gpu.types import (
+        from gpu.types import (
             GPUBatch,
             GPUVertBuf,
             GPUVertFormat,

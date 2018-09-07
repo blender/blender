@@ -885,7 +885,8 @@ static void rna_def_gizmos(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new", "rna_GizmoGroup_gizmo_new");
 	RNA_def_function_ui_description(func, "Add gizmo");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	RNA_def_string(func, "type", "Type", 0, "", "Gizmo identifier"); /* optional */
+	parm = RNA_def_string(func, "type", "Type", 0, "", "Gizmo identifier"); /* optional */
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "gizmo", "Gizmo", "", "New gizmo");
 	RNA_def_function_return(func, parm);
 
