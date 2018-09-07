@@ -26,7 +26,7 @@ def main(context, plane_co, plane_no):
     plane_dot = plane_no.dot(plane_co)
 
     for v in bm.verts:
-        co = matrix * v.co
+        co = matrix @ v.co
         v.select = (plane_no.dot(co) > plane_dot)
     bm.select_flush_mode()
 
@@ -150,14 +150,14 @@ class SelectSideOfPlaneGizmoGroup(GizmoGroup):
             no_a = self.widget_dial.matrix_basis.col[1].xyz
             no_b = Vector(op.plane_no)
 
-            no_a = (no_a * self.view_inv).xy.normalized()
-            no_b = (no_b * self.view_inv).xy.normalized()
+            no_a = (no_a @ self.view_inv).xy.normalized()
+            no_b = (no_b @ self.view_inv).xy.normalized()
             return no_a.angle_signed(no_b)
 
         def direction_set_cb(value):
             op = SelectSideOfPlaneGizmoGroup.my_target_operator(context)
             matrix_rotate = Matrix.Rotation(-value, 3, self.rotate_axis)
-            no = matrix_rotate * self.widget_dial.matrix_basis.col[1].xyz
+            no = matrix_rotate @ self.widget_dial.matrix_basis.col[1].xyz
             op.plane_no = no
             op.execute(context)
 
