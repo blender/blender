@@ -567,7 +567,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		WM_gizmo_set_matrix_location(man->adjust_xyz_no[i], tbounds.center);
 	}
 
-	wmOperator *op = WM_operator_last_redo(C);
+	/* Adjust current operator. */
+	/* Don't use 'WM_operator_last_redo' because selection actions will be ignored. */
+	wmOperator *op = CTX_wm_manager(C)->operators.last;
 	bool has_redo = (op && op->type == man->ot_extrude);
 
 	/* Un-hide. */
