@@ -4210,10 +4210,6 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool
 			}
 		}
 
-		/* convert current frame to current field */
-		cfra = 2 * (cfra);
-		if (fieldnr) cfra++;
-
 		/* transform to images space */
 		framenr = cfra;
 		if (framenr > iuser->frames) framenr = iuser->frames;
