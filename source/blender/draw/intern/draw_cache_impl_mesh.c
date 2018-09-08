@@ -1343,7 +1343,7 @@ static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *
 
 #ifdef WITH_FREESTYLE
 	BMesh *bm = rdata->edit_bmesh->bm;
-	if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+	if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
 		FreestyleFace *ffa = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
 
 		if (ffa->flag & FREESTYLE_FACE_MARK)
