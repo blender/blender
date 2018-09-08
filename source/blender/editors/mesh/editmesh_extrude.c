@@ -623,6 +623,15 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	}
 }
 
+static int gizmo_cmp_temp_f(const void *gz_a_ptr, const void *gz_b_ptr)
+{
+	const wmGizmo *gz_a = gz_a_ptr;
+	const wmGizmo *gz_b = gz_b_ptr;
+	if      (gz_a->temp.f < gz_b->temp.f) return -1;
+	else if (gz_a->temp.f > gz_b->temp.f) return  1;
+	else                                  return  0;
+}
+
 static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	GizmoExtrudeGroup *man = gzgroup->customdata;
@@ -636,6 +645,15 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
 			gizmo_mesh_extrude_orientation_matrix_set(man, mat);
 			break;
 		}
+	}
+
+	/* Basic ordering for drawing only. */
+	{
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
+			gz->temp.f = dot_v3v3(rv3d->viewinv[2], gz->matrix_offset[3]);
+		}
+		BLI_listbase_sort(&gzgroup->gizmos, gizmo_cmp_temp_f);
 	}
 }
 
