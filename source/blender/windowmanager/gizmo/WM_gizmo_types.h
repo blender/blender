@@ -223,6 +223,11 @@ struct wmGizmo {
 
 	struct IDProperty *properties;
 
+	/* Temporary data (assume dirty). */
+	union {
+		float f;
+	} temp;
+
 	/* over alloc target_properties after 'wmGizmoType.struct_size' */
 };
 
