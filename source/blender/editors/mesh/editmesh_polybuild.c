@@ -25,6 +25,8 @@
  * an experimental tool for quickly constructing/manipulating faces.
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
@@ -33,10 +35,13 @@
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_layer.h"
 
 #include "WM_types.h"
 
+#include "ED_object.h"
 #include "ED_mesh.h"
+#include "ED_scene.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_view3d.h"
@@ -49,6 +54,8 @@
 #include "RNA_define.h"
 
 #include "WM_api.h"
+
+#include "DEG_depsgraph.h"
 
 /* -------------------------------------------------------------------- */
 /** \name Local Utilities
@@ -63,6 +70,98 @@ static void edbm_selectmode_ensure(Scene *scene, BMEditMesh *em, short selectmod
 	}
 }
 
+/* Could make public, for now just keep here. */
+static void edbm_flag_disable_all_multi(ViewLayer *view_layer, const char hflag)
+{
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob_iter = objects[ob_index];
+		BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+		BMesh *bm_iter = em_iter->bm;
+		if (bm_iter->totvertsel) {
+			EDBM_flag_disable_all(em_iter, hflag);
+			if (hflag & BM_ELEM_SELECT) {
+				BM_select_history_clear(em_iter->bm);
+			}
+			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+		}
+	}
+	MEM_freeN(objects);
+}
+
+/* When accessed as a tool, get the active edge from the preselection gizmo. */
+static bool edbm_preselect_or_active(
+        bContext *C,
+        Base **r_base,
+        BMElem **r_ele)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	ARegion *ar = CTX_wm_region(C);
+	wmGizmoMap *gzmap = ar->gizmo_map;
+	wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_mesh_preselect_elem") : NULL;
+	if (gzgroup != NULL) {
+		wmGizmo *gz = gzgroup->gizmos.first;
+		const int object_index = RNA_int_get(gz->ptr, "object_index");
+
+		/* weak, allocate an array just to access the index. */
+		Base *base = NULL;
+		Object *obedit = NULL;
+		{
+			uint bases_len;
+			Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(view_layer, &bases_len);
+			if (object_index < bases_len) {
+				base = bases[object_index];
+				obedit = base->object;
+			}
+			MEM_freeN(bases);
+		}
+
+		*r_base = base;
+		*r_ele = NULL;
+
+		if (obedit) {
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+			BMesh *bm = em->bm;
+			const int vert_index = RNA_int_get(gz->ptr, "vert_index");
+			const int edge_index = RNA_int_get(gz->ptr, "edge_index");
+			const int face_index = RNA_int_get(gz->ptr, "face_index");
+			if (vert_index != -1) {
+				*r_ele = (BMElem *)BM_vert_at_index_find(bm, vert_index);
+			}
+			else if (edge_index != -1) {
+				*r_ele = (BMElem *)BM_edge_at_index_find(bm, edge_index);
+			}
+			else if (face_index != -1) {
+				*r_ele = (BMElem *)BM_face_at_index_find(bm, face_index);
+			}
+		}
+	}
+	else {
+		Base *base = view_layer->basact;
+		Object *obedit = base->object;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		*r_base = base;
+		*r_ele = BM_mesh_active_elem_get(bm);
+	}
+	return (*r_ele != NULL);
+}
+
+static bool edbm_preselect_or_active_init_viewcontext(
+        bContext *C,
+        ViewContext *vc,
+        Base **r_base,
+        BMElem **r_ele)
+{
+	em_setup_viewcontext(C, vc);
+	bool ok = edbm_preselect_or_active(C, r_base, r_ele);
+	if (ok) {
+		ED_view3d_viewcontext_init_object(vc, (*r_base)->object);
+	}
+	return ok;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -72,15 +171,15 @@ static void edbm_selectmode_ensure(Scene *scene, BMEditMesh *em, short selectmod
 static int edbm_polybuild_face_at_cursor_invoke(
         bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	ViewContext vc;
 	float center[3];
 	bool changed = false;
 
-	em_setup_viewcontext(C, &vc);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewContext vc;
+	Base *basact = NULL;
+	BMElem *ele_act = NULL;
+	edbm_preselect_or_active_init_viewcontext(C, &vc, &basact, &ele_act);
+	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
-	BMElem *ele_act = BM_mesh_active_elem_get(bm);
 
 	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
@@ -95,7 +194,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		mul_m4_v3(vc.obedit->imat, center);
 
 		BMVert *v_new = BM_vert_create(bm, center, NULL, BM_CREATE_NOP);
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
 		changed = true;
 	}
@@ -118,7 +217,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		// BMFace *f_new =
 		BM_face_create_verts(bm, v_tri, 3, f_reference, BM_CREATE_NOP, true);
 
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_tri[2], true);
 		changed = true;
 	}
@@ -169,7 +268,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 			// BMFace *f_new =
 			BM_face_create_verts(bm, v_quad, 4, f_reference, BM_CREATE_NOP, true);
 
-			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 			BM_vert_select_set(bm, v_quad[2], true);
 			changed = true;
 		}
@@ -188,10 +287,12 @@ static int edbm_polybuild_face_at_cursor_invoke(
 	}
 
 	if (changed) {
-		BM_select_history_clear(bm);
-
 		EDBM_mesh_normals_update(em);
 		EDBM_update_generic(em, true, true);
+
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
+		}
 
 		WM_event_add_mousemove(C);
 
@@ -229,21 +330,20 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
 static int edbm_polybuild_split_at_cursor_invoke(
         bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
-	ViewContext vc;
 	float center[3];
 	bool changed = false;
 
-	em_setup_viewcontext(C, &vc);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewContext vc;
+	Base *basact = NULL;
+	BMElem *ele_act = NULL;
+	edbm_preselect_or_active_init_viewcontext(C, &vc, &basact, &ele_act);
+	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
 
 	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
 	edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
-
-	BMElem *ele_act = BM_mesh_active_elem_get(bm);
 
 	if (ele_act == NULL || ele_act->head.hflag == BM_FACE) {
 		return OPERATOR_PASS_THROUGH;
@@ -259,7 +359,7 @@ static int edbm_polybuild_split_at_cursor_invoke(
 		BMVert *v_new = BM_edge_split(bm, e_act, e_act->v1, NULL, CLAMPIS(fac, 0.0f, 1.0f));
 		copy_v3_v3(v_new->co, center);
 
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
 		changed = true;
 	}
@@ -269,12 +369,14 @@ static int edbm_polybuild_split_at_cursor_invoke(
 	}
 
 	if (changed) {
-		BM_select_history_clear(bm);
-
 		EDBM_mesh_normals_update(em);
 		EDBM_update_generic(em, true, true);
 
 		WM_event_add_mousemove(C);
+
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
+		}
 
 		return OPERATOR_FINISHED;
 	}
@@ -312,23 +414,19 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
 static int edbm_polybuild_dissolve_at_cursor_invoke(
         bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	ViewContext vc;
-	em_setup_viewcontext(C, &vc);
 	bool changed = false;
 
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewContext vc;
+	Base *basact = NULL;
+	BMElem *ele_act = NULL;
+	edbm_preselect_or_active_init_viewcontext(C, &vc, &basact, &ele_act);
+	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
-	BMVert *v_act = BM_mesh_active_vert_get(bm);
-	BMEdge *e_act = BM_mesh_active_edge_get(bm);
-
-	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
-	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 
 	edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
 
-
-	if (e_act) {
+	if (ele_act->head.htype == BM_EDGE) {
+		BMEdge *e_act = (BMEdge *)ele_act;
 		BMLoop *l_a, *l_b;
 		if (BM_edge_loop_pair(e_act, &l_a, &l_b)) {
 			BMFace *f_new = BM_faces_join_pair(bm, l_a, l_b, true);
@@ -337,7 +435,8 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 			}
 		}
 	}
-	else if (v_act) {
+	else if (ele_act->head.htype == BM_VERT) {
+		BMVert *v_act = (BMVert *)ele_act;
 		if (BM_vert_is_edge_pair(v_act)) {
 			BM_edge_collapse(
 			        bm, v_act->e, v_act,
@@ -356,12 +455,14 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 	}
 
 	if (changed) {
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-		BM_select_history_clear(bm);
+		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 
 		EDBM_mesh_normals_update(em);
 		EDBM_update_generic(em, true, true);
+
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
+		}
 
 		WM_event_add_mousemove(C);
 
@@ -385,158 +486,6 @@ void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Cursor Gizmo
- *
- * \note This may need its own file, for now not.
- * \{ */
-
-static BMElem *edbm_hover_preselect(
-        bContext *C,
-        const int mval[2],
-        bool use_boundary)
-{
-	ViewContext vc;
-
-	em_setup_viewcontext(C, &vc);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-
-	invert_m4_m4(vc.obedit->imat, vc.obedit->obmat);
-	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-
-	const float mval_fl[2] = {UNPACK2(mval)};
-	float ray_origin[3], ray_direction[3];
-
-	BMElem *ele_best = NULL;
-
-	if (ED_view3d_win_to_ray(
-	        CTX_data_depsgraph(C),
-	        vc.ar, vc.v3d, mval_fl,
-	        ray_origin, ray_direction, true))
-	{
-		BMEdge *e;
-
-		BMIter eiter;
-		float dist_sq_best = FLT_MAX;
-
-		BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
-			if ((BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) &&
-			    (!use_boundary || BM_edge_is_boundary(e)))
-			{
-				float dist_sq_test;
-				float point[3];
-				float depth;
-#if 0
-				dist_sq_test = dist_squared_ray_to_seg_v3(
-				        ray_origin, ray_direction,
-				        e->v1->co,  e->v2->co,
-				        point, &depth);
-#else
-				mid_v3_v3v3(point, e->v1->co,  e->v2->co);
-				dist_sq_test = dist_squared_to_ray_v3(
-				        ray_origin, ray_direction,
-				        point, &depth);
-#endif
-
-				if (dist_sq_test < dist_sq_best) {
-					dist_sq_best = dist_sq_test;
-					ele_best = (BMElem *)e;
-				}
-
-				dist_sq_test = dist_squared_to_ray_v3(
-				        ray_origin, ray_direction,
-				        e->v1->co, &depth);
-				if (dist_sq_test < dist_sq_best) {
-					dist_sq_best = dist_sq_test;
-					ele_best = (BMElem *)e->v1;
-				}
-				dist_sq_test = dist_squared_to_ray_v3(
-				        ray_origin, ray_direction,
-				        e->v2->co, &depth);
-				if (dist_sq_test < dist_sq_best) {
-					dist_sq_best = dist_sq_test;
-					ele_best = (BMElem *)e->v2;
-				}
-			}
-		}
-	}
-	return ele_best;
-}
-
-/*
- * Developer note: this is not advocating pre-selection highlighting.
- * This is just a quick way to test how a tool for interactively editing polygons may work. */
-static int edbm_polybuild_hover_invoke(
-        bContext *C, wmOperator *op, const wmEvent *event)
-{
-	const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
-	ViewContext vc;
-
-	em_setup_viewcontext(C, &vc);
-
-	/* Vertex selection is needed */
-	if ((vc.scene->toolsettings->selectmode & SCE_SELECT_VERTEX) == 0) {
-		return OPERATOR_PASS_THROUGH;
-	}
-
-	/* Don't overwrite click-drag events. */
-	if (use_boundary == false) {
-		/* pass */
-	}
-	else if (vc.win->tweak ||
-	         (vc.win->eventstate->check_click &&
-	          vc.win->eventstate->prevval == KM_PRESS &&
-	          ISMOUSE(vc.win->eventstate->prevtype)))
-	{
-		return OPERATOR_PASS_THROUGH;
-	}
-
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMElem *ele_active = BM_mesh_active_elem_get(bm);
-	BMElem *ele_hover = edbm_hover_preselect(C, event->mval, use_boundary);
-
-	if (ele_hover && (ele_hover != ele_active)) {
-		if (event->shift == 0) {
-			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-			BM_select_history_clear(bm);
-		}
-		BM_elem_select_set(bm, ele_hover, true);
-		BM_select_history_store(em->bm, ele_hover);
-		BKE_mesh_batch_cache_dirty_tag(obedit->data, BKE_MESH_BATCH_DIRTY_SELECT);
-
-		ED_region_tag_redraw(vc.ar);
-
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-}
-
-void MESH_OT_polybuild_hover(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Poly Build Hover";
-	ot->idname = "MESH_OT_polybuild_hover";
-	ot->description = "";
-
-	/* api callbacks */
-	ot->invoke = edbm_polybuild_hover_invoke;
-	ot->poll = EDBM_view3d_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_INTERNAL;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "use_boundary", false, "Boundary", "Select only boundary geometry");
 }
 
 /** \} */

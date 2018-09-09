@@ -572,7 +572,7 @@ class _defs_edit_mesh:
         return dict(
             text="Poly Build",
             icon="ops.mesh.polybuild_hover",
-            widget=None,
+            widget="VIEW3D_GGT_mesh_preselect_elem",
             keymap=(
                 ("mesh.polybuild_face_at_cursor_move",
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
@@ -581,8 +581,6 @@ class _defs_edit_mesh:
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
                 ("mesh.polybuild_dissolve_at_cursor", dict(), dict(type='ACTIONMOUSE', value='CLICK', alt=True)),
-                ("mesh.polybuild_hover", dict(use_boundary=False), dict(type='MOUSEMOVE', value='ANY', alt=True)),
-                ("mesh.polybuild_hover", dict(use_boundary=True), dict(type='MOUSEMOVE', value='ANY', any=True)),
             ),
         )
 

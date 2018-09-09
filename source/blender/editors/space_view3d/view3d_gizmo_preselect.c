@@ -41,6 +41,54 @@
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
+/** \name Mesh Pre-Select Element Gizmo
+ *
+ * \{ */
+
+struct GizmoGroupPreSelElem {
+	wmGizmo *gizmo;
+};
+
+static bool WIDGETGROUP_mesh_preselect_elem_poll(const bContext *C, wmGizmoGroupType *gzgt)
+{
+	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+	if ((tref_rt == NULL) ||
+	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
+	{
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
+		return false;
+	}
+	return true;
+}
+
+static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+{
+	const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_preselect_elem_3d", true);
+	struct GizmoGroupPreSelElem *man = MEM_callocN(sizeof(struct GizmoGroupPreSelElem), __func__);
+	gzgroup->customdata = man;
+
+	wmGizmo *gz = man->gizmo = WM_gizmo_new_ptr(gzt_presel, gzgroup, NULL);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+	UI_GetThemeColor3fv(TH_GIZMO_HI, gz->color_hi);
+}
+
+void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
+{
+	gzgt->name = "Mesh Preselect Element";
+	gzgt->idname = "VIEW3D_GGT_mesh_preselect_elem";
+
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+	gzgt->poll = WIDGETGROUP_mesh_preselect_elem_poll;
+	gzgt->setup = WIDGETGROUP_mesh_preselect_elem_setup;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Mesh Pre-Select Edge Ring Gizmo
  *
  * \{ */

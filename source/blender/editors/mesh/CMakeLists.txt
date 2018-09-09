@@ -58,6 +58,7 @@ set(SRC
 	editmesh_path.c
 	editmesh_polybuild.c
 	editmesh_preselect.c
+	editmesh_preselect_elem.c
 	editmesh_rip.c
 	editmesh_rip_edge.c
 	editmesh_select.c

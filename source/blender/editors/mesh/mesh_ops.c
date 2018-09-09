@@ -157,7 +157,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_polybuild_face_at_cursor);
 	WM_operatortype_append(MESH_OT_polybuild_split_at_cursor);
 	WM_operatortype_append(MESH_OT_polybuild_dissolve_at_cursor);
-	WM_operatortype_append(MESH_OT_polybuild_hover);
 
 	WM_operatortype_append(MESH_OT_uv_texture_add);
 	WM_operatortype_append(MESH_OT_uv_texture_remove);

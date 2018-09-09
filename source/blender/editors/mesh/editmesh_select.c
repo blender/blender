@@ -1098,6 +1098,227 @@ bool EDBM_unified_findnearest(
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Alternate Find Nearest Vert/Edge (optional boundary)
+ *
+ * \note This uses ray-cast method instead of backbuffer,
+ * currently used for poly-build.
+ * \{ */
+
+bool EDBM_unified_findnearest_from_raycast(
+        ViewContext *vc,
+        bool use_boundary,
+        Base **r_base,
+        struct BMVert **r_eve,
+        struct BMEdge **r_eed,
+        struct BMFace **r_efa)
+{
+
+	const float mval_fl[2] = {UNPACK2(vc->mval)};
+	float ray_origin[3], ray_direction[3];
+
+	struct {
+		Base *base;
+		BMElem *ele;
+	} best = {NULL};
+
+	if (ED_view3d_win_to_ray(
+	        vc->depsgraph,
+	        vc->ar, vc->v3d, mval_fl,
+	        ray_origin, ray_direction, true))
+	{
+		float dist_sq_best = FLT_MAX;
+
+		const bool use_vert = (r_eve != NULL);
+		const bool use_edge = (r_eed != NULL);
+		const bool use_face = (r_efa != NULL);
+
+		uint bases_len;
+		Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc->view_layer, &bases_len);
+		for (uint base_index = 0; base_index < bases_len; base_index++) {
+			Base *base_iter = bases[base_index];
+			Object *obedit = base_iter->object;
+
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+			BMesh *bm = em->bm;
+			float imat3[3][3];
+
+			ED_view3d_viewcontext_init_object(vc, obedit);
+			copy_m3_m4(imat3, obedit->obmat);
+			invert_m3(imat3);
+
+			const float (*coords)[3] = NULL;
+			{
+				Mesh *me_eval = (Mesh *)DEG_get_evaluated_id(vc->depsgraph, obedit->data);
+				if (me_eval->runtime.edit_data) {
+					coords = me_eval->runtime.edit_data->vertexCos;
+				}
+			}
+
+			if (coords != NULL) {
+				BM_mesh_elem_index_ensure(bm, BM_VERT);
+			}
+
+			if (use_boundary && (use_vert || use_edge)) {
+				BMEdge *e;
+				BMIter eiter;
+				BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+					if ((BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) &&
+					    (BM_edge_is_boundary(e)))
+					{
+						float depth;
+
+						if (use_vert) {
+							for (uint j = 0; j < 2; j++) {
+								BMVert *v = *((&e->v1) + j);
+								float point[3];
+								mul_v3_m4v3(point, obedit->obmat, coords ? coords[BM_elem_index_get(v)] : v->co);
+								const float dist_sq_test = dist_squared_to_ray_v3(
+								        ray_origin, ray_direction,
+								        point, &depth);
+								if (dist_sq_test < dist_sq_best) {
+									dist_sq_best = dist_sq_test;
+									best.base = base_iter;
+									best.ele = (BMElem *)v;
+								}
+							}
+						}
+
+						if (use_edge) {
+							float point[3];
+#if 0
+							const float dist_sq_test = dist_squared_ray_to_seg_v3(
+							        ray_origin, ray_direction,
+							        e->v1->co,  e->v2->co,
+							        point, &depth);
+#else
+							if (coords) {
+								mid_v3_v3v3(point, coords[BM_elem_index_get(e->v1)], coords[BM_elem_index_get(e->v2)]);
+							}
+							else {
+								mid_v3_v3v3(point, e->v1->co, e->v2->co);
+							}
+							mul_m4_v3(obedit->obmat, point);
+							const float dist_sq_test = dist_squared_to_ray_v3(
+							        ray_origin, ray_direction,
+							        point, &depth);
+							if (dist_sq_test < dist_sq_best) {
+								dist_sq_best = dist_sq_test;
+								best.base = base_iter;
+								best.ele = (BMElem *)e;
+							}
+#endif
+						}
+					}
+				}
+			}
+			else {
+				/* Non boundary case. */
+				if (use_vert) {
+					BMVert *v;
+					BMIter viter;
+					BM_ITER_MESH (v, &viter, bm, BM_VERTS_OF_MESH) {
+						if (BM_elem_flag_test(v, BM_ELEM_HIDDEN) == false) {
+							float point[3];
+							mul_v3_m4v3(point, obedit->obmat, v->co);
+							float depth;
+							const float dist_sq_test = dist_squared_to_ray_v3(
+							        ray_origin, ray_direction,
+							        v->co, &depth);
+							if (dist_sq_test < dist_sq_best) {
+								dist_sq_best = dist_sq_test;
+								best.base = base_iter;
+								best.ele = (BMElem *)v;
+							}
+						}
+					}
+				}
+				if (use_edge) {
+					BMEdge *e;
+					BMIter eiter;
+					BM_ITER_MESH (e, &eiter, bm, BM_EDGES_OF_MESH) {
+						if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false) {
+							float point[3];
+							if (coords) {
+								mid_v3_v3v3(point, coords[BM_elem_index_get(e->v1)], coords[BM_elem_index_get(e->v2)]);
+							}
+							else {
+								mid_v3_v3v3(point, e->v1->co, e->v2->co);
+							}
+							mul_m4_v3(obedit->obmat, point);
+							float depth;
+							const float dist_sq_test = dist_squared_to_ray_v3(
+							        ray_origin, ray_direction,
+							        point, &depth);
+							if (dist_sq_test < dist_sq_best) {
+								dist_sq_best = dist_sq_test;
+								best.base = base_iter;
+								best.ele = (BMElem *)e;
+							}
+						}
+					}
+				}
+			}
+
+			if (use_face) {
+				BMFace *f;
+				BMIter fiter;
+				BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
+					if (BM_elem_flag_test(f, BM_ELEM_HIDDEN) == false) {
+						float point[3];
+						if (coords) {
+							BM_face_calc_center_mean_vcos(bm, f, point, coords);
+						}
+						else {
+							BM_face_calc_center_mean(f, point);
+						}
+						mul_m4_v3(obedit->obmat, point);
+						float depth;
+						const float dist_sq_test = dist_squared_to_ray_v3(
+						        ray_origin, ray_direction,
+						        point, &depth);
+						if (dist_sq_test < dist_sq_best) {
+							dist_sq_best = dist_sq_test;
+							best.base = base_iter;
+							best.ele = (BMElem *)f;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	*r_base = best.base;
+	if (r_eve) {
+		*r_eve = NULL;
+	}
+	if (r_eed) {
+		*r_eed = NULL;
+	}
+	if (r_efa) {
+		*r_efa = NULL;
+	}
+
+	if (best.ele) {
+		switch (best.ele->head.htype) {
+			case BM_VERT:
+				*r_eve = (BMVert *)best.ele;
+				break;
+			case BM_EDGE:
+				*r_eed = (BMEdge *)best.ele;
+				break;
+			case BM_FACE:
+				*r_efa = (BMFace *)best.ele;
+				break;
+			default:
+				BLI_assert(0);
+		}
+	}
+	return (best.ele != NULL);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Select Similar (Vert/Edge/Face) Operator
  * \{ */
 
