@@ -119,6 +119,25 @@ static void eevee_create_shader_downsample(void)
 	        "#define COPY_DEPTH\n");
 }
 
+#define SETUP_BUFFER(tex, fb, fb_color) { \
+	DRW_texture_ensure_fullscreen_2D(&tex, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP); \
+	GPU_framebuffer_ensure_config(&fb, { \
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth), \
+		GPU_ATTACHMENT_TEXTURE(tex), \
+	}); \
+	GPU_framebuffer_ensure_config(&fb_color, { \
+		GPU_ATTACHMENT_NONE, \
+		GPU_ATTACHMENT_TEXTURE(tex), \
+	}); \
+}
+
+#define CLEANUP_BUFFER(tex, fb, fb_color) { \
+	/* Cleanup to release memory */ \
+	DRW_TEXTURE_FREE_SAFE(tex); \
+	GPU_FRAMEBUFFER_FREE_SAFE(fb); \
+	GPU_FRAMEBUFFER_FREE_SAFE(fb_color); \
+}
+
 void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
@@ -166,22 +185,10 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Ping Pong buffer
 	 */
 	if ((effects->enabled_effects & EFFECT_POST_BUFFER) != 0) {
-		DRW_texture_ensure_fullscreen_2D(&txl->color_post, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
-
-		GPU_framebuffer_ensure_config(&fbl->effect_fb, {
-			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-			GPU_ATTACHMENT_TEXTURE(txl->color_post),
-		});
-
-		GPU_framebuffer_ensure_config(&fbl->effect_color_fb, {
-			GPU_ATTACHMENT_NONE,
-			GPU_ATTACHMENT_TEXTURE(txl->color_post),
-		});
+		SETUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
 	}
 	else {
-		/* Cleanup to release memory */
-		DRW_TEXTURE_FREE_SAFE(txl->color_post);
-		GPU_FRAMEBUFFER_FREE_SAFE(fbl->effect_fb);
+		CLEANUP_BUFFER(txl->color_post, fbl->effect_fb, fbl->effect_color_fb);
 	}
 
 	/**
@@ -269,22 +276,17 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Setup double buffer so we can access last frame as it was before post processes.
 	 */
 	if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
-		DRW_texture_ensure_fullscreen_2D(&txl->color_double_buffer, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
-
-		GPU_framebuffer_ensure_config(&fbl->double_buffer_fb, {
-			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
-			GPU_ATTACHMENT_TEXTURE(txl->color_double_buffer)
-		});
-
-		GPU_framebuffer_ensure_config(&fbl->double_buffer_color_fb, {
-			GPU_ATTACHMENT_NONE,
-			GPU_ATTACHMENT_TEXTURE(txl->color_double_buffer)
-		});
+		SETUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
 	}
 	else {
-		/* Cleanup to release memory */
-		DRW_TEXTURE_FREE_SAFE(txl->color_double_buffer);
-		GPU_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer_fb);
+		CLEANUP_BUFFER(txl->color_double_buffer, fbl->double_buffer_fb, fbl->double_buffer_color_fb);
+	}
+
+	if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
+		SETUP_BUFFER(txl->taa_history, fbl->taa_history_fb, fbl->taa_history_color_fb);
+	}
+	else {
+		CLEANUP_BUFFER(txl->taa_history, fbl->taa_history_fb, fbl->taa_history_color_fb);
 	}
 }
 
@@ -500,26 +502,19 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	effects->source_buffer = txl->color; /* latest updated texture */
 	effects->target_buffer = fbl->effect_color_fb; /* next target to render to */
 
-	/* Temporal Anti-Aliasing MUST come first */
-	EEVEE_temporal_sampling_draw(vedata);
-
 	/* Post process stack (order matters) */
 	EEVEE_motion_blur_draw(vedata);
 	EEVEE_depth_of_field_draw(vedata);
+	EEVEE_temporal_sampling_draw(vedata);
 	EEVEE_bloom_draw(vedata);
 
 	/* Save the final texture and framebuffer for final transformation or read. */
 	effects->final_tx = effects->source_buffer;
 	effects->final_fb = (effects->target_buffer != fbl->main_color_fb) ? fbl->main_fb : fbl->effect_fb;
 	if ((effects->enabled_effects & EFFECT_TAA) &&
-	    (effects->enabled_effects & (EFFECT_BLOOM | EFFECT_DOF | EFFECT_MOTION_BLUR)) == 0)
+	    (effects->source_buffer == txl->taa_history))
 	{
-		if (!effects->swap_double_buffer) {
-			effects->final_fb = fbl->double_buffer_fb;
-		}
-		else {
-			effects->final_fb = fbl->main_fb;
-		}
+		effects->final_fb = fbl->taa_history_fb;
 	}
 
 	/* If no post processes is enabled, buffers are still not swapped, do it now. */
@@ -540,6 +535,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	/* Update double buffer status if render mode. */
 	if (DRW_state_is_image_render()) {
 		stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
+		stl->g_data->valid_taa_history = (txl->taa_history != NULL);;
 	}
 }
 

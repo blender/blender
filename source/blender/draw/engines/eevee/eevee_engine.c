@@ -69,6 +69,7 @@ static void eevee_engine_init(void *ved)
 	stl->g_data->use_color_view_settings = USE_SCENE_LIGHT(v3d) || !LOOK_DEV_STUDIO_LIGHT_ENABLED(v3d);
 	stl->g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
+	stl->g_data->valid_taa_history = (txl->taa_history != NULL);
 
 	/* Main Buffer */
 	DRW_texture_ensure_fullscreen_2D(&txl->color, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);

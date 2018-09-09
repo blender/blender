@@ -36,6 +36,7 @@ uniform vec2 nearFar; /* Near & far view depths values */
 float max_v4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
 
 #define THRESHOLD 0.0
+#define SIMILAR_COC_THRESHOLD 2.0
 
 #ifdef STEP_DOWNSAMPLE
 
@@ -70,8 +71,9 @@ void main(void)
 	vec4 coc_far = -coc_near;
 
 	/* now we need to write the near-far fields premultiplied by the coc */
-	vec4 near_weights = step(THRESHOLD, coc_near);
-	vec4 far_weights = step(THRESHOLD, coc_far);
+	/* Also reject pixels that have a much lower coc than the max coc pixel. */
+	vec4 near_weights = step(THRESHOLD, coc_near) * step(max_v4(coc_near) - SIMILAR_COC_THRESHOLD, coc_near);
+	vec4 far_weights = step(THRESHOLD, coc_far) * step(max_v4(coc_far) - SIMILAR_COC_THRESHOLD, coc_far);
 
 	/* now write output to weighted buffers. */
 	nearColor = weighted_sum(color1, color2, color3, color4, near_weights);

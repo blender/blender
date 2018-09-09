@@ -95,6 +95,23 @@ extern struct DrawEngineType draw_engine_eevee_type;
 	}                                              \
 } ((void)0)
 
+#define SWAP_BUFFERS_TAA() {                           \
+	if (effects->target_buffer == fbl->effect_color_fb) { \
+		SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->taa_history_fb); \
+		SWAP(struct GPUFrameBuffer *, fbl->effect_color_fb, fbl->taa_history_color_fb); \
+		SWAP(GPUTexture *, txl->color_post, txl->taa_history);     \
+		effects->source_buffer = txl->taa_history;  \
+		effects->target_buffer = fbl->effect_color_fb;  \
+	}                                              \
+	else {                                         \
+		SWAP(struct GPUFrameBuffer *, fbl->main_fb, fbl->taa_history_fb); \
+		SWAP(struct GPUFrameBuffer *, fbl->main_color_fb, fbl->taa_history_color_fb); \
+		SWAP(GPUTexture *, txl->color, txl->taa_history);     \
+		effects->source_buffer = txl->taa_history;  \
+		effects->target_buffer = fbl->main_color_fb;  \
+	}                                              \
+} ((void)0)
+
 #define OVERLAY_ENABLED(v3d) ((v3d) && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0)
 #define LOOK_DEV_MODE_ENABLED(v3d) ((v3d) && (v3d->shading.type == OB_MATERIAL))
 #define LOOK_DEV_OVERLAY_ENABLED(v3d) (LOOK_DEV_MODE_ENABLED(v3d) && OVERLAY_ENABLED(v3d) && (v3d->overlay.flag & V3D_OVERLAY_LOOK_DEV))
@@ -280,6 +297,8 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *double_buffer_fb;
 	struct GPUFrameBuffer *double_buffer_color_fb;
 	struct GPUFrameBuffer *double_buffer_depth_fb;
+	struct GPUFrameBuffer *taa_history_fb;
+	struct GPUFrameBuffer *taa_history_color_fb;
 } EEVEE_FramebufferList;
 
 typedef struct EEVEE_TextureList {
@@ -290,6 +309,7 @@ typedef struct EEVEE_TextureList {
 	struct GPUTexture *sss_dir_accum;
 	struct GPUTexture *sss_col_accum;
 	struct GPUTexture *refract_color;
+	struct GPUTexture *taa_history;
 
 	struct GPUTexture *volume_prop_scattering;
 	struct GPUTexture *volume_prop_extinction;
@@ -766,6 +786,7 @@ typedef struct EEVEE_PrivateData {
 	/* For double buffering */
 	bool view_updated;
 	bool valid_double_buffer;
+	bool valid_taa_history;
 	/* Render Matrices */
 	float persmat[4][4], persinv[4][4];
 	float viewmat[4][4], viewinv[4][4];
