@@ -1334,7 +1334,11 @@ bool BKE_gpencil_smooth_stroke_strength(bGPDstroke *gps, int point_index, float 
 	/* the optimal value is the corresponding to the interpolation of the strength
 	 * at the distance of point b
 	 */
-	const float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	/* sometimes the factor can be wrong due stroke geometry, so use middle point */
+	if ((fac < 0.0f) || (fac > 1.0f)) {
+		fac = 0.5f;
+	}
 	const float optimal = (1.0f - fac) * pta->strength + fac * ptc->strength;
 
 	/* Based on influence factor, blend between original and optimal */
@@ -1369,7 +1373,10 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
 	 * at the distance of point b
 	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
-	CLAMP(fac, 0.0f, 1.0f);
+	/* sometimes the factor can be wrong due stroke geometry, so use middle point */
+	if ((fac < 0.0f) || (fac > 1.0f)) {
+		fac = 0.5f;
+	}
 	float optimal = interpf(ptc->pressure, pta->pressure, fac);
 
 	/* Based on influence factor, blend between original and optimal */
@@ -1404,6 +1411,10 @@ bool BKE_gpencil_smooth_stroke_uv(bGPDstroke *gps, int point_index, float influe
 	 * at the distance of point b
 	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	/* sometimes the factor can be wrong due stroke geometry, so use middle point */
+	if ((fac < 0.0f) || (fac > 1.0f)) {
+		fac = 0.5f;
+	}
 	float optimal = interpf(ptc->uv_rot, pta->uv_rot, fac);
 
 	/* Based on influence factor, blend between original and optimal */
