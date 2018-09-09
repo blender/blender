@@ -1199,7 +1199,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		{
 			float reduce = 0.0f;
 			for (int r = 0; r < brush->gpencil_settings->draw_smoothlvl; r++) {
-				for (i = 0; i < gps->totpoints; i++) {
+				for (i = 0; i < gps->totpoints - 1; i++) {
 					BKE_gpencil_smooth_stroke(gps, i, brush->gpencil_settings->draw_smoothfac - reduce);
 					BKE_gpencil_smooth_stroke_strength(gps, i, brush->gpencil_settings->draw_smoothfac);
 				}
@@ -1211,7 +1211,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		    (brush->gpencil_settings->thick_smoothfac > 0.0f))
 		{
 			for (int r = 0; r < brush->gpencil_settings->thick_smoothlvl * 2; r++) {
-				for (i = 0; i < gps->totpoints; i++) {
+				for (i = 0; i < gps->totpoints - 1; i++) {
 					BKE_gpencil_smooth_stroke_thickness(gps, i, brush->gpencil_settings->thick_smoothfac);
 				}
 			}

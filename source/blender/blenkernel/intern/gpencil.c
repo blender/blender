@@ -1350,7 +1350,7 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
 	bGPDspoint *ptb = &gps->points[point_index];
 
 	/* Do nothing if not enough points */
-	if (gps->totpoints <= 2) {
+	if ((gps->totpoints <= 2) || (point_index < 1)) {
 		return false;
 	}
 
@@ -1369,6 +1369,7 @@ bool BKE_gpencil_smooth_stroke_thickness(bGPDstroke *gps, int point_index, float
 	 * at the distance of point b
 	 */
 	float fac = line_point_factor_v3(&ptb->x, &pta->x, &ptc->x);
+	CLAMP(fac, 0.0f, 1.0f);
 	float optimal = interpf(ptc->pressure, pta->pressure, fac);
 
 	/* Based on influence factor, blend between original and optimal */
