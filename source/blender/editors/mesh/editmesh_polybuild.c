@@ -81,9 +81,6 @@ static void edbm_flag_disable_all_multi(ViewLayer *view_layer, const char hflag)
 		BMesh *bm_iter = em_iter->bm;
 		if (bm_iter->totvertsel) {
 			EDBM_flag_disable_all(em_iter, hflag);
-			if (hflag & BM_ELEM_SELECT) {
-				BM_select_history_clear(em_iter->bm);
-			}
 			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
 		}
 	}
@@ -429,8 +426,6 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
 
-	edbm_selectmode_ensure(vc.scene, vc.em, SCE_SELECT_VERTEX);
-
 	if (ele_act->head.htype == BM_EDGE) {
 		BMEdge *e_act = (BMEdge *)ele_act;
 		BMLoop *l_a, *l_b;
@@ -450,9 +445,14 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 		}
 		else {
 			/* too involved to do inline */
+
+			/* Avoid using selection so failure wont leave modified state. */
+			EDBM_flag_disable_all(em, BM_ELEM_TAG);
+			BM_elem_flag_enable(v_act, BM_ELEM_TAG);
+
 			if (!EDBM_op_callf(em, op,
 			                   "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
-			                   BM_ELEM_SELECT, false, true))
+			                   BM_ELEM_TAG, false, true))
 			{
 				return OPERATOR_CANCELLED;
 			}
