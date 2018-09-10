@@ -162,6 +162,7 @@ void icon_draw_rect_input(
 {
 	float color[4];
 	const float margin[2] = {w / 20.0f, h / 20.0f};
+	GPU_line_width(1.0f);
 	UI_GetThemeColor4fv(TH_TEXT, color);
 	UI_draw_roundbox_corner_set(UI_CNR_ALL);
 	UI_draw_roundbox_aa(
