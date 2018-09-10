@@ -312,9 +312,14 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		lightprobe_shaders_init();
 	}
 
-	if ((scene_eval->eevee.light_cache == NULL) &&
-	    (sldata->fallback_lightcache == NULL))
-	{
+	/* Use fallback if we don't have gpu texture allocated an we cannot restore them. */
+	bool use_fallback_lightcache = (scene_eval->eevee.light_cache == NULL) ||
+	                               ((scene_eval->eevee.light_cache->grid_tx.tex == NULL) &&
+	                                (scene_eval->eevee.light_cache->grid_tx.data == NULL)) ||
+	                               ((scene_eval->eevee.light_cache->cube_tx.tex == NULL) &&
+	                                (scene_eval->eevee.light_cache->cube_tx.data == NULL));
+
+	if (use_fallback_lightcache && (sldata->fallback_lightcache == NULL)) {
 #if defined(IRRADIANCE_SH_L2)
 		int grid_res = 4;
 #elif defined(IRRADIANCE_CUBEMAP)
@@ -324,11 +329,10 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 #endif
 		int cube_res = OCTAHEDRAL_SIZE_FROM_CUBESIZE(scene_eval->eevee.gi_cubemap_resolution);
 		int vis_res = scene_eval->eevee.gi_visibility_resolution;
-
 		sldata->fallback_lightcache = EEVEE_lightcache_create(1, 1, cube_res, vis_res, (int[3]){grid_res, grid_res, 1});
 	}
 
-	stl->g_data->light_cache = (scene_eval->eevee.light_cache) ? scene_eval->eevee.light_cache : sldata->fallback_lightcache;
+	stl->g_data->light_cache = (use_fallback_lightcache) ? sldata->fallback_lightcache : scene_eval->eevee.light_cache;
 
 	EEVEE_lightcache_load(stl->g_data->light_cache);
 
