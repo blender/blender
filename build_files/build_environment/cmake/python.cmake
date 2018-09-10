@@ -67,9 +67,6 @@ if(WIN32)
 	message("POutput = ${PYTHON_OUTPUTDIR}")
 else()
 	if(APPLE)
-		# we need to add homebrew pkgconfig directories to get ssl, xz
-
-                set(BREW_PKG_CONFIG "/usr/local/opt/openssl/lib/pkgconfig:/usr/local/opt/xz/lib/pkgconfig")
 		# disable functions that can be in 10.13 sdk but aren't available on 10.9 target
 		set(PYTHON_FUNC_CONFIGS
 		  export ac_cv_func_futimens=no &&
@@ -83,24 +80,21 @@ else()
 		  export ac_cv_func_mkostemp=no &&
 		  export ac_cv_func_mkostemps=no &&
 		  export ac_cv_func_timingsafe_bcmp=no)
-
-		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && export PKG_CONFIG_PATH=${BREW_PKG_CONFIG} && ${PYTHON_FUNC_CONFIGS})
+		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV} && ${PYTHON_FUNC_CONFIGS})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python.exe)
-		set(PYTHON_PATCH echo .)
-		set(PYTHON_CONFIGURE_EXTRA_ENV echo .)
-		set(PYTHON_CONFIGURE_EXTRA_ARGS)
 	else()
-		set(PYTHON_CONFIGURE_EXTRA_ARGS "--with-openssl=${LIBDIR}/ssl")
 		set(PYTHON_CONFIGURE_ENV ${CONFIGURE_ENV})
-		set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include")
-		set(PYTHON_LDFLAGS "-L${LIBDIR}/sqlite/lib -L${LIBDIR}/bzip2/lib -L${LIBDIR}/lzma/lib -L${LIBDIR}/zlib/lib")
-		set(PYTHON_CONFIGURE_EXTRA_ENV
-			export CFLAGS=${PYTHON_CFLAGS} &&
-			export CPPFLAGS=${PYTHON_CFLAGS} &&
-			export LDFLAGS=${PYTHON_LDFLAGS})
 		set(PYTHON_BINARY ${BUILD_DIR}/python/src/external_python/python)
-		set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_linux.diff)
 	endif()
+
+	set(PYTHON_CONFIGURE_EXTRA_ARGS "--with-openssl=${LIBDIR}/ssl")
+	set(PYTHON_CFLAGS "-I${LIBDIR}/sqlite/include -I${LIBDIR}/bzip2/include -I${LIBDIR}/lzma/include -I${LIBDIR}/zlib/include")
+	set(PYTHON_LDFLAGS "-L${LIBDIR}/sqlite/lib -L${LIBDIR}/bzip2/lib -L${LIBDIR}/lzma/lib -L${LIBDIR}/zlib/lib")
+	set(PYTHON_CONFIGURE_EXTRA_ENV
+		export CFLAGS=${PYTHON_CFLAGS} &&
+		export CPPFLAGS=${PYTHON_CFLAGS} &&
+		export LDFLAGS=${PYTHON_LDFLAGS})
+	set(PYTHON_PATCH ${PATCH_CMD} --verbose -p1 -d ${BUILD_DIR}/python/src/external_python < ${PATCH_DIR}/python_linux.diff)
 
 	ExternalProject_Add(external_python
 		URL ${PYTHON_URI}
@@ -172,7 +166,7 @@ if(MSVC)
 	add_custom_target(Make_Python_Environment ALL DEPENDS ${BUILD_DIR}/python/src/external_python/run/python${PYTHON_POSTFIX}.exe Package_Python)
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
 	add_dependencies(
 		external_python
 		external_bzip2

@@ -19,10 +19,10 @@
 ####################################################################################################
 #
 # This is a build system used by platform maintainers to build library dependencies on
-# Windows and macOS. There is some support for Linux as well, but not ready for releases.
+# Windows, macOS and Linux.
 #
-# Windows and macOS users should download the precompiled libraries in lib/, Linux users
-# should run install_deps.sh for building dependencies.
+# For users building Blender, we recommend using the precompiled libraries from lib/ on
+# Windows and macOS, and install_deps.sh on Linux.
 #
 # WINDOWS USAGE:
 #   Don't call this cmake file your self, use build_deps.cmd
@@ -30,7 +30,7 @@
 #   build_deps 2015 x64 / build_deps 2015 x86
 #
 # MAC OS X USAGE:
-#	Install with homebrew: brew install autoconf automake libtool yasm openssl xz
+#	Install with homebrew: brew install autoconf automake libtool yasm nasm
 #   Run "make deps" from main Blender directory
 #
 # LINUX USAGE:
@@ -96,14 +96,16 @@ include(cmake/pugixml.cmake)
 if(WITH_WEBP)
 	include(cmake/webp.cmake)
 endif()
+
 if(WIN32)
-	#hmd_branch_deps
+	# HMD branch deps
 	include(cmake/hidapi.cmake)
-	#ocio deps
+	# OCIO deps
 	include(cmake/tinyxml.cmake)
 	include(cmake/yamlcpp.cmake)
-	#lcms is an ocio dep, but only if you build the apps, leaving it here for convenience
+	# LCMS is an OCIO dep, but only if you build the apps, leaving it here for convenience
 	#include(cmake/lcms.cmake)
+
 endif()
 
 if(NOT WIN32 OR ENABLE_MINGW64)
@@ -128,16 +130,16 @@ if(NOT WIN32 OR ENABLE_MINGW64)
 		endif()
 		if(UNIX)
 			include(cmake/flac.cmake)
+			include(cmake/xml2.cmake)
 			if(NOT APPLE)
 				include(cmake/spnav.cmake)
 				include(cmake/jemalloc.cmake)
-				include(cmake/xml2.cmake)
 			endif()
 		endif()
 	endif()
 endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
 	include(cmake/bzip2.cmake)
 	include(cmake/ffi.cmake)
 	include(cmake/lzma.cmake)

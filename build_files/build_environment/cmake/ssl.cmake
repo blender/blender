@@ -19,11 +19,15 @@
 set(SSL_CONFIGURE_COMMAND ./Configure)
 set(SSL_PATCH_CMD echo .)
 
-if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
-	set(SSL_EXTRA_ARGS enable-ec_nistp_64_gcc_128)
-	set(SSL_OS_COMPILER "blender-x86_64")
+if (APPLE)
+	set(SSL_OS_COMPILER "blender-darwin-x86_64")
 else()
-	set(SSL_OS_COMPILER "blender-x86")
+	if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+		set(SSL_EXTRA_ARGS enable-ec_nistp_64_gcc_128)
+		set(SSL_OS_COMPILER "blender-linux-x86_64")
+	else()
+		set(SSL_OS_COMPILER "blender-linux-x86")
+	endif()
 endif()
 
 ExternalProject_Add(external_ssl
