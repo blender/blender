@@ -820,7 +820,8 @@ void valtorgb(float fac, sampler1DArray colormap, float layer, out vec4 outcol, 
 
 void valtorgb_nearest(float fac, sampler1DArray colormap, float layer, out vec4 outcol, out float outalpha)
 {
-	outcol = texelFetch(colormap, ivec2(fac * textureSize(colormap, 0).x, layer), 0);
+	fac = clamp(fac, 0.0, 1.0);
+	outcol = texelFetch(colormap, ivec2(fac * (textureSize(colormap, 0).x - 1), layer), 0);
 	outalpha = outcol.a;
 }
 
