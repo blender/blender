@@ -185,6 +185,10 @@ static void hud_region_layout(const bContext *C, ARegion *ar)
 		ar->winrct.ymax = (ar->winrct.ymin + ar->winy) - 1;
 
 		UI_view2d_region_reinit(v2d, V2D_COMMONVIEW_PANELS_UI, ar->winx, ar->winy);
+
+		/* Weak, but needed to avoid glitches, especially with hi-dpi (where resizing the view glitches often).
+		 * Fortunately this only happens occasionally. */
+		ED_region_panels_layout(C, ar);
 	}
 
 	/* restore view matrix */
