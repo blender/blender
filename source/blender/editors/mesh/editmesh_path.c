@@ -48,6 +48,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
 
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_uvedit.h"
@@ -679,9 +680,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 
 	if (vc.view_layer->basact != basact) {
-		vc.view_layer->basact = basact;
-		DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
+		ED_object_base_activate(C, basact);
 	}
 
 	/* to support redo */

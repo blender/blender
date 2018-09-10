@@ -57,6 +57,7 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -2216,10 +2217,9 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 		/* Changing active object is handy since it allows us to
 		 * switch UV layers, vgroups for eg. */
 		if (vc.view_layer->basact != basact) {
-			vc.view_layer->basact = basact;
-			DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
-			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
+			ED_object_base_activate(C, basact);
 		}
+
 		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 

@@ -54,6 +54,7 @@
 #include "WM_types.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_view3d.h"
@@ -723,9 +724,7 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 			}
 
 			if (vc.view_layer->basact != basact) {
-				vc.view_layer->basact = basact;
-				DEG_id_tag_update(&vc.scene->id, DEG_TAG_SELECT_UPDATE);
-				WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
+				ED_object_base_activate(C, basact);
 			}
 		}
 
