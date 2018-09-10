@@ -1402,7 +1402,7 @@ void GPENCIL_OT_select(wmOperatorType *ot)
 	ot->poll = gpencil_select_poll;
 
 	/* flag */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
+	ot->flag = OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* properties */
 	WM_operator_properties_mouse_select(ot);
