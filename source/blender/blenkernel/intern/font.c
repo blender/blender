@@ -664,8 +664,6 @@ bool BKE_vfont_to_curve_ex(Object *ob, Curve *cu, int mode, ListBase *r_nubase,
 	bool use_textbox;
 	VChar *che;
 	struct CharTrans *chartransdata = NULL, *ct;
-	/* Text at the beginning of the last used text-box (use for y-axis alignment). */
-	int i_textbox = 0;
 	struct TempLineInfo *lineinfo;
 	float *f, xof, yof, xtrax, linedist;
 	float twidth, maxlen = 0;
@@ -678,6 +676,10 @@ bool BKE_vfont_to_curve_ex(Object *ob, Curve *cu, int mode, ListBase *r_nubase,
 	bool ok = false;
 	const float xof_scale = cu->xof / cu->fsize;
 	const float yof_scale = cu->yof / cu->fsize;
+
+	/* Text at the beginning of the last used text-box (use for y-axis alignment).
+	 * We overallocate by one to simplify logic of getting last char. */
+	int *i_textbox_array = MEM_callocN(sizeof(*i_textbox_array) * (cu->totbox + 1), "TextBox initial char index");
 
 #define MARGIN_X_MIN (xof_scale + tb_scale.x)
 #define MARGIN_Y_MIN (yof_scale + tb_scale.y)
@@ -878,9 +880,9 @@ makebreak:
 			    (cu->totbox > (curbox + 1)) &&
 			    ((-(yof - tb_scale.y)) > (tb_scale.h - linedist) - yof_scale))
 			{
-				i_textbox = i + 1;
 				maxlen = 0;
 				curbox++;
+				i_textbox_array[curbox] = i + 1;
 
 				textbox_scale(&tb_scale, &cu->tb[curbox], 1.0f / cu->fsize);
 
@@ -1035,24 +1037,23 @@ makebreak:
 	/* top-baseline is default, in this case, do nothing */
 	if (cu->align_y != CU_ALIGN_Y_TOP_BASELINE) {
 		if (tb_scale.h != 0.0f) {
-			if (i_textbox < slen) {
-				/* All previous textboxes are 'full', only align the last used text-box. */
-				struct CharTrans *ct_last, *ct_textbox;
-				float yoff = 0.0f;
+			/* We need to loop all the text-boxes even the "full" ones.
+			 * This way they all get the same vertical padding. */
+			for (int tb_index = 0; tb_index < cu->totbox; tb_index++) {
+				struct CharTrans *ct_first, *ct_last;
+				const int i_textbox = i_textbox_array[tb_index];
+				const int i_textbox_next = i_textbox_array[tb_index + 1];
+				const bool is_last_filled_textbox = ELEM(i_textbox_next, 0, slen + 1);
 				int lines;
 
-				ct_last = chartransdata + slen - 1;
-				ct_textbox = chartransdata + i_textbox;
+				ct_first = chartransdata + i_textbox;
+				ct_last = chartransdata + (is_last_filled_textbox ? slen: i_textbox_next - 1);
+				lines = ct_last->linenr - ct_first->linenr + 1;
 
-				/* Do not use `lnr`. `lnr` correspond to all the text's lines.
-				 * While `lines` is only for the ones from the last text box. */
-				lines = ct_last->linenr - ct_textbox->linenr + 1;
-				if (mem[slen - 1] == '\n') {
-					lines++;
-				}
-
+				textbox_scale(&tb_scale, &cu->tb[tb_index], 1.0f / cu->fsize);
 				/* The initial Y origin of the textbox is harcoded to 1.0f * text scale. */
 				const float textbox_y_origin = 1.0f;
+				float yoff;
 
 				switch (cu->align_y) {
 					case CU_ALIGN_Y_TOP_BASELINE:
@@ -1072,17 +1073,18 @@ makebreak:
 						break;
 				}
 
-				ct = ct_textbox;
-				for (i = i_textbox - 1; i < slen; i++) {
+				for (ct = ct_first; ct <= ct_last; ct++) {
 					ct->yof += yoff;
-					ct++;
+				}
+
+				if (is_last_filled_textbox) {
+					break;
 				}
 			}
 		}
 		else {
 			/* Non text-box case handled separately. */
-			ct = chartransdata;
-			float yoff = 0.0f;
+			float yoff;
 
 			switch (cu->align_y) {
 				case CU_ALIGN_Y_TOP_BASELINE:
@@ -1101,6 +1103,7 @@ makebreak:
 					break;
 			}
 
+			ct = chartransdata;
 			for (i = 0; i <= slen; i++) {
 				ct->yof += yoff;
 				ct++;
@@ -1109,6 +1112,7 @@ makebreak:
 	}
 
 	MEM_freeN(lineinfo);
+	MEM_freeN(i_textbox_array);
 
 	/* TEXT ON CURVE */
 	/* Note: Only OB_CURVE objects could have a path  */
