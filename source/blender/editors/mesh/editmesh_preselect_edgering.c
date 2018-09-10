@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mesh/editmesh_preselect.c
+/** \file blender/editors/mesh/editmesh_preselect_edgering.c
  *  \ingroup edmesh
  */
 
