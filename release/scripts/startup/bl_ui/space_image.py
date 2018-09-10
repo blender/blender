@@ -89,7 +89,6 @@ class IMAGE_MT_view(Menu):
         if show_uvedit:
             layout.prop(toolsettings, "show_uv_local_view")
 
-        layout.prop(uv, "show_other_objects")
         layout.prop(uv, "show_metadata")
 
         if paint.brush and (context.image_paint_object or sima.mode == 'PAINT'):
@@ -781,15 +780,6 @@ class IMAGE_PT_view_display_uv_edit_overlays_advanced(Panel):
 
         sima = context.space_data
         uvedit = sima.uv_editor
-
-        col = layout.column()
-        col.prop(uvedit, "show_other_objects", text="Other Objects")
-
-        sub = col.column()
-        sub.active = uvedit.show_other_objects
-        sub.prop(uvedit, "other_uv_filter", text="Filter")
-
-        col.separator()
 
         col = layout.column()
         col.prop(uvedit, "show_stretch", text="Stretch")

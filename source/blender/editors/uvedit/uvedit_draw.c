@@ -424,109 +424,10 @@ static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, co
 	GPU_batch_discard(loop_batch);
 }
 
-static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
+static void draw_uvs_texpaint(Scene *scene, Object *ob)
 {
-	MLoopUV *mloopuv;
-	int i;
-
-	immBegin(GPU_PRIM_LINE_LOOP, mpoly->totloop);
-
-	mloopuv = &me->mloopuv[mpoly->loopstart];
-	for (i = mpoly->totloop; i != 0; i--, mloopuv++) {
-		immVertex2fv(pos, mloopuv->uv);
-	}
-
-	immEnd();
-}
-
-static void draw_uvs_other_mesh(Object *ob, const Image *curimage,
-                                const int other_uv_filter, unsigned int pos)
-{
-	Mesh *me = ob->data;
-	MPoly *mpoly = me->mpoly;
-	int a;
-	BLI_bitmap *mat_test_array;
-	bool ok = false;
-	int totcol = 0;
-
-	if (me->mloopuv == NULL) {
-		return;
-	}
-
-	if (curimage && ob->totcol == 0) {
-		return;
-	}
-
-	totcol = max_ii(ob->totcol, 1);
-	mat_test_array = BLI_BITMAP_NEW_ALLOCA(totcol);
-
-	for (a = 0; a < totcol; a++) {
-		Image *image;
-
-		/* if no materials, assume a default material with no image */
-		if (ob->totcol)
-			ED_object_get_active_image(ob, a + 1, &image, NULL, NULL, NULL);
-		else
-			image = NULL;
-
-		if (image == curimage) {
-			BLI_BITMAP_ENABLE(mat_test_array, a);
-			ok = true;
-		}
-	}
-
-	if (ok == false) {
-		return;
-	}
-
-	for (a = me->totpoly; a != 0; a--, mpoly++) {
-		if (other_uv_filter == SI_FILTER_ALL) {
-			/* Nothing to compare, all UV faces are visible. */
-		}
-		else if (other_uv_filter == SI_FILTER_SAME_IMAGE) {
-			const int mat_nr = mpoly->mat_nr;
-			if ((mat_nr >= totcol) ||
-			    (BLI_BITMAP_TEST(mat_test_array, mat_nr)) == 0)
-			{
-				continue;
-			}
-		}
-
-		draw_uvs_lineloop_mpoly(me, mpoly, pos);
-	}
-}
-
-static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *curimage,
-                           const int other_uv_filter)
-{
-	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-	immUniformThemeColor(TH_UV_OTHERS);
-
-	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-		if (((base->flag & BASE_SELECTED) != 0) &&
-		    ((base->flag & BASE_VISIBLE) != 0))
-		{
-			Object *ob = base->object;
-			if ((ob->type == OB_MESH) && (ob != obedit) && ((Mesh *)ob->data)->mloopuv) {
-				draw_uvs_other_mesh(ob, curimage, other_uv_filter, pos);
-			}
-		}
-	}
-	immUnbindProgram();
-}
-
-static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *ob)
-{
-	Image *curimage = ED_space_image(sima);
 	Mesh *me = ob->data;
 	Material *ma;
-
-	if (sima->flag & SI_DRAW_OTHER) {
-		draw_uvs_other(view_layer, ob, curimage, sima->other_uv_filter);
-	}
 
 	ma = give_current_material(ob, ob->actcol);
 
@@ -582,7 +483,7 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 }
 
 /* draws uv's in the image space */
-static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *obedit, Depsgraph *depsgraph)
+static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *depsgraph)
 {
 	ToolSettings *ts;
 	Mesh *me = obedit->data;
@@ -609,20 +510,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		interpedges = (ts->selectmode & SCE_SELECT_VERTEX);
 	else
 		interpedges = (ts->uv_selectmode == UV_SELECT_VERTEX);
-
-	/* draw other uvs */
-	if (sima->flag & SI_DRAW_OTHER) {
-		Image *curimage;
-
-		if (efa_act) {
-			ED_object_get_active_image(obedit, efa_act->mat_nr + 1, &curimage, NULL, NULL, NULL);
-		}
-		else {
-			curimage = ima;
-		}
-
-		draw_uvs_other(view_layer, obedit, curimage, sima->other_uv_filter);
-	}
 
 	/* 1. draw shadow mesh */
 
@@ -1070,12 +957,12 @@ void ED_uvedit_draw_main(
 			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 				Object *ob_iter = objects[ob_index];
-				draw_uvs(sima, scene, view_layer, ob_iter, depsgraph);
+				draw_uvs(sima, scene, ob_iter, depsgraph);
 			}
 			MEM_freeN(objects);
 		}
 		else {
-			draw_uvs_texpaint(sima, scene, view_layer, obact);
+			draw_uvs_texpaint(scene, obact);
 		}
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))

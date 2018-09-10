@@ -917,8 +917,7 @@ typedef struct SpaceImage {
 	char dt_uvstretch;
 	char around;
 
-	/* Filter settings when editor shows other object's UVs. */
-	int other_uv_filter;
+	int pad2;
 
 	int flag;
 
@@ -988,7 +987,7 @@ typedef enum eSpaceImage_Flag {
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
 	SI_SHOW_GPENCIL       = (1 << 22),
-	SI_DRAW_OTHER         = (1 << 23),
+/*	SI_DEPRECATED6        = (1 << 23), */  /* deprecated */
 
 	SI_COLOR_CORRECTION   = (1 << 24),
 
