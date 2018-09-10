@@ -153,6 +153,7 @@ GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat, int size, float
 	/* In order to put all the colorbands into one 1D array texture,
 	 * we need them to be the same size. */
 	BLI_assert(size == CM_TABLE + 1);
+	UNUSED_VARS_NDEBUG(size);
 
 	if (mat->coba_builder == NULL) {
 		mat->coba_builder = MEM_mallocN(sizeof(GPUColorBandBuilder), "GPUColorBandBuilder");
