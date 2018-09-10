@@ -3799,7 +3799,7 @@ static int uv_snap_selection_exec(bContext *C, wmOperator *op)
 	ToolSettings *ts = scene->toolsettings;
 	const bool synced_selection = (ts->uv_flag & UV_SYNC_SELECTION) != 0;
 	const int target = RNA_enum_get(op->ptr, "target");
-	float offset[2];
+	float offset[2] = {0};
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
