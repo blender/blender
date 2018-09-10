@@ -258,39 +258,34 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					float3 spec_weight = weight * specular_weight;
 
 					MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), spec_weight);
-					if(!bsdf) {
-						break;
-					}
-
 					MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-					if(!extra) {
-						break;
+
+					if (bsdf && extra) {
+						bsdf->N = N;
+						bsdf->ior = (2.0f / (1.0f - safe_sqrtf(0.08f * specular))) - 1.0f;
+						bsdf->T = T;
+						bsdf->extra = extra;
+
+						float aspect = safe_sqrtf(1.0f - anisotropic * 0.9f);
+						float r2 = roughness * roughness;
+
+						bsdf->alpha_x = r2 / aspect;
+						bsdf->alpha_y = r2 * aspect;
+
+						float m_cdlum = 0.3f * base_color.x + 0.6f * base_color.y + 0.1f * base_color.z; // luminance approx.
+						float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum : make_float3(0.0f, 0.0f, 0.0f); // normalize lum. to isolate hue+sat
+						float3 tmp_col = make_float3(1.0f, 1.0f, 1.0f) * (1.0f - specular_tint) + m_ctint * specular_tint;
+
+						bsdf->extra->cspec0 = (specular * 0.08f * tmp_col) * (1.0f - metallic) + base_color * metallic;
+						bsdf->extra->color = base_color;
+						bsdf->extra->clearcoat = 0.0f;
+
+						/* setup bsdf */
+						if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID || roughness <= 0.075f) /* use single-scatter GGX */
+							sd->flag |= bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf, sd);
+						else /* use multi-scatter GGX */
+							sd->flag |= bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf, sd);
 					}
-
-					bsdf->N = N;
-					bsdf->ior = (2.0f / (1.0f - safe_sqrtf(0.08f * specular))) - 1.0f;
-					bsdf->T = T;
-					bsdf->extra = extra;
-
-					float aspect = safe_sqrtf(1.0f - anisotropic * 0.9f);
-					float r2 = roughness * roughness;
-
-					bsdf->alpha_x = r2 / aspect;
-					bsdf->alpha_y = r2 * aspect;
-
-					float m_cdlum = 0.3f * base_color.x + 0.6f * base_color.y + 0.1f * base_color.z; // luminance approx.
-					float3 m_ctint = m_cdlum > 0.0f ? base_color / m_cdlum : make_float3(0.0f, 0.0f, 0.0f); // normalize lum. to isolate hue+sat
-					float3 tmp_col = make_float3(1.0f, 1.0f, 1.0f) * (1.0f - specular_tint) + m_ctint * specular_tint;
-
-					bsdf->extra->cspec0 = (specular * 0.08f * tmp_col) * (1.0f - metallic) + base_color * metallic;
-					bsdf->extra->color = base_color;
-					bsdf->extra->clearcoat = 0.0f;
-
-					/* setup bsdf */
-					if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID || roughness <= 0.075f) /* use single-scatter GGX */
-						sd->flag |= bsdf_microfacet_ggx_aniso_fresnel_setup(bsdf, sd);
-					else /* use multi-scatter GGX */
-						sd->flag |= bsdf_microfacet_multi_ggx_aniso_fresnel_setup(bsdf, sd);
 				}
 #ifdef __CAUSTICS_TRICKS__
 			}
@@ -313,29 +308,24 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 						{
 							MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), glass_weight*fresnel);
-							if(!bsdf) {
-								break;
-							}
-
 							MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-							if(!extra) {
-								break;
+
+							if (bsdf && extra) {
+								bsdf->N = N;
+								bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+								bsdf->extra = extra;
+
+								bsdf->alpha_x = refl_roughness * refl_roughness;
+								bsdf->alpha_y = refl_roughness * refl_roughness;
+								bsdf->ior = ior;
+
+								bsdf->extra->color = base_color;
+								bsdf->extra->cspec0 = cspec0;
+								bsdf->extra->clearcoat = 0.0f;
+
+								/* setup bsdf */
+								sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
 							}
-
-							bsdf->N = N;
-							bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-							bsdf->extra = extra;
-
-							bsdf->alpha_x = refl_roughness * refl_roughness;
-							bsdf->alpha_y = refl_roughness * refl_roughness;
-							bsdf->ior = ior;
-
-							bsdf->extra->color = base_color;
-							bsdf->extra->cspec0 = cspec0;
-							bsdf->extra->clearcoat = 0.0f;
-
-							/* setup bsdf */
-							sd->flag |= bsdf_microfacet_ggx_fresnel_setup(bsdf, sd);
 						}
 
 						/* refraction */
@@ -344,52 +334,45 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 						{
 							MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), base_color*glass_weight*(1.0f - fresnel));
-							if(!bsdf) {
-								break;
+							if(bsdf) {
+								bsdf->N = N;
+								bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+								bsdf->extra = NULL;
+
+								if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
+									transmission_roughness = 1.0f - (1.0f - refl_roughness) * (1.0f - transmission_roughness);
+								else
+									transmission_roughness = refl_roughness;
+
+								bsdf->alpha_x = transmission_roughness * transmission_roughness;
+								bsdf->alpha_y = transmission_roughness * transmission_roughness;
+								bsdf->ior = ior;
+
+								/* setup bsdf */
+								sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
 							}
-
-							bsdf->N = N;
-							bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-							bsdf->extra = NULL;
-
-							if(distribution == CLOSURE_BSDF_MICROFACET_GGX_GLASS_ID)
-								transmission_roughness = 1.0f - (1.0f - refl_roughness) * (1.0f - transmission_roughness);
-							else
-								transmission_roughness = refl_roughness;
-
-							bsdf->alpha_x = transmission_roughness * transmission_roughness;
-							bsdf->alpha_y = transmission_roughness * transmission_roughness;
-							bsdf->ior = ior;
-
-							/* setup bsdf */
-							sd->flag |= bsdf_microfacet_ggx_refraction_setup(bsdf);
 						}
 					}
 					else { /* use multi-scatter GGX */
 						MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), glass_weight);
-						if(!bsdf) {
-							break;
-						}
-
 						MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-						if(!extra) {
-							break;
+
+						if(bsdf && extra) {
+							bsdf->N = N;
+							bsdf->extra = extra;
+							bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+
+							bsdf->alpha_x = roughness * roughness;
+							bsdf->alpha_y = roughness * roughness;
+							bsdf->ior = ior;
+
+							bsdf->extra->color = base_color;
+							bsdf->extra->cspec0 = cspec0;
+							bsdf->extra->clearcoat = 0.0f;
+
+							/* setup bsdf */
+							sd->flag |= bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd);
 						}
-
-						bsdf->N = N;
-						bsdf->extra = extra;
-						bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-
-						bsdf->alpha_x = roughness * roughness;
-						bsdf->alpha_y = roughness * roughness;
-						bsdf->ior = ior;
-
-						bsdf->extra->color = base_color;
-						bsdf->extra->cspec0 = cspec0;
-						bsdf->extra->clearcoat = 0.0f;
-
-						/* setup bsdf */
-						sd->flag |= bsdf_microfacet_multi_ggx_glass_fresnel_setup(bsdf, sd);
 					}
 				}
 #ifdef __CAUSTICS_TRICKS__
@@ -402,29 +385,24 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 				if(clearcoat > CLOSURE_WEIGHT_CUTOFF) {
 					MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), weight);
-					if(!bsdf) {
-						break;
-					}
-
 					MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
-					if(!extra) {
-						break;
+
+					if(bsdf && extra) {
+						bsdf->N = clearcoat_normal;
+						bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
+						bsdf->ior = 1.5f;
+						bsdf->extra = extra;
+
+						bsdf->alpha_x = clearcoat_roughness * clearcoat_roughness;
+						bsdf->alpha_y = clearcoat_roughness * clearcoat_roughness;
+
+						bsdf->extra->color = make_float3(0.0f, 0.0f, 0.0f);
+						bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
+						bsdf->extra->clearcoat = clearcoat;
+
+						/* setup bsdf */
+						sd->flag |= bsdf_microfacet_ggx_clearcoat_setup(bsdf, sd);
 					}
-
-					bsdf->N = clearcoat_normal;
-					bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-					bsdf->ior = 1.5f;
-					bsdf->extra = extra;
-
-					bsdf->alpha_x = clearcoat_roughness * clearcoat_roughness;
-					bsdf->alpha_y = clearcoat_roughness * clearcoat_roughness;
-
-					bsdf->extra->color = make_float3(0.0f, 0.0f, 0.0f);
-					bsdf->extra->cspec0 = make_float3(0.04f, 0.04f, 0.04f);
-					bsdf->extra->clearcoat = clearcoat;
-
-					/* setup bsdf */
-					sd->flag |= bsdf_microfacet_ggx_clearcoat_setup(bsdf, sd);
 				}
 #ifdef __CAUSTICS_TRICKS__
 			}
