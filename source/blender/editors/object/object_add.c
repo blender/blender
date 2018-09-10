@@ -949,16 +949,6 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 	float loc[3], rot[3];
 	bool newob = false;
 
-	/* Hack: Force view-align to be on by default
-	 * since it's not nice for adding shapes in 2D
-	 * for them to end up aligned oddly, but only for Monkey
-	 */
-	if ((RNA_struct_property_is_set(op->ptr, "view_align") == false) &&
-	    (type == GP_MONKEY))
-	{
-		RNA_boolean_set(op->ptr, "view_align", true);
-	}
-
 	/* Note: We use 'Y' here (not 'Z'), as */
 	WM_operator_view3d_unit_defaults(C, op);
 	if (!ED_object_add_generic_get_opts(C, op, 'Y', loc, rot, NULL, NULL))
@@ -968,9 +958,25 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 	 * or if "empty" was chosen (i.e. user wants a blank GP canvas)
 	 */
 	if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false) || (type == GP_EMPTY)) {
-		const char *ob_name = (type == GP_MONKEY) ? "Suzanne" : NULL;
-		float radius = RNA_float_get(op->ptr, "radius");
+		char *ob_name = NULL;
+		switch (type) {
+			case GP_MONKEY:
+			{
+				ob_name = "Suzanne";
+				break;
+			}
+			case GP_STROKE:
+			{
+				ob_name = "Stroke";
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
 
+		float radius = RNA_float_get(op->ptr, "radius");
 		ob = ED_object_add_type(C, OB_GPENCIL, ob_name, loc, rot, true);
 		gpd = ob->data;
 		newob = true;
