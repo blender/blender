@@ -1431,7 +1431,7 @@ void FONT_OT_text_insert(wmOperatorType *ot)
 	ot->poll = ED_operator_editfont;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_string(ot->srna, "text", NULL, 0, "Text", "Text to insert at the cursor position");
