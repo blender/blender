@@ -299,9 +299,8 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *o
 		  * to remove the NULL children from collections not used in any scene. */
 		BKE_collections_object_remove_nulls(bmain);
 	}
-	else {
-		BKE_main_collection_sync_remap(bmain);
-	}
+
+	BKE_main_collection_sync_remap(bmain);
 
 	if (old_ob->type == OB_MBALL) {
 		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
@@ -320,9 +319,8 @@ static void libblock_remap_data_postprocess_collection_update(Main *bmain, Colle
 		  * because of pointer replacement. */
 		BKE_collections_child_remove_nulls(bmain, old_collection);
 	}
-	else {
-		BKE_main_collection_sync_remap(bmain);
-	}
+
+	BKE_main_collection_sync_remap(bmain);
 }
 
 static void libblock_remap_data_postprocess_obdata_relink(Main *bmain, Object *ob, ID *new_id)

@@ -673,7 +673,7 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *old_collection)
 	}
 
 	if (changed) {
-		BKE_main_collection_sync(bmain);
+		BKE_main_collection_sync_remap(bmain);
 	}
 }
 
