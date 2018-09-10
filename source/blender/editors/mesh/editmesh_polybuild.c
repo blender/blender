@@ -196,6 +196,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		BMVert *v_new = BM_vert_create(bm, center, NULL, BM_CREATE_NOP);
 		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
+		BM_select_history_store(bm, v_new);
 		changed = true;
 	}
 	else if (ele_act->head.htype == BM_EDGE) {
@@ -219,6 +220,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 
 		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_tri[2], true);
+		BM_select_history_store(bm, v_tri[2]);
 		changed = true;
 	}
 	else if (ele_act->head.htype == BM_VERT) {
@@ -270,6 +272,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 
 			edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 			BM_vert_select_set(bm, v_quad[2], true);
+			BM_select_history_store(bm, v_quad[2]);
 			changed = true;
 		}
 		else {
@@ -283,6 +286,8 @@ static int edbm_polybuild_face_at_cursor_invoke(
 			BM_edge_create(bm, v_act, v_new, NULL, BM_CREATE_NOP);
 
 			BM_vert_select_set(bm, v_new, true);
+			BM_select_history_store(bm, v_new);
+			changed = true;
 		}
 	}
 
@@ -361,6 +366,7 @@ static int edbm_polybuild_split_at_cursor_invoke(
 
 		edbm_flag_disable_all_multi(vc.view_layer, BM_ELEM_SELECT);
 		BM_vert_select_set(bm, v_new, true);
+		BM_select_history_store(bm, v_new);
 		changed = true;
 	}
 	else if (ele_act->head.htype == BM_VERT) {
