@@ -233,10 +233,10 @@ static int gizmo_preselect_elem_invoke(
 	return OPERATOR_PASS_THROUGH;
 }
 
-static void GIZMO_GT_preselect_elem_3d(wmGizmoType *gzt)
+static void GIZMO_GT_mesh_preselect_elem_3d(wmGizmoType *gzt)
 {
 	/* identifiers */
-	gzt->idname = "GIZMO_GT_preselect_elem_3d";
+	gzt->idname = "GIZMO_GT_mesh_preselect_elem_3d";
 
 	/* api callbacks */
 	gzt->invoke = gizmo_preselect_elem_invoke;
@@ -394,10 +394,10 @@ static int gizmo_preselect_edgering_invoke(
 }
 
 
-static void GIZMO_GT_preselect_edgering_3d(wmGizmoType *gzt)
+static void GIZMO_GT_mesh_preselect_edgering_3d(wmGizmoType *gzt)
 {
 	/* identifiers */
-	gzt->idname = "GIZMO_GT_preselect_edgering_3d";
+	gzt->idname = "GIZMO_GT_mesh_preselect_edgering_3d";
 
 	/* api callbacks */
 	gzt->invoke = gizmo_preselect_edgering_invoke;
@@ -422,8 +422,8 @@ static void GIZMO_GT_preselect_edgering_3d(wmGizmoType *gzt)
 
 void ED_gizmotypes_preselect_3d(void)
 {
-	WM_gizmotype_append(GIZMO_GT_preselect_elem_3d);
-	WM_gizmotype_append(GIZMO_GT_preselect_edgering_3d);
+	WM_gizmotype_append(GIZMO_GT_mesh_preselect_elem_3d);
+	WM_gizmotype_append(GIZMO_GT_mesh_preselect_edgering_3d);
 }
 
 /** \} */

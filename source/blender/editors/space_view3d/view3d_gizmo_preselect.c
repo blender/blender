@@ -63,7 +63,7 @@ static bool WIDGETGROUP_mesh_preselect_elem_poll(const bContext *C, wmGizmoGroup
 
 static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_preselect_elem_3d", true);
+	const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_elem_3d", true);
 	struct GizmoGroupPreSelElem *man = MEM_callocN(sizeof(struct GizmoGroupPreSelElem), __func__);
 	gzgroup->customdata = man;
 
@@ -111,7 +111,7 @@ static bool WIDGETGROUP_mesh_preselect_edgering_poll(const bContext *C, wmGizmoG
 
 static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_preselect_edgering_3d", true);
+	const wmGizmoType *gzt_presel = WM_gizmotype_find("GIZMO_GT_mesh_preselect_edgering_3d", true);
 	struct GizmoGroupPreSelEdgeRing *man = MEM_callocN(sizeof(struct GizmoGroupPreSelEdgeRing), __func__);
 	gzgroup->customdata = man;
 
