@@ -635,9 +635,16 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	view3d_operator_needs_opengl(C);
 
-	if (EDBM_unified_findnearest(&vc, &basact, &eve, &eed, &efa)) {
-		ED_view3d_viewcontext_init_object(&vc, basact->object);
-		em = vc.em;
+	{
+		int base_index = -1;
+		uint bases_len = 0;
+		Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, &bases_len);
+		if (EDBM_unified_findnearest(&vc, bases, bases_len, base_index, &eve, &eed, &efa)) {
+			basact = bases[base_index];
+			ED_view3d_viewcontext_init_object(&vc, basact->object);
+			em = vc.em;
+		}
+		MEM_freeN(bases);
 	}
 
 	/* If nothing is selected, let's select the picked vertex/edge/face. */

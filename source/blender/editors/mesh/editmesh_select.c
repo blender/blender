@@ -940,8 +940,8 @@ BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
  * return 1 if found one
  */
 static bool unified_findnearest(
-        ViewContext *vc,
-        Base **r_base, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
+        ViewContext *vc, Base **bases, const uint bases_len,
+        int *r_base_index, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
 	static short mval_prev[2] = {-1, -1};
@@ -955,22 +955,20 @@ static bool unified_findnearest(
 	struct {
 		struct {
 			BMVert *ele;
-			Base *base;
+			int base_index;
 		} v;
 		struct {
 			BMEdge *ele;
-			Base *base;
+			int base_index;
 		} e, e_zbuf;
 		struct {
 			BMFace *ele;
-			Base *base;
+			int base_index;
 		} f, f_zbuf;
 	} hit = {{NULL}};
 
 	/* TODO(campbell): perform selection as one pass
 	 * instead of many smaller passes (which doesn't work for zbuf occlusion). */
-	uint bases_len = 0;
-	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc->view_layer, &bases_len);
 
 	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
 
@@ -989,11 +987,11 @@ static bool unified_findnearest(
 				dist = min_ff(dist_margin, dist_center);
 			}
 			if (efa_test) {
-				hit.f.base = base_iter;
+				hit.f.base_index = base_index;
 				hit.f.ele  = efa_test;
 			}
 			if (efa_zbuf) {
-				hit.f_zbuf.base = base_iter;
+				hit.f_zbuf.base_index = base_index;
 				hit.f_zbuf.ele  = efa_zbuf;
 			}
 		} /* bases */
@@ -1014,11 +1012,11 @@ static bool unified_findnearest(
 				dist = min_ff(dist_margin, dist_center);
 			}
 			if (eed_test) {
-				hit.e.base = base_iter;
+				hit.e.base_index = base_index;
 				hit.e.ele  = eed_test;
 			}
 			if (eed_zbuf) {
-				hit.e_zbuf.base = base_iter;
+				hit.e_zbuf.base_index = base_index;
 				hit.e_zbuf.ele  = eed_zbuf;
 			}
 		} /* bases */
@@ -1032,13 +1030,11 @@ static bool unified_findnearest(
 			ED_view3d_backbuf_validate(vc);
 			BMVert *eve_test = EDBM_vert_find_nearest_ex(vc, &dist, true, use_cycle);
 			if (eve_test) {
-				hit.v.base = base_iter;
+				hit.v.base_index = base_index;
 				hit.v.ele  = eve_test;
 			}
 		} /* bases */
 	}
-
-	MEM_SAFE_FREE(bases);
 
 	/* return only one of 3 pointers, for frontbuffer redraws */
 	if (hit.v.ele) {
@@ -1053,11 +1049,11 @@ static bool unified_findnearest(
 	 * use this if all else fails, it makes sense to select this */
 	if ((hit.v.ele || hit.e.ele || hit.f.ele) == 0) {
 		if (hit.e_zbuf.ele) {
-			hit.e.base = hit.e_zbuf.base;
+			hit.e.base_index = hit.e_zbuf.base_index;
 			hit.e.ele  = hit.e_zbuf.ele;
 		}
 		else if (hit.f_zbuf.ele) {
-			hit.f.base = hit.f_zbuf.base;
+			hit.f.base_index = hit.f_zbuf.base_index;
 			hit.f.ele  = hit.f_zbuf.ele;
 		}
 	}
@@ -1069,13 +1065,13 @@ static bool unified_findnearest(
 	BLI_assert(((hit.v.ele != NULL) + (hit.e.ele != NULL) + (hit.f.ele != NULL)) <= 1);
 
 	if (hit.v.ele) {
-		*r_base = hit.v.base;
+		*r_base_index = hit.v.base_index;
 	}
 	if (hit.e.ele) {
-		*r_base = hit.e.base;
+		*r_base_index = hit.e.base_index;
 	}
 	if (hit.f.ele) {
-		*r_base = hit.f.base;
+		*r_base_index = hit.f.base_index;
 	}
 
 	*r_eve = hit.v.ele;
@@ -1089,10 +1085,10 @@ static bool unified_findnearest(
 #undef FAKE_SELECT_MODE_END
 
 bool EDBM_unified_findnearest(
-        ViewContext *vc,
-        Base **r_base, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
+        ViewContext *vc, Base **bases, const uint bases_len,
+        int *r_base_index, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
-	return unified_findnearest(vc, r_base, r_eve, r_eed, r_efa);
+	return unified_findnearest(vc, bases, bases_len, r_base_index, r_eve, r_eed, r_efa);
 }
 
 /** \} */
@@ -1106,8 +1102,9 @@ bool EDBM_unified_findnearest(
 
 bool EDBM_unified_findnearest_from_raycast(
         ViewContext *vc,
+        Base **bases, const uint bases_len,
         bool use_boundary,
-        Base **r_base,
+        int *r_base_index,
         struct BMVert **r_eve,
         struct BMEdge **r_eed,
         struct BMFace **r_efa)
@@ -1117,9 +1114,9 @@ bool EDBM_unified_findnearest_from_raycast(
 	float ray_origin[3], ray_direction[3];
 
 	struct {
-		Base *base;
+		uint base_index;
 		BMElem *ele;
-	} best = {NULL};
+	} best = {0, NULL};
 
 	if (ED_view3d_win_to_ray(
 	        vc->depsgraph,
@@ -1132,8 +1129,6 @@ bool EDBM_unified_findnearest_from_raycast(
 		const bool use_edge = (r_eed != NULL);
 		const bool use_face = (r_efa != NULL);
 
-		uint bases_len;
-		Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc->view_layer, &bases_len);
 		for (uint base_index = 0; base_index < bases_len; base_index++) {
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
@@ -1177,7 +1172,7 @@ bool EDBM_unified_findnearest_from_raycast(
 								        point, &depth);
 								if (dist_sq_test < dist_sq_best) {
 									dist_sq_best = dist_sq_test;
-									best.base = base_iter;
+									best.base_index = base_index;
 									best.ele = (BMElem *)v;
 								}
 							}
@@ -1203,7 +1198,7 @@ bool EDBM_unified_findnearest_from_raycast(
 							        point, &depth);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
-								best.base = base_iter;
+								best.base_index = base_index;
 								best.ele = (BMElem *)e;
 							}
 #endif
@@ -1226,7 +1221,7 @@ bool EDBM_unified_findnearest_from_raycast(
 							        v->co, &depth);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
-								best.base = base_iter;
+								best.base_index = base_index;
 								best.ele = (BMElem *)v;
 							}
 						}
@@ -1251,7 +1246,7 @@ bool EDBM_unified_findnearest_from_raycast(
 							        point, &depth);
 							if (dist_sq_test < dist_sq_best) {
 								dist_sq_best = dist_sq_test;
-								best.base = base_iter;
+								best.base_index = base_index;
 								best.ele = (BMElem *)e;
 							}
 						}
@@ -1278,7 +1273,7 @@ bool EDBM_unified_findnearest_from_raycast(
 						        point, &depth);
 						if (dist_sq_test < dist_sq_best) {
 							dist_sq_best = dist_sq_test;
-							best.base = base_iter;
+							best.base_index = base_index;
 							best.ele = (BMElem *)f;
 						}
 					}
@@ -1287,7 +1282,7 @@ bool EDBM_unified_findnearest_from_raycast(
 		}
 	}
 
-	*r_base = best.base;
+	*r_base_index = best.base_index;
 	if (r_eve) {
 		*r_eve = NULL;
 	}
@@ -1974,17 +1969,25 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	const short selectmode = em_original->selectmode;
 	em_original->selectmode = SCE_SELECT_EDGE;
 
-	if (EDBM_unified_findnearest(&vc, &basact, &eve, &eed, &efa)) {
-		ED_view3d_viewcontext_init_object(&vc, basact->object);
-		em = vc.em;
-	}
-	else {
-		em = NULL;
+	uint bases_len;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, &bases_len);
+
+	{
+		int base_index = -1;
+		if (EDBM_unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa)) {
+			basact = bases[base_index];
+			ED_view3d_viewcontext_init_object(&vc, basact->object);
+			em = vc.em;
+		}
+		else {
+			em = NULL;
+		}
 	}
 
 	em_original->selectmode = selectmode;
 
 	if (em == NULL || eed == NULL) {
+		MEM_freeN(bases);
 		return false;
 	}
 
@@ -2007,11 +2010,9 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	}
 
 	if (select_clear) {
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
-		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-			Object *ob_iter = objects[ob_index];
+		for (uint base_index = 0; base_index < bases_len; base_index++) {
+			Base *base_iter = bases[base_index];
+			Object *ob_iter = base_iter->object;
 			BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 
 			if (em_iter->bm->totvertsel == 0) {
@@ -2025,7 +2026,6 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 			EDBM_flag_disable_all(em_iter, BM_ELEM_SELECT);
 			DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
 		}
-		MEM_freeN(objects);
 	}
 
 	if (em->selectmode & SCE_SELECT_FACE) {
@@ -2108,6 +2108,8 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 			}
 		}
 	}
+
+	MEM_freeN(bases);
 
 	DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
@@ -2298,7 +2300,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 {
 	ViewContext vc;
 
-	Base *basact = NULL;
+	int base_index_active = -1;
 	BMVert *eve = NULL;
 	BMEdge *eed = NULL;
 	BMFace *efa = NULL;
@@ -2308,23 +2310,26 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 	vc.mval[0] = mval[0];
 	vc.mval[1] = mval[1];
 
-	if (unified_findnearest(&vc, &basact, &eve, &eed, &efa)) {
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, &bases_len);
+
+	bool ok = false;
+
+	if (unified_findnearest(&vc, bases, bases_len, &base_index_active, &eve, &eed, &efa)) {
+		Base *basact = bases[base_index_active];
 		ED_view3d_viewcontext_init_object(&vc, basact->object);
 
 		/* Deselect everything */
 		if (extend == false && deselect == false && toggle == false) {
-			uint objects_len = 0;
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
-
-			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-				Object *ob_iter = objects[ob_index];
+			for (uint base_index = 0; base_index < bases_len; base_index++) {
+				Base *base_iter = bases[base_index];
+				Object *ob_iter = base_iter->object;
 				EDBM_flag_disable_all(BKE_editmesh_from_object(ob_iter), BM_ELEM_SELECT);
 				if (basact->object != ob_iter) {
 					DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
 					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 				}
 			}
-			MEM_freeN(objects);
 		}
 
 		if (efa) {
@@ -2444,10 +2449,12 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
-		return true;
+		ok = true;
 	}
 
-	return false;
+	MEM_freeN(bases);
+
+	return ok;
 }
 
 /** \} */
@@ -3388,19 +3395,20 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	/* setup view context for argument to callbacks */
 	em_setup_viewcontext(C, &vc);
 
+	uint bases_len;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc.view_layer, &bases_len);
+
 	{
-		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
 		bool has_edges = false;
-		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-			Object *ob_iter = objects[ob_index];
+		for (uint base_index = 0; base_index < bases_len; base_index++) {
+			Object *ob_iter = bases[base_index]->object;
 			ED_view3d_viewcontext_init_object(&vc, ob_iter);
 			if (vc.em->bm->totedge) {
 				has_edges = true;
 			}
 		}
-		MEM_freeN(objects);
 		if (has_edges == false) {
+			MEM_freeN(bases);
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3409,9 +3417,16 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	vc.mval[1] = event->mval[1];
 
 	/* return warning! */
-	if (unified_findnearest(&vc, &basact, &eve, &eed, &efa) == 0) {
-		return OPERATOR_CANCELLED;
+	{
+		int base_index = -1;
+		const bool ok = unified_findnearest(&vc, bases, bases_len, &base_index, &eve, &eed, &efa);
+		if (!ok) {
+			MEM_freeN(bases);
+			return OPERATOR_CANCELLED;
+		}
+		basact = bases[base_index];
 	}
+
 	ED_view3d_viewcontext_init_object(&vc, basact->object);
 	BMEditMesh *em = vc.em;
 	BMesh *bm = em->bm;
