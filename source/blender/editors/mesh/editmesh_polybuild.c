@@ -452,7 +452,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 
 			if (!EDBM_op_callf(em, op,
 			                   "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
-			                   BM_ELEM_TAG, false, true))
+			                   BM_ELEM_TAG, false, false))
 			{
 				return OPERATOR_CANCELLED;
 			}
