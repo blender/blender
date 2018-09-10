@@ -7654,6 +7654,7 @@ static void normals_split(BMesh *bm)
 				}
 				else {
 					BMVert *v_pivot = l_curr->v;
+					UNUSED_VARS_NDEBUG(v_pivot);
 					BMEdge *e_next;
 					const BMEdge *e_org = l_curr->e;
 					BMLoop *lfan_pivot, *lfan_pivot_next;
@@ -7838,6 +7839,7 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					BMVert *v_pivot = l_curr->v;
+					UNUSED_VARS_NDEBUG(v_pivot);
 					BMEdge *e_next;
 					const BMEdge *e_org = l_curr->e;
 					BMLoop *lfan_pivot, *lfan_pivot_next;
