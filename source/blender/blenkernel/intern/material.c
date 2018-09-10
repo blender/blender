@@ -1030,10 +1030,58 @@ static bNode *nodetree_uv_node_recursive(bNode *node)
 	return NULL;
 }
 
+static int count_texture_nodes_recursive(bNodeTree *nodetree)
+{
+	int tex_nodes = 0;
+
+	for (bNode *node = nodetree->nodes.first; node; node = node->next) {
+		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
+			tex_nodes++;
+		}
+		else if (node->type == NODE_GROUP) {
+			/* recurse into the node group and see if it contains any textures */
+			tex_nodes += count_texture_nodes_recursive((bNodeTree *)node->id);
+		}
+	}
+
+	return tex_nodes;
+}
+
+static void fill_texpaint_slots_recursive(bNodeTree *nodetree, bNode *active_node, Material *ma, int *index)
+{
+	for (bNode *node = nodetree->nodes.first; node; node = node->next) {
+		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
+			if (active_node == node) {
+				ma->paint_active_slot = *index;
+			}
+			ma->texpaintslot[*index].ima = (Image *)node->id;
+
+			/* for new renderer, we need to traverse the treeback in search of a UV node */
+			bNode *uvnode = nodetree_uv_node_recursive(node);
+
+			if (uvnode) {
+				NodeShaderUVMap *storage = (NodeShaderUVMap *)uvnode->storage;
+				ma->texpaintslot[*index].uvname = storage->uv_map;
+				/* set a value to index so UI knows that we have a valid pointer for the mesh */
+				ma->texpaintslot[*index].valid = true;
+			}
+			else {
+				/* just invalidate the index here so UV map does not get displayed on the UI */
+				ma->texpaintslot[*index].valid = false;
+			}
+			(*index)++;
+		}
+		else if (node->type == NODE_GROUP) {
+			/* recurse into the node group and see if it contains any textures */
+			fill_texpaint_slots_recursive((bNodeTree *)node->id, active_node, ma, index);
+		}
+	}
+}
+
 void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 {
-	short count = 0;
-	short index = 0;
+	int count = 0;
+	int index = 0;
 
 	if (!ma)
 		return;
@@ -1050,50 +1098,25 @@ void BKE_texpaint_slot_refresh_cache(Scene *scene, Material *ma)
 		return;
 	}
 
-	bNode *node, *active_node;
-
 	if (!(ma->nodetree)) {
 		ma->paint_active_slot = 0;
 		ma->paint_clone_slot = 0;
 		return;
 	}
 
-	for (node = ma->nodetree->nodes.first; node; node = node->next) {
-		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id)
-			count++;
-	}
+	count = count_texture_nodes_recursive(ma->nodetree);
 
 	if (count == 0) {
 		ma->paint_active_slot = 0;
 		ma->paint_clone_slot = 0;
 		return;
 	}
+
 	ma->texpaintslot = MEM_callocN(sizeof(*ma->texpaintslot) * count, "texpaint_slots");
 
-	active_node = nodeGetActiveTexture(ma->nodetree);
+	bNode *active_node = nodeGetActiveTexture(ma->nodetree);
 
-	for (node = ma->nodetree->nodes.first; node; node = node->next) {
-		if (node->typeinfo->nclass == NODE_CLASS_TEXTURE && node->typeinfo->type == SH_NODE_TEX_IMAGE && node->id) {
-			if (active_node == node)
-				ma->paint_active_slot = index;
-			ma->texpaintslot[index].ima = (Image *)node->id;
-
-			/* for new renderer, we need to traverse the treeback in search of a UV node */
-			bNode *uvnode = nodetree_uv_node_recursive(node);
-
-			if (uvnode) {
-				NodeShaderUVMap *storage = (NodeShaderUVMap *)uvnode->storage;
-				ma->texpaintslot[index].uvname = storage->uv_map;
-				/* set a value to index so UI knows that we have a valid pointer for the mesh */
-				ma->texpaintslot[index].valid = true;
-			}
-			else {
-				/* just invalidate the index here so UV map does not get displayed on the UI */
-				ma->texpaintslot[index].valid = false;
-			}
-			index++;
-		}
-	}
+	fill_texpaint_slots_recursive(ma->nodetree, active_node, ma, &index);
 
 	ma->tot_slots = count;
 

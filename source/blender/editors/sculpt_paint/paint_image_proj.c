@@ -5612,13 +5612,24 @@ bool BKE_paint_proj_mesh_data_check(Scene *scene, Object *ob, bool *uvs, bool *m
 }
 
 /* Add layer operator */
+enum {
+	LAYER_BASE_COLOR,
+	LAYER_SPECULAR,
+	LAYER_ROUGHNESS,
+	LAYER_METALLIC,
+	LAYER_NORMAL,
+	LAYER_BUMP,
+	LAYER_DISPLACEMENT
+};
 
 static const EnumPropertyItem layer_type_items[] = {
-	{0, "BASE_COLOR", 0, "Base Color", ""},
-	{1, "EMISSION", 0, "Emission", ""},
-	{2, "NORMAL", 0, "Normal", ""},
-	{3, "BUMP", 0, "Bump", ""},
-	{4, "DISPLACEMENT", 0, "Displacement", ""},
+	{LAYER_BASE_COLOR, "BASE_COLOR", 0, "Base Color", ""},
+	{LAYER_SPECULAR, "SPECULAR", 0, "Specular", ""},
+	{LAYER_ROUGHNESS, "ROUGHNESS", 0, "Roughness", ""},
+	{LAYER_METALLIC, "METALLIC", 0, "Metallic", ""},
+	{LAYER_NORMAL, "NORMAL", 0, "Normal", ""},
+	{LAYER_BUMP, "BUMP", 0, "Bump", ""},
+	{LAYER_DISPLACEMENT, "DISPLACEMENT", 0, "Displacement", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -5662,8 +5673,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 	ma = give_current_material(ob, ob->actcol);
 
 	if (ma) {
-		/* TODO: use type to link to proper socket. */
 		Main *bmain = CTX_data_main(C);
+		int type = RNA_enum_get(op->ptr, "type");
 
 		bNode *imanode;
 		bNodeTree *ntree = ma->nodetree;
@@ -5682,6 +5693,67 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 		imanode->id = &ima->id;
 
 		nodeSetActive(ntree, imanode);
+
+		/* Connect to first available principled bsdf node. */
+		bNode *in_node;
+		in_node = ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
+
+		if (in_node != NULL) {
+			bNode *out_node = imanode;
+			bNodeSocket *out_sock = nodeFindSocket(out_node, SOCK_OUT, "Color");
+			bNodeSocket *in_sock = NULL;
+
+			if (type >= LAYER_BASE_COLOR && type < LAYER_NORMAL) {
+				in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
+			}
+			else if (type == LAYER_NORMAL) {
+				bNode *nor_node;
+				nor_node = nodeAddStaticNode(C, ntree, SH_NODE_NORMAL_MAP);
+
+				in_sock = nodeFindSocket(nor_node, SOCK_IN, "Color");
+				nodeAddLink(ntree, out_node, out_sock, nor_node, in_sock);
+
+				in_sock = nodeFindSocket(in_node, SOCK_IN, "Normal");
+				out_sock = nodeFindSocket(nor_node, SOCK_OUT, "Normal");
+
+				out_node = nor_node;
+			}
+			else if (type == LAYER_BUMP) {
+				bNode *bump_node;
+				bump_node = nodeAddStaticNode(C, ntree, SH_NODE_BUMP);
+
+				in_sock = nodeFindSocket(bump_node, SOCK_IN, "Height");
+				nodeAddLink(ntree, out_node, out_sock, bump_node, in_sock);
+
+				in_sock = nodeFindSocket(in_node, SOCK_IN, "Normal");
+				out_sock = nodeFindSocket(bump_node, SOCK_OUT, "Normal");
+
+				out_node = bump_node;
+			}
+			else if (type == LAYER_DISPLACEMENT) {
+				/* Connect to the displacement output socket */
+				in_node = ntreeFindType(ntree, SH_NODE_OUTPUT_MATERIAL);
+
+				if (in_node != NULL) {
+					in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
+				}
+				else {
+					in_sock = NULL;
+				}
+			}
+
+			if (type > LAYER_BASE_COLOR) {
+				/* This is a "non color data" image */
+				NodeTexImage* tex = imanode->storage;
+				tex->color_space = SHD_COLORSPACE_NONE;
+			}
+
+			/* Check if the socket in already connected to something */
+			bNodeLink *link = in_sock ? in_sock->link : NULL;
+			if (in_sock != NULL && link == NULL) {
+				nodeAddLink(ntree, out_node, out_sock, in_node, in_sock);
+			}
+		}
 
 		ntreeUpdateTree(CTX_data_main(C), ntree);
 
