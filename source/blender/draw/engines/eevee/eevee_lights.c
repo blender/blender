@@ -433,13 +433,22 @@ void EEVEE_lights_cache_shcaster_add(
 }
 
 void EEVEE_lights_cache_shcaster_material_add(
-	EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_PassList *psl, struct GPUMaterial *gpumat,
+	EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct GPUMaterial *gpumat,
 	struct GPUBatch *geom, struct Object *ob, float *alpha_threshold)
 {
 	/* TODO / PERF : reuse the same shading group for objects with the same material */
 	DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);
 
 	if (grp == NULL) return;
+
+	/* Grrr needed for correctness but not 99% of the time not needed.
+	 * TODO detect when needed? */
+	DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
+	DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
+	DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
+	DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
+	DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
+	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
 	if (alpha_threshold != NULL)
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
