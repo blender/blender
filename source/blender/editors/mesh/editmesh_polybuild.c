@@ -165,7 +165,7 @@ static bool edbm_preselect_or_active_init_viewcontext(
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Face At Cursor
+/** \name Face at Cursor
  * \{ */
 
 static int edbm_polybuild_face_at_cursor_invoke(
@@ -306,7 +306,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Poly Build Face At Cursor";
+	ot->name = "Poly Build Face at Cursor";
 	ot->idname = "MESH_OT_polybuild_face_at_cursor";
 	ot->description = "";
 
@@ -324,7 +324,7 @@ void MESH_OT_polybuild_face_at_cursor(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Split At Cursor
+/** \name Split at Cursor
  * \{ */
 
 static int edbm_polybuild_split_at_cursor_invoke(
@@ -388,7 +388,7 @@ static int edbm_polybuild_split_at_cursor_invoke(
 void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Poly Build Split At Cursor";
+	ot->name = "Poly Build Split at Cursor";
 	ot->idname = "MESH_OT_polybuild_split_at_cursor";
 	ot->description = "";
 
@@ -407,7 +407,7 @@ void MESH_OT_polybuild_split_at_cursor(wmOperatorType *ot)
 
 
 /* -------------------------------------------------------------------- */
-/** \name Dissolve At Cursor
+/** \name Dissolve at Cursor
  *
  * \{ */
 
@@ -476,7 +476,7 @@ static int edbm_polybuild_dissolve_at_cursor_invoke(
 void MESH_OT_polybuild_dissolve_at_cursor(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Poly Build Dissolve At Cursor";
+	ot->name = "Poly Build Dissolve at Cursor";
 	ot->idname = "MESH_OT_polybuild_dissolve_at_cursor";
 	ot->description = "";
 
