@@ -103,7 +103,7 @@ def load_image(imagepath,
             path = os.path.abspath(path)
 
         try:
-            image = bpy.data.images.load(path, check_existing)
+            image = bpy.data.images.load(path, check_existing=check_existing)
         except RuntimeError:
             image = None
 
