@@ -209,7 +209,7 @@ void em_setup_viewcontext(struct bContext *C, struct ViewContext *vc);  /* renam
 
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-/* editmesh_preselect.c */
+/* editmesh_preselect_edgering.c */
 struct EditMesh_PreSelEdgeRing;
 struct EditMesh_PreSelEdgeRing *EDBM_preselect_edgering_create(void);
 void EDBM_preselect_edgering_destroy(struct EditMesh_PreSelEdgeRing *psel);
