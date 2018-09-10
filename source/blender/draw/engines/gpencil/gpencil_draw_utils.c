@@ -906,7 +906,10 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	Brush *brush = BKE_brush_getactive_gpencil(ts);
-	bGPdata *gpd = ob->data;
+	bGPdata *gpd_eval = ob->data;
+	/* need the original to avoid cow overhead while drawing */
+	bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
+
 	MaterialGPencilStyle *gp_style = NULL;
 
 	float obscale = mat4_to_scale(ob->obmat);
