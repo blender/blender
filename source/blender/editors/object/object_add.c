@@ -958,7 +958,7 @@ static int object_gpencil_add_exec(bContext *C, wmOperator *op)
 	 * or if "empty" was chosen (i.e. user wants a blank GP canvas)
 	 */
 	if ((gpd == NULL) || (GPENCIL_ANY_MODE(gpd) == false) || (type == GP_EMPTY)) {
-		char *ob_name = NULL;
+		const char *ob_name = NULL;
 		switch (type) {
 			case GP_MONKEY:
 			{
