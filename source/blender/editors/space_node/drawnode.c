@@ -658,7 +658,7 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 		/* Image *ima = imaptr->data; */  /* UNUSED */
 
 		char numstr[32];
-		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, NULL);
 		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
 		uiItemL(layout, numstr, ICON_NONE);
 	}

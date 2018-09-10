@@ -235,7 +235,7 @@ void BKE_object_handle_data_update(
 		case OB_EMPTY:
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE && ob->data)
 				if (BKE_image_is_animated(ob->data))
-					BKE_image_user_check_frame_calc(ob->iuser, (int)ctime, 0);
+					BKE_image_user_check_frame_calc(ob->iuser, (int)ctime);
 			break;
 	}
 

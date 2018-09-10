@@ -78,7 +78,7 @@ void ImageNode::convertToOperations(NodeConverter &converter, const CompositorCo
 	int framenumber = context.getFramenumber();
 	int numberOfOutputs = this->getNumberOfOutputSockets();
 	bool outputStraightAlpha = (editorNode->custom1 & CMP_NODE_IMAGE_USE_STRAIGHT_OUTPUT) != 0;
-	BKE_image_user_frame_calc(imageuser, context.getFramenumber(), 0);
+	BKE_image_user_frame_calc(imageuser, context.getFramenumber());
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type == IMA_TYPE_MULTILAYER) {
 		bool is_multilayer_ok = false;

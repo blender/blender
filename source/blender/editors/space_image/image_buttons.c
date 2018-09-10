@@ -125,7 +125,7 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	/* the frame number, even if we cant */
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
-		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0, NULL);
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, NULL);
 		ofs += BLI_snprintf(str + ofs, len - ofs, IFACE_(", Frame: %d"), framenr);
 	}
 }
@@ -863,7 +863,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	ima = imaptr.data;
 	iuser = userptr->data;
 
-	BKE_image_user_check_frame_calc(iuser, (int)scene->r.cfra, 0);
+	BKE_image_user_check_frame_calc(iuser, (int)scene->r.cfra);
 
 	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
 	cb->ptr = *ptr;

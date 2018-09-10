@@ -3417,7 +3417,7 @@ static ImBuf *load_image_single(
 		flag |= imbuf_alpha_flags_for_image(ima);
 
 		/* get the correct filepath */
-		BKE_image_user_frame_calc(iuser, cfra, 0);
+		BKE_image_user_frame_calc(iuser, cfra);
 
 		if (iuser)
 			iuser_t = *iuser;
@@ -4172,7 +4172,7 @@ void BKE_image_pool_release_ibuf(Image *ima, ImBuf *ibuf, ImagePool *pool)
 	}
 }
 
-int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool *r_is_in_range)
+int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, bool *r_is_in_range)
 {
 	const int len = iuser->frames;
 
@@ -4227,11 +4227,11 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr, bool
 	}
 }
 
-void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_frame_calc(ImageUser *iuser, int cfra)
 {
 	if (iuser) {
 		bool is_in_range;
-		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr, &is_in_range);
+		const int framenr = BKE_image_user_frame_get(iuser, cfra, &is_in_range);
 
 		if (is_in_range) {
 			iuser->flag |= IMA_USER_FRAME_IN_RANGE;
@@ -4250,10 +4250,10 @@ void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
-void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra)
 {
 	if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
-		BKE_image_user_frame_calc(iuser, cfra, fieldnr);
+		BKE_image_user_frame_calc(iuser, cfra);
 
 		iuser->flag &= ~IMA_NEED_FRAME_RECALC;
 	}
@@ -4264,7 +4264,7 @@ static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuse
 {
 	int cfra = *(int *)customdata;
 
-	BKE_image_user_check_frame_calc(iuser, cfra, 0);
+	BKE_image_user_check_frame_calc(iuser, cfra);
 }
 
 void BKE_image_update_frame(const Main *bmain, int cfra)
