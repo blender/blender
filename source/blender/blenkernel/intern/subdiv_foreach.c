@@ -1994,6 +1994,7 @@ bool BKE_subdiv_foreach_subdiv_geometry(
 		                            ctx.num_subdiv_loops,
 		                            ctx.num_subdiv_polygons))
 		{
+			subdiv_foreach_ctx_free(&ctx);
 			return false;
 		}
 	}
