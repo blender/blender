@@ -398,6 +398,20 @@ void GPU_pbvh_grid_buffers_update(
 							normal_float_to_short_v3(no_short, fno);
 							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
 
+							/* Copy normal to first row and last column. */
+							if (k == key->grid_size - 2) {
+								const int next_vbo_index = vbo_index_offset + ((j + 1) * key->grid_size + k + 1);
+								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, next_vbo_index, no_short);
+							}
+							if (j == 0) {
+								int prev_vbo_index = vbo_index_offset + ((j) * key->grid_size + k);
+								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, prev_vbo_index, no_short);
+							}
+							if (j == 0 && k == key->grid_size - 2) {
+								int diag_vbo_index = vbo_index_offset + ((j) * key->grid_size + k + 1);
+								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, diag_vbo_index, no_short);
+							}
+
 							if (has_mask && show_mask) {
 								float fmask = (*CCG_elem_mask(key, elems[0]) +
 								               *CCG_elem_mask(key, elems[1]) +
