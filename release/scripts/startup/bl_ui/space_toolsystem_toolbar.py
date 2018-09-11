@@ -869,6 +869,12 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def bisect():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.bisect")
+            layout.prop(props, "use_fill")
+            layout.prop(props, "clear_inner")
+            layout.prop(props, "clear_outer")
+            layout.prop(props, "threshold")
         return dict(
             text="Bisect",
             icon="ops.mesh.bisect",
@@ -878,6 +884,7 @@ class _defs_edit_mesh:
                  dict(),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
 
