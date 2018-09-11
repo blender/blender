@@ -1171,7 +1171,7 @@ static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
 		float checker_params[3] = {UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
 		/* draw single */
 		GPU_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-		GPU_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&wtb->uniform_params);
+		GPU_batch_uniform_4fv_array(batch, "parameters", MAX_WIDGET_PARAMETERS, (float *)&wtb->uniform_params);
 		GPU_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		GPU_batch_draw(batch);
 	}
