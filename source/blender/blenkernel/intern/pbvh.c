@@ -637,7 +637,6 @@ void BKE_pbvh_free(PBVH *bvh)
 				BLI_gset_free(node->bm_other_verts, NULL);
 		}
 	}
-	GPU_pbvh_multires_buffers_free(&bvh->grid_common_gpu_buffer);
 
 	if (bvh->deformed) {
 		if (bvh->verts) {
@@ -1122,7 +1121,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						        node->totprim,
 						        bvh->grid_hidden,
 						        bvh->gridkey.grid_size,
-						        &bvh->gridkey, &bvh->grid_common_gpu_buffer);
+						        &bvh->gridkey);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =

@@ -38,7 +38,6 @@ struct BMesh;
 struct CCGElem;
 struct CCGKey;
 struct DMFlagMat;
-struct GridCommonGPUBuffer;
 struct GSet;
 struct MLoop;
 struct MLoopTri;
@@ -58,8 +57,7 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
         const int  face_indices_len);
 
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
-        int *grid_indices, int totgrid, unsigned int **grid_hidden, int gridsize, const struct CCGKey *key,
-        struct GridCommonGPUBuffer **grid_common_gpu_buffer);
+        int *grid_indices, int totgrid, unsigned int **grid_hidden, int gridsize, const struct CCGKey *key);
 
 GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading);
 
@@ -98,7 +96,6 @@ bool GPU_pbvh_buffers_has_mask(GPU_PBVH_Buffers *buffers);
 void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, unsigned int pos);
 
 void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers);
-void GPU_pbvh_multires_buffers_free(struct GridCommonGPUBuffer **grid_common_gpu_buffer);
 
 void GPU_pbvh_fix_linking(void);
 
