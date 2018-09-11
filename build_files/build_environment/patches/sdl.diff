@@ -1,4 +1,4 @@
-diff -ru /Users/brecht/dev/lib/deps/Downloads/SDL2-2.0.4/src/video/SDL_video.c ./src/video/SDL_video.c
+diff -ru ./src/video/SDL_video.c ./src/video/SDL_video.c
 --- CMakeLists.txt.old	2016-01-02 12:56:31 -0700
 +++ CMakeLists.txt	2016-10-03 11:24:24 -0600
 @@ -609,7 +609,7 @@
@@ -10,3 +10,23 @@ diff -ru /Users/brecht/dev/lib/deps/Downloads/SDL2-2.0.4/src/video/SDL_video.c .
      if(HAVE_LIBICONV)
        list(APPEND EXTRA_LIBS iconv)
        set(HAVE_ICONV 1)
+--- src/video/SDL_video.c	2018-09-10 23:27:57.000000000 +0200
++++ src/video/SDL_video.c	2018-09-10 23:28:09.000000000 +0200
+@@ -1176,7 +1176,7 @@
+         return 0;
+     }
+ 
+-#ifdef __MACOSX__
++#if defined(__MACOSX__) && SDL_VIDEO_DRIVER_COCOA
+     /* if the window is going away and no resolution change is necessary,
+        do nothing, or else we may trigger an ugly double-transition
+      */
+@@ -2563,7 +2563,7 @@
+         return SDL_FALSE;
+     }
+ 
+-#ifdef __MACOSX__
++#if defined(__MACOSX__) && SDL_VIDEO_DRIVER_COCOA
+     if (SDL_strcmp(_this->name, "cocoa") == 0) {  /* don't do this for X11, etc */
+         if (Cocoa_IsWindowInFullscreenSpace(window)) {
+             return SDL_FALSE;

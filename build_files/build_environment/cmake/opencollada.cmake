@@ -16,7 +16,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
 	set(OPENCOLLADA_EXTRA_ARGS
 		-DLIBXML2_INCLUDE_DIR=${LIBDIR}/xml2/include/libxml2
 		-DLIBXML2_LIBRARIES=${LIBDIR}/xml2/lib/libxml2.a)
@@ -32,7 +32,7 @@ ExternalProject_Add(external_opencollada
 	INSTALL_DIR ${LIBDIR}/opencollada
 )
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
 	add_dependencies(
 		external_opencollada
 		external_xml2

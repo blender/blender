@@ -110,6 +110,7 @@ endfunction()
 
 harvest(alembic/include alembic/include "*.h")
 harvest(alembic/lib/libAlembic.a alembic/lib/libAlembic.a)
+harvest(alembic/bin alembic/bin "*")
 harvest(boost/include boost/include "*")
 harvest(boost/lib boost/lib "*.a")
 harvest(ffmpeg/include ffmpeg/include "*.h")
