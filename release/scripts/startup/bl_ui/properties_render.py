@@ -392,7 +392,6 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
         image_settings = rd.image_settings
-        file_format = image_settings.file_format
 
         layout.prop(rd, "filepath", text="")
 

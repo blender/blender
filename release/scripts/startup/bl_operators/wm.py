@@ -2266,7 +2266,6 @@ class WM_OT_app_template_install(Operator):
     def execute(self, context):
         import traceback
         import zipfile
-        import shutil
         import os
 
         filepath = self.filepath

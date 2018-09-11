@@ -545,7 +545,7 @@ class GPENCIL_MT_pie_settings_palette(Menu):
         gpd = context.gpencil_data
         gpl = context.active_gpencil_layer
         palcolor = context.active_gpencil_palettecolor
-        brush = context.active_gpencil_brush
+        # brush = context.active_gpencil_brush
 
         is_editmode = bool(gpd and gpd.use_stroke_edit_mode and context.editable_gpencil_strokes)
 
