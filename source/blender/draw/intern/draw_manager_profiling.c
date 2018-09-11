@@ -81,7 +81,7 @@ void DRW_stats_free(void)
 
 void DRW_stats_begin(void)
 {
-	if (G.debug_value > 20) {
+	if (G.debug_value > 20 && G.debug_value < 30) {
 		DTP.is_recording = true;
 	}
 
