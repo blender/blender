@@ -98,65 +98,93 @@ static bool bpygpu_vertbuf_fill_impl(
         GPUVertBuf *vbo,
         uint data_id, PyObject *seq)
 {
+	const char *exc_str_size_mismatch = "Expected a %s of size %d, got %d";
+
 	bool ok = true;
 	const GPUVertAttr *attr = &vbo->format.attribs[data_id];
 
-	GPUVertBufRaw data_step;
-	GPU_vertbuf_attr_get_raw_data(vbo, data_id, &data_step);
+	if (PyObject_CheckBuffer(seq)) {
+		Py_buffer pybuffer;
 
-	PyObject *seq_fast = PySequence_Fast(seq, "Vertex buffer fill");
-	if (seq_fast == NULL) {
-		goto finally;
-	}
-
-	const uint seq_len = PySequence_Fast_GET_SIZE(seq_fast);
-
-	if (seq_len != vbo->vertex_len) {
-		PyErr_Format(PyExc_ValueError,
-		             "Expected a sequence of size %d, got %d",
-		             vbo->vertex_len, seq_len);
-	}
-
-	PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
-
-	if (attr->comp_len == 1) {
-		for (uint i = 0; i < seq_len; i++) {
-			uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
-			PyObject *item = seq_items[i];
-			fill_format_elem(data, item, attr);
+		if (PyObject_GetBuffer(seq, &pybuffer, PyBUF_STRIDES | PyBUF_ND) == -1) {
+			/* PyObject_GetBuffer raise a PyExc_BufferError */
+			return false;
 		}
+
+		int comp_len = pybuffer.ndim == 1 ? 1 : pybuffer.shape[1];
+
+		if (pybuffer.shape[0] != vbo->vertex_len) {
+			PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
+			             "sequence", vbo->vertex_len, pybuffer.shape[0]);
+			ok = false;
+		}
+		else if (comp_len != attr->comp_len) {
+			PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
+			            "component", attr->comp_len, comp_len);
+			ok = false;
+		}
+		else {
+			GPU_vertbuf_attr_fill_stride(vbo, data_id, pybuffer.strides[0], pybuffer.buf);
+		}
+
+		PyBuffer_Release(&pybuffer);
 	}
 	else {
-		for (uint i = 0; i < seq_len; i++) {
-			uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
-			PyObject *item = seq_items[i];
-			if (!PyTuple_CheckExact(item)) {
-				PyErr_Format(PyExc_ValueError,
-				             "expected a tuple, got %s",
-				             Py_TYPE(item)->tp_name);
-				ok = false;
-				goto finally;
-			}
-			if (PyTuple_GET_SIZE(item) != attr->comp_len) {
-				PyErr_Format(PyExc_ValueError,
-				             "expected a tuple of size %d, got %d",
-				             attr->comp_len, PyTuple_GET_SIZE(item));
-				ok = false;
-				goto finally;
-			}
+		GPUVertBufRaw data_step;
+		GPU_vertbuf_attr_get_raw_data(vbo, data_id, &data_step);
 
-			/* May trigger error, check below */
-			fill_format_tuple(data, item, attr);
+		PyObject *seq_fast = PySequence_Fast(seq, "Vertex buffer fill");
+		if (seq_fast == NULL) {
+			return false;
 		}
-	}
 
-	if (PyErr_Occurred()) {
-		ok = false;
-	}
+		const uint seq_len = PySequence_Fast_GET_SIZE(seq_fast);
+
+		if (seq_len != vbo->vertex_len) {
+			PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
+			             "sequence", vbo->vertex_len, seq_len);
+		}
+
+		PyObject **seq_items = PySequence_Fast_ITEMS(seq_fast);
+
+		if (attr->comp_len == 1) {
+			for (uint i = 0; i < seq_len; i++) {
+				uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
+				PyObject *item = seq_items[i];
+				fill_format_elem(data, item, attr);
+			}
+		}
+		else {
+			for (uint i = 0; i < seq_len; i++) {
+				uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
+				PyObject *item = seq_items[i];
+				if (!PyTuple_CheckExact(item)) {
+					PyErr_Format(PyExc_ValueError,
+					             "expected a tuple, got %s",
+					             Py_TYPE(item)->tp_name);
+					ok = false;
+					goto finally;
+				}
+				if (PyTuple_GET_SIZE(item) != attr->comp_len) {
+					PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
+					             "tuple", attr->comp_len, PyTuple_GET_SIZE(item));
+					ok = false;
+					goto finally;
+				}
+
+				/* May trigger error, check below */
+				fill_format_tuple(data, item, attr);
+			}
+		}
+
+		if (PyErr_Occurred()) {
+			ok = false;
+		}
 
 finally:
 
-	Py_DECREF(seq_fast);
+		Py_DECREF(seq_fast);
+	}
 	return ok;
 }
 
