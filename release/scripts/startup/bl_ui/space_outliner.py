@@ -140,8 +140,6 @@ class OUTLINER_MT_collection_view_layer(Menu):
     def draw(self, context):
         layout = self.layout
 
-        space = context.space_data
-
         layout.operator("outliner.collection_exclude_set")
         layout.operator("outliner.collection_exclude_clear")
 
@@ -260,7 +258,7 @@ class OUTLINER_PT_filter(Panel):
 
         layout.separator()
 
-        if space.display_mode != 'DATA_API':
+        if display_mode != 'DATA_API':
             layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()

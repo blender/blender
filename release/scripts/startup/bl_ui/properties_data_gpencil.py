@@ -62,7 +62,6 @@ class DATA_PT_gpencil(DataButtonsPanel, Panel):
 
         # Grease Pencil data selector
         gpd_owner = context.gpencil_data_owner
-        gpd = context.gpencil_data
 
         layout.template_ID(gpd_owner, "data")
 

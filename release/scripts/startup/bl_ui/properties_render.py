@@ -377,9 +377,6 @@ class RENDER_PT_encoding_video(RenderButtonsPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        rd = context.scene.render
-        ffmpeg = rd.ffmpeg
-
         self.draw_vcodec(context)
 
     def draw_vcodec(self, context):

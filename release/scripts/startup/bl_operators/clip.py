@@ -662,7 +662,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
                 else:
                     setup_collection_recursively(collection.children, collection_name, attr_name)
 
-        collection = context.collection
         collections = context.scene.collection.children
         vlayers = context.scene.view_layers
 
@@ -971,7 +970,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     def execute(self, context):
         scene = context.scene
-        current_active_layer = scene.active_layer
+        # current_active_layer = scene.active_layer
 
         self._setupScene(context)
         self._setupWorld(context)

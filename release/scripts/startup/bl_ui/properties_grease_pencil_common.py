@@ -587,7 +587,6 @@ class GPENCIL_MT_gpencil_draw_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
-        is_3d_view = context.space_data.type == 'VIEW_3D'
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -605,7 +604,6 @@ class GPENCIL_MT_gpencil_draw_delete(Menu):
 
     def draw(self, context):
         layout = self.layout
-        is_3d_view = context.space_data.type == 'VIEW_3D'
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -631,7 +629,6 @@ class GPENCIL_UL_annotation_layer(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, bpy.types.GPencilLayer)
         gpl = item
-        gpd = context.gpencil_data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             if gpl.lock:

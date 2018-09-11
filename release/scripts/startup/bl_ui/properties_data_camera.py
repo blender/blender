@@ -218,7 +218,6 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         layout.use_property_split = True
 
         cam = context.camera
-        dof_options = cam.gpu_dof
 
         col = layout.column()
         col.prop(cam, "dof_object", text="Focus on Object")

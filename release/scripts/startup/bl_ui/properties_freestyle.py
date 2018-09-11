@@ -116,7 +116,6 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
         view_layer = context.view_layer
         freestyle = view_layer.freestyle_settings
 
@@ -182,9 +181,6 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
 
     def draw(self, context):
         layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
 
         view_layer = context.view_layer
         freestyle = view_layer.freestyle_settings
@@ -613,7 +609,6 @@ class VIEWLAYER_PT_freestyle_linestyle(ViewLayerFreestyleEditorButtonsPanel, Pan
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
         view_layer = context.view_layer
         lineset = view_layer.freestyle_settings.linesets.active
 

@@ -517,7 +517,7 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
 class TEXTURE_UL_texpaintslots(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        mat = data
+        # mat = data
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
@@ -1151,8 +1151,6 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
-        toolsettings = context.tool_settings
-
         col = layout.column()
 
         self.unified_paint_settings(col, context)
@@ -1719,9 +1717,7 @@ class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
         layout.use_property_split = True
         layout.use_property_decorate = False
 
-        gpd = context.gpencil_data
         settings = context.tool_settings.gpencil_sculpt
-        tool = settings.tool
         brush = settings.brush
 
         layout.template_icon_view(settings, "weight_tool", show_labels=True)

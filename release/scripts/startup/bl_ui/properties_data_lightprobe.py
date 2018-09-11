@@ -58,7 +58,6 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        ob = context.object
         probe = context.lightprobe
 
 #        layout.prop(probe, "type")

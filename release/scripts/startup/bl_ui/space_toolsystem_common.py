@@ -60,7 +60,7 @@ def _keymap_fn_from_seq(keymap_data):
             kmi = km.keymap_items.new(op_idname, **kmi_kwargs)
             kmi_props = kmi.properties
             if op_props_dict:
-                _props_assign_recursive(kmi.properties, op_props_dict)
+                _props_assign_recursive(kmi_props, op_props_dict)
     keymap_fn.keymap_data = keymap_data
     return keymap_fn
 
@@ -248,7 +248,6 @@ class ToolSelectPanelHelper:
         """
         Return the active Python tool definition and icon name.
         """
-        workspace = context.workspace
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is not None:
             tool_active = ToolSelectPanelHelper._tool_active_from_context(context, space_type, mode)
@@ -344,7 +343,6 @@ class ToolSelectPanelHelper:
                     keymap_data = item.keymap
                     if keymap_data is not None and callable(keymap_data[0]):
                         text = item.text
-                        icon_name = item.icon
                         cls._km_action_simple(kc, context_mode, text, keymap_data)
 
     # -------------------------------------------------------------------------
@@ -429,7 +427,6 @@ class ToolSelectPanelHelper:
             # 2 column layout, disabled
             if width_scale > 80.0:
                 column_count = 2
-                use_columns = True
             else:
                 column_count = 1
 
@@ -617,7 +614,6 @@ def activate_by_name_or_cycle(context, space_type, text, offset=1):
     for item_group in cls.tools_from_context(context):
         if type(item_group) is tuple:
             index_current = cls._tool_group_active.get(item_group[0].text, 0)
-            ok = False
             for i, sub_item in enumerate(item_group):
                 if sub_item.text == text:
                     text_current = item_group[index_current].text

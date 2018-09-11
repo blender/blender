@@ -67,8 +67,6 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
-        scene = context.scene
-        rd = scene.render
         view_layer = context.view_layer
 
         col = flow.column()

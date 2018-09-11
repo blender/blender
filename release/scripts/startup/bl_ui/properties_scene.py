@@ -523,7 +523,7 @@ class SCENE_PT_simplify(SceneButtonsPanel, Panel):
         self.layout.prop(rd, "use_simplify", text="")
 
     def draw(self, context):
-        layout = self.layout
+        pass
 
 
 class SCENE_PT_simplify_viewport(SceneButtonsPanel, Panel):

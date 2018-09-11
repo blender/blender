@@ -49,9 +49,6 @@ class VIEW3D_HT_header(Header):
         layout.template_header_3D_mode()
 
         # Contains buttons like Mode, Pivot, Layer, Mesh Select Mode...
-        shading_type = view.shading.type
-        shading_item = bpy.types.View3DShading.bl_rna.properties["type"].enum_items[shading_type]
-
         if obj:
             # Set above:
             # object_mode = obj.mode
@@ -1676,7 +1673,6 @@ class VIEW3D_MT_object_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
         obj = context.object
 
         layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
@@ -2658,7 +2654,6 @@ class VIEW3D_MT_edit_mesh(Menu):
 
     def draw(self, context):
         layout = self.layout
-        tool_settings = context.tool_settings
 
         with_bullet = bpy.app.build_options.bullet
 
@@ -2991,8 +2986,6 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
     def draw(self, context):
         layout = self.layout
-
-        with_freestyle = bpy.app.build_options.freestyle
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
@@ -3609,8 +3602,6 @@ class VIEW3D_MT_edit_gpencil(Menu):
     bl_label = "Strokes"
 
     def draw(self, context):
-        tool_settings = context.tool_settings
-
         layout = self.layout
 
         layout.menu("VIEW3D_MT_edit_gpencil_transform")
@@ -4066,14 +4057,12 @@ class VIEW3D_PT_shading_options(Panel):
         is_xray = shading.show_xray
         is_shadows = shading.show_shadows
 
-        icon_x = 'CHECKBOX_HLT' if is_xray else 'CHECKBOX_DEHLT'
         row = col.row()
         row.prop(shading, "show_xray", text="")
         sub = row.row()
         sub.active = is_xray
         sub.prop(shading, "xray_alpha", text="X-Ray")
 
-        icon_s = 'CHECKBOX_HLT' if is_shadows else 'CHECKBOX_DEHLT'
         row = col.row()
         row.prop(shading, "show_shadows", text="")
         row.active = not is_xray
@@ -4249,7 +4238,6 @@ class VIEW3D_PT_overlay_object(Panel):
         layout = self.layout
         view = context.space_data
         overlay = view.overlay
-        shading = view.shading
         display_all = overlay.show_overlays
 
         col = layout.column(align=True)
@@ -4357,7 +4345,6 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         overlay = view.overlay
         display_all = overlay.show_overlays
         data = context.active_object.data
-        with_freestyle = bpy.app.build_options.freestyle
 
         col = layout.column()
         col.active = display_all
@@ -4722,7 +4709,6 @@ class VIEW3D_PT_snapping(Panel):
         toolsettings = context.tool_settings
         snap_elements = toolsettings.snap_elements
         obj = context.active_object
-        mode = context.mode
         object_mode = 'OBJECT' if obj is None else obj.mode
 
         layout = self.layout

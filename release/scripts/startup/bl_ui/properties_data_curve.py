@@ -358,7 +358,6 @@ class DATA_PT_font_transform(CurveButtonsPanelText, Panel):
         layout = self.layout
 
         text = context.curve
-        char = context.curve.edit_format
 
         layout.use_property_split = True
 
@@ -387,9 +386,8 @@ class DATA_PT_paragraph(CurveButtonsPanelText, Panel):
     bl_label = "Paragraph"
 
     def draw(self, context):
-        layout = self.layout
-
-        text = context.curve
+        # Parent panel
+        pass
 
 
 class DATA_PT_paragraph_alignment(CurveButtonsPanelText, Panel):

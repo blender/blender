@@ -171,7 +171,6 @@ class SelectHierarchy(Operator):
         return context.object
 
     def execute(self, context):
-        scene = context.scene
         view_layer = context.view_layer
         select_new = []
         act_new = None

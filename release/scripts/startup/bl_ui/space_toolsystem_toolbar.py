@@ -1227,7 +1227,6 @@ class _defs_gpencil_paint:
         if ob and ob.mode == 'GPENCIL_PAINT':
             brush = context.active_gpencil_brush
             gp_settings = brush.gpencil_settings
-            tool_settings = context.tool_settings
 
             if gp_settings.gpencil_brush_type == 'ERASE':
                 row = layout.row()
