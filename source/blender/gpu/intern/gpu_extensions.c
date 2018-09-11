@@ -265,18 +265,6 @@ void gpu_extensions_exit(void)
 	GPU_invalid_tex_free();
 }
 
-bool GPU_full_non_power_of_two_support(void)
-{
-	/* always supported on full GL but still relevant for OpenGL ES 2.0 where
-	 * NPOT textures can't use mipmaps or repeat wrap mode */
-	return true;
-}
-
-bool GPU_bicubic_bump_support(void)
-{
-	return GLEW_VERSION_4_0 || (GLEW_ARB_texture_query_lod && GLEW_VERSION_3_0);
-}
-
 int GPU_color_depth(void)
 {
 	return GG.colordepth;

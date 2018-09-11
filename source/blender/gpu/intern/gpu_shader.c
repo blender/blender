@@ -258,9 +258,6 @@ static void gpu_shader_standard_defines(
 	else if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY))
 		strcat(defines, "#define GPU_INTEL\n");
 
-	if (GPU_bicubic_bump_support())
-		strcat(defines, "#define BUMP_BICUBIC\n");
-
 #ifdef WITH_OPENSUBDIV
 	/* TODO(sergey): Check whether we actually compiling shader for
 	 * the OpenSubdiv mesh.
