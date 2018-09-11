@@ -64,6 +64,7 @@ static ThreadMutex buffer_mutex = BLI_MUTEX_INITIALIZER;
 typedef struct GridCommonGPUBuffer {
 	GPUIndexBuf *mres_buffer;
 	int mres_prev_gridsize;
+	int mres_prev_totgrid;
 	unsigned mres_prev_totquad;
 } GridCommonGPUBuffer;
 
@@ -499,10 +500,11 @@ static GPUIndexBuf *gpu_get_grid_buffer(
 		gridbuff->mres_buffer = NULL;
 		gridbuff->mres_prev_gridsize = -1;
 		gridbuff->mres_prev_totquad = 0;
+		gridbuff->mres_prev_totgrid = 0;
 	}
 
 	/* VBO is already built */
-	if (gridbuff->mres_buffer && gridbuff->mres_prev_gridsize == gridsize) {
+	if (gridbuff->mres_buffer && gridbuff->mres_prev_gridsize == gridsize && gridbuff->mres_prev_totgrid == totgrid) {
 		*totquad = gridbuff->mres_prev_totquad;
 		return gridbuff->mres_buffer;
 	}
@@ -520,6 +522,7 @@ static GPUIndexBuf *gpu_get_grid_buffer(
 
 	gridbuff->mres_prev_gridsize = gridsize;
 	gridbuff->mres_prev_totquad = *totquad;
+	gridbuff->mres_prev_totgrid = totgrid;
 	return gridbuff->mres_buffer;
 }
 
