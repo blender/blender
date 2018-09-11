@@ -9,10 +9,7 @@ float sample_depth(vec2 uv, int index, float lod)
 	else {
 #endif
 		/* Correct UVs for mipmaping mis-alignment */
-		/* + 1.0 because we are using half res maxzBuffer
-		 * and mipRatio starts at on mip 0. */
-		int mip = int(lod + 1.0);
-		uv *= mipRatio[mip];
+		uv *= mipRatio[int(lod) + hizMipOffset];
 		return textureLod(maxzBuffer, uv, lod).r;
 #ifdef PLANAR_PROBE_RAYTRACE
 	}

@@ -60,8 +60,9 @@ vec2 get_ao_dir(float jitter)
 
 void get_max_horizon_grouped(vec4 co1, vec4 co2, vec3 x, float lod, inout float h)
 {
-	co1 *= mipRatio[int(lod + 1.0)].xyxy; /* +1 because we are using half res top level */
-	co2 *= mipRatio[int(lod + 1.0)].xyxy; /* +1 because we are using half res top level */
+	int mip = int(lod) + hizMipOffset;
+	co1 *= mipRatio[mip].xyxy;
+	co2 *= mipRatio[mip].xyxy;
 
 	float depth1 = textureLod(maxzBuffer, co1.xy, floor(lod)).r;
 	float depth2 = textureLod(maxzBuffer, co1.zw, floor(lod)).r;

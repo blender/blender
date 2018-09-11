@@ -36,6 +36,8 @@ layout(std140) uniform common_block {
 	int prbIrradianceVisSize;
 	float prbLodCubeMax;
 	float prbLodPlanarMax;
+	/* Misc*/
+	int hizMipOffset;
 };
 
 /* aoParameters */

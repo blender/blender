@@ -243,6 +243,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *maxz_downdepth_layer_ps;
 	struct DRWPass *minz_copydepth_ps;
 	struct DRWPass *maxz_copydepth_ps;
+	struct DRWPass *maxz_copydepth_layer_ps;
 
 	struct DRWPass *depth_pass;
 	struct DRWPass *depth_pass_cull;
@@ -651,6 +652,8 @@ typedef struct EEVEE_CommonUniformBuffer {
 	int prb_irradiance_vis_size; /* int */
 	float prb_lod_cube_max; /* float */
 	float prb_lod_planar_max; /* float */
+	/* Misc */
+	int hiz_mip_offset; /* int */
 } EEVEE_CommonUniformBuffer;
 
 /* ***************** CLIP PLANES DATA **************** */
