@@ -341,13 +341,13 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
 	Cloth *cloth = clmd->clothObject;
 	ClothSimSettings *parms = clmd->sim_parms;
 	Implicit_Data *data = cloth->implicit;
-	bool new_compress = parms->bending_model == CLOTH_BENDING_ANGULAR;
-	bool resist_compress = (parms->flags & CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS) && !new_compress;
+	bool using_angular = parms->bending_model == CLOTH_BENDING_ANGULAR;
+	bool resist_compress = (parms->flags & CLOTH_SIMSETTINGS_FLAG_RESIST_SPRING_COMPRESS) && !using_angular;
 
 	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 
 	/* Calculate force of bending springs. */
-	if (s->type & CLOTH_SPRING_TYPE_BENDING) {
+	if ((s->type & CLOTH_SPRING_TYPE_BENDING) && using_angular) {
 #ifdef CLOTH_FORCE_SPRING_BEND
 		float k, scaling;
 
@@ -386,7 +386,7 @@ BLI_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s)
 			BPH_mass_spring_force_spring_linear(data, s->ij, s->kl, s->restlen,
 			                                    k_tension, parms->tension_damp,
 			                                    k_compression, parms->compression_damp,
-			                                    resist_compress, new_compress, 0.0f);
+			                                    resist_compress, using_angular, 0.0f);
 		}
 #endif
 	}
