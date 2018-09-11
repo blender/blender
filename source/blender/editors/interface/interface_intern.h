@@ -674,7 +674,9 @@ void ui_popup_block_scrolltest(struct uiBlock *block);
 extern int ui_handler_panel_region(
         struct bContext *C, const struct wmEvent *event,
         struct ARegion *ar, const uiBut *active_but);
-extern void ui_draw_aligned_panel(struct uiStyle *style, uiBlock *block, const rcti *rect, const bool show_pin);
+extern void ui_draw_aligned_panel(
+        struct uiStyle *style, uiBlock *block, const rcti *rect,
+        const bool show_pin, const bool show_background);
 
 /* interface_draw.c */
 extern void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha, int select);

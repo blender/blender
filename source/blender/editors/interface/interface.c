@@ -1465,8 +1465,12 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 		ui_draw_popover_back(ar, &style, block, &rect);
 	else if (block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
-	else if (block->panel)
-		ui_draw_aligned_panel(&style, block, &rect, UI_panel_category_is_visible(ar));
+	else if (block->panel) {
+		bool show_background = ar->alignment != RGN_ALIGN_FLOAT;
+		ui_draw_aligned_panel(
+		        &style, block, &rect,
+		        UI_panel_category_is_visible(ar), show_background);
+	}
 
 	BLF_batch_draw_begin();
 	UI_icon_draw_cache_begin();

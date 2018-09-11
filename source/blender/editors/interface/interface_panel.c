@@ -381,6 +381,9 @@ Panel *UI_panel_begin(ScrArea *sa, ARegion *ar, ListBase *lb, uiBlock *block, Pa
 	/* assign to block */
 	block->panel = pa;
 	pa->runtime_flag |= PNL_ACTIVE | PNL_LAST_ADDED;
+	if (ar->alignment == RGN_ALIGN_FLOAT) {
+		UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
+	}
 
 	*r_open = false;
 
@@ -652,7 +655,9 @@ static void ui_draw_aligned_panel_header(uiStyle *style, uiBlock *block, const r
 }
 
 /* panel integrated in buttonswindow, tool/property lists etc */
-void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, const bool show_pin)
+void ui_draw_aligned_panel(
+        uiStyle *style, uiBlock *block, const rcti *rect,
+        const bool show_pin, const bool show_background)
 {
 	Panel *panel = block->panel;
 	rcti headrect;
@@ -661,7 +666,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	const bool is_closed_x = (panel->flag & PNL_CLOSEDX) ? true : false;
 	const bool is_closed_y = (panel->flag & PNL_CLOSEDY) ? true : false;
 	const bool is_subpanel = (panel->type && panel->type->parent);
-	const bool show_drag = !is_subpanel;
+	const bool show_drag = (
+	        !is_subpanel &&
+	        /* FIXME(campbell): currently no background means floating panel which can't be dragged.
+	         * This may be changed in future. */
+	        show_background);
 
 	if (panel->paneltab) return;
 	if (panel->type && (panel->type->flag & PNL_NO_HEADER)) return;
@@ -680,7 +689,7 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	if (!is_subpanel) {
+	if (show_background && !is_subpanel) {
 		float minx = rect->xmin;
 		float maxx = is_closed_x ? (minx + PNL_HEADER / block->aspect) : rect->xmax;
 		float y = headrect.ymax;
@@ -775,11 +784,13 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 		GPU_blend(true);
 
-		/* panel backdrop */
-		int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
+		if (show_background) {
+			/* panel backdrop */
+			int panel_col = is_subpanel ? TH_PANEL_SUB_BACK : TH_PANEL_BACK;
 
-		immUniformThemeColor(panel_col);
-		immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+			immUniformThemeColor(panel_col);
+			immRectf(pos, rect->xmin, rect->ymin, rect->xmax, rect->ymax);
+		}
 
 		if (panel->control & UI_PNL_SCALE)
 			ui_draw_panel_scalewidget(pos, rect);
@@ -1199,7 +1210,9 @@ void UI_panels_draw(const bContext *C, ARegion *ar)
 {
 	uiBlock *block;
 
-	UI_ThemeClearColor(TH_BACK);
+	if (ar->alignment != RGN_ALIGN_FLOAT) {
+		UI_ThemeClearColor(TH_BACK);
+	}
 
 	/* Draw panels, selected on top. Also in reverse order, because
 	 * UI blocks are added in reverse order and we need child panels

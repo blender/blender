@@ -203,12 +203,7 @@ static void hud_region_draw(const bContext *C, ARegion *ar)
 	GPU_clear(GPU_COLOR_BIT);
 
 	if ((ar->flag & RGN_FLAG_HIDDEN) == 0) {
-		float color[4];
-		UI_GetThemeColor4fv(TH_BUTBACK, color);
-		if ((U.uiflag2 & USER_REGION_OVERLAP) == 0) {
-			color[3] = 1.0f;
-		}
-		ui_draw_widget_back_color(UI_WTYPE_BOX, false, &(rcti){.xmax = ar->winx, .ymax = ar->winy}, color);
+		ui_draw_menu_back(NULL, NULL, &(rcti){.xmax = ar->winx, .ymax = ar->winy});
 		ED_region_panels_draw(C, ar);
 	}
 }
