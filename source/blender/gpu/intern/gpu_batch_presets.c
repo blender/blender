@@ -221,12 +221,23 @@ void gpu_batch_presets_register(GPUBatch *preset_batch)
 	BLI_addtail(&presets_list, BLI_genericNodeN(preset_batch));
 }
 
+bool gpu_batch_presets_unregister(GPUBatch *preset_batch)
+{
+	for (LinkData *link = presets_list.last; link; link = link->prev) {
+		if (preset_batch == link->data) {
+			BLI_remlink(&presets_list, link);
+			MEM_freeN(link);
+			return true;
+		}
+	}
+	return false;
+}
+
 void gpu_batch_presets_reset(void)
 {
 	/* Reset vao caches for these every time we switch opengl context.
 	 * This way they will draw correctly for each window. */
-	LinkData *link = presets_list.first;
-	for (link = presets_list.first; link; link = link->next) {
+	for (LinkData *link = presets_list.first; link; link = link->next) {
 		GPUBatch *preset = link->data;
 		GPU_batch_vao_cache_clear(preset);
 	}
