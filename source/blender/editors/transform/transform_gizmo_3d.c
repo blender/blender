@@ -57,6 +57,7 @@
 #include "BKE_gpencil.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
+#include "BKE_object.h"
 
 #include "BIF_gl.h"
 
@@ -1067,13 +1068,19 @@ int ED_transform_calc_gizmo_stats(
 			if (ob == NULL) {
 				ob = base->object;
 			}
-			if (params->use_only_center || base->object->bb == NULL) {
+
+			/* Get the boundbox out of the evaluated object. */
+			if (params->use_only_center == false) {
+				bb = BKE_object_boundbox_get(base->object);
+			}
+
+			if (params->use_only_center || (bb == NULL)) {
 				calc_tw_center(tbounds, base->object->obmat[3]);
 			}
 			else {
 				for (uint j = 0; j < 8; j++) {
 					float co[3];
-					mul_v3_m4v3(co, base->object->obmat, base->object->bb->vec[j]);
+					mul_v3_m4v3(co, base->object->obmat, bb->vec[j]);
 					calc_tw_center(tbounds, co);
 				}
 			}
