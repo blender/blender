@@ -1183,6 +1183,7 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 		 *
 		 * This aligns to the lower left of the area.
 		 */
+		const int size_min[2] = {UI_UNIT_X, UI_UNIT_Y};
 		rcti overlap_remainder_margin = *overlap_remainder;
 		BLI_rcti_resize(
 		        &overlap_remainder_margin,
@@ -1194,8 +1195,17 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 		ar->winrct.ymax = ar->winrct.ymin + ar->sizey - 1;
 
 		BLI_rcti_isect(&ar->winrct, &overlap_remainder_margin, &ar->winrct);
-		if (BLI_rcti_size_x(&ar->winrct) < UI_UNIT_X ||
-		    BLI_rcti_size_y(&ar->winrct) < UI_UNIT_Y)
+
+		/* We need to use a test that wont have been previously clamped. */
+		rcti winrct_test = {
+			.xmin = ar->winrct.xmin,
+			.ymin = ar->winrct.ymin,
+			.xmax = ar->winrct.xmin + size_min[0],
+			.ymax = ar->winrct.ymin + size_min[1],
+		};
+		BLI_rcti_isect(&winrct_test, &overlap_remainder_margin, &winrct_test);
+		if (BLI_rcti_size_x(&winrct_test) < size_min[0] ||
+		    BLI_rcti_size_y(&winrct_test) < size_min[1])
 		{
 			ar->flag |= RGN_FLAG_TOO_SMALL;
 		}
