@@ -36,8 +36,12 @@ struct ModifierData;
 struct ParticleSystem;
 struct PTCacheEdit;
 
+#define UBO_FIRST_COLOR colorWire
+#define UBO_LAST_COLOR colorGridAxisZ
+
 /* Used as ubo but colors can be directly referenced as well */
 /* Keep in sync with: common_globals_lib.glsl (globalsBlock) */
+/* NOTE! Also keep all color as vec4 and between UBO_FIRST_COLOR and UBO_LAST_COLOR */
 typedef struct GlobalsUboStorage {
 	/* UBOs data needs to be 16 byte aligned (size of vec4) */
 	float colorWire[4];
@@ -98,6 +102,8 @@ typedef struct GlobalsUboStorage {
 	float colorGridAxisX[4];
 	float colorGridAxisY[4];
 	float colorGridAxisZ[4];
+
+	/* NOTE! Put all color before UBO_LAST_COLOR */
 
 	/* Pack individual float at the end of the buffer to avoid alignement errors */
 	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;

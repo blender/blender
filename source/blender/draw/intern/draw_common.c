@@ -132,6 +132,16 @@ void DRW_globals_update(void)
 	ts.sizeEdge = U.pixelsize * (1.0f / 2.0f); /* TODO Theme */
 	ts.sizeEdgeFix = U.pixelsize * (0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2));
 
+	/* Color management. */
+	if (DRW_state_is_image_render()) {
+		float *color = ts.UBO_FIRST_COLOR;
+		do {
+			/* TODO more accurate transform. */
+			srgb_to_linearrgb_v4(color, color);
+			color += 4;
+		} while (color != ts.UBO_LAST_COLOR);
+	}
+
 	if (globals_ubo == NULL) {
 		globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
 	}
