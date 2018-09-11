@@ -1570,7 +1570,7 @@ void DRW_draw_render_loop_ex(
 		ED_view3d_draw_bgpic_test(scene, depsgraph, ar, v3d, true, true);
 	}
 
-	if (G.debug_value > 20) {
+	if (G.debug_value > 20 && G.debug_value < 30) {
 		glDisable(GL_DEPTH_TEST);
 		rcti rect; /* local coordinate visible rect inside region, to accomodate overlapping ui */
 		ED_region_visible_rect(DST.draw_ctx.ar, &rect);

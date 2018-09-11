@@ -1012,7 +1012,9 @@ DRWPass *DRW_pass_create(const char *name, DRWState state)
 {
 	DRWPass *pass = BLI_mempool_alloc(DST.vmempool->passes);
 	pass->state = state;
-	if ((G.debug_value > 20) || (G.debug & G_DEBUG)) {
+	if (((G.debug_value > 20) && (G.debug_value < 30)) ||
+	     (G.debug & G_DEBUG))
+	{
 		BLI_strncpy(pass->name, name, MAX_PASS_NAME);
 	}
 
