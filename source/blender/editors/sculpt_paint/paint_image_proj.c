@@ -5744,7 +5744,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 
 			if (type > LAYER_BASE_COLOR) {
 				/* This is a "non color data" image */
-				NodeTexImage* tex = imanode->storage;
+				NodeTexImage *tex = imanode->storage;
 				tex->color_space = SHD_COLORSPACE_NONE;
 			}
 

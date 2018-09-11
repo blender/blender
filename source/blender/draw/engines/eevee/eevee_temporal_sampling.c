@@ -350,8 +350,8 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 
 			/* Do reprojection for noise reduction */
 			/* TODO : do AA jitter if in only render view. */
-			if (!DRW_state_is_image_render() && 
-				(effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0 &&
+			if (!DRW_state_is_image_render() &&
+			    (effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0 &&
 			    stl->g_data->valid_taa_history)
 			{
 				GPU_framebuffer_bind(effects->target_buffer);

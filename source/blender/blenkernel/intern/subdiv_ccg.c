@@ -180,9 +180,10 @@ static void subdiv_ccg_eval_grid_element(
 	}
 }
 
-BLI_INLINE void rotate_corner_to_quad(const int corner,
-	                                  const float u, const float v,
-                                      float *r_u, float *r_v)
+BLI_INLINE void rotate_corner_to_quad(
+        const int corner,
+        const float u, const float v,
+        float *r_u, float *r_v)
 {
 	if (corner == 0) {
 		*r_u = 0.5f - v * 0.5f;
@@ -281,9 +282,10 @@ static void subdiv_ccg_eval_grids_task(
 	}
 }
 
-static bool subdiv_ccg_evaluate_grids(SubdivCCG *subdiv_ccg,
-	                                  Subdiv *subdiv,
-                                      const Mesh *coarse_mesh)
+static bool subdiv_ccg_evaluate_grids(
+        SubdivCCG *subdiv_ccg,
+        Subdiv *subdiv,
+        const Mesh *coarse_mesh)
 {
 	/* Make sure evaluator is ready. */
 	if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
