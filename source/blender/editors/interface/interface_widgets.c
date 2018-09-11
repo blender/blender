@@ -1473,7 +1473,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 #endif
 
 	/* cut string in 2 parts - only for menu entries */
-	if ((but->block->flag & UI_BLOCK_LOOP) &&
+	if ((but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) &&
 	    (but->editstr == NULL))
 	{
 		if (but->flag & UI_BUT_HAS_SEP_CHAR) {
@@ -3749,7 +3749,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					wt->wcol_theme = &tui->wcol_box;
 					wt->state = widget_state;
 				}
-				else if (but->block->flag & UI_BLOCK_LOOP) {
+				else if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
 					wt->wcol_theme = &tui->wcol_menu_back;
 					wt->state = widget_state;
 				}
@@ -3785,8 +3785,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 			case UI_BTYPE_SEARCH_MENU:
 				wt = widget_type(UI_WTYPE_NAME);
-				if (but->block->flag & UI_BLOCK_LOOP)
+				if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
 					wt->wcol_theme = &btheme->tui.wcol_menu_back;
+				}
 				break;
 
 			case UI_BTYPE_BUT_TOGGLE:
@@ -3805,9 +3806,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					wt = widget_type(UI_WTYPE_TOGGLE);
 
 				/* option buttons have strings outside, on menus use different colors */
-				if (but->block->flag & UI_BLOCK_LOOP)
+				if (but->block->theme_style == UI_BLOCK_THEME_STYLE_POPUP) {
 					wt->state = widget_state_option_menu;
-
+				}
 				break;
 
 			case UI_BTYPE_MENU:

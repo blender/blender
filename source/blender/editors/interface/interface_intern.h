@@ -404,9 +404,10 @@ struct uiBlock {
 	short alignnr;
 
 	char direction;
+	char theme_style; /* UI_BLOCK_THEME_STYLE_* */
 	char dt; /* drawtype: UI_EMBOSS, UI_EMBOSS_NONE ... etc, copied to buttons */
 	bool auto_open;
-	char _pad[7];
+	char _pad[6];
 	double auto_open_last;
 
 	const char *lockstr;
