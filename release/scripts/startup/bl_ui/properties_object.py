@@ -328,6 +328,7 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
 
 from .properties_animviz import (
     MotionPathButtonsPanel,
+    MotionPathButtonsPanel_display,
     OnionSkinButtonsPanel,
 )
 
@@ -335,6 +336,26 @@ from .properties_animviz import (
 class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Object Motion Paths"
     bl_context = "object"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.object)
+
+    def draw(self, context):
+        # layout = self.layout
+
+        ob = context.object
+        avs = ob.animation_visualization
+        mpath = ob.motion_path
+
+        self.draw_settings(context, avs, mpath)
+
+
+class OBJECT_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
+    #bl_label = "Object Motion Paths"
+    bl_context = "object"
+    bl_parent_id = "OBJECT_PT_motion_paths"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -381,6 +402,7 @@ classes = (
     OBJECT_PT_duplication,
     OBJECT_PT_display,
     OBJECT_PT_motion_paths,
+    OBJECT_PT_motion_paths_display,
     OBJECT_PT_custom_props,
 )
 

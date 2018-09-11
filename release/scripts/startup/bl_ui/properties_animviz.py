@@ -38,63 +38,67 @@ class MotionPathButtonsPanel:
 
         # Display Range
         layout.use_property_split = True
-        layout.row().prop(mps, "type")
 
-        col = layout.column()
+        layout.prop(mps, "type")
 
-        sub = col.column(align=True)
         if mps.type == 'CURRENT_FRAME':
-            sub.prop(mps, "frame_before", text="Frame Range Before")
-            sub.prop(mps, "frame_after", text="After")
+            col = layout.column(align=True)
+            col.prop(mps, "frame_before", text="Frame Range Before")
+            col.prop(mps, "frame_after", text="After")
+            col.prop(mps, "frame_step", text="Step")
         elif mps.type == 'RANGE':
+            row = layout.row()
+            sub = row.column()
+            if mps.type == 'RANGE':
+                if bones:
+                    sub.operator("pose.paths_range_update", text="", icon='TIME')
+                else:
+                    sub.operator("object.paths_range_update", text="", icon='TIME')
+            sub = row.column(align=True)
             sub.prop(mps, "frame_start", text="Frame Range Start")
             sub.prop(mps, "frame_end", text="End")
-
-        sub.prop(mps, "frame_step", text="Step")
-
-        if mps.type == 'RANGE':
-            if bones:
-                sub.operator("pose.paths_range_update")
-            else:
-                sub.operator("object.paths_range_update")
-
-        col = layout.column(align=True)
-        if bones:
-            col.label(text="Cache for Bone:")
-        else:
-            col.label(text="Cache")
+            sub.prop(mps, "frame_step", text="Step")
 
         if mpath:
-            sub = col.column(align=True)
-            sub.enabled = False
-            sub.prop(mpath, "frame_start", text="From")
-            sub.prop(mpath, "frame_end", text="To")
-
-            sub = col.row(align=True)
+            col = layout.column(align=True)
+            col.enabled = False
             if bones:
-                sub.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
-                sub.operator("pose.paths_clear", text="", icon='X')
+                col.prop(mpath, "frame_start", text="Bone Cache From")
             else:
-                sub.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
-                sub.operator("object.paths_clear", text="", icon='X')
+                col.prop(mpath, "frame_start", text="Cache From")
+            col.prop(mpath, "frame_end", text="To")
+
+            row = layout.row(align=True)
+            if bones:
+                row.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
+                row.operator("pose.paths_clear", text="", icon='X')
+            else:
+                row.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
+                row.operator("object.paths_clear", text="", icon='X')
         else:
-            sub = col.column(align=True)
-            sub.label(text="Nothing to show yet...", icon='ERROR')
+            col = layout.column(align=True)
+            col.label(text="Nothing to show yet...", icon='ERROR')
             if bones:
-                sub.operator("pose.paths_calculate", text="Calculate...", icon='BONE_DATA')
+                col.operator("pose.paths_calculate", text="Calculate...", icon='BONE_DATA')
             else:
-                sub.operator("object.paths_calculate", text="Calculate...", icon='OBJECT_DATA')
+                col.operator("object.paths_calculate", text="Calculate...", icon='OBJECT_DATA')
 
-        # Display Settings
 
-        layout.label(text="Display")
+class MotionPathButtonsPanel_display:
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_label = "Display"
+
+    def draw_settings(self, context, avs, mpath, bones=False):
+        layout = self.layout
+
+        mps = avs.motion_path
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         col = layout.column()
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
-        if mpath is not None:
-            col.prop(mpath, "lines", text="Lines")
-            col.prop(mpath, "line_thickness", text="Thickness")
-
         col.prop(mps, "show_keyframe_highlight", text="Keyframes")
         sub = col.column()
         sub.enabled = mps.show_keyframe_highlight
@@ -104,11 +108,15 @@ class MotionPathButtonsPanel:
 
         # Customize path
         if mpath is not None:
+            col.prop(mpath, "lines", text="Lines")
+            col.prop(mpath, "line_thickness", text="Thickness")
 
-            col.prop(mpath, "use_custom_color", text="Custom Color")
-            sub = col.column()
+            split = col.split(factor=0.6)
+
+            split.prop(mpath, "use_custom_color", text="Custom Color")
+            sub = split.column()
             sub.enabled = mpath.use_custom_color
-            sub.prop(mpath, "color")
+            sub.prop(mpath, "color", text="")
 
 
 # FIXME: this panel still needs to be ported so that it will work correctly with animviz

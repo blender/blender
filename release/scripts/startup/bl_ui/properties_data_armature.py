@@ -288,6 +288,7 @@ class DATA_PT_iksolver_itasc(ArmatureButtonsPanel, Panel):
 
 from .properties_animviz import (
     MotionPathButtonsPanel,
+    MotionPathButtonsPanel_display,
     OnionSkinButtonsPanel,
 )
 
@@ -295,6 +296,29 @@ from .properties_animviz import (
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Bones Motion Paths"
     bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        # XXX: include pose-mode check?
+        return (context.object) and (context.armature)
+
+    def draw(self, context):
+        # layout = self.layout
+
+        ob = context.object
+        avs = ob.pose.animation_visualization
+
+        pchan = context.active_pose_bone
+        mpath = pchan.motion_path if pchan else None
+
+        self.draw_settings(context, avs, mpath, bones=True)
+
+
+class DATA_PT_motion_paths_display(MotionPathButtonsPanel_display, Panel):
+    #bl_label = "Bones Motion Paths"
+    bl_context = "data"
+    bl_parent_id = "DATA_PT_motion_paths"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -342,6 +366,7 @@ classes = (
     DATA_PT_bone_groups,
     DATA_PT_pose_library,
     DATA_PT_motion_paths,
+    DATA_PT_motion_paths_display,
     DATA_PT_ghost,
     DATA_PT_iksolver_itasc,
     DATA_PT_custom_props_arm,
