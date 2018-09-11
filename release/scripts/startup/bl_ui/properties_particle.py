@@ -705,7 +705,6 @@ class PARTICLE_PT_physics_fluid_advanced(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         fluid = part.fluid
 
@@ -755,7 +754,6 @@ class PARTICLE_PT_physics_fluid_springs(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         fluid = part.fluid
 
@@ -780,7 +778,6 @@ class PARTICLE_PT_physics_fluid_springs_viscoelastic(ParticleButtonsPanel, Panel
             return False
 
     def draw_header(self, context):
-        # psys = context.particle_system
         part = particle_get_settings(context)
         fluid = part.fluid
 
@@ -790,7 +787,6 @@ class PARTICLE_PT_physics_fluid_springs_viscoelastic(ParticleButtonsPanel, Panel
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         fluid = part.fluid
 
@@ -824,7 +820,6 @@ class PARTICLE_PT_physics_fluid_springs_advanced(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         fluid = part.fluid
 
@@ -848,7 +843,6 @@ class PARTICLE_PT_physics_boids_movement(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         boids = part.boids
 
@@ -902,7 +896,6 @@ class PARTICLE_PT_physics_boids_battle(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         boids = part.boids
 
@@ -930,7 +923,6 @@ class PARTICLE_PT_physics_boids_misc(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
         boids = part.boids
 
@@ -1248,7 +1240,6 @@ class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1274,7 +1265,6 @@ class PARTICLE_PT_render_line(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1301,7 +1291,6 @@ class PARTICLE_PT_render_path(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1366,7 +1355,6 @@ class PARTICLE_PT_render_object(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1393,7 +1381,6 @@ class PARTICLE_PT_render_collection(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1432,7 +1419,6 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1498,7 +1484,6 @@ class PARTICLE_PT_render_billboards_tilt(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1567,7 +1552,6 @@ class PARTICLE_PT_render_trails(ParticleButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         col = layout.column()
@@ -1712,7 +1696,6 @@ class PARTICLE_PT_children_parting(ParticleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         layout.use_property_split = True
@@ -1737,7 +1720,6 @@ class PARTICLE_PT_children_clumping(ParticleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         layout.use_property_split = True
@@ -1779,7 +1761,6 @@ class PARTICLE_PT_children_roughness(ParticleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         layout.use_property_split = True
@@ -1821,7 +1802,6 @@ class PARTICLE_PT_children_kink(ParticleButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        # psys = context.particle_system
         part = particle_get_settings(context)
 
         layout.use_property_split = True

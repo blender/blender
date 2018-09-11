@@ -50,9 +50,6 @@ class VIEW3D_HT_header(Header):
 
         # Contains buttons like Mode, Pivot, Layer, Mesh Select Mode...
         if obj:
-            # Set above:
-            # object_mode = obj.mode
-
             # Particle edit
             if object_mode == 'PARTICLE_EDIT':
                 row = layout.row()

@@ -782,7 +782,6 @@ class GreasePencilToolsPanel:
     def draw(self, context):
         layout = self.layout
 
-        # gpd_owner = context.gpencil_data_owner
         gpd = context.gpencil_data
 
         layout.prop(gpd, "use_stroke_edit_mode", text="Enable Editing", icon='EDIT', toggle=True)

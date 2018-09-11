@@ -970,7 +970,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
 
     def execute(self, context):
         scene = context.scene
-        # current_active_layer = scene.active_layer
 
         self._setupScene(context)
         self._setupWorld(context)

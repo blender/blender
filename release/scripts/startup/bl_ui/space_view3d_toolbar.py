@@ -553,7 +553,6 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         layout = self.layout
 
         settings = context.tool_settings.image_paint
-        # brush = settings.brush
 
         ob = context.active_object
         col = layout.column()
@@ -969,7 +968,6 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
 
     def draw(self, context):
         layout = self.layout
-        # scene = context.scene
 
         toolsettings = context.tool_settings
         sculpt = toolsettings.sculpt
