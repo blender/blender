@@ -4712,15 +4712,37 @@ static int space_workspace_cycle_invoke(bContext *C, wmOperator *op, const wmEve
 	Main *bmain = CTX_data_main(C);
 	const int direction = RNA_enum_get(op->ptr, "direction");
 	WorkSpace *workspace_src = WM_window_get_active_workspace(win);
-	WorkSpace *workspace_dst = (direction == SPACE_CONTEXT_CYCLE_PREV) ? workspace_src->id.prev : workspace_src->id.next;
+	WorkSpace *workspace_dst = NULL;
+
+	ListBase ordered;
+	BKE_id_ordered_list(&ordered, &bmain->workspaces);
+
+	for (LinkData *link = ordered.first; link; link = link->next) {
+		if (link->data == workspace_src) {
+			if (direction == SPACE_CONTEXT_CYCLE_PREV) {
+				workspace_dst = (link->prev) ? link->prev->data : NULL;
+			}
+			else {
+				workspace_dst = (link->next) ? link->next->data : NULL;
+			}
+		}
+	}
+
 	if (workspace_dst == NULL) {
-		workspace_dst = (direction == SPACE_CONTEXT_CYCLE_PREV) ? bmain->workspaces.last : bmain->workspaces.first;
+		LinkData *link = (direction == SPACE_CONTEXT_CYCLE_PREV) ? ordered.last : ordered.first;
+		workspace_dst =  link->data;
 	}
-	if (workspace_src != workspace_dst) {
-		win->workspace_hook->temp_workspace_store = workspace_dst;
-		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace_dst);
-		win->workspace_hook->temp_workspace_store = NULL;
+
+	BLI_freelistN(&ordered);
+
+	if (workspace_src == workspace_dst) {
+		return OPERATOR_CANCELLED;
 	}
+
+	win->workspace_hook->temp_workspace_store = workspace_dst;
+	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, workspace_dst);
+	win->workspace_hook->temp_workspace_store = NULL;
+
 	return OPERATOR_FINISHED;
 }
 
