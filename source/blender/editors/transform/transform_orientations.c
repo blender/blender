@@ -793,7 +793,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 						}
 					}
 
-					result = ORIENTATION_EDGE;
+					result = is_zero_v3(plane) ? ORIENTATION_VERT : ORIENTATION_EDGE;
 				}
 				else if (em->bm->totvertsel > 3) {
 					BMIter iter;
