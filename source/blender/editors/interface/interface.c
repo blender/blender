@@ -2943,6 +2943,11 @@ void UI_block_emboss_set(uiBlock *block, char dt)
 	block->dt = dt;
 }
 
+void UI_block_theme_style_set(uiBlock *block, char theme_style)
+{
+	block->theme_style = theme_style;
+}
+
 /**
  * \param but: Button to update.
  * \param validate: When set, this function may change the button value.

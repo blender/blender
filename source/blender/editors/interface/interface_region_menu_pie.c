@@ -87,6 +87,7 @@ static uiBlock *ui_block_func_PIE(bContext *UNUSED(C), uiPopupBlockHandle *handl
 	UI_block_layout_resolve(block, &width, &height);
 
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
 	block->minbounds = minwidth;
 	block->bounds = 1;

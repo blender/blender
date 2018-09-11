@@ -785,6 +785,7 @@ static uiBlock *wm_enum_search_menu(bContext *C, ARegion *ar, void *arg)
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
 	search[0] = '\0';
 	BLI_assert(search_menu->use_previews || (search_menu->prv_cols == 0 && search_menu->prv_rows == 0));
@@ -1027,6 +1028,8 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *ar, void *arg_op)
 
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	UI_block_flag_disable(block, UI_BLOCK_LOOP);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
+
 	/* UI_BLOCK_NUMSELECT for layer buttons */
 	UI_block_flag_enable(block, UI_BLOCK_NUMSELECT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
 
@@ -1115,6 +1118,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *ar, void *userData)
 
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	UI_block_flag_disable(block, UI_BLOCK_LOOP);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
 	/* intentionally don't use 'UI_BLOCK_MOVEMOUSE_QUIT', some dialogues have many items
 	 * where quitting by accident is very annoying */
@@ -1159,6 +1163,7 @@ static uiBlock *wm_operator_ui_create(bContext *C, ARegion *ar, void *userData)
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 	UI_block_flag_disable(block, UI_BLOCK_LOOP);
 	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_MOVEMOUSE_QUIT);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_REGULAR);
 
 	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, data->width, data->height, 0, style);
 
@@ -1486,6 +1491,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	 * with the OS when the splash shows, window clipping in this case gives
 	 * ugly results and clipping the splash isn't useful anyway, just disable it [#32938] */
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_KEEP_OPEN | UI_BLOCK_NO_WIN_CLIP);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
 	/* XXX splash scales with pixelsize, should become widget-units */
 	but = uiDefBut(block, UI_BTYPE_IMAGE, 0, "", 0, 0.5f * U.widget_unit, U.pixelsize * 501, U.pixelsize * 282, ibuf, 0.0, 0.0, 0, 0, ""); /* button owns the imbuf now */
@@ -1647,6 +1653,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *userdata)
 
 	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
 	UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_SEARCH_MENU);
+	UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
 	but = uiDefSearchBut(block, search, 0, ICON_VIEWZOOM, sizeof(search), 10, 10, init_data->size[0], UI_UNIT_Y, 0, 0, "");
 	UI_but_func_operator_search(but);
