@@ -153,7 +153,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
             row = layout.row()
             row.label(text="Style modules:")
             row.operator("scene.freestyle_module_add", text="Add")
-            for i, module in enumerate(freestyle.modules):
+            for module in freestyle.modules:
                 box = layout.box()
                 box.context_pointer_set("freestyle_module", module)
                 row = box.row(align=True)
