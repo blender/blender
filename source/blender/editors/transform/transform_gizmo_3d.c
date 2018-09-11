@@ -1070,6 +1070,7 @@ int ED_transform_calc_gizmo_stats(
 			}
 
 			/* Get the boundbox out of the evaluated object. */
+			const BoundBox *bb = NULL;
 			if (params->use_only_center == false) {
 				bb = BKE_object_boundbox_get(base->object);
 			}
