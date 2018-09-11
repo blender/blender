@@ -116,7 +116,7 @@ static void ui_popup_block_position(wmWindow *window, ARegion *butregion, uiBut 
 			BLI_rctf_init_minmax(&block->rect);
 
 			for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
-				if (block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT) {
+				if (block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT) {
 					bt->rect.xmax += UI_MENU_SUBMENU_PADDING;
 				}
 				BLI_rctf_union(&block->rect, &bt->rect);

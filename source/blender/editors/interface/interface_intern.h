@@ -354,7 +354,7 @@ struct PieMenuData {
 enum eBlockContentHints {
 	/* In a menu block, if there is a single sub-menu button, we add some
 	 * padding to the right to put nicely aligned triangle icons there. */
-	BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
+	UI_BLOCK_CONTAINS_SUBMENU_BUT = (1 << 0),
 };
 
 struct uiBlock {

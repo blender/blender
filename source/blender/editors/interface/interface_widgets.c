@@ -2089,7 +2089,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 		widget_draw_icon(but, icon, alpha, rect);
 		if (show_menu_icon) {
-			BLI_assert(but->block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT);
+			BLI_assert(but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT);
 			widget_draw_submenu_tria(but, rect, wcol);
 		}
 
@@ -2109,7 +2109,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 
 	/* Menu contains sub-menu items with triangle icon on their right. Shortcut
 	 * strings should be drawn with some padding to the right then. */
-	if (ui_block_is_menu(but->block) && (but->block->content_hints & BLOCK_CONTAINS_SUBMENU_BUT)) {
+	if (ui_block_is_menu(but->block) && (but->block->content_hints & UI_BLOCK_CONTAINS_SUBMENU_BUT)) {
 		rect->xmax -= UI_MENU_SUBMENU_PADDING;
 	}
 

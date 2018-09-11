@@ -3528,7 +3528,7 @@ static void ui_def_but_rna__menu(bContext *UNUSED(C), uiLayout *layout, void *bu
 static void ui_but_submenu_enable(uiBlock *block, uiBut *but)
 {
 	but->flag |= UI_BUT_ICON_SUBMENU;
-	block->content_hints |= BLOCK_CONTAINS_SUBMENU_BUT;
+	block->content_hints |= UI_BLOCK_CONTAINS_SUBMENU_BUT;
 }
 
 /**
