@@ -176,7 +176,9 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 		const char *idname = tref_rt->gizmo_group;
 		wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
 		if (gzgt != NULL) {
-			WM_gizmo_group_type_ensure_ptr(gzgt);
+			if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) == 0) {
+				WM_gizmo_group_type_ensure_ptr(gzgt);
+			}
 		}
 		else {
 			CLOG_WARN(WM_LOG_TOOLS, "'%s' widget not found", idname);

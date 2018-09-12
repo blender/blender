@@ -2031,7 +2031,8 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		if (ot && wm_operator_check_locked_interface(C, ot)) {
 			bool use_last_properties = true;
 			PointerRNA tool_properties = {{0}};
-			bool use_tool_properties = (handler->keymap_tool != NULL);
+			const bool is_tool = (handler->keymap_tool != NULL);
+			const bool use_tool_properties = is_tool;
 
 			if (use_tool_properties) {
 				WM_toolsystem_ref_properties_init_for_keymap(handler->keymap_tool, &tool_properties, properties, ot);
@@ -2044,6 +2045,23 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 			if (use_tool_properties) {
 				WM_operator_properties_free(&tool_properties);
 			}
+
+			/* Link gizmo if 'WM_GIZMOGROUPTYPE_TOOL_INIT' is set. */
+			if (retval & OPERATOR_FINISHED) {
+				if (is_tool) {
+					bToolRef_Runtime *tref_rt = handler->keymap_tool->runtime;
+					if (tref_rt->gizmo_group[0]) {
+						const char *idname = tref_rt->gizmo_group;
+						wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
+						if (gzgt != NULL) {
+							if ((gzgt->flag & WM_GIZMOGROUPTYPE_TOOL_INIT) != 0) {
+								WM_gizmo_group_type_ensure_ptr(gzgt);
+							}
+						}
+					}
+				}
+			}
+			/* Done linking gizmo. */
 		}
 	}
 	/* Finished and pass through flag as handled */

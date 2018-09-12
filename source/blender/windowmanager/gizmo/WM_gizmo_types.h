@@ -106,6 +106,8 @@ typedef enum eWM_GizmoFlagGroupTypeFlag {
 	WM_GIZMOGROUPTYPE_PERSISTENT = (1 << 4),
 	/* Show all other gizmos when interacting. */
 	WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
+	/* When used with tool, only run when activating the tool. */
+	WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 6),
 } eWM_GizmoFlagGroupTypeFlag;
 
 

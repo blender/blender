@@ -1241,6 +1241,8 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
 		 ""},
 		{WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL, "SHOW_MODAL_ALL", 0, "Show Modal All",
 		 "Show all while interacting"},
+		{WM_GIZMOGROUPTYPE_TOOL_INIT, "TOOL_INIT", 0, "Tool Init",
+		 "Postpone running until tool operator run (when used with a tool)"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
