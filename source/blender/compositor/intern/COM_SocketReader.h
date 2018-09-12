@@ -113,8 +113,8 @@ public:
 
 	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer ** /*memoryBuffers*/) { return 0; }
 
-	inline const unsigned int getWidth() const { return this->m_width; }
-	inline const unsigned int getHeight() const { return this->m_height; }
+	inline unsigned int getWidth() const { return this->m_width; }
+	inline unsigned int getHeight() const { return this->m_height; }
 
 #ifdef WITH_CXX_GUARDEDALLOC
 	MEM_CXX_CLASS_ALLOC_FUNCS("COM:SocketReader")

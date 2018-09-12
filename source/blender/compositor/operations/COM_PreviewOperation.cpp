@@ -142,7 +142,7 @@ void PreviewOperation::determineResolution(unsigned int resolution[2], unsigned 
 	resolution[1] = height;
 }
 
-const CompositorPriority PreviewOperation::getRenderPriority() const
+CompositorPriority PreviewOperation::getRenderPriority() const
 {
 	return COM_PRIORITY_LOW;
 }

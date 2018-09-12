@@ -48,7 +48,7 @@ public:
 	bool isOutputOperation(bool /*rendering*/) const { return !G.background; }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const;
+	CompositorPriority getRenderPriority() const;
 
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);

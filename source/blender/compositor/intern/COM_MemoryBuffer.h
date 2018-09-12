@@ -275,7 +275,7 @@ public:
 	/**
 	 * \brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
 	 */
-	inline const bool isTemporarily() const { return this->m_state == COM_MB_TEMPORARILY; }
+	inline bool isTemporarily() const { return this->m_state == COM_MB_TEMPORARILY; }
 
 	/**
 	 * \brief add the content from otherBuffer to this MemoryBuffer

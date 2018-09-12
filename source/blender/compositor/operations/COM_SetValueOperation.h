@@ -39,7 +39,7 @@ public:
 	 */
 	SetValueOperation();
 
-	const float getValue() { return this->m_value; }
+	float getValue() { return this->m_value; }
 	void setValue(float value) { this->m_value = value; }
 
 

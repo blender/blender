@@ -241,7 +241,7 @@ public:
 	 * Complex operations are typically doing many reads to calculate the output of a single pixel.
 	 * Mostly Filter types (Blurs, Convolution, Defocus etc) need this to be set to true.
 	 */
-	const bool isComplex() const { return this->m_complex; }
+	bool isComplex() const { return this->m_complex; }
 
 	virtual bool isSetOperation() const { return false; }
 
@@ -250,14 +250,14 @@ public:
 	 * \return [true:false]
 	 * \see ReadBufferOperation
 	 */
-	virtual const bool isReadBufferOperation() const { return false; }
+	virtual bool isReadBufferOperation() const { return false; }
 
 	/**
 	 * \brief is this operation of type WriteBufferOperation
 	 * \return [true:false]
 	 * \see WriteBufferOperation
 	 */
-	virtual const bool isWriteBufferOperation() const { return false; }
+	virtual bool isWriteBufferOperation() const { return false; }
 
 	/**
 	 * \brief is this operation the active viewer output
@@ -265,7 +265,7 @@ public:
 	 * \return [true:false]
 	 * \see BaseViewerOperation
 	 */
-	virtual const bool isActiveViewerOutput() const { return false; }
+	virtual bool isActiveViewerOutput() const { return false; }
 
 	virtual bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
@@ -280,7 +280,7 @@ public:
 	 * \note only applicable for output operations like ViewerOperation
 	 * \return CompositorPriority
 	 */
-	virtual const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+	virtual CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
 
 	/**
 	 * \brief can this NodeOperation be scheduled on an OpenCLDevice
