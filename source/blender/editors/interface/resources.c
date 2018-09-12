@@ -35,24 +35,19 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_curve_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
-#include "BKE_addon.h"
 #include "BKE_appdir.h"
-#include "BKE_colorband.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_mesh_runtime.h"
 
-#include "BIF_gl.h"
+#include "BLO_readfile.h"  /* for UserDef version patching. */
 
 #include "BLF_api.h"
 
@@ -63,9 +58,6 @@
 
 #include "interface_intern.h"
 #include "GPU_framebuffer.h"
-
-
-extern const bTheme U_theme_default;
 
 /* global for themes */
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
@@ -1196,303 +1188,16 @@ void UI_make_axis_color(const unsigned char src_col[3], unsigned char dst_col[3]
 	}
 }
 
-/* ************************************************************* */
-
 /* patching UserDef struct and Themes */
 void init_userdef_do_versions(Main *bmain)
 {
-#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(bmain, ver, subver)
+	BLO_version_defaults_userpref_blend(bmain, &U);
 
-	/* the UserDef struct is not corrected with do_versions() .... ugh! */
-	if (U.wheellinescroll == 0) U.wheellinescroll = 3;
-	if (U.menuthreshold1 == 0) {
-		U.menuthreshold1 = 5;
-		U.menuthreshold2 = 2;
-	}
-	if (U.tb_leftmouse == 0) {
-		U.tb_leftmouse = 5;
-		U.tb_rightmouse = 5;
-	}
-	if (U.mixbufsize == 0) U.mixbufsize = 2048;
 	if (STREQ(U.tempdir, "/")) {
 		BKE_tempdir_system_init(U.tempdir);
-	}
-	if (U.autokey_mode == 0) {
-		/* 'add/replace' but not on */
-		U.autokey_mode = 2;
-	}
-	if (U.savetime <= 0) {
-		U.savetime = 1;
-// XXX		error(STRINGIFY(BLENDER_STARTUP_FILE)" is buggy, please consider removing it.\n");
-	}
-	if (U.gizmo_size == 0) {
-		U.gizmo_size = 75;
-		U.gizmo_flag |= USER_GIZMO_DRAW;
-	}
-	if (U.pad_rot_angle == 0.0f)
-		U.pad_rot_angle = 15.0f;
-
-	/* graph editor - unselected F-Curve visibility */
-	if (U.fcu_inactive_alpha == 0) {
-		U.fcu_inactive_alpha = 0.25f;
 	}
 
 	/* signal for evaluated mesh to use colorband */
 	/* run in case this was on and is now off in the user prefs [#28096] */
 	BKE_mesh_runtime_color_band_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, UI_GetTheme()->tv3d.vertex_unreferenced);
-
-	if (!USER_VERSION_ATLEAST(192, 0)) {
-		strcpy(U.sounddir, "/");
-	}
-
-	/* patch to set Dupli Armature */
-	if (!USER_VERSION_ATLEAST(220, 0)) {
-		U.dupflag |= USER_DUP_ARM;
-	}
-
-	/* added seam, normal color, undo */
-	if (!USER_VERSION_ATLEAST(235, 0)) {
-		U.uiflag |= USER_GLOBALUNDO;
-		if (U.undosteps == 0) U.undosteps = 32;
-	}
-	if (!USER_VERSION_ATLEAST(236, 0)) {
-		/* illegal combo... */
-		if (U.flag & USER_LMOUSESELECT)
-			U.flag &= ~USER_TWOBUTTONMOUSE;
-	}
-	if (!USER_VERSION_ATLEAST(240, 0)) {
-		U.uiflag |= USER_PLAINMENUS;
-		if (U.obcenter_dia == 0) U.obcenter_dia = 6;
-	}
-	if (!USER_VERSION_ATLEAST(242, 0)) {
-		/* set defaults for 3D View rotating axis indicator */
-		/* since size can't be set to 0, this indicates it's not saved in startup.blend */
-		if (U.rvisize == 0) {
-			U.rvisize = 15;
-			U.rvibright = 8;
-			U.uiflag |= USER_SHOW_GIZMO_AXIS;
-		}
-
-	}
-	if (!USER_VERSION_ATLEAST(244, 0)) {
-		/* set default number of recently-used files (if not set) */
-		if (U.recent_files == 0) U.recent_files = 10;
-	}
-	if (!USER_VERSION_ATLEAST(245, 3)) {
-		if (U.coba_weight.tot == 0)
-			BKE_colorband_init(&U.coba_weight, true);
-	}
-	if (!USER_VERSION_ATLEAST(245, 3)) {
-		U.flag |= USER_ADD_VIEWALIGNED | USER_ADD_EDITMODE;
-	}
-	if (!USER_VERSION_ATLEAST(250, 0)) {
-		/* adjust grease-pencil distances */
-		U.gp_manhattendist = 1;
-		U.gp_euclideandist = 2;
-
-		/* adjust default interpolation for new IPO-curves */
-		U.ipo_new = BEZT_IPO_BEZ;
-	}
-
-	if (!USER_VERSION_ATLEAST(250, 3)) {
-		/* new audio system */
-		if (U.audiochannels == 0)
-			U.audiochannels = 2;
-		if (U.audiodevice == 0) {
-#ifdef WITH_OPENAL
-			U.audiodevice = 2;
-#endif
-#ifdef WITH_SDL
-			U.audiodevice = 1;
-#endif
-		}
-		if (U.audioformat == 0)
-			U.audioformat = 0x24;
-		if (U.audiorate == 0)
-			U.audiorate = 48000;
-	}
-
-	if (!USER_VERSION_ATLEAST(250, 8)) {
-		wmKeyMap *km;
-
-		for (km = U.user_keymaps.first; km; km = km->next) {
-			if (STREQ(km->idname, "Armature_Sketch"))
-				strcpy(km->idname, "Armature Sketch");
-			else if (STREQ(km->idname, "View3D"))
-				strcpy(km->idname, "3D View");
-			else if (STREQ(km->idname, "View3D Generic"))
-				strcpy(km->idname, "3D View Generic");
-			else if (STREQ(km->idname, "EditMesh"))
-				strcpy(km->idname, "Mesh");
-			else if (STREQ(km->idname, "UVEdit"))
-				strcpy(km->idname, "UV Editor");
-			else if (STREQ(km->idname, "Animation_Channels"))
-				strcpy(km->idname, "Animation Channels");
-			else if (STREQ(km->idname, "GraphEdit Keys"))
-				strcpy(km->idname, "Graph Editor");
-			else if (STREQ(km->idname, "GraphEdit Generic"))
-				strcpy(km->idname, "Graph Editor Generic");
-			else if (STREQ(km->idname, "Action_Keys"))
-				strcpy(km->idname, "Dopesheet");
-			else if (STREQ(km->idname, "NLA Data"))
-				strcpy(km->idname, "NLA Editor");
-			else if (STREQ(km->idname, "Node Generic"))
-				strcpy(km->idname, "Node Editor");
-			else if (STREQ(km->idname, "Logic Generic"))
-				strcpy(km->idname, "Logic Editor");
-			else if (STREQ(km->idname, "File"))
-				strcpy(km->idname, "File Browser");
-			else if (STREQ(km->idname, "FileMain"))
-				strcpy(km->idname, "File Browser Main");
-			else if (STREQ(km->idname, "FileButtons"))
-				strcpy(km->idname, "File Browser Buttons");
-			else if (STREQ(km->idname, "Buttons Generic"))
-				strcpy(km->idname, "Property Editor");
-		}
-	}
-
-	if (!USER_VERSION_ATLEAST(252, 3)) {
-		if (U.flag & USER_LMOUSESELECT)
-			U.flag &= ~USER_TWOBUTTONMOUSE;
-	}
-	if (!USER_VERSION_ATLEAST(252, 4)) {
-		/* default new handle type is auto handles */
-		U.keyhandles_new = HD_AUTO;
-	}
-
-	if (!USER_VERSION_ATLEAST(257, 0)) {
-		/* clear "AUTOKEY_FLAG_ONLYKEYINGSET" flag from userprefs,
-		 * so that it doesn't linger around from old configs like a ghost */
-		U.autokey_flag &= ~AUTOKEY_FLAG_ONLYKEYINGSET;
-	}
-
-	if (!USER_VERSION_ATLEAST(260, 3)) {
-		/* if new keyframes handle default is stuff "auto", make it "auto-clamped" instead
-		 * was changed in 260 as part of GSoC11, but version patch was wrong
-		 */
-		if (U.keyhandles_new == HD_AUTO)
-			U.keyhandles_new = HD_AUTO_ANIM;
-
-		/* enable (Cycles) addon by default */
-		BKE_addon_ensure(&U.addons, "cycles");
-	}
-
-	if (!USER_VERSION_ATLEAST(261, 4)) {
-		U.use_16bit_textures = true;
-	}
-
-	if (!USER_VERSION_ATLEAST(267, 0)) {
-
-		/* GL Texture Garbage Collection */
-		if (U.textimeout == 0) {
-			U.texcollectrate = 60;
-			U.textimeout = 120;
-		}
-		if (U.memcachelimit <= 0) {
-			U.memcachelimit = 32;
-		}
-		if (U.dbl_click_time == 0) {
-			U.dbl_click_time = 350;
-		}
-		if (U.v2d_min_gridsize == 0) {
-			U.v2d_min_gridsize = 35;
-		}
-		if (U.dragthreshold == 0)
-			U.dragthreshold = 5;
-		if (U.widget_unit == 0)
-			U.widget_unit = 20;
-		if (U.anisotropic_filter <= 0)
-			U.anisotropic_filter = 1;
-
-		if (U.ndof_sensitivity == 0.0f) {
-			U.ndof_sensitivity = 1.0f;
-			U.ndof_flag = (NDOF_LOCK_HORIZON | NDOF_SHOULD_PAN | NDOF_SHOULD_ZOOM | NDOF_SHOULD_ROTATE);
-		}
-
-		if (U.ndof_orbit_sensitivity == 0.0f) {
-			U.ndof_orbit_sensitivity = U.ndof_sensitivity;
-
-			if (!(U.flag & USER_TRACKBALL))
-				U.ndof_flag |= NDOF_TURNTABLE;
-		}
-		if (U.tweak_threshold == 0)
-			U.tweak_threshold = 10;
-	}
-
-	/* NOTE!! from now on use U.versionfile and U.subversionfile */
-#undef USER_VERSION_ATLEAST
-#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST((&(U)), ver, subver)
-
-	if (!USER_VERSION_ATLEAST(271, 5)) {
-		U.pie_menu_radius = 100;
-		U.pie_menu_threshold = 12;
-		U.pie_animation_timeout = 6;
-	}
-
-	if (!USER_VERSION_ATLEAST(275, 2)) {
-		U.ndof_deadzone = 0.1;
-	}
-
-	if (!USER_VERSION_ATLEAST(275, 4)) {
-		U.node_margin = 80;
-	}
-
-	if (!USER_VERSION_ATLEAST(278, 6)) {
-		/* Clear preference flags for re-use. */
-		U.flag &= ~(
-		    USER_FLAG_NUMINPUT_ADVANCED | USER_FLAG_DEPRECATED_2 | USER_FLAG_DEPRECATED_3 |
-		    USER_FLAG_DEPRECATED_6 | USER_FLAG_DEPRECATED_7 |
-		    USER_FLAG_DEPRECATED_9 | USER_DEVELOPER_UI);
-		U.uiflag &= ~(
-		    USER_UIFLAG_DEPRECATED_7);
-		U.transopts &= ~(
-		    USER_TR_DEPRECATED_2 | USER_TR_DEPRECATED_3 | USER_TR_DEPRECATED_4 |
-		    USER_TR_DEPRECATED_6 | USER_TR_DEPRECATED_7);
-
-		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
-	}
-
-
-	if (!USER_VERSION_ATLEAST(280, 20)) {
-		U.gpu_viewport_quality = 0.6f;
-
-		/* Reset theme, old themes will not be compatible with minor version updates from now on. */
-		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
-			memcpy(btheme, &U_theme_default, sizeof(*btheme));
-		}
-
-		/* Annotations - new layer color
-		 * Replace anything that used to be set if it looks like was left
-		 * on the old default (i.e. black), which most users used
-		 */
-		if ((U.gpencil_new_layer_col[3] < 0.1f) || (U.gpencil_new_layer_col[0] < 0.1f)) {
-			/* - New color matches the annotation pencil icon
-			 * - Non-full alpha looks better!
-			 */
-			ARRAY_SET_ITEMS(U.gpencil_new_layer_col, 0.38f, 0.61f, 0.78f, 0.9f);
-		}
-	}
-
-	/**
-	 * Include next version bump.
-	 */
-	{
-		/* (keep this block even if it becomes empty). */
-	}
-
-	if (U.pixelsize == 0.0f)
-		U.pixelsize = 1.0f;
-
-	if (U.image_draw_method == 0)
-		U.image_draw_method = IMAGE_DRAW_METHOD_2DTEXTURE;
-
-	// we default to the first audio device
-	U.audiodevice = 0;
-
-	/* Not versioning, just avoid errors. */
-#ifndef WITH_CYCLES
-	BKE_addon_remove_safe(&U.addons, "cycles");
-#endif
-	/* this timer uses U */
-// XXX	reset_autosave();
 }

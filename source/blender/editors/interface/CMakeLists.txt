@@ -23,6 +23,7 @@ set(INC
 	../../blenfont
 	../../blenkernel
 	../../blenlib
+	../../blenloader
 	../../blentranslation
 	../../depsgraph
 	../../draw

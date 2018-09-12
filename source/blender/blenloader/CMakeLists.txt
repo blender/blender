@@ -59,6 +59,7 @@ set(SRC
 	intern/versioning_280.c
 	intern/versioning_defaults.c
 	intern/versioning_legacy.c
+	intern/versioning_userdef.c
 	intern/writefile.c
 
 	BLO_blend_defs.h
