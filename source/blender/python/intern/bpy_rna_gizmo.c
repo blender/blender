@@ -518,7 +518,7 @@ static PyObject *bpy_gizmo_target_get_range(PyObject *UNUSED(self), PyObject *ar
 		case PROP_FLOAT:
 		{
 			float range[2];
-			WM_gizmo_target_property_range_get(gz, gz_prop, range);
+			WM_gizmo_target_property_float_range_get(gz, gz_prop, range);
 			return PyC_Tuple_PackArray_F32(range, 2);
 		}
 		default:

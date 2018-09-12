@@ -251,7 +251,7 @@ void WM_gizmo_target_property_float_set_array(
 	RNA_property_update(C, &gz_prop->ptr, gz_prop->prop);
 }
 
-bool WM_gizmo_target_property_range_get(
+bool WM_gizmo_target_property_float_range_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         float range[2])
 {

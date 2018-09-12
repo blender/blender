@@ -212,7 +212,7 @@ void WM_gizmo_target_property_float_set_array(
         struct bContext *C, const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop,
         const float *value);
 
-bool WM_gizmo_target_property_range_get(
+bool WM_gizmo_target_property_float_range_get(
         const struct wmGizmo *gz, struct wmGizmoProperty *gz_prop,
         float range[2]);
 

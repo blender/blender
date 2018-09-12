@@ -126,7 +126,7 @@ void gizmo_property_data_update(
 	if (constrained) {
 		if ((data->flag & GIZMO_CUSTOM_RANGE_SET) == 0) {
 			float range[2];
-			if (WM_gizmo_target_property_range_get(gz, gz_prop, range)) {
+			if (WM_gizmo_target_property_float_range_get(gz, gz_prop, range)) {
 				data->range = range[1] - range[0];
 				data->min = range[0];
 			}
