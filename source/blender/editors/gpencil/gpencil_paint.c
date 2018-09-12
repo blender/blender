@@ -1453,12 +1453,32 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Point is affected: */
-						/* 1) Adjust thickness
+						/* 1a) Adjust thickness
 						 *  - Influence of eraser falls off with distance from the middle of the eraser
 						 *  - Second point gets less influence, as it might get hit again in the next segment
 						 */
-						pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
-						pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength / 2.0f;
+						/* 1b) Adjust strength if the eraser is soft */
+						if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
+							pt1->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
+							CLAMP_MIN(pt1->strength, 0.0f);
+							pt2->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.5f;
+							CLAMP_MIN(pt2->strength, 0.0f);
+
+							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * 0.50f;
+							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.25f;
+
+							/* if invisible, delete point */
+							if ((pt1->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt1->pressure < cull_thresh)) {
+								pt1->flag |= GP_SPOINT_TAG;
+							}
+							if ((pt2->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt2->pressure < cull_thresh)) {
+								pt2->flag |= GP_SPOINT_TAG;
+							}
+						}
+						else {
+							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
+							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.5f;
+						}
 
 						/* 2) Tag any point with overly low influence for removal in the next pass */
 						if ((pt1->pressure < cull_thresh) || (p->flags & GP_PAINTFLAG_HARD_ERASER) ||
