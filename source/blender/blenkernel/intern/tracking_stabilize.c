@@ -982,7 +982,7 @@ static void initialize_track_for_stabilization(StabContext *ctx,
 
 static void initialize_all_tracks(StabContext *ctx, float aspect)
 {
-	size_t i, track_cnt = 0;
+	size_t i, track_len = 0;
 	MovieClip *clip = ctx->clip;
 	MovieTracking *tracking = ctx->tracking;
 	MovieTrackingTrack *track;
@@ -1011,20 +1011,20 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 		                                                                 track);
 		local_data->is_init_for_stabilization = false;
 
-		++track_cnt;
+		++track_len;
 	}
-	if (!track_cnt) {
+	if (!track_len) {
 		return;
 	}
 
-	order = MEM_mallocN(track_cnt * sizeof(TrackInitOrder),
+	order = MEM_mallocN(track_len * sizeof(TrackInitOrder),
 	                    "stabilization track order");
 	if (!order) {
 		return;
 	}
 
-	track_cnt = establish_track_initialization_order(ctx, order);
-	if (track_cnt == 0) {
+	track_len = establish_track_initialization_order(ctx, order);
+	if (track_len == 0) {
 		goto cleanup;
 	}
 
@@ -1032,7 +1032,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 	average_marker_positions(ctx, reference_frame, average_pos);
 	setup_pivot(average_pos, pivot);
 
-	for (i = 0; i < track_cnt; ++i) {
+	for (i = 0; i < track_len; ++i) {
 		track = order[i].data;
 		if (reference_frame != order[i].reference_frame) {
 			reference_frame = order[i].reference_frame;
