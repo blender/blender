@@ -76,6 +76,12 @@
 #define IPO_BEZTRIPLE   100
 #define IPO_BPOINT      101
 
+/* Internal use only. */
+typedef struct WeightsArrayCache {
+	int num_defgroup_weights;
+	float **defgroup_weights;
+} WeightsArrayCache;
+
 
 /** Free (or release) any data used by this shapekey (does not free the key itself). */
 void BKE_key_free(Key *key)
@@ -721,8 +727,9 @@ static void cp_cu_key(Curve *cu, Key *key, KeyBlock *actkb, KeyBlock *kb, const 
 	}
 }
 
-void BKE_key_evaluate_relative(const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb,
-                               float **per_keyblock_weights, const int mode)
+static void key_evaluate_relative(
+        const int start, int end, const int tot, char *basispoin, Key *key, KeyBlock *actkb,
+        float **per_keyblock_weights, const int mode)
 {
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
@@ -1120,7 +1127,7 @@ static float *get_weights_array(Object *ob, char *vgroup, WeightsArrayCache *cac
 	return NULL;
 }
 
-float **BKE_keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArrayCache *cache)
+static float **keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArrayCache *cache)
 {
 	KeyBlock *keyblock;
 	float **per_keyblock_weights;
@@ -1140,7 +1147,7 @@ float **BKE_keyblock_get_per_block_weights(Object *ob, Key *key, WeightsArrayCac
 	return per_keyblock_weights;
 }
 
-void BKE_keyblock_free_per_block_weights(Key *key, float **per_keyblock_weights, WeightsArrayCache *cache)
+static void keyblock_free_per_block_weights(Key *key, float **per_keyblock_weights, WeightsArrayCache *cache)
 {
 	int a;
 
@@ -1175,9 +1182,9 @@ static void do_mesh_key(Object *ob, Key *key, char *out, const int tot)
 	if (key->type == KEY_RELATIVE) {
 		WeightsArrayCache cache = {0, NULL};
 		float **per_keyblock_weights;
-		per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, &cache);
-		BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
-		BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
+		per_keyblock_weights = keyblock_get_per_block_weights(ob, key, &cache);
+		key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+		keyblock_free_per_block_weights(key, per_keyblock_weights, &cache);
 	}
 	else {
 		const float ctime_scaled = key->ctime / 100.0f;
@@ -1221,11 +1228,11 @@ static void do_rel_cu_key(Curve *cu, Key *key, KeyBlock *actkb, char *out, const
 	for (a = 0, nu = cu->nurb.first; nu; nu = nu->next, a += step) {
 		if (nu->bp) {
 			step = nu->pntsu * nu->pntsv;
-			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BPOINT);
+			key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BPOINT);
 		}
 		else if (nu->bezt) {
 			step = 3 * nu->pntsu;
-			BKE_key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BEZTRIPLE);
+			key_evaluate_relative(a, a + step, tot, out, key, actkb, NULL, KEY_MODE_BEZTRIPLE);
 		}
 		else {
 			step = 0;
@@ -1266,9 +1273,9 @@ static void do_latt_key(Object *ob, Key *key, char *out, const int tot)
 
 	if (key->type == KEY_RELATIVE) {
 		float **per_keyblock_weights;
-		per_keyblock_weights = BKE_keyblock_get_per_block_weights(ob, key, NULL);
-		BKE_key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
-		BKE_keyblock_free_per_block_weights(key, per_keyblock_weights, NULL);
+		per_keyblock_weights = keyblock_get_per_block_weights(ob, key, NULL);
+		key_evaluate_relative(0, tot, tot, (char *)out, key, actkb, per_keyblock_weights, KEY_MODE_DUMMY);
+		keyblock_free_per_block_weights(key, per_keyblock_weights, NULL);
 	}
 	else {
 		const float ctime_scaled = key->ctime / 100.0f;
