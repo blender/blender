@@ -1548,11 +1548,11 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.prop(gp_settings, "pen_smooth_factor")
-        col.prop(gp_settings, "pen_thick_smooth_factor")
+        col.prop(gp_settings, "pen_smooth_steps")
 
         col = layout.column(align=True)
-        col.prop(gp_settings, "pen_smooth_steps")
-        col.prop(gp_settings, "pen_thick_smooth_steps")
+        col.prop(gp_settings, "pen_thick_smooth_factor")
+        col.prop(gp_settings, "pen_thick_smooth_steps", text="Iterations")
 
         col = layout.column(align=True)
         col.prop(gp_settings, "pen_subdivision_steps")
