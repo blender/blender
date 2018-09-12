@@ -268,7 +268,7 @@ public:
 	 * \note ViewerOperation, CompositeOperation, PreviewOperation.
 	 * \see NodeOperation.isOutputOperation
 	 */
-	const int isOutputExecutionGroup() const { return this->m_isOutput; }
+	int isOutputExecutionGroup() const { return this->m_isOutput; }
 
 	/**
 	 * \brief set whether this ExecutionGroup is an output

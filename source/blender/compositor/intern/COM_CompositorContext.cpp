@@ -35,7 +35,7 @@ CompositorContext::CompositorContext()
 	this->m_displaySettings = NULL;
 }
 
-const int CompositorContext::getFramenumber() const
+int CompositorContext::getFramenumber() const
 {
 	if (this->m_rd) {
 		return this->m_rd->cfra;

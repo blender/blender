@@ -57,7 +57,7 @@ public:
 	bool isOutputOperation(bool /*rendering*/) const { return true; }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+	CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
 
 	bool isFileOutputOperation() const { return true; }
 };
@@ -99,7 +99,7 @@ public:
 	bool isOutputOperation(bool /*rendering*/) const { return true; }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
+	CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
 
 	bool isFileOutputOperation() const { return true; }
 };

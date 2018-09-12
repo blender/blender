@@ -42,13 +42,13 @@ public:
 	 */
 	SetVectorOperation();
 
-	const float getX() { return this->m_x; }
+	float getX() { return this->m_x; }
 	void setX(float value) { this->m_x = value; }
-	const float getY() { return this->m_y; }
+	float getY() { return this->m_y; }
 	void setY(float value) { this->m_y = value; }
-	const float getZ() { return this->m_z; }
+	float getZ() { return this->m_z; }
 	void setZ(float value) { this->m_z = value; }
-	const float getW() { return this->m_w; }
+	float getW() { return this->m_w; }
 	void setW(float value) { this->m_w = value; }
 
 	/**

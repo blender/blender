@@ -85,7 +85,7 @@ private:
 	const char *m_viewName;
 public:
 	CompositorOperation();
-	const bool isActiveCompositorOutput() const { return this->m_active; }
+	bool isActiveCompositorOutput() const { return this->m_active; }
 	void executeRegion(rcti *rect, unsigned int tileNumber);
 	void setScene(const struct Scene *scene) { m_scene = scene; }
 	void setSceneName(const char *sceneName) { BLI_strncpy(this->m_sceneName, sceneName, sizeof(this->m_sceneName)); }
@@ -94,7 +94,7 @@ public:
 	bool isOutputOperation(bool /*rendering*/) const { return this->isActiveCompositorOutput(); }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
+	CompositorPriority getRenderPriority() const { return COM_PRIORITY_MEDIUM; }
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
 	void setUseAlphaInput(bool value) { this->m_useAlphaInput = value; }
 	void setActive(bool active) { this->m_active = active; }

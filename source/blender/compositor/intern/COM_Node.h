@@ -118,12 +118,12 @@ public:
 	/**
 	 * \brief Return the number of input sockets of this node.
 	 */
-	const unsigned int getNumberOfInputSockets() const { return this->m_inputsockets.size(); }
+	unsigned int getNumberOfInputSockets() const { return this->m_inputsockets.size(); }
 
 	/**
 	 * \brief Return the number of output sockets of this node.
 	 */
-	const unsigned int getNumberOfOutputSockets() const { return this->m_outputsockets.size(); }
+	unsigned int getNumberOfOutputSockets() const { return this->m_outputsockets.size(); }
 
 	/**
 	 * get the reference to a certain outputsocket

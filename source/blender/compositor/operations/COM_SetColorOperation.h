@@ -39,13 +39,13 @@ public:
 	 */
 	SetColorOperation();
 
-	const float getChannel1() { return this->m_color[0]; }
+	float getChannel1() { return this->m_color[0]; }
 	void setChannel1(float value) { this->m_color[0] = value; }
-	const float getChannel2() { return this->m_color[1]; }
+	float getChannel2() { return this->m_color[1]; }
 	void setChannel2(float value) { this->m_color[1] = value; }
-	const float getChannel3() { return this->m_color[2]; }
+	float getChannel3() { return this->m_color[2]; }
 	void setChannel3(float value) { this->m_color[2] = value; }
-	const float getChannel4() { return this->m_color[3]; }
+	float getChannel4() { return this->m_color[3]; }
 	void setChannel4(const float value) { this->m_color[3] = value; }
 	void setChannels(const float value[4])
 	{

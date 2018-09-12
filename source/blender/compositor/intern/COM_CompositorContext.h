@@ -168,17 +168,17 @@ public:
 	/**
 	 * \brief get the quality
 	 */
-	const CompositorQuality getQuality() const { return this->m_quality; }
+	CompositorQuality getQuality() const { return this->m_quality; }
 
 	/**
 	 * \brief get the current framenumber of the scene in this context
 	 */
-	const int getFramenumber() const;
+	int getFramenumber() const;
 
 	/**
 	 * \brief has this system active openclDevices?
 	 */
-	const bool getHasActiveOpenCLDevices() const { return this->m_hasActiveOpenCLDevices; }
+	bool getHasActiveOpenCLDevices() const { return this->m_hasActiveOpenCLDevices; }
 
 	/**
 	 * \brief set has this system active openclDevices?
