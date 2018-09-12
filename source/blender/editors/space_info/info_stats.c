@@ -57,6 +57,9 @@
 #include "BKE_editmesh.h"
 #include "BKE_object.h"
 #include "BKE_gpencil.h"
+#include "BKE_scene.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "ED_info.h"
 #include "ED_armature.h"
@@ -171,16 +174,16 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 	if (obedit->type == OB_MESH) {
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		stats->totvert = em->bm->totvert;
-		stats->totvertsel = em->bm->totvertsel;
+		stats->totvert += em->bm->totvert;
+		stats->totvertsel += em->bm->totvertsel;
 
-		stats->totedge = em->bm->totedge;
-		stats->totedgesel = em->bm->totedgesel;
+		stats->totedge += em->bm->totedge;
+		stats->totedgesel += em->bm->totedgesel;
 
-		stats->totface = em->bm->totface;
-		stats->totfacesel = em->bm->totfacesel;
+		stats->totface += em->bm->totface;
+		stats->totfacesel += em->bm->totfacesel;
 
-		stats->tottri = em->tottri;
+		stats->tottri += em->tottri;
 	}
 	else if (obedit->type == OB_ARMATURE) {
 		/* Armature Edit */
@@ -314,9 +317,10 @@ static void stats_dupli_object_group_doit(Collection *collection, SceneStats *st
 	}
 }
 
-static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
+static void stats_dupli_object(Object *ob, SceneStats *stats)
 {
-	if (base->flag & BASE_SELECTED) stats->totobjsel++;
+	const bool is_selected = (ob->base_flag & BASE_SELECTED) != 0;
+	if (is_selected) stats->totobjsel++;
 
 	if (ob->transflag & OB_DUPLIPARTS) {
 		/* Dupli Particles */
@@ -339,7 +343,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 			}
 		}
 
-		stats_object(ob, base->flag & BASE_SELECTED, 1, stats);
+		stats_object(ob, is_selected, 1, stats);
 		stats->totobj++;
 	}
 	else if (ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS | OB_DUPLIFACES))) {
@@ -355,23 +359,23 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 		}
 
 		stats->totobj += tot;
-		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
+		stats_object(ob, is_selected, tot, stats);
 	}
 	else if (ob->transflag & OB_DUPLIFRAMES) {
 		/* Dupli Frames */
 		int tot = count_duplilist(ob);
 		stats->totobj += tot;
-		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
+		stats_object(ob, is_selected, tot, stats);
 	}
 	else if ((ob->transflag & OB_DUPLICOLLECTION) && ob->dup_group) {
 		/* Dupli Group */
 		int tot = count_duplilist(ob);
 		stats->totobj += tot;
-		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
+		stats_object(ob, is_selected, tot, stats);
 	}
 	else {
 		/* No Dupli */
-		stats_object(ob, base->flag & BASE_SELECTED, 1, stats);
+		stats_object(ob, is_selected, 1, stats);
 		stats->totobj++;
 	}
 }
@@ -384,16 +388,19 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMod
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(ViewLayer *view_layer)
+static void stats_update(Depsgraph *depsgraph, ViewLayer *view_layer)
 {
 	SceneStats stats = {0};
 	Object *ob = OBACT(view_layer);
 	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-	Base *base;
 
 	if (obedit) {
 		/* Edit Mode */
-		stats_object_edit(ob, &stats);
+		FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, ob->mode, ob_iter)
+		{
+			stats_object_edit(ob_iter, &stats);
+		}
+		FOREACH_OBJECT_IN_MODE_END;
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		/* Pose Mode */
@@ -405,10 +412,11 @@ static void stats_update(ViewLayer *view_layer)
 	}
 	else {
 		/* Objects */
-		for (base = view_layer->object_bases.first; base; base = base->next)
-			if (base->flag & BASE_VISIBLE) {
-				stats_dupli_object(base, base->object, &stats);
-			}
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob_iter)
+		{
+			stats_dupli_object(ob_iter, &stats);
+		}
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 	}
 
 	if (!view_layer->stats) {
@@ -559,10 +567,11 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 	}
 }
 
-const char *ED_info_stats_string(Scene *UNUSED(scene), ViewLayer *view_layer)
+const char *ED_info_stats_string(Scene *scene, ViewLayer *view_layer)
 {
+	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	if (!view_layer->stats) {
-		stats_update(view_layer);
+		stats_update(depsgraph, view_layer);
 	}
 	stats_string(view_layer);
 	return view_layer->stats->infostr;

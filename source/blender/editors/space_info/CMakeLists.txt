@@ -25,6 +25,7 @@ set(INC
 	../../blenlib
 	../../blenloader
 	../../blentranslation
+	../../depsgraph
 	../../imbuf
 	../../bmesh
 	../../gpu
