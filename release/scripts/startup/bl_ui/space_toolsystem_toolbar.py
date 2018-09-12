@@ -160,7 +160,6 @@ class _defs_view3d_generic:
             props = tool.operator_properties("view3d.cursor3d")
             layout.prop(props, "use_depth")
             layout.prop(props, "orientation")
-
         return dict(
             text="Cursor",
             description=(
@@ -230,7 +229,6 @@ def _defs_annotate_factory():
         def scribble():
             def draw_settings(context, layout, tool):
                 _defs_annotate.draw_settings_common(context, layout, tool)
-
             return dict(
                 text="Annotate",
                 icon="ops.gpencil.draw",
@@ -247,7 +245,6 @@ def _defs_annotate_factory():
         def line():
             def draw_settings(context, layout, tool):
                 _defs_annotate.draw_settings_common(context, layout, tool)
-
             return dict(
                 text="Annotate Line",
                 icon="ops.gpencil.draw.line",
@@ -264,7 +261,6 @@ def _defs_annotate_factory():
         def poly():
             def draw_settings(context, layout, tool):
                 _defs_annotate.draw_settings_common(context, layout, tool)
-
             return dict(
                 text="Annotate Polygon",
                 icon="ops.gpencil.draw.poly",
@@ -283,7 +279,6 @@ def _defs_annotate_factory():
                 # TODO: Move this setting to toolsettings
                 user_prefs = context.user_preferences
                 layout.prop(user_prefs.edit, "grease_pencil_eraser_radius", text="Radius")
-
             return dict(
                 text="Annotate Eraser",
                 icon="ops.gpencil.draw.eraser",
@@ -310,7 +305,6 @@ class _defs_transform:
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_gizmo_apron")
-
         return dict(
             text="Move",
             # cursor='SCROLL_XY',
@@ -329,7 +323,6 @@ class _defs_transform:
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_gizmo_apron")
-
         return dict(
             text="Rotate",
             # cursor='SCROLL_XY',
@@ -348,7 +341,6 @@ class _defs_transform:
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_gizmo_apron")
-
         return dict(
             text="Scale",
             # cursor='SCROLL_XY',
@@ -377,7 +369,6 @@ class _defs_transform:
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_gizmo_apron")
             layout.prop(tool_settings, "use_gizmo_mode")
-
         return dict(
             text="Transform",
             description=(
