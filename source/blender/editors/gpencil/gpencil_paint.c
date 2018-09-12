@@ -422,8 +422,8 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 
 /* apply jitter to stroke */
 static void gp_brush_jitter(
-		bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2],
-		const float pressure, int r_mval[2], RNG *rng)
+        bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2],
+        const float pressure, int r_mval[2], RNG *rng)
 {
 	float tmp_pressure = pressure;
 	if (brush->gpencil_settings->draw_jitter > 0.0f) {
@@ -628,7 +628,7 @@ static short gp_stroke_addpoint(
 
 		/* Apply jitter to position */
 		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-			(brush->gpencil_settings->draw_jitter > 0.0f))
+		    (brush->gpencil_settings->draw_jitter > 0.0f))
 		{
 			int r_mval[2];
 			const float jitpress = (brush->gpencil_settings->flag & GP_BRUSH_USE_JITTER_PRESSURE) ? pressure : 1.0f;
@@ -668,8 +668,7 @@ static short gp_stroke_addpoint(
 		}
 
 		/* apply angle of stroke to brush size */
-		if (brush->gpencil_settings->draw_angle_factor != 0.0f)
-		{
+		if (brush->gpencil_settings->draw_angle_factor != 0.0f) {
 			gp_brush_angle(gpd, brush, pt, mval);
 		}
 
