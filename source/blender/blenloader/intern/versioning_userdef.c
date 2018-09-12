@@ -135,12 +135,7 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 		if (userdef->audiochannels == 0)
 			userdef->audiochannels = 2;
 		if (userdef->audiodevice == 0) {
-#ifdef WITH_OPENAL
-			userdef->audiodevice = 2;
-#endif
-#ifdef WITH_SDL
-			userdef->audiodevice = 1;
-#endif
+			userdef->audiodevice = 2;  /* OpenAL */
 		}
 		if (userdef->audioformat == 0)
 			userdef->audioformat = 0x24;
