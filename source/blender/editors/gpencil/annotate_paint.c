@@ -269,40 +269,7 @@ static bool gp_stroke_filtermval(tGPsdata *p, const int mval[2], int pmval[2])
 		return false;
 }
 
-/* reproject the points of the stroke to a plane locked to axis to avoid stroke offset */
-static void UNUSED_FUNCTION(gp_project_points_to_plane)(
-        RegionView3D *rv3d, bGPDstroke *gps, const float origin[3], const int axis)
-{
-	float plane_normal[3];
-	float vn[3];
-
-	float ray[3];
-	float rpoint[3];
-
-	/* normal vector for a plane locked to axis */
-	zero_v3(plane_normal);
-	plane_normal[axis] = 1.0f;
-
-	/* Reproject the points in the plane */
-	for (int i = 0; i < gps->totpoints; i++) {
-		bGPDspoint *pt = &gps->points[i];
-
-		/* get a vector from the point with the current view direction of the viewport */
-		ED_view3d_global_to_vector(rv3d, &pt->x, vn);
-
-		/* calculate line extrem point to create a ray that cross the plane */
-		mul_v3_fl(vn, -50.0f);
-		add_v3_v3v3(ray, &pt->x, vn);
-
-		/* if the line never intersect, the point is not changed */
-		if (isect_line_plane_v3(rpoint, &pt->x, ray, origin, plane_normal)) {
-			copy_v3_v3(&pt->x, rpoint);
-		}
-	}
-}
-
 /* convert screen-coordinates to buffer-coordinates */
-/* XXX this method needs a total overhaul! */
 static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3], float *depth)
 {
 	bGPdata *gpd = p->gpd;
@@ -761,7 +728,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 /* helper to free a stroke
  * NOTE: gps->dvert and gps->triangles should be NULL, but check anyway for good measure
  */
-static void gp_free_stroke(bGPdata *UNUSED(gpd), bGPDframe *gpf, bGPDstroke *gps)
+static void gp_free_stroke(bGPDframe *gpf, bGPDstroke *gps)
 {
 	if (gps->points) {
 		MEM_freeN(gps->points);
@@ -827,7 +794,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 	if (gps->totpoints == 0) {
 		/* just free stroke */
-		gp_free_stroke(p->gpd, gpf, gps);
+		gp_free_stroke(gpf, gps);
 	}
 	else if (gps->totpoints == 1) {
 		/* only process if it hasn't been masked out... */
@@ -839,7 +806,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				/* only check if point is inside */
 				if (len_v2v2_int(mval, pc1) <= radius) {
 					/* free stroke */
-					gp_free_stroke(p->gpd, gpf, gps);
+					gp_free_stroke(gpf, gps);
 				}
 			}
 		}
