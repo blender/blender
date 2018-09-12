@@ -295,8 +295,6 @@ class GreasePencilAppearancePanel:
             brush = context.active_gpencil_brush
             gp_settings = brush.gpencil_settings
 
-            layout.prop(gp_settings, "gpencil_brush_type", text="Brush Type")
-
             sub = layout.column(align=True)
             sub.enabled = not brush.use_custom_icon
             sub.prop(gp_settings, "gp_icon", text="Icon")
