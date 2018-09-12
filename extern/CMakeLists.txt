@@ -63,10 +63,6 @@ if(NOT WITH_SYSTEM_GLEW)
 	endif()
 endif()
 
-if(WITH_IMAGE_OPENJPEG AND (NOT WITH_SYSTEM_OPENJPEG))
-	add_subdirectory(libopenjpeg)
-endif()
-
 if(WITH_LZO AND NOT WITH_SYSTEM_LZO)
 	add_subdirectory(lzo)
 endif()

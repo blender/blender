@@ -810,7 +810,7 @@ DEPS_COMMON_INFO="\"COMMON DEPENDENCIES:
 Those libraries should be available as packages in all recent distributions (optional ones are [between brackets]):
 
     * Basics of dev environment (cmake, gcc, svn , git, ...).
-    * libjpeg, libpng, libtiff, [libopenjpeg], [libopenal].
+    * libjpeg, libpng, libtiff, [openjpeg2], [libopenal].
     * libx11, libxcursor, libxi, libxrandr, libxinerama (and other libx... as needed).
     * libsqlite3, libbz2, libssl, libfftw3, libxml2, libtinyxml, yasm, libyaml-cpp.
     * libsdl1.2, libglew, [libglewmx].\""
@@ -2626,8 +2626,8 @@ install_DEB() {
   THEORA_USE=true
 
   PRINT ""
-  # New Ubuntu crap (17.04 and more) have no openjpeg lib!
-  OPENJPEG_DEV="libopenjpeg-dev"
+  # We need openjp2, libopenjpeg is an old version
+  OPENJPEG_DEV="libopenjp2-7-dev"
   check_package_DEB $OPENJPEG_DEV
   if [ $? -eq 0 ]; then
     _packages="$_packages $OPENJPEG_DEV"
@@ -3164,7 +3164,7 @@ install_RPM() {
   fi
 
   # These libs should always be available in fedora/suse official repository...
-  OPENJPEG_DEV="openjpeg-devel"
+  OPENJPEG_DEV="openjpeg2-devel"
   VORBIS_DEV="libvorbis-devel"
   OGG_DEV="libogg-devel"
   THEORA_DEV="libtheora-devel"
@@ -3634,7 +3634,7 @@ install_ARCH() {
   fi
 
   # These libs should always be available in arch official repository...
-  OPENJPEG_DEV="openjpeg"
+  OPENJPEG_DEV="openjpeg2"
   VORBIS_DEV="libvorbis"
   OGG_DEV="libogg"
   THEORA_DEV="libtheora"
