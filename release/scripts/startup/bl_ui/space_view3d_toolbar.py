@@ -1462,6 +1462,13 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
     bl_label = "Options"
     bl_options = {'DEFAULT_CLOSED'}
 
+    @classmethod
+    def poll(cls, context):
+        brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
+
+        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
+
     def draw_header_preset(self, context):
         VIEW3D_PT_gpencil_brush_presets.draw_panel_header(self.layout)
 
@@ -1528,8 +1535,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
 
-        return brush is not None
+        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1568,8 +1576,9 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
     @classmethod
     def poll(cls, context):
         brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
 
-        return brush is not None
+        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1600,6 +1609,13 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
     bl_context = ".greasepencil_paint"
     bl_label = "Curves"
     bl_options = {'DEFAULT_CLOSED'}
+
+    @classmethod
+    def poll(cls, context):
+        brush = context.active_gpencil_brush
+        gp_settings = brush.gpencil_settings
+
+        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
 
     @staticmethod
     def draw(self, context):
