@@ -582,7 +582,7 @@ void GPU_shader_unbind(void)
 	glUseProgram(0);
 }
 
-bool GPU_shader_transform_feedback_enable(GPUShader *shader, unsigned int vbo_id)
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, uint vbo_id)
 {
 	if (shader->feedback_transform_type == GPU_SHADER_TFB_NONE) {
 		return false;

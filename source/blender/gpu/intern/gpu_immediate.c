@@ -558,7 +558,7 @@ void immAttrib4fv(uint attrib_id, const float data[4])
 	immAttrib4f(attrib_id, data[0], data[1], data[2], data[3]);
 }
 
-void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b)
+void immAttrib3ub(uint attrib_id, uchar r, uchar g, uchar b)
 {
 	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
@@ -578,7 +578,7 @@ void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 	data[2] = b;
 }
 
-void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+void immAttrib4ub(uint attrib_id, uchar r, uchar g, uchar b, uchar a)
 {
 	GPUVertAttr *attrib = imm.vertex_format.attribs + attrib_id;
 #if TRUST_NO_ONE
@@ -599,12 +599,12 @@ void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned cha
 	data[3] = a;
 }
 
-void immAttrib3ubv(uint attrib_id, const unsigned char data[3])
+void immAttrib3ubv(uint attrib_id, const uchar data[3])
 {
 	immAttrib3ub(attrib_id, data[0], data[1], data[2]);
 }
 
-void immAttrib4ubv(uint attrib_id, const unsigned char data[4])
+void immAttrib4ubv(uint attrib_id, const uchar data[4])
 {
 	immAttrib4ub(attrib_id, data[0], data[1], data[2], data[3]);
 }
@@ -847,29 +847,29 @@ void immUniformColor3fvAlpha(const float rgb[3], float a)
 
 /* TODO: v-- treat as sRGB? --v */
 
-void immUniformColor3ub(unsigned char r, unsigned char g, unsigned char b)
+void immUniformColor3ub(uchar r, uchar g, uchar b)
 {
 	const float scale = 1.0f / 255.0f;
 	immUniformColor4f(scale * r, scale * g, scale * b, 1.0f);
 }
 
-void immUniformColor4ub(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+void immUniformColor4ub(uchar r, uchar g, uchar b, uchar a)
 {
 	const float scale = 1.0f / 255.0f;
 	immUniformColor4f(scale * r, scale * g, scale * b, scale * a);
 }
 
-void immUniformColor3ubv(const unsigned char rgb[3])
+void immUniformColor3ubv(const uchar rgb[3])
 {
 	immUniformColor3ub(rgb[0], rgb[1], rgb[2]);
 }
 
-void immUniformColor3ubvAlpha(const unsigned char rgb[3], unsigned char alpha)
+void immUniformColor3ubvAlpha(const uchar rgb[3], uchar alpha)
 {
 	immUniformColor4ub(rgb[0], rgb[1], rgb[2], alpha);
 }
 
-void immUniformColor4ubv(const unsigned char rgba[4])
+void immUniformColor4ubv(const uchar rgba[4])
 {
 	immUniformColor4ub(rgba[0], rgba[1], rgba[2], rgba[3]);
 }
@@ -918,7 +918,7 @@ void immUniformThemeColorBlend(int color_id1, int color_id2, float fac)
 
 void immThemeColorShadeAlpha(int colorid, int coloffset, int alphaoffset)
 {
-	unsigned char col[4];
+	uchar col[4];
 	UI_GetThemeColorShadeAlpha4ubv(colorid, coloffset, alphaoffset, col);
 	immUniformColor4ub(col[0], col[1], col[2], col[3]);
 }

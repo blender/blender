@@ -50,7 +50,7 @@ typedef float Mat3[3][3];
 
 typedef struct MatrixStack {
 	Mat4 stack[MATRIX_STACK_DEPTH];
-	unsigned int top;
+	uint top;
 } MatrixStack;
 
 typedef struct {

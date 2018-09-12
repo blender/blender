@@ -487,7 +487,7 @@ void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h
 
 void GPU_framebuffer_clear(
         GPUFrameBuffer *fb, GPUFrameBufferBits buffers,
-        const float clear_col[4], float clear_depth, unsigned int clear_stencil)
+        const float clear_col[4], float clear_depth, uint clear_stencil)
 {
 	CHECK_FRAMEBUFFER_IS_BOUND(fb);
 

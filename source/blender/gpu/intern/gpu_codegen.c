@@ -82,15 +82,15 @@ static uint32_t gpu_pass_hash(const char *frag_gen, const char *defs, GPUVertexA
 {
 	BLI_HashMurmur2A hm2a;
 	BLI_hash_mm2a_init(&hm2a, 0);
-	BLI_hash_mm2a_add(&hm2a, (unsigned char *)frag_gen, strlen(frag_gen));
+	BLI_hash_mm2a_add(&hm2a, (uchar *)frag_gen, strlen(frag_gen));
 	if (attribs) {
 		for (int att_idx = 0; att_idx < attribs->totlayer; att_idx++) {
 			char *name = attribs->layer[att_idx].name;
-			BLI_hash_mm2a_add(&hm2a, (unsigned char *)name, strlen(name));
+			BLI_hash_mm2a_add(&hm2a, (uchar *)name, strlen(name));
 		}
 	}
 	if (defs)
-		BLI_hash_mm2a_add(&hm2a, (unsigned char *)defs, strlen(defs));
+		BLI_hash_mm2a_add(&hm2a, (uchar *)defs, strlen(defs));
 
 	return BLI_hash_mm2a_end(&hm2a);
 }
@@ -923,7 +923,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 					BLI_dynstr_appendf(ds, "#define att%d %s\n", input->attribid, attrib_prefix_get(input->attribtype));
 				}
 				else {
-					unsigned int hash = BLI_ghashutil_strhash_p(input->attribname);
+					uint hash = BLI_ghashutil_strhash_p(input->attribname);
 					BLI_dynstr_appendf(
 					        ds, "DEFINE_ATTRIB(%s, %s%u);\n",
 					        GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);

@@ -50,7 +50,7 @@ void GPU_vertformat_clear(GPUVertFormat *format)
 	format->name_offset = 0;
 	format->name_len = 0;
 
-	for (unsigned i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
+	for (uint i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
 		format->attribs[i].name_len = 0;
 	}
 #endif
@@ -61,8 +61,8 @@ void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src)
 	/* copy regular struct fields */
 	memcpy(dest, src, sizeof(GPUVertFormat));
 
-	for (unsigned i = 0; i < dest->attr_len; i++) {
-		for (unsigned j = 0; j < dest->attribs[i].name_len; j++) {
+	for (uint i = 0; i < dest->attr_len; i++) {
+		for (uint j = 0; j < dest->attribs[i].name_len; j++) {
 			dest->attribs[i].name[j] = (char *)dest + (src->attribs[i].name[j] - ((char *)src));
 		}
 	}
@@ -85,7 +85,7 @@ static GLenum convert_comp_type_to_gl(GPUVertCompType type)
 	return table[type];
 }
 
-static unsigned comp_sz(GPUVertCompType type)
+static uint comp_sz(GPUVertCompType type)
 {
 #if TRUST_NO_ONE
 	assert(type <= GPU_COMP_F32); /* other types have irregular sizes (not bytes) */
@@ -94,7 +94,7 @@ static unsigned comp_sz(GPUVertCompType type)
 	return sizes[type];
 }
 
-static unsigned attrib_sz(const GPUVertAttr *a)
+static uint attrib_sz(const GPUVertAttr *a)
 {
 	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
@@ -102,12 +102,12 @@ static unsigned attrib_sz(const GPUVertAttr *a)
 	return a->comp_len * comp_sz(a->comp_type);
 }
 
-static unsigned attrib_align(const GPUVertAttr *a)
+static uint attrib_align(const GPUVertAttr *a)
 {
 	if (a->comp_type == GPU_COMP_I10) {
 		return 4; /* always packed as 10_10_10_2 */
 	}
-	unsigned c = comp_sz(a->comp_type);
+	uint c = comp_sz(a->comp_type);
 	if (a->comp_len == 3 && c <= 2) {
 		return 4 * c; /* AMD HW can't fetch these well, so pad it out (other vendors too?) */
 	}
@@ -116,7 +116,7 @@ static unsigned attrib_align(const GPUVertAttr *a)
 	}
 }
 
-unsigned vertex_buffer_size(const GPUVertFormat *format, unsigned vertex_len)
+uint vertex_buffer_size(const GPUVertFormat *format, uint vertex_len)
 {
 #if TRUST_NO_ONE
 	assert(format->packed && format->stride > 0);
@@ -128,10 +128,10 @@ static const char *copy_attrib_name(GPUVertFormat *format, const char *name)
 {
 	/* strncpy does 110% of what we need; let's do exactly 100% */
 	char *name_copy = format->names + format->name_offset;
-	unsigned available = GPU_VERT_ATTR_NAMES_BUF_LEN - format->name_offset;
+	uint available = GPU_VERT_ATTR_NAMES_BUF_LEN - format->name_offset;
 	bool terminated = false;
 
-	for (unsigned i = 0; i < available; ++i) {
+	for (uint i = 0; i < available; ++i) {
 		const char c = name[i];
 		name_copy[i] = c;
 		if (c == '\0') {
@@ -149,9 +149,9 @@ static const char *copy_attrib_name(GPUVertFormat *format, const char *name)
 	return name_copy;
 }
 
-unsigned GPU_vertformat_attr_add(
+uint GPU_vertformat_attr_add(
         GPUVertFormat *format, const char *name,
-        GPUVertCompType comp_type, unsigned comp_len, GPUVertFetchMode fetch_mode)
+        GPUVertCompType comp_type, uint comp_len, GPUVertFetchMode fetch_mode)
 {
 #if TRUST_NO_ONE
 	assert(format->name_len < GPU_VERT_ATTR_MAX_LEN); /* there's room for more */
@@ -179,7 +179,7 @@ unsigned GPU_vertformat_attr_add(
 #endif
 	format->name_len++; /* multiname support */
 
-	const unsigned attrib_id = format->attr_len++;
+	const uint attrib_id = format->attr_len++;
 	GPUVertAttr *attrib = format->attribs + attrib_id;
 
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, name);
@@ -204,20 +204,20 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, alias);
 }
 
-unsigned padding(unsigned offset, unsigned alignment)
+uint padding(uint offset, uint alignment)
 {
-	const unsigned mod = offset % alignment;
+	const uint mod = offset % alignment;
 	return (mod == 0) ? 0 : (alignment - mod);
 }
 
 #if PACK_DEBUG
-static void show_pack(unsigned a_idx, unsigned sz, unsigned pad)
+static void show_pack(uint a_idx, uint sz, uint pad)
 {
 	const char c = 'A' + a_idx;
-	for (unsigned i = 0; i < pad; ++i) {
+	for (uint i = 0; i < pad; ++i) {
 		putchar('-');
 	}
-	for (unsigned i = 0; i < sz; ++i) {
+	for (uint i = 0; i < sz; ++i) {
 		putchar(c);
 	}
 }
@@ -235,15 +235,15 @@ void VertexFormat_pack(GPUVertFormat *format)
 
 	GPUVertAttr *a0 = format->attribs + 0;
 	a0->offset = 0;
-	unsigned offset = a0->sz;
+	uint offset = a0->sz;
 
 #if PACK_DEBUG
 	show_pack(0, a0->sz, 0);
 #endif
 
-	for (unsigned a_idx = 1; a_idx < format->attr_len; ++a_idx) {
+	for (uint a_idx = 1; a_idx < format->attr_len; ++a_idx) {
 		GPUVertAttr *a = format->attribs + a_idx;
-		unsigned mid_padding = padding(offset, attrib_align(a));
+		uint mid_padding = padding(offset, attrib_align(a));
 		offset += mid_padding;
 		a->offset = offset;
 		offset += a->sz;
@@ -253,7 +253,7 @@ void VertexFormat_pack(GPUVertFormat *format)
 #endif
 	}
 
-	unsigned end_padding = padding(offset, attrib_align(a0));
+	uint end_padding = padding(offset, attrib_align(a0));
 
 #if PACK_DEBUG
 	show_pack(0, 0, end_padding);

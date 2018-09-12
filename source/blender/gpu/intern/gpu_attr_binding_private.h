@@ -39,7 +39,7 @@ void AttribBinding_clear(GPUAttrBinding *binding);
 
 void get_attrib_locations(
         const GPUVertFormat *format, GPUAttrBinding *binding, const GPUShaderInterface *shaderface);
-unsigned read_attrib_location(
-        const GPUAttrBinding *binding, unsigned a_idx);
+uint read_attrib_location(
+        const GPUAttrBinding *binding, uint a_idx);
 
 #endif /* __GPU_ATTR_BINDING_PRIVATE_H__ */

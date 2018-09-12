@@ -309,7 +309,7 @@ GPUTexture *GPU_texture_from_blender(
 
 	/* Check if we have a valid image. If not, we return a dummy
 	 * texture with zero bindcode so we don't keep trying. */
-	unsigned int bindcode = 0;
+	uint bindcode = 0;
 	if (ima->ok == 0) {
 		*tex = GPU_texture_from_bindcode(textarget, bindcode);
 		return *tex;
@@ -353,7 +353,7 @@ GPUTexture *GPU_texture_from_blender(
 
 	const int rectw = ibuf->x;
 	const int recth = ibuf->y;
-	unsigned int *rect = ibuf->rect;
+	uint *rect = ibuf->rect;
 	float *frect = NULL;
 	float *srgb_frect = NULL;
 
@@ -397,9 +397,9 @@ GPUTexture *GPU_texture_from_blender(
 	return *tex;
 }
 
-static void **gpu_gen_cube_map(unsigned int *rect, float *frect, int rectw, int recth, bool use_high_bit_depth)
+static void **gpu_gen_cube_map(uint *rect, float *frect, int rectw, int recth, bool use_high_bit_depth)
 {
-	size_t block_size = use_high_bit_depth ? sizeof(float) * 4 : sizeof(unsigned char) * 4;
+	size_t block_size = use_high_bit_depth ? sizeof(float[4]) : sizeof(uchar[4]);
 	void **sides = NULL;
 	int h = recth / 2;
 	int w = rectw / 3;
@@ -437,7 +437,7 @@ static void **gpu_gen_cube_map(unsigned int *rect, float *frect, int rectw, int 
 		}
 	}
 	else {
-		unsigned int **isides = (unsigned int **)sides;
+		uint **isides = (uint **)sides;
 
 		for (int y = 0; y < h; y++) {
 			for (int x = 0; x < w; x++) {
@@ -466,7 +466,7 @@ static void gpu_del_cube_map(void **cube_map)
 
 /* Image *ima can be NULL */
 void GPU_create_gl_tex(
-        unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
+        uint *bind, uint *rect, float *frect, int rectw, int recth,
         int textarget, bool mipmap, bool use_high_bit_depth, Image *ima)
 {
 	ImBuf *ibuf = NULL;
@@ -670,7 +670,7 @@ bool GPU_upload_dxt_texture(ImBuf *ibuf)
 }
 
 void GPU_create_gl_tex_compressed(
-        unsigned int *bind, unsigned int *pix, int x, int y,
+        uint *bind, uint *pix, int x, int y,
         int textarget, int mipmap, Image *ima, ImBuf *ibuf)
 {
 #ifndef WITH_DDS
@@ -775,8 +775,8 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 		}
 		/* byte images are not continuous in memory so do manual interpolation */
 		else {
-			unsigned char *scalerect = MEM_mallocN(rectw * recth * sizeof(*scalerect) * 4, "scalerect");
-			unsigned int *p = (unsigned int *)scalerect;
+			uchar *scalerect = MEM_mallocN(rectw * recth * sizeof(*scalerect) * 4, "scalerect");
+			uint *p = (uint *)scalerect;
 			int i, j;
 			float inv_xratio = 1.0f / xratio;
 			float inv_yratio = 1.0f / yratio;
@@ -784,7 +784,7 @@ static bool gpu_check_scaled_image(ImBuf *ibuf, Image *ima, float *frect, int x,
 				float u = (x + i) * inv_xratio;
 				for (j = 0; j < recth; j++) {
 					float v = (y + j) * inv_yratio;
-					bilinear_interpolation_color_wrap(ibuf, (unsigned char *)(p + i + j * (rectw)), NULL, u, v);
+					bilinear_interpolation_color_wrap(ibuf, (uchar *)(p + i + j * (rectw)), NULL, u, v);
 				}
 			}
 
@@ -1215,9 +1215,9 @@ void GPU_disable_program_point_size(void)
 
 /* apple seems to round colors to below and up on some configs */
 
-static unsigned int index_to_framebuffer(int index)
+static uint index_to_framebuffer(int index)
 {
-	unsigned int i = index;
+	uint i = index;
 
 	switch (GPU_color_depth()) {
 		case 12:
@@ -1245,9 +1245,9 @@ static unsigned int index_to_framebuffer(int index)
 
 /* this is the old method as being in use for ages.... seems to work? colors are rounded to lower values */
 
-static unsigned int index_to_framebuffer(int index)
+static uint index_to_framebuffer(int index)
 {
-	unsigned int i = index;
+	uint i = index;
 
 	switch (GPU_color_depth()) {
 		case 8:
@@ -1303,7 +1303,7 @@ void GPU_select_index_get(int index, int *r_col)
 #define INDEX_FROM_BUF_18(col)    ((((col) & 0xFC0000) >> 6)  + (((col) & 0xFC00) >> 4)  + (((col) & 0xFC) >> 2))
 #define INDEX_FROM_BUF_24(col)      ((col) & 0xFFFFFF)
 
-int GPU_select_to_index(unsigned int col)
+int GPU_select_to_index(uint col)
 {
 	if (col == 0) {
 		return 0;
@@ -1319,7 +1319,7 @@ int GPU_select_to_index(unsigned int col)
 	}
 }
 
-void GPU_select_to_index_array(unsigned int *col, const unsigned int size)
+void GPU_select_to_index_array(uint *col, const uint size)
 {
 #define INDEX_BUF_ARRAY(INDEX_FROM_BUF_BITS) \
 	for (i = size; i--; col++) { \
@@ -1329,7 +1329,7 @@ void GPU_select_to_index_array(unsigned int *col, const unsigned int size)
 	} ((void)0)
 
 	if (size > 0) {
-		unsigned int i, c;
+		uint i, c;
 
 		switch (GPU_color_depth()) {
 			case  8:
@@ -1360,32 +1360,32 @@ typedef struct {
 	eGPUAttribMask mask;
 
 	/* GL_ENABLE_BIT */
-	unsigned int is_blend : 1;
-	unsigned int is_cull_face : 1;
-	unsigned int is_depth_test : 1;
-	unsigned int is_dither : 1;
-	unsigned int is_lighting : 1;
-	unsigned int is_line_smooth : 1;
-	unsigned int is_color_logic_op : 1;
-	unsigned int is_multisample : 1;
-	unsigned int is_polygon_offset_line : 1;
-	unsigned int is_polygon_offset_fill : 1;
-	unsigned int is_polygon_smooth : 1;
-	unsigned int is_sample_alpha_to_coverage : 1;
-	unsigned int is_scissor_test : 1;
-	unsigned int is_stencil_test : 1;
+	uint is_blend : 1;
+	uint is_cull_face : 1;
+	uint is_depth_test : 1;
+	uint is_dither : 1;
+	uint is_lighting : 1;
+	uint is_line_smooth : 1;
+	uint is_color_logic_op : 1;
+	uint is_multisample : 1;
+	uint is_polygon_offset_line : 1;
+	uint is_polygon_offset_fill : 1;
+	uint is_polygon_smooth : 1;
+	uint is_sample_alpha_to_coverage : 1;
+	uint is_scissor_test : 1;
+	uint is_stencil_test : 1;
 
 	bool is_clip_plane[6];
 
 	/* GL_DEPTH_BUFFER_BIT */
-	/* unsigned int is_depth_test : 1; */
+	/* uint is_depth_test : 1; */
 	int depth_func;
 	double depth_clear_value;
 	bool depth_write_mask;
 
 	/* GL_SCISSOR_BIT */
 	int scissor_box[4];
-	/* unsigned int is_scissor_test : 1; */
+	/* uint is_scissor_test : 1; */
 
 	/* GL_VIEWPORT_BIT */
 	int viewport[4];
@@ -1394,7 +1394,7 @@ typedef struct {
 
 typedef struct {
 	GPUAttribValues attrib_stack[STATE_STACK_DEPTH];
-	unsigned int top;
+	uint top;
 } GPUAttribStack;
 
 static GPUAttribStack state = {

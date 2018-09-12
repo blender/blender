@@ -89,7 +89,7 @@ struct GPU_PBVH_Buffers {
 
 	bool use_bmesh;
 
-	unsigned int tot_tri, tot_quad;
+	uint tot_tri, tot_quad;
 
 	/* The PBVH ensures that either all faces in the node are
 	 * smooth-shaded or all faces are flat-shaded */
@@ -104,7 +104,7 @@ static struct {
 
 /* Allocates a non-initialized buffer to be sent to GPU.
  * Return is false it indicates that the memory map failed. */
-static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, unsigned int vert_len)
+static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
 {
 	if (buffers->vert_buf == NULL) {
 		/* Initialize vertex buffer */
@@ -192,13 +192,13 @@ void GPU_pbvh_mesh_buffers_update(
 			}
 			else {
 				/* calculate normal for each polygon only once */
-				unsigned int mpoly_prev = UINT_MAX;
+				uint mpoly_prev = UINT_MAX;
 				short no[3];
 				int vbo_index = 0;
 
 				for (uint i = 0; i < buffers->face_indices_len; i++) {
 					const MLoopTri *lt = &buffers->looptri[buffers->face_indices[i]];
-					const unsigned int vtri[3] = {
+					const uint vtri[3] = {
 					    buffers->mloop[lt->tri[0]].v,
 					    buffers->mloop[lt->tri[1]].v,
 					    buffers->mloop[lt->tri[2]].v,
@@ -433,7 +433,7 @@ void GPU_pbvh_grid_buffers_update(
 }
 
 /* Build the element array buffer of grid indices using either
- * unsigned shorts or unsigned ints. */
+ * ushorts or uints. */
 #define FILL_QUAD_BUFFER(max_vert_, tot_quad_, buffer_)                 \
 	{                                                                   \
 		int offset = 0;                                                 \
@@ -474,7 +474,7 @@ void GPU_pbvh_grid_buffers_update(
 /* end FILL_QUAD_BUFFER */
 
 static GPUIndexBuf *gpu_get_grid_buffer(
-        int gridsize, unsigned *totquad,
+        int gridsize, uint *totquad,
         /* remove this arg  when GPU gets base-vertex support! */
         int totgrid)
 {
@@ -845,7 +845,7 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 }
 
 /* debug function, draws the pbvh BB */
-void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, unsigned int pos)
+void GPU_pbvh_BB_draw(float min[3], float max[3], bool leaf, uint pos)
 {
 	if (leaf)
 		immUniformColor4f(0.0, 1.0, 0.0, 0.5);
