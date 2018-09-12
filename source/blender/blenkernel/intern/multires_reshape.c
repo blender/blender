@@ -435,7 +435,7 @@ static void multires_reshape_init_mmd(MultiresModifierData *reshape_mmd,
  * This function might fail in cases like source and destination not having
  * matched amount of vertices.
  */
-bool multiresModifier_reshape(
+bool multiresModifier_reshapeFromObject(
         struct Depsgraph *depsgraph,
         MultiresModifierData *mmd,
         Object *dst,

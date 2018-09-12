@@ -116,7 +116,7 @@ int mdisp_rot_face_to_crn(struct MVert *mvert, struct MPoly *mpoly, struct MLoop
 
 /* Reshaping, define in multires_reshape.c */
 
-bool multiresModifier_reshape(
+bool multiresModifier_reshapeFromObject(
         struct Depsgraph *depsgraph,
         struct MultiresModifierData *mmd,
         struct Object *dst,
