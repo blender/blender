@@ -1470,9 +1470,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 							/* if invisible, delete point */
 							if ((pt1->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt1->pressure < cull_thresh)) {
 								pt1->flag |= GP_SPOINT_TAG;
+								do_cull = true;
 							}
 							if ((pt2->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt2->pressure < cull_thresh)) {
 								pt2->flag |= GP_SPOINT_TAG;
+								do_cull = true;
 							}
 						}
 						else {
