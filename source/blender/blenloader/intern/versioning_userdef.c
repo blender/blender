@@ -42,21 +42,22 @@
 /* Disallow access to global userdef. */
 #define U (_error_)
 
-#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
 
 static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 {
+
+#define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
 	if (!USER_VERSION_ATLEAST(280, 20)) {
 		memcpy(btheme, &U_theme_default, sizeof(*btheme));
 	}
-}
-
 #undef USER_VERSION_ATLEAST
 
+}
 
 /* patching UserDef struct and Themes */
 void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 {
+
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(bmain, ver, subver)
 
 	/* the UserDef struct is not corrected with do_versions() .... ugh! */
@@ -330,14 +331,9 @@ void BLO_version_defaults_userpref_blend(Main *bmain, UserDef *userdef)
 	// we default to the first audio device
 	userdef->audiodevice = 0;
 
-	/* Not versioning, just avoid errors. */
-#ifndef WITH_CYCLES
-	BKE_addon_remove_safe(&userdef->addons, "cycles");
-#endif
-	/* this timer uses U */
-// XXX	reset_autosave();
-
 	for (bTheme *btheme = userdef->themes.first; btheme; btheme = btheme->next) {
 		do_versions_theme(userdef, btheme);
 	}
+#undef USER_VERSION_ATLEAST
+
 }

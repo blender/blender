@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_main.h"
 #include "BKE_mesh_runtime.h"
@@ -1199,5 +1200,13 @@ void init_userdef_do_versions(Main *bmain)
 
 	/* signal for evaluated mesh to use colorband */
 	/* run in case this was on and is now off in the user prefs [#28096] */
-	BKE_mesh_runtime_color_band_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, UI_GetTheme()->tv3d.vertex_unreferenced);
+	BKE_mesh_runtime_color_band_store(
+	        (U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL,
+	        UI_GetTheme()->tv3d.vertex_unreferenced);
+
+	/* Not versioning, just avoid errors. */
+#ifndef WITH_CYCLES
+	BKE_addon_remove_safe(&U.addons, "cycles");
+#endif
+
 }
