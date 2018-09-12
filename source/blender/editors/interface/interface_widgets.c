@@ -1177,7 +1177,9 @@ static void draw_widgetbase_batch(GPUBatch *batch, uiWidgetBase *wtb)
 	}
 }
 
-static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
+static void widgetbase_draw_ex(
+        uiWidgetBase *wtb, const uiWidgetColors *wcol,
+        bool show_alpha_checkers)
 {
 	unsigned char inner_col1[4] = {0};
 	unsigned char inner_col2[4] = {0};
@@ -1185,7 +1187,9 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 	unsigned char outline_col[4] = {0};
 	unsigned char tria_col[4] = {0};
 	/* For color widget. */
-	bool alpha_check = (wcol->alpha_check && (wcol->shaded == 0));
+	if (wcol->shaded != 0) {
+		show_alpha_checkers = false;
+	}
 
 	GPU_blend(true);
 
@@ -1224,14 +1228,19 @@ static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 	}
 
 	/* Draw everything in one drawcall */
-	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] || alpha_check) {
-		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, alpha_check);
+	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] || show_alpha_checkers) {
+		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, show_alpha_checkers);
 
 		GPUBatch *roundbox_batch = ui_batch_roundbox_widget_get(wtb->tria1.type);
 		draw_widgetbase_batch(roundbox_batch, wtb);
 	}
 
 	GPU_blend(false);
+}
+
+static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
+{
+	widgetbase_draw_ex(wtb, wcol, false);
 }
 
 /* *********************** text/icon ************************************** */
@@ -3376,9 +3385,9 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		ui_block_cm_to_display_space_v3(but->block, col);
 
 	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
+	const bool show_alpha_checkers = (wcol->inner[3] < 255);
 
 	wcol->shaded = 0;
-	wcol->alpha_check = (wcol->inner[3] < 255);
 
 	if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
 		/* Now we reduce alpha of the inner color (i.e. the color shown)
@@ -3389,7 +3398,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		wcol->inner[3] /= 2;
 	}
 
-	widgetbase_draw(&wtb, wcol);
+	widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
 	if (but->a1 == UI_PALETTE_COLOR && ((Palette *)but->rnapoin.id.data)->active_color == (int)but->a2) {
 		float width = rect->xmax - rect->xmin;
 		float height = rect->ymax - rect->ymin;
