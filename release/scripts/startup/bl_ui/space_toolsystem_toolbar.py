@@ -773,6 +773,9 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def vertex_smooth():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.vertices_smooth")
+            layout.prop(props, "repeat")
         return dict(
             text="Smooth",
             icon="ops.mesh.vertices_smooth",
@@ -782,10 +785,16 @@ class _defs_edit_mesh:
                 ("mesh.vertices_smooth", dict(factor=0.0),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def vertex_randomize():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("transform.vertex_random")
+            layout.prop(props, "uniform")
+            layout.prop(props, "normal")
+            layout.prop(props, "seed")
         return dict(
             text="Randomize",
             icon="ops.transform.vertex_random",
@@ -795,6 +804,7 @@ class _defs_edit_mesh:
                 ("transform.vertex_random", dict(offset=0.0),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
