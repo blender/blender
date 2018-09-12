@@ -421,10 +421,11 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 }
 
 /* apply jitter to stroke */
-static void gp_brush_jitter(bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2], int r_mval[2], RNG *rng)
+static void gp_brush_jitter(
+		bGPdata *gpd, Brush *brush, tGPspoint *pt, const int mval[2],
+		const float pressure, int r_mval[2], RNG *rng)
 {
-	float pressure = pt->pressure;
-	float tmp_pressure = pt->pressure;
+	float tmp_pressure = pressure;
 	if (brush->gpencil_settings->draw_jitter > 0.0f) {
 		float curvef = curvemapping_evaluateF(brush->gpencil_settings->curve_jitter, 0, pressure);
 		tmp_pressure = curvef * brush->gpencil_settings->draw_sensitivity;
@@ -626,9 +627,12 @@ static short gp_stroke_addpoint(
 		}
 
 		/* Apply jitter to position */
-		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) && (brush->gpencil_settings->draw_jitter > 0.0f)) {
+		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
+			(brush->gpencil_settings->draw_jitter > 0.0f))
+		{
 			int r_mval[2];
-			gp_brush_jitter(gpd, brush, pt, mval, r_mval, p->rng);
+			const float jitpress = (brush->gpencil_settings->flag & GP_BRUSH_USE_JITTER_PRESSURE) ? pressure : 1.0f;
+			gp_brush_jitter(gpd, brush, pt, mval, jitpress, r_mval, p->rng);
 			copy_v2_v2_int(&pt->x, r_mval);
 		}
 		else {
