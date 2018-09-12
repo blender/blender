@@ -215,7 +215,7 @@ static void edit_text_cache_populate_boxes(void *vedata, Object *ob)
 		DRWShadingGroup *shading_group = shading_groups[is_active ? 0 : 1];
 
 		vec[0] = cu->xof + tb->x;
-		vec[1] = cu->yof + tb->y + cu->fsize;
+		vec[1] = cu->yof + tb->y + cu->fsize_realtime;
 		vec[2] = 0.001;
 
 		mul_v3_m4v3(vec1, ob->obmat, vec);

@@ -225,11 +225,12 @@ typedef struct Curve {
 	/* edit, index in active nurb (BPoint or BezTriple) */
 	int actvert;
 
-	char pad[4];
+	char overflow;
+	char spacemode, align_y;
+	char pad[3];
 
 	/* font part */
 	short lines;
-	char spacemode, align_y;
 	float spacing, linedist, shear, fsize, wordspace, ulpos, ulheight;
 	float xof, yof;
 	float linewidth;
@@ -264,6 +265,8 @@ typedef struct Curve {
 	char bevfac1_mapping, bevfac2_mapping;
 
 	char pad2[2];
+	float fsize_realtime;
+	float pad3;
 
 	void *batch_cache;
 } Curve;
@@ -338,6 +341,13 @@ enum {
 	CU_ALIGN_Y_CENTER             = 2,
 	CU_ALIGN_Y_BOTTOM_BASELINE    = 3,
 	CU_ALIGN_Y_BOTTOM             = 4,
+};
+
+/* Curve.overflow. */
+enum {
+	CU_OVERFLOW_NONE              = 0,
+	CU_OVERFLOW_SCALE             = 1,
+	CU_OVERFLOW_TRUNCATE          = 2,
 };
 
 /* Nurb.flag */
@@ -457,13 +467,14 @@ typedef enum eBezTriple_KeyframeType {
 
 /* CharInfo.flag */
 enum {
-	/* note: CU_CHINFO_WRAP and CU_CHINFO_SMALLCAPS_TEST are set dynamically */
+	/* note: CU_CHINFO_WRAP, CU_CHINFO_SMALLCAPS_TEST and CU_CHINFO_TRUNCATE are set dynamically */
 	CU_CHINFO_BOLD            = 1 << 0,
 	CU_CHINFO_ITALIC          = 1 << 1,
 	CU_CHINFO_UNDERLINE       = 1 << 2,
 	CU_CHINFO_WRAP            = 1 << 3,  /* wordwrap occurred here */
 	CU_CHINFO_SMALLCAPS       = 1 << 4,
 	CU_CHINFO_SMALLCAPS_CHECK = 1 << 5,  /* set at runtime, checks if case switching is needed */
+	CU_CHINFO_OVERFLOW        = 1 << 6,  /* Set at runtime, indicates char that doesn't fit in text boxes. */
 };
 
 /* mixed with KEY_LINEAR but define here since only curve supports */
