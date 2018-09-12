@@ -1464,8 +1464,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 							pt2->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.5f;
 							CLAMP_MIN(pt2->strength, 0.0f);
 
-							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * 0.50f;
-							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.25f;
+							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * 0.10f;
+							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.05f;
 
 							/* if invisible, delete point */
 							if ((pt1->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt1->pressure < cull_thresh)) {
