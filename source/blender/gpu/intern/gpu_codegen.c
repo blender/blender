@@ -636,21 +636,10 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 				BLI_dynstr_append(ds, ";\n");
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-#ifdef WITH_OPENSUBDIV
-				bool skip_opensubdiv = input->attribtype == CD_TANGENT;
-				if (skip_opensubdiv) {
-					BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
-				}
-#endif
 				BLI_dynstr_appendf(
 				        ds, "%s %s var%d;\n",
 				        GLEW_VERSION_3_0 ? "in" : "varying",
 				        GPU_DATATYPE_STR[input->type], input->attribid);
-#ifdef WITH_OPENSUBDIV
-				if (skip_opensubdiv) {
-					BLI_dynstr_appendf(ds, "#endif\n");
-				}
-#endif
 			}
 		}
 	}
@@ -774,12 +763,6 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 	char *code;
 	int builtins;
 
-#ifdef WITH_OPENSUBDIV
-	GPUNode *node;
-	GPUInput *input;
-#endif
-
-
 #if 0
 	BLI_dynstr_append(ds, FUNCTION_PROTOTYPES);
 #endif
@@ -818,36 +801,6 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 		BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
 	if (builtins & GPU_VIEW_POSITION)
 		BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
-
-	/* Calculate tangent space. */
-#ifdef WITH_OPENSUBDIV
-	{
-		bool has_tangent = false;
-		for (node = nodes->first; node; node = node->next) {
-			for (input = node->inputs.first; input; input = input->next) {
-				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-					if (input->attribtype == CD_TANGENT) {
-						BLI_dynstr_appendf(
-						        ds, "#ifdef USE_OPENSUBDIV\n");
-						BLI_dynstr_appendf(
-						        ds, "\t%s var%d;\n",
-						        GPU_DATATYPE_STR[input->type],
-						        input->attribid);
-						if (has_tangent == false) {
-							BLI_dynstr_appendf(ds, "\tvec3 Q1 = dFdx(inpt.v.position.xyz);\n");
-							BLI_dynstr_appendf(ds, "\tvec3 Q2 = dFdy(inpt.v.position.xyz);\n");
-							BLI_dynstr_appendf(ds, "\tvec2 st1 = dFdx(inpt.v.uv);\n");
-							BLI_dynstr_appendf(ds, "\tvec2 st2 = dFdy(inpt.v.uv);\n");
-							BLI_dynstr_appendf(ds, "\tvec3 T = normalize(Q1 * st2.t - Q2 * st1.t);\n");
-						}
-						BLI_dynstr_appendf(ds, "\tvar%d = vec4(T, 1.0);\n", input->attribid);
-						BLI_dynstr_appendf(ds, "#endif\n");
-					}
-				}
-			}
-		}
-	}
-#endif
 
 	codegen_declare_tmps(ds, nodes);
 	codegen_call_functions(ds, nodes, output);

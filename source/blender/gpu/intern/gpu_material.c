@@ -58,10 +58,6 @@
 
 #include "gpu_codegen.h"
 
-#ifdef WITH_OPENSUBDIV
-#  include "BKE_DerivedMesh.h"
-#endif
-
 /* Structs */
 #define MAX_COLOR_BAND 128
 
@@ -107,8 +103,6 @@ struct GPUMaterial {
 	int partangvel;
 
 	int objectinfoloc;
-
-	bool is_opensubdiv;
 
 	/* XXX: Should be in Material. But it depends on the output node
 	 * used and since the output selection is difference for GPUMaterial...

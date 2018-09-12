@@ -255,8 +255,4 @@ if(WITH_IMAGE_DDS)
 	add_definitions(-DWITH_DDS)
 endif()
 
-if(WITH_OPENSUBDIV)
-	add_definitions(-DWITH_OPENSUBDIV)
-endif()
-
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}")

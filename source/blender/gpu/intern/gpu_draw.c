@@ -85,13 +85,6 @@
 #  include "smoke_API.h"
 #endif
 
-#ifdef WITH_OPENSUBDIV
-#  include "BKE_subsurf.h"
-#  include "BKE_editmesh.h"
-
-#  include "gpu_codegen.h"
-#endif
-
 extern Material defmaterial; /* from material.c */
 
 //* Checking powers of two for images since OpenGL ES requires it */
