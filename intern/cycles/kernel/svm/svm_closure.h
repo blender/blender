@@ -258,7 +258,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					float3 spec_weight = weight * specular_weight;
 
 					MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), spec_weight);
-					MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+					MicrofacetExtra *extra = (bsdf != NULL)
+					        ? (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra))
+					        : NULL;
 
 					if (bsdf && extra) {
 						bsdf->N = N;
@@ -308,7 +310,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 						{
 							MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), glass_weight*fresnel);
-							MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+							MicrofacetExtra *extra = (bsdf != NULL)
+							        ? (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra))
+							        : NULL;
 
 							if (bsdf && extra) {
 								bsdf->N = N;
@@ -355,7 +359,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					}
 					else { /* use multi-scatter GGX */
 						MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), glass_weight);
-						MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+						MicrofacetExtra *extra = (bsdf != NULL)
+						        ? (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra))
+						        : NULL;
 
 						if(bsdf && extra) {
 							bsdf->N = N;
@@ -385,7 +391,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 #endif
 				if(clearcoat > CLOSURE_WEIGHT_CUTOFF) {
 					MicrofacetBsdf *bsdf = (MicrofacetBsdf*)bsdf_alloc(sd, sizeof(MicrofacetBsdf), weight);
-					MicrofacetExtra *extra = (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra));
+					MicrofacetExtra *extra = (bsdf != NULL)
+					        ? (MicrofacetExtra*)closure_alloc_extra(sd, sizeof(MicrofacetExtra))
+					        : NULL;
 
 					if(bsdf && extra) {
 						bsdf->N = clearcoat_normal;
