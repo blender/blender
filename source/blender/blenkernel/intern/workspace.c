@@ -243,6 +243,7 @@ WorkSpaceLayout *BKE_workspace_layout_add(
 	UNUSED_VARS(bmain);
 #endif
 	layout->screen = screen;
+	id_us_plus(&layout->screen->id);
 	workspace_layout_name_set(workspace, layout, name);
 	BLI_addtail(&workspace->layouts, layout);
 
@@ -253,7 +254,8 @@ void BKE_workspace_layout_remove(
         Main *bmain,
         WorkSpace *workspace, WorkSpaceLayout *layout)
 {
-	BKE_libblock_free(bmain, BKE_workspace_layout_screen_get(layout));
+	id_us_min(&layout->screen->id);
+	BKE_libblock_free(bmain, layout->screen);
 	BLI_freelinkN(&workspace->layouts, layout);
 }
 

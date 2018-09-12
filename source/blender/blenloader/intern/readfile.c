@@ -2949,15 +2949,13 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		id_us_ensure_real(id);
 
 		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
-			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
+			layout->screen = newlibadr_us(fd, id->lib, layout->screen);
 
 			layout_next = layout->next;
-			if (screen) {
-				BKE_workspace_layout_screen_set(layout, screen);
-
+			if (layout->screen) {
 				if (ID_IS_LINKED(id)) {
-					screen->winid = 0;
-					if (screen->temp) {
+					layout->screen->winid = 0;
+					if (layout->screen->temp) {
 						/* delete temp layouts when appending */
 						BKE_workspace_layout_remove(bmain, workspace, layout);
 					}
@@ -7251,7 +7249,6 @@ static void lib_link_screen(FileData *fd, Main *main)
 	for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
 		if (sc->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(sc->id.properties, fd);
-			id_us_ensure_real(&sc->id);
 
 			/* deprecated, but needed for versioning (will be NULL'ed then) */
 			sc->scene = newlibadr(fd, sc->id.lib, sc->scene);

@@ -111,7 +111,7 @@ typedef struct bToolRef {
 typedef struct WorkSpaceLayout {
 	struct WorkSpaceLayout *next, *prev;
 
-	struct bScreen *screen DNA_PRIVATE_WORKSPACE;
+	struct bScreen *screen;
 	/* The name of this layout, we override the RNA name of the screen with this (but not ID name itself) */
 	char name[64] DNA_PRIVATE_WORKSPACE; /* MAX_NAME */
 } WorkSpaceLayout;
