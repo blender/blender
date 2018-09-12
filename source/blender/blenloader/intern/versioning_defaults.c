@@ -74,54 +74,9 @@ void BLO_update_defaults_userpref_blend(void)
 /**
  * Update defaults in startup.blend, without having to save and embed the file.
  * This function can be emptied each time the startup.blend is updated. */
-void BLO_update_defaults_startup_blend(Main *bmain)
+void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
-	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		const char *name = workspace->id.name + 2;
-
-		if (STREQ(name, "Modeling")) {
-			workspace->order = 0;
-		}
-		else if (STREQ(name, "Sculpting")) {
-			workspace->object_mode = OB_MODE_SCULPT;
-			workspace->order = 1;
-		}
-		else if (STREQ(name, "UV Editing")) {
-			workspace->object_mode = OB_MODE_EDIT;
-			workspace->order = 2;
-		}
-		else if (STREQ(name, "Texture Paint")) {
-			workspace->object_mode = OB_MODE_TEXTURE_PAINT;
-			workspace->order = 3;
-		}
-		else if (STREQ(name, "Shading")) {
-			workspace->order = 4;
-		}
-		else if (STREQ(name, "3D Animation")) {
-			workspace->object_mode = OB_MODE_POSE;
-			workspace->order = 5;
-		}
-		else if (STREQ(name, "Rendering")) {
-			workspace->order = 6;
-		}
-		else if (STREQ(name, "Compositing")) {
-			workspace->order = 7;
-		}
-		else if (STREQ(name, "2D Animation")) {
-			workspace->object_mode = OB_MODE_GPENCIL_PAINT;
-			workspace->order = 8;
-		}
-		else if (STREQ(name, "Video Editing")) {
-			workspace->order = 9;
-		}
-		else if (STREQ(name, "Motion Tracking")) {
-			workspace->order = 10;
-		}
-		else if (STREQ(name, "Scripting")) {
-			workspace->order = 11;
-		}
-	}
-
+	/* For all startup.blend files. */
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 			for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
@@ -134,53 +89,43 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 					ar->v2d.flag &= ~V2D_IS_INITIALISED;
 				}
 			}
+		}
+	}
 
-			if (area->spacetype == SPACE_FILE) {
-				SpaceFile *sfile = area->spacedata.first;
+	/* For 2D animation template. */
+	if (app_template && STREQ(app_template, "2D Animation")) {
+		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+			const char *name = workspace->id.name + 2;
 
-				if (sfile->params) {
-					if (STREQ(screen->id.name, "SRDefault.003")) {
-						/* Shading. */
-						sfile->params->filter = FILE_TYPE_FOLDER |
-						                        FILE_TYPE_IMAGE;
-					}
-					else {
-						/* Video Editing. */
-						sfile->params->filter = FILE_TYPE_FOLDER |
-						                        FILE_TYPE_IMAGE |
-						                        FILE_TYPE_MOVIE |
-						                        FILE_TYPE_SOUND;
-					}
-				}
+			if (STREQ(name, "Drawing")) {
+				workspace->object_mode = OB_MODE_GPENCIL_PAINT;
 			}
 		}
 	}
 
-	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-		BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+	/* For all builtin templates shipped with Blender. */
+	bool builtin_template = !app_template ||
+	                        STREQ(app_template, "2D_Animation") ||
+	                        STREQ(app_template, "VFX") ||
+	                        STREQ(app_template, "Video_Editing");
 
-		scene->r.cfra = 1.0f;
+	if (builtin_template) {
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 
-		/* Don't enable compositing nodes. */
-		if (scene->nodetree) {
-			ntreeFreeTree(scene->nodetree);
-			MEM_freeN(scene->nodetree);
-			scene->nodetree = NULL;
-			scene->use_nodes = false;
-		}
+			scene->r.cfra = 1.0f;
+			scene->r.displaymode = R_OUTPUT_WINDOW;
 
-		/* Select only cube by default. */
-		for (ViewLayer *layer = scene->view_layers.first; layer; layer = layer->next) {
-			for (Base *base = layer->object_bases.first; base; base = base->next) {
-				if (STREQ(base->object->id.name + 2, "Cube")) {
-					base->flag |= BASE_SELECTED;
-				}
-				else {
-					base->flag &= ~BASE_SELECTED;
-				}
+			/* Don't enable compositing nodes. */
+			if (scene->nodetree) {
+				ntreeFreeTree(scene->nodetree);
+				MEM_freeN(scene->nodetree);
+				scene->nodetree = NULL;
+				scene->use_nodes = false;
 			}
 
-			BKE_layer_collection_sync(scene, layer);
+			/* Rename render layers. */
+			BKE_view_layer_rename(bmain, scene, scene->view_layers.first, "View Layer");
 		}
 	}
 }

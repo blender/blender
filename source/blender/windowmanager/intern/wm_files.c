@@ -809,6 +809,7 @@ int wm_homefile_read(
 	}
 
 	const char *app_template = NULL;
+	bool update_defaults = false;
 
 	if (filepath_startup_override != NULL) {
 		/* pass */
@@ -844,6 +845,9 @@ int wm_homefile_read(
 
 		if (filepath_startup[0] == '\0') {
 			BLI_path_join(filepath_startup, sizeof(filepath_startup), app_template_system, BLENDER_STARTUP_FILE, NULL);
+
+			/* Update defaults only for system templates. */
+			update_defaults = true;
 		}
 	}
 
@@ -855,6 +859,9 @@ int wm_homefile_read(
 			if (G.debug & G_DEBUG)
 				printf("\nNote: No (valid) '%s' found, fall back to built-in default.\n\n", filepath_startup);
 			success = false;
+		}
+		if (success && update_defaults) {
+			BLO_update_defaults_startup_blend(CTX_data_main(C), app_template);
 		}
 	}
 
