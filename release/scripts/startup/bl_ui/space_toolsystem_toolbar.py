@@ -776,9 +776,10 @@ class _defs_edit_mesh:
         return dict(
             text="Smooth",
             icon="ops.mesh.vertices_smooth",
-            widget=None,
+            widget="WM_GGT_value_operator_redo",
             keymap=(
-                ("mesh.vertices_smooth", dict(),
+                # Use 0.0, so dragging increases from nothing.
+                ("mesh.vertices_smooth", dict(factor=0.0),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
@@ -788,9 +789,10 @@ class _defs_edit_mesh:
         return dict(
             text="Randomize",
             icon="ops.transform.vertex_random",
-            widget=None,
+            widget="WM_GGT_value_operator_redo",
             keymap=(
-                ("transform.vertex_random", dict(),
+                # Use 0.0, so dragging increases from nothing.
+                ("transform.vertex_random", dict(offset=0.0),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
