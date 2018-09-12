@@ -130,7 +130,7 @@ typedef struct uiWidgetColors {
 	char text_sel[4];
 	short shaded;
 	short shadetop, shadedown;
-	short alpha_check;
+	char _pad0[2];
 } uiWidgetColors;
 
 typedef struct uiWidgetStateColors {

@@ -680,7 +680,9 @@ static void widgetbase_outline(uiWidgetBase *wtb)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
+static void widgetbase_draw_ex(
+        uiWidgetBase *wtb, uiWidgetColors *wcol,
+        const bool show_alpha_checkers)
 {
 	int j, a;
 
@@ -690,7 +692,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if (wtb->draw_inner) {
 		BLI_assert(wtb->totvert != 0);
 		if (wcol->shaded == 0) {
-			if (wcol->alpha_check) {
+			if (show_alpha_checkers) {
 				float inner_v_half[WIDGET_SIZE_MAX][2];
 				float x_mid = 0.0f; /* used for dumb clamping of values */
 
@@ -839,6 +841,11 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	}
 
 	glDisable(GL_BLEND);
+}
+
+static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
+{
+	widgetbase_draw_ex(wtb, wcol, false);
 }
 
 /* *********************** text/icon ************************************** */
@@ -3100,9 +3107,9 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		ui_block_cm_to_display_space_v3(but->block, col);
 
 	rgba_float_to_uchar((unsigned char *)wcol->inner, col);
+	const bool show_alpha_checkers = (wcol->inner[3] < 255);
 
 	wcol->shaded = 0;
-	wcol->alpha_check = (wcol->inner[3] < 255);
 
 	if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE)) {
 		/* Now we reduce alpha of the inner color (i.e. the color shown)
@@ -3113,7 +3120,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		wcol->inner[3] /= 2;
 	}
 
-	widgetbase_draw(&wtb, wcol);
+	widgetbase_draw_ex(&wtb, wcol, show_alpha_checkers);
 
 	if (but->a1 == UI_PALETTE_COLOR && ((Palette *)but->rnapoin.id.data)->active_color == (int)but->a2) {
 		float width = rect->xmax - rect->xmin;
