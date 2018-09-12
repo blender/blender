@@ -1493,10 +1493,6 @@ void init_userdef_do_versions(Main *bmain)
 #ifndef WITH_CYCLES
 	BKE_addon_remove_safe(&U.addons, "cycles");
 #endif
-
-	/* funny name, but it is GE stuff, moves userdef stuff to engine */
-// XXX	space_set_commmandline_options();
 	/* this timer uses U */
 // XXX	reset_autosave();
-
 }
