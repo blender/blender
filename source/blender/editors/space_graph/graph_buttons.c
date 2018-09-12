@@ -46,6 +46,7 @@
 
 #include "BLT_translation.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
@@ -54,6 +55,7 @@
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "WM_api.h"
@@ -467,7 +469,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 
 #define B_IPO_DEPCHANGE     10
 
-static void do_graph_region_driver_buttons(bContext *C, void *fcu_v, int event)
+static void do_graph_region_driver_buttons(bContext *C, void *id_v, int event)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -475,6 +477,9 @@ static void do_graph_region_driver_buttons(bContext *C, void *fcu_v, int event)
 	switch (event) {
 		case B_IPO_DEPCHANGE:
 		{
+			/* Was not actually run ever (NULL always passed as arg to this callback).
+			 * If needed again, will need to check how to pass both fcurve and ID... :/ */
+#if 0
 			/* force F-Curve & Driver to get re-evaluated (same as the old Update Dependencies) */
 			FCurve *fcu = (FCurve *)fcu_v;
 			ChannelDriver *driver = (fcu) ? fcu->driver : NULL;
@@ -484,9 +489,22 @@ static void do_graph_region_driver_buttons(bContext *C, void *fcu_v, int event)
 				fcu->flag &= ~FCURVE_DISABLED;
 				driver->flag &= ~DRIVER_FLAG_INVALID;
 			}
+#endif
+			ID *id = id_v;
+			AnimData *adt = BKE_animdata_from_id(id);
 
-			/* rebuild depsgraph for the new deps */
+			/* rebuild depsgraph for the new deps, and ensure COW copies get flushed. */
 			DEG_relations_tag_update(bmain);
+			DEG_id_tag_update_ex(bmain, id, DEG_TAG_COPY_ON_WRITE);
+			if (adt != NULL) {
+				if (adt->action != NULL) {
+					DEG_id_tag_update_ex(bmain, &adt->action->id, DEG_TAG_COPY_ON_WRITE);
+				}
+				if (adt->tmpact != NULL) {
+					DEG_id_tag_update_ex(bmain, &adt->tmpact->id, DEG_TAG_COPY_ON_WRITE);
+				}
+			}
+
 			break;
 		}
 	}
@@ -759,7 +777,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 
 	/* set event handler for panel */
 	block = uiLayoutGetBlock(layout);
-	UI_block_func_handle_set(block, do_graph_region_driver_buttons, NULL);
+	UI_block_func_handle_set(block, do_graph_region_driver_buttons, id);
 
 	/* driver-level settings - type, expressions, and errors */
 	RNA_pointer_create(id, &RNA_Driver, driver, &driver_ptr);
