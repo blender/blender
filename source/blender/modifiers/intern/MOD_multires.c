@@ -223,8 +223,8 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	}
 	/* TODO(sergey): Some of production machines are using OpenSubdiv already.
 	 * so better not enable semi-finished multires sculpting for now. Will give
-	 * a wrong impression that things do work, eben though crucial areas are
-	 * styill missing in implementation.
+	 * a wrong impression that things do work, even though crucial areas are
+	 * still missing in implementation.
 	 */
 	if ((ctx->object->mode & OB_MODE_SCULPT) && G.debug_value == 128) {
 		result = multires_as_ccg(mmd, ctx, mesh, subdiv);
