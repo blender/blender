@@ -24,7 +24,7 @@
  */
 
 /** \file cage3d_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Cage Gizmo
  *

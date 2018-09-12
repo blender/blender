@@ -24,7 +24,7 @@
  */
 
 /** \file gizmo_library_intern.h
- *  \ingroup wm
+ *  \ingroup edgizmolib
  */
 
 #ifndef __GIZMO_LIBRARY_INTERN_H__

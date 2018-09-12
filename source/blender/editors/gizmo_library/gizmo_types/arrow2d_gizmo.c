@@ -24,7 +24,7 @@
  */
 
 /** \file arrow2d_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name 2D Arrow Gizmo
  *

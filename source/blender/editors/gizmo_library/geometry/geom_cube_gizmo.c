@@ -24,7 +24,7 @@
  */
 
 /** \file geom_cube_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  */
 
 #include "../gizmo_geometry.h"

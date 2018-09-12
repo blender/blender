@@ -22,7 +22,7 @@
  */
 
 /** \file geom_arrow_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  */
 
 #include "../gizmo_geometry.h"

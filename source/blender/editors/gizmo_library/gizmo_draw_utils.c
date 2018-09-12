@@ -24,7 +24,7 @@
  */
 
 /** \file gizmo_draw_utils.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  */
 
 #include "BLI_listbase.h"

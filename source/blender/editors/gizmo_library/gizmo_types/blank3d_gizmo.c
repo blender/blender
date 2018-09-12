@@ -24,7 +24,7 @@
  */
 
 /** \file blank3d_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Blank Gizmo
  *

@@ -19,7 +19,7 @@
  */
 
 /** \file blender/editors/gizmo_library/gizmo_library_presets.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Gizmo Lib Presets
  *

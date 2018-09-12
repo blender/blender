@@ -24,7 +24,7 @@
  */
 
 /** \file gizmo_library_utils.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Gizmo Library Utilities
  *

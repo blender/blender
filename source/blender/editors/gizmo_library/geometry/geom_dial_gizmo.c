@@ -22,7 +22,7 @@
  */
 
 /** \file geom_dial_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  */
 
 #include "../gizmo_geometry.h"

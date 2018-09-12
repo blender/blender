@@ -19,7 +19,7 @@
  */
 
 /** \file button2d_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Button Gizmo
  *

@@ -22,7 +22,7 @@
  */
 
 /** \file gizmo_geometry.h
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Gizmo Geometry
  *

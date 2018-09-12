@@ -24,7 +24,7 @@
  */
 
 /** \file dial3d_gizmo.c
- *  \ingroup wm
+ *  \ingroup edgizmolib
  *
  * \name Dial Gizmo
  *

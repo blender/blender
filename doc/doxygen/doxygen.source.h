@@ -132,6 +132,10 @@
  *  \ingroup editors
  */
 
+/** \defgroup edgizmolib gizmo library
+ *  \ingroup editors
+ */
+
 /** \defgroup edgpencil gpencil
  *  \ingroup editors
  */
