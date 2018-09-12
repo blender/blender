@@ -127,7 +127,7 @@ BLI_INLINE void construct_tangent_matrix(float tangent_matrix[3][3],
 }
 
 /* =============================================================================
- * Reshape internal functionality..
+ * Reshape internal functionality.
  */
 
 typedef struct MultiresReshapeContext {
@@ -256,7 +256,7 @@ static void multires_reshape_vertex(
 	float P[3], dPdu[3], dPdv[3];
 	BKE_subdiv_eval_limit_point_and_derivatives(
 	        subdiv, ptex_face_index, u, v, P, dPdu, dPdv);
-	/* Get coordinate and corner configuration.. */
+	/* Get coordinate and corner configuration. */
 	float grid_u, grid_v;
 	MDisps *displacement_grid;
 	int face_corner = coarse_corner;
@@ -427,7 +427,7 @@ static void multires_reshape_init_mmd(MultiresModifierData *reshape_mmd,
 }
 
 /* =============================================================================
- * Public entry points..
+ * Public entry points.
  */
 
 /* Returns truth on success, false otherwise.
