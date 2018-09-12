@@ -754,6 +754,10 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		list_insert_after(BLENDER_SORTED_LIBS "bf_blenkernel" "bf_intern_rigidbody")
 	endif()
 
+	if(WITH_BULLET AND NOT WITH_SYSTEM_BULLET)
+		list_insert_after(BLENDER_SORTED_LIBS "extern_openjpeg" "extern_bullet")
+	endif()
+
 	if(WIN32)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_gpudirect)
 	endif()
