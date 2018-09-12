@@ -664,8 +664,7 @@ static short gp_stroke_addpoint(
 		}
 
 		/* apply angle of stroke to brush size */
-		if ((brush->gpencil_settings->flag & GP_BRUSH_GROUP_RANDOM) &&
-		    (brush->gpencil_settings->draw_angle_factor > 0.0f))
+		if (brush->gpencil_settings->draw_angle_factor != 0.0f)
 		{
 			gp_brush_angle(gpd, brush, pt, mval);
 		}
