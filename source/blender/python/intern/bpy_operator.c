@@ -64,6 +64,21 @@
 /* so operators called can spawn threads which acquire the GIL */
 #define BPY_RELEASE_GIL
 
+static wmOperatorType *ot_lookup_from_py_string(PyObject *value, const char *py_fn_id)
+{
+	const char *opname = _PyUnicode_AsString(value);
+	if (opname == NULL) {
+		PyErr_Format(PyExc_TypeError, "%s() expects a string argument", py_fn_id);
+		return NULL;
+	}
+
+	wmOperatorType *ot = WM_operatortype_find(opname, true);
+	if (ot == NULL) {
+		PyErr_Format(PyExc_KeyError, "%s(\"%s\") not found", py_fn_id, opname);
+		return NULL;
+	}
+	return ot;
+}
 
 static PyObject *pyop_poll(PyObject *UNUSED(self), PyObject *args)
 {
@@ -397,17 +412,8 @@ static PyObject *pyop_dir(PyObject *UNUSED(self))
 static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
-	PointerRNA ptr;
-	const char *opname = _PyUnicode_AsString(value);
-	BPy_StructRNA *pyrna = NULL;
 
-	if (opname == NULL) {
-		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_rna() expects a string argument");
-		return NULL;
-	}
-	ot = WM_operatortype_find(opname, true);
-	if (ot == NULL) {
-		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_rna(\"%s\") not found", opname);
+	if ((ot = ot_lookup_from_py_string(value, "getrna")) == NULL) {
 		return NULL;
 	}
 
@@ -415,11 +421,11 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
 
 	/* XXX - should call WM_operator_properties_free */
+	PointerRNA ptr;
 	WM_operator_properties_create_ptr(&ptr, ot);
 	WM_operator_properties_sanitize(&ptr, 0);
 
-
-	pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+	BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 #ifdef PYRNA_FREE_SUPPORT
 	pyrna->freeptr = true;
 #endif
@@ -429,21 +435,11 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
+	if ((ot = ot_lookup_from_py_string(value, "get_instance")) == NULL) {
+		return NULL;
+	}
+
 	wmOperator *op;
-	PointerRNA ptr;
-	const char *opname = _PyUnicode_AsString(value);
-	BPy_StructRNA *pyrna = NULL;
-
-	if (opname == NULL) {
-		PyErr_SetString(PyExc_TypeError, "_bpy.ops.get_instance() expects a string argument");
-		return NULL;
-	}
-	ot = WM_operatortype_find(opname, true);
-	if (ot == NULL) {
-		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_instance(\"%s\") not found", opname);
-		return NULL;
-	}
-
 #ifdef PYRNA_FREE_SUPPORT
 	op = MEM_callocN(sizeof(wmOperator), __func__);
 #else
@@ -453,9 +449,10 @@ static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
 	BLI_strncpy(op->idname, ot->idname, sizeof(op->idname)); /* in case its needed */
 	op->type = ot;
 
+	PointerRNA ptr;
 	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);
 
-	pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+	BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
 #ifdef PYRNA_FREE_SUPPORT
 	pyrna->freeptr = true;
 #endif
