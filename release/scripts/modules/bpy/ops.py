@@ -116,7 +116,16 @@ class BPyOpsSubModOp:
     __slots__ = ("_module", "_func")
 
     def _get_doc(self):
-        return op_as_string(self.idname())
+        idname = self.idname()
+        sig = op_as_string(self.idname())
+        # XXX You never quite know what you get from bpy.types,
+        # with operators... Operator and OperatorProperties
+        # are shadowing each other, and not in the same way for
+        # native ops and py ones! See T39158.
+        # op_class = getattr(bpy.types, idname)
+        op_class = op_get_rna_type(idname)
+        descr = op_class.description
+        return f"{sig}\n{descr}"
 
     @staticmethod
     def _parse_args(args):
@@ -208,23 +217,7 @@ class BPyOpsSubModOp:
 
     def __repr__(self):  # useful display, repr(op)
         # import bpy
-        idname = self.idname()
-        as_string = op_as_string(idname)
-        # XXX You never quite know what you get from bpy.types,
-        # with operators... Operator and OperatorProperties
-        # are shadowing each other, and not in the same way for
-        # native ops and py ones! See T39158.
-        # op_class = getattr(bpy.types, idname)
-        op_class = op_get_rna(idname)
-        descr = op_class.bl_rna.description
-        # XXX, workaround for not registering
-        # every __doc__ to save time on load.
-        if not descr:
-            descr = op_class.__doc__
-            if not descr:
-                descr = ""
-
-        return "# %s\n%s" % (descr, as_string)
+        return op_as_string(self.idname())
 
     def __str__(self):  # used for print(...)
         return ("<function bpy.ops.%s.%s at 0x%x'>" %
