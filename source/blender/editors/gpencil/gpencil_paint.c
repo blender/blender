@@ -1299,6 +1299,7 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 /* apply a falloff effect to brush strength, based on distance */
 static float gp_stroke_eraser_calc_influence(tGPsdata *p, const int mval[2], const int radius, const int co[2])
 {
+	Brush *brush = p->brush;
 	/* Linear Falloff... */
 	float distance = (float)len_v2v2_int(mval, co);
 	float fac;
@@ -1307,7 +1308,9 @@ static float gp_stroke_eraser_calc_influence(tGPsdata *p, const int mval[2], con
 	fac = 1.0f - (distance / (float)radius);
 
 	/* Control this further using pen pressure */
-	fac *= p->pressure;
+	if (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) {
+		fac *= p->pressure;
+	}
 
 	/* Return influence factor computed here */
 	return fac;
