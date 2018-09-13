@@ -65,6 +65,7 @@ typedef struct ValueInteraction {
 	} init;
 	struct {
 		float prop_value;
+		eWM_GizmoFlagTweak tweak_flag;
 	} prev;
 	float range[2];
 } ValueInteraction;
@@ -78,8 +79,11 @@ static int gizmo_value_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak tweak_flag)
 {
-	ARegion *ar = CTX_wm_region(C);
 	ValueInteraction *inter = gz->interaction_data;
+	if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
+		return OPERATOR_RUNNING_MODAL;
+	}
+	ARegion *ar = CTX_wm_region(C);
 	const float value_scale = 4.0f;  /* Could be option. */
 	const float value_range = inter->range[1] - inter->range[0];
 	float value_delta = (
@@ -108,8 +112,11 @@ static int gizmo_value_modal(
 			SNPRINTF(str, "%.4f", value_final);
 			ED_area_status_text(sa, str);
 		}
-		inter->prev.prop_value = value_final;
 	}
+
+	inter->prev.prop_value = value_final;
+	inter->prev.tweak_flag = tweak_flag;
+
 	return OPERATOR_RUNNING_MODAL;
 }
 

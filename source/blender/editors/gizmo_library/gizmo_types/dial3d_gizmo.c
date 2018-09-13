@@ -396,6 +396,10 @@ static int gizmo_dial_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
+	if (event->type != MOUSEMOVE) {
+		return OPERATOR_RUNNING_MODAL;
+	}
+
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 	float angle_ofs, angle_delta;
 

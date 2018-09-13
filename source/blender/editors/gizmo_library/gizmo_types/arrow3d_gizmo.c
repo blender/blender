@@ -234,6 +234,9 @@ static int gizmo_arrow_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak tweak_flag)
 {
+	if (event->type != MOUSEMOVE) {
+		return OPERATOR_RUNNING_MODAL;
+	}
 	ArrowGizmo3D *arrow = (ArrowGizmo3D *)gz;
 	GizmoInteraction *inter = gz->interaction_data;
 	View3D *v3d = CTX_wm_view3d(C);
