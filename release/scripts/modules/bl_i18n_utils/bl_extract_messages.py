@@ -545,7 +545,7 @@ def dump_py_messages_from_files(msgs, reports, files, settings):
         for n in opname.split('.'):
             op = getattr(op, n)
         try:
-            return op.get_rna().bl_rna.translation_context
+            return op.get_rna_type().translation_context
         except Exception as e:
             default_op_context = i18n_contexts.operator_default
             print("ERROR: ", str(e))

@@ -422,66 +422,12 @@ static PyObject *pyop_getrna_type(PyObject *UNUSED(self), PyObject *value)
 	return (PyObject *)pyrna;
 }
 
-static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
-{
-	wmOperatorType *ot;
-
-	if ((ot = ot_lookup_from_py_string(value, "getrna")) == NULL) {
-		return NULL;
-	}
-
-	/* type */
-	//RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
-
-	/* XXX - should call WM_operator_properties_free */
-	PointerRNA ptr;
-	WM_operator_properties_create_ptr(&ptr, ot);
-	WM_operator_properties_sanitize(&ptr, 0);
-
-	BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
-#ifdef PYRNA_FREE_SUPPORT
-	pyrna->freeptr = true;
-#endif
-	return (PyObject *)pyrna;
-}
-
-static PyObject *pyop_getinstance(PyObject *UNUSED(self), PyObject *value)
-{
-	wmOperatorType *ot;
-	if ((ot = ot_lookup_from_py_string(value, "get_instance")) == NULL) {
-		return NULL;
-	}
-
-	wmOperator *op;
-#ifdef PYRNA_FREE_SUPPORT
-	op = MEM_callocN(sizeof(wmOperator), __func__);
-#else
-	op = PyMem_MALLOC(sizeof(wmOperator));
-	memset(op, 0, sizeof(wmOperator));
-#endif
-	BLI_strncpy(op->idname, ot->idname, sizeof(op->idname)); /* in case its needed */
-	op->type = ot;
-
-	PointerRNA ptr;
-	RNA_pointer_create(NULL, &RNA_Operator, op, &ptr);
-
-	BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
-#ifdef PYRNA_FREE_SUPPORT
-	pyrna->freeptr = true;
-#endif
-	op->ptr = &pyrna->ptr;
-
-	return (PyObject *)pyrna;
-}
-
 static struct PyMethodDef bpy_ops_methods[] = {
 	{"poll", (PyCFunction) pyop_poll, METH_VARARGS, NULL},
 	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
 	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
 	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
 	{"get_rna_type", (PyCFunction) pyop_getrna_type, METH_O, NULL},
-	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},           /* only for introspection, leaks memory */
-	{"get_instance", (PyCFunction) pyop_getinstance, METH_O, NULL}, /* only for introspection, leaks memory */
 	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
 	{NULL, NULL, 0, NULL}
 };
