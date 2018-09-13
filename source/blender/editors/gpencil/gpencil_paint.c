@@ -1364,6 +1364,15 @@ static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 					pt->flag |= GP_SPOINT_TEMP_TAG;
 				}
 			}
+			else {
+				/* reduce opacity of extreme points */
+				if ((pt_before->flag & GP_SPOINT_TAG) == 0) {
+					pt_before->strength *= 0.5f;
+				}
+				if ((pt_after->flag & GP_SPOINT_TAG) == 0) {
+					pt_after->strength *= 0.5f;
+				}
+			}
 		}
 	}
 
@@ -1485,6 +1494,10 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				gp_point_to_parent_space(pt0, diff_mat, &npt);
 				gp_point_to_xy(&p->gsc, gps, &npt, &pc0[0], &pc0[1]);
 			}
+			else {
+				/* avoid null values */
+				copy_v2_v2_int(pc0, pc1);
+			}
 
 			gp_point_to_parent_space(pt1, diff_mat, &npt);
 			gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
@@ -1505,11 +1518,12 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Point is affected: */
-						/* 1a) Adjust thickness
+						/* Adjust thickness
 						 *  - Influence of eraser falls off with distance from the middle of the eraser
 						 *  - Second point gets less influence, as it might get hit again in the next segment
 						 */
-						/* 1b) Adjust strength if the eraser is soft */
+
+						/* Adjust strength if the eraser is soft */
 						if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
 							if (pt0) {
 								pt0->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * 0.5f;
