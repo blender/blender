@@ -1835,8 +1835,7 @@ def write_rst_importable_modules(basepath):
         "bpy.app": "Application Data",
         "bpy.app.handlers": "Application Handlers",
         "bpy.app.translations": "Application Translations",
-        # TODO(campbell)
-        # "bpy.app.icons": "Application Icons",
+        "bpy.app.icons": "Application Icons",
         "bpy.props": "Property Definitions",
         "idprop.types": "ID Property Access",
         "mathutils": "Math Types & Utilities",
