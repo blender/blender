@@ -208,7 +208,7 @@ def enable_addons(addons=None, support=None, disable=False, check_only=False):
         for cat in dir(bpy.ops):
             cat = getattr(bpy.ops, cat)
             for op in dir(cat):
-                getattr(cat, op).get_rna()
+                getattr(cat, op).get_rna_type()
 
     return ret
 

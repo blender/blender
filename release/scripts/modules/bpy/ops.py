@@ -26,9 +26,7 @@ op_dir = ops_module.dir
 op_poll = ops_module.poll
 op_call = ops_module.call
 op_as_string = ops_module.as_string
-op_get_rna = ops_module.get_rna
 op_get_rna_type = ops_module.get_rna_type
-op_get_instance = ops_module.get_instance
 
 
 class BPyOps:
@@ -206,14 +204,6 @@ class BPyOpsSubModOp:
     def get_rna_type(self):
         """Internal function for introspection"""
         return op_get_rna_type(self.idname())
-
-    def get_rna(self):
-        """Internal function for introspection"""
-        return op_get_rna(self.idname())
-
-    def get_instance(self):
-        """Internal function for introspection"""
-        return op_get_instance(self.idname())
 
     def __repr__(self):  # useful display, repr(op)
         # import bpy
