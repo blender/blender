@@ -615,7 +615,7 @@ PyMODINIT_FUNC PyInit_mathutils(void)
 {
 	PyObject *mod;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 
 	if (PyType_Ready(&vector_Type) < 0)
 		return NULL;

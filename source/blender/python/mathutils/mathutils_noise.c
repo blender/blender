@@ -845,6 +845,7 @@ static struct PyModuleDef M_Noise_module_def = {
 /*----------------------------MODULE INIT-------------------------*/
 PyMODINIT_FUNC PyInit_mathutils_noise(void)
 {
+	PyObject *sys_modules = PyImport_GetModuleDict();
 	PyObject *submodule = PyModule_Create(&M_Noise_module_def);
 	PyObject *item_types, *item_metrics;
 
@@ -852,11 +853,11 @@ PyMODINIT_FUNC PyInit_mathutils_noise(void)
 	setRndSeed(0);
 
 	PyModule_AddObject(submodule, "types", (item_types = PyInit_mathutils_noise_types()));
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.types", item_types);
+	PyDict_SetItemString(sys_modules, "noise.types", item_types);
 	Py_INCREF(item_types);
 
 	PyModule_AddObject(submodule, "distance_metrics", (item_metrics = PyInit_mathutils_noise_metrics()));
-	PyDict_SetItemString(PyThreadState_GET()->interp->modules, "noise.distance_metrics", item_metrics);
+	PyDict_SetItemString(sys_modules, "noise.distance_metrics", item_metrics);
 	Py_INCREF(item_metrics);
 
 	return submodule;

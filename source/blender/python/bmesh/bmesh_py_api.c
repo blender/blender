@@ -196,7 +196,7 @@ PyObject *BPyInit_bmesh(void)
 {
 	PyObject *mod;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 
 	BPy_BM_init_types();
 	BPy_BM_init_types_select();

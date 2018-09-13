@@ -326,7 +326,7 @@ PyObject *GPU_initPython(void)
 {
 	PyObject *module;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 
 	module = PyInit_gpu();
 
@@ -337,6 +337,6 @@ PyObject *GPU_initPython(void)
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
 	Py_INCREF(submodule);
 
-	PyDict_SetItem(PyImport_GetModuleDict(), PyModule_GetNameObject(module), module);
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(module), module);
 	return module;
 }

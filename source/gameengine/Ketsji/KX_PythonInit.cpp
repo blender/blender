@@ -2234,7 +2234,7 @@ PyMODINIT_FUNC initBGE(void)
 {
 	PyObject *mod;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 	const char *mod_full;
 
 	mod = PyModule_Create(&BGE_module_def);

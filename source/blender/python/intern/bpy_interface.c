@@ -537,7 +537,7 @@ static bool python_script_exec(
 
 	if (py_dict) {
 #ifdef PYMODULE_CLEAR_WORKAROUND
-		PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItemString(PyThreadState_GET()->interp->modules, "__main__");
+		PyModuleObject *mmod = (PyModuleObject *)PyDict_GetItemString(PyImport_GetModuleDict(), "__main__");
 		PyObject *dict_back = mmod->md_dict;
 		/* freeing the module will clear the namespace,
 		 * gives problems running classes defined in this namespace being used later. */
