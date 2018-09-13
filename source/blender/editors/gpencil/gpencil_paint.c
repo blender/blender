@@ -1331,6 +1331,52 @@ static void gp_free_stroke(bGPdata *gpd, bGPDframe *gpf, bGPDstroke *gps)
 	gp_update_cache(gpd);
 }
 
+/* analyze points to be removed when soft eraser is used
+ * to avoid that segments gets the end points rounded. This
+ * round cpas breaks the artistic effect.
+ */
+static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
+{
+	bGPDspoint *pt = NULL;
+	bGPDspoint *pt_before = NULL;
+	bGPDspoint *pt_after = NULL;
+	int i;
+
+	/* check if enough points*/
+	if (gps->totpoints < 3) {
+		return;
+	}
+
+	/* loop all points from second to last minus one
+	 * to untag any point that is not surrounded by tagged points
+	 */
+	pt = gps->points;
+	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
+		if (pt->flag & GP_SPOINT_TAG) {
+			pt_before = &gps->points[i - 1];
+			pt_after = &gps->points[i + 1];
+
+			/* if any of the side points are not tagged, mark to keep */
+			if (((pt_before->flag & GP_SPOINT_TAG) == 0) ||
+				((pt_after->flag & GP_SPOINT_TAG) == 0))
+			{
+				if (pt->pressure > cull_thresh) {
+					pt->flag |= GP_SPOINT_TEMP_TAG;
+				}
+			}
+		}
+	}
+
+	/* now untag temp tagged */
+	pt = gps->points;
+	for (i = 1; i < gps->totpoints - 1; i++, pt++) {
+		if (pt->flag & GP_SPOINT_TEMP_TAG) {
+			pt->flag &= ~GP_SPOINT_TAG;
+			pt->flag &= ~GP_SPOINT_TEMP_TAG;
+		}
+	}
+}
+
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
 static void gp_stroke_eraser_dostroke(tGPsdata *p,
@@ -1501,6 +1547,12 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 		/* Second Pass: Remove any points that are tagged */
 		if (do_cull) {
+			/* if soft eraser, must analyze points to be sure the stroke ends
+			 * don't get rounded */
+			if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
+				gp_stroke_soft_refine(gps, cull_thresh);
+			}
+
 			gp_stroke_delete_tagged_points(gpf, gps, gps->next, GP_SPOINT_TAG, false);
 		}
 		gp_update_cache(p->gpd);
