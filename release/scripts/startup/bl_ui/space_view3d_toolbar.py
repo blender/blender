@@ -1428,6 +1428,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
             elif gp_settings.gpencil_brush_type == 'FILL':
                 col = layout.column(align=True)
                 col.prop(gp_settings, "gpencil_fill_leak", text="Leak Size")
+                col.separator()
                 col.prop(brush, "size", text="Thickness")
                 col.prop(gp_settings, "gpencil_fill_simplyfy_level", text="Simplify")
 
