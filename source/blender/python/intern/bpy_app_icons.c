@@ -177,7 +177,11 @@ static struct PyModuleDef M_AppIcons_module_def = {
 
 PyObject *BPY_app_icons_module(void)
 {
+	PyObject *sys_modules = PyImport_GetModuleDict();
+
 	PyObject *mod = PyModule_Create(&M_AppIcons_module_def);
+
+	PyDict_SetItem(sys_modules, PyModule_GetNameObject(mod), mod);
 
 	return mod;
 }
