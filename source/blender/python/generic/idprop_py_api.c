@@ -1795,7 +1795,7 @@ PyObject *BPyInit_idprop(void)
 {
 	PyObject *mod;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 
 	mod = PyModule_Create(&IDProp_module_def);
 

@@ -85,7 +85,7 @@ PyObject *GPU_initPython(void)
 {
 	PyObject *module;
 	PyObject *submodule;
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 
 	module = PyInit_gpu();
 

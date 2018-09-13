@@ -61,7 +61,7 @@ static struct PyModuleDef GPU_module_def = {
 
 PyObject *BPyInit_gpu(void)
 {
-	PyObject *sys_modules = PyThreadState_GET()->interp->modules;
+	PyObject *sys_modules = PyImport_GetModuleDict();
 	PyObject *submodule;
 	PyObject *mod;
 
