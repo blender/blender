@@ -40,7 +40,9 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
+#include "BLI_string.h"
 
+#include "ED_screen.h"
 #include "ED_gizmo_library.h"
 
 #include "WM_types.h"
@@ -85,12 +87,21 @@ static int gizmo_value_modal(
 	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
 		value_delta *= 0.1f;
 	}
+	const float value_final = inter->init_prop_value + value_delta;
 
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init_prop_value + value_delta);
+		WM_gizmo_target_property_float_set(C, gz, gz_prop, value_final);
 	}
+
+	{
+		ScrArea *sa = CTX_wm_area(C);
+		char str[64];
+		SNPRINTF(str, "%.4f", value_final);
+		ED_area_status_text(sa, str);
+	}
+
 	return OPERATOR_RUNNING_MODAL;
 }
 
@@ -119,6 +130,8 @@ static int gizmo_value_invoke(
 
 static void gizmo_value_exit(bContext *C, wmGizmo *gz, const bool cancel)
 {
+	ScrArea *sa = CTX_wm_area(C);
+	ED_area_status_text(sa, NULL);
 	if (cancel) {
 		ValueInteraction *inter = gz->interaction_data;
 		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
