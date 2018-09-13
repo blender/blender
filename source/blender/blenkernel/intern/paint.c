@@ -875,6 +875,17 @@ void BKE_sculpt_update_mesh_elements(
         Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob,
         bool need_pmap, bool need_mask)
 {
+	/* TODO(sergey): Make sure ob points to an original object. This is what it
+	 * is supposed to be pointing to. The issue is, currently draw code takes
+	 * care of PBVH creation, even though this is something up to dependency
+	 * graph.
+	 * Probably, we need to being back logic which was checking for sculpt mode
+	 * and (re)create PBVH if needed in that case, similar to how DerivedMesh
+	 * was handling this.
+	 */
+	ob = DEG_get_original_object(ob);
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = BKE_object_get_original_mesh(ob);
 	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
@@ -911,7 +922,7 @@ void BKE_sculpt_update_mesh_elements(
 
 	ss->kb = (mmd == NULL) ? BKE_keyblock_from_object(ob) : NULL;
 
-	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
+	Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, ob_eval, CD_MASK_BAREMESH);
 
 	/* VWPaint require mesh info for loop lookup, so require sculpt mode here */
 	if (mmd && ob->mode & OB_MODE_SCULPT) {
