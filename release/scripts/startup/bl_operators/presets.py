@@ -628,7 +628,7 @@ class AddPresetOperator(AddPresetBase, Operator):
 
         prefix, suffix = self.operator.split("_OT_", 1)
         op = getattr(getattr(bpy.ops, prefix.lower()), suffix)
-        operator_rna = op.get_rna().bl_rna
+        operator_rna = op.get_rna_type()
         del op
 
         ret = []

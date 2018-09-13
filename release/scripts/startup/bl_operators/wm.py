@@ -612,7 +612,7 @@ class WM_OT_operator_pie_enum(Operator):
         del op_mod_str, ob_id_str
 
         try:
-            op_rna = op.get_rna()
+            op_rna = op.get_rna_type()
         except KeyError:
             self.report({'ERROR'}, "Operator not found: bpy.ops.%s" % data_path)
             return {'CANCELLED'}
@@ -622,7 +622,7 @@ class WM_OT_operator_pie_enum(Operator):
             pie = layout.menu_pie()
             pie.operator_enum(data_path, prop_string)
 
-        wm.popup_menu_pie(draw_func=draw_cb, title=op_rna.bl_rna.name, event=event)
+        wm.popup_menu_pie(draw_func=draw_cb, title=op_rna.name, event=event)
 
         return {'FINISHED'}
 
