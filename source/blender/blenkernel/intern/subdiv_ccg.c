@@ -158,7 +158,7 @@ typedef struct CCGEvalGridsData {
 	SubdivCCG *subdiv_ccg;
 	Subdiv *subdiv;
 	const Mesh *coarse_mesh;
-	int *face_petx_offset;
+	int *face_ptex_offset;
 } CCGEvalGridsData;
 
 static void subdiv_ccg_eval_grid_element(
@@ -211,7 +211,7 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
 {
 	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
 	const int coarse_poly_index = coarse_poly - data->coarse_mesh->mpoly;
-	const int ptex_face_index = data->face_petx_offset[coarse_poly_index];
+	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
 	const int grid_size = subdiv_ccg->grid_size;
 	const float grid_size_1_inv = 1.0f / (float)(grid_size - 1);
 	const int element_size = element_size_bytes_get(subdiv_ccg);
@@ -252,7 +252,7 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data,
 			for (int x = 0; x < grid_size; x++) {
 				const float v = 1.0f - ((float)x * grid_size_1_inv);
 				const int ptex_face_index =
-				        data->face_petx_offset[coarse_poly_index] + corner;
+				        data->face_ptex_offset[coarse_poly_index] + corner;
 				const size_t grid_element_index = (size_t)y * grid_size + x;
 				const size_t grid_element_offset =
 				        grid_element_index * element_size;
@@ -298,7 +298,7 @@ static bool subdiv_ccg_evaluate_grids(
 	data.subdiv_ccg = subdiv_ccg;
 	data.subdiv = subdiv;
 	data.coarse_mesh = coarse_mesh;
-	data.face_petx_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+	data.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
 	/* Threaded grids evaluation/ */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
