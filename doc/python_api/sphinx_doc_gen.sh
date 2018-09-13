@@ -58,7 +58,10 @@ SPHINX_WORKDIR="$(mktemp --directory --suffix=.sphinx)"
 # Generate reStructuredText (blender/python only)
 
 if $DO_EXE_BLENDER ; then
-	# don't delete existing docs, now partial updates are used for quick builds.
+	# Don't delete existing docs, now partial updates are used for quick builds.
+	#
+	# Disable ASAN error halt since it results in nonzero exit code on any minor issue.
+	ASAN_OPTIONS=halt_on_error=0 \
 	$BLENDER_BIN \
 		--background \
 		-noaudio \
