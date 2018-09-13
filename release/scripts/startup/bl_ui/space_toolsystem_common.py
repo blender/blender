@@ -656,7 +656,7 @@ def description_from_name(context, space_type, text, *, use_operator=True):
 
         if operator is not None:
             import _bpy
-            return _bpy.ops.get_rna(operator).bl_rna.description
+            return _bpy.ops.get_rna_type(operator).description
     return ""
 
 
