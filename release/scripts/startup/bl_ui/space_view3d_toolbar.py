@@ -1443,7 +1443,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
 
                 col = layout.column(align=True)
                 col.enabled = gp_settings.gpencil_fill_draw_mode != 'STROKE'
-                col.prop(gp_settings, "gpencil_fill_hide", text="Hide Transparent Lines")
+                col.prop(gp_settings, "gpencil_fill_hide", text="Ignore Transparent Strokes")
                 sub = col.row(align=True)
                 sub.enabled = gp_settings.gpencil_fill_hide
                 sub.prop(gp_settings, "gpencil_fill_threshold", text="Threshold")
