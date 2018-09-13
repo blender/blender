@@ -93,20 +93,29 @@ typedef enum eWM_GizmoFlagFlag {
  * Flags that influence the behavior of all gizmos in the group.
  */
 typedef enum eWM_GizmoFlagGroupTypeFlag {
-	/* Mark gizmo-group as being 3D */
+	/** Mark gizmo-group as being 3D */
 	WM_GIZMOGROUPTYPE_3D       = (1 << 0),
-	/* Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
+	/** Scale gizmos as 3D object that respects zoom (otherwise zoom independent draw size).
 	 * note: currently only for 3D views, 2D support needs adding. */
 	WM_GIZMOGROUPTYPE_SCALE    = (1 << 1),
-	/* Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
+	/** Gizmos can be depth culled with scene objects (covered by other geometry - TODO) */
 	WM_GIZMOGROUPTYPE_DEPTH_3D = (1 << 2),
-	/* Gizmos can be selected */
+	/** Gizmos can be selected */
 	WM_GIZMOGROUPTYPE_SELECT  = (1 << 3),
-	/* The gizmo group is to be kept (not removed on loading a new file for eg). */
+	/** The gizmo group is to be kept (not removed on loading a new file for eg). */
 	WM_GIZMOGROUPTYPE_PERSISTENT = (1 << 4),
-	/* Show all other gizmos when interacting. */
+	/** Show all other gizmos when interacting. */
 	WM_GIZMOGROUPTYPE_DRAW_MODAL_ALL = (1 << 5),
-	/* When used with tool, only run when activating the tool. */
+	/**
+	 * When used with tool, only run when activating the tool,
+	 * instead of linking the gizmo while the tool is active.
+	 *
+	 * \warning this option has some limitations, we might even re-implement this differently.
+	 * Currently it's quite minimal so we can see how it works out.
+	 * The main issue is controlling how a gizmo is activated with a tool
+	 * when a tool can activate multiple operators based on the key-map.
+	 * We could even move the options into the key-map item.
+	 * ~ campbell */
 	WM_GIZMOGROUPTYPE_TOOL_INIT = (1 << 6),
 } eWM_GizmoFlagGroupTypeFlag;
 
