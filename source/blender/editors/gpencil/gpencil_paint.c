@@ -1509,15 +1509,17 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 			gp_point_to_xy(&p->gsc, gps, &npt, &pc2[0], &pc2[1]);
 
 			/* Check that point segment of the boundbox of the eraser stroke */
-			if (((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
+			if (((!ELEM(V2D_IS_CLIPPED, pc0[0], pc0[1])) && BLI_rcti_isect_pt(rect, pc0[0], pc0[1])) ||
+				((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
 			    ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
 			{
 				/* Check if point segment of stroke had anything to do with
 				 * eraser region  (either within stroke painted, or on its lines)
 				 *  - this assumes that linewidth is irrelevant
 				 */
-				if (gp_stroke_inside_circle(mval, mvalo, radius, pc1[0], pc1[1], pc2[0], pc2[1])) {
-					if ((gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
+				if (gp_stroke_inside_circle(mval, mvalo, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
+					if ((gp_stroke_eraser_is_occluded(p, pt0, pc0[0], pc0[1]) == false) ||
+						(gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
 					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Point is affected: */
@@ -1536,10 +1538,10 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 							pt1->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
 							CLAMP_MIN(pt1->strength, 0.0f);
+							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * 0.10f;
+
 							pt2->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.5f;
 							CLAMP_MIN(pt2->strength, 0.0f);
-
-							pt1->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength * 0.10f;
 							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.05f;
 
 							/* if invisible, delete point */
