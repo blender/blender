@@ -1421,11 +1421,11 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
             if gp_settings.gpencil_brush_type == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
-                row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
+                row = layout.row(align=True)
+                row.prop(gp_settings, "pen_strength", slider=True)
+                row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
 
-                col = layout.column(align=True)
-                col.separator()
-                row = col.row()
+                row = layout.row(align=True)
                 row.prop(gp_settings, "eraser_mode", expand=True)
             elif gp_settings.gpencil_brush_type == 'FILL':
                 col = layout.column(align=True)

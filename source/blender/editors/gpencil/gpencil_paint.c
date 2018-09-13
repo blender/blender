@@ -1307,11 +1307,13 @@ static float gp_stroke_eraser_calc_influence(tGPsdata *p, const int mval[2], con
 	CLAMP(distance, 0.0f, (float)radius);
 	fac = 1.0f - (distance / (float)radius);
 
+	/* apply strength factor */
+	fac *= brush->gpencil_settings->draw_strength;
+
 	/* Control this further using pen pressure */
 	if (brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE) {
 		fac *= p->pressure;
 	}
-
 	/* Return influence factor computed here */
 	return fac;
 }
