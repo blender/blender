@@ -1387,7 +1387,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 	Depsgraph *depsgraph = p->depsgraph;
 	Object *obact = (Object *)p->ownerPtr.data;
 	Brush *eraser = p->eraser;
-	bGPDspoint *pt1, *pt2;
+	bGPDspoint *pt0, *pt1, *pt2;
+	int pc0[2] = {0};
 	int pc1[2] = {0};
 	int pc2[2] = {0};
 	int i;
@@ -1471,6 +1472,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		 */
 		for (i = 0; (i + 1) < gps->totpoints; i++) {
 			/* get points to work with */
+			pt0 = i > 0 ? gps->points + i - 1: NULL;
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 
@@ -1479,6 +1481,11 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				continue;
 
 			bGPDspoint npt;
+			if (pt0) {
+				gp_point_to_parent_space(pt0, diff_mat, &npt);
+				gp_point_to_xy(&p->gsc, gps, &npt, &pc0[0], &pc0[1]);
+			}
+
 			gp_point_to_parent_space(pt1, diff_mat, &npt);
 			gp_point_to_xy(&p->gsc, gps, &npt, &pc1[0], &pc1[1]);
 
@@ -1504,6 +1511,12 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 						 */
 						/* 1b) Adjust strength if the eraser is soft */
 						if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
+							if (pt0) {
+								pt0->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * 0.5f;
+								CLAMP_MIN(pt0->strength, 0.0f);
+								pt0->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * 0.05f;
+							}
+
 							pt1->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc1) * strength;
 							CLAMP_MIN(pt1->strength, 0.0f);
 							pt2->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.5f;
@@ -1513,6 +1526,13 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 							pt2->pressure -= gp_stroke_eraser_calc_influence(p, mval, radius, pc2) * strength * 0.05f;
 
 							/* if invisible, delete point */
+							if ((pt0) &&
+								((pt0->strength <= GPENCIL_ALPHA_OPACITY_THRESH)
+								|| (pt0->pressure < cull_thresh)))
+							{
+								pt0->flag |= GP_SPOINT_TAG;
+								do_cull = true;
+							}
 							if ((pt1->strength <= GPENCIL_ALPHA_OPACITY_THRESH) || (pt1->pressure < cull_thresh)) {
 								pt1->flag |= GP_SPOINT_TAG;
 								do_cull = true;
