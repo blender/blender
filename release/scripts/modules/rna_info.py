@@ -731,14 +731,14 @@ def BuildRNAInfo():
         operators = dir(op_mod)
         for op in sorted(operators):
             try:
-                rna_prop = getattr(op_mod, op).get_rna()
+                rna_prop = getattr(op_mod, op).get_rna_type()
             except AttributeError:
                 rna_prop = None
             except TypeError:
                 rna_prop = None
 
             if rna_prop:
-                GetInfoOperatorRNA(rna_prop.bl_rna)
+                GetInfoOperatorRNA(rna_prop)
 
     for rna_info in InfoOperatorRNA.global_lookup.values():
         rna_info.build()

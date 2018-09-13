@@ -409,6 +409,19 @@ static PyObject *pyop_dir(PyObject *UNUSED(self))
 	return list;
 }
 
+static PyObject *pyop_getrna_type(PyObject *UNUSED(self), PyObject *value)
+{
+	wmOperatorType *ot;
+	if ((ot = ot_lookup_from_py_string(value, "get_rna_type")) == NULL) {
+		return NULL;
+	}
+
+	PointerRNA ptr;
+	RNA_pointer_create(NULL, &RNA_Struct, ot->srna, &ptr);
+	BPy_StructRNA *pyrna = (BPy_StructRNA *)pyrna_struct_CreatePyObject(&ptr);
+	return (PyObject *)pyrna;
+}
+
 static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 {
 	wmOperatorType *ot;
@@ -466,6 +479,7 @@ static struct PyMethodDef bpy_ops_methods[] = {
 	{"call", (PyCFunction) pyop_call, METH_VARARGS, NULL},
 	{"as_string", (PyCFunction) pyop_as_string, METH_VARARGS, NULL},
 	{"dir", (PyCFunction) pyop_dir, METH_NOARGS, NULL},
+	{"get_rna_type", (PyCFunction) pyop_getrna_type, METH_O, NULL},
 	{"get_rna", (PyCFunction) pyop_getrna, METH_O, NULL},           /* only for introspection, leaks memory */
 	{"get_instance", (PyCFunction) pyop_getinstance, METH_O, NULL}, /* only for introspection, leaks memory */
 	{"macro_define", (PyCFunction) PYOP_wrap_macro_define, METH_VARARGS, NULL},
