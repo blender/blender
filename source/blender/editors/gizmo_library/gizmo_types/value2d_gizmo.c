@@ -35,6 +35,8 @@
  * So we can use a single gizmo to make redoing an operator seem modal.
  */
 
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
@@ -66,15 +68,23 @@ static void gizmo_value_draw(const bContext *UNUSED(C), wmGizmo *UNUSED(gz))
 
 static int gizmo_value_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
-        eWM_GizmoFlagTweak UNUSED(tweak_flag))
+        eWM_GizmoFlagTweak tweak_flag)
 {
 	ARegion *ar = CTX_wm_region(C);
 	ValueInteraction *inter = gz->interaction_data;
 	const float value_scale = 4.0f;  /* Could be option. */
 	const float value_range = inter->range[1] - inter->range[0];
-	const float value_delta = (
+	float value_delta = (
 	        inter->init_prop_value +
 	        (((event->mval[0] - inter->init_mval[0]) / ar->winx) * value_range)) * value_scale;
+
+
+	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
+		value_delta = floorf((value_delta * 10.0f) + 0.5f) / 10.0f;
+	}
+	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
+		value_delta *= 0.1f;
+	}
 
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
@@ -107,6 +117,17 @@ static int gizmo_value_invoke(
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void gizmo_value_exit(bContext *C, wmGizmo *gz, const bool cancel)
+{
+	if (cancel) {
+		ValueInteraction *inter = gz->interaction_data;
+		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+		if (WM_gizmo_target_property_is_valid(gz_prop)) {
+			WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init_prop_value);
+		}
+	}
+}
+
 static int gizmo_value_test_select(
         bContext *UNUSED(C), wmGizmo *UNUSED(gz), const int UNUSED(mval[2]))
 {
@@ -128,6 +149,7 @@ static void GIZMO_GT_value_2d(wmGizmoType *gzt)
 	/* api callbacks */
 	gzt->draw = gizmo_value_draw;
 	gzt->invoke = gizmo_value_invoke;
+	gzt->exit = gizmo_value_exit;
 	gzt->modal = gizmo_value_modal;
 	gzt->test_select = gizmo_value_test_select;
 
