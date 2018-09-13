@@ -57,6 +57,12 @@ typedef struct SubdivToCCGSettings {
 
 /* Representation of subdivision surface which uses CCG grids. */
 typedef struct SubdivCCG {
+	/* This is a subdivision surface this CCG was created for.
+	 *
+	 * TODO(sergey): Make sure the whole descriptor is valid, including all the
+	 * displacement attached to the surface.
+	 */
+	struct Subdiv *subdiv;
 	/* A level at which geometry was subdivided. This is what defines grid
 	 * resolution. It is NOT the topology refinement level.
 	 */
@@ -110,7 +116,14 @@ typedef struct SubdivCCG {
 	 */
 } SubdivCCG;
 
-/* Create real hi-res CCG from subdivision. */
+/* Create real hi-res CCG from subdivision.
+ *
+ * NOTE: CCG becomes an owner of subdiv.
+ *
+ * TODO(sergey): Allow some user-counter or more explicit control over who owns
+ * the Subdiv. The goal should be to allow viewport GL Mesh and CCG to share
+ * same Subsurf without conflicts.
+ */
 struct SubdivCCG *BKE_subdiv_to_ccg(
         struct Subdiv *subdiv,
         const SubdivToCCGSettings *settings,

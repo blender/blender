@@ -227,14 +227,16 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	 * still missing in implementation.
 	 */
 	if ((ctx->object->mode & OB_MODE_SCULPT) && G.debug_value == 128) {
+		/* NOTE: CCG takes ownership over Subdiv. */
 		result = multires_as_ccg(mmd, ctx, mesh, subdiv);
+		// BKE_subdiv_stats_print(&subdiv->stats);
 	}
 	else {
 		result = multires_as_mesh(mmd, ctx, mesh, subdiv);
+		/* TODO(sergey): Cache subdiv somehow. */
+		// BKE_subdiv_stats_print(&subdiv->stats);
+		BKE_subdiv_free(subdiv);
 	}
-	/* TODO(sergey): Cache subdiv somehow. */
-	// BKE_subdiv_stats_print(&subdiv->stats);
-	BKE_subdiv_free(subdiv);
 	return result;
 }
 #endif

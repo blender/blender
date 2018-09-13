@@ -331,6 +331,7 @@ SubdivCCG *BKE_subdiv_to_ccg(
 		return NULL;
 	}
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+	subdiv_ccg->subdiv = subdiv;
 	return subdiv_ccg;
 }
 
@@ -363,6 +364,9 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
 			MEM_freeN(subdiv_ccg->grid_hidden[grid_index]);
 		}
 		MEM_freeN(subdiv_ccg->grid_hidden);
+	}
+	if (subdiv_ccg->subdiv != NULL) {
+		BKE_subdiv_free(subdiv_ccg->subdiv);
 	}
 	MEM_freeN(subdiv_ccg);
 }
