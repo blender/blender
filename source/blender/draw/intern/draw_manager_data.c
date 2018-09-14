@@ -542,9 +542,19 @@ static void sculpt_draw_cb(
 	Object *ob = user_data;
 	PBVH *pbvh = ob->sculpt->pbvh;
 
+	const DRWContextState *drwctx = DRW_context_state_get();
+	int fast_mode = 0;
+
+	if (drwctx->evil_C != NULL) {
+		Paint *p = BKE_paint_get_active_from_context(drwctx->evil_C);
+		if (p && (p->flags & PAINT_FAST_NAVIGATE)) {
+			fast_mode = drwctx->rv3d->rflag & RV3D_NAVIGATING;
+		}
+	}
+
 	if (pbvh) {
 		BKE_pbvh_draw_cb(
-		        pbvh, NULL, NULL, false, false,
+		        pbvh, NULL, NULL, fast_mode, false,
 		        (void (*)(void *, GPUBatch *))draw_fn, shgroup);
 	}
 }

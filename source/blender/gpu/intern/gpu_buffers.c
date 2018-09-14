@@ -131,7 +131,7 @@ static bool gpu_pbvh_vert_buf_data_set(GPU_PBVH_Buffers *buffers, uint vert_len)
 	return buffers->vert_buf->data != NULL;
 }
 
-static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
+static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers, GPUPrimType prim)
 {
 	/* force flushing to the GPU */
 	if (buffers->vert_buf->data) {
@@ -140,15 +140,14 @@ static void gpu_pbvh_batch_init(GPU_PBVH_Buffers *buffers)
 
 	if (buffers->triangles == NULL) {
 		buffers->triangles = GPU_batch_create(
-		        GPU_PRIM_TRIS, buffers->vert_buf,
+		        prim, buffers->vert_buf,
 		        /* can be NULL */
 		        buffers->index_buf);
 	}
 
 	if ((buffers->triangles_fast == NULL) && buffers->index_buf_fast) {
 		buffers->triangles_fast = GPU_batch_create(
-		        GPU_PRIM_TRIS, buffers->vert_buf,
-		        /* can be NULL */
+		        prim, buffers->vert_buf,
 		        buffers->index_buf_fast);
 	}
 }
@@ -235,7 +234,7 @@ void GPU_pbvh_mesh_buffers_update(
 				}
 			}
 
-			gpu_pbvh_batch_init(buffers);
+			gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 		}
 	}
 
@@ -324,6 +323,67 @@ GPU_PBVH_Buffers *GPU_pbvh_mesh_buffers_build(
 	return buffers;
 }
 
+static void gpu_pbvh_grid_fill_fast_buffer(GPU_PBVH_Buffers *buffers, int totgrid, int gridsize)
+{
+	GPUIndexBufBuilder elb;
+	if (buffers->smooth) {
+		GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 6 * totgrid, INT_MAX);
+		for (int i = 0; i < totgrid; i++) {
+			GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1);
+			GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize);
+			GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize);
+			GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - 1);
+			GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1);
+			GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize);
+		}
+	}
+	else {
+		GPU_indexbuf_init_ex(&elb, GPU_PRIM_TRI_STRIP, 5 * totgrid, INT_MAX, true);
+		uint vbo_index_offset = 0;
+		for (int i = 0; i < totgrid; i++) {
+			uint grid_indices[4];
+			for (int j = 0; j < gridsize - 1; j++) {
+				for (int k = 0; k < gridsize - 1; k++) {
+					const bool is_row_start = (k == 0);
+					const bool is_row_end = (k == gridsize - 2);
+					const bool is_grid_start = (j == 0);
+					const bool is_grid_end = (j == gridsize - 2);
+					const bool is_first_grid = (i == 0);
+					const bool is_last_grid = (i == totgrid - 1);
+
+					if (is_row_start && !(is_grid_start && is_first_grid)) {
+						vbo_index_offset += 1;
+					}
+
+					if (is_grid_start && is_row_start) {
+						grid_indices[0] = vbo_index_offset + 0;
+					}
+					else if (is_grid_start && is_row_end) {
+						grid_indices[1] = vbo_index_offset + 2;
+					}
+					else if (is_grid_end && is_row_start) {
+						grid_indices[2] = vbo_index_offset + 1;
+					}
+					else if (is_grid_end && is_row_end) {
+						grid_indices[3] = vbo_index_offset + 3;
+					}
+					vbo_index_offset += 4;
+
+					if (is_row_end && !(is_grid_end && is_last_grid)) {
+						vbo_index_offset += 1;
+					}
+				}
+			}
+			GPU_indexbuf_add_generic_vert(&elb, grid_indices[1]);
+			GPU_indexbuf_add_generic_vert(&elb, grid_indices[0]);
+			GPU_indexbuf_add_generic_vert(&elb, grid_indices[3]);
+			GPU_indexbuf_add_generic_vert(&elb, grid_indices[2]);
+			GPU_indexbuf_add_primitive_restart(&elb);
+		}
+	}
+	buffers->index_buf_fast = GPU_indexbuf_build(&elb);
+}
+
 void GPU_pbvh_grid_buffers_update(
         GPU_PBVH_Buffers *buffers, CCGElem **grids,
         const DMFlagMat *grid_flag_mats, int *grid_indices,
@@ -337,89 +397,134 @@ void GPU_pbvh_grid_buffers_update(
 	buffers->smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 	/* Build VBO */
-	if (buffers->index_buf) {
-		const int has_mask = key->has_mask;
+	const int has_mask = key->has_mask;
 
-		uint vbo_index_offset = 0;
-		/* Build VBO */
-		if (gpu_pbvh_vert_buf_data_set(buffers, totgrid * key->grid_area)) {
-			for (i = 0; i < totgrid; ++i) {
-				CCGElem *grid = grids[grid_indices[i]];
-				int vbo_index = vbo_index_offset;
+	uint vert_count = totgrid * key->grid_area;
 
+	if (!buffers->smooth) {
+		vert_count = totgrid * (key->grid_size - 1) * (key->grid_size - 1) * 4;
+		/* Count strip restart verts (2 verts between each row and grid) */
+		vert_count += ((totgrid - 1) + totgrid * (key->grid_size - 2)) * 2;
+	}
+
+	if (buffers->smooth && buffers->index_buf == NULL) {
+		/* Not sure if really needed.  */
+		GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
+	}
+	else if (!buffers->smooth && buffers->index_buf != NULL) {
+		/* Discard unecessary index buffers. */
+		GPU_BATCH_DISCARD_SAFE(buffers->triangles);
+		GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);
+		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
+	}
+
+	if (buffers->index_buf_fast == NULL) {
+		gpu_pbvh_grid_fill_fast_buffer(buffers, totgrid, key->grid_size);
+	}
+
+	uint vbo_index_offset = 0;
+	/* Build VBO */
+	if (gpu_pbvh_vert_buf_data_set(buffers, vert_count)) {
+		for (i = 0; i < totgrid; ++i) {
+			CCGElem *grid = grids[grid_indices[i]];
+			int vbo_index = vbo_index_offset;
+
+			if (buffers->smooth) {
 				for (y = 0; y < key->grid_size; y++) {
 					for (x = 0; x < key->grid_size; x++) {
 						CCGElem *elem = CCG_grid_elem(key, grid, x, y);
 						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, CCG_elem_co(key, elem));
 
-						if (buffers->smooth) {
-							short no_short[3];
-							normal_float_to_short_v3(no_short, CCG_elem_no(key, elem));
-							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
+						short no_short[3];
+						normal_float_to_short_v3(no_short, CCG_elem_no(key, elem));
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
 
-							if (has_mask && show_mask) {
-								float fmask = *CCG_elem_mask(key, elem);
-								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
-								empty_mask = empty_mask && (fmask == 0.0f);
-							}
+						if (has_mask && show_mask) {
+							float fmask = *CCG_elem_mask(key, elem);
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
+							empty_mask = empty_mask && (fmask == 0.0f);
 						}
 						vbo_index += 1;
 					}
 				}
-
-				if (!buffers->smooth) {
-					for (j = 0; j < key->grid_size - 1; j++) {
-						for (k = 0; k < key->grid_size - 1; k++) {
-							CCGElem *elems[4] = {
-								CCG_grid_elem(key, grid, k, j + 1),
-								CCG_grid_elem(key, grid, k + 1, j + 1),
-								CCG_grid_elem(key, grid, k + 1, j),
-								CCG_grid_elem(key, grid, k, j)
-							};
-							float fno[3];
-
-							normal_quad_v3(fno,
-							               CCG_elem_co(key, elems[0]),
-							               CCG_elem_co(key, elems[1]),
-							               CCG_elem_co(key, elems[2]),
-							               CCG_elem_co(key, elems[3]));
-
-							vbo_index = vbo_index_offset + ((j + 1) * key->grid_size + k);
-							short no_short[3];
-							normal_float_to_short_v3(no_short, fno);
-							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
-
-							/* Copy normal to first row and last column. */
-							if (k == key->grid_size - 2) {
-								const int next_vbo_index = vbo_index_offset + ((j + 1) * key->grid_size + k + 1);
-								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, next_vbo_index, no_short);
-							}
-							if (j == 0) {
-								int prev_vbo_index = vbo_index_offset + ((j) * key->grid_size + k);
-								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, prev_vbo_index, no_short);
-							}
-							if (j == 0 && k == key->grid_size - 2) {
-								int diag_vbo_index = vbo_index_offset + ((j) * key->grid_size + k + 1);
-								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, diag_vbo_index, no_short);
-							}
-
-							if (has_mask && show_mask) {
-								float fmask = (*CCG_elem_mask(key, elems[0]) +
-								               *CCG_elem_mask(key, elems[1]) +
-								               *CCG_elem_mask(key, elems[2]) +
-								               *CCG_elem_mask(key, elems[3])) * 0.25f;
-								GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
-								empty_mask = empty_mask && (fmask == 0.0f);
-							}
-						}
-					}
-				}
-
 				vbo_index_offset += key->grid_area;
 			}
+			else {
+				for (j = 0; j < key->grid_size - 1; j++) {
+					for (k = 0; k < key->grid_size - 1; k++) {
+						const bool is_row_start = (k == 0);
+						const bool is_row_end = (k == key->grid_size - 2);
+						const bool is_grid_start = (j == 0);
+						const bool is_grid_end = (j == key->grid_size - 2);
+						const bool is_first_grid = (i == 0);
+						const bool is_last_grid = (i == totgrid - 1);
 
-			gpu_pbvh_batch_init(buffers);
+						CCGElem *elems[4] = {
+							CCG_grid_elem(key, grid, k, j + 1),
+							CCG_grid_elem(key, grid, k + 1, j + 1),
+							CCG_grid_elem(key, grid, k + 1, j),
+							CCG_grid_elem(key, grid, k, j)
+						};
+						float *co[4] = {
+						    CCG_elem_co(key, elems[0]),
+						    CCG_elem_co(key, elems[1]),
+						    CCG_elem_co(key, elems[2]),
+						    CCG_elem_co(key, elems[3])
+						};
+
+						float fno[3];
+						short no_short[3];
+						normal_quad_v3(fno, co[0], co[1], co[2], co[3]);
+						normal_float_to_short_v3(no_short, fno);
+
+						if (is_row_start && !(is_grid_start && is_first_grid)) {
+							/* Duplicate first vert
+							 * (only pos is needed since the triangle will be degenerate) */
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, co[3]);
+							vbo_index += 1;
+							vbo_index_offset += 1;
+						}
+
+						/* Note indices orders (3, 0, 2, 1); we are drawing a triangle strip. */
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index, co[3]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index, no_short);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 1, co[0]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 1, no_short);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 2, co[2]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 2, no_short);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 3, co[1]);
+						GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.nor, vbo_index + 3, no_short);
+
+						if (has_mask && show_mask) {
+							float fmask = (*CCG_elem_mask(key, elems[0]) +
+							               *CCG_elem_mask(key, elems[1]) +
+							               *CCG_elem_mask(key, elems[2]) +
+							               *CCG_elem_mask(key, elems[3])) * 0.25f;
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index, &fmask);
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 1, &fmask);
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 2, &fmask);
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.msk, vbo_index + 3, &fmask);
+							empty_mask = empty_mask && (fmask == 0.0f);
+						}
+
+						if (is_row_end && !(is_grid_end && is_last_grid)) {
+							/* Duplicate last vert
+							 * (only pos is needed since the triangle will be degenerate) */
+							GPU_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.pos, vbo_index + 4, co[1]);
+							vbo_index += 1;
+							vbo_index_offset += 1;
+						}
+
+						vbo_index += 4;
+					}
+				}
+				vbo_index_offset += (key->grid_size - 1) * (key->grid_size - 1) * 4;
+			}
 		}
+
+		gpu_pbvh_batch_init(buffers, buffers->smooth ? GPU_PRIM_TRIS : GPU_PRIM_TRI_STRIP);
 	}
 
 	buffers->grids = grids;
@@ -492,21 +597,6 @@ static GPUIndexBuf *gpu_get_grid_buffer(
 	return mres_buffer;
 }
 
-#define FILL_FAST_BUFFER() \
-{ \
-	GPUIndexBufBuilder elb; \
-	GPU_indexbuf_init(&elb, GPU_PRIM_TRIS, 6 * totgrid, INT_MAX); \
-	for (int i = 0; i < totgrid; i++) { \
-		GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1); \
-		GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize); \
-		GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize); \
-		GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - 1); \
-		GPU_indexbuf_add_generic_vert(&elb, i * gridsize * gridsize + gridsize - 1); \
-		GPU_indexbuf_add_generic_vert(&elb, (i + 1) * gridsize * gridsize - gridsize); \
-	} \
-	buffers->index_buf_fast = GPU_indexbuf_build(&elb); \
-} (void)0
-
 GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
         int *grid_indices, int totgrid, BLI_bitmap **grid_hidden, int gridsize, const CCGKey *UNUSED(key))
 {
@@ -527,9 +617,8 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
 	if (totquad == 0)
 		return buffers;
 
-	/* create and fill indices of the fast buffer too */
-	FILL_FAST_BUFFER();
-
+	/* TODO(fclem) this needs a bit of cleanup. It's only needed for smooth grids.
+	 * Could be moved to the update function somehow. */
 	if (totquad == fully_visible_totquad) {
 		buffers->index_buf = gpu_get_grid_buffer(gridsize, &buffers->tot_quad, totgrid);
 		buffers->has_hidden = false;
@@ -544,20 +633,6 @@ GPU_PBVH_Buffers *GPU_pbvh_grid_buffers_build(
 		buffers->has_hidden = false;
 		buffers->is_index_buf_global = false;
 	}
-
-#ifdef USE_BASE_ELEM
-	/* Build coord/normal VBO */
-	if (GLEW_ARB_draw_elements_base_vertex /* 3.2 */) {
-		int i;
-		buffers->baseelemarray = MEM_mallocN(sizeof(int) * totgrid * 2, "GPU_PBVH_Buffers.baseelemarray");
-		buffers->baseindex = MEM_mallocN(sizeof(void *) * totgrid, "GPU_PBVH_Buffers.baseindex");
-		for (i = 0; i < totgrid; i++) {
-			buffers->baseelemarray[i] = buffers->tot_quad * 6;
-			buffers->baseelemarray[i + totgrid] = i * key->grid_area;
-			buffers->baseindex[i] = NULL;
-		}
-	}
-#endif
 
 	return buffers;
 }
@@ -796,7 +871,7 @@ void GPU_pbvh_bmesh_buffers_update(
 
 	buffers->show_mask = !empty_mask;
 
-	gpu_pbvh_batch_init(buffers);
+	gpu_pbvh_batch_init(buffers, GPU_PRIM_TRIS);
 }
 
 GPU_PBVH_Buffers *GPU_pbvh_bmesh_buffers_build(bool smooth_shading)
@@ -832,13 +907,6 @@ void GPU_pbvh_buffers_free(GPU_PBVH_Buffers *buffers)
 		}
 		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
 		GPU_VERTBUF_DISCARD_SAFE(buffers->vert_buf);
-
-#ifdef USE_BASE_ELEM
-		if (buffers->baseelemarray)
-			MEM_freeN(buffers->baseelemarray);
-		if (buffers->baseindex)
-			MEM_freeN(buffers->baseindex);
-#endif
 
 		MEM_freeN(buffers);
 	}
