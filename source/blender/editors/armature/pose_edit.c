@@ -226,7 +226,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 
 	/* recalculate paths, then free */
 	TIMEIT_START(pose_path_calc);
-	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
+	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, false);
 	TIMEIT_END(pose_path_calc);
 
 	BLI_freelistN(&targets);

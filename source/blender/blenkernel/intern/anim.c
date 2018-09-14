@@ -401,7 +401,11 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
  *	- recalc: whether we need to
  */
 /* TODO: include reports pointer? */
- void animviz_calc_motionpaths(Depsgraph *depsgraph, Main *bmain, Scene *scene, ListBase *targets)
+void animviz_calc_motionpaths(Depsgraph *depsgraph,
+                              Main *bmain,
+                              Scene *scene,
+                              ListBase *targets,
+                              bool restore)
 {
 	MPathTarget *mpt;
 	int sfra, efra;
@@ -476,12 +480,13 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	}
 
 	/* reset original environment */
-	/* NOTE: We shouldn't need to reevaluate the main scene,
-	 * as the depsgraph passed in calculates the results on a
-	 * a copy-on-write copy of the data. That said, we have to
-	 * restore the current frame settings
-	 */
+	/* NOTE: We don't always need to reevaluate the main scene, as the depsgraph
+	 * may be a temporary one that works on a subset of the data. We always have
+	 * to resoture the current frame though. */
 	CFRA = cfra;
+	if (restore) {
+		motionpaths_calc_update_scene(bmain, depsgraph);
+	}
 
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

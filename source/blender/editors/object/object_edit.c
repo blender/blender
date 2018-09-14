@@ -1239,7 +1239,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	CTX_DATA_END;
 
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
+	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, true);
 	BLI_freelistN(&targets);
 
 	/* tag objects for copy on write - so paths will draw/redraw */
