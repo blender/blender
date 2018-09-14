@@ -943,6 +943,8 @@ void BKE_sculpt_update_mesh_elements(
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
+	ss->subdiv_ccg = me_eval->runtime.subsurf_ccg;
+
 	PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 	BLI_assert(pbvh == ss->pbvh);
 	UNUSED_VARS_NDEBUG(pbvh);

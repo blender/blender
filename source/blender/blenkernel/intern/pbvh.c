@@ -1341,6 +1341,11 @@ void BKE_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
 	*key = bvh->gridkey;
 }
 
+struct CCGElem **BKE_pbvh_get_grids(const PBVH *bvh, int *num_grids) {
+	BLI_assert(bvh->type == PBVH_GRIDS);
+	*num_grids = bvh->totgrid;
+	return bvh->grids;
+}
 
 BMesh *BKE_pbvh_get_bmesh(PBVH *bvh)
 {

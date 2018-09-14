@@ -35,13 +35,16 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
+#include "BLI_task.h"
 
+#include "BKE_ccg.h"
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_multires.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_eval.h"
 #include "BKE_subdiv_foreach.h"
 #include "BKE_subdiv_mesh.h"
@@ -126,8 +129,23 @@ BLI_INLINE void construct_tangent_matrix(float tangent_matrix[3][3],
 	normalize_v3(tangent_matrix[2]);
 }
 
+static void multires_reshape_init_mmd(
+        MultiresModifierData *reshape_mmd,
+        const MultiresModifierData *mmd)
+{
+	*reshape_mmd = *mmd;
+}
+
+static void multires_reshape_init_mmd_top_level(
+        MultiresModifierData *reshape_mmd,
+        const MultiresModifierData *mmd)
+{
+	*reshape_mmd = *mmd;
+	reshape_mmd->lvl = reshape_mmd->totlvl;
+}
+
 /* =============================================================================
- * Reshape internal functionality.
+ * General reshape implementaiton, reused by all particular cases.
  */
 
 typedef struct MultiresReshapeContext {
@@ -135,24 +153,9 @@ typedef struct MultiresReshapeContext {
 	Object *object;
 	const Mesh *coarse_mesh;
 	MDisps *mdisps;
-	const float (*deformed_verts)[3];
-	int num_deformed_verts;
+	/* NOTE: This is a grid size on th top level. */
 	int grid_size;
 } MultiresReshapeContext;
-
-static bool multires_reshape_topology_info(
-        const SubdivForeachContext *foreach_context,
-        const int num_vertices,
-        const int UNUSED(num_edges),
-        const int UNUSED(num_loops),
-        const int UNUSED(num_polygons))
-{
-	MultiresReshapeContext *ctx = foreach_context->user_data;
-	if (num_vertices != ctx->num_deformed_verts) {
-		return false;
-	}
-	return true;
-}
 
 static void multires_reshape_vertex_copy_to_next(
         MultiresReshapeContext *ctx,
@@ -238,13 +241,13 @@ static void copy_boundary_displacement(
 	}
 }
 
-static void multires_reshape_vertex(
+static void multires_reshape_vertex_from_final_coord(
         MultiresReshapeContext *ctx,
         const int ptex_face_index,
         const float u, const float v,
         const int coarse_poly_index,
         const int coarse_corner,
-        const int subdiv_vertex_index)
+        const float final_P[3])
 {
 	Subdiv *subdiv = ctx->subdiv;
 	const int grid_size = ctx->grid_size;
@@ -273,7 +276,6 @@ static void multires_reshape_vertex(
 		ptex_uv_to_grid_uv(u, v, &grid_u, &grid_v);
 	}
 	/* Convert object coordinate to a tangent space of displacement grid. */
-	const float *final_P = ctx->deformed_verts[subdiv_vertex_index];
 	float D[3];
 	sub_v3_v3v3(D, final_P, P);
 	float tangent_matrix[3][3];
@@ -292,6 +294,47 @@ static void multires_reshape_vertex(
 	        ctx, coarse_poly, face_corner, grid_x, grid_y, displacement_grid);
 }
 
+/* =============================================================================
+ * Reshape from deformed veretx coordinates.
+ */
+
+typedef struct MultiresReshapeFromDeformedVertsContext {
+	MultiresReshapeContext reshape_ctx;
+	const float (*deformed_verts)[3];
+	int num_deformed_verts;
+} MultiresReshapeFromDeformedVertsContext;
+
+static bool multires_reshape_topology_info(
+        const SubdivForeachContext *foreach_context,
+        const int num_vertices,
+        const int UNUSED(num_edges),
+        const int UNUSED(num_loops),
+        const int UNUSED(num_polygons))
+{
+	MultiresReshapeFromDeformedVertsContext *ctx = foreach_context->user_data;
+	if (num_vertices != ctx->num_deformed_verts) {
+		return false;
+	}
+	return true;
+}
+
+static void multires_reshape_vertex(
+        MultiresReshapeFromDeformedVertsContext *ctx,
+        const int ptex_face_index,
+        const float u, const float v,
+        const int coarse_poly_index,
+        const int coarse_corner,
+        const int subdiv_vertex_index)
+{
+	const float *final_P = ctx->deformed_verts[subdiv_vertex_index];
+	multires_reshape_vertex_from_final_coord(
+	        &ctx->reshape_ctx,
+	        ptex_face_index, u, v,
+	        coarse_poly_index,
+	        coarse_corner,
+            final_P);
+}
+
 static void multires_reshape_vertex_inner(
         const SubdivForeachContext *foreach_context,
         void *UNUSED(tls_v),
@@ -301,7 +344,7 @@ static void multires_reshape_vertex_inner(
         const int coarse_corner,
         const int subdiv_vertex_index)
 {
-	MultiresReshapeContext *ctx = foreach_context->user_data;
+	MultiresReshapeFromDeformedVertsContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
 	        ptex_face_index, u, v,
@@ -320,7 +363,7 @@ static void multires_reshape_vertex_every_corner(
         const int coarse_corner,
         const int subdiv_vertex_index)
 {
-	MultiresReshapeContext *ctx = foreach_context->user_data;
+	MultiresReshapeFromDeformedVertsContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
 	        ptex_face_index, u, v,
@@ -339,7 +382,7 @@ static void multires_reshape_vertex_every_edge(
         const int coarse_corner,
         const int subdiv_vertex_index)
 {
-	MultiresReshapeContext *ctx = foreach_context->user_data;
+	MultiresReshapeFromDeformedVertsContext *ctx = foreach_context->user_data;
 	multires_reshape_vertex(
 	        ctx,
 	        ptex_face_index, u, v,
@@ -376,58 +419,46 @@ static bool multires_reshape_from_vertcos(
 {
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Mesh *coarse_mesh = object->data;
-	MultiresReshapeContext ctx = {
-	        .object = object,
-	        .coarse_mesh = coarse_mesh,
+	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	MultiresReshapeFromDeformedVertsContext reshape_deformed_verts_ctx = {
+	        .reshape_ctx = {
+	                .object = object,
+	                .coarse_mesh = coarse_mesh,
+	                .mdisps = mdisps,
+	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
+	        },
 	        .deformed_verts = deformed_verts,
-	        .mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS),
 	        .num_deformed_verts = num_deformed_verts,
-	        .grid_size = (1 << (mmd->totlvl - 1)) + 1,
 	};
 	SubdivForeachContext foreach_context = {
 	        .topology_info = multires_reshape_topology_info,
 	        .vertex_inner = multires_reshape_vertex_inner,
 	        .vertex_every_edge = multires_reshape_vertex_every_edge,
 	        .vertex_every_corner = multires_reshape_vertex_every_corner,
-	        .user_data = &ctx,
+	        .user_data = &reshape_deformed_verts_ctx,
 	};
 	/* Initialize subdivision surface. */
-	ctx.subdiv = multires_subdiv_for_reshape(depsgraph, object, mmd);
-	if (ctx.subdiv == NULL) {
+	Subdiv *subdiv = multires_subdiv_for_reshape(depsgraph, object, mmd);
+	if (subdiv == NULL) {
 		return false;
 	}
+	reshape_deformed_verts_ctx.reshape_ctx.subdiv = subdiv;
 	/* Initialize mesh rasterization settings. */
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
         &mesh_settings, scene_eval, object, mmd, use_render_params, true);
 	/* Run all the callbacks. */
 	BKE_subdiv_foreach_subdiv_geometry(
-	        ctx.subdiv,
+	        subdiv,
 	        &foreach_context,
 	        &mesh_settings,
 	        coarse_mesh);
-	BKE_subdiv_free(ctx.subdiv);
+	BKE_subdiv_free(subdiv);
 	return true;
 }
 
-static void multires_reshape_init_mmd(MultiresModifierData *reshape_mmd,
-                                      const MultiresModifierData *mmd)
-{
-	/* It is possible that the current subdivision level of multires is lower
-	 * that it's maximum possible one (i.e., viewport is set to a lower level
-	 * for the performance purposes). But even then, we want all the multires
-	 * levels to be reshaped. Most accurate way to do so is to ignore all
-	 * simplifications and calculate deformation modifier for the highest
-	 * possible multires level.
-	 * Alternative would be propagate displacement from current level to a
-	 * higher ones, but that is likely to cause artifacts.
-	 */
-	*reshape_mmd = *mmd;
-	reshape_mmd->lvl = reshape_mmd->totlvl;
-}
-
 /* =============================================================================
- * Public entry points.
+ * Reshape from object.
  */
 
 /* Returns truth on success, false otherwise.
@@ -469,6 +500,10 @@ bool multiresModifier_reshapeFromObject(
 	return result;
 }
 
+/* =============================================================================
+ * Reshape from modifier.
+ */
+
 bool multiresModifier_reshapeFromDeformModifier(
         struct Depsgraph *depsgraph,
         MultiresModifierData *mmd,
@@ -476,7 +511,16 @@ bool multiresModifier_reshapeFromDeformModifier(
         ModifierData *md)
 {
 	MultiresModifierData highest_mmd;
-	multires_reshape_init_mmd(&highest_mmd, mmd);
+	/* It is possible that the current subdivision level of multires is lower
+	 * that it's maximum possible one (i.e., viewport is set to a lower level
+	 * for the performance purposes). But even then, we want all the multires
+	 * levels to be reshaped. Most accurate way to do so is to ignore all
+	 * simplifications and calculate deformation modifier for the highest
+	 * possible multires level.
+	 * Alternative would be propagate displacement from current level to a
+	 * higher ones, but that is likely to cause artifacts.
+	 */
+	multires_reshape_init_mmd_top_level(&highest_mmd, mmd);
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* Perform sanity checks and early output. */
 	if (multires_get_level(
@@ -512,4 +556,143 @@ bool multiresModifier_reshapeFromDeformModifier(
 	/* Cleanup */
 	MEM_freeN(deformed_verts);
 	return result;
+}
+
+/* =============================================================================
+ * Reshape from grids.
+ */
+
+typedef struct ReshapeFromCCGTaskData {
+	MultiresReshapeContext reshape_ctx;
+	int *face_ptex_offset;
+	const CCGKey *key;
+	/*const*/ CCGElem **grids;
+} ReshapeFromCCGTaskData;
+
+static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
+                                          const MPoly *coarse_poly)
+{
+	const CCGKey *key = data->key;
+	/*const*/ CCGElem **grids = data->grids;
+	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const int grid_size = data->reshape_ctx.grid_size;
+	const int grid_size_1 = grid_size - 1;
+	const int resolution = 2 * grid_size - 1;
+	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
+	const int coarse_poly_index = coarse_poly - coarse_mpoly;
+	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	for (int y = 0; y < resolution; y++) {
+		const float v = y * resolution_1_inv;
+		for (int x = 0; x < resolution; x++) {
+			const float u = x * resolution_1_inv;
+			float corner_u, corner_v;
+			float grid_u, grid_v;
+			const int face_corner = rotate_quad_to_corner(
+			        u, v, &corner_u, &corner_v);
+			ptex_uv_to_grid_uv(corner_u, corner_v, &grid_u, &grid_v);
+			/*const*/ CCGElem *grid =
+			        grids[coarse_poly->loopstart + face_corner];
+			/*const*/ CCGElem *grid_element = CCG_grid_elem(
+			        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+			const float *final_P = CCG_elem_co(key, grid_element);
+			multires_reshape_vertex_from_final_coord(
+			        &data->reshape_ctx,
+			        ptex_face_index,
+			        u, v,
+			        coarse_poly_index,
+			        0,
+			        final_P);
+		}
+	}
+}
+
+static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
+                                          const MPoly *coarse_poly)
+{
+	const CCGKey *key = data->key;
+	/*const*/ CCGElem **grids = data->grids;
+	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const int grid_size = data->reshape_ctx.grid_size;
+	const int grid_size_1 = grid_size - 1;
+	const int resolution = grid_size;
+	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
+	const int coarse_poly_index = coarse_poly - coarse_mpoly;
+	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
+		for (int y = 0; y < resolution; y++) {
+			const float v = y * resolution_1_inv;
+			for (int x = 0; x < resolution; x++) {
+				const float u = x * resolution_1_inv;
+				float grid_u, grid_v;
+				ptex_uv_to_grid_uv(u, v, &grid_u, &grid_v);
+				/*const*/ CCGElem *grid =
+				        grids[coarse_poly->loopstart + corner];
+				/*const*/ CCGElem *grid_element = CCG_grid_elem(
+				        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+				const float *final_P = CCG_elem_co(key, grid_element);
+				multires_reshape_vertex_from_final_coord(
+				        &data->reshape_ctx,
+				        ptex_face_index + corner,
+				        u, v,
+				        coarse_poly_index,
+				        corner,
+				        final_P);
+			}
+		}
+	}
+}
+
+static void reshape_from_ccg_task(
+        void *__restrict userdata,
+        const int coarse_poly_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls))
+{
+	ReshapeFromCCGTaskData *data = userdata;
+	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
+	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
+	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
+	if (coarse_poly->totloop == 4) {
+		reshape_from_ccg_regular_face(data, coarse_poly);
+	}
+	else {
+		reshape_from_ccg_special_face(data, coarse_poly);
+	}
+}
+
+bool multiresModifier_reshapeFromCCG(
+        Object *dst, SubdivCCG *subdiv_ccg)
+{
+	Mesh *coarse_mesh = dst->data;
+	CCGKey key;
+	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+	/* Sanity checks. */
+	if (coarse_mesh->totloop != subdiv_ccg->num_grids) {
+		/* Grids are supposed to eb created for each face-cornder (aka loop). */
+		return false;
+	}
+	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	/* XXX: Key has grid size for the current level. Need to access top
+	 * top level somehow.
+	 */
+	Subdiv *subdiv = subdiv_ccg->subdiv;
+	ReshapeFromCCGTaskData data = {
+	        .reshape_ctx = {
+	                .subdiv = subdiv,
+	                .object = dst,
+	                .coarse_mesh = coarse_mesh,
+	                .mdisps  = mdisps,
+	                .grid_size = key.grid_size},
+	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
+	        .key = &key,
+	        .grids = subdiv_ccg->grids};
+	/* Threaded grids iteration. */
+	ParallelRangeSettings parallel_range_settings;
+	BLI_parallel_range_settings_defaults(&parallel_range_settings);
+	BLI_task_parallel_range(0, coarse_mesh->totpoly,
+	                        &data,
+	                        reshape_from_ccg_task,
+	                        &parallel_range_settings);
+	return true;
 }

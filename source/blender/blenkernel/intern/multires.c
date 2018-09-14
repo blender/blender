@@ -57,6 +57,7 @@
 #include "BKE_multires.h"
 #include "BKE_paint.h"
 #include "BKE_scene.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subsurf.h"
 #include "BKE_editmesh.h"
 
@@ -389,21 +390,46 @@ static void multires_dm_mark_as_modified(DerivedMesh *dm, MultiresModifiedFlags 
 	ccgdm->multires.modified_flags |= flags;
 }
 
+static void multires_ccg_mark_as_modified(SubdivCCG *subdiv_ccg,
+                                          MultiresModifiedFlags flags)
+{
+	if (flags & MULTIRES_COORDS_MODIFIED) {
+		subdiv_ccg->dirty.coords = true;
+	}
+	if (flags & MULTIRES_HIDDEN_MODIFIED) {
+		subdiv_ccg->dirty.hidden = true;
+	}
+}
+
 void multires_mark_as_modified(Object *ob, MultiresModifiedFlags flags)
 {
-	if (ob && ob->derivedFinal)
-		multires_dm_mark_as_modified(ob->derivedFinal, flags);
+	if (ob == NULL) {
+		return;
+	}
+	Mesh *mesh = ob->data;
+	SubdivCCG *subdiv_ccg = mesh->runtime.subsurf_ccg;
+	if (subdiv_ccg == NULL) {
+		return;
+	}
+	multires_ccg_mark_as_modified(subdiv_ccg, flags);
 }
 
 void multires_force_update(Object *ob)
 {
-	if (ob) {
-		BKE_object_free_derived_caches(ob);
-
-		if (ob->sculpt && ob->sculpt->pbvh) {
-			BKE_pbvh_free(ob->sculpt->pbvh);
-			ob->sculpt->pbvh = NULL;
+	if (ob == NULL) {
+		return;
+	}
+	if (ob->sculpt && ob->sculpt->pbvh) {
+		PBVH *pbvh = ob->sculpt->pbvh;
+		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
+			multiresModifier_reshapeFromCCG(ob, ob->sculpt->subdiv_ccg);
 		}
+		else {
+			/* NOTE: Disabled for until OpenSubdiv is enabled by default. */
+			// BLI_assert(!"multires_force_update is used on non-grids PBVH");
+		}
+		BKE_pbvh_free(pbvh);
+		ob->sculpt->pbvh = NULL;
 	}
 }
 

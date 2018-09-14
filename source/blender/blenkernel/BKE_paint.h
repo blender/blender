@@ -56,6 +56,7 @@ struct Scene;
 struct ViewLayer;
 struct Sculpt;
 struct StrokeCache;
+struct SubdivCCG;
 struct Tex;
 struct ImagePool;
 struct UnifiedPaintSettings;
@@ -197,6 +198,9 @@ typedef struct SculptSession {
 	bool bm_smooth_shading;
 	/* Undo/redo log for dynamic topology sculpting */
 	struct BMLog *bm_log;
+
+	/* Limit surface/grids. */
+	struct SubdivCCG *subdiv_ccg;
 
 	/* PBVH acceleration structure */
 	struct PBVH *pbvh;

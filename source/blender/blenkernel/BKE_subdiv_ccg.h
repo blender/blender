@@ -114,6 +114,17 @@ typedef struct SubdivCCG {
 	/* TODO(sergey): Consider adding CD layers here, so we can draw final mesh
 	 * from grids, and have UVs and such work.
 	 */
+
+	/* Integration with sculpting. */
+	/* TODO(sergey): Is this really best way to go? Kind of annoying to have
+	 * such use-related flags in a more or less generic structure.
+	 */
+	struct {
+		/* Corresponds to MULTIRES_COORDS_MODIFIED. */
+		bool coords;
+		/* Corresponds to MULTIRES_HIDDEN_MODIFIED. */
+		bool hidden;
+	} dirty;
 } SubdivCCG;
 
 /* Create real hi-res CCG from subdivision.

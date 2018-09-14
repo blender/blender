@@ -33,6 +33,7 @@
  */
 
 enum MultiresModifiedFlags;
+
 struct Depsgraph;
 struct DerivedMesh;
 struct MDisps;
@@ -42,6 +43,7 @@ struct Multires;
 struct MultiresModifierData;
 struct Object;
 struct Scene;
+struct SubdivCCG;
 
 struct MLoop;
 struct MVert;
@@ -126,6 +128,9 @@ bool multiresModifier_reshapeFromDeformModifier(
         struct MultiresModifierData *mmd,
         struct Object *ob,
         struct ModifierData *md);
+bool multiresModifier_reshapeFromCCG(
+        struct Object *dst,
+        struct SubdivCCG *subdiv_ccg);
 
 /* Subdivision integration, defined in multires_subdiv.c */
 

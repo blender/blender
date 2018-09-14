@@ -155,6 +155,8 @@ int BKE_pbvh_count_grid_quads(BLI_bitmap **grid_hidden,
 /* multires level, only valid for type == PBVH_GRIDS */
 void BKE_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
 
+struct CCGElem **BKE_pbvh_get_grids(const PBVH *pbvh, int *num_grids);
+
 /* Only valid for type == PBVH_BMESH */
 struct BMesh *BKE_pbvh_get_bmesh(PBVH *pbvh);
 void BKE_pbvh_bmesh_detail_size_set(PBVH *pbvh, float detail_size);
