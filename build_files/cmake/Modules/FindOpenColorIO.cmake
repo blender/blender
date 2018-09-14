@@ -60,7 +60,7 @@ FOREACH(COMPONENT ${_opencolorio_FIND_COMPONENTS})
     HINTS
       ${_opencolorio_SEARCH_DIRS}
     PATH_SUFFIXES
-      lib64 lib
+      lib64 lib lib64/static lib/static
     )
   IF(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
     LIST(APPEND _opencolorio_LIBRARIES "${OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY}")
