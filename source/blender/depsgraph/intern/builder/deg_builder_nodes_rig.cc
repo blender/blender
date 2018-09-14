@@ -346,13 +346,13 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 		/* Bone is fully evaluated. */
 		op_node = add_operation_node(
 		        &object->id,
-		                             DEG_NODE_TYPE_BONE,
-		                             pchan->name,
+		        DEG_NODE_TYPE_BONE,
+		        pchan->name,
 		        function_bind(BKE_pose_eval_proxy_copy_bone,
 		                      _1,
 		                      object_cow,
 		                      pchan_index),
-		                             DEG_OPCODE_BONE_DONE);
+		        DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
 
 		/* Custom properties. */
