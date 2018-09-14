@@ -1532,8 +1532,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 						/* Adjust strength if the eraser is soft */
 						if (eraser->gpencil_settings->eraser_mode == GP_BRUSH_ERASER_SOFT) {
-							float f_strength = eraser->gpencil_settings->era_strength_f;
-							float f_thickness = eraser->gpencil_settings->era_thickness_f;
+							float f_strength = eraser->gpencil_settings->era_strength_f / 100.0f;
+							float f_thickness = eraser->gpencil_settings->era_thickness_f / 100.0f;
 
 							if (pt0) {
 								pt0->strength -= gp_stroke_eraser_calc_influence(p, mval, radius, pc0) * strength * f_strength * 0.5f;

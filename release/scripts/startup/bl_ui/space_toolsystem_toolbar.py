@@ -1239,8 +1239,13 @@ class _defs_gpencil_paint:
             gp_settings = brush.gpencil_settings
 
             if gp_settings.gpencil_brush_type == 'ERASE':
-                row = layout.row()
+                row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
+                row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
+                if gp_settings.eraser_mode == 'SOFT':
+                    row = layout.row(align=True)
+                    row.prop(gp_settings, "pen_strength", slider=True)
+                    row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
             elif gp_settings.gpencil_brush_type == 'FILL':
                 row = layout.row()
                 row.prop(gp_settings, "gpencil_fill_leak", text="Leak Size")

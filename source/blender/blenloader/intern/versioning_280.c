@@ -1948,8 +1948,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				if (brush->gpencil_settings != NULL) {
 					BrushGpencilSettings *gp = brush->gpencil_settings;
 					if (gp->brush_type == GP_BRUSH_TYPE_ERASE) {
-						gp->era_strength_f = 1.0f;
-						gp->era_thickness_f = 0.1f;
+						gp->era_strength_f = 100.0f;
+						gp->era_thickness_f = 10.0f;
 					}
 				}
 			}
