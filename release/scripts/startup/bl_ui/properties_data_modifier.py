@@ -2040,7 +2040,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Object:")
         col.prop(md, "object", text="")
-        col.prop(md, "use_deform_preserve_volume")
+        # col.prop(md, "use_deform_preserve_volume")
 
         col = split.column()
         col.label(text="Bind To:")

@@ -1206,7 +1206,9 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 				smat = summat;
 			}
 			else {
-				mul_v3_fl(vec, armature_weight / contrib);
+				if (target->type != OB_GPENCIL) {
+					mul_v3_fl(vec, armature_weight / contrib);
+				}
 				add_v3_v3v3(co, vec, co);
 			}
 
