@@ -1944,5 +1944,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "BrushGpencilSettings", "float", "era_strength_f")) {
+			for (Brush *brush = bmain->brush.first; brush; brush = brush->id.next) {
+				if (brush->gpencil_settings != NULL) {
+					BrushGpencilSettings *gp = brush->gpencil_settings;
+					if (gp->brush_type == GP_BRUSH_TYPE_ERASE) {
+						gp->era_strength_f = 1.0f;
+						gp->era_thickness_f = 0.1f;
+					}
+				}
+			}
+		}
 	}
 }

@@ -84,6 +84,8 @@ typedef struct BrushGpencilSettings {
 	int   brush_type;      /* type of brush (draw, fill, erase, etc..) */
 	int   eraser_mode;     /* soft, hard or stroke */
 	float active_smooth;   /* smooth while drawing factor */
+	float era_strength_f;  /* factor to apply to strength for soft eraser */
+	float era_thickness_f; /* factor to apply to thickness for soft eraser */
 	char pad_2[4];
 
 	struct CurveMapping *curve_sensitivity;

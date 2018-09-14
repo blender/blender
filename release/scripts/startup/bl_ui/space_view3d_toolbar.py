@@ -1427,6 +1427,11 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
 
                 row = layout.row(align=True)
                 row.prop(gp_settings, "eraser_mode", expand=True)
+                if gp_settings.eraser_mode == 'SOFT':
+                    row = layout.row(align=True)
+                    row.prop(gp_settings, "eraser_strength_factor")
+                    row = layout.row(align=True)
+                    row.prop(gp_settings, "eraser_thickness_factor")
             elif gp_settings.gpencil_brush_type == 'FILL':
                 col = layout.column(align=True)
                 col.prop(gp_settings, "gpencil_fill_leak", text="Leak Size")
