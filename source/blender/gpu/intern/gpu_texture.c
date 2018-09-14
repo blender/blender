@@ -1226,7 +1226,21 @@ void GPU_texture_generate_mipmap(GPUTexture *tex)
 	WARN_NOT_BOUND(tex);
 
 	glActiveTexture(GL_TEXTURE0 + tex->number);
-	glGenerateMipmap(tex->target_base);
+
+	if (GPU_texture_depth(tex)) {
+		/* Some drivers have bugs when using glGenerateMipmap with depth textures (see T56789).
+		 * In this case we just create a complete texture with mipmaps manually without downsampling.
+		 * You must initialize the texture levels using other methods like GPU_framebuffer_recursive_downsample(). */
+		int levels = 1 + floor(log2(max_ii(tex->w, tex->h)));
+		GPUDataFormat data_format = gpu_get_data_format_from_tex_format(tex->format);
+		for (int i = 1; i < levels; ++i) {
+			GPU_texture_add_mipmap(tex, data_format, i, NULL);
+		}
+		glBindTexture(tex->target, tex->bindcode);
+	}
+	else {
+		glGenerateMipmap(tex->target_base);
+	}
 }
 
 void GPU_texture_compare_mode(GPUTexture *tex, bool use_compare)
