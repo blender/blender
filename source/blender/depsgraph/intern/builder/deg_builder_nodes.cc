@@ -412,8 +412,18 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 			build_collection((Collection *)id);
 			break;
 		case ID_OB:
-			/* TODO(sergey): Get visibility from a "parent" somehow. */
-			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, true);
+			/* TODO(sergey): Get visibility from a "parent" somehow.
+			 *
+			 * NOTE: Using `false` visibility here should be fine, since if this
+			 * driver affects on something invisible we don't really care if the
+			 * driver gets evaluated (and even don't want this to force object
+			 * to become visible).
+			 *
+			 * If this happened to be affecting visible object, then it is up to
+			 * deg_graph_build_flush_visibility() to ensure visibility of the
+			 * object is true.
+			 */
+			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, false);
 			break;
 		case ID_KE:
 			build_shapekeys((Key *)id);
@@ -449,8 +459,12 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 		case ID_CU:
 		case ID_MB:
 		case ID_LT:
-			/* TODO(sergey): Get visibility from a "parent" somehow. */
-			build_object_data_geometry_datablock(id, true);
+			/* TODO(sergey): Get visibility from a "parent" somehow.
+			 *
+			 * NOTE: Similarly to above, we don't want false-positives on
+			 * visibility.
+			 */
+			build_object_data_geometry_datablock(id, false);
 			break;
 		case ID_SPK:
 			build_speaker((Speaker *)id);
