@@ -708,88 +708,96 @@ int cloth_bvh_objcollision(Depsgraph *depsgraph, Object *ob, ClothModifierData *
 	// static collisions
 	////////////////////////////////////////////////////////////
 
-	// update cloth bvh
-	bvhtree_update_from_cloth ( clmd, 1 ); // 0 means STATIC, 1 means MOVING (see later in this function)
-	bvhselftree_update_from_cloth ( clmd, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
+	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+		bvhtree_update_from_cloth(clmd, true);
 
-	collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
+		collobjs = BKE_collision_objects_create(depsgraph, ob, clmd->coll_parms->group, &numcollobj, eModifierType_Collision);
 
-	if (!collobjs)
-		return 0;
+		if (!collobjs) {
+			return 0;
+		}
 
-	/* move object to position (step) in time */
-	for (i = 0; i < numcollobj; i++) {
-		Object *collob= collobjs[i];
-		CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
+		/* Move object to position (step) in time. */
+		for (i = 0; i < numcollobj; i++) {
+			Object *collob = collobjs[i];
+			CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
 
-		if (!collmd->bvhtree)
-			continue;
+			if (!collmd->bvhtree) {
+				continue;
+			}
 
-		/* move object to position (step) in time */
-		collision_move_object ( collmd, step + dt, step );
+			/* Move object to position (step) in time. */
+			collision_move_object(collmd, step + dt, step);
+		}
+	}
+
+	if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF) {
+		bvhselftree_update_from_cloth(clmd, false);
 	}
 
 	do {
-		CollPair **collisions, **collisions_index;
-
 		ret2 = 0;
 
-		collisions = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
-		collisions_index = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
+		if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_ENABLED) {
+			CollPair **collisions, **collisions_index;
 
-		// check all collision objects
-		for (i = 0; i < numcollobj; i++) {
-			Object *collob= collobjs[i];
-			CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
-			BVHTreeOverlap *overlap = NULL;
-			unsigned int result = 0;
+			collisions = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
+			collisions_index = MEM_callocN(sizeof(CollPair *) *numcollobj, "CollPair");
 
-			if (!collmd->bvhtree)
-				continue;
+			/* Check all collision objects. */
+			for (i = 0; i < numcollobj; i++) {
+				Object *collob= collobjs[i];
+				CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(collob, eModifierType_Collision);
+				BVHTreeOverlap *overlap = NULL;
+				unsigned int result = 0;
 
-			/* search for overlapping collision pairs */
-			overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
-
-			// go to next object if no overlap is there
-			if ( result && overlap ) {
-				/* check if collisions really happen (costly near check) */
-				cloth_bvh_objcollisions_nearcheck ( clmd, collmd, &collisions[i],
-					&collisions_index[i], result, overlap, dt/(float)clmd->coll_parms->loop_count);
-
-				// resolve nearby collisions
-				ret += cloth_bvh_objcollisions_resolve ( clmd, collmd, collisions[i],  collisions_index[i]);
-				ret2 += ret;
-			}
-
-			if ( overlap )
-				MEM_freeN ( overlap );
-		}
-		rounds++;
-
-		for (i = 0; i < numcollobj; i++) {
-			if ( collisions[i] ) MEM_freeN ( collisions[i] );
-		}
-
-		MEM_freeN(collisions);
-		MEM_freeN(collisions_index);
-
-		////////////////////////////////////////////////////////////
-		// update positions
-		// this is needed for bvh_calc_DOP_hull_moving() [kdop.c]
-		////////////////////////////////////////////////////////////
-
-		/* verts come from clmd */
-		for (i = 0; i < mvert_num; i++) {
-			if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) {
-				if ( verts [i].flags & CLOTH_VERT_FLAG_PINNED ) {
+				if (!collmd->bvhtree) {
 					continue;
 				}
+
+				/* Search for overlapping collision pairs. */
+				overlap = BLI_bvhtree_overlap(cloth_bvh, collmd->bvhtree, &result, NULL, NULL);
+
+				/* Go to next object if no overlap is there. */
+				if (result && overlap) {
+					/* Check if collisions really happen (costly near check). */
+					cloth_bvh_objcollisions_nearcheck(clmd, collmd, &collisions[i], &collisions_index[i],
+					                                  result, overlap, dt/(float)clmd->coll_parms->loop_count);
+
+					/* Resolve nearby collisions. */
+					ret += cloth_bvh_objcollisions_resolve(clmd, collmd, collisions[i], collisions_index[i]);
+					ret2 += ret;
+				}
+
+				MEM_SAFE_FREE(overlap);
 			}
 
-			VECADD ( verts[i].tx, verts[i].txold, verts[i].tv );
-		}
-		////////////////////////////////////////////////////////////
+			for (i = 0; i < numcollobj; i++) {
+				MEM_SAFE_FREE(collisions[i]);
+			}
 
+			MEM_freeN(collisions);
+			MEM_freeN(collisions_index);
+
+			////////////////////////////////////////////////////////////
+			// update positions
+			// this is needed for bvh_calc_DOP_hull_moving() [kdop.c]
+			////////////////////////////////////////////////////////////
+
+			/* Verts come from clmd. */
+			for (i = 0; i < mvert_num; i++) {
+				if (clmd->sim_parms->vgroup_mass > 0) {
+					if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
+						continue;
+					}
+				}
+
+				VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+			}
+			////////////////////////////////////////////////////////////
+		}
+
+		rounds++;
 
 		////////////////////////////////////////////////////////////
 		// Test on *simple* selfcollisions
@@ -823,7 +831,7 @@ int cloth_bvh_objcollision(Depsgraph *depsgraph, Object *ob, ClothModifierData *
 
 						mindistance = clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len + cloth->verts[j].avg_spring_len );
 
-						if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) {
+						if (clmd->sim_parms->vgroup_mass > 0) {
 							if ( ( cloth->verts [i].flags & CLOTH_VERT_FLAG_PINNED ) &&
 							     ( cloth->verts [j].flags & CLOTH_VERT_FLAG_PINNED ) )
 							{
@@ -1308,7 +1316,7 @@ int cloth_points_objcollision(Depsgraph *depsgraph, Object *ob, ClothModifierDat
 
 		// verts come from clmd
 		for (i = 0; i < mvert_num; i++) {
-			if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) {
+			if (clmd->sim_parms->vgroup_mass > 0) {
 				if ( verts [i].flags & CLOTH_VERT_FLAG_PINNED ) {
 					continue;
 				}
@@ -1431,7 +1439,7 @@ void cloth_find_point_contacts(Depsgraph *depsgraph, Object *ob, ClothModifierDa
 
 	// verts come from clmd
 	for (i = 0; i < mvert_num; i++) {
-		if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) {
+		if (clmd->sim_parms->vgroup_mass > 0) {
 			if (verts [i].flags & CLOTH_VERT_FLAG_PINNED) {
 				continue;
 			}

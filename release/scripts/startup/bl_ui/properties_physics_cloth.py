@@ -73,91 +73,94 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(cloth, "quality", text="Quality Steps")
+        col = flow.column()
         col.prop(cloth, "time_scale", text="Speed Multiplier")
-        col.prop(cloth, "bending_model")
-
-        col.separator()
-
-        col = flow.column()
-        col.prop(cloth, "mass", text="Material Mass")
-        col.prop(cloth, "air_damping", text="Air")
-        col.prop(cloth, "vel_damping", text="Velocity")
-
-        col.separator()
-
-        col = flow.column()
-        if cloth.bending_model == 'ANGULAR':
-            col.prop(cloth, "tension_stiffness", text="Stiffness Tension")
-            col.prop(cloth, "compression_stiffness", text="Compression")
-        else:
-            col.prop(cloth, "tension_stiffness", text="Stiffness Structural")
-
-        col.prop(cloth, "shear_stiffness", text="Shear")
-        col.prop(cloth, "bending_stiffness", text="Bending")
-
-        col.separator()
-
-        col = flow.column()
-        if cloth.bending_model == 'ANGULAR':
-            col.prop(cloth, "tension_damping", text="Damping Tension")
-            col.prop(cloth, "compression_damping", text="Compression")
-        else:
-            col.prop(cloth, "tension_damping", text="Damping Structural")
-
-        col.prop(cloth, "shear_damping", text="Shear")
-        col.prop(cloth, "bending_damping", text="Bending")
-
-        col = flow.column()
-        col.prop(cloth, "use_dynamic_mesh", text="Dynamic Mesh")
-
-        key = ob.data.shape_keys
-
-        if key:
-            row = col.row(align=True)
-            row.active = not cloth.use_dynamic_mesh
-            row.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="Rest Shape Key")
 
 
-class PHYSICS_PT_cloth_pinning(PhysicButtonsPanel, Panel):
-    bl_label = "Pinning"
+class PHYSICS_PT_cloth_physical_properties(PhysicButtonsPanel, Panel):
+    bl_label = "Physical Properties"
     bl_parent_id = 'PHYSICS_PT_cloth'
-    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw_header(self, context):
-        md = context.cloth
-        cloth = md.settings
-
-        self.layout.active = cloth_panel_enabled(md)
-        self.layout.prop(cloth, "use_pin_cloth", text="")
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
 
         md = context.cloth
-        ob = context.object
         cloth = md.settings
 
-        layout.active = cloth_panel_enabled(md) and cloth.use_pin_cloth
+        layout.active = cloth_panel_enabled(md)
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(cloth, "mass", text="Mass")
+        col = flow.column()
+        col.prop(cloth, "air_damping", text="Air Viscosity")
+        col = flow.column()
+        col.prop(cloth, "bending_model")
+
+
+class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
+    bl_label = "Stiffness"
+    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.cloth
+        cloth = md.settings
+
+        layout.active = cloth_panel_enabled(md)
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
 
-        col.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="Mass Group")
+        if cloth.bending_model == 'ANGULAR':
+            col.prop(cloth, "tension_stiffness", text="Tension")
+            col = flow.column()
+            col.prop(cloth, "compression_stiffness", text="Compression")
+        else:
+            col.prop(cloth, "tension_stiffness", text="Structural")
 
         col = flow.column()
-        col.prop(cloth, "pin_stiffness", text="Stiffness")
+        col.prop(cloth, "shear_stiffness", text="Shear")
+        col = flow.column()
+        col.prop(cloth, "bending_stiffness", text="Bending")
 
-        # Disabled for now.
-        """
-        if cloth.vertex_group_mass:
+
+class PHYSICS_PT_cloth_damping(PhysicButtonsPanel, Panel):
+    bl_label = "Damping"
+    bl_parent_id = 'PHYSICS_PT_cloth_physical_properties'
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.cloth
+        cloth = md.settings
+
+        layout.active = cloth_panel_enabled(md)
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+
+        if cloth.bending_model == 'ANGULAR':
+            col.prop(cloth, "tension_damping", text="Tension")
             col = flow.column()
-            col.prop(cloth, "goal_default", text="Goal Default")
-            col.prop(cloth, "goal_spring", text="Stiffness")
-            col.prop(cloth, "goal_friction", text="Friction")
-        """
+            col.prop(cloth, "compression_damping", text="Compression")
+        else:
+            col.prop(cloth, "tension_damping", text="Structural")
+
+        col = flow.column()
+        col.prop(cloth, "shear_damping", text="Shear")
+        col = flow.column()
+        col.prop(cloth, "bending_damping", text="Bending")
 
 
 class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
@@ -171,8 +174,58 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
         point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
 
 
-class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
-    bl_label = "Collision"
+class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
+    bl_label = "Shape"
+    bl_parent_id = 'PHYSICS_PT_cloth'
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        md = context.cloth
+        ob = context.object
+        cloth = md.settings
+
+        layout.active = cloth_panel_enabled(md)
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column(align=True)
+        col.prop_search(cloth, "vertex_group_mass", ob, "vertex_groups", text="Pin Group")
+
+        sub = col.column(align=True)
+        sub.active = cloth.vertex_group_mass != ""
+        sub.prop(cloth, "pin_stiffness", text="Stiffness")
+
+        col.separator()
+
+        col = flow.column(align=True)
+        col.prop(cloth, "use_sewing_springs", text="Sewing")
+
+        sub = col.column(align=True)
+        sub.active = cloth.use_sewing_springs
+        sub.prop(cloth, "sewing_force_max", text="Max Sewing Force")
+
+        col.separator()
+
+        col = flow.column()
+        col.prop(cloth, "shrink_min", text="Shrinking Factor")
+
+        col = flow.column()
+        col.prop(cloth, "use_dynamic_mesh", text="Dynamic Mesh")
+
+        key = ob.data.shape_keys
+
+        if key:
+            col = flow.column()
+            col.active = not cloth.use_dynamic_mesh
+            col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="Rest Shape Key")
+
+
+class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
+    bl_label = "Object Collision"
     bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
@@ -207,14 +260,14 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
     bl_label = "Self Collision"
-    bl_parent_id = 'PHYSICS_PT_cloth_collision'
+    bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
 
-        self.layout.active = cloth_panel_enabled(context.cloth) and cloth.use_self_collision
+        self.layout.active = cloth_panel_enabled(context.cloth)
         self.layout.prop(cloth, "use_self_collision", text="")
 
     def draw(self, context):
@@ -225,7 +278,7 @@ class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
         md = context.cloth
         ob = context.object
 
-        layout.active = cloth.use_collision and cloth_panel_enabled(md) and cloth.use_self_collision
+        layout.active = cloth.use_self_collision and cloth_panel_enabled(md)
 
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
@@ -237,17 +290,11 @@ class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
         col.prop_search(cloth, "vertex_group_self_collisions", ob, "vertex_groups", text="Vertex Group")
 
 
-class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
-    bl_label = "Stiffness Scaling"
+class PHYSICS_PT_cloth_property_weights(PhysicButtonsPanel, Panel):
+    bl_label = "Property Weights"
     bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw_header(self, context):
-        cloth = context.cloth.settings
-
-        self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.prop(cloth, "use_stiffness_scale", text="")
 
     def draw(self, context):
         layout = self.layout
@@ -257,7 +304,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
         ob = context.object
         cloth = context.cloth.settings
 
-        layout.active = (cloth.use_stiffness_scale and cloth_panel_enabled(md))
+        layout.active = cloth_panel_enabled(md)
 
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
 
@@ -267,7 +314,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
             text="Structural Group"
         )
         col.prop(cloth, "tension_stiffness_max", text="Max Tension")
-        col.prop(cloth, "compression_stiffness_max", text="Compression")
+        col.prop(cloth, "compression_stiffness_max", text="Max Compression")
 
         col.separator()
 
@@ -276,7 +323,7 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
             cloth, "vertex_group_shear_stiffness", ob, "vertex_groups",
             text="Shear Group"
         )
-        col.prop(cloth, "shear_stiffness_max", text="Max")
+        col.prop(cloth, "shear_stiffness_max", text="Max Shearing")
 
         col.separator()
 
@@ -285,43 +332,16 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
             cloth, "vertex_group_bending", ob, "vertex_groups",
             text="Bending Group"
         )
-        col.prop(cloth, "bending_stiffness_max", text="Max")
-
-
-class PHYSICS_PT_cloth_sewing(PhysicButtonsPanel, Panel):
-    bl_label = "Sewing Springs"
-    bl_parent_id = 'PHYSICS_PT_cloth'
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw_header(self, context):
-        cloth = context.cloth.settings
-
-        self.layout.active = cloth_panel_enabled(context.cloth)
-        self.layout.prop(cloth, "use_sewing_springs", text="")
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        md = context.cloth
-        ob = context.object
-        cloth = context.cloth.settings
-
-        layout.active = (cloth.use_sewing_springs and cloth_panel_enabled(md))
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=True)
-
-        col = flow.column()
-        col.prop(cloth, "sewing_force_max", text="Sewing Force")
+        col.prop(cloth, "bending_stiffness_max", text="Max Bending")
 
         col.separator()
 
-        col = col.column()
-        col.prop_search(cloth, "vertex_group_shrink", ob, "vertex_groups", text="Shrinking Group")
-
-        col = flow.column(align=True)
-        col.prop(cloth, "shrink_min", text="Min")
-        col.prop(cloth, "shrink_max", text="Max")
+        col = flow.column()
+        col.prop_search(
+            cloth, "vertex_group_shrink", ob, "vertex_groups",
+            text="Shrinking Group"
+        )
+        col.prop(cloth, "shrink_max", text="Max Shrinking")
 
 
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
@@ -338,12 +358,14 @@ class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
 classes = (
     CLOTH_PT_presets,
     PHYSICS_PT_cloth,
-    PHYSICS_PT_cloth_cache,
-    PHYSICS_PT_cloth_collision,
-    PHYSICS_PT_cloth_self_collision,
-    PHYSICS_PT_cloth_pinning,
+    PHYSICS_PT_cloth_physical_properties,
     PHYSICS_PT_cloth_stiffness,
-    PHYSICS_PT_cloth_sewing,
+    PHYSICS_PT_cloth_damping,
+    PHYSICS_PT_cloth_cache,
+    PHYSICS_PT_cloth_shape,
+    PHYSICS_PT_cloth_object_collision,
+    PHYSICS_PT_cloth_self_collision,
+    PHYSICS_PT_cloth_property_weights,
     PHYSICS_PT_cloth_field_weights,
 )
 
