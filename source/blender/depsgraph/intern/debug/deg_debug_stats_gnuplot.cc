@@ -84,7 +84,7 @@ BLI_INLINE double get_node_time(const DebugContext& /*ctx*/,
 
 bool stat_entry_comparator(const StatsEntry& a, const StatsEntry& b)
 {
-	return a.time < b.time;
+	return a.time > b.time;
 }
 
 string gnuplotify_id_code(const string& name)
@@ -125,6 +125,7 @@ void write_stats_data(const DebugContext& ctx)
 	std::sort(stats.begin(), stats.end(), stat_entry_comparator);
 	// We limit number of entries, otherwise things become unreadable.
 	stats.resize(min_ii(stats.size(), 32));
+	std::reverse(stats.begin(), stats.end());
 	// Print data to the file stream.
 	deg_debug_fprintf(ctx, "$data << EOD" NL);
 	foreach (const StatsEntry& entry, stats) {
