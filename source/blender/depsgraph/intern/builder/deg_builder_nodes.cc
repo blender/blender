@@ -412,7 +412,8 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 			build_collection((Collection *)id);
 			break;
 		case ID_OB:
-			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			/* TODO(sergey): Get visibility from a "parent" somehow. */
+			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, true);
 			break;
 		case ID_KE:
 			build_shapekeys((Key *)id);
@@ -532,7 +533,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	build_object_transform(object);
 	/* Parent. */
 	if (object->parent != NULL) {
-		build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY);
+		/* TODO(sergey): Use own visibility. */
+		build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, true);
 	}
 	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
@@ -578,10 +580,12 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
-		build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY);
+		/* TODO(sergey): Use own visibility. */
+		build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, true);
 	}
 	if (object->proxy_group != NULL) {
-		build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY);
+		/* TODO(sergey): Use own visibility. */
+		build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, true);
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
@@ -1049,9 +1053,11 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 		switch (part->ren_as) {
 			case PART_DRAW_OB:
 				if (part->dup_ob != NULL) {
+					/* TODO(sergey): Use own visibility. */
 					build_object(-1,
 					             part->dup_ob,
-					             DEG_ID_LINKED_INDIRECTLY);
+					             DEG_ID_LINKED_INDIRECTLY,
+					             true);
 				}
 				break;
 			case PART_DRAW_GR:
@@ -1230,13 +1236,16 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 			 */
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
-				build_object(-1, cu->bevobj, DEG_ID_LINKED_INDIRECTLY);
+				/* TODO(sergey): Use own visibility. */
+				build_object(-1, cu->bevobj, DEG_ID_LINKED_INDIRECTLY, true);
 			}
 			if (cu->taperobj != NULL) {
-				build_object(-1, cu->taperobj, DEG_ID_LINKED_INDIRECTLY);
+				/* TODO(sergey): Use own visibility. */
+				build_object(-1, cu->taperobj, DEG_ID_LINKED_INDIRECTLY, true);
 			}
 			if (cu->textoncurve != NULL) {
-				build_object(-1, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY);
+				/* TODO(sergey): Use own visibility. */
+				build_object(-1, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY, true);
 			}
 			break;
 		}
@@ -1376,7 +1385,8 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 			build_image((Image *)id);
 		}
 		else if (id_type == ID_OB) {
-			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			/* TODO(sergey): Use visibility of owner of the node tree. */
+			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY, true);
 		}
 		else if (id_type == ID_SCE) {
 			/* Scenes are used by compositor trees, and handled by render
@@ -1585,9 +1595,11 @@ void DepsgraphNodeBuilder::modifier_walk(void *user_data,
 	}
 	switch (GS(id->name)) {
 		case ID_OB:
+			/* TODO(sergey): Use visibility of owner of modifier stack. */
 			data->builder->build_object(-1,
 			                            (Object *)id,
-			                            DEG_ID_LINKED_INDIRECTLY);
+			                            DEG_ID_LINKED_INDIRECTLY,
+			                            true);
 			break;
 		case ID_TE:
 			data->builder->build_texture((Tex *)id);
@@ -1610,9 +1622,11 @@ void DepsgraphNodeBuilder::constraint_walk(bConstraint * /*con*/,
 	}
 	switch (GS(id->name)) {
 		case ID_OB:
+			/* TODO(sergey): Use visibility of owner of modifier stack. */
 			data->builder->build_object(-1,
 			                            (Object *)id,
-			                            DEG_ID_LINKED_INDIRECTLY);
+			                            DEG_ID_LINKED_INDIRECTLY,
+			                            true);
 			break;
 		default:
 			/* pass */

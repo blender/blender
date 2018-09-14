@@ -167,7 +167,7 @@ struct DepsgraphNodeBuilder {
 	void build_object(int base_index,
 	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state,
-	                  bool is_visible = true);
+	                  bool is_visible);
 	void build_object_flags(int base_index,
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);

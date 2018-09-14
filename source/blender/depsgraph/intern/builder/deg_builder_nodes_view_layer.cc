@@ -115,7 +115,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	}
 	build_layer_collections(&view_layer->layer_collections);
 	if (scene->camera != NULL) {
-		build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY);
+		build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY, true);
 	}
 	/* Rigidbody. */
 	if (scene->rigidbody_world != NULL) {
