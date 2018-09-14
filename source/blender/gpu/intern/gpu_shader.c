@@ -1025,14 +1025,14 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 void GPU_shader_get_builtin_shader_code(
         GPUBuiltinShader shader,
-        const char **vert, const char **frag,
-        const char **geom, const char **defines)
+        const char **r_vert, const char **r_frag,
+        const char **r_geom, const char **r_defines)
 {
 	const GPUShaderStages *stages = builtin_shader_stages + shader;
-	*vert = stages->vert;
-	*frag = stages->frag;
-	*geom = stages->geom;
-	*defines = gpu_shader_get_builtin_shader_defines(shader);
+	*r_vert = stages->vert;
+	*r_frag = stages->frag;
+	*r_geom = stages->geom;
+	*r_defines = gpu_shader_get_builtin_shader_defines(shader);
 }
 
 #define MAX_DEFINES 100
