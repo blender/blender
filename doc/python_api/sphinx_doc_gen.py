@@ -1828,6 +1828,7 @@ def write_rst_importable_modules(basepath):
         "gpu.types": "GPU Types",
         "gpu.matrix": "GPU Matrix",
         "gpu.select": "GPU Select",
+        "gpu.shader": "GPU Shader",
         "bmesh": "BMesh Module",
         "bmesh.types": "BMesh Types",
         "bmesh.utils": "BMesh Utilities",
