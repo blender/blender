@@ -2926,8 +2926,6 @@ static void OBJECT_draw_scene(void *vedata)
 		DRW_draw_pass(psl->lightprobes);
 	}
 
-	DRW_draw_pass(psl->ob_center);
-
 	if (DRW_state_is_fbo()) {
 		if (e_data.draw_grid) {
 			GPU_framebuffer_bind(dfbl->color_only_fb);
@@ -2984,6 +2982,8 @@ static void OBJECT_draw_scene(void *vedata)
 		BLI_ghash_free(stl->g_data->sgl_ghost.image_plane_map, NULL, MEM_freeN);
 		stl->g_data->sgl_ghost.image_plane_map = NULL;
 	}
+
+	DRW_draw_pass(psl->ob_center);
 }
 
 static const DrawEngineDataSize OBJECT_data_size = DRW_VIEWPORT_DATA_SIZE(OBJECT_Data);
