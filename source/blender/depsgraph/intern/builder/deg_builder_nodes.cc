@@ -540,24 +540,28 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	if (object->modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
+		data.is_parent_visible = is_visible;
 		modifiers_foreachIDLink(object, modifier_walk, &data);
 	}
 	/* Grease Pencil Modifiers. */
 	if (object->greasepencil_modifiers.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
+		data.is_parent_visible = is_visible;
 		BKE_gpencil_modifiers_foreachIDLink(object, modifier_walk, &data);
 	}
-	/* Shadr FX. */
+	/* Shader FX. */
 	if (object->shader_fx.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
+		data.is_parent_visible = is_visible;
 		BKE_shaderfx_foreachIDLink(object, modifier_walk, &data);
 	}
 	/* Constraints. */
 	if (object->constraints.first != NULL) {
 		BuilderWalkUserData data;
 		data.builder = this;
+		data.is_parent_visible = is_visible;
 		BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
 	}
 	/* Object data. */
@@ -1599,7 +1603,7 @@ void DepsgraphNodeBuilder::modifier_walk(void *user_data,
 			data->builder->build_object(-1,
 			                            (Object *)id,
 			                            DEG_ID_LINKED_INDIRECTLY,
-			                            true);
+			                            data->is_parent_visible);
 			break;
 		case ID_TE:
 			data->builder->build_texture((Tex *)id);
@@ -1626,7 +1630,7 @@ void DepsgraphNodeBuilder::constraint_walk(bConstraint * /*con*/,
 			data->builder->build_object(-1,
 			                            (Object *)id,
 			                            DEG_ID_LINKED_INDIRECTLY,
-			                            true);
+			                            data->is_parent_visible);
 			break;
 		default:
 			/* pass */

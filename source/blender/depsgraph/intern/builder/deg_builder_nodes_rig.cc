@@ -74,6 +74,8 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
 	/* Pull indirect dependencies via constraints. */
 	BuilderWalkUserData data;
 	data.builder = this;
+	/* TODO(sergey): Use own visibility. */
+	data.is_parent_visible = true;
 	BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
 	/* Create node for constraint stack. */
 	add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,

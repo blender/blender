@@ -241,6 +241,8 @@ protected:
 
 	struct BuilderWalkUserData {
 		DepsgraphNodeBuilder *builder;
+		/* Denotes whether object the walk is invoked from is visible. */
+		bool is_parent_visible;
 	};
 	static void modifier_walk(void *user_data,
 	                          struct Object *object,
