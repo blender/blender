@@ -2615,6 +2615,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
+	RegionView3D *rv3d = draw_ctx->rv3d;
 	ModifierData *md = NULL;
 	int theme_id = TH_UNDEFINED;
 
@@ -2637,12 +2638,20 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			struct GPUBatch *geom;
 			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
 			                           (v3d->shading.type < OB_MATERIAL);
-			if (xray_enabled) {
+
+			/* This fixes only the biggest case which is a plane in ortho view. */
+			int flat_axis = 0;
+			bool is_flat_object_viewed_from_side = (rv3d->persp == RV3D_ORTHO) &&
+			                                       DRW_object_is_flat(ob, &flat_axis) &&
+			                                       DRW_object_axis_orthogonal_to_view(ob, flat_axis);
+
+			if (xray_enabled || is_flat_object_viewed_from_side) {
 				geom = DRW_cache_object_edge_detection_get(ob, NULL);
 			}
 			else {
 				geom = DRW_cache_object_surface_get(ob);
 			}
+
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or(stl, theme_id, NULL);

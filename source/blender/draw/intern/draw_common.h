@@ -153,6 +153,9 @@ int DRW_object_wire_theme_get(
         struct Object *ob, struct ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
+bool DRW_object_is_flat(Object *ob, int *axis);
+bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis);
+
 /* draw_armature.c */
 typedef struct DRWArmaturePasses {
 	struct DRWPass *bone_solid;

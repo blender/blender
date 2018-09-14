@@ -30,6 +30,7 @@
 
 #include "UI_resources.h"
 
+#include "BKE_object.h"
 #include "BKE_global.h"
 #include "BKE_colorband.h"
 
@@ -881,4 +882,43 @@ float *DRW_color_background_blend_get(int theme_id)
 	UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, ret);
 
 	return ret;
+}
+
+
+bool DRW_object_is_flat(Object *ob, int *axis)
+{
+	float dim[3];
+
+	if (!ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
+		/* Non-meshes object cannot be considered as flat. */
+		return false;
+	}
+
+	BKE_object_dimensions_get(ob, dim);
+	if (dim[0] == 0.0f) {
+		*axis = 0;
+		return true;
+	}
+	else if (dim[1] == 0.0f) {
+		*axis = 1;
+		return true;
+	}
+	else if (dim[2] == 0.0f) {
+		*axis = 2;
+		return true;
+	}
+	return false;
+}
+
+bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
+{
+	float ob_rot[3][3], invviewmat[4][4];
+	DRW_viewport_matrix_get(invviewmat, DRW_MAT_VIEWINV);
+	BKE_object_rot_to_mat3(ob, ob_rot, true);
+	float dot = dot_v3v3(ob_rot[axis], invviewmat[2]);
+	if (fabsf(dot) < 1e-3) {
+		return true;
+	}
+
+	return false;
 }
