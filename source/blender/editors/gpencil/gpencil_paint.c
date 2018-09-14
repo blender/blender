@@ -1363,7 +1363,7 @@ static void gp_stroke_soft_refine(bGPDstroke *gps, const float cull_thresh)
 
 			/* if any of the side points are not tagged, mark to keep */
 			if (((pt_before->flag & GP_SPOINT_TAG) == 0) ||
-				((pt_after->flag & GP_SPOINT_TAG) == 0))
+			    ((pt_after->flag & GP_SPOINT_TAG) == 0))
 			{
 				if (pt->pressure > cull_thresh) {
 					pt->flag |= GP_SPOINT_TEMP_TAG;
@@ -1486,7 +1486,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 		 */
 		for (i = 0; (i + 1) < gps->totpoints; i++) {
 			/* get points to work with */
-			pt0 = i > 0 ? gps->points + i - 1: NULL;
+			pt0 = i > 0 ? gps->points + i - 1 : NULL;
 			pt1 = gps->points + i;
 			pt2 = gps->points + i + 1;
 
@@ -1512,7 +1512,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 			/* Check that point segment of the boundbox of the eraser stroke */
 			if (((!ELEM(V2D_IS_CLIPPED, pc0[0], pc0[1])) && BLI_rcti_isect_pt(rect, pc0[0], pc0[1])) ||
-				((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
+			    ((!ELEM(V2D_IS_CLIPPED, pc1[0], pc1[1])) && BLI_rcti_isect_pt(rect, pc1[0], pc1[1])) ||
 			    ((!ELEM(V2D_IS_CLIPPED, pc2[0], pc2[1])) && BLI_rcti_isect_pt(rect, pc2[0], pc2[1])))
 			{
 				/* Check if point segment of stroke had anything to do with
@@ -1521,7 +1521,7 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 				 */
 				if (gp_stroke_inside_circle(mval, mvalo, radius, pc0[0], pc0[1], pc2[0], pc2[1])) {
 					if ((gp_stroke_eraser_is_occluded(p, pt0, pc0[0], pc0[1]) == false) ||
-						(gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
+					    (gp_stroke_eraser_is_occluded(p, pt1, pc1[0], pc1[1]) == false) ||
 					    (gp_stroke_eraser_is_occluded(p, pt2, pc2[0], pc2[1]) == false))
 					{
 						/* Point is affected: */
@@ -1551,8 +1551,8 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p,
 
 							/* if invisible, delete point */
 							if ((pt0) &&
-								((pt0->strength <= GPENCIL_ALPHA_OPACITY_THRESH)
-								|| (pt0->pressure < cull_thresh)))
+							    ((pt0->strength <= GPENCIL_ALPHA_OPACITY_THRESH) ||
+							     (pt0->pressure < cull_thresh)))
 							{
 								pt0->flag |= GP_SPOINT_TAG;
 								do_cull = true;

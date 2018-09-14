@@ -332,7 +332,7 @@ static void multires_reshape_vertex(
 	        ptex_face_index, u, v,
 	        coarse_poly_index,
 	        coarse_corner,
-            final_P);
+	        final_P);
 }
 
 static void multires_reshape_vertex_inner(
