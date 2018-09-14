@@ -449,7 +449,8 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 		case ID_CU:
 		case ID_MB:
 		case ID_LT:
-			build_object_data_geometry_datablock(id);
+			/* TODO(sergey): Get visibility from a "parent" somehow. */
+			build_object_data_geometry_datablock(id, true);
 			break;
 		case ID_SPK:
 			build_speaker((Speaker *)id);
@@ -533,8 +534,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	build_object_transform(object);
 	/* Parent. */
 	if (object->parent != NULL) {
-		/* TODO(sergey): Use own visibility. */
-		build_object(-1, object->parent, DEG_ID_LINKED_INDIRECTLY, true);
+		build_object(
+		        -1, object->parent, DEG_ID_LINKED_INDIRECTLY, is_visible);
 	}
 	/* Modifiers. */
 	if (object->modifiers.first != NULL) {
@@ -565,7 +566,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 		BKE_constraints_id_loop(&object->constraints, constraint_walk, &data);
 	}
 	/* Object data. */
-	build_object_data(object);
+	build_object_data(object, is_visible);
 	/* Build animation data,
 	 *
 	 * Do it now because it's possible object data will affect
@@ -580,16 +581,16 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	build_animdata(&object->id);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
-		build_particles(object);
+		build_particles(object, is_visible);
 	}
 	/* Proxy object to copy from. */
 	if (object->proxy_from != NULL) {
-		/* TODO(sergey): Use own visibility. */
-		build_object(-1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, true);
+		build_object(
+		        -1, object->proxy_from, DEG_ID_LINKED_INDIRECTLY, is_visible);
 	}
 	if (object->proxy_group != NULL) {
-		/* TODO(sergey): Use own visibility. */
-		build_object(-1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, true);
+		build_object(
+		        -1, object->proxy_group, DEG_ID_LINKED_INDIRECTLY, is_visible);
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
@@ -624,7 +625,8 @@ void DepsgraphNodeBuilder::build_object_flags(
 	                   DEG_OPCODE_OBJECT_BASE_FLAGS);
 }
 
-void DepsgraphNodeBuilder::build_object_data(Object *object)
+void DepsgraphNodeBuilder::build_object_data(
+        Object *object, bool is_object_visible)
 {
 	if (object->data == NULL) {
 		return;
@@ -639,7 +641,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 		case OB_MBALL:
 		case OB_LATTICE:
 		case OB_GPENCIL:
-			build_object_data_geometry(object);
+			build_object_data_geometry(object, is_object_visible);
 			/* TODO(sergey): Only for until we support granular
 			 * update of curves.
 			 */
@@ -655,7 +657,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 				build_proxy_rig(object);
 			}
 			else {
-				build_rig(object);
+				build_rig(object, is_object_visible);
 			}
 			break;
 		case OB_LAMP:
@@ -1010,7 +1012,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 	}
 }
 
-void DepsgraphNodeBuilder::build_particles(Object *object)
+void DepsgraphNodeBuilder::build_particles(Object *object,
+                                           bool is_object_visible)
 {
 	/**
 	 * Particle Systems Nodes
@@ -1057,11 +1060,10 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 		switch (part->ren_as) {
 			case PART_DRAW_OB:
 				if (part->dup_ob != NULL) {
-					/* TODO(sergey): Use own visibility. */
 					build_object(-1,
 					             part->dup_ob,
 					             DEG_ID_LINKED_INDIRECTLY,
-					             true);
+					             is_object_visible);
 				}
 				break;
 			case PART_DRAW_GR:
@@ -1123,7 +1125,9 @@ void DepsgraphNodeBuilder::build_shapekeys(Key *key)
 
 /* ObData Geometry Evaluation */
 // XXX: what happens if the datablock is shared!
-void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
+void DepsgraphNodeBuilder::build_object_data_geometry(
+        Object *object,
+        bool is_object_visible)
 {
 	OperationDepsNode *op_node;
 	Scene *scene_cow = get_cow_datablock(scene_);
@@ -1179,10 +1183,12 @@ void DepsgraphNodeBuilder::build_object_data_geometry(Object *object)
 	if (ELEM(object->type, OB_MESH, OB_CURVE, OB_LATTICE)) {
 		// add geometry collider relations
 	}
-	build_object_data_geometry_datablock((ID *)object->data);
+	build_object_data_geometry_datablock((ID *)object->data, is_object_visible);
 }
 
-void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
+void DepsgraphNodeBuilder::build_object_data_geometry_datablock(
+        ID *obdata,
+        bool is_object_visible)
 {
 	if (built_map_.checkIsBuiltAndTag(obdata)) {
 		return;
@@ -1240,16 +1246,22 @@ void DepsgraphNodeBuilder::build_object_data_geometry_datablock(ID *obdata)
 			 */
 			Curve *cu = (Curve *)obdata;
 			if (cu->bevobj != NULL) {
-				/* TODO(sergey): Use own visibility. */
-				build_object(-1, cu->bevobj, DEG_ID_LINKED_INDIRECTLY, true);
+				build_object(-1,
+				             cu->bevobj,
+				             DEG_ID_LINKED_INDIRECTLY,
+				             is_object_visible);
 			}
 			if (cu->taperobj != NULL) {
-				/* TODO(sergey): Use own visibility. */
-				build_object(-1, cu->taperobj, DEG_ID_LINKED_INDIRECTLY, true);
+				build_object(-1,
+				             cu->taperobj,
+				             DEG_ID_LINKED_INDIRECTLY,
+				             is_object_visible);
 			}
 			if (cu->textoncurve != NULL) {
-				/* TODO(sergey): Use own visibility. */
-				build_object(-1, cu->textoncurve, DEG_ID_LINKED_INDIRECTLY, true);
+				build_object(-1,
+				             cu->textoncurve,
+				             DEG_ID_LINKED_INDIRECTLY,
+				             is_object_visible);
 			}
 			break;
 		}

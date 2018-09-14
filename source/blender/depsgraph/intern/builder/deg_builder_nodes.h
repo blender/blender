@@ -171,18 +171,22 @@ struct DepsgraphNodeBuilder {
 	void build_object_flags(int base_index,
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
-	void build_object_data(Object *object);
+	void build_object_data(Object *object, bool is_object_visible);
 	void build_object_data_camera(Object *object);
-	void build_object_data_geometry(Object *object);
-	void build_object_data_geometry_datablock(ID *obdata);
+	void build_object_data_geometry(Object *object, bool is_object_visible);
+	void build_object_data_geometry_datablock(ID *obdata,
+	                                          bool is_object_visible);
 	void build_object_data_lamp(Object *object);
 	void build_object_data_lightprobe(Object *object);
 	void build_object_data_speaker(Object *object);
 	void build_object_transform(Object *object);
 	void build_object_constraints(Object *object);
-	void build_pose_constraints(Object *object, bPoseChannel *pchan, int pchan_index);
+	void build_pose_constraints(Object *object,
+	                            bPoseChannel *pchan,
+	                            int pchan_index,
+	                            bool is_object_visible);
 	void build_rigidbody(Scene *scene);
-	void build_particles(Object *object);
+	void build_particles(Object *object, bool is_object_visible);
 	void build_particle_settings(ParticleSettings *part);
 	void build_cloth(Object *object);
 	void build_animdata(ID *id);
@@ -196,7 +200,7 @@ struct DepsgraphNodeBuilder {
 	void build_splineik_pose(Object *object,
 	                         bPoseChannel *pchan,
 	                         bConstraint *con);
-	void build_rig(Object *object);
+	void build_rig(Object *object, bool is_object_visible);
 	void build_proxy_rig(Object *object);
 	void build_armature(bArmature *armature);
 	void build_shapekeys(Key *key);
