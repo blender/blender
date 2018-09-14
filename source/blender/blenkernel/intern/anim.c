@@ -347,7 +347,6 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 	/* for each target, check if it can be baked on the current frame */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {
 		bMotionPath *mpath = mpt->mpath;
-		bMotionPathVert *mpv;
 
 		/* current frame must be within the range the cache works for
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
@@ -357,7 +356,7 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 		}
 
 		/* get the relevant cache vert to write to */
-		mpv = mpath->points + (cframe - mpath->start_frame);
+		bMotionPathVert *mpv = mpath->points + (cframe - mpath->start_frame);
 
 		Object *ob_eval = mpt->ob_eval;
 
@@ -392,6 +391,25 @@ static void motionpaths_calc_bake_targets(ListBase *targets, int cframe)
 		if (BLI_dlrbTree_search_exact(&mpt->keys, compare_ak_cfraPtr, &mframe)) {
 			mpv->flag |= MOTIONPATH_VERT_KEY;
 		}
+
+		/* Incremental update on evaluated object if possible, for fast updating
+		 * while dragging in transform. */
+		bMotionPath *mpath_eval = NULL;
+		if (mpt->pchan) {
+			mpath_eval = (pchan_eval) ? pchan_eval->mpath : NULL;
+		}
+		else {
+			mpath_eval = ob_eval->mpath;
+		}
+
+		if (mpath_eval && mpath_eval->length == mpath->length) {
+			bMotionPathVert *mpv_eval = mpath_eval->points + (cframe - mpath_eval->start_frame);
+			*mpv_eval = *mpv;
+
+			GPU_VERTBUF_DISCARD_SAFE(mpath_eval->points_vbo);
+			GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_line);
+			GPU_BATCH_DISCARD_SAFE(mpath_eval->batch_points);
+		}
 	}
 }
 
@@ -405,36 +423,45 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
                               Main *bmain,
                               Scene *scene,
                               ListBase *targets,
-                              bool restore)
+                              bool restore,
+                              bool current_frame_only)
 {
-	MPathTarget *mpt;
-	int sfra, efra;
-	int cfra;
-
 	/* sanity check */
 	if (ELEM(NULL, targets, targets->first))
 		return;
 
-	/* set frame values */
-	cfra = CFRA;
-	sfra = efra = cfra;
-
-	/* TODO: this method could be improved...
+	/* Compute frame range to bake within.
+	 * TODO: this method could be improved...
 	 * 1) max range for standard baking
 	 * 2) minimum range for recalc baking (i.e. between keyframes, but how?) */
-	for (mpt = targets->first; mpt; mpt = mpt->next) {
+	int sfra = INT_MAX;
+	int efra = INT_MIN;
+
+	for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
 		/* try to increase area to do (only as much as needed) */
 		sfra = MIN2(sfra, mpt->mpath->start_frame);
 		efra = MAX2(efra, mpt->mpath->end_frame);
 	}
-	if (efra <= sfra) return;
 
+	if (efra <= sfra) {
+		return;
+	}
+
+	/* Limit frame range if we are updating just the current frame. */
+	/* set frame values */
+	int cfra = CFRA;
+	if (current_frame_only) {
+		if (cfra < sfra || cfra > efra) {
+			return;
+		}
+		sfra = efra = cfra;
+	}
 
 	/* get copies of objects/bones to get the calculated results from
 	 * (for copy-on-write evaluation), so that we actually get some results
 	 */
 	// TODO: Create a copy of background depsgraph that only contain these entities, and only evaluates them..
-	for (mpt = targets->first; mpt; mpt = mpt->next) {
+	for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
 		mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
 
 		AnimData *adt = BKE_animdata_from_id(&mpt->ob_eval->id);
@@ -472,8 +499,14 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 	/* calculate path over requested range */
 	printf("Calculating MotionPaths between frames %d - %d (%d frames)\n", sfra, efra, efra - sfra + 1);
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
-		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(bmain, depsgraph);
+		if (current_frame_only) {
+			/* For current frame, only update tagged. */
+			BKE_scene_graph_update_tagged(depsgraph, bmain);
+		}
+		else {
+			/* Update relevant data for new frame. */
+			motionpaths_calc_update_scene(bmain, depsgraph);
+		}
 
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(targets, CFRA);
@@ -484,12 +517,12 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 	 * may be a temporary one that works on a subset of the data. We always have
 	 * to resoture the current frame though. */
 	CFRA = cfra;
-	if (restore) {
+	if (!current_frame_only && restore) {
 		motionpaths_calc_update_scene(bmain, depsgraph);
 	}
 
 	/* clear recalc flags from targets */
-	for (mpt = targets->first; mpt; mpt = mpt->next) {
+	for (MPathTarget *mpt = targets->first; mpt; mpt = mpt->next) {
 		bAnimVizSettings *avs;
 		bMotionPath *mpath = mpt->mpath;
 

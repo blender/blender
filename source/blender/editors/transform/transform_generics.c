@@ -955,9 +955,10 @@ static void recalcData_objects(TransInfo *t)
 
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
 				autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
-				if (motionpath_need_update_pose(t->scene, ob)) {
-					BLI_gset_insert(motionpath_updates, ob);
-				}
+			}
+
+			if (motionpath_need_update_pose(t->scene, ob)) {
+				BLI_gset_insert(motionpath_updates, ob);
 			}
 
 			/* old optimize trick... this enforces to bypass the depgraph */
@@ -975,8 +976,9 @@ static void recalcData_objects(TransInfo *t)
 		GSetIterator gs_iter;
 		GSET_ITER (gs_iter, motionpath_updates) {
 			Object *ob = BLI_gsetIterator_getKey(&gs_iter);
-			ED_pose_recalculate_paths(t->context, t->scene, ob);
+			ED_pose_recalculate_paths(t->context, t->scene, ob, true);
 		}
+		BLI_gset_free(motionpath_updates, NULL);
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, base->object))
@@ -1013,8 +1015,9 @@ static void recalcData_objects(TransInfo *t)
 				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 					animrecord_check_state(t->scene, &ob->id, t->animtimer);
 					autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
-					motionpath_update |= motionpath_need_update_object(t->scene, ob);
 				}
+
+				motionpath_update |= motionpath_need_update_object(t->scene, ob);
 
 				/* sets recalc flags fully, instead of flushing existing ones
 				 * otherwise proxies don't function correctly
@@ -1028,7 +1031,7 @@ static void recalcData_objects(TransInfo *t)
 
 		if (motionpath_update) {
 			/* Update motion paths once for all transformed objects. */
-			ED_objects_recalculate_paths(t->context, t->scene);
+			ED_objects_recalculate_paths(t->context, t->scene, true);
 		}
 	}
 }

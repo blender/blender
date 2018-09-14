@@ -196,7 +196,7 @@ void ED_object_single_user(struct Main *bmain, struct Scene *scene, struct Objec
 
 /* object motion paths */
 void ED_objects_clear_paths(struct bContext *C, bool only_selected);
-void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene);
+void ED_objects_recalculate_paths(struct bContext *C, struct Scene *scene, bool current_frame_only);
 
 /* constraints */
 struct ListBase *get_active_constraints(struct Object *ob);

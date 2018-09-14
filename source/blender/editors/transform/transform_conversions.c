@@ -6707,9 +6707,6 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
 			if (!canceled && (t->mode != TFM_DUMMY)) {
 				autokeyframe_pose(C, t->scene, ob, t->mode, targetless_ik);
-				if (motionpath_need_update_pose(t->scene, ob)) {
-					BLI_gset_insert(motionpath_updates, ob);
-				}
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else if (arm->flag & ARM_DELAYDEFORM) {
@@ -6723,14 +6720,20 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			else {
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
+
+			if (t->mode != TFM_DUMMY && motionpath_need_update_pose(t->scene, ob)) {
+				BLI_gset_insert(motionpath_updates, ob);
+			}
 		}
 
 		/* Update motion paths once for all transformed bones in an object. */
 		GSetIterator gs_iter;
 		GSET_ITER (gs_iter, motionpath_updates) {
+			bool current_frame_only = canceled;
 			ob = BLI_gsetIterator_getKey(&gs_iter);
-			ED_pose_recalculate_paths(C, t->scene, ob);
+			ED_pose_recalculate_paths(C, t->scene, ob, current_frame_only);
 		}
+		BLI_gset_free(motionpath_updates, NULL);
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
 		/* pass */
@@ -6784,8 +6787,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* Set autokey if necessary */
 			if (!canceled) {
 				autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
-				motionpath_update |= motionpath_need_update_object(t->scene, ob);
 			}
+
+			motionpath_update |= motionpath_need_update_object(t->scene, ob);
 
 			/* restore rigid body transform */
 			if (ob->rigidbody_object && canceled) {
@@ -6797,7 +6801,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		if (motionpath_update) {
 			/* Update motion paths once for all transformed objects. */
-			ED_objects_recalculate_paths(C, t->scene);
+			bool current_frame_only = canceled;
+			ED_objects_recalculate_paths(C, t->scene, current_frame_only);
 		}
 	}
 

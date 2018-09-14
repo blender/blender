@@ -193,15 +193,20 @@ static bool pose_has_protected_selected(Object *ob, short warn)
  *
  * To be called from various tools that do incremental updates
  */
-void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
+void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool current_frame_only)
 {
-	struct Main *bmain = CTX_data_main(C);
+	/* Transform doesn't always have context avaialble to do update. */
+	if (C == NULL) {
+		return;
+	}
+
+	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ListBase targets = {NULL, NULL};
 	bool free_depsgraph = false;
 
 	/* Override depsgraph with a filtered, simpler copy */
-	if (G.debug_value != -1) {
+	if (!current_frame_only && G.debug_value != -1) {
 		TIMEIT_START(filter_pose_depsgraph);
 		DEG_FilterQuery query = {0};
 
@@ -226,13 +231,16 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 
 	/* recalculate paths, then free */
 	TIMEIT_START(pose_path_calc);
-	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, false);
+	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, !free_depsgraph, current_frame_only);
 	TIMEIT_END(pose_path_calc);
 
 	BLI_freelistN(&targets);
 
-	/* tag armature object for copy on write - so paths will draw/redraw */
-	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	if (!current_frame_only) {
+		/* Tag armature object for copy on write - so paths will draw/redraw.
+		 * For currently frame only we update evaluated object directly. */
+		DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
+	}
 
 	/* Free temporary depsgraph instance */
 	if (free_depsgraph) {
@@ -303,7 +311,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 
 	/* calculate the bones that now have motionpaths... */
 	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(C, scene, ob);
+	ED_pose_recalculate_paths(C, scene, ob, false);
 
 #ifdef DEBUG_TIME
 	TIMEIT_END(recalc_pose_paths);
@@ -364,7 +372,7 @@ static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* calculate the bones that now have motionpaths... */
 	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(C, scene, ob);
+	ED_pose_recalculate_paths(C, scene, ob, false);
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);

@@ -61,7 +61,8 @@ void animviz_calc_motionpaths(struct Depsgraph *depsgraph,
                               struct Main *bmain,
                               struct Scene *scene,
                               ListBase *targets,
-                              bool restore);
+                              bool restore,
+                              bool current_frame_only);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */
