@@ -366,6 +366,11 @@ typedef enum GPUInterlaceShader {
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
 
+void GPU_shader_get_builtin_shader_code(
+        GPUBuiltinShader shader,
+        const char **vert, const char **frag,
+        const char **geom, const char **defines);
+
 void GPU_shader_free_builtin_shaders(void);
 
 /* Vertex attributes for shaders */

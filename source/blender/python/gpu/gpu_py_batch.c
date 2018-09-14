@@ -45,6 +45,7 @@
 
 #include "../generic/py_capi_utils.h"
 
+#include "gpu_py_shader.h"
 #include "gpu_py_vertex_buffer.h"
 #include "gpu_py_batch.h" /* own include */
 
@@ -149,6 +150,26 @@ static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *
 #endif
 
 	GPU_batch_vertbuf_add(self->batch, py_buf->buf);
+	Py_RETURN_NONE;
+}
+
+PyDoc_STRVAR(bpygpu_VertBatch_program_set_doc,
+"TODO"
+);
+static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
+{
+	if (!BPyGPUShader_Check(py_shader)) {
+		PyErr_Format(PyExc_TypeError,
+		             "Expected a GPUShader, got %s",
+		             Py_TYPE(py_shader)->tp_name);
+		return NULL;
+	}
+
+	GPUShader *shader = py_shader->shader;
+	GPU_batch_program_set(self->batch,
+	        GPU_shader_get_program(shader),
+	        GPU_shader_get_interface(shader));
+
 	Py_RETURN_NONE;
 }
 
@@ -297,6 +318,8 @@ static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 static struct PyMethodDef bpygpu_VertBatch_methods[] = {
 	{"vertbuf_add", (PyCFunction)bpygpu_VertBatch_vertbuf_add,
 	 METH_O, bpygpu_VertBatch_vertbuf_add_doc},
+	{"program_set", (PyCFunction)bpygpu_VertBatch_program_set,
+	 METH_O, bpygpu_VertBatch_program_set_doc},
 	{"program_set_builtin", (PyCFunction)bpygpu_VertBatch_program_set_builtin,
 	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBatch_program_set_builtin_doc},
 	{"uniform_bool", (PyCFunction)bpygpu_VertBatch_uniform_bool,

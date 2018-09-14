@@ -57,6 +57,8 @@ PyObject *BPyInit_gpu_types(void)
 		return NULL;
 	if (PyType_Ready(&BPyGPUOffScreen_Type) < 0)
 		return NULL;
+	if (PyType_Ready(&BPyGPUShader_Type) < 0)
+		return NULL;
 
 #define MODULE_TYPE_ADD(s, t) \
 	PyModule_AddObject(s, t.tp_name, (PyObject *)&t); Py_INCREF((PyObject *)&t)
@@ -65,6 +67,7 @@ PyObject *BPyInit_gpu_types(void)
 	MODULE_TYPE_ADD(submodule, BPyGPUVertBuf_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUBatch_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUOffScreen_Type);
+	MODULE_TYPE_ADD(submodule, BPyGPUShader_Type);
 
 #undef MODULE_TYPE_ADD
 

@@ -39,6 +39,7 @@ set(SRC
 	gpu_py_matrix.c
 	gpu_py_offscreen.c
 	gpu_py_select.c
+	gpu_py_shader.c
 	gpu_py_types.c
 	gpu_py_vertex_buffer.c
 	gpu_py_vertex_format.c
@@ -48,6 +49,7 @@ set(SRC
 	gpu_py_matrix.h
 	gpu_py_offscreen.h
 	gpu_py_select.h
+	gpu_py_shader.h
 	gpu_py_types.h
 	gpu_py_vertex_buffer.h
 	gpu_py_vertex_format.h

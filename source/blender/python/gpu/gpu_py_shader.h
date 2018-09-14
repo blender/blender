@@ -18,19 +18,24 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_shader.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_SHADER_H__
+#define __GPU_PY_SHADER_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
+extern PyTypeObject BPyGPUShader_Type;
 
-PyObject *BPyInit_gpu_types(void);
+#define BPyGPUShader_Check(v)     (Py_TYPE(v) == &BPyGPUShader_Type)
 
-#endif /* __GPU_PY_TYPES_H__ */
+typedef struct BPyGPUShader {
+	PyObject_VAR_HEAD
+	struct GPUShader *shader;
+} BPyGPUShader;
+
+PyObject *BPyGPUShader_CreatePyObject(struct GPUShader *shader);
+PyObject *BPyInit_gpu_shader(void);
+PyObject *BPyInit_gpu_shader_builtin(void);
+
+#endif /* __GPU_PY_SHADER_H__ */
