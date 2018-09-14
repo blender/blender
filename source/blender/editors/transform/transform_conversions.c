@@ -5916,7 +5916,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
  * tmode: should be a transform mode
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
-void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
+void autokeyframe_object(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
 {
 	Main *bmain = CTX_data_main(C);
 	ID *id = &ob->id;
@@ -6012,25 +6012,25 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, O
 			ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 		}
 
-		/* only calculate paths if there are paths to be recalculated,
-		 * assuming that since we've autokeyed the transforms this is
-		 * now safe to apply...
-		 *
-		 * NOTE: only do this when there's context info
-		 */
-		if (C && (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
-			//ED_objects_clear_paths(C); // XXX for now, don't need to clear
-			ED_objects_recalculate_paths(C, scene);
-
-			/* XXX: there's potential here for problems with unkeyed rotations/scale,
-			 *      but for now (until proper data-locality for baking operations),
-			 *      this should be a better fix for T24451 and T37755
-			 */
-		}
-
 		/* free temp info */
 		BLI_freelistN(&dsources);
 	}
+}
+
+/* Return if we need to update motion paths, only if they already exist,
+ * and we will insert a keyframe at the end of transform. */
+bool motionpath_need_update_object(Scene *scene, Object *ob)
+{
+	/* XXX: there's potential here for problems with unkeyed rotations/scale,
+	 *      but for now (until proper data-locality for baking operations),
+	 *      this should be a better fix for T24451 and T37755
+	 */
+
+	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+		return (ob->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
+	}
+
+	return false;
 }
 
 /* auto-keyframing feature - for poses/pose-channels
@@ -6038,7 +6038,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, O
  * targetless_ik: has targetless ik been done on any channels?
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
-void autokeyframe_pose_cb_func(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)
+void autokeyframe_pose(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)
 {
 	Main *bmain = CTX_data_main(C);
 	ID *id = &ob->id;
@@ -6158,16 +6158,6 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, Object *ob, int tmode,
 				BLI_freelistN(&dsources);
 			}
 		}
-
-		/* do the bone paths
-		 *  - only do this when there is context info, since we need that to resolve
-		 *	  how to do the updates and so on...
-		 *	- do not calculate unless there are paths already to update...
-		 */
-		if (C && (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS)) {
-			//ED_pose_clear_paths(C, ob); // XXX for now, don't need to clear
-			ED_pose_recalculate_paths(C, scene, ob);
-		}
 	}
 	else {
 		/* tag channels that should have unkeyed data */
@@ -6178,6 +6168,17 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, Object *ob, int tmode,
 			}
 		}
 	}
+}
+
+/* Return if we need to update motion paths, only if they already exist,
+ * and we will insert a keyframe at the end of transform. */
+bool motionpath_need_update_pose(Scene *scene, Object *ob)
+{
+	if (autokeyframe_cfra_can_key(scene, &ob->id)) {
+		return (ob->pose->avs.path_bakeflag & MOTIONPATH_BAKE_HAS_PATHS) != 0;
+	}
+
+	return false;
 }
 
 static void special_aftertrans_update__movieclip(bContext *C, TransInfo *t)
@@ -6665,6 +6666,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 	}
 	else if (t->flag & T_POSE) {
+		GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
@@ -6704,7 +6706,10 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
 			if (!canceled && (t->mode != TFM_DUMMY)) {
-				autokeyframe_pose_cb_func(C, t->scene, ob, t->mode, targetless_ik);
+				autokeyframe_pose(C, t->scene, ob, t->mode, targetless_ik);
+				if (motionpath_need_update_pose(t->scene, ob)) {
+					BLI_gset_insert(motionpath_updates, ob);
+				}
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else if (arm->flag & ARM_DELAYDEFORM) {
@@ -6718,6 +6723,13 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			else {
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
+		}
+
+		/* Update motion paths once for all transformed bones in an object. */
+		GSetIterator gs_iter;
+		GSET_ITER (gs_iter, motionpath_updates) {
+			ob = BLI_gsetIterator_getKey(&gs_iter);
+			ED_pose_recalculate_paths(C, t->scene, ob);
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
@@ -6734,13 +6746,12 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* do nothing */
 	}
 	else { /* Objects */
-		int i;
-
 		BLI_assert(t->flag & (T_OBJECT | T_TEXTURE));
 
 		TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
+		bool motionpath_update = false;
 
-		for (i = 0; i < tc->data_len; i++) {
+		for (int i = 0; i < tc->data_len; i++) {
 			TransData *td = tc->data + i;
 			ListBase pidlist;
 			PTCacheID *pid;
@@ -6772,7 +6783,8 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* Set autokey if necessary */
 			if (!canceled) {
-				autokeyframe_ob_cb_func(C, t->scene, t->view_layer, ob, t->mode);
+				autokeyframe_object(C, t->scene, t->view_layer, ob, t->mode);
+				motionpath_update |= motionpath_need_update_object(t->scene, ob);
 			}
 
 			/* restore rigid body transform */
@@ -6781,6 +6793,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				if (BKE_rigidbody_check_sim_running(t->scene->rigidbody_world, ctime))
 					BKE_rigidbody_aftertrans_update(ob, td->ext->oloc, td->ext->orot, td->ext->oquat, td->ext->orotAxis, td->ext->orotAngle);
 			}
+		}
+
+		if (motionpath_update) {
+			/* Update motion paths once for all transformed objects. */
+			ED_objects_recalculate_paths(C, t->scene);
 		}
 	}
 

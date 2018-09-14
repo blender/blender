@@ -730,11 +730,15 @@ bool transdata_check_local_islands(TransInfo *t, short around);
 
 int count_set_pose_transflags(struct Object *ob, const int mode, const short around, bool has_translate_rotate[2]);
 
-/* auto-keying stuff used by special_aftertrans_update */
-void autokeyframe_ob_cb_func(
+/* Auto-keyframe applied after transform, returns true if motion paths need to be updated. */
+void autokeyframe_object(
         struct bContext *C, struct Scene *scene, struct ViewLayer *view_layer, struct Object *ob, int tmode);
-void autokeyframe_pose_cb_func(
+void autokeyframe_pose(
         struct bContext *C, struct Scene *scene, struct Object *ob, int tmode, short targetless_ik);
+
+/* Test if we need to update motion paths for a given object. */
+bool motionpath_need_update_object(struct Scene *scene, struct Object *ob);
+bool motionpath_need_update_pose(struct Scene *scene, struct Object *ob);
 
 /*********************** Constraints *****************************/
 

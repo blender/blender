@@ -937,6 +937,8 @@ static void recalcData_objects(TransInfo *t)
 
 	}
 	else if (t->flag & T_POSE) {
+		GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
+
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			Object *ob = tc->poseobj;
 			bArmature *arm = ob->data;
@@ -952,7 +954,10 @@ static void recalcData_objects(TransInfo *t)
 				int targetless_ik = (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(t->context, t->scene, ob, t->mode, targetless_ik);
+				autokeyframe_pose(t->context, t->scene, ob, t->mode, targetless_ik);
+				if (motionpath_need_update_pose(t->scene, ob)) {
+					BLI_gset_insert(motionpath_updates, ob);
+				}
 			}
 
 			/* old optimize trick... this enforces to bypass the depgraph */
@@ -965,6 +970,13 @@ static void recalcData_objects(TransInfo *t)
 				BKE_pose_where_is(t->depsgraph, t->scene, ob);
 			}
 		}
+
+		/* Update motion paths once for all transformed bones in an object. */
+		GSetIterator gs_iter;
+		GSET_ITER (gs_iter, motionpath_updates) {
+			Object *ob = BLI_gsetIterator_getKey(&gs_iter);
+			ED_pose_recalculate_paths(t->context, t->scene, ob);
+		}
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, base->object))
@@ -975,7 +987,7 @@ static void recalcData_objects(TransInfo *t)
 		flushTransParticles(t);
 	}
 	else {
-		int i;
+		bool motionpath_update = false;
 
 		if (t->state != TRANS_CANCEL) {
 			applyProject(t);
@@ -984,7 +996,7 @@ static void recalcData_objects(TransInfo *t)
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			TransData *td = tc->data;
 
-			for (i = 0; i < tc->data_len; i++, td++) {
+			for (int i = 0; i < tc->data_len; i++, td++) {
 				Object *ob = td->ob;
 
 				if (td->flag & TD_NOACTION)
@@ -1000,7 +1012,8 @@ static void recalcData_objects(TransInfo *t)
 				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(t->context, t->scene, t->view_layer, ob, t->mode);
+					autokeyframe_object(t->context, t->scene, t->view_layer, ob, t->mode);
+					motionpath_update |= motionpath_need_update_object(t->scene, ob);
 				}
 
 				/* sets recalc flags fully, instead of flushing existing ones
@@ -1011,6 +1024,11 @@ static void recalcData_objects(TransInfo *t)
 				if (t->flag & T_TEXTURE)
 					DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
+		}
+
+		if (motionpath_update) {
+			/* Update motion paths once for all transformed objects. */
+			ED_objects_recalculate_paths(t->context, t->scene);
 		}
 	}
 }
