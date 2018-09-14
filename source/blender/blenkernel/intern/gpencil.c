@@ -1221,11 +1221,13 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 			for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
 				for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-					for (int i = 0; i < gps->totpoints; i++) {
-						dvert = &gps->dvert[i];
-						MDeformWeight *dw = defvert_find_index(dvert, def_nr);
-						if (dw != NULL) {
-							defvert_remove_group(dvert, dw);
+					if (gps->dvert != NULL) {
+						for (int i = 0; i < gps->totpoints; i++) {
+							dvert = &gps->dvert[i];
+							MDeformWeight *dw = defvert_find_index(dvert, def_nr);
+							if (dw != NULL) {
+								defvert_remove_group(dvert, dw);
+							}
 						}
 					}
 				}
@@ -1235,6 +1237,7 @@ void BKE_gpencil_vgroup_remove(Object *ob, bDeformGroup *defgroup)
 
 	/* Remove the group */
 	BLI_freelinkN(&ob->defbase, defgroup);
+	DEG_id_tag_update(&gpd->id, OB_RECALC_OB | OB_RECALC_DATA);
 }
 
 
