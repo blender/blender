@@ -1421,6 +1421,7 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
             if gp_settings.gpencil_brush_type == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
+                row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
 
                 if gp_settings.eraser_mode == 'SOFT':
                     row = layout.row(align=True)

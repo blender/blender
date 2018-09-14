@@ -1609,12 +1609,28 @@ static void gp_stroke_doeraser(tGPsdata *p)
 	bGPDlayer *gpl;
 	bGPDstroke *gps, *gpn;
 	rcti rect;
+	Brush *brush = p->brush;
+	Brush *eraser = p->eraser;
+	bool use_pressure = false;
+	float press = 1.0f;
 
+	/* detect if use pressure in eraser */
+	if (brush->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE) {
+		use_pressure = (bool)(brush->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
+	}
+	else if ((eraser != NULL) & (eraser->gpencil_settings->brush_type == GP_BRUSH_TYPE_ERASE)) {
+		use_pressure = (bool)(eraser->gpencil_settings->flag & GP_BRUSH_USE_PRESSURE);
+	}
+	if (use_pressure) {
+		press = p->pressure;
+		CLAMP(press, 0.01f, 1.0f);
+	}
 	/* rect is rectangle of eraser */
-	rect.xmin = p->mval[0] - p->radius;
-	rect.ymin = p->mval[1] - p->radius;
-	rect.xmax = p->mval[0] + p->radius;
-	rect.ymax = p->mval[1] + p->radius;
+	const int calc_radius = (int)p->radius * press;
+	rect.xmin = p->mval[0] - calc_radius;
+	rect.ymin = p->mval[1] - calc_radius;
+	rect.xmax = p->mval[0] + calc_radius;
+	rect.ymax = p->mval[1] + calc_radius;
 
 	if (p->sa->spacetype == SPACE_VIEW3D) {
 		if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
@@ -1650,7 +1666,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 			 * (e.g. 2D space strokes in the 3D view, if the same datablock is shared)
 			 */
 			if (ED_gpencil_stroke_can_use_direct(p->sa, gps)) {
-				gp_stroke_eraser_dostroke(p, gpl, gpf, gps, p->mval, p->mvalo, p->radius, &rect);
+				gp_stroke_eraser_dostroke(p, gpl, gpf, gps, p->mval, p->mvalo, calc_radius, &rect);
 			}
 		}
 	}
