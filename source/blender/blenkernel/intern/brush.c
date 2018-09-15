@@ -503,6 +503,8 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->icon_id = GP_BRUSH_ICON_ERASE_SOFT;
 	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_SOFT;
+	brush->gpencil_settings->era_strength_f = 100.0f;
+	brush->gpencil_settings->era_thickness_f = 0.10f;
 
 	/* Hard Eraser brush */
 	brush = BKE_brush_add_gpencil(bmain, ts, "Eraser Hard");
