@@ -817,12 +817,17 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		col = uiLayoutColumn(layout, true);
 		block = uiLayoutGetBlock(col);
 
-		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
-			/* TODO: Add button to enable? */
-			uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
-		}
-		else if (driver->flag & DRIVER_FLAG_INVALID) {
+		if (driver->flag & DRIVER_FLAG_INVALID) {
 			uiItemL(col, IFACE_("ERROR: Invalid Python expression"), ICON_CANCEL);
+		}
+		else if (!BKE_driver_has_simple_expression(driver)) {
+			if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
+				/* TODO: Add button to enable? */
+				uiItemL(col, IFACE_("WARNING: Python expressions limited for security"), ICON_ERROR);
+			}
+			else {
+				uiItemL(col, IFACE_("Slow Python expression"), ICON_INFO);
+			}
 		}
 
 		/* Explicit bpy-references are evil. Warn about these to prevent errors */

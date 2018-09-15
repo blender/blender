@@ -104,6 +104,7 @@ set(SRC
 	intern/rct.c
 	intern/scanfill.c
 	intern/scanfill_utils.c
+	intern/simple_expr.c
 	intern/smallhash.c
 	intern/sort.c
 	intern/sort_utils.c

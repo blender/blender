@@ -745,11 +745,8 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 		driver->variables.last = tmp_list.last;
 	}
 
-#ifdef WITH_PYTHON
 	/* since driver variables are cached, the expression needs re-compiling too */
-	if (driver->type == DRIVER_TYPE_PYTHON)
-		driver->flag |= DRIVER_FLAG_RENAMEVAR;
-#endif
+	BKE_driver_invalidate_expression(driver, false, true);
 
 	return true;
 }

@@ -168,7 +168,7 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 
 			/* tag driver as needing to be recompiled */
-			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			BKE_driver_invalidate_expression(driver, true, false);
 
 			/* clear invalid flags which may prevent this from working */
 			driver->flag &= ~DRIVER_FLAG_INVALID;
@@ -237,7 +237,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
 
 			/* updates */
-			driver->flag |= DRIVER_FLAG_RECOMPILE;
+			BKE_driver_invalidate_expression(driver, true, false);
 			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME, NULL);
 			ok = true;

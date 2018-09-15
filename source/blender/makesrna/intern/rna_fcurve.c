@@ -132,6 +132,13 @@ static StructRNA *rna_FModifierType_refine(struct PointerRNA *ptr)
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
+static bool rna_ChannelDriver_is_simple_expression_get(PointerRNA *ptr)
+{
+	ChannelDriver *driver = ptr->data;
+
+	return BKE_driver_has_simple_expression(driver);
+}
+
 static void rna_ChannelDriver_update_data(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
@@ -151,7 +158,7 @@ static void rna_ChannelDriver_update_expr(Main *bmain, Scene *scene, PointerRNA 
 	ChannelDriver *driver = ptr->data;
 
 	/* tag driver as needing to be recompiled */
-	driver->flag |= DRIVER_FLAG_RECOMPILE;
+	BKE_driver_invalidate_expression(driver, true, false);
 
 	/* update_data() clears invalid flag and schedules for updates */
 	rna_ChannelDriver_update_data(bmain, scene, ptr);
@@ -184,8 +191,7 @@ static void rna_DriverTarget_update_name(Main *bmain, Scene *scene, PointerRNA *
 	ChannelDriver *driver = ptr->data;
 	rna_DriverTarget_update_data(bmain, scene, ptr);
 
-	driver->flag |= DRIVER_FLAG_RENAMEVAR;
-
+	BKE_driver_invalidate_expression(driver, false, true);
 }
 
 /* ----------- */
@@ -1675,6 +1681,10 @@ static void rna_def_channeldriver(BlenderRNA *brna)
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", DRIVER_FLAG_INVALID);
 	RNA_def_property_ui_text(prop, "Invalid", "Driver could not be evaluated in past, so should be skipped");
 
+	prop = RNA_def_property(srna, "is_simple_expression", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_ChannelDriver_is_simple_expression_get", NULL);
+	RNA_def_property_ui_text(prop, "Simple Expression", "The scripted expression can be evaluated without using the full python interpreter");
 
 	/* Functions */
 	RNA_api_drivers(srna);

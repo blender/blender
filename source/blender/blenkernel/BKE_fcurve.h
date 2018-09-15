@@ -108,6 +108,9 @@ bool  driver_get_variable_property(
         struct ChannelDriver *driver, struct DriverTarget *dtar,
         struct PointerRNA *r_ptr, struct PropertyRNA **r_prop, int *r_index);
 
+bool BKE_driver_has_simple_expression(struct ChannelDriver *driver);
+void BKE_driver_invalidate_expression(struct ChannelDriver *driver, bool expr_changed, bool varname_changed);
+
 float evaluate_driver(struct PathResolvedRNA *anim_rna, struct ChannelDriver *driver,
                       struct ChannelDriver *driver_orig, const float evaltime);
 
