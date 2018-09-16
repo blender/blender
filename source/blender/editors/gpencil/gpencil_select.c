@@ -360,7 +360,7 @@ typedef enum eGP_SelectGrouped {
 	GP_SEL_SAME_LAYER     = 0,
 
 	/* Select strokes with the same color */
-	GP_SEL_SAME_COLOR     = 1,
+	GP_SEL_SAME_MATERIAL     = 1,
 
 	/* TODO: All with same prefix - Useful for isolating all layers for a particular character for instance */
 	/* TODO: All with same appearance - colour/opacity/volumetric/fills ? */
@@ -413,7 +413,7 @@ static void gp_select_same_layer(bContext *C)
 }
 
 /* Select all strokes with same colors as selected ones */
-static void gp_select_same_color(bContext *C)
+static void gp_select_same_material(bContext *C)
 {
 	/* First, build set containing all the colors of selected strokes */
 	GSet *selected_colors = BLI_gset_str_new("GP Selected Colors");
@@ -468,8 +468,8 @@ static int gpencil_select_grouped_exec(bContext *C, wmOperator *op)
 		case GP_SEL_SAME_LAYER:
 			gp_select_same_layer(C);
 			break;
-		case GP_SEL_SAME_COLOR:
-			gp_select_same_color(C);
+		case GP_SEL_SAME_MATERIAL:
+			gp_select_same_material(C);
 			break;
 
 		default:
@@ -491,7 +491,7 @@ void GPENCIL_OT_select_grouped(wmOperatorType *ot)
 {
 	static const EnumPropertyItem prop_select_grouped_types[] = {
 		{GP_SEL_SAME_LAYER, "LAYER", 0, "Layer", "Shared layers"},
-		{GP_SEL_SAME_COLOR, "COLOR", 0, "Color", "Shared colors"},
+		{GP_SEL_SAME_MATERIAL, "MATERIAL", 0, "Material", "Shared materials"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
