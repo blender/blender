@@ -549,7 +549,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 	}
 
 #ifdef USE_BYTECODE_WHITELIST
-	if (is_recompile) {
+	if (is_recompile && expr_code) {
 		if (!(G.f & G_SCRIPT_AUTOEXEC)) {
 			if (!bpy_driver_secure_bytecode_validate(
 			            expr_code, (PyObject *[]){
