@@ -628,6 +628,9 @@ void GPU_framebuffer_recursive_downsample(
 	GPUFrameBuffer *prev_fb = GPU_framebuffer_active_get();
 	gpu_framebuffer_current_set(NULL);
 
+	int levels = floor(log2(max_ii(fb->width, fb->height)));
+	max_lvl = min_ii(max_lvl, levels);
+
 	int i;
 	int current_dim[2] = {fb->width, fb->height};
 	for (i = 1; i < max_lvl + 1; i++) {
