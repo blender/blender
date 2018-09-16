@@ -601,7 +601,7 @@ float BPY_driver_exec(struct PathResolvedRNA *anim_rna, ChannelDriver *driver, C
 		return (float)result;
 	}
 	else {
-		fprintf(stderr, "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n", dvar->name, result);
+		fprintf(stderr, "\tBPY_driver_eval() - driver '%s' evaluates to '%f'\n", driver->expression, result);
 		return 0.0f;
 	}
 }
