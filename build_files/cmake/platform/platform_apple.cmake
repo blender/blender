@@ -114,7 +114,7 @@ if(WITH_PYTHON)
 	set(PYTHON_LIBRARIES  "${PYTHON_LIBRARY}")
 
 	# needed for Audaspace, numpy is installed into python site-packages
-	set(NUMPY_INCLUDE_DIRS "${PYTHON_LIBPATH}/site-packages/numpy/core/include")
+	set(PYTHON_NUMPY_INCLUDE_DIRS "${PYTHON_LIBPATH}/site-packages/numpy/core/include")
 
 	if(NOT EXISTS "${PYTHON_EXECUTABLE}")
 		message(FATAL_ERROR "Python executable missing: ${PYTHON_EXECUTABLE}")

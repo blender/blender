@@ -379,7 +379,9 @@ if(UNIX AND NOT APPLE)
 endif()
 
 option(WITH_PYTHON_INSTALL       "Copy system python into the blender install folder" ON)
-if(WITH_PYTHON_INSTALL OR (WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE))
+if(WIN32 OR APPLE)
+	# Windows and macOS have this bundled with Python libraries.
+elseif(WITH_PYTHON_INSTALL OR (WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE))
 	set(PYTHON_NUMPY_PATH            "" CACHE PATH "Path to python site-packages or dist-packages containing 'numpy' module")
 	mark_as_advanced(PYTHON_NUMPY_PATH)
 	set(PYTHON_NUMPY_INCLUDE_DIRS ${PYTHON_NUMPY_PATH}/numpy/core/include CACHE PATH "Path to the include directory of the numpy module")
@@ -1477,14 +1479,14 @@ if(WITH_PYTHON)
 		)
 	endif()
 
-	if(WIN32)
-		# pass, we have this in an archive to extract
+	if(WIN32 OR APPLE)
+		# Windows and macOS have this bundled with Python libraries.
 	elseif((WITH_PYTHON_INSTALL AND WITH_PYTHON_INSTALL_NUMPY) OR (WITH_AUDASPACE AND NOT WITH_SYSTEM_AUDASPACE))
 		if(("${PYTHON_NUMPY_PATH}" STREQUAL "") OR (${PYTHON_NUMPY_PATH} MATCHES NOTFOUND))
 			find_python_package(numpy)
 			unset(PYTHON_NUMPY_INCLUDE_DIRS CACHE)
 			set(PYTHON_NUMPY_INCLUDE_DIRS ${PYTHON_NUMPY_PATH}/numpy/core/include CACHE PATH "Path to the include directory of the numpy module")
-		        mark_as_advanced(PYTHON_NUMPY_INCLUDE_DIRS)
+			mark_as_advanced(PYTHON_NUMPY_INCLUDE_DIRS)
 		endif()
 	endif()
 
