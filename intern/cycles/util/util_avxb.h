@@ -114,14 +114,6 @@ __forceinline const avxb select( const avxb& m, const avxb& t, const avxb& f ) {
 __forceinline const avxb unpacklo( const avxb& a, const avxb& b ) { return _mm256_unpacklo_ps(a, b); }
 __forceinline const avxb unpackhi( const avxb& a, const avxb& b ) { return _mm256_unpackhi_ps(a, b); }
 
-#define _MM256_SHUFFLE(fp7,fp6,fp5,fp4,fp3,fp2,fp1,fp0) (((fp7) << 14) | ((fp6) << 12) | ((fp5) << 10) | ((fp4) << 8) | \
-                                                      ((fp3) << 6) | ((fp2) << 4) | ((fp1) << 2) | ((fp0)))
-
-template<size_t i0, size_t i1, size_t i2, size_t i3, size_t i4, size_t i5, size_t i6, size_t i7>
-__forceinline const avxb shuffle( const avxb& a ) {
-	return _mm256_cvtepi32_ps(_mm256_shuffle_epi32(a, _MM256_SHUFFLE(i7, i6, i5, i4, i3, i2, i1, i0)));
-}
-
 /*
 template<> __forceinline const avxb shuffle<0, 1, 0, 1, 0, 1, 0, 1>( const avxb& a ) {
 	return _mm_movelh_ps(a, a);
