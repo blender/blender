@@ -618,7 +618,7 @@ class _defs_edit_mesh:
             widget=None,
             keymap=(
                 ("mesh.spin", dict(),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 

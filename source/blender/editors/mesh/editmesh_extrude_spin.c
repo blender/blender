@@ -316,6 +316,19 @@ static bool gizmo_mesh_spin_poll(const bContext *C, wmGizmoGroupType *gzgt)
 	return true;
 }
 
+
+static void gizmo_mesh_spin_redo_modal_from_setup(
+        const bContext *C, wmGizmoGroup *gzgroup)
+{
+	/* Start off dragging. */
+	struct GizmoSpinGroup *ggd = gzgroup->customdata;
+	wmWindow *win = CTX_wm_window(C);
+	wmGizmo *gz = ggd->angle_z;
+	wmGizmoMap *gzmap = gzgroup->parent_gzmap;
+	WM_gizmo_modal_set_from_setup(
+	        gzmap, (bContext *)C, gz, 0, win->eventstate);
+}
+
 static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmOperator *op = WM_operator_last_redo(C);
@@ -400,6 +413,9 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        });
 
 	}
+
+	/* Become modal as soon as it's started. */
+	gizmo_mesh_spin_redo_modal_from_setup(C, gzgroup);
 }
 
 static void gizmo_mesh_spin_draw_prepare(
@@ -506,13 +522,26 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 		}
 	}
 
+
+#ifdef USE_GIZMO
+	/* Start with zero angle, drag out the value. */
+	prop = RNA_struct_find_property(op->ptr, "angle");
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_set(op->ptr, prop, 0.0f);
+	}
+#endif
+
 	int ret = edbm_spin_exec(C, op);
 
 #ifdef USE_GIZMO
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup gizmos */
 		if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
-			WM_gizmo_group_type_ensure("MESH_GGT_spin");
+			wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_spin", false);
+			if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
+				struct Main *bmain = CTX_data_main(C);
+				WM_gizmo_group_type_reinit_ptr(bmain, gzgt);
+			}
 		}
 	}
 #endif
