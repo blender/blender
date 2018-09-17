@@ -44,17 +44,6 @@ struct avxb
 	__forceinline operator const __m256i( void ) const { return _mm256_castps_si256(m256); }
 	__forceinline operator const __m256d( void ) const { return _mm256_castps_pd(m256); }
 
-	//__forceinline avxb           ( bool  a )
-	//	: m256(_mm_lookupmask_ps[(size_t(a) << 3) | (size_t(a) << 2) | (size_t(a) << 1) | size_t(a)]) {}
-	//__forceinline avxb           ( bool  a, bool  b)
-	//	: m256(_mm_lookupmask_ps[(size_t(b) << 3) | (size_t(a) << 2) | (size_t(b) << 1) | size_t(a)]) {}
-	//__forceinline avxb           ( bool  a, bool  b, bool  c, bool  d)
-	//	: m256(_mm_lookupmask_ps[(size_t(d) << 3) | (size_t(c) << 2) | (size_t(b) << 1) | size_t(a)]) {}
-	//__forceinline avxb(int mask) {
-	//	assert(mask >= 0 && mask < 16);
-	//	m128 = _mm_lookupmask_ps[mask];
-	//}
-
 	////////////////////////////////////////////////////////////////////////////////
 	/// Constants
 	////////////////////////////////////////////////////////////////////////////////
@@ -113,39 +102,6 @@ __forceinline const avxb select( const avxb& m, const avxb& t, const avxb& f ) {
 
 __forceinline const avxb unpacklo( const avxb& a, const avxb& b ) { return _mm256_unpacklo_ps(a, b); }
 __forceinline const avxb unpackhi( const avxb& a, const avxb& b ) { return _mm256_unpackhi_ps(a, b); }
-
-/*
-template<> __forceinline const avxb shuffle<0, 1, 0, 1, 0, 1, 0, 1>( const avxb& a ) {
-	return _mm_movelh_ps(a, a);
-}
-
-template<> __forceinline const sseb shuffle<2, 3, 2, 3>( const sseb& a ) {
-	return _mm_movehl_ps(a, a);
-}
-
-template<size_t i0, size_t i1, size_t i2, size_t i3> __forceinline const sseb shuffle( const sseb& a, const sseb& b ) {
-	return _mm_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0));
-}
-
-template<> __forceinline const sseb shuffle<0, 1, 0, 1>( const sseb& a, const sseb& b ) {
-	return _mm_movelh_ps(a, b);
-}
-
-template<> __forceinline const sseb shuffle<2, 3, 2, 3>( const sseb& a, const sseb& b ) {
-	return _mm_movehl_ps(b, a);
-}
-
-#if defined(__KERNEL_SSE3__)
-template<> __forceinline const sseb shuffle<0, 0, 2, 2>( const sseb& a ) { return _mm_moveldup_ps(a); }
-template<> __forceinline const sseb shuffle<1, 1, 3, 3>( const sseb& a ) { return _mm_movehdup_ps(a); }
-#endif
-
-#if defined(__KERNEL_SSE41__)
-template<size_t dst, size_t src, size_t clr> __forceinline const sseb insert( const sseb& a, const sseb& b ) { return _mm_insert_ps(a, b, (dst << 4) | (src << 6) | clr); }
-template<size_t dst, size_t src> __forceinline const sseb insert( const sseb& a, const sseb& b ) { return insert<dst, src, 0>(a, b); }
-template<size_t dst>             __forceinline const sseb insert( const sseb& a, const bool b ) { return insert<dst,0>(a, sseb(b)); }
-#endif
-*/
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Reduction Operations
