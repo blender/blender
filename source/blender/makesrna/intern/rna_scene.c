@@ -423,9 +423,9 @@ const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_gizmo_items[] = {
-	{SCE_MANIP_TRANSLATE, "TRANSLATE", 0, "Move", ""},
-	{SCE_MANIP_ROTATE, "ROTATE", 0, "Rotate", ""},
-	{SCE_MANIP_SCALE, "SCALE", 0, "Scale", ""},
+	{SCE_GIZMO_SHOW_TRANSLATE, "TRANSLATE", 0, "Move", ""},
+	{SCE_GIZMO_SHOW_ROTATE, "ROTATE", 0, "Rotate", ""},
+	{SCE_GIZMO_SHOW_SCALE, "SCALE", 0, "Scale", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -578,8 +578,8 @@ static void rna_GPencilInterpolateSettings_type_set(PointerRNA *ptr, int value)
 static void rna_ToolSettings_gizmo_flag_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ToolSettings *ts = scene->toolsettings;
-	if ((ts->gizmo_flag & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
-		ts->gizmo_flag |= SCE_MANIP_TRANSLATE;
+	if ((ts->gizmo_flag & (SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE)) == 0) {
+		ts->gizmo_flag |= SCE_GIZMO_SHOW_TRANSLATE;
 	}
 }
 
@@ -2402,7 +2402,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, "rna_ToolSettings_gizmo_flag_update");
 
 	prop = RNA_def_property(srna, "use_gizmo_apron", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCE_MANIP_DISABLE_APRON);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "gizmo_flag", SCE_GIZMO_DISABLE_APRON);
 	RNA_def_property_ui_text(prop, "Click Anywhere", "Handle input not directly over the gizmo");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 

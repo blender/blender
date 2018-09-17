@@ -273,9 +273,9 @@ static bool gizmo_is_axis_visible(
 		}
 	}
 
-	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & SCE_MANIP_TRANSLATE)) ||
-	    (axis_type == MAN_AXES_ROTATE && !(twtype & SCE_MANIP_ROTATE)) ||
-	    (axis_type == MAN_AXES_SCALE && !(twtype & SCE_MANIP_SCALE)))
+	if ((axis_type == MAN_AXES_TRANSLATE && !(twtype & SCE_GIZMO_SHOW_TRANSLATE)) ||
+	    (axis_type == MAN_AXES_ROTATE && !(twtype & SCE_GIZMO_SHOW_ROTATE)) ||
+	    (axis_type == MAN_AXES_SCALE && !(twtype & SCE_GIZMO_SHOW_SCALE)))
 	{
 		return false;
 	}
@@ -305,34 +305,34 @@ static bool gizmo_is_axis_visible(
 		case MAN_AXIS_SCALE_Z:
 			return (rv3d->twdrawflag & MAN_SCALE_Z);
 		case MAN_AXIS_SCALE_C:
-			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & SCE_MANIP_TRANSLATE) == 0);
+			return (rv3d->twdrawflag & MAN_SCALE_C && (twtype & SCE_GIZMO_SHOW_TRANSLATE) == 0);
 		case MAN_AXIS_TRANS_XY:
 			return (rv3d->twdrawflag & MAN_TRANS_X &&
 			        rv3d->twdrawflag & MAN_TRANS_Y &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_TRANS_YZ:
 			return (rv3d->twdrawflag & MAN_TRANS_Y &&
 			        rv3d->twdrawflag & MAN_TRANS_Z &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_TRANS_ZX:
 			return (rv3d->twdrawflag & MAN_TRANS_Z &&
 			        rv3d->twdrawflag & MAN_TRANS_X &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_SCALE_XY:
 			return (rv3d->twdrawflag & MAN_SCALE_X &&
 			        rv3d->twdrawflag & MAN_SCALE_Y &&
-			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_TRANSLATE) == 0 &&
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_SCALE_YZ:
 			return (rv3d->twdrawflag & MAN_SCALE_Y &&
 			        rv3d->twdrawflag & MAN_SCALE_Z &&
-			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_TRANSLATE) == 0 &&
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_SCALE_ZX:
 			return (rv3d->twdrawflag & MAN_SCALE_Z &&
 			        rv3d->twdrawflag & MAN_SCALE_X &&
-			        (twtype & SCE_MANIP_TRANSLATE) == 0 &&
-			        (twtype & SCE_MANIP_ROTATE) == 0);
+			        (twtype & SCE_GIZMO_SHOW_TRANSLATE) == 0 &&
+			        (twtype & SCE_GIZMO_SHOW_ROTATE) == 0);
 		case MAN_AXIS_APRON_C:
 			return true;
 	}
@@ -1165,15 +1165,15 @@ static void gizmo_line_range(const int twtype, const short axis_type, float *r_s
 
 	switch (axis_type) {
 		case MAN_AXES_TRANSLATE:
-			if (twtype & SCE_MANIP_SCALE) {
+			if (twtype & SCE_GIZMO_SHOW_SCALE) {
 				*r_start = *r_len - ofs + 0.075f;
 			}
-			if (twtype & SCE_MANIP_ROTATE) {
+			if (twtype & SCE_GIZMO_SHOW_ROTATE) {
 				*r_len += ofs;
 			}
 			break;
 		case MAN_AXES_SCALE:
-			if (twtype & (SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE)) {
+			if (twtype & (SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE)) {
 				*r_len -= ofs + 0.025f;
 			}
 			break;
@@ -1347,13 +1347,13 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 	} ot_store = {NULL};
 	GizmoGroup *ggd = gzgroup->customdata;
 
-	if (ggd->twtype & SCE_MANIP_TRANSLATE) {
+	if (ggd->twtype & SCE_GIZMO_SHOW_TRANSLATE) {
 		ggd->axis_type_default = MAN_AXES_TRANSLATE;
 	}
-	else if (ggd->twtype & SCE_MANIP_ROTATE) {
+	else if (ggd->twtype & SCE_GIZMO_SHOW_ROTATE) {
 		ggd->axis_type_default = MAN_AXES_ROTATE;
 	}
-	else if (ggd->twtype & SCE_MANIP_SCALE) {
+	else if (ggd->twtype & SCE_GIZMO_SHOW_SCALE) {
 		ggd->axis_type_default = MAN_AXES_SCALE;
 	}
 	else {
@@ -1380,7 +1380,7 @@ static void gizmogroup_init_properties_from_twtype(wmGizmoGroup *gzgroup)
 			case MAN_AXIS_SCALE_Z:
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
 					int draw_options = 0;
-					if ((ggd->twtype & (SCE_MANIP_ROTATE | SCE_MANIP_SCALE)) == 0) {
+					if ((ggd->twtype & (SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE)) == 0) {
 						draw_options |= ED_GIZMO_ARROW_DRAW_FLAG_STEM;
 					}
 					RNA_enum_set(axis->ptr, "draw_options", draw_options);
@@ -1492,17 +1492,17 @@ static void WIDGETGROUP_gizmo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 		if (tref == NULL || STREQ(tref->idname, "Transform")) {
 			/* Setup all gizmos, they can be toggled via 'ToolSettings.gizmo_flag' */
-			ggd->twtype = SCE_MANIP_TRANSLATE | SCE_MANIP_ROTATE | SCE_MANIP_SCALE;
+			ggd->twtype = SCE_GIZMO_SHOW_TRANSLATE | SCE_GIZMO_SHOW_ROTATE | SCE_GIZMO_SHOW_SCALE;
 			ggd->use_twtype_refresh = true;
 		}
 		else if (STREQ(tref->idname, "Move")) {
-			ggd->twtype |= SCE_MANIP_TRANSLATE;
+			ggd->twtype |= SCE_GIZMO_SHOW_TRANSLATE;
 		}
 		else if (STREQ(tref->idname, "Rotate")) {
-			ggd->twtype |= SCE_MANIP_ROTATE;
+			ggd->twtype |= SCE_GIZMO_SHOW_ROTATE;
 		}
 		else if (STREQ(tref->idname, "Scale")) {
-			ggd->twtype |= SCE_MANIP_SCALE;
+			ggd->twtype |= SCE_GIZMO_SHOW_SCALE;
 		}
 		BLI_assert(ggd->twtype != 0);
 		ggd->twtype_init = ggd->twtype;
@@ -1568,7 +1568,7 @@ static void WIDGETGROUP_gizmo_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 				RNA_float_set(axis->ptr, "length", len);
 
 				if (axis_idx >= MAN_AXIS_RANGE_TRANS_START && axis_idx < MAN_AXIS_RANGE_TRANS_END) {
-					if (ggd->twtype & SCE_MANIP_ROTATE) {
+					if (ggd->twtype & SCE_GIZMO_SHOW_ROTATE) {
 						/* Avoid rotate and translate arrows overlap. */
 						start_co[2] += 0.215f;
 					}
@@ -1639,7 +1639,7 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 		/* XXX maybe unset _HIDDEN flag on redraw? */
 
 		if (axis_idx == MAN_AXIS_APRON_C) {
-			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, (scene->toolsettings->gizmo_flag & SCE_MANIP_DISABLE_APRON) != 0);
+			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, (scene->toolsettings->gizmo_flag & SCE_GIZMO_DISABLE_APRON) != 0);
 		}
 		else if (gizmo_is_axis_visible(rv3d, ggd->twtype, idot, axis_type, axis_idx)) {
 			WM_gizmo_set_flag(axis, WM_GIZMO_HIDDEN, false);
