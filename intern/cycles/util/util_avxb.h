@@ -180,7 +180,7 @@ __forceinline size_t movemask( const avxb& a ) { return _mm256_movemask_ps(a); }
 
 ccl_device_inline void print_avxb(const char *label, const avxb &a)
 {
-	printf("%s: %df %df %df %df %df %df %df %d\n",
+	printf("%s: %d %d %d %d %d %d %d %d\n",
 	       label, a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7]);
 }
 
