@@ -17,12 +17,21 @@ flat out int slice;
 void main() {
 	gl_Layer = slice = int(vPos[0].z);
 
+#ifdef ATTRIB
+	pass_attrib(0);
+#endif
 	gl_Position = vPos[0].xyww;
 	EmitVertex();
 
+#ifdef ATTRIB
+	pass_attrib(1);
+#endif
 	gl_Position = vPos[1].xyww;
 	EmitVertex();
 
+#ifdef ATTRIB
+	pass_attrib(2);
+#endif
 	gl_Position = vPos[2].xyww;
 	EmitVertex();
 
@@ -37,12 +46,21 @@ void main() {
 void main() {
 	gl_Layer = slice = int(vPos[0].z);
 
+#ifdef ATTRIB
+	pass_attrib(0);
+#endif
 	gl_Position = vPos[0].xyww;
 	EmitVertex();
 
+#ifdef ATTRIB
+	pass_attrib(1);
+#endif
 	gl_Position = vPos[1].xyww;
 	EmitVertex();
 
+#ifdef ATTRIB
+	pass_attrib(2);
+#endif
 	gl_Position = vPos[2].xyww;
 	EmitVertex();
 
