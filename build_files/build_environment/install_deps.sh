@@ -743,9 +743,10 @@ OCIO_SOURCE=( "https://github.com/imageworks/OpenColorIO/archive/v$OCIO_VERSION.
 #~ OCIO_SOURCE_REPO_UID="6de971097c7f552300f669ed69ca0b6cf5a70843"
 
 OPENEXR_USE_REPO=false
-OPENEXR_SOURCE=( "https://github.com/openexr/openexr/releases/download/v$OPENEXR_VERSION/openexr-$OPENEXR_VERSION.tar.gz" )
+#~ OPENEXR_SOURCE=( "https://github.com/openexr/openexr/releases/download/v$OPENEXR_VERSION/openexr-$OPENEXR_VERSION.tar.gz" )
+OPENEXR_SOURCE_REPO_UID="0ac2ea34c8f3134148a5df4052e40f155b76f6fb"
+OPENEXR_SOURCE=( "https://github.com/openexr/openexr/archive/$OPENEXR_SOURCE_REPO_UID.tar.gz" )
 #~ OPENEXR_SOURCE_REPO=( "https://github.com/mont29/openexr.git" )
-#~ OPENEXR_SOURCE_REPO_UID="2787aa1cf652d244ed45ae124eb1553f6cff11ee"
 ILMBASE_SOURCE=( "https://github.com/openexr/openexr/releases/download/v$ILMBASE_VERSION/ilmbase-$ILMBASE_VERSION.tar.gz" )
 
 OIIO_USE_REPO=false
