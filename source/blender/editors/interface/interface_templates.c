@@ -3876,9 +3876,11 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 			UI_but_func_tooltip_set(but_progress, progress_tooltip_func, tip_arg);
 		}
 
-		uiDefIconTextBut(block, UI_BTYPE_BUT, handle_event, ICON_PANEL_CLOSE,
-		                 "", 0, 0, UI_UNIT_X, UI_UNIT_Y,
-		                 NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));
+		if (!wm->is_interface_locked) {
+			uiDefIconTextBut(block, UI_BTYPE_BUT, handle_event, ICON_PANEL_CLOSE,
+			                 "", 0, 0, UI_UNIT_X, UI_UNIT_Y,
+			                 NULL, 0.0f, 0.0f, 0, 0, TIP_("Stop this job"));
+		}
 	}
 
 	if (screen->animtimer)
