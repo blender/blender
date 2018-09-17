@@ -231,6 +231,9 @@ static int gizmo_move_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
         eWM_GizmoFlagTweak UNUSED(tweak_flag))
 {
+	if (event->type != MOUSEMOVE) {
+		return OPERATOR_RUNNING_MODAL;
+	}
 	MoveGizmo3D *move = (MoveGizmo3D *)gz;
 	MoveInteraction *inter = gz->interaction_data;
 	ARegion *ar = CTX_wm_region(C);
