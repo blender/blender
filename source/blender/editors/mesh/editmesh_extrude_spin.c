@@ -79,6 +79,7 @@ typedef struct GizmoSpinGroup {
 	/* We could store more vars here! */
 	struct {
 		bContext *context;
+		wmOperatorType *ot;
 		wmOperator *op;
 		PropertyRNA *prop_axis_co;
 		PropertyRNA *prop_axis_no;
@@ -331,9 +332,10 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 
 static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
+	wmOperatorType *ot = WM_operatortype_find("MESH_OT_spin", true);
 	wmOperator *op = WM_operator_last_redo(C);
 
-	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
+	if ((op == NULL) || (op->type != ot)) {
 		return;
 	}
 
@@ -362,14 +364,15 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	WM_gizmo_set_flag(ggd->rotate_c, WM_GIZMO_DRAW_VALUE, true);
 	WM_gizmo_set_flag(ggd->angle_z, WM_GIZMO_DRAW_VALUE, true);
 
-	WM_gizmo_set_scale(ggd->angle_z, 0.5f);
+	WM_gizmo_set_scale(ggd->rotate_c, 0.8f);
 
 	{
 		ggd->data.context = (bContext *)C;
+		ggd->data.ot = ot;
 		ggd->data.op = op;
-		ggd->data.prop_axis_co = RNA_struct_find_property(op->ptr, "center");
-		ggd->data.prop_axis_no = RNA_struct_find_property(op->ptr, "axis");
-		ggd->data.prop_angle = RNA_struct_find_property(op->ptr, "angle");
+		ggd->data.prop_axis_co = RNA_struct_type_find_property(ot->srna, "center");
+		ggd->data.prop_axis_no = RNA_struct_type_find_property(ot->srna, "axis");
+		ggd->data.prop_angle = RNA_struct_type_find_property(ot->srna, "angle");
 	}
 
 	gizmo_mesh_spin_update_from_op(ggd);
