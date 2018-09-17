@@ -636,6 +636,7 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
 /* Cache as in draw cache not light cache. */
 static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lbake)
 {
+	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
@@ -659,6 +660,14 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	if (sldata->clip_ubo == NULL) {
 		sldata->clip_ubo = DRW_uniformbuffer_create(sizeof(sldata->clip_data), &sldata->clip_data);
 	}
+
+	/* HACK: set txl->color but unset it before Draw Manager frees it. */
+	txl->color = lbake->rt_color;
+	int viewport_size[2] = {
+		GPU_texture_width(txl->color),
+		GPU_texture_height(txl->color)
+	};
+	DRW_render_viewport_size_set(viewport_size);
 
 	EEVEE_effects_init(sldata, vedata, NULL);
 	EEVEE_materials_init(sldata, stl, fbl);
@@ -684,6 +693,8 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	EEVEE_materials_cache_finish(vedata);
 	EEVEE_lights_cache_finish(sldata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
+
+	txl->color = NULL;
 
 	DRW_render_instance_buffer_finish();
 	DRW_hair_update();
