@@ -94,47 +94,47 @@ typedef struct GizmoSpinGroup {
  * This is needed because changing the RNA doesn't cause a redo
  * and we're not using operator UI which does just this.
  */
-static void gizmo_spin_exec(GizmoSpinGroup *man)
+static void gizmo_spin_exec(GizmoSpinGroup *ggd)
 {
-	wmOperator *op = man->data.op;
-	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
-		ED_undo_operator_repeat((bContext *)man->data.context, op);
+	wmOperator *op = ggd->data.op;
+	if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
+		ED_undo_operator_repeat((bContext *)ggd->data.context, op);
 	}
 }
 
-static void gizmo_mesh_spin_update_from_op(GizmoSpinGroup *man)
+static void gizmo_mesh_spin_update_from_op(GizmoSpinGroup *ggd)
 {
-	wmOperator *op = man->data.op;
+	wmOperator *op = ggd->data.op;
 
 	float plane_co[3], plane_no[3];
 
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
 
-	WM_gizmo_set_matrix_location(man->translate_z, plane_co);
-	WM_gizmo_set_matrix_location(man->rotate_c, plane_co);
-	WM_gizmo_set_matrix_location(man->angle_z, plane_co);
+	WM_gizmo_set_matrix_location(ggd->translate_z, plane_co);
+	WM_gizmo_set_matrix_location(ggd->rotate_c, plane_co);
+	WM_gizmo_set_matrix_location(ggd->angle_z, plane_co);
 	/* translate_c location comes from the property. */
 
-	WM_gizmo_set_matrix_rotation_from_z_axis(man->translate_z, plane_no);
-	WM_gizmo_set_matrix_rotation_from_z_axis(man->angle_z, plane_no);
+	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->translate_z, plane_no);
+	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->angle_z, plane_no);
 
-	WM_gizmo_set_scale(man->translate_c, 0.2);
+	WM_gizmo_set_scale(ggd->translate_c, 0.2);
 
-	RegionView3D *rv3d = ED_view3d_context_rv3d(man->data.context);
+	RegionView3D *rv3d = ED_view3d_context_rv3d(ggd->data.context);
 	if (rv3d) {
-		normalize_v3_v3(man->data.rotate_axis, rv3d->viewinv[2]);
-		normalize_v3_v3(man->data.rotate_up, rv3d->viewinv[1]);
+		normalize_v3_v3(ggd->data.rotate_axis, rv3d->viewinv[2]);
+		normalize_v3_v3(ggd->data.rotate_up, rv3d->viewinv[1]);
 
 		/* ensure its orthogonal */
-		project_plane_normalized_v3_v3v3(man->data.rotate_up, man->data.rotate_up, man->data.rotate_axis);
-		normalize_v3(man->data.rotate_up);
+		project_plane_normalized_v3_v3v3(ggd->data.rotate_up, ggd->data.rotate_up, ggd->data.rotate_axis);
+		normalize_v3(ggd->data.rotate_up);
 
-		WM_gizmo_set_matrix_rotation_from_z_axis(man->translate_c, plane_no);
-		WM_gizmo_set_matrix_rotation_from_yz_axis(man->rotate_c, plane_no, man->data.rotate_axis);
+		WM_gizmo_set_matrix_rotation_from_z_axis(ggd->translate_c, plane_no);
+		WM_gizmo_set_matrix_rotation_from_yz_axis(ggd->rotate_c, plane_no, ggd->data.rotate_axis);
 
 		/* show the axis instead of mouse cursor */
-		RNA_enum_set(man->rotate_c->ptr, "draw_options",
+		RNA_enum_set(ggd->rotate_c->ptr, "draw_options",
 		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR |
 		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y);
 
@@ -146,16 +146,16 @@ static void gizmo_spin_prop_depth_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane_no[3];
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
 
 	value[0] = dot_v3v3(plane_no, plane_co) - dot_v3v3(plane_no, gz->matrix_basis[3]);
 }
@@ -164,16 +164,16 @@ static void gizmo_spin_prop_depth_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	const float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_co[3], plane[4];
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, plane_co);
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane);
 	normalize_v3(plane);
 
 	plane[3] = -value[0] - dot_v3v3(plane, gz->matrix_basis[3]);
@@ -181,9 +181,9 @@ static void gizmo_spin_prop_depth_set(
 	/* Keep our location, may be offset simply to be inside the viewport. */
 	closest_to_plane_normalized_v3(plane_co, plane, plane_co);
 
-	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, plane_co);
+	RNA_property_float_set_array(op->ptr, ggd->data.prop_axis_co, plane_co);
 
-	gizmo_spin_exec(man);
+	gizmo_spin_exec(ggd);
 }
 
 /* translate callbacks */
@@ -191,29 +191,29 @@ static void gizmo_spin_prop_translate_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 3);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_co, value);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, value);
 }
 
 static void gizmo_spin_prop_translate_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 
 	BLI_assert(gz_prop->type->array_length == 3);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
-	RNA_property_float_set_array(op->ptr, man->data.prop_axis_co, value);
+	RNA_property_float_set_array(op->ptr, ggd->data.prop_axis_co, value);
 
-	gizmo_spin_exec(man);
+	gizmo_spin_exec(ggd);
 }
 
 /* angle callbacks */
@@ -221,22 +221,22 @@ static void gizmo_spin_prop_axis_angle_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
 	normalize_v3(plane_no);
 
 	float plane_no_proj[3];
-	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, ggd->data.rotate_axis);
 
 	if (!is_zero_v3(plane_no_proj)) {
-		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, ggd->data.rotate_up, ggd->data.rotate_axis);
 		value[0] = angle;
 	}
 	else {
@@ -248,32 +248,32 @@ static void gizmo_spin_prop_axis_angle_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	const float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float plane_no[4];
-	RNA_property_float_get_array(op->ptr, man->data.prop_axis_no, plane_no);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
 	normalize_v3(plane_no);
 
 	float plane_no_proj[3];
-	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, man->data.rotate_axis);
+	project_plane_normalized_v3_v3v3(plane_no_proj, plane_no, ggd->data.rotate_axis);
 
 	if (!is_zero_v3(plane_no_proj)) {
-		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, man->data.rotate_up, man->data.rotate_axis);
+		const float angle = -angle_signed_on_axis_v3v3_v3(plane_no_proj, ggd->data.rotate_up, ggd->data.rotate_axis);
 		const float angle_delta = angle - angle_compat_rad(value[0], angle);
 		if (angle_delta != 0.0f) {
 			float mat[3][3];
-			axis_angle_normalized_to_mat3(mat, man->data.rotate_axis, angle_delta);
+			axis_angle_normalized_to_mat3(mat, ggd->data.rotate_axis, angle_delta);
 			mul_m3_v3(mat, plane_no);
 
 			/* re-normalize - seems acceptable */
-			RNA_property_float_set_array(op->ptr, man->data.prop_axis_no, plane_no);
+			RNA_property_float_set_array(op->ptr, ggd->data.prop_axis_no, plane_no);
 
-			gizmo_spin_exec(man);
+			gizmo_spin_exec(ggd);
 		}
 	}
 }
@@ -283,27 +283,27 @@ static void gizmo_spin_prop_angle_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
-	value[0] = RNA_property_float_get(op->ptr, man->data.prop_angle);
+	value[0] = RNA_property_float_get(op->ptr, ggd->data.prop_angle);
 }
 
 static void gizmo_spin_prop_angle_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
 	const float *value = value_p;
-	RNA_property_float_set(op->ptr, man->data.prop_angle, value[0]);
+	RNA_property_float_set(op->ptr, ggd->data.prop_angle, value[0]);
 
-	gizmo_spin_exec(man);
+	gizmo_spin_exec(ggd);
 }
 
 static bool gizmo_mesh_spin_poll(const bContext *C, wmGizmoGroupType *gzgt)
@@ -324,47 +324,47 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		return;
 	}
 
-	struct GizmoSpinGroup *man = MEM_callocN(sizeof(GizmoSpinGroup), __func__);
-	gzgroup->customdata = man;
+	struct GizmoSpinGroup *ggd = MEM_callocN(sizeof(GizmoSpinGroup), __func__);
+	gzgroup->customdata = ggd;
 
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
 	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 
-	man->translate_z = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-	man->translate_c = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
-	man->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
-	man->angle_z = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
+	ggd->translate_z = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	ggd->translate_c = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
+	ggd->rotate_c = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
+	ggd->angle_z = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
 
-	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_z->color);
-	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->translate_c->color);
-	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, man->rotate_c->color);
-	UI_GetThemeColor3fv(TH_AXIS_Z, man->angle_z->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
+	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
+	UI_GetThemeColor3fv(TH_AXIS_Z, ggd->angle_z->color);
 
 
-	RNA_enum_set(man->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
-	RNA_enum_set(man->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
+	RNA_enum_set(ggd->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
+	RNA_enum_set(ggd->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
 
-	WM_gizmo_set_flag(man->translate_c, WM_GIZMO_DRAW_VALUE, true);
-	WM_gizmo_set_flag(man->rotate_c, WM_GIZMO_DRAW_VALUE, true);
-	WM_gizmo_set_flag(man->angle_z, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(ggd->translate_c, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(ggd->rotate_c, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(ggd->angle_z, WM_GIZMO_DRAW_VALUE, true);
 
-	WM_gizmo_set_scale(man->angle_z, 0.5f);
+	WM_gizmo_set_scale(ggd->angle_z, 0.5f);
 
 	{
-		man->data.context = (bContext *)C;
-		man->data.op = op;
-		man->data.prop_axis_co = RNA_struct_find_property(op->ptr, "center");
-		man->data.prop_axis_no = RNA_struct_find_property(op->ptr, "axis");
-		man->data.prop_angle = RNA_struct_find_property(op->ptr, "angle");
+		ggd->data.context = (bContext *)C;
+		ggd->data.op = op;
+		ggd->data.prop_axis_co = RNA_struct_find_property(op->ptr, "center");
+		ggd->data.prop_axis_no = RNA_struct_find_property(op->ptr, "axis");
+		ggd->data.prop_angle = RNA_struct_find_property(op->ptr, "angle");
 	}
 
-	gizmo_mesh_spin_update_from_op(man);
+	gizmo_mesh_spin_update_from_op(ggd);
 
 	/* Setup property callbacks */
 	{
 		WM_gizmo_target_property_def_func(
-		        man->translate_z, "offset",
+		        ggd->translate_z, "offset",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_spin_prop_depth_get,
 		            .value_set_fn = gizmo_spin_prop_depth_set,
@@ -373,7 +373,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        });
 
 		WM_gizmo_target_property_def_func(
-		        man->translate_c, "offset",
+		        ggd->translate_c, "offset",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_spin_prop_translate_get,
 		            .value_set_fn = gizmo_spin_prop_translate_set,
@@ -382,7 +382,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        });
 
 		WM_gizmo_target_property_def_func(
-		        man->rotate_c, "offset",
+		        ggd->rotate_c, "offset",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_spin_prop_axis_angle_get,
 		            .value_set_fn = gizmo_spin_prop_axis_angle_set,
@@ -391,7 +391,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        });
 
 		WM_gizmo_target_property_def_func(
-		        man->angle_z, "offset",
+		        ggd->angle_z, "offset",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_spin_prop_angle_get,
 		            .value_set_fn = gizmo_spin_prop_angle_set,
@@ -405,11 +405,11 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void gizmo_mesh_spin_draw_prepare(
         const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	GizmoSpinGroup *man = gzgroup->customdata;
-	if (man->data.op->next) {
-		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
+	GizmoSpinGroup *ggd = gzgroup->customdata;
+	if (ggd->data.op->next) {
+		ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
 	}
-	gizmo_mesh_spin_update_from_op(man);
+	gizmo_mesh_spin_update_from_op(ggd);
 }
 
 static void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)

@@ -140,21 +140,21 @@ typedef struct GizmoPlacementGroup {
  * This is needed because changing the RNA doesn't cause a redo
  * and we're not using operator UI which does just this.
  */
-static void gizmo_placement_exec(GizmoPlacementGroup *man)
+static void gizmo_placement_exec(GizmoPlacementGroup *ggd)
 {
-	wmOperator *op = man->data.op;
-	if (op == WM_operator_last_redo((bContext *)man->data.context)) {
-		ED_undo_operator_repeat((bContext *)man->data.context, op);
+	wmOperator *op = ggd->data.op;
+	if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
+		ED_undo_operator_repeat((bContext *)ggd->data.context, op);
 	}
 }
 
-static void gizmo_mesh_placement_update_from_op(GizmoPlacementGroup *man)
+static void gizmo_mesh_placement_update_from_op(GizmoPlacementGroup *ggd)
 {
-	wmOperator *op = man->data.op;
+	wmOperator *op = ggd->data.op;
 	UNUSED_VARS(op);
 	/* For now don't read back from the operator. */
 #if 0
-	RNA_property_float_get_array(op->ptr, man->data.prop_matrix, &man->cage->matrix_offset[0][0]);
+	RNA_property_float_get_array(op->ptr, ggd->data.prop_matrix, &ggd->cage->matrix_offset[0][0]);
 #endif
 }
 
@@ -163,15 +163,15 @@ static void gizmo_placement_prop_matrix_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoPlacementGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoPlacementGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 	BLI_assert(gz_prop->type->array_length == 16);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
-	if (value_p != man->cage->matrix_offset) {
-		mul_m4_m4m4(value_p, man->cage->matrix_basis, man->cage->matrix_offset);
-		RNA_property_float_get_array(op->ptr, man->data.prop_matrix, value);
+	if (value_p != ggd->cage->matrix_offset) {
+		mul_m4_m4m4(value_p, ggd->cage->matrix_basis, ggd->cage->matrix_offset);
+		RNA_property_float_get_array(op->ptr, ggd->data.prop_matrix, value);
 	}
 }
 
@@ -179,22 +179,22 @@ static void gizmo_placement_prop_matrix_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value)
 {
-	GizmoPlacementGroup *man = gz->parent_gzgroup->customdata;
-	wmOperator *op = man->data.op;
+	GizmoPlacementGroup *ggd = gz->parent_gzgroup->customdata;
+	wmOperator *op = ggd->data.op;
 
 	BLI_assert(gz_prop->type->array_length == 16);
 	UNUSED_VARS_NDEBUG(gz_prop);
 
 	float mat[4][4];
-	mul_m4_m4m4(mat, man->cage->matrix_basis, value);
+	mul_m4_m4m4(mat, ggd->cage->matrix_basis, value);
 
 	if (is_negative_m4(mat)) {
 		negate_mat3_m4(mat);
 	}
 
-	RNA_property_float_set_array(op->ptr, man->data.prop_matrix, &mat[0][0]);
+	RNA_property_float_set_array(op->ptr, ggd->data.prop_matrix, &mat[0][0]);
 
-	gizmo_placement_exec(man);
+	gizmo_placement_exec(ggd);
 }
 
 static bool gizmo_mesh_placement_poll(const bContext *C, wmGizmoGroupType *gzgt)
@@ -210,11 +210,11 @@ static bool gizmo_mesh_placement_poll(const bContext *C, wmGizmoGroupType *gzgt)
 static void gizmo_mesh_placement_modal_from_setup(
         const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoPlacementGroup *man = gzgroup->customdata;
+	GizmoPlacementGroup *ggd = gzgroup->customdata;
 
 	/* Initial size. */
 	{
-		wmGizmo *gz = man->cage;
+		wmGizmo *gz = ggd->cage;
 		zero_m4(gz->matrix_offset);
 
 		/* TODO: support zero scaled matrix in 'GIZMO_GT_cage_3d'. */
@@ -228,7 +228,7 @@ static void gizmo_mesh_placement_modal_from_setup(
 	{
 		wmWindow *win = CTX_wm_window(C);
 		ARegion *ar = CTX_wm_region(C);
-		wmGizmo *gz = man->cage;
+		wmGizmo *gz = ggd->cage;
 
 		{
 			float mat3[3][3];
@@ -246,7 +246,7 @@ static void gizmo_mesh_placement_modal_from_setup(
 		if (1) {
 			wmGizmoMap *gzmap = gzgroup->parent_gzmap;
 			WM_gizmo_modal_set_from_setup(
-			        gzmap, (bContext *)C, man->cage, ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
+			        gzmap, (bContext *)C, ggd->cage, ED_GIZMO_CAGE3D_PART_SCALE_MAX_X_MAX_Y_MAX_Z, win->eventstate);
 		}
 	}
 }
@@ -259,32 +259,32 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		return;
 	}
 
-	struct GizmoPlacementGroup *man = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
-	gzgroup->customdata = man;
+	struct GizmoPlacementGroup *ggd = MEM_callocN(sizeof(GizmoPlacementGroup), __func__);
+	gzgroup->customdata = ggd;
 
 	const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_3d", true);
 
-	man->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
+	ggd->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
 
-	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, man->cage->color);
+	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->cage->color);
 
-	RNA_enum_set(man->cage->ptr, "transform",
+	RNA_enum_set(ggd->cage->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE_SIGNED);
 
-	WM_gizmo_set_flag(man->cage, WM_GIZMO_DRAW_VALUE, true);
+	WM_gizmo_set_flag(ggd->cage, WM_GIZMO_DRAW_VALUE, true);
 
-	man->data.context = (bContext *)C;
-	man->data.op = op;
-	man->data.prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
+	ggd->data.context = (bContext *)C;
+	ggd->data.op = op;
+	ggd->data.prop_matrix = RNA_struct_find_property(op->ptr, "matrix");
 
-	gizmo_mesh_placement_update_from_op(man);
+	gizmo_mesh_placement_update_from_op(ggd);
 
 	/* Setup property callbacks */
 	{
 		WM_gizmo_target_property_def_func(
-		        man->cage, "matrix",
+		        ggd->cage, "matrix",
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_placement_prop_matrix_get,
 		            .value_set_fn = gizmo_placement_prop_matrix_set,
@@ -299,11 +299,11 @@ static void gizmo_mesh_placement_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void gizmo_mesh_placement_draw_prepare(
         const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	GizmoPlacementGroup *man = gzgroup->customdata;
-	if (man->data.op->next) {
-		man->data.op = WM_operator_last_redo((bContext *)man->data.context);
+	GizmoPlacementGroup *ggd = gzgroup->customdata;
+	if (ggd->data.op->next) {
+		ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
 	}
-	gizmo_mesh_placement_update_from_op(man);
+	gizmo_mesh_placement_update_from_op(ggd);
 }
 
 static void MESH_GGT_add_bounds(struct wmGizmoGroupType *gzgt)
@@ -385,8 +385,8 @@ static int add_primitive_cube_gizmo_invoke(bContext *C, wmOperator *op, const wm
 			wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_add_bounds", false);
 			wmGizmoGroup *gzgroup = WM_gizmomap_group_find_ptr(gzmap, gzgt);
 			if (gzgroup != NULL) {
-				GizmoPlacementGroup *man = gzgroup->customdata;
-				man->data.op = op;
+				GizmoPlacementGroup *ggd = gzgroup->customdata;
+				ggd->data.op = op;
 				gizmo_mesh_placement_modal_from_setup(C, gzgroup);
 			}
 			else {

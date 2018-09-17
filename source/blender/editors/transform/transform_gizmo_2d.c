@@ -86,21 +86,21 @@ typedef struct GizmoGroup2D {
 		wmGizmo *axis; \
 		int axis_idx; \
 		for (axis_idx = 0; axis_idx < MAN2D_AXIS_LAST; axis_idx++) { \
-			axis = gizmo2d_get_axis_from_index(man, axis_idx);
+			axis = gizmo2d_get_axis_from_index(ggd, axis_idx);
 
 #define MAN2D_ITER_AXES_END \
 		} \
 	} ((void)0)
 
-static wmGizmo *gizmo2d_get_axis_from_index(const GizmoGroup2D *man, const short axis_idx)
+static wmGizmo *gizmo2d_get_axis_from_index(const GizmoGroup2D *ggd, const short axis_idx)
 {
 	BLI_assert(IN_RANGE_INCL(axis_idx, (float)MAN2D_AXIS_TRANS_X, (float)MAN2D_AXIS_TRANS_Y));
 
 	switch (axis_idx) {
 		case MAN2D_AXIS_TRANS_X:
-			return man->translate_x;
+			return ggd->translate_x;
 		case MAN2D_AXIS_TRANS_Y:
-			return man->translate_y;
+			return ggd->translate_y;
 	}
 
 	return NULL;
@@ -133,18 +133,18 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_2d", true);
 	const wmGizmoType *gzt_cage = WM_gizmotype_find("GIZMO_GT_cage_2d", true);
 
-	GizmoGroup2D *man = MEM_callocN(sizeof(GizmoGroup2D), __func__);
+	GizmoGroup2D *ggd = MEM_callocN(sizeof(GizmoGroup2D), __func__);
 
-	man->translate_x = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-	man->translate_y = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
-	man->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
+	ggd->translate_x = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	ggd->translate_y = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+	ggd->cage = WM_gizmo_new_ptr(gzt_cage, gzgroup, NULL);
 
-	RNA_enum_set(man->cage->ptr, "transform",
+	RNA_enum_set(ggd->cage->ptr, "transform",
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_TRANSLATE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_SCALE |
 	             ED_GIZMO_CAGE2D_XFORM_FLAG_ROTATE);
 
-	return man;
+	return ggd;
 }
 
 /**
@@ -200,8 +200,8 @@ static int gizmo2d_modal(
 void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	wmOperatorType *ot_translate = WM_operatortype_find("TRANSFORM_OT_translate", true);
-	GizmoGroup2D *man = gizmogroup2d_init(gzgroup);
-	gzgroup->customdata = man;
+	GizmoGroup2D *ggd = gizmogroup2d_init(gzgroup);
+	gzgroup->customdata = ggd;
 
 	MAN2D_ITER_AXES_BEGIN(axis, axis_idx)
 	{
@@ -237,86 +237,86 @@ void ED_widgetgroup_gizmo2d_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgro
 		PointerRNA *ptr;
 
 		/* assign operator */
-		ptr = WM_gizmo_operator_set(man->cage, 0, ot_translate, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, 0, ot_translate, NULL);
 		RNA_boolean_set(ptr, "release_confirm", 1);
 
 		bool constraint_x[3] = {1, 0, 0};
 		bool constraint_y[3] = {0, 1, 0};
 
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X, ot_resize, NULL);
 		PropertyRNA *prop_release_confirm = RNA_struct_find_property(ptr, "release_confirm");
 		PropertyRNA *prop_constraint_axis = RNA_struct_find_property(ptr, "constraint_axis");
 		RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint_x);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X, ot_resize, NULL);
 		RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint_x);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y, ot_resize, NULL);
 		RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint_y);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y, ot_resize, NULL);
 		RNA_property_boolean_set_array(ptr, prop_constraint_axis, constraint_y);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
 
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y, ot_resize, NULL);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y, ot_resize, NULL);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y, ot_resize, NULL);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y, ot_resize, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y, ot_resize, NULL);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
-		ptr = WM_gizmo_operator_set(man->cage, ED_GIZMO_CAGE2D_PART_ROTATE, ot_rotate, NULL);
+		ptr = WM_gizmo_operator_set(ggd->cage, ED_GIZMO_CAGE2D_PART_ROTATE, ot_rotate, NULL);
 		RNA_property_boolean_set(ptr, prop_release_confirm, true);
 	}
 }
 
 void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
-	GizmoGroup2D *man = gzgroup->customdata;
+	GizmoGroup2D *ggd = gzgroup->customdata;
 	float origin[3];
-	gizmo2d_calc_bounds(C, origin, man->min, man->max);
-	copy_v2_v2(man->origin, origin);
-	bool show_cage = !equals_v2v2(man->min, man->max);
+	gizmo2d_calc_bounds(C, origin, ggd->min, ggd->max);
+	copy_v2_v2(ggd->origin, origin);
+	bool show_cage = !equals_v2v2(ggd->min, ggd->max);
 
 	if (show_cage) {
-		man->cage->flag &= ~WM_GIZMO_HIDDEN;
-		man->translate_x->flag |= WM_GIZMO_HIDDEN;
-		man->translate_y->flag |= WM_GIZMO_HIDDEN;
+		ggd->cage->flag &= ~WM_GIZMO_HIDDEN;
+		ggd->translate_x->flag |= WM_GIZMO_HIDDEN;
+		ggd->translate_y->flag |= WM_GIZMO_HIDDEN;
 	}
 	else {
-		man->cage->flag |= WM_GIZMO_HIDDEN;
-		man->translate_x->flag &= ~WM_GIZMO_HIDDEN;
-		man->translate_y->flag &= ~WM_GIZMO_HIDDEN;
+		ggd->cage->flag |= WM_GIZMO_HIDDEN;
+		ggd->translate_x->flag &= ~WM_GIZMO_HIDDEN;
+		ggd->translate_y->flag &= ~WM_GIZMO_HIDDEN;
 	}
 
 	if (show_cage) {
 		wmGizmoOpElem *mpop;
 		float mid[2];
-		const float *min = man->min;
-		const float *max = man->max;
+		const float *min = ggd->min;
+		const float *max = ggd->max;
 		mid_v2_v2v2(mid, min, max);
 
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X);
 		PropertyRNA *prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], mid[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], mid[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], min[1], 0.0f});
 
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], min[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], min[1], 0.0f});
 
-		mpop = WM_gizmo_operator_get(man->cage, ED_GIZMO_CAGE2D_PART_ROTATE);
+		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_ROTATE);
 		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], mid[1], 0.0f});
 	}
 }
@@ -324,9 +324,9 @@ void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	ARegion *ar = CTX_wm_region(C);
-	GizmoGroup2D *man = gzgroup->customdata;
-	float origin[3] = {UNPACK2(man->origin), 0.0f};
-	float origin_aa[3] = {UNPACK2(man->origin), 0.0f};
+	GizmoGroup2D *ggd = gzgroup->customdata;
+	float origin[3] = {UNPACK2(ggd->origin), 0.0f};
+	float origin_aa[3] = {UNPACK2(ggd->origin), 0.0f};
 
 	gizmo2d_origin_to_region(ar, origin);
 
@@ -336,10 +336,10 @@ void ED_widgetgroup_gizmo2d_draw_prepare(const bContext *C, wmGizmoGroup *gzgrou
 	}
 	MAN2D_ITER_AXES_END;
 
-	UI_view2d_view_to_region_m4(&ar->v2d, man->cage->matrix_space);
-	WM_gizmo_set_matrix_offset_location(man->cage, origin_aa);
-	man->cage->matrix_offset[0][0] = (man->max[0] - man->min[0]);
-	man->cage->matrix_offset[1][1] = (man->max[1] - man->min[1]);
+	UI_view2d_view_to_region_m4(&ar->v2d, ggd->cage->matrix_space);
+	WM_gizmo_set_matrix_offset_location(ggd->cage, origin_aa);
+	ggd->cage->matrix_offset[0][0] = (ggd->max[0] - ggd->min[0]);
+	ggd->cage->matrix_offset[1][1] = (ggd->max[1] - ggd->min[1]);
 }
 
 /* TODO (Julian)
