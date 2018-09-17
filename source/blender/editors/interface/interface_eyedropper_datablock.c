@@ -190,7 +190,10 @@ static void datadropper_id_sample_pt(bContext *C, DataDropper *ddr, int mx, int 
 						}
 					}
 
-					if (id) {
+					PointerRNA idptr;
+					RNA_id_pointer_create(id, &idptr);
+
+					if (id && RNA_property_pointer_poll(&ddr->ptr, ddr->prop, &idptr)) {
 						BLI_snprintf(ddr->name, sizeof(ddr->name), "%s: %s",
 						             ddr->idcode_name, id->name + 2);
 						*r_id = id;
