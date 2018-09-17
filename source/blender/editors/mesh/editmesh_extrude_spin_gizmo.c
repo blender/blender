@@ -44,10 +44,10 @@
 #include "ED_undo.h"
 
 /* -------------------------------------------------------------------- */
-/** \name Spin Gizmo
+/** \name Spin Redo Gizmo
  * \{ */
 
-typedef struct GizmoSpinGroup {
+typedef struct GizmoGroupData_SpinRedo {
 	/* Arrow to change plane depth. */
 	struct wmGizmo *translate_z;
 	/* Translate XYZ */
@@ -69,14 +69,14 @@ typedef struct GizmoSpinGroup {
 		float rotate_axis[3];
 		float rotate_up[3];
 	} data;
-} GizmoSpinGroup;
+} GizmoGroupData_SpinRedo;
 
 /**
  * XXX. calling redo from property updates is not great.
  * This is needed because changing the RNA doesn't cause a redo
  * and we're not using operator UI which does just this.
  */
-static void gizmo_spin_exec(GizmoSpinGroup *ggd)
+static void gizmo_spin_exec(GizmoGroupData_SpinRedo *ggd)
 {
 	wmOperator *op = ggd->data.op;
 	if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
@@ -84,7 +84,7 @@ static void gizmo_spin_exec(GizmoSpinGroup *ggd)
 	}
 }
 
-static void gizmo_mesh_spin_update_from_op(GizmoSpinGroup *ggd)
+static void gizmo_mesh_spin_update_from_op(GizmoGroupData_SpinRedo *ggd)
 {
 	wmOperator *op = ggd->data.op;
 
@@ -128,7 +128,7 @@ static void gizmo_spin_prop_depth_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
@@ -146,7 +146,7 @@ static void gizmo_spin_prop_depth_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	const float *value = value_p;
 
@@ -173,7 +173,7 @@ static void gizmo_spin_prop_translate_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
@@ -187,7 +187,7 @@ static void gizmo_spin_prop_translate_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 
 	BLI_assert(gz_prop->type->array_length == 3);
@@ -203,7 +203,7 @@ static void gizmo_spin_prop_axis_angle_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
@@ -230,7 +230,7 @@ static void gizmo_spin_prop_axis_angle_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	const float *value = value_p;
 
@@ -265,7 +265,7 @@ static void gizmo_spin_prop_angle_get(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	float *value = value_p;
 
@@ -278,7 +278,7 @@ static void gizmo_spin_prop_angle_set(
         const wmGizmo *gz, wmGizmoProperty *gz_prop,
         const void *value_p)
 {
-	GizmoSpinGroup *ggd = gz->parent_gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gz->parent_gzgroup->customdata;
 	wmOperator *op = ggd->data.op;
 	BLI_assert(gz_prop->type->array_length == 1);
 	UNUSED_VARS_NDEBUG(gz_prop);
@@ -303,7 +303,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
         const bContext *C, wmGizmoGroup *gzgroup)
 {
 	/* Start off dragging. */
-	struct GizmoSpinGroup *ggd = gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gzgroup->customdata;
 	wmWindow *win = CTX_wm_window(C);
 	wmGizmo *gz = ggd->angle_z;
 	wmGizmoMap *gzmap = gzgroup->parent_gzmap;
@@ -320,7 +320,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		return;
 	}
 
-	struct GizmoSpinGroup *ggd = MEM_callocN(sizeof(GizmoSpinGroup), __func__);
+	GizmoGroupData_SpinRedo *ggd = MEM_callocN(sizeof(*ggd), __func__);
 	gzgroup->customdata = ggd;
 
 	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
@@ -405,7 +405,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 static void gizmo_mesh_spin_draw_prepare(
         const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
-	GizmoSpinGroup *ggd = gzgroup->customdata;
+	GizmoGroupData_SpinRedo *ggd = gzgroup->customdata;
 	if (ggd->data.op->next) {
 		ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
 	}
