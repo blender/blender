@@ -502,6 +502,11 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	{
 		SmokeModifierData *smd = (SmokeModifierData *)md;
 		SmokeDomainSettings *sds = smd->domain;
+
+		if (sds == NULL) {
+			return;
+		}
+
 		/* Don't show smoke before simulation starts, this could be made an option in the future. */
 		const bool show_smoke = ((int)DEG_get_ctime(draw_ctx->depsgraph) >= sds->point_cache[0]->startframe);
 
