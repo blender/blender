@@ -412,10 +412,10 @@ static void gizmo_mesh_spin_draw_prepare(
 	gizmo_mesh_spin_update_from_op(ggd);
 }
 
-void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
+void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
 {
-	gzgt->name = "Mesh Spin";
-	gzgt->idname = "MESH_GGT_spin";
+	gzgt->name = "Mesh Spin Redo";
+	gzgt->idname = "MESH_GGT_spin_redo";
 
 	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
 

@@ -146,7 +146,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 	if (ret & OPERATOR_FINISHED) {
 		/* Setup gizmos */
 		if (v3d && ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0)) {
-			wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_spin", false);
+			wmGizmoGroupType *gzgt = WM_gizmogrouptype_find("MESH_GGT_spin_redo", false);
 			if (!WM_gizmo_group_type_ensure_ptr(gzgt)) {
 				struct Main *bmain = CTX_data_main(C);
 				WM_gizmo_group_type_reinit_ptr(bmain, gzgt);
@@ -187,6 +187,6 @@ void MESH_OT_spin(wmOperatorType *ot)
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -1.0f, 1.0f);
 
 #ifdef USE_GIZMO
-	WM_gizmogrouptype_append(MESH_GGT_spin);
+	WM_gizmogrouptype_append(MESH_GGT_spin_redo);
 #endif
 }
