@@ -3160,13 +3160,6 @@ class VIEW3D_MT_edit_gpencil_delete(Menu):
         layout.separator()
 
         layout.operator("gpencil.active_frames_delete_all")
-
-        layout.separator()
-
-        layout.operator("gpencil.frame_clean_fill", text="Clean Boundary Strokes").mode = 'ACTIVE'
-        layout.operator("gpencil.frame_clean_fill", text="Clean Boundary Strokes all Frames").mode = 'ALL'
-
-
 # Edit Curve
 # draw_curve is used by VIEW3D_MT_edit_curve and VIEW3D_MT_edit_surface
 
