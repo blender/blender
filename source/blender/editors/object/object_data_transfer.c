@@ -531,7 +531,7 @@ void OBJECT_OT_data_transfer(wmOperatorType *ot)
 	ot->check = data_transfer_check;
 
 	/* Flags.*/
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* Properties.*/
 	prop = RNA_def_boolean(ot->srna, "use_reverse_transfer", false, "Reverse Transfer",
@@ -694,7 +694,7 @@ void OBJECT_OT_datalayout_transfer(wmOperatorType *ot)
 	ot->check = data_transfer_check;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_USE_EVAL_DATA;
 
 	/* Properties.*/
 	edit_modifier_properties(ot);
