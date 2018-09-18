@@ -1051,6 +1051,10 @@ static void ui_studiolight_free_function(StudioLight *sl, void *data)
 {
 	wmWindowManager *wm = data;
 
+	/* Happens if job was canceled or already finished. */
+	if (wm == NULL)
+		return;
+
 	// get icons_id, get icons and kill wm jobs
 	if (sl->icon_id_radiance) {
 		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_radiance);
@@ -1064,6 +1068,14 @@ static void ui_studiolight_free_function(StudioLight *sl, void *data)
 	if (sl->icon_id_matcap_flipped) {
 		ui_studiolight_kill_icon_preview_job(wm, sl->icon_id_matcap_flipped);
 	}
+}
+
+static void ui_studiolight_icon_job_end(void *customdata)
+{
+	Icon **tmp = (Icon **)customdata;
+	Icon *icon = *tmp;
+	StudioLight *sl = icon->obj;
+	BKE_studiolight_set_free_function(sl, &ui_studiolight_free_function, NULL);
 }
 
 void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool big)
@@ -1113,7 +1125,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 							*tmp = icon;
 							WM_jobs_customdata_set(wm_job, tmp, MEM_freeN);
 							WM_jobs_timer(wm_job, 0.01, 0, NC_WINDOW);
-							WM_jobs_callbacks(wm_job, ui_studiolight_icon_job_exec, NULL, NULL, NULL);
+							WM_jobs_callbacks(wm_job, ui_studiolight_icon_job_exec, NULL, NULL, ui_studiolight_icon_job_end);
 							WM_jobs_start(CTX_wm_manager(C), wm_job);
 						}
 					}
