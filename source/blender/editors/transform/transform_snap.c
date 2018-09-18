@@ -53,6 +53,7 @@
 #include "GPU_state.h"
 
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"  /* for duplis */
 #include "BKE_context.h"
@@ -991,7 +992,11 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 
 			UI_view2d_region_to_view(&t->ar->v2d, t->mval[0], t->mval[1], &co[0], &co[1]);
 
-			if (ED_uvedit_nearest_uv(t->scene, TRANS_DATA_CONTAINER_FIRST_EVIL(t)->obedit, ima, co, t->tsnap.snapPoint)) {
+			uint objects_len = 0;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+			                       t->view_layer, &objects_len);
+
+			if (ED_uvedit_nearest_uv_multi(t->scene, ima, objects, objects_len, co, t->tsnap.snapPoint)) {
 				t->tsnap.snapPoint[0] *= t->aspect[0];
 				t->tsnap.snapPoint[1] *= t->aspect[1];
 
@@ -1000,6 +1005,7 @@ static void CalcSnapGeometry(TransInfo *t, float *UNUSED(vec))
 			else {
 				t->tsnap.status &= ~POINT_INIT;
 			}
+			MEM_freeN(objects);
 		}
 	}
 	else if (t->spacetype == SPACE_NODE) {

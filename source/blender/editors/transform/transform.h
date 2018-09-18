@@ -904,8 +904,6 @@ bool checkUseAxisMatrix(TransInfo *t);
 
 /* Temp macros. */
 
-/* This is to be replaced, just to get things compiling early on. */
-#define TRANS_DATA_CONTAINER_FIRST_EVIL(t) (&(t)->data_container[0])
 #define TRANS_DATA_CONTAINER_FIRST_OK(t) (&(t)->data_container[0])
 /* For cases we _know_ there is only one handle. */
 #define TRANS_DATA_CONTAINER_FIRST_SINGLE(t) (BLI_assert((t)->data_container_len == 1), (&(t)->data_container[0]))

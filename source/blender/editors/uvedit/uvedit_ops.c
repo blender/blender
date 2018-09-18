@@ -945,6 +945,30 @@ bool ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float 
 	return found;
 }
 
+bool ED_uvedit_nearest_uv_multi(
+        struct Scene *scene, struct Image *ima, struct Object **objects_edit,
+        const uint objects_len, const float co[2], float r_uv[2])
+{
+	bool found = false;
+
+	float mindist = FLT_MAX;
+	float uv_nearest[2];
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects_edit[ob_index];
+
+		if (ED_uvedit_nearest_uv(scene, obedit, ima, co, uv_nearest)) {
+			float dist = len_manhattan_v2v2(co, uv_nearest);
+			if (dist < mindist) {
+				mindist = dist;
+				copy_v2_v2(r_uv, uv_nearest);
+				found = true;
+			}
+		}
+	}
+
+	return found;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
