@@ -75,13 +75,17 @@ static int gizmo_dial_modal(
         eWM_GizmoFlagTweak tweak_flag);
 
 typedef struct DialInteraction {
-	float init_mval[2];
+	struct {
+		float mval[2];
+		/* only for when using properties */
+		float prop_angle;
+	} init;
 
-	/* only for when using properties */
-	float init_prop_angle;
+	struct {
+		/* Cache the last angle to detect rotations bigger than -/+ PI. */
+		float angle;
+	} prev;
 
-	/* cache the last angle to detect rotations bigger than -/+ PI */
-	float last_angle;
 	/* number of full rotations */
 	int rotations;
 
@@ -223,7 +227,7 @@ static void dial_ghostarc_get_angles(
 
 	plane_from_point_normal_v3(dial_plane, gz->matrix_basis[3], axis_vec);
 
-	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, inter->init_mval, ray_co, ray_no, false) ||
+	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, inter->init.mval, ray_co, ray_no, false) ||
 	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
 	{
 		goto fail;
@@ -253,15 +257,15 @@ static void dial_ghostarc_get_angles(
 	/* Change of sign, we passed the 180 degree threshold. This means we need to add a turn
 	 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2.
 	 * Logic taken from BLI_dial_angle */
-	if ((delta * inter->last_angle < 0.0f) &&
-	    (fabsf(inter->last_angle) > (float)M_PI_2))
+	if ((delta * inter->prev.angle < 0.0f) &&
+	    (fabsf(inter->prev.angle) > (float)M_PI_2))
 	{
-		if (inter->last_angle < 0.0f)
+		if (inter->prev.angle < 0.0f)
 			inter->rotations--;
 		else
 			inter->rotations++;
 	}
-	inter->last_angle = delta;
+	inter->prev.angle = delta;
 
 	*r_start = start;
 	*r_delta = fmod(delta + 2.0f * (float)M_PI * inter->rotations, 2 * (float)M_PI);
@@ -419,7 +423,7 @@ static int gizmo_dial_modal(
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init_prop_angle + angle_delta);
+		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init.prop_angle + angle_delta);
 	}
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -438,12 +442,12 @@ static int gizmo_dial_invoke(
 {
 	DialInteraction *inter = MEM_callocN(sizeof(DialInteraction), __func__);
 
-	inter->init_mval[0] = event->mval[0];
-	inter->init_mval[1] = event->mval[1];
+	inter->init.mval[0] = event->mval[0];
+	inter->init.mval[1] = event->mval[1];
 
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		inter->init_prop_angle = WM_gizmo_target_property_float_get(gz, gz_prop);
+		inter->init.prop_angle = WM_gizmo_target_property_float_get(gz, gz_prop);
 	}
 
 	gz->interaction_data = inter;
