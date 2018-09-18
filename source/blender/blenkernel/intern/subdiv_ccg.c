@@ -607,17 +607,12 @@ static void average_grid_element(SubdivCCG *subdiv_ccg,
 	}
 }
 
-static void subdiv_ccg_average_inner_grids_task(
-        void *__restrict userdata_v,
-        const int face_index,
-        const ParallelRangeTLS *__restrict UNUSED(tls_v))
+static void subdiv_ccg_average_inner_face_grids(
+        SubdivCCG *subdiv_ccg,
+        CCGKey *key,
+        SubdivCCGFace *face)
 {
-	AverageInnerGridsData *data = userdata_v;
-	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
-	CCGKey *key = data->key;
 	CCGElem **grids = subdiv_ccg->grids;
-	SubdivCCGFace *faces = subdiv_ccg->faces;
-	SubdivCCGFace *face = &faces[face_index];
 	const int num_face_grids = face->num_grids;
 	const int grid_size = subdiv_ccg->grid_size;
 	CCGElem *prev_grid = grids[face->start_grid_index + num_face_grids - 1];
@@ -631,6 +626,20 @@ static void subdiv_ccg_average_inner_grids_task(
 		}
 		prev_grid = grid;
 	}
+
+}
+
+static void subdiv_ccg_average_inner_grids_task(
+        void *__restrict userdata_v,
+        const int face_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls_v))
+{
+	AverageInnerGridsData *data = userdata_v;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	SubdivCCGFace *faces = subdiv_ccg->faces;
+	SubdivCCGFace *face = &faces[face_index];
+	subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
 }
 
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
