@@ -2313,12 +2313,15 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 
 	w = ui_text_icon_width(layout, name, icon, 0);
 
-	if (icon && name[0])
-		but = uiDefIconTextBut(block, UI_BTYPE_LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "AAAAAAAa");
-	else if (icon)
-		but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "BBBBBBBBBBBB");
-	else
-		but = uiDefBut(block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "CCCCCCCCCCCCC");
+	if (icon && name[0]) {
+		but = uiDefIconTextBut(block, UI_BTYPE_LABEL, 0, icon, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, NULL);
+	}
+	else if (icon) {
+		but = uiDefIconBut(block, UI_BTYPE_LABEL, 0, icon, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, NULL);
+	}
+	else {
+		but = uiDefBut(block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, NULL);
+	}
 
 	/* to compensate for string size padding in ui_text_icon_width,
 	 * make text aligned right if the layout is aligned right.
