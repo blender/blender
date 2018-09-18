@@ -133,7 +133,7 @@ class MATERIAL_PT_gpencil_slots(Panel):
 
                 sub = col.column(align=True)
                 sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-                sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_OFF', text="").affect_visibility = True
+                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
 
         row = layout.row()
 
