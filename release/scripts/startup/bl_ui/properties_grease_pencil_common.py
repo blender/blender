@@ -737,10 +737,14 @@ class GreasePencilOnionPanel:
         col.prop(gp, "onion_mode")
         col.prop(gp, "onion_factor", text="Opacity", slider=True)
 
-        if gp.onion_mode in ('ABSOLUTE', 'RELATIVE'):
+        if gp.onion_mode == 'ABSOLUTE':
             col = layout.column(align=True)
             col.prop(gp, "ghost_before_range", text="Frames Before")
-            col.prop(gp, "ghost_after_range", text="After")
+            col.prop(gp, "ghost_after_range", text="Frames After")
+        if gp.onion_mode == 'RELATIVE':
+            col = layout.column(align=True)
+            col.prop(gp, "ghost_before_range", text="Keyframes Before")
+            col.prop(gp, "ghost_after_range", text="Keyframes After")
 
         layout.prop(gp, "use_ghost_custom_colors", text="Use Custom Colors")
 
