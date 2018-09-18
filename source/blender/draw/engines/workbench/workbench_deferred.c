@@ -783,8 +783,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 			if (geom_shadow) {
 				if (is_sculpt_mode) {
 					/* Currently unsupported in sculpt mode. We could revert to the slow
-					 * method in this case but i'm not sure if it's a good idea given that
-					 * sculped meshes are heavy to begin with. */
+					 * method in this case but I'm not sure if it's a good idea given that
+					 * sculpted meshes are heavy to begin with. */
 					// DRW_shgroup_call_sculpt_add(wpd->shadow_shgrp, ob, ob->obmat);
 				}
 				else {

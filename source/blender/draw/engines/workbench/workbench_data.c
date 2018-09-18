@@ -70,7 +70,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
 
 		/* XXX: Really quick conversion to avoid washed out background.
-		 * Needs to be adressed properly (color managed using ocio). */
+		 * Needs to be addressed properly (color managed using ocio). */
 		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
 		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
 	}

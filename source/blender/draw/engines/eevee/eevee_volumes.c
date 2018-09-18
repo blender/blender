@@ -370,16 +370,16 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		 *
 		 * - Light Scattering : the volume properties then are sampled
 		 *   and light scattering is evaluated for each cell of the
-		 *   volume texture. Temporal supersampling (if enabled) occurs here.
+		 *   volume texture. Temporal super-sampling (if enabled) occurs here.
 		 *
 		 * - Volume Integration : the scattered light and extinction is
-		 *   integrated (accumulated) along the viewrays. The result is stored
+		 *   integrated (accumulated) along the view-rays. The result is stored
 		 *   for every cell in another texture.
 		 *
-		 * - Fullscreen Resolve : From the previous stage, we get two
-		 *   3D textures that contains integrated scatered light and extinction
+		 * - Full-screen Resolve : From the previous stage, we get two
+		 *   3D textures that contains integrated scattered light and extinction
 		 *   for "every" positions in the frustum. We only need to sample
-		 *   them and blend the scene color with thoses factors. This also
+		 *   them and blend the scene color with those factors. This also
 		 *   work for alpha blended materials.
 		 **/
 

@@ -19,7 +19,7 @@
  */
 
 /** \file select_utils.c
- *  \ingroup editors
+ *  \ingroup edutil
  */
 
 #include "BLI_utildefines.h"

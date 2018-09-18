@@ -37,6 +37,6 @@ bool ED_gizmo_poll_or_unlink_delayed_from_operator(
 
 /** Use this as poll function directly for: #wmGizmoGroupType.poll */
 bool ED_gizmo_poll_or_unlink_delayed_from_tool(
-        const bContext *C, struct wmGizmoGroupType *gzgt);
+        const struct bContext *C, struct wmGizmoGroupType *gzgt);
 
 #endif  /* __ED_GIZMO_UTILS_H__ */
