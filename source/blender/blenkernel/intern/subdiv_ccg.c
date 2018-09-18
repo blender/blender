@@ -35,6 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_bits.h"
+#include "BLI_math_vector.h"
 #include "BLI_task.h"
 
 #include "BKE_DerivedMesh.h"
@@ -167,8 +168,11 @@ static void subdiv_ccg_eval_grid_element(
         const float u, const float v,
         unsigned char *element)
 {
-	/* TODO(sergey): Support displacement. */
-	if (data->subdiv_ccg->has_normal) {
+	if (data->subdiv->displacement_evaluator != NULL) {
+		BKE_subdiv_eval_final_point(
+		        data->subdiv, ptex_face_index, u, v, (float *)element);
+	}
+	else if (data->subdiv_ccg->has_normal) {
 		BKE_subdiv_eval_limit_point_and_normal(
 		        data->subdiv, ptex_face_index, u, v,
 		        (float *)element,
@@ -299,18 +303,24 @@ static bool subdiv_ccg_evaluate_grids(
 	data.subdiv = subdiv;
 	data.coarse_mesh = coarse_mesh;
 	data.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
-	/* Threaded grids evaluation/ */
+	/* Threaded grids evaluation. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
 	BLI_task_parallel_range(0, coarse_mesh->totpoly,
 	                        &data,
 	                        subdiv_ccg_eval_grids_task,
 	                        &parallel_range_settings);
+	/* If displacement is used, need to calculate normals after all final
+	 * coordinates are known.
+	 */
+	if (subdiv->displacement_evaluator != NULL) {
+		BKE_subdiv_ccg_recalc_normals(subdiv_ccg);
+	}
 	return true;
 }
 
 /* =============================================================================
- * Public API.
+ * Creation / evaluation.
  */
 
 SubdivCCG *BKE_subdiv_to_ccg(
@@ -389,4 +399,154 @@ void BKE_subdiv_ccg_key(CCGKey *key, const SubdivCCG *subdiv_ccg, int level)
 void BKE_subdiv_ccg_key_top_level(CCGKey *key, const SubdivCCG *subdiv_ccg)
 {
 	BKE_subdiv_ccg_key(key, subdiv_ccg, subdiv_ccg->level);
+}
+
+/* =============================================================================
+ * Normals.
+ */
+
+typedef struct RecalcInnerNormalsData {
+	SubdivCCG *subdiv_ccg;
+	CCGKey *key;
+} RecalcInnerNormalsData;
+
+typedef struct RecalcInnerNormalsTLSData {
+	float (*face_normals)[3];
+} RecalcInnerNormalsTLSData;
+
+/* Evaluate high-res face normals, for faces which corresponds to grid elements
+ *
+ *   {(x, y), {x + 1, y}, {x + 1, y + 1}, {x, y + 1}}
+ *
+ * The result is stored in normals storage from TLS.
+ */
+static void subdiv_ccg_recalc_inner_face_normals(
+        RecalcInnerNormalsData *data,
+		RecalcInnerNormalsTLSData *tls,
+        const int grid_index)
+{
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	const int grid_size = subdiv_ccg->grid_size;
+	const int grid_size_1 = grid_size - 1;
+	CCGElem *grid = subdiv_ccg->grids[grid_index];
+	if (tls->face_normals == NULL) {
+		tls->face_normals = MEM_malloc_arrayN(
+		        grid_size_1 * grid_size_1,
+		        3 * sizeof(float),
+		        "CCG TLS normals");
+	}
+	for (int y = 0; y < grid_size -1; y++) {
+		for (int x = 0; x < grid_size - 1; x++) {
+			CCGElem *grid_elements[4] = {
+				CCG_grid_elem(key, grid, x, y + 1),
+				CCG_grid_elem(key, grid, x + 1, y + 1),
+				CCG_grid_elem(key, grid, x + 1, y),
+				CCG_grid_elem(key, grid, x, y)
+			};
+			float *co[4] = {
+			    CCG_elem_co(key, grid_elements[0]),
+			    CCG_elem_co(key, grid_elements[1]),
+			    CCG_elem_co(key, grid_elements[2]),
+			    CCG_elem_co(key, grid_elements[3])
+			};
+			const int face_index = y * grid_size_1 + x;
+			float *face_normal = tls->face_normals[face_index];
+			normal_quad_v3(face_normal, co[0], co[1], co[2], co[3]);
+		}
+	}
+}
+
+/* Average normals at every grid element, using adjacent faces normals. */
+static void subdiv_ccg_average_inner_face_normals(
+        RecalcInnerNormalsData *data,
+        RecalcInnerNormalsTLSData *tls,
+        const int grid_index)
+{
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	const int grid_size = subdiv_ccg->grid_size;
+	const int grid_size_1 = grid_size - 1;
+	CCGElem *grid = subdiv_ccg->grids[grid_index];
+	const float (*face_normals)[3] = tls->face_normals;
+	for (int y = 0; y < grid_size; y++) {
+		for (int x = 0; x < grid_size; x++) {
+			float normal_acc[3] = {0.0f, 0.0f, 0.0f};
+			int counter = 0;
+			/* Accumulate normals of all adjacent faces. */
+			if (x < grid_size_1 && y < grid_size_1) {
+				add_v3_v3(normal_acc, face_normals[y * grid_size_1 + x]);
+				counter++;
+			}
+			if (x >= 1) {
+				if (y < grid_size_1) {
+					add_v3_v3(normal_acc,
+					          face_normals[y * grid_size_1 + (x - 1)]);
+					counter++;
+				}
+				if (y >= 1) {
+					add_v3_v3(normal_acc,
+					          face_normals[(y - 1) * grid_size_1 + (x - 1)]);
+					counter++;
+				}
+			}
+			if (y >= 1 && x < grid_size_1) {
+				add_v3_v3(normal_acc, face_normals[(y - 1) * grid_size_1 + x]);
+				counter++;
+			}
+			/* Normalize and store. */
+			mul_v3_v3fl(CCG_grid_elem_no(key, grid, x, y),
+			            normal_acc,
+			            1.0f / (float)counter);
+		}
+	}
+}
+
+static void subdiv_ccg_recalc_inner_normal_task(
+        void *__restrict userdata_v,
+        const int grid_index,
+        const ParallelRangeTLS *__restrict tls_v)
+{
+	RecalcInnerNormalsData *data = userdata_v;
+	RecalcInnerNormalsTLSData *tls = tls_v->userdata_chunk;
+	subdiv_ccg_recalc_inner_face_normals(data, tls, grid_index);
+	subdiv_ccg_average_inner_face_normals(data, tls, grid_index);
+}
+
+static void subdiv_ccg_recalc_inner_normal_finalize(
+        void *__restrict UNUSED(userdata),
+        void *__restrict tls_v)
+{
+	RecalcInnerNormalsTLSData *tls = tls_v;
+	MEM_SAFE_FREE(tls->face_normals);
+}
+
+/* Recalculate normals which corresponds to non-boundaries elements of grids. */
+static void subdiv_ccg_recalc_inner_grid_normals(SubdivCCG *subdiv_ccg)
+{
+	CCGKey key;
+	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+	RecalcInnerNormalsData data = {
+	        .subdiv_ccg = subdiv_ccg,
+	        .key = &key};
+	RecalcInnerNormalsTLSData tls_data = {NULL};
+	ParallelRangeSettings parallel_range_settings;
+	BLI_parallel_range_settings_defaults(&parallel_range_settings);
+	parallel_range_settings.userdata_chunk = &tls_data;
+	parallel_range_settings.userdata_chunk_size = sizeof(tls_data);
+	parallel_range_settings.func_finalize =
+	        subdiv_ccg_recalc_inner_normal_finalize;
+	BLI_task_parallel_range(0, subdiv_ccg->num_grids,
+	                        &data,
+	                        subdiv_ccg_recalc_inner_normal_task,
+	                        &parallel_range_settings);
+}
+
+void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg)
+{
+	if (!subdiv_ccg->has_normal) {
+		/* Grids don't have normals, can do early output. */
+		return;
+	}
+	subdiv_ccg_recalc_inner_grid_normals(subdiv_ccg);
 }

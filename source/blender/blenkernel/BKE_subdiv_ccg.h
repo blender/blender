@@ -158,4 +158,7 @@ void BKE_subdiv_ccg_key(
 void BKE_subdiv_ccg_key_top_level(
         struct CCGKey *key, const SubdivCCG *subdiv_ccg);
 
+/* Recalculate all normals based on grid element coordinates. */
+void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
+
 #endif  /* __BKE_SUBDIV_CCG_H__ */
