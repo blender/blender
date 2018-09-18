@@ -68,6 +68,9 @@ static struct GPUGlobal {
 	GLint maxtexlayers;
 	GLint maxcubemapsize;
 	GLint maxtextures;
+	GLint maxtexturesfrag;
+	GLint maxtexturesgeom;
+	GLint maxtexturesvert;
 	GLint maxubosize;
 	GLint maxubobinds;
 	int colordepth;
@@ -104,6 +107,21 @@ int GPU_max_texture_layers(void)
 int GPU_max_textures(void)
 {
 	return GG.maxtextures;
+}
+
+int GPU_max_textures_frag(void)
+{
+	return GG.maxtexturesfrag;
+}
+
+int GPU_max_textures_geom(void)
+{
+	return GG.maxtexturesgeom;
+}
+
+int GPU_max_textures_vert(void)
+{
+	return GG.maxtexturesvert;
 }
 
 float GPU_max_texture_anisotropy(void)
@@ -144,7 +162,10 @@ void gpu_extensions_init(void)
 	 */
 	BLI_assert(GLEW_VERSION_3_3);
 
-	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &GG.maxtexturesfrag);
+	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &GG.maxtexturesvert);
+	glGetIntegerv(GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS, &GG.maxtexturesgeom);
+	glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &GG.maxtextures);
 
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &GG.maxtexsize);
 	glGetIntegerv(GL_MAX_ARRAY_TEXTURE_LAYERS, &GG.maxtexlayers);
@@ -172,9 +193,7 @@ void gpu_extensions_init(void)
 	glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_FRONT_LEFT, GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE, &b);
 	GG.colordepth = r + g + b; /* Assumes same depth for RGB. */
 
-	if (GLEW_VERSION_3_2 || GLEW_ARB_texture_multisample) {
-		glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
-	}
+	glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &GG.samples_color_texture_max);
 
 	const char *vendor = (const char *)glGetString(GL_VENDOR);
 	const char *renderer = (const char *)glGetString(GL_RENDERER);

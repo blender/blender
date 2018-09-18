@@ -185,7 +185,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 
 	/* skip a variable/function name */
 	while (*str) {
-		if (ELEM(*str, ' ', '(', ')', ',', '\t', '\n', '\r'))
+		if (ELEM(*str, ' ', '(', ')', ',', ';', '\t', '\n', '\r'))
 			break;
 		else {
 			if (token && len < max - 1) {
@@ -203,7 +203,7 @@ static char *gpu_str_skip_token(char *str, char *token, int max)
 	/* skip the next special characters:
 	 * note the missing ')' */
 	while (*str) {
-		if (ELEM(*str, ' ', '(', ',', '\t', '\n', '\r'))
+		if (ELEM(*str, ' ', '(', ',', ';', '\t', '\n', '\r'))
 			str++;
 		else
 			break;
@@ -1764,6 +1764,87 @@ GPUPass *GPU_generate_pass_new(
 	return pass;
 }
 
+static int count_active_texture_sampler(GPUShader *shader, char *source)
+{
+	char *code = source;
+	int samplers_id[64]; /* Remember this is per stage. */
+	int sampler_len = 0;
+
+	while((code = strstr(code, "uniform "))) {
+		/* Move past "uniform". */
+		code += 7;
+		/* Skip following spaces. */
+		while (*code == ' ') { code++; }
+		/* Skip "i" from potential isamplers. */
+		if (*code == 'i') { code++; }
+		/* Skip following spaces. */
+		if (gpu_str_prefix(code, "sampler")) {
+			/* Move past "uniform". */
+			code += 7;
+			/* Skip sampler type suffix. */
+			while (*code != ' ' && *code != '\0') { code++; }
+			/* Skip following spaces. */
+			while (*code == ' ') { code++; }
+
+			if (*code != '\0') {
+				char sampler_name[64];
+				code = gpu_str_skip_token(code, sampler_name, sizeof(sampler_name));
+				int id = GPU_shader_get_uniform(shader, sampler_name);
+
+				if (id == -1) {
+					continue;
+				}
+				/* Catch duplicates. */
+				bool is_duplicate = false;
+				for (int i = 0; i < sampler_len; ++i) {
+					if (samplers_id[i] == id) {
+						is_duplicate = true;
+					}
+				}
+
+				if (!is_duplicate) {
+					samplers_id[sampler_len] = id;
+					sampler_len++;
+				}
+			}
+		}
+	}
+
+	return sampler_len;
+}
+
+static bool gpu_pass_shader_validate(GPUPass *pass)
+{
+	if (pass->shader == NULL) {
+		return false;
+	}
+
+	/* NOTE: The only drawback of this method is that it will count a sampler
+	 * used in the fragment shader and only declared (but not used) in the vertex
+	 * shader as used by both. But this corner case is not happening for now. */
+	int vert_samplers_len = count_active_texture_sampler(pass->shader, pass->vertexcode);
+	int frag_samplers_len = count_active_texture_sampler(pass->shader, pass->fragmentcode);
+
+	int total_samplers_len = vert_samplers_len + frag_samplers_len;
+
+	/* Validate against opengl limit. */
+	if ((frag_samplers_len > GPU_max_textures_frag()) ||
+		(frag_samplers_len > GPU_max_textures_vert()))
+	{
+		return false;
+	}
+
+	if (pass->geometrycode) {
+		int geom_samplers_len = count_active_texture_sampler(pass->shader, pass->geometrycode);
+		total_samplers_len += geom_samplers_len;
+		if (geom_samplers_len > GPU_max_textures_geom()) {
+			return false;
+		}
+	}
+
+	return (total_samplers_len <= GPU_max_textures());
+}
+
 void GPU_pass_compile(GPUPass *pass, const char *shname)
 {
 	if (!pass->compiled) {
@@ -1774,6 +1855,16 @@ void GPU_pass_compile(GPUPass *pass, const char *shname)
 		        NULL,
 		        pass->defines,
 		        shname);
+
+		/* NOTE: Some drivers / gpu allows more active samplers than the opengl limit.
+		 * We need to make sure to count active samplers to avoid undefined behaviour. */
+		if (!gpu_pass_shader_validate(pass)) {
+			if (pass->shader != NULL) {
+				fprintf(stderr, "GPUShader: error: too many samplers in shader.\n");
+				GPU_shader_free(pass->shader);
+			}
+			pass->shader = NULL;
+		}
 		pass->compiled = true;
 	}
 }
