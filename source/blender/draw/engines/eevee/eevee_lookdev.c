@@ -109,6 +109,9 @@ void EEVEE_lookdev_cache_init(
 
 			if (world) {
 				DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
+			} else {
+				static float col[4] = {0.0f};
+				DRW_shgroup_uniform_vec3(*grp, "color", col, 1);
 			}
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
