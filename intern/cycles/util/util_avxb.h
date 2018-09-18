@@ -49,7 +49,7 @@ struct avxb
 	////////////////////////////////////////////////////////////////////////////////
 
 	__forceinline avxb( FalseTy ) : m256(_mm256_setzero_ps()) {}
-	__forceinline avxb( TrueTy  ) : m256(_mm256_castsi256_ps(_mm256_cmpeq_epi32(_mm256_setzero_si256(), _mm256_setzero_si256()))) {}
+	__forceinline avxb( TrueTy  ) : m256(_mm256_castsi256_ps(_mm256_set1_epi32(-1))) {}
 
 	////////////////////////////////////////////////////////////////////////////////
 	/// Array Access
@@ -86,7 +86,21 @@ __forceinline const avxb operator ^=( avxb& a, const avxb& b ) { return a = a ^ 
 ////////////////////////////////////////////////////////////////////////////////
 
 __forceinline const avxb operator !=( const avxb& a, const avxb& b ) { return _mm256_xor_ps(a, b); }
-__forceinline const avxb operator ==( const avxb& a, const avxb& b ) { return _mm256_castsi256_ps(_mm256_cmpeq_epi32(a, b)); }
+__forceinline const avxb operator ==( const avxb& a, const avxb& b )
+{
+#ifdef __KERNEL_AVX2__
+	return _mm256_castsi256_ps(_mm256_cmpeq_epi32(a, b));
+#else
+	__m128i a_lo = _mm_castps_si128(_mm256_extractf128_ps(a, 0));
+	__m128i a_hi = _mm_castps_si128(_mm256_extractf128_ps(a, 1));
+	__m128i b_lo = _mm_castps_si128(_mm256_extractf128_ps(b, 0));
+	__m128i b_hi = _mm_castps_si128(_mm256_extractf128_ps(b, 1));
+	__m128i c_lo = _mm_cmpeq_epi32(a_lo, b_lo);
+	__m128i c_hi = _mm_cmpeq_epi32(a_hi, b_hi);
+	__m256i result = _mm256_insertf128_si256(_mm256_castsi128_si256(c_lo), c_hi, 1);
+	return _mm256_castsi256_ps(result);
+#endif 
+}
 
 __forceinline const avxb select( const avxb& m, const avxb& t, const avxb& f ) {
 #if defined(__KERNEL_SSE41__)

@@ -214,17 +214,19 @@ __forceinline const avxf nmadd(const avxf& a, const avxf& b, const avxf& c) {
 #endif
 }
 __forceinline const avxf msub(const avxf& a, const avxf& b, const avxf& c) {
+#ifdef __KERNEL_AVX2__
 	return _mm256_fmsub_ps(a, b, c);
+#else
+	return (a*b) - c;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Comparison Operators
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef __KERNEL_AVX2__
 __forceinline const avxb operator <=(const avxf& a, const avxf& b) {
 	return _mm256_cmp_ps(a.m256, b.m256, _CMP_LE_OS);
 }
-#endif
 
 #endif
 

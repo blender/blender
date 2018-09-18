@@ -25,8 +25,10 @@ ExternalProject_Add(external_ffi
 		--enable-shared=no
 		--enable-static=yes
 		--with-pic
+		--libdir=${LIBDIR}/ffi/lib/
 	BUILD_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && make -j${MAKE_THREADS}
 	INSTALL_COMMAND ${CONFIGURE_ENV} && cd ${BUILD_DIR}/ffi/src/external_ffi/ && make install
+	PATCH_COMMAND ${PATCH_CMD} -p 0 -d ${BUILD_DIR}/ffi/src/external_ffi < ${PATCH_DIR}/ffi.diff
 	INSTALL_DIR ${LIBDIR}/ffi
 )
 
