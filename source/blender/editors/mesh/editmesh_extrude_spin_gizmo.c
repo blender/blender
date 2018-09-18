@@ -128,19 +128,33 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup);
 
+static void gizmo_mesh_spin_init_refresh_axis_orientation(
+        wmGizmoGroup *gzgroup,
+        int axis_index, const float axis_vec[3])
+{
+	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
+	wmGizmo *gz = ggd->gizmos.xyz_view[axis_index];
+	WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis_vec);
+
+	PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
+	RNA_float_set_array(ptr, "axis", axis_vec);
+}
+
+
 static void gizmo_mesh_spin_init_draw_prepare(
         const bContext *C, wmGizmoGroup *gzgroup)
 {
 	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	float viewinv_m3[3][3];
+	copy_m3_m4(viewinv_m3, rv3d->viewinv);
+
 	/* Avoid slowdown on view adjustments. */
 	if ((rv3d->rflag & RV3D_NAVIGATING) == 0) {
 		Scene *scene = CTX_data_scene(C);
 		switch (scene->orientation_type) {
 			case V3D_MANIP_VIEW:
 			{
-				float viewinv_m3[3][3];
-				copy_m3_m4(viewinv_m3, rv3d->viewinv);
 				if (!equals_m3m3(viewinv_m3, ggd->prev.viewinv_m3)) {
 					/* Take care calling refresh from draw_prepare,
 					 * this should be OK because it's only adjusting the cage orientation. */
@@ -149,6 +163,12 @@ static void gizmo_mesh_spin_init_draw_prepare(
 				break;
 			}
 		}
+	}
+
+	/* Refresh handled above when using view orientation. */
+	if (!equals_m3m3(viewinv_m3, ggd->prev.viewinv_m3)) {
+		gizmo_mesh_spin_init_refresh_axis_orientation(gzgroup, 3, rv3d->viewinv[2]);
+		copy_m3_m4(ggd->prev.viewinv_m3, rv3d->viewinv);
 	}
 }
 
@@ -170,22 +190,11 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 	float mat[3][3];
 	ED_transform_calc_orientation_from_type(C, mat);
 	for (int i = 0; i < 3; i++) {
-		wmGizmo *gz = ggd->gizmos.xyz_view[i];
-		WM_gizmo_set_matrix_rotation_from_z_axis(gz, mat[i]);
+		gizmo_mesh_spin_init_refresh_axis_orientation(gzgroup, i, mat[i]);
 	}
 
 	{
-		wmGizmo *gz = ggd->gizmos.xyz_view[3];
-		WM_gizmo_set_matrix_rotation_from_z_axis(gz, rv3d->viewinv[2]);
-	}
-
-	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
-		wmGizmo *gz = ggd->gizmos.xyz_view[i];
-		PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
-		PropertyRNA *prop;
-		if ((prop = RNA_struct_find_property(ptr, "axis"))) {
-			RNA_property_float_set_array(ptr, prop, gz->matrix_basis[2]);
-		}
+		gizmo_mesh_spin_init_refresh_axis_orientation(gzgroup, 3, rv3d->viewinv[2]);
 	}
 
 	/* Needed to test view orientation changes. */
