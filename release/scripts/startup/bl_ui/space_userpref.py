@@ -81,14 +81,6 @@ class USERPREF_MT_interaction_presets(Menu):
     draw = Menu.draw_preset
 
 
-class USERPREF_MT_templates_splash(Menu):
-    bl_label = "Startup Templates"
-    preset_subdir = "templates"
-
-    def draw(self, context):
-        bpy.types.TOPBAR_MT_file_new.draw_ex(self, context, use_splash=True, use_default=True)
-
-
 class USERPREF_MT_appconfigs(Menu):
     bl_label = "AppPresets"
     preset_subdir = "keyconfig"
@@ -99,42 +91,6 @@ class USERPREF_MT_appconfigs(Menu):
 
         # now draw the presets
         Menu.draw_preset(self, context)
-
-
-class USERPREF_MT_splash(Menu):
-    bl_label = "Splash"
-
-    def draw(self, context):
-        layout = self.layout
-
-        split = layout.split()
-        row = split.row()
-
-        if any(bpy.utils.app_template_paths()):
-            row.label(text="Template:")
-            template = context.user_preferences.app_template
-            row.menu(
-                "USERPREF_MT_templates_splash",
-                text=bpy.path.display_name(template) if template else "Default",
-            )
-        else:
-            row.label(text="")
-
-        row = split.row()
-        row.label(text="Interaction:")
-
-        text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
-        if not text:
-            text = "Blender (default)"
-        row.menu("USERPREF_MT_appconfigs", text=text)
-
-
-# only for addons
-class USERPREF_MT_splash_footer(Menu):
-    bl_label = ""
-
-    def draw(self, context):
-        pass
 
 
 class USERPREF_PT_interface(Panel):
@@ -1601,10 +1557,7 @@ classes = (
     USERPREF_HT_header,
     USERPREF_PT_tabs,
     USERPREF_MT_interaction_presets,
-    USERPREF_MT_templates_splash,
     USERPREF_MT_appconfigs,
-    USERPREF_MT_splash,
-    USERPREF_MT_splash_footer,
     USERPREF_PT_interface,
     USERPREF_PT_edit,
     USERPREF_PT_system,

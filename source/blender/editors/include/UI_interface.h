@@ -1130,6 +1130,8 @@ void uiTemplateMovieclipInformation(struct uiLayout *layout, struct PointerRNA *
 void uiTemplateColorspaceSettings(struct uiLayout *layout, struct PointerRNA *ptr, const char *propname);
 void uiTemplateColormanagedViewSettings(struct uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname);
 
+int uiTemplateRecentFiles(struct uiLayout *layout, int rows);
+
 /* items */
 void uiItemO(uiLayout *layout, const char *name, int icon, const char *opname);
 void uiItemEnumO_ptr(uiLayout *layout, struct wmOperatorType *ot, const char *name, int icon, const char *propname, int value);

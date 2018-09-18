@@ -50,6 +50,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_fnmatch.h"
+#include "BLI_path_util.h"
 #include "BLI_timecode.h"
 
 #include "BLF_api.h"
@@ -88,6 +89,8 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "BLO_readfile.h"
 
 #include "UI_interface.h"
 #include "UI_interface_icons.h"
@@ -4962,4 +4965,21 @@ void uiTemplateCacheFile(uiLayout *layout, bContext *C, PointerRNA *ptr, const c
 	row = uiLayoutRow(layout, false);
 	uiItemR(row, &fileptr, "up_axis", 0, "Up Axis", ICON_NONE);
 #endif
+}
+
+/******************************* Recent Files *******************************/
+
+int uiTemplateRecentFiles(uiLayout *layout, int rows)
+{
+	const RecentFile *recent;
+	int i;
+
+	for (recent = G.recent_files.first, i = 0; (i < rows) && (recent); recent = recent->next, i++) {
+		const char *filename = BLI_path_basename(recent->filepath);
+		uiItemStringO(layout, filename,
+		              BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
+		              "WM_OT_open_mainfile", "filepath", recent->filepath);
+	}
+
+	return i;
 }

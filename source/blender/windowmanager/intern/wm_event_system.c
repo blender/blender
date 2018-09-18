@@ -3160,6 +3160,9 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 
+	/* Close any popups, like when opening a file browser from the splash. */
+	UI_popup_handlers_remove_all(C, &win->modalhandlers);
+
 	/* only allow 1 file selector open per window */
 	for (handler = win->modalhandlers.first; handler; handler = handlernext) {
 		handlernext = handler->next;

@@ -1380,39 +1380,11 @@ static void wm_block_splash_refreshmenu(bContext *C, void *UNUSED(arg_block), vo
 	ED_region_tag_refresh_ui(ar_menu);
 }
 
-static int wm_resource_check_prev(void)
-{
-
-	const char *res = BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION, true);
-
-	// if (res) printf("USER: %s\n", res);
-
-#if 0 /* ignore the local folder */
-	if (res == NULL) {
-		/* with a local dir, copying old files isn't useful since local dir get priority for config */
-		res = BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_LOCAL, BLENDER_VERSION, true);
-	}
-#endif
-
-	// if (res) printf("LOCAL: %s\n", res);
-	if (res) {
-		return false;
-	}
-	else {
-		return (BKE_appdir_folder_id_version(BLENDER_RESOURCE_PATH_USER, BLENDER_VERSION - 1, true) != NULL);
-	}
-}
-
 static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(arg))
 {
 	uiBlock *block;
 	uiBut *but;
-	uiLayout *layout, *split, *col;
 	uiStyle *style = UI_style_get();
-	const struct RecentFile *recent;
-	int i;
-	MenuType *mt = WM_menutype_find("USERPREF_MT_splash", true);
-	char url[96];
 	const char *version_suffix = NULL;
 
 #ifndef WITH_HEADLESS
@@ -1485,7 +1457,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	}
 #endif
 
-	block = UI_block_begin(C, ar, "_popup", UI_EMBOSS);
+	block = UI_block_begin(C, ar, "splash", UI_EMBOSS);
 
 	/* note on UI_BLOCK_NO_WIN_CLIP, the window size is not always synchronized
 	 * with the OS when the splash shows, window clipping in this case gives
@@ -1558,59 +1530,13 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	}
 #endif  /* WITH_BUILDINFO */
 
-	layout = UI_block_layout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, 0, style);
+	uiLayout *layout = UI_block_layout(
+	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2,
+	        U.pixelsize * 480, U.pixelsize * 110, 0, style);
 
-	UI_block_emboss_set(block, UI_EMBOSS);
-	/* show the splash menu (containing interaction presets), using python */
+	MenuType *mt = WM_menutype_find("WM_MT_splash", true);
 	if (mt) {
 		UI_menutype_draw(C, mt, layout);
-
-//		uiItemM(layout, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
-	}
-
-	UI_block_emboss_set(block, UI_EMBOSS_PULLDOWN);
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
-
-	split = uiLayoutSplit(layout, 0.0f, false);
-	col = uiLayoutColumn(split, false);
-	uiItemL(col, IFACE_("Links"), ICON_NONE);
-	uiItemStringO(col, IFACE_("Join the Development Fund"), ICON_URL, "WM_OT_url_open", "url",
-	              "https://www.blender.org/foundation/development-fund/");
-	uiItemStringO(col, IFACE_("Donate"), ICON_URL, "WM_OT_url_open", "url",
-	              "https://www.blender.org/foundation/donation-payment/");
-	uiItemS(col);
-	uiItemStringO(col, IFACE_("Manual"), ICON_URL, "WM_OT_url_open", "url",
-	              "https://docs.blender.org/manual/en/dev/");
-	BLI_snprintf(url, sizeof(url), "https://wiki.blender.org/wiki/Reference/Release_Notes/%d.%d",
-	             BLENDER_VERSION / 100, BLENDER_VERSION % 100);
-	uiItemStringO(col, IFACE_("Release Notes"), ICON_URL, "WM_OT_url_open", "url", url);
-	uiItemStringO(col, IFACE_("Blender Website"), ICON_URL, "WM_OT_url_open", "url", "https://www.blender.org");
-	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url",
-	              "https://www.blender.org/about/credits/");
-	uiItemL(col, "", ICON_NONE);
-
-	col = uiLayoutColumn(split, false);
-
-	if (wm_resource_check_prev()) {
-		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");
-		uiItemS(col);
-	}
-
-	uiItemL(col, IFACE_("Recent"), ICON_NONE);
-	for (recent = G.recent_files.first, i = 0; (i < 5) && (recent); recent = recent->next, i++) {
-		const char *filename = BLI_path_basename(recent->filepath);
-		uiItemStringO(col, filename,
-		              BLO_has_bfile_extension(filename) ? ICON_FILE_BLEND : ICON_FILE_BACKUP,
-		              "WM_OT_open_mainfile", "filepath", recent->filepath);
-	}
-
-	uiItemS(col);
-	uiItemO(col, NULL, ICON_RECOVER_LAST, "WM_OT_recover_last_session");
-	uiItemL(col, "", ICON_NONE);
-
-	mt = WM_menutype_find("USERPREF_MT_splash_footer", false);
-	if (mt) {
-		UI_menutype_draw(C, mt, uiLayoutColumn(layout, false));
 	}
 
 	UI_block_bounds_set_centered(block, 0);

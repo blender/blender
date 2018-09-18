@@ -1216,8 +1216,12 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	BLI_assert(block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS));
 
 	/* only do it before bounding */
-	if (block->rect.xmin != block->rect.xmax)
+	if (block->rect.xmin != block->rect.xmax) {
 		return;
+	}
+	if (STREQ(block->name, "splash")) {
+		return;
+	}
 
 	if (block->flag & UI_BLOCK_RADIAL) {
 		for (but = block->buttons.first; but; but = but->next) {
