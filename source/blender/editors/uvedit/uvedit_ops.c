@@ -1498,7 +1498,17 @@ static void UV_OT_select_less(wmOperatorType *ot)
 /** \name Weld Align Operator
  * \{ */
 
-static void uv_weld_align(bContext *C, int tool)
+typedef enum eUVWeldAlign{
+	UV_STRAIGHTEN,
+	UV_STRAIGHTEN_X,
+	UV_STRAIGHTEN_Y,
+	UV_ALIGN_AUTO,
+	UV_ALIGN_X,
+	UV_ALIGN_Y,
+	UV_WELD,
+} eUVWeldAlign;
+
+static void uv_weld_align(bContext *C, eUVWeldAlign tool)
 {
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -1513,7 +1523,7 @@ static void uv_weld_align(bContext *C, int tool)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
-	if (tool == 'a') {
+	if (tool == UV_ALIGN_AUTO) {
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *obedit = objects[ob_index];
 			BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -1556,7 +1566,7 @@ static void uv_weld_align(bContext *C, int tool)
 
 		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-		if (tool == 'x' || tool == 'w') {
+		if (ELEM(tool, UV_ALIGN_X, UV_WELD)) {
 			BMIter iter, liter;
 			BMFace *efa;
 			BMLoop *l;
@@ -1576,7 +1586,7 @@ static void uv_weld_align(bContext *C, int tool)
 			}
 		}
 
-		if (tool == 'y' || tool == 'w') {
+		if (ELEM(tool, UV_ALIGN_Y, UV_WELD)) {
 			BMIter iter, liter;
 			BMFace *efa;
 			BMLoop *l;
@@ -1596,7 +1606,7 @@ static void uv_weld_align(bContext *C, int tool)
 			}
 		}
 
-		if (tool == 's' || tool == 't' || tool == 'u') {
+		if (ELEM(tool, UV_STRAIGHTEN, UV_STRAIGHTEN_X, UV_STRAIGHTEN_Y)) {
 			BMEdge *eed;
 			BMLoop *l;
 			BMVert *eve;
@@ -1682,19 +1692,19 @@ static void uv_weld_align(bContext *C, int tool)
 					        scene, obedit, ima, em, eve_line[0]);
 					const float *uv_end   = uv_sel_co_from_eve(
 					        scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
-					/* For t & u modes */
+					/* For UV_STRAIGHTEN_X & UV_STRAIGHTEN_Y modes */
 					float a = 0.0f;
-					int tool_local = tool;
+					eUVWeldAlign tool_local = tool;
 
-					if (tool_local == 't') {
+					if (tool_local == UV_STRAIGHTEN_X) {
 						if (uv_start[1] == uv_end[1])
-							tool_local = 's';
+							tool_local = UV_STRAIGHTEN;
 						else
 							a = (uv_end[0] - uv_start[0]) / (uv_end[1] - uv_start[1]);
 					}
-					else if (tool_local == 'u') {
+					else if (tool_local == UV_STRAIGHTEN_Y) {
 						if (uv_start[0] == uv_end[0])
-							tool_local = 's';
+							tool_local = UV_STRAIGHTEN;
 						else
 							a = (uv_end[1] - uv_start[1]) / (uv_end[0] - uv_start[0]);
 					}
@@ -1711,9 +1721,9 @@ static void uv_weld_align(bContext *C, int tool)
 								 * new_y = (y2 - y1) / (x2 - x1) * (x - x1) + y1
 								 * Maybe this should be a BLI func? Or is it already existing?
 								 * Could use interp_v2_v2v2, but not sure it's worth it here...*/
-								if (tool_local == 't')
+								if (tool_local == UV_STRAIGHTEN_X)
 									luv->uv[0] = a * (luv->uv[1] - uv_start[1]) + uv_start[0];
-								else if (tool_local == 'u')
+								else if (tool_local == UV_STRAIGHTEN_Y)
 									luv->uv[1] = a * (luv->uv[0] - uv_start[0]) + uv_start[1];
 								else
 									closest_to_line_segment_v2(luv->uv, luv->uv, uv_start, uv_end);
@@ -1755,12 +1765,16 @@ static int uv_align_exec(bContext *C, wmOperator *op)
 static void UV_OT_align(wmOperatorType *ot)
 {
 	static const EnumPropertyItem axis_items[] = {
-		{'s', "ALIGN_S", 0, "Straighten", "Align UVs along the line defined by the endpoints"},
-		{'t', "ALIGN_T", 0, "Straighten X", "Align UVs along the line defined by the endpoints along the X axis"},
-		{'u', "ALIGN_U", 0, "Straighten Y", "Align UVs along the line defined by the endpoints along the Y axis"},
-		{'a', "ALIGN_AUTO", 0, "Align Auto", "Automatically choose the axis on which there is most alignment already"},
-		{'x', "ALIGN_X", 0, "Align X", "Align UVs on X axis"},
-		{'y', "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis"},
+		{UV_STRAIGHTEN, "ALIGN_S", 0, "Straighten",
+		 "Align UVs along the line defined by the endpoints"},
+		{UV_STRAIGHTEN_X, "ALIGN_T", 0, "Straighten X",
+		 "Align UVs along the line defined by the endpoints along the X axis"},
+		{UV_STRAIGHTEN_Y, "ALIGN_U", 0, "Straighten Y",
+		 "Align UVs along the line defined by the endpoints along the Y axis"},
+		{UV_ALIGN_AUTO, "ALIGN_AUTO", 0, "Align Auto",
+		 "Automatically choose the axis on which there is most alignment already"},
+		{UV_ALIGN_X, "ALIGN_X", 0, "Align X", "Align UVs on X axis"},
+		{UV_ALIGN_Y, "ALIGN_Y", 0, "Align Y", "Align UVs on Y axis"},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* identifiers */
@@ -2077,7 +2091,7 @@ static void UV_OT_remove_doubles(wmOperatorType *ot)
 
 static int uv_weld_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	uv_weld_align(C, 'w');
+	uv_weld_align(C, UV_WELD);
 
 	return OPERATOR_FINISHED;
 }
