@@ -116,6 +116,7 @@ void MESH_OT_screw(struct wmOperatorType *ot);
 /* *** editmesh_extrude_spin.c *** */
 void MESH_OT_spin(struct wmOperatorType *ot);
 /* *** editmesh_extrude_spin_gizmo.c *** */
+void MESH_GGT_spin(struct wmGizmoGroupType *gzgt);
 void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt);
 
 /* *** editmesh_polybuild.c *** */

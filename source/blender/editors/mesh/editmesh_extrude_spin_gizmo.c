@@ -30,6 +30,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -40,12 +41,215 @@
 
 #include "mesh_intern.h"  /* own include */
 
+#include "ED_transform.h"
+
 #include "ED_gizmo_library.h"
 #include "ED_undo.h"
+
+
+/* -------------------------------------------------------------------- */
+/** \name Spin Tool Gizmo
+ * \{ */
+
+typedef struct GizmoGroupData_SpinInit {
+	struct {
+		wmGizmo *xyz_view[4];
+	} gizmos;
+
+	/* Only for view orientation. */
+	struct {
+		float viewinv_m3[3][3];
+	} prev;
+
+	/* We could store more vars here! */
+	struct {
+		wmOperatorType *ot_spin;
+	} data;
+} GizmoGroupData_SpinInit;
+
+static bool gizmo_mesh_spin_init_poll(const bContext *C, wmGizmoGroupType *gzgt)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
+	if ((tref_rt == NULL) ||
+	    !STREQ(gzgt->idname, tref_rt->gizmo_group) ||
+	    !ED_operator_editmesh_view3d((bContext *)C))
+	{
+		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
+		return false;
+	}
+	return true;
+}
+
+static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+{
+	/* alpha values for normal/highlighted states */
+	const float alpha = 0.6f;
+	const float alpha_hi = 1.0f;
+
+	GizmoGroupData_SpinInit *ggd = MEM_callocN(sizeof(*ggd), __func__);
+	gzgroup->customdata = ggd;
+	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
+
+	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
+		wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
+		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
+		ggd->gizmos.xyz_view[i] = gz;
+	}
+
+	for (int i = 0; i < 3; i++) {
+		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+		RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
+		WM_gizmo_set_line_width(gz, 3.0f);
+		float color[4];
+		UI_GetThemeColor3fv(TH_AXIS_X + i, color);
+		color[3] = alpha;
+		WM_gizmo_set_color(gz, color);
+		color[3] = alpha_hi;
+		WM_gizmo_set_color_highlight(gz, color);
+	}
+
+	{
+		wmGizmo *gz = ggd->gizmos.xyz_view[3];
+		WM_gizmo_set_line_width(gz, 2.0f);
+		float color[4];
+		copy_v3_fl(color, 1.0f);
+		color[3] = alpha;
+		WM_gizmo_set_color(gz, color);
+		color[3] = alpha_hi;
+		WM_gizmo_set_color_highlight(gz, color);
+	}
+
+	WM_gizmo_set_scale(ggd->gizmos.xyz_view[3], 1.2f);
+
+	ggd->data.ot_spin = WM_operatortype_find("MESH_OT_spin", true);
+}
+
+static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup);
+
+static void gizmo_mesh_spin_init_draw_prepare(
+        const bContext *C, wmGizmoGroup *gzgroup)
+{
+	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	/* Avoid slowdown on view adjustments. */
+	if ((rv3d->rflag & RV3D_NAVIGATING) == 0) {
+		Scene *scene = CTX_data_scene(C);
+		switch (scene->orientation_type) {
+			case V3D_MANIP_VIEW:
+			{
+				float viewinv_m3[3][3];
+				copy_m3_m4(viewinv_m3, rv3d->viewinv);
+				if (!equals_m3m3(viewinv_m3, ggd->prev.viewinv_m3)) {
+					/* Take care calling refresh from draw_prepare,
+					 * this should be OK because it's only adjusting the cage orientation. */
+					gizmo_mesh_spin_init_refresh(C, gzgroup);
+				}
+				break;
+			}
+		}
+	}
+}
+
+static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
+	RegionView3D *rv3d = ED_view3d_context_rv3d((bContext *)C);
+
+	{
+		Scene *scene = CTX_data_scene(C);
+		View3D *v3d = CTX_wm_view3d(C);
+		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
+			wmGizmo *gz = ggd->gizmos.xyz_view[i];
+			WM_gizmo_set_matrix_location(gz, cursor->location);
+		}
+	}
+
+	float mat[3][3];
+	ED_transform_calc_orientation_from_type(C, mat);
+	for (int i = 0; i < 3; i++) {
+		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+		WM_gizmo_set_matrix_rotation_from_z_axis(gz, mat[i]);
+	}
+
+	{
+		wmGizmo *gz = ggd->gizmos.xyz_view[3];
+		WM_gizmo_set_matrix_rotation_from_z_axis(gz, rv3d->viewinv[2]);
+	}
+
+	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
+		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+		PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
+		PropertyRNA *prop;
+		if ((prop = RNA_struct_find_property(ptr, "axis"))) {
+			RNA_property_float_set_array(ptr, prop, gz->matrix_basis[2]);
+		}
+	}
+
+	/* Needed to test view orientation changes. */
+	copy_m3_m4(ggd->prev.viewinv_m3, rv3d->viewinv);
+}
+
+
+static void gizmo_mesh_spin_init_message_subscribe(
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
+{
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	/* Subscribe to view properties */
+	wmMsgSubscribeValue msg_sub_value_gz_tag_refresh = {
+		.owner = ar,
+		.user_data = gzgroup->parent_gzmap,
+		.notify = WM_gizmo_do_msg_notify_tag_refresh,
+	};
+
+	PointerRNA scene_ptr;
+	RNA_id_pointer_create(&scene->id, &scene_ptr);
+
+	{
+		extern PropertyRNA rna_Scene_transform_orientation;
+		extern PropertyRNA rna_Scene_cursor_location;
+		const PropertyRNA *props[] = {
+			&rna_Scene_transform_orientation,
+			&rna_Scene_cursor_location,
+		};
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
+		}
+	}
+}
+
+void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
+{
+	gzgt->name = "Mesh Spin Init";
+	gzgt->idname = "MESH_GGT_spin";
+
+	gzgt->flag = WM_GIZMOGROUPTYPE_3D;
+
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+	gzgt->poll = gizmo_mesh_spin_init_poll;
+	gzgt->setup = gizmo_mesh_spin_init_setup;
+	gzgt->refresh = gizmo_mesh_spin_init_refresh;
+	gzgt->message_subscribe = gizmo_mesh_spin_init_message_subscribe;
+	gzgt->draw_prepare = gizmo_mesh_spin_init_draw_prepare;
+}
+
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Spin Redo Gizmo
  * \{ */
+
+/**
+ * Don't show these for now, because they overlay the tools #MESH_GGT_spin_redo gizmos.
+ * this means we cant rotate the currently running gizmo.
+ */
+// #define USE_EXTRA_CONTROLS
 
 typedef struct GizmoGroupData_SpinRedo {
 	/* Arrow to change plane depth. */
@@ -102,6 +306,9 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->angle_z, plane_no);
 
 	WM_gizmo_set_scale(ggd->translate_c, 0.2);
+
+	WM_gizmo_set_scale(ggd->angle_z, 1.5f);
+	WM_gizmo_set_line_width(ggd->angle_z, 2.0f);
 
 	RegionView3D *rv3d = ED_view3d_context_rv3d(ggd->data.context);
 	if (rv3d) {
@@ -397,6 +604,13 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        });
 
 	}
+
+#ifndef USE_EXTRA_CONTROLS
+	/* Disable for now. */
+	WM_gizmo_set_flag(ggd->translate_z, WM_GIZMO_HIDDEN, true);
+	WM_gizmo_set_flag(ggd->translate_c, WM_GIZMO_HIDDEN, true);
+	WM_gizmo_set_flag(ggd->rotate_c, WM_GIZMO_HIDDEN, true);
+#endif
 
 	/* Become modal as soon as it's started. */
 	gizmo_mesh_spin_redo_modal_from_setup(C, gzgroup);

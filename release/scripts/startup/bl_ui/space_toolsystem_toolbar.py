@@ -619,7 +619,7 @@ class _defs_edit_mesh:
         return dict(
             text="Spin",
             icon="ops.mesh.spin",
-            widget=None,
+            widget="MESH_GGT_spin",
             keymap=(
                 ("mesh.spin", dict(),
                  dict(type='EVT_TWEAK_A', value='ANY')),
@@ -636,7 +636,7 @@ class _defs_edit_mesh:
         return dict(
             text="Spin (Duplicate)",
             icon="ops.mesh.spin.duplicate",
-            widget=None,
+            widget="MESH_GGT_spin",
             keymap=(
                 ("mesh.spin", dict(dupli=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),

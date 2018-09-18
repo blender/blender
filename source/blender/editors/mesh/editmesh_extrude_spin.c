@@ -186,6 +186,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	                     "Center", "Center in global view space", -1e4f, 1e4f);
 	RNA_def_float_vector(ot->srna, "axis", 3, NULL, -1.0f, 1.0f, "Axis", "Axis in global view space", -1.0f, 1.0f);
 
+	WM_gizmogrouptype_append(MESH_GGT_spin);
 #ifdef USE_GIZMO
 	WM_gizmogrouptype_append(MESH_GGT_spin_redo);
 #endif
