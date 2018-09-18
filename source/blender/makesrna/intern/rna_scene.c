@@ -5670,7 +5670,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "ssr_quality", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_default(prop, 0.25f);
-	RNA_def_property_ui_text(prop, "Trace Quality", "Quality of the screen space raytracing");
+	RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the screen space raytracing");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
@@ -5791,7 +5791,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "gtao_quality", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_default(prop, 0.25f);
-	RNA_def_property_ui_text(prop, "Trace Quality", "Quality of the horizon search");
+	RNA_def_property_ui_text(prop, "Trace Precision", "Precision of the horizon search");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
