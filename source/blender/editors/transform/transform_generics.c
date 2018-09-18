@@ -1335,7 +1335,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	}
 
 	/* GPencil editing context */
-	if (GPENCIL_ANY_MODE(gpd)) {
+	if (GPENCIL_EDIT_MODE(gpd)) {
 		t->options |= CTX_GPENCIL_STROKES;
 	}
 

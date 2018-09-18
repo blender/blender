@@ -475,6 +475,8 @@ typedef enum eGP_DepthOrdering {
 	((gpd) && (gpd->flag & \
 	           (GP_DATA_STROKE_PAINTMODE | GP_DATA_STROKE_EDITMODE | \
 	            GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
+#define GPENCIL_EDIT_MODE(gpd) \
+	((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE))
 #define GPENCIL_ANY_EDIT_MODE(gpd) \
 	((gpd) && (gpd->flag & (GP_DATA_STROKE_EDITMODE | GP_DATA_STROKE_SCULPTMODE | GP_DATA_STROKE_WEIGHTMODE)))
 #define GPENCIL_PAINT_MODE(gpd) \
