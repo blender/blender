@@ -557,6 +557,8 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	RNA_enum_set(ggd->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
 	RNA_enum_set(ggd->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
 
+	RNA_boolean_set(ggd->angle_z->ptr, "wrap_angle", false);
+
 	WM_gizmo_set_flag(ggd->translate_c, WM_GIZMO_DRAW_VALUE, true);
 	WM_gizmo_set_flag(ggd->rotate_c, WM_GIZMO_DRAW_VALUE, true);
 	WM_gizmo_set_flag(ggd->angle_z, WM_GIZMO_DRAW_VALUE, true);

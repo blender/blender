@@ -267,8 +267,10 @@ static void dial_ghostarc_get_angles(
 	}
 	inter->prev.angle = delta;
 
+	const bool wrap_angle = RNA_boolean_get(gz->ptr, "wrap_angle");
+	const double delta_final = (double)delta + ((2 * M_PI) * (double)inter->rotations);
 	*r_start = start;
-	*r_delta = fmod(delta + 2.0f * (float)M_PI * inter->rotations, 2 * (float)M_PI);
+	*r_delta = (float)(wrap_angle ? fmod(delta_final, 2 * M_PI) : delta_final);
 	return;
 
 	/* If we can't project (unlikely). */
@@ -492,6 +494,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 		{0, NULL, 0, NULL, NULL}
 	};
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+	RNA_def_boolean(gzt->srna, "wrap_angle", true, "Wrap Angle", "");
 
 	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
 }
