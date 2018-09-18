@@ -80,9 +80,9 @@ typedef struct DialInteraction {
 		/* only for when using properties */
 		float prop_angle;
 	} init;
-
 	struct {
 		/* Cache the last angle to detect rotations bigger than -/+ PI. */
+		eWM_GizmoFlagTweak tweak_flag;
 		float angle;
 	} prev;
 
@@ -398,12 +398,12 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
 
 static int gizmo_dial_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
-        eWM_GizmoFlagTweak UNUSED(tweak_flag))
+        eWM_GizmoFlagTweak tweak_flag)
 {
-	if (event->type != MOUSEMOVE) {
+	DialInteraction *inter = gz->interaction_data;
+	if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
 		return OPERATOR_RUNNING_MODAL;
 	}
-
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
 	float angle_ofs, angle_delta;
 
@@ -415,8 +415,14 @@ static int gizmo_dial_modal(
 	        CTX_data_depsgraph(C),
 	        gz, event, CTX_wm_region(C), CTX_wm_view3d(C), matrix, co_outer, &angle_ofs, &angle_delta);
 
-	DialInteraction *inter = gz->interaction_data;
 
+	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
+		const double snap = DEG2RAD(5);
+		angle_delta = (float)roundf((double)angle_delta / snap) * snap;
+	}
+	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
+		angle_delta *= 0.1f;
+	}
 	inter->output.angle_delta = angle_delta;
 	inter->output.angle_ofs = angle_ofs;
 
@@ -425,6 +431,9 @@ static int gizmo_dial_modal(
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
 		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init.prop_angle + angle_delta);
 	}
+
+	inter->prev.tweak_flag = tweak_flag;
+
 	return OPERATOR_RUNNING_MODAL;
 }
 

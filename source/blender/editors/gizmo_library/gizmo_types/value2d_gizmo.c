@@ -92,7 +92,9 @@ static int gizmo_value_modal(
 
 
 	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
-		value_delta = floorf((value_delta * 10.0f) + 0.5f) / 10.0f;
+		const double snap = 0.1;
+		value_delta = (float)roundf((double)value_delta / snap) * snap;
+
 	}
 	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
 		value_delta *= 0.1f;
