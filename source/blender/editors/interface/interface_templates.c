@@ -4268,22 +4268,21 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		op->properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 	}
 
-	if (flag & UI_TEMPLATE_OP_PROPS_SHOW_TITLE) {
-		uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-	}
-
 	/* poll() on this operator may still fail, at the moment there is no nice feedback when this happens
 	 * just fails silently */
 	if (!WM_operator_repeat_check(C, op)) {
 		UI_block_lock_set(block, true, "Operator can't' redo");
-
-		/* XXX, could give some nicer feedback or not show redo panel at all? */
-		uiItemL(layout, IFACE_("* Redo Unsupported *"), ICON_NONE);
+		return return_info;
 	}
 	else {
 		/* useful for macros where only one of the steps can't be re-done */
 		UI_block_lock_clear(block);
 	}
+
+	if (flag & UI_TEMPLATE_OP_PROPS_SHOW_TITLE) {
+		uiItemL(layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
+	}
+
 
 	/* menu */
 	if (op->type->flag & OPTYPE_PRESET) {
