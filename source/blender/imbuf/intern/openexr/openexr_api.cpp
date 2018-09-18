@@ -1921,4 +1921,12 @@ void imb_initopenexr(void)
 	setGlobalThreadCount(num_threads);
 }
 
+void imb_exitopenexr(void)
+{
+	/* Tells OpenEXR to free thread pool, also ensures there is no running
+	 * tasks.
+	 */
+	setGlobalThreadCount(0);
+}
+
 } // export "C"

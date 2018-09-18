@@ -40,6 +40,7 @@ extern "C" {
 #include <stdio.h>
 
 void		imb_initopenexr					(void);
+void		imb_exitopenexr					(void);
 
 int		imb_is_a_openexr			(const unsigned char *mem);
 
