@@ -114,12 +114,16 @@ static void sclip_zoom_set(const bContext *C, float zoom, float location[2])
 	}
 
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
-		float dx, dy;
+		float aspx, aspy, w, h, dx, dy;
 
 		ED_space_clip_get_size(sc, &width, &height);
+		ED_space_clip_get_aspect(sc, &aspx, &aspy);
 
-		dx = ((location[0] - 0.5f) * width - sc->xof) * (sc->zoom - oldzoom) / sc->zoom;
-		dy = ((location[1] - 0.5f) * height - sc->yof) * (sc->zoom - oldzoom) / sc->zoom;
+		w = width * aspx;
+		h = height * aspy;
+
+		dx = ((location[0] - 0.5f) * w - sc->xof) * (sc->zoom - oldzoom) / sc->zoom;
+		dy = ((location[1] - 0.5f) * h - sc->yof) * (sc->zoom - oldzoom) / sc->zoom;
 
 		if (sc->flag & SC_LOCK_SELECTION) {
 			sc->xlockof += dx;
