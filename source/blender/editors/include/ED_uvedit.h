@@ -110,11 +110,12 @@ void uvedit_uv_select_disable(
         const int cd_loop_uv_offset);
 
 bool ED_uvedit_nearest_uv(
-        struct Scene *scene, struct Object *obedit, struct Image *ima,
-        const float co[2], float r_uv[2]);
+        struct Scene *scene, struct Object *obedit, struct Image *ima, const float co[2],
+        float *dist_sq, float r_uv[2]);
 bool ED_uvedit_nearest_uv_multi(
-        struct Scene *scene, struct Image *ima, struct Object **objects_edit,
-        const uint objects_len, const float co[2], float r_uv[2]);
+        struct Scene *scene, struct Image *ima,
+        struct Object **objects, const uint objects_len, const float co[2],
+        float *dist_sq, float r_uv[2]);
 
 void ED_uvedit_get_aspect(struct Scene *scene, struct Object *ob, struct BMesh *em, float *aspx, float *aspy);
 

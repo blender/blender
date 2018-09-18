@@ -910,62 +910,53 @@ bool uv_find_nearest_vert_multi(
 	return found;
 }
 
-bool ED_uvedit_nearest_uv(Scene *scene, Object *obedit, Image *ima, const float co[2], float r_uv[2])
+bool ED_uvedit_nearest_uv(
+        Scene *scene, Object *obedit, Image *ima, const float co[2],
+        float *dist_sq, float r_uv[2])
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	BMIter iter;
 	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
-	float mindist, dist;
-	bool found = false;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-	mindist = 1e10f;
-	copy_v2_v2(r_uv, co);
-
+	const float *uv_best = NULL;
+	float dist_best = *dist_sq;
+	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+		if (!uvedit_face_visible_test(scene, obedit, ima, efa)) {
 			continue;
-
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			dist = len_manhattan_v2v2(co, luv->uv);
-
-			if (dist <= mindist) {
-				mindist = dist;
-
-				copy_v2_v2(r_uv, luv->uv);
-				found = true;
-			}
 		}
+		BMLoop *l_iter, *l_first;
+		l_iter = l_first = BM_FACE_FIRST_LOOP(efa);
+		do {
+			const float *uv = ((const MLoopUV *)BM_ELEM_CD_GET_VOID_P(l_iter, cd_loop_uv_offset))->uv;
+			const float dist_test = len_squared_v2v2(co, uv);
+			if (dist_best > dist_test) {
+				dist_best = dist_test;
+				uv_best = uv;
+			}
+		} while ((l_iter = l_iter->next) != l_first);
 	}
 
-	return found;
+	if (uv_best != NULL) {
+		copy_v2_v2(r_uv, uv_best);
+		*dist_sq = dist_best;
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool ED_uvedit_nearest_uv_multi(
-        struct Scene *scene, struct Image *ima, struct Object **objects_edit,
-        const uint objects_len, const float co[2], float r_uv[2])
+        Scene *scene, Image *ima, Object **objects, const uint objects_len, const float co[2],
+        float *dist_sq, float r_uv[2])
 {
 	bool found = false;
-
-	float mindist = FLT_MAX;
-	float uv_nearest[2];
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *obedit = objects_edit[ob_index];
-
-		if (ED_uvedit_nearest_uv(scene, obedit, ima, co, uv_nearest)) {
-			float dist = len_manhattan_v2v2(co, uv_nearest);
-			if (dist < mindist) {
-				mindist = dist;
-				copy_v2_v2(r_uv, uv_nearest);
-				found = true;
-			}
+		Object *obedit = objects[ob_index];
+		if (ED_uvedit_nearest_uv(scene, obedit, ima, co, dist_sq, r_uv)) {
+			found = true;
 		}
 	}
-
 	return found;
 }
 
