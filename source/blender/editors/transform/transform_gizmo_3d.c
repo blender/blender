@@ -76,6 +76,7 @@
 #include "ED_gpencil.h"
 #include "ED_screen.h"
 #include "ED_gizmo_library.h"
+#include "ED_gizmo_utils.h"
 
 #include "UI_resources.h"
 
@@ -1669,15 +1670,9 @@ static void WIDGETGROUP_gizmo_draw_prepare(const bContext *C, wmGizmoGroup *gzgr
 
 static bool WIDGETGROUP_gizmo_poll(const struct bContext *C, struct wmGizmoGroupType *gzgt)
 {
-	/* it's a given we only use this in 3D view */
-	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
-	{
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
+	if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
 		return false;
 	}
-
 	View3D *v3d = CTX_wm_view3d(C);
 	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		return false;
@@ -1719,9 +1714,11 @@ struct XFormCageWidgetGroup {
 
 static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if (!STREQ(gzgt->idname, tref_rt->gizmo_group)) {
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
+	if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
+		return false;
+	}
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
 		return false;
 	}
 	return true;

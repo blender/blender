@@ -30,6 +30,7 @@
 
 #include "BKE_context.h"
 
+#include "ED_gizmo_utils.h"
 #include "ED_screen.h"
 
 #include "UI_resources.h"
@@ -48,18 +49,6 @@
 struct GizmoGroupPreSelElem {
 	wmGizmo *gizmo;
 };
-
-static bool WIDGETGROUP_mesh_preselect_elem_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
-	{
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
-}
 
 static void WIDGETGROUP_mesh_preselect_elem_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
@@ -82,7 +71,7 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
 	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
 	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	gzgt->poll = WIDGETGROUP_mesh_preselect_elem_poll;
+	gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
 	gzgt->setup = WIDGETGROUP_mesh_preselect_elem_setup;
 }
 
@@ -96,18 +85,6 @@ void VIEW3D_GGT_mesh_preselect_elem(wmGizmoGroupType *gzgt)
 struct GizmoGroupPreSelEdgeRing {
 	wmGizmo *gizmo;
 };
-
-static bool WIDGETGROUP_mesh_preselect_edgering_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
-	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
-	{
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
-}
 
 static void WIDGETGROUP_mesh_preselect_edgering_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
@@ -130,7 +107,7 @@ void VIEW3D_GGT_mesh_preselect_edgering(wmGizmoGroupType *gzgt)
 	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
 	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	gzgt->poll = WIDGETGROUP_mesh_preselect_edgering_poll;
+	gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
 	gzgt->setup = WIDGETGROUP_mesh_preselect_edgering_setup;
 }
 

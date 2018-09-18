@@ -54,6 +54,7 @@
 #include "ED_transform.h"
 #include "ED_view3d.h"
 #include "ED_gizmo_library.h"
+#include "ED_gizmo_utils.h"
 
 #include "UI_resources.h"
 
@@ -417,20 +418,6 @@ static void gizmo_mesh_extrude_orientation_matrix_set(
 	}
 }
 
-static bool gizmo_mesh_extrude_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group) ||
-	    !ED_operator_editmesh_view3d((bContext *)C))
-	{
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
-}
-
 static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	struct GizmoExtrudeGroup *ggd = MEM_callocN(sizeof(GizmoExtrudeGroup), __func__);
@@ -687,7 +674,7 @@ static void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
 	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
 	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	gzgt->poll = gizmo_mesh_extrude_poll;
+	gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
 	gzgt->setup = gizmo_mesh_extrude_setup;
 	gzgt->refresh = gizmo_mesh_extrude_refresh;
 	gzgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;

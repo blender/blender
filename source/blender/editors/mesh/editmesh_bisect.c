@@ -50,6 +50,7 @@
 #include "ED_mesh.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_gizmo_utils.h"
 
 #include "UI_resources.h"
 
@@ -642,12 +643,7 @@ static void gizmo_bisect_prop_angle_set(
 
 static bool gizmo_mesh_bisect_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-	wmOperator *op = WM_operator_last_redo(C);
-	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_bisect")) {
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
+	return ED_gizmo_poll_or_unlink_delayed_from_operator(C, gzgt, "MESH_OT_bisect");
 }
 
 static void gizmo_mesh_bisect_setup(const bContext *C, wmGizmoGroup *gzgroup)

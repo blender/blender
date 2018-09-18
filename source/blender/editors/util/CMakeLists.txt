@@ -40,9 +40,10 @@ set(INC_SYS
 )
 
 set(SRC
-	keymap_templates.c
 	ed_transverts.c
 	ed_util.c
+	gizmo_utils.c
+	keymap_templates.c
 	numinput.c
 	select_utils.c
 
@@ -57,6 +58,7 @@ set(SRC
 	../include/ED_datafiles.h
 	../include/ED_fileselect.h
 	../include/ED_gizmo_library.h
+	../include/ED_gizmo_utils.h
 	../include/ED_gpencil.h
 	../include/ED_image.h
 	../include/ED_info.h

@@ -32,6 +32,7 @@
 #include "WM_types.h"
 #include "WM_message.h"
 
+#include "ED_gizmo_utils.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
@@ -66,20 +67,6 @@ typedef struct GizmoGroupData_SpinInit {
 		wmOperatorType *ot_spin;
 	} data;
 } GizmoGroupData_SpinInit;
-
-static bool gizmo_mesh_spin_init_poll(const bContext *C, wmGizmoGroupType *gzgt)
-{
-	ScrArea *sa = CTX_wm_area(C);
-	bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
-	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group) ||
-	    !ED_operator_editmesh_view3d((bContext *)C))
-	{
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
-}
 
 static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
@@ -241,7 +228,7 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
 	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	gzgt->poll = gizmo_mesh_spin_init_poll;
+	gzgt->poll = ED_gizmo_poll_or_unlink_delayed_from_tool;
 	gzgt->setup = gizmo_mesh_spin_init_setup;
 	gzgt->refresh = gizmo_mesh_spin_init_refresh;
 	gzgt->message_subscribe = gizmo_mesh_spin_init_message_subscribe;
@@ -506,12 +493,7 @@ static void gizmo_spin_prop_angle_set(
 
 static bool gizmo_mesh_spin_redo_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-	wmOperator *op = WM_operator_last_redo(C);
-	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
-		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
-		return false;
-	}
-	return true;
+	return ED_gizmo_poll_or_unlink_delayed_from_operator(C, gzgt, "MESH_OT_spin");
 }
 
 
