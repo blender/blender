@@ -722,6 +722,7 @@ class TOPBAR_PT_active_tool(Panel):
     bl_category = ""
     bl_context = ".active_tool"  # dot on purpose (access from tool settings)
     bl_label = "Active Tool"
+    bl_options = {'HIDE_HEADER'}
 
     def draw(self, context):
         layout = self.layout
