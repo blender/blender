@@ -31,57 +31,27 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_bitmap.h"
-#include "BLI_bitmap_draw_2d.h"
-#include "BLI_listbase.h"
-#include "BLI_linklist.h"
-#include "BLI_linklist_stack.h"
+#include "BLI_kdtree.h"
 #include "BLI_math.h"
-#include "BLI_math_bits.h"
-#include "BLI_rand.h"
-#include "BLI_array.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
-#include "BKE_paint.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
-
-#include "IMB_imbuf_types.h"
-#include "IMB_imbuf.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_enum_types.h"
 
-#include "ED_object.h"
 #include "ED_mesh.h"
 #include "ED_screen.h"
-#include "ED_transform.h"
-#include "ED_select_utils.h"
-#include "ED_view3d.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-
-#include "UI_resources.h"
-
-#include "bmesh_tools.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #include "mesh_intern.h"  /* own include */
 
-/* use bmesh operator flags for a few operators */
-#define BMO_ELE_TAG 1
-
 /* -------------------------------------------------------------------- */
-/** \name Select Similar (Vert/Edge/Face) Operator
+/** \name Select Similar (Vert/Edge/Face) Operator - common
  * \{ */
 
 static const EnumPropertyItem prop_similar_compare_types[] = {
@@ -125,10 +95,48 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-/* selects new faces/edges/verts based on the existing selection */
+static int UNUSED_FUNCTION(bm_sel_similar_cmp_fl)(const float delta, const float thresh, const int compare)
+{
+	switch (compare) {
+		case SIM_CMP_EQ:
+			return (fabsf(delta) <= thresh);
+		case SIM_CMP_GT:
+			return ((delta + thresh) >= 0.0f);
+		case SIM_CMP_LT:
+			return ((delta - thresh) <= 0.0f);
+		default:
+			BLI_assert(0);
+			return 0;
+	}
+}
+
+static int bm_sel_similar_cmp_i(const int delta, const int compare)
+{
+	switch (compare) {
+		case SIM_CMP_EQ:
+			return (delta == 0);
+		case SIM_CMP_GT:
+			return (delta > 0);
+		case SIM_CMP_LT:
+			return (delta < 0);
+		default:
+			BLI_assert(0);
+			return 0;
+	}
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Similar Face
+ * \{ */
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
+	/* TODO (dfelinto) port the face modes to multi-object. */
+	BKE_report(op->reports, RPT_ERROR, "Select similar not supported for faces at the moment");
+	return OPERATOR_CANCELLED;
+
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMOperator bmop;
@@ -162,13 +170,21 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* ***************************************************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Similar Edge
+ * \{ */
 
 /* EDGE GROUP */
 
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
+	/* TODO (dfelinto) port the edge modes to multi-object. */
+	BKE_report(op->reports, RPT_ERROR, "Select similar not supported for edges at the moment");
+	return OPERATOR_CANCELLED;
+
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMOperator bmop;
@@ -202,50 +218,183 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	return OPERATOR_FINISHED;
 }
+/** \} */
 
-/* ********************************* */
+/* -------------------------------------------------------------------- */
+/** \name Select Similar Vert
+ * \{ */
 
-/*
- * VERT GROUP
- * mode 1: same normal
- * mode 2: same number of face users
- * mode 3: same vertex groups
- */
 static int similar_vert_select_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
 	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op,
-	             "similar_verts verts=%hv type=%i thresh=%f compare=%i",
-	             BM_ELEM_SELECT, type, thresh, compare);
-
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
-
-	/* clear the existing selection */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
-
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
+	if (type == SIMVERT_VGROUP) {
+		BKE_report(op->reports, RPT_ERROR, "Select similar vertex groups not supported at the moment.");
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_selectmode_flush(em);
+	int tot_verts_selected_all = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	EDBM_update_generic(em, false, false);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		tot_verts_selected_all += em->bm->totvertsel;
+	}
+
+	if (tot_verts_selected_all == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No vertex selected");
+		MEM_freeN(objects);
+		return OPERATOR_CANCELLED;
+	}
+
+	KDTree *tree = NULL;
+	GSet *gset = NULL;
+
+	switch (type) {
+		case SIMVERT_NORMAL:
+			tree = BLI_kdtree_new(tot_verts_selected_all);
+			break;
+		case SIMVERT_EDGE:
+		case SIMVERT_FACE:
+			gset = BLI_gset_ptr_new("Select similar vertex: edge/face");
+			break;
+	}
+
+	int normal_tree_index = 0;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+		invert_m4_m4(ob->imat, ob->obmat);
+
+		if (bm->totvertsel == 0) {
+			continue;
+		}
+
+		BMVert *vert; /* Mesh vertex. */
+		BMIter iter; /* Selected verts iterator. */
+
+		BM_ITER_MESH (vert, &iter, bm, BM_VERTS_OF_MESH) {
+			if (BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMVERT_FACE:
+						BLI_gset_add(gset, (void *)(long)BM_vert_face_count(vert));
+						break;
+					case SIMVERT_EDGE:
+						BLI_gset_add(gset, (void *)(long)BM_vert_edge_count(vert));
+						break;
+					case SIMVERT_NORMAL:
+					{
+						float normal[3];
+						copy_v3_v3(normal, vert->no);
+						mul_transposed_mat3_m4_v3(ob->imat, normal);
+						normalize_v3(normal);
+
+						BLI_kdtree_insert(tree, normal_tree_index++, normal);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/* Remove duplicated entries. */
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
+	}
+
+	/* Run .the BM operators. */
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+		bool changed = false;
+
+		BMVert *vert; /* Mesh vertex. */
+		BMIter iter; /* Selected verts iterator. */
+
+		BM_ITER_MESH (vert, &iter, bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMVERT_EDGE:
+					{
+						const int num_edges = BM_vert_edge_count(vert);
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const int num_edges_iter = (long)BLI_gsetIterator_getKey(&gs_iter);
+							long delta_i = num_edges - num_edges_iter;
+							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+								BM_vert_select_set(bm, vert, true);
+								changed = true;
+								break;
+							}
+						}
+						break;
+					}
+					case SIMVERT_FACE:
+					{
+						const int num_faces = BM_vert_face_count(vert);
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const int num_faces_iter = (long)BLI_gsetIterator_getKey(&gs_iter);
+							int delta_i = num_faces - num_faces_iter;
+							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+								BM_vert_select_set(bm, vert, true);
+								changed = true;
+								break;
+							}
+						}
+						break;
+					}
+					case SIMVERT_NORMAL:
+					{
+						float normal[3];
+						copy_v3_v3(normal, vert->no);
+						mul_transposed_mat3_m4_v3(ob->imat, normal);
+						normalize_v3(normal);
+
+						/* We are treating the normals as coordinates, the "nearest" one will
+						 * also be the one closest to the angle. */
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
+							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
+								BM_vert_select_set(bm, vert, true);
+								changed = true;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	MEM_freeN(objects);
+	BLI_kdtree_free(tree);
+	if (gset != NULL) {
+		BLI_gset_free(gset, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Select Similar Operator
+ * \{ */
 
 static int edbm_select_similar_exec(bContext *C, wmOperator *op)
 {
