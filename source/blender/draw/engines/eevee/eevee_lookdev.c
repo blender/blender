@@ -34,8 +34,12 @@
 
 #include "ED_screen.h"
 
+#include "UI_resources.h"
+
 #include "eevee_private.h"
 #include "eevee_lightcache.h"
+
+#include "draw_common.h"
 
 static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
 {
@@ -51,7 +55,7 @@ static void eevee_lookdev_lightcache_delete(EEVEE_Data *vedata)
 
 void EEVEE_lookdev_cache_init(
         EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass,
-        World *world, EEVEE_LightProbesInfo *pinfo)
+        World *UNUSED(world), EEVEE_LightProbesInfo *pinfo)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
@@ -103,17 +107,17 @@ void EEVEE_lookdev_cache_init(
 
 			stl->g_data->light_cache = stl->lookdev_lightcache;
 
+			static float background_color[4];
+			UI_GetThemeColor4fv(TH_HIGH_GRAD, background_color);
+			/* XXX: Really quick conversion to avoid washed out background.
+			 * Needs to be addressed properly (color managed using ocio). */
+			srgb_to_linearrgb_v4(background_color, background_color);
+
 			*grp = DRW_shgroup_create(shader, pass);
 			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
 			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
-
-			if (world) {
-				DRW_shgroup_uniform_vec3(*grp, "color", &world->horr, 1);
-			} else {
-				static float col[4] = {0.0f};
-				DRW_shgroup_uniform_vec3(*grp, "color", col, 1);
-			}
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+			DRW_shgroup_uniform_vec3(*grp, "color", background_color, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
 			if (!pinfo) {
 				/* Do not fadeout when doing probe rendering, only when drawing the background */
