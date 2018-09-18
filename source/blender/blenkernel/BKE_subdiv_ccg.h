@@ -37,6 +37,7 @@
 #include "BLI_sys_types.h"
 
 struct CCGElem;
+struct CCGFace;
 struct CCGKey;
 struct DMFlagMat;
 struct Mesh;
@@ -181,5 +182,10 @@ void BKE_subdiv_ccg_recalc_normals(SubdivCCG *subdiv_ccg);
 
 /* Average grid coordinates and normals along the grid boundatries. */
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg);
+
+/* Similar to above, but only updates given faces. */
+void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
+                                         struct CCGFace **effected_faces,
+                                         int num_effected_faces);
 
 #endif  /* __BKE_SUBDIV_CCG_H__ */

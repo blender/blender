@@ -657,3 +657,42 @@ void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
 	                        subdiv_ccg_average_inner_grids_task,
 	                        &parallel_range_settings);
 }
+
+typedef struct StitchFacesInnerGridsData {
+	SubdivCCG *subdiv_ccg;
+	CCGKey *key;
+	struct CCGFace **effected_ccg_faces;
+} StitchFacesInnerGridsData;
+
+static void subdiv_ccg_stitch_face_inner_grids_task(
+        void *__restrict userdata_v,
+        const int face_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls_v))
+{
+	StitchFacesInnerGridsData *data = userdata_v;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	struct CCGFace **effected_ccg_faces = data->effected_ccg_faces;
+	struct CCGFace *effected_ccg_face = effected_ccg_faces[face_index];
+	SubdivCCGFace *face = (SubdivCCGFace *)effected_ccg_face;
+	subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
+}
+
+void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
+                                         struct CCGFace **effected_faces,
+                                         int num_effected_faces)
+{
+	CCGKey key;
+	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+	StitchFacesInnerGridsData data = {
+	        .subdiv_ccg = subdiv_ccg,
+	        .key = &key,
+	        .effected_ccg_faces = effected_faces,
+	};
+	ParallelRangeSettings parallel_range_settings;
+	BLI_parallel_range_settings_defaults(&parallel_range_settings);
+	BLI_task_parallel_range(0, num_effected_faces,
+	                        &data,
+	                        subdiv_ccg_stitch_face_inner_grids_task,
+	                        &parallel_range_settings);
+}
