@@ -84,7 +84,7 @@ static void gizmo_spin_exec(GizmoGroupData_SpinRedo *ggd)
 	}
 }
 
-static void gizmo_mesh_spin_update_from_op(GizmoGroupData_SpinRedo *ggd)
+static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 {
 	wmOperator *op = ggd->data.op;
 
@@ -288,7 +288,7 @@ static void gizmo_spin_prop_angle_set(
 	gizmo_spin_exec(ggd);
 }
 
-static bool gizmo_mesh_spin_poll(const bContext *C, wmGizmoGroupType *gzgt)
+static bool gizmo_mesh_spin_redo_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	if (op == NULL || !STREQ(op->type->idname, "MESH_OT_spin")) {
@@ -311,7 +311,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 	        gzmap, (bContext *)C, gz, 0, win->eventstate);
 }
 
-static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
+static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	wmOperatorType *ot = WM_operatortype_find("MESH_OT_spin", true);
 	wmOperator *op = WM_operator_last_redo(C);
@@ -356,7 +356,7 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		ggd->data.prop_angle = RNA_struct_type_find_property(ot->srna, "angle");
 	}
 
-	gizmo_mesh_spin_update_from_op(ggd);
+	gizmo_mesh_spin_redo_update_from_op(ggd);
 
 	/* Setup property callbacks */
 	{
@@ -402,14 +402,14 @@ static void gizmo_mesh_spin_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	gizmo_mesh_spin_redo_modal_from_setup(C, gzgroup);
 }
 
-static void gizmo_mesh_spin_draw_prepare(
+static void gizmo_mesh_spin_redo_draw_prepare(
         const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	GizmoGroupData_SpinRedo *ggd = gzgroup->customdata;
 	if (ggd->data.op->next) {
 		ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
 	}
-	gizmo_mesh_spin_update_from_op(ggd);
+	gizmo_mesh_spin_redo_update_from_op(ggd);
 }
 
 void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
@@ -422,9 +422,9 @@ void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
 	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
 	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
-	gzgt->poll = gizmo_mesh_spin_poll;
-	gzgt->setup = gizmo_mesh_spin_setup;
-	gzgt->draw_prepare = gizmo_mesh_spin_draw_prepare;
+	gzgt->poll = gizmo_mesh_spin_redo_poll;
+	gzgt->setup = gizmo_mesh_spin_redo_setup;
+	gzgt->draw_prepare = gizmo_mesh_spin_redo_draw_prepare;
 }
 
 /** \} */
