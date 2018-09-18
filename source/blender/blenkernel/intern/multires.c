@@ -1338,20 +1338,29 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 
 void multires_stitch_grids(Object *ob)
 {
-	/* utility for smooth brush */
-	if (ob && ob->derivedFinal) {
-		CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)ob->derivedFinal;
-		CCGFace **faces;
-		int totface;
-
-		if (ccgdm->pbvh) {
-			BKE_pbvh_get_grid_updates(ccgdm->pbvh, false, (void ***)&faces, &totface);
-
-			if (totface) {
-				ccgSubSurf_stitchFaces(ccgdm->ss, 0, faces, totface);
-				MEM_freeN(faces);
-			}
-		}
+	if (ob == NULL) {
+		return;
+	}
+	SculptSession *sculpt_session = ob->sculpt;
+	if (sculpt_session == NULL) {
+		return;
+	}
+	PBVH *pbvh = sculpt_session->pbvh;
+	SubdivCCG *subdiv_ccg = sculpt_session->subdiv_ccg;
+	if (pbvh == NULL || subdiv_ccg == NULL) {
+		return;
+	}
+	BLI_assert(BKE_pbvh_type(pbvh) == PBVH_GRIDS);
+	/* NOTE: Currently CCG does not keep track of faces, making it impossible
+	 * to use BKE_pbvh_get_grid_updates().
+	 */
+	CCGFace **faces;
+	int num_faces;
+	BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
+	if (num_faces) {
+		/* TODO(sergey): Only aveerage actually affected faces. */
+		BKE_subdiv_ccg_average_grids(subdiv_ccg);
+		MEM_freeN(faces);
 	}
 }
 
