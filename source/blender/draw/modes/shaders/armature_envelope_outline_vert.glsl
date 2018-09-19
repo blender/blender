@@ -7,7 +7,7 @@ uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 uniform float lineThickness = 2.0;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec2 pos0;
 in vec2 pos1;
 in vec2 pos2;

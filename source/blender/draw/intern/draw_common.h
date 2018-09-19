@@ -105,7 +105,7 @@ typedef struct GlobalsUboStorage {
 
 	/* NOTE! Put all color before UBO_LAST_COLOR */
 
-	/* Pack individual float at the end of the buffer to avoid alignement errors */
+	/* Pack individual float at the end of the buffer to avoid alignment errors */
 	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
 	float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
 	float gridDistance, gridResolution, gridSubdivisions, gridScale;

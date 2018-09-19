@@ -7,7 +7,7 @@
 uniform mat4 ViewProjectionMatrix;
 uniform vec3 screen_vecs[2];
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec2 pos;
 
 /* ---- Per instance Attribs ---- */

@@ -397,7 +397,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 			if (grp) {
 				DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-				/* TODO (fclem): remove thoses (need to clean the GLSL files). */
+				/* TODO (fclem): remove those (need to clean the GLSL files). */
 				DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 				DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 				DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
@@ -483,7 +483,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
 
-	/* TODO(fclem) remove thoses "unecessary" UBOs */
+	/* TODO(fclem) remove those "unnecessary" UBOs */
 	DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 	DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 	DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);

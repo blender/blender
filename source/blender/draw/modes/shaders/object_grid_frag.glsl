@@ -97,7 +97,7 @@ void main()
 	vec2 sPos = gl_FragCoord.xy / viewportSize; /* Screen [0,1] position */
 
 	/* To reduce artifacts, use a local version of the positions
-	 * to compute derivatives since they are not position dependant.
+	 * to compute derivatives since they are not position dependent.
 	 * This gets rid of the blocky artifacts. Unfortunately we still
 	 * need the world position for the grid to scale properly from the origin. */
 	vec3 gPos, wPos; /* Grid pos., World pos. */
@@ -222,7 +222,7 @@ void main()
 	else {
 		/* Manual, non hard, depth test:
 		 * Progressively fade the grid below occluders
-		 * (avoids poping visuals due to depth buffer precision) */
+		 * (avoids popping visuals due to depth buffer precision) */
 		/* Harder settings tend to flicker more,
 		 * but have less "see through" appearance. */
 		const float test_hardness = 1e7;

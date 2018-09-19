@@ -95,7 +95,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			const float *viewport_size = DRW_viewport_size_get();
 			Camera *cam = (Camera *)camera->data;
 
-			/* Retreive Near and Far distance */
+			/* Retrieve Near and Far distance */
 			effects->dof_near_far[0] = -cam->clipsta;
 			effects->dof_near_far[1] = -cam->clipend;
 

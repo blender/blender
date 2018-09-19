@@ -193,7 +193,7 @@ static void EDIT_SURFACE_cache_finish(void *vedata)
 	EDIT_SURFACE_PassList *psl = ((EDIT_SURFACE_Data *)vedata)->psl;
 	EDIT_SURFACE_StorageList *stl = ((EDIT_SURFACE_Data *)vedata)->stl;
 
-	/* Do something here! dependant on the objects gathered */
+	/* Do something here! dependent on the objects gathered */
 	UNUSED_VARS(psl, stl);
 }
 

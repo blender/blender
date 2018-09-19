@@ -3,7 +3,7 @@
  * https://www.ea.com/frostbite/news/physically-based-unified-volumetric-rendering-in-frostbite */
 
 /* Step 3 : Integrate for each froxel the final amount of light
- * scattered back to the viewer and the amout of transmittance. */
+ * scattered back to the viewer and the amount of transmittance. */
 
 uniform sampler3D volumeScattering; /* Result of the scatter step */
 uniform sampler3D volumeExtinction;

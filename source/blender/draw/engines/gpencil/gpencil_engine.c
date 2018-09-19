@@ -424,7 +424,7 @@ void GPENCIL_cache_init(void *vedata)
 			stl->storage->color_type = GPENCIL_COLOR_SOLID;
 		}
 
-		/* drawing buffer pass for drawing the stroke that is beeing drawing by the user. The data
+		/* drawing buffer pass for drawing the stroke that is being drawing by the user. The data
 		 * is stored in sbuffer
 		 */
 		psl->drawing_pass = DRW_pass_create(
@@ -684,7 +684,7 @@ void GPENCIL_draw_scene(void *ved)
 	const bool playing = stl->storage->is_playing;
 	const bool is_render = stl->storage->is_render;
 
-	/* paper pass to display a confortable area to draw over complex scenes with geometry */
+	/* paper pass to display a comfortable area to draw over complex scenes with geometry */
 	if ((!is_render) && (obact) && (obact->type == OB_GPENCIL)) {
 		if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
 		    (v3d->gp_flag & V3D_GP_SHOW_PAPER))

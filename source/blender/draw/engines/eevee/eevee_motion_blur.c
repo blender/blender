@@ -71,7 +71,7 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 
 	/* Past matrix */
 	/* FIXME : This is a temporal solution that does not take care of parent animations */
-	/* Recalc Anim manualy */
+	/* Recalc Anim manually */
 	BKE_animsys_evaluate_animdata(draw_ctx->depsgraph, scene, &cam_cpy.id, cam_cpy.adt, time, ADT_RECALC_ALL);
 	BKE_animsys_evaluate_animdata(draw_ctx->depsgraph, scene, &camdata_cpy.id, camdata_cpy.adt, time, ADT_RECALC_ALL);
 	BKE_object_where_is_calc_time(draw_ctx->depsgraph, scene, &cam_cpy, time);

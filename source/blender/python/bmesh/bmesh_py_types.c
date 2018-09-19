@@ -2457,7 +2457,7 @@ PyDoc_STRVAR(bpy_bmelemseq_index_update_doc,
 "   .. note::\n"
 "\n"
 "      Running this on sequences besides :class:`BMesh.verts`, :class:`BMesh.edges`, :class:`BMesh.faces`\n"
-"      works but won't result in each element having a valid index, insted its order in the sequence will be set.\n"
+"      works but wont result in each element having a valid index, instead its order in the sequence will be set.\n"
 );
 static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 {

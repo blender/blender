@@ -286,7 +286,7 @@ static void drw_shgroup_bone_envelope(
 		float fac_head = (len - head_sphere[3]) / len;
 		float fac_tail = (len - tail_sphere[3]) / len;
 
-		/* Small epsilon to avoid problem with float precison in shader. */
+		/* Small epsilon to avoid problem with float precision in shader. */
 		if (len > (tail_sphere[3] + head_sphere[3]) + 1e-8f) {
 
 			copy_v4_v4(tmp_sphere, head_sphere);

@@ -271,7 +271,7 @@ typedef struct GPENCIL_e_data {
 typedef struct GpencilBatchCache {
 	/* For normal strokes, a variable number of batch can be needed depending of number of strokes.
 	   It could use the stroke number as total size, but when activate the onion skining, the number
-	   can change, so the size is changed dinamically.
+	   can change, so the size is changed dynamically.
 	 */
 	GPUBatch **batch_stroke;
 	GPUBatch **batch_fill;

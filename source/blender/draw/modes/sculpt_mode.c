@@ -229,7 +229,7 @@ static void SCULPT_cache_finish(void *vedata)
 	SCULPT_PassList *psl = ((SCULPT_Data *)vedata)->psl;
 	SCULPT_StorageList *stl = ((SCULPT_Data *)vedata)->stl;
 
-	/* Do something here! dependant on the objects gathered */
+	/* Do something here! dependent on the objects gathered */
 	UNUSED_VARS(psl, stl);
 }
 

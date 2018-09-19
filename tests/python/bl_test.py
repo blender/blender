@@ -181,7 +181,7 @@ def main():
         sys.exit(1)
 
     if md5 != md5_new:
-        print("  Running: %s\n    MD5 Recieved: %s\n    MD5 Expected: %s" % (run, md5_new, md5))
+        print("  Running: %s\n    MD5 Received: %s\n    MD5 Expected: %s" % (run, md5_new, md5))
         sys.exit(1)
 
     print("  Success: %s" % run)

@@ -85,7 +85,7 @@ def create_qtc_project_main(name):
         if (includes, defines) == (None, None):
             return
 
-        # for some reason it doesnt give all internal includes
+        # for some reason it doesn't give all internal includes
         includes = list(set(includes) | set(os.path.dirname(f)
                                             for f in files_rel if is_c_header(f)))
         includes.sort()

@@ -469,7 +469,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 	 * by the DRW mutex. */
 	lbake->lcache = eevee->light_cache;
 
-	/* TODO validate irradiance and reflection cache independantly... */
+	/* TODO validate irradiance and reflection cache independently... */
 	if (lbake->lcache != NULL &&
 	    !EEVEE_lightcache_validate(lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
 	{
@@ -720,7 +720,7 @@ static void eevee_lightbake_render_world_sample(void *ved, void *user_data)
 	Scene *scene_eval = DEG_get_evaluated_scene(lbake->depsgraph);
 	LightCache *lcache = scene_eval->eevee.light_cache;
 
-	/* TODO do this once for the whole bake when we have independant DRWManagers. */
+	/* TODO do this once for the whole bake when we have independent DRWManagers. */
 	eevee_lightbake_cache_create(vedata, lbake);
 
 	EEVEE_lightbake_render_world(sldata, vedata, lbake->rt_fb);
@@ -826,7 +826,7 @@ static void eevee_lightbake_render_grid_sample(void *ved, void *user_data)
 	/* Use the previous bounce for rendering this bounce. */
 	SWAP(GPUTexture *, lbake->grid_prev, lcache->grid_tx.tex);
 
-	/* TODO do this once for the whole bake when we have independant DRWManagers.
+	/* TODO do this once for the whole bake when we have independent DRWManagers.
 	 * Warning: Some of the things above require this. */
 	eevee_lightbake_cache_create(vedata, lbake);
 
@@ -892,7 +892,7 @@ static void eevee_lightbake_render_probe_sample(void *ved, void *user_data)
 	EEVEE_LightProbe *eprobe = lbake->cube;
 	LightProbe *prb = *lbake->probe;
 
-	/* TODO do this once for the whole bake when we have independant DRWManagers. */
+	/* TODO do this once for the whole bake when we have independent DRWManagers. */
 	eevee_lightbake_cache_create(vedata, lbake);
 
 	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */

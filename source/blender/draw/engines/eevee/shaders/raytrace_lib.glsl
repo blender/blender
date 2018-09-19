@@ -119,7 +119,7 @@ void prepare_raycast(
 #define prev_delta  times_and_deltas.w
 
 // #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
-/* Return the hit position, and negate the z component (making it positive) if not hit occured. */
+/* Return the hit position, and negate the z component (making it positive) if not hit occurred. */
 /* __ray_dir__ is the ray direction premultiplied by it's maximum length */
 vec3 raycast(
         int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ray_jitter,

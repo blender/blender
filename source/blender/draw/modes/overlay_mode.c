@@ -259,7 +259,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 				DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 			}
 			else if (is_flat_object_viewed_from_side) {
-				/* Avoid loosing flat objects when in ortho views (see T56549) */
+				/* Avoid losing flat objects when in ortho views (see T56549) */
 				struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
 				GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 				DRWShadingGroup *shgrp = DRW_shgroup_create(sh, psl->flat_wireframe_pass);

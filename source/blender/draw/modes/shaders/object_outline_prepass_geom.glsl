@@ -29,7 +29,7 @@ void main()
 		return;
 
 	/* Don't outline if concave edge. */
-	/* That would hide a lot of non usefull edge but it flickers badly.
+	/* That would hide a lot of non useful edge but it flickers badly.
 	 * TODO revisit later... */
 	// if (dot(n0, v13) > 0.01)
 	// 	return;

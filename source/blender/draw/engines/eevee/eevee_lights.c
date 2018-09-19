@@ -649,7 +649,7 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 		        80.0f; /* XXX : Empirical, Fit cycles power */
 		if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
 			evli->lamptype = LAMPTYPE_AREA_ELLIPSE;
-			/* Scale power to account for the lower area of the ellipse compared to the surrouding rectangle. */
+			/* Scale power to account for the lower area of the ellipse compared to the surrounding rectangle. */
 			power *= 4.0f / M_PI;
 		}
 	}
@@ -1112,7 +1112,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		/* Render shadow cube */
 		/* Render 6 faces separately: seems to be faster for the general case.
 		 * The only time it's more beneficial is when the CPU culling overhead
-		 * outweight the instancing overhead. which is rarelly the case. */
+		 * outweigh the instancing overhead. which is rarely the case. */
 		for (int j = 0; j < 6; j++) {
 			/* TODO optimize */
 			float tmp[4][4];
@@ -1219,7 +1219,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		/* Render shadow cascades */
 		/* Render cascade separately: seems to be faster for the general case.
 		 * The only time it's more beneficial is when the CPU culling overhead
-		 * outweight the instancing overhead. which is rarelly the case. */
+		 * outweigh the instancing overhead. which is rarely the case. */
 		for (int j = 0; j < la->cascade_count; j++) {
 			copy_m4_m4(winmat, evscd->projmat[j]);
 			copy_m4_m4(persmat, evscd->viewprojmat[j]);

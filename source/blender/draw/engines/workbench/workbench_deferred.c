@@ -234,7 +234,7 @@ static float *create_disk_samples(int num_samples, int num_iterations)
 		float phi = (float)dphi * 2.0f * M_PI + it_add;
 		texels[i][0] = cosf(phi);
 		texels[i][1] = sinf(phi);
-		/* This deliberatly distribute more samples
+		/* This deliberately distribute more samples
 		 * at the center of the disk (and thus the shadow). */
 		texels[i][2] = r;
 	}

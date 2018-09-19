@@ -68,7 +68,7 @@ void main()
 	distToEdgeAndPoint((ssPos[2] - ssPos[1]) + 1e-8, ssPos[1], e.x, p.y);
 	distToEdgeAndPoint((ssPos[0] - ssPos[2]) + 1e-8, ssPos[2], e.y, p.z);
 
-	/* Step 2 : coloring (order dependant) */
+	/* Step 2 : coloring (order dependent) */
 
 	/* Face */
 	FragColor = faceColor;

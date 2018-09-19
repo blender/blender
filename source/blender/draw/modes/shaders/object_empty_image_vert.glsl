@@ -2,7 +2,7 @@
 uniform mat4 ViewProjectionMatrix;
 uniform vec2 aspect;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec2 texCoord;
 in vec2 pos;
 /* ---- Per instance Attribs ---- */

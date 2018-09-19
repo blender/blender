@@ -788,7 +788,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 		/* set eye vector, transformed to object coords */
 		mul_m3_v3(tmp, st->eyevec);
 	}
-	/* Non view dependant */
+	/* Non view dependent */
 	if (st->matflag & DRW_CALL_MODELINVERSE) {
 		invert_m4_m4(st->modelinverse, st->model);
 		st->matflag &= ~DRW_CALL_MODELINVERSE;
@@ -908,7 +908,7 @@ static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 		/* printf so user can report bad behaviour */
 		printf("Not enough ubo slots! This should not happen!\n");
 		/* This is not depending on user input.
-		 * It is our responsability to make sure there is enough slots. */
+		 * It is our responsibility to make sure there is enough slots. */
 		BLI_assert(0);
 	}
 	slot_flags[bind_num] = bind_type;

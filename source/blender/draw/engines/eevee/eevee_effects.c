@@ -220,7 +220,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	}
 
 	/**
-	 * Compute Mipmap texel alignement.
+	 * Compute Mipmap texel alignment.
 	 */
 	for (int i = 0; i < 10; ++i) {
 		int mip_size[2];

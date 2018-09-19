@@ -379,7 +379,7 @@ static void mesh_render_calc_normals_loop_and_poly(const Mesh *me, const float s
 /**
  * TODO(campbell): 'gpumat_array' may include materials linked to the object.
  * While not default, object materials should be supported.
- * Although this only impacts the data thats generated, not the materials that display.
+ * Although this only impacts the data that's generated, not the materials that display.
  */
 static MeshRenderData *mesh_render_data_create_ex(
         Mesh *me, const int types,

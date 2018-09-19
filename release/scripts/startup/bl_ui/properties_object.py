@@ -197,7 +197,7 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
 
         obj_name = obj.name
         for collection in bpy.data.collections:
-            # XXX this is slow and stupid!, we need 2 checks, one thats fast
+            # XXX this is slow and stupid!, we need 2 checks, one that's fast
             # and another that we can be sure its not a name collision
             # from linked library data
             collection_objects = collection.objects

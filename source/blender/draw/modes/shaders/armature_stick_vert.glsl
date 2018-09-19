@@ -4,7 +4,7 @@ uniform mat4 ViewProjectionMatrix;
 uniform mat4 ViewMatrix;
 uniform vec2 viewportSize;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec2 pos; /* bone aligned screen space */
 in uint flag;
 
@@ -33,7 +33,7 @@ noperspective out float colorFac;
 flat out vec4 finalWireColor;
 flat out vec4 finalInnerColor;
 
-uniform float stickSize = 5.0; /* might be dependant on DPI setting in the future. */
+uniform float stickSize = 5.0; /* might be dependent on DPI setting in the future. */
 
 /* project to screen space */
 vec2 proj(vec4 pos)

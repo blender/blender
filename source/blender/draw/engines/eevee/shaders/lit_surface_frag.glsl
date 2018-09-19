@@ -249,7 +249,7 @@ void CLOSURE_NAME(
 	/* ---------------- SPECULAR ENVIRONMENT LIGHTING ----------------- */
 	/* ---------------------------------------------------------------- */
 
-	/* Accumulate incomming light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
+	/* Accumulate incoming light from all sources until accumulator is full. Then apply Occlusion and BRDF. */
 #ifdef CLOSURE_GLOSSY
 	vec4 spec_accum = vec4(0.0);
 #endif
@@ -409,7 +409,7 @@ void CLOSURE_NAME(
 	vec2 uv = lut_coords(NV, roughness);
 	vec2 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rg;
 
-	/* This factor is outputed to be used by SSR in order
+	/* This factor is outputted to be used by SSR in order
 	 * to match the intensity of the regular reflections. */
 	ssr_spec = F_ibl(f0, brdf_lut);
 	float spec_occlu = specular_occlusion(NV, final_ao, roughness);

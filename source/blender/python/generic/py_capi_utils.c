@@ -618,7 +618,7 @@ const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObjec
 
 	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
-		 * chars since blender doesnt limit this */
+		 * chars since blender doesn't limit this */
 		return result;
 	}
 	else {
@@ -671,7 +671,7 @@ PyObject *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size)
 	PyObject *result = PyUnicode_FromStringAndSize(str, size);
 	if (result) {
 		/* 99% of the time this is enough but we better support non unicode
-		 * chars since blender doesnt limit this */
+		 * chars since blender doesn't limit this */
 		return result;
 	}
 	else {

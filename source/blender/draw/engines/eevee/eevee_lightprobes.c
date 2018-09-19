@@ -357,7 +357,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-/* Only init the passes usefull for rendering the light cache. */
+/* Only init the passes useful for rendering the light cache. */
 void EEVEE_lightbake_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, GPUTexture *rt_color, GPUTexture *rt_depth)
 {
 	EEVEE_PassList *psl = vedata->psl;
@@ -480,7 +480,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 					case GPU_MAT_SUCCESS:
 						grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
 						DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-						/* TODO (fclem): remove thoses (need to clean the GLSL files). */
+						/* TODO (fclem): remove those (need to clean the GLSL files). */
 						DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 						DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 						DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
@@ -519,7 +519,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 			DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 			DRW_shgroup_uniform_float_copy(grp, "sphere_size", scene_eval->eevee.gi_cubemap_draw_size * 0.5f);
-			/* TODO (fclem) get rid of thoses UBO. */
+			/* TODO (fclem) get rid of those UBO. */
 			DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 			DRW_shgroup_uniform_block(grp, "grid_block", sldata->grid_ubo);
 		}
@@ -538,7 +538,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 				DRW_shgroup_uniform_vec3(shgrp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 				DRW_shgroup_uniform_texture_ref(shgrp, "irradianceGrid", &lcache->grid_tx.tex);
 				DRW_shgroup_uniform_float_copy(shgrp, "sphere_size", scene_eval->eevee.gi_irradiance_draw_size * 0.5f);
-				/* TODO (fclem) get rid of thoses UBO. */
+				/* TODO (fclem) get rid of those UBO. */
 				DRW_shgroup_uniform_block(shgrp, "probe_block", sldata->probe_ubo);
 				DRW_shgroup_uniform_block(shgrp, "planar_block", sldata->planar_ubo);
 				DRW_shgroup_uniform_block(shgrp, "grid_block", sldata->grid_ubo);
@@ -907,7 +907,7 @@ static void render_cubemap(
 
 	/* 1 - Render to each cubeface individually.
 	 * We do this instead of using geometry shader because a) it's faster,
-	 * b) it's easier than fixing the nodetree shaders (for view dependant effects). */
+	 * b) it's easier than fixing the nodetree shaders (for view dependent effects). */
 	for (int i = 0; i < 6; ++i) {
 		/* Setup custom matrices */
 		mul_m4_m4m4(matstate.viewmat, cubefacemat[i], posmat);

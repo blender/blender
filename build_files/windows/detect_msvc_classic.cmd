@@ -64,6 +64,6 @@ exit /b 1
 
 :DetectionComplete
 if NOT "%verbose%" == "" (
-		echo Visual Studio %BUILD_VS_YEAR% Detected successfuly 
+		echo Visual Studio %BUILD_VS_YEAR% Detected successfully 
 )
 exit /b 0

@@ -223,7 +223,7 @@ float light_visibility(LightData ld, vec3 W,
 			vec3 ray_ori = viewPosition;
 
 			float bias = 0.5; /* Constant Bias */
-			bias += 1.0 - abs(dot(viewNormal, ray_dir)); /* Angle dependant bias */
+			bias += 1.0 - abs(dot(viewNormal, ray_dir)); /* Angle dependent bias */
 			bias *= gl_FrontFacing ? data.sh_contact_offset : -data.sh_contact_offset;
 
 			vec3 nor_bias = viewNormal * bias;

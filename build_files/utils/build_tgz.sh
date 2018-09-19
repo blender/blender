@@ -63,7 +63,7 @@ echo "OK"
 
 # Create checksum file
 cd "$BASE_DIR"
-echo -n "Createing checksum:          \"$BASE_DIR/$TARBALL.md5sum\" ..."
+echo -n "Creating checksum:          \"$BASE_DIR/$TARBALL.md5sum\" ..."
 md5sum "$TARBALL" > "$TARBALL.md5sum"
 echo "OK"
 

@@ -120,8 +120,8 @@ typedef struct DRWCallState {
 	float modelviewinverse[4][4];
 	float modelviewprojection[4][4];
 	float normalview[3][3];
-	float normalworld[3][3]; /* Not view dependant */
-	float orcotexfac[2][3]; /* Not view dependant */
+	float normalworld[3][3]; /* Not view dependent */
+	float orcotexfac[2][3]; /* Not view dependent */
 	float eyevec[3];
 } DRWCallState;
 
@@ -355,9 +355,9 @@ typedef struct DRWManager {
 
 	bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
 
-	/* View dependant uniforms. */
+	/* View dependent uniforms. */
 	DRWMatrixState original_mat; /* Original rv3d matrices. */
-	int override_mat;            /* Bitflag of which matrices are overriden. */
+	int override_mat;            /* Bitflag of which matrices are overridden. */
 	int num_clip_planes;         /* Number of active clipplanes. */
 	bool dirty_mat;
 
@@ -381,7 +381,7 @@ typedef struct DRWManager {
 	 * the top portion of the struct so DO NOT MOVE IT! */
 	void *gl_context;                /* Unique ghost context used by the draw manager. */
 	GPUContext *gpu_context;
-	TicketMutex *gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurent context usage. */
+	TicketMutex *gl_context_mutex;    /* Mutex to lock the drw manager and avoid concurrent context usage. */
 
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {

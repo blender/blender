@@ -145,7 +145,7 @@ void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, con
 	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
-/* Same as DRW_shgroup_uniform_texture but is garanteed to be bound if shader does not change between shgrp. */
+/* Same as DRW_shgroup_uniform_texture but is guaranteed to be bound if shader does not change between shgrp. */
 void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
 	BLI_assert(tex != NULL);
@@ -158,7 +158,7 @@ void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const
 	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
 }
 
-/* Same as DRW_shgroup_uniform_block but is garanteed to be bound if shader does not change between shgrp. */
+/* Same as DRW_shgroup_uniform_block but is guaranteed to be bound if shader does not change between shgrp. */
 void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
 	BLI_assert(ubo != NULL);
@@ -960,7 +960,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct GPUBatch *batch
 	drw_call_calc_orco(NULL, shgroup->instance_orcofac);
 	/* PERF : This destroys the vaos cache so better check if it's necessary. */
 	/* Note: This WILL break if batch->verts[0] is destroyed and reallocated
-	 * at the same adress. Bindings/VAOs would remain obsolete. */
+	 * at the same address. Bindings/VAOs would remain obsolete. */
 	//if (shgroup->instancing_geom->inst != batch->verts[0])
 	GPU_batch_instbuf_set(shgroup->instance_geom, batch->verts[0], false);
 
@@ -1123,7 +1123,7 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 
 /**
  * Sort Shading groups by decreasing Z of their first draw call.
- * This is usefull for order dependant effect such as transparency.
+ * This is useful for order dependent effect such as transparency.
  **/
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {

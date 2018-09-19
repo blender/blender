@@ -50,9 +50,9 @@ set(OPENVDB_EXTRA_ARGS
 )
 
 if(WIN32)
-	#Namespaces seem to be buggy and cause linker erorrs due to things not
-	#being in the correct namespace
-	#needs to link pthreads due to it being a blosc dependency
+	# Namespaces seem to be buggy and cause linker errors due to things not
+	# being in the correct namespace
+	# needs to link pthreads due to it being a blosc dependency
 	set(OPENVDB_EXTRA_ARGS ${OPENVDB_EXTRA_ARGS}
 		-DOPENEXR_NAMESPACE_VERSIONING=OFF
 		-DEXTRA_LIBS:FILEPATH=${LIBDIR}/pthreads/lib/pthreadVC2.lib

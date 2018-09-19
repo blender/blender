@@ -53,7 +53,7 @@ Here are some characteristics ID Data-Blocks share.
 Simple Data Access
 ------------------
 
-Lets start with a simple case, say you want a python script to adjust the objects location.
+Lets start with a simple case, say you want a python script to adjust the object's location.
 
 Start by finding this setting in the interface ``Properties Window -> Object -> Transform -> Location``
 

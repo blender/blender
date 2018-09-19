@@ -29,7 +29,7 @@ uniform sampler2D depthBuffer;
 #define minmax4(a, b, c, d) max(max(max(a, b), c), d)
 #endif
 
-/* On some AMD card / driver conbination, it is needed otherwise,
+/* On some AMD card / driver combination, it is needed otherwise,
  * the shader does not write anything. */
 #if defined(GPU_INTEL) || defined(GPU_ATI)
 out vec4 fragColor;

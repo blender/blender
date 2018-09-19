@@ -598,7 +598,7 @@ float G1_Smith_GGX(float NX, float a2)
 	/* Using Brian Karis approach and refactoring by NX/NX
 	 * this way the (2*NL)*(2*NV) in G = G1(V) * G1(L) gets canceled by the brdf denominator 4*NL*NV
 	 * Rcp is done on the whole G later
-	 * Note that this is not convenient for the transmition formula */
+	 * Note that this is not convenient for the transmission formula */
 	return NX + sqrt(NX * (NX - NX * a2) + a2);
 	/* return 2 / (1 + sqrt(1 + a2 * (1 - NX*NX) / (NX*NX) ) ); /* Reference function */
 }
@@ -626,7 +626,7 @@ void accumulate_light(vec3 light, float fac, inout vec4 accum)
 	accum += vec4(light, 1.0) * min(fac, (1.0 - accum.a));
 }
 
-/* ----------- Cone Apperture Approximation --------- */
+/* ----------- Cone Aperture Approximation --------- */
 
 /* Return a fitted cone angle given the input roughness */
 float cone_cosine(float r)

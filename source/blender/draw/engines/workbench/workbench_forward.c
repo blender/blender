@@ -608,7 +608,7 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 		DRW_draw_pass(psl->transparent_accum_pass);
 	}
 	else {
-		/* TODO(fclem): this is unecessary and takes up perf.
+		/* TODO(fclem): this is unnecessary and takes up perf.
 		 * Better change the composite frag shader to not use the tx. */
 		const float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		GPU_framebuffer_bind(fbl->transparent_accum_fb);

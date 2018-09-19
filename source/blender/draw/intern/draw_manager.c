@@ -965,7 +965,7 @@ static void drw_engines_cache_populate(Object *ob)
 	DST.ob_state = NULL;
 
 	/* HACK: DrawData is copied by COW from the duplicated object.
-	 * This is valid for IDs that cannot be instanciated but this
+	 * This is valid for IDs that cannot be instantiated but this
 	 * is not what we want in this case so we clear the pointer
 	 * ourselves here. */
 	drw_drawdata_unlink_dupli((ID *)ob);
@@ -1092,7 +1092,7 @@ int DRW_draw_region_engine_info_offset(void)
 void DRW_draw_region_engine_info(void)
 {
 	const char *info_array_final[MAX_INFO_LINES + 1];
-	/* This should be maxium number of engines running at the same time. */
+	/* This should be maximum number of engines running at the same time. */
 	char info_array[MAX_INFO_LINES][GPU_INFO_SIZE];
 	int i = 0;
 
@@ -1579,7 +1579,7 @@ void DRW_draw_render_loop_ex(
 
 	if (G.debug_value > 20 && G.debug_value < 30) {
 		glDisable(GL_DEPTH_TEST);
-		rcti rect; /* local coordinate visible rect inside region, to accomodate overlapping ui */
+		rcti rect; /* local coordinate visible rect inside region, to accommodate overlapping ui */
 		ED_region_visible_rect(DST.draw_ctx.ar, &rect);
 		DRW_stats_draw(&rect);
 		glEnable(GL_DEPTH_TEST);
@@ -1899,7 +1899,7 @@ void DRW_render_object_iter(
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
 }
 
-/* Assume a valid gl context is bound (and that the gl_context_mutex has been aquired).
+/* Assume a valid gl context is bound (and that the gl_context_mutex has been acquired).
  * This function only setup DST and execute the given function.
  * Warning: similar to DRW_render_to_image you cannot use default lists (dfbl & dtxl). */
 void DRW_custom_pipeline(

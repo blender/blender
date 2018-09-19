@@ -856,7 +856,7 @@ def main(context,
                 projectVecs.append(averageVec.normalized())
 
             # Get the next vec!
-            # Pick the face thats most different to all existing angles :)
+            # Pick the face that's most different to all existing angles :)
             mostUniqueAngle = 1.0  # 1.0 is 0d. no difference.
             mostUniqueIndex = 0  # dummy
 

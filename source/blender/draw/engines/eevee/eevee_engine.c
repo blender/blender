@@ -323,7 +323,7 @@ static void eevee_draw_background(void *vedata)
 	GPU_framebuffer_bind(dfbl->default_fb);
 	DRW_transform_to_display(stl->effects->final_tx, use_view_settings);
 
-	/* Debug : Ouput buffer to view. */
+	/* Debug : Output buffer to view. */
 	switch (G.debug_value) {
 		case 1:
 			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer, use_view_settings);
