@@ -49,7 +49,7 @@
 #include "BLI_threads.h"
 #include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
-#include "BLI_simple_expr.h"
+#include "BLI_expr_pylike_eval.h"
 #include "BLI_alloca.h"
 
 #include "BLT_translation.h"
@@ -1866,7 +1866,7 @@ void fcurve_free_driver(FCurve *fcu)
 		BPY_DECREF(driver->expr_comp);
 #endif
 
-	BLI_simple_expr_free(driver->expr_simple);
+	BLI_expr_pylike_free(driver->expr_simple);
 
 	/* free driver itself, then set F-Curve's point to this to NULL (as the curve may still be used) */
 	MEM_freeN(driver);
@@ -1897,7 +1897,7 @@ ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
 
 /* Driver Expression Evaluation --------------- */
 
-static ParsedSimpleExpr *driver_compile_simple_expr_impl(ChannelDriver *driver)
+static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 {
 	/* Prepare parameter names. */
 	int num_vars = BLI_listbase_count(&driver->variables);
@@ -1910,10 +1910,10 @@ static ParsedSimpleExpr *driver_compile_simple_expr_impl(ChannelDriver *driver)
 		names[i++] = dvar->name;
 	}
 
-	return BLI_simple_expr_parse(driver->expression, num_vars + 1, names);
+	return BLI_expr_pylike_parse(driver->expression, num_vars + 1, names);
 }
 
-static bool driver_evaluate_simple_expr(ChannelDriver *driver, ParsedSimpleExpr *expr, float *result, float time)
+static bool driver_evaluate_simple_expr(ChannelDriver *driver, ExprPyLike_Parsed *expr, float *result, float time)
 {
 	/* Prepare parameter values. */
 	int num_vars = BLI_listbase_count(&driver->variables);
@@ -1928,19 +1928,19 @@ static bool driver_evaluate_simple_expr(ChannelDriver *driver, ParsedSimpleExpr 
 
 	/* Evaluate expression. */
 	double result_val;
-	eSimpleExpr_EvalStatus status = BLI_simple_expr_evaluate(expr, &result_val, num_vars + 1, vars);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result_val, num_vars + 1, vars);
 	const char *message;
 
 	switch (status) {
-		case SIMPLE_EXPR_SUCCESS:
+		case EXPR_PYLIKE_SUCCESS:
 			if (isfinite(result_val)) {
 				*result = (float)result_val;
 			}
 			return true;
 
-		case SIMPLE_EXPR_DIV_BY_ZERO:
-		case SIMPLE_EXPR_MATH_ERROR:
-			message = (status == SIMPLE_EXPR_DIV_BY_ZERO) ? "Division by Zero" : "Math Domain Error";
+		case EXPR_PYLIKE_DIV_BY_ZERO:
+		case EXPR_PYLIKE_MATH_ERROR:
+			message = (status == EXPR_PYLIKE_DIV_BY_ZERO) ? "Division by Zero" : "Math Domain Error";
 			fprintf(stderr, "\n%s in Driver: '%s'\n", message, driver->expression);
 
 			driver->flag |= DRIVER_FLAG_INVALID;
@@ -1966,12 +1966,12 @@ static bool driver_compile_simple_expr(ChannelDriver *driver)
 
 	/* It's safe to parse in multiple threads; at worst it'll
 	 * waste some effort, but in return avoids mutex contention. */
-	ParsedSimpleExpr *expr = driver_compile_simple_expr_impl(driver);
+	ExprPyLike_Parsed *expr = driver_compile_simple_expr_impl(driver);
 
 	/* Store the result if the field is still NULL, or discard
 	 * it if another thread got here first. */
 	if (atomic_cas_ptr((void **)&driver->expr_simple, NULL, expr) != NULL) {
-		BLI_simple_expr_free(expr);
+		BLI_expr_pylike_free(expr);
 	}
 
 	return true;
@@ -1984,21 +1984,21 @@ static bool driver_try_evaluate_simple_expr(ChannelDriver *driver, ChannelDriver
 	*result = 0.0f;
 
 	return driver_compile_simple_expr(driver_orig) &&
-	       BLI_simple_expr_is_valid(driver_orig->expr_simple) &&
+	       BLI_expr_pylike_is_valid(driver_orig->expr_simple) &&
 	       driver_evaluate_simple_expr(driver, driver_orig->expr_simple, result, time);
 }
 
 /* Check if the expression in the driver conforms to the simple subset. */
 bool BKE_driver_has_simple_expression(ChannelDriver *driver)
 {
-	return driver_compile_simple_expr(driver) && BLI_simple_expr_is_valid(driver->expr_simple);
+	return driver_compile_simple_expr(driver) && BLI_expr_pylike_is_valid(driver->expr_simple);
 }
 
 /* Reset cached compiled expression data */
 void BKE_driver_invalidate_expression(ChannelDriver *driver, bool expr_changed, bool varname_changed)
 {
 	if (expr_changed || varname_changed) {
-		BLI_simple_expr_free(driver->expr_simple);
+		BLI_expr_pylike_free(driver->expr_simple);
 		driver->expr_simple = NULL;
 	}
 

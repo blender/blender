@@ -415,7 +415,7 @@ typedef struct ChannelDriver {
 	char expression[256];	/* expression to compile for evaluation */
 	void *expr_comp; 		/* PyObject - compiled expression, don't save this */
 
-	struct ParsedSimpleExpr *expr_simple; /* compiled simple arithmetic expression */
+	struct ExprPyLike_Parsed *expr_simple; /* compiled simple arithmetic expression */
 
 	float curval;		/* result of previous evaluation */
 	float influence;	/* influence of driver on result */ // XXX to be implemented... this is like the constraint influence setting

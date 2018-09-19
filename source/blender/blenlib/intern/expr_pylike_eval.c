@@ -25,8 +25,30 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/simple_expr.c
+/** \file blender/blenlib/intern/expr_pylike_eval.c
  *  \ingroup bli
+ *  \author Alexander Gavrilov
+ *  \since 2018
+ *
+ * Simple evaluator for a subset of Python expressions that can be
+ * computed using purely double precision floating point values.
+ *
+ * Supported subset:
+ *
+ *  - Identifiers use only ASCII characters.
+ *  - Literals:
+ *      floating point and decimal integer.
+ *  - Constants:
+ *      pi, True, False
+ *  - Operators:
+ *      +, -, *, /, ==, !=, <, <=, >, >=, and, or, not, ternary if
+ *  - Functions:
+ *      radians, degrees,
+ *      abs, fabs, floor, ceil, trunc, int,
+ *      sin, cos, tan, asin, acos, atan, atan2,
+ *      exp, log, sqrt, pow, fmod
+ *
+ * The implementation has no global state and can be used multithreaded.
  */
 
 #include <math.h>
@@ -40,7 +62,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_simple_expr.h"
+#include "BLI_expr_pylike_eval.h"
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
@@ -53,7 +75,7 @@
 
 /* Simple Expression Stack Machine ------------------------- */
 
-typedef enum eSimpleExpr_Opcode {
+typedef enum eOpCode {
 	/* Double constant: (-> dval) */
 	OPCODE_CONST,
 	/* 1 argument function call: (a -> func1(a)) */
@@ -76,13 +98,13 @@ typedef enum eSimpleExpr_Opcode {
 	OPCODE_JMP_AND,
 	/* For comparison chaining: (a b -> 0 JUMP) IF NOT func2(a,b) ELSE (a b -> b) */
 	OPCODE_CMP_CHAIN,
-} eSimpleExpr_Opcode;
+} eOpCode;
 
 typedef double (*UnaryOpFunc)(double);
 typedef double (*BinaryOpFunc)(double, double);
 
-typedef struct SimpleExprOp {
-	eSimpleExpr_Opcode opcode;
+typedef struct ExprOp {
+	eOpCode opcode;
 
 	int jmp_offset;
 
@@ -93,43 +115,50 @@ typedef struct SimpleExprOp {
 		UnaryOpFunc func1;
 		BinaryOpFunc func2;
 	} arg;
-} SimpleExprOp;
+} ExprOp;
 
-struct ParsedSimpleExpr {
+struct ExprPyLike_Parsed {
 	int ops_count;
 	int max_stack;
 
-	SimpleExprOp ops[];
+	ExprOp ops[];
 };
 
-void BLI_simple_expr_free(ParsedSimpleExpr *expr)
+/** Free the parsed data; NULL argument is ok. */
+void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
 {
 	if (expr != NULL) {
 		MEM_freeN(expr);
 	}
 }
 
-bool BLI_simple_expr_is_valid(ParsedSimpleExpr *expr)
+/** Check if the parsing result is valid for evaluation. */
+bool BLI_expr_pylike_is_valid(ExprPyLike_Parsed *expr)
 {
 	return expr != NULL && expr->ops_count > 0;
 }
 
-bool BLI_simple_expr_is_constant(ParsedSimpleExpr *expr)
+/** Check if the parsed expression always evaluates to the same value. */
+bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
 {
 	return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
 /* Stack Machine Evaluation -------------------------------- */
 
-eSimpleExpr_EvalStatus BLI_simple_expr_evaluate(ParsedSimpleExpr *expr, double *result, int num_params, const double *params)
+/**
+ * Evaluate the expression with the given parameters.
+ * The order and number of parameters must match the names given to parse.
+ */
+eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr, double *result, int num_params, const double *params)
 {
 	*result = 0.0;
 
-	if (!BLI_simple_expr_is_valid(expr)) {
-		return SIMPLE_EXPR_INVALID;
+	if (!BLI_expr_pylike_is_valid(expr)) {
+		return EXPR_PYLIKE_INVALID;
 	}
 
-#define FAIL_IF(condition) if (condition) { return SIMPLE_EXPR_FATAL_ERROR; }
+#define FAIL_IF(condition) if (condition) { return EXPR_PYLIKE_FATAL_ERROR; }
 
 	/* Check the stack requirement is at least remotely sane and allocate on the actual stack. */
 	FAIL_IF(expr->max_stack <= 0 || expr->max_stack > 1000);
@@ -137,7 +166,7 @@ eSimpleExpr_EvalStatus BLI_simple_expr_evaluate(ParsedSimpleExpr *expr, double *
 	double *stack = BLI_array_alloca(stack, expr->max_stack);
 
 	/* Evaluate expression. */
-	SimpleExprOp *ops = expr->ops;
+	ExprOp *ops = expr->ops;
 	int sp = 0, pc;
 
 	feclearexcept(FE_ALL_EXCEPT);
@@ -212,7 +241,7 @@ eSimpleExpr_EvalStatus BLI_simple_expr_evaluate(ParsedSimpleExpr *expr, double *
 				break;
 
 			default:
-				return SIMPLE_EXPR_FATAL_ERROR;
+				return EXPR_PYLIKE_FATAL_ERROR;
 		}
 	}
 
@@ -225,10 +254,10 @@ eSimpleExpr_EvalStatus BLI_simple_expr_evaluate(ParsedSimpleExpr *expr, double *
 	/* Detect floating point evaluation errors. */
 	int flags = fetestexcept(FE_DIVBYZERO | FE_INVALID);
 	if (flags) {
-		return (flags & FE_INVALID) ? SIMPLE_EXPR_MATH_ERROR : SIMPLE_EXPR_DIV_BY_ZERO;
+		return (flags & FE_INVALID) ? EXPR_PYLIKE_MATH_ERROR : EXPR_PYLIKE_DIV_BY_ZERO;
 	}
 
-	return SIMPLE_EXPR_SUCCESS;
+	return EXPR_PYLIKE_SUCCESS;
 }
 
 /* Simple Expression Built-In Operations ------------------- */
@@ -317,7 +346,7 @@ static BuiltinConstDef builtin_consts[] = {
 
 typedef struct BuiltinOpDef {
 	const char *name;
-	eSimpleExpr_Opcode op;
+	eOpCode op;
 	void *funcptr;
 } BuiltinOpDef;
 
@@ -397,27 +426,27 @@ typedef struct SimpleExprParseState {
 
 	/* Opcode buffer */
 	int ops_count, max_ops, last_jmp;
-	SimpleExprOp *ops;
+	ExprOp *ops;
 
 	/* Stack space requirement tracking */
 	int stack_ptr, max_stack;
 } SimpleExprParseState;
 
 /* Reserve space for the specified number of operations in the buffer. */
-static SimpleExprOp *parse_alloc_ops(SimpleExprParseState *state, int count)
+static ExprOp *parse_alloc_ops(SimpleExprParseState *state, int count)
 {
 	if (state->ops_count + count > state->max_ops) {
 		state->max_ops = power_of_2_max_i(state->ops_count + count);
-		state->ops = MEM_reallocN(state->ops, state->max_ops * sizeof(SimpleExprOp));
+		state->ops = MEM_reallocN(state->ops, state->max_ops * sizeof(ExprOp));
 	}
 
-	SimpleExprOp *op = &state->ops[state->ops_count];
+	ExprOp *op = &state->ops[state->ops_count];
 	state->ops_count += count;
 	return op;
 }
 
 /* Add one operation and track stack usage. */
-static SimpleExprOp *parse_add_op(SimpleExprParseState *state, eSimpleExpr_Opcode code, int stack_delta)
+static ExprOp *parse_add_op(SimpleExprParseState *state, eOpCode code, int stack_delta)
 {
 	/* track evaluation stack depth */
 	state->stack_ptr += stack_delta;
@@ -425,14 +454,14 @@ static SimpleExprOp *parse_add_op(SimpleExprParseState *state, eSimpleExpr_Opcod
 	CLAMP_MIN(state->max_stack, state->stack_ptr);
 
 	/* allocate the new instruction */
-	SimpleExprOp *op = parse_alloc_ops(state, 1);
-	memset(op, 0, sizeof(SimpleExprOp));
+	ExprOp *op = parse_alloc_ops(state, 1);
+	memset(op, 0, sizeof(ExprOp));
 	op->opcode = code;
 	return op;
 }
 
 /* Add one jump operation and return an index for parse_set_jump. */
-static int parse_add_jump(SimpleExprParseState *state, eSimpleExpr_Opcode code)
+static int parse_add_jump(SimpleExprParseState *state, eOpCode code)
 {
 	parse_add_op(state, code, -1);
 	return state->last_jmp = state->ops_count;
@@ -446,9 +475,9 @@ static void parse_set_jump(SimpleExprParseState *state, int jump)
 }
 
 /* Add a function call operation, applying constant folding when possible. */
-static bool parse_add_func(SimpleExprParseState *state, eSimpleExpr_Opcode code, int args, void *funcptr)
+static bool parse_add_func(SimpleExprParseState *state, eOpCode code, int args, void *funcptr)
 {
-	SimpleExprOp *prev_ops = &state->ops[state->ops_count];
+	ExprOp *prev_ops = &state->ops[state->ops_count];
 	int jmp_gap = state->ops_count - state->last_jmp;
 
 	feclearexcept(FE_ALL_EXCEPT);
@@ -853,9 +882,9 @@ static bool parse_expr(SimpleExprParseState *state)
 		/* Ternary IF expression in python requires swapping the
 		 * main body with condition, so stash the body opcodes. */
 		int size = state->ops_count - start;
-		int bytes = size * sizeof(SimpleExprOp);
+		int bytes = size * sizeof(ExprOp);
 
-		SimpleExprOp *body = MEM_mallocN(bytes, "driver if body");
+		ExprOp *body = MEM_mallocN(bytes, "driver if body");
 		memcpy(body, state->ops + start, bytes);
 
 		state->last_jmp = state->ops_count = start;
@@ -896,8 +925,13 @@ static bool parse_expr(SimpleExprParseState *state)
 
 /* Main Parsing Function ----------------------------------- */
 
-/* Compile the expression and return the result. */
-ParsedSimpleExpr *BLI_simple_expr_parse(const char *expression, int num_params, const char **param_names)
+/**
+ * Compile the expression and return the result.
+ *
+ * Parse the expression for evaluation later.
+ * Returns non-NULL even on failure; use is_valid to check.
+ */
+ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, int num_params, const char **param_names)
 {
 	/* Prepare the parser state. */
 	SimpleExprParseState state;
@@ -911,25 +945,25 @@ ParsedSimpleExpr *BLI_simple_expr_parse(const char *expression, int num_params, 
 	state.tokenbuf = MEM_mallocN(strlen(expression) + 1, __func__);
 
 	state.max_ops = 16;
-	state.ops = MEM_mallocN(state.max_ops * sizeof(SimpleExprOp), __func__);
+	state.ops = MEM_mallocN(state.max_ops * sizeof(ExprOp), __func__);
 
 	/* Parse the expression. */
-	ParsedSimpleExpr *expr;
+	ExprPyLike_Parsed *expr;
 
 	if (parse_next_token(&state) && parse_expr(&state) && state.token == 0) {
 		BLI_assert(state.stack_ptr == 1);
 
-		int bytesize = sizeof(ParsedSimpleExpr) + state.ops_count * sizeof(SimpleExprOp);
+		int bytesize = sizeof(ExprPyLike_Parsed) + state.ops_count * sizeof(ExprOp);
 
-		expr = MEM_mallocN(bytesize, "ParsedSimpleExpr");
+		expr = MEM_mallocN(bytesize, "ExprPyLike_Parsed");
 		expr->ops_count = state.ops_count;
 		expr->max_stack = state.max_stack;
 
-		memcpy(expr->ops, state.ops, state.ops_count * sizeof(SimpleExprOp));
+		memcpy(expr->ops, state.ops, state.ops_count * sizeof(ExprOp));
 	}
 	else {
 		/* Always return a non-NULL object so that parse failure can be cached. */
-		expr = MEM_callocN(sizeof(ParsedSimpleExpr), "ParsedSimpleExpr(empty)");
+		expr = MEM_callocN(sizeof(ExprPyLike_Parsed), "ExprPyLike_Parsed(empty)");
 	}
 
 	MEM_freeN(state.tokenbuf);
