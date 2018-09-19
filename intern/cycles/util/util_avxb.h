@@ -99,7 +99,7 @@ __forceinline const avxb operator ==( const avxb& a, const avxb& b )
 	__m128i c_hi = _mm_cmpeq_epi32(a_hi, b_hi);
 	__m256i result = _mm256_insertf128_si256(_mm256_castsi128_si256(c_lo), c_hi, 1);
 	return _mm256_castsi256_ps(result);
-#endif 
+#endif
 }
 
 __forceinline const avxb select( const avxb& m, const avxb& t, const avxb& f ) {

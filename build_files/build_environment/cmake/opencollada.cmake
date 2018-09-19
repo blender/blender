@@ -48,7 +48,7 @@ if(WIN32)
 	endif()
 	if(BUILD_MODE STREQUAL Debug)
 		ExternalProject_Add_Step(external_opencollada after_install
-			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/buffer.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/buffer_d.lib 
+			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/buffer.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/buffer_d.lib
 			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/ftoa.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/ftoa_d.lib
 			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/GeneratedSaxParser.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/GeneratedSaxParser_d.lib
 			COMMAND ${CMAKE_COMMAND} -E copy ${LIBDIR}/opencollada/lib/opencollada/MathMLSolver.lib ${HARVEST_TARGET}/opencollada/lib/opencollada/MathMLSolver_d.lib
