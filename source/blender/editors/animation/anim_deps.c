@@ -408,6 +408,10 @@ void ANIM_animdata_update(bAnimContext *ac, ListBase *anim_data)
 				ale->update &= ~ANIM_UPDATE_DEPS;
 				ANIM_list_elem_update(ac->bmain, ac->scene, ale);
 			}
+			/* disable handles to avoid crash */
+			if (ale->update & ANIM_UPDATE_HANDLES) {
+				ale->update &= ~ANIM_UPDATE_HANDLES;
+			}
 		}
 		else if (ale->datatype == ALE_FCURVE) {
 			FCurve *fcu = ale->key_data;
