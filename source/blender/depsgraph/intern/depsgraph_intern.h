@@ -146,4 +146,8 @@ struct ListBase *deg_build_effector_relations(Depsgraph *graph, struct Collectio
 struct ListBase *deg_build_collision_relations(Depsgraph *graph, struct Collection *collection, unsigned int modifier_type);
 void deg_clear_physics_relations(Depsgraph *graph);
 
+/* Tagging Utilities -------------------------------------------------------- */
+
+eDepsNode_Type deg_geometry_tag_to_component(const ID *id);
+
 }  // namespace DEG
