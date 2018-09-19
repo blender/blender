@@ -176,7 +176,7 @@ struct GPUPass {
 
 typedef struct GPUPass GPUPass;
 
-GPUPass *GPU_generate_pass_new(
+GPUPass *GPU_generate_pass(
         GPUMaterial *material,
         GPUNodeLink *frag_outlink, struct GPUVertexAttribs *attribs,
         ListBase *nodes,

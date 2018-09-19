@@ -1670,7 +1670,7 @@ static bool gpu_pass_is_valid(GPUPass *pass)
 	return (pass->compiled == false || pass->shader != NULL);
 }
 
-GPUPass *GPU_generate_pass_new(
+GPUPass *GPU_generate_pass(
         GPUMaterial *material,
         GPUNodeLink *frag_outlink,
         struct GPUVertexAttribs *attribs,
