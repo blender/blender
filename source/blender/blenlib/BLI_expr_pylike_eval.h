@@ -57,10 +57,10 @@ ExprPyLike_Parsed *BLI_expr_pylike_parse(
 eExprPyLike_EvalStatus BLI_expr_pylike_eval(
         struct ExprPyLike_Parsed *expr,
         const double *param_values, int param_values_len,
-		double *r_result);
+        double *r_result);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __BLI_EXPR_PYLIKE_EVALUATE_H__ */
+#endif /* __BLI_EXPR_PYLIKE_EVAL_H__ */

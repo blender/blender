@@ -2555,7 +2555,7 @@ class WM_MT_splash(Menu):
 
         split = layout.split(factor=0.25)
         split.label()
-        split = split.split(factor=2.0/3.0)
+        split = split.split(factor=2.0 / 3.0)
 
         col = split.column()
 
@@ -2572,7 +2572,7 @@ class WM_MT_splash(Menu):
 
         # We need to make switching to a language easier first
         #sub = col.column(align=False)
-        #sub.label(text="Language:")
+        # sub.label(text="Language:")
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
 
