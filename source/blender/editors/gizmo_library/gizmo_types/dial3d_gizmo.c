@@ -102,19 +102,6 @@ typedef struct DialInteraction {
 /* Could make option, negative to clip more (don't show when view aligned). */
 #define DIAL_CLIP_BIAS 0.02
 
-/**
- * We can't use this for the #wmGizmoType.matrix_basis_get callback, it conflicts with depth picking.
- */
-static void dial_calc_matrix(const wmGizmo *gz, float mat[4][4])
-{
-	float rot[3][3];
-	const float up[3] = {0.0f, 0.0f, 1.0f};
-
-	rotation_between_vecs_to_mat3(rot, up, gz->matrix_basis[2]);
-	copy_m4_m3(mat, rot);
-	copy_v3_v3(mat[3], gz->matrix_basis[3]);
-}
-
 /* -------------------------------------------------------------------- */
 
 static void dial_geom_draw(
@@ -296,7 +283,6 @@ static void dial_draw_intern(
         const bContext *C, wmGizmo *gz,
         const bool select, const bool highlight, float clip_plane[4])
 {
-	float matrix_basis_adjust[4][4];
 	float matrix_final[4][4];
 	float color[4];
 
@@ -304,12 +290,7 @@ static void dial_draw_intern(
 
 	gizmo_color_get(gz, highlight, color);
 
-	dial_calc_matrix(gz, matrix_basis_adjust);
-
-	WM_gizmo_calc_matrix_final_params(
-	        gz, &((struct WM_GizmoMatrixParams) {
-	            .matrix_basis = (void *)matrix_basis_adjust,
-	        }), matrix_final);
+	WM_gizmo_calc_matrix_final(gz, matrix_final);
 
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
@@ -360,7 +341,7 @@ static void dial_draw_intern(
 	}
 
 	/* Draw actual dial gizmo. */
-	dial_geom_draw(gz, color, select, matrix_basis_adjust, clip_plane);
+	dial_geom_draw(gz, color, select, gz->matrix_basis, clip_plane);
 
 	GPU_matrix_pop();
 }
@@ -429,14 +410,9 @@ static int gizmo_dial_modal(
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
 	float angle_ofs, angle_delta;
 
-	float matrix[4][4];
-
-	dial_calc_matrix(gz, matrix);
-
 	dial_ghostarc_get_angles(
 	        CTX_data_depsgraph(C),
-	        gz, event, CTX_wm_region(C), CTX_wm_view3d(C), matrix, co_outer, &angle_ofs, &angle_delta);
-
+	        gz, event, CTX_wm_region(C), CTX_wm_view3d(C), gz->matrix_basis, co_outer, &angle_ofs, &angle_delta);
 
 	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
 		const double snap = DEG2RAD(5);
