@@ -1705,7 +1705,7 @@ static void txt_undo_add_blockop(Text *text, TextUndoBuf *utxt, int op, const ch
 	/* 4 bytes */
 	txt_undo_store_uint32(utxt->buf, &utxt->pos, length);
 	/* 'length' bytes */
-	BLI_strncpy(utxt->buf + utxt->pos, buf, length);
+	memcpy(utxt->buf + utxt->pos, buf, length);
 	utxt->pos += length;
 	/* 4 bytes */
 	txt_undo_store_uint32(utxt->buf, &utxt->pos, length);
