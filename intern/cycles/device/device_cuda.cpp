@@ -1667,7 +1667,7 @@ public:
 		for(int sample = start_sample; sample < end_sample; sample += step_samples) {
 			/* Setup and copy work tile to device. */
 			wtile->start_sample = sample;
-			wtile->num_samples = min(step_samples, end_sample - sample);;
+			wtile->num_samples = min(step_samples, end_sample - sample);
 			work_tiles.copy_to_device();
 
 			CUdeviceptr d_work_tiles = cuda_device_ptr(work_tiles.device_pointer);
