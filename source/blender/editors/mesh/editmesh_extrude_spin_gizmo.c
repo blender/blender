@@ -325,8 +325,8 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 
 	WM_gizmo_set_scale(ggd->translate_c, 0.2);
 
-	WM_gizmo_set_scale(ggd->angle_z, 1.5f);
-	WM_gizmo_set_line_width(ggd->angle_z, 2.0f);
+	WM_gizmo_set_scale(ggd->angle_z, 2.0f);
+	WM_gizmo_set_line_width(ggd->angle_z, 1.0f);
 
 	RegionView3D *rv3d = ED_view3d_context_rv3d(ggd->data.context);
 	if (rv3d) {
@@ -581,14 +581,15 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_z->color);
 	UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, ggd->translate_c->color);
 	UI_GetThemeColor3fv(TH_GIZMO_SECONDARY, ggd->rotate_c->color);
-	UI_GetThemeColor3fv(TH_AXIS_Z, ggd->angle_z->color);
-
+	copy_v3_v3(ggd->angle_z->color, ggd->angle_z->color_hi);
+	ggd->angle_z->color[3] = 0.5f;
 
 	RNA_enum_set(ggd->translate_z->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_NORMAL);
 	RNA_enum_set(ggd->translate_c->ptr, "draw_style", ED_GIZMO_MOVE_STYLE_RING_2D);
 
 	RNA_boolean_set(ggd->angle_z->ptr, "wrap_angle", false);
 	RNA_enum_set(ggd->angle_z->ptr, "draw_options", ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE);
+	RNA_float_set(ggd->angle_z->ptr, "arc_inner_factor", 0.9f);
 
 	WM_gizmo_set_flag(ggd->translate_c, WM_GIZMO_DRAW_VALUE, true);
 	WM_gizmo_set_flag(ggd->rotate_c, WM_GIZMO_DRAW_VALUE, true);
