@@ -1052,7 +1052,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob_orig, &numVerts);
-		modifier_deformVerts(md, &mectx, NULL, vertexCos, numVerts);
+		mti->deformVerts(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
 	if (ob->id.tag & LIB_TAG_COPIED_ON_WRITE) {

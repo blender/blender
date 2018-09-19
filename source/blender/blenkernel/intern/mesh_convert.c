@@ -1144,7 +1144,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		int numVerts;
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
-		modifier_deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
+		mti->deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
 		BKE_id_copy_ex(
 		        NULL, &me->id, (ID **)&result,
 		        LIB_ID_CREATE_NO_MAIN |

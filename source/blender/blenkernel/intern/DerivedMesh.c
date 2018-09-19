@@ -2608,7 +2608,7 @@ static void editbmesh_calc_modifiers(
 				}
 			}
 
-			if (mti->deformVertsEM || mti->deformVertsEM_DM)
+			if (mti->deformVertsEM)
 				modwrap_deformVertsEM(md, &mectx, em, dm, deformedVerts, numVerts);
 			else
 				modwrap_deformVerts(md, &mectx, dm, deformedVerts, numVerts);
