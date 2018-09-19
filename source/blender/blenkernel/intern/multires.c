@@ -1359,7 +1359,6 @@ void multires_stitch_grids(Object *ob)
 	BKE_pbvh_get_grid_updates(pbvh, false, (void ***)&faces, &num_faces);
 	if (num_faces) {
 		BKE_subdiv_ccg_average_stitch_faces(subdiv_ccg, faces, num_faces);
-		BKE_subdiv_ccg_average_grids(subdiv_ccg);
 		MEM_freeN(faces);
 	}
 }
