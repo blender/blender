@@ -150,9 +150,12 @@ bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
  * Evaluate the expression with the given parameters.
  * The order and number of parameters must match the names given to parse.
  */
-eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr, double *result, int num_params, const double *params)
+eExprPyLike_EvalStatus BLI_expr_pylike_eval(
+        ExprPyLike_Parsed *expr,
+        const double *param_values, int param_values_len,
+        double *r_result)
 {
-	*result = 0.0;
+	*r_result = 0.0;
 
 	if (!BLI_expr_pylike_is_valid(expr)) {
 		return EXPR_PYLIKE_INVALID;
@@ -179,8 +182,8 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr, double *res
 				stack[sp++] = ops[pc].arg.dval;
 				break;
 			case OPCODE_PARAMETER:
-				FAIL_IF(sp >= expr->max_stack || ops[pc].arg.ival >= num_params);
-				stack[sp++] = params[ops[pc].arg.ival];
+				FAIL_IF(sp >= expr->max_stack || ops[pc].arg.ival >= param_values_len);
+				stack[sp++] = param_values[ops[pc].arg.ival];
 				break;
 			case OPCODE_FUNC1:
 				FAIL_IF(sp < 1);
@@ -249,7 +252,7 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(ExprPyLike_Parsed *expr, double *res
 
 #undef FAIL_IF
 
-	*result = stack[0];
+	*r_result = stack[0];
 
 	/* Detect floating point evaluation errors. */
 	int flags = fetestexcept(FE_DIVBYZERO | FE_INVALID);
@@ -412,7 +415,7 @@ static KeywordTokenDef keyword_list[] = {
 };
 
 typedef struct SimpleExprParseState {
-	int param_count;
+	int param_names_len;
 	const char **param_names;
 
 	/* Original expression */
@@ -682,7 +685,7 @@ static bool parse_unary(SimpleExprParseState *state)
 
 		case TOKEN_ID:
 			/* Parameters: search in reverse order in case of duplicate names - the last one should win. */
-			for (i = state->param_count - 1; i >= 0; i--) {
+			for (i = state->param_names_len - 1; i >= 0; i--) {
 				if (STREQ(state->tokenbuf, state->param_names[i])) {
 					parse_add_op(state, OPCODE_PARAMETER, 1)->arg.ival = i;
 					return parse_next_token(state);
@@ -931,7 +934,7 @@ static bool parse_expr(SimpleExprParseState *state)
  * Parse the expression for evaluation later.
  * Returns non-NULL even on failure; use is_valid to check.
  */
-ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, int num_params, const char **param_names)
+ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, const char **param_names, int param_names_len)
 {
 	/* Prepare the parser state. */
 	SimpleExprParseState state;
@@ -939,7 +942,7 @@ ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, int num_params,
 
 	state.cur = state.expr = expression;
 
-	state.param_count = num_params;
+	state.param_names_len = param_names_len;
 	state.param_names = param_names;
 
 	state.tokenbuf = MEM_mallocN(strlen(expression) + 1, __func__);

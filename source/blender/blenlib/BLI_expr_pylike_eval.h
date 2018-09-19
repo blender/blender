@@ -52,9 +52,12 @@ void BLI_expr_pylike_free(struct ExprPyLike_Parsed *expr);
 bool BLI_expr_pylike_is_valid(struct ExprPyLike_Parsed *expr);
 bool BLI_expr_pylike_is_constant(struct ExprPyLike_Parsed *expr);
 ExprPyLike_Parsed *BLI_expr_pylike_parse(
-        const char *expression, int num_params, const char **param_names);
+        const char *expression,
+        const char **param_names, int param_names_len);
 eExprPyLike_EvalStatus BLI_expr_pylike_eval(
-        struct ExprPyLike_Parsed *expr, double *result, int num_params, const double *params);
+        struct ExprPyLike_Parsed *expr,
+        const double *param_values, int param_values_len,
+		double *r_result);
 
 #ifdef __cplusplus
 }

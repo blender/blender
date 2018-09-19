@@ -14,7 +14,7 @@ extern "C" {
 
 static void expr_pylike_parse_fail_test(const char *str)
 {
-	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, 0, NULL);
+	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, NULL, 0);
 
 	EXPECT_FALSE(BLI_expr_pylike_is_valid(expr));
 
@@ -23,7 +23,7 @@ static void expr_pylike_parse_fail_test(const char *str)
 
 static void expr_pylike_const_test(const char *str, double value, bool force_const)
 {
-	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, 0, NULL);
+	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, NULL, 0);
 
 	if (force_const) {
 		EXPECT_TRUE(BLI_expr_pylike_is_constant(expr));
@@ -34,7 +34,7 @@ static void expr_pylike_const_test(const char *str, double value, bool force_con
 	}
 
 	double result;
-	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result, 0, NULL);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, NULL, 0, &result);
 
 	EXPECT_EQ(status, EXPR_PYLIKE_SUCCESS);
 	EXPECT_EQ(result, value);
@@ -44,8 +44,8 @@ static void expr_pylike_const_test(const char *str, double value, bool force_con
 
 static ExprPyLike_Parsed *parse_for_eval(const char *str, bool nonconst)
 {
-	const char *names[1] = { "x" };
-	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, 1, names);
+	const char *names[1] = {"x"};
+	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse(str, names, ARRAY_SIZE(names));
 
 	EXPECT_TRUE(BLI_expr_pylike_is_valid(expr));
 
@@ -59,7 +59,7 @@ static ExprPyLike_Parsed *parse_for_eval(const char *str, bool nonconst)
 static void verify_eval_result(ExprPyLike_Parsed *expr, double x, double value)
 {
 	double result;
-	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result, 1, &x);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &x, 1, &result);
 
 	EXPECT_EQ(status, EXPR_PYLIKE_SUCCESS);
 	EXPECT_EQ(result, value);
@@ -77,7 +77,7 @@ static void expr_pylike_error_test(const char *str, double x, eExprPyLike_EvalSt
 	ExprPyLike_Parsed *expr = parse_for_eval(str, false);
 
 	double result;
-	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result, 1, &x);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &x, 1, &result);
 
 	EXPECT_EQ(status, error);
 
@@ -253,15 +253,15 @@ TEST(expr_pylike, Eval_Ternary1)
 
 TEST(expr_pylike, MultipleArgs)
 {
-	const char* names[3] = { "x", "y", "x" };
-	double values[3] = { 1.0, 2.0, 3.0 };
+	const char* names[3] = {"x", "y", "x"};
+	double values[3] = {1.0, 2.0, 3.0};
 
-	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("x*10 + y", 3, names);
+	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("x*10 + y", names, ARRAY_SIZE(names));
 
 	EXPECT_TRUE(BLI_expr_pylike_is_valid(expr));
 
 	double result;
-	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result, 3, values);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, values, 3, &result);
 
 	EXPECT_EQ(status, EXPR_PYLIKE_SUCCESS);
 	EXPECT_EQ(result, 32.0);
@@ -291,10 +291,10 @@ TEST_ERROR(Mixed3, "sqrt(x) + 1 / max(0, x)", 1.0, EXPR_PYLIKE_SUCCESS)
 
 TEST(expr_pylike, Error_Invalid)
 {
-	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("", 0, NULL);
+	ExprPyLike_Parsed *expr = BLI_expr_pylike_parse("", NULL, 0);
 	double result;
 
-	EXPECT_EQ(BLI_expr_pylike_eval(expr, &result, 0, NULL), EXPR_PYLIKE_INVALID);
+	EXPECT_EQ(BLI_expr_pylike_eval(expr, NULL, 0, &result), EXPR_PYLIKE_INVALID);
 
 	BLI_expr_pylike_free(expr);
 }
@@ -304,7 +304,7 @@ TEST(expr_pylike, Error_ArgumentCount)
 	ExprPyLike_Parsed *expr = parse_for_eval("x", false);
 	double result;
 
-	EXPECT_EQ(BLI_expr_pylike_eval(expr, &result, 0, NULL), EXPR_PYLIKE_FATAL_ERROR);
+	EXPECT_EQ(BLI_expr_pylike_eval(expr, NULL, 0, &result), EXPR_PYLIKE_FATAL_ERROR);
 
 	BLI_expr_pylike_free(expr);
 }

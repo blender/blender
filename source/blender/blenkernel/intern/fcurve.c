@@ -1900,8 +1900,8 @@ ChannelDriver *fcurve_copy_driver(const ChannelDriver *driver)
 static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 {
 	/* Prepare parameter names. */
-	int num_vars = BLI_listbase_count(&driver->variables);
-	const char **names = BLI_array_alloca(names, num_vars + 1);
+	int names_len = BLI_listbase_count(&driver->variables);
+	const char **names = BLI_array_alloca(names, names_len + 1);
 	int i = 0;
 
 	names[i++] = "frame";
@@ -1910,14 +1910,14 @@ static ExprPyLike_Parsed *driver_compile_simple_expr_impl(ChannelDriver *driver)
 		names[i++] = dvar->name;
 	}
 
-	return BLI_expr_pylike_parse(driver->expression, num_vars + 1, names);
+	return BLI_expr_pylike_parse(driver->expression, names, names_len + 1);
 }
 
 static bool driver_evaluate_simple_expr(ChannelDriver *driver, ExprPyLike_Parsed *expr, float *result, float time)
 {
 	/* Prepare parameter values. */
-	int num_vars = BLI_listbase_count(&driver->variables);
-	double *vars = BLI_array_alloca(vars, num_vars + 1);
+	int vars_len = BLI_listbase_count(&driver->variables);
+	double *vars = BLI_array_alloca(vars, vars_len + 1);
 	int i = 0;
 
 	vars[i++] = time;
@@ -1928,7 +1928,7 @@ static bool driver_evaluate_simple_expr(ChannelDriver *driver, ExprPyLike_Parsed
 
 	/* Evaluate expression. */
 	double result_val;
-	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, &result_val, num_vars + 1, vars);
+	eExprPyLike_EvalStatus status = BLI_expr_pylike_eval(expr, vars, vars_len + 1, &result_val);
 	const char *message;
 
 	switch (status) {
