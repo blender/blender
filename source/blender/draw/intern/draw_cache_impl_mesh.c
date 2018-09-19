@@ -1927,6 +1927,7 @@ static GPUVertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, 
 		const uint tangent_len = rdata->cd.layers.tangent_len;
 		const uint vcol_len = rdata->cd.layers.vcol_len;
 		const uint layers_combined_len = uv_len + vcol_len + tangent_len;
+		cache->auto_layer_len = 0;
 
 		if (layers_combined_len == 0) {
 			return NULL;
@@ -1951,7 +1952,6 @@ static GPUVertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata, 
 		uint auto_names_len = 0;
 		uint auto_ofs = 0;
 		uint auto_id = 0;
-		cache->auto_layer_len = 0;
 		for (uint i = 0; i < uv_len; i++) {
 			const char *attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
 			auto_names_len += strlen(attrib_name) + 2; /* include null terminator and b prefix. */
