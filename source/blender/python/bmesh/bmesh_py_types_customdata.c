@@ -131,7 +131,7 @@ PyDoc_STRVAR(bpy_bmlayeraccess_collection__freestyle_face_doc,
 
 static PyObject *bpy_bmlayeraccess_collection_get(BPy_BMLayerAccess *self, void *flag)
 {
-	const int type = (int)GET_INT_FROM_POINTER(flag);
+	const int type = (int)POINTER_AS_INT(flag);
 
 	BPY_BM_CHECK_OBJ(self);
 

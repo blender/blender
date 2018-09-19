@@ -99,7 +99,7 @@ static VChar *freetypechar_to_vchar(FT_Face face, FT_ULong charcode, VFontData *
 		che->index = charcode;
 		che->width = glyph->advance.x * scale;
 
-		BLI_ghash_insert(vfd->characters, SET_UINT_IN_POINTER(che->index), che);
+		BLI_ghash_insert(vfd->characters, POINTER_FROM_UINT(che->index), che);
 
 		/* Start converting the FT data */
 		onpoints = (int *)MEM_callocN((ftoutline.n_contours) * sizeof(int), "onpoints");

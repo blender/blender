@@ -1220,7 +1220,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 
 	/* Random generator, only init once. */
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-	rng_seed ^= GET_UINT_FROM_POINTER(gso);
+	rng_seed ^= POINTER_AS_UINT(gso);
 	gso->rng = BLI_rng_new(rng_seed);
 
 	gso->is_painting = false;

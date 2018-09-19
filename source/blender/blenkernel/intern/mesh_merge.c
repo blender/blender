@@ -342,13 +342,13 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 			void **val_p;
 
 			if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-				newe[i] = GET_INT_FROM_POINTER(*val_p);
+				newe[i] = POINTER_AS_INT(*val_p);
 			}
 			else {
 				STACK_PUSH(olde, i);
 				STACK_PUSH(medge, *med);
 				newe[i] = c;
-				*val_p = SET_INT_IN_POINTER(c);
+				*val_p = POINTER_FROM_INT(c);
 				c++;
 			}
 		}
@@ -507,7 +507,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 					uint v2 = mlv;
 					BLI_assert(v1 != v2);
 					if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-						last_valid_ml->e = GET_INT_FROM_POINTER(*val_p);
+						last_valid_ml->e = POINTER_AS_INT(*val_p);
 					}
 					else {
 						const int new_eidx = STACK_SIZE(medge);
@@ -516,7 +516,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 						medge[new_eidx].v1 = last_valid_ml->v;
 						medge[new_eidx].v2 = ml->v;
 						/* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
-						*val_p = SET_INT_IN_POINTER(new_eidx);
+						*val_p = POINTER_FROM_INT(new_eidx);
 						created_edges++;
 
 						last_valid_ml->e = new_eidx;
@@ -559,7 +559,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 			uint v2 = (vtargetmap[first_valid_ml->v] != -1) ? vtargetmap[first_valid_ml->v] : first_valid_ml->v;
 			BLI_assert(v1 != v2);
 			if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-				last_valid_ml->e = GET_INT_FROM_POINTER(*val_p);
+				last_valid_ml->e = POINTER_AS_INT(*val_p);
 			}
 			else {
 				const int new_eidx = STACK_SIZE(medge);
@@ -568,7 +568,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 				medge[new_eidx].v1 = last_valid_ml->v;
 				medge[new_eidx].v2 = first_valid_ml->v;
 				/* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
-				*val_p = SET_INT_IN_POINTER(new_eidx);
+				*val_p = POINTER_FROM_INT(new_eidx);
 				created_edges++;
 
 				last_valid_ml->e = new_eidx;

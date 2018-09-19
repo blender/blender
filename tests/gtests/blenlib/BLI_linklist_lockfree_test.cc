@@ -74,7 +74,7 @@ void concurrent_insert(TaskPool *__restrict pool,
 	CHECK_NOTNULL(list);
 	IndexedNode *node = (IndexedNode *)MEM_mallocN(sizeof(IndexedNode),
 	                                               "test node");
-	node->index = GET_INT_FROM_POINTER(taskdata);
+	node->index = POINTER_AS_INT(taskdata);
 	BLI_linklist_lockfree_insert(list, (LockfreeLinkNode *)node);
 }
 
@@ -95,7 +95,7 @@ TEST(LockfreeLinkList, InsertMultipleConcurrent)
 	for (int i = 0; i < num_nodes; ++i) {
 		BLI_task_pool_push(pool,
 		                   concurrent_insert,
-		                   SET_INT_IN_POINTER(i),
+		                   POINTER_FROM_INT(i),
 		                   false,
 		                   TASK_PRIORITY_HIGH);
 	}

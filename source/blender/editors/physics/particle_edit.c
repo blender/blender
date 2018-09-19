@@ -491,8 +491,8 @@ static void PE_free_shape_tree(PEData *data)
 static void PE_create_random_generator(PEData *data)
 {
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-	rng_seed ^= GET_UINT_FROM_POINTER(data->ob);
-	rng_seed ^= GET_UINT_FROM_POINTER(data->edit);
+	rng_seed ^= POINTER_AS_UINT(data->ob);
+	rng_seed ^= POINTER_AS_UINT(data->edit);
 	data->rng = BLI_rng_new(rng_seed);
 }
 

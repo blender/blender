@@ -113,7 +113,7 @@ PyDoc_STRVAR(bpy_bm_elem_seam_doc,    "Seam for UV unwrapping.\n\n:type: boolean
 
 static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 {
-	const char hflag = (char)GET_INT_FROM_POINTER(flag);
+	const char hflag = (char)POINTER_AS_INT(flag);
 
 	BPY_BM_CHECK_OBJ(self);
 
@@ -122,7 +122,7 @@ static PyObject *bpy_bm_elem_hflag_get(BPy_BMElem *self, void *flag)
 
 static int bpy_bm_elem_hflag_set(BPy_BMElem *self, PyObject *value, void *flag)
 {
-	const char hflag = (char)GET_INT_FROM_POINTER(flag);
+	const char hflag = (char)POINTER_AS_INT(flag);
 	int param;
 
 	BPY_BM_CHECK_INT(self);
@@ -266,7 +266,7 @@ PyDoc_STRVAR(bpy_bmloops_link_loops_doc,
 static PyObject *bpy_bmelemseq_elem_get(BPy_BMElem *self, void *itype)
 {
 	BPY_BM_CHECK_OBJ(self);
-	return BPy_BMElemSeq_CreatePyObject(self->bm, self, GET_INT_FROM_POINTER(itype));
+	return BPy_BMElemSeq_CreatePyObject(self->bm, self, POINTER_AS_INT(itype));
 }
 
 
@@ -614,7 +614,7 @@ static PyObject *bpy_bmelemseq_layers_get(BPy_BMElemSeq *self, void *htype)
 {
 	BPY_BM_CHECK_OBJ(self);
 
-	return BPy_BMLayerAccess_CreatePyObject(self->bm, GET_INT_FROM_POINTER(htype));
+	return BPy_BMLayerAccess_CreatePyObject(self->bm, POINTER_AS_INT(htype));
 }
 
 /* FaceSeq

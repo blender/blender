@@ -413,7 +413,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 	uiBut *but = arg_but, *cbut;
 	PointerRNA *ptr = &but->rnapoin;
 	PropertyRNA *prop = but->rnaprop;
-	int i, index = GET_INT_FROM_POINTER(arg_index);
+	int i, index = POINTER_AS_INT(arg_index);
 	int shift = win->eventstate->shift;
 	int len = RNA_property_array_length(ptr, prop);
 
@@ -507,7 +507,7 @@ static void ui_item_array(
 
 				but = uiDefAutoButR(block, ptr, prop, layer_num, "", icon, x + butw * a, y + buth, butw, buth);
 				if (subtype == PROP_LAYER_MEMBER)
-					UI_but_func_set(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(layer_num));
+					UI_but_func_set(but, ui_layer_but_cb, but, POINTER_FROM_INT(layer_num));
 			}
 			for (a = 0; a < colbuts; a++) {
 				const int layer_num  = a + len / 2 + b * colbuts;
@@ -525,7 +525,7 @@ static void ui_item_array(
 
 				but = uiDefAutoButR(block, ptr, prop, layer_num, "", icon, x + butw * a, y, butw, buth);
 				if (subtype == PROP_LAYER_MEMBER)
-					UI_but_func_set(but, ui_layer_but_cb, but, SET_INT_IN_POINTER(layer_num));
+					UI_but_func_set(but, ui_layer_but_cb, but, POINTER_FROM_INT(layer_num));
 			}
 			UI_block_align_end(block);
 
@@ -623,7 +623,7 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 
 	if (!win->eventstate->shift) {
 		uiBut *but = (uiBut *)arg1;
-		int enum_value = GET_INT_FROM_POINTER(arg2);
+		int enum_value = POINTER_AS_INT(arg2);
 
 		int current_value = RNA_property_enum_get(&but->rnapoin, but->rnaprop);
 		if (!(current_value & enum_value)) {
@@ -707,7 +707,7 @@ static void ui_item_enum_expand(
 			but = uiDefButR_prop(block, UI_BTYPE_ROW, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 
 		if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
-			UI_but_func_set(but, ui_item_enum_expand_handle, but, SET_INT_IN_POINTER(value));
+			UI_but_func_set(but, ui_item_enum_expand_handle, but, POINTER_FROM_INT(value));
 		}
 
 		if (ui_layout_local_dir(layout) != UI_LAYOUT_HORIZONTAL)

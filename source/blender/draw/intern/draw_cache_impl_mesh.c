@@ -3296,16 +3296,16 @@ static GPUIndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, 
 				bool inv_indices = (v1 > v2);
 				void **pval;
 				bool value_is_init = BLI_edgehash_ensure_p(eh, v1, v2, &pval);
-				int v_data = GET_INT_FROM_POINTER(*pval);
+				int v_data = POINTER_AS_INT(*pval);
 				if (!value_is_init || v_data == NO_EDGE) {
 					/* Save the winding order inside the sign bit. Because the
 					 * edgehash sort the keys and we need to compare winding later. */
 					int value = (int)v0 + 1; /* Int 0 cannot be signed */
-					*pval = SET_INT_IN_POINTER((inv_indices) ? -value : value);
+					*pval = POINTER_FROM_INT((inv_indices) ? -value : value);
 				}
 				else {
 					/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
-					*pval = SET_INT_IN_POINTER(NO_EDGE);
+					*pval = POINTER_FROM_INT(NO_EDGE);
 					bool inv_opposite = (v_data < 0);
 					uint v_opposite = (uint)abs(v_data) - 1;
 
@@ -3328,7 +3328,7 @@ static GPUIndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, 
 		     BLI_edgehashIterator_step(ehi))
 		{
 			uint v1, v2;
-			int v_data = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+			int v_data = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 			if (v_data == NO_EDGE) {
 				continue;
 			}

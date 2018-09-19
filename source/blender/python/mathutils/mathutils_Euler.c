@@ -612,12 +612,12 @@ PyDoc_STRVAR(Euler_axis_doc,
 );
 static PyObject *Euler_axis_get(EulerObject *self, void *type)
 {
-	return Euler_item(self, GET_INT_FROM_POINTER(type));
+	return Euler_item(self, POINTER_AS_INT(type));
 }
 
 static int Euler_axis_set(EulerObject *self, PyObject *value, void *type)
 {
-	return Euler_ass_item(self, GET_INT_FROM_POINTER(type), value);
+	return Euler_ass_item(self, POINTER_AS_INT(type), value);
 }
 
 /* rotation order */

@@ -4040,7 +4040,7 @@ static void achannel_setting_flush_widget_cb(bContext *C, void *ale_npoin, void 
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
 	int filter;
-	int setting = GET_INT_FROM_POINTER(setting_wrap);
+	int setting = POINTER_AS_INT(setting_wrap);
 	short on = 0;
 
 	/* send notifiers before doing anything else... */
@@ -4390,7 +4390,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 				case ACHANNEL_SETTING_PINNED: /* NLA Actions - 'map/nomap' */
 				case ACHANNEL_SETTING_MOD_OFF:
 				case ACHANNEL_SETTING_ALWAYS_VISIBLE:
-					UI_but_funcN_set(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), SET_INT_IN_POINTER(setting));
+					UI_but_funcN_set(but, achannel_setting_flush_widget_cb, MEM_dupallocN(ale), POINTER_FROM_INT(setting));
 					break;
 
 				/* settings needing special attention */

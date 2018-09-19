@@ -1698,21 +1698,21 @@ static void bevel_harden_normals_mode(BevelParams *bp, BevVert *bv, BMOperator *
 				BMFace *f_a, *f_b;
 				BM_edge_face_pair(e, &f_a, &f_b);
 
-				if (f_a && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)))) {
+				if (f_a && !BLI_ghash_haskey(tempfaceHash, POINTER_FROM_UINT(BM_elem_index_get(f_a)))) {
 					int f_area = BM_face_calc_area(f_a);
 					float f_no[3];
 					copy_v3_v3(f_no, f_a->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_ghash_insert(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_a)), NULL);
+					BLI_ghash_insert(tempfaceHash, POINTER_FROM_UINT(BM_elem_index_get(f_a)), NULL);
 				}
-				if (f_b && !BLI_ghash_haskey(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)))) {
+				if (f_b && !BLI_ghash_haskey(tempfaceHash, POINTER_FROM_UINT(BM_elem_index_get(f_b)))) {
 					int f_area = BM_face_calc_area(f_b);
 					float f_no[3];
 					copy_v3_v3(f_no, f_b->no);
 					mul_v3_fl(f_no, f_area);
 					add_v3_v3(n_final, f_no);
-					BLI_ghash_insert(tempfaceHash, SET_UINT_IN_POINTER(BM_elem_index_get(f_b)), NULL);
+					BLI_ghash_insert(tempfaceHash, POINTER_FROM_UINT(BM_elem_index_get(f_b)), NULL);
 				}
 			}
 		}

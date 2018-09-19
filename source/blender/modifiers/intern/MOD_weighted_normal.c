@@ -241,7 +241,7 @@ static void apply_weights_vertex_normal(WeightedNormalModifierData *wnmd, Weight
 
 				if (!(lnor_space->flags & MLNOR_SPACE_IS_SINGLE)) {
 					for (LinkNode *lnode = lnor_space->loops; lnode; lnode = lnode->next) {
-						const int ml_fan_index = GET_INT_FROM_POINTER(lnode->link);
+						const int ml_fan_index = POINTER_AS_INT(lnode->link);
 						BLI_BITMAP_ENABLE(done_loops, ml_fan_index);
 					}
 				}

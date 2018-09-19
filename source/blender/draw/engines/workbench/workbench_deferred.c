@@ -616,7 +616,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 	material_template.ima = ima;
 	uint hash = workbench_material_get_hash(&material_template, is_ghost);
 
-	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
+	material = BLI_ghash_lookup(wpd->material_hash, POINTER_FROM_UINT(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
 		material->shgrp = DRW_shgroup_create(
@@ -627,7 +627,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(
 		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
 		workbench_material_shgroup_uniform(wpd, material->shgrp, material, ob);
 
-		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
+		BLI_ghash_insert(wpd->material_hash, POINTER_FROM_UINT(hash), material);
 	}
 	return material;
 }

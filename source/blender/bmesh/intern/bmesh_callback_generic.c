@@ -32,7 +32,7 @@
 
 bool BM_elem_cb_check_hflag_ex(BMElem *ele, void *user_data)
 {
-	const uint hflag_pair = GET_INT_FROM_POINTER(user_data);
+	const uint hflag_pair = POINTER_AS_INT(user_data);
 	const char hflag_p = (hflag_pair & 0xff);
 	const char hflag_n = (hflag_pair >> 8);
 
@@ -42,14 +42,14 @@ bool BM_elem_cb_check_hflag_ex(BMElem *ele, void *user_data)
 
 bool BM_elem_cb_check_hflag_enabled(BMElem *ele, void *user_data)
 {
-	const char hflag = GET_INT_FROM_POINTER(user_data);
+	const char hflag = POINTER_AS_INT(user_data);
 
 	return (BM_elem_flag_test(ele, hflag) != 0);
 }
 
 bool BM_elem_cb_check_hflag_disabled(BMElem *ele, void *user_data)
 {
-	const char hflag = GET_INT_FROM_POINTER(user_data);
+	const char hflag = POINTER_AS_INT(user_data);
 
 	return (BM_elem_flag_test(ele, hflag) == 0);
 }

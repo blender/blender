@@ -115,7 +115,7 @@ static void deformStroke(
 	/* Random generator, only init once. */
 	if (mmd->rng == NULL) {
 		uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-		rng_seed ^= GET_UINT_FROM_POINTER(mmd);
+		rng_seed ^= POINTER_AS_UINT(mmd);
 		mmd->rng = BLI_rng_new(rng_seed);
 	}
 

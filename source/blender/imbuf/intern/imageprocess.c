@@ -391,7 +391,7 @@ static void processor_apply_scanline_func(TaskPool * __restrict pool,
                                           int UNUSED(threadid))
 {
 	ScanlineGlobalData *data = BLI_task_pool_userdata(pool);
-	int start_scanline = GET_INT_FROM_POINTER(taskdata);
+	int start_scanline = POINTER_AS_INT(taskdata);
 	int num_scanlines = min_ii(data->scanlines_per_task,
 	                           data->total_scanlines - start_scanline);
 	data->do_thread(data->custom_data,
@@ -415,7 +415,7 @@ void IMB_processor_apply_threaded_scanlines(int total_scanlines,
 	for (int i = 0, start_line = 0; i < total_tasks; i++) {
 		BLI_task_pool_push(task_pool,
 		                   processor_apply_scanline_func,
-		                   SET_INT_IN_POINTER(start_line),
+		                   POINTER_FROM_INT(start_line),
 		                   false,
 		                   TASK_PRIORITY_LOW);
 		start_line += scanlines_per_task;

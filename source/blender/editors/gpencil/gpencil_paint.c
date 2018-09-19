@@ -1978,7 +1978,7 @@ static tGPsdata *gp_session_initpaint(bContext *C, wmOperator *op)
 
 	/* Random generator, only init once. */
 	uint rng_seed = (uint)(PIL_check_seconds_timer_i() & UINT_MAX);
-	rng_seed ^= GET_UINT_FROM_POINTER(p);
+	rng_seed ^= POINTER_AS_UINT(p);
 	p->rng = BLI_rng_new(rng_seed);
 
 	/* return context data for running paint operator */

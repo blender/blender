@@ -240,13 +240,13 @@ PyDoc_STRVAR(bpy_app_debug_doc,
 );
 static PyObject *bpy_app_debug_get(PyObject *UNUSED(self), void *closure)
 {
-	const int flag = GET_INT_FROM_POINTER(closure);
+	const int flag = POINTER_AS_INT(closure);
 	return PyBool_FromLong(G.debug & flag);
 }
 
 static int bpy_app_debug_set(PyObject *UNUSED(self), PyObject *value, void *closure)
 {
-	const int flag = GET_INT_FROM_POINTER(closure);
+	const int flag = POINTER_AS_INT(closure);
 	const int param = PyObject_IsTrue(value);
 
 	if (param == -1) {
@@ -317,7 +317,7 @@ static int bpy_app_debug_value_set(PyObject *UNUSED(self), PyObject *value, void
 
 static PyObject *bpy_app_global_flag_get(PyObject *UNUSED(self), void *closure)
 {
-	const int flag = GET_INT_FROM_POINTER(closure);
+	const int flag = POINTER_AS_INT(closure);
 	return PyBool_FromLong(G.f & flag);
 }
 
@@ -349,7 +349,7 @@ PyDoc_STRVAR(bpy_app_preview_render_size_doc,
 );
 static PyObject *bpy_app_preview_render_size_get(PyObject *UNUSED(self), void *closure)
 {
-	return PyLong_FromLong((long)UI_preview_render_size(GET_INT_FROM_POINTER(closure)));
+	return PyLong_FromLong((long)UI_preview_render_size(POINTER_AS_INT(closure)));
 }
 
 static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void *UNUSED(closure))

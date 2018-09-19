@@ -512,11 +512,11 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 
 /* Warning-free macros for storing ints in pointers. Use these _only_
  * for storing an int in a pointer, not a pointer in an int (64bit)! */
-#define SET_INT_IN_POINTER(i)    ((void *)(intptr_t)(i))
-#define GET_INT_FROM_POINTER(i)  ((void)0, ((int)(intptr_t)(i)))
+#define POINTER_FROM_INT(i)    ((void *)(intptr_t)(i))
+#define POINTER_AS_INT(i)  ((void)0, ((int)(intptr_t)(i)))
 
-#define SET_UINT_IN_POINTER(i)    ((void *)(uintptr_t)(i))
-#define GET_UINT_FROM_POINTER(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
+#define POINTER_FROM_UINT(i)    ((void *)(uintptr_t)(i))
+#define POINTER_AS_UINT(i)  ((void)0, ((unsigned int)(uintptr_t)(i)))
 
 /* Set flag from a single test */
 #define SET_FLAG_FROM_TEST(value, test, flag) \

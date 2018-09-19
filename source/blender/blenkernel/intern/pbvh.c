@@ -247,7 +247,7 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 {
 	void *key, **value_p;
 
-	key = SET_INT_IN_POINTER(vertex);
+	key = POINTER_FROM_INT(vertex);
 	if (!BLI_ghash_ensure_p(map, key, &value_p)) {
 		int value_i;
 		if (BLI_BITMAP_TEST(bvh->vert_bitmap, vertex) == 0) {
@@ -259,11 +259,11 @@ static int map_insert_vert(PBVH *bvh, GHash *map,
 			value_i = ~(*face_verts);
 			(*face_verts)++;
 		}
-		*value_p = SET_INT_IN_POINTER(value_i);
+		*value_p = POINTER_FROM_INT(value_i);
 		return value_i;
 	}
 	else {
-		return GET_INT_FROM_POINTER(*value_p);
+		return POINTER_AS_INT(*value_p);
 	}
 }
 
@@ -304,13 +304,13 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	GHashIterator gh_iter;
 	GHASH_ITER (gh_iter, map) {
 		void *value = BLI_ghashIterator_getValue(&gh_iter);
-		int ndx = GET_INT_FROM_POINTER(value);
+		int ndx = POINTER_AS_INT(value);
 
 		if (ndx < 0)
 			ndx = -ndx + node->uniq_verts - 1;
 
 		vert_indices[ndx] =
-		        GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+		        POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
 	}
 
 	for (int i = 0; i < totface; ++i) {
@@ -915,7 +915,7 @@ static void BKE_pbvh_search_callback_occluded(PBVH *bvh,
 
 static bool update_search_cb(PBVHNode *node, void *data_v)
 {
-	int flag = GET_INT_FROM_POINTER(data_v);
+	int flag = POINTER_AS_INT(data_v);
 
 	if (node->flag & PBVH_Leaf)
 		return (node->flag & flag) != 0;
@@ -1220,7 +1220,7 @@ void BKE_pbvh_update(PBVH *bvh, int flag, float (*fnors)[3])
 	PBVHNode **nodes;
 	int totnode;
 
-	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(flag),
+	BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(flag),
 	                       &nodes, &totnode);
 
 	if (flag & PBVH_UpdateNormals)
@@ -2087,7 +2087,7 @@ void BKE_pbvh_draw_cb(
 	PBVHNode **nodes;
 	int totnode;
 
-	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
+	BKE_pbvh_search_gather(bvh, update_search_cb, POINTER_FROM_INT(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
 	                       &nodes, &totnode);
 
 	pbvh_update_normals(bvh, nodes, totnode, fnors);

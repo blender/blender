@@ -505,7 +505,7 @@ static void set_lowest_face_tri(KnifeTool_OpData *kcd, BMFace *f, int index)
 	if (i == -1)
 		i++;
 
-	BLI_ghash_insert(kcd->facetrimap, f, SET_INT_IN_POINTER(i + 1));
+	BLI_ghash_insert(kcd->facetrimap, f, POINTER_FROM_INT(i + 1));
 }
 
 /* This should only be called for faces that have had a lowest face tri set by previous function */
@@ -513,7 +513,7 @@ static int get_lowest_face_tri(KnifeTool_OpData *kcd, BMFace *f)
 {
 	int ans;
 
-	ans = GET_INT_FROM_POINTER(BLI_ghash_lookup(kcd->facetrimap, f));
+	ans = POINTER_AS_INT(BLI_ghash_lookup(kcd->facetrimap, f));
 	BLI_assert(ans != 0);
 	return ans - 1;
 }

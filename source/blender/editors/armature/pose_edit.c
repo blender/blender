@@ -1169,7 +1169,7 @@ void ARMATURE_OT_bone_layers(wmOperatorType *ot)
 static int hide_pose_bone_fn(Object *ob, Bone *bone, void *ptr)
 {
 	bArmature *arm = ob->data;
-	const bool hide_select = (bool)GET_INT_FROM_POINTER(ptr);
+	const bool hide_select = (bool)POINTER_AS_INT(ptr);
 	int count = 0;
 	if (arm->layer & bone->layer) {
 		if (((bone->flag & BONE_SELECTED) != 0) == hide_select) {
@@ -1194,7 +1194,7 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 	bool changed_multi = false;
 
 	const int hide_select = !RNA_boolean_get(op->ptr, "unselected");
-	void     *hide_select_p = SET_INT_IN_POINTER(hide_select);
+	void     *hide_select_p = POINTER_FROM_INT(hide_select);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];
@@ -1236,7 +1236,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 
 static int show_pose_bone_cb(Object *ob, Bone *bone, void *data)
 {
-	const bool select = GET_INT_FROM_POINTER(data);
+	const bool select = POINTER_AS_INT(data);
 
 	bArmature *arm = ob->data;
 	int count = 0;
@@ -1261,7 +1261,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
 	bool changed_multi = false;
 	const bool select = RNA_boolean_get(op->ptr, "select");
-	void *select_p = SET_INT_IN_POINTER(select);
+	void *select_p = POINTER_FROM_INT(select);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];

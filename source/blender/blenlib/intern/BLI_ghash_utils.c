@@ -126,7 +126,7 @@ uint BLI_ghashutil_inthash_p_murmur(const void *ptr)
 
 uint BLI_ghashutil_inthash_p_simple(const void *ptr)
 {
-	return GET_UINT_FROM_POINTER(ptr);
+	return POINTER_AS_UINT(ptr);
 }
 
 bool BLI_ghashutil_intcmp(const void *a, const void *b)

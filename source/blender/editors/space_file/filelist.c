@@ -1516,7 +1516,7 @@ static FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index
 		return cache->block_entries[idx];
 	}
 
-	if ((ret = BLI_ghash_lookup(cache->misc_entries, SET_INT_IN_POINTER(index)))) {
+	if ((ret = BLI_ghash_lookup(cache->misc_entries, POINTER_FROM_INT(index)))) {
 		return ret;
 	}
 
@@ -1529,11 +1529,11 @@ static FileDirEntry *filelist_file_ex(struct FileList *filelist, const int index
 	/* Else, we have to add new entry to 'misc' cache - and possibly make room for it first! */
 	ret = filelist_file_create_entry(filelist, index);
 	old_index = cache->misc_entries_indices[cache->misc_cursor];
-	if ((old = BLI_ghash_popkey(cache->misc_entries, SET_INT_IN_POINTER(old_index), NULL))) {
+	if ((old = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(old_index), NULL))) {
 		BLI_ghash_remove(cache->uuids, old->uuid, NULL, NULL);
 		filelist_file_release_entry(filelist, old);
 	}
-	BLI_ghash_insert(cache->misc_entries, SET_INT_IN_POINTER(index), ret);
+	BLI_ghash_insert(cache->misc_entries, POINTER_FROM_INT(index), ret);
 	BLI_ghash_insert(cache->uuids, ret->uuid, ret);
 
 	cache->misc_entries_indices[cache->misc_cursor] = index;
@@ -1628,7 +1628,7 @@ static bool filelist_file_cache_block_create(FileList *filelist, const int start
 			FileDirEntry *entry;
 
 			/* That entry might have already been requested and stored in misc cache... */
-			if ((entry = BLI_ghash_popkey(cache->misc_entries, SET_INT_IN_POINTER(idx), NULL)) == NULL) {
+			if ((entry = BLI_ghash_popkey(cache->misc_entries, POINTER_FROM_INT(idx), NULL)) == NULL) {
 				entry = filelist_file_create_entry(filelist, idx);
 				BLI_ghash_insert(cache->uuids, entry->uuid, entry);
 			}
@@ -2064,7 +2064,7 @@ unsigned int filelist_entry_select_set(
 {
 	/* Default NULL pointer if not found is fine here! */
 	void **es_p = BLI_ghash_lookup_p(filelist->selection_state, entry->uuid);
-	unsigned int entry_flag = es_p ? GET_UINT_FROM_POINTER(*es_p) : 0;
+	unsigned int entry_flag = es_p ? POINTER_AS_UINT(*es_p) : 0;
 	const unsigned int org_entry_flag = entry_flag;
 
 	BLI_assert(entry);
@@ -2090,7 +2090,7 @@ unsigned int filelist_entry_select_set(
 	if (entry_flag != org_entry_flag) {
 		if (es_p) {
 			if (entry_flag) {
-				*es_p = SET_UINT_IN_POINTER(entry_flag);
+				*es_p = POINTER_FROM_UINT(entry_flag);
 			}
 			else {
 				BLI_ghash_remove(filelist->selection_state, entry->uuid, MEM_freeN, NULL);
@@ -2099,7 +2099,7 @@ unsigned int filelist_entry_select_set(
 		else if (entry_flag) {
 			void *key = MEM_mallocN(sizeof(entry->uuid), __func__);
 			memcpy(key, entry->uuid, sizeof(entry->uuid));
-			BLI_ghash_insert(filelist->selection_state, key, SET_UINT_IN_POINTER(entry_flag));
+			BLI_ghash_insert(filelist->selection_state, key, POINTER_FROM_UINT(entry_flag));
 		}
 	}
 
@@ -2139,7 +2139,7 @@ unsigned int filelist_entry_select_get(FileList *filelist, FileDirEntry *entry, 
 	    ((check == CHECK_FILES) && !(entry->typeflag & FILE_TYPE_DIR)))
 	{
 		/* Default NULL pointer if not found is fine here! */
-		return GET_UINT_FROM_POINTER(BLI_ghash_lookup(filelist->selection_state, entry->uuid));
+		return POINTER_AS_UINT(BLI_ghash_lookup(filelist->selection_state, entry->uuid));
 	}
 
 	return 0;

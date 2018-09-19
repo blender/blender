@@ -182,7 +182,7 @@ static void make_edges_mdata_extend(
 		     BLI_edgehashIterator_step(ehi), ++medge, e_index++)
 		{
 			BLI_edgehashIterator_getKey(ehi, &medge->v1, &medge->v2);
-			BLI_edgehashIterator_setValue(ehi, SET_UINT_IN_POINTER(e_index));
+			BLI_edgehashIterator_setValue(ehi, POINTER_FROM_UINT(e_index));
 
 			medge->crease = medge->bweight = 0;
 			medge->flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -198,7 +198,7 @@ static void make_edges_mdata_extend(
 			int j;
 			for (j = 0; j < mp->totloop; j++, l++) {
 				/* lookup hashed edge index */
-				l_prev->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(eh, l_prev->v, l->v));
+				l_prev->e = POINTER_AS_UINT(BLI_edgehash_lookup(eh, l_prev->v, l->v));
 				l_prev = l;
 			}
 		}

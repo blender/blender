@@ -369,7 +369,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
 
 		for (i=0, node=nodedmelem; i<totdmelem; i++, node++) {
 			int origindex_final;
-			node->link = SET_INT_IN_POINTER(i);
+			node->link = POINTER_FROM_INT(i);
 
 			/* may be vertex or face origindex */
 			if (use_modifier_stack) {
@@ -412,7 +412,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, Partic
 			else {
 				if (psys->part->from == PART_FROM_VERT) {
 					if (pa->num < totelem && nodearray[pa->num])
-						pa->num_dmcache= GET_INT_FROM_POINTER(nodearray[pa->num]->link);
+						pa->num_dmcache= POINTER_AS_INT(nodearray[pa->num]->link);
 					else
 						pa->num_dmcache = DMCACHE_NOTFOUND;
 				}
@@ -1550,7 +1550,7 @@ static EdgeHash *sph_springhash_build(ParticleSystem *psys)
 	springhash = BLI_edgehash_new_ex(__func__, psys->tot_fluidsprings);
 
 	for (i=0, spring=psys->fluid_springs; i<psys->tot_fluidsprings; i++, spring++)
-		BLI_edgehash_insert(springhash, spring->particle_index[0], spring->particle_index[1], SET_INT_IN_POINTER(i+1));
+		BLI_edgehash_insert(springhash, spring->particle_index[0], spring->particle_index[1], POINTER_FROM_INT(i+1));
 
 	return springhash;
 }
@@ -1752,7 +1752,7 @@ static void sph_force_cb(void *sphdata_v, ParticleKey *state, float *force, floa
 			/* Viscoelastic spring force */
 			if (pfn->psys == psys[0] && fluid->flag & SPH_VISCOELASTIC_SPRINGS && springhash) {
 				/* BLI_edgehash_lookup appears to be thread-safe. - z0r */
-				spring_index = GET_INT_FROM_POINTER(BLI_edgehash_lookup(springhash, index, pfn->index));
+				spring_index = POINTER_AS_INT(BLI_edgehash_lookup(springhash, index, pfn->index));
 
 				if (spring_index) {
 					spring = psys[0]->fluid_springs + spring_index - 1;
