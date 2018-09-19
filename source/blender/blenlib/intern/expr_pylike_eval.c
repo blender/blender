@@ -391,7 +391,11 @@ static BuiltinOpDef builtin_ops[] = {
 	{ NULL, OPCODE_CONST, NULL }
 };
 
-/* Simple Expression Parser State -------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Expression Parser State
+ * \{ */
 
 #define MAKE_CHAR2(a, b) (((a) << 8) | (b))
 
