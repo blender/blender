@@ -158,8 +158,13 @@ static Mesh *applyModifier(
 
 static bool dependsOnTime(ModifierData *md)
 {
+#ifdef WITH_ALEMBIC
+	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
+	return (mcmd->cache_file != NULL);
+#else
 	UNUSED_VARS(md);
-	return true;
+	return false;
+#endif
 }
 
 static void foreachIDLink(
