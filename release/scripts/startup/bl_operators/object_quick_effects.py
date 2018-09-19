@@ -287,7 +287,7 @@ class QuickExplode(Operator):
 
 def obj_bb_minmax(obj, min_co, max_co):
     for i in range(0, 8):
-        bb_vec = obj.matrix_world * Vector(obj.bound_box[i])
+        bb_vec = obj.matrix_world @ Vector(obj.bound_box[i])
 
         min_co[0] = min(bb_vec[0], min_co[0])
         min_co[1] = min(bb_vec[1], min_co[1])
