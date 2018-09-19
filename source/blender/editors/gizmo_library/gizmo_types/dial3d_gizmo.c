@@ -279,6 +279,17 @@ fail:
 	*r_delta = 0.0;
 }
 
+static void dial_ghostarc_draw_with_helplines(wmGizmo *gz, float angle_ofs, float angle_delta, float color_helpline[4])
+{
+	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
+	GPU_polygon_smooth(false);
+	dial_ghostarc_draw(gz, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
+	GPU_polygon_smooth(true);
+
+	dial_ghostarc_draw_helpline(angle_ofs, co_outer, color_helpline);
+	dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color_helpline);
+}
+
 static void dial_draw_intern(
         const bContext *C, wmGizmo *gz,
         const bool select, const bool highlight, float clip_plane[4])
@@ -301,40 +312,48 @@ static void dial_draw_intern(
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
 
-	/* draw rotation indicator arc first */
+	/* FIXME(campbell): look into removing this. */
 	if ((gz->flag & WM_GIZMO_DRAW_VALUE) &&
 	    (gz->state & WM_GIZMO_STATE_MODAL))
 	{
-		const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
-
-		DialInteraction *inter = gz->interaction_data;
-
 		/* XXX, View3D rotation gizmo doesn't call modal. */
 		if (!WM_gizmo_target_property_is_valid_any(gz)) {
 			wmWindow *win = CTX_wm_window(C);
 			gizmo_dial_modal((bContext *)C, gz, win->eventstate, 0);
 		}
+	}
 
-		float angle_ofs = inter->output.angle_ofs;
-		float angle_delta = inter->output.angle_delta;
+	{
+		float angle_ofs = 0.0f;
+		float angle_delta = 0.0f;
+		bool show_ghostarc = false;
 
-		/* draw! */
-		for (int i = 0; i < 2; i++) {
-			GPU_polygon_smooth(false);
-			dial_ghostarc_draw(gz, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
-			GPU_polygon_smooth(true);
+		/* Draw rotation indicator arc first. */
+		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+		const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 
-			dial_ghostarc_draw_helpline(angle_ofs, co_outer, color); /* starting position */
-			dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color); /* starting position + current value */
+		if (WM_gizmo_target_property_is_valid(gz_prop) &&
+		    (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE))
+		{
+			angle_ofs = 0.0f;
+			angle_delta = WM_gizmo_target_property_float_get(gz, gz_prop);
+			show_ghostarc = true;
+		}
+		else if ((gz->flag & WM_GIZMO_DRAW_VALUE) &&
+		         (gz->state & WM_GIZMO_STATE_MODAL))
+		{
+			DialInteraction *inter = gz->interaction_data;
+			angle_ofs = inter->output.angle_ofs;
+			angle_delta = inter->output.angle_delta;
+			show_ghostarc = true;
+		}
 
-			if (i == 0) {
-				const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
-				if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) == 0) {
-					break;
-				}
+		if (show_ghostarc) {
+			dial_ghostarc_draw_with_helplines(gz, angle_ofs, angle_delta, color);
+			if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) != 0) {
+				angle_ofs += M_PI;
+				dial_ghostarc_draw_with_helplines(gz, angle_ofs, angle_delta, color);
 			}
-
-			angle_ofs += (float)M_PI;
 		}
 	}
 
@@ -491,6 +510,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 		{ED_GIZMO_DIAL_DRAW_FLAG_FILL, "FILL", 0, "Filled", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR, "ANGLE_MIRROR", 0, "Angle Mirror", ""},
 		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y, "ANGLE_START_Y", 0, "Angle Start Y", ""},
+		{ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE, "ANGLE_VALUE", 0, "Show Angle Value", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");

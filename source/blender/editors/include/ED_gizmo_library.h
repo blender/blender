@@ -190,6 +190,7 @@ enum {
 	ED_GIZMO_DIAL_DRAW_FLAG_FILL              = (1 << 1),
 	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR      = (1 << 2),
 	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y     = (1 << 3),
+	ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE       = (1 << 4),
 };
 
 /* -------------------------------------------------------------------- */
