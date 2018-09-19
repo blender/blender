@@ -416,16 +416,14 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 	filter = ANIMFILTER_DATA_VISIBLE;
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-	/* loop over F-Curves that are likely to have been edited, and check them */
+	/* Loop over F-Curves that are likely to have been edited, and tag them to
+	 * ensure the keyframes are in order and handles are in a valid position. */
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		FCurve *fcu = ale->key_data;
-
-		/* make sure keyframes in F-Curve are all in order, and handles are in valid positions */
-		sort_time_fcurve(fcu);
-		calchandles_fcurve(fcu);
+		ale->update |= ANIM_UPDATE_DEPS | ANIM_UPDATE_HANDLES | ANIM_UPDATE_ORDER;
 	}
 
 	/* free temp data */
+	ANIM_animdata_update(ac, &anim_data);
 	ANIM_animdata_freelist(&anim_data);
 }
 
