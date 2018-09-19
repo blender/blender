@@ -228,7 +228,7 @@ struct DepsgraphNodeBuilder {
 		/* State of the is_visible from ID node from previous state of the
 		 * dependency graph.
 		 */
-		bool is_visible;
+		bool is_directly_visible;
 	};
 
 protected:

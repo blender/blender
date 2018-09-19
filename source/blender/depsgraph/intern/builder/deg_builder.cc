@@ -34,6 +34,8 @@
 #include "DNA_object_types.h"
 #include "DNA_ID.h"
 
+#include "BLI_utildefines.h"
+#include "BLI_ghash.h"
 #include "BLI_stack.h"
 
 extern "C" {
@@ -64,6 +66,13 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 
 	BLI_Stack *stack = BLI_stack_new(sizeof(OperationDepsNode *),
 	                                 "DEG flush layers stack");
+	foreach (IDDepsNode *id_node, graph->id_nodes) {
+		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
+		{
+			comp_node->affects_directly_visible = id_node->is_directly_visible;
+		}
+		GHASH_FOREACH_END();
+	}
 	foreach (OperationDepsNode *op_node, graph->operations) {
 		op_node->custom_flags = 0;
 		op_node->num_links_pending = 0;
@@ -86,8 +95,8 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 		foreach (DepsRelation *rel, op_node->inlinks) {
 			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
 				OperationDepsNode *op_from = (OperationDepsNode *)rel->from;
-				op_from->owner->owner->is_visible |=
-				        op_node->owner->owner->is_visible;
+				op_from->owner->affects_directly_visible |=
+				        op_node->owner->affects_directly_visible;
 			}
 		}
 		/* Schedule parent nodes. */

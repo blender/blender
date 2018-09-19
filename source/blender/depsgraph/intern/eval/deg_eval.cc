@@ -112,8 +112,7 @@ static bool check_operation_node_visible(OperationDepsNode *op_node)
 	if (comp_node->type == DEG_NODE_TYPE_COPY_ON_WRITE) {
 		return true;
 	}
-	const IDDepsNode *id_node = comp_node->owner;
-	return id_node->is_visible;
+	return comp_node->affects_directly_visible;
 }
 
 static void calculate_pending_func(

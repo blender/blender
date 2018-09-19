@@ -163,16 +163,16 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 {
 	IDDepsNode *id_node = NULL;
 	ID *id_cow = NULL;
-	bool is_previous_visible = false;
+	bool is_previous_directly_visible = false;
 	IDInfo *id_info = (IDInfo *)BLI_ghash_lookup(id_info_hash_, id);
 	if (id_info != NULL) {
 		id_cow = id_info->id_cow;
-		is_previous_visible = id_info->is_visible;
+		is_previous_directly_visible = id_info->is_directly_visible;
 		/* Tag ID info to not free the CoW ID pointer. */
 		id_info->id_cow = NULL;
 	}
 	id_node = graph_->add_id_node(id, id_cow);
-	id_node->is_previous_visible = is_previous_visible;
+	id_node->is_previous_directly_visible = is_previous_directly_visible;
 	/* Currently all ID nodes are supposed to have copy-on-write logic.
 	 *
 	 * NOTE: Zero number of components indicates that ID node was just created.
@@ -352,7 +352,7 @@ void DepsgraphNodeBuilder::begin_build()
 		else {
 			id_info->id_cow = NULL;
 		}
-		id_info->is_visible = id_node->is_visible;
+		id_info->is_directly_visible = id_node->is_directly_visible;
 		BLI_ghash_insert(id_info_hash_, id_node->id_orig, id_info);
 		id_node->id_cow = NULL;
 	}
@@ -489,7 +489,7 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 	        !is_collection_restricted && is_parent_collection_visible_;
 	if (built_map_.checkIsBuiltAndTag(collection)) {
 		IDDepsNode *id_node = find_id_node(&collection->id);
-		if (is_collection_visible && !id_node->is_visible) {
+		if (is_collection_visible && !id_node->is_directly_visible) {
 			/* Collection became visible, make sure nested collections and
 			 * objects are poked with the new visibility flag, since they
 			 * might become visible too.
@@ -502,7 +502,7 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 	else {
 		/* Collection itself. */
 		IDDepsNode *id_node = add_id_node(&collection->id);
-		id_node->is_visible = is_collection_visible;
+		id_node->is_directly_visible = is_collection_visible;
 	}
 	/* Backup state. */
 	Collection *current_state_collection = collection_;
@@ -541,13 +541,20 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 			build_object_flags(base_index, object, linked_state);
 		}
 		id_node->linked_state = max(id_node->linked_state, linked_state);
-		id_node->is_visible |= is_visible;
+		if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
+			id_node->is_directly_visible |= is_visible;
+		}
 		return;
 	}
 	/* Create ID node for object and begin init. */
 	IDDepsNode *id_node = add_id_node(&object->id);
 	id_node->linked_state = linked_state;
-	id_node->is_visible = is_visible;
+	if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
+		id_node->is_directly_visible = is_visible;
+	}
+	else {
+		id_node->is_directly_visible = false;
+	}
 	object->customdata_mask = 0;
 	/* Various flags, flushing from bases/collections. */
 	build_object_flags(base_index, object, linked_state);

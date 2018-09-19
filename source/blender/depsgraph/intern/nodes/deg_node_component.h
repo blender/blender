@@ -150,6 +150,11 @@ struct ComponentDepsNode : public DepsNode {
 	 * is tagged for update.
 	 */
 	virtual bool need_tag_cow_before_update() { return true; }
+
+	/* Denotes whether this component affects (possibly indirectly) on a
+	 * directly visible object.
+	 */
+	bool affects_directly_visible;
 };
 
 /* ---------------------------------------- */

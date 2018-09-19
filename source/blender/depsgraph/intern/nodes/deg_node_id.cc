@@ -104,8 +104,8 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	id_orig = (ID *)id;
 	eval_flags = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
-	is_visible = true;
-	is_previous_visible = false;
+	is_directly_visible = true;
+	is_previous_directly_visible = false;
 
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,
@@ -174,7 +174,8 @@ string IDDepsNode::identifier() const
 	BLI_snprintf(cow_ptr, sizeof(cow_ptr), "%p", id_cow);
 	return string(nodeTypeAsString(type)) + " : " + name +
 	        " (orig: " + orig_ptr + ", eval: " + cow_ptr +
-	        ", is_visible " + (is_visible ? "true" : "false") + ")";
+	        ", is_directly_visible " + (is_directly_visible ? "true"
+	                                                        : "false") + ")";
 }
 
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,

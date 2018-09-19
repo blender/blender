@@ -485,14 +485,17 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 
 void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 {
+	/* TODO(sergey): We might want to tag components which did not affect
+	 * anything visible before new objects became visible.
+	 */
 	foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
-		if (!id_node->is_visible) {
+		if (!id_node->is_directly_visible) {
 			/* ID is not visible within the current dependency graph, no need
 			 * botherwith it to tag or anything.
 			 */
 			continue;
 		}
-		if (id_node->is_previous_visible) {
+		if (id_node->is_previous_directly_visible) {
 			/* The ID was already visible and evaluated, all the subsequent
 			 * updates and tags are to be done explicitly.
 			 */
@@ -527,7 +530,7 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		 * tags we request from here will be applied in the updated state of
 		 * dependency graph.
 		 */
-		id_node->is_previous_visible = true;
+		id_node->is_previous_directly_visible = true;
 	}
 }
 

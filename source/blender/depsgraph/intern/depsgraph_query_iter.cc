@@ -163,7 +163,7 @@ void deg_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node)
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
 
-	if (!id_node->is_visible) {
+	if (!id_node->is_directly_visible) {
 		return;
 	}
 
@@ -302,7 +302,7 @@ static void DEG_iterator_ids_step(BLI_Iterator *iter, DEG::IDDepsNode *id_node, 
 {
 	ID *id_cow = id_node->id_cow;
 
-	if (!id_node->is_visible) {
+	if (!id_node->is_directly_visible) {
 		iter->skip = true;
 		return;
 	}
