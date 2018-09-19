@@ -31,10 +31,13 @@
 #pragma once
 
 #include "intern/nodes/deg_node.h"
+#include "BLI_sys_types.h"
 
 namespace DEG {
 
 struct ComponentDepsNode;
+
+typedef uint64_t IDComponentsMask;
 
 /* ID-Block Reference */
 struct IDDepsNode : public DepsNode {
@@ -62,6 +65,8 @@ struct IDDepsNode : public DepsNode {
 
 	void finalize_build(Depsgraph *graph);
 
+	IDComponentsMask get_visible_components_mask() const;
+
 	/* ID Block referenced. */
 	ID *id_orig;
 	ID *id_cow;
@@ -79,13 +84,9 @@ struct IDDepsNode : public DepsNode {
 
 	/* Indicates the datablock is visible in the evaluated scene. */
 	bool is_directly_visible;
-	/* Is used to detect when ID becomes visible within a dependency graph,
-	 * this value equals to:
-	 *   - False if the ID was never inside of the dependency graph.
-	 *   - Value if is_visible of ID node from the previous state of the
-	 *     dependency graph.
-	 */
-	bool is_previous_directly_visible;
+
+	IDComponentsMask visible_components_mask;
+	IDComponentsMask previously_visible_components_mask;
 
 	DEG_DEPSNODE_DECLARE;
 };

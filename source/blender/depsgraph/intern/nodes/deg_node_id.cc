@@ -105,7 +105,9 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	eval_flags = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
 	is_directly_visible = true;
-	is_previous_directly_visible = false;
+
+	visible_components_mask = 0;
+	previously_visible_components_mask = 0;
 
 	components = BLI_ghash_new(id_deps_node_hash_key,
 	                           id_deps_node_hash_key_cmp,
@@ -218,6 +220,21 @@ void IDDepsNode::finalize_build(Depsgraph *graph)
 		comp_node->finalize_build(graph);
 	}
 	GHASH_FOREACH_END();
+	visible_components_mask = get_visible_components_mask();
+}
+
+IDComponentsMask IDDepsNode::get_visible_components_mask() const {
+	IDComponentsMask result = 0;
+	GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, components)
+	{
+		if (comp_node->affects_directly_visible) {
+			const int component_type = comp_node->type;
+			BLI_assert(component_type < 64);
+			result |= (1 << component_type);
+		}
+	}
+	GHASH_FOREACH_END();
+	return result;
 }
 
 }  // namespace DEG

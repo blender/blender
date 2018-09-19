@@ -35,6 +35,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "intern/nodes/deg_node_id.h"
+
 struct Base;
 struct bArmature;
 struct bAction;
@@ -225,10 +227,10 @@ struct DepsgraphNodeBuilder {
 	struct IDInfo {
 		/* Copy-on-written pointer of the corresponding ID. */
 		ID *id_cow;
-		/* State of the is_visible from ID node from previous state of the
+		/* Mask of visible components from previous state of the
 		 * dependency graph.
 		 */
-		bool is_directly_visible;
+		IDComponentsMask previously_visible_components_mask;
 	};
 
 protected:
