@@ -1899,7 +1899,7 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		add_relation(geom_init_key,
 		             obdata_ubereval_key,
 		             "Object Geometry UberEval");
-		if (object->totcol != 0) {
+		if (object->totcol != 0 && object->type == OB_MESH) {
 			ComponentKey object_shading_key(&object->id, DEG_NODE_TYPE_SHADING);
 			DepsRelation *rel = add_relation(obdata_ubereval_key,
 			                                 object_shading_key,
