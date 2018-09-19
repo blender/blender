@@ -108,7 +108,7 @@ static void deformStroke(
 
 	for (int i = 0; i < gps->totpoints; i++) {
 		bGPDspoint *pt = &gps->points[i];
-		MDeformVert *dvert = &gps->dvert[i];
+		MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 		float curvef = 1.0f;
 		/* verify vertex group */
 		const float weight = get_modifier_point_weight(dvert, (mmd->flag & GP_THICK_INVERT_VGROUP) != 0, def_nr);

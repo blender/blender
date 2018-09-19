@@ -127,7 +127,7 @@ float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
 {
 	float weight = 1.0f;
 
-	if (def_nr != -1) {
+	if ((dvert != NULL) && (def_nr != -1)) {
 		MDeformWeight *dw = defvert_find_index(dvert, def_nr);
 		weight = dw ? dw->weight : -1.0f;
 		if ((weight >= 0.0f) && (inverse == 1)) {
@@ -143,6 +143,16 @@ float get_modifier_point_weight(MDeformVert *dvert, bool inverse, int def_nr)
 			return 1.0f;
 		}
 
+	}
+
+	/* handle special empty groups */
+	if ((dvert == NULL) && (def_nr != -1)) {
+		if (inverse == 1) {
+			return 1.0f;
+		}
+		else {
+			return -1.0f;
+		}
 	}
 
 	return weight;
