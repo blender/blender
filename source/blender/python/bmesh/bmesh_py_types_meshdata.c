@@ -182,13 +182,13 @@ PyDoc_STRVAR(bpy_bmloopuv_flag__select_edge_doc,
 
 static PyObject *bpy_bmloopuv_flag_get(BPy_BMLoopUV *self, void *flag_p)
 {
-	const int flag = GET_INT_FROM_POINTER(flag_p);
+	const int flag = POINTER_AS_INT(flag_p);
 	return PyBool_FromLong(self->data->flag & flag);
 }
 
 static int bpy_bmloopuv_flag_set(BPy_BMLoopUV *self, PyObject *value, void *flag_p)
 {
-	const int flag = GET_INT_FROM_POINTER(flag_p);
+	const int flag = POINTER_AS_INT(flag_p);
 
 	switch (PyC_Long_AsBool(value)) {
 		case true:
@@ -290,13 +290,13 @@ PyDoc_STRVAR(bpy_bmvertskin_flag__use_loose_doc,
 
 static PyObject *bpy_bmvertskin_flag_get(BPy_BMVertSkin *self, void *flag_p)
 {
-	const int flag = GET_INT_FROM_POINTER(flag_p);
+	const int flag = POINTER_AS_INT(flag_p);
 	return PyBool_FromLong(self->data->flag & flag);
 }
 
 static int bpy_bmvertskin_flag_set(BPy_BMVertSkin *self, PyObject *value, void *flag_p)
 {
-	const int flag = GET_INT_FROM_POINTER(flag_p);
+	const int flag = POINTER_AS_INT(flag_p);
 
 	switch (PyC_Long_AsBool(value)) {
 		case true:

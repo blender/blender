@@ -387,7 +387,7 @@ static void fmod_envelope_deletepoint_cb(bContext *UNUSED(C), void *fcm_dv, void
 {
 	FMod_Envelope *env = (FMod_Envelope *)fcm_dv;
 	FCM_EnvelopeData *fedn;
-	int index = GET_INT_FROM_POINTER(ind_v);
+	int index = POINTER_AS_INT(ind_v);
 
 	/* check that no data exists for the current frame... */
 	if (env->totvert > 1) {
@@ -465,7 +465,7 @@ static void draw_modifier__envelope(uiLayout *layout, ID *id, FModifier *fcm, sh
 
 		but = uiDefIconBut(block, UI_BTYPE_BUT, B_FMODIFIER_REDRAW, ICON_X, 0, 0, 0.9 * UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Delete envelope control point"));
-		UI_but_func_set(but, fmod_envelope_deletepoint_cb, env, SET_INT_IN_POINTER(i));
+		UI_but_func_set(but, fmod_envelope_deletepoint_cb, env, POINTER_FROM_INT(i));
 		UI_block_align_begin(block);
 	}
 }

@@ -229,7 +229,7 @@ static void emDM_calcLoopNormalsSpaceArray(
 				       r_lnors_spacearr->lspacearr[i]->ref_beta, r_lnors_spacearr->lspacearr[i]->loops);
 				printf("\t\t(shared with loops");
 				while (loops) {
-					printf(" %d", GET_INT_FROM_POINTER(loops->link));
+					printf(" %d", POINTER_AS_INT(loops->link));
 					loops = loops->next;
 				}
 				printf(")\n");

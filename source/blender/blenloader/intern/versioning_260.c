@@ -400,7 +400,7 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
 				NodeImageLayer *output = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 
 				/* take pass index both from current storage ptr (actually an int) */
-				output->pass_index = GET_INT_FROM_POINTER(sock->storage);
+				output->pass_index = POINTER_AS_INT(sock->storage);
 
 				/* replace socket data pointer */
 				sock->storage = output;

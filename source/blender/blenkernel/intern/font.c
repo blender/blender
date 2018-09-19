@@ -360,7 +360,7 @@ VFont *BKE_vfont_builtin_get(void)
 
 static VChar *find_vfont_char(VFontData *vfd, unsigned int character)
 {
-	return BLI_ghash_lookup(vfd->characters, SET_UINT_IN_POINTER(character));
+	return BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character));
 }
 
 static void build_underline(Curve *cu, ListBase *nubase, const rctf *rect,

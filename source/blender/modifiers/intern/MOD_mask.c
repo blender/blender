@@ -209,7 +209,7 @@ static DerivedMesh *applyModifier(
 			}
 
 			/* add to ghash for verts (numVerts acts as counter for mapping) */
-			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numVerts));
+			BLI_ghash_insert(vertHash, POINTER_FROM_INT(i), POINTER_FROM_INT(numVerts));
 			numVerts++;
 		}
 
@@ -234,7 +234,7 @@ static DerivedMesh *applyModifier(
 			}
 
 			/* add to ghash for verts (numVerts acts as counter for mapping) */
-			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numVerts));
+			BLI_ghash_insert(vertHash, POINTER_FROM_INT(i), POINTER_FROM_INT(numVerts));
 			numVerts++;
 		}
 	}
@@ -258,10 +258,10 @@ static DerivedMesh *applyModifier(
 		const MEdge *me = &medge_src[i];
 
 		/* only add if both verts will be in new mesh */
-		if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
-		    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
+		if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v1)) &&
+		    BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v2)))
 		{
-			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numEdges));
+			BLI_ghash_insert(edgeHash, POINTER_FROM_INT(i), POINTER_FROM_INT(numEdges));
 			numEdges++;
 		}
 	}
@@ -272,7 +272,7 @@ static DerivedMesh *applyModifier(
 		int j;
 
 		for (j = 0; j < mp_src->totloop; j++, ml_src++) {
-			if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml_src->v))) {
+			if (!BLI_ghash_haskey(vertHash, POINTER_FROM_INT(ml_src->v))) {
 				ok = false;
 				break;
 			}
@@ -280,7 +280,7 @@ static DerivedMesh *applyModifier(
 
 		/* all verts must be available */
 		if (ok) {
-			BLI_ghash_insert(polyHash, SET_INT_IN_POINTER(i), SET_INT_IN_POINTER(numPolys));
+			BLI_ghash_insert(polyHash, POINTER_FROM_INT(i), POINTER_FROM_INT(numPolys));
 			loop_mapping[numPolys] = numLoops;
 			numPolys++;
 			numLoops += mp_src->totloop;
@@ -303,8 +303,8 @@ static DerivedMesh *applyModifier(
 	GHASH_ITER (gh_iter, vertHash) {
 		const MVert *v_src;
 		MVert *v_dst;
-		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const int i_src = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 
 		v_src = &mvert_src[i_src];
 		v_dst = &mvert_dst[i_dst];
@@ -317,22 +317,22 @@ static DerivedMesh *applyModifier(
 	GHASH_ITER (gh_iter, edgeHash) {
 		const MEdge *e_src;
 		MEdge *e_dst;
-		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const int i_src = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 
 		e_src = &medge_src[i_src];
 		e_dst = &medge_dst[i_dst];
 
 		DM_copy_edge_data(dm, result, i_src, i_dst, 1);
 		*e_dst = *e_src;
-		e_dst->v1 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v1)));
-		e_dst->v2 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v2)));
+		e_dst->v1 = POINTER_AS_UINT(BLI_ghash_lookup(vertHash, POINTER_FROM_UINT(e_src->v1)));
+		e_dst->v2 = POINTER_AS_UINT(BLI_ghash_lookup(vertHash, POINTER_FROM_UINT(e_src->v2)));
 	}
 
 	/* faces */
 	GHASH_ITER (gh_iter, polyHash) {
-		const int i_src = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		const int i_dst = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		const int i_src = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+		const int i_dst = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 		const MPoly *mp_src = &mpoly_src[i_src];
 		MPoly *mp_dst = &mpoly_dst[i_dst];
 		const int i_ml_src = mp_src->loopstart;
@@ -346,8 +346,8 @@ static DerivedMesh *applyModifier(
 		*mp_dst = *mp_src;
 		mp_dst->loopstart = i_ml_dst;
 		for (i = 0; i < mp_src->totloop; i++) {
-			ml_dst[i].v = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(ml_src[i].v)));
-			ml_dst[i].e = GET_UINT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_UINT_IN_POINTER(ml_src[i].e)));
+			ml_dst[i].v = POINTER_AS_UINT(BLI_ghash_lookup(vertHash, POINTER_FROM_UINT(ml_src[i].v)));
+			ml_dst[i].e = POINTER_AS_UINT(BLI_ghash_lookup(edgeHash, POINTER_FROM_UINT(ml_src[i].e)));
 		}
 	}
 

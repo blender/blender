@@ -138,7 +138,7 @@ static DerivedMesh *applyModifier(
 
 			for (j = 0; j < mp->totloop; j++, ml++) {
 				void **val_p;
-				if (!BLI_ghash_ensure_p(vertHash, SET_INT_IN_POINTER(ml->v), &val_p)) {
+				if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(ml->v), &val_p)) {
 					*val_p = (void *)hash_num;
 					hash_num++;
 				}
@@ -157,8 +157,8 @@ static DerivedMesh *applyModifier(
 		for (i = 0; i < numEdge_src; i++, hash_num_alt++) {
 			MEdge *me = medge + i;
 
-			if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
-			    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
+			if (BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v1)) &&
+			    BLI_ghash_haskey(vertHash, POINTER_FROM_INT(me->v2)))
 			{
 				BLI_ghash_insert(edgeHash, (void *)hash_num, (void *)hash_num_alt);
 				BLI_ghash_insert(edgeHash2, (void *)hash_num_alt, (void *)hash_num);
@@ -184,11 +184,11 @@ static DerivedMesh *applyModifier(
 			void **val_p;
 			me = medge + edgeMap[i];
 
-			if (!BLI_ghash_ensure_p(vertHash, SET_INT_IN_POINTER(me->v1), &val_p)) {
+			if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(me->v1), &val_p)) {
 				*val_p = (void *)hash_num;
 				hash_num++;
 			}
-			if (!BLI_ghash_ensure_p(vertHash, SET_INT_IN_POINTER(me->v2), &val_p)) {
+			if (!BLI_ghash_ensure_p(vertHash, POINTER_FROM_INT(me->v2), &val_p)) {
 				*val_p = (void *)hash_num;
 				hash_num++;
 			}
@@ -199,10 +199,10 @@ static DerivedMesh *applyModifier(
 		for (i = 0; i < numEdges_dst; i++) {
 			j = BLI_ghash_len(edgeHash);
 
-			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(j),
-			                 SET_INT_IN_POINTER(edgeMap[i]));
-			BLI_ghash_insert(edgeHash2,  SET_INT_IN_POINTER(edgeMap[i]),
-			                 SET_INT_IN_POINTER(j));
+			BLI_ghash_insert(edgeHash, POINTER_FROM_INT(j),
+			                 POINTER_FROM_INT(edgeMap[i]));
+			BLI_ghash_insert(edgeHash2,  POINTER_FROM_INT(edgeMap[i]),
+			                 POINTER_FROM_INT(j));
 		}
 	}
 	else {
@@ -217,7 +217,7 @@ static DerivedMesh *applyModifier(
 		 * mapped to the new indices
 		 */
 		for (i = 0; i < numVerts; i++) {
-			BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(vertMap[i]), SET_INT_IN_POINTER(i));
+			BLI_ghash_insert(vertHash, POINTER_FROM_INT(vertMap[i]), POINTER_FROM_INT(i));
 		}
 	}
 
@@ -231,8 +231,8 @@ static DerivedMesh *applyModifier(
 	GHASH_ITER (gh_iter, vertHash) {
 		MVert source;
 		MVert *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
-		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+		int oldIndex = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
+		int newIndex = POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 
 		source = mvert_src[oldIndex];
 		dest = CDDM_get_vert(result, newIndex);
@@ -245,13 +245,13 @@ static DerivedMesh *applyModifier(
 	for (i = 0; i < BLI_ghash_len(edgeHash); i++) {
 		MEdge source;
 		MEdge *dest;
-		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
+		int oldIndex = POINTER_AS_INT(BLI_ghash_lookup(edgeHash, POINTER_FROM_INT(i)));
 
 		source = medge_src[oldIndex];
 		dest = CDDM_get_edge(result, i);
 
-		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
-		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
+		source.v1 = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source.v1)));
+		source.v2 = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(source.v2)));
 
 		DM_copy_edge_data(dm, result, oldIndex, i, 1);
 		*dest = source;
@@ -277,8 +277,8 @@ static DerivedMesh *applyModifier(
 
 		ml_src = mloop_src + source->loopstart;
 		for (j = 0; j < source->totloop; j++, k++, ml_src++, ml_dst++) {
-			ml_dst->v = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(ml_src->v)));
-			ml_dst->e = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash2, SET_INT_IN_POINTER(ml_src->e)));
+			ml_dst->v = POINTER_AS_INT(BLI_ghash_lookup(vertHash, POINTER_FROM_INT(ml_src->v)));
+			ml_dst->e = POINTER_AS_INT(BLI_ghash_lookup(edgeHash2, POINTER_FROM_INT(ml_src->e)));
 		}
 	}
 

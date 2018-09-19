@@ -421,14 +421,14 @@ static void codegen_set_texid(GHash *bindhash, GPUInput *input, int *texid, void
 {
 	if (BLI_ghash_haskey(bindhash, key)) {
 		/* Reuse existing texid */
-		input->texid = GET_INT_FROM_POINTER(BLI_ghash_lookup(bindhash, key));
+		input->texid = POINTER_AS_INT(BLI_ghash_lookup(bindhash, key));
 	}
 	else {
 		/* Allocate new texid */
 		input->texid = *texid;
 		(*texid)++;
 		input->bindtex = true;
-		BLI_ghash_insert(bindhash, key, SET_INT_IN_POINTER(input->texid));
+		BLI_ghash_insert(bindhash, key, POINTER_FROM_INT(input->texid));
 	}
 }
 
@@ -478,13 +478,13 @@ static void codegen_set_unique_ids(ListBase *nodes)
 					if (input->ima) {
 						if (!BLI_ghash_haskey(definehash, input->ima)) {
 							input->definetex = true;
-							BLI_ghash_insert(definehash, input->ima, SET_INT_IN_POINTER(input->texid));
+							BLI_ghash_insert(definehash, input->ima, POINTER_FROM_INT(input->texid));
 						}
 					}
 					else {
 						if (!BLI_ghash_haskey(definehash, input->link)) {
 							input->definetex = true;
-							BLI_ghash_insert(definehash, input->link, SET_INT_IN_POINTER(input->texid));
+							BLI_ghash_insert(definehash, input->link, POINTER_FROM_INT(input->texid));
 						}
 					}
 				}

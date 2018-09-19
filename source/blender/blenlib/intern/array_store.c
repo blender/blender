@@ -1760,7 +1760,7 @@ bool BLI_array_store_is_valid(
 		}
 		GHASH_ITER (gh_iter, chunk_list_map) {
 			const struct BChunkList *chunk_list = BLI_ghashIterator_getKey(&gh_iter);
-			const int users =  GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+			const int users =  POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 			if (!(chunk_list->users == users)) {
 				ok = false;
 				goto user_finally;
@@ -1790,7 +1790,7 @@ bool BLI_array_store_is_valid(
 
 		GHASH_ITER (gh_iter, chunk_map) {
 			const struct BChunk *chunk = BLI_ghashIterator_getKey(&gh_iter);
-			const int users =  GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
+			const int users =  POINTER_AS_INT(BLI_ghashIterator_getValue(&gh_iter));
 			if (!(chunk->users == users)) {
 				ok = false;
 				goto user_finally;

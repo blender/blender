@@ -670,13 +670,13 @@ static int gp_merge_layer_exec(bContext *C, wmOperator *op)
 	/* Collect frames of gpl_current in hash table to avoid O(n^2) lookups */
 	GHash *gh_frames_cur = BLI_ghash_int_new_ex(__func__, 64);
 	for (bGPDframe *gpf = gpl_current->frames.first; gpf; gpf = gpf->next) {
-		BLI_ghash_insert(gh_frames_cur, SET_INT_IN_POINTER(gpf->framenum), gpf);
+		BLI_ghash_insert(gh_frames_cur, POINTER_FROM_INT(gpf->framenum), gpf);
 	}
 
 	/* read all frames from next layer */
 	for (bGPDframe *gpf = gpl_next->frames.first; gpf; gpf = gpf->next) {
 		/* try to find frame in active layer */
-		bGPDframe *frame = BLI_ghash_lookup(gh_frames_cur, SET_INT_IN_POINTER(gpf->framenum));
+		bGPDframe *frame = BLI_ghash_lookup(gh_frames_cur, POINTER_FROM_INT(gpf->framenum));
 		if (!frame) {
 			/* nothing found, create new */
 			frame = BKE_gpencil_frame_addnew(gpl_current, gpf->framenum);

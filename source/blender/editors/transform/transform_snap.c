@@ -611,7 +611,7 @@ static void initSnappingMode(TransInfo *t)
 			        (bool (*)(BMVert *, void *))BM_elem_cb_check_hflag_disabled,
 			        bm_edge_is_snap_target,
 			        bm_face_is_snap_target,
-			        SET_UINT_IN_POINTER((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
+			        POINTER_FROM_UINT((BM_ELEM_SELECT | BM_ELEM_HIDDEN)));
 		}
 	}
 }

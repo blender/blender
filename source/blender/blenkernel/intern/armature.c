@@ -1068,7 +1068,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 				GHash *idx_hash = BLI_ghash_ptr_new("pose channel index by name");
 				int pchan_index = 0;
 				for (pchan = armOb->pose->chanbase.first; pchan != NULL; pchan = pchan->next, ++pchan_index) {
-					BLI_ghash_insert(idx_hash, pchan, SET_INT_IN_POINTER(pchan_index));
+					BLI_ghash_insert(idx_hash, pchan, POINTER_FROM_INT(pchan_index));
 				}
 				for (i = 0, dg = target->defbase.first; dg; i++, dg = dg->next) {
 					defnrToPC[i] = BKE_pose_channel_find_name(armOb->pose, dg->name);
@@ -1078,7 +1078,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 							defnrToPC[i] = NULL;
 						}
 						else {
-							defnrToPCIndex[i] = GET_INT_FROM_POINTER(BLI_ghash_lookup(idx_hash, defnrToPC[i]));
+							defnrToPCIndex[i] = POINTER_AS_INT(BLI_ghash_lookup(idx_hash, defnrToPC[i]));
 						}
 					}
 				}

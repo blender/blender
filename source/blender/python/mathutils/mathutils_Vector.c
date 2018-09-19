@@ -2132,12 +2132,12 @@ PyDoc_STRVAR(Vector_axis_w_doc, "Vector W axis (4D Vectors only).\n\n:type: floa
 
 static PyObject *Vector_axis_get(VectorObject *self, void *type)
 {
-	return vector_item_internal(self, GET_INT_FROM_POINTER(type), true);
+	return vector_item_internal(self, POINTER_AS_INT(type), true);
 }
 
 static int Vector_axis_set(VectorObject *self, PyObject *value, void *type)
 {
-	return vector_ass_item_internal(self, GET_INT_FROM_POINTER(type), value, true);
+	return vector_ass_item_internal(self, POINTER_AS_INT(type), value, true);
 }
 
 /* vector.length */
@@ -2280,7 +2280,7 @@ static PyObject *Vector_swizzle_get(VectorObject *self, void *closure)
 
 	/* Unpack the axes from the closure into an array. */
 	axis_to = 0;
-	swizzleClosure = GET_INT_FROM_POINTER(closure);
+	swizzleClosure = POINTER_AS_INT(closure);
 	while (swizzleClosure & SWIZZLE_VALID_AXIS) {
 		axis_from = swizzleClosure & SWIZZLE_AXIS;
 		if (axis_from >= self->size) {
@@ -2327,7 +2327,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 	/* Check that the closure can be used with this vector: even 2D vectors have
 	 * swizzles defined for axes z and w, but they would be invalid. */
-	swizzleClosure = GET_INT_FROM_POINTER(closure);
+	swizzleClosure = POINTER_AS_INT(closure);
 	axis_from = 0;
 
 	while (swizzleClosure & SWIZZLE_VALID_AXIS) {
@@ -2366,7 +2366,7 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 
 	/* Copy vector contents onto swizzled axes. */
 	axis_from = 0;
-	swizzleClosure = GET_INT_FROM_POINTER(closure);
+	swizzleClosure = POINTER_AS_INT(closure);
 
 	/* We must first copy current vec into tvec, else some org values may be lost.
 	 * See [#31760].
@@ -2396,9 +2396,9 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 #define _SWIZZLE3(a, b, c)    (_SWIZZLE2(a, b)    | (((c) | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 2)))
 #define _SWIZZLE4(a, b, c, d) (_SWIZZLE3(a, b, c) | (((d) | SWIZZLE_VALID_AXIS) << (SWIZZLE_BITS_PER_AXIS * 3)))
 
-#define SWIZZLE2(a, b)       SET_INT_IN_POINTER(_SWIZZLE2(a, b))
-#define SWIZZLE3(a, b, c)    SET_INT_IN_POINTER(_SWIZZLE3(a, b, c))
-#define SWIZZLE4(a, b, c, d) SET_INT_IN_POINTER(_SWIZZLE4(a, b, c, d))
+#define SWIZZLE2(a, b)       POINTER_FROM_INT(_SWIZZLE2(a, b))
+#define SWIZZLE3(a, b, c)    POINTER_FROM_INT(_SWIZZLE3(a, b, c))
+#define SWIZZLE4(a, b, c, d) POINTER_FROM_INT(_SWIZZLE4(a, b, c, d))
 
 /*****************************************************************************/
 /* Python attributes get/set structure:                                      */

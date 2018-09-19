@@ -624,7 +624,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 
 					val_p = BLI_ghash_lookup_p(gh, chan->name);
 					if (val_p) {
-						*val_p = SET_INT_IN_POINTER(1);
+						*val_p = POINTER_FROM_INT(1);
 					}
 				}
 			}

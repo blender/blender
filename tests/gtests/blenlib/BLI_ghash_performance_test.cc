@@ -83,16 +83,16 @@ static void str_ghash_tests(GHash *ghash, const char *id)
 		BLI_ghash_reserve(ghash, strlen(data) / 32);  /* rough estimation... */
 #endif
 
-		BLI_ghash_insert(ghash, data, SET_INT_IN_POINTER(data[0]));
+		BLI_ghash_insert(ghash, data, POINTER_FROM_INT(data[0]));
 
 		for (p = c_p = data_p, w = c_w = data_w; *c_w; c_w++, c_p++) {
 			if (*c_p == '.') {
 				*c_p = *c_w = '\0';
 				if (!BLI_ghash_haskey(ghash, p)) {
-					BLI_ghash_insert(ghash, p, SET_INT_IN_POINTER(p[0]));
+					BLI_ghash_insert(ghash, p, POINTER_FROM_INT(p[0]));
 				}
 				if (!BLI_ghash_haskey(ghash, w)) {
-					BLI_ghash_insert(ghash, w, SET_INT_IN_POINTER(w[0]));
+					BLI_ghash_insert(ghash, w, POINTER_FROM_INT(w[0]));
 				}
 				p = c_p + 1;
 				w = c_w + 1;
@@ -100,7 +100,7 @@ static void str_ghash_tests(GHash *ghash, const char *id)
 			else if (*c_w == ' ') {
 				*c_w = '\0';
 				if (!BLI_ghash_haskey(ghash, w)) {
-					BLI_ghash_insert(ghash, w, SET_INT_IN_POINTER(w[0]));
+					BLI_ghash_insert(ghash, w, POINTER_FROM_INT(w[0]));
 				}
 				w = c_w + 1;
 			}
@@ -118,21 +118,21 @@ static void str_ghash_tests(GHash *ghash, const char *id)
 		TIMEIT_START(string_lookup);
 
 		v = BLI_ghash_lookup(ghash, data_bis);
-		EXPECT_EQ(GET_INT_FROM_POINTER(v), data_bis[0]);
+		EXPECT_EQ(POINTER_AS_INT(v), data_bis[0]);
 
 		for (p = w = c = data_bis; *c; c++) {
 			if (*c == '.') {
 				*c = '\0';
 				v = BLI_ghash_lookup(ghash, w);
-				EXPECT_EQ(GET_INT_FROM_POINTER(v), w[0]);
+				EXPECT_EQ(POINTER_AS_INT(v), w[0]);
 				v = BLI_ghash_lookup(ghash, p);
-				EXPECT_EQ(GET_INT_FROM_POINTER(v), p[0]);
+				EXPECT_EQ(POINTER_AS_INT(v), p[0]);
 				p = w = c + 1;
 			}
 			else if (*c == ' ') {
 				*c = '\0';
 				v = BLI_ghash_lookup(ghash, w);
-				EXPECT_EQ(GET_INT_FROM_POINTER(v), w[0]);
+				EXPECT_EQ(POINTER_AS_INT(v), w[0]);
 				w = c + 1;
 			}
 		}
@@ -180,7 +180,7 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
 #endif
 
 		while (i--) {
-			BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(i), SET_UINT_IN_POINTER(i));
+			BLI_ghash_insert(ghash, POINTER_FROM_UINT(i), POINTER_FROM_UINT(i));
 		}
 
 		TIMEIT_END(int_insert);
@@ -194,8 +194,8 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
 		TIMEIT_START(int_lookup);
 
 		while (i--) {
-			void *v = BLI_ghash_lookup(ghash, SET_UINT_IN_POINTER(i));
-			EXPECT_EQ(GET_UINT_FROM_POINTER(v), i);
+			void *v = BLI_ghash_lookup(ghash, POINTER_FROM_UINT(i));
+			EXPECT_EQ(POINTER_AS_UINT(v), i);
 		}
 
 		TIMEIT_END(int_lookup);
@@ -279,7 +279,7 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
 #endif
 
 		for (i = nbr, dt = data; i--; dt++) {
-			BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(*dt), SET_UINT_IN_POINTER(*dt));
+			BLI_ghash_insert(ghash, POINTER_FROM_UINT(*dt), POINTER_FROM_UINT(*dt));
 		}
 
 		TIMEIT_END(int_insert);
@@ -291,8 +291,8 @@ static void randint_ghash_tests(GHash *ghash, const char *id, const unsigned int
 		TIMEIT_START(int_lookup);
 
 		for (i = nbr, dt = data; i--; dt++) {
-			void *v = BLI_ghash_lookup(ghash, SET_UINT_IN_POINTER(*dt));
-			EXPECT_EQ(GET_UINT_FROM_POINTER(v), *dt);
+			void *v = BLI_ghash_lookup(ghash, POINTER_FROM_UINT(*dt));
+			EXPECT_EQ(POINTER_AS_UINT(v), *dt);
 		}
 
 		TIMEIT_END(int_lookup);
@@ -337,7 +337,7 @@ TEST(ghash, IntRandMurmur2a50000000)
 
 static unsigned int ghashutil_tests_nohash_p(const void *p)
 {
-	return GET_UINT_FROM_POINTER(p);
+	return POINTER_AS_UINT(p);
 }
 
 static bool ghashutil_tests_cmp_p(const void *a, const void *b)
@@ -390,7 +390,7 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
 #endif
 
 		for (i = nbr, dt = data; i--; dt++) {
-			BLI_ghash_insert(ghash, *dt, SET_UINT_IN_POINTER(i));
+			BLI_ghash_insert(ghash, *dt, POINTER_FROM_UINT(i));
 		}
 
 		TIMEIT_END(int_v4_insert);
@@ -403,7 +403,7 @@ static void int4_ghash_tests(GHash *ghash, const char *id, const unsigned int nb
 
 		for (i = nbr, dt = data; i--; dt++) {
 			void *v = BLI_ghash_lookup(ghash, (void *)(*dt));
-			EXPECT_EQ(GET_UINT_FROM_POINTER(v), i);
+			EXPECT_EQ(POINTER_AS_UINT(v), i);
 		}
 
 		TIMEIT_END(int_v4_lookup);
@@ -464,12 +464,12 @@ static void multi_small_ghash_tests_one(GHash *ghash, RNG *rng, const unsigned i
 #endif
 
 	for (i = nbr, dt = data; i--; dt++) {
-		BLI_ghash_insert(ghash, SET_UINT_IN_POINTER(*dt), SET_UINT_IN_POINTER(*dt));
+		BLI_ghash_insert(ghash, POINTER_FROM_UINT(*dt), POINTER_FROM_UINT(*dt));
 	}
 
 	for (i = nbr, dt = data; i--; dt++) {
-		void *v = BLI_ghash_lookup(ghash, SET_UINT_IN_POINTER(*dt));
-		EXPECT_EQ(GET_UINT_FROM_POINTER(v), *dt);
+		void *v = BLI_ghash_lookup(ghash, POINTER_FROM_UINT(*dt));
+		EXPECT_EQ(POINTER_AS_UINT(v), *dt);
 	}
 
 	BLI_ghash_clear(ghash, NULL, NULL);

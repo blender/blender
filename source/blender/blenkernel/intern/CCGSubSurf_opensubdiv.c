@@ -75,7 +75,7 @@ static bool compare_ccg_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 		     ccgFaceIterator_next(&ccg_face_iter))
 		{
 			/*const*/ CCGFace *ccg_face = ccgFaceIterator_getCurrent(&ccg_face_iter);
-			const int poly_index = GET_INT_FROM_POINTER(ccgSubSurf_getFaceFaceHandle(ccg_face));
+			const int poly_index = POINTER_AS_INT(ccgSubSurf_getFaceFaceHandle(ccg_face));
 			const MPoly *mp = &mpoly[poly_index];
 			int corner;
 			if (ccg_face->numVerts != mp->totloop) {
@@ -83,7 +83,7 @@ static bool compare_ccg_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 			}
 			for (corner = 0; corner < ccg_face->numVerts; corner++) {
 				/*const*/ CCGVert *ccg_vert = FACE_getVerts(ccg_face)[corner];
-				const int vert_index = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(ccg_vert));
+				const int vert_index = POINTER_AS_INT(ccgSubSurf_getVertVertHandle(ccg_vert));
 				if (vert_index != mloop[mp->loopstart + corner].v) {
 					return false;
 				}
@@ -101,9 +101,9 @@ static bool compare_ccg_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 			/* const */ CCGEdge *ccg_edge = ccgEdgeIterator_getCurrent(&ccg_edge_iter);
 			/* const */ CCGVert *ccg_vert1 = ccg_edge->v0;
 			/* const */ CCGVert *ccg_vert2 = ccg_edge->v1;
-			const int ccg_vert1_index = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(ccg_vert1));
-			const int ccg_vert2_index = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(ccg_vert2));
-			const int edge_index = GET_INT_FROM_POINTER(ccgSubSurf_getEdgeEdgeHandle(ccg_edge));
+			const int ccg_vert1_index = POINTER_AS_INT(ccgSubSurf_getVertVertHandle(ccg_vert1));
+			const int ccg_vert2_index = POINTER_AS_INT(ccgSubSurf_getVertVertHandle(ccg_vert2));
+			const int edge_index = POINTER_AS_INT(ccgSubSurf_getEdgeEdgeHandle(ccg_edge));
 			const MEdge *me = &medge[edge_index];
 			if (me->v1 != ccg_vert1_index || me->v2 != ccg_vert2_index) {
 				return false;
@@ -119,7 +119,7 @@ static bool compare_ccg_derivedmesh_topology(CCGSubSurf *ss, DerivedMesh *dm)
 		     ccgEdgeIterator_next(&ccg_edge_iter))
 		{
 			/* const */ CCGEdge *ccg_edge = ccgEdgeIterator_getCurrent(&ccg_edge_iter);
-			const int edge_index = GET_INT_FROM_POINTER(ccgSubSurf_getEdgeEdgeHandle(ccg_edge));
+			const int edge_index = POINTER_AS_INT(ccgSubSurf_getEdgeEdgeHandle(ccg_edge));
 			if (ccg_edge->crease != medge[edge_index].crease) {
 				return false;
 			}

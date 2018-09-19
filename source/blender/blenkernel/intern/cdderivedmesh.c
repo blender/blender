@@ -2735,7 +2735,7 @@ void CDDM_calc_loop_normals_spacearr(
 				       r_lnors_spacearr->lspacearr[i]->ref_beta, r_lnors_spacearr->lspacearr[i]->loops);
 				printf("\t\t(shared with loops");
 				while (loops) {
-					printf(" %d", GET_INT_FROM_POINTER(loops->link));
+					printf(" %d", POINTER_AS_INT(loops->link));
 					loops = loops->next;
 				}
 				printf(")\n");
@@ -3067,13 +3067,13 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			void **val_p;
 
 			if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-				newe[i] = GET_INT_FROM_POINTER(*val_p);
+				newe[i] = POINTER_AS_INT(*val_p);
 			}
 			else {
 				STACK_PUSH(olde, i);
 				STACK_PUSH(medge, *med);
 				newe[i] = c;
-				*val_p = SET_INT_IN_POINTER(c);
+				*val_p = POINTER_FROM_INT(c);
 				c++;
 			}
 		}
@@ -3235,7 +3235,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 					uint v2 = mlv;
 					BLI_assert(v1 != v2);
 					if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-						last_valid_ml->e = GET_INT_FROM_POINTER(*val_p);
+						last_valid_ml->e = POINTER_AS_INT(*val_p);
 					}
 					else {
 						const int new_eidx = STACK_SIZE(medge);
@@ -3244,7 +3244,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 						medge[new_eidx].v1 = last_valid_ml->v;
 						medge[new_eidx].v2 = ml->v;
 						/* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
-						*val_p = SET_INT_IN_POINTER(new_eidx);
+						*val_p = POINTER_FROM_INT(new_eidx);
 						created_edges++;
 
 						last_valid_ml->e = new_eidx;
@@ -3287,7 +3287,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 			uint v2 = (vtargetmap[first_valid_ml->v] != -1) ? vtargetmap[first_valid_ml->v] : first_valid_ml->v;
 			BLI_assert(v1 != v2);
 			if (BLI_edgehash_ensure_p(ehash, v1, v2, &val_p)) {
-				last_valid_ml->e = GET_INT_FROM_POINTER(*val_p);
+				last_valid_ml->e = POINTER_AS_INT(*val_p);
 			}
 			else {
 				const int new_eidx = STACK_SIZE(medge);
@@ -3296,7 +3296,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 				medge[new_eidx].v1 = last_valid_ml->v;
 				medge[new_eidx].v2 = first_valid_ml->v;
 				/* DO NOT change newe mapping, could break actual values due to some deleted original edges. */
-				*val_p = SET_INT_IN_POINTER(new_eidx);
+				*val_p = POINTER_FROM_INT(new_eidx);
 				created_edges++;
 
 				last_valid_ml->e = new_eidx;
@@ -3491,7 +3491,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	eh = BLI_edgehash_new_ex(__func__, eh_reserve);
 	if (med) {
 		for (i = 0; i < numEdges; i++, med++) {
-			BLI_edgehash_insert(eh, med->v1, med->v2, SET_INT_IN_POINTER(i + 1));
+			BLI_edgehash_insert(eh, med->v1, med->v2, POINTER_FROM_INT(i + 1));
 		}
 	}
 
@@ -3520,7 +3520,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
 	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
-		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+		j = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 
 		if (j == 0 || !eindex) {
 			med->flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -3531,7 +3531,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 			*index = eindex[j - 1];
 		}
 
-		BLI_edgehashIterator_setValue(ehi, SET_INT_IN_POINTER(i));
+		BLI_edgehashIterator_setValue(ehi, POINTER_FROM_INT(i));
 	}
 	BLI_edgehashIterator_free(ehi);
 
@@ -3548,7 +3548,7 @@ void CDDM_calc_edges(DerivedMesh *dm)
 		for (j = 0; j < mp->totloop; j++, ml++) {
 			v1 = ml->v;
 			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, v1, v2));
+			ml->e = POINTER_AS_INT(BLI_edgehash_lookup(eh, v1, v2));
 		}
 	}
 

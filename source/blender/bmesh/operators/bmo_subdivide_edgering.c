@@ -505,7 +505,7 @@ static LoopPairStore *bm_edgering_pair_store_create(
 			for (v_iter = lb->first, i = 0; v_iter; v_iter = v_iter->next, i++) {
 				BMVert *v = v_iter->data;
 				bm_vert_calc_surface_tangent(bm, v, nor[i]);
-				BLI_ghash_insert(nors_gh_iter, v, SET_UINT_IN_POINTER(i));
+				BLI_ghash_insert(nors_gh_iter, v, POINTER_FROM_UINT(i));
 			}
 		}
 
@@ -768,8 +768,8 @@ static void bm_edgering_pair_interpolate(
 				bm_vert_calc_surface_tangent(bm, v_b, no_b);
 #else
 				{
-					const uint index_a = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_a, v_a));
-					const uint index_b = GET_UINT_FROM_POINTER(BLI_ghash_lookup(lpair->nors_gh_b, v_b));
+					const uint index_a = POINTER_AS_UINT(BLI_ghash_lookup(lpair->nors_gh_a, v_a));
+					const uint index_b = POINTER_AS_UINT(BLI_ghash_lookup(lpair->nors_gh_b, v_b));
 
 					BLI_assert(BLI_ghash_haskey(lpair->nors_gh_a, v_a));
 					BLI_assert(BLI_ghash_haskey(lpair->nors_gh_b, v_b));

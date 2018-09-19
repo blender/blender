@@ -569,7 +569,7 @@ void BKE_lnor_space_add_loop(
 
 	lnors_spacearr->lspacearr[ml_index] = lnor_space;
 	if (bm_loop == NULL) {
-		bm_loop = SET_INT_IN_POINTER(ml_index);
+		bm_loop = POINTER_FROM_INT(ml_index);
 	}
 	if (is_single) {
 		BLI_assert(lnor_space->loops == NULL);
@@ -1658,7 +1658,7 @@ static void mesh_normals_loop_custom_set(
 				const float *org_nor = NULL;
 
 				while (loops) {
-					const int lidx = GET_INT_FROM_POINTER(loops->link);
+					const int lidx = POINTER_AS_INT(loops->link);
 					MLoop *ml = &mloops[lidx];
 					const int nidx = lidx;
 					float *nor = r_custom_loopnors[nidx];
@@ -1689,7 +1689,7 @@ static void mesh_normals_loop_custom_set(
 				 * See T45984. */
 				loops = lnors_spacearr.lspacearr[i]->loops;
 				if (loops && org_nor) {
-					const int lidx = GET_INT_FROM_POINTER(loops->link);
+					const int lidx = POINTER_AS_INT(loops->link);
 					MLoop *ml = &mloops[lidx];
 					const int nidx = lidx;
 					float *nor = r_custom_loopnors[nidx];
@@ -1731,7 +1731,7 @@ static void mesh_normals_loop_custom_set(
 			 */
 			LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
 			if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
-				BLI_assert(GET_INT_FROM_POINTER(loops) == i);
+				BLI_assert(POINTER_AS_INT(loops) == i);
 				const int nidx = use_vertices ? (int)mloops[i].v : i;
 				float *nor = r_custom_loopnors[nidx];
 
@@ -1745,7 +1745,7 @@ static void mesh_normals_loop_custom_set(
 
 				zero_v3(avg_nor);
 				while (loops) {
-					const int lidx = GET_INT_FROM_POINTER(loops->link);
+					const int lidx = POINTER_AS_INT(loops->link);
 					const int nidx = use_vertices ? (int)mloops[lidx].v : lidx;
 					float *nor = r_custom_loopnors[nidx];
 
@@ -3356,7 +3356,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(
 	/* build edge hash */
 	me = medge;
 	for (i = 0; i < totedge_i; i++, me++) {
-		BLI_edgehash_insert(eh, me->v1, me->v2, SET_UINT_IN_POINTER(i));
+		BLI_edgehash_insert(eh, me->v1, me->v2, POINTER_FROM_UINT(i));
 
 		/* unrelated but avoid having the FGON flag enabled, so we can reuse it later for something else */
 		me->flag &= ~ME_FGON;
@@ -3378,7 +3378,7 @@ void BKE_mesh_convert_mfaces_to_mpolys_ex(
 
 #       define ML(v1, v2) { \
 			ml->v = mf->v1; \
-			ml->e = GET_UINT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); \
+			ml->e = POINTER_AS_UINT(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); \
 			ml++; j++; \
 		} (void)0
 

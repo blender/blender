@@ -107,7 +107,7 @@ static int get_next_free_id(void)
 		return gNextIconId++;
 
 	/* now we try to find the smallest icon id not stored in the gIcons hash */
-	while (BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(startId)) && startId >= gFirstIconId)
+	while (BLI_ghash_lookup(gIcons, POINTER_FROM_INT(startId)) && startId >= gFirstIconId)
 		startId++;
 
 	/* if we found a suitable one that isn't used yet, return it */
@@ -161,7 +161,7 @@ void BKE_icons_deferred_free(void)
 	     node != NULL;
 	     node = node->next)
 	{
-		BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(node->icon_id), NULL, icon_free);
+		BLI_ghash_remove(gIcons, POINTER_FROM_INT(node->icon_id), NULL, icon_free);
 	}
 	BLI_linklist_lockfree_clear(&g_icon_delete_queue, MEM_freeN);
 }
@@ -471,7 +471,7 @@ void BKE_icon_changed(const int icon_id)
 
 	if (!icon_id || G.background) return;
 
-	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
+	icon = BLI_ghash_lookup(gIcons, POINTER_FROM_INT(icon_id));
 
 	if (icon) {
 		/* We *only* expect ID-tied icons here, not non-ID icon/preview! */
@@ -507,7 +507,7 @@ static int icon_id_ensure_create_icon(struct ID *id)
 	new_icon->drawinfo = NULL;
 	new_icon->drawinfo_free = NULL;
 
-	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(id->icon_id), new_icon);
+	BLI_ghash_insert(gIcons, POINTER_FROM_INT(id->icon_id), new_icon);
 
 	return id->icon_id;
 }
@@ -587,7 +587,7 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 	new_icon->drawinfo = NULL;
 	new_icon->drawinfo_free = NULL;
 
-	BLI_ghash_insert(gIcons, SET_INT_IN_POINTER(preview->icon_id), new_icon);
+	BLI_ghash_insert(gIcons, POINTER_FROM_INT(preview->icon_id), new_icon);
 
 	return preview->icon_id;
 }
@@ -598,7 +598,7 @@ Icon *BKE_icon_get(const int icon_id)
 
 	Icon *icon = NULL;
 
-	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
+	icon = BLI_ghash_lookup(gIcons, POINTER_FROM_INT(icon_id));
 
 	if (!icon) {
 		printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
@@ -614,7 +614,7 @@ void BKE_icon_set(const int icon_id, struct Icon *icon)
 
 	void **val_p;
 
-	if (BLI_ghash_ensure_p(gIcons, SET_INT_IN_POINTER(icon_id), &val_p)) {
+	if (BLI_ghash_ensure_p(gIcons, POINTER_FROM_INT(icon_id), &val_p)) {
 		printf("%s: Internal error, icon already set: %d\n", __func__, icon_id);
 		return;
 	}
@@ -643,7 +643,7 @@ void BKE_icon_id_delete(struct ID *id)
 	}
 
 	BKE_icons_deferred_free();
-	BLI_ghash_remove(gIcons, SET_INT_IN_POINTER(icon_id), NULL, icon_free);
+	BLI_ghash_remove(gIcons, POINTER_FROM_INT(icon_id), NULL, icon_free);
 }
 
 /**
@@ -655,7 +655,7 @@ void BKE_icon_delete(const int icon_id)
 
 	if (!icon_id) return;  /* no icon defined for library object */
 
-	icon = BLI_ghash_popkey(gIcons, SET_INT_IN_POINTER(icon_id), NULL);
+	icon = BLI_ghash_popkey(gIcons, POINTER_FROM_INT(icon_id), NULL);
 
 	if (icon) {
 		if (icon->id_type != 0) {

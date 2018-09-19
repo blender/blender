@@ -1124,7 +1124,7 @@ void POSE_OT_hide(wmOperatorType *ot)
 
 static int show_pose_bone_cb(Object *ob, Bone *bone, void *data)
 {
-	const bool select = GET_INT_FROM_POINTER(data);
+	const bool select = POINTER_AS_INT(data);
 
 	bArmature *arm = ob->data;
 
@@ -1147,7 +1147,7 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 	bArmature *arm = ob->data;
 	const bool select = RNA_boolean_get(op->ptr, "select");
 
-	bone_looper(ob, arm->bonebase.first, SET_INT_IN_POINTER(select), show_pose_bone_cb);
+	bone_looper(ob, arm->bonebase.first, POINTER_FROM_INT(select), show_pose_bone_cb);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);

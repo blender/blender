@@ -972,7 +972,7 @@ static void mesh_island_to_astar_graph_edge_process(
 		const int pidx = edge_to_poly_map[edge_idx].indices[i];
 		MPoly *mp = &polys[pidx];
 		const int pidx_isld = islands ? poly_island_index_map[pidx] : pidx;
-		void *custom_data = is_edge_innercut ? SET_INT_IN_POINTER(edge_idx) : SET_INT_IN_POINTER(-1);
+		void *custom_data = is_edge_innercut ? POINTER_FROM_INT(edge_idx) : POINTER_FROM_INT(-1);
 
 		if (UNLIKELY(islands && (islands->items_to_islands[mp->loopstart] != island_index))) {
 			/* poly not in current island, happens with border edges... */
@@ -1088,12 +1088,12 @@ static float mesh_remap_calc_loops_astar_f_cost(
 {
 	float *co_next, *co_dest;
 
-	if (link && (GET_INT_FROM_POINTER(link->custom_data) != -1)) {
+	if (link && (POINTER_AS_INT(link->custom_data) != -1)) {
 		/* An innercut edge... We tag our solution as potentially crossing innercuts.
 		 * Note it might not be the case in the end (AStar will explore around optimal path), but helps
 		 * trimming off some processing later... */
-		if (!GET_INT_FROM_POINTER(as_solution->custom_data)) {
-			as_solution->custom_data = SET_INT_IN_POINTER(true);
+		if (!POINTER_AS_INT(as_solution->custom_data)) {
+			as_solution->custom_data = POINTER_FROM_INT(true);
 		}
 	}
 
@@ -1691,7 +1691,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 						continue;
 					}
 
-					as_solution.custom_data = SET_INT_IN_POINTER(false);
+					as_solution.custom_data = POINTER_FROM_INT(false);
 
 					isld_res = &islands_res[best_island_index][plidx_dst];
 					if (use_from_vert) {
@@ -1714,7 +1714,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 								BLI_astar_graph_solve(
 								        as_graph, pidx_isld_src_prev, pidx_isld_src,
 								        mesh_remap_calc_loops_astar_f_cost, &as_solution, isld_steps_src);
-								if (GET_INT_FROM_POINTER(as_solution.custom_data) && (as_solution.steps > 0)) {
+								if (POINTER_AS_INT(as_solution.custom_data) && (as_solution.steps > 0)) {
 									/* Find first 'cutting edge' on path, and bring back lidx_src on poly just
 									 * before that edge.
 									 * Note we could try to be much smarter (like e.g. storing a whole poly's indices,
@@ -1726,7 +1726,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									/* Note we go backward here, from dest to src poly. */
 									for (i = as_solution.steps - 1; i--;) {
 										BLI_AStarGNLink *as_link = as_solution.prev_links[pidx_isld_src];
-										const int eidx = GET_INT_FROM_POINTER(as_link->custom_data);
+										const int eidx = POINTER_AS_INT(as_link->custom_data);
 										pidx_isld_src = as_solution.prev_nodes[pidx_isld_src];
 										BLI_assert(pidx_isld_src != -1);
 										if (eidx != -1) {
@@ -1799,7 +1799,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 								BLI_astar_graph_solve(
 								        as_graph, pidx_isld_src_prev, pidx_isld_src,
 								        mesh_remap_calc_loops_astar_f_cost, &as_solution, isld_steps_src);
-								if (GET_INT_FROM_POINTER(as_solution.custom_data) && (as_solution.steps > 0)) {
+								if (POINTER_AS_INT(as_solution.custom_data) && (as_solution.steps > 0)) {
 									/* Find first 'cutting edge' on path, and bring back lidx_src on poly just
 									 * before that edge.
 									 * Note we could try to be much smarter (like e.g. storing a whole poly's indices,
@@ -1811,7 +1811,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 									/* Note we go backward here, from dest to src poly. */
 									for (i = as_solution.steps - 1; i--;) {
 										BLI_AStarGNLink *as_link = as_solution.prev_links[pidx_isld_src];
-										int eidx = GET_INT_FROM_POINTER(as_link->custom_data);
+										int eidx = POINTER_AS_INT(as_link->custom_data);
 
 										pidx_isld_src = as_solution.prev_nodes[pidx_isld_src];
 										BLI_assert(pidx_isld_src != -1);

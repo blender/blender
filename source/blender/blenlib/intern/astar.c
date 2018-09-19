@@ -228,10 +228,10 @@ bool BLI_astar_graph_solve(
 	todo_nodes = BLI_heap_new();
 	BLI_heap_insert(todo_nodes,
 	                f_cost_cb(as_graph, r_solution, NULL, -1, node_index_src, node_index_dst),
-	                SET_INT_IN_POINTER(node_index_src));
+	                POINTER_FROM_INT(node_index_src));
 
 	while (!BLI_heap_is_empty(todo_nodes)) {
-		const int node_curr_idx = GET_INT_FROM_POINTER(BLI_heap_pop_min(todo_nodes));
+		const int node_curr_idx = POINTER_AS_INT(BLI_heap_pop_min(todo_nodes));
 		BLI_AStarGNode *node_curr = &as_graph->nodes[node_curr_idx];
 		LinkData *ld;
 
@@ -271,7 +271,7 @@ bool BLI_astar_graph_solve(
 					 * no problem. */
 					BLI_heap_insert(todo_nodes,
 					                f_cost_cb(as_graph, r_solution, link, node_curr_idx, node_next_idx, node_index_dst),
-					                SET_INT_IN_POINTER(node_next_idx));
+					                POINTER_FROM_INT(node_next_idx));
 				}
 			}
 		}

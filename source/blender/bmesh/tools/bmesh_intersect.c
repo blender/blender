@@ -232,7 +232,7 @@ static void face_edges_add(
         BMEdge *e,
         const bool use_test)
 {
-	void *f_index_key = SET_INT_IN_POINTER(f_index);
+	void *f_index_key = POINTER_FROM_INT(f_index);
 	BLI_assert(e->head.htype == BM_EDGE);
 	BLI_assert(BM_edge_in_face(e, s->bm->ftable[f_index]) == false);
 	BLI_assert(BM_elem_index_get(s->bm->ftable[f_index]) == f_index);
@@ -1488,7 +1488,7 @@ bool BM_mesh_intersect(
 		faces = bm->ftable;
 
 		GHASH_ITER (gh_iter, s.face_edges) {
-			const int f_index = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(&gh_iter));
+			const int f_index = POINTER_AS_INT(BLI_ghashIterator_getKey(&gh_iter));
 			BMFace *f;
 			struct LinkBase *e_ls_base = BLI_ghashIterator_getValue(&gh_iter);
 

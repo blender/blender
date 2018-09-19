@@ -1445,7 +1445,7 @@ static int split_faces_prepare_new_verts(
 
 			if ((*lnor_space)->flags & MLNOR_SPACE_IS_SINGLE) {
 				/* Single loop in this fan... */
-				BLI_assert(GET_INT_FROM_POINTER((*lnor_space)->loops) == loop_idx);
+				BLI_assert(POINTER_AS_INT((*lnor_space)->loops) == loop_idx);
 				BLI_BITMAP_ENABLE(done_loops, loop_idx);
 				if (vert_used) {
 					ml->v = new_vert_idx;
@@ -1453,7 +1453,7 @@ static int split_faces_prepare_new_verts(
 			}
 			else {
 				for (LinkNode *lnode = (*lnor_space)->loops; lnode; lnode = lnode->next) {
-					const int ml_fan_idx = GET_INT_FROM_POINTER(lnode->link);
+					const int ml_fan_idx = POINTER_AS_INT(lnode->link);
 					BLI_BITMAP_ENABLE(done_loops, ml_fan_idx);
 					if (vert_used) {
 						mloop[ml_fan_idx].v = new_vert_idx;
@@ -1514,7 +1514,7 @@ static int split_faces_prepare_new_edges(
 				if (BLI_BITMAP_TEST(edges_used, edge_idx)) {
 					/* Original edge has already been used, we need to define a new one. */
 					const int new_edge_idx = num_edges++;
-					*eval = SET_INT_IN_POINTER(new_edge_idx);
+					*eval = POINTER_FROM_INT(new_edge_idx);
 					ml_prev->e = new_edge_idx;
 
 					SplitFaceNewEdge *new_edge = BLI_memarena_alloc(memarena, sizeof(*new_edge));
@@ -1529,13 +1529,13 @@ static int split_faces_prepare_new_edges(
 					/* We can re-use original edge. */
 					medge[edge_idx].v1 = ml_prev->v;
 					medge[edge_idx].v2 = ml->v;
-					*eval = SET_INT_IN_POINTER(edge_idx);
+					*eval = POINTER_FROM_INT(edge_idx);
 					BLI_BITMAP_ENABLE(edges_used, edge_idx);
 				}
 			}
 			else {
 				/* Edge already known, just update loop's edge index. */
-				ml_prev->e = GET_INT_FROM_POINTER(*eval);
+				ml_prev->e = POINTER_AS_INT(*eval);
 			}
 
 			ml_prev = ml;

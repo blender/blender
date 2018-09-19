@@ -1150,7 +1150,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 	}
 	SEQ_END;
 
-	actseq->tmp = SET_INT_IN_POINTER(true);
+	actseq->tmp = POINTER_FROM_INT(true);
 
 	for (BKE_sequence_iterator_begin(ed, &iter, true); iter.valid; BKE_sequence_iterator_next(&iter)) {
 		seq = iter.seq;
@@ -1175,7 +1175,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 			if (enddisp < seq->enddisp) enddisp = seq->enddisp;
 			if (machine < seq->machine) machine = seq->machine;
 
-			seq->tmp = SET_INT_IN_POINTER(true);
+			seq->tmp = POINTER_FROM_INT(true);
 
 			seq->flag |= SELECT;
 			changed = true;
