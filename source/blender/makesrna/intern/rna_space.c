@@ -689,6 +689,17 @@ static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), Poi
 		return;
 	}
 
+	for (Material *ma = bmain->mat.first; ma; ma = ma->id.next) {
+		/* XXX Dependency graph does not support CD mask tracking,
+		 * so we trigger  materials shading for until it's properly supported.
+		 * This is to ensure material batches are all recreated when switching
+		 * shading type. In the future DEG should replace this and just tag
+		 * the meshes itself.
+		 * This hack just tag BKE_MESH_BATCH_DIRTY_SHADING for every mesh that
+		 * have a material. (see T55059) */
+		DEG_id_tag_update(&ma->id, DEG_TAG_SHADING_UPDATE);
+	}
+
 	bScreen *screen = ptr->id.data;
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
