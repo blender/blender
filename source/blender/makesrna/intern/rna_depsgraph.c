@@ -43,6 +43,7 @@
 #ifdef RNA_RUNTIME
 
 #include "BLI_iterator.h"
+#include "BLI_math.h"
 
 #include "BKE_anim.h"
 
@@ -58,6 +59,13 @@ static PointerRNA rna_DepsgraphObjectInstance_object_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
 	return rna_pointer_inherit_refine(ptr, &RNA_Object, iterator->current);
+}
+
+static int rna_DepsgraphObjectInstance_is_instance_get(PointerRNA *ptr)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
+	return (deg_iter->dupli_object_current != NULL);
 }
 
 static PointerRNA rna_DepsgraphObjectInstance_instance_object_get(PointerRNA *ptr)
@@ -86,46 +94,72 @@ static PointerRNA rna_DepsgraphObjectInstance_particle_system_get(PointerRNA *pt
 {
 	BLI_Iterator *iterator = ptr->data;
 	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem,
-		deg_iter->dupli_object_current->particle_system);
+	struct ParticleSystem *particle_system = NULL;
+	if (deg_iter->dupli_object_current != NULL) {
+		particle_system = deg_iter->dupli_object_current->particle_system;
+	}
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, particle_system);
 }
 
 static void rna_DepsgraphObjectInstance_persistent_id_get(PointerRNA *ptr, int *persistent_id)
 {
 	BLI_Iterator *iterator = ptr->data;
 	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	memcpy(persistent_id, deg_iter->dupli_object_current->persistent_id,
-	       sizeof(deg_iter->dupli_object_current->persistent_id));
-}
-
-static void rna_DepsgraphObjectInstance_orco_get(PointerRNA *ptr, float *orco)
-{
-	BLI_Iterator *iterator = ptr->data;
-	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	memcpy(orco, deg_iter->dupli_object_current->orco,
-	       sizeof(deg_iter->dupli_object_current->orco));
+	if (deg_iter->dupli_object_current != NULL) {
+		memcpy(persistent_id, deg_iter->dupli_object_current->persistent_id,
+		       sizeof(deg_iter->dupli_object_current->persistent_id));
+	}
+	else {
+		memset(persistent_id, 0, sizeof(deg_iter->dupli_object_current->persistent_id));
+	}
 }
 
 static unsigned int rna_DepsgraphObjectInstance_random_id_get(PointerRNA *ptr)
 {
 	BLI_Iterator *iterator = ptr->data;
 	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	return deg_iter->dupli_object_current->random_id;
+	if (deg_iter->dupli_object_current != NULL) {
+		return deg_iter->dupli_object_current->random_id;
+	}
+	else {
+		return 0;
+	}
+}
+
+static void rna_DepsgraphObjectInstance_matrix_world_get(PointerRNA *ptr, float *mat)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
+	if (deg_iter->dupli_object_current != NULL) {
+		copy_m4_m4((float(*)[4])mat, deg_iter->dupli_object_current->mat);
+	}
+	else {
+		unit_m4((float(*)[4])mat);
+	}
+}
+
+static void rna_DepsgraphObjectInstance_orco_get(PointerRNA *ptr, float *orco)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
+	if (deg_iter->dupli_object_current != NULL) {
+		copy_v3_v3(orco, deg_iter->dupli_object_current->orco);
+	}
+	else {
+		zero_v3(orco);
+	}
 }
 
 static void rna_DepsgraphObjectInstance_uv_get(PointerRNA *ptr, float *uv)
 {
 	BLI_Iterator *iterator = ptr->data;
 	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	memcpy(uv, deg_iter->dupli_object_current->uv,
-	       sizeof(deg_iter->dupli_object_current->uv));
-}
-
-static int rna_DepsgraphObjectInstance_is_instance_get(PointerRNA *ptr)
-{
-	BLI_Iterator *iterator = ptr->data;
-	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
-	return (deg_iter->dupli_object_current != NULL);
+	if (deg_iter->dupli_object_current != NULL) {
+		copy_v2_v2(uv, deg_iter->dupli_object_current->uv);
+	}
+	else {
+		zero_v2(uv);
+	}
 }
 
 /* ******************** Sorted  ***************** */
@@ -388,6 +422,11 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphObjectInstance_object_get", NULL, NULL, NULL);
 
+	prop = RNA_def_property(srna, "is_instance", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Is Instance", "Denotes whether the object is coming from dupli-list");
+	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphObjectInstance_is_instance_get", NULL);
+
 	prop = RNA_def_property(srna, "instance_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_ui_text(prop, "Instance Object", "Object which is being instanced by this iterator");
@@ -413,30 +452,28 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_int_funcs(prop, "rna_DepsgraphObjectInstance_persistent_id_get", NULL, NULL);
 
-	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	/* Seems system is not smart enough to figure that getter function should return
-	 * array for PROP_TRANSLATION.
-	 */
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
-	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_orco_get", NULL, NULL);
-
 	prop = RNA_def_property(srna, "random_id", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dupli random id", "Random id for this dupli object");
 	RNA_def_property_int_funcs(prop, "rna_DepsgraphObjectInstance_random_id_get", NULL, NULL);
+
+	prop = RNA_def_property(srna, "matrix_world", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
+	RNA_def_property_ui_text(prop, "Generated Matrix", "Generated transform matrix in world space");
+	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_matrix_local_get", NULL, NULL);
+
+	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Generated Coordinates", "Generated coordinates in parent object space");
+	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_orco_get", NULL, NULL);
 
 	prop = RNA_def_property(srna, "uv", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "UV Coordinates", "UV coordinates in parent object space");
 	RNA_def_property_array(prop, 2);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_uv_get", NULL, NULL);
-
-	prop = RNA_def_property(srna, "is_instance", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Is Instance", "Denotes whether the object is coming from dupli-list");
-	RNA_def_property_boolean_funcs(prop, "rna_DepsgraphObjectInstance_is_instance_get", NULL);
 }
 
 static void rna_def_depsgraph_update(BlenderRNA *brna)
