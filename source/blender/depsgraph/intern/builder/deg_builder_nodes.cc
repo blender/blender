@@ -481,15 +481,28 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 
 void DepsgraphNodeBuilder::build_collection(Collection *collection)
 {
+	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
+	        ? COLLECTION_RESTRICT_VIEW
+	        : COLLECTION_RESTRICT_RENDER;
+	const bool is_collection_restricted = (collection->flag & restrict_flag);
+	const bool is_collection_visible =
+	        !is_collection_restricted && is_parent_collection_visible_;
 	if (built_map_.checkIsBuiltAndTag(collection)) {
-		/* NOTE: Currently collections restrict flags only depend on collection
-		 * itself and do not depend on a "context" (like, particle system
-		 * visibility).
-		 *
-		 * If we ever change this, we need to update restrict flag here for an
-		 * already built collection.
-		 */
-		return;
+		IDDepsNode *id_node = find_id_node(&collection->id);
+		if (is_collection_visible && !id_node->is_visible) {
+			/* Collection became visible, make sure nested collections and
+			 * objects are poked with the new visibility flag, since they
+			 * might become visible too.
+			 */
+		}
+		else {
+			return;
+		}
+	}
+	else {
+		/* Collection itself. */
+		IDDepsNode *id_node = add_id_node(&collection->id);
+		id_node->is_visible = is_collection_visible;
 	}
 	/* Backup state. */
 	Collection *current_state_collection = collection_;
@@ -497,16 +510,7 @@ void DepsgraphNodeBuilder::build_collection(Collection *collection)
 	        is_parent_collection_visible_;
 	/* Modify state as we've entered new collection/ */
 	collection_ = collection;
-	const int restrict_flag = (graph_->mode == DAG_EVAL_VIEWPORT)
-	        ? COLLECTION_RESTRICT_VIEW
-	        : COLLECTION_RESTRICT_RENDER;
-	const bool is_collection_restricted = (collection->flag & restrict_flag);
-	const bool is_collection_visible =
-	        !is_collection_restricted && is_parent_collection_visible_;
 	is_parent_collection_visible_ = is_collection_visible;
-	/* Collection itself. */
-	IDDepsNode *id_node = add_id_node(&collection->id);
-	id_node->is_visible = is_collection_visible;
 	/* Build collection objects. */
 	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 		build_object(
