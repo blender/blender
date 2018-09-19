@@ -63,17 +63,17 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_expr_pylike_eval.h"
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_string_utils.h"
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 #include "BLI_alloca.h"
 
 #ifdef _MSC_VER
 #pragma fenv_access (on)
 #endif
 
-/* Simple Expression Stack Machine ------------------------- */
+/* -------------------------------------------------------------------- */
+/** \name Internal Types
+ * \{ */
 
 typedef enum eOpCode {
 	/* Double constant: (-> dval) */
@@ -124,6 +124,12 @@ struct ExprPyLike_Parsed {
 	ExprOp ops[];
 };
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Public API
+ * \{ */
+
 /** Free the parsed data; NULL argument is ok. */
 void BLI_expr_pylike_free(ExprPyLike_Parsed *expr)
 {
@@ -144,7 +150,11 @@ bool BLI_expr_pylike_is_constant(ExprPyLike_Parsed *expr)
 	return expr != NULL && expr->ops_count == 1 && expr->ops[0].opcode == OPCODE_CONST;
 }
 
-/* Stack Machine Evaluation -------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Stack Machine Evaluation
+ * \{ */
 
 /**
  * Evaluate the expression with the given parameters.
@@ -263,7 +273,11 @@ eExprPyLike_EvalStatus BLI_expr_pylike_eval(
 	return EXPR_PYLIKE_SUCCESS;
 }
 
-/* Simple Expression Built-In Operations ------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Built-In Operations
+ * \{ */
 
 static double op_negate(double arg)
 {
@@ -385,17 +399,17 @@ static BuiltinOpDef builtin_ops[] = {
 
 /* For simplicity simple token types are represented by their own character;
  * these are special identifiers for multi-character tokens. */
-#define TOKEN_ID    	MAKE_CHAR2('I', 'D')
-#define TOKEN_NUMBER	MAKE_CHAR2('0', '0')
-#define TOKEN_GE    	MAKE_CHAR2('>', '=')
-#define TOKEN_LE    	MAKE_CHAR2('<', '=')
-#define TOKEN_NE    	MAKE_CHAR2('!', '=')
-#define TOKEN_EQ    	MAKE_CHAR2('=', '=')
-#define TOKEN_AND   	MAKE_CHAR2('A', 'N')
-#define TOKEN_OR    	MAKE_CHAR2('O', 'R')
-#define TOKEN_NOT   	MAKE_CHAR2('N', 'O')
-#define TOKEN_IF    	MAKE_CHAR2('I', 'F')
-#define TOKEN_ELSE  	MAKE_CHAR2('E', 'L')
+#define TOKEN_ID        MAKE_CHAR2('I', 'D')
+#define TOKEN_NUMBER    MAKE_CHAR2('0', '0')
+#define TOKEN_GE        MAKE_CHAR2('>', '=')
+#define TOKEN_LE        MAKE_CHAR2('<', '=')
+#define TOKEN_NE        MAKE_CHAR2('!', '=')
+#define TOKEN_EQ        MAKE_CHAR2('=', '=')
+#define TOKEN_AND       MAKE_CHAR2('A', 'N')
+#define TOKEN_OR        MAKE_CHAR2('O', 'R')
+#define TOKEN_NOT       MAKE_CHAR2('N', 'O')
+#define TOKEN_IF        MAKE_CHAR2('I', 'F')
+#define TOKEN_ELSE      MAKE_CHAR2('E', 'L')
 
 static const char *token_eq_characters = "!=><";
 static const char *token_characters = "~`!@#$%^&*+-=/\\?:;<>(){}[]|.,\"'";
@@ -414,7 +428,7 @@ static KeywordTokenDef keyword_list[] = {
     { NULL, TOKEN_ID }
 };
 
-typedef struct SimpleExprParseState {
+typedef struct ExprParseState {
 	int param_names_len;
 	const char **param_names;
 
@@ -433,10 +447,10 @@ typedef struct SimpleExprParseState {
 
 	/* Stack space requirement tracking */
 	int stack_ptr, max_stack;
-} SimpleExprParseState;
+} ExprParseState;
 
 /* Reserve space for the specified number of operations in the buffer. */
-static ExprOp *parse_alloc_ops(SimpleExprParseState *state, int count)
+static ExprOp *parse_alloc_ops(ExprParseState *state, int count)
 {
 	if (state->ops_count + count > state->max_ops) {
 		state->max_ops = power_of_2_max_i(state->ops_count + count);
@@ -449,7 +463,7 @@ static ExprOp *parse_alloc_ops(SimpleExprParseState *state, int count)
 }
 
 /* Add one operation and track stack usage. */
-static ExprOp *parse_add_op(SimpleExprParseState *state, eOpCode code, int stack_delta)
+static ExprOp *parse_add_op(ExprParseState *state, eOpCode code, int stack_delta)
 {
 	/* track evaluation stack depth */
 	state->stack_ptr += stack_delta;
@@ -464,21 +478,21 @@ static ExprOp *parse_add_op(SimpleExprParseState *state, eOpCode code, int stack
 }
 
 /* Add one jump operation and return an index for parse_set_jump. */
-static int parse_add_jump(SimpleExprParseState *state, eOpCode code)
+static int parse_add_jump(ExprParseState *state, eOpCode code)
 {
 	parse_add_op(state, code, -1);
 	return state->last_jmp = state->ops_count;
 }
 
 /* Set the jump offset in a previously added jump operation. */
-static void parse_set_jump(SimpleExprParseState *state, int jump)
+static void parse_set_jump(ExprParseState *state, int jump)
 {
 	state->last_jmp = state->ops_count;
 	state->ops[jump - 1].jmp_offset = state->ops_count - jump;
 }
 
 /* Add a function call operation, applying constant folding when possible. */
-static bool parse_add_func(SimpleExprParseState *state, eOpCode code, int args, void *funcptr)
+static bool parse_add_func(ExprParseState *state, eOpCode code, int args, void *funcptr)
 {
 	ExprOp *prev_ops = &state->ops[state->ops_count];
 	int jmp_gap = state->ops_count - state->last_jmp;
@@ -528,7 +542,7 @@ static bool parse_add_func(SimpleExprParseState *state, eOpCode code, int args, 
 }
 
 /* Extract the next token from raw characters. */
-static bool parse_next_token(SimpleExprParseState *state)
+static bool parse_next_token(ExprParseState *state)
 {
 	/* Skip whitespace. */
 	while (isspace(*state->cur)) {
@@ -622,11 +636,15 @@ static bool parse_next_token(SimpleExprParseState *state)
 	return false;
 }
 
-/* Recursive Descent Parser -------------------------------- */
+/** \} */
 
-static bool parse_expr(SimpleExprParseState *state);
+/* -------------------------------------------------------------------- */
+/** \name Recursive Descent Parser
+ * \{ */
 
-static int parse_function_args(SimpleExprParseState *state)
+static bool parse_expr(ExprParseState *state);
+
+static int parse_function_args(ExprParseState *state)
 {
 	if (!parse_next_token(state) || state->token != '(' || !parse_next_token(state)) {
 		return -1;
@@ -660,7 +678,7 @@ static int parse_function_args(SimpleExprParseState *state)
 	}
 }
 
-static bool parse_unary(SimpleExprParseState *state)
+static bool parse_unary(ExprParseState *state)
 {
 	int i;
 
@@ -733,7 +751,7 @@ static bool parse_unary(SimpleExprParseState *state)
 	}
 }
 
-static bool parse_mul(SimpleExprParseState *state)
+static bool parse_mul(ExprParseState *state)
 {
 	CHECK_ERROR(parse_unary(state));
 
@@ -755,7 +773,7 @@ static bool parse_mul(SimpleExprParseState *state)
 	}
 }
 
-static bool parse_add(SimpleExprParseState *state)
+static bool parse_add(ExprParseState *state)
 {
 	CHECK_ERROR(parse_mul(state));
 
@@ -797,7 +815,7 @@ static BinaryOpFunc parse_get_cmp_func(short token)
 	}
 }
 
-static bool parse_cmp_chain(SimpleExprParseState *state, BinaryOpFunc cur_func)
+static bool parse_cmp_chain(ExprParseState *state, BinaryOpFunc cur_func)
 {
 	BinaryOpFunc next_func = parse_get_cmp_func(state->token);
 
@@ -817,7 +835,7 @@ static bool parse_cmp_chain(SimpleExprParseState *state, BinaryOpFunc cur_func)
 	return true;
 }
 
-static bool parse_cmp(SimpleExprParseState *state)
+static bool parse_cmp(ExprParseState *state)
 {
 	CHECK_ERROR(parse_add(state));
 
@@ -832,7 +850,7 @@ static bool parse_cmp(SimpleExprParseState *state)
 	return true;
 }
 
-static bool parse_not(SimpleExprParseState *state)
+static bool parse_not(ExprParseState *state)
 {
 	if (state->token == TOKEN_NOT) {
 		CHECK_ERROR(parse_next_token(state) && parse_not(state));
@@ -843,7 +861,7 @@ static bool parse_not(SimpleExprParseState *state)
 	return parse_cmp(state);
 }
 
-static bool parse_and(SimpleExprParseState *state)
+static bool parse_and(ExprParseState *state)
 {
 	CHECK_ERROR(parse_not(state));
 
@@ -858,7 +876,7 @@ static bool parse_and(SimpleExprParseState *state)
 	return true;
 }
 
-static bool parse_or(SimpleExprParseState *state)
+static bool parse_or(ExprParseState *state)
 {
 	CHECK_ERROR(parse_and(state));
 
@@ -873,7 +891,7 @@ static bool parse_or(SimpleExprParseState *state)
 	return true;
 }
 
-static bool parse_expr(SimpleExprParseState *state)
+static bool parse_expr(ExprParseState *state)
 {
 	/* Temporarily set the constant expression evaluation barrier */
 	int prev_last_jmp = state->last_jmp;
@@ -926,7 +944,11 @@ static bool parse_expr(SimpleExprParseState *state)
 	return true;
 }
 
-/* Main Parsing Function ----------------------------------- */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Main Parsing Function
+ * \{ */
 
 /**
  * Compile the expression and return the result.
@@ -937,7 +959,7 @@ static bool parse_expr(SimpleExprParseState *state)
 ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, const char **param_names, int param_names_len)
 {
 	/* Prepare the parser state. */
-	SimpleExprParseState state;
+	ExprParseState state;
 	memset(&state, 0, sizeof(state));
 
 	state.cur = state.expr = expression;
@@ -973,3 +995,5 @@ ExprPyLike_Parsed *BLI_expr_pylike_parse(const char *expression, const char **pa
 	MEM_freeN(state.ops);
 	return expr;
 }
+
+/** \} */
