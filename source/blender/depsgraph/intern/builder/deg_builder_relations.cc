@@ -1899,11 +1899,13 @@ void DepsgraphRelationBuilder::build_object_data_geometry(Object *object)
 		add_relation(geom_init_key,
 		             obdata_ubereval_key,
 		             "Object Geometry UberEval");
-		ComponentKey object_shading_key(&object->id, DEG_NODE_TYPE_SHADING);
-		DepsRelation *rel = add_relation(obdata_ubereval_key,
-		                                 object_shading_key,
-		                                 "Object Geometry batch Update");
-		rel->flag |= DEPSREL_FLAG_NO_FLUSH;
+		if (object->totcol != 0) {
+			ComponentKey object_shading_key(&object->id, DEG_NODE_TYPE_SHADING);
+			DepsRelation *rel = add_relation(obdata_ubereval_key,
+			                                 object_shading_key,
+			                                 "Object Geometry batch Update");
+			rel->flag |= DEPSREL_FLAG_NO_FLUSH;
+		}
 	}
 	if (object->type == OB_MBALL) {
 		Object *mom = BKE_mball_basis_find(scene_, object);
