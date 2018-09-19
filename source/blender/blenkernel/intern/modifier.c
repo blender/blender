@@ -895,7 +895,7 @@ void modifier_deformVerts_ensure_normals(struct ModifierData *md, const Modifier
 	if (mesh && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		BKE_mesh_calc_normals(mesh);
 	}
-	mti->deformVerts(md, &ctx, mesh, vertexCos, numVerts);
+	mti->deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
 struct Mesh *modifier_applyModifier(struct ModifierData *md, const ModifierEvalContext *ctx,
