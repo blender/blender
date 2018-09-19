@@ -286,10 +286,10 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 			if (BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
 				switch (type) {
 					case SIMVERT_FACE:
-						BLI_gset_add(gset, (void *)(long)BM_vert_face_count(vert));
+						BLI_gset_add(gset, POINTER_FROM_INT(BM_vert_face_count(vert)));
 						break;
 					case SIMVERT_EDGE:
-						BLI_gset_add(gset, (void *)(long)BM_vert_edge_count(vert));
+						BLI_gset_add(gset, POINTER_FROM_INT(BM_vert_edge_count(vert)));
 						break;
 					case SIMVERT_NORMAL:
 					{
@@ -329,8 +329,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						const int num_edges = BM_vert_edge_count(vert);
 						GSetIterator gs_iter;
 						GSET_ITER(gs_iter, gset) {
-							const int num_edges_iter = (long)BLI_gsetIterator_getKey(&gs_iter);
-							long delta_i = num_edges - num_edges_iter;
+							const int num_edges_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+							const int delta_i = num_edges - num_edges_iter;
 							if (bm_sel_similar_cmp_i(delta_i, compare)) {
 								BM_vert_select_set(bm, vert, true);
 								changed = true;
@@ -344,8 +344,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						const int num_faces = BM_vert_face_count(vert);
 						GSetIterator gs_iter;
 						GSET_ITER(gs_iter, gset) {
-							const int num_faces_iter = (long)BLI_gsetIterator_getKey(&gs_iter);
-							int delta_i = num_faces - num_faces_iter;
+							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+							const int delta_i = num_faces - num_faces_iter;
 							if (bm_sel_similar_cmp_i(delta_i, compare)) {
 								BM_vert_select_set(bm, vert, true);
 								changed = true;
