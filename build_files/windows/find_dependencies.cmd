@@ -1,4 +1,4 @@
-REM find all dependencies and set the corresponding environement variables. 
+REM find all dependencies and set the corresponding environment variables. 
 for %%X in (svn.exe) do (set SVN=%%~$PATH:X)
 for %%X in (cmake.exe) do (set CMAKE=%%~$PATH:X)
 for %%X in (git.exe) do (set GIT=%%~$PATH:X)

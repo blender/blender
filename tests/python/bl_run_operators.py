@@ -136,7 +136,7 @@ def filter_op_list(operators):
 def reset_blend():
     bpy.ops.wm.read_factory_settings()
     for scene in bpy.data.scenes:
-        # reduce range so any bake action doesnt take too long
+        # reduce range so any bake action doesn't take too long
         scene.frame_start = 1
         scene.frame_end = 5
 

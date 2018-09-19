@@ -71,7 +71,7 @@ def create_nb_project_main():
         if (includes, defines) == (None, None):
             return
 
-        # for some reason it doesnt give all internal includes
+        # for some reason it doesn't give all internal includes
         includes = list(set(includes) | set(dirname(f) for f in files if is_c_header(f)))
         includes.sort()
 

@@ -1,4 +1,4 @@
-# Turn everything ON thats expected for an official release builds.
+# Turn everything ON that's expected for an official release builds.
 #
 # Example usage:
 #   cmake -C../blender/build_files/cmake/config/blender_release.cmake  ../blender

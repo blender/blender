@@ -305,7 +305,7 @@ if(WITH_BOOST)
 		if(Boost_USE_STATIC_LIBS AND WITH_BOOST_ICU)
 			find_package(IcuLinux)
 		endif()
-		mark_as_advanced(Boost_DIR)  # why doesnt boost do this?
+		mark_as_advanced(Boost_DIR)  # why doesn't boost do this?
 	endif()
 
 	set(BOOST_INCLUDE_DIR ${Boost_INCLUDE_DIRS})

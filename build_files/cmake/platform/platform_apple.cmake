@@ -408,7 +408,7 @@ if(${XCODE_VERSION} VERSION_EQUAL 5 OR ${XCODE_VERSION} VERSION_GREATER 5)
 	# Xcode 5 is always using CLANG, which has too low template depth of 128 for libmv
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=1024")
 endif()
-# Get rid of eventually clashes, we export some symbols explicite as local
+# Get rid of eventually clashes, we export some symbols explicitly as local
 set(PLATFORM_LINKFLAGS
 	"${PLATFORM_LINKFLAGS} -Xlinker -unexported_symbols_list -Xlinker '${CMAKE_SOURCE_DIR}/source/creator/osx_locals.map'"
 )

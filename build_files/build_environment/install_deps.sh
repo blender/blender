@@ -1205,7 +1205,7 @@ compile_Boost() {
   if [ ! -d $_inst ]; then
     INFO "Building Boost-$BOOST_VERSION"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OIIO_FORCE_BUILD=true
     OIIO_FORCE_REBUILD=true
     OSL_FORCE_BUILD=true
@@ -1398,7 +1398,7 @@ compile_ILMBASE() {
   if [ ! -d $_openexr_inst ]; then
     INFO "Building ILMBase-$ILMBASE_VERSION"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OPENEXR_FORCE_BUILD=true
     OPENEXR_FORCE_REBUILD=true
 
@@ -1494,7 +1494,7 @@ compile_OPENEXR() {
   if [ ! -d $_inst ]; then
     INFO "Building OpenEXR-$OPENEXR_VERSION"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OIIO_FORCE_BUILD=true
     OIIO_FORCE_REBUILD=true
 
@@ -1608,7 +1608,7 @@ compile_OIIO() {
   if [ ! -d $_inst ]; then
     INFO "Building OpenImageIO-$OIIO_VERSION"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OSL_FORCE_BUILD=true
     OSL_FORCE_REBUILD=true
 
@@ -1750,7 +1750,7 @@ compile_LLVM() {
   if [ ! -d $_inst ]; then
     INFO "Building LLVM-$LLVM_VERSION (CLANG included!)"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OSL_FORCE_BUILD=true
     OSL_FORCE_REBUILD=true
 
@@ -2076,7 +2076,7 @@ compile_BLOSC() {
   if [ ! -d $_inst ]; then
     INFO "Building Blosc-$OPENVDB_BLOSC_VERSION"
 
-    # Rebuild dependecies as well!
+    # Rebuild dependencies as well!
     OPENVDB_FORCE_BUILD=true
     OPENVDB_FORCE_REBUILD=true
 

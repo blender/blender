@@ -1265,7 +1265,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 		BKE_displist_fill(&dispbase, &dispbase, NULL, false);
 
 		/* The faces are stored in a new DisplayList
-		 * thats added to the head of the listbase */
+		 * that's added to the head of the listbase */
 		dl = dispbase.first;
 
 		tri_list = PyList_New(dl->parts);

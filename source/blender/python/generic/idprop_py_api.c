@@ -944,7 +944,7 @@ PyObject *BPy_Wrap_GetKeys(IDProperty *prop)
 		/* pass */
 	}
 
-	if (i != prop->len) { /* if the loop didnt finish, we know the length is wrong */
+	if (i != prop->len) { /* if the loop didn't finish, we know the length is wrong */
 		BPy_IDGroup_CorrectListLen(prop, list, i, __func__);
 		Py_DECREF(list); /*free the list*/
 		/*call self again*/

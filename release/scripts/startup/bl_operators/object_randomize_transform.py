@@ -155,7 +155,7 @@ class RandomizeLocRotSize(Operator):
     )
 
     '''scale_min = FloatProperty(
-            name="Minimun Scale Factor",
+            name="Minimum Scale Factor",
             description="Lowest scale percentage possible",
             min=-1.0, max=1.0, precision=3,
             default=0.15,

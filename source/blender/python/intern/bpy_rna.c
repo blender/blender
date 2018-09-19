@@ -2351,7 +2351,7 @@ static int pyrna_prop_collection_subscript_str_lib_pair_ptr(
 		}
 		else {
 			PyErr_Format(PyExc_KeyError,
-			             "%s: lib must be a sting or None, not %.200s",
+			             "%s: lib must be a string or None, not %.200s",
 			             err_prefix, Py_TYPE(keylib)->tp_name);
 			return -1;
 		}
@@ -4091,7 +4091,7 @@ static PyObject *pyrna_struct_meta_idprop_getattro(PyObject *cls, PyObject *attr
 	 * <bpy_struct, BoolProperty("foo")>
 	 * ...rather than returning the deferred class register tuple as checked by pyrna_is_deferred_prop()
 	 *
-	 * Disable for now, this is faking internal behavior in a way thats too tricky to maintain well. */
+	 * Disable for now, this is faking internal behavior in a way that's too tricky to maintain well. */
 #if 0
 	if (ret == NULL) { // || pyrna_is_deferred_prop(ret)
 		StructRNA *srna = srna_from_self(cls, "StructRNA.__getattr__");

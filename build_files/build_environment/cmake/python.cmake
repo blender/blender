@@ -142,7 +142,7 @@ if(MSVC)
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/select${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/select${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/unicodedata${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/unicodedata${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/winsound${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/winsound${PYTHON_POSTFIX}.pyd
-		#xxlimited is an example extention module, we don't need to ship it and debug doesn't build it
+		#xxlimited is an example extension module, we don't need to ship it and debug doesn't build it
 		#leaving it commented out, so I won't get confused again with the next update.
 		#COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/xxlimited${PYTHON_POSTFIX}.pyd" ${BUILD_DIR}/python/src/external_python/redist/lib/xxlimited${PYTHON_POSTFIX}.pyd
 		COMMAND ${CMAKE_COMMAND} -E copy "${PYTHON_OUTPUTDIR}/libssl-1_1${SSL_POSTFIX}.dll" ${BUILD_DIR}/python/src/external_python/redist/lib/libssl-1_1${SSL_POSTFIX}.dll

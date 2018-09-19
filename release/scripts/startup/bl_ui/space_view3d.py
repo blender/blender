@@ -960,7 +960,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 
 
 class VIEW3D_MT_select_edit_text(Menu):
-    # intentional name mis-match
+    # intentional name mismatch
     # select menu for 3d-text doesn't make sense
     bl_label = "Edit"
 

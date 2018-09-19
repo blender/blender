@@ -207,7 +207,7 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
 
         obj_name = obj.name
         for group in bpy.data.groups:
-            # XXX this is slow and stupid!, we need 2 checks, one thats fast
+            # XXX this is slow and stupid!, we need 2 checks, one that's fast
             # and another that we can be sure its not a name collision
             # from linked library data
             group_objects = group.objects
