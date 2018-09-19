@@ -1970,7 +1970,7 @@ static bool driver_compile_simple_expr(ChannelDriver *driver)
 
 	/* Store the result if the field is still NULL, or discard
 	 * it if another thread got here first. */
-	if (atomic_cas_ptr((void**)&driver->expr_simple, NULL, expr) != NULL) {
+	if (atomic_cas_ptr((void **)&driver->expr_simple, NULL, expr) != NULL) {
 		BLI_simple_expr_free(expr);
 	}
 

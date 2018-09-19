@@ -158,7 +158,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg,
 		subdiv_ccg->faces = MEM_calloc_arrayN(
 		        num_faces, sizeof(SubdivCCGFace), "Subdiv CCG faces");
 		subdiv_ccg->grid_faces = MEM_calloc_arrayN(
-		        num_grids, sizeof(SubdivCCGFace*), "Subdiv CCG grid faces");
+		        num_grids, sizeof(SubdivCCGFace *), "Subdiv CCG grid faces");
 	}
 }
 
@@ -447,7 +447,7 @@ typedef struct RecalcInnerNormalsTLSData {
  */
 static void subdiv_ccg_recalc_inner_face_normals(
         RecalcInnerNormalsData *data,
-		RecalcInnerNormalsTLSData *tls,
+        RecalcInnerNormalsTLSData *tls,
         const int grid_index)
 {
 	SubdivCCG *subdiv_ccg = data->subdiv_ccg;

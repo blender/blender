@@ -1513,7 +1513,7 @@ static void UV_OT_select_less(wmOperatorType *ot)
 /** \name Weld Align Operator
  * \{ */
 
-typedef enum eUVWeldAlign{
+typedef enum eUVWeldAlign {
 	UV_STRAIGHTEN,
 	UV_STRAIGHTEN_X,
 	UV_STRAIGHTEN_Y,

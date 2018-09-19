@@ -1770,7 +1770,7 @@ static int count_active_texture_sampler(GPUShader *shader, char *source)
 	int samplers_id[64]; /* Remember this is per stage. */
 	int sampler_len = 0;
 
-	while((code = strstr(code, "uniform "))) {
+	while ((code = strstr(code, "uniform "))) {
 		/* Move past "uniform". */
 		code += 7;
 		/* Skip following spaces. */
@@ -1829,7 +1829,7 @@ static bool gpu_pass_shader_validate(GPUPass *pass)
 
 	/* Validate against opengl limit. */
 	if ((frag_samplers_len > GPU_max_textures_frag()) ||
-		(frag_samplers_len > GPU_max_textures_vert()))
+	    (frag_samplers_len > GPU_max_textures_vert()))
 	{
 		return false;
 	}

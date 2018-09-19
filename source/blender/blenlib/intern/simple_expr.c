@@ -233,59 +233,73 @@ eSimpleExpr_EvalStatus BLI_simple_expr_evaluate(ParsedSimpleExpr *expr, double *
 
 /* Simple Expression Built-In Operations ------------------- */
 
-static double op_negate(double arg) {
+static double op_negate(double arg)
+{
 	return -arg;
 }
 
-static double op_mul(double a, double b) {
+static double op_mul(double a, double b)
+{
 	return a * b;
 }
 
-static double op_div(double a, double b) {
+static double op_div(double a, double b)
+{
 	return a / b;
 }
 
-static double op_add(double a, double b) {
+static double op_add(double a, double b)
+{
 	return a + b;
 }
 
-static double op_sub(double a, double b) {
+static double op_sub(double a, double b)
+{
 	return a - b;
 }
 
-static double op_radians(double arg) {
+static double op_radians(double arg)
+{
 	return arg * M_PI / 180.0;
 }
 
-static double op_degrees(double arg) {
+static double op_degrees(double arg)
+{
 	return arg * 180.0 / M_PI;
 }
 
-static double op_not(double a) {
+static double op_not(double a)
+{
 	return a ? 0.0 : 1.0;
 }
 
-static double op_eq(double a, double b) {
+static double op_eq(double a, double b)
+{
 	return a == b ? 1.0 : 0.0;
 }
 
-static double op_ne(double a, double b) {
+static double op_ne(double a, double b)
+{
 	return a != b ? 1.0 : 0.0;
 }
 
-static double op_lt(double a, double b) {
+static double op_lt(double a, double b)
+{
 	return a < b ? 1.0 : 0.0;
 }
 
-static double op_le(double a, double b) {
+static double op_le(double a, double b)
+{
 	return a <= b ? 1.0 : 0.0;
 }
 
-static double op_gt(double a, double b) {
+static double op_gt(double a, double b)
+{
 	return a > b ? 1.0 : 0.0;
 }
 
-static double op_ge(double a, double b) {
+static double op_ge(double a, double b)
+{
 	return a >= b ? 1.0 : 0.0;
 }
 
@@ -390,7 +404,7 @@ typedef struct SimpleExprParseState {
 } SimpleExprParseState;
 
 /* Reserve space for the specified number of operations in the buffer. */
-static SimpleExprOp* parse_alloc_ops(SimpleExprParseState *state, int count)
+static SimpleExprOp *parse_alloc_ops(SimpleExprParseState *state, int count)
 {
 	if (state->ops_count + count > state->max_ops) {
 		state->max_ops = power_of_2_max_i(state->ops_count + count);
@@ -403,7 +417,7 @@ static SimpleExprOp* parse_alloc_ops(SimpleExprParseState *state, int count)
 }
 
 /* Add one operation and track stack usage. */
-static SimpleExprOp* parse_add_op(SimpleExprParseState *state, eSimpleExpr_Opcode code, int stack_delta)
+static SimpleExprOp *parse_add_op(SimpleExprParseState *state, eSimpleExpr_Opcode code, int stack_delta)
 {
 	/* track evaluation stack depth */
 	state->stack_ptr += stack_delta;
@@ -477,7 +491,7 @@ static bool parse_add_func(SimpleExprParseState *state, eSimpleExpr_Opcode code,
 			return false;
 	}
 
-	parse_add_op(state, code, 1-args)->arg.ptr = funcptr;
+	parse_add_op(state, code, 1 - args)->arg.ptr = funcptr;
 	return true;
 }
 
@@ -528,7 +542,7 @@ static bool parse_next_token(SimpleExprParseState *state)
 
 		/* Forbid C-style octal constants. */
 		if (!is_float && state->tokenbuf[0] == '0') {
-			for (char *p = state->tokenbuf+1; *p; p++) {
+			for (char *p = state->tokenbuf + 1; *p; p++) {
 				if (*p != '0') {
 					return false;
 				}
@@ -588,7 +602,7 @@ static int parse_function_args(SimpleExprParseState *state)
 
 	int arg_count = 0;
 
-	for(;;) {
+	for (;;) {
 		if (!parse_expr(state)) {
 			return -1;
 		}
@@ -668,7 +682,7 @@ static bool parse_unary(SimpleExprParseState *state)
 				int cnt = parse_function_args(state);
 				CHECK_ERROR(cnt > 0);
 
-				parse_add_op(state, OPCODE_MIN, 1-cnt)->arg.ival = cnt;
+				parse_add_op(state, OPCODE_MIN, 1 - cnt)->arg.ival = cnt;
 				return true;
 			}
 
@@ -676,7 +690,7 @@ static bool parse_unary(SimpleExprParseState *state)
 				int cnt = parse_function_args(state);
 				CHECK_ERROR(cnt > 0);
 
-				parse_add_op(state, OPCODE_MAX, 1-cnt)->arg.ival = cnt;
+				parse_add_op(state, OPCODE_MAX, 1 - cnt)->arg.ival = cnt;
 				return true;
 			}
 
