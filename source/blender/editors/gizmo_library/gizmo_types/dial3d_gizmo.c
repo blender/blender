@@ -67,7 +67,7 @@
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
 
-/* to use custom dials exported to geom_dial_gizmo.c */
+/* To use custom dials exported to geom_dial_gizmo.c */
 // #define USE_GIZMO_CUSTOM_DIAL
 
 static int gizmo_dial_modal(
@@ -77,7 +77,7 @@ static int gizmo_dial_modal(
 typedef struct DialInteraction {
 	struct {
 		float mval[2];
-		/* only for when using properties */
+		/* Only for when using properties. */
 		float prop_angle;
 	} init;
 	struct {
@@ -86,10 +86,10 @@ typedef struct DialInteraction {
 		float angle;
 	} prev;
 
-	/* number of full rotations */
+	/* Number of full rotations. */
 	int rotations;
 
-	/* final output values, used for drawing */
+	/* Final output values, used for drawing. */
 	struct {
 		float angle_ofs;
 		float angle_delta;
@@ -122,8 +122,8 @@ static void dial_geom_draw(
         float axis_modal_mat[4][4], float clip_plane[4])
 {
 #ifdef USE_GIZMO_CUSTOM_DIAL
-	UNUSED_VARS(dial, col, axis_modal_mat, clip_plane);
-	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_dial, select);
+	UNUSED_VARS(gz, axis_modal_mat, clip_plane);
+	wm_gizmo_geometryinfo_draw(&wm_gizmo_geom_data_dial, select, color);
 #else
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 	const bool filled = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_FILL) != 0;
@@ -210,7 +210,7 @@ static void dial_ghostarc_get_angles(
 	const RegionView3D *rv3d = ar->regiondata;
 	const float mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
 
-	/* we might need to invert the direction of the angles */
+	/* We might need to invert the direction of the angles. */
 	float view_vec[3], axis_vec[3];
 	ED_view3d_global_to_vector(rv3d, gz->matrix_basis[3], view_vec);
 	normalize_v3_v3(axis_vec, gz->matrix_basis[2]);
@@ -245,25 +245,27 @@ static void dial_ghostarc_get_angles(
 
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 
-	/* Start direction from mouse or set by user */
+	/* Start direction from mouse or set by user. */
 	const float *proj_init_rel =
 	        (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y) ?
 	        gz->matrix_basis[1] : proj_mval_init_rel;
 
-	/* return angles */
+	/* Return angles. */
 	const float start = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_outer_rel, proj_init_rel, axis_vec));
 	const float delta = angle_wrap_rad(angle_signed_on_axis_v3v3_v3(proj_mval_init_rel, proj_mval_new_rel, axis_vec));
 
 	/* Change of sign, we passed the 180 degree threshold. This means we need to add a turn
 	 * to distinguish between transition from 0 to -1 and -PI to +PI, use comparison with PI/2.
-	 * Logic taken from BLI_dial_angle */
+	 * Logic taken from #BLI_dial_angle */
 	if ((delta * inter->prev.angle < 0.0f) &&
 	    (fabsf(inter->prev.angle) > (float)M_PI_2))
 	{
-		if (inter->prev.angle < 0.0f)
+		if (inter->prev.angle < 0.0f) {
 			inter->rotations--;
-		else
+		}
+		else {
 			inter->rotations++;
+		}
 	}
 	inter->prev.angle = delta;
 
@@ -281,7 +283,8 @@ fail:
 
 static void dial_ghostarc_draw_with_helplines(wmGizmo *gz, float angle_ofs, float angle_delta, float color_helpline[4])
 {
-	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
+	/* Coordinate at which the arc drawing will be started. */
+	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
 	GPU_polygon_smooth(false);
 	dial_ghostarc_draw(gz, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
 	GPU_polygon_smooth(true);
@@ -357,7 +360,7 @@ static void dial_draw_intern(
 		}
 	}
 
-	/* draw actual dial gizmo */
+	/* Draw actual dial gizmo. */
 	dial_geom_draw(gz, color, select, matrix_basis_adjust, clip_plane);
 
 	GPU_matrix_pop();
@@ -369,7 +372,6 @@ static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 	float *clip_plane = (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP) ? clip_plane_buf : NULL;
 
-	/* enable clipping if needed */
 	if (clip_plane) {
 		ARegion *ar = CTX_wm_region(C);
 		RegionView3D *rv3d = ar->regiondata;
@@ -396,7 +398,6 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 	float *clip_plane = (!is_modal && (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_CLIP)) ? clip_plane_buf : NULL;
 
-	/* enable clipping if needed */
 	if (clip_plane) {
 		ARegion *ar = CTX_wm_region(C);
 		RegionView3D *rv3d = ar->regiondata;
@@ -425,7 +426,8 @@ static int gizmo_dial_modal(
 	if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
 		return OPERATOR_RUNNING_MODAL;
 	}
-	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f}; /* coordinate at which the arc drawing will be started */
+	/* Coordinate at which the arc drawing will be started. */
+	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
 	float angle_ofs, angle_delta;
 
 	float matrix[4][4];
@@ -447,7 +449,7 @@ static int gizmo_dial_modal(
 	inter->output.angle_delta = angle_delta;
 	inter->output.angle_ofs = angle_ofs;
 
-	/* set the property for the operator and call its modal function */
+	/* Set the property for the operator and call its modal function. */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
 		WM_gizmo_target_property_float_set(C, gz, gz_prop, inter->init.prop_angle + angle_delta);
