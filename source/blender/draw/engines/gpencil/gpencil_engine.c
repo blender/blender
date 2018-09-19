@@ -570,7 +570,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 
 		/* if multiwindow and onion, set as dirty */
 		if ((stl->storage->is_multiwindow) &&
-		    (gpd->flag & GP_DATA_SHOW_ONIONSKINS)
+		    (gpd->flag & GP_DATA_SHOW_ONIONSKINS))
 		{
 			gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 		}
