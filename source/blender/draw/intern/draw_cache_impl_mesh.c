@@ -1732,6 +1732,27 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 	return me->runtime.batch_cache;
 }
 
+static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
+{
+	GPU_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
+	if (cache->shaded_triangles_in_order) {
+		for (int i = 0; i < cache->mat_len; ++i) {
+			GPU_INDEXBUF_DISCARD_SAFE(cache->shaded_triangles_in_order[i]);
+		}
+	}
+	if (cache->shaded_triangles) {
+		for (int i = 0; i < cache->mat_len; ++i) {
+			GPU_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
+		}
+	}
+
+	MEM_SAFE_FREE(cache->shaded_triangles_in_order);
+	MEM_SAFE_FREE(cache->shaded_triangles);
+
+	MEM_SAFE_FREE(cache->auto_layer_names);
+	MEM_SAFE_FREE(cache->auto_layer_is_srgb);
+}
+
 void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 {
 	MeshBatchCache *cache = me->runtime.batch_cache;
@@ -1763,9 +1784,7 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			cache->is_dirty = true;
 			break;
 		case BKE_MESH_BATCH_DIRTY_SHADING:
-			/* TODO: This should only update UV and tangent data,
-			 * and not free the entire cache. */
-			cache->is_dirty = true;
+			mesh_batch_cache_discard_shaded_tri(cache);
 			break;
 		case BKE_MESH_BATCH_DIRTY_SCULPT_COORDS:
 			cache->is_sculpt_points_tag = true;
@@ -1877,23 +1896,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
 	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
 
-	GPU_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
-	if (cache->shaded_triangles_in_order) {
-		for (int i = 0; i < cache->mat_len; ++i) {
-			GPU_INDEXBUF_DISCARD_SAFE(cache->shaded_triangles_in_order[i]);
-		}
-	}
-	if (cache->shaded_triangles) {
-		for (int i = 0; i < cache->mat_len; ++i) {
-			GPU_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
-		}
-	}
-
-	MEM_SAFE_FREE(cache->shaded_triangles_in_order);
-	MEM_SAFE_FREE(cache->shaded_triangles);
-
-	MEM_SAFE_FREE(cache->auto_layer_names);
-	MEM_SAFE_FREE(cache->auto_layer_is_srgb);
+	mesh_batch_cache_discard_shaded_tri(cache);
 
 	if (cache->texpaint_triangles) {
 		for (int i = 0; i < cache->mat_len; ++i) {
