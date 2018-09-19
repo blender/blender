@@ -468,6 +468,8 @@ void DepsgraphRelationBuilder::build_collection(
 	OperationKey object_transform_final_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_FINAL);
+	ComponentKey duplicator_key(object != NULL ? &object->id : NULL,
+	                            DEG_NODE_TYPE_DUPLI);
 	if (!group_done) {
 		LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
 			build_object(NULL, cob->ob);
@@ -480,7 +482,22 @@ void DepsgraphRelationBuilder::build_collection(
 		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_BEGIN(collection, ob, graph_->mode)
 		{
 			ComponentKey dupli_transform_key(&ob->id, DEG_NODE_TYPE_TRANSFORM);
-			add_relation(dupli_transform_key, object_transform_final_key, "Dupligroup");
+			add_relation(dupli_transform_key,
+			             object_transform_final_key,
+			             "Dupligroup");
+			/* Hook to special component, to ensure proper visibility/evaluation
+			 * optimizations.
+			 */
+			add_relation(dupli_transform_key, duplicator_key, "Dupligroup");
+			const eDepsNode_Type dupli_geometry_component_type =
+			        deg_geometry_tag_to_component(&ob->id);
+			if (dupli_geometry_component_type != DEG_NODE_TYPE_UNDEFINED) {
+				ComponentKey dupli_geometry_component_key(
+				        &ob->id, dupli_geometry_component_type);
+				add_relation(dupli_geometry_component_key,
+				             duplicator_key,
+				             "Dupligroup");
+			}
 		}
 		FOREACH_COLLECTION_VISIBLE_OBJECT_RECURSIVE_END;
 	}

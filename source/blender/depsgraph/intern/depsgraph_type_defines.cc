@@ -101,6 +101,8 @@ const char *nodeTypeAsString(eDepsNode_Type type)
 		STRINGIFY_TYPE(SHADING_PARAMETERS);
 		STRINGIFY_TYPE(CACHE);
 		STRINGIFY_TYPE(BATCH_CACHE);
+		/* Duplication. */
+		STRINGIFY_TYPE(DUPLI);
 
 		/* Total number of meaningful node types. */
 		case NUM_DEG_NODE_TYPES: return "SpecialCase";

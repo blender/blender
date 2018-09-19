@@ -155,6 +155,11 @@ typedef enum eDepsNode_Type {
 	/* Batch Cache Component - TODO (dfelinto/sergey) rename to make it more generic. */
 	DEG_NODE_TYPE_BATCH_CACHE,
 
+	/* Duplication system. Used to force duplicated objects visible when
+	 * when duplicator is visible.
+	 */
+	DEG_NODE_TYPE_DUPLI,
+
 	/* Total number of meaningful node types. */
 	NUM_DEG_NODE_TYPES,
 } eDepsNode_Type;

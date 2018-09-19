@@ -620,6 +620,11 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 		is_parent_collection_visible_ = is_visible;
 		build_collection(object->dup_group);
 		is_parent_collection_visible_ = is_current_parent_collection_visible;
+		add_operation_node(&object->id,
+		                   DEG_NODE_TYPE_DUPLI,
+		                   NULL,
+		                   DEG_OPCODE_PLACEHOLDER,
+		                   "Dupli");
 	}
 }
 
