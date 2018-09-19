@@ -185,7 +185,11 @@ static void write_mcol(const OCompoundProperty &prop, const CDStreamConfig &conf
 	MLoop *mloops = config.mloop;
 	MCol *cfaces = static_cast<MCol *>(data);
 
-	std::vector<Imath::C4f> buffer(config.totvert);
+	std::vector<Imath::C4f> buffer;
+	std::vector<uint32_t> indices;
+
+	buffer.reserve(config.totvert);
+	indices.reserve(config.totvert);
 
 	Imath::C4f col;
 
@@ -203,7 +207,8 @@ static void write_mcol(const OCompoundProperty &prop, const CDStreamConfig &conf
 			col[2] = cface->g * cscale;
 			col[3] = cface->b * cscale;
 
-			buffer[mloop->v] = col;
+			buffer.push_back(col);
+			indices.push_back(buffer.size() - 1);
 		}
 	}
 
@@ -211,6 +216,7 @@ static void write_mcol(const OCompoundProperty &prop, const CDStreamConfig &conf
 
 	OC4fGeomParam::Sample sample(
 		C4fArraySample(&buffer.front(), buffer.size()),
+		UInt32ArraySample(&indices.front(), indices.size()),
 		kVertexScope);
 
 	param.set(sample);
