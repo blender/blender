@@ -285,12 +285,11 @@ static void dial_ghostarc_draw_with_helplines(wmGizmo *gz, float angle_ofs, floa
 {
 	/* Coordinate at which the arc drawing will be started. */
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
-	GPU_polygon_smooth(false);
 	dial_ghostarc_draw(gz, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
 	GPU_polygon_smooth(true);
-
 	dial_ghostarc_draw_helpline(angle_ofs, co_outer, color_helpline);
 	dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color_helpline);
+	GPU_polygon_smooth(false);
 }
 
 static void dial_draw_intern(
