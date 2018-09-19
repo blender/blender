@@ -469,6 +469,9 @@ void DepsgraphNodeBuilder::build_id(ID *id)
 		case ID_SPK:
 			build_speaker((Speaker *)id);
 			break;
+		case ID_TXT:
+			/* Not a part of dependency graph. */
+			break;
 		default:
 			fprintf(stderr, "Unhandled ID %s\n", id->name);
 			BLI_assert(!"Should never happen");
