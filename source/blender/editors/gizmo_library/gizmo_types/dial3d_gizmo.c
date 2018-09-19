@@ -106,7 +106,7 @@ typedef struct DialInteraction {
 
 static void dial_geom_draw(
         const wmGizmo *gz, const float color[4], const bool select,
-        float axis_modal_mat[4][4], float clip_plane[4])
+        float axis_modal_mat[4][4], float clip_plane[4], const float arc_inner_factor)
 {
 #ifdef USE_GIZMO_CUSTOM_DIAL
 	UNUSED_VARS(gz, axis_modal_mat, clip_plane);
@@ -137,6 +137,9 @@ static void dial_geom_draw(
 	}
 	else {
 		imm_draw_circle_wire_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+		if (arc_inner_factor != 0.0f) {
+			imm_draw_circle_wire_2d(pos, 0, 0, arc_inner_factor, DIAL_RESOLUTION);
+		}
 	}
 
 	immUnbindProgram();
@@ -148,10 +151,9 @@ static void dial_geom_draw(
 /**
  * Draws a line from (0, 0, 0) to \a co_outer, at \a angle.
  */
-static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[3], const float color[4])
+static void dial_ghostarc_draw_helpline(
+        const float angle, const float co_outer[3], const float color[4])
 {
-	GPU_line_width(1.0f);
-
 	GPU_matrix_push();
 	GPU_matrix_rotate_3f(RAD2DEGF(angle), 0.0f, 0.0f, -1.0f);
 
@@ -162,7 +164,7 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 	immUniformColor4fv(color);
 
 	immBegin(GPU_PRIM_LINE_STRIP, 2);
-	immVertex3f(pos, 0.0f, 0.0f, 0.0f);
+	immVertex3f(pos, 0.0f, 0, 0.0f);
 	immVertex3fv(pos, co_outer);
 	immEnd();
 
@@ -172,16 +174,25 @@ static void dial_ghostarc_draw_helpline(const float angle, const float co_outer[
 }
 
 static void dial_ghostarc_draw(
-        const wmGizmo *gz, const float angle_ofs, const float angle_delta, const float color[4])
+        const float angle_ofs, const float angle_delta,
+        const float arc_inner_factor, const float color[4])
 {
-	const float width_inner = DIAL_WIDTH - gz->line_width * 0.5f / U.gizmo_size;
-
+	const float width_inner = DIAL_WIDTH;
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+
+	if (arc_inner_factor != 0.0) {
+		float color_dark[4] = {0};
+		color_dark[3] = color[3] / 2;
+		immUniformColor4fv(color_dark);
+		imm_draw_disk_partial_fill_2d(
+		        pos, 0, 0, arc_inner_factor, width_inner, DIAL_RESOLUTION, RAD2DEGF(angle_ofs), RAD2DEGF(M_PI * 2));
+	}
+
 	immUniformColor4fv(color);
 	imm_draw_disk_partial_fill_2d(
-	        pos, 0, 0, 0.0, width_inner, DIAL_RESOLUTION, RAD2DEGF(angle_ofs), RAD2DEGF(angle_delta));
+	        pos, 0, 0, arc_inner_factor, width_inner, DIAL_RESOLUTION, RAD2DEGF(angle_ofs), RAD2DEGF(angle_delta));
 	immUnbindProgram();
 }
 
@@ -268,16 +279,19 @@ fail:
 	*r_delta = 0.0;
 }
 
-static void dial_ghostarc_draw_with_helplines(wmGizmo *gz, float angle_ofs, float angle_delta, float color_helpline[4])
+static void dial_ghostarc_draw_with_helplines(
+        const float angle_ofs, const float angle_delta,
+        const float arc_inner_factor, const float color_helpline[4], const int draw_options)
 {
 	/* Coordinate at which the arc drawing will be started. */
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
-	GPU_polygon_smooth(false);
-	dial_ghostarc_draw(gz, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
-	GPU_polygon_smooth(true);
+	dial_ghostarc_draw(angle_ofs, angle_delta, arc_inner_factor, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
+	GPU_line_width(1.0f);
 	dial_ghostarc_draw_helpline(angle_ofs, co_outer, color_helpline);
+	if (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE) {
+		GPU_line_width(3.0f);
+	}
 	dial_ghostarc_draw_helpline(angle_ofs + angle_delta, co_outer, color_helpline);
-	GPU_polygon_smooth(false);
 }
 
 static void dial_draw_intern(
@@ -307,6 +321,9 @@ static void dial_draw_intern(
 		}
 	}
 
+	GPU_polygon_smooth(false);
+
+	const float arc_inner_factor = RNA_float_get(gz->ptr, "arc_inner_factor");
 	if (select == false) {
 		float angle_ofs = 0.0f;
 		float angle_delta = 0.0f;
@@ -333,16 +350,16 @@ static void dial_draw_intern(
 		}
 
 		if (show_ghostarc) {
-			dial_ghostarc_draw_with_helplines(gz, angle_ofs, angle_delta, color);
+			dial_ghostarc_draw_with_helplines(angle_ofs, angle_delta, arc_inner_factor, color, draw_options);
 			if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) != 0) {
 				angle_ofs += M_PI;
-				dial_ghostarc_draw_with_helplines(gz, angle_ofs, angle_delta, color);
+				dial_ghostarc_draw_with_helplines(angle_ofs, angle_delta, arc_inner_factor, color, draw_options);
 			}
 		}
 	}
 
 	/* Draw actual dial gizmo. */
-	dial_geom_draw(gz, color, select, gz->matrix_basis, clip_plane);
+	dial_geom_draw(gz, color, select, gz->matrix_basis, clip_plane, arc_inner_factor);
 
 	GPU_matrix_pop();
 }
@@ -493,6 +510,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 	};
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 	RNA_def_boolean(gzt->srna, "wrap_angle", true, "Wrap Angle", "");
+	RNA_def_float_factor(gzt->srna, "arc_inner_factor", 0.0f, 0.0f, 1.0f, "Arc Inner Factor", "", 0.0f, 1.0f);
 
 	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
 }
