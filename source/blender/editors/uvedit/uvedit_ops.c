@@ -1803,7 +1803,7 @@ static void UV_OT_align(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 
 	/* properties */
-	RNA_def_enum(ot->srna, "axis", axis_items, 'a', "Axis", "Axis to align UV locations on");
+	RNA_def_enum(ot->srna, "axis", axis_items, UV_ALIGN_AUTO, "Axis", "Axis to align UV locations on");
 }
 
 /** \} */
