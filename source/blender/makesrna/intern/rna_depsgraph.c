@@ -461,7 +461,7 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x4);
 	RNA_def_property_ui_text(prop, "Generated Matrix", "Generated transform matrix in world space");
-	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_matrix_local_get", NULL, NULL);
+	RNA_def_property_float_funcs(prop, "rna_DepsgraphObjectInstance_matrix_world_get", NULL, NULL);
 
 	prop = RNA_def_property(srna, "orco", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
