@@ -159,6 +159,7 @@ static bool dependsOnTime(ModifierData *md)
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 	return (mcmd->cache_file != NULL);
 #else
+	UNUSED_VARS(md);
 	return false;
 #endif
 }
