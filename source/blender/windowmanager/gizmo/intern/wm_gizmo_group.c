@@ -929,6 +929,7 @@ void WM_gizmo_group_type_reinit_ptr_ex(
 {
 	wmGizmoGroupTypeRef *gzgt_ref = WM_gizmomaptype_group_find_ptr(gzmap_type, gzgt);
 	BLI_assert(gzgt_ref != NULL);
+	UNUSED_VARS_NDEBUG(gzgt_ref);
 	WM_gizmomaptype_group_unlink(NULL, bmain, gzmap_type, gzgt);
 	WM_gizmo_group_type_add_ptr_ex(gzgt, gzmap_type);
 }
