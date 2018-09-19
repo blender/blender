@@ -246,6 +246,12 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
  * this means we cant rotate the currently running gizmo.
  */
 // #define USE_EXTRA_CONTROLS
+/**
+ * Orient the dial so the 'arc' starts where the mouse cursor is,
+ * this is simply to keep the gizmo displaying where the cursor starts.
+ * It's not needed for practical functionality.
+ */
+#define USE_ANGLE_Z_ORIENT
 
 typedef struct GizmoGroupData_SpinRedo {
 	/* Arrow to change plane depth. */
@@ -268,6 +274,9 @@ typedef struct GizmoGroupData_SpinRedo {
 
 		float rotate_axis[3];
 		float rotate_up[3];
+#ifdef USE_ANGLE_Z_ORIENT
+		float orient_axis[3];
+#endif
 	} data;
 } GizmoGroupData_SpinRedo;
 
@@ -299,7 +308,20 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 	/* translate_c location comes from the property. */
 
 	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->translate_z, plane_no);
+#ifdef USE_ANGLE_Z_ORIENT
+	{
+		float plane_tan[3];
+		project_plane_normalized_v3_v3v3(plane_tan, ggd->data.orient_axis, plane_no);
+		if (normalize_v3(plane_tan) != 0.0f) {
+			WM_gizmo_set_matrix_rotation_from_yz_axis(ggd->angle_z, plane_tan, plane_no);
+		}
+		else {
+			WM_gizmo_set_matrix_rotation_from_z_axis(ggd->angle_z, plane_no);
+		}
+	}
+#else
 	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->angle_z, plane_no);
+#endif
 
 	WM_gizmo_set_scale(ggd->translate_c, 0.2);
 
@@ -505,6 +527,32 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 	wmWindow *win = CTX_wm_window(C);
 	wmGizmo *gz = ggd->angle_z;
 	wmGizmoMap *gzmap = gzgroup->parent_gzmap;
+
+
+#ifdef USE_ANGLE_Z_ORIENT
+	{
+		wmOperator *op = ggd->data.op;
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+		const wmEvent *event = win->eventstate;
+		float plane_co[3], plane_no[3];
+		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
+		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
+		float cursor_co[3], cursor_no[3];
+		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+		ED_view3d_win_to_3d_int(v3d, ar, plane_co, mval, cursor_co);
+		ED_view3d_global_to_vector(ar->regiondata, cursor_co, cursor_no);
+
+		float lambda, plane[4];
+		plane_from_point_normal_v3(plane, plane_co, plane_no);
+		if (isect_ray_plane_v3(cursor_co, cursor_no, plane, &lambda, false)) {
+			madd_v3_v3fl(cursor_co, cursor_no, lambda);
+		}
+		sub_v3_v3v3(ggd->data.orient_axis, cursor_co, plane_co);
+		normalize_v3(ggd->data.orient_axis);
+	}
+#endif
+
 	WM_gizmo_modal_set_from_setup(
 	        gzmap, (bContext *)C, gz, 0, win->eventstate);
 }
