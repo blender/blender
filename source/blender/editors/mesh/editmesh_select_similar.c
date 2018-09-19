@@ -1072,11 +1072,6 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	if (type == SIMVERT_VGROUP) {
-		BKE_report(op->reports, RPT_ERROR, "Select similar vertex groups not supported at the moment.");
-		return OPERATOR_CANCELLED;
-	}
-
 	int tot_verts_selected_all = 0;
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -1104,6 +1099,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		case SIMVERT_FACE:
 			gset = BLI_gset_ptr_new("Select similar vertex: edge/face");
 			break;
+		case SIMVERT_VGROUP:
+			gset = BLI_gset_str_new("Select similar vertex: vertex groups");
+			break;
 	}
 
 	int normal_tree_index = 0;
@@ -1111,10 +1109,19 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		Object *ob = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
+		int cd_dvert_offset = -1;
+		int dvert_selected = 0;
 		invert_m4_m4(ob->imat, ob->obmat);
 
 		if (bm->totvertsel == 0) {
 			continue;
+		}
+
+		if (type == SIMVERT_VGROUP) {
+			cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+			if (cd_dvert_offset == -1) {
+				continue;
+			}
 		}
 
 		BMVert *vert; /* Mesh vertex. */
@@ -1139,8 +1146,40 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						BLI_kdtree_insert(tree, normal_tree_index++, normal);
 						break;
 					}
+					case SIMVERT_VGROUP:
+					{
+						MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
+						MDeformWeight *dw = dvert->dw;
+
+						for (int i = 0; i < dvert->totweight; i++, dw++) {
+							if (dw->weight > 0.0f) {
+								dvert_selected |= (1 << dw->def_nr);
+							}
+						}
+						break;
+					}
 				}
 			}
+		}
+
+		if (type == SIMVERT_VGROUP) {
+			/* We store the names of the vertex groups, so we can select
+			 * vertex groups with the same name in  different objects. */
+			const int dvert_tot = BLI_listbase_count(&ob->defbase);
+			for (int i = 0; i < dvert_tot; i++) {
+				if (dvert_selected & (1 << i)) {
+					bDeformGroup *dg = BLI_findlink(&ob->defbase, i);
+					BLI_gset_add(gset, dg->name);
+				}
+			}
+		}
+	}
+
+	if (type == SIMVERT_VGROUP) {
+		if (BLI_gset_len(gset) == 0) {
+			BKE_report(op->reports,
+			           RPT_INFO,
+			           "No vertex group among the selected vertices");
 		}
 	}
 
@@ -1155,6 +1194,31 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
 		bool changed = false;
+		int cd_dvert_offset = -1;
+		int dvert_selected = 0;
+
+		if (type == SIMVERT_VGROUP) {
+			cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+			if (cd_dvert_offset == -1) {
+				continue;
+			}
+
+			/* We map back the names of the vertex groups to their corresponsing indices
+			 * for this object. This is fast, and keep the logic for each vertex very simple. */
+			GSetIterator gs_iter;
+			GSET_ITER(gs_iter, gset) {
+				const char *name = BLI_gsetIterator_getKey(&gs_iter);
+				int vgroup_id = BLI_findstringindex(&ob->defbase,
+				                                    name,
+				                                    offsetof(bDeformGroup, name));
+				if (vgroup_id != -1) {
+					dvert_selected |= (1 << vgroup_id);
+				}
+			}
+			if (dvert_selected == 0) {
+				continue;
+			}
+		}
 
 		BMVert *vert; /* Mesh vertex. */
 		BMIter iter; /* Selected verts iterator. */
@@ -1206,6 +1270,21 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
 								select = true;
+							}
+						}
+						break;
+					}
+					case SIMVERT_VGROUP:
+					{
+						MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(vert, cd_dvert_offset);
+						MDeformWeight *dw = dvert->dw;
+
+						for (int i = 0; i < dvert->totweight; i++, dw++) {
+							if (dw->weight > 0.0f) {
+								if (dvert_selected & (1 << dw->def_nr)) {
+									select = true;
+									break;
+								}
 							}
 						}
 						break;
