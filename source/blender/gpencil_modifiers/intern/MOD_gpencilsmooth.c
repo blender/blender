@@ -80,8 +80,7 @@ static void deformStroke(
 	if (mmd->factor > 0.0f) {
 		for (int r = 0; r < mmd->step; r++) {
 			for (int i = 0; i < gps->totpoints; i++) {
-				// bGPDspoint *pt = &gps->points[i];
-				MDeformVert *dvert = &gps->dvert[i];
+				MDeformVert *dvert = gps->dvert != NULL ? &gps->dvert[i] : NULL;
 
 				/* verify vertex group */
 				const float weight = get_modifier_point_weight(
