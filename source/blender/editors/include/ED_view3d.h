@@ -241,11 +241,11 @@ void ED_view3d_win_to_3d_int(
         float r_out[3]);
 bool ED_view3d_win_to_3d_on_plane(
         const struct ARegion *ar,
-        const float plane[4], const float mval[2],
+        const float plane[4], const float mval[2], const bool do_clip,
         float r_out[3]);
 bool ED_view3d_win_to_3d_on_plane_int(
         const struct ARegion *ar,
-        const float plane[4], const int mval[2],
+        const float plane[4], const int mval[2], const bool do_clip,
         float r_out[3]);
 void ED_view3d_win_to_delta(const struct ARegion *ar, const float mval[2], float out[3], const float zfac);
 void ED_view3d_win_to_origin(const struct ARegion *ar, const float mval[2], float out[3]);

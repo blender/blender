@@ -557,14 +557,14 @@ void ED_view3d_win_to_3d_int(
 
 bool ED_view3d_win_to_3d_on_plane(
         const ARegion *ar,
-        const float plane[4], const float mval[2],
+        const float plane[4], const float mval[2], const bool do_clip,
         float r_out[3])
 {
 	float ray_co[3], ray_no[3];
 	ED_view3d_win_to_origin(ar, mval, ray_co);
 	ED_view3d_win_to_vector(ar, mval, ray_no);
 	float lambda;
-	if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, false)) {
+	if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, do_clip)) {
 		madd_v3_v3v3fl(r_out, ray_co, ray_no, lambda);
 		return true;
 	}
@@ -573,11 +573,11 @@ bool ED_view3d_win_to_3d_on_plane(
 
 bool ED_view3d_win_to_3d_on_plane_int(
         const ARegion *ar,
-        const float plane[4], const int mval[2],
+        const float plane[4], const int mval[2], const bool do_clip,
         float r_out[3])
 {
 	const float mval_fl[2] = {mval[0], mval[1]};
-	return ED_view3d_win_to_3d_on_plane(ar, plane, mval_fl, r_out);
+	return ED_view3d_win_to_3d_on_plane(ar, plane, mval_fl, do_clip, r_out);
 }
 
 /**
