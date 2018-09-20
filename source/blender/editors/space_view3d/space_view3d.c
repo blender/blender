@@ -1532,7 +1532,7 @@ void ED_spacetype_view3d(void)
 	/* regions: tool(bar) */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d tools region");
 	art->regionid = RGN_TYPE_TOOLS;
-	art->prefsizex = 160; /* XXX */
+	art->prefsizex = 58; /* XXX */
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = view3d_buttons_region_listener;
