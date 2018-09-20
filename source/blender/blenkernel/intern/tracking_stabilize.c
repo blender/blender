@@ -992,7 +992,7 @@ static void initialize_all_tracks(StabContext *ctx, float aspect)
 	 * By definition, offset contribution is zero there.
 	 */
 	int reference_frame = tracking->stabilization.anchor_frame;
-	float average_angle=0, average_scale_step=0;
+	float average_angle = 0, average_scale_step = 0;
 	float average_translation[2], average_pos[2], pivot[2];
 	zero_v2(average_translation);
 	zero_v2(pivot);

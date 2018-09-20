@@ -106,7 +106,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 
 	/*do verts*/
 	bool vert_allocated;
-	mv = mvert = DM_get_vert_array(dm, &vert_allocated);;
+	mv = mvert = DM_get_vert_array(dm, &vert_allocated);
 	for (i = 0; i < totvert; i++, mv++) {
 		v = BM_vert_create(bm, mv->co, NULL, BM_CREATE_SKIP_CD);
 		normal_short_to_float_v3(v->no, mv->no);
