@@ -8,14 +8,14 @@ uniform vec2 viewportSize;
 in vec2 pos; /* bone aligned screen space */
 in uint flag;
 
-#define COL_WIRE (1u << 0u)
-#define COL_HEAD (1u << 1u)
-#define COL_TAIL (1u << 2u)
-#define COL_BONE (1u << 3u)
+#define COL_WIRE 1u /* (1 << 0) */
+#define COL_HEAD 2u /* (1 << 1) */
+#define COL_TAIL 4u /* (1 << 2) */
+#define COL_BONE 8u /* (1 << 3) */
 
-#define POS_HEAD (1u << 4u)
-#define POS_TAIL (1u << 5u) /* UNUSED */
-#define POS_BONE (1u << 6u)
+#define POS_HEAD 16u /* (1 << 4) */
+#define POS_TAIL 32u /* (1 << 5) */ /* UNUSED */
+#define POS_BONE 64u /* (1 << 6) */
 
 /* ---- Per instance Attribs ---- */
 in vec3 boneStart;
@@ -26,8 +26,8 @@ in vec4 headColor; /* alpha encode if we do head. If 0.0 we dont. */
 in vec4 tailColor; /* alpha encode if we do tail. If 0.0 we dont. */
 
 #define do_wire (wireColor.a > 0.0)
-#define is_head ((flag & POS_HEAD) != 0u)
-#define is_bone ((flag & POS_BONE) != 0u)
+#define is_head bool(flag & POS_HEAD)
+#define is_bone bool(flag & POS_BONE)
 
 noperspective out float colorFac;
 flat out vec4 finalWireColor;
