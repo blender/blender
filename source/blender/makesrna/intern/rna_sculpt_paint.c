@@ -1186,7 +1186,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "lockaxis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "lock_axis");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_lockaxis_items);
-	RNA_def_property_ui_text(prop, "Lock", "");
+	RNA_def_property_ui_text(prop, "Lock Axis", "");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
