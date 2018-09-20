@@ -222,7 +222,7 @@ class VIEW3D_HT_header(Header):
                 tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
 
             or_icon = getattr(gp_origin, "icon", "BLANK1")
-            or_name = getattr(gp_origin, "name", "Origin")
+            or_name = getattr(gp_origin, "name", "Stroke Placement")
             layout.popover(
                 panel="VIEW3D_PT_gpencil_origin",
                 text=or_name,
@@ -4775,11 +4775,11 @@ class VIEW3D_PT_transform_orientations(Panel):
 class VIEW3D_PT_gpencil_origin(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Origin"
+    bl_label = "Stroke Placement"
 
     def draw(self, context):
         layout = self.layout
-        layout.label(text="Origin")
+        layout.label(text="Stroke Placement")
 
         row = layout.row()
         col = row.column()
