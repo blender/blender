@@ -654,7 +654,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	BLI_assert(GPU_material_from_nodetree_find(gpumaterials, engine_type, options) == NULL);
 
 	/* allocate material */
-	GPUMaterial *mat = MEM_callocN(sizeof(GPUMaterial), "GPUMaterial");;
+	GPUMaterial *mat = MEM_callocN(sizeof(GPUMaterial), "GPUMaterial");
 	mat->scene = scene;
 	mat->engine_type = engine_type;
 	mat->options = options;

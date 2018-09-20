@@ -226,7 +226,7 @@ void OUTLINER_OT_collection_new(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	PropertyRNA *prop = RNA_def_boolean(ot->srna, "nested", true, "Nested", "Add as child of selected collection");;
+	PropertyRNA *prop = RNA_def_boolean(ot->srna, "nested", true, "Nested", "Add as child of selected collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -153,7 +153,7 @@ typedef struct SubdivCCG {
 	/* Vertices which are adjacent to faces
 	 * Used for faster grid stitching, in the cost of extra memory.
 	 */
-	int num_adjacent_vertices;;
+	int num_adjacent_vertices;
 	SubdivCCGAdjacentVertex *adjacent_vertices;
 
 	struct DMFlagMat *grid_flag_mats;

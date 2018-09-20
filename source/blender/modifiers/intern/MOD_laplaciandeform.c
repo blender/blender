@@ -566,7 +566,7 @@ static void initSystem(
 
 
 		mlooptri = BKE_mesh_runtime_looptri_ensure(mesh);
-		mloop = mesh->mloop;;
+		mloop = mesh->mloop;
 
 		for (i = 0; i < sys->total_tris; i++) {
 			sys->tris[i][0] = mloop[mlooptri[i].tri[0]].v;

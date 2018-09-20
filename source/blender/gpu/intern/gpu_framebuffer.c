@@ -198,7 +198,7 @@ GPUFrameBuffer *GPU_framebuffer_create(void)
 {
 	/* We generate the FB object later at first use in order to
 	 * create the framebuffer in the right opengl context. */
-	return MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");;
+	return MEM_callocN(sizeof(GPUFrameBuffer), "GPUFrameBuffer");
 }
 
 static void gpu_framebuffer_init(GPUFrameBuffer *fb)

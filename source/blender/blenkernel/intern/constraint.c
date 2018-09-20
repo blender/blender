@@ -3974,7 +3974,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	                         depsgraph,
 	                         data->camera ? data->camera : scene->camera);
 
-	float ctime = DEG_get_ctime(depsgraph);;
+	float ctime = DEG_get_ctime(depsgraph);
 	float framenr;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)

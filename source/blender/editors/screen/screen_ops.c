@@ -4755,7 +4755,7 @@ static void SCREEN_OT_workspace_cycle(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = space_workspace_cycle_invoke;
-	ot->poll = ED_operator_screenactive;;
+	ot->poll = ED_operator_screenactive;
 
 	ot->flag = 0;
 

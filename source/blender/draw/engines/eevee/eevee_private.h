@@ -933,7 +933,7 @@ void EEVEE_motion_blur_free(void);
 
 /* eevee_mist.c */
 void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
-void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);;
+void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_mist_free(void);
 
 /* eevee_temporal_sampling.c */

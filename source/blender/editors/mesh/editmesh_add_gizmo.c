@@ -321,7 +321,7 @@ static void MESH_GGT_add_bounds(struct wmGizmoGroupType *gzgt)
 
 static int add_primitive_cube_gizmo_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);;
+	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	float matrix[4][4];
 

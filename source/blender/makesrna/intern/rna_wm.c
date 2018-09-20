@@ -779,7 +779,7 @@ static void rna_workspace_screen_update(bContext *C, PointerRNA *ptr)
 static PointerRNA rna_Window_view_layer_get(PointerRNA *ptr)
 {
 	wmWindow *win = ptr->data;
-	Scene *scene = WM_window_get_active_scene(win);;
+	Scene *scene = WM_window_get_active_scene(win);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	PointerRNA scene_ptr;
 

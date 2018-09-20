@@ -477,7 +477,7 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 
 	/* object scale and depth */
 	if ((ob) && (id > -1)) {
-		stl->shgroups[id].obj_scale = mat4_to_scale(ob->obmat);;
+		stl->shgroups[id].obj_scale = mat4_to_scale(ob->obmat);
 		DRW_shgroup_uniform_float(grp, "objscale", &stl->shgroups[id].obj_scale, 1);
 		stl->shgroups[id].keep_size = (int)((gpd) && (gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
 		DRW_shgroup_uniform_int(grp, "keep_size", &stl->shgroups[id].keep_size, 1);

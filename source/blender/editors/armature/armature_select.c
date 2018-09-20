@@ -129,7 +129,7 @@ Base *ED_armature_base_and_bone_from_select_buffer(
 	if (base != NULL) {
 		if (base->object->pose != NULL) {
 			const uint hit_bone = (hit & ~BONESEL_ANY) >> 16;
-			bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);;
+			bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);
 			bone = pchan ? pchan->bone : NULL;
 		}
 	}

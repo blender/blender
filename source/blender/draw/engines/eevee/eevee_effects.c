@@ -561,7 +561,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	/* Update double buffer status if render mode. */
 	if (DRW_state_is_image_render()) {
 		stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
-		stl->g_data->valid_taa_history = (txl->taa_history != NULL);;
+		stl->g_data->valid_taa_history = (txl->taa_history != NULL);
 	}
 }
 
