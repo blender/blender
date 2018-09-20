@@ -64,11 +64,57 @@ int getNumFaces(const OpenSubdiv_TopologyRefiner* topology_refiner) {
 ////////////////////////////////////////////////////////////////////////////////
 // PTex face geometry queries.
 
+static void convertArrayToRaw(
+    const OpenSubdiv::Far::ConstIndexArray& array,
+    int* raw_array) {
+  for (int i = 0; i < array.size(); ++i) {
+    raw_array[i] = array[i];
+  }
+}
+
 int getNumFaceVertices(const OpenSubdiv_TopologyRefiner* topology_refiner,
                        const int face_index) {
   const OpenSubdiv::Far::TopologyLevel* base_level =
       getOSDTopologyBaseLevel(topology_refiner);
   return base_level->GetFaceVertices(face_index).size();
+}
+
+void getFaceVertices(const OpenSubdiv_TopologyRefiner* topology_refiner,
+                     const int face_index,
+                     int* face_vertices_indices) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  OpenSubdiv::Far::ConstIndexArray array =
+      base_level->GetFaceVertices(face_index);
+  convertArrayToRaw(array, face_vertices_indices);
+}
+
+int getNumFaceEdges(const OpenSubdiv_TopologyRefiner* topology_refiner,
+                    const int face_index) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  return base_level->GetFaceEdges(face_index).size();
+}
+
+void getFaceEdges(const OpenSubdiv_TopologyRefiner* topology_refiner,
+                  const int face_index,
+                  int* face_edges_indices) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  OpenSubdiv::Far::ConstIndexArray array = base_level->GetFaceEdges(face_index);
+  convertArrayToRaw(array, face_edges_indices);
+}
+
+void getEdgeVertices(const OpenSubdiv_TopologyRefiner* topology_refiner,
+                     const int edge_index,
+                     int edge_vertices_indices[2]) {
+  const OpenSubdiv::Far::TopologyLevel* base_level =
+      getOSDTopologyBaseLevel(topology_refiner);
+  OpenSubdiv::Far::ConstIndexArray array =
+      base_level->GetEdgeVertices(edge_index);
+  assert(array.size() == 2);
+  edge_vertices_indices[0] = array[0];
+  edge_vertices_indices[1] = array[1];
 }
 
 int getNumFacePtexFaces(const OpenSubdiv_TopologyRefiner* topology_refiner,
@@ -147,6 +193,10 @@ void assignFunctionPointers(OpenSubdiv_TopologyRefiner* topology_refiner) {
   topology_refiner->getNumEdges = getNumEdges;
   topology_refiner->getNumFaces = getNumFaces;
   topology_refiner->getNumFaceVertices = getNumFaceVertices;
+  topology_refiner->getFaceVertices = getFaceVertices;
+  topology_refiner->getNumFaceEdges = getNumFaceEdges;
+  topology_refiner->getFaceEdges = getFaceEdges;
+  topology_refiner->getEdgeVertices = getEdgeVertices;
   // PTex face geometry.
   topology_refiner->getNumFacePtexFaces = getNumFacePtexFaces;
   topology_refiner->getNumPtexFaces = getNumPtexFaces;

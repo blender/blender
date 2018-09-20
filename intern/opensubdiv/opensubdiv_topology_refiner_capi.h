@@ -66,6 +66,21 @@ typedef struct OpenSubdiv_TopologyRefiner {
   int (*getNumFaceVertices)(
       const struct OpenSubdiv_TopologyRefiner* topology_refiner,
       const int face_index);
+  void (*getFaceVertices)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int face_index,
+      int* face_vertices_indices);
+  int (*getNumFaceEdges)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int face_index);
+  void (*getFaceEdges)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int face_index,
+      int* face_edges_indices);
+  void (*getEdgeVertices)(
+      const struct OpenSubdiv_TopologyRefiner* topology_refiner,
+      const int edge_index,
+      int edge_vertices_indices[2]);
 
   //////////////////////////////////////////////////////////////////////////////
   // PTex face geometry queries.
