@@ -434,10 +434,8 @@ static CCGElem **subdiv_ccg_adjacent_edge_add_face(
 	return adjacent_edge->boundary_elements[adjacent_face_index];
 }
 
-static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
+static void subdiv_ccg_init_faces_edge_neighborhood(SubdivCCG *subdiv_ccg)
 {
-#define NUM_STATIC_EDGES 64
-
 	Subdiv *subdiv = subdiv_ccg->subdiv;
 	SubdivCCGFace *faces = subdiv_ccg->faces;
 	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
@@ -532,8 +530,92 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
 	/* Free possibly heap-allocated storage. */
 	static_or_heap_storage_free(&face_vertices_storage);
 	static_or_heap_storage_free(&face_edges_storage);
+}
 
-#undef NUM_STATIC_EDGES
+static void subdiv_ccg_allocate_adjacent_vertices(SubdivCCG *subdiv_ccg,
+                                                  const int num_vertices)
+{
+	subdiv_ccg->num_adjacent_vertices = num_vertices;
+	subdiv_ccg->adjacent_vertices = MEM_calloc_arrayN(
+	        subdiv_ccg->num_adjacent_vertices,
+	        sizeof(*subdiv_ccg->adjacent_vertices),
+	        "ccg adjacent vertices");
+}
+
+/* Returns storage where corner elements are to be stored. This is a pointer
+ * to the actual storage.
+ */
+static CCGElem **subdiv_ccg_adjacent_vertex_add_face(
+        SubdivCCGAdjacentVertex *adjacent_vertex,
+        SubdivCCGFace *face)
+{
+	const int adjacent_face_index = adjacent_vertex->num_adjacent_faces;
+	++adjacent_vertex->num_adjacent_faces;
+	/* Store new adjacent face. */
+	adjacent_vertex->faces = MEM_reallocN(
+	        adjacent_vertex->faces,
+	        adjacent_vertex->num_adjacent_faces *
+	                sizeof(*adjacent_vertex->faces));
+	adjacent_vertex->faces[adjacent_face_index] = face;
+	/* Allocate memory for the boundary elements. */
+	adjacent_vertex->corner_elements = MEM_reallocN(
+	        adjacent_vertex->corner_elements,
+	        adjacent_vertex->num_adjacent_faces *
+	                sizeof(*adjacent_vertex->corner_elements));
+	return &adjacent_vertex->corner_elements[adjacent_face_index];
+}
+
+static void subdiv_ccg_init_faces_vertex_neighborhood(SubdivCCG *subdiv_ccg)
+{
+	Subdiv *subdiv = subdiv_ccg->subdiv;
+	SubdivCCGFace *faces = subdiv_ccg->faces;
+	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+	const int num_vertices =
+	        topology_refiner->getNumVertices(topology_refiner);
+	const int grid_size = subdiv_ccg->grid_size;
+	if (num_vertices == 0) {
+		/* Early output, nothing to do in this case. */
+		return;
+	}
+	subdiv_ccg_allocate_adjacent_vertices(subdiv_ccg, num_vertices);
+	/* Initialize storage. */
+	StaticOrHeapIntStorage face_vertices_storage;
+	static_or_heap_storage_init(&face_vertices_storage);
+	/* Key to access elements. */
+	CCGKey key;
+	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
+	/* Store adjacency for all faces. */
+	const int num_faces = subdiv_ccg->num_faces;
+	for (int face_index = 0; face_index < num_faces; face_index++) {
+		SubdivCCGFace *face = &faces[face_index];
+		const int num_face_grids = face->num_grids;
+		const int num_face_edges = num_face_grids;
+		int *face_vertices = static_or_heap_storage_get(
+		        &face_vertices_storage, num_face_edges);
+		topology_refiner->getFaceVertices(
+		        topology_refiner, face_index, face_vertices);
+		for (int corner = 0; corner < num_face_edges; corner++) {
+			const int vertex_index = face_vertices[corner];
+			/* Grid which is adjacent to the current corner. */
+			const int grid_index = face->start_grid_index + corner;
+			CCGElem *grid = subdiv_ccg->grids[grid_index];
+			/* Add new face to the adjacent edge. */
+			SubdivCCGAdjacentVertex *adjacent_vertex =
+			        &subdiv_ccg->adjacent_vertices[vertex_index];
+			CCGElem **corner_element = subdiv_ccg_adjacent_vertex_add_face(
+			        adjacent_vertex, face);
+			*corner_element = CCG_grid_elem(
+			        &key, grid, grid_size - 1, grid_size - 1);
+		}
+	}
+	/* Free possibly heap-allocated storage. */
+	static_or_heap_storage_free(&face_vertices_storage);
+}
+
+static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
+{
+	subdiv_ccg_init_faces_edge_neighborhood(subdiv_ccg);
+	subdiv_ccg_init_faces_vertex_neighborhood(subdiv_ccg);
 }
 
 /* =============================================================================
@@ -605,6 +687,7 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
 	}
 	MEM_SAFE_FREE(subdiv_ccg->faces);
 	MEM_SAFE_FREE(subdiv_ccg->grid_faces);
+	/* Free map of adjacent edges. */
 	for (int i = 0; i < subdiv_ccg->num_adjacent_edges; i++) {
 		SubdivCCGAdjacentEdge *adjacent_edge = &subdiv_ccg->adjacent_edges[i];
 		for (int face_index = 0;
@@ -617,6 +700,14 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
 		MEM_SAFE_FREE(adjacent_edge->boundary_elements);
 	}
 	MEM_SAFE_FREE(subdiv_ccg->adjacent_edges);
+	/* Free map of adjacent vertices. */
+	for (int i = 0; i < subdiv_ccg->num_adjacent_vertices; i++) {
+		SubdivCCGAdjacentVertex *adjacent_vertex =
+		        &subdiv_ccg->adjacent_vertices[i];
+		MEM_SAFE_FREE(adjacent_vertex->faces);
+		MEM_SAFE_FREE(adjacent_vertex->corner_elements);
+	}
+	MEM_SAFE_FREE(subdiv_ccg->adjacent_vertices);
 	MEM_freeN(subdiv_ccg);
 }
 
