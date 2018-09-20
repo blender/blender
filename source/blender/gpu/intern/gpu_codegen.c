@@ -614,8 +614,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 					}
 					else {
 						BLI_dynstr_appendf(
-						        ds, "%s %s %s;\n",
-						        GLEW_VERSION_3_0 ? "in" : "varying",
+						        ds, "in %s %s;\n",
 						        GPU_DATATYPE_STR[input->type], name);
 					}
 				}
@@ -639,8 +638,7 @@ static int codegen_process_uniforms_functions(GPUMaterial *material, DynStr *ds,
 			}
 			else if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
 				BLI_dynstr_appendf(
-				        ds, "%s %s var%d;\n",
-				        GLEW_VERSION_3_0 ? "in" : "varying",
+				        ds, "in %s var%d;\n",
 				        GPU_DATATYPE_STR[input->type], input->attribid);
 			}
 		}
