@@ -136,8 +136,7 @@ static void gizmo_mesh_spin_init_draw_prepare(
 	float viewinv_m3[3][3];
 	copy_m3_m4(viewinv_m3, rv3d->viewinv);
 
-	/* Avoid slowdown on view adjustments. */
-	if ((rv3d->rflag & RV3D_NAVIGATING) == 0) {
+	{
 		Scene *scene = CTX_data_scene(C);
 		switch (scene->orientation_type) {
 			case V3D_MANIP_VIEW:

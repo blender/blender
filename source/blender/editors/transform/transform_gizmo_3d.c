@@ -1855,8 +1855,7 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmGizmoGroup 
 	}
 
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	/* Avoid slowdown on view adjustments. */
-	if ((rv3d->rflag & RV3D_NAVIGATING) == 0) {
+	{
 		Scene *scene = CTX_data_scene(C);
 		switch (scene->orientation_type) {
 			case V3D_MANIP_VIEW:
