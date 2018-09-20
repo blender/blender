@@ -60,6 +60,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_subsurf.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
@@ -136,13 +137,14 @@ static bool sculpt_undo_restore_deformed(
 	}
 }
 
-static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
+static bool sculpt_undo_restore_coords(bContext *C, SculptUndoNode *unode)
 {
 	Scene *scene = CTX_data_scene(C);
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SculptSession *ss = ob->sculpt;
+	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	MVert *mvert;
 	int *index;
 
@@ -228,16 +230,16 @@ static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoN
 			}
 		}
 	}
-	else if (unode->maxgrid && dm->getGridData) {
+	else if (unode->maxgrid && subdiv_ccg != NULL) {
 		/* multires restore */
 		CCGElem **grids, *grid;
 		CCGKey key;
 		float (*co)[3];
 		int gridsize;
 
-		grids = dm->getGridData(dm);
-		gridsize = dm->getGridSize(dm);
-		dm->getGridKey(dm, &key);
+		grids = subdiv_ccg->grids;
+		gridsize = subdiv_ccg->grid_size;
+		BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
 		co = unode->co;
 		for (int j = 0; j < unode->totgrid; j++) {
@@ -253,11 +255,12 @@ static bool sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoN
 }
 
 static bool sculpt_undo_restore_hidden(
-        bContext *C, DerivedMesh *dm,
+        bContext *C,
         SculptUndoNode *unode)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
+	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	int i;
 
 	if (unode->maxvert) {
@@ -272,8 +275,8 @@ static bool sculpt_undo_restore_hidden(
 			}
 		}
 	}
-	else if (unode->maxgrid && dm->getGridData) {
-		BLI_bitmap **grid_hidden = dm->getGridHidden(dm);
+	else if (unode->maxgrid && subdiv_ccg != NULL) {
+		BLI_bitmap **grid_hidden = subdiv_ccg->grid_hidden;
 
 		for (i = 0; i < unode->totgrid; i++) {
 			SWAP(BLI_bitmap *,
@@ -286,10 +289,11 @@ static bool sculpt_undo_restore_hidden(
 	return 1;
 }
 
-static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNode *unode)
+static bool sculpt_undo_restore_mask(bContext *C, SculptUndoNode *unode)
 {
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
+	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	MVert *mvert;
 	float *vmask;
 	int *index, i, j;
@@ -308,16 +312,16 @@ static bool sculpt_undo_restore_mask(bContext *C, DerivedMesh *dm, SculptUndoNod
 			}
 		}
 	}
-	else if (unode->maxgrid && dm->getGridData) {
+	else if (unode->maxgrid && subdiv_ccg != NULL) {
 		/* multires restore */
 		CCGElem **grids, *grid;
 		CCGKey key;
 		float *mask;
 		int gridsize;
 
-		grids = dm->getGridData(dm);
-		gridsize = dm->getGridSize(dm);
-		dm->getGridKey(dm, &key);
+		grids = subdiv_ccg->grids;
+		gridsize = subdiv_ccg->grid_size;
+		BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 
 		mask = unode->mask;
 		for (j = 0; j < unode->totgrid; j++) {
@@ -475,8 +479,8 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 	Object *ob = CTX_data_active_object(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
+	SubdivCCG *subdiv_ccg = ss->subdiv_ccg;
 	SculptUndoNode *unode;
 	bool update = false, rebuild = false;
 	bool need_mask = false;
@@ -497,9 +501,6 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
 	BKE_sculpt_update_mesh_elements(depsgraph, scene, sd, ob, false, need_mask);
 
-	/* call _after_ sculpt_update_mesh_elements() which may update 'ob->derivedFinal' */
-	dm = mesh_get_derived_final(depsgraph, scene, ob, 0);
-
 	if (lb->first && sculpt_undo_bmesh_restore(C, lb->first, ob, ss))
 		return;
 
@@ -513,9 +514,9 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 			if (ss->totvert != unode->maxvert)
 				continue;
 		}
-		else if (unode->maxgrid && dm->getGridData) {
-			if ((dm->getNumGrids(dm) != unode->maxgrid) ||
-			    (dm->getGridSize(dm) != unode->gridsize))
+		else if (unode->maxgrid && subdiv_ccg != NULL) {
+			if ((subdiv_ccg->num_grids != unode->maxgrid) ||
+			    (subdiv_ccg->grid_size != unode->gridsize))
 			{
 				continue;
 			}
@@ -526,15 +527,15 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
 		switch (unode->type) {
 			case SCULPT_UNDO_COORDS:
-				if (sculpt_undo_restore_coords(C, dm, unode))
+				if (sculpt_undo_restore_coords(C, unode))
 					update = true;
 				break;
 			case SCULPT_UNDO_HIDDEN:
-				if (sculpt_undo_restore_hidden(C, dm, unode))
+				if (sculpt_undo_restore_hidden(C, unode))
 					rebuild = true;
 				break;
 			case SCULPT_UNDO_MASK:
-				if (sculpt_undo_restore_mask(C, dm, unode))
+				if (sculpt_undo_restore_mask(C, unode))
 					update = true;
 				break;
 
