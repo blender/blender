@@ -539,6 +539,31 @@ void ED_view3d_win_to_3d_int(
 	ED_view3d_win_to_3d(v3d, ar, depth_pt, mval_fl, r_out);
 }
 
+bool ED_view3d_win_to_3d_on_plane(
+        const ARegion *ar,
+        const float plane[4], const float mval[2],
+        float r_out[3])
+{
+	float ray_co[3], ray_no[3];
+	ED_view3d_win_to_origin(ar, mval, ray_co);
+	ED_view3d_win_to_vector(ar, mval, ray_no);
+	float lambda;
+	if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, false)) {
+		madd_v3_v3v3fl(r_out, ray_co, ray_no, lambda);
+		return true;
+	}
+	return false;
+}
+
+bool ED_view3d_win_to_3d_on_plane_int(
+        const ARegion *ar,
+        const float plane[4], const int mval[2],
+        float r_out[3])
+{
+	const float mval_fl[2] = {mval[0], mval[1]};
+	return ED_view3d_win_to_3d_on_plane(ar, plane, mval_fl, r_out);
+}
+
 /**
  * Calculate a 3d difference vector from 2d window offset.
  * note that ED_view3d_calc_zfac() must be called first to determine
