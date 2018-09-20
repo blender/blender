@@ -116,16 +116,29 @@ static void subdiv_ccg_init_layers(SubdivCCG *subdiv_ccg,
 	}
 }
 
+/* TODO(sergey): Make it more accessible function. */
+static int topology_refiner_count_face_corners(
+        OpenSubdiv_TopologyRefiner *topology_refiner)
+{
+	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
+	int num_corners = 0;
+	for (int face_index = 0; face_index < num_faces; face_index++) {
+		num_corners += topology_refiner->getNumFaceVertices(
+		        topology_refiner, face_index);
+	}
+	return num_corners;
+}
+
 /* NOTE: Grid size and layer flags are to be filled in before calling this
  * function.
  */
-static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg,
-                                      const Mesh *coarse_mesh)
+static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
 {
+	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 	const int element_size = element_size_bytes_get(subdiv_ccg);
 	/* Allocate memory for surface grids. */
-	const int num_faces = coarse_mesh->totpoly;
-	const int num_grids = coarse_mesh->totloop;
+	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
+	const int num_grids = topology_refiner_count_face_corners(topology_refiner);
 	const int grid_size = grid_size_for_level_get(
 	        subdiv_ccg, subdiv_ccg->level);
 	const int grid_area = grid_size * grid_size;
@@ -169,7 +182,6 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg,
 typedef struct CCGEvalGridsData {
 	SubdivCCG *subdiv_ccg;
 	Subdiv *subdiv;
-	const Mesh *coarse_mesh;
 	int *face_ptex_offset;
 } CCGEvalGridsData;
 
@@ -222,18 +234,18 @@ BLI_INLINE void rotate_corner_to_quad(
 }
 
 static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
-                                         const MPoly *coarse_poly)
+                                         const int face_index)
 {
 	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
-	const int coarse_poly_index = coarse_poly - data->coarse_mesh->mpoly;
-	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
+	const int ptex_face_index = data->face_ptex_offset[face_index];
 	const int grid_size = subdiv_ccg->grid_size;
 	const float grid_size_1_inv = 1.0f / (float)(grid_size - 1);
 	const int element_size = element_size_bytes_get(subdiv_ccg);
 	SubdivCCGFace *faces = subdiv_ccg->faces;
 	SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
-	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
-		const int grid_index = coarse_poly->loopstart + corner;
+	const SubdivCCGFace *face = &faces[face_index];
+	for (int corner = 0; corner < face->num_grids; corner++) {
+		const int grid_index = face->start_grid_index + corner;
 		unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
 		for (int y = 0; y < grid_size; y++) {
 			const float grid_v = (float)y * grid_size_1_inv;
@@ -251,29 +263,29 @@ static void subdiv_ccg_eval_regular_grid(CCGEvalGridsData *data,
 			}
 		}
 		/* Assign grid's face. */
-		grid_faces[grid_index] = &faces[coarse_poly_index];
+		grid_faces[grid_index] = &faces[face_index];
 	}
 }
 
 static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data,
-                                         const MPoly *coarse_poly)
+                                         const int face_index)
 {
 	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
-	const int coarse_poly_index = coarse_poly - data->coarse_mesh->mpoly;
 	const int grid_size = subdiv_ccg->grid_size;
 	const float grid_size_1_inv = 1.0f / (float)(grid_size - 1);
 	const int element_size = element_size_bytes_get(subdiv_ccg);
 	SubdivCCGFace *faces = subdiv_ccg->faces;
 	SubdivCCGFace **grid_faces = subdiv_ccg->grid_faces;
-	for (int corner = 0; corner < coarse_poly->totloop; corner++) {
-		const int grid_index = coarse_poly->loopstart + corner;
+	const SubdivCCGFace *face = &faces[face_index];
+	for (int corner = 0; corner < face->num_grids; corner++) {
+		const int grid_index = face->start_grid_index + corner;
 		unsigned char *grid = (unsigned char *)subdiv_ccg->grids[grid_index];
 		for (int y = 0; y < grid_size; y++) {
 			const float u = 1.0f - ((float)y * grid_size_1_inv);
 			for (int x = 0; x < grid_size; x++) {
 				const float v = 1.0f - ((float)x * grid_size_1_inv);
 				const int ptex_face_index =
-				        data->face_ptex_offset[coarse_poly_index] + corner;
+				        data->face_ptex_offset[face_index] + corner;
 				const size_t grid_element_index = (size_t)y * grid_size + x;
 				const size_t grid_element_offset =
 				        grid_element_index * element_size;
@@ -284,30 +296,24 @@ static void subdiv_ccg_eval_special_grid(CCGEvalGridsData *data,
 			}
 		}
 		/* Assign grid's face. */
-		grid_faces[grid_index] = &faces[coarse_poly_index];
+		grid_faces[grid_index] = &faces[face_index];
 	}
 }
 
 static void subdiv_ccg_eval_grids_task(
         void *__restrict userdata_v,
-        const int coarse_poly_index,
+        const int face_index,
         const ParallelRangeTLS *__restrict UNUSED(tls))
 {
 	CCGEvalGridsData *data = userdata_v;
 	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
-	const Mesh *coarse_mesh = data->coarse_mesh;
-	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
-	if (coarse_poly->totloop == 4) {
-		subdiv_ccg_eval_regular_grid(data, coarse_poly);
+	SubdivCCGFace *face = &subdiv_ccg->faces[face_index];
+	if (face->num_grids == 4) {
+		subdiv_ccg_eval_regular_grid(data, face_index);
 	}
 	else {
-		subdiv_ccg_eval_special_grid(data, coarse_poly);
+		subdiv_ccg_eval_special_grid(data, face_index);
 	}
-	/* Assign information in the faces. */
-	subdiv_ccg->faces[coarse_poly_index].num_grids = coarse_poly->totloop;
-	subdiv_ccg->faces[coarse_poly_index].start_grid_index =
-	        coarse_poly->loopstart;
 }
 
 static bool subdiv_ccg_evaluate_grids(
@@ -315,9 +321,11 @@ static bool subdiv_ccg_evaluate_grids(
         Subdiv *subdiv,
         const Mesh *coarse_mesh)
 {
+	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
 	/* Make sure evaluator is ready. */
 	if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
-		if (coarse_mesh->totpoly) {
+		if (num_faces) {
 			return false;
 		}
 	}
@@ -325,12 +333,11 @@ static bool subdiv_ccg_evaluate_grids(
 	CCGEvalGridsData data;
 	data.subdiv_ccg = subdiv_ccg;
 	data.subdiv = subdiv;
-	data.coarse_mesh = coarse_mesh;
 	data.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
 	/* Threaded grids evaluation. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
-	BLI_task_parallel_range(0, coarse_mesh->totpoly,
+	BLI_task_parallel_range(0, num_faces,
 	                        &data,
 	                        subdiv_ccg_eval_grids_task,
 	                        &parallel_range_settings);
@@ -341,6 +348,24 @@ static bool subdiv_ccg_evaluate_grids(
 		BKE_subdiv_ccg_recalc_normals(subdiv_ccg);
 	}
 	return true;
+}
+
+/* Initialize face descriptors, assuming memory for them was already
+ * allocated.
+ */
+static void subdiv_ccg_init_faces(SubdivCCG *subdiv_ccg)
+{
+	Subdiv *subdiv = subdiv_ccg->subdiv;
+	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+	const int num_faces = subdiv_ccg->num_faces;
+	int corner_index = 0;
+	for (int face_index = 0; face_index < num_faces; face_index++) {
+		const int num_corners = topology_refiner->getNumFaceVertices(
+		        topology_refiner, face_index);
+		subdiv_ccg->faces[face_index].num_grids = num_corners;
+		subdiv_ccg->faces[face_index].start_grid_index = corner_index;
+		corner_index += num_corners;
+	}
 }
 
 /* =============================================================================
@@ -359,7 +384,8 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	subdiv_ccg->grid_size =
 	        grid_size_for_level_get(subdiv_ccg, subdiv_ccg->level);
 	subdiv_ccg_init_layers(subdiv_ccg, settings);
-	subdiv_ccg_alloc_elements(subdiv_ccg, coarse_mesh);
+	subdiv_ccg_alloc_elements(subdiv_ccg, subdiv);
+	subdiv_ccg_init_faces(subdiv_ccg);
 	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv, coarse_mesh)) {
 		BKE_subdiv_ccg_destroy(subdiv_ccg);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
