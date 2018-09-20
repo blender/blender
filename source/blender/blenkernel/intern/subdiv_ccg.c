@@ -428,6 +428,7 @@ void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg)
 		BKE_subdiv_free(subdiv_ccg->subdiv);
 	}
 	MEM_SAFE_FREE(subdiv_ccg->faces);
+	MEM_SAFE_FREE(subdiv_ccg->grid_faces);
 	MEM_freeN(subdiv_ccg);
 }
 
