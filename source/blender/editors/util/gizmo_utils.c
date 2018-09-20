@@ -42,7 +42,14 @@ bool ED_gizmo_poll_or_unlink_delayed_from_operator(
         const bContext *C, wmGizmoGroupType *gzgt,
         const char *idname)
 {
+#if 0
+	/* Causes selection to continue showing the last gizmo. */
 	wmOperator *op = WM_operator_last_redo(C);
+#else
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmOperator *op = wm->operators.last;
+#endif
+
 	if (op == NULL || !STREQ(op->type->idname, idname)) {
 		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
