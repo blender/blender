@@ -19,7 +19,9 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Header, Menu, Panel
-
+from .properties_grease_pencil_common import (
+    GPENCIL_UL_layer,
+)
 
 class TOPBAR_HT_upper_bar(Header):
     bl_space_type = 'TOPBAR'
@@ -147,6 +149,15 @@ class TOPBAR_HT_lower_bar(Header):
         # we just want them not to be confused with tool options.
         mode = context.mode
 
+        # grease pencil layer
+        gpl = context.active_gpencil_layer
+        if gpl and gpl.info is not None:
+            txt = gpl.info
+            if len(txt) > 10:
+                txt = txt[:7] + '..' + txt[-2:]
+        else:
+            txt = ""
+
         if mode == 'SCULPT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
         elif mode == 'PAINT_VERTEX':
@@ -173,7 +184,19 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
         elif mode == 'OBJECT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
+        elif mode in ('GPENCIL_EDIT', 'GPENCIL_WEIGHT'):
+            layout.label(text="Layer:")
+            layout.popover(
+                panel="TOPBAR_PT_gpencil_layers",
+                text=txt
+            )
         elif mode == 'GPENCIL_PAINT':
+            layout.label(text="Layer:")
+            layout.popover(
+                panel="TOPBAR_PT_gpencil_layers",
+                text=txt
+            )
+
             layout.prop(context.tool_settings, "gpencil_stroke_placement_view3d", text='')
             if context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR'):
                 layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
@@ -182,6 +205,11 @@ class TOPBAR_HT_lower_bar(Header):
             layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
 
         elif mode == 'GPENCIL_SCULPT':
+            layout.label(text="Layer:")
+            layout.popover(
+                panel="TOPBAR_PT_gpencil_layers",
+                text=txt
+            )
             layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
 
 
@@ -260,6 +288,71 @@ class _draw_left_context_mode:
                 elif tool == 'PUFF':
                     layout.row().prop(brush, "puff_mode", expand=True)
                     layout.prop(brush, "use_puff_volume")
+
+
+class TOPBAR_PT_gpencil_layers(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Layers"
+
+    @classmethod
+    def poll(cls, context):
+        if context.gpencil_data is None:
+            return False
+
+        ob = context.object
+        if ob is not None and ob.type == 'GPENCIL':
+            return True
+
+        return False
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        gpd = context.gpencil_data
+
+        # Grease Pencil data...
+        if (gpd is None) or (not gpd.layers):
+            layout.operator("gpencil.layer_add", text="New Layer")
+        else:
+            self.draw_layers(context, layout, gpd)
+
+    def draw_layers(self, context, layout, gpd):
+        row = layout.row()
+
+        col = row.column()
+        if len(gpd.layers) >= 2:
+            layer_rows = 5
+        else:
+            layer_rows = 2
+        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
+
+        col = row.column()
+
+        sub = col.column(align=True)
+        sub.operator("gpencil.layer_add", icon='ZOOMIN', text="")
+        sub.operator("gpencil.layer_remove", icon='ZOOMOUT', text="")
+
+        gpl = context.active_gpencil_layer
+        if gpl:
+            sub.menu("GPENCIL_MT_layer_specials", icon='DOWNARROW_HLT', text="")
+
+            if len(gpd.layers) > 1:
+                col.separator()
+
+                sub = col.column(align=True)
+                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
+                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+
+                col.separator()
+
+                sub = col.column(align=True)
+                sub.operator("gpencil.layer_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.layer_isolate", icon='HIDE_OFF', text="").affect_visibility = True
+
+        row = layout.row(align=True)
+        if gpl:
+            row.prop(gpl, "opacity", text="Opacity", slider=True)
 
 
 class TOPBAR_MT_editor_menus(Menu):
@@ -756,6 +849,7 @@ classes = (
     TOPBAR_MT_window,
     TOPBAR_MT_help,
     TOPBAR_PT_active_tool,
+    TOPBAR_PT_gpencil_layers,
 )
 
 if __name__ == "__main__":  # only for live edit.

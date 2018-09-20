@@ -805,6 +805,41 @@ class GreasePencilToolsPanel:
         gpencil_stroke_placement_settings(context, layout)
 
 
+class GPENCIL_UL_layer(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, bpy.types.GPencilLayer)
+        gpl = item
+        gpd = context.gpencil_data
+
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            if gpl.lock:
+                layout.active = False
+
+            row = layout.row(align=True)
+            if gpl.is_parented:
+                icon = 'BONE_DATA'
+            else:
+                icon = 'BLANK1'
+
+            row.label(text="", icon=icon)
+            row.prop(gpl, "info", text="", emboss=False)
+
+            row = layout.row(align=True)
+            row.prop(gpl, "lock", text="", emboss=False)
+            row.prop(gpl, "hide", text="", emboss=False)
+            row.prop(gpl, "unlock_color", text="", emboss=False)
+            if gpl.use_onion_skinning is False:
+                icon = 'GHOST_DISABLED'
+            else:
+                icon = 'GHOST_ENABLED'
+            subrow = row.row(align=True)
+            subrow.prop(gpl, "use_onion_skinning", text="", icon=icon, emboss=False)
+            subrow.active = gpd.use_onion_skinning
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
 classes = (
     GPENCIL_MT_pie_tool_palette,
     GPENCIL_MT_pie_settings_palette,
@@ -819,6 +854,7 @@ classes = (
     GPENCIL_MT_gpencil_draw_delete,
 
     GPENCIL_UL_annotation_layer,
+    GPENCIL_UL_layer,
 )
 
 if __name__ == "__main__":  # only for live edit.

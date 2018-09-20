@@ -22,6 +22,7 @@ from bpy.types import Menu, Panel, UIList
 from rna_prop_ui import PropertyPanel
 from .properties_grease_pencil_common import (
     GreasePencilOnionPanel,
+    GPENCIL_UL_layer,
 )
 
 ###############################
@@ -66,39 +67,6 @@ class DATA_PT_gpencil(DataButtonsPanel, Panel):
         layout.template_ID(gpd_owner, "data")
 
 
-class GPENCIL_UL_layer(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.GPencilLayer)
-        gpl = item
-        gpd = context.gpencil_data
-
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if gpl.lock:
-                layout.active = False
-
-            row = layout.row(align=True)
-            if gpl.is_parented:
-                icon = 'BONE_DATA'
-            else:
-                icon = 'BLANK1'
-
-            row.label(text="", icon=icon)
-            row.prop(gpl, "info", text="", emboss=False)
-
-            row = layout.row(align=True)
-            row.prop(gpl, "lock", text="", emboss=False)
-            row.prop(gpl, "hide", text="", emboss=False)
-            row.prop(gpl, "unlock_color", text="", emboss=False)
-            if gpl.use_onion_skinning is False:
-                icon = 'GHOST_DISABLED'
-            else:
-                icon = 'GHOST_ENABLED'
-            subrow = row.row(align=True)
-            subrow.prop(gpl, "use_onion_skinning", text="", icon=icon, emboss=False)
-            subrow.active = gpd.use_onion_skinning
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
 
 
 class GPENCIL_MT_layer_specials(Menu):
@@ -397,7 +365,6 @@ classes = (
     DATA_PT_gpencil_display,
     DATA_PT_custom_props_gpencil,
 
-    GPENCIL_UL_layer,
     GPENCIL_UL_vgroups,
 
     GPENCIL_MT_layer_specials,
