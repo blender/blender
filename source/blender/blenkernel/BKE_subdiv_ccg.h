@@ -68,6 +68,17 @@ typedef struct SubdivCCGFace {
 	int start_grid_index;
 } SubdivCCGFace;
 
+/* Definition of an edge which is adjacent to at least one of the faces. */
+typedef struct SubdivCCGAdjacentEdge {
+	int num_adjacent_faces;
+	/* Indexed by adjacent face index. */
+	SubdivCCGFace **faces;
+	/* Indexed by adjacent face index, then by point index on the edge.
+	 * points to a grid element.
+	 */
+	struct CCGElem ***boundary_elements;
+} SubdivCCGAdjacentEdge;
+
 /* Representation of subdivision surface which uses CCG grids. */
 typedef struct SubdivCCG {
 	/* This is a subdivision surface this CCG was created for.
@@ -122,6 +133,12 @@ typedef struct SubdivCCG {
 	SubdivCCGFace *faces;
 	/* Indexed by grid index, points to corresponding face from `faces`. */
 	SubdivCCGFace **grid_faces;
+
+	/* Edges which are adjacent to faces.
+	 * Used for faster grid stitching, in the cost of extra memory.
+	 */
+	int num_adjacent_edges;
+	SubdivCCGAdjacentEdge *adjacent_edges;
 
 	struct DMFlagMat *grid_flag_mats;
 	BLI_bitmap **grid_hidden;
