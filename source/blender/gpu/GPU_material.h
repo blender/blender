@@ -114,6 +114,7 @@ typedef enum GPUBuiltin {
 	GPU_VOLUME_FLAME =          (1 << 17),
 	GPU_VOLUME_TEMPERATURE =    (1 << 18),
 	GPU_BARYCENTRIC_TEXCO =     (1 << 19),
+	GPU_BARYCENTRIC_DIST =      (1 << 20),
 } GPUBuiltin;
 
 typedef enum GPUMatType {

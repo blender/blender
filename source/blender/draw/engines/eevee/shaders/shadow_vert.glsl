@@ -1,10 +1,10 @@
 
 uniform mat4 ModelViewProjectionMatrix;
 #ifdef MESH_SHADER
-uniform mat4 ModelMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat3 WorldNormalMatrix;
 #  ifndef ATTRIB
+uniform mat4 ModelMatrix;
 uniform mat3 NormalMatrix;
 #  endif
 #endif
