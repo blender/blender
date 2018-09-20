@@ -148,6 +148,7 @@ typedef struct SubdivCCG {
 
 /* Create real hi-res CCG from subdivision.
  *
+ * NOTE: Subdiv is expected to be refined and ready for evaluation.
  * NOTE: CCG becomes an owner of subdiv.
  *
  * TODO(sergey): Allow some user-counter or more explicit control over who owns
@@ -156,9 +157,7 @@ typedef struct SubdivCCG {
  */
 struct SubdivCCG *BKE_subdiv_to_ccg(
         struct Subdiv *subdiv,
-        const SubdivToCCGSettings *settings,
-        const struct Mesh *coarse_mesh);
-
+        const SubdivToCCGSettings *settings);
 
 /* Destroy CCG representation of subdivision surface. */
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);

@@ -318,17 +318,10 @@ static void subdiv_ccg_eval_grids_task(
 
 static bool subdiv_ccg_evaluate_grids(
         SubdivCCG *subdiv_ccg,
-        Subdiv *subdiv,
-        const Mesh *coarse_mesh)
+        Subdiv *subdiv)
 {
 	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
-	/* Make sure evaluator is ready. */
-	if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
-		if (num_faces) {
-			return false;
-		}
-	}
 	/* Initialize data passed to all the tasks. */
 	CCGEvalGridsData data;
 	data.subdiv_ccg = subdiv_ccg;
@@ -374,8 +367,7 @@ static void subdiv_ccg_init_faces(SubdivCCG *subdiv_ccg)
 
 SubdivCCG *BKE_subdiv_to_ccg(
         Subdiv *subdiv,
-        const SubdivToCCGSettings *settings,
-        const Mesh *coarse_mesh)
+        const SubdivToCCGSettings *settings)
 {
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 	SubdivCCG *subdiv_ccg = MEM_callocN(sizeof(SubdivCCG), "subdiv ccg");
@@ -386,7 +378,7 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	subdiv_ccg_init_layers(subdiv_ccg, settings);
 	subdiv_ccg_alloc_elements(subdiv_ccg, subdiv);
 	subdiv_ccg_init_faces(subdiv_ccg);
-	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv, coarse_mesh)) {
+	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv)) {
 		BKE_subdiv_ccg_destroy(subdiv_ccg);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 		return NULL;
@@ -400,8 +392,15 @@ Mesh *BKE_subdiv_to_ccg_mesh(
         const SubdivToCCGSettings *settings,
         const Mesh *coarse_mesh)
 {
-	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(
-	        subdiv, settings, coarse_mesh);
+	/* Make sure evaluator is ready. */
+	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+	if (!BKE_subdiv_eval_update_from_mesh(subdiv, coarse_mesh)) {
+		if (coarse_mesh->totpoly) {
+			return false;
+		}
+	}
+	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
+	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(subdiv, settings);
 	if (subdiv_ccg == NULL) {
 		return NULL;
 	}
