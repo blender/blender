@@ -537,15 +537,12 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 		float plane_co[3], plane_no[3];
 		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
 		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
-		float cursor_co[3], cursor_no[3];
+		float cursor_co[3];
 		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
-		ED_view3d_win_to_3d_int(v3d, ar, plane_co, mval, cursor_co);
-		ED_view3d_global_to_vector(ar->regiondata, cursor_co, cursor_no);
-
-		float lambda, plane[4];
+		float plane[4];
 		plane_from_point_normal_v3(plane, plane_co, plane_no);
-		if (isect_ray_plane_v3(cursor_co, cursor_no, plane, &lambda, false)) {
-			madd_v3_v3fl(cursor_co, cursor_no, lambda);
+		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, cursor_co))) {
+			ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
 		}
 		sub_v3_v3v3(ggd->data.orient_axis, cursor_co, plane_co);
 		normalize_v3(ggd->data.orient_axis);

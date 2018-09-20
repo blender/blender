@@ -197,10 +197,9 @@ static void dial_ghostarc_draw(
 }
 
 static void dial_ghostarc_get_angles(
-        struct Depsgraph *depsgraph,
         const wmGizmo *gz,
         const wmEvent *event,
-        const ARegion *ar, const View3D *v3d,
+        const ARegion *ar,
         float mat[4][4], const float co_outer[3],
         float *r_start, float *r_delta)
 {
@@ -220,25 +219,17 @@ static void dial_ghostarc_get_angles(
 	float proj_mval_new_rel[3];
 	float proj_mval_init_rel[3];
 	float dial_plane[4];
-	float ray_co[3], ray_no[3];
-	float ray_lambda;
 
 	plane_from_point_normal_v3(dial_plane, gz->matrix_basis[3], axis_vec);
 
-	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, inter->init.mval, ray_co, ray_no, false) ||
-	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
-	{
+	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, inter->init.mval, proj_mval_init_rel)) {
 		goto fail;
 	}
-	madd_v3_v3v3fl(proj_mval_init_rel, ray_co, ray_no, ray_lambda);
 	sub_v3_v3(proj_mval_init_rel, gz->matrix_basis[3]);
 
-	if (!ED_view3d_win_to_ray(depsgraph, ar, v3d, mval, ray_co, ray_no, false) ||
-	    !isect_ray_plane_v3(ray_co, ray_no, dial_plane, &ray_lambda, false))
-	{
+	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, mval, proj_mval_new_rel)) {
 		goto fail;
 	}
-	madd_v3_v3v3fl(proj_mval_new_rel, ray_co, ray_no, ray_lambda);
 	sub_v3_v3(proj_mval_new_rel, gz->matrix_basis[3]);
 
 	const int draw_options = RNA_enum_get(gz->ptr, "draw_options");
@@ -429,8 +420,7 @@ static int gizmo_dial_modal(
 	float angle_ofs, angle_delta;
 
 	dial_ghostarc_get_angles(
-	        CTX_data_depsgraph(C),
-	        gz, event, CTX_wm_region(C), CTX_wm_view3d(C), gz->matrix_basis, co_outer, &angle_ofs, &angle_delta);
+	        gz, event, CTX_wm_region(C), gz->matrix_basis, co_outer, &angle_ofs, &angle_delta);
 
 	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
 		const double snap = DEG2RAD(5);
