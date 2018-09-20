@@ -155,7 +155,42 @@ typedef struct MultiresReshapeContext {
 	MDisps *mdisps;
 	/* NOTE: This is a grid size on th top level. */
 	int grid_size;
+	int top_level;
 } MultiresReshapeContext;
+
+static void multires_reshape_allocate_displacement_grid(
+        MDisps *displacement_grid, const int level)
+{
+	/* TODO(sergey): Use grid_size_for_level_get() somehow. */
+	const int grid_size = (1 << (level - 1)) + 1;
+	const int grid_area = grid_size * grid_size;
+	float (*disps)[3] = MEM_calloc_arrayN(
+	        grid_area, 3 * sizeof(float), "multires disps");
+	displacement_grid->disps = disps;
+	displacement_grid->totdisp = grid_area;
+	displacement_grid->level = level;
+}
+
+static void multires_reshape_ensure_displacement_grid(
+        MDisps *displacement_grid, const int level)
+{
+	if (displacement_grid->disps != NULL) {
+		return;
+	}
+	multires_reshape_allocate_displacement_grid(
+        displacement_grid, level);
+}
+
+static void multires_reshape_ensure_displacement_grids(
+        MultiresReshapeContext *ctx)
+{
+	const int num_grids = ctx->coarse_mesh->totloop;
+	const int grid_level = ctx->top_level;
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		multires_reshape_ensure_displacement_grid(
+		        &ctx->mdisps[grid_index], grid_level);
+	}
+}
 
 static void multires_reshape_vertex_copy_to_next(
         MultiresReshapeContext *ctx,
@@ -425,7 +460,9 @@ static bool multires_reshape_from_vertcos(
 	                .object = object,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
+	                /* TODO(sergey): Use grid_size_for_level_get */
 	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
+	                .top_level = mmd->totlvl,
 	        },
 	        .deformed_verts = deformed_verts,
 	        .num_deformed_verts = num_deformed_verts,
@@ -437,6 +474,9 @@ static bool multires_reshape_from_vertcos(
 	        .vertex_every_corner = multires_reshape_vertex_every_corner,
 	        .user_data = &reshape_deformed_verts_ctx,
 	};
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_displacement_grids(
+	        &reshape_deformed_verts_ctx.reshape_ctx);
 	/* Initialize subdivision surface. */
 	Subdiv *subdiv = multires_subdiv_for_reshape(depsgraph, object, mmd);
 	if (subdiv == NULL) {
@@ -673,8 +713,8 @@ bool multiresModifier_reshapeFromCCG(
 		return false;
 	}
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
-	/* XXX: Key has grid size for the current level. Need to access top
-	 * top level somehow.
+	/* TODO(sergey): Key has grid size for the current level. Need to access top
+	 * level somehow.
 	 */
 	Subdiv *subdiv = subdiv_ccg->subdiv;
 	ReshapeFromCCGTaskData data = {
@@ -683,10 +723,13 @@ bool multiresModifier_reshapeFromCCG(
 	                .object = dst,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps  = mdisps,
-	                .grid_size = key.grid_size},
+	                .grid_size = key.grid_size,
+	                .top_level = key.level},
 	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        .key = &key,
 	        .grids = subdiv_ccg->grids};
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_displacement_grids(&data.reshape_ctx);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
