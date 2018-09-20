@@ -519,8 +519,8 @@ bool multiresModifier_reshapeFromObject(
 	if (src->type != OB_MESH) {
 		return false;
 	}
-	MultiresModifierData highest_mmd;
-	multires_reshape_init_mmd(&highest_mmd, mmd);
+	MultiresModifierData reshape_mmd;
+	multires_reshape_init_mmd(&reshape_mmd, mmd);
 	/* Get evaluated vertices locations to reshape to. */
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *src_eval = DEG_get_evaluated_object(depsgraph, src);
@@ -532,7 +532,7 @@ bool multiresModifier_reshapeFromObject(
 	bool result = multires_reshape_from_vertcos(
 	        depsgraph,
 	        dst,
-	        &highest_mmd,
+	        &reshape_mmd,
 	        deformed_verts,
 	        num_deformed_verts,
 	        false);
