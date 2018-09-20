@@ -93,7 +93,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 	}
 
 	/* For 2D animation template. */
-	if (app_template && STREQ(app_template, "2D Animation")) {
+	if (app_template && STREQ(app_template, "2D_Animation")) {
 		for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 			const char *name = workspace->id.name + 2;
 
