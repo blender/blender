@@ -195,7 +195,7 @@ bool gizmo_window_project_2d(
 
 		float ray_origin[3], ray_direction[3];
 
-		if (ED_view3d_win_to_ray(CTX_data_depsgraph(C), ar, v3d, mval, ray_origin, ray_direction, false)) {
+		if (ED_view3d_win_to_ray_clipped(CTX_data_depsgraph(C), ar, v3d, mval, ray_origin, ray_direction, false)) {
 			float lambda;
 			if (isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, true)) {
 				float co[3];

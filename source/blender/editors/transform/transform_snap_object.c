@@ -2606,7 +2606,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 	if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
 		float ray_start[3], ray_normal[3];
 
-		if (!ED_view3d_win_to_ray_ex(
+		if (!ED_view3d_win_to_ray_clipped_ex(
 		        sctx->depsgraph,
 		        sctx->v3d_data.ar, sctx->v3d_data.v3d,
 		        mval, NULL, ray_normal, ray_start, true))
@@ -2770,7 +2770,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(
 {
 	float ray_start[3], ray_normal[3];
 
-	if (!ED_view3d_win_to_ray_ex(
+	if (!ED_view3d_win_to_ray_clipped_ex(
 	        sctx->depsgraph,
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
 	        mval, NULL, ray_normal, ray_start, true))

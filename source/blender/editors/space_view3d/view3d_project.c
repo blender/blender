@@ -370,7 +370,7 @@ bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float 
  * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray_ex(
+bool ED_view3d_win_to_ray_clipped_ex(
         struct Depsgraph *depsgraph,
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip_planes)
@@ -400,12 +400,12 @@ bool ED_view3d_win_to_ray_ex(
  * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray(
+bool ED_view3d_win_to_ray_clipped(
         struct Depsgraph *depsgraph,
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_start[3], float r_ray_normal[3], const bool do_clip_planes)
 {
-	return ED_view3d_win_to_ray_ex(depsgraph, ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip_planes);
+	return ED_view3d_win_to_ray_clipped_ex(depsgraph, ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip_planes);
 }
 
 /**
@@ -660,9 +660,10 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
  * \param do_clip_planes Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment(struct Depsgraph *depsgraph,
-                              const ARegion *ar, View3D *v3d, const float mval[2],
-                              float r_ray_start[3], float r_ray_end[3], const bool do_clip_planes)
+bool ED_view3d_win_to_segment_clipped(
+        struct Depsgraph *depsgraph,
+        const ARegion *ar, View3D *v3d, const float mval[2],
+        float r_ray_start[3], float r_ray_end[3], const bool do_clip_planes)
 {
 	view3d_win_to_ray_segment(depsgraph, ar, v3d, mval, NULL, NULL, r_ray_start, r_ray_end);
 

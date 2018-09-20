@@ -204,7 +204,7 @@ static bool stroke_elem_project(
 	if (cdd->project.use_plane) {
 		/* get the view vector to 'location' */
 		float ray_origin[3], ray_direction[3];
-		ED_view3d_win_to_ray(cdd->depsgraph, cdd->vc.ar, v3d, mval_fl, ray_origin, ray_direction, false);
+		ED_view3d_win_to_ray_clipped(cdd->depsgraph, cdd->vc.ar, v3d, mval_fl, ray_origin, ray_direction, false);
 
 		float lambda;
 		if (isect_ray_plane_v3(ray_origin, ray_direction, cdd->project.plane, &lambda, true)) {

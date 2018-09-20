@@ -3751,7 +3751,7 @@ static void brush_add_count_iter(
 	mco[1] = data->mval[1] + dmy;
 
 	float co1[3], co2[3];
-	ED_view3d_win_to_segment(depsgraph, data->vc.ar, data->vc.v3d, mco, co1, co2, true);
+	ED_view3d_win_to_segment_clipped(depsgraph, data->vc.ar, data->vc.v3d, mco, co1, co2, true);
 
 	mul_m4_v3(iter_data->imat, co1);
 	mul_m4_v3(iter_data->imat, co2);

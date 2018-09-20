@@ -100,7 +100,7 @@ static void calc_initial_placement_point_from_view(
 
 	if (use_mouse_project) {
 		float ray_co[3], ray_no[3];
-		if (ED_view3d_win_to_ray(
+		if (ED_view3d_win_to_ray_clipped(
 		            CTX_data_depsgraph(C),
 		            ar, v3d, mval,
 		            ray_co, ray_no, false))

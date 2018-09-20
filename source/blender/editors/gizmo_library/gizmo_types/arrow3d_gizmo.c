@@ -264,7 +264,7 @@ static int gizmo_arrow_modal(
 	int ok = 0;
 
 	for (int j = 0; j < 2; j++) {
-		if (ED_view3d_win_to_ray(
+		if (ED_view3d_win_to_ray_clipped(
 		            CTX_data_depsgraph(C),
 		            ar, v3d, proj[j].mval,
 		            proj[j].ray_origin, proj[j].ray_direction, false))
