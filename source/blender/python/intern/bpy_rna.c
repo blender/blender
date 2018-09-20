@@ -7437,15 +7437,17 @@ static int deferred_register_prop(StructRNA *srna, PyObject *key, PyObject *item
 
 static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 {
-	PyObject *fields_dict;
+	PyObject *annotations_dict;
 	PyObject *item, *key;
 	Py_ssize_t pos = 0;
 	int ret = 0;
 
 	/* in both cases PyDict_CheckExact(class_dict) will be true even
 	 * though Operators have a metaclass dict namespace */
-	if ((fields_dict = PyDict_GetItem(class_dict, bpy_intern_str___annotations__)) && PyDict_CheckExact(fields_dict)) {
-		while (PyDict_Next(fields_dict, &pos, &key, &item)) {
+	if ((annotations_dict = PyDict_GetItem(class_dict, bpy_intern_str___annotations__)) &&
+	    PyDict_CheckExact(annotations_dict))
+	{
+		while (PyDict_Next(annotations_dict, &pos, &key, &item)) {
 			ret = deferred_register_prop(srna, key, item);
 
 			if (ret != 0) {
@@ -7455,7 +7457,7 @@ static int pyrna_deferred_register_props(StructRNA *srna, PyObject *class_dict)
 	}
 
 	{
-		/* This block can be removed once 2.8x is released and fields are in use. */
+		/* This block can be removed once 2.8x is released and annotations are in use. */
 		bool has_warning = false;
 		while (PyDict_Next(class_dict, &pos, &key, &item)) {
 			if (pyrna_is_deferred_prop(item)) {
