@@ -67,18 +67,6 @@ def generate_from_brushes_ex(
                     name = brush.name
                     text = name
 
-                    # XXX, disabled since changing the brush needs to sync back to the tool.
-                    """
-                    # rename default brushes for tool bar
-                    if name.startswith("Draw "):
-                        text = name.replace("Draw ", "")
-                    elif name.startswith("Eraser "):
-                        text = name.replace("Eraser ", "")
-                    elif name.startswith("Fill "):
-                        text = name.replace(" Area", "")
-                    else:
-                        text = name
-                    """
                     # Define icon.
                     icon_name = {
                         'PENCIL': 'draw_pencil',
