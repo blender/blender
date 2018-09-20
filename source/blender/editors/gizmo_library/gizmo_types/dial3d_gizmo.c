@@ -222,12 +222,12 @@ static void dial_ghostarc_get_angles(
 
 	plane_from_point_normal_v3(dial_plane, gz->matrix_basis[3], axis_vec);
 
-	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, inter->init.mval, proj_mval_init_rel)) {
+	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, inter->init.mval, false, proj_mval_init_rel)) {
 		goto fail;
 	}
 	sub_v3_v3(proj_mval_init_rel, gz->matrix_basis[3]);
 
-	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, mval, proj_mval_new_rel)) {
+	if (!ED_view3d_win_to_3d_on_plane(ar, dial_plane, mval, false, proj_mval_new_rel)) {
 		goto fail;
 	}
 	sub_v3_v3(proj_mval_new_rel, gz->matrix_basis[3]);

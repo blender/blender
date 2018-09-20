@@ -541,7 +541,7 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
 		float plane[4];
 		plane_from_point_normal_v3(plane, plane_co, plane_no);
-		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, cursor_co))) {
+		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, false, cursor_co))) {
 			ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
 		}
 		sub_v3_v3v3(ggd->data.orient_axis, cursor_co, plane_co);
