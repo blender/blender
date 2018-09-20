@@ -72,12 +72,13 @@ static void initData(ModifierData *md)
 	smd->time = -1;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const SmokeModifierData *smd  = (const SmokeModifierData *)md;
 	SmokeModifierData *tsmd = (SmokeModifierData *)target;
 
-	smokeModifier_copy(smd, tsmd);
+	smokeModifier_free(tsmd);
+	smokeModifier_copy(smd, tsmd, flag);
 }
 
 static void freeData(ModifierData *md)
