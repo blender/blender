@@ -323,6 +323,34 @@ static PyObject *bpygpu_shader_uniform_vector_int(
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpygpu_shader_uniform_float_doc,
+	".. method:: uniform_float(location, value)\n"
+	"\n"
+	"   Set uniform value.\n"
+	"\n"
+	"   :param location: builtin identifier.\n"
+	"   :type location: `int`\n"
+	"   :param value: uniform value.\n"
+	"   :type value: `float`\n"
+);
+static PyObject *bpygpu_shader_uniform_float(
+	BPyGPUShader *self, PyObject *args)
+{
+	int location;
+	float value;
+
+	if (!PyArg_ParseTuple(
+		args, "if:GPUShader.uniform_float",
+		&location, &value))
+	{
+		return NULL;
+	}
+
+	GPU_shader_uniform_float(self->shader, location, value);
+
+	Py_RETURN_NONE;
+}
+
 PyDoc_STRVAR(bpygpu_shader_uniform_int_doc,
 ".. method:: uniform_int(location, value)\n"
 "\n"
@@ -408,6 +436,9 @@ static struct PyMethodDef bpygpu_shader_methods[] = {
 	{"uniform_vector_int",
 	 (PyCFunction)bpygpu_shader_uniform_vector_int,
 	 METH_VARARGS, bpygpu_shader_uniform_vector_int_doc},
+	{"uniform_float",
+	 (PyCFunction)bpygpu_shader_uniform_float,
+	 METH_VARARGS, bpygpu_shader_uniform_float_doc},
 	{"uniform_int",
 	 (PyCFunction)bpygpu_shader_uniform_int,
 	 METH_VARARGS, bpygpu_shader_uniform_int_doc},

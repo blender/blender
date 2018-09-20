@@ -582,6 +582,14 @@ int GPU_shader_get_program(GPUShader *shader)
 	return (int)shader->program;
 }
 
+void GPU_shader_uniform_float(GPUShader *UNUSED(shader), int location, float value)
+{
+	if (location == -1)
+		return;
+
+	glUniform1f(location, value);
+}
+
 void GPU_shader_uniform_vector(GPUShader *UNUSED(shader), int location, int length, int arraysize, const float *value)
 {
 	if (location == -1 || value == NULL)

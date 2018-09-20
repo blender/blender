@@ -93,6 +93,7 @@ void GPU_shader_uniform_vector_int(
 
 void GPU_shader_uniform_buffer(GPUShader *shader, int location, struct GPUUniformBuffer *ubo);
 void GPU_shader_uniform_texture(GPUShader *shader, int location, struct GPUTexture *tex);
+void GPU_shader_uniform_float(GPUShader *shader, int location, float value);
 void GPU_shader_uniform_int(GPUShader *shader, int location, int value);
 void GPU_shader_geometry_stage_primitive_io(GPUShader *shader, int input, int output, int number);
 
