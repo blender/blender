@@ -458,6 +458,13 @@ static void ed_keymap_gpencil_editing(wmKeyConfig *keyconf)
 
 	/* toggle edit mode */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_editmode_toggle", TABKEY, KM_PRESS, 0, 0);
+
+	/* select mode */
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_selectmode_toggle", ONEKEY, KM_PRESS,0 , 0);
+	RNA_int_set(kmi->ptr, "mode", 0);
+
+	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_selectmode_toggle", TWOKEY, KM_PRESS, 0, 0);
+	RNA_int_set(kmi->ptr, "mode", 1);
 }
 
 /* keys for draw with a drawing brush (no fill) */
@@ -673,6 +680,7 @@ void ED_operatortypes_gpencil(void)
 	/* Editing (Strokes) ------------ */
 
 	WM_operatortype_append(GPENCIL_OT_editmode_toggle);
+	WM_operatortype_append(GPENCIL_OT_selectmode_toggle);
 	WM_operatortype_append(GPENCIL_OT_paintmode_toggle);
 	WM_operatortype_append(GPENCIL_OT_sculptmode_toggle);
 	WM_operatortype_append(GPENCIL_OT_weightmode_toggle);

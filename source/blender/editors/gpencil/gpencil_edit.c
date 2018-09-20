@@ -96,6 +96,37 @@
 
   /* ************************************************ */
   /* Stroke Edit Mode Management */
+
+/* poll callback for all stroke editing operators */
+static bool gp_stroke_edit_poll(bContext *C)
+{
+	/* edit only supported with grease pencil objects */
+	Object *ob = CTX_data_active_object(C);
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
+	/* NOTE: this is a bit slower, but is the most accurate... */
+	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;
+}
+
+/* poll callback to verify edit mode in 3D view only */
+static bool gp_strokes_edit3d_poll(bContext *C)
+{
+	/* edit only supported with grease pencil objects */
+	Object *ob = CTX_data_active_object(C);
+	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
+		return false;
+	}
+
+
+	/* 2 Requirements:
+	 * - 1) Editable GP data
+	 * - 2) 3D View only
+	 */
+	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
+}
+
 static bool gpencil_editmode_toggle_poll(bContext *C)
 {
 	/* edit only supported with grease pencil objects */
@@ -193,6 +224,43 @@ void GPENCIL_OT_editmode_toggle(wmOperatorType *ot)
 
 	/* properties */
 	prop = RNA_def_boolean(ot->srna, "back", 0, "Return to Previous Mode", "Return to previous mode");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+}
+
+/* set select mode */
+static int gpencil_selectmode_toggle_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = CTX_data_tool_settings(C);
+	const int mode = RNA_int_get(op->ptr, "mode");
+
+	/* Just set mode */
+	ts->gpencil_selectmode = mode;
+
+	WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+
+	return OPERATOR_FINISHED;
+}
+
+void GPENCIL_OT_selectmode_toggle(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Select Mode Toggle";
+	ot->idname = "GPENCIL_OT_selectmode_toggle";
+	ot->description = "Set selection mode for Grease Pencil strokes";
+
+	/* callbacks */
+	ot->exec = gpencil_selectmode_toggle_exec;
+	ot->poll = gp_strokes_edit3d_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO | OPTYPE_REGISTER;
+
+	/* properties */
+	prop = RNA_def_int(ot->srna, "mode", 0, 0, 1, "Select mode", "Select mode", 0, 1);
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
@@ -471,36 +539,6 @@ void GPENCIL_OT_weightmode_toggle(wmOperatorType *ot)
 
 /* ************************************************ */
 /* Stroke Editing Operators */
-
-/* poll callback for all stroke editing operators */
-static bool gp_stroke_edit_poll(bContext *C)
-{
-	/* edit only supported with grease pencil objects */
-	Object *ob = CTX_data_active_object(C);
-	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
-		return false;
-	}
-
-	/* NOTE: this is a bit slower, but is the most accurate... */
-	return CTX_DATA_COUNT(C, editable_gpencil_strokes) != 0;
-}
-
-/* poll callback to verify edit mode in 3D view only */
-static bool gp_strokes_edit3d_poll(bContext *C)
-{
-	/* edit only supported with grease pencil objects */
-	Object *ob = CTX_data_active_object(C);
-	if ((ob == NULL) || (ob->type != OB_GPENCIL)) {
-		return false;
-	}
-
-
-	/* 2 Requirements:
-	 * - 1) Editable GP data
-	 * - 2) 3D View only
-	 */
-	return (gp_stroke_edit_poll(C) && ED_operator_view3d_active(C));
-}
 
 /* ************ Stroke Hide selection Toggle ************** */
 
