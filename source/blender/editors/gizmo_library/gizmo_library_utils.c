@@ -188,17 +188,9 @@ bool gizmo_window_project_2d(
 		/* For 3d views, transform 2D mouse pos onto plane. */
 		ARegion *ar = CTX_wm_region(C);
 
-		float plane[4];
-
+		float plane[4], co[3];
 		plane_from_point_normal_v3(plane, mat[3], mat[2]);
-
-		float ray_origin[3], ray_direction[3];
-		float lambda;
-
-		ED_view3d_win_to_ray(ar, mval, ray_origin, ray_direction);
-		if (isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, true)) {
-			float co[3];
-			madd_v3_v3v3fl(co, ray_origin, ray_direction, lambda);
+		if (ED_view3d_win_to_3d_on_plane(ar, plane, mval, true, co)) {
 			float imat[4][4];
 			invert_m4_m4(imat, mat);
 			mul_m4_v3(imat, co);
