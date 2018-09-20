@@ -330,7 +330,7 @@ PyDoc_STRVAR(bpygpu_shader_uniform_int_doc,
 "\n"
 "   :param location: builtin identifier.\n"
 "   :type location: `int`\n"
-"   :param value: builtin identifier.\n"
+"   :param value: uniform value.\n"
 "   :type value: `int`\n"
 );
 static PyObject *bpygpu_shader_uniform_int(
