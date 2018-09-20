@@ -898,29 +898,6 @@ void modifier_deformVerts_ensure_normals(struct ModifierData *md, const Modifier
 	mti->deformVerts(md, ctx, mesh, vertexCos, numVerts);
 }
 
-struct Mesh *modifier_applyModifier(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct Mesh *mesh)
-{
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-	if (mti->applyModifier) {
-		return mti->applyModifier(md, ctx, mesh);
-	}
-	else {
-		DerivedMesh *dm = CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_EVERYTHING);
-
-		DerivedMesh *ndm = mti->applyModifier_DM(md, ctx, dm);
-
-		if (ndm != dm) {
-			dm->release(dm);
-		}
-
-		DM_to_mesh(ndm, mesh, ctx->object, CD_MASK_EVERYTHING, true);
-
-		return mesh;
-	}
-}
-
 struct Mesh *modifier_applyModifier_ensure_normals(struct ModifierData *md, const ModifierEvalContext *ctx,
 	struct Mesh *mesh)
 {
@@ -930,31 +907,7 @@ struct Mesh *modifier_applyModifier_ensure_normals(struct ModifierData *md, cons
 	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 		BKE_mesh_calc_normals(mesh);
 	}
-	return modifier_applyModifier(md, ctx, mesh);
-}
-
-struct Mesh *modifier_applyModifierEM(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct BMEditMesh *editData,
-	struct Mesh *mesh)
-{
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-
-	if (mti->applyModifierEM) {
-		return mti->applyModifierEM(md, ctx, editData, mesh);
-	}
-	else {
-		DerivedMesh *dm = CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_EVERYTHING);
-
-		DerivedMesh *ndm = mti->applyModifierEM_DM(md, ctx, editData, dm);
-
-		if (ndm != dm) {
-			dm->release(dm);
-		}
-
-		DM_to_mesh(ndm, mesh, ctx->object, CD_MASK_EVERYTHING, true);
-
-		return mesh;
-	}
+	return mti->applyModifier(md, ctx, mesh);
 }
 
 /* depricated variants of above that accept DerivedMesh */
@@ -1045,31 +998,27 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	if (mti->applyModifier_DM) {
-		return mti->applyModifier_DM(md, ctx, dm);
+	/* TODO(sybren): deduplicate all the copies of this code in this file. */
+	Mesh *mesh = NULL;
+	if (dm != NULL) {
+		mesh = BKE_id_new_nomain(ID_ME, NULL);
+		DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 	}
-	else {
-		/* TODO(sybren): deduplicate all the copies of this code in this file. */
-		Mesh *mesh = NULL;
-		if (dm != NULL) {
-			mesh = BKE_id_new_nomain(ID_ME, NULL);
-			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
-		}
 
-		struct Mesh *new_mesh = mti->applyModifier(md, ctx, mesh);
+	struct Mesh *new_mesh = mti->applyModifier(md, ctx, mesh);
 
-		/* Make a DM that doesn't reference new_mesh so we can free the latter. */
-		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, CD_MASK_EVERYTHING);
+	/* Make a DM that doesn't reference new_mesh so we can free the latter. */
+	DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, CD_MASK_EVERYTHING);
 
-		if (new_mesh != mesh) {
-			BKE_id_free(NULL, new_mesh);
-		}
-		if (mesh != NULL) {
-			BKE_id_free(NULL, mesh);
-		}
-
-		return ndm;
+	if (new_mesh != mesh) {
+		BKE_id_free(NULL, new_mesh);
 	}
+	if (mesh != NULL) {
+		BKE_id_free(NULL, mesh);
+	}
+
+	return ndm;
+
 }
 
 struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
@@ -1078,31 +1027,27 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	if (mti->applyModifierEM_DM) {
-		return mti->applyModifierEM_DM(md, ctx, editData, dm);
+	/* TODO(sybren): deduplicate all the copies of this code in this file. */
+	Mesh *mesh = NULL;
+	if (dm != NULL) {
+		mesh = BKE_id_new_nomain(ID_ME, NULL);
+		DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 	}
-	else {
-		/* TODO(sybren): deduplicate all the copies of this code in this file. */
-		Mesh *mesh = NULL;
-		if (dm != NULL) {
-			mesh = BKE_id_new_nomain(ID_ME, NULL);
-			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
-		}
 
-		struct Mesh *new_mesh = mti->applyModifierEM(md, ctx, editData, mesh);
+	struct Mesh *new_mesh = mti->applyModifierEM(md, ctx, editData, mesh);
 
-		/* Make a DM that doesn't reference new_mesh so we can free the latter. */
-		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, CD_MASK_EVERYTHING);
+	/* Make a DM that doesn't reference new_mesh so we can free the latter. */
+	DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE, CD_MASK_EVERYTHING);
 
-		if (new_mesh != mesh) {
-			BKE_id_free(NULL, new_mesh);
-		}
-		if (mesh != NULL) {
-			BKE_id_free(NULL, mesh);
-		}
-
-		return ndm;
+	if (new_mesh != mesh) {
+		BKE_id_free(NULL, new_mesh);
 	}
+	if (mesh != NULL) {
+		BKE_id_free(NULL, mesh);
+	}
+
+	return ndm;
+
 }
 
 /**

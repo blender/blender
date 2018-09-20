@@ -2655,7 +2655,7 @@ static void editbmesh_calc_modifiers(
 				mask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
-				if (mti->applyModifierEM || mti->applyModifierEM_DM) {
+				if (mti->applyModifierEM) {
 					ndm = modwrap_applyModifierEM(md, &mectx_orco, em, orcodm);
 				}
 				else {
@@ -2683,7 +2683,7 @@ static void editbmesh_calc_modifiers(
 				}
 			}
 
-			if (mti->applyModifierEM || mti->applyModifierEM_DM)
+			if (mti->applyModifierEM)
 				ndm = modwrap_applyModifierEM(md, &mectx_cache, em, dm);
 			else
 				ndm = modwrap_applyModifier(md, &mectx_cache, dm);

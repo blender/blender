@@ -31,6 +31,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BLI_utildefines.h"
 
@@ -100,7 +101,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(
+static DerivedMesh *applyModifier_DM(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *dm)
 {
@@ -113,6 +114,8 @@ static DerivedMesh *applyModifier(
 	}
 	return dm;
 }
+
+applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
 {
@@ -183,14 +186,14 @@ ModifierTypeInfo modifierType_DynamicPaint = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

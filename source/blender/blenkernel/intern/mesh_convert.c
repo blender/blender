@@ -1172,7 +1172,7 @@ Mesh *BKE_mesh_create_derived_for_modifier(
 		if (build_shapekey_layers)
 			add_shapekey_layers(mesh_temp, me);
 
-		result = modifier_applyModifier(md, &mectx, mesh_temp);
+		result = mti->applyModifier(md, &mectx, mesh_temp);
 		ASSERT_IS_VALID_MESH(result);
 
 		if (mesh_temp != result) {

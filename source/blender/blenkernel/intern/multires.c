@@ -309,7 +309,10 @@ Mesh *get_multires_mesh(
 	        .depsgraph = depsgraph,
 	        .object = ob_eval,
 	        .flag = MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY};
-	Mesh *result = modifier_applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
+
+	const ModifierTypeInfo *mti = modifierType_getInfo(mmd->modifier.type);
+	Mesh *result = mti->applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
+
 	if (result == deformed_mesh) {
 		result = BKE_mesh_copy_for_eval(deformed_mesh);
 	}

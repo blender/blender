@@ -36,6 +36,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_kdtree.h"
@@ -998,7 +999,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 	}
 	return psmd;
 }
-static DerivedMesh *applyModifier(
+static DerivedMesh *applyModifier_DM(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *derivedData)
 {
@@ -1048,6 +1049,8 @@ static DerivedMesh *applyModifier(
 	return derivedData;
 }
 
+applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
+
 
 ModifierTypeInfo modifierType_Explode = {
 	/* name */              "Explode",
@@ -1061,14 +1064,14 @@ ModifierTypeInfo modifierType_Explode = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

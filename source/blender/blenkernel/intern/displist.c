@@ -1021,7 +1021,7 @@ static void curve_calc_modifiers_post(
 				vertCos = NULL;
 			}
 
-			mesh_applied = modifier_applyModifier(md, &mectx_apply, modified);
+			mesh_applied = mti->applyModifier(md, &mectx_apply, modified);
 
 			if (mesh_applied) {
 				/* Modifier returned a new derived mesh */

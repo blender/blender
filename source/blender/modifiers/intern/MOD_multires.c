@@ -67,7 +67,7 @@ static void initData(ModifierData *md)
 	mmd->quality = 3;
 }
 
-static DerivedMesh *applyModifier(
+static DerivedMesh *applyModifier_DM(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *dm)
 {
@@ -143,6 +143,8 @@ static DerivedMesh *applyModifier(
 
 	return result;
 }
+
+applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 #ifdef WITH_OPENSUBDIV_MODIFIER
 
@@ -261,7 +263,7 @@ ModifierTypeInfo modifierType_Multires = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
@@ -271,7 +273,7 @@ ModifierTypeInfo modifierType_Multires = {
 #ifdef WITH_OPENSUBDIV_MODIFIER
 	/* applyModifier */     applyModifier_subdiv,
 #else
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 #endif
 	/* applyModifierEM */   NULL,
 
