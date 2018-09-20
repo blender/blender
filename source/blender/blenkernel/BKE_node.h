@@ -466,6 +466,10 @@ bool            nodeAttachNodeCheck(struct bNode *node, struct bNode *parent);
 void            nodeAttachNode(struct bNode *node, struct bNode *parent);
 void            nodeDetachNode(struct bNode *node);
 
+void            nodePositionRelative(struct bNode *from_node, struct bNode *to_node,
+                                     struct bNodeSocket *from_sock, struct bNodeSocket *to_sock);
+void            nodePositionPropagate(struct bNode *node);
+
 struct bNode   *nodeFindNodebyName(struct bNodeTree *ntree, const char *name);
 int             nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex);
 struct bNode   *nodeFindRootParent(bNode *node);

@@ -1213,6 +1213,54 @@ void nodeDetachNode(struct bNode *node)
 	}
 }
 
+void nodePositionRelative(bNode *from_node, bNode *to_node, bNodeSocket *from_sock, bNodeSocket *to_sock)
+{
+	float offset_x;
+	int tot_sock_idx;
+
+	/* Socket to plug into. */
+	if (SOCK_IN == to_sock->in_out) {
+		offset_x = - (from_node->typeinfo->width + 50);
+		tot_sock_idx = BLI_listbase_count(&to_node->outputs);
+		tot_sock_idx += BLI_findindex(&to_node->inputs, to_sock);
+	}
+	else {
+		offset_x = to_node->typeinfo->width + 50;
+		tot_sock_idx = BLI_findindex(&to_node->outputs, to_sock);
+	}
+
+	BLI_assert(tot_sock_idx != -1);
+
+	float offset_y = U.widget_unit * tot_sock_idx;
+
+	/* Output socket. */
+	if (SOCK_IN == from_sock->in_out) {
+		tot_sock_idx = BLI_listbase_count(&from_node->outputs);
+		tot_sock_idx += BLI_findindex(&from_node->inputs, from_sock);
+	}
+	else {
+		tot_sock_idx = BLI_findindex(&from_node->outputs, from_sock);
+	}
+
+	BLI_assert(tot_sock_idx != -1);
+
+	offset_y -= U.widget_unit * tot_sock_idx;
+
+	from_node->locx = to_node->locx + offset_x;
+	from_node->locy = to_node->locy - offset_y;
+}
+
+void nodePositionPropagate(bNode *node)
+{
+	for (bNodeSocket *nsock = node->inputs.first; nsock; nsock = nsock->next) {
+		if (nsock->link != NULL) {
+			bNodeLink *link = nsock->link;
+			nodePositionRelative(link->fromnode, link->tonode, link->fromsock, link->tosock);
+			nodePositionPropagate(link->fromnode);
+		}
+	}
+}
+
 void ntreeInitDefault(bNodeTree *ntree)
 {
 	ntree_set_typeinfo(ntree, NULL);

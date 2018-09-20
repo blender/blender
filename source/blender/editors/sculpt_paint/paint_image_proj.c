@@ -5696,10 +5696,10 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 
 		/* Connect to first available principled bsdf node. */
 		bNode *in_node;
+		bNode *out_node = imanode;
 		in_node = ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
 
 		if (in_node != NULL) {
-			bNode *out_node = imanode;
 			bNodeSocket *out_sock = nodeFindSocket(out_node, SOCK_OUT, "Color");
 			bNodeSocket *in_sock = NULL;
 
@@ -5752,10 +5752,14 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 			bNodeLink *link = in_sock ? in_sock->link : NULL;
 			if (in_sock != NULL && link == NULL) {
 				nodeAddLink(ntree, out_node, out_sock, in_node, in_sock);
+
+				nodePositionRelative(out_node, in_node, out_sock, in_sock);
 			}
 		}
 
 		ntreeUpdateTree(CTX_data_main(C), ntree);
+		/* In case we added more than one node, position them too. */
+		nodePositionPropagate(out_node);
 
 		if (ima) {
 			BKE_texpaint_slot_refresh_cache(scene, ma);
