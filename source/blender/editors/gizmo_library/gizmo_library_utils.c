@@ -186,7 +186,6 @@ bool gizmo_window_project_2d(
 	/* rotate mouse in relation to the center and relocate it */
 	if (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) {
 		/* For 3d views, transform 2D mouse pos onto plane. */
-		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 
 		float plane[4];
@@ -194,19 +193,18 @@ bool gizmo_window_project_2d(
 		plane_from_point_normal_v3(plane, mat[3], mat[2]);
 
 		float ray_origin[3], ray_direction[3];
+		float lambda;
 
-		if (ED_view3d_win_to_ray_clipped(CTX_data_depsgraph(C), ar, v3d, mval, ray_origin, ray_direction, false)) {
-			float lambda;
-			if (isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, true)) {
-				float co[3];
-				madd_v3_v3v3fl(co, ray_origin, ray_direction, lambda);
-				float imat[4][4];
-				invert_m4_m4(imat, mat);
-				mul_m4_v3(imat, co);
-				r_co[0] = co[(axis + 1) % 3];
-				r_co[1] = co[(axis + 2) % 3];
-				return true;
-			}
+		ED_view3d_win_to_ray(ar, mval, ray_origin, ray_direction);
+		if (isect_ray_plane_v3(ray_origin, ray_direction, plane, &lambda, true)) {
+			float co[3];
+			madd_v3_v3v3fl(co, ray_origin, ray_direction, lambda);
+			float imat[4][4];
+			invert_m4_m4(imat, mat);
+			mul_m4_v3(imat, co);
+			r_co[0] = co[(axis + 1) % 3];
+			r_co[1] = co[(axis + 2) % 3];
+			return true;
 		}
 		return false;
 	}

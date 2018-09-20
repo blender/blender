@@ -100,19 +100,16 @@ static void calc_initial_placement_point_from_view(
 
 	if (use_mouse_project) {
 		float ray_co[3], ray_no[3];
-		if (ED_view3d_win_to_ray_clipped(
-		            CTX_data_depsgraph(C),
-		            ar, v3d, mval,
-		            ray_co, ray_no, false))
-		{
-			float plane[4];
-			plane_from_point_normal_v3(plane, cursor_matrix[3], orient_matrix[2]);
-			float lambda;
-			if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, true)) {
-				madd_v3_v3v3fl(r_location, ray_co, ray_no, lambda);
-				copy_m3_m3(r_rotation, orient_matrix);
-				return;
-			}
+		ED_view3d_win_to_ray(
+		        ar, mval,
+		        ray_co, ray_no);
+		float plane[4];
+		plane_from_point_normal_v3(plane, cursor_matrix[3], orient_matrix[2]);
+		float lambda;
+		if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, true)) {
+			madd_v3_v3v3fl(r_location, ray_co, ray_no, lambda);
+			copy_m3_m3(r_rotation, orient_matrix);
+			return;
 		}
 	}
 
