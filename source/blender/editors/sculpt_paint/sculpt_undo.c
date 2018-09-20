@@ -589,10 +589,9 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 
 static void sculpt_undo_free_list(ListBase *lb)
 {
-	SculptUndoNode *unode;
-	int i;
-
-	for (unode = lb->first; unode; unode = unode->next) {
+	SculptUndoNode *unode = lb->first;
+	while (unode != NULL) {
+		SculptUndoNode *unode_next = unode->next;
 		if (unode->co)
 			MEM_freeN(unode->co);
 		if (unode->no)
@@ -606,7 +605,7 @@ static void sculpt_undo_free_list(ListBase *lb)
 		if (unode->vert_hidden)
 			MEM_freeN(unode->vert_hidden);
 		if (unode->grid_hidden) {
-			for (i = 0; i < unode->totgrid; i++) {
+			for (int i = 0; i < unode->totgrid; i++) {
 				if (unode->grid_hidden[i])
 					MEM_freeN(unode->grid_hidden[i]);
 			}
@@ -627,6 +626,10 @@ static void sculpt_undo_free_list(ListBase *lb)
 			CustomData_free(&unode->bm_enter_ldata, unode->bm_enter_totloop);
 		if (unode->bm_enter_totpoly)
 			CustomData_free(&unode->bm_enter_pdata, unode->bm_enter_totpoly);
+
+		MEM_freeN(unode);
+
+		unode = unode_next;
 	}
 }
 
