@@ -170,6 +170,11 @@ static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *p
 	        GPU_shader_get_program(shader),
 	        GPU_shader_get_interface(shader));
 
+#ifdef USE_GPU_PY_REFERENCES
+	/* Hold user */
+	PyList_Append(self->references, (PyObject *)py_shader);
+#endif
+
 	Py_RETURN_NONE;
 }
 
