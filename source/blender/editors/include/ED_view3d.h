@@ -260,6 +260,9 @@ bool ED_view3d_win_to_ray_clipped_ex(
         struct Depsgraph *depsgraph,
         const struct ARegion *ar, const struct View3D *v3d, const float mval[2],
         float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip);
+void ED_view3d_win_to_ray(
+        const struct ARegion *ar, const float mval[2],
+        float r_ray_start[3], float r_ray_normal[3]);
 void ED_view3d_global_to_vector(const struct RegionView3D *rv3d, const float coord[3], float vec[3]);
 void ED_view3d_win_to_3d(
         const struct View3D *v3d, const struct ARegion *ar,

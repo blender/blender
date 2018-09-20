@@ -194,7 +194,6 @@ static bool stroke_elem_project(
         float surface_offset, const float radius,
         float r_location_world[3], float r_normal_world[3])
 {
-	View3D *v3d = cdd->vc.v3d;
 	ARegion *ar = cdd->vc.ar;
 	RegionView3D *rv3d = cdd->vc.rv3d;
 
@@ -204,7 +203,7 @@ static bool stroke_elem_project(
 	if (cdd->project.use_plane) {
 		/* get the view vector to 'location' */
 		float ray_origin[3], ray_direction[3];
-		ED_view3d_win_to_ray_clipped(cdd->depsgraph, cdd->vc.ar, v3d, mval_fl, ray_origin, ray_direction, false);
+		ED_view3d_win_to_ray(ar, mval_fl, ray_origin, ray_direction);
 
 		float lambda;
 		if (isect_ray_plane_v3(ray_origin, ray_direction, cdd->project.plane, &lambda, true)) {

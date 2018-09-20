@@ -409,6 +409,24 @@ bool ED_view3d_win_to_ray_clipped(
 }
 
 /**
+ * Calculate a 3d viewpoint and direction vector from 2d window coordinates.
+ * This ray_start is located at the viewpoint, ray_normal is the direction towards mval.
+ * \param ar The region (used for the window width and height).
+ * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
+ * \param r_ray_start The world-space point where the ray intersects the window plane.
+ * \param r_ray_normal The normalized world-space direction of towards mval.
+ *
+ * \note Ignores view near/far clipping, to take this into account use #ED_view3d_win_to_ray_clipped.
+ */
+void ED_view3d_win_to_ray(
+        const ARegion *ar, const float mval[2],
+        float r_ray_start[3], float r_ray_normal[3])
+{
+	ED_view3d_win_to_origin(ar, mval, r_ray_start);
+	ED_view3d_win_to_vector(ar, mval, r_ray_normal);
+}
+
+/**
  * Calculate a normalized 3d direction vector from the viewpoint towards a global location.
  * In orthographic view the resulting vector will match the view vector.
  * \param rv3d The region (used for the window width and height).
