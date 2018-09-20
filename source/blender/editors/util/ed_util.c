@@ -115,11 +115,15 @@ void ED_editors_init(bContext *C)
 				/* pass */
 			}
 			else if (!BKE_object_has_mode_data(ob, mode)) {
-				/* For multi-edit mode we may already have mode data. */
-				ID *data = ob->data;
-				ob->mode = OB_MODE_OBJECT;
-				if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
-					ED_object_mode_toggle(C, mode);
+				/* For multi-edit mode we may already have mode data.
+				 * (grease pencil does not need it)
+				 */
+				if (ob->type != OB_GPENCIL) {
+					ID *data = ob->data;
+					ob->mode = OB_MODE_OBJECT;
+					if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {
+						ED_object_mode_toggle(C, mode);
+					}
 				}
 			}
 		}

@@ -32,6 +32,7 @@
 #include "BLI_math.h"
 #include "BLI_string.h"
 
+#include "DNA_gpencil_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -102,6 +103,16 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				workspace->object_mode = OB_MODE_GPENCIL_PAINT;
 			}
 		}
+		/* set object in drawing mode */
+		for (Object *object = bmain->object.first; object; object = object->id.next) {
+			if (object->type == OB_GPENCIL) {
+				bGPdata *gpd = (bGPdata *)object->data;
+				object->mode = OB_MODE_GPENCIL_PAINT;
+				gpd->flag |= GP_DATA_STROKE_PAINTMODE;
+				break;
+			}
+		}
+
 		/* Be sure curfalloff is initializated */
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;
