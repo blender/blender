@@ -26,7 +26,7 @@ import re
 import rlcompleter
 
 
-RE_INCOMPLETE_INDEX = re.compile('(.*?)\[[^\]]+$')
+RE_INCOMPLETE_INDEX = re.compile(r'(.*?)\[[^\]]+$')
 
 TEMP = '__tEmP__'  # only \w characters are allowed!
 TEMP_N = len(TEMP)
