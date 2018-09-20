@@ -912,6 +912,17 @@ static void average_grid_element(SubdivCCG *subdiv_ccg,
 	}
 }
 
+static void copy_grid_element(SubdivCCG *subdiv_ccg,
+                              CCGKey *key,
+                              CCGElem *destination,
+                              CCGElem *source)
+{
+	copy_v3_v3(CCG_elem_co(key, destination), CCG_elem_co(key, source));
+	if (subdiv_ccg->has_normal) {
+		copy_v3_v3(CCG_elem_no(key, destination), CCG_elem_no(key, source));
+	}
+}
+
 static void subdiv_ccg_average_inner_face_grids(
         SubdivCCG *subdiv_ccg,
         CCGKey *key,
@@ -947,20 +958,172 @@ static void subdiv_ccg_average_inner_grids_task(
 	subdiv_ccg_average_inner_face_grids(subdiv_ccg, key, face);
 }
 
+typedef struct AverageGridsBoundariesData {
+	SubdivCCG *subdiv_ccg;
+	CCGKey *key;
+} AverageGridsBoundariesData;
+
+static void subdiv_ccg_average_grids_boundary(
+        SubdivCCG *subdiv_ccg,
+        CCGKey *key,
+        SubdivCCGAdjacentEdge *adjacent_edge)
+{
+	const int num_adjacent_faces = adjacent_edge->num_adjacent_faces;
+	const int grid_size2 = subdiv_ccg->grid_size * 2;
+	if (num_adjacent_faces == 1) {
+		/* Nothing to average with. */
+		return;
+	}
+	/* Incrementall average result to elements of a first adjacent face.
+	 *
+	 * Arguably, this is less precise than accumulating and then diving once,
+	 * but on another hand this is more stable when coordinates are big.
+	 */
+	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
+		/* NOTE: We ignore very first and very last elements, they correspond
+		 * to corner vertices, and they can belong to multiple edges.
+		 * The fact, that they can belong to multiple edges means we can't
+		 * safely average them.
+		 * The fact, that they correspond to a corner elements, means they will
+		 * be handled at the upcoming pass over corner elements.
+		 */
+		for (int i = 1; i < grid_size2 - 1; i++) {
+			CCGElem *grid_element_0 =
+			        adjacent_edge->boundary_elements[0][i];
+			CCGElem *grid_element_face_index =
+			        adjacent_edge->boundary_elements[face_index][i];
+			average_grid_element(subdiv_ccg,
+			                     key,
+			                     grid_element_0,
+			                     grid_element_face_index);
+		}
+	}
+	/* Copy averaged value to all the other faces. */
+	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
+		for (int i = 1; i < grid_size2 -1; i++) {
+			CCGElem *grid_element_0 =
+			        adjacent_edge->boundary_elements[0][i];
+			CCGElem *grid_element_face_index =
+			        adjacent_edge->boundary_elements[face_index][i];
+			copy_grid_element(subdiv_ccg,
+			                  key,
+			                  grid_element_face_index,
+			                  grid_element_0);
+		}
+	}
+}
+
+static void subdiv_ccg_average_grids_boundaries_task(
+        void *__restrict userdata_v,
+        const int adjacent_edge_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls_v))
+{
+	AverageGridsBoundariesData *data = userdata_v;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	SubdivCCGAdjacentEdge *adjacent_edge =
+	        &subdiv_ccg->adjacent_edges[adjacent_edge_index];
+	subdiv_ccg_average_grids_boundary(subdiv_ccg, key, adjacent_edge);
+}
+
+typedef struct AverageGridsCornerData {
+	SubdivCCG *subdiv_ccg;
+	CCGKey *key;
+} AverageGridsCornerData;
+
+static void subdiv_ccg_average_grids_corners(
+        SubdivCCG *subdiv_ccg,
+        CCGKey *key,
+        SubdivCCGAdjacentVertex *adjacent_vertex)
+{
+	const int num_adjacent_faces = adjacent_vertex->num_adjacent_faces;
+	if (num_adjacent_faces == 1) {
+		/* Nothing to average with. */
+		return;
+	}
+	/* Incrementall average result to elements of a first adjacent face.
+	 * See comment to the boundary averaging.
+	 */
+	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
+		CCGElem *grid_element_0 =
+		        adjacent_vertex->corner_elements[0];
+		CCGElem *grid_element_face_index =
+		        adjacent_vertex->corner_elements[face_index];
+		average_grid_element(subdiv_ccg,
+		                     key,
+		                     grid_element_0,
+		                     grid_element_face_index);
+	}
+	/* Copy averaged value to all the other faces. */
+	for (int face_index = 1; face_index < num_adjacent_faces; face_index++) {
+		CCGElem *grid_element_0 =
+		        adjacent_vertex->corner_elements[0];
+		CCGElem *grid_element_face_index =
+		        adjacent_vertex->corner_elements[face_index];
+		copy_grid_element(subdiv_ccg,
+		                  key,
+		                  grid_element_face_index,
+		                  grid_element_0);
+	}
+}
+
+static void subdiv_ccg_average_grids_corners_task(
+        void *__restrict userdata_v,
+        const int adjacent_vertex_index,
+        const ParallelRangeTLS *__restrict UNUSED(tls_v))
+{
+	AverageGridsCornerData *data = userdata_v;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	CCGKey *key = data->key;
+	SubdivCCGAdjacentVertex *adjacent_vertex =
+	        &subdiv_ccg->adjacent_vertices[adjacent_vertex_index];
+	subdiv_ccg_average_grids_corners(subdiv_ccg, key, adjacent_vertex);
+}
+
+static void subdiv_ccg_average_all_boundaries_and_corners(
+        SubdivCCG *subdiv_ccg,
+        CCGKey *key)
+{
+	ParallelRangeSettings parallel_range_settings;
+	BLI_parallel_range_settings_defaults(&parallel_range_settings);
+	/* Average grids across coarse edges. */
+	AverageGridsBoundariesData boundaries_data = {
+	        .subdiv_ccg = subdiv_ccg,
+	        .key = key,
+	};
+	BLI_task_parallel_range(0, subdiv_ccg->num_adjacent_edges,
+	                        &boundaries_data,
+	                        subdiv_ccg_average_grids_boundaries_task,
+	                        &parallel_range_settings);
+	/* Average grids at coarse vertices. */
+	AverageGridsCornerData corner_data = {
+	        .subdiv_ccg = subdiv_ccg,
+	        .key = key,
+	};
+	BLI_task_parallel_range(0, subdiv_ccg->num_adjacent_vertices,
+	                        &corner_data,
+	                        subdiv_ccg_average_grids_corners_task,
+	                        &parallel_range_settings);
+}
+
 void BKE_subdiv_ccg_average_grids(SubdivCCG *subdiv_ccg)
 {
 	CCGKey key;
 	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
-	AverageInnerGridsData data = {
+	ParallelRangeSettings parallel_range_settings;
+	BLI_parallel_range_settings_defaults(&parallel_range_settings);
+	/* Average inner boundaries of grids (within one face), across faces
+	 * from different face-corners.
+	 */
+	AverageInnerGridsData inner_data = {
 	        .subdiv_ccg = subdiv_ccg,
 	        .key = &key,
 	};
-	ParallelRangeSettings parallel_range_settings;
-	BLI_parallel_range_settings_defaults(&parallel_range_settings);
 	BLI_task_parallel_range(0, subdiv_ccg->num_faces,
-	                        &data,
+	                        &inner_data,
 	                        subdiv_ccg_average_inner_grids_task,
 	                        &parallel_range_settings);
+	subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
 }
 
 typedef struct StitchFacesInnerGridsData {
@@ -1000,4 +1163,8 @@ void BKE_subdiv_ccg_average_stitch_faces(SubdivCCG *subdiv_ccg,
 	                        &data,
 	                        subdiv_ccg_stitch_face_inner_grids_task,
 	                        &parallel_range_settings);
+	/* TODO(sergey): Only average elements which are adjacent to modified
+	 * faces.
+	 */
+	subdiv_ccg_average_all_boundaries_and_corners(subdiv_ccg, &key);
 }
