@@ -2156,6 +2156,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem gpencil_selectmode_items[] = {
+		{GP_SELECTMODE_POINT, "POINT", ICON_VERTEXSEL, "Point", "Select only points"},
+		{GP_SELECTMODE_STROKE, "STROKE", ICON_EDGESEL, "Stroke", "Select all stroke points" },
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	static const EnumPropertyItem annotation_stroke_placement_items[] = {
 		{GP_PROJECT_VIEWSPACE | GP_PROJECT_CURSOR, "CURSOR", ICON_CURSOR, "3D Cursor", "Draw stroke at 3D cursor location" },
 		{0, "VIEW", ICON_VISIBLE_IPO_ON, "View", "Stick stroke to the view "}, /* weird, GP_PROJECT_VIEWALIGN is inverted */
@@ -2456,6 +2462,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "gpencil_v3d_align", GP_PROJECT_DEPTH_STROKE_ENDPOINTS);
 	RNA_def_property_ui_text(prop, "Only Endpoints", "Only use the first and last parts of the stroke for snapping");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
+	/* Grease Pencil - Select mode */
+	prop = RNA_def_property(srna, "gpencil_selectmode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gpencil_selectmode");
+	RNA_def_property_enum_items(prop, gpencil_selectmode_items);
+	RNA_def_property_ui_text(prop, "Select Mode", "");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
 	/* Annotations - 2D Views Stroke Placement */
 	prop = RNA_def_property(srna, "annotation_stroke_placement_view2d", PROP_ENUM, PROP_NONE);
