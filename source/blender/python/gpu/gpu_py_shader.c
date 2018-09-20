@@ -119,7 +119,7 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
 		return NULL;
 	}
 
-	return BPyGPUShader_CreatePyObject(shader);
+	return BPyGPUShader_CreatePyObject(shader, false);
 }
 
 PyDoc_STRVAR(bpygpu_shader_bind_doc,
@@ -427,7 +427,9 @@ static PyGetSetDef bpygpu_shader_getseters[] = {
 
 static void bpygpu_shader_dealloc(BPyGPUShader *self)
 {
-	GPU_shader_free(self->shader);
+	if (self->is_builtin == false) {
+		GPU_shader_free(self->shader);
+	}
 	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
@@ -513,7 +515,7 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 
 	GPUShader *shader = GPU_shader_get_builtin_shader(shader_id);
 
-	return BPyGPUShader_CreatePyObject(shader);
+	return BPyGPUShader_CreatePyObject(shader, true);
 }
 
 PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
@@ -608,12 +610,13 @@ static PyModuleDef BPyGPU_shader_builtin_module_def = {
 /** \name Public API
  * \{ */
 
-PyObject *BPyGPUShader_CreatePyObject(GPUShader *shader)
+PyObject *BPyGPUShader_CreatePyObject(GPUShader *shader, bool is_builtin)
 {
 	BPyGPUShader *self;
 
 	self = PyObject_New(BPyGPUShader, &BPyGPUShader_Type);
 	self->shader = shader;
+	self->is_builtin = is_builtin;
 
 	return (PyObject *)self;
 }
