@@ -690,7 +690,6 @@ void BKE_scene_init(Scene *sce)
 	/* grease pencil multiframe falloff curve */
 	sce->toolsettings->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 	CurveMapping *gp_falloff_curve = sce->toolsettings->gp_sculpt.cur_falloff;
-	curvemapping_set_defaults(gp_falloff_curve, 1, 0.0f, 0.0f, 1.0f, 1.0f);
 	curvemapping_initialize(gp_falloff_curve);
 	curvemap_reset(gp_falloff_curve->cm,
 		&gp_falloff_curve->clipr,

@@ -39,6 +39,7 @@
 #include "DNA_object_types.h"
 #include "DNA_workspace_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_node.h"
@@ -99,6 +100,19 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 
 			if (STREQ(name, "Drawing")) {
 				workspace->object_mode = OB_MODE_GPENCIL_PAINT;
+			}
+		}
+		/* Be sure curfalloff is initializated */
+		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+			ToolSettings *ts = scene->toolsettings;
+			if (ts->gp_sculpt.cur_falloff == NULL) {
+				ts->gp_sculpt.cur_falloff = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+				CurveMapping *gp_falloff_curve = ts->gp_sculpt.cur_falloff;
+				curvemapping_initialize(gp_falloff_curve);
+				curvemap_reset(gp_falloff_curve->cm,
+					&gp_falloff_curve->clipr,
+					CURVE_PRESET_GAUSS,
+					CURVEMAP_SLOPE_POSITIVE);
 			}
 		}
 	}
