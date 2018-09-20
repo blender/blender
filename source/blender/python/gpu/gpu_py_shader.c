@@ -340,8 +340,8 @@ static PyObject *bpygpu_shader_uniform_float(
 	float value;
 
 	if (!PyArg_ParseTuple(
-		args, "if:GPUShader.uniform_float",
-		&location, &value))
+	            args, "if:GPUShader.uniform_float",
+	            &location, &value))
 	{
 		return NULL;
 	}

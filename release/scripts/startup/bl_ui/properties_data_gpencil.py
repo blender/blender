@@ -67,8 +67,6 @@ class DATA_PT_gpencil(DataButtonsPanel, Panel):
         layout.template_ID(gpd_owner, "data")
 
 
-
-
 class GPENCIL_MT_layer_specials(Menu):
     bl_label = "Layer"
 

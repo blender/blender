@@ -23,6 +23,7 @@ from .properties_grease_pencil_common import (
     GPENCIL_UL_layer,
 )
 
+
 class TOPBAR_HT_upper_bar(Header):
     bl_space_type = 'TOPBAR'
 
@@ -188,17 +189,17 @@ class TOPBAR_HT_lower_bar(Header):
             layout.label(text="Layer:")
             layout.popover(
                 panel="TOPBAR_PT_gpencil_layers",
-                text=txt
+                text=txt,
             )
 
             layout.prop(context.tool_settings, "use_gpencil_draw_onback", text="", icon='ORTHO')
             layout.prop(context.tool_settings, "add_gpencil_weight_data", text="", icon='WPAINT_HLT')
             layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
-        elif mode in ('GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'):
+        elif mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             layout.label(text="Layer:")
             layout.popover(
                 panel="TOPBAR_PT_gpencil_layers",
-                text=txt
+                text=txt,
             )
 
 

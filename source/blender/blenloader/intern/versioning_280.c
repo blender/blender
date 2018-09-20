@@ -822,11 +822,11 @@ void do_versions_after_linking_280(Main *bmain)
 
 						for (int a = 0; a < nu->pntsu; a++, bezt++) {
 							if ((old_count -= 3) < 0) {
-								memcpy(newptr, bezt->vec, sizeof(float[3*3]));
+								memcpy(newptr, bezt->vec, sizeof(float[3][3]));
 								newptr[3][0] = bezt->alfa;
 							}
 							else {
-								memcpy(newptr, oldptr, sizeof(float[3*4]));
+								memcpy(newptr, oldptr, sizeof(float[3][4]));
 							}
 
 							newptr[3][1] = bezt->radius;
@@ -838,7 +838,7 @@ void do_versions_after_linking_280(Main *bmain)
 					else if (nu->bp) {
 						BPoint *bp = nu->bp;
 
-						for (int a = 0; a < nu->pntsu*nu->pntsv; a++, bp++) {
+						for (int a = 0; a < nu->pntsu * nu->pntsv; a++, bp++) {
 							if (--old_count < 0) {
 								copy_v3_v3(newptr[0], bp->vec);
 								newptr[1][0] = bp->alfa;

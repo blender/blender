@@ -536,7 +536,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
         col.separator()
         col.operator("image.save_dirty", text="Save All Images")
 
-        ### Add Texture paint UVs/slots
+        # Add Texture paint UVs/slots
         if settings.missing_uvs:
             col.separator()
             col.label(text="No UVs available", icon='INFO')
@@ -575,6 +575,8 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             col.template_ID(settings, "stencil_image", new="image.new", open="image.open")
 
 # TODO, move to space_view3d.py
+
+
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"

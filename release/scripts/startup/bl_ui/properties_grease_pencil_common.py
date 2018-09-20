@@ -309,7 +309,7 @@ class GreasePencilAppearancePanel:
             if gp_settings.gpencil_brush_type == 'FILL':
                 layout.prop(brush, "cursor_color_add", text="Color")
 
-        elif ob.mode in ('GPENCIL_SCULPT', 'GPENCIL_WEIGHT'):
+        elif ob.mode in {'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             settings = context.tool_settings.gpencil_sculpt
             brush = settings.brush
 
@@ -816,28 +816,31 @@ class GPENCIL_UL_layer(UIList):
                 layout.active = False
 
             row = layout.row(align=True)
-            if gpl.is_parented:
-                icon = 'BONE_DATA'
-            else:
-                icon = 'BLANK1'
-
-            row.label(text="", icon=icon)
+            row.label(
+                text="",
+                icon='BONE_DATA' if gpl.is_parented else 'BLANK1',
+            )
             row.prop(gpl, "info", text="", emboss=False)
 
             row = layout.row(align=True)
             row.prop(gpl, "lock", text="", emboss=False)
             row.prop(gpl, "hide", text="", emboss=False)
             row.prop(gpl, "unlock_color", text="", emboss=False)
-            if gpl.use_onion_skinning is False:
-                icon = 'GHOST_DISABLED'
-            else:
-                icon = 'GHOST_ENABLED'
             subrow = row.row(align=True)
-            subrow.prop(gpl, "use_onion_skinning", text="", icon=icon, emboss=False)
+            subrow.prop(
+                gpl,
+                "use_onion_skinning",
+                text="",
+                icon='GHOST_ENABLED' if gpl.use_onion_skinning else 'GHOST_DISABLED',
+                emboss=False,
+            )
             subrow.active = gpd.use_onion_skinning
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.label(text="", icon_value=icon)
+            layout.label(
+                text="",
+                icon_value=icon,
+            )
 
 
 classes = (

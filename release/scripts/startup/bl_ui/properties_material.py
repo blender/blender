@@ -173,7 +173,7 @@ class EEVEE_MATERIAL_PT_surface(MaterialButtonsPanel, Panel):
         layout.separator()
 
         if mat.use_nodes:
-            panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', 'Surface')
+            panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Surface")
         else:
             layout.use_property_split = True
             layout.prop(mat, "diffuse_color", text="Base Color")
@@ -199,7 +199,7 @@ class EEVEE_MATERIAL_PT_volume(MaterialButtonsPanel, Panel):
 
         mat = context.material
 
-        panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', 'Volume')
+        panel_node_draw(layout, mat.node_tree, 'OUTPUT_MATERIAL', "Volume")
 
 
 class EEVEE_MATERIAL_PT_options(MaterialButtonsPanel, Panel):
