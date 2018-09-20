@@ -1029,7 +1029,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 		ptr = &path->ptr[a];
 
 		if (a != 0)
-			uiItemL(row, "", VICO_SMALL_TRI_RIGHT_VEC);
+			uiItemL(row, "", ICON_SMALL_TRI_RIGHT_VEC);
 
 		if (ptr->data) {
 			icon = RNA_struct_ui_icon(ptr->type);

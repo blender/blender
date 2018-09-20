@@ -113,16 +113,6 @@ static const EnumPropertyItem node_chunksize_items[] = {
 };
 #endif
 
-#define DEF_ICON_BLANK_SKIP
-#define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
-#define DEF_VICO(name)
-const EnumPropertyItem rna_enum_node_icon_items[] = {
-#include "UI_icons.h"
-	{0, NULL, 0, NULL, NULL}};
-#undef DEF_ICON_BLANK_SKIP
-#undef DEF_ICON
-#undef DEF_VICO
-
 const EnumPropertyItem rna_enum_node_math_items[] = {
 	{NODE_MATH_ADD,     "ADD",          0, "Add",          ""},
 	{NODE_MATH_SUB,     "SUBTRACT",     0, "Subtract",     ""},
@@ -8021,7 +8011,7 @@ static void rna_def_node(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_items(prop, rna_enum_node_icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODE);
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_ui_text(prop, "Icon", "The node icon");
@@ -8409,7 +8399,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeinfo->ui_icon");
-	RNA_def_property_enum_items(prop, rna_enum_node_icon_items);
+	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 	RNA_def_property_enum_default(prop, ICON_NODETREE);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Icon", "The node tree icon");

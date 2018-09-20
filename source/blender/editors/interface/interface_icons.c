@@ -111,6 +111,7 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 #define ICON_TYPE_GEOM           5
 #define ICON_TYPE_EVENT          6  /* draw keymap entries using custom renderer. */
 #define ICON_TYPE_GPLAYER        7
+#define ICON_TYPE_BLANK          8
 
 typedef struct DrawInfo {
 	int type;
@@ -153,6 +154,18 @@ typedef struct IconTexture {
  * scanning the filesystem each time the menu is drawn */
 static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
+
+static const int icontypes[] = {
+#define DEF_ICON(name) ICON_TYPE_TEXTURE,
+#define DEF_ICON_VECTOR(name) ICON_TYPE_VECTOR,
+#define DEF_ICON_MONO(name) ICON_TYPE_MONO_TEXTURE,
+#define DEF_ICON_BLANK(name) ICON_TYPE_BLANK,
+#include "UI_icons.h"
+#undef DEF_ICON
+#undef DEF_ICON_VECTOR
+#undef DEF_ICON_MONO
+#undef DEF_ICON_BLANK
+};
 
 /* **************************************************** */
 
@@ -364,34 +377,34 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	immUnbindProgram();
 }
 
-#define DEF_VICON_COLORSET_DRAW_NTH(prefix, index)                                    \
+#define DEF_ICON_VECTOR_COLORSET_DRAW_NTH(prefix, index)                              \
 	static void vicon_colorset_draw_##prefix(int x, int y, int w, int h, float alpha) \
 	{                                                                                 \
 		vicon_colorset_draw(index, x, y, w, h, alpha);                                \
 	}
 
-DEF_VICON_COLORSET_DRAW_NTH(01, 0)
-DEF_VICON_COLORSET_DRAW_NTH(02, 1)
-DEF_VICON_COLORSET_DRAW_NTH(03, 2)
-DEF_VICON_COLORSET_DRAW_NTH(04, 3)
-DEF_VICON_COLORSET_DRAW_NTH(05, 4)
-DEF_VICON_COLORSET_DRAW_NTH(06, 5)
-DEF_VICON_COLORSET_DRAW_NTH(07, 6)
-DEF_VICON_COLORSET_DRAW_NTH(08, 7)
-DEF_VICON_COLORSET_DRAW_NTH(09, 8)
-DEF_VICON_COLORSET_DRAW_NTH(10, 9)
-DEF_VICON_COLORSET_DRAW_NTH(11, 10)
-DEF_VICON_COLORSET_DRAW_NTH(12, 11)
-DEF_VICON_COLORSET_DRAW_NTH(13, 12)
-DEF_VICON_COLORSET_DRAW_NTH(14, 13)
-DEF_VICON_COLORSET_DRAW_NTH(15, 14)
-DEF_VICON_COLORSET_DRAW_NTH(16, 15)
-DEF_VICON_COLORSET_DRAW_NTH(17, 16)
-DEF_VICON_COLORSET_DRAW_NTH(18, 17)
-DEF_VICON_COLORSET_DRAW_NTH(19, 18)
-DEF_VICON_COLORSET_DRAW_NTH(20, 19)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(01, 0)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(02, 1)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(03, 2)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(04, 3)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(05, 4)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(06, 5)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(07, 6)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(08, 7)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(09, 8)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(10, 9)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(11, 10)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(12, 11)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(13, 12)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(14, 13)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(15, 14)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(16, 15)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(17, 16)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(18, 17)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(19, 18)
+DEF_ICON_VECTOR_COLORSET_DRAW_NTH(20, 19)
 
-#undef DEF_VICON_COLORSET_DRAW_NTH
+#undef DEF_ICON_VECTOR_COLORSET_DRAW_NTH
 
 /* Dynamically render icon instead of rendering a plain color to a texture/buffer
  * This is mot strictly a "vicon", as it needs access to icon->obj to get the color info,
@@ -727,8 +740,12 @@ static void init_internal_icons(void)
 		/* Define icons. */
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			/* Row W has monochrome icons. */
-			int icontype = (y == 8) ? ICON_TYPE_MONO_TEXTURE : ICON_TYPE_TEXTURE;
 			for (x = 0; x < ICON_GRID_COLS; x++) {
+				int icontype = icontypes[y * ICON_GRID_COLS + x];
+				if (!ELEM(icontype, ICON_TYPE_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
+					continue;
+				}
+
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
 				                  x * (ICON_GRID_W + ICON_GRID_MARGIN) + ICON_GRID_MARGIN,
 				                  y * (ICON_GRID_H + ICON_GRID_MARGIN) + ICON_GRID_MARGIN, ICON_GRID_W,
@@ -737,34 +754,34 @@ static void init_internal_icons(void)
 		}
 	}
 
-	def_internal_vicon(VICO_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
+	def_internal_vicon(ICON_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
 
-	def_internal_vicon(VICO_KEYTYPE_KEYFRAME_VEC, vicon_keytype_keyframe_draw);
-	def_internal_vicon(VICO_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
-	def_internal_vicon(VICO_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
-	def_internal_vicon(VICO_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
-	def_internal_vicon(VICO_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
+	def_internal_vicon(ICON_KEYTYPE_KEYFRAME_VEC, vicon_keytype_keyframe_draw);
+	def_internal_vicon(ICON_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
+	def_internal_vicon(ICON_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
+	def_internal_vicon(ICON_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
+	def_internal_vicon(ICON_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
 
-	def_internal_vicon(VICO_COLORSET_01_VEC, vicon_colorset_draw_01);
-	def_internal_vicon(VICO_COLORSET_02_VEC, vicon_colorset_draw_02);
-	def_internal_vicon(VICO_COLORSET_03_VEC, vicon_colorset_draw_03);
-	def_internal_vicon(VICO_COLORSET_04_VEC, vicon_colorset_draw_04);
-	def_internal_vicon(VICO_COLORSET_05_VEC, vicon_colorset_draw_05);
-	def_internal_vicon(VICO_COLORSET_06_VEC, vicon_colorset_draw_06);
-	def_internal_vicon(VICO_COLORSET_07_VEC, vicon_colorset_draw_07);
-	def_internal_vicon(VICO_COLORSET_08_VEC, vicon_colorset_draw_08);
-	def_internal_vicon(VICO_COLORSET_09_VEC, vicon_colorset_draw_09);
-	def_internal_vicon(VICO_COLORSET_10_VEC, vicon_colorset_draw_10);
-	def_internal_vicon(VICO_COLORSET_11_VEC, vicon_colorset_draw_11);
-	def_internal_vicon(VICO_COLORSET_12_VEC, vicon_colorset_draw_12);
-	def_internal_vicon(VICO_COLORSET_13_VEC, vicon_colorset_draw_13);
-	def_internal_vicon(VICO_COLORSET_14_VEC, vicon_colorset_draw_14);
-	def_internal_vicon(VICO_COLORSET_15_VEC, vicon_colorset_draw_15);
-	def_internal_vicon(VICO_COLORSET_16_VEC, vicon_colorset_draw_16);
-	def_internal_vicon(VICO_COLORSET_17_VEC, vicon_colorset_draw_17);
-	def_internal_vicon(VICO_COLORSET_18_VEC, vicon_colorset_draw_18);
-	def_internal_vicon(VICO_COLORSET_19_VEC, vicon_colorset_draw_19);
-	def_internal_vicon(VICO_COLORSET_20_VEC, vicon_colorset_draw_20);
+	def_internal_vicon(ICON_COLORSET_01_VEC, vicon_colorset_draw_01);
+	def_internal_vicon(ICON_COLORSET_02_VEC, vicon_colorset_draw_02);
+	def_internal_vicon(ICON_COLORSET_03_VEC, vicon_colorset_draw_03);
+	def_internal_vicon(ICON_COLORSET_04_VEC, vicon_colorset_draw_04);
+	def_internal_vicon(ICON_COLORSET_05_VEC, vicon_colorset_draw_05);
+	def_internal_vicon(ICON_COLORSET_06_VEC, vicon_colorset_draw_06);
+	def_internal_vicon(ICON_COLORSET_07_VEC, vicon_colorset_draw_07);
+	def_internal_vicon(ICON_COLORSET_08_VEC, vicon_colorset_draw_08);
+	def_internal_vicon(ICON_COLORSET_09_VEC, vicon_colorset_draw_09);
+	def_internal_vicon(ICON_COLORSET_10_VEC, vicon_colorset_draw_10);
+	def_internal_vicon(ICON_COLORSET_11_VEC, vicon_colorset_draw_11);
+	def_internal_vicon(ICON_COLORSET_12_VEC, vicon_colorset_draw_12);
+	def_internal_vicon(ICON_COLORSET_13_VEC, vicon_colorset_draw_13);
+	def_internal_vicon(ICON_COLORSET_14_VEC, vicon_colorset_draw_14);
+	def_internal_vicon(ICON_COLORSET_15_VEC, vicon_colorset_draw_15);
+	def_internal_vicon(ICON_COLORSET_16_VEC, vicon_colorset_draw_16);
+	def_internal_vicon(ICON_COLORSET_17_VEC, vicon_colorset_draw_17);
+	def_internal_vicon(ICON_COLORSET_18_VEC, vicon_colorset_draw_18);
+	def_internal_vicon(ICON_COLORSET_19_VEC, vicon_colorset_draw_19);
+	def_internal_vicon(ICON_COLORSET_20_VEC, vicon_colorset_draw_20);
 
 	IMB_freeImBuf(b16buf);
 	IMB_freeImBuf(b32buf);
