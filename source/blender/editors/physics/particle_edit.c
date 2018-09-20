@@ -3522,7 +3522,7 @@ static int brush_add(PEData *data, short number)
 
 		mco[0] = data->mval[0] + dmx;
 		mco[1] = data->mval[1] + dmy;
-		ED_view3d_win_to_segment(data->vc.ar, data->vc.v3d, mco, co1, co2, true);
+		ED_view3d_win_to_segment_clipped(data->vc.ar, data->vc.v3d, mco, co1, co2, true);
 
 		mul_m4_v3(imat, co1);
 		mul_m4_v3(imat, co2);

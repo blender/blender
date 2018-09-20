@@ -367,19 +367,19 @@ bool ED_view3d_clip_segment(const RegionView3D *rv3d, float ray_start[3], float 
  * \param r_ray_co The world-space point where the ray intersects the window plane.
  * \param r_ray_normal The normalized world-space direction of towards mval.
  * \param r_ray_start The world-space starting point of the ray.
- * \param do_clip Optionally clip the start of the ray by the view clipping planes.
+ * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray_ex(
+bool ED_view3d_win_to_ray_clipped_ex(
         const ARegion *ar, const View3D *v3d, const float mval[2],
-        float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip)
+        float r_ray_co[3], float r_ray_normal[3], float r_ray_start[3], bool do_clip_planes)
 {
 	float ray_end[3];
 
 	view3d_win_to_ray_segment(ar, v3d, mval, r_ray_co, r_ray_normal, r_ray_start, ray_end);
 
 	/* bounds clipping */
-	if (do_clip) {
+	if (do_clip_planes) {
 		return ED_view3d_clip_segment(ar->regiondata, r_ray_start, ray_end);
 	}
 
@@ -396,14 +396,14 @@ bool ED_view3d_win_to_ray_ex(
  * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
  * \param r_ray_start The world-space point where the ray intersects the window plane.
  * \param r_ray_normal The normalized world-space direction of towards mval.
- * \param do_clip Optionally clip the start of the ray by the view clipping planes.
+ * \param do_clip_planes Optionally clip the start of the ray by the view clipping planes.
  * \return success, false if the ray is totally clipped.
  */
-bool ED_view3d_win_to_ray(
+bool ED_view3d_win_to_ray_clipped(
         const ARegion *ar, const View3D *v3d, const float mval[2],
-        float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
+        float r_ray_start[3], float r_ray_normal[3], const bool do_clip_planes)
 {
-	return ED_view3d_win_to_ray_ex(ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
+	return ED_view3d_win_to_ray_clipped_ex(ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip_planes);
 }
 
 /**
@@ -655,16 +655,17 @@ void ED_view3d_win_to_vector(const ARegion *ar, const float mval[2], float out[3
  * \param mval The area relative 2d location (such as event->mval, converted into float[2]).
  * \param r_ray_start The world-space starting point of the segment.
  * \param r_ray_end The world-space end point of the segment.
- * \param do_clip Optionally clip the ray by the view clipping planes.
+ * \param do_clip_planes Optionally clip the ray by the view clipping planes.
  * \return success, false if the segment is totally clipped.
  */
-bool ED_view3d_win_to_segment(const ARegion *ar, View3D *v3d, const float mval[2],
-                              float r_ray_start[3], float r_ray_end[3], const bool do_clip)
+bool ED_view3d_win_to_segment_clipped(
+        const ARegion *ar, View3D *v3d, const float mval[2],
+        float r_ray_start[3], float r_ray_end[3], const bool do_clip_planes)
 {
 	view3d_win_to_ray_segment(ar, v3d, mval, NULL, NULL, r_ray_start, r_ray_end);
 
 	/* bounds clipping */
-	if (do_clip) {
+	if (do_clip_planes) {
 		return ED_view3d_clip_segment((RegionView3D *)ar->regiondata, r_ray_start, r_ray_end);
 	}
 
