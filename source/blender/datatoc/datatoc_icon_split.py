@@ -130,7 +130,7 @@ def dice_icon_name(
             import re
 
             # Search for eg: DEF_ICON(BRUSH_NUDGE) --> BRUSH_NUDGE
-            re_icon = re.compile('^\s*DEF_ICON\(\s*([A-Za-z0-9_]+)\s*\).*$')
+            re_icon = re.compile(r'^\s*DEF_ICON\(\s*([A-Za-z0-9_]+)\s*\).*$')
 
             ui_icons_h = os.path.join(SOURCE_DIR, "source", "blender", "editors", "include", "UI_icons.h")
             with open(ui_icons_h, 'r', encoding="utf-8") as f:
