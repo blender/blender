@@ -215,6 +215,26 @@ class VIEW3D_HT_header(Header):
                 icon=act_pivot_point.icon,
                 text="",
             )
+        # grease pencil
+        if object_mode == 'GPENCIL_PAINT':
+            origin = tool_settings.gpencil_stroke_placement_view3d
+            gp_origin = \
+                tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
+
+            or_icon = getattr(gp_origin, "icon", "BLANK1")
+            or_name = getattr(gp_origin, "name", "Origin")
+            layout.popover(
+                panel="VIEW3D_PT_gpencil_origin",
+                text=or_name,
+                icon=or_icon,
+            )
+
+            row = layout.row()
+            row.enabled = context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR')
+            row.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
+
+        if object_mode == 'GPENCIL_SCULPT':
+            layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
 
         layout.separator_spacer()
 
@@ -4752,6 +4772,20 @@ class VIEW3D_PT_transform_orientations(Panel):
             row.operator("transform.delete_orientation", text="", icon='X', emboss=False)
 
 
+class VIEW3D_PT_gpencil_origin(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Origin"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Origin")
+
+        row = layout.row()
+        col = row.column()
+        col.prop(context.tool_settings, "gpencil_stroke_placement_view3d", expand=True)
+
+
 class VIEW3D_PT_overlay_gpencil_options(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -5181,6 +5215,7 @@ classes = (
     VIEW3D_PT_overlay_sculpt,
     VIEW3D_PT_pivot_point,
     VIEW3D_PT_snapping,
+    VIEW3D_PT_gpencil_origin,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,

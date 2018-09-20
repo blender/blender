@@ -184,12 +184,6 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
         elif mode == 'OBJECT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
-        elif mode in ('GPENCIL_EDIT', 'GPENCIL_WEIGHT'):
-            layout.label(text="Layer:")
-            layout.popover(
-                panel="TOPBAR_PT_gpencil_layers",
-                text=txt
-            )
         elif mode == 'GPENCIL_PAINT':
             layout.label(text="Layer:")
             layout.popover(
@@ -197,20 +191,15 @@ class TOPBAR_HT_lower_bar(Header):
                 text=txt
             )
 
-            layout.prop(context.tool_settings, "gpencil_stroke_placement_view3d", text='')
-            if context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR'):
-                layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
             layout.prop(context.tool_settings, "use_gpencil_draw_onback", text="", icon='ORTHO')
             layout.prop(context.tool_settings, "add_gpencil_weight_data", text="", icon='WPAINT_HLT')
             layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
-
-        elif mode == 'GPENCIL_SCULPT':
+        elif mode in ('GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'):
             layout.label(text="Layer:")
             layout.popover(
                 panel="TOPBAR_PT_gpencil_layers",
                 text=txt
             )
-            layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
 
 
 class _draw_left_context_mode:
