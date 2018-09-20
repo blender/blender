@@ -54,6 +54,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
@@ -65,16 +66,16 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"
-#include "BKE_cdderivedmesh.h"
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -105,9 +106,9 @@
 
 static ThreadMutex object_update_lock = BLI_MUTEX_INITIALIZER;
 
+struct Mesh;
 struct Object;
 struct Scene;
-struct DerivedMesh;
 struct SmokeModifierData;
 
 // timestep default value for nice appearance 0.1f
@@ -129,7 +130,7 @@ void smoke_initWaveletBlenderRNA(struct WTURBULENCE *UNUSED(wt), float *UNUSED(s
 void smoke_initBlenderRNA(struct FLUID_3D *UNUSED(fluid), float *UNUSED(alpha), float *UNUSED(beta), float *UNUSED(dt_factor), float *UNUSED(vorticity),
                           int *UNUSED(border_colli), float *UNUSED(burning_rate), float *UNUSED(flame_smoke), float *UNUSED(flame_smoke_color),
                           float *UNUSED(flame_vorticity), float *UNUSED(flame_ignition_temp), float *UNUSED(flame_max_temp)) {}
-struct DerivedMesh *smokeModifier_do(SmokeModifierData *UNUSED(smd), struct Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *UNUSED(ob), DerivedMesh *UNUSED(dm)) { return NULL; }
+struct Mesh *smokeModifier_do(SmokeModifierData *UNUSED(smd), struct Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *UNUSED(ob), Mesh *UNUSED(me)) { return NULL; }
 float smoke_get_velocity_at(struct Object *UNUSED(ob), float UNUSED(position[3]), float UNUSED(velocity[3])) { return 0.0f; }
 
 #endif /* WITH_SMOKE */
@@ -194,20 +195,20 @@ static void smoke_pos_to_cell(SmokeDomainSettings *sds, float pos[3])
 	pos[2] *= 1.0f / sds->cell_size[2];
 }
 
-/* set domain transformations and base resolution from object derivedmesh */
-static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *ob, DerivedMesh *dm, bool init_resolution)
+/* set domain transformations and base resolution from object mesh */
+static void smoke_set_domain_from_mesh(SmokeDomainSettings *sds, Object *ob, Mesh *me, bool init_resolution)
 {
 	size_t i;
 	float min[3] = {FLT_MAX, FLT_MAX, FLT_MAX}, max[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
 	float size[3];
-	MVert *verts = dm->getVertArray(dm);
+	MVert *verts = me->mvert;
 	float scale = 0.0;
 	int res;
 
 	res = sds->maxres;
 
 	// get BB of domain
-	for (i = 0; i < dm->getNumVerts(dm); i++)
+	for (i = 0; i < me->totvert; i++)
 	{
 		// min BB
 		min[0] = MIN2(min[0], verts[i].co[0]);
@@ -273,14 +274,14 @@ static void smoke_set_domain_from_derivedmesh(SmokeDomainSettings *sds, Object *
 	sds->cell_size[2] /= (float)sds->base_res[2];
 }
 
-static int smokeModifier_init(SmokeModifierData *smd, Object *ob, Scene *scene, DerivedMesh *dm)
+static int smokeModifier_init(SmokeModifierData *smd, Object *ob, Scene *scene, Mesh *me)
 {
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain && !smd->domain->fluid)
 	{
 		SmokeDomainSettings *sds = smd->domain;
 		int res[3];
-		/* set domain dimensions from derivedmesh */
-		smoke_set_domain_from_derivedmesh(sds, ob, dm, true);
+		/* set domain dimensions from mesh */
+		smoke_set_domain_from_mesh(sds, ob, me, true);
 		/* reset domain values */
 		zero_v3_int(sds->shift);
 		zero_v3(sds->shift_f);
@@ -376,7 +377,7 @@ static void smokeModifier_freeFlow(SmokeModifierData *smd)
 {
 	if (smd->flow)
 	{
-		if (smd->flow->dm) smd->flow->dm->release(smd->flow->dm);
+		if (smd->flow->mesh) BKE_id_free(NULL, smd->flow->mesh);
 		if (smd->flow->verts_old) MEM_freeN(smd->flow->verts_old);
 		MEM_freeN(smd->flow);
 		smd->flow = NULL;
@@ -398,9 +399,9 @@ static void smokeModifier_freeCollision(SmokeModifierData *smd)
 			}
 		}
 
-		if (smd->coll->dm)
-			smd->coll->dm->release(smd->coll->dm);
-		smd->coll->dm = NULL;
+		if (smd->coll->mesh)
+			BKE_id_free(NULL, smd->coll->mesh);
+		smd->coll->mesh = NULL;
 
 		MEM_freeN(smd->coll);
 		smd->coll = NULL;
@@ -583,7 +584,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->flow->color[1] = 0.7f;
 			smd->flow->color[2] = 0.7f;
 
-			smd->flow->dm = NULL;
+			smd->flow->mesh = NULL;
 			smd->flow->psys = NULL;
 
 		}
@@ -598,11 +599,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 			smd->coll->verts_old = NULL;
 			smd->coll->numverts = 0;
 			smd->coll->type = 0; // static obstacle
-			smd->coll->dm = NULL;
-
-#ifdef USE_SMOKE_COLLISION_DM
-			smd->coll->dm = NULL;
-#endif
+			smd->coll->mesh = NULL;
 		}
 	}
 }
@@ -743,7 +740,7 @@ typedef struct ObstaclesFromDMData {
 	int *num_obstacles;
 } ObstaclesFromDMData;
 
-static void obstacles_from_derivedmesh_task_cb(
+static void obstacles_from_mesh_task_cb(
         void *__restrict userdata,
         const int z,
         const ParallelRangeTLS *__restrict UNUSED(tls))
@@ -800,13 +797,13 @@ static void obstacles_from_derivedmesh_task_cb(
 	}
 }
 
-static void obstacles_from_derivedmesh(
+static void obstacles_from_mesh(
         Object *coll_ob, SmokeDomainSettings *sds, SmokeCollSettings *scs,
         unsigned char *obstacle_map, float *velocityX, float *velocityY, float *velocityZ, int *num_obstacles, float dt)
 {
-	if (!scs->dm) return;
+	if (!scs->mesh) return;
 	{
-		DerivedMesh *dm = NULL;
+		Mesh *me = NULL;
 		MVert *mvert = NULL;
 		const MLoopTri *looptri;
 		const MLoop *mloop;
@@ -816,12 +813,12 @@ static void obstacles_from_derivedmesh(
 		float *vert_vel = NULL;
 		bool has_velocity = false;
 
-		dm = CDDM_copy(scs->dm);
-		CDDM_calc_normals(dm);
-		mvert = dm->getVertArray(dm);
-		mloop = dm->getLoopArray(dm);
-		looptri = dm->getLoopTriArray(dm);
-		numverts = dm->getNumVerts(dm);
+		me = BKE_mesh_copy_for_eval(scs->mesh, true);
+		BKE_mesh_ensure_normals(me);
+		mvert = me->mvert;
+		mloop = me->mloop;
+		looptri = BKE_mesh_runtime_looptri_ensure(me);
+		numverts = me->totvert;
 
 		// DG TODO
 		// if (scs->type > SM_COLL_STATIC)
@@ -868,7 +865,7 @@ static void obstacles_from_derivedmesh(
 			copy_v3_v3(&scs->verts_old[i * 3], co);
 		}
 
-		if (bvhtree_from_mesh_get(&treeData, dm, BVHTREE_FROM_LOOPTRI, 4)) {
+		if (BKE_bvhtree_from_mesh_get(&treeData, me, BVHTREE_FROM_LOOPTRI, 4)) {
 			ObstaclesFromDMData data = {
 			    .sds = sds, .mvert = mvert, .mloop = mloop, .looptri = looptri,
 			    .tree = &treeData, .obstacle_map = obstacle_map,
@@ -881,12 +878,12 @@ static void obstacles_from_derivedmesh(
 			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
 			BLI_task_parallel_range(sds->res_min[2], sds->res_max[2],
 			                        &data,
-			                        obstacles_from_derivedmesh_task_cb,
+			                        obstacles_from_mesh_task_cb,
 			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
-		dm->release(dm);
+		BKE_id_free(NULL, me);
 
 		if (vert_vel) MEM_freeN(vert_vel);
 	}
@@ -946,7 +943,7 @@ static void update_obstacles(Depsgraph *depsgraph, Object *ob, SmokeDomainSettin
 		if ((smd2->type & MOD_SMOKE_TYPE_COLL) && smd2->coll)
 		{
 			SmokeCollSettings *scs = smd2->coll;
-			obstacles_from_derivedmesh(collob, sds, scs, obstacles, velx, vely, velz, num_obstacles, dt);
+			obstacles_from_mesh(collob, sds, scs, obstacles, velx, vely, velz, num_obstacles, dt);
 		}
 	}
 
@@ -1437,7 +1434,7 @@ static void emit_from_particles(
 	}
 }
 
-static void sample_derivedmesh(
+static void sample_mesh(
         SmokeFlowSettings *sfs,
         const MVert *mvert, const MLoop *mloop, const MLoopTri *mlooptri, const MLoopUV *mloopuv,
         float *influence_map, float *velocity_map, int index, const int base_res[3], float flow_center[3],
@@ -1594,7 +1591,7 @@ typedef struct EmitFromDMData {
 	int *min, *max, *res;
 } EmitFromDMData;
 
-static void emit_from_derivedmesh_task_cb(
+static void emit_from_mesh_task_cb(
         void *__restrict userdata,
         const int z,
         const ParallelRangeTLS *__restrict UNUSED(tls))
@@ -1616,7 +1613,7 @@ static void emit_from_derivedmesh_task_cb(
 				                      lx - em->min[0], em->res[0], ly - em->min[1], em->res[1], lz - em->min[2]);
 				const float ray_start[3] = {((float)lx) + 0.5f, ((float)ly) + 0.5f, ((float)lz) + 0.5f};
 
-				sample_derivedmesh(
+				sample_mesh(
 				        data->sfs, data->mvert, data->mloop, data->mlooptri, data->mloopuv,
 				        em->influence, em->velocity, index, data->sds->base_res, data->flow_center,
 				        data->tree, ray_start, data->vert_vel, data->has_velocity, data->defgrp_index, data->dvert,
@@ -1634,7 +1631,7 @@ static void emit_from_derivedmesh_task_cb(
 				                      x - data->min[0], data->res[0], y - data->min[1], data->res[1], z - data->min[2]);
 				const float ray_start[3] = {lx + 0.5f * data->hr, ly + 0.5f * data->hr, lz + 0.5f * data->hr};
 
-				sample_derivedmesh(
+				sample_mesh(
 				        data->sfs, data->mvert, data->mloop, data->mlooptri, data->mloopuv,
 				        em->influence_high, NULL, index, data->sds->base_res, data->flow_center,
 				        data->tree, ray_start, data->vert_vel, data->has_velocity, data->defgrp_index, data->dvert,
@@ -1645,14 +1642,13 @@ static void emit_from_derivedmesh_task_cb(
 	}
 }
 
-static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowSettings *sfs, EmissionMap *em, float dt)
+static void emit_from_mesh(Object *flow_ob, SmokeDomainSettings *sds, SmokeFlowSettings *sfs, EmissionMap *em, float dt)
 {
-	if (sfs->dm) {
-		DerivedMesh *dm;
+	if (sfs->mesh) {
+		Mesh *me;
 		int defgrp_index = sfs->vgroup_density - 1;
 		MDeformVert *dvert = NULL;
 		MVert *mvert = NULL;
-		MVert *mvert_orig = NULL;
 		const MLoopTri *mlooptri = NULL;
 		const MLoopUV *mloopuv = NULL;
 		const MLoop *mloop = NULL;
@@ -1665,19 +1661,24 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 		int min[3], max[3], res[3];
 		int hires_multiplier = 1;
 
-		/* copy derivedmesh for thread safety because we modify it,
+		/* copy mesh for thread safety because we modify it,
 		 * main issue is its VertArray being modified, then replaced and freed
 		 */
-		dm = CDDM_copy(sfs->dm);
+		me = BKE_mesh_copy_for_eval(sfs->mesh, true);
 
-		CDDM_calc_normals(dm);
-		mvert = dm->getVertArray(dm);
-		mvert_orig = dm->dupVertArray(dm);  /* copy original mvert and restore when done */
-		numOfVerts = dm->getNumVerts(dm);
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
-		mloopuv = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV, sfs->uvlayer_name);
-		mloop = dm->getLoopArray(dm);
-		mlooptri = dm->getLoopTriArray(dm);
+		/* Duplicate vertices to modify. */
+		if (me->mvert) {
+			me->mvert = MEM_dupallocN(me->mvert);
+			CustomData_set_layer(&me->vdata, CD_MVERT, me->mvert);
+		}
+
+		BKE_mesh_ensure_normals(me);
+		mvert = me->mvert;
+		numOfVerts = me->totvert;
+		dvert = CustomData_get_layer(&me->vdata, CD_MDEFORMVERT);
+		mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, sfs->uvlayer_name);
+		mloop = me->mloop;
+		mlooptri = BKE_mesh_runtime_looptri_ensure(me);
 
 		if (sfs->flags & MOD_SMOKE_FLOW_INITVELOCITY) {
 			vert_vel = MEM_callocN(sizeof(float) * numOfVerts * 3, "smoke_flow_velocity");
@@ -1692,7 +1693,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			}
 		}
 
-		/*	Transform dm vertices to
+		/*	Transform mesh vertices to
 		 *   domain grid space for fast lookups */
 		for (i = 0; i < numOfVerts; i++) {
 			float n[3];
@@ -1738,7 +1739,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			res[i] = em->res[i] * hires_multiplier;
 		}
 
-		if (bvhtree_from_mesh_get(&treeData, dm, BVHTREE_FROM_LOOPTRI, 4)) {
+		if (BKE_bvhtree_from_mesh_get(&treeData, me, BVHTREE_FROM_LOOPTRI, 4)) {
 			const float hr = 1.0f / ((float)hires_multiplier);
 
 			EmitFromDMData data = {
@@ -1755,23 +1756,20 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			settings.scheduling_mode = TASK_SCHEDULING_DYNAMIC;
 			BLI_task_parallel_range(min[2], max[2],
 			                        &data,
-			                        emit_from_derivedmesh_task_cb,
+			                        emit_from_mesh_task_cb,
 			                        &settings);
 		}
 		/* free bvh tree */
 		free_bvhtree_from_mesh(&treeData);
-		/* restore original mverts */
-		CustomData_set_layer(&dm->vertData, CD_MVERT, mvert_orig);
 
-		if (mvert) {
-			MEM_freeN(mvert);
-		}
 		if (vert_vel) {
 			MEM_freeN(vert_vel);
 		}
 
-		dm->needsFree = 1;
-		dm->release(dm);
+		if (me->mvert) {
+			MEM_freeN(me->mvert);
+		}
+		BKE_id_free(NULL, me);
 	}
 }
 
@@ -2175,7 +2173,7 @@ static void update_flowsfluids(
 					emit_from_particles(collob, sds, sfs, em, scene, dt);
 				}
 				else {
-					emit_from_derivedmesh(collob, sds, sfs, em, dt);
+					emit_from_mesh(collob, sds, sfs, em, dt);
 				}
 			}
 			/* sample subframes */
@@ -2219,7 +2217,7 @@ static void update_flowsfluids(
 						BLI_mutex_unlock(&object_update_lock);
 
 						/* apply flow */
-						emit_from_derivedmesh(collob, sds, sfs, &em_temp, sdt);
+						emit_from_mesh(collob, sds, sfs, &em_temp, sdt);
 					}
 
 					/* combine emission maps */
@@ -2563,7 +2561,7 @@ static void update_effectors(struct Depsgraph *depsgraph, Scene *scene, Object *
 
 static void step(
         Depsgraph *depsgraph,
-        Scene *scene, Object *ob, SmokeModifierData *smd, DerivedMesh *domain_dm, float fps)
+        Scene *scene, Object *ob, SmokeModifierData *smd, Mesh *domain_me, float fps)
 {
 	SmokeDomainSettings *sds = smd->domain;
 	/* stability values copied from wturbulence.cpp */
@@ -2591,7 +2589,7 @@ static void step(
 	/* update object state */
 	invert_m4_m4(sds->imat, ob->obmat);
 	copy_m4_m4(sds->obmat, ob->obmat);
-	smoke_set_domain_from_derivedmesh(sds, ob, domain_dm, (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) != 0);
+	smoke_set_domain_from_mesh(sds, ob, domain_me, (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN) != 0);
 
 	/* use global gravity if enabled */
 	if (scene->physics_settings.flag & PHYS_GLOBAL_GRAVITY) {
@@ -2643,9 +2641,9 @@ static void step(
 	}
 }
 
-static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
+static Mesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	MVert *mverts;
 	MPoly *mpolys;
 	MLoop *mloops;
@@ -2667,11 +2665,10 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 		num_faces = 0;
 	}
 
-	result = CDDM_new(num_verts, 0, 0, num_faces * 4, num_faces);
-	mverts = CDDM_get_verts(result);
-	mpolys = CDDM_get_polys(result);
-	mloops = CDDM_get_loops(result);
-
+	result = BKE_mesh_new_nomain(num_verts, 0, 0, num_faces * 4, num_faces);
+	mverts = result->mvert;
+	mpolys = result->mpoly;
+	mloops = result->mloop;
 
 	if (num_verts) {
 		/* volume bounds */
@@ -2724,22 +2721,21 @@ static DerivedMesh *createDomainGeometry(SmokeDomainSettings *sds, Object *ob)
 		}
 	}
 
-
-	CDDM_calc_edges(result);
-	result->dirty |= DM_DIRTY_NORMALS;
+	BKE_mesh_calc_edges(result, false, false);
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	return result;
 }
 
 static void smokeModifier_process(
-        SmokeModifierData *smd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm)
+        SmokeModifierData *smd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
 	if ((smd->type & MOD_SMOKE_TYPE_FLOW))
 	{
 		if (scene->r.cfra >= smd->time)
-			smokeModifier_init(smd, ob, scene, dm);
+			smokeModifier_init(smd, ob, scene, me);
 
-		if (smd->flow->dm) smd->flow->dm->release(smd->flow->dm);
-		smd->flow->dm = CDDM_copy(dm);
+		if (smd->flow->mesh) BKE_id_free(NULL, smd->flow->mesh);
+		smd->flow->mesh = BKE_mesh_copy_for_eval(me, false);
 
 		if (scene->r.cfra > smd->time)
 		{
@@ -2754,14 +2750,14 @@ static void smokeModifier_process(
 	else if (smd->type & MOD_SMOKE_TYPE_COLL)
 	{
 		if (scene->r.cfra >= smd->time)
-			smokeModifier_init(smd, ob, scene, dm);
+			smokeModifier_init(smd, ob, scene, me);
 
 		if (smd->coll)
 		{
-			if (smd->coll->dm)
-				smd->coll->dm->release(smd->coll->dm);
+			if (smd->coll->mesh)
+				BKE_id_free(NULL, smd->coll->mesh);
 
-			smd->coll->dm = CDDM_copy(dm);
+			smd->coll->mesh = BKE_mesh_copy_for_eval(me, false);
 		}
 
 		smd->time = scene->r.cfra;
@@ -2804,7 +2800,7 @@ static void smokeModifier_process(
 		if ((smd->time == framenr) && (framenr != scene->r.cfra))
 			return;
 
-		if (smokeModifier_init(smd, ob, scene, dm) == 0)
+		if (smokeModifier_init(smd, ob, scene, me) == 0)
 		{
 			printf("bad smokeModifier_init\n");
 			return;
@@ -2852,7 +2848,7 @@ static void smokeModifier_process(
 
 			}
 
-			step(depsgraph, scene, ob, smd, dm, scene->r.frs_sec / scene->r.frs_sec_base);
+			step(depsgraph, scene, ob, smd, me, scene->r.frs_sec / scene->r.frs_sec_base);
 		}
 
 		// create shadows before writing cache so they get stored
@@ -2873,14 +2869,14 @@ static void smokeModifier_process(
 	}
 }
 
-struct DerivedMesh *smokeModifier_do(
-        SmokeModifierData *smd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm)
+struct Mesh *smokeModifier_do(
+        SmokeModifierData *smd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me)
 {
 	/* lock so preview render does not read smoke data while it gets modified */
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_lock(smd->domain->fluid_mutex, THREAD_LOCK_WRITE);
 
-	smokeModifier_process(smd, depsgraph, scene, ob, dm);
+	smokeModifier_process(smd, depsgraph, scene, ob, me);
 
 	if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
 		BLI_rw_mutex_unlock(smd->domain->fluid_mutex);
@@ -2893,7 +2889,7 @@ struct DerivedMesh *smokeModifier_do(
 		return createDomainGeometry(smd->domain, ob);
 	}
 	else {
-		return CDDM_copy(dm);
+		return BKE_mesh_copy_for_eval(me, false);
 	}
 }
 

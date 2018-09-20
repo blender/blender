@@ -105,21 +105,19 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier_DM(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *me)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
 	if (ctx->flag & MOD_APPLY_ORCO) {
-		return dm;
+		return me;
 	}
 
 	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, dm);
+	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, me);
 }
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {

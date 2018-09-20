@@ -314,7 +314,7 @@ Mesh *get_multires_mesh(
 	Mesh *result = mti->applyModifier(&mmd->modifier, &modifier_ctx, deformed_mesh);
 
 	if (result == deformed_mesh) {
-		result = BKE_mesh_copy_for_eval(deformed_mesh);
+		result = BKE_mesh_copy_for_eval(deformed_mesh, true);
 	}
 	return result;
 }

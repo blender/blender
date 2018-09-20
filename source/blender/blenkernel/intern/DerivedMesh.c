@@ -1287,7 +1287,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
 		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 	}
 	else {
-		mesh = BKE_mesh_copy_for_eval(me);
+		mesh = BKE_mesh_copy_for_eval(me, true);
 	}
 
 	orco = get_orco_coords_dm(ob, em, layer, &free);
@@ -2079,7 +2079,7 @@ static void mesh_calc_modifiers(
 		 * coordinates (vpaint, etc.)
 		 */
 		if (r_deform_mesh) {
-			*r_deform_mesh = BKE_mesh_copy_for_eval(me);
+			*r_deform_mesh = BKE_mesh_copy_for_eval(me, true);
 
 			/* XXX: Is build_shapekey_layers ever even true? This should have crashed long ago... */
 			BLI_assert(!build_shapekey_layers);
@@ -2219,7 +2219,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 			else {
-				mesh = BKE_mesh_copy_for_eval(me);
+				mesh = BKE_mesh_copy_for_eval(me, true);
 				ASSERT_IS_VALID_MESH(mesh);
 
 				// XXX: port to Mesh if build_shapekey_layers can ever be true
@@ -2388,7 +2388,7 @@ static void mesh_calc_modifiers(
 #endif
 	}
 	else {
-		final_mesh = BKE_mesh_copy_for_eval(me);
+		final_mesh = BKE_mesh_copy_for_eval(me, true);
 
 		//if (build_shapekey_layers) {
 		//	add_shapekey_layers(final_mesh, me, ob);

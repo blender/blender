@@ -250,7 +250,7 @@ typedef struct SmokeDomainSettings {
 
 typedef struct SmokeFlowSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
-	struct DerivedMesh *dm;
+	struct Mesh *mesh;
 	struct ParticleSystem *psys;
 	struct Tex *noise_texture;
 
@@ -290,7 +290,7 @@ typedef struct SmokeFlowSettings {
 /* collision objects (filled with smoke) */
 typedef struct SmokeCollSettings {
 	struct SmokeModifierData *smd; /* for fast RNA access */
-	struct DerivedMesh *dm;
+	struct Mesh *mesh;
 	float *verts_old;
 	int numverts;
 	short type; // static = 0, rigid = 1, dynamic = 2

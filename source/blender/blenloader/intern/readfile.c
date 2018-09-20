@@ -5198,7 +5198,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
 				smd->flow->smd = smd;
-				smd->flow->dm = NULL;
+				smd->flow->mesh = NULL;
 				smd->flow->verts_old = NULL;
 				smd->flow->numverts = 0;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
@@ -5211,7 +5211,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					smd->coll->smd = smd;
 					smd->coll->verts_old = NULL;
 					smd->coll->numverts = 0;
-					smd->coll->dm = NULL;
+					smd->coll->mesh = NULL;
 				}
 				else {
 					smd->type = 0;
