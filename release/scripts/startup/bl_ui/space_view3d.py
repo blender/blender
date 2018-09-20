@@ -99,10 +99,6 @@ class VIEW3D_HT_header(Header):
 
             if gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)
-                row.operator("gpencil.copy", text="", icon='COPYDOWN')
-                row.operator("gpencil.paste", text="", icon='PASTEDOWN')
-
-                row = layout.row(align=True)
                 row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
 
                 row.popover(
