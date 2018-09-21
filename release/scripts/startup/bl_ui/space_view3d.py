@@ -3801,7 +3801,8 @@ class VIEW3D_MT_shading_pie(Menu):
 
         view = context.space_data
 
-        pie.prop(view.shading, "type", expand=True)
+        pie.prop_enum(view.shading, "type", value='WIREFRAME')
+        pie.prop_enum(view.shading, "type", value='SOLID')
 
         if context.mode == 'POSE':
             pie.prop(view.overlay, "show_bone_select", icon='ORTHO')
@@ -3815,9 +3816,11 @@ class VIEW3D_MT_shading_pie(Menu):
                 sub = pie.row()
                 sub.active = False
 
-            sub.prop(view.shading, "show_xray", icon='ORTHO')
+            sub.prop(view.shading, "show_xray", text="Toggle X-Ray", icon='ORTHO')
 
-        pie.prop(view.overlay, "show_overlays", icon='OVERLAY')
+        pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
+        pie.prop_enum(view.shading, "type", value='MATERIAL')
+        pie.prop_enum(view.shading, "type", value='RENDERED')
 
 
 # ********** Panel **********
