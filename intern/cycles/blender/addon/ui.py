@@ -1547,6 +1547,7 @@ class CYCLES_MATERIAL_PT_displacement(CyclesButtonsPanel, Panel):
 class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
     bl_label = "Settings"
     bl_context = "material"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
