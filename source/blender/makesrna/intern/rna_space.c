@@ -310,10 +310,10 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
-	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Lock", "Use current drawing locked axis" },
-	{V3D_GP_GRID_AXIS_X, "X", 0, "X", ""},
-	{V3D_GP_GRID_AXIS_Y, "Y", 0, "Y", ""},
-	{V3D_GP_GRID_AXIS_Z, "Z", 0, "Z", ""},
+	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
+	{V3D_GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
+	{V3D_GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
+	{V3D_GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -2865,7 +2865,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "gpencil_grid_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "overlay.gpencil_grid_axis");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
-	RNA_def_property_ui_text(prop, "Axis", "Axis to display grid");
+	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
