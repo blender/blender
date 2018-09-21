@@ -176,7 +176,40 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Edge
  * \{ */
 
-/* EDGE GROUP */
+
+/**
+ * Note: This is not normal, but the edge direction itself and always in
+ * a positive quadrant (tries z, y then x).
+ * Therefore we need to use the entire object transformation matrix.
+ */
+static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r_dir)
+{
+	float v1[3], v2[3];
+	copy_v3_v3(v1, edge->v1->co);
+	copy_v3_v3(v2, edge->v2->co);
+
+	mul_m4_v3(ob->obmat, v1);
+	mul_m4_v3(ob->obmat, v2);
+
+	sub_v3_v3v3(r_dir, v1, v2);
+	normalize_v3(r_dir);
+
+	/* Make sure we have a consistent direction that can be checked regardless of
+	 * the verts order of the edges. This spares us from storing dir and -dir in the tree. */
+	if (fabs(r_dir[2]) < FLT_EPSILON) {
+		if (fabs(r_dir[1]) < FLT_EPSILON) {
+			if (r_dir[0] < 0.0f) {
+				mul_v3_fl(r_dir, -1.0f);
+			}
+		}
+		else if (r_dir[1] < 0.0f) {
+			mul_v3_fl(r_dir, -1.0f);
+		}
+	}
+	else if (r_dir[2] < 0.0f) {
+		mul_v3_fl(r_dir, -1.0f);
+	}
+}
 
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
@@ -185,12 +218,12 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
-	//const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
 	         SIMEDGE_LENGTH,
-	         SIMEDGE_DIR,
 	         SIMEDGE_FACE_ANGLE,
 	         SIMEDGE_CREASE,
 	         SIMEDGE_BEVEL,
@@ -221,14 +254,19 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	KDTree *tree = NULL;
 	GSet *gset = NULL;
 
 	switch (type) {
+		case SIMEDGE_DIR:
+			tree = BLI_kdtree_new(tot_edges_selected_all);
+			break;
 		case SIMEDGE_FACE:
 			gset = BLI_gset_ptr_new("Select similar edge: face");
 			break;
 	}
 
+	int tree_index = 0;
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -247,9 +285,20 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_FACE:
 						BLI_gset_add(gset, POINTER_FROM_INT(BM_edge_face_count(edge)));
 						break;
+					case SIMEDGE_DIR:
+					{
+						float dir[3];
+						edge_pos_direction_worldspace_get(ob, edge, dir);
+						BLI_kdtree_insert(tree, tree_index++, dir);
+						break;
+					}
 				}
 			}
 		}
+	}
+
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -279,6 +328,22 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMEDGE_DIR:
+					{
+						float dir[3];
+						edge_pos_direction_worldspace_get(ob, edge, dir);
+
+						/* We are treating the direction as coordinates, the "nearest" one will
+						 * also be the one closest to the intended direction. */
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+							if (angle_normalized_v3v3(dir, nearest.co) <= thresh_radians) {
+								BM_edge_select_set(bm, edge, true);
+								changed = true;
+							}
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -290,7 +355,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
-
+	BLI_kdtree_free(tree);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
