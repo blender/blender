@@ -43,6 +43,31 @@ struct DMFlagMat;
 struct Mesh;
 struct Subdiv;
 
+/* =============================================================================
+ * Masks.
+ */
+
+/* Functor which evaluates mask value at a given (u, v) of given ptex face. */
+typedef struct SubdivCCGMask {
+	float (*eval_mask)(struct SubdivCCGMask *mask,
+	                   const int ptex_face_index,
+	                   const float u, const float v);
+
+	/* Free the data, not the evaluator itself. */
+	void (*free)(struct SubdivCCGMask *mask);
+
+	void *user_data;
+} SubdivCCGMask;
+
+/* Return true if mesh has mask and evaluator can be used. */
+bool BKE_subdiv_ccg_mask_init_from_paint(
+        SubdivCCGMask *mask_evaluator,
+        const struct Mesh *mesh);
+
+/* =============================================================================
+ * SubdivCCG.
+ */
+
 typedef struct SubdivToCCGSettings {
 	/* Resolution at which regular ptex (created for quad polygon) are being
 	 * evaluated. This defines how many vertices final mesh will have: every
@@ -190,7 +215,8 @@ typedef struct SubdivCCG {
  */
 struct SubdivCCG *BKE_subdiv_to_ccg(
         struct Subdiv *subdiv,
-        const SubdivToCCGSettings *settings);
+        const SubdivToCCGSettings *settings,
+        SubdivCCGMask *mask_evaluator);
 
 /* Destroy CCG representation of subdivision surface. */
 void BKE_subdiv_ccg_destroy(SubdivCCG *subdiv_ccg);

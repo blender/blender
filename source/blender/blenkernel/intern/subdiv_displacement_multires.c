@@ -420,7 +420,7 @@ void BKE_subdiv_displacement_attach_from_multires(
         const Mesh *mesh,
         const MultiresModifierData *mmd)
 {
-	/* Make sure we dont' have previously assigned displacement. */
+	/* Make sure we don't have previously assigned displacement. */
 	BKE_subdiv_displacement_detach(subdiv);
 	/* Allocate all required memory. */
 	SubdivDisplacement *displacement = MEM_callocN(sizeof(SubdivDisplacement),

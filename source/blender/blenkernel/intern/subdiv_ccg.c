@@ -183,6 +183,7 @@ typedef struct CCGEvalGridsData {
 	SubdivCCG *subdiv_ccg;
 	Subdiv *subdiv;
 	int *face_ptex_offset;
+	SubdivCCGMask *mask_evaluator;
 } CCGEvalGridsData;
 
 static void subdiv_ccg_eval_grid_element(
@@ -206,6 +207,16 @@ static void subdiv_ccg_eval_grid_element(
 	else {
 		BKE_subdiv_eval_limit_point(
 		        subdiv, ptex_face_index, u, v, (float *)element);
+	}
+	if (subdiv_ccg->has_mask) {
+		float *mask_value_ptr = (float *)(element + subdiv_ccg->mask_offset);
+		if (data->mask_evaluator != NULL) {
+			*mask_value_ptr = data->mask_evaluator->eval_mask(
+			        data->mask_evaluator, ptex_face_index, u, v);
+		}
+		else {
+			*mask_value_ptr = 0;
+		}
 	}
 }
 
@@ -320,7 +331,8 @@ static void subdiv_ccg_eval_grids_task(
 
 static bool subdiv_ccg_evaluate_grids(
         SubdivCCG *subdiv_ccg,
-        Subdiv *subdiv)
+        Subdiv *subdiv,
+        SubdivCCGMask *mask_evaluator)
 {
 	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
@@ -329,6 +341,7 @@ static bool subdiv_ccg_evaluate_grids(
 	data.subdiv_ccg = subdiv_ccg;
 	data.subdiv = subdiv;
 	data.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+	data.mask_evaluator = mask_evaluator;
 	/* Threaded grids evaluation. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
@@ -626,7 +639,8 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
 
 SubdivCCG *BKE_subdiv_to_ccg(
         Subdiv *subdiv,
-        const SubdivToCCGSettings *settings)
+        const SubdivToCCGSettings *settings,
+        SubdivCCGMask *mask_evaluator)
 {
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 	SubdivCCG *subdiv_ccg = MEM_callocN(sizeof(SubdivCCG), "subdiv ccg");
@@ -638,7 +652,7 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	subdiv_ccg_alloc_elements(subdiv_ccg, subdiv);
 	subdiv_ccg_init_faces(subdiv_ccg);
 	subdiv_ccg_init_faces_neighborhood(subdiv_ccg);
-	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv)) {
+	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv, mask_evaluator)) {
 		BKE_subdiv_ccg_destroy(subdiv_ccg);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 		return NULL;
@@ -660,7 +674,14 @@ Mesh *BKE_subdiv_to_ccg_mesh(
 		}
 	}
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(subdiv, settings);
+	SubdivCCGMask mask_evaluator;
+	bool has_mask = BKE_subdiv_ccg_mask_init_from_paint(
+        &mask_evaluator, coarse_mesh);
+	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(
+	    subdiv, settings, has_mask ? &mask_evaluator : NULL);
+	if (has_mask) {
+		mask_evaluator.free(&mask_evaluator);
+	}
 	if (subdiv_ccg == NULL) {
 		return NULL;
 	}
