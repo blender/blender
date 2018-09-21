@@ -826,7 +826,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float val
 
 /*********************** Generics ********************************/
 
-void initTransDataContainers_FromObjectData(TransInfo *t);
+void initTransDataContainers_FromObjectData(TransInfo *t, struct Object *obact, struct Object **objects, uint objects_len);
 void initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
 void freeTransCustomDataForMode(TransInfo *t);
 void postTrans(struct bContext *C, TransInfo *t);

@@ -1097,19 +1097,8 @@ static short pose_grab_with_ik(Main *bmain, Object *ob)
 /**
  * When objects array is NULL, use 't->data_container' as is.
  */
-static void createTransPose(TransInfo *t, Object **objects, uint objects_len)
+static void createTransPose(TransInfo *t)
 {
-	if (objects != NULL) {
-		if (t->data_container) {
-			MEM_freeN(t->data_container);
-		}
-		t->data_container = MEM_callocN(sizeof(*t->data_container) * objects_len, __func__);
-		t->data_container_len = objects_len;
-		int th_index;
-		FOREACH_TRANS_DATA_CONTAINER_INDEX (t, tc, th_index) {
-			tc->poseobj = objects[th_index];
-		}
-	}
 	Main *bmain = CTX_data_main(t->context);
 
 	t->data_len_all = 0;
@@ -8440,7 +8429,7 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->options & CTX_EDGE) {
 		/* Multi object editing. */
-		initTransDataContainers_FromObjectData(t);
+		initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			tc->data_ext = NULL;
 		}
@@ -8490,7 +8479,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 		else if (t->obedit_type == OB_MESH) {
 
-			initTransDataContainers_FromObjectData(t);
+			initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 			createTransUVs(C, t);
 			countAndCleanTransDataContainer(t);
 
@@ -8579,7 +8568,7 @@ void createTransData(bContext *C, TransInfo *t)
 	}
 	else if (t->obedit_type != -1) {
 		/* Multi object editing. */
-		initTransDataContainers_FromObjectData(t);
+		initTransDataContainers_FromObjectData(t, ob, NULL, 0);
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 			tc->data_ext = NULL;
@@ -8643,8 +8632,8 @@ void createTransData(bContext *C, TransInfo *t)
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 
 		/* Multi object editing. */
-		initTransDataContainers_FromObjectData(t);
-		createTransPose(t, NULL, 0);
+		initTransDataContainers_FromObjectData(t, ob, NULL, 0);
+		createTransPose(t);
 		countAndCleanTransDataContainer(t);
 	}
 	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
@@ -8658,7 +8647,8 @@ void createTransData(bContext *C, TransInfo *t)
 					Object *objects[1];
 					objects[0] = ob_armature;
 					uint objects_len = 1;
-					createTransPose(t, objects, objects_len);
+					initTransDataContainers_FromObjectData(t, ob_armature, objects, objects_len);
+					createTransPose(t);
 					countAndCleanTransDataContainer(t);
 				}
 			}
