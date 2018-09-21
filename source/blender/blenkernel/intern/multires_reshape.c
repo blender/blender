@@ -150,7 +150,6 @@ static void multires_reshape_init_mmd_top_level(
 
 typedef struct MultiresReshapeContext {
 	Subdiv *subdiv;
-	Object *object;
 	const Mesh *coarse_mesh;
 	MDisps *mdisps;
 	GridPaintMask *grid_paint_mask;
@@ -803,7 +802,6 @@ static bool multires_reshape_from_vertcos(
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
 	MultiresReshapeFromDeformedVertsContext reshape_deformed_verts_ctx = {
 	        .reshape_ctx = {
-	                .object = object,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
 					.grid_paint_mask = NULL,
@@ -1088,7 +1086,6 @@ bool multiresModifier_reshapeFromCCG(
 	ReshapeFromCCGTaskData data = {
 	        .reshape_ctx = {
 	                .subdiv = subdiv,
-	                .object = object,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps  = mdisps,
 	                .grid_paint_mask = grid_paint_mask,
