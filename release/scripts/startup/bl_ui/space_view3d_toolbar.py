@@ -22,6 +22,7 @@ from bpy.types import Menu, Panel, UIList
 from .properties_grease_pencil_common import (
     GreasePencilStrokeEditPanel,
     GreasePencilStrokeSculptPanel,
+    GreasePencilSculptOptionsPanel,
     GreasePencilAppearancePanel,
 )
 from .properties_paint_common import (
@@ -1703,7 +1704,7 @@ class VIEW3D_PT_tools_grease_pencil_interpolate(Panel):
 class VIEW3D_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, View3DPanel, Panel):
     bl_context = ".greasepencil_sculpt"
     bl_category = "Tools"
-    bl_label = "Sculpt Strokes"
+    bl_label = "Brush"
 
 
 # Grease Pencil weight painting tools
@@ -1741,6 +1742,12 @@ class VIEW3D_PT_tools_grease_pencil_paint_appearance(GreasePencilAppearancePanel
 class VIEW3D_PT_tools_grease_pencil_sculpt_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
     bl_context = ".greasepencil_sculpt"
     bl_label = "Appearance"
+
+
+class VIEW3D_PT_tools_grease_pencil_sculpt_options(GreasePencilSculptOptionsPanel, View3DPanel, Panel):
+    bl_context = ".greasepencil_sculpt"
+    bl_label = "Sculpt Strokes"
+    bl_parent_id = 'VIEW3D_PT_tools_grease_pencil_sculpt'
 
 
 class VIEW3D_PT_tools_grease_pencil_weight_appearance(GreasePencilAppearancePanel, View3DPanel, Panel):
@@ -1796,6 +1803,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_sculpt,
     VIEW3D_PT_tools_grease_pencil_weight_paint,
     VIEW3D_PT_tools_grease_pencil_paint_appearance,
+    VIEW3D_PT_tools_grease_pencil_sculpt_options,
     VIEW3D_PT_tools_grease_pencil_sculpt_appearance,
     VIEW3D_PT_tools_grease_pencil_weight_appearance,
     VIEW3D_PT_tools_grease_pencil_interpolate,

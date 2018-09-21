@@ -259,6 +259,33 @@ class GreasePencilStrokeSculptPanel:
 
         layout.prop(brush, "use_falloff")
 
+        if tool in {'THICKNESS', 'PINCH', 'TWIST'}:
+            col = layout.column()
+            col.separator()
+            col.row().prop(brush, "direction", expand=True)
+
+
+
+class GreasePencilSculptOptionsPanel:
+    bl_label = "Sculpt Strokes"
+
+    @classmethod
+    def poll(cls, context):
+        settings = context.tool_settings.gpencil_sculpt
+        tool = settings.tool
+
+        return bool(tool in {'SMOOTH', 'RANDOMIZE', 'SMOOTH'})
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        settings = context.tool_settings.gpencil_sculpt
+        tool = settings.tool
+        brush = settings.brush
+
         if tool in {'SMOOTH', 'RANDOMIZE'}:
             layout.prop(settings, "affect_position", text="Affect Position")
             layout.prop(settings, "affect_strength", text="Affect Strength")
@@ -268,9 +295,6 @@ class GreasePencilStrokeSculptPanel:
                 layout.prop(brush, "affect_pressure")
 
             layout.prop(settings, "affect_uv", text="Affect UV")
-
-        if tool in {'THICKNESS', 'PINCH', 'TWIST'}:
-            layout.prop(brush, "direction", expand=True)
 
 
 # GP Object Tool Settings
