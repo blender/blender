@@ -1401,7 +1401,7 @@ class _defs_gpencil_sculpt:
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="")
 
-            if tool in {'THICKNESS', 'PINCH', 'TWIST'}:
+            if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
                 row.separator()
                 row.prop(brush, "direction", expand=True, text="")
 

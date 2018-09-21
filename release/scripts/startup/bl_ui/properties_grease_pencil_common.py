@@ -259,7 +259,7 @@ class GreasePencilStrokeSculptPanel:
 
         layout.prop(brush, "use_falloff")
 
-        if tool in {'THICKNESS', 'PINCH', 'TWIST'}:
+        if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
             col = layout.column()
             col.separator()
             col.row().prop(brush, "direction", expand=True)
@@ -335,11 +335,13 @@ class GreasePencilAppearancePanel:
         elif ob.mode in {'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             settings = context.tool_settings.gpencil_sculpt
             brush = settings.brush
+            tool = settings.tool
 
             col = layout.column(align=True)
             col.prop(brush, "use_cursor", text="Show Brush")
             col.row().prop(brush, "cursor_color_add", text="Add")
-            col.row().prop(brush, "cursor_color_sub", text="Subtract")
+            if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
+                col.row().prop(brush, "cursor_color_sub", text="Subtract")
 
 
 class GPENCIL_MT_pie_tool_palette(Menu):
