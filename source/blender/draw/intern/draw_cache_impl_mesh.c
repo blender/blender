@@ -1646,6 +1646,7 @@ typedef struct MeshBatchCache {
 	int vert_len;
 	int mat_len;
 	bool is_editmode;
+	int vertex_group_index;
 
 	/* XXX, only keep for as long as sculpt mode uses shaded drawing. */
 	bool is_sculpt_points_tag;
@@ -1721,6 +1722,7 @@ static void mesh_batch_cache_init(Mesh *me)
 
 	cache->is_maybe_dirty = false;
 	cache->is_dirty = false;
+	cache->vertex_group_index = -1;
 }
 
 static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
@@ -1730,6 +1732,15 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 		mesh_batch_cache_init(me);
 	}
 	return me->runtime.batch_cache;
+}
+
+static MeshBatchCache *mesh_batch_cache_get__check_vertex_group(Mesh *me, int defgroup)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	if (cache->vertex_group_index != defgroup) {
+		cache->is_dirty = true;
+	}
+	return mesh_batch_cache_get(me);
 }
 
 static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
@@ -3857,7 +3868,7 @@ GPUBatch *DRW_mesh_batch_cache_get_loose_edges_with_normals(Mesh *me)
 
 GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, int defgroup)
 {
-	MeshBatchCache *cache = mesh_batch_cache_get(me);
+	MeshBatchCache *cache = mesh_batch_cache_get__check_vertex_group(me, defgroup);
 
 	if (cache->triangles_with_weights == NULL) {
 		const bool use_hide = (me->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL)) != 0;
@@ -3867,6 +3878,7 @@ GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(Mesh *me, 
 
 		cache->triangles_with_weights = GPU_batch_create_ex(
 		        GPU_PRIM_TRIS, mesh_create_tri_weights(rdata, use_hide, defgroup), NULL, GPU_BATCH_OWNS_VBO);
+		cache->vertex_group_index = defgroup;
 
 		GPUVertBuf *vbo_tris = use_hide ?
 		        mesh_create_tri_pos_and_normals_visible_only(rdata) :
