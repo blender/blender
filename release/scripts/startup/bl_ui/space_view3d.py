@@ -3797,18 +3797,27 @@ class VIEW3D_MT_shading_pie(Menu):
 
     def draw(self, context):
         layout = self.layout
+        pie = layout.menu_pie()
 
         view = context.space_data
 
-        pie = layout.menu_pie()
         pie.prop(view.shading, "type", expand=True)
-        pie.prop(view.overlay, "show_overlays", icon='OVERLAY')
+
         if context.mode == 'POSE':
             pie.prop(view.overlay, "show_bone_select", icon='ORTHO')
-        elif context.mode == 'EDIT_MESH':
-            pie.prop(view.shading, "show_xray", icon='ORTHO')
-        elif view.shading.type in {'SOLID', 'WIREFRAME'}:
-            pie.prop(view.shading, "show_xray", icon='ORTHO')
+        else:
+            xray_active = (context.mode in 'EDIT_MESH') or \
+                          (view.shading.type in {'SOLID', 'WIREFRAME'})
+
+            if xray_active:
+                sub = pie
+            else:
+                sub = pie.row()
+                sub.active = False
+
+            sub.prop(view.shading, "show_xray", icon='ORTHO')
+
+        pie.prop(view.overlay, "show_overlays", icon='OVERLAY')
 
 
 # ********** Panel **********
