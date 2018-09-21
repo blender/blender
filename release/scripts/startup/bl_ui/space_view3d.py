@@ -3792,6 +3792,25 @@ class VIEW3D_MT_view_pie(Menu):
         pie.operator("view3d.view_selected", text="View Selected", icon='ZOOM_SELECTED')
 
 
+class VIEW3D_MT_shading_pie(Menu):
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+
+        pie = layout.menu_pie()
+        pie.prop(view.shading, "type", expand=True)
+        pie.prop(view.overlay, "show_overlays", icon='OVERLAY')
+        if context.mode == 'POSE':
+            pie.prop(view.overlay, "show_bone_select", icon='ORTHO')
+        elif context.mode == 'EDIT_MESH':
+            pie.prop(view.shading, "show_xray", icon='ORTHO')
+        elif view.shading.type in {'SOLID', 'WIREFRAME'}:
+            pie.prop(view.shading, "show_xray", icon='ORTHO')
+
+
 # ********** Panel **********
 
 
@@ -5195,6 +5214,7 @@ classes = (
     VIEW3D_MT_edit_gpencil_interpolate,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
+    VIEW3D_MT_shading_pie,
     VIEW3D_PT_view3d_properties,
     VIEW3D_PT_view3d_camera_lock,
     VIEW3D_PT_view3d_cursor,
