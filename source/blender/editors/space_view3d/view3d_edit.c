@@ -4879,12 +4879,7 @@ static int toggle_shading_exec(bContext *C, wmOperator *op)
 	if (type == OB_SOLID) {
 		if (v3d->shading.type == OB_SOLID) {
 			/* Toggle X-Ray if already in solid mode. */
-			if (ED_operator_posemode(C) || ED_operator_editmesh(C)) {
-				v3d->flag ^= V3D_ZBUF_SELECT;
-			}
-			else {
-				v3d->shading.flag ^= V3D_SHADING_XRAY;
-			}
+			v3d->shading.flag ^= V3D_SHADING_XRAY;
 		}
 		else {
 			/* Go to solid mode. */

@@ -55,15 +55,6 @@ class VIEW3D_HT_header(Header):
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
-            # Occlude geometry
-            if (
-                    (((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
-                     (object_mode == 'PARTICLE_EDIT' or (object_mode == 'EDIT' and obj.type == 'MESH'))) or
-                    (object_mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})
-            ):
-                row = layout.row()
-                row.prop(view, "use_occlude_geometry", text="")
-
         # Pose
         if obj and object_mode == 'POSE':
             row = layout.row(align=True)
@@ -4053,7 +4044,9 @@ class VIEW3D_PT_shading_color(Panel):
             layout.row().prop(shading, "background_color", text="")
 
     def draw(self, context):
-        self._draw_color_type(context)
+        shading = VIEW3D_PT_shading.get_shading(context)
+        if shading.type != 'WIREFRAME':
+            self._draw_color_type(context)
         self._draw_background_color(context)
 
 
@@ -4062,11 +4055,6 @@ class VIEW3D_PT_shading_options(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Options"
     bl_parent_id = 'VIEW3D_PT_shading'
-
-    @classmethod
-    def poll(cls, context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type in {'WIREFRAME', 'SOLID'}
 
     def draw(self, context):
         layout = self.layout
@@ -4113,15 +4101,16 @@ class VIEW3D_PT_shading_options(Panel):
                     text=""
                 )
 
-        row = layout.split()
-        row.prop(shading, "show_object_outline")
-        sub = row.row()
-        sub.active = shading.show_object_outline
-        sub.prop(shading, "object_outline_color", text="")
+        if shading.type in {'SOLID', 'WIREFRAME'}:
+            row = layout.split()
+            row.prop(shading, "show_object_outline")
+            sub = row.row()
+            sub.active = shading.show_object_outline
+            sub.prop(shading, "object_outline_color", text="")
 
-        col = layout.column()
-        if shading.light not in {'WIREFRAME', 'MATCAP'}:
-            col.prop(shading, "show_specular_highlight")
+            col = layout.column()
+            if (shading.light is not 'MATCAP') and (shading.type is not 'WIREFRAME'):
+                col.prop(shading, "show_specular_highlight")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):
@@ -4365,6 +4354,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
 
         view = context.space_data
         overlay = view.overlay
+        shading = view.shading
         display_all = overlay.show_overlays
         data = context.active_object.data
 
@@ -4378,7 +4368,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub = split.column()
         sub.prop(data, "show_faces", text="Faces")
         sub = split.column()
-        sub.active = view.use_occlude_geometry
+        sub.active = shading.show_xray
         sub.prop(data, "show_face_center", text="Center")
 
         row = col.row(align=True)

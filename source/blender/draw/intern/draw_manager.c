@@ -1160,7 +1160,7 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int shading_flags)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, bool use_xray)
 {
 	switch (drawtype) {
 		case OB_WIRE:
@@ -1168,7 +1168,7 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			break;
 
 		case OB_SOLID:
-			if (shading_flags & V3D_SHADING_XRAY) {
+			if (use_xray) {
 				use_drw_engine(&draw_engine_workbench_transparent);
 			}
 			else {
@@ -1288,8 +1288,9 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
 	View3D * v3d = DST.draw_ctx.v3d;
 	const int drawtype = v3d->shading.type;
+	const bool use_xray = XRAY_ENABLED(v3d);
 
-	drw_engines_enable_from_engine(engine_type, drawtype, v3d->shading.flag);
+	drw_engines_enable_from_engine(engine_type, drawtype, use_xray);
 
 	if (DRW_state_draw_support()) {
 		/* Draw paint modes first so that they are drawn below the wireframes. */

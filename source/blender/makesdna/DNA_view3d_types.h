@@ -308,7 +308,7 @@ typedef struct View3D {
 
 /* #define V3D_FLAG_DEPRECATED_10 (1 << 10) */ /* UNUSED */
 #define V3D_SELECT_OUTLINE	2048
-#define V3D_ZBUF_SELECT		4096
+#define V3D_ZBUF_SELECT		4096   /* XXX: DNA deprecated */
 #define V3D_GLOBAL_STATS	8192
 #define V3D_DRAW_CENTERS	32768
 

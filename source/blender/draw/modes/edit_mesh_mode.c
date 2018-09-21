@@ -393,9 +393,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	stl->g_data->do_faces = true;
 	stl->g_data->do_edges = true;
 
-	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
-	stl->g_data->do_zbufclip = ((v3d->flag & V3D_ZBUF_SELECT) == 0) || xray_enabled;
+	stl->g_data->do_zbufclip = ((v3d)->shading.flag & V3D_SHADING_XRAY) != 0;
 
 	/* Applies on top of the theme edge width, so edge-mode can have thick edges. */
 	stl->g_data->edge_width_scale = (tsettings->selectmode & (SCE_SELECT_EDGE)) ? 1.75f : 1.0f;
