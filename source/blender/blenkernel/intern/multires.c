@@ -422,10 +422,12 @@ void multires_force_update(Object *ob)
 	if (ob == NULL) {
 		return;
 	}
-	if (ob->sculpt && ob->sculpt->pbvh) {
-		PBVH *pbvh = ob->sculpt->pbvh;
+	SculptSession *sculpt_session = ob->sculpt;
+	if (sculpt_session != NULL && sculpt_session->pbvh != NULL) {
+		PBVH *pbvh = sculpt_session->pbvh;
 		if (BKE_pbvh_type(pbvh) == PBVH_GRIDS) {
-			multiresModifier_reshapeFromCCG(ob, ob->sculpt->subdiv_ccg);
+			multiresModifier_reshapeFromCCG(
+			        sculpt_session->multires, ob, sculpt_session->subdiv_ccg);
 		}
 		else {
 			/* NOTE: Disabled for until OpenSubdiv is enabled by default. */

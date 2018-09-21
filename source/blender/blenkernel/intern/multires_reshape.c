@@ -153,9 +153,9 @@ typedef struct MultiresReshapeContext {
 	Object *object;
 	const Mesh *coarse_mesh;
 	MDisps *mdisps;
-	/* NOTE: This is a grid size on th top level. */
+	/* NOTE: This is a grid size on the top level, same for level. */
 	int grid_size;
-	int top_level;
+	int level;
 } MultiresReshapeContext;
 
 static void multires_reshape_allocate_displacement_grid(
@@ -185,7 +185,7 @@ static void multires_reshape_ensure_displacement_grids(
         MultiresReshapeContext *ctx)
 {
 	const int num_grids = ctx->coarse_mesh->totloop;
-	const int grid_level = ctx->top_level;
+	const int grid_level = ctx->level;
 	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
 		multires_reshape_ensure_displacement_grid(
 		        &ctx->mdisps[grid_index], grid_level);
@@ -679,7 +679,7 @@ static bool multires_reshape_from_vertcos(
 	                .mdisps = mdisps,
 	                /* TODO(sergey): Use grid_size_for_level_get */
 	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
-	                .top_level = mmd->totlvl,
+	                .level = mmd->totlvl,
 	        },
 	        .deformed_verts = deformed_verts,
 	        .num_deformed_verts = num_deformed_verts,
@@ -705,9 +705,9 @@ static bool multires_reshape_from_vertcos(
 	BKE_multires_subdiv_mesh_settings_init(
         &mesh_settings, scene_eval, object, mmd, use_render_params, true);
 	/* Initialize propagation to higher levels. */
-	MultiresPropagateData data;
+	MultiresPropagateData propagate_data;
 	multires_reshape_propagate_prepare_from_mmd(
-        &data, depsgraph, object, mmd, use_render_params);
+        &propagate_data, depsgraph, object, mmd, use_render_params);
 	/* Run all the callbacks. */
 	BKE_subdiv_foreach_subdiv_geometry(
 	        subdiv,
@@ -715,8 +715,9 @@ static bool multires_reshape_from_vertcos(
 	        &mesh_settings,
 	        coarse_mesh);
 	BKE_subdiv_free(subdiv);
-	multires_reshape_propagate(&data);
-	multires_reshape_propagate_free(&data);
+	/* Update higher levels if needed. */
+	multires_reshape_propagate(&propagate_data);
+	multires_reshape_propagate_free(&propagate_data);
 	return true;
 }
 
@@ -839,9 +840,9 @@ static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
 	/*const*/ CCGElem **grids = data->grids;
 	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const int grid_size = data->reshape_ctx.grid_size;
-	const int grid_size_1 = grid_size - 1;
-	const int resolution = 2 * grid_size - 1;
+	const int key_grid_size = key->grid_size;
+	const int key_grid_size_1 = key_grid_size - 1;
+	const int resolution = 2 * key_grid_size - 1;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
 	const int coarse_poly_index = coarse_poly - coarse_mpoly;
 	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
@@ -857,7 +858,10 @@ static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
 			/*const*/ CCGElem *grid =
 			        grids[coarse_poly->loopstart + face_corner];
 			/*const*/ CCGElem *grid_element = CCG_grid_elem(
-			        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+			        key,
+			        grid,
+			        key_grid_size_1 * grid_u,
+			        key_grid_size_1 * grid_v);
 			const float *final_P = CCG_elem_co(key, grid_element);
 			multires_reshape_vertex_from_final_coord(
 			        &data->reshape_ctx,
@@ -877,9 +881,9 @@ static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
 	/*const*/ CCGElem **grids = data->grids;
 	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const int grid_size = data->reshape_ctx.grid_size;
-	const int grid_size_1 = grid_size - 1;
-	const int resolution = grid_size;
+	const int key_grid_size = key->grid_size;
+	const int key_grid_size_1 = key_grid_size - 1;
+	const int resolution = key_grid_size;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
 	const int coarse_poly_index = coarse_poly - coarse_mpoly;
 	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
@@ -893,7 +897,10 @@ static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
 				/*const*/ CCGElem *grid =
 				        grids[coarse_poly->loopstart + corner];
 				/*const*/ CCGElem *grid_element = CCG_grid_elem(
-				        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+				        key,
+				        grid,
+				        key_grid_size_1 * grid_u,
+				        key_grid_size_1 * grid_v);
 				const float *final_P = CCG_elem_co(key, grid_element);
 				multires_reshape_vertex_from_final_coord(
 				        &data->reshape_ctx,
@@ -925,9 +932,11 @@ static void reshape_from_ccg_task(
 }
 
 bool multiresModifier_reshapeFromCCG(
-        Object *dst, SubdivCCG *subdiv_ccg)
+        MultiresModifierData *mmd,
+        Object *object,
+        SubdivCCG *subdiv_ccg)
 {
-	Mesh *coarse_mesh = dst->data;
+	Mesh *coarse_mesh = object->data;
 	CCGKey key;
 	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 	/* Sanity checks. */
@@ -936,23 +945,25 @@ bool multiresModifier_reshapeFromCCG(
 		return false;
 	}
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
-	/* TODO(sergey): Key has grid size for the current level. Need to access top
-	 * level somehow.
-	 */
 	Subdiv *subdiv = subdiv_ccg->subdiv;
 	ReshapeFromCCGTaskData data = {
 	        .reshape_ctx = {
 	                .subdiv = subdiv,
-	                .object = dst,
+	                .object = object,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps  = mdisps,
-	                .grid_size = key.grid_size,
-	                .top_level = key.level},
+	                 /* TODO(sergey): Use grid_size_for_level_get */
+	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
+	                .level = mmd->totlvl},
 	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        .key = &key,
 	        .grids = subdiv_ccg->grids};
 	/* Make sure displacement grids are ready. */
 	multires_reshape_ensure_displacement_grids(&data.reshape_ctx);
+	/* Initialize propagation to higher levels. */
+	MultiresPropagateData propagate_data;
+	multires_reshape_propagate_prepare(
+        &propagate_data, object, key.level, mmd->totlvl);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
@@ -960,5 +971,8 @@ bool multiresModifier_reshapeFromCCG(
 	                        &data,
 	                        reshape_from_ccg_task,
 	                        &parallel_range_settings);
+	/* Update higher levels if needed. */
+	multires_reshape_propagate(&propagate_data);
+	multires_reshape_propagate_free(&propagate_data);
 	return true;
 }
