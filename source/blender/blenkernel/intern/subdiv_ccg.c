@@ -215,7 +215,7 @@ static void subdiv_ccg_eval_grid_element(
 			        data->mask_evaluator, ptex_face_index, u, v);
 		}
 		else {
-			*mask_value_ptr = 0;
+			*mask_value_ptr = 0.0f;
 		}
 	}
 }
@@ -933,6 +933,13 @@ static void average_grid_element(SubdivCCG *subdiv_ccg,
 		average_grid_element_value_v3(CCG_elem_no(key, grid_element_a),
 		                              CCG_elem_no(key, grid_element_b));
 	}
+	if (subdiv_ccg->has_mask) {
+		float mask =
+		        (*CCG_elem_mask(key, grid_element_a) +
+		         *CCG_elem_mask(key, grid_element_b)) * 0.5f;
+		*CCG_elem_mask(key, grid_element_a) = mask;
+		*CCG_elem_mask(key, grid_element_b) = mask;
+	}
 }
 
 static void copy_grid_element(SubdivCCG *subdiv_ccg,
@@ -943,6 +950,9 @@ static void copy_grid_element(SubdivCCG *subdiv_ccg,
 	copy_v3_v3(CCG_elem_co(key, destination), CCG_elem_co(key, source));
 	if (subdiv_ccg->has_normal) {
 		copy_v3_v3(CCG_elem_no(key, destination), CCG_elem_no(key, source));
+	}
+	if (subdiv_ccg->has_mask) {
+		*CCG_elem_mask(key, destination) = *CCG_elem_mask(key, source);
 	}
 }
 

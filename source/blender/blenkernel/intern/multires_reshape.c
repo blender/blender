@@ -228,21 +228,30 @@ static void multires_reshape_vertex_copy_to_next(
         const MPoly *coarse_poly,
         const int current_corner,
         const MDisps *current_displacement_grid,
+		const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
 	const int grid_size = ctx->grid_size;
 	const int next_current_corner = (current_corner + 1) % coarse_poly->totloop;
-	MDisps *next_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + next_current_corner];
 	const int next_grid_x = 0;
 	const int next_grid_y = current_grid_x;
 	const int current_index = current_grid_y * grid_size + current_grid_x;
 	const int next_index = next_grid_y * grid_size + next_grid_x;
+	/* Copy displacement. */
+	MDisps *next_displacement_grid = &ctx->mdisps[
+	        coarse_poly->loopstart + next_current_corner];
 	float *next_displacement = next_displacement_grid->disps[next_index];
 	copy_v3_v3(next_displacement,
 	           current_displacement_grid->disps[current_index]);
 	SWAP(float, next_displacement[0], next_displacement[1]);
 	next_displacement[0] = -next_displacement[0];
+	/* Copy mask, if exists. */
+	if (current_mask_grid != NULL) {
+		GridPaintMask *next_mask_grid = &ctx->grid_paint_mask[
+		        coarse_poly->loopstart + next_current_corner];
+		next_mask_grid->data[next_index] =
+		        current_mask_grid->data[current_index];
+	}
 }
 
 static void multires_reshape_vertex_copy_to_prev(
@@ -250,22 +259,31 @@ static void multires_reshape_vertex_copy_to_prev(
         const MPoly *coarse_poly,
         const int current_corner,
         const MDisps *current_displacement_grid,
+        const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
 	const int grid_size = ctx->grid_size;
 	const int prev_current_corner =
 	        (current_corner - 1 + coarse_poly->totloop) % coarse_poly->totloop;
-	MDisps *prev_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + prev_current_corner];
 	const int prev_grid_x = current_grid_y;
 	const int prev_grid_y = 0;
 	const int current_index = current_grid_y * grid_size + current_grid_x;
 	const int prev_index = prev_grid_y * grid_size + prev_grid_x;
+	/* Copy displacement. */
+	MDisps *prev_displacement_grid = &ctx->mdisps[
+	        coarse_poly->loopstart + prev_current_corner];
 	float *prev_displacement = prev_displacement_grid->disps[prev_index];
 	copy_v3_v3(prev_displacement,
 	           current_displacement_grid->disps[current_index]);
 	SWAP(float, prev_displacement[0], prev_displacement[1]);
 	prev_displacement[1] = -prev_displacement[1];
+	/* Copy mask, if exists. */
+	if (current_mask_grid != NULL) {
+		GridPaintMask *prev_mask_grid = &ctx->grid_paint_mask[
+		        coarse_poly->loopstart + prev_current_corner];
+		prev_mask_grid->data[prev_index] =
+		        current_mask_grid->data[current_index];
+	}
 }
 
 static void copy_boundary_displacement(
@@ -273,19 +291,24 @@ static void copy_boundary_displacement(
         const MPoly *coarse_poly,
         const int corner,
         const int grid_x, const int grid_y,
-        const MDisps *displacement_grid)
+        const MDisps *displacement_grid,
+        const GridPaintMask *mask_grid)
 {
 	if (grid_x == 0 && grid_y == 0) {
 		for (int i = 0; i < coarse_poly->totloop; i++) {
 			const int current_face_corner =
 			        (corner + i) % coarse_poly->totloop;
-			MDisps *current_displacement_grid = &ctx->mdisps[
-			        coarse_poly->loopstart + current_face_corner];
+			const int grid_index = coarse_poly->loopstart + current_face_corner;
+			MDisps *current_displacement_grid = &ctx->mdisps[grid_index];
+			GridPaintMask *current_mask_grid =
+			        mask_grid != NULL ? &ctx->grid_paint_mask[grid_index]
+			                          : NULL;
 			multires_reshape_vertex_copy_to_next(
 			        ctx,
 			        coarse_poly,
 			        current_face_corner,
 			        current_displacement_grid,
+			        current_mask_grid,
 			        0, 0);
 		}
 	}
@@ -295,6 +318,7 @@ static void copy_boundary_displacement(
 		        coarse_poly,
 		        corner,
 		        displacement_grid,
+		        mask_grid,
 		        grid_x, grid_y);
 	}
 	else if (grid_y == 0) {
@@ -303,6 +327,7 @@ static void copy_boundary_displacement(
 		        coarse_poly,
 		        corner,
 		        displacement_grid,
+		        mask_grid,
 		        grid_x, grid_y);
 	}
 }
@@ -368,7 +393,8 @@ static void multires_reshape_vertex_from_final_data(
 	}
 	/* Copy boundary to the next/previous grids */
 	copy_boundary_displacement(
-	        ctx, coarse_poly, face_corner, grid_x, grid_y, displacement_grid);
+	        ctx, coarse_poly, face_corner, grid_x, grid_y,
+	        displacement_grid, grid_paint_mask);
 }
 
 /* =============================================================================
@@ -383,7 +409,15 @@ typedef struct MultiresPropagateData {
 	int top_grid_size;
 	MDisps *old_displacement_grids;
 	MDisps *new_displacement_grids;
+	GridPaintMask *grid_paint_mask;
 } MultiresPropagateData;
+
+typedef struct MultiresPropagateCornerData {
+	float old_coord[3];
+	float new_coord[3];
+	float coord_delta[3];
+	float mask;
+} MultiresPropagateCornerData;
 
 static void multires_reshape_propagate_prepare(
         MultiresPropagateData *data,
@@ -423,6 +457,8 @@ static void multires_reshape_propagate_prepare(
 	data->top_grid_size = (1 << (top_level - 1)) + 1;
 	data->old_displacement_grids = old_mdisps;
 	data->new_displacement_grids = mdisps;
+	data->grid_paint_mask =
+	        CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
 }
 
 static void multires_reshape_propagate_prepare_from_mmd(
@@ -438,40 +474,97 @@ static void multires_reshape_propagate_prepare_from_mmd(
 	multires_reshape_propagate_prepare(data, object, level, mmd->totlvl);
 }
 
-static void multires_reshape_propagate_calc_simple_delta(
-        float r_delta[3],
+static void multires_reshape_propagate_corner_data(
+        MultiresPropagateCornerData* corner,
         const MDisps *old_displacement_grid,
         const MDisps *new_displacement_grid,
-        const int grid_size,
-        const int x, const int y)
-{
-	copy_v3_v3(r_delta, new_displacement_grid->disps[y * grid_size + x]);
-	if (old_displacement_grid->disps != NULL) {
-		sub_v3_v3(r_delta, old_displacement_grid->disps[y * grid_size + x]);
-	}
-}
-
-static void multires_reshape_propagate_calc_reshape_delta(
-        float r_delta[3],
-        const MDisps *old_displacement_grid,
-        const MDisps *new_displacement_grid,
+        const GridPaintMask *grid_paint_mask,
         const int grid_size,
         const int grid_skip,
         const int reshape_x, const int reshape_y)
 {
 	const int x = reshape_x * grid_skip;
 	const int y = reshape_y * grid_skip;
-	multires_reshape_propagate_calc_simple_delta(
-	        r_delta,
-	        old_displacement_grid, new_displacement_grid,
-	        grid_size,
-	        x, y);
+	const int grid_index = y * grid_size + x;
+	if (old_displacement_grid->disps != NULL) {
+		copy_v3_v3(corner->old_coord, old_displacement_grid->disps[grid_index]);
+	}
+	else {
+		zero_v3(corner->old_coord);
+	}
+	copy_v3_v3(corner->new_coord, new_displacement_grid->disps[grid_index]);
+	sub_v3_v3v3(corner->coord_delta, corner->new_coord, corner->old_coord);
+	if (grid_paint_mask != NULL) {
+		corner->mask = grid_paint_mask->data[grid_index];
+	}
+	else {
+		corner->mask = 0.0f;
+	}
+}
+
+static void multires_reshape_propagate_all_corners_data(
+        MultiresPropagateCornerData corners[4],
+        const MDisps *old_displacement_grid,
+        const MDisps *new_displacement_grid,
+		const GridPaintMask *grid_paint_mask,
+        const int grid_size,
+        const int grid_skip,
+        const int reshape_x, const int reshape_y)
+{
+	int corner_index = 0;
+	for (int dy = 0; dy <= 1; dy++) {
+		for (int dx = 0; dx <= 1; dx++) {
+			multires_reshape_propagate_corner_data(
+			        &corners[corner_index],
+			        old_displacement_grid,
+			        new_displacement_grid,
+			        grid_paint_mask,
+			        grid_size,
+			        grid_skip,
+			        reshape_x + dx, reshape_y + dy);
+			corner_index++;
+		}
+	}
+}
+
+static void multires_reshape_propagate_interpolate_coord(
+        MDisps *new_displacement_grid,
+        const MultiresPropagateCornerData corners[4],
+        const float weights[4],
+        const int x, const int y,
+        const int grid_size)
+{
+	float delta[3];
+	interp_v3_v3v3v3v3(
+	        delta,
+	        corners[0].coord_delta, corners[1].coord_delta,
+	        corners[2].coord_delta, corners[3].coord_delta,
+	        weights);
+	const int index = y * grid_size + x;
+	float *new_displacement = new_displacement_grid->disps[index];
+	add_v3_v3(new_displacement, delta);
+}
+
+static void multires_reshape_propagate_interpolate_mask(
+        GridPaintMask *grid_paint_mask,
+        const MultiresPropagateCornerData corners[4],
+        const float weights[4],
+        const int x, const int y,
+        const int grid_size)
+{
+	const int index = y * grid_size + x;
+	grid_paint_mask->data[index] =
+	        corners[0].mask * weights[0] +
+	        corners[1].mask * weights[1] +
+	        corners[2].mask * weights[2] +
+	        corners[3].mask * weights[3];
 }
 
 static void multires_reshape_propagate_grid(
         MultiresPropagateData *data,
         const MDisps *old_displacement_grid,
-		MDisps *new_displacement_grid)
+        MDisps *new_displacement_grid,
+        GridPaintMask *grid_paint_mask)
 {
 	const int reshape_grid_size = data->reshape_grid_size;
 	const int top_grid_size = data->top_grid_size;
@@ -485,32 +578,14 @@ static void multires_reshape_propagate_grid(
 		     reshape_x < reshape_grid_size - 1;
 		     reshape_x++)
 		{
-			/* Calculate delta from the reshape. */
-			float delta_corners[4][3];
-			multires_reshape_propagate_calc_reshape_delta(
-			        delta_corners[0],
+			MultiresPropagateCornerData corners[4];
+			multires_reshape_propagate_all_corners_data(
+			        corners,
 			        old_displacement_grid, new_displacement_grid,
+			        grid_paint_mask,
 			        top_grid_size,
 			        grid_skip,
 			        reshape_x, reshape_y);
-			multires_reshape_propagate_calc_reshape_delta(
-			        delta_corners[1],
-			        old_displacement_grid, new_displacement_grid,
-			        top_grid_size,
-			        grid_skip,
-			        reshape_x + 1, reshape_y);
-			multires_reshape_propagate_calc_reshape_delta(
-			        delta_corners[2],
-			        old_displacement_grid, new_displacement_grid,
-			        top_grid_size,
-			        grid_skip,
-			        reshape_x + 1, reshape_y + 1);
-			multires_reshape_propagate_calc_reshape_delta(
-			        delta_corners[3],
-			        old_displacement_grid, new_displacement_grid,
-			        top_grid_size,
-			        grid_skip,
-			        reshape_x, reshape_y + 1);
 			/* Propagate to higher levels. */
 			for (int y = 0; y <= grid_skip; y++) {
 				const float v = (float)y * grid_skip_inv;
@@ -536,20 +611,26 @@ static void multires_reshape_propagate_grid(
 						continue;
 					}
 					const float u = (float)x * grid_skip_inv;
-					const float weights[4] = {(1.0f - u) * (1.0f - v),
-					                          u * (1.0f - v),
-					                          u * v,
-					                          (1.0f - u) * v};
-					float delta[3];
-					interp_v3_v3v3v3v3(
-					        delta,
-					        delta_corners[0], delta_corners[1],
-					        delta_corners[2], delta_corners[3],
-					        weights);
-					float *new_displacement = new_displacement_grid->disps[
-					        (reshape_y * grid_skip + y) * top_grid_size +
-					        (reshape_x * grid_skip) + x];
-					add_v3_v3(new_displacement, delta);
+					const int final_x = reshape_x * grid_skip + x;
+					const int final_y = reshape_y * grid_skip + y;
+					const float linear_weights[4] = {(1.0f - u) * (1.0f - v),
+					                                 u * (1.0f - v),
+					                                 (1.0f - u) * v,
+					                                 u * v};
+					multires_reshape_propagate_interpolate_coord(
+					        new_displacement_grid,
+					        corners,
+					        linear_weights,
+					        final_x, final_y,
+					        top_grid_size);
+					if (grid_paint_mask != NULL) {
+						multires_reshape_propagate_interpolate_mask(
+						        grid_paint_mask,
+						        corners,
+						        linear_weights,
+						        final_x, final_y,
+						        top_grid_size);
+					}
 				}
 			}
 		}
@@ -569,8 +650,14 @@ static void multires_reshape_propagate(MultiresPropagateData *data) {
 		if (old_displacement_grid->level != new_displacement_grid->level) {
 			continue;
 		}
+		GridPaintMask *grid_paint_mask =
+		        data->grid_paint_mask != NULL
+		                ? &data->grid_paint_mask[grid_index]
+		                : NULL;
 		multires_reshape_propagate_grid(
-		        data, old_displacement_grid, new_displacement_grid);
+		        data, old_displacement_grid,
+		        new_displacement_grid,
+		        grid_paint_mask);
 	}
 }
 
