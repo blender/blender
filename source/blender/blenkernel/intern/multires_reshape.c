@@ -804,7 +804,7 @@ static bool multires_reshape_from_vertcos(
 	        .reshape_ctx = {
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
-					.grid_paint_mask = NULL,
+	                .grid_paint_mask = NULL,
 	                /* TODO(sergey): Use grid_size_for_level_get */
 	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
 	                .level = mmd->totlvl,
