@@ -1305,6 +1305,45 @@ class _defs_gpencil_edit:
         )
 
     @ToolDef.from_fn
+    def border_select():
+        return dict(
+            text="Select Border",
+            icon="ops.generic.select_border",
+            widget=None,
+            keymap=(
+                ("gpencil.select_border",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def circle_select():
+        return dict(
+            text="Select Circle",
+            icon="ops.generic.select_circle",
+            widget=None,
+            keymap=(
+                ("gpencil.select_circle",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def lasso_select():
+        return dict(
+            text="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap=(
+                ("gpencil.select_lasso",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def mirror():
         return dict(
             text="Mirror",
@@ -1819,9 +1858,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'GPENCIL_EDIT': [
             _defs_view3d_generic.cursor,
-            *_tools_select,
-            None,
-            *_tools_transform,
+            _defs_gpencil_edit.border_select,
+            _defs_gpencil_edit.circle_select,
+            _defs_gpencil_edit.lasso_select,
             None,
             _defs_gpencil_edit.bend,
             _defs_gpencil_edit.mirror,
