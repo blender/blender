@@ -229,12 +229,18 @@ class VIEW3D_HT_header(Header):
                 icon=or_icon,
             )
 
-            row = layout.row()
-            row.enabled = context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR')
-            row.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
+        if object_mode in ('GPENCIL_PAINT', 'GPENCIL_SCULPT'):
+            lock = tool_settings.gpencil_sculpt.lockaxis
+            gp_lock = \
+                tool_settings.gpencil_sculpt.bl_rna.properties['lockaxis'].enum_items[lock]
 
-        if object_mode == 'GPENCIL_SCULPT':
-            layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
+            lk_icon = getattr(gp_lock, "icon", "BLANK1")
+            lk_name = getattr(gp_lock, "name", "None")
+            layout.popover(
+                panel="VIEW3D_PT_gpencil_lock",
+                text=lk_name,
+                icon=lk_icon,
+            )
 
         layout.separator_spacer()
 
@@ -4786,6 +4792,20 @@ class VIEW3D_PT_gpencil_origin(Panel):
         col.prop(context.tool_settings, "gpencil_stroke_placement_view3d", expand=True)
 
 
+class VIEW3D_PT_gpencil_lock(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Lock Axis"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Drawing Plane Lock")
+
+        row = layout.row()
+        col = row.column()
+        col.prop(context.tool_settings.gpencil_sculpt, "lockaxis", expand=True)
+
+
 class VIEW3D_PT_overlay_gpencil_options(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -5216,6 +5236,7 @@ classes = (
     VIEW3D_PT_pivot_point,
     VIEW3D_PT_snapping,
     VIEW3D_PT_gpencil_origin,
+    VIEW3D_PT_gpencil_lock,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,
