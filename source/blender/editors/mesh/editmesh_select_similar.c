@@ -258,7 +258,8 @@ static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge) {
 	return len_squared_v3v3(v1, v2);
 }
 
-/* wrap the above function but do selection flushing edge to face */
+/* Note/TODO(dfelinto) technically SIMEDGE_FACE_ANGLE should compare the angles in world space.
+ * Although doable this is overkill - at least for the initial multi-objects implementation. */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -270,7 +271,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMEDGE_FACE_ANGLE,
 	         SIMEDGE_CREASE,
 	         SIMEDGE_BEVEL,
 	         SIMEDGE_SEAM,
@@ -304,6 +304,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	GSet *gset = NULL;
 
 	switch (type) {
+		case SIMEDGE_FACE_ANGLE:
 		case SIMEDGE_LENGTH:
 		case SIMEDGE_DIR:
 			tree = BLI_kdtree_new(tot_edges_selected_all);
@@ -344,6 +345,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						float length = edge_length_squared_worldspace_get(ob, edge);
 						float dummy[3] = {length, 0.0f, 0.0f};
 						BLI_kdtree_insert(tree, tree_index++, dummy);
+						break;
+					}
+					case SIMEDGE_FACE_ANGLE:
+					{
+						if (BM_edge_face_count_at_most(edge, 2) == 2) {
+							float angle = BM_edge_calc_face_angle(edge);
+							float dummy[3] = {angle, 0.0f, 0.0f};
+							BLI_kdtree_insert(tree, tree_index++, dummy);
+						}
 						break;
 					}
 				}
@@ -404,6 +414,17 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
 							BM_edge_select_set(bm, edge, true);
 							changed = true;
+						}
+						break;
+					}
+					case SIMEDGE_FACE_ANGLE:
+					{
+						if (BM_edge_face_count_at_most(edge, 2) == 2) {
+							float angle = BM_edge_calc_face_angle(edge);
+							if (select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
+								BM_edge_select_set(bm, edge, true);
+								changed = true;
+							}
 						}
 						break;
 					}
