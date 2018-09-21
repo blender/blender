@@ -367,7 +367,7 @@ static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
-		clip_plane[3] += DIAL_CLIP_BIAS * gz->scale_final;
+		clip_plane[3] += DIAL_CLIP_BIAS;
 		glEnable(GL_CLIP_DISTANCE0);
 	}
 
@@ -393,7 +393,7 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
 
 		copy_v3_v3(clip_plane, rv3d->viewinv[2]);
 		clip_plane[3] = -dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[3]);
-		clip_plane[3] += DIAL_CLIP_BIAS * gz->scale_final;
+		clip_plane[3] += DIAL_CLIP_BIAS;
 
 		glEnable(GL_CLIP_DISTANCE0);
 	}
