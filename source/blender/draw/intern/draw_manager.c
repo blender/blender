@@ -1300,6 +1300,10 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 		drw_engines_enable_from_mode(mode);
 	}
 	else {
+		/* Force enable overlays engine for wireframe mode */
+		if (v3d->shading.type == OB_WIRE) {
+			drw_engines_enable_from_overlays(v3d->overlay.flag);
+		}
 		/* if gpencil must draw the strokes, but not the object */
 		drw_engines_enable_from_mode(mode);
 	}
