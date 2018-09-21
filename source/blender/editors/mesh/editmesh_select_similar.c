@@ -181,12 +181,16 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
+	//const float thresh = RNA_float_get(op->ptr, "threshold");
+	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
 	         SIMEDGE_LENGTH,
 	         SIMEDGE_DIR,
-	         SIMEDGE_FACE,
 	         SIMEDGE_FACE_ANGLE,
 	         SIMEDGE_CREASE,
 	         SIMEDGE_BEVEL,
@@ -201,35 +205,95 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	int tot_edges_selected_all = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	/* get the type from RNA */
-	const float thresh = RNA_float_get(op->ptr, "threshold");
-	const int compare = RNA_enum_get(op->ptr, "compare");
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		tot_edges_selected_all += em->bm->totedgesel;
+	}
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op,
-	             "similar_edges edges=%he type=%i thresh=%f compare=%i",
-	             BM_ELEM_SELECT, type, thresh, compare);
-
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
-
-	/* clear the existing selection */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
-	EDBM_selectmode_flush(em);
-
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
+	if (tot_edges_selected_all == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No edge selected");
+		MEM_freeN(objects);
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(em, false, false);
+	GSet *gset = NULL;
+
+	switch (type) {
+		case SIMEDGE_FACE:
+			gset = BLI_gset_ptr_new("Select similar edge: face");
+			break;
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+
+		if (bm->totedgesel == 0) {
+			continue;
+		}
+
+		BMEdge *edge; /* Mesh edge. */
+		BMIter iter; /* Selected edges iterator. */
+
+		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMEDGE_FACE:
+						BLI_gset_add(gset, POINTER_FROM_INT(BM_edge_face_count(edge)));
+						break;
+				}
+			}
+		}
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+		bool changed = false;
+
+		BMEdge *edge; /* Mesh edge. */
+		BMIter iter; /* Selected edges iterator. */
+
+		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMEDGE_FACE:
+					{
+						const int num_faces = BM_edge_face_count(edge);
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+							const int delta_i = num_faces - num_faces_iter;
+							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+								BM_edge_select_set(bm, edge, true);
+								changed = true;
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	MEM_freeN(objects);
+
+	if (gset != NULL) {
+		BLI_gset_free(gset, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
