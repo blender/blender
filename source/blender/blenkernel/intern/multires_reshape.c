@@ -1103,7 +1103,7 @@ bool multiresModifier_reshapeFromCCG(
 	/* Initialize propagation to higher levels. */
 	MultiresPropagateData propagate_data;
 	multires_reshape_propagate_prepare(
-        &propagate_data, object, key.level, mmd->totlvl);
+	        &propagate_data, object, key.level, mmd->totlvl);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
