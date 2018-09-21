@@ -446,7 +446,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
 						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
-							BM_edge_select_set(bm, edge, true);
 							select = true;
 						}
 						break;
