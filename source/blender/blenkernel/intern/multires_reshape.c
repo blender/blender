@@ -330,7 +330,224 @@ static void multires_reshape_vertex_from_final_coord(
 }
 
 /* =============================================================================
- * Reshape from deformed veretx coordinates.
+ * Helpers to propagate displacement to higher levels.
+ */
+
+typedef struct MultiresPropagateData {
+	int reshape_level;
+	int top_level;
+	int num_grids;
+	int reshape_grid_size;
+	int top_grid_size;
+	MDisps *old_displacement_grids;
+	MDisps *new_displacement_grids;
+} MultiresPropagateData;
+
+static void multires_reshape_propagate_prepare(
+        MultiresPropagateData *data,
+        Object *object,
+        const int reshape_level,
+        const int top_level)
+{
+	BLI_assert(reshape_level <= top_level);
+	data->old_displacement_grids = NULL;
+	if (reshape_level == top_level) {
+		/* Nothing to do, reshape will happen on the whole grid conent. */
+		return;
+	}
+	Mesh *coarse_mesh = object->data;
+	const int num_grids = coarse_mesh->totloop;
+	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	MDisps *old_mdisps = MEM_dupallocN(mdisps);
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		MDisps *displacement_grid = &mdisps[grid_index];
+		MDisps *old_displacement_grid = &old_mdisps[grid_index];
+		old_displacement_grid->totdisp = displacement_grid->totdisp;
+		old_displacement_grid->level = displacement_grid->level;
+		if (displacement_grid->disps) {
+			displacement_grid->disps = MEM_dupallocN(displacement_grid->disps);
+		}
+		else {
+			old_displacement_grid->disps = NULL;
+		}
+		/* TODO(sergey): This might be needed for proper propagation. */
+		old_displacement_grid->hidden = NULL;
+	}
+	data->reshape_level = reshape_level;
+	data->top_level = top_level;
+	data->num_grids = num_grids;
+	/* TODO(sergey): use grid_size_for_level_get(). */
+	data->reshape_grid_size = (1 << (reshape_level - 1)) + 1;
+	data->top_grid_size = (1 << (top_level - 1)) + 1;
+	data->old_displacement_grids = old_mdisps;
+	data->new_displacement_grids = mdisps;
+}
+
+static void multires_reshape_propagate_prepare_from_mmd(
+        MultiresPropagateData *data,
+        struct Depsgraph *depsgraph,
+        Object *object,
+        const MultiresModifierData *mmd,
+        const bool use_render_params)
+{
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	const int level = multires_get_level(
+	        scene_eval, object, mmd, use_render_params, true);
+	multires_reshape_propagate_prepare(data, object, level, mmd->totlvl);
+}
+
+static void multires_reshape_propagate_calc_simple_delta(
+        float r_delta[3],
+        const MDisps *old_displacement_grid,
+        const MDisps *new_displacement_grid,
+        const int grid_size,
+        const int x, const int y)
+{
+	copy_v3_v3(r_delta, new_displacement_grid->disps[y * grid_size + x]);
+	if (old_displacement_grid->disps != NULL) {
+		sub_v3_v3(r_delta, old_displacement_grid->disps[y * grid_size + x]);
+	}
+}
+
+static void multires_reshape_propagate_calc_reshape_delta(
+        float r_delta[3],
+        const MDisps *old_displacement_grid,
+        const MDisps *new_displacement_grid,
+        const int grid_size,
+        const int grid_skip,
+        const int reshape_x, const int reshape_y)
+{
+	const int x = reshape_x * grid_skip;
+	const int y = reshape_y * grid_skip;
+	multires_reshape_propagate_calc_simple_delta(
+	        r_delta,
+	        old_displacement_grid, new_displacement_grid,
+	        grid_size,
+	        x, y);
+}
+
+static void multires_reshape_propagate_grid(
+        MultiresPropagateData *data,
+        const MDisps *old_displacement_grid,
+		MDisps *new_displacement_grid)
+{
+	const int reshape_grid_size = data->reshape_grid_size;
+	const int top_grid_size = data->top_grid_size;
+	const int grid_skip = (top_grid_size - 1) / (reshape_grid_size - 1);
+	const float grid_skip_inv = 1.0f / (float)grid_skip;
+	for (int reshape_y = 0;
+	     reshape_y < reshape_grid_size - 1;
+	     reshape_y++)
+	{
+		for (int reshape_x = 0;
+		     reshape_x < reshape_grid_size - 1;
+		     reshape_x++)
+		{
+			/* Calculate delta from the reshape. */
+			float delta_corners[4][3];
+			multires_reshape_propagate_calc_reshape_delta(
+			        delta_corners[0],
+			        old_displacement_grid, new_displacement_grid,
+			        top_grid_size,
+			        grid_skip,
+			        reshape_x, reshape_y);
+			multires_reshape_propagate_calc_reshape_delta(
+			        delta_corners[1],
+			        old_displacement_grid, new_displacement_grid,
+			        top_grid_size,
+			        grid_skip,
+			        reshape_x + 1, reshape_y);
+			multires_reshape_propagate_calc_reshape_delta(
+			        delta_corners[2],
+			        old_displacement_grid, new_displacement_grid,
+			        top_grid_size,
+			        grid_skip,
+			        reshape_x + 1, reshape_y + 1);
+			multires_reshape_propagate_calc_reshape_delta(
+			        delta_corners[3],
+			        old_displacement_grid, new_displacement_grid,
+			        top_grid_size,
+			        grid_skip,
+			        reshape_x, reshape_y + 1);
+			/* Propagate to higher levels. */
+			for (int y = 0; y <= grid_skip; y++) {
+				const float v = (float)y * grid_skip_inv;
+				for (int x = 0; x <= grid_skip; x++) {
+					/* Ignorevalues at the exact locations of grid which was
+					 * reshape. Those points already have proper displacement.
+					 */
+					if ((x == 0 && y == 0) ||
+					    (x == grid_skip && y == 0) ||
+					    (x == grid_skip && y == grid_skip) ||
+					    (x == 0 && y == grid_skip))
+					{
+						continue;
+					}
+					/* Ignore right-most column and top-most row, unless this
+					 * is a boundary of the grid, to prevent displacement
+					 * being affected twice.
+					 */
+					if (x == grid_skip && reshape_x != reshape_grid_size - 2) {
+						continue;
+					}
+					if (y == grid_skip && reshape_y != reshape_grid_size - 2) {
+						continue;
+					}
+					const float u = (float)x * grid_skip_inv;
+					const float weights[4] = {(1.0f - u) * (1.0f - v),
+					                          u * (1.0f - v),
+					                          u * v,
+					                          (1.0f - u) * v};
+					float delta[3];
+					interp_v3_v3v3v3v3(
+					        delta,
+					        delta_corners[0], delta_corners[1],
+					        delta_corners[2], delta_corners[3],
+					        weights);
+					float *new_displacement = new_displacement_grid->disps[
+					        (reshape_y * grid_skip + y) * top_grid_size +
+					        (reshape_x * grid_skip) + x];
+					add_v3_v3(new_displacement, delta);
+				}
+			}
+		}
+	}
+}
+
+static void multires_reshape_propagate(MultiresPropagateData *data) {
+	if (data->old_displacement_grids == NULL) {
+		return;
+	}
+	const int num_grids = data->num_grids;
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		const MDisps *old_displacement_grid =
+		        &data->old_displacement_grids[grid_index];
+		MDisps *new_displacement_grid =
+		        &data->new_displacement_grids[grid_index];
+		if (old_displacement_grid->level != new_displacement_grid->level) {
+			continue;
+		}
+		multires_reshape_propagate_grid(
+		        data, old_displacement_grid, new_displacement_grid);
+	}
+}
+
+static void multires_reshape_propagate_free(MultiresPropagateData *data) {
+	if (data->old_displacement_grids != NULL) {
+		const int num_grids = data->num_grids;
+		MDisps *old_mdisps = data->old_displacement_grids;
+		for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+			MDisps *old_displacement_grid = &old_mdisps[grid_index];
+			if (old_displacement_grid->disps) {
+				MEM_freeN(old_displacement_grid->disps);
+			}
+		}
+		MEM_freeN(data->old_displacement_grids);
+	}
+}
+
+/* =============================================================================
+ * Reshape from deformed vertex coordinates.
  */
 
 typedef struct MultiresReshapeFromDeformedVertsContext {
@@ -487,6 +704,10 @@ static bool multires_reshape_from_vertcos(
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
         &mesh_settings, scene_eval, object, mmd, use_render_params, true);
+	/* Initialize propagation to higher levels. */
+	MultiresPropagateData data;
+	multires_reshape_propagate_prepare_from_mmd(
+        &data, depsgraph, object, mmd, use_render_params);
 	/* Run all the callbacks. */
 	BKE_subdiv_foreach_subdiv_geometry(
 	        subdiv,
@@ -494,6 +715,8 @@ static bool multires_reshape_from_vertcos(
 	        &mesh_settings,
 	        coarse_mesh);
 	BKE_subdiv_free(subdiv);
+	multires_reshape_propagate(&data);
+	multires_reshape_propagate_free(&data);
 	return true;
 }
 
