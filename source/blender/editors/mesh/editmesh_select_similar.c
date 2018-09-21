@@ -95,15 +95,15 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int UNUSED_FUNCTION(bm_sel_similar_cmp_fl)(const float delta, const float thresh, const int compare)
+static int bm_sel_similar_cmp_fl(const float delta, const float thresh, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
-			return (fabsf(delta) <= thresh);
+			return (fabsf(delta) < thresh + FLT_EPSILON);
 		case SIM_CMP_GT:
-			return ((delta + thresh) >= 0.0f);
+			return ((delta + thresh) > -FLT_EPSILON);
 		case SIM_CMP_LT:
-			return ((delta - thresh) <= 0.0f);
+			return ((delta - thresh) < FLT_EPSILON);
 		default:
 			BLI_assert(0);
 			return 0;
@@ -123,6 +123,42 @@ static int bm_sel_similar_cmp_i(const int delta, const int compare)
 			BLI_assert(0);
 			return 0;
 	}
+}
+
+static bool bm_sel_similar_cmp_tree_fl(const KDTree *tree, const float length, const float thresh, const int compare)
+{
+	/* Length of the edge we want to compare against. */
+	float nearest_edge_length;
+
+	switch (compare) {
+		case SIM_CMP_EQ:
+			/* Compare to the edge closest to the current edge. */
+			nearest_edge_length = length;
+			break;
+		case SIM_CMP_GT:
+			/* Compare against the shortest edge. */
+			/* -FLT_MAX leads to some precision issues and the wrong edge being selected.
+			 * For example, in a tree with 1, 2 and 3, which is stored squared as 1, 4, 9, it returns as the nearest
+			 * length/node the "4" instead of "1". */
+			nearest_edge_length = -1.0f;
+			break;
+		case SIM_CMP_LT:
+			/* Compare against the longest edge. */
+			nearest_edge_length = FLT_MAX;
+			break;
+		default:
+			BLI_assert(0);
+			return false;
+	}
+
+	KDTreeNearest nearest;
+	float dummy[3] = {nearest_edge_length, 0.0f, 0.0f};
+	if (BLI_kdtree_find_nearest(tree, dummy, &nearest) != -1) {
+		float delta = length - nearest.co[0];
+		return bm_sel_similar_cmp_fl(delta, thresh, compare);
+	}
+
+	return false;
 }
 
 /** \} */
@@ -211,6 +247,17 @@ static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r
 	}
 }
 
+static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge) {
+	float v1[3], v2[3];
+	copy_v3_v3(v1, edge->v1->co);
+	copy_v3_v3(v2, edge->v2->co);
+
+	mul_m4_v3(ob->obmat, v1);
+	mul_m4_v3(ob->obmat, v2);
+
+	return len_squared_v3v3(v1, v2);
+}
+
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
@@ -223,7 +270,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMEDGE_LENGTH,
 	         SIMEDGE_FACE_ANGLE,
 	         SIMEDGE_CREASE,
 	         SIMEDGE_BEVEL,
@@ -258,6 +304,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	GSet *gset = NULL;
 
 	switch (type) {
+		case SIMEDGE_LENGTH:
 		case SIMEDGE_DIR:
 			tree = BLI_kdtree_new(tot_edges_selected_all);
 			break;
@@ -290,6 +337,13 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						float dir[3];
 						edge_pos_direction_worldspace_get(ob, edge, dir);
 						BLI_kdtree_insert(tree, tree_index++, dir);
+						break;
+					}
+					case SIMEDGE_LENGTH:
+					{
+						float length = edge_length_squared_worldspace_get(ob, edge);
+						float dummy[3] = {length, 0.0f, 0.0f};
+						BLI_kdtree_insert(tree, tree_index++, dummy);
 						break;
 					}
 				}
@@ -341,6 +395,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 								BM_edge_select_set(bm, edge, true);
 								changed = true;
 							}
+						}
+						break;
+					}
+					case SIMEDGE_LENGTH:
+					{
+						float length = edge_length_squared_worldspace_get(ob, edge);
+						if (bm_sel_similar_cmp_tree_fl(tree, length, thresh, compare)) {
+							BM_edge_select_set(bm, edge, true);
+							changed = true;
 						}
 						break;
 					}
