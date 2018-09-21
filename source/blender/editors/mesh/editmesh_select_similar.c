@@ -376,6 +376,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
 			if (!BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+				bool select = false;
 				switch (type) {
 					case SIMEDGE_FACE:
 					{
@@ -385,8 +386,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
 							if (select_similar_compare_int(delta_i, compare)) {
-								BM_edge_select_set(bm, edge, true);
-								changed = true;
+								select = true;
 								break;
 							}
 						}
@@ -402,8 +402,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						KDTreeNearest nearest;
 						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
 							if (angle_normalized_v3v3(dir, nearest.co) <= thresh_radians) {
-								BM_edge_select_set(bm, edge, true);
-								changed = true;
+								select = true;
 							}
 						}
 						break;
@@ -413,7 +412,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						float length = edge_length_squared_worldspace_get(ob, edge);
 						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
 							BM_edge_select_set(bm, edge, true);
-							changed = true;
+							select = true;
 						}
 						break;
 					}
@@ -422,12 +421,16 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
 							float angle = BM_edge_calc_face_angle(edge);
 							if (select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
-								BM_edge_select_set(bm, edge, true);
-								changed = true;
+								select = true;
 							}
 						}
 						break;
 					}
+				}
+
+				if (select) {
+					BM_edge_select_set(bm, edge, true);
+					changed = true;
 				}
 			}
 		}
@@ -551,6 +554,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (vert, &iter, bm, BM_VERTS_OF_MESH) {
 			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
+				bool select = false;
 				switch (type) {
 					case SIMVERT_EDGE:
 					{
@@ -560,8 +564,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 							const int num_edges_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_edges - num_edges_iter;
 							if (select_similar_compare_int(delta_i, compare)) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+								select = true;
 								break;
 							}
 						}
@@ -575,8 +578,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
 							if (select_similar_compare_int(delta_i, compare)) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+								select = true;
 								break;
 							}
 						}
@@ -594,12 +596,16 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						KDTreeNearest nearest;
 						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+								select = true;
 							}
 						}
 						break;
 					}
+				}
+
+				if (select) {
+					BM_vert_select_set(bm, vert, true);
+					changed = true;
 				}
 			}
 		}
