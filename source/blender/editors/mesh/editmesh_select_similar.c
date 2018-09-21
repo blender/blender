@@ -39,6 +39,8 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -295,9 +297,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-#ifdef WITH_FREESTYLE
-	         SIMEDGE_FREESTYLE,
-#endif
 	         SIMEDGE_CREASE,
 	         SIMEDGE_BEVEL))
 	{
@@ -347,6 +346,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
+#ifdef WITH_FREESTYLE
+		if (type == SIMEDGE_FREESTYLE) {
+			if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+				edge_data_value |= SIMEDGE_DATA_FALSE;
+				continue;
+			}
+		}
+#endif
+
 		BMEdge *edge; /* Mesh edge. */
 		BMIter iter; /* Selected edges iterator. */
 
@@ -389,10 +397,31 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							goto selectall;
 						}
 						break;
+#ifdef WITH_FREESTYLE
+					case SIMEDGE_FREESTYLE:
+					{
+						FreestyleEdge *fedge;
+						fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
+						if ((fedge == NULL) || ((fedge->flag & FREESTYLE_EDGE_MARK) == 0)) {
+							edge_data_value |= SIMEDGE_DATA_FALSE;
+						}
+						else {
+							edge_data_value |= SIMEDGE_DATA_TRUE;
+						}
+						if (edge_data_value == SIMEDGE_DATA_ALL) {
+							goto selectall;
+						}
+						break;
+					}
+#endif
 				}
 			}
 		}
 	}
+
+#ifdef WITH_FREESTYLE
+	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
+#endif
 
 	if (tree != NULL) {
 		BLI_kdtree_balance(tree);
@@ -403,6 +432,16 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
 		bool changed = false;
+
+#ifdef WITH_FREESTYLE
+		bool has_freestyle_layer;
+		if (type == SIMEDGE_FREESTYLE) {
+			has_freestyle_layer = CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE);
+			if ((edge_data_value == SIMEDGE_DATA_TRUE) && !has_freestyle_layer) {
+				continue;
+			}
+		}
+#endif
 
 		BMEdge *edge; /* Mesh edge. */
 		BMIter iter; /* Selected edges iterator. */
@@ -474,6 +513,26 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							select = true;
 						}
 						break;
+#ifdef WITH_FREESTYLE
+					case SIMEDGE_FREESTYLE:
+					{
+						FreestyleEdge *fedge;
+
+						if (!has_freestyle_layer) {
+							BLI_assert(edge_data_value == SIMEDGE_DATA_FALSE);
+							select = true;
+							break;
+						}
+
+						fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
+						if (((fedge != NULL) && (fedge->flag & FREESTYLE_EDGE_MARK)) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					}
+#endif
 				}
 
 				if (select) {
@@ -491,7 +550,12 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	if (false) {
 selectall:
-		BLI_assert(ELEM(type, SIMEDGE_SEAM, SIMEDGE_SHARP));
+		BLI_assert(ELEM(type,
+		                SIMEDGE_SEAM,
+#ifdef WITH_FREESTYLE
+		                SIMEDGE_FREESTYLE,
+#endif
+		                SIMEDGE_SHARP));
 
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *ob = objects[ob_index];
