@@ -15,9 +15,13 @@ class TestHelper:
 
     def setUp(self):
         self._id = bpy.context.scene
-        assert(len(self._id.keys()) == 0)
+        self._removeProperties()
+        assert len(self._id.keys()) == 0
 
     def tearDown(self):
+        self._removeProperties()
+
+    def _removeProperties(self):
         for key in list(self._id.keys()):
             del self._id[key]
 
