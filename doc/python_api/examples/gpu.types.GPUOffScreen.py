@@ -256,6 +256,8 @@ if __name__ == "__main__":
     try:
         unregister()
     except RuntimeError:
+        pass
+    else:
         if hasattr(bpy.types, "VIEW3D_OT_draw_offscreen"):
             del bpy.types.VIEW3D_OT_draw_offscreen.global_shader
 
