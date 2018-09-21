@@ -408,7 +408,9 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		BMIter iter; /* Selected edges iterator. */
 
 		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+			if (!BM_elem_flag_test(edge, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(edge, BM_ELEM_HIDDEN))
+			{
 				bool select = false;
 				switch (type) {
 					case SIMEDGE_FACE:
@@ -622,7 +624,9 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		BMIter iter; /* Selected verts iterator. */
 
 		BM_ITER_MESH (vert, &iter, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
+			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(vert, BM_ELEM_HIDDEN))
+			{
 				bool select = false;
 				switch (type) {
 					case SIMVERT_EDGE:
