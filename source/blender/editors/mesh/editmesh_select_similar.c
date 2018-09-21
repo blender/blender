@@ -346,14 +346,12 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-#ifdef WITH_FREESTYLE
 		if (type == SIMEDGE_FREESTYLE) {
 			if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
 				edge_data_value |= SIMEDGE_DATA_FALSE;
 				continue;
 			}
 		}
-#endif
 
 		BMEdge *edge; /* Mesh edge. */
 		BMIter iter; /* Selected edges iterator. */
@@ -397,7 +395,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							goto selectall;
 						}
 						break;
-#ifdef WITH_FREESTYLE
 					case SIMEDGE_FREESTYLE:
 					{
 						FreestyleEdge *fedge;
@@ -413,15 +410,12 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
-#endif
 				}
 			}
 		}
 	}
 
-#ifdef WITH_FREESTYLE
 	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
-#endif
 
 	if (tree != NULL) {
 		BLI_kdtree_balance(tree);
@@ -433,7 +427,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		BMesh *bm = em->bm;
 		bool changed = false;
 
-#ifdef WITH_FREESTYLE
 		bool has_freestyle_layer;
 		if (type == SIMEDGE_FREESTYLE) {
 			has_freestyle_layer = CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE);
@@ -441,7 +434,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 				continue;
 			}
 		}
-#endif
 
 		BMEdge *edge; /* Mesh edge. */
 		BMIter iter; /* Selected edges iterator. */
@@ -513,7 +505,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							select = true;
 						}
 						break;
-#ifdef WITH_FREESTYLE
 					case SIMEDGE_FREESTYLE:
 					{
 						FreestyleEdge *fedge;
@@ -532,7 +523,6 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
-#endif
 				}
 
 				if (select) {
@@ -552,10 +542,9 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 selectall:
 		BLI_assert(ELEM(type,
 		                SIMEDGE_SEAM,
-#ifdef WITH_FREESTYLE
-		                SIMEDGE_FREESTYLE,
-#endif
-		                SIMEDGE_SHARP));
+		                SIMEDGE_SHARP,
+		                SIMEDGE_FREESTYLE
+		                ));
 
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *ob = objects[ob_index];
