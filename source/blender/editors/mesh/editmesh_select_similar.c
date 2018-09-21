@@ -95,7 +95,7 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int bm_sel_similar_cmp_fl(const float delta, const float thresh, const int compare)
+static int select_similar_compare_float(const float delta, const float thresh, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
@@ -110,7 +110,7 @@ static int bm_sel_similar_cmp_fl(const float delta, const float thresh, const in
 	}
 }
 
-static int bm_sel_similar_cmp_i(const int delta, const int compare)
+static int select_similar_compare_int(const int delta, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
@@ -125,7 +125,7 @@ static int bm_sel_similar_cmp_i(const int delta, const int compare)
 	}
 }
 
-static bool bm_sel_similar_cmp_tree_fl(const KDTree *tree, const float length, const float thresh, const int compare)
+static bool select_similar_compare_float_tree(const KDTree *tree, const float length, const float thresh, const int compare)
 {
 	/* Length of the edge we want to compare against. */
 	float nearest_edge_length;
@@ -155,7 +155,7 @@ static bool bm_sel_similar_cmp_tree_fl(const KDTree *tree, const float length, c
 	float dummy[3] = {nearest_edge_length, 0.0f, 0.0f};
 	if (BLI_kdtree_find_nearest(tree, dummy, &nearest) != -1) {
 		float delta = length - nearest.co[0];
-		return bm_sel_similar_cmp_fl(delta, thresh, compare);
+		return select_similar_compare_float(delta, thresh, compare);
 	}
 
 	return false;
@@ -374,7 +374,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
-							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+							if (select_similar_compare_int(delta_i, compare)) {
 								BM_edge_select_set(bm, edge, true);
 								changed = true;
 								break;
@@ -401,7 +401,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_LENGTH:
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
-						if (bm_sel_similar_cmp_tree_fl(tree, length, thresh, compare)) {
+						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
 							BM_edge_select_set(bm, edge, true);
 							changed = true;
 						}
@@ -538,7 +538,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_edges_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_edges - num_edges_iter;
-							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+							if (select_similar_compare_int(delta_i, compare)) {
 								BM_vert_select_set(bm, vert, true);
 								changed = true;
 								break;
@@ -553,7 +553,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
-							if (bm_sel_similar_cmp_i(delta_i, compare)) {
+							if (select_similar_compare_int(delta_i, compare)) {
 								BM_vert_select_set(bm, vert, true);
 								changed = true;
 								break;
