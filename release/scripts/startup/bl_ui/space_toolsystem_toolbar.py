@@ -1392,6 +1392,7 @@ class _defs_gpencil_sculpt:
         if ob and ob.mode == 'GPENCIL_SCULPT':
             ts = context.tool_settings
             settings = ts.gpencil_sculpt
+            tool = settings.tool
             brush = settings.brush
 
             layout.prop(brush, "size", slider=True)
@@ -1399,6 +1400,11 @@ class _defs_gpencil_sculpt:
             row = layout.row(align=True)
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="")
+
+            if tool in {'THICKNESS', 'PINCH', 'TWIST'}:
+                row.separator()
+                row.prop(brush, "direction", expand=True, text="")
+
             row.separator()
             row.prop(ts.gpencil_sculpt, "use_select_mask", text="")
 

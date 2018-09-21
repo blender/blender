@@ -265,7 +265,6 @@ class GreasePencilStrokeSculptPanel:
             col.row().prop(brush, "direction", expand=True)
 
 
-
 class GreasePencilSculptOptionsPanel:
     bl_label = "Sculpt Strokes"
 
