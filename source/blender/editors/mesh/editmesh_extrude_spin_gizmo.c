@@ -31,6 +31,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "ED_gizmo_utils.h"
 #include "ED_screen.h"
@@ -55,6 +56,7 @@
 typedef struct GizmoGroupData_SpinInit {
 	struct {
 		wmGizmo *xyz_view[4];
+		wmGizmo *icon_button[3];
 	} gizmos;
 
 	/* Only for view orientation. */
@@ -65,19 +67,38 @@ typedef struct GizmoGroupData_SpinInit {
 	/* We could store more vars here! */
 	struct {
 		wmOperatorType *ot_spin;
+		PropertyRNA *ot_spin_gizmo_axis_prop;
 		float orient_mat[3][3];
 	} data;
 } GizmoGroupData_SpinInit;
+
+/* Use dials only as a visualization when hovering over the icons. */
+#define USE_DIAL_HOVER
+
+#define INIT_SCALE_BASE 2.5f
+#define INIT_SCALE_BUTTON 0.2f
+
+static const uchar shape_plus[] = {
+	0x5f, 0xfb, 0x40, 0xee, 0x25, 0xda, 0x11, 0xbf, 0x4, 0xa0, 0x0, 0x80, 0x4, 0x5f, 0x11,
+	0x40, 0x25, 0x25, 0x40, 0x11, 0x5f, 0x4, 0x7f, 0x0, 0xa0, 0x4, 0xbf, 0x11, 0xda, 0x25,
+	0xee, 0x40, 0xfb, 0x5f, 0xff, 0x7f, 0xfb, 0xa0, 0xee, 0xbf, 0xda, 0xda, 0xbf, 0xee,
+	0xa0, 0xfb, 0x80, 0xff, 0x6e, 0xd7, 0x92, 0xd7, 0x92, 0x90, 0xd8, 0x90, 0xd8, 0x6d,
+	0x92, 0x6d, 0x92, 0x27, 0x6e, 0x27, 0x6e, 0x6d, 0x28, 0x6d, 0x28, 0x90, 0x6e,
+	0x90, 0x6e, 0xd7, 0x80, 0xff, 0x5f, 0xfb, 0x5f, 0xfb,
+};
 
 static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
 {
 	/* alpha values for normal/highlighted states */
 	const float alpha = 0.6f;
 	const float alpha_hi = 1.0f;
+	const float scale_base = INIT_SCALE_BASE;
+	const float scale_button = INIT_SCALE_BUTTON;
 
 	GizmoGroupData_SpinInit *ggd = MEM_callocN(sizeof(*ggd), __func__);
 	gzgroup->customdata = ggd;
 	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
+	const wmGizmoType *gzt_button = WM_gizmotype_find("GIZMO_GT_button_2d", true);
 
 	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
 		wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
@@ -88,7 +109,9 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
 	for (int i = 0; i < 3; i++) {
 		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+#ifndef USE_DIAL_HOVER
 		RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_DIAL_DRAW_FLAG_CLIP);
+#endif
 		WM_gizmo_set_line_width(gz, 3.0f);
 		float color[4];
 		UI_GetThemeColor3fv(TH_AXIS_X + i, color);
@@ -96,7 +119,7 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 		WM_gizmo_set_color(gz, color);
 		color[3] = alpha_hi;
 		WM_gizmo_set_color_highlight(gz, color);
-		WM_gizmo_set_scale(gz, 3.0);
+		WM_gizmo_set_scale(gz, INIT_SCALE_BASE);
 	}
 
 	{
@@ -108,10 +131,41 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 		WM_gizmo_set_color(gz, color);
 		color[3] = alpha_hi;
 		WM_gizmo_set_color_highlight(gz, color);
-		WM_gizmo_set_scale(gz, 3.2f);
+		WM_gizmo_set_scale(gz, scale_base);
+	}
+
+
+#ifdef USE_DIAL_HOVER
+	for (int i = 0; i < 4; i++) {
+		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+		WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+	}
+#endif
+
+	for (int i = 0; i < 3; i++) {
+		wmGizmo *gz = WM_gizmo_new_ptr(gzt_button, gzgroup, NULL);
+		PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "shape");
+		RNA_property_string_set_bytes(
+		        gz->ptr, prop,
+		        (const char *)shape_plus, ARRAY_SIZE(shape_plus));
+
+		float color[4];
+		UI_GetThemeColor3fv(TH_AXIS_X + i, color);
+		color[3] = alpha;
+		WM_gizmo_set_color(gz, color);
+
+		WM_gizmo_set_scale(gz, scale_button);
+		gz->color[3] = 0.6f;
+
+		gz->flag |= WM_GIZMO_DRAW_OFFSET_SCALE;
+
+		RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_HELPLINE);
+
+		ggd->gizmos.icon_button[i] = gz;
 	}
 
 	ggd->data.ot_spin = WM_operatortype_find("MESH_OT_spin", true);
+	ggd->data.ot_spin_gizmo_axis_prop = RNA_struct_type_find_property(ggd->data.ot_spin->srna, "gizmo_axis");
 }
 
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup);
@@ -124,10 +178,19 @@ static void gizmo_mesh_spin_init_refresh_axis_orientation(
 	wmGizmo *gz = ggd->gizmos.xyz_view[axis_index];
 	WM_gizmo_set_matrix_rotation_from_z_axis(gz, axis_vec);
 
-	PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
-	RNA_float_set_array(ptr, "axis", axis_vec);
+	/* Only for display, use icons to access. */
+#ifndef USE_DIAL_HOVER
+	{
+		PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
+		RNA_float_set_array(ptr, "axis", axis_vec);
+	}
+#endif
+	if (axis_index < 3) {
+		gz = ggd->gizmos.icon_button[axis_index];
+		PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
+		RNA_float_set_array(ptr, "axis", axis_vec);
+	}
 }
-
 
 static void gizmo_mesh_spin_init_draw_prepare(
         const bContext *C, wmGizmoGroup *gzgroup)
@@ -157,6 +220,26 @@ static void gizmo_mesh_spin_init_draw_prepare(
 		gizmo_mesh_spin_init_refresh_axis_orientation(gzgroup, 3, rv3d->viewinv[2]);
 		copy_m3_m4(ggd->prev.viewinv_m3, rv3d->viewinv);
 	}
+
+	/* Hack! highlight XYZ dials based on buttons */
+#ifdef USE_DIAL_HOVER
+	{
+		for (int i = 0; i < 4; i++) {
+			wmGizmo *gz = ggd->gizmos.xyz_view[i];
+			WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+		}
+
+		for (int i = 0; i < 3; i++) {
+			wmGizmo *gz = ggd->gizmos.icon_button[i];
+			if (gz->state & WM_GIZMO_STATE_HIGHLIGHT) {
+				WM_gizmo_set_flag(ggd->gizmos.xyz_view[i], WM_GIZMO_HIDDEN, false);
+				break;
+			}
+
+		}
+	}
+#endif
+
 }
 
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup)
@@ -172,6 +255,11 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 			wmGizmo *gz = ggd->gizmos.xyz_view[i];
 			WM_gizmo_set_matrix_location(gz, cursor->location);
 		}
+
+		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
+			wmGizmo *gz = ggd->gizmos.icon_button[i];
+			WM_gizmo_set_matrix_location(gz, cursor->location);
+		}
 	}
 
 	ED_transform_calc_orientation_from_type(C, ggd->data.orient_mat);
@@ -183,6 +271,23 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 		gizmo_mesh_spin_init_refresh_axis_orientation(gzgroup, 3, rv3d->viewinv[2]);
 	}
 
+	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
+		wmGizmo *gz = ggd->gizmos.icon_button[i];
+		float offset = INIT_SCALE_BASE / INIT_SCALE_BUTTON;
+		mul_v3_v3fl(gz->matrix_offset[3], ggd->data.orient_mat[(i + 2) % 3], offset);
+	}
+
+	{
+		PointerRNA ptr;
+		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+		WM_toolsystem_ref_properties_ensure(tref, ggd->data.ot_spin, &ptr);
+		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.ot_spin_gizmo_axis_prop);
+		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
+			wmGizmo *gz = ggd->gizmos.icon_button[i];
+			WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, (axis_flag & (1 << i)) == 0);
+		}
+	}
+
 	/* Needed to test view orientation changes. */
 	copy_m3_m4(ggd->prev.viewinv_m3, rv3d->viewinv);
 }
@@ -191,6 +296,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 static void gizmo_mesh_spin_init_message_subscribe(
         const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
+	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
 	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 
@@ -215,6 +321,15 @@ static void gizmo_mesh_spin_init_message_subscribe(
 			WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_gz_tag_refresh, __func__);
 		}
 	}
+
+	WM_msg_subscribe_rna_params(
+	        mbus,
+	        &(const wmMsgParams_RNA){
+	            .ptr = (PointerRNA){.type = ggd->data.ot_spin->srna},
+	            .prop = ggd->data.ot_spin_gizmo_axis_prop,
+	        },
+	        &msg_sub_value_gz_tag_refresh, __func__);
+
 }
 
 void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
@@ -233,6 +348,9 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 	gzgt->message_subscribe = gizmo_mesh_spin_init_message_subscribe;
 	gzgt->draw_prepare = gizmo_mesh_spin_init_draw_prepare;
 }
+
+#undef INIT_SCALE_BASE
+#undef INIT_SCALE_BUTTON
 
 /** \} */
 

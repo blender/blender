@@ -40,6 +40,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -189,5 +190,6 @@ void MESH_OT_spin(wmOperatorType *ot)
 	WM_gizmogrouptype_append(MESH_GGT_spin);
 #ifdef USE_GIZMO
 	WM_gizmogrouptype_append(MESH_GGT_spin_redo);
+	RNA_def_enum_flag(ot->srna, "gizmo_axis", rna_enum_axis_flag_xyz_items, (1 << 2), "Axis", "");
 #endif
 }

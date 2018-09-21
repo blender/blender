@@ -133,8 +133,9 @@ static void button2d_draw_intern(
 
 	bool is_3d = (gz->parent_gzgroup->type->flag & WM_GIZMOGROUPTYPE_3D) != 0;
 
-
-	if (draw_options & ED_GIZMO_BUTTON_SHOW_HELPLINE) {
+	if ((select == false) &&
+	    (draw_options & ED_GIZMO_BUTTON_SHOW_HELPLINE))
+	{
 		float matrix_final_no_offset[4][4];
 		WM_gizmo_calc_matrix_final_no_offset(gz, matrix_final_no_offset);
 		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
