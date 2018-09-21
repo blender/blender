@@ -181,16 +181,31 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /* wrap the above function but do selection flushing edge to face */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	/* TODO (dfelinto) port the edge modes to multi-object. */
-	BKE_report(op->reports, RPT_ERROR, "Select similar not supported for edges at the moment");
-	return OPERATOR_CANCELLED;
+	const int type = RNA_enum_get(op->ptr, "type");
+
+	if (ELEM(type,
+	         SIMEDGE_LENGTH,
+	         SIMEDGE_DIR,
+	         SIMEDGE_FACE,
+	         SIMEDGE_FACE_ANGLE,
+	         SIMEDGE_CREASE,
+	         SIMEDGE_BEVEL,
+	         SIMEDGE_SEAM,
+#ifdef WITH_FREESTYLE
+	         SIMEDGE_FREESTYLE,
+#endif
+	         SIMEDGE_SHARP))
+	{
+		/* TODO (dfelinto) port the edge modes to multi-object. */
+		BKE_report(op->reports, RPT_ERROR, "Select similar edge mode not supported at the moment");
+		return OPERATOR_CANCELLED;
+	}
 
 	Object *ob = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	BMOperator bmop;
 
 	/* get the type from RNA */
-	const int type = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
