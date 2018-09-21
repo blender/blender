@@ -3963,6 +3963,11 @@ class VIEW3D_PT_shading_lighting(Panel):
     bl_label = "Lighting"
     bl_parent_id = 'VIEW3D_PT_shading'
 
+    @classmethod
+    def poll(cls, context):
+        shading = VIEW3D_PT_shading.get_shading(context)
+        return shading.type in {'SOLID', 'MATERIAL'}
+
     def draw(self, context):
         layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
@@ -4028,7 +4033,7 @@ class VIEW3D_PT_shading_color(Panel):
     @classmethod
     def poll(cls, context):
         shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type == 'SOLID'
+        return shading.type in {'WIREFRAME', 'SOLID'}
 
     def _draw_color_type(self, context):
         layout = self.layout
@@ -4061,7 +4066,7 @@ class VIEW3D_PT_shading_options(Panel):
     @classmethod
     def poll(cls, context):
         shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type == 'SOLID'
+        return shading.type in {'WIREFRAME', 'SOLID'}
 
     def draw(self, context):
         layout = self.layout
@@ -4079,33 +4084,34 @@ class VIEW3D_PT_shading_options(Panel):
         sub.active = is_xray
         sub.prop(shading, "xray_alpha", text="X-Ray")
 
-        row = col.row()
-        row.prop(shading, "show_shadows", text="")
-        row.active = not is_xray
-        sub = row.row(align=True)
-        sub.active = is_shadows
-        sub.prop(shading, "shadow_intensity", text="Shadow")
-        sub.popover(
-            panel="VIEW3D_PT_shading_options_shadow",
-            icon='SCRIPTWIN',
-            text=""
-        )
-
-        col = layout.column()
-        row = col.row()
-        row.active = not is_xray
-        row.prop(shading, "show_cavity")
-
-        if shading.show_cavity:
-            sub = col.row(align=True)
-            sub.active = not shading.show_xray and shading.show_cavity
-            sub.prop(shading, "cavity_ridge_factor")
-            sub.prop(shading, "cavity_valley_factor")
+        if shading.type == 'SOLID':
+            row = col.row()
+            row.prop(shading, "show_shadows", text="")
+            row.active = not is_xray
+            sub = row.row(align=True)
+            sub.active = is_shadows
+            sub.prop(shading, "shadow_intensity", text="Shadow")
             sub.popover(
-                panel="VIEW3D_PT_shading_options_ssao",
+                panel="VIEW3D_PT_shading_options_shadow",
                 icon='SCRIPTWIN',
                 text=""
             )
+
+            col = layout.column()
+            row = col.row()
+            row.active = not is_xray
+            row.prop(shading, "show_cavity")
+
+            if shading.show_cavity:
+                sub = col.row(align=True)
+                sub.active = not shading.show_xray and shading.show_cavity
+                sub.prop(shading, "cavity_ridge_factor")
+                sub.prop(shading, "cavity_valley_factor")
+                sub.popover(
+                    panel="VIEW3D_PT_shading_options_ssao",
+                    icon='SCRIPTWIN',
+                    text=""
+                )
 
         row = layout.split()
         row.prop(shading, "show_object_outline")
@@ -4114,7 +4120,7 @@ class VIEW3D_PT_shading_options(Panel):
         sub.prop(shading, "object_outline_color", text="")
 
         col = layout.column()
-        if not shading.light == 'MATCAP':
+        if shading.light not in {'WIREFRAME', 'MATCAP'}:
             col.prop(shading, "show_specular_highlight")
 
 

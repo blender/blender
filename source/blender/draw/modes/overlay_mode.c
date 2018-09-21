@@ -236,6 +236,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	}
 
 	if ((stl->g_data->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+	    (v3d->shading.type == OB_WIRE) ||
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{

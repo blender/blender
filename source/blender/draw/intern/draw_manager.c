@@ -1164,6 +1164,7 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 {
 	switch (drawtype) {
 		case OB_WIRE:
+			use_drw_engine(&draw_engine_workbench_transparent);
 			break;
 
 		case OB_SOLID:

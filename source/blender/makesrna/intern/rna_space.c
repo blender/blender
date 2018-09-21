@@ -238,9 +238,10 @@ static const EnumPropertyItem autosnap_items[] = {
 #endif
 
 const EnumPropertyItem rna_enum_shading_type_items[] = {
-	{OB_SOLID,    "SOLID",    ICON_SOLID,         "Solid",    "Display in solid mode"},
-	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "LookDev",  "Display in LookDev mode"},
-	{OB_RENDER,   "RENDERED", ICON_SMOOTH,        "Rendered", "Display render preview"},
+	{OB_WIRE,     "WIREFRAME", ICON_WIRE,          "Wireframe", "Display the object as wire edges"},
+	{OB_SOLID,    "SOLID",     ICON_SOLID,         "Solid",     "Display in solid mode"},
+	{OB_MATERIAL, "MATERIAL",  ICON_MATERIAL_DATA, "LookDev",   "Display in LookDev mode"},
+	{OB_RENDER,   "RENDERED",  ICON_SMOOTH,        "Rendered",  "Display render preview"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -769,6 +770,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_WIRE);
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_SOLID);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
