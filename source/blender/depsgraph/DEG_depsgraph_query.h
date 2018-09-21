@@ -133,7 +133,7 @@ typedef struct DEGObjectIterData {
 	 */
 	struct Object temp_dupli_object;
 
-	/* **** Iteration ober ID nodes **** */
+	/* **** Iteration over ID nodes **** */
 	size_t id_node_index;
 	size_t num_id_nodes;
 } DEGObjectIterData;
