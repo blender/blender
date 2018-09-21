@@ -1405,9 +1405,6 @@ class _defs_gpencil_sculpt:
                 row.separator()
                 row.prop(brush, "direction", expand=True, text="")
 
-            row.separator()
-            row.prop(ts.gpencil_sculpt, "use_select_mask", text="")
-
     @ToolDef.from_fn
     def smooth():
         def draw_settings(context, layout, tool):

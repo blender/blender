@@ -79,6 +79,11 @@ class VIEW3D_HT_header(Header):
 
             if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode or gpd.is_stroke_weight_mode:
                 row = layout.row(align=True)
+
+                if gpd.is_stroke_sculpt_mode:
+                    row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
+                    row.separator()
+
                 row.prop(gpd, "use_multiedit", text="", icon='FORCE_HARMONIC')
 
                 sub = row.row(align=True)
