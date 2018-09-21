@@ -241,12 +241,6 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
 
 
 def register():
-    try:
-        cls = getattr(bpy.types, "VIEW3D_OT_draw_offscreen")
-        del cls.global_shader
-    except:
-        pass
-
     shader = gpu.types.GPUShader(g_imageVertSrc, g_imageFragSrc)
     VIEW3D_OT_draw_offscreen.global_shader = shader
 
@@ -262,6 +256,7 @@ if __name__ == "__main__":
     try:
         unregister()
     except RuntimeError:
-        pass
+        if hasattr(bpy.types, "VIEW3D_OT_draw_offscreen"):
+            del bpy.types.VIEW3D_OT_draw_offscreen.global_shader
 
     register()
