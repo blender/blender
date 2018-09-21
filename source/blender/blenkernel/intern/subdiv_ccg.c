@@ -191,19 +191,21 @@ static void subdiv_ccg_eval_grid_element(
         const float u, const float v,
         unsigned char *element)
 {
-	if (data->subdiv->displacement_evaluator != NULL) {
+	Subdiv *subdiv = data->subdiv;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	if (subdiv->displacement_evaluator != NULL) {
 		BKE_subdiv_eval_final_point(
-		        data->subdiv, ptex_face_index, u, v, (float *)element);
+		        subdiv, ptex_face_index, u, v, (float *)element);
 	}
-	else if (data->subdiv_ccg->has_normal) {
+	else if (subdiv_ccg->has_normal) {
 		BKE_subdiv_eval_limit_point_and_normal(
-		        data->subdiv, ptex_face_index, u, v,
+		        subdiv, ptex_face_index, u, v,
 		        (float *)element,
-		        (float *)(element + data->subdiv_ccg->normal_offset));
+		        (float *)(element + subdiv_ccg->normal_offset));
 	}
 	else {
 		BKE_subdiv_eval_limit_point(
-		        data->subdiv, ptex_face_index, u, v, (float *)element);
+		        subdiv, ptex_face_index, u, v, (float *)element);
 	}
 }
 
