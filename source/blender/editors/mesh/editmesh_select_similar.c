@@ -258,6 +258,30 @@ static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge) {
 	return len_squared_v3v3(v1, v2);
 }
 
+enum {
+	SIMEDGE_DATA_NONE  = 0,
+	SIMEDGE_DATA_TRUE  = (1 << 0),
+	SIMEDGE_DATA_FALSE = (1 << 1),
+	SIMEDGE_DATA_ALL   = (SIMEDGE_DATA_TRUE | SIMEDGE_DATA_FALSE),
+};
+
+/**
+ * Return true if we still don't know the final value for this edge data.
+ * In other words, if we need to keep iterating over the objects or we can
+ * just go ahead and select all the objects.
+ */
+static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
+{
+	if (BM_elem_flag_test(edge, hflag)) {
+		*r_value |= SIMEDGE_DATA_TRUE;
+	}
+	else {
+		*r_value |= SIMEDGE_DATA_FALSE;
+	}
+
+	return *r_value != SIMEDGE_DATA_ALL;
+}
+
 /* Note/TODO(dfelinto) technically SIMEDGE_FACE_ANGLE should compare the angles in world space.
  * Although doable this is overkill - at least for the initial multi-objects implementation. */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
@@ -271,13 +295,11 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMEDGE_CREASE,
-	         SIMEDGE_BEVEL,
-	         SIMEDGE_SEAM,
 #ifdef WITH_FREESTYLE
 	         SIMEDGE_FREESTYLE,
 #endif
-	         SIMEDGE_SHARP))
+	         SIMEDGE_CREASE,
+	         SIMEDGE_BEVEL))
 	{
 		/* TODO (dfelinto) port the edge modes to multi-object. */
 		BKE_report(op->reports, RPT_ERROR, "Select similar edge mode not supported at the moment");
@@ -302,6 +324,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 
 	KDTree *tree = NULL;
 	GSet *gset = NULL;
+	int edge_data_value = SIMEDGE_DATA_NONE;
 
 	switch (type) {
 		case SIMEDGE_FACE_ANGLE:
@@ -356,6 +379,16 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMEDGE_SEAM:
+						if (!edge_data_value_set(edge, BM_ELEM_SEAM, &edge_data_value)) {
+							goto selectall;
+						}
+						break;
+					case SIMEDGE_SHARP:
+						if (!edge_data_value_set(edge, BM_ELEM_SMOOTH, &edge_data_value)) {
+							goto selectall;
+						}
+						break;
 				}
 			}
 		}
@@ -426,6 +459,20 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMEDGE_SEAM:
+						if ((BM_elem_flag_test(edge, BM_ELEM_SEAM) != 0) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					case SIMEDGE_SHARP:
+						if ((BM_elem_flag_test(edge, BM_ELEM_SMOOTH) != 0) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
 				}
 
 				if (select) {
@@ -436,6 +483,28 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	if (false) {
+selectall:
+		BLI_assert(ELEM(type, SIMEDGE_SEAM, SIMEDGE_SHARP));
+
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
+			BMesh *bm = em->bm;
+
+			BMEdge *edge; /* Mesh edge. */
+			BMIter iter; /* Selected edges iterator. */
+
+			BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+					BM_edge_select_set(bm, edge, true);
+				}
+			}
 			EDBM_selectmode_flush(em);
 			EDBM_update_generic(em, false, false);
 		}
