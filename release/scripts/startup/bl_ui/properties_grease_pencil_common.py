@@ -259,10 +259,17 @@ class GreasePencilStrokeSculptPanel:
 
         layout.prop(brush, "use_falloff")
 
-        if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
-            col = layout.column()
-            col.separator()
-            col.row().prop(brush, "direction", expand=True)
+        layout.use_property_split = False
+        if tool in {'THICKNESS', 'STRENGTH'}:
+            layout.row().prop(brush, "direction", expand=True)
+        elif tool == 'PINCH':
+            row = layout.row(align=True)
+            row.prop_enum(brush, "direction",  value='ADD', text="Pinch")
+            row.prop_enum(brush, "direction",  value='SUBTRACT', text="Inflate")
+        elif settings.tool == 'TWIST':
+            row = layout.row(align=True)
+            row.prop_enum(brush, "direction",  value='ADD', text="CCW")
+            row.prop_enum(brush, "direction",  value='SUBTRACT', text="CW")
 
 
 class GreasePencilSculptOptionsPanel:
