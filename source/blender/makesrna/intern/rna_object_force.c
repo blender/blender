@@ -42,10 +42,11 @@
 #include "WM_types.h"
 
 static const EnumPropertyItem effector_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
-	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", ""},
-	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
+	{PFIELD_SHAPE_LINE, "LINE", 0, "Line", "Field originates from the local Z axis of the object"},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Surface", "Field originates from the surface of the object"},
+	{PFIELD_SHAPE_POINTS, "POINTS", 0, "Every Point", "Field originates from all of the vertices of the object"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -56,15 +57,17 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 /* type specific return values only used from functions */
 static const EnumPropertyItem curve_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
-	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
+	{PFIELD_SHAPE_LINE, "LINE", 0, "Line", "Field originates from the local Z axis of the object"},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
+	{PFIELD_SHAPE_SURFACE, "SURFACE", 0, "Curve", "Field originates from the curve itself"},
 	{0, NULL, 0, NULL, NULL}
 };
 
 static const EnumPropertyItem empty_shape_items[] = {
-	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", ""},
-	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", ""},
+	{PFIELD_SHAPE_POINT, "POINT", 0, "Point", "Field originates from the object center"},
+	{PFIELD_SHAPE_LINE, "LINE", 0, "Line", "Field originates from the local Z axis of the object"},
+	{PFIELD_SHAPE_PLANE, "PLANE", 0, "Plane", "Field originates from the local XY plane of the object"},
 	{0, NULL, 0, NULL, NULL}
 };
 

@@ -544,7 +544,7 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 				if (falloff == 0.0f)
 					break;
 
-				r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point)));
+				r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point2)));
 				falloff*= falloff_func_rad(eff->pd, r_fac);
 
 				break;
@@ -667,13 +667,13 @@ int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *poin
 		/* use z-axis as normal*/
 		normalize_v3_v3(efd->nor, ob->obmat[2]);
 
-		if (eff->pd && eff->pd->shape == PFIELD_SHAPE_PLANE) {
+		if (eff->pd && ELEM(eff->pd->shape, PFIELD_SHAPE_PLANE, PFIELD_SHAPE_LINE)) {
 			float temp[3], translate[3];
 			sub_v3_v3v3(temp, point->loc, ob->obmat[3]);
 			project_v3_v3v3(translate, temp, efd->nor);
 
 			/* for vortex the shape chooses between old / new force */
-			if (eff->pd->forcefield == PFIELD_VORTEX)
+			if (eff->pd->forcefield == PFIELD_VORTEX || eff->pd->shape == PFIELD_SHAPE_LINE)
 				add_v3_v3v3(efd->loc, ob->obmat[3], translate);
 			else /* normally efd->loc is closest point on effector xy-plane */
 				sub_v3_v3v3(efd->loc, point->loc, translate);
@@ -900,7 +900,7 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 			}
 			break;
 		case PFIELD_MAGNET:
-			if (eff->pd->shape == PFIELD_SHAPE_POINT)
+			if (ELEM(eff->pd->shape, PFIELD_SHAPE_POINT, PFIELD_SHAPE_LINE))
 				/* magnetic field of a moving charge */
 				cross_v3_v3v3(temp, efd->nor, efd->vec_to_point);
 			else
