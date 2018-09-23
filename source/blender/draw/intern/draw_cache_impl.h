@@ -96,8 +96,29 @@ struct GPUBatch *DRW_lattice_batch_cache_get_all_edges(struct Lattice *lt, bool 
 struct GPUBatch *DRW_lattice_batch_cache_get_all_verts(struct Lattice *lt);
 struct GPUBatch *DRW_lattice_batch_cache_get_overlay_verts(struct Lattice *lt);
 
-/* Mesh */
+/* Vertex Group Selection and display options */
+typedef struct VertexWeightSelection {
+	int defgroup_active;
+	int defgroup_tot;
 
+	short flags;
+	char alert_mode;
+
+	/* Set of all selected bones for Multipaint. */
+	int defgroup_sel_tot;
+	bool *defgroup_sel;
+} VertexWeightSelection;
+
+enum {
+	VWEIGHT_MULTIPAINT          = (1 << 0),
+	VWEIGHT_AUTO_NORMALIZE      = (1 << 1),
+};
+
+void DRW_vweight_selection_clear(struct VertexWeightSelection *sel);
+void DRW_vweight_selection_copy(struct VertexWeightSelection *sel, const struct VertexWeightSelection *src);
+bool DRW_vweight_selection_compare(const struct VertexWeightSelection *a, const struct VertexWeightSelection *b);
+
+/* Mesh */
 struct GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
         struct Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
         char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count);
@@ -109,7 +130,7 @@ struct GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_all_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals(struct Mesh *me);
-struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, int defgroup);
+struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(struct Mesh *me, const struct VertexWeightSelection *vwsel);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_normals_and_vert_colors(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_id(struct Mesh *me, bool use_hide, uint select_id_offset);
 struct GPUBatch *DRW_mesh_batch_cache_get_triangles_with_select_mask(struct Mesh *me, bool use_hide);

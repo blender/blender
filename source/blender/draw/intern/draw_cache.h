@@ -135,7 +135,7 @@ struct GPUBatch *DRW_cache_mesh_wire_outline_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edge_detection_get(struct Object *ob, bool *r_is_manifold);
 struct GPUBatch *DRW_cache_mesh_surface_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_loose_edges_get(struct Object *ob);
-struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob);
+struct GPUBatch *DRW_cache_mesh_surface_weights_get(struct Object *ob, struct ToolSettings *ts, bool paint_mode);
 struct GPUBatch *DRW_cache_mesh_surface_vert_colors_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_surface_verts_get(struct Object *ob);
 struct GPUBatch *DRW_cache_mesh_edges_get(struct Object *ob);

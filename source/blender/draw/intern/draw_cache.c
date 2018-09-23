@@ -37,10 +37,15 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_listbase.h"
+
+#include "BKE_object_deform.h"
 
 #include "GPU_batch.h"
 #include "GPU_batch_presets.h"
 #include "GPU_batch_utils.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "draw_cache.h"
 #include "draw_cache_impl.h"
@@ -2950,12 +2955,46 @@ GPUBatch *DRW_cache_mesh_loose_edges_get(Object *ob)
 	return DRW_mesh_batch_cache_get_loose_edges_with_normals(me);
 }
 
-GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob)
+GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob, ToolSettings *ts, bool paint_mode)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, ob->actdef - 1);
+
+	/* Extract complete vertex weight group selection state and mode flags. */
+	VertexWeightSelection vwsel;
+	memset(&vwsel, 0, sizeof(vwsel));
+
+	vwsel.defgroup_active = ob->actdef - 1;
+	vwsel.defgroup_tot = BLI_listbase_count(&ob->defbase);
+
+	vwsel.alert_mode = ts->weightuser;
+
+	if (paint_mode && ts->multipaint) {
+		/* Multipaint needs to know all selected bones, not just the active group.
+		 * This is actually a relatively expensive operation, but caching would be difficult. */
+		vwsel.defgroup_sel = BKE_object_defgroup_selected_get(ob, vwsel.defgroup_tot, &vwsel.defgroup_sel_tot);
+
+		if (vwsel.defgroup_sel_tot > 1) {
+			vwsel.flags |= VWEIGHT_MULTIPAINT | (ts->auto_normalize ? VWEIGHT_AUTO_NORMALIZE : 0);
+
+			if (me->editflag & ME_EDIT_MIRROR_X) {
+				BKE_object_defgroup_mirror_selection(ob, vwsel.defgroup_tot, vwsel.defgroup_sel, vwsel.defgroup_sel, &vwsel.defgroup_sel_tot);
+			}
+		}
+		/* With only one selected bone Multipaint reverts to regular mode. */
+		else {
+			vwsel.defgroup_sel_tot = 0;
+			MEM_SAFE_FREE(vwsel.defgroup_sel);
+		}
+	}
+
+	/* Generate the weight data using the selection. */
+	GPUBatch *batch = DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, &vwsel);
+
+	DRW_vweight_selection_clear(&vwsel);
+
+	return batch;
 }
 
 GPUBatch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)

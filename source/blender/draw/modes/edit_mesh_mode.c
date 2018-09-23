@@ -594,7 +594,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (do_show_weight) {
-				geom = DRW_cache_mesh_surface_weights_get(ob);
+				geom = DRW_cache_mesh_surface_weights_get(ob, tsettings, false);
 				DRW_shgroup_call_add(stl->g_data->fvcolor_shgrp, geom, ob->obmat);
 			}
 

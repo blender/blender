@@ -3598,6 +3598,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_mirror_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_MIRROR_X);
 	RNA_def_property_ui_text(prop, "X Mirror", "X Axis mirror editing");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 #if 0
 	prop = RNA_def_property(srna, "use_mirror_y", PROP_BOOLEAN, PROP_NONE);
