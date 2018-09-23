@@ -225,7 +225,7 @@ class VIEW3D_HT_header(Header):
                 icon=or_icon,
             )
 
-        if object_mode in ('GPENCIL_PAINT', 'GPENCIL_SCULPT'):
+        if object_mode in {'GPENCIL_PAINT', 'GPENCIL_SCULPT'}:
             lock = tool_settings.gpencil_sculpt.lockaxis
             gp_lock = \
                 tool_settings.gpencil_sculpt.bl_rna.properties['lockaxis'].enum_items[lock]

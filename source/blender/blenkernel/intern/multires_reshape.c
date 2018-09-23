@@ -227,7 +227,7 @@ static void multires_reshape_vertex_copy_to_next(
         const MPoly *coarse_poly,
         const int current_corner,
         const MDisps *current_displacement_grid,
-		const GridPaintMask *current_mask_grid,
+        const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
 	const int grid_size = ctx->grid_size;
@@ -474,7 +474,7 @@ static void multires_reshape_propagate_prepare_from_mmd(
 }
 
 static void multires_reshape_propagate_corner_data(
-        MultiresPropagateCornerData* corner,
+        MultiresPropagateCornerData *corner,
         const MDisps *old_displacement_grid,
         const MDisps *new_displacement_grid,
         const GridPaintMask *grid_paint_mask,
@@ -505,7 +505,7 @@ static void multires_reshape_propagate_all_corners_data(
         MultiresPropagateCornerData corners[4],
         const MDisps *old_displacement_grid,
         const MDisps *new_displacement_grid,
-		const GridPaintMask *grid_paint_mask,
+        const GridPaintMask *grid_paint_mask,
         const int grid_size,
         const int grid_skip,
         const int reshape_x, const int reshape_y)
@@ -636,7 +636,8 @@ static void multires_reshape_propagate_grid(
 	}
 }
 
-static void multires_reshape_propagate(MultiresPropagateData *data) {
+static void multires_reshape_propagate(MultiresPropagateData *data)
+{
 	if (data->old_displacement_grids == NULL) {
 		return;
 	}
@@ -660,7 +661,8 @@ static void multires_reshape_propagate(MultiresPropagateData *data) {
 	}
 }
 
-static void multires_reshape_propagate_free(MultiresPropagateData *data) {
+static void multires_reshape_propagate_free(MultiresPropagateData *data)
+{
 	if (data->old_displacement_grids != NULL) {
 		const int num_grids = data->num_grids;
 		MDisps *old_mdisps = data->old_displacement_grids;

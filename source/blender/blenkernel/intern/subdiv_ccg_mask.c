@@ -233,8 +233,8 @@ bool BKE_subdiv_ccg_mask_init_from_paint(
 		return false;
 	}
 	/* Allocate all required memory. */
-	mask_evaluator->user_data =MEM_callocN(sizeof(GridPaintMaskData),
-	                                       "mask from grid data");
+	mask_evaluator->user_data = MEM_callocN(sizeof(GridPaintMaskData),
+	                                        "mask from grid data");
 	displacement_init_data(mask_evaluator, mesh);
 	displacement_init_functions(mask_evaluator);
 	return true;

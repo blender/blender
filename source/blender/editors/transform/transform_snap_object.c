@@ -727,7 +727,7 @@ static bool raycastObj(
 
 	if (use_occlusion_test) {
 		if (use_obedit && sctx->use_v3d &&
-			!V3D_IS_ZBUF(sctx->v3d_data.v3d))
+		    !V3D_IS_ZBUF(sctx->v3d_data.v3d))
 		{
 			/* Use of occlude geometry in editing mode disabled. */
 			return false;

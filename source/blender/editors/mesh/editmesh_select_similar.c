@@ -249,7 +249,8 @@ static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r
 	}
 }
 
-static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge) {
+static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge)
+{
 	float v1[3], v2[3];
 	copy_v3_v3(v1, edge->v1->co);
 	copy_v3_v3(v2, edge->v2->co);
