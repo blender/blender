@@ -420,7 +420,7 @@ typedef struct MultiresPropagateCornerData {
 
 static void multires_reshape_propagate_prepare(
         MultiresPropagateData *data,
-        Object *object,
+        Mesh *coarse_mesh,
         const int reshape_level,
         const int top_level)
 {
@@ -430,7 +430,6 @@ static void multires_reshape_propagate_prepare(
 		/* Nothing to do, reshape will happen on the whole grid content. */
 		return;
 	}
-	Mesh *coarse_mesh = object->data;
 	const int num_grids = coarse_mesh->totloop;
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
 	MDisps *old_mdisps = MEM_dupallocN(mdisps);
@@ -468,9 +467,10 @@ static void multires_reshape_propagate_prepare_from_mmd(
         const bool use_render_params)
 {
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Mesh *mesh = object->data;
 	const int level = multires_get_level(
 	        scene_eval, object, mmd, use_render_params, true);
-	multires_reshape_propagate_prepare(data, object, level, mmd->totlvl);
+	multires_reshape_propagate_prepare(data, mesh, level, mmd->totlvl);
 }
 
 static void multires_reshape_propagate_corner_data(
@@ -1070,10 +1070,9 @@ static void reshape_from_ccg_task(
 
 bool multiresModifier_reshapeFromCCG(
         MultiresModifierData *mmd,
-        Object *object,
+        Mesh *coarse_mesh,
         SubdivCCG *subdiv_ccg)
 {
-	Mesh *coarse_mesh = object->data;
 	CCGKey key;
 	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 	/* Sanity checks. */
@@ -1102,7 +1101,7 @@ bool multiresModifier_reshapeFromCCG(
 	/* Initialize propagation to higher levels. */
 	MultiresPropagateData propagate_data;
 	multires_reshape_propagate_prepare(
-	        &propagate_data, object, key.level, mmd->totlvl);
+	        &propagate_data, coarse_mesh, key.level, mmd->totlvl);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);

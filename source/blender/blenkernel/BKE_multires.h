@@ -130,7 +130,7 @@ bool multiresModifier_reshapeFromDeformModifier(
         struct ModifierData *md);
 bool multiresModifier_reshapeFromCCG(
         struct MultiresModifierData *mmd,
-        struct Object *object,
+        struct Mesh *coarse_mesh,
         struct SubdivCCG *subdiv_ccg);
 
 /* Subdivision integration, defined in multires_subdiv.c */
