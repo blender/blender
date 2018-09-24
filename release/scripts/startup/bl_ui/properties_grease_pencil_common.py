@@ -346,9 +346,18 @@ class GreasePencilAppearancePanel:
 
             col = layout.column(align=True)
             col.prop(brush, "use_cursor", text="Show Brush")
-            col.row().prop(brush, "cursor_color_add", text="Add")
-            if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
-                col.row().prop(brush, "cursor_color_sub", text="Subtract")
+
+            if tool in {'THICKNESS', 'STRENGTH'}:
+                col.prop(brush, "cursor_color_add", text="Add")
+                col.prop(brush, "cursor_color_sub", text="Substract")
+            elif tool == 'PINCH':
+                col.prop(brush, "cursor_color_add", text="Pinch")
+                col.prop(brush, "cursor_color_sub", text="Inflate")
+            elif settings.tool == 'TWIST':
+                col.prop(brush, "cursor_color_add", text="CCW")
+                col.prop(brush, "cursor_color_sub", text="CW")
+            else:
+                col.prop(brush, "cursor_color_add", text="")
 
 
 class GPENCIL_MT_pie_tool_palette(Menu):
