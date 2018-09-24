@@ -754,7 +754,10 @@ class IMAGE_PT_view_display_uv_edit_overlays(Panel):
 
         col = layout.column()
 
-        col.prop(uvedit, "edge_display_type", text="Edges")
+        split = col.split(factor=0.6)
+        split.prop(uvedit, "show_edges", text="Edges")
+        split.prop(uvedit, "edge_display_type", text="")
+
         col.prop(uvedit, "show_faces", text="Faces")
 
         col = layout.column()

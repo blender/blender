@@ -262,8 +262,6 @@ void BKE_editmesh_lnorspace_update(BMEditMesh *em)
 		Mesh *me = em->ob->data;
 		if (me->flag & ME_AUTOSMOOTH) {
 			BM_edges_sharp_from_angle_set(bm, me->smoothresh);
-
-			me->drawflag |= ME_DRAWSHARP;
 		}
 	}
 

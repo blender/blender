@@ -70,7 +70,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
 	const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
 	/* when 2 edge-info options are enabled, space apart */
-	const bool do_edge_textpair = (me->drawflag & ME_DRAWEXTRA_EDGELEN) && (me->drawflag & ME_DRAWEXTRA_EDGEANG);
+	const bool do_edge_textpair = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) && (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG);
 	const short edge_texpair_sep = (short)(5.0f * U.ui_scale);
 	float clip_planes[4][4];
 	/* allow for displaying shape keys and deform mods */
@@ -84,14 +84,14 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	else if (grid <= 10.0f) conv_float = "%.3g";
 	else conv_float = "%.2g";
 
-	if (me->drawflag & (ME_DRAWEXTRA_EDGELEN | ME_DRAWEXTRA_EDGEANG | ME_DRAWEXTRA_INDICES)) {
+	if (v3d->overlay.edit_flag & (V3D_OVERLAY_EDIT_EDGE_LEN | V3D_OVERLAY_EDIT_EDGE_ANG | V3D_OVERLAY_EDIT_INDICES)) {
 		BoundBox bb;
 		const rcti rect = {0, ar->winx, 0, ar->winy};
 
 		ED_view3d_clipping_calc(&bb, clip_planes, ar, em->ob, &rect);
 	}
 
-	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
+	if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_LEN) {
 		BMEdge *eed;
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGELEN, col);
@@ -133,7 +133,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 		}
 	}
 
-	if (me->drawflag & ME_DRAWEXTRA_EDGEANG) {
+	if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
 		const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
 		BMEdge *eed;
 
@@ -191,7 +191,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 		}
 	}
 
-	if (me->drawflag & ME_DRAWEXTRA_FACEAREA) {
+	if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_AREA) {
 		/* would be nice to use BM_face_calc_area, but that is for 2d faces
 		 * so instead add up tessellation triangle areas */
 
@@ -242,7 +242,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 		}
 	}
 
-	if (me->drawflag & ME_DRAWEXTRA_FACEANG) {
+	if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_ANG) {
 		BMFace *efa;
 		const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
 
@@ -296,7 +296,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	}
 
 	/* This option is for mesh ops and addons debugging; only available in UI if Blender starts with --debug */
-	if (me->drawflag & ME_DRAWEXTRA_INDICES) {
+	if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_INDICES) {
 		int i;
 
 		/* For now, reuse an appropriate theme color */

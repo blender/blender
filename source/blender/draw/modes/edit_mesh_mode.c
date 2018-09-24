@@ -405,33 +405,32 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (draw_ctx->object_edit->type == OB_MESH) {
 		if (BKE_object_is_in_editmode(draw_ctx->object_edit)) {
-			const Mesh *me = draw_ctx->object_edit->data;
-			if ((me->drawflag & ME_DRAW_FREESTYLE_FACE) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_EDGE) == 0) {
 				stl->g_data->data_mask[0] &= ~VFLAG_FACE_FREESTYLE;
 			}
-			if ((me->drawflag & ME_DRAWFACES) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACES) == 0) {
 				stl->g_data->data_mask[0] &= ~(VFLAG_FACE_SELECTED & VFLAG_FACE_FREESTYLE);
 				stl->g_data->do_faces = false;
 			}
-			if ((me->drawflag & ME_DRAWSEAMS) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_SEAMS) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SEAM;
 			}
-			if ((me->drawflag & ME_DRAWSHARP) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_SHARP) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SHARP;
 			}
-			if ((me->drawflag & ME_DRAW_FREESTYLE_EDGE) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_FACE) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_FREESTYLE;
 			}
-			if ((me->drawflag & ME_DRAWEDGES) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
 				if ((tsettings->selectmode & SCE_SELECT_EDGE) == 0) {
 					stl->g_data->data_mask[1] &= ~(VFLAG_EDGE_ACTIVE & VFLAG_EDGE_SELECTED);
 					stl->g_data->do_edges = false;
 				}
 			}
-			if ((me->drawflag & ME_DRAWCREASES) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CREASES) == 0) {
 				stl->g_data->data_mask[2] = 0x0;
 			}
-			if ((me->drawflag & ME_DRAWBWEIGHTS) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_BWEIGHTS) == 0) {
 				stl->g_data->data_mask[3] = 0x0;
 			}
 		}
@@ -565,14 +564,13 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob)) {
-			const Mesh *me = ob->data;
 			bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
 			bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
 			bool fnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
 			bool vnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_VERT_NORMALS) != 0;
 			bool lnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_LOOP_NORMALS) != 0;
 
-			bool show_face_dots = ((Mesh *)draw_ctx->object_edit->data)->drawflag & ME_DRAW_FACE_DOT;
+			bool show_face_dots = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_DOT) != 0;
 
 			if (stl->g_data->do_faces == false &&
 			    stl->g_data->do_edges == false &&
@@ -646,11 +644,11 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			stl->g_data->edit_ob += 1;
 
 			/* 3D text overlay */
-			if (me->drawflag & (ME_DRAWEXTRA_EDGELEN |
-			                    ME_DRAWEXTRA_FACEAREA |
-			                    ME_DRAWEXTRA_FACEANG |
-			                    ME_DRAWEXTRA_EDGEANG |
-			                    ME_DRAWEXTRA_INDICES))
+			if (v3d->overlay.edit_flag & (V3D_OVERLAY_EDIT_EDGE_LEN |
+			                              V3D_OVERLAY_EDIT_FACE_AREA |
+			                              V3D_OVERLAY_EDIT_FACE_ANG |
+			                              V3D_OVERLAY_EDIT_EDGE_ANG |
+			                              V3D_OVERLAY_EDIT_INDICES))
 			{
 				if (DRW_state_show_text()) {
 					DRW_edit_mesh_mode_text_measure_stats(

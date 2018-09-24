@@ -4349,7 +4349,6 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         overlay = view.overlay
         shading = view.shading
         display_all = overlay.show_overlays
-        data = context.active_object.data
 
         col = layout.column()
         col.active = display_all
@@ -4357,18 +4356,18 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         split = col.split()
 
         sub = split.column()
-        sub.prop(data, "show_edges", text="Edges")
+        sub.prop(overlay, "show_edges", text="Edges")
         sub = split.column()
-        sub.prop(data, "show_faces", text="Faces")
+        sub.prop(overlay, "show_faces", text="Faces")
         sub = split.column()
         sub.active = shading.show_xray
-        sub.prop(data, "show_face_center", text="Center")
+        sub.prop(overlay, "show_face_center", text="Center")
 
         row = col.row(align=True)
-        row.prop(data, "show_edge_crease", text="Creases", toggle=True)
-        row.prop(data, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural, toggle=True)
-        row.prop(data, "show_edge_bevel_weight", text="Bevel", toggle=True)
-        row.prop(data, "show_edge_seams", text="Seams", toggle=True)
+        row.prop(overlay, "show_edge_crease", text="Creases", toggle=True)
+        row.prop(overlay, "show_edge_sharp", text="Sharp", text_ctxt=i18n_contexts.plural, toggle=True)
+        row.prop(overlay, "show_edge_bevel_weight", text="Bevel", toggle=True)
+        row.prop(overlay, "show_edge_seams", text="Seams", toggle=True)
 
 
 class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
@@ -4388,7 +4387,6 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
         overlay = view.overlay
         tool_settings = context.tool_settings
         display_all = overlay.show_overlays
-        data = context.active_object.data
         statvis = tool_settings.statvis
 
         col = layout.column()
@@ -4402,12 +4400,12 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
             row.label(text="Zero Weights")
             row.prop(tool_settings, "vertex_group_user", text="")
 
-        col.prop(data, "show_statvis", text="Mesh Analysis")
-        if data.show_statvis:
+        col.prop(overlay, "show_statvis", text="Mesh Analysis")
+        if overlay.show_statvis:
             col = col.column()
 
             sub = col.split()
-            sub.active = data.show_statvis
+            sub.active = overlay.show_statvis
             sub.label(text="Type")
             sub.prop(statvis, "type", text="")
 
@@ -4450,7 +4448,6 @@ class VIEW3D_PT_overlay_edit_mesh_measurement(Panel):
         view = context.space_data
         overlay = view.overlay
         display_all = overlay.show_overlays
-        data = context.active_object.data
 
         col = layout.column()
         col.active = display_all
@@ -4458,12 +4455,12 @@ class VIEW3D_PT_overlay_edit_mesh_measurement(Panel):
         split = col.split()
 
         sub = split.column()
-        sub.prop(data, "show_extra_edge_length", text="Edge Length")
-        sub.prop(data, "show_extra_edge_angle", text="Edge Angle")
+        sub.prop(overlay, "show_extra_edge_length", text="Edge Length")
+        sub.prop(overlay, "show_extra_edge_angle", text="Edge Angle")
 
         sub = split.column()
-        sub.prop(data, "show_extra_face_area", text="Face Area")
-        sub.prop(data, "show_extra_face_angle", text="Face Angle")
+        sub.prop(overlay, "show_extra_face_area", text="Face Area")
+        sub.prop(overlay, "show_extra_face_angle", text="Face Angle")
 
 
 class VIEW3D_PT_overlay_edit_mesh_normals(Panel):
@@ -4512,14 +4509,13 @@ class VIEW3D_PT_overlay_edit_mesh_freestyle(Panel):
         view = context.space_data
         overlay = view.overlay
         display_all = overlay.show_overlays
-        data = context.active_object.data
 
         col = layout.column()
         col.active = display_all
 
         row = col.row()
-        row.prop(data, "show_freestyle_edge_marks", text="Edge Marks")
-        row.prop(data, "show_freestyle_face_marks", text="Face Marks")
+        row.prop(overlay, "show_freestyle_edge_marks", text="Edge Marks")
+        row.prop(overlay, "show_freestyle_face_marks", text="Face Marks")
 
 
 class VIEW3D_PT_overlay_edit_mesh_developer(Panel):
@@ -4538,12 +4534,11 @@ class VIEW3D_PT_overlay_edit_mesh_developer(Panel):
         view = context.space_data
         overlay = view.overlay
         display_all = overlay.show_overlays
-        data = context.active_object.data
 
         col = layout.column()
         col.active = display_all
 
-        col.prop(data, "show_extra_indices", text="Indices")
+        col.prop(overlay, "show_extra_indices", text="Indices")
 
 
 class VIEW3D_PT_overlay_edit_curve(Panel):

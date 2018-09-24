@@ -637,7 +637,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 		Base *base;
 		Material *ma;
 		Camera *cam;
-		Mesh *me;
 		Curve *cu;
 		Scene *sce;
 		Tex *tx;
@@ -729,10 +728,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *bmain)
 			}
 		}
 
+#if 0 /* ME_DRAWEDGES and others was moved to viewport. */
 		/* copy standard draw flag to meshes(used to be global, is not available here) */
 		for (me = bmain->mesh.first; me; me = me->id.next) {
-			me->drawflag = ME_DRAWEDGES|ME_DRAWFACES|ME_DRAWCREASES;
+			me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
 		}
+#endif
 
 		/* particle draw and render types */
 		for (part = bmain->particle.first; part; part = part->id.next) {

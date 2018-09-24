@@ -508,7 +508,7 @@ void BKE_mesh_init(Mesh *me)
 #if 0
 	me->flag = ME_TWOSIDED;
 #endif
-	me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
+	me->drawflag = 0;
 
 	CustomData_reset(&me->vdata);
 	CustomData_reset(&me->edata);

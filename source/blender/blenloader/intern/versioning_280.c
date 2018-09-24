@@ -2052,4 +2052,24 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 24)) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_FACES |
+						                          V3D_OVERLAY_EDIT_SEAMS |
+						                          V3D_OVERLAY_EDIT_SHARP |
+						                          V3D_OVERLAY_EDIT_FREESTYLE_EDGE |
+						                          V3D_OVERLAY_EDIT_FREESTYLE_FACE |
+						                          V3D_OVERLAY_EDIT_EDGES |
+						                          V3D_OVERLAY_EDIT_CREASES |
+						                          V3D_OVERLAY_EDIT_BWEIGHTS;
+					}
+				}
+			}
+		}
+	}
 }

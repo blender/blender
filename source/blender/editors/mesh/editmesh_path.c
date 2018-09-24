@@ -319,7 +319,7 @@ static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
 static void mouse_mesh_shortest_path_edge(
-        Scene *scene, Object *obedit, const struct PathSelectParams *op_params,
+        Scene *UNUSED(scene), Object *obedit, const struct PathSelectParams *op_params,
         BMEdge *e_act, BMEdge *e_dst)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -327,7 +327,6 @@ static void mouse_mesh_shortest_path_edge(
 
 	struct UserData user_data = {bm, obedit->data, op_params};
 	LinkNode *path = NULL;
-	Mesh *me = obedit->data;
 	bool is_path_ordered = false;
 
 	edgetag_ensure_cd_flag(obedit->data, op_params->edge_mode);
@@ -413,29 +412,6 @@ static void mouse_mesh_shortest_path_edge(
 			else
 				BM_select_history_store(bm, e_dst_last);
 		}
-	}
-
-	/* force drawmode for mesh */
-	switch (op_params->edge_mode) {
-
-		case EDGE_MODE_TAG_SEAM:
-			me->drawflag |= ME_DRAWSEAMS;
-			ED_uvedit_live_unwrap(scene, obedit);
-			break;
-		case EDGE_MODE_TAG_SHARP:
-			me->drawflag |= ME_DRAWSHARP;
-			break;
-		case EDGE_MODE_TAG_CREASE:
-			me->drawflag |= ME_DRAWCREASES;
-			break;
-		case EDGE_MODE_TAG_BEVEL:
-			me->drawflag |= ME_DRAWBWEIGHTS;
-			break;
-#ifdef WITH_FREESTYLE
-		case EDGE_MODE_TAG_FREESTYLE:
-			me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
-			break;
-#endif
 	}
 
 	EDBM_update_generic(em, false, false);

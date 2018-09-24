@@ -679,7 +679,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 			GPU_line_width(1.0f);
 			UI_GetThemeColor4fv(TH_WIRE_EDIT, col2);
 
-			if (me->drawflag & ME_DRAWEDGES) {
+			if ((sima->flag & SI_NO_DRAWEDGES) == 0) {
 				int sel;
 				UI_GetThemeColor4fv(TH_EDGE_SELECT, col1);
 

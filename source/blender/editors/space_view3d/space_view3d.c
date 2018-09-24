@@ -330,6 +330,14 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->overlay.texture_paint_mode_opacity = 0.8;
 	v3d->overlay.weight_paint_mode_opacity = 0.8;
 	v3d->overlay.vertex_paint_mode_opacity = 0.8;
+	v3d->overlay.edit_flag = V3D_OVERLAY_EDIT_FACES |
+						     V3D_OVERLAY_EDIT_SEAMS |
+						     V3D_OVERLAY_EDIT_SHARP |
+						     V3D_OVERLAY_EDIT_FREESTYLE_EDGE |
+						     V3D_OVERLAY_EDIT_FREESTYLE_FACE |
+						     V3D_OVERLAY_EDIT_EDGES |
+						     V3D_OVERLAY_EDIT_CREASES |
+						     V3D_OVERLAY_EDIT_BWEIGHTS;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 

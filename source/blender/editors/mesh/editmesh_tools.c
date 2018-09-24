@@ -988,13 +988,6 @@ static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		Mesh *me = ((Mesh *)obedit->data);
-
-		/* auto-enable seams drawing */
-		if (clear == 0) {
-			me->drawflag |= ME_DRAWSEAMS;
-		}
-
 		if (clear) {
 			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
@@ -1063,15 +1056,9 @@ static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		BMesh *bm = em->bm;
-		Mesh *me = ((Mesh *)obedit->data);
 
 		if (bm->totedgesel == 0) {
 			continue;
-		}
-
-		/* auto-enable sharp edge drawing */
-		if (clear == 0) {
-			me->drawflag |= ME_DRAWSHARP;
 		}
 
 		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
@@ -6937,15 +6924,9 @@ static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 		}
 
 		BMesh *bm = em->bm;
-		Mesh *me = ((Mesh *)obedit->data);
 
 		if (bm->totedgesel == 0) {
 			continue;
-		}
-
-		/* auto-enable Freestyle edge mark drawing */
-		if (clear == 0) {
-			me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
 		}
 
 		if (!CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
@@ -7015,7 +6996,6 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-		Mesh *me = (Mesh *)obedit->data;
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		if (em == NULL) {
@@ -7024,11 +7004,6 @@ static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 
 		if (em->bm->totfacesel == 0) {
 			continue;
-		}
-
-		/* auto-enable Freestyle face mark drawing */
-		if (!clear) {
-			me->drawflag |= ME_DRAW_FREESTYLE_FACE;
 		}
 
 		if (!CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE)) {
@@ -7714,10 +7689,6 @@ static int normals_split_merge(bContext *C, const bool do_merge)
 		if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
 			BM_elem_flag_set(e, BM_ELEM_SMOOTH, do_merge);
 		}
-	}
-	if (do_merge == 0) {
-		Mesh *me = obedit->data;
-		me->drawflag |= ME_DRAWSHARP;
 	}
 
 	bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;

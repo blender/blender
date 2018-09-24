@@ -4505,13 +4505,6 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		if (mark_seams) {
-			me->drawflag |= ME_DRAWSEAMS;
-		}
-		if (mark_sharp) {
-			me->drawflag |= ME_DRAWSHARP;
-		}
-
 		BM_uv_vert_map_free(vmap);
 
 		DEG_id_tag_update(&me->id, 0);
@@ -4587,8 +4580,6 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
-			me->drawflag |= ME_DRAWSEAMS;
-
 			if (scene->toolsettings->edge_mode_live_unwrap) {
 				ED_unwrap_lscm(scene, ob, false, false);
 			}

@@ -238,6 +238,7 @@ enum {
 	ME_CDFLAG_EDGE_CREASE  = 1 << 2,
 };
 
+#if 0 /* Was moved to overlay options for 2.8 */
 /* me->drawflag, short */
 enum {
 	ME_DRAWEDGES           = 1 << 0,
@@ -270,6 +271,7 @@ enum {
 /* draw loop normals */
 	ME_DRAW_LNORMALS       = 1 << 18,
 };
+#endif
 
 /* Subsurf Type */
 enum {
