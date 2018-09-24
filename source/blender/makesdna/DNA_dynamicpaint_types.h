@@ -163,7 +163,7 @@ enum {
 /* Canvas settings */
 typedef struct DynamicPaintCanvasSettings {
 	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
-	struct DerivedMesh *dm;
+	struct Mesh *mesh;
 
 	struct ListBase surfaces;
 	short active_sur, flags;
@@ -229,7 +229,7 @@ enum {
 /* Brush settings */
 typedef struct DynamicPaintBrushSettings {
 	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
-	struct DerivedMesh *dm;
+	struct Mesh *mesh;
 	struct ParticleSystem *psys;
 
 	int flags;
