@@ -57,15 +57,20 @@ bool ED_gizmo_poll_or_unlink_delayed_from_operator(
 	return true;
 }
 
-/** Can use this as poll function directly. */
-bool ED_gizmo_poll_or_unlink_delayed_from_tool(const bContext *C, wmGizmoGroupType *gzgt)
+bool ED_gizmo_poll_or_unlink_delayed_from_tool_ex(const bContext *C, wmGizmoGroupType *gzgt, const char *gzgt_idname)
 {
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
 	if ((tref_rt == NULL) ||
-	    !STREQ(gzgt->idname, tref_rt->gizmo_group))
+	    !STREQ(gzgt_idname, tref_rt->gizmo_group))
 	{
 		WM_gizmo_group_type_unlink_delayed_ptr(gzgt);
 		return false;
 	}
 	return true;
+}
+
+/** Can use this as poll function directly. */
+bool ED_gizmo_poll_or_unlink_delayed_from_tool(const bContext *C, wmGizmoGroupType *gzgt)
+{
+	return ED_gizmo_poll_or_unlink_delayed_from_tool_ex(C, gzgt, gzgt->idname);
 }

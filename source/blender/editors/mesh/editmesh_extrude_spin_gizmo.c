@@ -683,9 +683,13 @@ static void gizmo_spin_prop_angle_set(
 
 static bool gizmo_mesh_spin_redo_poll(const bContext *C, wmGizmoGroupType *gzgt)
 {
-	return ED_gizmo_poll_or_unlink_delayed_from_operator(C, gzgt, "MESH_OT_spin");
+	if (ED_gizmo_poll_or_unlink_delayed_from_operator(C, gzgt, "MESH_OT_spin")) {
+		if (ED_gizmo_poll_or_unlink_delayed_from_tool_ex(C, gzgt, "MESH_GGT_spin")) {
+			return true;
+		}
+	}
+	return false;
 }
-
 
 static void gizmo_mesh_spin_redo_modal_from_setup(
         const bContext *C, wmGizmoGroup *gzgroup)
