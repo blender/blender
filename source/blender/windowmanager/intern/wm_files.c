@@ -1689,6 +1689,11 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
 		app_template = app_template_buf;
 
+		if (!STREQ(app_template, U.app_template)) {
+			/* Always load UI when switching to another template. */
+			G.fileflags &= ~G_FILE_NO_UI;
+		}
+
 		/* Always load preferences when switching templates with own preferences. */
 		use_userdef = wm_app_template_has_userpref(app_template) ||
 		              wm_app_template_has_userpref(U.app_template);
