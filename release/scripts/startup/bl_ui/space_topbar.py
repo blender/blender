@@ -284,6 +284,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
     bl_label = "Layers"
+    bl_ui_units_x = 14
 
     @classmethod
     def poll(cls, context):
