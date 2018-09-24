@@ -190,6 +190,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	WM_gizmogrouptype_append(MESH_GGT_spin);
 #ifdef USE_GIZMO
 	WM_gizmogrouptype_append(MESH_GGT_spin_redo);
-	RNA_def_enum_flag(ot->srna, "gizmo_axis", rna_enum_axis_flag_xyz_items, (1 << 2), "Axis", "");
+	prop = RNA_def_enum_flag(ot->srna, "gizmo_axis", rna_enum_axis_flag_xyz_items, (1 << 2), "Axis", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 #endif
 }
