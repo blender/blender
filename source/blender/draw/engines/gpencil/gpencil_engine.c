@@ -750,7 +750,10 @@ void GPENCIL_draw_scene(void *ved)
 				 * draw only a subset that usually start with a fill and end with stroke because the
 				 * shading groups are created by pairs */
 				if (end_grp >= init_grp) {
-					MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
+					/* previews don't use AA */
+					if (!stl->storage->is_mat_preview) {
+						MULTISAMPLE_GP_SYNC_ENABLE(stl->storage->multisamples, fbl);
+					}
 
 					DRW_draw_pass_subset(
 					        psl->stroke_pass,
@@ -758,7 +761,9 @@ void GPENCIL_draw_scene(void *ved)
 					        stl->shgroups[init_grp].shgrps_fill : stl->shgroups[init_grp].shgrps_stroke,
 					        stl->shgroups[end_grp].shgrps_stroke);
 
-					MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fbl->temp_fb_a, txl);
+					if (!stl->storage->is_mat_preview) {
+						MULTISAMPLE_GP_SYNC_DISABLE(stl->storage->multisamples, fbl, fbl->temp_fb_a, txl);
+					}
 				}
 
 				/* Current buffer drawing */
