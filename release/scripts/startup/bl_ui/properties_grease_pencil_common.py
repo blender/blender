@@ -866,7 +866,6 @@ class GPENCIL_UL_layer(UIList):
             row = layout.row(align=True)
             row.prop(gpl, "lock", text="", emboss=False)
             row.prop(gpl, "hide", text="", emboss=False)
-            row.prop(gpl, "unlock_color", text="", emboss=False)
             subrow = row.row(align=True)
             subrow.prop(
                 gpl,
