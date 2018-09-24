@@ -64,6 +64,7 @@ extern char datatoc_gpu_shader_simple_lighting_frag_glsl[];
 extern char datatoc_gpu_shader_simple_lighting_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_simple_lighting_smooth_color_frag_glsl[];
 extern char datatoc_gpu_shader_simple_lighting_smooth_color_alpha_frag_glsl[];
+extern char datatoc_gpu_shader_multiply_and_blend_preprocessing_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_alpha_test_0_frag_glsl[];
 extern char datatoc_gpu_shader_flat_id_frag_glsl[];
@@ -706,6 +707,9 @@ static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
 	[GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA] =
 		{ datatoc_gpu_shader_3D_normal_smooth_color_vert_glsl,
 		  datatoc_gpu_shader_simple_lighting_smooth_color_alpha_frag_glsl },
+	[GPU_SHADER_MULTIPLY_AND_BLEND_PREPROCESSING] =
+		{ datatoc_gpu_shader_3D_normal_smooth_color_vert_glsl,
+		  datatoc_gpu_shader_multiply_and_blend_preprocessing_glsl },
 
 	[GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR] =
 		{ datatoc_gpu_shader_3D_image_vert_glsl,
