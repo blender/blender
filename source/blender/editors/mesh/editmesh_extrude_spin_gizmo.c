@@ -371,10 +371,13 @@ typedef struct GizmoGroupData_SpinRedo {
 	/* Spin angle */
 	struct wmGizmo *angle_z;
 
-	/* Translate XY constrained. */
+	/* Translate XY constrained ('orient_mat'). */
 	struct wmGizmo *translate_xy[2];
-	/* For grabbing the gizmo and moving freely. */
+	/* Rotate XY constrained ('orient_mat'). */
 	struct wmGizmo *rotate_xy[2];
+
+	/* Rotate on view axis. */
+	struct wmGizmo *rotate_view;
 
 	struct {
 		float plane_co[3];
@@ -448,6 +451,7 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 		WM_gizmo_set_matrix_location(ggd->translate_xy[i], plane_co);
 	}
 	WM_gizmo_set_matrix_location(ggd->angle_z, plane_co);
+	WM_gizmo_set_matrix_location(ggd->rotate_view, plane_co);
 	/* translate_c location comes from the property. */
 
 	for (int i = 0; i < 2; i++) {
@@ -699,6 +703,21 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 	const wmGizmoType *gzt_move = WM_gizmotype_find("GIZMO_GT_move_3d", true);
 	const wmGizmoType *gzt_dial = WM_gizmotype_find("GIZMO_GT_dial_3d", true);
 
+	/* Rotate View Axis (rotate_view) */
+	{
+		wmGizmo *gz = WM_gizmo_new_ptr(gzt_dial, gzgroup, NULL);
+		UI_GetThemeColor3fv(TH_GIZMO_PRIMARY, gz->color);
+		zero_v4(gz->color);
+		copy_v3_fl(gz->color_hi, 1.0f);
+		gz->color_hi[3] = 0.1f;
+		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
+		RNA_enum_set(gz->ptr, "draw_options",
+		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR |
+		             ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_START_Y |
+		             ED_GIZMO_DIAL_DRAW_FLAG_FILL);
+		ggd->rotate_view = gz;
+	}
+
 	/* Translate Center (translate_c) */
 	{
 		wmGizmo *gz = WM_gizmo_new_ptr(gzt_move, gzgroup, NULL);
@@ -741,7 +760,6 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		UI_GetThemeColor3fv(TH_AXIS_X + i, gz->color);
 		gz->color[3] = 0.6f;
 		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
-		WM_gizmo_set_scale(gz, 1.0f);
 		WM_gizmo_set_line_width(gz, 3.0f);
 		/* show the axis instead of mouse cursor */
 		RNA_enum_set(gz->ptr, "draw_options",
@@ -786,6 +804,15 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		        &(const struct wmGizmoPropertyFnParams) {
 		            .value_get_fn = gizmo_spin_prop_translate_get,
 		            .value_set_fn = gizmo_spin_prop_translate_set,
+		            .range_get_fn = NULL,
+		            .user_data = NULL,
+		        });
+
+		WM_gizmo_target_property_def_func(
+		        ggd->rotate_view, "offset",
+		        &(const struct wmGizmoPropertyFnParams) {
+		            .value_get_fn = gizmo_spin_prop_axis_angle_get,
+		            .value_set_fn = gizmo_spin_prop_axis_angle_set,
 		            .range_get_fn = NULL,
 		            .user_data = NULL,
 		        });
@@ -846,6 +873,16 @@ static void gizmo_mesh_spin_redo_draw_prepare(
 
 	RegionView3D *rv3d = ED_view3d_context_rv3d(ggd->data.context);
 	WM_gizmo_set_matrix_rotation_from_z_axis(ggd->translate_c, rv3d->viewinv[2]);
+	{
+		float view_up[3];
+		project_plane_normalized_v3_v3v3(view_up, ggd->data.orient_mat[2], rv3d->viewinv[2]);
+		if (normalize_v3(view_up) != 0.0f) {
+			WM_gizmo_set_matrix_rotation_from_yz_axis(ggd->rotate_view, view_up, rv3d->viewinv[2]);
+		}
+		else {
+			WM_gizmo_set_matrix_rotation_from_z_axis(ggd->rotate_view, rv3d->viewinv[2]);
+		}
+	}
 }
 
 void MESH_GGT_spin_redo(struct wmGizmoGroupType *gzgt)
