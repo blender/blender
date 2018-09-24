@@ -48,6 +48,11 @@ void imm_draw_circle_fill_aspect_2d(uint shdr_pos, float x, float y, float radiu
 void imm_draw_circle_wire_3d(uint pos, float x, float y, float radius, int nsegments);
 void imm_draw_circle_fill_3d(uint pos, float x, float y, float radius, int nsegments);
 
+/* same as 'imm_draw_disk_partial_fill_2d', except it draws a wire arc. */
+void imm_draw_circle_partial_wire_2d(
+        uint pos, float x, float y,
+        float radius, int nsegments, float start, float sweep);
+
 void imm_draw_disk_partial_fill_2d(
         uint pos, float x, float y,
         float radius_inner, float radius_outer, int nsegments, float start, float sweep);
