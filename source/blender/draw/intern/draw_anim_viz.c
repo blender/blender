@@ -275,7 +275,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
 			{
 				numstr_len = sprintf(numstr, " %d", frame);
 				mul_v3_m4v3(co, ob->imat, mpv->co);
-				DRW_text_cache_add(dt, co, numstr, numstr_len, 0, txt_flag, (is_keyframe) ? col_kf : col);
+				DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, (is_keyframe) ? col_kf : col);
 			}
 			else if (avs->path_viewflag & MOTIONPATH_VIEW_FNUMS) {
 				bMotionPathVert *mpvP = (mpv - stepsize);
@@ -284,7 +284,7 @@ static void MPATH_cache_motion_path(MPATH_PassList *psl,
 				if ((equals_v3v3(mpv->co, mpvP->co) == 0) || (equals_v3v3(mpv->co, mpvN->co) == 0)) {
 					numstr_len = sprintf(numstr, " %d", frame);
 					mul_v3_m4v3(co, ob->imat, mpv->co);
-					DRW_text_cache_add(dt, co, numstr, numstr_len, 0, txt_flag, col);
+					DRW_text_cache_add(dt, co, numstr, numstr_len, 0, 0, txt_flag, col);
 				}
 			}
 		}

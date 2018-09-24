@@ -50,7 +50,7 @@ typedef struct ViewCachedString {
 		int pack;
 	} col;
 	short sco[2];
-	short xoffs;
+	short xoffs, yoffs;
 	short flag;
 	int str_len;
 
@@ -78,7 +78,7 @@ void DRW_text_cache_add(
         DRWTextStore *dt,
         const float co[3],
         const char *str, const int str_len,
-        short xoffs, short flag,
+        short xoffs, short yoffs, short flag,
         const uchar col[4])
 {
 	int alloc_len;
@@ -99,6 +99,7 @@ void DRW_text_cache_add(
 	copy_v3_v3(vos->vec, co);
 	copy_v4_v4_uchar(vos->col.ub, col);
 	vos->xoffs = xoffs;
+	vos->yoffs = yoffs;
 	vos->flag = flag;
 	vos->str_len = str_len;
 
@@ -162,7 +163,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *ar)
 
 				BLF_position(
 				        font_id,
-				        (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1]), 2.0f);
+				        (float)(vos->sco[0] + vos->xoffs), (float)(vos->sco[1] + vos->yoffs), 2.0f);
 
 				((vos->flag & DRW_TEXT_CACHE_ASCII) ?
 				 BLF_draw_ascii :

@@ -1602,7 +1602,7 @@ static void draw_armature_edit(Object *ob)
 					struct DRWTextStore *dt = DRW_text_cache_ensure();
 					DRW_text_cache_add(
 					        dt, vec, eBone->name, strlen(eBone->name),
-					        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+					        10, 0, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 				}
 
 				/*	Draw additional axes */
@@ -1716,7 +1716,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 					struct DRWTextStore *dt = DRW_text_cache_ensure();
 					DRW_text_cache_add(
 					        dt, vec, pchan->name, strlen(pchan->name),
-					        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+					        10, 0, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 				}
 
 				/*	Draw additional axes */

@@ -1789,7 +1789,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 					                   bundle_mat[3],
 					                   track->name,
 					                   strlen(track->name),
-					                   10,
+					                   10, 0,
 					                   DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR,
 					                   is_selected ? text_color_selected : text_color_unselected);
 				}
@@ -2822,7 +2822,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_text_cache_add(
 			        dt, ob->obmat[3],
 			        ob->id.name + 2, strlen(ob->id.name + 2),
-			        10, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
+			        10, 0, DRW_TEXT_CACHE_GLOBALSPACE | DRW_TEXT_CACHE_STRING_PTR, color);
 		}
 
 		if ((ob->dtx & OB_TEXSPACE) && ELEM(ob->type, OB_MESH, OB_CURVE, OB_MBALL)) {
