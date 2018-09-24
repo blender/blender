@@ -2,7 +2,7 @@
 uniform mat4 ViewProjectionMatrix;
 uniform vec3 screen_vecs[2];
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec3 pos; /* using Z as axis id */
 
 /* ---- Per instance Attribs ---- */

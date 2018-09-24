@@ -195,7 +195,7 @@ typedef struct WorkSpaceDataRelation {
 #endif /* DNA_PRIVATE_WORKSPACE_READ_WRITE */
 
 /**
- * Little wrapper to store data that is going to be per window, but comming from the workspace.
+ * Little wrapper to store data that is going to be per window, but coming from the workspace.
  * It allows us to keep workspace and window data completely separate.
  */
 typedef struct WorkSpaceInstanceHook {

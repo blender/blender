@@ -583,7 +583,7 @@ void BKE_gpencil_modifier_copyData_generic(const GpencilModifierData *md_src, Gp
 {
 	const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md_src->type);
 
-	/* md_dst may have alredy be fully initialized with some extra allocated data,
+	/* md_dst may have already be fully initialized with some extra allocated data,
 	 * we need to free it now to avoid memleak. */
 	if (mti->freeData) {
 		mti->freeData(md_dst);
@@ -731,7 +731,7 @@ void BKE_gpencil_subdivide(bGPDstroke *gps, int level, int flag)
 		temp_points = MEM_dupallocN(gps->points);
 		oldtotpoints = gps->totpoints;
 
-		/* resize the points arrys */
+		/* resize the points arrays */
 		gps->totpoints += totnewpoints;
 		gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
 		if (gps->dvert != NULL) {

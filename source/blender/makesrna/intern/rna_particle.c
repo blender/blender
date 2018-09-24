@@ -2331,7 +2331,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_group_count", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "draw", PART_DRAW_COUNT_GR);
-	RNA_def_property_ui_text(prop, "Use Count", "Use object multiple times in the same collecton");
+	RNA_def_property_ui_text(prop, "Use Count", "Use object multiple times in the same collection");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_count");
 
 	prop = RNA_def_property(srna, "use_global_dupli", PROP_BOOLEAN, PROP_NONE);

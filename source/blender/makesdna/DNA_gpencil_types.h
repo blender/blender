@@ -76,14 +76,14 @@ typedef enum eGPDspoint_Flag {
 } eGPSPoint_Flag;
 
 /* ***************************************** */
-/* GP Fill - Triangle Tesselation Data */
+/* GP Fill - Triangle Tessellation Data */
 
 /* Grease-Pencil Annotations - 'Triangle'
  * 	-> A triangle contains the index of three vertices for filling the stroke
  *	   This is only used if high quality fill is enabled
  */
 typedef struct bGPDtriangle {
-	/* indices for tesselated triangle used for GP Fill */
+	/* indices for tessellated triangle used for GP Fill */
 	unsigned int verts[3];
 	/* texture coordinates for verts */
 	float uv[3][2];

@@ -2043,7 +2043,7 @@ void WM_window_screen_rect_calc(const wmWindow *win, rcti *r_rect)
 	WM_window_rect_calc(win, &window_rect);
 	screen_rect = window_rect;
 
-	/* Substract global areas from screen rectangle. */
+	/* Subtract global areas from screen rectangle. */
 	for (ScrArea *global_area = win->global_areas.areabase.first; global_area; global_area = global_area->next) {
 		int height = ED_area_global_size_y(global_area) - 1;
 

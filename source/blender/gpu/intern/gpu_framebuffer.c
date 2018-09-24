@@ -75,7 +75,7 @@ struct GPUFrameBuffer {
 	int width, height;
 	bool multisample;
 	/* TODO Check that we always use the right context when binding
-	 * (FBOs are not shared accross ogl contexts). */
+	 * (FBOs are not shared across ogl contexts). */
 	// void *ctx;
 };
 

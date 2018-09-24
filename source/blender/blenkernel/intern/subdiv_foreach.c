@@ -123,7 +123,7 @@ typedef struct SubdivForeachTaskContext {
 	 */
 	BLI_bitmap *coarse_vertices_used_map;
 	/* Bitmap indicating whether edge was used already or not. This includes:
-	 * - During context initialization it indicates whether subdivided verticies
+	 * - During context initialization it indicates whether subdivided vertices
 	 *   for corresponding edge were already calculated or not.
 	 * - During patch evaluation it indicates whether vertices along this edge
 	 *   were already evaluated.
@@ -167,7 +167,7 @@ static void subdiv_foreach_ctx_count(SubdivForeachTaskContext *ctx)
 				ctx->num_subdiv_vertices += num_subdiv_vertices_per_coarse_edge;
 			}
 		}
-		/* Inner verticies of polygon. */
+		/* Inner vertices of polygon. */
 		if (num_ptex_faces_per_poly == 1) {
 			ctx->num_subdiv_vertices += num_inner_vertices_per_quad;
 			ctx->num_subdiv_edges +=
@@ -1322,13 +1322,13 @@ static void subdiv_foreach_loops_regular(SubdivForeachTaskContext *ctx,
 		for (int x = 1; x < ptex_resolution - 2; x++, subdiv_loop_index += 4) {
 			const int inner_x = x - 1;
 			const float u = x * inv_ptex_resolution_1;
-			/* Vertex indicies ordered counter-clockwise. */
+			/* Vertex indices ordered counter-clockwise. */
 			const int v0 = start_vertex_index +
 			               (inner_y * ptex_inner_resolution + inner_x);
 			const int v1 = v0 + 1;
 			const int v2 = v0 + ptex_inner_resolution + 1;
 			const int v3 = v0 + ptex_inner_resolution;
-			/* Edge indicies ordered counter-clockwise. */
+			/* Edge indices ordered counter-clockwise. */
 			const int e0 = start_edge_index +
 			        (inner_y * (2 * ptex_inner_resolution - 1) + inner_x);
 			const int e1 = e0 + ptex_inner_resolution;
@@ -1517,14 +1517,14 @@ static void subdiv_foreach_loops_special(SubdivForeachTaskContext *ctx,
 			{
 				const int inner_x = x - 1;
 				const float u = x * inv_ptex_resolution_1;
-				/* Vertex indicies ordered counter-clockwise. */
+				/* Vertex indices ordered counter-clockwise. */
 				const int v0 =
 				        corner_vertex_index +
 				        (inner_y * (ptex_face_inner_resolution + 1) + inner_x);
 				const int v1 = v0 + 1;
 				const int v2 = v0 + ptex_face_inner_resolution + 2;
 				const int v3 = v0 + ptex_face_inner_resolution + 1;
-				/* Edge indicies ordered counter-clockwise. */
+				/* Edge indices ordered counter-clockwise. */
 				const int e0 = corner_edge_index +
 				          (inner_y * (2 * ptex_face_inner_resolution + 1) + inner_x);
 				const int e1 = e0 + ptex_face_inner_resolution + 1;
@@ -1905,7 +1905,7 @@ static void subdiv_foreach_vertices_of_loose_edges_task(
 	const int num_subdiv_vertices_per_coarse_edge = resolution - 2;
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MEdge *coarse_edge = &coarse_mesh->medge[coarse_edge_index];
-	/* Subdivion verticies which corresponds to edge's v1 and v2. */
+	/* Subdivion vertices which corresponds to edge's v1 and v2. */
 	const int subdiv_v1_index =
 	        ctx->vertices_corner_offset + coarse_edge->v1;
 	const int subdiv_v2_index =

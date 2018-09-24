@@ -1221,7 +1221,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
+	/* Main now can store a .blend thumbnail, useful for background mode or thumbnail customization. */
 	main_thumb = thumb = bmain->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);

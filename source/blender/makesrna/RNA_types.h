@@ -247,7 +247,7 @@ typedef enum PropertyFlag {
 /* Flags related to comparing and overriding RNA properties. Make sure enums are updated with these */
 /* FREE FLAGS: 2, 3, 4, 5, 6, 7, 8, 9, 12 and above. */
 typedef enum PropertyOverrideFlag {
-	/* Means the property can be overriden by a local 'proxy' of some linked datablock. */
+	/* Means the property can be overridden by a local 'proxy' of some linked datablock. */
 	PROPOVERRIDE_OVERRIDABLE_STATIC = (1 << 0),
 
 	/* Forbid usage of this property in comparison (& hence override) code.

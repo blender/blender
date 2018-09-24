@@ -714,7 +714,7 @@ void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifie
 
 #ifdef WITH_SMOKE
 
-// forward decleration
+// forward declaration
 static void smoke_calc_transparency(SmokeDomainSettings *sds, ViewLayer *view_layer);
 static float calc_voxel_transp(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 

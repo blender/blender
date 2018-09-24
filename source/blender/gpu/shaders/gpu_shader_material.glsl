@@ -1375,7 +1375,7 @@ void node_subsurface_scattering(
 	eevee_closure_subsurface(N, color.rgb, 1.0, scale, out_diff, out_trans);
 	result.sss_data.rgb = out_diff + out_trans;
 #  ifdef USE_SSS_ALBEDO
-	/* Not perfect for texture_blur not exaclty equal to 0.0 or 1.0. */
+	/* Not perfect for texture_blur not exactly equal to 0.0 or 1.0. */
 	result.sss_albedo.rgb = mix(color.rgb, vec3(1.0), texture_blur);
 	result.sss_data.rgb *= mix(vec3(1.0), color.rgb, texture_blur);
 #  else

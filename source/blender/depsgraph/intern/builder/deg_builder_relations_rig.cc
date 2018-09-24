@@ -405,7 +405,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 			OperationKey parent_key(&object->id, DEG_NODE_TYPE_BONE, pchan->parent->name, parent_key_opcode);
 			add_relation(parent_key, bone_pose_key, "Parent Bone -> Child Bone");
 		}
-		/* Buil constraints. */
+		/* Build constraints. */
 		if (pchan->constraints.first != NULL) {
 			/* Build relations for indirectly linked objects. */
 			BuilderWalkUserData data;

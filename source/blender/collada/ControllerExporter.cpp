@@ -546,7 +546,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 		}
 	}
 
-	// back from rest positon
+	// back from rest position
 	if (!(flag & ARM_RESTPOS)) {
 		arm->flag = flag;
 		BKE_pose_where_is(depsgraph, scene, ob_arm);

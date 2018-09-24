@@ -187,7 +187,7 @@ enum {
 	IDOVERRIDESTATIC_FLAG_LOCKED        =   1 << 1,  /* User cannot change that override operation. */
 };
 
-/* A single overriden property, contain all operations on this one. */
+/* A single overridden property, contain all operations on this one. */
 typedef struct IDOverrideStaticProperty {
 	struct IDOverrideStaticProperty *next, *prev;
 

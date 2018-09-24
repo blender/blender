@@ -934,7 +934,7 @@ Scene *BKE_scene_add(Main *bmain, const char *name)
 }
 
 /**
- * Check if there is any intance of the object in the scene
+ * Check if there is any instance of the object in the scene
  */
 bool BKE_scene_object_find(Scene *scene, Object *ob)
 {

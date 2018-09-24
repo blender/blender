@@ -1092,7 +1092,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 
 	// add object
 	Object *ob = bc_add_object(m_bmain, scene, view_layer, OB_MESH, name);
-	bc_set_mark(ob); // used later for material assignement optimization
+	bc_set_mark(ob); // used later for material assignment optimization
 
 
 	// store object pointer for ArmatureImporter

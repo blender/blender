@@ -2882,7 +2882,7 @@ void wm_event_do_handlers(bContext *C)
 		bScreen *screen = WM_window_get_active_screen(win);
 		wmEvent *event;
 
-		/* some safty checks - these should always be set! */
+		/* some safety checks - these should always be set! */
 		BLI_assert(WM_window_get_active_scene(win));
 		BLI_assert(WM_window_get_active_screen(win));
 		BLI_assert(WM_window_get_active_workspace(win));

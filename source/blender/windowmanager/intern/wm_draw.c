@@ -553,7 +553,7 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 			CTX_wm_menu_set(C, ar);
 
 			if (ar->type && ar->type->layout) {
-				/* UI code reads the OpenGL state, but we have to refesh
+				/* UI code reads the OpenGL state, but we have to refresh
 				 * the UI layout beforehand in case the menu size changes. */
 				wmViewport(&ar->winrct);
 				ar->type->layout(C, ar);

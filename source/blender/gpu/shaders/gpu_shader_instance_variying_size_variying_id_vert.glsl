@@ -2,7 +2,7 @@
 uniform mat4 ViewProjectionMatrix;
 uniform int baseId;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec3 pos;
 
 /* ---- Per instance Attribs ---- */

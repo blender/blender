@@ -88,7 +88,7 @@ bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip, struct MovieCli
 void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, struct MovieClip *clip);
 void BKE_movieclip_eval_selection_update(struct Depsgraph *depsgraph, struct MovieClip *clip);
 
-/* cacheing flags */
+/* caching flags */
 #define MOVIECLIP_CACHE_SKIP        (1 << 0)
 
 /* postprocessing flags */

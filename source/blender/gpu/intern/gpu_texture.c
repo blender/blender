@@ -764,7 +764,7 @@ GPUTexture *GPU_texture_create_buffer(GPUTextureFormat tex_format, const GLuint 
 	if (!tex->bindcode) {
 		fprintf(stderr, "GPUTexture: texture create failed\n");
 		GPU_texture_free(tex);
-		BLI_assert(0 && "glGenTextures failled: Are you sure a valid OGL context is active on this thread?\n");
+		BLI_assert(0 && "glGenTextures failed: Are you sure a valid OGL context is active on this thread?\n");
 		return NULL;
 	}
 
@@ -1441,7 +1441,7 @@ int GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 
 void GPU_texture_get_mipmap_size(GPUTexture *tex, int lvl, int *size)
 {
-	/* TODO assert if lvl is bellow the limit of 1px in each dimension. */
+	/* TODO assert if lvl is below the limit of 1px in each dimension. */
 	int div = 1 << lvl;
 	size[0] = max_ii(1, tex->w / div);
 

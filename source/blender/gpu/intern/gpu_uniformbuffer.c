@@ -291,7 +291,7 @@ static void gpu_uniformbuffer_inputs_sort(ListBase *inputs)
 	while (link != NULL && ((GPUInput *)link->data)->type == GPU_VEC3) {
 		LinkData *link_next = link->next;
 
-		/* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for aligment. */
+		/* If GPU_VEC3 is followed by nothing or a GPU_FLOAT, no need for alignment. */
 		if ((link_next == NULL) ||
 		    ((GPUInput *)link_next->data)->type == GPU_FLOAT)
 		{

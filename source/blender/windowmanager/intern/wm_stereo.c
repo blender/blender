@@ -403,7 +403,7 @@ int wm_stereo3d_set_exec(bContext *C, wmOperator *op)
 	if (prev_display_mode == S3D_DISPLAY_PAGEFLIP &&
 	    prev_display_mode != win_src->stereo3d_format->display_mode)
 	{
-		/* in case the hardward supports pageflip but not the display */
+		/* in case the hardware supports pageflip but not the display */
 		if ((win_dst = wm_window_copy_test(C, win_src, false, false))) {
 			/* pass */
 		}

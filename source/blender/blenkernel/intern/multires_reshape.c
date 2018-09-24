@@ -145,7 +145,7 @@ static void multires_reshape_init_mmd_top_level(
 }
 
 /* =============================================================================
- * General reshape implementaiton, reused by all particular cases.
+ * General reshape implementation, reused by all particular cases.
  */
 
 typedef struct MultiresReshapeContext {
@@ -427,7 +427,7 @@ static void multires_reshape_propagate_prepare(
 	BLI_assert(reshape_level <= top_level);
 	data->old_displacement_grids = NULL;
 	if (reshape_level == top_level) {
-		/* Nothing to do, reshape will happen on the whole grid conent. */
+		/* Nothing to do, reshape will happen on the whole grid content. */
 		return;
 	}
 	Mesh *coarse_mesh = object->data;

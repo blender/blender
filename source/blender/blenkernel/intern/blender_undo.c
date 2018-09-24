@@ -89,7 +89,7 @@ bool BKE_memfile_undo_decode(MemFileUndoData *mfu, bContext *C)
 	G.fileflags = fileflags;
 
 	if (success) {
-		/* important not to update time here, else non keyed tranforms are lost */
+		/* important not to update time here, else non keyed transforms are lost */
 		DEG_on_visible_update(bmain, false);
 	}
 

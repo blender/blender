@@ -72,7 +72,7 @@ typedef struct SubdivToCCGSettings {
 	/* Resolution at which regular ptex (created for quad polygon) are being
 	 * evaluated. This defines how many vertices final mesh will have: every
 	 * regular ptex has resolution^2 vertices. Special (irregular, or ptex
-	 * crated for a corner of non-quad polygon) will have resolution of
+	 * created for a corner of non-quad polygon) will have resolution of
 	 * `resolution - 1`.
 	 */
 	int resolution;

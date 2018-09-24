@@ -2849,7 +2849,7 @@ void BKE_object_handle_update_ex(Depsgraph *depsgraph,
 /* WARNING: "scene" here may not be the scene object actually resides in.
  * When dealing with background-sets, "scene" is actually the active scene.
  * e.g. "scene" <-- set 1 <-- set 2 ("ob" lives here) <-- set 3 <-- ... <-- set n
- * rigid bodies depend on their world so use BKE_object_handle_update_ex() to also pass along the corrent rigid body world
+ * rigid bodies depend on their world so use BKE_object_handle_update_ex() to also pass along the current rigid body world
  */
 void BKE_object_handle_update(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {

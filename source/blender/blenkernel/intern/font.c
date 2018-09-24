@@ -1051,7 +1051,7 @@ makebreak:
 				lines = ct_last->linenr - ct_first->linenr + 1;
 
 				textbox_scale(&tb_scale, &cu->tb[tb_index], 1.0f / cu->fsize);
-				/* The initial Y origin of the textbox is harcoded to 1.0f * text scale. */
+				/* The initial Y origin of the textbox is hardcoded to 1.0f * text scale. */
 				const float textbox_y_origin = 1.0f;
 				float yoff;
 

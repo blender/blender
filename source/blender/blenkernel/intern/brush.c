@@ -522,7 +522,7 @@ void BKE_brush_gpencil_presets(bContext *C)
 	brush->gpencil_settings->brush_type = GP_BRUSH_TYPE_ERASE;
 	brush->gpencil_settings->eraser_mode = GP_BRUSH_ERASER_STROKE;
 
-	/* set defaut brush */
+	/* set default brush */
 	BKE_paint_brush_set(paint, deft);
 
 }

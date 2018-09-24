@@ -73,7 +73,7 @@ void GPU_shader_free(GPUShader *shader);
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
 
-/* Returns true if transform feedback was succesfully enabled. */
+/* Returns true if transform feedback was successfully enabled. */
 bool GPU_shader_transform_feedback_enable(GPUShader *shader, unsigned int vbo_id);
 void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
@@ -197,7 +197,7 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR,
 	GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR,
 	/**
-	 * Draw texture with alpha. Take a 3D positon and a 2D texture coordinate for each vertex.
+	 * Draw texture with alpha. Take a 3D position and a 2D texture coordinate for each vertex.
 	 *
 	 * \param alpha: uniform float
 	 * \param image: uniform sampler2D
@@ -207,7 +207,7 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_3D_IMAGE_MODULATE_ALPHA,
 	/**
 	 * Draw linearized depth texture relate to near and far distances.
-	 * Take a 3D positon and a 2D texture coordinate for each vertex.
+	 * Take a 3D position and a 2D texture coordinate for each vertex.
 	 *
 	 * \param znear: uniform float
 	 * \param zfar: uniform float

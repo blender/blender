@@ -590,7 +590,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within wich to evaluate modifiers");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);

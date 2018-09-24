@@ -4,7 +4,7 @@ uniform vec3 screen_vecs[2];
 uniform float size;
 uniform float pixel_size;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec2 pos;
 
 /* ---- Per instance Attribs ---- */

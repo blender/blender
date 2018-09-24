@@ -164,7 +164,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
 		subdiv_ccg->grid_hidden[grid_index] =
 		        BLI_BITMAP_NEW(grid_area, "ccg grid hidden");
 	}
-	/* TOOD(sergey): Allocate memory for loose elements. */
+	/* TODO(sergey): Allocate memory for loose elements. */
 	/* Allocate memory for faces. */
 	subdiv_ccg->num_faces = num_faces;
 	if (num_faces) {

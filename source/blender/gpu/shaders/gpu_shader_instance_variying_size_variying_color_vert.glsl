@@ -2,7 +2,7 @@
 uniform mat4 ViewProjectionMatrix;
 uniform float alpha;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec3 pos;
 
 /* ---- Per instance Attribs ---- */

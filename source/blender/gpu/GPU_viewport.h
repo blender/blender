@@ -43,7 +43,7 @@
 
 typedef struct GPUViewport GPUViewport;
 
-/* Contains memory pools informations */
+/* Contains memory pools information */
 typedef struct ViewportMemoryPool {
 	struct BLI_mempool *calls;
 	struct BLI_mempool *states;

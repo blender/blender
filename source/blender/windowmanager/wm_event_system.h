@@ -40,7 +40,7 @@
 struct ScrArea;
 struct ARegion;
 
-/* wmKeyMap is in DNA_windowmanager.h, it's savable */
+/* wmKeyMap is in DNA_windowmanager.h, it's saveable */
 
 struct wmEventHandler_KeymapFn {
 	void (*handle_post_fn)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);

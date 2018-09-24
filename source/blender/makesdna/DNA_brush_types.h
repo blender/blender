@@ -55,7 +55,7 @@ typedef struct BrushClone {
 
 typedef struct BrushGpencilSettings {
 	float draw_smoothfac;     /* amount of smoothing to apply to newly created strokes */
-	float draw_sensitivity;   /* amount of sensivity to apply to newly created strokes */
+	float draw_sensitivity;   /* amount of sensitivity to apply to newly created strokes */
 	float draw_strength;      /* amount of alpha strength to apply to newly created strokes */
 	float draw_jitter;        /* amount of jitter to apply to newly created strokes */
 	float draw_angle;         /* angle when the brush has full thickness */

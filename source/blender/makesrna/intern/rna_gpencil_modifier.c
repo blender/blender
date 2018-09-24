@@ -654,7 +654,7 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Rotation", "Values for chages in rotation");
+	RNA_def_property_ui_text(prop, "Rotation", "Values for changes in rotation");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
@@ -891,7 +891,7 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_EULER);
 	RNA_def_property_float_sdna(prop, NULL, "rot");
-	RNA_def_property_ui_text(prop, "Rotation", "Value for chages in rotation");
+	RNA_def_property_ui_text(prop, "Rotation", "Value for changes in rotation");
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
