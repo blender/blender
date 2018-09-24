@@ -35,7 +35,7 @@
  * - free the handle.
  *
  * This file is admittedly a bit confusticated, in quite few areas speed was chosen over readability,
- * though it is commented - so shouldn't be so hard to see whats going on.
+ * though it is commented - so shouldn't be so hard to see what's going on.
  *
  *
  * Implementation:

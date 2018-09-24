@@ -2175,7 +2175,7 @@ static ImBuf *do_transform_effect(
 static void RVBlurBitmap2_float(float *map, int width, int height, float blur, int quality)
 /*	MUUUCCH better than the previous blur. */
 /*	We do the blurring in two passes which is a whole lot faster. */
-/*	I changed the math arount to implement an actual Gaussian */
+/*	I changed the math around to implement an actual Gaussian */
 /*	distribution. */
 /* */
 /*	Watch out though, it tends to misbehaven with large blur values on */
@@ -3021,7 +3021,7 @@ static void do_gaussian_blur_effect_byte_x(
 	const int size_x = (int) (data->size_x + 0.5f);
 	int i, j;
 
-	/* Make gaussian weight tabke. */
+	/* Make gaussian weight table. */
 	float *gausstab_x;
 	gausstab_x = make_gaussian_blur_kernel(data->size_x, size_x);
 
@@ -3074,7 +3074,7 @@ static void do_gaussian_blur_effect_byte_y(
 	const int size_y = (int) (data->size_y + 0.5f);
 	int i, j;
 
-	/* Make gaussian weight tabke. */
+	/* Make gaussian weight table. */
 	float *gausstab_y;
 	gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
 
@@ -3127,7 +3127,7 @@ static void do_gaussian_blur_effect_float_x(
 	const int size_x = (int) (data->size_x + 0.5f);
 	int i, j;
 
-	/* Make gaussian weight tabke. */
+	/* Make gaussian weight table. */
 	float *gausstab_x;
 	gausstab_x = make_gaussian_blur_kernel(data->size_x, size_x);
 
@@ -3171,7 +3171,7 @@ static void do_gaussian_blur_effect_float_y(
 	const int size_y = (int) (data->size_y + 0.5f);
 	int i, j;
 
-	/* Make gaussian weight tabke. */
+	/* Make gaussian weight table. */
 	float *gausstab_y;
 	gausstab_y = make_gaussian_blur_kernel(data->size_y, size_y);
 

@@ -809,7 +809,7 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 	sizex /= native_pixel_size;
 	sizey /= native_pixel_size;
 
-	/* calculate postition */
+	/* calculate position */
 	rcti rect;
 	rect.xmin = x + win_prev->posx - sizex / 2;
 	rect.ymin = y + win_prev->posy - sizey / 2;

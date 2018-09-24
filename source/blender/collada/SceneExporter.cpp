@@ -59,7 +59,7 @@ void SceneExporter::exportHierarchy(bContext *C, Scene *sce)
 		ob->id.tag |= LIB_TAG_DOIT;
 	}
 
-	// Now find all exportable base ojects (highest in export hierarchy)
+	// Now find all exportable base objects (highest in export hierarchy)
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *) node->link;
 		if (bc_is_base_node(this->export_settings->export_set, ob)) {

@@ -139,7 +139,7 @@ void AnimationExporter::create_sampled_animation(int channel_count,
  * Export all animation FCurves of an Object.
  *
  * Note: This uses the keyframes as sample points,
- * and exports "baked keyframes" while keeping the tangent infromation
+ * and exports "baked keyframes" while keeping the tangent information
  * of the FCurves intact. This works for simple cases, but breaks
  * especially when negative scales are involved in the animation.
  *

@@ -833,7 +833,7 @@ static bool data_transfer_layersmapping_generate(
 			return ret;
 		}
 		else if (cddata_type == CD_FAKE_SHAPEKEY) {
-			/* TODO: leaving shapekeys asside for now, quite specific case, since we can't access them from MVert :/ */
+			/* TODO: leaving shapekeys aside for now, quite specific case, since we can't access them from MVert :/ */
 			return false;
 		}
 	}

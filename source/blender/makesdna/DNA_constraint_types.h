@@ -121,7 +121,7 @@ typedef struct bPythonConstraint {
 	ListBase targets;		/* a list of targets that this constraint has (bConstraintTarget-s) */
 
 	struct Object *tar;		/* target from previous implementation (version-patch sets this to NULL on file-load) */
-	char subtarget[64];		/* subtarger from previous implentation (version-patch sets this to "" on file-load), MAX_ID_NAME-2 */
+	char subtarget[64];		/* subtarger from previous implementation (version-patch sets this to "" on file-load), MAX_ID_NAME-2 */
 } bPythonConstraint;
 
 
@@ -641,7 +641,7 @@ typedef enum eTrackTo_Flags {
 	TARGET_Z_UP 	= (1<<0)
 } eTrackTo_Flags;
 
-/* Strech To Constraint -> volmode */
+/* Stretch To Constraint -> volmode */
 typedef enum eStretchTo_VolMode {
 	VOLUME_XZ	= 0,
 	VOLUME_X	= 1,

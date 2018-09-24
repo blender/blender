@@ -113,7 +113,7 @@ enum {
 #define SM_HRES_LINEAR		1
 #define SM_HRES_FULLSAMPLE	2
 
-/* smoke data fileds (active_fields) */
+/* smoke data fields (active_fields) */
 #define SM_ACTIVE_HEAT		(1<<0)
 #define SM_ACTIVE_FIRE		(1<<1)
 #define SM_ACTIVE_COLORS	(1<<2)

@@ -768,7 +768,7 @@ float bc_get_property(Bone *bone, std::string key, float def)
 
 /**
  * Read a custom bone property and convert to matrix
- * Return true if conversion was succesfull
+ * Return true if conversion was successful
  *
  * Return false if:
  * - the property does not exist

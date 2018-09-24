@@ -86,7 +86,7 @@ bool gpencil_layer_is_editable(const struct bGPDlayer *gpl);
  * is no existing GP-Frame on the frame requested.
  */
 typedef enum eGP_GetFrame_Mode {
-	/* Use the preceeding gp-frame (i.e. don't add anything) */
+	/* Use the preceding gp-frame (i.e. don't add anything) */
 	GP_GETFRAME_USE_PREV  = 0,
 
 	/* Add a new empty/blank frame */

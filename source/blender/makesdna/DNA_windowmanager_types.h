@@ -174,7 +174,7 @@ enum {
 #  endif
 #endif
 
-/* the savable part, rest of data is local in ghostwinlay */
+/* the saveable part, rest of data is local in ghostwinlay */
 typedef struct wmWindow {
 	struct wmWindow *next, *prev;
 

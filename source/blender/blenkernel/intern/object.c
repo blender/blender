@@ -1785,7 +1785,7 @@ static void ob_parbone(Object *ob, Object *par, float mat[4][4])
 
 	/* get bone transform */
 	if (pchan->bone->flag & BONE_RELATIVE_PARENTING) {
-		/* the new option uses the root - expected bahaviour, but differs from old... */
+		/* the new option uses the root - expected behaviour, but differs from old... */
 		/* XXX check on version patching? */
 		copy_m4_m4(mat, pchan->chan_mat);
 	}
@@ -3089,7 +3089,7 @@ int BKE_object_is_modified(Scene *scene, Object *ob)
  * This makes it possible to give some degree of false-positives here,
  * but it's currently an acceptable tradeoff between complexity and check
  * speed. In combination with checks of modifier stack and real life usage
- * percentage of false-positives shouldn't be that hight.
+ * percentage of false-positives shouldn't be that height.
  */
 static bool object_moves_in_time(Object *object)
 {

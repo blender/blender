@@ -281,7 +281,7 @@ void BKE_mesh_remap_find_best_match_from_dm(
 	best_match = match;
 	copy_m4_m4(best_mat_dst, mat_dst);
 
-	/* And now, we have to check the otehr sixth possible mirrored versions... */
+	/* And now, we have to check the other sixth possible mirrored versions... */
 	for (mirr = mirrors; (*mirr)[0]; mirr++) {
 		mul_v3_fl(mat_dst[0], (*mirr)[0]);
 		mul_v3_fl(mat_dst[1], (*mirr)[1]);

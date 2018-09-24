@@ -400,7 +400,7 @@ typedef struct ParameterDynAlloc {
 
 typedef enum FunctionFlag {
 	/***** Options affecting callback signature. *****/
-	/* Those add additionnal parameters at the beginning of the C callback, like that:
+	/* Those add additional parameters at the beginning of the C callback, like that:
 	 *     rna_my_func([ID *_selfid],
 	 *                 [<DNA_STRUCT> *self|StructRNA *type],
 	 *                 [Main *bmain],

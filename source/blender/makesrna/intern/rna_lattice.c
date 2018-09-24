@@ -103,7 +103,7 @@ static void rna_Lattice_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 /* copy settings to editlattice,
  * we could split this up differently (one update call per property)
- * but for now thats overkill
+ * but for now that's overkill
  */
 static void rna_Lattice_update_data_editlatt(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {

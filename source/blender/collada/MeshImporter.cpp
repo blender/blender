@@ -183,7 +183,7 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 		case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
-			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return;  // xxx need to create an eror instead
+			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return;  // xxx need to create an error instead
 
 			mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
 			mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
@@ -194,7 +194,7 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 		case COLLADAFW::MeshVertexData::DATA_TYPE_DOUBLE:
 		{
 			COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
-			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return; // xxx need to create an eror instead
+			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return; // xxx need to create an error instead
 
 			mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
 			mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
@@ -546,7 +546,7 @@ unsigned int MeshImporter::get_loose_edge_count(COLLADAFW::Mesh *mesh) {
 }
 
 // =================================================================
-// This functin is copied from source/blender/editors/mesh/mesh_data.c
+// This function is copied from source/blender/editors/mesh/mesh_data.c
 //
 // TODO: (As discussed with sergey-) :
 // Maybe move this function to blenderkernel/intern/mesh.c
@@ -585,7 +585,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 // =================================================================
 // Read all loose edges.
 // Important: This function assumes that all edges from existing
-// faces have allready been generated and added to me->medge
+// faces have already been generated and added to me->medge
 // So this function MUST be called after read_faces() (see below)
 // =================================================================
 void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
@@ -679,7 +679,7 @@ void MeshImporter::read_polys(COLLADAFW::Mesh *collada_mesh, Mesh *me)
 				unsigned int vertex_count = mp->getGroupedVerticesVertexCount(group_index);
 
 				for (unsigned int vertex_index = 0; vertex_index < vertex_count - 2; vertex_index++) {
-					// For each triangle store indeces of its 3 vertices
+					// For each triangle store indices of its 3 vertices
 					unsigned int triangle_vertex_indices[3] = {first_vertex, position_indices[1], position_indices[2]};
 					set_poly_indices(mpoly, mloop, loop_index, triangle_vertex_indices, 3);
 
@@ -944,7 +944,7 @@ static bool bc_has_same_material_configuration(Object *ob1, Object *ob2)
 
 /**
  *
- * Caution here: This code assumes tha all materials are assigned to Object
+ * Caution here: This code assumes that all materials are assigned to Object
  * and no material is assigned to Data.
  * That is true right after the objects have been imported.
  *
@@ -1078,7 +1078,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 
 	Material *ma = uid_material_map[ma_uid];
 
-	// Attention! This temporaly assigns material to object on purpose!
+	// Attention! This temporarily assigns material to object on purpose!
 	// See note above.
 	ob->actcol=0;
 	assign_material(m_bmain, ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT);
@@ -1138,7 +1138,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 {
 	const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
 
-	// check if node instanciates controller or geometry
+	// check if node instantiates controller or geometry
 	if (isController) {
 
 		geom_uid = armature_importer->get_geometry_uid(*geom_uid);
@@ -1241,7 +1241,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 	// BKE_mesh_calc_edges(me, false, false);
 
 	// read_lines() must be called after the face edges have been generated.
-	// Oterwise the loose edges will be silently deleted again.
+	// Otherwise the loose edges will be silently deleted again.
 	read_lines(mesh, me);
 
 	return true;

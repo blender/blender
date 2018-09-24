@@ -49,7 +49,7 @@
 
 static const EnumPropertyItem space_items[] = {
 	{CONSTRAINT_SPACE_WORLD,    "WORLD", 0, "World Space",
-	                            "The most gobal space in Blender"},
+	                            "The most global space in Blender"},
 	{CONSTRAINT_SPACE_POSE,     "POSE", 0, "Pose Space",
 	                            "The pose space of a bone (its armature's object space)"},
 	{CONSTRAINT_SPACE_PARLOCAL, "LOCAL_WITH_PARENT", 0, "Local With Parent",

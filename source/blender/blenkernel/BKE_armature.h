@@ -47,7 +47,7 @@ struct ListBase;
 typedef struct PoseTarget {
 	struct PoseTarget *next, *prev;
 
-	struct bConstraint *con;        /* the constrait of this target */
+	struct bConstraint *con;        /* the constraint of this target */
 	int tip;                        /* index of tip pchan in PoseTree */
 } PoseTarget;
 

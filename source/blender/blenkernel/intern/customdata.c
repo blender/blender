@@ -2890,7 +2890,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 	}
 }
 
-/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more effecient memory alloc*/
+/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more efficient memory alloc*/
 void *CustomData_bmesh_get(const CustomData *data, void *block, int type)
 {
 	int layer_index;

@@ -643,7 +643,7 @@ int where_on_path(Object *ob, float ctime, float vec[4], float dir[3], float qua
 	s1 = (int)floor(ctime);
 	fac = (float)(s1 + 1) - ctime;
 
-	/* path->len is corected for cyclic */
+	/* path->len is corrected for cyclic */
 	s0 = interval_test(0, path->len - 1 - cycl, s1 - 1, cycl);
 	s1 = interval_test(0, path->len - 1 - cycl, s1, cycl);
 	s2 = interval_test(0, path->len - 1 - cycl, s1 + 1, cycl);

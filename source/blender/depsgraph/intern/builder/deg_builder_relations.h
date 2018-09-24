@@ -290,7 +290,7 @@ protected:
 
 	/* TODO(sergey): All those is_same* functions are to be generalized. */
 
-	/* Check whether two keys correponds to the same bone from same armature.
+	/* Check whether two keys corresponds to the same bone from same armature.
 	 *
 	 * This is used by drivers relations builder to avoid possible fake
 	 * dependency cycle when one bone property drives another property of the

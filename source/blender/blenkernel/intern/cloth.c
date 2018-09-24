@@ -1440,7 +1440,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 		}
 		else {
 			/* bending springs for hair strands */
-			/* The current algorightm only goes through the edges in order of the mesh edges list	*/
+			/* The current algorithm only goes through the edges in order of the mesh edges list	*/
 			/* and makes springs between the outer vert of edges sharing a vertice. This works just */
 			/* fine for hair, but not for user generated string meshes. This could/should be later	*/
 			/* extended to work with non-ordered edges so that it can be used for general "rope		*/

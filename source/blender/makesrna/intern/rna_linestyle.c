@@ -591,7 +591,7 @@ static void rna_def_modifier_type_common(
 		{LS_VALUE_MULT, "MULTIPLY", 0, "Multiply", ""},
 		{LS_VALUE_DIV, "DIVIDE", 0, "Divide", ""},
 		{LS_VALUE_DIFF, "DIFFERENCE", 0, "Difference", ""},
-		{LS_VALUE_MIN, "MININUM", 0, "Minimum", ""},
+		{LS_VALUE_MIN, "MINIMUM", 0, "Minimum", ""},
 		{LS_VALUE_MAX, "MAXIMUM", 0, "Maximum", ""},
 		{0, NULL, 0, NULL, NULL}
 	};

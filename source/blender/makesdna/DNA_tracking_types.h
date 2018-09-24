@@ -108,7 +108,7 @@ typedef struct MovieTrackingTrack {
 
 	char name[64];  /* MAX_NAME */
 
-	/* ** setings ** */
+	/* ** settings ** */
 
 	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 units,
 	 * relative to marker->pos)

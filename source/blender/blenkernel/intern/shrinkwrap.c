@@ -384,7 +384,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	SpaceTransform local2aux;
 
 	/* If the user doesn't allows to project in any direction of projection axis
-	 * then theres nothing todo. */
+	 * then there's nothing todo. */
 	if ((calc->smd->shrinkOpts & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
 

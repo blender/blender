@@ -294,7 +294,7 @@ void BKE_ptcache_update_info(PTCacheID *pid);
 /* Size of cache data type. */
 int     BKE_ptcache_data_size(int data_type);
 
-/* Is point with indes in memory cache */
+/* Is point with index in memory cache */
 int BKE_ptcache_mem_index_find(struct PTCacheMem *pm, unsigned int index);
 
 /* Memory cache read/write helpers. */

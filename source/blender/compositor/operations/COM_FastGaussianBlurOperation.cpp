@@ -128,7 +128,7 @@ void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, unsign
 	if ((xy < 1) || (xy > 3)) xy = 3;
 
 	// XXX The YVV macro defined below explicitly expects sources of at least 3x3 pixels,
-	//     so just skiping blur along faulty direction if src's def is below that limit!
+	//     so just skipping blur along faulty direction if src's def is below that limit!
 	if (src_width < 3) xy &= ~1;
 	if (src_height < 3) xy &= ~2;
 	if (xy < 1) return;

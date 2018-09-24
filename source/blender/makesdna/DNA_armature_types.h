@@ -111,7 +111,7 @@ typedef struct bArmature {
 	unsigned int layer_used;             /* for UI, to show which layers are there */
 	unsigned int layer, layer_protected; /* for buttons to work, both variables in this order together */
 
-// XXX deprecated... old animaton system (armature only viz) ---
+// XXX deprecated... old animation system (armature only viz) ---
 	short       ghostep, ghostsize;     /* number of frames to ghosts to show, and step between them  */
 	short       ghosttype, pathsize;        /* ghost drawing options and number of frames between points of path */
 	int         ghostsf, ghostef;       /* start and end frames of ghost-drawing range */

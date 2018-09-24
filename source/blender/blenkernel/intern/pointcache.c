@@ -137,7 +137,7 @@ static int ptcache_extra_datasize[] = {
 	sizeof(ParticleSpring)
 };
 
-/* forward declerations */
+/* forward declarations */
 static int ptcache_file_compressed_read(PTCacheFile *pf, unsigned char *result, unsigned int len);
 static int ptcache_file_compressed_write(PTCacheFile *pf, unsigned char *in, unsigned int in_len, unsigned char *out, int mode);
 static int ptcache_file_write(PTCacheFile *pf, const void *f, unsigned int tot, unsigned int size);

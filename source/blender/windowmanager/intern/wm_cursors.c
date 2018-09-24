@@ -274,7 +274,7 @@ bool wm_cursor_arrow_move(wmWindow *win, const wmEvent *event)
 }
 
 
-/* afer this you can call restore too */
+/* after this you can call restore too */
 void WM_cursor_time(wmWindow *win, int nr)
 {
 	/* 10 8x8 digits */

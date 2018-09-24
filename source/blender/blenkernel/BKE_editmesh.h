@@ -27,7 +27,7 @@
  *  \ingroup bke
  *
  * The \link edmesh EDBM module\endlink is for editmode bmesh stuff.
- * In contrast, the this module is for code shared with blenkernel thats
+ * In contrast, this module is for code shared with blenkernel that's
  * only concerned with low level operations on the #BMEditMesh structure.
  */
 

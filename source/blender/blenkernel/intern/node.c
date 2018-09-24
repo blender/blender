@@ -2067,7 +2067,7 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 
 /* sync local composite with real tree */
 /* local tree is supposed to be running, be careful moving previews! */
-/* is called by jobs manager, outside threads, so it doesnt happen during draw */
+/* is called by jobs manager, outside threads, so it doesn't happen during draw */
 void ntreeLocalSync(bNodeTree *localtree, bNodeTree *ntree)
 {
 	if (localtree && ntree) {

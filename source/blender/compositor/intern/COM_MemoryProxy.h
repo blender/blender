@@ -39,7 +39,7 @@ class WriteBufferOperation;
 class MemoryProxy {
 private:
 	/**
-	 * \brief reference to the ouput operation of the executiongroup
+	 * \brief reference to the output operation of the executiongroup
 	 */
 	WriteBufferOperation *m_writeBufferOperation;
 

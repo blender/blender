@@ -1508,7 +1508,7 @@ static void sample_derivedmesh(
 				interp_v3_v3v3v3(hit_normal, n1, n2, n3, weights);
 				normalize_v3(hit_normal);
 				/* apply normal directional and random velocity
-				 * - TODO: random disabled for now since it doesnt really work well as pressure calc smoothens it out... */
+				 * - TODO: random disabled for now since it doesn't really work well as pressure calc smoothens it out... */
 				velocity_map[index * 3]   += hit_normal[0] * sfs->vel_normal * 0.25f;
 				velocity_map[index * 3 + 1] += hit_normal[1] * sfs->vel_normal * 0.25f;
 				velocity_map[index * 3 + 2] += hit_normal[2] * sfs->vel_normal * 0.25f;
@@ -2140,7 +2140,7 @@ static void update_flowsfluids(
 		VECSUB(new_shift, total_shift, sds->shift);
 		copy_v3_v3_int(sds->shift, total_shift);
 
-		/* calculate new domain boundary points so that smoke doesnt slide on sub-cell movement */
+		/* calculate new domain boundary points so that smoke doesn't slide on sub-cell movement */
 		sds->p0[0] = sds->dp0[0] - sds->cell_size[0] * (sds->shift_f[0] - total_shift[0] - 0.5f);
 		sds->p0[1] = sds->dp0[1] - sds->cell_size[1] * (sds->shift_f[1] - total_shift[1] - 0.5f);
 		sds->p0[2] = sds->dp0[2] - sds->cell_size[2] * (sds->shift_f[2] - total_shift[2] - 0.5f);

@@ -286,7 +286,7 @@ static int id_expand_local_callback(
 		return IDWALK_RET_NOP;
 	}
 
-	/* Can hapen that we get unlinkable ID here, e.g. with shapekey referring to itself (through drivers)...
+	/* Can happen that we get unlinkable ID here, e.g. with shapekey referring to itself (through drivers)...
 	 * Just skip it, shape key can only be either indirectly linked, or fully local, period.
 	 * And let's curse one more time that stupid useless shapekey ID type! */
 	if (*id_pointer && *id_pointer != id_self && BKE_idcode_is_linkable(GS((*id_pointer)->name))) {

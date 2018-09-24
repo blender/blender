@@ -160,7 +160,7 @@ typedef struct bGPDstroke {
 	struct bGPDstroke *next, *prev;
 
 	bGPDspoint *points;		/* array of data-points for stroke */
-	bGPDtriangle *triangles;/* tesselated triangles for GP Fill */
+	bGPDtriangle *triangles;/* tessellated triangles for GP Fill */
 	int totpoints;          /* number of data-points in array */
 	int tot_triangles;      /* number of triangles in array */
 

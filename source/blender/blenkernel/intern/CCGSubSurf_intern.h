@@ -229,7 +229,7 @@ struct CCGSubSurf {
 	 */
 	bool osd_coarse_coords_invalid;
 
-	/* GL mesh descriptor, used for refinment and draw. */
+	/* GL mesh descriptor, used for refinement and draw. */
 	struct OpenSubdiv_GLMesh *osd_mesh;
 	/* Refiner which is used to create GL mesh.
 	 *

@@ -176,9 +176,9 @@ enum ePreviewImage_Flag {
 
 /* for PreviewImage->tag */
 enum  {
-	PRV_TAG_DEFFERED           = (1 << 0),  /* Actual loading of preview is deffered. */
-	PRV_TAG_DEFFERED_RENDERING = (1 << 1),  /* Deffered preview is being loaded. */
-	PRV_TAG_DEFFERED_DELETE    = (1 << 2),  /* Deffered preview should be deleted asap. */
+	PRV_TAG_DEFFERED           = (1 << 0),  /* Actual loading of preview is deferred. */
+	PRV_TAG_DEFFERED_RENDERING = (1 << 1),  /* Deferred preview is being loaded. */
+	PRV_TAG_DEFFERED_DELETE    = (1 << 2),  /* Deferred preview should be deleted asap. */
 };
 
 typedef struct PreviewImage {

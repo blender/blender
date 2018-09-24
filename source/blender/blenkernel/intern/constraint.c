@@ -2551,7 +2551,7 @@ static void locktrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			unit_m3(totmat);
 		}
 
-		/* apply out transformaton to the object */
+		/* apply out transformation to the object */
 		mul_m4_m3m4(cob->matrix, totmat, cob->matrix);
 	}
 }

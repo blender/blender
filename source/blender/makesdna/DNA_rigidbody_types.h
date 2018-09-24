@@ -102,7 +102,7 @@ typedef struct RigidBodyOb {
 	short shape;			/* (eRigidBody_Shape) collision shape to use */
 
 	int flag;				/* (eRigidBodyOb_Flag) */
-	int col_groups;			/* Collision groups that determines wich rigid bodies can collide with each other */
+	int col_groups;			/* Collision groups that determines which rigid bodies can collide with each other */
 	short mesh_source;		/* (eRigidBody_MeshSource) mesh source for mesh based collision shapes */
 	short pad;
 

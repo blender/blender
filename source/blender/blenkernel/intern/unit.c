@@ -321,7 +321,7 @@ static const bUnitDef *unit_best_fit(
 		if (suppress && (unit->flag & B_UNIT_DEF_SUPPRESS))
 			continue;
 
-		/* scale down scalar so 1cm doesnt convert to 10mm because of float error */
+		/* scale down scalar so 1cm doesn't convert to 10mm because of float error */
 		if (UNLIKELY(unit->flag & B_UNIT_DEF_TENTH)) {
 			if (value_abs >= unit->scalar * (0.1 - EPS)) {
 				return unit;
@@ -418,7 +418,7 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, con
 #endif
 	}
 
-	/* terminate no matter whats done with padding above */
+	/* terminate no matter what's done with padding above */
 	if (i >= len_max)
 		i = len_max - 1;
 

@@ -1008,7 +1008,7 @@ void BKE_nlatrack_set_active(ListBase *tracks, NlaTrack *nlt_a)
 	if (ELEM(NULL, tracks, tracks->first))
 		return;
 
-	/* deactive all the rest */
+	/* deactivate all the rest */
 	for (nlt = tracks->first; nlt; nlt = nlt->next)
 		nlt->flag &= ~NLATRACK_ACTIVE;
 
@@ -1180,7 +1180,7 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
 		float offset = 0.0f;
 
 		if (nls->type == NLASTRIP_TYPE_TRANSITION) {
-			/* transition strips should grow/shrink to accomodate the resized strip,
+			/* transition strips should grow/shrink to accommodate the resized strip,
 			 * but if the strip's bounds now exceed the transition, we're forced to
 			 * offset everything to maintain the balance
 			 */
@@ -1227,7 +1227,7 @@ static void nlastrip_fix_resize_overlaps(NlaStrip *strip)
 		float offset = 0.0f;
 
 		if (nls->type == NLASTRIP_TYPE_TRANSITION) {
-			/* transition strips should grow/shrink to accomodate the resized strip,
+			/* transition strips should grow/shrink to accommodate the resized strip,
 			 * but if the strip's bounds now exceed the transition, we're forced to
 			 * offset everything to maintain the balance
 			 */
@@ -1297,7 +1297,7 @@ void BKE_nlastrip_recalculate_bounds(NlaStrip *strip)
 }
 
 /* Is the given NLA-strip the first one to occur for the given AnimData block */
-// TODO: make this an api method if necesary, but need to add prefix first
+// TODO: make this an api method if necessary, but need to add prefix first
 static bool nlastrip_is_first(AnimData *adt, NlaStrip *strip)
 {
 	NlaTrack *nlt;
@@ -1809,7 +1809,7 @@ void BKE_nla_action_pushdown(AnimData *adt)
 				 * NOTE: An alternative way would have been to instead hack the influence
 				 * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
 				 * is disabled but auto-blending isn't being used. However, that approach
-				 * is a bit hacky/hard to discover, and may cause backwards compatability issues,
+				 * is a bit hacky/hard to discover, and may cause backwards compatibility issues,
 				 * so it's better to just do it this way.
 				 */
 				strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;

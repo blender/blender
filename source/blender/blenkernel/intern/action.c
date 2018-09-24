@@ -198,7 +198,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 	if (act == NULL)
 		return;
 
-	/* Deactive all others */
+	/* Deactivate all others */
 	for (grp = act->groups.first; grp; grp = grp->next) {
 		if ((grp == agrp) && (select))
 			grp->flag |= AGRP_ACTIVE;

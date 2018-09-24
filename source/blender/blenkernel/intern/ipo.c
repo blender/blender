@@ -503,7 +503,7 @@ static const char *texture_adrcodes_to_paths(int adrcode, int *array_index)
 		case TE_BRIGHT:
 			return "brightness";
 		case TE_CONTRA:
-			return "constrast";
+			return "contrast";
 	}
 
 	return NULL;

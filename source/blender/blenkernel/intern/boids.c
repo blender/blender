@@ -1283,7 +1283,7 @@ void boid_body(BoidBrainData *bbd, ParticleData *pa)
 	/* integrate new location & velocity */
 
 	/* by regarding the acceleration as a force at this stage we*/
-	/* can get better control allthough it's a bit unphysical	*/
+	/* can get better control although it's a bit unphysical	*/
 	mul_v3_fl(acc, 1.0f/pa_mass);
 
 	copy_v3_v3(dvec, acc);

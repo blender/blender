@@ -499,7 +499,7 @@ ATTR_NONNULL(1) static void libblock_remap_data(
 	}
 
 #ifdef DEBUG_PRINT
-	printf("%s: %d occurences skipped (%d direct and %d indirect ones)\n", __func__,
+	printf("%s: %d occurrences skipped (%d direct and %d indirect ones)\n", __func__,
 	       r_id_remap_data->skipped_direct + r_id_remap_data->skipped_indirect,
 	       r_id_remap_data->skipped_direct, r_id_remap_data->skipped_indirect);
 #endif

@@ -561,7 +561,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 	unsigned int (*loopindex)[4];
 
-	/* Should never occure, but better abort than segfault! */
+	/* Should never occur, but better abort than segfault! */
 	if (!polyindex)
 		return;
 
@@ -624,7 +624,7 @@ void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
 	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
 	unsigned int (*loopindex)[4] = NULL;
 
-	/* Should never occure, but better abort than segfault! */
+	/* Should never occur, but better abort than segfault! */
 	if (!polyindex)
 		return;
 
@@ -4182,7 +4182,7 @@ void DM_init_origspace(DerivedMesh *dm)
 				scale[1] = 1e-9f;
 			invert_v2(scale);
 
-			/* Finally, transform all vcos_2d into ((0, 0), (1, 1)) square and assing them as origspace. */
+			/* Finally, transform all vcos_2d into ((0, 0), (1, 1)) square and assign them as origspace. */
 			for (j = 0; j < mp->totloop; j++, lof++) {
 				add_v2_v2v2(lof->uv, vcos_2d[j], translate);
 				mul_v2_v2(lof->uv, scale);
@@ -4210,7 +4210,7 @@ static void dm_debug_info_layers(
 
 	for (type = 0; type < CD_NUMTYPES; type++) {
 		if (CustomData_has_layer(cd, type)) {
-			/* note: doesnt account for multiple layers */
+			/* note: doesn't account for multiple layers */
 			const char *name = CustomData_layertype_name(type);
 			const int size = CustomData_sizeof(type);
 			const void *pt = getElemDataArray(dm, type);

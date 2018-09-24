@@ -602,7 +602,7 @@ static void lib_relocate_do(
 
 	BKE_main_id_tag_all(bmain, LIB_TAG_PRE_EXISTING, true);
 
-	/* We do not want any instanciation here! */
+	/* We do not want any instantiation here! */
 	wm_link_do(lapp_data, reports, bmain, NULL, NULL);
 
 	BKE_main_lock(bmain);

@@ -778,7 +778,7 @@ static void surfaceGenerateGrid(struct DynamicPaintSurface *surface)
 			error = 1;
 
 		if (!error) {
-			/* calculate number of points withing each cell */
+			/* calculate number of points within each cell */
 			{
 				ParallelRangeSettings settings;
 				BLI_parallel_range_settings_defaults(&settings);
@@ -1988,7 +1988,7 @@ static DerivedMesh *dynamicPaint_Modifier_apply(
 							DM_update_weight_mcol(ob, result, 0, weight, 0, NULL);
 						}
 
-						/* apply weights into a vertex group, if doesnt exists add a new layer */
+						/* apply weights into a vertex group, if doesn't exists add a new layer */
 						if (defgrp_index != -1 && !dvert && (surface->output_name[0] != '\0')) {
 							dvert = CustomData_add_layer(&result->vertData, CD_MDEFORMVERT, CD_CALLOC,
 							                             NULL, sData->total_points);
@@ -3223,7 +3223,7 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 		setError(surface->canvas, N_("Image save failed: invalid surface"));
 		return;
 	}
-	/* if selected format is openexr, but current build doesnt support one */
+	/* if selected format is openexr, but current build doesn't support one */
 #ifndef WITH_OPENEXR
 	if (format == R_IMF_IMTYPE_OPENEXR)
 		format = R_IMF_IMTYPE_PNG;
@@ -3516,7 +3516,7 @@ static void dynamicPaint_mixPaintColors(
 
 		/* mix wetness and alpha depending on selected alpha mode */
 		if (paintFlags & MOD_DPAINT_ABS_ALPHA) {
-			/* update values to the brush level unless theyre higher already */
+			/* update values to the brush level unless they're higher already */
 			CLAMP_MIN(pPoint->e_color[3], paintAlpha);
 			CLAMP_MIN(pPoint->wetness, paintWetness);
 		}
@@ -5573,7 +5573,7 @@ static void dynamic_paint_wave_step_cb(
 	}
 
 	if (data->reset_wave) {
-		/* if there wasnt any brush intersection, clear isect height */
+		/* if there wasn't any brush intersection, clear isect height */
 		if (wPoint->state == DPAINT_WAVE_NONE) {
 			wPoint->brush_isect = 0.0f;
 		}
@@ -5699,7 +5699,7 @@ static void dynamic_paint_surface_pre_step_cb(
 					/* now calculate new alpha for dry layer that keeps final blended color unchanged */
 					pPoint->color[3] = (f_color[3] - pPoint->e_color[3]) / (1.0f - pPoint->e_color[3]);
 					/* for each rgb component, calculate a new dry layer color that keeps the final blend color
-					 * with these new alpha values. (wet layer color doesnt change)*/
+					 * with these new alpha values. (wet layer color doesn't change)*/
 					if (pPoint->color[3]) {
 						for (i = 0; i < 3; i++) {
 							pPoint->color[i] = (f_color[i] * f_color[3] - pPoint->e_color[i] * pPoint->e_color[3]) /

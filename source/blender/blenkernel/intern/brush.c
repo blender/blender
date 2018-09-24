@@ -954,7 +954,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 
 		texcache = MEM_callocN(sizeof(int) * side * side, "Brush texture cache");
 
-		/* do normalized cannonical view coords for texture */
+		/* do normalized canonical view coords for texture */
 		for (y = -1.0, iy = 0; iy < side; iy++, y += step) {
 			for (x = -1.0, ix = 0; ix < side; ix++, x += step) {
 				co[0] = x;
@@ -962,7 +962,7 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side, bool use_sec
 				co[2] = 0.0f;
 
 				/* This is copied from displace modifier code */
-				/* TODO(sergey): brush are always cacheing with CM enabled for now. */
+				/* TODO(sergey): brush are always caching with CM enabled for now. */
 				externtex(mtex, co, &intensity,
 				          rgba, rgba + 1, rgba + 2, rgba + 3, 0, NULL, false, false);
 

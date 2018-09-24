@@ -553,7 +553,7 @@ BLI_INLINE void cloth_get_grid_location(Implicit_Data *data, float cell_scale, c
 	add_v3_v3(x, cell_offset);
 }
 
-/* returns next spring forming a continous hair sequence */
+/* returns next spring forming a continuous hair sequence */
 BLI_INLINE LinkNode *hair_spring_next(LinkNode *spring_link)
 {
 	ClothSpring *spring = (ClothSpring *)spring_link->link;
