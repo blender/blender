@@ -106,7 +106,8 @@ typedef struct DialInteraction {
 
 static void dial_geom_draw(
         const wmGizmo *gz, const float color[4], const bool select,
-        float axis_modal_mat[4][4], float clip_plane[4], const float arc_inner_factor)
+        float axis_modal_mat[4][4], float clip_plane[4],
+        const float arc_partial_angle, const float arc_inner_factor)
 {
 #ifdef USE_GIZMO_CUSTOM_DIAL
 	UNUSED_VARS(gz, axis_modal_mat, clip_plane);
@@ -136,9 +137,22 @@ static void dial_geom_draw(
 		imm_draw_circle_fill_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
 	}
 	else {
-		imm_draw_circle_wire_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
-		if (arc_inner_factor != 0.0f) {
-			imm_draw_circle_wire_2d(pos, 0, 0, arc_inner_factor, DIAL_RESOLUTION);
+		if (arc_partial_angle == 0.0f) {
+			imm_draw_circle_wire_2d(pos, 0, 0, 1.0, DIAL_RESOLUTION);
+			if (arc_inner_factor != 0.0f) {
+				imm_draw_circle_wire_2d(pos, 0, 0, arc_inner_factor, DIAL_RESOLUTION);
+			}
+		}
+		else {
+			float arc_partial_deg = RAD2DEGF((M_PI * 2) - arc_partial_angle);
+			imm_draw_circle_partial_wire_2d(
+			        pos, 0, 0, 1.0, DIAL_RESOLUTION,
+			        -arc_partial_deg / 2, arc_partial_deg);
+#if 0
+			if (arc_inner_factor != 0.0f) {
+				BLI_assert(0);
+			}
+#endif
 		}
 	}
 
@@ -314,6 +328,8 @@ static void dial_draw_intern(
 
 	GPU_polygon_smooth(false);
 
+
+	const float arc_partial_angle = RNA_float_get(gz->ptr, "arc_partial_angle");
 	const float arc_inner_factor = RNA_float_get(gz->ptr, "arc_inner_factor");
 	if (select == false) {
 		float angle_ofs = 0.0f;
@@ -350,7 +366,7 @@ static void dial_draw_intern(
 	}
 
 	/* Draw actual dial gizmo. */
-	dial_geom_draw(gz, color, select, gz->matrix_basis, clip_plane, arc_inner_factor);
+	dial_geom_draw(gz, color, select, gz->matrix_basis, clip_plane, arc_partial_angle, arc_inner_factor);
 
 	GPU_matrix_pop();
 }
@@ -501,6 +517,7 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
 	RNA_def_boolean(gzt->srna, "wrap_angle", true, "Wrap Angle", "");
 	RNA_def_float_factor(gzt->srna, "arc_inner_factor", 0.0f, 0.0f, 1.0f, "Arc Inner Factor", "", 0.0f, 1.0f);
+	RNA_def_float_factor(gzt->srna, "arc_partial_angle", 0.0f, 0.0f, M_PI * 2, "Show Partial Dial", "", 0.0f, M_PI * 2);
 
 	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 1);
 }
