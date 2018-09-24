@@ -66,7 +66,7 @@ typedef enum eWM_GizmoFlagState {
  * #wmGizmo.flag
  * Flags for individual gizmos.
  */
-typedef enum eWM_GizmoFlagFlag {
+typedef enum eWM_GizmoFlag {
 	WM_GIZMO_DRAW_HOVER  = (1 << 0), /* draw *only* while hovering */
 	WM_GIZMO_DRAW_MODAL  = (1 << 1), /* draw while dragging */
 	WM_GIZMO_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
@@ -86,7 +86,7 @@ typedef enum eWM_GizmoFlagFlag {
 	WM_GIZMO_MOVE_CURSOR = (1 << 6),
 	/** Don't write into the depth buffer when selecting. */
 	WM_GIZMO_SELECT_BACKGROUND  = (1 << 7),
-} eWM_GizmoFlagFlag;
+} eWM_GizmoFlag;
 
 /**
  * #wmGizmoGroupType.flag
@@ -190,7 +190,7 @@ struct wmGizmo {
 	struct PointerRNA *ptr;
 
 	/* flags that influence the behavior or how the gizmos are drawn */
-	eWM_GizmoFlagFlag flag;
+	eWM_GizmoFlag flag;
 	/* state flags (active, highlighted, selected) */
 	eWM_GizmoFlagState state;
 
