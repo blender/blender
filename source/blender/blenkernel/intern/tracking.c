@@ -1992,10 +1992,10 @@ void BKE_tracking_camera_to_blender(MovieTracking *tracking, Scene *scene, Camer
 	camera->sensor_fit = CAMERA_SENSOR_FIT_AUTO;
 	camera->lens = focal * camera->sensor_x / width;
 
-	scene->r.xsch = width * tracking->camera.pixel_aspect;
+	scene->r.xsch = width;
 	scene->r.ysch = height;
 
-	scene->r.xasp = 1.0f;
+	scene->r.xasp = tracking->camera.pixel_aspect;
 	scene->r.yasp = 1.0f;
 
 	BKE_tracking_camera_shift_get(tracking, width, height, &camera->shiftx, &camera->shifty);
