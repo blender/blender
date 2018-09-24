@@ -2454,6 +2454,13 @@ static void do_merge_fullsample(Render *re, bNodeTree *ntree)
 						BLI_rw_mutex_unlock(&re->resultmutex);
 						render_result_uncrop(re1);
 					}
+#ifdef WITH_FREESTYLE
+					else if (re1->r.mode & R_EDGE_FRS) {
+						BLI_rw_mutex_lock(&re->resultmutex, THREAD_LOCK_WRITE);
+						composite_freestyle_renders(re1, 0);
+						BLI_rw_mutex_unlock(&re->resultmutex);
+					}
+#endif
 					ntreeCompositTagRender(re1->scene); /* ensure node gets exec to put buffers on stack */
 				}
 			}
