@@ -158,7 +158,11 @@ string ComponentDepsNode::identifier() const
 	char typebuf[16];
 	sprintf(typebuf, "(%d)", type);
 
-	return string(typebuf) + name + " : " + idname;
+	return string(typebuf) + name + " : " + idname +
+	       "( affects_directly_visible: " +
+	               (affects_directly_visible ? "true"
+	                                         : "false") + ")";
+;
 }
 
 OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
