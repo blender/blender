@@ -352,7 +352,7 @@ static void text_from_buf(Text *text, const unsigned char *buffer, const int len
 	 * - rest of line (if last line in file hasn't got \n terminator).
 	 *   in this case content of such line would be used to fill text line buffer
 	 * - file is empty. in this case new line is needed to start editing from.
-	 * - last characted in buffer is \n. in this case new line is needed to
+	 * - last character in buffer is \n. in this case new line is needed to
 	 *   deal with newline at end of file. (see [#28087]) (sergey) */
 	if (llen != 0 || text->nlines == 0 || buffer[len - 1] == '\n') {
 		TextLine *tmp;

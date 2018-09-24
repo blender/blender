@@ -394,7 +394,7 @@ Node *Converter::convert(bNode *b_node)
 		case CMP_NODE_TRACKPOS:
 			node = new TrackPositionNode(b_node);
 			break;
-		/* not inplemented yet */
+		/* not implemented yet */
 		case CMP_NODE_PIXELATE:
 			node = new PixelateNode(b_node);
 			break;

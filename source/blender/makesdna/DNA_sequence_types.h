@@ -126,7 +126,7 @@ typedef struct Strip {
  * each of the strips uses a different sequence structure.
  *
  * \warning The first part identical to ID (for use in ipo's)
- * the commend above is historic, probably we can drop the ID compatibility,
+ * the comment above is historic, probably we can drop the ID compatibility,
  * but take care making this change.
  *
  * \warning This is really a 'Strip' in the UI!, name is highly confusing.

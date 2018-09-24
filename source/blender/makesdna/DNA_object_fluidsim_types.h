@@ -102,7 +102,7 @@ typedef struct FluidsimSettings {
 	/* additional flags depending on the type, lower short contains flags
 	 * to check validity, higher short additional flags */
 	short typeFlags;
-	/* switch off velocity genration, volume init type for fluid/obstacles (volume=1, shell=2, both=3) */
+	/* switch off velocity generation, volume init type for fluid/obstacles (volume=1, shell=2, both=3) */
 	char  domainNovecgen, volumeInitType;
 
 	/* boundary "stickiness" for part slip values */

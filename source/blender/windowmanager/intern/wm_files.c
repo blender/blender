@@ -1011,7 +1011,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 
 /**
  * Write #BLENDER_HISTORY_FILE as-is, without checking the environment
- * (thats handled by #wm_history_file_update).
+ * (that's handled by #wm_history_file_update).
  */
 static void wm_history_file_write(void)
 {

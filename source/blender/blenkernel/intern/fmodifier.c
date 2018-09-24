@@ -1284,7 +1284,7 @@ bool list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 		const FModifierTypeInfo *fmi = fmodifier_get_typeinfo(fcm);
 		short mOk = 1, aOk = 1; /* by default 1, so that when only one test, won't fail */
 
-		/* check if applicable ones are fullfilled */
+		/* check if applicable ones are fulfilled */
 		if (mtype)
 			mOk = (fcm->type == mtype);
 		if (acttype > -1)

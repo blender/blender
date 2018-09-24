@@ -56,7 +56,7 @@ typedef struct PaintPoint {
 	float color[4];
 } PaintPoint;
 
-/* heigh field waves	*/
+/* height field waves	*/
 typedef struct PaintWavePoint {
 
 	float height;

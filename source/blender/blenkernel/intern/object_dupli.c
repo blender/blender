@@ -243,7 +243,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 
 				/* mballs have a different dupli handling */
 				if (ob->type != OB_MBALL) {
-					ob->flag |= OB_DONE;  /* doesnt render */
+					ob->flag |= OB_DONE;  /* doesn't render */
 				}
 				make_child_duplis_cb(&pctx, userdata, ob);
 			}
@@ -261,7 +261,7 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 
 				/* mballs have a different dupli handling */
 				if (ob->type != OB_MBALL)
-					ob->flag |= OB_DONE;  /* doesnt render */
+					ob->flag |= OB_DONE;  /* doesn't render */
 
 				make_child_duplis_cb(&pctx, userdata, ob);
 			}

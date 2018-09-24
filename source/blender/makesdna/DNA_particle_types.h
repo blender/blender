@@ -106,7 +106,7 @@ typedef struct ParticleData {
 
 	int totkey;				/* amount of hair or keyed keys*/
 
-	float time, lifetime;	/* dietime is not nescessarily time+lifetime as */
+	float time, lifetime;	/* dietime is not necessarily time+lifetime as */
 	float dietime;			/* particles can die unnaturally (collision). */
 
 	/* WARNING! Those two indices, when not affected to vertices, are for !!! TESSELLATED FACES !!!, not POLYGONS! */
@@ -367,7 +367,7 @@ typedef enum eParticleDrawFlag {
 } eParticleDrawFlag;
 
 /* part->type */
-/* hair is allways baked static in object/geometry space */
+/* hair is always baked static in object/geometry space */
 /* other types (normal particles) are in global space and not static baked */
 #define PART_EMITTER		0
 //#define PART_REACTOR		1

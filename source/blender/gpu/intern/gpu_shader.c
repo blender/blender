@@ -299,7 +299,7 @@ static void gpu_dump_shaders(const char **code, const int num_shaders, const cha
 	}
 
 	/* We use the same shader index for shaders in the same program.
-	 * So we call this function once before calling for the invidual shaders. */
+	 * So we call this function once before calling for the individual shaders. */
 	static int shader_index = 0;
 	if (code == NULL) {
 		shader_index++;

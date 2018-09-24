@@ -263,7 +263,7 @@ char *WM_operator_pystring_ex(bContext *C, wmOperator *op, const bool all_args, 
 		}
 	}
 	else {
-		/* only to get the orginal props for comparisons */
+		/* only to get the original props for comparisons */
 		PointerRNA opptr_default;
 		const bool macro_args_test = ot->macro.first ? macro_args : true;
 
@@ -615,7 +615,7 @@ void WM_operator_properties_sanitize(PointerRNA *ptr, const bool no_context)
 /** set all props to their default,
  * \param do_update Only update un-initialized props.
  *
- * \note, theres nothing specific to operators here.
+ * \note, there's nothing specific to operators here.
  * this could be made a general function.
  */
 bool WM_operator_properties_default(PointerRNA *ptr, const bool do_update)

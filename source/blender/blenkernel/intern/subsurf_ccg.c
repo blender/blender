@@ -84,7 +84,7 @@
 #  include "opensubdiv_capi.h"
 #endif
 
-/* assumes MLoop's are layed out 4 for each poly, in order */
+/* assumes MLoop's are laid out 4 for each poly, in order */
 #define USE_LOOP_LAYOUT_FAST
 
 static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
@@ -1271,7 +1271,7 @@ void subsurf_copy_grid_paint_mask(DerivedMesh *dm, const MPoly *mpoly,
 	}
 }
 
-/* utility functon */
+/* utility function */
 BLI_INLINE void ccgDM_to_MVert(MVert *mv, const CCGKey *key, CCGElem *elem)
 {
 	copy_v3_v3(mv->co, CCG_elem_co(key, elem));
@@ -1344,7 +1344,7 @@ static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 }
 
 
-/* utility functon */
+/* utility function */
 BLI_INLINE void ccgDM_to_MEdge(MEdge *med, const int v1, const int v2, const short flag)
 {
 	med->v1 = v1;
@@ -2899,7 +2899,7 @@ static bool subsurf_use_gpu_backend(SubsurfFlags flags)
 {
 #ifdef WITH_OPENSUBDIV
 	/* Use GPU backend if it's a last modifier in the stack
-	 * and user choosed to use any of the OSD compute devices,
+	 * and user chose to use any of the OSD compute devices,
 	 * but also check if GPU has all needed features.
 	 */
 	return
@@ -2999,7 +2999,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 			if (smd->mCache && (flags & SUBSURF_IS_FINAL_CALC)) {
 #ifdef WITH_OPENSUBDIV
-				/* With OpenSubdiv enabled we always tries to re-use previos
+				/* With OpenSubdiv enabled we always tries to re-use previous
 				 * subsurf structure in order to save computation time since
 				 * re-creation is rather a complicated business.
 				 *
