@@ -44,9 +44,9 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
@@ -100,7 +100,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 static void createFacepa(
         ExplodeModifierData *emd,
         ParticleSystemModifierData *psmd,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 	ParticleSystem *psys = psmd->psys;
 	MFace *fa = NULL, *mface = NULL;
@@ -112,31 +112,32 @@ static void createFacepa(
 	int *facepa = NULL, *vertpa = NULL, totvert = 0, totface = 0, totpart = 0;
 	int i, p, v1, v2, v3, v4 = 0;
 
-	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
-	totface = dm->getNumTessFaces(dm);
-	totvert = dm->getNumVerts(dm);
+	mvert = mesh->mvert;
+	mface = mesh->mface;
+	totvert = mesh->totvert;
+	totface = mesh->totface;
 	totpart = psmd->psys->totpart;
 
 	rng = BLI_rng_new_srandom(psys->seed);
 
-	if (emd->facepa)
+	if (emd->facepa) {
 		MEM_freeN(emd->facepa);
-
+	}
 	facepa = emd->facepa = MEM_calloc_arrayN(totface, sizeof(int), "explode_facepa");
 
 	vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa");
 
 	/* initialize all faces & verts to no particle */
-	for (i = 0; i < totface; i++)
+	for (i = 0; i < totface; i++) {
 		facepa[i] = totpart;
-
-	for (i = 0; i < totvert; i++)
+	}
+	for (i = 0; i < totvert; i++) {
 		vertpa[i] = totpart;
+	}
 
 	/* set protected verts */
 	if (emd->vgroup) {
-		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		MDeformVert *dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
 		if (dvert) {
 			const int defgrp_index = emd->vgroup - 1;
 			for (i = 0; i < totvert; i++, dvert++) {
@@ -164,27 +165,40 @@ static void createFacepa(
 			add_v3_v3(center, mvert[fa->v4].co);
 			mul_v3_fl(center, 0.25);
 		}
-		else
+		else {
 			mul_v3_fl(center, 1.0f / 3.0f);
+		}
 
 		p = BLI_kdtree_find_nearest(tree, center, NULL);
 
 		v1 = vertpa[fa->v1];
 		v2 = vertpa[fa->v2];
 		v3 = vertpa[fa->v3];
-		if (fa->v4)
+		if (fa->v4) {
 			v4 = vertpa[fa->v4];
+		}
 
-		if (v1 >= 0 && v2 >= 0 && v3 >= 0 && (fa->v4 == 0 || v4 >= 0))
+		if (v1 >= 0 && v2 >= 0 && v3 >= 0 && (fa->v4 == 0 || v4 >= 0)) {
 			facepa[i] = p;
+		}
 
-		if (v1 >= 0) vertpa[fa->v1] = p;
-		if (v2 >= 0) vertpa[fa->v2] = p;
-		if (v3 >= 0) vertpa[fa->v3] = p;
-		if (fa->v4 && v4 >= 0) vertpa[fa->v4] = p;
+		if (v1 >= 0) {
+			vertpa[fa->v1] = p;
+		}
+		if (v2 >= 0) {
+			vertpa[fa->v2] = p;
+		}
+		if (v3 >= 0) {
+			vertpa[fa->v3] = p;
+		}
+		if (fa->v4 && v4 >= 0) {
+			vertpa[fa->v4] = p;
+		}
 	}
 
-	if (vertpa) MEM_freeN(vertpa);
+	if (vertpa) {
+		MEM_freeN(vertpa);
+	}
 	BLI_kdtree_free(tree);
 
 	BLI_rng_free(rng);
@@ -203,10 +217,10 @@ static const short add_faces[24] = {
 	1, 1, 2
 };
 
-static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFace *mf)
+static MFace *get_dface(Mesh *mesh, Mesh *split, int cur, int i, MFace *mf)
 {
-	MFace *df = CDDM_get_tessface(split, cur);
-	DM_copy_tessface_data(dm, split, i, cur, 1);
+	MFace *df = &split->mface[cur];
+	CustomData_copy_data(&mesh->fdata, &split->fdata, i, cur, 1);
 	*df = *mf;
 	return df;
 }
@@ -222,11 +236,11 @@ static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFa
 #define GET_ES(v1, v2) edgecut_get(eh, v1, v2)
 #define INT_UV(uvf, c0, c1) mid_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1])
 
-static void remap_faces_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
+static void remap_faces_3_6_9_12(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
-	MFace *df3 = get_dface(dm, split, cur + 2, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
+	MFace *df3 = get_dface(mesh, split, cur + 2, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -250,17 +264,17 @@ static void remap_faces_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, MFace *mf,
 	df3->flag &= ~ME_FACE_SEL;
 }
 
-static void remap_uvs_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
+static void remap_uvs_3_6_9_12(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
 {
 	MTFace *mf, *df1, *df2, *df3;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
 		df3 = df1 + 2;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -278,10 +292,10 @@ static void remap_uvs_3_6_9_12(DerivedMesh *dm, DerivedMesh *split, int numlayer
 	}
 }
 
-static void remap_faces_5_10(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
+static void remap_faces_5_10(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -298,16 +312,16 @@ static void remap_faces_5_10(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int
 	df2->flag |= ME_FACE_SEL;
 }
 
-static void remap_uvs_5_10(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
+static void remap_uvs_5_10(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
 {
 	MTFace *mf, *df1, *df2;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -323,12 +337,12 @@ static void remap_uvs_5_10(DerivedMesh *dm, DerivedMesh *split, int numlayer, in
 	}
 }
 
-static void remap_faces_15(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
+static void remap_faces_15(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
-	MFace *df3 = get_dface(dm, split, cur + 2, i, mf);
-	MFace *df4 = get_dface(dm, split, cur + 3, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
+	MFace *df3 = get_dface(mesh, split, cur + 2, i, mf);
+	MFace *df4 = get_dface(mesh, split, cur + 3, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -359,18 +373,18 @@ static void remap_faces_15(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *
 	df4->flag |= ME_FACE_SEL;
 }
 
-static void remap_uvs_15(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
+static void remap_uvs_15(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
 {
 	MTFace *mf, *df1, *df2, *df3, *df4;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
 		df3 = df1 + 2;
 		df4 = df1 + 3;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -395,11 +409,11 @@ static void remap_uvs_15(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 	}
 }
 
-static void remap_faces_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
+static void remap_faces_7_11_13_14(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3, int v4)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
-	MFace *df3 = get_dface(dm, split, cur + 2, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
+	MFace *df3 = get_dface(mesh, split, cur + 2, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -423,17 +437,17 @@ static void remap_faces_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, MFace *m
 	df3->flag |= ME_FACE_SEL;
 }
 
-static void remap_uvs_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
+static void remap_uvs_7_11_13_14(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2, int c3)
 {
 	MTFace *mf, *df1, *df2, *df3;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
 		df3 = df1 + 2;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -452,10 +466,10 @@ static void remap_uvs_7_11_13_14(DerivedMesh *dm, DerivedMesh *split, int numlay
 	}
 }
 
-static void remap_faces_19_21_22(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3)
+static void remap_faces_19_21_22(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -472,16 +486,16 @@ static void remap_faces_19_21_22(DerivedMesh *dm, DerivedMesh *split, MFace *mf,
 	df2->flag |= ME_FACE_SEL;
 }
 
-static void remap_uvs_19_21_22(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2)
+static void remap_uvs_19_21_22(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2)
 {
 	MTFace *mf, *df1, *df2;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -495,11 +509,11 @@ static void remap_uvs_19_21_22(DerivedMesh *dm, DerivedMesh *split, int numlayer
 	}
 }
 
-static void remap_faces_23(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3)
+static void remap_faces_23(Mesh *mesh, Mesh *split, MFace *mf, int *facepa, int *vertpa, int i, EdgeHash *eh, int cur, int v1, int v2, int v3)
 {
-	MFace *df1 = get_dface(dm, split, cur, i, mf);
-	MFace *df2 = get_dface(dm, split, cur + 1, i, mf);
-	MFace *df3 = get_dface(dm, split, cur + 2, i, mf);
+	MFace *df1 = get_dface(mesh, split, cur, i, mf);
+	MFace *df2 = get_dface(mesh, split, cur + 1, i, mf);
+	MFace *df3 = get_dface(mesh, split, cur + 2, i, mf);
 
 	facepa[cur] = vertpa[v1];
 	df1->v1 = v1;
@@ -523,16 +537,16 @@ static void remap_faces_23(DerivedMesh *dm, DerivedMesh *split, MFace *mf, int *
 	df3->flag &= ~ME_FACE_SEL;
 }
 
-static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int i, int cur, int c0, int c1, int c2)
+static void remap_uvs_23(Mesh *mesh, Mesh *split, int numlayer, int i, int cur, int c0, int c1, int c2)
 {
 	MTFace *mf, *df1, *df2;
 	int l;
 
 	for (l = 0; l < numlayer; l++) {
-		mf = CustomData_get_layer_n(&split->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&split->fdata, CD_MTFACE, l);
 		df1 = mf + cur;
 		df2 = df1 + 1;
-		mf = CustomData_get_layer_n(&dm->faceData, CD_MTFACE, l);
+		mf = CustomData_get_layer_n(&mesh->fdata, CD_MTFACE, l);
 		mf += i;
 
 		copy_v2_v2(df1->uv[0], mf->uv[c0]);
@@ -550,16 +564,16 @@ static void remap_uvs_23(DerivedMesh *dm, DerivedMesh *split, int numlayer, int 
 	}
 }
 
-static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
+static Mesh *cutEdges(ExplodeModifierData *emd, Mesh *mesh)
 {
-	DerivedMesh *splitdm;
+	Mesh *split_m;
 	MFace *mf = NULL, *df1 = NULL;
-	MFace *mface = dm->getTessFaceArray(dm);
+	MFace *mface = mesh->mface;
 	MVert *dupve, *mv;
 	EdgeHash *edgehash;
 	EdgeHashIterator *ehi;
-	int totvert = dm->getNumVerts(dm);
-	int totface = dm->getNumTessFaces(dm);
+	int totvert = mesh->totvert;
+	int totface = mesh->totface;
 
 	int *facesplit = MEM_calloc_arrayN(totface, sizeof(int), "explode_facesplit");
 	int *vertpa = MEM_calloc_arrayN(totvert, sizeof(int), "explode_vertpa2");
@@ -578,8 +592,9 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 		vertpa[mf->v1] = facepa[i];
 		vertpa[mf->v2] = facepa[i];
 		vertpa[mf->v3] = facepa[i];
-		if (mf->v4)
+		if (mf->v4) {
 			vertpa[mf->v4] = facepa[i];
+		}
 	}
 
 	/* mark edges for splitting and how to split faces */
@@ -612,8 +627,9 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 			}
 
 			/* mark center vertex as a fake edge split */
-			if (*fs == 15)
+			if (*fs == 15) {
 				BLI_edgehash_reinsert(edgehash, mf->v1, mf->v3, NULL);
+			}
 		}
 		else {
 			(*fs) |= 16; /* mark face as tri */
@@ -638,19 +654,19 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	for (i = 0, fs = facesplit; i < totface; i++, fs++)
 		totfsplit += add_faces[*fs];
 
-	splitdm = CDDM_from_template_ex(
-	        dm, totesplit, 0, totface + totfsplit, 0, 0,
-	        CD_MASK_DERIVEDMESH | CD_MASK_FACECORNERS);
-	numlayer = CustomData_number_of_layers(&splitdm->faceData, CD_MTFACE);
+	split_m = BKE_mesh_new_nomain_from_template(
+	        mesh, totesplit, 0, totface + totfsplit, 0, 0);
+
+	numlayer = CustomData_number_of_layers(&split_m->fdata, CD_MTFACE);
 
 	/* copy new faces & verts (is it really this painful with custom data??) */
 	for (i = 0; i < totvert; i++) {
 		MVert source;
 		MVert *dest;
-		dm->getVert(dm, i, &source);
-		dest = CDDM_get_vert(splitdm, i);
+		source = mesh->mvert[i];
+		dest = &split_m->mvert[i];
 
-		DM_copy_vert_data(dm, splitdm, i, i, 1);
+		CustomData_copy_data(&mesh->vdata, &split_m->vdata, i, i, 1);
 		*dest = source;
 	}
 
@@ -669,14 +685,14 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	for (; !BLI_edgehashIterator_isDone(ehi); BLI_edgehashIterator_step(ehi)) {
 		BLI_edgehashIterator_getKey(ehi, &ed_v1, &ed_v2);
 		esplit = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
-		mv = CDDM_get_vert(splitdm, ed_v2);
-		dupve = CDDM_get_vert(splitdm, esplit);
+		mv = &split_m->mvert[ed_v2];
+		dupve = &split_m->mvert[esplit];
 
-		DM_copy_vert_data(splitdm, splitdm, ed_v2, esplit, 1);
+		CustomData_copy_data(&split_m->vdata, &split_m->vdata, ed_v2, esplit, 1);
 
 		*dupve = *mv;
 
-		mv = CDDM_get_vert(splitdm, ed_v1);
+		mv = &split_m->mvert[ed_v1];
 
 		mid_v3_v3v3(dupve->co, dupve->co, mv->co);
 	}
@@ -686,7 +702,7 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	curdupface = 0; //=totface;
 	//curdupin=totesplit;
 	for (i = 0, fs = facesplit; i < totface; i++, fs++) {
-		mf = dm->getTessFaceData(dm, i, CD_MFACE);
+		mf = &mesh->mface[i];
 
 		switch (*fs) {
 			case 3:
@@ -725,50 +741,58 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 			case 6:
 			case 9:
 			case 12:
-				remap_faces_3_6_9_12(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
-				if (numlayer)
-					remap_uvs_3_6_9_12(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				remap_faces_3_6_9_12(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
+				if (numlayer) {
+					remap_uvs_3_6_9_12(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				}
 				break;
 			case 5:
 			case 10:
-				remap_faces_5_10(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
-				if (numlayer)
-					remap_uvs_5_10(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				remap_faces_5_10(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
+				if (numlayer) {
+					remap_uvs_5_10(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				}
 				break;
 			case 15:
-				remap_faces_15(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
-				if (numlayer)
-					remap_uvs_15(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				remap_faces_15(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
+				if (numlayer) {
+					remap_uvs_15(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				}
 				break;
 			case 7:
 			case 11:
 			case 13:
 			case 14:
-				remap_faces_7_11_13_14(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
-				if (numlayer)
-					remap_uvs_7_11_13_14(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				remap_faces_7_11_13_14(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2], v[3]);
+				if (numlayer) {
+					remap_uvs_7_11_13_14(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2], uv[3]);
+				}
 				break;
 			case 19:
 			case 21:
 			case 22:
-				remap_faces_19_21_22(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2]);
-				if (numlayer)
-					remap_uvs_19_21_22(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2]);
+				remap_faces_19_21_22(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2]);
+				if (numlayer) {
+					remap_uvs_19_21_22(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2]);
+				}
 				break;
 			case 23:
-				remap_faces_23(dm, splitdm, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2]);
-				if (numlayer)
-					remap_uvs_23(dm, splitdm, numlayer, i, curdupface, uv[0], uv[1], uv[2]);
+				remap_faces_23(mesh, split_m, mf, facepa, vertpa, i, edgehash, curdupface, v[0], v[1], v[2]);
+				if (numlayer) {
+					remap_uvs_23(mesh, split_m, numlayer, i, curdupface, uv[0], uv[1], uv[2]);
+				}
 				break;
 			case 0:
 			case 16:
-				df1 = get_dface(dm, splitdm, curdupface, i, mf);
+				df1 = get_dface(mesh, split_m, curdupface, i, mf);
 				facepa[curdupface] = vertpa[mf->v1];
 
-				if (df1->v4)
+				if (df1->v4) {
 					df1->flag |= ME_FACE_SEL;
-				else
+				}
+				else {
 					df1->flag &= ~ME_FACE_SEL;
+				}
 				break;
 		}
 
@@ -776,25 +800,25 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 	}
 
 	for (i = 0; i < curdupface; i++) {
-		mf = CDDM_get_tessface(splitdm, i);
-		test_index_face(mf, &splitdm->faceData, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
+		mf = &split_m->mface[i];
+		test_index_face(mf, &split_m->fdata, i, ((mf->flag & ME_FACE_SEL) ? 4 : 3));
 	}
 
 	BLI_edgehash_free(edgehash, NULL);
 	MEM_freeN(facesplit);
 	MEM_freeN(vertpa);
 
-	CDDM_calc_edges_tessface(splitdm);
-	CDDM_tessfaces_to_faces(splitdm); /*builds ngon faces from tess (mface) faces*/
+	BKE_mesh_calc_edges_tessface(split_m);
+	BKE_mesh_convert_mfaces_to_mpolys(split_m);
 
-	return splitdm;
+	return split_m;
 }
-static DerivedMesh *explodeMesh(
+static Mesh *explodeMesh(
         ExplodeModifierData *emd,
         ParticleSystemModifierData *psmd, const ModifierEvalContext *ctx, Scene *scene,
-        DerivedMesh *to_explode)
+        Mesh *to_explode)
 {
-	DerivedMesh *explode, *dm = to_explode;
+	Mesh *explode, *mesh = to_explode;
 	MFace *mf = NULL, *mface;
 	/* ParticleSettings *part=psmd->psys->part; */ /* UNUSED */
 	ParticleSimulationData sim = {NULL};
@@ -812,9 +836,9 @@ static DerivedMesh *explodeMesh(
 	unsigned int ed_v1, ed_v2, mindex = 0;
 	MTFace *mtface = NULL, *mtf;
 
-	totface = dm->getNumTessFaces(dm);
-	totvert = dm->getNumVerts(dm);
-	mface = dm->getTessFaceArray(dm);
+	totface = mesh->totface;
+	totvert = mesh->totvert;
+	mface = mesh->mface;
 	totpart = psmd->psys->totpart;
 
 	sim.depsgraph = ctx->depsgraph;
@@ -845,10 +869,12 @@ static DerivedMesh *explodeMesh(
 
 		/* do mindex + totvert to ensure the vertex index to be the first
 		 * with BLI_edgehashIterator_getKey */
-		if (facepa[i] == totpart || cfra < (pars + facepa[i])->time)
+		if (facepa[i] == totpart || cfra < (pars + facepa[i])->time) {
 			mindex = totvert + totpart;
-		else
+		}
+		else {
 			mindex = totvert + facepa[i];
+		}
 
 		mf = &mface[i];
 
@@ -856,8 +882,9 @@ static DerivedMesh *explodeMesh(
 		BLI_edgehash_reinsert(vertpahash, mf->v1, mindex, NULL);
 		BLI_edgehash_reinsert(vertpahash, mf->v2, mindex, NULL);
 		BLI_edgehash_reinsert(vertpahash, mf->v3, mindex, NULL);
-		if (mf->v4)
+		if (mf->v4) {
 			BLI_edgehash_reinsert(vertpahash, mf->v4, mindex, NULL);
+		}
 	}
 
 	/* make new vertice indexes & count total vertices after duplication */
@@ -869,8 +896,9 @@ static DerivedMesh *explodeMesh(
 	BLI_edgehashIterator_free(ehi);
 
 	/* the final duplicated vertices */
-	explode = CDDM_from_template_ex(dm, totdup, 0, totface - delface, 0, 0, CD_MASK_DERIVEDMESH | CD_MASK_FACECORNERS);
-	mtface = CustomData_get_layer_named(&explode->faceData, CD_MTFACE, emd->uvname);
+	explode = BKE_mesh_new_nomain_from_template(mesh, totdup, 0, totface - delface, 0, 0);
+
+	mtface = CustomData_get_layer_named(&explode->fdata, CD_MTFACE, emd->uvname);
 	/*dupvert = CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
@@ -889,10 +917,11 @@ static DerivedMesh *explodeMesh(
 		ed_v2 -= totvert;
 		v = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
 
-		dm->getVert(dm, ed_v1, &source);
-		dest = CDDM_get_vert(explode, v);
+		source = mesh->mvert[ed_v1];
+		dest = &explode->mvert[v];
 
-		DM_copy_vert_data(dm, explode, ed_v1, v, 1);
+		CustomData_copy_data(&mesh->vdata, &explode->vdata, ed_v1, v, 1);
+
 		*dest = source;
 
 		if (ed_v2 != totpart) {
@@ -904,7 +933,7 @@ static DerivedMesh *explodeMesh(
 			state.time = cfra;
 			psys_get_particle_state(&sim, ed_v2, &state, 1);
 
-			vertco = CDDM_get_vert(explode, v)->co;
+			vertco = explode->mvert[v].co;
 			mul_m4_v3(ctx->object->obmat, vertco);
 
 			sub_v3_v3(vertco, birth.co);
@@ -913,8 +942,9 @@ static DerivedMesh *explodeMesh(
 			sub_qt_qtqt(rot, state.rot, birth.rot);
 			mul_qt_v3(rot, vertco);
 
-			if (emd->flag & eExplodeFlag_PaSize)
+			if (emd->flag & eExplodeFlag_PaSize) {
 				mul_v3_fl(vertco, pa->size);
+			}
 
 			add_v3_v3(vertco, state.co);
 
@@ -936,23 +966,26 @@ static DerivedMesh *explodeMesh(
 			if (pa->alive == PARS_DEAD && (emd->flag & eExplodeFlag_Dead) == 0) continue;
 		}
 
-		dm->getTessFace(dm, i, &source);
-		mf = CDDM_get_tessface(explode, u);
+		source = mesh->mface[i];
+		mf = &explode->mface[u];
 
 		orig_v4 = source.v4;
 
-		if (facepa[i] != totpart && cfra < pa->time)
+		if (facepa[i] != totpart && cfra < pa->time) {
 			mindex = totvert + totpart;
-		else
+		}
+		else {
 			mindex = totvert + facepa[i];
+		}
 
 		source.v1 = edgecut_get(vertpahash, source.v1, mindex);
 		source.v2 = edgecut_get(vertpahash, source.v2, mindex);
 		source.v3 = edgecut_get(vertpahash, source.v3, mindex);
-		if (source.v4)
+		if (source.v4) {
 			source.v4 = edgecut_get(vertpahash, source.v4, mindex);
+		}
 
-		DM_copy_tessface_data(dm, explode, i, u, 1);
+		CustomData_copy_data(&mesh->fdata, &explode->fdata, i, u, 1);
 
 		*mf = source;
 
@@ -968,7 +1001,7 @@ static DerivedMesh *explodeMesh(
 			mtf->uv[0][1] = mtf->uv[1][1] = mtf->uv[2][1] = mtf->uv[3][1] = 0.5f;
 		}
 
-		test_index_face(mf, &explode->faceData, u, (orig_v4 ? 4 : 3));
+		test_index_face(mf, &explode->fdata, u, (orig_v4 ? 4 : 3));
 		u++;
 	}
 
@@ -976,9 +1009,9 @@ static DerivedMesh *explodeMesh(
 	BLI_edgehash_free(vertpahash, NULL);
 
 	/* finalization */
-	CDDM_calc_edges_tessface(explode);
-	CDDM_tessfaces_to_faces(explode);
-	explode->dirty |= DM_DIRTY_NORMALS;
+	BKE_mesh_calc_edges_tessface(explode);
+	BKE_mesh_convert_mfaces_to_mpolys(explode);
+	explode->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	if (psmd->psys->lattice_deform_data) {
 		end_latt_deform(psmd->psys->lattice_deform_data);
@@ -994,63 +1027,66 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 	ParticleSystemModifierData *psmd = NULL;
 
 	for (md = ob->modifiers.first; emd != md; md = md->next) {
-		if (md->type == eModifierType_ParticleSystem)
+		if (md->type == eModifierType_ParticleSystem) {
 			psmd = (ParticleSystemModifierData *) md;
+		}
 	}
 	return psmd;
 }
-static DerivedMesh *applyModifier_DM(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *derivedData)
+		Mesh *mesh)
 {
-	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
 	ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
 
 	if (psmd) {
 		ParticleSystem *psys = psmd->psys;
 
-		if (psys == NULL || psys->totpart == 0) return derivedData;
-		if (psys->part == NULL || psys->particles == NULL) return derivedData;
-		if (psmd->mesh_final == NULL) return derivedData;
+		if (psys == NULL || psys->totpart == 0) {
+			return mesh;
+		}
+		if (psys->part == NULL || psys->particles == NULL) {
+			return mesh;
+		}
+		if (psmd->mesh_final == NULL) {
+			return mesh;
+		}
 
-		DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
+		BKE_mesh_tessface_ensure(mesh); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
 		/* 1. find faces to be exploded if needed */
 		if (emd->facepa == NULL ||
 		    psmd->flag & eParticleSystemFlag_Pars ||
 		    emd->flag & eExplodeFlag_CalcFaces ||
-		    MEM_allocN_len(emd->facepa) / sizeof(int) != dm->getNumTessFaces(dm))
+		    MEM_allocN_len(emd->facepa) / sizeof(int) != mesh->totface)
 		{
-			if (psmd->flag & eParticleSystemFlag_Pars)
+			if (psmd->flag & eParticleSystemFlag_Pars) {
 				psmd->flag &= ~eParticleSystemFlag_Pars;
-
-			if (emd->flag & eExplodeFlag_CalcFaces)
+			}
+			if (emd->flag & eExplodeFlag_CalcFaces) {
 				emd->flag &= ~eExplodeFlag_CalcFaces;
-
-			createFacepa(emd, psmd, derivedData);
+			}
+			createFacepa(emd, psmd, mesh);
 		}
 		/* 2. create new mesh */
 		Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 		if (emd->flag & eExplodeFlag_EdgeCut) {
 			int *facepa = emd->facepa;
-			DerivedMesh *splitdm = cutEdges(emd, dm);
-			DerivedMesh *explode = explodeMesh(emd, psmd, ctx, scene, splitdm);
+			Mesh *split_m = cutEdges(emd, mesh);
+			Mesh *explode = explodeMesh(emd, psmd, ctx, scene, split_m);
 
 			MEM_freeN(emd->facepa);
 			emd->facepa = facepa;
-			splitdm->release(splitdm);
+			BKE_id_free(NULL, split_m);
 			return explode;
 		}
 		else {
-			return explodeMesh(emd, psmd, ctx, scene, derivedData);
+			return explodeMesh(emd, psmd, ctx, scene, mesh);
 		}
 	}
-	return derivedData;
+	return mesh;
 }
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
-
 
 ModifierTypeInfo modifierType_Explode = {
 	/* name */              "Explode",

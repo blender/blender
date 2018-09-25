@@ -650,7 +650,9 @@ static Mesh *mesh_new_nomain_from_template_ex(
         int loops_len, int polys_len,
         CustomDataMask mask)
 {
-	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
+	/* Only do tessface if we are creating tessfaces or copying from mesh with only tessfaces. */
+	const bool do_tessface = (tessface_len ||
+	                          ((me_src->totface != 0) && (me_src->totpoly == 0)));
 
 	Mesh *me_dst = BKE_id_new_nomain(ID_ME, NULL);
 
