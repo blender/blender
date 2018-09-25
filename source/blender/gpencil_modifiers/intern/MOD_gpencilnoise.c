@@ -101,13 +101,10 @@ static void deformStroke(
 {
 	NoiseGpencilModifierData *mmd = (NoiseGpencilModifierData *)md;
 	bGPDspoint *pt0, *pt1;
-	MDeformVert *dvert;
+	MDeformVert *dvert = NULL;
 	float shift, vran, vdir;
 	float normal[3];
 	float vec1[3], vec2[3];
-#if 0
-	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-#endif
 	int sc_frame = 0;
 	int sc_diff = 0;
 	const int def_nr = defgroup_name_index(ob, mmd->vgname);
@@ -141,12 +138,16 @@ static void deformStroke(
 
 		/* last point is special */
 		if (i == gps->totpoints) {
-			dvert = &gps->dvert[i - 2];
+			if (gps->dvert) {
+				dvert = &gps->dvert[i - 2];
+			}
 			pt0 = &gps->points[i - 2];
 			pt1 = &gps->points[i - 1];
 		}
 		else {
-			dvert = &gps->dvert[i - 1];
+			if (gps->dvert) {
+				dvert = &gps->dvert[i - 1];
+			}
 			pt0 = &gps->points[i - 1];
 			pt1 = &gps->points[i];
 
