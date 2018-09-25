@@ -65,9 +65,14 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	const int steps = RNA_int_get(op->ptr, "steps");
-	const float angle = -RNA_float_get(op->ptr, "angle");
-	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
+	const float angle = RNA_float_get(op->ptr, "angle");
+	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip") ^ (angle < 0.0f);
 	const bool dupli = RNA_boolean_get(op->ptr, "dupli");
+	const bool use_auto_merge = (
+	        RNA_boolean_get(op->ptr, "use_auto_merge") &&
+	        (dupli == false) &&
+	        (steps >= 3) &&
+	        fabsf((fabsf(angle) - (M_PI * 2))) <= 1e-6f);
 
 	if (is_zero_v3(axis)) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
@@ -78,14 +83,17 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	if (!EDBM_op_init(
 	            em, &spinop, op,
 	            "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 "
-	            "use_normal_flip=%b use_duplicate=%b",
-	            BM_ELEM_SELECT, cent, axis, d, steps, angle, obedit->obmat, use_normal_flip, dupli))
+	            "use_normal_flip=%b use_duplicate=%b use_merge=%b",
+	            BM_ELEM_SELECT, cent, axis, d, steps, -angle, obedit->obmat,
+	            use_normal_flip, dupli, use_auto_merge))
 	{
 		return OPERATOR_CANCELLED;
 	}
 	BMO_op_exec(bm, &spinop);
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+	if (use_auto_merge == false) {
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+	}
 	if (!EDBM_op_finish(em, &spinop, op, true)) {
 		return OPERATOR_CANCELLED;
 	}
@@ -140,6 +148,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "angle", DEG2RADF(90.0f), -1e12f, 1e12f, "Angle", "Rotation for each step",
 	                     DEG2RADF(-360.0f), DEG2RADF(360.0f));
 	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_boolean(ot->srna, "use_auto_merge", true, "Auto Merge", "Merge first/last when the angle is a full revolution");
 	RNA_def_boolean(ot->srna, "use_normal_flip", 0, "Flip Normals", "");
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -1e12f, 1e12f,
