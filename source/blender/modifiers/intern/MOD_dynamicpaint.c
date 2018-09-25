@@ -35,11 +35,11 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
@@ -101,21 +101,19 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier_DM(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 
-	/* dont apply dynamic paint on orco dm stack */
+	/* dont apply dynamic paint on orco mesh stack */
 	if (!(ctx->flag & MOD_APPLY_ORCO)) {
 		Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-		return dynamicPaint_Modifier_do(pmd, ctx->depsgraph, scene, ctx->object, dm);
+		return dynamicPaint_Modifier_do(pmd, ctx->depsgraph, scene, ctx->object, mesh);
 	}
-	return dm;
+	return mesh;
 }
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
 {

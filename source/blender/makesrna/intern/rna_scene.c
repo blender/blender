@@ -3840,7 +3840,7 @@ static void rna_def_gpu_dof_fx(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUDOFSettings_update");
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_ui_text(prop, "Rotation", "Rotation of blades in apperture");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation of blades in aperture");
 	RNA_def_property_range(prop, -M_PI, M_PI);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
@@ -5658,7 +5658,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_sss_separate_albedo", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SSS_SEPARATE_ALBEDO);
 	RNA_def_property_boolean_default(prop, 0);
-	RNA_def_property_ui_text(prop, "Separate Albedo", "Avoid albedo being blured by the subsurface scattering "
+	RNA_def_property_ui_text(prop, "Separate Albedo", "Avoid albedo being blurred by the subsurface scattering "
 	                                                  "but uses more video memory");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
@@ -5840,7 +5840,7 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_bloom", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_BLOOM_ENABLED);
 	RNA_def_property_boolean_default(prop, 0);
-	RNA_def_property_ui_text(prop, "Bloom", "High brighness pixels generate a glowing effect");
+	RNA_def_property_ui_text(prop, "Bloom", "High brightness pixels generate a glowing effect");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 
 	prop = RNA_def_property(srna, "bloom_threshold", PROP_FLOAT, PROP_FACTOR);

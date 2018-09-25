@@ -873,7 +873,7 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 				/* XXX FIXME : see notes in mesh_render_data_create() */
 				/* NOTE : Replicate changes to mesh_render_data_create() in draw_cache_impl_mesh.c */
 				if (input->attribtype == CD_ORCO) {
-					/* orco is computed from local positions, see bellow */
+					/* orco is computed from local positions, see below */
 					BLI_dynstr_appendf(ds, "uniform vec3 OrcoTexCoFactors[2];\n");
 				}
 				else if (input->attribname[0] == '\0') {

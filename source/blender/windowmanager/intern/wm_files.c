@@ -1011,7 +1011,7 @@ static RecentFile *wm_file_history_find(const char *filepath)
 
 /**
  * Write #BLENDER_HISTORY_FILE as-is, without checking the environment
- * (thats handled by #wm_history_file_update).
+ * (that's handled by #wm_history_file_update).
  */
 static void wm_history_file_write(void)
 {
@@ -1221,7 +1221,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 
 	/* blend file thumbnail */
 	/* save before exit_editmode, otherwise derivedmeshes for shared data corrupt #27765) */
-	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
+	/* Main now can store a .blend thumbnail, useful for background mode or thumbnail customization. */
 	main_thumb = thumb = bmain->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
 		ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
@@ -1688,6 +1688,11 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 	if (prop_app_template && RNA_property_is_set(op->ptr, prop_app_template)) {
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
 		app_template = app_template_buf;
+
+		if (!STREQ(app_template, U.app_template)) {
+			/* Always load UI when switching to another template. */
+			G.fileflags &= ~G_FILE_NO_UI;
+		}
 
 		/* Always load preferences when switching templates with own preferences. */
 		use_userdef = wm_app_template_has_userpref(app_template) ||

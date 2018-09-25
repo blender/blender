@@ -88,7 +88,7 @@ typedef struct MaskSplinePoint {
 typedef struct MaskSpline {
 	struct MaskSpline *next, *prev;
 
-	short flag;              /* defferent spline flag (closed, ...) */
+	short flag;              /* different spline flag (closed, ...) */
 	char offset_mode;        /* feather offset method */
 	char weight_interp;      /* weight interpolation */
 

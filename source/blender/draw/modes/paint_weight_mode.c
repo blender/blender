@@ -91,7 +91,7 @@ typedef struct PAINT_WEIGHT_PrivateData {
 static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 {
 	if (!e_data.weight_face_shader) {
-		e_data.weight_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA);
+		e_data.weight_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_MULTIPLY_AND_BLEND_PREPROCESSING);
 	}
 
 	if (!e_data.wire_overlay_shader) {
@@ -129,15 +129,11 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 		/* Create a pass */
 		psl->weight_faces = DRW_pass_create(
 		        "Weight Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY);
 
 		stl->g_data->fweights_shgrp = DRW_shgroup_create(e_data.weight_face_shader, psl->weight_faces);
 
-		static float light[3] = {-0.3f, 0.5f, 1.0f};
-		static float world_light = 1.0f;
-		DRW_shgroup_uniform_vec3(stl->g_data->fweights_shgrp, "light", light, 1);
-		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "alpha", &v3d->overlay.weight_paint_mode_opacity, 1);
-		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "global", &world_light, 1);
+		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
 	}
 
 	{

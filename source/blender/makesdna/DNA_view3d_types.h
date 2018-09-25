@@ -133,7 +133,7 @@ typedef struct View3DCursor {
 	char _pad[4];
 } View3DCursor;
 
-/* 3D Viewport Shading setings */
+/* 3D Viewport Shading settings */
 typedef struct View3DShading {
 	short type;        /* Shading type (VIEW3D_SHADE_SOLID, ..) */
 	short prev_type;   /* Runtime, for toggle between rendered viewport. */
@@ -165,7 +165,7 @@ typedef struct View3DShading {
 
 } View3DShading;
 
-/* 3D Viewport Overlay setings */
+/* 3D Viewport Overlay settings */
 typedef struct View3DOverlay {
 	int flag;
 
@@ -190,7 +190,7 @@ typedef struct View3DOverlay {
 	float wireframe_threshold;
 	char _pad0[4];
 
-	/* grease pencil setttings */
+	/* grease pencil settings */
 	float gpencil_grid_scale;
 	float gpencil_paper_opacity;
 	int   gpencil_grid_lines;
@@ -308,7 +308,7 @@ typedef struct View3D {
 
 /* #define V3D_FLAG_DEPRECATED_10 (1 << 10) */ /* UNUSED */
 #define V3D_SELECT_OUTLINE	2048
-#define V3D_ZBUF_SELECT		4096
+#define V3D_ZBUF_SELECT		4096   /* XXX: DNA deprecated */
 #define V3D_GLOBAL_STATS	8192
 #define V3D_DRAW_CENTERS	32768
 

@@ -165,6 +165,15 @@ static void overlay_cache_init(void *vedata)
 		stl->g_data->show_overlays = false;
 	}
 
+	if (stl->g_data->show_overlays == false) {
+		stl->g_data->overlay.flag = 0;
+	}
+
+	if (v3d->shading.type == OB_WIRE) {
+		stl->g_data->overlay.flag |= V3D_OVERLAY_WIREFRAMES;
+		stl->g_data->show_overlays = true;
+	}
+
 	{
 		/* Face Orientation Pass */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
@@ -236,6 +245,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 	}
 
 	if ((stl->g_data->overlay.flag & V3D_OVERLAY_WIREFRAMES) ||
+	    (v3d->shading.type == OB_WIRE) ||
 	    (ob->dtx & OB_DRAWWIRE) ||
 	    (ob->dt == OB_WIRE))
 	{

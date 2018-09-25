@@ -288,7 +288,7 @@ double *GPU_viewport_cache_time_get(GPUViewport *viewport)
 }
 
 /**
- * Try to find a texture coresponding to params into the texture pool.
+ * Try to find a texture corresponding to params into the texture pool.
  * If no texture was found, create one and add it to the pool.
  */
 GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine, int width, int height, int format)

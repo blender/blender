@@ -39,6 +39,8 @@
 #include "BKE_layer.h"
 #include "BKE_report.h"
 
+#include "DNA_meshdata_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -95,22 +97,22 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int UNUSED_FUNCTION(bm_sel_similar_cmp_fl)(const float delta, const float thresh, const int compare)
+static int select_similar_compare_float(const float delta, const float thresh, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
-			return (fabsf(delta) <= thresh);
+			return (fabsf(delta) < thresh + FLT_EPSILON);
 		case SIM_CMP_GT:
-			return ((delta + thresh) >= 0.0f);
+			return ((delta + thresh) > -FLT_EPSILON);
 		case SIM_CMP_LT:
-			return ((delta - thresh) <= 0.0f);
+			return ((delta - thresh) < FLT_EPSILON);
 		default:
 			BLI_assert(0);
 			return 0;
 	}
 }
 
-static int bm_sel_similar_cmp_i(const int delta, const int compare)
+static int select_similar_compare_int(const int delta, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
@@ -123,6 +125,42 @@ static int bm_sel_similar_cmp_i(const int delta, const int compare)
 			BLI_assert(0);
 			return 0;
 	}
+}
+
+static bool select_similar_compare_float_tree(const KDTree *tree, const float length, const float thresh, const int compare)
+{
+	/* Length of the edge we want to compare against. */
+	float nearest_edge_length;
+
+	switch (compare) {
+		case SIM_CMP_EQ:
+			/* Compare to the edge closest to the current edge. */
+			nearest_edge_length = length;
+			break;
+		case SIM_CMP_GT:
+			/* Compare against the shortest edge. */
+			/* -FLT_MAX leads to some precision issues and the wrong edge being selected.
+			 * For example, in a tree with 1, 2 and 3, which is stored squared as 1, 4, 9, it returns as the nearest
+			 * length/node the "4" instead of "1". */
+			nearest_edge_length = -1.0f;
+			break;
+		case SIM_CMP_LT:
+			/* Compare against the longest edge. */
+			nearest_edge_length = FLT_MAX;
+			break;
+		default:
+			BLI_assert(0);
+			return false;
+	}
+
+	KDTreeNearest nearest;
+	float dummy[3] = {nearest_edge_length, 0.0f, 0.0f};
+	if (BLI_kdtree_find_nearest(tree, dummy, &nearest) != -1) {
+		float delta = length - nearest.co[0];
+		return select_similar_compare_float(delta, thresh, compare);
+	}
+
+	return false;
 }
 
 /** \} */
@@ -176,45 +214,360 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 /** \name Select Similar Edge
  * \{ */
 
-/* EDGE GROUP */
 
-/* wrap the above function but do selection flushing edge to face */
+/**
+ * Note: This is not normal, but the edge direction itself and always in
+ * a positive quadrant (tries z, y then x).
+ * Therefore we need to use the entire object transformation matrix.
+ */
+static void edge_pos_direction_worldspace_get(Object *ob, BMEdge *edge, float *r_dir)
+{
+	float v1[3], v2[3];
+	copy_v3_v3(v1, edge->v1->co);
+	copy_v3_v3(v2, edge->v2->co);
+
+	mul_m4_v3(ob->obmat, v1);
+	mul_m4_v3(ob->obmat, v2);
+
+	sub_v3_v3v3(r_dir, v1, v2);
+	normalize_v3(r_dir);
+
+	/* Make sure we have a consistent direction that can be checked regardless of
+	 * the verts order of the edges. This spares us from storing dir and -dir in the tree. */
+	if (fabs(r_dir[2]) < FLT_EPSILON) {
+		if (fabs(r_dir[1]) < FLT_EPSILON) {
+			if (r_dir[0] < 0.0f) {
+				mul_v3_fl(r_dir, -1.0f);
+			}
+		}
+		else if (r_dir[1] < 0.0f) {
+			mul_v3_fl(r_dir, -1.0f);
+		}
+	}
+	else if (r_dir[2] < 0.0f) {
+		mul_v3_fl(r_dir, -1.0f);
+	}
+}
+
+static float edge_length_squared_worldspace_get(Object *ob, BMEdge *edge)
+{
+	float v1[3], v2[3];
+
+	mul_v3_mat3_m4v3(v1, ob->obmat, edge->v1->co);
+	mul_v3_mat3_m4v3(v2, ob->obmat, edge->v2->co);
+
+	return len_squared_v3v3(v1, v2);
+}
+
+enum {
+	SIMEDGE_DATA_NONE  = 0,
+	SIMEDGE_DATA_TRUE  = (1 << 0),
+	SIMEDGE_DATA_FALSE = (1 << 1),
+	SIMEDGE_DATA_ALL   = (SIMEDGE_DATA_TRUE | SIMEDGE_DATA_FALSE),
+};
+
+/**
+ * Return true if we still don't know the final value for this edge data.
+ * In other words, if we need to keep iterating over the objects or we can
+ * just go ahead and select all the objects.
+ */
+static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
+{
+	if (BM_elem_flag_test(edge, hflag)) {
+		*r_value |= SIMEDGE_DATA_TRUE;
+	}
+	else {
+		*r_value |= SIMEDGE_DATA_FALSE;
+	}
+
+	return *r_value != SIMEDGE_DATA_ALL;
+}
+
+/* Note/TODO(dfelinto) technically SIMEDGE_FACE_ANGLE should compare the angles in world space.
+ * Although doable this is overkill - at least for the initial multi-objects implementation. */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
-	/* TODO (dfelinto) port the edge modes to multi-object. */
-	BKE_report(op->reports, RPT_ERROR, "Select similar not supported for edges at the moment");
-	return OPERATOR_CANCELLED;
-
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op,
-	             "similar_edges edges=%he type=%i thresh=%f compare=%i",
-	             BM_ELEM_SELECT, type, thresh, compare);
-
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
-
-	/* clear the existing selection */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
-	EDBM_selectmode_flush(em);
-
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
+	if (ELEM(type,
+	         SIMEDGE_CREASE,
+	         SIMEDGE_BEVEL))
+	{
+		/* TODO (dfelinto) port the edge modes to multi-object. */
+		BKE_report(op->reports, RPT_ERROR, "Select similar edge mode not supported at the moment");
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(em, false, false);
+	int tot_edges_selected_all = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		tot_edges_selected_all += em->bm->totedgesel;
+	}
+
+	if (tot_edges_selected_all == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No edge selected");
+		MEM_freeN(objects);
+		return OPERATOR_CANCELLED;
+	}
+
+	KDTree *tree = NULL;
+	GSet *gset = NULL;
+	int edge_data_value = SIMEDGE_DATA_NONE;
+
+	switch (type) {
+		case SIMEDGE_FACE_ANGLE:
+		case SIMEDGE_LENGTH:
+		case SIMEDGE_DIR:
+			tree = BLI_kdtree_new(tot_edges_selected_all);
+			break;
+		case SIMEDGE_FACE:
+			gset = BLI_gset_ptr_new("Select similar edge: face");
+			break;
+	}
+
+	int tree_index = 0;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+
+		if (bm->totedgesel == 0) {
+			continue;
+		}
+
+		if (type == SIMEDGE_FREESTYLE) {
+			if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+				edge_data_value |= SIMEDGE_DATA_FALSE;
+				continue;
+			}
+		}
+
+		BMEdge *edge; /* Mesh edge. */
+		BMIter iter; /* Selected edges iterator. */
+
+		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMEDGE_FACE:
+						BLI_gset_add(gset, POINTER_FROM_INT(BM_edge_face_count(edge)));
+						break;
+					case SIMEDGE_DIR:
+					{
+						float dir[3];
+						edge_pos_direction_worldspace_get(ob, edge, dir);
+						BLI_kdtree_insert(tree, tree_index++, dir);
+						break;
+					}
+					case SIMEDGE_LENGTH:
+					{
+						float length = edge_length_squared_worldspace_get(ob, edge);
+						float dummy[3] = {length, 0.0f, 0.0f};
+						BLI_kdtree_insert(tree, tree_index++, dummy);
+						break;
+					}
+					case SIMEDGE_FACE_ANGLE:
+					{
+						if (BM_edge_face_count_at_most(edge, 2) == 2) {
+							float angle = BM_edge_calc_face_angle(edge);
+							float dummy[3] = {angle, 0.0f, 0.0f};
+							BLI_kdtree_insert(tree, tree_index++, dummy);
+						}
+						break;
+					}
+					case SIMEDGE_SEAM:
+						if (!edge_data_value_set(edge, BM_ELEM_SEAM, &edge_data_value)) {
+							goto selectall;
+						}
+						break;
+					case SIMEDGE_SHARP:
+						if (!edge_data_value_set(edge, BM_ELEM_SMOOTH, &edge_data_value)) {
+							goto selectall;
+						}
+						break;
+					case SIMEDGE_FREESTYLE:
+					{
+						FreestyleEdge *fedge;
+						fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
+						if ((fedge == NULL) || ((fedge->flag & FREESTYLE_EDGE_MARK) == 0)) {
+							edge_data_value |= SIMEDGE_DATA_FALSE;
+						}
+						else {
+							edge_data_value |= SIMEDGE_DATA_TRUE;
+						}
+						if (edge_data_value == SIMEDGE_DATA_ALL) {
+							goto selectall;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	BLI_assert((type != SIMEDGE_FREESTYLE) || (edge_data_value != SIMEDGE_DATA_NONE));
+
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+		bool changed = false;
+
+		bool has_freestyle_layer;
+		if (type == SIMEDGE_FREESTYLE) {
+			has_freestyle_layer = CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE);
+			if ((edge_data_value == SIMEDGE_DATA_TRUE) && !has_freestyle_layer) {
+				continue;
+			}
+		}
+
+		BMEdge *edge; /* Mesh edge. */
+		BMIter iter; /* Selected edges iterator. */
+
+		BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(edge, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(edge, BM_ELEM_HIDDEN))
+			{
+				bool select = false;
+				switch (type) {
+					case SIMEDGE_FACE:
+					{
+						const int num_faces = BM_edge_face_count(edge);
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+							const int delta_i = num_faces - num_faces_iter;
+							if (select_similar_compare_int(delta_i, compare)) {
+								select = true;
+								break;
+							}
+						}
+						break;
+					}
+					case SIMEDGE_DIR:
+					{
+						float dir[3];
+						edge_pos_direction_worldspace_get(ob, edge, dir);
+
+						/* We are treating the direction as coordinates, the "nearest" one will
+						 * also be the one closest to the intended direction. */
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+							if (angle_normalized_v3v3(dir, nearest.co) <= thresh_radians) {
+								select = true;
+							}
+						}
+						break;
+					}
+					case SIMEDGE_LENGTH:
+					{
+						float length = edge_length_squared_worldspace_get(ob, edge);
+						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMEDGE_FACE_ANGLE:
+					{
+						if (BM_edge_face_count_at_most(edge, 2) == 2) {
+							float angle = BM_edge_calc_face_angle(edge);
+							if (select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
+								select = true;
+							}
+						}
+						break;
+					}
+					case SIMEDGE_SEAM:
+						if ((BM_elem_flag_test(edge, BM_ELEM_SEAM) != 0) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					case SIMEDGE_SHARP:
+						if ((BM_elem_flag_test(edge, BM_ELEM_SMOOTH) != 0) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					case SIMEDGE_FREESTYLE:
+					{
+						FreestyleEdge *fedge;
+
+						if (!has_freestyle_layer) {
+							BLI_assert(edge_data_value == SIMEDGE_DATA_FALSE);
+							select = true;
+							break;
+						}
+
+						fedge = CustomData_bmesh_get(&bm->edata, edge->head.data, CD_FREESTYLE_EDGE);
+						if (((fedge != NULL) && (fedge->flag & FREESTYLE_EDGE_MARK)) ==
+						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					}
+				}
+
+				if (select) {
+					BM_edge_select_set(bm, edge, true);
+					changed = true;
+				}
+			}
+		}
+
+		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	if (false) {
+selectall:
+		BLI_assert(ELEM(type,
+		                SIMEDGE_SEAM,
+		                SIMEDGE_SHARP,
+		                SIMEDGE_FREESTYLE
+		                ));
+
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
+			BMesh *bm = em->bm;
+
+			BMEdge *edge; /* Mesh edge. */
+			BMIter iter; /* Selected edges iterator. */
+
+			BM_ITER_MESH (edge, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(edge, BM_ELEM_SELECT)) {
+					BM_edge_select_set(bm, edge, true);
+				}
+			}
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	MEM_freeN(objects);
+	BLI_kdtree_free(tree);
+	if (gset != NULL) {
+		BLI_gset_free(gset, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -322,7 +675,10 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 		BMIter iter; /* Selected verts iterator. */
 
 		BM_ITER_MESH (vert, &iter, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT)) {
+			if (!BM_elem_flag_test(vert, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(vert, BM_ELEM_HIDDEN))
+			{
+				bool select = false;
 				switch (type) {
 					case SIMVERT_EDGE:
 					{
@@ -331,9 +687,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_edges_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_edges - num_edges_iter;
-							if (bm_sel_similar_cmp_i(delta_i, compare)) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+							if (select_similar_compare_int(delta_i, compare)) {
+								select = true;
 								break;
 							}
 						}
@@ -346,9 +701,8 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
-							if (bm_sel_similar_cmp_i(delta_i, compare)) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+							if (select_similar_compare_int(delta_i, compare)) {
+								select = true;
 								break;
 							}
 						}
@@ -366,12 +720,16 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						KDTreeNearest nearest;
 						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
-								BM_vert_select_set(bm, vert, true);
-								changed = true;
+								select = true;
 							}
 						}
 						break;
 					}
+				}
+
+				if (select) {
+					BM_vert_select_set(bm, vert, true);
+					changed = true;
 				}
 			}
 		}

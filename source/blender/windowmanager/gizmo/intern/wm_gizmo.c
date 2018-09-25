@@ -627,7 +627,7 @@ void WM_gizmo_calc_matrix_final(const wmGizmo *gz, float r_mat[4][4])
 	);
 }
 
-/** \name Gizmo Propery Access
+/** \name Gizmo Property Access
  *
  * Matches `WM_operator_properties` conventions.
  *
@@ -700,7 +700,7 @@ void WM_gizmo_properties_sanitize(PointerRNA *ptr, const bool no_context)
 /** set all props to their default,
  * \param do_update Only update un-initialized props.
  *
- * \note, theres nothing specific to gizmos here.
+ * \note, there's nothing specific to gizmos here.
  * this could be made a general function.
  */
 bool WM_gizmo_properties_default(PointerRNA *ptr, const bool do_update)

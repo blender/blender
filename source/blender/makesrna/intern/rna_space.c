@@ -238,9 +238,10 @@ static const EnumPropertyItem autosnap_items[] = {
 #endif
 
 const EnumPropertyItem rna_enum_shading_type_items[] = {
-	{OB_SOLID,    "SOLID",    ICON_SOLID,         "Solid",    "Display in solid mode"},
-	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "LookDev",  "Display in LookDev mode"},
-	{OB_RENDER,   "RENDERED", ICON_SMOOTH,        "Rendered", "Display render preview"},
+	{OB_WIRE,     "WIREFRAME", ICON_WIRE,          "Wireframe", "Display the object as wire edges"},
+	{OB_SOLID,    "SOLID",     ICON_SOLID,         "Solid",     "Display in solid mode"},
+	{OB_MATERIAL, "MATERIAL",  ICON_MATERIAL_DATA, "LookDev",   "Display in LookDev mode"},
+	{OB_RENDER,   "RENDERED",  ICON_SMOOTH,        "Rendered",  "Display render preview"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -310,10 +311,10 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
-	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Lock", "Use current drawing locked axis" },
-	{V3D_GP_GRID_AXIS_X, "X", 0, "X", ""},
-	{V3D_GP_GRID_AXIS_Y, "Y", 0, "Y", ""},
-	{V3D_GP_GRID_AXIS_Z, "Z", 0, "Z", ""},
+	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
+	{V3D_GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
+	{V3D_GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
+	{V3D_GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -769,6 +770,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_WIRE);
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_SOLID);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
@@ -2541,7 +2543,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_xray", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_XRAY);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "X-Ray", "Show whole scene transparent");
+	RNA_def_property_ui_text(prop, "Show X-Ray", "Show whole scene transparent");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "xray_alpha", PROP_FLOAT, PROP_FACTOR);
@@ -2865,7 +2867,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "gpencil_grid_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "overlay.gpencil_grid_axis");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
-	RNA_def_property_ui_text(prop, "Axis", "Axis to display grid");
+	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
@@ -3047,12 +3049,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "lock_camera", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_LOCK_CAMERA);
 	RNA_def_property_ui_text(prop, "Lock Camera to View", "Enable view navigation within the camera view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "use_occlude_geometry", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_ZBUF_SELECT);
-	RNA_def_property_ui_text(prop, "Occlude Geometry", "Limit selection to visible (clipped with depth buffer)");
-	RNA_def_property_ui_icon(prop, ICON_ORTHO, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_gizmo", PROP_BOOLEAN, PROP_NONE);

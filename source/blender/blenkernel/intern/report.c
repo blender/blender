@@ -140,7 +140,7 @@ void BKE_reportf(ReportList *reports, ReportType type, const char *_format, ...)
 		va_start(args, _format);
 		vprintf(format, args);
 		va_end(args);
-		fprintf(stdout, "\n"); /* otherise each report needs to include a \n */
+		fprintf(stdout, "\n"); /* otherwise each report needs to include a \n */
 		fflush(stdout); /* this ensures the message is printed before a crash */
 	}
 

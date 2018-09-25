@@ -224,12 +224,19 @@ void CustomData_copy_data(const struct CustomData *source,
                           struct CustomData *dest, int source_index,
                           int dest_index, int count);
 void CustomData_copy_data_named(const struct CustomData *source,
-                          struct CustomData *dest, int source_index,
-                          int dest_index, int count);
+                                struct CustomData *dest, int source_index,
+                                int dest_index, int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest, void *src_block,
                                 void **dest_block);
+
+/* Copies data of a single layer of a given type. */
+void CustomData_copy_layer_type_data(const struct CustomData *source,
+                                     struct CustomData *destination,
+                                     int type,
+                                     int source_index, int destination_index,
+                                     int count);
 
 /* frees data in a CustomData object
  * return 1 on success, 0 on failure
@@ -477,7 +484,7 @@ typedef struct CustomDataTransferLayerMap {
 
 	size_t data_size;    /* Size of actual data we transfer. */
 	size_t data_offset;  /* Offset of actual data we transfer (in element contained in data_src/dst). */
-	uint64_t data_flag;  /* For bitflag transfer, flag(s) to affect in transfered data. */
+	uint64_t data_flag;  /* For bitflag transfer, flag(s) to affect in transferred data. */
 
 	void *interp_data;   /* Opaque pointer, to be used by specific interp callback (e.g. transformspace for normals). */
 

@@ -603,6 +603,7 @@ class _defs_edit_mesh:
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("mesh.spin")
             layout.prop(props, "steps")
+            layout.prop(props, "gizmo_axis")
 
         return dict(
             text="Spin",
@@ -620,6 +621,7 @@ class _defs_edit_mesh:
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("mesh.spin")
             layout.prop(props, "steps")
+            layout.prop(props, "gizmo_axis")
 
         return dict(
             text="Spin (Duplicate)",
@@ -1050,8 +1052,8 @@ class _defs_vertex_paint:
 
     @staticmethod
     def poll_select_mask(context):
-        mesh = context.object.data
-        return mesh.use_paint_mask
+        ob = context.active_object
+        return ob.type == 'MESH' and ob.data.use_paint_mask
 
     @staticmethod
     def generate_from_brushes(context):
@@ -1098,8 +1100,10 @@ class _defs_weight_paint:
 
     @staticmethod
     def poll_select_mask(context):
-        mesh = context.object.data
-        return (mesh.use_paint_mask or mesh.use_paint_mask_vertex)
+        ob = context.active_object
+        return (ob.type == 'MESH' and
+                (ob.data.use_paint_mask or
+                 ob.data.use_paint_mask_vertex))
 
     @staticmethod
     def generate_from_brushes(context):
@@ -1303,6 +1307,45 @@ class _defs_gpencil_edit:
         )
 
     @ToolDef.from_fn
+    def border_select():
+        return dict(
+            text="Select Border",
+            icon="ops.generic.select_border",
+            widget=None,
+            keymap=(
+                ("gpencil.select_border",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def circle_select():
+        return dict(
+            text="Select Circle",
+            icon="ops.generic.select_circle",
+            widget=None,
+            keymap=(
+                ("gpencil.select_circle",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def lasso_select():
+        return dict(
+            text="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap=(
+                ("gpencil.select_lasso",
+                 dict(),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def mirror():
         return dict(
             text="Mirror",
@@ -1349,6 +1392,7 @@ class _defs_gpencil_sculpt:
         if ob and ob.mode == 'GPENCIL_SCULPT':
             ts = context.tool_settings
             settings = ts.gpencil_sculpt
+            tool = settings.tool
             brush = settings.brush
 
             layout.prop(brush, "size", slider=True)
@@ -1356,8 +1400,10 @@ class _defs_gpencil_sculpt:
             row = layout.row(align=True)
             row.prop(brush, "strength", slider=True)
             row.prop(brush, "use_pressure_strength", text="")
-            row.separator()
-            row.prop(ts.gpencil_sculpt, "use_select_mask", text="")
+
+            if tool in {'THICKNESS', 'STRENGTH', 'PINCH', 'TWIST'}:
+                row.separator()
+                row.prop(brush, "direction", expand=True, text="")
 
     @ToolDef.from_fn
     def smooth():
@@ -1817,9 +1863,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'GPENCIL_EDIT': [
             _defs_view3d_generic.cursor,
-            *_tools_select,
-            None,
-            *_tools_transform,
+            _defs_gpencil_edit.border_select,
+            _defs_gpencil_edit.circle_select,
+            _defs_gpencil_edit.lasso_select,
             None,
             _defs_gpencil_edit.bend,
             _defs_gpencil_edit.mirror,

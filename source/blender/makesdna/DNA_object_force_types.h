@@ -348,6 +348,7 @@ typedef struct SoftBody {
 #define PFIELD_SHAPE_PLANE		1
 #define PFIELD_SHAPE_SURFACE	2
 #define PFIELD_SHAPE_POINTS		3
+#define PFIELD_SHAPE_LINE		4
 
 /* pd->tex_mode */
 #define PFIELD_TEX_RGB	0

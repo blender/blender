@@ -1333,7 +1333,7 @@ int rna_property_override_diff_default(
 						}
 					}
 					else {
-						/* Already overriden prop, we'll have to check arrays items etc. */
+						/* Already overridden prop, we'll have to check arrays items etc. */
 					}
 				}
 
@@ -1391,7 +1391,7 @@ int rna_property_override_diff_default(
 						}
 					}
 					else {
-						/* Already overriden prop, we'll have to check arrays items etc. */
+						/* Already overridden prop, we'll have to check arrays items etc. */
 					}
 				}
 
@@ -1450,7 +1450,7 @@ int rna_property_override_diff_default(
 						}
 					}
 					else {
-						/* Already overriden prop, we'll have to check arrays items etc. */
+						/* Already overridden prop, we'll have to check arrays items etc. */
 					}
 				}
 
@@ -1788,7 +1788,7 @@ bool rna_property_override_store_default(
 	}
 
 	/* XXX TODO About range limits.
-	 * Ideally, it woudl be great to get rid of RNA range in that specific case.
+	 * Ideally, it would be great to get rid of RNA range in that specific case.
 	 * However, this won't be that easy and will add yet another layer of complexity in generated code,
 	 * not to mention that we could most likely *not* bypass custom setters anyway.
 	 * So for now, if needed second operand value is not in valid range, we simply fall back

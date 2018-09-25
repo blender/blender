@@ -1298,6 +1298,7 @@ BGL_Wrap(UniformMatrix4x3fv,        void,      (GLint, GLsizei, GLboolean, GLflo
 BGL_Wrap(BindFramebuffer,           void,      (GLenum, GLuint))
 BGL_Wrap(BindRenderbuffer,          void,      (GLenum, GLuint))
 BGL_Wrap(BindVertexArray,           void,      (GLuint))
+BGL_Wrap(BlitFramebuffer,           void,      (GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLint, GLbitfield, GLenum))
 BGL_Wrap(CheckFramebufferStatus,    GLenum,    (GLenum))
 BGL_Wrap(DeleteFramebuffers,        void,      (GLsizei, GLuintP))
 BGL_Wrap(DeleteRenderbuffers,       void,      (GLsizei, GLuintP))
@@ -1638,6 +1639,7 @@ PyObject *BPyInit_bgl(void)
 		PY_MOD_ADD_METHOD(BindFramebuffer);
 		PY_MOD_ADD_METHOD(BindRenderbuffer);
 		PY_MOD_ADD_METHOD(BindVertexArray);
+		PY_MOD_ADD_METHOD(BlitFramebuffer);
 		PY_MOD_ADD_METHOD(CheckFramebufferStatus);
 		PY_MOD_ADD_METHOD(DeleteFramebuffers);
 		PY_MOD_ADD_METHOD(DeleteRenderbuffers);

@@ -164,7 +164,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
 		subdiv_ccg->grid_hidden[grid_index] =
 		        BLI_BITMAP_NEW(grid_area, "ccg grid hidden");
 	}
-	/* TOOD(sergey): Allocate memory for loose elements. */
+	/* TODO(sergey): Allocate memory for loose elements. */
 	/* Allocate memory for faces. */
 	subdiv_ccg->num_faces = num_faces;
 	if (num_faces) {
@@ -183,6 +183,7 @@ typedef struct CCGEvalGridsData {
 	SubdivCCG *subdiv_ccg;
 	Subdiv *subdiv;
 	int *face_ptex_offset;
+	SubdivCCGMask *mask_evaluator;
 } CCGEvalGridsData;
 
 static void subdiv_ccg_eval_grid_element(
@@ -191,19 +192,31 @@ static void subdiv_ccg_eval_grid_element(
         const float u, const float v,
         unsigned char *element)
 {
-	if (data->subdiv->displacement_evaluator != NULL) {
+	Subdiv *subdiv = data->subdiv;
+	SubdivCCG *subdiv_ccg = data->subdiv_ccg;
+	if (subdiv->displacement_evaluator != NULL) {
 		BKE_subdiv_eval_final_point(
-		        data->subdiv, ptex_face_index, u, v, (float *)element);
+		        subdiv, ptex_face_index, u, v, (float *)element);
 	}
-	else if (data->subdiv_ccg->has_normal) {
+	else if (subdiv_ccg->has_normal) {
 		BKE_subdiv_eval_limit_point_and_normal(
-		        data->subdiv, ptex_face_index, u, v,
+		        subdiv, ptex_face_index, u, v,
 		        (float *)element,
-		        (float *)(element + data->subdiv_ccg->normal_offset));
+		        (float *)(element + subdiv_ccg->normal_offset));
 	}
 	else {
 		BKE_subdiv_eval_limit_point(
-		        data->subdiv, ptex_face_index, u, v, (float *)element);
+		        subdiv, ptex_face_index, u, v, (float *)element);
+	}
+	if (subdiv_ccg->has_mask) {
+		float *mask_value_ptr = (float *)(element + subdiv_ccg->mask_offset);
+		if (data->mask_evaluator != NULL) {
+			*mask_value_ptr = data->mask_evaluator->eval_mask(
+			        data->mask_evaluator, ptex_face_index, u, v);
+		}
+		else {
+			*mask_value_ptr = 0.0f;
+		}
 	}
 }
 
@@ -318,7 +331,8 @@ static void subdiv_ccg_eval_grids_task(
 
 static bool subdiv_ccg_evaluate_grids(
         SubdivCCG *subdiv_ccg,
-        Subdiv *subdiv)
+        Subdiv *subdiv,
+        SubdivCCGMask *mask_evaluator)
 {
 	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
 	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
@@ -327,6 +341,7 @@ static bool subdiv_ccg_evaluate_grids(
 	data.subdiv_ccg = subdiv_ccg;
 	data.subdiv = subdiv;
 	data.face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv);
+	data.mask_evaluator = mask_evaluator;
 	/* Threaded grids evaluation. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
@@ -624,7 +639,8 @@ static void subdiv_ccg_init_faces_neighborhood(SubdivCCG *subdiv_ccg)
 
 SubdivCCG *BKE_subdiv_to_ccg(
         Subdiv *subdiv,
-        const SubdivToCCGSettings *settings)
+        const SubdivToCCGSettings *settings,
+        SubdivCCGMask *mask_evaluator)
 {
 	BKE_subdiv_stats_begin(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 	SubdivCCG *subdiv_ccg = MEM_callocN(sizeof(SubdivCCG), "subdiv ccg");
@@ -636,7 +652,7 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	subdiv_ccg_alloc_elements(subdiv_ccg, subdiv);
 	subdiv_ccg_init_faces(subdiv_ccg);
 	subdiv_ccg_init_faces_neighborhood(subdiv_ccg);
-	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv)) {
+	if (!subdiv_ccg_evaluate_grids(subdiv_ccg, subdiv, mask_evaluator)) {
 		BKE_subdiv_ccg_destroy(subdiv_ccg);
 		BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
 		return NULL;
@@ -658,13 +674,20 @@ Mesh *BKE_subdiv_to_ccg_mesh(
 		}
 	}
 	BKE_subdiv_stats_end(&subdiv->stats, SUBDIV_STATS_SUBDIV_TO_CCG);
-	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(subdiv, settings);
+	SubdivCCGMask mask_evaluator;
+	bool has_mask = BKE_subdiv_ccg_mask_init_from_paint(
+        &mask_evaluator, coarse_mesh);
+	SubdivCCG *subdiv_ccg = BKE_subdiv_to_ccg(
+	    subdiv, settings, has_mask ? &mask_evaluator : NULL);
+	if (has_mask) {
+		mask_evaluator.free(&mask_evaluator);
+	}
 	if (subdiv_ccg == NULL) {
 		return NULL;
 	}
 	Mesh *result = BKE_mesh_new_nomain_from_template(
 	        coarse_mesh, 0, 0, 0, 0, 0);
-	result->runtime.subsurf_ccg = subdiv_ccg;
+	result->runtime.subdiv_ccg = subdiv_ccg;
 	return result;
 }
 
@@ -910,6 +933,13 @@ static void average_grid_element(SubdivCCG *subdiv_ccg,
 		average_grid_element_value_v3(CCG_elem_no(key, grid_element_a),
 		                              CCG_elem_no(key, grid_element_b));
 	}
+	if (subdiv_ccg->has_mask) {
+		float mask =
+		        (*CCG_elem_mask(key, grid_element_a) +
+		         *CCG_elem_mask(key, grid_element_b)) * 0.5f;
+		*CCG_elem_mask(key, grid_element_a) = mask;
+		*CCG_elem_mask(key, grid_element_b) = mask;
+	}
 }
 
 static void copy_grid_element(SubdivCCG *subdiv_ccg,
@@ -920,6 +950,9 @@ static void copy_grid_element(SubdivCCG *subdiv_ccg,
 	copy_v3_v3(CCG_elem_co(key, destination), CCG_elem_co(key, source));
 	if (subdiv_ccg->has_normal) {
 		copy_v3_v3(CCG_elem_no(key, destination), CCG_elem_no(key, source));
+	}
+	if (subdiv_ccg->has_mask) {
+		*CCG_elem_mask(key, destination) = *CCG_elem_mask(key, source);
 	}
 }
 

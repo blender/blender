@@ -831,7 +831,7 @@ void do_versions_after_linking_280(Main *bmain)
 
 							newptr[3][1] = bezt->radius;
 
-							oldptr += 3*4;
+							oldptr += 3 * 4;
 							newptr += 4; /*KEYELEM_ELEM_LEN_BEZTRIPLE*/
 						}
 					}

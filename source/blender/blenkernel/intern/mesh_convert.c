@@ -156,7 +156,7 @@ static void make_edges_mdata_extend(
 	totedge_new = BLI_edgehash_len(eh);
 
 #ifdef DEBUG
-	/* ensure that theres no overlap! */
+	/* ensure that there's no overlap! */
 	if (totedge_new) {
 		MEdge *medge = *r_alledge;
 		for (i = 0; i < totedge; i++, medge++) {
@@ -1330,7 +1330,7 @@ void BKE_mesh_nomain_to_mesh(Mesh *mesh_src, Mesh *mesh_dst, Object *ob, CustomD
 		        totedge);
 	}
 	if (!CustomData_has_layer(&tmp.pdata, CD_MPOLY)) {
-		/* TODO(Sybren): assigment to tmp.mxxx is probably not necessary due to the
+		/* TODO(Sybren): assignment to tmp.mxxx is probably not necessary due to the
 		 * BKE_mesh_update_customdata_pointers() call below. */
 		tmp.mloop = (alloctype == CD_ASSIGN) ? mesh_src->mloop : MEM_dupallocN(mesh_src->mloop);
 		tmp.mpoly = (alloctype == CD_ASSIGN) ? mesh_src->mpoly : MEM_dupallocN(mesh_src->mpoly);

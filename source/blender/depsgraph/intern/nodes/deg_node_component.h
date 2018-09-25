@@ -71,7 +71,7 @@ struct ComponentDepsNode : public DepsNode {
 
 	void init(const ID *id, const char *subdata);
 
-	string identifier() const;
+	virtual string identifier() const;
 
 	/* Find an existing operation, if requested operation does not exist
 	 * NULL will be returned.

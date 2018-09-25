@@ -83,7 +83,7 @@ void deg_free_copy_on_write_datablock(struct ID *id_cow);
 void deg_evaluate_copy_on_write(struct ::Depsgraph *depsgraph,
                                 const struct IDDepsNode *id_node);
 
-/* Check that given ID is propely expanded and does not have any shallow
+/* Check that given ID is properly expanded and does not have any shallow
  * copies inside.
   */
 bool deg_validate_copy_on_write_datablock(ID *id_cow);

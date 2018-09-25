@@ -169,7 +169,7 @@ static ID *override_static_create_from(Main *bmain, ID *reference_id)
 }
 
 
-/** Create an overriden local copy of linked reference. */
+/** Create an overridden local copy of linked reference. */
 ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
 {
 	BLI_assert(reference_id != NULL);
@@ -177,13 +177,13 @@ ID *BKE_override_static_create_from_id(Main *bmain, ID *reference_id)
 
 	ID *local_id = override_static_create_from(bmain, reference_id);
 
-	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overriden ID). */
+	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overridden ID). */
 	BKE_libblock_remap(bmain, reference_id, local_id, ID_REMAP_SKIP_INDIRECT_USAGE | ID_REMAP_SKIP_STATIC_OVERRIDE);
 
 	return local_id;
 }
 
-/** Create overriden local copies of all tagged data-blocks in given Main.
+/** Create overridden local copies of all tagged data-blocks in given Main.
  *
  * \note Set id->newid of overridden libs with newly created overrides, caller is responsible to clean those pointers
  * before/after usage as needed.
@@ -207,7 +207,7 @@ bool BKE_override_static_create_from_tag(Main *bmain)
 		}
 	}
 
-	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overriden ID). */
+	/* Remapping, we obviously only want to affect local data (and not our own reference pointer to overridden ID). */
 	a = num_types;
 	while (a--) {
 		for (ID *reference_id = lbarray[a]->first; reference_id != NULL; reference_id = reference_id->next) {
@@ -236,7 +236,7 @@ IDOverrideStaticProperty *BKE_override_static_property_find(IDOverrideStatic *ov
  */
 IDOverrideStaticProperty *BKE_override_static_property_get(IDOverrideStatic *override, const char *rna_path, bool *r_created)
 {
-	/* XXX TODO we'll most likely want a runtime ghash to store taht mapping at some point. */
+	/* XXX TODO we'll most likely want a runtime ghash to store that mapping at some point. */
 	IDOverrideStaticProperty *op = BKE_override_static_property_find(override, rna_path);
 
 	if (op == NULL) {
@@ -587,7 +587,7 @@ void BKE_main_override_static_operations_create(Main *bmain, const bool force_au
 	}
 }
 
-/** Update given override from its reference (re-applying overriden properties). */
+/** Update given override from its reference (re-applying overridden properties). */
 void BKE_override_static_update(Main *bmain, ID *local)
 {
 	if (local->override_static == NULL || local->override_static->reference == NULL) {
@@ -681,7 +681,7 @@ void BKE_main_override_static_update(Main *bmain)
  * II) We store the differential value into a second 'ghost' data-block, which is an empty ID of same type as local one,
  *     where we only define values that need differential data.
  *
- * This avoids us having to modify 'real' data-block at write time (and retoring it afterwards), which is inneficient,
+ * This avoids us having to modify 'real' data-block at write time (and restoring it afterwards), which is inneficient,
  * and potentially dangerous (in case of concurrent access...), while not using much extra memory in typical cases.
  * It also ensures stored data-block always contains exact same data as "desired" ones (kind of "baked" data-blocks).
  */

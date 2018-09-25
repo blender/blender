@@ -418,7 +418,7 @@ void BKE_sequence_clipboard_pointers_restore(Sequence *seq, Main *bmain)
 	seqclipboard_ptr_restore(bmain, (ID **)&seq->sound);
 }
 
-/* recursive versions of funcions above */
+/* recursive versions of functions above */
 void BKE_sequencer_base_clipboard_pointers_free(ListBase *seqbase)
 {
 	Sequence *seq;
@@ -1065,7 +1065,7 @@ void BKE_sequencer_sort(Scene *scene)
 	*(ed->seqbasep) = seqbase;
 }
 
-/** Comparision function suitable to be used with BLI_listbase_sort()... */
+/** Comparison function suitable to be used with BLI_listbase_sort()... */
 int BKE_sequencer_cmp_time_startdisp(const void *a, const void *b)
 {
 	const Sequence *seq_a = a;
@@ -4520,7 +4520,7 @@ Sequence *BKE_sequencer_foreground_frame_get(Scene *scene, int frame)
 	return best_seq;
 }
 
-/* return 0 if there werent enough space */
+/* return 0 if there weren't enough space */
 bool BKE_sequence_base_shuffle_ex(ListBase *seqbasep, Sequence *test, Scene *evil_scene, int channel_delta)
 {
 	const int orig_machine = test->machine;

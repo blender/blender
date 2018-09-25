@@ -40,6 +40,7 @@
 
 #include "RNA_define.h"
 #include "RNA_access.h"
+#include "RNA_enum_types.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -65,16 +66,13 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	float cent[3], axis[3];
 	float d[3] = {0.0f, 0.0f, 0.0f};
-	int steps, dupli;
-	float angle;
 
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
-	steps = RNA_int_get(op->ptr, "steps");
-	angle = RNA_float_get(op->ptr, "angle");
-	//if (ts->editbutflag & B_CLOCKWISE)
-	angle = -angle;
-	dupli = RNA_boolean_get(op->ptr, "dupli");
+	const int steps = RNA_int_get(op->ptr, "steps");
+	const float angle = RNA_float_get(op->ptr, "angle");
+	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip") ^ (angle < 0.0f);
+	const bool dupli = RNA_boolean_get(op->ptr, "dupli");
 
 	if (is_zero_v3(axis)) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
@@ -91,9 +89,11 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 		BMOperator spinop;
 
 		/* keep the values in worldspace since we're passing the obmat */
-		if (!EDBM_op_init(em, &spinop, op,
-		                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
-		                  BM_ELEM_SELECT, cent, axis, d, steps, angle, obedit->obmat, dupli))
+		if (!EDBM_op_init(
+		            em, &spinop, op,
+		            "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 "
+		            "use_normal_flip=%b use_duplicate=%b",
+		            BM_ELEM_SELECT, cent, axis, d, steps, -angle, obedit->obmat, use_normal_flip, dupli))
 		{
 			continue;
 		}
@@ -181,6 +181,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "angle", DEG2RADF(90.0f), -1e12f, 1e12f, "Angle", "Rotation for each step",
 	                     DEG2RADF(-360.0f), DEG2RADF(360.0f));
 	RNA_def_property_subtype(prop, PROP_ANGLE);
+	RNA_def_boolean(ot->srna, "use_normal_flip", 0, "Flip Normals", "");
 
 	RNA_def_float_vector(ot->srna, "center", 3, NULL, -1e12f, 1e12f,
 	                     "Center", "Center in global view space", -1e4f, 1e4f);
@@ -189,5 +190,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	WM_gizmogrouptype_append(MESH_GGT_spin);
 #ifdef USE_GIZMO
 	WM_gizmogrouptype_append(MESH_GGT_spin_redo);
+	prop = RNA_def_enum_flag(ot->srna, "gizmo_axis", rna_enum_axis_flag_xyz_items, (1 << 2), "Axis", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 #endif
 }

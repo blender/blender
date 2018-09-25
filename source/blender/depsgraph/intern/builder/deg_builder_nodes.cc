@@ -555,11 +555,8 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	if (object == scene_->camera) {
 		id_node->is_directly_visible = true;
 	}
-	else if (id_node->linked_state == DEG_ID_LINKED_DIRECTLY) {
-		id_node->is_directly_visible = is_visible;
-	}
 	else {
-		id_node->is_directly_visible = false;
+		id_node->is_directly_visible = is_visible;
 	}
 	object->customdata_mask = 0;
 	/* Various flags, flushing from bases/collections. */

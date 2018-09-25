@@ -93,7 +93,7 @@ void verify_id_properties_freed(DEGObjectIterData *data)
 	const Object *dupli_object = data->dupli_object_current->ob;
 	Object *temp_dupli_object = &data->temp_dupli_object;
 	if (temp_dupli_object->id.properties == NULL) {
-		// No ID proeprties in temp datablock -- no leak is possible.
+		// No ID properties in temp datablock -- no leak is possible.
 		return;
 	}
 	if (temp_dupli_object->id.properties == dupli_object->id.properties) {

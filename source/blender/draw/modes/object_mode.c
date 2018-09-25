@@ -279,6 +279,8 @@ typedef struct OBJECT_PrivateData {
 	int id_ofs_prb_active;
 	int id_ofs_prb_select;
 	int id_ofs_prb_transform;
+
+	bool xray_enabled;
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
@@ -934,8 +936,6 @@ static void OBJECT_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	const bool xray_enabled = ((draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-	                           (draw_ctx->v3d->shading.type < OB_MATERIAL);
 	/* TODO : use dpi setting for enabling the second pass */
 	const bool do_outline_expand = false;
 
@@ -945,6 +945,7 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	g_data = stl->g_data;
+	g_data->xray_enabled = XRAY_ENABLED(draw_ctx->v3d) && (draw_ctx->v3d->shading.type < OB_MATERIAL);
 
 	{
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE;
@@ -952,7 +953,7 @@ static void OBJECT_cache_init(void *vedata)
 
 		GPUShader *sh = e_data.outline_prepass_sh;
 
-		if (xray_enabled) {
+		if (g_data->xray_enabled) {
 			sh = e_data.outline_prepass_wire_sh;
 		}
 
@@ -990,14 +991,14 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR;
 		struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
 		/* Don't occlude the "outline" detection pass if in xray mode (too much flickering). */
-		float alphaOcclu = (xray_enabled) ? 1.0f : 0.35f;
+		float alphaOcclu = (g_data->xray_enabled) ? 1.0f : 0.35f;
 		/* Reminder : bool uniforms need to be 4 bytes. */
 		static const int bTrue = true;
 		static const int bFalse = false;
 
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 
-		GPUShader *sh = (xray_enabled) ? e_data.outline_detect_wire_sh : e_data.outline_detect_sh;
+		GPUShader *sh = (g_data->xray_enabled) ? e_data.outline_detect_wire_sh : e_data.outline_detect_sh;
 		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->outlines_search);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
@@ -2636,8 +2637,6 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	if (do_outlines) {
 		if (!BKE_object_is_in_editmode(ob) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
 			struct GPUBatch *geom;
-			const bool xray_enabled = ((v3d->shading.flag & V3D_SHADING_XRAY) != 0) &&
-			                           (v3d->shading.type < OB_MATERIAL);
 
 			/* This fixes only the biggest case which is a plane in ortho view. */
 			int flat_axis = 0;
@@ -2645,7 +2644,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			                                       DRW_object_is_flat(ob, &flat_axis) &&
 			                                       DRW_object_axis_orthogonal_to_view(ob, flat_axis);
 
-			if (xray_enabled || is_flat_object_viewed_from_side) {
+			if (stl->g_data->xray_enabled || is_flat_object_viewed_from_side) {
 				geom = DRW_cache_object_edge_detection_get(ob, NULL);
 			}
 			else {

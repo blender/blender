@@ -397,7 +397,7 @@ std::string ControllerExporter::add_morph_weights(Key *key, Object *ob)
 	return source_id;
 }
 
-//Added to implemente support for animations.
+//Added to implement support for animations.
 void ControllerExporter::add_weight_extras(Key *key)
 {
 	// can also try the base element and param alternative
@@ -546,7 +546,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 		}
 	}
 
-	// back from rest positon
+	// back from rest position
 	if (!(flag & ARM_RESTPOS)) {
 		arm->flag = flag;
 		BKE_pose_where_is(depsgraph, scene, ob_arm);

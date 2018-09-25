@@ -250,7 +250,7 @@ static const EnumPropertyItem *rna_Object_parent_type_itemf(
 		Object *par = gpl->parent;
 
 		if (par->type == OB_ARMATURE) {
-			/* special hack: prevents this being overrided */
+			/* special hack: prevents this being overridden */
 			RNA_enum_items_add_value(&item, &totitem, &parent_type_items[1], PARSKEL);
 			RNA_enum_items_add_value(&item, &totitem, parent_type_items, PARBONE);
 		}
@@ -1100,7 +1100,7 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	/* Unlock colors */
 	prop = RNA_def_property(srna, "unlock_color", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_UNLOCK_COLOR);
-	RNA_def_property_ui_icon(prop, ICON_RESTRICT_COLOR_OFF, 1);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Unlock Color",
 	                         "Unprotect selected colors from further editing and/or frame changes");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);

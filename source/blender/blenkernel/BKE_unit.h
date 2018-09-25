@@ -51,7 +51,7 @@ double bUnit_BaseScalar(int system, int type);
 /* return true is the unit system exists */
 bool bUnit_IsValid(int system, int type);
 
-/* loop over scales, coudl add names later */
+/* loop over scales, could add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
 void        bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);

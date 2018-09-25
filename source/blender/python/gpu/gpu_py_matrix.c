@@ -414,6 +414,24 @@ static PyObject *bpygpu_matrix_load_matrix(PyObject *UNUSED(self), PyObject *val
 	Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(bpygpu_matrix_load_projection_matrix_doc,
+"load_projection_matrix(matrix)\n"
+"\n"
+"   Load a projection matrix into the stack.\n"
+"\n"
+"   :param matrix: A 4x4 matrix.\n"
+"   :type matrix: :class:`mathutils.Matrix`\n"
+);
+static PyObject *bpygpu_matrix_load_projection_matrix(PyObject *UNUSED(self), PyObject *value)
+{
+	MatrixObject *pymat;
+	if (!Matrix_Parse4x4(value, &pymat)) {
+		return NULL;
+	}
+	GPU_matrix_projection_set(pymat->matrix);
+	Py_RETURN_NONE;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -517,6 +535,8 @@ static struct PyMethodDef bpygpu_matrix_methods[] = {
 	 METH_NOARGS, bpygpu_matrix_load_identity_doc},
 	{"load_matrix", (PyCFunction)bpygpu_matrix_load_matrix,
 	 METH_O, bpygpu_matrix_load_matrix_doc},
+	{"load_projection_matrix", (PyCFunction)bpygpu_matrix_load_projection_matrix,
+	 METH_O, bpygpu_matrix_load_projection_matrix_doc},
 
 	/* Read State */
 	{"get_projection_matrix", (PyCFunction)bpygpu_matrix_get_projection_matrix,

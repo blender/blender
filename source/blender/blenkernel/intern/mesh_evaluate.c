@@ -2304,7 +2304,7 @@ bool BKE_mesh_center_of_volume(const Mesh *me, float r_cent[3])
 	}
 	/* otherwise we get NAN for 0 polys */
 	if (total_volume != 0.0f) {
-		/* multipy by 0.25 to get the correct centroid */
+		/* multiply by 0.25 to get the correct centroid */
 		/* no need to divide volume by 6 as the centroid is weighted by 6x the volume, so it all cancels out */
 		mul_v3_fl(r_cent, 0.25f / total_volume);
 	}

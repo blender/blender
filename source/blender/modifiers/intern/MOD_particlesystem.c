@@ -145,12 +145,7 @@ static void deformVerts(
 	}
 
 	/* make new mesh */
-	BKE_id_copy_ex(NULL, &mesh_src->id, (ID **)&psmd->mesh_final,
-	               LIB_ID_CREATE_NO_MAIN |
-	               LIB_ID_CREATE_NO_USER_REFCOUNT |
-	               LIB_ID_CREATE_NO_DEG_TAG |
-	               LIB_ID_COPY_NO_PREVIEW,
-	               false);
+	psmd->mesh_final = BKE_mesh_copy_for_eval(mesh_src, false);
 	BKE_mesh_apply_vert_coords(psmd->mesh_final, vertexCos);
 	BKE_mesh_calc_normals(psmd->mesh_final);
 
@@ -182,12 +177,7 @@ static void deformVerts(
 			/* Make a persistent copy of the mesh. We don't actually need
 			 * all this data, just some topology for remapping. Could be
 			 * optimized once. */
-			BKE_id_copy_ex(NULL, &mesh_original->id, (ID **)&psmd->mesh_original,
-			               LIB_ID_CREATE_NO_MAIN |
-			               LIB_ID_CREATE_NO_USER_REFCOUNT |
-			               LIB_ID_CREATE_NO_DEG_TAG |
-			               LIB_ID_COPY_NO_PREVIEW,
-			               false);
+			psmd->mesh_original = BKE_mesh_copy_for_eval(mesh_original, false);
 		}
 
 		BKE_mesh_tessface_ensure(psmd->mesh_original);

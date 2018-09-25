@@ -875,7 +875,7 @@ static void do_lasso_select_meshobject__doSelectVert(void *userData, MVert *mv, 
 }
 static void do_lasso_select_paintvert(ViewContext *vc, const int mcords[][2], short moves, const eSelectOp sel_op)
 {
-	const bool use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT) != 0;
+	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
 	rcti rect;
@@ -1896,7 +1896,7 @@ static void do_paintvert_box_select__doSelectVert(void *userData, MVert *mv, con
 static int do_paintvert_box_select(
         ViewContext *vc, rcti *rect, const eSelectOp sel_op)
 {
-	const bool use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT) != 0;
+	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
 	Mesh *me;
 	MVert *mvert;
 	struct ImBuf *ibuf;
@@ -2606,7 +2606,7 @@ static bool ed_wpaint_vertex_select_pick(
         bool extend, bool deselect, bool toggle, Object *obact)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	const bool use_zbuf = (v3d->flag & V3D_ZBUF_SELECT) != 0;
+	const bool use_zbuf = V3D_IS_ZBUF(v3d);
 
 	Mesh *me = obact->data; /* already checked for NULL */
 	unsigned int index = 0;
@@ -2877,7 +2877,7 @@ static void paint_vertsel_circle_select_doSelectVert(void *userData, MVert *mv, 
 }
 static void paint_vertsel_circle_select(ViewContext *vc, const bool select, const int mval[2], float rad)
 {
-	const bool use_zbuf = (vc->v3d->flag & V3D_ZBUF_SELECT) != 0;
+	const bool use_zbuf = V3D_IS_ZBUF(vc->v3d);
 	Object *ob = vc->obact;
 	Mesh *me = ob->data;
 	bool bbsel;

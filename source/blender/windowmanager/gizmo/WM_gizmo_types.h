@@ -66,27 +66,28 @@ typedef enum eWM_GizmoFlagState {
  * #wmGizmo.flag
  * Flags for individual gizmos.
  */
-typedef enum eWM_GizmoFlagFlag {
-	WM_GIZMO_DRAW_HOVER  = (1 << 0), /* draw *only* while hovering */
-	WM_GIZMO_DRAW_MODAL  = (1 << 1), /* draw while dragging */
-	WM_GIZMO_DRAW_VALUE  = (1 << 2), /* draw an indicator for the current value while dragging */
-	WM_GIZMO_HIDDEN      = (1 << 3),
+typedef enum eWM_GizmoFlag {
+	WM_GIZMO_DRAW_HOVER    = (1 << 0), /* draw *only* while hovering */
+	WM_GIZMO_DRAW_MODAL    = (1 << 1), /* draw while dragging */
+	WM_GIZMO_DRAW_VALUE    = (1 << 2), /* draw an indicator for the current value while dragging */
+	WM_GIZMO_HIDDEN        = (1 << 3),
+	WM_GIZMO_HIDDEN_SELECT = (1 << 4),
 	/**
 	 * When set 'scale_final' value also scales the offset.
 	 * Use when offset is to avoid screen-space overlap instead of absolute positioning. */
-	WM_GIZMO_DRAW_OFFSET_SCALE  = (1 << 4),
+	WM_GIZMO_DRAW_OFFSET_SCALE  = (1 << 5),
 	/**
 	 * User should still use 'scale_final' for any handles and UI elements.
 	 * This simply skips scale when calculating the final matrix.
 	 * Needed when the gizmo needs to align with the interface underneath it. */
-	WM_GIZMO_DRAW_NO_SCALE  = (1 << 5),
+	WM_GIZMO_DRAW_NO_SCALE  = (1 << 6),
 	/**
 	 * Hide the cursor and lock it's position while interacting with this gizmo.
 	 */
-	WM_GIZMO_MOVE_CURSOR = (1 << 6),
+	WM_GIZMO_MOVE_CURSOR = (1 << 7),
 	/** Don't write into the depth buffer when selecting. */
-	WM_GIZMO_SELECT_BACKGROUND  = (1 << 7),
-} eWM_GizmoFlagFlag;
+	WM_GIZMO_SELECT_BACKGROUND  = (1 << 8),
+} eWM_GizmoFlag;
 
 /**
  * #wmGizmoGroupType.flag
@@ -190,7 +191,7 @@ struct wmGizmo {
 	struct PointerRNA *ptr;
 
 	/* flags that influence the behavior or how the gizmos are drawn */
-	eWM_GizmoFlagFlag flag;
+	eWM_GizmoFlag flag;
 	/* state flags (active, highlighted, selected) */
 	eWM_GizmoFlagState state;
 

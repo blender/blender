@@ -267,7 +267,7 @@ bool WM_gizmomap_minmax(
 static GHash *WM_gizmomap_gizmo_hash_new(
         const bContext *C, wmGizmoMap *gzmap,
         bool (*poll)(const wmGizmo *, void *),
-        void *data, const bool include_hidden)
+        void *data, const eWM_GizmoFlag flag_exclude)
 {
 	GHash *hash = BLI_ghash_ptr_new(__func__);
 
@@ -275,7 +275,7 @@ static GHash *WM_gizmomap_gizmo_hash_new(
 	for (wmGizmoGroup *gzgroup = gzmap->groups.first; gzgroup; gzgroup = gzgroup->next) {
 		if (WM_gizmo_group_type_poll(C, gzgroup->type)) {
 			for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {
-				if ((include_hidden || (gz->flag & WM_GIZMO_HIDDEN) == 0) &&
+				if (((flag_exclude == 0) || ((gz->flag & flag_exclude) == 0)) &&
 				    (!poll || poll(gz, data)))
 				{
 					BLI_ghash_insert(hash, gz, gz);
@@ -787,7 +787,8 @@ static bool wm_gizmomap_select_all_intern(
 	 * get tot_sel for allocating, once for actually selecting). Instead we collect
 	 * selectable gizmos in hash table and use this to get tot_sel and do selection */
 
-	GHash *hash = WM_gizmomap_gizmo_hash_new(C, gzmap, gizmo_selectable_poll, NULL, true);
+	GHash *hash = WM_gizmomap_gizmo_hash_new(
+	        C, gzmap, gizmo_selectable_poll, NULL, WM_GIZMO_HIDDEN | WM_GIZMO_HIDDEN_SELECT);
 	GHashIterator gh_iter;
 	int i;
 	bool changed = false;

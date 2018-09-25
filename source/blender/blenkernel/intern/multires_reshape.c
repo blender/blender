@@ -145,17 +145,17 @@ static void multires_reshape_init_mmd_top_level(
 }
 
 /* =============================================================================
- * General reshape implementaiton, reused by all particular cases.
+ * General reshape implementation, reused by all particular cases.
  */
 
 typedef struct MultiresReshapeContext {
 	Subdiv *subdiv;
-	Object *object;
 	const Mesh *coarse_mesh;
 	MDisps *mdisps;
-	/* NOTE: This is a grid size on th top level. */
+	GridPaintMask *grid_paint_mask;
+	/* NOTE: This is a grid size on the top level, same for level. */
 	int grid_size;
-	int top_level;
+	int level;
 } MultiresReshapeContext;
 
 static void multires_reshape_allocate_displacement_grid(
@@ -182,14 +182,46 @@ static void multires_reshape_ensure_displacement_grid(
 }
 
 static void multires_reshape_ensure_displacement_grids(
-        MultiresReshapeContext *ctx)
+        Mesh *mesh,
+        const int grid_level)
 {
-	const int num_grids = ctx->coarse_mesh->totloop;
-	const int grid_level = ctx->top_level;
+	const int num_grids = mesh->totloop;
+	MDisps *mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
 	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
 		multires_reshape_ensure_displacement_grid(
-		        &ctx->mdisps[grid_index], grid_level);
+		        &mdisps[grid_index], grid_level);
 	}
+}
+
+static void multires_reshape_ensure_mask_grids(Mesh *mesh, const int grid_level)
+{
+	GridPaintMask *grid_paint_masks =
+	        CustomData_get_layer(&mesh->ldata, CD_GRID_PAINT_MASK);
+	if (grid_paint_masks == NULL) {
+		return;
+	}
+	const int num_grids = mesh->totloop;
+	/* TODO(sergey): Use grid_size_for_level_get() somehow. */
+	const int grid_size = (1 << (grid_level - 1)) + 1;
+	const int grid_area = grid_size * grid_size;
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		GridPaintMask *grid_paint_mask = &grid_paint_masks[grid_index];
+		if (grid_paint_mask->level == grid_level) {
+			continue;
+		}
+		grid_paint_mask->level = grid_level;
+		if (grid_paint_mask->data) {
+			MEM_freeN(grid_paint_mask->data);
+		}
+		grid_paint_mask->data = MEM_calloc_arrayN(
+		        grid_area, sizeof(float), "gpm.data");
+	}
+}
+
+static void multires_reshape_ensure_grids(Mesh *mesh, const int grid_level)
+{
+	multires_reshape_ensure_displacement_grids(mesh, grid_level);
+	multires_reshape_ensure_mask_grids(mesh, grid_level);
 }
 
 static void multires_reshape_vertex_copy_to_next(
@@ -197,21 +229,30 @@ static void multires_reshape_vertex_copy_to_next(
         const MPoly *coarse_poly,
         const int current_corner,
         const MDisps *current_displacement_grid,
+        const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
 	const int grid_size = ctx->grid_size;
 	const int next_current_corner = (current_corner + 1) % coarse_poly->totloop;
-	MDisps *next_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + next_current_corner];
 	const int next_grid_x = 0;
 	const int next_grid_y = current_grid_x;
 	const int current_index = current_grid_y * grid_size + current_grid_x;
 	const int next_index = next_grid_y * grid_size + next_grid_x;
+	/* Copy displacement. */
+	MDisps *next_displacement_grid = &ctx->mdisps[
+	        coarse_poly->loopstart + next_current_corner];
 	float *next_displacement = next_displacement_grid->disps[next_index];
 	copy_v3_v3(next_displacement,
 	           current_displacement_grid->disps[current_index]);
 	SWAP(float, next_displacement[0], next_displacement[1]);
 	next_displacement[0] = -next_displacement[0];
+	/* Copy mask, if exists. */
+	if (current_mask_grid != NULL) {
+		GridPaintMask *next_mask_grid = &ctx->grid_paint_mask[
+		        coarse_poly->loopstart + next_current_corner];
+		next_mask_grid->data[next_index] =
+		        current_mask_grid->data[current_index];
+	}
 }
 
 static void multires_reshape_vertex_copy_to_prev(
@@ -219,22 +260,31 @@ static void multires_reshape_vertex_copy_to_prev(
         const MPoly *coarse_poly,
         const int current_corner,
         const MDisps *current_displacement_grid,
+        const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
 	const int grid_size = ctx->grid_size;
 	const int prev_current_corner =
 	        (current_corner - 1 + coarse_poly->totloop) % coarse_poly->totloop;
-	MDisps *prev_displacement_grid = &ctx->mdisps[
-	        coarse_poly->loopstart + prev_current_corner];
 	const int prev_grid_x = current_grid_y;
 	const int prev_grid_y = 0;
 	const int current_index = current_grid_y * grid_size + current_grid_x;
 	const int prev_index = prev_grid_y * grid_size + prev_grid_x;
+	/* Copy displacement. */
+	MDisps *prev_displacement_grid = &ctx->mdisps[
+	        coarse_poly->loopstart + prev_current_corner];
 	float *prev_displacement = prev_displacement_grid->disps[prev_index];
 	copy_v3_v3(prev_displacement,
 	           current_displacement_grid->disps[current_index]);
 	SWAP(float, prev_displacement[0], prev_displacement[1]);
 	prev_displacement[1] = -prev_displacement[1];
+	/* Copy mask, if exists. */
+	if (current_mask_grid != NULL) {
+		GridPaintMask *prev_mask_grid = &ctx->grid_paint_mask[
+		        coarse_poly->loopstart + prev_current_corner];
+		prev_mask_grid->data[prev_index] =
+		        current_mask_grid->data[current_index];
+	}
 }
 
 static void copy_boundary_displacement(
@@ -242,19 +292,24 @@ static void copy_boundary_displacement(
         const MPoly *coarse_poly,
         const int corner,
         const int grid_x, const int grid_y,
-        const MDisps *displacement_grid)
+        const MDisps *displacement_grid,
+        const GridPaintMask *mask_grid)
 {
 	if (grid_x == 0 && grid_y == 0) {
 		for (int i = 0; i < coarse_poly->totloop; i++) {
 			const int current_face_corner =
 			        (corner + i) % coarse_poly->totloop;
-			MDisps *current_displacement_grid = &ctx->mdisps[
-			        coarse_poly->loopstart + current_face_corner];
+			const int grid_index = coarse_poly->loopstart + current_face_corner;
+			MDisps *current_displacement_grid = &ctx->mdisps[grid_index];
+			GridPaintMask *current_mask_grid =
+			        mask_grid != NULL ? &ctx->grid_paint_mask[grid_index]
+			                          : NULL;
 			multires_reshape_vertex_copy_to_next(
 			        ctx,
 			        coarse_poly,
 			        current_face_corner,
 			        current_displacement_grid,
+			        current_mask_grid,
 			        0, 0);
 		}
 	}
@@ -264,6 +319,7 @@ static void copy_boundary_displacement(
 		        coarse_poly,
 		        corner,
 		        displacement_grid,
+		        mask_grid,
 		        grid_x, grid_y);
 	}
 	else if (grid_y == 0) {
@@ -272,17 +328,18 @@ static void copy_boundary_displacement(
 		        coarse_poly,
 		        corner,
 		        displacement_grid,
+		        mask_grid,
 		        grid_x, grid_y);
 	}
 }
 
-static void multires_reshape_vertex_from_final_coord(
+static void multires_reshape_vertex_from_final_data(
         MultiresReshapeContext *ctx,
         const int ptex_face_index,
         const float u, const float v,
         const int coarse_poly_index,
         const int coarse_corner,
-        const float final_P[3])
+        const float final_P[3], const float final_mask)
 {
 	Subdiv *subdiv = ctx->subdiv;
 	const int grid_size = ctx->grid_size;
@@ -297,18 +354,25 @@ static void multires_reshape_vertex_from_final_coord(
 	/* Get coordinate and corner configuration. */
 	float grid_u, grid_v;
 	MDisps *displacement_grid;
+	GridPaintMask *grid_paint_mask = NULL;
 	int face_corner = coarse_corner;
 	int grid_corner = 0;
+	int grid_index;
 	if (coarse_poly->totloop == 4) {
 		float corner_u, corner_v;
 		face_corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
 		grid_corner = face_corner;
-		displacement_grid = &ctx->mdisps[loop_index + face_corner];
+		grid_index = loop_index + face_corner;
 		ptex_uv_to_grid_uv(corner_u, corner_v, &grid_u, &grid_v);
 	}
 	else {
-		displacement_grid = &ctx->mdisps[loop_index];
+		grid_index = loop_index;
 		ptex_uv_to_grid_uv(u, v, &grid_u, &grid_v);
+	}
+	displacement_grid = &ctx->mdisps[grid_index];
+	if (ctx->grid_paint_mask != NULL) {
+		grid_paint_mask = &ctx->grid_paint_mask[grid_index];
+		BLI_assert(grid_paint_mask->level == displacement_grid->level);
 	}
 	/* Convert object coordinate to a tangent space of displacement grid. */
 	float D[3];
@@ -324,13 +388,299 @@ static void multires_reshape_vertex_from_final_coord(
 	const int grid_y = (grid_v * (grid_size - 1) + 0.5f);
 	const int index = grid_y * grid_size + grid_x;
 	copy_v3_v3(displacement_grid->disps[index], tangent_D);
+	/* Write mask grid. */
+	if (grid_paint_mask != NULL) {
+		grid_paint_mask->data[index] = final_mask;
+	}
 	/* Copy boundary to the next/previous grids */
 	copy_boundary_displacement(
-	        ctx, coarse_poly, face_corner, grid_x, grid_y, displacement_grid);
+	        ctx, coarse_poly, face_corner, grid_x, grid_y,
+	        displacement_grid, grid_paint_mask);
 }
 
 /* =============================================================================
- * Reshape from deformed veretx coordinates.
+ * Helpers to propagate displacement to higher levels.
+ */
+
+typedef struct MultiresPropagateData {
+	int reshape_level;
+	int top_level;
+	int num_grids;
+	int reshape_grid_size;
+	int top_grid_size;
+	MDisps *old_displacement_grids;
+	MDisps *new_displacement_grids;
+	GridPaintMask *grid_paint_mask;
+} MultiresPropagateData;
+
+typedef struct MultiresPropagateCornerData {
+	float old_coord[3];
+	float new_coord[3];
+	float coord_delta[3];
+	float mask;
+} MultiresPropagateCornerData;
+
+static void multires_reshape_propagate_prepare(
+        MultiresPropagateData *data,
+        Mesh *coarse_mesh,
+        const int reshape_level,
+        const int top_level)
+{
+	BLI_assert(reshape_level <= top_level);
+	data->old_displacement_grids = NULL;
+	if (reshape_level == top_level) {
+		/* Nothing to do, reshape will happen on the whole grid content. */
+		return;
+	}
+	const int num_grids = coarse_mesh->totloop;
+	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	MDisps *old_mdisps = MEM_dupallocN(mdisps);
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		MDisps *displacement_grid = &mdisps[grid_index];
+		MDisps *old_displacement_grid = &old_mdisps[grid_index];
+		old_displacement_grid->totdisp = displacement_grid->totdisp;
+		old_displacement_grid->level = displacement_grid->level;
+		if (displacement_grid->disps) {
+			displacement_grid->disps = MEM_dupallocN(displacement_grid->disps);
+		}
+		else {
+			old_displacement_grid->disps = NULL;
+		}
+		/* TODO(sergey): This might be needed for proper propagation. */
+		old_displacement_grid->hidden = NULL;
+	}
+	data->reshape_level = reshape_level;
+	data->top_level = top_level;
+	data->num_grids = num_grids;
+	/* TODO(sergey): use grid_size_for_level_get(). */
+	data->reshape_grid_size = (1 << (reshape_level - 1)) + 1;
+	data->top_grid_size = (1 << (top_level - 1)) + 1;
+	data->old_displacement_grids = old_mdisps;
+	data->new_displacement_grids = mdisps;
+	data->grid_paint_mask =
+	        CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
+}
+
+static void multires_reshape_propagate_prepare_from_mmd(
+        MultiresPropagateData *data,
+        struct Depsgraph *depsgraph,
+        Object *object,
+        const MultiresModifierData *mmd,
+        const int top_level,
+        const bool use_render_params)
+{
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	Mesh *mesh = object->data;
+	const int level = multires_get_level(
+	        scene_eval, object, mmd, use_render_params, true);
+	multires_reshape_propagate_prepare(data, mesh, level, top_level);
+}
+
+static void multires_reshape_propagate_corner_data(
+        MultiresPropagateCornerData *corner,
+        const MDisps *old_displacement_grid,
+        const MDisps *new_displacement_grid,
+        const GridPaintMask *grid_paint_mask,
+        const int grid_size,
+        const int grid_skip,
+        const int reshape_x, const int reshape_y)
+{
+	const int x = reshape_x * grid_skip;
+	const int y = reshape_y * grid_skip;
+	const int grid_index = y * grid_size + x;
+	if (old_displacement_grid->disps != NULL) {
+		copy_v3_v3(corner->old_coord, old_displacement_grid->disps[grid_index]);
+	}
+	else {
+		zero_v3(corner->old_coord);
+	}
+	copy_v3_v3(corner->new_coord, new_displacement_grid->disps[grid_index]);
+	sub_v3_v3v3(corner->coord_delta, corner->new_coord, corner->old_coord);
+	if (grid_paint_mask != NULL) {
+		corner->mask = grid_paint_mask->data[grid_index];
+	}
+	else {
+		corner->mask = 0.0f;
+	}
+}
+
+static void multires_reshape_propagate_all_corners_data(
+        MultiresPropagateCornerData corners[4],
+        const MDisps *old_displacement_grid,
+        const MDisps *new_displacement_grid,
+        const GridPaintMask *grid_paint_mask,
+        const int grid_size,
+        const int grid_skip,
+        const int reshape_x, const int reshape_y)
+{
+	int corner_index = 0;
+	for (int dy = 0; dy <= 1; dy++) {
+		for (int dx = 0; dx <= 1; dx++) {
+			multires_reshape_propagate_corner_data(
+			        &corners[corner_index],
+			        old_displacement_grid,
+			        new_displacement_grid,
+			        grid_paint_mask,
+			        grid_size,
+			        grid_skip,
+			        reshape_x + dx, reshape_y + dy);
+			corner_index++;
+		}
+	}
+}
+
+static void multires_reshape_propagate_interpolate_coord(
+        MDisps *new_displacement_grid,
+        const MultiresPropagateCornerData corners[4],
+        const float weights[4],
+        const int x, const int y,
+        const int grid_size)
+{
+	float delta[3];
+	interp_v3_v3v3v3v3(
+	        delta,
+	        corners[0].coord_delta, corners[1].coord_delta,
+	        corners[2].coord_delta, corners[3].coord_delta,
+	        weights);
+	const int index = y * grid_size + x;
+	float *new_displacement = new_displacement_grid->disps[index];
+	add_v3_v3(new_displacement, delta);
+}
+
+static void multires_reshape_propagate_interpolate_mask(
+        GridPaintMask *grid_paint_mask,
+        const MultiresPropagateCornerData corners[4],
+        const float weights[4],
+        const int x, const int y,
+        const int grid_size)
+{
+	const int index = y * grid_size + x;
+	grid_paint_mask->data[index] =
+	        corners[0].mask * weights[0] +
+	        corners[1].mask * weights[1] +
+	        corners[2].mask * weights[2] +
+	        corners[3].mask * weights[3];
+}
+
+static void multires_reshape_propagate_grid(
+        MultiresPropagateData *data,
+        const MDisps *old_displacement_grid,
+        MDisps *new_displacement_grid,
+        GridPaintMask *grid_paint_mask)
+{
+	const int reshape_grid_size = data->reshape_grid_size;
+	const int top_grid_size = data->top_grid_size;
+	const int grid_skip = (top_grid_size - 1) / (reshape_grid_size - 1);
+	const float grid_skip_inv = 1.0f / (float)grid_skip;
+	for (int reshape_y = 0;
+	     reshape_y < reshape_grid_size - 1;
+	     reshape_y++)
+	{
+		for (int reshape_x = 0;
+		     reshape_x < reshape_grid_size - 1;
+		     reshape_x++)
+		{
+			MultiresPropagateCornerData corners[4];
+			multires_reshape_propagate_all_corners_data(
+			        corners,
+			        old_displacement_grid, new_displacement_grid,
+			        grid_paint_mask,
+			        top_grid_size,
+			        grid_skip,
+			        reshape_x, reshape_y);
+			/* Propagate to higher levels. */
+			for (int y = 0; y <= grid_skip; y++) {
+				const float v = (float)y * grid_skip_inv;
+				for (int x = 0; x <= grid_skip; x++) {
+					/* Ignorevalues at the exact locations of grid which was
+					 * reshape. Those points already have proper displacement.
+					 */
+					if ((x == 0 && y == 0) ||
+					    (x == grid_skip && y == 0) ||
+					    (x == grid_skip && y == grid_skip) ||
+					    (x == 0 && y == grid_skip))
+					{
+						continue;
+					}
+					/* Ignore right-most column and top-most row, unless this
+					 * is a boundary of the grid, to prevent displacement
+					 * being affected twice.
+					 */
+					if (x == grid_skip && reshape_x != reshape_grid_size - 2) {
+						continue;
+					}
+					if (y == grid_skip && reshape_y != reshape_grid_size - 2) {
+						continue;
+					}
+					const float u = (float)x * grid_skip_inv;
+					const int final_x = reshape_x * grid_skip + x;
+					const int final_y = reshape_y * grid_skip + y;
+					const float linear_weights[4] = {(1.0f - u) * (1.0f - v),
+					                                 u * (1.0f - v),
+					                                 (1.0f - u) * v,
+					                                 u * v};
+					multires_reshape_propagate_interpolate_coord(
+					        new_displacement_grid,
+					        corners,
+					        linear_weights,
+					        final_x, final_y,
+					        top_grid_size);
+					if (grid_paint_mask != NULL) {
+						multires_reshape_propagate_interpolate_mask(
+						        grid_paint_mask,
+						        corners,
+						        linear_weights,
+						        final_x, final_y,
+						        top_grid_size);
+					}
+				}
+			}
+		}
+	}
+}
+
+static void multires_reshape_propagate(MultiresPropagateData *data)
+{
+	if (data->old_displacement_grids == NULL) {
+		return;
+	}
+	const int num_grids = data->num_grids;
+	for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+		const MDisps *old_displacement_grid =
+		        &data->old_displacement_grids[grid_index];
+		MDisps *new_displacement_grid =
+		        &data->new_displacement_grids[grid_index];
+		if (old_displacement_grid->level != new_displacement_grid->level) {
+			continue;
+		}
+		GridPaintMask *grid_paint_mask =
+		        data->grid_paint_mask != NULL
+		                ? &data->grid_paint_mask[grid_index]
+		                : NULL;
+		multires_reshape_propagate_grid(
+		        data, old_displacement_grid,
+		        new_displacement_grid,
+		        grid_paint_mask);
+	}
+}
+
+static void multires_reshape_propagate_free(MultiresPropagateData *data)
+{
+	if (data->old_displacement_grids != NULL) {
+		const int num_grids = data->num_grids;
+		MDisps *old_mdisps = data->old_displacement_grids;
+		for (int grid_index = 0; grid_index < num_grids; grid_index++) {
+			MDisps *old_displacement_grid = &old_mdisps[grid_index];
+			if (old_displacement_grid->disps) {
+				MEM_freeN(old_displacement_grid->disps);
+			}
+		}
+		MEM_freeN(data->old_displacement_grids);
+	}
+}
+
+/* =============================================================================
+ * Reshape from deformed vertex coordinates.
  */
 
 typedef struct MultiresReshapeFromDeformedVertsContext {
@@ -362,12 +712,12 @@ static void multires_reshape_vertex(
         const int subdiv_vertex_index)
 {
 	const float *final_P = ctx->deformed_verts[subdiv_vertex_index];
-	multires_reshape_vertex_from_final_coord(
+	multires_reshape_vertex_from_final_data(
 	        &ctx->reshape_ctx,
 	        ptex_face_index, u, v,
 	        coarse_poly_index,
 	        coarse_corner,
-	        final_P);
+	        final_P, 0.0f);
 }
 
 static void multires_reshape_vertex_inner(
@@ -455,14 +805,25 @@ static bool multires_reshape_from_vertcos(
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Mesh *coarse_mesh = object->data;
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_grids(coarse_mesh, mmd->totlvl);
+	/* Pick maximum between multires level and dispalcement level.
+	 * This is because mesh can be used by objects with multires at different
+	 * levels.
+	 *
+	 * TODO(sergey): At this point it should be possible to always use
+	 * mdisps->level.
+	 */
+	const int top_level = max_ii(mmd->totlvl, mdisps->level);
+	/* Construct context. */
 	MultiresReshapeFromDeformedVertsContext reshape_deformed_verts_ctx = {
 	        .reshape_ctx = {
-	                .object = object,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
+	                .grid_paint_mask = NULL,
 	                /* TODO(sergey): Use grid_size_for_level_get */
-	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
-	                .top_level = mmd->totlvl,
+	                .grid_size = (1 << (top_level - 1)) + 1,
+	                .level = top_level,
 	        },
 	        .deformed_verts = deformed_verts,
 	        .num_deformed_verts = num_deformed_verts,
@@ -474,9 +835,6 @@ static bool multires_reshape_from_vertcos(
 	        .vertex_every_corner = multires_reshape_vertex_every_corner,
 	        .user_data = &reshape_deformed_verts_ctx,
 	};
-	/* Make sure displacement grids are ready. */
-	multires_reshape_ensure_displacement_grids(
-	        &reshape_deformed_verts_ctx.reshape_ctx);
 	/* Initialize subdivision surface. */
 	Subdiv *subdiv = multires_subdiv_for_reshape(depsgraph, object, mmd);
 	if (subdiv == NULL) {
@@ -487,6 +845,10 @@ static bool multires_reshape_from_vertcos(
 	SubdivToMeshSettings mesh_settings;
 	BKE_multires_subdiv_mesh_settings_init(
         &mesh_settings, scene_eval, object, mmd, use_render_params, true);
+	/* Initialize propagation to higher levels. */
+	MultiresPropagateData propagate_data;
+	multires_reshape_propagate_prepare_from_mmd(
+        &propagate_data, depsgraph, object, mmd, top_level, use_render_params);
 	/* Run all the callbacks. */
 	BKE_subdiv_foreach_subdiv_geometry(
 	        subdiv,
@@ -494,6 +856,9 @@ static bool multires_reshape_from_vertcos(
 	        &mesh_settings,
 	        coarse_mesh);
 	BKE_subdiv_free(subdiv);
+	/* Update higher levels if needed. */
+	multires_reshape_propagate(&propagate_data);
+	multires_reshape_propagate_free(&propagate_data);
 	return true;
 }
 
@@ -616,9 +981,9 @@ static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
 	/*const*/ CCGElem **grids = data->grids;
 	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const int grid_size = data->reshape_ctx.grid_size;
-	const int grid_size_1 = grid_size - 1;
-	const int resolution = 2 * grid_size - 1;
+	const int key_grid_size = key->grid_size;
+	const int key_grid_size_1 = key_grid_size - 1;
+	const int resolution = 2 * key_grid_size - 1;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
 	const int coarse_poly_index = coarse_poly - coarse_mpoly;
 	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
@@ -634,15 +999,22 @@ static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
 			/*const*/ CCGElem *grid =
 			        grids[coarse_poly->loopstart + face_corner];
 			/*const*/ CCGElem *grid_element = CCG_grid_elem(
-			        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+			        key,
+			        grid,
+			        key_grid_size_1 * grid_u,
+			        key_grid_size_1 * grid_v);
 			const float *final_P = CCG_elem_co(key, grid_element);
-			multires_reshape_vertex_from_final_coord(
+			float final_mask = 0.0f;
+			if (key->has_mask) {
+				final_mask = *CCG_elem_mask(key, grid_element);
+			}
+			multires_reshape_vertex_from_final_data(
 			        &data->reshape_ctx,
 			        ptex_face_index,
 			        u, v,
 			        coarse_poly_index,
 			        0,
-			        final_P);
+			        final_P, final_mask);
 		}
 	}
 }
@@ -654,9 +1026,9 @@ static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
 	/*const*/ CCGElem **grids = data->grids;
 	const Mesh *coarse_mesh = data->reshape_ctx.coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
-	const int grid_size = data->reshape_ctx.grid_size;
-	const int grid_size_1 = grid_size - 1;
-	const int resolution = grid_size;
+	const int key_grid_size = key->grid_size;
+	const int key_grid_size_1 = key_grid_size - 1;
+	const int resolution = key_grid_size;
 	const float resolution_1_inv = 1.0f / (float)(resolution - 1);
 	const int coarse_poly_index = coarse_poly - coarse_mpoly;
 	const int ptex_face_index = data->face_ptex_offset[coarse_poly_index];
@@ -670,15 +1042,22 @@ static void reshape_from_ccg_special_face(ReshapeFromCCGTaskData *data,
 				/*const*/ CCGElem *grid =
 				        grids[coarse_poly->loopstart + corner];
 				/*const*/ CCGElem *grid_element = CCG_grid_elem(
-				        key, grid, grid_size_1 * grid_u, grid_size_1 * grid_v);
+				        key,
+				        grid,
+				        key_grid_size_1 * grid_u,
+				        key_grid_size_1 * grid_v);
 				const float *final_P = CCG_elem_co(key, grid_element);
-				multires_reshape_vertex_from_final_coord(
+				float final_mask = 0.0f;
+				if (key->has_mask) {
+					final_mask = *CCG_elem_mask(key, grid_element);
+				}
+				multires_reshape_vertex_from_final_data(
 				        &data->reshape_ctx,
 				        ptex_face_index + corner,
 				        u, v,
 				        coarse_poly_index,
 				        corner,
-				        final_P);
+				        final_P, final_mask);
 			}
 		}
 	}
@@ -702,9 +1081,10 @@ static void reshape_from_ccg_task(
 }
 
 bool multiresModifier_reshapeFromCCG(
-        Object *dst, SubdivCCG *subdiv_ccg)
+        const int tot_level,
+        Mesh *coarse_mesh,
+        SubdivCCG *subdiv_ccg)
 {
-	Mesh *coarse_mesh = dst->data;
 	CCGKey key;
 	BKE_subdiv_ccg_key_top_level(&key, subdiv_ccg);
 	/* Sanity checks. */
@@ -713,23 +1093,36 @@ bool multiresModifier_reshapeFromCCG(
 		return false;
 	}
 	MDisps *mdisps = CustomData_get_layer(&coarse_mesh->ldata, CD_MDISPS);
-	/* TODO(sergey): Key has grid size for the current level. Need to access top
-	 * level somehow.
-	 */
+	GridPaintMask *grid_paint_mask =
+	        CustomData_get_layer(&coarse_mesh->ldata, CD_GRID_PAINT_MASK);
 	Subdiv *subdiv = subdiv_ccg->subdiv;
+	/* Make sure displacement grids are ready. */
+	multires_reshape_ensure_grids(coarse_mesh, tot_level);
+	/* Pick maximum between multires level and dispalcement level.
+	 * This is because mesh can be used by objects with multires at different
+	 * levels.
+	 *
+	 * TODO(sergey): At this point it should be possible to always use
+	 * mdisps->level.
+	 */
+	const int top_level = max_ii(tot_level, mdisps->level);
+	/* Construct context. */
 	ReshapeFromCCGTaskData data = {
 	        .reshape_ctx = {
 	                .subdiv = subdiv,
-	                .object = dst,
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps  = mdisps,
-	                .grid_size = key.grid_size,
-	                .top_level = key.level},
+	                .grid_paint_mask = grid_paint_mask,
+	                 /* TODO(sergey): Use grid_size_for_level_get */
+	                .grid_size = (1 << (top_level - 1)) + 1,
+	                .level = top_level},
 	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        .key = &key,
 	        .grids = subdiv_ccg->grids};
-	/* Make sure displacement grids are ready. */
-	multires_reshape_ensure_displacement_grids(&data.reshape_ctx);
+	/* Initialize propagation to higher levels. */
+	MultiresPropagateData propagate_data;
+	multires_reshape_propagate_prepare(
+	        &propagate_data, coarse_mesh, key.level, top_level);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
@@ -737,5 +1130,8 @@ bool multiresModifier_reshapeFromCCG(
 	                        &data,
 	                        reshape_from_ccg_task,
 	                        &parallel_range_settings);
+	/* Update higher levels if needed. */
+	multires_reshape_propagate(&propagate_data);
+	multires_reshape_propagate_free(&propagate_data);
 	return true;
 }

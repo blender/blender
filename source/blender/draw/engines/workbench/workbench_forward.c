@@ -363,11 +363,21 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
 	/* Checker Depth */
 	{
+		float blend_threshold = 0.0f;
+
+		if (draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) {
+			blend_threshold = 0.75f - wpd->shading.xray_alpha * 0.5f;
+		}
+
+		if (draw_ctx->v3d->shading.type == OB_WIRE) {
+			wpd->shading.xray_alpha = 0.0f;
+		}
+
 		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
 		psl->checker_depth_pass = DRW_pass_create("Checker Depth", state);
 		grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
-		DRW_shgroup_uniform_float_copy(grp, "threshold", 0.75f - wpd->shading.xray_alpha * 0.5f);
+		DRW_shgroup_uniform_float_copy(grp, "threshold", blend_threshold);
 	}
 }
 

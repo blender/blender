@@ -154,7 +154,7 @@ static int customdata_compare(CustomData *c1, CustomData *c2, Mesh *m1, Mesh *m2
 			for (j = 0; j < vtot; j++, v1++, v2++) {
 				if (len_squared_v3v3(v1->co, v2->co) > thresh_sq)
 					return MESHCMP_VERTCOMISMATCH;
-				/* I don't care about normals, let's just do coodinates */
+				/* I don't care about normals, let's just do coordinates */
 			}
 		}
 
@@ -326,7 +326,7 @@ static void mesh_ensure_tessellation_customdata(Mesh *me)
 				/* note: this warning may be un-called for if we are initializing the mesh for the
 				 * first time from bmesh, rather then giving a warning about this we could be smarter
 				 * and check if there was any data to begin with, for now just print the warning with
-				 * some info to help troubleshoot whats going on - campbell */
+				 * some info to help troubleshoot what's going on - campbell */
 				printf("%s: warning! Tessellation uvs or vcol data got out of sync, "
 				       "had to reset!\n    CD_MTFACE: %d != CD_MLOOPUV: %d || CD_MCOL: %d != CD_MLOOPCOL: %d\n",
 				       __func__, tottex_tessface, tottex_original, totcol_tessface, totcol_original);
@@ -695,16 +695,19 @@ Mesh * BKE_mesh_new_nomain_from_template(
 	        CD_MASK_EVERYTHING);
 }
 
-Mesh *BKE_mesh_copy_for_eval(struct Mesh *source)
+Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference)
 {
+	int flags = (LIB_ID_CREATE_NO_MAIN |
+	             LIB_ID_CREATE_NO_USER_REFCOUNT |
+	             LIB_ID_CREATE_NO_DEG_TAG |
+	             LIB_ID_COPY_NO_PREVIEW);
+
+	if (reference) {
+		flags |= LIB_ID_COPY_CD_REFERENCE;
+	}
+
 	Mesh *result;
-	BKE_id_copy_ex(
-	        NULL, &source->id, (ID **)&result,
-	        (LIB_ID_CREATE_NO_MAIN |
-	         LIB_ID_CREATE_NO_USER_REFCOUNT |
-	         LIB_ID_CREATE_NO_DEG_TAG |
-	         LIB_ID_COPY_CD_REFERENCE),
-	        false);
+	BKE_id_copy_ex( NULL, &source->id, (ID **)&result, flags, false);
 	return result;
 }
 

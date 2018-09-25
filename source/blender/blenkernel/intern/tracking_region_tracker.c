@@ -149,7 +149,7 @@ static ImBuf *tracking_context_get_keyframed_ibuf(MovieClip *clip, MovieClipUser
 	return tracking_context_get_frame_ibuf(clip, user, clip_flag, keyed_framenr);
 }
 
-/* Get image buffer which si used as referece for track. */
+/* Get image buffer which si used as reference for track. */
 static ImBuf *tracking_context_get_reference_ibuf(MovieClip *clip, MovieClipUser *user, int clip_flag,
                                                   MovieTrackingTrack *track, int curfra, bool backwards,
                                                   MovieTrackingMarker **reference_marker)

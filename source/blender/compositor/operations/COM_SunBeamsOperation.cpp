@@ -141,7 +141,7 @@ struct BufferLineAccumulator {
 
 	/**
 	 * Perform the actual accumulation along a ray segment from source to pt.
-	 * Only pixels withing dist_min..dist_max contribute.
+	 * Only pixels within dist_min..dist_max contribute.
 	 *
 	 * The loop runs backwards(!) over the primary sector space axis u, i.e. increasing distance to pt.
 	 * After each step it decrements v by dv < 1, adding a buffer shift when necessary.

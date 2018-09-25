@@ -384,7 +384,7 @@ DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 			int i2=(i+2)%3;
 			int j1=(j+1)%3;
 			int j2=(j+2)%3;
-			/** Reverse indexs i&j to take transpose. */
+			/** Reverse indexes i&j to take transpose. */
 			to[j][i] = (from[i1][j1]*from[i2][j2]-from[i1][j2]*from[i2][j1])/d;
 			/**
 			 * <pre>

@@ -119,7 +119,7 @@ static void loops_of_ptex_get(
 	/* Loop which look in the (opposite) V direction of the current
 	 * ptex face.
 	 *
-	 * TOOD(sergey): Get rid of using module on every iteration.
+	 * TODO(sergey): Get rid of using module on every iteration.
 	 */
 	const int last_ptex_loop_index =
 	        coarse_poly->loopstart +
@@ -562,7 +562,7 @@ static void evaluate_vertex_and_apply_displacement_copy(
         MVert *subdiv_vert)
 {
 	/* Displacement is accumulated in subdiv vertex position.
-	 * need to back it up before copying data fro original vertex.
+	 * need to back it up before copying data from original vertex.
 	 */
 	float D[3];
 	copy_v3_v3(D, subdiv_vert->co);
@@ -584,7 +584,7 @@ static void evaluate_vertex_and_apply_displacement_interpolate(
         MVert *subdiv_vert)
 {
 	/* Displacement is accumulated in subdiv vertex position.
-	 * need to back it up before copying data fro original vertex.
+	 * need to back it up before copying data from original vertex.
 	 */
 	float D[3];
 	copy_v3_v3(D, subdiv_vert->co);
@@ -1073,7 +1073,7 @@ static void setup_foreach_callbacks(SubdivForeachContext *foreach_context,
                                     const Subdiv *subdiv)
 {
 	memset(foreach_context, 0, sizeof(*foreach_context));
-	/* General informaiton. */
+	/* General information. */
 	foreach_context->topology_info = subdiv_mesh_topology_info;
 	/* Every boundary geometry. Used for dispalcement averaging. */
 	if (subdiv->displacement_evaluator != NULL) {

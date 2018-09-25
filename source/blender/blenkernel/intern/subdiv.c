@@ -129,15 +129,19 @@ int *BKE_subdiv_face_ptex_offset_get(Subdiv *subdiv)
 	if (subdiv->cache_.face_ptex_offset != NULL) {
 		return subdiv->cache_.face_ptex_offset;
 	}
+	OpenSubdiv_TopologyRefiner *topology_refiner = subdiv->topology_refiner;
+	if (topology_refiner == NULL) {
+		return NULL;
+	}
 	const int num_coarse_faces =
-	        subdiv->topology_refiner->getNumFaces(subdiv->topology_refiner);
+	        topology_refiner->getNumFaces(topology_refiner);
 	subdiv->cache_.face_ptex_offset = MEM_malloc_arrayN(
 	        num_coarse_faces, sizeof(int), "subdiv face_ptex_offset");
 	int ptex_offset = 0;
 	for (int face_index = 0; face_index < num_coarse_faces; face_index++) {
 		const int num_ptex_faces =
-		        subdiv->topology_refiner->getNumFacePtexFaces(
-		                subdiv->topology_refiner, face_index);
+		        topology_refiner->getNumFacePtexFaces(
+		                topology_refiner, face_index);
 		subdiv->cache_.face_ptex_offset[face_index] = ptex_offset;
 		ptex_offset += num_ptex_faces;
 	}

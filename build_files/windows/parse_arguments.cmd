@@ -12,9 +12,6 @@ if NOT "%1" == "" (
 	if "%1" == "debug" (
 		set BUILD_TYPE=Debug
 	REM Build Configurations
-	) else if "%1" == "noge" (
-		set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -DWITH_GAMEENGINE=OFF -DWITH_PLAYER=OFF
-		set BUILD_NGE=_noge
 	) else if "%1" == "builddir" (
 		set BUILD_DIR_OVERRRIDE="%BLENDER_DIR%..\%2"
 		shift /1

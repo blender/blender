@@ -464,7 +464,7 @@ struct Mesh *modifier_applyModifier_ensure_normals(
         struct ModifierData *md, const struct ModifierEvalContext *ctx,
         struct Mesh *mesh);
 
-/* depricated variants of above that accept DerivedMesh */
+/* deprecated variants of above that accept DerivedMesh */
 
 void modifier_deformVerts_DM_deprecated(
         struct ModifierData *md, const struct ModifierEvalContext *ctx,

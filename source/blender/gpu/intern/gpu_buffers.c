@@ -413,7 +413,7 @@ void GPU_pbvh_grid_buffers_update(
 		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf_fast);
 	}
 	else if (!buffers->smooth && buffers->index_buf != NULL) {
-		/* Discard unecessary index buffers. */
+		/* Discard unnecessary index buffers. */
 		GPU_BATCH_DISCARD_SAFE(buffers->triangles);
 		GPU_BATCH_DISCARD_SAFE(buffers->triangles_fast);
 		GPU_INDEXBUF_DISCARD_SAFE(buffers->index_buf);

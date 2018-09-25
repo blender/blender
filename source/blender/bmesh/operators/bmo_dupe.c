@@ -486,6 +486,7 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 	steps    = BMO_slot_int_get(op->slots_in,   "steps");
 	phi      = BMO_slot_float_get(op->slots_in, "angle") / steps;
 	do_dupli = BMO_slot_bool_get(op->slots_in,  "use_duplicate");
+	const bool use_normal_flip = BMO_slot_bool_get(op->slots_in,  "use_normal_flip");
 
 	axis_angle_normalized_to_mat3(rmat, axis, phi);
 
@@ -503,8 +504,8 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			BMO_op_finish(bm, &dupop);
 		}
 		else {
-			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region geom=%S",
-			             op, "geom_last.out");
+			BMO_op_initf(bm, &extop, op->flag, "extrude_face_region geom=%S use_normal_flip=%b",
+			             op, "geom_last.out", use_normal_flip && (a == 0));
 			BMO_op_exec(bm, &extop);
 			BMO_op_callf(bm, op->flag,
 			             "rotate cent=%v matrix=%m3 space=%s verts=%S",

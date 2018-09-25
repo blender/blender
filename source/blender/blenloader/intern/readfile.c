@@ -5198,7 +5198,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->coll = NULL;
 				smd->flow = newdataadr(fd, smd->flow);
 				smd->flow->smd = smd;
-				smd->flow->dm = NULL;
+				smd->flow->mesh = NULL;
 				smd->flow->verts_old = NULL;
 				smd->flow->numverts = 0;
 				smd->flow->psys = newdataadr(fd, smd->flow->psys);
@@ -5211,7 +5211,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					smd->coll->smd = smd;
 					smd->coll->verts_old = NULL;
 					smd->coll->numverts = 0;
-					smd->coll->dm = NULL;
+					smd->coll->mesh = NULL;
 				}
 				else {
 					smd->type = 0;
@@ -5227,7 +5227,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if (pmd->canvas) {
 				pmd->canvas = newdataadr(fd, pmd->canvas);
 				pmd->canvas->pmd = pmd;
-				pmd->canvas->dm = NULL;
+				pmd->canvas->mesh = NULL;
 				pmd->canvas->flags &= ~MOD_DPAINT_BAKING; /* just in case */
 
 				if (pmd->canvas->surfaces.first) {
@@ -5250,7 +5250,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
 				pmd->brush->paint_ramp = newdataadr(fd, pmd->brush->paint_ramp);
 				pmd->brush->vel_ramp = newdataadr(fd, pmd->brush->vel_ramp);
-				pmd->brush->dm = NULL;
+				pmd->brush->mesh = NULL;
 			}
 		}
 		else if (md->type == eModifierType_Collision) {
@@ -10220,6 +10220,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 							break;
 						case ID_WS:
 							expand_workspace(fd, mainvar, (WorkSpace *)id);
+							break;
 						default:
 							break;
 					}

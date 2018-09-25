@@ -155,7 +155,7 @@ void GPU_vertbuf_data_resize(GPUVertBuf *verts, uint v_len)
 
 /* Set vertex count but does not change allocation.
  * Only this many verts will be uploaded to the GPU and rendered.
- * This is usefull for streaming data. */
+ * This is useful for streaming data. */
 void GPU_vertbuf_vertex_count_set(GPUVertBuf *verts, uint v_len)
 {
 #if TRUST_NO_ONE

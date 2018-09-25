@@ -1,7 +1,7 @@
 
 uniform mat4 ViewProjectionMatrix;
 
-/* ---- Instanciated Attribs ---- */
+/* ---- Instantiated Attribs ---- */
 in vec3 pos;
 
 /* ---- Per instance Attribs ---- */

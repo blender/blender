@@ -69,7 +69,7 @@ void deg_graph_build_flush_visibility(Depsgraph *graph)
 	foreach (IDDepsNode *id_node, graph->id_nodes) {
 		GHASH_FOREACH_BEGIN(ComponentDepsNode *, comp_node, id_node->components)
 		{
-			comp_node->affects_directly_visible = id_node->is_directly_visible;
+			comp_node->affects_directly_visible |= id_node->is_directly_visible;
 		}
 		GHASH_FOREACH_END();
 	}

@@ -72,12 +72,13 @@ static void initData(ModifierData *md)
 	smd->time = -1;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target, const int UNUSED(flag))
+static void copyData(const ModifierData *md, ModifierData *target, const int flag)
 {
 	const SmokeModifierData *smd  = (const SmokeModifierData *)md;
 	SmokeModifierData *tsmd = (SmokeModifierData *)target;
 
-	smokeModifier_copy(smd, tsmd);
+	smokeModifier_free(tsmd);
+	smokeModifier_copy(smd, tsmd, flag);
 }
 
 static void freeData(ModifierData *md)
@@ -105,21 +106,19 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier_DM(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *me)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
 	if (ctx->flag & MOD_APPLY_ORCO) {
-		return dm;
+		return me;
 	}
 
 	Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, dm);
+	return smokeModifier_do(smd, ctx->depsgraph, scene, ctx->object, me);
 }
-
-applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {

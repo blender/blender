@@ -67,7 +67,7 @@ typedef struct GPUColorBandBuilder {
 } GPUColorBandBuilder;
 
 struct GPUMaterial {
-	Scene *scene; /* DEPRECATED was only usefull for lamps */
+	Scene *scene; /* DEPRECATED was only useful for lamps */
 	Material *ma;
 
 	/* material for mesh surface, worlds or something else.
@@ -141,7 +141,7 @@ enum {
 
 /* Functions */
 
-/* Returns the adress of the future pointer to coba_tex */
+/* Returns the address of the future pointer to coba_tex */
 GPUTexture **gpu_material_ramp_texture_row_set(GPUMaterial *mat, int size, float *pixels, float *row)
 {
 	/* In order to put all the colorbands into one 1D array texture,
@@ -467,7 +467,7 @@ static void compute_sss_translucence_kernel(
 		/* Distance from surface. */
 		float d = kd->max_radius * ((float)i + 0.00001f) / ((float)resolution);
 
-		/* For each distance d we compute the radiance incomming from an hypothetic parallel plane. */
+		/* For each distance d we compute the radiance incoming from an hypothetic parallel plane. */
 		/* Compute radius of the footprint on the hypothetic plane */
 		float r_fp = sqrtf(kd->max_radius * kd->max_radius - d * d);
 		float r_step = r_fp / INTEGRAL_RESOLUTION;
@@ -482,7 +482,7 @@ static void compute_sss_translucence_kernel(
 			profile[1] = eval_profile(dist, falloff_type, sharpness, kd->param[1]);
 			profile[2] = eval_profile(dist, falloff_type, sharpness, kd->param[2]);
 
-			/* Since the profile and configuration are radially symetrical we
+			/* Since the profile and configuration are radially symmetrical we
 			 * can just evaluate it once and weight it accordingly */
 			float r_next = r + r_step;
 			float disk_area = (M_PI * r_next * r_next) - (M_PI * r * r);

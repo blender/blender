@@ -404,6 +404,7 @@ RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_draw_value, flag, WM_GIZMO_DRAW_VALUE);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_draw_offset_scale, flag, WM_GIZMO_DRAW_OFFSET_SCALE);
 RNA_GIZMO_GENERIC_FLAG_NEG_RW_DEF(flag_use_draw_scale, flag, WM_GIZMO_DRAW_OFFSET_SCALE);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_hide, flag, WM_GIZMO_HIDDEN);
+RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_hide_select, flag, WM_GIZMO_HIDDEN_SELECT);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_grab_cursor, flag, WM_GIZMO_MOVE_CURSOR);
 RNA_GIZMO_GENERIC_FLAG_RW_DEF(flag_use_select_background, flag, WM_GIZMO_SELECT_BACKGROUND);
 
@@ -1100,6 +1101,12 @@ static void rna_def_gizmo(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(
 	        prop, "rna_Gizmo_flag_hide_get", "rna_Gizmo_flag_hide_set");
 	RNA_def_property_ui_text(prop, "Hide", "");
+	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
+	/* WM_GIZMO_HIDDEN_SELECT */
+	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(
+	        prop, "rna_Gizmo_flag_hide_select_get", "rna_Gizmo_flag_hide_select_set");
+	RNA_def_property_ui_text(prop, "Hide Select", "");
 	RNA_def_property_update(prop, NC_SCREEN | NA_EDITED, NULL);
 	/* WM_GIZMO_MOVE_CURSOR */
 	prop = RNA_def_property(srna, "use_grab_cursor", PROP_BOOLEAN, PROP_NONE);

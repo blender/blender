@@ -26,7 +26,7 @@
 /** \file blender/gpu/intern/gpu_context_private.h
  *  \ingroup gpu
  *
- * This interface allow GPU to manage GL objects for mutiple context and threads.
+ * This interface allow GPU to manage GL objects for multiple context and threads.
  */
 
 #ifndef __GPU_CONTEXT_PRIVATE_H__

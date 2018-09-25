@@ -7516,13 +7516,13 @@ static bool rna_property_override_operation_apply(
 	}
 
 	if (ELEM(override_op, IDOVERRIDESTATIC_OP_ADD, IDOVERRIDESTATIC_OP_SUBTRACT, IDOVERRIDESTATIC_OP_MULTIPLY) && !ptr_storage) {
-		/* We cannot apply 'diff' override operations without some refference storage.
+		/* We cannot apply 'diff' override operations without some reference storage.
 		 * This should typically only happen at read time of .blend file... */
 		return false;
 	}
 
 	if (ELEM(override_op, IDOVERRIDESTATIC_OP_ADD, IDOVERRIDESTATIC_OP_SUBTRACT, IDOVERRIDESTATIC_OP_MULTIPLY) && !prop_storage) {
-		/* We cannot apply 'diff' override operations without some refference storage.
+		/* We cannot apply 'diff' override operations without some reference storage.
 		 * This should typically only happen at read time of .blend file... */
 		return false;
 	}
@@ -7582,7 +7582,7 @@ static bool rna_property_override_operation_apply(
 }
 
 /**
- * Check whether reference and local overriden data match (are the same),
+ * Check whether reference and local overridden data match (are the same),
  * with respect to given restrictive sets of properties.
  * If requested, will generate needed new property overrides, and/or restore values from reference.
  *

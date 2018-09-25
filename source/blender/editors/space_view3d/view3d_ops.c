@@ -418,8 +418,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 #endif /* WITH_INPUT_NDOF */
 
 	/* drawtype */
-	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "type", OB_SOLID);
+	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_shading_pie", ZKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, KM_ALT, 0);
 	RNA_enum_set(kmi->ptr, "type", OB_MATERIAL);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_shading", ZKEY, KM_PRESS, KM_SHIFT, 0);

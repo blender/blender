@@ -887,7 +887,7 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_from_object", "rna_Main_meshes_new_from_object");
 	RNA_def_function_ui_description(func, "Add a new mesh created from object with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within wich to evaluate modifiers");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

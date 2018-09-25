@@ -56,7 +56,7 @@ typedef struct PaintPoint {
 	float color[4];
 } PaintPoint;
 
-/* heigh field waves	*/
+/* height field waves	*/
 typedef struct PaintWavePoint {
 
 	float height;
@@ -65,8 +65,8 @@ typedef struct PaintWavePoint {
 	short state;
 } PaintWavePoint;
 
-struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Depsgraph *depsgraph, struct Scene *scene,
-                                             struct Object *ob, struct DerivedMesh *dm);
+struct Mesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Depsgraph *depsgraph, struct Scene *scene,
+                                             struct Object *ob, struct Mesh *dm);
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd);
 void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
 

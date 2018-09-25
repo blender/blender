@@ -201,9 +201,31 @@ void imm_draw_circle_fill_aspect_2d(uint shdr_pos, float x, float y, float rad_x
 	imm_draw_circle(GPU_PRIM_TRI_FAN, shdr_pos, x, y, rad_x, rad_y, nsegments);
 }
 
-/**
- * \note We could have `imm_draw_lined_disk_partial` but currently there is no need.
- */
+static void imm_draw_circle_partial(
+        GPUPrimType prim_type, uint pos, float x, float y,
+        float rad, int nsegments, float start, float sweep)
+{
+	/* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
+	const float angle_start = -(DEG2RADF(start)) + (float)(M_PI / 2);
+	const float angle_end   = -(DEG2RADF(sweep) - angle_start);
+	nsegments += 1;
+	immBegin(prim_type, nsegments);
+	for (int i = 0; i < nsegments; ++i) {
+		const float angle = interpf(angle_start, angle_end, ((float)i / (float)(nsegments - 1)));
+		const float angle_sin = sinf(angle);
+		const float angle_cos = cosf(angle);
+		immVertex2f(pos, x + rad * angle_cos, y + rad * angle_sin);
+	}
+	immEnd();
+}
+
+void imm_draw_circle_partial_wire_2d(
+        uint pos, float x, float y,
+        float rad, int nsegments, float start, float sweep)
+{
+	imm_draw_circle_partial(GPU_PRIM_LINE_STRIP, pos, x, y, rad, nsegments, start, sweep);
+}
+
 static void imm_draw_disk_partial(
         GPUPrimType prim_type, uint pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)

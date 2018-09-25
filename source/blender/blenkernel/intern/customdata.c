@@ -2239,6 +2239,27 @@ void CustomData_copy_data(const CustomData *source, CustomData *dest,
 	}
 }
 
+void CustomData_copy_layer_type_data(const CustomData *source,
+                                     CustomData *destination,
+                                     int type,
+                                     int source_index, int destination_index,
+                                     int count)
+{
+	const int source_layer_index = CustomData_get_layer_index(source, type);
+	if (source_layer_index == -1) {
+		return;
+	}
+	const int destinaiton_layer_index =
+	        CustomData_get_layer_index(destination, type);
+	if (destinaiton_layer_index == -1) {
+		return;
+	}
+	CustomData_copy_data_layer(source, destination,
+	                           source_layer_index, destinaiton_layer_index,
+	                           source_index, destination_index,
+	                           count);
+}
+
 void CustomData_free_elem(CustomData *data, int index, int count)
 {
 	int i;
@@ -2874,7 +2895,7 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 	}
 }
 
-/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more effecient memory alloc*/
+/*Bmesh Custom Data Functions. Should replace editmesh ones with these as well, due to more efficient memory alloc*/
 void *CustomData_bmesh_get(const CustomData *data, void *block, int type)
 {
 	int layer_index;

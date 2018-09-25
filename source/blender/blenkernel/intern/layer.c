@@ -438,13 +438,16 @@ void BKE_view_layer_rename(Main *bmain, Scene *scene, ViewLayer *view_layer, con
 		}
 	}
 
-	/* fix all the animation data and windows which may link to this */
+	/* Fix all the animation data and windows which may link to this. */
 	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
 
+	/* WM can be missing on startup. */
 	wmWindowManager *wm = bmain->wm.first;
-	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
-			STRNCPY(win->view_layer_name, view_layer->name);
+	if (wm) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			if (win->scene == scene && STREQ(win->view_layer_name, oldname)) {
+				STRNCPY(win->view_layer_name, view_layer->name);
+			}
 		}
 	}
 

@@ -605,7 +605,7 @@ void BKE_vfont_select_clamp(Object *ob)
 
 static float char_width(Curve *cu, VChar *che, CharInfo *info)
 {
-	/* The character wasn't found, propably ascii = 0, then the width shall be 0 as well */
+	/* The character wasn't found, probably ascii = 0, then the width shall be 0 as well */
 	if (che == NULL) {
 		return 0.0f;
 	}
@@ -1051,7 +1051,7 @@ makebreak:
 				lines = ct_last->linenr - ct_first->linenr + 1;
 
 				textbox_scale(&tb_scale, &cu->tb[tb_index], 1.0f / cu->fsize);
-				/* The initial Y origin of the textbox is harcoded to 1.0f * text scale. */
+				/* The initial Y origin of the textbox is hardcoded to 1.0f * text scale. */
 				const float textbox_y_origin = 1.0f;
 				float yoff;
 

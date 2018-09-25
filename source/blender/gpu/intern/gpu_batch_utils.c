@@ -202,6 +202,7 @@ GPUBatch *GPU_batch_wire_from_poly_2d_encoded(
 				i++;
 			}
 		}
+		*lines_step++ = lines[lines_len - 1];
 		lines_len = lines_step - lines;
 	}
 

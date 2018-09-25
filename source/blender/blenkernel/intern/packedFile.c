@@ -268,7 +268,7 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 #if 0
 
 // attempt to create a function that generates an unique filename
-// this will work when all funtions in fileops.c understand relative filenames...
+// this will work when all functions in fileops.c understand relative filenames...
 
 static char *find_new_name(char *name)
 {
@@ -362,7 +362,7 @@ int writePackedFile(
  *
  * - PF_EQUAL:     the packed file and original file are identical
  * - PF_DIFFERENT: the packed file and original file differ
- * - PF_NOFILE:    the original file doens't exist
+ * - PF_NOFILE:    the original file doesn't exist
  */
 int checkPackedFile(const char *ref_file_name, const char *filename, PackedFile *pf)
 {

@@ -188,6 +188,9 @@ class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
         col = layout.row(align=True)
         col.prop(gpl, "line_change", text="Stroke Thickness")
 
+        col = layout.row(align=True)
+        col.prop(gpl, "unlock_color", text="Unlock Color")
+
 
 class DATA_PT_gpencil_parentpanel(LayerDataButtonsPanel, Panel):
     bl_space_type = 'PROPERTIES'

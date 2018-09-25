@@ -117,8 +117,8 @@ struct Mesh *BKE_mesh_new_nomain_from_template(
         int verts_len, int edges_len, int tessface_len,
         int loops_len, int polys_len);
 
-/* Performs copy for use during evaluation. */
-struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source);
+/* Performs copy for use during evaluation, optional referencing original arrays to reduce memory. */
+struct Mesh *BKE_mesh_copy_for_eval(struct Mesh *source, bool reference);
 
 /* These functions construct a new Mesh, contrary to BKE_mesh_from_nurbs which modifies ob itself. */
 struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);

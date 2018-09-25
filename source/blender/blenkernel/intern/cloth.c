@@ -1227,7 +1227,7 @@ static void cloth_update_verts( Object *ob, ClothModifierData *clmd, Mesh *mesh 
 	}
 }
 
-/* Update spring rest lenght, for dynamically deformable cloth */
+/* Update spring rest length, for dynamically deformable cloth */
 static void cloth_update_spring_lengths( ClothModifierData *clmd, Mesh *mesh )
 {
 	Cloth *cloth = clmd->clothObject;
@@ -1555,7 +1555,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 					if (curr_ref->polys == 1) {
 						curr_ref->index = i;
 					}
-					/* Second poly found for this egde, add bending data. */
+					/* Second poly found for this edge, add bending data. */
 					else if (curr_ref->polys == 2) {
 						spring = curr_ref->spring;
 
@@ -1580,7 +1580,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 
 						bend_springs++;
 					}
-					/* Third poly found for this egde, remove bending data. */
+					/* Third poly found for this edge, remove bending data. */
 					else if (curr_ref->polys == 3) {
 						spring = curr_ref->spring;
 
@@ -1675,7 +1675,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 		}
 		else {
 			/* bending springs for hair strands */
-			/* The current algorightm only goes through the edges in order of the mesh edges list	*/
+			/* The current algorithm only goes through the edges in order of the mesh edges list	*/
 			/* and makes springs between the outer vert of edges sharing a vertice. This works just */
 			/* fine for hair, but not for user generated string meshes. This could/should be later	*/
 			/* extended to work with non-ordered edges so that it can be used for general "rope		*/

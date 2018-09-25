@@ -97,7 +97,7 @@ static Collection *collection_add(Main *bmain, Collection *collection_parent, co
 }
 
 /**
- * Add a collection to a collection ListBase and syncronize all render layers
+ * Add a collection to a collection ListBase and synchronize all render layers
  * The ListBase is NULL when the collection is to be added to the master collection
  */
 Collection *BKE_collection_add(Main *bmain, Collection *collection_parent, const char *name_custom)

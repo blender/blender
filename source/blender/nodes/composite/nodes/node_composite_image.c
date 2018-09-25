@@ -296,6 +296,8 @@ static void cmp_node_image_update(bNodeTree *ntree, bNode *node)
 	/* avoid unnecessary updates, only changes to the image/image user data are of interest */
 	if (node->update & NODE_UPDATE_ID)
 		cmp_node_image_verify_outputs(ntree, node, false);
+
+	cmp_node_update_default(ntree, node);
 }
 
 static void node_composit_init_image(bNodeTree *ntree, bNode *node)
@@ -428,6 +430,8 @@ static void node_composit_copy_rlayers(bNodeTree *UNUSED(dest_ntree), bNode *UNU
 static void cmp_node_rlayers_update(bNodeTree *ntree, bNode *node)
 {
 	cmp_node_image_verify_outputs(ntree, node, true);
+
+	cmp_node_update_default(ntree, node);
 }
 
 void register_node_type_cmp_rlayers(void)

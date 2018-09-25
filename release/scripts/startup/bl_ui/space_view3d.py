@@ -55,15 +55,6 @@ class VIEW3D_HT_header(Header):
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
-            # Occlude geometry
-            if (
-                    (((shading.type not in {'SOLID', 'TEXTURED'}) or not shading.show_xray) and
-                     (object_mode == 'PARTICLE_EDIT' or (object_mode == 'EDIT' and obj.type == 'MESH'))) or
-                    (object_mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})
-            ):
-                row = layout.row()
-                row.prop(view, "use_occlude_geometry", text="")
-
         # Pose
         if obj and object_mode == 'POSE':
             row = layout.row(align=True)
@@ -88,6 +79,11 @@ class VIEW3D_HT_header(Header):
 
             if gpd.use_stroke_edit_mode or gpd.is_stroke_sculpt_mode or gpd.is_stroke_weight_mode:
                 row = layout.row(align=True)
+
+                if gpd.is_stroke_sculpt_mode:
+                    row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
+                    row.separator()
+
                 row.prop(gpd, "use_multiedit", text="", icon='FORCE_HARMONIC')
 
                 sub = row.row(align=True)
@@ -229,12 +225,18 @@ class VIEW3D_HT_header(Header):
                 icon=or_icon,
             )
 
-            row = layout.row()
-            row.enabled = context.tool_settings.gpencil_stroke_placement_view3d in ('ORIGIN', 'CURSOR')
-            row.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
+        if object_mode in {'GPENCIL_PAINT', 'GPENCIL_SCULPT'}:
+            lock = tool_settings.gpencil_sculpt.lockaxis
+            gp_lock = \
+                tool_settings.gpencil_sculpt.bl_rna.properties['lockaxis'].enum_items[lock]
 
-        if object_mode == 'GPENCIL_SCULPT':
-            layout.prop(context.tool_settings.gpencil_sculpt, "lockaxis", text='')
+            lk_icon = getattr(gp_lock, "icon", "BLANK1")
+            lk_name = getattr(gp_lock, "name", "None")
+            layout.popover(
+                panel="VIEW3D_PT_gpencil_lock",
+                text=lk_name,
+                icon=lk_icon,
+            )
 
         layout.separator_spacer()
 
@@ -3795,6 +3797,37 @@ class VIEW3D_MT_view_pie(Menu):
         pie.operator("view3d.view_selected", text="View Selected", icon='ZOOM_SELECTED')
 
 
+class VIEW3D_MT_shading_pie(Menu):
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        view = context.space_data
+
+        pie.prop_enum(view.shading, "type", value='WIREFRAME')
+        pie.prop_enum(view.shading, "type", value='SOLID')
+
+        if context.mode == 'POSE':
+            pie.prop(view.overlay, "show_bone_select", icon='ORTHO')
+        else:
+            xray_active = (context.mode in 'EDIT_MESH') or \
+                          (view.shading.type in {'SOLID', 'WIREFRAME'})
+
+            if xray_active:
+                sub = pie
+            else:
+                sub = pie.row()
+                sub.active = False
+
+            sub.prop(view.shading, "show_xray", text="Toggle X-Ray", icon='ORTHO')
+
+        pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
+        pie.prop_enum(view.shading, "type", value='MATERIAL')
+        pie.prop_enum(view.shading, "type", value='RENDERED')
+
+
 # ********** Panel **********
 
 
@@ -3957,6 +3990,11 @@ class VIEW3D_PT_shading_lighting(Panel):
     bl_label = "Lighting"
     bl_parent_id = 'VIEW3D_PT_shading'
 
+    @classmethod
+    def poll(cls, context):
+        shading = VIEW3D_PT_shading.get_shading(context)
+        return shading.type in {'SOLID', 'MATERIAL'}
+
     def draw(self, context):
         layout = self.layout
         shading = VIEW3D_PT_shading.get_shading(context)
@@ -4022,7 +4060,7 @@ class VIEW3D_PT_shading_color(Panel):
     @classmethod
     def poll(cls, context):
         shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type == 'SOLID'
+        return shading.type in {'WIREFRAME', 'SOLID'}
 
     def _draw_color_type(self, context):
         layout = self.layout
@@ -4042,7 +4080,9 @@ class VIEW3D_PT_shading_color(Panel):
             layout.row().prop(shading, "background_color", text="")
 
     def draw(self, context):
-        self._draw_color_type(context)
+        shading = VIEW3D_PT_shading.get_shading(context)
+        if shading.type != 'WIREFRAME':
+            self._draw_color_type(context)
         self._draw_background_color(context)
 
 
@@ -4051,11 +4091,6 @@ class VIEW3D_PT_shading_options(Panel):
     bl_region_type = 'HEADER'
     bl_label = "Options"
     bl_parent_id = 'VIEW3D_PT_shading'
-
-    @classmethod
-    def poll(cls, context):
-        shading = VIEW3D_PT_shading.get_shading(context)
-        return shading.type == 'SOLID'
 
     def draw(self, context):
         layout = self.layout
@@ -4073,43 +4108,45 @@ class VIEW3D_PT_shading_options(Panel):
         sub.active = is_xray
         sub.prop(shading, "xray_alpha", text="X-Ray")
 
-        row = col.row()
-        row.prop(shading, "show_shadows", text="")
-        row.active = not is_xray
-        sub = row.row(align=True)
-        sub.active = is_shadows
-        sub.prop(shading, "shadow_intensity", text="Shadow")
-        sub.popover(
-            panel="VIEW3D_PT_shading_options_shadow",
-            icon='SCRIPTWIN',
-            text=""
-        )
-
-        col = layout.column()
-        row = col.row()
-        row.active = not is_xray
-        row.prop(shading, "show_cavity")
-
-        if shading.show_cavity:
-            sub = col.row(align=True)
-            sub.active = not shading.show_xray and shading.show_cavity
-            sub.prop(shading, "cavity_ridge_factor")
-            sub.prop(shading, "cavity_valley_factor")
+        if shading.type == 'SOLID':
+            row = col.row()
+            row.prop(shading, "show_shadows", text="")
+            row.active = not is_xray
+            sub = row.row(align=True)
+            sub.active = is_shadows
+            sub.prop(shading, "shadow_intensity", text="Shadow")
             sub.popover(
-                panel="VIEW3D_PT_shading_options_ssao",
+                panel="VIEW3D_PT_shading_options_shadow",
                 icon='SCRIPTWIN',
                 text=""
             )
 
-        row = layout.split()
-        row.prop(shading, "show_object_outline")
-        sub = row.row()
-        sub.active = shading.show_object_outline
-        sub.prop(shading, "object_outline_color", text="")
+            col = layout.column()
+            row = col.row()
+            row.active = not is_xray
+            row.prop(shading, "show_cavity")
 
-        col = layout.column()
-        if not shading.light == 'MATCAP':
-            col.prop(shading, "show_specular_highlight")
+            if shading.show_cavity:
+                sub = col.row(align=True)
+                sub.active = not shading.show_xray and shading.show_cavity
+                sub.prop(shading, "cavity_ridge_factor")
+                sub.prop(shading, "cavity_valley_factor")
+                sub.popover(
+                    panel="VIEW3D_PT_shading_options_ssao",
+                    icon='SCRIPTWIN',
+                    text=""
+                )
+
+        if shading.type in {'SOLID', 'WIREFRAME'}:
+            row = layout.split()
+            row.prop(shading, "show_object_outline")
+            sub = row.row()
+            sub.active = shading.show_object_outline
+            sub.prop(shading, "object_outline_color", text="")
+
+            col = layout.column()
+            if (shading.light is not 'MATCAP') and (shading.type is not 'WIREFRAME'):
+                col.prop(shading, "show_specular_highlight")
 
 
 class VIEW3D_PT_shading_options_shadow(Panel):
@@ -4353,6 +4390,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
 
         view = context.space_data
         overlay = view.overlay
+        shading = view.shading
         display_all = overlay.show_overlays
         data = context.active_object.data
 
@@ -4366,7 +4404,7 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub = split.column()
         sub.prop(data, "show_faces", text="Faces")
         sub = split.column()
-        sub.active = view.use_occlude_geometry
+        sub.active = shading.show_xray
         sub.prop(data, "show_face_center", text="Center")
 
         row = col.row(align=True)
@@ -4786,6 +4824,20 @@ class VIEW3D_PT_gpencil_origin(Panel):
         col.prop(context.tool_settings, "gpencil_stroke_placement_view3d", expand=True)
 
 
+class VIEW3D_PT_gpencil_lock(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Lock Axis"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.label(text="Drawing Plane Lock")
+
+        row = layout.row()
+        col = row.column()
+        col.prop(context.tool_settings.gpencil_sculpt, "lockaxis", expand=True)
+
+
 class VIEW3D_PT_overlay_gpencil_options(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
@@ -4832,7 +4884,7 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
             row.prop(overlay, "gpencil_grid_scale")
             col = row.column()
             col.prop(overlay, "gpencil_grid_lines", text="Subdivisions")
-            col.prop(overlay, "gpencil_grid_axis")
+            col.prop(overlay, "gpencil_grid_axis", text="Plane")
 
         if context.object.mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             layout.prop(overlay, "use_gpencil_edit_lines", text="Edit Lines")
@@ -5179,6 +5231,7 @@ classes = (
     VIEW3D_MT_edit_gpencil_interpolate,
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
+    VIEW3D_MT_shading_pie,
     VIEW3D_PT_view3d_properties,
     VIEW3D_PT_view3d_camera_lock,
     VIEW3D_PT_view3d_cursor,
@@ -5216,6 +5269,7 @@ classes = (
     VIEW3D_PT_pivot_point,
     VIEW3D_PT_snapping,
     VIEW3D_PT_gpencil_origin,
+    VIEW3D_PT_gpencil_lock,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_overlay_gpencil_options,
     VIEW3D_PT_context_properties,

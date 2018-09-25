@@ -64,7 +64,7 @@ typedef enum eUIFont_ID {
 	UIFONT_CUSTOM2	= 3
 } eUIFont_ID;
 
-/* default fonts to load/initalize */
+/* default fonts to load/initialize */
 /* first font is the default (index 0), others optional */
 typedef struct uiFont {
 	struct uiFont *next, *prev;
@@ -175,7 +175,7 @@ typedef struct ThemeUI {
 
 	uiWidgetStateColors wcol_state;
 
-	uiPanelColors panel; /* depricated, but we keep it for do_versions (2.66.1) */
+	uiPanelColors panel; /* deprecated, but we keep it for do_versions (2.66.1) */
 
 	char widget_emboss[4];
 
@@ -583,7 +583,7 @@ typedef struct UserDef {
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */
 	short recent_files;		/* maximum number of recently used files to remember  */
-	short smooth_viewtx;	/* miliseconds to spend spinning the view */
+	short smooth_viewtx;	/* milliseconds to spend spinning the view */
 	short glreslimit;
 	short curssize;
 	short color_picker_type;  /* eColorPicker_Types */
@@ -741,7 +741,7 @@ typedef enum eUserpref_UI_Flag {
 	USER_PLAINMENUS			= (1 << 5),
 	USER_LOCK_CURSOR_ADJUST	= (1 << 6),
 	/* Avoid accidentally adjusting the layout
-	 * (exact behavior may change based on whats considered reasonable to lock down). */
+	 * (exact behavior may change based on what's considered reasonable to lock down). */
 	USER_UIFLAG_DEPRECATED_7 = (1 << 7),
 	USER_ALLWINCODECS		= (1 << 8),
 	USER_MENUOPENAUTO		= (1 << 9),
