@@ -7,33 +7,23 @@ uniform vec2 viewportSize;
 in vec3 pos;
 in int data;
 
-/* these are the same for all vertices
- * and does not need interpolation */
-flat out int vertFlag;
-flat out int clipCase;
+out vec4 finalColor;
 
-/* See fragment shader */
-noperspective out vec4 eData1;
-flat out vec4 eData2;
-
-/* project to screen space */
-vec2 proj(vec4 pos)
-{
-	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
-}
+#define VERTEX_ACTIVE   (1 << 0)
+#define VERTEX_SELECTED (1 << 1)
 
 void main()
 {
-	clipCase = 0;
+	if ((data & VERTEX_ACTIVE) != 0) {
+		finalColor = colorEditMeshActive;
+	}
+	if ((data & VERTEX_SELECTED) != 0) {
+		finalColor = colorVertexSelect;
+	}
+	else {
+		finalColor = colorVertex;
+	}
 
-	vec4 pPos = ModelViewProjectionMatrix * vec4(pos, 1.0);
-
-	/* only vertex position 0 is used */
-	eData1 = eData2 = vec4(1e10);
-	eData2.zw = proj(pPos);
-
-	vertFlag = data;
-
-	gl_Position = pPos;
-	gl_PointSize = sizeVertex;
+	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
+	gl_PointSize = sizeVertex * 2.0;
 }

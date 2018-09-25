@@ -45,14 +45,11 @@
 #include "draw_cache_impl.h"  /* own include */
 
 #define SELECT            1
-#define ACTIVE_NURB       1 << 7 /* last char bite */
-#define HANDLE_SEL_OFFSET (TH_HANDLE_SEL_FREE - TH_HANDLE_FREE)
+#define ACTIVE_NURB       1 << 2
 
 /* Used as values of `color_id` in `edit_curve_overlay_handle_geom.glsl` */
 enum {
-	COLOR_NURB_ULINE_ID = TH_HANDLE_SEL_AUTOCLAMP - TH_HANDLE_FREE + 1,
-	COLOR_NURB_SEL_ULINE_ID,
-	COLOR_ACTIVE_SPLINE,
+	COLOR_NURB_ULINE_ID = TH_HANDLE_AUTOCLAMP - TH_HANDLE_FREE + 2,
 
 	TOT_HANDLE_COL,
 };
@@ -678,10 +675,12 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 						const bool is_active = (i == rdata->actvert);
 						GPU_indexbuf_add_point_vert(&elb, vbo_len_used + 1);
 						for (int j = 0; j < 3; j++) {
-							char vflag = ((&bezt->f1)[j] & SELECT)
-							              ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED)
-							              : 0;
+							char vflag = ((&bezt->f1)[j] & SELECT) ? VFLAG_VERTEX_SELECTED : 0;
+							vflag |= (is_active) ? VFLAG_VERTEX_ACTIVE : 0;
 							vflag |= (is_active_nurb) ? ACTIVE_NURB : 0;
+							/* handle color id */
+							char col_id = (&bezt->h1)[j / 2];
+							vflag |= col_id << 3; /* << 3 because of ACTIVE_NURB */
 							GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[j]);
 							GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
@@ -695,10 +694,10 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 				for (const BPoint *bp = nu->bp; a < nu->pntsu; a++, bp++) {
 					if (bp->hide == false) {
 						const bool is_active = (i == rdata->actvert);
-						char vflag = (bp->f1 & SELECT)
-						              ? (is_active ? VFLAG_VERTEX_ACTIVE : VFLAG_VERTEX_SELECTED)
-						              : 0;
+						char vflag = (bp->f1 & SELECT) ? VFLAG_VERTEX_SELECTED : 0;
+						vflag |= (is_active) ? VFLAG_VERTEX_ACTIVE : 0;
 						vflag |= (is_active_nurb) ? ACTIVE_NURB : 0;
+						vflag |= COLOR_NURB_ULINE_ID << 3; /* << 3 because of ACTIVE_NURB */
 						GPU_indexbuf_add_point_vert(&elb, vbo_len_used);
 						GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp->vec);
 						GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
@@ -720,78 +719,44 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 	}
 
 
-	if ((cache->overlay.edges == NULL) && (rdata->hide_handles == false)) {
-		/* Note: we could reference indices to vertices (above) */
+	if (cache->overlay.edges == NULL) {
+		GPUVertBuf *vbo = cache->overlay.verts->verts[0];
 
-		static GPUVertFormat format = { 0 };
-		static struct { uint pos, data; } attr_id;
-		if (format.attr_len == 0) {
-			/* initialize vertex format */
-			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-			attr_id.data = GPU_vertformat_attr_add(&format, "data", GPU_COMP_U8, 1, GPU_FETCH_INT);
-		}
-
-		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
 		const int edge_len =  curve_render_data_overlay_edges_len_get(rdata);
 		const int vbo_len_capacity = edge_len * 2;
-		int vbo_len_used = 0;
-		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
+
+		GPUIndexBufBuilder elb;
+		GPU_indexbuf_init(&elb, GPU_PRIM_LINES, vbo_len_capacity, vbo->vertex_len);
+
+		int curr_index = 0;
 		int i = 0;
 		for (Nurb *nu = rdata->nurbs->first; nu; nu = nu->next, i++) {
-			const bool is_active_nurb = (i == cu->actnu);
-
 			if (nu->bezt) {
 				int a = 0;
 				for (const BezTriple *bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
 					if (bezt->hide == false) {
-						char col_id;
-
-						for (int j = 0; j < 2; j += 1) {
-							/* same vertex twice, only check different selection */
-							GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[1]);
-							vbo_len_used += 1;
-
-							col_id = (&bezt->h1)[j];
-							if ((&bezt->f1)[j * 2] & SELECT) {
-								col_id += HANDLE_SEL_OFFSET;
-							}
-							if (is_active_nurb) {
-								col_id |= ACTIVE_NURB;
-							}
-
-							GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[j * 2]);
-							GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &col_id);
-							vbo_len_used += 1;
-						}
+						GPU_indexbuf_add_line_verts(&elb, curr_index + 1, curr_index + 0);
+						GPU_indexbuf_add_line_verts(&elb, curr_index + 1, curr_index + 2);
+						curr_index += 3;
 					}
 				}
 			}
 			else if (nu->bp) {
+				curr_index += 1;
 				int a = 1;
 				for (const BPoint *bp_prev = nu->bp, *bp_curr = &nu->bp[1]; a < nu->pntsu; a++, bp_prev = bp_curr++) {
-					if ((bp_prev->hide == false) && (bp_curr->hide == false)) {
-						char col_id = ((bp_prev->f1 & SELECT) && (bp_curr->f1 & SELECT)) ? COLOR_NURB_SEL_ULINE_ID : COLOR_NURB_ULINE_ID;
-
-						if (is_active_nurb) {
-							col_id |= ACTIVE_NURB;
+					if (bp_prev->hide == false) {
+						if (bp_curr->hide == false) {
+							GPU_indexbuf_add_line_verts(&elb, curr_index - 1, curr_index + 0);
 						}
-
-						GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_prev->vec);
-						vbo_len_used += 1;
-
-						GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp_curr->vec);
-						GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &col_id);
-						vbo_len_used += 1;
-
+						curr_index += 1;
 					}
 				}
 			}
 		}
-		if (vbo_len_capacity != vbo_len_used) {
-			GPU_vertbuf_data_resize(vbo, vbo_len_used);
-		}
 
-		cache->overlay.edges = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
+		GPUIndexBuf *ibo = GPU_indexbuf_build(&elb);
+		cache->overlay.edges = GPU_batch_create_ex(GPU_PRIM_LINES, vbo, ibo, GPU_BATCH_OWNS_INDEX);
 	}
 
 	curve_render_data_free(rdata);

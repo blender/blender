@@ -1,14 +1,30 @@
 
-#define ACTIVE_NURB    1 << 7 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
+#define VERTEX_ACTIVE   1 << 0
+#define VERTEX_SELECTED 1 << 1
+#define ACTIVE_NURB     1 << 2 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
+#define NURBS_EDGE_SELECTED (((vertFlag[1] & vertFlag[0]) & VERTEX_SELECTED) != 0)
 
 layout(lines) in;
-layout(line_strip, max_vertices = 6) out;
+layout(triangle_strip, max_vertices = 10) out;
 
 uniform vec2 viewportSize;
 
 flat in int vertFlag[];
 
-flat out vec4 finalColor;
+out vec4 finalColor;
+
+void output_line(vec2 offset, vec4 color)
+{
+	finalColor = color;
+
+	gl_Position = gl_in[0].gl_Position;
+	gl_Position.xy += offset * gl_in[0].gl_Position.w;
+	EmitVertex();
+
+	gl_Position = gl_in[1].gl_Position;
+	gl_Position.xy += offset * gl_in[1].gl_Position.w;
+	EmitVertex();
+}
 
 void main()
 {
@@ -17,63 +33,53 @@ void main()
 	vec4 v1 = gl_in[0].gl_Position;
 	vec4 v2 = gl_in[1].gl_Position;
 
-	int is_active_nurb = vertFlag[1] & ACTIVE_NURB;
-	int color_id = vertFlag[1] ^ is_active_nurb;
+	int is_active_nurb = (vertFlag[1] & ACTIVE_NURB);
+	int color_id = (vertFlag[1] >> 3);
 
-	if (is_active_nurb != 0) {
-		/* draw the outline. */
-		vec2 v1_2 = (v2.xy/v2.w - v1.xy/v1.w);
-		vec2 offset;
 
-		if (abs(v1_2.x * viewportSize.x) < abs(v1_2.y * viewportSize.y)) {
-			offset = vec2(2.0 / viewportSize.x, 0.0);
-		}
-		else {
-			offset = vec2(0.0, 2.0 / viewportSize.y);
-		}
+	bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERTEX_SELECTED) != 0);
 
-		finalColor = colorActiveSpline;
+	vec4 inner_color;
+	if      (color_id == 0) inner_color = (edge_selected) ? colorHandleSelFree : colorHandleFree;
+	else if (color_id == 1) inner_color = (edge_selected) ? colorHandleSelAuto : colorHandleAuto;
+	else if (color_id == 2) inner_color = (edge_selected) ? colorHandleSelVect : colorHandleVect;
+	else if (color_id == 3) inner_color = (edge_selected) ? colorHandleSelAlign : colorHandleAlign;
+	else if (color_id == 4) inner_color = (edge_selected) ? colorHandleSelAutoclamp : colorHandleAutoclamp;
+	else                    inner_color = (NURBS_EDGE_SELECTED) ? colorNurbSelUline : colorNurbUline;
 
-		gl_Position = v1;
-		gl_Position.xy += offset * v1.w;
-		EmitVertex();
+	vec4 outer_color = (is_active_nurb != 0)
+	                   ? mix(colorActiveSpline, inner_color, 0.25) /* Minimize active color bleeding on inner_color. */
+	                   : vec4(inner_color.rgb, 0.0);
 
-		gl_Position = v2;
-		gl_Position.xy += offset * v2.w;
-		EmitVertex();
+	vec2 v1_2 = (v2.xy/v2.w - v1.xy/v1.w);
+	vec2 offset = sizeEdge * 4.0 / viewportSize; /* 4.0 is eyeballed */
 
-		EndPrimitive();
-
-		gl_Position = v1;
-		gl_Position.xy -= offset * v1.w;
-		EmitVertex();
-
-		gl_Position = v2;
-		gl_Position.xy -= offset * v2.w;
-		EmitVertex();
-
-		EndPrimitive();
+	if (abs(v1_2.x * viewportSize.x) < abs(v1_2.y * viewportSize.y)) {
+		offset.y = 0.0;
+	}
+	else {
+		offset.x = 0.0;
 	}
 
-	if      (color_id == 0)  finalColor = colorHandleFree;
-	else if (color_id == 1)  finalColor = colorHandleAuto;
-	else if (color_id == 2)  finalColor = colorHandleVect;
-	else if (color_id == 3)  finalColor = colorHandleAlign;
-	else if (color_id == 4)  finalColor = colorHandleAutoclamp;
-	else if (color_id == 5)  finalColor = colorHandleSelFree;
-	else if (color_id == 6)  finalColor = colorHandleSelAuto;
-	else if (color_id == 7)  finalColor = colorHandleSelVect;
-	else if (color_id == 8)  finalColor = colorHandleSelAlign;
-	else if (color_id == 9)  finalColor = colorHandleSelAutoclamp;
-	else if (color_id == 10) finalColor = colorNurbUline;
-	else if (color_id == 11) finalColor = colorNurbSelUline;
-	else                     finalColor = colorVertexSelect;
+	/* draw the transparent border (AA). */
+	if (is_active_nurb != 0) {
+		offset *= 0.75; /* Don't make the active "halo" appear very thick. */
+		output_line(offset * 2.0, vec4(colorActiveSpline.rgb, 0.0));
+	}
 
-	gl_Position = v1;
-	EmitVertex();
+	/* draw the outline. */
+	output_line(offset, outer_color);
 
-	gl_Position = v2;
-	EmitVertex();
+	/* draw the core of the line. */
+	output_line(vec2(0.0), inner_color);
+
+	/* draw the outline. */
+	output_line(-offset, outer_color);
+
+	/* draw the transparent border (AA). */
+	if (is_active_nurb != 0) {
+		output_line(offset * -2.0, vec4(colorActiveSpline.rgb, 0.0));
+	}
 
 	EndPrimitive();
 }

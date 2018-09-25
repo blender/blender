@@ -47,13 +47,12 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
 
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_edit_curve_overlay_loosevert_vert_glsl[];
-extern char datatoc_edit_curve_overlay_frag_glsl[];
+extern char datatoc_edit_curve_overlay_handle_vert_glsl[];
 extern char datatoc_edit_curve_overlay_handle_geom_glsl[];
 
 extern char datatoc_gpu_shader_3D_vert_glsl[];
-extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
-extern char datatoc_gpu_shader_point_uniform_color_frag_glsl[];
-extern char datatoc_gpu_shader_flat_color_frag_glsl[];
+extern char datatoc_gpu_shader_point_varying_color_frag_glsl[];
+extern char datatoc_gpu_shader_3D_smooth_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 /* All lists are per viewport specific datas.
@@ -164,16 +163,16 @@ static void EDIT_CURVE_engine_init(void *vedata)
 
 	if (!e_data.overlay_edge_sh) {
 		e_data.overlay_edge_sh = DRW_shader_create_with_lib(
-		        datatoc_edit_curve_overlay_loosevert_vert_glsl,
+		        datatoc_edit_curve_overlay_handle_vert_glsl,
 		        datatoc_edit_curve_overlay_handle_geom_glsl,
-		        datatoc_gpu_shader_flat_color_frag_glsl,
+		        datatoc_gpu_shader_3D_smooth_color_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 
 	if (!e_data.overlay_vert_sh) {
 		e_data.overlay_vert_sh = DRW_shader_create_with_lib(
 		        datatoc_edit_curve_overlay_loosevert_vert_glsl, NULL,
-		        datatoc_edit_curve_overlay_frag_glsl,
+		        datatoc_gpu_shader_point_varying_color_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
 	}
 }
@@ -205,7 +204,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 		psl->overlay_edge_pass = DRW_pass_create(
 		        "Curve Handle Overlay",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_WIRE);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 
 		grp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
@@ -215,7 +214,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 
 		psl->overlay_vert_pass = DRW_pass_create(
 		        "Curve Vert Overlay",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_POINT);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_POINT);
 
 		grp = DRW_shgroup_create(e_data.overlay_vert_sh, psl->overlay_vert_pass);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
