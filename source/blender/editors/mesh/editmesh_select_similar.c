@@ -294,15 +294,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
 	const int compare = RNA_enum_get(op->ptr, "compare");
-
-	if (ELEM(type,
-	         SIMEDGE_CREASE,
-	         SIMEDGE_BEVEL))
-	{
-		/* TODO (dfelinto) port the edge modes to multi-object. */
-		BKE_report(op->reports, RPT_ERROR, "Select similar edge mode not supported at the moment");
-		return OPERATOR_CANCELLED;
-	}
+	int custom_data_type = -1;
 
 	int tot_edges_selected_all = 0;
 	uint objects_len = 0;
@@ -325,6 +317,8 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	int edge_data_value = SIMEDGE_DATA_NONE;
 
 	switch (type) {
+		case SIMEDGE_CREASE:
+		case SIMEDGE_BEVEL:
 		case SIMEDGE_FACE_ANGLE:
 		case SIMEDGE_LENGTH:
 		case SIMEDGE_DIR:
@@ -332,6 +326,15 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			break;
 		case SIMEDGE_FACE:
 			gset = BLI_gset_ptr_new("Select similar edge: face");
+			break;
+	}
+
+	switch (type) {
+		case SIMEDGE_CREASE:
+			custom_data_type = CD_CREASE;
+			break;
+		case SIMEDGE_BEVEL:
+			custom_data_type = CD_BWEIGHT;
 			break;
 	}
 
@@ -345,10 +348,24 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		if (type == SIMEDGE_FREESTYLE) {
-			if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-				edge_data_value |= SIMEDGE_DATA_FALSE;
-				continue;
+		switch (type) {
+			case SIMEDGE_FREESTYLE:
+			{
+				if (!CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
+					edge_data_value |= SIMEDGE_DATA_FALSE;
+					continue;
+				}
+				break;
+			}
+			case SIMEDGE_CREASE:
+			case SIMEDGE_BEVEL:
+			{
+				if (!CustomData_has_layer(&bm->edata, custom_data_type)) {
+					float dummy[3] = {0.0f, 0.0f, 0.0f};
+					BLI_kdtree_insert(tree, tree_index++, dummy);
+					continue;
+				}
+				break;
 			}
 		}
 
@@ -409,6 +426,14 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMEDGE_CREASE:
+					case SIMEDGE_BEVEL:
+					{
+						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
+						float dummy[3] = {*value, 0.0f, 0.0f};
+						BLI_kdtree_insert(tree, tree_index++, dummy);
+						break;
+					}
 				}
 			}
 		}
@@ -426,11 +451,28 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		BMesh *bm = em->bm;
 		bool changed = false;
 
-		bool has_freestyle_layer;
-		if (type == SIMEDGE_FREESTYLE) {
-			has_freestyle_layer = CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE);
-			if ((edge_data_value == SIMEDGE_DATA_TRUE) && !has_freestyle_layer) {
-				continue;
+		bool has_custom_data_layer;
+		switch (type) {
+			case SIMEDGE_FREESTYLE:
+			{
+				has_custom_data_layer = CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE);
+				if ((edge_data_value == SIMEDGE_DATA_TRUE) && !has_custom_data_layer) {
+					continue;
+				}
+				break;
+			}
+			case SIMEDGE_CREASE:
+			case SIMEDGE_BEVEL:
+			{
+				has_custom_data_layer = CustomData_has_layer(&bm->edata, custom_data_type);
+				if (!has_custom_data_layer) {
+					/* Proceed only if we have to select all the edges that have custom data value of 0.0f.
+					 * In this case we will just select all the edges.
+					 * Otherwise continue the for loop. */
+					if (!select_similar_compare_float_tree(tree, 0.0f, thresh, compare)) {
+						continue;
+					}
+				}
 			}
 		}
 
@@ -508,7 +550,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						FreestyleEdge *fedge;
 
-						if (!has_freestyle_layer) {
+						if (!has_custom_data_layer) {
 							BLI_assert(edge_data_value == SIMEDGE_DATA_FALSE);
 							select = true;
 							break;
@@ -518,6 +560,20 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						if (((fedge != NULL) && (fedge->flag & FREESTYLE_EDGE_MARK)) ==
 						    ((edge_data_value & SIMEDGE_DATA_TRUE) != 0))
 						{
+							select = true;
+						}
+						break;
+					}
+					case SIMEDGE_CREASE:
+					case SIMEDGE_BEVEL:
+					{
+						if (!has_custom_data_layer) {
+							select = true;
+							break;
+						}
+
+						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
+						if (select_similar_compare_float_tree(tree, *value, thresh, compare)) {
 							select = true;
 						}
 						break;
