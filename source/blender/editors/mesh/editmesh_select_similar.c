@@ -208,11 +208,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	const float thresh_radians = thresh * (float)M_PI;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	if (ELEM(type,
-	         SIMFACE_COPLANAR,
-	         SIMFACE_FACEMAP))
-	{
-		BKE_report(op->reports, RPT_ERROR, "Select similar face mode not supported at the moment");
+	if (type == SIMFACE_COPLANAR) {
+		BKE_report(op->reports, RPT_ERROR, "Select similar coplanar faces not supported at the moment");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -234,6 +231,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	KDTree *tree = NULL;
 	GSet *gset = NULL;
+	GSet **gset_array = NULL;
 	int face_data_value = SIMFACE_DATA_NONE;
 
 	switch (type) {
@@ -246,6 +244,9 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		case SIMFACE_MATERIAL:
 			gset = BLI_gset_ptr_new("Select similar face");
 			break;
+		case SIMFACE_FACEMAP:
+			gset_array = MEM_callocN(sizeof(GSet *) * objects_len, "Select similar face: facemap gset array");
+			break;
 	}
 
 	int tree_index = 0;
@@ -255,6 +256,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		BMesh *bm = em->bm;
 		Material ***material_array;
 		invert_m4_m4(ob->imat, ob->obmat);
+		int custom_data_offset = 0;
 
 		if (bm->totfacesel == 0) {
 			continue;
@@ -276,6 +278,16 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					continue;
 				}
 				break;
+			}
+			case SIMFACE_FACEMAP:
+			{
+				custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
+				if (custom_data_offset == -1) {
+					continue;
+				}
+				else {
+					gset_array[ob_index] = BLI_gset_ptr_new("Select similar face: facemap gset");
+				}
 			}
 		}
 
@@ -343,6 +355,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_FACEMAP:
+					{
+						BLI_assert(custom_data_offset != -1);
+						int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
+						BLI_gset_add(gset_array[ob_index], face_map);
+						break;
+					}
 				}
 			}
 		}
@@ -360,6 +379,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		BMesh *bm = em->bm;
 		bool changed = false;
 		Material ***material_array;
+		int custom_data_offset;
 
 		bool has_custom_data_layer;
 		switch (type) {
@@ -378,6 +398,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					continue;
 				}
 				break;
+			}
+			case SIMFACE_FACEMAP:
+			{
+				custom_data_offset = CustomData_get_offset(&bm->pdata, CD_FACEMAP);
+				if (custom_data_offset == -1) {
+					continue;
+				}
 			}
 		}
 		
@@ -479,6 +506,19 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_FACEMAP:
+					{
+						const int *face_map = BM_ELEM_CD_GET_VOID_P(face, custom_data_offset);
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset_array[ob_index]) {
+							const int *face_map_iter = BLI_gsetIterator_getKey(&gs_iter);
+							if (*face_map == *face_map_iter) {
+								select = true;
+								break;
+							}
+						}
+						break;
+					}
 				}
 
 				if (select) {
@@ -523,6 +563,14 @@ face_select_all:
 	BLI_kdtree_free(tree);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
+	}
+	if (gset_array != NULL) {
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			if (gset_array[ob_index] != NULL) {
+				BLI_gset_free(gset_array[ob_index], NULL);
+			}
+		}
+		MEM_freeN(gset_array);
 	}
 
 	return OPERATOR_FINISHED;
