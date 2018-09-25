@@ -42,6 +42,7 @@
 #include "BKE_ccg.h"
 #include "BKE_mesh.h"
 #include "BKE_subdiv.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_subdiv_eval.h"
 
 #include "opensubdiv_topology_refiner_capi.h"
