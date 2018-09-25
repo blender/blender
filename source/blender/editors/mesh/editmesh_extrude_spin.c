@@ -70,8 +70,8 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 	const int steps = RNA_int_get(op->ptr, "steps");
-	const float angle = -RNA_float_get(op->ptr, "angle");
-	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
+	const float angle = RNA_float_get(op->ptr, "angle");
+	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip") ^ (angle < 0.0f);
 	const bool dupli = RNA_boolean_get(op->ptr, "dupli");
 
 	if (is_zero_v3(axis)) {
@@ -93,7 +93,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 		            em, &spinop, op,
 		            "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 "
 		            "use_normal_flip=%b use_duplicate=%b",
-		            BM_ELEM_SELECT, cent, axis, d, steps, angle, obedit->obmat, use_normal_flip, dupli))
+		            BM_ELEM_SELECT, cent, axis, d, steps, -angle, obedit->obmat, use_normal_flip, dupli))
 		{
 			continue;
 		}

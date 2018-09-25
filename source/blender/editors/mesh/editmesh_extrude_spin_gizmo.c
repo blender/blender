@@ -197,7 +197,14 @@ static void gizmo_mesh_spin_init_refresh_axis_orientation(
 		for (int j = 0; j < 2; j++) {
 			gz = ggd->gizmos.icon_button[axis_index][j];
 			PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ggd->data.ot_spin, NULL);
-			RNA_float_set_array(ptr, "axis", axis_vec);
+			float axis_vec_flip[3];
+			if (0 == j) {
+				negate_v3_v3(axis_vec_flip, axis_vec);
+			}
+			else {
+				copy_v3_v3(axis_vec_flip, axis_vec);
+			}
+			RNA_float_set_array(ptr, "axis", axis_vec_flip);
 		}
 	}
 }
