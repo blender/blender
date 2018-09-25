@@ -32,11 +32,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_kdtree.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
 #include "BKE_layer.h"
+#include "BKE_material.h"
 #include "BKE_report.h"
 
 #include "DNA_meshdata_types.h"
@@ -179,7 +181,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMFACE_MATERIAL,
 	         SIMFACE_AREA,
 	         SIMFACE_PERIMETER,
 	         SIMFACE_NORMAL,
@@ -212,6 +213,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	switch (type) {
 		case SIMFACE_SIDES:
+		case SIMFACE_MATERIAL:
 			gset = BLI_gset_ptr_new("Select similar face");
 			break;
 	}
@@ -220,9 +222,21 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		Object *ob = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
+		Material ***material_array;
 
 		if (bm->totfacesel == 0) {
 			continue;
+		}
+
+		switch (type) {
+			case SIMFACE_MATERIAL:
+			{
+				if (ob->totcol == 0) {
+					continue;
+				}
+				material_array = give_matarar(ob);
+				break;
+			}
 		}
 
 		BMFace *face; /* Mesh face. */
@@ -234,6 +248,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_SIDES:
 						BLI_gset_add(gset, POINTER_FROM_INT(face->len));
 						break;
+					case SIMFACE_MATERIAL:
+					{
+						Material *material = (*material_array)[face->mat_nr];
+						if (material != NULL) {
+							BLI_gset_add(gset, material);
+						}
+						break;
+					}
 				}
 			}
 		}
@@ -244,7 +266,19 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
 		bool changed = false;
+		Material ***material_array;
 
+		switch (type) {
+			case SIMFACE_MATERIAL:
+			{
+				if (ob->totcol == 0) {
+					continue;
+				}
+				material_array = give_matarar(ob);
+				break;
+			}
+		}
+		
 		BMFace *face; /* Mesh face. */
 		BMIter iter; /* Selected faces iterator. */
 
@@ -262,6 +296,23 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 							const int num_sides_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_sides - num_sides_iter;
 							if (select_similar_compare_int(delta_i, compare)) {
+								select = true;
+								break;
+							}
+						}
+						break;
+					}
+					case SIMFACE_MATERIAL:
+					{
+						const Material *material = (*material_array)[face->mat_nr];
+						if (material == NULL) {
+							continue;
+						}
+
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const Material *material_iter = BLI_gsetIterator_getKey(&gs_iter);
+							if (material == material_iter) {
 								select = true;
 								break;
 							}
