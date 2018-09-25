@@ -283,13 +283,13 @@ static bool edge_data_value_set(BMEdge *edge, const int hflag, int *r_value)
 	return *r_value != SIMEDGE_DATA_ALL;
 }
 
-/* Note/TODO(dfelinto) technically SIMEDGE_FACE_ANGLE should compare the angles in world space.
- * Although doable this is overkill - at least for the initial multi-objects implementation. */
+/* TODO(dfelinto): `types` that should technically be compared in world space but are not:
+ *  -SIMEDGE_FACE_ANGLE
+ */
 static int similar_edge_select_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const float thresh_radians = thresh * (float)M_PI + FLT_EPSILON;
