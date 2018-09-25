@@ -943,7 +943,7 @@ void BKE_sculpt_update_mesh_elements(
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
-	ss->subdiv_ccg = me_eval->runtime.subsurf_ccg;
+	ss->subdiv_ccg = me_eval->runtime.subdiv_ccg;
 
 	PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(depsgraph, ob);
 	BLI_assert(pbvh == ss->pbvh);
@@ -1223,8 +1223,8 @@ PBVH *BKE_sculpt_object_pbvh_ensure(Depsgraph *depsgraph, Object *ob)
 	else {
 		Object *object_eval = DEG_get_evaluated_object(depsgraph, ob);
 		Mesh *mesh_eval = object_eval->data;
-		if (mesh_eval->runtime.subsurf_ccg != NULL) {
-			pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subsurf_ccg);
+		if (mesh_eval->runtime.subdiv_ccg != NULL) {
+			pbvh = build_pbvh_from_ccg(ob, mesh_eval->runtime.subdiv_ccg);
 		}
 		else if (ob->type == OB_MESH) {
 			Mesh *me_eval_deform = mesh_get_eval_deform(

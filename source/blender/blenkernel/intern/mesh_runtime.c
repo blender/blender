@@ -198,9 +198,9 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 	bvhcache_free(&mesh->runtime.bvh_cache);
 	MEM_SAFE_FREE(mesh->runtime.looptris.array);
 	/* TODO(sergey): Does this really belong here? */
-	if (mesh->runtime.subsurf_ccg != NULL) {
-		BKE_subdiv_ccg_destroy(mesh->runtime.subsurf_ccg);
-		mesh->runtime.subsurf_ccg = NULL;
+	if (mesh->runtime.subdiv_ccg != NULL) {
+		BKE_subdiv_ccg_destroy(mesh->runtime.subdiv_ccg);
+		mesh->runtime.subdiv_ccg = NULL;
 	}
 }
 

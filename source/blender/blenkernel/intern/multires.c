@@ -410,7 +410,7 @@ void multires_mark_as_modified(Object *ob, MultiresModifiedFlags flags)
 		return;
 	}
 	Mesh *mesh = ob->data;
-	SubdivCCG *subdiv_ccg = mesh->runtime.subsurf_ccg;
+	SubdivCCG *subdiv_ccg = mesh->runtime.subdiv_ccg;
 	if (subdiv_ccg == NULL) {
 		return;
 	}
