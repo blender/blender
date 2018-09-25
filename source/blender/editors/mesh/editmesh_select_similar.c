@@ -171,18 +171,19 @@ static bool select_similar_compare_float_tree(const KDTree *tree, const float le
 /** \name Select Similar Face
  * \{ */
 
+/* TODO(dfelinto): `types` that should technically be compared in world space but are not:
+ *  -SIMFACE_AREA
+ *  -SIMFACE_PERIMETER
+ */
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
-	//const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMFACE_AREA,
-	         SIMFACE_PERIMETER,
 	         SIMFACE_NORMAL,
 	         SIMFACE_COPLANAR,
 	         SIMFACE_SMOOTH,
@@ -209,15 +210,21 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
+	KDTree *tree = NULL;
 	GSet *gset = NULL;
 
 	switch (type) {
+		case SIMFACE_AREA:
+		case SIMFACE_PERIMETER:
+			tree = BLI_kdtree_new(tot_faces_selected_all);
+			break;
 		case SIMFACE_SIDES:
 		case SIMFACE_MATERIAL:
 			gset = BLI_gset_ptr_new("Select similar face");
 			break;
 	}
 
+	int tree_index = 0;
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
@@ -256,9 +263,28 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_AREA:
+					{
+						float area = BM_face_calc_area(face);
+						float dummy[3] = {area, 0.0f, 0.0f};
+						BLI_kdtree_insert(tree, tree_index++, dummy);
+						break;
+					}
+					case SIMFACE_PERIMETER:
+					{
+						float perimeter = BM_face_calc_perimeter(face);
+						float dummy[3] = {perimeter, 0.0f, 0.0f};
+						BLI_kdtree_insert(tree, tree_index++, dummy);
+						break;
+						break;
+					}
 				}
 			}
 		}
+	}
+
+	if (tree != NULL) {
+		BLI_kdtree_balance(tree);
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -319,6 +345,22 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_AREA:
+					{
+						float area = BM_face_calc_area(face);
+						if (select_similar_compare_float_tree(tree, area, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
+					case SIMFACE_PERIMETER:
+					{
+						float perimeter = BM_face_calc_perimeter(face);
+						if (select_similar_compare_float_tree(tree, perimeter, thresh, compare)) {
+							select = true;
+						}
+						break;
+					}
 				}
 
 				if (select) {
@@ -335,6 +377,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	}
 
 	MEM_freeN(objects);
+	BLI_kdtree_free(tree);
 	if (gset != NULL) {
 		BLI_gset_free(gset, NULL);
 	}
