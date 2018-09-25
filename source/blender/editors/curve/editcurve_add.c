@@ -398,11 +398,11 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 				BLI_addtail(editnurb, nu); /* temporal for spin */
 
 				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-					ed_editnurb_spin(umat, obedit, tmp_vec, tmp_cent);
+					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
 				else if ((U.flag & USER_ADD_VIEWALIGNED))
-					ed_editnurb_spin(viewmat, obedit, zvec, mat[3]);
+					ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
 				else
-					ed_editnurb_spin(umat, obedit, tmp_vec, mat[3]);
+					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
 
 				BKE_nurb_knot_calc_v(nu);
 
@@ -430,11 +430,11 @@ Nurb *ED_curve_add_nurbs_primitive(bContext *C, Object *obedit, float mat[4][4],
 
 				/* same as above */
 				if (newob && (U.flag & USER_ADD_VIEWALIGNED) == 0)
-					ed_editnurb_spin(umat, obedit, tmp_vec, tmp_cent);
+					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, tmp_cent);
 				else if ((U.flag & USER_ADD_VIEWALIGNED))
-					ed_editnurb_spin(viewmat, obedit, zvec, mat[3]);
+					ed_editnurb_spin(viewmat, NULL, obedit, zvec, mat[3]);
 				else
-					ed_editnurb_spin(umat, obedit, tmp_vec, mat[3]);
+					ed_editnurb_spin(umat, NULL, obedit, tmp_vec, mat[3]);
 
 
 				BLI_remlink(editnurb, nu);

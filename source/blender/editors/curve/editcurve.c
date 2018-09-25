@@ -85,7 +85,7 @@
 #include "RNA_enum_types.h"
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
-static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
+static void adduplicateflagNurb(Object *obedit, View3D *v3d, ListBase *newnurb, const short flag, const bool split);
 static int curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
 
 ListBase *object_editcurve_get(Object *ob)
@@ -1311,7 +1311,7 @@ static int separate_exec(bContext *C, wmOperator *op)
 	WM_cursor_wait(1);
 
 	/* 1. duplicate geometry and check for valid selection for separate */
-	adduplicateflagNurb(oldob, &newnurb, SELECT, true);
+	adduplicateflagNurb(oldob, v3d, &newnurb, SELECT, true);
 
 	if (BLI_listbase_is_empty(&newnurb)) {
 		WM_cursor_wait(0);
@@ -1376,7 +1376,7 @@ static int curve_split_exec(bContext *C, wmOperator *op)
 	ListBase *editnurb = object_editcurve_get(obedit);
 	ListBase newnurb = {NULL, NULL};
 
-	adduplicateflagNurb(obedit, &newnurb, SELECT, true);
+	adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
 
 	if (BLI_listbase_is_empty(&newnurb) == false) {
 		Curve *cu = obedit->data;
@@ -1964,7 +1964,7 @@ static bool calc_duplicate_actvert(
 	return false;
 }
 
-static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
+static void adduplicateflagNurb(Object *obedit, View3D *v3d, ListBase *newnurb,
                                 const short flag, const bool split)
 {
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -2110,7 +2110,7 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 			}
 		}
 		else {
-			if (ED_curve_nurb_select_check(cu, nu)) {
+			if (ED_curve_nurb_select_check(v3d, nu)) {
 				/* a rectangular area in nurb has to be selected and if splitting must be in U or V direction */
 				usel = MEM_callocN(nu->pntsu, "adduplicateN3");
 				bp = nu->bp;
@@ -2318,13 +2318,14 @@ static void adduplicateflagNurb(Object *obedit, ListBase *newnurb,
 static int switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Curve *cu = (Curve *)obedit->data;
 	EditNurb *editnurb = cu->editnurb;
 	Nurb *nu;
 	int i;
 
 	for (nu = editnurb->nurbs.first, i = 0; nu; nu = nu->next, i++) {
-		if (ED_curve_nurb_select_check(cu, nu)) {
+		if (ED_curve_nurb_select_check(v3d, nu)) {
 			BKE_nurb_direction_switch(nu);
 			keyData_switchDirectionNurb(cu, nu);
 			if ((i == cu->actnu) && (cu->actvert != CU_ACT_NONE)) {
@@ -3394,7 +3395,7 @@ static int subdivide_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		Curve *cu = obedit->data;
 
-		if (!ED_curve_select_check(cu, cu->editnurb)) {
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
 			continue;
 		}
 
@@ -3570,6 +3571,7 @@ static void findselectedNurbvert(
 static int set_spline_type_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	bool changed = false;
@@ -3583,7 +3585,7 @@ static int set_spline_type_exec(bContext *C, wmOperator *op)
 	}
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (ED_curve_nurb_select_check(obedit->data, nu)) {
+		if (ED_curve_nurb_select_check(v3d, nu)) {
 			const int pntsu_prev = nu->pntsu;
 			if (BKE_nurb_type_convert(nu, type, use_handles)) {
 				changed = true;
@@ -3820,7 +3822,7 @@ typedef struct NurbSort {
 static ListBase nsortbase = {NULL, NULL};
 /*  static NurbSort *nusmain; */ /* this var seems to go unused... at least in this file */
 
-static void make_selection_list_nurb(Curve *cu, ListBase *editnurb)
+static void make_selection_list_nurb(View3D *v3d, ListBase *editnurb)
 {
 	ListBase nbase = {NULL, NULL};
 	NurbSort *nus, *nustest, *headdo, *taildo;
@@ -3830,7 +3832,7 @@ static void make_selection_list_nurb(Curve *cu, ListBase *editnurb)
 	int a;
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (ED_curve_nurb_select_check(cu, nu)) {
+		if (ED_curve_nurb_select_check(v3d, nu)) {
 
 			nus = (NurbSort *)MEM_callocN(sizeof(NurbSort), "sort");
 			BLI_addhead(&nbase, nus);
@@ -4029,12 +4031,13 @@ static void merge_2_nurb(wmOperator *op, Curve *cu, ListBase *editnurb, Nurb *nu
 static int merge_nurb(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	Curve *cu = obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
 	NurbSort *nus1, *nus2;
 	bool ok = true;
 
-	make_selection_list_nurb(cu, editnurb);
+	make_selection_list_nurb(v3d, editnurb);
 
 	if (nsortbase.first == nsortbase.last) {
 		BLI_freelistN(&nsortbase);
@@ -4110,7 +4113,7 @@ static int make_segment_exec(bContext *C, wmOperator *op)
 	else nu = NULL;
 
 	while (nu) {
-		const int nu_select_num = ED_curve_nurb_select_count(cu, nu);
+		const int nu_select_num = ED_curve_nurb_select_count(v3d, nu);
 		if (nu_select_num) {
 
 			if (nu->pntsu > 1 && nu->pntsv > 1) {
@@ -4440,7 +4443,7 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 
 /* 'cent' is in object space and 'dvec' in worldspace.
  */
-bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], const float cent[3])
+bool ed_editnurb_spin(float viewmat[4][4], View3D *v3d, Object *obedit, const float axis[3], const float cent[3])
 {
 	Curve *cu = (Curve *)obedit->data;
 	ListBase *editnurb = object_editcurve_get(obedit);
@@ -4504,7 +4507,7 @@ bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], 
 
 	if (ok) {
 		for (nu = editnurb->first; nu; nu = nu->next) {
-			if (ED_curve_nurb_select_check(cu, nu)) {
+			if (ED_curve_nurb_select_check(v3d, nu)) {
 				nu->orderv = 4;
 				nu->flagv |= CU_NURB_CYCLIC;
 				BKE_nurb_knot_calc_v(nu);
@@ -4518,6 +4521,7 @@ bool ed_editnurb_spin(float viewmat[4][4], Object *obedit, const float axis[3], 
 static int spin_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 	float cent[3], axis[3], viewmat[4][4];
 
@@ -4532,7 +4536,7 @@ static int spin_exec(bContext *C, wmOperator *op)
 	else
 		unit_m4(viewmat);
 
-	if (!ed_editnurb_spin(viewmat, obedit, axis, cent)) {
+	if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot spin");
 		return OPERATOR_CANCELLED;
 	}
@@ -5131,7 +5135,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		Nurb *nu;
 		for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
 			if ((nu->pntsv == 1) &&
-			    (ED_curve_nurb_select_count(cu, nu) == 1))
+			    (ED_curve_nurb_select_count(v3d, nu) == 1))
 			{
 				as_curve = true;
 				break;
@@ -5311,9 +5315,10 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 static int duplicate_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	ListBase newnurb = {NULL, NULL};
 
-	adduplicateflagNurb(obedit, &newnurb, SELECT, false);
+	adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
 
 	if (BLI_listbase_is_empty(&newnurb) == false) {
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
@@ -6022,6 +6027,7 @@ void CURVE_OT_decimate(wmOperatorType *ot)
 static int shade_smooth_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	int clear = (STREQ(op->idname, "CURVE_OT_shade_flat"));
@@ -6030,7 +6036,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (ED_curve_nurb_select_check(obedit->data, nu)) {
+		if (ED_curve_nurb_select_check(v3d, nu)) {
 			if (!clear) nu->flag |= CU_SMOOTH;
 			else nu->flag &= ~CU_SMOOTH;
 		}

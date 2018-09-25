@@ -141,7 +141,7 @@ bool ED_curve_pick_vert(
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);
 bool ed_editnurb_extrude_flag(struct EditNurb *editnurb, const short flag);
-bool ed_editnurb_spin(float viewmat[4][4], struct Object *obedit, const float axis[3], const float cent[3]);
+bool ed_editnurb_spin(float viewmat[4][4], struct View3D *v3d, struct Object *obedit, const float axis[3], const float cent[3]);
 
 /* editcurve_select.c */
 void CURVE_OT_de_select_first(struct wmOperatorType *ot);
