@@ -2977,7 +2977,7 @@ static void curvemap_buttons_layout(
 
 	if (tone) {
 		split = uiLayoutSplit(layout, 0.0f, false);
-		uiItemR(uiLayoutRow(split, false), ptr, "tone", 0, NULL, ICON_NONE);
+		uiItemR(uiLayoutRow(split, false), ptr, "tone", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	}
 
 	/* curve chooser */
