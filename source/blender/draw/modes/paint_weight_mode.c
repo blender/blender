@@ -43,6 +43,10 @@
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
+extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
+
+extern char datatoc_paint_weight_vert_glsl[];
+extern char datatoc_paint_weight_frag_glsl[];
 extern char datatoc_paint_wire_vert_glsl[];
 extern char datatoc_paint_wire_frag_glsl[];
 extern char datatoc_paint_vert_frag_glsl[];
@@ -91,7 +95,10 @@ typedef struct PAINT_WEIGHT_PrivateData {
 static void PAINT_WEIGHT_engine_init(void *UNUSED(vedata))
 {
 	if (!e_data.weight_face_shader) {
-		e_data.weight_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_MULTIPLY_AND_BLEND_PREPROCESSING);
+		e_data.weight_face_shader = DRW_shader_create_with_lib(
+		        datatoc_paint_weight_vert_glsl, NULL,
+		        datatoc_paint_weight_frag_glsl,
+		        datatoc_common_globals_lib_glsl, NULL);
 	}
 
 	if (!e_data.wire_overlay_shader) {
@@ -134,6 +141,8 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 		stl->g_data->fweights_shgrp = DRW_shgroup_create(e_data.weight_face_shader, psl->weight_faces);
 
 		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
+		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", globals_weight_ramp);
+		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", globals_ubo);
 	}
 
 	{
@@ -214,6 +223,7 @@ static void PAINT_WEIGHT_draw_scene(void *vedata)
 
 static void PAINT_WEIGHT_engine_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.weight_face_shader);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
 	DRW_SHADER_FREE_SAFE(e_data.vert_overlay_shader);
 }

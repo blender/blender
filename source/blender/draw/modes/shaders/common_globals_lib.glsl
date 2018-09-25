@@ -14,6 +14,8 @@ layout(std140) uniform globalsBlock {
 	vec4 colorEmpty;
 	vec4 colorVertex;
 	vec4 colorVertexSelect;
+	vec4 colorVertexUnreferenced;
+	vec4 colorVertexMissingData;
 	vec4 colorEditMeshActive;
 	vec4 colorEdgeSelect;
 	vec4 colorEdgeSeam;

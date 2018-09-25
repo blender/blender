@@ -57,6 +57,8 @@ typedef struct GlobalsUboStorage {
 	float colorEmpty[4];
 	float colorVertex[4];
 	float colorVertexSelect[4];
+	float colorVertexUnreferenced[4];
+	float colorVertexMissingData[4];
 	float colorEditMeshActive[4];
 	float colorEdgeSelect[4];
 	float colorEdgeSeam[4];

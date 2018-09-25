@@ -201,7 +201,7 @@ typedef struct MeshRenderData {
 	int *loose_verts;
 
 	float (*poly_normals)[3];
-	float (*vert_weight_color)[3];
+	float (*vert_weight);
 	char (*vert_color)[3];
 	GPUPackedNormal *poly_normals_pack;
 	GPUPackedNormal *vert_normals_pack;
@@ -845,7 +845,7 @@ static void mesh_render_data_free(MeshRenderData *rdata)
 	MEM_SAFE_FREE(rdata->poly_normals);
 	MEM_SAFE_FREE(rdata->poly_normals_pack);
 	MEM_SAFE_FREE(rdata->vert_normals_pack);
-	MEM_SAFE_FREE(rdata->vert_weight_color);
+	MEM_SAFE_FREE(rdata->vert_weight);
 	MEM_SAFE_FREE(rdata->edge_select_bool);
 	MEM_SAFE_FREE(rdata->vert_color);
 
@@ -1068,58 +1068,7 @@ fallback:
 	}
 }
 
-/* TODO, move into shader? */
-static void rgb_from_weight(float r_rgb[3], const float weight)
-{
-	const float blend = ((weight / 2.0f) + 0.5f);
-
-	if (weight <= 0.25f) {    /* blue->cyan */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend * weight * 4.0f;
-		r_rgb[2] = blend;
-	}
-	else if (weight <= 0.50f) {  /* cyan->green */
-		r_rgb[0] = 0.0f;
-		r_rgb[1] = blend;
-		r_rgb[2] = blend * (1.0f - ((weight - 0.25f) * 4.0f));
-	}
-	else if (weight <= 0.75f) {  /* green->yellow */
-		r_rgb[0] = blend * ((weight - 0.50f) * 4.0f);
-		r_rgb[1] = blend;
-		r_rgb[2] = 0.0f;
-	}
-	else if (weight <= 1.0f) {  /* yellow->red */
-		r_rgb[0] = blend;
-		r_rgb[1] = blend * (1.0f - ((weight - 0.75f) * 4.0f));
-		r_rgb[2] = 0.0f;
-	}
-	else {
-		/* exceptional value, unclamped or nan,
-		 * avoid uninitialized memory use */
-		r_rgb[0] = 1.0f;
-		r_rgb[1] = 0.0f;
-		r_rgb[2] = 1.0f;
-	}
-}
-
-static void vertex_weight_color(float vweight[3], float weight, bool show_alert_color)
-{
-	CLAMP(weight, 0.0f, 1.0f);
-
-	if (show_alert_color) {
-		bTheme *theme = U.themes.first;
-
-		rgb_uchar_to_float(vweight, (uchar *)theme->tv3d.vertex_unreferenced);
-	}
-	else if (U.flag & USER_CUSTOM_RANGE) {
-		BKE_colorband_evaluate(&U.coba_weight, weight, vweight);
-	}
-	else {
-		rgb_from_weight(vweight, weight);
-	}
-}
-
-static void evaluate_vertex_weight(float vweight[3], const MDeformVert *dvert, const struct DRW_MeshWeightState *wstate)
+static float evaluate_vertex_weight(const MDeformVert *dvert, const struct DRW_MeshWeightState *wstate)
 {
 	float input = 0.0f;
 	bool show_alert_color = false;
@@ -1152,16 +1101,19 @@ static void evaluate_vertex_weight(float vweight[3], const MDeformVert *dvert, c
 		}
 	}
 
-	vertex_weight_color(vweight, input, show_alert_color);
+	if (show_alert_color) {
+		return -1.0f;
+	}
+	else {
+		CLAMP(input, 0.0f, 1.0f);
+		return input;
+	}
 }
 
-/* color-code for missing data (full brightness isn't easy on the eye). */
-static const unsigned char missing_weight_color[3] = { 0xa0, 0x00, 0xa0 };
-
-/** Ensure #MeshRenderData.vert_weight_color */
-static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, const struct DRW_MeshWeightState *wstate)
+/** Ensure #MeshRenderData.vert_weight */
+static void mesh_render_data_ensure_vert_weight(MeshRenderData *rdata, const struct DRW_MeshWeightState *wstate)
 {
-	float (*vweight)[3] = rdata->vert_weight_color;
+	float (*vweight) = rdata->vert_weight;
 	if (vweight == NULL) {
 		if (wstate->defgroup_active == -1) {
 			goto fallback;
@@ -1178,10 +1130,10 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 			BMVert *eve;
 			int i;
 
-			vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
+			vweight = rdata->vert_weight = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
 			BM_ITER_MESH_INDEX(eve, &viter, bm, BM_VERT, i) {
 				const MDeformVert *dvert = BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-				evaluate_vertex_weight(vweight[i], dvert, wstate);
+				vweight[i] = evaluate_vertex_weight(dvert, wstate);
 			}
 		}
 		else {
@@ -1189,30 +1141,25 @@ static void mesh_render_data_ensure_vert_weight_color(MeshRenderData *rdata, con
 				goto fallback;
 			}
 
-			vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
+			vweight = rdata->vert_weight = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
 			for (int i = 0; i < rdata->vert_len; i++) {
-				evaluate_vertex_weight(vweight[i], &rdata->dvert[i], wstate);
+				vweight[i] = evaluate_vertex_weight(&rdata->dvert[i], wstate);
 			}
 		}
 	}
 	return;
 
 fallback:
-	vweight = rdata->vert_weight_color = MEM_mallocN(sizeof(*vweight) * rdata->vert_len, __func__);
-
-	float error_color[3];
+	vweight = rdata->vert_weight = MEM_callocN(sizeof(*vweight) * rdata->vert_len, __func__);
 
 	if ((wstate->defgroup_active < 0) && (wstate->defgroup_len > 0)) {
-		rgb_uchar_to_float(error_color, missing_weight_color);
+		copy_vn_fl(vweight, rdata->vert_len, -2.0f);
 	}
-	else {
-		vertex_weight_color(error_color, 0.0f, wstate->alert_mode != OB_DRAW_GROUPUSER_NONE);
-	}
-
-	for (int i = 0; i < rdata->vert_len; i++) {
-		copy_v3_v3(vweight[i], error_color);
+	else if (wstate->alert_mode != OB_DRAW_GROUPUSER_NONE) {
+		copy_vn_fl(vweight, rdata->vert_len, -1.0f);
 	}
 }
+
 
 /** Ensure #MeshRenderData.edge_select_bool */
 static void mesh_render_data_ensure_edge_select_bool(MeshRenderData *rdata, bool use_wire)
@@ -2782,9 +2729,9 @@ static GPUVertBuf *mesh_create_tri_weights(
 		uint cidx = 0;
 
 		static GPUVertFormat format = { 0 };
-		static struct { uint col; } attr_id;
+		static struct { uint weight; } attr_id;
 		if (format.attr_len == 0) {
-			attr_id.col = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+			attr_id.weight = GPU_vertformat_attr_add(&format, "weight", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 		}
 
 		vbo = GPU_vertbuf_create_with_format(&format);
@@ -2794,8 +2741,8 @@ static GPUVertBuf *mesh_create_tri_weights(
 		int vbo_len_used = 0;
 		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
 
-		mesh_render_data_ensure_vert_weight_color(rdata, wstate);
-		const float (*vert_weight_color)[3] = rdata->vert_weight_color;
+		mesh_render_data_ensure_vert_weight(rdata, wstate);
+		const float (*vert_weight) = rdata->vert_weight;
 
 		if (rdata->edit_bmesh) {
 			for (int i = 0; i < tri_len; i++) {
@@ -2804,7 +2751,7 @@ static GPUVertBuf *mesh_create_tri_weights(
 				if (!BM_elem_flag_test(ltri[0]->f, BM_ELEM_HIDDEN)) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const int v_index = BM_elem_index_get(ltri[tri_corner]->v);
-						GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
+						GPU_vertbuf_attr_set(vbo, attr_id.weight, cidx++, &vert_weight[v_index]);
 					}
 				}
 			}
@@ -2815,7 +2762,7 @@ static GPUVertBuf *mesh_create_tri_weights(
 				if (!(use_hide && (rdata->mpoly[mlt->poly].flag & ME_HIDE))) {
 					for (uint tri_corner = 0; tri_corner < 3; tri_corner++) {
 						const uint v_index = rdata->mloop[mlt->tri[tri_corner]].v;
-						GPU_vertbuf_attr_set(vbo, attr_id.col, cidx++, vert_weight_color[v_index]);
+						GPU_vertbuf_attr_set(vbo, attr_id.weight, cidx++, &vert_weight[v_index]);
 					}
 				}
 			}
