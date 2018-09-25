@@ -210,8 +210,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	if (ELEM(type,
 	         SIMFACE_COPLANAR,
-	         SIMFACE_FACEMAP,
-	         SIMFACE_FREESTYLE))
+	         SIMFACE_FACEMAP))
 	{
 		BKE_report(op->reports, RPT_ERROR, "Select similar face mode not supported at the moment");
 		return OPERATOR_CANCELLED;
@@ -270,6 +269,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 				material_array = give_matarar(ob);
 				break;
 			}
+			case SIMFACE_FREESTYLE:
+			{
+				if (!CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
+					face_data_value |= SIMFACE_DATA_FALSE;
+					continue;
+				}
+				break;
+			}
 		}
 
 		BMFace *face; /* Mesh face. */
@@ -321,10 +328,27 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_FREESTYLE:
+					{
+						FreestyleFace *fface;
+						fface = CustomData_bmesh_get(&bm->pdata, face->head.data, CD_FREESTYLE_FACE);
+						if ((fface == NULL) || ((fface->flag & FREESTYLE_FACE_MARK) == 0)) {
+							face_data_value |= SIMFACE_DATA_FALSE;
+						}
+						else {
+							face_data_value |= SIMFACE_DATA_TRUE;
+						}
+						if (face_data_value == SIMFACE_DATA_ALL) {
+							goto face_select_all;
+						}
+						break;
+					}
 				}
 			}
 		}
 	}
+
+	BLI_assert((type != SIMFACE_FREESTYLE) || (face_data_value != SIMFACE_DATA_NONE));
 
 	if (tree != NULL) {
 		BLI_kdtree_balance(tree);
@@ -337,6 +361,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		bool changed = false;
 		Material ***material_array;
 
+		bool has_custom_data_layer;
 		switch (type) {
 			case SIMFACE_MATERIAL:
 			{
@@ -344,6 +369,14 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					continue;
 				}
 				material_array = give_matarar(ob);
+				break;
+			}
+			case SIMFACE_FREESTYLE:
+			{
+				has_custom_data_layer = CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE);
+				if ((face_data_value == SIMFACE_DATA_TRUE) && !has_custom_data_layer) {
+					continue;
+				}
 				break;
 			}
 		}
@@ -428,6 +461,24 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 							select = true;
 						}
 						break;
+					case SIMFACE_FREESTYLE:
+					{
+						FreestyleFace *fface;
+
+						if (!has_custom_data_layer) {
+							BLI_assert(face_data_value == SIMFACE_DATA_FALSE);
+							select = true;
+							break;
+						}
+
+						fface = CustomData_bmesh_get(&bm->pdata, face->head.data, CD_FREESTYLE_FACE);
+						if (((fface != NULL) && (fface->flag & FREESTYLE_FACE_MARK)) ==
+						    ((face_data_value & SIMFACE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
+					}
 				}
 
 				if (select) {
@@ -446,7 +497,8 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	if (false) {
 face_select_all:
 		BLI_assert(ELEM(type,
-		                SIMFACE_SMOOTH
+		                SIMFACE_SMOOTH,
+		                SIMFACE_FREESTYLE
 		                ));
 
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
