@@ -1069,7 +1069,7 @@ static void reshape_from_ccg_task(
 }
 
 bool multiresModifier_reshapeFromCCG(
-        MultiresModifierData *mmd,
+        const int tot_level,
         Mesh *coarse_mesh,
         SubdivCCG *subdiv_ccg)
 {
@@ -1091,8 +1091,8 @@ bool multiresModifier_reshapeFromCCG(
 	                .mdisps  = mdisps,
 	                .grid_paint_mask = grid_paint_mask,
 	                 /* TODO(sergey): Use grid_size_for_level_get */
-	                .grid_size = (1 << (mmd->totlvl - 1)) + 1,
-	                .level = mmd->totlvl},
+	                .grid_size = (1 << (tot_level - 1)) + 1,
+	                .level = tot_level},
 	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        .key = &key,
 	        .grids = subdiv_ccg->grids};
@@ -1101,7 +1101,7 @@ bool multiresModifier_reshapeFromCCG(
 	/* Initialize propagation to higher levels. */
 	MultiresPropagateData propagate_data;
 	multires_reshape_propagate_prepare(
-	        &propagate_data, coarse_mesh, key.level, mmd->totlvl);
+	        &propagate_data, coarse_mesh, key.level, tot_level);
 	/* Threaded grids iteration. */
 	ParallelRangeSettings parallel_range_settings;
 	BLI_parallel_range_settings_defaults(&parallel_range_settings);
