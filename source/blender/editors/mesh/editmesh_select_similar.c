@@ -171,6 +171,30 @@ static bool select_similar_compare_float_tree(const KDTree *tree, const float le
 /** \name Select Similar Face
  * \{ */
 
+enum {
+	SIMFACE_DATA_NONE  = 0,
+	SIMFACE_DATA_TRUE  = (1 << 0),
+	SIMFACE_DATA_FALSE = (1 << 1),
+	SIMFACE_DATA_ALL   = (SIMFACE_DATA_TRUE | SIMFACE_DATA_FALSE),
+};
+
+/**
+ * Return true if we still don't know the final value for this edge data.
+ * In other words, if we need to keep iterating over the objects or we can
+ * just go ahead and select all the objects.
+ */
+static bool face_data_value_set(BMFace *face, const int hflag, int *r_value)
+{
+	if (BM_elem_flag_test(face, hflag)) {
+		*r_value |= SIMFACE_DATA_TRUE;
+	}
+	else {
+		*r_value |= SIMFACE_DATA_FALSE;
+	}
+
+	return *r_value != SIMFACE_DATA_ALL;
+}
+
 /* TODO(dfelinto): `types` that should technically be compared in world space but are not:
  *  -SIMFACE_AREA
  *  -SIMFACE_PERIMETER
@@ -186,7 +210,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	if (ELEM(type,
 	         SIMFACE_COPLANAR,
-	         SIMFACE_SMOOTH,
 	         SIMFACE_FACEMAP,
 	         SIMFACE_FREESTYLE))
 	{
@@ -212,6 +235,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	KDTree *tree = NULL;
 	GSet *gset = NULL;
+	int face_data_value = SIMFACE_DATA_NONE;
 
 	switch (type) {
 		case SIMFACE_AREA:
@@ -288,6 +312,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						normalize_v3(normal);
 
 						BLI_kdtree_insert(tree, tree_index++, normal);
+						break;
+					}
+					case SIMFACE_SMOOTH:
+					{
+						if (!face_data_value_set(face, BM_ELEM_SMOOTH, &face_data_value)) {
+							goto face_select_all;
+						}
 						break;
 					}
 				}
@@ -390,6 +421,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						}
 						break;
 					}
+					case SIMFACE_SMOOTH:
+						if ((BM_elem_flag_test(face, BM_ELEM_SMOOTH) != 0) ==
+						    ((face_data_value & SIMFACE_DATA_TRUE) != 0))
+						{
+							select = true;
+						}
+						break;
 				}
 
 				if (select) {
@@ -400,6 +438,30 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	if (false) {
+face_select_all:
+		BLI_assert(ELEM(type,
+		                SIMFACE_SMOOTH
+		                ));
+
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
+			BMesh *bm = em->bm;
+
+			BMFace *face; /* Mesh face. */
+			BMIter iter; /* Selected faces iterator. */
+
+			BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(face, BM_ELEM_SELECT)) {
+					BM_face_select_set(bm, face, true);
+				}
+			}
 			EDBM_selectmode_flush(em);
 			EDBM_update_generic(em, false, false);
 		}
@@ -609,12 +671,12 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					}
 					case SIMEDGE_SEAM:
 						if (!edge_data_value_set(edge, BM_ELEM_SEAM, &edge_data_value)) {
-							goto selectall;
+							goto edge_select_all;
 						}
 						break;
 					case SIMEDGE_SHARP:
 						if (!edge_data_value_set(edge, BM_ELEM_SMOOTH, &edge_data_value)) {
-							goto selectall;
+							goto edge_select_all;
 						}
 						break;
 					case SIMEDGE_FREESTYLE:
@@ -628,7 +690,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 							edge_data_value |= SIMEDGE_DATA_TRUE;
 						}
 						if (edge_data_value == SIMEDGE_DATA_ALL) {
-							goto selectall;
+							goto edge_select_all;
 						}
 						break;
 					}
@@ -800,7 +862,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 	}
 
 	if (false) {
-selectall:
+edge_select_all:
 		BLI_assert(ELEM(type,
 		                SIMEDGE_SEAM,
 		                SIMEDGE_SHARP,
