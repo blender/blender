@@ -309,8 +309,6 @@ class VIEW3D_MT_editor_menus(Menu):
                 layout.menu("VIEW3D_MT_paint_gpencil")
             elif obj and obj.mode == 'GPENCIL_EDIT':
                 layout.menu("VIEW3D_MT_edit_gpencil")
-            elif obj and obj.mode == 'GPENCIL_SCULPT':
-                layout.menu("VIEW3D_MT_sculpt_gpencil")
             elif obj and obj.mode == 'GPENCIL_WEIGHT':
                 layout.menu("VIEW3D_MT_weight_gpencil")
 
@@ -3668,47 +3666,6 @@ class VIEW3D_MT_edit_gpencil(Menu):
         layout.menu("GPENCIL_MT_cleanup")
 
 
-class VIEW3D_MT_sculpt_gpencil(Menu):
-    bl_label = "Strokes"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.menu("VIEW3D_MT_edit_gpencil_transform")
-
-        layout.separator()
-        layout.menu("GPENCIL_MT_snap")
-
-        layout.separator()
-
-        layout.operator("gpencil.duplicate_move", text="Duplicate")
-        layout.operator("gpencil.stroke_subdivide", text="Subdivide")
-        layout.menu("VIEW3D_MT_gpencil_simplify")
-
-        layout.separator()
-
-        layout.operator_menu_enum("gpencil.stroke_separate", "mode", text="Separate...")
-        layout.operator("gpencil.stroke_split", text="Split")
-        layout.operator_menu_enum("gpencil.stroke_join", "type", text="Join...")
-        layout.operator("gpencil.stroke_flip", text="Flip Direction")
-
-        layout.separator()
-
-        layout.operator("gpencil.copy", text="Copy")
-        layout.operator("gpencil.paste", text="Paste").type = 'COPY'
-        layout.operator("gpencil.paste", text="Paste & Merge").type = 'MERGE'
-
-        layout.separator()
-
-        layout.operator_menu_enum("gpencil.move_to_layer", "layer", text="Move to Layer")
-        layout.menu("VIEW3D_MT_assign_material")
-        layout.operator_menu_enum("gpencil.stroke_arrange", "direction", text="Arrange Strokes...")
-
-        layout.separator()
-
-        layout.operator_menu_enum("gpencil.convert", "type", text="Convert to Geometry...")
-
-
 class VIEW3D_MT_weight_gpencil(Menu):
     bl_label = "Weights"
 
@@ -5204,7 +5161,6 @@ classes = (
     VIEW3D_MT_assign_material,
     VIEW3D_MT_edit_gpencil,
     VIEW3D_MT_edit_gpencil_delete,
-    VIEW3D_MT_sculpt_gpencil,
     VIEW3D_MT_weight_gpencil,
     VIEW3D_MT_gpencil_animation,
     VIEW3D_MT_gpencil_simplify,
