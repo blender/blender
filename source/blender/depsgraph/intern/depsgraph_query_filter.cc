@@ -137,7 +137,7 @@ static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	}
 
 	/* 2) Remove unwanted operations from graph->operations */
-	for (Depsgraph::OperationNodes::const_iterator it_opnode = graph->operations.begin();
+	for (Depsgraph::OperationNodes::iterator it_opnode = graph->operations.begin();
 	     it_opnode != graph->operations.end();
 	     )
 	{
@@ -157,7 +157,7 @@ static void deg_filter_remove_unwanted_ids(Depsgraph *graph, GSet *retained_ids)
 	 * However, we don't worry about the conditional freeing for physics
 	 * stuff, since it's rarely needed currently.
 	 */
-	for (Depsgraph::IDDepsNodes::const_iterator it_id = graph->id_nodes.begin();
+	for (Depsgraph::IDDepsNodes::iterator it_id = graph->id_nodes.begin();
 	     it_id != graph->id_nodes.end();
 	     )
 	{
