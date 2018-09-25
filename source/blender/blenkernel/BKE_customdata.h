@@ -224,8 +224,8 @@ void CustomData_copy_data(const struct CustomData *source,
                           struct CustomData *dest, int source_index,
                           int dest_index, int count);
 void CustomData_copy_data_named(const struct CustomData *source,
-                          struct CustomData *dest, int source_index,
-                          int dest_index, int count);
+                                struct CustomData *dest, int source_index,
+                                int dest_index, int count);
 void CustomData_copy_elements(int type, void *src_data_ofs, void *dst_data_ofs, int count);
 void CustomData_bmesh_copy_data(const struct CustomData *source,
                                 struct CustomData *dest, void *src_block,
