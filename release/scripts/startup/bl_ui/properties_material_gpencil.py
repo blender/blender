@@ -147,7 +147,8 @@ class MATERIAL_PT_gpencil_slots(Panel):
             if gpd.use_stroke_edit_mode:
                 row = layout.row(align=True)
                 row.operator("gpencil.stroke_change_color", text="Assign")
-                row.operator("gpencil.color_select", text="Select")
+                row.operator("gpencil.color_select", text="Select").deselect=False
+                row.operator("gpencil.color_select", text="Deselect").deselect=True
 
         elif mat:
             row.template_ID(space, "pin_id")

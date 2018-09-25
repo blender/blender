@@ -2581,12 +2581,13 @@ void GPENCIL_OT_color_unlock_all(wmOperatorType *ot)
 
 /* ***************** Select all strokes using color ************************ */
 
-static int gpencil_color_select_exec(bContext *C, wmOperator *UNUSED(op))
+static int gpencil_color_select_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	Object *ob = CTX_data_active_object(C);
 	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, ob->actcol);
-	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	const bool deselected = RNA_boolean_get(op->ptr, "deselect");
 
 	/* sanity checks */
 	if (ELEM(NULL, gpd, gp_style))
@@ -2616,9 +2617,19 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *UNUSED(op))
 						bGPDspoint *pt;
 						int i;
 
-						gps->flag |= GP_STROKE_SELECT;
+						if (!deselected) {
+							gps->flag |= GP_STROKE_SELECT;
+						}
+						else {
+							gps->flag &= ~GP_STROKE_SELECT;
+						}
 						for (i = 0, pt = gps->points; i < gps->totpoints; i++, pt++) {
-							pt->flag |= GP_SPOINT_SELECT;
+							if (!deselected) {
+								pt->flag |= GP_SPOINT_SELECT;
+							}
+							else {
+								pt->flag &= ~GP_SPOINT_SELECT;
+							}
 						}
 					}
 				}
@@ -2654,4 +2665,8 @@ void GPENCIL_OT_color_select(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	ot->prop = RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Unselect strokes");
+	RNA_def_property_flag(ot->prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
