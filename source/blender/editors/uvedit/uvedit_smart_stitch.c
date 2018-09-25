@@ -2002,6 +2002,7 @@ static void stitch_exit(bContext *C, wmOperator *op, int finished)
 		RNA_enum_set(op->ptr, "stored_mode", state->mode);
 
 		/* Store selection for re-execution of stitch */
+		RNA_collection_clear(op->ptr, "selection");
 		for (i = 0; i < state->selection_size; i++) {
 			UvElement *element;
 			PointerRNA itemptr;
