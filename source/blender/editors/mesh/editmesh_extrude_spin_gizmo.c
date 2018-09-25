@@ -426,6 +426,8 @@ typedef struct GizmoGroupData_SpinRedo {
 		float plane_no[3];
 	} prev;
 
+	bool is_init;
+
 	/* We could store more vars here! */
 	struct {
 		bContext *context;
@@ -457,6 +459,13 @@ typedef struct GizmoGroupData_SpinRedo {
  */
 static void gizmo_spin_exec(GizmoGroupData_SpinRedo *ggd)
 {
+	if (ggd->is_init) {
+		wmGizmo *gz = ggd->angle_z;
+		PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "click_value");
+		RNA_property_unset(gz->ptr, prop);
+		ggd->is_init = false;
+	}
+
 	wmOperator *op = ggd->data.op;
 	if (op == WM_operator_last_redo((bContext *)ggd->data.context)) {
 		ED_undo_operator_repeat((bContext *)ggd->data.context, op);
@@ -729,6 +738,8 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 	}
 #endif
 
+	ggd->is_init = true;
+
 	WM_gizmo_modal_set_from_setup(
 	        gzmap, (bContext *)C, gz, 0, win->eventstate);
 }
@@ -784,6 +795,7 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		RNA_boolean_set(gz->ptr, "wrap_angle", false);
 		RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE);
 		RNA_float_set(gz->ptr, "arc_inner_factor", 0.9f);
+		RNA_float_set(gz->ptr, "click_value", M_PI * 2);
 		WM_gizmo_set_flag(gz, WM_GIZMO_DRAW_VALUE, true);
 		WM_gizmo_set_scale(gz, 2.0f);
 		WM_gizmo_set_line_width(gz, 1.0f);
