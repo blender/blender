@@ -2600,7 +2600,7 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *UNUSED(op))
 					continue;
 
 				/* select */
-				if (ob->actcol == gps->mat_nr) {
+				if (ob->actcol == gps->mat_nr + 1) {
 					bGPDspoint *pt;
 					int i;
 
@@ -2612,6 +2612,9 @@ static int gpencil_color_select_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 	}
+	/* copy on write tag is needed, or else no refresh happens */
+	DEG_id_tag_update(&gpd->id, DEG_TAG_COPY_ON_WRITE);
+
 	/* notifiers */
 	WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, NULL);
 
