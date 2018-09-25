@@ -109,6 +109,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
         col = split.column(align=True)
         col.label(text="Settings:")
         col.prop(metaelem, "stiffness", text="Stiffness")
+        col.prop(metaelem, "radius", text="Radius")
         col.prop(metaelem, "use_negative", text="Negative")
         col.prop(metaelem, "hide", text="Hide")
 
@@ -120,7 +121,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
             col.prop(metaelem, "size_y", text="Y")
             col.prop(metaelem, "size_z", text="Z")
 
-        elif metaelem.type == 'TUBE':
+        elif metaelem.type == 'CAPSULE':
             col.label(text="Size:")
             col.prop(metaelem, "size_x", text="X")
 
