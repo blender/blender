@@ -1711,7 +1711,7 @@ class VIEW3D_PT_tools_grease_pencil_sculpt(GreasePencilStrokeSculptPanel, View3D
 class VIEW3D_PT_tools_grease_pencil_weight_paint(View3DPanel, Panel):
     bl_context = ".greasepencil_weight"
     bl_category = "Tools"
-    bl_label = "Weight Paint"
+    bl_label = "Brush"
 
     @staticmethod
     def draw(self, context):
