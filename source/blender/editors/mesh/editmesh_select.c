@@ -3192,6 +3192,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	DEG_id_tag_update(basact->object->data, DEG_TAG_SELECT_UPDATE);
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
 
+	MEM_freeN(bases);
 	return OPERATOR_FINISHED;
 }
 
