@@ -171,39 +171,122 @@ static bool select_similar_compare_float_tree(const KDTree *tree, const float le
 
 static int similar_face_select_exec(bContext *C, wmOperator *op)
 {
-	/* TODO (dfelinto) port the face modes to multi-object. */
-	BKE_report(op->reports, RPT_ERROR, "Select similar not supported for faces at the moment");
-	return OPERATOR_CANCELLED;
-
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	/* get the type from RNA */
 	const int type = RNA_enum_get(op->ptr, "type");
-	const float thresh = RNA_float_get(op->ptr, "threshold");
+	//const float thresh = RNA_float_get(op->ptr, "threshold");
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op,
-	             "similar_faces faces=%hf type=%i thresh=%f compare=%i",
-	             BM_ELEM_SELECT, type, thresh, compare);
-
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
-
-	/* clear the existing selection */
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
+	if (ELEM(type,
+	         SIMFACE_MATERIAL,
+	         SIMFACE_AREA,
+	         SIMFACE_PERIMETER,
+	         SIMFACE_NORMAL,
+	         SIMFACE_COPLANAR,
+	         SIMFACE_SMOOTH,
+	         SIMFACE_FACEMAP,
+	         SIMFACE_FREESTYLE))
+	{
+		BKE_report(op->reports, RPT_ERROR, "Select similar face mode not supported at the moment");
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_update_generic(em, false, false);
+	int tot_faces_selected_all = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		tot_faces_selected_all += em->bm->totfacesel;
+	}
+
+	if (tot_faces_selected_all == 0) {
+		BKE_report(op->reports, RPT_ERROR, "No face selected");
+		MEM_freeN(objects);
+		return OPERATOR_CANCELLED;
+	}
+
+	GSet *gset = NULL;
+
+	switch (type) {
+		case SIMFACE_SIDES:
+			gset = BLI_gset_ptr_new("Select similar face");
+			break;
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+
+		if (bm->totfacesel == 0) {
+			continue;
+		}
+
+		BMFace *face; /* Mesh face. */
+		BMIter iter; /* Selected faces iterator. */
+
+		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(face, BM_ELEM_SELECT)) {
+				switch (type) {
+					case SIMFACE_SIDES:
+						BLI_gset_add(gset, POINTER_FROM_INT(face->len));
+						break;
+				}
+			}
+		}
+	}
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+		bool changed = false;
+
+		BMFace *face; /* Mesh face. */
+		BMIter iter; /* Selected faces iterator. */
+
+		BM_ITER_MESH (face, &iter, bm, BM_FACES_OF_MESH) {
+			if (!BM_elem_flag_test(face, BM_ELEM_SELECT) &&
+			    !BM_elem_flag_test(face, BM_ELEM_HIDDEN))
+			{
+				bool select = false;
+				switch (type) {
+					case SIMFACE_SIDES:
+					{
+						const int num_sides = face->len;
+						GSetIterator gs_iter;
+						GSET_ITER(gs_iter, gset) {
+							const int num_sides_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
+							const int delta_i = num_sides - num_sides_iter;
+							if (select_similar_compare_int(delta_i, compare)) {
+								select = true;
+								break;
+							}
+						}
+						break;
+					}
+				}
+
+				if (select) {
+					BM_face_select_set(bm, face, true);
+					changed = true;
+				}
+			}
+		}
+
+		if (changed) {
+			EDBM_selectmode_flush(em);
+			EDBM_update_generic(em, false, false);
+		}
+	}
+
+	MEM_freeN(objects);
+	if (gset != NULL) {
+		BLI_gset_free(gset, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
