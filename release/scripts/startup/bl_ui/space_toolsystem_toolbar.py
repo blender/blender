@@ -1708,6 +1708,14 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         _defs_view3d_generic.ruler,
     )
 
+    _tools_gpencil_select = (
+        (
+            _defs_gpencil_edit.border_select,
+            _defs_gpencil_edit.circle_select,
+            _defs_gpencil_edit.lasso_select,
+        ),
+    )
+
     _tools = {
         None: [
             # Don't use this! because of paint modes.
@@ -1882,6 +1890,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_sculpt.pinch,
             _defs_gpencil_sculpt.randomize,
             _defs_gpencil_sculpt.clone,
+            None,
+            *_tools_gpencil_select,
         ],
         'GPENCIL_WEIGHT': [
             _defs_gpencil_weight.paint,
