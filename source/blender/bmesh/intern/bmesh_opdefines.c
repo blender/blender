@@ -881,6 +881,7 @@ static BMOpDefine bmo_extrude_discrete_faces_def = {
 	"extrude_discrete_faces",
 	/* slots_in */
 	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},     /* input faces */
+	 {"use_normal_flip", BMO_OP_SLOT_BOOL},  /* Create faces with reversed direction. */
 	 {"use_select_history", BMO_OP_SLOT_BOOL},  /* pass to duplicate */
 	 {{'\0'}},
 	},
@@ -902,6 +903,7 @@ static BMOpDefine bmo_extrude_edge_only_def = {
 	"extrude_edge_only",
 	/* slots_in */
 	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input vertices */
+	 {"use_normal_flip", BMO_OP_SLOT_BOOL},  /* Create faces with reversed direction. */
 	 {"use_select_history", BMO_OP_SLOT_BOOL},  /* pass to duplicate */
 	 {{'\0'}},
 	},
@@ -1037,6 +1039,7 @@ static BMOpDefine bmo_extrude_face_region_def = {
 	{{"geom", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT | BM_EDGE | BM_FACE}},     /* edges and faces */
 	 {"edges_exclude", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_EMPTY}},
 	 {"use_keep_orig", BMO_OP_SLOT_BOOL},   /* keep original geometry (requires ``geom`` to include edges). */
+	 {"use_normal_flip", BMO_OP_SLOT_BOOL},  /* Create faces with reversed direction. */
 	 {"use_select_history", BMO_OP_SLOT_BOOL},  /* pass to duplicate */
 	 {{'\0'}},
 	},
@@ -1386,6 +1389,7 @@ static BMOpDefine bmo_spin_def = {
 	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (radians) */
 	 {"space", BMO_OP_SLOT_MAT},            /* matrix to define the space (typically object matrix) */
 	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
+	 {"use_normal_flip", BMO_OP_SLOT_BOOL}, /* Create faces with reversed direction. */
 	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
 	 {{'\0'}},
 	},
