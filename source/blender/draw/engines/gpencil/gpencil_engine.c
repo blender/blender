@@ -289,7 +289,6 @@ void GPENCIL_cache_init(void *vedata)
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	wmWindowManager *wm = NULL;
 	Scene *scene = draw_ctx->scene;
 	View3D *v3d = draw_ctx->v3d;
 
@@ -340,12 +339,8 @@ void GPENCIL_cache_init(void *vedata)
 		        "GPencil Edit Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
 
-		/* detect if playing animation and multiwindow */
+		/* detect if playing animation */
 		if (draw_ctx->evil_C) {
-			wm = CTX_wm_manager(draw_ctx->evil_C);
-			if ((wm) && (wm->windows.first != wm->windows.last)) {
-				stl->storage->is_multiwindow = true;
-			}
 
 			bool playing = ED_screen_animation_playing(CTX_wm_manager(draw_ctx->evil_C)) != NULL;
 			if (playing != stl->storage->is_playing) {
@@ -356,7 +351,6 @@ void GPENCIL_cache_init(void *vedata)
 		else {
 			stl->storage->is_playing = false;
 			stl->storage->reset_cache = false;
-			stl->storage->is_multiwindow = false;
 		}
 		/* save render state */
 		stl->storage->is_render = DRW_state_is_image_render();
@@ -568,10 +562,11 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_GPENCIL && ob->data) {
 		bGPdata *gpd = (bGPdata *)ob->data;
 
-		/* if multiwindow and onion, set as dirty */
-		if ((stl->storage->is_multiwindow) &&
-		    (gpd->flag & GP_DATA_SHOW_ONIONSKINS))
-		{
+		/* if onion, set as dirty always
+		 * This reduces performance, but avoid any crash in the multiple
+		 * overlay and multiwindow options
+		 */
+		if (gpd->flag & GP_DATA_SHOW_ONIONSKINS) {
 			gpd->flag |= GP_DATA_CACHE_IS_DIRTY;
 		}
 

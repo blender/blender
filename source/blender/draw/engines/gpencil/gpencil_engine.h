@@ -112,7 +112,6 @@ typedef struct GPENCIL_Storage {
 	bool is_playing;
 	bool is_render;
 	bool is_mat_preview;
-	bool is_multiwindow;
 	bool reset_cache;
 	bool buffer_stroke;
 	bool buffer_fill;
