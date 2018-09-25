@@ -117,6 +117,7 @@
 #include "BKE_speaker.h"
 #include "BKE_softbody.h"
 #include "BKE_subsurf.h"
+#include "BKE_subdiv_ccg.h"
 #include "BKE_material.h"
 #include "BKE_camera.h"
 #include "BKE_image.h"
@@ -339,6 +340,92 @@ void BKE_object_link_modifiers(Scene *scene, struct Object *ob_dst, const struct
 	/* TODO: smoke?, cloth? */
 }
 
+/* Copy CCG related data. Used to sync copy of mesh with reshaped original
+ * mesh.
+ */
+static void copy_ccg_data(Mesh *mesh_destination,
+                          Mesh *mesh_source,
+                          int layer_type)
+{
+	BLI_assert(mesh_destination->totloop == mesh_source->totloop);
+	CustomData *data_destination = &mesh_destination->ldata;
+	CustomData *data_source = &mesh_source->ldata;
+	const int num_elements = mesh_source->totloop;
+	if (!CustomData_has_layer(data_source, layer_type)) {
+		return;
+	}
+	const int layer_index = CustomData_get_layer_index(
+	        data_destination, layer_type);
+	CustomData_free_layer(
+	        data_destination, layer_type, num_elements, layer_index);
+	BLI_assert(!CustomData_has_layer(data_destination, layer_type));
+	CustomData_add_layer(
+	        data_destination, layer_type, CD_CALLOC, NULL, num_elements);
+	BLI_assert(CustomData_has_layer(data_destination, layer_type));
+	CustomData_copy_layer_type_data(data_source, data_destination,
+	                                layer_type, 0, 0, num_elements);
+}
+
+static void object_update_from_subsurf_ccg(Object *object)
+{
+	/* Currently CCG is only created for Mesh objects. */
+	if (object->type != OB_MESH) {
+		return;
+	}
+	/* Object was never evaluated, so can not have CCG subdivision surface. */
+	Mesh *mesh_eval = object->runtime.mesh_eval;
+	if (mesh_eval == NULL) {
+		return;
+	}
+	SubdivCCG *subdiv_ccg = mesh_eval->runtime.subdiv_ccg;
+	if (subdiv_ccg == NULL) {
+		return;
+	}
+	/* Check whether there is anything to be reshaped. */
+	if (!subdiv_ccg->dirty.coords && !subdiv_ccg->dirty.hidden) {
+		return;
+	}
+	Object *object_orig = DEG_get_original_object(object);
+	Mesh *mesh_orig = (Mesh *)object_orig->data;
+	multiresModifier_reshapeFromCCG(6, mesh_orig, subdiv_ccg);
+	/* NOTE: we need to reshape into an original mesh from main database,
+	 * allowing:
+	 *
+	 *  - Update copies of that mesh at any moment.
+	 *  - Save the file without doing extra reshape.
+	 *  - All the users of the mesh have updated displacement.
+	 *
+	 * However, the tricky part here is that we only know about sculpted
+	 * state of a mesh on an object level, and object is being updated after
+	 * mesh datablock is updated. This forces us to:
+	 *
+	 *  - Update mesh datablock from object evaluation, which is technically
+	 *    forbidden, but there is no other place for this yet.
+	 *  - Reshape to the original mesh from main database, and then copy updated
+	 *    layer to copy of that mesh (since copy of the mesh has decoupled
+	 *    custom data layers).
+	 *
+	 * All this is defeating all the designs we need to follow to allow safe
+	 * threaded evaluation, but this is as good as we can make it within the
+	 * current sculpt//evaluated mesh design. This is also how we've survived
+	 * with old DerivedMesh based solutions. So, while this is all wrong and
+	 * needs reconsideration, doesn't seem to be a big stopper for real
+	 * production artists.
+	 */
+	/* TODO(sergey): Solve this somehow, to be fully stable for threaded
+	 * evaluation environment.
+	 */
+	/* NOTE: runtime.mesh_orig is what was before assigning mesh_eval,
+	 * it is orig as in what was in object_eval->data before evaluating
+	 * modifier stack.
+	 *
+	 * mesh_cow is a copy-on-written version od object_orig->data.
+	 */
+	Mesh *mesh_cow = object->runtime.mesh_orig;
+	copy_ccg_data(mesh_cow, mesh_orig, CD_MDISPS);
+	copy_ccg_data(mesh_cow, mesh_orig, CD_GRID_PAINT_MASK);
+}
+
 /* free data derived from mesh, called when mesh changes or is freed */
 void BKE_object_free_derived_caches(Object *ob)
 {
@@ -368,6 +455,7 @@ void BKE_object_free_derived_caches(Object *ob)
 		ob->bb = NULL;
 	}
 
+	object_update_from_subsurf_ccg(ob);
 	BKE_object_free_derived_mesh_caches(ob);
 
 	if (ob->runtime.mesh_eval != NULL) {
