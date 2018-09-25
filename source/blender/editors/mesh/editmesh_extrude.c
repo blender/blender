@@ -474,8 +474,9 @@ static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	const bool use_normal_flip = RNA_boolean_get(op->ptr, "use_normal_flip");
 
-	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, false);
+	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT, use_normal_flip);
 
 	EDBM_update_generic(em, true, true);
 
