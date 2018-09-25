@@ -67,7 +67,7 @@ struct GPUBatch *DRW_curve_batch_cache_get_wire_edge(struct Curve *cu, struct Cu
 struct GPUBatch *DRW_curve_batch_cache_get_normal_edge(
         struct Curve *cu, struct CurveCache *ob_curve_cache, float normal_size);
 struct GPUBatch *DRW_curve_batch_cache_get_overlay_edges(struct Curve *cu);
-struct GPUBatch *DRW_curve_batch_cache_get_overlay_verts(struct Curve *cu);
+struct GPUBatch *DRW_curve_batch_cache_get_overlay_verts(struct Curve *cu, bool handles);
 
 struct GPUBatch *DRW_curve_batch_cache_get_triangles_with_normals(
         struct Curve *cu, struct CurveCache *ob_curve_cache);

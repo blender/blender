@@ -254,13 +254,16 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 				DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
 			}
 
-			/* Add geom to a shading group */
-			geom = DRW_cache_curve_edge_overlay_get(ob);
-			if (geom) {
-				DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
+			bool show_handles = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
+
+			if (show_handles) {
+				geom = DRW_cache_curve_edge_overlay_get(ob);
+				if (geom) {
+					DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
+				}
 			}
 
-			geom = DRW_cache_curve_vert_overlay_get(ob);
+			geom = DRW_cache_curve_vert_overlay_get(ob, show_handles);
 			DRW_shgroup_call_add(stl->g_data->overlay_vert_shgrp, geom, ob->obmat);
 		}
 	}

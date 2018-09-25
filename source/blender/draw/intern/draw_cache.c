@@ -3121,12 +3121,12 @@ GPUBatch *DRW_cache_curve_edge_overlay_get(Object *ob)
 	return DRW_curve_batch_cache_get_overlay_edges(cu);
 }
 
-GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob)
+GPUBatch *DRW_cache_curve_vert_overlay_get(Object *ob, bool handles)
 {
 	BLI_assert(ob->type == OB_CURVE);
 
 	struct Curve *cu = ob->data;
-	return DRW_curve_batch_cache_get_overlay_verts(cu);
+	return DRW_curve_batch_cache_get_overlay_verts(cu, handles);
 }
 
 GPUBatch *DRW_cache_curve_surface_get(Object *ob)
