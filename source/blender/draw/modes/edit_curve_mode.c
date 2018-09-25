@@ -292,21 +292,13 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl);
 
-	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
-	/*
-	 * DRW_framebuffer_texture_detach(dtxl->depth);
-	 * DRW_framebuffer_bind(fbl->custom_fb);
-	 * DRW_draw_pass(psl->pass);
-	 * DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	 * DRW_framebuffer_bind(dfbl->default_fb);
-	 */
-
-	/* ... or just render passes on default framebuffer. */
 	DRW_draw_pass(psl->wire_pass);
-	DRW_draw_pass(psl->overlay_edge_pass);
-	DRW_draw_pass(psl->overlay_vert_pass);
 
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+
+	/* Thoses passes don't write to depth and are AA'ed using other tricks. */
+	DRW_draw_pass(psl->overlay_edge_pass);
+	DRW_draw_pass(psl->overlay_vert_pass);
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */
