@@ -60,15 +60,15 @@ bool    ED_curve_editnurb_select_pick(struct bContext *C, const int mval[2], boo
 
 struct Nurb *ED_curve_add_nurbs_primitive(struct bContext *C, struct Object *obedit, float mat[4][4], int type, int newob);
 
-bool    ED_curve_nurb_select_check(struct Curve *cu, struct Nurb *nu);
-int     ED_curve_nurb_select_count(struct Curve *cu, struct Nurb *nu);
+bool    ED_curve_nurb_select_check(struct View3D *v3d, struct Nurb *nu);
+int     ED_curve_nurb_select_count(struct View3D *v3d, struct Nurb *nu);
 void    ED_curve_nurb_select_all(struct Nurb *nu);
 void    ED_curve_nurb_deselect_all(struct Nurb *nu);
 
 int     join_curve_exec(struct bContext *C, struct wmOperator *op);
 
 /* editcurve_select.c */
-bool ED_curve_select_check(struct Curve *cu, struct EditNurb *editnurb);
+bool ED_curve_select_check(struct View3D *v3d, struct EditNurb *editnurb);
 void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);

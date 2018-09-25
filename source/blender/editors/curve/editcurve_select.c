@@ -115,14 +115,14 @@ static bool swap_selection_bpoint(BPoint *bp)
 		return select_bpoint(bp, SELECT, SELECT, VISIBLE);
 }
 
-bool ED_curve_nurb_select_check(Curve *cu, Nurb *nu)
+bool ED_curve_nurb_select_check(View3D *v3d, Nurb *nu)
 {
 	if (nu->type == CU_BEZIER) {
 		BezTriple *bezt;
 		int i;
 
 		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-			if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
+			if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
 				return true;
 			}
 		}
@@ -140,7 +140,7 @@ bool ED_curve_nurb_select_check(Curve *cu, Nurb *nu)
 	return false;
 }
 
-int ED_curve_nurb_select_count(Curve *cu, Nurb *nu)
+int ED_curve_nurb_select_count(View3D *v3d, Nurb *nu)
 {
 	int sel = 0;
 
@@ -149,7 +149,7 @@ int ED_curve_nurb_select_count(Curve *cu, Nurb *nu)
 		int i;
 
 		for (i = nu->pntsu, bezt = nu->bezt; i--; bezt++) {
-			if (BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt)) {
+			if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
 				sel++;
 			}
 		}
@@ -216,12 +216,12 @@ void ED_curve_nurb_deselect_all(Nurb *nu)
 	}
 }
 
-bool ED_curve_select_check(Curve *cu, struct EditNurb *editnurb)
+bool ED_curve_select_check(View3D *v3d, struct EditNurb *editnurb)
 {
 	Nurb *nu;
 
 	for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
-		if (ED_curve_nurb_select_check(cu, nu)) {
+		if (ED_curve_nurb_select_check(v3d, nu)) {
 			return true;
 		}
 	}
@@ -459,6 +459,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
@@ -468,7 +469,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 			Object *obedit = objects[ob_index];
 			Curve *cu = obedit->data;
 
-			if (ED_curve_select_check(cu, cu->editnurb)) {
+			if (ED_curve_select_check(v3d, cu->editnurb)) {
 				action = SEL_DESELECT;
 				break;
 			}
@@ -487,7 +488,7 @@ static int de_select_all_exec(bContext *C, wmOperator *op)
 				ED_curve_deselect_all(cu->editnurb);
 				break;
 			case SEL_INVERT:
-				ED_curve_select_swap(cu->editnurb, (cu->drawflag & CU_HIDE_HANDLES) != 0);
+				ED_curve_select_swap(cu->editnurb, (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0);
 				break;
 		}
 
@@ -525,6 +526,7 @@ void CURVE_OT_select_all(wmOperatorType *ot)
 static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	View3D *v3d = CTX_wm_view3d(C);
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -537,7 +539,7 @@ static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 		bool changed = false;
 
 		for (nu = nurbs->first; nu; nu = nu->next) {
-			if (ED_curve_nurb_select_check(cu, nu)) {
+			if (ED_curve_nurb_select_check(v3d, nu)) {
 				ED_curve_nurb_select_all(nu);
 				changed = true;
 			}

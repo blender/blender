@@ -210,8 +210,9 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 	rdata->types = types;
 	ListBase *nurbs;
 
-	rdata->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
-	rdata->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
+	/* TODO(fclem): hide them in the shader/draw engine */
+	rdata->hide_handles = false;
+	rdata->hide_normals = false;
 
 	rdata->actnu = cu->actnu;
 	rdata->actvert = cu->actvert;
@@ -364,10 +365,10 @@ static bool curve_batch_cache_valid(Curve *cu)
 
 	if (cache->is_editmode) {
 		if (cu->editnurb) {
-			if ((cache->hide_handles != ((cu->drawflag & CU_HIDE_HANDLES) != 0))) {
+			if (cache->hide_handles != false) {
 				return false;
 			}
-			else if ((cache->hide_normals != ((cu->drawflag & CU_HIDE_NORMALS) != 0))) {
+			else if (cache->hide_normals != false) {
 				return false;
 			}
 		}
@@ -390,8 +391,8 @@ static void curve_batch_cache_init(Curve *cu)
 		memset(cache, 0, sizeof(*cache));
 	}
 
-	cache->hide_handles = (cu->drawflag & CU_HIDE_HANDLES) != 0;
-	cache->hide_normals = (cu->drawflag & CU_HIDE_NORMALS) != 0;
+	cache->hide_handles = false;
+	cache->hide_normals = false;
 
 #if 0
 	ListBase *nurbs;

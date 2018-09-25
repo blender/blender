@@ -186,6 +186,7 @@ void OBJECT_OT_material_slot_remove(wmOperatorType *ot)
 static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
+	View3D *v3d = CTX_wm_view3d(C);
 
 	if (!ob)
 		return OPERATOR_CANCELLED;
@@ -209,7 +210,7 @@ static int material_slot_assign_exec(bContext *C, wmOperator *UNUSED(op))
 
 			if (nurbs) {
 				for (nu = nurbs->first; nu; nu = nu->next) {
-					if (ED_curve_nurb_select_check(ob->data, nu)) {
+					if (ED_curve_nurb_select_check(v3d, nu)) {
 						nu->mat_nr = ob->actcol - 1;
 					}
 				}

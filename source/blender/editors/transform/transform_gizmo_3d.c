@@ -904,7 +904,7 @@ int ED_transform_calc_gizmo_stats(
 							 * if handles are hidden then only check the center points.
 							 * If the center knot is selected then only use this as the center point.
 							 */
-							if (cu->drawflag & CU_HIDE_HANDLES) {
+							if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
 								if (bezt->f2 & SELECT) {
 									calc_tw_center(tbounds, bezt->vec[1]);
 									totsel++;

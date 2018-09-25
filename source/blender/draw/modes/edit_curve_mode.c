@@ -249,7 +249,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 			geom = DRW_cache_curve_edge_wire_get(ob);
 			DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
 
-			if ((cu->flag & CU_3D) && (cu->drawflag & CU_HIDE_NORMALS) == 0) {
+			if ((cu->flag & CU_3D) && (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_NORMALS) != 0) {
 				geom = DRW_cache_curve_edge_normal_get(ob, v3d->overlay.normals_length);
 				DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
 			}

@@ -1383,16 +1383,6 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Splines", "Collection of splines in this curve data object");
 	rna_def_curve_splines(brna, prop);
 
-	prop = RNA_def_property(srna, "show_handles", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", CU_HIDE_HANDLES);
-	RNA_def_property_ui_text(prop, "Draw Handles", "Display Bezier handles in editmode");
-	RNA_def_property_update(prop, NC_GEOM | ND_DATA, NULL);
-
-	prop = RNA_def_property(srna, "show_normal_face", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "drawflag", CU_HIDE_NORMALS);
-	RNA_def_property_ui_text(prop, "Draw Normals", "Display 3D curve normals in editmode");
-	RNA_def_property_update(prop, NC_GEOM | ND_DATA, NULL);
-
 	rna_def_path(brna, srna);
 
 	/* Number values */

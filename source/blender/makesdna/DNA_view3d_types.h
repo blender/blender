@@ -448,6 +448,9 @@ enum {
 	V3D_OVERLAY_EDIT_FACE_ANG     = (1 << 17),
 	V3D_OVERLAY_EDIT_FACE_AREA    = (1 << 18),
 	V3D_OVERLAY_EDIT_INDICES      = (1 << 19),
+
+	V3D_OVERLAY_EDIT_CU_HANDLES   = (1 << 20),
+	V3D_OVERLAY_EDIT_CU_NORMALS   = (1 << 21),
 };
 
 /* View3DOverlay->arm_flag */

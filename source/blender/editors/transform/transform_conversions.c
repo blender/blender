@@ -1660,7 +1660,8 @@ static void createTransCurveVerts(TransInfo *t)
 		int a;
 		int count = 0, countsel = 0;
 		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-		short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
+		View3D *v3d = t->view;
+		short hide_handles = (v3d != NULL) ? ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) : false;
 		ListBase *nurbs;
 
 		/* to be sure */

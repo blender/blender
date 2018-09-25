@@ -676,7 +676,7 @@ static void do_lasso_select_curve__doSelect(
 		}
 	}
 	else {
-		if (cu->drawflag & CU_HIDE_HANDLES) {
+		if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
 			/* can only be (beztindex == 0) here since handles are hidden */
 			const bool is_select = bezt->f2 & SELECT;
 			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
@@ -1996,7 +1996,7 @@ static void do_nurbs_box_select__doSelect(
 		}
 	}
 	else {
-		if (cu->drawflag & CU_HIDE_HANDLES) {
+		if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
 			/* can only be (beztindex == 0) here since handles are hidden */
 			const bool is_select = bezt->f2 & SELECT;
 			const int sel_op_result = ED_select_op_action_deselected(data->sel_op, is_select, is_inside);
@@ -2920,7 +2920,7 @@ static void nurbscurve_circle_doSelect(
 			bp->f1 = data->select ? (bp->f1 | SELECT) : (bp->f1 & ~SELECT);
 		}
 		else {
-			if (cu->drawflag & CU_HIDE_HANDLES) {
+			if ((data->vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
 				/* can only be (beztindex == 0) here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
 			}

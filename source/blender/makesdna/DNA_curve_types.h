@@ -278,11 +278,13 @@ enum {
 	CU_AUTOSPACE          = 1,
 };
 
+#if 0 /* Moved to overlay options in 2.8 */
 /* Curve.drawflag */
 enum {
 	CU_HIDE_HANDLES       = 1 << 0,
 	CU_HIDE_NORMALS       = 1 << 1,
 };
+#endif
 
 /* Curve.flag */
 enum {
@@ -443,8 +445,8 @@ typedef enum eBezTriple_KeyframeType {
 /* checks if the given BezTriple is selected */
 #define BEZT_ISSEL_ANY(bezt) \
 	(((bezt)->f2 & SELECT) || ((bezt)->f1 & SELECT) || ((bezt)->f3 & SELECT))
-#define BEZT_ISSEL_ANY_HIDDENHANDLES(cu, bezt) \
-	(((cu)->drawflag & CU_HIDE_HANDLES) ? (bezt)->f2 & SELECT : BEZT_ISSEL_ANY(bezt))
+#define BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt) \
+	((((v3d) != NULL) && ((v3d)->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) ? (bezt)->f2 & SELECT : BEZT_ISSEL_ANY(bezt))
 
 #define BEZT_SEL_ALL(bezt)    { (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; } ((void)0)
 #define BEZT_DESEL_ALL(bezt)  { (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; } ((void)0)

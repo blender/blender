@@ -337,7 +337,9 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 						     V3D_OVERLAY_EDIT_FREESTYLE_FACE |
 						     V3D_OVERLAY_EDIT_EDGES |
 						     V3D_OVERLAY_EDIT_CREASES |
-						     V3D_OVERLAY_EDIT_BWEIGHTS;
+						     V3D_OVERLAY_EDIT_BWEIGHTS |
+						     V3D_OVERLAY_EDIT_CU_HANDLES |
+						     V3D_OVERLAY_EDIT_CU_NORMALS;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 

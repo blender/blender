@@ -835,7 +835,8 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 				}
 			}
 			else {
-				const bool use_handle = (cu->drawflag & CU_HIDE_HANDLES) == 0;
+				View3D *v3d = CTX_wm_view3d(C);
+				const bool use_handle = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
 
 				for (nu = nurbs->first; nu; nu = nu->next) {
 					/* only bezier has a normal */

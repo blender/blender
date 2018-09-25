@@ -2066,7 +2066,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						                          V3D_OVERLAY_EDIT_FREESTYLE_FACE |
 						                          V3D_OVERLAY_EDIT_EDGES |
 						                          V3D_OVERLAY_EDIT_CREASES |
-						                          V3D_OVERLAY_EDIT_BWEIGHTS;
+						                          V3D_OVERLAY_EDIT_BWEIGHTS |
+						                          V3D_OVERLAY_EDIT_CU_HANDLES |
+						                          V3D_OVERLAY_EDIT_CU_NORMALS;
 					}
 				}
 			}

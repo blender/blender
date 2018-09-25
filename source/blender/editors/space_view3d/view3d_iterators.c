@@ -305,7 +305,7 @@ void nurbs_foreachScreenVert(
 				if (bezt->hide == 0) {
 					float screen_co[2];
 
-					if (cu->drawflag & CU_HIDE_HANDLES) {
+					if ((vc->v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) == 0) {
 						if (ED_view3d_project_float_object(vc->ar, bezt->vec[1], screen_co,
 						                                   V3D_PROJ_RET_CLIP_BB | V3D_PROJ_RET_CLIP_WIN) == V3D_PROJ_RET_OK)
 						{

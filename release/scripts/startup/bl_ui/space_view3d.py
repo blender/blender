@@ -4554,7 +4554,6 @@ class VIEW3D_PT_overlay_edit_curve(Panel):
     def draw(self, context):
         layout = self.layout
         view = context.space_data
-        data = context.active_object.data
         overlay = view.overlay
         display_all = overlay.show_overlays
 
@@ -4562,8 +4561,8 @@ class VIEW3D_PT_overlay_edit_curve(Panel):
         col.active = display_all
 
         row = col.row()
-        row.prop(data, "show_handles", text="Handles")
-        row.prop(data, "show_normal_face", text="Normals")
+        row.prop(overlay, "show_curve_handles", text="Handles")
+        row.prop(overlay, "show_curve_normals", text="Normals")
 
 
 class VIEW3D_PT_overlay_sculpt(Panel):
