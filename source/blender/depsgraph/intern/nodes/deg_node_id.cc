@@ -230,7 +230,7 @@ IDComponentsMask IDDepsNode::get_visible_components_mask() const {
 		if (comp_node->affects_directly_visible) {
 			const int component_type = comp_node->type;
 			BLI_assert(component_type < 64);
-			result |= (1 << component_type);
+			result |= (1UL << component_type);
 		}
 	}
 	GHASH_FOREACH_END();
