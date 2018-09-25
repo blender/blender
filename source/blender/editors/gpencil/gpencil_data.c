@@ -1413,6 +1413,11 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
+			/* if not multiedit, exit loop*/
+			if (!is_multiedit) {
+				break;
+			}
+
 		}
 	}
 	CTX_DATA_END;
