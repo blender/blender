@@ -561,7 +561,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	else if (CTX_data_equals(member, "editable_gpencil_strokes")) {
 		/* XXX: see comment for gpencil_data case... */
 		bGPdata *gpd = ED_gpencil_data_get_active_direct((ID *)sc, sa, scene, obact);
-		bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+		const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
 		if (gpd) {
 			bGPDlayer *gpl;

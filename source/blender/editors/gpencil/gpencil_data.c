@@ -709,7 +709,7 @@ static int gp_frame_clean_loose_exec(bContext *C, wmOperator *op)
 	bool changed = false;
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	int limit = RNA_int_get(op->ptr, "limit");
-	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
 	CTX_DATA_BEGIN(C, bGPDlayer *, gpl, editable_gpencil_layers)
 	{
@@ -1380,7 +1380,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 	if (ELEM(NULL, ma)) {
 		return OPERATOR_CANCELLED;
 	}

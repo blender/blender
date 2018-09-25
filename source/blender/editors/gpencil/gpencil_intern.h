@@ -489,7 +489,7 @@ typedef enum ACTCONT_TYPES {
 	Depsgraph *depsgraph_ = CTX_data_depsgraph(C);                                      \
 	Object *obact_ = CTX_data_active_object(C);                                          \
 	bGPdata *gpd_ = CTX_data_gpencil_data(C);                                            \
-	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_);                       \
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd_);                       \
 	CTX_DATA_BEGIN(C, bGPDlayer*, gpl, editable_gpencil_layers)                         \
 	{                                                                                   \
 		bGPDframe *init_gpf = gpl->actframe;                                                \

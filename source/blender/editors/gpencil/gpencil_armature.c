@@ -269,7 +269,7 @@ static void gpencil_add_verts_to_dgroups(
 	bDeformGroup **dgrouplist;
 	bPoseChannel *pchan;
 	bGPdata *gpd = (bGPdata *)ob->data;
-	bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
+	const bool is_multiedit = (bool)GPENCIL_MULTIEDIT_SESSIONS_ON(gpd);
 
 	Mat4 bbone_array[MAX_BBONE_SUBDIV], *bbone = NULL;
 	float(*root)[3], (*tip)[3], (*verts)[3];
