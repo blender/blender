@@ -181,10 +181,10 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 
 	const int type = RNA_enum_get(op->ptr, "type");
 	const float thresh = RNA_float_get(op->ptr, "threshold");
+	const float thresh_radians = thresh * (float)M_PI;
 	const int compare = RNA_enum_get(op->ptr, "compare");
 
 	if (ELEM(type,
-	         SIMFACE_NORMAL,
 	         SIMFACE_COPLANAR,
 	         SIMFACE_SMOOTH,
 	         SIMFACE_FACEMAP,
@@ -216,6 +216,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	switch (type) {
 		case SIMFACE_AREA:
 		case SIMFACE_PERIMETER:
+		case SIMFACE_NORMAL:
 			tree = BLI_kdtree_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_SIDES:
@@ -230,6 +231,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
 		Material ***material_array;
+		invert_m4_m4(ob->imat, ob->obmat);
 
 		if (bm->totfacesel == 0) {
 			continue;
@@ -276,6 +278,16 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						float dummy[3] = {perimeter, 0.0f, 0.0f};
 						BLI_kdtree_insert(tree, tree_index++, dummy);
 						break;
+						break;
+					}
+					case SIMFACE_NORMAL:
+					{
+						float normal[3];
+						copy_v3_v3(normal, face->no);
+						mul_transposed_mat3_m4_v3(ob->imat, normal);
+						normalize_v3(normal);
+
+						BLI_kdtree_insert(tree, tree_index++, normal);
 						break;
 					}
 				}
@@ -358,6 +370,23 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						float perimeter = BM_face_calc_perimeter(face);
 						if (select_similar_compare_float_tree(tree, perimeter, thresh, compare)) {
 							select = true;
+						}
+						break;
+					}
+					case SIMFACE_NORMAL:
+					{
+						float normal[3];
+						copy_v3_v3(normal, face->no);
+						mul_transposed_mat3_m4_v3(ob->imat, normal);
+						normalize_v3(normal);
+
+						/* We are treating the normals as coordinates, the "nearest" one will
+						 * also be the one closest to the angle. */
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
+							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
+								select = true;
+							}
 						}
 						break;
 					}
