@@ -252,7 +252,10 @@ class GreasePencilStrokeSculptPanel:
 
         layout.template_icon_view(settings, "tool", show_labels=True)
 
-        layout.prop(brush, "size", slider=True)
+        row = layout.row(align=True)
+        row.prop(brush, "size", slider=True)
+        row.prop(brush, "use_pressure_radius", text="")
+
         row = layout.row(align=True)
         row.prop(brush, "strength", slider=True)
         row.prop(brush, "use_pressure_strength", text="")

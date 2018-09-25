@@ -1415,7 +1415,8 @@ static bool gpsculpt_brush_do_stroke(
 {
 	GP_SpaceConversion *gsc = &gso->gsc;
 	rcti *rect = &gso->brush_rect;
-	const int radius = gso->brush->size;
+	GP_EditBrush_Data *brush = gso->brush;
+	const int radius = (brush->flag & GP_EDITBRUSH_FLAG_USE_PRESSURE) ? gso->brush->size * gso->pressure : gso->brush->size;
 
 	bGPDspoint *pt1, *pt2;
 	int pc1[2] = {0};
@@ -1707,7 +1708,8 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 static void gpsculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 {
 	tGP_BrushEditData *gso = op->customdata;
-	const int radius = gso->brush->size;
+	GP_EditBrush_Data *brush = gso->brush;
+	const int radius = 	(brush->flag & GP_EDITBRUSH_FLAG_USE_PRESSURE) ? gso->brush->size * gso->pressure : gso->brush->size;
 	float mousef[2];
 	int mouse[2];
 	bool changed = false;

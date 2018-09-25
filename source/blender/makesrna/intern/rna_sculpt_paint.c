@@ -1217,6 +1217,13 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
+	prop = RNA_def_property(srna, "use_pressure_radius", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_EDITBRUSH_FLAG_PRESSURE_RADIUS);
+	RNA_def_property_ui_icon(prop, ICON_STYLUS_PRESSURE, 0);
+	RNA_def_property_ui_text(prop, "Radius Pressure", "Enable tablet pressure sensitivity for radius");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
+
 	prop = RNA_def_property(srna, "use_falloff", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_EDITBRUSH_FLAG_USE_FALLOFF);
 	RNA_def_property_ui_text(prop, "Use Falloff", "Strength of brush decays with distance from cursor");

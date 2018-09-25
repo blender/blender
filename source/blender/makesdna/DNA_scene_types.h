@@ -984,6 +984,8 @@ typedef enum eGP_EditBrush_Flag {
 	GP_EDITBRUSH_FLAG_ENABLE_CURSOR = (1 << 4),
 	/* temporary invert action */
 	GP_EDITBRUSH_FLAG_TMP_INVERT = (1 << 5),
+	/* adjust radius using pen pressure */
+	GP_EDITBRUSH_FLAG_PRESSURE_RADIUS = (1 << 6),
 } eGP_EditBrush_Flag;
 
 
