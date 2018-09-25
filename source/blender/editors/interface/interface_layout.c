@@ -169,6 +169,7 @@ struct uiLayout {
 	bool variable_size;  /* For layouts inside gridflow, they and their items shall never have a fixed maximal size. */
 	char alignment;
 	char emboss;
+	int units[2];  /* for fixed width or height to avoid UI size changes */
 };
 
 typedef struct uiLayoutItemFlow {
@@ -3856,6 +3857,16 @@ void uiLayoutSetScaleY(uiLayout *layout, float scale)
 	layout->scale[1] = scale;
 }
 
+void uiLayoutSetUnitsX(uiLayout *layout, int unit)
+{
+	layout->units[0] = unit;
+}
+
+void uiLayoutSetUnitsY(uiLayout *layout, int unit)
+{
+	layout->units[1] = unit;
+}
+
 void uiLayoutSetEmboss(uiLayout *layout, char emboss)
 {
 	layout->emboss = emboss;
@@ -3919,6 +3930,16 @@ float uiLayoutGetScaleX(uiLayout *layout)
 float uiLayoutGetScaleY(uiLayout *layout)
 {
 	return layout->scale[1];
+}
+
+int uiLayoutGetUnitsX(uiLayout *layout)
+{
+	return layout->units[0];
+}
+
+int uiLayoutGetUnitsY(uiLayout *layout)
+{
+	return layout->units[1];
 }
 
 int uiLayoutGetEmboss(uiLayout *layout)
@@ -4010,6 +4031,14 @@ static void ui_item_estimate(uiItem *item)
 				break;
 			default:
 				break;
+		}
+
+		/* force fixed size */
+		if (litem->units[0] > 0) {
+			litem->w = UI_UNIT_X * litem->units[0];
+		}
+		if (litem->units[1] > 0) {
+			litem->h = UI_UNIT_Y * litem->units[1];
 		}
 	}
 }

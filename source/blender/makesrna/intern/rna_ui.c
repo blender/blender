@@ -947,6 +947,26 @@ static void rna_UILayout_scale_y_set(PointerRNA *ptr, float value)
 	uiLayoutSetScaleY(ptr->data, value);
 }
 
+static int rna_UILayout_units_x_get(PointerRNA *ptr)
+{
+	return uiLayoutGetUnitsX(ptr->data);
+}
+
+static void rna_UILayout_units_x_set(PointerRNA *ptr, int value)
+{
+	uiLayoutSetUnitsX(ptr->data, value);
+}
+
+static int rna_UILayout_units_y_get(PointerRNA *ptr)
+{
+	return uiLayoutGetUnitsY(ptr->data);
+}
+
+static void rna_UILayout_units_y_set(PointerRNA *ptr, int value)
+{
+	uiLayoutSetUnitsY(ptr->data, value);
+}
+
 static int rna_UILayout_emboss_get(PointerRNA *ptr)
 {
 	return uiLayoutGetEmboss(ptr->data);
@@ -1036,6 +1056,14 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "scale_y", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_funcs(prop, "rna_UILayout_scale_y_get", "rna_UILayout_scale_y_set", NULL);
 	RNA_def_property_ui_text(prop, "Scale Y", "Scale factor along the Y for items in this (sub)layout");
+
+	prop = RNA_def_property(srna, "ui_units_x", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_UILayout_units_x_get", "rna_UILayout_units_x_set", NULL);
+	RNA_def_property_ui_text(prop, "Units X", "Fixed Size along the X for items in this (sub)layout");
+
+	prop = RNA_def_property(srna, "ui_units_y", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_UILayout_units_y_get", "rna_UILayout_units_y_set", NULL);
+	RNA_def_property_ui_text(prop, "Units Y", "Fixed Size along the Y for items in this (sub)layout");
 	RNA_api_ui_layout(srna);
 
 	prop = RNA_def_property(srna, "emboss", PROP_ENUM, PROP_NONE);
