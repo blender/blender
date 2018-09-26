@@ -46,7 +46,6 @@
 #endif
 
 #ifdef _WIN32
-#include "BLI_path_util.h"  /* BLI_setenv() */
 #include "BLI_math_base.h"  /* isfinite() */
 #endif
 
