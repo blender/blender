@@ -57,10 +57,13 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_gizmo_library.h"
+#include "ED_transform_snap_object_context.h"
 
 /* own includes */
 #include "../gizmo_geometry.h"
 #include "../gizmo_library_intern.h"
+
+#define MVAL_MAX_PX_DIST 12.0f
 
 typedef struct MoveGizmo3D {
 	wmGizmo gizmo;
@@ -87,6 +90,13 @@ typedef struct MoveInteraction {
 		float prop_co[3];
 		float matrix_final[4][4];
 	} init;
+	struct {
+		eWM_GizmoFlagTweak tweak_flag;
+	} prev;
+
+	/* We could have other snap contexts, for now only support 3D view. */
+	struct SnapObjectContext *snap_context_v3d;
+
 } MoveInteraction;
 
 #define DIAL_RESOLUTION 32
@@ -229,13 +239,13 @@ static void gizmo_move_draw(const bContext *C, wmGizmo *gz)
 
 static int gizmo_move_modal(
         bContext *C, wmGizmo *gz, const wmEvent *event,
-        eWM_GizmoFlagTweak UNUSED(tweak_flag))
+        eWM_GizmoFlagTweak tweak_flag)
 {
-	if (event->type != MOUSEMOVE) {
+	MoveInteraction *inter = gz->interaction_data;
+	if ((event->type != MOUSEMOVE) && (inter->prev.tweak_flag == tweak_flag)) {
 		return OPERATOR_RUNNING_MODAL;
 	}
 	MoveGizmo3D *move = (MoveGizmo3D *)gz;
-	MoveInteraction *inter = gz->interaction_data;
 	ARegion *ar = CTX_wm_region(C);
 
 	float prop_delta[3];
@@ -254,7 +264,35 @@ static int gizmo_move_modal(
 		sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
 		prop_delta[2] = 0.0f;
 	}
+
+	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
+		mul_v3_fl(prop_delta, 0.1f);
+	}
+
 	add_v3_v3v3(move->prop_co, inter->init.prop_co, prop_delta);
+
+	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
+		if (inter->snap_context_v3d) {
+			float dist_px = MVAL_MAX_PX_DIST * U.pixelsize;
+			const float mval_fl[2] = {UNPACK2(event->mval)};
+			float co[3];
+			if (ED_transform_snap_object_project_view3d(
+			        inter->snap_context_v3d,
+			        (SCE_SNAP_MODE_VERTEX | SCE_SNAP_MODE_EDGE | SCE_SNAP_MODE_FACE),
+			        &(const struct SnapObjectParams){
+			            .snap_select = SNAP_ALL,
+			            .use_object_edit_cage = true,
+			            .use_occlusion_test = true,
+			        },
+			        mval_fl, &dist_px,
+			        co, NULL))
+			{
+				float matrix_space_inv[4][4];
+				invert_m4_m4(matrix_space_inv, gz->matrix_space);
+				mul_v3_m4v3(move->prop_co, matrix_space_inv, co);
+			}
+		}
+	}
 
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
@@ -266,6 +304,8 @@ static int gizmo_move_modal(
 	}
 
 	ED_region_tag_redraw(ar);
+
+	inter->prev.tweak_flag = tweak_flag;
 
 	return OPERATOR_RUNNING_MODAL;
 }
@@ -290,13 +330,19 @@ static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
 			WM_gizmo_target_property_float_set_array(C, gz, gz_prop, reset_value);
 		}
 	}
+
+	if (inter->snap_context_v3d) {
+		ED_transform_snap_object_context_destroy(inter->snap_context_v3d);
+		inter->snap_context_v3d = NULL;
+	}
 }
 
 static int gizmo_move_invoke(
-        bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
+        bContext *C, wmGizmo *gz, const wmEvent *event)
 {
-	MoveInteraction *inter = MEM_callocN(sizeof(MoveInteraction), __func__);
+	const bool use_snap = RNA_boolean_get(gz->ptr, "use_snap");
 
+	MoveInteraction *inter = MEM_callocN(sizeof(MoveInteraction), __func__);
 	inter->init.mval[0] = event->mval[0];
 	inter->init.mval[1] = event->mval[1];
 
@@ -310,6 +356,24 @@ static int gizmo_move_invoke(
 #endif
 
 	WM_gizmo_calc_matrix_final(gz, inter->init.matrix_final);
+
+	if (use_snap) {
+		ScrArea *sa = CTX_wm_area(C);
+		if (sa) {
+			switch (sa->spacetype) {
+				case SPACE_VIEW3D:
+				{
+					inter->snap_context_v3d = ED_transform_snap_object_context_create_view3d(
+					        CTX_data_main(C), CTX_data_scene(C), CTX_data_depsgraph(C), 0,
+					        CTX_wm_region(C), CTX_wm_view3d(C));
+					break;
+				}
+				default:
+					/* Not yet supported. */
+					BLI_assert(0);
+			}
+		}
+	}
 
 	gz->interaction_data = inter;
 
@@ -389,6 +453,7 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
 
 	RNA_def_enum(gzt->srna, "draw_style", rna_enum_draw_style, ED_GIZMO_MOVE_STYLE_RING_2D, "Draw Style", "");
 	RNA_def_enum_flag(gzt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+	RNA_def_boolean(gzt->srna, "use_snap", false, "Use Snap", "");
 
 	WM_gizmotype_target_property_def(gzt, "offset", PROP_FLOAT, 3);
 }
