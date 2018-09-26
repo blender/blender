@@ -439,7 +439,8 @@ typedef struct GizmoGroupData_SpinRedo {
 
 		float rotate_axis[3];
 #ifdef USE_ANGLE_Z_ORIENT
-		float orient_axis[3];
+		/* Apply 'orient_mat' for the final value. */
+		float orient_axis_relative[3];
 #endif
 		/* The orientation, since the operator doesn't store this, we store our own.
 		 * this is kept in sync with the operator,
@@ -512,7 +513,9 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 #ifdef USE_ANGLE_Z_ORIENT
 	{
 		float plane_tan[3];
-		project_plane_normalized_v3_v3v3(plane_tan, ggd->data.orient_axis, plane_no);
+		float orient_axis[3];
+		mul_v3_m3v3(orient_axis, ggd->data.orient_mat, ggd->data.orient_axis_relative);
+		project_plane_normalized_v3_v3v3(plane_tan, orient_axis, plane_no);
 		if (normalize_v3(plane_tan) != 0.0f) {
 			WM_gizmo_set_matrix_rotation_from_yz_axis(ggd->angle_z, plane_tan, plane_no);
 		}
@@ -716,28 +719,6 @@ static void gizmo_mesh_spin_redo_modal_from_setup(
 	wmGizmo *gz = ggd->angle_z;
 	wmGizmoMap *gzmap = gzgroup->parent_gzmap;
 
-
-#ifdef USE_ANGLE_Z_ORIENT
-	{
-		wmOperator *op = ggd->data.op;
-		View3D *v3d = CTX_wm_view3d(C);
-		ARegion *ar = CTX_wm_region(C);
-		const wmEvent *event = win->eventstate;
-		float plane_co[3], plane_no[3];
-		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
-		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
-		float cursor_co[3];
-		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
-		float plane[4];
-		plane_from_point_normal_v3(plane, plane_co, plane_no);
-		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, false, cursor_co))) {
-			ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
-		}
-		sub_v3_v3v3(ggd->data.orient_axis, cursor_co, plane_co);
-		normalize_v3(ggd->data.orient_axis);
-	}
-#endif
-
 	ggd->is_init = true;
 
 	WM_gizmo_modal_set_from_setup(
@@ -852,6 +833,31 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 			unit_m3(ggd->data.orient_mat);
 		}
 	}
+
+
+#ifdef USE_ANGLE_Z_ORIENT
+	{
+		wmWindow *win = CTX_wm_window(C);
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+		const wmEvent *event = win->eventstate;
+		float plane_co[3], plane_no[3];
+		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
+		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
+		float cursor_co[3];
+		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+		float plane[4];
+		plane_from_point_normal_v3(plane, plane_co, plane_no);
+		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, false, cursor_co))) {
+			ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
+		}
+		sub_v3_v3v3(ggd->data.orient_axis_relative, cursor_co, plane_co);
+		normalize_v3(ggd->data.orient_axis_relative);
+		float imat3[3][3];
+		invert_m3_m3(imat3, ggd->data.orient_mat);
+		mul_m3_v3(imat3, ggd->data.orient_axis_relative);
+	}
+#endif
 
 	gizmo_mesh_spin_redo_update_from_op(ggd);
 
