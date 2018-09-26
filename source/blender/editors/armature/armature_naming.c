@@ -178,6 +178,9 @@ void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, 
 			}
 		}
 
+		/* force copy on write to update database */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+
 		/* do entire dbase - objects */
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
