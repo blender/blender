@@ -195,6 +195,43 @@ static bool face_data_value_set(BMFace *face, const int hflag, int *r_value)
 	return *r_value != SIMFACE_DATA_ALL;
 }
 
+/**
+ * Note: This is not normal, but the face direction itself and always in
+ * a positive quadrant (tries z, y then x).
+ * Also, unlike edge_pos_direction_worldspace_get we don't normalize the direction.
+ * In fact we scale the direction by the distance of the face center to the origin.
+ */
+static void face_pos_direction_worldspace_scaled_get(Object *ob, BMFace *face, float *r_dir)
+{
+	float distance;
+	float center[3];
+
+	copy_v3_v3(r_dir, face->no);
+	normalize_v3(r_dir);
+
+	BM_face_calc_center_mean(face, center);
+	mul_m4_v3(ob->obmat, center);
+
+	distance = dot_v3v3(r_dir, center);
+	mul_v3_fl(r_dir, distance);
+
+	/* Make sure we have a consistent direction regardless of the face orientation.
+	 * This spares us from storing dir and -dir in the tree. */
+	if (fabs(r_dir[2]) < FLT_EPSILON) {
+		if (fabs(r_dir[1]) < FLT_EPSILON) {
+			if (r_dir[0] < 0.0f) {
+				mul_v3_fl(r_dir, -1.0f);
+			}
+		}
+		else if (r_dir[1] < 0.0f) {
+			mul_v3_fl(r_dir, -1.0f);
+		}
+	}
+	else if (r_dir[2] < 0.0f) {
+		mul_v3_fl(r_dir, -1.0f);
+	}
+}
+
 /* TODO(dfelinto): `types` that should technically be compared in world space but are not:
  *  -SIMFACE_AREA
  *  -SIMFACE_PERIMETER
@@ -207,11 +244,6 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	const float thresh_radians = thresh * (float)M_PI;
 	const int compare = RNA_enum_get(op->ptr, "compare");
-
-	if (type == SIMFACE_COPLANAR) {
-		BKE_report(op->reports, RPT_ERROR, "Select similar coplanar faces not supported at the moment");
-		return OPERATOR_CANCELLED;
-	}
 
 	int tot_faces_selected_all = 0;
 	uint objects_len = 0;
@@ -238,6 +270,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		case SIMFACE_AREA:
 		case SIMFACE_PERIMETER:
 		case SIMFACE_NORMAL:
+		case SIMFACE_COPLANAR:
 			tree = BLI_kdtree_new(tot_faces_selected_all);
 			break;
 		case SIMFACE_SIDES:
@@ -331,6 +364,13 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						normalize_v3(normal);
 
 						BLI_kdtree_insert(tree, tree_index++, normal);
+						break;
+					}
+					case SIMFACE_COPLANAR:
+					{
+						float dir[3];
+						face_pos_direction_worldspace_scaled_get(ob, face, dir);
+						BLI_kdtree_insert(tree, tree_index++, dir);
 						break;
 					}
 					case SIMFACE_SMOOTH:
@@ -477,6 +517,27 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						if (BLI_kdtree_find_nearest(tree, normal, &nearest) != -1) {
 							if (angle_normalized_v3v3(normal, nearest.co) <= thresh_radians) {
 								select = true;
+							}
+						}
+						break;
+					}
+					case SIMFACE_COPLANAR:
+					{
+						float diff[3];
+						float dir[3];
+						face_pos_direction_worldspace_scaled_get(ob, face, dir);
+
+						/* We are treating the direction as coordinates, the "nearest" one will
+						 * also be the one closest to the angle.
+						 * And since the direction is scaled by the face center distance to the origin,
+						 * the nearest point will also be the closest between the planes. */
+						KDTreeNearest nearest;
+						if (BLI_kdtree_find_nearest(tree, dir, &nearest) != -1) {
+							sub_v3_v3v3(diff, dir, nearest.co);
+							if (len_v3(diff) <= thresh) {
+								if (angle_v3v3(dir, nearest.co) <= thresh_radians) {
+									select = true;
+								}
 							}
 						}
 						break;
