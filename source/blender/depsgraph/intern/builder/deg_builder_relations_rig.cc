@@ -240,7 +240,11 @@ void DepsgraphRelationBuilder::build_splineik_pose(Object *object,
 	bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 	bPoseChannel *rootchan = BKE_armature_splineik_solver_find_root(pchan, data);
 	OperationKey transforms_key(&object->id, DEG_NODE_TYPE_BONE, pchan->name, DEG_OPCODE_BONE_READY);
+	OperationKey init_ik_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, DEG_OPCODE_POSE_INIT_IK);
 	OperationKey solver_key(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name, DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
+
+	/* Solver depends on initialization. */
+	add_relation(init_ik_key, solver_key, "Init IK -> IK Solver");
 
 	/* attach owner to IK Solver too
 	 * - assume that owner is always part of chain
