@@ -23,7 +23,7 @@
 OpenSubdiv_TopologyRefiner* openSubdiv_createTopologyRefinerFromConverter(
     OpenSubdiv_Converter* /*converter*/,
     const OpenSubdiv_TopologyRefinerSettings* /*settings*/) {
-  return NULL;     
+  return NULL;
 }
 
 void openSubdiv_deleteTopologyRefiner(

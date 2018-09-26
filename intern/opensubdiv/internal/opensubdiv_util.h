@@ -28,7 +28,7 @@ namespace opensubdiv_capi {
 using std::string;
 using std::vector;
 
-#define foreach(x, y) for(x : y)
+#define foreach(x, y) for (x : y)
 
 #define STRINGIFY_ARG(x) "" #x
 #define STRINGIFY_APPEND(a, b) "" a #b
