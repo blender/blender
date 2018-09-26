@@ -1862,14 +1862,17 @@ static int gpencil_draw_exec(bContext *C, wmOperator *op)
 static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Object *ob = CTX_data_active_object(C);
+	ScrArea *sa = CTX_wm_area(C);
 	tGPsdata *p = NULL;
 
 	/* GPXX Need a better solution */
-	if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot draw annotation with a Grease Pencil object active");
-		return OPERATOR_CANCELLED;
+	if (sa && sa->spacetype == SPACE_VIEW3D)
+	{
+		if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
+			BKE_report(op->reports, RPT_ERROR, "Cannot draw annotation with a Grease Pencil object active");
+			return OPERATOR_CANCELLED;
+		}
 	}
-
 	if (G.debug & G_DEBUG)
 		printf("GPencil - Starting Drawing\n");
 
