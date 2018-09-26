@@ -878,7 +878,8 @@ static void gpencil_draw_strokes(
 
 		/* edit points (only in edit mode and not play animation not render) */
 		if ((draw_ctx->obact == ob) && (src_gps) &&
-		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob))
+		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob)
+			&& ((gpl->flag & GP_LAYER_LOCKED) == 0))
 		{
 			if (!stl->g_data->shgrps_edit_line) {
 				stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh, psl->edit_pass);
