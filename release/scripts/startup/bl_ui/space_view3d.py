@@ -3785,6 +3785,64 @@ class VIEW3D_MT_shading_pie(Menu):
         pie.prop_enum(view.shading, "type", value='RENDERED')
 
 
+class VIEW3D_MT_pivot_pie(Menu):
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        obj = context.active_object
+        mode = context.mode
+
+        pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='BOUNDING_BOX_CENTER')
+        pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='CURSOR')
+        pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='INDIVIDUAL_ORIGINS')
+        pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='MEDIAN_POINT')
+        pie.prop_enum(context.scene.tool_settings, "transform_pivot_point", value='ACTIVE_ELEMENT')
+        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align", text="Center Points Only")
+
+
+
+class VIEW3D_MT_orientations_pie(Menu):
+    bl_label = "Orientation"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        scene = context.scene
+        orientation = scene.current_orientation
+
+        pie.prop(scene, "transform_orientation", expand=True)
+
+
+class VIEW3D_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid", icon='CURSOR')
+        pie.operator("view3d.snap_selected_to_grid", text="Selection to Grid", icon='RESTRICT_SELECT_OFF')
+        pie.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected", icon='CURSOR')
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='RESTRICT_SELECT_OFF').use_offset = False
+        pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Keep Offset)", icon='RESTRICT_SELECT_OFF').use_offset = True
+        pie.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='CURSOR')
+        pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
+
+class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
+    bl_label = "Proportional Editing Falloff"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+        tool_settings = context.scene.tool_settings
+
+        pie.prop(tool_settings, "proportional_edit_falloff", expand=True)
+
+
 # ********** Panel **********
 
 
@@ -5182,6 +5240,10 @@ classes = (
     VIEW3D_MT_object_mode_pie,
     VIEW3D_MT_view_pie,
     VIEW3D_MT_shading_pie,
+    VIEW3D_MT_pivot_pie,
+    VIEW3D_MT_snap_pie,
+    VIEW3D_MT_orientations_pie,
+    VIEW3D_MT_proportional_editing_falloff_pie,
     VIEW3D_PT_view3d_properties,
     VIEW3D_PT_view3d_camera_lock,
     VIEW3D_PT_view3d_cursor,

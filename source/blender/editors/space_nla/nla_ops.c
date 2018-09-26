@@ -290,7 +290,7 @@ static void nla_keymap_main(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "NLA_OT_clear_scale", SKEY, KM_PRESS, KM_ALT, 0);
 
 	/* snap */
-	WM_keymap_add_item(keymap, "NLA_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu_pie(keymap, "NLA_MT_snap_pie", SKEY, KM_PRESS, KM_SHIFT, 0);
 
 	/* add f-modifier */
 	WM_keymap_add_item(keymap, "NLA_OT_fmodifier_add", MKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);

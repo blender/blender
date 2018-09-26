@@ -463,11 +463,7 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)
 {
-	wmKeyMapItem *kmi;
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_cycle_enum", OKEY, KM_PRESS, KM_SHIFT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit_falloff");
-	RNA_boolean_set(kmi->ptr, "wrap", true);
+	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_proportional_editing_falloff_pie", OKEY, KM_PRESS, KM_SHIFT, 0);
 }
 
 void ED_keymap_proportional_obmode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

@@ -354,6 +354,33 @@ class GRAPH_MT_specials(Menu):
         layout.operator_menu_enum("graph.snap", "type", text="Snap")
 
 
+class GRAPH_MT_pivot_pie(Menu):
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.prop_enum(context.space_data, "pivot_point", value='BOUNDING_BOX_CENTER')
+        pie.prop_enum(context.space_data, "pivot_point", value='CURSOR')
+        pie.prop_enum(context.space_data, "pivot_point", value='INDIVIDUAL_ORIGINS')
+
+
+class GRAPH_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("graph.snap", text="Current Frame").type = 'CFRA'
+        pie.operator("graph.snap", text="Cursor Value").type = 'VALUE'
+        pie.operator("graph.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("graph.snap", text="Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("graph.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+        pie.operator("graph.snap", text="Flatten Handles").type = 'HORIZONTAL'
+
+
 class GRAPH_MT_channel_specials(Menu):
     bl_label = "F-Curve Channel Context Menu"
 
@@ -407,6 +434,8 @@ classes = (
     GRAPH_MT_delete,
     GRAPH_MT_specials,
     GRAPH_MT_channel_specials,
+    GRAPH_MT_pivot_pie,
+    GRAPH_MT_snap_pie,
     GRAPH_PT_filters,
 )
 

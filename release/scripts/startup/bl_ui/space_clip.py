@@ -1438,6 +1438,19 @@ class CLIP_MT_stabilize_2d_rotation_specials(Menu):
 
         layout.operator("clip.stabilize_2d_rotation_select")
 
+class CLIP_MT_pivot_pie(Menu):
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.prop_enum(context.space_data, "pivot_point", value='BOUNDING_BOX_CENTER')
+        pie.prop_enum(context.space_data, "pivot_point", value='CURSOR')
+        pie.prop_enum(context.space_data, "pivot_point", value='INDIVIDUAL_ORIGINS')
+        pie.prop_enum(context.space_data, "pivot_point", value='MEDIAN_POINT')
+
+
 
 classes = (
     CLIP_UL_tracking_objects,
@@ -1494,6 +1507,7 @@ classes = (
     CLIP_MT_track_color_specials,
     CLIP_MT_stabilize_2d_specials,
     CLIP_MT_stabilize_2d_rotation_specials,
+    CLIP_MT_pivot_pie,
 )
 
 if __name__ == "__main__":  # only for live edit.

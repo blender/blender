@@ -621,6 +621,19 @@ class DOPESHEET_MT_channel_specials(Menu):
         layout.operator("anim.channels_delete")
 
 
+class DOPESHEET_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("action.snap", text="Current Frame").type = 'CFRA'
+        pie.operator("action.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("action.snap", text="Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("action.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+
+
 classes = (
     DOPESHEET_HT_header,
     DOPESHEET_HT_editor_buttons,
@@ -636,6 +649,7 @@ classes = (
     DOPESHEET_MT_delete,
     DOPESHEET_MT_specials,
     DOPESHEET_MT_channel_specials,
+    DOPESHEET_MT_snap_pie,
     DOPESHEET_PT_filters,
 )
 

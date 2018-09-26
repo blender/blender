@@ -369,17 +369,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	}
 
 	/* pivot */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CENTER");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "MEDIAN");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CURSOR");
+	WM_keymap_add_menu_pie(keymap, "IMAGE_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
 
 	/* render border */
 	WM_keymap_add_item(keymap, "IMAGE_OT_render_border", BKEY, KM_PRESS, KM_CTRL, 0);

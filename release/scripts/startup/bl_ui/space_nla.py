@@ -232,6 +232,18 @@ class NLA_MT_edit_transform(Menu):
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
+class NLA_MT_snap_pie(Menu):
+    bl_label = "Snap"
+
+    def draw(self, context):
+        layout = self.layout
+        pie = layout.menu_pie()
+
+        pie.operator("nla.snap", text="Current Frame").type = 'CFRA'
+        pie.operator("nla.snap", text="Nearest Frame").type = 'NEAREST_FRAME'
+        pie.operator("nla.snap", text="Nearest Second").type = 'NEAREST_SECOND'
+        pie.operator("nla.snap", text="Nearest Marker").type = 'NEAREST_MARKER'
+
 
 classes = (
     NLA_HT_header,
@@ -242,6 +254,7 @@ classes = (
     NLA_MT_marker,
     NLA_MT_add,
     NLA_MT_edit_transform,
+    NLA_MT_snap_pie,
     NLA_PT_filters,
 )
 

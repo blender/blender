@@ -207,7 +207,7 @@ static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", GKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* menu + single-step transform */
-	WM_keymap_add_item(keymap, "ACTION_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu_pie(keymap, "DOPESHEET_MT_snap_pie", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* menu + set setting */

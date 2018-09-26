@@ -597,7 +597,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "GRAPH_OT_frame_jump", GKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* menu + single-step transform */
-	WM_keymap_add_item(keymap, "GRAPH_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_menu_pie(keymap, "GRAPH_MT_snap_pie", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "GRAPH_OT_mirror", MKEY, KM_PRESS, KM_CTRL, 0);
 
 	WM_keymap_add_item(keymap, "GRAPH_OT_handle_type", VKEY, KM_PRESS, 0, 0);
@@ -665,17 +665,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	ED_keymap_proportional_cycle(keyconf, keymap);
 
 	/* pivot point settings */
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "BOUNDING_BOX_CENTER");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "CURSOR");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
-	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
+	WM_keymap_add_menu_pie(keymap, "GRAPH_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
 
 	/* special markers hotkeys for anim editors: see note in definition of this function */
 	ED_marker_keymap_animedit_conflictfree(keymap);
