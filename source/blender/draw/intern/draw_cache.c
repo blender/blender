@@ -2962,37 +2962,38 @@ GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob, ToolSettings *ts, bool 
 	Mesh *me = ob->data;
 
 	/* Extract complete vertex weight group selection state and mode flags. */
-	VertexWeightSelection vwsel;
-	memset(&vwsel, 0, sizeof(vwsel));
+	struct DRW_MeshWeightState wstate;
+	memset(&wstate, 0, sizeof(wstate));
 
-	vwsel.defgroup_active = ob->actdef - 1;
-	vwsel.defgroup_tot = BLI_listbase_count(&ob->defbase);
+	wstate.defgroup_active = ob->actdef - 1;
+	wstate.defgroup_len = BLI_listbase_count(&ob->defbase);
 
-	vwsel.alert_mode = ts->weightuser;
+	wstate.alert_mode = ts->weightuser;
 
 	if (paint_mode && ts->multipaint) {
 		/* Multipaint needs to know all selected bones, not just the active group.
 		 * This is actually a relatively expensive operation, but caching would be difficult. */
-		vwsel.defgroup_sel = BKE_object_defgroup_selected_get(ob, vwsel.defgroup_tot, &vwsel.defgroup_sel_tot);
+		wstate.defgroup_sel = BKE_object_defgroup_selected_get(ob, wstate.defgroup_len, &wstate.defgroup_sel_len);
 
-		if (vwsel.defgroup_sel_tot > 1) {
-			vwsel.flags |= VWEIGHT_MULTIPAINT | (ts->auto_normalize ? VWEIGHT_AUTO_NORMALIZE : 0);
+		if (wstate.defgroup_sel_len > 1) {
+			wstate.flags |= DRW_MESH_WEIGHT_STATE_MULTIPAINT | (ts->auto_normalize ? DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE : 0);
 
 			if (me->editflag & ME_EDIT_MIRROR_X) {
-				BKE_object_defgroup_mirror_selection(ob, vwsel.defgroup_tot, vwsel.defgroup_sel, vwsel.defgroup_sel, &vwsel.defgroup_sel_tot);
+				BKE_object_defgroup_mirror_selection(
+				        ob, wstate.defgroup_len, wstate.defgroup_sel, wstate.defgroup_sel, &wstate.defgroup_sel_len);
 			}
 		}
 		/* With only one selected bone Multipaint reverts to regular mode. */
 		else {
-			vwsel.defgroup_sel_tot = 0;
-			MEM_SAFE_FREE(vwsel.defgroup_sel);
+			wstate.defgroup_sel_len = 0;
+			MEM_SAFE_FREE(wstate.defgroup_sel);
 		}
 	}
 
 	/* Generate the weight data using the selection. */
-	GPUBatch *batch = DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, &vwsel);
+	GPUBatch *batch = DRW_mesh_batch_cache_get_triangles_with_normals_and_weights(me, &wstate);
 
-	DRW_vweight_selection_clear(&vwsel);
+	DRW_mesh_weight_state_clear(&wstate);
 
 	return batch;
 }
