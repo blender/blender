@@ -385,9 +385,10 @@ static void object_update_from_subsurf_ccg(Object *object)
 	if (!subdiv_ccg->dirty.coords && !subdiv_ccg->dirty.hidden) {
 		return;
 	}
+	const int tot_level = mesh_eval->runtime.subdiv_ccg_tot_level;
 	Object *object_orig = DEG_get_original_object(object);
 	Mesh *mesh_orig = (Mesh *)object_orig->data;
-	multiresModifier_reshapeFromCCG(6, mesh_orig, subdiv_ccg);
+	multiresModifier_reshapeFromCCG(tot_level, mesh_orig, subdiv_ccg);
 	/* NOTE: we need to reshape into an original mesh from main database,
 	 * allowing:
 	 *

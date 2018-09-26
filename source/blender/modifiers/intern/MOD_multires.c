@@ -236,6 +236,7 @@ static Mesh *applyModifier_subdiv(ModifierData *md,
 	if ((ctx->object->mode & OB_MODE_SCULPT) && !for_orco) {
 		/* NOTE: CCG takes ownership over Subdiv. */
 		result = multires_as_ccg(mmd, ctx, mesh, subdiv);
+		result->runtime.subdiv_ccg_tot_level = mmd->totlvl;
 		// BKE_subdiv_stats_print(&subdiv->stats);
 	}
 	else {

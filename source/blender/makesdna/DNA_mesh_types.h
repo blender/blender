@@ -84,8 +84,11 @@ struct MLoopTri_Store {
 typedef struct Mesh_Runtime {
 	struct EditMeshData *edit_data;
 	void *batch_cache;
+
 	struct SubdivCCG *subdiv_ccg;
 	void  *pad1;
+	int subdiv_ccg_tot_level;
+	int pad2;
 
 	int64_t cd_dirty_vert;
 	int64_t cd_dirty_edge;
