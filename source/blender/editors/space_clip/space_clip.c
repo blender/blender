@@ -729,7 +729,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	/* pivot point */
-	WM_keymap_add_menu_pie(keymap, "CLIP_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "CLIP_MT_pivot_pie", PERIODKEY, KM_PRESS, 0, 0);
 
 	/* Copy-paste */
 	WM_keymap_add_item(keymap, "CLIP_OT_copy_tracks", CKEY, KM_PRESS, KM_CTRL, 0);

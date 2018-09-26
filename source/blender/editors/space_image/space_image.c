@@ -369,7 +369,7 @@ static void image_keymap(struct wmKeyConfig *keyconf)
 	}
 
 	/* pivot */
-	WM_keymap_add_menu_pie(keymap, "IMAGE_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "IMAGE_MT_pivot_pie", PERIODKEY, KM_PRESS, 0, 0);
 
 	/* render border */
 	WM_keymap_add_item(keymap, "IMAGE_OT_render_border", BKEY, KM_PRESS, KM_CTRL, 0);

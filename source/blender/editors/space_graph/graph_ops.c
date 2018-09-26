@@ -665,7 +665,7 @@ static void graphedit_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 	ED_keymap_proportional_cycle(keyconf, keymap);
 
 	/* pivot point settings */
-	WM_keymap_add_menu_pie(keymap, "GRAPH_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "GRAPH_MT_pivot_pie", PERIODKEY, KM_PRESS, 0, 0);
 
 	/* special markers hotkeys for anim editors: see note in definition of this function */
 	ED_marker_keymap_animedit_conflictfree(keymap);

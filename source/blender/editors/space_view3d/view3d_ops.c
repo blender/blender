@@ -511,8 +511,8 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW3D_OT_pastebuffer", VKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* context ops */
-	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_pivot_pie", COMMAKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_orientations_pie", PERIODKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_pivot_pie", PERIODKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_orientations_pie", COMMAKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_transform_pivot_point_align");
