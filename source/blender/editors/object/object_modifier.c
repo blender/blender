@@ -56,6 +56,7 @@
 #include "BKE_context.h"
 #include "BKE_displist.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -72,8 +73,8 @@
 #include "BKE_ocean.h"
 #include "BKE_paint.h"
 #include "BKE_particle.h"
+#include "BKE_scene.h"
 #include "BKE_softbody.h"
-#include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -1922,9 +1923,9 @@ static bool meshdeform_poll(bContext *C)
 
 static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = ED_object_active_context(C);
+	Main *bmain = CTX_data_main(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Object *ob = ED_object_active_context(C);
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_MeshDeform);
 
 	if (!mmd)
@@ -1951,35 +1952,22 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		mmd->totvert = 0;
 		mmd->totcagevert = 0;
 		mmd->totinfluence = 0;
-
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	}
 	else {
-		DerivedMesh *dm;
 		int mode = mmd->modifier.mode;
-
-		/* force modifier to run, it will call binding routine */
 		mmd->bindfunc = ED_mesh_deform_bind_callback;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
-		if (ob->type == OB_MESH) {
-			dm = mesh_create_derived_view(depsgraph, scene, ob, 0);
-			dm->release(dm);
-		}
-		else if (ob->type == OB_LATTICE) {
-			BKE_lattice_modifiers_calc(depsgraph, scene, ob);
-		}
-		else if (ob->type == OB_MBALL) {
-			BKE_displist_make_mball(depsgraph, scene, ob);
-		}
-		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			BKE_displist_make_curveTypes(depsgraph, scene, ob, 0);
-		}
+		/* Force depsgraph update, this will do binding. */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
 
 		mmd->bindfunc = NULL;
 		mmd->modifier.mode = mode;
 	}
+
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
 }

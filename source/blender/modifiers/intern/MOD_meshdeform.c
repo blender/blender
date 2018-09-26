@@ -325,11 +325,17 @@ static void meshdeformModifier_do(
 
 		/* progress bar redraw can make this recursive .. */
 		if (!recursive) {
+			/* Write binding data to original modifier. */
 			Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
+			Object *ob_orig = DEG_get_original_object(ob);
+			MeshDeformModifierData *mmd_orig = (MeshDeformModifierData*)modifiers_findByName(ob_orig, mmd->modifier.name);
+
 			recursive = 1;
-			mmd->bindfunc(scene, mmd, cagemesh, (float *)vertexCos, numVerts, cagemat);
+			mmd->bindfunc(scene, mmd_orig, cagemesh, (float *)vertexCos, numVerts, cagemat);
 			recursive = 0;
 		}
+
+		return;
 	}
 
 	/* verify we have compatible weights */
