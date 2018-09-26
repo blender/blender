@@ -1465,6 +1465,7 @@ static BMOpDefine bmo_spin_def = {
 	 {"angle", BMO_OP_SLOT_FLT},            /* total rotation angle (radians) */
 	 {"space", BMO_OP_SLOT_MAT},            /* matrix to define the space (typically object matrix) */
 	 {"steps", BMO_OP_SLOT_INT},            /* number of steps */
+	 {"use_merge", BMO_OP_SLOT_BOOL},       /* Merge first/last when the angle is a full revolution. */
 	 {"use_normal_flip", BMO_OP_SLOT_BOOL}, /* Create faces with reversed direction. */
 	 {"use_duplicate", BMO_OP_SLOT_BOOL},   /* duplicate or extrude? */
 	 {{'\0'}},
