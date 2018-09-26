@@ -203,3 +203,5 @@ void MESH_OT_spin(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 #endif
 }
+
+/** \} */

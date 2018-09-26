@@ -48,6 +48,16 @@
 #include "ED_gizmo_library.h"
 #include "ED_undo.h"
 
+/**
+ * Orient the handles towards the selection (can be slow with high-poly mesh!).
+ */
+// Disable for now, issues w/ refresh and '+' icons overlap.
+// #define USE_SELECT_CENTER
+
+#ifdef USE_SELECT_CENTER
+#  include "BKE_editmesh.h"
+#endif
+
 static const float dial_angle_partial = M_PI / 2;
 static const float dial_angle_partial_margin = 0.92f;
 
@@ -71,6 +81,11 @@ typedef struct GizmoGroupData_SpinInit {
 		wmOperatorType *ot_spin;
 		PropertyRNA *ot_spin_gizmo_axis_prop;
 		float orient_mat[3][3];
+#ifdef USE_SELECT_CENTER
+		float select_center[3];
+		float select_center_ortho_axis[3][3];
+		bool use_select_center;
+#endif
 	} data;
 } GizmoGroupData_SpinInit;
 
@@ -295,8 +310,19 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 	ED_transform_calc_orientation_from_type(C, ggd->data.orient_mat);
 	for (int i = 0; i < 3; i++) {
 		const int axis_ortho = (i + 2) % 3;
+		const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];
+#ifdef USE_SELECT_CENTER
+		if (ggd->data.use_select_center) {
+			float delta[3];
+			sub_v3_v3v3(delta, ggd->data.select_center, ggd->gizmos.xyz_view[0]->matrix_basis[3]);
+			project_plane_normalized_v3_v3v3(ggd->data.select_center_ortho_axis[i], delta, ggd->data.orient_mat[i]);
+			if (normalize_v3(ggd->data.select_center_ortho_axis[i]) != 0.0f) {
+				axis_ortho_vec = ggd->data.select_center_ortho_axis[i];
+			}
+		}
+#endif
 		gizmo_mesh_spin_init_refresh_axis_orientation(
-		        gzgroup, i, ggd->data.orient_mat[i], ggd->data.orient_mat[axis_ortho]);
+		        gzgroup, i, ggd->data.orient_mat[i], axis_ortho_vec);
 	}
 
 	{
@@ -304,11 +330,51 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 		        gzgroup, 3, rv3d->viewinv[2], NULL);
 	}
 
+
+#ifdef USE_SELECT_CENTER
+	{
+		Object *obedit = CTX_data_edit_object(C);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		float select_center[3] = {0};
+		int totsel = 0;
+
+		BMesh *bm = em->bm;
+		BMVert *eve;
+		BMIter iter;
+
+		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					totsel++;
+					add_v3_v3(select_center, eve->co);
+				}
+			}
+		}
+		if (totsel) {
+			mul_v3_fl(select_center, 1.0f / totsel);
+			mul_m4_v3(obedit->obmat, select_center);
+			copy_v3_v3(ggd->data.select_center, select_center);
+			ggd->data.use_select_center = true;
+		}
+		else {
+			ggd->data.use_select_center = false;
+		}
+	}
+#endif
+
 	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
 		const int axis_ortho = (i + 2) % 3;
+		const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];
 		float offset = INIT_SCALE_BASE / INIT_SCALE_BUTTON;
 		float offset_vec[3];
-		mul_v3_v3fl(offset_vec, ggd->data.orient_mat[axis_ortho], offset);
+
+#ifdef USE_SELECT_CENTER
+		if (ggd->data.use_select_center && !is_zero_v3(ggd->data.select_center_ortho_axis[i])) {
+			axis_ortho_vec = ggd->data.select_center_ortho_axis[i];
+		}
+#endif
+
+		mul_v3_v3fl(offset_vec, axis_ortho_vec, offset);
 		for (int j = 0; j < 2; j++) {
 			wmGizmo *gz = ggd->gizmos.icon_button[i][j];
 			float mat3[3][3];
