@@ -473,6 +473,15 @@ static void gizmo_spin_exec(GizmoGroupData_SpinRedo *ggd)
 	}
 }
 
+static void gizmo_mesh_spin_redo_update_orient_axis(GizmoGroupData_SpinRedo *ggd, const float plane_no[3])
+{
+	float mat[3][3];
+	rotation_between_vecs_to_mat3(mat, ggd->data.orient_mat[2], plane_no);
+	mul_m3_m3m3(ggd->data.orient_mat, mat, ggd->data.orient_mat);
+	/* Not needed, just set for numeric stability. */
+	copy_v3_v3(ggd->data.orient_mat[2], plane_no);
+}
+
 static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 {
 	wmOperator *op = ggd->data.op;
@@ -491,11 +500,7 @@ static void gizmo_mesh_spin_redo_update_from_op(GizmoGroupData_SpinRedo *ggd)
 	copy_v3_v3(ggd->prev.plane_no, plane_no);
 
 	if (is_plane_no_eq == false) {
-		float mat[3][3];
-		rotation_between_vecs_to_mat3(mat, ggd->data.orient_mat[2], plane_no);
-		mul_m3_m3m3(ggd->data.orient_mat, mat, ggd->data.orient_mat);
-		/* Not needed, just set for numeric stability. */
-		copy_v3_v3(ggd->data.orient_mat[2], plane_no);
+		gizmo_mesh_spin_redo_update_orient_axis(ggd, plane_no);
 	}
 
 	for (int i = 0; i < 2; i++) {
@@ -844,6 +849,9 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		float plane_co[3], plane_no[3];
 		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_co, plane_co);
 		RNA_property_float_get_array(op->ptr, ggd->data.prop_axis_no, plane_no);
+
+		gizmo_mesh_spin_redo_update_orient_axis(ggd, plane_no);
+
 		float cursor_co[3];
 		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
 		float plane[4];
