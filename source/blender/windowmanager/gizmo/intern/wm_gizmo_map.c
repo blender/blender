@@ -948,6 +948,9 @@ void wm_gizmomap_modal_set(
 		if (gz->type->invoke &&
 		    (gz->type->modal || gz->custom_modal))
 		{
+			if (gz->parent_gzgroup->type->invoke_prepare) {
+				gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz);
+			}
 			const int retval = gz->type->invoke(C, gz, event);
 			if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
 				return;

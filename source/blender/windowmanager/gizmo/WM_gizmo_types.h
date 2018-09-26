@@ -372,6 +372,8 @@ typedef struct wmGizmoGroupType {
 	wmGizmoGroupFnRefresh refresh;
 	/* refresh data for drawing, called before each redraw */
 	wmGizmoGroupFnDrawPrepare draw_prepare;
+	/* Initialize data for before invoke. */
+	wmGizmoGroupFnInvokePrepare invoke_prepare;
 
 	/* Keymap init callback for this gizmo-group (optional),
 	 * will fall back to default tweak keymap when left NULL. */

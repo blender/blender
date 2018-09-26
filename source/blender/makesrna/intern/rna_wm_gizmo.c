@@ -719,6 +719,25 @@ static void rna_gizmogroup_draw_prepare_cb(const bContext *C, wmGizmoGroup *gzgr
 	RNA_parameter_list_free(&list);
 }
 
+static void rna_gizmogroup_invoke_prepare_cb(const bContext *C, wmGizmoGroup *gzgroup, wmGizmo *gz)
+{
+	extern FunctionRNA rna_GizmoGroup_invoke_prepare_func;
+
+	PointerRNA gzgroup_ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(NULL, gzgroup->type->ext.srna, gzgroup, &gzgroup_ptr);
+	func = &rna_GizmoGroup_invoke_prepare_func; /* RNA_struct_find_function(&wgroupr, "invoke_prepare"); */
+
+	RNA_parameter_list_create(&list, &gzgroup_ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	RNA_parameter_set_lookup(&list, "gizmo", &gz);
+	gzgroup->type->ext.call((bContext *)C, &gzgroup_ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 void BPY_RNA_gizmogroup_wrapper(wmGizmoGroupType *gzgt, void *userdata);
 static void rna_GizmoGroup_unregister(struct Main *bmain, StructRNA *type);
 
@@ -808,6 +827,7 @@ static StructRNA *rna_GizmoGroup_register(
 	dummywgt.setup =            (have_function[2]) ? rna_gizmogroup_setup_cb : NULL;
 	dummywgt.refresh =          (have_function[3]) ? rna_gizmogroup_refresh_cb : NULL;
 	dummywgt.draw_prepare =     (have_function[4]) ? rna_gizmogroup_draw_prepare_cb : NULL;
+	dummywgt.invoke_prepare =   (have_function[5]) ? rna_gizmogroup_invoke_prepare_cb : NULL;
 
 	wmGizmoGroupType *gzgt = WM_gizmogrouptype_append_ptr(
 	        BPY_RNA_gizmogroup_wrapper, (void *)&dummywgt);
@@ -1302,6 +1322,14 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Run before each redraw");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "invoke_prepare", NULL);
+	RNA_def_function_ui_description(func, "Run before invoke");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "gizmo", "Gizmo", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 
 	/* -------------------------------------------------------------------- */

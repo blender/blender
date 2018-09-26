@@ -381,6 +381,9 @@ static bool gizmo_tweak_start_and_finish(
 			}
 		}
 		else {
+			if (gz->parent_gzgroup->type->invoke_prepare) {
+				gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz);
+			}
 			/* Allow for 'button' gizmos, single click to run an action. */
 			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
 		}
