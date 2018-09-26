@@ -2090,4 +2090,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 24)) {
+		if (!DNA_struct_elem_find(fd->filesdna, "PartDeflect", "float", "pdef_cfrict")) {
+			for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+				if (ob->pd) {
+					ob->pd->pdef_cfrict = 5.0f;
+				}
+
+				for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Cloth) {
+						ClothModifierData *clmd = (ClothModifierData *)md;
+
+						clmd->coll_parms->selfepsilon = 0.015f;
+					}
+				}
+			}
+		}
+	}
 }

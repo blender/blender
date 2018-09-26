@@ -121,14 +121,17 @@ typedef struct ClothCollSettings {
 	float	friction;		/* Friction/damping applied on contact with other object.*/
 	float	damping;	/* Collision restitution on contact with other object.*/
 	float 	selfepsilon; 		/* for selfcollision */
-	float repel_force, distance_repel;
+	float repel_force DNA_DEPRECATED;
+	float distance_repel DNA_DEPRECATED;
 	int	flags;			/* collision flags defined in BKE_cloth.h */
-	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
+	short	self_loop_count DNA_DEPRECATED;	/* How many iterations for the selfcollision loop */
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	int pad;
 	struct Collection *group;	/* Only use colliders from this group of objects */
 	short	vgroup_selfcol; /* vgroup to paint which vertices are used for self collisions */
 	short pad2[3];
+	float	clamp;		/* Impulse clamp for object collisions. */
+	float	self_clamp;	/* Impulse clamp for self collisions. */
 } ClothCollSettings;
 
 

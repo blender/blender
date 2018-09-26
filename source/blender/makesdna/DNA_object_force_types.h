@@ -120,6 +120,9 @@ typedef struct PartDeflect {
 	float drawvec_falloff_max[3], pad2; /* Runtime only */
 
 	struct Object *f_source; /* force source object */
+
+	float pdef_cfrict;	/* Friction of cloth collisions. */
+	float pad;
 } PartDeflect;
 
 typedef struct EffectorWeights {
@@ -337,6 +340,8 @@ typedef struct SoftBody {
 #define PFIELD_GUIDE_PATH_WEIGHT (1<<16)	/* apply curve weights */
 #define PFIELD_SMOKE_DENSITY    (1<<17)		/* multiply smoke force by density */
 #define PFIELD_GRAVITATION		(1<<18)             /* used for (simple) force */
+#define PFIELD_CLOTH_USE_CULLING (1<<19)	/* Enable cloth collision side detection based on normal. */
+#define PFIELD_CLOTH_USE_NORMAL (1<<20)		/* Replace collision direction with collider normal. */
 
 /* pd->falloff */
 #define PFIELD_FALL_SPHERE		0

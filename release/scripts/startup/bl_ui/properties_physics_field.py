@@ -377,7 +377,7 @@ class PHYSICS_PT_collision_particle(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
-    bl_label = "Softbody"
+    bl_label = "Softbody And Cloth"
     bl_parent_id = "PHYSICS_PT_collision"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
@@ -413,6 +413,15 @@ class PHYSICS_PT_collision_softbody(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(settings, "thickness_inner", text="Inner", slider=True)
+
+        col = flow.column()
+        col.prop(settings, "cloth_friction")
+
+        col = flow.column()
+        col.prop(settings, "use_culling")
+
+        col = flow.column()
+        col.prop(settings, "use_normal")
 
 
 classes = (

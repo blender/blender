@@ -2979,19 +2979,27 @@ static bool point_in_slice(const float p[3], const float v1[3], const float l1[3
 	return (h >= 0.0f && h <= 1.0f);
 }
 
-#if 0
-
 /* adult sister defining the slice planes by the origin and the normal
  * NOTE |normal| may not be 1 but defining the thickness of the slice */
-static int point_in_slice_as(float p[3], float origin[3], float normal[3])
+static bool point_in_slice_as(float p[3], float origin[3], float normal[3])
 {
 	float h, rp[3];
 	sub_v3_v3v3(rp, p, origin);
 	h = dot_v3v3(normal, rp) / dot_v3v3(normal, normal);
-	if (h < 0.0f || h > 1.0f) return 0;
-	return 1;
+	if (h < 0.0f || h > 1.0f) return false;
+	return true;
 }
 
+bool point_in_slice_seg(float p[3], float l1[3], float l2[3])
+{
+	float normal[3];
+
+	sub_v3_v3v3(normal, l2, l1);
+
+	return point_in_slice_as(p, l1, normal);
+}
+
+#if 0
 /*mama (knowing the squared length of the normal) */
 static int point_in_slice_m(float p[3], float origin[3], float normal[3], float lns)
 {

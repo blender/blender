@@ -774,26 +774,11 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enable Collision", "Enable collisions with other objects");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
-	prop = RNA_def_property(srna, "repel_force", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "repel_force");
-	RNA_def_property_range(prop, 0.0f, 20.0f);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Repulsion Force", "Repulsion force to apply on cloth when close to colliding");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
-	prop = RNA_def_property(srna, "distance_repel", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "distance_repel");
-	RNA_def_property_range(prop, 0.001f, 10.0f);
-	RNA_def_property_float_default(prop, 0.005f);
-	RNA_def_property_ui_text(prop, "Repulsion Distance",
-	                         "Maximum distance to apply repulsion force, must be greater than minimum distance");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
 	prop = RNA_def_property(srna, "distance_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "epsilon");
 	RNA_def_property_range(prop, 0.001f, 1.0f);
 	RNA_def_property_ui_text(prop, "Minimum Distance",
-	                         "Minimum distance between collision objects before collision response takes in");
+	                         "Minimum distance between collision objects before collision response takes effect");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "friction", PROP_FLOAT, PROP_NONE);
@@ -816,6 +801,12 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	                         "How many collision iterations should be done. (higher is better quality but slower)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
+	prop = RNA_def_property(srna, "impulse_clamp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "clamp");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Impulse Clamping", "Clamp collision impulses to avoid instability (0.0 to disable clamping)");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
 	/* self collision */
 
 	prop = RNA_def_property(srna, "use_self_collision", PROP_BOOLEAN, PROP_NONE);
@@ -825,22 +816,13 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "self_distance_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "selfepsilon");
-	RNA_def_property_range(prop, 0.5f, 1.0f);
-	RNA_def_property_ui_text(prop, "Self Minimum Distance", "0.5 means no distance at all, 1.0 is maximum distance");
+	RNA_def_property_range(prop, 0.001f, 0.1f);
+	RNA_def_property_ui_text(prop, "Self Minimum Distance", "Minimum distance between cloth faces before collision response takes effect");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "self_friction", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 80.0f);
-	RNA_def_property_ui_text(prop, "Self Friction", "Friction/damping with self contact");
-	RNA_def_property_update(prop, 0, "rna_cloth_update");
-
-	prop = RNA_def_property(srna, "self_collision_quality", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "self_loop_count");
-	RNA_def_property_range(prop, 1, SHRT_MAX);
-	RNA_def_property_ui_range(prop, 1, 10, 1, -1);
-	RNA_def_property_ui_text(prop, "Self Collision Quality",
-	                         "How many self collision iterations should be done "
-	                         "(higher is better quality but slower)");
+	RNA_def_property_ui_text(prop, "Self Friction", "Friction with self contact");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
@@ -853,6 +835,12 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	                              "rna_CollSettings_selfcol_vgroup_set");
 	RNA_def_property_ui_text(prop, "Selfcollision Vertex Group",
 	                         "Vertex group to define vertices which are not used during self collisions");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "self_impulse_clamp", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "self_clamp");
+	RNA_def_property_range(prop, 0.0f, 100.0f);
+	RNA_def_property_ui_text(prop, "Impulse Clamping", "Clamp collision impulses to avoid instability (0.0 to disable clamping)");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 }
 

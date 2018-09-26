@@ -373,6 +373,8 @@ bool clip_segment_v3_plane_n(
         const float p1[3], const float p2[3], const float plane_array[][4], const int plane_tot,
         float r_p1[3], float r_p2[3]);
 
+bool point_in_slice_seg(float p[3], float l1[3], float l2[3]);
+
 /****************************** Interpolation ********************************/
 void interp_weights_tri_v3(float w[3], const float a[3], const float b[3], const float c[3], const float p[3]);
 void interp_weights_quad_v3(float w[4], const float a[3], const float b[3], const float c[3], const float d[3], const float p[3]);

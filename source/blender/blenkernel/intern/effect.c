@@ -112,6 +112,7 @@ PartDeflect *object_add_collision_fields(int type)
 	pd->pdef_sbdamp = 0.1f;
 	pd->pdef_sbift  = 0.2f;
 	pd->pdef_sboft  = 0.02f;
+	pd->pdef_cfrict = 5.0f;
 	pd->seed = ((uint)(ceil(PIL_check_seconds_timer())) + 1) % 128;
 	pd->f_strength = 1.0f;
 	pd->f_damp = 1.0f;
@@ -132,7 +133,7 @@ PartDeflect *object_add_collision_fields(int type)
 			pd->f_flow = 1.0f;
 			break;
 	}
-	pd->flag = PFIELD_DO_LOCATION | PFIELD_DO_ROTATION;
+	pd->flag = PFIELD_DO_LOCATION | PFIELD_DO_ROTATION | PFIELD_CLOTH_USE_CULLING;
 
 	return pd;
 }

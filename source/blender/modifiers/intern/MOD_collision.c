@@ -146,112 +146,107 @@ static void deformVerts(
 
 		mvert_num = mesh_src->totvert;
 
-		if (current_time > collmd->time_xnew) {
-			unsigned int i;
-
-			/* check if mesh has changed */
-			if (collmd->x && (mvert_num != collmd->mvert_num))
-				freeData((ModifierData *)collmd);
-
-			if (collmd->time_xnew == -1000) { /* first time */
-
-				collmd->x = MEM_dupallocN(mesh_src->mvert); /* frame start position */
-
-				for (i = 0; i < mvert_num; i++) {
-					/* we save global positions */
-					mul_m4_v3(ob->obmat, collmd->x[i].co);
-				}
-
-				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
-				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
-				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
-				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
-
-				collmd->mvert_num = mvert_num;
-
-				{
-					const MLoop *mloop = mesh_src->mloop;
-					const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh_src);
-					collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh_src);
-					MVertTri *tri = MEM_malloc_arrayN(collmd->tri_num, sizeof(*tri), __func__);
-					BKE_mesh_runtime_verttri_from_looptri(tri, mloop, looptri, collmd->tri_num);
-					collmd->tri = tri;
-				}
-
-				/* create bounding box hierarchy */
-				collmd->bvhtree = bvhtree_build_from_mvert(
-				        collmd->x,
-				        collmd->tri, collmd->tri_num,
-				        ob->pd->pdef_sboft);
-
-				collmd->time_x = collmd->time_xnew = current_time;
-				collmd->is_static = true;
-			}
-			else if (mvert_num == collmd->mvert_num) {
-				/* put positions to old positions */
-				tempVert = collmd->x;
-				collmd->x = collmd->xnew;
-				collmd->xnew = tempVert;
-				collmd->time_x = collmd->time_xnew;
-
-				memcpy(collmd->xnew, mesh_src->mvert, mvert_num * sizeof(MVert));
-
-				bool is_static = true;
-
-				for (i = 0; i < mvert_num; i++) {
-					/* we save global positions */
-					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
-
-					/* detect motion */
-					is_static = is_static && equals_v3v3(collmd->x[i].co, collmd->xnew[i].co);
-				}
-
-				memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(MVert));
-				memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(MVert));
-
-				/* check if GUI setting has changed for bvh */
-				if (collmd->bvhtree) {
-					if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
-						BLI_bvhtree_free(collmd->bvhtree);
-						collmd->bvhtree = bvhtree_build_from_mvert(
-						        collmd->current_x,
-						        collmd->tri, collmd->tri_num,
-						        ob->pd->pdef_sboft);
-					}
-
-				}
-
-				/* happens on file load (ONLY when i decomment changes in readfile.c) */
-				if (!collmd->bvhtree) {
-					collmd->bvhtree = bvhtree_build_from_mvert(
-					        collmd->current_x,
-					        collmd->tri, collmd->tri_num,
-					        ob->pd->pdef_sboft);
-				}
-				else if (!collmd->is_static || !is_static) {
-					/* recalc static bounding boxes */
-					bvhtree_update_from_mvert(
-					        collmd->bvhtree,
-					        collmd->current_x, collmd->current_xnew,
-					        collmd->tri, collmd->tri_num,
-					        true);
-				}
-
-				collmd->is_static = is_static;
-				collmd->time_xnew = current_time;
-			}
-			else if (mvert_num != collmd->mvert_num) {
-				freeData((ModifierData *)collmd);
-			}
-
-		}
-		else if (current_time < collmd->time_xnew) {
+		if (current_time < collmd->time_xnew) {
 			freeData((ModifierData *)collmd);
 		}
-		else {
+		else if (current_time == collmd->time_xnew) {
 			if (mvert_num != collmd->mvert_num) {
 				freeData((ModifierData *)collmd);
 			}
+		}
+
+		/* check if mesh has changed */
+		if (collmd->x && (mvert_num != collmd->mvert_num))
+			freeData((ModifierData *)collmd);
+
+		if (collmd->time_xnew == -1000) { /* first time */
+
+			collmd->x = MEM_dupallocN(mesh_src->mvert); /* frame start position */
+
+			for (uint i = 0; i < mvert_num; i++) {
+				/* we save global positions */
+				mul_m4_v3(ob->obmat, collmd->x[i].co);
+			}
+
+			collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
+			collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
+			collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
+			collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
+
+			collmd->mvert_num = mvert_num;
+
+			{
+				const MLoop *mloop = mesh_src->mloop;
+				const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh_src);
+				collmd->tri_num = BKE_mesh_runtime_looptri_len(mesh_src);
+				MVertTri *tri = MEM_mallocN(sizeof(*tri) * collmd->tri_num, __func__);
+				BKE_mesh_runtime_verttri_from_looptri(tri, mloop, looptri, collmd->tri_num);
+				collmd->tri = tri;
+			}
+
+			/* create bounding box hierarchy */
+			collmd->bvhtree = bvhtree_build_from_mvert(
+					collmd->x,
+					collmd->tri, collmd->tri_num,
+					ob->pd->pdef_sboft);
+
+			collmd->time_x = collmd->time_xnew = current_time;
+			collmd->is_static = true;
+		}
+		else if (mvert_num == collmd->mvert_num) {
+			/* put positions to old positions */
+			tempVert = collmd->x;
+			collmd->x = collmd->xnew;
+			collmd->xnew = tempVert;
+			collmd->time_x = collmd->time_xnew;
+
+			memcpy(collmd->xnew, mesh_src->mvert, mvert_num * sizeof(MVert));
+
+			bool is_static = true;
+
+			for (uint i = 0; i < mvert_num; i++) {
+				/* we save global positions */
+				mul_m4_v3(ob->obmat, collmd->xnew[i].co);
+
+				/* detect motion */
+				is_static = is_static && equals_v3v3(collmd->x[i].co, collmd->xnew[i].co);
+			}
+
+			memcpy(collmd->current_xnew, collmd->x, mvert_num * sizeof(MVert));
+			memcpy(collmd->current_x, collmd->x, mvert_num * sizeof(MVert));
+
+			/* check if GUI setting has changed for bvh */
+			if (collmd->bvhtree) {
+				if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
+					BLI_bvhtree_free(collmd->bvhtree);
+					collmd->bvhtree = bvhtree_build_from_mvert(
+							collmd->current_x,
+							collmd->tri, collmd->tri_num,
+							ob->pd->pdef_sboft);
+				}
+			}
+
+			/* happens on file load (ONLY when i decomment changes in readfile.c) */
+			if (!collmd->bvhtree) {
+				collmd->bvhtree = bvhtree_build_from_mvert(
+						collmd->current_x,
+						collmd->tri, collmd->tri_num,
+						ob->pd->pdef_sboft);
+			}
+			else if (!collmd->is_static || !is_static) {
+				/* recalc static bounding boxes */
+				bvhtree_update_from_mvert(
+						collmd->bvhtree,
+						collmd->current_x, collmd->current_xnew,
+						collmd->tri, collmd->tri_num,
+						true);
+			}
+
+			collmd->is_static = is_static;
+			collmd->time_xnew = current_time;
+		}
+		else if (mvert_num != collmd->mvert_num) {
+			freeData((ModifierData *)collmd);
 		}
 	}
 

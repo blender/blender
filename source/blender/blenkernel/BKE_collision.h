@@ -63,6 +63,7 @@ typedef enum {
 	COLLISION_USE_COLLFACE =    (1 << 2),
 	COLLISION_IS_EDGES =        (1 << 3),
 #endif
+	COLLISION_INACTIVE =        (1 << 4),
 } COLLISION_FLAGS;
 
 
@@ -73,7 +74,7 @@ typedef enum {
 typedef struct CollPair {
 	unsigned int face1; // cloth face
 	unsigned int face2; // object face
-	double distance; // magnitude of vector
+	float distance;
 	float normal[3];
 	float vector[3]; // unnormalized collision vector: p2-p1
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2

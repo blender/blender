@@ -224,10 +224,31 @@ class PHYSICS_PT_cloth_shape(PhysicButtonsPanel, Panel):
             col.prop_search(cloth, "rest_shape_key", key, "key_blocks", text="Rest Shape Key")
 
 
-class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
-    bl_label = "Object Collision"
+class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
+    bl_label = "Collision"
     bl_parent_id = 'PHYSICS_PT_cloth'
     bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        cloth = context.cloth.collision_settings
+        md = context.cloth
+        ob = context.object
+
+        layout.active = (cloth.use_collision or cloth.use_self_collision) and cloth_panel_enabled(md)
+
+        flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(cloth, "collision_quality", text="Quality")
+
+
+class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
+    bl_label = "Object Collision"
+    bl_parent_id = 'PHYSICS_PT_cloth_collision'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw_header(self, context):
@@ -248,20 +269,18 @@ class PHYSICS_PT_cloth_object_collision(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
-        col.prop(cloth, "collision_quality", text="Quality")
         col.prop(cloth, "distance_min", slider=True, text="Distance")
-        col.prop(cloth, "repel_force", slider=True, text="Repel")
 
         col = flow.column()
-        col.prop(cloth, "distance_repel", slider=True, text="Repel Distance")
-        col.prop(cloth, "friction")
+        col.prop(cloth, "impulse_clamp")
+
+        col = flow.column()
         col.prop(cloth, "group")
 
 
 class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
     bl_label = "Self Collision"
-    bl_parent_id = 'PHYSICS_PT_cloth'
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = 'PHYSICS_PT_cloth_collision'
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
 
     def draw_header(self, context):
@@ -283,8 +302,13 @@ class PHYSICS_PT_cloth_self_collision(PhysicButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=False, columns=0, even_columns=True, even_rows=False, align=True)
 
         col = flow.column()
-        col.prop(cloth, "self_collision_quality", text="Quality")
+        col.prop(cloth, "self_friction", text="Friction")
+
+        col = flow.column()
         col.prop(cloth, "self_distance_min", slider=True, text="Distance")
+
+        col = flow.column()
+        col.prop(cloth, "self_impulse_clamp")
 
         col = flow.column()
         col.prop_search(cloth, "vertex_group_self_collisions", ob, "vertex_groups", text="Vertex Group")
@@ -363,6 +387,7 @@ classes = (
     PHYSICS_PT_cloth_damping,
     PHYSICS_PT_cloth_cache,
     PHYSICS_PT_cloth_shape,
+    PHYSICS_PT_cloth_collision,
     PHYSICS_PT_cloth_object_collision,
     PHYSICS_PT_cloth_self_collision,
     PHYSICS_PT_cloth_property_weights,
