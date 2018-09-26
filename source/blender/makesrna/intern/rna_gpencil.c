@@ -1097,12 +1097,10 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Frame Locked", "Lock current frame displayed by layer");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	/* Unlock colors */
-	prop = RNA_def_property(srna, "unlock_material", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_UNLOCK_COLOR);
+	prop = RNA_def_property(srna, "lock_material", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_LAYER_UNLOCK_COLOR);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Override Locked Materials",
-	                         "Allow Locked Materials edition");
+	RNA_def_property_ui_text(prop, "Lock Material", "Disable Material editing");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 
