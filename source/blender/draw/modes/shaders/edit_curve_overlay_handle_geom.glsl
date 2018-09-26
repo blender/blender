@@ -36,6 +36,9 @@ void main()
 	int is_active_nurb = (vertFlag[1] & ACTIVE_NURB);
 	int color_id = (vertFlag[1] >> 3);
 
+	/* Don't output any edges if we don't show handles */
+	if (!showCurveHandles && (color_id < 5))
+		return;
 
 	bool edge_selected = (((vertFlag[1] | vertFlag[0]) & VERTEX_SELECTED) != 0);
 

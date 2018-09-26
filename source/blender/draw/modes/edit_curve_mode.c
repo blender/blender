@@ -127,6 +127,8 @@ typedef struct EDIT_CURVE_PrivateData {
 
 	DRWShadingGroup *overlay_edge_shgrp;
 	DRWShadingGroup *overlay_vert_shgrp;
+
+	int show_handles;
 } EDIT_CURVE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -183,11 +185,15 @@ static void EDIT_CURVE_cache_init(void *vedata)
 {
 	EDIT_CURVE_PassList *psl = ((EDIT_CURVE_Data *)vedata)->psl;
 	EDIT_CURVE_StorageList *stl = ((EDIT_CURVE_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	View3D *v3d = draw_ctx->v3d;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
 	}
+
+	stl->g_data->show_handles = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
 
 	{
 		DRWShadingGroup *grp;
@@ -201,7 +207,6 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorWireEdit, 1);
 		stl->g_data->wire_shgrp = grp;
 
-
 		psl->overlay_edge_pass = DRW_pass_create(
 		        "Curve Handle Overlay",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND);
@@ -209,6 +214,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		grp = DRW_shgroup_create(e_data.overlay_edge_sh, psl->overlay_edge_pass);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+		DRW_shgroup_uniform_bool(grp, "showCurveHandles", &stl->g_data->show_handles, 1);
 		stl->g_data->overlay_edge_shgrp = grp;
 
 
@@ -253,16 +259,12 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 				DRW_shgroup_call_add(stl->g_data->wire_shgrp, geom, ob->obmat);
 			}
 
-			bool show_handles = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_CU_HANDLES) != 0;
-
-			if (show_handles) {
-				geom = DRW_cache_curve_edge_overlay_get(ob);
-				if (geom) {
-					DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
-				}
+			geom = DRW_cache_curve_edge_overlay_get(ob);
+			if (geom) {
+				DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
 			}
 
-			geom = DRW_cache_curve_vert_overlay_get(ob, show_handles);
+			geom = DRW_cache_curve_vert_overlay_get(ob, stl->g_data->show_handles);
 			DRW_shgroup_call_add(stl->g_data->overlay_vert_shgrp, geom, ob->obmat);
 		}
 	}
