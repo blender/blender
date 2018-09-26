@@ -1371,7 +1371,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 	}
 	/* try to find slot */
 	int idx = BKE_gpencil_get_material_index(ob, ma) - 1;
-	if (idx <= 0) {
+	if (idx < 0) {
 		return OPERATOR_CANCELLED;
 	}
 
