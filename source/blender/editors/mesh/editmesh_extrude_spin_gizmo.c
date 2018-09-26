@@ -61,6 +61,8 @@
 static const float dial_angle_partial = M_PI / 2;
 static const float dial_angle_partial_margin = 0.92f;
 
+#define ORTHO_AXIS_OFFSET 2
+
 /* -------------------------------------------------------------------- */
 /** \name Spin Tool Gizmo
  * \{ */
@@ -87,6 +89,12 @@ typedef struct GizmoGroupData_SpinInit {
 		bool use_select_center;
 #endif
 	} data;
+
+	/* Store data for invoke. */
+	struct {
+		int ortho_axis_active;
+	} invoke;
+
 } GizmoGroupData_SpinInit;
 
 /* Use dials only as a visualization when hovering over the icons. */
@@ -285,36 +293,52 @@ static void gizmo_mesh_spin_init_draw_prepare(
 
 }
 
+static void gizmo_mesh_spin_init_invoke_prepare(
+        const bContext *UNUSED(C), wmGizmoGroup *gzgroup, wmGizmo *gz)
+{
+	/* Set the initial ortho axis. */
+	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
+	ggd->invoke.ortho_axis_active = -1;
+	for (int i = 0; i < 3; i++) {
+		if (ELEM(gz, UNPACK2(ggd->gizmos.icon_button[i]))) {
+			ggd->invoke.ortho_axis_active = i;
+			break;
+		}
+	}
+}
+
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 {
 	GizmoGroupData_SpinInit *ggd = gzgroup->customdata;
 	RegionView3D *rv3d = ED_view3d_context_rv3d((bContext *)C);
-
+	const float *gizmo_center = NULL;
 	{
 		Scene *scene = CTX_data_scene(C);
 		View3D *v3d = CTX_wm_view3d(C);
 		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
-		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
-			wmGizmo *gz = ggd->gizmos.xyz_view[i];
-			WM_gizmo_set_matrix_location(gz, cursor->location);
-		}
+		gizmo_center = cursor->location;
+	}
 
-		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
-			for (int j = 0; j < 2; j++) {
-				wmGizmo *gz = ggd->gizmos.icon_button[i][j];
-				WM_gizmo_set_matrix_location(gz, cursor->location);
-			}
+	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.xyz_view); i++) {
+		wmGizmo *gz = ggd->gizmos.xyz_view[i];
+		WM_gizmo_set_matrix_location(gz, gizmo_center);
+	}
+
+	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
+		for (int j = 0; j < 2; j++) {
+			wmGizmo *gz = ggd->gizmos.icon_button[i][j];
+			WM_gizmo_set_matrix_location(gz, gizmo_center);
 		}
 	}
 
 	ED_transform_calc_orientation_from_type(C, ggd->data.orient_mat);
 	for (int i = 0; i < 3; i++) {
-		const int axis_ortho = (i + 2) % 3;
+		const int axis_ortho = (i + ORTHO_AXIS_OFFSET) % 3;
 		const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];
 #ifdef USE_SELECT_CENTER
 		if (ggd->data.use_select_center) {
 			float delta[3];
-			sub_v3_v3v3(delta, ggd->data.select_center, ggd->gizmos.xyz_view[0]->matrix_basis[3]);
+			sub_v3_v3v3(delta, ggd->data.select_center, gizmo_center);
 			project_plane_normalized_v3_v3v3(ggd->data.select_center_ortho_axis[i], delta, ggd->data.orient_mat[i]);
 			if (normalize_v3(ggd->data.select_center_ortho_axis[i]) != 0.0f) {
 				axis_ortho_vec = ggd->data.select_center_ortho_axis[i];
@@ -363,7 +387,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 #endif
 
 	for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
-		const int axis_ortho = (i + 2) % 3;
+		const int axis_ortho = (i + ORTHO_AXIS_OFFSET) % 3;
 		const float *axis_ortho_vec = ggd->data.orient_mat[axis_ortho];
 		float offset = INIT_SCALE_BASE / INIT_SCALE_BUTTON;
 		float offset_vec[3];
@@ -455,6 +479,7 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 	gzgt->refresh = gizmo_mesh_spin_init_refresh;
 	gzgt->message_subscribe = gizmo_mesh_spin_init_message_subscribe;
 	gzgt->draw_prepare = gizmo_mesh_spin_init_draw_prepare;
+	gzgt->invoke_prepare = gizmo_mesh_spin_init_invoke_prepare;
 }
 
 #undef INIT_SCALE_BASE
@@ -899,12 +924,16 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 		if (gzgroup_init) {
 			GizmoGroupData_SpinInit *ggd_init = gzgroup_init->customdata;
 			copy_m3_m3(ggd->data.orient_mat, ggd_init->data.orient_mat);
+			if (ggd_init->invoke.ortho_axis_active != -1) {
+				copy_v3_v3(ggd->data.orient_axis_relative,
+				           ggd_init->gizmos.xyz_view[ggd_init->invoke.ortho_axis_active]->matrix_basis[1]);
+				ggd_init->invoke.ortho_axis_active = -1;
+			}
 		}
 		else {
 			unit_m3(ggd->data.orient_mat);
 		}
 	}
-
 
 #ifdef USE_ANGLE_Z_ORIENT
 	{
@@ -918,18 +947,24 @@ static void gizmo_mesh_spin_redo_setup(const bContext *C, wmGizmoGroup *gzgroup)
 
 		gizmo_mesh_spin_redo_update_orient_axis(ggd, plane_no);
 
-		float cursor_co[3];
-		const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
-		float plane[4];
-		plane_from_point_normal_v3(plane, plane_co, plane_no);
-		if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, false, cursor_co))) {
-			ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
+		/* Use cursor as fallback if it's not set by the 'ortho_axis_active'. */
+		if (is_zero_v3(ggd->data.orient_axis_relative)) {
+			float cursor_co[3];
+			const int mval[2] = {event->x - ar->winrct.xmin, event->y - ar->winrct.ymin};
+			float plane[4];
+			plane_from_point_normal_v3(plane, plane_co, plane_no);
+			if (UNLIKELY(!ED_view3d_win_to_3d_on_plane_int(ar, plane, mval, false, cursor_co))) {
+				ED_view3d_win_to_3d_int(v3d, ar, plane, mval, cursor_co);
+			}
+			sub_v3_v3v3(ggd->data.orient_axis_relative, cursor_co, plane_co);
 		}
-		sub_v3_v3v3(ggd->data.orient_axis_relative, cursor_co, plane_co);
-		normalize_v3(ggd->data.orient_axis_relative);
-		float imat3[3][3];
-		invert_m3_m3(imat3, ggd->data.orient_mat);
-		mul_m3_v3(imat3, ggd->data.orient_axis_relative);
+
+		if (!is_zero_v3(ggd->data.orient_axis_relative)) {
+			normalize_v3(ggd->data.orient_axis_relative);
+			float imat3[3][3];
+			invert_m3_m3(imat3, ggd->data.orient_mat);
+			mul_m3_v3(imat3, ggd->data.orient_axis_relative);
+		}
 	}
 #endif
 
