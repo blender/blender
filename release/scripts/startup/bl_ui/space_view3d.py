@@ -43,7 +43,12 @@ class VIEW3D_HT_header(Header):
         object_mode = 'OBJECT' if obj is None else obj.mode
 
         act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[object_mode]
-        layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
+
+        row.separator()
+
+        sub = row.row()
+        sub.ui_units_x = 5.5
+        sub.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
         del act_mode_item
 
         layout.template_header_3D_mode()
@@ -124,7 +129,10 @@ class VIEW3D_HT_header(Header):
                 trans_name = getattr(current_orientation, "name", "Orientation")
 
             row = layout.row(align=True)
-            row.popover(
+
+            sub = row.row()
+            sub.ui_units_x = 4
+            sub.popover(
                 panel="VIEW3D_PT_transform_orientations",
                 text=trans_name,
                 icon=trans_icon,
