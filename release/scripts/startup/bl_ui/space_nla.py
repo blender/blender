@@ -232,6 +232,7 @@ class NLA_MT_edit_transform(Menu):
         layout.operator("transform.transform", text="Extend").mode = 'TIME_EXTEND'
         layout.operator("transform.transform", text="Scale").mode = 'TIME_SCALE'
 
+
 class NLA_MT_snap_pie(Menu):
     bl_label = "Snap"
 

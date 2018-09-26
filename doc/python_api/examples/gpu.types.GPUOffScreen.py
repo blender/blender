@@ -33,9 +33,9 @@ void main()
 g_plane_vertices = np.array([
     ([-1.0, -1.0], [0.0, 0.0]),
     ([1.0, -1.0], [1.0, 0.0]),
-    ([1.0,  1.0], [1.0, 1.0]),
-    ([1.0,  1.0], [1.0, 1.0]),
-    ([-1.0,  1.0], [0.0, 1.0]),
+    ([1.0, 1.0], [1.0, 1.0]),
+    ([1.0, 1.0], [1.0, 1.0]),
+    ([-1.0, 1.0], [0.0, 1.0]),
     ([-1.0, -1.0], [0.0, 0.0]),
 ], [('pos', 'f4', 2), ('uv', 'f4', 2)])
 
@@ -162,20 +162,20 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
 
             format = gpu.types.GPUVertFormat()
             pos_id = format.attr_add(
-                    id="pos",
-                    comp_type="F32",
-                    len=2,
-                    fetch_mode="FLOAT")
+                id="pos",
+                comp_type="F32",
+                len=2,
+                fetch_mode="FLOAT")
 
             uv_id = format.attr_add(
-                    id="texCoord",
-                    comp_type="F32",
-                    len=2,
-                    fetch_mode="FLOAT")
+                id="texCoord",
+                comp_type="F32",
+                len=2,
+                fetch_mode="FLOAT")
 
             vbo = gpu.types.GPUVertBuf(
-                    len=len(g_plane_vertices),
-                    format=format)
+                len=len(g_plane_vertices),
+                format=format)
 
             vbo.fill(id=pos_id, data=g_plane_vertices["pos"])
             vbo.fill(id=uv_id, data=g_plane_vertices["uv"])

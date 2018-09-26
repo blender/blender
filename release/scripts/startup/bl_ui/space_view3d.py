@@ -3822,7 +3822,6 @@ class VIEW3D_MT_pivot_pie(Menu):
             pie.prop(context.scene.tool_settings, "use_transform_pivot_point_align", text="Center Points Only")
 
 
-
 class VIEW3D_MT_orientations_pie(Menu):
     bl_label = "Orientation"
 
@@ -3850,6 +3849,7 @@ class VIEW3D_MT_snap_pie(Menu):
         pie.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
         pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='CURSOR')
         pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='CURSOR')
+
 
 class VIEW3D_MT_proportional_editing_falloff_pie(Menu):
     bl_label = "Proportional Editing Falloff"

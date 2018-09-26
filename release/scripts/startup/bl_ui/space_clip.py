@@ -1438,6 +1438,7 @@ class CLIP_MT_stabilize_2d_rotation_specials(Menu):
 
         layout.operator("clip.stabilize_2d_rotation_select")
 
+
 class CLIP_MT_pivot_pie(Menu):
     bl_label = "Pivot Point"
 
@@ -1449,7 +1450,6 @@ class CLIP_MT_pivot_pie(Menu):
         pie.prop_enum(context.space_data, "pivot_point", value='CURSOR')
         pie.prop_enum(context.space_data, "pivot_point", value='INDIVIDUAL_ORIGINS')
         pie.prop_enum(context.space_data, "pivot_point", value='MEDIAN_POINT')
-
 
 
 classes = (

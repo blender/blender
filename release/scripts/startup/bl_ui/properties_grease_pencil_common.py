@@ -267,12 +267,12 @@ class GreasePencilStrokeSculptPanel:
             layout.row().prop(brush, "direction", expand=True)
         elif tool == 'PINCH':
             row = layout.row(align=True)
-            row.prop_enum(brush, "direction",  value='ADD', text="Pinch")
-            row.prop_enum(brush, "direction",  value='SUBTRACT', text="Inflate")
+            row.prop_enum(brush, "direction", value='ADD', text="Pinch")
+            row.prop_enum(brush, "direction", value='SUBTRACT', text="Inflate")
         elif settings.tool == 'TWIST':
             row = layout.row(align=True)
-            row.prop_enum(brush, "direction",  value='ADD', text="CCW")
-            row.prop_enum(brush, "direction",  value='SUBTRACT', text="CW")
+            row.prop_enum(brush, "direction", value='ADD', text="CCW")
+            row.prop_enum(brush, "direction", value='SUBTRACT', text="CW")
 
 
 class GreasePencilSculptOptionsPanel:

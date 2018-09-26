@@ -25,10 +25,11 @@ import bpy
 from bpy.types import Operator
 
 
-STATUS_OK =               (1 << 0)
-STATUS_ERR_ACTIVE_FACE =  (1 << 1)
+STATUS_OK = (1 << 0)
+STATUS_ERR_ACTIVE_FACE = (1 << 1)
 STATUS_ERR_NOT_SELECTED = (1 << 2)
-STATUS_ERR_NOT_QUAD =     (1 << 3)
+STATUS_ERR_NOT_QUAD = (1 << 3)
+
 
 def extend(obj, operator, EXTEND_MODE):
     import bmesh
