@@ -369,7 +369,6 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         if module_name in {
             "io_anim_bvh",
             "io_mesh_ply",
-            "io_mesh_stl",
             "io_scene_3ds",
             "io_scene_x3d",
         }:
