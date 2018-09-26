@@ -81,12 +81,12 @@ static int gizmo_move_modal(
         eWM_GizmoFlagTweak tweak_flag);
 
 typedef struct MoveInteraction {
-	float init_mval[2];
-
-	/* only for when using properties */
-	float init_prop_co[3];
-
-	float init_matrix_final[4][4];
+	struct {
+		float mval[2];
+		/* Only for when using properties. */
+		float prop_co[3];
+		float matrix_final[4][4];
+	} init;
 } MoveInteraction;
 
 #define DIAL_RESOLUTION 32
@@ -145,13 +145,13 @@ static void move3d_get_translate(
 {
 	MoveInteraction *inter = gz->interaction_data;
 	const float mval_delta[2] = {
-	    event->mval[0] - inter->init_mval[0],
-	    event->mval[1] - inter->init_mval[1],
+	    event->mval[0] - inter->init.mval[0],
+	    event->mval[1] - inter->init.mval[1],
 	};
 
 	RegionView3D *rv3d = ar->regiondata;
 	float co_ref[3];
-	mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init_prop_co);
+	mul_v3_mat3_m4v3(co_ref, gz->matrix_space, inter->init.prop_co);
 	const float zfac = ED_view3d_calc_zfac(rv3d, co_ref, NULL);
 
 	ED_view3d_win_to_delta(ar, mval_delta, co_delta, zfac);
@@ -196,7 +196,7 @@ static void move3d_draw_intern(
 
 	if (gz->interaction_data) {
 		GPU_matrix_push();
-		GPU_matrix_mul(inter->init_matrix_final);
+		GPU_matrix_mul(inter->init.matrix_final);
 
 		if (align_view) {
 			GPU_matrix_mul(matrix_align);
@@ -245,7 +245,7 @@ static int gizmo_move_modal(
 	else {
 		float mval_proj_init[2], mval_proj_curr[2];
 		if ((gizmo_window_project_2d(
-		         C, gz, inter->init_mval, 2, false, mval_proj_init) == false) ||
+		         C, gz, inter->init.mval, 2, false, mval_proj_init) == false) ||
 		    (gizmo_window_project_2d(
 		         C, gz, (const float[2]){UNPACK2(event->mval)}, 2, false, mval_proj_curr) == false))
 		{
@@ -254,7 +254,7 @@ static int gizmo_move_modal(
 		sub_v2_v2v2(prop_delta, mval_proj_curr, mval_proj_init);
 		prop_delta[2] = 0.0f;
 	}
-	add_v3_v3v3(move->prop_co, inter->init_prop_co, prop_delta);
+	add_v3_v3v3(move->prop_co, inter->init.prop_co, prop_delta);
 
 	/* set the property for the operator and call its modal function */
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
@@ -270,24 +270,46 @@ static int gizmo_move_modal(
 	return OPERATOR_RUNNING_MODAL;
 }
 
+static void gizmo_move_exit(bContext *C, wmGizmo *gz, const bool cancel)
+{
+	MoveInteraction *inter = gz->interaction_data;
+	bool use_reset_value = false;
+	const float *reset_value = NULL;
+	if (cancel) {
+		/* Set the property for the operator and call its modal function. */
+		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+		if (WM_gizmo_target_property_is_valid(gz_prop)) {
+			use_reset_value = true;
+			reset_value = inter->init.prop_co;
+		}
+	}
+
+	if (use_reset_value) {
+		wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
+		if (WM_gizmo_target_property_is_valid(gz_prop)) {
+			WM_gizmo_target_property_float_set_array(C, gz, gz_prop, reset_value);
+		}
+	}
+}
+
 static int gizmo_move_invoke(
         bContext *UNUSED(C), wmGizmo *gz, const wmEvent *event)
 {
 	MoveInteraction *inter = MEM_callocN(sizeof(MoveInteraction), __func__);
 
-	inter->init_mval[0] = event->mval[0];
-	inter->init_mval[1] = event->mval[1];
+	inter->init.mval[0] = event->mval[0];
+	inter->init.mval[1] = event->mval[1];
 
 #if 0
-	copy_v3_v3(inter->init_prop_co, move->prop_co);
+	copy_v3_v3(inter->init.prop_co, move->prop_co);
 #else
 	wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
 	if (WM_gizmo_target_property_is_valid(gz_prop)) {
-		WM_gizmo_target_property_float_get_array(gz, gz_prop, inter->init_prop_co);
+		WM_gizmo_target_property_float_get_array(gz, gz_prop, inter->init.prop_co);
 	}
 #endif
 
-	WM_gizmo_calc_matrix_final(gz, inter->init_matrix_final);
+	WM_gizmo_calc_matrix_final(gz, inter->init.matrix_final);
 
 	gz->interaction_data = inter;
 
@@ -348,6 +370,7 @@ static void GIZMO_GT_move_3d(wmGizmoType *gzt)
 	gzt->invoke = gizmo_move_invoke;
 	gzt->property_update = gizmo_move_property_update;
 	gzt->modal = gizmo_move_modal;
+	gzt->exit = gizmo_move_exit;
 	gzt->cursor_get = gizmo_move_cursor_get;
 
 	gzt->struct_size = sizeof(MoveGizmo3D);
