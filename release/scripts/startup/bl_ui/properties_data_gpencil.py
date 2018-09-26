@@ -77,8 +77,8 @@ class GPENCIL_MT_layer_specials(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
-        layout.operator("gpencil.hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
+        layout.operator("gpencil.reveal", icon='HIDE_OFF', text="Show All")
+        layout.operator("gpencil.hide", icon='HIDE_ON', text="Hide Others").unselected = True
 
         layout.separator()
 

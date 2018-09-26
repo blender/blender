@@ -29,8 +29,8 @@ class GPENCIL_MT_color_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("gpencil.color_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
-        layout.operator("gpencil.color_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
+        layout.operator("gpencil.color_reveal", icon='HIDE_OFF', text="Show All")
+        layout.operator("gpencil.color_hide", icon='HIDE_ON', text="Hide Others").unselected = True
 
         layout.separator()
 
