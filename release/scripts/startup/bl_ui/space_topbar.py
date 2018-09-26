@@ -158,8 +158,9 @@ class TOPBAR_HT_lower_bar(Header):
         gpl = context.active_gpencil_layer
         if gpl and gpl.info is not None:
             txt = gpl.info
-            if len(txt) > 10:
-                txt = txt[:7] + '..' + txt[-2:]
+            maxw = 25
+            if len(txt) > maxw:
+                txt = txt[:maxw - 5] + '..' + txt[-3:]
         else:
             txt = ""
 
@@ -191,7 +192,9 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
         elif mode == 'GPENCIL_PAINT':
             layout.label(text="Layer:")
-            layout.popover(
+            sub = layout.row()
+            sub.ui_units_x = 8
+            sub.popover(
                 panel="TOPBAR_PT_gpencil_layers",
                 text=txt,
             )
@@ -201,7 +204,9 @@ class TOPBAR_HT_lower_bar(Header):
             layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
         elif mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             layout.label(text="Layer:")
-            layout.popover(
+            sub = layout.row()
+            sub.ui_units_x = 8
+            sub.popover(
                 panel="TOPBAR_PT_gpencil_layers",
                 text=txt,
             )
