@@ -1863,11 +1863,12 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 
 			td = tc->data;
 			Object *ob = td->ob;
-
-			sub_v3_v3v3(r_center, r_center, ob->obmat[3]);
-			copy_m3_m4(mat, ob->obmat);
-			invert_m3_m3(imat, mat);
-			mul_m3_v3(imat, r_center);
+			if (ob) {
+				sub_v3_v3v3(r_center, r_center, ob->obmat[3]);
+				copy_m3_m4(mat, ob->obmat);
+				invert_m3_m3(imat, mat);
+				mul_m3_v3(imat, r_center);
+			}
 		}
 	}
 }
