@@ -1225,11 +1225,9 @@ static void drw_engines_enable_from_mode(int mode)
 		case CTX_MODE_EDIT_MESH:
 			use_drw_engine(&draw_engine_edit_mesh_type);
 			break;
+		case CTX_MODE_EDIT_SURFACE:
 		case CTX_MODE_EDIT_CURVE:
 			use_drw_engine(&draw_engine_edit_curve_type);
-			break;
-		case CTX_MODE_EDIT_SURFACE:
-			use_drw_engine(&draw_engine_edit_surface_type);
 			break;
 		case CTX_MODE_EDIT_TEXT:
 			use_drw_engine(&draw_engine_edit_text_type);
@@ -2475,7 +2473,6 @@ void DRW_engines_register(void)
 	DRW_engine_register(&draw_engine_edit_lattice_type);
 	DRW_engine_register(&draw_engine_edit_mesh_type);
 	DRW_engine_register(&draw_engine_edit_metaball_type);
-	DRW_engine_register(&draw_engine_edit_surface_type);
 	DRW_engine_register(&draw_engine_edit_text_type);
 	DRW_engine_register(&draw_engine_motion_path_type);
 	DRW_engine_register(&draw_engine_overlay_type);

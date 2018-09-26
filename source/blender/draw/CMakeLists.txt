@@ -80,7 +80,6 @@ set(SRC
 	modes/edit_mesh_mode.c
 	modes/edit_mesh_mode_text.c
 	modes/edit_metaball_mode.c
-	modes/edit_surface_mode.c
 	modes/edit_text_mode.c
 	modes/object_mode.c
 	modes/overlay_mode.c
