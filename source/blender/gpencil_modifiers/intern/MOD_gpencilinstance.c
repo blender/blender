@@ -168,9 +168,10 @@ static void generate_geometry(
 						/* Duplicate stroke */
 						bGPDstroke *gps_dst = MEM_dupallocN(gps);
 						gps_dst->points = MEM_dupallocN(gps->points);
-						gps_dst->dvert = MEM_dupallocN(gps->dvert);
-						BKE_gpencil_stroke_weights_duplicate(gps, gps_dst);
-
+						if (gps->dvert) {
+							gps_dst->dvert = MEM_dupallocN(gps->dvert);
+							BKE_gpencil_stroke_weights_duplicate(gps, gps_dst);
+						}
 						gps_dst->triangles = MEM_dupallocN(gps->triangles);
 
 						/* Move points */
