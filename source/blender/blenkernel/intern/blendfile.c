@@ -225,7 +225,7 @@ static void setup_app_data(
 		/* We need to tag this here because events may be handled immediately after.
 		 * only the current screen is important because we wont have to handle
 		 * events from multiple screens at once.*/
-		{
+		if (curscreen) {
 			BKE_screen_gizmo_tag_refresh(curscreen);
 		}
 	}
