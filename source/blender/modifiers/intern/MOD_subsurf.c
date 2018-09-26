@@ -99,6 +99,8 @@ static bool isDisabled(const Scene *scene, ModifierData *md, bool useRenderParam
 	return get_render_subsurf_level(&scene->r, levels, useRenderParams != 0) == 0;
 }
 
+#ifndef WITH_OPENSUBDIV_MODIFIER
+
 static DerivedMesh *applyModifier_DM(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *derivedData)
@@ -134,6 +136,8 @@ static DerivedMesh *applyModifier_DM(
 }
 
 applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
+
+#endif
 
 static DerivedMesh *applyModifierEM_DM(
         ModifierData *md, const ModifierEvalContext *ctx,

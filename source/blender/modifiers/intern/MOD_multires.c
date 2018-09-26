@@ -67,6 +67,8 @@ static void initData(ModifierData *md)
 	mmd->quality = 3;
 }
 
+#ifndef WITH_OPENSUBDIV_MODIFIER
+
 static DerivedMesh *applyModifier_DM(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *dm)
@@ -145,6 +147,8 @@ static DerivedMesh *applyModifier_DM(
 }
 
 applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
+
+#endif
 
 #ifdef WITH_OPENSUBDIV_MODIFIER
 
