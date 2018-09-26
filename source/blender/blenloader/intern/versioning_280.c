@@ -1968,7 +1968,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				for (ModifierData *md = object->modifiers.first; md; md = md->next) {
 					if (md->type == eModifierType_Subsurf) {
 						SubsurfModifierData *smd = (SubsurfModifierData *)md;
-						smd->quality = 3;
+						smd->quality = min_ii(smd->renderLevels, 3);
 					}
 				}
 			}
