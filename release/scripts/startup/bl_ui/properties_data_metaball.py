@@ -106,6 +106,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
         col.separator()
 
         col.prop(metaelem, "stiffness", text="Stiffness")
+        col.prop(metaelem, "radius", text="Radius")
         col.prop(metaelem, "use_negative", text="Negative")
         col.prop(metaelem, "hide", text="Hide")
 
@@ -116,7 +117,7 @@ class DATA_PT_metaball_element(DataButtonsPanel, Panel):
             sub.prop(metaelem, "size_y", text="Y")
             sub.prop(metaelem, "size_z", text="Z")
 
-        elif metaelem.type == 'TUBE':
+        elif metaelem.type == 'CAPSULE':
             sub.prop(metaelem, "size_x", text="Size X")
 
         elif metaelem.type == 'PLANE':
