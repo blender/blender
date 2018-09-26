@@ -1109,7 +1109,7 @@ static void vertex_weight_color(float vweight[3], float weight, bool show_alert_
 	if (show_alert_color) {
 		bTheme *theme = U.themes.first;
 
-		rgb_uchar_to_float(vweight, (unsigned char*)theme->tv3d.vertex_unreferenced);
+		rgb_uchar_to_float(vweight, (uchar *)theme->tv3d.vertex_unreferenced);
 	}
 	else if (U.flag & USER_CUSTOM_RANGE) {
 		BKE_colorband_evaluate(&U.coba_weight, weight, vweight);
@@ -1127,7 +1127,8 @@ static void evaluate_vertex_weight(float vweight[3], const MDeformVert *dvert, c
 	if (vwsel->flags & VWEIGHT_MULTIPAINT) {
 		/* Multi-Paint feature */
 		input = BKE_defvert_multipaint_collective_weight(
-				dvert, vwsel->defgroup_tot, vwsel->defgroup_sel, vwsel->defgroup_sel_tot, (vwsel->flags & VWEIGHT_AUTO_NORMALIZE) != 0);
+		        dvert, vwsel->defgroup_tot, vwsel->defgroup_sel, vwsel->defgroup_sel_tot,
+		        (vwsel->flags & VWEIGHT_AUTO_NORMALIZE) != 0);
 
 		/* make it black if the selected groups have no weight on a vertex */
 		if (input == 0.0f) {

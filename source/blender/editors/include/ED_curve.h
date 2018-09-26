@@ -43,6 +43,7 @@ struct Text;
 struct wmOperator;
 struct wmKeyConfig;
 struct UndoType;
+struct View3D;
 
 /* curve_ops.c */
 void    ED_operatortypes_curve(void);

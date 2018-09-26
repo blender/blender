@@ -1035,7 +1035,7 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 }
 static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-		Mesh *mesh)
+        Mesh *mesh)
 {
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
 	ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
