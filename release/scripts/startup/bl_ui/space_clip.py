@@ -588,7 +588,7 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
 
         sub = row.row(align=True)
 
-        sub.template_marker(sc, "clip", sc.clip_user, act_track, True)
+        sub.template_marker(sc, "clip", sc.clip_user, act_track, compact=True)
 
         icon = 'LOCKED' if act_track.lock else 'UNLOCKED'
         sub.prop(act_track, "lock", text="", icon=icon)
