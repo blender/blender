@@ -32,7 +32,6 @@ extern DrawEngineType draw_engine_edit_curve_type;
 extern DrawEngineType draw_engine_edit_lattice_type;
 extern DrawEngineType draw_engine_edit_mesh_type;
 extern DrawEngineType draw_engine_edit_metaball_type;
-extern DrawEngineType draw_engine_edit_surface_type;
 extern DrawEngineType draw_engine_edit_text_type;
 extern DrawEngineType draw_engine_motion_path_type;
 extern DrawEngineType draw_engine_paint_texture_type;

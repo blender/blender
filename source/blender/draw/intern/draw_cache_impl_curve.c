@@ -46,6 +46,7 @@
 
 #define SELECT            1
 #define ACTIVE_NURB       1 << 2
+#define EVEN_U_BIT        1 << 3 /* Alternate this bit for every U vert. */
 
 /* Used as values of `color_id` in `edit_curve_overlay_handle_geom.glsl` */
 enum {
@@ -79,9 +80,10 @@ static void curve_render_overlay_verts_edges_len_get(
 			edge_len += 2 * nu->pntsu;
 		}
 		else if (nu->bp) {
-			vert_len += nu->pntsu;
+			vert_len += nu->pntsu * nu->pntsv;
 			/* segments between points */
-			edge_len += nu->pntsu - 1;
+			edge_len += (nu->pntsu - 1) * nu->pntsv;
+			edge_len += (nu->pntsv - 1) * nu->pntsu;
 		}
 	}
 	if (r_vert_len) {
@@ -169,9 +171,6 @@ typedef struct CurveRenderData {
 		EditFont *edit_font;
 	} text;
 
-	bool hide_handles;
-	bool hide_normals;
-
 	/* borrow from 'Object' */
 	CurveCache *ob_curve_cache;
 
@@ -205,10 +204,6 @@ static CurveRenderData *curve_render_data_create(Curve *cu, CurveCache *ob_curve
 	CurveRenderData *rdata = MEM_callocN(sizeof(*rdata), __func__);
 	rdata->types = types;
 	ListBase *nurbs;
-
-	/* TODO(fclem): hide them in the shader/draw engine */
-	rdata->hide_handles = false;
-	rdata->hide_normals = false;
 
 	rdata->actnu = cu->actnu;
 	rdata->actvert = cu->actvert;
@@ -537,14 +532,6 @@ static GPUIndexBuf *curve_batch_cache_get_wire_edges(CurveRenderData *rdata, Cur
 				}
 			}
 		}
-
-		if (rdata->hide_handles) {
-			BLI_assert(edge_len_used <= edge_len);
-		}
-		else {
-			BLI_assert(edge_len_used == edge_len);
-		}
-
 		cache->wire.elem = GPU_indexbuf_build(&elb);
 	}
 
@@ -680,7 +667,7 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 							vflag |= (is_active_nurb) ? ACTIVE_NURB : 0;
 							/* handle color id */
 							char col_id = (&bezt->h1)[j / 2];
-							vflag |= col_id << 3; /* << 3 because of ACTIVE_NURB */
+							vflag |= col_id << 4; /* << 4 because of EVEN_U_BIT */
 							GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bezt->vec[j]);
 							GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
 							vbo_len_used += 1;
@@ -691,13 +678,15 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 			}
 			else if (nu->bp) {
 				int a = 0;
-				for (const BPoint *bp = nu->bp; a < nu->pntsu; a++, bp++) {
+				int pt_len = nu->pntsu * nu->pntsv;
+				for (const BPoint *bp = nu->bp; a < pt_len; a++, bp++) {
 					if (bp->hide == false) {
 						const bool is_active = (i == rdata->actvert);
 						char vflag = (bp->f1 & SELECT) ? VFLAG_VERTEX_SELECTED : 0;
 						vflag |= (is_active) ? VFLAG_VERTEX_ACTIVE : 0;
 						vflag |= (is_active_nurb) ? ACTIVE_NURB : 0;
-						vflag |= COLOR_NURB_ULINE_ID << 3; /* << 3 because of ACTIVE_NURB */
+						vflag |= (((a % nu->pntsu) % 2) == 0) ? EVEN_U_BIT : 0;
+						vflag |= COLOR_NURB_ULINE_ID << 4; /* << 4 because of EVEN_U_BIT */
 						GPU_indexbuf_add_point_vert(&elb, vbo_len_used);
 						GPU_vertbuf_attr_set(vbo, attr_id.pos, vbo_len_used, bp->vec);
 						GPU_vertbuf_attr_set(vbo, attr_id.data, vbo_len_used, &vflag);
@@ -717,7 +706,6 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 		cache->overlay.verts = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, NULL, GPU_BATCH_OWNS_VBO);
 		cache->overlay.verts_no_handles = GPU_batch_create_ex(GPU_PRIM_POINTS, vbo, ibo, GPU_BATCH_OWNS_INDEX);
 	}
-
 
 	if (cache->overlay.edges == NULL) {
 		GPUVertBuf *vbo = cache->overlay.verts->verts[0];
@@ -742,14 +730,30 @@ static void curve_batch_cache_create_overlay_batches(Curve *cu)
 				}
 			}
 			else if (nu->bp) {
-				curr_index += 1;
-				int a = 1;
-				for (const BPoint *bp_prev = nu->bp, *bp_curr = &nu->bp[1]; a < nu->pntsu; a++, bp_prev = bp_curr++) {
-					if (bp_prev->hide == false) {
-						if (bp_curr->hide == false) {
-							GPU_indexbuf_add_line_verts(&elb, curr_index - 1, curr_index + 0);
+				int a = 0;
+				int next_v_index = curr_index;
+				for (const BPoint *bp = nu->bp; a < nu->pntsu; a++, bp++) {
+					if (bp->hide == false) {
+						next_v_index += 1;
+					}
+				}
+
+				int pt_len = nu->pntsu * nu->pntsv;
+				for (a = 0; a < pt_len; a++) {
+					const BPoint *bp_curr = &nu->bp[a];
+					const BPoint *bp_next_u = ((a % nu->pntsu) < (nu->pntsu - 1)) ? &nu->bp[a + 1] : NULL;
+					const BPoint *bp_next_v = (a < (pt_len - nu->pntsu)) ? &nu->bp[a + nu->pntsu] : NULL;
+					if (bp_curr->hide == false) {
+						if (bp_next_u && (bp_next_u->hide == false)) {
+							GPU_indexbuf_add_line_verts(&elb, curr_index, curr_index + 1);
+						}
+						if (bp_next_v && (bp_next_v->hide == false)) {
+							GPU_indexbuf_add_line_verts(&elb, curr_index, next_v_index);
 						}
 						curr_index += 1;
+					}
+					if (bp_next_v && (bp_next_v->hide == false)) {
+						next_v_index += 1;
 					}
 				}
 			}

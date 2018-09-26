@@ -90,7 +90,9 @@ typedef struct GlobalsUboStorage {
 	float colorHandleSelAlign[4];
 	float colorHandleSelAutoclamp[4];
 	float colorNurbUline[4];
+	float colorNurbVline[4];
 	float colorNurbSelUline[4];
+	float colorNurbSelVline[4];
 	float colorActiveSpline[4];
 
 	float colorBonePose[4];

@@ -2,12 +2,13 @@
 #define VERTEX_ACTIVE   1 << 0
 #define VERTEX_SELECTED 1 << 1
 #define ACTIVE_NURB     1 << 2 /* Keep the same value of `ACTIVE_NURB` in `draw_cache_imp_curve.c` */
-#define NURBS_EDGE_SELECTED (((vertFlag[1] & vertFlag[0]) & VERTEX_SELECTED) != 0)
+#define EVEN_U_BIT      1 << 3
 
 layout(lines) in;
 layout(triangle_strip, max_vertices = 10) out;
 
 uniform vec2 viewportSize;
+uniform bool showCurveHandles;
 
 flat in int vertFlag[];
 
@@ -28,13 +29,11 @@ void output_line(vec2 offset, vec4 color)
 
 void main()
 {
-	/* TODO: vertex size */
-
 	vec4 v1 = gl_in[0].gl_Position;
 	vec4 v2 = gl_in[1].gl_Position;
 
 	int is_active_nurb = (vertFlag[1] & ACTIVE_NURB);
-	int color_id = (vertFlag[1] >> 3);
+	int color_id = (vertFlag[1] >> 4);
 
 	/* Don't output any edges if we don't show handles */
 	if (!showCurveHandles && (color_id < 5))
@@ -48,7 +47,16 @@ void main()
 	else if (color_id == 2) inner_color = (edge_selected) ? colorHandleSelVect : colorHandleVect;
 	else if (color_id == 3) inner_color = (edge_selected) ? colorHandleSelAlign : colorHandleAlign;
 	else if (color_id == 4) inner_color = (edge_selected) ? colorHandleSelAutoclamp : colorHandleAutoclamp;
-	else                    inner_color = (NURBS_EDGE_SELECTED) ? colorNurbSelUline : colorNurbUline;
+	else {
+		bool is_selected = (((vertFlag[1] & vertFlag[0]) & VERTEX_SELECTED) != 0);
+		bool is_u_segment = (((vertFlag[1] ^ vertFlag[0]) & EVEN_U_BIT) != 0);
+		if (is_u_segment) {
+			inner_color = (is_selected) ? colorNurbSelUline : colorNurbUline;
+		}
+		else {
+			inner_color = (is_selected) ? colorNurbSelVline : colorNurbVline;
+		}
+	}
 
 	vec4 outer_color = (is_active_nurb != 0)
 	                   ? mix(colorActiveSpline, inner_color, 0.25) /* Minimize active color bleeding on inner_color. */

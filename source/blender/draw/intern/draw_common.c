@@ -99,7 +99,9 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_HANDLE_SEL_ALIGN, ts.colorHandleSelAlign);
 	UI_GetThemeColor4fv(TH_HANDLE_SEL_AUTOCLAMP, ts.colorHandleSelAutoclamp);
 	UI_GetThemeColor4fv(TH_NURB_ULINE, ts.colorNurbUline);
+	UI_GetThemeColor4fv(TH_NURB_VLINE, ts.colorNurbVline);
 	UI_GetThemeColor4fv(TH_NURB_SEL_ULINE, ts.colorNurbSelUline);
+	UI_GetThemeColor4fv(TH_NURB_SEL_VLINE, ts.colorNurbSelVline);
 	UI_GetThemeColor4fv(TH_ACTIVE_SPLINE, ts.colorActiveSpline);
 
 	UI_GetThemeColor4fv(TH_BONE_POSE, ts.colorBonePose);

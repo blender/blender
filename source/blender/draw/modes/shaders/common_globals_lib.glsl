@@ -46,7 +46,9 @@ layout(std140) uniform globalsBlock {
 	vec4 colorHandleSelAlign;
 	vec4 colorHandleSelAutoclamp;
 	vec4 colorNurbUline;
+	vec4 colorNurbVline;
 	vec4 colorNurbSelUline;
+	vec4 colorNurbSelVline;
 	vec4 colorActiveSpline;
 
 	vec4 colorBonePose;

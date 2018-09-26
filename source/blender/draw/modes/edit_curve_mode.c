@@ -241,12 +241,7 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 	UNUSED_VARS(psl, stl);
 
 	if (ob->type == OB_CURVE) {
-#if 0
-		if (ob == draw_ctx->object_edit)
-#else
-		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode(ob))
-#endif
-		{
+		if (BKE_object_is_in_editmode(ob)) {
 			Curve *cu = ob->data;
 			/* Get geometry cache */
 			struct GPUBatch *geom;
@@ -268,16 +263,16 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_call_add(stl->g_data->overlay_vert_shgrp, geom, ob->obmat);
 		}
 	}
-}
 
-/* Optional: Post-cache_populate callback */
-static void EDIT_CURVE_cache_finish(void *vedata)
-{
-	EDIT_CURVE_PassList *psl = ((EDIT_CURVE_Data *)vedata)->psl;
-	EDIT_CURVE_StorageList *stl = ((EDIT_CURVE_Data *)vedata)->stl;
+	if (ob->type == OB_SURF) {
+		if (BKE_object_is_in_editmode(ob)) {
+			struct GPUBatch *geom = DRW_cache_curve_edge_overlay_get(ob);
+			DRW_shgroup_call_add(stl->g_data->overlay_edge_shgrp, geom, ob->obmat);
 
-	/* Do something here! dependent on the objects gathered */
-	UNUSED_VARS(psl, stl);
+			geom = DRW_cache_curve_vert_overlay_get(ob, false);
+			DRW_shgroup_call_add(stl->g_data->overlay_vert_shgrp, geom, ob->obmat);
+		}
+	}
 }
 
 /* Draw time ! Control rendering pipeline from here */
@@ -325,7 +320,7 @@ DrawEngineType draw_engine_edit_curve_type = {
 	&EDIT_CURVE_engine_free,
 	&EDIT_CURVE_cache_init,
 	&EDIT_CURVE_cache_populate,
-	&EDIT_CURVE_cache_finish,
+	NULL,
 	NULL, /* draw_background but not needed by mode engines */
 	&EDIT_CURVE_draw_scene,
 	NULL,

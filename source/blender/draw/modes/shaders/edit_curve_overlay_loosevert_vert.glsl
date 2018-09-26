@@ -14,11 +14,13 @@ out vec4 finalColor;
 
 void main()
 {
-	if ((data & VERTEX_ACTIVE) != 0) {
-		finalColor = colorEditMeshActive;
-	}
 	if ((data & VERTEX_SELECTED) != 0) {
-		finalColor = colorVertexSelect;
+		if ((data & VERTEX_ACTIVE) != 0) {
+			finalColor = colorEditMeshActive;
+		}
+		else {
+			finalColor = colorVertexSelect;
+		}
 	}
 	else {
 		finalColor = colorVertex;
