@@ -156,12 +156,12 @@ typedef struct View3DShading {
 
 	float object_outline_color[3];
 	float xray_alpha;
+	float xray_alpha_wire;
 
 	float cavity_valley_factor;
 	float cavity_ridge_factor;
 
 	float background_color[3];
-	int pad;
 
 } View3DShading;
 
@@ -388,6 +388,7 @@ enum {
 	V3D_SHADING_CAVITY              = (1 << 5),
 	V3D_SHADING_MATCAP_FLIP_X       = (1 << 6),
 	V3D_SHADING_SCENE_WORLD         = (1 << 7),
+	V3D_SHADING_XRAY_WIREFRAME      = (1 << 8),
 };
 
 /* View3DShading->color_type */

@@ -2601,7 +2601,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
 	bool use_occlusion_test =
 	        params->use_occlusion_test &&
-	        !(sctx->v3d_data.v3d->shading.flag & V3D_SHADING_XRAY);
+	        !(sctx->v3d_data.v3d->shading.flag & V3D_XRAY_FLAG(sctx->v3d_data.v3d));
 
 	if (snap_to_flag & SCE_SNAP_MODE_FACE || use_occlusion_test) {
 		float ray_start[3], ray_normal[3];

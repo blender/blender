@@ -592,6 +592,8 @@ typedef struct DRWContextState {
 
 const DRWContextState *DRW_context_state_get(void);
 
-#define XRAY_ENABLED(v3d) ((((v3d)->shading.flag & V3D_SHADING_XRAY) != 0) && ((v3d)->shading.xray_alpha < 1.0f))
+#define XRAY_ALPHA(v3d)   (((v3d)->shading.type == OB_WIRE) ? (v3d)->shading.xray_alpha_wire : (v3d)->shading.xray_alpha)
+#define XRAY_FLAG(v3d)    (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
+#define XRAY_ENABLED(v3d) ((((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0) && (XRAY_ALPHA(v3d) < 1.0f))
 
 #endif /* __DRW_RENDER_H__ */

@@ -535,8 +535,8 @@ void ED_view3d_operator_properties_viewmat_get(struct wmOperator *op, int *winx,
 void ED_view3d_stop_render_preview(struct wmWindowManager *wm, struct ARegion *ar);
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa);
 
-#define V3D_IS_ZBUF(v3d) \
-	(((v3d)->shading.flag & V3D_SHADING_XRAY) == 0)
+#define V3D_XRAY_FLAG(v3d)   (((v3d)->shading.type == OB_WIRE) ? V3D_SHADING_XRAY_WIREFRAME : V3D_SHADING_XRAY)
+#define V3D_IS_ZBUF(v3d)     (((v3d)->shading.flag & V3D_XRAY_FLAG(v3d)) == 0)
 
 void ED_view3d_id_remap(struct View3D *v3d, const struct ID *old_id, struct ID *new_id);
 

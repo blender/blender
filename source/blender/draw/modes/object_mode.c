@@ -1680,7 +1680,7 @@ static void DRW_shgroup_camera(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLay
 		const bool is_select = DRW_state_is_select();
 		const bool is_solid_bundle = (v3d->bundle_drawtype == OB_EMPTY_SPHERE) &&
 		                             ((v3d->shading.type != OB_SOLID) ||
-		                              ((v3d->shading.flag & V3D_SHADING_XRAY) == 0));
+		                              ((v3d->shading.flag & XRAY_FLAG(v3d)) == 0));
 
 		MovieTracking *tracking = &clip->tracking;
 		/* Index must start in 1, to mimic BKE_tracking_track_get_indexed. */

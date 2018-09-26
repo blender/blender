@@ -261,6 +261,14 @@ class VIEW3D_HT_header(Header):
         sub.active = overlay.show_overlays
         sub.popover(panel="VIEW3D_PT_overlay")
 
+        row = layout.row()
+        row.active = (shading.type in {'WIREFRAME', 'SOLID'}) or object_mode in {'EDIT'}
+
+        if shading.type == 'WIREFRAME':
+            row.prop(shading, "show_xray_wireframe", text="", icon='ORTHO')
+        else:
+            row.prop(shading, "show_xray", text="", icon='ORTHO')
+
         row = layout.row(align=True)
         row.prop(shading, "type", text="", expand=True)
         sub = row.row(align=True)
@@ -3786,7 +3794,10 @@ class VIEW3D_MT_shading_pie(Menu):
                 sub = pie.row()
                 sub.active = False
 
-            sub.prop(view.shading, "show_xray", text="Toggle X-Ray", icon='ORTHO')
+            if view.shading.type == 'WIREFRAME':
+                sub.prop(view.shading, "show_xray_wireframe", text="Toggle X-Ray", icon='ORTHO')
+            else:
+                sub.prop(view.shading, "show_xray", text="Toggle X-Ray", icon='ORTHO')
 
         pie.prop(view.overlay, "show_overlays", text="Toggle Overlays", icon='OVERLAY')
         pie.prop_enum(view.shading, "type", value='MATERIAL')
@@ -4126,10 +4137,11 @@ class VIEW3D_PT_shading_options(Panel):
         is_shadows = shading.show_shadows
 
         row = col.row()
-        row.prop(shading, "show_xray", text="")
-        sub = row.row()
-        sub.active = is_xray
-        sub.prop(shading, "xray_alpha", text="X-Ray")
+        row.active = is_xray
+        if shading.type == 'WIREFRAME':
+            row.prop(shading, "xray_alpha_wireframe", text="X-Ray")
+        else:
+            row.prop(shading, "xray_alpha", text="X-Ray")
 
         if shading.type == 'SOLID':
             row = col.row()
@@ -4426,7 +4438,10 @@ class VIEW3D_PT_overlay_edit_mesh(Panel):
         sub = split.column()
         sub.prop(overlay, "show_faces", text="Faces")
         sub = split.column()
-        sub.active = shading.show_xray
+        if shading.type == 'WIREFRAME':
+            sub.active = shading.show_xray_wireframe
+        else:
+            sub.active = shading.show_xray
         sub.prop(overlay, "show_face_center", text="Center")
 
         row = col.row(align=True)

@@ -393,7 +393,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	stl->g_data->do_faces = true;
 	stl->g_data->do_edges = true;
 
-	stl->g_data->do_zbufclip = ((v3d)->shading.flag & V3D_SHADING_XRAY) != 0;
+	stl->g_data->do_zbufclip = ((v3d)->shading.flag & XRAY_FLAG(v3d)) != 0;
 
 	/* Applies on top of the theme edge width, so edge-mode can have thick edges. */
 	stl->g_data->edge_width_scale = (tsettings->selectmode & (SCE_SELECT_EDGE)) ? 1.75f : 1.0f;
@@ -692,7 +692,7 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		View3D *v3d = draw_ctx->v3d;
 
-		if (v3d->shading.type == OB_SOLID && (v3d->shading.flag & V3D_SHADING_XRAY) == 0) {
+		if (v3d->shading.type == OB_SOLID && (v3d->shading.flag & XRAY_FLAG(v3d)) == 0) {
 			if (stl->g_data->ghost_ob == 1 && stl->g_data->edit_ob == 1) {
 				/* In the case of single ghost object edit (common case for retopology):
 				 * we duplicate the depht+stencil buffer and clear all depth to 1.0f where

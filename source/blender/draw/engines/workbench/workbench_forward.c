@@ -365,12 +365,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	{
 		float blend_threshold = 0.0f;
 
-		if (draw_ctx->v3d->shading.flag & V3D_SHADING_XRAY) {
-			blend_threshold = 0.75f - wpd->shading.xray_alpha * 0.5f;
+		if (draw_ctx->v3d->shading.flag & XRAY_FLAG(draw_ctx->v3d)) {
+			blend_threshold = 0.75f - XRAY_ALPHA(wpd) * 0.5f;
 		}
 
 		if (draw_ctx->v3d->shading.type == OB_WIRE) {
 			wpd->shading.xray_alpha = 0.0f;
+			wpd->shading.xray_alpha_wire = 0.0f;
 		}
 
 		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
@@ -445,7 +446,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 			DRW_shgroup_uniform_vec4(shgrp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 			/* Hairs have lots of layer and can rapidly become the most prominent surface.
 			 * So lower their alpha artificially. */
-			float hair_alpha = wpd->shading.xray_alpha * 0.33f;
+			float hair_alpha = XRAY_ALPHA(wpd) * 0.33f;
 			DRW_shgroup_uniform_float_copy(shgrp, "alpha", hair_alpha);
 			if (STUDIOLIGHT_ORIENTATION_VIEWNORMAL_ENABLED(wpd)) {
 				BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_EQUIRECTANGULAR_RADIANCE_GPUTEXTURE);
@@ -611,7 +612,7 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_clear_color(fbl->object_outline_fb, clear_outline);
 	DRW_draw_pass(psl->object_outline_pass);
 
-	if (wpd->shading.xray_alpha > 0.0) {
+	if (XRAY_ALPHA(wpd) > 0.0) {
 		const float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 		GPU_framebuffer_bind(fbl->transparent_accum_fb);
 		GPU_framebuffer_clear_color(fbl->transparent_accum_fb, clear_color);
