@@ -755,7 +755,7 @@ static StructRNA *rna_GizmoGroup_register(
 	PointerRNA wgptr;
 
 	/* Two sets of functions. */
-	int have_function[5];
+	int have_function[6];
 
 	/* setup dummy gizmogroup & gizmogroup type to store static properties in */
 	dummywg.type = &dummywgt;
