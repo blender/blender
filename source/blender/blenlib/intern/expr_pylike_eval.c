@@ -43,7 +43,7 @@
  *  - Operators:
  *      +, -, *, /, ==, !=, <, <=, >, >=, and, or, not, ternary if
  *  - Functions:
- *      radians, degrees,
+ *      min, max, radians, degrees,
  *      abs, fabs, floor, ceil, trunc, int,
  *      sin, cos, tan, asin, acos, atan, atan2,
  *      exp, log, sqrt, pow, fmod

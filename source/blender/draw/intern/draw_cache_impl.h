@@ -105,8 +105,8 @@ struct DRW_MeshWeightState {
 	char alert_mode;
 
 	/* Set of all selected bones for Multipaint. */
-	bool *defgroup_sel;
-	int   defgroup_sel_len;
+	bool *defgroup_sel; /* [defgroup_len] */
+	int   defgroup_sel_count;
 };
 
 /* DRW_MeshWeightState.flags */

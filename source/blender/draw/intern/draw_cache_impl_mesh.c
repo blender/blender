@@ -1127,7 +1127,7 @@ static void evaluate_vertex_weight(float vweight[3], const MDeformVert *dvert, c
 	if (wstate->flags & DRW_MESH_WEIGHT_STATE_MULTIPAINT) {
 		/* Multi-Paint feature */
 		input = BKE_defvert_multipaint_collective_weight(
-		        dvert, wstate->defgroup_len, wstate->defgroup_sel, wstate->defgroup_sel_len,
+		        dvert, wstate->defgroup_len, wstate->defgroup_sel, wstate->defgroup_sel_count,
 		        (wstate->flags & DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE) != 0);
 
 		/* make it black if the selected groups have no weight on a vertex */
@@ -1624,7 +1624,7 @@ bool DRW_mesh_weight_state_compare(const struct DRW_MeshWeightState *a, const st
 	       a->defgroup_len == b->defgroup_len &&
 	       a->flags == b->flags &&
 	       a->alert_mode == b->alert_mode &&
-	       a->defgroup_sel_len == b->defgroup_sel_len &&
+	       a->defgroup_sel_count == b->defgroup_sel_count &&
 	       ((!a->defgroup_sel && !b->defgroup_sel) ||
 	        (a->defgroup_sel && b->defgroup_sel &&
 	         memcmp(a->defgroup_sel, b->defgroup_sel, a->defgroup_len * sizeof(bool)) == 0));

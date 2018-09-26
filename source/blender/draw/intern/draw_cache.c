@@ -2973,19 +2973,19 @@ GPUBatch *DRW_cache_mesh_surface_weights_get(Object *ob, ToolSettings *ts, bool 
 	if (paint_mode && ts->multipaint) {
 		/* Multipaint needs to know all selected bones, not just the active group.
 		 * This is actually a relatively expensive operation, but caching would be difficult. */
-		wstate.defgroup_sel = BKE_object_defgroup_selected_get(ob, wstate.defgroup_len, &wstate.defgroup_sel_len);
+		wstate.defgroup_sel = BKE_object_defgroup_selected_get(ob, wstate.defgroup_len, &wstate.defgroup_sel_count);
 
-		if (wstate.defgroup_sel_len > 1) {
+		if (wstate.defgroup_sel_count > 1) {
 			wstate.flags |= DRW_MESH_WEIGHT_STATE_MULTIPAINT | (ts->auto_normalize ? DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE : 0);
 
 			if (me->editflag & ME_EDIT_MIRROR_X) {
 				BKE_object_defgroup_mirror_selection(
-				        ob, wstate.defgroup_len, wstate.defgroup_sel, wstate.defgroup_sel, &wstate.defgroup_sel_len);
+				        ob, wstate.defgroup_len, wstate.defgroup_sel, wstate.defgroup_sel, &wstate.defgroup_sel_count);
 			}
 		}
 		/* With only one selected bone Multipaint reverts to regular mode. */
 		else {
-			wstate.defgroup_sel_len = 0;
+			wstate.defgroup_sel_count = 0;
 			MEM_SAFE_FREE(wstate.defgroup_sel);
 		}
 	}
