@@ -706,7 +706,6 @@ OpenSubdiv_EvaluatorInternal* openSubdiv_createEvaluatorInternal(
   const int num_face_varying_channels = refiner->GetNumFVarChannels();
   const bool has_face_varying_data = (num_face_varying_channels != 0);
   const int level = topology_refiner->getSubdivisionLevel(topology_refiner);
-  // TODO(sergey): Query from topology refiner.
   const bool is_adaptive = topology_refiner->getIsAdaptive(topology_refiner);
   // Refine the topology with given settings.
   // TODO(sergey): What if topology is already refined?
