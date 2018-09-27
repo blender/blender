@@ -1631,7 +1631,7 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 			 * still work out ok */
 			BKE_object_apply_mat4(ob_dst, dob->mat, false, true);
 
-			/* to set ob_dst->orig and in case theres any other discrepicies */
+			/* to set ob_dst->orig and in case there's any other discrepancies */
 			DEG_id_tag_update(&ob_dst->id, OB_RECALC_OB);
 		}
 	}
@@ -1790,7 +1790,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		{
 			ob->flag &= ~OB_DONE;
 
-			/* flag data thats not been edited (only needed for !keep_original) */
+			/* flag data that's not been edited (only needed for !keep_original) */
 			if (ob->data) {
 				((ID *)ob->data)->tag |= LIB_TAG_DOIT;
 			}
@@ -1819,7 +1819,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			Base *base = link->ptr.data;
 			Object *ob = base->object;
 
-			/* The way object type conversion works currently (enforcing conversion of *all* objetcs using converted
+			/* The way object type conversion works currently (enforcing conversion of *all* objects using converted
 			 * obdata, even some un-selected/hidden/inother scene ones, sounds totally bad to me.
 			 * However, changing this is more design than bugfix, not to mention convoluted code below,
 			 * so that will be for later.
@@ -1909,7 +1909,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 			/* make new mesh data from the original copy */
 			/* note: get the mesh from the original, not from the copy in some
-			 * cases this doesnt give correct results (when MDEF is used for eg)
+			 * cases this doesn't give correct results (when MDEF is used for eg)
 			 */
 			dm = mesh_get_derived_final(depsgraph, scene, newob, CD_MASK_MESH);
 

@@ -394,7 +394,7 @@ static void set_pixel(ImBuf *ibuf, int idx, const float col[4])
  *
  * \param ibuf      Image pixel data
  * \param maxpixel  Maximum index
- * \param limit     Limit of pixels to analize
+ * \param limit     Limit of pixels to analyze
  * \param index     Index of current pixel
  * \param type      0-Horizontal 1-Vertical
  */

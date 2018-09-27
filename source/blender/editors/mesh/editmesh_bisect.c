@@ -288,7 +288,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 
 	/* -------------------------------------------------------------------- */
 	/* Modal support */
-	/* Note: keep this isolated, exec can work wihout this */
+	/* Note: keep this isolated, exec can work without this */
 	if (opdata != NULL) {
 		mesh_bisect_interactive_calc(C, op, plane_co, plane_no);
 		/* Write back to the props. */

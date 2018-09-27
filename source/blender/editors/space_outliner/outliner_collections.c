@@ -248,7 +248,7 @@ static TreeTraversalAction collection_find_data_to_edit(TreeElement *te, void *c
 	}
 
 	if (collection == BKE_collection_master(data->scene)) {
-		/* skip - showing warning/error message might be missleading
+		/* skip - showing warning/error message might be misleading
 		 * when deleting multiple collections, so just do nothing */
 	}
 	else {
@@ -601,7 +601,7 @@ static TreeTraversalAction layer_collection_find_data_to_edit(TreeElement *te, v
 	LayerCollection *lc = te->directdata;
 
 	if (lc->collection->flag & COLLECTION_IS_MASTER) {
-		/* skip - showing warning/error message might be missleading
+		/* skip - showing warning/error message might be misleading
 		 * when deleting multiple collections, so just do nothing */
 	}
 	else {

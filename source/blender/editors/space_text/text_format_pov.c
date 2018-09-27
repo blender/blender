@@ -83,7 +83,7 @@ static int txtfmt_pov_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "if",          len)) i = len;
 	else                                                         i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
@@ -236,7 +236,7 @@ static int txtfmt_pov_find_reserved_keywords(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "str",                len)) i = len;
 	else                                                                i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
@@ -466,7 +466,7 @@ static int txtfmt_pov_find_reserved_builtins(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "z",                   len)) i = len;
 	else                                                                 i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 
@@ -683,7 +683,7 @@ static int txtfmt_pov_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "gall",                     len)) i = len;
 	else                                                                i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	return (i == 0 || text_check_identifier(string[i])) ? -1 : i;
 }
 

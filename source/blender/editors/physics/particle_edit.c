@@ -1311,7 +1311,7 @@ void recalc_emitter_field(Depsgraph *UNUSED(depsgraph), Object *UNUSED(ob), Part
 	BLI_kdtree_free(edit->emitter_field);
 
 	totface = mesh->totface;
-	/*totvert=dm->getNumVerts(dm);*/ /*UNSUED*/
+	/*totvert=dm->getNumVerts(dm);*/ /*UNUSED*/
 
 	edit->emitter_cosnos = MEM_callocN(totface * 6 * sizeof(float), "emitter cosnos");
 
@@ -3443,7 +3443,7 @@ static void brush_puff(PEData *data, int point_index)
 #else
 					/* translate (not rotate) the rest of the hair if its not selected  */
 					{
-#if 0                   /* kindof works but looks worse then whats below */
+#if 0                   /* kindof works but looks worse then what's below */
 
 						/* Move the unselected point on a vector based on the
 						 * hair direction and the offset */
@@ -3841,7 +3841,7 @@ static int brush_add(const bContext *C, PEData *data, short number)
 	BLI_assert(mesh);
 
 	/* Calculate positions of new particles to add, based on brush interseciton
-	 * with object. New particle data is assigned to a correponding to check
+	 * with object. New particle data is assigned to a corresponding to check
 	 * index element of add_pars array. This means, that add_pars is a sparse
 	 * array.
 	 */

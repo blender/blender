@@ -1572,7 +1572,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 	/* find modifier and draw it */
 	cageIndex = modifiers_getCageIndex(scene, ob, &lastCageIndex, 0);
 
-	/* XXX virtual modifiers are not accesible for python */
+	/* XXX virtual modifiers are not accessible for python */
 	vmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	for (i = 0; vmd; i++, vmd = vmd->next) {
@@ -2792,7 +2792,7 @@ static uiBlock *curvemap_clipping_func(bContext *C, ARegion *ar, void *cumap_v)
 
 	block = UI_block_begin(C, ar, __func__, UI_EMBOSS);
 
-	/* use this for a fake extra empy space around the buttons */
+	/* use this for a fake extra empty space around the buttons */
 	uiDefBut(block, UI_BTYPE_LABEL, 0, "",           -4, 16, width + 8, 6 * UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 
 	bt = uiDefButBitI(

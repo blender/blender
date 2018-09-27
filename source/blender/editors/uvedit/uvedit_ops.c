@@ -1689,7 +1689,7 @@ static void uv_weld_align(bContext *C, eUVWeldAlign tool)
 						if (BM_elem_flag_test(eed, BM_ELEM_TAG)) {
 							BMVert *eve_other = BM_edge_other_vert(eed, eve);
 							if (BM_elem_flag_test(eve_other, BM_ELEM_TAG)) {
-								/* this is a tagged vert we didnt walk over yet, step onto it */
+								/* this is a tagged vert we didn't walk over yet, step onto it */
 								eve_next = eve_other;
 								break;
 							}

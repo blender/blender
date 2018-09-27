@@ -544,7 +544,7 @@ static void gpencil_primitive_done(bContext *C, wmOperator *op, wmWindow *win, t
 	/* insert keyframes as required... */
 	gpf = BKE_gpencil_layer_getframe(tgpi->gpl, tgpi->cframe, GP_GETFRAME_ADD_NEW);
 
-	/* prepare stroke to get transfered */
+	/* prepare stroke to get transferred */
 	gps = tgpi->gpf->strokes.first;
 	if (gps) {
 		gps->thickness = tgpi->brush->size;

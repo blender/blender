@@ -842,7 +842,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Tre
 	if (false == UI_but_active_only(C, ar, block, bt)) {
 		tselem->flag &= ~TSE_TEXTBUT;
 
-		/* bad! (notifier within draw) without this, we don't get a refesh */
+		/* bad! (notifier within draw) without this, we don't get a refresh */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 	}
 }
@@ -1355,7 +1355,7 @@ static void tselem_draw_icon(
 		y += 2.0f * aspect;
 
 		/* restrict column clip... it has been coded by simply overdrawing,
-		 * doesnt work for buttons */
+		 * doesn't work for buttons */
 		UI_icon_draw_alpha(x, y, data.icon, alpha);
 	}
 	else {
@@ -1453,7 +1453,7 @@ static void outliner_draw_iconrow_doit(
 /**
  * Return the index to use based on the TreeElement ID and object type
  *
- * We use a continuum of indeces until we get to the object datablocks
+ * We use a continuum of indices until we get to the object datablocks
  * and we then make room for the object types.
  */
 static int tree_element_id_type_to_index(TreeElement *te)

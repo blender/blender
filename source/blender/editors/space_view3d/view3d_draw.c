@@ -1194,7 +1194,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 	/* correct projection matrix */
 	ED_region_pixelspace(ar);
 
-	/* local coordinate visible rect inside region, to accomodate overlapping ui */
+	/* local coordinate visible rect inside region, to accommodate overlapping ui */
 	rcti rect;
 	ED_region_visible_rect(ar, &rect);
 
@@ -1255,14 +1255,14 @@ static void view3d_draw_view(const bContext *C, ARegion *ar)
 {
 	ED_view3d_draw_setup_view(CTX_wm_window(C), CTX_data_depsgraph(C), CTX_data_scene(C), ar, CTX_wm_view3d(C), NULL, NULL, NULL);
 
-	/* Only 100% compliant on new spec goes bellow */
+	/* Only 100% compliant on new spec goes below */
 	DRW_draw_view(C);
 }
 
 RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 {
 	/*
-	 * Tempory viewport draw modes until we have a proper system.
+	 * Temporary viewport draw modes until we have a proper system.
 	 * all modes are done in the draw manager, except
 	 * cycles material as it is an external render engine.
 	 */

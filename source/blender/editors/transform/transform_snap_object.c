@@ -194,7 +194,7 @@ static SnapObjectData_EditMesh *snap_object_data_editmesh_create(SnapObjectConte
 }
 
 /**
- * Walks through all objects in the scene to create the list of objets to snap.
+ * Walks through all objects in the scene to create the list of objects to snap.
  *
  * \param sctx: Snap context to store data.
  * \param snap_select : from enum eSnapSelect.

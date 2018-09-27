@@ -3044,7 +3044,7 @@ static int gp_stroke_subdivide_exec(bContext *C, wmOperator *op)
 					temp_dverts = MEM_dupallocN(gps->dvert);
 				}
 
-				/* resize the points arrys */
+				/* resize the points arrays */
 				gps->totpoints += totnewpoints;
 				gps->points = MEM_recallocN(gps->points, sizeof(*gps->points) * gps->totpoints);
 				if (gps->dvert != NULL) {
@@ -3202,7 +3202,7 @@ void GPENCIL_OT_stroke_simplify(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-/* ** simplify stroke using fixed algorith *** */
+/* ** simplify stroke using fixed algorithm *** */
 static int gp_stroke_simplify_fixed_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);

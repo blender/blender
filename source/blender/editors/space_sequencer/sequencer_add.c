@@ -166,7 +166,7 @@ static void sequencer_generic_invoke_xy__internal(bContext *C, wmOperator *op, i
 	RNA_int_set(op->ptr, "frame_start", cfra);
 
 	if ((flag & SEQPROP_ENDFRAME) && RNA_struct_property_is_set(op->ptr, "frame_end") == 0)
-		RNA_int_set(op->ptr, "frame_end", cfra + 25);  // XXX arbitary but ok for now.
+		RNA_int_set(op->ptr, "frame_end", cfra + 25);  // XXX arbitrary but ok for now.
 
 	if (!(flag & SEQPROP_NOPATHS)) {
 		sequencer_generic_invoke_path__internal(C, op, "filepath");

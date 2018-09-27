@@ -33,7 +33,7 @@
 
 /* **************** GENERAL EDITOR-WIDE TYPES AND DEFINES ************************** */
 
-/* old blender defines... should be depricated? */
+/* old blender defines... should be deprecated? */
 #define DESELECT 0
 #define SELECT   1
 #define ACTIVE   2

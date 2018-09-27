@@ -484,7 +484,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 		float curRatio, winRatio;
 
 		/* when a window edge changes, the aspect ratio can't be used to
-		 * find which is the best new 'cur' rect. thats why it stores 'old'
+		 * find which is the best new 'cur' rect. that's why it stores 'old'
 		 */
 		if (winx != v2d->oldwinx) do_x = true;
 		if (winy != v2d->oldwiny) do_y = true;
@@ -1189,7 +1189,7 @@ static void step_to_grid(float *step, int *power, int unit)
 		/* for frames, we want 1.0 frame intervals only */
 		if (unit == V2D_UNIT_FRAMES) {
 			rem = 1.0f;
-			*step = 2.0f; /* use 2 since there are grid lines drawn in between, this way to get 1 line per frane */
+			*step = 2.0f; /* use 2 since there are grid lines drawn in between, this way to get 1 line per frame */
 		}
 
 		/* prevents printing 1.0 2.0 3.0 etc */

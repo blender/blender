@@ -107,7 +107,7 @@ struct CurveDrawData {
 		bool use_plane;
 		float    plane[4];
 
-		/* use 'rv3d->depths', note that this will become 'damaged' while drawing, but thats OK. */
+		/* use 'rv3d->depths', note that this will become 'damaged' while drawing, but that's OK. */
 		bool use_depth;
 
 		/* offset projection by this value */

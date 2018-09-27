@@ -126,7 +126,7 @@ typedef struct TransCon {
 	float imtx[3][3];    /* Inverse Matrix of the Constraint space                                    */
 	float pmtx[3][3];    /* Projection Constraint Matrix (same as imtx with some axis == 0)           */
 	int   imval[2];	     /* initial mouse value for visual calculation                                */
-	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
+	                     /* the one in TransInfo is not guarantee to stay the same (Rotates change it)  */
 	int   mode;          /* Mode flags of the Constraint                                              */
 	void  (*drawExtra)(struct TransInfo *t);
 
@@ -163,7 +163,7 @@ typedef struct TransDataExtension {
 	float  r_mtx[3][3];  /* The rotscale matrix of pose bone, to allow using snap-align in translation mode,
 	                      * when td->mtx is the loc pose bone matrix (and hence can't be used to apply rotation in some cases,
 	                      * namely when a bone is in "NoLocal" or "Hinge" mode)... */
-	float  r_smtx[3][3]; /* Invers of previous one. */
+	float  r_smtx[3][3]; /* Inverse of previous one. */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 	float oloc[3], orot[3], oquat[4], orotAxis[3], orotAngle; /* Original object transformation used for rigid bodies */
 } TransDataExtension;
@@ -176,7 +176,7 @@ typedef struct TransData2D {
 	float ih1[2], ih2[2];
 } TransData2D;
 
-/* we need to store 2 handles for each transdata in case the other handle wasnt selected */
+/* we need to store 2 handles for each transdata in case the other handle wasn't selected */
 typedef struct TransDataCurveHandleFlags {
 	char ih1, ih2;
 	char *h1, *h2;
@@ -593,7 +593,7 @@ typedef struct TransInfo {
 
 #define T_AUTOVALUES		(1 << 20)
 
-	/* to specificy if we save back settings at the end */
+	/* to specify if we save back settings at the end */
 #define	T_MODAL				(1 << 21)
 
 	/* no retopo */

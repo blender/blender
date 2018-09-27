@@ -267,7 +267,7 @@ void ED_mesh_mirrtopo_init(
 		/* sort so we can count unique values */
 		qsort(topo_hash_prev, totvert, sizeof(MirrTopoHash_t), mirrtopo_hash_sort);
 
-		tot_unique = 1; /* account for skiping the first value */
+		tot_unique = 1; /* account for skipping the first value */
 		for (a = 1; a < totvert; a++) {
 			if (topo_hash_prev[a - 1] != topo_hash_prev[a]) {
 				tot_unique++;

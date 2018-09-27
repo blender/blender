@@ -193,7 +193,7 @@ void NODE_OT_view_selected(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* **************** Backround Image Operators ************** */
+/* **************** Background Image Operators ************** */
 
 typedef struct NodeViewMove {
 	int mvalo[2];

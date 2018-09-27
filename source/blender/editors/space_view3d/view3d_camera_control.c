@@ -88,7 +88,7 @@ typedef struct View3DCameraControl {
 
 
 	/* -------------------------------------------------------------------- */
-	/* intial values */
+	/* initial values */
 
 	/* root most parent */
 	Object *root_parent;
@@ -303,7 +303,7 @@ void ED_view3d_cameracontrol_release(
 			DEG_id_tag_update(&ob_back->id, OB_RECALC_OB);
 		}
 		else {
-			/* Non Camera we need to reset the view back to the original location bacause the user canceled*/
+			/* Non Camera we need to reset the view back to the original location because the user canceled*/
 			copy_qt_qt(rv3d->viewquat, vctrl->rot_backup);
 			rv3d->persp = vctrl->persp_backup;
 		}

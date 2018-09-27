@@ -437,7 +437,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 					line[len - 1] = '\0';
 				}
 				/* don't do this because it can be slow on network drives,
-				 * having a bookmark from a drive thats ejected or so isn't
+				 * having a bookmark from a drive that's ejected or so isn't
 				 * all _that_ bad */
 #if 0
 				if (BLI_exists(line))

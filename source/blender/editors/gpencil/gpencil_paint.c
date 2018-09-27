@@ -1771,7 +1771,7 @@ static void gp_init_drawing_brush(bContext *C, tGPsdata *p)
 	curvemapping_initialize(brush->gpencil_settings->curve_strength);
 	curvemapping_initialize(brush->gpencil_settings->curve_jitter);
 
-	/* asign to temp tGPsdata */
+	/* assign to temp tGPsdata */
 	p->brush = brush;
 	if (brush->gpencil_settings->brush_type != GP_BRUSH_TYPE_ERASE) {
 		p->eraser = gp_get_default_eraser(p->bmain, ts);

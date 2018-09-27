@@ -297,7 +297,7 @@ static int create_view_aligned_slices(VolumeSlicer *slicer,
 	float plane_dist = min_dist;
 	float plane_dist_inc = (max_dist - min_dist) / (float)num_slices;
 
-	/* for all egdes */
+	/* for all edges */
 	for (int i = 0; i < 12; i++) {
 		copy_v3_v3(vec_start[i], vertices[edges[edge_list[max_index][i]][0]]);
 		copy_v3_v3(vec_dir[i],   vertices[edges[edge_list[max_index][i]][1]]);

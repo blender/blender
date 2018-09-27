@@ -707,7 +707,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 
-		/* edge index is set to -1 then used to assosiate them with faces */
+		/* edge index is set to -1 then used to associate them with faces */
 		BM_ITER_MESH(e, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_SELECT) && BM_edge_is_wire(e)) {
 				BM_elem_flag_enable(e, hflag);

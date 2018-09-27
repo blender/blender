@@ -215,7 +215,7 @@ typedef struct FileListInternEntry {
 	int blentype;  /* ID type, in case typeflag has FILE_TYPE_BLENDERLIB set. */
 
 	char *relpath;
-	char *name;  /* not striclty needed, but used during sorting, avoids to have to recompute it there... */
+	char *name;  /* not strictly needed, but used during sorting, avoids to have to recompute it there... */
 
 	BLI_stat_t st;
 } FileListInternEntry;
@@ -236,7 +236,7 @@ typedef struct FileListEntryCache {
 	/* This one gathers all entries from both block and misc caches. Used for easy bulk-freing. */
 	ListBase cached_entries;
 
-	/* Block cache: all entries between start and end index. used for part of the list on diplay. */
+	/* Block cache: all entries between start and end index. used for part of the list on display. */
 	FileDirEntry **block_entries;
 	int block_start_index, block_end_index, block_center_index, block_cursor;
 

@@ -301,7 +301,7 @@ static bool edit_shaderfx_poll_generic(bContext *C, StructRNA *rna_type, int obt
 	if (ptr.id.data && ID_IS_LINKED(ptr.id.data)) return 0;
 
 	if (ID_IS_STATIC_OVERRIDE(ob)) {
-		CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs comming from static override");
+		CTX_wm_operator_poll_msg_set(C, "Cannot edit shaderfxs coming from static override");
 		return (((ShaderFxData *)ptr.data)->flag & eShaderFxFlag_StaticOverride_Local) != 0;
 	}
 

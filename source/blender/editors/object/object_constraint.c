@@ -501,7 +501,7 @@ static int constraint_type_get(Object *owner, bPoseChannel *pchan)
 }
 
 /* checks validity of object pointers, and NULLs,
- * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag.
+ * if Bone doesn't exist it sets the CONSTRAINT_DISABLE flag.
  */
 static void test_constraints(Main *bmain, Object *owner, bPoseChannel *pchan)
 {
@@ -599,7 +599,7 @@ static bool edit_constraint_poll_generic(bContext *C, StructRNA *rna_type)
 	}
 
 	if (ID_IS_STATIC_OVERRIDE(ob)) {
-		CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints comming from static override");
+		CTX_wm_operator_poll_msg_set(C, "Cannot edit constraints coming from static override");
 		return (((bConstraint *)ptr.data)->flag & CONSTRAINT_STATICOVERRIDE_LOCAL) != 0;
 	}
 
@@ -1764,7 +1764,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		return OPERATOR_CANCELLED;
 	}
 
-	/* create a new constraint of the type requried, and add it to the active/given constraints list */
+	/* create a new constraint of the type required, and add it to the active/given constraints list */
 	if (pchan)
 		con = BKE_constraint_add_for_pose(ob, pchan, NULL, type);
 	else
@@ -1999,7 +1999,7 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 		return OPERATOR_CANCELLED;
 	}
 
-	/* prepare popup menu to choose targetting options */
+	/* prepare popup menu to choose targeting options */
 	pup = UI_popup_menu_begin(C, IFACE_("Add IK"), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
 
@@ -2066,7 +2066,7 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		bConstraint *con, *next;
 
-		/* TODO: should we be checking if these contraints were local before we try and remove them? */
+		/* TODO: should we be checking if these constraints were local before we try and remove them? */
 		for (con = pchan->constraints.first; con; con = next) {
 			next = con->next;
 			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {

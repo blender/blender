@@ -700,7 +700,7 @@ void ED_area_status_text(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
 
-	/* happens when running transform operators in backround mode */
+	/* happens when running transform operators in background mode */
 	if (sa == NULL)
 		return;
 
@@ -756,7 +756,7 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 {
 	AZone *az;
 
-	/* reinitalize entirely, regions and fullscreen add azones too */
+	/* reinitialize entirely, regions and fullscreen add azones too */
 	BLI_freelistN(&sa->actionzones);
 
 	if (screen->state != SCREENNORMAL) {
@@ -1592,7 +1592,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	if (sa->type->init)
 		sa->type->init(wm, sa);
 
-	/* clear all azones, add the area triange widgets */
+	/* clear all azones, add the area triangle widgets */
 	area_azone_initialize(win, screen, sa);
 
 	/* region windows, default and own handlers */
@@ -1658,7 +1658,7 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 	}
 }
 
-/* for use after changing visiblity of regions */
+/* for use after changing visibility of regions */
 void ED_region_visibility_change_update(bContext *C, ARegion *ar)
 {
 	ScrArea *sa = CTX_wm_area(C);

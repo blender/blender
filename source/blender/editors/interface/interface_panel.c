@@ -955,7 +955,7 @@ static void align_sub_panels(Panel *pa)
 	}
 }
 
-/* this doesnt draw */
+/* this doesn't draw */
 /* returns 1 when it did something */
 static bool uiAlignPanelStep(ScrArea *sa, ARegion *ar, const float fac, const bool drag)
 {
@@ -1425,7 +1425,7 @@ static void ui_panel_drag_collapse(bContext *C, uiPanelDragCollapseHandle *dragc
 /**
  * Panel drag-collapse (modal handler)
  * Clicking and dragging over panels toggles their collapse state based on the panel that was first
- * dragged over. If it was open all affected panels incl the initial one are closed and vise versa.
+ * dragged over. If it was open all affected panels incl the initial one are closed and vice versa.
  */
 static int ui_panel_drag_collapse_handler(bContext *C, const wmEvent *event, void *userdata)
 {
@@ -1849,7 +1849,7 @@ void UI_panel_category_draw_all(ARegion *ar, const char *category_id_active)
 	const int px_x_sign = is_left ? px : -px;
 	const int category_tabs_width = round_fl_to_int(UI_PANEL_CATEGORY_MARGIN_WIDTH * zoom);
 	const float dpi_fac = UI_DPI_FAC;
-	const int tab_v_pad_text = round_fl_to_int((2 + ((px * 3) * dpi_fac)) * zoom);  /* pading of tabs around text */
+	const int tab_v_pad_text = round_fl_to_int((2 + ((px * 3) * dpi_fac)) * zoom);  /* padding of tabs around text */
 	const int tab_v_pad = round_fl_to_int((4 + (2 * px * dpi_fac)) * zoom);  /* padding between tabs */
 	const float tab_curve_radius = ((px * 3) * dpi_fac) * zoom;
 	/* We flip the tab drawing, so always use these flags. */

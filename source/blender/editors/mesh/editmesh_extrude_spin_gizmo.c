@@ -1031,7 +1031,7 @@ static void gizmo_mesh_spin_redo_draw_prepare(
 		ggd->data.op = WM_operator_last_redo((bContext *)ggd->data.context);
 	}
 
-	/* Not essentual, just avoids feedback loop where matrices could shift because of float precision.
+	/* Not essential, just avoids feedback loop where matrices could shift because of float precision.
 	 * Updates in this case are also redundant. */
 	bool is_modal = false;
 	for (wmGizmo *gz = gzgroup->gizmos.first; gz; gz = gz->next) {

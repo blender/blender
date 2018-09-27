@@ -676,7 +676,7 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				if (was_output == 0)
 					ED_node_tag_update_nodetree(bmain, ntree, node);
 
-				/* addnode() doesnt link this yet... */
+				/* addnode() doesn't link this yet... */
 				node->id = (ID *)BKE_image_verify_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
 			else if (node->type == CMP_NODE_COMPOSITE) {

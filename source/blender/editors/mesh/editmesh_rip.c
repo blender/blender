@@ -1016,7 +1016,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	bool no_vertex_selected = true;
 	bool error_face_selected = true;
-	bool error_disconected_vertices = true;
+	bool error_disconnected_vertices = true;
 	bool error_rip_failed = true;
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1047,7 +1047,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		if ((bm->totvertsel > 1) && (bm->totedgesel == 0)) {
 			continue;
 		}
-		error_disconected_vertices = false;
+		error_disconnected_vertices = false;
 
 		/* note on selection:
 		 * When calling edge split we operate on tagged edges rather then selected
@@ -1096,7 +1096,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		BKE_report(op->reports, RPT_ERROR, "Cannot rip selected faces");
 		return OPERATOR_CANCELLED;
 	}
-	else if (error_disconected_vertices) {
+	else if (error_disconnected_vertices) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot rip multiple disconnected vertices");
 		return OPERATOR_CANCELLED;
 	}

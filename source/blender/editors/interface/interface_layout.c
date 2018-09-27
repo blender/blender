@@ -1220,7 +1220,7 @@ void uiItemsFullEnumO_items(
 					uiItemS(target);
 				}
 				else {
-					/* XXX bug here, colums draw bottom item badly */
+					/* XXX bug here, columns draw bottom item badly */
 					uiItemS(target);
 				}
 			}
@@ -3070,7 +3070,7 @@ static void ui_litem_layout_column_flow(uiLayout *litem)
 
 /* multi-column and multi-row layout. */
 typedef struct UILayoutGridFlowInput {
-	/* General layout controll settings. */
+	/* General layout control settings. */
 	const bool row_major : 1;  /* Fill rows before columns */
 	const bool even_columns : 1;  /* All columns will have same width. */
 	const bool even_rows : 1;  /* All rows will have same height. */
@@ -3278,7 +3278,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 
 		/* Even in varying column width case, we fix our columns number from weighted average width of items,
 		 * a proper solving of required width would be too costly, and this should give reasonably good results
-		 * in all resonable cases... */
+		 * in all reasonable cases... */
 		if (gflow->columns_len > 0) {
 			gflow->tot_columns = gflow->columns_len;
 		}
@@ -3301,7 +3301,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 			const int step = modulo ? modulo : 1;
 
 			if (gflow->row_major) {
-				/* Adjust number of columns to be mutiple of given modulo. */
+				/* Adjust number of columns to be multiple of given modulo. */
 				if (modulo && gflow->tot_columns % modulo != 0 && gflow->tot_columns > modulo) {
 					gflow->tot_columns = gflow->tot_columns - (gflow->tot_columns % modulo);
 				}
@@ -3312,7 +3312,7 @@ static void ui_litem_estimate_grid_flow(uiLayout *litem)
 				     gflow->tot_columns -= step);
 			}
 			else {
-				/* Adjust number of rows to be mutiple of given modulo. */
+				/* Adjust number of rows to be multiple of given modulo. */
 				if (modulo && gflow->tot_rows % modulo != 0) {
 					gflow->tot_rows = min_ii(gflow->tot_rows + modulo - (gflow->tot_rows % modulo), gflow->tot_items);
 				}

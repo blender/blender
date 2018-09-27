@@ -1817,7 +1817,7 @@ static bool ed_object_select_pick(
 			/* Set special modes for grease pencil
 			   The grease pencil modes are not real modes, but a hack to make the interface
 			   consistent, so need some tricks to keep UI synchronized */
-			// XXX: This stuff neeeds reviewing (Aligorith)
+			// XXX: This stuff needs reviewing (Aligorith)
 			if (false &&
 			    (((oldbasact) && oldbasact->object->type == OB_GPENCIL) ||
 			     (basact->object->type == OB_GPENCIL)))

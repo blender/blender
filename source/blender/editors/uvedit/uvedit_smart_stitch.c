@@ -2625,7 +2625,7 @@ static int stitch_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (goto_next_island(ssc)) {
 					StitchState *new_active_state = ssc->states[ssc->active_object_index];
 
-					/* active_state is the origional active state */
+					/* active_state is the original active state */
 					if (active_state != new_active_state) {
 						if (!stitch_process_data(ssc, active_state, scene, false)) {
 							stitch_cancel(C, op);

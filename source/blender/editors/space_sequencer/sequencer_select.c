@@ -1167,7 +1167,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 			continue;
 		}
 
-		/* If the seq is an effect one, we need extra cheking! */
+		/* If the seq is an effect one, we need extra checking! */
 		if (SEQ_IS_EFFECT(seq) && ((seq->seq1 && seq->seq1->tmp) ||
 		                           (seq->seq2 && seq->seq2->tmp) ||
 		                           (seq->seq3 && seq->seq3->tmp)))
@@ -1186,7 +1186,7 @@ static bool select_grouped_effect_link(Editing *ed, Sequence *actseq, const int 
 			BKE_sequence_iterator_begin(ed, &iter, true);
 		}
 
-		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */
+		/* Video strips below active one, or any strip for audio (order do no matters here!). */
 		else if (seq->machine < machine || is_audio) {
 			seq->flag |= SELECT;
 			changed = true;

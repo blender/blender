@@ -2329,7 +2329,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		success = BKE_override_static_create_from_tag(bmain);
 
-		/* Intantiate our newly overridden objects in scene, if not yet done. */
+		/* Instantiate our newly overridden objects in scene, if not yet done. */
 		Scene *scene = CTX_data_scene(C);
 		ViewLayer *view_layer = CTX_data_view_layer(C);
 		Collection *new_collection = (Collection *)collection->id.newid;
@@ -2363,7 +2363,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		/* obcollection is no more duplicollection-ing, it merely parents whole collection of overriding instantiated objects. */
 		obcollection->dup_group = NULL;
 
-		/* Also, we'd likely want to lock by default things like transformations of implicitly overriden objects? */
+		/* Also, we'd likely want to lock by default things like transformations of implicitly overridden objects? */
 
 		DEG_id_tag_update(&scene->id, 0);
 
@@ -2383,7 +2383,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 
 		success = BKE_override_static_create_from_tag(bmain);
 
-		/* Also, we'd likely want to lock by default things like transformations of implicitly overriden objects? */
+		/* Also, we'd likely want to lock by default things like transformations of implicitly overridden objects? */
 
 		/* Cleanup. */
 		BKE_main_id_clear_newpoins(bmain);

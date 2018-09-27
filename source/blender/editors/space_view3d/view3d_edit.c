@@ -802,7 +802,7 @@ static void viewrotate_apply(ViewOpsData *vod, const int event_xy[2])
 	/* avoid precision loss over time */
 	normalize_qt(vod->curr.viewquat);
 
-	/* use a working copy so view rotation locking doesnt overwrite the locked
+	/* use a working copy so view rotation locking doesn't overwrite the locked
 	 * rotation back into the view we calculate with */
 	copy_qt_qt(rv3d->viewquat, vod->curr.viewquat);
 
@@ -1045,7 +1045,7 @@ static float view3d_ndof_pan_speed_calc(RegionView3D *rv3d)
 /**
  * Zoom and pan in the same function since sometimes zoom is interpreted as dolly (pan forward).
  *
- * \param has_zoom zoom, otherwise dolly, often `!rv3d->is_persp` since it doesnt make sense to dolly in ortho.
+ * \param has_zoom zoom, otherwise dolly, often `!rv3d->is_persp` since it doesn't make sense to dolly in ortho.
  */
 static void view3d_ndof_pan_zoom(
         const struct wmNDOFMotionData *ndof, ScrArea *sa, ARegion *ar,
@@ -3858,7 +3858,7 @@ static int view_camera_exec(bContext *C, wmOperator *op)
 			if (v3d->camera == NULL)
 				v3d->camera = BKE_view_layer_camera_find(view_layer);
 
-			/* couldnt find any useful camera, bail out */
+			/* couldn't find any useful camera, bail out */
 			if (v3d->camera == NULL)
 				return OPERATOR_CANCELLED;
 

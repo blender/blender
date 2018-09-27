@@ -1165,7 +1165,7 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		{
 			/* make local */
 			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_static_override_cb, NULL);
-			ED_undo_push(C, "Overrided Data");
+			ED_undo_push(C, "Overridden Data");
 			break;
 		}
 		case OUTLINER_IDOP_SINGLE:

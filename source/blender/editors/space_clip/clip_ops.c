@@ -1590,7 +1590,7 @@ void CLIP_OT_cursor_set(wmOperatorType *ot)
 	                     "Cursor location in normalized clip coordinates", -10.0f, 10.0f);
 }
 
-/********************** macroses *********************/
+/********************** macros *********************/
 
 void ED_operatormacros_clip(void)
 {

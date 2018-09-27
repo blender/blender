@@ -235,7 +235,7 @@ bool transdata_check_local_islands(TransInfo *t, short around)
 	        (ELEM(t->obedit_type, OB_MESH))));
 }
 
-/* ************************** SPACE DEPENDANT CODE **************************** */
+/* ************************** SPACE DEPENDENT CODE **************************** */
 
 void setTransformViewMatrices(TransInfo *t)
 {
@@ -2050,7 +2050,7 @@ static void drawTransformPixel(const struct bContext *UNUSED(C), ARegion *ar, vo
 
 	/* draw autokeyframing hint in the corner
 	 * - only draw if enabled (advanced users may be distracted/annoyed),
-	 *   for objects that will be autokeyframed (no point ohterwise),
+	 *   for objects that will be autokeyframed (no point otherwise),
 	 *   AND only for the active region (as showing all is too overwhelming)
 	 */
 	if ((U.autokey_flag & AUTOKEY_FLAG_NOWARNING) == 0) {
@@ -2860,7 +2860,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 					mul_m4_m3m4(cob.matrix, td->mtx, cob.matrix);
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
-					/* skip... incompatable spacetype */
+					/* skip... incompatible spacetype */
 					continue;
 				}
 
@@ -2936,7 +2936,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 				if ((data->flag2 & LIMIT_TRANSFORM) == 0)
 					continue;
 
-				/* skip incompatable spacetypes */
+				/* skip incompatible spacetypes */
 				if (!ELEM(con->ownspace, CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL))
 					continue;
 
@@ -6186,7 +6186,7 @@ static void calcEdgeSlideCustomPoints(struct TransInfo *t)
 	setCustomPoints(t, &t->mouse, sld->mval_end, sld->mval_start);
 
 	/* setCustomPoints isn't normally changing as the mouse moves,
-	 * in this case apply mouse input immediatly so we don't refresh
+	 * in this case apply mouse input immediately so we don't refresh
 	 * with the value from the previous points */
 	applyMouseInput(t, &t->mouse, t->mval, t->values);
 }
@@ -7579,7 +7579,7 @@ static void calcVertSlideCustomPoints(struct TransInfo *t)
 	}
 
 	/* setCustomPoints isn't normally changing as the mouse moves,
-	 * in this case apply mouse input immediatly so we don't refresh
+	 * in this case apply mouse input immediately so we don't refresh
 	 * with the value from the previous points */
 	applyMouseInput(t, &t->mouse, t->mval, t->values);
 }

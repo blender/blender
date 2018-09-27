@@ -195,7 +195,7 @@ static bool pose_has_protected_selected(Object *ob, short warn)
  */
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool current_frame_only)
 {
-	/* Transform doesn't always have context avaialble to do update. */
+	/* Transform doesn't always have context available to do update. */
 	if (C == NULL) {
 		return;
 	}

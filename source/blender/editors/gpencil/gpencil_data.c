@@ -1408,7 +1408,7 @@ static int gp_stroke_change_color_exec(bContext *C, wmOperator *op)
 						if (ED_gpencil_stroke_color_use(ob, gpl, gps) == false)
 							continue;
 
-						/* asign new color */
+						/* assign new color */
 						gps->mat_nr = idx;
 					}
 				}

@@ -680,7 +680,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 			}
 		}
 
-		/* cursors, for time being set always on edges, otherwise aregion doesnt switch */
+		/* cursors, for time being set always on edges, otherwise aregion doesn't switch */
 		if (scr->active_region == NULL) {
 			screen_cursor_set(win, xy);
 		}

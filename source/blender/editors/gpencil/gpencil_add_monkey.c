@@ -1447,7 +1447,7 @@ void ED_gpencil_create_monkey(bContext *C, float mat[4][4])
 	bGPDlayer *Lines = BKE_gpencil_layer_addnew(gpd, "Lines", true);
 
 	/* frames */
-	/* NOTE: No need to check for existing, as this will tkae care of it for us */
+	/* NOTE: No need to check for existing, as this will take care of it for us */
 	bGPDframe *frameColor = BKE_gpencil_frame_addnew(Colors, cfra_eval);
 	bGPDframe *frameLines = BKE_gpencil_frame_addnew(Lines, cfra_eval);
 

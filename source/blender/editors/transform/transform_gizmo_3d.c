@@ -659,7 +659,7 @@ void ED_transform_calc_orientation_from_type_ex(
 			if (ob->mode & OB_MODE_POSE) {
 				/* each bone moves on its own local axis, but  to avoid confusion,
 				 * use the active pones axis for display [#33575], this works as expected on a single bone
-				 * and users who select many bones will understand whats going on and what local means
+				 * and users who select many bones will understand what's going on and what local means
 				 * when they start transforming */
 				ED_getTransformOrientationMatrix(C, r_mat, pivot_point);
 				ok = true;
@@ -816,7 +816,7 @@ int ED_transform_calc_gizmo_stats(
 			BMEditSelection ese;
 			float vec[3] = {0, 0, 0};
 
-			/* USE LAST SELECTE WITH ACTIVE */
+			/* USE LAST SELECT WITH ACTIVE */
 			if ((pivot_point == V3D_AROUND_ACTIVE) && BM_select_history_active_get(em->bm, &ese)) {
 				BM_editselection_center(&ese, vec);
 				calc_tw_center(tbounds, vec);

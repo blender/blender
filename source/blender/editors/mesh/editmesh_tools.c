@@ -1910,7 +1910,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_in, "edges", BM_EDGE, BM_ELEM_SELECT, true);
 
 		BMO_op_exec(em->bm, &bmop);
-		/* edges may rotate into hidden vertices, if this does _not_ run we get an ilogical state */
+		/* edges may rotate into hidden vertices, if this does _not_ run we get an illogical state */
 		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, true);
 		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
 
@@ -2938,7 +2938,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 		BMOperator bmop;
 		const int totvert_orig = em->bm->totvert;
 
-		/* avoid loosing selection state (select -> tags) */
+		/* avoid losing selection state (select -> tags) */
 		char htype_select;
 		if      (em->selectmode & SCE_SELECT_VERTEX) htype_select = BM_VERT;
 		else if (em->selectmode & SCE_SELECT_EDGE)   htype_select = BM_EDGE;
@@ -3416,7 +3416,7 @@ static float bm_edge_seg_isect(
 		b2 = ((x22 * y21) - (x21 * y22)) / xdiff2;
 	}
 	else {
-		m2 = MAXSLOPE;  /* Verticle slope  */
+		m2 = MAXSLOPE;  /* Vertical slope  */
 		b2 = x22;
 	}
 
