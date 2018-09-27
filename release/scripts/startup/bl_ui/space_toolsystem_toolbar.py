@@ -1634,7 +1634,7 @@ class TOPBAR_PT_gpencil_materials(Panel):
             is_sortable = len(ob.material_slots) > 1
             rows = 1
             if (is_sortable):
-                rows = 4
+                rows = 10
 
             row = layout.row()
 
