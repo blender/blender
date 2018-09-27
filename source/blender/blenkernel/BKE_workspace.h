@@ -28,6 +28,7 @@
 #include "BLI_compiler_attrs.h"
 
 struct bScreen;
+struct bToolRef;
 struct Main;
 struct Scene;
 struct TransformOrientation;
@@ -70,6 +71,8 @@ struct WorkSpaceLayout *BKE_workspace_layout_iter_circular(
         bool (*callback)(const struct WorkSpaceLayout *layout, void *arg),
         void *arg, const bool iter_backward);
 
+void BKE_workspace_tool_remove(
+        struct WorkSpace *workspace, struct bToolRef *tref) ATTR_NONNULL(1, 2);
 
 /* -------------------------------------------------------------------- */
 /* Getters/Setters */

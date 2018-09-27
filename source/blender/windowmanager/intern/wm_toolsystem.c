@@ -58,7 +58,7 @@
 
 static void toolsystem_reinit_with_toolref(
         bContext *C, WorkSpace *UNUSED(workspace), bToolRef *tref);
-static void toolsystem_reinit_ensure_toolref(
+static bToolRef *toolsystem_reinit_ensure_toolref(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool);
 static void toolsystem_refresh_screen_from_active_tool(
         Main *bmain, WorkSpace *workspace, bToolRef *tref);
@@ -364,6 +364,11 @@ void WM_toolsystem_init(bContext *C)
 						tref->tag = 1;
 					}
 				}
+				else {
+					/* Without this we may load a file without a default tool. */
+					tref = toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
+					tref->tag = 1;
+				}
 			}
 			CTX_wm_window_set(C, NULL);
 		}
@@ -526,18 +531,56 @@ static void toolsystem_reinit_with_toolref(
 	WM_toolsystem_ref_set_by_name(C, workspace, &tkey, tref->idname, false);
 }
 
+static const char *toolsystem_default_tool(const bToolKey *tkey)
+{
+	switch (tkey->space_type) {
+		case SPACE_VIEW3D:
+			switch (tkey->mode) {
+				/* XXX(campbell): hard coded paint-brush names.
+				 * Eventyally we plan to move away from using brush names as tools,
+				 * in favor of having tool types in the toolbar, which can each select their own brush.
+				 * so keep this as a temporary hack.
+				 */
+				case CTX_MODE_SCULPT:
+					return "SculptDraw";
+				case CTX_MODE_PAINT_VERTEX:
+				case CTX_MODE_PAINT_WEIGHT:
+				case CTX_MODE_GPENCIL_WEIGHT:
+					return "Draw";
+				case CTX_MODE_PAINT_TEXTURE:
+					return "TexDraw";
+				case CTX_MODE_GPENCIL_PAINT:
+					return "Draw Pencil";
+				case CTX_MODE_GPENCIL_SCULPT:
+					return "Push";
+				/* end temporary hack. */
+
+				case CTX_MODE_PARTICLE:
+					return "Comb";
+				default:
+					return "Select Border";
+			}
+			break;
+	}
+
+	return "Cursor";
+}
+
 /**
  * Run after changing modes.
  */
-static void toolsystem_reinit_ensure_toolref(
+static bToolRef *toolsystem_reinit_ensure_toolref(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool)
 {
 	bToolRef *tref;
 	if (WM_toolsystem_ref_ensure(workspace, tkey, &tref)) {
+		if (default_tool == NULL) {
+			default_tool = toolsystem_default_tool(tkey);
+		}
 		STRNCPY(tref->idname, default_tool);
 	}
-
 	toolsystem_reinit_with_toolref(C, workspace, tref);
+	return tref;
 }
 
 void WM_toolsystem_update_from_context_view3d(bContext *C)
@@ -549,7 +592,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 		.space_type = space_type,
 		.mode = WM_toolsystem_mode_from_spacetype(view_layer, NULL, space_type),
 	};
-	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, "Cursor");
+	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
 }
 
 /**

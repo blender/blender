@@ -161,17 +161,9 @@ void BKE_workspace_free(WorkSpace *workspace)
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
 
-	for (bToolRef *tref = workspace->tools.first, *tref_next; tref; tref = tref_next) {
-		tref_next = tref->next;
-		if (tref->runtime) {
-			MEM_freeN(tref->runtime);
-		}
-		if (tref->properties) {
-			IDP_FreeProperty(tref->properties);
-			MEM_freeN(tref->properties);
-		}
+	while (!BLI_listbase_is_empty(&workspace->tools)) {
+		BKE_workspace_tool_remove(workspace, workspace->tools.first);
 	}
-	BLI_freelistN(&workspace->tools);
 
 	if (workspace->status_text) {
 		MEM_freeN(workspace->status_text);
@@ -352,6 +344,19 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(
 	return NULL;
 }
 
+void BKE_workspace_tool_remove(
+        struct WorkSpace *workspace, struct bToolRef *tref)
+{
+	if (tref->runtime) {
+		MEM_freeN(tref->runtime);
+	}
+	if (tref->properties) {
+		IDP_FreeProperty(tref->properties);
+		MEM_freeN(tref->properties);
+	}
+	BLI_remlink(&workspace->tools, tref);
+	MEM_freeN(tref);
+}
 
 /* -------------------------------------------------------------------- */
 /* Getters/Setters */
