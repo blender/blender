@@ -287,7 +287,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		Object *ob = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
-		Material ***material_array;
+		Material ***material_array = NULL;
 		invert_m4_m4(ob->imat, ob->obmat);
 		int custom_data_offset = 0;
 
@@ -418,10 +418,10 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(ob);
 		BMesh *bm = em->bm;
 		bool changed = false;
-		Material ***material_array;
+		Material ***material_array = NULL;
 		int custom_data_offset;
 
-		bool has_custom_data_layer;
+		bool has_custom_data_layer = false;
 		switch (type) {
 			case SIMFACE_MATERIAL:
 			{
@@ -880,7 +880,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 		BMesh *bm = em->bm;
 		bool changed = false;
 
-		bool has_custom_data_layer;
+		bool has_custom_data_layer = false;
 		switch (type) {
 			case SIMEDGE_FREESTYLE:
 			{

@@ -237,12 +237,10 @@ BLI_INLINE void rotate_corner_to_quad(
 		*r_u = 0.5f + v * 0.5f;
 		*r_v = 0.5f + u * 0.5f;
 	}
-	else if (corner == 3) {
+	else {
+		BLI_assert(corner == 3);
 		*r_u = 0.5f - u * 0.5f;
 		*r_v = 0.5f + v * 0.5f;
-	}
-	else {
-		BLI_assert(!"Unexpected corner configuration");
 	}
 }
 
