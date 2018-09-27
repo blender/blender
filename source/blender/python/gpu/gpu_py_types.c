@@ -53,6 +53,8 @@ PyObject *BPyInit_gpu_types(void)
 		return NULL;
 	if (PyType_Ready(&BPyGPUVertBuf_Type) < 0)
 		return NULL;
+	if (PyType_Ready(&BPyGPUIndexBuf_Type) < 0)
+		return NULL;
 	if (PyType_Ready(&BPyGPUBatch_Type) < 0)
 		return NULL;
 	if (PyType_Ready(&BPyGPUOffScreen_Type) < 0)
@@ -65,6 +67,7 @@ PyObject *BPyInit_gpu_types(void)
 
 	MODULE_TYPE_ADD(submodule, BPyGPUVertFormat_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUVertBuf_Type);
+	MODULE_TYPE_ADD(submodule, BPyGPUIndexBuf_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUBatch_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUOffScreen_Type);
 	MODULE_TYPE_ADD(submodule, BPyGPUShader_Type);

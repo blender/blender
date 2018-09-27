@@ -18,20 +18,22 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/gpu/gpu_py_types.h
+/** \file blender/python/gpu/gpu_py_element.h
  *  \ingroup bpygpu
  */
 
-#ifndef __GPU_PY_TYPES_H__
-#define __GPU_PY_TYPES_H__
+#ifndef __GPU_PY_ELEMENT_H__
+#define __GPU_PY_ELEMENT_H__
 
-#include "gpu_py_vertex_format.h"
-#include "gpu_py_vertex_buffer.h"
-#include "gpu_py_element.h"
-#include "gpu_py_batch.h"
-#include "gpu_py_offscreen.h"
-#include "gpu_py_shader.h"
+extern PyTypeObject BPyGPUIndexBuf_Type;
 
-PyObject *BPyInit_gpu_types(void);
+#define BPyGPUIndexBuf_Check(v)        (Py_TYPE(v) == &BPyGPUIndexBuf_Type)
 
-#endif /* __GPU_PY_TYPES_H__ */
+typedef struct BPyGPUIndexBuf {
+	PyObject_VAR_HEAD
+	struct GPUIndexBuf *elem;
+} BPyGPUIndexBuf;
+
+PyObject *BPyGPUIndexBuf_CreatePyObject(struct GPUIndexBuf *elem);
+
+#endif /* __GPU_PY_ELEMENT_H__ */

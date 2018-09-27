@@ -63,6 +63,24 @@ uint GPU_indexbuf_size_get(const GPUIndexBuf *elem)
 #endif
 }
 
+int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
+{
+	switch (prim_type) {
+		case GPU_PRIM_POINTS:
+			return 1;
+		case GPU_PRIM_LINES:
+			return 2;
+		case GPU_PRIM_TRIS:
+			return 3;
+		case GPU_PRIM_LINES_ADJ:
+			return 4;
+	}
+#if TRUST_NO_ONE
+	assert(false);
+#endif
+	return -1;
+}
+
 void GPU_indexbuf_init_ex(
         GPUIndexBufBuilder *builder, GPUPrimType prim_type,
         uint index_len, uint vertex_len, bool use_prim_restart)
@@ -77,28 +95,11 @@ void GPU_indexbuf_init_ex(
 
 void GPU_indexbuf_init(GPUIndexBufBuilder *builder, GPUPrimType prim_type, uint prim_len, uint vertex_len)
 {
-	uint verts_per_prim = 0;
-	switch (prim_type) {
-		case GPU_PRIM_POINTS:
-			verts_per_prim = 1;
-			break;
-		case GPU_PRIM_LINES:
-			verts_per_prim = 2;
-			break;
-		case GPU_PRIM_TRIS:
-			verts_per_prim = 3;
-			break;
-		case GPU_PRIM_LINES_ADJ:
-			verts_per_prim = 4;
-			break;
-		default:
+	int verts_per_prim = GPU_indexbuf_primitive_len(prim_type);
 #if TRUST_NO_ONE
-			assert(false);
+	assert(verts_per_prim != -1);
 #endif
-			return;
-	}
-
-	GPU_indexbuf_init_ex(builder, prim_type, prim_len * verts_per_prim, vertex_len, false);
+	GPU_indexbuf_init_ex(builder, prim_type, prim_len * (uint)verts_per_prim, vertex_len, false);
 }
 
 void GPU_indexbuf_add_generic_vert(GPUIndexBufBuilder *builder, uint v)

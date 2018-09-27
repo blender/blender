@@ -36,8 +36,10 @@ set(INC_SYS
 set(SRC
 	gpu_py_api.c
 	gpu_py_batch.c
+	gpu_py_element.c
 	gpu_py_matrix.c
 	gpu_py_offscreen.c
+	gpu_py_primitive.c
 	gpu_py_select.c
 	gpu_py_shader.c
 	gpu_py_types.c
@@ -46,8 +48,10 @@ set(SRC
 
 	gpu_py_api.h
 	gpu_py_batch.h
+	gpu_py_element.h
 	gpu_py_matrix.h
 	gpu_py_offscreen.h
+	gpu_py_primitive.h
 	gpu_py_select.h
 	gpu_py_shader.h
 	gpu_py_types.h

@@ -89,6 +89,7 @@ void GPU_indexbuf_build_in_place(GPUIndexBufBuilder *, GPUIndexBuf *);
 
 void GPU_indexbuf_discard(GPUIndexBuf *);
 
+int GPU_indexbuf_primitive_len(GPUPrimType prim_type);
 
 /* Macros */
 

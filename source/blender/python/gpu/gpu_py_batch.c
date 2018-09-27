@@ -45,8 +45,10 @@
 
 #include "../generic/py_capi_utils.h"
 
+#include "gpu_py_primitive.h"
 #include "gpu_py_shader.h"
 #include "gpu_py_vertex_buffer.h"
+#include "gpu_py_element.h"
 #include "gpu_py_batch.h" /* own include */
 
 
@@ -55,69 +57,56 @@
 /** \name VertBatch Type
  * \{ */
 
-static int bpygpu_ParsePrimType(PyObject *o, void *p)
-{
-	Py_ssize_t mode_id_len;
-	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
-	if (mode_id == NULL) {
-		PyErr_Format(PyExc_ValueError,
-		             "expected a string, got %s",
-		             Py_TYPE(o)->tp_name);
-		return 0;
-	}
-#define MATCH_ID(id) \
-	if (mode_id_len == strlen(STRINGIFY(id))) { \
-		if (STREQ(mode_id, STRINGIFY(id))) { \
-			mode = GPU_PRIM_##id; \
-			goto success; \
-		} \
-	} ((void)0)
-
-	GPUPrimType mode;
-	MATCH_ID(POINTS);
-	MATCH_ID(LINES);
-	MATCH_ID(TRIS);
-	MATCH_ID(LINE_STRIP);
-	MATCH_ID(LINE_LOOP);
-	MATCH_ID(TRI_STRIP);
-	MATCH_ID(TRI_FAN);
-	MATCH_ID(LINE_STRIP_ADJ);
-
-#undef MATCH_ID
-	PyErr_Format(PyExc_ValueError,
-	             "unknown type literal: '%s'",
-	             mode_id);
-	return 0;
-
-success:
-	(*(GPUPrimType *)p) = mode;
-	return 1;
-}
-
 static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
+	const char *exc_str_missing_arg = "GPUBatch.__new__() missing required argument '%s' (pos %d)";
+
 	struct {
 		GPUPrimType type_id;
-		BPyGPUVertBuf *py_buf;
-	} params;
+		BPyGPUVertBuf *py_vertbuf;
+		BPyGPUIndexBuf *py_indexbuf;
+	} params = {GPU_PRIM_NONE, NULL, NULL};
 
-	static const char *_keywords[] = {"type", "buf", NULL};
-	static _PyArg_Parser _parser = {"$O&O!:GPUBatch.__new__", _keywords, 0};
+	static const char *_keywords[] = {"type", "buf", "elem", NULL};
+	static _PyArg_Parser _parser = {"|$O&O!O!:GPUBatch.__new__", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        bpygpu_ParsePrimType, &params.type_id,
-	        &BPyGPUVertBuf_Type, &params.py_buf))
+	        &BPyGPUVertBuf_Type, &params.py_vertbuf,
+	        &BPyGPUIndexBuf_Type, &params.py_indexbuf))
 	{
 		return NULL;
 	}
 
-	GPUBatch *batch = GPU_batch_create(params.type_id, params.py_buf->buf, NULL);
+	if (params.type_id == GPU_PRIM_NONE) {
+		PyErr_Format(PyExc_TypeError,
+		             exc_str_missing_arg, _keywords[0], 1);
+		return NULL;
+	}
+
+	if (params.py_vertbuf == NULL) {
+		PyErr_Format(PyExc_TypeError,
+		             exc_str_missing_arg, _keywords[1], 2);
+		return NULL;
+	}
+
+	GPUBatch *batch = GPU_batch_create(
+	        params.type_id,
+	        params.py_vertbuf->buf,
+	        params.py_indexbuf ? params.py_indexbuf->elem : NULL);
+
 	BPyGPUBatch *ret = (BPyGPUBatch *)BPyGPUBatch_CreatePyObject(batch);
 
 #ifdef USE_GPU_PY_REFERENCES
-	ret->references = PyList_New(1);
-	PyList_SET_ITEM(ret->references, 0, (PyObject *)params.py_buf);
-	Py_INCREF(params.py_buf);
+	ret->references = PyList_New(params.py_indexbuf ? 2 : 1);
+	PyList_SET_ITEM(ret->references, 0, (PyObject *)params.py_vertbuf);
+	Py_INCREF(params.py_vertbuf);
+
+	if (params.py_indexbuf != NULL) {
+		PyList_SET_ITEM(ret->references, 1, (PyObject *)params.py_indexbuf);
+		Py_INCREF(params.py_indexbuf);
+	}
+
 	PyObject_GC_Track(ret);
 #endif
 
@@ -373,25 +362,26 @@ static void bpygpu_Batch_dealloc(BPyGPUBatch *self)
 }
 
 PyDoc_STRVAR(py_gpu_batch_doc,
-"GPUBatch(type, buf)\n"
+"GPUBatch(type, buf, elem=None)\n"
 "\n"
 "Contains VAOs + VBOs + Shader representing a drawable entity."
 "\n"
 "   :param type: One of these primitive types: {\n"
-"       \"POINTS\",\n"
-"       \"LINES\",\n"
-"       \"TRIS\",\n"
-"       \"LINE_STRIP\",\n"
-"       \"LINE_LOOP\",\n"
-"       \"TRI_STRIP\",\n"
-"       \"TRI_FAN\",\n"
-"       \"LINES_ADJ\",\n"
-"       \"TRIS_ADJ\",\n"
-"       \"LINE_STRIP_ADJ\",\n"
-"       \"NONE\"}\n"
+"       'POINTS',\n"
+"       'LINES',\n"
+"       'TRIS',\n"
+"       'LINE_STRIP',\n"
+"       'LINE_LOOP',\n"
+"       'TRI_STRIP',\n"
+"       'TRI_FAN',\n"
+"       'LINES_ADJ',\n"
+"       'TRIS_ADJ',\n"
+"       'LINE_STRIP_ADJ'}\n"
 "   :type type: `str`\n"
 "   :param buf: Vertex buffer.\n"
 "   :type buf: :class: `gpu.types.GPUVertBuf`\n"
+"   :param elem: Optional Index buffer.\n"
+"   :type elem: :class: `gpu.types.GPUIndexBuf`\n"
 );
 PyTypeObject BPyGPUBatch_Type = {
 	PyVarObject_HEAD_INIT(NULL, 0)
