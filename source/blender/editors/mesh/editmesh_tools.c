@@ -5436,6 +5436,7 @@ static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
 		totelem_new[1] += bm->totedge;
 		totelem_new[2] += bm->totface;
 	}
+	MEM_freeN(objects);
 
 	edbm_report_delete_info(op->reports, totelem_old, totelem_new);
 
