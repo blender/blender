@@ -4181,7 +4181,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 					else {
 						bGPDframe *gpf_iter;
 						int min = INT_MAX;
-						for (gpf_iter = gpl->frames.first; gpf_iter; gpf_iter = gpf->next) {
+						for (gpf_iter = gpl->frames.first; gpf_iter; gpf_iter = gpf_iter->next) {
 							if (gpf_iter->flag & GP_FRAME_SELECT) {
 								if (FrameOnMouseSide(t->frame_side, (float)gpf_iter->framenum, cfra)) {
 									int val = abs(gpf->framenum - gpf_iter->framenum);
