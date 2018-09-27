@@ -267,6 +267,8 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         cam = context.camera
         use_multiview = context.scene.render.use_multiview
@@ -338,8 +340,8 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
 
                     column = box.column()
                     column.active = has_bg
-                    column.prop(bg.clip_user, "proxy_render_size", text="")
                     column.prop(bg.clip_user, "use_render_undistorted")
+                    column.prop(bg.clip_user, "proxy_render_size")
 
                 if has_bg:
                     col = box.column()
@@ -348,17 +350,15 @@ class DATA_PT_camera_background_image(CameraButtonsPanel, Panel):
 
                     col.row().prop(bg, "frame_method", expand=True)
 
-                    box = col.box()
                     row = box.row()
                     row.prop(bg, "offset")
 
-                    row = box.row()
-                    row.prop(bg, "use_flip_x")
-                    row.prop(bg, "use_flip_y")
+                    col = box.column()
+                    col.prop(bg, "rotation")
+                    col.prop(bg, "scale")
 
-                    row = box.row()
-                    row.prop(bg, "rotation")
-                    row.prop(bg, "scale")
+                    col.prop(bg, "use_flip_x")
+                    col.prop(bg, "use_flip_y")
 
 
 class DATA_PT_camera_display(CameraButtonsPanel, Panel):
