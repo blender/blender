@@ -321,10 +321,7 @@ class TOPBAR_PT_gpencil_layers(Panel):
         row = layout.row()
 
         col = row.column()
-        if len(gpd.layers) >= 2:
-            layer_rows = 5
-        else:
-            layer_rows = 2
+        layer_rows = 10
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
 
         col = row.column()
