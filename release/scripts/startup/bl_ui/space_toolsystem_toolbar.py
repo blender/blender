@@ -720,6 +720,10 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def extrude_cursor():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("mesh.dupli_extrude_cursor")
+            layout.prop(props, "rotate_source")
+
         return dict(
             text="Extrude to Cursor",
             icon="ops.mesh.dupli_extrude_cursor",
@@ -727,6 +731,7 @@ class _defs_edit_mesh:
             keymap=(
                 ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
