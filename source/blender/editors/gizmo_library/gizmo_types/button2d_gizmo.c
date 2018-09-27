@@ -192,22 +192,27 @@ static void button2d_draw_intern(
 			GPU_polygon_smooth(true);
 		}
 		else if (button->icon != ICON_NONE) {
-			button2d_geom_draw_backdrop(gz, color, select);
-			float size[2];
+			if (draw_options & ED_GIZMO_BUTTON_SHOW_BACKDROP) {
+				button2d_geom_draw_backdrop(gz, color, select);
+			}
+
+			float pos[2];
 			if (is_3d) {
 				const float fac = 2.0f;
 				GPU_matrix_translate_2f(-(fac / 2), -(fac / 2));
 				GPU_matrix_scale_2f(fac / (ICON_DEFAULT_WIDTH * UI_DPI_FAC), fac / (ICON_DEFAULT_HEIGHT * UI_DPI_FAC));
-				size[0] = 1.0f;
-				size[1] = 1.0f;
+				pos[0] = 1.0f;
+				pos[1] = 1.0f;
 			}
 			else {
-				size[0] = gz->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC;
-				size[1] = gz->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC;
+				pos[0] = gz->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC;
+				pos[1] = gz->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC;
 				GPU_matrix_pop();
 				need_to_pop = false;
 			}
-			UI_icon_draw(size[0], size[1], button->icon);
+
+			float alpha = (highlight) ? 1.0f : 0.8f;
+			UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
 		}
 		GPU_blend(false);
 	}
@@ -299,6 +304,7 @@ static void GIZMO_GT_button_2d(wmGizmoType *gzt)
 	/* rna */
 	static EnumPropertyItem rna_enum_draw_options[] = {
 		{ED_GIZMO_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
+		{ED_GIZMO_BUTTON_SHOW_BACKDROP, "BACKDROP", 0, "Backdrop", ""},
 		{ED_GIZMO_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
 		{0, NULL, 0, NULL, NULL}
 	};

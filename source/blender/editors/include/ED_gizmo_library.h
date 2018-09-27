@@ -215,11 +215,12 @@ enum {
 
 enum {
 	ED_GIZMO_BUTTON_SHOW_OUTLINE = (1 << 0),
+	ED_GIZMO_BUTTON_SHOW_BACKDROP = (1 << 1),
 	/**
 	 * Draw a line from the origin to the offset (similar to an arrow)
 	 * sometimes needed to show what the button edits.
 	 */
-	ED_GIZMO_BUTTON_SHOW_HELPLINE = (1 << 1),
+	ED_GIZMO_BUTTON_SHOW_HELPLINE = (1 << 2),
 };
 
 

@@ -1521,7 +1521,7 @@ class VIEW3D_MT_add(Menu):
 
         sublayout = layout.column()
         sublayout.operator_context = 'INVOKE_DEFAULT'
-        sublayout.operator("object.load_image_as_empty", text="Image", icon="IMAGE_DATA")
+        sublayout.operator("object.load_image_as_empty", text="Image", icon="OUTLINER_OB_IMAGE")
         layout.separator()
 
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
