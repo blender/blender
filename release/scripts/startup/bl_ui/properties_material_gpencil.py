@@ -37,8 +37,6 @@ class GPENCIL_MT_color_specials(Menu):
         layout.operator("gpencil.color_lock_all", icon='LOCKED', text="Lock All")
         layout.operator("gpencil.color_unlock_all", icon='UNLOCKED', text="UnLock All")
 
-        layout.separator()
-
         layout.operator("gpencil.stroke_lock_color", text="Lock Unselected")
         layout.operator("gpencil.lock_layer", text="Lock Unused")
 
