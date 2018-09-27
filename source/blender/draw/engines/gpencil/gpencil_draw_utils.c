@@ -62,6 +62,8 @@
 #define TEXTURE 4
 #define PATTERN 5
 
+#define GP_SET_SRC_GPS(src_gps) if (src_gps) src_gps = src_gps->next
+
 /* Helper for doing all the checks on whether a stroke can be drawn */
 static bool gpencil_can_draw_stroke(
         struct MaterialGPencilStyle *gp_style, const bGPDstroke *gps,
@@ -796,10 +798,12 @@ static void gpencil_draw_strokes(
 
 		/* check if stroke can be drawn */
 		if (gpencil_can_draw_stroke(gp_style, gps, false, is_mat_preview) == false) {
+			GP_SET_SRC_GPS(src_gps);
 			continue;
 		}
 		/* limit the number of shading groups */
 		if (stl->storage->shgroup_id >= GPENCIL_MAX_SHGROUPS) {
+			GP_SET_SRC_GPS(src_gps);
 			continue;
 		}
 
@@ -814,6 +818,7 @@ static void gpencil_draw_strokes(
 			if ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) ||
 			    (gp_style->fill_style > GP_STYLE_FILL_STYLE_SOLID))
 			{
+				GP_SET_SRC_GPS(src_gps);
 				continue;
 			}
 		}
@@ -878,7 +883,7 @@ static void gpencil_draw_strokes(
 
 		/* edit points (only in edit mode and not play animation not render) */
 		if ((draw_ctx->obact == ob) && (src_gps) &&
-		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob)
+			(!playing) && (!is_render) && (!cache_ob->is_dup_ob)
 			&& ((gpl->flag & GP_LAYER_LOCKED) == 0))
 		{
 			if (!stl->g_data->shgrps_edit_line) {
@@ -893,9 +898,7 @@ static void gpencil_draw_strokes(
 			gpencil_add_editpoints_shgroup(stl, cache, ts, ob, gpd, gpl, derived_gpf, src_gps);
 		}
 
-		if (src_gps) {
-			src_gps = src_gps->next;
-		}
+		GP_SET_SRC_GPS(src_gps);
 
 		cache->cache_idx++;
 	}
