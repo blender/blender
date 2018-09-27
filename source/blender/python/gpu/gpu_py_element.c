@@ -113,8 +113,8 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 			index_len *= pybuffer.shape[1];
 		}
 
-		/* The `vertex_len` parameter is only used for asserts in the Debug build.
-		/* Not very useful in python since scripts are often tested in Release build.
+		/* The `vertex_len` parameter is only used for asserts in the Debug build. */
+		/* Not very useful in python since scripts are often tested in Release build. */
 		/* Use `INT_MAX` instead of the actual number of vertices. */
 		GPU_indexbuf_init(
 		        &builder, params.type_id, index_len, INT_MAX);
@@ -144,8 +144,8 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 
 		index_len = seq_len * verts_per_prim;
 
-		/* The `vertex_len` parameter is only used for asserts in the Debug build.
-		/* Not very useful in python since scripts are often tested in Release build.
+		/* The `vertex_len` parameter is only used for asserts in the Debug build. */
+		/* Not very useful in python since scripts are often tested in Release build. */
 		/* Use `INT_MAX` instead of the actual number of vertices. */
 		GPU_indexbuf_init(
 		        &builder, params.type_id, index_len, INT_MAX);

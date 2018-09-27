@@ -74,6 +74,8 @@ int GPU_indexbuf_primitive_len(GPUPrimType prim_type)
 			return 3;
 		case GPU_PRIM_LINES_ADJ:
 			return 4;
+		default:
+			break;
 	}
 #if TRUST_NO_ONE
 	assert(false);
