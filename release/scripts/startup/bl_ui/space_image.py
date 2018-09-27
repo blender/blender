@@ -33,7 +33,6 @@ from .properties_paint_common import (
     brush_mask_texture_settings,
 )
 from .properties_grease_pencil_common import (
-    AnnotationDrawingToolsPanel,
     AnnotationDataPanel,
 )
 from bpy.app.translations import pgettext_iface as iface_
@@ -1477,11 +1476,6 @@ class IMAGE_PT_grease_pencil(AnnotationDataPanel, Panel):
 # Grease Pencil drawing tools.
 
 
-class IMAGE_PT_tools_grease_pencil_draw(AnnotationDrawingToolsPanel, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
-
-
 classes = (
     IMAGE_MT_view,
     IMAGE_MT_view_zoom,
@@ -1538,7 +1532,6 @@ classes = (
     IMAGE_PT_sample_line,
     IMAGE_PT_scope_sample,
     IMAGE_PT_grease_pencil,
-    IMAGE_PT_tools_grease_pencil_draw,
 )
 
 
