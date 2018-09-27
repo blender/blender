@@ -113,7 +113,7 @@ typedef enum eDepsObjectComponentType {
 	DEG_OB_COMP_ANIMATION,
 	/* Transform Component (Parenting/Constraints) */
 	DEG_OB_COMP_TRANSFORM,
-	/* Geometry Component (DerivedMesh/Displist) */
+	/* Geometry Component (Mesh/Displist) */
 	DEG_OB_COMP_GEOMETRY,
 
 	/* Evaluation-Related Outer Types (with Subdata) */

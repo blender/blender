@@ -2472,7 +2472,7 @@ struct VPaintData {
 	uint paintcol;
 
 	struct VertProjHandle *vp_handle;
-	struct DMCoNo *vertexcosnos;
+	struct CoNo *vertexcosnos;
 
 	/* modify 'me->mcol' directly, since the derived mesh is drawing from this
 	 * array, otherwise we need to refresh the modifier stack */

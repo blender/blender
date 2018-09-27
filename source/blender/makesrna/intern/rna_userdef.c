@@ -100,7 +100,6 @@ static const EnumPropertyItem rna_enum_studio_light_orientation_items[] = {
 #include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
@@ -468,11 +467,7 @@ static void rna_userdef_opensubdiv_update(Main *bmain, Scene *UNUSED(scene), Poi
 	     object;
 	     object = object->id.next)
 	{
-		if (object->derivedFinal != NULL &&
-		    object->derivedFinal->type == DM_TYPE_CCGDM)
-		{
-			DEG_id_tag_update(&object->id, OB_RECALC_OB);
-		}
+		DEG_id_tag_update(&object->id, OB_RECALC_OB);
 	}
 }
 

@@ -48,10 +48,14 @@
 
 #ifndef MATH_STANDALONE
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_editmesh_bvh.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
+#include "BKE_mesh_runtime.h"
 
 #include "bmesh.h"
 
@@ -1045,7 +1049,7 @@ static PyObject *C_BVHTree_FromBMesh(PyObject *UNUSED(cls), PyObject *args, PyOb
 }
 
 /* return various derived meshes based on requested settings */
-static DerivedMesh *bvh_get_derived_mesh(
+static Mesh *bvh_get_mesh(
         const char *funcname, struct Scene *scene, Object *ob,
         bool use_deform, bool use_render, bool use_cage)
 {
@@ -1130,7 +1134,7 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 	PyObject *py_ob, *py_scene;
 	Object *ob;
 	struct Scene *scene;
-	DerivedMesh *dm;
+	Mesh *mesh;
 	bool use_deform = true;
 	bool use_render = false;
 	bool use_cage = false;
@@ -1156,24 +1160,27 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 		return NULL;
 	}
 
-	dm = bvh_get_derived_mesh("BVHTree", scene, ob, use_deform, use_render, use_cage);
-	if (dm == NULL) {
+	mesh = bvh_get_mesh("BVHTree", scene, ob, use_deform, use_render, use_cage);
+	if (mesh == NULL) {
 		return NULL;
 	}
 
 	/* Get data for tessellation */
 	{
-		lt = dm->getLoopTriArray(dm);
+		lt = BKE_mesh_runtime_looptri_ensure(mesh);
 
-		tris_len = (unsigned int)dm->getNumLoopTri(dm);
-		coords_len = (unsigned int)dm->getNumVerts(dm);
+		tris_len = (unsigned int)BKE_mesh_runtime_looptri_len(mesh);
+		coords_len = (unsigned int)mesh->totvert;
 
 		coords = MEM_mallocN(sizeof(*coords) * (size_t)coords_len, __func__);
 		tris = MEM_mallocN(sizeof(*tris) * (size_t)tris_len, __func__);
 
-		dm->getVertCos(dm, coords);
+		MVert *mv = mesh->mvert;
+		for (int i = 0; i < mesh->totvert; i++, mv++) {
+			copy_v3_v3(coords[i], mv->co);
+		}
 
-		mloop = dm->getLoopArray(dm);
+		mloop = mesh->mloop;
 	}
 
 	{
@@ -1186,7 +1193,8 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 		tree = BLI_bvhtree_new((int)tris_len, epsilon, PY_BVH_TREE_TYPE_DEFAULT, PY_BVH_AXIS_DEFAULT);
 		if (tree) {
 			orig_index = MEM_mallocN(sizeof(*orig_index) * (size_t)tris_len, __func__);
-			orig_normal = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */
+			CustomData *pdata = &mesh->pdata;
+			orig_normal = CustomData_get_layer(pdata, CD_NORMAL); /* can be NULL */
 			if (orig_normal) {
 				orig_normal = MEM_dupallocN(orig_normal);
 			}
@@ -1209,7 +1217,7 @@ static PyObject *C_BVHTree_FromObject(PyObject *UNUSED(cls), PyObject *args, PyO
 			BLI_bvhtree_balance(tree);
 		}
 
-		dm->release(dm);
+		BKE_id_free(NULL, mesh);
 
 		return bvhtree_CreatePyObject(
 		        tree, epsilon,

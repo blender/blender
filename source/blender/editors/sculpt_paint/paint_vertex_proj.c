@@ -39,7 +39,6 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_DerivedMesh.h"  /* XXX To be removed, only used for DMCoNo struct */
 #include "BKE_context.h"
 #include "BKE_mesh_iterators.h"
 #include "BKE_mesh_runtime.h"
@@ -56,7 +55,7 @@
 
 /* stored while painting */
 struct VertProjHandle {
-	DMCoNo *vcosnos;
+	CoNo *vcosnos;
 
 	bool use_update;
 
@@ -85,7 +84,7 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(
         const float no_f[3], const short no_s[3])
 {
 	struct VertProjHandle *vp_handle = userData;
-	DMCoNo *co_no = &vp_handle->vcosnos[index];
+	CoNo *co_no = &vp_handle->vcosnos[index];
 
 	/* check if we've been here before (normal should not be 0) */
 	if (!is_zero_v3(co_no->no)) {
@@ -127,7 +126,7 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
 	struct VertProjUpdate *vp_update = userData;
 	struct VertProjHandle *vp_handle = vp_update->vp_handle;
 
-	DMCoNo *co_no = &vp_handle->vcosnos[index];
+	CoNo *co_no = &vp_handle->vcosnos[index];
 
 	/* find closest vertex */
 	{
@@ -187,13 +186,13 @@ static void vpaint_proj_dm_map_cosnos_update(
 
 struct VertProjHandle *ED_vpaint_proj_handle_create(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob,
-        DMCoNo **r_vcosnos)
+        CoNo **r_vcosnos)
 {
 	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
 	Mesh *me = ob->data;
 
 	/* setup the handle */
-	vp_handle->vcosnos = MEM_mallocN(sizeof(DMCoNo) * me->totvert, "vertexcosnos map");
+	vp_handle->vcosnos = MEM_mallocN(sizeof(CoNo) * me->totvert, "vertexcosnos map");
 	vp_handle->use_update = false;
 
 	/* sets 'use_update' if needed */

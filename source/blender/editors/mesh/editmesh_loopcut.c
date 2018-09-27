@@ -44,7 +44,6 @@
 #include "BKE_modifier.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_unit.h"
 #include "BKE_layer.h"
 

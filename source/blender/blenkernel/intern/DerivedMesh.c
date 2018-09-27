@@ -1149,60 +1149,6 @@ DerivedMesh *mesh_create_derived(Mesh *me, float (*vertCos)[3])
 	return dm;
 }
 
-/* XXX2.8(Sybren): can be removed once DerivedMesh port is done */
-#ifdef WITH_DERIVEDMESH_DEPRECATED_FUNCS
-DerivedMesh *mesh_create_derived_for_modifier(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
-        ModifierData *md, int build_shapekey_layers)
-{
-	Mesh *me = ob->data;
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	DerivedMesh *dm;
-	KeyBlock *kb;
-	ModifierEvalContext mectx = {depsgraph, ob, 0};
-
-	md->scene = scene;
-
-	if (!(md->mode & eModifierMode_Realtime)) {
-		return NULL;
-	}
-
-	if (mti->isDisabled && mti->isDisabled(md, 0)) {
-		return NULL;
-	}
-
-	if (build_shapekey_layers && me->key && (kb = BLI_findlink(&me->key->block, ob->shapenr - 1))) {
-		BKE_keyblock_convert_to_mesh(kb, me);
-	}
-
-	if (mti->type == eModifierTypeType_OnlyDeform) {
-		int numVerts;
-		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
-
-		modwrap_deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
-		dm = mesh_create_derived(me, deformedVerts);
-
-		if (build_shapekey_layers)
-			add_shapekey_layers(dm, me, ob);
-
-		MEM_freeN(deformedVerts);
-	}
-	else {
-		DerivedMesh *tdm = mesh_create_derived(me, NULL);
-
-		if (build_shapekey_layers)
-			add_shapekey_layers(tdm, me, ob);
-
-		dm = modwrap_applyModifier(md, &mectx, tdm);
-		ASSERT_IS_VALID_DM(dm);
-
-		if (tdm != dm) tdm->release(tdm);
-	}
-
-	return dm;
-}
-#endif
-
 static float (*get_editbmesh_orco_verts(BMEditMesh *em))[3]
 {
 	BMIter iter;

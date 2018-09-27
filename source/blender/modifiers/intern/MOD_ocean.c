@@ -183,38 +183,6 @@ static bool dependsOnNormals(ModifierData *md)
 	return (omd->geometry_mode != MOD_OCEAN_GEOM_GENERATE);
 }
 
-#if 0
-static void dm_get_bounds(DerivedMesh *dm, float *sx, float *sy, float *ox, float *oy)
-{
-	/* get bounding box of underlying dm */
-	int v, totvert = dm->getNumVerts(dm);
-	float min[3], max[3], delta[3];
-
-	MVert *mvert = dm->getVertDataArray(dm, 0);
-
-	copy_v3_v3(min, mvert->co);
-	copy_v3_v3(max, mvert->co);
-
-	for (v = 1; v < totvert; v++, mvert++) {
-		min[0] = min_ff(min[0], mvert->co[0]);
-		min[1] = min_ff(min[1], mvert->co[1]);
-		min[2] = min_ff(min[2], mvert->co[2]);
-
-		max[0] = max_ff(max[0], mvert->co[0]);
-		max[1] = max_ff(max[1], mvert->co[1]);
-		max[2] = max_ff(max[2], mvert->co[2]);
-	}
-
-	sub_v3_v3v3(delta, max, min);
-
-	*sx = delta[0];
-	*sy = delta[1];
-
-	*ox = min[0];
-	*oy = min[1];
-}
-#endif
-
 #ifdef WITH_OCEANSIM
 
 typedef struct GenerateOceanGeometryData {

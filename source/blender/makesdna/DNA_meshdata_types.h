@@ -95,7 +95,7 @@ typedef struct MLoop {
  * There is no attempt to maintain this data's validity over time, any changes to the underlying mesh
  * invalidate the #MLoopTri array, which will need to be re-calculated.
  *
- * Users normally access this via #DerivedMesh.getLoopTriArray.
+ * Users normally access this via #BKE_mesh_runtime_looptri_ensure.
  * In rare cases its calculated directly, with #BKE_mesh_recalc_looptri.
  *
  * Typical usage includes:

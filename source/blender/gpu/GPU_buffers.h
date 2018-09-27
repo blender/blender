@@ -45,7 +45,7 @@ struct MPoly;
 struct MVert;
 struct PBVH;
 
-/* Buffers for non-DerivedMesh drawing */
+/* Buffers for drawing from PBVH grids. */
 typedef struct GPU_PBVH_Buffers GPU_PBVH_Buffers;
 
 /* build */

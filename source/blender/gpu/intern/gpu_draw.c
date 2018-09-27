@@ -69,7 +69,6 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
-#include "BKE_DerivedMesh.h"
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"

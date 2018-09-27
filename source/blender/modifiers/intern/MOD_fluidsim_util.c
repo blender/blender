@@ -164,7 +164,7 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 }
 
 #ifdef WITH_MOD_FLUID
-/* read .bobj.gz file into a fluidsimDerivedMesh struct */
+/* read .bobj.gz file into a fluidsimMesh struct */
 static Mesh *fluidsim_read_obj(const char *filename, const MPoly *mp_example)
 {
 	int wri = 0, i;

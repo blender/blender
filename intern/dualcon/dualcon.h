@@ -37,8 +37,6 @@ typedef unsigned int (*DualConTri)[3];
 
 typedef unsigned int (*DualConLoop);
 
-struct DerivedMesh;
-
 typedef struct DualConInput {
 	DualConLoop mloop;
 

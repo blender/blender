@@ -37,7 +37,6 @@
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 /* called by meshtools */
-struct DerivedMesh;
 struct Depsgraph;
 struct ImagePool;
 struct MTex;

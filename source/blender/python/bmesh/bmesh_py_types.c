@@ -35,7 +35,6 @@
 #include "DNA_material_types.h"
 
 #include "BKE_customdata.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 
