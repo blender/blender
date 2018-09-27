@@ -386,7 +386,7 @@ class _defs_view3d_select:
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 ("view3d.select_border",
                  dict(mode='SUB'),
-                 dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                 dict(type='EVT_TWEAK_A', value='ANY', shift=True)),
             ),
             draw_settings=draw_settings,
         )
@@ -406,7 +406,7 @@ class _defs_view3d_select:
                  dict(type='ACTIONMOUSE', value='PRESS')),
                 ("view3d.select_circle",
                  dict(deselect=True),
-                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+                 dict(type='ACTIONMOUSE', value='PRESS', shift=True)),
             ),
             draw_settings=draw_settings,
         )
@@ -426,7 +426,7 @@ class _defs_view3d_select:
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 ("view3d.select_lasso",
                  dict(mode='SUB'),
-                 dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                 dict(type='EVT_TWEAK_A', value='ANY', shift=True)),
             ),
             draw_settings=draw_settings,
         )
@@ -1182,7 +1182,7 @@ class _defs_uv_select:
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 # ("uv.select_border",
                 #  dict(deselect=True),
-                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                #  dict(type='EVT_TWEAK_A', value='ANY', shift=True)),
             ),
         )
 
@@ -1198,7 +1198,7 @@ class _defs_uv_select:
                  dict(type='ACTIONMOUSE', value='PRESS')),
                 # ("uv.select_circle",
                 #  dict(deselect=True),
-                #  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+                #  dict(type='ACTIONMOUSE', value='PRESS', shift=True)),
             ),
         )
 
@@ -1214,7 +1214,7 @@ class _defs_uv_select:
                  dict(type='EVT_TWEAK_A', value='ANY')),
                 # ("uv.select_lasso",
                 #  dict(deselect=True),
-                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                #  dict(type='EVT_TWEAK_A', value='ANY', shift=True)),
             ),
         )
 
