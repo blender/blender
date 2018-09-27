@@ -124,6 +124,7 @@ void BVH8::pack_aligned_node(int idx,
 	data[0].a = __uint_as_float(visibility & ~PATH_RAY_NODE_UNALIGNED);
 	data[0].b = time_from;
 	data[0].c = time_to;
+
 	for(int i = 0; i < num; i++) {
 		float3 bb_min = bounds[i].min;
 		float3 bb_max = bounds[i].max;
@@ -140,8 +141,8 @@ void BVH8::pack_aligned_node(int idx,
 
 	for(int i = num; i < 8; i++) {
 		/* We store BB which would never be recorded as intersection
-		* so kernel might safely assume there are always 4 child nodes.
-		*/
+		 * so kernel might safely assume there are always 4 child nodes.
+		 */
 		data[1][i] = FLT_MAX;
 		data[2][i] = -FLT_MAX;
 
@@ -153,6 +154,7 @@ void BVH8::pack_aligned_node(int idx,
 
 		data[7][i] = __int_as_float(0);
 	}
+
 	memcpy(&pack.nodes[idx], data, sizeof(float4)*BVH_ONODE_SIZE);
 }
 
@@ -189,6 +191,7 @@ void BVH8::pack_unaligned_node(int idx,
 {
 	float8 data[BVH_UNALIGNED_ONODE_SIZE];
 	memset(data, 0, sizeof(data));
+
 	data[0].a = __uint_as_float(visibility | PATH_RAY_NODE_UNALIGNED);
 	data[0].b = time_from;
 	data[0].c = time_to;
