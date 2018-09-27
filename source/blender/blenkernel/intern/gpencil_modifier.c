@@ -648,7 +648,9 @@ void BKE_gpencil_modifiers_foreachIDLink(Object *ob, GreasePencilIDWalkFunc walk
 	for (; md; md = md->next) {
 		const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
-		if (mti->foreachIDLink) mti->foreachIDLink(md, ob, walk, userData);
+		if (mti->foreachIDLink) {
+			mti->foreachIDLink(md, ob, walk, userData);
+		}
 		else if (mti->foreachObjectLink) {
 			/* each Object can masquerade as an ID, so this should be OK */
 			GreasePencilObjectWalkFunc fp = (GreasePencilObjectWalkFunc)walk;

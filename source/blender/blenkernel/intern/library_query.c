@@ -72,6 +72,7 @@
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
+#include "BKE_gpencil_modifier.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -187,6 +188,15 @@ static void library_foreach_rigidbodyworldSceneLooper(
 }
 
 static void library_foreach_modifiersForeachIDLink(
+        void *user_data, Object *UNUSED(object), ID **id_pointer, int cb_flag)
+{
+	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
+	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
+
+	FOREACH_FINALIZE_VOID;
+}
+
+static void library_foreach_gpencil_modifiersForeachIDLink(
         void *user_data, Object *UNUSED(object), ID **id_pointer, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
@@ -570,6 +580,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 
 				modifiers_foreachIDLink(object, library_foreach_modifiersForeachIDLink, &data);
+				BKE_gpencil_modifiers_foreachIDLink(object, library_foreach_gpencil_modifiersForeachIDLink, &data);
 				BKE_constraints_id_loop(&object->constraints, library_foreach_constraintObjectLooper, &data);
 
 				for (psys = object->particlesystem.first; psys; psys = psys->next) {
