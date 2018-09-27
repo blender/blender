@@ -128,21 +128,26 @@ def dice_icon_name(
         # Init on demand
         if not _dice_icon_name_cache:
             import re
+            count = 0
 
             # Search for eg: DEF_ICON(BRUSH_NUDGE) --> BRUSH_NUDGE
-            re_icon = re.compile(r'^\s*DEF_ICON\(\s*([A-Za-z0-9_]+)\s*\).*$')
+            re_icon = re.compile(r'^\s*DEF_ICON.*\(\s*([A-Za-z0-9_]+)\s*\).*$')
 
             ui_icons_h = os.path.join(SOURCE_DIR, "source", "blender", "editors", "include", "UI_icons.h")
             with open(ui_icons_h, 'r', encoding="utf-8") as f:
                 for l in f:
                     match = re_icon.search(l)
                     if match:
-                        icon_name = match.group(1).lower()
-                        # print(l.rstrip())
-                        _dice_icon_name_cache[len(_dice_icon_name_cache)] = icon_name
+                        if l.find('DEF_ICON_BLANK') == -1:
+                            icon_name = match.group(1).lower()
+                            _dice_icon_name_cache[count] = icon_name
+                        count += 1
         # ---- Done with icon cache
 
         index = (y * parts_x) + x
+        if index not in _dice_icon_name_cache:
+            return None
+
         icon_name = _dice_icon_name_cache[index]
 
         # for debugging its handy to sort by number
@@ -209,6 +214,9 @@ def dice(
                 parts_x, parts_y,
                 name_style=name_style, prefix=output_prefix
             )
+            if not id_str:
+                continue
+
             filepath = os.path.join(output, id_str)
             if VERBOSE:
                 print("  writing:", filepath)
