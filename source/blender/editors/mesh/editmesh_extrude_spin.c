@@ -166,6 +166,21 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 	return ret;
 }
 
+static bool edbm_spin_poll_property(const bContext *UNUSED(C), wmOperator *op, const PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+	const bool dupli = RNA_boolean_get(op->ptr, "dupli");
+
+	if (dupli) {
+		if (STREQ(prop_id, "use_auto_merge") ||
+		    STREQ(prop_id, "use_normal_flip"))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void MESH_OT_spin(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
@@ -179,6 +194,7 @@ void MESH_OT_spin(wmOperatorType *ot)
 	ot->invoke = edbm_spin_invoke;
 	ot->exec = edbm_spin_exec;
 	ot->poll = ED_operator_editmesh;
+	ot->poll_property = edbm_spin_poll_property;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
