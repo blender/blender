@@ -396,6 +396,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 	/* XXX todo, multiline drag draws... but maybe not, more types mixed wont work well */
 	glEnable(GL_BLEND);
 	for (drag = wm->drags.first; drag; drag = drag->next) {
+		const char text_col[] = {255, 255, 255, 255};
 		int iconsize = UI_DPI_ICON_SIZE;
 		int padding = 4 * UI_DPI_FAC;
 
@@ -420,7 +421,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			if (rect)
 				drag_rect_minmax(rect, x, y, x + iconsize, y + iconsize);
 			else
-				UI_icon_draw_aspect(x, y, drag->icon, 1.0f / UI_DPI_FAC, 0.8);
+				UI_icon_draw_aspect(x, y, drag->icon, 1.0f / UI_DPI_FAC, 0.8, text_col);
 		}
 
 		/* item name */
@@ -438,8 +439,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 		}
 		else {
-			const unsigned char col[] = {255, 255, 255, 255};
-			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), col);
+			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), (unsigned char*)text_col);
 		}
 
 		/* operator name with roundbox */

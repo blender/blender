@@ -723,11 +723,14 @@ void ui_draw_aligned_panel(
 	if (show_pin)
 #endif
 	{
+		char col_title[4];
+		UI_GetThemeColor4ubv(TH_TITLE, (unsigned char*)col_title);
+
 		GPU_blend(true);
 		UI_icon_draw_aspect(
 		        headrect.xmax - ((PNL_ICON * 2.2f) / block->aspect), headrect.ymin + (5.0f / block->aspect),
 		        (panel->flag & PNL_PIN) ? ICON_PINNED : ICON_UNPINNED,
-		        (block->aspect / UI_DPI_FAC), 1.0f);
+		        (block->aspect / UI_DPI_FAC), 1.0f, col_title);
 		GPU_blend(false);
 	}
 

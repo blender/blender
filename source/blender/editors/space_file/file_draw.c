@@ -397,7 +397,7 @@ static void file_draw_preview(
 	                       scale, scale, 1.0f, 1.0f, col);
 
 	if (icon) {
-		UI_icon_draw_aspect((float)xco, (float)yco, icon, icon_aspect, 1.0f);
+		UI_icon_draw_aspect((float)xco, (float)yco, icon, icon_aspect, 1.0f, NULL);
 	}
 
 	/* border */

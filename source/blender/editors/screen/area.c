@@ -250,7 +250,7 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 
 	alpha = min_ff(alpha, 0.75f);
 
-	UI_icon_draw_aspect(x, y, ICON_FULLSCREEN_EXIT, 0.7f / UI_DPI_FAC, alpha);
+	UI_icon_draw_aspect(x, y, ICON_FULLSCREEN_EXIT, 0.7f / UI_DPI_FAC, alpha, NULL);
 
 	/* debug drawing :
 	 * The click_rect is the same as defined in fullscreen_click_rcti_init

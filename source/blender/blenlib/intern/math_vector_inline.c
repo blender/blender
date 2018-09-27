@@ -459,6 +459,14 @@ MINLINE void mul_v4_fl(float r[4], float f)
 	r[3] *= f;
 }
 
+MINLINE void mul_v4_v4(float r[4], const float a[4])
+{
+	r[0] *= a[0];
+	r[1] *= a[1];
+	r[2] *= a[2];
+	r[3] *= a[3];
+}
+
 MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f)
 {
 	r[0] = a[0] * f;
