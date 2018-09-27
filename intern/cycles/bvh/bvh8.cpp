@@ -222,21 +222,21 @@ void BVH8::pack_unaligned_node(int idx,
 		 * so kernel might safely assume there are always 4 child nodes.
 		 */
 
-		data[1][i] = 1.0f;
-		data[2][i] = 0.0f;
-		data[3][i] = 0.0f;
+		data[1][i] = NAN;
+		data[2][i] = NAN;
+		data[3][i] = NAN;
 
-		data[4][i] = 0.0f;
-		data[5][i] = 0.0f;
-		data[6][i] = 0.0f;
+		data[4][i] = NAN;
+		data[5][i] = NAN;
+		data[6][i] = NAN;
 
-		data[7][i] = 0.0f;
-		data[8][i] = 0.0f;
-		data[9][i] = 0.0f;
+		data[7][i] = NAN;
+		data[8][i] = NAN;
+		data[9][i] = NAN;
 
-		data[10][i] = -FLT_MAX;
-		data[11][i] = -FLT_MAX;
-		data[12][i] = -FLT_MAX;
+		data[10][i] = NAN;
+		data[11][i] = NAN;
+		data[12][i] = NAN;
 
 		data[13][i] = __int_as_float(0);
 	}
