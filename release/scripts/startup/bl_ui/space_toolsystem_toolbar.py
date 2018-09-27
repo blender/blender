@@ -31,6 +31,9 @@ from .space_toolsystem_common import (
     ToolSelectPanelHelper,
     ToolDef,
 )
+from .properties_material_gpencil import (
+    GPENCIL_UL_matslots,
+)
 
 
 def generate_from_brushes_ex(
@@ -1229,13 +1232,28 @@ class _defs_gpencil_paint:
     def draw_color_selector(context, layout):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
-        ts = context.tool_settings
+        ma = gp_settings.material
         row = layout.row(align=True)
-        row.prop(ts, "use_gpencil_thumbnail_list", text="", icon='IMGDISPLAY')
-        if ts.use_gpencil_thumbnail_list is False:
-            row.template_ID(gp_settings, "material", live_icon=True)
+
+        icon_id = 0
+        if ma:
+            icon_id = ma.id_data.preview.icon_id
+            txt_ma = ma.name
+            maxw = 25
+            if len(txt_ma) > maxw:
+                txt_ma = txt_ma[:maxw - 5] + '..' + txt_ma[-3:]
         else:
-            row.template_greasepencil_color(gp_settings, "material", rows=3, cols=8, scale=0.8)
+            txt_ma = ""
+
+        row.label(text="Material:")
+        sub = row.row()
+        sub.ui_units_x = 8
+        sub.popover(
+            panel="TOPBAR_PT_gpencil_materials",
+            text=txt_ma,
+            icon_value=icon_id,
+        )
+
         row.prop(gp_settings, "pin_material", text="")
 
     @staticmethod
@@ -1596,6 +1614,51 @@ class _defs_gpencil_weight:
         )
 
 
+class TOPBAR_PT_gpencil_materials(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Materials"
+    bl_ui_units_x = 14
+
+    @classmethod
+    def poll(cls, context):
+        ob = context.object
+        return ob and ob.type == 'GPENCIL'
+
+    @staticmethod
+    def draw(self, context):
+        layout = self.layout
+        ob = context.object
+
+        if ob:
+            is_sortable = len(ob.material_slots) > 1
+            rows = 1
+            if (is_sortable):
+                rows = 4
+
+            row = layout.row()
+
+            row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
+
+            col = row.column(align=True)
+            col.operator("object.material_slot_add", icon='ZOOMIN', text="")
+            col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
+
+            col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
+
+            if is_sortable:
+                col.separator()
+
+                col.operator("object.material_slot_move", icon='TRIA_UP', text="").direction = 'UP'
+                col.operator("object.material_slot_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
+
+                col.separator()
+
+                sub = col.column(align=True)
+                sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
+                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
+
+
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
@@ -1907,6 +1970,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 classes = (
     IMAGE_PT_tools_active,
     VIEW3D_PT_tools_active,
+    TOPBAR_PT_gpencil_materials,
 )
 
 if __name__ == "__main__":  # only for live edit.
