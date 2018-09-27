@@ -230,11 +230,11 @@ static void rna_def_moviecliUser(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem clip_render_size_items[] = {
-		{MCLIP_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "Proxy size 25%", ""},
-		{MCLIP_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "Proxy size 50%", ""},
-		{MCLIP_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "Proxy size 75%", ""},
-		{MCLIP_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "Proxy size 100%", ""},
-		{MCLIP_PROXY_RENDER_SIZE_FULL, "FULL", 0, "No proxy, full render", ""},
+		{MCLIP_PROXY_RENDER_SIZE_25, "PROXY_25", 0, "25%", ""},
+		{MCLIP_PROXY_RENDER_SIZE_50, "PROXY_50", 0, "50%", ""},
+		{MCLIP_PROXY_RENDER_SIZE_75, "PROXY_75", 0, "75%", ""},
+		{MCLIP_PROXY_RENDER_SIZE_100, "PROXY_100", 0, "100%", ""},
+		{MCLIP_PROXY_RENDER_SIZE_FULL, "FULL", 0, "None, full render", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

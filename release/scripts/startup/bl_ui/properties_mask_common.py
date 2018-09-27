@@ -55,6 +55,8 @@ class MASK_PT_mask:
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         sc = context.space_data
         mask = sc.mask
@@ -77,6 +79,8 @@ class MASK_PT_layers:
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         sc = context.space_data
         mask = sc.mask
@@ -107,9 +111,9 @@ class MASK_PT_layers:
             layout.prop(active_layer, "blend")
             layout.prop(active_layer, "falloff")
 
-            row = layout.row(align=True)
-            row.prop(active_layer, "use_fill_overlap", text="Overlap")
-            row.prop(active_layer, "use_fill_holes", text="Holes")
+            col = layout.column()
+            col.prop(active_layer, "use_fill_overlap", text="Overlap")
+            col.prop(active_layer, "use_fill_holes", text="Holes")
 
 
 class MASK_PT_spline:
@@ -130,6 +134,8 @@ class MASK_PT_spline:
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         sc = context.space_data
         mask = sc.mask
@@ -137,11 +143,10 @@ class MASK_PT_spline:
 
         col = layout.column()
         col.prop(spline, "offset_mode")
-        col.prop(spline, "weight_interpolation")
+        col.prop(spline, "weight_interpolation", text="Interpolation")
 
-        row = col.row()
-        row.prop(spline, "use_cyclic")
-        row.prop(spline, "use_fill")
+        col.prop(spline, "use_cyclic")
+        col.prop(spline, "use_fill")
 
         col.prop(spline, "use_self_intersection_check")
 
@@ -166,6 +171,8 @@ class MASK_PT_point:
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         sc = context.space_data
         mask = sc.mask
@@ -188,17 +195,17 @@ class MASK_PT_point:
             row.prop(parent, "type", expand=True)
 
             col.prop_search(parent, "parent", tracking,
-                            "objects", icon='OBJECT_DATA', text="Object:")
+                            "objects", icon='OBJECT_DATA', text="Object")
 
             tracks_list = "tracks" if parent.type == 'POINT_TRACK' else "plane_tracks"
 
             if parent.parent in tracking.objects:
                 object = tracking.objects[parent.parent]
                 col.prop_search(parent, "sub_parent", object,
-                                tracks_list, icon='ANIM_DATA', text="Track:")
+                                tracks_list, icon='ANIM_DATA', text="Track")
             else:
                 col.prop_search(parent, "sub_parent", tracking,
-                                tracks_list, icon='ANIM_DATA', text="Track:")
+                                tracks_list, icon='ANIM_DATA', text="Track")
 
 
 class MASK_PT_display:
