@@ -1153,7 +1153,7 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 			MDeformWeight *dw = dvert->dw;
 			int deformed = 0;
 			unsigned int j;
-
+			float acum_weight = 0;
 			for (j = dvert->totweight; j != 0; j--, dw++) {
 				const int index = dw->def_nr;
 				if (index >= 0 && index < defbase_tot && (pchan = defnrToPC[index])) {
@@ -1167,7 +1167,21 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 						weight *= distfactor_to_bone(co, bone->arm_head, bone->arm_tail,
 						                             bone->rad_head, bone->rad_tail, bone->dist);
 					}
+
+					/* check limit of weight */
+					if (target->type == OB_GPENCIL) {
+						if (acum_weight + weight >= 1.0f) {
+							weight = 1.0f - acum_weight;
+						}
+						acum_weight += weight;
+					}
+
 					pchan_bone_deform(pchan, pdef_info, weight, vec, dq, smat, co, &contrib);
+
+					/* if aumulated weight limit exceed, exit loop */
+					if ((target->type == OB_GPENCIL) && (acum_weight >= 1.0f)) {
+						break;
+					}
 				}
 			}
 			/* if there are vertexgroups but not groups with bones
