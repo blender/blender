@@ -179,7 +179,7 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(OBVH)(KernelGlobals *kg,
 					avxf cnodes;
 					/* TODO(sergey): Investigate whether moving cnodes upwards
 					 * gives a speedup (will be different cache pattern but will
-					 * avoid extra check here),
+					 * avoid extra check here).
 					 */
 #if BVH_FEATURE(BVH_HAIR)
 					if(__float_as_uint(inodes.x) & PATH_RAY_NODE_UNALIGNED) {

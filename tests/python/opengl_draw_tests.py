@@ -36,6 +36,9 @@ if inside_blender:
 def render_file(filepath, output_filepath):
     command = (
         BLENDER,
+        "--no-window-focus",
+        "--window-geometry",
+        "0", "0", "1024", "768",
         "-noaudio",
         "--factory-startup",
         "--enable-autoexec",

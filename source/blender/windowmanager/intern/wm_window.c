@@ -117,8 +117,9 @@ static struct WMInitStruct {
 	int windowstate;
 	WinOverrideFlag override_flag;
 
+	bool window_focus;
 	bool native_pixels;
-} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, true};
+} wm_init_state = {0, 0, 0, 0, GHOST_kWindowStateNormal, 0, true, true};
 
 /* ******** win open & close ************ */
 
@@ -671,7 +672,9 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 
 #ifndef __APPLE__
 		/* set the state here, so minimized state comes up correct on windows */
-		GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
+		if (wm_init_state.window_focus) {
+			GHOST_SetWindowState(ghostwin, (GHOST_TWindowState)win->windowstate);
+		}
 #endif
 		/* until screens get drawn, make it nice gray */
 		glClearColor(0.55, 0.55, 0.55, 0.0);
@@ -1682,6 +1685,8 @@ void wm_ghost_init(bContext *C)
 		if (wm_init_state.native_pixels) {
 			GHOST_UseNativePixels();
 		}
+
+		GHOST_UseWindowFocus(wm_init_state.window_focus);
 	}
 }
 
@@ -1959,6 +1964,11 @@ void WM_init_state_normal_set(void)
 {
 	wm_init_state.windowstate = GHOST_kWindowStateNormal;
 	wm_init_state.override_flag |= WIN_OVERRIDE_WINSTATE;
+}
+
+void WM_init_window_focus_set(bool do_it)
+{
+	wm_init_state.window_focus = do_it;
 }
 
 void WM_init_native_pixels(bool do_it)

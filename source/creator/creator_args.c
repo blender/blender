@@ -504,6 +504,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
 	BLI_argsPrintArgDoc(ba, "--start-console");
 	BLI_argsPrintArgDoc(ba, "--no-native-pixels");
+	BLI_argsPrintArgDoc(ba, "--no-window-focus");
 
 	printf("\n");
 	printf("Python Options:\n");
@@ -1112,6 +1113,15 @@ static const char arg_handle_without_borders_doc[] =
 static int arg_handle_without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
 	WM_init_state_fullscreen_set();
+	return 0;
+}
+
+static const char arg_handle_no_window_focus_doc[] =
+"\n\tOpen behind other windows and without taking focus."
+;
+static int arg_handle_no_window_focus(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	WM_init_window_focus_set(false);
 	return 0;
 }
 
@@ -1927,6 +1937,7 @@ void main_args_setup(bContext *C, bArgs *ba)
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", CB(arg_handle_window_geometry), NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", CB(arg_handle_with_borders), NULL);
 	BLI_argsAdd(ba, 2, "-W", "--window-fullscreen", CB(arg_handle_without_borders), NULL);
+	BLI_argsAdd(ba, 2, NULL, "--no-window-focus", CB(arg_handle_no_window_focus), NULL);
 	BLI_argsAdd(ba, 2, "-con", "--start-console", CB(arg_handle_start_with_console), NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, CB(arg_handle_register_extension), NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, CB_EX(arg_handle_register_extension, silent), ba);
