@@ -28,7 +28,7 @@
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_FLY_DEBUG
-//#  define NDOF_FLY_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesnt thrash - campbell */
+//#  define NDOF_FLY_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesn't thrash - campbell */
 #endif /* WITH_INPUT_NDOF */
 
 #include "DNA_object_types.h"
@@ -150,7 +150,7 @@ void fly_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_add_item(keymap, MOUSEPAN, 0, 0, 0, FLY_MODAL_SPEED);
 
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_PRESS, KM_ANY, 0, FLY_MODAL_PAN_ENABLE);
-	/* XXX - Bug in the event system, middle mouse release doesnt work */
+	/* XXX - Bug in the event system, middle mouse release doesn't work */
 	WM_modalkeymap_add_item(keymap, MIDDLEMOUSE, KM_RELEASE, KM_ANY, 0, FLY_MODAL_PAN_DISABLE);
 
 	/* WASD */
@@ -730,7 +730,7 @@ static int flyApply(bContext *C, FlyInfo *fly)
 	RegionView3D *rv3d = fly->rv3d;
 
 	float mat[3][3]; /* 3x3 copy of the view matrix so we can move along the view axis */
-	float dvec[3] = {0, 0, 0}; /* this is the direction thast added to the view offset per redraw */
+	float dvec[3] = {0, 0, 0}; /* this is the direction that's added to the view offset per redraw */
 
 	/* Camera Uprighting variables */
 	float moffset[2]; /* mouse offset from the views center */

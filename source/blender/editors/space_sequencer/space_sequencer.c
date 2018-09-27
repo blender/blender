@@ -627,7 +627,7 @@ static void sequencer_preview_region_listener(bScreen *UNUSED(sc), ScrArea *UNUS
 		case NC_ANIMATION:
 			switch (wmn->data) {
 				case ND_KEYFRAME:
-					/* Otherwise, often prevents seing immediately effects of keyframe editing... */
+					/* Otherwise, often prevents seeing immediately effects of keyframe editing... */
 					BKE_sequencer_cache_cleanup();
 					ED_region_tag_redraw(ar);
 					break;

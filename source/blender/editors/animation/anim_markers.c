@@ -588,7 +588,7 @@ static int ed_markers_opwrap_invoke(bContext *C, wmOperator *op, const wmEvent *
 
 /* ************************** add markers *************************** */
 
-/* add TimeMarker at curent frame */
+/* add TimeMarker at current frame */
 static int ed_marker_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ListBase *markers = ED_context_get_markers(C);
@@ -816,7 +816,7 @@ static int ed_marker_move_invoke_wrapper(bContext *C, wmOperator *op, const wmEv
 	return ed_markers_opwrap_invoke_custom(C, op, event, ed_marker_move_invoke);
 }
 
-/* note, init has to be called succesfully */
+/* note, init has to be called successfully */
 static void ed_marker_move_apply(bContext *C, wmOperator *op)
 {
 #ifdef DURIAN_CAMERA_SWITCH

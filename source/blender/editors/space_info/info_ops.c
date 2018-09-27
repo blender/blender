@@ -70,7 +70,7 @@
 
 #include "info_intern.h"
 
-/********************* pack blend file libaries operator *********************/
+/********************* pack blend file libraries operator *********************/
 
 static int pack_libraries_exec(bContext *C, wmOperator *op)
 {
@@ -124,7 +124,7 @@ void FILE_OT_unpack_libraries(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/********************* toogle auto-pack operator *********************/
+/********************* toggle auto-pack operator *********************/
 
 static int autopack_toggle_exec(bContext *C, wmOperator *op)
 {

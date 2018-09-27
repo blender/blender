@@ -930,7 +930,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		tselem->flag |= TSE_CHILDSEARCH;
 
 	te->parent = parent;
-	te->index = index;   // for data arays
+	te->index = index;   // for data arrays
 	if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		/* pass */
 	}
@@ -1090,7 +1090,7 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 
 		int a, tot;
 
-		/* we do lazy build, for speed and to avoid infinite recusion */
+		/* we do lazy build, for speed and to avoid infinite recursion */
 
 		if (ptr->data == NULL) {
 			te->name = IFACE_("(empty)");
@@ -1458,7 +1458,7 @@ static int treesort_alpha(const void *v1, const void *v2)
 }
 
 
-/* this is nice option for later? doesnt look too useful... */
+/* this is nice option for later? doesn't look too useful... */
 #if 0
 static int treesort_obtype_alpha(const void *v1, const void *v2)
 {

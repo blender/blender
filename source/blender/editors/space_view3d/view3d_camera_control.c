@@ -87,7 +87,7 @@ typedef struct View3DCameraControl {
 
 
 	/* -------------------------------------------------------------------- */
-	/* intial values */
+	/* initial values */
 
 	/* root most parent */
 	Object *root_parent;

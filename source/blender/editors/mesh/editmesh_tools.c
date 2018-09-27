@@ -2898,7 +2898,7 @@ static float bm_edge_seg_isect(
 		b2 = ((x22 * y21) - (x21 * y22)) / xdiff2;
 	}
 	else {
-		m2 = MAXSLOPE;  /* Verticle slope  */
+		m2 = MAXSLOPE;  /* Vertical slope  */
 		b2 = x22;
 	}
 

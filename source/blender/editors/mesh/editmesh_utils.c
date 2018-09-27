@@ -433,14 +433,14 @@ void EDBM_selectmode_flush(BMEditMesh *em)
 
 void EDBM_deselect_flush(BMEditMesh *em)
 {
-	/* function below doesnt use. just do this to keep the values in sync */
+	/* function below doesn't use. just do this to keep the values in sync */
 	em->bm->selectmode = em->selectmode;
 	BM_mesh_deselect_flush(em->bm);
 }
 
 void EDBM_select_flush(BMEditMesh *em)
 {
-	/* function below doesnt use. just do this to keep the values in sync */
+	/* function below doesn't use. just do this to keep the values in sync */
 	em->bm->selectmode = em->selectmode;
 	BM_mesh_select_flush(em->bm);
 }

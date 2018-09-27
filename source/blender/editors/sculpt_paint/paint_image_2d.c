@@ -700,7 +700,7 @@ static void brush_painter_2d_refresh_cache(ImagePaintState *s, BrushPainter *pai
 			do_partial_update_mask = true;
 			renew_maxmask = true;
 		}
-		/* explicilty disable partial update even if it has been enabled above */
+		/* explicitly disable partial update even if it has been enabled above */
 		if (brush->mask_pressure) {
 			do_partial_update_mask = false;
 			renew_maxmask = true;

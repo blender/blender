@@ -963,7 +963,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 			uiItemR(col, &imaptr, "use_view_as_render", 0, NULL, ICON_NONE);
 
 			if (ima->source != IMA_SRC_GENERATED) {
-				if (compact == 0) { /* background image view doesnt need these */
+				if (compact == 0) { /* background image view doesn't need these */
 					ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 					bool has_alpha = true;
 

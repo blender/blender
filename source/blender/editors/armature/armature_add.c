@@ -667,7 +667,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 						if (axis_delta == 0.0f) {
 							/* both mirrored bones exist and point to eachother and overlap exactly.
 							 *
-							 * in this case theres no well defined solution, so de-select both and skip.
+							 * in this case there's no well defined solution, so de-select both and skip.
 							 */
 							ebone->flag      &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 							ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);

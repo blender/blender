@@ -1099,7 +1099,7 @@ void uiItemsFullEnumO_items(
 					uiItemS(target);
 				}
 				else {
-					/* XXX bug here, colums draw bottom item badly */
+					/* XXX bug here, columns draw bottom item badly */
 					uiItemS(target);
 				}
 			}

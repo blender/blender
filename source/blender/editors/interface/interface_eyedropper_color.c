@@ -103,7 +103,7 @@ static bool eyedropper_init(bContext *C, wmOperator *op)
 		display_device = scene->display_settings.display_device;
 		eye->display = IMB_colormanagement_display_get_named(display_device);
 
-		/* store inital color */
+		/* store initial color */
 		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
 		if (eye->display) {
 			IMB_colormanagement_display_to_scene_linear_v3(col, eye->display);

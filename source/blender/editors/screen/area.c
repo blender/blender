@@ -633,7 +633,7 @@ void ED_area_headerprint(ScrArea *sa, const char *str)
 {
 	ARegion *ar;
 
-	/* happens when running transform operators in backround mode */
+	/* happens when running transform operators in background mode */
 	if (sa == NULL)
 		return;
 
@@ -660,7 +660,7 @@ static void area_azone_initialize(wmWindow *win, bScreen *screen, ScrArea *sa)
 {
 	AZone *az;
 
-	/* reinitalize entirely, regions and fullscreen add azones too */
+	/* reinitialize entirely, regions and fullscreen add azones too */
 	BLI_freelistN(&sa->actionzones);
 
 	if (screen->state != SCREENNORMAL) {

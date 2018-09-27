@@ -122,7 +122,7 @@ typedef enum {
 
 #define SEARCHING_OUTLINER(sov)   (sov->search_flags & SO_SEARCH_RECURSIVE)
 
-/* is the currrent element open? if so we also show children */
+/* is the current element open? if so we also show children */
 #define TSELEM_OPEN(telm, sv)    ( (telm->flag & TSE_CLOSED) == 0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)) )
 
 /* outliner_tree.c ----------------------------------------------- */

@@ -1367,7 +1367,7 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 	 * on either side of mouse click (size of keyframe icon)
 	 */
 	key_hsize = ACHANNEL_HEIGHT(ac) * 0.8f;    /* standard channel height (to allow for some slop) */
-	key_hsize = roundf(key_hsize / 2.0f);      /* half-size (for either side), but rounded up to nearest int (for easier targetting) */
+	key_hsize = roundf(key_hsize / 2.0f);      /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
 
 	UI_view2d_region_to_view(v2d, mval[0] - (int)key_hsize, mval[1], &rectf.xmin, &rectf.ymin);
 	UI_view2d_region_to_view(v2d, mval[0] + (int)key_hsize, mval[1], &rectf.xmax, &rectf.ymax);

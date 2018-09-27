@@ -566,7 +566,7 @@ static float VecZDepthPersp(
 	}
 	else /* dummy values for zero area face */
 		w_tmp[0] = w_tmp[1] = w_tmp[2] = 1.0f / 3.0f;
-	/* done mimicing barycentric_weights_v2() */
+	/* done mimicking barycentric_weights_v2() */
 
 	return (v1[2] * w_tmp[0]) + (v2[2] * w_tmp[1]) + (v3[2] * w_tmp[2]);
 }
@@ -1690,7 +1690,7 @@ static ProjPixel *project_paint_uvpixel_init(
 	if (ibuf->rect_float) projPixel->pixel.f_pt[0] = 0;
 	else                  projPixel->pixel.ch_pt[0] = 0;
 #endif
-	/* pointer arithmetics */
+	/* pointer arithmetic */
 	projPixel->image_index = projima - ps->projImages;
 
 	return projPixel;
@@ -2582,7 +2582,7 @@ static void project_paint_face_init(
 		v2coSS = ps->screenCoords[lt_vtri[1]];
 		v3coSS = ps->screenCoords[lt_vtri[2]];
 
-		/* This funtion gives is a concave polyline in UV space from the clipped tri*/
+		/* This function gives is a concave polyline in UV space from the clipped tri*/
 		project_bucket_clip_face(
 		        is_ortho, is_flip_object,
 		        clip_rect, bucket_bounds,
@@ -2627,7 +2627,7 @@ static void project_paint_face_init(
 					//uv[0] = (((float)x) + 0.5f) / ibuf->x;
 					uv[0] = (float)x / ibuf_xf; /* use pixel offset UV coords instead */
 
-					/* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesnt work,
+					/* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesn't work,
 					 * could check the poly direction but better to do this */
 					if ((do_backfacecull == true  && IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
 					    (do_backfacecull == false && IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot)))
@@ -2720,7 +2720,7 @@ static void project_paint_face_init(
 
 			/* Now create new UV's for the seam face */
 			float (*outset_uv)[2] = ps->faceSeamUVs[tri_index];
-			float insetCos[3][3]; /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in prespective view */
+			float insetCos[3][3]; /* inset face coords.  NOTE!!! ScreenSace for ortho, Worldspace in perspective view */
 
 			const float *vCoSS[3]; /* vertex screenspace coords */
 

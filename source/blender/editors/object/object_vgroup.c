@@ -491,7 +491,7 @@ static void mesh_defvert_mirror_update_internal(
         const int def_nr)
 {
 	if (def_nr == -1) {
-		/* all vgroups, add groups where neded  */
+		/* all vgroups, add groups where needed  */
 		int flip_map_len;
 		int *flip_map = defgroup_flip_map(ob, &flip_map_len, true);
 		defvert_sync_mapped(dvert_dst, dvert_src, flip_map, flip_map_len, true);

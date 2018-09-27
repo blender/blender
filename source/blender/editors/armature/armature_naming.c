@@ -135,7 +135,7 @@ static void constraint_bone_name_fix(Object *ob, ListBase *conlist, const char *
 
 /* called by UI for renaming a bone */
 /* warning: make sure the original bone was not renamed yet! */
-/* seems messy, but thats what you get with not using pointers but channel names :) */
+/* seems messy, but that's what you get with not using pointers but channel names :) */
 void ED_armature_bone_rename(Main *bmain, bArmature *arm, const char *oldnamep, const char *newnamep)
 {
 	Object *ob;

@@ -4164,7 +4164,7 @@ void UI_but_drag_set_value(uiBut *but)
 void UI_but_drag_set_image(uiBut *but, const char *path, int icon, struct ImBuf *imb, float scale, const bool use_free)
 {
 	but->dragtype = WM_DRAG_PATH;
-	ui_def_but_icon(but, icon, 0);  /* no flag UI_HAS_ICON, so icon doesnt draw in button */
+	ui_def_but_icon(but, icon, 0);  /* no flag UI_HAS_ICON, so icon doesn't draw in button */
 	if ((but->dragflag & UI_BUT_DRAGPOIN_FREE)) {
 		MEM_SAFE_FREE(but->dragpoin);
 		but->dragflag &= ~UI_BUT_DRAGPOIN_FREE;

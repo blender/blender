@@ -479,7 +479,7 @@ static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e)
 /* Record the index in kcd->em->looptris of first looptri triple for a given face,
  * given an index for some triple in that array.
  * This assumes that all of the triangles for a given face are contiguous
- * in that array (as they are by the current tesselation routines).
+ * in that array (as they are by the current tessellation routines).
  * Actually store index + 1 in the hash, because 0 looks like "no entry"
  * to hash lookup routine; will reverse this in the get routine.
  * Doing this lazily rather than all at once for all faces.
@@ -1217,7 +1217,7 @@ static bool knife_ray_intersect_face(
 		lv2 = kcd->cagecos[BM_elem_index_get(tri[1]->v)];
 		lv3 = kcd->cagecos[BM_elem_index_get(tri[2]->v)];
 		/* using epsilon test in case ray is directly through an internal
-		 * tesselation edge and might not hit either tesselation tri with
+		 * tessellation edge and might not hit either tessellation tri with
 		 * an exact test;
 		 * we will exclude hits near real edges by a later test */
 		if (isect_ray_tri_epsilon_v3(v1, raydir, lv1, lv2, lv3, &lambda, ray_tri_uv, KNIFE_FLT_EPS)) {
@@ -2194,7 +2194,7 @@ static int knife_update_active(KnifeTool_OpData *kcd)
 	/* if no hits are found this would normally default to (0, 0, 0) so instead
 	 * get a point at the mouse ray closest to the previous point.
 	 * Note that drawing lines in `free-space` isn't properly supported
-	 * but theres no guarantee (0, 0, 0) has any geometry either - campbell */
+	 * but there's no guarantee (0, 0, 0) has any geometry either - campbell */
 	if (kcd->curr.vert == NULL && kcd->curr.edge == NULL && kcd->curr.bmface == NULL) {
 		float origin[3];
 		float origin_ofs[3];

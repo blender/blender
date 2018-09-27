@@ -303,7 +303,7 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 							 * NOTE: An alternative way would have been to instead hack the influence
 							 * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
 							 * is disabled but auto-blending isn't being used. However, that approach
-							 * is a bit hacky/hard to discover, and may cause backwards compatability issues,
+							 * is a bit hacky/hard to discover, and may cause backwards compatibility issues,
 							 * so it's better to just do it this way.
 							 */
 							strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;

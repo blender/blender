@@ -60,7 +60,7 @@
 
 #ifdef WITH_INPUT_NDOF
 //#  define NDOF_WALK_DEBUG
-//#  define NDOF_WALK_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesnt thrash - campbell */
+//#  define NDOF_WALK_DRAW_TOOMUCH  /* is this needed for ndof? - commented so redraw doesn't thrash - campbell */
 #endif
 
 #define USE_TABLET_SUPPORT
@@ -435,7 +435,7 @@ static bool walk_floor_distance_get(
 	        ray_start, ray_normal, r_distance,
 	        r_location, r_normal_dummy);
 
-	/* artifically scale the distance to the scene size */
+	/* artificially scale the distance to the scene size */
 	*r_distance /= walk->grid;
 	return ret;
 }
@@ -474,7 +474,7 @@ static bool walk_ray_cast(
 		negate_v3(r_normal);
 	}
 
-	/* artifically scale the distance to the scene size */
+	/* artificially scale the distance to the scene size */
 	*ray_distance /= walk->grid;
 
 	return ret;
@@ -1052,7 +1052,7 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
 					/* speed factor */
 					y *= WALK_ROTATE_FAC;
 
-					/* user adjustement factor */
+					/* user adjustment factor */
 					y *= walk->mouse_speed;
 
 					/* clamp the angle limits */
@@ -1090,7 +1090,7 @@ static int walkApply(bContext *C, wmOperator *op, WalkInfo *walk)
 					/* speed factor */
 					x *= WALK_ROTATE_FAC;
 
-					/* user adjustement factor */
+					/* user adjustment factor */
 					x *= walk->mouse_speed;
 
 					/* Rotate about the relative up vec */

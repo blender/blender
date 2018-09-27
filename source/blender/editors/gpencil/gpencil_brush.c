@@ -956,7 +956,7 @@ static bool gpsculpt_brush_apply_clone(bContext *C, tGP_BrushEditData *gso)
 		gp_brush_clone_add(C, gso);
 	}
 	else {
-		/* Stamp or Continous Mode */
+		/* Stamp or Continuous Mode */
 		if (1 /*gso->brush->mode == GP_EDITBRUSH_CLONE_MODE_STAMP*/) {
 			/* Stamp - Proceed to translate the newly added strokes */
 			gp_brush_clone_adjust(gso);

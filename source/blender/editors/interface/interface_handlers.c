@@ -160,7 +160,7 @@ typedef enum uiHandleButtonState {
 
 #ifdef USE_ALLSELECT
 
-/* Unfortunately theres no good way handle more generally:
+/* Unfortunately there's no good way handle more generally:
  * (propagate single clicks on layer buttons to other objects) */
 #define USE_ALLSELECT_LAYER_HACK
 
@@ -2529,7 +2529,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
  * It converts every UTF-8 character to an asterisk, and also remaps
  * the cursor position and selection start/end.
  *
- * \note: remaping is used, because password could contain UTF-8 characters.
+ * \note: remapping is used, because password could contain UTF-8 characters.
  *
  */
 
@@ -2793,7 +2793,7 @@ static bool ui_textedit_insert_buf(
 
 		if ((len + step >= data->maxlen) && (data->maxlen - (len + 1) > 0)) {
 			if (ui_but_is_utf8(but)) {
-				/* shorten 'step' to a utf8 algined size that fits  */
+				/* shorten 'step' to a utf8 aligned size that fits  */
 				BLI_strnlen_utf8_ex(buf, data->maxlen - (len + 1), &step);
 			}
 			else {
@@ -3859,7 +3859,7 @@ static int ui_do_but_HOTKEYEVT(
 		if (event->type == LEFTMOUSE && event->val == KM_PRESS) {
 			/* only cancel if click outside the button */
 			if (ui_but_contains_point_px(but->active->region, but, event->x, event->y) == 0) {
-				/* data->cancel doesnt work, this button opens immediate */
+				/* data->cancel doesn't work, this button opens immediate */
 				if (but->flag & UI_BUT_IMMEDIATE)
 					ui_but_value_set(but, 0);
 				else
@@ -4444,7 +4444,7 @@ static int ui_do_but_NUM(
 		else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 			if (data->dragchange) {
 #ifdef USE_DRAG_MULTINUM
-				/* if we started multibutton but didnt drag, then edit */
+				/* if we started multibutton but didn't drag, then edit */
 				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
 					click = 1;
 				}
@@ -4755,7 +4755,7 @@ static int ui_do_but_SLI(
 		else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 			if (data->dragchange) {
 #ifdef USE_DRAG_MULTINUM
-				/* if we started multibutton but didnt drag, then edit */
+				/* if we started multibutton but didn't drag, then edit */
 				if (data->multi_data.init == BUTTON_MULTI_INIT_SETUP) {
 					click = 1;
 				}
@@ -8327,7 +8327,7 @@ static void ui_handle_button_return_submenu(bContext *C, const wmEvent *event, u
 /* ************************* menu handling *******************************/
 
 /**
- * Function used to prevent loosing the open menu when using nested pulldowns,
+ * Function used to prevent losing the open menu when using nested pulldowns,
  * when moving mouse towards the pulldown menu over other buttons that could
  * steal the highlight from the current button, only checks:
  *
@@ -8547,7 +8547,7 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
  * let the parent menu get the event.
  *
  * This allows a menu to be open,
- * but send key events to the parent if theres no active buttons.
+ * but send key events to the parent if there's no active buttons.
  *
  * Without this keyboard navigation from menu's wont work.
  */

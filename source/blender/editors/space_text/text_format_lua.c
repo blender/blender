@@ -69,7 +69,7 @@ static int txtfmt_lua_find_keyword(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "while",    len)) i = len;
 	else                                                      i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
 	return i;
@@ -120,7 +120,7 @@ static int txtfmt_lua_find_specialvar(const char *string)
 	else if (STR_LITERAL_STARTSWITH(string, "xpcall",           len))   i = len;
 	else                                                i = 0;
 
-	/* If next source char is an identifier (eg. 'i' in "definate") no match */
+	/* If next source char is an identifier (eg. 'i' in "definite") no match */
 	if (i == 0 || text_check_identifier(string[i]))
 		return -1;
 	return i;

@@ -2291,7 +2291,7 @@ static struct TransIslandData *editmesh_islands_info_calc(
 
 	vert_map = MEM_mallocN(sizeof(*vert_map) * bm->totvert, __func__);
 	/* we shouldn't need this, but with incorrect selection flushing
-	 * its possible we have a selected vertex thats not in a face, for now best not crash in that case. */
+	 * its possible we have a selected vertex that's not in a face, for now best not crash in that case. */
 	copy_vn_i(vert_map, bm->totvert, -1);
 
 	BM_mesh_elem_table_ensure(bm, htype);
@@ -2895,7 +2895,7 @@ void flushTransSeq(TransInfo *t)
 
 		if (seq != seq_prev) {
 			if (seq->depth == 0) {
-				/* test overlap, displayes red outline */
+				/* test overlap, displays red outline */
 				seq->flag &= ~SEQ_OVERLAP;
 				if (BKE_sequence_test_overlap(seqbasep, seq)) {
 					seq->flag |= SEQ_OVERLAP;

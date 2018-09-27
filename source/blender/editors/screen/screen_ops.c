@@ -4259,7 +4259,7 @@ static void SCENE_OT_delete(wmOperatorType *ot)
 
 /* implementation note: a disappearing region needs at least 1 last draw with 100% backbuffer
  * texture over it- then triple buffer will clear it entirely.
- * This because flag RGN_HIDDEN is set in end - region doesnt draw at all then */
+ * This because flag RGN_HIDDEN is set in end - region doesn't draw at all then */
 
 typedef struct RegionAlphaInfo {
 	ScrArea *sa;

@@ -1094,7 +1094,7 @@ static bool acf_nla_controls_setting_valid(bAnimContext *UNUSED(ac), bAnimListEl
 		case ACHANNEL_SETTING_EXPAND:
 			return true;
 
-		// TOOD: selected?
+		// TODO: selected?
 
 		default: /* unsupported */
 			return false;
@@ -3022,7 +3022,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), eAnimChannel_Settings 
 		case ACHANNEL_SETTING_MUTE: /* animation muting - similar to frame lock... */
 			return GP_LAYER_FRAMELOCK;
 
-		case ACHANNEL_SETTING_VISIBLE: /* visiblity of the layers (NOT muting) */
+		case ACHANNEL_SETTING_VISIBLE: /* visibility of the layers (NOT muting) */
 			*neg = true;
 			return GP_LAYER_HIDE;
 

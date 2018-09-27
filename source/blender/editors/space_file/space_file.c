@@ -386,7 +386,7 @@ static void file_main_region_draw(const bContext *C, ARegion *ar)
 		v2d->keepofs |= V2D_LOCKOFS_Y;
 
 		/* XXX this happens on scaling down Screen (like from startup.blend) */
-		/* view2d has no type specific for filewindow case, which doesnt scroll vertically */
+		/* view2d has no type specific for filewindow case, which doesn't scroll vertically */
 		if (v2d->cur.ymax < 0) {
 			v2d->cur.ymin -= v2d->cur.ymax;
 			v2d->cur.ymax = 0;

@@ -242,7 +242,7 @@ float ED_armature_ebone_roll_to_vector(const EditBone *bone, const float align_a
 	return roll;
 }
 
-/* note, ranges arithmatic is used below */
+/* note, ranges arithmetic is used below */
 typedef enum eCalcRollTypes {
 	/* pos */
 	CALC_ROLL_POS_X = 0,
@@ -936,7 +936,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 						bstart = ebo;
 				}
 				else {
-					/* chain is broken... merge any continous segments then clear */
+					/* chain is broken... merge any continuous segments then clear */
 					if (bstart && bend)
 						bones_merge(obedit, bstart, bend, bchild, &chains);
 

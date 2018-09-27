@@ -545,7 +545,7 @@ static void mouse_nla_strips(bContext *C, bAnimContext *ac, const int mval[2], s
 		return;
 	}
 	else {
-		/* found some channel - we only really should do somethign when its an Nla-Track */
+		/* found some channel - we only really should do something when its an Nla-Track */
 		if (ale->type == ANIMTYPE_NLATRACK) {
 			NlaTrack *nlt = (NlaTrack *)ale->data;
 

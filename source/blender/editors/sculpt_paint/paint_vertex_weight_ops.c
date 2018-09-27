@@ -238,7 +238,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	}
 
 	if (changed) {
-		/* not really correct since the brush didnt change, but redraws the toolbar */
+		/* not really correct since the brush didn't change, but redraws the toolbar */
 		WM_main_add_notifier(NC_BRUSH | NA_EDITED, NULL); /* ts->wpaint->paint.brush */
 
 		return OPERATOR_FINISHED;

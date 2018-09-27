@@ -967,7 +967,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Tre
 	if (false == UI_but_active_only(C, ar, block, bt)) {
 		tselem->flag &= ~TSE_TEXTBUT;
 
-		/* bad! (notifier within draw) without this, we don't get a refesh */
+		/* bad! (notifier within draw) without this, we don't get a refresh */
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 	}
 }

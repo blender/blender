@@ -2808,7 +2808,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 				agrp->flag ^= AGRP_SELECTED;
 			}
 			else if (selectmode == -1) {
-				/* select all in group (and deselect everthing else) */
+				/* select all in group (and deselect everything else) */
 				FCurve *fcu;
 
 				/* deselect all other channels */

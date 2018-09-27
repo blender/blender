@@ -748,7 +748,7 @@ static bool visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 				case CONSTRAINT_TYPE_KINEMATIC:
 					return true;
 
-				/* single-transform constraits  */
+				/* single-transform constraints  */
 				case CONSTRAINT_TYPE_TRACKTO:
 					if (searchtype == VISUALKEY_ROT) return true;
 					break;
@@ -1686,7 +1686,7 @@ static int delete_key_v3d_exec(bContext *C, wmOperator *op)
 				}
 
 				/* special exception for bones, as this makes this operator more convenient to use
-				 * NOTE: This is only done in pose mode. In object mode, we're dealign with the entire object.
+				 * NOTE: This is only done in pose mode. In object mode, we're dealing with the entire object.
 				 */
 				if ((ob->mode & OB_MODE_POSE) && strstr(fcu->rna_path, "pose.bones[\"")) {
 					bPoseChannel *pchan;
