@@ -96,16 +96,15 @@ success:
 
 static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	const char * const keywords[] = {"type", "buf", NULL};
-
 	struct {
 		GPUPrimType type_id;
 		BPyGPUVertBuf *py_buf;
 	} params;
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        "$O&O!:GPUBatch.__new__", (char **)keywords,
+	static const char *_keywords[] = {"type", "buf", NULL};
+	static _PyArg_Parser _parser = {"$O&O!:GPUBatch.__new__", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        bpygpu_ParsePrimType, &params.type_id,
 	        &BPyGPUVertBuf_Type, &params.py_buf))
 	{
@@ -183,14 +182,14 @@ PyDoc_STRVAR(bpygpu_VertBatch_program_set_builtin_doc,
 );
 static PyObject *bpygpu_VertBatch_program_set_builtin(BPyGPUBatch *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"id", NULL};
-
 	struct {
 		const char *shader;
 	} params;
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "s:program_set_builtin", (char **)kwlist,
+	static const char *_keywords[] = {"id", NULL};
+	static _PyArg_Parser _parser = {"s:program_set_builtin", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &params.shader))
 	{
 		return NULL;

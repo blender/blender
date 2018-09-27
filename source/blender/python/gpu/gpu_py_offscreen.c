@@ -62,14 +62,14 @@
 
 static PyObject *bpygpu_offscreen_new(PyTypeObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"width", "height", "samples", NULL};
-
 	GPUOffScreen *ofs;
 	int width, height, samples = 0;
 	char err_out[256];
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "ii|i:new", (char **)(kwlist),
+	static const char *_keywords[] = {"width", "height", "samples", NULL};
+	static _PyArg_Parser _parser = {"ii|i:GPUOffScreen.__new__", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &width, &height, &samples))
 	{
 		return NULL;
@@ -134,13 +134,14 @@ PyDoc_STRVAR(bpygpu_offscreen_bind_doc,
 );
 static PyObject *bpygpu_offscreen_bind(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"save", NULL};
 	bool save = true;
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "|O&:bind", (char **)(kwlist),
+	static const char *_keywords[] = {"save", NULL};
+	static _PyArg_Parser _parser = {"|O&:bind", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        PyC_ParseBool, &save))
 	{
 		return NULL;
@@ -160,13 +161,14 @@ PyDoc_STRVAR(bpygpu_offscreen_unbind_doc,
 );
 static PyObject *bpygpu_offscreen_unbind(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"restore", NULL};
 	bool restore = true;
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "|O&:unbind", (char **)(kwlist),
+	static const char *_keywords[] = {"restore", NULL};
+	static _PyArg_Parser _parser = {"|O&:unbind", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        PyC_ParseBool, &restore))
 	{
 		return NULL;
@@ -194,8 +196,6 @@ PyDoc_STRVAR(bpygpu_offscreen_draw_view3d_doc,
 );
 static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"scene", "view_layer", "view3d", "region", "projection_matrix", "modelview_matrix", NULL};
-
 	MatrixObject *py_mat_modelview, *py_mat_projection;
 	PyObject *py_scene, *py_view_layer, *py_region, *py_view3d;
 
@@ -208,8 +208,13 @@ static PyObject *bpygpu_offscreen_draw_view3d(BPyGPUOffScreen *self, PyObject *a
 
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "OOOOO&O&:draw_view3d", (char **)(kwlist),
+	static const char *_keywords[] = {
+	        "scene", "view_layer", "view3d", "region",
+	        "projection_matrix", "modelview_matrix", NULL};
+
+	static _PyArg_Parser _parser = {"OOOOO&O&:draw_view3d", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &py_scene, &py_view_layer, &py_view3d, &py_region,
 	        Matrix_Parse4x4, &py_mat_projection,
 	        Matrix_Parse4x4, &py_mat_modelview) ||

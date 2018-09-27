@@ -213,16 +213,15 @@ static int bpygpu_find_id(const GPUVertFormat *fmt, const char *id)
 
 static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	const char * const keywords[] = {"len", "format", NULL};
-
 	struct {
 		BPyGPUVertFormat *py_fmt;
 		uint len;
 	} params;
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds,
-	        "$IO!:GPUVertBuf.__new__", (char **)keywords,
+	static const char *_keywords[] = {"len", "format", NULL};
+	static _PyArg_Parser _parser = {"$IO!:GPUVertBuf.__new__", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &params.len,
 	        &BPyGPUVertFormat_Type, &params.py_fmt))
 	{
@@ -241,15 +240,15 @@ PyDoc_STRVAR(bpygpu_VertBuf_fill_doc,
 );
 static PyObject *bpygpu_VertBuf_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"id", "data", NULL};
-
 	struct {
 		uint id;
 		PyObject *py_seq_data;
 	} params;
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "$IO:fill", (char **)kwlist,
+	static const char *_keywords[] = {"id", "data", NULL};
+	static _PyArg_Parser _parser = {"$IO:fill", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &params.id,
 	        &params.py_seq_data))
 	{

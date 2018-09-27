@@ -85,10 +85,6 @@ static int bpygpu_pyLong_as_shader_enum(PyObject *o)
 
 static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {
-	        "vertexcode", "fragcode", "geocode",
-	        "libcode", "defines", NULL};
-
 	struct {
 		const char *vertexcode;
 		const char *fragcode;
@@ -97,8 +93,13 @@ static PyObject *bpygpu_shader_new(PyTypeObject *UNUSED(type), PyObject *args, P
 		const char *defines;
 	} params = {0};
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "ss|$sss:GPUShader.__new__", (char **)kwlist,
+	static const char *_keywords[] = {
+	        "vertexcode", "fragcode", "geocode",
+	        "libcode", "defines", NULL};
+
+	static _PyArg_Parser _parser = {"ss|$sss:GPUShader.__new__", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &params.vertexcode, &params.fragcode, &params.geocode,
 	        &params.libcode, &params.defines))
 	{

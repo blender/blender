@@ -154,8 +154,6 @@ PyDoc_STRVAR(bpygpu_VertFormat_attr_add_doc,
 );
 static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *args, PyObject *kwds)
 {
-	static const char *kwlist[] = {"id", "comp_type", "len", "fetch_mode", NULL};
-
 	struct {
 		const char *id;
 		GPUVertCompType comp_type;
@@ -168,8 +166,10 @@ static PyObject *bpygpu_VertFormat_attr_add(BPyGPUVertFormat *self, PyObject *ar
 		return NULL;
 	}
 
-	if (!PyArg_ParseTupleAndKeywords(
-	        args, kwds, "$sO&IO&:attr_add", (char **)kwlist,
+	static const char *_keywords[] = {"id", "comp_type", "len", "fetch_mode", NULL};
+	static _PyArg_Parser _parser = {"$sO&IO&:attr_add", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
 	        &params.id,
 	        bpygpu_ParseVertCompType, &params.comp_type,
 	        &params.len,
