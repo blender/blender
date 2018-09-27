@@ -458,6 +458,7 @@ bGPdata *BKE_gpencil_data_addnew(Main *bmain, const char name[])
 
 	/* general flags */
 	gpd->flag |= GP_DATA_VIEWALIGN;
+	gpd->flag |= GP_DATA_STROKE_FORCE_RECALC;
 
 	/* GP object specific settings */
 	ARRAY_SET_ITEMS(gpd->line_color, 0.6f, 0.6f, 0.6f, 0.5f);

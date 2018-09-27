@@ -1178,7 +1178,7 @@ void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, flo
 
 					pchan_bone_deform(pchan, pdef_info, weight, vec, dq, smat, co, &contrib);
 
-					/* if aumulated weight limit exceed, exit loop */
+					/* if acumulated weight limit exceed, exit loop */
 					if ((target->type == OB_GPENCIL) && (acum_weight >= 1.0f)) {
 						break;
 					}
