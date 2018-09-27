@@ -2037,278 +2037,390 @@ static void ui_but_drop(bContext *C, const wmEvent *event, uiBut *but, uiHandleB
 
 /* ******************* copy and paste ********************  */
 
-/* c = copy, v = paste */
-static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data, const char mode, const bool copy_array)
+static bool ui_but_contains_password(uiBut *but)
 {
-	int buf_paste_len = 0;
-	const char *buf_paste = "";
-	bool buf_paste_alloc = false;
-	bool show_report = false;  /* use to display errors parsing paste input */
+	return but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD);
+}
 
+static void ui_but_get_pasted_text_from_clipboard(char **buf_paste, int *buf_len)
+{
+	char *text;
+	int length;
+	/* get only first line even if the clipboard contains multiple lines */
+	text = WM_clipboard_text_get_firstline(false, &length);
+
+	if (text) {
+		*buf_paste = text;
+		*buf_len = length;
+	}
+	else {
+		*buf_paste = MEM_callocN(sizeof(char), __func__);
+		*buf_len = 0;
+	}
+}
+
+static int get_but_property_array_length(uiBut *but)
+{
+	return RNA_property_array_length(&but->rnapoin, but->rnaprop);
+}
+
+static void ui_but_set_float_array(bContext *C, uiBut *but, uiHandleButtonData *data, float *values, int array_length)
+{
+	button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+
+	for (int i = 0; i < array_length; i++) {
+		RNA_property_float_set_index(&but->rnapoin, but->rnaprop, i, values[i]);
+	}
+	if (data) data->value = values[but->rnaindex];
+
+	button_activate_state(C, but, BUTTON_STATE_EXIT);
+}
+
+static void float_array_to_string(float *values, int array_length, char *output, int max_output_len)
+{
+	/* to avoid buffer overflow attacks; numbers are quite arbitrary */
+	BLI_assert(max_output_len > 15);
+	max_output_len -= 10;
+
+	int current_index = 0;
+	output[current_index] = '[';
+	current_index++;
+
+	for (int i = 0; i < array_length; i++) {
+		int length = BLI_snprintf(output + current_index, max_output_len - current_index, "%f", values[i]);
+		current_index += length;
+
+		if (i < array_length - 1) {
+			if (current_index < max_output_len) {
+				output[current_index + 0] = ',';
+				output[current_index + 1] = ' ';
+				current_index += 2;
+			}
+		}
+	}
+
+	output[current_index + 0] = ']';
+	output[current_index + 1] = '\0';
+}
+
+static void ui_but_copy_numeric_array(uiBut *but, char *output, int max_output_len)
+{
+	int array_length = get_but_property_array_length(but);
+	float *values = alloca(array_length * sizeof(float));
+	RNA_property_float_get_array(&but->rnapoin, but->rnaprop, values);
+	float_array_to_string(values, array_length, output, max_output_len);
+}
+
+static bool parse_float_array(char *text, float *values, int expected_length)
+{
+	/* can parse max 4 floats for now */
+	BLI_assert(0 <= expected_length && expected_length <= 4);
+
+	float v[5];
+	int actual_length = sscanf(text, "[%f, %f, %f, %f, %f]", &v[0], &v[1], &v[2], &v[3], &v[4]);
+
+	if (actual_length == expected_length) {
+		memcpy(values, v, sizeof(float) * expected_length);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+static void ui_but_paste_numeric_array(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
+{
+	int array_length = get_but_property_array_length(but);
+	if (array_length > 4) {
+		// not supported for now
+		return;
+	}
+
+	float *values = alloca(sizeof(float) * array_length);
+
+	if (parse_float_array(buf_paste, values, array_length)) {
+		ui_but_set_float_array(C, but, data, values, array_length);
+	}
+	else {
+		WM_report(RPT_ERROR, "Expected an array of numbers: [n, n, ...]");
+	}
+}
+
+static void ui_but_copy_numeric_value(uiBut *but, char *output, int max_output_len)
+{
+	/* Get many decimal places, then strip trailing zeros.
+	 * note: too high values start to give strange results */
+	ui_but_string_get_ex(but, output, max_output_len, UI_PRECISION_FLOAT_MAX, false, NULL);
+	BLI_str_rstrip_float_zero(output, '\0');
+}
+
+static void ui_but_paste_numeric_value(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
+{
+	double value;
+
+	if (ui_but_string_set_eval_num(C, but, buf_paste, &value)) {
+		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+		data->value = value;
+		ui_but_string_set(C, but, buf_paste);
+		button_activate_state(C, but, BUTTON_STATE_EXIT);
+	} else {
+		WM_report(RPT_ERROR, "Expected a number");
+	}
+}
+
+static bool ui_but_has_array_value(uiBut *but)
+{
+	return (but->rnapoin.data && but->rnaprop &&
+	        ELEM(RNA_property_subtype(but->rnaprop), PROP_COLOR, PROP_TRANSLATION, PROP_DIRECTION,
+	        PROP_VELOCITY, PROP_ACCELERATION, PROP_MATRIX, PROP_EULER, PROP_QUATERNION, PROP_AXISANGLE,
+	        PROP_XYZ, PROP_XYZ_LENGTH, PROP_COLOR_GAMMA, PROP_COORDS));
+}
+
+static void ui_but_paste_normalized_vector(bContext *C, uiBut *but, char *buf_paste)
+{
+	float xyz[3];
+	if (parse_float_array(buf_paste, xyz, 3)) {
+		if (normalize_v3(xyz) == 0.0f) {
+			/* better set Z up then have a zero vector */
+			xyz[2] = 1.0;
+		}
+		ui_but_set_float_array(C, but, NULL, xyz, 3);
+	}
+	else {
+		WM_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
+	}
+}
+
+static void ui_but_copy_color(uiBut *but, char *output, int max_output_len)
+{
+	float rgba[4];
+
+	if (but->rnaprop && get_but_property_array_length(but) == 4)
+		rgba[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
+	else
+		rgba[3] = 1.0f;
+
+	ui_but_v3_get(but, rgba);
+
+	/* convert to linear color to do compatible copy between gamma and non-gamma */
+	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
+		srgb_to_linearrgb_v3_v3(rgba, rgba);
+
+	float_array_to_string(rgba, 4, output, max_output_len);
+}
+
+static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
+{
+	float rgba[4];
+	if (parse_float_array(buf_paste, rgba, 4)) {
+		/* assume linear colors in buffer */
+		if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+			linearrgb_to_srgb_v3_v3(rgba, rgba);
+		}
+		ui_but_set_float_array(C, but, NULL, rgba, 4);
+	}
+	else {
+		WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
+	}
+}
+
+static void ui_but_copy_text(bContext *C, uiBut *but, char *output, int max_output_len)
+{
+	button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+	strncpy(output, but->active->str, max_output_len);
+	but->active->cancel = true;
+	button_activate_state(C, but, BUTTON_STATE_EXIT);
+}
+
+static void ui_but_paste_text(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
+{
+	button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+	ui_textedit_string_set(but, but->active, buf_paste);
+
+	if (but->type == UI_BTYPE_SEARCH_MENU) {
+		but->changed = true;
+		ui_searchbox_update(C, data->searchbox, but, true);
+	}
+
+	button_activate_state(C, but, BUTTON_STATE_EXIT);
+}
+
+static void ui_but_copy_colorband(uiBut *but)
+{
+	if (but->poin != NULL) {
+		memcpy(&but_copypaste_coba, but->poin, sizeof(ColorBand));
+	}
+}
+
+static void ui_but_paste_colorband(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	if (but_copypaste_coba.tot != 0) {
+		if (!but->poin)
+			but->poin = MEM_callocN(sizeof(ColorBand), "colorband");
+
+		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+		memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
+		button_activate_state(C, but, BUTTON_STATE_EXIT);
+	}
+}
+
+static void ui_but_copy_curvemapping(uiBut *but)
+{
+	if (but->poin != NULL) {
+		but_copypaste_curve_alive = true;
+		curvemapping_free_data(&but_copypaste_curve);
+		curvemapping_copy_data(&but_copypaste_curve, (CurveMapping *) but->poin);
+	}
+}
+
+static void ui_but_paste_curvemapping(bContext *C, uiBut *but)
+{
+	if (but_copypaste_curve_alive) {
+		if (!but->poin)
+			but->poin = MEM_callocN(sizeof(CurveMapping), "curvemapping");
+
+		button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
+		curvemapping_free_data((CurveMapping *) but->poin);
+		curvemapping_copy_data((CurveMapping *) but->poin, &but_copypaste_curve);
+		button_activate_state(C, but, BUTTON_STATE_EXIT);
+	}
+}
+
+static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int max_output_len)
+{
+	PointerRNA *opptr;
+	opptr = UI_but_operator_ptr_get(but);
+
+	char *str;
+	str = WM_operator_pystring_ex(C, NULL, false, true, but->optype, opptr);
+	strncpy(output, str, max_output_len);
+	MEM_freeN(str);
+}
+
+static void ui_but_copy_menu(uiBut *but, char *output, int max_output_len)
+{
+	MenuType *mt = UI_but_menutype_get(but);
+	if (mt) {
+		BLI_snprintf(output, max_output_len, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+	}
+}
+
+static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
+{
+	if (ui_but_contains_password(but)) {
+		return;
+	}
+
+	static const int max_copy_length = UI_MAX_DRAW_STR;
+	char buffer_to_copy[UI_MAX_DRAW_STR] = { 0 };
+
+	bool has_required_data = !(but->poin == NULL && but->rnapoin.data == NULL);
+
+	switch (but->type)
+	{
+	case UI_BTYPE_NUM:
+	case UI_BTYPE_NUM_SLIDER:
+		if (!has_required_data) break;
+		if (copy_array && ui_but_has_array_value(but)) {
+			ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
+		}
+		else {
+			ui_but_copy_numeric_value(but, buffer_to_copy, max_copy_length);
+		}
+		break;
+
+	case UI_BTYPE_UNITVEC:
+		if (!has_required_data) break;
+		ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
+		break;
+
+	case UI_BTYPE_COLOR:
+		if (!has_required_data) break;
+		ui_but_copy_color(but, buffer_to_copy, max_copy_length);
+		break;
+
+	case UI_BTYPE_TEXT:
+	case UI_BTYPE_SEARCH_MENU:
+		if (!has_required_data) break;
+		ui_but_copy_text(C, but, buffer_to_copy, max_copy_length);
+		break;
+
+	case UI_BTYPE_COLORBAND:
+		ui_but_copy_colorband(but);
+		break;
+
+	case UI_BTYPE_CURVE:
+		ui_but_copy_curvemapping(but);
+		break;
+
+	case UI_BTYPE_BUT:
+		ui_but_copy_operator(C, but, buffer_to_copy, max_copy_length);
+		break;
+
+	case UI_BTYPE_MENU:
+	case UI_BTYPE_PULLDOWN:
+		ui_but_copy_menu(but, buffer_to_copy, max_copy_length);
+		break;
+
+	default:
+		break;
+	}
+
+	WM_clipboard_text_set(buffer_to_copy, 0);
+}
+
+static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, const bool paste_array)
+{
 	BLI_assert((but->flag & UI_BUT_DISABLED) == 0); /* caller should check */
 
-	if (mode == 'c') {
-		/* disallow copying from any passwords */
-		if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PASSWORD)) {
-			return;
-		}
-	}
+	int buf_paste_len = 0;
+	char *buf_paste;
+	ui_but_get_pasted_text_from_clipboard(&buf_paste, &buf_paste_len);
 
-	if (mode == 'v') {
-		/* extract first line from clipboard in case of multi-line copies */
-		const char *buf_paste_test;
+	bool has_required_data = !(but->poin == NULL && but->rnapoin.data == NULL);
 
-		buf_paste_test = WM_clipboard_text_get_firstline(false, &buf_paste_len);
-		if (buf_paste_test) {
-			buf_paste = buf_paste_test;
-			buf_paste_alloc = true;
-		}
-	}
-
-	/* No return from here down */
-
-
-	/* numeric value */
-	if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) {
-
-		if (but->poin == NULL && but->rnapoin.data == NULL) {
-			/* pass */
-		}
-		else if (copy_array && but->rnapoin.data && but->rnaprop &&
-		         ELEM(RNA_property_subtype(but->rnaprop), PROP_COLOR, PROP_TRANSLATION, PROP_DIRECTION,
-		              PROP_VELOCITY, PROP_ACCELERATION, PROP_MATRIX, PROP_EULER, PROP_QUATERNION, PROP_AXISANGLE,
-		              PROP_XYZ, PROP_XYZ_LENGTH, PROP_COLOR_GAMMA, PROP_COORDS))
-		{
-			float values[4];
-			int array_length = RNA_property_array_length(&but->rnapoin, but->rnaprop);
-
-			if (mode == 'c') {
-				char buf_copy[UI_MAX_DRAW_STR];
-
-				if (array_length == 4) {
-					values[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
-				}
-				else {
-					values[3] = 0.0f;
-				}
-				ui_but_v3_get(but, values);
-
-				BLI_snprintf(buf_copy, sizeof(buf_copy), "[%f, %f, %f, %f]", values[0], values[1], values[2], values[3]);
-				WM_clipboard_text_set(buf_copy, 0);
-			}
-			else {
-				if (sscanf(buf_paste, "[%f, %f, %f, %f]", &values[0], &values[1], &values[2], &values[3]) >= array_length) {
-					button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-
-					ui_but_v3_set(but, values);
-					if (but->rnaprop && array_length == 4) {
-						RNA_property_float_set_index(&but->rnapoin, but->rnaprop, 3, values[3]);
-					}
-					data->value = values[but->rnaindex];
-
-					button_activate_state(C, but, BUTTON_STATE_EXIT);
-				}
-				else {
-					WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
-					show_report = true;
-				}
-			}
-		}
-		else if (mode == 'c') {
-			/* Get many decimal places, then strip trailing zeros.
-			 * note: too high values start to give strange results */
-			char buf_copy[UI_MAX_DRAW_STR];
-			ui_but_string_get_ex(but, buf_copy, sizeof(buf_copy), UI_PRECISION_FLOAT_MAX, false, NULL);
-			BLI_str_rstrip_float_zero(buf_copy, '\0');
-
-			WM_clipboard_text_set(buf_copy, 0);
+	switch (but->type)
+	{
+	case UI_BTYPE_NUM:
+	case UI_BTYPE_NUM_SLIDER:
+		if (!has_required_data) break;
+		if (paste_array && ui_but_has_array_value(but)) {
+			ui_but_paste_numeric_array(C, but, data, buf_paste);
 		}
 		else {
-			double val;
-
-			if (ui_but_string_set_eval_num(C, but, buf_paste, &val)) {
-				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				data->value = val;
-				ui_but_string_set(C, but, buf_paste);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-			else {
-				/* evaluating will report errors */
-				show_report = true;
-			}
+			ui_but_paste_numeric_value(C, but, data, buf_paste);
 		}
+		break;
+
+	case UI_BTYPE_UNITVEC:
+		if (!has_required_data) break;
+		ui_but_paste_normalized_vector(C, but, buf_paste);
+		break;
+
+	case UI_BTYPE_COLOR:
+		if (!has_required_data) break;
+		ui_but_paste_color(C, but, buf_paste);
+		break;
+
+	case UI_BTYPE_TEXT:
+	case UI_BTYPE_SEARCH_MENU:
+		if (!has_required_data) break;
+		ui_but_paste_text(C, but, data, buf_paste);
+		break;
+
+	case UI_BTYPE_COLORBAND:
+		ui_but_paste_colorband(C, but, data);
+		break;
+
+	case UI_BTYPE_CURVE:
+		ui_but_paste_curvemapping(C, but);
+		break;
+
+	default:
+		break;
 	}
 
-	/* NORMAL button */
-	else if (but->type == UI_BTYPE_UNITVEC) {
-		float xyz[3];
-
-		if (but->poin == NULL && but->rnapoin.data == NULL) {
-			/* pass */
-		}
-		else if (mode == 'c') {
-			char buf_copy[UI_MAX_DRAW_STR];
-			ui_but_v3_get(but, xyz);
-			BLI_snprintf(buf_copy, sizeof(buf_copy), "[%f, %f, %f]", xyz[0], xyz[1], xyz[2]);
-			WM_clipboard_text_set(buf_copy, 0);
-		}
-		else {
-			if (sscanf(buf_paste, "[%f, %f, %f]", &xyz[0], &xyz[1], &xyz[2]) == 3) {
-				if (normalize_v3(xyz) == 0.0f) {
-					/* better set Z up then have a zero vector */
-					xyz[2] = 1.0;
-				}
-				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				ui_but_v3_set(but, xyz);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-			else {
-				WM_report(RPT_ERROR, "Paste expected 3 numbers, formatted: '[n, n, n]'");
-				show_report = true;
-			}
-		}
-	}
-
-
-	/* RGB triple */
-	else if (but->type == UI_BTYPE_COLOR) {
-		float rgba[4];
-
-		if (but->poin == NULL && but->rnapoin.data == NULL) {
-			/* pass */
-		}
-		else if (mode == 'c') {
-			char buf_copy[UI_MAX_DRAW_STR];
-
-			if (but->rnaprop && RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
-				rgba[3] = RNA_property_float_get_index(&but->rnapoin, but->rnaprop, 3);
-			else
-				rgba[3] = 1.0f;
-
-			ui_but_v3_get(but, rgba);
-			/* convert to linear color to do compatible copy between gamma and non-gamma */
-			if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-				srgb_to_linearrgb_v3_v3(rgba, rgba);
-
-			BLI_snprintf(buf_copy, sizeof(buf_copy), "[%f, %f, %f, %f]", rgba[0], rgba[1], rgba[2], rgba[3]);
-			WM_clipboard_text_set(buf_copy, 0);
-
-		}
-		else {
-			if (sscanf(buf_paste, "[%f, %f, %f, %f]", &rgba[0], &rgba[1], &rgba[2], &rgba[3]) == 4) {
-				/* assume linear colors in buffer */
-				if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
-					linearrgb_to_srgb_v3_v3(rgba, rgba);
-
-				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				ui_but_v3_set(but, rgba);
-				if (but->rnaprop && RNA_property_array_length(&but->rnapoin, but->rnaprop) == 4)
-					RNA_property_float_set_index(&but->rnapoin, but->rnaprop, 3, rgba[3]);
-
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-			else {
-				WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
-				show_report = true;
-			}
-		}
-	}
-
-	/* text/string and ID data */
-	else if (ELEM(but->type, UI_BTYPE_TEXT, UI_BTYPE_SEARCH_MENU)) {
-		uiHandleButtonData *active_data = but->active;
-
-		if (but->poin == NULL && but->rnapoin.data == NULL) {
-			/* pass */
-		}
-		else if (mode == 'c') {
-			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-			WM_clipboard_text_set(active_data->str, 0);
-			active_data->cancel = true;
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-		}
-		else {
-			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-
-			ui_textedit_string_set(but, active_data, buf_paste);
-
-			if (but->type == UI_BTYPE_SEARCH_MENU) {
-				/* else uiSearchboxData.active member is not updated [#26856] */
-				but->changed = true;
-				ui_searchbox_update(C, data->searchbox, but, true);
-			}
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-		}
-	}
-	/* colorband (not supported by system clipboard) */
-	else if (but->type == UI_BTYPE_COLORBAND) {
-		if (mode == 'c') {
-			if (but->poin != NULL) {
-				memcpy(&but_copypaste_coba, but->poin, sizeof(ColorBand));
-			}
-		}
-		else {
-			if (but_copypaste_coba.tot != 0) {
-				if (!but->poin)
-					but->poin = MEM_callocN(sizeof(ColorBand), "colorband");
-
-				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-		}
-	}
-	else if (but->type == UI_BTYPE_CURVE) {
-		if (mode == 'c') {
-			if (but->poin != NULL) {
-				but_copypaste_curve_alive = true;
-				curvemapping_free_data(&but_copypaste_curve);
-				curvemapping_copy_data(&but_copypaste_curve, (CurveMapping *) but->poin);
-			}
-		}
-		else {
-			if (but_copypaste_curve_alive) {
-				if (!but->poin)
-					but->poin = MEM_callocN(sizeof(CurveMapping), "curvemapping");
-
-				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-				curvemapping_free_data((CurveMapping *) but->poin);
-				curvemapping_copy_data((CurveMapping *) but->poin, &but_copypaste_curve);
-				button_activate_state(C, but, BUTTON_STATE_EXIT);
-			}
-		}
-	}
-	/* operator button (any type) */
-	else if (but->optype) {
-		if (mode == 'c') {
-			PointerRNA *opptr;
-			char *str;
-			opptr = UI_but_operator_ptr_get(but); /* allocated when needed, the button owns it */
-
-			str = WM_operator_pystring_ex(C, NULL, false, true, but->optype, opptr);
-
-			WM_clipboard_text_set(str, 0);
-
-			MEM_freeN(str);
-		}
-	}
-	/* menu (any type) */
-	else if (ELEM(but->type, UI_BTYPE_MENU, UI_BTYPE_PULLDOWN)) {
-		MenuType *mt = UI_but_menutype_get(but);
-		if (mt) {
-			char str[32 + sizeof(mt->idname)];
-			BLI_snprintf(str, sizeof(str), "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
-			WM_clipboard_text_set(str, 0);
-		}
-	}
-
-	if (buf_paste_alloc) {
-		MEM_freeN((void *)buf_paste);
-	}
-
-	if (show_report) {
-		WM_report_banner_show();
-	}
+	MEM_freeN((void *)buf_paste);
 }
 
 /**
@@ -6452,8 +6564,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	data = but->active;
 	retval = WM_UI_HANDLER_CONTINUE;
 
-	if (but->flag & UI_BUT_DISABLED)
-		return WM_UI_HANDLER_CONTINUE;
+	bool is_disabled = but->flag & UI_BUT_DISABLED;
 
 	/* if but->pointype is set, but->poin should be too */
 	BLI_assert(!but->pointype || but->poin);
@@ -6462,23 +6573,38 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 	 * keymaps are handled using operators (see #ED_keymap_ui). */
 
 	if ((data->state == BUTTON_STATE_HIGHLIGHT) || (event->type == EVT_DROP)) {
-		/* handle copy-paste */
-		if (ELEM(event->type, CKEY, VKEY) && event->val == KM_PRESS &&
-		    IS_EVENT_MOD(event, ctrl, oskey) && !event->shift)
-		{
-			/* Specific handling for listrows, we try to find their overlapping tex button. */
-			if (but->type == UI_BTYPE_LISTROW) {
-				uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_OVER);
-				if (labelbut) {
-					but = labelbut;
-					data = but->active;
-				}
+
+		/* handle copy and paste */
+		bool is_press_ctrl_but_no_shift = event->val == KM_PRESS && IS_EVENT_MOD(event, ctrl, oskey) && !event->shift;
+		bool do_copy = event->type == CKEY && is_press_ctrl_but_no_shift;
+		bool do_paste = event->type == VKEY && is_press_ctrl_but_no_shift;
+
+		/* Specific handling for listrows, we try to find their overlapping tex button. */
+		if ((do_copy || do_paste) && but->type == UI_BTYPE_LISTROW) {
+			uiBut *labelbut = ui_but_list_row_text_activate(C, but, data, event, BUTTON_ACTIVATE_OVER);
+			if (labelbut) {
+				but = labelbut;
+				data = but->active;
 			}
-			ui_but_copy_paste(C, but, data, (event->type == CKEY) ? 'c' : 'v', event->alt);
+		}
+
+		/* do copy first, because it is the only allowed operator when disabled */
+		if (do_copy) {
+			ui_but_copy(C, but, event->alt);
 			return WM_UI_HANDLER_BREAK;
 		}
+
+		if (is_disabled) {
+			return WM_UI_HANDLER_CONTINUE;
+		}
+
+		if (do_paste) {
+			ui_but_paste(C, but, data, event->alt);
+			return WM_UI_HANDLER_BREAK;
+		}
+
 		/* handle drop */
-		else if (event->type == EVT_DROP) {
+		if (event->type == EVT_DROP) {
 			ui_but_drop(C, event, but, data);
 		}
 		/* handle menu */
@@ -6491,6 +6617,10 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 				return WM_UI_HANDLER_BREAK;
 			}
 		}
+	}
+
+	if (but->flag & UI_BUT_DISABLED) {
+		return WM_UI_HANDLER_CONTINUE;
 	}
 
 	switch (but->type) {
