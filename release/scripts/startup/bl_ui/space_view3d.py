@@ -1518,6 +1518,10 @@ class VIEW3D_MT_add(Menu):
         layout.menu("VIEW3D_MT_armature_add", icon='OUTLINER_OB_ARMATURE')
         layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
         layout.operator_menu_enum("object.empty_add", "type", text="Empty", icon='OUTLINER_OB_EMPTY')
+
+        sublayout = layout.column()
+        sublayout.operator_context = 'INVOKE_DEFAULT'
+        sublayout.operator("object.load_image_as_empty", text="Image", icon="IMAGE_DATA")
         layout.separator()
 
         layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
