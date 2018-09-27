@@ -177,6 +177,10 @@ typedef struct View3DOverlay {
 	/* Paint mode settings */
 	int paint_flag;
 
+	/* Weight paint mode settings */
+	int wpaint_flag;
+	char _pad2[4];
+
 	/* Alpha for texture, weight, vertex paint overlay */
 	float texture_paint_mode_opacity;
 	float vertex_paint_mode_opacity;
@@ -458,6 +462,11 @@ enum {
 /* View3DOverlay->paint_flag */
 enum {
 	V3D_OVERLAY_PAINT_WIRE        = (1 << 0),
+};
+
+/* View3DOverlay->wpaint_flag */
+enum {
+	V3D_OVERLAY_WPAINT_CONTOURS   = (1 << 0),
 };
 
 /* View3D->around */

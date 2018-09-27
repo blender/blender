@@ -1091,10 +1091,6 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
             row.active = mesh.use_mirror_x
             row.prop(mesh, "use_mirror_topology")
 
-        col.label(text="Show Zero Weights:")
-        sub = col.row()
-        sub.prop(tool_settings, "vertex_group_user", expand=True)
-
         self.unified_paint_settings(col, context)
 
 # ********** default tools for vertex-paint ****************

@@ -140,6 +140,8 @@ static void PAINT_WEIGHT_cache_init(void *vedata)
 
 		stl->g_data->fweights_shgrp = DRW_shgroup_create(e_data.weight_face_shader, psl->weight_faces);
 
+		DRW_shgroup_uniform_bool_copy(stl->g_data->fweights_shgrp, "drawContours", (v3d->overlay.wpaint_flag & V3D_OVERLAY_WPAINT_CONTOURS) != 0);
+
 		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &v3d->overlay.weight_paint_mode_opacity, 1);
 		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", globals_weight_ramp);
 		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", globals_ubo);

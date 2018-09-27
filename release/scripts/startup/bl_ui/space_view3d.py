@@ -4501,9 +4501,10 @@ class VIEW3D_PT_overlay_edit_mesh_shading(Panel):
 
         col.prop(overlay, "show_weight", text="Vertex Group Weights")
         if overlay.show_weight:
-            row = col.split()
+            row = col.split(factor=0.33)
             row.label(text="Zero Weights")
-            row.prop(tool_settings, "vertex_group_user", text="")
+            sub = row.row()
+            sub.prop(tool_settings, "vertex_group_user", expand=True)
 
         col.prop(overlay, "show_statvis", text="Mesh Analysis")
         if overlay.show_statvis:
@@ -4773,6 +4774,14 @@ class VIEW3D_PT_overlay_paint(Panel):
             'PAINT_VERTEX': "vertex_paint_mode_opacity",
             'PAINT_WEIGHT': "weight_paint_mode_opacity",
         }[context.mode], text="Opacity")
+
+        if context.mode == 'PAINT_WEIGHT':
+            row = col.split(factor=0.33)
+            row.label(text="Zero Weights")
+            sub = row.row()
+            sub.prop(context.tool_settings, "vertex_group_user", expand=True)
+
+            col.prop(overlay, "show_wpaint_contours")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             col.prop(overlay, "show_paint_wire")
