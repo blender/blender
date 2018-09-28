@@ -1043,89 +1043,99 @@ static void armature_clear_swap_done_flags(bArmature *arm)
 
 static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm = (bArmature *)ob->data;
-	ListBase chains = {NULL, NULL};
-	LinkData *chain;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	/* get chains of bones (ends on chains) */
-	chains_find_tips(arm->edbo, &chains);
-	if (BLI_listbase_is_empty(&chains)) return OPERATOR_CANCELLED;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 
-	/* ensure that mirror bones will also be operated on */
-	armature_tag_select_mirrored(arm);
+		ListBase chains = {NULL, NULL};
+		LinkData *chain;
 
-	/* clear BONE_TRANSFORM flags
-	 * - used to prevent duplicate/canceling operations from occurring [#34123]
-	 * - BONE_DONE cannot be used here as that's already used for mirroring
-	 */
-	armature_clear_swap_done_flags(arm);
+		/* get chains of bones (ends on chains) */
+		chains_find_tips(arm->edbo, &chains);
+		if (BLI_listbase_is_empty(&chains)) {
+			continue;
+		}
 
-	/* loop over chains, only considering selected and visible bones */
-	for (chain = chains.first; chain; chain = chain->next) {
-		EditBone *ebo, *child = NULL, *parent = NULL;
+		/* ensure that mirror bones will also be operated on */
+		armature_tag_select_mirrored(arm);
 
-		/* loop over bones in chain */
-		for (ebo = chain->data; ebo; ebo = parent) {
-			/* parent is this bone's original parent
-			 *	- we store this, as the next bone that is checked is this one
-			 *	  but the value of ebo->parent may change here...
-			 */
-			parent = ebo->parent;
+		/* clear BONE_TRANSFORM flags
+		 * - used to prevent duplicate/canceling operations from occurring [#34123]
+		 * - BONE_DONE cannot be used here as that's already used for mirroring
+		 */
+		armature_clear_swap_done_flags(arm);
 
-			/* skip bone if already handled... [#34123] */
-			if ((ebo->flag & BONE_TRANSFORM) == 0) {
-				/* only if selected and editable */
-				if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
-					/* swap head and tail coordinates */
-					swap_v3_v3(ebo->head, ebo->tail);
+		/* loop over chains, only considering selected and visible bones */
+		for (chain = chains.first; chain; chain = chain->next) {
+			EditBone *ebo, *child = NULL, *parent = NULL;
 
-					/* do parent swapping:
-					 *	- use 'child' as new parent
-					 *	- connected flag is only set if points are coincidental
-					 */
-					ebo->parent = child;
-					if ((child) && equals_v3v3(ebo->head, child->tail))
-						ebo->flag |= BONE_CONNECTED;
-					else
-						ebo->flag &= ~BONE_CONNECTED;
+			/* loop over bones in chain */
+			for (ebo = chain->data; ebo; ebo = parent) {
+				/* parent is this bone's original parent
+				 *	- we store this, as the next bone that is checked is this one
+				 *	  but the value of ebo->parent may change here...
+				 */
+				parent = ebo->parent;
 
-					/* get next bones
-					 *	- child will become the new parent of next bone
-					 */
-					child = ebo;
-				}
-				else {
-					/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it
-					 * as it will be facing in opposite direction
-					 */
-					if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
-						ebo->parent = NULL;
-						ebo->flag &= ~BONE_CONNECTED;
+				/* skip bone if already handled... [#34123] */
+				if ((ebo->flag & BONE_TRANSFORM) == 0) {
+					/* only if selected and editable */
+					if (EBONE_VISIBLE(arm, ebo) && EBONE_EDITABLE(ebo)) {
+						/* swap head and tail coordinates */
+						swap_v3_v3(ebo->head, ebo->tail);
+
+						/* do parent swapping:
+						 *	- use 'child' as new parent
+						 *	- connected flag is only set if points are coincidental
+						 */
+						ebo->parent = child;
+						if ((child) && equals_v3v3(ebo->head, child->tail))
+							ebo->flag |= BONE_CONNECTED;
+						else
+							ebo->flag &= ~BONE_CONNECTED;
+
+						/* get next bones
+						 *	- child will become the new parent of next bone
+						 */
+						child = ebo;
+					}
+					else {
+						/* not swapping this bone, however, if its 'parent' got swapped, unparent us from it
+						 * as it will be facing in opposite direction
+						 */
+						if ((parent) && (EBONE_VISIBLE(arm, parent) && EBONE_EDITABLE(parent))) {
+							ebo->parent = NULL;
+							ebo->flag &= ~BONE_CONNECTED;
+						}
+
+						/* get next bones
+						 *	- child will become new parent of next bone (not swapping occurred,
+						 *	  so set to NULL to prevent infinite-loop)
+						 */
+						child = NULL;
 					}
 
-					/* get next bones
-					 *	- child will become new parent of next bone (not swapping occurred,
-					 *	  so set to NULL to prevent infinite-loop)
-					 */
-					child = NULL;
+					/* tag as done (to prevent double-swaps) */
+					ebo->flag |= BONE_TRANSFORM;
 				}
-
-				/* tag as done (to prevent double-swaps) */
-				ebo->flag |= BONE_TRANSFORM;
 			}
 		}
+
+		/* free chains */
+		BLI_freelistN(&chains);
+
+		/* clear temp flags */
+		armature_clear_swap_done_flags(arm);
+		armature_tag_unselect(arm);
+
+		/* note, notifier might evolve */
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
-
-	/* free chains */
-	BLI_freelistN(&chains);
-
-	/* clear temp flags */
-	armature_clear_swap_done_flags(arm);
-	armature_tag_unselect(arm);
-
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
