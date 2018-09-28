@@ -3499,7 +3499,7 @@ class VIEW3D_MT_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("armature.delete")
+        layout.menu("VIEW3D_MT_edit_armature_delete")
 
 
 class VIEW3D_MT_armature_specials(Menu):
@@ -3553,11 +3553,11 @@ class VIEW3D_MT_edit_armature_delete(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("armature.delete", text="Delete Bones")
+        layout.operator("armature.delete", text="Bones")
 
         layout.separator()
 
-        layout.operator("armature.dissolve", text="Dissolve")
+        layout.operator("armature.dissolve", text="Dissolve Bones")
 
 
 # ********** Grease Pencil Stroke menus **********
