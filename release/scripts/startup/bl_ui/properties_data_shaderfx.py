@@ -80,7 +80,8 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
             layout.prop(fx, "factor")
 
     def FX_WAVE(self, layout, fx):
-        layout.prop(fx, "orientation", expand=True)
+        row = layout.row(align=True)
+        row.prop(fx, "orientation", expand=True)
 
         layout.separator()
         layout.prop(fx, "amplitude")
