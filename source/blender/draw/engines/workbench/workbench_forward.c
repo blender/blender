@@ -365,11 +365,11 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	{
 		float blend_threshold = 0.0f;
 
-		if (draw_ctx->v3d->shading.flag & XRAY_FLAG(draw_ctx->v3d)) {
+		if (wpd->shading.flag & XRAY_FLAG(wpd)) {
 			blend_threshold = 0.75f - XRAY_ALPHA(wpd) * 0.5f;
 		}
 
-		if (draw_ctx->v3d->shading.type == OB_WIRE) {
+		if (wpd->shading.type == OB_WIRE) {
 			wpd->shading.xray_alpha = 0.0f;
 			wpd->shading.xray_alpha_wire = 0.0f;
 		}
