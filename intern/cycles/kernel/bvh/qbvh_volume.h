@@ -58,12 +58,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	Transform ob_itfm;
 #endif
 
-#ifndef __KERNEL_SSE41__
-	if(!isfinite(P.x)) {
-		return false;
-	}
-#endif
-
 	isect->t = ray->t;
 	isect->u = 0.0f;
 	isect->v = 0.0f;

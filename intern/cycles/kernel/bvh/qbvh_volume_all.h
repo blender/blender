@@ -64,12 +64,6 @@ ccl_device uint BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 	uint num_hits = 0;
 	isect_array->t = tmax;
 
-#ifndef __KERNEL_SSE41__
-	if(!isfinite(P.x)) {
-		return 0;
-	}
-#endif
-
 #if BVH_FEATURE(BVH_INSTANCING)
 	int num_hits_in_instance = 0;
 #endif

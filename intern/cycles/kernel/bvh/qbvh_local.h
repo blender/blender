@@ -82,12 +82,6 @@ ccl_device bool BVH_FUNCTION_FULL_NAME(QBVH)(KernelGlobals *kg,
 		object = local_object;
 	}
 
-#ifndef __KERNEL_SSE41__
-	if(!isfinite(P.x)) {
-		return false;
-	}
-#endif
-
 	ssef tnear(0.0f), tfar(isect_t);
 #if BVH_FEATURE(BVH_HAIR)
 	sse3f dir4(ssef(dir.x), ssef(dir.y), ssef(dir.z));
