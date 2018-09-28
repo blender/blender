@@ -906,9 +906,6 @@ static void rna_MeshUVLoopLayer_clone_set(PointerRNA *ptr, bool value)
 
 DEFINE_CUSTOMDATA_LAYER_COLLECTION(tessface_uv_texture, fdata, CD_MTFACE)
 DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(tessface_uv_texture, fdata, CD_MTFACE, active, MeshTextureFaceLayer)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(tessface_uv_texture, fdata, CD_MTFACE, clone, MeshTextureFaceLayer)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(tessface_uv_texture, fdata, CD_MTFACE, stencil, MeshTextureFaceLayer)
-DEFINE_CUSTOMDATA_LAYER_COLLECTION_ACTIVEITEM(tessface_uv_texture, fdata, CD_MTFACE, render, MeshTextureFaceLayer)
 
 static void rna_MeshTextureFaceLayer_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -1844,19 +1841,7 @@ static void UNUSED_FUNCTION(rna_mesh_unused)(void)
 	(void)rna_Mesh_skin_vertice_index_range;
 	(void)rna_Mesh_vertex_paint_mask_index_range;
 	(void)rna_Mesh_tessface_uv_texture_active_set;
-	(void)rna_Mesh_tessface_uv_texture_clone_get;
-	(void)rna_Mesh_tessface_uv_texture_clone_index_get;
-	(void)rna_Mesh_tessface_uv_texture_clone_index_set;
-	(void)rna_Mesh_tessface_uv_texture_clone_set;
 	(void)rna_Mesh_tessface_uv_texture_index_range;
-	(void)rna_Mesh_tessface_uv_texture_render_get;
-	(void)rna_Mesh_tessface_uv_texture_render_index_get;
-	(void)rna_Mesh_tessface_uv_texture_render_index_set;
-	(void)rna_Mesh_tessface_uv_texture_render_set;
-	(void)rna_Mesh_tessface_uv_texture_stencil_get;
-	(void)rna_Mesh_tessface_uv_texture_stencil_index_get;
-	(void)rna_Mesh_tessface_uv_texture_stencil_index_set;
-	(void)rna_Mesh_tessface_uv_texture_stencil_set;
 	(void)rna_Mesh_tessface_vertex_color_active_set;
 	(void)rna_Mesh_tessface_vertex_color_index_range;
 	(void)rna_Mesh_tessface_vertex_color_render_get;
