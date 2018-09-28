@@ -4360,14 +4360,16 @@ class VIEW3D_PT_overlay_geometry(Panel):
         view = context.space_data
         overlay = view.overlay
         display_all = overlay.show_overlays
+        is_wireframes = view.shading.type == 'WIREFRAME'
 
         col = layout.column()
         col.active = display_all
 
         row = col.row()
-        row.prop(overlay, "show_wireframes", text="")
+        if not is_wireframes:
+            row.prop(overlay, "show_wireframes", text="")
         sub = row.row()
-        sub.active = overlay.show_wireframes
+        sub.active = overlay.show_wireframes or is_wireframes
         sub.prop(overlay, "wireframe_threshold", text="Wireframe")
 
         col = layout.column(align=True)
