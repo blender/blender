@@ -141,6 +141,14 @@ typedef enum eFFMpegCrf {
 	FFM_CRF_LOWEST = 32,
 } eFFMpegCrf;
 
+typedef enum eFFMpegAudioChannels {
+	FFM_CHANNELS_MONO = 1,
+	FFM_CHANNELS_STEREO = 2,
+	FFM_CHANNELS_SURROUND4 = 4,
+	FFM_CHANNELS_SURROUND51 = 6,
+	FFM_CHANNELS_SURROUND71 = 8,
+} eFFMpegAudioChannels;
+
 typedef struct FFMpegCodecData {
 	int type;
 	int codec;

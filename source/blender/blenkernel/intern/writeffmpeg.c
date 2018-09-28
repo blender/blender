@@ -736,6 +736,26 @@ static AVStream *alloc_audio_stream(FFMpegContext *context, RenderData *rd, int 
 	c->sample_fmt = AV_SAMPLE_FMT_S16;
 	c->channels = rd->ffcodecdata.audio_channels;
 
+#ifdef FFMPEG_HAVE_FRAME_CHANNEL_LAYOUT
+	switch (rd->ffcodecdata.audio_channels) {
+		case FFM_CHANNELS_MONO:
+			c->channel_layout = AV_CH_LAYOUT_MONO;
+			break;
+		case FFM_CHANNELS_STEREO:
+			c->channel_layout = AV_CH_LAYOUT_STEREO;
+			break;
+		case FFM_CHANNELS_SURROUND4:
+			c->channel_layout = AV_CH_LAYOUT_QUAD;
+			break;
+		case FFM_CHANNELS_SURROUND51:
+			c->channel_layout = AV_CH_LAYOUT_5POINT1_BACK;
+			break;
+		case FFM_CHANNELS_SURROUND71:
+			c->channel_layout = AV_CH_LAYOUT_7POINT1;
+			break;
+	}
+#endif
+
 	if (request_float_audio_buffer(codec_id)) {
 		/* mainly for AAC codec which is experimental */
 		c->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
