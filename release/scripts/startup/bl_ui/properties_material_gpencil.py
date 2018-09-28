@@ -107,7 +107,7 @@ class MATERIAL_PT_gpencil_slots(Panel):
 
         if ob:
             is_sortable = len(ob.material_slots) > 1
-            rows = 8
+            rows = 7
 
             row = layout.row()
 

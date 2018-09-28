@@ -128,7 +128,7 @@ class DATA_PT_gpencil_datapanel(Panel):
         row = layout.row()
 
         col = row.column()
-        layer_rows = 8
+        layer_rows = 7
         col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
 
         col = row.column()
