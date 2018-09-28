@@ -91,12 +91,6 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
     def FX_PIXEL(self, layout, fx):
         layout.prop(fx, "size", text="Size")
 
-        layout.prop(fx, "use_lines", text="Display Lines")
-
-        col = layout.column()
-        col.enabled = fx.use_lines
-        col.prop(fx, "color")
-
     def FX_RIM(self, layout, fx):
         layout.prop(fx, "offset", text="Offset")
 
