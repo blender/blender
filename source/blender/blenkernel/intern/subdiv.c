@@ -61,7 +61,7 @@ BKE_subdiv_fvar_interpolation_from_uv_smooth(int uv_smooth)
 			return SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE;
 	}
 	BLI_assert(!"Unknown uv smooth flag");
-	return SUBSURF_UV_SMOOTH_NONE;
+	return SUBDIV_FVAR_LINEAR_INTERPOLATION_ALL;
 }
 
 Subdiv *BKE_subdiv_new_from_converter(const SubdivSettings *settings,
