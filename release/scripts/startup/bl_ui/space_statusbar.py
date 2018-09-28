@@ -32,25 +32,6 @@ class STATUSBAR_HT_header(Header):
 
         layout.separator_spacer()
 
-        # messages
-        layout.template_reports_banner()
-
-        row = layout.row(align=True)
-        if bpy.app.autoexec_fail is True and bpy.app.autoexec_fail_quiet is False:
-            row.label(text="Auto-run disabled", icon='ERROR')
-            if bpy.data.is_saved:
-                props = row.operator("wm.revert_mainfile", icon='SCREEN_BACK', text="Reload Trusted")
-                props.use_scripts = True
-
-            row.operator("script.autoexec_warn_clear", text="Ignore")
-
-            # include last so text doesn't push buttons out of the header
-            row.label(text=bpy.app.autoexec_fail_message)
-
-        layout.template_running_jobs()
-
-        layout.separator_spacer()
-
         # stats
         scene = context.scene
         view_layer = context.view_layer
