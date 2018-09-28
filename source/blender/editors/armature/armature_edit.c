@@ -1410,138 +1410,146 @@ static bool armature_dissolve_ebone_cb(const char *bone_name, void *arm_p)
 
 static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	bArmature *arm;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	EditBone *ebone, *ebone_next;
-	Object *obedit = CTX_data_edit_object(C);
-	bool changed = false;
+	bool changed_multi = false;
 
-	/* store for mirror */
-	GHash *ebone_flag_orig = NULL;
-	int ebone_num = 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		bArmature *arm = obedit->data;
+		bool changed = false;
 
-	arm = obedit->data;
+		/* store for mirror */
+		GHash *ebone_flag_orig = NULL;
+		int ebone_num = 0;
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		ebone->temp.p = NULL;
-		ebone->flag &= ~BONE_DONE;
-		ebone_num++;
-	}
-
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		GHashIterator gh_iter;
-
-		ebone_flag_orig = BLI_ghash_ptr_new_ex(__func__, ebone_num);
 		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			union { int flag; void *p; } val = {0};
-			val.flag = ebone->flag;
-			BLI_ghash_insert(ebone_flag_orig, ebone, val.p);
+			ebone->temp.p = NULL;
+			ebone->flag &= ~BONE_DONE;
+			ebone_num++;
 		}
 
-		armature_select_mirrored_ex(arm, BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			GHashIterator gh_iter;
 
-		GHASH_ITER (gh_iter, ebone_flag_orig) {
-			union { int flag; void *p; } *val_p = (void *)BLI_ghashIterator_getValue_p(&gh_iter);
-			ebone = BLI_ghashIterator_getKey(&gh_iter);
-			val_p->flag = ebone->flag & ~val_p->flag;
-		}
-	}
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (ebone->parent && ebone->flag & BONE_CONNECTED) {
-			if (ebone->parent->temp.ebone == ebone->parent) {
-				/* ignore */
-			}
-			else if (ebone->parent->temp.ebone) {
-				/* set ignored */
-				ebone->parent->temp.ebone = ebone->parent;
-			}
-			else {
-				/* set child */
-				ebone->parent->temp.ebone = ebone;
-			}
-		}
-	}
-
-	/* cleanup multiple used bones */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (ebone->temp.ebone == ebone) {
-			ebone->temp.ebone = NULL;
-		}
-	}
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		/* break connections for unseen bones */
-		if (((arm->layer & ebone->layer) &&
-		     ((ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED)))) == 0)
-		{
-			ebone->temp.ebone = NULL;
-		}
-
-		if (((arm->layer & ebone->layer) &&
-		    ((ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED)))) == 0)
-		{
-			if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-				ebone->parent->temp.ebone = NULL;
+			ebone_flag_orig = BLI_ghash_ptr_new_ex(__func__, ebone_num);
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				union { int flag; void *p; } val = {0};
+				val.flag = ebone->flag;
+				BLI_ghash_insert(ebone_flag_orig, ebone, val.p);
 			}
 
+			armature_select_mirrored_ex(arm, BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL);
+
+			GHASH_ITER (gh_iter, ebone_flag_orig) {
+				union { int flag; void *p; } *val_p = (void *)BLI_ghashIterator_getValue_p(&gh_iter);
+				ebone = BLI_ghashIterator_getKey(&gh_iter);
+				val_p->flag = ebone->flag & ~val_p->flag;
+			}
 		}
-	}
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-
-		if (ebone->parent &&
-		    (ebone->parent->temp.ebone == ebone))
-		{
-			ebone->flag |= BONE_DONE;
-		}
-	}
-
-	BKE_pose_channels_remove(obedit, armature_dissolve_ebone_cb, arm);
-
-	for (ebone = arm->edbo->first; ebone; ebone = ebone_next) {
-		ebone_next = ebone->next;
-
-		if (ebone->flag & BONE_DONE) {
-			copy_v3_v3(ebone->parent->tail, ebone->tail);
-			ebone->parent->rad_tail = ebone->rad_tail;
-			SET_FLAG_FROM_TEST(ebone->parent->flag, ebone->flag & BONE_TIPSEL, BONE_TIPSEL);
-
-			ED_armature_ebone_remove_ex(arm, ebone, false);
-			changed = true;
-		}
-	}
-
-	if (changed) {
 		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if (ebone->parent &&
-			    ebone->parent->temp.ebone &&
-			    (ebone->flag & BONE_CONNECTED))
+			if (ebone->parent && ebone->flag & BONE_CONNECTED) {
+				if (ebone->parent->temp.ebone == ebone->parent) {
+					/* ignore */
+				}
+				else if (ebone->parent->temp.ebone) {
+					/* set ignored */
+					ebone->parent->temp.ebone = ebone->parent;
+				}
+				else {
+					/* set child */
+					ebone->parent->temp.ebone = ebone;
+				}
+			}
+		}
+
+		/* cleanup multiple used bones */
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (ebone->temp.ebone == ebone) {
+				ebone->temp.ebone = NULL;
+			}
+		}
+
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			/* break connections for unseen bones */
+			if (((arm->layer & ebone->layer) &&
+				 ((ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED)))) == 0)
 			{
-				ebone->rad_head = ebone->parent->rad_tail;
+				ebone->temp.ebone = NULL;
+			}
+
+			if (((arm->layer & ebone->layer) &&
+				((ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED)))) == 0)
+			{
+				if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+					ebone->parent->temp.ebone = NULL;
+				}
+
+			}
+		}
+
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+
+			if (ebone->parent &&
+				(ebone->parent->temp.ebone == ebone))
+			{
+				ebone->flag |= BONE_DONE;
+			}
+		}
+
+		BKE_pose_channels_remove(obedit, armature_dissolve_ebone_cb, arm);
+
+		for (ebone = arm->edbo->first; ebone; ebone = ebone_next) {
+			ebone_next = ebone->next;
+
+			if (ebone->flag & BONE_DONE) {
+				copy_v3_v3(ebone->parent->tail, ebone->tail);
+				ebone->parent->rad_tail = ebone->rad_tail;
+				SET_FLAG_FROM_TEST(ebone->parent->flag, ebone->flag & BONE_TIPSEL, BONE_TIPSEL);
+
+				ED_armature_ebone_remove_ex(arm, ebone, false);
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if (ebone->parent &&
+					ebone->parent->temp.ebone &&
+					(ebone->flag & BONE_CONNECTED))
+				{
+					ebone->rad_head = ebone->parent->rad_tail;
+				}
+			}
+
+			if (arm->flag & ARM_MIRROR_EDIT) {
+				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+					union { int flag; void *p; } *val_p = (void *)BLI_ghash_lookup_p(ebone_flag_orig, ebone);
+					if (val_p && val_p->flag) {
+						ebone->flag &= ~val_p->flag;
+					}
+				}
 			}
 		}
 
 		if (arm->flag & ARM_MIRROR_EDIT) {
-			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-				union { int flag; void *p; } *val_p = (void *)BLI_ghash_lookup_p(ebone_flag_orig, ebone);
-				if (val_p && val_p->flag) {
-					ebone->flag &= ~val_p->flag;
-				}
-			}
+			BLI_ghash_free(ebone_flag_orig, NULL, NULL);
+		}
+
+		if (changed) {
+			changed_multi = true;
+			ED_armature_edit_sync_selection(arm->edbo);
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 		}
 	}
+	MEM_freeN(objects);
 
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		BLI_ghash_free(ebone_flag_orig, NULL, NULL);
-	}
-
-	if (!changed) {
+	if (!changed_multi) {
 		return OPERATOR_CANCELLED;
 	}
-
-	ED_armature_edit_sync_selection(arm->edbo);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
