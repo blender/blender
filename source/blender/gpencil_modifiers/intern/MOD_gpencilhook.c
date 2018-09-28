@@ -151,7 +151,6 @@ static float gp_hook_falloff(const struct GPHookData_cb *tData,	const float len_
 				fac = sqrtf(2 * fac - fac * fac);
 				break;
 			default:
-				fac = fac;
 				break;
 		}
 
