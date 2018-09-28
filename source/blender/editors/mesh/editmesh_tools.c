@@ -5626,6 +5626,7 @@ static int bmelemsort_comp(const void *v1, const void *v2)
 
 /* Reorders vertices/edges/faces using a given methods. Loops are not supported. */
 static void sort_bmelem_flag(
+        bContext *C,
         Scene *scene, Object *ob,
         View3D *v3d, RegionView3D *rv3d,
         const int types, const int flag, const int action,
@@ -6050,7 +6051,8 @@ static void sort_bmelem_flag(
 	}
 
 	BM_mesh_remap(em->bm, map[0], map[1], map[2]);
-/*	DEG_id_tag_update(ob->data, 0);*/
+	DEG_id_tag_update(ob->data, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
 
 	for (j = 3; j--; ) {
 		if (map[j])
@@ -6061,7 +6063,8 @@ static void sort_bmelem_flag(
 static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_edit_object(C);
 
 	/* may be NULL */
 	View3D *v3d = CTX_wm_view3d(C);
@@ -6085,7 +6088,7 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 		elem_types = RNA_property_enum_get(op->ptr, prop_elem_types);
 	}
 	else {
-		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMEditMesh *em = BKE_editmesh_from_object(ob_active);
 		if (em->selectmode & SCE_SELECT_VERTEX)
 			elem_types |= BM_VERT;
 		if (em->selectmode & SCE_SELECT_EDGE)
@@ -6095,9 +6098,33 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 		RNA_enum_set(op->ptr, "elements", elem_types);
 	}
 
-	sort_bmelem_flag(
-	        scene, ob, v3d, rv3d,
-	        elem_types, BM_ELEM_SELECT, action, use_reverse, seed);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(ob);
+		BMesh *bm = em->bm;
+
+		if (!((elem_types & BM_VERT && bm->totvertsel > 0) ||
+		      (elem_types & BM_EDGE && bm->totedgesel > 0) ||
+		      (elem_types & BM_FACE && bm->totfacesel > 0)))
+		{
+			continue;
+		}
+
+		int seed_iter = seed;
+
+		/* This gives a consistent result regardless of object order */
+		if (ob_index) {
+			seed_iter += BLI_ghashutil_strhash_p(ob->id.name);
+		}
+
+		sort_bmelem_flag(
+		            C, scene, ob, v3d, rv3d,
+		            elem_types, BM_ELEM_SELECT, action, use_reverse, seed_iter);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
