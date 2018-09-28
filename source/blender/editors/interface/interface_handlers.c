@@ -2224,12 +2224,9 @@ static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
 	}
 }
 
-static void ui_but_copy_text(bContext *C, uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_text(uiBut *but, char *output, int max_output_len)
 {
-	button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
-	strncpy(output, but->active->str, max_output_len);
-	but->active->cancel = true;
-	button_activate_state(C, but, BUTTON_STATE_EXIT);
+	ui_but_string_get(but, output, max_output_len);
 }
 
 static void ui_but_paste_text(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
@@ -2342,7 +2339,7 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 	case UI_BTYPE_TEXT:
 	case UI_BTYPE_SEARCH_MENU:
 		if (!has_required_data) break;
-		ui_but_copy_text(C, but, buffer_to_copy, max_copy_length);
+		ui_but_copy_text(but, buffer_to_copy, max_copy_length);
 		break;
 
 	case UI_BTYPE_COLORBAND:
