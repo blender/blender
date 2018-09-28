@@ -964,7 +964,7 @@ static void draw_sensor_collision(uiLayout *layout, PointerRNA *ptr, bContext *C
 	uiItemR(row, ptr, "use_pulse", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 	uiItemR(row, ptr, "use_material", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 
-	switch (RNA_boolean_get(ptr, "use_material")) {
+	switch (RNA_enum_get(ptr, "use_material")) {
 		case SENS_COLLISION_PROPERTY:
 			uiItemR(split, ptr, "property", 0, NULL, ICON_NONE);
 			break;
