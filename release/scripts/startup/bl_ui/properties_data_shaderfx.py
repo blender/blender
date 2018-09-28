@@ -40,7 +40,6 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        layout.use_property_split = True
 
         ob = context.object
 
