@@ -111,14 +111,17 @@ void DRW_debug_m4_as_bbox(const float m[4][4], const float color[4], const bool 
 {
 	BoundBox bb;
 	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
-	float minv[4][4];
+	float project_matrix[4][4];
 	if (invert) {
-		invert_m4_m4(minv, m);
+		invert_m4_m4(project_matrix, m);
+	}
+	else {
+		copy_m4_m4(project_matrix, m);
 	}
 
 	BKE_boundbox_init_from_minmax(&bb, min, max);
 	for (int i = 0; i < 8; ++i) {
-		mul_project_m4_v3((invert) ? minv : m, bb.vec[i]);
+		mul_project_m4_v3(project_matrix, bb.vec[i]);
 	}
 	DRW_debug_bbox(&bb, color);
 }
