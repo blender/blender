@@ -575,7 +575,7 @@ if(WITH_OPENGL_DRAW_TESTS)
 		file(GLOB children RELATIVE ${TEST_SRC_DIR} ${TEST_SRC_DIR}/*)
 		foreach(child ${children})
 			if(IS_DIRECTORY ${TEST_SRC_DIR}/${child})
-				file(GLOB blends ${TEST_SRC_DIR}/${child}/*.blend)
+				file(GLOB_RECURSE blends "${TEST_SRC_DIR}/${child}/*.blend")
 				if(blends)
 					add_python_test(
 						opengl_draw_${child}_test
