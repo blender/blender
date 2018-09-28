@@ -102,7 +102,7 @@ typedef struct GpencilModifierTypeInfo {
 	/* The size of the modifier data type, used by allocation. */
 	int struct_size;
 
-	GpencilModifierType type;
+	GpencilModifierTypeType type;
 	GpencilModifierTypeFlag flags;
 
 
