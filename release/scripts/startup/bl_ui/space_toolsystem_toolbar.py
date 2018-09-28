@@ -1641,9 +1641,6 @@ class TOPBAR_PT_gpencil_materials(Panel):
             row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
             col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ZOOMIN', text="")
-            col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
-
             col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
 
             if is_sortable:
