@@ -116,13 +116,6 @@ static BMO_FlagSet bmo_enum_falloff_type[] = {
 	{0, NULL},
 };
 
-static BMO_FlagSet bmo_enum_compare_types[] = {
-	{SIM_CMP_EQ, "EQUAL"},
-	{SIM_CMP_GT, "GREATER_THAN"},
-	{SIM_CMP_LT, "LESS_THAN"},
-	{0, NULL},
-};
-
 /*
  * Vertex Smooth.
  *
@@ -1479,110 +1472,6 @@ static BMOpDefine bmo_spin_def = {
 	 BMO_OPTYPE_FLAG_SELECT_FLUSH),
 };
 
-static BMO_FlagSet bmo_enum_similar_faces_types[] = {
-	{SIMFACE_MATERIAL, "MATERIAL"},
-	{SIMFACE_AREA, "AREA"},
-	{SIMFACE_SIDES, "SIDES"},
-	{SIMFACE_PERIMETER, "PERIMETER"},
-	{SIMFACE_NORMAL, "NORMAL"},
-	{SIMFACE_COPLANAR, "COPLANAR"},
-	{SIMFACE_SMOOTH, "SMOOTH"},
-	{SIMFACE_FACEMAP, "FACE_MAP"},
-#ifdef WITH_FREESTYLE
-	{SIMFACE_FREESTYLE, "FREESTYLE"},
-#endif
-	{0, NULL},
-};
-
-/*
- * Similar Faces Search.
- *
- * Find similar faces (area/material/perimeter, ...).
- */
-static BMOpDefine bmo_similar_faces_def = {
-	"similar_faces",
-	/* slots_in */
-	{{"faces", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},    /* input faces */
-	 {"type", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_similar_faces_types}, /* type of selection */
-	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
-	 {"compare", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_compare_types}, /* comparison method */
-	 {{'\0'}},
-	},
-	/* slots_out */
-	{{"faces.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_FACE}},  /* output faces */
-	 {{'\0'}},
-	},
-	bmo_similar_faces_exec,
-	(BMO_OPTYPE_FLAG_SELECT_FLUSH),
-};
-
-static BMO_FlagSet bmo_enum_similar_edges_types[] = {
-	{SIMEDGE_LENGTH, "LENGTH"},
-	{SIMEDGE_DIR, "DIRECTION"},
-	{SIMEDGE_FACE, "FACE"},
-	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE"},
-	{SIMEDGE_CREASE, "CREASE"},
-	{SIMEDGE_BEVEL, "BEVEL"},
-	{SIMEDGE_SEAM, "SEAM"},
-	{SIMEDGE_SHARP, "SHARP"},
-#ifdef WITH_FREESTYLE
-	{SIMEDGE_FREESTYLE, "FREESTYLE"},
-#endif
-	{0, NULL},
-};
-
-/*
- * Similar Edges Search.
- *
- * Find similar edges (length, direction, edge, seam, ...).
- */
-static BMOpDefine bmo_similar_edges_def = {
-	"similar_edges",
-	/* slots_in */
-	{{"edges", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},    /* input edges */
-	 {"type", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_similar_edges_types}, /* type of selection */
-	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
-	 {"compare", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_compare_types}, /* comparison method */
-	 {{'\0'}},
-	},
-	/* slots_out */
-	{{"edges.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_EDGE}},  /* output edges */
-	 {{'\0'}},
-	},
-	bmo_similar_edges_exec,
-	(BMO_OPTYPE_FLAG_SELECT_FLUSH),
-};
-
-static BMO_FlagSet bmo_enum_similar_verts_types[] = {
-	{SIMVERT_NORMAL, "NORMAL"},
-	{SIMVERT_FACE, "FACE"},
-	{SIMVERT_VGROUP, "VERTEX_GROUP"},
-	{SIMVERT_EDGE, "EDGE"},
-	{0, NULL},
-};
-
-/*
- * Similar Verts Search.
- *
- * Find similar vertices (normal, face, vertex group, ...).
- */
-static BMOpDefine bmo_similar_verts_def = {
-	"similar_verts",
-	/* slots_in */
-	{{"verts", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},    /* input vertices */
-	 {"type", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_similar_verts_types}, /* type of selection */
-	 {"thresh", BMO_OP_SLOT_FLT},           /* threshold of selection */
-	 {"compare", BMO_OP_SLOT_INT, {(int)BMO_OP_SLOT_SUBTYPE_INT_ENUM}, bmo_enum_compare_types}, /* comparison method */
-	 {{'\0'}},
-	},
-	/* slots_out */
-	{{"verts.out", BMO_OP_SLOT_ELEMENT_BUF, {BM_VERT}},  /* output vertices */
-	 {{'\0'}},
-	},
-	bmo_similar_verts_exec,
-	(BMO_OPTYPE_FLAG_SELECT_FLUSH),
-};
-
 /*
  * UV Rotation.
  *
@@ -2236,9 +2125,6 @@ const BMOpDefine *bmo_opdefines[] = {
 	&bmo_rotate_edges_def,
 	&bmo_rotate_uvs_def,
 	&bmo_scale_def,
-	&bmo_similar_edges_def,
-	&bmo_similar_faces_def,
-	&bmo_similar_verts_def,
 	&bmo_smooth_vert_def,
 	&bmo_smooth_laplacian_vert_def,
 	&bmo_solidify_def,

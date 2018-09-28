@@ -56,12 +56,6 @@ enum {
 	SUBDIV_SELECT_LOOPCUT
 };
 
-enum {
-	SIM_CMP_EQ = 0,
-	SIM_CMP_GT,
-	SIM_CMP_LT
-};
-
 /* subdivide_edgering */
 enum {
 	/* just subdiv */

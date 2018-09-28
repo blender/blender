@@ -70,7 +70,6 @@ set(SRC
 	operators/bmo_primitive.c
 	operators/bmo_removedoubles.c
 	operators/bmo_rotate_edges.c
-	operators/bmo_similar.c
 	operators/bmo_smooth_laplacian.c
 	operators/bmo_split_edges.c
 	operators/bmo_subdivide.c

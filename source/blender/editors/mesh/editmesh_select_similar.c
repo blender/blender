@@ -58,6 +58,12 @@
 /** \name Select Similar (Vert/Edge/Face) Operator - common
  * \{ */
 
+enum {
+	SIM_CMP_EQ = 0,
+	SIM_CMP_GT,
+	SIM_CMP_LT
+};
+
 static const EnumPropertyItem prop_similar_compare_types[] = {
 	{SIM_CMP_EQ, "EQUAL", 0, "Equal", ""},
 	{SIM_CMP_GT, "GREATER", 0, "Greater", ""},
@@ -99,7 +105,7 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-static int select_similar_compare_float(const float delta, const float thresh, const int compare)
+static int mesh_select_similar_compare_float(const float delta, const float thresh, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
@@ -114,7 +120,7 @@ static int select_similar_compare_float(const float delta, const float thresh, c
 	}
 }
 
-static int select_similar_compare_int(const int delta, const int compare)
+static int mesh_select_similar_compare_int(const int delta, const int compare)
 {
 	switch (compare) {
 		case SIM_CMP_EQ:
@@ -129,7 +135,7 @@ static int select_similar_compare_int(const int delta, const int compare)
 	}
 }
 
-static bool select_similar_compare_float_tree(const KDTree *tree, const float length, const float thresh, const int compare)
+static bool mesh_select_similar_compare_float_tree(const KDTree *tree, const float length, const float thresh, const int compare)
 {
 	/* Length of the edge we want to compare against. */
 	float nearest_edge_length;
@@ -159,7 +165,7 @@ static bool select_similar_compare_float_tree(const KDTree *tree, const float le
 	float dummy[3] = {nearest_edge_length, 0.0f, 0.0f};
 	if (BLI_kdtree_find_nearest(tree, dummy, &nearest) != -1) {
 		float delta = length - nearest.co[0];
-		return select_similar_compare_float(delta, thresh, compare);
+		return mesh_select_similar_compare_float(delta, thresh, compare);
 	}
 
 	return false;
@@ -464,7 +470,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_sides_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_sides - num_sides_iter;
-							if (select_similar_compare_int(delta_i, compare)) {
+							if (mesh_select_similar_compare_int(delta_i, compare)) {
 								select = true;
 								break;
 							}
@@ -491,7 +497,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_AREA:
 					{
 						float area = BM_face_calc_area(face);
-						if (select_similar_compare_float_tree(tree, area, thresh, compare)) {
+						if (mesh_select_similar_compare_float_tree(tree, area, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -499,7 +505,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 					case SIMFACE_PERIMETER:
 					{
 						float perimeter = BM_face_calc_perimeter(face);
-						if (select_similar_compare_float_tree(tree, perimeter, thresh, compare)) {
+						if (mesh_select_similar_compare_float_tree(tree, perimeter, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -898,7 +904,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					/* Proceed only if we have to select all the edges that have custom data value of 0.0f.
 					 * In this case we will just select all the edges.
 					 * Otherwise continue the for loop. */
-					if (!select_similar_compare_float_tree(tree, 0.0f, thresh, compare)) {
+					if (!mesh_select_similar_compare_float_tree(tree, 0.0f, thresh, compare)) {
 						continue;
 					}
 				}
@@ -921,7 +927,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
-							if (select_similar_compare_int(delta_i, compare)) {
+							if (mesh_select_similar_compare_int(delta_i, compare)) {
 								select = true;
 								break;
 							}
@@ -946,7 +952,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					case SIMEDGE_LENGTH:
 					{
 						float length = edge_length_squared_worldspace_get(ob, edge);
-						if (select_similar_compare_float_tree(tree, length, thresh, compare)) {
+						if (mesh_select_similar_compare_float_tree(tree, length, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -955,7 +961,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 					{
 						if (BM_edge_face_count_at_most(edge, 2) == 2) {
 							float angle = BM_edge_calc_face_angle(edge);
-							if (select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
+							if (mesh_select_similar_compare_float_tree(tree, angle, thresh, SIM_CMP_EQ)) {
 								select = true;
 							}
 						}
@@ -1002,7 +1008,7 @@ static int similar_edge_select_exec(bContext *C, wmOperator *op)
 						}
 
 						const float *value = CustomData_bmesh_get(&bm->edata, edge->head.data, custom_data_type);
-						if (select_similar_compare_float_tree(tree, *value, thresh, compare)) {
+						if (mesh_select_similar_compare_float_tree(tree, *value, thresh, compare)) {
 							select = true;
 						}
 						break;
@@ -1236,7 +1242,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_edges_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_edges - num_edges_iter;
-							if (select_similar_compare_int(delta_i, compare)) {
+							if (mesh_select_similar_compare_int(delta_i, compare)) {
 								select = true;
 								break;
 							}
@@ -1250,7 +1256,7 @@ static int similar_vert_select_exec(bContext *C, wmOperator *op)
 						GSET_ITER(gs_iter, gset) {
 							const int num_faces_iter = POINTER_AS_INT(BLI_gsetIterator_getKey(&gs_iter));
 							const int delta_i = num_faces - num_faces_iter;
-							if (select_similar_compare_int(delta_i, compare)) {
+							if (mesh_select_similar_compare_int(delta_i, compare)) {
 								select = true;
 								break;
 							}
