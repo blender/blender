@@ -56,7 +56,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	 * See bug #36090.
 	 */
 	struct DRWTextStore *dt = DRW_text_cache_ensure();
-	const short txt_flag = DRW_TEXT_CACHE_LOCALCLIP | (unit->system ? 0 : DRW_TEXT_CACHE_ASCII);
+	const short txt_flag = DRW_TEXT_CACHE_GLOBALSPACE | (unit->system ? 0 : DRW_TEXT_CACHE_ASCII);
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 	float v1[3], v2[3], v3[3], vmid[3], fvec[3];
@@ -110,6 +110,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 				if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 
 					mid_v3_v3v3(vmid, v1_clip, v2_clip);
+					mul_m4_v3(ob->obmat, vmid);
 
 					if (do_global) {
 						mul_mat3_m4_v3(ob->obmat, v1);
@@ -165,6 +166,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 						float angle;
 
 						mid_v3_v3v3(vmid, v1_clip, v2_clip);
+						mul_m4_v3(ob->obmat, vmid);
 
 						copy_v3_v3(no_a, l_a->f->no);
 						copy_v3_v3(no_b, l_b->f->no);
@@ -226,6 +228,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 				}
 
 				mul_v3_fl(vmid, 1.0f / (float)n);
+				mul_m4_v3(ob->obmat, vmid);
 
 				if (unit->system) {
 					numstr_len = bUnit_AsString(
@@ -288,6 +291,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 						        numstr, sizeof(numstr), "%.3f%s", (is_rad) ? angle : RAD2DEGF(angle),
 						                                          (is_rad) ? "r" : "°");
 						interp_v3_v3v3(fvec, vmid, v2_local, 0.8f);
+						mul_m4_v3(ob->obmat, fvec);
 						DRW_text_cache_add(dt, fvec, numstr, numstr_len, 0, 0, txt_flag, col);
 					}
 				}
@@ -307,8 +311,11 @@ void DRW_edit_mesh_mode_text_measure_stats(
 
 			BM_ITER_MESH_INDEX(v, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					float vec[3];
+					mul_v3_m4v3(vec, ob->obmat, v->co);
+
 					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
-					DRW_text_cache_add(dt, v->co, numstr, numstr_len, 0, 0, txt_flag, col);
+					DRW_text_cache_add(dt, vec, numstr, numstr_len, 0, 0, txt_flag, col);
 				}
 			}
 		}
@@ -325,6 +332,8 @@ void DRW_edit_mesh_mode_text_measure_stats(
 
 					if (clip_segment_v3_plane_n(v1, v2, clip_planes, 4, v1_clip, v2_clip)) {
 						mid_v3_v3v3(vmid, v1_clip, v2_clip);
+						mul_m4_v3(ob->obmat, vmid);
+
 						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 						DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
 					}
@@ -338,6 +347,7 @@ void DRW_edit_mesh_mode_text_measure_stats(
 			BM_ITER_MESH_INDEX(f, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 					BM_face_calc_center_mean(f, v1);
+					mul_m4_v3(ob->obmat, v1);
 
 					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), "%d", i);
 					DRW_text_cache_add(dt, v1, numstr, numstr_len, 0, 0, txt_flag, col);
