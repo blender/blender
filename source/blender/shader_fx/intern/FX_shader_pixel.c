@@ -39,7 +39,6 @@ static void initData(ShaderFxData *fx)
 	PixelShaderFxData *gpfx = (PixelShaderFxData *)fx;
 	ARRAY_SET_ITEMS(gpfx->size, 5, 5);
 	ARRAY_SET_ITEMS(gpfx->rgba, 0.0f, 0.0f, 0.0f, 0.9f);
-	gpfx->flag |= FX_PIXEL_USE_LINES;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
