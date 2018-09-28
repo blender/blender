@@ -31,6 +31,8 @@
 
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_object_types.h"
@@ -51,6 +53,7 @@
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_gpencil_modifier.h"
@@ -402,38 +405,52 @@ void ED_armature_bones_flip_names(Main *bmain, bArmature *arm, ListBase *bones_n
 static int armature_flip_names_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm;
-
-	/* paranoia checks */
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_edit_object(C);
 
 	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
-	arm = ob->data;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 
-	ListBase bones_names = {NULL};
+		/* Paranoia check. */
+		if (ob_active->pose == NULL) {
+			continue;
+		}
 
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
-	{
-		BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
+		ListBase bones_names = {NULL};
+
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone)) {
+				if (ebone->flag & BONE_SELECTED) {
+					BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
+				}
+			}
+		}
+
+		if (BLI_listbase_is_empty(&bones_names)) {
+			continue;
+		}
+
+		ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
+
+		BLI_freelistN(&bones_names);
+
+		/* since we renamed stuff... */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+		/* copied from #rna_Bone_update_renamed */
+		/* redraw view */
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+
+		/* update animation channels */
+		WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
+
 	}
-	CTX_DATA_END;
-
-	ED_armature_bones_flip_names(bmain, arm, &bones_names, do_strip_numbers);
-
-	BLI_freelistN(&bones_names);
-
-	/* since we renamed stuff... */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* copied from #rna_Bone_update_renamed */
-	/* redraw view */
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-
-	/* update animation channels */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, ob->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
