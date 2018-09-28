@@ -98,7 +98,7 @@ class VIEW3D_MT_tools_projectpaint_clone(Menu):
 
         for i, uv_layer in enumerate(context.active_object.data.uv_layers):
             props = layout.operator("wm.context_set_int", text=uv_layer.name, translate=False)
-            props.data_path = "active_object.data.uv_texture_clone_index"
+            props.data_path = "active_object.data.uv_layer_clone_index"
             props.value = i
 
 
@@ -182,7 +182,7 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
                 elif settings.mode == 'IMAGE':
                     mesh = ob.data
 
-                    clone_text = mesh.uv_texture_clone.name if mesh.uv_texture_clone else ""
+                    clone_text = mesh.uv_layer_clone.name if mesh.uv_layer_clone else ""
                     col.label(text="Source Clone Image")
                     col.template_ID(settings, "clone_image")
                     col.label(text="Source Clone UV Map")
