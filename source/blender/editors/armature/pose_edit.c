@@ -208,7 +208,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
 	/* Override depsgraph with a filtered, simpler copy */
 	if (!current_frame_only && G.debug_value != -1) {
 		TIMEIT_START(filter_pose_depsgraph);
-		DEG_FilterQuery query = {0};
+		DEG_FilterQuery query = {{0}};
 
 		DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
 		dft_ob->id = &ob->id;
