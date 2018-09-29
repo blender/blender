@@ -211,6 +211,8 @@ typedef struct InstanceGpencilModifierData {
 
 	int pass_index;              /* custom index for passes */
 	char layername[64];          /* layer name */
+	int mat_rpl;                 /* material replace (0 keep default) */
+	char pad[4];
 } InstanceGpencilModifierData;
 
 typedef enum eInstanceGpencil_Flag {
@@ -218,6 +220,7 @@ typedef enum eInstanceGpencil_Flag {
 	GP_INSTANCE_RANDOM_ROT    = (1 << 1),
 	GP_INSTANCE_INVERT_LAYER  = (1 << 2),
 	GP_INSTANCE_INVERT_PASS   = (1 << 3),
+	GP_INSTANCE_KEEP_ONTOP    = (1 << 4),
 } eInstanceGpencil_Flag;
 
 typedef struct BuildGpencilModifierData {

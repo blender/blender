@@ -922,6 +922,12 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 	RNA_def_property_range(prop, -10.0, 10.0);
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+	prop = RNA_def_property(srna, "replace_material", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "mat_rpl");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_text(prop, "Material", "Index of the material used for generated strokes (0 keep original material)");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
 	prop = RNA_def_property(srna, "invert_layers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_INSTANCE_INVERT_LAYER);
 	RNA_def_property_ui_text(prop, "Inverse Layers", "Inverse filter");
@@ -932,6 +938,11 @@ static void rna_def_modifier_gpencilinstance(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Inverse Pass", "Inverse filter");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+	prop = RNA_def_property(srna, "keep_on_top", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_INSTANCE_KEEP_ONTOP);
+	RNA_def_property_ui_text(prop, "Keep On Top",
+		"Keep the original stroke in front of new instances (only affect by layer)");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 
 static void rna_def_modifier_gpencilbuild(BlenderRNA *brna)

@@ -180,6 +180,11 @@ static void generate_geometry(
 							mul_m4_v3(mat, &pt->x);
 						}
 
+						/* if replace material, use new one */
+						if ((mmd->mat_rpl > 0) && (mmd->mat_rpl <= ob->totcol)) {
+							gps_dst->mat_nr = mmd->mat_rpl - 1;
+						}
+
 						/* Add new stroke to cache, to be added to the frame once
 						 * all duplicates have been made
 						 */
@@ -191,7 +196,12 @@ static void generate_geometry(
 	}
 
 	/* merge newly created stroke instances back into the main stroke list */
-	BLI_movelisttolist(&gpf->strokes, &stroke_cache);
+	if (mmd->flag & GP_INSTANCE_KEEP_ONTOP) {
+		BLI_movelisttolist_reverse(&gpf->strokes, &stroke_cache);
+	}
+	else {
+		BLI_movelisttolist(&gpf->strokes, &stroke_cache);
+	}
 
 	/* free temp data */
 	MEM_SAFE_FREE(valid_strokes);

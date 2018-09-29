@@ -1880,6 +1880,9 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "pass_index", text="Pass")
         row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
 
+        col.prop(md, "replace_material", text="Material")
+        col.prop(md, "keep_on_top", text="Keep original stroke on top")
+
     def GP_BUILD(self, layout, ob, md):
         gpd = ob.data
 
