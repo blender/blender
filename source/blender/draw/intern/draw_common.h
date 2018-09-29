@@ -113,8 +113,11 @@ typedef struct GlobalsUboStorage {
 	float sizeLampCenter, sizeLampCircle, sizeLampCircleShadow;
 	float sizeVertex, sizeEdge, sizeEdgeFix, sizeFaceDot;
 	float gridDistance, gridResolution, gridSubdivisions, gridScale;
+
+	float pad_globalsBlock;
 } GlobalsUboStorage;
 /* Keep in sync with globalsBlock in shaders */
+BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 
 void DRW_globals_update(void);
 void DRW_globals_free(void);
