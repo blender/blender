@@ -405,7 +405,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (draw_ctx->object_edit->type == OB_MESH) {
 		if (BKE_object_is_in_editmode(draw_ctx->object_edit)) {
-			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_EDGE) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_FACE) == 0) {
 				stl->g_data->data_mask[0] &= ~VFLAG_FACE_FREESTYLE;
 			}
 			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACES) == 0) {
@@ -418,7 +418,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_SHARP) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_SHARP;
 			}
-			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_FACE) == 0) {
+			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FREESTYLE_EDGE) == 0) {
 				stl->g_data->data_mask[1] &= ~VFLAG_EDGE_FREESTYLE;
 			}
 			if ((v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGES) == 0) {
