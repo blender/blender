@@ -68,6 +68,26 @@ void BLI_movelisttolist(ListBase *dst, ListBase *src)
 }
 
 /**
+ * moves the entire contents of \a src at the begining of \a dst.
+ */
+void BLI_movelisttolist_reverse(ListBase *dst, ListBase *src)
+{
+	if (src->first == NULL) return;
+
+	if (dst->first == NULL) {
+		dst->first = src->first;
+		dst->last = src->last;
+	}
+	else {
+		((Link *)src->last)->next = dst->first;
+		((Link *)dst->first)->prev = src->last;
+		dst->first = src->first;
+	}
+
+	src->first = src->last = NULL;
+}
+
+/**
  * Prepends \a vlink (assumed to begin with a Link) onto listbase.
  */
 void BLI_addhead(ListBase *listbase, void *vlink)

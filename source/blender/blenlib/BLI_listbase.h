@@ -82,6 +82,7 @@ void BLI_listbase_swaplinks(struct ListBase *listbase, void *vlinka, void *vlink
 void BLI_listbases_swaplinks(struct ListBase *listbasea, struct ListBase *listbaseb, void *vlinka, void *vlinkb) ATTR_NONNULL(2, 3);
 
 void BLI_movelisttolist(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
+void BLI_movelisttolist_reverse(struct ListBase *dst, struct ListBase *src) ATTR_NONNULL(1, 2);
 void BLI_duplicatelist(struct ListBase *dst, const struct ListBase *src) ATTR_NONNULL(1, 2);
 void BLI_listbase_reverse(struct ListBase *lb) ATTR_NONNULL(1);
 void BLI_listbase_rotate_first(struct ListBase *lb, void *vlink) ATTR_NONNULL(1, 2);
