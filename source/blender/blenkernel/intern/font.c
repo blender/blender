@@ -1392,6 +1392,7 @@ bool BKE_vfont_to_curve_nubase(Object *ob, int mode, ListBase *r_nubase)
 	                             NULL, NULL, NULL, NULL);
 }
 
+/** Warning: expects to have access to evaluated data (i.e. passed object should be evaluated one...). */
 bool BKE_vfont_to_curve(Object *ob, int mode)
 {
 	Curve *cu = ob->data;

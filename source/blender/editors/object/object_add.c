@@ -1942,6 +1942,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			 *               datablock, but for until we've got granular update
 			 *               lets take care by selves.
 			 */
+			/* XXX This may fail/crash, since BKE_vfont_to_curve() accesses evaluated data in some cases (bastien). */
 			BKE_vfont_to_curve(newob, FO_EDIT);
 
 			newob->type = OB_CURVE;
