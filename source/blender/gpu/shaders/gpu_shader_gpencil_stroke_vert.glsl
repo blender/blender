@@ -2,7 +2,6 @@ uniform mat4 ModelViewProjectionMatrix;
 uniform mat4 ProjectionMatrix;
 
 uniform float pixsize;   /* rv3d->pixsize */
-uniform float pixelsize; /* U.pixelsize */
 uniform int keep_size;
 uniform float objscale;
 uniform int pixfactor;
@@ -16,7 +15,7 @@ out float finalThickness;
 
 #define TRUE 1
 
-float defaultpixsize = pixsize * pixelsize * (1000.0 / pixfactor);
+float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 void main(void)
 {

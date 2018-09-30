@@ -9,12 +9,11 @@ uniform float energy;
 uniform float ambient;
 
 uniform float pixsize;   /* rv3d->pixsize */
-uniform float pixelsize; /* U.pixelsize */
 uniform float pixfactor;
 
 out vec4 FragColor;
 
-float defaultpixsize = pixsize * pixelsize * (1000.0 / pixfactor);
+float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 #define height   loc.w
 

@@ -14,10 +14,9 @@ uniform vec3 mask_color;
 
 uniform vec3 loc;
 uniform float pixsize;   /* rv3d->pixsize */
-uniform float pixelsize; /* U.pixelsize */
 uniform float pixfactor;
 
-float defaultpixsize = pixsize * pixelsize * (1000.0 / pixfactor);
+float defaultpixsize = pixsize * (1000.0 / pixfactor);
 vec2 noffset = vec2(offset[0], offset[1]);
 
 out vec4 FragColor;

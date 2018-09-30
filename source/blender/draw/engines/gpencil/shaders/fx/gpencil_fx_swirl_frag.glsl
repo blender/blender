@@ -11,12 +11,11 @@ uniform float angle;
 uniform int transparent;
 
 uniform float pixsize;   /* rv3d->pixsize */
-uniform float pixelsize; /* U.pixelsize */
 uniform float pixfactor;
 
 out vec4 FragColor;
 
-float defaultpixsize = pixsize * pixelsize * (1000.0 / pixfactor);
+float defaultpixsize = pixsize * (1000.0 / pixfactor);
 
 /* project 3d point to 2d on screen space */
 vec2 toScreenSpace(vec4 vertex)

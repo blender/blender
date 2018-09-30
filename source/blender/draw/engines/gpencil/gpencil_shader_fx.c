@@ -220,7 +220,6 @@ static void DRW_gpencil_fx_blur(
 
 	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
@@ -330,7 +329,6 @@ static void DRW_gpencil_fx_light(
 	DRW_shgroup_uniform_float(fx_shgrp, "ambient", &fxd->ambient, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
@@ -363,7 +361,6 @@ static void DRW_gpencil_fx_pixel(
 
 	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &gpd->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
@@ -399,7 +396,6 @@ static void DRW_gpencil_fx_rim(
 
 	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
@@ -415,7 +411,6 @@ static void DRW_gpencil_fx_rim(
 
 	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh_b = fx_shgrp;
@@ -485,7 +480,6 @@ static void DRW_gpencil_fx_shadow(
 	DRW_shgroup_uniform_float(fx_shgrp, "phase", &fxd->phase, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;
@@ -537,7 +531,6 @@ static void DRW_gpencil_fx_swirl(
 	DRW_shgroup_uniform_int(fx_shgrp, "transparent", &fxd->transparent, 1);
 
 	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(fx_shgrp, "pixelsize", &U.pixelsize, 1);
 	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
 
 	fxd->runtime.fx_sh = fx_shgrp;

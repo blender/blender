@@ -380,7 +380,6 @@ DRWShadingGroup *DRW_gpencil_shgroup_stroke_create(
 	DRW_shgroup_uniform_vec2(grp, "Viewport", viewport_size, 1);
 
 	DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(grp, "pixelsize", &U.pixelsize, 1);
 
 	/* avoid wrong values */
 	if ((gpd) && (gpd->pixfactor == 0)) {
@@ -470,7 +469,6 @@ static DRWShadingGroup *DRW_gpencil_shgroup_point_create(
 
 	DRW_shgroup_uniform_vec2(grp, "Viewport", viewport_size, 1);
 	DRW_shgroup_uniform_float(grp, "pixsize", stl->storage->pixsize, 1);
-	DRW_shgroup_uniform_float(grp, "pixelsize", &U.pixelsize, 1);
 
 	/* avoid wrong values */
 	if ((gpd) && (gpd->pixfactor == 0)) {

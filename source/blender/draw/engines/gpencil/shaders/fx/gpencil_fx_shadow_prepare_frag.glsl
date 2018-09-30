@@ -20,7 +20,6 @@ uniform int orientation;
 
 uniform vec3 loc;
 uniform float pixsize;   /* rv3d->pixsize */
-uniform float pixelsize; /* U.pixelsize */
 uniform float pixfactor;
 
 #define M_PI 3.1415926535897932384626433832795
@@ -28,7 +27,7 @@ uniform float pixfactor;
 #define HORIZONTAL 0
 #define VERTICAL 1
 
-float defaultpixsize = pixsize * pixelsize * (1000.0 / pixfactor);
+float defaultpixsize = pixsize * (1000.0 / pixfactor);
 vec2 noffset = vec2(offset[0], offset[1]);
 
 out vec4 FragColor;
