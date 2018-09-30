@@ -1198,12 +1198,6 @@ void init_userdef_do_versions(Main *bmain)
 		BKE_tempdir_system_init(U.tempdir);
 	}
 
-	/* signal for evaluated mesh to use colorband */
-	/* run in case this was on and is now off in the user prefs [#28096] */
-	BKE_mesh_runtime_color_band_store(
-	        (U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL,
-	        UI_GetTheme()->tv3d.vertex_unreferenced);
-
 	/* Not versioning, just avoid errors. */
 #ifndef WITH_CYCLES
 	BKE_addon_remove_safe(&U.addons, "cycles");

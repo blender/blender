@@ -559,17 +559,6 @@ void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers);
 
-/** Update the weight MCOL preview layer.
- * If weights are NULL, use object's active vgroup(s).
- * Else, weights must be an array of weight float values.
- *     If indices is NULL, it must be of numVerts length.
- *     Else, it must be of num length, as indices, which contains vertices' idx to apply weights to.
- *         (other vertices are assumed zero weight).
- */
-void DM_update_weight_mcol(
-        struct Object *ob, struct DerivedMesh *dm, int const draw_flag,
-        float *weights, int num, const int *indices);
-
 /** convert layers requested by a GLSL material to actually available layers in
  * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
 typedef struct DMVertexAttribs {
