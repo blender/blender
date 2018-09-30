@@ -1466,6 +1466,11 @@ float BKE_gpencil_multiframe_falloff_calc(bGPDframe *gpf, int actnum, int f_init
 	float fnum = 0.5f; /* default mid curve */
 	float value;
 
+	/* check curve is available */
+	if (cur_falloff == NULL) {
+		return 1.0f;
+	}
+
 	/* frames to the right of the active frame */
 	if (gpf->framenum < actnum) {
 		fnum = (float)(gpf->framenum - f_init) / (actnum - f_init);
