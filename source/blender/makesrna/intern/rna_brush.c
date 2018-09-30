@@ -1286,6 +1286,11 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_ui_text(prop, "Pin Material", "Keep material assigned to brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
+
+	prop = RNA_def_property(srna, "disable_lasso", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_DISSABLE_LASSO);
+	RNA_def_property_ui_text(prop, "Disable Lasso", "Do not draw fill color while drawing the stroke");
+	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 }
 
 static void rna_def_brush(BlenderRNA *brna)

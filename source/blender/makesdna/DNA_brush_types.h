@@ -121,7 +121,9 @@ typedef enum eGPDbrush_Flag {
 	/* Random settings group */
 	GP_BRUSH_GROUP_RANDOM = (1 << 12),
 	/* Keep material assigned to brush */
-	GP_BRUSH_MATERIAL_PINNED = (1 << 13)
+	GP_BRUSH_MATERIAL_PINNED = (1 << 13),
+	/* Do not show fill color while drawing (no lasso mode) */
+	GP_BRUSH_DISSABLE_LASSO = (1 << 14),
 } eGPDbrush_Flag;
 
 /* BrushGpencilSettings->gp_fill_draw_mode */

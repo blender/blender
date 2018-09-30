@@ -341,6 +341,9 @@ class GreasePencilAppearancePanel:
 
             layout.prop(gp_settings, "use_cursor", text="Show Brush")
 
+            if gp_settings.gpencil_brush_type == 'DRAW':
+                layout.prop(gp_settings, "disable_lasso", text="Hide fill color while drawing")
+
             if gp_settings.gpencil_brush_type == 'FILL':
                 layout.prop(brush, "cursor_color_add", text="Color")
 
