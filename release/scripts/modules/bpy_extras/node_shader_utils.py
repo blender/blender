@@ -55,7 +55,8 @@ class ShaderWrapper():
         "material",
         "_textures",
         "_grid_locations",
-    ) + NODES_LIST
+        *NODES_LIST,
+    )
 
     _col_size = 300
     _row_size = 300
@@ -143,7 +144,8 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     __slots__ = (
         "is_readonly",
         "material",
-    ) + NODES_LIST
+        *NODES_LIST,
+    )
 
     NODES_LIST = ShaderWrapper.NODES_LIST + NODES_LIST
 
@@ -439,7 +441,8 @@ class ShaderImageTextureWrapper():
         "is_readonly",
         "grid_row_diff",
         "use_alpha",
-    ) + NODES_LIST
+        *NODES_LIST,
+    )
 
     def __new__(cls, owner_shader: ShaderWrapper, node_dst, socket_dst, *args, **kwargs):
         instance = owner_shader._textures.get((node_dst, socket_dst), None)
