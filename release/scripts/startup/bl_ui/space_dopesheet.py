@@ -29,6 +29,8 @@ from bpy.types import (
 # DopeSheet Filtering - Header Buttons
 
 # used for DopeSheet, NLA, and Graph Editors
+
+
 def dopesheet_filter(layout, context, generic_filters_only=False):
     dopesheet = context.space_data.dopesheet
     is_nla = context.area.type == 'NLA_EDITOR'

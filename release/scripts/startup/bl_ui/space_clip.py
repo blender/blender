@@ -110,7 +110,6 @@ class CLIP_PT_clip_display(Panel):
 
         layout.separator()
 
-
         row = layout.row()
         col = row.column()
         col.prop(sc.clip_user, "use_render_undistorted", text="Render Undistorted")
@@ -762,7 +761,6 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
             layout.label(text=label_text)
 
         layout.use_property_split = False
-
 
         row = layout.row(align=True)
         row.prop(act_track, "use_custom_color", text="")
