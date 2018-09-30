@@ -175,7 +175,12 @@ static void gp_primitive_set_initdata(bContext *C, tGPDprimitive *tgpi)
 	/* enable recalculation flag by default */
 	gps->flag |= GP_STROKE_RECALC_CACHES;
 	/* the polygon must be closed, so enabled cyclic */
-	gps->flag |= GP_STROKE_CYCLIC;
+	if (tgpi->type != GP_STROKE_LINE) {
+		gps->flag |= GP_STROKE_CYCLIC;
+	}
+	else {
+		gps->flag &= ~GP_STROKE_CYCLIC;
+	}
 	gps->flag |= GP_STROKE_3DSPACE;
 
 	gps->mat_nr = BKE_gpencil_get_material_index(tgpi->ob, tgpi->mat) - 1;
