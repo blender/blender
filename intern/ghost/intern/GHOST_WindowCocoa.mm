@@ -551,7 +551,15 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	
 	//Creates the OpenGL View inside the window
 	m_openGLView = [[CocoaOpenGLView alloc] initWithFrame:rect];
-	
+
+	if (m_systemCocoa->m_nativePixel) {
+		// Needs to happen early when building with the 10.14 SDK, otherwise
+		// has no effect until resizeing the window.
+		if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
+			[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
+		}
+	}
+
 	[m_openGLView setSystemAndWindowCocoa:systemCocoa windowCocoa:this];
 	
 	[m_window setContentView:m_openGLView];
@@ -563,14 +571,9 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	updateDrawingContext();
 	activateDrawingContext();
 
-	// XXX jwilkins: This seems like it belongs in GHOST_ContextCGL, but probably not GHOST_ContextEGL
 	if (m_systemCocoa->m_nativePixel) {
-		if ([m_openGLView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
-			[m_openGLView setWantsBestResolutionOpenGLSurface:YES];
-		
-			NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
-			m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
-		}
+		NSRect backingBounds = [m_openGLView convertRectToBacking:[m_openGLView bounds]];
+		m_nativePixelSize = (float)backingBounds.size.width / (float)rect.size.width;
 	}
 	
 	setTitle(title);
