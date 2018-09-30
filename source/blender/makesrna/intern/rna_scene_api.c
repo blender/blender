@@ -66,6 +66,8 @@ const EnumPropertyItem rna_enum_abc_compression_items[] = {
 #include "BKE_scene.h"
 #include "BKE_writeavi.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
 #include "ED_uvedit.h"
@@ -184,6 +186,10 @@ static void rna_Scene_ray_cast(
 	        r_ob, (float(*)[4])r_obmat);
 
 	ED_transform_snap_object_context_destroy(sctx);
+
+	if (r_ob != NULL && *r_ob != NULL) {
+		*r_ob = DEG_get_original_object(*r_ob);
+	}
 
 	if (ret) {
 		*r_success = true;
