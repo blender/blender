@@ -22,7 +22,6 @@ __all__ = (
     "ExportHelper",
     "ImportHelper",
     "orientation_helper",
-    "orientation_helper_factory",
     "axis_conversion",
     "axis_conversion_ensure",
     "create_derived_objects",
@@ -123,6 +122,10 @@ class ImportHelper:
 
 
 def orientation_helper(axis_forward='Y', axis_up='Z'):
+    """
+    A decorator for import/export classes, generating properties needed by the axis conversion system and IO helpers,
+    with specified default values (axes).
+    """
     def wrapper(cls):
         def _update_axis_forward(self, context):
             if self.axis_forward[-1] == self.axis_up[-1]:
@@ -165,51 +168,6 @@ def orientation_helper(axis_forward='Y', axis_up='Z'):
         return cls
 
     return wrapper
-
-
-def orientation_helper_factory(name, axis_forward='Y', axis_up='Z'):
-    print("WARNING! Using this helper function is deprecated, please switch to orientation_helper decorator instead.")
-    members = {}
-
-    def _update_axis_forward(self, context):
-        if self.axis_forward[-1] == self.axis_up[-1]:
-            self.axis_up = (self.axis_up[0:-1] +
-                            'XYZ'[('XYZ'.index(self.axis_up[-1]) + 1) % 3])
-
-    members['axis_forward'] = EnumProperty(
-        name="Forward",
-        items=(
-            ('X', "X Forward", ""),
-            ('Y', "Y Forward", ""),
-            ('Z', "Z Forward", ""),
-            ('-X', "-X Forward", ""),
-            ('-Y', "-Y Forward", ""),
-            ('-Z', "-Z Forward", ""),
-        ),
-        default=axis_forward,
-        update=_update_axis_forward,
-    )
-
-    def _update_axis_up(self, context):
-        if self.axis_up[-1] == self.axis_forward[-1]:
-            self.axis_forward = (self.axis_forward[0:-1] +
-                                 'XYZ'[('XYZ'.index(self.axis_forward[-1]) + 1) % 3])
-
-    members['axis_up'] = EnumProperty(
-        name="Up",
-        items=(
-            ('X', "X Up", ""),
-            ('Y', "Y Up", ""),
-            ('Z', "Z Up", ""),
-            ('-X', "-X Up", ""),
-            ('-Y', "-Y Up", ""),
-            ('-Z', "-Z Up", ""),
-        ),
-        default=axis_up,
-        update=_update_axis_up,
-    )
-
-    return type(name, (object,), members)
 
 
 # Axis conversion function, not pretty LUT
