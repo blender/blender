@@ -49,6 +49,7 @@ set(SRC
 	intern/FX_shader_light.c
 	intern/FX_shader_pixel.c
 	intern/FX_shader_rim.c
+	intern/FX_shader_shadow.c
 	intern/FX_shader_swirl.c
 	intern/FX_shader_wave.c
 

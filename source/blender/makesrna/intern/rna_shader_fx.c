@@ -55,6 +55,7 @@ const EnumPropertyItem rna_enum_object_shaderfx_type_items[] = {
 	{eShaderFxType_Light, "FX_LIGHT", ICON_SHADERFX, "Light", "Simulate ilumination" },
 	{eShaderFxType_Pixel, "FX_PIXEL", ICON_SHADERFX, "Pixelate", "Pixelate image"},
 	{eShaderFxType_Rim, "FX_RIM", ICON_SHADERFX, "Rim", "Add a rim to the image" },
+	{eShaderFxType_Shadow, "FX_SHADOW", ICON_SHADERFX, "Shadow", "Create a shadow effect"},
 	{eShaderFxType_Swirl, "FX_SWIRL", ICON_SHADERFX, "Swirl", "Create a rotation distortion"},
 	{eShaderFxType_Wave, "FX_WAVE", ICON_SHADERFX, "Wave Distortion", "Apply sinusoidal deformation"},
 	{0, NULL, 0, NULL, NULL}
@@ -101,6 +102,8 @@ static StructRNA *rna_ShaderFx_refine(struct PointerRNA *ptr)
 			return &RNA_ShaderFxPixel;
 		case eShaderFxType_Rim:
 			return &RNA_ShaderFxRim;
+		case eShaderFxType_Shadow:
+			return &RNA_ShaderFxShadow;
 		case eShaderFxType_Swirl:
 			return &RNA_ShaderFxSwirl;
 		case eShaderFxType_Flip:
@@ -180,6 +183,7 @@ static void rna_##_type##ShaderFx_##_prop##_set(PointerRNA *ptr, PointerRNA valu
 }
 
 RNA_FX_OBJECT_SET(Light, object, OB_EMPTY);
+RNA_FX_OBJECT_SET(Shadow, object, OB_EMPTY);
 RNA_FX_OBJECT_SET(Swirl, object, OB_EMPTY);
 
 #undef RNA_FX_OBJECT_SET
@@ -382,6 +386,89 @@ static void rna_def_shader_fx_rim(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 }
 
+static void rna_def_shader_fx_shadow(BlenderRNA *brna)
+{
+	static EnumPropertyItem prop_shaderfx_shadow_type_items[] = {
+		{ 0, "HORIZONTAL", 0, "Horizontal", "" },
+		{ 1, "VERTICAL", 0, "Vertical", "" },
+		{ 0, NULL, 0, NULL, NULL }
+	};
+
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ShaderFxShadow", "ShaderFx");
+	RNA_def_struct_ui_text(srna, "Shadow Effect", "Shadow effect");
+	RNA_def_struct_sdna(srna, "ShadowShaderFxData");
+	RNA_def_struct_ui_icon(srna, ICON_SHADERFX);
+
+	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Object", "Object to determine center of rotation");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_ShadowShaderFx_object_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
+	RNA_def_property_update(prop, 0, "rna_ShaderFx_dependency_update");
+
+	prop = RNA_def_property(srna, "offset", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_sdna(prop, NULL, "offset");
+	RNA_def_property_range(prop, -INT_MAX, INT_MAX);
+	RNA_def_property_ui_text(prop, "Offset", "Offset of the shadow");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Scale", "Offset of the shadow");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "shadow_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_float_sdna(prop, NULL, "shadow_rgba");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Shadow Color", "Color used for Shadow");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "orientation", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "orientation");
+	RNA_def_property_enum_items(prop, prop_shaderfx_shadow_type_items);
+	RNA_def_property_ui_text(prop, "Orientation", "Direction of the wave");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "amplitude", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "amplitude");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Amplitude", "Amplitude of Wave");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "period", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "period");
+	RNA_def_property_range(prop, 0, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Period", "Period of Wave");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "phase");
+	RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
+	RNA_def_property_ui_text(prop, "Phase", "Phase Shift of Wave");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "rotation");
+	RNA_def_property_range(prop, DEG2RAD(-360), DEG2RAD(360));
+	RNA_def_property_ui_range(prop, DEG2RAD(-360), DEG2RAD(360), 5, 2);
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation around center or object");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "use_object", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SHADOW_USE_OBJECT);
+	RNA_def_property_ui_text(prop, "Use Object", "Use object as center of rotation");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "use_wave", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SHADOW_USE_WAVE);
+	RNA_def_property_ui_text(prop, "Wave", "Use wave effect");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+}
+
 static void rna_def_shader_fx_swirl(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -529,6 +616,7 @@ void RNA_def_shader_fx(BlenderRNA *brna)
 	rna_def_shader_fx_wave(brna);
 	rna_def_shader_fx_pixel(brna);
 	rna_def_shader_fx_rim(brna);
+	rna_def_shader_fx_shadow(brna);
 	rna_def_shader_fx_swirl(brna);
 	rna_def_shader_fx_flip(brna);
 	rna_def_shader_fx_light(brna);

@@ -141,17 +141,17 @@ static void GPENCIL_create_framebuffers(void *vedata)
 		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_b)
 		        });
 
-		/* used for rim FX effect */
-		e_data.temp_depth_tx_rim = DRW_texture_pool_query_2D(
+		/* used for rim and shadow FX effects */
+		e_data.temp_depth_tx_fx = DRW_texture_pool_query_2D(
 		        size[0], size[1], GPU_DEPTH24_STENCIL8,
 		        &draw_engine_gpencil_type);
-		e_data.temp_color_tx_rim = DRW_texture_pool_query_2D(
+		e_data.temp_color_tx_fx = DRW_texture_pool_query_2D(
 		        size[0], size[1], fb_format,
 		        &draw_engine_gpencil_type);
 		GPU_framebuffer_ensure_config(
-		        &fbl->temp_fb_rim, {
-		            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_rim),
-		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_rim),
+		        &fbl->temp_fb_fx, {
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_depth_tx_fx),
+		            GPU_ATTACHMENT_TEXTURE(e_data.temp_color_tx_fx),
 		        });
 
 		/* background framebuffer to speed up drawing process (always 16 bits) */

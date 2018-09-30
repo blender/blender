@@ -38,6 +38,7 @@ extern ShaderFxTypeInfo shaderfx_Type_Flip;
 extern ShaderFxTypeInfo shaderfx_Type_Light;
 extern ShaderFxTypeInfo shaderfx_Type_Pixel;
 extern ShaderFxTypeInfo shaderfx_Type_Rim;
+extern ShaderFxTypeInfo shaderfx_Type_Shadow;
 extern ShaderFxTypeInfo shaderfx_Type_Swirl;
 extern ShaderFxTypeInfo shaderfx_Type_Wave;
 

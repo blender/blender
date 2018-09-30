@@ -49,6 +49,7 @@ void shaderfx_type_init(ShaderFxTypeInfo *types[])
 	INIT_FX_TYPE(Light);
 	INIT_FX_TYPE(Pixel);
 	INIT_FX_TYPE(Rim);
+	INIT_FX_TYPE(Shadow);
 	INIT_FX_TYPE(Swirl);
 	INIT_FX_TYPE(Wave);
 #undef INIT_FX_TYPE

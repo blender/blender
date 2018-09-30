@@ -72,6 +72,7 @@ typedef struct tGPencilObjectCache {
 	DRWShadingGroup *fx_colorize_sh;
 	DRWShadingGroup *fx_pixel_sh;
 	DRWShadingGroup *fx_rim_sh;
+	DRWShadingGroup *fx_shadow_sh;
 	DRWShadingGroup *fx_swirl_sh;
 	DRWShadingGroup *fx_flip_sh;
 	DRWShadingGroup *fx_light_sh;
@@ -160,7 +161,7 @@ typedef struct GPENCIL_FramebufferList {
 	struct GPUFrameBuffer *main;
 	struct GPUFrameBuffer *temp_fb_a;
 	struct GPUFrameBuffer *temp_fb_b;
-	struct GPUFrameBuffer *temp_fb_rim;
+	struct GPUFrameBuffer *temp_fb_fx;
 	struct GPUFrameBuffer *background_fb;
 
 	struct GPUFrameBuffer *multisample_fb;
@@ -234,6 +235,8 @@ typedef struct GPENCIL_e_data {
 	struct GPUShader *gpencil_fx_pixel_sh;
 	struct GPUShader *gpencil_fx_rim_prepare_sh;
 	struct GPUShader *gpencil_fx_rim_resolve_sh;
+	struct GPUShader *gpencil_fx_shadow_prepare_sh;
+	struct GPUShader *gpencil_fx_shadow_resolve_sh;
 	struct GPUShader *gpencil_fx_swirl_sh;
 	struct GPUShader *gpencil_fx_wave_sh;
 
@@ -254,8 +257,8 @@ typedef struct GPENCIL_e_data {
 	struct GPUTexture *temp_color_tx_b;
 	struct GPUTexture *temp_depth_tx_b;
 
-	struct GPUTexture *temp_color_tx_rim;
-	struct GPUTexture *temp_depth_tx_rim;
+	struct GPUTexture *temp_color_tx_fx;
+	struct GPUTexture *temp_depth_tx_fx;
 
 	/* for buffer only one batch is nedeed because the drawing is only of one stroke */
 	GPUBatch *batch_buffer_stroke;

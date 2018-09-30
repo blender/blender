@@ -100,6 +100,28 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
         layout.prop(fx, "blur")
         layout.prop(fx, "samples")
 
+    def FX_SHADOW(self, layout, fx):
+        layout.prop(fx, "offset", text="Offset")
+
+        layout.prop(fx, "shadow_color")
+        layout.prop(fx, "scale")
+        layout.prop(fx, "rotation")
+
+        layout.separator()
+        layout.prop(fx, "use_object", text="Use object as pivot")
+        if fx.use_object:
+            row = layout.row()
+            row.prop(fx, "object", text="Object")
+
+        layout.separator()
+        layout.prop(fx, "use_wave", text="Use Wave effect")
+        if fx.use_wave is True:
+            row = layout.row(align=True)
+            row.prop(fx, "orientation", expand=True)
+            layout.prop(fx, "amplitude")
+            layout.prop(fx, "period")
+            layout.prop(fx, "phase")
+
     def FX_SWIRL(self, layout, fx):
         layout.prop(fx, "object", text="Object")
 
