@@ -1229,6 +1229,13 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 	gso->gpd = ED_gpencil_data_get_active(C);
 	gso->cfra = INT_MAX; /* NOTE: So that first stroke will get handled in init_stroke() */
 
+	/* some brushes cannot use pressure for radius */
+	if ((gso->brush_type == GP_EDITBRUSH_TYPE_GRAB) ||
+		(gso->brush_type == GP_EDITBRUSH_TYPE_CLONE))
+	{
+		gso->brush->flag &= ~GP_EDITBRUSH_FLAG_PRESSURE_RADIUS;
+	}
+
 	gso->scene = scene;
 	gso->object = ob;
 	if (ob) {
@@ -1416,7 +1423,7 @@ static bool gpsculpt_brush_do_stroke(
 	GP_SpaceConversion *gsc = &gso->gsc;
 	rcti *rect = &gso->brush_rect;
 	GP_EditBrush_Data *brush = gso->brush;
-	const int radius = (brush->flag & GP_EDITBRUSH_FLAG_USE_PRESSURE) ? gso->brush->size * gso->pressure : gso->brush->size;
+	const int radius = (brush->flag & GP_EDITBRUSH_FLAG_PRESSURE_RADIUS) ? gso->brush->size * gso->pressure : gso->brush->size;
 
 	bGPDspoint *pt1, *pt2;
 	int pc1[2] = {0};
@@ -1709,7 +1716,7 @@ static void gpsculpt_brush_apply(bContext *C, wmOperator *op, PointerRNA *itempt
 {
 	tGP_BrushEditData *gso = op->customdata;
 	GP_EditBrush_Data *brush = gso->brush;
-	const int radius = 	(brush->flag & GP_EDITBRUSH_FLAG_USE_PRESSURE) ? gso->brush->size * gso->pressure : gso->brush->size;
+	const int radius = (brush->flag & GP_EDITBRUSH_FLAG_PRESSURE_RADIUS) ? gso->brush->size * gso->pressure : gso->brush->size;
 	float mousef[2];
 	int mouse[2];
 	bool changed = false;

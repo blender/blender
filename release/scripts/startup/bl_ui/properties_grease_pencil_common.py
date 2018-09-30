@@ -254,7 +254,9 @@ class GreasePencilStrokeSculptPanel:
 
         row = layout.row(align=True)
         row.prop(brush, "size", slider=True)
-        row.prop(brush, "use_pressure_radius", text="")
+        sub = row.row(align=True)
+        sub.enabled = tool not in {'GRAB', 'CLONE'}
+        sub.prop(brush, "use_pressure_radius", text="")
 
         row = layout.row(align=True)
         row.prop(brush, "strength", slider=True)
