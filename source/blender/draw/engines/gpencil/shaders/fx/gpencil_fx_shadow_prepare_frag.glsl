@@ -54,6 +54,9 @@ void main()
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
 
+	float cosv = cos(rotation);
+	float sinv = sin(rotation);
+
 	/* move point to new coords system */
 	vec2 tpos = vec2(uv.x, uv.y) - loc2d;
 
@@ -65,8 +68,8 @@ void main()
 	tpos.y *= 1.0 / scale[1];
 	
 	/* rotation */
-	tpos.x = (tpos.x * cos(rotation)) - (tpos.y * sin(rotation));
-	tpos.y = (tpos.x * sin(rotation)) + (tpos.y * cos(rotation));
+	tpos.x = (tpos.x * cosv) - (tpos.y * sinv);
+	tpos.y = (tpos.x * sinv) + (tpos.y * cosv);
 	
 	/* back to original coords system */
 	vec2 texpos = tpos + loc2d;
@@ -93,28 +96,6 @@ void main()
 	if (src_pixel.a == 0.0f) {
 		discard;
 	}
-	
-	
-	
-	// /* check inside viewport */
-	// else if ((uv.x - dx < 0) || (uv.x - dx > Viewport[0])) {
-		// discard;
-	// }
-	// else if ((uv.y - dy < 0) || (uv.y - dy > Viewport[1])) {
-		// discard;
-	// }
-	// /* pixel is equal to mask color, keep */
-	// else if (src_pixel.rgb == mask_color.rgb) {
-		// discard;
-	// }
-	// else {
-		// if ((src_pixel.a > 0) && (offset_pixel.a > 0)) {
-			// discard;
-		// }
-		// else {
-			// outcolor = vec4(rim_color, 1.0);
-		// }
-	// }
 
 	gl_FragDepth = stroke_depth;
 	FragColor = outcolor;
