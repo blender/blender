@@ -52,7 +52,7 @@ struct GPUTexture *globals_weight_ramp = NULL;
 static bool weight_ramp_custom = false;
 static ColorBand weight_ramp_copy;
 
-static struct GPUTexture* DRW_create_weight_colorramp_texture(void);
+static struct GPUTexture *DRW_create_weight_colorramp_texture(void);
 
 void DRW_globals_update(void)
 {
@@ -187,7 +187,8 @@ void DRW_globals_update(void)
 	bool user_weight_ramp = (U.flag & USER_CUSTOM_RANGE) != 0;
 
 	if (weight_ramp_custom != user_weight_ramp ||
-	    (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0)) {
+	    (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0))
+	{
 		DRW_TEXTURE_FREE_SAFE(globals_weight_ramp);
 	}
 
@@ -950,8 +951,7 @@ bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
 
 static void DRW_evaluate_weight_to_color(float *result, float weight)
 {
-	if (U.flag & USER_CUSTOM_RANGE)
-	{
+	if (U.flag & USER_CUSTOM_RANGE) {
 		BKE_colorband_evaluate(&U.coba_weight, weight, result);
 	}
 	else {
@@ -964,18 +964,18 @@ static void DRW_evaluate_weight_to_color(float *result, float weight)
 		hsv_to_rgb_v(hsv, result);
 
 		for (int i = 0; i < 3; i++) {
-			result[i] = pow(result[i], 1.0f/gamma);
+			result[i] = pow(result[i], 1.0f / gamma);
 		}
 	}
 }
 
-static GPUTexture* DRW_create_weight_colorramp_texture(void)
+static GPUTexture *DRW_create_weight_colorramp_texture(void)
 {
 	char error[256];
 	float pixels[256 * 4];
 	for (int i = 0 ; i < 256 ; i ++) {
 		DRW_evaluate_weight_to_color(&pixels[i*4], i / 255.0f);
-		pixels[i*4 + 3] = 1.0f;
+		pixels[(i * 4) + 3] = 1.0f;
 	}
 
 	return GPU_texture_create_1D(256, GPU_RGBA8, pixels, error);

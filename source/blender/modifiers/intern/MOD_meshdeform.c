@@ -328,7 +328,8 @@ static void meshdeformModifier_do(
 			/* Write binding data to original modifier. */
 			Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
 			Object *ob_orig = DEG_get_original_object(ob);
-			MeshDeformModifierData *mmd_orig = (MeshDeformModifierData*)modifiers_findByName(ob_orig, mmd->modifier.name);
+			MeshDeformModifierData *mmd_orig = (MeshDeformModifierData *)modifiers_findByName(
+			        ob_orig, mmd->modifier.name);
 
 			recursive = 1;
 			mmd->bindfunc(scene, mmd_orig, cagemesh, (float *)vertexCos, numVerts, cagemat);

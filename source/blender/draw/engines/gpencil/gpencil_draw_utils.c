@@ -881,8 +881,8 @@ static void gpencil_draw_strokes(
 
 		/* edit points (only in edit mode and not play animation not render) */
 		if ((draw_ctx->obact == ob) && (src_gps) &&
-			(!playing) && (!is_render) && (!cache_ob->is_dup_ob)
-			&& ((gpl->flag & GP_LAYER_LOCKED) == 0))
+		    (!playing) && (!is_render) && (!cache_ob->is_dup_ob) &&
+		    ((gpl->flag & GP_LAYER_LOCKED) == 0))
 		{
 			if (!stl->g_data->shgrps_edit_line) {
 				stl->g_data->shgrps_edit_line = DRW_shgroup_create(e_data->gpencil_line_sh, psl->edit_pass);
@@ -970,9 +970,9 @@ void DRW_gpencil_populate_buffer_strokes(GPENCIL_e_data *e_data, void *vedata, T
 				        stl->storage->unit_matrix);
 
 				if ((gpd->runtime.sbuffer_size >= 3) &&
-					(gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
+				    (gpd->runtime.sfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) &&
 				    ((gpd->runtime.sbuffer_sflag & GP_STROKE_NOFILL) == 0) &&
-					((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0))
+				    ((brush->gpencil_settings->flag & GP_BRUSH_DISSABLE_LASSO) == 0))
 				{
 					/* if not solid, fill is simulated with solid color */
 					if (gpd->runtime.bfill_style > 0) {

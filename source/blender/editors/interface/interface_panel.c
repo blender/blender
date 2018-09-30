@@ -724,7 +724,7 @@ void ui_draw_aligned_panel(
 #endif
 	{
 		char col_title[4];
-		UI_GetThemeColor4ubv(TH_TITLE, (unsigned char*)col_title);
+		UI_GetThemeColor4ubv(TH_TITLE, (uchar *)col_title);
 
 		GPU_blend(true);
 		UI_icon_draw_aspect(

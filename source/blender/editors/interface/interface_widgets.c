@@ -1278,8 +1278,8 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
 static void widget_draw_icon(
-		const uiBut *but, BIFIconID icon, float alpha,
-		const rcti *rect, const char mono_color[4])
+        const uiBut *but, BIFIconID icon, float alpha,
+        const rcti *rect, const char mono_color[4])
 {
 	float xs = 0.0f, ys = 0.0f;
 	float aspect, height;

@@ -439,7 +439,7 @@ void wm_drags_draw(bContext *C, wmWindow *win, rcti *rect)
 			drag_rect_minmax(rect, x, y, x + w, y + iconsize);
 		}
 		else {
-			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), (unsigned char*)text_col);
+			UI_fontstyle_draw_simple(fstyle, x, y, wm_drag_name(drag), (uchar *)text_col);
 		}
 
 		/* operator name with roundbox */

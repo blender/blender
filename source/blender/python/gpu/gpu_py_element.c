@@ -70,10 +70,10 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 
 	verts_per_prim = GPU_indexbuf_primitive_len(params.type_id);
 	if (verts_per_prim == -1) {
-			PyErr_Format(PyExc_ValueError,
-			             "The argument 'type' must be "
-			             "'POINTS', 'LINES', 'TRIS' or 'LINES_ADJ'");
-			return NULL;
+		PyErr_Format(PyExc_ValueError,
+		             "The argument 'type' must be "
+		             "'POINTS', 'LINES', 'TRIS' or 'LINES_ADJ'");
+		return NULL;
 	}
 
 	if (PyObject_CheckBuffer(params.seq)) {

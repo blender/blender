@@ -1230,9 +1230,7 @@ static bool gpsculpt_brush_init(bContext *C, wmOperator *op)
 	gso->cfra = INT_MAX; /* NOTE: So that first stroke will get handled in init_stroke() */
 
 	/* some brushes cannot use pressure for radius */
-	if ((gso->brush_type == GP_EDITBRUSH_TYPE_GRAB) ||
-		(gso->brush_type == GP_EDITBRUSH_TYPE_CLONE))
-	{
+	if (ELEM(gso->brush_type, GP_EDITBRUSH_TYPE_GRAB, GP_EDITBRUSH_TYPE_CLONE)) {
 		gso->brush->flag &= ~GP_EDITBRUSH_FLAG_PRESSURE_RADIUS;
 	}
 

@@ -2163,7 +2163,8 @@ static void ui_but_paste_numeric_value(bContext *C, uiBut *but, uiHandleButtonDa
 		data->value = value;
 		ui_but_string_set(C, but, buf_paste);
 		button_activate_state(C, but, BUTTON_STATE_EXIT);
-	} else {
+	}
+	else {
 		WM_report(RPT_ERROR, "Expected a number");
 	}
 }
@@ -2313,54 +2314,53 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 
 	bool has_required_data = !(but->poin == NULL && but->rnapoin.data == NULL);
 
-	switch (but->type)
-	{
-	case UI_BTYPE_NUM:
-	case UI_BTYPE_NUM_SLIDER:
-		if (!has_required_data) break;
-		if (copy_array && ui_but_has_array_value(but)) {
+	switch (but->type) {
+		case UI_BTYPE_NUM:
+		case UI_BTYPE_NUM_SLIDER:
+			if (!has_required_data) break;
+			if (copy_array && ui_but_has_array_value(but)) {
+				ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
+			}
+			else {
+				ui_but_copy_numeric_value(but, buffer_to_copy, max_copy_length);
+			}
+			break;
+
+		case UI_BTYPE_UNITVEC:
+			if (!has_required_data) break;
 			ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
-		}
-		else {
-			ui_but_copy_numeric_value(but, buffer_to_copy, max_copy_length);
-		}
-		break;
+			break;
 
-	case UI_BTYPE_UNITVEC:
-		if (!has_required_data) break;
-		ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
-		break;
+		case UI_BTYPE_COLOR:
+			if (!has_required_data) break;
+			ui_but_copy_color(but, buffer_to_copy, max_copy_length);
+			break;
 
-	case UI_BTYPE_COLOR:
-		if (!has_required_data) break;
-		ui_but_copy_color(but, buffer_to_copy, max_copy_length);
-		break;
+		case UI_BTYPE_TEXT:
+		case UI_BTYPE_SEARCH_MENU:
+			if (!has_required_data) break;
+			ui_but_copy_text(but, buffer_to_copy, max_copy_length);
+			break;
 
-	case UI_BTYPE_TEXT:
-	case UI_BTYPE_SEARCH_MENU:
-		if (!has_required_data) break;
-		ui_but_copy_text(but, buffer_to_copy, max_copy_length);
-		break;
+		case UI_BTYPE_COLORBAND:
+			ui_but_copy_colorband(but);
+			break;
 
-	case UI_BTYPE_COLORBAND:
-		ui_but_copy_colorband(but);
-		break;
+		case UI_BTYPE_CURVE:
+			ui_but_copy_curvemapping(but);
+			break;
 
-	case UI_BTYPE_CURVE:
-		ui_but_copy_curvemapping(but);
-		break;
+		case UI_BTYPE_BUT:
+			ui_but_copy_operator(C, but, buffer_to_copy, max_copy_length);
+			break;
 
-	case UI_BTYPE_BUT:
-		ui_but_copy_operator(C, but, buffer_to_copy, max_copy_length);
-		break;
+		case UI_BTYPE_MENU:
+		case UI_BTYPE_PULLDOWN:
+			ui_but_copy_menu(but, buffer_to_copy, max_copy_length);
+			break;
 
-	case UI_BTYPE_MENU:
-	case UI_BTYPE_PULLDOWN:
-		ui_but_copy_menu(but, buffer_to_copy, max_copy_length);
-		break;
-
-	default:
-		break;
+		default:
+			break;
 	}
 
 	WM_clipboard_text_set(buffer_to_copy, 0);
@@ -2376,45 +2376,44 @@ static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, cons
 
 	bool has_required_data = !(but->poin == NULL && but->rnapoin.data == NULL);
 
-	switch (but->type)
-	{
-	case UI_BTYPE_NUM:
-	case UI_BTYPE_NUM_SLIDER:
-		if (!has_required_data) break;
-		if (paste_array && ui_but_has_array_value(but)) {
-			ui_but_paste_numeric_array(C, but, data, buf_paste);
-		}
-		else {
-			ui_but_paste_numeric_value(C, but, data, buf_paste);
-		}
-		break;
+	switch (but->type) {
+		case UI_BTYPE_NUM:
+		case UI_BTYPE_NUM_SLIDER:
+			if (!has_required_data) break;
+			if (paste_array && ui_but_has_array_value(but)) {
+				ui_but_paste_numeric_array(C, but, data, buf_paste);
+			}
+			else {
+				ui_but_paste_numeric_value(C, but, data, buf_paste);
+			}
+			break;
 
-	case UI_BTYPE_UNITVEC:
-		if (!has_required_data) break;
-		ui_but_paste_normalized_vector(C, but, buf_paste);
-		break;
+		case UI_BTYPE_UNITVEC:
+			if (!has_required_data) break;
+			ui_but_paste_normalized_vector(C, but, buf_paste);
+			break;
 
-	case UI_BTYPE_COLOR:
-		if (!has_required_data) break;
-		ui_but_paste_color(C, but, buf_paste);
-		break;
+		case UI_BTYPE_COLOR:
+			if (!has_required_data) break;
+			ui_but_paste_color(C, but, buf_paste);
+			break;
 
-	case UI_BTYPE_TEXT:
-	case UI_BTYPE_SEARCH_MENU:
-		if (!has_required_data) break;
-		ui_but_paste_text(C, but, data, buf_paste);
-		break;
+		case UI_BTYPE_TEXT:
+		case UI_BTYPE_SEARCH_MENU:
+			if (!has_required_data) break;
+			ui_but_paste_text(C, but, data, buf_paste);
+			break;
 
-	case UI_BTYPE_COLORBAND:
-		ui_but_paste_colorband(C, but, data);
-		break;
+		case UI_BTYPE_COLORBAND:
+			ui_but_paste_colorband(C, but, data);
+			break;
 
-	case UI_BTYPE_CURVE:
-		ui_but_paste_curvemapping(C, but);
-		break;
+		case UI_BTYPE_CURVE:
+			ui_but_paste_curvemapping(C, but);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	MEM_freeN((void *)buf_paste);

@@ -1866,8 +1866,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event
 	tGPsdata *p = NULL;
 
 	/* GPXX Need a better solution */
-	if (sa && sa->spacetype == SPACE_VIEW3D)
-	{
+	if (sa && sa->spacetype == SPACE_VIEW3D) {
 		if ((ob != NULL) && (ob->type == OB_GPENCIL)) {
 			BKE_report(op->reports, RPT_ERROR, "Cannot draw annotation with a Grease Pencil object active");
 			return OPERATOR_CANCELLED;

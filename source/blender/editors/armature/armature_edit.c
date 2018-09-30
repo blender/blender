@@ -1486,13 +1486,13 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 			/* break connections for unseen bones */
 			if (((arm->layer & ebone->layer) &&
-				 ((ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED)))) == 0)
+			     ((ED_armature_ebone_selectflag_get(ebone) & (BONE_TIPSEL | BONE_SELECTED)))) == 0)
 			{
 				ebone->temp.ebone = NULL;
 			}
 
 			if (((arm->layer & ebone->layer) &&
-				((ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED)))) == 0)
+			     ((ED_armature_ebone_selectflag_get(ebone) & (BONE_ROOTSEL | BONE_SELECTED)))) == 0)
 			{
 				if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
 					ebone->parent->temp.ebone = NULL;
@@ -1504,7 +1504,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 
 			if (ebone->parent &&
-				(ebone->parent->temp.ebone == ebone))
+			    (ebone->parent->temp.ebone == ebone))
 			{
 				ebone->flag |= BONE_DONE;
 			}
@@ -1528,8 +1528,8 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		if (changed) {
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 				if (ebone->parent &&
-					ebone->parent->temp.ebone &&
-					(ebone->flag & BONE_CONNECTED))
+				    ebone->parent->temp.ebone &&
+				    (ebone->flag & BONE_CONNECTED))
 				{
 					ebone->rad_head = ebone->parent->rad_tail;
 				}

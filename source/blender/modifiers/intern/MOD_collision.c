@@ -186,9 +186,9 @@ static void deformVerts(
 
 			/* create bounding box hierarchy */
 			collmd->bvhtree = bvhtree_build_from_mvert(
-					collmd->x,
-					collmd->tri, collmd->tri_num,
-					ob->pd->pdef_sboft);
+			        collmd->x,
+			        collmd->tri, collmd->tri_num,
+			        ob->pd->pdef_sboft);
 
 			collmd->time_x = collmd->time_xnew = current_time;
 			collmd->is_static = true;
@@ -220,26 +220,26 @@ static void deformVerts(
 				if (ob->pd->pdef_sboft != BLI_bvhtree_get_epsilon(collmd->bvhtree)) {
 					BLI_bvhtree_free(collmd->bvhtree);
 					collmd->bvhtree = bvhtree_build_from_mvert(
-							collmd->current_x,
-							collmd->tri, collmd->tri_num,
-							ob->pd->pdef_sboft);
+					        collmd->current_x,
+					        collmd->tri, collmd->tri_num,
+					        ob->pd->pdef_sboft);
 				}
 			}
 
 			/* happens on file load (ONLY when i decomment changes in readfile.c) */
 			if (!collmd->bvhtree) {
 				collmd->bvhtree = bvhtree_build_from_mvert(
-						collmd->current_x,
-						collmd->tri, collmd->tri_num,
-						ob->pd->pdef_sboft);
+				        collmd->current_x,
+				        collmd->tri, collmd->tri_num,
+				        ob->pd->pdef_sboft);
 			}
 			else if (!collmd->is_static || !is_static) {
 				/* recalc static bounding boxes */
 				bvhtree_update_from_mvert(
-						collmd->bvhtree,
-						collmd->current_x, collmd->current_xnew,
-						collmd->tri, collmd->tri_num,
-						true);
+				        collmd->bvhtree,
+				        collmd->current_x, collmd->current_xnew,
+				        collmd->tri, collmd->tri_num,
+				        true);
 			}
 
 			collmd->is_static = is_static;

@@ -1527,7 +1527,7 @@ static void icon_draw_size(
 		/* icon that matches text color, assumed to be white */
 		float color[4];
 		if (mono_rgba) {
-			rgba_uchar_to_float(color, (const unsigned char*)mono_rgba);
+			rgba_uchar_to_float(color, (const uchar *)mono_rgba);
 		}
 		else {
 			UI_GetThemeColor4fv(TH_TEXT, color);
