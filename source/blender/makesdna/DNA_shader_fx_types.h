@@ -182,6 +182,9 @@ typedef struct ShadowShaderFxData {
 	int orientation;
 	float scale[2];
 	float rotation;
+	int   blur[2];
+	int   samples;
+	char pad[4];
 	ShaderFxData_runtime runtime;
 } ShadowShaderFxData;
 

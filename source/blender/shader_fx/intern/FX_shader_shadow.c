@@ -58,6 +58,8 @@ static void initData(ShaderFxData *md)
 	gpfx->period = 20.0f;
 	gpfx->phase = 0.0f;
 	gpfx->orientation = 1;
+
+	ARRAY_SET_ITEMS(gpfx->blur, 0, 0);
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)

@@ -107,6 +107,10 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
         layout.prop(fx, "rotation")
 
         layout.separator()
+        layout.prop(fx, "blur")
+        layout.prop(fx, "samples")
+
+        layout.separator()
         layout.prop(fx, "use_object", text="Use object as pivot")
         if fx.use_object:
             row = layout.row()

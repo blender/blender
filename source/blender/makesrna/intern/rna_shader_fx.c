@@ -458,6 +458,20 @@ static void rna_def_shader_fx_shadow(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Rotation", "Rotation around center or object");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
 
+	prop = RNA_def_property(srna, "blur", PROP_INT, PROP_PIXEL);
+	RNA_def_property_int_sdna(prop, NULL, "blur");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_ui_text(prop, "Blur", "Number of pixels for bluring shadow (set to 0 to disable)");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
+	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "samples");
+	RNA_def_property_range(prop, 0, 32);
+	RNA_def_property_ui_range(prop, 0, 32, 2, -1);
+	RNA_def_property_int_default(prop, 4);
+	RNA_def_property_ui_text(prop, "Samples", "Number of Blur Samples (zero, disable blur)");
+	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_ShaderFx_update");
+
 	prop = RNA_def_property(srna, "use_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", FX_SHADOW_USE_OBJECT);
 	RNA_def_property_ui_text(prop, "Use Object", "Use object as center of rotation");
