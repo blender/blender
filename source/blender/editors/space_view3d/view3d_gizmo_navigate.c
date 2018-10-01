@@ -51,13 +51,13 @@
  * \{ */
 
 /* Offset from screen edge. */
-#define GIZMO_OFFSET_FAC 1.1f
+#define GIZMO_OFFSET_FAC 1.2f
 /* Size of main icon. */
 #define GIZMO_SIZE 80
-/* Size of the smaller icons. */
-#define GIZMO_ICON_SIZE 20
+/* Factor for size of smaller button. */
+#define GIZMO_MINI_FAC 0.35f
 /* How much mini buttons offset from the primary. */
-#define GIZMO_MINI_OFFSET_FAC 0.32f
+#define GIZMO_MINI_OFFSET_FAC 0.38f
 
 
 enum {
@@ -162,11 +162,11 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 
 
 		/* may be overwritten later */
-		gz->scale_basis = (GIZMO_ICON_SIZE) / 2;
+		gz->scale_basis = (GIZMO_SIZE * GIZMO_MINI_FAC) / 2;
 		if (info->icon != 0) {
 			PropertyRNA *prop = RNA_struct_find_property(gz->ptr, "icon");
 			RNA_property_enum_set(gz->ptr, prop, info->icon);
-			RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_OUTLINE);
+			RNA_enum_set(gz->ptr, "draw_options", ED_GIZMO_BUTTON_SHOW_OUTLINE | ED_GIZMO_BUTTON_SHOW_BACKDROP);
 		}
 
 		wmOperatorType *ot = WM_operatortype_find(info->opname, true);
