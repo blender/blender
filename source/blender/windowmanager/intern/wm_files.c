@@ -476,7 +476,7 @@ void wm_file_read_report(bContext *C, Main *bmain)
  * Logic shared between #WM_file_read & #wm_homefile_read,
  * updates to make after reading a file.
  */
-static void wm_file_read_post(bContext *C, const bool is_startup_file, const bool use_userdef)
+static void wm_file_read_post(bContext *C, const bool is_startup_file, const bool reset_app_template)
 {
 	bool addons_loaded = false;
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -498,7 +498,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	if (is_startup_file) {
 		/* possible python hasn't been initialized */
 		if (CTX_py_init_get(C)) {
-			if (use_userdef) {
+			if (reset_app_template) {
 				/* Only run when we have a template path found. */
 				if (BKE_appdir_app_template_any()) {
 					BPY_execute_string(C, "__import__('bl_app_template_utils').reset()");
@@ -516,7 +516,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 		addons_loaded = true;
 	}
 #else
-	UNUSED_VARS(is_startup_file, use_userdef);
+	UNUSED_VARS(is_startup_file, reset_app_template);
 #endif  /* WITH_PYTHON */
 
 	WM_operatortype_last_properties_clear_all();
@@ -810,6 +810,7 @@ int wm_homefile_read(
 
 	const char *app_template = NULL;
 	bool update_defaults = false;
+	bool reset_app_template = false;
 
 	if (filepath_startup_override != NULL) {
 		/* pass */
@@ -820,6 +821,14 @@ int wm_homefile_read(
 	}
 	else if (!use_factory_settings && U.app_template[0]) {
 		app_template = U.app_template;
+	}
+
+	if ((!app_template && U.app_template[0]) ||
+	    (app_template && !STREQ(app_template, U.app_template)))
+	{
+		/* Always load UI when switching to another template. */
+		G.fileflags &= ~G_FILE_NO_UI;
+		reset_app_template = true;
 	}
 
 	if ((app_template != NULL) && (app_template[0] != '\0')) {
@@ -939,6 +948,7 @@ int wm_homefile_read(
 	if (use_userdef) {
 		/* check userdef before open window, keymaps etc */
 		wm_init_userdef(bmain, read_userdef_from_memory);
+		reset_app_template = true;
 	}
 
 	/* match the read WM with current WM */
@@ -950,7 +960,7 @@ int wm_homefile_read(
 	/* start with save preference untitled.blend */
 	G.save_over = 0;
 
-	wm_file_read_post(C, true, use_userdef);
+	wm_file_read_post(C, true, reset_app_template);
 
 	return true;
 }
@@ -1688,11 +1698,6 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 	if (prop_app_template && RNA_property_is_set(op->ptr, prop_app_template)) {
 		RNA_property_string_get(op->ptr, prop_app_template, app_template_buf);
 		app_template = app_template_buf;
-
-		if (!STREQ(app_template, U.app_template)) {
-			/* Always load UI when switching to another template. */
-			G.fileflags &= ~G_FILE_NO_UI;
-		}
 
 		/* Always load preferences when switching templates with own preferences. */
 		use_userdef = wm_app_template_has_userpref(app_template) ||
