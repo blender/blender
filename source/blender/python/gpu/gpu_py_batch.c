@@ -323,9 +323,9 @@ static struct PyMethodDef bpygpu_VertBatch_methods[] = {
 	  METH_VARARGS, NULL},
 	{"draw", (PyCFunction) bpygpu_VertBatch_draw,
 	 METH_NOARGS, bpygpu_VertBatch_draw_doc},
-	{"program_use_begin", (PyCFunction)bpygpu_VertBatch_program_use_begin,
+	{"__program_use_begin", (PyCFunction)bpygpu_VertBatch_program_use_begin,
 	 METH_NOARGS, ""},
-	{"program_use_end", (PyCFunction)bpygpu_VertBatch_program_use_end,
+	{"__program_use_end", (PyCFunction)bpygpu_VertBatch_program_use_end,
 	 METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
