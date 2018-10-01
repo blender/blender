@@ -141,6 +141,7 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 	/* For all builtin templates shipped with Blender. */
 	bool builtin_template = !app_template ||
 	                        STREQ(app_template, "2D_Animation") ||
+	                        STREQ(app_template, "Sculpting") ||
 	                        STREQ(app_template, "VFX") ||
 	                        STREQ(app_template, "Video_Editing");
 

@@ -2577,6 +2577,7 @@ class WM_MT_splash(Menu):
         #sub.prop(userpref.system, "language", text="")
 
         col.label()
+        col.label()
 
         layout.label()
 
