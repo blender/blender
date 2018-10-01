@@ -1652,10 +1652,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row = layout.row(align=True)
         row.label(text="Affect:")
         row = layout.row(align=True)
-        row.prop(md, "affect_position", text="Position", icon='MESH_DATA', toggle=True)
-        row.prop(md, "affect_strength", text="Strength", icon='COLOR', toggle=True)
-        row.prop(md, "affect_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
-        row.prop(md, "affect_uv", text="UV", icon='MOD_UVPROJECT', toggle=True)
+        row.prop(md, "use_edit_position", text="Position", icon='MESH_DATA', toggle=True)
+        row.prop(md, "use_edit_strength", text="Strength", icon='COLOR', toggle=True)
+        row.prop(md, "use_edit_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
+        row.prop(md, "use_edit_uv", text="UV", icon='MOD_UVPROJECT', toggle=True)
 
     def GP_SMOOTH(self, layout, ob, md):
         gpd = ob.data
@@ -1683,10 +1683,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row = layout.row(align=True)
         row.label(text="Affect:")
         row = layout.row(align=True)
-        row.prop(md, "affect_position", text="Position", icon='MESH_DATA', toggle=True)
-        row.prop(md, "affect_strength", text="Strength", icon='COLOR', toggle=True)
-        row.prop(md, "affect_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
-        row.prop(md, "affect_uv", text="UV", icon='MOD_UVPROJECT', toggle=True)
+        row.prop(md, "use_edit_position", text="Position", icon='MESH_DATA', toggle=True)
+        row.prop(md, "use_edit_strength", text="Strength", icon='COLOR', toggle=True)
+        row.prop(md, "use_edit_thickness", text="Thickness", icon='LINE_DATA', toggle=True)
+        row.prop(md, "use_edit_uv", text="UV", icon='MOD_UVPROJECT', toggle=True)
 
     def GP_SUBDIV(self, layout, ob, md):
         gpd = ob.data

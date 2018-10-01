@@ -986,6 +986,7 @@ typedef enum eGP_EditBrush_Flag {
 	/* strength of brush falls off with distance from cursor */
 	GP_EDITBRUSH_FLAG_USE_FALLOFF  = (1 << 2),
 
+	/* XXX: currently unused. */
 	/* smooth brush affects pressure values as well */
 	GP_EDITBRUSH_FLAG_SMOOTH_PRESSURE  = (1 << 3),
 	/* enable screen cursor */

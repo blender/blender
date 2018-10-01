@@ -304,22 +304,22 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Random", "Use random values");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_position", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_MOD_LOCATION);
 	RNA_def_property_ui_text(prop, "Affect Position", "The modifier affects the position of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_strength", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_strength", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_MOD_STRENGTH);
 	RNA_def_property_ui_text(prop, "Affect Strength", "The modifier affects the color strength of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_thickness", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_thickness", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_MOD_THICKNESS);
 	RNA_def_property_ui_text(prop, "Affect Thickness", "The modifier affects the thickness of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_uv", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_NOISE_MOD_UV);
 	RNA_def_property_ui_text(prop, "Affect UV", "The modifier affects the UV rotation factor of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
@@ -389,22 +389,22 @@ static void rna_def_modifier_gpencilsmooth(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Factor", "Amount of smooth to apply");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_position", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_position", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_MOD_LOCATION);
 	RNA_def_property_ui_text(prop, "Affect Position", "The modifier affects the position of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_strength", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_strength", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_MOD_STRENGTH);
 	RNA_def_property_ui_text(prop, "Affect Strength", "The modifier affects the color strength of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_thickness", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_thickness", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_MOD_THICKNESS);
 	RNA_def_property_ui_text(prop, "Affect Thickness", "The modifier affects the thickness of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
-	prop = RNA_def_property(srna, "affect_uv", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_edit_uv", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_SMOOTH_MOD_UV);
 	RNA_def_property_ui_text(prop, "Affect UV", "The modifier affects the UV rotation factor of the point");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
