@@ -60,16 +60,18 @@ void main()
 	/* move point to new coords system */
 	vec2 tpos = vec2(uv.x, uv.y) - loc2d;
 
+	/* rotation */
+	if (rotation != 0) {
+		vec2 rotpoint = vec2((tpos.x * cosv) - (tpos.y * sinv), (tpos.x * sinv) + (tpos.y * cosv));
+		tpos = rotpoint;
+	}
+	
 	/* apply offset */
 	tpos = vec2(tpos.x - dx, tpos.y - dy);
 	
 	/* apply scale */
 	tpos.x *= 1.0 / scale[0];
 	tpos.y *= 1.0 / scale[1];
-	
-	/* rotation */
-	tpos.x = (tpos.x * cosv) - (tpos.y * sinv);
-	tpos.y = (tpos.x * sinv) + (tpos.y * cosv);
 	
 	/* back to original coords system */
 	vec2 texpos = tpos + loc2d;
