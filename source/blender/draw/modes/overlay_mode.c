@@ -289,9 +289,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 					DRWPass *pass = (all_wires) ? psl->face_wireframe_full_pass : psl->face_wireframe_pass;
 					GPUShader *sh = (all_wires) ? e_data.face_wireframe_sh : e_data.face_wireframe_pretty_sh;
 
-					if ((DRW_state_is_select() || DRW_state_is_depth()) &&
-					    (v3d->shading.flag & XRAY_FLAG(v3d)) != 0)
-					{
+					if ((DRW_state_is_select() || DRW_state_is_depth())) {
 						static float params[2] = {1.2f, 1.0f}; /* Parameters for all wires */
 
 						sh = e_data.select_wireframe_sh;

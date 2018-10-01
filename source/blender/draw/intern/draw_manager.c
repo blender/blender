@@ -2055,6 +2055,7 @@ void DRW_draw_select_loop(
 	}
 	else {
 		drw_engines_enable_basic();
+		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 	}
 
