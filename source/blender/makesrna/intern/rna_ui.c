@@ -202,10 +202,10 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 		BLI_freelinkN(&pt->parent->children, link);
 	}
 
+	WM_paneltype_remove(pt);
+
 	BLI_freelistN(&pt->children);
 	BLI_freelinkN(&art->paneltypes, pt);
-
-	WM_paneltype_remove(pt);
 
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
