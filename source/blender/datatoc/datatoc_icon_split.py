@@ -140,6 +140,7 @@ def dice_icon_name(
                     if match:
                         if l.find('DEF_ICON_BLANK') == -1:
                             icon_name = match.group(1).lower()
+                            print(icon_name)
                             _dice_icon_name_cache[count] = icon_name
                         count += 1
         # ---- Done with icon cache

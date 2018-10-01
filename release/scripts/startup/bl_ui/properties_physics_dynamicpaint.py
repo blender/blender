@@ -158,8 +158,8 @@ class PHYSICS_PT_dynamic_paint_settings(PhysicButtonsPanel, Panel):
             )
 
             col = row.column(align=True)
-            col.operator("dpaint.surface_slot_add", icon='ZOOMIN', text="")
-            col.operator("dpaint.surface_slot_remove", icon='ZOOMOUT', text="")
+            col.operator("dpaint.surface_slot_add", icon='ADD', text="")
+            col.operator("dpaint.surface_slot_remove", icon='REMOVE', text="")
 
             layout.separator()
 
@@ -375,21 +375,21 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
                 row = layout.row()
                 row.prop_search(surface, "output_name_a", ob.data, "vertex_colors", text="Paintmap Layer")
 
-                icons = 'ZOOMOUT' if surface.output_exists(object=ob, index=0) else 'ZOOMIN'
+                icons = 'REMOVE' if surface.output_exists(object=ob, index=0) else 'ADD'
                 row.operator("dpaint.output_toggle", icon=icons, text="").output = 'A'
 
                 # wet-map output.
                 row = layout.row()
                 row.prop_search(surface, "output_name_b", ob.data, "vertex_colors", text="Wetmap Layer")
 
-                icons = 'ZOOMOUT' if surface.output_exists(object=ob, index=1) else 'ZOOMIN'
+                icons = 'REMOVE' if surface.output_exists(object=ob, index=1) else 'ADD'
                 row.operator("dpaint.output_toggle", icon=icons, text="").output = 'B'
 
             elif surface_type == 'WEIGHT':
                 row = layout.row()
                 row.prop_search(surface, "output_name_a", ob, "vertex_groups", text="Vertex Group")
 
-                icons = 'ZOOMOUT' if surface.output_exists(object=ob, index=0) else 'ZOOMIN'
+                icons = 'REMOVE' if surface.output_exists(object=ob, index=0) else 'ADD'
                 row.operator("dpaint.output_toggle", icon=icons, text="").output = 'A'
 
         # image format outputs.

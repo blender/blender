@@ -529,14 +529,14 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 have_image = False
 
             sub = row.column(align=True)
-            sub.operator_menu_enum("paint.add_texture_paint_slot", "type", icon='ZOOMIN', text="")
+            sub.operator_menu_enum("paint.add_texture_paint_slot", "type", icon='ADD', text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
             uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
             layout.template_ID(settings, "canvas", new="image.new", open="image.open")
             if settings.missing_uvs:
-                layout.operator("paint.add_simple_uvs", icon='ZOOMIN', text="Add UVs")
+                layout.operator("paint.add_simple_uvs", icon='ADD', text="Add UVs")
             else:
                 layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
             have_image = settings.canvas is not None
@@ -545,7 +545,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
             layout.separator()
             split = layout.split()
             split.label(text="UV Map Needed", icon='INFO')
-            split.operator("paint.add_simple_uvs", icon='ZOOMIN', text="Add Simple UVs")
+            split.operator("paint.add_simple_uvs", icon='ADD', text="Add Simple UVs")
         elif have_image:
             layout.separator()
             layout.operator("image.save_dirty", text="Save All Images", icon='FILE_TICK')

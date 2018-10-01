@@ -85,9 +85,9 @@ static EnumPropertyItem rna_enum_gpencil_weight_brush_items[] = {
 
 static const EnumPropertyItem rna_enum_gpencil_lockaxis_items[] = {
 	{ GP_LOCKAXIS_NONE, "GP_LOCKAXIS_NONE", ICON_UNLOCKED, "None", "" },
-	{ GP_LOCKAXIS_X, "GP_LOCKAXIS_X", ICON_NDOF_DOM, "Y-Z Plane", "Project strokes to plane locked to X" },
-	{ GP_LOCKAXIS_Y, "GP_LOCKAXIS_Y", ICON_NDOF_DOM, "X-Z Plane", "Project strokes to plane locked to Y" },
-	{ GP_LOCKAXIS_Z, "GP_LOCKAXIS_Z", ICON_NDOF_DOM, "X-Y Plane", "Project strokes to plane locked to Z" },
+	{ GP_LOCKAXIS_X, "GP_LOCKAXIS_X", ICON_AXIS_SIDE, "Y-Z Plane", "Project strokes to plane locked to X" },
+	{ GP_LOCKAXIS_Y, "GP_LOCKAXIS_Y", ICON_AXIS_FRONT, "X-Z Plane", "Project strokes to plane locked to Y" },
+	{ GP_LOCKAXIS_Z, "GP_LOCKAXIS_Z", ICON_AXIS_TOP, "X-Y Plane", "Project strokes to plane locked to Z" },
 	{ 0, NULL, 0, NULL, NULL }
 };
 #endif
@@ -1103,8 +1103,8 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 {
 	static const EnumPropertyItem prop_direction_items[] = {
-		{0, "ADD", ICON_ZOOMIN, "Add", "Add effect of brush"},
-		{GP_EDITBRUSH_FLAG_INVERT, "SUBTRACT", ICON_ZOOMOUT, "Subtract", "Subtract effect of brush"},
+		{0, "ADD", ICON_ADD, "Add", "Add effect of brush"},
+		{GP_EDITBRUSH_FLAG_INVERT, "SUBTRACT", ICON_REMOVE, "Subtract", "Subtract effect of brush"},
 		{0, NULL, 0, NULL, NULL}};
 
 	StructRNA *srna;

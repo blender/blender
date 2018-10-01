@@ -121,8 +121,8 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
 
         col = row.column(align=True)
         col.active = (ob.proxy is None)
-        col.operator("pose.group_add", icon='ZOOMIN', text="")
-        col.operator("pose.group_remove", icon='ZOOMOUT', text="")
+        col.operator("pose.group_add", icon='ADD', text="")
+        col.operator("pose.group_remove", icon='REMOVE', text="")
         col.menu("DATA_MT_bone_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
             col.separator()
@@ -187,14 +187,14 @@ class DATA_PT_pose_library(ArmatureButtonsPanel, Panel):
 
             # invoke should still be used for 'add', as it is needed to allow
             # add/replace options to be used properly
-            col.operator("poselib.pose_add", icon='ZOOMIN', text="")
+            col.operator("poselib.pose_add", icon='ADD', text="")
 
             col.operator_context = 'EXEC_DEFAULT'  # exec not invoke, so that menu doesn't need showing
 
             pose_marker_active = poselib.pose_markers.active
 
             if pose_marker_active is not None:
-                col.operator("poselib.pose_remove", icon='ZOOMOUT', text="")
+                col.operator("poselib.pose_remove", icon='REMOVE', text="")
                 col.operator(
                     "poselib.apply_pose",
                     icon='ZOOM_SELECTED',

@@ -108,7 +108,7 @@ class AnnotationDrawingToolsPanel:
         col.separator()
 
         sub = col.column(align=True)
-        sub.operator("gpencil.blank_frame_add", icon='NEW')
+        sub.operator("gpencil.blank_frame_add", icon='FILE_NEW')
         sub.operator("gpencil.active_frames_delete_all", icon='X', text="Delete Frame(s)")
 
         #sub = col.column(align=True)
@@ -540,8 +540,8 @@ class GPENCIL_MT_pie_tools_more(Menu):
         col.operator("gpencil.paste", icon='PASTEDOWN', text="Paste")
 
         col = pie.column(align=True)
-        col.operator("gpencil.select_more", icon='ZOOMIN')
-        col.operator("gpencil.select_less", icon='ZOOMOUT')
+        col.operator("gpencil.select_more", icon='ADD')
+        col.operator("gpencil.select_less", icon='REMOVE')
 
         pie.operator("transform.mirror", icon='MOD_MIRROR')
         pie.operator("transform.bend", icon='MOD_SIMPLEDEFORM')
@@ -746,8 +746,8 @@ class AnnotationDataPanel:
         col = row.column()
 
         sub = col.column(align=True)
-        sub.operator("gpencil.layer_add", icon='ZOOMIN', text="")
-        sub.operator("gpencil.layer_remove", icon='ZOOMOUT', text="")
+        sub.operator("gpencil.layer_add", icon='ADD', text="")
+        sub.operator("gpencil.layer_remove", icon='REMOVE', text="")
 
         gpl = context.active_gpencil_layer
         if gpl:
@@ -879,7 +879,7 @@ class GPENCIL_UL_layer(UIList):
                 gpl,
                 "use_onion_skinning",
                 text="",
-                icon='GHOST_ENABLED' if gpl.use_onion_skinning else 'GHOST_DISABLED',
+                icon='ONIONSKIN_ON' if gpl.use_onion_skinning else 'ONIONSKIN_OFF',
                 emboss=False,
             )
             subrow.active = gpd.use_onion_skinning

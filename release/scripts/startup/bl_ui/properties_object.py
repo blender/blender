@@ -193,7 +193,7 @@ class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
             row.operator("object.collection_link", text="Add to Collection")
         else:
             row.operator("object.collection_add", text="Add to Collection")
-        row.operator("object.collection_add", text="", icon='ZOOMIN')
+        row.operator("object.collection_add", text="", icon='ADD')
 
         obj_name = obj.name
         for collection in bpy.data.collections:

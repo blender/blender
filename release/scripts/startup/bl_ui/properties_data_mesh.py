@@ -55,7 +55,7 @@ class MESH_MT_shape_key_specials(Menu):
         layout.operator("object.join_shapes", icon='COPY_ID')  # icon is not ideal
         layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
         layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)", icon='ARROW_LEFTRIGHT').use_topology = True
-        layout.operator("object.shape_key_add", icon='ZOOMIN', text="New Shape From Mix").from_mix = True
+        layout.operator("object.shape_key_add", icon='ADD', text="New Shape From Mix").from_mix = True
         layout.operator("object.shape_key_remove", icon='X', text="Delete All Shapes").all = True
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move To Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").type = 'BOTTOM'
@@ -79,7 +79,7 @@ class MESH_UL_fmaps(UIList):
         # assert(isinstance(item, bpy.types.FaceMap))
         fmap = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(fmap, "name", text="", emboss=False, icon_value=icon)
+            layout.prop(fmap, "name", text="", emboss=False, icon='FACE_MAPS')
         elif self.layout_type in {'GRID'}:
             layout.alignment = 'CENTER'
             layout.label(text="", icon_value=icon)
@@ -109,11 +109,23 @@ class MESH_UL_shape_keys(UIList):
             layout.label(text="", icon_value=icon)
 
 
-class MESH_UL_uvmaps_vcols(UIList):
+class MESH_UL_uvmaps(UIList):
     def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
         # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(item, "name", text="", emboss=False, icon_value=icon)
+            layout.prop(item, "name", text="", emboss=False, icon='GROUP_UVS')
+            icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
+            layout.prop(item, "active_render", text="", icon=icon, emboss=False)
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label(text="", icon_value=icon)
+
+
+class MESH_UL_vcols(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        # assert(isinstance(item, (bpy.types.MeshTexturePolyLayer, bpy.types.MeshLoopColorLayer)))
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            layout.prop(item, "name", text="", emboss=False, icon='GROUP_VCOL')
             icon = 'RESTRICT_RENDER_OFF' if item.active_render else 'RESTRICT_RENDER_ON'
             layout.prop(item, "active_render", text="", icon=icon, emboss=False)
         elif self.layout_type == 'GRID':
@@ -215,8 +227,8 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         row.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
-        props = col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
+        col.operator("object.vertex_group_add", icon='ADD', text="")
+        props = col.operator("object.vertex_group_remove", icon='REMOVE', text="")
         props.all_unlocked = props.all = False
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
@@ -262,8 +274,8 @@ class DATA_PT_face_maps(MeshButtonsPanel, Panel):
         row.template_list("MESH_UL_fmaps", "", ob, "face_maps", ob.face_maps, "active_index", rows=rows)
 
         col = row.column(align=True)
-        col.operator("object.face_map_add", icon='ZOOMIN', text="")
-        col.operator("object.face_map_remove", icon='ZOOMOUT', text="")
+        col.operator("object.face_map_add", icon='ADD', text="")
+        col.operator("object.face_map_remove", icon='REMOVE', text="")
         if facemap:
             col.separator()
             col.operator("object.face_map_move", icon='TRIA_UP', text="").direction = 'UP'
@@ -315,8 +327,8 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
         col = row.column()
 
         sub = col.column(align=True)
-        sub.operator("object.shape_key_add", icon='ZOOMIN', text="").from_mix = False
-        sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="").all = False
+        sub.operator("object.shape_key_add", icon='ADD', text="").from_mix = False
+        sub.operator("object.shape_key_remove", icon='REMOVE', text="").all = False
         sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 
         if kb:
@@ -383,11 +395,11 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps_vcols", "uvmaps", me, "uv_layers", me.uv_layers, "active_index", rows=1)
+        col.template_list("MESH_UL_uvmaps", "uvmaps", me, "uv_layers", me.uv_layers, "active_index", rows=1)
 
         col = row.column(align=True)
-        col.operator("mesh.uv_texture_add", icon='ZOOMIN', text="")
-        col.operator("mesh.uv_texture_remove", icon='ZOOMOUT', text="")
+        col.operator("mesh.uv_texture_add", icon='ADD', text="")
+        col.operator("mesh.uv_texture_remove", icon='REMOVE', text="")
 
 
 class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
@@ -402,11 +414,11 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
+        col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
 
         col = row.column(align=True)
-        col.operator("mesh.vertex_color_add", icon='ZOOMIN', text="")
-        col.operator("mesh.vertex_color_remove", icon='ZOOMOUT', text="")
+        col.operator("mesh.vertex_color_add", icon='ADD', text="")
+        col.operator("mesh.vertex_color_remove", icon='REMOVE', text="")
 
 
 class DATA_PT_customdata(MeshButtonsPanel, Panel):
@@ -428,7 +440,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
         if me.has_custom_normals:
             col.operator("mesh.customdata_custom_splitnormals_clear", icon='X')
         else:
-            col.operator("mesh.customdata_custom_splitnormals_add", icon='ZOOMIN')
+            col.operator("mesh.customdata_custom_splitnormals_add", icon='ADD')
 
         col = layout.column()
 
@@ -450,7 +462,8 @@ classes = (
     MESH_UL_vgroups,
     MESH_UL_fmaps,
     MESH_UL_shape_keys,
-    MESH_UL_uvmaps_vcols,
+    MESH_UL_uvmaps,
+    MESH_UL_vcols,
     DATA_PT_context_mesh,
     DATA_PT_vertex_groups,
     DATA_PT_shape_keys,

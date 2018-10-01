@@ -1725,7 +1725,7 @@ static int wm_homefile_read_exec(bContext *C, wmOperator *op)
 static int wm_homefile_read_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
 {
 	/* Draw menu which includes default startup and application templates. */
-	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("New File"), ICON_FILE);
+	uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("New File"), ICON_FILE_NEW);
 	uiLayout *layout = UI_popup_menu_layout(pup);
 
 	MenuType *mt = WM_menutype_find("TOPBAR_MT_file_new", false);

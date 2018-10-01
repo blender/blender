@@ -70,8 +70,8 @@ class OUTLINER_HT_header(Header):
             layout.separator()
 
             row = layout.row(align=True)
-            row.operator("outliner.keyingset_add_selected", icon='ZOOMIN', text="")
-            row.operator("outliner.keyingset_remove_selected", icon='ZOOMOUT', text="")
+            row.operator("outliner.keyingset_add_selected", icon='ADD', text="")
+            row.operator("outliner.keyingset_remove_selected", icon='REMOVE', text="")
 
             if ks:
                 row = layout.row()

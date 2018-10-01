@@ -163,14 +163,14 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                               ob.particle_systems, "active_index", rows=2)
 
             col = row.column(align=True)
-            col.operator("object.particle_system_add", icon='ZOOMIN', text="")
-            col.operator("object.particle_system_remove", icon='ZOOMOUT', text="")
+            col.operator("object.particle_system_add", icon='ADD', text="")
+            col.operator("object.particle_system_remove", icon='REMOVE', text="")
             col.menu("PARTICLE_MT_specials", icon='DOWNARROW_HLT', text="")
 
         if psys is None:
             part = particle_get_settings(context)
 
-            layout.operator("object.particle_system_add", icon='ZOOMIN', text="New")
+            layout.operator("object.particle_system_add", icon='ADD', text="New")
 
             if part is None:
                 return
@@ -958,8 +958,8 @@ class PARTICLE_PT_physics_relations(ParticleButtonsPanel, Panel):
         col = row.column()
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator("particle.new_target", icon='ZOOMIN', text="")
-        subsub.operator("particle.target_remove", icon='ZOOMOUT', text="")
+        subsub.operator("particle.new_target", icon='ADD', text="")
+        subsub.operator("particle.target_remove", icon='REMOVE', text="")
         sub = col.row()
         subsub = sub.column(align=True)
         subsub.operator("particle.target_move_up", icon='TRIA_UP', text="")
@@ -1112,8 +1112,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         #                  boids, "active_boid_state_index", compact="True")
         #col = row.row()
         #sub = col.row(align=True)
-        #sub.operator("boid.state_add", icon='ZOOMIN', text="")
-        #sub.operator("boid.state_del", icon='ZOOMOUT', text="")
+        #sub.operator("boid.state_add", icon='ADD', text="")
+        #sub.operator("boid.state_del", icon='REMOVE', text="")
         #sub = row.row(align=True)
         #sub.operator("boid.state_move_up", icon='TRIA_UP', text="")
         #sub.operator("boid.state_move_down", icon='TRIA_DOWN', text="")
@@ -1136,8 +1136,8 @@ class PARTICLE_PT_boidbrain(ParticleButtonsPanel, Panel):
         col = row.column()
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator_menu_enum("boid.rule_add", "type", icon='ZOOMIN', text="")
-        subsub.operator("boid.rule_del", icon='ZOOMOUT', text="")
+        subsub.operator_menu_enum("boid.rule_add", "type", icon='ADD', text="")
+        subsub.operator("boid.rule_del", icon='REMOVE', text="")
         sub = col.row()
         subsub = sub.column(align=True)
         subsub.operator("boid.rule_move_up", icon='TRIA_UP', text="")
@@ -1432,8 +1432,8 @@ class PARTICLE_PT_render_collection_use_count(ParticleButtonsPanel, Panel):
         col = row.column()
         sub = col.row()
         subsub = sub.column(align=True)
-        subsub.operator("particle.dupliob_copy", icon='ZOOMIN', text="")
-        subsub.operator("particle.dupliob_remove", icon='ZOOMOUT', text="")
+        subsub.operator("particle.dupliob_copy", icon='ADD', text="")
+        subsub.operator("particle.dupliob_remove", icon='REMOVE', text="")
         subsub.operator("particle.dupliob_move_up", icon='TRIA_UP', text="")
         subsub.operator("particle.dupliob_move_down", icon='TRIA_DOWN', text="")
         subsub.separator()

@@ -435,7 +435,7 @@ class DATA_PT_text_boxes(CurveButtonsPanelText, Panel):
 
         text = context.curve
 
-        layout.operator("font.textbox_add", icon='ZOOMIN')
+        layout.operator("font.textbox_add", icon='ADD')
 
         for i, box in enumerate(text.text_boxes):
 

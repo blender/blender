@@ -83,7 +83,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
 	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
 	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
-	{ID_WS, "WORKSPACE", ICON_SPLITSCREEN, "Workspace", ""},
+	{ID_WS, "WORKSPACE", ICON_WORKSPACE, "Workspace", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

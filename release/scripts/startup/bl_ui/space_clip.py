@@ -704,8 +704,8 @@ class CLIP_PT_objects(CLIP_PT_clip_view_panel, Panel):
 
         sub = row.column(align=True)
 
-        sub.operator("clip.tracking_object_new", icon='ZOOMIN', text="")
-        sub.operator("clip.tracking_object_remove", icon='ZOOMOUT', text="")
+        sub.operator("clip.tracking_object_new", icon='ADD', text="")
+        sub.operator("clip.tracking_object_remove", icon='REMOVE', text="")
 
 
 class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
@@ -1005,8 +1005,8 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
             sub = row.column(align=True)
 
-            sub.operator("clip.stabilize_2d_add", icon='ZOOMIN', text="")
-            sub.operator("clip.stabilize_2d_remove", icon='ZOOMOUT', text="")
+            sub.operator("clip.stabilize_2d_add", icon='ADD', text="")
+            sub.operator("clip.stabilize_2d_remove", icon='REMOVE', text="")
 
             sub.menu('CLIP_MT_stabilize_2d_specials', text="",
                      icon='DOWNARROW_HLT')
@@ -1022,8 +1022,8 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
 
                 sub = row.column(align=True)
 
-                sub.operator("clip.stabilize_2d_rotation_add", icon='ZOOMIN', text="")
-                sub.operator("clip.stabilize_2d_rotation_remove", icon='ZOOMOUT', text="")
+                sub.operator("clip.stabilize_2d_rotation_add", icon='ADD', text="")
+                sub.operator("clip.stabilize_2d_rotation_remove", icon='REMOVE', text="")
 
                 sub.menu('CLIP_MT_stabilize_2d_rotation_specials', text="",
                          icon='DOWNARROW_HLT')

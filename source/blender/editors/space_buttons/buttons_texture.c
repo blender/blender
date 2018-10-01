@@ -507,7 +507,7 @@ void uiTemplateTextureShow(uiLayout *layout, bContext *C, PointerRNA *ptr, Prope
 		uiBlock *block = uiLayoutGetBlock(layout);
 		uiBut *but;
 
-		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_BUTS, 0, 0, UI_UNIT_X, UI_UNIT_Y,
+		but = uiDefIconBut(block, UI_BTYPE_BUT, 0, ICON_PROPERTIES, 0, 0, UI_UNIT_X, UI_UNIT_Y,
 		                   NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Show texture in texture tab"));
 		UI_but_func_set(but, template_texture_show, user->ptr.data, user->prop);
 	}

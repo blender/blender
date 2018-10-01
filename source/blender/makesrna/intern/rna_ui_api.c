@@ -49,7 +49,7 @@
 
 #define DEF_ICON(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_ICON_VECTOR(name) {ICON_##name, (#name), 0, (#name), ""},
-#define DEF_ICON_MONO(name) {ICON_##name, (#name), 0, (#name), ""},
+#define DEF_ICON_COLOR(name) {ICON_##name, (#name), 0, (#name), ""},
 #define DEF_ICON_BLANK(name)
 const EnumPropertyItem rna_enum_icon_items[] = {
 #include "UI_icons.h"
@@ -57,7 +57,7 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 };
 #undef DEF_ICON
 #undef DEF_ICON_VECTOR
-#undef DEF_ICON_MONO
+#undef DEF_ICON_COLOR
 #undef DEF_ICON_BLANK
 
 #ifdef RNA_RUNTIME

@@ -48,7 +48,7 @@ class USERPREF_HT_header(Header):
             layout.operator("wm.keyconfig_import")
             layout.operator("wm.keyconfig_export")
         elif userpref.active_section == 'ADDONS':
-            layout.operator("wm.addon_install", icon='FILESEL')
+            layout.operator("wm.addon_install", icon='FILEBROWSER')
             layout.operator("wm.addon_refresh", icon='FILE_REFRESH')
             layout.menu("USERPREF_MT_addons_online_resources")
         elif userpref.active_section == 'LIGHTS':
@@ -663,8 +663,8 @@ class USERPREF_PT_theme(Panel):
         subrow = sub.row(align=True)
 
         subrow.menu("USERPREF_MT_interface_theme_presets", text=USERPREF_MT_interface_theme_presets.bl_label)
-        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMIN')
-        subrow.operator("wm.interface_theme_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='ADD')
+        subrow.operator("wm.interface_theme_preset_add", text="", icon='REMOVE').remove_active = True
         sub.separator()
 
         sub.prop(theme, "theme_area", expand=True)
@@ -929,7 +929,7 @@ class USERPREF_PT_file(Panel):
             box = sub.box()
             row = box.row()
             row.label(text="Excluded Paths:")
-            row.operator("wm.userpref_autoexec_path_add", text="", icon='ZOOMIN', emboss=False)
+            row.operator("wm.userpref_autoexec_path_add", text="", icon='ADD', emboss=False)
             for i, path_cmp in enumerate(userpref.autoexec_paths):
                 row = box.row()
                 row.prop(path_cmp, "path", text="")
@@ -1061,8 +1061,8 @@ class USERPREF_PT_input(Panel):
         subrow = sub.row(align=True)
 
         subrow.menu("USERPREF_MT_interaction_presets", text=bpy.types.USERPREF_MT_interaction_presets.bl_label)
-        subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMIN')
-        subrow.operator("wm.interaction_preset_add", text="", icon='ZOOMOUT').remove_active = True
+        subrow.operator("wm.interaction_preset_add", text="", icon='ADD')
+        subrow.operator("wm.interaction_preset_add", text="", icon='REMOVE').remove_active = True
         sub.separator()
 
         sub.label(text="Mouse:")

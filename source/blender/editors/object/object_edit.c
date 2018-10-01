@@ -1993,7 +1993,7 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 	uiItemFullO_ptr(layout,
 	                menu->ot,
 	                "New Collection",
-	                ICON_ZOOMIN,
+	                ICON_ADD,
 	                menu->ptr.data,
 	                WM_OP_INVOKE_DEFAULT,
 	                0,

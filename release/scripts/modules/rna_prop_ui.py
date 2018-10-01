@@ -188,7 +188,7 @@ def draw(layout, context, context_member, property_type, use_edit=True):
             if not is_rna:
                 props = row.operator("wm.properties_edit", text="Edit")
                 assign_props(props, val_draw, key)
-                props = row.operator("wm.properties_remove", text="", icon='ZOOMOUT')
+                props = row.operator("wm.properties_remove", text="", icon='REMOVE')
                 assign_props(props, val_draw, key)
             else:
                 row.label(text="API Defined")

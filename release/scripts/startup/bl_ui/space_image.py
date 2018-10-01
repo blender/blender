@@ -852,8 +852,8 @@ class IMAGE_PT_render_slots(Panel):
         )
 
         col = row.column(align=True)
-        col.operator("image.add_render_slot", icon='ZOOMIN', text="")
-        col.operator("image.remove_render_slot", icon='ZOOMOUT', text="")
+        col.operator("image.add_render_slot", icon='ADD', text="")
+        col.operator("image.remove_render_slot", icon='REMOVE', text="")
 
         col.separator()
 

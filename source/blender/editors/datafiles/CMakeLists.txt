@@ -42,8 +42,8 @@ set(ICON_NAMES
 	tria_up
 	arrow_leftright
 	plus
-	disclosure_tri_down
 	disclosure_tri_right
+	disclosure_tri_down
 	radiobut_off
 	radiobut_on
 	menu_panel
@@ -58,12 +58,12 @@ set(ICON_NAMES
 	node
 	node_sel
 	fullscreen
-	splitscreen
+	workspace
 	rightarrow_thin
 	bordermove
 	viewzoom
-	zoomin
-	zoomout
+	add
+	remove
 	panel_close
 	copy_id
 	eyedropper
@@ -100,14 +100,16 @@ set(ICON_NAMES
 	freeze
 	stylus_pressure
 	ghost_disabled
-	new
+	file_new
 	file_tick
 	quit
 	url
 	recover_last
+	30
 	fullscreen_enter
 	fullscreen_exit
-	lamp
+	#onionskin
+	light
 	material
 	texture
 	anim
@@ -121,27 +123,31 @@ set(ICON_NAMES
 	physics
 	speaker
 	texture_shaded
+	tool_settings
+	shaderfx
+	#blank1
 	view3d
-	ipo
-	oops
-	buts
-	filesel
-	image_col
+	graph
+	outliner
+	properties
+	filebrowser
+	image
 	info
 	sequence
 	text
-	imasel
 	sound
 	action
 	nla
-	scriptwin
+	preferences
 	time
 	nodetree
 	logic
 	console
-	preferences
 	clip
 	asset_manager
+	node_compositing
+	node_texture
+	node_material
 	object_datamode
 	editmode_hlt
 	facesel_hlt
@@ -153,6 +159,15 @@ set(ICON_NAMES
 	particlemode
 	lightpaint
 	greasepencil_stroke_paint
+	tracking
+	tracking_backwards
+	tracking_forwards
+	tracking_backwards_single
+	tracking_forwards_single
+	tracking_clear_backwards
+	tracking_clear_forwards
+	tracking_refine_backwards
+	tracking_refine_forwards
 	scene_data
 	renderlayers
 	world_data
@@ -161,7 +176,7 @@ set(ICON_NAMES
 	curve_data
 	meta_data
 	lattice_data
-	lamp_data
+	light_data
 	material_data
 	texture_data
 	anim_data
@@ -186,7 +201,6 @@ set(ICON_NAMES
 	render_result
 	surface_data
 	empty_data
-	settings
 	render_animation
 	render_still
 	library_data_broken
@@ -200,18 +214,36 @@ set(ICON_NAMES
 	group_vertex
 	group_vcol
 	group_uvs
+	face_maps
 	rna
 	rna_add
 	mouse_lmb
 	mouse_mmb
 	mouse_rmb
-	mouse_drag
+	mouse_move
+	mouse_lmb_drag
+	mouse_mmb_drag
+	mouse_rmb_drag
+	preset
+	decorate
+	decorate_keyframe
+	decorate_animate
+	decorate_driver
+	decorate_linked
+	decorate_override
+	decorate_unlocked
+	decorate_locked
+	fake_user
+	orphan_data
+	user
+	system
+	settings
 	outliner_ob_empty
 	outliner_ob_mesh
 	outliner_ob_curve
 	outliner_ob_lattice
 	outliner_ob_meta
-	outliner_ob_lamp
+	outliner_ob_light
 	outliner_ob_camera
 	outliner_ob_armature
 	outliner_ob_font
@@ -220,6 +252,8 @@ set(ICON_NAMES
 	outliner_ob_force_field
 	outliner_ob_group_instance
 	outliner_ob_greasepencil
+	outliner_ob_lightprobe
+	outliner_ob_image
 	restrict_color_off
 	restrict_color_on
 	restrict_view_off
@@ -228,12 +262,11 @@ set(ICON_NAMES
 	restrict_select_on
 	restrict_render_off
 	restrict_render_on
-	outliner_data_empty
 	outliner_data_mesh
 	outliner_data_curve
 	outliner_data_lattice
 	outliner_data_meta
-	outliner_data_lamp
+	outliner_data_light
 	outliner_data_camera
 	outliner_data_armature
 	outliner_data_font
@@ -241,6 +274,10 @@ set(ICON_NAMES
 	outliner_data_speaker
 	outliner_data_pose
 	outliner_data_greasepencil
+	onionskin_off
+	onionskin_on
+	hide_off
+	hide_on
 	mesh_plane
 	mesh_cube
 	mesh_circle
@@ -252,11 +289,11 @@ set(ICON_NAMES
 	mesh_torus
 	mesh_cone
 	mesh_capsule
-	lamp_point
-	lamp_sun
-	lamp_spot
-	lamp_hemi
-	lamp_area
+	light_point
+	light_sun
+	light_spot
+	light_hemi
+	light_area
 	meta_empty
 	meta_plane
 	meta_cube
@@ -274,6 +311,9 @@ set(ICON_NAMES
 	curve_ncurve
 	curve_ncircle
 	curve_path
+	lightprobe_cubemap
+	lightprobe_planar
+	lightprobe_grid
 	color_red
 	color_green
 	color_blue
@@ -294,8 +334,25 @@ set(ICON_NAMES
 	force_turbulence
 	force_drag
 	force_smokeflow
+	temperature
+	gear
 	node_insert_on
 	node_insert_off
+	node_top
+	node_side
+	node_corner
+	align_left
+	align_center
+	align_right
+	align_justify
+	align_flush
+	align_top
+	align_middle
+	align_bottom
+	bold
+	italic
+	underline
+	small_caps
 	modifier
 	mod_wave
 	mod_build
@@ -346,7 +403,6 @@ set(ICON_NAMES
 	pause
 	prev_keyframe
 	next_keyframe
-	play_audio
 	play_reverse
 	preview_range
 	action_tweak
@@ -355,8 +411,8 @@ set(ICON_NAMES
 	pmarker
 	marker_hlt
 	marker
-	space2
-	space3
+	keyframe_hlt
+	keyframe
 	keyingset
 	key_dehlt
 	key_hlt
@@ -390,13 +446,12 @@ set(ICON_NAMES
 	vertexsel
 	edgesel
 	facesel
-	loopsel
-	rotate
-	cursor
-	rotatecollection
-	rotatecenter
-	rotactive
-	align
+	pivot_boundbox
+	pivot_cursor
+	pivot_individual
+	pivot_median
+	pivot_active
+	center_only
 	smoothcurve
 	spherecurve
 	rootcurve
@@ -407,6 +462,7 @@ set(ICON_NAMES
 	prop_off
 	prop_on
 	prop_con
+	sculpt_dyntopo
 	particle_point
 	particle_tip
 	particle_path
@@ -431,15 +487,19 @@ set(ICON_NAMES
 	snap_peel_object
 	grid
 	object_origin
+	orientation_global
+	orientation_gimbal
+	orientation_local
+	orientation_normal
+	orientation_view
 	pastedown
 	copydown
 	pasteflipup
 	pasteflipdown
 	vis_sel_11
 	vis_sel_10
-	vis_sel_10
+	vis_sel_01
 	vis_sel_00
-	snap_surface
 	automerge_on
 	automerge_off
 	retopo
@@ -448,12 +508,16 @@ set(ICON_NAMES
 	uv_facesel
 	uv_islandsel
 	uv_sync_select
-	bbox
-	wire
-	solid
-	smooth
-	potato
-	ortho
+	normals_vertex
+	normals_vertex_face
+	normals_face
+	shading_bbox
+	shading_wire
+	shading_solid
+	shading_rendered
+	shading_texture
+	overlay
+	xray
 	lockview_off
 	lockview_on
 	axis_side
@@ -473,8 +537,6 @@ set(ICON_NAMES
 	shortdisplay
 	ghost
 	imgdisplay
-	save_as
-	save_copy
 	bookmarks
 	fontpreview
 	filter
@@ -483,6 +545,7 @@ set(ICON_NAMES
 	file_parent
 	file_refresh
 	file_folder
+	file_blank
 	file_blend
 	file_image
 	file_movie
@@ -490,18 +553,19 @@ set(ICON_NAMES
 	file_sound
 	file_font
 	file_text
-	recover_auto
-	save_prefs
+	sort_desc
+	sort_asc
 	link_blend
 	append_blend
 	import
 	export
 	external_data
-	load_factory
 	loop_back
 	loop_forwards
 	back
 	forward
+	alembic
+	volume
 	file_hidden
 	file_backup
 	disk_drive
@@ -531,6 +595,11 @@ set(ICON_NAMES
 	image_alpha
 	image_zdepth
 	imagefile
+	view_perspective
+	view_ortho
+	view_camera
+	view_pan
+	view_zoom
 )
 
 # This section is maintained by the updating script, keep BEGIN/END comments.

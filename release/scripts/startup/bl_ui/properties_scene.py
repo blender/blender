@@ -171,8 +171,8 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         col.template_list("UI_UL_list", "keying_sets", scene, "keying_sets", scene.keying_sets, "active_index", rows=1)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_add", icon='ZOOMIN', text="")
-        col.operator("anim.keying_set_remove", icon='ZOOMOUT', text="")
+        col.operator("anim.keying_set_add", icon='ADD', text="")
+        col.operator("anim.keying_set_remove", icon='REMOVE', text="")
 
         layout.use_property_split = True
         layout.use_property_decorate = False  # No animation.
@@ -251,8 +251,8 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
         col.template_list("SCENE_UL_keying_set_paths", "", ks, "paths", ks.paths, "active_index", rows=1)
 
         col = row.column(align=True)
-        col.operator("anim.keying_set_path_add", icon='ZOOMIN', text="")
-        col.operator("anim.keying_set_path_remove", icon='ZOOMOUT', text="")
+        col.operator("anim.keying_set_path_add", icon='ADD', text="")
+        col.operator("anim.keying_set_path_remove", icon='REMOVE', text="")
 
         # TODO: 1) the template_any_ID needs to be fixed for the text alignment.
         #       2) use_property_decorate has to properly skip the non animatable properties.

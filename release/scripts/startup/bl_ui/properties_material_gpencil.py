@@ -29,8 +29,8 @@ class GPENCIL_MT_color_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("gpencil.color_reveal", icon='HIDE_OFF', text="Show All")
-        layout.operator("gpencil.color_hide", icon='HIDE_ON', text="Hide Others").unselected = True
+        layout.operator("gpencil.color_reveal", icon='RESTRICT_VIEW_OFF', text="Show All")
+        layout.operator("gpencil.color_hide", icon='RESTRICT_VIEW_ON', text="Hide Others").unselected = True
 
         layout.separator()
 
@@ -60,9 +60,9 @@ class GPENCIL_UL_matslots(UIList):
                 row.prop(gpcolor, "lock", text="", emboss=False)
                 row.prop(gpcolor, "hide", text="", emboss=False)
                 if gpcolor.ghost is True:
-                    icon = 'GHOST_DISABLED'
+                    icon = 'ONIONSKIN_OFF'
                 else:
-                    icon = 'GHOST_ENABLED'
+                    icon = 'ONIONSKIN_ON'
                 row.prop(gpcolor, "ghost", text="", icon=icon, emboss=False)
 
             elif self.layout_type == 'GRID':
@@ -114,8 +114,8 @@ class MATERIAL_PT_gpencil_slots(Panel):
             row.template_list("GPENCIL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
             col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ZOOMIN', text="")
-            col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
+            col.operator("object.material_slot_add", icon='ADD', text="")
+            col.operator("object.material_slot_remove", icon='REMOVE', text="")
 
             col.menu("GPENCIL_MT_color_specials", icon='DOWNARROW_HLT', text="")
 
@@ -129,7 +129,7 @@ class MATERIAL_PT_gpencil_slots(Panel):
 
                 sub = col.column(align=True)
                 sub.operator("gpencil.color_isolate", icon='LOCKED', text="").affect_visibility = False
-                sub.operator("gpencil.color_isolate", icon='HIDE_OFF', text="").affect_visibility = True
+                sub.operator("gpencil.color_isolate", icon='RESTRICT_VIEW_ON', text="").affect_visibility = True
 
         row = layout.row()
 

@@ -887,7 +887,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
                 props.menu_idname = self.bl_idname
 
             if add_operator:
-                props = row.operator(add_operator, text="", icon='ZOOMOUT')
+                props = row.operator(add_operator, text="", icon='REMOVE')
                 props.name = name
                 props.remove_name = True
 
@@ -901,7 +901,7 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             sub.emboss = 'NORMAL'
             sub.prop(wm, "preset_name", text="")
 
-            props = row.operator(add_operator, text="", icon='ZOOMIN')
+            props = row.operator(add_operator, text="", icon='ADD')
             props.name = wm.preset_name
 
     def draw_preset(self, context):

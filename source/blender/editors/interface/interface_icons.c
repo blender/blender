@@ -104,7 +104,7 @@ typedef struct IconImage {
 typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 
 #define ICON_TYPE_PREVIEW        0
-#define ICON_TYPE_TEXTURE        1
+#define ICON_TYPE_COLOR_TEXTURE  1
 #define ICON_TYPE_MONO_TEXTURE   2
 #define ICON_TYPE_BUFFER         3
 #define ICON_TYPE_VECTOR         4
@@ -156,14 +156,14 @@ static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
 static const int icontypes[] = {
-#define DEF_ICON(name) ICON_TYPE_TEXTURE,
+#define DEF_ICON(name) ICON_TYPE_MONO_TEXTURE,
 #define DEF_ICON_VECTOR(name) ICON_TYPE_VECTOR,
-#define DEF_ICON_MONO(name) ICON_TYPE_MONO_TEXTURE,
+#define DEF_ICON_COLOR(name) ICON_TYPE_COLOR_TEXTURE,
 #define DEF_ICON_BLANK(name) ICON_TYPE_BLANK,
 #include "UI_icons.h"
 #undef DEF_ICON
 #undef DEF_ICON_VECTOR
-#undef DEF_ICON_MONO
+#undef DEF_ICON_COLOR
 #undef DEF_ICON_BLANK
 };
 
@@ -185,7 +185,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = type;
 
-	if (ELEM(type, ICON_TYPE_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
+	if (ELEM(type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
 		di->data.texture.x = xofs;
 		di->data.texture.y = yofs;
 		di->data.texture.w = size;
@@ -742,7 +742,7 @@ static void init_internal_icons(void)
 			/* Row W has monochrome icons. */
 			for (x = 0; x < ICON_GRID_COLS; x++) {
 				int icontype = icontypes[y * ICON_GRID_COLS + x];
-				if (!ELEM(icontype, ICON_TYPE_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
+				if (!ELEM(icontype, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
 					continue;
 				}
 
@@ -1520,7 +1520,7 @@ static void icon_draw_size(
 		const short event_value = di->data.input.event_value;
 		icon_draw_rect_input(x, y, w, h, alpha, event_type, event_value);
 	}
-	else if (di->type == ICON_TYPE_TEXTURE) {
+	else if (di->type == ICON_TYPE_COLOR_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);

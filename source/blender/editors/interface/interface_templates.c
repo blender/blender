@@ -623,13 +623,13 @@ static uiBut *template_id_def_new_but(
 
 	if (newop) {
 		but = uiDefIconTextButO(
-		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
+		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD,
 		        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, but_height, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}
 	else {
 		but = uiDefIconTextBut(
-		        block, but_type, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
+		        block, but_type, 0, ICON_ADD, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
 		        0, 0, w, but_height, NULL, 0, 0, 0, 0, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}
@@ -773,13 +773,13 @@ static void template_ID(
 
 		if (openop) {
 			but = uiDefIconTextButO(
-			        block, UI_BTYPE_BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILESEL, (id) ? "" : IFACE_("Open"),
+			        block, UI_BTYPE_BUT, openop, WM_OP_INVOKE_DEFAULT, ICON_FILEBROWSER, (id) ? "" : IFACE_("Open"),
 			        0, 0, w, UI_UNIT_Y, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OPEN));
 		}
 		else {
 			but = uiDefIconTextBut(
-			        block, UI_BTYPE_BUT, 0, ICON_FILESEL, (id) ? "" : IFACE_("Open"), 0, 0, w, UI_UNIT_Y,
+			        block, UI_BTYPE_BUT, 0, ICON_FILEBROWSER, (id) ? "" : IFACE_("Open"), 0, 0, w, UI_UNIT_Y,
 			        NULL, 0, 0, 0, 0, NULL);
 			UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_OPEN));
 		}
@@ -1164,7 +1164,7 @@ static void template_search_buttons(
 
 	template_search_add_button_searchmenu(C, layout, block, template_search, editable, false);
 	template_search_add_button_name(block, &active_ptr, type);
-	template_search_add_button_operator(block, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN, editable);
+	template_search_add_button_operator(block, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD, editable);
 	template_search_add_button_operator(block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
 
 	UI_block_align_end(block);
@@ -1474,10 +1474,10 @@ static uiLayout *draw_modifier(
 			uiItemO(row, "", ICON_X, "OBJECT_OT_modifier_remove");
 		}
 		else if (modifier_is_simulation(md) == 1) {
-			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PHYSICS");
+			uiItemStringO(row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PHYSICS");
 		}
 		else if (modifier_is_simulation(md) == 2) {
-			uiItemStringO(row, "", ICON_BUTS, "WM_OT_properties_context_change", "context", "PARTICLES");
+			uiItemStringO(row, "", ICON_PROPERTIES, "WM_OT_properties_context_change", "context", "PARTICLES");
 		}
 		UI_block_emboss_set(block, UI_EMBOSS);
 	}
@@ -2039,7 +2039,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		/* enabled */
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 		uiItemR(row, &ptr, "mute", 0, "",
-		        (con->flag & CONSTRAINT_OFF) ? ICON_HIDE_ON : ICON_HIDE_OFF);
+		        (con->flag & CONSTRAINT_OFF) ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF);
 		UI_block_emboss_set(block, UI_EMBOSS);
 
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
@@ -2361,13 +2361,13 @@ static void colorband_buttons_layout(
 	row = uiLayoutRow(split, false);
 
 	bt = uiDefIconTextBut(
-	        block, UI_BTYPE_BUT, 0, ICON_ZOOMIN, "", 0, 0, 2.0f * unit, UI_UNIT_Y, NULL,
+	        block, UI_BTYPE_BUT, 0, ICON_ADD, "", 0, 0, 2.0f * unit, UI_UNIT_Y, NULL,
 	        0, 0, 0, 0, TIP_("Add a new color stop to the colorband"));
 
 	UI_but_funcN_set(bt, colorband_add_cb, MEM_dupallocN(cb), coba);
 
 	bt = uiDefIconTextBut(
-	        block, UI_BTYPE_BUT, 0, ICON_ZOOMOUT, "", xs +  2.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
+	        block, UI_BTYPE_BUT, 0, ICON_REMOVE, "", xs +  2.0f * unit, ys + UI_UNIT_Y, 2.0f * unit, UI_UNIT_Y,
 	        NULL, 0, 0, 0, 0, TIP_("Delete the active position"));
 	UI_but_funcN_set(bt, colorband_del_cb, MEM_dupallocN(cb), coba);
 
@@ -3309,8 +3309,8 @@ void uiTemplatePalette(uiLayout *layout, PointerRNA *ptr, const char *propname, 
 
 	col = uiLayoutColumn(layout, true);
 	uiLayoutRow(col, true);
-	uiDefIconButO(block, UI_BTYPE_BUT, "PALETTE_OT_color_add", WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
-	uiDefIconButO(block, UI_BTYPE_BUT, "PALETTE_OT_color_delete", WM_OP_INVOKE_DEFAULT, ICON_ZOOMOUT, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+	uiDefIconButO(block, UI_BTYPE_BUT, "PALETTE_OT_color_add", WM_OP_INVOKE_DEFAULT, ICON_ADD, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
+	uiDefIconButO(block, UI_BTYPE_BUT, "PALETTE_OT_color_delete", WM_OP_INVOKE_DEFAULT, ICON_REMOVE, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
 
 	col = uiLayoutColumn(layout, true);
 	uiLayoutRow(col, true);
@@ -3491,7 +3491,7 @@ static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *
 	subrow = uiLayoutRow(row, true);
 	uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
-	        (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_TRIA_UP : ICON_TRIA_DOWN);
+	        (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_SORT_DESC : ICON_SORT_ASC);
 }
 
 typedef struct {
@@ -4299,10 +4299,10 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
 		uiItemM(row, "WM_MT_operator_presets", NULL, ICON_NONE);
 
 		wmOperatorType *ot = WM_operatortype_find("WM_OT_operator_preset_add", false);
-		uiItemFullO_ptr(row, ot, "", ICON_ZOOMIN, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+		uiItemFullO_ptr(row, ot, "", ICON_ADD, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
 		RNA_string_set(&op_ptr, "operator", op->type->idname);
 
-		uiItemFullO_ptr(row, ot, "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
+		uiItemFullO_ptr(row, ot, "", ICON_REMOVE, NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
 		RNA_string_set(&op_ptr, "operator", op->type->idname);
 		RNA_boolean_set(&op_ptr, "remove_active", true);
 	}
@@ -4481,7 +4481,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 			owner = sa;
 		}
 		handle_event = B_STOPFILE;
-		icon = ICON_FILESEL;
+		icon = ICON_FILEBROWSER;
 	}
 	else {
 		Scene *scene;
@@ -4506,7 +4506,7 @@ void uiTemplateRunningJobs(uiLayout *layout, bContext *C)
 				 */
 				if (sa->spacetype != SPACE_NODE) {
 					handle_event = B_STOPOTHER;
-					icon = ICON_IMAGE_COL;
+					icon = ICON_IMAGE;
 					break;
 				}
 			}

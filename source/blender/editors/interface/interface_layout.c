@@ -788,7 +788,7 @@ static uiBut *ui_item_with_label(
 		/* BUTTONS_OT_file_browse calls UI_context_active_but_prop_get_filebrowser */
 		uiDefIconButO(
 		        block, UI_BTYPE_BUT, subtype == PROP_DIRPATH ? "BUTTONS_OT_directory_browse" : "BUTTONS_OT_file_browse",
-		        WM_OP_INVOKE_DEFAULT, ICON_FILESEL, x, y, UI_UNIT_X, h, NULL);
+		        WM_OP_INVOKE_DEFAULT, ICON_FILEBROWSER, x, y, UI_UNIT_X, h, NULL);
 	}
 	else if (flag & UI_ITEM_R_EVENT) {
 		but = uiDefButR_prop(block, UI_BTYPE_KEY_EVENT, 0, name, x, y, prop_but_width, h, ptr, prop, index, 0, 0, -1, -1, NULL);

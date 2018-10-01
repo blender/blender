@@ -105,7 +105,7 @@ def draw_km(display_keymaps, kc, km, children, layout, level):
             subcol = _indented_layout(col, kmi_level)
             subcol = subcol.split(factor=0.2).column()
             subcol.operator("wm.keyitem_add", text="Add New", text_ctxt=i18n_contexts.id_windowmanager,
-                            icon='ZOOMIN')
+                            icon='ADD')
 
             col.separator()
 
@@ -350,7 +350,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
             # "Add New" at end of keymap item list
             col = _indented_layout(layout, 1)
             subcol = col.split(factor=0.2).column()
-            subcol.operator("wm.keyitem_add", text="Add New", icon='ZOOMIN')
+            subcol.operator("wm.keyitem_add", text="Add New", icon='ADD')
     return True
 
 
@@ -380,8 +380,8 @@ def draw_keymaps(context, layout):
     if not text:
         text = "Blender (default)"
     row.menu("USERPREF_MT_keyconfigs", text=text)
-    row.operator("wm.keyconfig_preset_add", text="", icon='ZOOMIN')
-    row.operator("wm.keyconfig_preset_add", text="", icon='ZOOMOUT').remove_active = True
+    row.operator("wm.keyconfig_preset_add", text="", icon='ADD')
+    row.operator("wm.keyconfig_preset_add", text="", icon='REMOVE').remove_active = True
 
     # layout.context_pointer_set("keyconfig", wm.keyconfigs.active)
     # row.operator("wm.keyconfig_remove", text="", icon='X')

@@ -822,7 +822,7 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             split.label(text="Alpha:")
             split.prop(strip, "alpha_mode", text="")
 
-            layout.operator("sequencer.change_path", icon='FILESEL').filter_image = True
+            layout.operator("sequencer.change_path", icon='FILEBROWSER').filter_image = True
 
         elif seq_type == 'MOVIE':
             split = layout.split(factor=0.2)

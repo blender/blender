@@ -30,7 +30,7 @@ class MATERIAL_MT_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.material_slot_copy", icon='COPY_ID')
+        layout.operator("object.material_slot_copy")
         layout.operator("material.copy", icon='COPYDOWN')
         layout.operator("material.paste", icon='PASTEDOWN')
 
@@ -111,8 +111,8 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             row.template_list("MATERIAL_UL_matslots", "", ob, "material_slots", ob, "active_material_index", rows=rows)
 
             col = row.column(align=True)
-            col.operator("object.material_slot_add", icon='ZOOMIN', text="")
-            col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
+            col.operator("object.material_slot_add", icon='ADD', text="")
+            col.operator("object.material_slot_remove", icon='REMOVE', text="")
 
             col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 

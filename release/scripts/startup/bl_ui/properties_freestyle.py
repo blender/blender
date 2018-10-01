@@ -158,7 +158,7 @@ class VIEWLAYER_PT_freestyle(ViewLayerFreestyleButtonsPanel, Panel):
                 row = box.row(align=True)
                 row.prop(module, "use", text="")
                 row.prop(module, "script", text="")
-                row.operator("scene.freestyle_module_open", icon='FILESEL', text="")
+                row.operator("scene.freestyle_module_open", icon='FILEBROWSER', text="")
                 row.operator("scene.freestyle_module_remove", icon='X', text="")
                 row.operator("scene.freestyle_module_move", icon='TRIA_UP', text="").direction = 'UP'
                 row.operator("scene.freestyle_module_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
@@ -193,8 +193,8 @@ class VIEWLAYER_PT_freestyle_lineset(ViewLayerFreestyleEditorButtonsPanel, Panel
         row.template_list("VIEWLAYER_UL_linesets", "", freestyle, "linesets", freestyle.linesets, "active_index", rows=rows)
 
         sub = row.column(align=True)
-        sub.operator("scene.freestyle_lineset_add", icon='ZOOMIN', text="")
-        sub.operator("scene.freestyle_lineset_remove", icon='ZOOMOUT', text="")
+        sub.operator("scene.freestyle_lineset_add", icon='ADD', text="")
+        sub.operator("scene.freestyle_lineset_remove", icon='REMOVE', text="")
         sub.menu("RENDER_MT_lineset_specials", icon='DOWNARROW_HLT', text="")
         if lineset:
             sub.separator()

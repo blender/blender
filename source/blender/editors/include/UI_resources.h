@@ -36,7 +36,7 @@
 /* and add/replace include of UI_resources.h by UI_interface_icons.h */
 #define DEF_ICON(name) ICON_##name,
 #define DEF_ICON_VECTOR(name) ICON_##name,
-#define DEF_ICON_MONO(name) ICON_##name,
+#define DEF_ICON_COLOR(name) ICON_##name,
 #define DEF_ICON_BLANK(name) ICON_BLANK_##name,
 
 typedef enum {
@@ -49,7 +49,7 @@ typedef enum {
 
 #undef DEF_ICON
 #undef DEF_ICON_VECTOR
-#undef DEF_ICON_MONO
+#undef DEF_ICON_COLOR
 #undef DEF_ICON_BLANK
 
 /* use to denote intentionally unset theme color */
