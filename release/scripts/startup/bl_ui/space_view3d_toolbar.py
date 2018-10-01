@@ -628,6 +628,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
 class VIEW3D_PT_tools_brush_overlay(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Overlay"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1036,6 +1037,7 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     bl_context = ".paint_common"  # dot on purpose (access from topbar)
     bl_label = "Appearance"
     bl_parent_id = "VIEW3D_PT_tools_brush_overlay"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1203,6 +1205,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Project Paint"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
