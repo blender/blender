@@ -1362,12 +1362,10 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
 
 
 class CyclesDeviceSettings(bpy.types.PropertyGroup):
-    @classmethod
-    def register(cls):
-        cls.id = StringProperty(name="ID")
-        cls.name = StringProperty(name="Name")
-        cls.use = BoolProperty(name="Use", default=True)
-        cls.type = EnumProperty(name="Type", items=enum_device_type, default='CUDA')
+    id: StringProperty(name="ID")
+    name: StringProperty(name="Name")
+    use: BoolProperty(name="Use", default=True)
+    type: EnumProperty(name="Type", items=enum_device_type, default='CUDA')
 
 
 class CyclesPreferences(bpy.types.AddonPreferences):
