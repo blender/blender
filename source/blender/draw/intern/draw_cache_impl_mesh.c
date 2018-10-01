@@ -56,6 +56,7 @@
 #include "bmesh.h"
 
 #include "GPU_batch.h"
+#include "GPU_batch_presets.h"
 #include "GPU_draw.h"
 #include "GPU_material.h"
 #include "GPU_texture.h"
@@ -1843,12 +1844,23 @@ static void mesh_batch_cache_discard_uvedit(MeshBatchCache *cache)
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edituv_visible_faces);
 	GPU_INDEXBUF_DISCARD_SAFE(cache->edituv_visible_edges);
 
+	gpu_batch_presets_unregister(cache->edituv_faces_strech_area);
+	gpu_batch_presets_unregister(cache->edituv_faces_strech_angle);
+	gpu_batch_presets_unregister(cache->edituv_faces);
+	gpu_batch_presets_unregister(cache->edituv_edges);
+	gpu_batch_presets_unregister(cache->edituv_verts);
+	gpu_batch_presets_unregister(cache->edituv_facedots);
+
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_faces_strech_area);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_faces_strech_angle);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_faces);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_verts);
 	GPU_BATCH_DISCARD_SAFE(cache->edituv_facedots);
+
+	gpu_batch_presets_unregister(cache->texpaint_uv_loops);
+
+	GPU_BATCH_DISCARD_SAFE(cache->texpaint_uv_loops);
 
 	cache->edituv_state = 0;
 }
@@ -1998,8 +2010,6 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
 	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
-
-	GPU_BATCH_DISCARD_SAFE(cache->texpaint_uv_loops);
 
 	mesh_batch_cache_discard_shaded_tri(cache);
 
@@ -4552,7 +4562,7 @@ GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
 		cache->texpaint_uv_loops = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP,
 		                                               vbo, GPU_indexbuf_build(&elb),
 		                                               GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
-
+		gpu_batch_presets_register(cache->texpaint_uv_loops);
 		mesh_render_data_free(rdata);
 	}
 	return cache->texpaint_uv_loops;
@@ -4957,6 +4967,7 @@ static void mesh_batch_cache_create_uvedit_buffers(
 	}
 	if ((state & UVEDIT_FACEDOTS) && facedots_vbo) {
 		cache->edituv_facedots = GPU_batch_create_ex(GPU_PRIM_POINTS, facedots_vbo, NULL, GPU_BATCH_OWNS_VBO);
+		gpu_batch_presets_register(cache->edituv_facedots);
 	}
 
 	cache->edituv_state |= state;
@@ -4987,6 +4998,7 @@ void DRW_mesh_cache_uvedit(
 			                                                   cache->edituv_visible_faces);
 			GPU_batch_vertbuf_add_ex(cache->edituv_faces_strech_area,
 			                         cache->edituv_area, false);
+			gpu_batch_presets_register(cache->edituv_faces_strech_area);
 		}
 		*faces = cache->edituv_faces_strech_area;
 	}
@@ -4997,6 +5009,7 @@ void DRW_mesh_cache_uvedit(
 			                                                    cache->edituv_visible_faces);
 			GPU_batch_vertbuf_add_ex(cache->edituv_faces_strech_angle,
 			                         cache->edituv_angle, false);
+			gpu_batch_presets_register(cache->edituv_faces_strech_angle);
 		}
 		*faces = cache->edituv_faces_strech_angle;
 	}
@@ -5007,6 +5020,7 @@ void DRW_mesh_cache_uvedit(
 			                                       cache->edituv_visible_faces);
 			GPU_batch_vertbuf_add_ex(cache->edituv_faces,
 			                         cache->edituv_data, false);
+			gpu_batch_presets_register(cache->edituv_faces);
 		}
 		*faces = cache->edituv_faces;
 	}
@@ -5021,6 +5035,7 @@ void DRW_mesh_cache_uvedit(
 			                                       cache->edituv_visible_edges);
 			GPU_batch_vertbuf_add_ex(cache->edituv_edges,
 			                         cache->edituv_data, false);
+			gpu_batch_presets_register(cache->edituv_edges);
 		}
 		*edges = cache->edituv_edges;
 	}
@@ -5032,6 +5047,7 @@ void DRW_mesh_cache_uvedit(
 			                                       NULL);
 			GPU_batch_vertbuf_add_ex(cache->edituv_verts,
 			                         cache->edituv_data, false);
+			gpu_batch_presets_register(cache->edituv_verts);
 		}
 		*verts = cache->edituv_verts;
 	}
