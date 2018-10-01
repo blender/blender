@@ -43,7 +43,9 @@ static void initData(ShaderFxData *fx)
 	ARRAY_SET_ITEMS(gpfx->rim_rgb, 1.0f, 1.0f, 0.5f);
 	ARRAY_SET_ITEMS(gpfx->mask_rgb, 0.0f, 0.0f, 0.0f);
 	gpfx->mode = eShaderFxRimMode_Multiply;
-	ARRAY_SET_ITEMS(gpfx->blur, 0, 0);
+
+	ARRAY_SET_ITEMS(gpfx->blur, 5, 5);
+	gpfx->samples = 2;
 }
 
 static void copyData(const ShaderFxData *md, ShaderFxData *target)
