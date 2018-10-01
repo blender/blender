@@ -1123,6 +1123,70 @@ int isect_seg_seg_v2(const float v1[2], const float v2[2], const float v3[2], co
 	return ISECT_LINE_LINE_NONE;
 }
 
+/* Returns a point on each segment that is closest to the other. */
+void isect_seg_seg_v3(
+        const float a0[3], const float a1[3],
+        const float b0[3], const float b1[3],
+        float r_a[3], float r_b[3])
+{
+	float fac_a, fac_b;
+	float a_dir[3], b_dir[3], a0b0[3], crs_ab[3];
+	sub_v3_v3v3(a_dir, a1, a0);
+	sub_v3_v3v3(b_dir, b1, b0);
+	sub_v3_v3v3(a0b0, b0, a0);
+	cross_v3_v3v3(crs_ab, b_dir, a_dir);
+	const float nlen = len_squared_v3(crs_ab);
+
+	if (nlen == 0.0f) {
+		/* Parallel Lines */
+		/* In this case return any point that
+		 * is between the closest segments. */
+		float a0b1[3], a1b0[3], len_a, len_b, fac1, fac2;
+		sub_v3_v3v3(a0b1, b1, a0);
+		sub_v3_v3v3(a1b0, b0, a1);
+		len_a = len_squared_v3(a_dir);
+		len_b = len_squared_v3(b_dir);
+
+		if (len_a) {
+			fac1 = dot_v3v3(a0b0, a_dir);
+			fac2 = dot_v3v3(a0b1, a_dir);
+			CLAMP(fac1, 0.0f, len_a);
+			CLAMP(fac2, 0.0f, len_a);
+			fac_a = (fac1 + fac2) / (2 * len_a);
+		}
+		else {
+			fac_a = 0.0f;
+		}
+
+		if (len_b) {
+			fac1 = -dot_v3v3(a0b0, b_dir);
+			fac2 = -dot_v3v3(a1b0, b_dir);
+			CLAMP(fac1, 0.0f, len_b);
+			CLAMP(fac2, 0.0f, len_b);
+			fac_b = (fac1 + fac2) / (2 * len_b);
+		}
+		else {
+			fac_b = 0.0f;
+		}
+	}
+	else {
+		float c[3], cray[3];
+		sub_v3_v3v3(c, crs_ab, a0b0);
+
+		cross_v3_v3v3(cray, c, b_dir);
+		fac_a = dot_v3v3(cray, crs_ab) / nlen;
+
+		cross_v3_v3v3(cray, c, a_dir);
+		fac_b = dot_v3v3(cray, crs_ab) / nlen;
+
+		CLAMP(fac_a, 0.0f, 1.0f);
+		CLAMP(fac_b, 0.0f, 1.0f);
+	}
+
+	madd_v3_v3v3fl(r_a, a0, a_dir, fac_a);
+	madd_v3_v3v3fl(r_b, b0, b_dir, fac_b);
+}
+
 /**
  * Get intersection point of two 2D segments.
  *

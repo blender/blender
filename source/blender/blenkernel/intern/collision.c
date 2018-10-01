@@ -192,36 +192,6 @@ void bvhtree_update_from_mvert(
 Collision modifier code end
 ***********************************/
 
-static void clamp_point_seg(float a[3], float b[3], float p[3])
-{
-	float ap[3], bp[3], ab[3];
-
-	sub_v3_v3v3(ap, p, a);
-	sub_v3_v3v3(bp, p, b);
-	sub_v3_v3v3(ab, b, a);
-
-	if (dot_v3v3(ap, bp) > 0.0f) {
-		if (dot_v3v3(ap, ab) > 0.0f) {
-			copy_v3_v3(p, b);
-		}
-		else {
-			copy_v3_v3(p, a);
-		}
-	}
-}
-
-static bool isect_seg_seg(float a1[3], float a2[3], float b1[3], float b2[3], float r_a[3], float r_b[3])
-{
-	if (isect_line_line_epsilon_v3(a1, a2, b1, b2, r_a, r_b, 0.0f)) {
-		clamp_point_seg(a1, a2, r_a);
-		clamp_point_seg(b1, b2, r_b);
-
-		return true;
-	}
-
-	return false;
-}
-
 BLI_INLINE int next_ind(int i)
 {
 	return (++i < 3) ? i : 0;
@@ -410,14 +380,13 @@ static float compute_collision_point(float a1[3], float a2[3], float a3[3], floa
 	if (isect_count == 0) {
 		for (int i = 0; i < 3; i++) {
 			for (int j = 0; j < 3; j++) {
-				if (isect_seg_seg(a[i], a[next_ind(i)], b[j], b[next_ind(j)], tmp_co1, tmp_co2)) {
-					tmp = len_squared_v3v3(tmp_co1, tmp_co2);
+				isect_seg_seg_v3(a[i], a[next_ind(i)], b[j], b[next_ind(j)], tmp_co1, tmp_co2);
+				tmp = len_squared_v3v3(tmp_co1, tmp_co2);
 
-					if (tmp < dist) {
-						dist = tmp;
-						copy_v3_v3(r_a, tmp_co1);
-						copy_v3_v3(r_b, tmp_co2);
-					}
+				if (tmp < dist) {
+					dist = tmp;
+					copy_v3_v3(r_a, tmp_co1);
+					copy_v3_v3(r_b, tmp_co2);
 				}
 			}
 		}
