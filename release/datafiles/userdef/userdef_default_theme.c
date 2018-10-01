@@ -209,10 +209,10 @@ const bTheme U_theme_default = {
 			.roundness = 0.2f,
 		},
 		.wcol_pie_menu = {
-			.outline = RGBA(0x212121ff),
+			.outline = RGBA(0x333333ff),
 			.inner = RGBA(0x212121ef),
-			.inner_sel = RGBA(0x585858ff),
-			.item = RGBA(0x597cb3ff),
+			.inner_sel = RGBA(0x597cb3ff),
+			.item = RGBA(0x585858ff),
 			.text = RGBA(0xeeeeeeff),
 			.text_sel = RGBA(0xffffffff),
 			.shadetop = 10,
