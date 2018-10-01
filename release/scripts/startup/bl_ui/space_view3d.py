@@ -4141,14 +4141,15 @@ class VIEW3D_PT_shading_options(Panel):
 
         col = layout.column()
 
-        is_xray = shading.show_xray
         is_shadows = shading.show_shadows
 
         row = col.row()
-        row.active = is_xray
+
         if shading.type == 'WIREFRAME':
+            row.active = shading.show_xray_wireframe
             row.prop(shading, "xray_alpha_wireframe", text="X-Ray")
         else:
+            row.active = shading.show_xray
             row.prop(shading, "xray_alpha", text="X-Ray")
 
         if shading.type == 'SOLID':
