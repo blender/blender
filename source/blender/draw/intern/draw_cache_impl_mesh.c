@@ -939,7 +939,7 @@ static int mesh_render_data_mat_len_get(const MeshRenderData *rdata)
 	return rdata->mat_len;
 }
 
-static int UNUSED_FUNCTION(mesh_render_data_loops_len_get)(const MeshRenderData *rdata)
+static int mesh_render_data_loops_len_get(const MeshRenderData *rdata)
 {
 	BLI_assert(rdata->types & MR_DATATYPE_LOOP);
 	return rdata->loop_len;
@@ -1687,6 +1687,8 @@ typedef struct MeshBatchCache {
 	GPUIndexBuf *edituv_visible_faces;
 	GPUIndexBuf *edituv_visible_edges;
 
+	GPUBatch *texpaint_uv_loops;
+
 	GPUBatch *edituv_faces_strech_area;
 	GPUBatch *edituv_faces_strech_angle;
 	GPUBatch *edituv_faces;
@@ -1996,6 +1998,8 @@ static void mesh_batch_cache_clear(Mesh *me)
 
 	GPU_VERTBUF_DISCARD_SAFE(cache->edges_face_overlay);
 	DRW_TEXTURE_FREE_SAFE(cache->edges_face_overlay_tx);
+
+	GPU_BATCH_DISCARD_SAFE(cache->texpaint_uv_loops);
 
 	mesh_batch_cache_discard_shaded_tri(cache);
 
@@ -4501,6 +4505,57 @@ GPUBatch *DRW_mesh_batch_cache_get_surface_texpaint_single(Mesh *me)
 		mesh_render_data_free(rdata);
 	}
 	return cache->texpaint_triangles_single;
+}
+
+GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->texpaint_uv_loops == NULL) {
+		/* create batch from DM */
+		const int datatype = MR_DATATYPE_LOOP | MR_DATATYPE_POLY | MR_DATATYPE_LOOPUV;
+		MeshRenderData *rdata = mesh_render_data_create(me, datatype);
+
+		const MLoopUV *mloopuv_base = rdata->mloopuv;
+		if (mloopuv_base == NULL) {
+			return NULL;
+		}
+
+		uint vidx = 0;
+
+		static GPUVertFormat format = { 0 };
+		static struct { uint uv; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.uv = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		}
+
+		const uint vert_len = mesh_render_data_loops_len_get(rdata);
+		const uint poly_len = mesh_render_data_polys_len_get(rdata);
+		const uint idx_len = vert_len + poly_len;
+
+		GPUIndexBufBuilder elb;
+		GPU_indexbuf_init_ex(&elb, GPU_PRIM_LINE_LOOP, idx_len, vert_len, true);
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, vert_len);
+
+		MPoly *mpoly = rdata->mpoly;
+		for (int a = 0; a < poly_len; a++, mpoly++) {
+			const MLoopUV *mloopuv = mloopuv_base + mpoly->loopstart;
+			for (int b = 0; b < mpoly->totloop; b++, mloopuv++) {
+				GPU_vertbuf_attr_set(vbo, attr_id.uv, vidx, mloopuv->uv);
+				GPU_indexbuf_add_generic_vert(&elb, vidx++);
+			}
+			GPU_indexbuf_add_primitive_restart(&elb);
+		}
+
+		cache->texpaint_uv_loops = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP,
+		                                               vbo, GPU_indexbuf_build(&elb),
+		                                               GPU_BATCH_OWNS_VBO | GPU_BATCH_OWNS_INDEX);
+
+		mesh_render_data_free(rdata);
+	}
+	return cache->texpaint_uv_loops;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_weight_overlay_edges(Mesh *me, bool use_wire, bool use_sel)

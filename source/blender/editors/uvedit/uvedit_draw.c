@@ -79,7 +79,52 @@
 
 #include "uvedit_intern.h"
 
-static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, const uint shdr_pos);
+static int draw_uvs_face_check(Scene *scene)
+{
+	ToolSettings *ts = scene->toolsettings;
+
+	/* checks if we are selecting only faces */
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		if (ts->selectmode == SCE_SELECT_FACE)
+			return 2;
+		else if (ts->selectmode & SCE_SELECT_FACE)
+			return 1;
+		else
+			return 0;
+	}
+	else
+		return (ts->uv_selectmode == UV_SELECT_FACE);
+}
+
+static uchar get_state(SpaceImage *sima, Scene *scene)
+{
+	ToolSettings *ts = scene->toolsettings;
+	int drawfaces = draw_uvs_face_check(scene);
+	const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
+	uchar state = UVEDIT_EDGES | UVEDIT_DATA;
+
+	if (drawfaces) {
+		state |= UVEDIT_FACEDOTS;
+	}
+	if (draw_stretch || !(sima->flag & SI_NO_DRAWFACES)) {
+		state |= UVEDIT_FACES;
+
+		if (draw_stretch) {
+			if (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA) {
+				state |= UVEDIT_STRETCH_AREA;
+			}
+			else {
+				state |= UVEDIT_STRETCH_ANGLE;
+			}
+		}
+	}
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		state |= UVEDIT_SYNC_SEL;
+	}
+	return state;
+}
+
+/* ------------------------- */
 
 void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 {
@@ -147,150 +192,75 @@ void ED_image_draw_cursor(ARegion *ar, const float cursor[2])
 	GPU_matrix_translate_2f(-cursor[0], -cursor[1]);
 }
 
-static int draw_uvs_face_check(Scene *scene)
+static void draw_uvs_shadow(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *depsgraph)
 {
-	ToolSettings *ts = scene->toolsettings;
-
-	/* checks if we are selecting only faces */
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		if (ts->selectmode == SCE_SELECT_FACE)
-			return 2;
-		else if (ts->selectmode & SCE_SELECT_FACE)
-			return 1;
-		else
-			return 0;
-	}
-	else
-		return (ts->uv_selectmode == UV_SELECT_FACE);
-}
-
-static void draw_uvs_shadow(Object *obedit)
-{
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-
-	if (bm->totloop == 0) {
-		return;
-	}
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
-
-	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-	/* draws the mesh when painting */
-	immUniformThemeColor(TH_UV_SHADOW);
-
-	draw_uvs_lineloop_bmfaces(bm, cd_loop_uv_offset, pos);
-
-	immUnbindProgram();
-}
-
-static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, const uint shdr_pos)
-{
-	BMIter iter, liter;
-	BMFace *efa;
-	BMLoop *l;
-	MLoopUV *luv;
-
-	/* For more efficiency first transfer the entire buffer to vram. */
-	GPUBatch *loop_batch = immBeginBatchAtMost(GPU_PRIM_LINE_LOOP, bm->totloop);
-
-	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
-			continue;
-
-		BM_ITER_ELEM(l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			immVertex2fv(shdr_pos, luv->uv);
-		}
-	}
-	immEnd();
-
-	/* Then draw each face contour separately. */
-	GPU_batch_program_use_begin(loop_batch);
-	unsigned int index = 0;
-	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
-			continue;
-
-		GPU_batch_draw_range_ex(loop_batch, index, efa->len, false);
-		index += efa->len;
-	}
-	GPU_batch_program_use_end(loop_batch);
-	GPU_batch_discard(loop_batch);
-}
-
-static void draw_uvs_texpaint(Scene *scene, Object *ob)
-{
-	Mesh *me = ob->data;
-	Material *ma;
-
-	ma = give_current_material(ob, ob->actcol);
-
-	if (me->mloopuv) {
-		MPoly *mpoly = me->mpoly;
-		MLoopUV *mloopuv, *mloopuv_base;
-		int a, b;
-		if (!(ma && ma->texpaintslot && ma->texpaintslot[ma->paint_active_slot].uvname &&
-		      (mloopuv = CustomData_get_layer_named(&me->ldata, CD_MLOOPUV, ma->texpaintslot[ma->paint_active_slot].uvname))))
-		{
-			mloopuv = me->mloopuv;
-		}
-
-		uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-		immUniformThemeColor(TH_UV_SHADOW);
-
-		mloopuv_base = mloopuv;
-
-		for (a = me->totpoly; a > 0; a--, mpoly++) {
-			if ((scene->toolsettings->uv_flag & UV_SHOW_SAME_IMAGE) && mpoly->mat_nr != ob->actcol - 1)
-				continue;
-
-			immBegin(GPU_PRIM_LINE_LOOP, mpoly->totloop);
-
-			mloopuv = mloopuv_base + mpoly->loopstart;
-			for (b = 0; b < mpoly->totloop; b++, mloopuv++) {
-				immVertex2fv(pos, mloopuv->uv);
-			}
-
-			immEnd();
-		}
-
-		immUnbindProgram();
-	}
-}
-
-static uchar get_state(SpaceImage *sima, Scene *scene)
-{
-	ToolSettings *ts = scene->toolsettings;
-	int drawfaces = draw_uvs_face_check(scene);
-	const bool draw_stretch = (sima->flag & SI_DRAW_STRETCH) != 0;
+	Object *eval_ob = DEG_get_evaluated_object(depsgraph, obedit);
+	GPUBatch *faces, *edges, *verts, *facedots;
 	uchar state = UVEDIT_EDGES | UVEDIT_DATA;
+	float col[4];
+	UI_GetThemeColor4fv(TH_UV_SHADOW, col);
 
-	if (drawfaces) {
-		state |= UVEDIT_FACEDOTS;
+	DRW_mesh_cache_uvedit(
+	        eval_ob, sima, scene, state,
+	        &faces, &edges, &verts, &facedots);
+
+	if (edges) {
+		GPU_batch_program_set_builtin(edges, GPU_SHADER_2D_UNIFORM_COLOR);
+		GPU_batch_uniform_4fv(edges, "color", col);
+		GPU_batch_draw(edges);
 	}
-	if (draw_stretch || !(sima->flag & SI_NO_DRAWFACES)) {
-		state |= UVEDIT_FACES;
+}
 
-		if (draw_stretch) {
-			if (sima->dt_uvstretch == SI_UVDT_STRETCH_AREA) {
-				state |= UVEDIT_STRETCH_AREA;
+static void draw_uvs_texpaint(Scene *scene, Object *ob, Depsgraph *depsgraph)
+{
+	Object *eval_ob = DEG_get_evaluated_object(depsgraph, ob);
+	Mesh *me = eval_ob->data;
+	ToolSettings *ts = scene->toolsettings;
+	GPUBatch *geom = DRW_mesh_batch_cache_get_texpaint_loop_wire(me);
+	float col[4];
+	UI_GetThemeColor4fv(TH_UV_SHADOW, col);
+
+	if (!geom)
+		return;
+
+	GPU_batch_program_set_builtin(geom, GPU_SHADER_2D_UNIFORM_COLOR);
+	GPU_batch_uniform_4fv(geom, "color", col);
+
+	const bool do_material_masking = (ts->uv_flag & UV_SHOW_SAME_IMAGE);
+	if (do_material_masking && me->mloopuv) {
+		/* Render loops that have the active material. Minize draw calls. */
+		MPoly *mpoly = me->mpoly;
+		uint draw_start = 0;
+		uint idx = 0;
+		bool prev_ma_match = (mpoly->mat_nr == (eval_ob->actcol - 1));
+
+		GPU_matrix_bind(geom->interface);
+
+		/* TODO(fclem): If drawcall count becomes a problem in the future
+		 * we can use multi draw indirect drawcalls for this.
+		 * (not implemented in GPU module at the time of writing). */
+		for (int a = 0; a < me->totpoly; a++, mpoly++) {
+			bool ma_match = (mpoly->mat_nr == (eval_ob->actcol - 1));
+			if (ma_match != prev_ma_match) {
+				if (ma_match == false) {
+					GPU_batch_draw_range_ex(geom, draw_start, idx - draw_start, false);
+				}
+				else {
+					draw_start = idx;
+				}
 			}
-			else {
-				state |= UVEDIT_STRETCH_ANGLE;
-			}
+			idx += mpoly->totloop + 1;
+			prev_ma_match = ma_match;
 		}
+		if (prev_ma_match == true) {
+			GPU_batch_draw_range_ex(geom, draw_start, idx - draw_start, false);
+		}
+
+		GPU_batch_program_use_end(geom);
 	}
-	if (ts->uv_flag & UV_SYNC_SELECTION) {
-		state |= UVEDIT_SYNC_SEL;
+	else {
+		GPU_batch_draw(geom);
 	}
-	return state;
 }
 
 /* draws uv's in the image space */
@@ -308,7 +278,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, Object *obedit, Depsgraph *
 		/* When sync selection is enabled, all faces are drawn (except for hidden)
 		 * so if cage is the same as the final, there is no point in drawing this. */
 		if (!((ts->uv_flag & UV_SYNC_SELECTION) && is_cage_like_final_meshes)) {
-			draw_uvs_shadow(eval_ob);
+			draw_uvs_shadow(sima, scene, obedit, depsgraph);
 		}
 	}
 
@@ -507,7 +477,7 @@ void ED_uvedit_draw_main(
 
 	if (show_uvedit || show_uvshadow || show_texpaint_uvshadow) {
 		if (show_uvshadow) {
-			draw_uvs_shadow(obedit);
+			draw_uvs_shadow(sima, scene, obedit, depsgraph);
 		}
 		else if (show_uvedit) {
 			uint objects_len = 0;
@@ -519,7 +489,7 @@ void ED_uvedit_draw_main(
 			MEM_freeN(objects);
 		}
 		else {
-			draw_uvs_texpaint(scene, obact);
+			draw_uvs_texpaint(scene, obact, depsgraph);
 		}
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))

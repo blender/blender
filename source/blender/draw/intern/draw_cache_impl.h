@@ -167,6 +167,8 @@ enum {
 	UVEDIT_SYNC_SEL       = (1 << 6),
 };
 
+/* For Image UV editor. */
+struct GPUBatch *DRW_mesh_batch_cache_get_texpaint_loop_wire(struct Mesh *me);
 void DRW_mesh_cache_uvedit(
         struct Object *me, struct SpaceImage *sima, struct Scene *scene, uchar state,
         struct GPUBatch **faces, struct GPUBatch **edges, struct GPUBatch **verts, struct GPUBatch **facedots);
