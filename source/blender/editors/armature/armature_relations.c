@@ -247,8 +247,8 @@ int join_armature_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Object  *ob = CTX_data_active_object(C);
-	bArmature *arm = (ob) ? ob->data : NULL;
+	Object  *ob_active = CTX_data_active_object(C);
+	bArmature *arm = (ob_active) ? ob_active->data : NULL;
 	bPose *pose, *opose;
 	bPoseChannel *pchan, *pchann;
 	EditBone *curbone;
@@ -256,14 +256,14 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	bool ok = false;
 
 	/*	Ensure we're not in editmode and that the active object is an armature*/
-	if (!ob || ob->type != OB_ARMATURE)
+	if (!ob_active || ob_active->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
 	if (!arm || arm->edbo)
 		return OPERATOR_CANCELLED;
 
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if (base->object == ob) {
+		if (ob_iter == ob_active) {
 			ok = true;
 			break;
 		}
@@ -280,34 +280,34 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_to_edit(arm);
 
 	/* get pose of active object and move it out of posemode */
-	pose = ob->pose;
-	ob->mode &= ~OB_MODE_POSE;
+	pose = ob_active->pose;
+	ob_active->mode &= ~OB_MODE_POSE;
 
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if ((base->object->type == OB_ARMATURE) && (base->object != ob)) {
+		if ((ob_iter->type == OB_ARMATURE) && (ob_iter != ob_active)) {
 			tJoinArmature_AdtFixData afd = {NULL};
-			bArmature *curarm = base->object->data;
+			bArmature *curarm = ob_iter->data;
 
 			/* we assume that each armature datablock is only used in a single place */
-			BLI_assert(ob->data != base->object->data);
+			BLI_assert(ob_active->data != ob_iter->data);
 
 			/* init callback data for fixing up AnimData links later */
-			afd.srcArm = base->object;
-			afd.tarArm = ob;
+			afd.srcArm = ob_iter;
+			afd.tarArm = ob_active;
 			afd.names_map = BLI_ghash_str_new("join_armature_adt_fix");
 
 			/* Make a list of editbones in current armature */
-			ED_armature_to_edit(base->object->data);
+			ED_armature_to_edit(ob_iter->data);
 
 			/* Get Pose of current armature */
-			opose = base->object->pose;
-			base->object->mode &= ~OB_MODE_POSE;
+			opose = ob_iter->pose;
+			ob_iter->mode &= ~OB_MODE_POSE;
 			//BASACT->flag &= ~OB_MODE_POSE;
 
 			/* Find the difference matrix */
-			invert_m4_m4(oimat, ob->obmat);
-			mul_m4_m4m4(mat, oimat, base->object->obmat);
+			invert_m4_m4(oimat, ob_active->obmat);
+			mul_m4_m4m4(mat, oimat, ob_iter->obmat);
 
 			/* Copy bones and posechannels from the object to the edit armature */
 			for (pchan = opose->chanbase.first; pchan; pchan = pchann) {
@@ -347,7 +347,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 				}
 
 				/* Fix Constraints and Other Links to this Bone and Armature */
-				joined_armature_fix_links(bmain, ob, base->object, pchan, curbone);
+				joined_armature_fix_links(bmain, ob_active, ob_iter, pchan, curbone);
 
 				/* Rename pchan */
 				BLI_strncpy(pchan->name, curbone->name, sizeof(pchan->name));
@@ -370,14 +370,14 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			 * so that we don't have to worry about ambiguities re which armature
 			 * a bone came from!
 			 */
-			if (base->object->adt) {
-				if (ob->adt == NULL) {
+			if (ob_iter->adt) {
+				if (ob_active->adt == NULL) {
 					/* no animdata, so just use a copy of the whole thing */
-					ob->adt = BKE_animdata_copy(bmain, base->object->adt, false, true);
+					ob_active->adt = BKE_animdata_copy(bmain, ob_iter->adt, false, true);
 				}
 				else {
 					/* merge in data - we'll fix the drivers manually */
-					BKE_animdata_merge_copy(bmain, &ob->id, &base->object->id, ADT_MERGECOPY_KEEP_DST, false);
+					BKE_animdata_merge_copy(bmain, &ob_active->id, &ob_iter->id, ADT_MERGECOPY_KEEP_DST, false);
 				}
 			}
 
@@ -393,7 +393,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			}
 
 			/* Free the old object data */
-			ED_object_base_free_and_unlink(bmain, scene, base->object);
+			ED_object_base_free_and_unlink(bmain, scene, ob_iter);
 		}
 	}
 	CTX_DATA_END;

@@ -2038,27 +2038,27 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	Object  *obact = CTX_data_active_object(C);
+	Object  *ob_active = CTX_data_active_object(C);
 	bGPdata *gpd_dst = NULL;
 	bool ok = false;
 
 	/* Ensure we're in right mode and that the active object is correct */
-	if (!obact || obact->type != OB_GPENCIL)
+	if (!ob_active || ob_active->type != OB_GPENCIL)
 		return OPERATOR_CANCELLED;
 
-	bGPdata *gpd = (bGPdata *)obact->data;
+	bGPdata *gpd = (bGPdata *)ob_active->data;
 	if ((!gpd) || GPENCIL_ANY_MODE(gpd)) {
 		return OPERATOR_CANCELLED;
 	}
 
 	/* Ensure all rotations are applied before */
 	// XXX: Why don't we apply them here instead of warning?
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if (base->object->type == OB_GPENCIL) {
-			if ((base->object->rot[0] != 0) ||
-			    (base->object->rot[1] != 0) ||
-			    (base->object->rot[2] != 0))
+		if (ob_iter->type == OB_GPENCIL) {
+			if ((ob_iter->rot[0] != 0) ||
+			    (ob_iter->rot[1] != 0) ||
+			    (ob_iter->rot[2] != 0))
 			{
 				BKE_report(op->reports, RPT_ERROR, "Apply all rotations before join objects");
 				return OPERATOR_CANCELLED;
@@ -2067,9 +2067,9 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if (base->object == obact) {
+		if (ob_iter == ob_active) {
 			ok = true;
 			break;
 		}
@@ -2082,33 +2082,33 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	gpd_dst = obact->data;
-	Object *ob_dst = obact;
+	gpd_dst = ob_active->data;
+	Object *ob_dst = ob_active;
 
 	/* loop and join all data */
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if ((base->object->type == OB_GPENCIL) && (base->object != obact)) {
+		if ((ob_iter->type == OB_GPENCIL) && (ob_iter != ob_active)) {
 			/* we assume that each datablock is not already used in active object */
-			if (obact->data != base->object->data) {
-				Object *ob_src = base->object;
-				bGPdata *gpd_src = base->object->data;
+			if (ob_active->data != ob_iter->data) {
+				Object *ob_src = ob_iter;
+				bGPdata *gpd_src = ob_iter->data;
 
 				/* Apply all GP modifiers before */
-				for (GpencilModifierData *md = base->object->greasepencil_modifiers.first; md; md = md->next) {
+				for (GpencilModifierData *md = ob_iter->greasepencil_modifiers.first; md; md = md->next) {
 					const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 					if (mti->bakeModifier) {
-						mti->bakeModifier(bmain, depsgraph, md, base->object);
+						mti->bakeModifier(bmain, depsgraph, md, ob_iter);
 					}
 				}
 
 				/* copy vertex groups to the base one's */
 				int old_idx = 0;
-				for (bDeformGroup *dg = base->object->defbase.first; dg; dg = dg->next) {
+				for (bDeformGroup *dg = ob_iter->defbase.first; dg; dg = dg->next) {
 					bDeformGroup *vgroup = MEM_dupallocN(dg);
-					int idx = BLI_listbase_count(&obact->defbase);
-					defgroup_unique_name(vgroup, obact);
-					BLI_addtail(&obact->defbase, vgroup);
+					int idx = BLI_listbase_count(&ob_active->defbase);
+					defgroup_unique_name(vgroup, ob_active);
+					BLI_addtail(&ob_active->defbase, vgroup);
 					/* update vertex groups in strokes in original data */
 					for (bGPDlayer *gpl_src = gpd->layers.first; gpl_src; gpl_src = gpl_src->next) {
 						for (bGPDframe *gpf = gpl_src->frames.first; gpf; gpf = gpf->next) {
@@ -2125,8 +2125,9 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 					}
 					old_idx++;
 				}
-				if (obact->defbase.first && obact->actdef == 0)
-					obact->actdef = 1;
+				if (ob_active->defbase.first && ob_active->actdef == 0) {
+					ob_active->actdef = 1;
+				}
 
 				/* add missing materials reading source materials and checking in destination object */
 				short *totcol = give_totcolp(ob_src);
@@ -2149,8 +2150,8 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 				float offset_global[3];
 				float offset_local[3];
 
-				sub_v3_v3v3(offset_global, obact->loc, base->object->obmat[3]);
-				copy_m3_m4(bmat, obact->obmat);
+				sub_v3_v3v3(offset_global, ob_active->loc, ob_iter->obmat[3]);
+				copy_m3_m4(bmat, ob_active->obmat);
 				invert_m3_m3(imat, bmat);
 				mul_m3_v3(imat, offset_global);
 				mul_v3_m3v3(offset_local, imat, offset_global);
@@ -2162,7 +2163,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 					float inverse_diff_mat[4][4];
 
 					/* recalculate all stroke points */
-					ED_gpencil_parent_location(depsgraph, base->object, gpd_src, gpl_src, diff_mat);
+					ED_gpencil_parent_location(depsgraph, ob_iter, gpd_src, gpl_src, diff_mat);
 					invert_m4_m4(inverse_diff_mat, diff_mat);
 
 					Material *ma_src = NULL;
@@ -2212,14 +2213,14 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 				 * so that we don't have to worry about ambiguities re which datablock
 				 * a layer came from!
 				 */
-				if (base->object->adt) {
-					if (obact->adt == NULL) {
+				if (ob_iter->adt) {
+					if (ob_active->adt == NULL) {
 						/* no animdata, so just use a copy of the whole thing */
-						obact->adt = BKE_animdata_copy(bmain, base->object->adt, false, true);
+						ob_active->adt = BKE_animdata_copy(bmain, ob_iter->adt, false, true);
 					}
 					else {
 						/* merge in data - we'll fix the drivers manually */
-						BKE_animdata_merge_copy(bmain, &obact->id, &base->object->id, ADT_MERGECOPY_KEEP_DST, false);
+						BKE_animdata_merge_copy(bmain, &ob_active->id, &ob_iter->id, ADT_MERGECOPY_KEEP_DST, false);
 					}
 				}
 
@@ -2236,7 +2237,7 @@ int ED_gpencil_join_objects_exec(bContext *C, wmOperator *op)
 			}
 
 			/* Free the old object */
-			ED_object_base_free_and_unlink(bmain, scene, base->object);
+			ED_object_base_free_and_unlink(bmain, scene, ob_iter);
 		}
 	}
 	CTX_DATA_END;

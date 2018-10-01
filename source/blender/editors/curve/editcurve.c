@@ -6084,7 +6084,7 @@ int join_curve_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
+	Object *ob_active = CTX_data_active_object(C);
 	Curve *cu;
 	Nurb *nu, *newnu;
 	BezTriple *bezt;
@@ -6094,9 +6094,9 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	int a;
 	bool ok = false;
 
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if (base->object == ob) {
+		if (ob_iter == ob_active) {
 			ok = true;
 			break;
 		}
@@ -6112,24 +6112,24 @@ int join_curve_exec(bContext *C, wmOperator *op)
 	BLI_listbase_clear(&tempbase);
 
 	/* trasnform all selected curves inverse in obact */
-	invert_m4_m4(imat, ob->obmat);
+	invert_m4_m4(imat, ob_active->obmat);
 
-	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
-		if (base->object->type == ob->type) {
-			if (base->object != ob) {
+		if (ob_iter->type == ob_active->type) {
+			if (ob_iter != ob_active) {
 
-				cu = base->object->data;
+				cu = ob_iter->data;
 
 				if (cu->nurb.first) {
 					/* watch it: switch order here really goes wrong */
-					mul_m4_m4m4(cmat, imat, base->object->obmat);
+					mul_m4_m4m4(cmat, imat, ob_iter->obmat);
 
 					nu = cu->nurb.first;
 					while (nu) {
 						newnu = BKE_nurb_duplicate(nu);
-						if (ob->totcol) { /* TODO, merge material lists */
-							CLAMP(newnu->mat_nr, 0, ob->totcol - 1);
+						if (ob_active->totcol) { /* TODO, merge material lists */
+							CLAMP(newnu->mat_nr, 0, ob_active->totcol - 1);
 						}
 						else {
 							newnu->mat_nr = 0;
@@ -6157,23 +6157,23 @@ int join_curve_exec(bContext *C, wmOperator *op)
 					}
 				}
 
-				ED_object_base_free_and_unlink(bmain, scene, base->object);
+				ED_object_base_free_and_unlink(bmain, scene, ob_iter);
 			}
 		}
 	}
 	CTX_DATA_END;
 
-	cu = ob->data;
+	cu = ob_active->data;
 	BLI_movelisttolist(&cu->nurb, &tempbase);
 
-	if (ob->type == OB_CURVE) {
+	if (ob_active->type == OB_CURVE) {
 		/* Account for mixed 2D/3D curves when joining */
 		BKE_curve_curve_dimension_update(cu);
 	}
 
 	DEG_relations_tag_update(bmain);   // because we removed object(s), call before editmode!
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA);
+	DEG_id_tag_update(&ob_active->id, OB_RECALC_OB | OB_RECALC_DATA);
 	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
