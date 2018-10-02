@@ -920,17 +920,19 @@ void POSE_OT_select_grouped(wmOperatorType *ot)
  */
 static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	Object *ob_act = CTX_data_active_object(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_active_object(C);
 
-	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob)
-	{
-		bArmature *arm;
+	const bool is_weight_paint = (ob_active->mode & OB_MODE_WEIGHT_PAINT) != 0;
+	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
 		bPoseChannel *pchan, *pchan_mirror_act = NULL;
-		const bool active_only = RNA_boolean_get(op->ptr, "only_active");
-		const bool extend = RNA_boolean_get(op->ptr, "extend");
-
-		arm = ob->data;
 
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			const int flag = (pchan->bone->flag & BONE_SELECTED);
@@ -952,7 +954,7 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 						pchan_mirror_act = pchan_mirror;
 					}
 
-					/* skip all but the active or its mirror */
+					/* Skip all but the active or its mirror. */
 					if (active_only && !ELEM(arm->act_bone, pchan->bone, pchan_mirror->bone)) {
 						continue;
 					}
@@ -965,19 +967,19 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		if (pchan_mirror_act) {
 			arm->act_bone = pchan_mirror_act->bone;
 
-			/* in weightpaint we select the associated vertex group too */
-			if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
-				ED_vgroup_select_by_name(ob_act, pchan_mirror_act->name);
-				DEG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+			/* In weightpaint we select the associated vertex group too. */
+			if (is_weight_paint) {
+				ED_vgroup_select_by_name(ob, pchan_mirror_act->name);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 
-		/* need to tag armature for cow updates, or else selection doesn't update */
+		/* Need to tag armature for cow updates, or else selection doesn't update. */
 		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
-	FOREACH_OBJECT_IN_MODE_END;
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }

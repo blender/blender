@@ -381,6 +381,11 @@ bool BKE_view_layer_filter_edit_mesh_has_edges(struct Object *ob, void *user_dat
 		.no_dup_data = true, \
 		.filter_fn = BKE_view_layer_filter_edit_mesh_has_uvs});
 
+#define BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, r_len, mode) \
+	BKE_view_layer_array_from_objects_in_mode( \
+	view_layer, r_len, { \
+		.object_mode = mode, \
+		.no_dup_data = true});
 
 #ifdef __cplusplus
 }
