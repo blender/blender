@@ -33,6 +33,10 @@
 #include "WM_message.h"
 #include "WM_toolsystem.h"
 
+#include "RNA_define.h"
+#include "RNA_access.h"
+#include "RNA_enum_types.h"
+
 #include "ED_gizmo_utils.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
@@ -81,7 +85,7 @@ typedef struct GizmoGroupData_SpinInit {
 	/* We could store more vars here! */
 	struct {
 		wmOperatorType *ot_spin;
-		PropertyRNA *ot_spin_gizmo_axis_prop;
+		PropertyRNA *gzgt_axis_prop;
 		float orient_mat[3][3];
 #ifdef USE_SELECT_CENTER
 		float select_center[3];
@@ -191,7 +195,7 @@ static void gizmo_mesh_spin_init_setup(const bContext *UNUSED(C), wmGizmoGroup *
 #endif
 
 	ggd->data.ot_spin = WM_operatortype_find("MESH_OT_spin", true);
-	ggd->data.ot_spin_gizmo_axis_prop = RNA_struct_type_find_property(ggd->data.ot_spin->srna, "gizmo_axis");
+	ggd->data.gzgt_axis_prop = RNA_struct_type_find_property(gzgroup->type->srna, "axis");
 }
 
 static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgroup);
@@ -266,8 +270,8 @@ static void gizmo_mesh_spin_init_draw_prepare(
 	{
 		PointerRNA ptr;
 		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
-		WM_toolsystem_ref_properties_ensure_from_operator(tref, ggd->data.ot_spin, &ptr);
-		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.ot_spin_gizmo_axis_prop);
+		WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
+		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
 		for (int i = 0; i < 4; i++) {
 			bool hide = (axis_flag & (1 << i)) == 0;
 			wmGizmo *gz = ggd->gizmos.xyz_view[i];
@@ -410,8 +414,8 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 	{
 		PointerRNA ptr;
 		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
-		WM_toolsystem_ref_properties_ensure_from_operator(tref, ggd->data.ot_spin, &ptr);
-		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.ot_spin_gizmo_axis_prop);
+		WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
+		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.gzgt_axis_prop);
 		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
 			for (int j = 0; j < 2; j++) {
 				wmGizmo *gz = ggd->gizmos.icon_button[i][j];
@@ -457,8 +461,8 @@ static void gizmo_mesh_spin_init_message_subscribe(
 	WM_msg_subscribe_rna_params(
 	        mbus,
 	        &(const wmMsgParams_RNA){
-	            .ptr = (PointerRNA){.type = ggd->data.ot_spin->srna},
-	            .prop = ggd->data.ot_spin_gizmo_axis_prop,
+	            .ptr = (PointerRNA){.type = gzgroup->type->srna},
+	            .prop = ggd->data.gzgt_axis_prop,
 	        },
 	        &msg_sub_value_gz_tag_refresh, __func__);
 
@@ -480,6 +484,8 @@ void MESH_GGT_spin(struct wmGizmoGroupType *gzgt)
 	gzgt->message_subscribe = gizmo_mesh_spin_init_message_subscribe;
 	gzgt->draw_prepare = gizmo_mesh_spin_init_draw_prepare;
 	gzgt->invoke_prepare = gizmo_mesh_spin_init_invoke_prepare;
+
+	RNA_def_enum_flag(gzgt->srna, "axis", rna_enum_axis_flag_xyz_items, (1 << 2), "Axis", "");
 }
 
 #undef INIT_SCALE_BASE

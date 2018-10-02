@@ -606,7 +606,8 @@ class _defs_edit_mesh:
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("mesh.spin")
             layout.prop(props, "steps")
-            layout.prop(props, "gizmo_axis")
+            props = tool.gizmo_group_properties("MESH_GGT_spin")
+            layout.prop(props, "axis")
 
         return dict(
             text="Spin",
@@ -624,7 +625,8 @@ class _defs_edit_mesh:
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("mesh.spin")
             layout.prop(props, "steps")
-            layout.prop(props, "gizmo_axis")
+            props = tool.gizmo_group_properties("MESH_GGT_spin")
+            layout.prop(props, "axis")
 
         return dict(
             text="Spin (Duplicate)",
