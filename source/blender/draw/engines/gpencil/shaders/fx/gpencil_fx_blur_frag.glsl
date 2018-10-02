@@ -26,20 +26,7 @@ void main()
 
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
 	/* depth */
-	float outdepth = 0;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y + 1.0 * dy), 0).r * 0.0947416;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x - 0.0 * dx, uv.y + 1.0 * dy), 0).r * 0.118318;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y + 1.0 * dy), 0).r * 0.0947416;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y + 0.0 * dy), 0).r * 0.118318;
-
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x, uv.y), 0).r * 0.147761;
-
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y + 0.0 * dy), 0).r * 0.118318;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y - 1.0 * dy), 0).r * 0.0947416;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x + 0.0 * dx, uv.y - 1.0 * dy), 0).r * 0.118318;
-    outdepth += texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y - 1.0 * dy), 0).r * 0.0947416;
-
-	gl_FragDepth = outdepth;
+	gl_FragDepth = texelFetch(strokeDepth, ivec2(uv.x, uv.y), 0).r;
 
 	/* color */
 	vec4 outcolor = vec4(0.0);
