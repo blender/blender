@@ -25,6 +25,9 @@
  *  \ingroup edobj
  */
 
+#include "MEM_guardedalloc.h"
+
+#include "DNA_layer_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
@@ -32,6 +35,7 @@
 
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -94,34 +98,53 @@ static bool object_rand_transverts(
 
 static int object_rand_verts_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_edit_object(C);
+	const int ob_mode = ob_active->mode;
+
 	const float offset = RNA_float_get(op->ptr, "offset");
 	const float uniform = RNA_float_get(op->ptr, "uniform");
 	const float normal_factor = RNA_float_get(op->ptr, "normal");
 	const unsigned int seed = RNA_int_get(op->ptr, "seed");
 
-	TransVertStore tvs = {NULL};
-	Object *obedit = CTX_data_edit_object(C);
+	bool changed_multi = false;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, ob_mode);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob_iter = objects[ob_index];
 
-	if (obedit) {
-		int mode = TM_ALL_JOINTS;
+		TransVertStore tvs = { NULL };
 
-		if (normal_factor != 0.0f) {
-			mode |= TX_VERT_USE_NORMAL;
+		if (ob_iter) {
+			int mode = TM_ALL_JOINTS;
+
+			if (normal_factor != 0.0f) {
+				mode |= TX_VERT_USE_NORMAL;
+			}
+
+			ED_transverts_create_from_obedit(&tvs, ob_iter, mode);
+			if (tvs.transverts_tot == 0) {
+				continue;
+			}
+
+			int seed_iter = seed;
+			/* This gives a consistent result regardless of object order. */
+			if (ob_index) {
+				seed_iter += BLI_ghashutil_strhash_p(ob_iter->id.name);
+			}
+
+			object_rand_transverts(&tvs, offset, uniform, normal_factor, seed_iter);
+
+			ED_transverts_update_obedit(&tvs, ob_iter);
+			ED_transverts_free(&tvs);
+
+			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_iter);
+			changed_multi = true;
 		}
-
-		ED_transverts_create_from_obedit(&tvs, obedit, mode);
-		if (tvs.transverts_tot == 0)
-			return OPERATOR_CANCELLED;
-
-		object_rand_transverts(&tvs, offset, uniform, normal_factor, seed);
-
-		ED_transverts_update_obedit(&tvs, obedit);
-		ED_transverts_free(&tvs);
 	}
+	MEM_freeN(objects);
 
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
-
-	return OPERATOR_FINISHED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot)
@@ -144,7 +167,7 @@ void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot)
 	        "Amount", "Distance to offset", -10.0f, 10.0f);
 	RNA_def_float(ot->srna, "uniform",  0.0f, 0.0f, 1.0f, "Uniform",
 	              "Increase for uniform offset distance", 0.0f, 1.0f);
-	RNA_def_float(ot->srna, "normal",  0.0f, 0.0f, 1.0f, "normal",
+	RNA_def_float(ot->srna, "normal",  0.0f, 0.0f, 1.0f, "Normal",
 	              "Align offset direction to normals", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
