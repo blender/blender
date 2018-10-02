@@ -686,9 +686,14 @@ class _defs_edit_mesh:
             layout.prop(props, "axis_type", expand=True)
         return dict(
             text="Extrude Region",
+            # The operator description isn't useful in this case, give our own.
+            description=(
+                "Extrude freely or along an axis"
+            ),
             icon="ops.mesh.extrude_region_move",
             widget="MESH_GGT_extrude",
-            operator="mesh.extrude_context_move",
+            # Important to use same operator as 'E' key.
+            operator="view3d.edit_mesh_extrude_move_normal",
             keymap=(
                 ("mesh.extrude_context_move",
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
