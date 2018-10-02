@@ -802,7 +802,7 @@ int count_set_pose_transflags(Object *ob, const int mode, const short around, bo
 					}
 				}
 				else {
-					has_translate_rotate[1] = true;
+					has_translate_rotate[0] = true;
 				}
 			}
 		}
