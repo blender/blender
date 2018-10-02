@@ -53,8 +53,8 @@ static IKPlugin ikplugin_tab[] = {
 	{
 		iksolver_initialize_tree,
 		iksolver_execute_tree,
-		NULL,
-		NULL,
+		iksolver_release_tree,
+		iksolver_clear_data,
 		NULL,
 		NULL,
 		NULL,

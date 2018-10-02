@@ -582,3 +582,27 @@ void iksolver_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Obj
 		free_posetree(tree);
 	}
 }
+
+void iksolver_release_tree(struct Scene *UNUSED(scene), struct Object *ob,  float UNUSED(ctime))
+{
+	iksolver_clear_data(ob->pose);
+}
+
+void iksolver_clear_data(bPose *pose)
+{
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		if ((pchan->flag & POSE_IKTREE) == 0)
+			continue;
+
+		while (pchan->iktree.first) {
+			PoseTree *tree = pchan->iktree.first;
+
+			/* stop on the first tree that isn't a standard IK chain */
+			if (tree->type != CONSTRAINT_TYPE_KINEMATIC)
+				break;
+
+			BLI_remlink(&pchan->iktree, tree);
+			free_posetree(tree);
+		}
+	}
+}
