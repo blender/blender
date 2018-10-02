@@ -2440,7 +2440,9 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 					int part;
 					gz = wm_gizmomap_highlight_find(gzmap, C, event, &part);
 					if (wm_gizmomap_highlight_set(gzmap, C, gz, part) && gz != NULL) {
-						WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
+						if (U.flag & USER_TOOLTIPS) {
+							WM_tooltip_timer_init(C, CTX_wm_window(C), region, WM_gizmomap_tooltip_init);
+						}
 					}
 				}
 				else {
