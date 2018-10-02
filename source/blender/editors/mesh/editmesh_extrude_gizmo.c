@@ -36,10 +36,12 @@
 #include "BKE_global.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -56,6 +58,11 @@
 /* -------------------------------------------------------------------- */
 /** \name Extrude Gizmo
  * \{ */
+
+enum {
+	EXTRUDE_AXIS_NORMAL = 0,
+	EXTRUDE_AXIS_XYZ = 1,
+};
 
 static const float extrude_button_scale = 0.15f;
 static const float extrude_button_offset_scale = 1.5f;
@@ -84,6 +91,7 @@ typedef struct GizmoExtrudeGroup {
 	} data;
 
 	wmOperatorType *ot_extrude;
+	PropertyRNA *gzgt_axis_type_prop;
 } GizmoExtrudeGroup;
 
 static void gizmo_mesh_extrude_orientation_matrix_set(
@@ -132,7 +140,10 @@ static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gz
 		}
 	}
 
-	ggd->ot_extrude = WM_operatortype_find("MESH_OT_extrude_context_move", true);
+	{
+		ggd->ot_extrude = WM_operatortype_find("MESH_OT_extrude_context_move", true);
+		ggd->gzgt_axis_type_prop = RNA_struct_type_find_property(gzgroup->type->srna, "axis_type");
+	}
 
 	for (int i = 0; i < 3; i++) {
 		UI_GetThemeColor3fv(TH_AXIS_X + i, ggd->invoke_xyz_no[i]->color);
@@ -195,8 +206,19 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	}
 
 	Scene *scene = CTX_data_scene(C);
+
+	int axis_type;
+	{
+		PointerRNA ptr;
+		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
+		WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &ptr);
+		axis_type = RNA_property_enum_get(&ptr, ggd->gzgt_axis_type_prop);
+	}
+
 	ggd->data.orientation_type = scene->orientation_type;
-	bool use_normal = (ggd->data.orientation_type != V3D_MANIP_NORMAL);
+	const bool use_normal = (
+	        (ggd->data.orientation_type != V3D_MANIP_NORMAL) ||
+	        (axis_type == EXTRUDE_AXIS_NORMAL));
 	const int axis_len_used = use_normal ? 4 : 3;
 
 	struct TransformBounds tbounds;
@@ -301,6 +323,18 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 		        (ggd->adjust_xyz_no[i]->flag & WM_GIZMO_HIDDEN) ?
 		        ED_GIZMO_BUTTON_SHOW_HELPLINE : 0);
 	}
+
+	/* TODO: skip calculating axis which wont be used (above). */
+	switch (axis_type) {
+		case EXTRUDE_AXIS_NORMAL:
+			for (int i = 0; i < 3; i++) {
+				WM_gizmo_set_flag(ggd->invoke_xyz_no[i], WM_GIZMO_HIDDEN, true);
+			}
+			break;
+		case EXTRUDE_AXIS_XYZ:
+			WM_gizmo_set_flag(ggd->invoke_xyz_no[3], WM_GIZMO_HIDDEN, true);
+			break;
+	}
 }
 
 static int gizmo_cmp_temp_f(const void *gz_a_ptr, const void *gz_b_ptr)
@@ -340,6 +374,7 @@ static void gizmo_mesh_extrude_draw_prepare(const bContext *C, wmGizmoGroup *gzg
 static void gizmo_mesh_extrude_message_subscribe(
         const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
 {
+	GizmoExtrudeGroup *ggd = gzgroup->customdata;
 	ARegion *ar = CTX_wm_region(C);
 
 	/* Subscribe to view properties */
@@ -353,6 +388,14 @@ static void gizmo_mesh_extrude_message_subscribe(
 		WM_msg_subscribe_rna_anon_prop(mbus, Scene, transform_orientation, &msg_sub_value_gz_tag_refresh);
 	}
 
+
+	WM_msg_subscribe_rna_params(
+	        mbus,
+	        &(const wmMsgParams_RNA){
+	            .ptr = (PointerRNA){.type = gzgroup->type->srna},
+	            .prop = ggd->gzgt_axis_type_prop,
+	        },
+	        &msg_sub_value_gz_tag_refresh, __func__);
 }
 
 void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
@@ -370,6 +413,13 @@ void MESH_GGT_extrude(struct wmGizmoGroupType *gzgt)
 	gzgt->refresh = gizmo_mesh_extrude_refresh;
 	gzgt->draw_prepare = gizmo_mesh_extrude_draw_prepare;
 	gzgt->message_subscribe = gizmo_mesh_extrude_message_subscribe;
+
+	static const EnumPropertyItem axis_type_items[] = {
+		{EXTRUDE_AXIS_NORMAL, "NORMAL", 0, "Normal", "Only show normal axis"},
+		{EXTRUDE_AXIS_XYZ, "XYZ", 0, "XYZ", "Follow scene orientation"},
+		{0, NULL, 0, NULL, NULL}
+	};
+	RNA_def_enum(gzgt->srna, "axis_type", axis_type_items, 0, "Axis Type", "");
 }
 
 /** \} */

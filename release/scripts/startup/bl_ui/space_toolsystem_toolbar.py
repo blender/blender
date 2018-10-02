@@ -681,6 +681,9 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def extrude():
+        def draw_settings(context, layout, tool):
+            props = tool.gizmo_group_properties("MESH_GGT_extrude")
+            layout.prop(props, "axis_type", expand=True)
         return dict(
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
@@ -691,6 +694,7 @@ class _defs_edit_mesh:
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
