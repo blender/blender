@@ -25,8 +25,21 @@ void main()
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
 
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
-	/* depth */
-	gl_FragDepth = texelFetch(strokeDepth, ivec2(uv.x, uv.y), 0).r;
+	/* depth (get the minimum value of the surrounding pixels) */
+    float outdepth = 0;
+    outdepth = texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y + 1.0 * dy), 0).r;
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x - 0.0 * dx, uv.y + 1.0 * dy), 0).r);
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y + 1.0 * dy), 0).r);
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y + 0.0 * dy), 0).r);
+
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x, uv.y), 0).r);
+
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y + 0.0 * dy), 0).r);
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x - 1.0 * dx, uv.y - 1.0 * dy), 0).r);
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x + 0.0 * dx, uv.y - 1.0 * dy), 0).r);
+    outdepth = min(outdepth, texelFetch(strokeDepth, ivec2(uv.x + 1.0 * dx, uv.y - 1.0 * dy), 0).r);
+
+    gl_FragDepth = outdepth;
 
 	/* color */
 	vec4 outcolor = vec4(0.0);
