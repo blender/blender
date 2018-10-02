@@ -414,11 +414,12 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "DepsgraphObjectInstance", NULL);
 	RNA_def_struct_ui_text(srna, "Dependency Graph Object Instance",
-	                       "Extended information about dependency graph object iterator");
+	                       "Extended information about dependency graph object iterator "
+	                       "(WARNING: all data here is *evaluated* one, not original .blend IDs...)");
 
 	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Object", "Object the iterator points to");
+	RNA_def_property_ui_text(prop, "Object", "Evaluated object the iterator points to");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphObjectInstance_object_get", NULL, NULL, NULL);
 
@@ -429,20 +430,20 @@ static void rna_def_depsgraph_instance(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "instance_object", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Instance Object", "Object which is being instanced by this iterator");
+	RNA_def_property_ui_text(prop, "Instance Object", "Evaluated object which is being instanced by this iterator");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphObjectInstance_instance_object_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "parent", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_ui_text(prop, "Parent", "Parent of the duplication list");
+	RNA_def_property_ui_text(prop, "Parent", "Evaluated parent object of the duplication list");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphObjectInstance_parent_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ParticleSystem");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Particle System", "Particle system that this object was instanced from");
+	RNA_def_property_ui_text(prop, "Particle System", "Evaluated particle system that this object was instanced from");
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphObjectInstance_particle_system_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
