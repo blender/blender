@@ -262,7 +262,7 @@ void ED_operatormacros_mesh(void)
 	RNA_boolean_set(otmacro->ptr, "mirror", false);
 
 	ot = WM_operatortype_append_macro("MESH_OT_extrude_region_shrink_fatten", "Extrude Region and Shrink/Fatten",
-	                                  "Extrude region and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
+	                                  "Extrude along normals and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
