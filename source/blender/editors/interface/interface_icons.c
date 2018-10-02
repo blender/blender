@@ -1536,7 +1536,8 @@ static void icon_draw_size(
 		if (rgb) {
 			mul_v3_v3(color, rgb);
 		}
-		color[3] *= alpha;
+
+		mul_v4_fl(color, alpha);
 
 		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
