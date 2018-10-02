@@ -67,7 +67,7 @@ enum {
 static const float extrude_button_scale = 0.15f;
 static const float extrude_button_offset_scale = 1.5f;
 static const float extrude_arrow_scale = 1.0f;
-static const float extrude_arrow_xyz_axis_scale = 0.4f;
+static const float extrude_arrow_xyz_axis_scale = 1.0f;
 static const float extrude_arrow_normal_axis_scale = 1.0f;
 
 static const uchar shape_plus[] = {
