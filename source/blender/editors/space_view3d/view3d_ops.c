@@ -514,10 +514,10 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_pivot_pie", PERIODKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu_pie(keymap, "VIEW3D_MT_orientations_pie", COMMAKEY, KM_PRESS, 0, 0);
 
+#ifdef USE_WM_KEYMAP_27X
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_transform_pivot_point_align");
-
-
+#endif
 
 #ifdef USE_WM_KEYMAP_27X
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
