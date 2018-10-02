@@ -683,7 +683,7 @@ class _defs_edit_mesh:
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
             widget="MESH_GGT_extrude",
-            operator="view3d.edit_mesh_extrude_move_normal",
+            operator="mesh.extrude_context_move",
             keymap=(
                 ("mesh.extrude_context_move",
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
@@ -701,6 +701,7 @@ class _defs_edit_mesh:
             text="Extrude Along Normals",
             icon="ops.mesh.extrude_region_shrink_fatten",
             widget=None,
+            operator="mesh.extrude_region_shrink_fatten",
             keymap=(
                 ("mesh.extrude_region_shrink_fatten",
                  dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
