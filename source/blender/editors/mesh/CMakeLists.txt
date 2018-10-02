@@ -48,6 +48,7 @@ set(SRC
 	editmesh_bevel.c
 	editmesh_bisect.c
 	editmesh_extrude.c
+	editmesh_extrude_gizmo.c
 	editmesh_extrude_screw.c
 	editmesh_extrude_spin.c
 	editmesh_extrude_spin_gizmo.c
