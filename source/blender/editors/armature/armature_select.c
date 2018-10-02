@@ -898,10 +898,15 @@ static void armature_select_more_less(Object *ob, bool more)
 
 static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	armature_select_more_less(obedit, true);
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
-
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		armature_select_more_less(ob, true);
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
@@ -922,10 +927,15 @@ void ARMATURE_OT_select_more(wmOperatorType *ot)
 
 static int armature_de_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	armature_select_more_less(obedit, false);
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
-
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		armature_select_more_less(ob, false);
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
