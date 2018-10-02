@@ -105,6 +105,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 
@@ -165,6 +166,20 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 	}
 
 	return PROP_EDITABLE;
+}
+
+static int rna_ID_is_evaluated_get(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+
+	return (DEG_get_original_id(id) != id);
+}
+
+static PointerRNA rna_ID_original_get(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+
+	return rna_pointer_inherit_refine(ptr, &RNA_ID, DEG_get_original_id(id));
 }
 
 short RNA_type_to_ID_code(const StructRNA *type)
@@ -1136,6 +1151,19 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_ID_name_editable");
 	RNA_def_property_update(prop, NC_ID | NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Is Evaluated",
+	                         "Whether this ID is runtime-only, evaluated data-block, or actual data from .blend file");
+	RNA_def_property_boolean_funcs(prop, "rna_ID_is_evaluated_get", NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "original", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ID");
+	RNA_def_property_ui_text(prop, "Original ID",
+	                         "Actual data-block from .blend file (Main database) that generated that evaluated one");
+	RNA_def_property_pointer_funcs(prop, "rna_ID_original_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
 
 	prop = RNA_def_property(srna, "users", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "us");
