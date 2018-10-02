@@ -266,7 +266,7 @@ static void gizmo_mesh_spin_init_draw_prepare(
 	{
 		PointerRNA ptr;
 		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
-		WM_toolsystem_ref_properties_ensure(tref, ggd->data.ot_spin, &ptr);
+		WM_toolsystem_ref_properties_ensure_from_operator(tref, ggd->data.ot_spin, &ptr);
 		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.ot_spin_gizmo_axis_prop);
 		for (int i = 0; i < 4; i++) {
 			bool hide = (axis_flag & (1 << i)) == 0;
@@ -410,7 +410,7 @@ static void gizmo_mesh_spin_init_refresh(const bContext *C, wmGizmoGroup *gzgrou
 	{
 		PointerRNA ptr;
 		bToolRef *tref = WM_toolsystem_ref_from_context((bContext *)C);
-		WM_toolsystem_ref_properties_ensure(tref, ggd->data.ot_spin, &ptr);
+		WM_toolsystem_ref_properties_ensure_from_operator(tref, ggd->data.ot_spin, &ptr);
 		const int axis_flag = RNA_property_enum_get(&ptr, ggd->data.ot_spin_gizmo_axis_prop);
 		for (int i = 0; i < ARRAY_SIZE(ggd->gizmos.icon_button); i++) {
 			for (int j = 0; j < 2; j++) {

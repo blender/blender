@@ -40,6 +40,7 @@ struct wmOperatorType;
 struct PointerRNA;
 struct ScrArea;
 struct Main;
+struct StructRNA;
 
 /* wm_toolsystem.c  */
 
@@ -88,7 +89,11 @@ void WM_toolsystem_do_msg_notify_tag_refresh(
         struct bContext *C, struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValue *msg_val);
 
 struct IDProperty *WM_toolsystem_ref_properties_ensure_idprops(struct bToolRef *tref);
-void WM_toolsystem_ref_properties_ensure(struct bToolRef *tref, struct wmOperatorType *ot, struct PointerRNA *ptr);
+void WM_toolsystem_ref_properties_ensure_ex(
+        struct bToolRef *tref, const char *idname, struct StructRNA *type, struct PointerRNA *r_ptr);
+
+#define WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, r_ptr) \
+	WM_toolsystem_ref_properties_ensure_ex(tref, (ot)->idname, (ot)->srna, r_ptr)
 
 void WM_toolsystem_ref_properties_init_for_keymap(
         struct bToolRef *tref, struct PointerRNA *dst_ptr, struct PointerRNA *src_ptr, struct wmOperatorType *ot);

@@ -124,7 +124,7 @@ static PointerRNA rna_WorkspaceTool_operator_properties(
 
 	if (ot != NULL) {
 		PointerRNA ptr;
-		WM_toolsystem_ref_properties_ensure(tref, ot, &ptr);
+		WM_toolsystem_ref_properties_ensure_from_operator(tref, ot, &ptr);
 		return ptr;
 	}
 	else {

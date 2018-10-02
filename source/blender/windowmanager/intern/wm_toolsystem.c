@@ -632,21 +632,22 @@ IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref)
 	return tref->properties;
 }
 
-void WM_toolsystem_ref_properties_ensure(bToolRef *tref, wmOperatorType *ot, PointerRNA *ptr)
+
+void WM_toolsystem_ref_properties_ensure_ex(bToolRef *tref, const char *idname, StructRNA *type, PointerRNA *r_ptr)
 {
 	IDProperty *group = WM_toolsystem_ref_properties_ensure_idprops(tref);
-	IDProperty *prop = IDP_GetPropertyFromGroup(group, ot->idname);
+	IDProperty *prop = IDP_GetPropertyFromGroup(group, idname);
 	if (prop == NULL) {
 		IDPropertyTemplate val = {0};
-		prop = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
-		STRNCPY(prop->name, ot->idname);
+		prop = IDP_New(IDP_GROUP, &val, "wmGenericProperties");
+		STRNCPY(prop->name, idname);
 		IDP_ReplaceInGroup_ex(group, prop, NULL);
 	}
 	else {
 		BLI_assert(prop->type == IDP_GROUP);
 	}
 
-	RNA_pointer_create(NULL, ot->srna, prop, ptr);
+	RNA_pointer_create(NULL, type, prop, r_ptr);
 }
 
 void WM_toolsystem_ref_properties_init_for_keymap(
