@@ -29,6 +29,8 @@ uniform float pixfactor;
 
 float defaultpixsize = pixsize * (1000.0 / pixfactor);
 vec2 noffset = vec2(offset[0], offset[1]);
+float cosv = cos(rotation);
+float sinv = sin(rotation);
 
 out vec4 FragColor;
 
@@ -54,8 +56,6 @@ void main()
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
 
-	float cosv = cos(rotation);
-	float sinv = sin(rotation);
 
 	/* move point to new coords system */
 	vec2 tpos = vec2(uv.x, uv.y) - loc2d;
@@ -77,28 +77,21 @@ void main()
 	vec2 texpos = tpos + loc2d;
 	
 	/* wave */ 
-	float value;
 	if (orientation == HORIZONTAL) {
 		float pval = (uv.x * M_PI) / Viewport[0];
-		value = amplitude * sin((period * pval) + phase);
-		texpos.y += value;
+		texpos.y += amplitude * sin((period * pval) + phase);
 	}
 	else if (orientation == VERTICAL){
 		float pval = (uv.y * M_PI) / Viewport[1];
-		value = amplitude * sin((period * pval) + phase);
-		texpos.x += value;
+		texpos.x += amplitude * sin((period * pval) + phase);
 	}
 	
-	float stroke_depth = texelFetch(strokeDepth, ivec2(texpos.x, texpos.y), 0).r;
-	vec4 src_pixel= texelFetch(strokeColor, ivec2(texpos.x, texpos.y), 0);
-	vec4 outcolor;
-	outcolor = shadow_color;
-
+	vec4 src_pixel = texelFetch(strokeColor, ivec2(texpos.x, texpos.y), 0);
 	/* is transparent */
 	if (src_pixel.a == 0.0f) {
 		discard;
 	}
 
-	gl_FragDepth = stroke_depth;
-	FragColor = outcolor;
+	gl_FragDepth = texelFetch(strokeDepth, ivec2(texpos.x, texpos.y), 0).r;
+	FragColor = shadow_color;
 }
