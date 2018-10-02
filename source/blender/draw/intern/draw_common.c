@@ -949,7 +949,7 @@ bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
 	return false;
 }
 
-static void DRW_evaluate_weight_to_color(float *result, float weight)
+static void DRW_evaluate_weight_to_color(const float weight, float result[4])
 {
 	if (U.flag & USER_CUSTOM_RANGE) {
 		BKE_colorband_evaluate(&U.coba_weight, weight, result);
@@ -959,7 +959,7 @@ static void DRW_evaluate_weight_to_color(float *result, float weight)
 		 * increasing widens yellow/cyan vs red/green/blue.
 		 * Gamma 1.0 produces the original 2.79 color ramp. */
 		const float gamma = 1.5f;
-		float hsv[3] = { (2.0f / 3.0f) * (1.0f - weight), 1.0f, pow(0.5f + 0.5f * weight, gamma) };
+		float hsv[3] = {(2.0f / 3.0f) * (1.0f - weight), 1.0f, pow(0.5f + 0.5f * weight, gamma)};
 
 		hsv_to_rgb_v(hsv, result);
 
@@ -972,11 +972,11 @@ static void DRW_evaluate_weight_to_color(float *result, float weight)
 static GPUTexture *DRW_create_weight_colorramp_texture(void)
 {
 	char error[256];
-	float pixels[256 * 4];
+	float pixels[256][4];
 	for (int i = 0 ; i < 256 ; i ++) {
-		DRW_evaluate_weight_to_color(&pixels[i*4], i / 255.0f);
-		pixels[(i * 4) + 3] = 1.0f;
+		DRW_evaluate_weight_to_color(i / 255.0f, pixels[i]);
+		pixels[i][3] = 1.0f;
 	}
 
-	return GPU_texture_create_1D(256, GPU_RGBA8, pixels, error);
+	return GPU_texture_create_1D(256, GPU_RGBA8, pixels[0], error);
 }

@@ -4779,7 +4779,7 @@ static void uvedit_fill_buffer_data(
 		BM_elem_flag_set(efa, BM_ELEM_TAG, uvedit_face_visible_test(scene, ob, ima, efa));
 
 		if ((state & UVEDIT_STRETCH_AREA) &&
-			BM_elem_flag_test(efa, BM_ELEM_TAG))
+		    BM_elem_flag_test(efa, BM_ELEM_TAG))
 		{
 			const int efa_len = efa->len;
 			float (*tf_uv)[2] = (float (*)[2])BLI_buffer_reinit_data(&vec2_buf, vec2f, efa_len);

@@ -3550,8 +3550,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 						                              &hit, treeData.raycast_callback, &treeData);
 					}
 
-					if (hit.index < 0)
-					{
+					if (hit.index < 0) {
 						fail = true;
 						break;
 					}

@@ -1011,7 +1011,7 @@ static void select_similar_length(bContext *C, const float thresh)
 			if (EBONE_SELECTABLE(arm, ebone)) {
 				const float len_iter = bone_length_squared_worldspace_get(ob, ebone);
 				if ((len_iter > len_min) &&
-					(len_iter < len_max))
+				    (len_iter < len_max))
 				{
 					ED_armature_ebone_select_set(ebone, true);
 					changed = true;
@@ -1494,7 +1494,7 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 				int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
 
 				if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
-					(EBONE_VISIBLE(arm, ebone_mirror)))
+				    (EBONE_VISIBLE(arm, ebone_mirror)))
 				{
 					const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
 					flag_new |= flag_mirror;
