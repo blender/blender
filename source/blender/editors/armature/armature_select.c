@@ -1074,23 +1074,37 @@ static void select_similar_direction(bContext *C, const float thresh)
 	MEM_freeN(objects);
 }
 
-static void select_similar_layer(bArmature *arm, EditBone *ebone_act)
+static void select_similar_layer(bContext *C)
 {
-	EditBone *ebone;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	EditBone *ebone_act = CTX_data_active_bone(C);
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			if (ebone->layer & ebone_act->layer) {
-				ED_armature_ebone_select_set(ebone, true);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
+		bool changed = false;
+
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				if (ebone->layer & ebone_act->layer) {
+					ED_armature_ebone_select_set(ebone, true);
+					changed = true;
+				}
 			}
 		}
+
+		if (changed) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		}
 	}
+	MEM_freeN(objects);
 }
 
 static void select_similar_prefix(bContext *C)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob_act = CTX_data_edit_object(C);
 	EditBone *ebone_act = CTX_data_active_bone(C);
 
 	char body_tmp[MAXBONENAME];
@@ -1131,7 +1145,6 @@ static void select_similar_prefix(bContext *C)
 static void select_similar_suffix(bContext *C)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob_act = CTX_data_edit_object(C);
 	EditBone *ebone_act = CTX_data_active_bone(C);
 
 	char body_tmp[MAXBONENAME];
@@ -1261,21 +1274,12 @@ static void select_similar_siblings(bContext *C)
 
 static int armature_select_similar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = obedit->data;
-	EditBone *ebone_act = CTX_data_active_bone(C);
-
 	/* Get props */
 	int type = RNA_enum_get(op->ptr, "type");
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
-	if (type == SIMEDBONE_LAYER) {
-		BKE_report(op->reports, RPT_ERROR, "Armature select similar mode not supported at the moment");
-		return OPERATOR_CANCELLED;
-	}
-
 	/* Check for active bone */
-	if (ebone_act == NULL) {
+	if (CTX_data_active_bone(C) == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
 		return OPERATOR_CANCELLED;
 	}
@@ -1306,7 +1310,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 			select_similar_suffix(C);
 			break;
 		case SIMEDBONE_LAYER:
-			select_similar_layer(arm, ebone_act);
+			select_similar_layer(C);
 			break;
 		case SIMEDBONE_GROUP:
 			select_similar_data_pchan(
