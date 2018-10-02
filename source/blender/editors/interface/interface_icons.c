@@ -129,6 +129,7 @@ typedef struct DrawInfo {
 		} buffer;
 		struct {
 			int x, y, w, h;
+			int theme_color;
 		} texture;
 		struct {
 			/* Can be packed into a single int. */
@@ -149,29 +150,35 @@ typedef struct IconTexture {
 	float invh;
 } IconTexture;
 
+typedef struct IconType {
+	int type;
+	int theme_color;
+} IconType;
+
 /* ******************* STATIC LOCAL VARS ******************* */
 /* static here to cache results of icon directory scan, so it's not
  * scanning the filesystem each time the menu is drawn */
 static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
 
-static const int icontypes[] = {
-#define DEF_ICON(name) ICON_TYPE_MONO_TEXTURE,
-#define DEF_ICON_VECTOR(name) ICON_TYPE_VECTOR,
-#define DEF_ICON_COLOR(name) ICON_TYPE_COLOR_TEXTURE,
-#define DEF_ICON_BLANK(name) ICON_TYPE_BLANK,
+static const IconType icontypes[] = {
+#define DEF_ICON(name) {ICON_TYPE_MONO_TEXTURE, 0},
+#define DEF_ICON_COLLECTION(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_COLLECTION},
+#define DEF_ICON_OBJECT(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_OBJECT},
+#define DEF_ICON_OBJECT_DATA(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_OBJECT_DATA},
+#define DEF_ICON_MODIFIER(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_MODIFIER},
+#define DEF_ICON_SHADING(name) {ICON_TYPE_MONO_TEXTURE, TH_ICON_SHADING},
+#define DEF_ICON_VECTOR(name) {ICON_TYPE_VECTOR, 0},
+#define DEF_ICON_COLOR(name) {ICON_TYPE_COLOR_TEXTURE, 0},
+#define DEF_ICON_BLANK(name) {ICON_TYPE_BLANK, 0},
 #include "UI_icons.h"
-#undef DEF_ICON
-#undef DEF_ICON_VECTOR
-#undef DEF_ICON_COLOR
-#undef DEF_ICON_BLANK
 };
 
 /* **************************************************** */
 
 #ifndef WITH_HEADLESS
 
-static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type)
+static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs, int size, int type, int theme_color)
 {
 	Icon *new_icon = NULL;
 	IconImage *iimg = NULL;
@@ -186,6 +193,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	di->type = type;
 
 	if (ELEM(type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
+		di->data.texture.theme_color = theme_color;
 		di->data.texture.x = xofs;
 		di->data.texture.y = yofs;
 		di->data.texture.w = size;
@@ -439,7 +447,7 @@ static void init_brush_icons(void)
 		int size = datatoc_ ##name## _png_size;                                 \
 		DrawInfo *di;                                                           \
 		\
-		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER);       \
+		di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_BUFFER, 0);    \
 		di->data.buffer.image->datatoc_rect = rect;                             \
 		di->data.buffer.image->datatoc_size = size;                             \
 	}
@@ -580,7 +588,7 @@ static void init_event_icons(void)
 
 #define INIT_EVENT_ICON(icon_id, type, value) \
 	{ \
-		DrawInfo *di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_EVENT); \
+		DrawInfo *di = def_internal_icon(NULL, icon_id, 0, 0, w, ICON_TYPE_EVENT, 0); \
 		di->data.input.event_type = type; \
 		di->data.input.event_value = value; \
 		di->data.input.icon = icon_id; \
@@ -741,15 +749,15 @@ static void init_internal_icons(void)
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			/* Row W has monochrome icons. */
 			for (x = 0; x < ICON_GRID_COLS; x++) {
-				int icontype = icontypes[y * ICON_GRID_COLS + x];
-				if (!ELEM(icontype, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
+				IconType icontype = icontypes[y * ICON_GRID_COLS + x];
+				if (!ELEM(icontype.type, ICON_TYPE_COLOR_TEXTURE, ICON_TYPE_MONO_TEXTURE)) {
 					continue;
 				}
 
 				def_internal_icon(b32buf, BIFICONID_FIRST + y * ICON_GRID_COLS + x,
 				                  x * (ICON_GRID_W + ICON_GRID_MARGIN) + ICON_GRID_MARGIN,
 				                  y * (ICON_GRID_H + ICON_GRID_MARGIN) + ICON_GRID_MARGIN, ICON_GRID_W,
-				                  icontype);
+				                  icontype.type, icontype.theme_color);
 			}
 		}
 	}
@@ -1528,11 +1536,13 @@ static void icon_draw_size(
 	else if (di->type == ICON_TYPE_MONO_TEXTURE) {
 		/* icon that matches text color, assumed to be white */
 		float color[4];
-		if (mono_rgba) {
-			rgba_uchar_to_float(color, (const uchar *)mono_rgba);
-		}
-		else {
-			UI_GetThemeColor4fv(TH_TEXT, color);
+		if (!UI_GetIconThemeColor4fv(di->data.texture.theme_color, color)) {
+			if (mono_rgba) {
+				rgba_uchar_to_float(color, (const uchar *)mono_rgba);
+			}
+			else {
+				UI_GetThemeColor4fv(TH_TEXT, color);
+			}
 		}
 
 		if (rgb) {

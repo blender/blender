@@ -200,7 +200,13 @@ typedef struct ThemeUI {
 	char gizmo_secondary[4];
 	char gizmo_a[4];
 	char gizmo_b[4];
-	char pad2[4];
+
+	/* Icon Colors. */
+	char icon_collection[4];  /* Collection items */
+	char icon_object[4];      /* Object items */
+	char icon_object_data[4]; /* Object data items */
+	char icon_modifier[4];    /* Modifier and constraint items */
+	char icon_shading[4];     /* Shading related items */
 } ThemeUI;
 
 /* try to put them all in one, if needed a special struct can be created as well

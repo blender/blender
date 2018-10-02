@@ -819,6 +819,30 @@ class USERPREF_PT_theme(Panel):
 
             col.separator()
             col.separator()
+
+            col.label(text="Icon Colors:")
+
+            row = col.row()
+
+            subsplit = row.split(factor=0.95)
+
+            padding = subsplit.split(factor=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_collection")
+            colsub.row().prop(ui, "icon_object")
+            colsub.row().prop(ui, "icon_object_data")
+
+            subsplit = row.split(factor=0.85)
+
+            padding = subsplit.split(factor=0.15)
+            colsub = padding.column()
+            colsub = padding.column()
+            colsub.row().prop(ui, "icon_modifier")
+            colsub.row().prop(ui, "icon_shading")
+
+            col.separator()
+            col.separator()
         elif theme.theme_area == 'BONE_COLOR_SETS':
             col = split.column()
 

@@ -1426,7 +1426,7 @@ static void outliner_draw_iconrow_doit(
 
 	if (active != OL_DRAWSEL_NONE) {
 		float ufac = UI_UNIT_X / 20.0f;
-		float color[4] = {1.0f, 1.0f, 1.0f, 0.4f};
+		float color[4] = {1.0f, 1.0f, 1.0f, 0.2f};
 
 		UI_draw_roundbox_corner_set(UI_CNR_ALL);
 		color[3] *= alpha_fac;

@@ -29,11 +29,12 @@
  *  \ingroup editorui
  */
 
+#include "BLI_sys_types.h"
+
 #ifndef __UI_RESOURCES_H__
 #define __UI_RESOURCES_H__
 
-/* elubie: TODO: move the typedef for icons to UI_interface_icons.h */
-/* and add/replace include of UI_resources.h by UI_interface_icons.h */
+/* Define icon enum. */
 #define DEF_ICON(name) ICON_##name,
 #define DEF_ICON_VECTOR(name) ICON_##name,
 #define DEF_ICON_COLOR(name) ICON_##name,
@@ -46,11 +47,6 @@ typedef enum {
 } BIFIconID;
 
 #define BIFICONID_FIRST  (ICON_NONE)
-
-#undef DEF_ICON
-#undef DEF_ICON_VECTOR
-#undef DEF_ICON_COLOR
-#undef DEF_ICON_BLANK
 
 /* use to denote intentionally unset theme color */
 #define TH_UNDEFINED -1
@@ -267,6 +263,12 @@ typedef enum ThemeColorID {
 	TH_ANIM_INACTIVE, /* no active action */
 	TH_ANIM_PREVIEW_RANGE,/* preview range overlay */
 
+	TH_ICON_COLLECTION,
+	TH_ICON_OBJECT,
+	TH_ICON_OBJECT_DATA,
+	TH_ICON_MODIFIER,
+	TH_ICON_SHADING,
+
 	TH_NLA_TWEAK,        /* 'tweaking' track in NLA */
 	TH_NLA_TWEAK_DUPLI,  /* error/warning flag for other strips referencing dupli strip */
 
@@ -365,6 +367,9 @@ void UI_GetThemeColor4ubv(int colorid, unsigned char col[4]);
 
 // get a theme color from specified space type
 void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4]);
+
+// get theme color for coloring monochrome icons
+bool    UI_GetIconThemeColor4fv(int colorid, float col[4]);
 
 // shade a 3 byte color (same as UI_GetColorPtrBlendShade3ubv with 0.0 factor)
 void    UI_GetColorPtrShade3ubv(const unsigned char cp1[3], unsigned char col[3], int offset);

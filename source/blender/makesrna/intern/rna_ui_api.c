@@ -55,10 +55,6 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 #include "UI_icons.h"
 	{0, NULL, 0, NULL, NULL}
 };
-#undef DEF_ICON
-#undef DEF_ICON_VECTOR
-#undef DEF_ICON_COLOR
-#undef DEF_ICON_BLANK
 
 #ifdef RNA_RUNTIME
 

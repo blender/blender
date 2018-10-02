@@ -57,6 +57,14 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tnla.anim_preview_range, btheme->tnla.anim_active);
 		copy_v4_v4_char(btheme->tipo.anim_preview_range, btheme->tact.anim_active);
 	}
+
+	if (!USER_VERSION_ATLEAST(280, 26)) {
+		copy_v4_v4_char(btheme->tui.icon_collection, U_theme_default.tui.icon_collection);
+		copy_v4_v4_char(btheme->tui.icon_object, U_theme_default.tui.icon_object);
+		copy_v4_v4_char(btheme->tui.icon_object_data, U_theme_default.tui.icon_object_data);
+		copy_v4_v4_char(btheme->tui.icon_modifier, U_theme_default.tui.icon_modifier);
+		copy_v4_v4_char(btheme->tui.icon_shading, U_theme_default.tui.icon_shading);
+	}
 #undef USER_VERSION_ATLEAST
 
 }

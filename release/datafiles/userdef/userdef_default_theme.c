@@ -244,6 +244,11 @@ const bTheme U_theme_default = {
 		.gizmo_secondary = RGBA(0x63ffffff),
 		.gizmo_a = RGBA(0x4da84dff),
 		.gizmo_b = RGBA(0xa33535ff),
+		.icon_collection = RGBA(0xccccccff),
+		.icon_object = RGBA(0xcc986eff),
+		.icon_object_data = RGBA(0x98cc98ff),
+		.icon_modifier = RGBA(0x6e98ccff),
+		.icon_shading = RGBA(0xcc6e6eff),
 	},
 	.tbuts = {
 		.back = RGBA(0x42424200),

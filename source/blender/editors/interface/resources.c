@@ -686,6 +686,17 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_GIZMO_B:
 					cp = btheme->tui.gizmo_b; break;
 
+				case TH_ICON_COLLECTION:
+					cp = btheme->tui.icon_collection; break;
+				case TH_ICON_OBJECT:
+					cp = btheme->tui.icon_object; break;
+				case TH_ICON_OBJECT_DATA:
+					cp = btheme->tui.icon_object_data; break;
+				case TH_ICON_MODIFIER:
+					cp = btheme->tui.icon_modifier; break;
+				case TH_ICON_SHADING:
+					cp = btheme->tui.icon_shading; break;
+
 				case TH_INFO_SELECTED:
 					cp = ts->info_selected;
 					break;
@@ -1107,6 +1118,31 @@ void UI_GetThemeColorType4ubv(int colorid, int spacetype, char col[4])
 	col[1] = cp[1];
 	col[2] = cp[2];
 	col[3] = cp[3];
+}
+
+bool UI_GetIconThemeColor4fv(int colorid, float col[4])
+{
+	if (colorid == 0) {
+		return false;
+	}
+
+	/* Only colored icons in outliner and popups, overall UI is intended
+	 * to stay monochrome and out of the way except a few places where it
+	 * is important to communicate different data types. */
+	if (!((theme_spacetype == SPACE_OUTLINER) ||
+	      (theme_regionid == RGN_TYPE_TEMPORARY)))
+	{
+		return false;
+	}
+
+	const unsigned char *cp;
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	col[0] = ((float)cp[0]) / 255.0f;
+	col[1] = ((float)cp[1]) / 255.0f;
+	col[2] = ((float)cp[2]) / 255.0f;
+	col[3] = ((float)cp[3]) / 255.0f;
+
+	return true;
 }
 
 void UI_GetColorPtrShade3ubv(const unsigned char cp[3], unsigned char col[3], int offset)
