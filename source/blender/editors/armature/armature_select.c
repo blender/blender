@@ -1082,14 +1082,18 @@ static void select_similar_suffix(bArmature *arm, EditBone *ebone_act)
 
 /** Use for matching any pose channel data. */
 static void select_similar_data_pchan(
-        bArmature *arm, Object *obj, EditBone *ebone_active,
+        bContext *C,
         const size_t bytes_size, const int offset)
 {
-	const bPoseChannel *pchan_active = BKE_pose_channel_find_name(obj->pose, ebone_active->name);
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone_act = CTX_data_active_bone(C);
+
+	const bPoseChannel *pchan_active = BKE_pose_channel_find_name(obedit->pose, ebone_act->name);
 	const char *data_active = (const char *)POINTER_OFFSET(pchan_active, offset);
 	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (EBONE_SELECTABLE(arm, ebone)) {
-			const bPoseChannel *pchan = BKE_pose_channel_find_name(obj->pose, ebone->name);
+			const bPoseChannel *pchan = BKE_pose_channel_find_name(obedit->pose, ebone->name);
 			if (pchan) {
 				const char *data_test = (const char *)POINTER_OFFSET(pchan, offset);
 				if (memcmp(data_active, data_test, bytes_size) == 0) {
@@ -1098,6 +1102,8 @@ static void select_similar_data_pchan(
 			}
 		}
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 }
 
 static void is_ancestor(EditBone *bone, EditBone *ancestor)
@@ -1111,44 +1117,58 @@ static void is_ancestor(EditBone *bone, EditBone *ancestor)
 	bone->temp.ebone = bone->temp.ebone->temp.ebone;
 }
 
-static void select_similar_children(bArmature *arm, EditBone *ebone_act)
+static void select_similar_children(bContext *C)
 {
-	EditBone *ebone_iter;
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone_act = CTX_data_active_bone(C);
 
-	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+	for (EditBone *ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 		ebone_iter->temp.ebone = ebone_iter->parent;
 	}
 
-	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+	for (EditBone *ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 		is_ancestor(ebone_iter, ebone_act);
 
 		if (ebone_iter->temp.ebone == ebone_act && EBONE_SELECTABLE(arm, ebone_iter))
 			ED_armature_ebone_select_set(ebone_iter, true);
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 }
 
-static void select_similar_children_immediate(bArmature *arm, EditBone *ebone_act)
+static void select_similar_children_immediate(bContext *C)
 {
-	EditBone *ebone_iter;
-	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone_act = CTX_data_active_bone(C);
+
+	for (EditBone *ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 		if (ebone_iter->parent == ebone_act && EBONE_SELECTABLE(arm, ebone_iter)) {
 			ED_armature_ebone_select_set(ebone_iter, true);
 		}
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 }
 
-static void select_similar_siblings(bArmature *arm, EditBone *ebone_act)
+static void select_similar_siblings(bContext *C)
 {
-	EditBone *ebone_iter;
+	Object *obedit = CTX_data_edit_object(C);
+	bArmature *arm = obedit->data;
+	EditBone *ebone_act = CTX_data_active_bone(C);
 
-	if (ebone_act->parent == NULL)
+	if (ebone_act->parent == NULL) {
 		return;
+	}
 
-	for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+	for (EditBone *ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 		if (ebone_iter->parent == ebone_act->parent && EBONE_SELECTABLE(arm, ebone_iter)) {
 			ED_armature_ebone_select_set(ebone_iter, true);
 		}
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 }
 
 static int armature_select_similar_exec(bContext *C, wmOperator *op)
@@ -1161,6 +1181,17 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 	int type = RNA_enum_get(op->ptr, "type");
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
+	if (ELEM(type,
+		SIMEDBONE_LENGTH,
+		SIMEDBONE_DIRECTION,
+		SIMEDBONE_PREFIX,
+		SIMEDBONE_SUFFIX,
+		SIMEDBONE_LAYER))
+	{
+		BKE_report(op->reports, RPT_ERROR, "Armature select similar mode not supported at the moment");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* Check for active bone */
 	if (ebone_act == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Operation requires an active bone");
@@ -1172,13 +1203,13 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 
 	switch (type) {
 		case SIMEDBONE_CHILDREN:
-			select_similar_children(arm, ebone_act);
+			select_similar_children(C);
 			break;
 		case SIMEDBONE_CHILDREN_IMMEDIATE:
-			select_similar_children_immediate(arm, ebone_act);
+			select_similar_children_immediate(C);
 			break;
 		case SIMEDBONE_SIBLINGS:
-			select_similar_siblings(arm, ebone_act);
+			select_similar_siblings(C);
 			break;
 		case SIMEDBONE_LENGTH:
 			select_similar_length(arm, ebone_act, thresh);
@@ -1197,19 +1228,17 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 			break;
 		case SIMEDBONE_GROUP:
 			select_similar_data_pchan(
-			        arm, obedit, ebone_act,
+			        C,
 			        STRUCT_SIZE_AND_OFFSET(bPoseChannel, agrp_index));
 			break;
 		case SIMEDBONE_SHAPE:
 			select_similar_data_pchan(
-			        arm, obedit, ebone_act,
+			       C,
 			        STRUCT_SIZE_AND_OFFSET(bPoseChannel, custom));
 			break;
 	}
 
 #undef STRUCT_SIZE_AND_OFFSET
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
 	return OPERATOR_FINISHED;
 }
