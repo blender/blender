@@ -46,6 +46,11 @@
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
+extern struct GPUTexture *globals_weight_ramp; /* draw_common.c */
+
+extern char datatoc_paint_weight_vert_glsl[];
+extern char datatoc_paint_weight_frag_glsl[];
+
 extern char datatoc_edit_mesh_overlay_common_lib_glsl[];
 extern char datatoc_edit_mesh_overlay_frag_glsl[];
 extern char datatoc_edit_mesh_overlay_vert_glsl[];
@@ -66,7 +71,7 @@ extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
 typedef struct EDIT_MESH_PassList {
-	struct DRWPass *vcolor_faces;
+	struct DRWPass *weight_faces;
 	struct DRWPass *depth_hidden_wire;
 	struct DRWPass *ghost_clear_depth;
 	struct DRWPass *edit_face_overlay;
@@ -97,8 +102,8 @@ typedef struct EDIT_MESH_Data {
 #define MAX_SHADERS 16
 
 static struct {
-	/* weight/vert-color */
-	GPUShader *vcolor_face_shader;
+	/* weight */
+	GPUShader *weight_face_shader;
 
 	/* Geometry */
 	GPUShader *overlay_tri_sh_cache[MAX_SHADERS];
@@ -119,8 +124,8 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 typedef struct EDIT_MESH_PrivateData {
-	/* weight/vert-color */
-	DRWShadingGroup *fvcolor_shgrp;
+	/* weight */
+	DRWShadingGroup *fweights_shgrp;
 	DRWShadingGroup *depth_shgrp_hidden_wire;
 
 	DRWShadingGroup *fnormals_shgrp;
@@ -258,8 +263,11 @@ static void EDIT_MESH_engine_init(void *vedata)
 		GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_color_tx)
 	});
 
-	if (!e_data.vcolor_face_shader) {
-		e_data.vcolor_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA);
+	if (!e_data.weight_face_shader) {
+		e_data.weight_face_shader = DRW_shader_create_with_lib(
+		        datatoc_paint_weight_vert_glsl, NULL,
+		        datatoc_paint_weight_frag_glsl,
+		        datatoc_common_globals_lib_glsl, NULL);
 	}
 
 	if (!e_data.overlay_vert_sh) {
@@ -437,18 +445,16 @@ static void EDIT_MESH_cache_init(void *vedata)
 	}
 
 	{
-		psl->vcolor_faces = DRW_pass_create(
-		        "Vert Color Pass",
+		psl->weight_faces = DRW_pass_create(
+		        "Weight Pass",
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
 
-		stl->g_data->fvcolor_shgrp = DRW_shgroup_create(e_data.vcolor_face_shader, psl->vcolor_faces);
+		stl->g_data->fweights_shgrp = DRW_shgroup_create(e_data.weight_face_shader, psl->weight_faces);
 
-		static float light[3] = {-0.3f, 0.5f, 1.0f};
 		static float alpha = 1.0f;
-		static float world_light = 1.0f;  /* XXX, see: paint_vertex_mode.c */
-		DRW_shgroup_uniform_vec3(stl->g_data->fvcolor_shgrp, "light", light, 1);
-		DRW_shgroup_uniform_float(stl->g_data->fvcolor_shgrp, "alpha", &alpha, 1);
-		DRW_shgroup_uniform_float(stl->g_data->fvcolor_shgrp, "global", &world_light, 1);
+		DRW_shgroup_uniform_float(stl->g_data->fweights_shgrp, "opacity", &alpha, 1);
+		DRW_shgroup_uniform_texture(stl->g_data->fweights_shgrp, "colorramp", globals_weight_ramp);
+		DRW_shgroup_uniform_block(stl->g_data->fweights_shgrp, "globalsBlock", globals_ubo);
 	}
 
 	{
@@ -593,7 +599,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 
 			if (do_show_weight) {
 				geom = DRW_cache_mesh_surface_weights_get(ob, tsettings, false);
-				DRW_shgroup_call_add(stl->g_data->fvcolor_shgrp, geom, ob->obmat);
+				DRW_shgroup_call_add(stl->g_data->fweights_shgrp, geom, ob->obmat);
 			}
 
 			if (do_occlude_wire) {
@@ -667,7 +673,7 @@ static void EDIT_MESH_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	DRW_draw_pass(psl->vcolor_faces);
+	DRW_draw_pass(psl->weight_faces);
 
 	DRW_draw_pass(psl->depth_hidden_wire);
 
@@ -718,6 +724,8 @@ static void EDIT_MESH_draw_scene(void *vedata)
 
 static void EDIT_MESH_engine_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.weight_face_shader);
+
 	DRW_SHADER_FREE_SAFE(e_data.overlay_vert_sh);
 	DRW_SHADER_FREE_SAFE(e_data.overlay_facedot_sh);
 	DRW_SHADER_FREE_SAFE(e_data.overlay_mix_sh);
