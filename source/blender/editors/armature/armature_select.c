@@ -1338,49 +1338,57 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
  */
 static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = obedit->data;
-	EditBone *ebone, *ebone_mirror_act = NULL;
+	ViewLayer * view_layer = CTX_data_view_layer(C);
 	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		const int flag = ED_armature_ebone_selectflag_get(ebone);
-		EBONE_PREV_FLAG_SET(ebone, flag);
-	}
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			EditBone *ebone_mirror;
-			int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
+		EditBone *ebone, *ebone_mirror_act = NULL;
 
-			if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
-			    (EBONE_VISIBLE(arm, ebone_mirror)))
-			{
-				const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
-				flag_new |= flag_mirror;
-
-				if (ebone == arm->act_edbone) {
-					ebone_mirror_act = ebone_mirror;
-				}
-
-				/* skip all but the active or its mirror */
-				if (active_only && !ELEM(arm->act_edbone, ebone, ebone_mirror)) {
-					continue;
-				}
-			}
-
-			ED_armature_ebone_selectflag_set(ebone, flag_new);
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			const int flag = ED_armature_ebone_selectflag_get(ebone);
+			EBONE_PREV_FLAG_SET(ebone, flag);
 		}
+
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				EditBone *ebone_mirror;
+				int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
+
+				if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
+					(EBONE_VISIBLE(arm, ebone_mirror)))
+				{
+					const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
+					flag_new |= flag_mirror;
+
+					if (ebone == arm->act_edbone) {
+						ebone_mirror_act = ebone_mirror;
+					}
+
+					/* skip all but the active or its mirror */
+					if (active_only && !ELEM(arm->act_edbone, ebone, ebone_mirror)) {
+						continue;
+					}
+				}
+
+				ED_armature_ebone_selectflag_set(ebone, flag_new);
+			}
+		}
+
+		if (ebone_mirror_act) {
+			arm->act_edbone = ebone_mirror_act;
+		}
+
+		ED_armature_edit_sync_selection(arm->edbo);
+
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
-
-	if (ebone_mirror_act) {
-		arm->act_edbone = ebone_mirror_act;
-	}
-
-	ED_armature_edit_sync_selection(arm->edbo);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
