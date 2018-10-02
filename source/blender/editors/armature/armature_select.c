@@ -1238,81 +1238,89 @@ void ARMATURE_OT_select_similar(wmOperatorType *ot)
 
 static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Object *ob;
-	bArmature *arm;
-	EditBone *ebone_active;
-	int direction = RNA_enum_get(op->ptr, "direction");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	const int direction = RNA_enum_get(op->ptr, "direction");
 	const bool add_to_sel = RNA_boolean_get(op->ptr, "extend");
-	bool changed = false;
 
-	ob = obedit;
-	arm = (bArmature *)ob->data;
+	bool multi_changed = false;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
 
-	ebone_active = arm->act_edbone;
-	if (ebone_active == NULL) {
-		return OPERATOR_CANCELLED;
-	}
+		EditBone *ebone_active;
+		bool changed = false;
 
-	if (direction == BONE_SELECT_PARENT) {
-		if (ebone_active->parent) {
-			EditBone *ebone_parent;
+		arm = (bArmature *)ob->data;
 
-			ebone_parent = ebone_active->parent;
+		ebone_active = arm->act_edbone;
+		if (ebone_active == NULL) {
+			continue;
+		}
 
-			if (EBONE_SELECTABLE(arm, ebone_parent)) {
-				arm->act_edbone = ebone_parent;
+		if (direction == BONE_SELECT_PARENT) {
+			if (ebone_active->parent) {
+				EditBone *ebone_parent;
+
+				ebone_parent = ebone_active->parent;
+
+				if (EBONE_SELECTABLE(arm, ebone_parent)) {
+					arm->act_edbone = ebone_parent;
+
+					if (!add_to_sel) {
+						ED_armature_ebone_select_set(ebone_active, false);
+					}
+					ED_armature_ebone_select_set(ebone_parent, true);
+
+					changed = true;
+				}
+			}
+
+		}
+		else {  /* BONE_SELECT_CHILD */
+			EditBone *ebone_iter, *ebone_child = NULL;
+			int pass;
+
+			/* First pass, only connected bones (the logical direct child)/ */
+			for (pass = 0; pass < 2 && (ebone_child == NULL); pass++) {
+				for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
+					/* Possible we have multiple children, some invisible. */
+					if (EBONE_SELECTABLE(arm, ebone_iter)) {
+						if (ebone_iter->parent == ebone_active) {
+							if ((pass == 1) || (ebone_iter->flag & BONE_CONNECTED)) {
+								ebone_child = ebone_iter;
+								break;
+							}
+						}
+					}
+				}
+			}
+
+			if (ebone_child) {
+				arm->act_edbone = ebone_child;
 
 				if (!add_to_sel) {
 					ED_armature_ebone_select_set(ebone_active, false);
 				}
-				ED_armature_ebone_select_set(ebone_parent, true);
+				ED_armature_ebone_select_set(ebone_child, true);
 
 				changed = true;
 			}
 		}
 
-	}
-	else {  /* BONE_SELECT_CHILD */
-		EditBone *ebone_iter, *ebone_child = NULL;
-		int pass;
-
-		/* first pass, only connected bones (the logical direct child) */
-		for (pass = 0; pass < 2 && (ebone_child == NULL); pass++) {
-			for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
-				/* possible we have multiple children, some invisible */
-				if (EBONE_SELECTABLE(arm, ebone_iter)) {
-					if (ebone_iter->parent == ebone_active) {
-						if ((pass == 1) || (ebone_iter->flag & BONE_CONNECTED)) {
-							ebone_child = ebone_iter;
-							break;
-						}
-					}
-				}
-			}
+		if (changed == false) {
+			continue;
 		}
 
-		if (ebone_child) {
-			arm->act_edbone = ebone_child;
-
-			if (!add_to_sel) {
-				ED_armature_ebone_select_set(ebone_active, false);
-			}
-			ED_armature_ebone_select_set(ebone_child, true);
-
-			changed = true;
-		}
+		multi_changed = true;
+		ED_armature_edit_sync_selection(arm->edbo);
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
+	MEM_freeN(objects);
 
-	if (changed == false) {
-		return OPERATOR_CANCELLED;
-	}
-
-	ED_armature_edit_sync_selection(arm->edbo);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
-	return OPERATOR_FINISHED;
+	return multi_changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
