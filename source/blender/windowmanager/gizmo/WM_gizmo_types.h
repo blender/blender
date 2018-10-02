@@ -389,11 +389,11 @@ typedef struct wmGizmoGroupType {
 	/* Only for convenient removal. */
 	struct wmKeyConfig *keyconf;
 
-	/* Disable for now, maybe some day we want properties. */
-#if 0
-	/* rna for properties */
+	/* Note: currently gizmo-group instances don't store properties,
+	 * they're kept in the tool properties. */
+
+	/* RNA for properties */
 	struct StructRNA *srna;
-#endif
 
 	/* RNA integration */
 	ExtensionRNA ext;

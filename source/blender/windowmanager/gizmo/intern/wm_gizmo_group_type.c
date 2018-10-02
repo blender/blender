@@ -32,6 +32,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -83,13 +84,20 @@ void WM_gizmogrouptype_iter(GHashIterator *ghi)
 static wmGizmoGroupType *wm_gizmogrouptype_append__begin(void)
 {
 	wmGizmoGroupType *gzgt = MEM_callocN(sizeof(wmGizmoGroupType), "gizmogrouptype");
-
+	gzgt->srna = RNA_def_struct_ptr(&BLENDER_RNA, "", &RNA_GizmoGroupProperties);
+#if 0
+	/* Set the default i18n context now, so that opfunc can redefine it if needed! */
+	RNA_def_struct_translation_context(ot->srna, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
+	ot->translation_context = BLT_I18NCONTEXT_OPERATOR_DEFAULT;
+#endif
 	return gzgt;
 }
 static void wm_gizmogrouptype_append__end(wmGizmoGroupType *gzgt)
 {
 	BLI_assert(gzgt->name != NULL);
 	BLI_assert(gzgt->idname != NULL);
+
+	RNA_def_struct_identifier(&BLENDER_RNA, gzgt->srna, gzgt->idname);
 
 	gzgt->type_update_flag |= WM_GIZMOMAPTYPE_KEYMAP_INIT;
 

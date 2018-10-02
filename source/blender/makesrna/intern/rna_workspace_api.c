@@ -133,6 +133,23 @@ static PointerRNA rna_WorkspaceTool_operator_properties(
 	return PointerRNA_NULL;
 }
 
+static PointerRNA rna_WorkspaceTool_gizmo_group_properties(
+        bToolRef *tref,
+        ReportList *reports,
+        const char *idname)
+{
+	wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(idname, false);
+	if (gzgt != NULL) {
+		PointerRNA ptr;
+		WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgt, &ptr);
+		return ptr;
+	}
+	else {
+		BKE_reportf(reports, RPT_ERROR, "Gizmo group '%s' not found!", idname);
+	}
+	return PointerRNA_NULL;
+}
+
 #else
 
 void RNA_api_workspace(StructRNA *srna)
@@ -173,6 +190,16 @@ void RNA_api_workspace_tool(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	/* return */
 	parm = RNA_def_pointer(func, "result", "OperatorProperties", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	/* Access gizmo-group options (optionally create). */
+	func = RNA_def_function(srna, "gizmo_group_properties", "rna_WorkspaceTool_gizmo_group_properties");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	parm = RNA_def_string(func, "group", NULL, 0, "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	/* return */
+	parm = RNA_def_pointer(func, "result", "GizmoGroupProperties", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 

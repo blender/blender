@@ -372,6 +372,7 @@ extern StructRNA RNA_LockedTrackConstraint;
 extern StructRNA RNA_Macro;
 extern StructRNA RNA_MagicTexture;
 extern StructRNA RNA_Gizmo;
+extern StructRNA RNA_GizmoGroupProperties;
 extern StructRNA RNA_GizmoProperties;
 extern StructRNA RNA_MarbleTexture;
 extern StructRNA RNA_MaskModifier;

@@ -548,6 +548,34 @@ static StructRNA *rna_Gizmo_refine(PointerRNA *mnp_ptr)
 /** \name Gizmo Group API
  * \{ */
 
+static wmGizmoGroupType *rna_GizmoGroupProperties_find_gizmo_group_type(PointerRNA *ptr)
+{
+	IDProperty *properties = (IDProperty *)ptr->data;
+	wmGizmoGroupType *gzgt = WM_gizmogrouptype_find(properties->name, false);
+	return gzgt;
+}
+
+static StructRNA *rna_GizmoGroupProperties_refine(PointerRNA *ptr)
+{
+	wmGizmoGroupType *gzgt = rna_GizmoGroupProperties_find_gizmo_group_type(ptr);
+
+	if (gzgt)
+		return gzgt->srna;
+	else
+		return ptr->type;
+}
+
+static IDProperty *rna_GizmoGroupProperties_idprops(PointerRNA *ptr, bool create)
+{
+	if (create && !ptr->data) {
+		IDPropertyTemplate val = {0};
+		ptr->data = IDP_New(IDP_GROUP, &val, "RNA_GizmoGroupProperties group");
+	}
+
+	return ptr->data;
+}
+
+
 static wmGizmo *rna_GizmoGroup_gizmo_new(
         wmGizmoGroup *gzgroup, ReportList *reports, const char *idname)
 {
@@ -1364,6 +1392,12 @@ static void rna_def_gizmogroup(BlenderRNA *brna)
 	RNA_define_verify_sdna(1); /* not in sdna */
 
 	RNA_api_gizmogroup(srna);
+
+	srna = RNA_def_struct(brna, "GizmoGroupProperties", NULL);
+	RNA_def_struct_ui_text(srna, "Gizmo Group Properties", "Input properties of a Gizmo Group");
+	RNA_def_struct_refine_func(srna, "rna_GizmoGroupProperties_refine");
+	RNA_def_struct_idprops_func(srna, "rna_GizmoGroupProperties_idprops");
+	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
 }
 
 void RNA_def_wm_gizmo(BlenderRNA *brna)
