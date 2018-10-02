@@ -981,24 +981,49 @@ static const EnumPropertyItem prop_similar_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-
-static void select_similar_length(bArmature *arm, EditBone *ebone_act, const float thresh)
+static float bone_length_squared_worldspace_get(Object *ob, EditBone *ebone)
 {
-	EditBone *ebone;
+	float v1[3], v2[3];
+	mul_v3_mat3_m4v3(v1, ob->obmat, ebone->head);
+	mul_v3_mat3_m4v3(v2, ob->obmat, ebone->tail);
+	return len_squared_v3v3(v1, v2);
+}
 
-	/* thresh is always relative to current length */
-	const float len_min = ebone_act->length / (1.0f + thresh);
-	const float len_max = ebone_act->length * (1.0f + thresh);
+static void select_similar_length(bContext *C, const float thresh)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_act = CTX_data_edit_object(C);
+	EditBone *ebone_act = CTX_data_active_bone(C);
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			if ((ebone->length >= len_min) &&
-			    (ebone->length <= len_max))
-			{
-				ED_armature_ebone_select_set(ebone, true);
+	/* Thresh is always relative to current length. */
+	const float len = bone_length_squared_worldspace_get(ob_act, ebone_act);
+	const float len_min = len / (1.0f + (thresh - FLT_EPSILON));
+	const float len_max = len * (1.0f + (thresh + FLT_EPSILON));
+
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
+		bool changed = false;
+
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				const float len_iter = bone_length_squared_worldspace_get(ob, ebone);
+				if ((len_iter > len_min) &&
+					(len_iter < len_max))
+				{
+					ED_armature_ebone_select_set(ebone, true);
+					changed = true;
+				}
 			}
 		}
+
+		if (changed) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		}
 	}
+	MEM_freeN(objects);
 }
 
 static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const float thresh)
@@ -1182,7 +1207,6 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	if (ELEM(type,
-		SIMEDBONE_LENGTH,
 		SIMEDBONE_DIRECTION,
 		SIMEDBONE_PREFIX,
 		SIMEDBONE_SUFFIX,
@@ -1212,7 +1236,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 			select_similar_siblings(C);
 			break;
 		case SIMEDBONE_LENGTH:
-			select_similar_length(arm, ebone_act, thresh);
+			select_similar_length(C, thresh);
 			break;
 		case SIMEDBONE_DIRECTION:
 			select_similar_direction(arm, ebone_act, thresh);
