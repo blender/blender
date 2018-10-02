@@ -4155,7 +4155,7 @@ class VIEW3D_PT_shading_options(Panel):
         if shading.type == 'SOLID':
             row = col.row()
             row.prop(shading, "show_shadows", text="")
-            row.active = not is_xray
+            row.active = not shading.show_xray
             sub = row.row(align=True)
             sub.active = is_shadows
             sub.prop(shading, "shadow_intensity", text="Shadow")
@@ -4167,7 +4167,7 @@ class VIEW3D_PT_shading_options(Panel):
 
             col = layout.column()
             row = col.row()
-            row.active = not is_xray
+            row.active = not shading.show_xray
             row.prop(shading, "show_cavity")
 
             if shading.show_cavity:
