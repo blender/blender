@@ -1026,22 +1026,52 @@ static void select_similar_length(bContext *C, const float thresh)
 	MEM_freeN(objects);
 }
 
-static void select_similar_direction(bArmature *arm, EditBone *ebone_act, const float thresh)
+static void bone_direction_worldspace_get(Object *ob, EditBone *ebone, float *r_dir)
 {
-	EditBone *ebone;
+	float v1[3], v2[3];
+	copy_v3_v3(v1, ebone->head);
+	copy_v3_v3(v2, ebone->tail);
+
+	mul_m4_v3(ob->obmat, v1);
+	mul_m4_v3(ob->obmat, v2);
+
+	sub_v3_v3v3(r_dir, v1, v2);
+	normalize_v3(r_dir);
+}
+
+static void select_similar_direction(bContext *C, const float thresh)
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_act = CTX_data_edit_object(C);
+	EditBone *ebone_act = CTX_data_active_bone(C);
+
 	float dir_act[3];
-	sub_v3_v3v3(dir_act, ebone_act->head, ebone_act->tail);
+	bone_direction_worldspace_get(ob_act, ebone_act, dir_act);
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_SELECTABLE(arm, ebone)) {
-			float dir[3];
-			sub_v3_v3v3(dir, ebone->head, ebone->tail);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * ob = objects[ob_index];
+		bArmature * arm = ob->data;
+		bool changed = false;
 
-			if (angle_v3v3(dir_act, dir) / (float)M_PI < thresh) {
-				ED_armature_ebone_select_set(ebone, true);
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_SELECTABLE(arm, ebone)) {
+				float dir[3];
+				bone_direction_worldspace_get(ob, ebone, dir);
+
+				if (angle_v3v3(dir_act, dir) / (float)M_PI < (thresh + FLT_EPSILON)) {
+					ED_armature_ebone_select_set(ebone, true);
+					changed = true;
+				}
 			}
 		}
+
+		if (changed) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		}
 	}
+	MEM_freeN(objects);
 }
 
 static void select_similar_layer(bArmature *arm, EditBone *ebone_act)
@@ -1207,7 +1237,6 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 	float thresh = RNA_float_get(op->ptr, "threshold");
 
 	if (ELEM(type,
-		SIMEDBONE_DIRECTION,
 		SIMEDBONE_PREFIX,
 		SIMEDBONE_SUFFIX,
 		SIMEDBONE_LAYER))
@@ -1239,7 +1268,7 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 			select_similar_length(C, thresh);
 			break;
 		case SIMEDBONE_DIRECTION:
-			select_similar_direction(arm, ebone_act, thresh);
+			select_similar_direction(C, thresh);
 			break;
 		case SIMEDBONE_PREFIX:
 			select_similar_prefix(arm, ebone_act);
