@@ -2211,13 +2211,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 
 	{
 		const char *prop_id = NULL;
+		bool prop_state = true;
 		if (t->mode == TFM_SHRINKFATTEN) {
 			prop_id = "use_even_offset";
+			prop_state = false;
 		}
 
 		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id))) {
-
-			RNA_property_boolean_set(op->ptr, prop, (t->flag & T_ALT_TRANSFORM) != 0);
+			RNA_property_boolean_set(op->ptr, prop, ((t->flag & T_ALT_TRANSFORM) != 0) == prop_state);
 		}
 	}
 
@@ -4985,7 +4986,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		}
 	}
 	BLI_snprintf(str + ofs, sizeof(str) - ofs, IFACE_(" or Alt) Even Thickness %s"),
-	             WM_bool_as_string((t->flag & T_ALT_TRANSFORM) != 0));
+	             WM_bool_as_string((t->flag & T_ALT_TRANSFORM) == 0));
 	/* done with header string */
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
@@ -5000,7 +5001,7 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 
 			/* get the final offset */
 			tdistance = distance * td->factor;
-			if (td->ext && (t->flag & T_ALT_TRANSFORM)) {
+			if (td->ext && (t->flag & T_ALT_TRANSFORM) == 0) {
 				tdistance *= td->ext->isize[0];  /* shell factor */
 			}
 
