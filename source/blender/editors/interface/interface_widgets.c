@@ -1456,7 +1456,7 @@ float UI_text_clip_middle_ex(
 	strwidth = BLF_width(fstyle->uifont_id, str, max_len);
 
 	if ((okwidth > 0.0f) && (strwidth > okwidth)) {
-		/* utf8 ellipsis '..', some compilers complain */
+		/* utf8 two-dots leader '..' (shorter than ellipsis '...'), some compilers complain with real litteral string. */
 		const char sep[] = {0xe2, 0x80, 0xA5, 0x0};
 		const int sep_len = sizeof(sep) - 1;
 		const float sep_strwidth = BLF_width(fstyle->uifont_id, sep, sep_len + 1);
