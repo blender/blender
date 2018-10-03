@@ -2374,6 +2374,13 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 		return;
 	}
 
+	/* grease pencil in draw mode hide always */
+	if ((OBACT(view_layer)) &&
+		(OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT))
+	{
+		return;
+	}
+
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
