@@ -1878,7 +1878,7 @@ static PropertyDefRNA *rna_def_property_sdna(PropertyRNA *prop, const char *stru
 			return dp;
 		}
 		else {
-			fprintf(stderr, "%s: \"%s.%s\" (identifier \"%s\") not found.\n",
+			fprintf(stderr, "%s: \"%s.%s\" (identifier \"%s\") not found. Struct must be in DNA.\n",
 			        __func__, structname, propname, prop->identifier);
 			DefRNA.error = 1;
 			return NULL;
