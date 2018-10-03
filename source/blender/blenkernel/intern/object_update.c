@@ -146,6 +146,7 @@ void BKE_object_eval_done(Depsgraph *depsgraph, Object *ob)
 	if (DEG_is_active(depsgraph)) {
 		Object *ob_orig = DEG_get_original_object(ob);
 		copy_m4_m4(ob_orig->obmat, ob->obmat);
+		copy_m4_m4(ob_orig->constinv, ob->constinv);
 		ob_orig->transflag = ob->transflag;
 		ob_orig->flag = ob->flag;
 	}
