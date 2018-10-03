@@ -769,6 +769,13 @@ class ConstraintButtonsPanel:
             rowsub.prop(con, "use_invert_cull")
             layout.prop(con, "project_limit")
 
+        if con.shrinkwrap_type in ['PROJECT', 'NEAREST_SURFACE']:
+            layout.prop(con, "use_track_normal")
+
+            row = layout.row(align=True)
+            row.active = con.use_track_normal
+            row.prop(con, "track_axis", expand=True)
+
     def DAMPED_TRACK(self, context, layout, con):
         self.target_template(layout, con)
 

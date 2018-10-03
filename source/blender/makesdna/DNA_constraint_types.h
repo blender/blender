@@ -430,7 +430,8 @@ typedef struct bShrinkwrapConstraint {
 	float		projLimit;		/* distance to search */
 	char		shrinkMode;		/* inside/outside/on surface (see MOD shrinkwrap) */
 	char		flag;			/* options */
-	char 		pad[2];
+	char		trackAxis;		/* axis to align to normal */
+	char 		pad;
 } bShrinkwrapConstraint;
 
 /* Follow Track constraints */
@@ -642,6 +643,8 @@ typedef enum eShrinkwrap_Flags {
 	CON_SHRINKWRAP_PROJECT_OPPOSITE     	= (1 << 0),
 	/* Invert the cull mode when projecting opposite. */
 	CON_SHRINKWRAP_PROJECT_INVERT_CULL  	= (1 << 1),
+	/* Align the specified axis to the target normal. */
+	CON_SHRINKWRAP_TRACK_NORMAL            	= (1 << 2),
 
 	/* Ignore front faces in project; same value as MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE */
 	CON_SHRINKWRAP_PROJECT_CULL_FRONTFACE	= (1 << 3),

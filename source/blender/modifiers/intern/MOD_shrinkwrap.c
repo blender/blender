@@ -141,13 +141,19 @@ static void deformVertsEM(
 static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+	CustomDataMask mask = 0;
+
+	if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
+		mask |= CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL;
+	}
+
 	if (smd->target != NULL) {
 		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+		DEG_add_object_customdata_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, mask, "Shrinkwrap Modifier");
 	}
 	if (smd->auxTarget != NULL) {
 		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+		DEG_add_object_customdata_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, mask, "Shrinkwrap Modifier");
 	}
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
 }

@@ -91,6 +91,7 @@ extern "C" {
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
 #include "BKE_shader_fx.h"
+#include "BKE_shrinkwrap.h"
 #include "BKE_sound.h"
 #include "BKE_tracking.h"
 #include "BKE_world.h"
@@ -986,9 +987,20 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					}
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {
+					bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
+
 					/* Constraints which requires the target object surface. */
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
+
+					/* Add dependency on normal layers if necessary. */
+					if (ct->tar->type == OB_MESH && scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
+						bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
+						if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
+							add_customdata_mask(target_key, CD_MASK_NORMAL | CD_MASK_CUSTOMLOOPNORMAL);
+						}
+					}
+
 					/* NOTE: obdata eval now doesn't necessarily depend on the
 					 * object's transform.
 					 */

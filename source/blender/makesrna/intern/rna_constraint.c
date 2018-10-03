@@ -138,6 +138,16 @@ static const EnumPropertyItem owner_space_pchan_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+static const EnumPropertyItem track_axis_items[] = {
+	{TRACK_X, "TRACK_X", 0, "X", ""},
+	{TRACK_Y, "TRACK_Y", 0, "Y", ""},
+	{TRACK_Z, "TRACK_Z", 0, "Z", ""},
+	{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
+	{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
+	{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 #ifdef RNA_RUNTIME
 
 static const EnumPropertyItem space_object_items[] = {
@@ -808,16 +818,6 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem track_items[] = {
-		{TRACK_X, "TRACK_X", 0, "X", ""},
-		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
-		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem up_items[] = {
 		{TRACK_X, "UP_X", 0, "X", ""},
 		{TRACK_Y, "UP_Y", 0, "Y", ""},
@@ -836,7 +836,7 @@ static void rna_def_constraint_track_to(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "reserved1");
-	RNA_def_property_enum_items(prop, track_items);
+	RNA_def_property_enum_items(prop, track_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -1151,16 +1151,6 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem locktrack_items[] = {
-		{TRACK_X, "TRACK_X", 0, "X", ""},
-		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
-		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem lock_items[] = {
 		{TRACK_X, "LOCK_X", 0, "X", ""},
 		{TRACK_Y, "LOCK_Y", 0, "Y", ""},
@@ -1180,7 +1170,7 @@ static void rna_def_constraint_locked_track(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
-	RNA_def_property_enum_items(prop, locktrack_items);
+	RNA_def_property_enum_items(prop, track_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
@@ -1953,13 +1943,13 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "shrinkType");
 	RNA_def_property_enum_items(prop, type_items);
 	RNA_def_property_ui_text(prop, "Shrinkwrap Type", "Select type of shrinkwrap algorithm for target position");
-	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
 	prop = RNA_def_property(srna, "wrap_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "shrinkMode");
 	RNA_def_property_enum_items(prop, rna_enum_modifier_shrinkwrap_mode_items);
 	RNA_def_property_ui_text(prop, "Snap Mode", "Select how to constrain the object to the target surface");
-	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 
 	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "dist");
@@ -2005,22 +1995,23 @@ static void rna_def_constraint_shrinkwrap(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CON_SHRINKWRAP_PROJECT_INVERT_CULL);
 	RNA_def_property_ui_text(prop, "Invert Cull", "When projecting in the opposite direction invert the face cull mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
+
+	prop = RNA_def_property(srna, "use_track_normal", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", CON_SHRINKWRAP_TRACK_NORMAL);
+	RNA_def_property_ui_text(prop, "Align Axis To Normal", "Align the specified axis to the surface normal");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
+
+	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "trackAxis");
+	RNA_def_property_enum_items(prop, track_axis_items);
+	RNA_def_property_ui_text(prop, "Track Axis", "Axis that is aligned to the normal");
+	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }
 
 static void rna_def_constraint_damped_track(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-
-	static const EnumPropertyItem damptrack_items[] = {
-		{TRACK_X, "TRACK_X", 0, "X", ""},
-		{TRACK_Y, "TRACK_Y", 0, "Y", ""},
-		{TRACK_Z, "TRACK_Z", 0, "Z", ""},
-		{TRACK_nX, "TRACK_NEGATIVE_X", 0, "-X", ""},
-		{TRACK_nY, "TRACK_NEGATIVE_Y", 0, "-Y", ""},
-		{TRACK_nZ, "TRACK_NEGATIVE_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	srna = RNA_def_struct(brna, "DampedTrackConstraint", "Constraint");
 	RNA_def_struct_ui_text(srna, "Damped Track Constraint",
@@ -2034,7 +2025,7 @@ rna_def_constraint_headtail_common(srna);
 
 	prop = RNA_def_property(srna, "track_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "trackflag");
-	RNA_def_property_enum_items(prop, damptrack_items);
+	RNA_def_property_enum_items(prop, track_axis_items);
 	RNA_def_property_ui_text(prop, "Track Axis", "Axis that points to the target object");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 }

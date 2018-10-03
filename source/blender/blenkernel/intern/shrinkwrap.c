@@ -70,19 +70,87 @@
 /* Util macros */
 #define OUT_OF_MEMORY() ((void)printf("Shrinkwrap: Out of memory\n"))
 
+
+typedef struct ShrinkwrapCalcData {
+	ShrinkwrapModifierData *smd;    //shrinkwrap modifier data
+
+	struct Object *ob;              //object we are applying shrinkwrap to
+
+	struct MVert *vert;             //Array of verts being projected (to fetch normals or other data)
+	float(*vertexCos)[3];          //vertexs being shrinkwraped
+	int numVerts;
+
+	struct MDeformVert *dvert;      //Pointer to mdeform array
+	int vgroup;                     //Vertex group num
+	bool invert_vgroup;             /* invert vertex group influence */
+
+	struct Mesh *target;     //mesh we are shrinking to
+	struct SpaceTransform local2target;    //transform to move between local and target space
+	struct ShrinkwrapTreeData *tree; // mesh BVH tree data
+
+	float keepDist;                 //Distance to keep above target surface (units are in local space)
+
+} ShrinkwrapCalcData;
+
 typedef struct ShrinkwrapCalcCBData {
 	ShrinkwrapCalcData *calc;
 
-	void *treeData;
-	void *auxData;
-	BVHTree *targ_tree;
-	BVHTree *aux_tree;
-	void *targ_callback;
-	void *aux_callback;
+	ShrinkwrapTreeData *tree;
+	ShrinkwrapTreeData *aux_tree;
 
 	float *proj_axis;
 	SpaceTransform *local2aux;
 } ShrinkwrapCalcCBData;
+
+
+/* Checks if the modifier needs target normals with these settings. */
+bool BKE_shrinkwrap_needs_normals(int shrinkType, int shrinkMode)
+{
+	return shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX && shrinkMode == MOD_SHRINKWRAP_ABOVE_SURFACE;
+}
+
+/* Initializes the mesh data structure from the given mesh and settings. */
+bool BKE_shrinkwrap_init_tree(ShrinkwrapTreeData *data, Mesh *mesh, int shrinkType, int shrinkMode, bool force_normals)
+{
+	memset(data, 0, sizeof(*data));
+
+	if (!mesh || mesh->totvert <= 0) {
+		return false;
+	}
+
+	data->mesh = mesh;
+
+	if (shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX) {
+		data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_VERTS, 2);
+
+		return data->bvh != NULL;
+	}
+	else {
+		if (mesh->totpoly <= 0) {
+			return false;
+		}
+
+		data->bvh = BKE_bvhtree_from_mesh_get(&data->treeData, mesh, BVHTREE_FROM_LOOPTRI, 4);
+
+		if (data->bvh == NULL) {
+			return false;
+		}
+
+		if (force_normals || BKE_shrinkwrap_needs_normals(shrinkType, shrinkMode)) {
+			if ((mesh->flag & ME_AUTOSMOOTH) != 0) {
+				data->clnors = CustomData_get_layer(&mesh->ldata, CD_NORMAL);
+			}
+		}
+
+		return true;
+	}
+}
+
+/* Frees the tree data if necessary. */
+void BKE_shrinkwrap_free_tree(ShrinkwrapTreeData *data)
+{
+	free_bvhtree_from_mesh(&data->treeData);
+}
 
 /*
  * Shrinkwrap to the nearest vertex
@@ -98,7 +166,7 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(
 	ShrinkwrapCalcCBData *data = userdata;
 
 	ShrinkwrapCalcData *calc = data->calc;
-	BVHTreeFromMesh *treeData = data->treeData;
+	BVHTreeFromMesh *treeData = &data->tree->treeData;
 	BVHTreeNearest *nearest = tls->userdata_chunk;
 
 	float *co = calc->vertexCos[i];
@@ -154,24 +222,13 @@ static void shrinkwrap_calc_nearest_vertex_cb_ex(
 
 static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 {
-	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
-
-	if (calc->target != NULL && calc->target->totvert == 0) {
-		return;
-	}
-
-	TIMEIT_BENCH(BKE_bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_VERTS, 2), bvhtree_verts);
-	if (treeData.tree == NULL) {
-		OUT_OF_MEMORY();
-		return;
-	}
 
 	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;
 
-	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
+	ShrinkwrapCalcCBData data = {.calc = calc, .tree = calc->tree};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
@@ -180,8 +237,6 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BLI_task_parallel_range(0, calc->numVerts,
 	                        &data, shrinkwrap_calc_nearest_vertex_cb_ex,
 	                        &settings);
-
-	free_bvhtree_from_mesh(&treeData);
 }
 
 
@@ -196,8 +251,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 bool BKE_shrinkwrap_project_normal(
         char options, const float vert[3], const float dir[3],
         const float ray_radius, const SpaceTransform *transf,
-        BVHTree *tree, BVHTreeRayHit *hit,
-        BVHTree_RayCastCallback callback, void *userdata)
+        ShrinkwrapTreeData *tree, BVHTreeRayHit *hit)
 {
 	/* don't use this because this dist value could be incompatible
 	 * this value used by the callback for comparing prev/new dist values.
@@ -232,7 +286,7 @@ bool BKE_shrinkwrap_project_normal(
 
 	hit_tmp.index = -1;
 
-	BLI_bvhtree_ray_cast(tree, co, no, ray_radius, &hit_tmp, callback, userdata);
+	BLI_bvhtree_ray_cast(tree->bvh, co, no, ray_radius, &hit_tmp, tree->treeData.raycast_callback, &tree->treeData);
 
 	if (hit_tmp.index != -1) {
 		/* invert the normal first so face culling works on rotated objects */
@@ -274,12 +328,8 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	ShrinkwrapCalcCBData *data = userdata;
 
 	ShrinkwrapCalcData *calc = data->calc;
-	void *treeData = data->treeData;
-	void *auxData = data->auxData;
-	BVHTree *targ_tree = data->targ_tree;
-	BVHTree *aux_tree = data->aux_tree;
-	void *targ_callback = data->targ_callback;
-	void *aux_callback = data->aux_callback;
+	ShrinkwrapTreeData *tree = data->tree;
+	ShrinkwrapTreeData *aux_tree = data->aux_tree;
 
 	float *proj_axis = data->proj_axis;
 	SpaceTransform *local2aux = data->local2aux;
@@ -321,19 +371,23 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	hit->index = -1;
 	hit->dist = BVH_RAYCAST_DIST_MAX; /* TODO: we should use FLT_MAX here, but sweepsphere code isn't prepared for that */
 
+	bool is_aux = false;
+
 	/* Project over positive direction of axis */
 	if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 		if (aux_tree) {
-			BKE_shrinkwrap_project_normal(
+			if (BKE_shrinkwrap_project_normal(
 			        0, tmp_co, tmp_no, 0.0,
-			        local2aux, aux_tree, hit,
-			        aux_callback, auxData);
+			        local2aux, aux_tree, hit)) {
+				is_aux = true;
+			}
 		}
 
-		BKE_shrinkwrap_project_normal(
+		if (BKE_shrinkwrap_project_normal(
 		        calc->smd->shrinkOpts, tmp_co, tmp_no, 0.0,
-		        &calc->local2target, targ_tree, hit,
-		        targ_callback, treeData);
+		        &calc->local2target, tree, hit)) {
+			is_aux = false;
+		}
 	}
 
 	/* Project over negative direction of axis */
@@ -348,16 +402,18 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 		}
 
 		if (aux_tree) {
-			BKE_shrinkwrap_project_normal(
+			if (BKE_shrinkwrap_project_normal(
 			        0, tmp_co, inv_no, 0.0,
-			        local2aux, aux_tree, hit,
-			        aux_callback, auxData);
+			        local2aux, aux_tree, hit)) {
+				is_aux = true;
+			}
 		}
 
-		BKE_shrinkwrap_project_normal(
+		if (BKE_shrinkwrap_project_normal(
 		        options, tmp_co, inv_no, 0.0,
-		        &calc->local2target, targ_tree, hit,
-		        targ_callback, treeData);
+		        &calc->local2target, tree, hit)) {
+			is_aux = false;
+		}
 	}
 
 	/* don't set the initial dist (which is more efficient),
@@ -369,7 +425,17 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	}
 
 	if (hit->index != -1) {
-		BKE_shrinkwrap_snap_point_to_surface(calc->smd->shrinkMode, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
+		if (is_aux) {
+			BKE_shrinkwrap_snap_point_to_surface(
+			            aux_tree, local2aux, calc->smd->shrinkMode,
+			            hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
+		}
+		else {
+			BKE_shrinkwrap_snap_point_to_surface(
+			            tree, &calc->local2target, calc->smd->shrinkMode,
+			            hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
+		}
+
 		interp_v3_v3v3(co, co, hit->co, weight);
 	}
 }
@@ -385,22 +451,18 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 	 * for finding the best hit, to get the real dist,
 	 * measure the len_v3v3() from the input coord to hit.co */
 	BVHTreeRayHit hit;
-	void *treeData = NULL;
 
 	/* auxiliary target */
 	Mesh *auxMesh = NULL;
 	bool auxMesh_free;
-	void *auxData = NULL;
+	ShrinkwrapTreeData *aux_tree = NULL;
+	ShrinkwrapTreeData aux_tree_stack;
 	SpaceTransform local2aux;
 
 	/* If the user doesn't allows to project in any direction of projection axis
 	 * then there's nothing todo. */
 	if ((calc->smd->shrinkOpts & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
-
-	if (calc->target != NULL && calc->target->totpoly == 0) {
-		return;
-	}
 
 	/* Prepare data to retrieve the direction in which we should project each vertex */
 	if (calc->smd->projAxis == MOD_SHRINKWRAP_PROJECT_OVER_NORMAL) {
@@ -428,67 +490,28 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc)
 		BLI_SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
 	}
 
-	/* use editmesh to avoid array allocation */
-	BMEditMesh *emtarget = NULL, *emaux = NULL;
-	union {
-		BVHTreeFromEditMesh emtreedata;
-		BVHTreeFromMesh dmtreedata;
-	} treedata_stack, auxdata_stack;
-
-	BVHTree *targ_tree;
-	void *targ_callback;
-	if ((targ_tree = BKE_bvhtree_from_mesh_get(
-	         &treedata_stack.dmtreedata, calc->target, BVHTREE_FROM_LOOPTRI, 4)))
-	{
-		targ_callback = treedata_stack.dmtreedata.raycast_callback;
-		treeData = &treedata_stack.dmtreedata;
-
-		BVHTree *aux_tree = NULL;
-		void *aux_callback = NULL;
-		if (auxMesh != NULL && auxMesh->totpoly != 0) {
-			/* use editmesh to avoid array allocation */
-			if ((aux_tree = BKE_bvhtree_from_mesh_get(
-			         &auxdata_stack.dmtreedata, auxMesh, BVHTREE_FROM_LOOPTRI, 4)) != NULL)
-			{
-				aux_callback = auxdata_stack.dmtreedata.raycast_callback;
-				auxData = &auxdata_stack.dmtreedata;
-			}
-		}
-		/* After successfully build the trees, start projection vertices. */
-		ShrinkwrapCalcCBData data = {
-			.calc = calc,
-			.treeData = treeData, .targ_tree = targ_tree, .targ_callback = targ_callback,
-			.auxData = auxData, .aux_tree = aux_tree, .aux_callback = aux_callback,
-			.proj_axis = proj_axis, .local2aux = &local2aux,
-		};
-		ParallelRangeSettings settings;
-		BLI_parallel_range_settings_defaults(&settings);
-		settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
-		settings.userdata_chunk = &hit;
-		settings.userdata_chunk_size = sizeof(hit);
-		BLI_task_parallel_range(0, calc->numVerts,
-		                        &data,
-		                        shrinkwrap_calc_normal_projection_cb_ex,
-		                        &settings);
+	if (BKE_shrinkwrap_init_tree(&aux_tree_stack, auxMesh, calc->smd->shrinkType, calc->smd->shrinkMode, false)) {
+		aux_tree = &aux_tree_stack;
 	}
+
+	/* After successfully build the trees, start projection vertices. */
+	ShrinkwrapCalcCBData data = {
+		.calc = calc, .tree = calc->tree, .aux_tree = aux_tree,
+		.proj_axis = proj_axis, .local2aux = &local2aux
+	};
+	ParallelRangeSettings settings;
+	BLI_parallel_range_settings_defaults(&settings);
+	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
+	settings.userdata_chunk = &hit;
+	settings.userdata_chunk_size = sizeof(hit);
+	BLI_task_parallel_range(0, calc->numVerts,
+	                        &data,
+	                        shrinkwrap_calc_normal_projection_cb_ex,
+	                        &settings);
 
 	/* free data structures */
-	if (treeData) {
-		if (emtarget) {
-			free_bvhtree_from_editmesh(treeData);
-		}
-		else {
-			free_bvhtree_from_mesh(treeData);
-		}
-	}
-
-	if (auxData) {
-		if (emaux) {
-			free_bvhtree_from_editmesh(auxData);
-		}
-		else {
-			free_bvhtree_from_mesh(auxData);
-		}
+	if (aux_tree) {
+		BKE_shrinkwrap_free_tree(aux_tree);
 	}
 	if (auxMesh != NULL && auxMesh_free) {
 		BKE_id_free(NULL, auxMesh);
@@ -509,7 +532,7 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(
 	ShrinkwrapCalcCBData *data = userdata;
 
 	ShrinkwrapCalcData *calc = data->calc;
-	BVHTreeFromMesh *treeData = data->treeData;
+	BVHTreeFromMesh *treeData = &data->tree->treeData;
 	BVHTreeNearest *nearest = tls->userdata_chunk;
 
 	float *co = calc->vertexCos[i];
@@ -547,11 +570,74 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(
 
 	/* Found the nearest vertex */
 	if (nearest->index != -1) {
-		BKE_shrinkwrap_snap_point_to_surface(calc->smd->shrinkMode, nearest->co, nearest->no, calc->keepDist, tmp_co, tmp_co);
+		BKE_shrinkwrap_snap_point_to_surface(
+		            data->tree, NULL, calc->smd->shrinkMode,
+		            nearest->index, nearest->co, nearest->no, calc->keepDist, tmp_co, tmp_co);
 
 		/* Convert the coordinates back to mesh coordinates */
 		BLI_space_transform_invert(&calc->local2target, tmp_co);
 		interp_v3_v3v3(co, co, tmp_co, weight);  /* linear interpolation */
+	}
+}
+
+/**
+ * Compute a smooth normal of the target (if applicable) at the hit location.
+ *
+ * tree: information about the mesh
+ * transform: transform from the hit coordinate space to the object space; may be null
+ * r_no: output in hit coordinate space; may be shared with inputs
+ */
+void BKE_shrinkwrap_compute_smooth_normal(
+        const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
+        int looptri_idx, const float hit_co[3], const float hit_no[3], float r_no[3])
+{
+	const BVHTreeFromMesh *treeData = &tree->treeData;
+	const MLoopTri *tri = &treeData->looptri[looptri_idx];
+
+	/* Interpolate smooth normals if enabled. */
+	if ((tree->mesh->mpoly[tri->poly].flag & ME_SMOOTH) != 0) {
+		const MVert *verts[] = {
+			&treeData->vert[treeData->loop[tri->tri[0]].v],
+			&treeData->vert[treeData->loop[tri->tri[1]].v],
+			&treeData->vert[treeData->loop[tri->tri[2]].v],
+		};
+		float w[3], no[3][3], tmp_co[3];
+
+		/* Custom and auto smooth split normals. */
+		if (tree->clnors) {
+			copy_v3_v3(no[0], tree->clnors[tri->tri[0]]);
+			copy_v3_v3(no[1], tree->clnors[tri->tri[1]]);
+			copy_v3_v3(no[2], tree->clnors[tri->tri[2]]);
+		}
+		/* Ordinary vertex normals. */
+		else {
+			normal_short_to_float_v3(no[0], verts[0]->no);
+			normal_short_to_float_v3(no[1], verts[1]->no);
+			normal_short_to_float_v3(no[2], verts[2]->no);
+		}
+
+		/* Barycentric weights from hit point. */
+		copy_v3_v3(tmp_co, hit_co);
+
+		if (transform) {
+			BLI_space_transform_apply(transform, tmp_co);
+		}
+
+		interp_weights_tri_v3(w, verts[0]->co, verts[1]->co, verts[2]->co, tmp_co);
+
+		/* Interpolate using weights. */
+		interp_v3_v3v3v3(r_no, no[0], no[1], no[2], w);
+
+		if (transform) {
+			BLI_space_transform_invert_normal(transform, r_no);
+		}
+		else {
+			normalize_v3(r_no);
+		}
+	}
+	/* Use the looptri normal if flat. */
+	else {
+		copy_v3_v3(r_no, hit_no);
 	}
 }
 
@@ -582,13 +668,17 @@ static void shrinkwrap_snap_with_side(float r_point_co[3], const float point_co[
 
 /**
  * Apply the shrink to surface modes to the given original coordinates and nearest point.
- * r_point_co may be the same memory location as point_co, hit_co, or hit_no.
+ *
+ * tree: mesh data for smooth normals
+ * transform: transform from the hit coordinate space to the object space; may be null
+ * r_point_co: may be the same memory location as point_co, hit_co, or hit_no.
  */
 void BKE_shrinkwrap_snap_point_to_surface(
-        int mode, const float hit_co[3], const float hit_no[3], float goal_dist,
+        const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
+        int mode, int hit_idx, const float hit_co[3], const float hit_no[3], float goal_dist,
         const float point_co[3], float r_point_co[3])
 {
-	float dist;
+	float dist, tmp[3];
 
 	switch (mode) {
 		/* Offsets along the line between point_co and hit_co. */
@@ -620,7 +710,13 @@ void BKE_shrinkwrap_snap_point_to_surface(
 
 		/* Offsets along the normal */
 		case MOD_SHRINKWRAP_ABOVE_SURFACE:
-			madd_v3_v3v3fl(r_point_co, hit_co, hit_no, goal_dist);
+			if (goal_dist > 0) {
+				BKE_shrinkwrap_compute_smooth_normal(tree, transform, hit_idx, hit_co, hit_no, tmp);
+				madd_v3_v3v3fl(r_point_co, hit_co, tmp, goal_dist);
+			}
+			else {
+				copy_v3_v3(r_point_co, hit_co);
+			}
 			break;
 
 		default:
@@ -631,26 +727,14 @@ void BKE_shrinkwrap_snap_point_to_surface(
 
 static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 {
-	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
-
-	if (calc->target->totpoly == 0) {
-		return;
-	}
-
-	/* Create a bvh-tree of the given target */
-	BKE_bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_LOOPTRI, 2);
-	if (treeData.tree == NULL) {
-		OUT_OF_MEMORY();
-		return;
-	}
 
 	/* Setup nearest */
 	nearest.index = -1;
 	nearest.dist_sq = FLT_MAX;
 
 	/* Find the nearest vertex */
-	ShrinkwrapCalcCBData data = {.calc = calc, .treeData = &treeData};
+	ShrinkwrapCalcCBData data = {.calc = calc, .tree = calc->tree};
 	ParallelRangeSettings settings;
 	BLI_parallel_range_settings_defaults(&settings);
 	settings.use_threading = (calc->numVerts > BKE_MESH_OMP_LIMIT);
@@ -660,8 +744,6 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	                        &data,
 	                        shrinkwrap_calc_nearest_surface_point_cb_ex,
 	                        &settings);
-
-	free_bvhtree_from_mesh(&treeData);
 }
 
 /* Main shrinkwrap function */
@@ -745,7 +827,11 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene,
 	}
 
 	/* Projecting target defined - lets work! */
-	if (calc.target) {
+	ShrinkwrapTreeData tree;
+
+	if (BKE_shrinkwrap_init_tree(&tree, calc.target, smd->shrinkType, smd->shrinkMode, false)) {
+		calc.tree = &tree;
+
 		switch (smd->shrinkType) {
 			case MOD_SHRINKWRAP_NEAREST_SURFACE:
 				TIMEIT_BENCH(shrinkwrap_calc_nearest_surface_point(&calc), deform_surface);
@@ -759,6 +845,8 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, struct Scene *scene,
 				TIMEIT_BENCH(shrinkwrap_calc_nearest_vertex(&calc), deform_vertex);
 				break;
 		}
+
+		BKE_shrinkwrap_free_tree(&tree);
 	}
 
 	/* free memory */

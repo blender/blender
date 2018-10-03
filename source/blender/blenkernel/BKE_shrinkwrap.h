@@ -55,27 +55,25 @@ struct ShrinkwrapModifierData;
 struct BVHTree;
 struct SpaceTransform;
 
+typedef struct ShrinkwrapTreeData {
+	Mesh *mesh;
 
-typedef struct ShrinkwrapCalcData {
-	ShrinkwrapModifierData *smd;    //shrinkwrap modifier data
+	BVHTree *bvh;
+	BVHTreeFromMesh treeData;
 
-	struct Object *ob;              //object we are applying shrinkwrap to
+	float (*clnors)[3];
+} ShrinkwrapTreeData;
 
-	struct MVert *vert;             //Array of verts being projected (to fetch normals or other data)
-	float (*vertexCos)[3];          //vertexs being shrinkwraped
-	int numVerts;
+/* Checks if the modifier needs target normals with these settings. */
+bool BKE_shrinkwrap_needs_normals(int shrinkType, int shrinkMode);
 
-	struct MDeformVert *dvert;      //Pointer to mdeform array
-	int vgroup;                     //Vertex group num
-	bool invert_vgroup;             /* invert vertex group influence */
+/* Initializes the mesh data structure from the given mesh and settings. */
+bool BKE_shrinkwrap_init_tree(struct ShrinkwrapTreeData *data, Mesh *mesh, int shrinkType, int shrinkMode, bool force_normals);
 
-	struct Mesh *target;     //mesh we are shrinking to
-	struct SpaceTransform local2target;    //transform to move between local and target space
+/* Frees the tree data if necessary. */
+void BKE_shrinkwrap_free_tree(struct ShrinkwrapTreeData *data);
 
-	float keepDist;                 //Distance to keep above target surface (units are in local space)
-
-} ShrinkwrapCalcData;
-
+/* Implementation of the Shrinkwrap modifier */
 void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene *scene, struct Object *ob, struct Mesh *mesh,
                                float (*vertexCos)[3], int numVerts);
 
@@ -91,12 +89,17 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Scene 
  */
 bool BKE_shrinkwrap_project_normal(
         char options, const float vert[3], const float dir[3], const float ray_radius,
-        const struct SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
-        BVHTree_RayCastCallback callback, void *userdata);
+        const struct SpaceTransform *transf, struct ShrinkwrapTreeData *tree, BVHTreeRayHit *hit);
+
+/* Computes a smooth normal of the target (if applicable) at the hit location. */
+void BKE_shrinkwrap_compute_smooth_normal(
+        const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
+        int looptri_idx, const float hit_co[3], const float hit_no[3], float r_no[3]);
 
 /* Apply the shrink to surface modes to the given original coordinates and nearest point. */
 void BKE_shrinkwrap_snap_point_to_surface(
-        int mode, const float hit_co[3], const float hit_no[3], float goal_dist,
+        const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
+        int mode, int hit_idx, const float hit_co[3], const float hit_no[3], float goal_dist,
         const float point_co[3], float r_point_co[3]);
 
 /*
