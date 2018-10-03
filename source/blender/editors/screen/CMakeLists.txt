@@ -42,6 +42,7 @@ set(INC_SYS
 
 set(SRC
 	area.c
+	area_utils.c
 	glutil.c
 	screen_context.c
 	screen_draw.c

@@ -356,7 +356,7 @@ class IMAGE_MT_uvs_weldalign(Menu):
 
 
 class IMAGE_MT_uvs(Menu):
-    bl_label = "UVs"
+    bl_label = "UV"
 
     def draw(self, context):
         layout = self.layout

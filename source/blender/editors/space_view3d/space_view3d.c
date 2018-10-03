@@ -1103,20 +1103,6 @@ static void view3d_main_region_message_subscribe(
 	}
 }
 
-static void view3d_tools_region_message_subscribe(
-        const struct bContext *UNUSED(C),
-        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
-        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
-        struct wmMsgBus *mbus)
-{
-	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
-		.owner = ar,
-		.user_data = ar,
-		.notify = ED_region_do_msg_notify_tag_redraw,
-	};
-	WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
-}
-
 /* concept is to retrieve cursor type context-less */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
 {
@@ -1317,27 +1303,6 @@ static void view3d_buttons_region_listener(
 				ED_region_tag_redraw(ar);
 			break;
 	}
-}
-
-static int view3d_tools_region_snap_size(const ARegion *ar, int size, int axis)
-{
-	if (axis == 0) {
-		/* Note, this depends on the icon size: see #ICON_DEFAULT_HEIGHT_TOOLBAR. */
-		const float snap_units[] = {2 + 0.8f, 4 + 0.8f};
-		const float aspect = BLI_rctf_size_x(&ar->v2d.cur) / (BLI_rcti_size_x(&ar->v2d.mask) + 1);
-		int best_diff = INT_MAX;
-		int best_size = size;
-		for (uint i = 0; i < ARRAY_SIZE(snap_units); i += 1) {
-			const int test_size = (snap_units[i] * U.widget_unit) / (UI_DPI_FAC * aspect);
-			const int test_diff = ABS(test_size - size);
-			if (test_diff < best_diff) {
-				best_size = test_size;
-				best_diff = test_diff;
-			}
-		}
-		return best_size;
-	}
-	return size;
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -1546,8 +1511,8 @@ void ED_spacetype_view3d(void)
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = view3d_buttons_region_listener;
-	art->message_subscribe = view3d_tools_region_message_subscribe;
-	art->snap_size = view3d_tools_region_snap_size;
+	art->message_subscribe = ED_region_generic_tools_region_message_subscribe;
+	art->snap_size = ED_region_generic_tools_region_snap_size;
 	art->init = view3d_tools_region_init;
 	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);

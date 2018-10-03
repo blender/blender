@@ -342,6 +342,14 @@ void ED_region_cache_draw_background(const struct ARegion *ar);
 void ED_region_cache_draw_curfra_label(const int framenr, const float x, const float y);
 void ED_region_cache_draw_cached_segments(const struct ARegion *ar, const int num_segments, const int *points, const int sfra, const int efra);
 
+/* area_utils.c */
+void ED_region_generic_tools_region_message_subscribe(
+        const struct bContext *C,
+        struct WorkSpace *workspace, struct Scene *scene,
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus);
+int ED_region_generic_tools_region_snap_size(const struct ARegion *ar, int size, int axis);
+
 /* interface_region_hud.c */
 struct ARegionType *ED_area_type_hud(int space_type);
 void ED_area_type_hud_clear(struct wmWindowManager *wm, ScrArea *sa_keep);
