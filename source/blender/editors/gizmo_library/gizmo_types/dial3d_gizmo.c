@@ -374,9 +374,16 @@ static void dial_draw_intern(
 	}
 
 	ED_gizmotypes_dial_3d_draw_util(
-	        gz->matrix_basis, matrix_final, gz->line_width, color, clip_plane,
-	        arc_partial_angle, arc_inner_factor, draw_options, angle_ofs,
-	        angle_delta, angle_increment);
+	        gz->matrix_basis, matrix_final, gz->line_width, color,
+	        &(struct Dial3dParams){
+	            .draw_options = draw_options,
+	            .angle_ofs = angle_ofs,
+	            .angle_delta = angle_delta,
+	            .angle_increment = angle_increment,
+	            .arc_partial_angle = arc_partial_angle,
+	            .arc_inner_factor = arc_inner_factor,
+	            .clip_plane = clip_plane,
+	        });
 }
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)
@@ -535,40 +542,34 @@ void ED_gizmotypes_dial_3d_draw_util(
         const float matrix_final[4][4],
         const float line_width,
         const float color[4],
-        const float clip_plane[4],
-        const float arc_partial_angle,
-        const float arc_inner_factor,
-        const int draw_options,
-        const float angle_ofs,
-        const float angle_delta,
-        const float angle_increment)
+        struct Dial3dParams *params)
 {
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
 
 	GPU_polygon_smooth(false);
 
-	if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE) != 0) {
+	if ((params->draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE) != 0) {
 		/* Draw rotation indicator arc first. */
 		dial_ghostarc_draw_with_helplines(
-		        angle_ofs, angle_delta,
-		        arc_inner_factor, color, draw_options);
+		        params->angle_ofs, params->angle_delta,
+		        params->arc_inner_factor, color, params->draw_options);
 
-		if ((draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) != 0) {
+		if ((params->draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_MIRROR) != 0) {
 			dial_ghostarc_draw_with_helplines(
-			        angle_ofs + M_PI, angle_delta,
-			        arc_inner_factor, color, draw_options);
+			        params->angle_ofs + M_PI, params->angle_delta,
+			        params->arc_inner_factor, color, params->draw_options);
 		}
 	}
 
-	if (angle_increment) {
-		dial_ghostarc_draw_incremental_angle(angle_increment);
+	if (params->angle_increment) {
+		dial_ghostarc_draw_incremental_angle(params->angle_increment);
 	}
 
 	/* Draw actual dial gizmo. */
 	dial_geom_draw(
-	        color, line_width, false, matrix_basis, clip_plane,
-	        arc_partial_angle, arc_inner_factor, draw_options);
+	        color, line_width, false, matrix_basis, params->clip_plane,
+	        params->arc_partial_angle, params->arc_inner_factor, params->draw_options);
 
 	GPU_matrix_pop();
 }

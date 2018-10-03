@@ -1299,9 +1299,12 @@ void drawDial3d(const TransInfo *t)
 		GPU_line_smooth(true);
 
 		ED_gizmotypes_dial_3d_draw_util(
-		        mat_basis, mat_final, line_with, color, NULL, 0.0f, 0.0f,
-		        ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
-		        0.0f, t->values[0], increment);
+		        mat_basis, mat_final, line_with, color,
+		        &(struct Dial3dParams){
+		            .draw_options = ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
+		            .angle_delta = t->values[0],
+		            .angle_increment = increment,
+		        });
 
 		GPU_line_smooth(false);
 
