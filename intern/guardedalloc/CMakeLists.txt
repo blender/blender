@@ -53,6 +53,11 @@ if(WIN32 AND NOT UNIX)
 	)
 endif()
 
+# Jemalloc 5.0.0+ needs extra configuration.
+if(WITH_MEM_JEMALLOC AND ("${JEMALLOC_VERSION}" VERSION_GREATER_EQUAL "5.0.0"))
+	add_definitions(-DWITH_JEMALLOC_CONF)
+endif()
+
 blender_add_lib(bf_intern_guardedalloc "${SRC}" "${INC}" "${INC_SYS}")
 
 # Override C++ alloc, optional.
