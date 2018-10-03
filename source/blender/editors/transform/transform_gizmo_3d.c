@@ -78,6 +78,7 @@
 #include "ED_gizmo_library.h"
 #include "ED_gizmo_utils.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 /* local module include */
@@ -86,6 +87,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_select.h"
+#include "GPU_state.h"
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
@@ -1235,6 +1237,77 @@ static void gizmo_xform_message_subscribe(
 	}
 
 	WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_gz_tag_refresh);
+}
+
+
+void drawDial3d(const TransInfo *t)
+{
+	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
+		float scale, line_with, increment, color[4], mat_basis[4][4], mat_final[4][4];
+		int axis_idx;
+
+		scale = UI_DPI_FAC * U.gizmo_size;
+		line_with = GIZMO_AXIS_LINE_WIDTH + 1.0f;
+
+		copy_m4_m3(mat_basis, t->spacemtx);
+		copy_v3_v3(mat_basis[3], t->center_global);
+
+		const TransCon *tc = &(t->con);
+		if (tc->mode & CON_APPLY) {
+			if (tc->mode & CON_AXIS0) {
+				axis_idx = MAN_AXIS_ROT_X;
+				negate_v3_v3(mat_basis[2], tc->mtx[0]);
+			}
+			else if (tc->mode &  CON_AXIS1) {
+				axis_idx = MAN_AXIS_ROT_Y;
+				negate_v3_v3(mat_basis[2], tc->mtx[1]);
+			}
+			else if (tc->mode &  CON_AXIS2) {
+				axis_idx = MAN_AXIS_ROT_Z;
+				negate_v3_v3(mat_basis[2], tc->mtx[2]);
+			}
+			else BLI_assert(0);
+		}
+		else {
+			axis_idx = MAN_AXIS_ROT_C;
+			negate_v3_v3(mat_basis[2], t->axis);
+			scale *= 1.2f;
+			line_with -= 1.0f;
+		}
+
+		BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);
+		gizmo_get_axis_color(axis_idx, NULL, color, color);
+
+		ortho_basis_v3v3_v3(mat_basis[0], mat_basis[1], mat_basis[2]);
+		copy_m4_m4(mat_final, mat_basis);
+		scale *= ED_view3d_pixel_size_no_ui_scale(t->ar->regiondata, mat_final[3]);
+		mul_mat3_m4_fl(mat_final, scale);
+
+		if ((t->tsnap.mode & (SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID))
+		    && activeSnap(t))
+		{
+			increment = (t->modifiers & MOD_PRECISION) ? t->snap[2] : t->snap[1];
+		}
+		else {
+			increment = t->snap[0];
+		}
+
+		GPU_depth_test(false);
+		GPU_blend(true);
+
+		/* XXX force AntiAlias. */
+		GPU_line_smooth(true);
+
+		ED_gizmotypes_dial_3d_draw_util(
+		        mat_basis, mat_final, line_with, color, NULL, 0.0f, 0.0f,
+		        ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE,
+		        0.0f, t->values[0], increment);
+
+		GPU_line_smooth(false);
+
+		GPU_depth_test(true);
+		GPU_blend(false);
+	}
 }
 
 /** \} */

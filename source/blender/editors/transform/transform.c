@@ -1999,6 +1999,9 @@ static void drawTransformView(const struct bContext *C, ARegion *UNUSED(ar), voi
 	/* edge slide, vert slide */
 	drawEdgeSlide(t);
 	drawVertSlide(t);
+
+	/* Rotation */
+	drawDial3d(t);
 }
 
 /* just draw a little warning message in the top-right corner of the viewport to warn that autokeying is enabled */

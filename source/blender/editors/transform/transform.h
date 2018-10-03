@@ -718,6 +718,7 @@ void restoreBones(TransDataContainer *tc);
 
 /* return 0 when no gimbal for selection */
 bool gimbal_axis(struct Object *ob, float gmat[3][3]);
+void drawDial3d(const TransInfo *t);
 
 /*********************** TransData Creation and General Handling *********** */
 void createTransData(struct bContext *C, TransInfo *t);
