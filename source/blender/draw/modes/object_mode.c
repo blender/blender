@@ -2753,6 +2753,12 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_empty(sgl, ob, view_layer);
 			break;
 		case OB_GPENCIL:
+			/* in draw mode hide always */
+			if ((OBACT(view_layer)) &&
+				(OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT))
+			{
+				break;
+			}
 			if (hide_object_extra) {
 				break;
 			}
