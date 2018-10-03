@@ -860,88 +860,6 @@ class IMAGE_PT_render_slots(Panel):
         col.operator("image.clear_render_slot", icon='X', text="")
 
 
-class IMAGE_PT_tools_transform_uvs(Panel, UVToolsPanel):
-    bl_label = "Transform"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit and not context.tool_settings.use_uv_sculpt
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-        col.operator("transform.shear")
-
-
-class IMAGE_PT_tools_align_uvs(Panel, UVToolsPanel):
-    bl_label = "UV Align"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit and not context.tool_settings.use_uv_sculpt
-
-    def draw(self, context):
-        layout = self.layout
-        layout.operator_context = 'EXEC_REGION_WIN'
-
-        split = layout.split()
-        col = split.column(align=True)
-        col.operator("transform.mirror", text="Mirror X").constraint_axis[0] = True
-        col.operator("transform.mirror", text="Mirror Y").constraint_axis[1] = True
-        col = split.column(align=True)
-        col.operator("transform.rotate", text="Rotate +90°").value = math.pi / 2
-        col.operator("transform.rotate", text="Rotate  - 90°").value = math.pi / -2
-
-        split = layout.split()
-        col = split.column(align=True)
-        col.operator("uv.align", text="Straighten").axis = 'ALIGN_S'
-        col.operator("uv.align", text="Straighten X").axis = 'ALIGN_T'
-        col.operator("uv.align", text="Straighten Y").axis = 'ALIGN_U'
-        col = split.column(align=True)
-        col.operator("uv.align", text="Align Auto").axis = 'ALIGN_AUTO'
-        col.operator("uv.align", text="Align X").axis = 'ALIGN_X'
-        col.operator("uv.align", text="Align Y").axis = 'ALIGN_Y'
-
-
-class IMAGE_PT_tools_uvs(Panel, UVToolsPanel):
-    bl_label = "UV Tools"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit and not context.tool_settings.use_uv_sculpt
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("uv.weld")
-        row.operator("uv.stitch")
-        col.operator("uv.remove_doubles")
-        col.operator("uv.average_islands_scale")
-        col.operator("uv.pack_islands")
-        col.operator("mesh.faces_mirror_uv")
-        col.operator("uv.minimize_stretch")
-
-        layout.label(text="UV Unwrap:")
-        row = layout.row(align=True)
-        row.operator("uv.pin").clear = False
-        row.operator("uv.pin", text="Unpin").clear = True
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("uv.mark_seam", text="Mark Seam").clear = False
-        row.operator("uv.mark_seam", text="Clear Seam").clear = True
-        col.operator("uv.seams_from_islands", text="Mark Seams from Islands")
-        col.operator("uv.unwrap")
-
-
 class IMAGE_PT_paint(Panel, ImagePaintPanel):
     bl_label = "Paint"
     bl_category = "Tools"
@@ -1320,29 +1238,6 @@ class IMAGE_PT_uv_sculpt(Panel, ImagePaintPanel):
         col.prop(uvsculpt, "show_brush")
 
 
-class IMAGE_PT_options_uvs(Panel, UVToolsPanel):
-    bl_label = "UV Options"
-    bl_category = "Options"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit
-
-    def draw(self, context):
-        layout = self.layout
-
-        sima = context.space_data
-        uv = sima.uv_editor
-        toolsettings = context.tool_settings
-
-        layout.prop(toolsettings, "use_uv_sculpt")
-        layout.prop(uv, "use_live_unwrap")
-
-        layout.prop(uv, "use_snap_to_pixels")
-        layout.prop(uv, "lock_bounds")
-
-
 class ImageScopesPanel:
     @classmethod
     def poll(cls, context):
@@ -1508,10 +1403,6 @@ classes = (
     IMAGE_PT_view_display,
     IMAGE_PT_view_display_uv_edit_overlays,
     IMAGE_PT_view_display_uv_edit_overlays_advanced,
-    IMAGE_PT_tools_transform_uvs,
-    IMAGE_PT_tools_align_uvs,
-    IMAGE_PT_tools_uvs,
-    IMAGE_PT_options_uvs,
     IMAGE_PT_paint,
     IMAGE_PT_tools_brush_overlay,
     IMAGE_PT_tools_brush_texture,
