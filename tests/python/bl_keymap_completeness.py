@@ -27,12 +27,12 @@ from bpy_extras import keyconfig_utils
 def check_maps():
     maps = {}
 
-    def fill_maps(ls):
-        for km_name, km_space_type, km_region_type, km_sub in ls:
+    def fill_maps(seq):
+        for km_name, km_space_type, km_region_type, km_sub in seq:
             maps[km_name] = (km_space_type, km_region_type)
             fill_maps(km_sub)
 
-    fill_maps(keyconfig_utils.KM_HIERARCHY)
+    fill_maps(keyconfig_utils.km_hierarchy())
 
     import bpy
     keyconf = bpy.context.window_manager.keyconfigs.active

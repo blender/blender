@@ -18,12 +18,36 @@
 
 # <pep8 compliant>
 
+
+def _km_expand_from_toolsystem(space_type, context_mode):
+    def _fn():
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        for cls in ToolSelectPanelHelper.__subclasses__():
+            if cls.bl_space_type == space_type:
+                return cls.keymap_ui_hierarchy(context_mode)
+        raise Exception("keymap not found")
+    return _fn
+
+
+def _km_hierarchy_iter_recursive(items):
+    for sub in items:
+        if callable(sub):
+            yield from sub()
+        else:
+            yield (*sub[:3], list(_km_hierarchy_iter_recursive(sub[3])))
+
+
+def km_hierarchy():
+    return list(_km_hierarchy_iter_recursive(_km_hierarchy))
+
+
 # bpy.type.KeyMap: (km.name, km.space_type, km.region_type, [...])
 
 #    ('Script', 'EMPTY', 'WINDOW', []),
 
 
-KM_HIERARCHY = [
+# Access via 'km_hierarchy'.
+_km_hierarchy = [
     ('Window', 'EMPTY', 'WINDOW', []),  # file save, window change, exit
     ('Screen', 'EMPTY', 'WINDOW', [     # full screen, undo, screenshot
         ('Screen Editing', 'EMPTY', 'WINDOW', []),    # re-sizing, action corners
@@ -36,24 +60,51 @@ KM_HIERARCHY = [
     ('User Interface', 'EMPTY', 'WINDOW', []),
 
     ('3D View', 'VIEW_3D', 'WINDOW', [  # view 3d navigation and generic stuff (select, transform)
-        ('Object Mode', 'EMPTY', 'WINDOW', []),
-        ('Mesh', 'EMPTY', 'WINDOW', []),
-        ('Curve', 'EMPTY', 'WINDOW', []),
-        ('Armature', 'EMPTY', 'WINDOW', []),
-        ('Metaball', 'EMPTY', 'WINDOW', []),
-        ('Lattice', 'EMPTY', 'WINDOW', []),
-        ('Font', 'EMPTY', 'WINDOW', []),
+        ('Object Mode', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'OBJECT'),
+        ]),
+        ('Mesh', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_MESH'),
+        ]),
+        ('Curve', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_CURVE'),
+        ]),
+        ('Armature', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_ARMATURE'),
+        ]),
+        ('Metaball', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_METABALL'),
+        ]),
+        ('Lattice', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_LATTICE'),
+        ]),
+        ('Font', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'EDIT_TEXT'),
+        ]),
 
-        ('Pose', 'EMPTY', 'WINDOW', []),
+        ('Pose', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'POSE'),
+        ]),
 
-        ('Vertex Paint', 'EMPTY', 'WINDOW', []),
-        ('Weight Paint', 'EMPTY', 'WINDOW', []),
+        ('Vertex Paint', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'PAINT_VERTEX'),
+        ]),
+        ('Weight Paint', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'PAINT_WEIGHT'),
+        ]),
         ('Weight Paint Vertex Selection', 'EMPTY', 'WINDOW', []),
         ('Face Mask', 'EMPTY', 'WINDOW', []),
-        ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
-        ('Sculpt', 'EMPTY', 'WINDOW', []),
+        # image and view3d
+        ('Image Paint', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'PAINT_TEXTURE'),
+        ]),
+        ('Sculpt', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'SCULPT'),
+        ]),
 
-        ('Particle', 'EMPTY', 'WINDOW', []),
+        ('Particle', 'EMPTY', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', 'PARTICLE'),
+        ]),
 
         ('Knife Tool Modal Map', 'EMPTY', 'WINDOW', []),
         ('Custom Normals Modal Map', 'EMPTY', 'WINDOW', []),
@@ -69,7 +120,10 @@ KM_HIERARCHY = [
         ('View3D Zoom Modal', 'EMPTY', 'WINDOW', []),
         ('View3D Dolly Modal', 'EMPTY', 'WINDOW', []),
 
-        ('3D View Generic', 'VIEW_3D', 'WINDOW', []),    # toolbar and properties
+        # toolbar and properties
+        ('3D View Generic', 'VIEW_3D', 'WINDOW', [
+            _km_expand_from_toolsystem('VIEW_3D', None),
+        ]),
     ]),
 
     ('Graph Editor', 'GRAPH_EDITOR', 'WINDOW', [
@@ -88,7 +142,9 @@ KM_HIERARCHY = [
         ('UV Editor', 'EMPTY', 'WINDOW', []),  # image (reverse order, UVEdit before Image)
         ('Image Paint', 'EMPTY', 'WINDOW', []),  # image and view3d
         ('UV Sculpt', 'EMPTY', 'WINDOW', []),
-        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', []),
+        ('Image Generic', 'IMAGE_EDITOR', 'WINDOW', [
+            _km_expand_from_toolsystem('IMAGE_EDITOR', None),
+        ]),
     ]),
 
     ('Outliner', 'OUTLINER', 'WINDOW', []),
@@ -410,7 +466,7 @@ def keyconfig_test(kc):
     # Function body
 
     result = False
-    for entry in KM_HIERARCHY:
+    for entry in km_hierarchy():
         if testEntry(kc, entry):
             result = True
     return result

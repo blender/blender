@@ -356,7 +356,7 @@ def draw_filtered(display_keymaps, filter_type, filter_text, layout):
 
 def draw_hierarchy(display_keymaps, layout):
     from bpy_extras import keyconfig_utils
-    for entry in keyconfig_utils.KM_HIERARCHY:
+    for entry in keyconfig_utils.km_hierarchy():
         draw_entry(display_keymaps, entry, layout)
 
 

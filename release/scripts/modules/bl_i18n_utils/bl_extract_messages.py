@@ -437,8 +437,8 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
                     reports, check_ctxt_rna, settings)
 
     # And parse keymaps!
-    from bpy_extras.keyconfig_utils import KM_HIERARCHY
-    walk_keymap_hierarchy(KM_HIERARCHY, "KM_HIERARCHY")
+    from bpy_extras.keyconfig_utils import km_hierarchy
+    walk_keymap_hierarchy(km_hierarchy(), "KM_HIERARCHY")
 
 
 ##### Python source code #####

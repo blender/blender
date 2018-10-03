@@ -302,25 +302,32 @@ class ToolSelectPanelHelper:
         return context.button_operator.name
 
     @classmethod
-    def _km_action_simple(cls, kc, context_mode, text, keymap_fn):
-        if context_mode is None:
-            context_mode = "All"
-        km_idname = f"{cls.keymap_prefix:s} {context_mode:s}, {text:s}"
+    def _km_action_simple(cls, kc, context_descr, text, keymap_fn):
+        km_idname = f"{cls.keymap_prefix:s} {context_descr:s}, {text:s}"
         km = kc.keymaps.get(km_idname)
         if km is None:
             km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW')
             keymap_fn[0](km)
         keymap_fn[0] = km
 
+    # Special internal function, gives use items that contain keymaps.
+    @staticmethod
+    def _tools_flatten_with_keymap(tools):
+        for item_parent in tools:
+            if item_parent is None:
+                continue
+            for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
+                # skip None or generator function
+                if item is None or _item_is_fn(item):
+                    continue
+                if item.keymap is not None:
+                    yield item
+
     @classmethod
     def register(cls):
         wm = bpy.context.window_manager
-
-        # XXX, should we be manipulating the user-keyconfig on load?
-        # Perhaps this should only add when keymap items don't already exist.
-        #
-        # This needs some careful consideration.
-        kc = wm.keyconfigs.user
+        # Write into defaults, users may modify in preferences.
+        kc = wm.keyconfigs.default
 
         # Track which tool-group was last used for non-active groups.
         # Blender stores the active tool-group index.
@@ -333,17 +340,26 @@ class ToolSelectPanelHelper:
             return
 
         for context_mode, tools in cls.tools_all():
-            for item_parent in tools:
-                if item_parent is None:
-                    continue
-                for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
-                    # skip None or generator function
-                    if item is None or _item_is_fn(item):
-                        continue
-                    keymap_data = item.keymap
-                    if keymap_data is not None and callable(keymap_data[0]):
-                        text = item.text
-                        cls._km_action_simple(kc, context_mode, text, keymap_data)
+            if context_mode is None:
+                context_descr = "All"
+            else:
+                context_descr = context_mode.replace("_", " ").title()
+
+            for item in cls._tools_flatten_with_keymap(tools):
+                keymap_data = item.keymap
+                if callable(keymap_data[0]):
+                    text = item.text
+                    cls._km_action_simple(kc, context_descr, text, keymap_data)
+
+    @classmethod
+    def keymap_ui_hierarchy(cls, context_mode):
+        # See: bpy_extras.keyconfig_utils
+        for context_mode_test, tools in cls.tools_all():
+            if context_mode_test == context_mode:
+                for item in cls._tools_flatten_with_keymap(tools):
+                    km = item.keymap[0]
+                    # print((km.name, cls.bl_space_type, 'WINDOW', []))
+                    yield (km.name, cls.bl_space_type, 'WINDOW', [])
 
     # -------------------------------------------------------------------------
     # Layout Generators
