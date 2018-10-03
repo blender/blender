@@ -1521,6 +1521,16 @@ float UI_text_clip_middle_ex(
 				memmove(str + l_end + sep_len, str + r_offset, r_len);
 				memcpy(str + l_end, sep, sep_len);
 				final_lpart_len = (size_t)(l_end + sep_len + r_len - 1);  /* -1 to remove trailing '\0'! */
+
+				while (BLF_width(fstyle->uifont_id, str, max_len) > okwidth) {
+					/* This will happen because a lot of string width processing is done in integer pixels,
+					 * which can introduce a rather high error in the end (about 2 pixels or so).
+					 * Only one char removal shall ever be needed in real-life situation... */
+					r_len--;
+					final_lpart_len--;
+					char *c = str + l_end + sep_len;
+					memmove(c, c + 1, r_len);
+				}
 			}
 		}
 
