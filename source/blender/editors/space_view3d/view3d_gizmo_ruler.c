@@ -164,8 +164,6 @@ static void ruler_item_remove(bContext *C, wmGizmoGroup *gzgroup, RulerItem *rul
 static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
                                  char *numstr, size_t numstr_size, int prec)
 {
-	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
-
 	if (ruler_item->flag & RULERITEM_USE_ANGLE) {
 		const float ruler_angle = angle_v3v3v3(ruler_item->co[0],
 		                                       ruler_item->co[1],
@@ -175,9 +173,9 @@ static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
 			BLI_snprintf(numstr, numstr_size, "%.*f°", prec, RAD2DEGF(ruler_angle));
 		}
 		else {
-			bUnit_AsString(numstr, numstr_size,
-			               (double)ruler_angle,
-			               prec, unit->system, B_UNIT_ROTATION, do_split, false);
+			bUnit_AsString2(
+			        numstr, numstr_size, (double)ruler_angle,
+			        prec, B_UNIT_ROTATION, unit, false);
 		}
 	}
 	else {
@@ -188,9 +186,9 @@ static void ruler_item_as_string(RulerItem *ruler_item, UnitSettings *unit,
 			BLI_snprintf(numstr, numstr_size, "%.*f", prec, ruler_len);
 		}
 		else {
-			bUnit_AsString(numstr, numstr_size,
-			               (double)(ruler_len * unit->scale_length),
-			               prec, unit->system, B_UNIT_LENGTH, do_split, false);
+			bUnit_AsString2(
+			        numstr, numstr_size, (double)(ruler_len * unit->scale_length),
+			        prec, B_UNIT_LENGTH, unit, false);
 		}
 	}
 }

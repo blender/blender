@@ -31,13 +31,22 @@
 extern "C" {
 #endif
 
+struct UnitSettings;
+
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-size_t  bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+size_t bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, bool split, bool pad);
+size_t bUnit_AsString2(char *str, int len_max, double value, int prec, int type, const struct UnitSettings *settings, bool pad);
 
 /* replace units with values, used before python button evaluation */
 bool bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+
+/* return true if the string contains any valid unit for the given type */
+bool bUnit_ContainsUnit(const char *str, int system, int type);
+
+/* if user does not specify a unit, multiply with this value */
+double bUnit_PreferredUnitScalar(const struct UnitSettings *settings, int type);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
@@ -56,9 +65,11 @@ bool bUnit_IsValid(int system, int type);
 
 void        bUnit_GetSystem(int system, int type, void const **r_usys_pt, int *r_len);
 int         bUnit_GetBaseUnit(const void *usys_pt);
+int         bUnit_GetBaseUnitOfType(int system, int type);
 const char *bUnit_GetName(const void *usys_pt, int index);
 const char *bUnit_GetNameDisplay(const void *usys_pt, int index);
 double      bUnit_GetScaler(const void *usys_pt, int index);
+bool        bUnit_IsSuppressed(const void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
 enum {

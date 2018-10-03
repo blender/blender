@@ -158,9 +158,6 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 	ScrArea *sa = BKE_screen_find_area_xy(screen, SPACE_TYPE_ANY, mx, my);
 	Scene *scene = CTX_data_scene(C);
 
-	UnitSettings *unit = &scene->unit;
-	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
-
 	ScrArea *area_prev = CTX_wm_area(C);
 	ARegion *ar_prev = CTX_wm_region(C);
 
@@ -199,9 +196,9 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 					*r_depth = len_v3v3(view_co, co_align);
 
-					bUnit_AsString(ddr->name, sizeof(ddr->name),
-					               (double)*r_depth,
-					               4, unit->system, B_UNIT_LENGTH, do_split, false);
+					bUnit_AsString2(
+					        ddr->name, sizeof(ddr->name), (double)*r_depth,
+					        4, B_UNIT_LENGTH, &scene->unit, false);
 				}
 				else {
 					BLI_strncpy(ddr->name, "Nothing under cursor", sizeof(ddr->name));

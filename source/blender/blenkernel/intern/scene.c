@@ -703,6 +703,9 @@ void BKE_scene_init(Scene *sce)
 
 	sce->unit.system = USER_UNIT_METRIC;
 	sce->unit.scale_length = 1.0f;
+	sce->unit.length_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_LENGTH);
+	sce->unit.mass_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_MASS);
+	sce->unit.time_unit = bUnit_GetBaseUnitOfType(USER_UNIT_METRIC, B_UNIT_TIME);
 
 	pset = &sce->toolsettings->particle;
 	pset->flag = PE_KEEP_LENGTHS | PE_LOCK_FIRST | PE_DEFLECT_EMITTER | PE_AUTO_VELOCITY;

@@ -254,6 +254,32 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 	return true;
 }
 
+bool user_string_to_number(bContext *C, const char *str, const UnitSettings *unit, int type, double *r_value)
+{
+#ifdef WITH_PYTHON
+	double unit_scale = BKE_scene_unit_scale(unit, type, 1.0);
+	if (!bUnit_ContainsUnit(str, unit->system, type)) {
+		int success = BPY_execute_string_as_number(C, NULL, str, true, r_value);
+		*r_value *= bUnit_PreferredUnitScalar(unit, type);
+		*r_value /= unit_scale;
+		return success;
+	}
+	else {
+		char str_unit_convert[256];
+		BLI_strncpy(str_unit_convert, str, sizeof(str_unit_convert));
+		bUnit_ReplaceString(
+		        str_unit_convert, sizeof(str_unit_convert), str,
+		        unit_scale, unit->system, type);
+
+		return BPY_execute_string_as_number(C, NULL, str_unit_convert, true, r_value);
+	}
+#else
+	*r_value = atof(str);
+	return true;
+#endif
+}
+
+
 static bool editstr_is_simple_numinput(const char ascii)
 {
 	if (ascii >= '0' && ascii <= '9') {
@@ -519,38 +545,18 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
 	if (n->str[0]) {
 		const float val_prev = n->val[idx];
-		double val;
-#ifdef WITH_PYTHON
 		Scene *sce = CTX_data_scene(C);
-		char str_unit_convert[NUM_STR_REP_LEN * 6];  /* Should be more than enough! */
-		const char *default_unit = NULL;
 
-		/* Use scale_length if needed! */
-		const float fac = (float)BKE_scene_unit_scale(&sce->unit, n->unit_type[idx], 1.0);
+		double val;
+		int success = user_string_to_number(C, n->str, &sce->unit, n->unit_type[idx], &val);
 
-		/* Make radian default unit when needed. */
-		if (n->unit_use_radians && n->unit_type[idx] == B_UNIT_ROTATION) {
-			default_unit = "r";
-		}
-
-		BLI_strncpy(str_unit_convert, n->str, sizeof(str_unit_convert));
-
-		bUnit_ReplaceString(str_unit_convert, sizeof(str_unit_convert), default_unit, fac,
-		                    n->unit_sys, n->unit_type[idx]);
-
-		/* Note: with angles, we always get values as radians here... */
-		if (BPY_execute_string_as_number(C, NULL, str_unit_convert, false, &val)) {
+		if (success) {
 			n->val[idx] = (float)val;
 			n->val_flag[idx] &= ~NUM_INVALID;
 		}
 		else {
 			n->val_flag[idx] |= NUM_INVALID;
-		}
-#else  /* Very unlikely, but does not harm... */
-		val = atof(n->str);
-		n->val[idx] = (float)val;
-		UNUSED_VARS(C);
-#endif  /* WITH_PYTHON */
+	}
 
 
 #ifdef USE_FAKE_EDIT

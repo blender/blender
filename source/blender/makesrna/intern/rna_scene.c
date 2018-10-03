@@ -515,6 +515,7 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #include "BKE_animsys.h"
 #include "BKE_freestyle.h"
 #include "BKE_gpencil.h"
+#include "BKE_unit.h"
 
 #include "ED_info.h"
 #include "ED_node.h"
@@ -2015,6 +2016,68 @@ const EnumPropertyItem *rna_TransformOrientation_itemf(
 	return item;
 }
 
+static const EnumPropertyItem *get_unit_enum_items(int system, int type, bool *r_free)
+{
+	const void *usys;
+	int len;
+	bUnit_GetSystem(system, type, &usys, &len);
+
+	EnumPropertyItem *items = NULL;
+	int totitem = 0;
+
+	EnumPropertyItem adaptive = { 0 };
+	adaptive.identifier = "ADAPTIVE";
+	adaptive.name = "Adaptive";
+	adaptive.value = USER_UNIT_ADAPTIVE;
+	RNA_enum_item_add(&items, &totitem, &adaptive);
+
+	for (int i = 0; i < len; i++) {
+		if (!bUnit_IsSuppressed(usys, i)) {
+			EnumPropertyItem tmp = { 0 };
+			tmp.identifier = bUnit_GetName(usys, i);
+			tmp.name = bUnit_GetNameDisplay(usys, i);
+			tmp.value = i;
+			RNA_enum_item_add(&items, &totitem, &tmp);
+		}
+	}
+
+	*r_free = true;
+	return items;
+}
+
+const EnumPropertyItem *rna_get_length_unit_items(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	UnitSettings *units = ptr->data;
+	return get_unit_enum_items(units->system, B_UNIT_LENGTH, r_free);
+}
+
+const EnumPropertyItem *rna_get_mass_unit_items(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	UnitSettings *units = ptr->data;
+	return get_unit_enum_items(units->system, B_UNIT_MASS, r_free);
+}
+
+const EnumPropertyItem *rna_get_time_unit_items(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	UnitSettings *units = ptr->data;
+	return get_unit_enum_items(units->system, B_UNIT_TIME, r_free);
+}
+
+static void rna_unit_system_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
+{
+	UnitSettings *unit = &scene->unit;
+	if (unit->system == USER_UNIT_NONE) {
+		unit->length_unit = USER_UNIT_ADAPTIVE;
+		unit->mass_unit = USER_UNIT_ADAPTIVE;
+	}
+	else {
+		unit->length_unit = bUnit_GetBaseUnitOfType(unit->system, B_UNIT_LENGTH);
+		unit->mass_unit = bUnit_GetBaseUnitOfType(unit->system, B_UNIT_MASS);
+	}
+}
 
 #else
 
@@ -2915,7 +2978,7 @@ static void rna_def_statvis(BlenderRNA  *brna)
 	RNA_def_property_update(prop, 0, "rna_EditMesh_update");
 }
 
-static void rna_def_unit_settings(BlenderRNA  *brna)
+static void rna_def_unit_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -2940,7 +3003,7 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "system", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, unit_systems);
 	RNA_def_property_ui_text(prop, "Unit System", "The unit system to use for button display");
-	RNA_def_property_update(prop, NC_WINDOW, NULL);
+	RNA_def_property_update(prop, NC_WINDOW, "rna_unit_system_update");
 
 	prop = RNA_def_property(srna, "system_rotation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rotation_units);
@@ -2948,7 +3011,9 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 
 	prop = RNA_def_property(srna, "scale_length", PROP_FLOAT, PROP_UNSIGNED);
-	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions");
+	RNA_def_property_ui_text(prop, "Unit Scale", "Scale to use when converting between blender units and dimensions."
+	                         " When working at microscopic or astronomical scale, a small or large unit scale"
+	                         " respectively can be used to avoid numerical precision problems");
 	RNA_def_property_range(prop, 0.00001, 100000.0);
 	RNA_def_property_ui_range(prop, 0.001, 100.0, 0.1, 6);
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
@@ -2956,6 +3021,24 @@ static void rna_def_unit_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "use_separate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", USER_UNIT_OPT_SPLIT);
 	RNA_def_property_ui_text(prop, "Separate Units", "Display units in pairs (e.g. 1m 0cm)");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "length_unit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_length_unit_items");
+	RNA_def_property_ui_text(prop, "Length Unit", "Unit that will be used to display length values");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "mass_unit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_mass_unit_items");
+	RNA_def_property_ui_text(prop, "Mass Unit", "Unit that will be used to display mass values");
+	RNA_def_property_update(prop, NC_WINDOW, NULL);
+
+	prop = RNA_def_property(srna, "time_unit", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_get_time_unit_items");
+	RNA_def_property_ui_text(prop, "Time Unit", "Unit that will be used to display time values");
 	RNA_def_property_update(prop, NC_WINDOW, NULL);
 }
 

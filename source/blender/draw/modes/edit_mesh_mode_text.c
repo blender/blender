@@ -66,7 +66,6 @@ void DRW_edit_mesh_mode_text_measure_stats(
 	uchar col[4] = {0, 0, 0, 255}; /* color of the text to draw */
 	float area; /* area of the face */
 	float grid = unit->system ? unit->scale_length : v3d->grid;
-	const bool do_split = (unit->flag & USER_UNIT_OPT_SPLIT) != 0;
 	const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
 	const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
 	/* when 2 edge-info options are enabled, space apart */
@@ -118,9 +117,9 @@ void DRW_edit_mesh_mode_text_measure_stats(
 					}
 
 					if (unit->system) {
-						numstr_len = bUnit_AsString(
-						       numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
-						       unit->system, B_UNIT_LENGTH, do_split, false);
+						numstr_len = bUnit_AsString2(
+						        numstr, sizeof(numstr), len_v3v3(v1, v2) * unit->scale_length, 3,
+						        B_UNIT_LENGTH, unit, false);
 					}
 					else {
 						numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, len_v3v3(v1, v2));
@@ -231,10 +230,10 @@ void DRW_edit_mesh_mode_text_measure_stats(
 				mul_m4_v3(ob->obmat, vmid);
 
 				if (unit->system) {
-					numstr_len = bUnit_AsString(
+					numstr_len = bUnit_AsString2(
 					        numstr, sizeof(numstr),
 					        (double)(area * unit->scale_length * unit->scale_length),
-					        3, unit->system, B_UNIT_AREA, do_split, false);
+					        3, B_UNIT_AREA, unit, false);
 				}
 				else {
 					numstr_len = BLI_snprintf_rlen(numstr, sizeof(numstr), conv_float, area);
