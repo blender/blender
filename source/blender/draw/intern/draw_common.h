@@ -150,6 +150,7 @@ struct DRWShadingGroup *shgroup_instance_bone_shape_solid(struct DRWPass *pass, 
 struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_sphere_solid(struct DRWPass *pass, bool transp);
 struct DRWShadingGroup *shgroup_instance_bone_stick(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom);
 
 struct GPUShader *mpath_line_shader_get(void);
 struct GPUShader *mpath_points_shader_get(void);

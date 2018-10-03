@@ -222,6 +222,7 @@ extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_geom_glsl[];
 extern char datatoc_armature_stick_vert_glsl[];
 extern char datatoc_armature_stick_frag_glsl[];
+extern char datatoc_armature_dof_vert_glsl[];
 
 extern char datatoc_common_globals_lib_glsl[];
 
@@ -242,6 +243,7 @@ static struct {
 	struct GPUShader *bone_sphere;
 	struct GPUShader *bone_sphere_outline;
 	struct GPUShader *bone_stick;
+	struct GPUShader *bone_dofs;
 
 	struct GPUShader *mpath_line_sh;
 	struct GPUShader *mpath_points_sh;
@@ -265,6 +267,7 @@ static struct {
 	struct GPUVertFormat *instance_distance_lines;
 	struct GPUVertFormat *instance_spot;
 	struct GPUVertFormat *instance_bone;
+	struct GPUVertFormat *instance_bone_dof;
 	struct GPUVertFormat *instance_bone_stick;
 	struct GPUVertFormat *instance_bone_outline;
 	struct GPUVertFormat *instance_bone_envelope;
@@ -780,6 +783,29 @@ DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
 	        pass, DRW_cache_bone_stick_get(),
 	        g_formats.instance_bone_stick);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+
+	return grp;
+}
+
+struct DRWShadingGroup *shgroup_instance_bone_dof(struct DRWPass *pass, struct GPUBatch *geom)
+{
+	if (g_shaders.bone_dofs == NULL) {
+		g_shaders.bone_dofs = DRW_shader_create(
+		            datatoc_armature_dof_vert_glsl, NULL,
+		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
+	}
+
+	DRW_shgroup_instance_format(g_formats.instance_bone_dof, {
+		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
+		{"color",               DRW_ATTRIB_FLOAT, 4},
+		{"amin",                DRW_ATTRIB_FLOAT, 2},
+		{"amax",                DRW_ATTRIB_FLOAT, 2},
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(
+	        g_shaders.bone_dofs,
+	        pass, geom,
+	        g_formats.instance_bone_dof);
 
 	return grp;
 }

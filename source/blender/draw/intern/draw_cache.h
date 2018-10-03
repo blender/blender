@@ -121,6 +121,8 @@ struct GPUBatch *DRW_cache_bone_point_get(void);
 struct GPUBatch *DRW_cache_bone_point_wire_outline_get(void);
 struct GPUBatch *DRW_cache_bone_stick_get(void);
 struct GPUBatch *DRW_cache_bone_arrows_get(void);
+struct GPUBatch *DRW_cache_bone_dof_sphere_get(void);
+struct GPUBatch *DRW_cache_bone_dof_lines_get(void);
 
 /* Meshes */
 struct GPUBatch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);

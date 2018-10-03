@@ -108,6 +108,8 @@ static struct DRWShapeCache {
 	GPUBatch *drw_bone_point_wire;
 	GPUBatch *drw_bone_stick;
 	GPUBatch *drw_bone_arrows;
+	GPUBatch *drw_bone_dof_sphere;
+	GPUBatch *drw_bone_dof_lines;
 	GPUBatch *drw_camera;
 	GPUBatch *drw_camera_frame;
 	GPUBatch *drw_camera_tria;
@@ -2697,6 +2699,100 @@ GPUBatch *DRW_cache_bone_arrows_get(void)
 	}
 	return SHC.drw_bone_arrows;
 }
+
+const float staticSine[16] = {
+	0.0f, 0.104528463268f, 0.207911690818f, 0.309016994375f,
+	0.406736643076f, 0.5f, 0.587785252292f, 0.669130606359f,
+	0.743144825477f, 0.809016994375f, 0.866025403784f,
+	0.913545457643f, 0.951056516295f, 0.978147600734f,
+	0.994521895368f, 1.0f
+};
+
+#define set_vert(a, b, quarter) \
+        copy_v2_fl2(pos, (quarter % 2 == 0) ? -(a) : (a), (quarter < 2) ? -(b) : (b)); \
+        GPU_vertbuf_attr_set(vbo, attr_id.pos, v++, pos);
+
+GPUBatch *DRW_cache_bone_dof_sphere_get(void)
+{
+	if (!SHC.drw_bone_dof_sphere) {
+		int i, j, q, n = ARRAY_SIZE(staticSine);
+		float x, z, px, pz, pos[2];
+
+		/* Position Only 3D format */
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, n * n * 6 * 4);
+
+		uint v = 0;
+		for (q = 0; q < 4; ++q) {
+			pz = 0.0f;
+			for (i = 1; i < n; ++i) {
+				z = staticSine[i];
+				px = 0.0f;
+				for (j = 1; j <= (n - i); ++j) {
+					x = staticSine[j];
+					if (j == n - i) {
+						set_vert(px, z, q);
+						set_vert(px, pz, q);
+						set_vert(x, pz, q);
+					}
+					else {
+						set_vert(x, z, q);
+						set_vert(x, pz, q);
+						set_vert(px, z, q);
+
+						set_vert(x, pz, q);
+						set_vert(px, pz, q);
+						set_vert(px, z, q);
+					}
+					px = x;
+				}
+				pz = z;
+			}
+		}
+		/* TODO alloc right count from the begining. */
+		GPU_vertbuf_data_resize(vbo, v);
+
+		SHC.drw_bone_dof_sphere = GPU_batch_create_ex(GPU_PRIM_TRIS, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_bone_dof_sphere;
+}
+
+GPUBatch *DRW_cache_bone_dof_lines_get(void)
+{
+	if (!SHC.drw_bone_dof_lines) {
+		int i, n = ARRAY_SIZE(staticSine);
+		float pos[2];
+
+		/* Position Only 3D format */
+		static GPUVertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attr_len == 0) {
+			attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+		}
+
+		GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&format);
+		GPU_vertbuf_data_alloc(vbo, n * 4);
+
+		uint v = 0;
+		for (i = 0; i < n * 4; i++) {
+			float a = (1.0f - (i / (float)(n * 4))) * 2.0f * M_PI;
+			float x = cosf(a);
+			float y = sinf(a);
+			set_vert(x, y, 0);
+		}
+
+		SHC.drw_bone_dof_lines = GPU_batch_create_ex(GPU_PRIM_LINE_LOOP, vbo, NULL, GPU_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_bone_dof_lines;
+}
+
+#undef set_vert
 
 /** \} */
 

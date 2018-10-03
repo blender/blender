@@ -83,6 +83,8 @@ static struct {
 	DRWShadingGroup *bone_box_outline;
 	DRWShadingGroup *bone_wire;
 	DRWShadingGroup *bone_stick;
+	DRWShadingGroup *bone_dof_sphere;
+	DRWShadingGroup *bone_dof_lines;
 	DRWShadingGroup *bone_envelope_solid;
 	DRWShadingGroup *bone_envelope_distance;
 	DRWShadingGroup *bone_envelope_wire;
@@ -1415,6 +1417,83 @@ static void draw_bone_octahedral(
 
 /* -------------------------------------------------------------------- */
 
+/** \name Draw Degrees of Freedom
+ * \{ */
+
+static void draw_bone_dofs(bPoseChannel *pchan)
+{
+	float final_bonemat[4][4], posetrans[4][4], mat[4][4];
+	float amin[2], amax[2], xminmax[2], zminmax[2];
+	float col_sphere[4] = {0.25f, 0.25f, 0.25f, 0.25f};
+	float col_lines[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	float col_xaxis[4] = {1.0f, 0.0f, 0.0f, 1.0f};
+	float col_zaxis[4] = {0.0f, 0.0f, 1.0f, 1.0f};
+
+	if (g_data.passes.bone_envelope == NULL) {
+		return;
+	}
+
+	if (g_data.bone_dof_sphere == NULL) {
+		g_data.bone_dof_lines = shgroup_instance_bone_dof(g_data.passes.bone_wire, DRW_cache_bone_dof_lines_get());
+		g_data.bone_dof_sphere = shgroup_instance_bone_dof(g_data.passes.bone_envelope, DRW_cache_bone_dof_sphere_get());
+		DRW_shgroup_state_enable(g_data.bone_dof_sphere, DRW_STATE_BLEND);
+		DRW_shgroup_state_disable(g_data.bone_dof_sphere, DRW_STATE_CULL_FRONT);
+	}
+
+	/* *0.5f here comes from M_PI/360.0f when rotations were still in degrees */
+	xminmax[0] = sinf(pchan->limitmin[0] * 0.5f);
+	xminmax[1] = sinf(pchan->limitmax[0] * 0.5f);
+	zminmax[0] = sinf(pchan->limitmin[2] * 0.5f);
+	zminmax[1] = sinf(pchan->limitmax[2] * 0.5f);
+
+	unit_m4(posetrans);
+	translate_m4(posetrans, pchan->pose_mat[3][0], pchan->pose_mat[3][1], pchan->pose_mat[3][2]);
+	/* in parent-bone pose space... */
+	if (pchan->parent) {
+		copy_m4_m4(mat, pchan->parent->pose_mat);
+		mat[3][0] = mat[3][1] = mat[3][2] = 0.0f;
+		mul_m4_m4m4(posetrans, posetrans, mat);
+	}
+	/* ... but own restspace */
+	mul_m4_m4m3(posetrans, posetrans, pchan->bone->bone_mat);
+
+	float scale = pchan->bone->length * pchan->size[1];
+	scale_m4_fl(mat, scale);
+	mat[1][1] = -mat[1][1];
+	mul_m4_m4m4(posetrans, posetrans, mat);
+
+	/* into world space. */
+	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, posetrans);
+
+	if ((pchan->ikflag & BONE_IK_XLIMIT) &&
+	    (pchan->ikflag & BONE_IK_ZLIMIT))
+	{
+		amin[0] = xminmax[0];
+		amax[0] = xminmax[1];
+		amin[1] = zminmax[0];
+		amax[1] = zminmax[1];
+		DRW_shgroup_call_dynamic_add(g_data.bone_dof_sphere, final_bonemat, col_sphere, amin, amax);
+		DRW_shgroup_call_dynamic_add(g_data.bone_dof_lines, final_bonemat, col_lines, amin, amax);
+	}
+	if (pchan->ikflag & BONE_IK_XLIMIT) {
+		amin[0] = xminmax[0];
+		amax[0] = xminmax[1];
+		amin[1] = amax[1] = 0.0f;
+		DRW_shgroup_call_dynamic_add(g_data.bone_dof_lines, final_bonemat, col_xaxis, amin, amax);
+	}
+	if (pchan->ikflag & BONE_IK_ZLIMIT) {
+		amin[1] = zminmax[0];
+		amax[1] = zminmax[1];
+		amin[0] = amax[0] = 0.0f;
+		DRW_shgroup_call_dynamic_add(g_data.bone_dof_lines, final_bonemat, col_zaxis, amin, amax);
+	}
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
 /** \name Draw Relationships
  * \{ */
 
@@ -1702,6 +1781,15 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				else {
 					draw_bone_update_disp_matrix_default(NULL, pchan);
 					draw_bone_octahedral(NULL, pchan, arm, boneflag, constflag, select_id);
+				}
+
+				if (!is_pose_select && show_relations &&
+				    (arm->flag & ARM_POSEMODE) &&
+				    (bone->flag & BONE_SELECTED) &&
+				    ((ob->base_flag & BASE_FROMDUPLI) == 0) &&
+				    (pchan->ikflag & (BONE_IK_XLIMIT | BONE_IK_ZLIMIT)))
+				{
+					draw_bone_dofs(pchan);
 				}
 
 				/* Draw names of bone */
