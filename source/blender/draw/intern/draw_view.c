@@ -166,9 +166,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
 	}
 
 	/* grease pencil hide always in some modes */
-	if ((ob) &&
-		((ob->mode == OB_MODE_GPENCIL_PAINT) ||
-		 (ob->mode == OB_MODE_GPENCIL_WEIGHT)))
+	if ((ob) && (ob->mode == OB_MODE_GPENCIL_WEIGHT))
 	{
 		return false;
 	}
