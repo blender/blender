@@ -2970,7 +2970,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "gpencil_grid_lines", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "overlay.gpencil_grid_lines");
-	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_range(prop, 0, INT_MAX);
 	RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
 	RNA_def_property_ui_text(prop, "Subdivisions", "Number of subdivisions in each side of symmetry line");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);

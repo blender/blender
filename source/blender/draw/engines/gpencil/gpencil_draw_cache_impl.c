@@ -649,14 +649,11 @@ GPUBatch *DRW_gpencil_get_grid(void)
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
+	const bool do_center = (v3d->overlay.gpencil_grid_lines <= 0) ? false : true;
 
 	float col_grid[4];
 
 	/* verify we have something to draw and valid values */
-	if (v3d->overlay.gpencil_grid_lines < 1) {
-		v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES;
-	}
-
 	if (v3d->overlay.gpencil_grid_scale == 0.0f) {
 		v3d->overlay.gpencil_grid_scale = 1.0f;
 	}
@@ -696,7 +693,7 @@ GPUBatch *DRW_gpencil_get_grid(void)
 	}
 
 	const char *grid_unit = NULL;
-	const int gridlines = v3d->overlay.gpencil_grid_lines;
+	const int gridlines = (v3d->overlay.gpencil_grid_lines <= 0) ? 1 : v3d->overlay.gpencil_grid_lines;
 	const float grid_scale = v3d->overlay.gpencil_grid_scale * ED_scene_grid_scale(scene, &grid_unit);
 	const float grid = grid_scale;
 	const float space = (grid_scale / gridlines);
@@ -737,15 +734,16 @@ GPUBatch *DRW_gpencil_get_grid(void)
 		idx++;
 	}
 	/* center lines */
-	set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid, 0.0f, axis);
-	idx++;
-	set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid, 0.0f, axis);
-	idx++;
+	if (do_center) {
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid, 0.0f, axis);
+		idx++;
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid, 0.0f, axis);
+		idx++;
 
-	set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, -grid, axis);
-	idx++;
-	set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, +grid, axis);
-	idx++;
-
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, -grid, axis);
+		idx++;
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, +grid, axis);
+		idx++;
+	}
 	return GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);
 }
