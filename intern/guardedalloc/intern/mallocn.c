@@ -37,6 +37,13 @@
 
 #include "mallocn_intern.h"
 
+#ifdef WITH_JEMALLOC_CONF
+/* If jemalloc is used, it reads this global variable and enables background
+ * threads to purge dirty pages. Otherwise we release memory too slowly or not
+ * at all if the thread that did the allocation stays inactive. */
+const char *malloc_conf = "background_thread:true,dirty_decay_ms:4000";
+#endif
+
 size_t (*MEM_allocN_len)(const void *vmemh) = MEM_lockfree_allocN_len;
 void (*MEM_freeN)(void *vmemh) = MEM_lockfree_freeN;
 void *(*MEM_dupallocN)(const void *vmemh) = MEM_lockfree_dupallocN;
