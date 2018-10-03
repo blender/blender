@@ -172,7 +172,8 @@ struct BMFace *EDBM_face_find_nearest(
 
 bool EDBM_unified_findnearest(
         struct ViewContext *vc,
-        struct Base **bases, uint bases_len,
+        struct Base **bases,
+        const uint bases_len,
         int *r_base_index,
         struct BMVert **r_eve,
         struct BMEdge **r_eed,
@@ -180,7 +181,8 @@ bool EDBM_unified_findnearest(
 
 bool EDBM_unified_findnearest_from_raycast(
         struct ViewContext *vc,
-        struct Base **bases, uint bases_len,
+        struct Base **bases,
+        const uint bases_len,
         bool use_boundary,
         int *r_base_index,
         struct BMVert **r_eve,
