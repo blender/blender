@@ -61,6 +61,7 @@
 
 #include "ED_screen.h"
 #include "ED_view3d.h"
+#include "ED_transform.h"
 #include "ED_gizmo_library.h"
 
 /* own includes */
@@ -85,6 +86,7 @@ typedef struct DialInteraction {
 	/* Number of full rotations. */
 	int rotations;
 	bool has_drag;
+	float angle_increment;
 
 	/* Final output values, used for drawing. */
 	struct {
@@ -187,6 +189,35 @@ static void dial_ghostarc_draw_helpline(
 	immUnbindProgram();
 
 	GPU_matrix_pop();
+}
+
+/**
+ * Draws segments to indicate the position of each increment.
+ */
+static void dial_ghostarc_draw_incremental_angle(const float incremental_angle)
+{
+	const int tot_incr = (2 * M_PI) / incremental_angle;
+	GPU_line_width(1.0f);
+
+	uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+	immUniformColor3f(1.0f, 1.0f, 1.0f);
+	immBegin(GPU_PRIM_LINES, tot_incr * 2);
+
+	float v[3] = { 0 };
+	for (int i = 0; i < tot_incr; i++) {
+		v[0] = sinf(incremental_angle * i);
+		v[1] = cosf(incremental_angle * i);
+
+		mul_v2_fl(v, DIAL_WIDTH * 1.1f);
+		immVertex3fv(pos, v);
+
+		mul_v2_fl(v, 1.1f);
+		immVertex3fv(pos, v);
+	}
+
+	immEnd();
+	immUnbindProgram();
 }
 
 static void dial_ghostarc_draw(
@@ -319,6 +350,7 @@ static void dial_draw_intern(
 	int draw_options = RNA_enum_get(gz->ptr, "draw_options");
 	float angle_ofs = 0.0f;
 	float angle_delta = 0.0f;
+	float angle_increment = 0.0f;
 
 	if (select) {
 		draw_options &= ~ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE;
@@ -331,6 +363,7 @@ static void dial_draw_intern(
 		if (inter) {
 			angle_ofs = inter->output.angle_ofs;
 			angle_delta = inter->output.angle_delta;
+			angle_increment = inter->angle_increment;
 		}
 		else {
 			wmGizmoProperty *gz_prop = WM_gizmo_target_property_find(gz, "offset");
@@ -343,7 +376,7 @@ static void dial_draw_intern(
 	ED_gizmotypes_dial_3d_draw_util(
 	        gz->matrix_basis, matrix_final, gz->line_width, color, clip_plane,
 	        arc_partial_angle, arc_inner_factor, draw_options, angle_ofs,
-	        angle_delta);
+	        angle_delta, angle_increment);
 }
 
 static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id)
@@ -401,22 +434,24 @@ static int gizmo_dial_modal(
 	}
 	/* Coordinate at which the arc drawing will be started. */
 	const float co_outer[4] = {0.0f, DIAL_WIDTH, 0.0f};
-	float angle_ofs, angle_delta;
+	float angle_ofs, angle_delta, angle_increment = 0.0f;
 
 	dial_ghostarc_get_angles(
 	        gz, event, CTX_wm_region(C), gz->matrix_basis, co_outer, &angle_ofs, &angle_delta);
 
 	if (tweak_flag & WM_GIZMO_TWEAK_SNAP) {
-		const double snap = DEG2RAD(5);
-		angle_delta = (float)roundf((double)angle_delta / snap) * snap;
+		angle_increment = RNA_float_get(gz->ptr, "incremental_angle");
+		angle_delta = (float)roundf((double)angle_delta / angle_increment) * angle_increment;
 	}
 	if (tweak_flag & WM_GIZMO_TWEAK_PRECISE) {
-		angle_delta *= 0.1f;
+		angle_increment *= 0.2f;
+		angle_delta *= 0.2f;
 	}
 	if (angle_delta != 0.0f) {
 		inter->has_drag = true;
 	}
 
+	inter->angle_increment = angle_increment;
 	inter->output.angle_delta = angle_delta;
 	inter->output.angle_ofs = angle_ofs;
 
@@ -505,7 +540,8 @@ void ED_gizmotypes_dial_3d_draw_util(
         const float arc_inner_factor,
         const int draw_options,
         const float angle_ofs,
-        const float angle_delta)
+        const float angle_delta,
+        const float angle_increment)
 {
 	GPU_matrix_push();
 	GPU_matrix_mul(matrix_final);
@@ -523,6 +559,10 @@ void ED_gizmotypes_dial_3d_draw_util(
 			        angle_ofs + M_PI, angle_delta,
 			        arc_inner_factor, color, draw_options);
 		}
+	}
+
+	if (angle_increment) {
+		dial_ghostarc_draw_incremental_angle(angle_increment);
 	}
 
 	/* Draw actual dial gizmo. */
@@ -561,6 +601,9 @@ static void GIZMO_GT_dial_3d(wmGizmoType *gzt)
 	RNA_def_boolean(gzt->srna, "wrap_angle", true, "Wrap Angle", "");
 	RNA_def_float_factor(gzt->srna, "arc_inner_factor", 0.0f, 0.0f, 1.0f, "Arc Inner Factor", "", 0.0f, 1.0f);
 	RNA_def_float_factor(gzt->srna, "arc_partial_angle", 0.0f, 0.0f, M_PI * 2, "Show Partial Dial", "", 0.0f, M_PI * 2);
+	RNA_def_float_factor(
+	        gzt->srna, "incremental_angle", SNAP_INCREMENTAL_ANGLE, 0.0f,
+	        M_PI * 2, "Incremental Angle", "Angle to snap in steps", 0.0f, M_PI * 2);
 	RNA_def_float(
 	        gzt->srna, "click_value", 0.0f, -FLT_MAX, FLT_MAX,
 	        "Click Value", "Value to use for a single click action",

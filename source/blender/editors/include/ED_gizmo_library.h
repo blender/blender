@@ -245,6 +245,7 @@ void ED_gizmotypes_dial_3d_draw_util(
         const float arc_inner_factor,
         const int draw_options,
         const float angle_ofs,
-        const float angle_delta);
+        const float angle_delta,
+        const float angle_increment);
 
 #endif  /* __ED_GIZMO_LIBRARY_H__ */

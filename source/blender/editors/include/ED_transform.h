@@ -173,6 +173,7 @@ void ED_widgetgroup_gizmo2d_draw_prepare(const struct bContext *C, struct wmGizm
 /* Snapping */
 
 #define SNAP_MIN_DISTANCE 30
+#define SNAP_INCREMENTAL_ANGLE DEG2RAD(5.0)
 
 bool peelObjectsTransform(
         struct TransInfo *t,
