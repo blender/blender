@@ -357,7 +357,7 @@ static void dial_draw_intern(
 	}
 
 	if (draw_options & ED_GIZMO_DIAL_DRAW_FLAG_ANGLE_VALUE &&
-	   (gz->flag & WM_GIZMO_DRAW_VALUE))
+	    (gz->flag & WM_GIZMO_DRAW_VALUE))
 	{
 		DialInteraction *inter = gz->interaction_data;
 		if (inter) {

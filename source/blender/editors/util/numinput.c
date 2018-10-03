@@ -556,7 +556,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 		}
 		else {
 			n->val_flag[idx] |= NUM_INVALID;
-	}
+		}
 
 
 #ifdef USE_FAKE_EDIT

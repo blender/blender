@@ -346,7 +346,7 @@ static void unit_dual_convert(
         double value, const bUnitCollection *usys,
         bUnitDef const **r_unit_a, bUnitDef const **r_unit_b,
         double *r_value_a, double *r_value_b,
-		const bUnitDef *main_unit)
+        const bUnitDef *main_unit)
 {
 	const bUnitDef *unit;
 	if (main_unit) unit = main_unit;
@@ -500,25 +500,24 @@ static const bUnitDef *get_preferred_unit_if_used(int type, PreferredUnits units
 
 	int max_offset = usys->length - 1;
 
-	switch (type)
-	{
-	case B_UNIT_LENGTH:
-	case B_UNIT_AREA:
-	case B_UNIT_VOLUME:
-		if (units.length == USER_UNIT_ADAPTIVE) return NULL;
-		return usys->units + MIN2(units.length, max_offset);
-	case B_UNIT_MASS:
-		if (units.mass == USER_UNIT_ADAPTIVE) return NULL;
-		return usys->units + MIN2(units.mass, max_offset);
-	case B_UNIT_TIME:
-		if (units.time == USER_UNIT_ADAPTIVE) return NULL;
-		return usys->units + MIN2(units.time, max_offset);
-	case B_UNIT_ROTATION:
-		if (units.rotation == 0) return usys->units + 0;
-		else if (units.rotation == USER_UNIT_ROT_RADIANS) return usys->units + 3;
-		break;
-	default:
-		break;
+	switch (type) {
+		case B_UNIT_LENGTH:
+		case B_UNIT_AREA:
+		case B_UNIT_VOLUME:
+			if (units.length == USER_UNIT_ADAPTIVE) return NULL;
+			return usys->units + MIN2(units.length, max_offset);
+		case B_UNIT_MASS:
+			if (units.mass == USER_UNIT_ADAPTIVE) return NULL;
+			return usys->units + MIN2(units.mass, max_offset);
+		case B_UNIT_TIME:
+			if (units.time == USER_UNIT_ADAPTIVE) return NULL;
+			return usys->units + MIN2(units.time, max_offset);
+		case B_UNIT_ROTATION:
+			if (units.rotation == 0) return usys->units + 0;
+			else if (units.rotation == USER_UNIT_ROT_RADIANS) return usys->units + 3;
+			break;
+		default:
+			break;
 	}
 	return NULL;
 }

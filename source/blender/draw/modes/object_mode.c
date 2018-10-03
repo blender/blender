@@ -2764,7 +2764,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		case OB_GPENCIL:
 			/* in all modes except object mode hide always */
 			if ((OBACT(view_layer)) &&
-				(OBACT(view_layer)->mode != OB_MODE_OBJECT))
+			    (OBACT(view_layer)->mode != OB_MODE_OBJECT))
 			{
 				break;
 			}
