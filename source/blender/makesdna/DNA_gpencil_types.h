@@ -354,7 +354,7 @@ typedef struct bGPdata {
 	float gcolor_prev[3];	    /* optional color for ghosts before the active frame */
 	float gcolor_next[3];	    /* optional color for ghosts after the active frame */
 
-	char pad[4];
+	float zdepth_offset;        /* offset for drawing over surfaces to keep strokes on top */
 	struct Material **mat;      /* materials array */
 	short totcol;               /* total materials */
 

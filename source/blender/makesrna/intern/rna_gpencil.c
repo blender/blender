@@ -1404,6 +1404,14 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Onion Opacity", "Change fade opacity of displayed onion frames");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+	prop = RNA_def_property(srna, "zdepth_offset", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "zdepth_offset");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 5);
+	RNA_def_property_ui_text(prop, "Surface Offset",
+		"Offset amount when drawing in surface mode");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
 	/* API Functions */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");
 	RNA_def_function_ui_description(func, "Remove all the grease pencil data");
