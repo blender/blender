@@ -2374,9 +2374,11 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 		return;
 	}
 
-	/* grease pencil in draw mode hide always */
+	/* grease pencil in some modes hide always */
 	if ((OBACT(view_layer)) &&
-		(OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT))
+		((OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT) ||
+		 (OBACT(view_layer)->mode == OB_MODE_GPENCIL_SCULPT) ||
+		 (OBACT(view_layer)->mode == OB_MODE_GPENCIL_WEIGHT)))
 	{
 		return;
 	}
@@ -2760,9 +2762,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_empty(sgl, ob, view_layer);
 			break;
 		case OB_GPENCIL:
-			/* in draw mode hide always */
+			/* in all modes except object mode hide always */
 			if ((OBACT(view_layer)) &&
-				(OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT))
+				(OBACT(view_layer)->mode != OB_MODE_OBJECT))
 			{
 				break;
 			}
