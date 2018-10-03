@@ -2373,16 +2373,6 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 	if (v3d->overlay.flag & V3D_OVERLAY_HIDE_OBJECT_ORIGINS) {
 		return;
 	}
-
-	/* grease pencil in some modes hide always */
-	if ((OBACT(view_layer)) &&
-		((OBACT(view_layer)->mode == OB_MODE_GPENCIL_PAINT) ||
-		 (OBACT(view_layer)->mode == OB_MODE_GPENCIL_SCULPT) ||
-		 (OBACT(view_layer)->mode == OB_MODE_GPENCIL_WEIGHT)))
-	{
-		return;
-	}
-
 	const bool is_library = ob->id.us > 1 || ID_IS_LINKED(ob);
 	DRWShadingGroup *shgroup;
 
@@ -2762,13 +2752,11 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_empty(sgl, ob, view_layer);
 			break;
 		case OB_GPENCIL:
-			/* in all modes except object mode hide always */
-			if ((OBACT(view_layer)) &&
-			    (OBACT(view_layer)->mode != OB_MODE_OBJECT))
-			{
+			if (hide_object_extra) {
 				break;
 			}
-			if (hide_object_extra) {
+			/* in all modes except object mode hide always */
+			if (draw_ctx->object_mode != OB_MODE_OBJECT) {
 				break;
 			}
 			DRW_shgroup_gpencil(sgl, ob, view_layer);
@@ -2816,7 +2804,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 	/* don't show object extras in set's */
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
-		if ((draw_ctx->object_mode & OB_MODE_ALL_PAINT) == 0) {
+		if ((draw_ctx->object_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) == 0) {
 			DRW_shgroup_object_center(stl, ob, view_layer, v3d);
 		}
 

@@ -136,17 +136,16 @@ void DRW_draw_background(void)
 
 static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, ViewLayer *view_layer)
 {
-	Object *ob = OBACT(view_layer);
 	View3D *v3d = draw_ctx->v3d;
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
 		return false;
 	}
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
-	if (ob && draw_ctx->object_mode & OB_MODE_ALL_PAINT) {
+	if (draw_ctx->object_mode & OB_MODE_ALL_PAINT) {
 		/* exception: object is in weight paint and has deforming armature in pose mode */
 		if (draw_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
-			if (BKE_object_pose_armature_get(ob) != NULL) {
+			if (BKE_object_pose_armature_get(draw_ctx->obact) != NULL) {
 				return true;
 			}
 		}
@@ -164,10 +163,8 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
 		/* no exception met? then don't draw cursor! */
 		return false;
 	}
-
-	/* grease pencil hide always in some modes */
-	if ((ob) && (ob->mode == OB_MODE_GPENCIL_WEIGHT))
-	{
+	else if (draw_ctx->object_mode & OB_MODE_GPENCIL_WEIGHT) {
+		/* grease pencil hide always in some modes */
 		return false;
 	}
 
