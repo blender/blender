@@ -4924,7 +4924,9 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
 
         if overlay.use_gpencil_grid:
             row = layout.row(align=True)
-            row.prop(overlay, "gpencil_grid_scale")
+            col = row.column()
+            col.prop(overlay, "gpencil_grid_scale")
+            row = layout.row(align=True)
             col = row.column()
             col.prop(overlay, "gpencil_grid_lines", text="Subdivisions")
             col.prop(overlay, "gpencil_grid_axis", text="Plane")

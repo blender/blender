@@ -2961,7 +2961,7 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 		"Display a grid over grease pencil paper");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "gpencil_grid_scale", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "gpencil_grid_scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_grid_scale");
 	RNA_def_property_range(prop, 0.01f, FLT_MAX);
 	RNA_def_property_float_default(prop, 1.0f);

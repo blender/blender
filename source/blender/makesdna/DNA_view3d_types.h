@@ -188,10 +188,9 @@ typedef struct View3DOverlay {
 
 	/* Other settings */
 	float wireframe_threshold;
-	char _pad0[4];
 
 	/* grease pencil settings */
-	float gpencil_grid_scale;
+	float gpencil_grid_scale[2];
 	float gpencil_paper_opacity;
 	int   gpencil_grid_lines;
 	int   gpencil_grid_axis;
