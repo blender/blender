@@ -811,7 +811,8 @@ static void rna_def_maskSplinePoints(BlenderRNA *brna)
 	func = RNA_def_function(srna, "add", "rna_MaskSpline_points_add");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Add a number of point to this spline");
-	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
+	parm = RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of points to add to the spline", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* Remove the point */
 	func = RNA_def_function(srna, "remove", "rna_MaskSpline_point_remove");
