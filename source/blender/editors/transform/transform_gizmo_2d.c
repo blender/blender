@@ -39,6 +39,7 @@
 
 #include "BKE_context.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 
 #include "RNA_access.h"
 
@@ -152,9 +153,6 @@ static GizmoGroup2D *gizmogroup2d_init(wmGizmoGroup *gzgroup)
  */
 static void gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min, float *r_max)
 {
-	SpaceImage *sima = CTX_wm_space_image(C);
-	Image *ima = ED_space_image(sima);
-
 	float min_buf[2], max_buf[2];
 	if (r_min == NULL) {
 		r_min = min_buf;
@@ -163,7 +161,21 @@ static void gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
 		r_max = max_buf;
 	}
 
-	if (!ED_uvedit_minmax(CTX_data_scene(C), ima, CTX_data_edit_object(C), r_min, r_max)) {
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa->spacetype == SPACE_IMAGE) {
+		SpaceImage *sima = sa->spacedata.first;
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		Image *ima = ED_space_image(sima);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+		        view_layer, &objects_len);
+		if (!ED_uvedit_minmax_multi(CTX_data_scene(C), ima, objects, objects_len, r_min, r_max)) {
+			zero_v2(r_min);
+			zero_v2(r_max);
+		}
+		MEM_freeN(objects);
+	}
+	else {
 		zero_v2(r_min);
 		zero_v2(r_max);
 	}
