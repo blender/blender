@@ -732,16 +732,16 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 		wm_init_state.start_y = 0;
 
 #ifdef WITH_X11 /* X11 */
-		if (wm_init_state.size_x == 0 || wm_init_state.size_y == 0) {
-			/* X11, start maximized but use default sane size */
-			wm_init_state.size_x = min_ii(wm_init_state.size_x, WM_WIN_INIT_SIZE_X);
-			wm_init_state.size_y = min_ii(wm_init_state.size_y, WM_WIN_INIT_SIZE_Y);
-			/* pad */
-			wm_init_state.start_x = WM_WIN_INIT_PAD;
-			wm_init_state.start_y = WM_WIN_INIT_PAD;
-			wm_init_state.size_x -= WM_WIN_INIT_PAD * 2;
-			wm_init_state.size_y -= WM_WIN_INIT_PAD * 2;
-		}
+		/* X11, don't start maximized because we can't figure out the dimensions
+		 * of a single display yet if there are multiple, due to lack of Xinerama
+		 * handling in GHOST. */
+		wm_init_state.size_x = min_ii(wm_init_state.size_x, WM_WIN_INIT_SIZE_X);
+		wm_init_state.size_y = min_ii(wm_init_state.size_y, WM_WIN_INIT_SIZE_Y);
+		/* pad */
+		wm_init_state.start_x = WM_WIN_INIT_PAD;
+		wm_init_state.start_y = WM_WIN_INIT_PAD;
+		wm_init_state.size_x -= WM_WIN_INIT_PAD * 2;
+		wm_init_state.size_y -= WM_WIN_INIT_PAD * 2;
 #endif
 	}
 
