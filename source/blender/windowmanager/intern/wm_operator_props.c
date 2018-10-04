@@ -233,13 +233,17 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
  */
 void WM_operator_properties_gesture_border_ex(wmOperatorType *ot, bool deselect, bool extend)
 {
+	PropertyRNA *prop;
+
 	WM_operator_properties_border(ot);
 
 	if (deselect) {
-		RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+		prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	}
 	if (extend) {
-		RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+		prop = RNA_def_boolean(ot->srna, "extend", true, "Extend", "Extend selection instead of deselecting everything first");
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	}
 }
 
@@ -340,7 +344,8 @@ void WM_operator_properties_gesture_circle_ex(wmOperatorType *ot, bool deselect)
 	RNA_def_int(ot->srna, "radius", radius_default, 1, INT_MAX, "Radius", "", 1, INT_MAX);
 
 	if (deselect) {
-		RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+		prop = RNA_def_boolean(ot->srna, "deselect", false, "Deselect", "Deselect rather than select items");
+		RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	}
 }
 

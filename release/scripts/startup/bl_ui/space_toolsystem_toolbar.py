@@ -1227,22 +1227,29 @@ class _defs_image_uv_select:
 
     @ToolDef.from_fn
     def border():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("uv.select_border")
+            layout.prop(props, "deselect")
         return dict(
             text="Select Border",
             icon="ops.generic.select_border",
             widget=None,
             keymap=(
                 ("uv.select_border",
-                 dict(deselect=False),
+                 dict(),
                  dict(type='EVT_TWEAK_A', value='ANY')),
-                # ("uv.select_border",
-                #  dict(deselect=True),
-                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+                ("uv.select_border",
+                 dict(deselect=True),
+                 dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
     def circle():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("uv.select_circle")
+            layout.prop(props, "radius")
         return dict(
             text="Select Circle",
             icon="ops.generic.select_circle",
@@ -1255,6 +1262,7 @@ class _defs_image_uv_select:
                  dict(deselect=True),
                  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
