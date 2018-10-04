@@ -265,6 +265,7 @@ typedef enum ThemeColorID {
 
 	TH_ANIM_ACTIVE,   /* active action */
 	TH_ANIM_INACTIVE, /* no active action */
+	TH_ANIM_PREVIEW_RANGE,/* preview range overlay */
 
 	TH_NLA_TWEAK,        /* 'tweaking' track in NLA */
 	TH_NLA_TWEAK_DUPLI,  /* error/warning flag for other strips referencing dupli strip */

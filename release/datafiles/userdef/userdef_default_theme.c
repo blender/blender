@@ -435,6 +435,7 @@ const bTheme U_theme_default = {
 		.facedot_size = 4,
 		.handle_vertex_select = RGBA(0xff8500ff),
 		.handle_vertex_size = 5,
+		.anim_preview_range = RGBA(0xa14d0066),
 	},
 	.tinfo = {
 		.back = RGBA(0x42424200),
@@ -522,6 +523,7 @@ const bTheme U_theme_default = {
 		.keyframe_scale_fac = 1.0f,
 		.handle_vertex_size = 4,
 		.anim_active = RGBA(0xa14d0066),
+		.anim_preview_range = RGBA(0xa14d0066),
 	},
 	.tnla = {
 		.back = RGBA(0x35353500),
@@ -563,6 +565,7 @@ const bTheme U_theme_default = {
 		.handle_vertex_size = 4,
 		.anim_active = RGBA(0xcc701a66),
 		.anim_non_active = RGBA(0x9987614d),
+		.anim_preview_range = RGBA(0xa14d0066),
 		.nla_tweaking = RGBA(0x4df31a4d),
 		.nla_tweakdupli = RGBA(0xd90000ff),
 		.nla_transition = RGBA(0x1c2630ff),

@@ -344,6 +344,8 @@ typedef struct ThemeSpace {
 	/* NLA */
 	char anim_active[4];	 /* Active Action + Summary Channel */
 	char anim_non_active[4]; /* Active Action = NULL */
+	char anim_preview_range[4]; /* Preview range overlay */
+	char anim_pad[4];
 
 	char nla_tweaking[4];   /* NLA 'Tweaking' action/strip */
 	char nla_tweakdupli[4]; /* NLA - warning color for duplicate instances of tweaking strip */

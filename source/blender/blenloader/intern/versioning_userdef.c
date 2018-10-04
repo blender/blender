@@ -27,6 +27,7 @@
 
 #include <string.h>
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "DNA_userdef_types.h"
@@ -49,6 +50,12 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 #define USER_VERSION_ATLEAST(ver, subver) MAIN_VERSION_ATLEAST(userdef, ver, subver)
 	if (!USER_VERSION_ATLEAST(280, 20)) {
 		memcpy(btheme, &U_theme_default, sizeof(*btheme));
+	}
+
+	if (!USER_VERSION_ATLEAST(280, 25)) {
+		copy_v4_v4_char(btheme->tact.anim_preview_range, btheme->tact.anim_active);
+		copy_v4_v4_char(btheme->tnla.anim_preview_range, btheme->tnla.anim_active);
+		copy_v4_v4_char(btheme->tipo.anim_preview_range, btheme->tact.anim_active);
 	}
 #undef USER_VERSION_ATLEAST
 

@@ -632,6 +632,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_ANIM_INACTIVE:
 					cp = ts->anim_non_active;
 					break;
+				case TH_ANIM_PREVIEW_RANGE:
+					cp = ts->anim_preview_range;
+					break;
 
 				case TH_NLA_TWEAK:
 					cp = ts->nla_tweaking;

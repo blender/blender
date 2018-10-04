@@ -174,7 +174,7 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformThemeColorShadeAlpha(TH_ANIM_ACTIVE, -25, -30);
+		immUniformThemeColorShadeAlpha(TH_ANIM_PREVIEW_RANGE, -25, -30);
 		//immUniformColor4f(0.8f, 0.44f, 0.1f, 0.2f); /* XXX: Fix this hardcoded color (anim_active) */
 
 		/* only draw two separate 'curtains' if there's no overlap between them */
