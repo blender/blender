@@ -1243,14 +1243,14 @@ static void gizmo_xform_message_subscribe(
 void drawDial3d(const TransInfo *t)
 {
 	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
-		float scale, line_with, increment, color[4], mat_basis[4][4], mat_final[4][4];
+		float mat_basis[4][4];
+		float mat_final[4][4];
+		float color[4];
+		float increment;
+		float line_with = GIZMO_AXIS_LINE_WIDTH + 1.0f;
+		float scale = UI_DPI_FAC * U.gizmo_size;
+
 		int axis_idx;
-
-		scale = UI_DPI_FAC * U.gizmo_size;
-		line_with = GIZMO_AXIS_LINE_WIDTH + 1.0f;
-
-		copy_m4_m3(mat_basis, t->spacemtx);
-		copy_v3_v3(mat_basis[3], t->center_global);
 
 		const TransCon *tc = &(t->con);
 		if (tc->mode & CON_APPLY) {
@@ -1275,10 +1275,26 @@ void drawDial3d(const TransInfo *t)
 			line_with -= 1.0f;
 		}
 
-		BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);
-		gizmo_get_axis_color(axis_idx, NULL, color, color);
+		copy_v3_v3(mat_basis[3], t->center_global);
+		mat_basis[2][3] = -dot_v3v3(mat_basis[2], mat_basis[3]);
 
-		ortho_basis_v3v3_v3(mat_basis[0], mat_basis[1], mat_basis[2]);
+		if (ED_view3d_win_to_3d_on_plane(
+		        t->ar, mat_basis[2], (float[2]){UNPACK2(t->mouse.imval)},
+		        false, mat_basis[1]))
+		{
+			sub_v3_v3(mat_basis[1], mat_basis[3]);
+			normalize_v3(mat_basis[1]);
+			cross_v3_v3v3(mat_basis[0], mat_basis[1], mat_basis[2]);
+		}
+		else {
+			/* The plane and the mouse direction are parallel.
+			 * Calculate a matrix orthogonal to the axis. */
+			ortho_basis_v3v3_v3(mat_basis[0], mat_basis[1], mat_basis[2]);
+		}
+
+		mat_basis[2][3] = 0.0f;
+		mat_basis[3][3] = 1.0f;
+
 		copy_m4_m4(mat_final, mat_basis);
 		scale *= ED_view3d_pixel_size_no_ui_scale(t->ar->regiondata, mat_final[3]);
 		mul_mat3_m4_fl(mat_final, scale);
@@ -1292,10 +1308,11 @@ void drawDial3d(const TransInfo *t)
 			increment = t->snap[0];
 		}
 
+		BLI_assert(axis_idx >= MAN_AXIS_RANGE_ROT_START && axis_idx < MAN_AXIS_RANGE_ROT_END);
+		gizmo_get_axis_color(axis_idx, NULL, color, color);
+
 		GPU_depth_test(false);
 		GPU_blend(true);
-
-		/* XXX force AntiAlias. */
 		GPU_line_smooth(true);
 
 		ED_gizmotypes_dial_3d_draw_util(
@@ -1307,7 +1324,6 @@ void drawDial3d(const TransInfo *t)
 		        });
 
 		GPU_line_smooth(false);
-
 		GPU_depth_test(true);
 		GPU_blend(false);
 	}
