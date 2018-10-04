@@ -3287,7 +3287,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	ot->cancel = WM_gesture_border_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
@@ -3427,7 +3427,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 	ot->cancel = WM_gesture_circle_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_gesture_circle_select(ot);
@@ -4387,9 +4387,6 @@ static void UV_OT_cursor_set(wmOperatorType *ot)
 	ot->exec = uv_set_2d_cursor_exec;
 	ot->invoke = uv_set_2d_cursor_invoke;
 	ot->poll = uv_set_2d_cursor_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
