@@ -166,124 +166,32 @@ static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *p
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpygpu_VertBatch_program_set_builtin_doc,
-"TODO"
-);
-static PyObject *bpygpu_VertBatch_program_set_builtin(BPyGPUBatch *self, PyObject *args, PyObject *kwds)
-{
-	struct {
-		const char *shader;
-	} params;
-
-	static const char *_keywords[] = {"id", NULL};
-	static _PyArg_Parser _parser = {"s:program_set_builtin", _keywords, 0};
-	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, kwds, &_parser,
-	        &params.shader))
-	{
-		return NULL;
-	}
-
-	GPUBuiltinShader shader;
-
-#define MATCH_ID(id) \
-	if (STREQ(params.shader, STRINGIFY(id))) { \
-		shader = GPU_SHADER_##id; \
-		goto success; \
-	} ((void)0)
-
-	MATCH_ID(2D_FLAT_COLOR);
-	MATCH_ID(2D_SMOOTH_COLOR);
-	MATCH_ID(2D_UNIFORM_COLOR);
-
-	MATCH_ID(3D_FLAT_COLOR);
-	MATCH_ID(3D_SMOOTH_COLOR);
-	MATCH_ID(3D_UNIFORM_COLOR);
-
-#undef MATCH_ID
-
-	PyErr_SetString(PyExc_ValueError,
-	                "shader name not known");
-	return NULL;
-
-success:
-	GPU_batch_program_set_builtin(self->batch, shader);
-	Py_RETURN_NONE;
-}
-
-static PyObject *bpygpu_VertBatch_uniform_bool(BPyGPUBatch *self, PyObject *args)
-{
-	struct {
-		const char *id;
-		bool values[1];
-	} params;
-
-	if (!PyArg_ParseTuple(
-	        args, "sO&:uniform_bool",
-	        &params.id,
-	        PyC_ParseBool, &params.values[0]))
-	{
-		return NULL;
-	}
-
-	GPU_batch_uniform_1b(self->batch, params.id, params.values[0]);
-	Py_RETURN_NONE;
-}
-
-static PyObject *bpygpu_VertBatch_uniform_i32(BPyGPUBatch *self, PyObject *args)
-{
-	struct {
-		const char *id;
-		int values[1];
-	} params;
-
-	if (!PyArg_ParseTuple(
-	        args, "si:uniform_i32",
-	        &params.id,
-	        &params.values[0]))
-	{
-		return NULL;
-	}
-
-	GPU_batch_uniform_1i(self->batch, params.id, params.values[0]);
-	Py_RETURN_NONE;
-}
-
-static PyObject *bpygpu_VertBatch_uniform_f32(BPyGPUBatch *self, PyObject *args)
-{
-	struct {
-		const char *id;
-		float values[4];
-	} params;
-
-	if (!PyArg_ParseTuple(
-	        args, "sf|fff:uniform_f32",
-	        &params.id,
-	        &params.values[0], &params.values[1], &params.values[2], &params.values[3]))
-	{
-		return NULL;
-	}
-
-	switch (PyTuple_GET_SIZE(args)) {
-		case 2: GPU_batch_uniform_1f(self->batch, params.id, params.values[0]); break;
-		case 3: GPU_batch_uniform_2f(self->batch, params.id, UNPACK2(params.values)); break;
-		case 4: GPU_batch_uniform_3f(self->batch, params.id, UNPACK3(params.values)); break;
-		case 5: GPU_batch_uniform_4f(self->batch, params.id, UNPACK4(params.values)); break;
-		default:
-			BLI_assert(0);
-	}
-	Py_RETURN_NONE;
-}
-
 PyDoc_STRVAR(bpygpu_VertBatch_draw_doc,
-"TODO"
+".. method:: draw(program=None)\n"
+"\n"
+"   Run the drawing program with the parameters assigned to the batch.\n"
+"\n"
+"   :param program: program that performs the drawing operations. \n"
+"                   If `None` is passed, the last program setted to this batch will run.\n"
+"   :type program: :class:`gpu.types.GPUShader`\n"
 );
-static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self)
+static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 {
-	if (!glIsProgram(self->batch->program)) {
-		PyErr_SetString(PyExc_ValueError,
-		                "batch program has not not set");
+	BPyGPUShader *py_program = NULL;
+
+	if (!PyArg_ParseTuple(
+	        args, "|O!:GPUShader.__exit__",
+	        &BPyGPUShader_Type, &py_program))
+	{
+		return NULL;
 	}
+
+	else if (self->batch->program != GPU_shader_get_program(py_program->shader)) {
+		GPU_batch_program_set(self->batch,
+		        GPU_shader_get_program(py_program->shader),
+		        GPU_shader_get_interface(py_program->shader));
+	}
+
 	GPU_batch_draw(self->batch);
 	Py_RETURN_NONE;
 }
@@ -313,16 +221,8 @@ static struct PyMethodDef bpygpu_VertBatch_methods[] = {
 	 METH_O, bpygpu_VertBatch_vertbuf_add_doc},
 	{"program_set", (PyCFunction)bpygpu_VertBatch_program_set,
 	 METH_O, bpygpu_VertBatch_program_set_doc},
-	{"program_set_builtin", (PyCFunction)bpygpu_VertBatch_program_set_builtin,
-	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBatch_program_set_builtin_doc},
-	{"uniform_bool", (PyCFunction)bpygpu_VertBatch_uniform_bool,
-	 METH_VARARGS, NULL},
-	{"uniform_i32", (PyCFunction)bpygpu_VertBatch_uniform_i32,
-	 METH_VARARGS, NULL},
-	{"uniform_f32", (PyCFunction)bpygpu_VertBatch_uniform_f32,
-	  METH_VARARGS, NULL},
 	{"draw", (PyCFunction) bpygpu_VertBatch_draw,
-	 METH_NOARGS, bpygpu_VertBatch_draw_doc},
+	 METH_VARARGS, bpygpu_VertBatch_draw_doc},
 	{"__program_use_begin", (PyCFunction)bpygpu_VertBatch_program_use_begin,
 	 METH_NOARGS, ""},
 	{"__program_use_end", (PyCFunction)bpygpu_VertBatch_program_use_end,
