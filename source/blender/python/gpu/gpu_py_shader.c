@@ -765,10 +765,10 @@ static struct PyMethodDef bpygpu_shader_module_methods[] = {
 	{"unbind",
 	 (PyCFunction)bpygpu_shader_unbind,
 	 METH_NOARGS, bpygpu_shader_unbind_doc},
-	{"shader_from_builtin",
+	{"from_builtin",
 	 (PyCFunction)bpygpu_shader_from_builtin,
 	 METH_O, bpygpu_shader_from_builtin_doc},
-	{"shader_code_from_builtin",
+	{"code_from_builtin",
 	 (PyCFunction)bpygpu_shader_code_from_builtin,
 	 METH_O, bpygpu_shader_code_from_builtin_doc},
 	{NULL, NULL, 0, NULL}
