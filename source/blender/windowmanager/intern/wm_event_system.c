@@ -909,8 +909,10 @@ static void wm_operator_finished(bContext *C, wmOperator *op, const bool repeat,
 			wm_operator_register(C, op);
 			WM_operator_region_active_win_set(C);
 
-			/* Show the redo panel. */
-			hud_status = SET;
+			if (WM_operator_last_redo(C) == op) {
+				/* Show the redo panel. */
+				hud_status = SET;
+			}
 		}
 		else {
 			WM_operator_free(op);
