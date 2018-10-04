@@ -3544,6 +3544,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 			}
 		}
 	}
+	MEM_freeN(objects);
 
 	return changed_multi;
 }
