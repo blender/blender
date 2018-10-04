@@ -45,8 +45,8 @@ void main()
 		}
 		else {
 			/* Do correct alpha blending. */
-			vec4 background_color = vec4(background, 1.0);
-			vec4 outline_color = vec4(world_data.object_outline_color.rgb, 1.0) * world_data.background_alpha;
+			vec4 background_color = vec4(background, 1.0) * world_data.background_alpha;
+			vec4 outline_color = vec4(world_data.object_outline_color.rgb, 1.0);
 			fragColor = mix(outline_color, background_color, object_outline);
 			fragColor = vec4(fragColor.rgb / max(1e-8, fragColor.a), fragColor.a);
 		}
