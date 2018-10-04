@@ -4342,7 +4342,7 @@ class VIEW3D_PT_overlay_object(Panel):
         split = col.split()
 
         sub = split.column(align=True)
-        sub.prop(overlay, "show_ornaments", text="Ornaments")
+        sub.prop(overlay, "show_extras", text="Extras")
         sub.prop(overlay, "show_relationship_lines")
         sub.prop(overlay, "show_outline_selected")
 

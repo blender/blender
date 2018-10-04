@@ -2716,9 +2716,9 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Text", "Display overlay text");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "show_ornaments", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_extras", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlay.flag", V3D_OVERLAY_HIDE_OBJECT_XTRAS);
-	RNA_def_property_ui_text(prop, "Ornaments", "Object details, including empty wire, cameras and other extras");
+	RNA_def_property_ui_text(prop, "Extras", "Object details, including empty wire, cameras and other visual guides");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_bones", PROP_BOOLEAN, PROP_NONE);
