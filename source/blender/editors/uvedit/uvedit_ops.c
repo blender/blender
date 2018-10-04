@@ -102,6 +102,7 @@ static void uv_select_all_perform(Scene *scene, Image *ima, Object *obedit, int 
 static void uv_select_all_perform_multi(Scene *scene, Image *ima, Object **objects, const uint objects_len, int action);
 static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object *obedit, const bool select);
 static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object *obedit, const bool select);
+static void uv_select_tag_update_for_object(Depsgraph *depsgraph, const ToolSettings *ts, Object *obedit);
 
 /* -------------------------------------------------------------------- */
 /** \name State Testing
@@ -2246,7 +2247,9 @@ static void uv_select_all_perform_multi(
 
 static int uv_select_all_exec(bContext *C, wmOperator *op)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	Image *ima = CTX_data_edit_image(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
@@ -2259,8 +2262,7 @@ static int uv_select_all_exec(bContext *C, wmOperator *op)
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		uv_select_tag_update_for_object(depsgraph, ts, obedit);
 	}
 
 	MEM_freeN(objects);
@@ -2316,6 +2318,7 @@ static int uv_mouse_select_multi(
         bContext *C, Object **objects, uint objects_len,
         const float co[2], bool extend, bool loop)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
@@ -2573,8 +2576,7 @@ static int uv_mouse_select_multi(
 #endif
 	}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	uv_select_tag_update_for_object(depsgraph, ts, obedit);
 
 	return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
@@ -2933,6 +2935,8 @@ static void uv_select_tag_update_for_object(Depsgraph *depsgraph, const ToolSett
 	else {
 		Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
 		BKE_mesh_batch_cache_dirty_tag(obedit_eval->data, BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
+		/* Only for region redraw. */
+		WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
 	}
 }
 
