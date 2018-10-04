@@ -230,6 +230,10 @@ static void imm_draw_disk_partial(
         GPUPrimType prim_type, uint pos, float x, float y,
         float rad_inner, float rad_outer, int nsegments, float start, float sweep)
 {
+	/* to avoid artifacts */
+	const float max_angle = 3 * 360;
+	CLAMP(sweep, -max_angle, max_angle);
+
 	/* shift & reverse angle, increase 'nsegments' to match gluPartialDisk */
 	const float angle_start = -(DEG2RADF(start)) + (float)(M_PI / 2);
 	const float angle_end   = -(DEG2RADF(sweep) - angle_start);
