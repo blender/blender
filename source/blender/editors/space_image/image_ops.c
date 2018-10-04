@@ -288,13 +288,12 @@ static bool image_sample_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
 	if (sima) {
-		Scene *scene = CTX_data_scene(C);
 		Object *obedit = CTX_data_edit_object(C);
-		ToolSettings *toolsettings = scene->toolsettings;
-
 		if (obedit) {
-			if (ED_space_image_show_uvedit(sima, obedit) && (toolsettings->use_uv_sculpt))
+			/* Disable when UV editing so it doesn't swallow all click events (use for setting cursor). */
+			if (ED_space_image_show_uvedit(sima, obedit)) {
 				return false;
+			}
 		}
 		else if (sima->mode != SI_MODE_VIEW) {
 			return false;

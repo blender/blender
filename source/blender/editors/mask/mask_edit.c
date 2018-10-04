@@ -615,7 +615,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_paste_splines", VKEY, KM_PRESS, KM_CTRL, 0);
 
 	/* for image editor only */
-	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_CLICK, 0, 0);
 
 	/* Transform (don't use transform_keymap_for_space() since this maps to different spaces) */
 	WM_keymap_add_item(keymap, "TRANSFORM_OT_translate", GKEY, KM_PRESS, 0, 0);

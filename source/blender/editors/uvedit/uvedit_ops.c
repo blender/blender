@@ -4700,6 +4700,9 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	keymap = WM_keymap_ensure(keyconf, "UV Editor", 0, 0);
 	keymap->poll = ED_operator_uvedit_can_uv_sculpt;
 
+	/* cursor */
+	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_CLICK, 0, 0);
+
 #ifdef USE_WM_KEYMAP_27X
 	/* Uv sculpt toggle */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", QKEY, KM_PRESS, 0, 0);
@@ -4784,9 +4787,6 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "unselected", true);
 
 	WM_keymap_add_item(keymap, "UV_OT_reveal", HKEY, KM_PRESS, KM_ALT, 0);
-
-	/* cursor */
-	WM_keymap_add_item(keymap, "UV_OT_cursor_set", ACTIONMOUSE, KM_PRESS, 0, 0);
 
 	/* menus */
 	WM_keymap_add_menu_pie(keymap, "IMAGE_MT_uvs_snap_pie", SKEY, KM_PRESS, KM_SHIFT, 0);
