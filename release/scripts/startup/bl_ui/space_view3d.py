@@ -4125,6 +4125,7 @@ class VIEW3D_PT_shading_color(Panel):
         shading = VIEW3D_PT_shading.get_shading(context)
         if shading.type != 'WIREFRAME':
             self._draw_color_type(context)
+            self.layout.separator()
         self._draw_background_color(context)
 
 
@@ -4146,11 +4147,15 @@ class VIEW3D_PT_shading_options(Panel):
         row = col.row()
 
         if shading.type == 'WIREFRAME':
-            row.active = shading.show_xray_wireframe
-            row.prop(shading, "xray_alpha_wireframe", text="X-Ray")
+            row.prop(shading, "show_xray_wireframe", text="")
+            sub = row.row()
+            sub.active = shading.show_xray_wireframe
+            sub.prop(shading, "xray_alpha_wireframe", text="X-Ray")
         else:
-            row.active = shading.show_xray
-            row.prop(shading, "xray_alpha", text="X-Ray")
+            row.prop(shading, "show_xray", text="")
+            sub = row.row()
+            sub.active = shading.show_xray
+            sub.prop(shading, "xray_alpha", text="X-Ray")
 
         if shading.type == 'SOLID':
             row = col.row()
