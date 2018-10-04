@@ -3412,12 +3412,12 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void UV_OT_circle_select(wmOperatorType *ot)
+static void UV_OT_select_circle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Circle Select";
 	ot->description = "Select UV vertices using circle selection";
-	ot->idname = "UV_OT_circle_select";
+	ot->idname = "UV_OT_select_circle";
 
 	/* api callbacks */
 	ot->invoke = WM_gesture_circle_invoke;
@@ -4647,7 +4647,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_pinned);
 	WM_operatortype_append(UV_OT_select_border);
 	WM_operatortype_append(UV_OT_select_lasso);
-	WM_operatortype_append(UV_OT_circle_select);
+	WM_operatortype_append(UV_OT_select_circle);
 	WM_operatortype_append(UV_OT_select_more);
 	WM_operatortype_append(UV_OT_select_less);
 
@@ -4719,7 +4719,7 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "pinned", true);
 
-	WM_keymap_add_item(keymap, "UV_OT_circle_select", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "UV_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "UV_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", false);

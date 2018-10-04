@@ -3232,7 +3232,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 
 	/* assign map to operators */
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
-	WM_modalkeymap_assign(keymap, "UV_OT_circle_select");
+	WM_modalkeymap_assign(keymap, "UV_OT_select_circle");
 	WM_modalkeymap_assign(keymap, "CLIP_OT_select_circle");
 	WM_modalkeymap_assign(keymap, "MASK_OT_select_circle");
 	WM_modalkeymap_assign(keymap, "NODE_OT_select_circle");
