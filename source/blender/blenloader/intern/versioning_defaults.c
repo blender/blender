@@ -146,6 +146,21 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 	                        STREQ(app_template, "Video_Editing");
 
 	if (builtin_template) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			/* Hide channels in timelines. */
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				SpaceAction *saction = (sa->spacetype == SPACE_ACTION) ? sa->spacedata.first : NULL;
+
+				if (saction && saction->mode == SACTCONT_TIMELINE) {
+					for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar->regiontype == RGN_TYPE_CHANNELS) {
+							ar->flag |= RGN_FLAG_HIDDEN;
+						}
+					}
+				}
+			}
+		}
+
 		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 			BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 
