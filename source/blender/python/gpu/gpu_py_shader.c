@@ -369,10 +369,13 @@ static PyObject *bpygpu_shader_uniform_bool(
 	{
 		PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
 		if (seq_fast == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%s: expected a sequence, got %s",
+			             error_prefix, Py_TYPE(params.seq)->tp_name);
 			ret = -1;
 		}
 		else {
-			length = PySequence_Fast_GET_SIZE(params.seq);
+			length = PySequence_Fast_GET_SIZE(seq_fast);
 			if (length == 0 || length > 4) {
 				PyErr_Format(PyExc_TypeError,
 				             "%s: invalid sequence length. expected 1..4, got %d",
@@ -434,10 +437,13 @@ static PyObject *bpygpu_shader_uniform_float(
 	{
 		PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
 		if (seq_fast == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%s: expected a sequence, got %s",
+			             error_prefix, Py_TYPE(params.seq)->tp_name);
 			ret = -1;
 		}
 		else {
-			length = PySequence_Fast_GET_SIZE(params.seq);
+			length = PySequence_Fast_GET_SIZE(seq_fast);
 			if ((length == 0) || (length > 16) ||
 			    (4 < length && length < 9) ||
 			    (9 < length && length < 16))
@@ -502,10 +508,13 @@ static PyObject *bpygpu_shader_uniform_int(
 	{
 		PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
 		if (seq_fast == NULL) {
+			PyErr_Format(PyExc_TypeError,
+			             "%s: expected a sequence, got %s",
+			             error_prefix, Py_TYPE(params.seq)->tp_name);
 			ret = -1;
 		}
 		else {
-			length = PySequence_Fast_GET_SIZE(params.seq);
+			length = PySequence_Fast_GET_SIZE(seq_fast);
 			if (length == 0 || length > 4) {
 				PyErr_Format(PyExc_TypeError,
 				             "%s: invalid sequence length. expected 1..4, got %d",
