@@ -62,6 +62,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_node.h"
 #include "BKE_report.h"
@@ -70,6 +71,7 @@
 #include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_image.h"
 #include "ED_mesh.h"
@@ -2922,6 +2924,18 @@ static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short s
 	}
 }
 
+static void uv_select_tag_update_for_object(Depsgraph *depsgraph, const ToolSettings *ts, Object *obedit)
+{
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		WM_main_add_notifier(NC_GEOM | ND_SELECT, obedit->data);
+	}
+	else {
+		Object *obedit_eval = DEG_get_evaluated_object(depsgraph, obedit);
+		BKE_mesh_batch_cache_dirty_tag(obedit_eval->data, BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT);
+	}
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -3154,6 +3168,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 
 static int uv_border_select_exec(bContext *C, wmOperator *op)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *ts = scene->toolsettings;
@@ -3259,11 +3274,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 			changed_multi = true;
 
 			uv_select_sync_flush(ts, em, select);
-
-			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-			}
+			uv_select_tag_update_for_object(depsgraph, ts, obedit);
 		}
 	}
 
@@ -3312,6 +3323,7 @@ static int uv_inside_circle(const float uv[2], const float offset[2], const floa
 
 static int uv_circle_select_exec(bContext *C, wmOperator *op)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -3402,9 +3414,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 			changed_multi = true;
 
 			uv_select_sync_flush(ts, em, select);
-
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			uv_select_tag_update_for_object(depsgraph, ts, obedit);
 		}
 	}
 	MEM_freeN(objects);
@@ -3442,6 +3452,7 @@ static void UV_OT_select_circle(wmOperatorType *ot)
 static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short moves,
                                     const bool select, const bool extend)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -3536,12 +3547,8 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 		if (changed) {
 			changed_multi = true;
 
-			uv_select_sync_flush(scene->toolsettings, em, select);
-
-			if (ts->uv_flag & UV_SYNC_SELECTION) {
-				DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-			}
+			uv_select_sync_flush(ts, em, select);
+			uv_select_tag_update_for_object(depsgraph, ts, obedit);
 		}
 	}
 	MEM_freeN(objects);
@@ -3989,7 +3996,9 @@ static void UV_OT_pin(wmOperatorType *ot)
 
 static int uv_select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
+	ToolSettings *ts = scene->toolsettings;
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Image *ima = CTX_data_edit_image(C);
 	BMFace *efa;
@@ -4023,8 +4032,7 @@ static int uv_select_pinned_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 
 		if (changed) {
-			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			uv_select_tag_update_for_object(depsgraph, ts, obedit);
 		}
 	}
 	MEM_freeN(objects);

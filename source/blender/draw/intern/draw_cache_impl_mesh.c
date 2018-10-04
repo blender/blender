@@ -1904,6 +1904,13 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 		case BKE_MESH_BATCH_DIRTY_SCULPT_COORDS:
 			cache->is_sculpt_points_tag = true;
 			break;
+		case BKE_MESH_BATCH_DIRTY_UVEDIT_ALL:
+			mesh_batch_cache_discard_uvedit(cache);
+			break;
+		case BKE_MESH_BATCH_DIRTY_UVEDIT_SELECT:
+			/* For now same as above. */
+			mesh_batch_cache_discard_uvedit(cache);
+			break;
 		default:
 			BLI_assert(0);
 	}
