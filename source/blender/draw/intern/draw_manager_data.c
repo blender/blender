@@ -540,7 +540,9 @@ static void sculpt_draw_cb(
         void *user_data)
 {
 	Object *ob = user_data;
-	PBVH *pbvh = ob->sculpt->pbvh;
+
+	/* XXX should be ensured before but sometime it's not... go figure (see T57040). */
+	PBVH *pbvh = BKE_sculpt_object_pbvh_ensure(DST.draw_ctx.depsgraph, ob);
 
 	const DRWContextState *drwctx = DRW_context_state_get();
 	int fast_mode = 0;
