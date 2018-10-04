@@ -203,7 +203,7 @@ static struct bUnitCollection buImperialVolCollection = {buImperialVolDef, 4, 0,
 
 /* Mass */
 static struct bUnitDef buMetricMassDef[] = {
-	{"ton", "tonnes",           "ton", "t",  "1000 Kilograms", UN_SC_MTON, 0.0,  B_UNIT_DEF_NONE},
+	{"ton", "tonnes",           "ton", "t",  "Tonnes", UN_SC_MTON, 0.0,  B_UNIT_DEF_NONE},
 	{"quintal", "quintals",     "ql",  "q",  "100 Kilograms", UN_SC_QL, 0.0,     B_UNIT_DEF_SUPPRESS},
 	{"kilogram", "kilograms",   "kg",  NULL, "Kilograms", UN_SC_KG, 0.0,         B_UNIT_DEF_NONE}, /* base unit */
 	{"hectogram", "hectograms", "hg",  NULL, "Hectograms", UN_SC_HG, 0.0,        B_UNIT_DEF_SUPPRESS},
