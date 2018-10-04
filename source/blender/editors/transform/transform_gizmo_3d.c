@@ -93,8 +93,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#include "wm.h"
-
 /* return codes for select, and drawing flags */
 
 #define MAN_TRANS_X		(1 << 0)
@@ -1244,8 +1242,7 @@ static void gizmo_xform_message_subscribe(
 
 void drawDial3d(const TransInfo *t)
 {
-	wmGizmo *gz = wm_gizmomap_highlight_get(t->ar->gizmo_map);
-	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D && gz != NULL) {
+	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
 		float mat_basis[4][4];
 		float mat_final[4][4];
 		float color[4];
