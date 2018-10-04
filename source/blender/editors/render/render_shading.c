@@ -833,6 +833,10 @@ static int light_cache_free_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
 
+	/* kill potential bake job first (see T57011) */
+	wmWindowManager *wm = CTX_wm_manager(C);
+	WM_jobs_kill_type(wm, scene, WM_JOB_TYPE_LIGHT_BAKE);
+
 	if (!scene->eevee.light_cache) {
 		return OPERATOR_CANCELLED;
 	}
