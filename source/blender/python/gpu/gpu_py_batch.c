@@ -172,7 +172,7 @@ PyDoc_STRVAR(bpygpu_VertBatch_draw_doc,
 "   Run the drawing program with the parameters assigned to the batch.\n"
 "\n"
 "   :param program: program that performs the drawing operations. \n"
-"                   If `None` is passed, the last program setted to this batch will run.\n"
+"      If ``None`` is passed, the last program setted to this batch will run.\n"
 "   :type program: :class:`gpu.types.GPUShader`\n"
 );
 static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
