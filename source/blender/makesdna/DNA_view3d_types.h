@@ -190,10 +190,7 @@ typedef struct View3DOverlay {
 	float wireframe_threshold;
 
 	/* grease pencil settings */
-	float gpencil_grid_scale[2];
 	float gpencil_paper_opacity;
-	int   gpencil_grid_lines;
-	int   gpencil_grid_axis;
 	float gpencil_grid_opacity;
 	char _pad1[4];
 
@@ -517,13 +514,5 @@ enum {
 /* #BKE_screen_view3d_zoom_to_fac() values above */
 #define RV3D_CAMZOOM_MIN_FACTOR  0.1657359312880714853f
 #define RV3D_CAMZOOM_MAX_FACTOR 44.9852813742385702928f
-
-/* View3d.gpencil_grid_axis */
-enum {
-	V3D_GP_GRID_AXIS_LOCK = (1 << 0),
-	V3D_GP_GRID_AXIS_X    = (1 << 1),
-	V3D_GP_GRID_AXIS_Y    = (1 << 2),
-	V3D_GP_GRID_AXIS_Z    = (1 << 3),
-};
 
 #endif

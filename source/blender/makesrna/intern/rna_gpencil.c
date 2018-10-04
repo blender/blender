@@ -71,6 +71,14 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 	{ GP_ONION_MODE_SELECTED, "SELECTED", 0, "Selected", "Only Selected Frames" },
 	{ 0, NULL, 0, NULL, NULL }
 };
+
+static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
+	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
+	{V3D_GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
+	{V3D_GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
+	{V3D_GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 #endif
 
 #ifdef RNA_RUNTIME
@@ -1411,6 +1419,34 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Surface Offset",
 		"Offset amount when drawing in surface mode");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	/* grid config */
+	prop = RNA_def_property(srna, "grid_scale", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "grid.scale");
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Grid Scale", "Grid scale");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "grid.color");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Grid Color", "Color for grid lines");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "grid.lines");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
+	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions in each side of symmetry line");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "grid.axis");
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
+	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	/* API Functions */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");

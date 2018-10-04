@@ -1151,10 +1151,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 					for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
-							ARRAY_SET_ITEMS(v3d->overlay.gpencil_grid_scale, 1.0f, 1.0f); // Scale
-							v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES; // NUmber of lines
 							v3d->overlay.gpencil_paper_opacity = 0.5f;
-							v3d->overlay.gpencil_grid_axis = V3D_GP_GRID_AXIS_Y;
 							v3d->overlay.gpencil_grid_opacity = 0.9f;
 						}
 					}
@@ -1925,18 +1922,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_grid_scale")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							ARRAY_SET_ITEMS(v3d->overlay.gpencil_grid_scale, 1.0f, 1.0f);
-						}
-					}
-				}
-			}
-		}
 		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "float", "gpencil_paper_opacity")) {
 			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -1961,30 +1946,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 				}
 			}
 		}
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "int", "gpencil_grid_axis")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							v3d->overlay.gpencil_grid_axis = V3D_GP_GRID_AXIS_Y;
-						}
-					}
-				}
-			}
-		}
-		if (!DNA_struct_elem_find(fd->filesdna, "View3DOverlay", "int", "gpencil_grid_lines")) {
-			for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
-					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							v3d->overlay.gpencil_grid_lines = GP_DEFAULT_GRID_LINES;
-						}
-					}
-				}
-			}
-		}
+
 		/* default loc axis */
 		if (!DNA_struct_elem_find(fd->filesdna, "GP_BrushEdit_Settings", "int", "lock_axis")) {
 			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
@@ -2192,5 +2154,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 			unit->time_unit = bUnit_GetBaseUnitOfType(USER_UNIT_NONE, B_UNIT_TIME);
 		}
+
+		/* gpencil grid settings */
+		for (bGPdata *gpd = bmain->gpencil.first; gpd; gpd = gpd->id.next) {
+			ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); // Color
+			ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f); // Scale
+			gpd->grid.lines = GP_DEFAULT_GRID_LINES; // Number of lines
+			gpd->grid.axis = V3D_GP_GRID_AXIS_Y;
+		}
+
+
 	}
 }

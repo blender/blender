@@ -316,7 +316,7 @@ struct GPUBatch *DRW_gpencil_get_edlin_geom(struct bGPDstroke *gps, float alpha,
 struct GPUBatch *DRW_gpencil_get_buffer_stroke_geom(struct bGPdata *gpd, short thickness);
 struct GPUBatch *DRW_gpencil_get_buffer_fill_geom(struct bGPdata *gpd);
 struct GPUBatch *DRW_gpencil_get_buffer_point_geom(struct bGPdata *gpd, short thickness);
-struct GPUBatch *DRW_gpencil_get_grid(void);
+struct GPUBatch *DRW_gpencil_get_grid(Object *ob);
 
 /* object cache functions */
 struct tGPencilObjectCache *gpencil_object_cache_add(

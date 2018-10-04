@@ -606,7 +606,7 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			GPU_BATCH_DISCARD_SAFE(e_data.batch_grid);
 			MEM_SAFE_FREE(e_data.batch_grid);
 
-			e_data.batch_grid = DRW_gpencil_get_grid();
+			e_data.batch_grid = DRW_gpencil_get_grid(ob);
 			DRW_shgroup_call_add(
 			        stl->g_data->shgrps_grid,
 			        e_data.batch_grid,

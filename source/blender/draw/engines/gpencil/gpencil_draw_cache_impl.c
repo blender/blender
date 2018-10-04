@@ -643,36 +643,38 @@ static void set_grid_point(
 }
 
 /* Draw grid lines */
-GPUBatch *DRW_gpencil_get_grid(void)
+GPUBatch *DRW_gpencil_get_grid(Object *ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
 	ToolSettings *ts = scene->toolsettings;
 	View3D *v3d = draw_ctx->v3d;
-	const bool do_center = (v3d->overlay.gpencil_grid_lines <= 0) ? false : true;
+	bGPdata *gpd = (bGPdata *)ob->data;
+	const bool do_center = (gpd->grid.lines <= 0) ? false : true;
 
 	float col_grid[4];
 
 	/* verify we have something to draw and valid values */
-	if (v3d->overlay.gpencil_grid_scale[0] == 0.0f) {
-		v3d->overlay.gpencil_grid_scale[0] = 1.0f;
+	if (gpd->grid.scale[0] == 0.0f) {
+		gpd->grid.scale[0] = 1.0f;
 	}
-	if (v3d->overlay.gpencil_grid_scale[1] == 0.0f) {
-		v3d->overlay.gpencil_grid_scale[1] = 1.0f;
+	if (gpd->grid.scale[1] == 0.0f) {
+		gpd->grid.scale[1] = 1.0f;
 	}
 
 	if (v3d->overlay.gpencil_grid_opacity < 0.1f) {
 		v3d->overlay.gpencil_grid_opacity = 0.1f;
 	}
 
-	UI_GetThemeColor3fv(TH_GRID, col_grid);
+	/* set color */
+	copy_v3_v3(col_grid, gpd->grid.color);
 	col_grid[3] = v3d->overlay.gpencil_grid_opacity;
 
 	/* if use locked axis, copy value */
-	int axis = v3d->overlay.gpencil_grid_axis;
-	if ((v3d->overlay.gpencil_grid_axis & V3D_GP_GRID_AXIS_LOCK) == 0) {
+	int axis = gpd->grid.axis;
+	if ((gpd->grid.axis & V3D_GP_GRID_AXIS_LOCK) == 0) {
 
-		axis = v3d->overlay.gpencil_grid_axis;
+		axis = gpd->grid.axis;
 	}
 	else {
 		switch (ts->gp_sculpt.lock_axis) {
@@ -696,9 +698,9 @@ GPUBatch *DRW_gpencil_get_grid(void)
 	}
 
 	const char *grid_unit = NULL;
-	const int gridlines = (v3d->overlay.gpencil_grid_lines <= 0) ? 1 : v3d->overlay.gpencil_grid_lines;
-	const float grid_w = v3d->overlay.gpencil_grid_scale[0] * ED_scene_grid_scale(scene, &grid_unit);
-	const float grid_h = v3d->overlay.gpencil_grid_scale[1] * ED_scene_grid_scale(scene, &grid_unit);
+	const int gridlines = (gpd->grid.lines <= 0) ? 1 : gpd->grid.lines;
+	const float grid_w = gpd->grid.scale[0] * ED_scene_grid_scale(scene, &grid_unit);
+	const float grid_h = gpd->grid.scale[1] * ED_scene_grid_scale(scene, &grid_unit);
 	const float space_w = (grid_w / gridlines);
 	const float space_h = (grid_h / gridlines);
 

@@ -39,7 +39,6 @@ struct CurveMapping;
 struct GHash;
 struct MDeformVert;
 
-/* TODO: add size as userprefs parameter */
 #define GP_OBGPENCIL_DEFAULT_SIZE  0.2f
 #define GP_DEFAULT_PIX_FACTOR 1.0f
 #define GP_DEFAULT_GRID_LINES 4
@@ -325,6 +324,16 @@ typedef struct bGPdata_runtime {
 	char pad_[6];
 } bGPdata_runtime;
 
+/* grid configuration */
+typedef struct bGPgrid {
+	float color[3];
+	float scale[2];
+	char _pad1[4];
+
+	int   lines;
+	int   axis;
+} bGPgrid;
+
 /* Grease-Pencil Annotations - 'DataBlock' */
 typedef struct bGPdata {
 	ID id;					/* Grease Pencil data is a datablock */
@@ -366,6 +375,7 @@ typedef struct bGPdata {
 	int   totpoint;
 	char pad_3[4];
 	bGPdata_runtime runtime;
+	bGPgrid grid;
 } bGPdata;
 
 /* bGPdata->flag */
@@ -460,6 +470,14 @@ typedef enum eGP_DepthOrdering {
 	GP_XRAY_3DSPACE = 1,
 	GP_XRAY_BACK  = 2
 } eGP_DepthOrdering;
+
+/* gpencil_grid_axis */
+enum {
+	V3D_GP_GRID_AXIS_LOCK = (1 << 0),
+	V3D_GP_GRID_AXIS_X = (1 << 1),
+	V3D_GP_GRID_AXIS_Y = (1 << 2),
+	V3D_GP_GRID_AXIS_Z = (1 << 3),
+};
 
 /* ***************************************** */
 /* Mode Checking Macros */

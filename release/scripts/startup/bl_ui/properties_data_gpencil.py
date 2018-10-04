@@ -347,6 +347,26 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
         layout.prop(gpd, "zdepth_offset", text="Surface Offset")
 
 
+class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
+    bl_label = "Canvas"
+    bl_parent_id = 'DATA_PT_gpencil_display'
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        gpd = context.gpencil_data
+
+        row = layout.row(align=True)
+        col = row.column()
+        col.prop(gpd, "grid_color")
+        col.prop(gpd, "grid_scale")
+        row = layout.row(align=True)
+        col = row.column()
+        col.prop(gpd, "grid_lines", text="Subdivisions")
+        col.prop(gpd, "grid_axis", text="Plane")
+
+
 class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):
     _context_path = "object.data"
     _property_type = bpy.types.GreasePencil
@@ -362,6 +382,7 @@ classes = (
     DATA_PT_gpencil_parentpanel,
     DATA_PT_gpencil_vertexpanel,
     DATA_PT_gpencil_display,
+    DATA_PT_gpencil_canvas,
     DATA_PT_custom_props_gpencil,
 
     GPENCIL_UL_vgroups,

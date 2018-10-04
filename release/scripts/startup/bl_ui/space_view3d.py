@@ -4927,15 +4927,6 @@ class VIEW3D_PT_overlay_gpencil_options(Panel):
         sub.active = overlay.use_gpencil_grid
         sub.prop(overlay, "gpencil_grid_opacity", text="Canvas Grid", slider=True)
 
-        if overlay.use_gpencil_grid:
-            row = layout.row(align=True)
-            col = row.column()
-            col.prop(overlay, "gpencil_grid_scale")
-            row = layout.row(align=True)
-            col = row.column()
-            col.prop(overlay, "gpencil_grid_lines", text="Subdivisions")
-            col.prop(overlay, "gpencil_grid_axis", text="Plane")
-
         if context.object.mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             layout.prop(overlay, "use_gpencil_edit_lines", text="Edit Lines")
             layout.prop(overlay, "use_gpencil_multiedit_line_only", text="Show Edit Lines only in multiframe")
