@@ -1249,11 +1249,11 @@ class _defs_image_uv_select:
             widget=None,
             keymap=(
                 ("uv.select_circle",
-                 dict(),  # dict(deselect=False),
+                 dict(deselect=False),
                  dict(type='ACTIONMOUSE', value='PRESS')),
-                # ("uv.select_circle",
-                #  dict(deselect=True),
-                #  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+                ("uv.select_circle",
+                 dict(deselect=True),
+                 dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
             ),
         )
 
