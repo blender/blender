@@ -1292,6 +1292,8 @@ void drawDial3d(const TransInfo *t)
 			ortho_basis_v3v3_v3(mat_basis[0], mat_basis[1], mat_basis[2]);
 		}
 
+		mat_basis[0][3] = 0.0f;
+		mat_basis[1][3] = 0.0f;
 		mat_basis[2][3] = 0.0f;
 		mat_basis[3][3] = 1.0f;
 
