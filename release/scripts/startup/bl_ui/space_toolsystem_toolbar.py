@@ -154,7 +154,7 @@ class _defs_view3d_generic:
         return dict(
             text="Cursor",
             description=(
-                "Set the 3D cursor location, drag to transform"
+                "Set the cursor location, drag to transform"
             ),
             icon="ops.generic.cursor",
             keymap=(
@@ -1188,7 +1188,42 @@ class _defs_weight_paint:
         )
 
 
-class _defs_uv_select:
+class _defs_image_generic:
+
+    @ToolDef.from_fn
+    def cursor():
+        return dict(
+            text="Cursor",
+            description=(
+                "Set the cursor location, drag to transform"
+            ),
+            icon="ops.generic.cursor",
+            keymap=(
+                ("uv.cursor_set", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+                ("transform.translate",
+                 dict(release_confirm=True, cursor_transform=True),
+                 dict(type='EVT_TWEAK_A', value='ANY'),
+                 ),
+            ),
+        )
+
+
+class _defs_image_uv_transform:
+
+    @ToolDef.from_fn
+    def transform():
+        return dict(
+            text="Transform",
+            description=(
+                "Supports any combination of grab, rotate & scale at once"
+            ),
+            icon="ops.transform.transform",
+            widget="IMAGE_GGT_gizmo2d",
+            # No keymap default action, only for gizmo!
+        )
+
+
+class _defs_image_uv_select:
 
     @ToolDef.from_fn
     def border():
@@ -1697,11 +1732,15 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
         yield from cls._tools.items()
 
     # for reuse
+    _tools_transform = (
+        _defs_image_uv_transform.transform,
+    )
+
     _tools_select = (
         (
-            _defs_uv_select.border,
-            _defs_uv_select.circle,
-            _defs_uv_select.lasso,
+            _defs_image_uv_select.border,
+            _defs_image_uv_select.circle,
+            _defs_image_uv_select.lasso,
         ),
     )
 
@@ -1719,7 +1758,11 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             # for all modes
         ],
         'VIEW': [
+            _defs_image_generic.cursor,
             *_tools_select,
+            None,
+            *_tools_transform,
+            None,
             *_tools_annotate,
         ],
         'MASK': [

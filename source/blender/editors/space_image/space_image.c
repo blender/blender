@@ -576,7 +576,8 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
 	gzgt->name = "UV Transform Gizmo";
 	gzgt->idname = "IMAGE_GGT_gizmo2d";
 
-	gzgt->flag |= WM_GIZMOGROUPTYPE_PERSISTENT;
+	gzgt->gzmap_params.spaceid = SPACE_IMAGE;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
 
 	gzgt->poll = ED_widgetgroup_gizmo2d_poll;
 	gzgt->setup = ED_widgetgroup_gizmo2d_setup;
@@ -586,10 +587,7 @@ static void IMAGE_GGT_gizmo2d(wmGizmoGroupType *gzgt)
 
 static void image_widgets(void)
 {
-	wmGizmoMapType *gzmap_type = WM_gizmomaptype_ensure(
-	        &(const struct wmGizmoMapType_Params){SPACE_IMAGE, RGN_TYPE_WINDOW});
-
-	WM_gizmogrouptype_append_and_link(gzmap_type, IMAGE_GGT_gizmo2d);
+	WM_gizmogrouptype_append(IMAGE_GGT_gizmo2d);
 }
 
 /************************** main region ***************************/
