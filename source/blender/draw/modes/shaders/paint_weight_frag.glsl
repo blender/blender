@@ -24,6 +24,6 @@ void main()
 		color = mix(weight_color, colorVertexUnreferenced, alert * alert);
 	}
 
-	/* See gpu_shader_multiply_and_blend_preprocessing.glsl */
-	fragColor = vec4(color.rgb * opacity + (1 - opacity), 1.0);
+	/* mix with 1.0 -> is like opacity when using multiply blend mode */
+	fragColor = vec4(mix(vec3(1.0), color.rgb, opacity), 1.0);
 }
