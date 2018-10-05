@@ -211,11 +211,14 @@ static int insert_attributes_from_list(GPUVertFormat *format, PyObject *list)
 
 static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-
 	PyObject *format_list;
 
-	static const char *keywords[] = {"format", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char**)keywords, &PyList_Type, &format_list)) {
+	static const char *_keywords[] = {"format", NULL};
+	static _PyArg_Parser _parser = {"O!:VertFormat.__new__", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	        args, kwds, &_parser,
+	        &PyList_Type, &format_list))
+	{
 		return NULL;
 	}
 
