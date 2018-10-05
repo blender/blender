@@ -194,7 +194,8 @@ static void dial_ghostarc_draw_helpline(
 /**
  * Draws segments to indicate the position of each increment.
  */
-static void dial_ghostarc_draw_incremental_angle(const float incremental_angle)
+static void dial_ghostarc_draw_incremental_angle(
+        const float incremental_angle, const float offset)
 {
 	const int tot_incr = (2 * M_PI) / incremental_angle;
 	GPU_line_width(1.0f);
@@ -206,8 +207,8 @@ static void dial_ghostarc_draw_incremental_angle(const float incremental_angle)
 
 	float v[3] = { 0 };
 	for (int i = 0; i < tot_incr; i++) {
-		v[0] = sinf(incremental_angle * i);
-		v[1] = cosf(incremental_angle * i);
+		v[0] = sinf(offset + incremental_angle * i);
+		v[1] = cosf(offset + incremental_angle * i);
 
 		mul_v2_fl(v, DIAL_WIDTH * 1.1f);
 		immVertex3fv(pos, v);
@@ -563,7 +564,7 @@ void ED_gizmotypes_dial_3d_draw_util(
 	}
 
 	if (params->angle_increment) {
-		dial_ghostarc_draw_incremental_angle(params->angle_increment);
+		dial_ghostarc_draw_incremental_angle(params->angle_increment, params->angle_ofs);
 	}
 
 	/* Draw actual dial gizmo. */
