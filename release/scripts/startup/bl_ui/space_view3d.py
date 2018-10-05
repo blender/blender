@@ -424,15 +424,6 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
 
         layout.separator()
 
-        layout.operator_context = 'EXEC_AREA'
-
-        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
-        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
-        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
-        layout.operator("object.origin_set", text="Origin to Center of Mass (Surface)").type = 'ORIGIN_CENTER_OF_MASS'
-        layout.operator("object.origin_set", text="Origin to Center of Mass (Volume)").type = 'ORIGIN_CENTER_OF_VOLUME'
-        layout.separator()
-
         layout.operator("object.randomize_transform")
         layout.operator("object.align")
 
@@ -441,6 +432,22 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
         layout.operator_context = 'INVOKE_REGION_WIN'
         layout.operator("object.transform_axis_target")
         """
+
+
+class VIEW3D_MT_transform_origin(Menu):
+    bl_label = "Origin"
+
+    def draw(self, context):
+
+        layout = self.layout
+
+        layout.operator_context = 'EXEC_AREA'
+
+        layout.operator("object.origin_set", text="Geometry to Origin").type = 'GEOMETRY_ORIGIN'
+        layout.operator("object.origin_set", text="Origin to Geometry").type = 'ORIGIN_GEOMETRY'
+        layout.operator("object.origin_set", text="Origin to 3D Cursor").type = 'ORIGIN_CURSOR'
+        layout.operator("object.origin_set", text="Origin to Center of Mass (Surface)").type = 'ORIGIN_CENTER_OF_MASS'
+        layout.operator("object.origin_set", text="Origin to Center of Mass (Volume)").type = 'ORIGIN_CENTER_OF_VOLUME'
 
 
 # Armature EditMode extensions to Transform menu
@@ -1589,6 +1596,7 @@ class VIEW3D_MT_object(Menu):
         layout = self.layout
 
         layout.menu("VIEW3D_MT_transform_object")
+        layout.menu("VIEW3D_MT_transform_origin")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
@@ -5141,6 +5149,7 @@ classes = (
     VIEW3D_MT_transform,
     VIEW3D_MT_transform_base,
     VIEW3D_MT_transform_object,
+    VIEW3D_MT_transform_origin,
     VIEW3D_MT_transform_armature,
     VIEW3D_MT_mirror,
     VIEW3D_MT_snap,
