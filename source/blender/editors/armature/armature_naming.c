@@ -474,36 +474,50 @@ void ARMATURE_OT_flip_names(wmOperatorType *ot)
 	                "(WARNING: may result in incoherent naming in some cases)");
 }
 
-
 static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Main *bmain = CTX_data_main(C);
-	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm;
 	char newname[MAXBONENAME];
-	short axis = RNA_enum_get(op->ptr, "type");
+	const short axis = RNA_enum_get(op->ptr, "type");
+	bool multi_changed = false;
 
-	/* paranoia checks */
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
-	arm = ob->data;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
+		bool changed = false;
 
-	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
-	{
-		BLI_strncpy(newname, ebone->name, sizeof(newname));
-		if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
-			ED_armature_bone_rename(bmain, arm, ebone->name, newname);
+		/* Paranoia checks. */
+		if (ELEM(NULL, ob, ob->pose)) {
+			continue;
+		}
+
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_EDITABLE(ebone)) {
+				BLI_strncpy(newname, ebone->name, sizeof(newname));
+				if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis])) {
+					ED_armature_bone_rename(bmain, arm, ebone->name, newname);
+					changed = true;
+				}
+			}
+		}
+
+		if (!changed) {
+			continue;
+		}
+
+		multi_changed = true;
+
+		/* Since we renamed stuff... */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+		/* Note, notifier might evolve. */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 	}
-	CTX_DATA_END;
-
-	/* since we renamed stuff... */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-
-	return OPERATOR_FINISHED;
+	MEM_freeN(objects);
+	return multi_changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_autoside_names(wmOperatorType *ot)
