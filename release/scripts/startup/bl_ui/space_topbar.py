@@ -173,16 +173,6 @@ class TOPBAR_HT_lower_bar(Header):
         # we just want them not to be confused with tool options.
         mode = context.mode
 
-        # grease pencil layer
-        gpl = context.active_gpencil_layer
-        if gpl and gpl.info is not None:
-            txt = gpl.info
-            maxw = 25
-            if len(txt) > maxw:
-                txt = txt[:maxw - 5] + '..' + txt[-3:]
-        else:
-            txt = ""
-
         if mode == 'SCULPT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
         elif mode == 'PAINT_VERTEX':
@@ -209,26 +199,29 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
         elif mode == 'OBJECT':
             layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
-        elif mode == 'GPENCIL_PAINT':
-            layout.label(text="Layer:")
-            sub = layout.row()
-            sub.ui_units_x = 8
-            sub.popover(
-                panel="TOPBAR_PT_gpencil_layers",
-                text=txt,
-            )
+        elif mode in {'GPENCIL_PAINT', 'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
+            # Grease pencil layer.
+            gpl = context.active_gpencil_layer
+            if gpl and gpl.info is not None:
+                text = gpl.info
+                maxw = 25
+                if len(text) > maxw:
+                    text = text[:maxw - 5] + '..' + text[-3:]
+            else:
+                text = ""
 
-            layout.prop(context.tool_settings, "use_gpencil_draw_onback", text="", icon='ORTHO')
-            layout.prop(context.tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
-            layout.prop(context.tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
-        elif mode in {'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
             layout.label(text="Layer:")
             sub = layout.row()
             sub.ui_units_x = 8
             sub.popover(
                 panel="TOPBAR_PT_gpencil_layers",
-                text=txt,
+                text=text,
             )
+            if mode == 'GPENCIL_PAINT':
+                tool_settings = context.tool_settings
+                layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='ORTHO')
+                layout.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
+                layout.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
 
 
 class _draw_left_context_mode:
