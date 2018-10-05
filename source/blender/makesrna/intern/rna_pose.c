@@ -743,6 +743,25 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
 	BKE_pchan_apply_mat4(pchan, tmat, false); /* no compat for predictable result */
 }
 
+static bPoseChannel *rna_PoseChannel_ensure_own_pchan(Object *ob, Object *ref_ob, bPoseChannel *ref_pchan)
+{
+	if (ref_ob != ob) {
+		/* We are trying to set a pchan from another object! Forbidden, try to find by name, or abort. */
+		if (ref_pchan != NULL) {
+			ref_pchan = BKE_pose_channel_find_name(ob->pose, ref_pchan->name);
+		}
+	}
+	return ref_pchan;
+}
+
+static void rna_PoseChannel_custom_shape_transform_set(PointerRNA *ptr, PointerRNA value)
+{
+	bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+
+	pchan->custom_tx = rna_PoseChannel_ensure_own_pchan(ob, value.id.data, value.data);
+}
+
 #else
 
 /* common properties for Action/Bone Groups - related to color */
@@ -969,6 +988,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bbone_prev");
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 	RNA_def_property_ui_text(prop, "B-Bone Start Handle",
 	                         "Bone that serves as the start handle for the B-Bone curve");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
@@ -977,6 +997,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "bbone_next");
 	RNA_def_property_struct_type(prop, "PoseBone");
 	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_NO_COMPARISON);
 	RNA_def_property_ui_text(prop, "B-Bone End Handle",
 	                         "Bone that serves as the end handle for the B-Bone curve");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_dependency_update");
@@ -1185,10 +1206,12 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "custom_shape_transform", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "custom_tx");
 	RNA_def_property_struct_type(prop, "PoseBone");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Custom Shape Transform",
 	                         "Bone that defines the display transform of this custom shape");
 	RNA_def_property_editable_func(prop, "rna_PoseChannel_proxy_editable");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_PoseChannel_custom_shape_transform_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_OBJECT | ND_POSE, "rna_Pose_update");
 
 	/* bone groups */
