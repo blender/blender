@@ -324,6 +324,7 @@ class DATA_PT_gpencil_display(DataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         ob = context.object
 
@@ -355,6 +356,7 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         gpd = context.gpencil_data
         grid = gpd.grid
 
