@@ -503,6 +503,20 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 
 		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 			if (EBONE_EDITABLE(ebone)) {
+
+				/* We first need to do the flipped bone, then the original one.
+				 * Otherwise we can't find the flipped one because of the bone name change. */
+				if (arm->flag & ARM_MIRROR_EDIT) {
+					EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+					if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
+						BLI_strncpy(newname, flipbone->name, sizeof(newname));
+						if (bone_autoside_name(newname, 1, axis, flipbone->head[axis], flipbone->tail[axis])) {
+							ED_armature_bone_rename(bmain, arm, flipbone->name, newname);
+							changed = true;
+						}
+					}
+				}
+
 				BLI_strncpy(newname, ebone->name, sizeof(newname));
 				if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis])) {
 					ED_armature_bone_rename(bmain, arm, ebone->name, newname);
