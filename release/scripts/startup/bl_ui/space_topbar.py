@@ -163,12 +163,8 @@ class TOPBAR_HT_lower_bar(Header):
             elif tool_mode == 'GPENCIL_WEIGHT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
         elif tool_space_type == 'IMAGE_EDITOR':
-            if tool_mode == 'VIEW':
-                mode = context.mode
-                if mode == 'EDIT_MESH':
-                    tool_settings = context.tool_settings
-                    if tool_settings.use_uv_sculpt:
-                        layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
+            if context.uv_sculpt_object is not None:
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
 
     def draw_center(self, context):
         pass

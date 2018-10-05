@@ -1167,7 +1167,7 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
 
     @classmethod
     def poll(cls, context):
-        return IMAGE_PT_uv_sculpt.poll(context)
+        return (context.uv_sculpt_object is not None)
 
     def draw(self, context):
         layout = self.layout
@@ -1196,16 +1196,7 @@ class IMAGE_PT_uv_sculpt(Panel):
 
     @classmethod
     def poll(cls, context):
-        tool_settings = context.tool_settings
-        if tool_settings.use_uv_sculpt:
-            if context.mode == 'EDIT_MESH':
-                workspace = context.workspace
-                space_type = workspace.tools_space_type
-                if space_type == 'IMAGE_EDITOR':
-                    mode = workspace.tools_mode
-                    if mode == 'VIEW':
-                        return True
-        return False
+        return (context.uv_sculpt_object is not None)
 
     def draw(self, context):
         from .properties_paint_common import UnifiedPaintPanel
