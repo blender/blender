@@ -351,10 +351,10 @@ void        WM_operator_properties_filesel(
 void        WM_operator_properties_border(struct wmOperatorType *ot);
 void        WM_operator_properties_border_to_rcti(struct wmOperator *op, struct rcti *rect);
 void        WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect);
-void        WM_operator_properties_gesture_border_ex(struct wmOperatorType *ot, bool deselect, bool extend);
-void        WM_operator_properties_gesture_border(struct wmOperatorType *ot);
-void        WM_operator_properties_gesture_border_select(struct wmOperatorType *ot);
-void        WM_operator_properties_gesture_border_zoom(struct wmOperatorType *ot);
+void        WM_operator_properties_gesture_box_ex(struct wmOperatorType *ot, bool deselect, bool extend);
+void        WM_operator_properties_gesture_box(struct wmOperatorType *ot);
+void        WM_operator_properties_gesture_box_select(struct wmOperatorType *ot);
+void        WM_operator_properties_gesture_box_zoom(struct wmOperatorType *ot);
 void        WM_operator_properties_gesture_lasso_ex(struct wmOperatorType *ot, bool deselect, bool extend);
 void        WM_operator_properties_gesture_lasso(struct wmOperatorType *ot);
 void        WM_operator_properties_gesture_lasso_select(struct wmOperatorType *ot);
@@ -445,9 +445,9 @@ bool                WM_paneltype_add(struct PanelType *mt);
 void                WM_paneltype_remove(struct PanelType *mt);
 
 /* wm_gesture_ops.c */
-int			WM_gesture_border_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
-int			WM_gesture_border_modal	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
-void		WM_gesture_border_cancel(struct bContext *C, struct wmOperator *op);
+int			WM_gesture_box_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+int			WM_gesture_box_modal	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
+void		WM_gesture_box_cancel(struct bContext *C, struct wmOperator *op);
 int			WM_gesture_circle_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 int			WM_gesture_circle_modal(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);
 void		WM_gesture_circle_cancel(struct bContext *C, struct wmOperator *op);

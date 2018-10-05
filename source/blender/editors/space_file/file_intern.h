@@ -73,7 +73,7 @@ void FILE_OT_highlight(struct wmOperatorType *ot);
 void FILE_OT_select(struct wmOperatorType *ot);
 void FILE_OT_select_walk(struct wmOperatorType *ot);
 void FILE_OT_select_all(struct wmOperatorType *ot);
-void FILE_OT_select_border(struct wmOperatorType *ot);
+void FILE_OT_select_box(struct wmOperatorType *ot);
 void FILE_OT_select_bookmark(struct wmOperatorType *ot);
 void FILE_OT_bookmark_add(struct wmOperatorType *ot);
 void FILE_OT_bookmark_delete(struct wmOperatorType *ot);

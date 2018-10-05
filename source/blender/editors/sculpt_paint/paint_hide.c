@@ -443,7 +443,7 @@ static int hide_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	PartialVisArea area = RNA_enum_get(op->ptr, "area");
 
 	if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED))
-		return WM_gesture_border_invoke(C, op, event);
+		return WM_gesture_box_invoke(C, op, event);
 	else
 		return op->type->exec(C, op);
 }
@@ -471,7 +471,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = hide_show_invoke;
-	ot->modal = WM_gesture_border_modal;
+	ot->modal = WM_gesture_box_modal;
 	ot->exec = hide_show_exec;
 	/* sculpt-only for now */
 	ot->poll = sculpt_mode_poll_view3d;

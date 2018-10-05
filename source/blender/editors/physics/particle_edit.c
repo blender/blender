@@ -1967,7 +1967,7 @@ void PARTICLE_OT_select_linked(wmOperatorType *ot)
 	RNA_def_int_vector(ot->srna, "location", 2, NULL, 0, INT_MAX, "Location", "", 0, 16384);
 }
 
-/************************ border select operator ************************/
+/************************ box select operator ************************/
 void PE_deselect_all_visible(PTCacheEdit *edit)
 {
 	POINT_P; KEY_K;
@@ -1980,7 +1980,7 @@ void PE_deselect_all_visible(PTCacheEdit *edit)
 	}
 }
 
-int PE_border_select(bContext *C, const rcti *rect, const int sel_op)
+int PE_box_select(bContext *C, const rcti *rect, const int sel_op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);

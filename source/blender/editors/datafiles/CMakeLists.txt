@@ -599,7 +599,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.curve.draw
 	ops.curve.dupli_extrude_cursor
 	ops.generic.cursor
-	ops.generic.select_border
+	ops.generic.select_box
 	ops.generic.select_circle
 	ops.generic.select_lasso
 	ops.gpencil.draw

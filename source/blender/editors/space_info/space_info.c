@@ -198,7 +198,7 @@ static void info_operatortypes(void)
 	/* info_report.c */
 	WM_operatortype_append(INFO_OT_select_pick);
 	WM_operatortype_append(INFO_OT_select_all_toggle);
-	WM_operatortype_append(INFO_OT_select_border);
+	WM_operatortype_append(INFO_OT_select_box);
 
 	WM_operatortype_append(INFO_OT_report_replay);
 	WM_operatortype_append(INFO_OT_report_delete);
@@ -218,7 +218,7 @@ static void info_keymap(struct wmKeyConfig *keyconf)
 	/* report selection */
 	WM_keymap_add_item(keymap, "INFO_OT_select_pick", SELECTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "INFO_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "INFO_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "INFO_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "INFO_OT_report_replay", RKEY, KM_PRESS, 0, 0);
 

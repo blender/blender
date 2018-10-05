@@ -201,7 +201,7 @@ void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot)
 	              "Mask level to use when mode is 'Value'; zero means no masking and one is fully masked", 0, 1);
 }
 
-/* Box select, operator is VIEW3D_OT_select_border, defined in view3d_select.c */
+/* Box select, operator is VIEW3D_OT_select_box, defined in view3d_select.c */
 
 static bool is_effected(float planes[4][4], const float co[3])
 {

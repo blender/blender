@@ -447,7 +447,7 @@ static void clip_operatortypes(void)
 	/* selection */
 	WM_operatortype_append(CLIP_OT_select);
 	WM_operatortype_append(CLIP_OT_select_all);
-	WM_operatortype_append(CLIP_OT_select_border);
+	WM_operatortype_append(CLIP_OT_select_box);
 	WM_operatortype_append(CLIP_OT_select_lasso);
 	WM_operatortype_append(CLIP_OT_select_circle);
 	WM_operatortype_append(CLIP_OT_select_grouped);
@@ -521,7 +521,7 @@ static void clip_operatortypes(void)
 
 	/* selection */
 	WM_operatortype_append(CLIP_OT_graph_select);
-	WM_operatortype_append(CLIP_OT_graph_select_border);
+	WM_operatortype_append(CLIP_OT_graph_select_box);
 	WM_operatortype_append(CLIP_OT_graph_select_all_markers);
 
 	WM_operatortype_append(CLIP_OT_graph_delete_curve);
@@ -649,7 +649,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	ED_keymap_template_select_all(keymap, "CLIP_OT_select_all");
 
-	WM_keymap_add_item(keymap, "CLIP_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_menu(keymap, "CLIP_MT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -750,7 +750,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 
 	ED_keymap_template_select_all(keymap, "CLIP_OT_graph_select_all_markers");
 
-	WM_keymap_add_item(keymap, "CLIP_OT_graph_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_graph_select_box", BKEY, KM_PRESS, 0, 0);
 
 	/* delete */
 	WM_keymap_add_item(keymap, "CLIP_OT_graph_delete_curve", XKEY, KM_PRESS, 0, 0);

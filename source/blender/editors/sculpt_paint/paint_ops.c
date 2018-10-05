@@ -1447,7 +1447,7 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 
 	ED_keymap_template_select_all(keymap, "PAINT_OT_vert_select_all");
 
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", SEL_OP_ADD);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);

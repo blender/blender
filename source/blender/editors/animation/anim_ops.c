@@ -401,7 +401,7 @@ static int previewrange_define_exec(bContext *C, wmOperator *op)
 	float sfra, efra;
 	rcti rect;
 
-	/* get min/max values from border select rect (already in region coordinates, not screen) */
+	/* get min/max values from box select rect (already in region coordinates, not screen) */
 	WM_operator_properties_border_to_rcti(op, &rect);
 
 	/* convert min/max values to frames (i.e. region to 'tot' rect) */
@@ -434,10 +434,10 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	ot->description = "Interactively define frame range used for playback";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
+	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = previewrange_define_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ED_operator_animview_active;
 
@@ -448,7 +448,7 @@ static void ANIM_OT_previewrange_set(wmOperatorType *ot)
 	/* used to define frame range.
 	 *
 	 * note: border Y values are not used,
-	 * but are needed by borderselect gesture operator stuff */
+	 * but are needed by box_select gesture operator stuff */
 	WM_operator_properties_border(ot);
 }
 

@@ -194,7 +194,7 @@ _km_hierarchy = [
     ('View3D Gesture Circle', 'EMPTY', 'WINDOW', []),
     ('Gesture Straight Line', 'EMPTY', 'WINDOW', []),
     ('Gesture Zoom Border', 'EMPTY', 'WINDOW', []),
-    ('Gesture Border', 'EMPTY', 'WINDOW', []),
+    ('Gesture Box', 'EMPTY', 'WINDOW', []),
 
     ('Standard Modal Map', 'EMPTY', 'WINDOW', []),
     ('Transform Modal Map', 'EMPTY', 'WINDOW', []),

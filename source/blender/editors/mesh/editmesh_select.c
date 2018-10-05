@@ -206,7 +206,7 @@ void EDBM_automerge(Scene *scene, Object *obedit, bool update, const char hflag)
 
 unsigned int bm_solidoffs = 0, bm_wireoffs = 0, bm_vertoffs = 0;    /* set in drawobject.c ... for colorindices */
 
-/* facilities for border select and circle select */
+/* facilities for box select and circle select */
 static BLI_bitmap *selbuf = NULL;
 
 static BLI_bitmap *edbm_backbuf_alloc(const int size)

@@ -930,7 +930,7 @@ int view3d_opengl_select(
 
 	char gpu_select_mode;
 
-	/* case not a border select */
+	/* case not a box select */
 	if (input->xmin == input->xmax) {
 		/* seems to be default value for bones only now */
 		BLI_rcti_init_pt_radius(&rect, (const int[2]){input->xmin, input->ymin}, 12);

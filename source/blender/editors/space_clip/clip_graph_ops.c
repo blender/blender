@@ -329,17 +329,17 @@ void CLIP_OT_graph_select(wmOperatorType *ot)
 	                "Extend", "Extend selection rather than clearing the existing selection");
 }
 
-/********************** border select operator *********************/
+/********************** box select operator *********************/
 
-typedef struct BorderSelectuserData {
+typedef struct BoxSelectuserData {
 	rctf rect;
 	bool select, extend, changed;
-} BorderSelectuserData;
+} BoxSelectuserData;
 
-static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
+static void box_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
                              MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
-	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
+	BoxSelectuserData *data = (BoxSelectuserData *) userdata;
 
 	if (BLI_rctf_isect_pt(&data->rect, scene_framenr, val)) {
 		int flag = 0;
@@ -362,7 +362,7 @@ static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
 	}
 }
 
-static int border_select_graph_exec(bContext *C, wmOperator *op)
+static int box_select_graph_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -370,7 +370,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-	BorderSelectuserData userdata;
+	BoxSelectuserData userdata;
 	rctf rect;
 
 	if (act_track == NULL) {
@@ -385,7 +385,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	userdata.select = !RNA_boolean_get(op->ptr, "deselect");
 	userdata.extend = RNA_boolean_get(op->ptr, "extend");
 
-	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, border_select_cb, NULL, NULL);
+	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, box_select_cb, NULL, NULL);
 
 	if (userdata.changed) {
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
@@ -396,24 +396,24 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void CLIP_OT_graph_select_border(wmOperatorType *ot)
+void CLIP_OT_graph_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->description = "Select curve points using border selection";
-	ot->idname = "CLIP_OT_graph_select_border";
+	ot->name = "Box Select";
+	ot->description = "Select curve points using box selection";
+	ot->idname = "CLIP_OT_graph_select_box";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = border_select_graph_exec;
-	ot->modal = WM_gesture_border_modal;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = box_select_graph_exec;
+	ot->modal = WM_gesture_box_modal;
 	ot->poll = clip_graph_knots_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 /********************** select all operator *********************/

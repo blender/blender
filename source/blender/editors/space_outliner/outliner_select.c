@@ -1187,8 +1187,8 @@ void OUTLINER_OT_item_activate(wmOperatorType *ot)
 
 /* ****************************************************** */
 
-/* **************** Border Select Tool ****************** */
-static void outliner_item_border_select(Scene *scene, rctf *rectf, TreeElement *te, bool select)
+/* **************** Box Select Tool ****************** */
+static void outliner_item_box_select(Scene *scene, rctf *rectf, TreeElement *te, bool select)
 {
 	TreeStoreElem *tselem = TREESTORE(te);
 
@@ -1204,12 +1204,12 @@ static void outliner_item_border_select(Scene *scene, rctf *rectf, TreeElement *
 	/* Look at its children. */
 	if ((tselem->flag & TSE_CLOSED) == 0) {
 		for (te = te->subtree.first; te; te = te->next) {
-			outliner_item_border_select(scene, rectf, te, select);
+			outliner_item_box_select(scene, rectf, te, select);
 		}
 	}
 }
 
-static int outliner_border_select_exec(bContext *C, wmOperator *op)
+static int outliner_box_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -1222,7 +1222,7 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	UI_view2d_region_to_view_rctf(&ar->v2d, &rectf, &rectf);
 
 	for (te = soops->tree.first; te; te = te->next) {
-		outliner_item_border_select(scene, &rectf, te, select);
+		outliner_item_box_select(scene, &rectf, te, select);
 	}
 
 	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
@@ -1232,18 +1232,18 @@ static int outliner_border_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_select_border(wmOperatorType *ot)
+void OUTLINER_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "OUTLINER_OT_select_border";
+	ot->name = "Box Select";
+	ot->idname = "OUTLINER_OT_select_box";
 	ot->description = "Use box selection to select tree elements";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = outliner_border_select_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = outliner_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ED_operator_outliner_active;
 
@@ -1251,7 +1251,7 @@ void OUTLINER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_ex(ot, true, false);
+	WM_operator_properties_gesture_box_ex(ot, true, false);
 }
 
 /* ****************************************************** */

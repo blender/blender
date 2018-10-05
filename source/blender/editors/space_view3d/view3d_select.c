@@ -311,7 +311,7 @@ static bool view3d_selectable_data(bContext *C)
 }
 
 
-/* helper also for borderselect */
+/* helper also for box_select */
 static bool edge_fully_inside_rect(const rctf *rect, const float v1[2], const float v2[2])
 {
 	return BLI_rctf_isect_pt_v(rect, v1) && BLI_rctf_isect_pt_v(rect, v2);
@@ -448,7 +448,7 @@ static void do_lasso_select_objects(
 
 
 /**
- * Use for lasso & border select.
+ * Use for lasso & box select.
  */
 static Base **do_pose_tag_select_op_prepare(ViewContext *vc, uint *r_bases_len)
 {
@@ -2472,7 +2472,7 @@ static int do_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, const eS
 	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static int view3d_borderselect_exec(bContext *C, wmOperator *op)
+static int view3d_box_select_exec(bContext *C, wmOperator *op)
 {
 	ViewContext vc;
 	rcti rect;
@@ -2530,7 +2530,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 					}
 					break;
 				default:
-					assert(!"border select on incorrect object type");
+					assert(!"box select on incorrect object type");
 					break;
 			}
 		}
@@ -2548,7 +2548,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 			ret |= do_paintvert_box_select(&vc, &rect, sel_op);
 		}
 		else if (vc.obact && vc.obact->mode & OB_MODE_PARTICLE_EDIT) {
-			ret |= PE_border_select(C, &rect, sel_op);
+			ret |= PE_box_select(C, &rect, sel_op);
 		}
 		else if (vc.obact && vc.obact->mode & OB_MODE_POSE) {
 			ret |= do_pose_box_select(C, &vc, &rect, sel_op);
@@ -2571,26 +2571,26 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 
 /* *****************Selection Operators******************* */
 
-/* ****** Border Select ****** */
-void VIEW3D_OT_select_border(wmOperatorType *ot)
+/* ****** Box Select ****** */
+void VIEW3D_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->description = "Select items using border selection";
-	ot->idname = "VIEW3D_OT_select_border";
+	ot->name = "Box Select";
+	ot->description = "Select items using box selection";
+	ot->idname = "VIEW3D_OT_select_box";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = view3d_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = view3d_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
 	ot->poll = view3d_selectable_data;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->cancel = WM_gesture_box_cancel;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot);
+	WM_operator_properties_gesture_box(ot);
 	WM_operator_properties_select_operation(ot);
 }
 

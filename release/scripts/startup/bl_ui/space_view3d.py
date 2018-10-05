@@ -813,7 +813,7 @@ class VIEW3D_MT_select_object(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -873,7 +873,7 @@ class VIEW3D_MT_select_pose(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -907,7 +907,7 @@ class VIEW3D_MT_select_particle(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1013,7 +1013,7 @@ class VIEW3D_MT_select_edit_mesh(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1066,7 +1066,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1101,7 +1101,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1154,7 +1154,7 @@ class VIEW3D_MT_select_edit_metaball(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1178,7 +1178,7 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1203,7 +1203,7 @@ class VIEW3D_MT_select_edit_armature(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1251,7 +1251,7 @@ class VIEW3D_MT_select_gpencil(Menu):
 
         layout.separator()
 
-        layout.operator("gpencil.select_border")
+        layout.operator("gpencil.select_box")
         layout.operator("gpencil.select_circle")
 
         layout.separator()
@@ -1283,7 +1283,7 @@ class VIEW3D_MT_select_paint_mask(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -1303,7 +1303,7 @@ class VIEW3D_MT_select_paint_mask_vertex(Menu):
 
         layout.separator()
 
-        layout.operator("view3d.select_border")
+        layout.operator("view3d.select_box")
         layout.operator("view3d.select_circle")
 
         layout.separator()
@@ -2310,7 +2310,7 @@ class VIEW3D_MT_hide_mask(Menu):
         props.mode = 'VALUE'
         props.value = 0
 
-        props = layout.operator("view3d.select_border", text="Box Mask")
+        props = layout.operator("view3d.select_box", text="Box Mask")
         props = layout.operator("paint.mask_lasso_gesture", text="Lasso Mask")
 
 

@@ -480,7 +480,7 @@ void ED_operatortypes_mask(void)
 	/* select */
 	WM_operatortype_append(MASK_OT_select);
 	WM_operatortype_append(MASK_OT_select_all);
-	WM_operatortype_append(MASK_OT_select_border);
+	WM_operatortype_append(MASK_OT_select_box);
 	WM_operatortype_append(MASK_OT_select_lasso);
 	WM_operatortype_append(MASK_OT_select_circle);
 	WM_operatortype_append(MASK_OT_select_linked_pick);
@@ -564,7 +564,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", true);
 
-	WM_keymap_add_item(keymap, "MASK_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);

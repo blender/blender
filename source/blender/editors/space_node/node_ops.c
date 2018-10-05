@@ -57,7 +57,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_select_all);
 	WM_operatortype_append(NODE_OT_select_linked_to);
 	WM_operatortype_append(NODE_OT_select_linked_from);
-	WM_operatortype_append(NODE_OT_select_border);
+	WM_operatortype_append(NODE_OT_select_box);
 	WM_operatortype_append(NODE_OT_select_circle);
 	WM_operatortype_append(NODE_OT_select_lasso);
 	WM_operatortype_append(NODE_OT_select_grouped);
@@ -249,7 +249,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	node_select_keymap(keymap, false);
 	node_select_keymap(keymap, true);
 
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_box", EVT_TWEAK_S, KM_ANY, 0, 0);
 	RNA_boolean_set(kmi->ptr, "tweak", true);
 
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
@@ -306,7 +306,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 #endif
 	WM_keymap_add_item(keymap, "NODE_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "tweak", false);
 
 	WM_keymap_add_item(keymap, "NODE_OT_delete", XKEY, KM_PRESS, 0, 0);

@@ -2383,9 +2383,9 @@ static void ANIM_OT_channels_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ******************** Borderselect Operator *********************** */
+/* ******************** Box Select Operator *********************** */
 
-static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selectmode)
+static void box_select_anim_channels(bAnimContext *ac, rcti *rect, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -2414,7 +2414,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 
-	/* loop over data, doing border select */
+	/* loop over data, doing box select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ac->datatype == ANIMCONT_NLA)
 			ymin = ymax - NLACHANNEL_STEP(snla);
@@ -2459,7 +2459,7 @@ static void borderselect_anim_channels(bAnimContext *ac, rcti *rect, short selec
 
 /* ------------------- */
 
-static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
+static int animchannels_box_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	rcti rect;
@@ -2485,8 +2485,8 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 		selectmode = ACHANNEL_SETFLAG_CLEAR;
 	}
 
-	/* apply borderselect animation channels */
-	borderselect_anim_channels(&ac, &rect, selectmode);
+	/* apply box_select animation channels */
+	box_select_anim_channels(&ac, &rect, selectmode);
 
 	/* send notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN | NA_SELECTED, NULL);
@@ -2494,18 +2494,18 @@ static int animchannels_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static void ANIM_OT_channels_select_border(wmOperatorType *ot)
+static void ANIM_OT_channels_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "ANIM_OT_channels_select_border";
+	ot->name = "Box Select";
+	ot->idname = "ANIM_OT_channels_select_box";
 	ot->description = "Select all animation channels within the specified region";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = animchannels_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = animchannels_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = animedit_poll_channels_nla_tweakmode_off;
 
@@ -2513,7 +2513,7 @@ static void ANIM_OT_channels_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 /* ******************* Rename Operator ***************************** */
@@ -3162,7 +3162,7 @@ static void ANIM_OT_channel_select_keys(wmOperatorType *ot)
 void ED_operatortypes_animchannels(void)
 {
 	WM_operatortype_append(ANIM_OT_channels_select_all);
-	WM_operatortype_append(ANIM_OT_channels_select_border);
+	WM_operatortype_append(ANIM_OT_channels_select_box);
 
 	WM_operatortype_append(ANIM_OT_channels_click);
 	WM_operatortype_append(ANIM_OT_channel_select_keys);
@@ -3216,9 +3216,9 @@ void ED_keymap_animchannels(wmKeyConfig *keyconf)
 	/* deselect all */
 	ED_keymap_template_select_all(keymap, "ANIM_OT_channels_select_all");
 
-	/* borderselect */
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", BKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_border", EVT_TWEAK_L, KM_ANY, 0, 0);
+	/* box select */
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_box", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_channels_select_box", EVT_TWEAK_L, KM_ANY, 0, 0);
 
 	/* delete */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_delete", XKEY, KM_PRESS, 0, 0);

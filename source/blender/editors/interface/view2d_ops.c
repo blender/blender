@@ -1222,7 +1222,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 /* BORDER-ZOOM */
 
 /**
- * The user defines a rect using standard borderselect tools, and we use this rect to
+ * The user defines a rect using standard box select tools, and we use this rect to
  * define the new zoom-level of the view in the following ways:
  *
  * -# LEFTMOUSE - zoom in to view
@@ -1302,15 +1302,15 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->idname = "VIEW2D_OT_zoom_border";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
+	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = view_borderzoom_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = view_zoom_poll;
 
 	/* rna */
-	WM_operator_properties_gesture_border_zoom(ot);
+	WM_operator_properties_gesture_box_zoom(ot);
 }
 
 #ifdef WITH_INPUT_NDOF
@@ -1566,7 +1566,7 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 	ot->flag = OPTYPE_INTERNAL;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot);
+	WM_operator_properties_gesture_box(ot);
 }
 
 /* ********************************************************* */

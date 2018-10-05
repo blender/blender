@@ -80,7 +80,7 @@ void ED_masklayer_make_cfra_list(struct MaskLayer *masklay, ListBase *elems, boo
 
 bool  ED_masklayer_frame_select_check(struct MaskLayer *masklay);
 void  ED_masklayer_frame_select_set(struct MaskLayer *masklay, short mode);
-void  ED_masklayer_frames_select_border(struct MaskLayer *masklay, float min, float max, short select_mode);
+void  ED_masklayer_frames_select_box(struct MaskLayer *masklay, float min, float max, short select_mode);
 void  ED_masklayer_frames_select_region(struct KeyframeEditData *ked, struct MaskLayer *masklay, short tool, short select_mode);
 void  ED_mask_select_frames(struct MaskLayer *masklay, short select_mode);
 void  ED_mask_select_frame(struct MaskLayer *masklay, int selx, short select_mode);

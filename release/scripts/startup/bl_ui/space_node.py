@@ -235,7 +235,7 @@ class NODE_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("node.select_border").tweak = False
+        layout.operator("node.select_box").tweak = False
         layout.operator("node.select_circle")
 
         layout.separator()

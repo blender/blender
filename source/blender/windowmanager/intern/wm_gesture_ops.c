@@ -143,7 +143,7 @@ static int gesture_modal_state_from_operator(wmOperator *op)
  *
  * \{ */
 
-static bool gesture_border_apply_rect(wmOperator *op)
+static bool gesture_box_apply_rect(wmOperator *op)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -161,13 +161,13 @@ static bool gesture_border_apply_rect(wmOperator *op)
 	return 1;
 }
 
-static bool gesture_border_apply(bContext *C, wmOperator *op)
+static bool gesture_box_apply(bContext *C, wmOperator *op)
 {
 	wmGesture *gesture = op->customdata;
 
 	int retval;
 
-	if (!gesture_border_apply_rect(op)) {
+	if (!gesture_box_apply_rect(op)) {
 		return 0;
 	}
 
@@ -179,7 +179,7 @@ static bool gesture_border_apply(bContext *C, wmOperator *op)
 	return 1;
 }
 
-int WM_gesture_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+int WM_gesture_box_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	int modal_state = gesture_modal_state_from_operator(op);
 
@@ -208,7 +208,7 @@ int WM_gesture_border_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
+int WM_gesture_box_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
@@ -222,7 +222,7 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			rect->xmax = event->x - gesture->winrct.xmin;
 			rect->ymax = event->y - gesture->winrct.ymin;
 		}
-		gesture_border_apply_rect(op);
+		gesture_box_apply_rect(op);
 
 		wm_gesture_tag_redraw(C);
 	}
@@ -241,7 +241,7 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				if (gesture->wait_for_input) {
 					gesture->modal_state = event->val;
 				}
-				if (gesture_border_apply(C, op)) {
+				if (gesture_box_apply(C, op)) {
 					gesture_modal_end(C, op);
 					return OPERATOR_FINISHED;
 				}
@@ -270,7 +270,7 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-void WM_gesture_border_cancel(bContext *C, wmOperator *op)
+void WM_gesture_box_cancel(bContext *C, wmOperator *op)
 {
 	gesture_modal_end(C, op);
 }
@@ -427,7 +427,7 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 #if 0
 	/* Allow view navigation??? */
 	/* note, this gives issues:
-	 * 1) other modal ops run on top (border select),
+	 * 1) other modal ops run on top (box select),
 	 * 2) middlemouse is used now 3) tablet/trackpad? */
 	else {
 		return OPERATOR_PASS_THROUGH;

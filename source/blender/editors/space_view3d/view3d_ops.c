@@ -191,7 +191,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_view_center_camera);
 	WM_operatortype_append(VIEW3D_OT_view_center_lock);
 	WM_operatortype_append(VIEW3D_OT_select);
-	WM_operatortype_append(VIEW3D_OT_select_border);
+	WM_operatortype_append(VIEW3D_OT_select_box);
 	WM_operatortype_append(VIEW3D_OT_clip_border);
 	WM_operatortype_append(VIEW3D_OT_select_circle);
 	WM_operatortype_append(VIEW3D_OT_smoothview);
@@ -484,7 +484,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "object", false);
 	RNA_boolean_set(kmi->ptr, "enumerate", true);
 
-	WM_keymap_add_item(keymap, "VIEW3D_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "mode", SEL_OP_ADD);
 	kmi = WM_keymap_add_item(keymap, "VIEW3D_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_SHIFT | KM_CTRL, 0);

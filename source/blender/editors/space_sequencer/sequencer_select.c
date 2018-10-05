@@ -881,8 +881,8 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 }
 
 
-/* borderselect operator */
-static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
+/* box_select operator */
+static int sequencer_box_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, false);
@@ -919,19 +919,19 @@ static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 }
 
 
-/* ****** Border Select ****** */
-void SEQUENCER_OT_select_border(wmOperatorType *ot)
+/* ****** Box Select ****** */
+void SEQUENCER_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "SEQUENCER_OT_select_border";
-	ot->description = "Select strips using border selection";
+	ot->name = "Box Select";
+	ot->idname = "SEQUENCER_OT_select_box";
+	ot->description = "Select strips using box selection";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = sequencer_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = sequencer_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ED_operator_sequencer_active;
 
@@ -939,7 +939,7 @@ void SEQUENCER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 /* ****** Selected Grouped ****** */

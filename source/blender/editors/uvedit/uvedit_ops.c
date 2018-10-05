@@ -3167,10 +3167,10 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Border Select Operator
+/** \name Box Select Operator
  * \{ */
 
-static int uv_border_select_exec(bContext *C, wmOperator *op)
+static int uv_box_select_exec(bContext *C, wmOperator *op)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -3287,19 +3287,19 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
-static void UV_OT_select_border(wmOperatorType *ot)
+static void UV_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->description = "Select UV vertices using border selection";
-	ot->idname = "UV_OT_select_border";
+	ot->name = "Box Select";
+	ot->description = "Select UV vertices using box selection";
+	ot->idname = "UV_OT_select_box";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = uv_border_select_exec;
-	ot->modal = WM_gesture_border_modal;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = uv_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
 	ot->poll = ED_operator_uvedit_space_image; /* requires space image */;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->cancel = WM_gesture_box_cancel;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -3307,7 +3307,7 @@ static void UV_OT_select_border(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "pinned", 0, "Pinned", "Border select pinned UVs only");
 
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 /** \} */
@@ -4657,7 +4657,7 @@ void ED_operatortypes_uvedit(void)
 	WM_operatortype_append(UV_OT_select_linked_pick);
 	WM_operatortype_append(UV_OT_select_split);
 	WM_operatortype_append(UV_OT_select_pinned);
-	WM_operatortype_append(UV_OT_select_border);
+	WM_operatortype_append(UV_OT_select_box);
 	WM_operatortype_append(UV_OT_select_lasso);
 	WM_operatortype_append(UV_OT_select_circle);
 	WM_operatortype_append(UV_OT_select_more);
@@ -4728,10 +4728,10 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_loop", SELECTMOUSE, KM_PRESS, KM_SHIFT | KM_ALT, 0)->ptr, "extend", true);
 	WM_keymap_add_item(keymap, "UV_OT_select_split", YKEY, KM_PRESS, 0, 0);
 
-	/* border/circle selection */
-	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	/* box/circle selection */
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_box", BKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "pinned", false);
-	kmi = WM_keymap_add_item(keymap, "UV_OT_select_border", BKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_box", BKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "pinned", true);
 
 	WM_keymap_add_item(keymap, "UV_OT_select_circle", CKEY, KM_PRESS, 0, 0);

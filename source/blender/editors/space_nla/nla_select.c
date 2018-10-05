@@ -211,7 +211,7 @@ void NLA_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ******************** Border Select Operator **************************** */
+/* ******************** Box Select Operator **************************** */
 /* This operator currently works in one of three ways:
  *  -> BKEY     - 1) all strips within region are selected (NLAEDIT_BORDERSEL_ALLSTRIPS)
  *  -> ALT-BKEY - depending on which axis of the region was larger...
@@ -219,15 +219,15 @@ void NLA_OT_select_all(wmOperatorType *ot)
  *      -> 3) y-axis, so select all frames within channels that region included (NLAEDIT_BORDERSEL_CHANNELS)
  */
 
-/* defines for borderselect mode */
+/* defines for box_select mode */
 enum {
-	NLA_BORDERSEL_ALLSTRIPS = 0,
-	NLA_BORDERSEL_FRAMERANGE,
-	NLA_BORDERSEL_CHANNELS,
-} /* eNLAEDIT_BorderSelect_Mode */;
+	NLA_BOXSEL_ALLSTRIPS = 0,
+	NLA_BOXSEL_FRAMERANGE,
+	NLA_BOXSEL_CHANNELS,
+} /* eNLAEDIT_BoxSelect_Mode */;
 
 
-static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, short selectmode)
+static void box_select_nla_strips(bAnimContext *ac, rcti rect, short mode, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -249,12 +249,12 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 	/* convert selection modes to selection modes */
 	selectmode = selmodes_to_flagmodes(selectmode);
 
-	/* loop over data, doing border select */
+	/* loop over data, doing box select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		ymin = ymax - NLACHANNEL_STEP(snla);
 
 		/* perform vertical suitability check (if applicable) */
-		if ((mode == NLA_BORDERSEL_FRAMERANGE) ||
+		if ((mode == NLA_BOXSEL_FRAMERANGE) ||
 		    !((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 		{
 			/* loop over data selecting (only if NLA-Track) */
@@ -264,7 +264,7 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 
 				/* only select strips if they fall within the required ranges (if applicable) */
 				for (strip = nlt->strips.first; strip; strip = strip->next) {
-					if ((mode == NLA_BORDERSEL_CHANNELS) ||
+					if ((mode == NLA_BOXSEL_CHANNELS) ||
 					    BKE_nlastrip_within_bounds(strip, rectf.xmin, rectf.xmax))
 					{
 						/* set selection */
@@ -287,7 +287,7 @@ static void borderselect_nla_strips(bAnimContext *ac, rcti rect, short mode, sho
 
 /* ------------------- */
 
-static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
+static int nlaedit_box_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	rcti rect;
@@ -314,7 +314,7 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		selectmode = SELECT_SUBTRACT;
 	}
 
-	/* selection 'mode' depends on whether borderselect region only matters on one axis */
+	/* selection 'mode' depends on whether box_select region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use
 		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
@@ -322,15 +322,15 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 		 *	  used for tweaking timing when "blocking", while channels is not that useful...
 		 */
 		if (BLI_rcti_size_x(&rect) >= BLI_rcti_size_y(&rect))
-			mode = NLA_BORDERSEL_FRAMERANGE;
+			mode = NLA_BOXSEL_FRAMERANGE;
 		else
-			mode = NLA_BORDERSEL_CHANNELS;
+			mode = NLA_BOXSEL_CHANNELS;
 	}
 	else
-		mode = NLA_BORDERSEL_ALLSTRIPS;
+		mode = NLA_BOXSEL_ALLSTRIPS;
 
-	/* apply borderselect action */
-	borderselect_nla_strips(&ac, rect, mode, selectmode);
+	/* apply box_select action */
+	box_select_nla_strips(&ac, rect, mode, selectmode);
 
 	/* set notifier that things have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_SELECTED, NULL);
@@ -338,18 +338,18 @@ static int nlaedit_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_select_border(wmOperatorType *ot)
+void NLA_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "NLA_OT_select_border";
+	ot->name = "Box Select";
+	ot->idname = "NLA_OT_select_box";
 	ot->description = "Use box selection to grab NLA-Strips";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = nlaedit_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = nlaedit_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = nlaop_poll_tweakmode_off;
 
@@ -357,7 +357,7 @@ void NLA_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 
 	RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }

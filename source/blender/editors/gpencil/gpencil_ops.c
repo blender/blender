@@ -205,8 +205,8 @@ static void ed_keymap_gpencil_selection(wmKeyMap *keymap)
 	/* circle select */
 	WM_keymap_add_item(keymap, "GPENCIL_OT_select_circle", CKEY, KM_PRESS, 0, 0);
 
-	/* border select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	/* box select */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	/* lasso select */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL, 0);
@@ -514,8 +514,8 @@ static void ed_keymap_gpencil_painting_draw(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
 
 	/* Selection (used by eraser) */
-	/* border select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	/* box select */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	/* lasso select */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
@@ -541,8 +541,8 @@ static void ed_keymap_gpencil_painting_erase(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "wait_for_input", false);
 
 	/* Selection (used by eraser) */
-	/* border select */
-	WM_keymap_add_item(keymap, "GPENCIL_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	/* box select */
+	WM_keymap_add_item(keymap, "GPENCIL_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	/* lasso select */
 	kmi = WM_keymap_add_item(keymap, "GPENCIL_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
@@ -689,7 +689,7 @@ void ED_operatortypes_gpencil(void)
 	WM_operatortype_append(GPENCIL_OT_select);
 	WM_operatortype_append(GPENCIL_OT_select_all);
 	WM_operatortype_append(GPENCIL_OT_select_circle);
-	WM_operatortype_append(GPENCIL_OT_select_border);
+	WM_operatortype_append(GPENCIL_OT_select_box);
 	WM_operatortype_append(GPENCIL_OT_select_lasso);
 
 	WM_operatortype_append(GPENCIL_OT_select_linked);

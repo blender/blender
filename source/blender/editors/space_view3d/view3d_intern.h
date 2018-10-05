@@ -166,7 +166,7 @@ float view3d_depth_near(struct ViewDepths *d);
 /* view3d_select.c */
 void VIEW3D_OT_select(struct wmOperatorType *ot);
 void VIEW3D_OT_select_circle(struct wmOperatorType *ot);
-void VIEW3D_OT_select_border(struct wmOperatorType *ot);
+void VIEW3D_OT_select_box(struct wmOperatorType *ot);
 void VIEW3D_OT_select_lasso(struct wmOperatorType *ot);
 void VIEW3D_OT_select_menu(struct wmOperatorType *ot);
 

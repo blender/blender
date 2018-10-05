@@ -391,7 +391,7 @@ class MASK_MT_select(Menu):
 
         layout.separator()
 
-        layout.operator("mask.select_border")
+        layout.operator("mask.select_box")
         layout.operator("mask.select_circle")
 
         layout.separator()

@@ -172,7 +172,7 @@ void ED_gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, bool only
 
 bool  ED_gplayer_frame_select_check(struct bGPDlayer *gpl);
 void  ED_gplayer_frame_select_set(struct bGPDlayer *gpl, short mode);
-void  ED_gplayer_frames_select_border(struct bGPDlayer *gpl, float min, float max, short select_mode);
+void  ED_gplayer_frames_select_box(struct bGPDlayer *gpl, float min, float max, short select_mode);
 void  ED_gplayer_frames_select_region(struct KeyframeEditData *ked, struct bGPDlayer *gpl, short tool, short select_mode);
 void  ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
 void  ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);

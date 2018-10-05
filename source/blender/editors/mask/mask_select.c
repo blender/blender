@@ -396,9 +396,9 @@ void MASK_OT_select(wmOperatorType *ot)
 
 
 
-/********************** border select operator *********************/
+/********************** box select operator *********************/
 
-static int border_select_exec(bContext *C, wmOperator *op)
+static int box_select_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -462,24 +462,24 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-void MASK_OT_select_border(wmOperatorType *ot)
+void MASK_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->description = "Select curve points using border selection";
-	ot->idname = "MASK_OT_select_border";
+	ot->name = "Box Select";
+	ot->description = "Select curve points using box selection";
+	ot->idname = "MASK_OT_select_box";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = border_select_exec;
-	ot->modal = WM_gesture_border_modal;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = box_select_exec;
+	ot->modal = WM_gesture_box_modal;
 	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, bool select, bool extend)

@@ -1411,7 +1411,7 @@ class CLIP_MT_select(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("clip.select_border")
+        layout.operator("clip.select_box")
         layout.operator("clip.select_circle")
 
         layout.separator()

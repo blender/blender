@@ -194,9 +194,9 @@ kmi.properties.camera = True
 kmi = km.keymap_items.new('marker.select', 'SELECTMOUSE', 'PRESS', shift=True, ctrl=True)
 kmi.properties.extend = True
 kmi.properties.camera = True
-kmi = km.keymap_items.new('marker.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('marker.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('marker.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('marker.select_all', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('marker.delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('marker.rename', 'M', 'PRESS', ctrl=True)
@@ -227,7 +227,7 @@ kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('outliner.item_activate', 'LEFTMOUSE', 'CLICK', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('outliner.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('outliner.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS')
 kmi.properties.all = False
 kmi = km.keymap_items.new('outliner.item_openclose', 'RET', 'PRESS', shift=True)
@@ -1049,9 +1049,9 @@ kmi.properties.enumerate = True
 kmi.properties.toggle = False
 kmi.properties.deselect = False
 kmi.properties.object = False
-kmi = km.keymap_items.new('view3d.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('view3d.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('view3d.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('view3d.select_lasso', 'EVT_TWEAK_M', 'ANY', ctrl=True)
@@ -1104,9 +1104,9 @@ kmi = km.keymap_items.new('anim.channels_rename', 'LEFTMOUSE', 'PRESS', ctrl=Tru
 kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('anim.channels_select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('anim.channels_select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('anim.channels_select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('anim.channels_select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('anim.channels_delete', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('anim.channels_delete', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('anim.channels_setting_toggle', 'W', 'PRESS', shift=True)
@@ -1142,10 +1142,10 @@ kmi = km.keymap_items.new('uv.select_loop', 'LEFTMOUSE', 'PRESS', ctrl=True, alt
 kmi.properties.extend = False
 kmi = km.keymap_items.new('uv.select_loop', 'LEFTMOUSE', 'PRESS', shift=True, ctrl=True, alt=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('uv.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi.properties.pinned = False
-kmi = km.keymap_items.new('uv.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('uv.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi.properties.pinned = False
 kmi = km.keymap_items.new('uv.circle_select', 'Q', 'PRESS', shift=True)
 kmi = km.keymap_items.new('uv.select_linked', 'L', 'PRESS', ctrl=True)
@@ -1239,8 +1239,8 @@ kmi = km.keymap_items.new_modal('ADD', 'WHEELDOWNMOUSE', 'PRESS')
 kmi = km.keymap_items.new_modal('ADD', 'NUMPAD_PLUS', 'PRESS')
 kmi = km.keymap_items.new_modal('SIZE', 'TRACKPADPAN', 'ANY')
 
-# Map Gesture Border
-km = kc.keymaps.new('Gesture Border', space_type='EMPTY', region_type='WINDOW', modal=True)
+# Map Gesture Box
+km = kc.keymaps.new('Gesture Box', space_type='EMPTY', region_type='WINDOW', modal=True)
 
 kmi = km.keymap_items.new_modal('CANCEL', 'ESC', 'PRESS', any=True)
 kmi = km.keymap_items.new_modal('CANCEL', 'RIGHTMOUSE', 'PRESS', any=True)
@@ -1338,11 +1338,11 @@ kmi = km.keymap_items.new('graph.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('graph.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('graph.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
 kmi.properties.include_handles = False
-kmi = km.keymap_items.new('graph.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('graph.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi.properties.include_handles = False
 kmi = km.keymap_items.new('graph.select_more', 'PERIOD', 'PRESS', shift=True)
@@ -1442,10 +1442,10 @@ kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS')
 kmi.properties.extend = False
 kmi = km.keymap_items.new('node.select', 'SELECTMOUSE', 'PRESS', shift=True)
 kmi.properties.extend = True
-kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi.properties.tweak = True
-kmi = km.keymap_items.new('node.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('node.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi.properties.tweak = True
 kmi = km.keymap_items.new('node.link', 'LEFTMOUSE', 'PRESS')
 kmi = km.keymap_items.new('node.resize', 'LEFTMOUSE', 'PRESS')
@@ -1510,9 +1510,9 @@ kmi.properties.extend = True
 kmi.properties.fill = True
 kmi = km.keymap_items.new('file.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('file.refresh', 'F', 'PRESS')
-kmi = km.keymap_items.new('file.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('file.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('file.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('file.rename', 'LEFTMOUSE', 'PRESS', ctrl=True)
 kmi = km.keymap_items.new('file.highlight', 'MOUSEMOVE', 'ANY', any=True)
 kmi = km.keymap_items.new('file.filenum', 'NUMPAD_PLUS', 'PRESS')
@@ -1553,10 +1553,10 @@ kmi = km.keymap_items.new('action.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('action.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('action.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
-kmi = km.keymap_items.new('action.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('action.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi = km.keymap_items.new('action.select_more', 'PERIOD', 'PRESS', shift=True)
 kmi = km.keymap_items.new('action.select_less', 'COMMA', 'PRESS', shift=True)
@@ -1628,10 +1628,10 @@ kmi = km.keymap_items.new('nla.select_all_toggle', 'A', 'PRESS', ctrl=True)
 kmi.properties.invert = False
 kmi = km.keymap_items.new('nla.select_all_toggle', 'I', 'PRESS', ctrl=True)
 kmi.properties.invert = True
-kmi = km.keymap_items.new('nla.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
 kmi.properties.axis_range = False
-kmi = km.keymap_items.new('nla.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('nla.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi.properties.axis_range = False
 kmi = km.keymap_items.new('nla.view_all', 'A', 'PRESS')
 kmi = km.keymap_items.new('nla.view_selected', 'F', 'PRESS')
@@ -1767,9 +1767,9 @@ kmi.properties.extend = False
 kmi = km.keymap_items.new('sequencer.select_linked_pick', 'L', 'PRESS', shift=True)
 kmi.properties.extend = True
 kmi = km.keymap_items.new('sequencer.select_linked', 'L', 'PRESS', ctrl=True)
-kmi = km.keymap_items.new('sequencer.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('sequencer.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('sequencer.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('sequencer.select_grouped', 'G', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'A', 'PRESS', shift=True)
 kmi.properties.name = 'SEQUENCER_MT_add'
@@ -1831,9 +1831,9 @@ kmi = km.keymap_items.new('clip.select_all', 'A', 'PRESS', ctrl=True)
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('clip.select_all', 'I', 'PRESS', ctrl=True)
 kmi.properties.action = 'INVERT'
-kmi = km.keymap_items.new('clip.select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('clip.select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('clip.select_circle', 'Q', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.call_menu', 'G', 'PRESS', shift=True)
 kmi.properties.name = 'CLIP_MT_select_grouped'
@@ -1890,9 +1890,9 @@ kmi = km.keymap_items.new('clip.graph_select_all_markers', 'A', 'PRESS')
 kmi.properties.action = 'TOGGLE'
 kmi = km.keymap_items.new('clip.graph_select_all_markers', 'I', 'PRESS', ctrl=True)
 kmi.properties.action = 'INVERT'
-kmi = km.keymap_items.new('clip.graph_select_border', 'EVT_TWEAK_S', 'ANY')
+kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_S', 'ANY')
 kmi.properties.extend = False
-kmi = km.keymap_items.new('clip.graph_select_border', 'EVT_TWEAK_S', 'ANY', any=True)
+kmi = km.keymap_items.new('clip.graph_select_box', 'EVT_TWEAK_S', 'ANY', any=True)
 kmi = km.keymap_items.new('clip.graph_delete_curve', 'DEL', 'PRESS')
 kmi = km.keymap_items.new('clip.graph_delete_curve', 'BACK_SPACE', 'PRESS')
 kmi = km.keymap_items.new('clip.graph_delete_knot', 'DEL', 'PRESS', shift=True)

@@ -207,7 +207,7 @@ void ACTION_OT_select_all(wmOperatorType *ot)
 	WM_operator_properties_select_all(ot);
 }
 
-/* ******************** Border Select Operator **************************** */
+/* ******************** Box Select Operator **************************** */
 /* This operator currently works in one of three ways:
  *	-> BKEY     - 1) all keyframes within region are selected (ACTKEYS_BORDERSEL_ALLKEYS)
  *	-> ALT-BKEY - depending on which axis of the region was larger...
@@ -215,15 +215,15 @@ void ACTION_OT_select_all(wmOperatorType *ot)
  *		-> 3) y-axis, so select all frames within channels that region included (ACTKEYS_BORDERSEL_CHANNELS)
  */
 
-/* defines for borderselect mode */
+/* defines for box_select mode */
 enum {
 	ACTKEYS_BORDERSEL_ALLKEYS   = 0,
 	ACTKEYS_BORDERSEL_FRAMERANGE,
 	ACTKEYS_BORDERSEL_CHANNELS,
-} /*eActKeys_BorderSelect_Mode*/;
+} /*eActKeys_BoxSelect_Mode*/;
 
 
-static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, short selectmode)
+static void box_select_action(bAnimContext *ac, const rcti rect, short mode, short selectmode)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -254,7 +254,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 	/* init editing data */
 	memset(&ked, 0, sizeof(KeyframeEditData));
 
-	/* loop over data, doing border select */
+	/* loop over data, doing box select */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		AnimData *adt = ANIM_nla_mapping_get(ac, ale);
 
@@ -288,7 +288,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 					bGPdata *gpd = ale->data;
 					bGPDlayer *gpl;
 					for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-						ED_gplayer_frames_select_border(gpl, rectf.xmin, rectf.xmax, selectmode);
+						ED_gplayer_frames_select_box(gpl, rectf.xmin, rectf.xmax, selectmode);
 					}
 					ale->update |= ANIM_UPDATE_DEPS;
 					break;
@@ -296,7 +296,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 #endif
 				case ANIMTYPE_GPLAYER:
 				{
-					ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+					ED_gplayer_frames_select_box(ale->data, rectf.xmin, rectf.xmax, selectmode);
 					ale->update |= ANIM_UPDATE_DEPS;
 					break;
 				}
@@ -305,12 +305,12 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 					Mask *mask = ale->data;
 					MaskLayer *masklay;
 					for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-						ED_masklayer_frames_select_border(masklay, rectf.xmin, rectf.xmax, selectmode);
+						ED_masklayer_frames_select_box(masklay, rectf.xmin, rectf.xmax, selectmode);
 					}
 					break;
 				}
 				case ANIMTYPE_MASKLAYER:
-					ED_masklayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+					ED_masklayer_frames_select_box(ale->data, rectf.xmin, rectf.xmax, selectmode);
 					break;
 				default:
 					ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
@@ -329,7 +329,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 
 /* ------------------- */
 
-static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
+static int actkeys_box_select_exec(bContext *C, wmOperator *op)
 {
 	bAnimContext ac;
 	rcti rect;
@@ -356,7 +356,7 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 		selectmode = SELECT_SUBTRACT;
 	}
 
-	/* selection 'mode' depends on whether borderselect region only matters on one axis */
+	/* selection 'mode' depends on whether box_select region only matters on one axis */
 	if (RNA_boolean_get(op->ptr, "axis_range")) {
 		/* mode depends on which axis of the range is larger to determine which axis to use
 		 *	- checking this in region-space is fine, as it's fundamentally still going to be a different rect size
@@ -371,8 +371,8 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	else
 		mode = ACTKEYS_BORDERSEL_ALLKEYS;
 
-	/* apply borderselect action */
-	borderselect_action(&ac, rect, mode, selectmode);
+	/* apply box_select action */
+	box_select_action(&ac, rect, mode, selectmode);
 
 	/* set notifier that keyframe selection have changed */
 	WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_SELECTED, NULL);
@@ -380,18 +380,18 @@ static int actkeys_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_select_border(wmOperatorType *ot)
+void ACTION_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "ACTION_OT_select_border";
+	ot->name = "Box Select";
+	ot->idname = "ACTION_OT_select_box";
 	ot->description = "Select all keyframes within the specified region";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
-	ot->exec = actkeys_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = WM_gesture_box_invoke;
+	ot->exec = actkeys_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ED_operator_action_active;
 
@@ -399,7 +399,7 @@ void ACTION_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 
 	ot->prop = RNA_def_boolean(ot->srna, "axis_range", 0, "Axis Range", "");
 }
@@ -573,7 +573,7 @@ static int actkeys_lassoselect_exec(bContext *C, wmOperator *op)
 	BLI_lasso_boundbox(&rect, data_lasso.mcords, data_lasso.mcords_tot);
 	BLI_rctf_rcti_copy(&rect_fl, &rect);
 
-	/* apply borderselect action */
+	/* apply box_select action */
 	region_select_action_keys(&ac, &rect_fl, BEZT_OK_CHANNEL_LASSO, selectmode, &data_lasso);
 
 	MEM_freeN((void *)data_lasso.mcords);
@@ -720,11 +720,11 @@ static void markers_selectkeys_between(bAnimContext *ac)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			ED_gplayer_frames_select_border(ale->data, min, max, SELECT_ADD);
+			ED_gplayer_frames_select_box(ale->data, min, max, SELECT_ADD);
 			ale->update |= ANIM_UPDATE_DEPS;
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			ED_masklayer_frames_select_border(ale->data, min, max, SELECT_ADD);
+			ED_masklayer_frames_select_box(ale->data, min, max, SELECT_ADD);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
@@ -1104,11 +1104,11 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			ED_gplayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
+			ED_gplayer_frames_select_box(ale->data, ked.f1, ked.f2, select_mode);
 			ale->update |= ANIM_UPDATE_DEPS;
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			ED_masklayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
+			ED_masklayer_frames_select_box(ale->data, ked.f1, ked.f2, select_mode);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);

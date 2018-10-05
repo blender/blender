@@ -229,9 +229,9 @@ void WM_operator_properties_border_to_rctf(struct wmOperator *op, rctf *rect)
 }
 
 /**
- * Use with #WM_gesture_border_invoke
+ * Use with #WM_gesture_box_invoke
  */
-void WM_operator_properties_gesture_border_ex(wmOperatorType *ot, bool deselect, bool extend)
+void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bool extend)
 {
 	PropertyRNA *prop;
 
@@ -247,13 +247,13 @@ void WM_operator_properties_gesture_border_ex(wmOperatorType *ot, bool deselect,
 	}
 }
 
-void WM_operator_properties_gesture_border_select(wmOperatorType *ot)
+void WM_operator_properties_gesture_box_select(wmOperatorType *ot)
 {
-	WM_operator_properties_gesture_border_ex(ot, true, true);
+	WM_operator_properties_gesture_box_ex(ot, true, true);
 }
-void WM_operator_properties_gesture_border(wmOperatorType *ot)
+void WM_operator_properties_gesture_box(wmOperatorType *ot)
 {
-	WM_operator_properties_gesture_border_ex(ot, false, false);
+	WM_operator_properties_gesture_box_ex(ot, false, false);
 }
 
 void WM_operator_properties_select_operation(wmOperatorType *ot)
@@ -270,7 +270,7 @@ void WM_operator_properties_select_operation(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-void WM_operator_properties_gesture_border_zoom(wmOperatorType *ot)
+void WM_operator_properties_gesture_box_zoom(wmOperatorType *ot)
 {
 	WM_operator_properties_border(ot);
 

@@ -517,9 +517,9 @@ void NODE_OT_select(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "");
 }
 
-/* ****** Border Select ****** */
+/* ****** Box Select ****** */
 
-static int node_borderselect_exec(bContext *C, wmOperator *op)
+static int node_box_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -555,13 +555,13 @@ static int node_borderselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int node_box_select_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	const bool tweak = RNA_boolean_get(op->ptr, "tweak");
 
 	if (tweak) {
-		/* prevent initiating the border select if the mouse is over a node */
-		/* this allows border select on empty space, but drag-translate on nodes */
+		/* prevent initiating the box select if the mouse is over a node */
+		/* this allows box select on empty space, but drag-translate on nodes */
 		SpaceNode *snode = CTX_wm_space_node(C);
 		ARegion *ar = CTX_wm_region(C);
 		float mx, my;
@@ -572,21 +572,21 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, const wmEvent 
 			return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
 	}
 
-	return WM_gesture_border_invoke(C, op, event);
+	return WM_gesture_box_invoke(C, op, event);
 }
 
-void NODE_OT_select_border(wmOperatorType *ot)
+void NODE_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Border Select";
-	ot->idname = "NODE_OT_select_border";
+	ot->name = "Box Select";
+	ot->idname = "NODE_OT_select_box";
 	ot->description = "Use box selection to select nodes";
 
 	/* api callbacks */
-	ot->invoke = node_border_select_invoke;
-	ot->exec = node_borderselect_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->invoke = node_box_select_invoke;
+	ot->exec = node_box_select_exec;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ED_operator_node_active;
 
@@ -594,7 +594,7 @@ void NODE_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 	RNA_def_boolean(ot->srna, "tweak", 0, "Tweak", "Only activate when mouse is not over a node - useful for tweak gesture");
 }
 

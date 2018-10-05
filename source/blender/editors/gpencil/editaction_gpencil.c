@@ -191,7 +191,7 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 }
 
 /* select the frames in this layer that occur within the bounds specified */
-void ED_gplayer_frames_select_border(bGPDlayer *gpl, float min, float max, short select_mode)
+void ED_gplayer_frames_select_box(bGPDlayer *gpl, float min, float max, short select_mode)
 {
 	bGPDframe *gpf;
 

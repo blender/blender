@@ -560,7 +560,7 @@ static const char *toolsystem_default_tool(const bToolKey *tkey)
 				default:
 					/* FIXME(campbell): disable for now since this means we can't lasso select by default. */
 #if 0
-					return "Select Border";
+					return "Select Box";
 #endif
 					break;
 			}

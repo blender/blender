@@ -63,7 +63,7 @@ void outliner_operatortypes(void)
 {
 	WM_operatortype_append(OUTLINER_OT_highlight_update);
 	WM_operatortype_append(OUTLINER_OT_item_activate);
-	WM_operatortype_append(OUTLINER_OT_select_border);
+	WM_operatortype_append(OUTLINER_OT_select_box);
 	WM_operatortype_append(OUTLINER_OT_item_openclose);
 	WM_operatortype_append(OUTLINER_OT_item_rename);
 	WM_operatortype_append(OUTLINER_OT_item_drag_drop);
@@ -145,7 +145,7 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", true);
 
 
-	WM_keymap_add_item(keymap, "OUTLINER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OUTLINER_OT_item_openclose", RETKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "all", false);

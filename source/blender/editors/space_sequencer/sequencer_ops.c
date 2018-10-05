@@ -107,7 +107,7 @@ void sequencer_operatortypes(void)
 	WM_operatortype_append(SEQUENCER_OT_select_linked);
 	WM_operatortype_append(SEQUENCER_OT_select_handles);
 	WM_operatortype_append(SEQUENCER_OT_select_active_side);
-	WM_operatortype_append(SEQUENCER_OT_select_border);
+	WM_operatortype_append(SEQUENCER_OT_select_box);
 	WM_operatortype_append(SEQUENCER_OT_select_grouped);
 
 	/* sequencer_add.c */
@@ -318,7 +318,7 @@ void sequencer_keymap(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
 
-	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "SEQUENCER_OT_select_grouped", GKEY, KM_PRESS, KM_SHIFT, 0);
 

@@ -168,7 +168,7 @@ class GreasePencilStrokeEditPanel:
             layout.label(text="Select:")
             col = layout.column(align=True)
             col.operator("gpencil.select_all", text="Select All")
-            col.operator("gpencil.select_border")
+            col.operator("gpencil.select_box")
             col.operator("gpencil.select_circle")
 
             layout.separator()
@@ -420,7 +420,7 @@ class GPENCIL_MT_pie_tool_palette(Menu):
 
                 # NE - Select (Modal)
                 col = pie.column()
-                col.operator("gpencil.select_border", text="Border Select", icon='BORDER_RECT')
+                col.operator("gpencil.select_box", text="Box Select", icon='BORDER_RECT')
                 col.operator("gpencil.select_circle", text="Circle Select", icon='META_EMPTY')
                 col.operator("gpencil.select_lasso", text="Lasso Select", icon='BORDER_LASSO')
                 col.operator("gpencil.select_alternate", text="Alternate Select", icon='BORDER_LASSO')

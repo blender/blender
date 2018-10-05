@@ -84,7 +84,7 @@ void clip_draw_graph(struct SpaceClip *sc, struct ARegion *ar, struct Scene *sce
 void ED_clip_graph_center_current_frame(struct Scene *scene, struct ARegion *ar);
 
 void CLIP_OT_graph_select(struct wmOperatorType *ot);
-void CLIP_OT_graph_select_border(struct wmOperatorType *ot);
+void CLIP_OT_graph_select_box(struct wmOperatorType *ot);
 void CLIP_OT_graph_select_all_markers(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_curve(struct wmOperatorType *ot);
 void CLIP_OT_graph_delete_knot(struct wmOperatorType *ot);
@@ -212,7 +212,7 @@ void CLIP_OT_keyframe_delete(struct wmOperatorType *ot);
 /* tracking_select.c */
 void CLIP_OT_select(struct wmOperatorType *ot);
 void CLIP_OT_select_all(struct wmOperatorType *ot);
-void CLIP_OT_select_border(struct wmOperatorType *ot);
+void CLIP_OT_select_box(struct wmOperatorType *ot);
 void CLIP_OT_select_lasso(struct wmOperatorType *ot);
 void CLIP_OT_select_circle(struct wmOperatorType *ot);
 void CLIP_OT_select_grouped(struct wmOperatorType *ot);

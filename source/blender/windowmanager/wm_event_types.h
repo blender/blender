@@ -448,7 +448,7 @@ enum {
 	GESTURE_MODAL_CIRCLE_ADD  = 6, /* circle sel: larger brush */
 	GESTURE_MODAL_CIRCLE_SUB  = 7, /* circle sel: smaller brush */
 
-	GESTURE_MODAL_BEGIN       = 8, /* border select/straight line, activate, use release to detect which button */
+	GESTURE_MODAL_BEGIN       = 8, /* box select/straight line, activate, use release to detect which button */
 
 	/* Uses 'zoom_out' operator property. */
 	GESTURE_MODAL_IN          = 9,

@@ -1040,15 +1040,15 @@ void IMAGE_OT_view_zoom_border(wmOperatorType *ot)
 	ot->idname = "IMAGE_OT_view_zoom_border";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
+	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = image_view_zoom_border_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = space_image_main_region_poll;
 
 	/* rna */
-	WM_operator_properties_gesture_border_zoom(ot);
+	WM_operator_properties_gesture_box_zoom(ot);
 }
 
 /**************** load/replace/save callbacks ******************/
@@ -3769,10 +3769,10 @@ void IMAGE_OT_render_border(wmOperatorType *ot)
 	ot->idname = "IMAGE_OT_render_border";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
+	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = render_border_exec;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 	ot->poll = image_cycle_render_slot_poll;
 
 	/* flags */

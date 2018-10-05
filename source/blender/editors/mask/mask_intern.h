@@ -103,7 +103,7 @@ void MASK_OT_parent_clear(struct wmOperatorType *ot);
 void MASK_OT_select(struct wmOperatorType *ot);
 void MASK_OT_select_all(struct wmOperatorType *ot);
 
-void MASK_OT_select_border(struct wmOperatorType *ot);
+void MASK_OT_select_box(struct wmOperatorType *ot);
 void MASK_OT_select_lasso(struct wmOperatorType *ot);
 void MASK_OT_select_circle(struct wmOperatorType *ot);
 void MASK_OT_select_linked_pick(struct wmOperatorType *ot);

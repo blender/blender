@@ -369,8 +369,8 @@ class DOPESHEET_MT_select(Menu):
         layout.operator("action.select_all", text="Invert").action = 'INVERT'
 
         layout.separator()
-        layout.operator("action.select_border").axis_range = False
-        layout.operator("action.select_border", text="Border Axis Range").axis_range = True
+        layout.operator("action.select_box").axis_range = False
+        layout.operator("action.select_box", text="Border Axis Range").axis_range = True
 
         layout.operator("action.select_circle")
 

@@ -1254,7 +1254,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
 #endif
 }
 
-/* *************************** border select markers **************** */
+/* *************************** box select markers **************** */
 
 /* operator state vars used: (added by default WM callbacks)
  * xmin, ymin
@@ -1275,7 +1275,7 @@ static void MARKER_OT_select(wmOperatorType *ot)
  *  poll()	has to be filled in by user for context
  */
 
-static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
+static int ed_marker_box_select_exec(bContext *C, wmOperator *op)
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	ListBase *markers = ED_context_get_markers(C);
@@ -1311,23 +1311,23 @@ static int ed_marker_border_select_exec(bContext *C, wmOperator *op)
 	return 1;
 }
 
-static int ed_marker_select_border_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
+static int ed_marker_select_box_invoke_wrapper(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	return ed_markers_opwrap_invoke_custom(C, op, event, WM_gesture_border_invoke);
+	return ed_markers_opwrap_invoke_custom(C, op, event, WM_gesture_box_invoke);
 }
 
-static void MARKER_OT_select_border(wmOperatorType *ot)
+static void MARKER_OT_select_box(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Marker Border Select";
-	ot->description = "Select all time markers using border selection";
-	ot->idname = "MARKER_OT_select_border";
+	ot->name = "Marker Box Select";
+	ot->description = "Select all time markers using box selection";
+	ot->idname = "MARKER_OT_select_box";
 
 	/* api callbacks */
-	ot->exec = ed_marker_border_select_exec;
-	ot->invoke = ed_marker_select_border_invoke_wrapper;
-	ot->modal = WM_gesture_border_modal;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->exec = ed_marker_box_select_exec;
+	ot->invoke = ed_marker_select_box_invoke_wrapper;
+	ot->modal = WM_gesture_box_modal;
+	ot->cancel = WM_gesture_box_cancel;
 
 	ot->poll = ed_markers_poll_markers_exist;
 
@@ -1335,7 +1335,7 @@ static void MARKER_OT_select_border(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* rna */
-	WM_operator_properties_gesture_border_select(ot);
+	WM_operator_properties_gesture_box_select(ot);
 }
 
 /* *********************** (de)select all ***************** */
@@ -1636,7 +1636,7 @@ void ED_operatortypes_marker(void)
 	WM_operatortype_append(MARKER_OT_move);
 	WM_operatortype_append(MARKER_OT_duplicate);
 	WM_operatortype_append(MARKER_OT_select);
-	WM_operatortype_append(MARKER_OT_select_border);
+	WM_operatortype_append(MARKER_OT_select_box);
 	WM_operatortype_append(MARKER_OT_select_all);
 	WM_operatortype_append(MARKER_OT_delete);
 	WM_operatortype_append(MARKER_OT_rename);
@@ -1671,7 +1671,7 @@ void ED_keymap_marker(wmKeyConfig *keyconf)
 	(void)kmi;
 #endif
 
-	WM_keymap_verify_item(keymap, "MARKER_OT_select_border", BKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "MARKER_OT_select_box", BKEY, KM_PRESS, 0, 0);
 
 	ED_keymap_template_select_all(keymap, "MARKER_OT_select_all");
 

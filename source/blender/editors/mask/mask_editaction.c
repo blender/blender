@@ -187,7 +187,7 @@ void ED_mask_select_frame(MaskLayer *masklay, int selx, short select_mode)
 }
 
 /* select the frames in this layer that occur within the bounds specified */
-void ED_masklayer_frames_select_border(MaskLayer *masklay, float min, float max, short select_mode)
+void ED_masklayer_frames_select_box(MaskLayer *masklay, float min, float max, short select_mode)
 {
 	MaskLayerShape *masklay_shape;
 

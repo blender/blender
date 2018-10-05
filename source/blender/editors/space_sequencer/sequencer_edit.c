@@ -3401,7 +3401,7 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 	/* properties */
 }
 
-/* borderselect operator */
+/* box select operator */
 static int view_ghost_border_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -3436,7 +3436,7 @@ static int view_ghost_border_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/* ****** Border Select ****** */
+/* ****** Box Select ****** */
 void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3445,17 +3445,17 @@ void SEQUENCER_OT_view_ghost_border(wmOperatorType *ot)
 	ot->description = "Set the boundaries of the border used for offset-view";
 
 	/* api callbacks */
-	ot->invoke = WM_gesture_border_invoke;
+	ot->invoke = WM_gesture_box_invoke;
 	ot->exec = view_ghost_border_exec;
-	ot->modal = WM_gesture_border_modal;
+	ot->modal = WM_gesture_box_modal;
 	ot->poll = sequencer_view_preview_poll;
-	ot->cancel = WM_gesture_border_cancel;
+	ot->cancel = WM_gesture_box_cancel;
 
 	/* flags */
 	ot->flag = 0;
 
 	/* rna */
-	WM_operator_properties_gesture_border(ot);
+	WM_operator_properties_gesture_box(ot);
 }
 
 /* rebuild_proxy operator */

@@ -3505,7 +3505,7 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 	                         "Select silhouettes (edges at the boundary of visible and hidden faces)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
-	prop = RNA_def_property(srna, "select_border", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "select_box", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "edge_types", FREESTYLE_FE_BORDER);
 	RNA_def_property_ui_text(prop, "Border", "Select border edges (open mesh edges)");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
