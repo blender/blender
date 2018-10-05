@@ -481,10 +481,9 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
             props.value = i
 
 
-# TODO, move to space_view3d.py
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
-    bl_label = "Slots"
+    bl_label = "Texture Slots"
 
     @classmethod
     def poll(cls, context):
@@ -494,26 +493,25 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         settings = context.tool_settings.image_paint
 
         ob = context.active_object
-        col = layout.column()
 
-        col.label(text="Painting Mode:")
-        col.prop(settings, "mode", text="")
-        col.separator()
+        layout.prop(settings, "mode", text="Mode")
+        layout.separator()
 
         if settings.mode == 'MATERIAL':
             if len(ob.material_slots) > 1:
-                col.label(text="Materials:")
-                col.template_list("MATERIAL_UL_matslots", "layers",
-                                  ob, "material_slots",
-                                  ob, "active_material_index", rows=2)
+                layout.template_list("MATERIAL_UL_matslots", "layers",
+                                     ob, "material_slots",
+                                     ob, "active_material_index", rows=2)
             mat = ob.active_material
             if mat:
-                col.label(text="Available Paint Slots:")
-                col.template_list("TEXTURE_UL_texpaintslots", "",
+                row = layout.row()
+                row.template_list("TEXTURE_UL_texpaintslots", "",
                                   mat, "texture_paint_images",
                                   mat, "paint_active_slot", rows=2)
 
@@ -522,58 +520,35 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 else:
                     slot = None
 
-                if slot and slot.is_valid:
-                    col.label(text="UV Map:")
-                    col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
+                have_image = slot is not None
+            else:
+                row = layout.row()
+
+                box = row.box()
+                box.label(text="No Textures")
+                have_image = False
+
+            sub = row.column(align=True)
+            sub.operator_menu_enum("paint.add_texture_paint_slot", "type", icon='ZOOMIN', text="")
 
         elif settings.mode == 'IMAGE':
             mesh = ob.data
             uv_text = mesh.uv_layers.active.name if mesh.uv_layers.active else ""
-            col.label(text="Canvas Image:")
-            col.template_ID(settings, "canvas", new="image.new", open="image.open")
-            col.label(text="UV Map:")
-            col.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
-
-        col.separator()
-        col.operator("image.save_dirty", text="Save All Images")
-
-        # Add Texture paint UVs/slots
-        if settings.missing_uvs:
-            col.separator()
-            col.label(text="No UVs available", icon='INFO')
-            col.operator("paint.add_simple_uvs")
-
-        if settings.mode == 'MATERIAL':
-            if settings.missing_materials:
-                col.separator()
-                col.label(text="Add a material and paint slot below")
-                col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
+            layout.template_ID(settings, "canvas", new="image.new", open="image.open")
+            if settings.missing_uvs:
+                layout.operator("paint.add_simple_uvs", icon='ZOOMIN', text="Add UVs")
             else:
-                ob = context.active_object
-                mat = ob.active_material
+                layout.menu("VIEW3D_MT_tools_projectpaint_uvlayer", text=uv_text, translate=False)
+            have_image = settings.canvas is not None
 
-                col.separator()
-                if mat:
-                    col.label(text="Add a paint slot below")
-                    col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
-                else:
-                    col.label(text="Add a material and paint slot below")
-                    col.operator_menu_enum("paint.add_texture_paint_slot", "type", text="Add Paint Slot")
-
-        elif settings.mode == 'IMAGE':
-            if settings.missing_texture:
-                col.separator()
-                col.label(text="Missing Canvas", icon='INFO')
-                col.label(text="Add or assign a canvas image below")
-                col.label(text="Canvas Image:")
-                col.template_ID(settings, "canvas", new="image.new", open="image.open")
-
-        if settings.missing_stencil:
-            col.separator()
-            col.label(text="Missing Stencil", icon='INFO')
-            col.label(text="Add or assign a stencil image below")
-            col.label(text="Stencil Image:")
-            col.template_ID(settings, "stencil_image", new="image.new", open="image.open")
+        if settings.missing_uvs:
+            layout.separator()
+            split = layout.split()
+            split.label(text="UV Map Needed", icon='INFO')
+            split.operator("paint.add_simple_uvs", icon='ZOOMIN', text="Add Simple UVs")
+        elif have_image:
+            layout.separator()
+            layout.operator("image.save_dirty", text="Save All Images", icon='FILE_TICK')
 
 # TODO, move to space_view3d.py
 
@@ -581,6 +556,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     bl_context = ".imagepaint"  # dot on purpose (access from topbar)
     bl_label = "Mask"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -1771,10 +1747,10 @@ classes = (
     VIEW3D_PT_tools_curveedit_options_stroke,
     VIEW3D_PT_tools_armatureedit_options,
     VIEW3D_PT_tools_posemode_options,
+    VIEW3D_PT_slots_projectpaint,
     VIEW3D_PT_tools_brush,
     TEXTURE_UL_texpaintslots,
     VIEW3D_MT_tools_projectpaint_uvlayer,
-    VIEW3D_PT_slots_projectpaint,
     VIEW3D_PT_stencil_projectpaint,
     VIEW3D_PT_tools_brush_overlay,
     VIEW3D_PT_tools_brush_texture,

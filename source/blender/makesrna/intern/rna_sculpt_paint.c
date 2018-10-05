@@ -789,7 +789,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 		{IMAGEPAINT_MODE_MATERIAL, "MATERIAL", 0,
 		 "Material", "Detect image slots from the material"},
 		{IMAGEPAINT_MODE_IMAGE, "IMAGE", 0,
-		 "Image", "Set image for texture painting directly"},
+		 "Single Image", "Set image for texture painting directly"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
