@@ -162,6 +162,13 @@ class TOPBAR_HT_lower_bar(Header):
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
             elif tool_mode == 'GPENCIL_WEIGHT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
+        elif tool_space_type == 'IMAGE_EDITOR':
+            if tool_mode == 'VIEW':
+                mode = context.mode
+                if mode == 'EDIT_MESH':
+                    tool_settings = context.tool_settings
+                    if tool_settings.use_uv_sculpt:
+                        layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
 
     def draw_center(self, context):
         pass
@@ -300,6 +307,24 @@ class _draw_left_context_mode:
                     elif tool == 'PUFF':
                         layout.row().prop(brush, "puff_mode", expand=True)
                         layout.prop(brush, "use_puff_volume")
+
+    class IMAGE_EDITOR:
+        def VIEW(context, layout, tool):
+            tool_settings = context.tool_settings
+            if tool_settings.use_uv_sculpt:
+                if context.mode == 'EDIT_MESH':
+                    uv_sculpt = tool_settings.uv_sculpt
+                    brush = uv_sculpt.brush
+                    if brush:
+                        from .properties_paint_common import UnifiedPaintPanel
+
+                        row = layout.row(align=True)
+                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
+                        UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
+
+                        row = layout.row(align=True)
+                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
+                        UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
 
 class TOPBAR_PT_gpencil_layers(Panel):

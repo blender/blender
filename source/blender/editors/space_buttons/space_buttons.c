@@ -260,7 +260,10 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 		}
 	}
 	else if (workspace->tools_space_type == SPACE_IMAGE) {
-		/* TODO */
+		switch (mode) {
+			case CTX_MODE_EDIT_MESH:
+				ARRAY_SET_ITEMS(contexts, ".uv_sculpt");
+		}
 	}
 
 	/* for grease pencil we don't use tool system yet, so we need check outside

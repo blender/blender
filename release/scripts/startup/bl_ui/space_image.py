@@ -1158,22 +1158,16 @@ class IMAGE_PT_tools_paint_options(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_uv_sculpt_curve(Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
+    bl_category = "Options"
     bl_label = "UV Sculpt Curve"
-    bl_category = "Tools"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
-        sima = context.space_data
-        toolsettings = context.tool_settings.image_paint
-
-        return (
-            sima.show_uvedit and
-            context.tool_settings.use_uv_sculpt and
-            not (sima.show_paint and toolsettings.brush)
-        )
+        return IMAGE_PT_uv_sculpt.poll(context)
 
     def draw(self, context):
         layout = self.layout
@@ -1193,39 +1187,45 @@ class IMAGE_PT_uv_sculpt_curve(Panel):
         row.operator("brush.curve_preset", icon='NOCURVE', text="").shape = 'MAX'
 
 
-class IMAGE_PT_uv_sculpt(Panel, ImagePaintPanel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = "Tools"
+class IMAGE_PT_uv_sculpt(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = ".uv_sculpt"  # dot on purpose (access from topbar)
+    bl_category = "Options"
     bl_label = "UV Sculpt"
 
     @classmethod
     def poll(cls, context):
-        sima = context.space_data
-        toolsettings = context.tool_settings.image_paint
-        return (
-            sima.show_uvedit and
-            context.tool_settings.use_uv_sculpt and
-            not (sima.show_paint and toolsettings.brush)
-        )
+        tool_settings = context.tool_settings
+        if tool_settings.use_uv_sculpt:
+            if context.mode == 'EDIT_MESH':
+                workspace = context.workspace
+                space_type = workspace.tools_space_type
+                if space_type == 'IMAGE_EDITOR':
+                    mode = workspace.tools_mode
+                    if mode == 'VIEW':
+                        return True
+        return False
 
     def draw(self, context):
+        from .properties_paint_common import UnifiedPaintPanel
         layout = self.layout
 
         toolsettings = context.tool_settings
         uvsculpt = toolsettings.uv_sculpt
         brush = uvsculpt.brush
 
-        if brush:
-            col = layout.column()
+        if not self.is_popover:
+            if brush:
+                col = layout.column()
 
-            row = col.row(align=True)
-            self.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
-            self.prop_unified_size(row, context, brush, "use_pressure_size")
+                row = col.row(align=True)
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "size", slider=True, text="Radius")
+                UnifiedPaintPanel.prop_unified_size(row, context, brush, "use_pressure_size")
 
-            row = col.row(align=True)
-            self.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
-            self.prop_unified_strength(row, context, brush, "use_pressure_strength")
+                row = col.row(align=True)
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
+                UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
 
         col = layout.column()
         col.prop(toolsettings, "uv_sculpt_lock_borders")
