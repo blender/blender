@@ -621,12 +621,12 @@ static void set_grid_point(
 
 	float pos[3];
 	/* Set the grid in the selected axis (default is always Y axis) */
-	if (axis & V3D_GP_GRID_AXIS_X) {
+	if (axis & GP_GRID_AXIS_X) {
 		pos[0] = 0.0f;
 		pos[1] = v1;
 		pos[2] = v2;
 	}
-	else if (axis & V3D_GP_GRID_AXIS_Z) {
+	else if (axis & GP_GRID_AXIS_Z) {
 		pos[0] = v1;
 		pos[1] = v2;
 		pos[2] = 0.0f;
@@ -672,7 +672,7 @@ GPUBatch *DRW_gpencil_get_grid(Object *ob)
 
 	/* if use locked axis, copy value */
 	int axis = gpd->grid.axis;
-	if ((gpd->grid.axis & V3D_GP_GRID_AXIS_LOCK) == 0) {
+	if ((gpd->grid.axis & GP_GRID_AXIS_LOCK) == 0) {
 
 		axis = gpd->grid.axis;
 	}
@@ -680,18 +680,18 @@ GPUBatch *DRW_gpencil_get_grid(Object *ob)
 		switch (ts->gp_sculpt.lock_axis) {
 			case GP_LOCKAXIS_X:
 			{
-				axis = V3D_GP_GRID_AXIS_X;
+				axis = GP_GRID_AXIS_X;
 				break;
 			}
 			case GP_LOCKAXIS_NONE:
 			case GP_LOCKAXIS_Y:
 			{
-				axis = V3D_GP_GRID_AXIS_Y;
+				axis = GP_GRID_AXIS_Y;
 				break;
 			}
 			case GP_LOCKAXIS_Z:
 			{
-				axis = V3D_GP_GRID_AXIS_Z;
+				axis = GP_GRID_AXIS_Z;
 				break;
 			}
 		}

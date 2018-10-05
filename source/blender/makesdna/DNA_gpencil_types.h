@@ -374,8 +374,8 @@ typedef struct bGPdata {
 	int   totstroke;
 	int   totpoint;
 	char pad_3[4];
-	bGPdata_runtime runtime;
 	bGPgrid grid;
+	bGPdata_runtime runtime;
 } bGPdata;
 
 /* bGPdata->flag */
@@ -473,10 +473,10 @@ typedef enum eGP_DepthOrdering {
 
 /* gpencil_grid_axis */
 enum {
-	V3D_GP_GRID_AXIS_LOCK = (1 << 0),
-	V3D_GP_GRID_AXIS_X = (1 << 1),
-	V3D_GP_GRID_AXIS_Y = (1 << 2),
-	V3D_GP_GRID_AXIS_Z = (1 << 3),
+	GP_GRID_AXIS_LOCK = (1 << 0),
+	GP_GRID_AXIS_X    = (1 << 1),
+	GP_GRID_AXIS_Y    = (1 << 2),
+	GP_GRID_AXIS_Z    = (1 << 3),
 };
 
 /* ***************************************** */

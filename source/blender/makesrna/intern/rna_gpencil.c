@@ -73,10 +73,10 @@ static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
 };
 
 static const EnumPropertyItem rna_enum_gpencil_grid_axis_items[] = {
-	{V3D_GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
-	{V3D_GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
-	{V3D_GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
-	{V3D_GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
+	{GP_GRID_AXIS_LOCK, "LOCK", 0, "Drawing Plane", "Use current drawing locked axis" },
+	{GP_GRID_AXIS_X, "X", 0, "Y-Z", ""},
+	{GP_GRID_AXIS_Y, "Y", 0, "X-Z", ""},
+	{GP_GRID_AXIS_Z, "Z", 0, "X-Y", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 #endif

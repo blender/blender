@@ -2160,7 +2160,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			ARRAY_SET_ITEMS(gpd->grid.color, 0.5f, 0.5f, 0.5f); // Color
 			ARRAY_SET_ITEMS(gpd->grid.scale, 1.0f, 1.0f); // Scale
 			gpd->grid.lines = GP_DEFAULT_GRID_LINES; // Number of lines
-			gpd->grid.axis = V3D_GP_GRID_AXIS_Y;
+			gpd->grid.axis = GP_GRID_AXIS_Y;
 		}
 
 
