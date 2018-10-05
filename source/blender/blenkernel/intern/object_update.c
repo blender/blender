@@ -373,16 +373,19 @@ void BKE_object_data_select_update(Depsgraph *depsgraph, ID *object_data)
 	DEG_debug_print_eval(depsgraph, __func__, object_data->name, object_data);
 	switch (GS(object_data->name)) {
 		case ID_ME:
-			BKE_mesh_batch_cache_dirty_tag((Mesh *)object_data,
-			                           BKE_CURVE_BATCH_DIRTY_SELECT);
+			BKE_mesh_batch_cache_dirty_tag(
+			        (Mesh *)object_data,
+			        BKE_MESH_BATCH_DIRTY_SELECT);
 			break;
 		case ID_CU:
-			BKE_curve_batch_cache_dirty_tag((Curve *)object_data,
-			                            BKE_CURVE_BATCH_DIRTY_SELECT);
+			BKE_curve_batch_cache_dirty_tag(
+			        (Curve *)object_data,
+			        BKE_CURVE_BATCH_DIRTY_SELECT);
 			break;
 		case ID_LT:
-			BKE_lattice_batch_cache_dirty_tag((struct Lattice *)object_data,
-			                              BKE_CURVE_BATCH_DIRTY_SELECT);
+			BKE_lattice_batch_cache_dirty_tag(
+			        (struct Lattice *)object_data,
+			        BKE_LATTICE_BATCH_DIRTY_SELECT);
 			break;
 		default:
 			break;
