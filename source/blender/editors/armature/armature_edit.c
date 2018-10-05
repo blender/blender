@@ -467,33 +467,42 @@ void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
 
 static int armature_roll_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-
-	bArmature *arm = ob->data;
-	EditBone *ebone;
-
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const float roll = RNA_float_get(op->ptr, "roll");
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
-			/* roll func is a callback which assumes that all is well */
-			ebone->roll = roll;
-		}
-	}
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
+		bool changed = false;
 
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
-				EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-				if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
-					ebone->roll = -ebone_mirr->roll;
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+				/* Roll func is a callback which assumes that all is well. */
+				ebone->roll = roll;
+				changed = true;
+			}
+		}
+
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
+					EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+					if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
+						ebone->roll = -ebone_mirr->roll;
+						changed = true;
+					}
 				}
 			}
 		}
-	}
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		if (changed) {
+			/* Note, notifier might evolve. */
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		}
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
