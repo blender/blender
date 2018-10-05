@@ -45,21 +45,18 @@
 
 static void bpygpu_shader_add_enum_objects(PyObject *submodule)
 {
-	PyObject *dict = PyModule_GetDict(submodule);
-	PyObject *item;
-
-#define PY_DICT_ADD_INT(x) PyDict_SetItemString(dict, #x, item = PyLong_FromLong(x)); Py_DECREF(item)
+#define ADDCONST(x) PyModule_AddIntConstant(submodule, #x, x)
 
 	/* Shaders */
-	PY_DICT_ADD_INT(GPU_SHADER_2D_UNIFORM_COLOR);
-	PY_DICT_ADD_INT(GPU_SHADER_2D_FLAT_COLOR);
-	PY_DICT_ADD_INT(GPU_SHADER_2D_SMOOTH_COLOR);
-	PY_DICT_ADD_INT(GPU_SHADER_2D_IMAGE);
-	PY_DICT_ADD_INT(GPU_SHADER_3D_UNIFORM_COLOR);
-	PY_DICT_ADD_INT(GPU_SHADER_3D_FLAT_COLOR);
-	PY_DICT_ADD_INT(GPU_SHADER_3D_SMOOTH_COLOR);
+	ADDCONST(GPU_SHADER_2D_UNIFORM_COLOR);
+	ADDCONST(GPU_SHADER_2D_FLAT_COLOR);
+	ADDCONST(GPU_SHADER_2D_SMOOTH_COLOR);
+	ADDCONST(GPU_SHADER_2D_IMAGE);
+	ADDCONST(GPU_SHADER_3D_UNIFORM_COLOR);
+	ADDCONST(GPU_SHADER_3D_FLAT_COLOR);
+	ADDCONST(GPU_SHADER_3D_SMOOTH_COLOR);
 
-#undef PY_DICT_ADD_INT
+#undef ADDCONST
 }
 
 static int bpygpu_pyLong_as_shader_enum(PyObject *o)
