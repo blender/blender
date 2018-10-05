@@ -5660,6 +5660,57 @@ static Image *proj_paint_image_create(wmOperator *op, Main *bmain)
 	return ima;
 }
 
+static void proj_paint_default_color(wmOperator *op, int type, Material *ma)
+{
+	if (RNA_struct_property_is_set(op->ptr, "color")) {
+		return;
+	}
+
+	bNode *in_node = ntreeFindType(ma->nodetree, SH_NODE_BSDF_PRINCIPLED);
+	if (in_node == NULL) {
+		return;
+	}
+
+	float color[4];
+
+	if (type >= LAYER_BASE_COLOR && type < LAYER_NORMAL) {
+		/* Copy color from node, so result is unchanged after assigning textures. */
+		bNodeSocket *in_sock = nodeFindSocket(in_node, SOCK_IN, layer_type_items[type].name);
+
+		switch (in_sock->type) {
+			case SOCK_FLOAT: {
+				bNodeSocketValueFloat *socket_data = in_sock->default_value;
+				copy_v3_fl(color, socket_data->value);
+				color[3] = 1.0f;
+				break;
+			}
+			case SOCK_VECTOR:
+			case SOCK_RGBA: {
+				bNodeSocketValueRGBA *socket_data = in_sock->default_value;
+				copy_v3_v3(color, socket_data->value);
+				color[3] = 1.0f;
+				break;
+			}
+			default: {
+				return;
+			}
+		}
+	}
+	else if (type == LAYER_NORMAL) {
+		/* Neutral tangent space normal map. */
+		rgba_float_args_set(color, 0.5f, 0.5f, 1.0f, 1.0f);
+	}
+	else if (ELEM(type, LAYER_BUMP, LAYER_DISPLACEMENT)) {
+		/* Neutral displacement and bump map. */
+		rgba_float_args_set(color, 0.5f, 0.5f, 0.5f, 1.0f);
+	}
+	else {
+		return;
+	}
+
+	RNA_float_set_array(op->ptr, "color", color);
+}
+
 static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_active_context(C);
@@ -5695,9 +5746,8 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 		nodeSetActive(ntree, imanode);
 
 		/* Connect to first available principled bsdf node. */
-		bNode *in_node;
+		bNode *in_node = ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
 		bNode *out_node = imanode;
-		in_node = ntreeFindType(ntree, SH_NODE_BSDF_PRINCIPLED);
 
 		if (in_node != NULL) {
 			bNodeSocket *out_sock = nodeFindSocket(out_node, SOCK_OUT, "Color");
@@ -5801,6 +5851,12 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 		/* no material found, just assign to first slot */
 		assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
 	}
+
+	if (!ma->nodetree) {
+		ED_node_shader_default(C, &ma->id);
+	}
+
+	proj_paint_default_color(op, type, ma);
 
 	type = RNA_enum_from_value(layer_type_items, type);
 
