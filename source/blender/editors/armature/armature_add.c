@@ -46,6 +46,7 @@
 #include "BKE_context.h"
 #include "BKE_idprop.h"
 #include "BKE_deform.h"
+#include "BKE_layer.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -842,156 +843,161 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 /* if forked && mirror-edit: makes two bones with flipped names */
 static int armature_extrude_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit;
-	bArmature *arm;
-	EditBone *newbone = NULL, *ebone, *flipbone, *first = NULL;
-	int a, totbone = 0, do_extrude;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bool forked = RNA_boolean_get(op->ptr, "forked");
 
-	obedit = CTX_data_edit_object(C);
-	arm = obedit->data;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 
-	/* since we allow root extrude too, we have to make sure selection is OK */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if (ebone->flag & BONE_ROOTSEL) {
-				if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-					if (ebone->parent->flag & BONE_TIPSEL)
-						ebone->flag &= ~BONE_ROOTSEL;
+		EditBone *newbone = NULL, *ebone, *flipbone, *first = NULL;
+		int a, totbone = 0, do_extrude;
+
+		/* since we allow root extrude too, we have to make sure selection is OK */
+		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone)) {
+				if (ebone->flag & BONE_ROOTSEL) {
+					if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
+						if (ebone->parent->flag & BONE_TIPSEL)
+							ebone->flag &= ~BONE_ROOTSEL;
+					}
 				}
 			}
 		}
-	}
 
-	/* Duplicate the necessary bones */
-	for (ebone = arm->edbo->first; ((ebone) && (ebone != first)); ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			/* we extrude per definition the tip */
-			do_extrude = false;
-			if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
-				do_extrude = true;
-			}
-			else if (ebone->flag & BONE_ROOTSEL) {
-				/* but, a bone with parent deselected we do the root... */
-				if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) {
-					/* pass */
+		/* Duplicate the necessary bones */
+		for (ebone = arm->edbo->first; ((ebone) && (ebone != first)); ebone = ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone)) {
+				/* we extrude per definition the tip */
+				do_extrude = false;
+				if (ebone->flag & (BONE_TIPSEL | BONE_SELECTED)) {
+					do_extrude = true;
 				}
-				else {
-					do_extrude = 2;
-				}
-			}
-
-			if (do_extrude) {
-				/* we re-use code for mirror editing... */
-				flipbone = NULL;
-				if (arm->flag & ARM_MIRROR_EDIT) {
-					flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-					if (flipbone) {
-						forked = 0;  // we extrude 2 different bones
-						if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED))
-							/* don't want this bone to be selected... */
-							flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
-					}
-					if ((flipbone == NULL) && (forked))
-						flipbone = ebone;
-				}
-
-				for (a = 0; a < 2; a++) {
-					if (a == 1) {
-						if (flipbone == NULL)
-							break;
-						else {
-							SWAP(EditBone *, flipbone, ebone);
-						}
-					}
-
-					totbone++;
-					newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
-
-					if (do_extrude == true) {
-						copy_v3_v3(newbone->head, ebone->tail);
-						copy_v3_v3(newbone->tail, newbone->head);
-						newbone->parent = ebone;
-
-						newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);  // copies it, in case mirrored bone
-
-						if (newbone->parent) newbone->flag |= BONE_CONNECTED;
+				else if (ebone->flag & BONE_ROOTSEL) {
+					/* but, a bone with parent deselected we do the root... */
+					if (ebone->parent && (ebone->parent->flag & BONE_TIPSEL)) {
+						/* pass */
 					}
 					else {
-						copy_v3_v3(newbone->head, ebone->head);
-						copy_v3_v3(newbone->tail, ebone->head);
-						newbone->parent = ebone->parent;
-
-						newbone->flag = BONE_TIPSEL;
-
-						if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
-							newbone->flag |= BONE_CONNECTED;
-						}
+						do_extrude = 2;
 					}
-
-					newbone->weight = ebone->weight;
-					newbone->dist = ebone->dist;
-					newbone->xwidth = ebone->xwidth;
-					newbone->zwidth = ebone->zwidth;
-					newbone->rad_head = ebone->rad_tail; // don't copy entire bone...
-					newbone->rad_tail = ebone->rad_tail;
-					newbone->segments = 1;
-					newbone->layer = ebone->layer;
-
-					/* Bendy-Bone parameters */
-					newbone->roll1 = ebone->roll1;
-					newbone->roll2 = ebone->roll2;
-					newbone->curveInX = ebone->curveInX;
-					newbone->curveInY = ebone->curveInY;
-					newbone->curveOutX = ebone->curveOutX;
-					newbone->curveOutY = ebone->curveOutY;
-					newbone->ease1 = ebone->ease1;
-					newbone->ease2 = ebone->ease2;
-					newbone->scaleIn = ebone->scaleIn;
-					newbone->scaleOut = ebone->scaleOut;
-
-
-					BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
-
-					if (flipbone && forked) {   // only set if mirror edit
-						if (strlen(newbone->name) < (MAXBONENAME - 2)) {
-							if (a == 0) strcat(newbone->name, "_L");
-							else strcat(newbone->name, "_R");
-						}
-					}
-					ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);
-
-					/* Add the new bone to the list */
-					BLI_addtail(arm->edbo, newbone);
-					if (!first)
-						first = newbone;
-
-					/* restore ebone if we were flipping */
-					if (a == 1 && flipbone)
-						SWAP(EditBone *, flipbone, ebone);
 				}
+
+				if (do_extrude) {
+					/* we re-use code for mirror editing... */
+					flipbone = NULL;
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+						if (flipbone) {
+							forked = 0;  // we extrude 2 different bones
+							if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED))
+								/* don't want this bone to be selected... */
+								flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+						}
+						if ((flipbone == NULL) && (forked))
+							flipbone = ebone;
+					}
+
+					for (a = 0; a < 2; a++) {
+						if (a == 1) {
+							if (flipbone == NULL)
+								break;
+							else {
+								SWAP(EditBone *, flipbone, ebone);
+							}
+						}
+
+						totbone++;
+						newbone = MEM_callocN(sizeof(EditBone), "extrudebone");
+
+						if (do_extrude == true) {
+							copy_v3_v3(newbone->head, ebone->tail);
+							copy_v3_v3(newbone->tail, newbone->head);
+							newbone->parent = ebone;
+
+							newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);  // copies it, in case mirrored bone
+
+							if (newbone->parent) newbone->flag |= BONE_CONNECTED;
+						}
+						else {
+							copy_v3_v3(newbone->head, ebone->head);
+							copy_v3_v3(newbone->tail, ebone->head);
+							newbone->parent = ebone->parent;
+
+							newbone->flag = BONE_TIPSEL;
+
+							if (newbone->parent && (ebone->flag & BONE_CONNECTED)) {
+								newbone->flag |= BONE_CONNECTED;
+							}
+						}
+
+						newbone->weight = ebone->weight;
+						newbone->dist = ebone->dist;
+						newbone->xwidth = ebone->xwidth;
+						newbone->zwidth = ebone->zwidth;
+						newbone->rad_head = ebone->rad_tail; // don't copy entire bone...
+						newbone->rad_tail = ebone->rad_tail;
+						newbone->segments = 1;
+						newbone->layer = ebone->layer;
+
+						/* Bendy-Bone parameters */
+						newbone->roll1 = ebone->roll1;
+						newbone->roll2 = ebone->roll2;
+						newbone->curveInX = ebone->curveInX;
+						newbone->curveInY = ebone->curveInY;
+						newbone->curveOutX = ebone->curveOutX;
+						newbone->curveOutY = ebone->curveOutY;
+						newbone->ease1 = ebone->ease1;
+						newbone->ease2 = ebone->ease2;
+						newbone->scaleIn = ebone->scaleIn;
+						newbone->scaleOut = ebone->scaleOut;
+
+
+						BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
+
+						if (flipbone && forked) {   // only set if mirror edit
+							if (strlen(newbone->name) < (MAXBONENAME - 2)) {
+								if (a == 0) strcat(newbone->name, "_L");
+								else strcat(newbone->name, "_R");
+							}
+						}
+						ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);
+
+						/* Add the new bone to the list */
+						BLI_addtail(arm->edbo, newbone);
+						if (!first)
+							first = newbone;
+
+						/* restore ebone if we were flipping */
+						if (a == 1 && flipbone)
+							SWAP(EditBone *, flipbone, ebone);
+					}
+				}
+
+				/* Deselect the old bone */
+				ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
 			}
-
-			/* Deselect the old bone */
-			ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
 		}
-	}
-	/* if only one bone, make this one active */
-	if (totbone == 1 && first) {
-		arm->act_edbone = first;
-	}
-	else {
-		arm->act_edbone = newbone;
-	}
+		/* if only one bone, make this one active */
+		if (totbone == 1 && first) {
+			arm->act_edbone = first;
+		}
+		else {
+			arm->act_edbone = newbone;
+		}
 
-	if (totbone == 0) {
-		return OPERATOR_CANCELLED;
+		if (totbone == 0) {
+			continue;
+		}
+
+		/* Transform the endpoints */
+		ED_armature_edit_sync_selection(arm->edbo);
+
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
-
-	/* Transform the endpoints */
-	ED_armature_edit_sync_selection(arm->edbo);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
