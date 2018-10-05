@@ -844,13 +844,15 @@ void ARMATURE_OT_symmetrize(wmOperatorType *ot)
 static int armature_extrude_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	bool forked = RNA_boolean_get(op->ptr, "forked");
+	const bool forked = RNA_boolean_get(op->ptr, "forked");
+	bool multi_changed = false;
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		bArmature *arm = ob->data;
+		bool forked_iter = forked;
 
 		EditBone *newbone = NULL, *ebone, *flipbone, *first = NULL;
 		int a, totbone = 0, do_extrude;
@@ -891,12 +893,12 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 					if (arm->flag & ARM_MIRROR_EDIT) {
 						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
 						if (flipbone) {
-							forked = 0;  // we extrude 2 different bones
+							forked_iter = 0;  // we extrude 2 different bones
 							if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED))
 								/* don't want this bone to be selected... */
 								flipbone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
 						}
-						if ((flipbone == NULL) && (forked))
+						if ((flipbone == NULL) && (forked_iter))
 							flipbone = ebone;
 					}
 
@@ -957,7 +959,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 
 						BLI_strncpy(newbone->name, ebone->name, sizeof(newbone->name));
 
-						if (flipbone && forked) {   // only set if mirror edit
+						if (flipbone && forked_iter) {   // only set if mirror edit
 							if (strlen(newbone->name) < (MAXBONENAME - 2)) {
 								if (a == 0) strcat(newbone->name, "_L");
 								else strcat(newbone->name, "_R");
@@ -992,6 +994,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
+		multi_changed = true;
+
 		/* Transform the endpoints */
 		ED_armature_edit_sync_selection(arm->edbo);
 
@@ -999,7 +1003,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	}
 	MEM_freeN(objects);
 
-	return OPERATOR_FINISHED;
+	return multi_changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_extrude(wmOperatorType *ot)
