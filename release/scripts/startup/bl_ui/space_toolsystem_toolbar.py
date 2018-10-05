@@ -1190,6 +1190,15 @@ class _defs_weight_paint:
 
 class _defs_image_generic:
 
+    @staticmethod
+    def poll_uvedit(context):
+        ob = context.edit_object
+        if ob is not None:
+            data = ob.data
+            if data is not None:
+                return bool(getattr(data, "uv_layers", False))
+        return False
+
     @ToolDef.from_fn
     def cursor():
         return dict(
@@ -1279,6 +1288,18 @@ class _defs_image_uv_select:
                 #  dict(deselect=True),
                 #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
             ),
+        )
+
+
+class _defs_image_uv_sculpt:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_enum_ex(
+            context,
+            icon_prefix="brush.uv_sculpt.",
+            data=context.tool_settings,
+            attr="uv_sculpt_tool",
         )
 
 
@@ -1772,6 +1793,12 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_transform,
             None,
             *_tools_annotate,
+            None,
+            lambda context: (
+                _defs_image_uv_sculpt.generate_from_brushes(context)
+                if _defs_image_generic.poll_uvedit(context)
+                else ()
+            ),
         ],
         'MASK': [
             None,

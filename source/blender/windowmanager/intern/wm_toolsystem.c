@@ -169,6 +169,14 @@ void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace, const bToolKey *tke
 	}
 }
 
+static void toolsystem_ref_link__refresh_image_uv_sculpt(bContext *C, Scene *scene)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &ptr);
+	PropertyRNA *prop = RNA_struct_find_property(&ptr, "use_uv_sculpt");
+	RNA_property_update(C, &ptr, prop);
+}
+
 static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tref)
 {
 	bToolRef_Runtime *tref_rt = tref->runtime;
@@ -205,6 +213,30 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 				}
 			}
 		}
+		if ((tref->space_type == SPACE_IMAGE) &&
+		    (tref->mode == SI_MODE_VIEW))
+		{
+			/* Note that switching uv-sculpt boolean is a hack at the moment.
+			 * It would be best to make this either an operator or a higher level mode (like mesh-object sculpt mode). */
+			const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
+			const int i = RNA_enum_from_identifier(items, tref_rt->data_block);
+			if (i != -1) {
+				const int value = items[i].value;
+				wmWindowManager *wm = bmain->wm.first;
+				for (wmWindow *win = wm->windows.first; win; win = win->next) {
+					if (workspace == WM_window_get_active_workspace(win)) {
+						Scene *scene = WM_window_get_active_scene(win);
+						ToolSettings *ts = scene->toolsettings;
+						ts->uv_sculpt_tool = value;
+
+						if (ts->use_uv_sculpt == false) {
+							ts->use_uv_sculpt = true;
+							toolsystem_ref_link__refresh_image_uv_sculpt(C, scene);
+						}
+					}
+				}
+			}
+		}
 		else {
 			struct Brush *brush = (struct Brush *)BKE_libblock_find_name(bmain, ID_BR, tref_rt->data_block);
 			if (brush) {
@@ -219,6 +251,25 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 								BKE_paint_brush_set(paint, brush);
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+	else {
+		/* XXX, this part is weak, disables uv_sculpt when non uv-tool set. */
+		if ((tref->space_type == SPACE_IMAGE) &&
+		    (tref->mode == SI_MODE_VIEW))
+		{
+			Main *bmain = CTX_data_main(C);
+			wmWindowManager *wm = bmain->wm.first;
+			for (wmWindow *win = wm->windows.first; win; win = win->next) {
+				if (workspace == WM_window_get_active_workspace(win)) {
+					Scene *scene = WM_window_get_active_scene(win);
+					ToolSettings *ts = scene->toolsettings;
+					if (ts->use_uv_sculpt == true) {
+						ts->use_uv_sculpt = false;
+						toolsystem_ref_link__refresh_image_uv_sculpt(C, scene);
 					}
 				}
 			}

@@ -90,9 +90,24 @@ static void rna_WorkspaceTool_refresh_from_context(
 			if (ob == NULL) {
 				/* pass */
 			}
-			else if (ob->mode & OB_MODE_PARTICLE_EDIT) {
+			else if ((tref->space_type == SPACE_VIEW3D) &&
+			         (tref->mode == CTX_MODE_PARTICLE) &&
+			         (ob->mode & OB_MODE_PARTICLE_EDIT))
+			{
 				const EnumPropertyItem *items = rna_enum_particle_edit_hair_brush_items;
 				const int i = RNA_enum_from_value(items, ts->particle.brushtype);
+				const EnumPropertyItem *item = &items[i];
+				if (!STREQ(tref_rt->data_block, item->identifier)) {
+					STRNCPY(tref_rt->data_block, item->identifier);
+					STRNCPY(tref->idname, item->name);
+				}
+			}
+			else if ((tref->space_type == SPACE_IMAGE) &&
+			         (tref->mode == SI_MODE_VIEW) &&
+			         (ob->mode & OB_MODE_EDIT))
+			{
+				const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
+				const int i = RNA_enum_from_value(items, ts->uv_sculpt_tool);
 				const EnumPropertyItem *item = &items[i];
 				if (!STREQ(tref_rt->data_block, item->identifier)) {
 					STRNCPY(tref_rt->data_block, item->identifier);
