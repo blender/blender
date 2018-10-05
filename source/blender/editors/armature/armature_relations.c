@@ -880,9 +880,8 @@ static void editbone_clear_parent(EditBone *ebone, int mode)
 
 static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm = (bArmature *)ob->data;
-	int val = RNA_enum_get(op->ptr, "type");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const int val = RNA_enum_get(op->ptr, "type");
 
 	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
 	{
@@ -890,10 +889,30 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 
-	ED_armature_edit_sync_selection(arm->edbo);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
+		bool changed = false;
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_EDITABLE(ebone)) {
+				changed = true;
+				break;
+			}
+		}
+
+		if (!changed) {
+			continue;
+		}
+
+		ED_armature_edit_sync_selection(arm->edbo);
+
+		/* Note, notifier might evolve. */
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
