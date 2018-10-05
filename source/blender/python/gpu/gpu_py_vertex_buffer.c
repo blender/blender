@@ -188,20 +188,28 @@ finally:
 	return ok;
 }
 
-/* handy, but not used just now */
-#if 0
-static int bpygpu_find_id(const GPUVertFormat *fmt, const char *id)
+static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data)
 {
-	for (int i = 0; i < fmt->attr_len; i++) {
-		for (uint j = 0; j < fmt->name_len; j++) {
-			if (STREQ(fmt->attribs[i].name[j], id)) {
-				return i;
-			}
-		}
+	if (id < 0 || id >= buf->format.attr_len) {
+		PyErr_Format(PyExc_ValueError,
+		             "Format id %d out of range",
+		             id);
+		return 0;
 	}
-	return -1;
+
+	if (buf->data == NULL) {
+		PyErr_SetString(PyExc_ValueError,
+		                "Can't fill, static buffer already in use");
+		return 0;
+	}
+
+	if (!bpygpu_vertbuf_fill_impl(buf, (uint)id, py_seq_data)) {
+		return 0;
+	}
+
+	return 1;
 }
-#endif
+
 
 /** \} */
 
@@ -218,12 +226,12 @@ static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, 
 		uint len;
 	} params;
 
-	static const char *_keywords[] = {"len", "format", NULL};
-	static _PyArg_Parser _parser = {"$IO!:GPUVertBuf.__new__", _keywords, 0};
+	static const char *_keywords[] = {"format", "len", NULL};
+	static _PyArg_Parser _parser = {"O!I:GPUVertBuf.__new__", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
-	        &params.len,
-	        &BPyGPUVertFormat_Type, &params.py_fmt))
+	        &BPyGPUVertFormat_Type, &params.py_fmt,
+	        &params.len))
 	{
 		return NULL;
 	}
@@ -235,48 +243,62 @@ static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, 
 	return BPyGPUVertBuf_CreatePyObject(vbo);
 }
 
-PyDoc_STRVAR(bpygpu_VertBuf_fill_doc,
-"TODO"
+PyDoc_STRVAR(bpygpu_VertBuf_fill_attribute_doc,
+"fill_attribute(identifier, data)\n"
+"\n"
+"   Insert data into the buffer for a single attribute.\n"
+"\n"
+"   :param identifier: Either the name or the id of the attribute.\n"
+"   :type identifier: int or str\n"
+"   :param data: Sequence of data that should be stored in the buffer\n"
+"   :type data: sequence of individual values or tuples\n"
 );
-static PyObject *bpygpu_VertBuf_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertBuf_fill_attribute(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
-	struct {
-		uint id;
-		PyObject *py_seq_data;
-	} params;
+	PyObject *data;
+	PyObject *identifier;
 
-	static const char *_keywords[] = {"id", "data", NULL};
-	static _PyArg_Parser _parser = {"$IO:fill", _keywords, 0};
+	static const char *_keywords[] = {"identifier", "data", NULL};
+	static _PyArg_Parser _parser = {"OO:fill_attribute", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
-	        &params.id,
-	        &params.py_seq_data))
+	        &identifier, &data))
 	{
 		return NULL;
 	}
 
-	if (params.id >= self->buf->format.attr_len) {
-		PyErr_Format(PyExc_ValueError,
-		             "Format id %d out of range",
-		             params.id);
+	int id;
+
+	if (PyLong_Check(identifier)) {
+		id = PyLong_AsLong(identifier);
+	}
+	else if (PyUnicode_Check(identifier)) {
+		const char *name = PyUnicode_AsUTF8(identifier);
+		id = GPU_vertformat_attr_id_get(&self->buf->format, name);
+		if (id == -1) {
+			PyErr_SetString(PyExc_ValueError,
+			                "Unknown attribute name");
+			return NULL;
+		}
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError,
+		                "expected int or str type as identifier");
 		return NULL;
 	}
 
-	if (self->buf->data == NULL) {
-		PyErr_SetString(PyExc_ValueError,
-		                "Can't fill, static buffer already in use");
+
+	if (!bpygpu_fill_attribute(self->buf, id, data)) {
 		return NULL;
 	}
 
-	if (!bpygpu_vertbuf_fill_impl(self->buf, params.id, params.py_seq_data)) {
-		return NULL;
-	}
 	Py_RETURN_NONE;
 }
 
+
 static struct PyMethodDef bpygpu_VertBuf_methods[] = {
-	{"fill", (PyCFunction) bpygpu_VertBuf_fill,
-	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_fill_doc},
+	{"fill_attribute", (PyCFunction) bpygpu_VertBuf_fill_attribute,
+	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_fill_attribute_doc},
 	{NULL, NULL, 0, NULL}
 };
 

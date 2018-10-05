@@ -55,77 +55,102 @@
  * Use with PyArg_ParseTuple's "O&" formatting.
  * \{ */
 
+static int bpygpu_parse_component_type(const char *str, int length)
+{
+	if (length == 2) {
+		switch (*((ushort *)str)) {
+			case MAKE_ID2('I', '8'): return GPU_COMP_I8;
+			case MAKE_ID2('U', '8'): return GPU_COMP_U8;
+			default: break;
+		}
+	}
+	else if (length == 3) {
+		switch (*((uint *)str)) {
+			case MAKE_ID3('I', '1', '6'): return GPU_COMP_I16;
+			case MAKE_ID3('U', '1', '6'): return GPU_COMP_U16;
+			case MAKE_ID3('I', '3', '2'): return GPU_COMP_I32;
+			case MAKE_ID3('U', '3', '2'): return GPU_COMP_U32;
+			case MAKE_ID3('F', '3', '2'): return GPU_COMP_F32;
+			case MAKE_ID3('I', '1', '0'): return GPU_COMP_I10;
+			default: break;
+		}
+	}
+	return -1;
+}
+
+static int bpygpu_parse_fetch_mode(const char *str, int length)
+{
+#define MATCH_ID(id) \
+	if (length == strlen(STRINGIFY(id))) { \
+		if (STREQ(str, STRINGIFY(id))) { \
+			return GPU_FETCH_##id; \
+		} \
+	} ((void)0)
+
+	MATCH_ID(FLOAT);
+	MATCH_ID(INT);
+	MATCH_ID(INT_TO_FLOAT_UNIT);
+	MATCH_ID(INT_TO_FLOAT);
+#undef MATCH_ID
+
+	return -1;
+}
+
 static int bpygpu_ParseVertCompType(PyObject *o, void *p)
 {
-	Py_ssize_t comp_type_id_len;
-	const char *comp_type_id = _PyUnicode_AsStringAndSize(o, &comp_type_id_len);
-	if (comp_type_id == NULL) {
+	Py_ssize_t length;
+	const char *str = _PyUnicode_AsStringAndSize(o, &length);
+
+	if (str == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "expected a string, got %s",
 		             Py_TYPE(o)->tp_name);
 		return 0;
 	}
 
-	GPUVertCompType comp_type;
-	if (comp_type_id_len == 2) {
-		switch (*((ushort *)comp_type_id)) {
-			case MAKE_ID2('I', '8'): { comp_type = GPU_COMP_I8; goto success; }
-			case MAKE_ID2('U', '8'): { comp_type = GPU_COMP_U8; goto success; }
-		}
-	}
-	else if (comp_type_id_len == 3) {
-		switch (*((uint *)comp_type_id)) {
-			case MAKE_ID3('I', '1', '6'): { comp_type = GPU_COMP_I16; goto success; }
-			case MAKE_ID3('U', '1', '6'): { comp_type = GPU_COMP_U16; goto success; }
-			case MAKE_ID3('I', '3', '2'): { comp_type = GPU_COMP_I32; goto success; }
-			case MAKE_ID3('U', '3', '2'): { comp_type = GPU_COMP_U32; goto success; }
-			case MAKE_ID3('F', '3', '2'): { comp_type = GPU_COMP_F32; goto success; }
-			case MAKE_ID3('I', '1', '0'): { comp_type = GPU_COMP_I10; goto success; }
-		}
+	int comp_type = bpygpu_parse_component_type(str, length);
+	if (comp_type == -1) {
+		PyErr_Format(PyExc_ValueError,
+		             "unkown component type: '%s",
+		             str);
+		return 0;
 	}
 
-	PyErr_Format(PyExc_ValueError,
-	             "unknown type literal: '%s'",
-	             comp_type_id);
-	return 0;
-
-success:
 	*((GPUVertCompType *)p) = comp_type;
 	return 1;
 }
 
 static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
 {
-	Py_ssize_t mode_id_len;
-	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
-	if (mode_id == NULL) {
+	Py_ssize_t length;
+	const char *str = _PyUnicode_AsStringAndSize(o, &length);
+
+	if (str == NULL) {
 		PyErr_Format(PyExc_ValueError,
 		             "expected a string, got %s",
 		             Py_TYPE(o)->tp_name);
 		return 0;
 	}
-#define MATCH_ID(id) \
-	if (mode_id_len == strlen(STRINGIFY(id))) { \
-		if (STREQ(mode_id, STRINGIFY(id))) { \
-			mode = GPU_FETCH_##id; \
-			goto success; \
-		} \
-	} ((void)0)
 
-	GPUVertFetchMode mode;
-	MATCH_ID(FLOAT);
-	MATCH_ID(INT);
-	MATCH_ID(INT_TO_FLOAT_UNIT);
-	MATCH_ID(INT_TO_FLOAT);
-#undef MATCH_ID
-	PyErr_Format(PyExc_ValueError,
-	             "unknown type literal: '%s'",
-	             mode_id);
-	return 0;
+	int fetch_mode = bpygpu_parse_fetch_mode(str, length);
+	if (fetch_mode == -1) {
+		PyErr_Format(PyExc_ValueError,
+		             "unknown type literal: '%s'",
+		             str);
+		return 0;
+	}
 
-success:
-	(*(GPUVertFetchMode *)p) = mode;
+	(*(GPUVertFetchMode *)p) = fetch_mode;
 	return 1;
+}
+
+static int get_default_fetch_mode(GPUVertCompType type)
+{
+	switch (type)
+	{
+	case GPU_COMP_F32: return GPU_FETCH_FLOAT;
+	default: return -1;
+	}
 }
 
 /** \} */
@@ -136,15 +161,70 @@ success:
 /** \name VertFormat Type
  * \{ */
 
+static int add_attribute_simple(GPUVertFormat *format, char *name, GPUVertCompType comp_type, int length)
+{
+	if (length <= 0) {
+		PyErr_SetString(PyExc_ValueError,
+		                "length of an attribute must greater than 0");
+		return 0;
+	}
+
+	int fetch_mode = get_default_fetch_mode(comp_type);
+	if (fetch_mode == -1) {
+		PyErr_SetString(PyExc_ValueError,
+		                "no default fetch mode found");
+		return 0;
+	}
+
+	GPU_vertformat_attr_add(format, name, comp_type, length, fetch_mode);
+	return 1;
+}
+
+static int add_attribute_from_tuple(GPUVertFormat *format, PyObject *data)
+{
+	char *name;
+	GPUVertCompType comp_type;
+	int length;
+
+	if (!PyArg_ParseTuple(data, "sO&i", &name, bpygpu_ParseVertCompType, &comp_type, &length)) {
+		return 0;
+	}
+
+	return add_attribute_simple(format, name, comp_type, length);
+}
+
+static int insert_attributes_from_list(GPUVertFormat *format, PyObject *list)
+{
+	Py_ssize_t amount = PyList_Size(list);
+
+	for (Py_ssize_t i = 0; i < amount; i++) {
+		PyObject *element = PyList_GET_ITEM(list, i);
+		if (!PyTuple_Check(element)) {
+			PyErr_SetString(PyExc_TypeError, "expected a list of tuples");
+			return 0;
+		}
+		if (!add_attribute_from_tuple(format, element)) return 0;
+	}
+
+	return 1;
+}
+
 static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	if (PyTuple_GET_SIZE(args) || (kwds && PyDict_Size(kwds))) {
-		PyErr_SetString(PyExc_TypeError,
-		                "VertFormat(): takes no arguments");
+
+	PyObject *format_list;
+
+	static const char *keywords[] = {"format", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!", (char**)keywords, &PyList_Type, &format_list)) {
 		return NULL;
 	}
 
 	BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
+
+	if (!insert_attributes_from_list(&ret->fmt, format_list)) {
+		Py_DecRef((PyObject *)ret);
+		return NULL;
+	}
 
 	return (PyObject *)ret;
 }

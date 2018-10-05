@@ -87,6 +87,7 @@ uint GPU_vertformat_attr_add(
         GPUVertFormat *, const char *name,
         GPUVertCompType, uint comp_len, GPUVertFetchMode);
 void GPU_vertformat_alias_add(GPUVertFormat *, const char *alias);
+int GPU_vertformat_attr_id_get(const GPUVertFormat *, const char *name);
 
 /* format conversion */
 

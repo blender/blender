@@ -34,6 +34,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "BLI_utildefines.h"
+
 #define PACK_DEBUG 0
 
 #if PACK_DEBUG
@@ -202,6 +204,19 @@ void GPU_vertformat_alias_add(GPUVertFormat *format, const char *alias)
 #endif
 	format->name_len++; /* multiname support */
 	attrib->name[attrib->name_len++] = copy_attrib_name(format, alias);
+}
+
+int GPU_vertformat_attr_id_get(const GPUVertFormat *format, const char *name)
+{
+	for (int i = 0; i < format->attr_len; i++) {
+		const GPUVertAttr *attrib = format->attribs + i;
+		for (int j = 0; j < attrib->name_len; j++) {
+			if (STREQ(name, attrib->name[j])) {
+				return i;
+			}
+		}
+	}
+	return -1;
 }
 
 uint padding(uint offset, uint alignment)
