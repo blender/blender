@@ -951,78 +951,84 @@ static void bones_merge(Object *obedit, EditBone *start, EditBone *end, EditBone
 
 static int armature_merge_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = (obedit) ? obedit->data : NULL;
-	short type = RNA_enum_get(op->ptr, "type");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const short type = RNA_enum_get(op->ptr, "type");
 
-	/* sanity checks */
-	if (ELEM(NULL, obedit, arm))
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	/* for now, there's only really one type of merging that's performed... */
-	if (type == 1) {
-		/* go down chains, merging bones */
-		ListBase chains = {NULL, NULL};
-		LinkData *chain, *nchain;
-		EditBone *ebo;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		bArmature *arm = obedit->data;
 
-		armature_tag_select_mirrored(arm);
+		/* for now, there's only really one type of merging that's performed... */
+		if (type == 1) {
+			/* go down chains, merging bones */
+			ListBase chains = {NULL, NULL};
+			LinkData *chain, *nchain;
+			EditBone *ebo;
 
-		/* get chains (ends on chains) */
-		chains_find_tips(arm->edbo, &chains);
-		if (BLI_listbase_is_empty(&chains)) return OPERATOR_CANCELLED;
+			armature_tag_select_mirrored(arm);
 
-		/* each 'chain' is the last bone in the chain (with no children) */
-		for (chain = chains.first; chain; chain = nchain) {
-			EditBone *bstart = NULL, *bend = NULL;
-			EditBone *bchild = NULL, *child = NULL;
-
-			/* temporarily remove chain from list of chains */
-			nchain = chain->next;
-			BLI_remlink(&chains, chain);
-
-			/* only consider bones that are visible and selected */
-			for (ebo = chain->data; ebo; child = ebo, ebo = ebo->parent) {
-				/* check if visible + selected */
-				if (EBONE_VISIBLE(arm, ebo) &&
-				    ((ebo->flag & BONE_CONNECTED) || (ebo->parent == NULL)) &&
-				    (ebo->flag & BONE_SELECTED) )
-				{
-					/* set either end or start (end gets priority, unless it is already set) */
-					if (bend == NULL) {
-						bend = ebo;
-						bchild = child;
-					}
-					else
-						bstart = ebo;
-				}
-				else {
-					/* chain is broken... merge any continuous segments then clear */
-					if (bstart && bend)
-						bones_merge(obedit, bstart, bend, bchild, &chains);
-
-					bstart = NULL;
-					bend = NULL;
-					bchild = NULL;
-				}
+			/* get chains (ends on chains) */
+			chains_find_tips(arm->edbo, &chains);
+			if (BLI_listbase_is_empty(&chains)) {
+					continue;
 			}
 
-			/* merge from bstart to bend if something not merged */
-			if (bstart && bend)
-				bones_merge(obedit, bstart, bend, bchild, &chains);
+			/* each 'chain' is the last bone in the chain (with no children) */
+			for (chain = chains.first; chain; chain = nchain) {
+				EditBone *bstart = NULL, *bend = NULL;
+				EditBone *bchild = NULL, *child = NULL;
 
-			/* put back link */
-			BLI_insertlinkbefore(&chains, nchain, chain);
+				/* temporarily remove chain from list of chains */
+				nchain = chain->next;
+				BLI_remlink(&chains, chain);
+
+				/* only consider bones that are visible and selected */
+				for (ebo = chain->data; ebo; child = ebo, ebo = ebo->parent) {
+					/* check if visible + selected */
+					if (EBONE_VISIBLE(arm, ebo) &&
+							((ebo->flag & BONE_CONNECTED) || (ebo->parent == NULL)) &&
+							(ebo->flag & BONE_SELECTED) )
+					{
+						/* set either end or start (end gets priority, unless it is already set) */
+						if (bend == NULL) {
+							bend = ebo;
+							bchild = child;
+						}
+						else
+							bstart = ebo;
+					}
+					else {
+						/* chain is broken... merge any continuous segments then clear */
+						if (bstart && bend)
+							bones_merge(obedit, bstart, bend, bchild, &chains);
+
+						bstart = NULL;
+						bend = NULL;
+						bchild = NULL;
+					}
+				}
+
+				/* merge from bstart to bend if something not merged */
+				if (bstart && bend)
+					bones_merge(obedit, bstart, bend, bchild, &chains);
+
+				/* put back link */
+				BLI_insertlinkbefore(&chains, nchain, chain);
+			}
+
+			armature_tag_unselect(arm);
+
+			BLI_freelistN(&chains);
 		}
 
-		armature_tag_unselect(arm);
-
-		BLI_freelistN(&chains);
+		/* updates */
+		ED_armature_edit_sync_selection(arm->edbo);
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
 	}
-
-	/* updates */
-	ED_armature_edit_sync_selection(arm->edbo);
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
