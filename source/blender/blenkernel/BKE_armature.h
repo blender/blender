@@ -109,7 +109,8 @@ void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[4][4], int root, int posed);
 void vec_roll_to_mat3(const float vec[3], const float roll, float mat[3][3]);
 void vec_roll_to_mat3_normalized(const float nor[3], const float roll, float mat[3][3]);
-void mat3_to_vec_roll(float mat[3][3], float r_vec[3], float *r_roll);
+void mat3_to_vec_roll(const float mat[3][3], float r_vec[3], float *r_roll);
+void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll);
 
 /* Common Conversions Between Co-ordinate Spaces */
 void BKE_armature_mat_world_to_pose(struct Object *ob, float inmat[4][4], float outmat[4][4]);

@@ -650,7 +650,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MAX_BBONE_SUBDIV])
 {
 	float scalemat[4][4], iscalemat[4][4];
-	float result[3][3], mat3[3][3], imat3[3][3];
+	float mat3[3][3];
 	float h1[3], roll1, h2[3], roll2;
 	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
 	int a;
@@ -678,14 +678,8 @@ int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MA
 
 		if (!param->prev_bbone) {
 			/* Find the previous roll to interpolate. */
-			copy_m3_m4(result, param->prev_mat); /* the desired rotation at beginning of next bone */
-
-			vec_roll_to_mat3(h1, 0.0f, mat3); /* the result of vec_roll without roll */
-
-			invert_m3_m3(imat3, mat3);
-			mul_m3_m3m3(mat3, result, imat3); /* the matrix transforming vec_roll to desired roll */
-
-			roll1 = atan2f(mat3[2][0], mat3[2][2]);
+			copy_m3_m4(mat3, param->prev_mat);
+			mat3_vec_to_roll(mat3, h1, &roll1);
 		}
 	}
 	else {
@@ -707,14 +701,8 @@ int BKE_compute_b_bone_spline(BBoneSplineParameters *param, Mat4 result_array[MA
 		normalize_v3(h2);
 
 		/* Find the next roll to interpolate as well. */
-		copy_m3_m4(result, param->next_mat); /* the desired rotation at beginning of next bone */
-
-		vec_roll_to_mat3(h2, 0.0f, mat3); /* the result of vec_roll without roll */
-
-		invert_m3_m3(imat3, mat3);
-		mul_m3_m3m3(mat3, imat3, result); /* the matrix transforming vec_roll to desired roll */
-
-		roll2 = atan2f(mat3[2][0], mat3[2][2]);
+		copy_m3_m4(mat3, param->next_mat);
+		mat3_vec_to_roll(mat3, h2, &roll2);
 	}
 	else {
 		h2[0] = 0.0f; h2[1] = 1.0f; h2[2] = 0.0f;
@@ -1716,21 +1704,28 @@ void BKE_rotMode_change_values(float quat[4], float eul[3], float axis[3], float
 
 /* Computes vector and roll based on a rotation.
  * "mat" must contain only a rotation, and no scaling. */
-void mat3_to_vec_roll(float mat[3][3], float r_vec[3], float *r_roll)
+void mat3_to_vec_roll(const float mat[3][3], float r_vec[3], float *r_roll)
 {
 	if (r_vec) {
 		copy_v3_v3(r_vec, mat[1]);
 	}
 
 	if (r_roll) {
-		float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
-
-		vec_roll_to_mat3(mat[1], 0.0f, vecmat);
-		invert_m3_m3(vecmatinv, vecmat);
-		mul_m3_m3m3(rollmat, vecmatinv, mat);
-
-		*r_roll = atan2f(rollmat[2][0], rollmat[2][2]);
+		mat3_vec_to_roll(mat, mat[1], r_roll);
 	}
+}
+
+/* Computes roll around the vector that best approximates the matrix.
+ * If vec is the Y vector from purely rotational mat, result should be exact. */
+void mat3_vec_to_roll(const float mat[3][3], const float vec[3], float *r_roll)
+{
+	float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
+
+	vec_roll_to_mat3(vec, 0.0f, vecmat);
+	invert_m3_m3(vecmatinv, vecmat);
+	mul_m3_m3m3(rollmat, vecmatinv, mat);
+
+	*r_roll = atan2f(rollmat[2][0], rollmat[2][2]);
 }
 
 /* Calculates the rest matrix of a bone based on its vector and a roll around that vector. */
