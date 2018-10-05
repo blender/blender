@@ -110,12 +110,13 @@ class TOPBAR_HT_lower_bar(Header):
 
     def draw_left(self, context):
         layout = self.layout
-        mode = context.mode
 
         # Active Tool
         # -----------
         from .space_toolsystem_common import ToolSelectPanelHelper
         tool = ToolSelectPanelHelper.draw_active_tool_header(context, layout)
+        tool_space_type = 'VIEW_3D' if tool is None else tool.space_type
+        tool_mode = context.mode if tool is None else tool.mode
 
         # Object Mode Options
         # -------------------
@@ -124,42 +125,43 @@ class TOPBAR_HT_lower_bar(Header):
 
         # TODO(campbell): editing options should be after active tool options
         # (obviously separated for from the users POV)
-        draw_fn = getattr(_draw_left_context_mode, mode, None)
+        draw_fn = getattr(getattr(_draw_left_context_mode, tool_space_type, None), tool_mode, None)
         if draw_fn is not None:
             draw_fn(context, layout, tool)
 
-        # Note: general mode options should be added to 'draw_right'.
-        if mode == 'SCULPT':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
-        elif mode == 'PAINT_VERTEX':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
-        elif mode == 'PAINT_WEIGHT':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
-        elif mode == 'PAINT_TEXTURE':
-            if (tool is not None) and tool.has_datablock:
-                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
-        elif mode == 'EDIT_ARMATURE':
-            pass
-        elif mode == 'EDIT_CURVE':
-            pass
-        elif mode == 'EDIT_MESH':
-            pass
-        elif mode == 'POSE':
-            pass
-        elif mode == 'PARTICLE':
-            # Disable, only shows "Brush" panel, which is already in the top-bar.
-            # if tool.has_datablock:
-            #     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
-            pass
-        elif mode == 'GPENCIL_PAINT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
-        elif mode == 'GPENCIL_SCULPT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
-        elif mode == 'GPENCIL_WEIGHT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
+        if tool_space_type == 'VIEW_3D':
+            # Note: general mode options should be added to 'draw_right'.
+            if tool_mode == 'SCULPT':
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            elif tool_mode == 'PAINT_VERTEX':
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            elif tool_mode == 'PAINT_WEIGHT':
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            elif tool_mode == 'PAINT_TEXTURE':
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+            elif tool_mode == 'EDIT_ARMATURE':
+                pass
+            elif tool_mode == 'EDIT_CURVE':
+                pass
+            elif tool_mode == 'EDIT_MESH':
+                pass
+            elif tool_mode == 'POSE':
+                pass
+            elif tool_mode == 'PARTICLE':
+                # Disable, only shows "Brush" panel, which is already in the top-bar.
+                # if tool.has_datablock:
+                #     layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common", category="")
+                pass
+            elif tool_mode == 'GPENCIL_PAINT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_paint", category="")
+            elif tool_mode == 'GPENCIL_SCULPT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_sculpt", category="")
+            elif tool_mode == 'GPENCIL_WEIGHT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
 
     def draw_center(self, context):
         pass
@@ -230,80 +232,81 @@ class TOPBAR_HT_lower_bar(Header):
 
 
 class _draw_left_context_mode:
-    @staticmethod
-    def SCULPT(context, layout, tool):
-        if (tool is None) or (not tool.has_datablock):
-            return
-        brush = context.tool_settings.sculpt.brush
-        if brush is None:
-            return
+    class VIEW_3D:
+        @staticmethod
+        def SCULPT(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+            brush = context.tool_settings.sculpt.brush
+            if brush is None:
+                return
 
-        from .properties_paint_common import UnifiedPaintPanel
+            from .properties_paint_common import UnifiedPaintPanel
 
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
-        layout.prop(brush, "direction", text="", expand=True)
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+            UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "direction", text="", expand=True)
 
-    def PAINT_TEXTURE(context, layout, tool):
-        if (tool is None) or (not tool.has_datablock):
-            return
-        brush = context.tool_settings.vertex_paint.brush
-        if brush is None:
-            return
+        def PAINT_TEXTURE(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+            brush = context.tool_settings.vertex_paint.brush
+            if brush is None:
+                return
 
-        from .properties_paint_common import UnifiedPaintPanel
+            from .properties_paint_common import UnifiedPaintPanel
 
-        layout.prop(brush, "color", text="")
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+            UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
-    def PAINT_VERTEX(context, layout, tool):
-        if (tool is None) or (not tool.has_datablock):
-            return
-        brush = context.tool_settings.vertex_paint.brush
-        if brush is None:
-            return
+        def PAINT_VERTEX(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+            brush = context.tool_settings.vertex_paint.brush
+            if brush is None:
+                return
 
-        from .properties_paint_common import UnifiedPaintPanel
+            from .properties_paint_common import UnifiedPaintPanel
 
-        layout.prop(brush, "color", text="")
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            layout.prop(brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+            UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
-    def PAINT_WEIGHT(context, layout, tool):
-        if (tool is None) or (not tool.has_datablock):
-            return
-        brush = context.tool_settings.weight_paint.brush
-        if brush is None:
-            return
+        def PAINT_WEIGHT(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+            brush = context.tool_settings.weight_paint.brush
+            if brush is None:
+                return
 
-        from .properties_paint_common import UnifiedPaintPanel
+            from .properties_paint_common import UnifiedPaintPanel
 
-        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+            UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+            UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
-    def PARTICLE(context, layout, tool):
-        # See: 'VIEW3D_PT_tools_brush', basically a duplicate
-        settings = context.tool_settings.particle_edit
-        brush = settings.brush
-        tool = settings.tool
-        if tool != 'NONE':
-            layout.prop(brush, "size", slider=True)
-            if tool == 'ADD':
-                layout.prop(brush, "count")
+        def PARTICLE(context, layout, tool):
+            # See: 'VIEW3D_PT_tools_brush', basically a duplicate
+            settings = context.tool_settings.particle_edit
+            brush = settings.brush
+            tool = settings.tool
+            if tool != 'NONE':
+                layout.prop(brush, "size", slider=True)
+                if tool == 'ADD':
+                    layout.prop(brush, "count")
 
-                layout.prop(settings, "use_default_interpolate")
-                layout.prop(brush, "steps", slider=True)
-                layout.prop(settings, "default_key_count", slider=True)
-            else:
-                layout.prop(brush, "strength", slider=True)
+                    layout.prop(settings, "use_default_interpolate")
+                    layout.prop(brush, "steps", slider=True)
+                    layout.prop(settings, "default_key_count", slider=True)
+                else:
+                    layout.prop(brush, "strength", slider=True)
 
-                if tool == 'LENGTH':
-                    layout.row().prop(brush, "length_mode", expand=True)
-                elif tool == 'PUFF':
-                    layout.row().prop(brush, "puff_mode", expand=True)
-                    layout.prop(brush, "use_puff_volume")
+                    if tool == 'LENGTH':
+                        layout.row().prop(brush, "length_mode", expand=True)
+                    elif tool == 'PUFF':
+                        layout.row().prop(brush, "puff_mode", expand=True)
+                        layout.prop(brush, "use_puff_volume")
 
 
 class TOPBAR_PT_gpencil_layers(Panel):
