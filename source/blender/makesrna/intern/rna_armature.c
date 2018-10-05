@@ -655,6 +655,7 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 		{BBONE_HANDLE_AUTO, "AUTO", 0, "Automatic", "Use connected parent and children to compute the handle"},
 		{BBONE_HANDLE_ABSOLUTE, "ABSOLUTE", 0, "Absolute", "Use the position of the specified bone to compute the handle"},
 		{BBONE_HANDLE_RELATIVE, "RELATIVE", 0, "Relative", "Use the offset of the specified bone from rest pose to compute the handle"},
+		{BBONE_HANDLE_TANGENT, "TANGENT", 0, "Tangent", "Use the orientation of the specified bone to compute the handle, ignoring the location"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

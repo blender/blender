@@ -468,6 +468,7 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 	Bone *bone = pchan->bone;
 	BBoneSplineParameters param;
 	float imat[4][4], posemat[4][4];
+	float delta[3];
 
 	memset(&param, 0, sizeof(param));
 
@@ -518,8 +519,18 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 				done = true;
 			}
 			else {
-				float delta[3];
 				sub_v3_v3v3(delta, prev->pose_head, prev->bone->arm_head);
+				sub_v3_v3v3(h1, pchan->pose_head, delta);
+			}
+		}
+		else if (bone->bbone_prev_type == BBONE_HANDLE_TANGENT) {
+			/* Use bone direction by offsetting so that its tail meets current bone's head */
+			if (rest) {
+				sub_v3_v3v3(delta, prev->bone->arm_tail, prev->bone->arm_head);
+				sub_v3_v3v3(h1, bone->arm_head, delta);
+			}
+			else {
+				sub_v3_v3v3(delta, prev->pose_tail, prev->pose_head);
 				sub_v3_v3v3(h1, pchan->pose_head, delta);
 			}
 		}
@@ -556,8 +567,18 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 				done = true;
 			}
 			else {
-				float delta[3];
 				sub_v3_v3v3(delta, next->pose_head, next->bone->arm_head);
+				add_v3_v3v3(h2, pchan->pose_tail, delta);
+			}
+		}
+		else if (bone->bbone_next_type == BBONE_HANDLE_TANGENT) {
+			/* Use bone direction by offsetting so that its head meets current bone's tail */
+			if (rest) {
+				sub_v3_v3v3(delta, next->bone->arm_tail, next->bone->arm_head);
+				add_v3_v3v3(h2, bone->arm_tail, delta);
+			}
+			else {
+				sub_v3_v3v3(delta, next->pose_tail, next->pose_head);
 				add_v3_v3v3(h2, pchan->pose_tail, delta);
 			}
 		}

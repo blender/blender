@@ -221,6 +221,7 @@ typedef enum eBone_BBoneHandleType {
 	BBONE_HANDLE_AUTO = 0,	/* Default mode based on parents & children. */
 	BBONE_HANDLE_ABSOLUTE,	/* Custom handle in absolute position mode. */
 	BBONE_HANDLE_RELATIVE,	/* Custom handle in relative position mode. */
+	BBONE_HANDLE_TANGENT,	/* Custom handle in tangent mode (use direction, not location). */
 } eBone_BBoneHandleType;
 
 #define MAXBONENAME 64
