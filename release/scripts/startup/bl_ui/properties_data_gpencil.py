@@ -356,15 +356,16 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
         layout = self.layout
         layout.use_property_split = True
         gpd = context.gpencil_data
+        grid = gpd.grid
 
         row = layout.row(align=True)
         col = row.column()
-        col.prop(gpd, "grid_color")
-        col.prop(gpd, "grid_scale")
+        col.prop(grid, "color")
+        col.prop(grid, "scale")
         row = layout.row(align=True)
         col = row.column()
-        col.prop(gpd, "grid_lines", text="Subdivisions")
-        col.prop(gpd, "grid_axis", text="Plane")
+        col.prop(grid, "lines", text="Subdivisions")
+        col.prop(grid, "axis", text="Plane")
 
 
 class DATA_PT_custom_props_gpencil(DataButtonsPanel, PropertyPanel, Panel):

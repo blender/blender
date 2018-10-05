@@ -674,6 +674,12 @@ static void rna_GpencilVertex_groups_begin(CollectionPropertyIterator *iter, Poi
 	else
 		rna_iterator_array_begin(iter, NULL, 0, 0, 0, NULL);
 }
+
+static char *rna_GreasePencilGrid_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_sprintfN("grid");
+}
+
 #else
 
 static void rna_def_gpencil_stroke_point(BlenderRNA *brna)
@@ -1236,6 +1242,50 @@ static void rna_def_gpencil_layers_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 }
 
+static void rna_def_gpencil_grid(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static const float default_grid_color[] = { 0.5f, 0.5f, 0.5f };
+
+	srna = RNA_def_struct(brna, "GreasePencilGrid", NULL);
+	RNA_def_struct_sdna(srna, "bGPgrid");
+	RNA_def_struct_nested(brna, srna, "GreasePencil");
+	
+	RNA_def_struct_path_func(srna, "rna_GreasePencilGrid_path");
+	RNA_def_struct_ui_text(srna, "Grid and Canvas Settings",
+					"Settings for grid and canvas in 3D viewport");
+
+	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_range(prop, 0.01f, FLT_MAX);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Grid Scale", "Grid scale");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "color");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_array_default(prop, default_grid_color);
+	RNA_def_property_ui_text(prop, "Grid Color", "Color for grid lines");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "lines");
+	RNA_def_property_range(prop, 0, INT_MAX);
+	RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
+	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions in each side of symmetry line");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "axis", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "axis");
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
+	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+}
+
 static void rna_def_gpencil_data(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1420,33 +1470,13 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 		"Offset amount when drawing in surface mode");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
-	/* grid config */
-	prop = RNA_def_property(srna, "grid_scale", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "grid.scale");
-	RNA_def_property_range(prop, 0.01f, FLT_MAX);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Grid Scale", "Grid scale");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	/* Nested Structs */
+	prop = RNA_def_property(srna, "grid", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "GreasePencilGrid");
+	RNA_def_property_ui_text(prop, "Grid Settings", "Settings for grid and canvas settings in the 3D viewport");
 
-	prop = RNA_def_property(srna, "grid_color", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "grid.color");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Grid Color", "Color for grid lines");
-	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
-
-	prop = RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "grid.lines");
-	RNA_def_property_range(prop, 0, INT_MAX);
-	RNA_def_property_int_default(prop, GP_DEFAULT_GRID_LINES);
-	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions in each side of symmetry line");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "grid_axis", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "grid.axis");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_grid_axis_items);
-	RNA_def_property_ui_text(prop, "Canvas Plane", "Axis to display grid");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+	rna_def_gpencil_grid(brna);
 
 	/* API Functions */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");
