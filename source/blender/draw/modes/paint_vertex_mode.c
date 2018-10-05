@@ -115,10 +115,10 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 		/* Create a pass */
 		psl->vcolor_faces = DRW_pass_create(
 		        "Vert Color Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_MULTIPLY);
 
 		stl->g_data->fvcolor_shgrp = DRW_shgroup_create(e_data.vcolor_face_shader, psl->vcolor_faces);
-		DRW_shgroup_uniform_float(stl->g_data->fvcolor_shgrp, "alpha", &v3d->overlay.vertex_paint_mode_opacity, 1);
+		DRW_shgroup_uniform_float_copy(stl->g_data->fvcolor_shgrp, "white_factor", 1.0f - v3d->overlay.vertex_paint_mode_opacity);
 	}
 
 	{
