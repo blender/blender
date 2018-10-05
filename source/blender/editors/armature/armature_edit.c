@@ -295,153 +295,172 @@ static const EnumPropertyItem prop_calc_roll_types[] = {
 
 static int armature_calc_roll_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_edit_object(C);
+	int ret = OPERATOR_FINISHED;
+
 	eCalcRollTypes type = RNA_enum_get(op->ptr, "type");
 	const bool axis_only = RNA_boolean_get(op->ptr, "axis_only");
 	/* axis_flip when matching the active bone never makes sense */
 	bool axis_flip = ((type >= CALC_ROLL_ACTIVE) ? RNA_boolean_get(op->ptr, "axis_flip") :
 	                  (type >= CALC_ROLL_TAN_NEG_X) ? true : false);
 
-	float imat[3][3];
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
+		bool changed = false;
 
-	bArmature *arm = ob->data;
-	EditBone *ebone;
+		float imat[3][3];
+		EditBone *ebone;
 
-	if ((type >= CALC_ROLL_NEG_X) && (type <= CALC_ROLL_TAN_NEG_Z)) {
-		type -= (CALC_ROLL_ACTIVE - CALC_ROLL_NEG_X);
-		axis_flip = true;
-	}
+		if ((type >= CALC_ROLL_NEG_X) && (type <= CALC_ROLL_TAN_NEG_Z)) {
+			type -= (CALC_ROLL_ACTIVE - CALC_ROLL_NEG_X);
+			axis_flip = true;
+		}
 
-	copy_m3_m4(imat, ob->obmat);
-	invert_m3(imat);
+		copy_m3_m4(imat, ob->obmat);
+		invert_m3(imat);
 
-	if (type == CALC_ROLL_CURSOR) { /* Cursor */
-		Scene *scene = CTX_data_scene(C);
-		View3D *v3d = CTX_wm_view3d(C); /* can be NULL */
-		float cursor_local[3];
-		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+		if (type == CALC_ROLL_CURSOR) { /* Cursor */
+			Scene *scene = CTX_data_scene(C);
+			View3D *v3d = CTX_wm_view3d(C); /* can be NULL */
+			float cursor_local[3];
+			const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
 
-		invert_m4_m4(ob->imat, ob->obmat);
-		copy_v3_v3(cursor_local, cursor->location);
-		mul_m4_v3(ob->imat, cursor_local);
+			invert_m4_m4(ob->imat, ob->obmat);
+			copy_v3_v3(cursor_local, cursor->location);
+			mul_m4_v3(ob->imat, cursor_local);
 
-
-		/* cursor */
-		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
-				float cursor_rel[3];
-				sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
-				if (axis_flip) negate_v3(cursor_rel);
-				if (normalize_v3(cursor_rel) != 0.0f) {
-					ebone->roll = ED_armature_ebone_roll_to_vector(ebone, cursor_rel, axis_only);
+			/* cursor */
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+					float cursor_rel[3];
+					sub_v3_v3v3(cursor_rel, cursor_local, ebone->head);
+					if (axis_flip) negate_v3(cursor_rel);
+					if (normalize_v3(cursor_rel) != 0.0f) {
+						ebone->roll = ED_armature_ebone_roll_to_vector(ebone, cursor_rel, axis_only);
+						changed = true;
+					}
 				}
 			}
 		}
-	}
-	else if (ELEM(type, CALC_ROLL_TAN_POS_X, CALC_ROLL_TAN_POS_Z)) {
-		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if (ebone->parent) {
-				bool is_edit        = (EBONE_VISIBLE(arm, ebone)         && EBONE_EDITABLE(ebone));
-				bool is_edit_parent = (EBONE_VISIBLE(arm, ebone->parent) && EBONE_EDITABLE(ebone->parent));
+		else if (ELEM(type, CALC_ROLL_TAN_POS_X, CALC_ROLL_TAN_POS_Z)) {
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if (ebone->parent) {
+					bool is_edit        = (EBONE_VISIBLE(arm, ebone)         && EBONE_EDITABLE(ebone));
+					bool is_edit_parent = (EBONE_VISIBLE(arm, ebone->parent) && EBONE_EDITABLE(ebone->parent));
 
-				if (is_edit || is_edit_parent) {
-					EditBone *ebone_other = ebone->parent;
-					float dir_a[3];
-					float dir_b[3];
-					float vec[3];
-					bool is_vec_zero;
+					if (is_edit || is_edit_parent) {
+						EditBone *ebone_other = ebone->parent;
+						float dir_a[3];
+						float dir_b[3];
+						float vec[3];
+						bool is_vec_zero;
 
-					sub_v3_v3v3(dir_a, ebone->tail, ebone->head);
-					normalize_v3(dir_a);
+						sub_v3_v3v3(dir_a, ebone->tail, ebone->head);
+						normalize_v3(dir_a);
 
-					/* find the first bone in the chane with a different direction */
-					do {
-						sub_v3_v3v3(dir_b, ebone_other->head, ebone_other->tail);
-						normalize_v3(dir_b);
+						/* find the first bone in the chane with a different direction */
+						do {
+							sub_v3_v3v3(dir_b, ebone_other->head, ebone_other->tail);
+							normalize_v3(dir_b);
 
-						if (type == CALC_ROLL_TAN_POS_Z) {
-							cross_v3_v3v3(vec, dir_a, dir_b);
-						}
-						else {
-							add_v3_v3v3(vec, dir_a, dir_b);
-						}
-					} while ((is_vec_zero = (normalize_v3(vec) < 0.00001f)) &&
-					         (ebone_other = ebone_other->parent));
+							if (type == CALC_ROLL_TAN_POS_Z) {
+								cross_v3_v3v3(vec, dir_a, dir_b);
+							}
+							else {
+								add_v3_v3v3(vec, dir_a, dir_b);
+							}
+						} while ((is_vec_zero = (normalize_v3(vec) < 0.00001f)) &&
+						         (ebone_other = ebone_other->parent));
 
-					if (!is_vec_zero) {
-						if (axis_flip) negate_v3(vec);
+						if (!is_vec_zero) {
+							if (axis_flip) negate_v3(vec);
 
-						if (is_edit) {
-							ebone->roll = ED_armature_ebone_roll_to_vector(ebone, vec, axis_only);
-						}
+							if (is_edit) {
+								ebone->roll = ED_armature_ebone_roll_to_vector(ebone, vec, axis_only);
+								changed = true;
+							}
 
-						/* parentless bones use cross product with child */
-						if (is_edit_parent) {
-							if (ebone->parent->parent == NULL) {
-								ebone->parent->roll = ED_armature_ebone_roll_to_vector(ebone->parent, vec, axis_only);
+							/* parentless bones use cross product with child */
+							if (is_edit_parent) {
+								if (ebone->parent->parent == NULL) {
+									ebone->parent->roll = ED_armature_ebone_roll_to_vector(ebone->parent, vec, axis_only);
+									changed = true;
+								}
 							}
 						}
 					}
 				}
 			}
 		}
-	}
-	else {
-		float vec[3] = {0.0f, 0.0f, 0.0f};
-		if (type == CALC_ROLL_VIEW) { /* View */
-			RegionView3D *rv3d = CTX_wm_region_view3d(C);
-			if (rv3d == NULL) {
-				BKE_report(op->reports, RPT_ERROR, "No region view3d available");
-				return OPERATOR_CANCELLED;
+		else {
+			float vec[3] = {0.0f, 0.0f, 0.0f};
+			if (type == CALC_ROLL_VIEW) { /* View */
+				RegionView3D *rv3d = CTX_wm_region_view3d(C);
+				if (rv3d == NULL) {
+					BKE_report(op->reports, RPT_ERROR, "No region view3d available");
+					ret = OPERATOR_CANCELLED;
+					goto cleanup;
+				}
+
+				copy_v3_v3(vec, rv3d->viewinv[2]);
+				mul_m3_v3(imat, vec);
+			}
+			else if (type == CALC_ROLL_ACTIVE) {
+				float mat[3][3];
+				bArmature *arm_active = ob_active->data;
+				ebone = (EditBone *)arm_active->act_edbone;
+				if (ebone == NULL) {
+					BKE_report(op->reports, RPT_ERROR, "No active bone set");
+					ret = OPERATOR_CANCELLED;
+					goto cleanup;
+				}
+
+				ED_armature_ebone_to_mat3(ebone, mat);
+				copy_v3_v3(vec, mat[2]);
+			}
+			else { /* Axis */
+				assert(type <= 5);
+				if (type < 3) vec[type] = 1.0f;
+				else vec[type - 2] = -1.0f;
+				mul_m3_v3(imat, vec);
+				normalize_v3(vec);
 			}
 
-			copy_v3_v3(vec, rv3d->viewinv[2]);
-			mul_m3_v3(imat, vec);
-		}
-		else if (type == CALC_ROLL_ACTIVE) {
-			float mat[3][3];
-			ebone = (EditBone *)arm->act_edbone;
-			if (ebone == NULL) {
-				BKE_report(op->reports, RPT_ERROR, "No active bone set");
-				return OPERATOR_CANCELLED;
-			}
+			if (axis_flip) negate_v3(vec);
 
-			ED_armature_ebone_to_mat3(ebone, mat);
-			copy_v3_v3(vec, mat[2]);
-		}
-		else { /* Axis */
-			assert(type <= 5);
-			if (type < 3) vec[type] = 1.0f;
-			else vec[type - 2] = -1.0f;
-			mul_m3_v3(imat, vec);
-			normalize_v3(vec);
-		}
-
-		if (axis_flip) negate_v3(vec);
-
-		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
-				/* roll func is a callback which assumes that all is well */
-				ebone->roll = ED_armature_ebone_roll_to_vector(ebone, vec, axis_only);
-			}
-		}
-	}
-
-	if (arm->flag & ARM_MIRROR_EDIT) {
-		for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-			if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
-				EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-				if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
-					ebone->roll = -ebone_mirr->roll;
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if (EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) {
+					/* roll func is a callback which assumes that all is well */
+					ebone->roll = ED_armature_ebone_roll_to_vector(ebone, vec, axis_only);
+					changed = true;
 				}
 			}
 		}
+
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+				if ((EBONE_VISIBLE(arm, ebone) && EBONE_EDITABLE(ebone)) == 0) {
+					EditBone *ebone_mirr = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+					if (ebone_mirr && (EBONE_VISIBLE(arm, ebone_mirr) && EBONE_EDITABLE(ebone_mirr))) {
+						ebone->roll = -ebone_mirr->roll;
+					}
+				}
+			}
+		}
+
+		if (changed) {
+			/* note, notifier might evolve */
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		}
 	}
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
-	return OPERATOR_FINISHED;
+cleanup:
+	MEM_freeN(objects);
+	return ret;
 }
 
 void ARMATURE_OT_calculate_roll(wmOperatorType *ot)
