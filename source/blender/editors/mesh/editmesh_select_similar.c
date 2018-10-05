@@ -453,7 +453,7 @@ static int similar_face_select_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		
+
 		BMFace *face; /* Mesh face. */
 		BMIter iter; /* Selected faces iterator. */
 

@@ -65,18 +65,18 @@ void main()
 		vec2 rotpoint = vec2((tpos.x * cosv) - (tpos.y * sinv), (tpos.x * sinv) + (tpos.y * cosv));
 		tpos = rotpoint;
 	}
-	
+
 	/* apply offset */
 	tpos = vec2(tpos.x - dx, tpos.y - dy);
-	
+
 	/* apply scale */
 	tpos.x *= 1.0 / scale[0];
 	tpos.y *= 1.0 / scale[1];
-	
+
 	/* back to original coords system */
 	vec2 texpos = tpos + loc2d;
-	
-	/* wave */ 
+
+	/* wave */
 	if (orientation == HORIZONTAL) {
 		float pval = (uv.x * M_PI) / Viewport[0];
 		texpos.y += amplitude * sin((period * pval) + phase);
@@ -85,7 +85,7 @@ void main()
 		float pval = (uv.y * M_PI) / Viewport[1];
 		texpos.x += amplitude * sin((period * pval) + phase);
 	}
-	
+
 	vec4 src_pixel = texelFetch(strokeColor, ivec2(texpos.x, texpos.y), 0);
 	/* is transparent */
 	if (src_pixel.a == 0.0f) {

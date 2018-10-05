@@ -833,7 +833,7 @@ static bool gp_stroke_do_circle_sel(
 	int x0 = 0, y0 = 0, x1 = 0, y1 = 0;
 	int i;
 	bool changed = false;
-	
+
 	if (gps->totpoints == 1) {
 		bGPDspoint pt_temp;
 		gp_point_to_parent_space(gps->points, diff_mat, &pt_temp);
@@ -1044,7 +1044,7 @@ static int gpencil_box_select_exec(bContext *C, wmOperator *op)
 
 	/* init space conversion stuff */
 	gp_point_conversion_init(C, &gsc);
-	
+
 	/* deselect all strokes first? */
 	if (select && !extend) {
 		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)

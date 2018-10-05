@@ -1024,7 +1024,7 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
 	param.curveOutX = ebone->curveOutX;
 	param.curveOutY = ebone->curveOutY;
 
-	ebone->segments = BKE_compute_b_bone_spline(&param, (Mat4*)result_array);
+	ebone->segments = BKE_compute_b_bone_spline(&param, (Mat4 *)result_array);
 }
 
 static void draw_bone_update_disp_matrix_bbone(EditBone *eBone, bPoseChannel *pchan)

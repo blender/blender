@@ -26,7 +26,7 @@ void main()
 		outcolor = shadow_pixel;
 		outdepth = shadow_depth;
 	}
-	
+
 	gl_FragDepth = outdepth;
 	FragColor = outcolor;
 }

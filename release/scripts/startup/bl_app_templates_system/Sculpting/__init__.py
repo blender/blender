@@ -21,4 +21,3 @@ def register():
 def unregister():
     import bpy
     bpy.app.handlers.load_post.remove(load_handler)
-
