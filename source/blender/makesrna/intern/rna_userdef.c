@@ -486,6 +486,13 @@ static const EnumPropertyItem *rna_userdef_audio_device_itemf(bContext *UNUSED(C
 		RNA_enum_item_add(&item, &totitem, &new_item);
 	}
 
+#ifndef NDEBUG
+	if (i == 0) {
+		EnumPropertyItem new_item = {i, "SOUND_NONE", 0, "No Sound", ""};
+		RNA_enum_item_add(&item, &totitem, &new_item);
+	}
+#endif
+
 	/* may be unused */
 	UNUSED_VARS(index, audio_device_items);
 
