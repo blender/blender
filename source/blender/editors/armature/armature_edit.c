@@ -668,11 +668,6 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 	int count;
 	bool mixed_object_error = false;
 
-	/* sanity checks */
-	if (ELEM(NULL, obedit_active, obedit_active->data)) {
-		return OPERATOR_CANCELLED;
-	}
-
 	/* loop over all bones, and only consider if visible */
 	bArmature *arm = NULL;
 	CTX_DATA_BEGIN_WITH_ID(C, EditBone *, ebone, visible_bones, bArmature *, arm_iter)
@@ -826,7 +821,6 @@ static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		/* FIXME.. figure out a method for multiple bones */
 		BKE_reportf(op->reports, RPT_ERROR, "Too many points selected: %d", count);
 		BLI_freelistN(&points);
 		return OPERATOR_CANCELLED;
