@@ -1323,22 +1323,28 @@ void ARMATURE_OT_align(wmOperatorType *ot)
 
 static int armature_split_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm = (bArmature *)ob->data;
-	EditBone *bone;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	for (bone = arm->edbo->first; bone; bone = bone->next) {
-		if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)) {
-			bone->parent = NULL;
-			bone->flag &= ~BONE_CONNECTED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
+
+		for (EditBone *bone = arm->edbo->first; bone; bone = bone->next) {
+			if (bone->parent && (bone->flag & BONE_SELECTED) != (bone->parent->flag & BONE_SELECTED)) {
+				bone->parent = NULL;
+				bone->flag &= ~BONE_CONNECTED;
+			}
 		}
-	}
-	for (bone = arm->edbo->first; bone; bone = bone->next) {
-		ED_armature_ebone_select_set(bone, (bone->flag & BONE_SELECTED) != 0);
+		for (EditBone *bone = arm->edbo->first; bone; bone = bone->next) {
+			ED_armature_ebone_select_set(bone, (bone->flag & BONE_SELECTED) != 0);
+		}
+
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
