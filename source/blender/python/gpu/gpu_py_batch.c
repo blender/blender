@@ -185,7 +185,13 @@ static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 	{
 		return NULL;
 	}
-
+	else if (py_program == NULL) {
+		if (!glIsProgram(self->batch->program)) {
+			PyErr_SetString(PyExc_RuntimeError,
+			                "batch does not have any program assigned to it");
+			return NULL;
+		}
+	}
 	else if (self->batch->program != GPU_shader_get_program(py_program->shader)) {
 		GPU_batch_program_set(self->batch,
 		        GPU_shader_get_program(py_program->shader),
@@ -199,8 +205,8 @@ static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
-		PyErr_SetString(PyExc_ValueError,
-		                "batch program has not not set");
+		PyErr_SetString(PyExc_RuntimeError,
+		                "batch does not have any program assigned to it");
 	}
 	GPU_batch_program_use_begin(self->batch);
 	Py_RETURN_NONE;
@@ -209,8 +215,8 @@ static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 {
 	if (!glIsProgram(self->batch->program)) {
-		PyErr_SetString(PyExc_ValueError,
-		                "batch program has not not set");
+		PyErr_SetString(PyExc_RuntimeError,
+		                "batch does not have any program assigned to it");
 	}
 	GPU_batch_program_use_end(self->batch);
 	Py_RETURN_NONE;
