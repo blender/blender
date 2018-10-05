@@ -67,6 +67,7 @@
 #include "WM_types.h"
 #include "WM_message.h"
 #include "WM_toolsystem.h"
+#include "wm.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"
@@ -1243,6 +1244,12 @@ static void gizmo_xform_message_subscribe(
 void drawDial3d(const TransInfo *t)
 {
 	if (t->mode == TFM_ROTATION && t->spacetype == SPACE_VIEW3D) {
+		wmGizmo *gz = wm_gizmomap_highlight_get(t->ar->gizmo_map);
+		if (gz == NULL) {
+			/* We only draw Dial3d if the operator has been called by a gizmo. */
+			return;
+		}
+
 		float mat_basis[4][4];
 		float mat_final[4][4];
 		float color[4];
