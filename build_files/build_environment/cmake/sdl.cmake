@@ -25,6 +25,7 @@ else()
 		-DSDL_STATIC=ON
 		-DSDL_SHARED=OFF
 		-DSDL_VIDEO=OFF
+		-DSNDIO=OFF
 	)
 endif()
 
