@@ -98,7 +98,7 @@ static bool bpygpu_vertbuf_fill_impl(
         GPUVertBuf *vbo,
         uint data_id, PyObject *seq)
 {
-	const char *exc_str_size_mismatch = "Expected a %s of size %d, got %d";
+	const char *exc_str_size_mismatch = "Expected a %s of size %d, got %u";
 
 	bool ok = true;
 	const GPUVertAttr *attr = &vbo->format.attribs[data_id];
@@ -111,7 +111,7 @@ static bool bpygpu_vertbuf_fill_impl(
 			return false;
 		}
 
-		int comp_len = pybuffer.ndim == 1 ? 1 : pybuffer.shape[1];
+		uint comp_len = pybuffer.ndim == 1 ? 1 : (uint)pybuffer.shape[1];
 
 		if (pybuffer.shape[0] != vbo->vertex_len) {
 			PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
@@ -221,22 +221,43 @@ static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data)
 
 static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
+	const char *error_prefix = "GPUVertBuf.__new__";
+
 	struct {
-		BPyGPUVertFormat *py_fmt;
+		PyObject *py_fmt;
 		uint len;
 	} params;
 
 	static const char *_keywords[] = {"format", "len", NULL};
-	static _PyArg_Parser _parser = {"O!I:GPUVertBuf.__new__", _keywords, 0};
+	static _PyArg_Parser _parser = {"OI:GPUVertBuf.__new__", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
-	        &BPyGPUVertFormat_Type, &params.py_fmt,
+	        &params.py_fmt,
 	        &params.len))
 	{
 		return NULL;
 	}
 
-	struct GPUVertBuf *vbo = GPU_vertbuf_create_with_format(&params.py_fmt->fmt);
+	GPUVertFormat *fmt, fmt_stack;
+
+	if (BPyGPUVertFormat_Check(params.py_fmt)) {
+		fmt = &((BPyGPUVertFormat *)params.py_fmt)->fmt;
+	}
+	else if (PyList_Check(params.py_fmt)) {
+		fmt = &fmt_stack;
+		GPU_vertformat_clear(fmt);
+		if (!bpygpu_vertformat_from_PyList(
+		        (PyListObject *)params.py_fmt, error_prefix, fmt))
+		{
+			return NULL;
+		}
+	}
+	else {
+		PyErr_SetString(PyExc_TypeError, "format not understood");
+		return NULL;
+	}
+
+	struct GPUVertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
 
 	GPU_vertbuf_data_alloc(vbo, params.len);
 

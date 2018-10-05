@@ -193,25 +193,9 @@ static int add_attribute_from_tuple(GPUVertFormat *format, PyObject *data)
 	return add_attribute_simple(format, name, comp_type, length);
 }
 
-static int insert_attributes_from_list(GPUVertFormat *format, PyObject *list)
-{
-	Py_ssize_t amount = PyList_Size(list);
-
-	for (Py_ssize_t i = 0; i < amount; i++) {
-		PyObject *element = PyList_GET_ITEM(list, i);
-		if (!PyTuple_Check(element)) {
-			PyErr_SetString(PyExc_TypeError, "expected a list of tuples");
-			return 0;
-		}
-		if (!add_attribute_from_tuple(format, element)) return 0;
-	}
-
-	return 1;
-}
-
 static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	PyObject *format_list;
+	PyListObject *format_list;
 
 	static const char *_keywords[] = {"format", NULL};
 	static _PyArg_Parser _parser = {"O!:VertFormat.__new__", _keywords, 0};
@@ -224,8 +208,8 @@ static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *arg
 
 	BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
 
-	if (!insert_attributes_from_list(&ret->fmt, format_list)) {
-		Py_DecRef((PyObject *)ret);
+	if (!bpygpu_vertformat_from_PyList(format_list, "VertFormat.__new__", &ret->fmt)) {
+		Py_DECREF(ret);
 		return NULL;
 	}
 
@@ -308,6 +292,29 @@ PyObject *BPyGPUVertFormat_CreatePyObject(GPUVertFormat *fmt)
 	}
 
 	return (PyObject *)self;
+}
+
+bool bpygpu_vertformat_from_PyList(
+        const PyListObject *list, const char *error_prefix, GPUVertFormat *r_fmt)
+{
+	BLI_assert(PyList_Check(list));
+
+	Py_ssize_t amount = Py_SIZE(list);
+
+	for (Py_ssize_t i = 0; i < amount; i++) {
+		PyObject *element = PyList_GET_ITEM(list, i);
+		if (!PyTuple_Check(element)) {
+			PyErr_Format(PyExc_TypeError,
+			             "%.200s expected a list of tuples", error_prefix);
+
+			return false;
+		}
+		if (!add_attribute_from_tuple(r_fmt, element)) {
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /** \} */
