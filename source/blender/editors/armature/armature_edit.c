@@ -660,7 +660,6 @@ static void fill_add_joint(EditBone *ebo, short eb_tail, ListBase *points)
 /* bone adding between selected joints */
 static int armature_fill_bones_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit_active = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	ListBase points = {NULL, NULL};
