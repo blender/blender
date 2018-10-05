@@ -574,82 +574,88 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *obedit = CTX_data_edit_object(C);
-	Object *oldob, *newob;
-	Base *oldbase, *newbase;
-
-	/* sanity checks */
-	if (obedit == NULL)
-		return OPERATOR_CANCELLED;
+	bool ok = false;
 
 	/* set wait cursor in case this takes a while */
 	WM_cursor_wait(1);
 
-	/* we are going to do this as follows (unlike every other instance of separate):
-	 *	1. exit editmode +posemode for active armature/base. Take note of what this is.
-	 *	2. duplicate base - BASACT is the new one now
-	 *	3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
-	 *	4. fix constraint links
-	 *	5. make original armature active and enter editmode
-	 */
+	uint bases_len = 0;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, &bases_len);
 
-	/* 1) only edit-base selected */
-	/* TODO: use context iterators for this? */
 	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
-		if (base->object == obedit) {
-			ED_object_base_select(base, BA_SELECT);
-		}
-		else {
-			ED_object_base_select(base, BA_DESELECT);
-		}
+		ED_object_base_select(base, BA_DESELECT);
 	}
 	CTX_DATA_END;
 
-	/* 1) store starting settings and exit editmode */
-	oldob = obedit;
-	oldbase = view_layer->basact;
-	oldob->mode &= ~OB_MODE_POSE;
-	//oldbase->flag &= ~OB_POSEMODE;
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Base *base_iter = bases[base_index];
+		Object *obedit = base_iter->object;
 
-	ED_armature_from_edit(bmain, obedit->data);
-	ED_armature_edit_free(obedit->data);
+		Object *oldob, *newob;
+		Base *oldbase, *newbase;
 
-	/* 2) duplicate base */
-	newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
-	DEG_relations_tag_update(bmain);
+		/* we are going to do this as follows (unlike every other instance of separate):
+		 *	1. exit editmode +posemode for active armature/base. Take note of what this is.
+		 *	2. duplicate base - BASACT is the new one now
+		 *	3. for each of the two armatures, enter editmode -> remove appropriate bones -> exit editmode + recalc
+		 *	4. fix constraint links
+		 *	5. make original armature active and enter editmode
+		 */
 
-	newob = newbase->object;
-	newbase->flag &= ~BASE_SELECTED;
+		/* 1) only edit-base selected */
+		ED_object_base_select(base_iter, BA_SELECT);
+
+		/* 1) store starting settings and exit editmode */
+		oldob = obedit;
+		oldbase = base_iter;
+		oldob->mode &= ~OB_MODE_POSE;
+		//oldbase->flag &= ~OB_POSEMODE;
+
+		ED_armature_from_edit(bmain, obedit->data);
+		ED_armature_edit_free(obedit->data);
+
+		/* 2) duplicate base */
+		newbase = ED_object_add_duplicate(bmain, scene, view_layer, oldbase, USER_DUP_ARM); /* only duplicate linked armature */
+		DEG_relations_tag_update(bmain);
+
+		newob = newbase->object;
+		newbase->flag &= ~BASE_SELECTED;
 
 
-	/* 3) remove bones that shouldn't still be around on both armatures */
-	separate_armature_bones(bmain, oldob, 1);
-	separate_armature_bones(bmain, newob, 0);
+		/* 3) remove bones that shouldn't still be around on both armatures */
+		separate_armature_bones(bmain, oldob, 1);
+		separate_armature_bones(bmain, newob, 0);
 
 
-	/* 4) fix links before depsgraph flushes */ // err... or after?
-	separated_armature_fix_links(bmain, oldob, newob);
+		/* 4) fix links before depsgraph flushes */ // err... or after?
+		separated_armature_fix_links(bmain, oldob, newob);
 
-	DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
-	DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
+		DEG_id_tag_update(&oldob->id, OB_RECALC_DATA);  /* this is the original one */
+		DEG_id_tag_update(&newob->id, OB_RECALC_DATA);  /* this is the separated one */
 
 
-	/* 5) restore original conditions */
-	obedit = oldob;
+		/* 5) restore original conditions */
+		obedit = oldob;
 
-	ED_armature_to_edit(obedit->data);
+		ED_armature_to_edit(obedit->data);
 
-	/* parents tips remain selected when connected children are removed. */
-	ED_armature_edit_deselect_all(obedit);
+		/* parents tips remain selected when connected children are removed. */
+		ED_armature_edit_deselect_all(obedit);
 
-	BKE_report(op->reports, RPT_INFO, "Separated bones");
+		ok = true;
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+		/* note, notifier might evolve */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, obedit);
+	}
+	MEM_freeN(bases);
 
 	/* recalc/redraw + cleanup */
 	WM_cursor_wait(0);
+
+	if (ok) {
+		BKE_report(op->reports, RPT_INFO, "Separated bones");
+	}
 
 	return OPERATOR_FINISHED;
 }
