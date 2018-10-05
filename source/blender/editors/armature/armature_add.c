@@ -121,6 +121,14 @@ EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool
 
 /* previously addvert_armature */
 /* the ctrl-click method */
+
+/** Note this is already ported to multi-objects as it is.
+ * Since only the active bone is extruded even for single objects,
+ * it makes sense to stick to the active object here.
+ *
+ * If we want the support to be expanded we should something like the
+ * offset we do for mesh click extrude.
+ */
 static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d;
