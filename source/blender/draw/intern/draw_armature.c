@@ -975,12 +975,13 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
 
 		if (prev) {
 			param.use_prev = true;
-			param.prev_bbone = (prev->segments > 1);
 
 			if (ebone->bbone_prev_type == BBONE_HANDLE_RELATIVE) {
 				zero_v3(param.prev_h);
 			}
 			else {
+				param.prev_bbone = (prev->segments > 1);
+
 				mul_v3_m4v3(param.prev_h, imat, prev->head);
 			}
 
@@ -992,12 +993,13 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
 
 		if (next) {
 			param.use_next = true;
-			param.next_bbone = (next->segments > 1);
 
 			if (ebone->bbone_next_type == BBONE_HANDLE_RELATIVE) {
 				copy_v3_fl3(param.next_h, 0.0f, param.length, 0.0);
 			}
 			else {
+				param.next_bbone = (next->segments > 1);
+
 				mul_v3_m4v3(param.next_h, imat, next->tail);
 			}
 

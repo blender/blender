@@ -508,7 +508,6 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		bool done = false;
 
 		param.use_prev = true;
-		param.prev_bbone = (prev->bone->segments > 1);
 
 		/* Transform previous point inside this bone space. */
 		if (bone->bbone_prev_type == BBONE_HANDLE_RELATIVE) {
@@ -525,6 +524,9 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 			}
 		}
 		else {
+			/* Apply special handling for smoothly joining B-Bone chains */
+			param.prev_bbone = (prev->bone->segments > 1);
+
 			/* Use bone head as absolute position. */
 			copy_v3_v3(h1, rest ? prev->bone->arm_head : prev->pose_head);
 		}
@@ -544,23 +546,25 @@ void b_bone_spline_setup(bPoseChannel *pchan, int rest, Mat4 result_array[MAX_BB
 		bool done = false;
 
 		param.use_next = true;
-		param.next_bbone = (next->bone->segments > 1);
 
 		/* Transform next point inside this bone space. */
 		if (bone->bbone_next_type == BBONE_HANDLE_RELATIVE) {
 			/* Use delta movement (from restpose), and apply this relative to the current bone's tail. */
 			if (rest) {
-				/* In restpose, arm_tail == pose_tail */
+				/* In restpose, arm_head == pose_head */
 				copy_v3_fl3(param.next_h, 0.0f, param.length, 0.0);
 				done = true;
 			}
 			else {
 				float delta[3];
-				sub_v3_v3v3(delta, next->pose_tail, next->bone->arm_tail);
+				sub_v3_v3v3(delta, next->pose_head, next->bone->arm_head);
 				add_v3_v3v3(h2, pchan->pose_tail, delta);
 			}
 		}
 		else {
+			/* Apply special handling for smoothly joining B-Bone chains */
+			param.next_bbone = (next->bone->segments > 1);
+
 			/* Use bone tail as absolute position. */
 			copy_v3_v3(h2, rest ? next->bone->arm_tail : next->pose_tail);
 		}
