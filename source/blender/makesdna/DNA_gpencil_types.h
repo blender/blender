@@ -139,7 +139,7 @@ typedef enum eGPDpalette_Flag {
 /* GP Strokes */
 
 /* Runtime temp data for bGPDstroke */
-typedef struct bGPDstroke_runtime {
+typedef struct bGPDstroke_Runtime {
 	/* runtime final colors (result of original colors and modifiers) */
 	float tmp_stroke_rgba[4];
 	float tmp_fill_rgba[4];
@@ -148,7 +148,7 @@ typedef struct bGPDstroke_runtime {
 	char tmp_layerinfo[128];
 
 	float multi_frame_falloff; /* runtime falloff factor (only for transform) */
-} bGPDstroke_runtime;
+} bGPDstroke_Runtime;
 
 /* Grease-Pencil Annotations - 'Stroke'
  * 	-> A stroke represents a (simplified version) of the curve
@@ -174,7 +174,7 @@ typedef struct bGPDstroke {
 
 	struct MDeformVert *dvert;    /* vertex weight data */
 
-	bGPDstroke_runtime runtime;
+	bGPDstroke_Runtime runtime;
 	char pad_1[4];
 } bGPDstroke;
 
@@ -202,9 +202,9 @@ typedef enum eGPDstroke_Flag {
 /* GP Frame */
 
 /* Runtime temp data for bGPDframe */
-typedef struct bGPDframe_runtime {
+typedef struct bGPDframe_Runtime {
 	float viewmatrix[4][4];     /* parent matrix for drawing */
-} bGPDframe_runtime;
+} bGPDframe_Runtime;
 
 /* Grease-Pencil Annotations - 'Frame'
  *	-> Acts as storage for the 'image' formed by strokes
@@ -219,7 +219,7 @@ typedef struct bGPDframe {
 	short flag;			/* temp settings */
 	short key_type;		/* keyframe type (eBezTriple_KeyframeType) */
 
-	bGPDframe_runtime runtime;
+	bGPDframe_Runtime runtime;
 } bGPDframe;
 
 /* bGPDframe->flag */
@@ -234,11 +234,11 @@ typedef enum eGPDframe_Flag {
 /* GP Layer */
 
 /* Runtime temp data for bGPDlayer */
-typedef struct bGPDlayer_runtime {
+typedef struct bGPDlayer_Runtime {
 	struct GHash *derived_data;     /* runtime data created by modifiers */
 	int icon_id;                    /* id for dynamic icon used to show annotation color preview for layer */
 	int batch_index;                /* batch used for dupli instances */
-} bGPDlayer_runtime;
+} bGPDlayer_Runtime;
 
 /* Grease-Pencil Annotations - 'Layer' */
 typedef struct bGPDlayer {
@@ -268,7 +268,7 @@ typedef struct bGPDlayer {
 	float tintcolor[4];     /* Color used to tint layer, alpha value is used as factor */
 	float opacity;          /* Opacity of the layer */
 
-	bGPDlayer_runtime runtime;
+	bGPDlayer_Runtime runtime;
 } bGPDlayer;
 
 /* bGPDlayer->flag */
@@ -303,7 +303,7 @@ typedef enum eGPDlayer_OnionFlag {
 /* GP Datablock */
 
 /* Runtime temp data for bGPdata */
-typedef struct bGPdata_runtime {
+typedef struct bGPdata_Runtime {
 	/* Drawing Manager cache */
 	struct GHash *batch_cache_data;
 	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
@@ -322,7 +322,7 @@ typedef struct bGPdata_runtime {
 	short sbuffer_size;			/* number of elements currently in cache */
 	short sbuffer_sflag;		/* flags for stroke that cache represents */
 	char pad_[6];
-} bGPdata_runtime;
+} bGPdata_Runtime;
 
 /* grid configuration */
 typedef struct bGPgrid {
@@ -375,7 +375,8 @@ typedef struct bGPdata {
 	int   totpoint;
 	char pad_3[4];
 	bGPgrid grid;
-	bGPdata_runtime runtime;
+
+	bGPdata_Runtime runtime;
 } bGPdata;
 
 /* bGPdata->flag */
