@@ -93,11 +93,8 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 
 		bool format_error = pybuffer.itemsize != 4;
 		{
-			char *typestr = pybuffer.format;
-			if (ELEM(typestr[0], '<', '>', '|')) {
-				typestr += 1;
-			}
-			if (ELEM(typestr[0], 'f', 'd')) {
+			char format = FORMAT_STR_GET(pybuffer.format);
+			if (FORMAT_STR_IS_FLOAT(format)) {
 				format_error = true;
 			}
 		}

@@ -37,6 +37,8 @@
 #include "GPU_glew.h"
 #include "MEM_guardedalloc.h"
 
+#include "../generic/py_capi_utils.h"
+
 #include "bgl.h"
 
 
@@ -478,29 +480,19 @@ int BGL_typeSize(int type)
 
 static int gl_buffer_type_from_py_buffer(Py_buffer *pybuffer)
 {
-	char *typestr = pybuffer->format;
+	const char format = FORMAT_STR_GET(pybuffer->format);
 	Py_ssize_t itemsize = pybuffer->itemsize;
 
-	if (ELEM(typestr[0], '<', '>', '|')) {
-		typestr += 1;
+	if (FORMAT_STR_IS_FLOAT(format)) {
+		if (itemsize == 4) return GL_FLOAT;
+		if (itemsize == 8) return GL_DOUBLE;
+	}
+	if (FORMAT_STR_IS_BYTE(format) || FORMAT_STR_IS_INT(format)) {
+		if (itemsize == 1) return GL_BYTE;
+		if (itemsize == 2) return GL_SHORT;
+		if (itemsize == 4) return GL_INT;
 	}
 
-	switch (typestr[0]) {
-		case 't':
-		case 'b':
-		case 'h':
-		case 'i':
-		case 'l':
-			if (itemsize == 1) return GL_BYTE;
-			if (itemsize == 2) return GL_SHORT;
-			if (itemsize == 4) return GL_INT;
-			break;
-		case 'f':
-		case 'd':
-			if (itemsize == 4) return GL_FLOAT;
-			if (itemsize == 8) return GL_DOUBLE;
-			break;
-	}
 	return -1; /* UNKNOWN */
 }
 
