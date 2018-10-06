@@ -131,4 +131,11 @@ Py_LOCAL_INLINE(int32_t)  PyC_Long_AsI32(PyObject *value) { return (int32_t)_PyL
 Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLong_AsLongLong(value); }
 Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
 
+/* utils for format string in `struct` module style syntax */
+#define FORMAT_STR_GET(typestr) ELEM(typestr[0], '!', '<', '=', '>', '@') ? typestr[1] : typestr[0]
+#define FORMAT_STR_IS_FLOAT(format) ELEM(format, 'f', 'd', 'e')
+#define FORMAT_STR_IS_INT(format) ELEM(format, 'i', 'I', 'l', 'L', 'h', 'H', 'b', 'B', 'q', 'Q', 'n', 'N', 'P')
+#define FORMAT_STR_IS_BYTE(format) ELEM(format, 'c', 's', 'p')
+#define FORMAT_STR_IS_BOOL(format) ELEM(format, '?')
+
 #endif  /* __PY_CAPI_UTILS_H__ */
