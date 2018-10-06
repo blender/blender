@@ -220,6 +220,30 @@ ccl_device_inline float __uint_as_float(uint i)
 	u.i = i;
 	return u.f;
 }
+
+ccl_device_inline int4 __float4_as_int4(float4 f)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_castps_si128(f.m128));
+	#else
+	return make_int4(__float_as_int(f.x),
+	                 __float_as_int(f.y),
+	                 __float_as_int(f.z),
+	                 __float_as_int(f.w));
+#endif
+}
+
+ccl_device_inline float4 __int4_as_float4(int4 i)
+{
+#ifdef __KERNEL_SSE__
+	return float4(_mm_castsi128_ps(i.m128));
+#else
+	return make_float4(__int_as_float(i.x),
+	                   __int_as_float(i.y),
+	                   __int_as_float(i.z),
+	                   __int_as_float(i.w));
+#endif
+}
 #endif /* __KERNEL_OPENCL__ */
 
 /* Versions of functions which are safe for fast math. */

@@ -58,6 +58,11 @@ ccl_device_inline float madd(const float a, const float b, const float c)
 	return a * b + c;
 }
 
+ccl_device_inline float4 madd4(const float4 a, const float4 b, const float4 c)
+{
+	return a * b + c;
+}
+
 /*
  * FAST & APPROXIMATE MATH
  *
@@ -437,6 +442,29 @@ ccl_device_inline float fast_expf(float x)
 	 */
 	return fast_exp2f(x / M_LN2_F);
 }
+
+#ifndef __KERNEL_GPU__
+ccl_device float4 fast_exp2f4(float4 x)
+{
+	const float4 one = make_float4(1.0f);
+	const float4 limit = make_float4(126.0f);
+	x = clamp(x, -limit, limit);
+	int4 m = make_int4(x);
+	x = one - (one - (x - make_float4(m)));
+	float4 r = make_float4(1.33336498402e-3f);
+	r = madd4(x, r, make_float4(9.810352697968e-3f));
+	r = madd4(x, r, make_float4(5.551834031939e-2f));
+	r = madd4(x, r, make_float4(0.2401793301105f));
+	r = madd4(x, r, make_float4(0.693144857883f));
+	r = madd4(x, r, make_float4(1.0f));
+	return __int4_as_float4(__float4_as_int4(r) + (m << 23));
+}
+
+ccl_device_inline float4 fast_expf4(float4 x)
+{
+	return fast_exp2f4(x / M_LN2_F);
+}
+#endif
 
 ccl_device_inline float fast_exp10(float x)
 {

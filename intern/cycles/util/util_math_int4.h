@@ -31,6 +31,10 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline int4 operator+(const int4& a, const int4& b);
 ccl_device_inline int4 operator+=(int4& a, const int4& b);
 ccl_device_inline int4 operator>>(const int4& a, int i);
+ccl_device_inline int4 operator<<(const int4& a, int i);
+ccl_device_inline int4 operator<(const int4& a, const int4& b);
+ccl_device_inline int4 operator>=(const int4& a, const int4& b);
+ccl_device_inline int4 operator&(const int4& a, const int4& b);
 ccl_device_inline int4 min(int4 a, int4 b);
 ccl_device_inline int4 max(int4 a, int4 b);
 ccl_device_inline int4 clamp(const int4& a, const int4& mn, const int4& mx);
@@ -62,6 +66,42 @@ ccl_device_inline int4 operator>>(const int4& a, int i)
 	return int4(_mm_srai_epi32(a.m128, i));
 #else
 	return make_int4(a.x >> i, a.y >> i, a.z >> i, a.w >> i);
+#endif
+}
+
+ccl_device_inline int4 operator<<(const int4& a, int i)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_slli_epi32(a.m128, i));
+#else
+	return make_int4(a.x << i, a.y << i, a.z << i, a.w << i);
+#endif
+}
+
+ccl_device_inline int4 operator<(const int4& a, const int4& b)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_cmplt_epi32(a.m128, b.m128));
+#else
+	return make_int4(a.x < b.x, a.y < b.y, a.z < b.z, a.w < b.w);
+#endif
+}
+
+ccl_device_inline int4 operator>=(const int4& a, const int4& b)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_xor_si128(_mm_set1_epi32(0xffffffff), _mm_cmplt_epi32(a.m128, b.m128)));
+#else
+	return make_int4(a.x >= b.x, a.y >= b.y, a.z >= b.z, a.w >= b.w);
+#endif
+}
+
+ccl_device_inline int4 operator&(const int4& a, const int4& b)
+{
+#ifdef __KERNEL_SSE__
+	return int4(_mm_and_si128(a.m128, b.m128));
+#else
+	return make_int4(a.x & b.x, a.y & b.y, a.z & b.z, a.w & b.w);
 #endif
 }
 

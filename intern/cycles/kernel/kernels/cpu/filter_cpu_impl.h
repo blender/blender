@@ -191,6 +191,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_update_output)(int dx,
                                                          int dy,
                                                          float *difference_image,
                                                          float *image,
+                                                         float *temp_image,
                                                          float *out_image,
                                                          float *accum_image,
                                                          int *rect,
@@ -200,7 +201,7 @@ void KERNEL_FUNCTION_FULL_NAME(filter_nlm_update_output)(int dx,
 #ifdef KERNEL_STUB
 	STUB_ASSERT(KERNEL_ARCH, filter_nlm_update_output);
 #else
-	kernel_filter_nlm_update_output(dx, dy, difference_image, image, out_image, accum_image, load_int4(rect), stride, f);
+	kernel_filter_nlm_update_output(dx, dy, difference_image, image, temp_image, out_image, accum_image, load_int4(rect), stride, f);
 #endif
 }
 
