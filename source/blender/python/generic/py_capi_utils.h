@@ -132,10 +132,74 @@ Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLo
 Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
 
 /* utils for format string in `struct` module style syntax */
-#define FORMAT_STR_GET(typestr) ELEM(typestr[0], '!', '<', '=', '>', '@') ? typestr[1] : typestr[0]
-#define FORMAT_STR_IS_FLOAT(format) ELEM(format, 'f', 'd', 'e')
-#define FORMAT_STR_IS_INT(format) ELEM(format, 'i', 'I', 'l', 'L', 'h', 'H', 'b', 'B', 'q', 'Q', 'n', 'N', 'P')
-#define FORMAT_STR_IS_BYTE(format) ELEM(format, 'c', 's', 'p')
-#define FORMAT_STR_IS_BOOL(format) ELEM(format, '?')
+Py_LOCAL_INLINE(char) PyC_Formatstr_get(char *typestr)
+{
+	switch (typestr[0]) {
+		case '!':
+		case '<':
+		case '=':
+		case '>':
+		case '@':
+			return typestr[1];
+		default:
+			return typestr[0];
+	}
+}
+
+Py_LOCAL_INLINE(bool) PyC_Formatstr_is_float(char format)
+{
+	switch (format) {
+		case 'f':
+		case 'd':
+		case 'e':
+			return true;
+		default:
+			return false;
+	}
+}
+
+Py_LOCAL_INLINE(bool) PyC_Formatstr_is_int(char format)
+{
+	switch (format) {
+		case 'i':
+		case 'I':
+		case 'l':
+		case 'L':
+		case 'h':
+		case 'H':
+		case 'b':
+		case 'B':
+		case 'q':
+		case 'Q':
+		case 'n':
+		case 'N':
+		case 'P':
+			return true;
+		default:
+			return false;
+	}
+}
+
+Py_LOCAL_INLINE(bool) PyC_Formatstr_is_byte(char format)
+{
+	switch (format) {
+		case 'c':
+		case 's':
+		case 'p':
+			return true;
+		default:
+			return false;
+	}
+}
+
+Py_LOCAL_INLINE(bool) PyC_Formatstr_is_bool(char format)
+{
+	switch (format) {
+		case '?':
+			return true;
+		default:
+			return false;
+	}
+}
 
 #endif  /* __PY_CAPI_UTILS_H__ */
