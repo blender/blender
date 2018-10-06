@@ -204,6 +204,11 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 
 	WM_paneltype_remove(pt);
 
+	for (LinkData *link = pt->children.first; link; link = link->next) {
+		PanelType *child_pt = link->data;
+		child_pt->parent = NULL;
+	}
+
 	BLI_freelistN(&pt->children);
 	BLI_freelinkN(&art->paneltypes, pt);
 
