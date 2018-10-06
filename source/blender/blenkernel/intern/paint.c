@@ -448,7 +448,7 @@ bool BKE_palette_is_empty(const struct Palette *palette)
 	return BLI_listbase_is_empty(&palette->colors);
 }
 
-/* are we in vertex paint or weight pain face select mode? */
+/* are we in vertex paint or weight paint face select mode? */
 bool BKE_paint_select_face_test(Object *ob)
 {
 	return ( (ob != NULL) &&
