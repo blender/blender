@@ -424,13 +424,13 @@ static IDProperty *idp_from_PyBytes(const char *name, PyObject *ob)
 
 static int idp_array_type_from_formatstr_and_size(const char *typestr, Py_ssize_t itemsize)
 {
-	char format = PyC_Formatchar_get(typestr);
+	char format = PyC_StructFmt_type_from_str(typestr);
 
-	if (PyC_Formatchar_is_floating_type(format)) {
+	if (PyC_StructFmt_type_is_float_any(format)) {
 		if (itemsize == 4) return IDP_FLOAT;
 		if (itemsize == 8) return IDP_DOUBLE;
 	}
-	if (PyC_Formatchar_is_integer_type(format)) {
+	if (PyC_StructFmt_type_is_int_any(format)) {
 		if (itemsize == 4) return IDP_INT;
 	}
 
@@ -540,9 +540,9 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
 
 	if (PyObject_CheckBuffer(ob)) {
 		PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
-		char format = PyC_Formatchar_get(buffer.format);
-		if (PyC_Formatchar_is_floating_type(format) ||
-		    (PyC_Formatchar_is_integer_type(format) && buffer.itemsize == 4))
+		char format = PyC_StructFmt_type_from_str(buffer.format);
+		if (PyC_StructFmt_type_is_float_any(format) ||
+		    (PyC_StructFmt_type_is_int_any(format) && buffer.itemsize == 4))
 		{
 			use_buffer = true;
 		}

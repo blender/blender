@@ -132,10 +132,10 @@ Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLo
 Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
 
 /* utils for format string in `struct` module style syntax */
-char PyC_Formatchar_get(const char *typestr);
-bool PyC_Formatchar_is_floating_type(char format);
-bool PyC_Formatchar_is_integer_type(char format);
-bool PyC_Formatchar_is_byte_type(char format);
-bool PyC_Formatchar_is_boolean_type(char format);
+char PyC_StructFmt_type_from_str(const char *typestr);
+bool PyC_StructFmt_type_is_float_any(char format);
+bool PyC_StructFmt_type_is_int_any(char format);
+bool PyC_StructFmt_type_is_byte(char format);
+bool PyC_StructFmt_type_is_bool(char format);
 
 #endif  /* __PY_CAPI_UTILS_H__ */

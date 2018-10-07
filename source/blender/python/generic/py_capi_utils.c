@@ -1333,7 +1333,7 @@ uint32_t PyC_Long_AsU32(PyObject *value)
  *
  * \{ */
 
-char PyC_Formatchar_get(const char *typestr)
+char PyC_StructFmt_type_from_str(const char *typestr)
 {
 	switch (typestr[0]) {
 		case '!':
@@ -1347,7 +1347,7 @@ char PyC_Formatchar_get(const char *typestr)
 	}
 }
 
-bool PyC_Formatchar_is_floating_type(char format)
+bool PyC_StructFmt_type_is_float_any(char format)
 {
 	switch (format) {
 		case 'f':
@@ -1359,7 +1359,7 @@ bool PyC_Formatchar_is_floating_type(char format)
 	}
 }
 
-bool PyC_Formatchar_is_integer_type(char format)
+bool PyC_StructFmt_type_is_int_any(char format)
 {
 	switch (format) {
 		case 'i':
@@ -1381,7 +1381,7 @@ bool PyC_Formatchar_is_integer_type(char format)
 	}
 }
 
-bool PyC_Formatchar_is_byte_type(char format)
+bool PyC_StructFmt_type_is_byte(char format)
 {
 	switch (format) {
 		case 'c':
@@ -1393,7 +1393,7 @@ bool PyC_Formatchar_is_byte_type(char format)
 	}
 }
 
-bool PyC_Formatchar_is_boolean_type(char format)
+bool PyC_StructFmt_type_is_bool(char format)
 {
 	switch (format) {
 		case '?':

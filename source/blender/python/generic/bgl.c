@@ -480,15 +480,15 @@ int BGL_typeSize(int type)
 
 static int gl_buffer_type_from_py_buffer(Py_buffer *pybuffer)
 {
-	const char format = PyC_Formatchar_get(pybuffer->format);
+	const char format = PyC_StructFmt_type_from_str(pybuffer->format);
 	Py_ssize_t itemsize = pybuffer->itemsize;
 
-	if (PyC_Formatchar_is_floating_type(format)) {
+	if (PyC_StructFmt_type_is_float_any(format)) {
 		if (itemsize == 4) return GL_FLOAT;
 		if (itemsize == 8) return GL_DOUBLE;
 	}
-	if (PyC_Formatchar_is_byte_type(format) ||
-	    PyC_Formatchar_is_integer_type(format))
+	if (PyC_StructFmt_type_is_byte(format) ||
+	    PyC_StructFmt_type_is_int_any(format))
 	{
 		if (itemsize == 1) return GL_BYTE;
 		if (itemsize == 2) return GL_SHORT;
