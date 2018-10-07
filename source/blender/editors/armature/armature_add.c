@@ -505,7 +505,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 		if (arm->flag & ARM_MIRROR_EDIT) {
 			for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 				if (EBONE_VISIBLE(arm, ebone_iter) &&
-						(ebone_iter->flag & BONE_SELECTED))
+				    (ebone_iter->flag & BONE_SELECTED))
 				{
 					EditBone *ebone;
 
@@ -520,7 +520,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 		/* Find the selected bones and duplicate them as needed */
 		for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
 			if (EBONE_VISIBLE(arm, ebone_iter) &&
-					(ebone_iter->flag & BONE_SELECTED))
+			    (ebone_iter->flag & BONE_SELECTED))
 			{
 				EditBone *ebone;
 				char new_bone_name_buff[MAXBONENAME];
@@ -547,7 +547,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 		/* Run though the list and fix the pointers */
 		for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
 			if (EBONE_VISIBLE(arm, ebone_iter) &&
-					(ebone_iter->flag & BONE_SELECTED))
+			    (ebone_iter->flag & BONE_SELECTED))
 			{
 				EditBone *ebone = ebone_iter->temp.ebone;
 
@@ -660,7 +660,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		/* Select mirrored bones */
 		for (ebone_iter = arm->edbo->first; ebone_iter; ebone_iter = ebone_iter->next) {
 			if (EBONE_VISIBLE(arm, ebone_iter) &&
-					(ebone_iter->flag & BONE_SELECTED))
+			    (ebone_iter->flag & BONE_SELECTED))
 			{
 				char name_flip[MAXBONENAME];
 
@@ -718,9 +718,9 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		/*	Find the selected bones and duplicate them as needed, with mirrored name */
 		for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
 			if (EBONE_VISIBLE(arm, ebone_iter) &&
-					(ebone_iter->flag & BONE_SELECTED) &&
-					/* will be set if the mirror bone already exists (no need to make a new one) */
-					(ebone_iter->temp.ebone == NULL))
+			    (ebone_iter->flag & BONE_SELECTED) &&
+			    /* will be set if the mirror bone already exists (no need to make a new one) */
+			    (ebone_iter->temp.ebone == NULL))
 			{
 				char name_flip[MAXBONENAME];
 
@@ -759,9 +759,10 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* the parent may have been duplicated, if not lookup the mirror parent */
-					EditBone *ebone_parent =
-									(ebone_iter->parent->temp.ebone ?
-									 ebone_iter->parent->temp.ebone : ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter->parent));
+					EditBone *ebone_parent = (
+					        ebone_iter->parent->temp.ebone ?
+					        ebone_iter->parent->temp.ebone :
+					        ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter->parent));
 
 					if (ebone_parent == NULL) {
 						/* If the mirror lookup failed, (but the current bone has a parent)
@@ -796,14 +797,20 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		 * so we don't need this anymore */
 
 		/* Deselect the old bones and select the new ones */
-		for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
+		for (ebone_iter = arm->edbo->first;
+		     ebone_iter && ebone_iter != ebone_first_dupe;
+		     ebone_iter = ebone_iter->next)
+		{
 			if (EBONE_VISIBLE(arm, ebone_iter)) {
 				ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			}
 		}
 
 		/* New bones will be selected, but some of the bones may already exist */
-		for (ebone_iter = arm->edbo->first; ebone_iter && ebone_iter != ebone_first_dupe; ebone_iter = ebone_iter->next) {
+		for (ebone_iter = arm->edbo->first;
+		     ebone_iter && ebone_iter != ebone_first_dupe;
+		     ebone_iter = ebone_iter->next)
+		{
 			EditBone *ebone = ebone_iter->temp.ebone;
 			if (ebone && EBONE_SELECTABLE(arm, ebone)) {
 				ED_armature_ebone_select_set(ebone, true);
@@ -936,7 +943,8 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 							copy_v3_v3(newbone->tail, newbone->head);
 							newbone->parent = ebone;
 
-							newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);  // copies it, in case mirrored bone
+							/* copies it, in case mirrored bone */
+							newbone->flag = ebone->flag & (BONE_TIPSEL | BONE_RELATIVE_PARENTING);
 
 							if (newbone->parent) newbone->flag |= BONE_CONNECTED;
 						}

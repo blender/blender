@@ -1252,10 +1252,10 @@ static void rna_def_gpencil_grid(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "GreasePencilGrid", NULL);
 	RNA_def_struct_sdna(srna, "bGPgrid");
 	RNA_def_struct_nested(brna, srna, "GreasePencil");
-	
+
 	RNA_def_struct_path_func(srna, "rna_GreasePencilGrid_path");
 	RNA_def_struct_ui_text(srna, "Grid and Canvas Settings",
-					"Settings for grid and canvas in 3D viewport");
+	                       "Settings for grid and canvas in 3D viewport");
 
 	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "scale");

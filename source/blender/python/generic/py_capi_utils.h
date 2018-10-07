@@ -132,7 +132,7 @@ Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLo
 Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
 
 /* utils for format string in `struct` module style syntax */
-Py_LOCAL_INLINE(char) PyC_Formatstr_get(char *typestr)
+Py_LOCAL_INLINE(char) PyC_Formatstr_get(const char *typestr)
 {
 	switch (typestr[0]) {
 		case '!':

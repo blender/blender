@@ -966,7 +966,7 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 			/* get chains (ends on chains) */
 			chains_find_tips(arm->edbo, &chains);
 			if (BLI_listbase_is_empty(&chains)) {
-					continue;
+				continue;
 			}
 
 			/* each 'chain' is the last bone in the chain (with no children) */
@@ -982,8 +982,8 @@ static int armature_merge_exec(bContext *C, wmOperator *op)
 				for (ebo = chain->data; ebo; child = ebo, ebo = ebo->parent) {
 					/* check if visible + selected */
 					if (EBONE_VISIBLE(arm, ebo) &&
-							((ebo->flag & BONE_CONNECTED) || (ebo->parent == NULL)) &&
-							(ebo->flag & BONE_SELECTED) )
+					    ((ebo->flag & BONE_CONNECTED) || (ebo->parent == NULL)) &&
+					    (ebo->flag & BONE_SELECTED) )
 					{
 						/* set either end or start (end gets priority, unless it is already set) */
 						if (bend == NULL) {

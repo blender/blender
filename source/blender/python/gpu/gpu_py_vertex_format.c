@@ -146,10 +146,9 @@ static int bpygpu_ParseVertFetchMode(PyObject *o, void *p)
 
 static int get_default_fetch_mode(GPUVertCompType type)
 {
-	switch (type)
-	{
-	case GPU_COMP_F32: return GPU_FETCH_FLOAT;
-	default: return -1;
+	switch (type) {
+		case GPU_COMP_F32: return GPU_FETCH_FLOAT;
+		default: return -1;
 	}
 }
 

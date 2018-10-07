@@ -429,10 +429,10 @@ static int armature_flip_names_exec(bContext *C, wmOperator *op)
 					BLI_addtail(&bones_names, BLI_genericNodeN(ebone->name));
 
 					if (arm->flag & ARM_MIRROR_EDIT) {
-							EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-							if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
-								BLI_addtail(&bones_names, BLI_genericNodeN(flipbone->name));
-							}
+						EditBone *flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+						if ((flipbone) && !(flipbone->flag & BONE_SELECTED)) {
+							BLI_addtail(&bones_names, BLI_genericNodeN(flipbone->name));
+						}
 					}
 				}
 			}
