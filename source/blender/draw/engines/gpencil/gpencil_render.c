@@ -130,7 +130,7 @@ static void GPENCIL_render_cache(
 	void *vedata, struct Object *ob,
 	struct RenderEngine *UNUSED(engine), struct Depsgraph *UNUSED(depsgraph))
 {
-	if ((ob == NULL) || (DRW_check_object_visible_within_active_context(ob) == false)) {
+	if ((ob == NULL) || (DRW_object_is_visible_in_active_context(ob) == false)) {
 		return;
 	}
 

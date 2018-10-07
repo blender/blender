@@ -727,7 +727,7 @@ bool BKE_object_is_mode_compat(const struct Object *ob, eObjectMode object_mode)
 /**
  * Return if the object is visible, as evaluated by depsgraph
  */
-bool BKE_object_is_visible(Object *ob, const eObjectVisibilityCheck mode)
+bool BKE_object_is_visible(const Object *ob, const eObjectVisibilityCheck mode)
 {
 	if ((ob->base_flag & BASE_VISIBLE) == 0) {
 		return false;

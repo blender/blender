@@ -102,7 +102,7 @@ typedef enum eObjectVisibilityCheck {
 	OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE,
 } eObjectVisibilityCheck;
 
-bool BKE_object_is_visible(struct Object *ob, const eObjectVisibilityCheck mode);
+bool BKE_object_is_visible(const struct Object *ob, const eObjectVisibilityCheck mode);
 
 void BKE_object_init(struct Object *ob);
 struct Object *BKE_object_add_only_object(

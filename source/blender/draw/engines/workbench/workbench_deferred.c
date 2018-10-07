@@ -649,7 +649,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
-		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+		if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 			continue;
 		}
 		ParticleSettings *part = psys->part;
@@ -701,7 +701,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		return; /* Do not draw solid in this case. */
 	}
 
-	if (!DRW_check_object_visible_within_active_context(ob)) {
+	if (!DRW_object_is_visible_in_active_context(ob)) {
 		return;
 	}
 

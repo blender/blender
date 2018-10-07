@@ -125,7 +125,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 			if (!psys_check_enabled(ob, psys, false)) {
 				continue;
 			}
-			if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+			if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 				continue;
 			}
 			ParticleSettings *part = psys->part;

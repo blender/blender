@@ -1617,7 +1617,7 @@ void EEVEE_hair_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, 
 				if (!psys_check_enabled(ob, psys, false)) {
 					continue;
 				}
-				if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+				if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 					continue;
 				}
 				ParticleSettings *part = psys->part;

@@ -507,11 +507,11 @@ DrawData *DRW_drawdata_ensure(
         DrawDataFreeCb free_cb);
 
 /* Settings */
-bool DRW_object_is_renderable(struct Object *ob);
-bool DRW_check_object_visible_within_active_context(struct Object *ob);
+bool DRW_object_is_renderable(const struct Object *ob);
+bool DRW_object_is_visible_in_active_context(const struct Object *ob);
 bool DRW_object_is_flat_normal(const struct Object *ob);
 
-bool DRW_check_psys_visible_within_active_context(struct Object *object, struct ParticleSystem *psys);
+bool DRW_object_is_visible_psys_in_active_context(const struct Object *object, const struct ParticleSystem *psys);
 
 /* Draw commands */
 void DRW_draw_pass(DRWPass *pass);

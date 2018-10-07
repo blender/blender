@@ -307,7 +307,7 @@ static PTCacheEdit *psys_orig_edit_get(ParticleSystem *psys)
 	return psys->orig_psys->edit;
 }
 
-bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
+bool psys_in_edit_mode(Depsgraph *depsgraph, const ParticleSystem *psys)
 {
 	const ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 	if (view_layer->basact == NULL) {
@@ -319,7 +319,7 @@ bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 	if (object->mode != OB_MODE_PARTICLE_EDIT) {
 		return false;
 	}
-	ParticleSystem *psys_orig = psys_orig_get(psys);
+	const ParticleSystem *psys_orig = psys_orig_get((ParticleSystem *)psys);
 	return (psys_orig->edit || psys->pointcache->edit) &&
 	       (use_render_params == false);
 }

@@ -2281,7 +2281,7 @@ static void DRW_shgroup_relationship_lines(
         Scene *scene,
         Object *ob)
 {
-	if (ob->parent && DRW_check_object_visible_within_active_context(ob->parent)) {
+	if (ob->parent && DRW_object_is_visible_in_active_context(ob->parent)) {
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->parent->obmat[3]);
 		DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 	}
@@ -2289,11 +2289,11 @@ static void DRW_shgroup_relationship_lines(
 	if (ob->rigidbody_constraint) {
 		Object *rbc_ob1 = ob->rigidbody_constraint->ob1;
 		Object *rbc_ob2 = ob->rigidbody_constraint->ob2;
-		if (rbc_ob1 && DRW_check_object_visible_within_active_context(rbc_ob1)) {
+		if (rbc_ob1 && DRW_object_is_visible_in_active_context(rbc_ob1)) {
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, rbc_ob1->obmat[3]);
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 		}
-		if (rbc_ob2 && DRW_check_object_visible_within_active_context(rbc_ob2)) {
+		if (rbc_ob2 && DRW_object_is_visible_in_active_context(rbc_ob2)) {
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, rbc_ob2->obmat[3]);
 			DRW_shgroup_call_dynamic_add(sgl->relationship_lines, ob->obmat[3]);
 		}
@@ -2538,7 +2538,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
-		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+		if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
 			continue;
 		}
 
@@ -2624,7 +2624,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		OBJECT_cache_populate_particles(ob, psl);
 	}
 
-	if (DRW_check_object_visible_within_active_context(ob) == false) {
+	if (DRW_object_is_visible_in_active_context(ob) == false) {
 		return;
 	}
 

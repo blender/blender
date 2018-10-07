@@ -163,7 +163,7 @@ void EEVEE_render_cache(
 		EEVEE_hair_cache_populate(vedata, sldata, ob, &cast_shadow);
 	}
 
-	if (DRW_check_object_visible_within_active_context(ob)) {
+	if (DRW_object_is_visible_in_active_context(ob)) {
 		if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL)) {
 			EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
 		}

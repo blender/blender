@@ -148,7 +148,7 @@ struct DRWTextStore *DRW_text_cache_ensure(void)
 /** \name Settings
  * \{ */
 
-bool DRW_object_is_renderable(Object *ob)
+bool DRW_object_is_renderable(const Object *ob)
 {
 	BLI_assert(BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE));
 
@@ -173,7 +173,7 @@ bool DRW_object_is_renderable(Object *ob)
  * Return whether this object is visible depending if
  * we are rendering or drawing in the viewport.
  */
-bool DRW_check_object_visible_within_active_context(Object *ob)
+bool DRW_object_is_visible_in_active_context(const Object *ob)
 {
 	const eObjectVisibilityCheck mode = DRW_state_is_scene_render() ?
 	                                     OB_VISIBILITY_CHECK_FOR_RENDER :
@@ -192,9 +192,9 @@ bool DRW_object_is_flat_normal(const Object *ob)
 	return true;
 }
 
-bool DRW_check_psys_visible_within_active_context(
-        Object *object,
-        struct ParticleSystem *psys)
+bool DRW_object_is_visible_psys_in_active_context(
+        const Object *object,
+        const ParticleSystem *psys)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene = draw_ctx->scene;
@@ -1660,7 +1660,7 @@ static bool DRW_render_check_grease_pencil(Depsgraph *depsgraph)
 {
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(depsgraph, ob)
 	{
-		if ((ob->type == OB_GPENCIL) && (DRW_check_object_visible_within_active_context(ob))) {
+		if ((ob->type == OB_GPENCIL) && (DRW_object_is_visible_in_active_context(ob))) {
 			return true;
 		}
 	}
