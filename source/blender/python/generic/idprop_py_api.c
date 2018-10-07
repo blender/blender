@@ -422,11 +422,18 @@ static IDProperty *idp_from_PyBytes(const char *name, PyObject *ob)
 	return IDP_New(IDP_STRING, &val, name);
 }
 
-static int idp_array_type_from_format_char(char format)
+static int idp_array_type_from_formatstr_and_size(const char *typestr, Py_ssize_t itemsize)
 {
-	if (format == 'i') return IDP_INT;
-	if (format == 'f') return IDP_FLOAT;
-	if (format == 'd') return IDP_DOUBLE;
+	char format = PyC_Formatchar_get(typestr);
+
+	if (PyC_Formatchar_is_floating_type(format)) {
+		if (itemsize == 4) return IDP_FLOAT;
+		if (itemsize == 8) return IDP_DOUBLE;
+	}
+	if (PyC_Formatchar_is_integer_type(format)) {
+		if (itemsize == 4) return IDP_INT;
+	}
+
 	return -1;
 }
 
@@ -443,13 +450,13 @@ static IDProperty *idp_from_PySequence_Buffer(const char *name, Py_buffer *buffe
 	IDProperty *prop;
 	IDPropertyTemplate val = {0};
 
-	int format = idp_array_type_from_format_char(*buffer->format);
-	if (format == -1) {
+	int id_type = idp_array_type_from_formatstr_and_size(buffer->format, buffer->itemsize);
+	if (id_type == -1) {
 		/* should never happen as the type has been checked before */
 		return NULL;
 	}
 	else {
-		val.array.type = format;
+		val.array.type = id_type;
 		val.array.len = buffer->len / buffer->itemsize;
 	}
 	prop = IDP_New(IDP_ARRAY, &val, name);
@@ -533,8 +540,10 @@ static IDProperty *idp_from_PySequence(const char *name, PyObject *ob)
 
 	if (PyObject_CheckBuffer(ob)) {
 		PyObject_GetBuffer(ob, &buffer, PyBUF_SIMPLE | PyBUF_FORMAT);
-		char format = *buffer.format;
-		if (ELEM(format, 'i', 'f', 'd')) {
+		char format = PyC_Formatchar_get(buffer.format);
+		if (PyC_Formatchar_is_floating_type(format) ||
+		    (PyC_Formatchar_is_integer_type(format) && buffer.itemsize == 4))
+		{
 			use_buffer = true;
 		}
 		else {
