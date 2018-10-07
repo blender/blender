@@ -2863,6 +2863,15 @@ static void rna_def_tool_settings(BlenderRNA *brna)
                            "to 1.0 while weight painting");
   RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
 
+  prop = RNA_def_property(srna, "use_lock_relative", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+  RNA_def_property_boolean_sdna(prop, NULL, "wpaint_lock_relative", 1);
+  RNA_def_property_ui_text(prop,
+                           "WPaint Lock-Relative",
+                           "Display bone-deforming groups as if all locked deform groups "
+                           "were deleted, and the remaining ones were re-normalized");
+  RNA_def_property_update(prop, 0, "rna_Scene_update_active_object_data");
+
   prop = RNA_def_property(srna, "use_multipaint", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
   RNA_def_property_boolean_sdna(prop, NULL, "multipaint", 1);

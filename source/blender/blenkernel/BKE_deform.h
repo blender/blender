@@ -67,11 +67,24 @@ float BKE_defvert_array_find_weight_safe(const struct MDeformVert *dvert,
                                          const int index,
                                          const int defgroup);
 
+float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
+                                        int defbase_tot,
+                                        const bool *defbase_sel);
+
 float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
                                                int defbase_tot,
                                                const bool *defbase_sel,
                                                int defbase_tot_sel,
-                                               bool do_autonormalize);
+                                               bool is_normalized);
+
+float BKE_defvert_calc_lock_relative_weight(float weight,
+                                            float locked_weight,
+                                            float unlocked_weight);
+float BKE_defvert_lock_relative_weight(float weight,
+                                       const struct MDeformVert *dv,
+                                       int defbase_tot,
+                                       const bool *defbase_locked,
+                                       const bool *defbase_unlocked);
 
 void BKE_defvert_copy(struct MDeformVert *dvert_dst, const struct MDeformVert *dvert_src);
 void BKE_defvert_copy_subset(struct MDeformVert *dvert_dst,

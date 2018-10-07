@@ -694,6 +694,72 @@ bool *BKE_object_defgroup_selected_get(Object *ob, int defbase_tot, int *r_dg_fl
 }
 
 /**
+ * Checks if the lock relative mode is applicable.
+ *
+ * \return true if an unlocked deform group is active.
+ */
+bool BKE_object_defgroup_check_lock_relative(const bool *lock_flags,
+                                             const bool *validmap,
+                                             int index)
+{
+  return validmap && validmap[index] && !(lock_flags && lock_flags[index]);
+}
+
+/**
+ * Additional check for whether the lock relative mode is applicable in multipaint mode.
+ *
+ * @return true if none of the selected groups are locked.
+ */
+bool BKE_object_defgroup_check_lock_relative_multi(int defbase_tot,
+                                                   const bool *lock_flags,
+                                                   const bool *selected,
+                                                   int sel_tot)
+{
+  if (lock_flags == NULL) {
+    return true;
+  }
+
+  if (selected == NULL || sel_tot <= 1) {
+    return true;
+  }
+
+  for (int i = 0; i < defbase_tot; i++) {
+    if (selected[i] && lock_flags[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Takes a pair of boolean masks of all locked and all deform groups, and computes
+ * a pair of masks for locked deform and unlocked deform groups. Output buffers may
+ * reuse the input ones.
+ */
+void BKE_object_defgroup_split_locked_validmap(
+    int defbase_tot, const bool *locked, const bool *deform, bool *r_locked, bool *r_unlocked)
+{
+  if (!locked) {
+    if (r_unlocked != deform) {
+      memcpy(r_unlocked, deform, sizeof(bool) * defbase_tot);
+    }
+    if (r_locked) {
+      memset(r_locked, 0, sizeof(bool) * defbase_tot);
+    }
+    return;
+  }
+
+  for (int i = 0; i < defbase_tot; i++) {
+    bool is_locked = locked[i];
+    bool is_deform = deform[i];
+
+    r_locked[i] = is_deform && is_locked;
+    r_unlocked[i] = is_deform && !is_locked;
+  }
+}
+
+/**
  * Marks mirror vgroups in output and counts them.
  * Output and counter assumed to be already initialized.
  * Designed to be usable after BKE_object_defgroup_selected_get to extend selection to mirror.

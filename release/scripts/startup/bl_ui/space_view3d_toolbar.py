@@ -1058,6 +1058,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
         col = layout.column()
 
         col.prop(tool_settings, "use_auto_normalize", text="Auto Normalize")
+        col.prop(tool_settings, "use_lock_relative", text="Lock-Relative")
         col.prop(tool_settings, "use_multipaint", text="Multi-Paint")
 
         col.prop(wpaint, "use_group_restrict")

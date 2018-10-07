@@ -413,6 +413,31 @@ static float wpaint_clamp_monotonic(float oldval, float curval, float newval)
   }
 }
 
+static float wpaint_undo_lock_relative(
+    float weight, float old_weight, float locked_weight, float free_weight, bool auto_normalize)
+{
+  /* In auto-normalize mode, or when there is no unlocked weight,
+   * compute based on locked weight. */
+  if (auto_normalize || free_weight <= 0.0f) {
+    weight *= (1.0f - locked_weight);
+  }
+  else {
+    /* When dealing with full unlocked weight, don't paint, as it is always displayed as 1. */
+    if (old_weight >= free_weight) {
+      weight = old_weight;
+    }
+    /* Try to compute a weight value that would produce the desired effect if normalized. */
+    else if (weight < 1.0f) {
+      weight = weight * (free_weight - old_weight) / (1 - weight);
+    }
+    else {
+      weight = 1.0f;
+    }
+  }
+
+  return weight;
+}
+
 /* ----------------------------------------------------- */
 
 static void do_weight_paint_normalize_all(MDeformVert *dvert,
@@ -704,10 +729,16 @@ typedef struct WeightPaintInfo {
   /* same as WeightPaintData.vgroup_validmap,
    * only added here for convenience */
   const bool *vgroup_validmap;
+  /* same as WeightPaintData.vgroup_locked/unlocked,
+   * only added here for convenience */
+  const bool *vgroup_locked;
+  const bool *vgroup_unlocked;
 
   bool do_flip;
   bool do_multipaint;
   bool do_auto_normalize;
+  bool do_lock_relative;
+  bool is_normalized;
 
   float brush_alpha_value; /* result of BKE_brush_alpha_get() */
 } WeightPaintInfo;
@@ -727,7 +758,8 @@ static void do_weight_paint_vertex_single(
   bool topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
   MDeformWeight *dw;
-  float weight_prev;
+  float weight_prev, weight_cur;
+  float dw_rel_locked = 0.0f, dw_rel_free = 1.0f;
 
   /* mirror vars */
   int index_mirr;
@@ -795,6 +827,17 @@ static void do_weight_paint_vertex_single(
     dw_mirr = NULL;
   }
 
+  weight_cur = dw->weight;
+
+  /* Handle weight caught up in locked defgroups for Lock Relative. */
+  if (wpi->do_lock_relative) {
+    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_unlocked);
+    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_locked);
+    CLAMP(dw_rel_locked, 0.0f, 1.0f);
+
+    weight_cur = BKE_defvert_calc_lock_relative_weight(weight_cur, dw_rel_locked, dw_rel_free);
+  }
+
   if (!brush_use_accumulate(wp)) {
     MDeformVert *dvert_prev = ob->sculpt->mode.wpaint.dvert_prev;
     MDeformVert *dv_prev = defweight_prev_init(dvert_prev, me->dvert, index);
@@ -803,9 +846,14 @@ static void do_weight_paint_vertex_single(
     }
 
     weight_prev = BKE_defvert_find_weight(dv_prev, wpi->active.index);
+
+    if (wpi->do_lock_relative) {
+      weight_prev = BKE_defvert_lock_relative_weight(
+          weight_prev, dv_prev, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+    }
   }
   else {
-    weight_prev = dw->weight;
+    weight_prev = weight_cur;
   }
 
   /* If there are no normalize-locks or multipaint,
@@ -815,7 +863,28 @@ static void do_weight_paint_vertex_single(
     float new_weight = wpaint_blend(
         wp, weight_prev, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
 
-    dw->weight = wpaint_clamp_monotonic(weight_prev, dw->weight, new_weight);
+    float weight = wpaint_clamp_monotonic(weight_prev, weight_cur, new_weight);
+
+    /* Undo the lock relative weight correction. */
+    if (wpi->do_lock_relative) {
+      if (index_mirr == index) {
+        /* When painting a center vertex with X Mirror and L/R pair,
+         * handle both groups together. This avoids weird fighting
+         * in the non-normalized weight mode. */
+        float orig_weight = dw->weight + dw_mirr->weight;
+        weight = 0.5f *
+                 wpaint_undo_lock_relative(
+                     weight * 2, orig_weight, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+      }
+      else {
+        weight = wpaint_undo_lock_relative(
+            weight, dw->weight, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+      }
+
+      CLAMP(weight, 0.0f, 1.0f);
+    }
+
+    dw->weight = weight;
 
     /* WATCH IT: take care of the ordering of applying mirror -> normalize,
      * can give wrong results [#26193], least confusing if normalize is done last */
@@ -892,7 +961,8 @@ static void do_weight_paint_vertex_multi(
   MDeformVert *dv_mirr = NULL;
 
   /* weights */
-  float curw, oldw, neww, change, curw_mirr, change_mirr;
+  float curw, curw_real, oldw, neww, change, curw_mirr, change_mirr;
+  float dw_rel_free, dw_rel_locked;
 
   /* from now on we can check if mirrors enabled if this var is -1 and not bother with the flag */
   if (me->editflag & ME_EDIT_MIRROR_X) {
@@ -907,12 +977,21 @@ static void do_weight_paint_vertex_multi(
   }
 
   /* compute weight change by applying the brush to average or sum of group weights */
-  curw = BKE_defvert_multipaint_collective_weight(
-      dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+  curw = curw_real = BKE_defvert_multipaint_collective_weight(
+      dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
 
   if (curw == 0.0f) {
     /* note: no weight to assign to this vertex, could add all groups? */
     return;
+  }
+
+  /* Handle weight caught up in locked defgroups for Lock Relative. */
+  if (wpi->do_lock_relative) {
+    dw_rel_free = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_unlocked);
+    dw_rel_locked = BKE_defvert_total_selected_weight(dv, wpi->defbase_tot, wpi->vgroup_locked);
+    CLAMP(dw_rel_locked, 0.0f, 1.0f);
+
+    curw = BKE_defvert_calc_lock_relative_weight(curw, dw_rel_locked, dw_rel_free);
   }
 
   if (!brush_use_accumulate(wp)) {
@@ -923,7 +1002,12 @@ static void do_weight_paint_vertex_multi(
     }
 
     oldw = BKE_defvert_multipaint_collective_weight(
-        dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+        dv_prev, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
+
+    if (wpi->do_lock_relative) {
+      oldw = BKE_defvert_lock_relative_weight(
+          oldw, dv_prev, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+    }
   }
   else {
     oldw = curw;
@@ -932,14 +1016,19 @@ static void do_weight_paint_vertex_multi(
   neww = wpaint_blend(wp, oldw, alpha, paintweight, wpi->brush_alpha_value, wpi->do_flip);
   neww = wpaint_clamp_monotonic(oldw, curw, neww);
 
-  change = neww / curw;
+  if (wpi->do_lock_relative) {
+    neww = wpaint_undo_lock_relative(
+        neww, curw_real, dw_rel_locked, dw_rel_free, wpi->do_auto_normalize);
+  }
+
+  change = neww / curw_real;
 
   /* verify for all groups that 0 < result <= 1 */
   multipaint_clamp_change(dv, wpi->defbase_tot, wpi->defbase_sel, &change);
 
   if (dv_mirr != NULL) {
     curw_mirr = BKE_defvert_multipaint_collective_weight(
-        dv_mirr, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+        dv_mirr, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
 
     if (curw_mirr == 0.0f) {
       /* can't mirror into a zero weight vertex */
@@ -947,7 +1036,7 @@ static void do_weight_paint_vertex_multi(
     }
     else {
       /* mirror is changed to achieve the same collective weight value */
-      float orig = change_mirr = curw * change / curw_mirr;
+      float orig = change_mirr = curw_real * change / curw_mirr;
 
       multipaint_clamp_change(dv_mirr, wpi->defbase_tot, wpi->defbase_sel, &change_mirr);
 
@@ -1408,11 +1497,14 @@ struct WPaintData {
   /* variables for auto normalize */
   const bool *vgroup_validmap; /* stores if vgroups tie to deforming bones or not */
   const bool *lock_flags;
+  const bool *vgroup_locked;   /* mask of locked defbones */
+  const bool *vgroup_unlocked; /* mask of unlocked defbones */
 
   /* variables for multipaint */
   const bool *defbase_sel; /* set of selected groups */
   int defbase_tot_sel;     /* number of selected groups */
   bool do_multipaint;      /* true if multipaint enabled and multiple groups selected */
+  bool do_lock_relative;
 
   int defbase_tot;
 
@@ -1615,8 +1707,27 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
   /* set up auto-normalize, and generate map for detecting which
    * vgroups affect deform bones */
   wpd->lock_flags = BKE_object_defgroup_lock_flags_get(ob, wpd->defbase_tot);
-  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags) {
+  if (ts->auto_normalize || ts->multipaint || wpd->lock_flags || ts->wpaint_lock_relative) {
     wpd->vgroup_validmap = BKE_object_defgroup_validmap_get(ob, wpd->defbase_tot);
+  }
+
+  /* Compute the set of all locked deform groups when Lock Relative is active. */
+  if (ts->wpaint_lock_relative &&
+      BKE_object_defgroup_check_lock_relative(
+          wpd->lock_flags, wpd->vgroup_validmap, wpd->active.index) &&
+      (!wpd->do_multipaint || BKE_object_defgroup_check_lock_relative_multi(
+                                  defbase_tot, wpd->lock_flags, defbase_sel, defbase_tot_sel))) {
+    bool *unlocked = MEM_dupallocN(wpd->vgroup_validmap);
+
+    if (wpd->lock_flags) {
+      bool *locked = MEM_mallocN(sizeof(bool) * wpd->defbase_tot, __func__);
+      BKE_object_defgroup_split_locked_validmap(
+          wpd->defbase_tot, wpd->lock_flags, wpd->vgroup_validmap, locked, unlocked);
+      wpd->vgroup_locked = locked;
+    }
+
+    wpd->vgroup_unlocked = unlocked;
+    wpd->do_lock_relative = true;
   }
 
   if (wpd->do_multipaint && ts->auto_normalize) {
@@ -1686,16 +1797,23 @@ static void get_brush_alpha_data(const Scene *scene,
 
 static float wpaint_get_active_weight(const MDeformVert *dv, const WeightPaintInfo *wpi)
 {
-  if (wpi->do_multipaint) {
-    float weight = BKE_defvert_multipaint_collective_weight(
-        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->do_auto_normalize);
+  float weight;
 
-    CLAMP(weight, 0.0f, 1.0f);
-    return weight;
+  if (wpi->do_multipaint) {
+    weight = BKE_defvert_multipaint_collective_weight(
+        dv, wpi->defbase_tot, wpi->defbase_sel, wpi->defbase_tot_sel, wpi->is_normalized);
   }
   else {
-    return BKE_defvert_find_weight(dv, wpi->active.index);
+    weight = BKE_defvert_find_weight(dv, wpi->active.index);
   }
+
+  if (wpi->do_lock_relative) {
+    weight = BKE_defvert_lock_relative_weight(
+        weight, dv, wpi->defbase_tot, wpi->vgroup_locked, wpi->vgroup_unlocked);
+  }
+
+  CLAMP(weight, 0.0f, 1.0f);
+  return weight;
 }
 
 static void do_wpaint_precompute_weight_cb_ex(void *__restrict userdata,
@@ -2318,9 +2436,13 @@ static void wpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
   wpi.mirror = wpd->mirror;
   wpi.lock_flags = wpd->lock_flags;
   wpi.vgroup_validmap = wpd->vgroup_validmap;
+  wpi.vgroup_locked = wpd->vgroup_locked;
+  wpi.vgroup_unlocked = wpd->vgroup_unlocked;
   wpi.do_flip = RNA_boolean_get(itemptr, "pen_flip");
   wpi.do_multipaint = wpd->do_multipaint;
   wpi.do_auto_normalize = ((ts->auto_normalize != 0) && (wpi.vgroup_validmap != NULL));
+  wpi.do_lock_relative = wpd->do_lock_relative;
+  wpi.is_normalized = wpi.do_auto_normalize || wpi.do_lock_relative;
   wpi.brush_alpha_value = brush_alpha_value;
   /* *** done setting up WeightPaintInfo *** */
 
@@ -2377,6 +2499,12 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
     }
     if (wpd->vgroup_validmap) {
       MEM_freeN((void *)wpd->vgroup_validmap);
+    }
+    if (wpd->vgroup_locked) {
+      MEM_freeN((void *)wpd->vgroup_locked);
+    }
+    if (wpd->vgroup_unlocked) {
+      MEM_freeN((void *)wpd->vgroup_unlocked);
     }
     if (wpd->lock_flags) {
       MEM_freeN((void *)wpd->lock_flags);

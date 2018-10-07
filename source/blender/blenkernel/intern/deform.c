@@ -835,6 +835,32 @@ bool BKE_defvert_is_weight_zero(const struct MDeformVert *dvert, const int defgr
 }
 
 /**
+ * \return The total weight in all groups marked in the selection mask.
+ */
+float BKE_defvert_total_selected_weight(const struct MDeformVert *dv,
+                                        int defbase_tot,
+                                        const bool *defbase_sel)
+{
+  int i;
+  float total = 0.0f;
+  const MDeformWeight *dw = dv->dw;
+
+  if (defbase_sel == NULL) {
+    return total;
+  }
+
+  for (i = dv->totweight; i != 0; i--, dw++) {
+    if (dw->def_nr < defbase_tot) {
+      if (defbase_sel[dw->def_nr]) {
+        total += dw->weight;
+      }
+    }
+  }
+
+  return total;
+}
+
+/**
  * \return The representative weight of a multipaint group, used for
  * viewport colors and actual painting.
  *
@@ -846,27 +872,73 @@ float BKE_defvert_multipaint_collective_weight(const struct MDeformVert *dv,
                                                int defbase_tot,
                                                const bool *defbase_sel,
                                                int defbase_tot_sel,
-                                               bool do_autonormalize)
+                                               bool is_normalized)
 {
-  int i;
-  float total = 0.0f;
-  const MDeformWeight *dw = dv->dw;
+  float total = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_sel);
 
-  for (i = dv->totweight; i != 0; i--, dw++) {
-    /* in multipaint, get the average if auto normalize is inactive
-     * get the sum if it is active */
-    if (dw->def_nr < defbase_tot) {
-      if (defbase_sel[dw->def_nr]) {
-        total += dw->weight;
-      }
-    }
-  }
-
-  if (do_autonormalize == false) {
+  /* in multipaint, get the average if auto normalize is inactive
+   * get the sum if it is active */
+  if (!is_normalized) {
     total /= defbase_tot_sel;
   }
 
   return total;
+}
+
+/**
+ * Computes the display weight for the lock relative weight paint mode.
+ *
+ * @return weight divided by 1-locked_weight with division by zero check
+ */
+float BKE_defvert_calc_lock_relative_weight(float weight,
+                                            float locked_weight,
+                                            float unlocked_weight)
+{
+  /* First try normalizing unlocked weights. */
+  if (unlocked_weight > 0.0f) {
+    return weight / unlocked_weight;
+  }
+
+  /* If no unlocked weight exists, take locked into account. */
+  if (locked_weight <= 0.0f) {
+    return weight;
+  }
+
+  /* handle division by zero */
+  if (locked_weight >= 1.0f) {
+    if (weight != 0.0f) {
+      return 1.0f;
+    }
+    else {
+      /* resolve 0/0 to 0 */
+      return 0.0f;
+    }
+  }
+
+  /* non-degenerate division */
+  return weight / (1.0f - locked_weight);
+}
+
+/**
+ * Computes the display weight for the lock relative weight paint mode, using weight data.
+ *
+ * @return weight divided by unlocked, or 1-locked_weight with division by zero check
+ */
+float BKE_defvert_lock_relative_weight(float weight,
+                                       const struct MDeformVert *dv,
+                                       int defbase_tot,
+                                       const bool *defbase_locked,
+                                       const bool *defbase_unlocked)
+{
+  float unlocked = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_unlocked);
+
+  if (unlocked > 0.0f) {
+    return weight / unlocked;
+  }
+
+  float locked = BKE_defvert_total_selected_weight(dv, defbase_tot, defbase_locked);
+
+  return BKE_defvert_calc_lock_relative_weight(weight, locked, unlocked);
 }
 
 /* -------------------------------------------------------------------- */

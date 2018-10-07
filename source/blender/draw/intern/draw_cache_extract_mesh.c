@@ -2407,12 +2407,13 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
   float input = 0.0f;
   if (wstate->flags & DRW_MESH_WEIGHT_STATE_MULTIPAINT) {
     /* Multi-Paint feature */
-    input = BKE_defvert_multipaint_collective_weight(
-        dvert,
-        wstate->defgroup_len,
-        wstate->defgroup_sel,
-        wstate->defgroup_sel_count,
-        (wstate->flags & DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE) != 0);
+    bool is_normalized = (wstate->flags & (DRW_MESH_WEIGHT_STATE_AUTO_NORMALIZE |
+                                           DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE));
+    input = BKE_defvert_multipaint_collective_weight(dvert,
+                                                     wstate->defgroup_len,
+                                                     wstate->defgroup_sel,
+                                                     wstate->defgroup_sel_count,
+                                                     is_normalized);
     /* make it black if the selected groups have no weight on a vertex */
     if (input == 0.0f) {
       return -1.0f;
@@ -2435,6 +2436,13 @@ static float evaluate_vertex_weight(const MDeformVert *dvert, const DRW_MeshWeig
       }
     }
   }
+
+  /* Lock-Relative: display the fraction of current weight vs total unlocked weight. */
+  if (wstate->flags & DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE) {
+    input = BKE_defvert_lock_relative_weight(
+        input, dvert, wstate->defgroup_len, wstate->defgroup_locked, wstate->defgroup_unlocked);
+  }
+
   CLAMP(input, 0.0f, 1.0f);
   return input;
 }

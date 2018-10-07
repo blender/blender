@@ -212,12 +212,22 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
       Brush *brush = BKE_paint_brush(&ts->wpaint->paint);
       const int vgroup_active = vc.obact->actdef - 1;
       float vgroup_weight = BKE_defvert_find_weight(&me->dvert[v_idx_best], vgroup_active);
+      const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
+      bool use_lock_relative = ts->wpaint_lock_relative;
+      bool *defbase_locked = NULL, *defbase_unlocked = NULL;
+
+      if (use_lock_relative) {
+        defbase_locked = BKE_object_defgroup_lock_flags_get(vc.obact, defbase_tot);
+        defbase_unlocked = BKE_object_defgroup_validmap_get(vc.obact, defbase_tot);
+
+        use_lock_relative = BKE_object_defgroup_check_lock_relative(
+            defbase_locked, defbase_unlocked, vgroup_active);
+      }
 
       /* use combined weight in multipaint mode,
        * since that's what is displayed to the user in the colors */
       if (ts->multipaint) {
         int defbase_tot_sel;
-        const int defbase_tot = BLI_listbase_count(&vc.obact->defbase);
         bool *defbase_sel = BKE_object_defgroup_selected_get(
             vc.obact, defbase_tot, &defbase_tot_sel);
 
@@ -227,20 +237,30 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
                 vc.obact, defbase_tot, defbase_sel, defbase_sel, &defbase_tot_sel);
           }
 
-          vgroup_weight = BKE_defvert_multipaint_collective_weight(&me->dvert[v_idx_best],
-                                                                   defbase_tot,
-                                                                   defbase_sel,
-                                                                   defbase_tot_sel,
-                                                                   ts->auto_normalize);
+          use_lock_relative = use_lock_relative &&
+                              BKE_object_defgroup_check_lock_relative_multi(
+                                  defbase_tot, defbase_locked, defbase_sel, defbase_tot_sel);
 
-          /* If auto-normalize is enabled, but weights are not normalized,
-           * the value can exceed 1. */
-          CLAMP(vgroup_weight, 0.0f, 1.0f);
+          bool is_normalized = ts->auto_normalize || use_lock_relative;
+          vgroup_weight = BKE_defvert_multipaint_collective_weight(
+              &me->dvert[v_idx_best], defbase_tot, defbase_sel, defbase_tot_sel, is_normalized);
         }
 
         MEM_freeN(defbase_sel);
       }
 
+      if (use_lock_relative) {
+        BKE_object_defgroup_split_locked_validmap(
+            defbase_tot, defbase_locked, defbase_unlocked, defbase_locked, defbase_unlocked);
+
+        vgroup_weight = BKE_defvert_lock_relative_weight(
+            vgroup_weight, &me->dvert[v_idx_best], defbase_tot, defbase_locked, defbase_unlocked);
+      }
+
+      MEM_SAFE_FREE(defbase_locked);
+      MEM_SAFE_FREE(defbase_unlocked);
+
+      CLAMP(vgroup_weight, 0.0f, 1.0f);
       BKE_brush_weight_set(vc.scene, brush, vgroup_weight);
       changed = true;
     }
