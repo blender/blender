@@ -92,7 +92,7 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 		}
 
 		if (pybuffer.itemsize != 4 ||
-		    PyC_Formatstr_is_float(PyC_Formatstr_get(pybuffer.format)))
+		    PyC_Formatchar_is_floating_type(PyC_Formatchar_get(pybuffer.format)))
 		{
 			PyErr_Format(PyExc_ValueError,
 			             "Each index must be an 4-bytes integer value");
