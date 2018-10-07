@@ -132,74 +132,10 @@ Py_LOCAL_INLINE(int64_t)  PyC_Long_AsI64(PyObject *value) { return (int64_t)PyLo
 Py_LOCAL_INLINE(uint64_t) PyC_Long_AsU64(PyObject *value) { return (uint64_t)PyLong_AsUnsignedLongLong(value); }
 
 /* utils for format string in `struct` module style syntax */
-Py_LOCAL_INLINE(char) PyC_Formatchar_get(const char *typestr)
-{
-	switch (typestr[0]) {
-		case '!':
-		case '<':
-		case '=':
-		case '>':
-		case '@':
-			return typestr[1];
-		default:
-			return typestr[0];
-	}
-}
-
-Py_LOCAL_INLINE(bool) PyC_Formatchar_is_floating_type(char format)
-{
-	switch (format) {
-		case 'f':
-		case 'd':
-		case 'e':
-			return true;
-		default:
-			return false;
-	}
-}
-
-Py_LOCAL_INLINE(bool) PyC_Formatchar_is_integer_type(char format)
-{
-	switch (format) {
-		case 'i':
-		case 'I':
-		case 'l':
-		case 'L':
-		case 'h':
-		case 'H':
-		case 'b':
-		case 'B':
-		case 'q':
-		case 'Q':
-		case 'n':
-		case 'N':
-		case 'P':
-			return true;
-		default:
-			return false;
-	}
-}
-
-Py_LOCAL_INLINE(bool) PyC_Formatchar_is_byte_type(char format)
-{
-	switch (format) {
-		case 'c':
-		case 's':
-		case 'p':
-			return true;
-		default:
-			return false;
-	}
-}
-
-Py_LOCAL_INLINE(bool) PyC_Formatchar_is_boolean_type(char format)
-{
-	switch (format) {
-		case '?':
-			return true;
-		default:
-			return false;
-	}
-}
+char PyC_Formatchar_get(const char *typestr);
+bool PyC_Formatchar_is_floating_type(char format);
+bool PyC_Formatchar_is_integer_type(char format);
+bool PyC_Formatchar_is_byte_type(char format);
+bool PyC_Formatchar_is_boolean_type(char format);
 
 #endif  /* __PY_CAPI_UTILS_H__ */
