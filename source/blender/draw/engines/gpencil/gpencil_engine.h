@@ -303,7 +303,7 @@ void DRW_gpencil_populate_buffer_strokes(
 void DRW_gpencil_populate_multiedit(
         struct GPENCIL_e_data *e_data, void *vedata,
         struct Scene *scene, struct Object *ob, struct tGPencilObjectCache *cache_ob);
-void DRW_gpencil_triangulate_stroke_fill(struct bGPDstroke *gps);
+void DRW_gpencil_triangulate_stroke_fill(struct Object *ob, struct bGPDstroke *gps);
 
 void DRW_gpencil_multisample_ensure(struct GPENCIL_Data *vedata, int rect_w, int rect_h);
 

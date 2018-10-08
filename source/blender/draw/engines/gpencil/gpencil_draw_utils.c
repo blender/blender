@@ -92,7 +92,7 @@ static bool gpencil_can_draw_stroke(
 
 /* calc bounding box in 2d using flat projection data */
 static void gpencil_calc_2d_bounding_box(
-        const float(*points2d)[2], int totpoints, float minv[2], float maxv[2], bool expand)
+        const float(*points2d)[2], int totpoints, float minv[2], float maxv[2])
 {
 	minv[0] = points2d[0][0];
 	minv[1] = points2d[0][1];
@@ -115,14 +115,12 @@ static void gpencil_calc_2d_bounding_box(
 			maxv[1] = points2d[i][1];
 		}
 	}
-	/* If not expanded, use a perfect square */
-	if (expand == false) {
-		if (maxv[0] > maxv[1]) {
-			maxv[1] = maxv[0];
-		}
-		else {
-			maxv[0] = maxv[1];
-		}
+	/* use a perfect square */
+	if (maxv[0] > maxv[1]) {
+		maxv[1] = maxv[0];
+	}
+	else {
+		maxv[0] = maxv[1];
 	}
 }
 
@@ -184,9 +182,11 @@ static void gpencil_stroke_2d_flat(const bGPDspoint *points, int totpoints, floa
 }
 
 /* Triangulate stroke for high quality fill (this is done only if cache is null or stroke was modified) */
-void DRW_gpencil_triangulate_stroke_fill(bGPDstroke *gps)
+void DRW_gpencil_triangulate_stroke_fill(Object *ob, bGPDstroke *gps)
 {
 	BLI_assert(gps->totpoints >= 3);
+
+	bGPdata *gpd = (bGPdata *)ob->data;
 
 	/* allocate memory for temporary areas */
 	gps->tot_triangles = gps->totpoints - 2;
@@ -204,7 +204,14 @@ void DRW_gpencil_triangulate_stroke_fill(bGPDstroke *gps)
 	float minv[2];
 	float maxv[2];
 	/* first needs bounding box data */
-	gpencil_calc_2d_bounding_box(points2d, gps->totpoints, minv, maxv, false);
+	if (gpd->flag & GP_DATA_UV_ADAPTATIVE) {
+		gpencil_calc_2d_bounding_box(points2d, gps->totpoints, minv, maxv);
+	}
+	else {
+		ARRAY_SET_ITEMS(minv, -1.0f, -1.0f);
+		ARRAY_SET_ITEMS(maxv, 1.0f, 1.0f);
+	}
+
 	/* calc uv data */
 	gpencil_calc_stroke_fill_uv(points2d, gps->totpoints, minv, maxv, uv);
 
@@ -256,7 +263,7 @@ static void DRW_gpencil_recalc_geometry_caches(Object *ob, MaterialGPencilStyle 
 			if ((gps->totpoints > 2) &&
 			    ((gp_style->fill_rgba[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)))
 			{
-				DRW_gpencil_triangulate_stroke_fill(gps);
+				DRW_gpencil_triangulate_stroke_fill(ob, gps);
 			}
 		}
 

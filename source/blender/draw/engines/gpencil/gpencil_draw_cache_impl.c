@@ -414,7 +414,7 @@ GPUBatch *DRW_gpencil_get_fill_geom(Object *ob, bGPDstroke *gps, const float col
 
 	/* Calculate triangles cache for filling area (must be done only after changes) */
 	if ((gps->flag & GP_STROKE_RECALC_CACHES) || (gps->tot_triangles == 0) || (gps->triangles == NULL)) {
-		DRW_gpencil_triangulate_stroke_fill(gps);
+		DRW_gpencil_triangulate_stroke_fill(ob, gps);
 		ED_gpencil_calc_stroke_uv(ob, gps);
 	}
 

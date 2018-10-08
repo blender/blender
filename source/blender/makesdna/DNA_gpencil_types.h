@@ -442,6 +442,8 @@ typedef enum eGPdata_Flag {
 	GP_DATA_STROKE_FORCE_RECALC = (1 << 17),
 	/* Special mode drawing polygons */
 	GP_DATA_STROKE_POLYGON = (1 << 18),
+	/* Use adaptative UV scales */
+	GP_DATA_UV_ADAPTATIVE = (1 << 19),
 } eGPdata_Flag;
 
 /* gpd->onion_flag */
