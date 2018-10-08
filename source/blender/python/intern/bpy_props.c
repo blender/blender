@@ -3203,11 +3203,6 @@ PyObject *BPY_rna_props(void)
 	submodule = PyModule_Create(&props_module);
 	PyDict_SetItemString(PyImport_GetModuleDict(), props_module.m_name, submodule);
 
-	/* INCREF since its its assumed that all these functions return the
-	 * module with a new ref like PyDict_New, since they are passed to
-	 * PyModule_AddObject which steals a ref */
-	Py_INCREF(submodule);
-
 	/* api needs the PyObjects internally */
 	submodule_dict = PyModule_GetDict(submodule);
 

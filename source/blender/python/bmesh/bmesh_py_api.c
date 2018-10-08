@@ -203,21 +203,17 @@ PyObject *BPyInit_bmesh(void)
 	/* bmesh.types */
 	PyModule_AddObject(mod, "types", (submodule = BPyInit_bmesh_types()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
-	Py_INCREF(submodule);
 
 	/* bmesh.ops (not a real module, exposes module like access). */
 	PyModule_AddObject(mod, "ops", (submodule = BPyInit_bmesh_ops()));
 	/* PyDict_SetItemString(sys_modules, PyModule_GetNameObject(submodule), submodule); */
 	PyDict_SetItemString(sys_modules, "bmesh.ops", submodule); /* fake module */
-	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "utils", (submodule = BPyInit_bmesh_utils()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
-	Py_INCREF(submodule);
 
 	PyModule_AddObject(mod, "geometry", (submodule = BPyInit_bmesh_geometry()));
 	PyDict_SetItem(sys_modules, PyModule_GetNameObject(submodule), submodule);
-	Py_INCREF(submodule);
 
 	return mod;
 }

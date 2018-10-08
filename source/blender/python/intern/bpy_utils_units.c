@@ -323,7 +323,6 @@ PyObject *BPY_utils_units(void)
 
 	submodule = PyModule_Create(&bpyunits_module);
 	PyDict_SetItemString(PyImport_GetModuleDict(), bpyunits_module.m_name, submodule);
-	Py_INCREF(submodule);
 
 	/* Finalize our unit systems and types structseq definitions! */
 
