@@ -238,6 +238,13 @@ class ExecutePreset(Operator):
 
         ext = splitext(filepath)[1].lower()
 
+        if ext not in {".py", ".xml"}:
+            self.report({'ERROR'}, "unknown filetype: %r" % ext)
+            return {'CANCELLED'}
+
+        if hasattr(preset_class, "pre_cb"):
+            preset_class.pre_cb(context)
+
         # execute the preset using script.python_file_run
         if ext == ".py":
             bpy.ops.script.python_file_run(filepath=filepath)
@@ -246,9 +253,9 @@ class ExecutePreset(Operator):
             rna_xml.xml_file_run(context,
                                  filepath,
                                  preset_class.preset_xml_map)
-        else:
-            self.report({'ERROR'}, "unknown filetype: %r" % ext)
-            return {'CANCELLED'}
+
+        if hasattr(preset_class, "post_cb"):
+            preset_class.post_cb(context)
 
         return {'FINISHED'}
 
@@ -563,6 +570,9 @@ class AddPresetInterfaceTheme(AddPresetBase, Operator):
     bl_label = "Add Theme Preset"
     preset_menu = "USERPREF_MT_interface_theme_presets"
     preset_subdir = "interface_theme"
+
+    def pre_cb(self, context):
+        bpy.ops.ui.reset_default_theme()
 
 
 class AddPresetKeyconfig(AddPresetBase, Operator):

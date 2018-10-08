@@ -2559,8 +2559,6 @@ class WM_MT_splash(Menu):
 
         col = split.column()
 
-        col.label()
-
         sub = col.column(align=True)
         sub.label(text="Input and Shortcuts:")
         text = bpy.path.display_name(context.window_manager.keyconfigs.active.name)
@@ -2570,13 +2568,19 @@ class WM_MT_splash(Menu):
 
         col.separator()
 
+        sub = col.column(align=True)
+        sub.label(text="Theme:")
+        label = bpy.types.USERPREF_MT_interface_theme_presets.bl_label
+        if label == "Presets":
+            label = "Blender Dark"
+        sub.menu("USERPREF_MT_interface_theme_presets", text=label)
+
         # We need to make switching to a language easier first
         #sub = col.column(align=False)
         # sub.label(text="Language:")
         #userpref = context.user_preferences
         #sub.prop(userpref.system, "language", text="")
 
-        col.label()
         col.label()
 
         layout.label()
