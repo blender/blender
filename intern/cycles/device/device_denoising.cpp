@@ -107,7 +107,7 @@ void DenoisingTask::setup_denoising_buffer()
 		num_layers = 2*num_shifts + 1;
 	}
 	else {
-		num_layers = 4;
+		num_layers = 3;
 	}
 	/* Allocate two layers per shift as well as one for the weight accumulation. */
 	buffer.temporary_mem.alloc_to_device(num_layers * buffer.pass_stride);

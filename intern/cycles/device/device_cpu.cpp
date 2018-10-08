@@ -475,7 +475,6 @@ public:
 		float *blurDifference = temporary_mem;
 		float *difference     = temporary_mem + task->buffer.pass_stride;
 		float *weightAccum    = temporary_mem + 2*task->buffer.pass_stride;
-		float *temp_image     = temporary_mem + 3*task->buffer.pass_stride;
 
 		memset(weightAccum, 0, sizeof(float)*w*h);
 		memset((float*) out_ptr, 0, sizeof(float)*w*h);
@@ -500,7 +499,7 @@ public:
 			filter_nlm_update_output_kernel()(dx, dy,
 			                                  blurDifference,
 			                                  (float*) image_ptr,
-			                                  temp_image,
+			                                  difference,
 			                                  (float*) out_ptr,
 			                                  weightAccum,
 			                                  local_rect,
