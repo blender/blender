@@ -417,7 +417,7 @@ int CParser::Priority(int optorkind)
 
 CExpression *CParser::Ex(int i)
 {
-	// parses an expression in the imput, starting at priority i, and
+	// parses an expression in the input, starting at priority i, and
 	// returns an CExpression, containing the parsed input
 	CExpression *e1 = NULL, *e2 = NULL;
 	int opkind2;
@@ -562,7 +562,7 @@ CExpression *CParser::Ex(int i)
 
 CExpression *CParser::Expr()
 {
-	// parses an expression in the imput, and
+	// parses an expression in the input, and
 	// returns an CExpression, containing the parsed input
 	return Ex(1);
 }

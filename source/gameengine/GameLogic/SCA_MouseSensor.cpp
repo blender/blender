@@ -202,7 +202,7 @@ bool SCA_MouseSensor::Evaluate()
 				m_val = 0;
 				result = true;
 			}
-			else //KX_NO_IMPUTSTATUS
+			else// KX_NO_INPUTSTATUS
 			{
 				if (m_val == 1)
 				{
