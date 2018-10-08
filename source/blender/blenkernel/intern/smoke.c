@@ -664,6 +664,7 @@ void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifie
 		tsds->data_depth = sds->data_depth;
 		tsds->cache_file_format = sds->cache_file_format;
 
+		tsds->display_thickness = sds->display_thickness;
 		tsds->slice_method = sds->slice_method;
 		tsds->axis_slice_method = sds->axis_slice_method;
 		tsds->slice_per_voxel = sds->slice_per_voxel;

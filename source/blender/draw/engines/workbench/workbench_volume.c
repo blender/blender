@@ -61,7 +61,7 @@ void workbench_volume_engine_free(void)
 
 void workbench_volume_cache_init(WORKBENCH_Data *vedata)
 {
-	vedata->psl->volume_pass = DRW_pass_create("Volumes", DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL | DRW_STATE_CULL_FRONT);
+	vedata->psl->volume_pass = DRW_pass_create("Volumes", DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSMISSION | DRW_STATE_CULL_FRONT);
 }
 
 void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Object *ob, ModifierData *md)
@@ -101,6 +101,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.volume_slice_sh, vedata->psl->volume_pass);
 		DRW_shgroup_uniform_texture(grp, "densityTexture", sds->tex);
+		DRW_shgroup_uniform_texture(grp, "shadowTexture", sds->tex_shadow);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * sds->display_thickness);
 		DRW_shgroup_uniform_float_copy(grp, "slicePosition", sds->slice_depth);
@@ -120,6 +121,7 @@ void workbench_volume_cache_populate(WORKBENCH_Data *vedata, Scene *scene, Objec
 		DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)wpd->viewvecs, 3);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_texture(grp, "densityTexture", sds->tex);
+		DRW_shgroup_uniform_texture(grp, "shadowTexture", sds->tex_shadow);
 		DRW_shgroup_uniform_float_copy(grp, "densityScale", 10.0f * sds->display_thickness);
 		DRW_shgroup_uniform_int_copy(grp, "samplesLen", max_slices);
 		/* TODO FIXME : This step size is in object space but the ray itself

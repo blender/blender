@@ -915,9 +915,10 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			/* density only */
 			else {
-				sds->tex = GPU_texture_create_3D(
-				        sds->res[0], sds->res[1], sds->res[2],
-				        GPU_R8, smoke_get_density(sds->fluid), NULL);
+				sds->tex = GPU_texture_create_nD(
+				        sds->res[0], sds->res[1], sds->res[2], 3,
+				        smoke_get_density(sds->fluid),
+				        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
 
 				/* Swizzle the RGBA components to read the Red channel so
 				 * that the shader stay the same for colored and non color
@@ -931,10 +932,11 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			sds->tex_flame = (
 			        smoke_has_fuel(sds->fluid) ?
-			        GPU_texture_create_3D(
-			                sds->res[0], sds->res[1], sds->res[2],
-			                GPU_R8, smoke_get_flame(sds->fluid), NULL) :
-			        NULL);
+			                GPU_texture_create_nD(
+			                              sds->res[0], sds->res[1], sds->res[2], 3,
+			                              smoke_get_flame(sds->fluid),
+			                              GPU_R8, GPU_DATA_FLOAT, 0, true, NULL) :
+			                NULL);
 		}
 		else if (!sds->tex && highres) {
 			/* rgba texture for color + density */
@@ -946,9 +948,10 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			/* density only */
 			else {
-				sds->tex = GPU_texture_create_3D(
-				        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
-				        GPU_R8, smoke_turbulence_get_density(sds->wt), NULL);
+				sds->tex = GPU_texture_create_nD(
+				        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 3,
+				        smoke_turbulence_get_density(sds->wt),
+				        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
 
 				/* Swizzle the RGBA components to read the Red channel so
 				 * that the shader stay the same for colored and non color
@@ -962,15 +965,18 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			}
 			sds->tex_flame = (
 			        smoke_turbulence_has_fuel(sds->wt) ?
-			        GPU_texture_create_3D(
-			                sds->res_wt[0], sds->res_wt[1], sds->res_wt[2],
-			                GPU_R8, smoke_turbulence_get_flame(sds->wt), NULL) :
-			        NULL);
+			                GPU_texture_create_nD(
+			                        sds->res[0], sds->res[1], sds->res[2], 3,
+			                        smoke_turbulence_get_flame(sds->wt),
+			                        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL) :
+			                NULL);
 		}
 
-		sds->tex_shadow = GPU_texture_create_3D(
-		        sds->res[0], sds->res[1], sds->res[2],
-		        GPU_R8, sds->shadow, NULL);
+		sds->tex_shadow = GPU_texture_create_nD(
+		                      sds->res[0], sds->res[1], sds->res[2], 3,
+		                      sds->shadow,
+		                      GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
+
 	}
 #else // WITH_SMOKE
 	(void)highres;

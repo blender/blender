@@ -2040,7 +2040,7 @@ static void volumes_free_smoke_textures(void)
 	 * all viewport in a redraw at least. */
 	for (LinkData *link = e_data.smoke_domains.first; link; link = link->next) {
 		SmokeModifierData *smd = (SmokeModifierData *)link->data;
-		GPU_free_smoke(smd);
+		GPU_free_smoke_velocity(smd);
 	}
 	BLI_freelistN(&e_data.smoke_domains);
 }
