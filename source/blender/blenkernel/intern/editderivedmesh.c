@@ -53,6 +53,7 @@
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_editmesh_tangent.h"
 
 #include "DNA_scene_types.h"
@@ -76,84 +77,17 @@ static void emDM_ensurePolyNormals(EditDerivedBMesh *bmdm);
 
 static void emDM_ensureVertNormals(EditDerivedBMesh *bmdm)
 {
-	if (bmdm->emd.vertexCos && (bmdm->emd.vertexNos == NULL)) {
-
-		BMesh *bm = bmdm->em->bm;
-		const float (*vertexCos)[3], (*polyNos)[3];
-		float (*vertexNos)[3];
-
-		/* calculate vertex normals from poly normals */
-		emDM_ensurePolyNormals(bmdm);
-
-		BM_mesh_elem_index_ensure(bm, BM_FACE);
-
-		polyNos = bmdm->emd.polyNos;
-		vertexCos = bmdm->emd.vertexCos;
-		vertexNos = MEM_callocN(sizeof(*vertexNos) * bm->totvert, __func__);
-
-		BM_verts_calc_normal_vcos(bm, polyNos, vertexCos, vertexNos);
-
-		bmdm->emd.vertexNos = (const float (*)[3])vertexNos;
-	}
+	BKE_editmesh_cache_ensure_vert_normals(bmdm->em, &bmdm->emd);
 }
 
 static void emDM_ensurePolyNormals(EditDerivedBMesh *bmdm)
 {
-	if (bmdm->emd.vertexCos && (bmdm->emd.polyNos == NULL)) {
-		BMesh *bm = bmdm->em->bm;
-		const float (*vertexCos)[3];
-		float (*polyNos)[3];
-
-		BMFace *efa;
-		BMIter fiter;
-		int i;
-
-		BM_mesh_elem_index_ensure(bm, BM_VERT);
-
-		polyNos = MEM_mallocN(sizeof(*polyNos) * bm->totface, __func__);
-
-		vertexCos = bmdm->emd.vertexCos;
-
-		BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-			BM_elem_index_set(efa, i); /* set_inline */
-			BM_face_calc_normal_vcos(bm, efa, polyNos[i], vertexCos);
-		}
-		bm->elem_index_dirty &= ~BM_FACE;
-
-		bmdm->emd.polyNos = (const float (*)[3])polyNos;
-	}
+	BKE_editmesh_cache_ensure_poly_normals(bmdm->em, &bmdm->emd);
 }
 
 static void emDM_ensurePolyCenters(EditDerivedBMesh *bmdm)
 {
-	if (bmdm->emd.polyCos == NULL) {
-		BMesh *bm = bmdm->em->bm;
-		float (*polyCos)[3];
-
-		BMFace *efa;
-		BMIter fiter;
-		int i;
-
-		polyCos = MEM_mallocN(sizeof(*polyCos) * bm->totface, __func__);
-
-		if (bmdm->emd.vertexCos) {
-			const float (*vertexCos)[3];
-			vertexCos = bmdm->emd.vertexCos;
-
-			BM_mesh_elem_index_ensure(bm, BM_VERT);
-
-			BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_face_calc_center_mean_vcos(bm, efa, polyCos[i], vertexCos);
-			}
-		}
-		else {
-			BM_ITER_MESH_INDEX (efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-				BM_face_calc_center_mean(efa, polyCos[i]);
-			}
-		}
-
-		bmdm->emd.polyCos = (const float (*)[3])polyCos;
-	}
+	BKE_editmesh_cache_ensure_poly_centers(bmdm->em, &bmdm->emd);
 }
 
 static void emDM_calcNormals(DerivedMesh *dm)
