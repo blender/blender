@@ -703,6 +703,7 @@ GPUBatch *DRW_gpencil_get_grid(Object *ob)
 	const float grid_h = gpd->grid.scale[1] * ED_scene_grid_scale(scene, &grid_unit);
 	const float space_w = (grid_w / gridlines);
 	const float space_h = (grid_h / gridlines);
+	const float offset[2] = { gpd->grid.offset[0], gpd->grid.offset[1] };
 
 	const uint vertex_len = 2 * (gridlines * 4 + 2);
 
@@ -722,34 +723,34 @@ GPUBatch *DRW_gpencil_get_grid(Object *ob)
 		const float line_w = a * space_w;
 		const float line_h = a * space_h;
 
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w, -line_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w + offset[0], -line_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w, -line_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w + offset[0], -line_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w, +line_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w + offset[0], +line_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w, +line_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w + offset[0], +line_h + offset[1], axis);
 		idx++;
 
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -line_w, -grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -line_w + offset[0], -grid_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -line_w, +grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -line_w + offset[0], +grid_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +line_w, -grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +line_w + offset[0], -grid_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +line_w, +grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +line_w + offset[0], +grid_h + offset[1], axis);
 		idx++;
 	}
 	/* center lines */
 	if (do_center) {
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w, 0.0f, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, -grid_w + offset[0], 0.0f + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w, 0.0f, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, +grid_w + offset[0], 0.0f + offset[1], axis);
 		idx++;
 
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, -grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f + offset[0], -grid_h + offset[1], axis);
 		idx++;
-		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f, +grid_h, axis);
+		set_grid_point(vbo, idx, col_grid, pos_id, color_id, 0.0f + offset[0], +grid_h + offset[1], axis);
 		idx++;
 	}
 	return GPU_batch_create_ex(GPU_PRIM_LINES, vbo, NULL, GPU_BATCH_OWNS_VBO);

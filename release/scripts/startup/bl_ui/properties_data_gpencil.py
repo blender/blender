@@ -365,6 +365,7 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
         col = row.column()
         col.prop(grid, "color")
         col.prop(grid, "scale")
+        col.prop(grid, "offset")
         row = layout.row(align=True)
         col = row.column()
         col.prop(grid, "lines", text="Subdivisions")

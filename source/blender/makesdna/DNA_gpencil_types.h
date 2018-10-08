@@ -328,6 +328,7 @@ typedef struct bGPdata_Runtime {
 typedef struct bGPgrid {
 	float color[3];
 	float scale[2];
+	float offset[2];
 	char _pad1[4];
 
 	int   lines;
