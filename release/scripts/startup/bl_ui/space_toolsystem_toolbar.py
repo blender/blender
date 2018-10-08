@@ -65,7 +65,7 @@ def generate_from_brushes_ex(
 
         for brush_type in brush_category_layout:
             for brush in context.blend_data.brushes:
-                if getattr(brush, brush_test_attr) and brush.gpencil_settings.gp_icon == brush_type[0]:
+                if brush.gpencil_settings and getattr(brush, brush_test_attr) and brush.gpencil_settings.gp_icon == brush_type[0]:
                     category = brush_type[0]
                     name = brush.name
                     text = name
