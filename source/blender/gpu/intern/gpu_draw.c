@@ -893,6 +893,7 @@ enum {
 
 #define TFUNC_WIDTH 256
 
+#ifdef WITH_SMOKE
 static void create_flame_spectrum_texture(float *data)
 {
 #define FIRE_THRESH 7
@@ -962,7 +963,6 @@ static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
 	float *field = NULL;
 
 	switch (sds->coba_field) {
-#ifdef WITH_SMOKE
 		case FLUID_FIELD_DENSITY:    field = smoke_get_density(sds->fluid); break;
 		case FLUID_FIELD_HEAT:       field = smoke_get_heat(sds->fluid); break;
 		case FLUID_FIELD_FUEL:       field = smoke_get_fuel(sds->fluid); break;
@@ -977,12 +977,12 @@ static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
 		case FLUID_FIELD_FORCE_X:    field = smoke_get_force_x(sds->fluid); break;
 		case FLUID_FIELD_FORCE_Y:    field = smoke_get_force_y(sds->fluid); break;
 		case FLUID_FIELD_FORCE_Z:    field = smoke_get_force_z(sds->fluid); break;
-#endif
 		default: return NULL;
 	}
 
 	return GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R8, field, NULL);
 }
+#endif  /* WITH_SMOKE */
 
 void GPU_free_smoke(SmokeModifierData *smd)
 {
