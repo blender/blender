@@ -63,6 +63,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_bmfont.h"
+#include "BKE_colorband.h"
 #include "BKE_global.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
@@ -883,6 +884,106 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
 
+/* *************************** Transfer functions *************************** */
+
+enum {
+	TFUNC_FLAME_SPECTRUM = 0,
+	TFUNC_COLOR_RAMP     = 1,
+};
+
+#define TFUNC_WIDTH 256
+
+static void create_flame_spectrum_texture(float *data)
+{
+#define FIRE_THRESH 7
+#define MAX_FIRE_ALPHA 0.06f
+#define FULL_ON_FIRE 100
+
+	float *spec_pixels = MEM_mallocN(TFUNC_WIDTH * 4 * 16 * 16 * sizeof(float), "spec_pixels");
+
+	blackbody_temperature_to_rgb_table(data, TFUNC_WIDTH, 1500, 3000);
+
+	for (int i = 0; i < 16; i++) {
+		for (int j = 0; j < 16; j++) {
+			for (int k = 0; k < TFUNC_WIDTH; k++) {
+				int index = (j * TFUNC_WIDTH * 16 + i * TFUNC_WIDTH + k) * 4;
+				if (k >= FIRE_THRESH) {
+					spec_pixels[index] = (data[k * 4]);
+					spec_pixels[index + 1] = (data[k * 4 + 1]);
+					spec_pixels[index + 2] = (data[k * 4 + 2]);
+					spec_pixels[index + 3] = MAX_FIRE_ALPHA * (
+					        (k > FULL_ON_FIRE) ? 1.0f : (k - FIRE_THRESH) / ((float)FULL_ON_FIRE - FIRE_THRESH));
+				}
+				else {
+					zero_v4(&spec_pixels[index]);
+				}
+			}
+		}
+	}
+
+	memcpy(data, spec_pixels, sizeof(float) * 4 * TFUNC_WIDTH);
+
+	MEM_freeN(spec_pixels);
+
+#undef FIRE_THRESH
+#undef MAX_FIRE_ALPHA
+#undef FULL_ON_FIRE
+}
+
+static void create_color_ramp(const ColorBand *coba, float *data)
+{
+	for (int i = 0; i < TFUNC_WIDTH; i++) {
+		BKE_colorband_evaluate(coba, (float)i / TFUNC_WIDTH, &data[i * 4]);
+	}
+}
+
+static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
+{
+	float *data = MEM_mallocN(sizeof(float) * 4 * TFUNC_WIDTH, __func__);
+
+	switch (type) {
+		case TFUNC_FLAME_SPECTRUM:
+			create_flame_spectrum_texture(data);
+			break;
+		case TFUNC_COLOR_RAMP:
+			create_color_ramp(coba, data);
+			break;
+	}
+
+	GPUTexture *tex = GPU_texture_create_1D(TFUNC_WIDTH, GPU_RGBA8, data, NULL);
+
+	MEM_freeN(data);
+
+	return tex;
+}
+
+static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
+{
+	float *field = NULL;
+
+	switch (sds->coba_field) {
+#ifdef WITH_SMOKE
+		case FLUID_FIELD_DENSITY:    field = smoke_get_density(sds->fluid); break;
+		case FLUID_FIELD_HEAT:       field = smoke_get_heat(sds->fluid); break;
+		case FLUID_FIELD_FUEL:       field = smoke_get_fuel(sds->fluid); break;
+		case FLUID_FIELD_REACT:      field = smoke_get_react(sds->fluid); break;
+		case FLUID_FIELD_FLAME:      field = smoke_get_flame(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_X: field = smoke_get_velocity_x(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_Y: field = smoke_get_velocity_y(sds->fluid); break;
+		case FLUID_FIELD_VELOCITY_Z: field = smoke_get_velocity_z(sds->fluid); break;
+		case FLUID_FIELD_COLOR_R:    field = smoke_get_color_r(sds->fluid); break;
+		case FLUID_FIELD_COLOR_G:    field = smoke_get_color_g(sds->fluid); break;
+		case FLUID_FIELD_COLOR_B:    field = smoke_get_color_b(sds->fluid); break;
+		case FLUID_FIELD_FORCE_X:    field = smoke_get_force_x(sds->fluid); break;
+		case FLUID_FIELD_FORCE_Y:    field = smoke_get_force_y(sds->fluid); break;
+		case FLUID_FIELD_FORCE_Z:    field = smoke_get_force_z(sds->fluid); break;
+#endif
+		default: return NULL;
+	}
+
+	return GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R8, field, NULL);
+}
+
 void GPU_free_smoke(SmokeModifierData *smd)
 {
 	if (smd->type & MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
@@ -897,6 +998,10 @@ void GPU_free_smoke(SmokeModifierData *smd)
 		if (smd->domain->tex_flame)
 			GPU_texture_free(smd->domain->tex_flame);
 		smd->domain->tex_flame = NULL;
+
+		if (smd->domain->tex_flame_coba)
+			GPU_texture_free(smd->domain->tex_flame_coba);
+		smd->domain->tex_flame_coba = NULL;
 	}
 }
 
@@ -966,10 +1071,14 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 			sds->tex_flame = (
 			        smoke_turbulence_has_fuel(sds->wt) ?
 			                GPU_texture_create_nD(
-			                        sds->res[0], sds->res[1], sds->res[2], 3,
+			                        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 3,
 			                        smoke_turbulence_get_flame(sds->wt),
 			                        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL) :
 			                NULL);
+		}
+
+		if (sds->tex_flame) {
+			sds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
 		}
 
 		sds->tex_shadow = GPU_texture_create_nD(
@@ -982,6 +1091,7 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 	(void)highres;
 	smd->domain->tex = NULL;
 	smd->domain->tex_flame = NULL;
+	smd->domain->tex_flame_coba = NULL;
 	smd->domain->tex_shadow = NULL;
 #endif // WITH_SMOKE
 }
