@@ -2258,3 +2258,29 @@ void CDDM_set_mpoly(DerivedMesh *dm, MPoly *mpoly)
 
 	cddm->mpoly = mpoly;
 }
+
+/** Hack to fill in an empty (non library mesh struct) with CDDM values. */
+void CDDM_to_mesh__fast_borrow(DerivedMesh *dm, Mesh *me, const Mesh *me_reference)
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
+	me->totvert = cddm->dm.numVertData;
+	me->totedge = cddm->dm.numEdgeData;
+	me->totloop = cddm->dm.numLoopData;
+	me->totpoly = cddm->dm.numPolyData;
+
+	me->mvert = cddm->mvert;
+	me->medge = cddm->medge;
+	me->mface = cddm->mface;
+	me->mloop = cddm->mloop;
+	me->mpoly = cddm->mpoly;
+
+	me->vdata = dm->vertData;
+	me->edata = dm->edgeData;
+	me->ldata = dm->loopData;
+	me->pdata = dm->polyData;
+
+	if (me_reference) {
+		me->mat = me_reference->mat;
+		me->totcol = me_reference->totcol;
+	}
+}

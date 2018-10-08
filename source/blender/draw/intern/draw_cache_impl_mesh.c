@@ -53,6 +53,7 @@
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
 #include "BKE_colorband.h"
+#include "BKE_cdderivedmesh.h"
 
 #include "bmesh.h"
 
@@ -4459,6 +4460,19 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
 	if (cache->shaded_triangles == NULL) {
+
+		/* Hack to show the final result. */
+		const bool use_em_final = (
+		        me->edit_btmesh &&
+		        me->edit_btmesh->derivedFinal &&
+		        (me->edit_btmesh->derivedFinal->type == DM_TYPE_CDDM));
+		Mesh me_fake;
+		if (use_em_final) {
+			memset(&me_fake, 0x0, sizeof(me_fake));
+			CDDM_to_mesh__fast_borrow(me->edit_btmesh->derivedFinal, &me_fake, me);
+			me = &me_fake;
+		}
+
 		/* create batch from DM */
 		const int datatype =
 		        MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI |
