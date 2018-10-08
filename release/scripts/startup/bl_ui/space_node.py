@@ -509,17 +509,17 @@ class NODE_UL_interface_sockets(bpy.types.UIList):
 
             # inputs get icon on the left
             if not socket.is_output:
-                row.template_node_socket(color)
+                row.template_node_socket(color=color)
 
             row.prop(socket, "name", text="", emboss=False, icon_value=icon)
 
             # outputs get icon on the right
             if socket.is_output:
-                row.template_node_socket(color)
+                row.template_node_socket(color=color)
 
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
-            layout.template_node_socket(color)
+            layout.template_node_socket(color=color)
 
 
 # Grease Pencil properties
