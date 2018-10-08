@@ -48,6 +48,7 @@
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
+#include "BKE_editmesh_cache.h"
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
@@ -972,8 +973,17 @@ static void mesh_render_data_ensure_poly_normals_pack(MeshRenderData *rdata)
 			int i;
 
 			pnors_pack = rdata->poly_normals_pack = MEM_mallocN(sizeof(*pnors_pack) * rdata->poly_len, __func__);
-			BM_ITER_MESH_INDEX(efa, &fiter, bm, BM_FACES_OF_MESH, i) {
-				pnors_pack[i] = GPU_normal_convert_i10_v3(efa->no);
+			if (rdata->edit_data && rdata->edit_data->vertexCos != NULL) {
+				BKE_editmesh_cache_ensure_poly_normals(rdata->edit_bmesh, rdata->edit_data);
+				const float (*pnors)[3] = rdata->edit_data->polyNos;
+				for (i = 0; i < bm->totface; i++) {
+					pnors_pack[i] = GPU_normal_convert_i10_v3(pnors[i]);
+				}
+			}
+			else {
+				BM_ITER_MESH_INDEX(efa, &fiter, bm, BM_FACES_OF_MESH, i) {
+					pnors_pack[i] = GPU_normal_convert_i10_v3(efa->no);
+				}
 			}
 		}
 		else {
@@ -1213,8 +1223,14 @@ static bool mesh_render_data_pnors_pcenter_select_get(
 		if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 			return false;
 		}
-		BM_face_calc_center_mean(efa, r_center);
-		copy_v3_v3(r_pnors, efa->no);
+		if (rdata->edit_data && rdata->edit_data->vertexCos) {
+			copy_v3_v3(r_center, rdata->edit_data->polyCos[poly]);
+			copy_v3_v3(r_pnors, rdata->edit_data->polyNos[poly]);
+		}
+		else {
+			BM_face_calc_center_mean(efa, r_center);
+			copy_v3_v3(r_pnors, efa->no);
+		}
 		*r_selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;
 	}
 	else {
@@ -2513,6 +2529,14 @@ static GPUVertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
 
 		GPUVertBuf *vbo = cache->ed_fcenter_pos_with_nor_and_sel = GPU_vertbuf_create_with_format(&format);
 		GPU_vertbuf_data_alloc(vbo, vbo_len_capacity);
+
+		if (rdata->edit_bmesh) {
+			if (rdata->edit_data && rdata->edit_data->vertexCos != NULL) {
+				BKE_editmesh_cache_ensure_poly_normals(rdata->edit_bmesh, rdata->edit_data);
+				BKE_editmesh_cache_ensure_poly_centers(rdata->edit_bmesh, rdata->edit_data);
+			}
+		}
+
 		for (int i = 0; i < vbo_len_capacity; ++i) {
 			float pcenter[3], pnor[3];
 			bool selected = false;
