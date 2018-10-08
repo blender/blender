@@ -60,13 +60,6 @@ class VIEW3D_HT_header(Header):
                 row = layout.row()
                 row.prop(tool_settings.particle_edit, "select_mode", text="", expand=True)
 
-        # Pose
-        if obj and object_mode == 'POSE':
-            row = layout.row(align=True)
-            row.operator("pose.copy", text="", icon='COPYDOWN')
-            row.operator("pose.paste", text="", icon='PASTEDOWN').flipped = False
-            row.operator("pose.paste", text="", icon='PASTEFLIPDOWN').flipped = True
-
         # Grease Pencil
         if obj and obj.type == 'GPENCIL' and context.gpencil_data:
             gpd = context.gpencil_data
@@ -2438,7 +2431,7 @@ class VIEW3D_MT_pose(Menu):
 
         layout.operator("pose.copy")
         layout.operator("pose.paste").flipped = False
-        layout.operator("pose.paste", text="Paste X-Flipped Pose").flipped = True
+        layout.operator("pose.paste", text="Paste Pose Flipped").flipped = True
 
         layout.separator()
 

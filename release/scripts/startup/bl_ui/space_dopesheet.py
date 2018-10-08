@@ -473,6 +473,9 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.frame_jump")
 
         layout.separator()
+        layout.operator("action.copy")
+        layout.operator("action.paste")
+        layout.operator("action.paste", text="Paste Flipped").flipped = True
         layout.operator("action.duplicate_move")
         layout.operator("action.delete")
 
@@ -485,10 +488,6 @@ class DOPESHEET_MT_key(Menu):
         layout.operator("action.clean").channels = False
         layout.operator("action.clean", text="Clean Channels").channels = True
         layout.operator("action.sample")
-
-        layout.separator()
-        layout.operator("action.copy")
-        layout.operator("action.paste")
 
 
 class DOPESHEET_MT_key_transform(Menu):

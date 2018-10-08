@@ -75,11 +75,6 @@ class GRAPH_HT_header(Header):
 
         layout.prop(st, "pivot_point", icon_only=True)
 
-        row = layout.row(align=True)
-        row.operator("graph.copy", text="", icon='COPYDOWN')
-        row.operator("graph.paste", text="", icon='PASTEDOWN')
-        row.operator("graph.paste", text="", icon='PASTEFLIPDOWN').flipped = True
-
 
 class GRAPH_PT_filters(DopesheetFilterPopoverBase, Panel):
     bl_space_type = 'GRAPH_EDITOR'
@@ -277,6 +272,9 @@ class GRAPH_MT_key(Menu):
         layout.operator("graph.frame_jump")
 
         layout.separator()
+        layout.operator("graph.copy")
+        layout.operator("graph.paste")
+        layout.operator("graph.paste", text="Paste Flipped").flipped = True
         layout.operator("graph.duplicate_move")
         layout.operator("graph.delete")
 
@@ -291,10 +289,6 @@ class GRAPH_MT_key(Menu):
         layout.operator("graph.smooth")
         layout.operator("graph.sample")
         layout.operator("graph.bake")
-
-        layout.separator()
-        layout.operator("graph.copy")
-        layout.operator("graph.paste")
 
         layout.separator()
         layout.operator("graph.euler_filter", text="Discontinuity (Euler) Filter")

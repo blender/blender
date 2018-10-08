@@ -98,10 +98,10 @@ class SEQUENCER_HT_header(Header):
             layout.operator("sequencer.refresh_all")
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
-            layout.prop(st, "display_mode", expand=True, text="")
+            layout.prop(st, "display_mode", text="", icon_only=True)
 
         if st.view_type != 'SEQUENCER':
-            layout.prop(st, "preview_channels", expand=True, text="")
+            layout.prop(st, "preview_channels", text="", icon_only=True)
             layout.prop(st, "display_channel", text="Channel")
 
             ed = scene.sequence_editor
@@ -126,17 +126,7 @@ class SEQUENCER_HT_header(Header):
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
-        row = layout.row(align=True)
-        row.operator("render.opengl", text="", icon='RENDER_STILL').sequencer = True
-        props = row.operator("render.opengl", text="", icon='RENDER_ANIMATION')
-        props.animation = True
-        props.sequencer = True
 
-        if st.view_type == 'SEQUENCER':
-
-            row = layout.row(align=True)
-            row.operator("sequencer.copy", text="", icon='COPYDOWN')
-            row.operator("sequencer.paste", text="", icon='PASTEDOWN')
 
 
 class SEQUENCER_MT_editor_menus(Menu):
@@ -238,6 +228,11 @@ class SEQUENCER_MT_view(Menu):
         if is_sequencer_view:
             layout.prop(st, "use_marker_sync")
             layout.separator()
+
+        layout.operator("render.opengl", text="OpenGL Render", icon='RENDER_STILL').sequencer = True
+        props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
+        props.animation = True
+        props.sequencer = True
 
         layout.menu("INFO_MT_area")
 
@@ -451,6 +446,8 @@ class SEQUENCER_MT_strip(Menu):
         layout.operator("sequencer.offset_clear")
 
         layout.separator()
+        layout.operator("sequencer.copy", text="Copy")
+        layout.operator("sequencer.paste", text="Paste")
         layout.operator("sequencer.duplicate_move")
         layout.operator("sequencer.delete", text="Delete...")
 

@@ -141,11 +141,12 @@ class NODE_HT_header(Header):
 
             layout.template_ID(snode, "node_tree", new="node.new_node_tree")
 
+
+        layout.prop(snode, "pin", text="")
         layout.separator_spacer()
 
         layout.template_running_jobs()
 
-        layout.prop(snode, "pin", text="")
         layout.operator("node.tree_path_parent", text="", icon='FILE_PARENT')
 
         # Snap
@@ -154,10 +155,6 @@ class NODE_HT_header(Header):
         row.prop(toolsettings, "snap_node_element", icon_only=True)
         if toolsettings.snap_node_element != 'GRID':
             row.prop(toolsettings, "snap_target", text="")
-
-        row = layout.row(align=True)
-        row.operator("node.clipboard_copy", text="", icon='COPYDOWN')
-        row.operator("node.clipboard_paste", text="", icon='PASTEDOWN')
 
 
 class NODE_MT_editor_menus(Menu):
@@ -266,7 +263,8 @@ class NODE_MT_node(Menu):
         layout.operator("transform.resize")
 
         layout.separator()
-
+        layout.operator("node.clipboard_copy", text="Copy")
+        layout.operator("node.clipboard_paste", text="Paste")
         layout.operator("node.duplicate_move")
         layout.operator("node.delete")
         layout.operator("node.delete_reconnect")

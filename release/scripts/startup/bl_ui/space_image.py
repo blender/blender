@@ -560,13 +560,10 @@ class IMAGE_HT_header(Header):
             row = layout.row()
             row.template_ID(sima, "mask", new="mask.new")
 
-        layout.separator_spacer()
-
-        if show_uvedit or show_maskedit or mode == 'PAINT':
-            layout.prop(sima, "use_realtime_update", icon_only=True, icon='FILE_REFRESH')
-
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
+
+        layout.separator_spacer()
 
         if show_uvedit:
             uvedit = sima.uv_editor
