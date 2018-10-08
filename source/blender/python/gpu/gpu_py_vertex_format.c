@@ -160,36 +160,38 @@ static int get_default_fetch_mode(GPUVertCompType type)
 /** \name VertFormat Type
  * \{ */
 
-static int add_attribute_simple(GPUVertFormat *format, char *name, GPUVertCompType comp_type, int length)
+static bool bpygpu_vertformat_attr_add_simple(
+        GPUVertFormat *format, const char *name, GPUVertCompType comp_type, int length)
 {
 	if (length <= 0) {
 		PyErr_SetString(PyExc_ValueError,
 		                "length of an attribute must greater than 0");
-		return 0;
+		return false;
 	}
 
 	int fetch_mode = get_default_fetch_mode(comp_type);
 	if (fetch_mode == -1) {
 		PyErr_SetString(PyExc_ValueError,
 		                "no default fetch mode found");
-		return 0;
+		return false;
 	}
 
 	GPU_vertformat_attr_add(format, name, comp_type, length, fetch_mode);
-	return 1;
+	return true;
 }
 
-static int add_attribute_from_tuple(GPUVertFormat *format, PyObject *data)
+static bool bpygpu_vertformat_attr_add_from_tuple(
+        GPUVertFormat *format, PyObject *data)
 {
-	char *name;
+	const char *name;
 	GPUVertCompType comp_type;
 	int length;
 
 	if (!PyArg_ParseTuple(data, "sO&i", &name, bpygpu_ParseVertCompType, &comp_type, &length)) {
-		return 0;
+		return false;
 	}
 
-	return add_attribute_simple(format, name, comp_type, length);
+	return bpygpu_vertformat_attr_add_simple(format, name, comp_type, length);
 }
 
 static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
@@ -308,7 +310,7 @@ bool bpygpu_vertformat_from_PyList(
 
 			return false;
 		}
-		if (!add_attribute_from_tuple(r_fmt, element)) {
+		if (!bpygpu_vertformat_attr_add_from_tuple(r_fmt, element)) {
 			return false;
 		}
 	}
