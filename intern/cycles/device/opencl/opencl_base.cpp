@@ -865,38 +865,38 @@ bool OpenCLDeviceBase::denoising_reconstruct(device_ptr color_ptr,
 	int h = task->reconstruction_state.source_h;
 	int stride = task->buffer.stride;
 
-	int shift_stride = stride*h;
-	int num_shifts = (2*task->radius + 1)*(2*task->radius + 1);
-	int mem_size = sizeof(float)*shift_stride*num_shifts;
+	int r = task->radius;
+	int pass_stride = task->buffer.pass_stride;
+	int num_shifts = (2*r-+1)*(2*r+1);
 
-	cl_mem difference = clCreateBuffer(cxContext, CL_MEM_READ_WRITE, mem_size, NULL, &ciErr);
-	opencl_assert_err(ciErr, "clCreateBuffer denoising_reconstruct");
-	cl_mem blurDifference = clCreateBuffer(cxContext, CL_MEM_READ_WRITE, mem_size, NULL, &ciErr);
-	opencl_assert_err(ciErr, "clCreateBuffer denoising_reconstruct");
+	device_sub_ptr difference(task->buffer.temporary_mem, 0, pass_stride*num_shifts);
+	device_sub_ptr blurDifference(task->buffer.temporary_mem, pass_stride*num_shifts, pass_stride*num_shifts);
+	cl_mem difference_mem = CL_MEM_PTR(*difference);
+	cl_mem blurDifference_mem = CL_MEM_PTR(*blurDifference);
 
 	kernel_set_args(ckNLMCalcDifference, 0,
 	                color_mem,
 	                color_variance_mem,
-	                difference,
+	                difference_mem,
 	                w, h, stride,
-	                shift_stride,
-	                task->radius,
-	                task->buffer.pass_stride,
+	                pass_stride,
+	                r,
+	                pass_stride,
 	                1.0f, task->nlm_k_2);
 	kernel_set_args(ckNLMBlur, 0,
-	                difference,
-	                blurDifference,
+	                difference_mem,
+	                blurDifference_mem,
 	                w, h, stride,
-	                shift_stride,
-	                task->radius, 4);
+	                pass_stride,
+	                r, 4);
 	kernel_set_args(ckNLMCalcWeight, 0,
-	                blurDifference,
-	                difference,
+	                blurDifference_mem,
+	                difference_mem,
 	                w, h, stride,
-	                shift_stride,
-	                task->radius, 4);
+	                pass_stride,
+	                r, 4);
 	kernel_set_args(ckNLMConstructGramian, 0,
-	                blurDifference,
+	                blurDifference_mem,
 	                buffer_mem,
 	                transform_mem,
 	                rank_mem,
@@ -904,18 +904,14 @@ bool OpenCLDeviceBase::denoising_reconstruct(device_ptr color_ptr,
 	                XtWY_mem,
 	                task->reconstruction_state.filter_window,
 	                w, h, stride,
-	                shift_stride,
-	                task->radius, 4,
-	                task->buffer.pass_stride);
+	                pass_stride,
+	                r, 4);
 
 	enqueue_kernel(ckNLMCalcDifference,   w*h, num_shifts, true);
 	enqueue_kernel(ckNLMBlur,             w*h, num_shifts, true);
 	enqueue_kernel(ckNLMCalcWeight,       w*h, num_shifts, true);
 	enqueue_kernel(ckNLMBlur,             w*h, num_shifts, true);
 	enqueue_kernel(ckNLMConstructGramian, w*h, num_shifts, true, 256);
-
-	opencl_assert(clReleaseMemObject(difference));
-	opencl_assert(clReleaseMemObject(blurDifference));
 
 	kernel_set_args(ckFinalize, 0,
 	                output_mem,

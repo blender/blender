@@ -132,7 +132,7 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(const ccl_global float *ccl_
                                                     int w,
                                                     int h,
                                                     int stride,
-                                                    int shift_stride,
+                                                    int pass_stride,
                                                     int r,
                                                     int channel_offset,
                                                     float a,
@@ -140,7 +140,7 @@ __kernel void kernel_ocl_filter_nlm_calc_difference(const ccl_global float *ccl_
 {
 	int4 co, rect;
 	int ofs;
-	if(get_nlm_coords(w, h, r, shift_stride, &rect, &co, &ofs)) {
+	if(get_nlm_coords(w, h, r, pass_stride, &rect, &co, &ofs)) {
 		kernel_filter_nlm_calc_difference(co.x, co.y, co.z, co.w,
 		                                  weight_image,
 		                                  variance_image,
@@ -155,13 +155,13 @@ __kernel void kernel_ocl_filter_nlm_blur(const ccl_global float *ccl_restrict di
                                          int w,
                                          int h,
                                          int stride,
-                                         int shift_stride,
+                                         int pass_stride,
                                          int r,
                                          int f)
 {
 	int4 co, rect;
 	int ofs;
-	if(get_nlm_coords(w, h, r, shift_stride, &rect, &co, &ofs)) {
+	if(get_nlm_coords(w, h, r, pass_stride, &rect, &co, &ofs)) {
 		kernel_filter_nlm_blur(co.x, co.y,
 		                       difference_image + ofs,
 		                       out_image + ofs,
@@ -174,13 +174,13 @@ __kernel void kernel_ocl_filter_nlm_calc_weight(const ccl_global float *ccl_rest
                                                 int w,
                                                 int h,
                                                 int stride,
-                                                int shift_stride,
+                                                int pass_stride,
                                                 int r,
                                                 int f)
 {
 	int4 co, rect;
 	int ofs;
-	if(get_nlm_coords(w, h, r, shift_stride, &rect, &co, &ofs)) {
+	if(get_nlm_coords(w, h, r, pass_stride, &rect, &co, &ofs)) {
 		kernel_filter_nlm_calc_weight(co.x, co.y,
 		                              difference_image + ofs,
 		                              out_image + ofs,
@@ -195,13 +195,13 @@ __kernel void kernel_ocl_filter_nlm_update_output(const ccl_global float *ccl_re
                                                   int w,
                                                   int h,
                                                   int stride,
-                                                  int shift_stride,
+                                                  int pass_stride,
                                                   int r,
                                                   int f)
 {
 	int4 co, rect;
 	int ofs;
-	if(get_nlm_coords(w, h, r, shift_stride, &rect, &co, &ofs)) {
+	if(get_nlm_coords(w, h, r, pass_stride, &rect, &co, &ofs)) {
 		kernel_filter_nlm_update_output(co.x, co.y, co.z, co.w,
 		                                difference_image + ofs,
 		                                image,
@@ -234,14 +234,13 @@ __kernel void kernel_ocl_filter_nlm_construct_gramian(const ccl_global float *cc
                                                       int w,
                                                       int h,
                                                       int stride,
-                                                      int shift_stride,
+                                                      int pass_stride,
                                                       int r,
-                                                      int f,
-                                                      int pass_stride)
+                                                      int f)
 {
 	int4 co, rect;
 	int ofs;
-	if(get_nlm_coords_window(w, h, r, shift_stride, &rect, &co, &ofs, filter_window)) {
+	if(get_nlm_coords_window(w, h, r, pass_stride, &rect, &co, &ofs, filter_window)) {
 		kernel_filter_nlm_construct_gramian(co.x, co.y,
 		                                    co.z, co.w,
 		                                    difference_image + ofs,
