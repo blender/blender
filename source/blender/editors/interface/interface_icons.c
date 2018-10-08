@@ -1358,6 +1358,7 @@ void UI_icon_draw_cache_end(void)
 		return;
 
 	GPU_blend(true);
+	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	icon_draw_cache_flush_ex();
 
@@ -1405,8 +1406,9 @@ static void icon_draw_texture(
 	}
 
 	/* We need to flush widget base first to ensure correct ordering. */
-	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	UI_widgetbase_draw_cache_flush();
+
+	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 
 	float x1, x2, y1, y2;
 
@@ -1431,6 +1433,8 @@ static void icon_draw_texture(
 	GPU_draw_primitive(GPU_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 }
 
 /* Drawing size for preview images */
@@ -1518,10 +1522,8 @@ static void icon_draw_size(
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */
-		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, alpha, rgb);
-		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_MONO_TEXTURE) {
 		/* icon that matches text color, assumed to be white */
@@ -1539,10 +1541,8 @@ static void icon_draw_size(
 
 		mul_v4_fl(color, alpha);
 
-		GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		icon_draw_texture(x, y, (float)w, (float)h, di->data.texture.x, di->data.texture.y,
 		                  di->data.texture.w, di->data.texture.h, color[3], color);
-		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	}
 
 	else if (di->type == ICON_TYPE_BUFFER) {
