@@ -114,11 +114,11 @@ typedef enum eDrawStrokeFlags {
 /* ----- Tool Buffer Drawing ------ */
 /* helper functions to set color of buffer point */
 
-static void gp_set_tpoint_varying_color(const tGPspoint *pt, const float ink[4], uint attrib_id)
+static void gp_set_tpoint_varying_color(const tGPspoint *pt, const float ink[4], uint attr_id)
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
+	immAttrib4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
@@ -128,11 +128,11 @@ static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
 	immUniformColor3fvAlpha(ink, alpha);
 }
 
-static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4], uint attrib_id)
+static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4], uint attr_id)
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	immAttrib4ub(attrib_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
+	immAttrib4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 /* draw fills for buffer stroke */
@@ -736,9 +736,13 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	int cyclic_add = (cyclic) ? 1 : 0;
 
 	GPUVertFormat *format = immVertexFormat();
-	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-	uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
-	uint thickattrib = GPU_vertformat_attr_add(format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
+	const struct {
+		uint pos, color, thickness;
+	} attr_id = {
+		.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT),
+		.color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT),
+		.thickness = GPU_vertformat_attr_add(format, "thickness", GPU_COMP_F32, 1, GPU_FETCH_FLOAT),
+	};
 
 	immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
 	immUniform2fv("Viewport", viewport);
@@ -759,8 +763,8 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	for (int i = 0; i < totpoints; i++, pt++) {
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
-			gp_set_point_varying_color(points, ink, color);
-			immAttrib1f(thickattrib, max_ff(curpressure * thickness, 1.0f));
+			gp_set_point_varying_color(points, ink, attr_id.color);
+			immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 			if ((cyclic) && (totpoints > 2)) {
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 1)->x);
 			}
@@ -768,35 +772,35 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + 1)->x);
 			}
 			mul_v3_fl(fpt, -1.0f);
-			immVertex3fv(pos, fpt);
+			immVertex3fv(attr_id.pos, fpt);
 		}
 		/* set point */
-		gp_set_point_varying_color(pt, ink, color);
-		immAttrib1f(thickattrib, max_ff(curpressure * thickness, 1.0f));
+		gp_set_point_varying_color(pt, ink, attr_id.color);
+		immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
-		immVertex3fv(pos, fpt);
+		immVertex3fv(attr_id.pos, fpt);
 
 		curpressure = pt->pressure;
 	}
 
 	if (cyclic && totpoints > 2) {
 		/* draw line to first point to complete the cycle */
-		immAttrib1f(thickattrib, max_ff(points->pressure * thickness, 1.0f));
+		immAttrib1f(attr_id.thickness, max_ff(points->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &points->x);
-		immVertex3fv(pos, fpt);
+		immVertex3fv(attr_id.pos, fpt);
 
 		/* now add adjacency point (not drawn) */
-		immAttrib1f(thickattrib, max_ff((points + 1)->pressure * thickness, 1.0f));
+		immAttrib1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + 1)->x);
-		immVertex3fv(pos, fpt);
+		immVertex3fv(attr_id.pos, fpt);
 	}
 	/* last adjacency point (not drawn) */
 	else {
-		gp_set_point_varying_color(points + totpoints - 1, ink, color);
-		immAttrib1f(thickattrib, max_ff(curpressure * thickness, 1.0f));
+		gp_set_point_varying_color(points + totpoints - 1, ink, attr_id.color);
+		immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 2)->x);
 		mul_v3_fl(fpt, -1.0f);
-		immVertex3fv(pos, fpt);
+		immVertex3fv(attr_id.pos, fpt);
 	}
 
 	immEnd();
@@ -832,8 +836,12 @@ static void gp_draw_stroke_2d(
 		float fpt[3];
 
 		GPUVertFormat *format = immVertexFormat();
-		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-		uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		const struct {
+			uint pos, color;
+		} attr_id = {
+			.pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT),
+			.color = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT),
+		};
 
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 		immBegin(GPU_PRIM_TRI_STRIP, totpoints * 2 + 4);
@@ -863,7 +871,7 @@ static void gp_draw_stroke_2d(
 			pthick = (pt1->pressure * thickness * scalefac);
 
 			/* color of point */
-			gp_set_point_varying_color(pt1, ink, color);
+			gp_set_point_varying_color(pt1, ink, attr_id.color);
 
 			/* if the first segment, start of segment is segment's normal */
 			if (i == 0) {
@@ -881,8 +889,8 @@ static void gp_draw_stroke_2d(
 				t1[1] = sc[1] + mt[1];
 
 				/* First two points of cap. */
-				immVertex2fv(pos, t0);
-				immVertex2fv(pos, t1);
+				immVertex2fv(attr_id.pos, t0);
+				immVertex2fv(attr_id.pos, t1);
 
 				/* calculate points for start of segment */
 				mt[0] = m2[0] * pthick;
@@ -894,8 +902,8 @@ static void gp_draw_stroke_2d(
 				t1[1] = s0[1] + mt[1];
 
 				/* Last two points of start cap (and first two points of first segment). */
-				immVertex2fv(pos, t0);
-				immVertex2fv(pos, t1);
+				immVertex2fv(attr_id.pos, t0);
+				immVertex2fv(attr_id.pos, t1);
 			}
 			/* if not the first segment, use bisector of angle between segments */
 			else {
@@ -928,8 +936,8 @@ static void gp_draw_stroke_2d(
 				t1[1] = s0[1] + mt[1];
 
 				/* Last two points of previous segment, and first two points of current segment. */
-				immVertex2fv(pos, t0);
-				immVertex2fv(pos, t1);
+				immVertex2fv(attr_id.pos, t0);
+				immVertex2fv(attr_id.pos, t1);
 			}
 
 			/* if last segment, also draw end of segment (defined as segment's normal) */
@@ -938,7 +946,7 @@ static void gp_draw_stroke_2d(
 				pthick = (pt2->pressure * thickness * scalefac);
 
 				/* color of point */
-				gp_set_point_varying_color(pt2, ink, color);
+				gp_set_point_varying_color(pt2, ink, attr_id.color);
 
 				/* calculate points for end of segment */
 				mt[0] = m2[0] * pthick;
@@ -950,8 +958,8 @@ static void gp_draw_stroke_2d(
 				t1[1] = s1[1] + mt[1];
 
 				/* Last two points of last segment (and first two points of end cap). */
-				immVertex2fv(pos, t0);
-				immVertex2fv(pos, t1);
+				immVertex2fv(attr_id.pos, t0);
+				immVertex2fv(attr_id.pos, t1);
 
 				/* draw end cap as last step
 				 *	- make points slightly closer to center (about halfway across)
@@ -967,8 +975,8 @@ static void gp_draw_stroke_2d(
 				t1[1] = sc[1] + mt[1];
 
 				/* Last two points of end cap. */
-				immVertex2fv(pos, t0);
-				immVertex2fv(pos, t1);
+				immVertex2fv(attr_id.pos, t0);
+				immVertex2fv(attr_id.pos, t1);
 			}
 
 			/* store computed point2 coordinates as point1 ones of next segment. */

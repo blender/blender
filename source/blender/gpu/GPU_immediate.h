@@ -57,46 +57,46 @@ GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */
-/* Skipped attributes will continue using the previous value for that attrib_id. */
-void immAttrib1f(uint attrib_id, float x);
-void immAttrib2f(uint attrib_id, float x, float y);
-void immAttrib3f(uint attrib_id, float x, float y, float z);
-void immAttrib4f(uint attrib_id, float x, float y, float z, float w);
+/* Skipped attributes will continue using the previous value for that attr_id. */
+void immAttrib1f(uint attr_id, float x);
+void immAttrib2f(uint attr_id, float x, float y);
+void immAttrib3f(uint attr_id, float x, float y, float z);
+void immAttrib4f(uint attr_id, float x, float y, float z, float w);
 
-void immAttrib2i(uint attrib_id, int x, int y);
+void immAttrib2i(uint attr_id, int x, int y);
 
-void immAttrib1u(uint attrib_id, uint x);
+void immAttrib1u(uint attr_id, uint x);
 
-void immAttrib2s(uint attrib_id, short x, short y);
+void immAttrib2s(uint attr_id, short x, short y);
 
-void immAttrib2fv(uint attrib_id, const float data[2]);
-void immAttrib3fv(uint attrib_id, const float data[3]);
-void immAttrib4fv(uint attrib_id, const float data[4]);
+void immAttrib2fv(uint attr_id, const float data[2]);
+void immAttrib3fv(uint attr_id, const float data[3]);
+void immAttrib4fv(uint attr_id, const float data[4]);
 
-void immAttrib3ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b);
-void immAttrib4ub(uint attrib_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void immAttrib3ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b);
+void immAttrib4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-void immAttrib3ubv(uint attrib_id, const unsigned char data[4]);
-void immAttrib4ubv(uint attrib_id, const unsigned char data[4]);
+void immAttrib3ubv(uint attr_id, const unsigned char data[4]);
+void immAttrib4ubv(uint attr_id, const unsigned char data[4]);
 
 /* Explicitly skip an attribute. */
-/* This advanced option kills automatic value copying for this attrib_id. */
-void immSkipAttrib(uint attrib_id);
+/* This advanced option kills automatic value copying for this attr_id. */
+void immSkipAttrib(uint attr_id);
 
 /* Provide one last attribute value & end the current vertex. */
 /* This is most often used for 2D or 3D position (similar to glVertex). */
-void immVertex2f(uint attrib_id, float x, float y);
-void immVertex3f(uint attrib_id, float x, float y, float z);
-void immVertex4f(uint attrib_id, float x, float y, float z, float w);
+void immVertex2f(uint attr_id, float x, float y);
+void immVertex3f(uint attr_id, float x, float y, float z);
+void immVertex4f(uint attr_id, float x, float y, float z, float w);
 
-void immVertex2i(uint attrib_id, int x, int y);
+void immVertex2i(uint attr_id, int x, int y);
 
-void immVertex2s(uint attrib_id, short x, short y);
+void immVertex2s(uint attr_id, short x, short y);
 
-void immVertex2fv(uint attrib_id, const float data[2]);
-void immVertex3fv(uint attrib_id, const float data[3]);
+void immVertex2fv(uint attr_id, const float data[2]);
+void immVertex3fv(uint attr_id, const float data[3]);
 
-void immVertex2iv(uint attrib_id, const int data[2]);
+void immVertex2iv(uint attr_id, const int data[2]);
 
 /* Provide uniform values that don't change for the entire draw call. */
 void immUniform1i(const char *name, int x);
