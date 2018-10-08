@@ -761,7 +761,7 @@ bool OpenCLDeviceBase::denoising_non_local_means(device_ptr image_ptr,
 	cl_mem variance_mem = CL_MEM_PTR(variance_ptr);
 	cl_mem out_mem = CL_MEM_PTR(out_ptr);
 
-	mem_zero_kernel(*difference, sizeof(float)*pass_stride);
+	mem_zero_kernel(*weightAccum, sizeof(float)*pass_stride);
 	mem_zero_kernel(out_ptr, sizeof(float)*pass_stride);
 
 	cl_kernel ckNLMCalcDifference = denoising_program(ustring("filter_nlm_calc_difference"));
