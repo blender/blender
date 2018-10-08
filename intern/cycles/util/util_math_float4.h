@@ -38,6 +38,7 @@ ccl_device_inline float4 operator+(const float4& a, const float4& b);
 ccl_device_inline float4 operator-(const float4& a, const float4& b);
 ccl_device_inline float4 operator+=(float4& a, const float4& b);
 ccl_device_inline float4 operator*=(float4& a, const float4& b);
+ccl_device_inline float4 operator*=(float4& a, float f);
 ccl_device_inline float4 operator/=(float4& a, float f);
 
 ccl_device_inline int4 operator<(const float4& a, const float4& b);
@@ -58,6 +59,7 @@ ccl_device_inline float4 normalize(const float4& a);
 ccl_device_inline float4 safe_normalize(const float4& a);
 ccl_device_inline float4 min(const float4& a, const float4& b);
 ccl_device_inline float4 max(const float4& a, const float4& b);
+ccl_device_inline float4 clamp(const float4& a, const float4& mn, const float4& mx);
 ccl_device_inline float4 fabs(const float4& a);
 #endif  /* !__KERNEL_OPENCL__*/
 
@@ -166,6 +168,11 @@ ccl_device_inline float4 operator+=(float4& a, const float4& b)
 ccl_device_inline float4 operator*=(float4& a, const float4& b)
 {
 	return a = a * b;
+}
+
+ccl_device_inline float4 operator*=(float4& a, float f)
+{
+	return a = a * f;
 }
 
 ccl_device_inline float4 operator/=(float4& a, float f)
@@ -331,6 +338,11 @@ ccl_device_inline float4 max(const float4& a, const float4& b)
 	                   max(a.z, b.z),
 	                   max(a.w, b.w));
 #endif
+}
+
+ccl_device_inline float4 clamp(const float4& a, const float4& mn, const float4& mx)
+{
+	return min(max(a, mn), mx);
 }
 
 ccl_device_inline float4 fabs(const float4& a)

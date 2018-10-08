@@ -26,6 +26,7 @@ CCL_NAMESPACE_BEGIN
 #ifndef __KERNEL_GPU__
 
 struct float3;
+struct float4;
 
 struct ccl_try_align(16) int4 {
 #ifdef __KERNEL_SSE__
@@ -53,6 +54,7 @@ struct ccl_try_align(16) int4 {
 ccl_device_inline int4 make_int4(int i);
 ccl_device_inline int4 make_int4(int x, int y, int z, int w);
 ccl_device_inline int4 make_int4(const float3& f);
+ccl_device_inline int4 make_int4(const float4& f);
 ccl_device_inline void print_int4(const char *label, const int4& a);
 #endif  /* __KERNEL_GPU__ */
 

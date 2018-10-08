@@ -374,7 +374,7 @@ class Report:
         testname = test_get_name(filepath)
         print_message(testname, 'SUCCESS', 'RUN')
         time_start = time.time()
-        tmp_filepath = os.path.join(self.output_dir, "tmp")
+        tmp_filepath = os.path.join(self.output_dir, "tmp_" + testname)
 
         error = render_cb(filepath, tmp_filepath)
         status = "FAIL"

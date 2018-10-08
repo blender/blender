@@ -104,6 +104,16 @@ ccl_device_inline int4 make_int4(const float3& f)
 	return a;
 }
 
+ccl_device_inline int4 make_int4(const float4& f)
+{
+#ifdef __KERNEL_SSE__
+	int4 a(_mm_cvtps_epi32(f.m128));
+#else
+	int4 a = {(int)f.x, (int)f.y, (int)f.z, (int)f.w};
+#endif
+	return a;
+}
+
 ccl_device_inline void print_int4(const char *label, const int4& a)
 {
 	printf("%s: %d %d %d %d\n", label, a.x, a.y, a.z, a.w);

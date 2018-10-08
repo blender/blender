@@ -182,14 +182,11 @@ static void interp_slerp_co_no_v3(
 	/* calculate sphere 'center' */
 	{
 		/* use point on plane to */
-		float plane_a[4], plane_b[4], plane_c[4];
 		float no_mid[3], no_ortho[3];
 		/* pass this as an arg instead */
 #if 0
 		float no_dir[3];
 #endif
-
-		float v_a_no_ortho[3], v_b_no_ortho[3];
 
 		add_v3_v3v3(no_mid, no_a, no_b);
 		normalize_v3(no_mid);
@@ -200,24 +197,28 @@ static void interp_slerp_co_no_v3(
 #endif
 
 		/* axis of slerp */
+		bool center_ok = false;
 		cross_v3_v3v3(no_ortho, no_mid, no_dir);
-		normalize_v3(no_ortho);
+		if (normalize_v3(no_ortho) != 0.0f) {
+			float plane_a[4], plane_b[4], plane_c[4];
+			float v_a_no_ortho[3], v_b_no_ortho[3];
 
-		/* create planes */
-		cross_v3_v3v3(v_a_no_ortho, no_ortho, no_a);
-		cross_v3_v3v3(v_b_no_ortho, no_ortho, no_b);
-		project_v3_plane(v_a_no_ortho, no_ortho, v_a_no_ortho);
-		project_v3_plane(v_b_no_ortho, no_ortho, v_b_no_ortho);
+			/* create planes */
+			cross_v3_v3v3(v_a_no_ortho, no_ortho, no_a);
+			cross_v3_v3v3(v_b_no_ortho, no_ortho, no_b);
+			project_v3_plane(v_a_no_ortho, no_ortho, v_a_no_ortho);
+			project_v3_plane(v_b_no_ortho, no_ortho, v_b_no_ortho);
 
-		plane_from_point_normal_v3(plane_a, co_a, v_a_no_ortho);
-		plane_from_point_normal_v3(plane_b, co_b, v_b_no_ortho);
-		plane_from_point_normal_v3(plane_c, co_b, no_ortho);
+			plane_from_point_normal_v3(plane_a, co_a, v_a_no_ortho);
+			plane_from_point_normal_v3(plane_b, co_b, v_b_no_ortho);
+			plane_from_point_normal_v3(plane_c, co_b, no_ortho);
 
-		/* find the sphere center from 3 planes */
-		if (isect_plane_plane_plane_v3(plane_a, plane_b, plane_c, center)) {
-			/* pass */
+			/* find the sphere center from 3 planes */
+			if (isect_plane_plane_plane_v3(plane_a, plane_b, plane_c, center)) {
+				center_ok = true;
+			}
 		}
-		else {
+		if (center_ok == false) {
 			mid_v3_v3v3(center, co_a, co_b);
 		}
 	}

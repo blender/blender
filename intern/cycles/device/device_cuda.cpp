@@ -1397,18 +1397,14 @@ public:
 		int h = task->reconstruction_state.source_h;
 		int stride = task->buffer.stride;
 
-		int shift_stride = stride*h;
+		int pass_stride = task->buffer.pass_stride;
 		int num_shifts = (2*r+1)*(2*r+1);
-		int mem_size = sizeof(float)*shift_stride*num_shifts;
-
-		device_only_memory<uchar> temporary_mem(this, "Denoising temporary_mem");
-		temporary_mem.alloc_to_device(2*mem_size);
 
 		if(have_error())
 			return false;
 
-		CUdeviceptr difference     = cuda_device_ptr(temporary_mem.device_pointer);
-		CUdeviceptr blurDifference = difference + mem_size;
+		CUdeviceptr difference     = cuda_device_ptr(task->buffer.temporary_mem.device_pointer);
+		CUdeviceptr blurDifference = difference + sizeof(float)*pass_stride*num_shifts;
 
 		{
 			CUfunction cuNLMCalcDifference, cuNLMBlur, cuNLMCalcWeight, cuNLMConstructGramian;
@@ -1426,9 +1422,9 @@ public:
 			                     task->reconstruction_state.source_w * task->reconstruction_state.source_h,
 			                     num_shifts);
 
-			void *calc_difference_args[] = {&color_ptr, &color_variance_ptr, &difference, &w, &h, &stride, &shift_stride, &r, &task->buffer.pass_stride, &a, &k_2};
-			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &shift_stride, &r, &f};
-			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &shift_stride, &r, &f};
+			void *calc_difference_args[] = {&color_ptr, &color_variance_ptr, &difference, &w, &h, &stride, &pass_stride, &r, &pass_stride, &a, &k_2};
+			void *blur_args[]            = {&difference, &blurDifference, &w, &h, &stride, &pass_stride, &r, &f};
+			void *calc_weight_args[]     = {&blurDifference, &difference, &w, &h, &stride, &pass_stride, &r, &f};
 			void *construct_gramian_args[] = {&blurDifference,
 			                                  &task->buffer.mem.device_pointer,
 			                                  &task->storage.transform.device_pointer,
@@ -1437,9 +1433,8 @@ public:
 			                                  &task->storage.XtWY.device_pointer,
 			                                  &task->reconstruction_state.filter_window,
 			                                  &w, &h, &stride,
-			                                  &shift_stride, &r,
-			                                  &f,
-		                                      &task->buffer.pass_stride};
+			                                  &pass_stride, &r,
+			                                  &f};
 
 			CUDA_LAUNCH_KERNEL_1D(cuNLMCalcDifference, calc_difference_args);
 			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
@@ -1447,8 +1442,6 @@ public:
 			CUDA_LAUNCH_KERNEL_1D(cuNLMBlur, blur_args);
 			CUDA_LAUNCH_KERNEL_1D(cuNLMConstructGramian, construct_gramian_args);
 		}
-
-		temporary_mem.free();
 
 		{
 			CUfunction cuFinalize;
