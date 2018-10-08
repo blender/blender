@@ -867,7 +867,7 @@ bool OpenCLDeviceBase::denoising_reconstruct(device_ptr color_ptr,
 
 	int r = task->radius;
 	int pass_stride = task->buffer.pass_stride;
-	int num_shifts = (2*r-+1)*(2*r+1);
+	int num_shifts = (2*r+1)*(2*r+1);
 
 	device_sub_ptr difference(task->buffer.temporary_mem, 0, pass_stride*num_shifts);
 	device_sub_ptr blurDifference(task->buffer.temporary_mem, pass_stride*num_shifts, pass_stride*num_shifts);
