@@ -80,8 +80,11 @@ typedef struct GPUVertFormat {
 	GPUVertAttr attribs[GPU_VERT_ATTR_MAX_LEN]; /* TODO: variable-size attribs array */
 } GPUVertFormat;
 
+struct GPUShaderInterface;
+
 void GPU_vertformat_clear(GPUVertFormat *);
 void GPU_vertformat_copy(GPUVertFormat *dest, const GPUVertFormat *src);
+void GPU_vertformat_from_interface(GPUVertFormat *format, const struct GPUShaderInterface *shaderface);
 
 uint GPU_vertformat_attr_add(
         GPUVertFormat *, const char *name,

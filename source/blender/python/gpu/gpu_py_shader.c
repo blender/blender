@@ -36,6 +36,7 @@
 #include "../generic/python_utildefines.h"
 
 #include "gpu_py_shader.h" /* own include */
+#include "gpu_py_vertex_format.h"
 
 
  /* -------------------------------------------------------------------- */
@@ -569,6 +570,21 @@ static PyObject *bpygpu_shader_attr_from_name(
 	return PyLong_FromLong(attrib);
 }
 
+PyDoc_STRVAR(bpygpu_shader_calc_format_doc,
+".. method:: calc_format()\n"
+"\n"
+"   Build a new format based on the attributes of the shader.\n"
+"\n"
+"   :return: vertex attribute format for the shader\n"
+"   :rtype: GPUVertFormat\n"
+);
+static PyObject *bpygpu_shader_calc_format(BPyGPUShader *self, PyObject *UNUSED(arg))
+{
+	BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
+	GPU_vertformat_from_interface(&ret->fmt, GPU_shader_get_interface(self->shader));
+	return (PyObject *)ret;
+}
+
 static struct PyMethodDef bpygpu_shader_methods[] = {
 	{"bind", (PyCFunction)bpygpu_shader_bind,
 	 METH_NOARGS, bpygpu_shader_bind_doc},
@@ -602,6 +618,9 @@ static struct PyMethodDef bpygpu_shader_methods[] = {
 	{"attr_from_name",
 	 (PyCFunction)bpygpu_shader_attr_from_name,
 	 METH_O, bpygpu_shader_attr_from_name_doc},
+	{"format_calc",
+	 (PyCFunction)bpygpu_shader_calc_format,
+	 METH_NOARGS, bpygpu_shader_calc_format_doc},
 	{NULL, NULL, 0, NULL}
 };
 

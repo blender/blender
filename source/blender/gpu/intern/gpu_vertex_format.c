@@ -29,6 +29,8 @@
  * GPU vertex format
  */
 
+#include "GPU_shader_interface.h"
+
 #include "GPU_vertex_format.h"
 #include "gpu_vertex_format_private.h"
 #include <stddef.h>
@@ -276,6 +278,115 @@ void VertexFormat_pack(GPUVertFormat *format)
 #endif
 	format->stride = offset + end_padding;
 	format->packed = true;
+}
+
+static uint calc_input_component_size(const GPUShaderInput *input)
+{
+	int size = input->size;
+	switch (input->gl_type) {
+		case GL_FLOAT_VEC2:
+		case GL_INT_VEC2:
+		case GL_UNSIGNED_INT_VEC2:
+			return size * 2;
+		case GL_FLOAT_VEC3:
+		case GL_INT_VEC3:
+		case GL_UNSIGNED_INT_VEC3:
+			return size * 3;
+		case GL_FLOAT_VEC4:
+		case GL_FLOAT_MAT2:
+		case GL_INT_VEC4:
+		case GL_UNSIGNED_INT_VEC4:
+			return size * 4;
+		case GL_FLOAT_MAT3:
+			return size * 9;
+		case GL_FLOAT_MAT4:
+			return size * 16;
+		case GL_FLOAT_MAT2x3:
+		case GL_FLOAT_MAT3x2:
+			return size * 6;
+		case GL_FLOAT_MAT2x4:
+		case GL_FLOAT_MAT4x2:
+			return size * 8;
+		case GL_FLOAT_MAT3x4:
+		case GL_FLOAT_MAT4x3:
+			return size * 12;
+		default:
+			return size;
+	}
+}
+
+static void get_fetch_mode_and_comp_type(
+        int gl_type,
+        GPUVertCompType *r_comp_type,
+        uint *r_gl_comp_type,
+        GPUVertFetchMode *r_fetch_mode)
+{
+	switch (gl_type) {
+		case GL_FLOAT:
+		case GL_FLOAT_VEC2:
+		case GL_FLOAT_VEC3:
+		case GL_FLOAT_VEC4:
+		case GL_FLOAT_MAT2:
+		case GL_FLOAT_MAT3:
+		case GL_FLOAT_MAT4:
+		case GL_FLOAT_MAT2x3:
+		case GL_FLOAT_MAT2x4:
+		case GL_FLOAT_MAT3x2:
+		case GL_FLOAT_MAT3x4:
+		case GL_FLOAT_MAT4x2:
+		case GL_FLOAT_MAT4x3:
+			*r_comp_type = GPU_COMP_F32;
+			*r_gl_comp_type = GL_FLOAT;
+			*r_fetch_mode = GPU_FETCH_FLOAT;
+			break;
+		case GL_INT:
+		case GL_INT_VEC2:
+		case GL_INT_VEC3:
+		case GL_INT_VEC4:
+			*r_comp_type = GPU_COMP_I32;
+			*r_gl_comp_type = GL_INT;
+			*r_fetch_mode = GPU_FETCH_INT;
+			break;
+		case GL_UNSIGNED_INT:
+		case GL_UNSIGNED_INT_VEC2:
+		case GL_UNSIGNED_INT_VEC3:
+		case GL_UNSIGNED_INT_VEC4:
+			*r_comp_type = GPU_COMP_U32;
+			*r_gl_comp_type = GL_UNSIGNED_INT;
+			*r_fetch_mode = GPU_FETCH_INT;
+			break;
+		default:
+			BLI_assert(0);
+	}
+}
+
+void GPU_vertformat_from_interface(GPUVertFormat *format, const GPUShaderInterface *shaderface)
+{
+	const char *name_buffer = shaderface->name_buffer;
+
+	for (int i = 0; i < GPU_NUM_SHADERINTERFACE_BUCKETS; i++) {
+		const GPUShaderInput *input = shaderface->attrib_buckets[i];
+		if (input == NULL) {
+			continue;
+		}
+
+		const GPUShaderInput *next = input;
+		while (next != NULL) {
+			input = next;
+			next = input->next;
+
+			format->name_len++; /* multiname support */
+			format->attr_len++;
+
+			GPUVertAttr *attrib = format->attribs + input->location;
+
+			attrib->name[attrib->name_len++] = copy_attrib_name(format, name_buffer + input->name_offset);
+			attrib->offset = 0; /* offsets & stride are calculated later (during pack) */
+			attrib->comp_len = calc_input_component_size(input);
+			attrib->sz = attrib->comp_len * 4;
+			get_fetch_mode_and_comp_type(input->gl_type, &attrib->comp_type, &attrib->gl_comp_type, &attrib->fetch_mode);
+		}
+	}
 }
 
 
