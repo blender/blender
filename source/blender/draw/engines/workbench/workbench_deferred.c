@@ -701,7 +701,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		return; /* Do not draw solid in this case. */
 	}
 
-	if (!DRW_object_is_visible_in_active_context(ob)) {
+	if (!DRW_object_is_visible_in_active_context(ob) || (ob->dt < OB_SOLID)) {
 		return;
 	}
 
