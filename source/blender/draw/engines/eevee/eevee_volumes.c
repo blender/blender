@@ -46,6 +46,7 @@
 #include "eevee_private.h"
 #include "GPU_draw.h"
 #include "GPU_texture.h"
+#include "GPU_material.h"
 
 static struct {
 	char *volumetric_common_lib;
@@ -471,12 +472,12 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 	struct GPUMaterial *mat = EEVEE_material_mesh_volume_get(scene, ma);
 
-	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat, vedata->psl->volumetric_objects_ps, sldata->common_data.vol_tex_size[2]);
-
 	/* If shader failed to compile or is currently compiling. */
-	if (grp == NULL) {
+	if (GPU_material_status(mat) != GPU_MAT_SUCCESS) {
 		return;
 	}
+
+	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat, vedata->psl->volumetric_objects_ps, sldata->common_data.vol_tex_size[2]);
 
 	/* Making sure it's updated. */
 	invert_m4_m4(ob->imat, ob->obmat);
