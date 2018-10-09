@@ -44,33 +44,42 @@
  /** \name Enum Conversion.
  * \{ */
 
-static void bpygpu_shader_add_enum_objects(PyObject *submodule)
+static int bpygpu_ParseBultinShaderEnum(PyObject *o, void *p)
 {
-#define ADDCONST(x) PyModule_AddIntConstant(submodule, #x, x)
-
-	/* Shaders */
-	ADDCONST(GPU_SHADER_2D_UNIFORM_COLOR);
-	ADDCONST(GPU_SHADER_2D_FLAT_COLOR);
-	ADDCONST(GPU_SHADER_2D_SMOOTH_COLOR);
-	ADDCONST(GPU_SHADER_2D_IMAGE);
-	ADDCONST(GPU_SHADER_3D_UNIFORM_COLOR);
-	ADDCONST(GPU_SHADER_3D_FLAT_COLOR);
-	ADDCONST(GPU_SHADER_3D_SMOOTH_COLOR);
-
-#undef ADDCONST
-}
-
-static int bpygpu_pyLong_as_shader_enum(PyObject *o)
-{
-	uint id = (uint)PyLong_AsUnsignedLong(o);
-
-	if (id >= GPU_NUM_BUILTIN_SHADERS) {
-		PyErr_SetString(PyExc_ValueError,
-		                "not a builtin shader identifier");
-		return -1;
+	Py_ssize_t mode_id_len;
+	const char *mode_id = _PyUnicode_AsStringAndSize(o, &mode_id_len);
+	if (mode_id == NULL) {
+		PyErr_Format(PyExc_ValueError,
+		             "expected a string, got %s",
+		             Py_TYPE(o)->tp_name);
+		return 0;
 	}
+#define MATCH_ID(id) \
+	if (mode_id_len == (Py_ssize_t)strlen(STRINGIFY(id))) { \
+		if (STREQ(mode_id, STRINGIFY(id))) { \
+			mode = GPU_SHADER_##id; \
+			goto success; \
+		} \
+	} ((void)0)
 
-	return (int)id;
+	GPUBuiltinShader mode;
+	MATCH_ID(2D_UNIFORM_COLOR);
+	MATCH_ID(2D_FLAT_COLOR);
+	MATCH_ID(2D_SMOOTH_COLOR);
+	MATCH_ID(2D_IMAGE);
+	MATCH_ID(3D_UNIFORM_COLOR);
+	MATCH_ID(3D_FLAT_COLOR);
+	MATCH_ID(3D_SMOOTH_COLOR);
+
+#undef MATCH_ID
+	PyErr_Format(PyExc_ValueError,
+	             "unknown type literal: '%s'",
+	             mode_id);
+	return 0;
+
+success:
+	(*(GPUBuiltinShader *)p) = mode;
+	return 1;
 }
 
 static int bpygpu_uniform_location_get(const GPUShaderInterface *shaderface, const char *name)
@@ -723,8 +732,9 @@ PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
 );
 static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
-	int shader_id = bpygpu_pyLong_as_shader_enum(arg);
-	if (shader_id == -1) {
+	GPUBuiltinShader shader_id;
+
+	if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
 		return NULL;
 	}
 
@@ -743,6 +753,8 @@ PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
 );
 static PyObject *bpygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyObject *arg)
 {
+	GPUBuiltinShader shader_id;
+
 	const char *vert;
 	const char *frag;
 	const char *geom;
@@ -750,8 +762,7 @@ static PyObject *bpygpu_shader_code_from_builtin(BPyGPUShader *UNUSED(self), PyO
 
 	PyObject *item, *r_dict;
 
-	int shader_id = bpygpu_pyLong_as_shader_enum(arg);
-	if (shader_id == -1) {
+	if (!bpygpu_ParseBultinShaderEnum(arg, &shader_id)) {
 		return NULL;
 	}
 
@@ -805,23 +816,6 @@ static PyModuleDef BPyGPU_shader_module_def = {
 
 /* -------------------------------------------------------------------- */
 
-/** \name gpu.shader.buitin Module API
- * \{ */
-
-PyDoc_STRVAR(bpygpu_shader_builtin_module_doc,
-"This module contains integers that identify the built-in shader ids."
-);
-static PyModuleDef BPyGPU_shader_builtin_module_def = {
-	PyModuleDef_HEAD_INIT,
-	.m_name = "gpu.shader.builtin",
-	.m_doc = bpygpu_shader_builtin_module_doc,
-};
-
-/** \} */
-
-
-/* -------------------------------------------------------------------- */
-
 /** \name Public API
  * \{ */
 
@@ -841,16 +835,6 @@ PyObject *BPyInit_gpu_shader(void)
 	PyObject *submodule;
 
 	submodule = PyModule_Create(&BPyGPU_shader_module_def);
-
-	return submodule;
-}
-
-PyObject *BPyInit_gpu_shader_builtin(void)
-{
-	PyObject *submodule;
-
-	submodule = PyModule_Create(&BPyGPU_shader_builtin_module_def);
-	bpygpu_shader_add_enum_objects(submodule);
 
 	return submodule;
 }

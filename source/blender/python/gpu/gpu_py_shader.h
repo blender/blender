@@ -37,6 +37,5 @@ typedef struct BPyGPUShader {
 
 PyObject *BPyGPUShader_CreatePyObject(struct GPUShader *shader, bool is_builtin);
 PyObject *BPyInit_gpu_shader(void);
-PyObject *BPyInit_gpu_shader_builtin(void);
 
 #endif /* __GPU_PY_SHADER_H__ */
