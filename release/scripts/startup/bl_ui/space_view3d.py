@@ -151,10 +151,10 @@ class VIEW3D_HT_header(Header):
 
         if show_snap:
             snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
-            if len(tool_settings.snap_elements) == 1:
+            snap_elements = tool_settings.snap_elements
+            if len(snap_elements) == 1:
                 text = ""
-                for elem in tool_settings.snap_elements:
-                    icon = snap_items[elem].icon
+                icon = snap_items[next(iter(snap_elements))].icon
             else:
                 text = "Mix"
                 icon = 'NONE'
