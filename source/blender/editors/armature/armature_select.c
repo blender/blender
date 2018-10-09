@@ -288,16 +288,15 @@ void *get_nearest_bone(
 
 /* called in space.c */
 /* previously "selectconnected_armature" */
-static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+static int armature_select_linked_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
 	bArmature *arm;
 	EditBone *bone, *curBone, *next;
-	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	view3d_operator_needs_opengl(C);
 
 	Base *base = NULL;
-	bone = get_nearest_bone(C, event->mval, !extend, &base);
+	bone = get_nearest_bone(C, event->mval, true, &base);
 
 	if (!bone)
 		return OPERATOR_CANCELLED;
@@ -307,12 +306,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 	/* Select parents */
 	for (curBone = bone; curBone; curBone = next) {
 		if ((curBone->flag & BONE_UNSELECTABLE) == 0) {
-			if (extend) {
-				curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			}
-			else {
-				curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-			}
+			curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 		}
 
 		if (curBone->flag & BONE_CONNECTED)
@@ -327,10 +321,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 			next = curBone->next;
 			if ((curBone->parent == bone) && (curBone->flag & BONE_UNSELECTABLE) == 0) {
 				if (curBone->flag & BONE_CONNECTED) {
-					if (extend)
-						curBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					else
-						curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					curBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					bone = curBone;
 					break;
 				}
@@ -370,9 +361,6 @@ void ARMATURE_OT_select_linked(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "extend", false, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /* utility function for get_nearest_editbonepoint */
