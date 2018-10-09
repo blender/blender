@@ -748,7 +748,7 @@ BMesh *BKE_mesh_to_bmesh(
 	        });
 }
 
-Mesh *BKE_bmesh_to_mesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params)
+Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params)
 {
 	BLI_assert(params->calc_object_remap == false);
 	Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
@@ -762,7 +762,7 @@ Mesh *BKE_bmesh_to_mesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params
 Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
         BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3])
 {
-	Mesh *me = BKE_bmesh_to_mesh_nomain(
+	Mesh *me = BKE_mesh_from_bmesh_nomain(
 	        em->bm,
 	        &(struct BMeshToMeshParams){
 	            .cd_mask_extra = data_mask,

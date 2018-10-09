@@ -1201,7 +1201,7 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
 	int free;
 
 	if (em) {
-		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		mesh = BKE_mesh_from_bmesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 	}
 	else {
 		mesh = BKE_mesh_copy_for_eval(me, true);
@@ -2015,7 +2015,7 @@ static void editbmesh_calc_modifiers(
 
 			}
 			else {
-				me = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+				me = BKE_mesh_from_bmesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 				ASSERT_IS_VALID_MESH(me);
 
 				if (deformedVerts) {

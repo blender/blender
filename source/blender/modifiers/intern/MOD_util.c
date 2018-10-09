@@ -177,7 +177,7 @@ Mesh *MOD_get_mesh_eval(
 	}
 	else if (ob->type == OB_MESH) {
 		if (em) {
-			mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+			mesh = BKE_mesh_from_bmesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 		}
 		else {
 			/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether

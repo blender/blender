@@ -162,7 +162,7 @@ static void deformVerts(
 
 			if (edit_btmesh) {
 				/* In edit mode get directly from the edit mesh. */
-				psmd->mesh_original = BKE_bmesh_to_mesh_nomain(edit_btmesh->bm, &(struct BMeshToMeshParams){0});
+				psmd->mesh_original = BKE_mesh_from_bmesh_nomain(edit_btmesh->bm, &(struct BMeshToMeshParams){0});
 			}
 			else {
 				/* Otherwise get regular mesh. */
