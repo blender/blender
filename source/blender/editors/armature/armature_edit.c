@@ -1618,28 +1618,39 @@ void ARMATURE_OT_dissolve(wmOperatorType *ot)
 
 static int armature_hide_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = obedit->data;
-	EditBone *ebone;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const int invert = RNA_boolean_get(op->ptr, "unselected") ? BONE_SELECTED : 0;
 
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 		return OPERATOR_CANCELLED;
 
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-		if (EBONE_VISIBLE(arm, ebone)) {
-			if ((ebone->flag & BONE_SELECTED) != invert) {
-				ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
-				ebone->flag |= BONE_HIDDEN_A;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		bArmature *arm = obedit->data;
+		bool changed = false;
+
+		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+			if (EBONE_VISIBLE(arm, ebone)) {
+				if ((ebone->flag & BONE_SELECTED) != invert) {
+					ebone->flag &= ~(BONE_TIPSEL | BONE_SELECTED | BONE_ROOTSEL);
+					ebone->flag |= BONE_HIDDEN_A;
+					changed = true;
+				}
 			}
 		}
+
+		if (!changed) {
+			continue;
+		}
+		ED_armature_edit_validate_active(arm);
+		ED_armature_edit_sync_selection(arm->edbo);
+
+		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 	}
-	ED_armature_edit_validate_active(arm);
-	ED_armature_edit_sync_selection(arm->edbo);
-
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
