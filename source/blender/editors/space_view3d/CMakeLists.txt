@@ -44,7 +44,6 @@ set(INC_SYS
 
 set(SRC
 	drawobject.c
-	drawvolume.c
 	space_view3d.c
 	view3d_buttons.c
 	view3d_camera_control.c

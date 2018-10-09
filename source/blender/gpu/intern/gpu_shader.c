@@ -167,10 +167,6 @@ extern char datatoc_gpu_shader_text_simple_geom_glsl[];
 extern char datatoc_gpu_shader_keyframe_diamond_vert_glsl[];
 extern char datatoc_gpu_shader_keyframe_diamond_frag_glsl[];
 
-extern char datatoc_gpu_shader_fire_frag_glsl[];
-extern char datatoc_gpu_shader_smoke_vert_glsl[];
-extern char datatoc_gpu_shader_smoke_frag_glsl[];
-
 extern char datatoc_gpu_shader_gpencil_stroke_vert_glsl[];
 extern char datatoc_gpu_shader_gpencil_stroke_frag_glsl[];
 extern char datatoc_gpu_shader_gpencil_stroke_geom_glsl[];
@@ -664,16 +660,6 @@ int GPU_shader_get_attribute(GPUShader *shader, const char *name)
 }
 
 static const GPUShaderStages builtin_shader_stages[GPU_NUM_BUILTIN_SHADERS] = {
-	[GPU_SHADER_SMOKE] =
-		{ datatoc_gpu_shader_smoke_vert_glsl,
-		  datatoc_gpu_shader_smoke_frag_glsl },
-	[GPU_SHADER_SMOKE_FIRE] =
-		{ datatoc_gpu_shader_smoke_vert_glsl,
-		  datatoc_gpu_shader_smoke_frag_glsl },
-	[GPU_SHADER_SMOKE_COBA] =
-		{ datatoc_gpu_shader_smoke_vert_glsl,
-		  datatoc_gpu_shader_smoke_frag_glsl },
-
 	[GPU_SHADER_TEXT] =
 		{ datatoc_gpu_shader_text_vert_glsl,
 		  datatoc_gpu_shader_text_frag_glsl,
@@ -996,9 +982,6 @@ static const char *gpu_shader_get_builtin_shader_defines(
 		case GPU_SHADER_2D_WIDGET_BASE_INST:
 		case GPU_SHADER_2D_NODELINK_INST:
 			return "#define USE_INSTANCE\n";
-
-		case GPU_SHADER_SMOKE_COBA:
-			return "#define USE_COBA\n";
 
 		case GPU_SHADER_INSTANCE_VARIYING_ID_VARIYING_SIZE:
 		case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE:
