@@ -96,7 +96,7 @@ static void gizmo_empty_image_prop_matrix_set(
 	Object *ob = igzgroup->state.ob;
 
 	ob->empty_drawsize = matrix[0][0];
-	DEG_id_tag_update(ob, DEG_TAG_TRANSFORM);
+	DEG_id_tag_update(&ob->id, DEG_TAG_TRANSFORM);
 
 	float dims[2];
 	RNA_float_get_array(gz->ptr, "dimensions", dims);
