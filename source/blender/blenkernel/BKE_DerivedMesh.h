@@ -554,7 +554,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(
 DerivedMesh *object_get_derived_final(struct Object *ob, const bool for_render);
 
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
-bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, DerivedMesh *dm);
+bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, bool has_prev_mesh);
 void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers);

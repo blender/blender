@@ -274,7 +274,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	for (i = 0; md && i <= cageIndex; i++, md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if (!editbmesh_modifier_is_enabled(scene, md, dm))
+		if (!editbmesh_modifier_is_enabled(scene, md, dm != NULL))
 			continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
@@ -300,7 +300,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	}
 
 	for (; md && i <= cageIndex; md = md->next, i++)
-		if (editbmesh_modifier_is_enabled(scene, md, dm) && modifier_isCorrectableDeformed(md))
+		if (editbmesh_modifier_is_enabled(scene, md, dm != NULL) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
 	if (dm)
