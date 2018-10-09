@@ -398,10 +398,6 @@ void BKE_palette_clear(Palette *palette)
 Palette *BKE_palette_add(Main *bmain, const char *name)
 {
 	Palette *palette = BKE_id_new(bmain, ID_PAL, name);
-
-	/* enable fake user by default */
-	id_fake_user_set(&palette->id);
-
 	return palette;
 }
 
@@ -428,6 +424,12 @@ Palette *BKE_palette_copy(Main *bmain, const Palette *palette)
 void BKE_palette_make_local(Main *bmain, Palette *palette, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &palette->id, true, lib_local);
+}
+
+void BKE_palette_init(Palette *palette)
+{
+	/* Enable fake user by default. */
+	id_fake_user_set(&palette->id);
 }
 
 /** Free (or release) any data used by this palette (does not free the palette itself). */

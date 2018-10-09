@@ -104,6 +104,7 @@ void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag);
 void BKE_paint_set_overlay_override(enum eOverlayFlags flag);
 
 /* palettes */
+void                 BKE_palette_init(struct Palette *palette);
 void                 BKE_palette_free(struct Palette *palette);
 struct Palette      *BKE_palette_add(struct Main *bmain, const char *name);
 void BKE_palette_copy_data(

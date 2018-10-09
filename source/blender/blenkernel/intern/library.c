@@ -1373,6 +1373,9 @@ void BKE_libblock_init_empty(ID *id)
 			/* Should not be needed - animation from lib pre-2.5 is broken anyway. */
 			BLI_assert(0);
 			break;
+		case ID_PAL:
+			BKE_palette_init((Palette *)id);
+			break;
 		default:
 			BLI_assert(0);  /* Should never reach this point... */
 	}
