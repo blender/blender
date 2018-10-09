@@ -3553,6 +3553,7 @@ class VIEW3D_MT_edit_armature_delete(Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.operator_context = 'EXEC_AREA'
 
         layout.operator("armature.delete", text="Bones")
 
