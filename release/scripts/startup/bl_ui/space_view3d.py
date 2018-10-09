@@ -151,12 +151,12 @@ class VIEW3D_HT_header(Header):
 
         if show_snap:
             snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
-            for elem in tool_settings.snap_elements:
-                # TODO: Display multiple icons.
-                # (Currently only one of the enabled modes icons is displayed)
-                icon = snap_items[elem].icon
-                break
+            if len(tool_settings.snap_elements) == 1:
+                text = ""
+                for elem in tool_settings.snap_elements:
+                    icon = snap_items[elem].icon
             else:
+                text = "Mix"
                 icon = 'NONE'
 
             row = layout.row(align=True)
@@ -166,7 +166,7 @@ class VIEW3D_HT_header(Header):
             sub.popover(
                 panel="VIEW3D_PT_snapping",
                 icon=icon,
-                text="",
+                text=text,
             )
 
         # Proportional editing
