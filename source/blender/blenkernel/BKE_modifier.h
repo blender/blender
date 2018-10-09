@@ -427,19 +427,33 @@ const char *modifier_path_relbase_from_global(struct Object *ob);
 struct DerivedMesh *modwrap_applyModifier_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct DerivedMesh *dm);
+struct Mesh *modwrap_applyModifier(
+        ModifierData *md, const struct ModifierEvalContext *ctx,
+        struct Mesh *me);
 
 struct DerivedMesh *modwrap_applyModifierEM_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *em, struct DerivedMesh *dm);
+struct Mesh *modwrap_applyModifierEM(
+        ModifierData *md, const struct ModifierEvalContext *ctx,
+        struct BMEditMesh *em, struct Mesh *me);
 
 void modwrap_deformVerts_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts);
+void modwrap_deformVerts(
+        ModifierData *md, const struct ModifierEvalContext *ctx,
+        struct Mesh *me,
+        float (*vertexCos)[3], int numVerts);
 
 void modwrap_deformVertsEM_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *em, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts);
+void modwrap_deformVertsEM(
+        ModifierData *md, const struct ModifierEvalContext *ctx,
+        struct BMEditMesh *em, struct Mesh *me,
         float (*vertexCos)[3], int numVerts);
 
 #define applyModifier_DM_wrapper(NEW_FUNC_NAME, OLD_FUNC_NAME) \
@@ -455,16 +469,6 @@ void modwrap_deformVertsEM_DM_deprecated(
 /* wrappers for modifier callbacks that accept Mesh and select the proper implementation
  * depending on if the modifier has been ported to Mesh or is still using DerivedMesh
  */
-
-void modifier_deformVerts_ensure_normals(
-        struct ModifierData *md, const struct ModifierEvalContext *ctx,
-        struct Mesh *mesh, float (*vertexCos)[3], int numVerts);
-
-struct Mesh *modifier_applyModifier_ensure_normals(
-        struct ModifierData *md, const struct ModifierEvalContext *ctx,
-        struct Mesh *mesh);
-
-/* deprecated variants of above that accept DerivedMesh */
 
 void modifier_deformVerts_DM_deprecated(
         struct ModifierData *md, const struct ModifierEvalContext *ctx,

@@ -838,6 +838,18 @@ struct DerivedMesh *modwrap_applyModifier_DM_deprecated(
 	}
 	return modifier_applyModifier_DM_deprecated(md, ctx, dm);
 }
+struct Mesh *modwrap_applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct Mesh *me)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
+
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(me);
+	}
+	return mti->applyModifier(md, ctx, me);
+}
 
 struct DerivedMesh *modwrap_applyModifierEM_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
@@ -851,6 +863,18 @@ struct DerivedMesh *modwrap_applyModifierEM_DM_deprecated(
 	}
 	return modifier_applyModifierEM_DM_deprecated(md, ctx, em, dm);
 }
+struct Mesh *modwrap_applyModifierEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *em, Mesh *me)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
+
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(me);
+	}
+	return mti->applyModifierEM(md, ctx, em, me);
+}
 
 void modwrap_deformVerts_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
@@ -863,6 +887,18 @@ void modwrap_deformVerts_DM_deprecated(
 		DM_ensure_normals(dm);
 	}
 	modifier_deformVerts_DM_deprecated(md, ctx, dm, vertexCos, numVerts);
+}
+void modwrap_deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *me, float (*vertexCos)[3], int numVerts)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
+
+	if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(me);
+	}
+	mti->deformVerts(md, ctx, me, vertexCos, numVerts);
 }
 
 void modwrap_deformVertsEM_DM_deprecated(
@@ -878,6 +914,20 @@ void modwrap_deformVertsEM_DM_deprecated(
 	}
 	modifier_deformVertsEM_DM_deprecated(md, ctx, em, dm, vertexCos, numVerts);
 }
+void modwrap_deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *em, Mesh *me,
+        float (*vertexCos)[3], int numVerts)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(!me || CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
+
+	if (me && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(me);
+	}
+	mti->deformVertsEM(md, ctx, em, me, vertexCos, numVerts);
+}
+
 /* end modifier callback wrappers */
 
 
@@ -885,36 +935,12 @@ void modwrap_deformVertsEM_DM_deprecated(
  * depending on if the modifier has been ported to Mesh or is still using DerivedMesh
  */
 
-void modifier_deformVerts_ensure_normals(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct Mesh *mesh,
-	float (*vertexCos)[3], int numVerts)
-{
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(!mesh || CustomData_has_layer(&mesh->pdata, CD_NORMAL) == false);
-
-	if (mesh && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		BKE_mesh_calc_normals(mesh);
-	}
-	mti->deformVerts(md, ctx, mesh, vertexCos, numVerts);
-}
-
-struct Mesh *modifier_applyModifier_ensure_normals(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct Mesh *mesh)
-{
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&mesh->pdata, CD_NORMAL) == false);
-
-	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		BKE_mesh_calc_normals(mesh);
-	}
-	return mti->applyModifier(md, ctx, mesh);
-}
-
 /* deprecated variants of above that accept DerivedMesh */
 
-void modifier_deformVerts_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct DerivedMesh *dm,
-	float (*vertexCos)[3], int numVerts)
+void modifier_deformVerts_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -932,9 +958,10 @@ void modifier_deformVerts_DM_deprecated(struct ModifierData *md, const ModifierE
 	}
 }
 
-void modifier_deformMatrices_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct DerivedMesh *dm,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+void modifier_deformMatrices_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct DerivedMesh *dm,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -953,9 +980,10 @@ void modifier_deformMatrices_DM_deprecated(struct ModifierData *md, const Modifi
 	}
 }
 
-void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct BMEditMesh *editData, struct DerivedMesh *dm,
-	float (*vertexCos)[3], int numVerts)
+void modifier_deformVertsEM_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -973,9 +1001,10 @@ void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, const Modifie
 	}
 }
 
-void modifier_deformMatricesEM_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct BMEditMesh *editData, struct DerivedMesh *dm,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+void modifier_deformMatricesEM_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData, struct DerivedMesh *dm,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -993,8 +1022,9 @@ void modifier_deformMatricesEM_DM_deprecated(struct ModifierData *md, const Modi
 	}
 }
 
-struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct DerivedMesh *dm)
+struct DerivedMesh *modifier_applyModifier_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct DerivedMesh *dm)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
@@ -1021,9 +1051,10 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 
 }
 
-struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *md, const ModifierEvalContext *ctx,
-	struct BMEditMesh *editData,
-	struct DerivedMesh *dm)
+struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(
+        struct ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData,
+        struct DerivedMesh *dm)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 

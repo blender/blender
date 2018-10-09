@@ -1560,7 +1560,7 @@ static void mesh_calc_modifiers(
 				if (!deformedVerts)
 					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 
-				modifier_deformVerts_ensure_normals(md, &mectx_deform, NULL, deformedVerts, numVerts);
+				modwrap_deformVerts(md, &mectx_deform, NULL, deformedVerts, numVerts);
 			}
 			else {
 				break;
@@ -1700,7 +1700,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			modifier_deformVerts_ensure_normals(md, &mectx_deform, mesh, deformedVerts, numVerts);
+			modwrap_deformVerts(md, &mectx_deform, mesh, deformedVerts, numVerts);
 		}
 		else {
 			/* determine which data layers are needed by following modifiers */
@@ -1767,7 +1767,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			Mesh *new_mesh = modifier_applyModifier_ensure_normals(md, &mectx_apply, mesh);
+			Mesh *new_mesh = modwrap_applyModifier(md, &mectx_apply, mesh);
 			ASSERT_IS_VALID_MESH(new_mesh);
 
 			if (new_mesh) {
@@ -1798,7 +1798,7 @@ static void mesh_calc_modifiers(
 				                 (mti->requiredDataMask ?
 				                  mti->requiredDataMask(ob, md) : 0));
 
-				new_mesh = modifier_applyModifier_ensure_normals(md, &mectx_orco, orco_mesh);
+				new_mesh = modwrap_applyModifier(md, &mectx_orco, orco_mesh);
 				ASSERT_IS_VALID_MESH(new_mesh);
 
 				if (new_mesh) {
@@ -1821,7 +1821,7 @@ static void mesh_calc_modifiers(
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				mesh_set_only_copy(cloth_orco_mesh, nextmask | CD_MASK_ORIGINDEX);
 
-				new_mesh = modifier_applyModifier_ensure_normals(md, &mectx_orco, cloth_orco_mesh);
+				new_mesh = modwrap_applyModifier(md, &mectx_orco, cloth_orco_mesh);
 				ASSERT_IS_VALID_DM(new_mesh);
 
 				if (new_mesh) {
