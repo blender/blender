@@ -60,6 +60,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_mesh_runtime.h"
 #include "BKE_mesh_tangent.h"
@@ -2307,24 +2308,16 @@ static void editbmesh_build_data(
 	        depsgraph, scene, obedit, em, dataMask,
 	        &me_cage, &me_final);
 
-	/* TODO(campbell): remove derived mesh conversion. */
-	em->derivedFinal = CDDM_from_mesh_ex(me_final, CD_DUPLICATE, CD_MASK_MESH);
-	BKE_id_free(NULL, me_final);
-	if (me_cage != me_final) {
-		em->derivedCage = CDDM_from_mesh_ex(me_cage, CD_DUPLICATE, CD_MASK_MESH);
-		BKE_id_free(NULL, me_cage);
-	}
-	else {
-		em->derivedCage = em->derivedFinal;
-	}
+	em->mesh_eval_final = me_final;
+	em->mesh_eval_cage = me_cage;
 
+#if 0
 	DM_set_object_boundbox(obedit, em->derivedFinal);
+#endif
 
 	em->lastDataMask = dataMask;
-	em->derivedFinal->needsFree = 0;
-	em->derivedCage->needsFree = 0;
 
-	BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS));
+	BLI_assert(!(em->mesh_eval_final->runtime.cd_dirty_vert & DM_DIRTY_NORMALS));
 }
 
 static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob, bool *r_need_mapping)
@@ -2559,29 +2552,29 @@ DerivedMesh *mesh_create_derived_no_deform(
 
 /***/
 
-DerivedMesh *editbmesh_get_derived_cage_and_final(
+Mesh *editbmesh_get_eval_cage_and_final(
         struct Depsgraph *depsgraph, Scene *scene, Object *obedit, BMEditMesh *em,
         CustomDataMask dataMask,
         /* return args */
-        DerivedMesh **r_final)
+        Mesh **r_final)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
 	dataMask |= object_get_datamask(depsgraph, obedit, NULL);
 
-	if (!em->derivedCage ||
+	if (!em->mesh_eval_cage ||
 	    (em->lastDataMask & dataMask) != dataMask)
 	{
 		editbmesh_build_data(depsgraph, scene, obedit, em, dataMask);
 	}
 
-	*r_final = em->derivedFinal;
-	if (em->derivedFinal) { BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
-	return em->derivedCage;
+	*r_final = em->mesh_eval_final;
+	if (em->mesh_eval_final) { BLI_assert(!(em->mesh_eval_final->runtime.cd_dirty_vert & DM_DIRTY_NORMALS)); }
+	return em->mesh_eval_cage;
 }
 
-DerivedMesh *editbmesh_get_derived_cage(
+Mesh *editbmesh_get_eval_cage(
         struct Depsgraph *depsgraph, Scene *scene, Object *obedit, BMEditMesh *em,
         CustomDataMask dataMask)
 {
@@ -2590,39 +2583,16 @@ DerivedMesh *editbmesh_get_derived_cage(
 	 */
 	dataMask |= object_get_datamask(depsgraph, obedit, NULL);
 
-	if (!em->derivedCage ||
+	if (!em->mesh_eval_cage ||
 	    (em->lastDataMask & dataMask) != dataMask)
 	{
 		editbmesh_build_data(depsgraph, scene, obedit, em, dataMask);
 	}
 
-	return em->derivedCage;
+	return em->mesh_eval_cage;
 }
 
 /***/
-
-/* get derived mesh from an object, using editbmesh if available. */
-DerivedMesh *object_get_derived_final(Object *ob, const bool for_render)
-{
-	if (for_render) {
-		/* TODO(sergey): use proper derived render here in the future. */
-		return ob->derivedFinal;
-	}
-
-	/* only return the editmesh if its from this object because
-	 * we don't a mesh from another object's modifier stack: T43122 */
-	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		BMEditMesh *em = me->edit_btmesh;
-		if (em && (em->ob == ob)) {
-			DerivedMesh *dm = em->derivedFinal;
-			return dm;
-		}
-	}
-
-	return ob->derivedFinal;
-}
-
 
 /* UNUSED */
 #if 0
@@ -2705,20 +2675,20 @@ static void make_vertexcos__mapFunc(
 	}
 }
 
-void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos)
+void mesh_get_mapped_verts_coords(Mesh *me_eval, float (*r_cos)[3], const int totcos)
 {
-	if (dm->foreachMappedVert) {
+	if (me_eval->runtime.deformed_only == false) {
 		MappedUserData userData;
 		memset(r_cos, 0, sizeof(*r_cos) * totcos);
 		userData.vertexcos = r_cos;
 		userData.vertex_visit = BLI_BITMAP_NEW(totcos, "vertexcos flags");
-		dm->foreachMappedVert(dm, make_vertexcos__mapFunc, &userData, DM_FOREACH_NOP);
+		BKE_mesh_foreach_mapped_vert(me_eval, make_vertexcos__mapFunc, &userData, MESH_FOREACH_NOP);
 		MEM_freeN(userData.vertex_visit);
 	}
 	else {
-		int i;
-		for (i = 0; i < totcos; i++) {
-			dm->getVertCo(dm, i, r_cos[i]);
+		MVert *mv = me_eval->mvert;
+		for (int i = 0; i < totcos; i++, mv++) {
+			copy_v3_v3(r_cos[i], mv->co);
 		}
 	}
 }

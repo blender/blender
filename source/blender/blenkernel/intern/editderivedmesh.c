@@ -51,6 +51,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_iterators.h"
 #include "BKE_editmesh.h"
 #include "BKE_editmesh_bvh.h"
 #include "BKE_editmesh_cache.h"
@@ -528,12 +529,12 @@ static void cage_mapped_verts_callback(
 
 float (*BKE_editmesh_vertexCos_get(struct Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
 {
-	DerivedMesh *cage, *final;
+	Mesh *cage, *final;
 	BLI_bitmap *visit_bitmap;
 	struct CageUserData data;
 	float (*cos_cage)[3];
 
-	cage = editbmesh_get_derived_cage_and_final(depsgraph, scene, em->ob, em, CD_MASK_BAREMESH, &final);
+	cage = editbmesh_get_eval_cage_and_final(depsgraph, scene, em->ob, em, CD_MASK_BAREMESH, &final);
 	cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,
@@ -544,7 +545,7 @@ float (*BKE_editmesh_vertexCos_get(struct Depsgraph *depsgraph, BMEditMesh *em, 
 	data.cos_cage = cos_cage;
 	data.visit_bitmap = visit_bitmap;
 
-	cage->foreachMappedVert(cage, cage_mapped_verts_callback, &data, DM_FOREACH_NOP);
+	BKE_mesh_foreach_mapped_vert(cage, cage_mapped_verts_callback, &data, MESH_FOREACH_NOP);
 
 	MEM_freeN(visit_bitmap);
 

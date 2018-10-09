@@ -178,6 +178,4 @@ void CDDM_set_mface(struct DerivedMesh *dm, struct MFace *mface);
 void CDDM_set_mloop(struct DerivedMesh *dm, struct MLoop *mloop);
 void CDDM_set_mpoly(struct DerivedMesh *dm, struct MPoly *mpoly);
 
-void CDDM_to_mesh__fast_borrow(struct DerivedMesh *dm, struct Mesh *me, const struct Mesh *me_reference);
-
 #endif

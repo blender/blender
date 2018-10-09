@@ -514,7 +514,7 @@ void DM_interp_poly_data(
  * In use now by vertex/weight paint and particles */
 DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
 #endif
-void mesh_get_mapped_verts_coords(DerivedMesh *dm, float (*r_cos)[3], const int totcos);
+void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
 /* */
 
@@ -537,15 +537,13 @@ DerivedMesh *mesh_create_derived_no_deform_render(
         struct Object *ob, float (*vertCos)[3],
         CustomDataMask dataMask);
 
-DerivedMesh *editbmesh_get_derived_cage(
+struct Mesh *editbmesh_get_eval_cage(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
         struct BMEditMesh *em, CustomDataMask dataMask);
-DerivedMesh *editbmesh_get_derived_cage_and_final(
+struct Mesh *editbmesh_get_eval_cage_and_final(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
         struct BMEditMesh *em, CustomDataMask dataMask,
-        DerivedMesh **r_final);
-
-DerivedMesh *object_get_derived_final(struct Object *ob, const bool for_render);
+        struct Mesh **r_final);
 
 float (*editbmesh_get_vertex_cos(struct BMEditMesh *em, int *r_numVerts))[3];
 bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md, bool has_prev_mesh);

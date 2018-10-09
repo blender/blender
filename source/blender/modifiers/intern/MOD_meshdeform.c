@@ -299,7 +299,7 @@ static void meshdeformModifier_do(
 	 *
 	 * Only do this is the target object is in edit mode by itself, meaning
 	 * we don't allow linked edit meshes here.
-	 * This is because editbmesh_get_derived_cage_and_final() might easily
+	 * This is because editbmesh_get_mesh_cage_and_final() might easily
 	 * conflict with the thread which evaluates object which is in the edit
 	 * mode for this mesh.
 	 *

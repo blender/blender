@@ -4464,12 +4464,13 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
 		/* Hack to show the final result. */
 		const bool use_em_final = (
 		        me->edit_btmesh &&
-		        me->edit_btmesh->derivedFinal &&
-		        (me->edit_btmesh->derivedFinal->type == DM_TYPE_CDDM));
+		        me->edit_btmesh->mesh_eval_final &&
+		        (me->edit_btmesh->mesh_eval_final->runtime.deformed_only == false));
 		Mesh me_fake;
 		if (use_em_final) {
-			memset(&me_fake, 0x0, sizeof(me_fake));
-			CDDM_to_mesh__fast_borrow(me->edit_btmesh->derivedFinal, &me_fake, me);
+			me_fake = *me->edit_btmesh->mesh_eval_final;
+			me_fake.mat = me->mat;
+			me_fake.totcol = me->totcol;
 			me = &me_fake;
 		}
 

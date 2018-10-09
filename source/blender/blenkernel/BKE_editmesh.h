@@ -64,8 +64,9 @@ typedef struct BMEditMesh {
 	struct BMLoop *(*looptris)[3];
 	int tottri;
 
+	struct Mesh *mesh_eval_final, *mesh_eval_cage;
+
 	/*derivedmesh stuff*/
-	struct DerivedMesh *derivedFinal, *derivedCage;
 	CustomDataMask lastDataMask;
 	unsigned char (*derivedVertColor)[4];
 	int derivedVertColorLen;

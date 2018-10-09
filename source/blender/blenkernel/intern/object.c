@@ -2052,7 +2052,11 @@ static void give_parvert(Object *par, int nr, float vec[3])
 		BMEditMesh *em = me->edit_btmesh;
 		DerivedMesh *dm;
 
+#if 0	/* FIXME(campbell): use mesh for both. */
 		dm = (em) ? em->derivedFinal : par->derivedFinal;
+#else
+		dm = par->derivedFinal;
+#endif
 
 		if (dm) {
 			int count = 0;

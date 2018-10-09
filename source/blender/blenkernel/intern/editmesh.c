@@ -39,6 +39,7 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library.h"
 
 
 BMEditMesh *BKE_editmesh_create(BMesh *bm, const bool do_tessellate)
@@ -58,7 +59,7 @@ BMEditMesh *BKE_editmesh_copy(BMEditMesh *em)
 	BMEditMesh *em_copy = MEM_callocN(sizeof(BMEditMesh), __func__);
 	*em_copy = *em;
 
-	em_copy->derivedCage = em_copy->derivedFinal = NULL;
+	em_copy->mesh_eval_cage = em_copy->mesh_eval_final = NULL;
 
 	em_copy->derivedVertColor = NULL;
 	em_copy->derivedVertColorLen = 0;
@@ -169,16 +170,13 @@ void BKE_editmesh_tessface_calc(BMEditMesh *em)
 
 void BKE_editmesh_free_derivedmesh(BMEditMesh *em)
 {
-	if (em->derivedCage) {
-		em->derivedCage->needsFree = 1;
-		em->derivedCage->release(em->derivedCage);
+	if (em->mesh_eval_cage) {
+		BKE_id_free(NULL, em->mesh_eval_cage);
 	}
-	if (em->derivedFinal && em->derivedFinal != em->derivedCage) {
-		em->derivedFinal->needsFree = 1;
-		em->derivedFinal->release(em->derivedFinal);
+	if (em->mesh_eval_final && em->mesh_eval_final != em->mesh_eval_cage) {
+		BKE_id_free(NULL, em->mesh_eval_final);
 	}
-
-	em->derivedCage = em->derivedFinal = NULL;
+	em->mesh_eval_cage = em->mesh_eval_final = NULL;
 }
 
 /*does not free the BMEditMesh struct itself*/

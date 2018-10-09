@@ -488,7 +488,7 @@ static void make_duplis_verts(const DupliContext *ctx)
 
 		/* We do not need any render-smecific handling anymore, depsgraph takes care of that. */
 		if (vdd.edit_btmesh != NULL) {
-			/* XXX TODO replace with equivalent of editbmesh_get_derived_cage when available. */
+			/* XXX TODO replace with equivalent of editbmesh_get_eval_cage when available. */
 			vdd.me_eval = mesh_get_eval_deform(ctx->depsgraph, scene, parent, dm_mask);
 		}
 		else {
@@ -758,7 +758,7 @@ static void make_duplis_faces(const DupliContext *ctx)
 
 		/* We do not need any render-smecific handling anymore, depsgraph takes care of that. */
 		if (em != NULL) {
-			/* XXX TODO replace with equivalent of editbmesh_get_derived_cage when available. */
+			/* XXX TODO replace with equivalent of editbmesh_get_eval_cage when available. */
 			fdd.me_eval = mesh_get_eval_deform(ctx->depsgraph, scene, parent, dm_mask);
 		}
 		else {

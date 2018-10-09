@@ -104,7 +104,7 @@ float (*BKE_crazyspace_get_mapped_editverts(
            struct Depsgraph *depsgraph, Scene *scene, Object *obedit))[3]
 {
 	Mesh *me = obedit->data;
-	DerivedMesh *dm;
+	Mesh *me_eval;
 	float (*vertexcos)[3];
 	int nverts = me->edit_btmesh->bm->totvert;
 
@@ -117,11 +117,9 @@ float (*BKE_crazyspace_get_mapped_editverts(
 	/* now get the cage */
 	vertexcos = MEM_mallocN(sizeof(*vertexcos) * nverts, "vertexcos map");
 
-	dm = editbmesh_get_derived_cage(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
+	me_eval = editbmesh_get_eval_cage(depsgraph, scene, obedit, me->edit_btmesh, CD_MASK_BAREMESH);
 
-	mesh_get_mapped_verts_coords(dm, vertexcos, nverts);
-
-	dm->release(dm);
+	mesh_get_mapped_verts_coords(me_eval, vertexcos, nverts);
 
 	/* set back the flag, no new cage needs to be built, transform does it */
 	modifiers_disable_subsurf_temporary(obedit);
