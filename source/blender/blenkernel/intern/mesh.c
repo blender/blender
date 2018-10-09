@@ -756,6 +756,25 @@ Mesh *BKE_bmesh_to_mesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params
 	return mesh;
 }
 
+/**
+ * TODO(campbell): support mesh with only an edit-mesh which is lazy initialized.
+ */
+Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
+        BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3])
+{
+	Mesh *me = BKE_bmesh_to_mesh_nomain(
+	        em->bm,
+	        &(struct BMeshToMeshParams){
+	            .cd_mask_extra = data_mask,
+	        });
+	if (vertexCos) {
+		/* We will own this array in the future. */
+		BKE_mesh_apply_vert_coords(me, vertexCos);
+		MEM_freeN(vertexCos);
+	}
+	return me;
+}
+
 void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &me->id, true, lib_local);

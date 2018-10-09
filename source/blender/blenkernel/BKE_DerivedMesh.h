@@ -541,8 +541,6 @@ DerivedMesh *mesh_create_derived_no_deform_render(
         struct Object *ob, float (*vertCos)[3],
         CustomDataMask dataMask);
 
-DerivedMesh *editbmesh_get_derived_base(
-        struct Object *ob, struct BMEditMesh *em, CustomDataMask data_mask);
 DerivedMesh *editbmesh_get_derived_cage(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *,
         struct BMEditMesh *em, CustomDataMask dataMask);

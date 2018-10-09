@@ -1914,24 +1914,6 @@ bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, bool has_prev
 	return true;
 }
 
-
-/* TODO(campbell): support mesh with only an edit-mesh which is lazy initialized. */
-static Mesh *mesh_from_editmesh_with_coords(
-        BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3])
-{
-	Mesh *me = BKE_bmesh_to_mesh_nomain(
-	        em->bm,
-	        &(struct BMeshToMeshParams){
-	            .cd_mask_extra = data_mask,
-	        });
-	if (vertexCos) {
-		/* We will own this array in the future. */
-		BKE_mesh_apply_vert_coords(me, vertexCos);
-		MEM_freeN(vertexCos);
-	}
-	return me;
-}
-
 static void editbmesh_calc_modifiers(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         BMEditMesh *em, CustomDataMask dataMask,
@@ -1962,7 +1944,7 @@ static void editbmesh_calc_modifiers(
 	modifiers_clearErrors(ob);
 
 	if (r_cage && cageIndex == -1) {
-		*r_cage = mesh_from_editmesh_with_coords(em, dataMask, NULL);
+		*r_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, NULL);
 	}
 
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
@@ -2116,7 +2098,7 @@ static void editbmesh_calc_modifiers(
 					BKE_mesh_runtime_ensure_edit_data(me_orig);
 					me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
 				}
-				*r_cage = mesh_from_editmesh_with_coords(
+				*r_cage = BKE_mesh_from_editmesh_with_coords_thin_wrap(
 				        em, mask,
 				        deformedVerts ? MEM_dupallocN(deformedVerts) : NULL);
 			}
@@ -2160,7 +2142,7 @@ static void editbmesh_calc_modifiers(
 				MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
 			mesh->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
 		}
-		*r_final = mesh_from_editmesh_with_coords(em, dataMask, deformedVerts);
+		*r_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, deformedVerts);
 		deformedVerts = NULL;
 
 #if 0
@@ -2614,11 +2596,6 @@ DerivedMesh *editbmesh_get_derived_cage(
 	}
 
 	return em->derivedCage;
-}
-
-DerivedMesh *editbmesh_get_derived_base(Object *obedit, BMEditMesh *em, CustomDataMask data_mask)
-{
-	return getEditDerivedBMesh(em, obedit, data_mask, NULL);
 }
 
 /***/

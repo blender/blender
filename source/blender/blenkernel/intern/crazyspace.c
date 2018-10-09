@@ -48,6 +48,7 @@
 #include "BKE_multires.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_library.h"
 
 BLI_INLINE void tan_calc_quat_v3(
         float r_quat[4],
@@ -256,7 +257,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
         float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
-	DerivedMesh *dm;
+	Mesh *me;
 	int i, a, numleft = 0, numVerts = 0;
 	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
@@ -265,7 +266,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 
 	modifiers_clearErrors(ob);
 
-	dm = NULL;
+	me = NULL;
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	/* compute the deformation matrices and coordinates for the first
@@ -274,7 +275,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	for (i = 0; md && i <= cageIndex; i++, md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if (!editbmesh_modifier_is_enabled(scene, md, dm != NULL))
+		if (!editbmesh_modifier_is_enabled(scene, md, me != NULL))
 			continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
@@ -285,26 +286,26 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 				data_mask = datamasks->mask;
 				BLI_linklist_free((LinkNode *)datamasks, NULL);
 
-				dm = getEditDerivedBMesh(em, ob, data_mask, NULL);
+				me = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, data_mask, NULL);
 				deformedVerts = editbmesh_get_vertex_cos(em, &numVerts);
 				defmats = MEM_mallocN(sizeof(*defmats) * numVerts, "defmats");
 
 				for (a = 0; a < numVerts; a++)
 					unit_m3(defmats[a]);
 			}
-
-			modifier_deformMatricesEM_DM_deprecated(md, &mectx, em, dm, deformedVerts, defmats, numVerts);
+			mti->deformMatricesEM(md, &mectx, em, me, deformedVerts, defmats, numVerts);
 		}
 		else
 			break;
 	}
 
 	for (; md && i <= cageIndex; md = md->next, i++)
-		if (editbmesh_modifier_is_enabled(scene, md, dm != NULL) && modifier_isCorrectableDeformed(md))
+		if (editbmesh_modifier_is_enabled(scene, md, me != NULL) && modifier_isCorrectableDeformed(md))
 			numleft++;
 
-	if (dm)
-		dm->release(dm);
+	if (me) {
+		BKE_id_free(NULL, me);
+	}
 
 	*deformmats = defmats;
 	*deformcos = deformedVerts;
