@@ -466,7 +466,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 		if (ob) {
 			Mesh *me = (Mesh *)ob->data;
-			Mesh *me_eval = BKE_object_get_evaluated_mesh(depsgraph, ob);  /* Or shall we just do ob_eval->mesh_eval ? */
+			Mesh *me_eval = ob_eval->runtime.mesh_eval;
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
