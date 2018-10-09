@@ -75,10 +75,11 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	}
 	else if (ld.l_type == SUN) {
 		power = (4.0f * ld.l_radius * ld.l_radius * M_2PI) * (1.0 / 12.5); /* Removing area light power*/
-		power *= M_2PI * 0.78; /* Matching cycles with point light. */
+		power *= M_PI * 0.5; /* Matching cycles. */
 	}
 	else {
 		power = (4.0 * ld.l_radius * ld.l_radius) * (1.0 /10.0);
+		power *= M_2PI; /* Matching cycles with point light. */
 	}
 
 	/* OPTI: find a better way than calculating this on the fly */
