@@ -2071,9 +2071,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->deformVertsEM)
-				modwrap_deformVertsEM(md, &mectx, em, dm, deformedVerts, numVerts);
+				modwrap_deformVertsEM_DM_deprecated(md, &mectx, em, dm, deformedVerts, numVerts);
 			else
-				modwrap_deformVerts(md, &mectx, dm, deformedVerts, numVerts);
+				modwrap_deformVerts_DM_deprecated(md, &mectx, dm, deformedVerts, numVerts);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -2114,10 +2114,10 @@ static void editbmesh_calc_modifiers(
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
 				if (mti->applyModifierEM) {
-					ndm = modwrap_applyModifierEM(md, &mectx_orco, em, orcodm);
+					ndm = modwrap_applyModifierEM_DM_deprecated(md, &mectx_orco, em, orcodm);
 				}
 				else {
-					ndm = modwrap_applyModifier(md, &mectx_orco, orcodm);
+					ndm = modwrap_applyModifier_DM_deprecated(md, &mectx_orco, orcodm);
 				}
 				ASSERT_IS_VALID_DM(ndm);
 
@@ -2142,9 +2142,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->applyModifierEM)
-				ndm = modwrap_applyModifierEM(md, &mectx_cache, em, dm);
+				ndm = modwrap_applyModifierEM_DM_deprecated(md, &mectx_cache, em, dm);
 			else
-				ndm = modwrap_applyModifier(md, &mectx_cache, dm);
+				ndm = modwrap_applyModifier_DM_deprecated(md, &mectx_cache, dm);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {

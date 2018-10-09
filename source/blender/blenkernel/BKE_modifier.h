@@ -424,20 +424,20 @@ const char *modifier_path_relbase_from_global(struct Object *ob);
 
 /* wrappers for modifier callbacks that ensure valid normals */
 
-struct DerivedMesh *modwrap_applyModifier(
+struct DerivedMesh *modwrap_applyModifier_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct DerivedMesh *dm);
 
-struct DerivedMesh *modwrap_applyModifierEM(
+struct DerivedMesh *modwrap_applyModifierEM_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *em, struct DerivedMesh *dm);
 
-void modwrap_deformVerts(
+void modwrap_deformVerts_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts);
 
-void modwrap_deformVertsEM(
+void modwrap_deformVertsEM_DM_deprecated(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *em, struct DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts);

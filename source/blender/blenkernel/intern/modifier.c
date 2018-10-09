@@ -826,7 +826,7 @@ void modifier_path_init(char *path, int path_maxlen, const char *name)
 
 /* wrapper around ModifierTypeInfo.applyModifier that ensures valid normals */
 
-struct DerivedMesh *modwrap_applyModifier(
+struct DerivedMesh *modwrap_applyModifier_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
         struct DerivedMesh *dm)
 {
@@ -839,7 +839,7 @@ struct DerivedMesh *modwrap_applyModifier(
 	return modifier_applyModifier_DM_deprecated(md, ctx, dm);
 }
 
-struct DerivedMesh *modwrap_applyModifierEM(
+struct DerivedMesh *modwrap_applyModifierEM_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
         struct BMEditMesh *em, DerivedMesh *dm)
 {
@@ -852,7 +852,7 @@ struct DerivedMesh *modwrap_applyModifierEM(
 	return modifier_applyModifierEM_DM_deprecated(md, ctx, em, dm);
 }
 
-void modwrap_deformVerts(
+void modwrap_deformVerts_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
 {
@@ -865,7 +865,7 @@ void modwrap_deformVerts(
 	modifier_deformVerts_DM_deprecated(md, ctx, dm, vertexCos, numVerts);
 }
 
-void modwrap_deformVertsEM(
+void modwrap_deformVertsEM_DM_deprecated(
         ModifierData *md, const ModifierEvalContext *ctx,
         struct BMEditMesh *em, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
