@@ -53,6 +53,7 @@
 #include "BKE_customdata.h"
 #include "BKE_image.h"
 #include "BKE_material.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_report.h"
@@ -285,13 +286,15 @@ static void imapaint_tri_weights(
 /* compute uv coordinates of mouse in face */
 static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsigned int faceindex, const int xy[2], float uv[2])
 {
-	const int tottri = me_eval->runtime.looptris.len;
 	int i, findex;
 	float p[2], w[3], absw, minabsw;
 	float matrix[4][4], proj[4][4];
 	GLint view[4];
 	const eImagePaintMode mode = scene->toolsettings->imapaint.mode;
-	const MLoopTri *lt = me_eval->runtime.looptris.array;
+
+	const MLoopTri *lt = BKE_mesh_runtime_looptri_ensure(me_eval);
+	const int tottri = me_eval->runtime.looptris.len;
+
 	const MVert *mvert = me_eval->mvert;
 	const MPoly *mpoly = me_eval->mpoly;
 	const MLoop *mloop = me_eval->mloop;
@@ -327,7 +330,7 @@ static void imapaint_pick_uv(Mesh *me_eval, Scene *scene, Object *ob_eval, unsig
 				const Material *ma;
 				const TexPaintSlot *slot;
 
-				ma = give_current_material(ob_eval, mp->mat_nr);
+				ma = give_current_material(ob_eval, mp->mat_nr + 1);
 				slot = &ma->texpaintslot[ma->paint_active_slot];
 
 				if (!(slot && slot->uvname &&
