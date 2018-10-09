@@ -725,10 +725,17 @@ static PyObject *bpygpu_shader_unbind(BPyGPUShader *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
-".. function:: shader_from_builtin(shader_id)\n"
+".. function:: shader_from_builtin(shader_name)\n"
 "\n"
-"   :param shader_id: shader identifier.\n"
-"   :type shader_id: int\n"
+"   :param shader_name: One of these builtin shader names: {\n"
+"       '2D_UNIFORM_COLOR',\n"
+"       '2D_FLAT_COLOR',\n"
+"       '2D_SMOOTH_COLOR',\n"
+"       '2D_IMAGE',\n"
+"       '3D_UNIFORM_COLOR',\n"
+"       '3D_FLAT_COLOR',\n"
+"       '3D_SMOOTH_COLOR'}\n"
+"   :type shader_name: str\n"
 );
 static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
@@ -744,10 +751,17 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 }
 
 PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
-".. function:: shader_code_from_builtin(shader_id)\n"
+".. function:: shader_code_from_builtin(shader_name)\n"
 "\n"
-"   :param shader_id: shader identifier.\n"
-"   :type shader_id: int\n"
+"   :param shader_name: One of these builtin shader names: {\n"
+"       '2D_UNIFORM_COLOR',\n"
+"       '2D_FLAT_COLOR',\n"
+"       '2D_SMOOTH_COLOR',\n"
+"       '2D_IMAGE',\n"
+"       '3D_UNIFORM_COLOR',\n"
+"       '3D_FLAT_COLOR',\n"
+"       '3D_SMOOTH_COLOR'}\n"
+"   :type shader_name: str\n"
 "   :return: vertex, fragment and geometry shader codes.\n"
 "   :rtype: dict\n"
 );
