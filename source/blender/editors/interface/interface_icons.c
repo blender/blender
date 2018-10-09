@@ -1332,7 +1332,6 @@ static void icon_draw_cache_flush_ex(void)
 		return;
 
 	/* We need to flush widget base first to ensure correct ordering. */
-	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	UI_widgetbase_draw_cache_flush();
 
 	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
@@ -1354,6 +1353,8 @@ static void icon_draw_cache_flush_ex(void)
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	g_icon_draw_cache.calls = 0;
+
+	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 }
 
 void UI_icon_draw_cache_end(void)
@@ -1366,11 +1367,7 @@ void UI_icon_draw_cache_end(void)
 		return;
 
 	GPU_blend(true);
-	GPU_blend_set_func(GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
-
 	icon_draw_cache_flush_ex();
-
-	GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	GPU_blend(false);
 }
 
