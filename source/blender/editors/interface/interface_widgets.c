@@ -1301,7 +1301,7 @@ static void widget_draw_icon(
 	if (ELEM(but->type, UI_BTYPE_TOGGLE, UI_BTYPE_ROW, UI_BTYPE_TOGGLE_N, UI_BTYPE_LISTROW)) {
 		if (but->flag & UI_SELECT) {}
 		else if (but->flag & UI_ACTIVE) {}
-		else alpha = 0.5f;
+		else alpha = 0.75f;
 	}
 	else if ((but->type == UI_BTYPE_LABEL)) {
 		/* extra feature allows more alpha blending */
