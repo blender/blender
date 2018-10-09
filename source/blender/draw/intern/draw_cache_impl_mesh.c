@@ -1843,9 +1843,15 @@ static void mesh_batch_cache_discard_shaded_tri(MeshBatchCache *cache)
 			GPU_BATCH_DISCARD_SAFE(cache->shaded_triangles[i]);
 		}
 	}
-
+	if (cache->texpaint_triangles) {
+		for (int i = 0; i < cache->mat_len; ++i) {
+			/* They use shaded_triangles_in_order */
+			GPU_BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
+		}
+	}
 	MEM_SAFE_FREE(cache->shaded_triangles_in_order);
 	MEM_SAFE_FREE(cache->shaded_triangles);
+	MEM_SAFE_FREE(cache->texpaint_triangles);
 
 	MEM_SAFE_FREE(cache->auto_layer_names);
 	MEM_SAFE_FREE(cache->auto_layer_is_srgb);
