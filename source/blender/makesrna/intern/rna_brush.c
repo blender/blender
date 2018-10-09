@@ -710,6 +710,11 @@ static const EnumPropertyItem *rna_Brush_stroke_itemf(bContext *C, PointerRNA *U
 }
 
 /* Grease Pencil Drawing Brushes Settings */
+static char *rna_BrushGpencilSettings_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_strdup("tool_settings.gpencil_paint.brush.gpencil_settings");
+}
+
 static void rna_BrushGpencilSettings_default_eraser_update(Main *bmain, Scene *scene, PointerRNA *UNUSED(ptr))
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -967,6 +972,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "BrushGpencilSettings", NULL);
 	RNA_def_struct_sdna(srna, "BrushGpencilSettings");
+	RNA_def_struct_path_func(srna, "rna_BrushGpencilSettings_path");
 	RNA_def_struct_ui_text(srna, "Grease Pencil Brush Settings", "Settings for grease pencil brush");
 
 	/* grease pencil drawing brushes */
