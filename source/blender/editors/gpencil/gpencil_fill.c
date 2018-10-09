@@ -166,14 +166,14 @@ static void gp_draw_basic_stroke(
 			col[3] = 1.0f;
 		}
 		/* set point */
-		immAttrib4fv(color, col);
+		immAttr4fv(color, col);
 		mul_v3_m4v3(fpt, diff_mat, &pt->x);
 		immVertex3fv(pos, fpt);
 	}
 
 	if (cyclic && totpoints > 2) {
 		/* draw line to first point to complete the cycle */
-		immAttrib4fv(color, col);
+		immAttr4fv(color, col);
 		mul_v3_m4v3(fpt, diff_mat, &points->x);
 		immVertex3fv(pos, fpt);
 	}

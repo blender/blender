@@ -82,7 +82,7 @@ static void draw_keyframe_shape(float x, float y, bool sel, float alpha,
 		UI_GetThemeColorShadeAlpha4fv(TH_STRIP_SELECT, 50, -255 * (1.0f - alpha), color);
 	}
 
-	immAttrib4fv(color_id, color);
+	immAttr4fv(color_id, color);
 	immVertex2f(pos_id, x, y);
 }
 
@@ -225,8 +225,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 			immBegin(GPU_PRIM_POINTS, keyframe_len);
 
 			/* all same size with black outline */
-			immAttrib1f(size_id, 2.0f * STRIP_HEIGHT_HALF);
-			immAttrib4ub(outline_color_id, 0, 0, 0, 255);
+			immAttr1f(size_id, 2.0f * STRIP_HEIGHT_HALF);
+			immAttr4ub(outline_color_id, 0, 0, 0, 255);
 
 			y = (float) CHANNEL_FIRST; /* start again at the top */
 			for (channel = dopesheet->channels.first; channel; channel = channel->next) {

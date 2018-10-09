@@ -363,9 +363,9 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 				if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp);
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
 				}
 
@@ -373,9 +373,9 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 				if (bezt->ipo == BEZT_IPO_BEZ) {
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp + 6);
 				}
 			}
@@ -387,9 +387,9 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					fp = bezt->vec[0];
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp);
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
 				}
 
@@ -400,9 +400,9 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					fp = bezt->vec[1];
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp);
-					immAttrib4ubv(color, col);
+					immAttr4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
 				}
 			}

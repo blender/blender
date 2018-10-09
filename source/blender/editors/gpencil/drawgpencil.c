@@ -118,7 +118,7 @@ static void gp_set_tpoint_varying_color(const tGPspoint *pt, const float ink[4],
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	immAttrib4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
+	immAttr4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 static void gp_set_point_uniform_color(const bGPDspoint *pt, const float ink[4])
@@ -132,7 +132,7 @@ static void gp_set_point_varying_color(const bGPDspoint *pt, const float ink[4],
 {
 	float alpha = ink[3] * pt->strength;
 	CLAMP(alpha, GPENCIL_STRENGTH_MIN, 1.0f);
-	immAttrib4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
+	immAttr4ub(attr_id, F2UB(ink[0]), F2UB(ink[1]), F2UB(ink[2]), F2UB(alpha));
 }
 
 /* draw fills for buffer stroke */
@@ -340,7 +340,7 @@ static void gp_draw_stroke_volumetric_buffer(const tGPspoint *points, int totpoi
 	const tGPspoint *pt = points;
 	for (int i = 0; i < totpoints; i++, pt++) {
 		gp_set_tpoint_varying_color(pt, ink, color);
-		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform (zoom level) */
+		immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform (zoom level) */
 		immVertex2f(pos, pt->x, pt->y);
 	}
 
@@ -374,7 +374,7 @@ static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points, int totpoints
 		gp_calc_2d_stroke_fxy(fpt, sflag, offsx, offsy, winx, winy, co);
 
 		gp_set_point_varying_color(pt, ink, color);
-		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
+		immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
 		immVertex2f(pos, co[0], co[1]);
 	}
 
@@ -400,7 +400,7 @@ static void gp_draw_stroke_volumetric_3d(
 	const bGPDspoint *pt = points;
 	for (int i = 0; i < totpoints && pt; i++, pt++) {
 		gp_set_point_varying_color(pt, ink, color);
-		immAttrib1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
+		immAttr1f(size, pt->pressure * thickness); /* TODO: scale based on view transform */
 		immVertex3fv(pos, &pt->x);                   /* we can adjust size in vertex shader based on view/projection! */
 	}
 
@@ -580,7 +580,7 @@ static void gp_add_filldata_tobuffer(
 		fpt[2] = 0.0f; /* 2d always is z=0.0f */
 	}
 
-	immAttrib2f(texcoord, uv[0], uv[1]); /* texture coordinates */
+	immAttr2f(texcoord, uv[0], uv[1]); /* texture coordinates */
 	immVertex3fv(pos, fpt); /* position */
 }
 
@@ -764,7 +764,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 		/* first point for adjacency (not drawn) */
 		if (i == 0) {
 			gp_set_point_varying_color(points, ink, attr_id.color);
-			immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+			immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 			if ((cyclic) && (totpoints > 2)) {
 				mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 1)->x);
 			}
@@ -776,7 +776,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 		}
 		/* set point */
 		gp_set_point_varying_color(pt, ink, attr_id.color);
-		immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+		immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &pt->x);
 		immVertex3fv(attr_id.pos, fpt);
 
@@ -785,19 +785,19 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 
 	if (cyclic && totpoints > 2) {
 		/* draw line to first point to complete the cycle */
-		immAttrib1f(attr_id.thickness, max_ff(points->pressure * thickness, 1.0f));
+		immAttr1f(attr_id.thickness, max_ff(points->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &points->x);
 		immVertex3fv(attr_id.pos, fpt);
 
 		/* now add adjacency point (not drawn) */
-		immAttrib1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, 1.0f));
+		immAttr1f(attr_id.thickness, max_ff((points + 1)->pressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + 1)->x);
 		immVertex3fv(attr_id.pos, fpt);
 	}
 	/* last adjacency point (not drawn) */
 	else {
 		gp_set_point_varying_color(points + totpoints - 1, ink, attr_id.color);
-		immAttrib1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
+		immAttr1f(attr_id.thickness, max_ff(curpressure * thickness, 1.0f));
 		mul_v3_m4v3(fpt, tgpw->diff_mat, &(points + totpoints - 2)->x);
 		mul_v3_fl(fpt, -1.0f);
 		immVertex3fv(attr_id.pos, fpt);
@@ -1321,21 +1321,21 @@ static void gp_draw_strokes_edit(
 			/* size and color first */
 			if (show_direction_hint && i == 0) {
 				/* start point in green bigger */
-				immAttrib3f(color, 0.0f, 1.0f, 0.0f);
-				immAttrib1f(size, vsize + 4);
+				immAttr3f(color, 0.0f, 1.0f, 0.0f);
+				immAttr1f(size, vsize + 4);
 			}
 			else if (show_direction_hint && (i == gps->totpoints - 1)) {
 				/* end point in red smaller */
-				immAttrib3f(color, 1.0f, 0.0f, 0.0f);
-				immAttrib1f(size, vsize + 1);
+				immAttr3f(color, 1.0f, 0.0f, 0.0f);
+				immAttr1f(size, vsize + 1);
 			}
 			else if (pt->flag & GP_SPOINT_SELECT) {
-				immAttrib3fv(color, selectColor);
-				immAttrib1f(size, vsize);
+				immAttr3fv(color, selectColor);
+				immAttr1f(size, vsize);
 			}
 			else {
-				immAttrib3fv(color, gp_style->stroke_rgba);
-				immAttrib1f(size, bsize);
+				immAttr3fv(color, gp_style->stroke_rgba);
+				immAttr1f(size, bsize);
 			}
 
 			/* then position */

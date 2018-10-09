@@ -89,35 +89,35 @@ void immRecti(uint pos, int x1, int y1, int x2, int y2)
 
 void immRectf_fast_with_color(uint pos, uint col, float x1, float y1, float x2, float y2, const float color[4])
 {
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y2);
 
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y2);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y2);
 }
 
 void immRecti_fast_with_color(uint pos, uint col, int x1, int y1, int x2, int y2, const float color[4])
 {
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x2, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x2, y2);
 
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x2, y2);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2i(pos, x1, y2);
 }
 
@@ -425,16 +425,16 @@ void imm_draw_cylinder_fill_normal_3d(
 			n2[0] = cos2; n2[1] = sin2; n2[2] = 1 - n2[2];
 
 			/* first tri */
-			immAttrib3fv(nor, n2);
+			immAttr3fv(nor, n2);
 			immVertex3fv(pos, v1);
 			immVertex3fv(pos, v2);
-			immAttrib3fv(nor, n1);
+			immAttr3fv(nor, n1);
 			immVertex3fv(pos, v3);
 
 			/* second tri */
 			immVertex3fv(pos, v3);
 			immVertex3fv(pos, v4);
-			immAttrib3fv(nor, n2);
+			immAttr3fv(nor, n2);
 			immVertex3fv(pos, v1);
 		}
 	}

@@ -270,13 +270,13 @@ void DRW_transform_to_display(GPUTexture *tex, bool use_view_settings)
 
 	/* Full screen triangle */
 	immBegin(GPU_PRIM_TRIS, 3);
-	immAttrib2f(texco, 0.0f, 0.0f);
+	immAttr2f(texco, 0.0f, 0.0f);
 	immVertex2f(pos, -1.0f, -1.0f);
 
-	immAttrib2f(texco, 2.0f, 0.0f);
+	immAttr2f(texco, 2.0f, 0.0f);
 	immVertex2f(pos, 3.0f, -1.0f);
 
-	immAttrib2f(texco, 0.0f, 2.0f);
+	immAttr2f(texco, 0.0f, 2.0f);
 	immVertex2f(pos, -1.0f, 3.0f);
 	immEnd();
 
@@ -2201,16 +2201,16 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
 
 	immBegin(GPU_PRIM_TRI_STRIP, 4);
 
-	immAttrib2f(texcoord, 0.0f, 0.0f);
+	immAttr2f(texcoord, 0.0f, 0.0f);
 	immVertex2f(pos, 0.0f, 0.0f);
 
-	immAttrib2f(texcoord, 1.0f, 0.0f);
+	immAttr2f(texcoord, 1.0f, 0.0f);
 	immVertex2f(pos, w, 0.0f);
 
-	immAttrib2f(texcoord, 0.0f, 1.0f);
+	immAttr2f(texcoord, 0.0f, 1.0f);
 	immVertex2f(pos, 0.0f, h);
 
-	immAttrib2f(texcoord, 1.0f, 1.0f);
+	immAttr2f(texcoord, 1.0f, 1.0f);
 	immVertex2f(pos, w, h);
 
 	immEnd();

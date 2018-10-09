@@ -58,30 +58,30 @@ GPUBatch *immBeginBatchAtMost(GPUPrimType, uint vertex_len);
 /* Provide attribute values that can change per vertex. */
 /* First vertex after immBegin must have all its attributes specified. */
 /* Skipped attributes will continue using the previous value for that attr_id. */
-void immAttrib1f(uint attr_id, float x);
-void immAttrib2f(uint attr_id, float x, float y);
-void immAttrib3f(uint attr_id, float x, float y, float z);
-void immAttrib4f(uint attr_id, float x, float y, float z, float w);
+void immAttr1f(uint attr_id, float x);
+void immAttr2f(uint attr_id, float x, float y);
+void immAttr3f(uint attr_id, float x, float y, float z);
+void immAttr4f(uint attr_id, float x, float y, float z, float w);
 
-void immAttrib2i(uint attr_id, int x, int y);
+void immAttr2i(uint attr_id, int x, int y);
 
-void immAttrib1u(uint attr_id, uint x);
+void immAttr1u(uint attr_id, uint x);
 
-void immAttrib2s(uint attr_id, short x, short y);
+void immAttr2s(uint attr_id, short x, short y);
 
-void immAttrib2fv(uint attr_id, const float data[2]);
-void immAttrib3fv(uint attr_id, const float data[3]);
-void immAttrib4fv(uint attr_id, const float data[4]);
+void immAttr2fv(uint attr_id, const float data[2]);
+void immAttr3fv(uint attr_id, const float data[3]);
+void immAttr4fv(uint attr_id, const float data[4]);
 
-void immAttrib3ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b);
-void immAttrib4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+void immAttr3ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b);
+void immAttr4ub(uint attr_id, unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 
-void immAttrib3ubv(uint attr_id, const unsigned char data[4]);
-void immAttrib4ubv(uint attr_id, const unsigned char data[4]);
+void immAttr3ubv(uint attr_id, const unsigned char data[4]);
+void immAttr4ubv(uint attr_id, const unsigned char data[4]);
 
 /* Explicitly skip an attribute. */
 /* This advanced option kills automatic value copying for this attr_id. */
-void immSkipAttrib(uint attr_id);
+void immAttrSkip(uint attr_id);
 
 /* Provide one last attribute value & end the current vertex. */
 /* This is most often used for 2D or 3D position (similar to glVertex). */

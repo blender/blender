@@ -515,15 +515,15 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 			sx += step;
 
 			v1[0] = v2[0] = sx;
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2iv(pos, v1);
-			immAttrib3ubv(color, col_lo);
+			immAttr3ubv(color, col_lo);
 			immVertex2iv(pos, v2);
 
 			v1[0] = v2[0] = sx + 1;
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2iv(pos, v1);
-			immAttrib3ubv(color, col_hi);
+			immAttr3ubv(color, col_hi);
 			immVertex2iv(pos, v2);
 		}
 

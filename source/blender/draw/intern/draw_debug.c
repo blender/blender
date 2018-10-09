@@ -161,10 +161,10 @@ static void drw_debug_draw_lines(void)
 	while (DST.debug.lines) {
 		void *next = DST.debug.lines->next;
 
-		immAttrib4fv(col, DST.debug.lines->color);
+		immAttr4fv(col, DST.debug.lines->color);
 		immVertex3fv(pos, DST.debug.lines->pos[0]);
 
-		immAttrib4fv(col, DST.debug.lines->color);
+		immAttr4fv(col, DST.debug.lines->color);
 		immVertex3fv(pos, DST.debug.lines->pos[1]);
 
 		MEM_freeN(DST.debug.lines);

@@ -1341,29 +1341,29 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			tot_clip.xmax = v2d->tot.xmin + (fabsf(BLI_rctf_size_x(&v2d->tot)) * scene->ed->over_border.xmax);
 			tot_clip.ymax = v2d->tot.ymin + (fabsf(BLI_rctf_size_y(&v2d->tot)) * scene->ed->over_border.ymax);
 
-			immAttrib2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymin);
+			immAttr2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymin);
 			immVertex2f(pos, tot_clip.xmin, tot_clip.ymin);
 
-			immAttrib2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymax);
+			immAttr2f(texCoord, scene->ed->over_border.xmin, scene->ed->over_border.ymax);
 			immVertex2f(pos, tot_clip.xmin, tot_clip.ymax);
 
-			immAttrib2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymax);
+			immAttr2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymax);
 			immVertex2f(pos, tot_clip.xmax, tot_clip.ymax);
 
-			immAttrib2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymin);
+			immAttr2f(texCoord, scene->ed->over_border.xmax, scene->ed->over_border.ymin);
 			immVertex2f(pos, tot_clip.xmax, tot_clip.ymin);
 		}
 		else if (sseq->overlay_type == SEQ_DRAW_OVERLAY_REFERENCE) {
-			immAttrib2f(texCoord, 0.0f, 0.0f);
+			immAttr2f(texCoord, 0.0f, 0.0f);
 			immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymin);
 
-			immAttrib2f(texCoord, 0.0f, 1.0f);
+			immAttr2f(texCoord, 0.0f, 1.0f);
 			immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymax);
 
-			immAttrib2f(texCoord, 1.0f, 1.0f);
+			immAttr2f(texCoord, 1.0f, 1.0f);
 			immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymax);
 
-			immAttrib2f(texCoord, 1.0f, 0.0f);
+			immAttr2f(texCoord, 1.0f, 0.0f);
 			immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymin);
 		}
 	}
@@ -1383,31 +1383,31 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 			imagey = aspect / image_aspect;
 		}
 
-		immAttrib2f(texCoord, 0.0f, 0.0f);
+		immAttr2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, -imagex, -imagey);
 
-		immAttrib2f(texCoord, 0.0f, 1.0f);
+		immAttr2f(texCoord, 0.0f, 1.0f);
 		immVertex2f(pos, -imagex, imagey);
 
-		immAttrib2f(texCoord, 1.0f, 1.0f);
+		immAttr2f(texCoord, 1.0f, 1.0f);
 		immVertex2f(pos, imagex, imagey);
 
-		immAttrib2f(texCoord, 1.0f, 0.0f);
+		immAttr2f(texCoord, 1.0f, 0.0f);
 		immVertex2f(pos, imagex, -imagey);
 	}
 	else {
 		draw_metadata = ((sseq->flag & SEQ_SHOW_METADATA) != 0);
 
-		immAttrib2f(texCoord, 0.0f, 0.0f);
+		immAttr2f(texCoord, 0.0f, 0.0f);
 		immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymin);
 
-		immAttrib2f(texCoord, 0.0f, 1.0f);
+		immAttr2f(texCoord, 0.0f, 1.0f);
 		immVertex2f(pos, v2d->tot.xmin, v2d->tot.ymax);
 
-		immAttrib2f(texCoord, 1.0f, 1.0f);
+		immAttr2f(texCoord, 1.0f, 1.0f);
 		immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymax);
 
-		immAttrib2f(texCoord, 1.0f, 0.0f);
+		immAttr2f(texCoord, 1.0f, 0.0f);
 		immVertex2f(pos, v2d->tot.xmax, v2d->tot.ymin);
 	}
 

@@ -664,21 +664,21 @@ static void gp_draw_strokes_edit(
 			/* size and color first */
 			if (show_direction_hint && i == 0) {
 				/* start point in green bigger */
-				immAttrib3f(color, 0.0f, 1.0f, 0.0f);
-				immAttrib1f(size, vsize + 4);
+				immAttr3f(color, 0.0f, 1.0f, 0.0f);
+				immAttr1f(size, vsize + 4);
 			}
 			else if (show_direction_hint && (i == gps->totpoints - 1)) {
 				/* end point in red smaller */
-				immAttrib3f(color, 1.0f, 0.0f, 0.0f);
-				immAttrib1f(size, vsize + 1);
+				immAttr3f(color, 1.0f, 0.0f, 0.0f);
+				immAttr1f(size, vsize + 1);
 			}
 			else if (pt->flag & GP_SPOINT_SELECT) {
-				immAttrib3fv(color, selectColor);
-				immAttrib1f(size, vsize);
+				immAttr3fv(color, selectColor);
+				immAttr1f(size, vsize);
 			}
 			else {
-				immAttrib3fv(color, gpl->color);
-				immAttrib1f(size, bsize);
+				immAttr3fv(color, gpl->color);
+				immAttr1f(size, bsize);
 			}
 
 			/* then position */

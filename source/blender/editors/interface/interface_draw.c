@@ -259,7 +259,7 @@ static void round_box_shade_col(unsigned attrib, const float col1[3], float cons
 		fac * col1[2] + (1.0f - fac) * col2[2],
 		1.0f
 	};
-	immAttrib4fv(attrib, col);
+	immAttr4fv(attrib, col);
 }
 #endif
 
@@ -573,7 +573,7 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 	immBeginAtMost(GPU_PRIM_LINE_STRIP, 25);
 
-	immAttrib3ubv(col, highlight);
+	immAttr3ubv(col, highlight);
 
 	/* start with corner left-top */
 	if (roundboxtype & UI_CNR_TOP_LEFT) {
@@ -599,7 +599,7 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 		immVertex2f(pos, maxx, maxy);
 	}
 
-	immAttrib3ubv(col, highlight_fade);
+	immAttr3ubv(col, highlight_fade);
 
 	/* corner right-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
@@ -625,7 +625,7 @@ void ui_draw_but_TAB_outline(const rcti *rect, float rad, unsigned char highligh
 		immVertex2f(pos, minx, miny);
 	}
 
-	immAttrib3ubv(col, highlight);
+	immAttr3ubv(col, highlight);
 
 	/* back to corner left-top */
 	immVertex2f(pos, minx, roundboxtype & UI_CNR_TOP_LEFT ? maxy - rad : maxy);
@@ -1456,7 +1456,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 		v1[0] = v2[0] = x1 + a;
 
-		immAttrib4fv(col_id, colf);
+		immAttr4fv(col_id, colf);
 		immVertex2fv(pos_id, v1);
 		immVertex2fv(pos_id, v2);
 	}
@@ -1475,7 +1475,7 @@ void ui_draw_but_COLORBAND(uiBut *but, uiWidgetColors *UNUSED(wcol), const rcti 
 
 		v1[0] = v2[0] = x1 + a;
 
-		immAttrib4f(col_id, colf[0], colf[1], colf[2], 1.0f);
+		immAttr4f(col_id, colf[0], colf[1], colf[2], 1.0f);
 		immVertex2fv(pos_id, v1);
 		immVertex2fv(pos_id, v2);
 	}
@@ -1822,7 +1822,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 			UI_GetThemeColor4fv(TH_TEXT, color);
 		float fx = rect->xmin + zoomx * (cmp[a].x - offsx);
 		float fy = rect->ymin + zoomy * (cmp[a].y - offsy);
-		immAttrib4fv(col, color);
+		immAttr4fv(col, color);
 		immVertex2f(pos, fx, fy);
 	}
 	immEnd();
@@ -1945,9 +1945,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *UNUSED(ar), uiBut *but, uiWidgetColors *U
 					float y2 = pos_sel[i + 1] * axe;
 
 					if (i % 2 == 1)
-						immAttrib4fv(col, col_sel);
+						immAttr4fv(col, col_sel);
 					else
-						immAttrib4fv(col, col_outline);
+						immAttr4fv(col, col_outline);
 
 					immVertex2f(pos, x1, y1);
 					immVertex2f(pos, x2, y2);
@@ -2078,38 +2078,38 @@ static void ui_shadowbox(unsigned pos, unsigned color, float minx, float miny, f
 	const float v8[2] = {minx + 0.5f * shadsize, miny - shadsize};
 
 	/* right quad */
-	immAttrib4ub(color, 0, 0, 0, alpha);
+	immAttr4ub(color, 0, 0, 0, alpha);
 	immVertex2fv(pos, v3);
 	immVertex2fv(pos, v1);
-	immAttrib4ub(color, 0, 0, 0, 0);
+	immAttr4ub(color, 0, 0, 0, 0);
 	immVertex2fv(pos, v2);
 
 	immVertex2fv(pos, v2);
 	immVertex2fv(pos, v4);
-	immAttrib4ub(color, 0, 0, 0, alpha);
+	immAttr4ub(color, 0, 0, 0, alpha);
 	immVertex2fv(pos, v3);
 
 	/* corner shape */
-	/* immAttrib4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
+	/* immAttr4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
 	immVertex2fv(pos, v3);
-	immAttrib4ub(color, 0, 0, 0, 0);
+	immAttr4ub(color, 0, 0, 0, 0);
 	immVertex2fv(pos, v4);
 	immVertex2fv(pos, v5);
 
 	immVertex2fv(pos, v5);
 	immVertex2fv(pos, v6);
-	immAttrib4ub(color, 0, 0, 0, alpha);
+	immAttr4ub(color, 0, 0, 0, alpha);
 	immVertex2fv(pos, v3);
 
 	/* bottom quad */
-	/* immAttrib4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
+	/* immAttr4ub(color, 0, 0, 0, alpha); */  /* Not needed, done above in previous tri */
 	immVertex2fv(pos, v3);
-	immAttrib4ub(color, 0, 0, 0, 0);
+	immAttr4ub(color, 0, 0, 0, 0);
 	immVertex2fv(pos, v6);
 	immVertex2fv(pos, v8);
 
 	immVertex2fv(pos, v8);
-	immAttrib4ub(color, 0, 0, 0, alpha);
+	immAttr4ub(color, 0, 0, 0, alpha);
 	immVertex2fv(pos, v7);
 	immVertex2fv(pos, v3);
 }

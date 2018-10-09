@@ -413,7 +413,7 @@ static void cage2d_draw_box_interaction(
 		if (is_solid) {
 			BLI_assert(ELEM(prim_type, GPU_PRIM_TRI_FAN));
 			immBegin(prim_type, verts_len);
-			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+			immAttr3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
 			}
@@ -424,7 +424,7 @@ static void cage2d_draw_box_interaction(
 			GPU_line_width(line_width + 3.0f);
 
 			immBegin(prim_type, verts_len);
-			immAttrib3f(attr_id.col, 0.0f, 0.0f, 0.0f);
+			immAttr3f(attr_id.col, 0.0f, 0.0f, 0.0f);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
 			}
@@ -433,7 +433,7 @@ static void cage2d_draw_box_interaction(
 			GPU_line_width(line_width);
 
 			immBegin(prim_type, verts_len);
-			immAttrib3fv(attr_id.col, color);
+			immAttr3fv(attr_id.col, color);
 			for (uint i = 0; i < verts_len; i++) {
 				immVertex2fv(attr_id.pos, verts[i]);
 			}

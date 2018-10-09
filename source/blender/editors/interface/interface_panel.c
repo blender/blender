@@ -551,18 +551,18 @@ static void immRectf_tris_color_ex(
         unsigned int pos, float x1, float y1, float x2, float y2,
         unsigned int col, const float color[3])
 {
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y2);
 
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y1);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x2, y2);
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, x1, y2);
 }
 
@@ -1823,7 +1823,7 @@ static void ui_panel_category_draw_tab(
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 	immBegin(filled ? GPU_PRIM_TRI_FAN : GPU_PRIM_LINE_STRIP, vert_len);
 	for (int i = 0; i < buf_index; i++) {
-		immAttrib3ubv(color, cbuf[i]);
+		immAttr3ubv(color, cbuf[i]);
 		immVertex2fv(pos, vbuf[i]);
 	}
 	immEnd();

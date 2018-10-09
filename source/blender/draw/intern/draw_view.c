@@ -108,11 +108,11 @@ void DRW_draw_background(void)
 		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
 
 		immBegin(GPU_PRIM_TRI_FAN, 4);
-		immAttrib3ubv(color, col_lo);
+		immAttr3ubv(color, col_lo);
 		immVertex2f(pos, -1.0f, -1.0f);
 		immVertex2f(pos, 1.0f, -1.0f);
 
-		immAttrib3ubv(color, col_hi);
+		immAttr3ubv(color, col_hi);
 		immVertex2f(pos, 1.0f, 1.0f);
 		immVertex2f(pos, -1.0f, 1.0f);
 		immEnd();

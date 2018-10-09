@@ -940,7 +940,7 @@ static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mo
 	immBegin(mode, totvert);
 	for (int i = 0; i < totvert; ++i) {
 		if (quads_col)
-			immAttrib4ubv(col, quads_col[i]);
+			immAttr4ubv(col, quads_col[i]);
 		immVertex2fv(pos, quads_pos[i]);
 	}
 	immEnd();
@@ -2592,7 +2592,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 	immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 	immBegin(GPU_PRIM_TRI_FAN, tot + 2);
-	immAttrib3fv(color, colcent);
+	immAttr3fv(color, colcent);
 	immVertex2f(pos, centx, centy);
 
 	float ang = 0.0f;
@@ -2604,7 +2604,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, const rcti *
 
 		ui_color_picker_to_rgb_v(hsv, col);
 
-		immAttrib3fv(color, col);
+		immAttr3fv(color, col);
 		immVertex2f(pos, centx + co * radius, centy + si * radius);
 	}
 	immEnd();
@@ -2760,22 +2760,22 @@ void ui_draw_gradient(const rcti *rect, const float hsv[3], const int type, cons
 		dy = (float)BLI_rcti_size_y(rect) / 3.0f;
 
 		for (a = 0; a < 3; a++, sy += dy) {
-			immAttrib4f(col, col0[a][0], col0[a][1], col0[a][2], alpha);
+			immAttr4f(col, col0[a][0], col0[a][1], col0[a][2], alpha);
 			immVertex2f(pos, sx1, sy);
 
-			immAttrib4f(col, col1[a][0], col1[a][1], col1[a][2], alpha);
+			immAttr4f(col, col1[a][0], col1[a][1], col1[a][2], alpha);
 			immVertex2f(pos, sx2, sy);
 
-			immAttrib4f(col, col1[a + 1][0], col1[a + 1][1], col1[a + 1][2], alpha);
+			immAttr4f(col, col1[a + 1][0], col1[a + 1][1], col1[a + 1][2], alpha);
 			immVertex2f(pos, sx2, sy + dy);
 
-			immAttrib4f(col, col0[a][0], col0[a][1], col0[a][2], alpha);
+			immAttr4f(col, col0[a][0], col0[a][1], col0[a][2], alpha);
 			immVertex2f(pos, sx1, sy);
 
-			immAttrib4f(col, col1[a + 1][0], col1[a + 1][1], col1[a + 1][2], alpha);
+			immAttr4f(col, col1[a + 1][0], col1[a + 1][1], col1[a + 1][2], alpha);
 			immVertex2f(pos, sx2, sy + dy);
 
-			immAttrib4f(col, col0[a + 1][0], col0[a + 1][1], col0[a + 1][2], alpha);
+			immAttr4f(col, col0[a + 1][0], col0[a + 1][1], col0[a + 1][2], alpha);
 			immVertex2f(pos, sx1, sy + dy);
 		}
 	}
@@ -4515,14 +4515,14 @@ static void draw_disk_shaded(
 		if (shaded) {
 			fac = (y1 + radius_ext) * radius_ext_scale;
 			round_box_shade_col4_r(r_col, col1, col2, fac);
-			immAttrib4ubv(col, r_col);
+			immAttr4ubv(col, r_col);
 		}
 		immVertex2f(pos, c * radius_int, s * radius_int);
 
 		if (shaded) {
 			fac = (y2 + radius_ext) * radius_ext_scale;
 			round_box_shade_col4_r(r_col, col1, col2, fac);
-			immAttrib4ubv(col, r_col);
+			immAttr4ubv(col, r_col);
 		}
 		immVertex2f(pos, c * radius_ext, s * radius_ext);
 	}

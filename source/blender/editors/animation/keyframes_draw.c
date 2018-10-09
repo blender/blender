@@ -552,9 +552,9 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 		}
 	}
 
-	immAttrib1f(size_id, size);
-	immAttrib4ubv(color_id, fill_col);
-	immAttrib4ubv(outline_color_id, outline_col);
+	immAttr1f(size_id, size);
+	immAttr4ubv(color_id, fill_col);
+	immAttr4ubv(outline_color_id, outline_col);
 	immVertex2f(pos_id, x, y);
 }
 

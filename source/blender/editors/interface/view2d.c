@@ -1358,9 +1358,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 			UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
 
 			for (a = 0; a < step; a++) {
-				immSkipAttrib(color);
+				immAttrSkip(color);
 				immVertex2fv(pos, vec1);
-				immAttrib3ubv(color, grid_line_color);
+				immAttr3ubv(color, grid_line_color);
 				immVertex2fv(pos, vec2);
 
 				vec2[0] = vec1[0] += grid->dx;
@@ -1374,9 +1374,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 
 		step++;
 		for (a = 0; a <= step; a++) {
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2fv(pos, vec1);
-			immAttrib3ubv(color, grid_line_color);
+			immAttr3ubv(color, grid_line_color);
 			immVertex2fv(pos, vec2);
 
 			vec2[0] = vec1[0] -= grid->dx;
@@ -1395,9 +1395,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		UI_GetThemeColor3ubv(TH_GRID, grid_line_color);
 
 		for (a = 0; a <= step; a++) {
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2fv(pos, vec1);
-			immAttrib3ubv(color, grid_line_color);
+			immAttr3ubv(color, grid_line_color);
 			immVertex2fv(pos, vec2);
 
 			vec2[1] = vec1[1] += grid->dy;
@@ -1410,9 +1410,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		if (flag & V2D_HORIZONTAL_FINELINES) {
 			UI_GetThemeColorShade3ubv(TH_GRID, 16, grid_line_color);
 			for (a = 0; a < step; a++) {
-				immSkipAttrib(color);
+				immAttrSkip(color);
 				immVertex2fv(pos, vec1);
-				immAttrib3ubv(color, grid_line_color);
+				immAttr3ubv(color, grid_line_color);
 				immVertex2fv(pos, vec2);
 
 				vec2[1] = vec1[1] -= grid->dy;
@@ -1429,9 +1429,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[0] = v2d->cur.xmax;
 		vec1[1] = vec2[1] = 0.0f;
 
-		immSkipAttrib(color);
+		immAttrSkip(color);
 		immVertex2fv(pos, vec1);
-		immAttrib3ubv(color, grid_line_color);
+		immAttr3ubv(color, grid_line_color);
 		immVertex2fv(pos, vec2);
 	}
 
@@ -1441,9 +1441,9 @@ void UI_view2d_grid_draw(View2D *v2d, View2DGrid *grid, int flag)
 		vec2[1] = v2d->cur.ymax;
 		vec1[0] = vec2[0] = 0.0f;
 
-		immSkipAttrib(color);
+		immAttrSkip(color);
 		immVertex2fv(pos, vec1);
-		immAttrib3ubv(color, grid_line_color);
+		immAttr3ubv(color, grid_line_color);
 		immVertex2fv(pos, vec2);
 	}
 
@@ -1490,7 +1490,7 @@ void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 		immBegin(GPU_PRIM_LINES, count_x * 2 + count_y * 2 + 4);
 
-		immAttrib3fv(color, theme_color);
+		immAttr3fv(color, theme_color);
 		for (int i = 0; i < count_x ; start_x += step, i++) {
 			immVertex2f(pos, start_x, v2d->cur.ymin);
 			immVertex2f(pos, start_x, v2d->cur.ymax);
@@ -1504,7 +1504,7 @@ void UI_view2d_constant_grid_draw(View2D *v2d, float step)
 		/* X and Y axis */
 		UI_GetThemeColorShade3fv(TH_BACK, -18, theme_color);
 
-		immAttrib3fv(color, theme_color);
+		immAttr3fv(color, theme_color);
 		immVertex2f(pos, 0.0f, v2d->cur.ymin);
 		immVertex2f(pos, 0.0f, v2d->cur.ymax);
 		immVertex2f(pos, v2d->cur.xmin, 0.0f);
@@ -1552,9 +1552,9 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
 
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2f(pos, start, v2d->cur.ymin);
-			immAttrib3ubv(color, grid_line_color);
+			immAttr3ubv(color, grid_line_color);
 			immVertex2f(pos, start, v2d->cur.ymax);
 		}
 
@@ -1567,9 +1567,9 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 			if (i == 0 || (level < totlevels - 1 && i % level_size == 0))
 				continue;
 
-			immSkipAttrib(color);
+			immAttrSkip(color);
 			immVertex2f(pos, v2d->cur.xmin, start);
-			immAttrib3ubv(color, grid_line_color);
+			immAttr3ubv(color, grid_line_color);
 			immVertex2f(pos, v2d->cur.xmax, start);
 		}
 
@@ -1580,14 +1580,14 @@ void UI_view2d_multi_grid_draw(View2D *v2d, int colorid, float step, int level_s
 	/* X and Y axis */
 	UI_GetThemeColorShade3ubv(colorid, -18 + ((totlevels - 1) * -6), grid_line_color);
 
-	immSkipAttrib(color);
+	immAttrSkip(color);
 	immVertex2f(pos, 0.0f, v2d->cur.ymin);
-	immAttrib3ubv(color, grid_line_color);
+	immAttr3ubv(color, grid_line_color);
 	immVertex2f(pos, 0.0f, v2d->cur.ymax);
 
-	immSkipAttrib(color);
+	immAttrSkip(color);
 	immVertex2f(pos, v2d->cur.xmin, 0.0f);
-	immAttrib3ubv(color, grid_line_color);
+	immAttr3ubv(color, grid_line_color);
 	immVertex2f(pos, v2d->cur.xmax, 0.0f);
 
 	immEnd();

@@ -106,16 +106,16 @@ void wm_stereo3d_draw_interlace(wmWindow *win, ARegion *ar)
 
 	immBegin(GPU_PRIM_TRI_FAN, 4);
 
-	immAttrib2f(texcoord, halfx, halfy);
+	immAttr2f(texcoord, halfx, halfy);
 	immVertex2f(pos, ar->winrct.xmin, ar->winrct.ymin);
 
-	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immAttr2f(texcoord, 1.0f + halfx, halfy);
 	immVertex2f(pos, ar->winrct.xmax + 1, ar->winrct.ymin);
 
-	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
 	immVertex2f(pos, ar->winrct.xmax + 1, ar->winrct.ymax + 1);
 
-	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immAttr2f(texcoord, halfx, 1.0f + halfy);
 	immVertex2f(pos, ar->winrct.xmin, ar->winrct.ymax + 1);
 
 	immEnd();
@@ -190,16 +190,16 @@ void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 
 	immBegin(GPU_PRIM_TRI_FAN, 4);
 
-	immAttrib2f(texcoord, halfx, halfy);
+	immAttr2f(texcoord, halfx, halfy);
 	immVertex2f(pos, soffx, 0.0f);
 
-	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immAttr2f(texcoord, 1.0f + halfx, halfy);
 	immVertex2f(pos, soffx + (sizex * 0.5f), 0.0f);
 
-	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
 	immVertex2f(pos, soffx + (sizex * 0.5f), sizey);
 
-	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immAttr2f(texcoord, halfx, 1.0f + halfy);
 	immVertex2f(pos, soffx, sizey);
 
 	immEnd();
@@ -234,16 +234,16 @@ void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 
 	immBegin(GPU_PRIM_TRI_FAN, 4);
 
-	immAttrib2f(texcoord, halfx, halfy);
+	immAttr2f(texcoord, halfx, halfy);
 	immVertex2f(pos, 0.0f, soffy);
 
-	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immAttr2f(texcoord, 1.0f + halfx, halfy);
 	immVertex2f(pos, sizex, soffy);
 
-	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immAttr2f(texcoord, 1.0f + halfx, 1.0f + halfy);
 	immVertex2f(pos, sizex, soffy + (sizey * 0.5f));
 
-	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immAttr2f(texcoord, halfx, 1.0f + halfy);
 	immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
 
 	immEnd();

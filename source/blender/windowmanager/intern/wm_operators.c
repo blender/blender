@@ -2053,16 +2053,16 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		/* draw textured quad */
 		immBegin(GPU_PRIM_TRI_FAN, 4);
 
-		immAttrib2f(texCoord, 0, 0);
+		immAttr2f(texCoord, 0, 0);
 		immVertex2f(pos, -radius, -radius);
 
-		immAttrib2f(texCoord, 1, 0);
+		immAttr2f(texCoord, 1, 0);
 		immVertex2f(pos, radius, -radius);
 
-		immAttrib2f(texCoord, 1, 1);
+		immAttr2f(texCoord, 1, 1);
 		immVertex2f(pos, radius, radius);
 
-		immAttrib2f(texCoord, 0, 1);
+		immAttr2f(texCoord, 0, 1);
 		immVertex2f(pos, -radius, radius);
 
 		immEnd();

@@ -638,7 +638,7 @@ static void node_socket_circle_draw(const bContext *C, bNodeTree *ntree, Pointer
 	RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &ptr);
 	sock->typeinfo->draw_color((bContext *)C, &ptr, &node_ptr, color);
 
-	immAttrib4fv(col, color);
+	immAttr4fv(col, color);
 	immVertex2f(pos, sock->locx, sock->locy);
 }
 
