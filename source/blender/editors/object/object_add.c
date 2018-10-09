@@ -893,9 +893,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 		ED_object_location_from_view(C, ob->loc);
 		ED_view3d_cursor3d_position(C, event->mval, false, ob->loc);
 		ED_object_rotation_from_view(C, ob->rot, 'Z');
-		ob->size[0] = 5;
-		ob->size[1] = 5;
-		ob->size[2] = 5;
+		ob->empty_drawsize = 5.0f;
 	}
 
 	BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);
