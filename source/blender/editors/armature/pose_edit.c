@@ -900,31 +900,39 @@ static bArmature *armature_layers_get_data(Object **ob)
 
 static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_active_object(C);
-	bArmature *arm = armature_layers_get_data(&ob);
-	PointerRNA ptr;
-	int maxLayers = (RNA_boolean_get(op->ptr, "all")) ? 32 : 16;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	const int maxLayers = (RNA_boolean_get(op->ptr, "all")) ? 32 : 16;
 	bool layers[32] = {false}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-	int i;
 
-	/* sanity checking */
-	if (arm == NULL)
-		return OPERATOR_CANCELLED;
-
-	/* use RNA to set the layers
-	 * although it would be faster to just set directly using bitflags, we still
-	 * need to setup a RNA pointer so that we get the "update" callbacks for free...
-	 */
-	RNA_id_pointer_create(&arm->id, &ptr);
-
-	for (i = 0; i < maxLayers; i++)
+	for (int i = 0; i < maxLayers; i++) {
 		layers[i] = 1;
+	}
 
-	RNA_boolean_set_array(&ptr, "layers", layers);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		bArmature *arm = armature_layers_get_data(&ob);
+		PointerRNA ptr;
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+		if (arm == NULL) {
+			continue;
+		}
+
+		/* use RNA to set the layers
+		 * although it would be faster to just set directly using bitflags, we still
+		 * need to setup a RNA pointer so that we get the "update" callbacks for free...
+		 */
+		RNA_id_pointer_create(&arm->id, &ptr);
+
+		RNA_boolean_set_array(&ptr, "layers", layers);
+
+		/* note, notifier might evolve */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	}
+	MEM_freeN(objects);
 
 	/* done */
 	return OPERATOR_FINISHED;
