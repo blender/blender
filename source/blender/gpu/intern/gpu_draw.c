@@ -1088,7 +1088,33 @@ void GPU_free_smoke(SmokeModifierData *smd)
 		if (smd->domain->tex_flame_coba)
 			GPU_texture_free(smd->domain->tex_flame_coba);
 		smd->domain->tex_flame_coba = NULL;
+
+		if (smd->domain->tex_coba)
+			GPU_texture_free(smd->domain->tex_coba);
+		smd->domain->tex_coba = NULL;
+
+		if (smd->domain->tex_field)
+			GPU_texture_free(smd->domain->tex_field);
+		smd->domain->tex_field = NULL;
 	}
+}
+
+void GPU_create_smoke_coba_field(SmokeModifierData *smd)
+{
+#ifdef WITH_SMOKE
+	if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+		SmokeDomainSettings *sds = smd->domain;
+
+		if (!sds->tex_field) {
+			sds->tex_field = create_field_texture(sds);
+		}
+		if (!sds->tex_coba) {
+			sds->tex_coba = create_transfer_function(TFUNC_COLOR_RAMP, sds->coba);
+		}
+	}
+#else // WITH_SMOKE
+	smd->domain->tex_field = NULL;
+#endif // WITH_SMOKE
 }
 
 void GPU_create_smoke(SmokeModifierData *smd, int highres)

@@ -11,6 +11,7 @@ uniform sampler3D densityTexture;
 uniform sampler3D shadowTexture;
 uniform sampler3D flameTexture;
 uniform sampler1D flameColorTexture;
+uniform sampler1D transferTexture;
 
 uniform int samplesLen = 256;
 uniform float stepLength; /* Step length in local space. */
@@ -68,19 +69,25 @@ float line_unit_box_intersect_dist(vec3 lineorigin, vec3 linedirection)
 void volume_properties(vec3 ls_pos, out vec3 scattering, out float extinction)
 {
 	vec3 co = ls_pos * 0.5 + 0.5;
-
+#ifdef USE_COBA
+	float val = texture(densityTexture, co).r;
+	vec4 tval = texture(transferTexture, val) * densityScale;
+	tval.rgb = pow(tval.rgb, vec3(2.2));
+	scattering = tval.rgb * 1500.0;
+	extinction = max(1e-4, tval.a * 50.0);
+#else
 	float flame = texture(flameTexture, co).r;
 	vec4 emission = texture(flameColorTexture, flame);
-
 	float shadows = texture(shadowTexture, co).r;
 	vec4 density = texture(densityTexture, co); /* rgb: color, a: density */
-	density.a *= densityScale;
 
-	scattering = density.rgb * density.a;
+	scattering = density.rgb * density.a * densityScale;
 	extinction = max(1e-4, dot(scattering, vec3(0.33333)));
+
 	scattering *= shadows * M_PI;
 	/* 800 is arbitrary and here to mimic old viewport. TODO make it a parameter */
-	scattering += pow(emission.rgb, vec3(2.2)) * emission.a * 800.0f;
+	scattering += pow(emission.rgb, vec3(2.2)) * emission.a * 800.0;
+#endif
 }
 
 void eval_volume_step(inout vec3 Lscat, float extinction, float step_len, out float Tr)

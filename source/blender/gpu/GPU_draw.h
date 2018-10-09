@@ -103,6 +103,7 @@ void GPU_free_images_old(struct Main *bmain);
 void GPU_free_smoke(struct SmokeModifierData *smd);
 void GPU_free_smoke_velocity(struct SmokeModifierData *smd);
 void GPU_create_smoke(struct SmokeModifierData *smd, int highres);
+void GPU_create_smoke_coba_field(struct SmokeModifierData *smd);
 void GPU_create_smoke_velocity(struct SmokeModifierData *smd);
 
 /* Delayed free of OpenGL buffers by main thread */
