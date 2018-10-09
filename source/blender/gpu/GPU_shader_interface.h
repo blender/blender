@@ -58,6 +58,7 @@ typedef enum {
 	GPU_UNIFORM_COLOR, /* vec4 color */
 	GPU_UNIFORM_EYE, /* vec3 eye */
 	GPU_UNIFORM_CALLID, /* int callId */
+	GPU_UNIFORM_OBJECT_INFO, /* vec3 objectInfo */
 
 	GPU_UNIFORM_CUSTOM, /* custom uniform, not one of the above built-ins */
 

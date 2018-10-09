@@ -688,6 +688,7 @@ GPUMaterial *GPU_material_from_nodetree(
 		        mat->outlink,
 		        &mat->attribs,
 		        &mat->nodes,
+		        &mat->builtins,
 		        vert_code,
 		        geom_code,
 		        frag_lib,

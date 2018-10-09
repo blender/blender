@@ -759,7 +759,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output)
+static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output, int *rbuiltins)
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
@@ -770,14 +770,13 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 #endif
 
 	codegen_set_unique_ids(nodes);
-	builtins = codegen_process_uniforms_functions(material, ds, nodes);
-
+	*rbuiltins = builtins = codegen_process_uniforms_functions(material, ds, nodes);
 
 	if (builtins & GPU_BARYCENTRIC_TEXCO)
-		BLI_dynstr_append(ds, "\tin vec2 barycentricTexCo;\n");
+		BLI_dynstr_append(ds, "in vec2 barycentricTexCo;\n");
 
 	if (builtins & GPU_BARYCENTRIC_DIST)
-		BLI_dynstr_append(ds, "\tflat in vec3 barycentricDist;\n");
+		BLI_dynstr_append(ds, "flat in vec3 barycentricDist;\n");
 
 	BLI_dynstr_append(ds, "Closure nodetree_exec(void)\n{\n");
 
@@ -1790,6 +1789,7 @@ GPUPass *GPU_generate_pass(
         GPUNodeLink *frag_outlink,
         struct GPUVertexAttribs *attribs,
         ListBase *nodes,
+        int *builtins,
         const char *vert_code,
         const char *geom_code,
         const char *frag_lib,
@@ -1804,7 +1804,7 @@ GPUPass *GPU_generate_pass(
 	GPU_nodes_get_vertex_attributes(nodes, attribs);
 
 	/* generate code */
-	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output);
+	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, builtins);
 
 	/* Cache lookup: Reuse shaders already compiled */
 	uint32_t hash = gpu_pass_hash(fragmentgen, defines, attribs);

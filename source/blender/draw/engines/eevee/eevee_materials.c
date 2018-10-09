@@ -1080,23 +1080,23 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 }
 
-#define ADD_SHGROUP_CALL(shgrp, ob, geom, oedata) do { \
+#define ADD_SHGROUP_CALL(shgrp, ob, ma, geom, oedata) do { \
 	if (is_sculpt_mode_draw) { \
 		DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat); \
 	} \
 	else { \
 		if (oedata) { \
-			DRW_shgroup_call_object_add_with_callback(shgrp, geom, ob, EEVEE_lightprobes_obj_visibility_cb, oedata); \
+			DRW_shgroup_call_object_add_with_callback(shgrp, geom, ob, ma, EEVEE_lightprobes_obj_visibility_cb, oedata); \
 		} \
 		else { \
-			DRW_shgroup_call_object_add(shgrp, geom, ob); \
+			DRW_shgroup_call_object_add_ex(shgrp, geom, ob, ma, false); \
 		} \
 	} \
 } while (0)
 
-#define ADD_SHGROUP_CALL_SAFE(shgrp, ob, geom, oedata) do { \
+#define ADD_SHGROUP_CALL_SAFE(shgrp, ob, ma, geom, oedata) do { \
 	if (shgrp) { \
-		ADD_SHGROUP_CALL(shgrp, ob, geom, oedata); \
+		ADD_SHGROUP_CALL(shgrp, ob, ma, geom, oedata); \
 	} \
 } while (0)
 
@@ -1536,11 +1536,11 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					}
 
 					/* Shading pass */
-					ADD_SHGROUP_CALL(shgrp_array[i], ob, mat_geom[i], oedata);
+					ADD_SHGROUP_CALL(shgrp_array[i], ob, ma, mat_geom[i], oedata);
 
 					/* Depth Prepass */
-					ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, mat_geom[i], oedata);
-					ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, mat_geom[i], oedata);
+					ADD_SHGROUP_CALL_SAFE(shgrp_depth_array[i], ob, ma, mat_geom[i], oedata);
+					ADD_SHGROUP_CALL_SAFE(shgrp_depth_clip_array[i], ob, ma, mat_geom[i], oedata);
 
 					char *name = auto_layer_names;
 					for (int j = 0; j < auto_layer_count; ++j) {

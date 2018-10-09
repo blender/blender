@@ -363,11 +363,12 @@ void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, uint point
 void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, uint line_count, float (*obmat)[4]);
 void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, uint tria_count, float (*obmat)[4]);
 void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *shgroup, uint tria_count, struct Object *ob);
-void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, bool bypass_culling);
-#define DRW_shgroup_call_object_add(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, false)
-#define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, true)
+void DRW_shgroup_call_object_add_ex(
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, struct Material *ma, bool bypass_culling);
+#define DRW_shgroup_call_object_add(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, NULL, false)
+#define DRW_shgroup_call_object_add_no_cull(shgroup, geom, ob) DRW_shgroup_call_object_add_ex(shgroup, geom, ob, NULL, true)
 void DRW_shgroup_call_object_add_with_callback(
-        DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob,
+        DRWShadingGroup *shgroup, struct GPUBatch *geom, struct Object *ob, struct Material *ma,
         DRWCallVisibilityFn *callback, void *user_data);
 /* Used for drawing a batch with instancing without instance attribs. */
 void DRW_shgroup_call_instances_add(

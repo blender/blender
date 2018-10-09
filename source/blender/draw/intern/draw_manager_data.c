@@ -36,6 +36,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 
+#include "BLI_hash.h"
 #include "BLI_link_utils.h"
 #include "BLI_mempool.h"
 
@@ -344,6 +345,22 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 		state->matflag &= ~DRW_CALL_ORCOTEXFAC;
 	}
 
+	if ((state->matflag & DRW_CALL_OBJECTINFO) != 0) {
+		state->objectinfo[0] = ob ? ob->index : 0;
+		unsigned int random;
+	#if 0 /* TODO(fclem) handle dupli objects */
+		if (GMS.dob) {
+			random = GMS.dob->random_id;
+		}
+		else
+	#endif
+		{
+			random = BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
+		}
+		state->objectinfo[2] = random * (1.0f / (float)0xFFFFFFFF);
+		state->matflag &= ~DRW_CALL_OBJECTINFO;
+	}
+
 	return state;
 }
 
@@ -440,7 +457,7 @@ void DRW_shgroup_call_object_procedural_triangles_culled_add(DRWShadingGroup *sh
 }
 
 /* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob, bool bypass_culling)
+void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob, Material *ma, bool bypass_culling)
 {
 	BLI_assert(geom != NULL);
 	BLI_assert(ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM));
@@ -449,6 +466,7 @@ void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, GPUBatch *geom, Ob
 	call->state = drw_call_state_object(shgroup, ob->obmat, ob);
 	call->type = DRW_CALL_SINGLE;
 	call->single.geometry = geom;
+	call->single.ma_index = ma ? ma->index : 0;
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
@@ -460,7 +478,7 @@ void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, GPUBatch *geom, Ob
 }
 
 void DRW_shgroup_call_object_add_with_callback(
-        DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob,
+        DRWShadingGroup *shgroup, GPUBatch *geom, Object *ob, Material *ma,
         DRWCallVisibilityFn *callback, void *user_data)
 {
 	BLI_assert(geom != NULL);
@@ -472,6 +490,7 @@ void DRW_shgroup_call_object_add_with_callback(
 	call->state->user_data = user_data;
 	call->type = DRW_CALL_SINGLE;
 	call->single.geometry = geom;
+	call->single.ma_index = ma ? ma->index : 0;
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
@@ -635,6 +654,7 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	shgroup->normalview = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_NORMAL);
 	shgroup->normalworld = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_WORLDNORMAL);
 	shgroup->orcotexfac = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_ORCO);
+	shgroup->objectinfo = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_OBJECT_INFO);
 	shgroup->eye = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_EYE);
 	shgroup->callid = GPU_shader_get_builtin_uniform(shader, GPU_UNIFORM_CALLID);
 
@@ -653,6 +673,8 @@ static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 		shgroup->matflag |= DRW_CALL_NORMALWORLD;
 	if (shgroup->orcotexfac > -1)
 		shgroup->matflag |= DRW_CALL_ORCOTEXFAC;
+	if (shgroup->objectinfo > -1)
+		shgroup->matflag |= DRW_CALL_OBJECTINFO;
 	if (shgroup->eye > -1)
 		shgroup->matflag |= DRW_CALL_EYEVEC;
 }

@@ -101,6 +101,7 @@ enum {
 	DRW_CALL_NORMALWORLD            = (1 << 5),
 	DRW_CALL_ORCOTEXFAC             = (1 << 6),
 	DRW_CALL_EYEVEC                 = (1 << 7),
+	DRW_CALL_OBJECTINFO             = (1 << 8),
 };
 
 typedef struct DRWCallState {
@@ -122,6 +123,7 @@ typedef struct DRWCallState {
 	float normalview[3][3];
 	float normalworld[3][3]; /* Not view dependent */
 	float orcotexfac[2][3]; /* Not view dependent */
+	float objectinfo[2];
 	float eyevec[3];
 } DRWCallState;
 
@@ -140,6 +142,7 @@ typedef struct DRWCall {
 	union {
 		struct { /* type == DRW_CALL_SINGLE */
 			GPUBatch *geometry;
+			short ma_index;
 		} single;
 		struct { /* type == DRW_CALL_RANGE */
 			GPUBatch *geometry;
@@ -257,6 +260,7 @@ struct DRWShadingGroup {
 	int orcotexfac;
 	int eye;
 	int callid;
+	int objectinfo;
 	uint16_t matflag; /* Matrices needed, same as DRWCall.flag */
 
 #ifndef NDEBUG

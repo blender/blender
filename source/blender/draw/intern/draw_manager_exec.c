@@ -801,10 +801,16 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 	}
 }
 
-static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
+static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCall *call)
 {
 	/* step 1 : bind object dependent matrices */
-	if (state != NULL) {
+	if (call != NULL) {
+		DRWCallState *state = call->state;
+		float objectinfo[3];
+		objectinfo[0] = state->objectinfo[0];
+		objectinfo[1] = call->single.ma_index; /* WATCH this is only valid for single drawcalls. */
+		objectinfo[2] = state->objectinfo[1];
+
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->model, 16, 1, (float *)state->model);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelinverse, 16, 1, (float *)state->modelinverse);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelview, 16, 1, (float *)state->modelview);
@@ -812,6 +818,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)state->modelviewprojection);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->normalview, 9, 1, (float *)state->normalview);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->normalworld, 9, 1, (float *)state->normalworld);
+		GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 3, 1, (float *)objectinfo);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)state->orcotexfac);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->eye, 3, 1, (float *)state->eyevec);
 	}
@@ -825,6 +832,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelview, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_VIEW]);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewinverse, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_VIEWINV]);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_PERS]);
+		GPU_shader_uniform_vector(shgroup->shader, shgroup->objectinfo, 3, 1, (float *)unitmat);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)shgroup->instance_orcofac);
 	}
 }
@@ -1205,7 +1213,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 
 			GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
-			draw_geometry_prepare(shgroup, call->state);
+			draw_geometry_prepare(shgroup, call);
 
 			switch (call->type) {
 				case DRW_CALL_SINGLE:
