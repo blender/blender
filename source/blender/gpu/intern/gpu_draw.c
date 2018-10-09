@@ -958,6 +958,16 @@ static GPUTexture *create_transfer_function(int type, const ColorBand *coba)
 	return tex;
 }
 
+static void swizzle_texture_channel_rrrr(GPUTexture *tex)
+{
+	GPU_texture_bind(tex, 0);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, GL_RED);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, GL_RED);
+	glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
+	GPU_texture_unbind(tex);
+}
+
 static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
 {
 	float *field = NULL;
@@ -980,7 +990,83 @@ static GPUTexture *create_field_texture(SmokeDomainSettings *sds)
 		default: return NULL;
 	}
 
-	return GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_R8, field, NULL);
+	GPUTexture *tex = GPU_texture_create_nD(
+	               sds->res[0], sds->res[1], sds->res[2], 3,
+	               field, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
+
+	swizzle_texture_channel_rrrr(tex);
+	return tex;
+}
+
+static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
+{
+	float *data = NULL, *source;
+	int cell_count = (highres) ? smoke_turbulence_get_cells(sds->wt) : sds->total_cells;
+	const bool has_color = (highres) ? smoke_turbulence_has_colors(sds->wt) : smoke_has_colors(sds->fluid);
+	int *dim = (highres) ? sds->res_wt : sds->res;
+	GPUTextureFormat format = (has_color) ? GPU_RGBA8 : GPU_R8;
+
+	if (has_color) {
+		data = MEM_callocN(sizeof(float) * cell_count * 4, "smokeColorTexture");
+	}
+
+	if (highres) {
+		if (has_color) {
+			smoke_turbulence_get_rgba(sds->wt, data, 0);
+		}
+		else {
+			source = smoke_turbulence_get_density(sds->wt);
+		}
+	}
+	else {
+		if (has_color) {
+			smoke_get_rgba(sds->fluid, data, 0);
+		}
+		else {
+			source = smoke_get_density(sds->fluid);
+		}
+	}
+
+	GPUTexture *tex = GPU_texture_create_nD(
+	               dim[0], dim[1], dim[2], 3,
+	               (data) ? data : source,
+	               format, GPU_DATA_FLOAT, 0, true, NULL);
+	if (data) {
+		MEM_freeN(data);
+	}
+
+	if (format == GPU_R8) {
+		/* Swizzle the RGBA components to read the Red channel so
+		 * that the shader stay the same for colored and non color
+		 * density textures. */
+		swizzle_texture_channel_rrrr(tex);
+	}
+	return tex;
+}
+
+static GPUTexture *create_flame_texture(SmokeDomainSettings *sds, int highres)
+{
+	float *source = NULL;
+	const bool has_fuel = (highres) ? smoke_turbulence_has_fuel(sds->wt) : smoke_has_fuel(sds->fluid);
+	int *dim = (highres) ? sds->res_wt : sds->res;
+
+	if (!has_fuel)
+		return NULL;
+
+	if (highres) {
+		source = smoke_turbulence_get_flame(sds->wt);
+	}
+	else {
+		source = smoke_get_flame(sds->fluid);
+	}
+
+	GPUTexture *tex = GPU_texture_create_nD(
+	               dim[0], dim[1], dim[2], 3,
+	               source, GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
+
+	swizzle_texture_channel_rrrr(tex);
+
+	return tex;
 }
 #endif  /* WITH_SMOKE */
 
@@ -1010,82 +1096,22 @@ void GPU_create_smoke(SmokeModifierData *smd, int highres)
 #ifdef WITH_SMOKE
 	if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
 		SmokeDomainSettings *sds = smd->domain;
-		if (!sds->tex && !highres) {
-			/* rgba texture for color + density */
-			if (smoke_has_colors(sds->fluid)) {
-				float *data = MEM_callocN(sizeof(float) * sds->total_cells * 4, "smokeColorTexture");
-				smoke_get_rgba(sds->fluid, data, 0);
-				sds->tex = GPU_texture_create_3D(sds->res[0], sds->res[1], sds->res[2], GPU_RGBA8, data, NULL);
-				MEM_freeN(data);
-			}
-			/* density only */
-			else {
-				sds->tex = GPU_texture_create_nD(
-				        sds->res[0], sds->res[1], sds->res[2], 3,
-				        smoke_get_density(sds->fluid),
-				        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
 
-				/* Swizzle the RGBA components to read the Red channel so
-				 * that the shader stay the same for colored and non color
-				 * density textures. */
-				GPU_texture_bind(sds->tex, 0);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
-				GPU_texture_unbind(sds->tex);
-			}
-			sds->tex_flame = (
-			        smoke_has_fuel(sds->fluid) ?
-			                GPU_texture_create_nD(
-			                              sds->res[0], sds->res[1], sds->res[2], 3,
-			                              smoke_get_flame(sds->fluid),
-			                              GPU_R8, GPU_DATA_FLOAT, 0, true, NULL) :
-			                NULL);
+		if (!sds->tex) {
+			sds->tex = create_density_texture(sds, highres);
 		}
-		else if (!sds->tex && highres) {
-			/* rgba texture for color + density */
-			if (smoke_turbulence_has_colors(sds->wt)) {
-				float *data = MEM_callocN(sizeof(float) * smoke_turbulence_get_cells(sds->wt) * 4, "smokeColorTexture");
-				smoke_turbulence_get_rgba(sds->wt, data, 0);
-				sds->tex = GPU_texture_create_3D(sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], GPU_RGBA8, data, NULL);
-				MEM_freeN(data);
-			}
-			/* density only */
-			else {
-				sds->tex = GPU_texture_create_nD(
-				        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 3,
-				        smoke_turbulence_get_density(sds->wt),
-				        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
-
-				/* Swizzle the RGBA components to read the Red channel so
-				 * that the shader stay the same for colored and non color
-				 * density textures. */
-				GPU_texture_bind(sds->tex, 0);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_R, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_G, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_B, GL_RED);
-				glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_SWIZZLE_A, GL_RED);
-				GPU_texture_unbind(sds->tex);
-			}
-			sds->tex_flame = (
-			        smoke_turbulence_has_fuel(sds->wt) ?
-			                GPU_texture_create_nD(
-			                        sds->res_wt[0], sds->res_wt[1], sds->res_wt[2], 3,
-			                        smoke_turbulence_get_flame(sds->wt),
-			                        GPU_R8, GPU_DATA_FLOAT, 0, true, NULL) :
-			                NULL);
+		if (!sds->tex_flame) {
+			sds->tex_flame = create_flame_texture(sds, highres);
 		}
-
-		if (sds->tex_flame) {
+		if (!sds->tex_flame_coba && sds->tex_flame) {
 			sds->tex_flame_coba = create_transfer_function(TFUNC_FLAME_SPECTRUM, NULL);
 		}
-
-		sds->tex_shadow = GPU_texture_create_nD(
-		                      sds->res[0], sds->res[1], sds->res[2], 3,
-		                      sds->shadow,
-		                      GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
-
+		if (!sds->tex_shadow) {
+			sds->tex_shadow = GPU_texture_create_nD(
+			                      sds->res[0], sds->res[1], sds->res[2], 3,
+			                      sds->shadow,
+			                      GPU_R8, GPU_DATA_FLOAT, 0, true, NULL);
+		}
 	}
 #else // WITH_SMOKE
 	(void)highres;
