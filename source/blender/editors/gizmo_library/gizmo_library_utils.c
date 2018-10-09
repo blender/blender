@@ -190,7 +190,8 @@ bool gizmo_window_project_2d(
 
 		float plane[4], co[3];
 		plane_from_point_normal_v3(plane, mat[3], mat[2]);
-		if (ED_view3d_win_to_3d_on_plane(ar, plane, mval, true, co)) {
+		bool clip_ray = ((RegionView3D *)ar->regiondata)->is_persp;
+		if (ED_view3d_win_to_3d_on_plane(ar, plane, mval, clip_ray, co)) {
 			float imat[4][4];
 			invert_m4_m4(imat, mat);
 			mul_m4_v3(imat, co);

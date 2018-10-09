@@ -1528,6 +1528,13 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	return basact;
 }
 
+Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
+{
+	Base *base = ED_view3d_give_base_under_cursor(C, mval);
+	if (base) return base->object;
+	return NULL;
+}
+
 static void deselect_all_tracks(MovieTracking *tracking)
 {
 	MovieTrackingObject *object;

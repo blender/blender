@@ -869,9 +869,7 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 {
 	Scene *scene = CTX_data_scene(C);
 
-	Base *base = NULL;
 	Image *ima = NULL;
-	Object *ob = NULL;
 
 	ima = (Image *)WM_operator_drop_load_path(C, op, ID_IM);
 	if (!ima) {
@@ -880,26 +878,24 @@ static int empty_drop_named_image_invoke(bContext *C, wmOperator *op, const wmEv
 	/* handled below */
 	id_us_min((ID *)ima);
 
-	base = ED_view3d_give_base_under_cursor(C, event->mval);
+	Object *ob = NULL;
+	Object *ob_cursor = ED_view3d_give_object_under_cursor(C, event->mval);
 
-	/* if empty under cursor, then set object */
-	if (base && base->object->type == OB_EMPTY) {
-		ob = base->object;
-		DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	/* either change empty under cursor or create a new empty */
+	if (ob_cursor && ob_cursor->type == OB_EMPTY) {
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+		DEG_id_tag_update((ID *)ob_cursor, DEG_TAG_TRANSFORM);
+		ob = ob_cursor;
 	}
 	else {
-		/* add new empty */
-		float rot[3];
+		ob = ED_object_add_type(C, OB_EMPTY, NULL, NULL, NULL, false);
 
-		if (!ED_object_add_generic_get_opts(C, op, 'Z', NULL, rot, NULL, NULL))
-			return OPERATOR_CANCELLED;
-
-		ob = ED_object_add_type(C, OB_EMPTY, NULL, NULL, rot, false);
-
-		/* add under the mouse */
 		ED_object_location_from_view(C, ob->loc);
 		ED_view3d_cursor3d_position(C, event->mval, false, ob->loc);
+		ED_object_rotation_from_view(C, ob->rot, 'Z');
+		ob->size[0] = 5;
+		ob->size[1] = 5;
+		ob->size[2] = 5;
 	}
 
 	BKE_object_empty_draw_type_set(ob, OB_EMPTY_IMAGE);

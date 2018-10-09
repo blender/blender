@@ -19,6 +19,7 @@
 # <pep8-80 compliant>
 
 import bpy
+from mathutils import Euler
 from bpy.types import Operator
 from bpy.props import (
     BoolProperty,
@@ -27,6 +28,8 @@ from bpy.props import (
     IntProperty,
     StringProperty,
 )
+
+from math import radians
 
 
 class SelectPattern(Operator):
@@ -874,7 +877,7 @@ class LoadImageAsEmpty(Operator):
     """Select an image file and create a new image empty with it"""
     bl_idname = "object.load_image_as_empty"
     bl_label = "Load Image as Empty"
-    bl_options = {'REGISTER'}
+    bl_options = {'REGISTER', 'UNDO'}
 
     filepath: StringProperty(
         subtype='FILE_PATH'
@@ -882,6 +885,11 @@ class LoadImageAsEmpty(Operator):
 
     filter_image: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
     filter_folder: BoolProperty(default=True, options={'HIDDEN', 'SKIP_SAVE'})
+
+    align_view: BoolProperty(
+        name="Align to view",
+        default=True
+    )
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
@@ -899,10 +907,48 @@ class LoadImageAsEmpty(Operator):
 
         bpy.ops.object.empty_add(type='IMAGE', location=cursor)
         context.active_object.data = image
+        context.active_object.scale = (5, 5, 5)
+        if self.align_view:
+            bpy.ops.object.align_to_view()
         return {'FINISHED'}
+
+class AlignObjectsToView(bpy.types.Operator):
+    bl_idname = "object.align_to_view"
+    bl_label = "Align Objects to View"
+    bl_options = {"REGISTER", "UNDO"}
+
+    axis_data = {
+         "X": Euler((0, radians(-90), 0)),
+        "-X": Euler((0, radians(90), 0)),
+         "Y": Euler((radians(90), 0, 0)),
+        "-Y": Euler((radians(-90), 0, 0)),
+         "Z": Euler((0, 0, 0)),
+        "-Z": Euler((0, radians(180), 0))
+    }
+
+    front_axis: EnumProperty(
+        name="Front Axis",
+        default="Z",
+        items=[(name, name, "") for name in axis_data.keys()]
+    )
+
+    @classmethod
+    def poll(cls, context):
+        return context.space_data.type == "VIEW_3D"
+
+    def execute(self, context):
+        base = self.axis_data[self.front_axis].to_matrix()
+
+        view = context.space_data.region_3d.view_matrix
+        rotation = (view.to_3x3().inverted() @ base).to_euler()
+        for object in context.selected_objects:
+            object.rotation_euler = rotation
+
+        return {"FINISHED"}
 
 
 classes = (
+    AlignObjectsToView,
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
     IsolateTypeRender,
