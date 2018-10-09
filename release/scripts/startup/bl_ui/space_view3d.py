@@ -3407,7 +3407,9 @@ class VIEW3D_MT_edit_meta(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_meta_showhide")
-        layout.operator("mball.delete_metaelems", text="Delete...")
+
+        layout.operator_context = 'EXEC_DEFAULT'
+        layout.operator("mball.delete_metaelems", text="Delete")
 
 
 class VIEW3D_MT_edit_meta_showhide(Menu):
