@@ -628,12 +628,12 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 		evli->radius = max_ff(0.001f, la->area_size);
 	}
 	else if (la->type == LA_AREA) {
-		evli->sizex = max_ff(0.0001f, la->area_size * scale[0] * 0.5f);
+		evli->sizex = max_ff(0.003f, la->area_size * scale[0] * 0.5f);
 		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
-			evli->sizey = max_ff(0.0001f, la->area_sizey * scale[1] * 0.5f);
+			evli->sizey = max_ff(0.003f, la->area_sizey * scale[1] * 0.5f);
 		}
 		else {
-			evli->sizey = max_ff(0.0001f, la->area_size * scale[1] * 0.5f);
+			evli->sizey = max_ff(0.003f, la->area_size * scale[1] * 0.5f);
 		}
 	}
 	else {
