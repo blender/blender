@@ -363,8 +363,8 @@ class DATA_PT_gpencil_canvas(DataButtonsPanel, Panel):
 
         row = layout.row(align=True)
         col = row.column()
-        col.prop(grid, "color")
-        col.prop(grid, "scale")
+        col.prop(grid, "color", text="Color")
+        col.prop(grid, "scale", text="Scale")
         col.prop(grid, "offset")
         row = layout.row(align=True)
         col = row.column()
