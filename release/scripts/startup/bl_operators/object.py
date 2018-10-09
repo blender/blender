@@ -914,50 +914,7 @@ class LoadImageAsEmpty(Operator):
         return {'FINISHED'}
 
 
-class AlignObjectsToView(bpy.types.Operator):
-    bl_idname = "object.align_to_view"
-    bl_label = "Align Objects to View"
-    bl_options = {"REGISTER", "UNDO"}
-
-    front_axis: EnumProperty(
-        name="Front Axis",
-        default='POS_Z',
-        items=(
-            (sign + axis, sign_sym + axis, "")
-            for sign, sign_sym in (('POS_', '+'), ('NEG_', "-"))
-            for axis in ('X', 'Y', 'Z')
-        )
-    )
-
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.type == "VIEW_3D"
-
-    def execute(self, context):
-        from math import radians
-        from mathutils import Euler
-
-        axis_data = {
-            'POS_X': Euler((0.0, radians(-90.0), 0.0)),
-            'NEG_X': Euler((0.0, radians(90.0), 0.0)),
-            'POS_Y': Euler((radians(90.0), 0.0, 0.0)),
-            'NEG_Y': Euler((radians(-90.0), 0.0, 0.0)),
-            'POS_Z': Euler((0.0, 0.0, 0.0)),
-            'NEG_Z': Euler((0.0, radians(180.0), 0.0))
-        }
-
-        base = axis_data[self.front_axis].to_matrix()
-
-        view = context.space_data.region_3d.view_matrix
-        rotation = (view.to_3x3().inverted() @ base).to_euler()
-        for obj in context.selected_objects:
-            obj.rotation_euler = rotation
-
-        return {"FINISHED"}
-
-
 classes = (
-    AlignObjectsToView,
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
     IsolateTypeRender,
