@@ -154,10 +154,13 @@ class VIEW3D_HT_header(Header):
             snap_elements = tool_settings.snap_elements
             if len(snap_elements) == 1:
                 text = ""
-                icon = snap_items[next(iter(snap_elements))].icon
+                for elem in snap_elements:
+                    icon = snap_items[elem].icon
+                    break
             else:
                 text = "Mix"
                 icon = 'NONE'
+            del snap_items, snap_elements
 
             row = layout.row(align=True)
             row.prop(tool_settings, "use_snap", text="")
