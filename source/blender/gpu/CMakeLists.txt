@@ -88,9 +88,6 @@ set(SRC
 	intern/gpu_viewport.c
 
 	shaders/gpu_shader_material.glsl
-	shaders/gpu_shader_fire_frag.glsl
-	shaders/gpu_shader_smoke_frag.glsl
-	shaders/gpu_shader_smoke_vert.glsl
 
 	GPU_attr_binding.h
 	GPU_batch.h
