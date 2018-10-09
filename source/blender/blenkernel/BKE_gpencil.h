@@ -143,6 +143,9 @@ struct Material *BKE_gpencil_get_material_from_brush(struct Brush *brush);
 struct Material *BKE_gpencil_material_ensure(struct Main *bmain, struct Object *ob);
 
 /* object boundbox */
+bool BKE_gpencil_data_minmax(
+	struct Object *ob, const struct bGPdata *gpd,
+	float r_min[3], float r_max[3]);
 bool BKE_gpencil_stroke_minmax(
 	const struct bGPDstroke *gps, const bool use_select,
 	float r_min[3], float r_max[3]);

@@ -2825,7 +2825,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
 	INIT_MINMAX(min, max);
-	if (is_gp_edit || is_face_map) {
+	if (is_face_map) {
 		ob_eval = NULL;
 	}
 
@@ -2845,7 +2845,6 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 
 	if (is_gp_edit) {
-		/* TODO(sergey): Check on this after gpencil merge. */
 		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 		{
 			/* we're only interested in selected points here... */
@@ -2854,6 +2853,14 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 			}
 		}
 		CTX_DATA_END;
+
+		if ((ob_eval) && (ok)) {
+			add_v3_v3(min, ob_eval->obmat[3]);
+			add_v3_v3(max, ob_eval->obmat[3]);
+		}
+ 	}
+	else if (ob_eval && (ob_eval->type == OB_GPENCIL)) {
+		ok |= BKE_gpencil_data_minmax(ob_eval, gpd, min, max);
 	}
 	else if (is_face_map) {
 		ok = WM_gizmomap_minmax(ar->gizmo_map, true, true, min, max);
