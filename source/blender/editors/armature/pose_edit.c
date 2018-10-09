@@ -901,6 +901,7 @@ static bArmature *armature_layers_get_data(Object **ob)
 static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_active_object(C);
 
 	const int maxLayers = (RNA_boolean_get(op->ptr, "all")) ? 32 : 16;
 	bool layers[32] = {false}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
@@ -910,7 +911,7 @@ static int pose_armature_layers_showall_exec(bContext *C, wmOperator *op)
 	}
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, ob_active->mode);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		bArmature *arm = armature_layers_get_data(&ob);
