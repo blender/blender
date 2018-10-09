@@ -1259,11 +1259,12 @@ static void add_orco_mesh(
 	}
 }
 
-static void UNUSED_FUNCTION(DM_update_statvis_color)(const Scene *scene, Object *ob, DerivedMesh *dm)
+static void UNUSED_FUNCTION(DM_update_statvis_color)(const Scene *scene, Object *ob)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
-
-	BKE_editmesh_statvis_calc(em, dm, &scene->toolsettings->statvis);
+	Mesh *me = ob->data;
+	BKE_mesh_runtime_ensure_edit_data(me);
+	BKE_editmesh_statvis_calc(em, me->runtime.edit_data, &scene->toolsettings->statvis);
 }
 
 static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape_uid)
@@ -2129,7 +2130,7 @@ static void editbmesh_calc_modifiers(
 #if 0
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_statvis) {
-			DM_update_statvis_color(scene, ob, *r_final);
+			DM_update_statvis_color(scene, ob);
 		}
 #endif
 	}
@@ -2148,7 +2149,7 @@ static void editbmesh_calc_modifiers(
 #if 0
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_statvis) {
-			DM_update_statvis_color(scene, ob, *r_final);
+			DM_update_statvis_color(scene, ob);
 		}
 #endif
 	}
@@ -2953,7 +2954,6 @@ char *DM_debug_info(DerivedMesh *dm)
 	BLI_dynstr_appendf(dynstr, "    'ptr': '%p',\n", (void *)dm);
 	switch (dm->type) {
 		case DM_TYPE_CDDM:     tstr = "DM_TYPE_CDDM";     break;
-		case DM_TYPE_EDITBMESH: tstr = "DM_TYPE_EDITMESH";  break;
 		case DM_TYPE_CCGDM:    tstr = "DM_TYPE_CCGDM";     break;
 		default:               tstr = "UNKNOWN";           break;
 	}

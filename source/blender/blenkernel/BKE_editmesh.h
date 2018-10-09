@@ -41,6 +41,7 @@ struct Scene;
 struct DerivedMesh;
 struct MeshStatVis;
 struct Depsgraph;
+struct EditMeshData;
 
 /**
  * This structure is used for mesh edit-mode.
@@ -97,8 +98,8 @@ void        BKE_editmesh_lnorspace_update(BMEditMesh *em);
 
 /* editderivedmesh.c */
 /* should really be defined in editmesh.c, but they use 'EditDerivedBMesh' */
-void        BKE_editmesh_statvis_calc(BMEditMesh *em, struct DerivedMesh *dm,
-                                      const struct MeshStatVis *statvis);
+void BKE_editmesh_statvis_calc(
+        BMEditMesh *em, struct EditMeshData *emd, const struct MeshStatVis *statvis);
 
 float (*BKE_editmesh_vertexCos_get(
            struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
