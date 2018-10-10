@@ -2309,7 +2309,8 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 		return;
 	}
 
-	char buf[UI_MAX_DRAW_STR] = {0};
+	/* Arbitrary large value (allow for paths: 'PATH_MAX') */
+	char buf[4096] = {0};
 	const int buf_max_len = sizeof(buf);
 
 	/* Left false for copying internal data (color-band for eg). */
