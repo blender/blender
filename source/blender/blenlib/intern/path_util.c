@@ -1202,12 +1202,12 @@ bool BLI_path_program_search(
 		do {
 			temp = strchr(path, separator);
 			if (temp) {
-				strncpy(filename, path, temp - path);
+				memcpy(filename, path, temp - path);
 				filename[temp - path] = 0;
 				path = temp + 1;
 			}
 			else {
-				strncpy(filename, path, sizeof(filename));
+				BLI_strncpy(filename, path, sizeof(filename));
 			}
 
 			BLI_path_append(filename, maxlen, name);
