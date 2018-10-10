@@ -1324,20 +1324,20 @@ static void shapekey_layers_to_keyblocks(DerivedMesh *dm, Mesh *me, int actshape
 	}
 }
 
-static void UNUSED_FUNCTION(add_shapekey_layers)(DerivedMesh *dm, Mesh *me, Object *UNUSED(ob))
+static void add_shapekey_layers(Mesh *me_dst, Mesh *me_src, Object *UNUSED(ob))
 {
 	KeyBlock *kb;
-	Key *key = me->key;
+	Key *key = me_src->key;
 	int i;
 
-	if (!me->key)
+	if (!me_src->key)
 		return;
 
 	/* ensure we can use mesh vertex count for derived mesh custom data */
-	if (me->totvert != dm->getNumVerts(dm)) {
+	if (me_src->totvert != me_dst->totvert) {
 		fprintf(stderr,
-		        "%s: vertex size mismatch (mesh/dm) '%s' (%d != %d)\n",
-		        __func__, me->id.name + 2, me->totvert, dm->getNumVerts(dm));
+		        "%s: vertex size mismatch (mesh/eval) '%s' (%d != %d)\n",
+		        __func__, me_src->id.name + 2, me_src->totvert, me_dst->totvert);
 		return;
 	}
 
@@ -1345,21 +1345,21 @@ static void UNUSED_FUNCTION(add_shapekey_layers)(DerivedMesh *dm, Mesh *me, Obje
 		int ci;
 		float *array;
 
-		if (me->totvert != kb->totelem) {
+		if (me_src->totvert != kb->totelem) {
 			fprintf(stderr,
 			        "%s: vertex size mismatch (Mesh '%s':%d != KeyBlock '%s':%d)\n",
-			        __func__, me->id.name + 2, me->totvert, kb->name, kb->totelem);
-			array = MEM_calloc_arrayN((size_t)me->totvert, 3 * sizeof(float), __func__);
+			        __func__, me_src->id.name + 2, me_src->totvert, kb->name, kb->totelem);
+			array = MEM_calloc_arrayN((size_t)me_src->totvert, sizeof(float[3]), __func__);
 		}
 		else {
-			array = MEM_malloc_arrayN((size_t)me->totvert, 3 * sizeof(float), __func__);
-			memcpy(array, kb->data, (size_t)me->totvert * 3 * sizeof(float));
+			array = MEM_malloc_arrayN((size_t)me_src->totvert, sizeof(float[3]), __func__);
+			memcpy(array, kb->data, (size_t)me_src->totvert * sizeof(float[3]));
 		}
 
-		CustomData_add_layer_named(&dm->vertData, CD_SHAPEKEY, CD_ASSIGN, array, dm->numVertData, kb->name);
-		ci = CustomData_get_layer_index_n(&dm->vertData, CD_SHAPEKEY, i);
+		CustomData_add_layer_named(&me_dst->vdata, CD_SHAPEKEY, CD_ASSIGN, array, me_dst->totvert, kb->name);
+		ci = CustomData_get_layer_index_n(&me_dst->vdata, CD_SHAPEKEY, i);
 
-		dm->vertData.layers[ci].uid = kb->uid;
+		me_dst->vdata.layers[ci].uid = kb->uid;
 	}
 }
 
@@ -1500,9 +1500,9 @@ static void mesh_calc_modifiers(
 
 			/* XXX: Is build_shapekey_layers ever even true? This should have crashed long ago... */
 			BLI_assert(!build_shapekey_layers);
-			UNUSED_VARS_NDEBUG(build_shapekey_layers);
-			//if (build_shapekey_layers)
-			//	add_shapekey_layers(*r_deform_mesh, me, ob);
+			if (build_shapekey_layers) {
+				add_shapekey_layers(*r_deform_mesh, me, ob);
+			}
 
 			if (deformedVerts) {
 				BKE_mesh_apply_vert_coords(*r_deform_mesh, deformedVerts);
@@ -1639,9 +1639,9 @@ static void mesh_calc_modifiers(
 				mesh = BKE_mesh_copy_for_eval(me, true);
 				ASSERT_IS_VALID_MESH(mesh);
 
-				// XXX: port to Mesh if build_shapekey_layers can ever be true
-				//if (build_shapekey_layers)
-				//	add_shapekey_layers(mesh, me, ob);
+				if (build_shapekey_layers) {
+					add_shapekey_layers(mesh, me, ob);
+				}
 
 				if (deformedVerts) {
 					BKE_mesh_apply_vert_coords(mesh, deformedVerts);
@@ -1793,9 +1793,9 @@ static void mesh_calc_modifiers(
 	else {
 		final_mesh = BKE_mesh_copy_for_eval(me, true);
 
-		//if (build_shapekey_layers) {
-		//	add_shapekey_layers(final_mesh, me, ob);
-		//}
+		if (build_shapekey_layers) {
+			add_shapekey_layers(final_mesh, me, ob);
+		}
 
 		if (deformedVerts) {
 			BKE_mesh_apply_vert_coords(final_mesh, deformedVerts);
