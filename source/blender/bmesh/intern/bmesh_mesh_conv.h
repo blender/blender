@@ -65,4 +65,9 @@ void BM_mesh_bm_to_me(
         const struct BMeshToMeshParams *params)
 ATTR_NONNULL(2, 3, 4);
 
+void BM_mesh_bm_to_me_for_eval(
+        BMesh *bm, struct Mesh *me, const int64_t cd_mask_extra)
+ATTR_NONNULL(1, 2);
+
+
 #endif /* __BMESH_MESH_CONV_H__ */

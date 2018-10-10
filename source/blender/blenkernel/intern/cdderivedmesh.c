@@ -752,6 +752,8 @@ static void loops_to_customdata_corners(
 	}
 }
 
+/* TODO(campbell): remove, use BKE_mesh_from_bmesh_for_eval_nomain instead. */
+
 /* used for both editbmesh and bmesh */
 static DerivedMesh *cddm_from_bmesh_ex(
         struct BMesh *bm, const bool use_mdisps,

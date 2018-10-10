@@ -756,6 +756,13 @@ Mesh *BKE_mesh_from_bmesh_nomain(BMesh *bm, const struct BMeshToMeshParams *para
 	return mesh;
 }
 
+Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const int64_t cd_mask_extra)
+{
+	Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
+	BM_mesh_bm_to_me_for_eval(bm, mesh, cd_mask_extra);
+	return mesh;
+}
+
 /**
  * TODO(campbell): support mesh with only an edit-mesh which is lazy initialized.
  */
