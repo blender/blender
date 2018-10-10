@@ -505,7 +505,7 @@ class USERPREF_MT_interface_theme_presets(Menu):
     )
     draw = Menu.draw_preset
 
-    def pre_cb(context):
+    def reset_cb(context):
         bpy.ops.ui.reset_default_theme()
 
 
