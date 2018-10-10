@@ -72,9 +72,10 @@ static void fill_format_elem(void *data_dst_void, PyObject *py_src, const GPUVer
 }
 
 /* No error checking, callers must run PyErr_Occurred */
-static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const GPUVertAttr *attr)
+static void fill_format_sequence(void *data_dst_void, PyObject *py_seq_fast, const GPUVertAttr *attr)
 {
 	const uint len = attr->comp_len;
+	PyObject **value_fast_items = PySequence_Fast_ITEMS(py_seq_fast);
 
 /**
  * Args are constants, so range checks will be optimized out if they're nop's.
@@ -82,7 +83,7 @@ static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const GPUVe
 #define PY_AS_NATIVE(ty_dst, py_as_native) \
 	ty_dst *data_dst = data_dst_void; \
 	for (uint i = 0; i < len; i++) { \
-		data_dst[i] = py_as_native(PyTuple_GET_ITEM(py_src, i)); \
+		data_dst[i] = py_as_native(value_fast_items[i]); \
 	} ((void)0)
 
 	PY_AS_NATIVE_SWITCH(attr);
@@ -96,7 +97,7 @@ static void fill_format_tuple(void *data_dst_void, PyObject *py_src, const GPUVe
 
 static bool bpygpu_vertbuf_fill_impl(
         GPUVertBuf *vbo,
-        uint data_id, PyObject *seq)
+        uint data_id, PyObject *seq, const char *error_prefix)
 {
 	const char *exc_str_size_mismatch = "Expected a %s of size %d, got %u";
 
@@ -157,23 +158,23 @@ static bool bpygpu_vertbuf_fill_impl(
 		else {
 			for (uint i = 0; i < seq_len; i++) {
 				uchar *data = (uchar *)GPU_vertbuf_raw_step(&data_step);
-				PyObject *item = seq_items[i];
-				if (!PyTuple_CheckExact(item)) {
-					PyErr_Format(PyExc_ValueError,
-					             "expected a tuple, got %s",
-					             Py_TYPE(item)->tp_name);
+				PyObject *seq_fast_item = PySequence_Fast(seq_items[i], error_prefix);
+
+				if (seq_fast_item == NULL) {
 					ok = false;
 					goto finally;
 				}
-				if (PyTuple_GET_SIZE(item) != attr->comp_len) {
+				if (PySequence_Fast_GET_SIZE(seq_fast_item) != attr->comp_len) {
 					PyErr_Format(PyExc_ValueError, exc_str_size_mismatch,
-					             "tuple", attr->comp_len, PyTuple_GET_SIZE(item));
+					             "sequence", attr->comp_len, PySequence_Fast_GET_SIZE(seq_fast_item));
 					ok = false;
+					Py_DECREF(seq_fast_item);
 					goto finally;
 				}
 
 				/* May trigger error, check below */
-				fill_format_tuple(data, item, attr);
+				fill_format_sequence(data, seq_fast_item, attr);
+				Py_DECREF(seq_fast_item);
 			}
 		}
 
@@ -188,7 +189,7 @@ finally:
 	return ok;
 }
 
-static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data)
+static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data, const char *error_prefix)
 {
 	if (id < 0 || id >= buf->format.attr_len) {
 		PyErr_Format(PyExc_ValueError,
@@ -203,7 +204,7 @@ static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data)
 		return 0;
 	}
 
-	if (!bpygpu_vertbuf_fill_impl(buf, (uint)id, py_seq_data)) {
+	if (!bpygpu_vertbuf_fill_impl(buf, (uint)id, py_seq_data, error_prefix)) {
 		return 0;
 	}
 
@@ -309,7 +310,7 @@ static PyObject *bpygpu_VertBuf_fill_attribute(BPyGPUVertBuf *self, PyObject *ar
 	}
 
 
-	if (!bpygpu_fill_attribute(self->buf, id, data)) {
+	if (!bpygpu_fill_attribute(self->buf, id, data, "GPUVertBuf.fill_attribute")) {
 		return NULL;
 	}
 
