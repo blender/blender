@@ -106,7 +106,7 @@ static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd, const ModifierE
 
 	/* BM_mesh_validate(bm); */ /* for troubleshooting */
 
-	result = BKE_mesh_from_bmesh_nomain(bm, &((struct BMeshToMeshParams){0}));
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

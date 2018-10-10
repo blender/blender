@@ -546,8 +546,7 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 
 		BM_mesh_triangulate(bm, quad_method, ngon_method, tag_only, NULL, NULL, NULL);
 
-		struct BMeshToMeshParams bmmp = {0};
-		Mesh *result = BKE_mesh_from_bmesh_nomain(bm, &bmmp);
+		Mesh *result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 		BM_mesh_free(bm);
 
 		mesh = result;

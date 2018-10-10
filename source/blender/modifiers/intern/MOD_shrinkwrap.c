@@ -126,7 +126,7 @@ static void deformVertsEM(
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
-		mesh_src = BKE_mesh_from_bmesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
+		mesh_src = BKE_mesh_from_bmesh_for_eval_nomain(editData->bm, 0);
 	}
 
 	BLI_assert(mesh_src->totvert == numVerts);

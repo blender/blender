@@ -53,7 +53,7 @@ static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_
 
 	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
 
-	result = BKE_mesh_from_bmesh_nomain(bm, &((struct BMeshToMeshParams){0}));
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 	BM_mesh_free(bm);
 
 	total_edges = result->totedge;

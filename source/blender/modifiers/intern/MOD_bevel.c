@@ -448,7 +448,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (set_wn_strength)
 		bevel_set_weighted_normal_face_strength(bm, scene);
 
-	result = BKE_mesh_from_bmesh_nomain(bm, &(struct BMeshToMeshParams){0});
+	result = BKE_mesh_from_bmesh_for_eval_nomain(bm, 0);
 
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&

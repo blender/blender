@@ -1094,7 +1094,7 @@ Mesh *BKE_modifier_get_evaluated_mesh_from_evaluated_object(Object *ob_eval, boo
 		/* Note: currently we have no equivalent to derived cagemesh or even final dm in BMEditMesh...
 		 * This is TODO in core depsgraph/modifier stack code still. */
 		BMEditMesh *em = BKE_editmesh_from_object(ob_eval);
-		me = BKE_mesh_from_bmesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, 0);
 		*r_free_mesh = true;
 	}
 	else {

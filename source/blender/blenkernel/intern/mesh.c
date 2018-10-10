@@ -769,11 +769,7 @@ Mesh *BKE_mesh_from_bmesh_for_eval_nomain(BMesh *bm, const int64_t cd_mask_extra
 Mesh *BKE_mesh_from_editmesh_with_coords_thin_wrap(
         BMEditMesh *em, CustomDataMask data_mask, float (*vertexCos)[3])
 {
-	Mesh *me = BKE_mesh_from_bmesh_nomain(
-	        em->bm,
-	        &(struct BMeshToMeshParams){
-	            .cd_mask_extra = data_mask,
-	        });
+	Mesh *me = BKE_mesh_from_bmesh_for_eval_nomain(em->bm, data_mask);
 	if (vertexCos) {
 		/* We will own this array in the future. */
 		BKE_mesh_apply_vert_coords(me, vertexCos);
