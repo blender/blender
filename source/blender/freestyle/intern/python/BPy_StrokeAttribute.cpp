@@ -135,7 +135,7 @@ static void StrokeAttribute_dealloc(BPy_StrokeAttribute *self)
 	Py_TYPE(self)->tp_free((PyObject *)self);
 }
 
-static PyObject * StrokeAttribute_repr(BPy_StrokeAttribute *self)
+static PyObject *StrokeAttribute_repr(BPy_StrokeAttribute *self)
 {
 	stringstream repr("StrokeAttribute:");
 	repr << " r: " << self->sa->getColorR() << " g: " << self->sa->getColorG() << " b: " << self->sa->getColorB() <<
@@ -282,7 +282,7 @@ PyDoc_STRVAR(StrokeAttribute_set_attribute_real_doc,
 "   :arg value: The attribute value.\n"
 "   :type value: float\n");
 
-static PyObject * StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
+static PyObject *StrokeAttribute_set_attribute_real(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"name", "value", NULL};
 	char *s = 0;
@@ -306,7 +306,7 @@ PyDoc_STRVAR(StrokeAttribute_set_attribute_vec2_doc,
 "   :arg value: The attribute value.\n"
 "   :type value: :class:`mathutils.Vector`, list or tuple of 2 real numbers\n");
 
-static PyObject * StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
+static PyObject *StrokeAttribute_set_attribute_vec2(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"name", "value", NULL};
 	char *s;
@@ -335,7 +335,7 @@ PyDoc_STRVAR(StrokeAttribute_set_attribute_vec3_doc,
 "   :arg value: The attribute value.\n"
 "   :type value: :class:`mathutils.Vector`, list or tuple of 3 real numbers\n");
 
-static PyObject * StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
+static PyObject *StrokeAttribute_set_attribute_vec3(BPy_StrokeAttribute *self, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"name", "value", NULL};
 	char *s;

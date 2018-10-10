@@ -88,7 +88,7 @@ extern struct GlobalsUboStorage ts; /* draw_common.c */
 /* Functions */
 static void overlay_engine_init(void *vedata)
 {
-	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_Data *data = vedata;
 	OVERLAY_StorageList *stl = data->stl;
 
 	if (!stl->g_data) {
@@ -149,7 +149,7 @@ static void overlay_engine_init(void *vedata)
 
 static void overlay_cache_init(void *vedata)
 {
-	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_Data *data = vedata;
 	OVERLAY_PassList *psl = data->psl;
 	OVERLAY_StorageList *stl = data->stl;
 
@@ -223,7 +223,7 @@ static void overlay_cache_init(void *vedata)
 
 static void overlay_cache_populate(void *vedata, Object *ob)
 {
-	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_Data *data = vedata;
 	OVERLAY_StorageList *stl = data->stl;
 	OVERLAY_PrivateData *pd = stl->g_data;
 	OVERLAY_PassList *psl = data->psl;
@@ -322,7 +322,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 static void overlay_cache_finish(void *vedata)
 {
-	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_Data *data = vedata;
 	OVERLAY_PassList *psl = data->psl;
 	OVERLAY_StorageList *stl = data->stl;
 
@@ -340,7 +340,7 @@ static void overlay_cache_finish(void *vedata)
 
 static void overlay_draw_scene(void *vedata)
 {
-	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_Data *data = vedata;
 	OVERLAY_PassList *psl = data->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 

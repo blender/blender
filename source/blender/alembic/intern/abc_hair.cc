@@ -133,7 +133,7 @@ void AbcHairWriter::write_hair_sample(Mesh *mesh,
 		m_uv_warning_shown = true;
 	}
 
-	ParticleData * pa = m_psys->particles;
+	ParticleData *pa = m_psys->particles;
 	int k;
 
 	ParticleCacheKey **cache = m_psys->pathcache;

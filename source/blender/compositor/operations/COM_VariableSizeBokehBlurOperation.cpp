@@ -288,7 +288,7 @@ void InverseSearchRadiusOperation::initExecution()
 
 void *InverseSearchRadiusOperation::initializeTileData(rcti *rect)
 {
-	MemoryBuffer * data = new MemoryBuffer(COM_DT_COLOR, rect);
+	MemoryBuffer *data = new MemoryBuffer(COM_DT_COLOR, rect);
 	float *buffer = data->getBuffer();
 	int x, y;
 	int width = this->m_inputRadius->getWidth();

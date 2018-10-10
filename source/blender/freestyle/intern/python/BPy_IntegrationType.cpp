@@ -63,7 +63,7 @@ PyDoc_STRVAR(Integrator_integrate_doc,
 "      :class:`UnaryFunction0DUnsigned` type.\n"
 "   :rtype: int or float");
 
-static PyObject * Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObject *kwds)
+static PyObject *Integrator_integrate(PyObject * /*self*/, PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"func", "it", "it_end", "integration_type", NULL};
 	PyObject *obj1, *obj4 = 0;

@@ -171,7 +171,7 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOper
 		rcti tempOutput;
 		bool first = true;
 		for (int i = 0; i < getNumberOfInputSockets(); i ++) {
-			NodeOperation * inputOperation = this->getInputOperation(i);
+			NodeOperation *inputOperation = this->getInputOperation(i);
 			if (inputOperation && inputOperation->determineDependingAreaOfInterest(input, readOperation, &tempOutput)) {
 				if (first) {
 					output->xmin = tempOutput.xmin;

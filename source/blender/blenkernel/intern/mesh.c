@@ -686,7 +686,7 @@ static Mesh *mesh_new_nomain_from_template_ex(
 	return me_dst;
 }
 
-Mesh * BKE_mesh_new_nomain_from_template(
+Mesh *BKE_mesh_new_nomain_from_template(
         const Mesh *me_src,
         int verts_len, int edges_len, int tessface_len,
         int loops_len, int polys_len)

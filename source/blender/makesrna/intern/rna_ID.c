@@ -433,7 +433,7 @@ static struct ID *rna_ID_make_local(struct ID *self, Main *bmain, bool clear_pro
 }
 
 
-static AnimData * rna_ID_animation_data_create(ID *id, Main *bmain)
+static AnimData *rna_ID_animation_data_create(ID *id, Main *bmain)
 {
 	AnimData *adt = BKE_animdata_add_id(id);
 	DEG_relations_tag_update(bmain);

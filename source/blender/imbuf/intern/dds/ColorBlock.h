@@ -45,9 +45,9 @@ struct ColorBlock {
 	ColorBlock();
 	ColorBlock(const uint * linearImage);
 	ColorBlock(const ColorBlock & block);
-	ColorBlock(const Image * img, uint x, uint y);
+	ColorBlock(const Image *img, uint x, uint y);
 
-	void init(const Image * img, uint x, uint y);
+	void init(const Image *img, uint x, uint y);
 	void init(uint w, uint h, const uint * data, uint x, uint y);
 	void init(uint w, uint h, const float * data, uint x, uint y);
 

@@ -61,7 +61,7 @@ ImagePyramid::~ImagePyramid()
 	}
 }
 
-GrayImage * ImagePyramid::getLevel(int l)
+GrayImage *ImagePyramid::getLevel(int l)
 {
 	return _levels[l];
 }

@@ -890,7 +890,7 @@ static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
+		Object *ob = objects[ob_index];
 		armature_select_more_less(ob, true);
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
@@ -919,7 +919,7 @@ static int armature_de_select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
+		Object *ob = objects[ob_index];
 		armature_select_more_less(ob, false);
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	}
@@ -991,8 +991,8 @@ static void select_similar_length(bContext *C, const float thresh)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bool changed = false;
 
 		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -1039,8 +1039,8 @@ static void select_similar_direction(bContext *C, const float thresh)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bool changed = false;
 
 		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -1070,8 +1070,8 @@ static void select_similar_layer(bContext *C)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bool changed = false;
 
 		for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -1107,8 +1107,8 @@ static void select_similar_prefix(bContext *C)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bool changed = false;
 
 		/* Find matches */
@@ -1146,8 +1146,8 @@ static void select_similar_suffix(bContext *C)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bool changed = false;
 
 		/* Find matches */
@@ -1350,8 +1350,8 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 
 		EditBone *ebone_active;
 		bool changed = false;
@@ -1459,15 +1459,15 @@ void ARMATURE_OT_select_hierarchy(wmOperatorType *ot)
  */
 static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	ViewLayer * view_layer = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool active_only = RNA_boolean_get(op->ptr, "only_active");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 
 		EditBone *ebone, *ebone_mirror_act = NULL;
 

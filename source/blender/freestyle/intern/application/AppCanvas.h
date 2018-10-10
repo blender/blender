@@ -69,7 +69,7 @@ public:
 	virtual float thickness() const;
 
 	AppView *_pViewer;
-	inline const AppView * viewer() const {return _pViewer;}
+	inline const AppView *viewer() const {return _pViewer;}
 
 	/*! modifiers */
 	void setViewer(AppView *iViewer);

@@ -930,8 +930,8 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * ob = objects[ob_index];
-		bArmature * arm = ob->data;
+		Object *ob = objects[ob_index];
+		bArmature *arm = ob->data;
 		bPoseChannel *pchan, *pchan_mirror_act = NULL;
 
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {

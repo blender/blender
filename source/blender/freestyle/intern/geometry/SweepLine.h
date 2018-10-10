@@ -72,7 +72,7 @@ public:
 	}
 
 public:
-	void * userdata; // FIXME
+	void *userdata; // FIXME
 
 	Edge *EdgeA; // first segment
 	Edge *EdgeB; // second segment

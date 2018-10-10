@@ -1059,9 +1059,10 @@ static void armature_bbone_defmats_cb(void *userdata, Link *iter, int index)
 	}
 }
 
-void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, float (*vertexCos)[3],
-                           float (*defMats)[3][3], int numVerts, int deformflag,
-                           float (*prevCos)[3], const char *defgrp_name, bGPDstroke *gps)
+void armature_deform_verts(
+        Object *armOb, Object *target, const Mesh *mesh, float (*vertexCos)[3],
+        float (*defMats)[3][3], int numVerts, int deformflag,
+        float (*prevCos)[3], const char *defgrp_name, bGPDstroke *gps)
 {
 	bPoseChanDeform *pdef_info_array;
 	bPoseChanDeform *pdef_info = NULL;

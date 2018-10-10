@@ -65,11 +65,11 @@ public:
 	uint width() const;
 	uint height() const;
 
-	const Color32 * scanline(uint h) const;
-	Color32 * scanline(uint h);
+	const Color32 *scanline(uint h) const;
+	Color32 *scanline(uint h);
 
-	const Color32 * pixels() const;
-	Color32 * pixels();
+	const Color32 *pixels() const;
+	Color32 *pixels();
 
 	const Color32 & pixel(uint idx) const;
 	Color32 & pixel(uint idx);
@@ -87,7 +87,7 @@ private:
 	uint m_width;
 	uint m_height;
 	Format m_format;
-	Color32 * m_data;
+	Color32 *m_data;
 };
 
 

@@ -1314,7 +1314,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 					data.icon = ICON_OUTLINER_DATA_GREASEPENCIL; break;
 				case ID_LP:
 				{
-					LightProbe * lp = (LightProbe *)tselem->id;
+					LightProbe *lp = (LightProbe *)tselem->id;
 					switch (lp->type) {
 						case LIGHTPROBE_TYPE_CUBE:
 							data.icon = ICON_LIGHTPROBE_CUBEMAP; break;

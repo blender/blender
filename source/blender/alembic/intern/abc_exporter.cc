@@ -421,7 +421,7 @@ void AbcExporter::exploreTransform(Base *ob_base, Object *parent, Object *dupliO
 	}
 }
 
-AbcTransformWriter * AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
+AbcTransformWriter *AbcExporter::createTransformWriter(Object *ob, Object *parent, Object *dupliObParent)
 {
 	/* An object should not be its own parent, or we'll get infinite loops. */
 	BLI_assert(ob != parent);

@@ -116,7 +116,7 @@ private:
 	Alembic::Abc::TimeSamplingPtr createTimeSampling(double step);
 
 	void createTransformWritersHierarchy();
-	AbcTransformWriter * createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
+	AbcTransformWriter *createTransformWriter(Object *ob,  Object *parent, Object *dupliObParent);
 	void exploreTransform(Base *ob_base, Object *parent, Object *dupliObParent);
 	void exploreObject(Base *ob_base, Object *dupliObParent);
 	void createShapeWriters();

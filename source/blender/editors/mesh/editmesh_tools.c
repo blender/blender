@@ -253,14 +253,14 @@ static int edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object * *objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	struct EdgeRingOpSubdProps op_props;
 
 	mesh_operator_edgering_props_get(op, &op_props);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * obedit = objects[ob_index];
-		BMEditMesh * em = BKE_editmesh_from_object(obedit);
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		if (em->bm->totedgesel == 0) {
 			continue;
@@ -2375,12 +2375,12 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 
 static int edbm_faces_shade_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	ViewLayer * view_layer = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object * *objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * obedit = objects[ob_index];
-		BMEditMesh * em = BKE_editmesh_from_object(obedit);
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		if (em->bm->totfacesel == 0) {
 			continue;

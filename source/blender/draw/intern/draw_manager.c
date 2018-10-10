@@ -1281,7 +1281,7 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 {
 	Object *obact = OBACT(view_layer);
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
-	View3D * v3d = DST.draw_ctx.v3d;
+	View3D *v3d = DST.draw_ctx.v3d;
 	const int drawtype = v3d->shading.type;
 	const bool use_xray = XRAY_ENABLED(v3d);
 

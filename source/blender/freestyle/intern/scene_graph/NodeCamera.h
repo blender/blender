@@ -68,12 +68,12 @@ public:
 	/*! Matrix is copied */
 	void setProjectionMatrix(double projection_matrix[16]);
 
-	double * modelViewMatrix()
+	double *modelViewMatrix()
 	{
 		return modelview_matrix_;
 	}
 
-	double * projectionMatrix()
+	double *projectionMatrix()
 	{
 		return projection_matrix_;
 	}
