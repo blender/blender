@@ -82,7 +82,6 @@ set(SRC
 	intern/blender_undo.c
 	intern/blender_user_menu.c
 	intern/blendfile.c
-	intern/bmfont.c
 	intern/boids.c
 	intern/bpath.c
 	intern/brush.c
@@ -237,8 +236,6 @@ set(SRC
 	BKE_blender_user_menu.h
 	BKE_blender_version.h
 	BKE_blendfile.h
-	BKE_bmfont.h
-	BKE_bmfont_types.h
 	BKE_boids.h
 	BKE_bpath.h
 	BKE_brush.h

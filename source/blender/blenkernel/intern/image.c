@@ -68,7 +68,6 @@
 #include "BLI_timecode.h"  /* for stamp timecode format */
 #include "BLI_utildefines.h"
 
-#include "BKE_bmfont.h"
 #include "BKE_colortools.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
@@ -3449,9 +3448,6 @@ static ImBuf *load_image_single(
 		{
 			image_initialize_after_load(ima, ibuf);
 			*r_assign = true;
-
-			/* check if the image is a font image... */
-			detectBitmapFont(ibuf);
 
 			/* make packed file for autopack */
 			if ((has_packed == false) && (G.fileflags & G_AUTOPACK)) {
