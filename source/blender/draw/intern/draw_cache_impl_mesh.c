@@ -4471,7 +4471,7 @@ GPUBatch **DRW_mesh_batch_cache_get_surface_shaded(
 		const bool use_em_final = (
 		        me->edit_btmesh &&
 		        me->edit_btmesh->mesh_eval_final &&
-		        (me->edit_btmesh->mesh_eval_final->runtime.deformed_only == false));
+		        (me->edit_btmesh->mesh_eval_final->runtime.is_original == false));
 		Mesh me_fake;
 		if (use_em_final) {
 			me_fake = *me->edit_btmesh->mesh_eval_final;

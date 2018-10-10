@@ -100,8 +100,14 @@ typedef struct Mesh_Runtime {
 	/** 'BVHCache', for 'BKE_bvhutil.c' */
 	struct LinkNode *bvh_cache;
 
-	int deformed_only; /* set by modifier stack if only deformed from original */
-	char padding[4];
+	/** Set by modifier stack if only deformed from original. */
+	char deformed_only;
+	/**
+	 * Copied from edit-mesh (hint, draw with editmesh data).
+	 * In the future we may leave the mesh-data empty
+	 * since its not needed if we can use edit-mesh data. */
+	char is_original;
+	char padding[6];
 } Mesh_Runtime;
 
 typedef struct Mesh {
