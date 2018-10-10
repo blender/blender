@@ -83,7 +83,7 @@ static EnumPropertyItem rna_enum_gpencil_weight_brush_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
-static const EnumPropertyItem rna_enum_gpencil_lockaxis_items[] = {
+static const EnumPropertyItem rna_enum_gpencil_lock_axis_items[] = {
 	{ GP_LOCKAXIS_NONE, "GP_LOCKAXIS_NONE", ICON_UNLOCKED, "None", "" },
 	{ GP_LOCKAXIS_X, "GP_LOCKAXIS_X", ICON_AXIS_SIDE, "Y-Z Plane", "Project strokes to plane locked to X" },
 	{ GP_LOCKAXIS_Y, "GP_LOCKAXIS_Y", ICON_AXIS_FRONT, "X-Z Plane", "Project strokes to plane locked to Y" },
@@ -1183,9 +1183,9 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	/* lock axis */
-	prop = RNA_def_property(srna, "lockaxis", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "lock_axis", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "lock_axis");
-	RNA_def_property_enum_items(prop, rna_enum_gpencil_lockaxis_items);
+	RNA_def_property_enum_items(prop, rna_enum_gpencil_lock_axis_items);
 	RNA_def_property_ui_text(prop, "Lock Axis", "");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);

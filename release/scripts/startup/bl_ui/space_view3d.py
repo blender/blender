@@ -230,9 +230,8 @@ class VIEW3D_HT_header(Header):
             )
 
         if object_mode in {'GPENCIL_PAINT', 'GPENCIL_SCULPT'}:
-            lock = tool_settings.gpencil_sculpt.lockaxis
-            gp_lock = \
-                tool_settings.gpencil_sculpt.bl_rna.properties['lockaxis'].enum_items[lock]
+            lock = tool_settings.gpencil_sculpt.lock_axis
+            gp_lock = tool_settings.gpencil_sculpt.bl_rna.properties["lock_axis"].enum_items[lock]
 
             lk_icon = getattr(gp_lock, "icon", "BLANK1")
             lk_name = getattr(gp_lock, "name", "None")
@@ -4899,7 +4898,7 @@ class VIEW3D_PT_gpencil_lock(Panel):
 
         row = layout.row()
         col = row.column()
-        col.prop(context.tool_settings.gpencil_sculpt, "lockaxis", expand=True)
+        col.prop(context.tool_settings.gpencil_sculpt, "lock_axis", expand=True)
 
 
 class VIEW3D_PT_overlay_gpencil_options(Panel):
