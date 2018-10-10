@@ -2128,13 +2128,6 @@ static void editbmesh_calc_modifiers(
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
-		Mesh *me_orig = ob->data;
-		if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-			BKE_mesh_runtime_ensure_edit_data(me_orig);
-			if (me_orig->runtime.edit_data->vertexCos != NULL)
-				MEM_freeN((void *)me_orig->runtime.edit_data->vertexCos);
-			me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
-		}
 		*r_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, deformedVerts);
 		deformedVerts = NULL;
 
