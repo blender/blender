@@ -65,7 +65,7 @@ struct EdgeHash;
 
 #define PARTICLE_COLLISION_MAX_COLLISIONS 10
 
-#define PARTICLE_P              ParticleData * pa; int p
+#define PARTICLE_P              ParticleData *pa; int p
 #define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
 #define LOOP_EXISTING_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & PARS_UNEXIST))
 #define LOOP_SHOWN_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & (PARS_UNEXIST | PARS_NO_DISP)))
@@ -73,7 +73,7 @@ struct EdgeHash;
 #define LOOP_DYNAMIC_PARTICLES for (p = 0; p < psys->totpart; p++) if ((pa = psys->particles + p)->state.time > 0.0f)
 
 /* fast but sure way to get the modifier*/
-#define PARTICLE_PSMD ParticleSystemModifierData * psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
+#define PARTICLE_PSMD ParticleSystemModifierData *psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
 
 /* common stuff that many particle functions need */
 typedef struct ParticleSimulationData {

@@ -78,7 +78,7 @@ Geometry::Vec2r Interface0D::getPoint2D() const
 	return 0;
 }
 
-FEdge * Interface0D::getFEdge(Interface0D&)
+FEdge *Interface0D::getFEdge(Interface0D&)
 {
 	PyErr_SetString(PyExc_TypeError, "method getFEdge() not properly overridden");
 	return 0;
@@ -96,25 +96,25 @@ Nature::VertexNature Interface0D::getNature() const
 	return Nature::POINT;
 }
 
-SVertex * Interface0D::castToSVertex()
+SVertex *Interface0D::castToSVertex()
 {
 	PyErr_SetString(PyExc_TypeError, "method castToSVertex() not properly overridden");
 	return 0;
 }
 
-ViewVertex * Interface0D::castToViewVertex()
+ViewVertex *Interface0D::castToViewVertex()
 {
 	PyErr_SetString(PyExc_TypeError, "method castToViewVertex() not properly overridden");
 	return 0;
 }
 
-NonTVertex * Interface0D::castToNonTVertex()
+NonTVertex *Interface0D::castToNonTVertex()
 {
 	PyErr_SetString(PyExc_TypeError, "method castToNonTVertex() not properly overridden");
 	return 0;
 }
 
-TVertex * Interface0D::castToTVertex()
+TVertex *Interface0D::castToTVertex()
 {
 	PyErr_SetString(PyExc_TypeError, "method castToTVertex() not properly overridden");
 	return 0;

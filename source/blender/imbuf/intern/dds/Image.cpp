@@ -82,7 +82,7 @@ const Color32 * Image::scanline(uint h) const
 	return m_data + h * m_width;
 }
 
-Color32 * Image::scanline(uint h)
+Color32 *Image::scanline(uint h)
 {
 	if (h >= m_height) {
 		printf("DDS: scanline beyond dimensions of image\n");
@@ -91,12 +91,12 @@ Color32 * Image::scanline(uint h)
 	return m_data + h * m_width;
 }
 
-const Color32 * Image::pixels() const
+const Color32 *Image::pixels() const
 {
 	return m_data;
 }
 
-Color32 * Image::pixels()
+Color32 *Image::pixels()
 {
 	return m_data;
 }

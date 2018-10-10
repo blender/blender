@@ -88,7 +88,7 @@ static void RE_rayobject_config_control(RayObject *r, Render *re)
 
 RayObject *RE_rayobject_create(int type, int size, int octree_resolution)
 {
-	RayObject * res = NULL;
+	RayObject *res = NULL;
 
 	if (type == R_RAYSTRUCTURE_AUTO) {
 		/* TODO */
@@ -124,7 +124,7 @@ RayObject *RE_rayobject_create(int type, int size, int octree_resolution)
 
 static RayObject* rayobject_create(Render *re, int type, int size)
 {
-	RayObject * res = NULL;
+	RayObject *res = NULL;
 
 	res = RE_rayobject_create(type, size, re->r.ocres);
 

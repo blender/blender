@@ -30,19 +30,19 @@
 #include "BLI_sys_types.h"
 #include "BLI_utildefines_variadic.h"
 
-void			PyC_ObSpit(const char *name, PyObject *var);
-void			PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
-void			PyC_LineSpit(void);
-void			PyC_StackSpit(void);
-PyObject *		PyC_ExceptionBuffer(void);
-PyObject *		PyC_ExceptionBuffer_Simple(void);
-PyObject *		PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
-PyObject *		PyC_FrozenSetFromStrings(const char **strings);
-PyObject *		PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
-void			PyC_Err_PrintWithFunc(PyObject *py_func);
+void      PyC_ObSpit(const char *name, PyObject *var);
+void      PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
+void      PyC_LineSpit(void);
+void      PyC_StackSpit(void);
+PyObject *PyC_ExceptionBuffer(void);
+PyObject *PyC_ExceptionBuffer_Simple(void);
+PyObject *PyC_Object_GetAttrStringArgs(PyObject *o, Py_ssize_t n, ...);
+PyObject *PyC_FrozenSetFromStrings(const char **strings);
+PyObject *PyC_Err_Format_Prefix(PyObject *exception_type_prefix, const char *format, ...);
+void      PyC_Err_PrintWithFunc(PyObject *py_func);
 
-void			PyC_FileAndNum(const char **filename, int *lineno);
-void			PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
+void	PyC_FileAndNum(const char **filename, int *lineno);
+void	PyC_FileAndNum_Safe(const char **filename, int *lineno); /* checks python is running */
 int             PyC_AsArray_FAST(
         void *array, PyObject *value_fast, const Py_ssize_t length,
         const PyTypeObject *type, const bool is_double, const char *error_prefix);
@@ -71,10 +71,10 @@ void            PyC_Tuple_Fill(PyObject *tuple, PyObject *value);
 void            PyC_List_Fill(PyObject *list, PyObject *value);
 
 /* follow http://www.python.org/dev/peps/pep-0383/ */
-PyObject *      PyC_UnicodeFromByte(const char *str);
-PyObject *      PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
-const char *    PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
-const char *    PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
+PyObject   *PyC_UnicodeFromByte(const char *str);
+PyObject   *PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
+const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
+const char *PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
 /* name namespace function for bpy & bge */
 PyObject *PyC_DefaultNameSpace(const char *filename);

@@ -314,7 +314,7 @@ static void halo_tile(RenderPart *pa, RenderLayer *rl)
 								if ((zz> har->zs) || (har->mat && (har->mat->mode & MA_HALO_SOFT))) {
 									if (shadeHaloFloat(har, col, zz, dist, xn, yn, har->flarec)) {
 										for (sample=0; sample<totsample; sample++) {
-											float * rect= RE_RenderLayerGetPass(rlpp[sample], RE_PASSNAME_COMBINED, R.viewname);
+											float *rect = RE_RenderLayerGetPass(rlpp[sample], RE_PASSNAME_COMBINED, R.viewname);
 											addalphaAddfacFloat(rect + od*4, col, har->add);
 										}
 									}

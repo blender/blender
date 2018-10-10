@@ -85,7 +85,7 @@ void readBitmapFontVersion0(ImBuf *ibuf, unsigned char *rect, int step)
 {
 	int glyphcount, bytes, i, index, linelength, ysize;
 	unsigned char *buffer;
-	bmFont * bmfont;
+	bmFont *bmfont;
 
 	linelength = ibuf->x * step;
 

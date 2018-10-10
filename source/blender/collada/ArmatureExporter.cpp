@@ -69,7 +69,7 @@ void ArmatureExporter::add_armature_bones(bContext *C, Object *ob_arm, Scene *sc
 	Main *bmain = CTX_data_main(C);
 	// write bone nodes
 
-	bArmature * armature = (bArmature *)ob_arm->data;
+	bArmature *armature = (bArmature *)ob_arm->data;
 	bool is_edited = armature->edbo != NULL;
 
 	if (!is_edited)

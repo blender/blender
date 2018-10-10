@@ -82,7 +82,7 @@ public:
 	virtual ~BlenderFileLoader();
 
 	/*! Loads the 3D scene and returns a pointer to the scene root node */
-	NodeGroup * Load();
+	NodeGroup *Load();
 
 	/*! Gets the number of read faces */
 	inline unsigned int numFacesRead() {return _numFacesRead;}

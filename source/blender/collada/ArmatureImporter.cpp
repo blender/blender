@@ -460,11 +460,11 @@ void ArmatureImporter::create_armature_bones(Main *bmain, std::vector<Object *> 
 		if (!ob_arm)
 			continue;
 
-		bArmature * armature = (bArmature *)ob_arm->data;
+		bArmature *armature = (bArmature *)ob_arm->data;
 		if (!armature)
 			continue;
 
-		char * bone_name = (char *)bc_get_joint_name(*ri);
+		char *bone_name = (char *)bc_get_joint_name(*ri);
 		Bone *bone = BKE_armature_find_bone_name(armature, bone_name);
 		if (bone) {
 			fprintf(stderr, "Reuse of child bone [%s] as root bone in same Armature is not supported.\n", bone_name);
@@ -589,7 +589,7 @@ Object *ArmatureImporter::create_armature_bones(Main *bmain, SkinInfo& skin)
 	}
 
 	// enter armature edit mode
-	bArmature * armature = (bArmature *)ob_arm->data;
+	bArmature *armature = (bArmature *)ob_arm->data;
 	ED_armature_to_edit(armature);
 
 	totbone = 0;

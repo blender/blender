@@ -44,7 +44,7 @@ namespace Config {
 
 class Path {
 protected:
-	static Path * _pInstance;
+	static Path *_pInstance;
 	string _ProjectDir;
 	string _ModelsPath;
 	string _PatternsPath;

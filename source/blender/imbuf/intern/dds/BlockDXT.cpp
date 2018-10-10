@@ -430,7 +430,7 @@ void AlphaBlockDXT5::decodeBlock(ColorBlock *block) const
 
 void AlphaBlockDXT5::flip4()
 {
-	uint64 * b = (uint64 *)this;
+	uint64 *b = (uint64 *)this;
 
 	// @@ The masks might have to be byte swapped.
 	uint64 tmp = (*b & (uint64)(0x000000000000FFFFLL));
@@ -444,7 +444,7 @@ void AlphaBlockDXT5::flip4()
 
 void AlphaBlockDXT5::flip2()
 {
-	uint * b = (uint *)this;
+	uint *b = (uint *)this;
 
 	// @@ The masks might have to be byte swapped.
 	uint tmp = (*b & 0xFF000000);

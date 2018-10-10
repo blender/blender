@@ -6872,7 +6872,7 @@ int RNA_function_call_direct_va(bContext *C, ReportList *reports, PointerRNA *pt
 				case PROP_COLLECTION:
 				{
 					StructRNA *srna = va_arg(args, StructRNA *);
-					ListBase **arg = va_arg(args, ListBase * *);
+					ListBase **arg = va_arg(args, ListBase **);
 					err = rna_function_parameter_parse(&funcptr, parm, type, ftype, len, arg, retdata,
 					                                   srna, tid, fid, pid);
 					break;

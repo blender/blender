@@ -290,8 +290,9 @@ public:
 	 *  Returns the first intersection (occluder,t,u,v) or null.
 	 *  Starts with a call to InitRay.
 	 */
-	Polygon3r * castRayToFindFirstIntersection(const Vec3r& orig, const Vec3r& dir, double& t,
-	                                           double& u, double& v, unsigned timestamp);
+	Polygon3r *castRayToFindFirstIntersection(
+	        const Vec3r& orig, const Vec3r& dir, double& t,
+	        double& u, double& v, unsigned timestamp);
 
 
 	/*! Init all structures and values for computing the cells intersected by this new ray */
