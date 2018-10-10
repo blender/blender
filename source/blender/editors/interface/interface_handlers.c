@@ -2076,22 +2076,22 @@ static void ui_but_set_float_array(bContext *C, uiBut *but, uiHandleButtonData *
 	button_activate_state(C, but, BUTTON_STATE_EXIT);
 }
 
-static void float_array_to_string(float *values, int array_length, char *output, int max_output_len)
+static void float_array_to_string(float *values, int array_length, char *output, int output_len_max)
 {
 	/* to avoid buffer overflow attacks; numbers are quite arbitrary */
-	BLI_assert(max_output_len > 15);
-	max_output_len -= 10;
+	BLI_assert(output_len_max > 15);
+	output_len_max -= 10;
 
 	int current_index = 0;
 	output[current_index] = '[';
 	current_index++;
 
 	for (int i = 0; i < array_length; i++) {
-		int length = BLI_snprintf(output + current_index, max_output_len - current_index, "%f", values[i]);
+		int length = BLI_snprintf(output + current_index, output_len_max - current_index, "%f", values[i]);
 		current_index += length;
 
 		if (i < array_length - 1) {
-			if (current_index < max_output_len) {
+			if (current_index < output_len_max) {
 				output[current_index + 0] = ',';
 				output[current_index + 1] = ' ';
 				current_index += 2;
@@ -2103,12 +2103,12 @@ static void float_array_to_string(float *values, int array_length, char *output,
 	output[current_index + 1] = '\0';
 }
 
-static void ui_but_copy_numeric_array(uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_numeric_array(uiBut *but, char *output, int output_len_max)
 {
 	int array_length = get_but_property_array_length(but);
 	float *values = alloca(array_length * sizeof(float));
 	RNA_property_float_get_array(&but->rnapoin, but->rnaprop, values);
-	float_array_to_string(values, array_length, output, max_output_len);
+	float_array_to_string(values, array_length, output, output_len_max);
 }
 
 static bool parse_float_array(char *text, float *values, int expected_length)
@@ -2146,11 +2146,11 @@ static void ui_but_paste_numeric_array(bContext *C, uiBut *but, uiHandleButtonDa
 	}
 }
 
-static void ui_but_copy_numeric_value(uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_numeric_value(uiBut *but, char *output, int output_len_max)
 {
 	/* Get many decimal places, then strip trailing zeros.
 	 * note: too high values start to give strange results */
-	ui_but_string_get_ex(but, output, max_output_len, UI_PRECISION_FLOAT_MAX, false, NULL);
+	ui_but_string_get_ex(but, output, output_len_max, UI_PRECISION_FLOAT_MAX, false, NULL);
 	BLI_str_rstrip_float_zero(output, '\0');
 }
 
@@ -2192,7 +2192,7 @@ static void ui_but_paste_normalized_vector(bContext *C, uiBut *but, char *buf_pa
 	}
 }
 
-static void ui_but_copy_color(uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_color(uiBut *but, char *output, int output_len_max)
 {
 	float rgba[4];
 
@@ -2207,7 +2207,7 @@ static void ui_but_copy_color(uiBut *but, char *output, int max_output_len)
 	if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA)
 		srgb_to_linearrgb_v3_v3(rgba, rgba);
 
-	float_array_to_string(rgba, 4, output, max_output_len);
+	float_array_to_string(rgba, 4, output, output_len_max);
 }
 
 static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
@@ -2225,9 +2225,9 @@ static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
 	}
 }
 
-static void ui_but_copy_text(uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_text(uiBut *but, char *output, int output_len_max)
 {
-	ui_but_string_get(but, output, max_output_len);
+	ui_but_string_get(but, output, output_len_max);
 }
 
 static void ui_but_paste_text(bContext *C, uiBut *but, uiHandleButtonData *data, char *buf_paste)
@@ -2284,22 +2284,22 @@ static void ui_but_paste_curvemapping(bContext *C, uiBut *but)
 	}
 }
 
-static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_operator(bContext *C, uiBut *but, char *output, int output_len_max)
 {
 	PointerRNA *opptr;
 	opptr = UI_but_operator_ptr_get(but);
 
 	char *str;
 	str = WM_operator_pystring_ex(C, NULL, false, true, but->optype, opptr);
-	strncpy(output, str, max_output_len);
+	BLI_strncpy(output, str, output_len_max);
 	MEM_freeN(str);
 }
 
-static void ui_but_copy_menu(uiBut *but, char *output, int max_output_len)
+static void ui_but_copy_menu(uiBut *but, char *output, int output_len_max)
 {
 	MenuType *mt = UI_but_menutype_get(but);
 	if (mt) {
-		BLI_snprintf(output, max_output_len, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
+		BLI_snprintf(output, output_len_max, "bpy.ops.wm.call_menu(name=\"%s\")", mt->idname);
 	}
 }
 
@@ -2309,8 +2309,11 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 		return;
 	}
 
-	static const int max_copy_length = UI_MAX_DRAW_STR;
-	char buffer_to_copy[UI_MAX_DRAW_STR] = { 0 };
+	char buf[UI_MAX_DRAW_STR] = {0};
+	const int buf_max_len = sizeof(buf);
+
+	/* Left false for copying internal data (color-band for eg). */
+	bool is_buf_set = false;
 
 	bool has_required_data = !(but->poin == NULL && but->rnapoin.data == NULL);
 
@@ -2319,27 +2322,31 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 		case UI_BTYPE_NUM_SLIDER:
 			if (!has_required_data) break;
 			if (copy_array && ui_but_has_array_value(but)) {
-				ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
+				ui_but_copy_numeric_array(but, buf, buf_max_len);
 			}
 			else {
-				ui_but_copy_numeric_value(but, buffer_to_copy, max_copy_length);
+				ui_but_copy_numeric_value(but, buf, buf_max_len);
 			}
+			is_buf_set = true;
 			break;
 
 		case UI_BTYPE_UNITVEC:
 			if (!has_required_data) break;
-			ui_but_copy_numeric_array(but, buffer_to_copy, max_copy_length);
+			ui_but_copy_numeric_array(but, buf, buf_max_len);
+			is_buf_set = true;
 			break;
 
 		case UI_BTYPE_COLOR:
 			if (!has_required_data) break;
-			ui_but_copy_color(but, buffer_to_copy, max_copy_length);
+			ui_but_copy_color(but, buf, buf_max_len);
+			is_buf_set = true;
 			break;
 
 		case UI_BTYPE_TEXT:
 		case UI_BTYPE_SEARCH_MENU:
 			if (!has_required_data) break;
-			ui_but_copy_text(but, buffer_to_copy, max_copy_length);
+			ui_but_copy_text(but, buf, buf_max_len);
+			is_buf_set = true;
 			break;
 
 		case UI_BTYPE_COLORBAND:
@@ -2351,19 +2358,23 @@ static void ui_but_copy(bContext *C, uiBut *but, const bool copy_array)
 			break;
 
 		case UI_BTYPE_BUT:
-			ui_but_copy_operator(C, but, buffer_to_copy, max_copy_length);
+			ui_but_copy_operator(C, but, buf, buf_max_len);
+			is_buf_set = true;
 			break;
 
 		case UI_BTYPE_MENU:
 		case UI_BTYPE_PULLDOWN:
-			ui_but_copy_menu(but, buffer_to_copy, max_copy_length);
+			ui_but_copy_menu(but, buf, buf_max_len);
+			is_buf_set = true;
 			break;
 
 		default:
 			break;
 	}
 
-	WM_clipboard_text_set(buffer_to_copy, 0);
+	if (is_buf_set) {
+		WM_clipboard_text_set(buf, 0);
+	}
 }
 
 static void ui_but_paste(bContext *C, uiBut *but, uiHandleButtonData *data, const bool paste_array)
