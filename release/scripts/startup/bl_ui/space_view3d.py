@@ -113,8 +113,7 @@ class VIEW3D_HT_header(Header):
             current_orientation = scene.current_orientation
 
             if not current_orientation:
-                trans_orientation = \
-                    bpy.types.Scene.bl_rna.properties["transform_orientation"].enum_items[orientation]
+                trans_orientation = bpy.types.Scene.bl_rna.properties["transform_orientation"].enum_items[orientation]
                 trans_icon = getattr(trans_orientation, "icon", "BLANK1")
                 trans_name = getattr(trans_orientation, "name", "Orientation")
             else:
@@ -218,8 +217,7 @@ class VIEW3D_HT_header(Header):
         # grease pencil
         if object_mode == 'GPENCIL_PAINT':
             origin = tool_settings.gpencil_stroke_placement_view3d
-            gp_origin = \
-                tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
+            gp_origin = tool_settings.bl_rna.properties['gpencil_stroke_placement_view3d'].enum_items[origin]
 
             or_icon = getattr(gp_origin, "icon", "BLANK1")
             or_name = getattr(gp_origin, "name", "Stroke Placement")
@@ -1823,9 +1821,11 @@ class VIEW3D_MT_object_specials(Menu):
             if emission_node is not None:
                 props = layout.operator("wm.context_modal_mouse", text="Strength")
                 props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.node_tree" \
-                                       ".nodes[\"" + emission_node.name + "\"]" \
-                                       ".inputs[\"Strength\"].default_value"
+                props.data_path_item = (
+                    "data.node_tree"
+                    ".nodes[\"" + emission_node.name + "\"]"
+                    ".inputs[\"Strength\"].default_value"
+                )
                 props.header_text = "Light Strength: %.3f"
                 props.input_scale = 0.1
 
@@ -3796,8 +3796,10 @@ class VIEW3D_MT_shading_pie(Menu):
         if context.mode == 'POSE':
             pie.prop(view.overlay, "show_bone_select", icon='XRAY')
         else:
-            xray_active = (context.mode in 'EDIT_MESH') or \
-                          (view.shading.type in {'SOLID', 'WIREFRAME'})
+            xray_active = (
+                (context.mode in 'EDIT_MESH') or
+                (view.shading.type in {'SOLID', 'WIREFRAME'})
+            )
 
             if xray_active:
                 sub = pie

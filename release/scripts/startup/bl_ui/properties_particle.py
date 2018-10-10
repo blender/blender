@@ -1209,8 +1209,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
 
         layout.prop(part, "render_type", text="Render As")
 
-        if part.type == 'EMITTER' or \
-           (part.render_type in {'OBJECT', 'COLLECTION'} and part.type == 'HAIR'):
+        if (
+                part.type == 'EMITTER' or
+                (part.render_type in {'OBJECT', 'COLLECTION'} and part.type == 'HAIR')
+        ):
             if part.render_type not in {'NONE'}:
 
                 col = layout.column(align=True)

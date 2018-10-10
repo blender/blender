@@ -804,8 +804,10 @@ class MaterialFreestyleButtonsPanel:
         scene = context.scene
         material = context.material
         with_freestyle = bpy.app.build_options.freestyle
-        return with_freestyle and material and scene and scene.render.use_freestyle and \
+        return (
+            with_freestyle and material and scene and scene.render.use_freestyle and
             (context.engine in cls.COMPAT_ENGINES)
+        )
 
 
 class MATERIAL_PT_freestyle_line(MaterialFreestyleButtonsPanel, Panel):
