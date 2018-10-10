@@ -316,14 +316,14 @@ int BKE_sculpt_get_first_deform_matrices(
         Object *ob, float (**deformmats)[3][3], float (**deformcos)[3])
 {
 	ModifierData *md;
-	DerivedMesh *dm;
+	Mesh *me_eval;
 	int a, numVerts = 0;
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
 	int numleft = 0;
 	VirtualModifierData virtualModifierData;
-	ModifierEvalContext mectx = {depsgraph, ob, 0};
+	const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 	if (has_multires) {
 		*deformmats = NULL;
@@ -331,7 +331,7 @@ int BKE_sculpt_get_first_deform_matrices(
 		return numleft;
 	}
 
-	dm = NULL;
+	me_eval = NULL;
 	md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	for (; md; md = md->next) {
@@ -341,8 +341,8 @@ int BKE_sculpt_get_first_deform_matrices(
 
 		if (mti->type == eModifierTypeType_OnlyDeform) {
 			if (!defmats) {
-				Mesh *me = (Mesh *)ob->data;
-				dm = mesh_create_derived(me, NULL);
+				Mesh *me = ob->data;
+				me_eval = BKE_mesh_copy_for_eval(me, true);
 				deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 				defmats = MEM_callocN(sizeof(*defmats) * numVerts, "defmats");
 
@@ -351,7 +351,7 @@ int BKE_sculpt_get_first_deform_matrices(
 			}
 
 			if (mti->deformMatrices) {
-				modifier_deformMatrices_DM_deprecated(md, &mectx, dm, deformedVerts, defmats, numVerts);
+				mti->deformMatrices(md, &mectx, me_eval, deformedVerts, defmats, numVerts);
 			}
 			else break;
 		}
@@ -366,8 +366,9 @@ int BKE_sculpt_get_first_deform_matrices(
 			numleft++;
 	}
 
-	if (dm)
-		dm->release(dm);
+	if (me_eval) {
+		BKE_id_free(NULL, me_eval);
+	}
 
 	*deformmats = defmats;
 	*deformcos = deformedVerts;
@@ -389,7 +390,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph, Scene *scene, Obje
 		int i, deformed = 0;
 		VirtualModifierData virtualModifierData;
 		ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
-		ModifierEvalContext mectx = {depsgraph, ob, 0};
+		const ModifierEvalContext mectx = {depsgraph, ob, 0};
 		Mesh *me = (Mesh *)ob->data;
 
 		for (; md; md = md->next) {
