@@ -532,6 +532,14 @@ const EnumPropertyItem rna_enum_transform_orientation_items[] = {
 #include "FRS_freestyle.h"
 #endif
 
+static void rna_ToolSettings_snap_mode_set(struct PointerRNA *ptr, int value)
+{
+	ToolSettings *ts = (ToolSettings *)ptr->data;
+	if (value != 0) {
+		ts->snap_mode = value;
+	}
+}
+
 /* Grease Pencil update cache */
 static void rna_GPencil_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
@@ -2420,6 +2428,7 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	prop = RNA_def_property(srna, "snap_elements", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_mode");
 	RNA_def_property_enum_items(prop, rna_enum_snap_element_items);
+	RNA_def_property_enum_funcs(prop, NULL, "rna_ToolSettings_snap_mode_set", NULL);
 	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
