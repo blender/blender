@@ -1088,8 +1088,8 @@ Material *BKE_gpencil_material_ensure(Main *bmain, Object *ob)
  * \return Returns whether we found any selected points
  */
 bool BKE_gpencil_stroke_minmax(
-	const bGPDstroke *gps, const bool use_select,
-    float r_min[3], float r_max[3])
+        const bGPDstroke *gps, const bool use_select,
+        float r_min[3], float r_max[3])
 {
 	const bGPDspoint *pt;
 	int i;

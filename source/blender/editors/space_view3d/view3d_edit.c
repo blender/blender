@@ -2858,7 +2858,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 			add_v3_v3(min, ob_eval->obmat[3]);
 			add_v3_v3(max, ob_eval->obmat[3]);
 		}
- 	}
+	}
 	else if (ob_eval && (ob_eval->type == OB_GPENCIL)) {
 		ok |= BKE_gpencil_data_minmax(ob_eval, gpd, min, max);
 	}

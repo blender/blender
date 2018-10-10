@@ -32,22 +32,22 @@
 
 /* Auto define more specific types for places that do not need the distinction. */
 #ifndef DEF_ICON_COLLECTION
-  #define DEF_ICON_COLLECTION DEF_ICON
+#  define DEF_ICON_COLLECTION DEF_ICON
 #endif
 #ifndef DEF_ICON_OBJECT
-  #define DEF_ICON_OBJECT DEF_ICON
+#  define DEF_ICON_OBJECT DEF_ICON
 #endif
 #ifndef DEF_ICON_OBJECT_DATA
-  #define DEF_ICON_OBJECT_DATA DEF_ICON
+#  define DEF_ICON_OBJECT_DATA DEF_ICON
 #endif
 #ifndef DEF_ICON_MODIFIER
-  #define DEF_ICON_MODIFIER DEF_ICON
+#  define DEF_ICON_MODIFIER DEF_ICON
 #endif
 #ifndef DEF_ICON_SHADING
-  #define DEF_ICON_SHADING DEF_ICON
+#  define DEF_ICON_SHADING DEF_ICON
 #endif
 #ifndef DEF_ICON_COLOR
-  #define DEF_ICON_COLOR DEF_ICON
+#  define DEF_ICON_COLOR DEF_ICON
 #endif
 
 /* ICON_ prefix added */

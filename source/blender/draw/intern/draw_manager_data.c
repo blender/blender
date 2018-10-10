@@ -348,12 +348,12 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 	if ((state->matflag & DRW_CALL_OBJECTINFO) != 0) {
 		state->objectinfo[0] = ob ? ob->index : 0;
 		unsigned int random;
-	#if 0 /* TODO(fclem) handle dupli objects */
+#if 0 /* TODO(fclem) handle dupli objects */
 		if (GMS.dob) {
 			random = GMS.dob->random_id;
 		}
 		else
-	#endif
+#endif
 		{
 			random = BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
 		}

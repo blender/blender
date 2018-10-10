@@ -1179,19 +1179,19 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_bold", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_BOLD);
 	RNA_def_property_ui_text(prop, "Bold", "");
-    RNA_def_property_ui_icon(prop, ICON_BOLD, 0);
+	RNA_def_property_ui_icon(prop, ICON_BOLD, 0);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "use_italic", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_ITALIC);
 	RNA_def_property_ui_text(prop, "Italic", "");
-    RNA_def_property_ui_icon(prop, ICON_ITALIC, 0);
+	RNA_def_property_ui_icon(prop, ICON_ITALIC, 0);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "use_underline", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_UNDERLINE);
 	RNA_def_property_ui_text(prop, "Underline", "");
-    RNA_def_property_ui_icon(prop, ICON_UNDERLINE, 0);
+	RNA_def_property_ui_icon(prop, ICON_UNDERLINE, 0);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	/* probably there is no reason to expose this */
@@ -1205,7 +1205,7 @@ static void rna_def_charinfo(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_small_caps", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", CU_CHINFO_SMALLCAPS);
 	RNA_def_property_ui_text(prop, "Small Caps", "");
-    RNA_def_property_ui_icon(prop, ICON_SMALL_CAPS, 0);
+	RNA_def_property_ui_icon(prop, ICON_SMALL_CAPS, 0);
 	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 
 	prop = RNA_def_property(srna, "material_index", PROP_INT, PROP_UNSIGNED);
