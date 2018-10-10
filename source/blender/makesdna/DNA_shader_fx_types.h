@@ -45,6 +45,7 @@ typedef enum ShaderFxType {
 	eShaderFxType_Rim       = 7,
 	eShaderFxType_Colorize  = 8,
 	eShaderFxType_Shadow    = 9,
+	eShaderFxType_Glow      = 10,
 	NUM_SHADER_FX_TYPES
 } ShaderFxType;
 
@@ -126,6 +127,27 @@ typedef enum eFlipShaderFx_Flag {
 	FX_FLIP_HORIZONTAL = (1 << 0),
 	FX_FLIP_VERTICAL = (1 << 1),
 } eFlipShaderFx_Flag;
+
+typedef struct GlowShaderFxData {
+	ShaderFxData shaderfx;
+	float glow_color[3];
+	float select_color[3];
+	float threshold;
+	int   flag; /* flags */
+	int   mode;
+	int   blur[2];
+	int   samples;
+	ShaderFxData_Runtime runtime;
+} GlowShaderFxData;
+
+typedef enum GlowShaderFxModes {
+	eShaderFxGlowMode_Luminance = 0,
+	eShaderFxGlowMode_Color = 1,
+} GlowShaderFxModes;
+
+typedef enum eGlowShaderFx_Flag {
+	FX_GLOW_USE_ALPHA = (1 << 0),
+} eGlowShaderFx_Flag;
 
 typedef struct LightShaderFxData {
 	ShaderFxData shaderfx;

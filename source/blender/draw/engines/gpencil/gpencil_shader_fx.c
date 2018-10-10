@@ -50,6 +50,8 @@ extern char datatoc_gpencil_fx_rim_prepare_frag_glsl[];
 extern char datatoc_gpencil_fx_rim_resolve_frag_glsl[];
 extern char datatoc_gpencil_fx_shadow_prepare_frag_glsl[];
 extern char datatoc_gpencil_fx_shadow_resolve_frag_glsl[];
+extern char datatoc_gpencil_fx_glow_prepare_frag_glsl[];
+extern char datatoc_gpencil_fx_glow_resolve_frag_glsl[];
 extern char datatoc_gpencil_fx_swirl_frag_glsl[];
 extern char datatoc_gpencil_fx_wave_frag_glsl[];
 
@@ -512,6 +514,67 @@ static void DRW_gpencil_fx_shadow(
 	fxd->runtime.fx_sh_c = fx_shgrp;
 }
 
+/* Glow FX */
+static void DRW_gpencil_fx_glow(
+	ShaderFxData *fx, GPENCIL_e_data *e_data, GPENCIL_Data *vedata,
+	tGPencilObjectCache *cache)
+{
+	if (fx == NULL) {
+		return;
+	}
+	GlowShaderFxData *fxd = (GlowShaderFxData *)fx;
+
+	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
+	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
+	DRWShadingGroup *fx_shgrp;
+
+	struct GPUBatch *fxquad = DRW_cache_fullscreen_quad_get();
+	/* prepare pass */
+	fx_shgrp = DRW_shgroup_create(
+		e_data->gpencil_fx_glow_prepare_sh,
+		psl->fx_shader_pass_blend);
+	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_a);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_a);
+
+	DRW_shgroup_uniform_vec3(fx_shgrp, "glow_color", &fxd->glow_color[0], 1);
+	DRW_shgroup_uniform_vec3(fx_shgrp, "select_color", &fxd->select_color[0], 1);
+	DRW_shgroup_uniform_int(fx_shgrp, "mode", &fxd->mode, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "threshold", &fxd->threshold, 1);
+
+	fxd->runtime.fx_sh = fx_shgrp;
+
+	/* blur pass */
+	fx_shgrp = DRW_shgroup_create(
+		e_data->gpencil_fx_blur_sh,
+		psl->fx_shader_pass_blend);
+	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_fx);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_fx);
+	DRW_shgroup_uniform_int(fx_shgrp, "blur", &fxd->blur[0], 2);
+
+	DRW_shgroup_uniform_vec3(fx_shgrp, "loc", &cache->loc[0], 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixsize", stl->storage->pixsize, 1);
+	DRW_shgroup_uniform_float(fx_shgrp, "pixfactor", &cache->pixfactor, 1);
+
+	fxd->runtime.fx_sh_b = fx_shgrp;
+
+	/* resolve pass */
+	fx_shgrp = DRW_shgroup_create(
+		e_data->gpencil_fx_glow_resolve_sh,
+		psl->fx_shader_pass_blend);
+	DRW_shgroup_call_add(fx_shgrp, fxquad, NULL);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeColor", &e_data->temp_color_tx_a);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "strokeDepth", &e_data->temp_depth_tx_a);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "glowColor", &e_data->temp_color_tx_fx);
+	DRW_shgroup_uniform_texture_ref(fx_shgrp, "glowDepth", &e_data->temp_depth_tx_fx);
+
+	/* reuse field */
+	DRW_shgroup_uniform_int(fx_shgrp, "alpha_mode", &fxd->blur[1], 1);
+
+	fxd->runtime.fx_sh_c = fx_shgrp;
+}
+
 /* Swirl FX */
 static void DRW_gpencil_fx_swirl(
         ShaderFxData *fx, GPENCIL_e_data *e_data, GPENCIL_Data *vedata,
@@ -617,6 +680,13 @@ void GPENCIL_create_fx_shaders(GPENCIL_e_data *e_data)
 		e_data->gpencil_fx_shadow_resolve_sh = DRW_shader_create_fullscreen(
 			datatoc_gpencil_fx_shadow_resolve_frag_glsl, NULL);
 	}
+	if (!e_data->gpencil_fx_glow_prepare_sh) {
+		e_data->gpencil_fx_glow_prepare_sh = DRW_shader_create_fullscreen(
+			datatoc_gpencil_fx_glow_prepare_frag_glsl, NULL);
+
+		e_data->gpencil_fx_glow_resolve_sh = DRW_shader_create_fullscreen(
+			datatoc_gpencil_fx_glow_resolve_frag_glsl, NULL);
+	}
 	if (!e_data->gpencil_fx_swirl_sh) {
 		e_data->gpencil_fx_swirl_sh = DRW_shader_create_fullscreen(
 			datatoc_gpencil_fx_swirl_frag_glsl, NULL);
@@ -639,6 +709,8 @@ void GPENCIL_delete_fx_shaders(GPENCIL_e_data *e_data)
 	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_rim_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_shadow_prepare_sh);
 	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_shadow_resolve_sh);
+	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_glow_prepare_sh);
+	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_glow_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_swirl_sh);
 	DRW_SHADER_FREE_SAFE(e_data->gpencil_fx_wave_sh);
 }
@@ -692,6 +764,9 @@ void DRW_gpencil_fx_prepare(
 					break;
 				case eShaderFxType_Shadow:
 					DRW_gpencil_fx_shadow(fx, e_data, vedata, cache);
+					break;
+				case eShaderFxType_Glow:
+					DRW_gpencil_fx_glow(fx, e_data, vedata, cache);
 					break;
 				case eShaderFxType_Swirl:
 					DRW_gpencil_fx_swirl(fx, e_data, vedata, cache);
@@ -947,6 +1022,92 @@ static void draw_gpencil_shadow_passes(
 	DRW_draw_pass(psl->mix_pass_noblend);
 }
 
+/* blur glow */
+static void draw_gpencil_glow_blur(
+	struct GPENCIL_e_data *UNUSED(e_data),
+	struct GPENCIL_Data *vedata,
+	struct GlowShaderFxData *fxd)
+{
+	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
+	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
+	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	GPU_framebuffer_bind(fbl->temp_fb_b);
+	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
+	DRW_draw_pass_subset(psl->fx_shader_pass_blend,
+		fxd->runtime.fx_sh_b, fxd->runtime.fx_sh_b);
+
+	/* copy pass from b for ping-pong frame buffers */
+	GPU_framebuffer_bind(fbl->temp_fb_fx);
+	GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
+	DRW_draw_pass(psl->mix_pass_noblend);
+}
+
+/* helper to draw GLOW passes */
+static void draw_gpencil_glow_passes(
+	struct GPENCIL_e_data *e_data,
+	struct GPENCIL_Data *vedata,
+	struct GlowShaderFxData *fxd)
+{
+	if (fxd->runtime.fx_sh_b == NULL) {
+		return;
+	}
+
+	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
+	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
+
+	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	int bx = fxd->blur[0];
+	int by = fxd->blur[0];
+
+	/* prepare glow */
+	GPU_framebuffer_bind(fbl->temp_fb_fx);
+	GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
+	DRW_draw_pass_subset(
+		psl->fx_shader_pass_blend,
+		fxd->runtime.fx_sh, fxd->runtime.fx_sh);
+
+	/* blur glow */
+	e_data->input_depth_tx = e_data->temp_depth_tx_b;
+	e_data->input_color_tx = e_data->temp_color_tx_b;
+
+	if ((fxd->samples > 0) && ((bx > 0) || (by > 0))) {
+		for (int x = 0; x < fxd->samples; x++) {
+
+			/* horizontal */
+			fxd->blur[0] = bx;
+			fxd->blur[1] = 0;
+			draw_gpencil_glow_blur(e_data, vedata, fxd);
+
+			/* Vertical */
+			fxd->blur[0] = 0;
+			fxd->blur[1] = by;
+			draw_gpencil_glow_blur(e_data, vedata, fxd);
+
+			fxd->blur[0] = bx;
+			fxd->blur[1] = by;
+		}
+	}
+	/* resolve */
+	GPU_framebuffer_bind(fbl->temp_fb_b);
+	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
+
+	/* reuses blur field to keep alpha mode */
+	fxd->blur[1] = (fxd->flag & FX_GLOW_USE_ALPHA) ? 1 : 0;
+
+	DRW_draw_pass_subset(
+		psl->fx_shader_pass_blend,
+		fxd->runtime.fx_sh_c, fxd->runtime.fx_sh_c);
+
+	/* copy pass from b to a for ping-pong frame buffers */
+	e_data->input_depth_tx = e_data->temp_depth_tx_b;
+	e_data->input_color_tx = e_data->temp_color_tx_b;
+
+	GPU_framebuffer_bind(fbl->temp_fb_a);
+	GPU_framebuffer_clear_color_depth(fbl->temp_fb_a, clearcol, 1.0f);
+	DRW_draw_pass(psl->mix_pass_noblend);
+}
+
 /* apply all object fx effects */
 void DRW_gpencil_fx_draw(
         struct GPENCIL_e_data *e_data,
@@ -1001,6 +1162,12 @@ void DRW_gpencil_fx_draw(
 				{
 					ShadowShaderFxData *fxd = (ShadowShaderFxData *)fx;
 					draw_gpencil_shadow_passes(e_data, vedata, fxd);
+					break;
+				}
+				case eShaderFxType_Glow:
+				{
+					GlowShaderFxData *fxd = (GlowShaderFxData *)fx;
+					draw_gpencil_glow_passes(e_data, vedata, fxd);
 					break;
 				}
 				case eShaderFxType_Swirl:

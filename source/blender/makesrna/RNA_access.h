@@ -619,6 +619,7 @@ extern StructRNA RNA_ShaderFx;
 extern StructRNA RNA_ShaderFxBlur;
 extern StructRNA RNA_ShaderFxColorize;
 extern StructRNA RNA_ShaderFxFlip;
+extern StructRNA RNA_ShaderFxGlow;
 extern StructRNA RNA_ShaderFxLight;
 extern StructRNA RNA_ShaderFxPixel;
 extern StructRNA RNA_ShaderFxRim;

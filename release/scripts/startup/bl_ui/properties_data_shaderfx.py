@@ -125,6 +125,19 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
             layout.prop(fx, "period")
             layout.prop(fx, "phase")
 
+    def FX_GLOW(self, layout, fx):
+        layout.prop(fx, "mode")
+        layout.prop(fx, "glow_color")
+        if fx.mode == 'LUMINANCE':
+            layout.prop(fx, "threshold")
+        else:
+            layout.prop(fx, "select_color")
+
+        layout.separator()
+        layout.prop(fx, "radius")
+        layout.prop(fx, "samples")
+        layout.prop(fx, "use_alpha_mode", text="Use alpha mode")
+
     def FX_SWIRL(self, layout, fx):
         layout.prop(fx, "object", text="Object")
 
