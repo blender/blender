@@ -203,8 +203,14 @@ def _defs_annotate_factory():
     class _defs_annotate:
         @staticmethod
         def draw_settings_common(context, layout, tool):
-            ts = context.tool_settings
+            if type(context.gpencil_data_owner) is bpy.types.Object:
+                gpd = context.scene.grease_pencil
+            else:
+                gpd = context.gpencil_data
+            if gpd is not None:
+                layout.prop(gpd.layers, "active_note", text="")
 
+            ts = context.tool_settings
             space_type = tool.space_type
             if space_type == 'VIEW_3D':
                 layout.separator()
