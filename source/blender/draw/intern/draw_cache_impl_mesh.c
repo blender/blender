@@ -3600,7 +3600,7 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(MeshRenderD
 			}
 			/* Non-manifold edge */
 			if (eav->vert_index[1] == -1) {
-				value |= (1 << 31);
+				value |= (1u << 31);
 			}
 			GPU_vertbuf_attr_set(vbo, index_id, vidx++, &value);
 		}
