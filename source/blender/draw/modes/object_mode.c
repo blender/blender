@@ -634,7 +634,7 @@ static void OBJECT_engine_init(void *vedata)
 		}
 
 		float dist;
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
+		if (rv3d->persp == RV3D_CAMOB && v3d->camera && v3d->camera->type == OB_CAMERA) {
 			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
 			dist = ((Camera *)(camera_object->data))->clipend;
 		}
