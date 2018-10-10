@@ -1260,7 +1260,7 @@ static void add_orco_mesh(
 	}
 }
 
-static void UNUSED_FUNCTION(DM_update_statvis_color)(const Scene *scene, Object *ob)
+static void editmesh_update_statvis_color(const Scene *scene, Object *ob)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 	Mesh *me = ob->data;
@@ -1930,10 +1930,7 @@ static void editbmesh_calc_modifiers(
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
-
-#if 0
-	const bool do_init_statvis = false;
-#endif
+	const bool do_init_statvis = true;  /* FIXME: use V3D_OVERLAY_EDIT_STATVIS. */
 	VirtualModifierData virtualModifierData;
 
 	/* TODO(sybren): do we really need multiple objects, or shall we change the flags where needed? */
@@ -2128,12 +2125,10 @@ static void editbmesh_calc_modifiers(
 		/* cage should already have up to date normals */
 		*r_final = *r_cage;
 
-#if 0
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_statvis) {
-			DM_update_statvis_color(scene, ob);
+			editmesh_update_statvis_color(scene, ob);
 		}
-#endif
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
@@ -2147,12 +2142,10 @@ static void editbmesh_calc_modifiers(
 		*r_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, deformedVerts);
 		deformedVerts = NULL;
 
-#if 0
 		/* In this case, we should never have weight-modifying modifiers in stack... */
 		if (do_init_statvis) {
-			DM_update_statvis_color(scene, ob);
+			editmesh_update_statvis_color(scene, ob);
 		}
-#endif
 	}
 
 	if (do_loop_normals) {
