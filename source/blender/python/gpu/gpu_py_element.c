@@ -47,6 +47,7 @@
 
 static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
+	const char *error_prefix = "IndexBuf.__new__";
 	bool ok = true;
 
 	struct {
@@ -122,8 +123,7 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 		PyBuffer_Release(&pybuffer);
 	}
 	else {
-		PyObject *seq_fast = PySequence_Fast(
-		        params.seq, "Index Buffer Initialization");
+		PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
 
 		if (seq_fast == NULL) {
 			return false;
@@ -148,28 +148,27 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 			}
 		}
 		else {
+			int values[4];
 			for (uint i = 0; i < seq_len; i++) {
-				PyObject *item = seq_items[i];
-				if (!PyTuple_CheckExact(item)) {
-					PyErr_Format(PyExc_ValueError,
-					             "expected a tuple, got %s",
-					             Py_TYPE(item)->tp_name);
-					ok = false;
-					goto finally;
-				}
-				if (PyTuple_GET_SIZE(item) != verts_per_prim) {
-					PyErr_Format(PyExc_ValueError,
-					             "Expected a Tuple of size %d, got %d",
-					             PyTuple_GET_SIZE(item));
+				PyObject *seq_fast_item = PySequence_Fast(seq_items[i], error_prefix);
+				if (seq_fast_item == NULL) {
+					PyErr_Format(PyExc_TypeError,
+					             "%s: expected a sequence, got %s",
+					             error_prefix, Py_TYPE(seq_items[i])->tp_name);
 					ok = false;
 					goto finally;
 				}
 
-				for (uint j = 0; j < verts_per_prim; j++) {
-					GPU_indexbuf_add_generic_vert(
-					        &builder,
-					        PyC_Long_AsU32(PyTuple_GET_ITEM(item, j)));
+				ok = PyC_AsArray_FAST(
+				        values, seq_fast_item, verts_per_prim,
+				        &PyLong_Type, false, error_prefix) == 0;
+
+				if (ok) {
+					for (uint j = 0; j < verts_per_prim; j++) {
+						GPU_indexbuf_add_generic_vert(&builder, values[j]);
+					}
 				}
+				Py_DECREF(seq_fast_item);
 			}
 		}
 
