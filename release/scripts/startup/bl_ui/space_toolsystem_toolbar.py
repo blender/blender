@@ -210,17 +210,17 @@ def _defs_annotate_factory():
             if gpd is not None:
                 layout.prop(gpd.layers, "active_note", text="")
 
-            ts = context.tool_settings
+            tool_settings = context.tool_settings
             space_type = tool.space_type
             if space_type == 'VIEW_3D':
                 layout.separator()
 
                 row = layout.row(align=True)
-                row.prop(ts, "annotation_stroke_placement_view3d", text="Placement")
-                if ts.gpencil_stroke_placement_view3d == 'CURSOR':
-                    row.prop(ts.gpencil_sculpt, "lockaxis")
-                elif ts.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
-                    row.prop(ts, "use_gpencil_stroke_endpoints")
+                row.prop(tool_settings, "annotation_stroke_placement_view3d", text="Placement")
+                if tool_settings.gpencil_stroke_placement_view3d == 'CURSOR':
+                    row.prop(tool_settings.gpencil_sculpt, "lockaxis")
+                elif tool_settings.gpencil_stroke_placement_view3d in {'SURFACE', 'STROKE'}:
+                    row.prop(tool_settings, "use_gpencil_stroke_endpoints")
 
         @ToolDef.from_fn
         def scribble():
@@ -273,7 +273,7 @@ def _defs_annotate_factory():
         @ToolDef.from_fn
         def eraser():
             def draw_settings(context, layout, tool):
-                # TODO: Move this setting to toolsettings
+                # TODO: Move this setting to tool_settings
                 user_prefs = context.user_preferences
                 layout.prop(user_prefs.edit, "grease_pencil_eraser_radius", text="Radius")
             return dict(
@@ -1495,8 +1495,8 @@ class _defs_gpencil_sculpt:
     def draw_settings_common(context, layout, tool):
         ob = context.active_object
         if ob and ob.mode == 'GPENCIL_SCULPT':
-            ts = context.tool_settings
-            settings = ts.gpencil_sculpt
+            tool_settings = context.tool_settings
+            settings = tool_settings.gpencil_sculpt
             tool = settings.tool
             brush = settings.brush
 
