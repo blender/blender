@@ -357,7 +357,7 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 		{
 			random = BLI_hash_int_2d(BLI_hash_string(ob->id.name + 2), 0);
 		}
-		state->objectinfo[2] = random * (1.0f / (float)0xFFFFFFFF);
+		state->objectinfo[1] = random * (1.0f / (float)0xFFFFFFFF);
 		state->matflag &= ~DRW_CALL_OBJECTINFO;
 	}
 
