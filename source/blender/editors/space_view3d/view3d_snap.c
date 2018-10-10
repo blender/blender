@@ -768,10 +768,8 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 	Object *obedit = CTX_data_edit_object(C);
 
 	if (obedit) {
-		Object *ob_edit_eval = DEG_get_evaluated_object(depsgraph, obedit);
-
-		if (ED_object_editmode_calc_active_center(ob_edit_eval, select_only, r_center)) {
-			mul_m4_v3(ob_edit_eval->obmat, r_center);
+		if (ED_object_editmode_calc_active_center(obedit, select_only, r_center)) {
+			mul_m4_v3(obedit->obmat, r_center);
 			return true;
 		}
 	}
