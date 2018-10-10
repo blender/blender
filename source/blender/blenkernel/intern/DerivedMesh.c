@@ -2088,7 +2088,7 @@ static void editbmesh_calc_modifiers(
 				*r_cage = me;
 			}
 			else {
-				struct Mesh *me_orig = ob->data;
+				Mesh *me_orig = ob->data;
 				if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
 					BKE_mesh_runtime_ensure_edit_data(me_orig);
 					me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
@@ -2128,12 +2128,12 @@ static void editbmesh_calc_modifiers(
 	}
 	else {
 		/* this is just a copy of the editmesh, no need to calc normals */
-		struct Mesh *mesh = ob->data;
-		if (mesh->id.tag & LIB_TAG_COPIED_ON_WRITE) {
-			BKE_mesh_runtime_ensure_edit_data(mesh);
-			if (mesh->runtime.edit_data->vertexCos != NULL)
-				MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
-			mesh->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
+		Mesh *me_orig = ob->data;
+		if (me_orig->id.tag & LIB_TAG_COPIED_ON_WRITE) {
+			BKE_mesh_runtime_ensure_edit_data(me_orig);
+			if (me_orig->runtime.edit_data->vertexCos != NULL)
+				MEM_freeN((void *)me_orig->runtime.edit_data->vertexCos);
+			me_orig->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
 		}
 		*r_final = BKE_mesh_from_editmesh_with_coords_thin_wrap(em, dataMask, deformedVerts);
 		deformedVerts = NULL;
@@ -2472,7 +2472,7 @@ DerivedMesh *mesh_create_derived_index_render(struct Depsgraph *depsgraph, Scene
 	return final;
 }
 #endif
-struct Mesh *mesh_create_eval_final_index_render(
+Mesh *mesh_create_eval_final_index_render(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask, int index)
 {
