@@ -212,7 +212,9 @@ static void button2d_draw_intern(
 			}
 
 			float alpha = (highlight) ? 1.0f : 0.8f;
+			GPU_polygon_smooth(false);
 			UI_icon_draw_alpha(pos[0], pos[1], button->icon, alpha);
+			GPU_polygon_smooth(true);
 		}
 		GPU_blend(false);
 	}
