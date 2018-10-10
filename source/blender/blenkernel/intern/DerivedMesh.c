@@ -1922,7 +1922,7 @@ static void editbmesh_calc_modifiers(
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	CDMaskLink *datamasks, *curr;
 	const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
-	const bool do_init_statvis = true;  /* FIXME: use V3D_OVERLAY_EDIT_STATVIS. */
+	const bool do_init_statvis = false;  /* FIXME: use V3D_OVERLAY_EDIT_STATVIS. */
 	VirtualModifierData virtualModifierData;
 
 	/* TODO(sybren): do we really need multiple objects, or shall we change the flags where needed? */
