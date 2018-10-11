@@ -182,6 +182,10 @@ typedef struct MeshRenderData {
 			int bweight;
 			int *uv;
 			int *vcol;
+#ifdef WITH_FREESTYLE
+			int freestyle_edge;
+			int freestyle_face;
+#endif
 		} offset;
 
 		struct {
@@ -445,6 +449,11 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->eve_act = BM_mesh_active_vert_get(bm);
 			rdata->cd.offset.crease = CustomData_get_offset(&bm->edata, CD_CREASE);
 			rdata->cd.offset.bweight = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
+
+#ifdef WITH_FREESTYLE
+			rdata->cd.offset.freestyle_edge = CustomData_get_offset(&bm->edata, CD_FREESTYLE_EDGE);
+			rdata->cd.offset.freestyle_face = CustomData_get_offset(&bm->pdata, CD_FREESTYLE_FACE);
+#endif
 		}
 		if (types & (MR_DATATYPE_DVERT)) {
 			bm_ensure_types |= BM_VERT;
@@ -1372,12 +1381,11 @@ static uchar mesh_render_data_looptri_flag(MeshRenderData *rdata, const BMFace *
 		fflag |= VFLAG_FACE_SELECTED;
 
 #ifdef WITH_FREESTYLE
-	BMesh *bm = rdata->edit_bmesh->bm;
-	if (CustomData_has_layer(&bm->pdata, CD_FREESTYLE_FACE)) {
-		FreestyleFace *ffa = CustomData_bmesh_get(&bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
-
-		if (ffa->flag & FREESTYLE_FACE_MARK)
+	if (rdata->cd.offset.freestyle_face != -1) {
+		const FreestyleFace *ffa = BM_ELEM_CD_GET_VOID_P(efa, rdata->cd.offset.freestyle_face);
+		if (ffa->flag & FREESTYLE_FACE_MARK) {
 			fflag |= VFLAG_FACE_FREESTYLE;
+		}
 	}
 #endif
 
@@ -1402,16 +1410,6 @@ static void mesh_render_data_edge_flag(
 	if (!BM_elem_flag_test(eed, BM_ELEM_SMOOTH))
 		eattr->e_flag |= VFLAG_EDGE_SHARP;
 
-#ifdef WITH_FREESTYLE
-	BMesh *bm = rdata->edit_bmesh->bm;
-	if (CustomData_has_layer(&bm->edata, CD_FREESTYLE_EDGE)) {
-		FreestyleEdge *fed = CustomData_bmesh_get(&bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
-
-		if (fed->flag & FREESTYLE_EDGE_MARK)
-			eattr->e_flag |= VFLAG_EDGE_FREESTYLE;
-	}
-#endif
-
 	/* Use a byte for value range */
 	if (rdata->cd.offset.crease != -1) {
 		float crease = BM_ELEM_CD_GET_FLOAT(eed, rdata->cd.offset.crease);
@@ -1427,6 +1425,15 @@ static void mesh_render_data_edge_flag(
 			eattr->bweight = (uchar)(bweight * 255.0f);
 		}
 	}
+
+#ifdef WITH_FREESTYLE
+	if (rdata->cd.offset.freestyle_edge != -1) {
+		const FreestyleEdge *fed = BM_ELEM_CD_GET_VOID_P(eed, rdata->cd.offset.freestyle_edge);
+		if (fed->flag & FREESTYLE_EDGE_MARK) {
+			eattr->e_flag |= VFLAG_EDGE_FREESTYLE;
+		}
+	}
+#endif
 }
 
 static uchar mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *eve)
