@@ -2192,10 +2192,10 @@ static int gp_snap_to_cursor(bContext *C, wmOperator *op)
 
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-		Object *obact = CTX_data_active_object(C);                                          \
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Object *obact = CTX_data_active_object(C);
 
-		const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
+	const bool use_offset = RNA_boolean_get(op->ptr, "use_offset");
 	const float *cursor_global = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
@@ -2280,10 +2280,10 @@ static int gp_snap_cursor_to_sel(bContext *C, wmOperator *UNUSED(op))
 
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
-		Object *obact = CTX_data_active_object(C);                                          \
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Object *obact = CTX_data_active_object(C);
 
-		float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
+	float *cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
 	float centroid[3] = {0.0f};
 	float min[3], max[3];
 	size_t count = 0;

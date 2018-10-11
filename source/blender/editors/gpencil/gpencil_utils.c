@@ -434,8 +434,9 @@ const EnumPropertyItem *ED_gpencil_layers_with_new_enum_itemf(
  * \param x0, y0   The screen-space x and y coordinates of the start of the stroke segment
  * \param x1, y1   The screen-space x and y coordinates of the end of the stroke segment
  */
-bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
-                             int rad, int x0, int y0, int x1, int y1)
+bool gp_stroke_inside_circle(
+        const int mval[2], const int UNUSED(mvalo[2]),
+        int rad, int x0, int y0, int x1, int y1)
 {
 	/* simple within-radius check for now */
 	const float mval_fl[2]     = {mval[0], mval[1]};
@@ -550,9 +551,9 @@ void gp_point_conversion_init(bContext *C, GP_SpaceConversion *r_gsc)
 /**
  * Convert point to parent space
  *
- * \param pt         Original point
- * \param diff_mat   Matrix with the difference between original parent matrix
- * \param[out] r_pt  Pointer to new point after apply matrix
+ * \param pt: Original point
+ * \param diff_mat: Matrix with the difference between original parent matrix
+ * \param[out] r_pt: Pointer to new point after apply matrix
  */
 void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt)
 {
@@ -610,8 +611,9 @@ void gp_apply_parent_point(Depsgraph *depsgraph, Object *obact, bGPdata *gpd, bG
  *
  * \warning This assumes that the caller has already checked whether the stroke in question can be drawn.
  */
-void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
-                    int *r_x, int *r_y)
+void gp_point_to_xy(
+        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        int *r_x, int *r_y)
 {
 	ARegion *ar = gsc->ar;
 	View2D *v2d = gsc->v2d;
@@ -663,8 +665,9 @@ void gp_point_to_xy(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
  *
  * \warning This assumes that the caller has already checked whether the stroke in question can be drawn
  */
-void gp_point_to_xy_fl(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
-                       float *r_x, float *r_y)
+void gp_point_to_xy_fl(
+        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        float *r_x, float *r_y)
 {
 	ARegion *ar = gsc->ar;
 	View2D *v2d = gsc->v2d;
@@ -929,8 +932,8 @@ void ED_gp_project_point_to_plane(Object *ob, RegionView3D *rv3d, const float or
 
 /**
  * Subdivide a stroke once, by adding a point half way between each pair of existing points
- * \param gps           Stroke data
- * \param subdivide      Number of times to subdivide
+ * \param gps: Stroke data
+ * \param subdivide: Number of times to subdivide
  */
 void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 {
@@ -1024,8 +1027,8 @@ void gp_subdivide_stroke(bGPDstroke *gps, const int subdivide)
 
 /**
  * Add randomness to stroke
- * \param gps           Stroke data
- * \param brush         Brush data
+ * \param gps: Stroke data
+ * \param brush: Brush data
  */
 void gp_randomize_stroke(bGPDstroke *gps, Brush *brush, RNG *rng)
 {
@@ -1679,10 +1682,11 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 			gset->paintcursor = NULL;
 		}
 		/* enable cursor */
-		gset->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-		                                             NULL,
-		                                             gp_brush_drawcursor,
-		                                             (lastpost) ? customdata : NULL);
+		gset->paintcursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        NULL,
+		        gp_brush_drawcursor,
+		        (lastpost) ? customdata : NULL);
 	}
 }
 

@@ -192,16 +192,19 @@ typedef struct GP_SpaceConversion {
 	float mat[4][4];     /* transform matrix on the strokes (introduced in [b770964]) */
 } GP_SpaceConversion;
 
-bool gp_stroke_inside_circle(const int mval[2], const int UNUSED(mvalo[2]),
-                             int rad, int x0, int y0, int x1, int y1);
+bool gp_stroke_inside_circle(
+        const int mval[2], const int UNUSED(mvalo[2]),
+        int rad, int x0, int y0, int x1, int y1);
 
 void gp_point_conversion_init(struct bContext *C, GP_SpaceConversion *r_gsc);
 
-void gp_point_to_xy(GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
-                    int *r_x, int *r_y);
+void gp_point_to_xy(
+        GP_SpaceConversion *settings, struct bGPDstroke *gps, struct bGPDspoint *pt,
+        int *r_x, int *r_y);
 
-void gp_point_to_xy_fl(GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
-                       float *r_x, float *r_y);
+void gp_point_to_xy_fl(
+        GP_SpaceConversion *gsc, bGPDstroke *gps, bGPDspoint *pt,
+        float *r_x, float *r_y);
 
 void gp_point_to_parent_space(bGPDspoint *pt, float diff_mat[4][4], bGPDspoint *r_pt);
 /**

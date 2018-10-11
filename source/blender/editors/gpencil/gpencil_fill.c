@@ -127,8 +127,8 @@ typedef struct tGPDfill {
 
 /* draw a given stroke using same thickness and color for all points */
 static void gp_draw_basic_stroke(
-	tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
-	bool cyclic, float ink[4], int flag, float thershold)
+        tGPDfill *tgpf, bGPDstroke *gps, const float diff_mat[4][4],
+        const bool cyclic, const float ink[4], const int flag, const float thershold)
 {
 	bGPDspoint *points = gps->points;
 
@@ -183,7 +183,7 @@ static void gp_draw_basic_stroke(
 }
 
 /* loop all layers */
-static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
+static void gp_draw_datablock(tGPDfill *tgpf, const float ink[4])
 {
 	/* duplicated: etempFlags */
 	enum {
@@ -258,8 +258,9 @@ static void gp_draw_datablock(tGPDfill *tgpf, float ink[4])
 			if ((tgpf->fill_draw_mode == GP_FILL_DMODE_CONTROL) ||
 			    (tgpf->fill_draw_mode == GP_FILL_DMODE_BOTH))
 			{
-				gp_draw_basic_stroke(tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
-					tgpf->flag, tgpf->fill_threshold);
+				gp_draw_basic_stroke(
+				        tgpf, gps, tgpw.diff_mat, gps->flag & GP_STROKE_CYCLIC, ink,
+				        tgpf->flag, tgpf->fill_threshold);
 			}
 		}
 	}
@@ -322,7 +323,7 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 	GPU_matrix_set(tgpf->rv3d->viewmat);
 
 	/* draw strokes */
-	float ink[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
 	gp_draw_datablock(tgpf, ink);
 
 	/* restore size */
@@ -355,10 +356,10 @@ static void gp_render_offscreen(tGPDfill *tgpf)
 }
 
 /* return pixel data (rgba) at index */
-static void get_pixel(ImBuf *ibuf, int idx, float r_col[4])
+static void get_pixel(const ImBuf *ibuf, const int idx, float r_col[4])
 {
 	if (ibuf->rect_float) {
-		float *frgba = &ibuf->rect_float[idx * 4];
+		const float *frgba = &ibuf->rect_float[idx * 4];
 		copy_v4_v4(r_col, frgba);
 	}
 	else {
@@ -637,14 +638,14 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 	const int NEIGHBOR_COUNT = 8;
 
 	const int offset[8][2] = {
-		{ -1, -1 },
-		{ 0, -1 },
-		{ 1, -1 },
-		{ 1, 0 },
-		{ 1, 1 },
-		{ 0, 1 },
-		{ -1, 1 },
-		{ -1, 0 }
+		{-1, -1},
+		{0, -1},
+		{1, -1},
+		{1, 0},
+		{1, 1},
+		{0, 1},
+		{-1, 1},
+		{-1, 0}
 	};
 
 	tgpf->stack = BLI_stack_new(sizeof(int[2]), __func__);
@@ -919,10 +920,12 @@ static void gpencil_stroke_from_buffer(tGPDfill *tgpf)
 	/* if axis locked, reproject to plane locked */
 	if ((tgpf->lock_axis > GP_LOCKAXIS_NONE) && ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_VIEW) == 0)) {
 		float origin[3];
-		ED_gp_get_drawing_reference(tgpf->v3d, tgpf->scene, tgpf->ob, tgpf->gpl,
-			ts->gpencil_v3d_align, origin);
-		ED_gp_project_stroke_to_plane(tgpf->ob, tgpf->rv3d, gps, origin,
-			tgpf->lock_axis - 1);
+		ED_gp_get_drawing_reference(
+		        tgpf->v3d, tgpf->scene, tgpf->ob, tgpf->gpl,
+		        ts->gpencil_v3d_align, origin);
+		ED_gp_project_stroke_to_plane(
+		        tgpf->ob, tgpf->rv3d, gps, origin,
+		        tgpf->lock_axis - 1);
 	}
 
 	/* if parented change position relative to parent object */
@@ -952,7 +955,7 @@ static void gpencil_draw_boundary_lines(const bContext *UNUSED(C), tGPDfill *tgp
 	if (!tgpf->gpd) {
 		return;
 	}
-	float ink[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
+	const float ink[4] = {1.0f, 0.0f, 0.0f, 1.0f};
 	gp_draw_datablock(tgpf, ink);
 }
 

@@ -563,8 +563,8 @@ static short gp_stroke_addpoint(
 	tGPspoint *pt;
 	ToolSettings *ts = p->scene->toolsettings;
 	Object *obact = (Object *)p->ownerPtr.data;
-	Depsgraph *depsgraph = p->depsgraph;                                      \
-		RegionView3D *rv3d = p->ar->regiondata;
+	Depsgraph *depsgraph = p->depsgraph;
+	RegionView3D *rv3d = p->ar->regiondata;
 	View3D *v3d = p->sa->spacedata.first;
 	MaterialGPencilStyle *gp_style = p->material->gp_style;
 	const int def_nr = obact->actdef - 1;

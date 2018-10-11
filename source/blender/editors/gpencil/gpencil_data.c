@@ -1994,8 +1994,9 @@ static void joined_gpencil_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 
 			/* only remap if changed; this still means there will be some waste if there aren't many drivers/keys */
 			if (!STREQ(old_name, new_name) && strstr(fcu->rna_path, old_name)) {
-				fcu->rna_path = BKE_animsys_fix_rna_path_rename(id, fcu->rna_path, "layers",
-				                                                old_name, new_name, 0, 0, false);
+				fcu->rna_path = BKE_animsys_fix_rna_path_rename(
+				        id, fcu->rna_path, "layers",
+				        old_name, new_name, 0, 0, false);
 
 				/* we don't want to apply a second remapping on this F-Curve now,
 				 * so stop trying to fix names names
@@ -2029,8 +2030,9 @@ static void joined_gpencil_fix_animdata_cb(ID *id, FCurve *fcu, void *user_data)
 							if (!STREQ(old_name, new_name)) {
 								if ((dtar->rna_path) && strstr(dtar->rna_path, old_name)) {
 									/* Fix up path */
-									dtar->rna_path = BKE_animsys_fix_rna_path_rename(id, dtar->rna_path, "layers",
-									                                                 old_name, new_name, 0, 0, false);
+									dtar->rna_path = BKE_animsys_fix_rna_path_rename(
+									        id, dtar->rna_path, "layers",
+									        old_name, new_name, 0, 0, false);
 									break; /* no need to try any more names for layer path */
 								}
 							}

@@ -527,8 +527,9 @@ static void gp_stroke_simplify(tGPsdata *p)
 			j += 2;
 		}
 	}
-	gp_stroke_addpoint(p, &old_points[num_points - 1].x, old_points[num_points - 1].pressure,
-	                   p->inittime + (double)old_points[num_points - 1].time);
+	gp_stroke_addpoint(
+	        p, &old_points[num_points - 1].x, old_points[num_points - 1].pressure,
+	        p->inittime + (double)old_points[num_points - 1].time);
 
 	/* free old buffer */
 	MEM_freeN(old_points);
@@ -782,10 +783,11 @@ static bool gp_stroke_eraser_is_occluded(tGPsdata *p, const bGPDspoint *pt, cons
 
 /* eraser tool - evaluation per stroke */
 /* TODO: this could really do with some optimization (KD-Tree/BVH?) */
-static void gp_stroke_eraser_dostroke(tGPsdata *p,
-                                      bGPDframe *gpf, bGPDstroke *gps,
-                                      const int mval[2], const int mvalo[2],
-                                      const int radius, const rcti *rect)
+static void gp_stroke_eraser_dostroke(
+        tGPsdata *p,
+        bGPDframe *gpf, bGPDstroke *gps,
+        const int mval[2], const int mvalo[2],
+        const int radius, const rcti *rect)
 {
 	bGPDspoint *pt1, *pt2;
 	int pc1[2] = {0};
@@ -1431,10 +1433,11 @@ static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 		immUniform1f("dash_width", 12.0f);
 		immUniform1f("dash_factor", 0.5f);
 
-		imm_draw_circle_wire_2d(shdr_pos, x, y, p->radius,
-		                     /* XXX Dashed shader gives bad results with sets of small segments currently,
-		                      *     temp hack around the issue. :( */
-		                     max_ii(8, p->radius / 2));  /* was fixed 40 */
+		imm_draw_circle_wire_2d(
+		        shdr_pos, x, y, p->radius,
+		        /* XXX Dashed shader gives bad results with sets of small segments currently,
+		         *     temp hack around the issue. :( */
+		        max_ii(8, p->radius / 2));  /* was fixed 40 */
 
 		immUnbindProgram();
 
@@ -1453,9 +1456,10 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 	}
 	else if (enable && !p->erasercursor) {
 		/* enable cursor */
-		p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C),
-		                                           NULL, /* XXX */
-		                                           gpencil_draw_eraser, p);
+		p->erasercursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        NULL, /* XXX */
+		        gpencil_draw_eraser, p);
 	}
 }
 

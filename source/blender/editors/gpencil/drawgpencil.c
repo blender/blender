@@ -199,8 +199,9 @@ static void gp_draw_stroke_buffer_fill(const tGPspoint *points, int totpoints, f
 }
 
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
-static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short thickness,
-                                  short dflag, short sflag, float ink[4], float fill_ink[4])
+static void gp_draw_stroke_buffer(
+        const tGPspoint *points, int totpoints, short thickness,
+        short dflag, short sflag, float ink[4], float fill_ink[4])
 {
 	int draw_points = 0;
 
@@ -317,8 +318,9 @@ static void gp_calc_2d_stroke_fxy(const float pt[3], short sflag, int offsx, int
 /* draw a 2D buffer stroke in "volumetric" style
  * NOTE: the stroke buffer doesn't have any coordinate offsets/transforms
  */
-static void gp_draw_stroke_volumetric_buffer(const tGPspoint *points, int totpoints, short thickness,
-                                             short dflag, const float ink[4])
+static void gp_draw_stroke_volumetric_buffer(
+        const tGPspoint *points, int totpoints, short thickness,
+        short dflag, const float ink[4])
 {
 	/* error checking */
 	if ((points == NULL) || (totpoints <= 0))
@@ -350,10 +352,11 @@ static void gp_draw_stroke_volumetric_buffer(const tGPspoint *points, int totpoi
 }
 
 /* draw a 2D strokes in "volumetric" style */
-static void gp_draw_stroke_volumetric_2d(const bGPDspoint *points, int totpoints, short thickness,
-                                         short UNUSED(dflag), short sflag,
-                                         int offsx, int offsy, int winx, int winy,
-                                         const float diff_mat[4][4], const float ink[4])
+static void gp_draw_stroke_volumetric_2d(
+        const bGPDspoint *points, int totpoints, short thickness,
+        short UNUSED(dflag), short sflag,
+        int offsx, int offsy, int winx, int winy,
+        const float diff_mat[4][4], const float ink[4])
 {
 	GPUVertFormat *format = immVertexFormat();
 	uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -1440,7 +1443,7 @@ void ED_gp_draw_primitives(const bContext *C, tGPDprimitive *tgpi, const int typ
 	}
 
 	Object *obact = CTX_data_active_object(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	float color[4];
 	UI_GetThemeColor3fv(TH_GP_VERTEX_SELECT, color);

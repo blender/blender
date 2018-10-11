@@ -168,8 +168,9 @@ typedef struct tGP_BrushEditData {
 
 
 /* Callback for performing some brush operation on a single point */
-typedef bool (*GP_BrushApplyCb)(tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
-                                const int radius, const int co[2]);
+typedef bool (*GP_BrushApplyCb)(
+        tGP_BrushEditData *gso, bGPDstroke *gps, int pt_index,
+        const int radius, const int co[2]);
 
 /* ************************************************ */
 /* Utility Functions */
@@ -1620,7 +1621,7 @@ static bool gpsculpt_brush_do_frame(
 static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);                                      \
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *obact = gso->object;
 	bGPdata *gpd = gso->gpd;
 	bool changed = false;
@@ -1684,9 +1685,9 @@ static bool gpsculpt_brush_apply_standard(bContext *C, tGP_BrushEditData *gso)
 					if (gso->use_multiframe_falloff) {
 						/* Faloff depends on distance to active frame (relative to the overall frame range) */
 						gso->mf_falloff = BKE_gpencil_multiframe_falloff_calc(
-						                    gpf, gpl->actframe->framenum,
-						                    f_init, f_end,
-						                    ts->gp_sculpt.cur_falloff);
+						        gpf, gpl->actframe->framenum,
+						        f_init, f_end,
+						        ts->gp_sculpt.cur_falloff);
 					}
 					else {
 						/* No falloff */

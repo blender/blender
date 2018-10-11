@@ -93,8 +93,9 @@ typedef enum eDrawStrokeFlags {
 /* ----- Tool Buffer Drawing ------ */
 
 /* draw stroke defined in buffer (simple ogl lines/points for now, as dotted lines) */
-static void gp_draw_stroke_buffer(const tGPspoint *points, int totpoints, short thickness,
-                                  short dflag, short sflag, float ink[4])
+static void gp_draw_stroke_buffer(
+        const tGPspoint *points, int totpoints, short thickness,
+        short dflag, short sflag, float ink[4])
 {
 	int draw_points = 0;
 
@@ -241,8 +242,9 @@ static void gp_draw_stroke_point(
 }
 
 /* draw a given stroke in 3d (i.e. in 3d-space), using simple ogl lines */
-static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thickness, bool UNUSED(debug),
-                              short UNUSED(sflag), const float ink[4], bool cyclic)
+static void gp_draw_stroke_3d(
+        const bGPDspoint *points, int totpoints, short thickness, bool UNUSED(debug),
+        short UNUSED(sflag), const float ink[4], bool cyclic)
 {
 	float curpressure = points[0].pressure;
 	float cyclic_fpt[3];
@@ -322,8 +324,9 @@ static void gp_draw_stroke_3d(const bGPDspoint *points, int totpoints, short thi
 /* ----- Fancy 2D-Stroke Drawing ------ */
 
 /* draw a given stroke in 2d */
-static void gp_draw_stroke_2d(const bGPDspoint *points, int totpoints, short thickness_s, short dflag, short sflag,
-                              bool UNUSED(debug), int offsx, int offsy, int winx, int winy, const float ink[4])
+static void gp_draw_stroke_2d(
+        const bGPDspoint *points, int totpoints, short thickness_s, short dflag, short sflag,
+        bool UNUSED(debug), int offsx, int offsy, int winx, int winy, const float ink[4])
 {
 	/* otherwise thickness is twice that of the 3D view */
 	float thickness = (float)thickness_s * 0.5f;
@@ -553,8 +556,9 @@ static void gp_draw_strokes(
 				gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy, color);
 			}
 			else {
-				gp_draw_stroke_3d(gps->points, gps->totpoints, lthick, debug, gps->flag,
-				                  color, gps->flag & GP_STROKE_CYCLIC);
+				gp_draw_stroke_3d(
+				        gps->points, gps->totpoints, lthick, debug, gps->flag,
+				        color, gps->flag & GP_STROKE_CYCLIC);
 			}
 
 			if (no_xray) {
@@ -570,8 +574,9 @@ static void gp_draw_strokes(
 				gp_draw_stroke_point(gps->points, lthick, dflag, gps->flag, offsx, offsy, winx, winy, color);
 			}
 			else {
-				gp_draw_stroke_2d(gps->points, gps->totpoints, lthick, dflag, gps->flag, debug,
-				                  offsx, offsy, winx, winy, color);
+				gp_draw_stroke_2d(
+				        gps->points, gps->totpoints, lthick, dflag, gps->flag, debug,
+				        offsx, offsy, winx, winy, color);
 			}
 		}
 	}
