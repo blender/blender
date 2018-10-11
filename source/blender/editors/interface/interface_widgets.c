@@ -2079,6 +2079,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
 		int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
 		const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
+		const float icon_padding = 2 * UI_DPI_FAC;
 
 #ifdef USE_UI_TOOLBAR_HACK
 		if (is_tool) {
@@ -2110,7 +2111,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		but->block->aspect = aspect_orig;
 #endif
 
-		rect->xmin += icon_size;
+		rect->xmin += icon_size + icon_padding;
 	}
 
 	if (but->editstr || (but->drawflag & UI_BUT_TEXT_LEFT)) {

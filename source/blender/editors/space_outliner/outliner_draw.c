@@ -1696,7 +1696,7 @@ static void outliner_draw_tree_element(
 
 		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
 			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac, true);
-			offsx += UI_UNIT_X + 2 * ufac;
+			offsx += UI_UNIT_X + 4 * ufac;
 		}
 		else
 			offsx += 2 * ufac;
@@ -1717,13 +1717,13 @@ static void outliner_draw_tree_element(
 				        (float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_DIRECT,
 				        alpha_fac);
 			}
-			offsx += UI_UNIT_X + 2 * ufac;
+			offsx += UI_UNIT_X + 4 * ufac;
 		}
 		else if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION) && ID_IS_STATIC_OVERRIDE(tselem->id)) {
 			UI_icon_draw_alpha(
 			        (float)startx + offsx + 2 * ufac, (float)*starty + 2 * ufac, ICON_LIBRARY_DATA_OVERRIDE,
 			        alpha_fac);
-			offsx += UI_UNIT_X + 2 * ufac;
+			offsx += UI_UNIT_X + 4 * ufac;
 		}
 		GPU_blend(false);
 
