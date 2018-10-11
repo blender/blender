@@ -549,6 +549,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		/* Post Process */
 		EEVEE_draw_effects(sldata, vedata);
 
+		/* XXX Seems to fix TDR issue with NVidia drivers on linux. */
+		glFinish();
+
 		RE_engine_update_progress(engine, (float)(render_samples++) / (float)tot_sample);
 	}
 
