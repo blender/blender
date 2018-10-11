@@ -1286,6 +1286,40 @@ static bool mesh_render_data_pnors_pcenter_select_get(
 
 	return true;
 }
+static bool mesh_render_data_pnors_pcenter_select_get_mapped(
+        MeshRenderData *rdata, const int poly,
+        float r_pnors[3], float r_center[3], bool *r_selected)
+{
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_POLY));
+	const int *p_origindex = rdata->mapped.p_origindex;
+	const int p_orig = p_origindex[poly];
+	if (p_orig == ORIGINDEX_NONE) {
+		return false;
+	}
+	BMEditMesh *em = rdata->edit_bmesh;
+	const BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, p_orig);
+	if (BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+		return false;
+	}
+
+	Mesh *me_cage = em->mesh_eval_cage;
+	const MVert *mvert = me_cage->mvert;
+#if 0
+	const MEdge *medge = me_cage->medge;
+#endif
+	const MLoop *mloop = me_cage->mloop;
+	const MPoly *mpoly = me_cage->mpoly;
+
+	const MPoly *mp = mpoly + poly;
+	const MLoop *ml = mloop + mp->loopstart;
+
+	BKE_mesh_calc_poly_center(mp, ml, mvert, r_center);
+	BKE_mesh_calc_poly_normal(mp, ml, mvert, r_pnors);
+
+	*r_selected = (BM_elem_flag_test(efa, BM_ELEM_SELECT) != 0) ? true : false;
+
+	return true;
+}
 
 static bool mesh_render_data_edge_vcos_manifold_pnors(
         MeshRenderData *rdata, const int edge_index,
@@ -2649,7 +2683,11 @@ static GPUVertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
 			attr_id.data = GPU_vertformat_attr_add(&format, "norAndFlag", GPU_COMP_I10, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 		}
 
-		const int vbo_len_capacity = mesh_render_data_polys_len_get(rdata);
+		Mesh *me_cage = rdata->mapped.use ? rdata->edit_bmesh->mesh_eval_cage : NULL;
+		const int vbo_len_capacity = (
+		        rdata->mapped.use ?
+		        me_cage->totpoly :
+		        mesh_render_data_polys_len_get(rdata));
 		int vidx = 0;
 
 		GPUVertBuf *vbo = cache->ed_fcenter_pos_with_nor_and_sel = GPU_vertbuf_create_with_format(&format);
@@ -2662,20 +2700,30 @@ static GPUVertBuf *mesh_batch_cache_get_facedot_pos_with_normals_and_flag(
 			}
 		}
 
-		for (int i = 0; i < vbo_len_capacity; ++i) {
-			float pcenter[3], pnor[3];
-			bool selected = false;
-
-			if (mesh_render_data_pnors_pcenter_select_get(rdata, i, pnor, pcenter, &selected)) {
-
-				GPUPackedNormal nor = { .x = 0, .y = 0, .z = -511 };
-				nor = GPU_normal_convert_i10_v3(pnor);
-				nor.w = selected ? 1 : 0;
-				GPU_vertbuf_attr_set(vbo, attr_id.data, vidx, &nor);
-
-				GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx, pcenter);
-
-				vidx += 1;
+		if (rdata->mapped.use == false) {
+			for (int i = 0; i < vbo_len_capacity; i++) {
+				float pcenter[3], pnor[3];
+				bool selected = false;
+				if (mesh_render_data_pnors_pcenter_select_get(rdata, i, pnor, pcenter, &selected)) {
+					GPUPackedNormal nor = GPU_normal_convert_i10_v3(pnor);
+					nor.w = selected ? 1 : 0;
+					GPU_vertbuf_attr_set(vbo, attr_id.data, vidx, &nor);
+					GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx, pcenter);
+					vidx += 1;
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < vbo_len_capacity; i++) {
+				float pcenter[3], pnor[3];
+				bool selected = false;
+				if (mesh_render_data_pnors_pcenter_select_get_mapped(rdata, i, pnor, pcenter, &selected)) {
+					GPUPackedNormal nor = GPU_normal_convert_i10_v3(pnor);
+					nor.w = selected ? 1 : 0;
+					GPU_vertbuf_attr_set(vbo, attr_id.data, vidx, &nor);
+					GPU_vertbuf_attr_set(vbo, attr_id.pos, vidx, pcenter);
+					vidx += 1;
+				}
 			}
 		}
 		const int vbo_len_used = vidx;
