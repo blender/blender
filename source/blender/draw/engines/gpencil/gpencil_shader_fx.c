@@ -860,7 +860,7 @@ static void draw_gpencil_blur_passes(
 /* blur intermediate pass */
 static void draw_gpencil_midpass_blur(
         struct GPENCIL_Data *vedata,
-		struct ShaderFxData_Runtime *runtime)
+        struct ShaderFxData_Runtime *runtime)
 {
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
@@ -879,10 +879,10 @@ static void draw_gpencil_midpass_blur(
 
 /* do blur of mid passes */
 static void draw_gpencil_do_blur(
-	struct GPENCIL_e_data *e_data,
-	struct GPENCIL_Data *vedata,
-	struct ShaderFxData_Runtime *runtime,
-	int samples, int bx, int by, int *blur)
+        struct GPENCIL_e_data *e_data,
+        struct GPENCIL_Data *vedata,
+        struct ShaderFxData_Runtime *runtime,
+        int samples, int bx, int by, int blur[2])
 {
 	e_data->input_depth_tx = e_data->temp_depth_tx_b;
 	e_data->input_color_tx = e_data->temp_color_tx_b;
@@ -929,10 +929,11 @@ static void draw_gpencil_rim_passes(
 	        fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur rim */
-	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
-						fxd->samples,
-						fxd->blur[0], fxd->blur[1],
-						&fxd->blur[0]);
+	draw_gpencil_do_blur(
+	        e_data, vedata, &fxd->runtime,
+	        fxd->samples,
+	        fxd->blur[0], fxd->blur[1],
+	        &fxd->blur[0]);
 
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -973,10 +974,11 @@ static void draw_gpencil_shadow_passes(
 		fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur shadow */
-	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
-						fxd->samples,
-						fxd->blur[0], fxd->blur[1],
-						&fxd->blur[0]);
+	draw_gpencil_do_blur(
+	        e_data, vedata, &fxd->runtime,
+	        fxd->samples,
+	        fxd->blur[0], fxd->blur[1],
+	        &fxd->blur[0]);
 
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -1017,10 +1019,11 @@ static void draw_gpencil_glow_passes(
 		fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur glow */
-	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
-						fxd->samples,
-						fxd->blur[0], fxd->blur[0],
-						&fxd->blur[0]);
+	draw_gpencil_do_blur(
+	        e_data, vedata, &fxd->runtime,
+	        fxd->samples,
+	        fxd->blur[0], fxd->blur[0],
+	        &fxd->blur[0]);
 
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
