@@ -378,7 +378,7 @@ static void uilist_draw_item(uiList *ui_list, bContext *C, uiLayout *layout, Poi
 	RNA_parameter_list_free(&list);
 }
 
-static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout)
+static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout, bool reverse)
 {
 	extern FunctionRNA rna_UIList_draw_filter_func;
 
@@ -392,6 +392,7 @@ static void uilist_draw_filter(uiList *ui_list, bContext *C, uiLayout *layout)
 	RNA_parameter_list_create(&list, &ul_ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
 	RNA_parameter_set_lookup(&list, "layout", &layout);
+	RNA_parameter_set_lookup(&list, "reverse", &reverse);
 	ui_list->type->ext.call((bContext *)C, &ul_ptr, func, &list);
 
 	RNA_parameter_list_free(&list);
@@ -1307,6 +1308,7 @@ static void rna_def_uilist(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Layout to draw the item");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+	RNA_def_boolean(func, "reverse", false, "", "Display items in reverse order");
 
 	/* filter */
 	func = RNA_def_function(srna, "filter_items", NULL);

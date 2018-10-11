@@ -3474,7 +3474,7 @@ static void uilist_draw_item_default(
 	}
 }
 
-static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout)
+static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *UNUSED(C), struct uiLayout *layout, bool reverse)
 {
 	PointerRNA listptr;
 	uiLayout *row, *subrow;
@@ -3488,10 +3488,13 @@ static void uilist_draw_filter_default(struct uiList *ui_list, struct bContext *
 	uiItemR(subrow, &listptr, "use_filter_invert", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
 	        (ui_list->filter_flag & UILST_FLT_EXCLUDE) ? ICON_ZOOM_OUT : ICON_ZOOM_IN);
 
-	subrow = uiLayoutRow(row, true);
-	uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
-	uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
-	        (ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_SORT_DESC : ICON_SORT_ASC);
+	/* a reverse list, cannot sort or invert order in filter */
+	if (!reverse) {
+		subrow = uiLayoutRow(row, true);
+		uiItemR(subrow, &listptr, "use_filter_sort_alpha", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
+		uiItemR(subrow, &listptr, "use_filter_sort_reverse", UI_ITEM_R_TOGGLE | UI_ITEM_R_ICON_ONLY, "",
+			(ui_list->filter_sort_flag & UILST_FLT_SORT_REVERSE) ? ICON_SORT_DESC : ICON_SORT_ASC);
+	}
 }
 
 typedef struct {
@@ -3714,7 +3717,7 @@ static char *uilist_item_tooltip_func(bContext *UNUSED(C), void *argN, const cha
 void uiTemplateList(
         uiLayout *layout, bContext *C, const char *listtype_name, const char *list_id,
         PointerRNA *dataptr, const char *propname, PointerRNA *active_dataptr, const char *active_propname,
-        const char *item_dyntip_propname, int rows, int maxrows, int layout_type, int columns)
+        const char *item_dyntip_propname, int rows, int maxrows, int layout_type, int columns, bool reverse)
 {
 	uiListType *ui_list_type;
 	uiList *ui_list = NULL;
@@ -3834,6 +3837,11 @@ void uiTemplateList(
 	MEM_SAFE_FREE(dyn_data->items_filter_flags);
 	MEM_SAFE_FREE(dyn_data->items_filter_neworder);
 	dyn_data->items_len = dyn_data->items_shown = -1;
+
+	/* if reverse, enable reverse flag */
+	if (reverse) {
+		ui_list->filter_sort_flag |= UILST_FLT_SORT_REVERSE;
+	}
 
 	/* When active item changed since last draw, scroll to it. */
 	if (activei != ui_list->list_last_activei) {
@@ -4112,7 +4120,7 @@ void uiTemplateList(
 			subblock = uiLayoutGetBlock(col);
 			uiDefBut(subblock, UI_BTYPE_SEPR, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y * 0.05f, NULL, 0.0, 0.0, 0, 0, "");
 
-			draw_filter(ui_list, C, col);
+			draw_filter(ui_list, C, col, reverse);
 		}
 		else {
 			but = uiDefIconButBitI(subblock, UI_BTYPE_TOGGLE, UILST_FLT_SHOW, 0, ICON_DISCLOSURE_TRI_RIGHT, 0, 0,
