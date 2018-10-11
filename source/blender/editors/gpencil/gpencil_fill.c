@@ -636,7 +636,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 	bool start_found = false;
 	const int NEIGHBOR_COUNT = 8;
 
-	int offset[8][2] = {
+	const int offset[8][2] = {
 		{ -1, -1 },
 		{ 0, -1 },
 		{ 1, -1 },
@@ -653,7 +653,7 @@ static  void gpencil_get_outline_points(tGPDfill *tgpf)
 	int imagesize = ibuf->x * ibuf->y;
 
 	/* find the initial point to start outline analysis */
-	for (int idx = imagesize; idx >= 0; idx--) {
+	for (int idx = imagesize - 1; idx != 0; idx--) {
 		get_pixel(ibuf, idx, rgba);
 		if (rgba[1] == 1.0f) {
 			boundary_co[0] = idx % ibuf->x;
