@@ -28,7 +28,7 @@ flat in vec2 ssPos[3];
 out vec4 FragColor;
 
 /* Vertex flag is shifted and combined with the edge flag */
-#define FACE_ACTIVE     (1 << (2 + 8))
+#define FACE_ACTIVE     (1 << (3 + 8))
 
 #define LARGE_EDGE_SIZE 3.0
 
@@ -106,13 +106,18 @@ void main()
 	/* Points */
 #ifdef VERTEX_SELECTION
 	for (int v = 0; v < 3; ++v) {
-		float size = p[v] - sizeVertex;
+		if ((flag[v] & EDGE_VERTEX_EXISTS) == 0) {
+			/* Leave as-is, no vertex. */
+		}
+		else {
+			float size = p[v] - sizeVertex;
 
-		vec4 point_color = colorVertex;
-		point_color = ((flag[v] & EDGE_VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
-		point_color = ((flag[v] & EDGE_VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
+			vec4 point_color = colorVertex;
+			point_color = ((flag[v] & EDGE_VERTEX_SELECTED) != 0) ? colorVertexSelect : point_color;
+			point_color = ((flag[v] & EDGE_VERTEX_ACTIVE) != 0) ? vec4(colorEditMeshActive.xyz, 1.0) : point_color;
 
-		colorDist(point_color, size);
+			colorDist(point_color, size);
+		}
 	}
 #endif
 

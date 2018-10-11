@@ -1438,7 +1438,7 @@ static void mesh_render_data_edge_flag(
 
 static uchar mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *eve)
 {
-	uchar vflag = 0;
+	uchar vflag = VFLAG_VERTEX_EXISTS;
 
 	/* Current vertex */
 	if (eve == rdata->eve_act)

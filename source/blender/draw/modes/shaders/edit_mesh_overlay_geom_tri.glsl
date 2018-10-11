@@ -54,9 +54,9 @@ out float facing;
 /* See fragment shader */
 flat out vec2 ssPos[3];
 
-#define FACE_ACTIVE     (1 << 2)
-#define FACE_SELECTED   (1 << 3)
-#define FACE_FREESTYLE  (1 << 4)
+#define FACE_ACTIVE     (1 << 3)
+#define FACE_SELECTED   (1 << 4)
+#define FACE_FREESTYLE  (1 << 5)
 
 /* project to screen space */
 vec2 proj(vec4 pos)

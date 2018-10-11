@@ -178,9 +178,10 @@ void DRW_mesh_cache_uvedit(
 enum {
 	VFLAG_VERTEX_ACTIVE   = 1 << 0,
 	VFLAG_VERTEX_SELECTED = 1 << 1,
-	VFLAG_FACE_ACTIVE     = 1 << 2,
-	VFLAG_FACE_SELECTED   = 1 << 3,
-	VFLAG_FACE_FREESTYLE  = 1 << 4,
+	VFLAG_VERTEX_EXISTS   = 1 << 2,
+	VFLAG_FACE_ACTIVE     = 1 << 3,
+	VFLAG_FACE_SELECTED   = 1 << 4,
+	VFLAG_FACE_FREESTYLE  = 1 << 5,
 	/* Beware to not go over 1 << 7 (it's a byte flag)
 	 * (see gpu_shader_edit_mesh_overlay_geom.glsl) */
 };

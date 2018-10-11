@@ -6,9 +6,11 @@
 #define EDGE_FREESTYLE  (1 << 5)
 #define EDGE_VERTEX_ACTIVE   (1 << (0 + 8))
 #define EDGE_VERTEX_SELECTED (1 << (1 + 8))
+#define EDGE_VERTEX_EXISTS   (1 << (2 + 8))
 
 #define VERTEX_ACTIVE   (1 << 0)
 #define VERTEX_SELECTED (1 << 1)
+#define VERTEX_EXISTS   (1 << 2)
 
 uniform bool doEdges = true;
 
