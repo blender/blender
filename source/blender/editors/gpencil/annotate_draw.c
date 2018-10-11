@@ -751,23 +751,16 @@ static void gp_draw_data_layers(
 		 * NOTE: If the setting doesn't apply, it *must* be cleared,
 		 *       as dflag's carry over from the previous layer
 		 */
-#define GP_DRAWFLAG_APPLY(condition, draw_flag_value)     { \
-			if (condition) dflag |= (draw_flag_value);      \
-			else           dflag &= ~(draw_flag_value);     \
-		} (void)0
 
 		/* xray... */
-		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_NO_XRAY), GP_DRAWDATA_NO_XRAY);
-
-#undef GP_DRAWFLAG_APPLY
-
+		SET_FLAG_FROM_TEST(dflag, gpl->flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
 
 		/* draw the strokes already in active frame */
 		gp_draw_strokes(gpd, gpl, gpf, offsx, offsy, winx, winy, dflag, debug, lthick, ink);
 
 		/* Draw verts of selected strokes
 		 *  - when doing OpenGL renders, we don't want to be showing these, as that ends up flickering
-		 * 	- locked layers can't be edited, so there's no point showing these verts
+		 *  - locked layers can't be edited, so there's no point showing these verts
 		 *    as they will have no bearings on what gets edited
 		 *  - only show when in editmode, since operators shouldn't work otherwise
 		 *    (NOTE: doing it this way means that the toggling editmode shows visible change immediately)

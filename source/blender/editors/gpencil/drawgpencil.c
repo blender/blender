@@ -1536,18 +1536,12 @@ static void gp_draw_data_layers(RegionView3D *rv3d,
 		 * NOTE: If the setting doesn't apply, it *must* be cleared,
 		 *       as dflag's carry over from the previous layer
 		 */
-#define GP_DRAWFLAG_APPLY(condition, draw_flag_value)     { \
-			if (condition) dflag |= (draw_flag_value);      \
-			else           dflag &= ~(draw_flag_value);     \
-		} (void)0
 
 		/* xray... */
-		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_NO_XRAY), GP_DRAWDATA_NO_XRAY);
+		SET_FLAG_FROM_TEST(dflag, gpl->flag & GP_LAYER_NO_XRAY, GP_DRAWDATA_NO_XRAY);
 
 		/* volumetric strokes... */
-		GP_DRAWFLAG_APPLY((gpl->flag & GP_LAYER_VOLUMETRIC), GP_DRAWDATA_VOLUMETRIC);
-
-#undef GP_DRAWFLAG_APPLY
+		SET_FLAG_FROM_TEST(dflag, gpl->flag & GP_LAYER_VOLUMETRIC, GP_DRAWDATA_VOLUMETRIC);
 
 		tgpw.gpl = gpl;
 		tgpw.gpf = gpf;
