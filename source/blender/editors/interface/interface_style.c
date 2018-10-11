@@ -179,7 +179,8 @@ void UI_fontstyle_draw_ex(
 	}
 	else {
 		/* draw from boundbox center */
-		yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - BLF_ascender(fs->uifont_id)));
+		float height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
+		yofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
 	}
 
 	if (fs->align == UI_STYLE_TEXT_CENTER) {
@@ -225,7 +226,7 @@ void UI_fontstyle_draw_rotated(const uiFontStyle *fs, const rcti *rect, const ch
 
 	UI_fontstyle_set(fs);
 
-	height = BLF_ascender(fs->uifont_id);
+	height = BLF_ascender(fs->uifont_id) + BLF_descender(fs->uifont_id);
 	/* becomes x-offset when rotated */
 	xofs = ceil(0.5f * (BLI_rcti_size_y(rect) - height));
 
