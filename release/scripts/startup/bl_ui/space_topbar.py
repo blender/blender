@@ -352,11 +352,15 @@ class TOPBAR_PT_gpencil_layers(Panel):
             self.draw_layers(context, layout, gpd)
 
     def draw_layers(self, context, layout, gpd):
+        userpref = context.user_preferences
+        edit = userpref.edit
+        reverse = edit.use_grease_pencil_reverse_layers
         row = layout.row()
 
         col = row.column()
         layer_rows = 10
-        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
+        col.template_list("GPENCIL_UL_layer", "", gpd, "layers", gpd.layers, "active_index",
+                          rows=layer_rows, reverse=reverse)
 
         col = row.column()
 
@@ -372,8 +376,12 @@ class TOPBAR_PT_gpencil_layers(Panel):
                 col.separator()
 
                 sub = col.column(align=True)
-                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                if reverse is False:
+                    sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
+                    sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
+                else:
+                    sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'DOWN'
+                    sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'UP'
 
                 col.separator()
 
