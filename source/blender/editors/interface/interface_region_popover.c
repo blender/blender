@@ -100,7 +100,15 @@ static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
 	BLI_assert(pup->ui_size_x != 0);
 
 	uiStyle *style = UI_style_get_dpi();
+
 	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
+	UI_block_flag_enable(pup->block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
+#ifdef USE_UI_POPOVER_ONCE
+	if (pup->is_once) {
+		UI_block_flag_enable(pup->block, UI_BLOCK_POPOVER_ONCE);
+	}
+#endif
+
 	pup->layout = UI_block_layout(
 	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0,
 	        pup->ui_size_x, 0, MENU_PADDING, style);
@@ -139,12 +147,6 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
 	UI_block_region_set(block, handle->region);
 	UI_block_layout_resolve(block, &width, &height);
-	UI_block_flag_enable(block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
-#ifdef USE_UI_POPOVER_ONCE
-	if (pup->is_once) {
-		UI_block_flag_enable(block, UI_BLOCK_POPOVER_ONCE);
-	}
-#endif
 	UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
 	const int block_margin = U.widget_unit / 2;

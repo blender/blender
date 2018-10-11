@@ -3316,8 +3316,9 @@ static uiBut *ui_def_but(
 
 	if (block->flag & UI_BLOCK_RADIAL) {
 		but->drawflag |= UI_BUT_TEXT_LEFT;
-		if (but->str && but->str[0])
+		if (but->str && but->str[0]) {
 			but->drawflag |= UI_BUT_ICON_LEFT;
+		}
 	}
 	else if ((block->flag & UI_BLOCK_LOOP) ||
 	         ELEM(but->type,
@@ -3325,7 +3326,10 @@ static uiBut *ui_def_but(
 	              UI_BTYPE_BLOCK, UI_BTYPE_BUT_MENU, UI_BTYPE_SEARCH_MENU,
 	              UI_BTYPE_PROGRESS_BAR, UI_BTYPE_POPOVER))
 	{
-		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
+		but->drawflag |= UI_BUT_TEXT_LEFT;
+		if (but->str && but->str[0]) {
+			but->drawflag |= UI_BUT_ICON_LEFT;
+		}
 	}
 #ifdef USE_NUMBUTS_LR_ALIGN
 	else if (ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER)) {
