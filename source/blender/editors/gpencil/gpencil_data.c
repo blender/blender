@@ -338,7 +338,8 @@ static int gp_layer_move_exec(bContext *C, wmOperator *op)
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
 	bGPDlayer *gpl = BKE_gpencil_layer_getactive(gpd);
 
-	int direction = RNA_enum_get(op->ptr, "type");
+	const bool reverse = (bool)(U.gp_settings & GP_PAINT_REVERSE_LAYERS);
+	const int direction = RNA_enum_get(op->ptr, "type") * (reverse ? -1 : 1);
 
 	/* sanity checks */
 	if (ELEM(NULL, gpd, gpl))
