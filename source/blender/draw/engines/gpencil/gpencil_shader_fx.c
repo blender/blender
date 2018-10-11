@@ -857,10 +857,10 @@ static void draw_gpencil_blur_passes(
 	}
 }
 
-static void draw_gpencil_rim_blur(
-        struct GPENCIL_e_data *UNUSED(e_data),
+/* blur intermediate passes */
+static void draw_gpencil_midpass_blur(
         struct GPENCIL_Data *vedata,
-        struct RimShaderFxData *fxd)
+		struct ShaderFxData_Runtime *runtime)
 {
 	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
@@ -869,7 +869,7 @@ static void draw_gpencil_rim_blur(
 	GPU_framebuffer_bind(fbl->temp_fb_b);
 	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
 	DRW_draw_pass_subset(psl->fx_shader_pass_blend,
-		fxd->runtime.fx_sh_b, fxd->runtime.fx_sh_b);
+		runtime->fx_sh_b, runtime->fx_sh_b);
 
 	/* copy pass from b for ping-pong frame buffers */
 	GPU_framebuffer_bind(fbl->temp_fb_fx);
@@ -911,12 +911,12 @@ static void draw_gpencil_rim_passes(
 			/* horizontal */
 			fxd->blur[0] = bx;
 			fxd->blur[1] = 0;
-			draw_gpencil_rim_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			/* Vertical */
 			fxd->blur[0] = 0;
 			fxd->blur[1] = by;
-			draw_gpencil_rim_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			fxd->blur[0] = bx;
 			fxd->blur[1] = by;
@@ -936,27 +936,6 @@ static void draw_gpencil_rim_passes(
 
 	GPU_framebuffer_bind(fbl->temp_fb_a);
 	GPU_framebuffer_clear_color_depth(fbl->temp_fb_a, clearcol, 1.0f);
-	DRW_draw_pass(psl->mix_pass_noblend);
-}
-
-/* blur shadow */
-static void draw_gpencil_shadow_blur(
-	struct GPENCIL_e_data *UNUSED(e_data),
-	struct GPENCIL_Data *vedata,
-	struct ShadowShaderFxData *fxd)
-{
-	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
-	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
-	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	GPU_framebuffer_bind(fbl->temp_fb_b);
-	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
-	DRW_draw_pass_subset(psl->fx_shader_pass_blend,
-		fxd->runtime.fx_sh_b, fxd->runtime.fx_sh_b);
-
-	/* copy pass from b for ping-pong frame buffers */
-	GPU_framebuffer_bind(fbl->temp_fb_fx);
-	GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
 	DRW_draw_pass(psl->mix_pass_noblend);
 }
 
@@ -994,12 +973,12 @@ static void draw_gpencil_shadow_passes(
 			/* horizontal */
 			fxd->blur[0] = bx;
 			fxd->blur[1] = 0;
-			draw_gpencil_shadow_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			/* Vertical */
 			fxd->blur[0] = 0;
 			fxd->blur[1] = by;
-			draw_gpencil_shadow_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			fxd->blur[0] = bx;
 			fxd->blur[1] = by;
@@ -1019,27 +998,6 @@ static void draw_gpencil_shadow_passes(
 
 	GPU_framebuffer_bind(fbl->temp_fb_a);
 	GPU_framebuffer_clear_color_depth(fbl->temp_fb_a, clearcol, 1.0f);
-	DRW_draw_pass(psl->mix_pass_noblend);
-}
-
-/* blur glow */
-static void draw_gpencil_glow_blur(
-	struct GPENCIL_e_data *UNUSED(e_data),
-	struct GPENCIL_Data *vedata,
-	struct GlowShaderFxData *fxd)
-{
-	GPENCIL_PassList *psl = ((GPENCIL_Data *)vedata)->psl;
-	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
-	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	GPU_framebuffer_bind(fbl->temp_fb_b);
-	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
-	DRW_draw_pass_subset(psl->fx_shader_pass_blend,
-		fxd->runtime.fx_sh_b, fxd->runtime.fx_sh_b);
-
-	/* copy pass from b for ping-pong frame buffers */
-	GPU_framebuffer_bind(fbl->temp_fb_fx);
-	GPU_framebuffer_clear_color_depth(fbl->temp_fb_fx, clearcol, 1.0f);
 	DRW_draw_pass(psl->mix_pass_noblend);
 }
 
@@ -1077,12 +1035,12 @@ static void draw_gpencil_glow_passes(
 			/* horizontal */
 			fxd->blur[0] = bx;
 			fxd->blur[1] = 0;
-			draw_gpencil_glow_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			/* Vertical */
 			fxd->blur[0] = 0;
 			fxd->blur[1] = by;
-			draw_gpencil_glow_blur(e_data, vedata, fxd);
+			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
 
 			fxd->blur[0] = bx;
 			fxd->blur[1] = by;
