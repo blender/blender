@@ -1483,8 +1483,10 @@ static void add_overlay_tri(
 		uint i_prev = 1, i = 2;
 		for (uint i_next = 0; i_next < 3; i_next++) {
 			vflag = mesh_render_data_vertex_flag(rdata, bm_looptri[i]->v);
+			/* Opposite edge to the vertex at 'i'. */
 			EdgeDrawAttr eattr = {0};
-			if (bm_looptri[i_next] == bm_looptri[i_prev]->prev) {
+			const bool is_edge_real = (bm_looptri[i_next] == bm_looptri[i_prev]->prev);
+			if (is_edge_real) {
 				mesh_render_data_edge_flag(rdata, bm_looptri[i_next]->e, &eattr);
 			}
 			eattr.v_flag = fflag | vflag;
@@ -3577,7 +3579,7 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(MeshRenderD
 	eh = create_looptri_edge_adjacency_hash(rdata);
 
 	for (int i = 0; i < tri_len; i++) {
-		bool edge_is_real[3] = {false, false, false};
+		bool edge_is_real[3];
 
 		MEdge *medge = rdata->medge;
 		MLoop *mloop = rdata->mloop;
@@ -3585,14 +3587,12 @@ static GPUVertBuf *mesh_batch_cache_create_edges_overlay_texture_buf(MeshRenderD
 
 		int j, j_next;
 		for (j = 2, j_next = 0; j_next < 3; j = j_next++) {
-			MEdge *ed = &medge[mloop[mlt->tri[j]].e];
-			uint tri_edge[2]  = {mloop[mlt->tri[j]].v, mloop[mlt->tri[j_next]].v};
-
-			if (((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
-			    ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])))
-			{
-				edge_is_real[j] = true;
-			}
+			const MEdge *ed = &medge[mloop[mlt->tri[j]].e];
+			const uint tri_edge[2]  = {mloop[mlt->tri[j]].v, mloop[mlt->tri[j_next]].v};
+			const bool is_edge_real = (
+			        ((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
+			        ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])));
+			edge_is_real[j] = is_edge_real;
 		}
 
 		for (int e = 0; e < 3; ++e) {
