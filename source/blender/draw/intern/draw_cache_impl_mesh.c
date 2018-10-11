@@ -52,6 +52,7 @@
 #include "BKE_editmesh_tangent.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_tangent.h"
+#include "BKE_mesh_runtime.h"
 #include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 
@@ -143,6 +144,17 @@ typedef struct MeshRenderData {
 	int mat_len;
 	int loose_vert_len;
 	int loose_edge_len;
+
+	/* Support for mapped mesh data. */
+	struct {
+		bool use;
+
+		/* origindex layers */
+		int *v_origindex;
+		int *e_origindex;
+		int *l_origindex;
+		int *p_origindex;
+	} mapped;
 
 	BMEditMesh *edit_bmesh;
 	struct EditMeshData *edit_data;
@@ -414,6 +426,18 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 		rdata->edit_bmesh = embm;
 		rdata->edit_data = me->runtime.edit_data;
+
+		if (embm->mesh_eval_cage && (embm->mesh_eval_cage->runtime.is_original == false)) {
+			Mesh *me_cage = embm->mesh_eval_cage;
+			rdata->mapped.v_origindex = CustomData_get_layer(&me_cage->vdata, CD_ORIGINDEX);
+			rdata->mapped.e_origindex = CustomData_get_layer(&me_cage->edata, CD_ORIGINDEX);
+			rdata->mapped.l_origindex = CustomData_get_layer(&me_cage->ldata, CD_ORIGINDEX);
+			rdata->mapped.p_origindex = CustomData_get_layer(&me_cage->pdata, CD_ORIGINDEX);
+			rdata->mapped.use = (
+			        rdata->mapped.v_origindex &&
+			        rdata->mapped.e_origindex &&
+			        rdata->mapped.p_origindex);
+		}
 
 		int bm_ensure_types = 0;
 		if (types & MR_DATATYPE_VERT) {
@@ -1495,6 +1519,85 @@ static void add_overlay_tri(
 			const bool is_edge_real = (bm_looptri[i_next] == bm_looptri[i_prev]->prev);
 			if (is_edge_real) {
 				mesh_render_data_edge_flag(rdata, bm_looptri[i_next]->e, &eattr);
+			}
+			eattr.v_flag = fflag | vflag;
+			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
+
+			i_prev = i;
+			i = i_next;
+		}
+	}
+}
+static void add_overlay_tri_mapped(
+        MeshRenderData *rdata, GPUVertBuf *vbo_pos, GPUVertBuf *vbo_nor, GPUVertBuf *vbo_data,
+        const uint pos_id, const uint vnor_id, const uint lnor_id, const uint data_id,
+        BMFace *efa, const MLoopTri *mlt, const float poly_normal[3], const int base_vert_idx)
+{
+	BMEditMesh *embm = rdata->edit_bmesh;
+	BMesh *bm = embm->bm;
+	Mesh *me_cage = embm->mesh_eval_cage;
+
+	const MVert *mvert = me_cage->mvert;
+	const MEdge *medge = me_cage->medge;
+	const MLoop *mloop = me_cage->mloop;
+#if 0
+	const MPoly *mpoly = me_cage->mpoly;
+#endif
+
+	const int *v_origindex = rdata->mapped.v_origindex;
+	const int *e_origindex = rdata->mapped.e_origindex;
+#if 0
+	const int *l_origindex = rdata->mapped.l_origindex;
+	const int *p_origindex = rdata->mapped.p_origindex;
+#endif
+
+	uchar fflag;
+	uchar vflag;
+
+	if (vbo_pos) {
+		for (uint i = 0; i < 3; i++) {
+			const float *pos = mvert[mloop[mlt->tri[i]].v].co;
+			GPU_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+		}
+	}
+
+	if (vbo_nor) {
+		/* TODO real loop normal */
+		GPUPackedNormal lnor = GPU_normal_convert_i10_v3(poly_normal);
+		for (uint i = 0; i < 3; i++) {
+			GPUPackedNormal vnor = GPU_normal_convert_i10_s3(mvert[mloop[mlt->tri[i]].v].no);
+			GPU_vertbuf_attr_set(vbo_nor, vnor_id, base_vert_idx + i, &vnor);
+			GPU_vertbuf_attr_set(vbo_nor, lnor_id, base_vert_idx + i, &lnor);
+		}
+	}
+
+	if (vbo_data) {
+		fflag = mesh_render_data_looptri_flag(rdata, efa);
+		uint i_prev = 1, i = 2;
+		for (uint i_next = 0; i_next < 3; i_next++) {
+			const int v_orig = v_origindex[mloop[mlt->tri[i]].v];
+			if (v_orig != ORIGINDEX_NONE) {
+				BMVert *v = BM_vert_at_index(bm, v_orig);
+				vflag = mesh_render_data_vertex_flag(rdata, v);
+			}
+			else {
+				/* Importantly VFLAG_VERTEX_EXISTS is not set. */
+				vflag = 0;
+			}
+			/* Opposite edge to the vertex at 'i'. */
+			EdgeDrawAttr eattr = {0};
+			const int e_idx = mloop[mlt->tri[i_next]].e;
+			const int e_orig = e_origindex[e_idx];
+			if (e_orig != ORIGINDEX_NONE) {
+				const MEdge *ed = &medge[e_idx];
+				const uint tri_edge[2]  = {mloop[mlt->tri[i_prev]].v, mloop[mlt->tri[i_next]].v};
+				const bool is_edge_real = (
+				        ((ed->v1 == tri_edge[0]) && (ed->v2 == tri_edge[1])) ||
+				        ((ed->v1 == tri_edge[1]) && (ed->v2 == tri_edge[0])));
+				if (is_edge_real) {
+					BMEdge *eed = BM_edge_at_index(bm, e_orig);
+					mesh_render_data_edge_flag(rdata, eed, &eattr);
+				}
 			}
 			eattr.v_flag = fflag | vflag;
 			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
@@ -3105,8 +3208,10 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
-
-	const int tri_len = mesh_render_data_looptri_len_get(rdata);
+	Mesh *me_cage = rdata->mapped.use ? rdata->edit_bmesh->mesh_eval_cage : NULL;
+	const int tri_len = (
+	        rdata->mapped.use ? poly_to_tri_count(me_cage->totpoly, me_cage->totloop) :
+	        mesh_render_data_looptri_len_get(rdata));
 
 	const int vbo_len_capacity = tri_len * 3;
 	int vbo_len_used = 0;
@@ -3136,15 +3241,39 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 		GPU_vertbuf_data_alloc(vbo_data, vbo_len_capacity);
 	}
 
-	for (int i = 0; i < tri_len; i++) {
-		const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
-		if (!BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
-			add_overlay_tri(
-			        rdata, vbo_pos, vbo_nor, vbo_data,
-			        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
-			        bm_looptri, vbo_len_used);
-
-			vbo_len_used += 3;
+	if (rdata->mapped.use == false) {
+		for (int i = 0; i < tri_len; i++) {
+			const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+			if (!BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
+				add_overlay_tri(
+				        rdata, vbo_pos, vbo_nor, vbo_data,
+				        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
+				        bm_looptri, vbo_len_used);
+				vbo_len_used += 3;
+			}
+		}
+	}
+	else {
+		const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me_cage);
+		if (!CustomData_has_layer(&me_cage->pdata, CD_NORMAL)) {
+			/* TODO(campbell): this is quite an expensive operation for something
+			 * that's not used unless 'normal' display option is enabled. */
+			BKE_mesh_ensure_normals_for_display(me_cage);
+		}
+		const float (*polynors)[3] = CustomData_get_layer(&me_cage->pdata, CD_NORMAL);
+		for (int i = 0; i < tri_len; i++) {
+			const MLoopTri *mlt = &mlooptri[i];
+			int orig = rdata->mapped.p_origindex[mlt->poly];
+			if (orig != ORIGINDEX_NONE) {
+				BMFace *efa = BM_face_at_index(rdata->edit_bmesh->bm, orig);
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					add_overlay_tri_mapped(
+					        rdata, vbo_pos, vbo_nor, vbo_data,
+					        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
+					        efa, mlt, polynors[mlt->poly], vbo_len_used);
+					vbo_len_used += 3;
+				}
+			}
 		}
 	}
 
