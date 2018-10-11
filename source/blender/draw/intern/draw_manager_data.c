@@ -768,10 +768,7 @@ static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass 
 	shgroup->instance_geom = NULL;
 	shgroup->instance_vbo = NULL;
 #endif
-
-#if !defined(NDEBUG) || defined(USE_GPU_SELECT)
 	shgroup->pass_parent = pass;
-#endif
 
 	return shgroup;
 }
@@ -1033,6 +1030,23 @@ bool DRW_shgroup_is_empty(DRWShadingGroup *shgroup)
 	}
 	BLI_assert(!"Shading Group type not supported");
 	return true;
+}
+
+DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
+{
+	/* Remove this assertion if needed but implement the other cases first! */
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
+
+	DRWShadingGroup *shgroup_new = BLI_mempool_alloc(DST.vmempool->shgroups);
+
+	*shgroup_new = *shgroup;
+	shgroup_new->uniforms = NULL; /* Not sure about that.. Should we copy them instead? */
+	shgroup_new->calls.first = NULL;
+	shgroup_new->calls.last = NULL;
+
+	BLI_LINKS_INSERT_AFTER(&shgroup->pass_parent->shgroups, shgroup, shgroup_new);
+
+	return shgroup;
 }
 
 /** \} */

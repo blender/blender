@@ -263,11 +263,9 @@ struct DRWShadingGroup {
 	int objectinfo;
 	uint16_t matflag; /* Matrices needed, same as DRWCall.flag */
 
+	DRWPass *pass_parent; /* backlink to pass we're in */
 #ifndef NDEBUG
 	char attribs_count;
-#endif
-#if !defined(NDEBUG) || defined(USE_GPU_SELECT)
-	DRWPass *pass_parent; /* backlink to pass we're in */
 #endif
 #ifdef USE_GPU_SELECT
 	GPUVertBuf *inst_selectid;
