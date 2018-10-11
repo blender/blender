@@ -310,7 +310,7 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 Mesh *rna_Main_meshes_new_from_object(
         Main *bmain, ReportList *reports, Depsgraph *depsgraph,
-        Object *ob, bool apply_modifiers, bool calc_loop_triangles, bool calc_undeformed)
+        Object *ob, bool apply_modifiers, bool calc_undeformed)
 {
 	Scene *sce = DEG_get_evaluated_scene(depsgraph);
 
@@ -326,7 +326,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			return NULL;
 	}
 
-	return BKE_mesh_new_from_object(depsgraph, bmain, sce, ob, apply_modifiers, calc_loop_triangles, calc_undeformed);
+	return BKE_mesh_new_from_object(depsgraph, bmain, sce, ob, apply_modifiers, calc_undeformed);
 }
 
 static Lamp *rna_Main_lights_new(Main *bmain, const char *name, int type)
@@ -893,7 +893,6 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	RNA_def_boolean(func, "calc_loop_triangles", true, "Calculate Triangles", "Calculate tesselated triangles");
 	RNA_def_boolean(func, "calc_undeformed", false, "Calculate Undeformed", "Calculate undeformed vertex coordinates");
 	parm = RNA_def_pointer(func, "mesh", "Mesh", "",
 	                       "Mesh created from object, remove it if it is only used for export");

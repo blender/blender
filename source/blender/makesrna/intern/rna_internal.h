@@ -490,7 +490,7 @@ int rna_parameter_size(struct PropertyRNA *parm);
 
 struct Mesh *rna_Main_meshes_new_from_object(
         struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph,
-        struct Object *ob, bool apply_modifiers, bool calc_loop_triangles, bool calc_undeformed);
+        struct Object *ob, bool apply_modifiers, bool calc_undeformed);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);
