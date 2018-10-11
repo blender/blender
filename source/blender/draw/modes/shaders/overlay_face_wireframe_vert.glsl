@@ -16,39 +16,6 @@ in vec3 pos;
 in vec3 nor;
 #endif
 
-#ifdef USE_GEOM_SHADER
-out vec2 ssPos;
-out float facingOut; /* abs(facing) > 1.0 if we do edge */
-#else
-flat out vec3 ssVec0;
-flat out vec3 ssVec1;
-flat out vec3 ssVec2;
-out float facing;
-#endif
-
-#ifdef LIGHT_EDGES
-#  ifdef USE_GEOM_SHADER
-out vec3 obPos;
-out vec3 vNor;
-out float forceEdge;
-#  else
-flat out vec3 edgeSharpness;
-#  endif
-#endif
-
-/* project to screen space */
-vec2 proj(vec4 pos)
-{
-	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
-}
-
-vec3 compute_vec(vec2 v0, vec2 v1)
-{
-	vec2 v = normalize(v1 - v0);
-	v = vec2(-v.y, v.x);
-	return vec3(v, -dot(v, v0));
-}
-
 float short_to_unit_float(uint s)
 {
 	int value = int(s) & 0x7FFF;
@@ -99,12 +66,18 @@ float get_edge_sharpness(vec3 fnor, vec3 vnor)
 	return smoothstep(wireStepParam.x, wireStepParam.y, sharpness);
 }
 
-#define NO_EDGE vec3(10000.0);
+#ifdef USE_GEOM_SHADER
+
+#  ifdef LIGHT_EDGES
+out vec3 obPos;
+out vec3 vNor;
+out float forceEdge;
+#  endif
+out float facingOut; /* abs(facing) > 1.0 if we do edge */
 
 void main()
 {
-#ifdef USE_GEOM_SHADER
-#ifndef USE_SCULPT
+#  ifndef USE_SCULPT
 	uint v_id = texelFetch(faceIds, gl_VertexID).r;
 
 	bool do_edge = (v_id & (1u << 30u)) != 0u;
@@ -113,26 +86,37 @@ void main()
 
 	vec3 pos = get_vertex_pos(v_id);
 	vec3 nor = get_vertex_nor(v_id);
-#else
+#  else
 	const bool do_edge = true;
 	const bool force_edge = false;
-#endif
+#  endif
 
 	facingOut = normalize(NormalMatrix * nor).z;
 	facingOut += (do_edge) ? ((facingOut > 0.0) ? 2.0 : -2.0) : 0.0;
 
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	ssPos = proj(gl_Position);
 
 #  ifdef LIGHT_EDGES
 	obPos = pos;
 	vNor = nor;
 	forceEdge = float(force_edge); /* meh, could try to also encode it in facingOut */
 #  endif
+}
 
-#else
+#else /* USE_GEOM_SHADER */
+
+#  ifdef LIGHT_EDGES
+flat out vec3 edgeSharpness;
+#  endif
+out float facing;
+out vec3 barycentric;
+
+void main()
+{
 	int v_0 = (gl_VertexID / 3) * 3;
 	int v_n = gl_VertexID % 3;
+	int v_n1 = (gl_VertexID + 1) % 3;
+	int v_n2 = (gl_VertexID + 2) % 3;
 
 	/* Getting the same positions for each of the 3 verts. */
 	uvec3 v_id;
@@ -150,30 +134,24 @@ void main()
 	v_id = (v_id << 2u) >> 2u;
 
 	vec3 pos[3];
-	pos[0] = get_vertex_pos(v_id.x);
-	pos[1] = get_vertex_pos(v_id.y);
-	pos[2] = get_vertex_pos(v_id.z);
-
 	vec4 p_pos[3];
-	p_pos[0] = ModelViewProjectionMatrix * vec4(pos[0], 1.0);
-	p_pos[1] = ModelViewProjectionMatrix * vec4(pos[1], 1.0);
-	p_pos[2] = ModelViewProjectionMatrix * vec4(pos[2], 1.0);
 
-	vec2 ss_pos[3];
-	ss_pos[0] = proj(p_pos[0]);
-	ss_pos[1] = proj(p_pos[1]);
-	ss_pos[2] = proj(p_pos[2]);
+	pos[v_n] = get_vertex_pos(v_id[v_n]);
+	gl_Position = p_pos[v_n] = ModelViewProjectionMatrix * vec4(pos[v_n], 1.0);
 
-	/* Compute the edges screen vectors */
-	ssVec0 = do_edge.x ? compute_vec(ss_pos[0], ss_pos[1]) : NO_EDGE;
-	ssVec1 = do_edge.y ? compute_vec(ss_pos[1], ss_pos[2]) : NO_EDGE;
-	ssVec2 = do_edge.z ? compute_vec(ss_pos[2], ss_pos[0]) : NO_EDGE;
-
-	gl_Position = p_pos[v_n];
+	barycentric[v_n] = do_edge[v_n] ? 0.0 : 1.0;
+	barycentric[v_n1] = 1.0;
+	barycentric[v_n2] = do_edge[v_n2] ? 0.0 : 1.0;
 
 #  ifndef LIGHT_EDGES
 	vec3 nor = get_vertex_nor(v_id[v_n]);
 #  else
+	p_pos[v_n1] = ModelViewProjectionMatrix * vec4(pos[v_n1], 1.0);
+	p_pos[v_n2] = ModelViewProjectionMatrix * vec4(pos[v_n2], 1.0);
+
+	pos[v_n1] = get_vertex_pos(v_id[v_n1]);
+	pos[v_n2] = get_vertex_pos(v_id[v_n2]);
+
 	vec3 edges[3];
 	edges[0] = pos[1] - pos[0];
 	edges[1] = pos[2] - pos[1];
@@ -195,6 +173,6 @@ void main()
 #  endif
 
 	facing = normalize(NormalMatrix * nor).z;
-
-#endif
 }
+
+#endif /* USE_GEOM_SHADER */

@@ -2,10 +2,8 @@
 uniform vec3 wireColor;
 uniform vec3 rimColor;
 
-flat in vec3 ssVec0;
-flat in vec3 ssVec1;
-flat in vec3 ssVec2;
 in float facing;
+in vec3 barycentric;
 
 #  ifdef LIGHT_EDGES
 flat in vec3 edgeSharpness;
@@ -28,12 +26,14 @@ const float rim_alpha = 0.75;
 void main()
 {
 #ifndef SELECT_EDGES
-	vec3 ss_pos = vec3(gl_FragCoord.xy, 1.0);
-	vec3 dist_to_edge = vec3(
-		dot(ss_pos, ssVec0),
-		dot(ss_pos, ssVec1),
-		dot(ss_pos, ssVec2)
+	vec3 dx = dFdx(barycentric);
+	vec3 dy = dFdy(barycentric);
+	vec3 d = vec3(
+		length(vec2(dx.x, dy.x)),
+		length(vec2(dx.y, dy.y)),
+		length(vec2(dx.z, dy.z))
 	);
+	vec3 dist_to_edge = barycentric / d;
 
 #  ifdef LIGHT_EDGES
 	vec3 fac = abs(dist_to_edge);
