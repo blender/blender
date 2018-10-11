@@ -1083,8 +1083,18 @@ void GPENCIL_OT_layer_isolate(wmOperatorType *ot)
 static int gp_merge_layer_exec(bContext *C, wmOperator *op)
 {
 	bGPdata *gpd = ED_gpencil_data_get_active(C);
-	bGPDlayer *gpl_current = BKE_gpencil_layer_getactive(gpd);
-	bGPDlayer *gpl_next = gpl_current->next;
+	const bool reverse = (bool)(U.gp_settings & GP_PAINT_REVERSE_LAYERS);
+	bGPDlayer *gpl_current = NULL;
+	bGPDlayer *gpl_next = NULL;
+
+	if (!reverse) {
+		gpl_current = BKE_gpencil_layer_getactive(gpd);
+		gpl_next = gpl_current->next;
+	}
+	else {
+		gpl_next = BKE_gpencil_layer_getactive(gpd);
+		gpl_current = gpl_next->prev;
+	}
 
 	if (ELEM(NULL, gpd, gpl_current, gpl_next)) {
 		BKE_report(op->reports, RPT_ERROR, "No layers to merge");
