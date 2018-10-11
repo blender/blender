@@ -857,7 +857,7 @@ static void draw_gpencil_blur_passes(
 	}
 }
 
-/* blur intermediate passes */
+/* blur intermediate pass */
 static void draw_gpencil_midpass_blur(
         struct GPENCIL_Data *vedata,
 		struct ShaderFxData_Runtime *runtime)
@@ -877,6 +877,35 @@ static void draw_gpencil_midpass_blur(
 	DRW_draw_pass(psl->mix_pass_noblend);
 }
 
+/* do blur of mid passes */
+static void draw_gpencil_do_blur(
+	struct GPENCIL_e_data *e_data,
+	struct GPENCIL_Data *vedata,
+	struct ShaderFxData_Runtime *runtime,
+	int samples, int bx, int by, int *blur)
+{
+	e_data->input_depth_tx = e_data->temp_depth_tx_b;
+	e_data->input_color_tx = e_data->temp_color_tx_b;
+
+	if ((samples > 0) && ((bx > 0) || (by > 0))) {
+		for (int x = 0; x < samples; x++) {
+
+			/* horizontal */
+			blur[0] = bx;
+			blur[1] = 0;
+			draw_gpencil_midpass_blur(vedata, runtime);
+
+			/* Vertical */
+			blur[0] = 0;
+			blur[1] = by;
+			draw_gpencil_midpass_blur(vedata, runtime);
+
+			blur[0] = bx;
+			blur[1] = by;
+		}
+	}
+}
+
 /* helper to draw RIM passes */
 static void draw_gpencil_rim_passes(
         struct GPENCIL_e_data *e_data,
@@ -891,8 +920,6 @@ static void draw_gpencil_rim_passes(
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
 
 	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int bx = fxd->blur[0];
-	int by = fxd->blur[1];
 
 	/* prepare mask */
 	GPU_framebuffer_bind(fbl->temp_fb_fx);
@@ -902,26 +929,10 @@ static void draw_gpencil_rim_passes(
 	        fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur rim */
-	e_data->input_depth_tx = e_data->temp_depth_tx_b;
-	e_data->input_color_tx = e_data->temp_color_tx_b;
-
-	if ((fxd->samples > 0) && ((bx > 0) || (by > 0))) {
-		for (int x = 0; x < fxd->samples; x++) {
-
-			/* horizontal */
-			fxd->blur[0] = bx;
-			fxd->blur[1] = 0;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			/* Vertical */
-			fxd->blur[0] = 0;
-			fxd->blur[1] = by;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			fxd->blur[0] = bx;
-			fxd->blur[1] = by;
-		}
-	}
+	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
+						fxd->samples,
+						fxd->blur[0], fxd->blur[1],
+						&fxd->blur[0]);
 
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -953,8 +964,6 @@ static void draw_gpencil_shadow_passes(
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
 
 	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int bx = fxd->blur[0];
-	int by = fxd->blur[1];
 
 	/* prepare shadow */
 	GPU_framebuffer_bind(fbl->temp_fb_fx);
@@ -964,26 +973,10 @@ static void draw_gpencil_shadow_passes(
 		fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur shadow */
-	e_data->input_depth_tx = e_data->temp_depth_tx_b;
-	e_data->input_color_tx = e_data->temp_color_tx_b;
-
-	if ((fxd->samples > 0) && ((bx > 0) || (by > 0))) {
-		for (int x = 0; x < fxd->samples; x++) {
-
-			/* horizontal */
-			fxd->blur[0] = bx;
-			fxd->blur[1] = 0;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			/* Vertical */
-			fxd->blur[0] = 0;
-			fxd->blur[1] = by;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			fxd->blur[0] = bx;
-			fxd->blur[1] = by;
-		}
-	}
+	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
+						fxd->samples,
+						fxd->blur[0], fxd->blur[1],
+						&fxd->blur[0]);
 
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
@@ -1015,8 +1008,6 @@ static void draw_gpencil_glow_passes(
 	GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
 
 	static float clearcol[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	int bx = fxd->blur[0];
-	int by = fxd->blur[0];
 
 	/* prepare glow */
 	GPU_framebuffer_bind(fbl->temp_fb_fx);
@@ -1026,26 +1017,11 @@ static void draw_gpencil_glow_passes(
 		fxd->runtime.fx_sh, fxd->runtime.fx_sh);
 
 	/* blur glow */
-	e_data->input_depth_tx = e_data->temp_depth_tx_b;
-	e_data->input_color_tx = e_data->temp_color_tx_b;
+	draw_gpencil_do_blur(e_data, vedata, &fxd->runtime,
+						fxd->samples,
+						fxd->blur[0], fxd->blur[0],
+						&fxd->blur[0]);
 
-	if ((fxd->samples > 0) && ((bx > 0) || (by > 0))) {
-		for (int x = 0; x < fxd->samples; x++) {
-
-			/* horizontal */
-			fxd->blur[0] = bx;
-			fxd->blur[1] = 0;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			/* Vertical */
-			fxd->blur[0] = 0;
-			fxd->blur[1] = by;
-			draw_gpencil_midpass_blur(vedata, &fxd->runtime);
-
-			fxd->blur[0] = bx;
-			fxd->blur[1] = by;
-		}
-	}
 	/* resolve */
 	GPU_framebuffer_bind(fbl->temp_fb_b);
 	GPU_framebuffer_clear_color_depth(fbl->temp_fb_b, clearcol, 1.0f);
