@@ -421,17 +421,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 			bm_ensure_types |= BM_EDGE;
 		}
 		if (types & MR_DATATYPE_LOOPTRI) {
-			BKE_editmesh_tessface_calc(embm);
-			int tottri = embm->tottri;
-			rdata->mlooptri = MEM_mallocN(sizeof(*rdata->mlooptri) * embm->tottri, __func__);
-			for (int index = 0; index < tottri ; index ++ ) {
-				BMLoop **bmtri = embm->looptris[index];
-				MLoopTri *mtri = &rdata->mlooptri[index];
-				mtri->tri[0] = BM_elem_index_get(bmtri[0]);
-				mtri->tri[1] = BM_elem_index_get(bmtri[1]);
-				mtri->tri[2] = BM_elem_index_get(bmtri[2]);
-			}
-			rdata->tri_len = tottri;
+			bm_ensure_types |= BM_LOOP;
 		}
 		if (types & MR_DATATYPE_LOOP) {
 			int totloop = bm->totloop;
@@ -465,6 +455,22 @@ static MeshRenderData *mesh_render_data_create_ex(
 
 		BM_mesh_elem_index_ensure(bm, bm_ensure_types);
 		BM_mesh_elem_table_ensure(bm, bm_ensure_types & ~BM_LOOP);
+
+		if (types & MR_DATATYPE_LOOPTRI) {
+			/* Edit mode ensures this is valid, no need to calculate. */
+			BLI_assert((bm->totloop == 0) || (embm->looptris != NULL));
+			int tottri = embm->tottri;
+			rdata->mlooptri = MEM_mallocN(sizeof(*rdata->mlooptri) * embm->tottri, __func__);
+			for (int index = 0; index < tottri ; index ++ ) {
+				BMLoop **bmtri = embm->looptris[index];
+				MLoopTri *mtri = &rdata->mlooptri[index];
+				mtri->tri[0] = BM_elem_index_get(bmtri[0]);
+				mtri->tri[1] = BM_elem_index_get(bmtri[1]);
+				mtri->tri[2] = BM_elem_index_get(bmtri[2]);
+			}
+			rdata->tri_len = tottri;
+		}
+
 		if (types & MR_DATATYPE_OVERLAY) {
 			rdata->loose_vert_len = rdata->loose_edge_len = 0;
 
