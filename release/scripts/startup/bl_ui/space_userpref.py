@@ -279,7 +279,7 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
         col.separator()
         col.prop(edit, "use_grease_pencil_simplify_stroke", text="Simplify Stroke")
-        col.separator()
+        col.prop(edit, "use_grease_pencil_reverse_layers", text="Layers order Top-Down")
         col.separator()
         col.separator()
         col.separator()
