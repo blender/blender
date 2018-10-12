@@ -207,22 +207,34 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
 
 	/* Override depsgraph with a filtered, simpler copy */
 	if (!current_frame_only && G.debug_value != -1) {
-		TIMEIT_START(filter_pose_depsgraph);
 		DEG_FilterQuery query = {{0}};
 
 		DEG_FilterTarget *dft_ob = MEM_callocN(sizeof(DEG_FilterTarget), "DEG_FilterTarget");
 		dft_ob->id = &ob->id;
 		BLI_addtail(&query.targets, dft_ob);
 
+#ifdef DEBUG_TIME
+		TIMEIT_START(filter_pose_depsgraph);
+#endif
+
 		depsgraph = DEG_graph_filter(depsgraph, bmain, &query);
-		free_depsgraph = true;
 
-		MEM_freeN(dft_ob);
+#ifdef DEBUG_TIME
 		TIMEIT_END(filter_pose_depsgraph);
+#endif
 
+		free_depsgraph = true;
+		MEM_freeN(dft_ob);
+
+#ifdef DEBUG_TIME
 		TIMEIT_START(filter_pose_update);
+#endif
+
 		BKE_scene_graph_update_tagged(depsgraph, bmain);
+
+#ifdef DEBUG_TIME
 		TIMEIT_END(filter_pose_update);
+#endif
 	}
 
 	/* set flag to force recalc, then grab the relevant bones to target */
@@ -230,9 +242,15 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob, bool curre
 	animviz_get_object_motionpaths(ob, &targets);
 
 	/* recalculate paths, then free */
+#ifdef DEBUG_TIME
 	TIMEIT_START(pose_path_calc);
+#endif
+
 	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets, !free_depsgraph, current_frame_only);
+
+#ifdef DEBUG_TIME
 	TIMEIT_END(pose_path_calc);
+#endif
 
 	BLI_freelistN(&targets);
 
