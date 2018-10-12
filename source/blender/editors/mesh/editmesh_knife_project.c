@@ -66,7 +66,7 @@ static LinkNode *knifeproject_poly_from_object(const bContext *C, Scene *scene, 
 	struct Mesh *me_eval;
 	bool me_eval_needs_free;
 
-	if (ob->type == OB_MESH || ob->derivedFinal) {
+	if (ob->type == OB_MESH || ob->runtime.mesh_eval) {
 		me_eval = (ob->runtime.mesh_eval ?
 		           ob->runtime.mesh_eval : mesh_get_eval_final(depsgraph, scene, ob, CD_MASK_BAREMESH));
 		me_eval_needs_free = false;

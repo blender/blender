@@ -3753,12 +3753,12 @@ KDTree *BKE_object_as_kdtree(Object *ob, int *r_tot)
 			Mesh *me = ob->data;
 			unsigned int i;
 
-			DerivedMesh *dm = ob->derivedDeform ? ob->derivedDeform : ob->derivedFinal;
+			Mesh *me_eval = ob->runtime.mesh_deform_eval ? ob->runtime.mesh_deform_eval : ob->runtime.mesh_deform_eval;
 			const int *index;
 
-			if (dm && (index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX))) {
-				MVert *mvert = dm->getVertArray(dm);
-				unsigned int totvert = dm->getNumVerts(dm);
+			if (me_eval && (index = CustomData_get_layer(&me_eval->vdata, CD_ORIGINDEX))) {
+				MVert *mvert = me_eval->mvert;
+				uint totvert = me_eval->totvert;
 
 				/* tree over-allocs in case where some verts have ORIGINDEX_NONE */
 				tot = 0;

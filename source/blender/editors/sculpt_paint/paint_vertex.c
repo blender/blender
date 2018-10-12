@@ -173,12 +173,12 @@ static MDeformVert *defweight_prev_init(MDeformVert *dvert_prev, MDeformVert *dv
  * (without rebuilding the 'derivedFinal') */
 static bool vertex_paint_use_fast_update_check(Object *ob)
 {
-	DerivedMesh *dm = ob->derivedFinal;
+	Mesh *me_eval = ob->runtime.mesh_eval;
 
-	if (dm) {
+	if (me_eval != NULL) {
 		Mesh *me = BKE_mesh_from_object(ob);
 		if (me && me->mloopcol) {
-			return (me->mloopcol == CustomData_get_layer(&dm->loopData, CD_MLOOPCOL));
+			return (me->mloopcol == CustomData_get_layer(&me_eval->ldata, CD_MLOOPCOL));
 		}
 	}
 
