@@ -549,7 +549,7 @@ void BKE_mesh_from_nurbs_displist(
         Main *bmain, Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name, bool temporary)
 {
 	Object *ob1;
-	DerivedMesh *dm = ob->derivedFinal;
+	Mesh *me_eval = ob->runtime.mesh_eval;
 	Mesh *me;
 	Curve *cu;
 	MVert *allvert = NULL;
@@ -561,7 +561,7 @@ void BKE_mesh_from_nurbs_displist(
 
 	cu = ob->data;
 
-	if (dm == NULL) {
+	if (me_eval == NULL) {
 		if (BKE_mesh_nurbs_displist_to_mdata(
 		            ob, dispbase, &allvert, &totvert,
 		            &alledge, &totedge, &allloop,
@@ -593,7 +593,8 @@ void BKE_mesh_from_nurbs_displist(
 	}
 	else {
 		me = BKE_mesh_add(bmain, obdata_name);
-		DM_to_mesh(dm, me, ob, CD_MASK_MESH, false);
+		ob->runtime.mesh_eval = NULL;
+		BKE_mesh_nomain_to_mesh(me_eval, me, ob, CD_MASK_MESH, false);
 	}
 
 	me->totcol = cu->totcol;
@@ -976,7 +977,7 @@ Mesh *BKE_mesh_new_from_object(
 			/* if not getting the original caged mesh, get final derived mesh */
 			else {
 				/* Make a dummy mesh, saves copying */
-				DerivedMesh *dm;
+				Mesh *me_eval;
 				/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
 				CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
 				                                     * for example, needs CD_MASK_MDEFORMVERT */
@@ -984,14 +985,15 @@ Mesh *BKE_mesh_new_from_object(
 				if (calc_undeformed)
 					mask |= CD_MASK_ORCO;
 
-				/* Write the display mesh into the dummy mesh */
-				if (render)
-					dm = mesh_create_derived_render(depsgraph, sce, ob, mask);
-				else
-					dm = mesh_create_derived_view(depsgraph, sce, ob, mask);
+				if (render) {
+					me_eval = mesh_create_eval_final_render(depsgraph, sce, ob, mask);
+				}
+				else {
+					me_eval = mesh_create_eval_final_view(depsgraph, sce, ob, mask);
+				}
 
 				tmpmesh = BKE_mesh_add(bmain, ((ID *)ob->data)->name + 2);
-				DM_to_mesh(dm, tmpmesh, ob, mask, true);
+				BKE_mesh_nomain_to_mesh(me_eval, tmpmesh, ob, mask, true);
 
 				/* Copy autosmooth settings from original mesh. */
 				Mesh *me = (Mesh *)ob->data;

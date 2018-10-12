@@ -87,6 +87,10 @@ struct Mesh *mesh_get_eval_deform(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, CustomDataMask dataMask);
 
+struct Mesh *mesh_create_eval_final_render(
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, CustomDataMask dataMask);
+
 #ifdef USE_DERIVEDMESH
 struct DerivedMesh *mesh_create_derived_index_render(
         struct Depsgraph *depsgraph, struct Scene *scene,

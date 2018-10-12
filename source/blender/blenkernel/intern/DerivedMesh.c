@@ -2410,11 +2410,24 @@ Mesh *mesh_get_eval_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob
 }
 
 
+#ifdef USE_DERIVEDMESH
+/* Deprecated, use `mesh_create_eval_final_render` instead. */
 DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false,
+	        NULL, &final);
+
+	return final;
+}
+#endif
+Mesh *mesh_create_eval_final_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
+{
+	Mesh *final;
+
+	mesh_calc_modifiers(
 	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false,
 	        NULL, &final);
 
