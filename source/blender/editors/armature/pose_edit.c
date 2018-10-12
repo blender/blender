@@ -987,6 +987,7 @@ static int armature_layers_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 static int armature_layers_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *ob_active = CTX_data_active_object(C);
 	PointerRNA ptr;
 	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	bool changed = false;
@@ -995,7 +996,7 @@ static int armature_layers_exec(bContext *C, wmOperator *op)
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, ob_active->mode);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob = objects[ob_index];
 		bArmature *arm = armature_layers_get_data(&ob);
