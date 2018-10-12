@@ -19,7 +19,7 @@
 # <pep8 compliant>
 
 import bpy
-from mathutils import Vector
+from mathutils import Color, Vector
 
 __all__ = (
     "PrincipledBSDFWrapper",
@@ -37,6 +37,11 @@ def _set_check(func):
         return func(self, *args, **kwargs)
     return wrapper
 
+def rgb_to_rgba(rgb):
+    return list(rgb) + [1.0]
+
+def rgba_to_rgb(rgba):
+    return Color((rgba[0], rgba[1], rgba[2]))
 
 class ShaderWrapper():
     """
@@ -232,21 +237,21 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     node_normalmap = property(node_normalmap_get)
 
     # --------------------------------------------------------------------
-    # Diffuse.
+    # Base Color.
 
-    def diffuse_color_get(self):
+    def base_color_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return self.material.diffuse_color
-        return self.node_principled_bsdf.inputs["Base Color"].default_value
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Base Color"].default_value)
 
     @_set_check
-    def diffuse_color_set(self, color):
+    def base_color_set(self, color):
         self.material.diffuse_color = color
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Base Color"].default_value = color
-    diffuse_color = property(diffuse_color_get, diffuse_color_set)
+            self.node_principled_bsdf.inputs["Base Color"].default_value = rgb_to_rgba(color)
+    base_color = property(base_color_get, base_color_set)
 
-    def diffuse_texture_get(self):
+    def base_color_texture_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return None
         return ShaderImageTextureWrapper(
@@ -254,7 +259,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
             self.node_principled_bsdf.inputs["Base Color"],
             grid_row_diff=1,
         )
-    diffuse_texture = property(diffuse_texture_get)
+    base_color_texture = property(base_color_texture_get)
 
     # --------------------------------------------------------------------
     # Specular.
@@ -274,12 +279,12 @@ class PrincipledBSDFWrapper(ShaderWrapper):
     def specular_tint_get(self):
         if not self.use_nodes or self.node_principled_bsdf is None:
             return 0.0
-        return self.node_principled_bsdf.inputs["Specular Tint"].default_value
+        return rgba_to_rgb(self.node_principled_bsdf.inputs["Specular Tint"].default_value)
 
     @_set_check
     def specular_tint_set(self, value):
         if self.use_nodes and self.node_principled_bsdf is not None:
-            self.node_principled_bsdf.inputs["Specular Tint"].default_value = value
+            self.node_principled_bsdf.inputs["Specular Tint"].default_value = rgb_to_rgba(value)
     specular_tint = property(specular_tint_get, specular_tint_set)
 
     # Will only be used as gray-scale one...
@@ -524,6 +529,9 @@ class ShaderImageTextureWrapper():
 
     @_set_check
     def texcoords_set(self, texcoords):
+        # Image texture node already defaults to UVs, no extra node needed.
+        if texcoords == 'UV':
+            return
         tree = self.node_image.id_data
         links = tree.links
         node_dst = self.node_mapping if self._node_mapping is not None else self.node_image
