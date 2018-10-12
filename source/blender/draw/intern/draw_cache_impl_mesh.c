@@ -533,8 +533,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->loose_vert_len = rdata->loose_edge_len = 0;
 
 			{
-				rdata->loose_verts = MEM_mallocN(rdata->vert_len * sizeof(int), __func__);
-				int *lverts = rdata->loose_verts;
+				int *lverts = MEM_mallocN(rdata->vert_len * sizeof(int), __func__);
 				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
 				BMVert **vtable = bm->vtable;
 				for (int i = 0; i < bm->totvert; i++) {
@@ -546,12 +545,11 @@ static MeshRenderData *mesh_render_data_create_ex(
 						}
 					}
 				}
-				rdata->loose_verts = MEM_reallocN(rdata->loose_verts, rdata->loose_vert_len * sizeof(int));
+				rdata->loose_verts = MEM_reallocN(lverts, rdata->loose_vert_len * sizeof(int));
 			}
 
 			{
-				rdata->loose_edges = MEM_mallocN(rdata->edge_len * sizeof(int), __func__);
-				int *ledges = rdata->loose_edges;
+				int *ledges = MEM_mallocN(rdata->edge_len * sizeof(int), __func__);
 				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
 				BMEdge **etable = bm->etable;
 				for (int i = 0; i < bm->totedge; i++) {
@@ -563,7 +561,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 						}
 					}
 				}
-				rdata->loose_edges = MEM_reallocN(rdata->loose_edges, rdata->loose_edge_len * sizeof(int));
+				rdata->loose_edges = MEM_reallocN(ledges, rdata->loose_edge_len * sizeof(int));
 			}
 
 			if (rdata->mapped.supported) {
@@ -571,8 +569,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				rdata->mapped.loose_vert_len = rdata->mapped.loose_edge_len = 0;
 
 				if (rdata->loose_vert_len) {
-					rdata->mapped.loose_verts = MEM_mallocN(me_cage->totvert * sizeof(int), __func__);
-					int *lverts = rdata->mapped.loose_verts;
+					int *lverts = MEM_mallocN(me_cage->totvert * sizeof(int), __func__);
 					const int *v_origindex = rdata->mapped.v_origindex;
 					for (int i = 0; i < me_cage->totvert; i++) {
 						const int v_orig = v_origindex[i];
@@ -586,13 +583,11 @@ static MeshRenderData *mesh_render_data_create_ex(
 							}
 						}
 					}
-					rdata->mapped.loose_verts = MEM_reallocN(
-					        rdata->mapped.loose_verts, rdata->mapped.loose_vert_len * sizeof(int));
+					rdata->mapped.loose_verts = MEM_reallocN(lverts, rdata->mapped.loose_vert_len * sizeof(int));
 				}
 
 				if (rdata->loose_edge_len) {
-					rdata->mapped.loose_edges = MEM_mallocN(me_cage->totedge * sizeof(int), __func__);
-					int *ledges = rdata->mapped.loose_edges;
+					int *ledges = MEM_mallocN(me_cage->totedge * sizeof(int), __func__);
 					const int *e_origindex = rdata->mapped.e_origindex;
 					for (int i = 0; i < me_cage->totedge; i++) {
 						const int e_orig = e_origindex[i];
@@ -606,8 +601,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 							}
 						}
 					}
-					rdata->mapped.loose_edges = MEM_reallocN(
-					        rdata->mapped.loose_edges, rdata->mapped.loose_edge_len * sizeof(int));
+					rdata->mapped.loose_edges = MEM_reallocN(ledges, rdata->mapped.loose_edge_len * sizeof(int));
 				}
 			}
 		}
