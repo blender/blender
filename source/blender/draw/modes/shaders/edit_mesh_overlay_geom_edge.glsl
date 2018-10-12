@@ -2,11 +2,8 @@
 /* Solid Wirefram implementation
  * Mike Erwin, Clément Foucault */
 
-/* This shader follows the principles of
- * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
-
 layout(lines) in;
-layout(triangle_strip, max_vertices=6) out;
+layout(triangle_strip, max_vertices=4) out;
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -24,6 +21,7 @@ flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
 flat out vec4 faceColor;
 flat out ivec3 flag;
+out vec3 barycentric;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
 #endif
@@ -33,9 +31,6 @@ out float facing;
 
 /* See fragment shader */
 flat out vec2 ssPos[3];
-
-#define FACE_ACTIVE     (1 << 3)
-#define FACE_SELECTED   (1 << 4)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -94,20 +89,21 @@ void main()
 	ssPos[1] = pos[1];
 	flag[0] = flag[2] = (vData[0].x << 8);
 	flag[1] = (vData[1].x << 8);
-
-	doVertex(0, pPos[0] + vec4(-dirs1.xy, 0.0, 0.0));
+	barycentric = vec3(1.0);
 	doVertex(0, pPos[0] + vec4( dirs1.zw, 0.0, 0.0));
+
+	barycentric[2] = -1.0;
 	doVertex(0, pPos[0] + vec4(-dirs1.zw, 0.0, 0.0));
 
 	flag[2] |= vData[0].y;
 	edgesCrease[2] = vData[0].z / 255.0;
 	edgesBweight[2] = vData[0].w / 255.0;
 
+	barycentric = vec3(1.0);
 	doVertex(1, pPos[1] + vec4( dirs2.zw, 0.0, 0.0));
-	doVertex(1, pPos[1] + vec4(-dirs2.zw, 0.0, 0.0));
 
-	flag[2] = 0;
-	doVertex(1, pPos[1] + vec4( dirs2.xy, 0.0, 0.0));
+	barycentric[2] = -1.0;
+	doVertex(1, pPos[1] + vec4(-dirs2.zw, 0.0, 0.0));
 
 	EndPrimitive();
 }

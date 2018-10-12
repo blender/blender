@@ -1617,12 +1617,19 @@ static uchar mesh_render_data_vertex_flag(MeshRenderData *rdata, const BMVert *e
 }
 
 static void add_overlay_tri(
-        MeshRenderData *rdata, GPUVertBuf *vbo_pos, GPUVertBuf *vbo_nor, GPUVertBuf *vbo_data,
+        MeshRenderData *rdata, GPUVertBuf *vbo_pos, GPUVertBuf *vbo_nor, GPUVertBuf *vbo_data, GPUIndexBufBuilder *elb,
         const uint pos_id, const uint vnor_id, const uint lnor_id, const uint data_id,
         const BMLoop **bm_looptri, const int base_vert_idx)
 {
 	uchar fflag;
 	uchar vflag;
+
+	for (int i = 0; i < 3; ++i) {
+		if (!BM_elem_flag_test(bm_looptri[i]->v, BM_ELEM_TAG)) {
+			BM_elem_flag_enable(bm_looptri[i]->v, BM_ELEM_TAG);
+			GPU_indexbuf_add_generic_vert(elb, base_vert_idx + i);
+		}
+	}
 
 	if (vbo_pos) {
 		/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
@@ -1669,7 +1676,7 @@ static void add_overlay_tri(
 	}
 }
 static void add_overlay_tri_mapped(
-        MeshRenderData *rdata, GPUVertBuf *vbo_pos, GPUVertBuf *vbo_nor, GPUVertBuf *vbo_data,
+        MeshRenderData *rdata, GPUVertBuf *vbo_pos, GPUVertBuf *vbo_nor, GPUVertBuf *vbo_data, GPUIndexBufBuilder *elb,
         const uint pos_id, const uint vnor_id, const uint lnor_id, const uint data_id,
         BMFace *efa, const MLoopTri *mlt, const float poly_normal[3], const int base_vert_idx)
 {
@@ -1693,6 +1700,20 @@ static void add_overlay_tri_mapped(
 
 	uchar fflag;
 	uchar vflag;
+
+	if (elb) {
+		for (int i = 0; i < 3; ++i) {
+			const int v_orig = v_origindex[mloop[mlt->tri[i]].v];
+			if (v_orig == ORIGINDEX_NONE) {
+				continue;
+			}
+			BMVert *v = BM_vert_at_index(bm, v_orig);
+			if (!BM_elem_flag_test(v, BM_ELEM_TAG)) {
+				BM_elem_flag_enable(v, BM_ELEM_TAG);
+				GPU_indexbuf_add_generic_vert(elb, base_vert_idx + i);
+			}
+		}
+	}
 
 	if (vbo_pos) {
 		for (uint i = 0; i < 3; i++) {
@@ -1983,6 +2004,8 @@ typedef struct MeshBatchCache {
 	GPUVertBuf *ed_tri_pos;
 	GPUVertBuf *ed_tri_nor; /* LoopNor, VertNor */
 	GPUVertBuf *ed_tri_data;
+	GPUTexture *ed_tri_data_tx;
+	GPUIndexBuf *ed_tri_verts;
 
 	GPUVertBuf *ed_ledge_pos;
 	GPUVertBuf *ed_ledge_nor; /* VertNor */
@@ -2212,11 +2235,15 @@ void DRW_mesh_batch_cache_dirty_tag(Mesh *me, int mode)
 			GPU_VERTBUF_DISCARD_SAFE(cache->ed_fcenter_pos_with_nor_and_sel); /* Contains select flag */
 			GPU_VERTBUF_DISCARD_SAFE(cache->ed_edge_pos);
 			GPU_VERTBUF_DISCARD_SAFE(cache->ed_vert_pos);
+			GPU_INDEXBUF_DISCARD_SAFE(cache->ed_tri_verts);
+			DRW_TEXTURE_FREE_SAFE(cache->ed_tri_data_tx);
 
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_triangles);
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
 			GPU_BATCH_DISCARD_SAFE(cache->overlay_facedots);
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_triangles_nor);
+			GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
 			/* Edit mode selection. */
 			GPU_BATCH_DISCARD_SAFE(cache->facedot_with_select_id);
 			GPU_BATCH_DISCARD_SAFE(cache->edges_with_select_id);
@@ -2313,11 +2340,13 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GPU_VERTBUF_DISCARD_SAFE(cache->ed_lvert_pos);
 	GPU_VERTBUF_DISCARD_SAFE(cache->ed_lvert_nor);
 	GPU_VERTBUF_DISCARD_SAFE(cache->ed_lvert_data);
+	GPU_INDEXBUF_DISCARD_SAFE(cache->ed_tri_verts);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_triangles);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_triangles_nor);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_verts);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_loose_edges_nor);
+	DRW_TEXTURE_FREE_SAFE(cache->ed_tri_data_tx);
 
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_faces);
 	GPU_BATCH_DISCARD_SAFE(cache->overlay_weight_verts);
@@ -3590,10 +3619,14 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
+	BMesh *bm = rdata->edit_bmesh->bm;
+	BMIter iter;
+	BMVert *ev;
 	const int tri_len = mesh_render_data_looptri_len_get_maybe_mapped(rdata);
 
 	const int vbo_len_capacity = tri_len * 3;
 	int vbo_len_used = 0;
+	int points_len = bm->totvert;
 
 	/* Positions */
 	GPUVertBuf *vbo_pos = NULL;
@@ -3620,12 +3653,24 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 		GPU_vertbuf_data_alloc(vbo_data, vbo_len_capacity);
 	}
 
+	/* Verts IBO */
+	GPUIndexBufBuilder elb, *elbp = NULL;
+	if (cache->ed_tri_verts == NULL) {
+		elbp = &elb;
+		GPU_indexbuf_init(elbp, GPU_PRIM_POINTS, points_len, vbo_len_capacity);
+	}
+
+	/* Clear tag */
+	BM_ITER_MESH(ev, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_elem_flag_disable(ev, BM_ELEM_TAG);
+	}
+
 	if (rdata->mapped.use == false) {
 		for (int i = 0; i < tri_len; i++) {
 			const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
 			if (!BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
 				add_overlay_tri(
-				        rdata, vbo_pos, vbo_nor, vbo_data,
+				        rdata, vbo_pos, vbo_nor, vbo_data, elbp,
 				        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
 				        bm_looptri, vbo_len_used);
 				vbo_len_used += 3;
@@ -3633,7 +3678,6 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 		}
 	}
 	else {
-		BMesh *bm = rdata->edit_bmesh->bm;
 		Mesh *me_cage = rdata->mapped.me_cage;
 		const MLoopTri *mlooptri = BKE_mesh_runtime_looptri_ensure(me_cage);
 		if (!CustomData_has_layer(&me_cage->pdata, CD_NORMAL)) {
@@ -3649,13 +3693,17 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 				BMFace *efa = BM_face_at_index(bm, p_orig);
 				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
 					add_overlay_tri_mapped(
-					        rdata, vbo_pos, vbo_nor, vbo_data,
+					        rdata, vbo_pos, vbo_nor, vbo_data, elbp,
 					        attr_id.pos, attr_id.vnor, attr_id.lnor, attr_id.data,
 					        efa, mlt, polynors[mlt->poly], vbo_len_used);
 					vbo_len_used += 3;
 				}
 			}
 		}
+	}
+
+	if (elbp != NULL) {
+		cache->ed_tri_verts = GPU_indexbuf_build(elbp);
 	}
 
 	/* Finish */
@@ -3670,6 +3718,10 @@ static void mesh_batch_cache_create_overlay_tri_buffers(
 			GPU_vertbuf_data_resize(vbo_data, vbo_len_used);
 		}
 	}
+
+	/* Upload data early because we need to create the texture for it. */
+	GPU_vertbuf_use(vbo_data);
+	cache->ed_tri_data_tx = GPU_texture_create_from_vertbuf(vbo_data);
 }
 
 static void mesh_batch_cache_create_overlay_ledge_buffers(
@@ -3874,6 +3926,19 @@ static GPUVertBuf *mesh_batch_cache_get_edit_lvert_pos(
 	}
 
 	return cache->ed_lvert_pos;
+}
+
+/* Indices */
+static GPUIndexBuf *mesh_batch_cache_get_edit_tri_indices(
+        MeshRenderData *rdata, MeshBatchCache *cache)
+{
+	BLI_assert(rdata->types & MR_DATATYPE_VERT);
+
+	if (cache->ed_tri_verts == NULL) {
+		mesh_batch_cache_create_overlay_tri_buffers(rdata, cache);
+	}
+
+	return cache->ed_tri_verts;
 }
 
 /* Normal */
@@ -4902,16 +4967,20 @@ static void mesh_batch_cache_create_overlay_batches(Mesh *me)
 		GPU_batch_vertbuf_add(cache->overlay_loose_verts, mesh_batch_cache_get_edit_lvert_data(rdata, cache));
 	}
 
+	/* Also used for vertices display */
 	if (cache->overlay_triangles_nor == NULL) {
 		cache->overlay_triangles_nor = GPU_batch_create(
-		        GPU_PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache), NULL);
+		        GPU_PRIM_POINTS, mesh_batch_cache_get_edit_tri_pos(rdata, cache),
+		                         mesh_batch_cache_get_edit_tri_indices(rdata, cache));
 		GPU_batch_vertbuf_add(cache->overlay_triangles_nor, mesh_batch_cache_get_edit_tri_nor(rdata, cache));
+		GPU_batch_vertbuf_add(cache->overlay_triangles_nor, mesh_batch_cache_get_edit_tri_data(rdata, cache));
 	}
 
 	if (cache->overlay_loose_edges_nor == NULL) {
 		cache->overlay_loose_edges_nor = GPU_batch_create(
 		        GPU_PRIM_POINTS, mesh_batch_cache_get_edit_ledge_pos(rdata, cache), NULL);
 		GPU_batch_vertbuf_add(cache->overlay_loose_edges_nor, mesh_batch_cache_get_edit_ledge_nor(rdata, cache));
+		GPU_batch_vertbuf_add(cache->overlay_loose_edges_nor, mesh_batch_cache_get_edit_ledge_data(rdata, cache));
 	}
 
 	mesh_render_data_free(rdata);
@@ -4926,6 +4995,17 @@ GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles(Mesh *me)
 	}
 
 	return cache->overlay_triangles;
+}
+
+GPUTexture *DRW_mesh_batch_cache_get_overlay_data_tex(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->ed_tri_data_tx == NULL) {
+		mesh_batch_cache_create_overlay_batches(me);
+	}
+
+	return cache->ed_tri_data_tx;
 }
 
 GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges(Mesh *me)

@@ -143,10 +143,12 @@ struct GPUBatch *DRW_mesh_batch_cache_get_fancy_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_edge_detection(struct Mesh *me, bool *r_is_manifold);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_triangles_nor(struct Mesh *me);
+struct GPUBatch *DRW_mesh_batch_cache_get_overlay_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_edges_nor(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_loose_verts(struct Mesh *me);
 struct GPUBatch *DRW_mesh_batch_cache_get_overlay_facedots(struct Mesh *me);
+struct GPUTexture *DRW_mesh_batch_cache_get_overlay_data_tex(struct Mesh *me);
 /* edit-mesh selection (use generic function for faces) */
 struct GPUBatch *DRW_mesh_batch_cache_get_facedots_with_select_id(struct Mesh *me, uint select_id_offset);
 struct GPUBatch *DRW_mesh_batch_cache_get_edges_with_select_id(struct Mesh *me, uint select_id_offset);

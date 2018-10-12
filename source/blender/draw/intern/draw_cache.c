@@ -2986,7 +2986,8 @@ GPUBatch *DRW_cache_mesh_surface_overlay_get(Object *ob)
 
 void DRW_cache_mesh_wire_overlay_get(
         Object *ob,
-        GPUBatch **r_tris, GPUBatch **r_ledges, GPUBatch **r_lverts)
+        GPUBatch **r_tris, GPUBatch **r_ledges, GPUBatch **r_lverts,
+        struct GPUTexture **r_data_tex)
 {
 	BLI_assert(ob->type == OB_MESH);
 
@@ -2995,6 +2996,7 @@ void DRW_cache_mesh_wire_overlay_get(
 	*r_tris = DRW_mesh_batch_cache_get_overlay_triangles(me);
 	*r_ledges = DRW_mesh_batch_cache_get_overlay_loose_edges(me);
 	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
+	*r_data_tex = DRW_mesh_batch_cache_get_overlay_data_tex(me);
 }
 
 void DRW_cache_mesh_normals_overlay_get(

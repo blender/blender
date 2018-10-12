@@ -128,7 +128,8 @@ struct GPUBatch *DRW_cache_bone_dof_lines_get(void);
 struct GPUBatch *DRW_cache_mesh_surface_overlay_get(struct Object *ob);
 void DRW_cache_mesh_wire_overlay_get(
         struct Object *ob,
-        struct GPUBatch **r_tris, struct GPUBatch **r_ledges, struct GPUBatch **r_lverts);
+        struct GPUBatch **r_tris, struct GPUBatch **r_ledges, struct GPUBatch **r_lverts,
+        struct GPUTexture **r_data_tex);
 void DRW_cache_mesh_normals_overlay_get(
         struct Object *ob,
         struct GPUBatch **r_tris, struct GPUBatch **r_ledges, struct GPUBatch **r_lverts);

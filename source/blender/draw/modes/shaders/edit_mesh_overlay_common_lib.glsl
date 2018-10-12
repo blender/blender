@@ -12,6 +12,10 @@
 #define VERTEX_SELECTED (1 << 1)
 #define VERTEX_EXISTS   (1 << 2)
 
+#define FACE_ACTIVE     (1 << 3)
+#define FACE_SELECTED   (1 << 4)
+#define FACE_FREESTYLE  (1 << 5)
+
 uniform bool doEdges = true;
 
 vec4 EDIT_MESH_edge_color_outer(int edge_flag, bool face_active, float crease, float bweight)

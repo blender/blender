@@ -2,30 +2,14 @@
 /* Solid Wirefram implementation
  * Mike Erwin, Clément Foucault */
 
-/* This shader follows the principles of
- * http://developer.download.nvidia.com/SDK/10/direct3d/Source/SolidWireframe/Doc/SolidWireframe.pdf */
-
 layout(triangles) in;
 
-/* This is not perfect. Only a subset of intel gpus are affected.
- * This fix have some performance impact.
- * TODO Refine the range to only affect GPUs. */
-
-#ifdef EDGE_FIX
 /* To fix the edge artifacts, we render
  * an outline strip around the screenspace
  * triangle. Order is important.
  * TODO diagram
  */
-
-#ifdef VERTEX_SELECTION
-layout(triangle_strip, max_vertices=23) out;
-#else
-layout(triangle_strip, max_vertices=17) out;
-#endif
-#else
-layout(triangle_strip, max_vertices=3) out;
-#endif
+layout(triangle_strip, max_vertices=15) out;
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -43,20 +27,14 @@ flat out vec3 edgesCrease;
 flat out vec3 edgesBweight;
 flat out vec4 faceColor;
 flat out ivec3 flag;
-flat out int clipCase;
+
+out vec3 barycentric;
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
 #endif
 #ifdef VERTEX_FACING
 out float facing;
 #endif
-
-/* See fragment shader */
-flat out vec2 ssPos[3];
-
-#define FACE_ACTIVE     (1 << 3)
-#define FACE_SELECTED   (1 << 4)
-#define FACE_FREESTYLE  (1 << 5)
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -73,8 +51,9 @@ void doVertex(int v)
 #ifdef VERTEX_FACING
 	facing = vFacing[v];
 #endif
-
 	gl_Position = pPos[v];
+	barycentric = vec3(0.0);
+	barycentric[v % 3] = 1.0;
 
 	EmitVertex();
 }
@@ -84,6 +63,7 @@ void doLoopStrip(int v, vec3 offset)
 	doVertex(v);
 
 	gl_Position.xyz += offset;
+	barycentric = vec3(1.0);
 
 	EmitVertex();
 }
@@ -115,6 +95,7 @@ void main()
 		faceColor = colorFace;
 
 	/* Vertex */
+	vec2 ssPos[3];
 	ssPos[0] = proj(pPos[0]);
 	ssPos[1] = proj(pPos[1]);
 	ssPos[2] = proj(pPos[2]);
@@ -123,10 +104,8 @@ void main()
 	doVertex(1);
 	doVertex(2);
 
-#ifdef EDGE_FIX
 	vec2 fixvec[6];
 	vec2 fixvecaf[6];
-	vec2 cornervec[3];
 
 	/* This fix the case when 2 vertices are perfectly aligned
 	 * and corner vectors have nowhere to go.
@@ -150,8 +129,6 @@ void main()
 		vec2 dir = normalize(v2 - v1);
 		vec2 dir2 = normalize(v3 - v1);
 
-		cornervec[i] = -normalize(dir + dir2);
-
 		/* perpendicular to dir */
 		vec2 perp = vec2(-dir.y, dir.x);
 
@@ -162,7 +139,6 @@ void main()
 
 		/* Make it view independent */
 		perp *= sizeEdgeFix / viewportSize;
-		cornervec[i] *= sizeEdgeFix / viewportSize;
 		fixvec[i] = fixvecaf[i] = perp;
 
 		/* Perspective */
@@ -171,7 +147,6 @@ void main()
 			 * our fixvec to be flipped */
 			fixvec[i] *= -vPos[i].z;
 			fixvecaf[i] *= -vPos[i1].z;
-			cornervec[i] *= -vPos[i].z;
 		}
 	}
 
@@ -195,16 +170,6 @@ void main()
 		flag[v]   &= ~EDGE_EXISTS;
 		doLoopStrip(vaf, vec3(fixvecaf[v], Z_OFFSET));
 
-		/* corner vertices should not draw edges but draw point only */
-		flag[vbe] &= ~EDGE_EXISTS;
-#ifdef VERTEX_SELECTION
-		doLoopStrip(vaf, vec3(cornervec[vaf], Z_OFFSET));
-#endif
+		EndPrimitive();
 	}
-
-	/* finish the loop strip */
-	doLoopStrip(2, vec3(fixvec[2], Z_OFFSET));
-#endif
-
-	EndPrimitive();
 }
