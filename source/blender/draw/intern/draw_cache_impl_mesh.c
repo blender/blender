@@ -1647,8 +1647,9 @@ static void add_overlay_tri(
 
 	if (vbo_data) {
 		fflag = mesh_render_data_looptri_flag(rdata, bm_looptri[0]->f);
-		uint i_prev = 1, i = 2;
-		for (uint i_next = 0; i_next < 3; i_next++) {
+		for (uint i = 0; i < 3; i++) {
+			const int i_next = (i + 1) % 3;
+			const int i_prev = (i + 2) % 3;
 			vflag = mesh_render_data_vertex_flag(rdata, bm_looptri[i]->v);
 			/* Opposite edge to the vertex at 'i'. */
 			EdgeDrawAttr eattr = {0};
@@ -1658,9 +1659,6 @@ static void add_overlay_tri(
 			}
 			eattr.v_flag = fflag | vflag;
 			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
-
-			i_prev = i;
-			i = i_next;
 		}
 	}
 }
@@ -1709,8 +1707,9 @@ static void add_overlay_tri_mapped(
 
 	if (vbo_data) {
 		fflag = mesh_render_data_looptri_flag(rdata, efa);
-		uint i_prev = 1, i = 2;
-		for (uint i_next = 0; i_next < 3; i_next++) {
+		for (uint i = 0; i < 3; i++) {
+			const int i_next = (i + 1) % 3;
+			const int i_prev = (i + 2) % 3;
 			const int v_orig = v_origindex[mloop[mlt->tri[i]].v];
 			if (v_orig != ORIGINDEX_NONE) {
 				BMVert *v = BM_vert_at_index(bm, v_orig);
@@ -1737,9 +1736,6 @@ static void add_overlay_tri_mapped(
 			}
 			eattr.v_flag = fflag | vflag;
 			GPU_vertbuf_attr_set(vbo_data, data_id, base_vert_idx + i, &eattr);
-
-			i_prev = i;
-			i = i_next;
 		}
 	}
 }
