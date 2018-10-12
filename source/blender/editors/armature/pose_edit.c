@@ -986,38 +986,27 @@ static int armature_layers_invoke(bContext *C, wmOperator *op, const wmEvent *ev
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int armature_layers_exec(bContext *C, wmOperator *op)
 {
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Object *ob_active = CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
+	bArmature *arm = armature_layers_get_data(&ob);
 	PointerRNA ptr;
 	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-	bool changed = false;
+
+	if (arm == NULL) {
+		return OPERATOR_CANCELLED;
+	}
 
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 
-	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, ob_active->mode);
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object *ob = objects[ob_index];
-		bArmature *arm = armature_layers_get_data(&ob);
+	/* get pointer for armature, and write data there... */
+	RNA_id_pointer_create((ID *)arm, &ptr);
+	RNA_boolean_set_array(&ptr, "layers", layers);
 
-		if (arm == NULL) {
-			continue;
-		}
+	/* note, notifier might evolve */
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 
-		/* Get pointer for armature, and write data there... */
-		RNA_id_pointer_create((ID *)arm, &ptr);
-		RNA_boolean_set_array(&ptr, "layers", layers);
-
-		/* Note, notifier might evolve. */
-		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-
-		changed = true;
-	}
-	MEM_freeN(objects);
-
-	return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void ARMATURE_OT_armature_layers(wmOperatorType *ot)
