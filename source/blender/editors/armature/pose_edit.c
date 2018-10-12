@@ -279,14 +279,18 @@ static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, const wmEven
  */
 static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
 
-	/* grab baking settings from operator settings */
-	{
+		if (ELEM(NULL, ob, ob->pose)) {
+			continue;
+		}
+
 		bAnimVizSettings *avs = &ob->pose->avs;
 		PointerRNA avs_ptr;
 
@@ -297,29 +301,40 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 		RNA_enum_set(&avs_ptr, "bake_location", RNA_enum_get(op->ptr, "bake_location"));
 	}
 
-	/* set up path data for bones being calculated */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	/* Set up path data for bones being calculated. */
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
-		/* verify makes sure that the selected bone has a bone with the appropriate settings */
+		/* Verify makes sure that the selected bone has a bone with the appropriate settings. */
 		animviz_verify_motionpaths(op->reports, scene, ob, pchan);
 	}
 	CTX_DATA_END;
 
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
+
+		if (ELEM(NULL, ob, ob->pose)) {
+			continue;
+		}
+
 #ifdef DEBUG_TIME
-	TIMEIT_START(recalc_pose_paths);
+		TIMEIT_START(recalc_pose_paths);
 #endif
 
-	/* calculate the bones that now have motionpaths... */
-	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(C, scene, ob, false);
+		/* Calculate the bones that now have motionpaths... */
+		/* TODO: only make for the selected bones? */
+		ED_pose_recalculate_paths(C, scene, ob, false);
 
 #ifdef DEBUG_TIME
-	TIMEIT_END(recalc_pose_paths);
+		TIMEIT_END(recalc_pose_paths);
 #endif
 
-	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		/* Notifiers for updates. */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
+	}
+
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
@@ -364,20 +379,31 @@ static bool pose_update_paths_poll(bContext *C)
 
 static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Scene *scene = CTX_data_scene(C);
+	bool changed_multi = false;
 
-	if (ELEM(NULL, ob, scene))
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
 
-	/* calculate the bones that now have motionpaths... */
-	/* TODO: only make for the selected bones? */
-	ED_pose_recalculate_paths(C, scene, ob, false);
+		if (ELEM(NULL, ob, scene)) {
+			continue;
+		}
 
-	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		/* Calculate the bones that now have motionpaths... */
+		/* TODO: only make for the selected bones? */
+		ED_pose_recalculate_paths(C, scene, ob, false);
 
-	return OPERATOR_FINISHED;
+		/* notifiers for updates */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+
+		changed_multi = true;
+	}
+	MEM_freeN(objects);
+
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void POSE_OT_paths_update(wmOperatorType *ot)
@@ -430,19 +456,26 @@ static void ED_pose_clear_paths(Object *ob, bool only_selected)
 /* operator callback - wrapper for the backend function  */
 static int pose_clear_paths_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const bool only_selected = RNA_boolean_get(op->ptr, "only_selected");
 
-	/* only continue if there's an object */
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
 
-	/* use the backend function for this */
-	ED_pose_clear_paths(ob, only_selected);
+		/* Only continue if there's an object. */
+		if (ELEM(NULL, ob, ob->pose)) {
+			continue;
+		}
 
-	/* notifiers for updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		/* Use the backend function for this. */
+		ED_pose_clear_paths(ob, only_selected);
 
+		/* Notifiers for updates. */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
