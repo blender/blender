@@ -487,7 +487,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	char newname[MAXBONENAME];
 	const short axis = RNA_enum_get(op->ptr, "type");
-	bool multi_changed = false;
+	bool changed_multi = false;
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -529,7 +529,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		multi_changed = true;
+		changed_multi = true;
 
 		/* Since we renamed stuff... */
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -538,7 +538,7 @@ static int armature_autoside_names_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 	}
 	MEM_freeN(objects);
-	return multi_changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_autoside_names(wmOperatorType *ot)

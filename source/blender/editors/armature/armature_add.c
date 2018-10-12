@@ -869,7 +869,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool forked = RNA_boolean_get(op->ptr, "forked");
-	bool multi_changed = false;
+	bool changed_multi = false;
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
@@ -1019,7 +1019,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 			continue;
 		}
 
-		multi_changed = true;
+		changed_multi = true;
 
 		/* Transform the endpoints */
 		ED_armature_edit_sync_selection(arm->edbo);
@@ -1028,7 +1028,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	}
 	MEM_freeN(objects);
 
-	return multi_changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void ARMATURE_OT_extrude(wmOperatorType *ot)
