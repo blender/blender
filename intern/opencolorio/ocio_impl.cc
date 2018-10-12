@@ -419,6 +419,33 @@ void OCIOImpl::configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *r
 	}
 }
 
+void OCIOImpl::configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config_, float xyz_to_rgb[3][3])
+{
+	ConstConfigRcPtr config = (*(ConstConfigRcPtr *) config_);
+
+	/* Default to ITU-BT.709 in case no appropriate transform found. */
+	memcpy(xyz_to_rgb, OCIO_XYZ_TO_LINEAR_SRGB, sizeof(OCIO_XYZ_TO_LINEAR_SRGB));
+
+	/* Auto estimate from XYZ and scene_linear roles, assumed to be a linear transform. */
+	if(config->hasRole("XYZ") && config->hasRole("scene_linear")) {
+		ConstProcessorRcPtr to_rgb_processor = config->getProcessor("XYZ", "scene_linear");
+		if(to_rgb_processor) {
+			xyz_to_rgb[0][0] = 1.0f;
+			xyz_to_rgb[0][1] = 0.0f;
+			xyz_to_rgb[0][2] = 0.0f;
+			xyz_to_rgb[1][0] = 0.0f;
+			xyz_to_rgb[1][1] = 1.0f;
+			xyz_to_rgb[1][2] = 0.0f;
+			xyz_to_rgb[2][0] = 0.0f;
+			xyz_to_rgb[2][1] = 0.0f;
+			xyz_to_rgb[2][2] = 1.0f;
+			to_rgb_processor->applyRGB(xyz_to_rgb[0]);
+			to_rgb_processor->applyRGB(xyz_to_rgb[1]);
+			to_rgb_processor->applyRGB(xyz_to_rgb[2]);
+		}
+	}
+}
+
 int OCIOImpl::configGetNumLooks(OCIO_ConstConfigRcPtr *config)
 {
 	try {

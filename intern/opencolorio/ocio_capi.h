@@ -54,6 +54,13 @@ OCIO_DECLARE_HANDLE(OCIO_ExponentTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_MatrixTransformRcPtr);
 OCIO_DECLARE_HANDLE(OCIO_ConstLookRcPtr);
 
+/* Standard XYZ to linear sRGB transform, for fallback. */
+static const float OCIO_XYZ_TO_LINEAR_SRGB[3][3] = {
+	{3.2404542f, -0.9692660f, 0.0556434f},
+	{-1.5371385f, 1.8760108f, -0.2040259f},
+	{-0.4985314f, 0.0415560f, 1.0572252f}};
+
+
 /* This structure is used to pass curve mapping settings from
  * blender's DNA structure stored in view transform settings
  * to a generic OpenColorIO C-API.
@@ -141,6 +148,7 @@ const char *OCIO_configGetView(OCIO_ConstConfigRcPtr *config, const char *displa
 const char *OCIO_configGetDisplayColorSpaceName(OCIO_ConstConfigRcPtr *config, const char *display, const char *view);
 
 void        OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb);
+void        OCIO_configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3]);
 
 int                  OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config);
 const char          *OCIO_configGetLookNameByIndex(OCIO_ConstConfigRcPtr *config, int index);

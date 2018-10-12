@@ -62,4 +62,14 @@ unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3])
 	return unit_float_to_uchar_clamp(val);
 }
 
+void IMB_colormangement_xyz_to_rgb(float rgb[3], const float xyz[3])
+{
+	mul_v3_m3v3(rgb, imbuf_xyz_to_rgb, xyz);
+}
+
+void IMB_colormangement_rgb_to_xyz(float xyz[3], const float rgb[3])
+{
+	mul_v3_m3v3(xyz, imbuf_rgb_to_xyz, rgb);
+}
+
 #endif  /* __IMB_COLORMANAGEMENT_INLINE_H__ */

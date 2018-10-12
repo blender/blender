@@ -71,6 +71,8 @@ const char *IMB_colormanagement_get_rect_colorspace(struct ImBuf *ibuf);
 
 BLI_INLINE float IMB_colormanagement_get_luminance(const float rgb[3]);
 BLI_INLINE unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char[3]);
+BLI_INLINE void IMB_colormangement_xyz_to_rgb(float rgb[3], const float xyz[3]);
+BLI_INLINE void IMB_colormangement_rgb_to_xyz(float xyz[3], const float rgb[3]);
 
 /* ** Color space transformation functions ** */
 void IMB_colormanagement_transform(float *buffer, int width, int height, int channels,
@@ -98,6 +100,9 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 
 void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3]);
 void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3]);
+
+void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3]);
+void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3]);
 
 void IMB_colormanagement_scene_linear_to_display_v3(float pixel[3], struct ColorManagedDisplay *display);
 void IMB_colormanagement_display_to_scene_linear_v3(float pixel[3], struct ColorManagedDisplay *display);

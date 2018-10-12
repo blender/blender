@@ -137,6 +137,11 @@ void OCIO_configGetDefaultLumaCoefs(OCIO_ConstConfigRcPtr *config, float *rgb)
 	impl->configGetDefaultLumaCoefs(config, rgb);
 }
 
+void OCIO_configGetXYZtoRGB(OCIO_ConstConfigRcPtr *config, float xyz_to_rgb[3][3])
+{
+	impl->configGetXYZtoRGB(config, xyz_to_rgb);
+}
+
 int OCIO_configGetNumLooks(OCIO_ConstConfigRcPtr *config)
 {
 	return impl->configGetNumLooks(config);

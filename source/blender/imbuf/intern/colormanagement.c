@@ -93,10 +93,12 @@ static int global_tot_display = 0;
 static int global_tot_view = 0;
 static int global_tot_looks = 0;
 
-/* Set to ITU-BT.709 / sRGB primaries weight. Brute force stupid, but only
- * option with no colormanagement in place.
- */
-float imbuf_luma_coefficients[3] = { 0.2126f, 0.7152f, 0.0722f };
+/* Luma coefficients and XYZ to RGB to be initialized by OCIO. */
+float imbuf_luma_coefficients[3] = {0.0f};
+float imbuf_xyz_to_rgb[3][3] = {{0.0f}};
+float imbuf_rgb_to_xyz[3][3] = {{0.0f}};
+float imbuf_xyz_to_linear_srgb[3][3] = {{0.0f}};
+float imbuf_linear_srgb_to_xyz[3][3] = {{0.0f}};
 
 /* lock used by pre-cached processors getters, so processor wouldn't
  * be created several times
@@ -563,6 +565,10 @@ static void colormanage_load_config(OCIO_ConstConfigRcPtr *config)
 
 	/* Load luminance coefficients. */
 	OCIO_configGetDefaultLumaCoefs(config, imbuf_luma_coefficients);
+	OCIO_configGetXYZtoRGB(config, imbuf_xyz_to_rgb);
+	invert_m3_m3(imbuf_rgb_to_xyz, imbuf_xyz_to_rgb);
+	copy_m3_m3(imbuf_xyz_to_linear_srgb, OCIO_XYZ_TO_LINEAR_SRGB);
+	invert_m3_m3(imbuf_linear_srgb_to_xyz, imbuf_xyz_to_linear_srgb);
 }
 
 static void colormanage_free_config(void)
@@ -1927,6 +1933,14 @@ void IMB_colormanagement_colorspace_to_scene_linear(float *buffer, int width, in
 	}
 }
 
+/* Conversion between color picking role. Typically we would expect such a
+ * requirements:
+ * - It is approximately perceptually linear, so that the HSV numbers and
+ *   the HSV cube/circle have an intuitive distribution.
+ * - It has the same gamut as the scene linear color space.
+ * - Color picking values 0..1 map to scene linear values in the 0..1 range,
+ *   so that picked albedo values are energy conserving.
+ */
 void IMB_colormanagement_scene_linear_to_color_picking_v3(float pixel[3])
 {
 	if (!global_color_picking_state.processor_to && !global_color_picking_state.failed) {
@@ -1973,6 +1987,22 @@ void IMB_colormanagement_color_picking_to_scene_linear_v3(float pixel[3])
 	if (global_color_picking_state.processor_from) {
 		OCIO_processorApplyRGB(global_color_picking_state.processor_from, pixel);
 	}
+}
+
+/* Conversion between sRGB, for rare cases like hex color or copy/pasting
+ * between UI theme and scene linear colors. */
+void IMB_colormanagement_scene_linear_to_srgb_v3(float pixel[3])
+{
+	mul_m3_v3(imbuf_rgb_to_xyz, pixel);
+	mul_m3_v3(imbuf_xyz_to_linear_srgb, pixel);
+	linearrgb_to_srgb_v3_v3(pixel, pixel);
+}
+
+void IMB_colormanagement_srgb_to_scene_linear_v3(float pixel[3])
+{
+	srgb_to_linearrgb_v3_v3(pixel, pixel);
+	mul_m3_v3(imbuf_linear_srgb_to_xyz, pixel);
+	mul_m3_v3(imbuf_xyz_to_rgb, pixel);
 }
 
 /* convert pixel from scene linear to display space using default view
