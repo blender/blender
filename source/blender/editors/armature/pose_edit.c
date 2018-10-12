@@ -1067,30 +1067,29 @@ static int pose_bone_layers_invoke(bContext *C, wmOperator *op, const wmEvent *e
 /* Set the visible layers for the active armature (edit and pose modes) */
 static int pose_bone_layers_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	PointerRNA ptr;
 	bool layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
-
-	if (ob == NULL || ob->data == NULL) {
-		return OPERATOR_CANCELLED;
-	}
 
 	/* get the values set in the operator properties */
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 
+	Object *prev_ob = NULL;
+
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)ob->data, &RNA_Bone, pchan->bone, &ptr);
 		RNA_boolean_set_array(&ptr, "layers", layers);
+
+		if (prev_ob != ob) {
+			/* Note, notifier might evolve. */
+			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+			DEG_id_tag_update((ID *)ob->data, DEG_TAG_COPY_ON_WRITE);
+			prev_ob = ob;
+		}
 	}
 	CTX_DATA_END;
-
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
-	DEG_id_tag_update((ID *)ob->data, DEG_TAG_COPY_ON_WRITE);
-
 	return OPERATOR_FINISHED;
 }
 
