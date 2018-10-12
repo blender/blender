@@ -832,19 +832,22 @@ void POSE_OT_autoside_names(wmOperatorType *ot)
 
 static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_active_object(C);
-	int mode = RNA_enum_get(op->ptr, "type");
+	const int mode = RNA_enum_get(op->ptr, "type");
+	Object *prev_ob = NULL;
 
 	/* set rotation mode of selected bones  */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
 		pchan->rotmode = mode;
+
+		if (prev_ob != ob) {
+			/* Notifiers and updates. */
+			DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
+			prev_ob = ob;
+		}
 	}
 	CTX_DATA_END;
-
-	/* notifiers and updates */
-	DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 
 	return OPERATOR_FINISHED;
 }
