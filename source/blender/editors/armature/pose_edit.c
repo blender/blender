@@ -844,6 +844,7 @@ static int pose_bone_rotmode_exec(bContext *C, wmOperator *op)
 			/* Notifiers and updates. */
 			DEG_id_tag_update((ID *)ob, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 			prev_ob = ob;
 		}
 	}
