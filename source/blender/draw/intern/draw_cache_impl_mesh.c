@@ -447,11 +447,21 @@ static MeshRenderData *mesh_render_data_create_ex(
 			Mesh *me_cage = embm->mesh_eval_cage;
 
 			rdata->mapped.me_cage = me_cage;
-			rdata->mapped.vert_len = me_cage->totvert;
-			rdata->mapped.edge_len = me_cage->totedge;
-			rdata->mapped.loop_len = me_cage->totloop;
-			rdata->mapped.poly_len = me_cage->totpoly;
-			rdata->mapped.tri_len = poly_to_tri_count(me_cage->totpoly, me_cage->totloop);
+			if (types & MR_DATATYPE_VERT) {
+				rdata->mapped.vert_len = me_cage->totvert;
+			}
+			if (types & MR_DATATYPE_EDGE) {
+				rdata->mapped.edge_len = me_cage->totedge;
+			}
+			if (types & MR_DATATYPE_LOOP) {
+				rdata->mapped.loop_len = me_cage->totloop;
+			}
+			if (types & MR_DATATYPE_POLY) {
+				rdata->mapped.poly_len = me_cage->totpoly;
+			}
+			if (types & MR_DATATYPE_LOOPTRI) {
+				rdata->mapped.tri_len = poly_to_tri_count(me_cage->totpoly, me_cage->totloop);
+			}
 
 			rdata->mapped.v_origindex = CustomData_get_layer(&me_cage->vdata, CD_ORIGINDEX);
 			rdata->mapped.e_origindex = CustomData_get_layer(&me_cage->edata, CD_ORIGINDEX);
@@ -4278,7 +4288,7 @@ static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, Mesh
 				BMIter eiter;
 				BMEdge *eed;
 				BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BM_edge_is_wire(eed)) {
+					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && !bm_edge_has_visible_face(eed)) {
 						GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
 					}
 				}
@@ -4293,6 +4303,7 @@ static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, Mesh
 			}
 		}
 		else {
+			/* Hidden checks are already done when creating the loose edge list. */
 			Mesh *me_cage = rdata->mapped.me_cage;
 			for (int i_iter = 0; i_iter < rdata->mapped.loose_edge_len; i_iter++) {
 				const int i = rdata->mapped.loose_edges[i_iter];
