@@ -775,30 +775,29 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 static int pose_autoside_names_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bArmature *arm;
 	char newname[MAXBONENAME];
 	short axis = RNA_enum_get(op->ptr, "axis");
-
-	/* paranoia checks */
-	if (ELEM(NULL, ob, ob->pose))
-		return OPERATOR_CANCELLED;
-	arm = ob->data;
+	Object *ob_prev = NULL;
 
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_WITH_ID(C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
+		bArmature *arm = ob->data;
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
-		if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
+		if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis])) {
 			ED_armature_bone_rename(bmain, arm, pchan->name, newname);
+		}
+
+		if (ob_prev != ob) {
+			/* since we renamed stuff... */
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+			/* note, notifier might evolve */
+			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+			ob_prev = ob;
+		}
 	}
 	CTX_DATA_END;
-
-	/* since we renamed stuff... */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 
 	return OPERATOR_FINISHED;
 }
