@@ -150,12 +150,8 @@ class DATA_PT_gpencil_datapanel(Panel):
                 col.separator()
 
                 sub = col.column(align=True)
-                if reverse is False:
-                    sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
-                    sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
-                else:
-                    sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'DOWN'
-                    sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'UP'
+                sub.operator("gpencil.layer_move", icon='TRIA_UP', text="").type = 'UP'
+                sub.operator("gpencil.layer_move", icon='TRIA_DOWN', text="").type = 'DOWN'
 
                 col.separator()
 
