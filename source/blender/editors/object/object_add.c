@@ -67,7 +67,6 @@
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
@@ -1768,7 +1767,6 @@ static int convert_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *basen = NULL, *basact = NULL;
 	Object *ob1, *obact = CTX_data_active_object(C);
-	DerivedMesh *dm;
 	Curve *cu;
 	Nurb *nu;
 	MetaBall *mb;
@@ -1905,12 +1903,11 @@ static int convert_exec(bContext *C, wmOperator *op)
 			/* note: get the mesh from the original, not from the copy in some
 			 * cases this doesn't give correct results (when MDEF is used for eg)
 			 */
-			dm = mesh_get_derived_final(depsgraph, scene, newob, CD_MASK_MESH);
-
-			DM_to_mesh(dm, newob->data, newob, CD_MASK_MESH, true);
-
-			/* re-tessellation is called by DM_to_mesh */
-
+			Mesh *me_eval = mesh_get_eval_final(depsgraph, scene, newob, CD_MASK_MESH);
+			if (newob->runtime.mesh_eval == me_eval) {
+				newob->runtime.mesh_eval = NULL;
+			}
+			BKE_mesh_nomain_to_mesh(me_eval, newob->data, newob, CD_MASK_MESH, true);
 			BKE_object_free_modifiers(newob, 0);   /* after derivedmesh calls! */
 		}
 		else if (ob->type == OB_FONT) {
