@@ -249,6 +249,12 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 	CTX_DATA_BEGIN(C, Type, instance, member) \
 	Type_id instance_id = ctx_link->ptr.id.data; \
 
+#define CTX_DATA_BEGIN_FOR_ID(C, Type, instance, member, instance_id) \
+	CTX_DATA_BEGIN(C, Type, instance, member) \
+	if (ctx_link->ptr.id.data != (instance_id)) { \
+		continue; \
+	}
+
 int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 
 #define CTX_DATA_COUNT(C, member) \

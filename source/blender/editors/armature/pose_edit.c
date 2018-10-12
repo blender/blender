@@ -316,7 +316,7 @@ static int pose_calculate_paths_exec(bContext *C, wmOperator *op)
 	}
 
 	/* set up path data for bones being calculated */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_FOR_ID (C, bPoseChannel *, pchan, selected_pose_bones, &ob->id)
 	{
 		/* verify makes sure that the selected bone has a bone with the appropriate settings */
 		animviz_verify_motionpaths(op->reports, scene, ob, pchan);
