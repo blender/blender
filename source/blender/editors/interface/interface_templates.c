@@ -3838,9 +3838,17 @@ void uiTemplateList(
 	MEM_SAFE_FREE(dyn_data->items_filter_neworder);
 	dyn_data->items_len = dyn_data->items_shown = -1;
 
-	/* if reverse, enable reverse flag */
+	/* if reverse, enable reverse and forced flag */
 	if (reverse) {
 		ui_list->filter_sort_flag |= UILST_FLT_SORT_REVERSE;
+		ui_list->filter_sort_flag |= UILST_FLT_FORCED_REVERSE;
+	}
+	else {
+		/* if it was forced, disable forced flag to restore all normal behavior */
+		if (ui_list->filter_sort_flag & UILST_FLT_FORCED_REVERSE) {
+			ui_list->filter_sort_flag &= ~UILST_FLT_SORT_REVERSE;
+			ui_list->filter_sort_flag &= ~UILST_FLT_FORCED_REVERSE;
+		}
 	}
 
 	/* When active item changed since last draw, scroll to it. */
