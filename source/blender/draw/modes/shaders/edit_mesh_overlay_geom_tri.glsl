@@ -104,6 +104,8 @@ void main()
 	doVertex(1);
 	doVertex(2);
 
+	EndPrimitive();
+
 	vec2 fixvec[6];
 	vec2 fixvecaf[6];
 
