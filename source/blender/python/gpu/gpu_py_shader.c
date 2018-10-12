@@ -82,16 +82,15 @@ success:
 	return 1;
 }
 
-static int bpygpu_uniform_location_get(const GPUShaderInterface *shaderface, const char *name)
+static int bpygpu_uniform_location_get(GPUShader *shader, const char *name, const char *error_prefix)
 {
-	const GPUShaderInput *uniform = GPU_shaderinterface_uniform(shaderface, name);
+	int uniform = GPU_shader_get_uniform(shader, name);
 
-	if (uniform == NULL) {
-		PyErr_SetString(PyExc_ValueError, "uniform not found");
-		return -1;
+	if (uniform == -1) {
+		PyErr_Format(PyExc_ValueError, "%s: uniform %.32s %.32s not found", error_prefix, name);
 	}
 
-	return uniform->location;
+	return uniform;
 }
 
 /** \} */
@@ -200,11 +199,10 @@ static PyObject *bpygpu_shader_uniform_from_name(
 		return NULL;
 	}
 
-	int uniform = GPU_shader_get_uniform(self->shader, name);
+	int uniform = bpygpu_uniform_location_get(
+	        self->shader, name, "GPUShader.get_uniform");
 
 	if (uniform == -1) {
-		PyErr_SetString(PyExc_SyntaxError,
-		                "GPUShader.get_uniform: uniform not found.");
 		return NULL;
 	}
 
@@ -232,8 +230,8 @@ static PyObject *bpygpu_shader_uniform_block_from_name(
 	int uniform = GPU_shader_get_uniform_block(self->shader, name);
 
 	if (uniform == -1) {
-		PyErr_SetString(PyExc_SyntaxError,
-		                "GPUShader.get_uniform_block: uniform not found");
+		PyErr_Format(PyExc_ValueError,
+		             "GPUShader.get_uniform_block: uniform %.32s not found", name);
 		return NULL;
 	}
 
@@ -401,7 +399,9 @@ static PyObject *bpygpu_shader_uniform_bool(
 		return NULL;
 	}
 
-	const int location = bpygpu_uniform_location_get(GPU_shader_get_interface(self->shader), params.id);
+	const int location = bpygpu_uniform_location_get(
+	        self->shader, params.id, error_prefix);
+
 	if (location == -1) {
 		return NULL;
 	}
@@ -472,7 +472,9 @@ static PyObject *bpygpu_shader_uniform_float(
 		return NULL;
 	}
 
-	const int location = bpygpu_uniform_location_get(GPU_shader_get_interface(self->shader), params.id);
+	const int location = bpygpu_uniform_location_get(
+	        self->shader, params.id, error_prefix);
+
 	if (location == -1) {
 		return NULL;
 	}
@@ -540,7 +542,9 @@ static PyObject *bpygpu_shader_uniform_int(
 		return NULL;
 	}
 
-	const int location = bpygpu_uniform_location_get(GPU_shader_get_interface(self->shader), params.id);
+	const int location = bpygpu_uniform_location_get(
+	        self->shader, params.id, error_prefix);
+
 	if (location == -1) {
 		return NULL;
 	}
@@ -571,8 +575,8 @@ static PyObject *bpygpu_shader_attr_from_name(
 	int attrib = GPU_shader_get_attribute(self->shader, name);
 
 	if (attrib == -1) {
-		PyErr_SetString(PyExc_SyntaxError,
-		                "GPUShader.attr_from_name: attribute not found.");
+		PyErr_Format(PyExc_ValueError,
+		             "GPUShader.attr_from_name: attribute %.32s not found", name);
 		return NULL;
 	}
 
