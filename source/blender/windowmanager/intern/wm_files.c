@@ -2166,7 +2166,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	char path[FILE_MAX];
-	int fileflags;
+	int fileflags, orig_fileflags;
 
 	save_set_compress(op);
 
@@ -2178,6 +2178,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 		wm_filepath_default(path);
 	}
 
+	orig_fileflags = G.fileflags;
 	fileflags = G.fileflags & ~G_FILE_USERPREFS;
 
 	/* set compression flag */
@@ -2193,8 +2194,18 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	         RNA_boolean_get(op->ptr, "copy")),
 	        G_FILE_SAVE_COPY);
 
-	if (wm_file_write(C, path, fileflags, op->reports) != 0)
+	int write_result = wm_file_write(C, path, fileflags, op->reports);
+
+	if ((op->flag & OP_IS_INVOKE) == 0) {
+		/* OP_IS_INVOKE is set when the operator is called from the GUI.
+		 * If it is not set, the operator is called from a script and
+		 * shouldn't influence G.fileflags. */
+		G.fileflags = orig_fileflags;
+	}
+
+	if (write_result != 0) {
 		return OPERATOR_CANCELLED;
+	}
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
 
