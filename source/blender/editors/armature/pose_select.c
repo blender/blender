@@ -459,34 +459,27 @@ void POSE_OT_select_all(wmOperatorType *ot)
 
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	/* only clear relevant transforms for selected bones */
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter)
-	{
-		Object *ob = ob_iter;
-		bArmature *arm = (bArmature *)ob->data;
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bArmature *arm = (bArmature *)ob->data;
+	bPoseChannel *pchan, *parent;
 
-		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan)
-		{
-			if (pchan) {
-				bPoseChannel *parent = pchan->parent;
-				if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
-					parent->bone->flag |= BONE_SELECTED;
-					arm->act_bone = parent->bone;
-				}
-				else {
-					continue;
-				}
-			}
-			else {
-				continue;
-			}
-			ED_pose_bone_select_tag_update(ob);
+	/* Determine if there is an active bone */
+	pchan = CTX_data_active_pose_bone(C);
+	if (pchan) {
+		parent = pchan->parent;
+		if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
+			parent->bone->flag |= BONE_SELECTED;
+			arm->act_bone = parent->bone;
 		}
-		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+		else {
+			return OPERATOR_CANCELLED;
+		}
 	}
-	FOREACH_OBJECT_IN_MODE_END;
+	else {
+		return OPERATOR_CANCELLED;
+	}
 
+	ED_pose_bone_select_tag_update(ob);
 	return OPERATOR_FINISHED;
 }
 
