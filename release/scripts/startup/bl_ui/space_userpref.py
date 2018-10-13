@@ -274,10 +274,6 @@ class USERPREF_PT_edit(Panel):
         col.prop(edit, "grease_pencil_euclidean_distance", text="Euclidean Distance")
         col.separator()
 
-        col.label(text="Grease Pencil:")
-        col.prop(edit, "use_grease_pencil_reverse_layers", text="Layers order Top-Down")
-        col.separator()
-
         col.label(text="Annotations:")
         sub = col.row()
         sub.prop(edit, "grease_pencil_default_color", text="Default Color")

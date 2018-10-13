@@ -885,7 +885,6 @@ typedef enum eText_Draw_Options {
 typedef enum eGP_UserdefSettings {
 	GP_PAINT_DOSMOOTH		    = (1 << 0),
 	GP_PAINT_DOSIMPLIFY		    = (1 << 1),
-	GP_PAINT_REVERSE_LAYERS     = (1 << 2),
 } eGP_UserdefSettings;
 
 enum {
