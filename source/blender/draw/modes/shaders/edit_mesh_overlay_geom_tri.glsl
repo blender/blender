@@ -9,7 +9,7 @@ layout(triangles) in;
  * triangle. Order is important.
  * TODO diagram
  */
-layout(triangle_strip, max_vertices=15) out;
+layout(triangle_strip, max_vertices=12) out;
 
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
@@ -36,6 +36,12 @@ out vec3 vertexColor;
 out float facing;
 #endif
 
+#ifdef ANTI_ALIASING
+#define Z_OFFSET 0.008
+#else
+#define Z_OFFSET 0.0
+#endif
+
 /* project to screen space */
 vec2 proj(vec4 pos)
 {
@@ -56,20 +62,33 @@ void doVertex(int v)
 	EmitVertex();
 }
 
-void doLoopStrip(int v, vec3 offset)
+void doVertexOfs(int v, vec2 fixvec)
 {
-	doVertex(v);
+#ifdef VERTEX_SELECTION
+	vertexColor = EDIT_MESH_vertex_color(vData[v].x).rgb;
+#endif
 
-	gl_Position.xyz += offset;
+#ifdef VERTEX_FACING
+	facing = vFacing[v];
+#endif
+	gl_Position = pPos[v];
+
+	gl_Position.xyz += vec3(fixvec, Z_OFFSET);
 
 	EmitVertex();
 }
 
-#ifdef ANTI_ALIASING
-#define Z_OFFSET 0.008
-#else
-#define Z_OFFSET 0.0
-#endif
+void mask_edge_flag(int v, ivec3 eflag)
+{
+	int vbe = (v + 2) % 3;
+	int vaf = (v + 1) % 3;
+
+	/* Only shade the edge that we are currently drawing.
+	 * (fix corner bleeding) */
+	flag[vbe] |= (EDGE_EXISTS & eflag[vbe]);
+	flag[vaf] &= ~EDGE_EXISTS;
+	flag[v]   &= ~EDGE_EXISTS;
+}
 
 void main()
 {
@@ -82,32 +101,23 @@ void main()
 	}
 
 	/* Face */
+	vec4 fcol;
 	if ((vData[0].x & FACE_ACTIVE) != 0)
-		faceColor = colorFaceSelect;
+		fcol = colorFaceSelect;
 	else if ((vData[0].x & FACE_SELECTED) != 0)
-		faceColor = colorFaceSelect;
+		fcol = colorFaceSelect;
 	else if ((vData[0].x & FACE_FREESTYLE) != 0)
-		faceColor = colorFaceFreestyle;
+		fcol = colorFaceFreestyle;
 	else
-		faceColor = colorFace;
+		fcol = colorFace;
 
 	/* Vertex */
 	ssPos[0] = proj(pPos[0]);
 	ssPos[1] = proj(pPos[1]);
 	ssPos[2] = proj(pPos[2]);
 
-	doVertex(0);
-	doVertex(1);
-	doVertex(2);
-
-	EndPrimitive();
-
-	for (int v = 0; v < 3; ++v) {
-		flag[v] &= ~EDGE_VERTEX_EXISTS;
-	}
-
-	vec2 fixvec[6];
-	vec2 fixvecaf[6];
+	vec2 fixvec[3];
+	vec2 fixvecaf[3];
 
 	/* This fix the case when 2 vertices are perfectly aligned
 	 * and corner vectors have nowhere to go.
@@ -152,26 +162,31 @@ void main()
 		}
 	}
 
-	/* to not let face color bleed */
-	faceColor.a = 0.0;
+	/* Remember that we are assuming the last vertex
+	 * of a triangle is the provoking vertex (decide what flat attribs are). */
 
-	/* Start with the same last vertex to create a
-	 * degenerate triangle in order to "create"
-	 * a new triangle strip */
-	for (int i = 2; i < 5; ++i) {
-		int vbe = (i - 1) % 3;
-		int vaf = (i + 1) % 3;
-		int v = i % 3;
-
-		doLoopStrip(v, vec3(fixvec[v], Z_OFFSET));
-
-		/* Only shade the edge that we are currently drawing.
-		 * (fix corner bleeding) */
-		flag[vbe] |= (EDGE_EXISTS & eflag[vbe]);
-		flag[vaf] &= ~EDGE_EXISTS;
-		flag[v]   &= ~EDGE_EXISTS;
-		doLoopStrip(vaf, vec3(fixvecaf[v], Z_OFFSET));
-
-		EndPrimitive();
-	}
+	/* Do 0 -> 1 edge strip */
+	faceColor = vec4(fcol.rgb, 0.0);
+	mask_edge_flag(0, eflag);
+	doVertexOfs(0, fixvec[0]);
+	doVertexOfs(1, fixvecaf[0]);
+	doVertex(0);
+	doVertex(1);
+	/* Do face triangle */
+	faceColor = fcol;
+	flag = eflag;
+	doVertex(2);
+	faceColor.a = 0.0; /* to not let face color bleed */
+	/* Do 1 -> 2 edge strip */
+	mask_edge_flag(1, eflag);
+	doVertexOfs(1, fixvec[1]);
+	doVertexOfs(2, fixvecaf[1]);
+	EndPrimitive();
+	/* Do 2 -> 0 edge strip */
+	mask_edge_flag(2, eflag);
+	doVertex(2);
+	doVertex(0);
+	doVertexOfs(2, fixvec[2]);
+	doVertexOfs(0, fixvecaf[2]);
+	EndPrimitive();
 }
