@@ -887,7 +887,7 @@ static void draw_gpencil_do_blur(
 	e_data->input_color_tx = e_data->temp_color_tx_b;
 
 	if ((samples > 0) && ((bx > 0) || (by > 0))) {
-		for (int x = 0; x < samples; x++) {
+		for (int x = 0; x < samples * 4; x++) {
 
 			/* horizontal */
 			blur[0] = bx;
