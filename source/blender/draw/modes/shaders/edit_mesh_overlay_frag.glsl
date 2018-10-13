@@ -12,11 +12,16 @@ flat in ivec3 flag;
 #ifdef VERTEX_SELECTION
 in vec3 vertexColor;
 #endif
+
+#ifdef EDGE_FIX
+flat in vec2 ssPos[3];
+#else
+in vec3 barycentric;
+#endif
+
 #ifdef VERTEX_FACING
 in float facing;
 #endif
-
-in vec3 barycentric;
 
 out vec4 FragColor;
 
@@ -27,13 +32,41 @@ out vec4 FragColor;
 
 /* Style Parameters in pixel */
 
-void distToEdgeAndPoint(vec2 dir, vec2 ori, out float edge, out float point)
+void distToEdgesAndPoints(out vec3 edges, out vec3 points)
 {
-	dir = normalize(dir.xy);
-	dir = vec2(-dir.y, dir.x);
-	vec2 of = gl_FragCoord.xy - ori;
-	point = sqrt(dot(of, of));
-	edge = abs(dot(dir, of));
+#ifdef EDGE_FIX
+	vec2 e0 = normalize(ssPos[1] - ssPos[0] + 1e-8);
+	vec2 e1 = normalize(ssPos[2] - ssPos[1] + 1e-8);
+	vec2 e2 = normalize(ssPos[0] - ssPos[2] + 1e-8);
+	e0 = vec2(-e0.y, e0.x);
+	e1 = vec2(-e1.y, e1.x);
+	e2 = vec2(-e2.y, e2.x);
+	vec2 p0 = gl_FragCoord.xy - ssPos[0];
+	vec2 p1 = gl_FragCoord.xy - ssPos[1];
+	vec2 p2 = gl_FragCoord.xy - ssPos[2];
+	edges.z = abs(dot(e0, p0));
+	edges.x = abs(dot(e1, p1));
+	edges.y = abs(dot(e2, p2));
+#else
+	vec3 dx = dFdx(barycentric);
+	vec3 dy = dFdy(barycentric);
+	/* per component derivative */
+	vec2 d0 = vec2(dx.x, dy.x);
+	vec2 d1 = vec2(dx.y, dy.y);
+	vec2 d2 = vec2(dx.z, dy.z);
+	vec3 d = vec3(length(d0), length(d1), length(d2));
+
+	edges = abs(vec3(barycentric / d));
+#endif
+
+#if defined(VERTEX_SELECTION) && defined(EDGE_FIX)
+	points.x = dot(p0, p0);
+	points.y = dot(p1, p1);
+	points.z = dot(p2, p2);
+	points = sqrt(points);
+#else
+	points = vec3(1e10);
+#endif
 }
 
 void colorDist(vec4 color, float dist)
@@ -54,17 +87,8 @@ void colorDistEdge(vec4 color, float dist)
 
 void main()
 {
-	/* Step 1 : Computing Distances */
-	vec3 dx = dFdx(barycentric);
-	vec3 dy = dFdy(barycentric);
-	vec3 d = vec3(
-		length(vec2(dx.x, dy.x)),
-		length(vec2(dx.y, dy.y)),
-		length(vec2(dx.z, dy.z))
-	);
-	vec3 e = abs(vec3(barycentric / d));
-
-	/* Step 2 : coloring (order dependent) */
+	vec3 e, p;
+	distToEdgesAndPoints(e, p);
 
 	/* Face */
 	FragColor = faceColor;
@@ -99,9 +123,8 @@ void main()
 		}
 	}
 
-#if 0
+#if defined(VERTEX_SELECTION) && defined(EDGE_FIX)
 	/* Points */
-#ifdef VERTEX_SELECTION
 	for (int v = 0; v < 3; ++v) {
 		if ((flag[v] & EDGE_VERTEX_EXISTS) == 0) {
 			/* Leave as-is, no vertex. */
@@ -116,7 +139,6 @@ void main()
 			colorDist(point_color, size);
 		}
 	}
-#endif
 #endif
 
 #ifdef VERTEX_FACING

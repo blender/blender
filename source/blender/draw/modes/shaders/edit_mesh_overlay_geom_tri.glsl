@@ -28,7 +28,7 @@ flat out vec3 edgesBweight;
 flat out vec4 faceColor;
 flat out ivec3 flag;
 
-out vec3 barycentric;
+flat out vec2 ssPos[3];
 #ifdef VERTEX_SELECTION
 out vec3 vertexColor;
 #endif
@@ -52,8 +52,6 @@ void doVertex(int v)
 	facing = vFacing[v];
 #endif
 	gl_Position = pPos[v];
-	barycentric = vec3(0.0);
-	barycentric[v % 3] = 1.0;
 
 	EmitVertex();
 }
@@ -63,7 +61,6 @@ void doLoopStrip(int v, vec3 offset)
 	doVertex(v);
 
 	gl_Position.xyz += offset;
-	barycentric = vec3(1.0);
 
 	EmitVertex();
 }
@@ -95,7 +92,6 @@ void main()
 		faceColor = colorFace;
 
 	/* Vertex */
-	vec2 ssPos[3];
 	ssPos[0] = proj(pPos[0]);
 	ssPos[1] = proj(pPos[1]);
 	ssPos[2] = proj(pPos[2]);
@@ -105,6 +101,10 @@ void main()
 	doVertex(2);
 
 	EndPrimitive();
+
+	for (int v = 0; v < 3; ++v) {
+		flag[v] &= ~EDGE_VERTEX_EXISTS;
+	}
 
 	vec2 fixvec[6];
 	vec2 fixvecaf[6];
