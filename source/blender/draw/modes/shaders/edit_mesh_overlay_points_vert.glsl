@@ -3,7 +3,7 @@ uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
-uniform float ofs = 5e-5;
+uniform float ofs = 1e-3;
 
 in vec3 pos;
 in ivec4 data;
@@ -21,7 +21,7 @@ void main()
 
 	gl_PointSize = sizeVertex * 2.0;
 	gl_Position = ModelViewProjectionMatrix * vec4(pos, 1.0);
-	gl_Position -= ofs;
+	gl_Position.z -= ofs;
 
 #ifdef VERTEX_FACING
 	vec4 vPos = ModelViewMatrix * vec4(pos, 1.0);
