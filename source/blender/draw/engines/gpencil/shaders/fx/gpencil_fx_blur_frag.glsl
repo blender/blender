@@ -56,4 +56,7 @@ void main()
     outcolor += texelFetch(strokeColor, ivec2(uv.x + 1.0 * dx, uv.y - 1.0 * dy), 0) * 0.0947416;
 
 	FragColor = clamp(outcolor, 0, 1.0);
+	
+	if (outcolor.a < 0.02f) 
+		discard;
 }
