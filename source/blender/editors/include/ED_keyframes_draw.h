@@ -50,6 +50,17 @@ struct DLRBT_Tree;
 
 /* ****************************** Base Structs ****************************** */
 
+/* Information about the stretch of time from current to the next column */
+typedef struct ActKeyBlockInfo {
+	/* Combination of flags from all curves. */
+	short flag;
+	/* Mask of flags that differ between curves. */
+	short conflict;
+
+	/* Selection flag. */
+	char sel;
+} ActKeyBlockInfo;
+
 /* Keyframe Column Struct */
 typedef struct ActKeyColumn {
 	/* ListBase linkage */
@@ -65,36 +76,21 @@ typedef struct ActKeyColumn {
 	short sel;
 	float cfra;
 
-	/* only while drawing - used to determine if long-keyframe needs to be drawn */
-	short modified;
-	short totcurve;
+	/* key-block info */
+	ActKeyBlockInfo block;
+
+	/* number of curves and keys in this column */
+	short totcurve, totkey, totblock;
 } ActKeyColumn;
 
-/* 'Long Keyframe' Struct */
-typedef struct ActKeyBlock {
-	/* ListBase linkage */
-	struct ActKeyBlock *next, *prev;
-
-	/* sorting-tree linkage */
-	struct ActKeyBlock *left, *right;   /* 'children' of this node, less than and greater than it (respectively) */
-	struct ActKeyBlock *parent;         /* parent of this node in the tree */
-	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
-
-	/* key-block info */
-	char sel;
-	short flag;
-	float val;
-	float start, end;
-
-	/* only while drawing - used to determine if block needs to be drawn */
-	short modified;
-	short totcurve;
-} ActKeyBlock;
-
-/* ActKeyBlock - Flag */
-typedef enum eActKeyBlock_Flag {
+/* ActKeyBlockInfo - Flag */
+typedef enum eActKeyBlock_Hold {
 	/* Key block represents a moving hold */
 	ACTKEYBLOCK_FLAG_MOVING_HOLD     = (1 << 0),
+	/* Key block represents a static hold */
+	ACTKEYBLOCK_FLAG_STATIC_HOLD     = (1 << 1),
+	/* Key block represents any kind of hold */
+	ACTKEYBLOCK_FLAG_ANY_HOLD        = (1 << 2),
 } eActKeyBlock_Flag;
 
 /* *********************** Keyframe Drawing ****************************** */
@@ -138,25 +134,25 @@ void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Mas
 
 /* Keydata Generation --------------- */
 /* F-Curve */
-void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys);
 /* Action Group */
-void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys);
 /* Action */
-void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys);
 /* Object */
-void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys);
 /* Cache File */
-void cachefile_to_keylist(struct bDopeSheet *ads, struct CacheFile *cache_file, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void cachefile_to_keylist(struct bDopeSheet *ads, struct CacheFile *cache_file, struct DLRBT_Tree *keys);
 /* Scene */
-void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads, struct bGPdata *gpd, struct DLRBT_Tree *keys, const bool active);
 /* Grease Pencil Layer */
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
 /* Palette */
-void palette_to_keylist(struct bDopeSheet *ads, struct Palette *palette, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+void palette_to_keylist(struct bDopeSheet *ads, struct Palette *palette, struct DLRBT_Tree *keys);
 /* Mask */
 void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, struct DLRBT_Tree *keys);
 
@@ -164,10 +160,7 @@ void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, 
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
 short compare_ak_cfraPtr(void *node, void *data);
 
-/* Comparator callback used for ActKeyBlocks and cframe float-value pointer */
-short compare_ab_cfraPtr(void *node, void *data);
-
-/* Checks if ActKeyBlock can be used (i.e. drawn/used to detect "holds") */
-bool actkeyblock_is_valid(ActKeyBlock *ab, struct DLRBT_Tree *keys);
+/* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
+int actkeyblock_get_valid_hold(ActKeyColumn *ab);
 
 #endif  /*  __ED_KEYFRAMES_DRAW_H__ */

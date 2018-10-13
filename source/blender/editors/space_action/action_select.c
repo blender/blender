@@ -1449,37 +1449,37 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 				case ALE_SCE:
 				{
 					Scene *scene = (Scene *)ale->key_data;
-					scene_to_keylist(ads, scene, &anim_keys, NULL);
+					scene_to_keylist(ads, scene, &anim_keys);
 					break;
 				}
 				case ALE_OB:
 				{
 					Object *ob = (Object *)ale->key_data;
-					ob_to_keylist(ads, ob, &anim_keys, NULL);
+					ob_to_keylist(ads, ob, &anim_keys);
 					break;
 				}
 				case ALE_ACT:
 				{
 					bAction *act = (bAction *)ale->key_data;
-					action_to_keylist(adt, act, &anim_keys, NULL);
+					action_to_keylist(adt, act, &anim_keys);
 					break;
 				}
 				case ALE_FCURVE:
 				{
 					FCurve *fcu = (FCurve *)ale->key_data;
-					fcurve_to_keylist(adt, fcu, &anim_keys, NULL);
+					fcurve_to_keylist(adt, fcu, &anim_keys);
 					break;
 				}
 			}
 		}
 		else if (ale->type == ANIMTYPE_SUMMARY) {
 			/* dopesheet summary covers everything */
-			summary_to_keylist(ac, &anim_keys, NULL);
+			summary_to_keylist(ac, &anim_keys);
 		}
 		else if (ale->type == ANIMTYPE_GROUP) {
 			// TODO: why don't we just give groups key_data too?
 			bActionGroup *agrp = (bActionGroup *)ale->data;
-			agroup_to_keylist(adt, agrp, &anim_keys, NULL);
+			agroup_to_keylist(adt, agrp, &anim_keys);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
 			// TODO: why don't we just give gplayers key_data too?

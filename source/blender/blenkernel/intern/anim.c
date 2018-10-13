@@ -65,8 +65,8 @@
 
 // XXX bad level call...
 extern short compare_ak_cfraPtr(void *node, void *data);
-extern void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
-extern void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, struct DLRBT_Tree *blocks);
+extern void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys);
+extern void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys);
 
 /* --------------------- */
 /* forward declarations */
@@ -485,13 +485,11 @@ void animviz_calc_motionpaths(Depsgraph *depsgraph,
 				bActionGroup *agrp = BKE_action_group_find_name(adt->action, mpt->pchan->name);
 
 				if (agrp) {
-					agroup_to_keylist(adt, agrp, &mpt->keys, NULL);
-					BLI_dlrbTree_linkedlist_sync(&mpt->keys);
+					agroup_to_keylist(adt, agrp, &mpt->keys);
 				}
 			}
 			else {
-				action_to_keylist(adt, adt->action, &mpt->keys, NULL);
-				BLI_dlrbTree_linkedlist_sync(&mpt->keys);
+				action_to_keylist(adt, adt->action, &mpt->keys);
 			}
 		}
 	}

@@ -551,11 +551,11 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 	}
 
 	/* populate tree with keyframe nodes */
-	scene_to_keylist(&ads, scene, &keys, NULL);
+	scene_to_keylist(&ads, scene, &keys);
 	gpencil_to_keylist(&ads, scene->gpd, &keys, false);
 
 	if (ob) {
-		ob_to_keylist(&ads, ob, &keys, NULL);
+		ob_to_keylist(&ads, ob, &keys);
 		gpencil_to_keylist(&ads, ob->data, &keys, false);
 	}
 
@@ -563,9 +563,6 @@ static bool find_prev_next_keyframes(struct bContext *C, int *nextfra, int *prev
 		MaskLayer *masklay = BKE_mask_layer_active(mask);
 		mask_to_keylist(&ads, masklay, &keys);
 	}
-
-	/* build linked-list for searching */
-	BLI_dlrbTree_linkedlist_sync(&keys);
 
 	/* find matching keyframe in the right direction */
 	do {

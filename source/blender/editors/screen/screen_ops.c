@@ -2627,10 +2627,10 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	}
 
 	/* populate tree with keyframe nodes */
-	scene_to_keylist(&ads, scene, &keys, NULL);
+	scene_to_keylist(&ads, scene, &keys);
 
 	if (ob) {
-		ob_to_keylist(&ads, ob, &keys, NULL);
+		ob_to_keylist(&ads, ob, &keys);
 
 		if (ob->type == OB_GPENCIL) {
 			const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);
@@ -2645,9 +2645,6 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 			mask_to_keylist(&ads, masklay, &keys);
 		}
 	}
-
-	/* build linked-list for searching */
-	BLI_dlrbTree_linkedlist_sync(&keys);
 
 	/* find matching keyframe in the right direction */
 	if (next)

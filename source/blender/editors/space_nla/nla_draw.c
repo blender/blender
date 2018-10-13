@@ -106,8 +106,7 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 	/* get a list of the keyframes with NLA-scaling applied */
 	DLRBT_Tree keys;
 	BLI_dlrbTree_init(&keys);
-	action_to_keylist(adt, act, &keys, NULL);
-	BLI_dlrbTree_linkedlist_sync(&keys);
+	action_to_keylist(adt, act, &keys);
 
 	if (ELEM(NULL, act, keys.first))
 		return;

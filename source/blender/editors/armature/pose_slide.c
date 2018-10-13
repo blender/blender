@@ -722,12 +722,9 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 		/* do this for each F-Curve */
 		for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 			FCurve *fcu = (FCurve *)ld->data;
-			fcurve_to_keylist(adt, fcu, &pso->keys, NULL);
+			fcurve_to_keylist(adt, fcu, &pso->keys);
 		}
 	}
-
-	/* consolidate these keyframes, and figure out the nearest ones */
-	BLI_dlrbTree_linkedlist_sync(&pso->keys);
 
 	/* cancel if no keyframes found... */
 	if (pso->keys.root) {
@@ -1265,8 +1262,7 @@ typedef union tPosePropagate_ModeData {
  */
 static float pose_propagate_get_boneHoldEndFrame(Object *ob, tPChanFCurveLink *pfl, float startFrame)
 {
-	DLRBT_Tree keys, blocks;
-	ActKeyBlock *ab;
+	DLRBT_Tree keys;
 
 	AnimData *adt = ob->adt;
 	LinkData *ld;
@@ -1274,84 +1270,67 @@ static float pose_propagate_get_boneHoldEndFrame(Object *ob, tPChanFCurveLink *p
 
 	/* set up optimized data-structures for searching for relevant keyframes + holds */
 	BLI_dlrbTree_init(&keys);
-	BLI_dlrbTree_init(&blocks);
 
 	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 		FCurve *fcu = (FCurve *)ld->data;
-		fcurve_to_keylist(adt, fcu, &keys, &blocks);
+		fcurve_to_keylist(adt, fcu, &keys);
 	}
-
-	BLI_dlrbTree_linkedlist_sync(&keys);
-	BLI_dlrbTree_linkedlist_sync(&blocks);
 
 	/* find the long keyframe (i.e. hold), and hence obtain the endFrame value
 	 *	- the best case would be one that starts on the frame itself
 	 */
-	ab = (ActKeyBlock *)BLI_dlrbTree_search_exact(&blocks, compare_ab_cfraPtr, &startFrame);
+	ActKeyColumn *ab = (ActKeyColumn *)BLI_dlrbTree_search_exact(&keys, compare_ak_cfraPtr, &startFrame);
 
-	if (actkeyblock_is_valid(ab, &keys) == 0) {
-		/* There are only two cases for no-exact match:
-		 *  1) the current frame is just before another key but not on a key itself
-		 *  2) the current frame is on a key, but that key doesn't link to the next
-		 *
-		 * If we've got the first case, then we can search for another block,
-		 * otherwise forget it, as we'd be overwriting some valid data.
+	/* There are only two cases for no-exact match:
+	 *  1) the current frame is just before another key but not on a key itself
+	 *  2) the current frame is on a key, but that key doesn't link to the next
+	 *
+	 * If we've got the first case, then we can search for another block,
+	 * otherwise forget it, as we'd be overwriting some valid data.
+	 */
+	if (ab == NULL) {
+		/* we've got case 1, so try the one after */
+		ab = (ActKeyColumn *)BLI_dlrbTree_search_next(&keys, compare_ak_cfraPtr, &startFrame);
+
+		if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
+			/* try the block before this frame then as last resort */
+			ab = (ActKeyColumn *)BLI_dlrbTree_search_prev(&keys, compare_ak_cfraPtr, &startFrame);
+		}
+	}
+
+	/* whatever happens, stop searching now... */
+	if ((actkeyblock_get_valid_hold(ab) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
+		/* restrict range to just the frame itself
+		 * i.e. everything is in motion, so no holds to safely overwrite
 		 */
-		if (BLI_dlrbTree_search_exact(&keys, compare_ak_cfraPtr, &startFrame) == NULL) {
-			/* we've got case 1, so try the one after */
-			ab = (ActKeyBlock *)BLI_dlrbTree_search_next(&blocks, compare_ab_cfraPtr, &startFrame);
-
-			if (actkeyblock_is_valid(ab, &keys) == 0) {
-				/* try the block before this frame then as last resort */
-				ab = (ActKeyBlock *)BLI_dlrbTree_search_prev(&blocks, compare_ab_cfraPtr, &startFrame);
-
-				/* whatever happens, stop searching now... */
-				if (actkeyblock_is_valid(ab, &keys) == 0) {
-					/* restrict range to just the frame itself
-					 * i.e. everything is in motion, so no holds to safely overwrite
-					 */
-					ab = NULL;
-				}
-			}
-		}
-		else {
-			/* we've got case 2 - set ab to NULL just in case, since we shouldn't do anything in this case */
-			ab = NULL;
-		}
+		ab = NULL;
 	}
 
 	/* check if we can go any further than we've already gone */
 	if (ab) {
 		/* go to next if it is also valid and meets "extension" criteria */
 		while (ab->next) {
-			ActKeyBlock *abn = (ActKeyBlock *)ab->next;
+			ActKeyColumn *abn = ab->next;
 
 			/* must be valid */
-			if (actkeyblock_is_valid(abn, &keys) == 0)
+			if ((actkeyblock_get_valid_hold(abn) & ACTKEYBLOCK_FLAG_STATIC_HOLD) == 0) {
 				break;
-			/* should start on the same frame that the last ended on */
-			if (ab->end != abn->start)
-				break;
+			}
 			/* should have the same number of curves */
-			if (ab->totcurve != abn->totcurve)
+			if (ab->totblock != abn->totblock) {
 				break;
-			/* should have the same value
-			 * XXX: this may be a bit fuzzy on larger data sets, so be careful
-			 */
-			if (ab->val != abn->val)
-				break;
+			}
 
 			/* we can extend the bounds to the end of this "next" block now */
 			ab = abn;
 		}
 
 		/* end frame can now take the value of the end of the block */
-		endFrame = ab->end;
+		endFrame = ab->next->cfra;
 	}
 
 	/* free temp memory */
 	BLI_dlrbTree_free(&keys);
-	BLI_dlrbTree_free(&blocks);
 
 	/* return the end frame we've found */
 	return endFrame;
