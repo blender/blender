@@ -298,6 +298,8 @@ class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
         if not userprefs.edit.use_keyframe_insert_available:
             col.prop(toolsettings, "use_record_with_nla", text="Layered Recording")
 
+        layout.prop(toolsettings, "use_keyframe_cycle_aware")
+
 
 ###################################
 

@@ -924,7 +924,8 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 /* Determine which keying flags apply based on the override flags */
 static short keyingset_apply_keying_flags(const short base_flags, const short overrides, const short own_flags)
 {
-	short result = 0;
+	/* Pass through all flags by default (i.e. even not explicitly listed ones). */
+	short result = base_flags;
 
 	/* The logic for whether a keying flag applies is as follows:
 	 *  - If the flag in question is set in "overrides", that means that the
@@ -934,10 +935,8 @@ static short keyingset_apply_keying_flags(const short base_flags, const short ov
 	 */
 #define APPLY_KEYINGFLAG_OVERRIDE(kflag) \
 	if (overrides & kflag) {             \
+		result &= ~kflag;                \
 		result |= (own_flags & kflag);   \
-	}                                    \
-	else {                               \
-		result |= (base_flags & kflag);  \
 	}
 
 	/* Apply the flags one by one...

@@ -827,6 +827,7 @@ typedef enum eAutokey_Flag {
 	/* toolsettings->autokey_flag */
 	AUTOKEY_FLAG_ONLYKEYINGSET	= (1 << 6),
 	AUTOKEY_FLAG_NOWARNING		= (1 << 7),
+	AUTOKEY_FLAG_CYCLEAWARE		= (1 << 8),
 	ANIMRECORD_FLAG_WITHNLA		= (1 << 10),
 } eAutokey_Flag;
 

@@ -886,25 +886,43 @@ void fcurve_store_samples(FCurve *fcu, void *data, int start, int end, FcuSample
  * that the handles are correctly
  */
 
-/* Checks if the F-Curve has a Cycles modifier with simple settings that warrant transition smoothing */
-bool BKE_fcurve_is_cyclic(FCurve *fcu)
+/* Checks if the F-Curve has a Cycles modifier, and returns the type of the cycle behavior. */
+eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
 {
 	FModifier *fcm = fcu->modifiers.first;
 
-	if (!fcm || fcm->type != FMODIFIER_TYPE_CYCLES)
-		return false;
+	if (!fcm || fcm->type != FMODIFIER_TYPE_CYCLES) {
+		return FCU_CYCLE_NONE;
+	}
 
-	if (fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED))
-		return false;
+	if (fcm->flag & (FMODIFIER_FLAG_DISABLED | FMODIFIER_FLAG_MUTED)) {
+		return FCU_CYCLE_NONE;
+	}
 
-	if (fcm->flag & (FMODIFIER_FLAG_RANGERESTRICT | FMODIFIER_FLAG_USEINFLUENCE))
-		return false;
+	if (fcm->flag & (FMODIFIER_FLAG_RANGERESTRICT | FMODIFIER_FLAG_USEINFLUENCE)) {
+		return FCU_CYCLE_NONE;
+	}
 
 	FMod_Cycles *data = (FMod_Cycles *)fcm->data;
 
-	return data && data->after_cycles == 0 && data->before_cycles == 0 &&
-	    ELEM(data->before_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET) &&
-	    ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET);
+	if (data && data->after_cycles == 0 && data->before_cycles == 0) {
+		if (data->before_mode == FCM_EXTRAPOLATE_CYCLIC && data->after_mode == FCM_EXTRAPOLATE_CYCLIC) {
+			return FCU_CYCLE_PERFECT;
+		}
+
+		if (ELEM(data->before_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET) &&
+		    ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET)) {
+			return FCU_CYCLE_OFFSET;
+		}
+	}
+
+	return FCU_CYCLE_NONE;
+}
+
+/* Checks if the F-Curve has a Cycles modifier with simple settings that warrant transition smoothing */
+bool BKE_fcurve_is_cyclic(FCurve *fcu)
+{
+	return BKE_fcurve_get_cycle_type(fcu) != FCU_CYCLE_NONE;
 }
 
 /* Shifts 'in' by the difference in coordinates between 'to' and 'from', using 'out' as the output buffer.

@@ -116,6 +116,10 @@ short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 		/* keyframing mode - only replace existing keyframes */
 		if (IS_AUTOKEY_MODE(scene, EDITKEYS))
 			flag |= INSERTKEY_REPLACE;
+
+		/* cycle-aware keyframe insertion - preserve cycle period and flow */
+		if (IS_AUTOKEY_FLAG(scene, CYCLEAWARE))
+			flag |= INSERTKEY_CYCLE_AWARE;
 	}
 
 	return flag;
@@ -303,7 +307,66 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
 /* ************************************************** */
 /* KEYFRAME INSERTION */
 
+/* Move the point where a key is about to be inserted to be inside the main cycle range.
+ * Returns the type of the cycle if it is enabled and valid.
+ */
+static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, float *py)
+{
+	if (fcu->totvert < 2 || !fcu->bezt) {
+		return FCU_CYCLE_NONE;
+	}
+
+	eFCU_Cycle_Type type = BKE_fcurve_get_cycle_type(fcu);
+
+	if (type == FCU_CYCLE_NONE) {
+		return FCU_CYCLE_NONE;
+	}
+
+	BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert-1];
+	float start = first->vec[1][0], end = last->vec[1][0];
+
+	if (start >= end) {
+		return FCU_CYCLE_NONE;
+	}
+
+	if (*px < start || *px > end) {
+		float period = end - start;
+		float step = floorf((*px - start) / period);
+		*px -= step * period;
+
+		if (type == FCU_CYCLE_OFFSET) {
+			/* Nasty check to handle the case when the modes are different better. */
+			FMod_Cycles *data = (FMod_Cycles *)((FModifier*)fcu->modifiers.first)->data;
+			short mode = (step >= 0) ? data->after_mode : data->before_mode;
+
+			if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {
+				*py -= step * (last->vec[1][1] - first->vec[1][1]);
+			}
+		}
+	}
+
+	return type;
+}
+
 /* -------------- BezTriple Insertion -------------------- */
+
+/* Change the Y position of a keyframe to match the input, adjusting handles. */
+static void replace_bezt_keyframe_ypos(BezTriple *dst, const BezTriple *bezt)
+{
+	/* just change the values when replacing, so as to not overwrite handles */
+	float dy = bezt->vec[1][1] - dst->vec[1][1];
+
+	/* just apply delta value change to the handle values */
+	dst->vec[0][1] += dy;
+	dst->vec[1][1] += dy;
+	dst->vec[2][1] += dy;
+
+	dst->f1 = bezt->f1;
+	dst->f2 = bezt->f2;
+	dst->f3 = bezt->f3;
+
+	/* TODO: perform some other operations? */
+}
 
 /* This function adds a given BezTriple to an F-Curve. It will allocate
  * memory for the array if needed, and will insert the BezTriple into a
@@ -329,20 +392,14 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
 					fcu->bezt[i] = *bezt;
 				}
 				else {
-					/* just change the values when replacing, so as to not overwrite handles */
-					BezTriple *dst = (fcu->bezt + i);
-					float dy = bezt->vec[1][1] - dst->vec[1][1];
+					replace_bezt_keyframe_ypos(&fcu->bezt[i], bezt);
+				}
 
-					/* just apply delta value change to the handle values */
-					dst->vec[0][1] += dy;
-					dst->vec[1][1] += dy;
-					dst->vec[2][1] += dy;
-
-					dst->f1 = bezt->f1;
-					dst->f2 = bezt->f2;
-					dst->f3 = bezt->f3;
-
-					/* TODO: perform some other operations? */
+				if (flag & INSERTKEY_CYCLE_AWARE) {
+					/* If replacing an end point of a cyclic curve without offset, modify the other end too. */
+					if ((i == 0 || i == fcu->totvert - 1) && BKE_fcurve_get_cycle_type(fcu) == FCU_CYCLE_PERFECT) {
+						replace_bezt_keyframe_ypos(&fcu->bezt[i == 0 ? fcu->totvert - 1 : 0], bezt);
+					}
 				}
 			}
 		}
@@ -978,6 +1035,14 @@ bool insert_keyframe_direct(Depsgraph *depsgraph, ReportList *reports, PointerRN
 	else {
 		/* read value from system */
 		curval = setting_get_rna_value(depsgraph, &ptr, prop, fcu->array_index, false);
+	}
+
+	/* adjust coordinates for cycle aware insertion */
+	if (flag & INSERTKEY_CYCLE_AWARE) {
+		if (remap_cyclic_keyframe_location(fcu, &cfra, &curval) != FCU_CYCLE_PERFECT) {
+			/* inhibit action from insert_vert_fcurve unless it's a perfect cycle */
+			flag &= ~INSERTKEY_CYCLE_AWARE;
+		}
 	}
 
 	/* only insert keyframes where they are needed */

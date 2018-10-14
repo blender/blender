@@ -273,6 +273,17 @@ bool BKE_fcurve_is_protected(struct FCurve *fcu);
 /* The curve is an infinite cycle via Cycles modifier */
 bool BKE_fcurve_is_cyclic(struct FCurve *fcu);
 
+/* Type of infinite cycle for a curve. */
+typedef enum eFCU_Cycle_Type {
+	FCU_CYCLE_NONE = 0,
+	/* The cycle repeats identically to the base range. */
+	FCU_CYCLE_PERFECT,
+	/* The cycle accumulates the change between start and end keys. */
+	FCU_CYCLE_OFFSET
+} eFCU_Cycle_Type;
+
+eFCU_Cycle_Type BKE_fcurve_get_cycle_type(struct FCurve *fcu);
+
 /* -------- Curve Sanity --------  */
 
 void calchandles_fcurve(struct FCurve *fcu);

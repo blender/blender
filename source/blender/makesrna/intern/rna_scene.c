@@ -2593,6 +2593,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	                         "Automatic keyframe insertion using active Keying Set only");
 	RNA_def_property_ui_icon(prop, ICON_KEYINGSET, 0);
 
+	prop = RNA_def_property(srna, "use_keyframe_cycle_aware", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "autokey_flag", AUTOKEY_FLAG_CYCLEAWARE);
+	RNA_def_property_ui_text(prop, "Cycle-Aware Keying",
+	                         "For channels with cyclic extrapolation, keyframe insertion is automatically "
+	                         "remapped inside the cycle time range, and keeps ends in sync");
+
 	/* Keyframing */
 	prop = RNA_def_property(srna, "keyframe_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "keyframe_type");
