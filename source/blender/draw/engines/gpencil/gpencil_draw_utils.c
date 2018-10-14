@@ -569,23 +569,24 @@ static void gpencil_add_fill_shgroup(
 		interp_v3_v3v3(tfill, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
 		tfill[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
 		if ((tfill[3] > GPENCIL_ALPHA_OPACITY_THRESH) || (gp_style->fill_style > 0)) {
-			const float *color;
-			if (!onion) {
-				color = tfill;
-			}
-			else {
-				if (custonion) {
-					color = tintcolor;
-				}
-				else {
-					ARRAY_SET_ITEMS(tfill, UNPACK3(gps->runtime.tmp_fill_rgba), tintcolor[3]);
+			if (cache->is_dirty) {
+				const float *color;
+				if (!onion) {
 					color = tfill;
 				}
-			}
-			if (cache->is_dirty) {
+				else {
+					if (custonion) {
+						color = tintcolor;
+					}
+					else {
+						ARRAY_SET_ITEMS(tfill, UNPACK3(gps->runtime.tmp_fill_rgba), tintcolor[3]);
+						color = tfill;
+					}
+				}
 				gpencil_batch_cache_check_free_slots(ob);
 				cache->batch_fill[cache->cache_idx] = DRW_gpencil_get_fill_geom(ob, gps, color);
 			}
+
 			DRW_shgroup_call_add(fillgrp, cache->batch_fill[cache->cache_idx], gpf->runtime.viewmatrix);
 		}
 	}
@@ -603,31 +604,31 @@ static void gpencil_add_stroke_shgroup(GpencilBatchCache *cache, DRWShadingGroup
 	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
 	/* set color using base color, tint color and opacity */
-	if (!onion) {
-		/* if special stroke, use fill color as stroke color */
-		if (gps->flag & GP_STROKE_NOFILL) {
-			interp_v3_v3v3(tcolor, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
-			tcolor[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
-		}
-		else {
-			interp_v3_v3v3(tcolor, gps->runtime.tmp_stroke_rgba, tintcolor, tintcolor[3]);
-			tcolor[3] = gps->runtime.tmp_stroke_rgba[3] * opacity;
-		}
-		copy_v4_v4(ink, tcolor);
-	}
-	else {
-		if (custonion) {
-			copy_v4_v4(ink, tintcolor);
-		}
-		else {
-			ARRAY_SET_ITEMS(tcolor, UNPACK3(gps->runtime.tmp_stroke_rgba), opacity);
+	if (cache->is_dirty) {
+		if (!onion) {
+			/* if special stroke, use fill color as stroke color */
+			if (gps->flag & GP_STROKE_NOFILL) {
+				interp_v3_v3v3(tcolor, gps->runtime.tmp_fill_rgba, tintcolor, tintcolor[3]);
+				tcolor[3] = gps->runtime.tmp_fill_rgba[3] * opacity;
+			}
+			else {
+				interp_v3_v3v3(tcolor, gps->runtime.tmp_stroke_rgba, tintcolor, tintcolor[3]);
+				tcolor[3] = gps->runtime.tmp_stroke_rgba[3] * opacity;
+			}
 			copy_v4_v4(ink, tcolor);
 		}
-	}
+		else {
+			if (custonion) {
+				copy_v4_v4(ink, tintcolor);
+			}
+			else {
+				ARRAY_SET_ITEMS(tcolor, UNPACK3(gps->runtime.tmp_stroke_rgba), opacity);
+				copy_v4_v4(ink, tcolor);
+			}
+		}
 
-	sthickness = gps->thickness + gpl->line_change;
-	CLAMP_MIN(sthickness, 1);
-	if (cache->is_dirty) {
+		sthickness = gps->thickness + gpl->line_change;
+		CLAMP_MIN(sthickness, 1);
 		gpencil_batch_cache_check_free_slots(ob);
 		if ((gps->totpoints > 1) && (gp_style->mode == GP_STYLE_MODE_LINE)) {
 			cache->batch_stroke[cache->cache_idx] = DRW_gpencil_get_stroke_geom(gps, sthickness, ink);
