@@ -48,14 +48,22 @@ vec2 proj(vec4 pos)
 	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
 }
 
-void doVertex(int v)
-{
 #ifdef VERTEX_SELECTION
-	vertexColor = EDIT_MESH_vertex_color(vData[v].x).rgb;
+vec3 vertex_color[3];
 #endif
 
 #ifdef VERTEX_FACING
-	facing = vFacing[v];
+float v_facing[3];
+#endif
+
+void doVertex(int v)
+{
+#ifdef VERTEX_SELECTION
+	vertexColor = vertex_color[v];
+#endif
+
+#ifdef VERTEX_FACING
+	facing = v_facing[v];
 #endif
 	gl_Position = pPos[v];
 
@@ -65,11 +73,11 @@ void doVertex(int v)
 void doVertexOfs(int v, vec2 fixvec)
 {
 #ifdef VERTEX_SELECTION
-	vertexColor = EDIT_MESH_vertex_color(vData[v].x).rgb;
+	vertexColor = vertex_color[v];
 #endif
 
 #ifdef VERTEX_FACING
-	facing = vFacing[v];
+	facing = v_facing[v];
 #endif
 	gl_Position = pPos[v];
 
@@ -161,6 +169,18 @@ void main()
 			fixvecaf[i] *= -vPos[i1].z;
 		}
 	}
+
+#ifdef VERTEX_SELECTION
+	vertex_color[0] = EDIT_MESH_vertex_color(vData[0].x).rgb;
+	vertex_color[1] = EDIT_MESH_vertex_color(vData[1].x).rgb;
+	vertex_color[2] = EDIT_MESH_vertex_color(vData[2].x).rgb;
+#endif
+
+#ifdef VERTEX_FACING
+	v_facing[0] = vFacing[0];
+	v_facing[1] = vFacing[1];
+	v_facing[2] = vFacing[2];
+#endif
 
 	/* Remember that we are assuming the last vertex
 	 * of a triangle is the provoking vertex (decide what flat attribs are). */
