@@ -131,6 +131,23 @@ void DEG_add_object_relation(DepsNodeHandle *handle,
 	                                              description);
 }
 
+void DEG_add_object_customdata_relation(DepsNodeHandle *handle,
+                             Object *object,
+                             eDepsObjectComponentType component,
+                             uint64_t customdata_mask,
+                             const char *description)
+{
+	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
+	DEG::ComponentKey comp_key(&object->id, type);
+	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
+	deg_handle->builder->add_node_handle_relation(comp_key,
+	                                              deg_handle,
+	                                              description);
+	if (object->type == OB_MESH) {
+		deg_handle->builder->add_customdata_mask(comp_key, customdata_mask);
+	}
+}
+
 void DEG_add_object_cache_relation(DepsNodeHandle *handle,
                                    CacheFile *cache_file,
                                    eDepsObjectComponentType component,

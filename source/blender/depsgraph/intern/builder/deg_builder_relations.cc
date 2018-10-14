@@ -274,6 +274,17 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
 	return find_node(key) != NULL;
 }
 
+void DepsgraphRelationBuilder::add_customdata_mask(const ComponentKey &key, uint64_t mask)
+{
+	if (mask != 0) {
+		OperationDepsNode *node = find_operation_node(key);
+
+		if (node != NULL) {
+			node->customdata_mask |= mask;
+		}
+	}
+}
+
 DepsRelation *DepsgraphRelationBuilder::add_time_relation(
         TimeSourceDepsNode *timesrc,
         DepsNode *node_to,
@@ -760,10 +771,7 @@ void DepsgraphRelationBuilder::build_object_parent(Object *object)
 			add_relation(parent_key, ob_key, "Vertex Parent");
 
 			/* XXX not sure what this is for or how you could be done properly - lukas */
-			OperationDepsNode *parent_node = find_operation_node(parent_key);
-			if (parent_node != NULL) {
-				parent_node->customdata_mask |= CD_MASK_ORIGINDEX;
-			}
+			add_customdata_mask(parent_key, CD_MASK_ORIGINDEX);
 
 			ComponentKey transform_key(&object->parent->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(transform_key, ob_key, "Vertex Parent TFM");
@@ -974,10 +982,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 					ComponentKey target_key(&ct->tar->id, DEG_NODE_TYPE_GEOMETRY);
 					add_relation(target_key, constraint_op_key, cti->name);
 					if (ct->tar->type == OB_MESH) {
-						OperationDepsNode *node2 = find_operation_node(target_key);
-						if (node2 != NULL) {
-							node2->customdata_mask |= CD_MASK_MDEFORMVERT;
-						}
+						add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
 					}
 				}
 				else if (con->type == CONSTRAINT_TYPE_SHRINKWRAP) {

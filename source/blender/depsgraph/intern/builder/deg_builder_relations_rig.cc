@@ -129,10 +129,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 			add_relation(target_key, solver_key, con->name);
 
 			if (data->tar->type == OB_MESH) {
-				OperationDepsNode *node2 = find_operation_node(target_key);
-				if (node2 != NULL) {
-					node2->customdata_mask |= CD_MASK_MDEFORMVERT;
-				}
+				add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
 			}
 		}
 		else {
@@ -164,10 +161,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 			add_relation(target_key, solver_key, con->name);
 
 			if (data->poletar->type == OB_MESH) {
-				OperationDepsNode *node2 = find_operation_node(target_key);
-				if (node2 != NULL) {
-					node2->customdata_mask |= CD_MASK_MDEFORMVERT;
-				}
+				add_customdata_mask(target_key, CD_MASK_MDEFORMVERT);
 			}
 		}
 		else {
