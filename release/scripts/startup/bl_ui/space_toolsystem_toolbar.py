@@ -221,14 +221,15 @@ def _defs_annotate_factory():
 
                 layout.label(text="Annotation:")
                 gpl = context.active_gpencil_layer
-                sub = layout.row(align=True)
-                sub.ui_units_x = 8
+                if gpl is not None:
+                    sub = layout.row(align=True)
+                    sub.ui_units_x = 8
 
-                sub.prop(gpl, "color", text="")
-                sub.popover(
-                    panel="TOPBAR_PT_annotation_layers",
-                    text=text,
-                )
+                    sub.prop(gpl, "color", text="")
+                    sub.popover(
+                        panel="TOPBAR_PT_annotation_layers",
+                        text=text,
+                    )
 
             tool_settings = context.tool_settings
             space_type = tool.space_type
