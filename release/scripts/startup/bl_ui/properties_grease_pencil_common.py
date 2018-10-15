@@ -711,7 +711,7 @@ class AnnotationDataPanel:
 
     @staticmethod
     def draw_header(self, context):
-        if context.space_data.type != 'VIEW_3D':
+        if context.space_data.type not in {'VIEW_3D', 'TOPBAR'}:
             self.layout.prop(context.space_data, "show_annotation", text="")
 
     @staticmethod

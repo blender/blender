@@ -34,7 +34,9 @@ from .space_toolsystem_common import (
 from .properties_material_gpencil import (
     GPENCIL_UL_matslots,
 )
-
+from .properties_grease_pencil_common import (
+    AnnotationDataPanel,
+)
 
 def generate_from_brushes_ex(
         context, *,
@@ -207,8 +209,26 @@ def _defs_annotate_factory():
                 gpd = context.scene.grease_pencil
             else:
                 gpd = context.gpencil_data
+
             if gpd is not None:
-                layout.prop(gpd.layers, "active_note", text="")
+                if gpd.layers.active_note is not None:
+                    text = gpd.layers.active_note
+                    maxw = 25
+                    if len(text) > maxw:
+                        text = text[:maxw - 5] + '..' + text[-3:]
+                else:
+                    text = ""
+
+                layout.label(text="Annotation:")
+                gpl = context.active_gpencil_layer
+                sub = layout.row(align=True)
+                sub.ui_units_x = 8
+
+                sub.prop(gpl, "color", text="")
+                sub.popover(
+                    panel="TOPBAR_PT_annotation_layers",
+                    text=text,
+                )
 
             tool_settings = context.tool_settings
             space_type = tool.space_type
@@ -2059,11 +2079,18 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
     }
 
+class TOPBAR_PT_annotation_layers(Panel, AnnotationDataPanel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'HEADER'
+    bl_label = "Layers"
+    bl_ui_units_x = 14
+
 
 classes = (
     IMAGE_PT_tools_active,
     VIEW3D_PT_tools_active,
     TOPBAR_PT_gpencil_materials,
+    TOPBAR_PT_annotation_layers,
 )
 
 if __name__ == "__main__":  # only for live edit.
