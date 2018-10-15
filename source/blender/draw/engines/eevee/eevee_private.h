@@ -578,6 +578,7 @@ typedef struct EEVEE_EffectsInfo {
 	struct GPUTexture *dof_down_far;
 	struct GPUTexture *dof_coc;
 	struct GPUTexture *dof_blur;
+	struct GPUTexture *dof_blur_alpha;
 	/* Other */
 	float prev_persmat[4][4];
 	/* Bloom */

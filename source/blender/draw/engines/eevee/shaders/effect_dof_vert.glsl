@@ -10,6 +10,7 @@ uniform sampler2D farBuffer;
 uniform sampler2D cocBuffer;
 
 flat out vec4 color;
+flat out float weight;
 flat out float smoothFac;
 flat out ivec2 edge;
 out vec2 particlecoord;
@@ -49,8 +50,8 @@ void main()
 		/* find the area the pixel will cover and divide the color by it */
 		/* HACK: 4.0 out of nowhere (I suppose it's 4 pixels footprint for coc 0?)
 		 * Makes near in focus more closer to 1.0 alpha. */
-		color.a = 4.0 / (coc * coc * M_PI);
-		color.rgb *= color.a;
+		weight = 4.0 / (coc * coc * M_PI);
+		color *= weight;
 
 		/* Compute edge to discard fragment that does not belong to the other layer. */
 		edge.x = (is_near) ? 1 : -1;

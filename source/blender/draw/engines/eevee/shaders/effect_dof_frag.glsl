@@ -77,6 +77,14 @@ void main(void)
 	vec4 near_weights = step(THRESHOLD, coc_near) * clamp(1.0 - abs(cocData.x - coc_near), 0.0, 1.0);
 	vec4 far_weights  = step(THRESHOLD, coc_far)  * clamp(1.0 - abs(cocData.y - coc_far),  0.0, 1.0);
 
+#  ifdef USE_ALPHA_DOF
+	/* Premult */
+	color1.rgb *= color1.a;
+	color2.rgb *= color2.a;
+	color3.rgb *= color3.a;
+	color4.rgb *= color4.a;
+#  endif
+
 	/* now write output to weighted buffers. */
 	nearColor = weighted_sum(color1, color2, color3, color4, near_weights);
 	farColor = weighted_sum(color1, color2, color3, color4, far_weights);
@@ -85,12 +93,16 @@ void main(void)
 #elif defined(STEP_SCATTER)
 
 flat in vec4 color;
+flat in float weight;
 flat in float smoothFac;
 flat in ivec2 edge;
 /* coordinate used for calculating radius */
 in vec2 particlecoord;
 
-out vec4 fragColor;
+layout(location = 0) out vec4 fragColor;
+#  ifdef USE_ALPHA_DOF
+layout(location = 1) out float fragAlpha;
+#  endif
 
 /* accumulate color in the near/far blur buffers */
 void main(void)
@@ -130,9 +142,14 @@ void main(void)
 
 	/* Smooth the edges a bit. This effectively reduce the bokeh shape
 	 * but does fade out the undersampling artifacts. */
-	if (smoothFac < 1.0) {
-		fragColor *= smoothstep(1.0, smoothFac, dist);
-	}
+	float shape = smoothstep(1.0, min(0.999, smoothFac), dist);
+
+	fragColor *= shape;
+
+#  ifdef USE_ALPHA_DOF
+	fragAlpha = fragColor.a;
+	fragColor.a = weight * shape;
+#  endif
 }
 
 #elif defined(STEP_RESOLVE)
@@ -140,6 +157,7 @@ void main(void)
 #define MERGE_THRESHOLD 4.0
 
 uniform sampler2D scatterBuffer;
+uniform sampler2D scatterAlphaBuffer;
 
 in vec4 uvcoordsvar;
 out vec4 fragColor;
@@ -203,9 +221,21 @@ void main(void)
 	float far_w = far_col.a;
 	float near_w = near_col.a;
 	float focus_w = 1.0 - smoothstep(1.0, MERGE_THRESHOLD, abs(coc_signed));
+	float inv_weight_sum = 1.0 / (near_w + focus_w + far_w);
+
 	focus_col *= focus_w; /* Premul */
 
-	fragColor = (far_col + near_col + focus_col) / (near_w + focus_w + far_w);
+#  ifdef USE_ALPHA_DOF
+	near_col.a = upsample_filter(scatterAlphaBuffer, near_uv, texelSize).r;
+	far_col.a = upsample_filter(scatterAlphaBuffer, far_uv, texelSize).r;
+#  endif
+
+	fragColor = (far_col + near_col + focus_col) * inv_weight_sum;
+
+#  ifdef USE_ALPHA_DOF
+	/* Unpremult */
+	fragColor.rgb /= (fragColor.a > 0.0) ? fragColor.a : 1.0;
+#  endif
 }
 
 #endif
