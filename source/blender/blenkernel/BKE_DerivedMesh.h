@@ -122,7 +122,6 @@ typedef struct DMFlagMat {
 
 typedef enum DerivedMeshType {
 	DM_TYPE_CDDM,
-	DM_TYPE_EDITBMESH,
 	DM_TYPE_CCGDM
 } DerivedMeshType;
 

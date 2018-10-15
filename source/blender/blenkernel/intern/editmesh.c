@@ -155,15 +155,12 @@ void BKE_editmesh_tessface_calc(BMEditMesh *em)
 
 	/* commented because editbmesh_build_data() ensures we get tessfaces */
 #if 0
-	if (em->derivedFinal && em->derivedFinal == em->derivedCage) {
-		if (em->derivedFinal->recalcTessellation)
-			em->derivedFinal->recalcTessellation(em->derivedFinal);
+	if (em->mesh_eval_final && em->mesh_eval_final == em->mesh_eval_cage) {
+		BKE_mesh_runtime_looptri_ensure(em->mesh_eval_final);
 	}
-	else if (em->derivedFinal) {
-		if (em->derivedCage->recalcTessellation)
-			em->derivedCage->recalcTessellation(em->derivedCage);
-		if (em->derivedFinal->recalcTessellation)
-			em->derivedFinal->recalcTessellation(em->derivedFinal);
+	else if (em->mesh_eval_final) {
+		BKE_mesh_runtime_looptri_ensure(em->mesh_eval_final);
+		BKE_mesh_runtime_looptri_ensure(em->mesh_eval_cage);
 	}
 #endif
 }
