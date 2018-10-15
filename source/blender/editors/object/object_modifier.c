@@ -1730,7 +1730,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, Scene *scene, Object *skin_ob)
 {
 	BLI_bitmap *edges_visited;
-	DerivedMesh *deform_dm;
+	Mesh *me_eval_deform;
 	MVert *mvert;
 	Mesh *me = skin_ob->data;
 	Object *arm_ob;
@@ -1740,8 +1740,8 @@ static Object *modifier_skin_armature_create(Depsgraph *depsgraph, Main *bmain, 
 	int *emap_mem;
 	int v;
 
-	deform_dm = mesh_get_derived_deform(depsgraph, scene, skin_ob, CD_MASK_BAREMESH);
-	mvert = deform_dm->getVertArray(deform_dm);
+	me_eval_deform = mesh_get_eval_deform(depsgraph, scene, skin_ob, CD_MASK_BAREMESH);
+	mvert = me_eval_deform->mvert;
 
 	/* add vertex weights to original mesh */
 	CustomData_add_layer(&me->vdata,

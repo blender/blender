@@ -28,6 +28,7 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -116,9 +117,9 @@ void meshobject_foreachScreenVert(
         void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenObjectVert_userData data;
-	DerivedMesh *dm;
+	Mesh *me;
 
-	dm = mesh_get_derived_deform(vc->depsgraph, vc->scene, vc->obact, CD_MASK_BAREMESH);
+	me = mesh_get_eval_deform(vc->depsgraph, vc->scene, vc->obact, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -131,9 +132,7 @@ void meshobject_foreachScreenVert(
 		ED_view3d_clipping_local(vc->rv3d, vc->obact->obmat);
 	}
 
-	dm->foreachMappedVert(dm, meshobject_foreachScreenVert__mapFunc, &data, DM_FOREACH_NOP);
-
-	dm->release(dm);
+	BKE_mesh_foreach_mapped_vert(me, meshobject_foreachScreenVert__mapFunc, &data, MESH_FOREACH_NOP);
 }
 
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const float co[3],
