@@ -857,7 +857,7 @@ Mesh *BKE_mesh_new_from_object(
 		case OB_SURF:
 		{
 			ListBase dispbase = {NULL, NULL};
-			DerivedMesh *derivedFinal = NULL;
+			Mesh *me_eval_final = NULL;
 			int uv_from_orco;
 
 			/* copies object and modifiers (but not the data) */
@@ -899,12 +899,12 @@ Mesh *BKE_mesh_new_from_object(
 			copycu->editnurb = tmpcu->editnurb;
 
 			/* get updated display list, and convert to a mesh */
-			BKE_displist_make_curveTypes_forRender(depsgraph, sce, tmpobj, &dispbase, &derivedFinal, false, render);
+			BKE_displist_make_curveTypes_forRender(depsgraph, sce, tmpobj, &dispbase, &me_eval_final, false, render);
 
 			copycu->editfont = NULL;
 			copycu->editnurb = NULL;
 
-			tmpobj->derivedFinal = derivedFinal;
+			tmpobj->runtime.mesh_eval = me_eval_final;
 
 			/* convert object type to mesh */
 			uv_from_orco = (tmpcu->flag & CU_UV_ORCO) != 0;
