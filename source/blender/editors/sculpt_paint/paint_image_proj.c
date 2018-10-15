@@ -5827,8 +5827,33 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
 	return false;
 }
 
+static int get_texture_layer_type(wmOperator *op, const char *prop_name)
+{
+	int type_value = RNA_enum_get(op->ptr, prop_name);
+	int type = RNA_enum_from_value(layer_type_items, type_value);
+	BLI_assert(type != -1);
+	return type;
+}
+
+static Material *get_or_create_current_material(bContext *C, Object *ob)
+{
+	Material *ma = give_current_material(ob, ob->actcol);
+	if (!ma) {
+		Main *bmain = CTX_data_main(C);
+		ma = BKE_material_add(bmain, "Material");
+		assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
+	}
+	return ma;
+}
+
 static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op)
 {
+	Object *ob = ED_object_active_context(C);
+	Material *ma = get_or_create_current_material(C, ob);
+
+	int type = get_texture_layer_type(op, "type");
+	proj_paint_default_color(op, type, ma);
+
 	if (proj_paint_add_slot(C, op)) {
 		return OPERATOR_FINISHED;
 	}
@@ -5837,36 +5862,22 @@ static int texture_paint_add_texture_paint_slot_exec(bContext *C, wmOperator *op
 	}
 }
 
+static void get_default_texture_layer_name_for_object(Object *ob, int texture_type, char *dst, int dst_length)
+{
+	Material *ma = give_current_material(ob, ob->actcol);
+	const char *base_name = ma ? &ma->id.name[2] : &ob->id.name[2];
+	BLI_snprintf(dst, dst_length, "%s %s", base_name, layer_type_items[texture_type].name);
+}
 
 static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	char imagename[MAX_ID_NAME - 2];
-	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_active_context(C);
-	Material *ma = give_current_material(ob, ob->actcol);
-	int type = RNA_enum_get(op->ptr, "type");
+	int type = get_texture_layer_type(op, "type");
 
-	if (!ma) {
-		ma = BKE_material_add(bmain, "Material");
-		/* no material found, just assign to first slot */
-		assign_material(bmain, ob, ma, ob->actcol, BKE_MAT_ASSIGN_USERPREF);
-	}
-
-	if (!ma->nodetree) {
-		ED_node_shader_default(C, &ma->id);
-	}
-
-	proj_paint_default_color(op, type, ma);
-
-	type = RNA_enum_from_value(layer_type_items, type);
-
-	/* get the name of the texture layer type */
-	BLI_assert(type != -1);
-
-	/* take the second letter to avoid the ID identifier */
-	BLI_snprintf(imagename, sizeof(imagename), "%s %s", &ma->id.name[2], layer_type_items[type].name);
-
+	char imagename[MAX_ID_NAME - 2];
+	get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
 	RNA_string_set(op->ptr, "name", imagename);
+
 	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
 }
 
