@@ -41,12 +41,7 @@ out float facing;
 #define Z_OFFSET 0.0
 #endif
 
-/* project to screen space */
-vec2 proj(vec4 pos)
-{
-	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
-}
-
+/* Some bugged AMD drivers need these global variables. See T55961 */
 #ifdef VERTEX_SELECTION
 vec3 vertex_color[3];
 #endif
@@ -54,6 +49,12 @@ vec3 vertex_color[3];
 #ifdef VERTEX_FACING
 float v_facing[3];
 #endif
+
+/* project to screen space */
+vec2 proj(vec4 pos)
+{
+	return (0.5 * (pos.xy / pos.w) + 0.5) * viewportSize;
+}
 
 void doVertex(int v)
 {
@@ -169,6 +170,7 @@ void main()
 #endif
 
 #ifdef VERTEX_FACING
+	/* Weird but some buggy AMD drivers need this. */
 	v_facing[0] = vFacing[0];
 	v_facing[1] = vFacing[1];
 	v_facing[2] = vFacing[2];
