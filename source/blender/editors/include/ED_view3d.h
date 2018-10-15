@@ -426,7 +426,7 @@ struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d);
 void                    ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat);
 
 void  ED_draw_object_facemap(
-        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, const float col[4], const int facemap);
+        struct Depsgraph *depsgraph, struct Object *ob, const float col[4], const int facemap);
 
 struct RenderEngineType *ED_view3d_engine_type(struct Scene *scene, int drawtype);
 

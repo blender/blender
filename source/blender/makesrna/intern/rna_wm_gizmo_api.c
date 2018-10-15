@@ -67,8 +67,7 @@ static void rna_gizmo_draw_preset_circle(
 static void rna_gizmo_draw_preset_facemap(
         wmGizmo *gz, struct bContext *C, struct Object *ob, int facemap, int select_id)
 {
-	struct Scene *scene = CTX_data_scene(C);
-	ED_gizmo_draw_preset_facemap(C, gz, scene, ob, facemap, select_id);
+	ED_gizmo_draw_preset_facemap(C, gz, ob, facemap, select_id);
 }
 
 /* -------------------------------------------------------------------- */
@@ -234,7 +233,8 @@ void RNA_api_gizmo(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	RNA_def_int(func, "facemap", 0, 0, INT_MAX, "Face map index", "", 0, INT_MAX);
+	parm = RNA_def_int(func, "face_map", 0, 0, INT_MAX, "Face map index", "", 0, INT_MAX);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "select_id", -1, -1, INT_MAX, "Zero when not selecting", "", -1, INT_MAX);
 
 

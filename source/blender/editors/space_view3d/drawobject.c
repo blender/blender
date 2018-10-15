@@ -443,23 +443,20 @@ void draw_object_backbufsel(
 
 
 void ED_draw_object_facemap(
-        Depsgraph *depsgraph, Scene *scene, Object *ob, const float col[4], const int facemap)
+        Depsgraph *depsgraph, Object *ob, const float col[4], const int facemap)
 {
-	DerivedMesh *dm = NULL;
-
 	/* happens on undo */
-	if (ob->type != OB_MESH || !ob->data)
-		return;
-
-	/* Temporary, happens on undo, would resolve but will eventually move away from DM. */
-	if (ob->derivedFinal == NULL) {
+	if (ob->type != OB_MESH || !ob->data) {
 		return;
 	}
 
-	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
-	if (!dm || !CustomData_has_layer(&dm->polyData, CD_FACEMAP))
-		return;
-
+	Mesh *me = ob->data;
+	{
+		Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+		if (ob_eval->runtime.mesh_eval) {
+			me = ob_eval->runtime.mesh_eval;
+		}
+	}
 
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
@@ -494,7 +491,6 @@ void ED_draw_object_facemap(
 #else
 
 	/* Just to create the data to pass to immediate mode, grr! */
-	Mesh *me = ob->data;
 	const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 	if (facemap_data) {
 		GPUVertFormat *format = immVertexFormat();
@@ -515,26 +511,14 @@ void ED_draw_object_facemap(
 		MLoop *mloop;
 		int    mloop_len;
 
-		if (dm && CustomData_has_layer(&dm->polyData, CD_FACEMAP)) {
-			mvert = dm->getVertArray(dm);
-			mpoly = dm->getPolyArray(dm);
-			mloop = dm->getLoopArray(dm);
+		mvert = me->mvert;
+		mpoly = me->mpoly;
+		mloop = me->mloop;
 
-			mpoly_len = dm->getNumPolys(dm);
-			mloop_len = dm->getNumLoops(dm);
+		mpoly_len = me->totpoly;
+		mloop_len = me->totloop;
 
-			facemap_data = CustomData_get_layer(&dm->polyData, CD_FACEMAP);
-		}
-		else {
-			mvert = me->mvert;
-			mpoly = me->mpoly;
-			mloop = me->mloop;
-
-			mpoly_len = me->totpoly;
-			mloop_len = me->totloop;
-
-			facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
-		}
+		facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 
 		/* use gawain immediate mode fore now */
 		const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
@@ -565,6 +549,4 @@ void ED_draw_object_facemap(
 		GPU_blend(false);
 	}
 #endif
-
-	dm->release(dm);
 }

@@ -68,7 +68,7 @@ void ED_gizmo_draw_preset_arrow(
 void ED_gizmo_draw_preset_circle(
         const struct wmGizmo *gz, float mat[4][4], int axis, int select_id);
 void ED_gizmo_draw_preset_facemap(
-        const struct bContext *C, const struct wmGizmo *gz, struct Scene *scene,
+        const struct bContext *C, const struct wmGizmo *gz,
         struct Object *ob,  const int facemap, int select_id);
 
 

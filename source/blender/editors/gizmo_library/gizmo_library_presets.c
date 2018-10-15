@@ -127,7 +127,7 @@ void ED_gizmo_draw_preset_circle(
 }
 
 void ED_gizmo_draw_preset_facemap(
-        const bContext *C, const struct wmGizmo *gz, struct Scene *scene, Object *ob,  const int facemap, int select_id)
+        const bContext *C, const struct wmGizmo *gz, Object *ob, const int facemap, int select_id)
 {
 	const bool is_select = (select_id != -1);
 	const bool is_highlight = is_select && (gz->state & WM_GIZMO_STATE_HIGHLIGHT) != 0;
@@ -141,7 +141,7 @@ void ED_gizmo_draw_preset_facemap(
 
 	GPU_matrix_push();
 	GPU_matrix_mul(ob->obmat);
-	ED_draw_object_facemap(CTX_data_depsgraph(C), scene, ob, color, facemap);
+	ED_draw_object_facemap(CTX_data_depsgraph(C), ob, color, facemap);
 	GPU_matrix_pop();
 
 	if (is_select) {
