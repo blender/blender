@@ -49,6 +49,10 @@ void BKE_mesh_calc_loop_tangent_ex(
         const uint  loopdata_out_len,
         short *tangent_mask_curr_p);
 
+void BKE_mesh_calc_loop_tangents(
+        struct Mesh *me_eval, bool calc_active_tangent,
+        const char (*tangent_names)[MAX_NAME], int tangent_names_len);
+
 /* Helpers */
 void BKE_mesh_add_loop_tangent_named_layer_for_uv(
         struct CustomData *uv_data, struct CustomData *tan_data, int numLoopData,
