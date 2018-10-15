@@ -509,7 +509,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                                      ob, "material_slots",
                                      ob, "active_material_index", rows=2)
             mat = ob.active_material
-            if mat:
+            if mat and len(mat.texture_paint_images) > 0:
                 row = layout.row()
                 row.template_list("TEXTURE_UL_texpaintslots", "",
                                   mat, "texture_paint_images",
