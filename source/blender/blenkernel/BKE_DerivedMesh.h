@@ -85,18 +85,13 @@ struct CCGKey;
 struct MVert;
 struct MEdge;
 struct MFace;
-struct MTFace;
 struct Object;
 struct Scene;
 struct Mesh;
 struct MLoopNorSpaceArray;
 struct BMEditMesh;
-struct KeyBlock;
 struct ModifierData;
-struct MCol;
-struct ColorBand;
 struct Depsgraph;
-struct GPUVertexAttribs;
 struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
@@ -464,16 +459,8 @@ void DM_free_poly_data(struct DerivedMesh *dm, int index, int count);
 void DM_DupPolys(DerivedMesh *source, DerivedMesh *target);
 
 void DM_ensure_normals(DerivedMesh *dm);
-void DM_ensure_tessface(DerivedMesh *dm);
 
 void DM_ensure_looptri_data(DerivedMesh *dm);
-void DM_verttri_from_looptri(MVertTri *verttri, const MLoop *mloop, const MLoopTri *looptri, int looptri_num);
-
-void DM_update_tessface_data(DerivedMesh *dm);
-void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate);
-
-void DM_update_materials(DerivedMesh *dm, struct Object *ob);
-struct MLoopUV *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr);
 
 void DM_interp_vert_data(
         struct DerivedMesh *source, struct DerivedMesh *dest,
@@ -493,8 +480,6 @@ void DM_interp_tessface_data(
         int *src_indices,
         float *weights, FaceVertWeight *vert_weights,
         int count, int dest_index);
-
-void DM_swap_tessface_data(struct DerivedMesh *dm, int index, const int *corner_indices);
 
 void DM_interp_loop_data(
         struct DerivedMesh *source, struct DerivedMesh *dest,
@@ -549,10 +534,6 @@ bool editbmesh_modifier_is_enabled(struct Scene *scene, struct ModifierData *md,
 void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers);
-
-void DM_calc_tangents_names_from_gpu(
-        const struct GPUVertexAttribs *gattribs,
-        char (*tangent_names)[MAX_NAME], int *tangent_names_count);
 
 void DM_add_named_tangent_layer_for_uv(
         CustomData *uv_data, CustomData *tan_data, int numLoopData,

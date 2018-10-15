@@ -70,7 +70,6 @@
 #include "BKE_multires.h"
 #include "BKE_bvhutils.h"
 #include "BKE_deform.h"
-#include "BKE_global.h" /* For debug flag, DM_update_tessface_data() func. */
 
 #include "BLI_sys_types.h" /* for intptr_t support */
 
@@ -464,33 +463,6 @@ void DM_ensure_normals(DerivedMesh *dm)
 	BLI_assert((dm->dirty & DM_DIRTY_NORMALS) == 0);
 }
 
-/* note: until all modifiers can take MPoly's as input,
- * use this at the start of modifiers  */
-void DM_ensure_tessface(DerivedMesh *dm)
-{
-	const int numTessFaces = dm->getNumTessFaces(dm);
-	const int numPolys =     dm->getNumPolys(dm);
-
-	if ((numTessFaces == 0) && (numPolys != 0)) {
-		dm->recalcTessellation(dm);
-
-		if (dm->getNumTessFaces(dm) != 0) {
-			/* printf("info %s: polys -> ngons calculated\n", __func__); */
-		}
-		else {
-			printf("warning %s: could not create tessfaces from %d polygons, dm->type=%u\n",
-			       __func__, numPolys, dm->type);
-		}
-	}
-
-	else if (dm->dirty & DM_DIRTY_TESS_CDLAYERS) {
-		BLI_assert(CustomData_has_layer(&dm->faceData, CD_ORIGINDEX) || numTessFaces == 0);
-		DM_update_tessface_data(dm);
-	}
-
-	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
-}
-
 /**
  * Ensure the array is large enough
  *
@@ -523,186 +495,6 @@ void DM_ensure_looptri_data(DerivedMesh *dm)
 
 		dm->looptris.num = looptris_num;
 	}
-}
-
-void DM_verttri_from_looptri(MVertTri *verttri, const MLoop *mloop, const MLoopTri *looptri, int looptri_num)
-{
-	int i;
-	for (i = 0; i < looptri_num; i++) {
-		verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
-		verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
-		verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
-	}
-}
-
-/* Update tessface CD data from loop/poly ones. Needed when not retessellating after modstack evaluation. */
-/* NOTE: Assumes dm has valid tessellated data! */
-void DM_update_tessface_data(DerivedMesh *dm)
-{
-	MFace *mf, *mface = dm->getTessFaceArray(dm);
-	MPoly *mp = dm->getPolyArray(dm);
-	MLoop *ml = dm->getLoopArray(dm);
-
-	CustomData *fdata = dm->getTessFaceDataLayout(dm);
-	CustomData *ldata = dm->getLoopDataLayout(dm);
-
-	const int totface = dm->getNumTessFaces(dm);
-	int mf_idx;
-
-	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
-	unsigned int (*loopindex)[4];
-
-	/* Should never occur, but better abort than segfault! */
-	if (!polyindex)
-		return;
-
-	CustomData_from_bmeshpoly(fdata, ldata, totface);
-
-	if (CustomData_has_layer(fdata, CD_MTFACE) ||
-	    CustomData_has_layer(fdata, CD_MCOL) ||
-	    CustomData_has_layer(fdata, CD_PREVIEW_MCOL) ||
-	    CustomData_has_layer(fdata, CD_ORIGSPACE) ||
-	    CustomData_has_layer(fdata, CD_TESSLOOPNORMAL) ||
-	    CustomData_has_layer(fdata, CD_TANGENT))
-	{
-		loopindex = MEM_malloc_arrayN(totface, sizeof(*loopindex), __func__);
-
-		for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
-			const int mf_len = mf->v4 ? 4 : 3;
-			unsigned int *ml_idx = loopindex[mf_idx];
-			int i, not_done;
-
-			/* Find out loop indices. */
-			/* NOTE: This assumes tessface are valid and in sync with loop/poly... Else, most likely, segfault! */
-			for (i = mp[polyindex[mf_idx]].loopstart, not_done = mf_len; not_done; i++) {
-				const int tf_v = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, ml[i].v);
-				if (tf_v != -1) {
-					ml_idx[tf_v] = i;
-					not_done--;
-				}
-			}
-		}
-
-		/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
-		 * Here, our tfaces' fourth vertex index is never 0 for a quad. However, we know our fourth loop index may be
-		 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
-		 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
-		 */
-		BKE_mesh_loops_to_tessdata(fdata, ldata, mface, polyindex, loopindex, totface);
-
-		MEM_freeN(loopindex);
-	}
-
-	if (G.debug & G_DEBUG)
-		printf("%s: Updated tessellated customdata of dm %p\n", __func__, dm);
-
-	dm->dirty &= ~DM_DIRTY_TESS_CDLAYERS;
-}
-
-void DM_generate_tangent_tessface_data(DerivedMesh *dm, bool generate)
-{
-	MFace *mf, *mface = dm->getTessFaceArray(dm);
-	MPoly *mp = dm->getPolyArray(dm);
-	MLoop *ml = dm->getLoopArray(dm);
-
-	CustomData *fdata = dm->getTessFaceDataLayout(dm);
-	CustomData *ldata = dm->getLoopDataLayout(dm);
-
-	const int totface = dm->getNumTessFaces(dm);
-	int mf_idx;
-
-	int *polyindex = CustomData_get_layer(fdata, CD_ORIGINDEX);
-	unsigned int (*loopindex)[4] = NULL;
-
-	/* Should never occur, but better abort than segfault! */
-	if (!polyindex)
-		return;
-
-	if (generate) {
-		for (int j = 0; j < ldata->totlayer; j++) {
-			if (ldata->layers[j].type == CD_TANGENT) {
-				CustomData_add_layer_named(fdata, CD_TANGENT, CD_CALLOC, NULL, totface, ldata->layers[j].name);
-				CustomData_bmesh_update_active_layers(fdata, ldata);
-
-				if (!loopindex) {
-					loopindex = MEM_malloc_arrayN(totface, sizeof(*loopindex), __func__);
-					for (mf_idx = 0, mf = mface; mf_idx < totface; mf_idx++, mf++) {
-						const int mf_len = mf->v4 ? 4 : 3;
-						unsigned int *ml_idx = loopindex[mf_idx];
-
-						/* Find out loop indices. */
-						/* NOTE: This assumes tessface are valid and in sync with loop/poly... Else, most likely, segfault! */
-						for (int i = mp[polyindex[mf_idx]].loopstart, not_done = mf_len; not_done; i++) {
-							const int tf_v = BKE_MESH_TESSFACE_VINDEX_ORDER(mf, ml[i].v);
-							if (tf_v != -1) {
-								ml_idx[tf_v] = i;
-								not_done--;
-							}
-						}
-					}
-				}
-
-				/* NOTE: quad detection issue - fourth vertidx vs fourth loopidx:
-				 * Here, our tfaces' fourth vertex index is never 0 for a quad. However, we know our fourth loop index may be
-				 * 0 for quads (because our quads may have been rotated compared to their org poly, see tessellation code).
-				 * So we pass the MFace's, and BKE_mesh_loops_to_tessdata will use MFace->v4 index as quad test.
-				 */
-				BKE_mesh_tangent_loops_to_tessdata(fdata, ldata, mface, polyindex, loopindex, totface, ldata->layers[j].name);
-			}
-		}
-		if (loopindex)
-			MEM_freeN(loopindex);
-		BLI_assert(CustomData_from_bmeshpoly_test(fdata, ldata, true));
-	}
-
-	if (G.debug & G_DEBUG)
-		printf("%s: Updated tessellated tangents of dm %p\n", __func__, dm);
-}
-
-
-void DM_update_materials(DerivedMesh *dm, Object *ob)
-{
-	int i, totmat = ob->totcol + 1; /* materials start from 1, default material is 0 */
-
-	if (dm->totmat != totmat) {
-		dm->totmat = totmat;
-		/* invalidate old materials */
-		if (dm->mat)
-			MEM_freeN(dm->mat);
-
-		dm->mat = MEM_malloc_arrayN(totmat, sizeof(*dm->mat), "DerivedMesh.mat");
-	}
-
-	/* we leave last material as empty - rationale here is being able to index
-	 * the materials by using the mf->mat_nr directly and leaving the last
-	 * material as NULL in case no materials exist on mesh, so indexing will not fail */
-	for (i = 0; i < totmat - 1; i++) {
-		dm->mat[i] = give_current_material(ob, i + 1);
-	}
-	dm->mat[i] = NULL;
-}
-
-MLoopUV *DM_paint_uvlayer_active_get(DerivedMesh *dm, int mat_nr)
-{
-	MLoopUV *uv_base;
-
-	BLI_assert(mat_nr < dm->totmat);
-
-	if (dm->mat[mat_nr] && dm->mat[mat_nr]->texpaintslot &&
-	    dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname)
-	{
-		uv_base = CustomData_get_layer_named(&dm->loopData, CD_MLOOPUV,
-		                                     dm->mat[mat_nr]->texpaintslot[dm->mat[mat_nr]->paint_active_slot].uvname);
-		/* This can fail if we have changed the name in the UV layer list and have assigned the old name in the material
-		 * texture slot.*/
-		if (!uv_base)
-			uv_base = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
-	}
-	else {
-		uv_base = CustomData_get_layer(&dm->loopData, CD_MLOOPUV);
-	}
-
-	return uv_base;
 }
 
 void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool take_ownership)
@@ -1105,11 +897,6 @@ void DM_interp_tessface_data(
 {
 	CustomData_interp(&source->faceData, &dest->faceData, src_indices,
 	                  weights, (float *)vert_weights, count, dest_index);
-}
-
-void DM_swap_tessface_data(DerivedMesh *dm, int index, const int *corner_indices)
-{
-	CustomData_swap_corners(&dm->faceData, index, corner_indices);
 }
 
 void DM_interp_loop_data(

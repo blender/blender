@@ -99,7 +99,7 @@ static int cdDM_getNumTessFaces(DerivedMesh *dm)
 	 * to help debug tessfaces issues since BMESH merge. */
 #if 0
 	if (dm->numTessFaceData == 0 && dm->numPolyData != 0) {
-		printf("%s: has no faces!, call DM_ensure_tessface() if you need them\n");
+		printf("%s: has no faces!\n");
 	}
 #endif
 	return dm->numTessFaceData;
@@ -1289,29 +1289,6 @@ void CDDM_calc_loop_normals_spacearr(
 #endif
 }
 
-
-void CDDM_calc_normals_tessface(DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	float (*face_nors)[3];
-
-	if (dm->numVertData == 0) return;
-
-	/* we don't want to overwrite any referenced layers */
-	cddm->mvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, dm->numVertData);
-
-	/* fill in if it exists */
-	face_nors = CustomData_get_layer(&dm->faceData, CD_NORMAL);
-	if (!face_nors) {
-		face_nors = CustomData_add_layer(&dm->faceData, CD_NORMAL, CD_CALLOC, NULL, dm->numTessFaceData);
-	}
-
-	BKE_mesh_calc_normals_tessface(cddm->mvert, dm->numVertData,
-	                               cddm->mface, dm->numTessFaceData, face_nors);
-
-	cddm->dm.dirty &= ~DM_DIRTY_NORMALS;
-}
-
 #if 1
 /* TODO(sybren): Delete everything in this #if block after we have ported the modifiers
  * to use Mesh instead of DerivedMesh. The code has been copied to mesh_merge.c and ported. */
@@ -1952,151 +1929,6 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	return (DerivedMesh *)cddm2;
 }
 #endif
-
-void CDDM_calc_edges_tessface(DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	CustomData edgeData;
-	EdgeSetIterator *ehi;
-	MFace *mf = cddm->mface;
-	MEdge *med;
-	EdgeSet *eh;
-	int i, *index, numEdges, numFaces = dm->numTessFaceData;
-
-	eh = BLI_edgeset_new_ex(__func__, BLI_EDGEHASH_SIZE_GUESS_FROM_POLYS(numFaces));
-
-	for (i = 0; i < numFaces; i++, mf++) {
-		BLI_edgeset_add(eh, mf->v1, mf->v2);
-		BLI_edgeset_add(eh, mf->v2, mf->v3);
-
-		if (mf->v4) {
-			BLI_edgeset_add(eh, mf->v3, mf->v4);
-			BLI_edgeset_add(eh, mf->v4, mf->v1);
-		}
-		else {
-			BLI_edgeset_add(eh, mf->v3, mf->v1);
-		}
-	}
-
-	numEdges = BLI_edgeset_len(eh);
-
-	/* write new edges into a temporary CustomData */
-	CustomData_reset(&edgeData);
-	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
-	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
-
-	med = CustomData_get_layer(&edgeData, CD_MEDGE);
-	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
-
-	for (ehi = BLI_edgesetIterator_new(eh), i = 0;
-	     BLI_edgesetIterator_isDone(ehi) == false;
-	     BLI_edgesetIterator_step(ehi), i++, med++, index++)
-	{
-		BLI_edgesetIterator_getKey(ehi, &med->v1, &med->v2);
-
-		med->flag = ME_EDGEDRAW | ME_EDGERENDER;
-		*index = ORIGINDEX_NONE;
-	}
-	BLI_edgesetIterator_free(ehi);
-
-	/* free old CustomData and assign new one */
-	CustomData_free(&dm->edgeData, dm->numEdgeData);
-	dm->edgeData = edgeData;
-	dm->numEdgeData = numEdges;
-
-	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
-
-	BLI_edgeset_free(eh);
-}
-
-/* warning, this uses existing edges but CDDM_calc_edges_tessface() doesn't */
-void CDDM_calc_edges(DerivedMesh *dm)
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	CustomData edgeData;
-	EdgeHashIterator *ehi;
-	MPoly *mp = cddm->mpoly;
-	MLoop *ml;
-	MEdge *med, *origmed;
-	EdgeHash *eh;
-	unsigned int eh_reserve;
-	int v1, v2;
-	const int *eindex;
-	int i, j, *index;
-	const int numFaces = dm->numPolyData;
-	const int numLoops = dm->numLoopData;
-	int numEdges = dm->numEdgeData;
-
-	eindex = DM_get_edge_data_layer(dm, CD_ORIGINDEX);
-	med = cddm->medge;
-
-	eh_reserve = max_ii(med ? numEdges : 0, BLI_EDGEHASH_SIZE_GUESS_FROM_LOOPS(numLoops));
-	eh = BLI_edgehash_new_ex(__func__, eh_reserve);
-	if (med) {
-		for (i = 0; i < numEdges; i++, med++) {
-			BLI_edgehash_insert(eh, med->v1, med->v2, POINTER_FROM_INT(i + 1));
-		}
-	}
-
-	for (i = 0; i < numFaces; i++, mp++) {
-		ml = cddm->mloop + mp->loopstart;
-		for (j = 0; j < mp->totloop; j++, ml++) {
-			v1 = ml->v;
-			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
-			BLI_edgehash_reinsert(eh, v1, v2, NULL);
-		}
-	}
-
-	numEdges = BLI_edgehash_len(eh);
-
-	/* write new edges into a temporary CustomData */
-	CustomData_reset(&edgeData);
-	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
-	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
-
-	origmed = cddm->medge;
-	med = CustomData_get_layer(&edgeData, CD_MEDGE);
-	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
-
-	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
-	     BLI_edgehashIterator_isDone(ehi) == false;
-	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
-	{
-		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
-		j = POINTER_AS_INT(BLI_edgehashIterator_getValue(ehi));
-
-		if (j == 0 || !eindex) {
-			med->flag = ME_EDGEDRAW | ME_EDGERENDER;
-			*index = ORIGINDEX_NONE;
-		}
-		else {
-			med->flag = ME_EDGEDRAW | ME_EDGERENDER | origmed[j - 1].flag;
-			*index = eindex[j - 1];
-		}
-
-		BLI_edgehashIterator_setValue(ehi, POINTER_FROM_INT(i));
-	}
-	BLI_edgehashIterator_free(ehi);
-
-	/* free old CustomData and assign new one */
-	CustomData_free(&dm->edgeData, dm->numEdgeData);
-	dm->edgeData = edgeData;
-	dm->numEdgeData = numEdges;
-
-	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
-
-	mp = cddm->mpoly;
-	for (i = 0; i < numFaces; i++, mp++) {
-		ml = cddm->mloop + mp->loopstart;
-		for (j = 0; j < mp->totloop; j++, ml++) {
-			v1 = ml->v;
-			v2 = ME_POLY_LOOP_NEXT(cddm->mloop, mp, j)->v;
-			ml->e = POINTER_AS_INT(BLI_edgehash_lookup(eh, v1, v2));
-		}
-	}
-
-	BLI_edgehash_free(eh, NULL);
-}
 
 void CDDM_lower_num_verts(DerivedMesh *dm, int numVerts)
 {
