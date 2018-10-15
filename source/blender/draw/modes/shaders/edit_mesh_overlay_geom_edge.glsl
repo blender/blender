@@ -8,7 +8,6 @@ layout(triangle_strip, max_vertices=4) out;
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
 
-in vec4 vPos[];
 in vec4 pPos[];
 in ivec4 vData[];
 #ifdef VERTEX_FACING
@@ -77,10 +76,8 @@ void main()
 
 	/* Perspective */
 	if (ProjectionMatrix[3][3] == 0.0) {
-		/* vPos[i].z is negative and we don't want
-		 * our fixvec to be flipped */
-		dirs1 *= -vPos[0].z;
-		dirs2 *= -vPos[1].z;
+		dirs1 *= pPos[0].w;
+		dirs2 *= pPos[1].w;
 	}
 
 	/* Edge / Vert data */
