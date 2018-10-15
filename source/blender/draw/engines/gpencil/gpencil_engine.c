@@ -506,37 +506,24 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	int i = stl->g_data->gp_cache_used - 1;
 	tGPencilObjectCache *cache_ob = &stl->g_data->gp_object_cache[i];
 
-	if (cache_ob->is_dup_ob == false) {
-		/* save init shading group */
-		cache_ob->init_grp = stl->storage->shgroup_id;
+	/* save init shading group */
+	cache_ob->init_grp = stl->storage->shgroup_id;
 
-		/* fill shading groups */
-		if (!is_multiedit) {
-			DRW_gpencil_populate_datablock(&e_data, vedata, scene, ob, cache_ob);
-		}
-		else {
-			DRW_gpencil_populate_multiedit(&e_data, vedata, scene, ob, cache_ob);
-		}
-
-		/* save end shading group */
-		cache_ob->end_grp = stl->storage->shgroup_id - 1;
+	/* fill shading groups */
+	if ((!is_multiedit) || (cache_ob->is_dup_ob)) {
+		DRW_gpencil_populate_datablock(&e_data, vedata, scene, ob, cache_ob);
 	}
 	else {
-		/* save init shading group */
-		cache_ob->init_grp = stl->storage->shgroup_id;
-
-		DRW_gpencil_populate_datablock(
-		        &e_data, vedata, scene, ob,
-		        cache_ob);
-
-		/* save end shading group */
-		cache_ob->end_grp = stl->storage->shgroup_id - 1;
+		DRW_gpencil_populate_multiedit(&e_data, vedata, scene, ob, cache_ob);
 	}
+
+	/* save end shading group */
+	cache_ob->end_grp = stl->storage->shgroup_id - 1;
 
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-	    (BKE_shaderfx_has_gpencil(ob)))
+		(BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;
 		if ((!stl->storage->simplify_fx) && (!is_multiedit)) {

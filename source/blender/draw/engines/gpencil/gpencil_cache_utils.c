@@ -102,7 +102,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	memset(cache_elem, 0, sizeof(*cache_elem));
 
 	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(cache_array, *gp_cache_used, ob);
-
+	
 	STRNCPY(cache_elem->ob_name, ob->id.name);
 	cache_elem->gpd = (bGPdata *)ob->data;
 
@@ -156,7 +156,7 @@ tGPencilObjectCache *gpencil_object_cache_add(
 /* get current cache data */
 static GpencilBatchCache *gpencil_batch_get_element(Object *ob)
 {
-	bGPdata *gpd = ob->data;
+	bGPdata *gpd = (bGPdata *)ob->data;
 	if (gpd->runtime.batch_cache_data == NULL) {
 		gpd->runtime.batch_cache_data = BLI_ghash_str_new("GP batch cache data");
 		return NULL;
