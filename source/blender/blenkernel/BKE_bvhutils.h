@@ -151,10 +151,6 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
         const BLI_bitmap *mask, int looptri_num_active,
         float epsilon, int tree_type, int axis);
 
-BVHTree *bvhtree_from_mesh_get(
-        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
-        const int type, const int tree_type);
-
 BVHTree *BKE_bvhtree_from_mesh_get(
         struct BVHTreeFromMesh *data, struct Mesh *mesh,
         const int type, const int tree_type);

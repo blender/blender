@@ -245,13 +245,6 @@ void BKE_mesh_calc_normals_looptri(
         const struct MLoop *mloop,
         const struct MLoopTri *looptri, int looptri_num,
         float (*r_tri_nors)[3]);
-void BKE_mesh_loop_tangents_ex(
-        const struct MVert *mverts, const int numVerts, const struct MLoop *mloops,
-        float (*r_looptangent)[4], float (*loopnors)[3], const struct MLoopUV *loopuv,
-        const int numLoops, const struct MPoly *mpolys, const int numPolys,
-        struct ReportList *reports);
-void BKE_mesh_loop_tangents(
-        struct Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], struct ReportList *reports);
 void BKE_mesh_loop_manifold_fan_around_vert_next(
         const struct MLoop *mloops, const struct MPoly *mpolys,
         const int *loop_to_poly, const int *e2lfan_curr, const uint mv_pivot_index,
