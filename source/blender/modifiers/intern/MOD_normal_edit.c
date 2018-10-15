@@ -502,7 +502,7 @@ static void initData(ModifierData *md)
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *)md;
-	CustomDataMask dataMask = CD_CUSTOMLOOPNORMAL;
+	CustomDataMask dataMask = CD_MASK_CUSTOMLOOPNORMAL;
 
 	/* Ask for vertexgroups if we need them. */
 	if (enmd->defgrp_name[0]) {
