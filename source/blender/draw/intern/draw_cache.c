@@ -3001,13 +3001,14 @@ void DRW_cache_mesh_wire_overlay_get(
 
 void DRW_cache_mesh_normals_overlay_get(
         Object *ob,
-        GPUBatch **r_tris, GPUBatch **r_ledges, GPUBatch **r_lverts)
+        GPUBatch **r_tris, GPUBatch **r_tris_lnor, GPUBatch **r_ledges, GPUBatch **r_lverts)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
 
 	*r_tris = DRW_mesh_batch_cache_get_overlay_triangles_nor(me);
+	*r_tris_lnor = DRW_mesh_batch_cache_get_overlay_triangles_lnor(me);
 	*r_ledges = DRW_mesh_batch_cache_get_overlay_loose_edges_nor(me);
 	*r_lverts = DRW_mesh_batch_cache_get_overlay_loose_verts(me);
 }

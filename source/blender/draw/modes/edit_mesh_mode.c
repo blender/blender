@@ -564,7 +564,7 @@ static void edit_mesh_add_ob_to_pass(
         DRWShadingGroup *facedot_shgrp,
         DRWShadingGroup *facefill_shgrp)
 {
-	struct GPUBatch *geo_ovl_tris, *geo_ovl_verts, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
+	struct GPUBatch *geo_ovl_tris, *geo_ovl_verts, *geo_ovl_lnor, *geo_ovl_ledges, *geo_ovl_lverts, *geo_ovl_fcenter;
 	struct GPUTexture *data_texture;
 	ToolSettings *tsettings = scene->toolsettings;
 
@@ -582,7 +582,7 @@ static void edit_mesh_add_ob_to_pass(
 
 	if ((tsettings->selectmode & SCE_SELECT_VERTEX) != 0) {
 		/* Thoses are point batches. */
-		DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_verts, &geo_ovl_ledges, &geo_ovl_lverts);
+		DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_verts, &geo_ovl_lnor, &geo_ovl_ledges, &geo_ovl_lverts);
 		DRW_shgroup_call_add(verts_shgrp, geo_ovl_verts, ob->obmat);
 		DRW_shgroup_call_add(lverts_shgrp, geo_ovl_ledges, ob->obmat);
 		DRW_shgroup_call_add(lverts_shgrp, geo_ovl_lverts, ob->obmat);
@@ -648,8 +648,8 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 			}
 
 			if (vnormals_do || lnormals_do) {
-				struct GPUBatch *geo_ovl_tris, *geo_ovl_ledges, *geo_ovl_lverts;
-				DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_tris, &geo_ovl_ledges, &geo_ovl_lverts);
+				struct GPUBatch *geo_ovl_tris, *geo_ovl_lnor, *geo_ovl_ledges, *geo_ovl_lverts;
+				DRW_cache_mesh_normals_overlay_get(ob, &geo_ovl_tris, &geo_ovl_lnor, &geo_ovl_ledges, &geo_ovl_lverts);
 
 				if (vnormals_do) {
 					DRW_shgroup_call_add(stl->g_data->vnormals_shgrp, geo_ovl_tris, ob->obmat);
@@ -658,7 +658,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 				}
 
 				if (lnormals_do) {
-					DRW_shgroup_call_add(stl->g_data->lnormals_shgrp, geo_ovl_tris, ob->obmat);
+					DRW_shgroup_call_add(stl->g_data->lnormals_shgrp, geo_ovl_lnor, ob->obmat);
 				}
 			}
 
