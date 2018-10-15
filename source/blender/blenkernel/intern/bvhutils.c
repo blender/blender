@@ -469,7 +469,6 @@ static void bvhtree_from_mesh_verts_setup_data(
 
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
-	//data->face = DM_get_tessface_array(dm, &data->face_allocated);  /* XXX WHY???? */
 }
 
 /* Builds a bvh tree where nodes are the vertices of the given em */

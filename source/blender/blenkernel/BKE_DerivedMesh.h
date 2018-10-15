@@ -550,36 +550,6 @@ void makeDerivedMesh(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers);
 
-/** convert layers requested by a GLSL material to actually available layers in
- * the DerivedMesh, with both a pointer for arrays and an offset for editmesh */
-typedef struct DMVertexAttribs {
-	struct {
-		struct MLoopUV *array;
-		int em_offset, gl_index, gl_texco, gl_info_index;
-	} tface[MAX_MTFACE];
-
-	struct {
-		struct MLoopCol *array;
-		int em_offset, gl_index, gl_info_index;
-	} mcol[MAX_MCOL];
-
-	struct {
-		float (*array)[4];
-		int em_offset, gl_index, gl_info_index;
-	} tang[MAX_MTFACE];
-
-	struct {
-		float (*array)[3];
-		int em_offset, gl_index, gl_texco, gl_info_index;
-	} orco;
-
-	int tottface, totmcol, tottang, totorco;
-} DMVertexAttribs;
-
-void DM_vertex_attributes_from_gpu(
-        DerivedMesh *dm,
-        struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
-
 void DM_calc_tangents_names_from_gpu(
         const struct GPUVertexAttribs *gattribs,
         char (*tangent_names)[MAX_NAME], int *tangent_names_count);
@@ -607,21 +577,5 @@ void DM_debug_print_cdlayers(CustomData *cdata);
 
 bool DM_is_valid(DerivedMesh *dm);
 #endif
-
-BLI_INLINE int DM_origindex_mface_mpoly(
-        const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i) ATTR_NONNULL(1);
-
-BLI_INLINE int DM_origindex_mface_mpoly(
-        const int *index_mf_to_mpoly, const int *index_mp_to_orig, const int i)
-{
-	const int j = index_mf_to_mpoly[i];
-	return (j != ORIGINDEX_NONE) ? (index_mp_to_orig ? index_mp_to_orig[j] : j) : ORIGINDEX_NONE;
-}
-
-struct MVert *DM_get_vert_array(struct DerivedMesh *dm, bool *r_allocated);
-struct MEdge *DM_get_edge_array(struct DerivedMesh *dm, bool *r_allocated);
-struct MLoop *DM_get_loop_array(struct DerivedMesh *dm, bool *r_allocated);
-struct MPoly *DM_get_poly_array(struct DerivedMesh *dm, bool *r_allocated);
-struct MFace *DM_get_tessface_array(struct DerivedMesh *dm, bool *r_allocated);
 
 #endif  /* __BKE_DERIVEDMESH_H__ */

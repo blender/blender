@@ -521,8 +521,7 @@ void BKE_mesh_batch_cache_free(struct Mesh *me);
 
 /* Inlines */
 
-/* This is a copy of DM_origindex_mface_mpoly().
- * Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
+/* Instead of -1 that function uses ORIGINDEX_NONE as defined in BKE_customdata.h,
  * but I don't want to force every user of BKE_mesh.h to also include that file.
  * ~~ Sybren */
 BLI_INLINE int BKE_mesh_origindex_mface_mpoly(
