@@ -1780,7 +1780,7 @@ static void do_makeDispListCurveTypes(
 			curve_calc_modifiers_post(depsgraph, scene, ob, &nubase, dispbase, r_final, for_render, use_render_resolution);
 		}
 
-		if (cu->flag & CU_DEFORM_FILL && !ob->derivedFinal) {
+		if (cu->flag & CU_DEFORM_FILL && !ob->runtime.mesh_eval) {
 			curve_to_filledpoly(cu, &nubase, dispbase);
 		}
 
