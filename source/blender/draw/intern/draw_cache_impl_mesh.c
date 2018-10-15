@@ -3767,13 +3767,11 @@ static void mesh_batch_cache_create_overlay_ledge_buffers(
 			BMesh *bm = rdata->edit_bmesh->bm;
 			for (uint i = 0; i < ledge_len; i++) {
 				const BMEdge *eed = BM_edge_at_index(bm, rdata->loose_edges[i]);
-				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-					add_overlay_loose_edge(
-					        rdata, vbo_pos, vbo_nor, vbo_data,
-					        attr_id.pos, attr_id.vnor, attr_id.data,
-					        eed, vbo_len_used);
-					vbo_len_used += 2;
-				}
+				add_overlay_loose_edge(
+				        rdata, vbo_pos, vbo_nor, vbo_data,
+				        attr_id.pos, attr_id.vnor, attr_id.data,
+				        eed, vbo_len_used);
+				vbo_len_used += 2;
 			}
 		}
 	}
