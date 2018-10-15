@@ -1868,8 +1868,8 @@ static void boundbox_displist_object(Object *ob)
 		if (ob->bb == NULL)
 			ob->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 
-		if (ob->derivedFinal) {
-			DM_set_object_boundbox(ob, ob->derivedFinal);
+		if (ob->runtime.mesh_eval) {
+			BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
 		}
 		else {
 			float min[3], max[3];

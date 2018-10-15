@@ -564,9 +564,6 @@ void DM_calc_loop_tangents(
 
 void DM_calc_auto_bump_scale(DerivedMesh *dm);
 
-/** Set object's bounding box based on DerivedMesh min/max data */
-void DM_set_object_boundbox(struct Object *ob, DerivedMesh *dm);
-
 void DM_init_origspace(DerivedMesh *dm);
 
 /* debug only */

@@ -2558,6 +2558,23 @@ void BKE_object_boundbox_flag(Object *ob, int flag, const bool set)
 	}
 }
 
+void BKE_object_boundbox_calc_from_mesh(struct Object *ob, struct Mesh *me_eval)
+{
+	float min[3], max[3];
+
+	INIT_MINMAX(min, max);
+
+	BKE_mesh_minmax(me_eval, min, max);
+
+	if (ob->bb == NULL) {
+		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
+	}
+
+	BKE_boundbox_init_from_minmax(ob->bb, min, max);
+
+	ob->bb->flag &= ~BOUNDBOX_DIRTY;
+}
+
 void BKE_object_dimensions_get(Object *ob, float vec[3])
 {
 	BoundBox *bb = NULL;

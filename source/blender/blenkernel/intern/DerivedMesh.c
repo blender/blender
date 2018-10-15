@@ -2218,13 +2218,11 @@ static void mesh_build_data(
 
 	mesh_finalize_eval(ob);
 
+	/* TODO(campbell): remove these copies, they are expected in various places over the code. */
 	ob->derivedDeform = CDDM_from_mesh_ex(ob->runtime.mesh_deform_eval, CD_REFERENCE, CD_MASK_MESH);
 	ob->derivedFinal = CDDM_from_mesh_ex(ob->runtime.mesh_eval, CD_REFERENCE, CD_MASK_MESH);
 
-	DM_set_object_boundbox(ob, ob->derivedFinal);
-	/* TODO(sergey): Convert bounding box calculation to use mesh, then
-	 * we can skip this copy.
-	 */
+	BKE_object_boundbox_calc_from_mesh(ob, ob->runtime.mesh_eval);
 	BKE_mesh_texspace_copy_from_object(ob->runtime.mesh_eval, ob);
 
 	ob->derivedFinal->needsFree = 0;
@@ -2262,9 +2260,7 @@ static void editbmesh_build_data(
 	em->mesh_eval_final = me_final;
 	em->mesh_eval_cage = me_cage;
 
-#if 0
-	DM_set_object_boundbox(obedit, em->derivedFinal);
-#endif
+	BKE_object_boundbox_calc_from_mesh(obedit, em->mesh_eval_final);
 
 	em->lastDataMask = dataMask;
 
@@ -2692,22 +2688,6 @@ void DM_calc_loop_tangents(
 	        /* result */
 	        &dm->loopData, dm->getNumLoops(dm),
 	        &dm->tangent_mask);
-}
-
-/* Set object's bounding box based on DerivedMesh min/max data */
-void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
-{
-	float min[3], max[3];
-
-	INIT_MINMAX(min, max);
-	dm->getMinMax(dm, min, max);
-
-	if (!ob->bb)
-		ob->bb = MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
-
-	BKE_boundbox_init_from_minmax(ob->bb, min, max);
-
-	ob->bb->flag &= ~BOUNDBOX_DIRTY;
 }
 
 void DM_init_origspace(DerivedMesh *dm)
