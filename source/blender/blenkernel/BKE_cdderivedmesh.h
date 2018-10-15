@@ -63,15 +63,6 @@ struct DerivedMesh *CDDM_from_bmesh(struct BMesh *bm, const bool use_mdisps);
 /* creates a CDDerivedMesh from the given BMEditMesh */
 DerivedMesh *CDDM_from_editbmesh(struct BMEditMesh *em, const bool use_mdisps, const bool use_tessface);
 
-/* merge verts  */
-/* Enum for merge_mode of CDDM_merge_verts.
- * Refer to cdderivedmesh.c for details. */
-enum {
-	CDDM_MERGE_VERTS_DUMP_IF_MAPPED,
-	CDDM_MERGE_VERTS_DUMP_IF_EQUAL,
-};
-DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int tot_vtargetmap, const int merge_mode);
-
 /* creates a CDDerivedMesh from the given curve object */
 struct DerivedMesh *CDDM_from_curve(struct Object *ob);
 
@@ -83,8 +74,6 @@ DerivedMesh *CDDM_from_curve_displist(struct Object *ob, struct ListBase *dispba
  * custom element data.
  */
 struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
-struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
-struct DerivedMesh *CDDM_copy_with_tessface(struct DerivedMesh *dm);
 
 /* creates a CDDerivedMesh with the same layer stack configuration as the
  * given DerivedMesh and containing the requested numbers of elements.
@@ -99,11 +88,6 @@ struct DerivedMesh *CDDM_from_template(
         struct DerivedMesh *source,
         int numVerts, int numEdges, int numFaces,
         int numLoops, int numPolys);
-
-/* converts mfaces to mpolys.  note things may break if there are not valid
- * medges surrounding each mface.
- */
-void CDDM_tessfaces_to_faces(struct DerivedMesh *dm);
 
 /* applies vertex coordinates or normals to a CDDerivedMesh. if the MVert
  * layer is a referenced layer, it will be duplicate to not overwrite the

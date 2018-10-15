@@ -707,7 +707,7 @@ static Mesh *arrayModifier_doArray(
 			int new_i = full_doubles_map[i];
 			if (new_i != -1) {
 				/* We have to follow chains of doubles (merge start/end especially is likely to create some),
-				 * those are not supported at all by CDDM_merge_verts! */
+				 * those are not supported at all by BKE_mesh_merge_verts! */
 				while (!ELEM(full_doubles_map[new_i], -1, new_i)) {
 					new_i = full_doubles_map[new_i];
 				}
