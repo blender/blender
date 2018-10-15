@@ -355,6 +355,7 @@ typedef struct ProjPaintState {
 	SpinLock *tile_lock;
 
 	Mesh *me_eval;
+	bool  me_eval_free;
 	int  totlooptri_eval;
 	int  totpoly_eval;
 	int  totedge_eval;
@@ -3397,29 +3398,26 @@ static void project_paint_bleed_add_face_user(
 static bool proj_paint_state_mesh_eval_init(const bContext *C, ProjPaintState *ps)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	Scene *sce = ps->scene;
 	Object *ob = ps->ob;
 
 	/* Workaround for subsurf selection, try the display mesh first */
-	/* XXX Don't think this is easily doable with new system, and not sure why that was needed in the first place :/ */
-#if 0
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
-		ps->dm = mesh_create_derived_render(
+		ps->me_eval = mesh_create_eval_final_render(
 		             depsgraph, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE);
-		ps->dm_release = true;
+		ps->me_eval_free = true;
 	}
 	else {
-		ps->dm = mesh_get_derived_final(
+		ps->me_eval = mesh_get_eval_final(
 		        depsgraph, ps->scene, ps->ob,
 		        ps->scene->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
-		ps->dm_release = false;
+		ps->me_eval_free = false;
 	}
-#endif
-	ps->me_eval = mesh_get_eval_final(
-	                  depsgraph, sce, ob,
-	                  sce->customdata_mask | CD_MASK_MLOOPUV | CD_MASK_MTFACE | (ps->do_face_sel ? CD_MASK_ORIGINDEX : 0));
+
 	if (!CustomData_has_layer(&ps->me_eval->ldata, CD_MLOOPUV)) {
+		if (ps->me_eval_free) {
+			BKE_id_free(NULL, ps->me_eval);
+		}
 		ps->me_eval = NULL;
 		return false;
 	}
@@ -3965,6 +3963,11 @@ static void project_paint_end(ProjPaintState *ps)
 		if (ps->do_mask_cavity) {
 			MEM_freeN(ps->cavities);
 		}
+
+		if (ps->me_eval_free) {
+			BKE_id_free(NULL, ps->me_eval);
+		}
+		ps->me_eval = NULL;
 	}
 
 	if (ps->blurkernel) {
