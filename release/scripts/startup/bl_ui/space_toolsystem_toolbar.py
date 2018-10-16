@@ -850,7 +850,7 @@ class _defs_edit_mesh:
         return dict(
             text="Shear",
             icon="ops.transform.shear",
-            widget=None,
+            widget="VIEW3D_GGT_xform_shear",
             keymap=(
                 ("transform.shear", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')),

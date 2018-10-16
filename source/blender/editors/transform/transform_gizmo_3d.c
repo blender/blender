@@ -1233,6 +1233,9 @@ static void gizmo_xform_message_subscribe(
 	else if (type_fn == VIEW3D_GGT_xform_cage) {
 		/* pass */
 	}
+	else if (type_fn == VIEW3D_GGT_xform_shear) {
+		/* pass */
+	}
 	else {
 		BLI_assert(0);
 	}
@@ -1989,6 +1992,155 @@ void VIEW3D_GGT_xform_cage(wmGizmoGroupType *gzgt)
 	gzgt->refresh = WIDGETGROUP_xform_cage_refresh;
 	gzgt->message_subscribe = WIDGETGROUP_xform_cage_message_subscribe;
 	gzgt->draw_prepare = WIDGETGROUP_xform_cage_draw_prepare;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Transform Shear Gizmo
+ * \{ */
+
+struct XFormShearWidgetGroup {
+	wmGizmo *gizmo[3][2];
+	/* Only for view orientation. */
+	struct {
+		float viewinv_m3[3][3];
+	} prev;
+};
+
+static bool WIDGETGROUP_xform_shear_poll(const bContext *C, wmGizmoGroupType *gzgt)
+{
+	if (!ED_gizmo_poll_or_unlink_delayed_from_tool(C, gzgt)) {
+		return false;
+	}
+	View3D *v3d = CTX_wm_view3d(C);
+	if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
+		return false;
+	}
+	return true;
+}
+
+static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGroup *gzgroup)
+{
+	struct XFormShearWidgetGroup *xgzgroup = MEM_mallocN(sizeof(struct XFormShearWidgetGroup), __func__);
+	const wmGizmoType *gzt_arrow = WM_gizmotype_find("GIZMO_GT_arrow_3d", true);
+	wmOperatorType *ot_shear = WM_operatortype_find("TRANSFORM_OT_shear", true);
+
+	float axis_color[3][3];
+	for (int i = 0; i < 3; i++) {
+		UI_GetThemeColor3fv(TH_AXIS_X + i, axis_color[i]);
+	}
+
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 2; j++) {
+			wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
+			RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
+			const int i_ortho = (i + j + 1) % 3;
+			interp_v3_v3v3(gz->color, axis_color[i], axis_color[i_ortho], 0.33f);
+			gz->color[3] = 0.5f;
+			PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, NULL);
+			RNA_boolean_set(ptr, "release_confirm", 1);
+			xgzgroup->gizmo[i][j] = gz;
+		}
+	}
+
+	gzgroup->customdata = xgzgroup;
+}
+
+static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzgroup)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	View3D *v3d = sa->spacedata.first;
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+
+	struct XFormShearWidgetGroup *xgzgroup = gzgroup->customdata;
+	struct TransformBounds tbounds;
+
+	if (ED_transform_calc_gizmo_stats(
+	            C, &(struct TransformCalcParams) {
+	                .use_local_axis = false,
+	            }, &tbounds) == 0)
+	{
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 2; j++) {
+				wmGizmo *gz = xgzgroup->gizmo[i][j];
+				WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, true);
+			}
+		}
+	}
+	else {
+		gizmo_prepare_mat(C, v3d, rv3d, &tbounds);
+		for (int i = 0; i < 3; i++) {
+			for (int j = 0; j < 2; j++) {
+				wmGizmo *gz = xgzgroup->gizmo[i][j];
+				WM_gizmo_set_flag(gz, WM_GIZMO_HIDDEN, false);
+				WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
+
+				wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+				const int i_ortho = (i + j + 1) % 3;
+				WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho], rv3d->twmat[i]);
+				WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
+
+				RNA_float_set_array(&gzop->ptr, "axis", tbounds.axis[i]);
+				RNA_float_set_array(&gzop->ptr, "axis_ortho", tbounds.axis[i_ortho]);
+				mul_v3_fl(gz->matrix_basis[0], 0.5f);
+				mul_v3_fl(gz->matrix_basis[1], 6.0f);
+			}
+		}
+	}
+
+	/* Needed to test view orientation changes. */
+	copy_m3_m4(xgzgroup->prev.viewinv_m3, rv3d->viewinv);
+}
+
+static void WIDGETGROUP_xform_shear_message_subscribe(
+        const bContext *C, wmGizmoGroup *gzgroup, struct wmMsgBus *mbus)
+{
+	Scene *scene = CTX_data_scene(C);
+	bScreen *screen = CTX_wm_screen(C);
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+	gizmo_xform_message_subscribe(gzgroup, mbus, scene, screen, sa, ar, VIEW3D_GGT_xform_shear);
+}
+
+static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup *gzgroup)
+{
+	struct XFormShearWidgetGroup *xgzgroup = gzgroup->customdata;
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
+	{
+		Scene *scene = CTX_data_scene(C);
+		switch (scene->orientation_type) {
+			case V3D_MANIP_VIEW:
+			{
+				float viewinv_m3[3][3];
+				copy_m3_m4(viewinv_m3, rv3d->viewinv);
+				if (!equals_m3m3(viewinv_m3, xgzgroup->prev.viewinv_m3)) {
+					/* Take care calling refresh from draw_prepare,
+					 * this should be OK because it's only adjusting the cage orientation. */
+					WIDGETGROUP_xform_shear_refresh(C, gzgroup);
+				}
+				break;
+			}
+		}
+	}
+}
+
+void VIEW3D_GGT_xform_shear(wmGizmoGroupType *gzgt)
+{
+	gzgt->name = "Transform Shear";
+	gzgt->idname = "VIEW3D_GGT_xform_shear";
+
+	gzgt->flag |= WM_GIZMOGROUPTYPE_3D;
+
+	gzgt->gzmap_params.spaceid = SPACE_VIEW3D;
+	gzgt->gzmap_params.regionid = RGN_TYPE_WINDOW;
+
+	gzgt->poll = WIDGETGROUP_xform_shear_poll;
+	gzgt->setup = WIDGETGROUP_xform_shear_setup;
+	gzgt->refresh = WIDGETGROUP_xform_shear_refresh;
+	gzgt->message_subscribe = WIDGETGROUP_xform_shear_message_subscribe;
+	gzgt->draw_prepare = WIDGETGROUP_xform_shear_draw_prepare;
 }
 
 /** \} */
