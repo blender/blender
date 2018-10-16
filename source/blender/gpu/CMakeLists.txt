@@ -87,8 +87,6 @@ set(SRC
 	intern/gpu_vertex_format.c
 	intern/gpu_viewport.c
 
-	shaders/gpu_shader_material.glsl
-
 	GPU_attr_binding.h
 	GPU_batch.h
 	GPU_batch_presets.h
