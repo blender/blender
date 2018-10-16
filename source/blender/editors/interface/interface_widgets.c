@@ -1988,7 +1988,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 					}
 
 					fixedbuf[ul_index] = '\0';
-					ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index);
+					ul_advance = BLF_width(fstyle->uifont_id, fixedbuf, ul_index) + (1.0f * UI_DPI_FAC);
 
 					BLF_position(fstyle->uifont_id, rect->xmin + font_xofs + ul_advance, rect->ymin + font_yofs, 0.0f);
 					BLF_color4ubv(fstyle->uifont_id, (unsigned char *)wcol->text);
