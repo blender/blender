@@ -1639,8 +1639,12 @@ static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob
 	/* if the active Object is Armature, and we can search for bones, do so... */
 	if ((obact->type == OB_ARMATURE) && (only_ob == false)) {
 		/* search in list of selected Pose-Channels for target */
-		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+		CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 		{
+			if (ob != obact) {
+				continue;
+			}
+
 			/* just use the first one that we encounter, as long as it is not the active one */
 			if (pchan != pchanact) {
 				*tar_ob = obact;
