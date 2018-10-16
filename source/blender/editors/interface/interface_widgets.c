@@ -2099,7 +2099,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 				rect->xmin += 0.3f * U.widget_unit;
 		}
 		else if (ui_block_is_menu(but->block))
-			rect->xmin += 0.3f * U.widget_unit;
+			rect->xmin += 0.2f * U.widget_unit;
 
 		widget_draw_icon(but, icon, alpha, rect, wcol->text);
 		if (show_menu_icon) {
