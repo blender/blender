@@ -597,32 +597,34 @@ static bool view3d_ima_bg_is_camera_view(bContext *C)
 
 static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **tooltip)
 {
-	if (view3d_ima_bg_is_camera_view(C)) {
-		return true;
+	if (!view3d_ima_drop_poll(C, drag, event, tooltip)) {
+		return false;
 	}
 
-	if (!ED_view3d_give_base_under_cursor(C, event->mval)) {
-		return view3d_ima_drop_poll(C, drag, event, tooltip);
+	if (ED_view3d_there_is_an_object_under_cursor(C, event->mval)) {
+		return false;
 	}
-	return 0;
+
+	return view3d_ima_bg_is_camera_view(C);
 }
 
 static bool view3d_ima_empty_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **tooltip)
 {
-	if (!view3d_ima_bg_is_camera_view(C)) {
+	if (!view3d_ima_drop_poll(C, drag, event, tooltip)) {
+		return false;
+	}
+
+	Object *ob = ED_view3d_give_object_under_cursor(C, event->mval);
+
+	if (ob == NULL) {
 		return true;
 	}
 
-	Base *base = ED_view3d_give_base_under_cursor(C, event->mval);
-
-	/* either holding and ctrl and no object, or dropping to empty */
-	if ((base == NULL) ||
-	    ((base != NULL) && base->object->type == OB_EMPTY))
-	{
-		return view3d_ima_drop_poll(C, drag, event, tooltip);
+	if (ob->type == OB_EMPTY && ob->empty_drawtype == OB_EMPTY_IMAGE) {
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 static void view3d_ob_drop_copy(wmDrag *drag, wmDropBox *drop)
@@ -688,8 +690,8 @@ static void view3d_dropboxes(void)
 
 	WM_dropbox_add(lb, "OBJECT_OT_add_named", view3d_ob_drop_poll, view3d_ob_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_drop_named_material", view3d_mat_drop_poll, view3d_id_drop_copy);
-	WM_dropbox_add(lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "VIEW3D_OT_background_image_add", view3d_ima_bg_drop_poll, view3d_id_path_drop_copy);
+	WM_dropbox_add(lb, "OBJECT_OT_drop_named_image", view3d_ima_empty_drop_poll, view3d_id_path_drop_copy);
 	WM_dropbox_add(lb, "OBJECT_OT_collection_instance_add", view3d_collection_drop_poll, view3d_collection_drop_copy);
 }
 
