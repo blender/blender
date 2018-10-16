@@ -2812,7 +2812,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_relationship_lines(sgl, draw_ctx->depsgraph, scene, ob);
 		}
 
-		if ((ob->dtx != 0) && theme_id == TH_UNDEFINED) {
+		const bool draw_extra = (ob->dtx != 0 || ob->dt == OB_BOUNDBOX);
+		if (draw_extra && (theme_id == TH_UNDEFINED)) {
 			theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 		}
 
