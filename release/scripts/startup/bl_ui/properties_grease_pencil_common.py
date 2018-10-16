@@ -740,7 +740,7 @@ class AnnotationDataPanel:
         if len(gpd.layers) >= 2:
             layer_rows = 5
         else:
-            layer_rows = 2
+            layer_rows = 3
         col.template_list("GPENCIL_UL_annotation_layer", "", gpd, "layers", gpd.layers, "active_index",
                           rows=layer_rows, reverse=True)
 
