@@ -79,7 +79,7 @@ void doVertexOfs(int v, vec2 fixvec)
 #ifdef VERTEX_FACING
 	facing = v_facing[v];
 #endif
-	gl_Position = pPos[v] + vec4(fixvec, Z_OFFSET, 0.0);
+	gl_Position = pPos[v] + vec4(fixvec * pPos[v].w, Z_OFFSET, 0.0);
 
 	EmitVertex();
 }
@@ -130,7 +130,7 @@ void main()
 	/* Edge */
 	ivec3 eflag;
 	for (int v = 0; v < 3; ++v) {
-		flag[v] = eflag[v] = vData[v].y | (vData[v].x << 8);
+		eflag[v] = vData[v].y | (vData[v].x << 8);
 		edgesCrease[v] = vData[v].z / 255.0;
 		edgesBweight[v] = vData[v].w / 255.0;
 	}
@@ -150,18 +150,6 @@ void main()
 	ssPos[0] = proj(pPos[0]);
 	ssPos[1] = proj(pPos[1]);
 	ssPos[2] = proj(pPos[2]);
-
-	vec2 fixvec[3];
-	vec2 fixvecaf[3];
-
-	for (int i = 0; i < 3; ++i) {
-		fixvec[i] = fixvecaf[i] = compute_fixvec(i);
-		/* Perspective */
-		if (ProjectionMatrix[3][3] == 0.0) {
-			fixvec[i] *= pPos[i].w;
-			fixvecaf[i] *= pPos[(i + 1) % 3].w;
-		}
-	}
 
 #ifdef VERTEX_SELECTION
 	vertex_color[0] = EDIT_MESH_vertex_color(vData[0].x).rgb;
@@ -183,8 +171,10 @@ void main()
 		/* Do 0 -> 1 edge strip */
 		faceColor = vec4(fcol.rgb, 0.0);
 		mask_edge_flag(0, eflag);
-		doVertexOfs(0, fixvec[0]);
-		doVertexOfs(1, fixvecaf[0]);
+
+		vec2 fixvec = compute_fixvec(0);
+		doVertexOfs(0, fixvec);
+		doVertexOfs(1, fixvec);
 	}
 	doVertex(0);
 	doVertex(1);
@@ -198,8 +188,10 @@ void main()
 	if ((eflag[0] & EDGE_EXISTS) != 0) {
 		/* Do 1 -> 2 edge strip */
 		mask_edge_flag(1, eflag);
-		doVertexOfs(1, fixvec[1]);
-		doVertexOfs(2, fixvecaf[1]);
+
+		vec2 fixvec = compute_fixvec(1);
+		doVertexOfs(1, fixvec);
+		doVertexOfs(2, fixvec);
 	}
 	EndPrimitive();
 
@@ -208,8 +200,10 @@ void main()
 		mask_edge_flag(2, eflag);
 		doVertex(2);
 		doVertex(0);
-		doVertexOfs(2, fixvec[2]);
-		doVertexOfs(0, fixvecaf[2]);
+
+		vec2 fixvec = compute_fixvec(2);
+		doVertexOfs(2, fixvec);
+		doVertexOfs(0, fixvec);
 		EndPrimitive();
 	}
 }
