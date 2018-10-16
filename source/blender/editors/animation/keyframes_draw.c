@@ -67,6 +67,14 @@
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
 
+BLI_INLINE bool is_cfra_eq(float a, float b) {
+	return IS_EQT(a, b, BEZT_BINARYSEARCH_THRESH);
+}
+
+BLI_INLINE bool is_cfra_lt(float a, float b) {
+	return (b - a) > BEZT_BINARYSEARCH_THRESH;
+}
+
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
 /* NOTE: this is exported to other modules that use the ActKeyColumns for finding keyframes */
 short compare_ak_cfraPtr(void *node, void *data)
@@ -75,15 +83,13 @@ short compare_ak_cfraPtr(void *node, void *data)
 	const float *cframe = data;
 	float val = *cframe;
 
-	if (IS_EQT(val, ak->cfra, BEZT_BINARYSEARCH_THRESH))
+	if (is_cfra_eq(val, ak->cfra))
 		return 0;
 
 	if (val < ak->cfra)
 		return -1;
-	else if (val > ak->cfra)
-		return 1;
 	else
-		return 0;
+		return 1;
 }
 
 /* --------------- */
@@ -91,15 +97,9 @@ short compare_ak_cfraPtr(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and BezTriple */
 static short compare_ak_bezt(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
 	BezTriple *bezt = (BezTriple *)data;
 
-	if (bezt->vec[1][0] < ak->cfra)
-		return -1;
-	else if (bezt->vec[1][0] > ak->cfra)
-		return 1;
-	else
-		return 0;
+	return compare_ak_cfraPtr(node, &bezt->vec[1][0]);
 }
 
 /* New node callback used for building ActKeyColumns from BezTriples */
@@ -141,15 +141,9 @@ static void nupdate_ak_bezt(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_gpframe(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
 	bGPDframe *gpf = (bGPDframe *)data;
 
-	if (gpf->framenum < ak->cfra)
-		return -1;
-	else if (gpf->framenum > ak->cfra)
-		return 1;
-	else
-		return 0;
+	return compare_ak_cfraPtr(node, &gpf->framenum);
 }
 
 /* New node callback used for building ActKeyColumns from GPencil frames */
@@ -191,15 +185,9 @@ static void nupdate_ak_gpframe(void *node, void *data)
 /* Comparator callback used for ActKeyColumns and GPencil frame */
 static short compare_ak_masklayshape(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
 	MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
 
-	if (masklay_shape->frame < ak->cfra)
-		return -1;
-	else if (masklay_shape->frame > ak->cfra)
-		return 1;
-	else
-		return 0;
+	return compare_ak_cfraPtr(node, &masklay_shape->frame);
 }
 
 /* New node callback used for building ActKeyColumns from GPencil frames */
@@ -330,7 +318,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int nu
 		ActKeyBlockInfo block;
 
 		/* Find the first key column while inserting dummy blocks. */
-		for (; col != NULL && col->cfra < bezt[0].vec[1][0]; col = col->next) {
+		for (; col != NULL && is_cfra_lt(col->cfra, bezt[0].vec[1][0]); col = col->next) {
 			add_keyblock_info(col, &dummy_keyblock);
 		}
 
@@ -338,11 +326,11 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int nu
 
 		/* Insert real blocks. */
 		for (int v = 1; col != NULL && v < num_bezt; v++, bezt++) {
-			BLI_assert(col->cfra == bezt[0].vec[1][0]);
+			BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
 
 			compute_keyblock_data(&block, bezt, bezt + 1);
 
-			for (; col != NULL && col->cfra < bezt[1].vec[1][0]; col = col->next) {
+			for (; col != NULL && is_cfra_lt(col->cfra, bezt[1].vec[1][0]); col = col->next) {
 				add_keyblock_info(col, &block);
 			}
 
