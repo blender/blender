@@ -39,6 +39,10 @@ void main()
 	float dx = (ProjectionMatrix[3][3] == 0.0) ? (noffset[0] / (nloc.z * defaultpixsize)) : (noffset[0] / defaultpixsize);
 	float dy = (ProjectionMatrix[3][3] == 0.0) ? (noffset[1] / (nloc.z * defaultpixsize)) : (noffset[1] / defaultpixsize);
 
+	/* round to avoid shift when add more samples */
+	dx = floor(dx) + 1.0;
+	dy = floor(dy) + 1.0;
+	
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
 	/* depth (get the value of the surrounding pixels) */
     float outdepth = 0.0;
