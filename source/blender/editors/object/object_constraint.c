@@ -2059,10 +2059,10 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 /* remove IK constraints from selected bones */
 static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *prev_ob = NULL;
 
 	/* only remove IK Constraints */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
 		bConstraint *con, *next;
 
@@ -2074,14 +2074,18 @@ static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_TARGET);
+
+		if (prev_ob != ob) {
+			prev_ob = ob;
+
+			/* Refresh depsgraph. */
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+			/* Note, notifier might evolve. */
+			WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
+		}
 	}
 	CTX_DATA_END;
-
-	/* refresh depsgraph */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 
 	return OPERATOR_FINISHED;
 }
