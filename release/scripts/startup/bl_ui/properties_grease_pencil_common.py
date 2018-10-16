@@ -741,7 +741,8 @@ class AnnotationDataPanel:
             layer_rows = 5
         else:
             layer_rows = 2
-        col.template_list("GPENCIL_UL_annotation_layer", "", gpd, "layers", gpd.layers, "active_index", rows=layer_rows)
+        col.template_list("GPENCIL_UL_annotation_layer", "", gpd, "layers", gpd.layers, "active_index",
+                          rows=layer_rows, reverse=True)
 
         col = row.column()
 
