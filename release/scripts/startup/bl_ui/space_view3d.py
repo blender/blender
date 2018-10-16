@@ -82,7 +82,7 @@ class VIEW3D_HT_header(Header):
                     row.prop(tool_settings.gpencil_sculpt, "use_select_mask", text="")
                     row.separator()
 
-                row.prop(gpd, "use_multiedit", text="", icon='FORCE_HARMONIC')
+                row.prop(gpd, "use_multiedit", text="", icon='GP_MULTIFRAME_EDITING')
 
                 sub = row.row(align=True)
                 sub.active = gpd.use_multiedit

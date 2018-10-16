@@ -1139,7 +1139,7 @@ static void rna_def_gpencil_sculpt(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_select_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSHEDIT_FLAG_SELECT_MASK);
 	RNA_def_property_ui_text(prop, "Selection Mask", "Only sculpt selected stroke points");
-	RNA_def_property_ui_icon(prop, ICON_VERTEXSEL, 0); // FIXME: this needs a custom icon
+	RNA_def_property_ui_icon(prop, ICON_GP_ONLY_SELECTED, 0);
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL);
 

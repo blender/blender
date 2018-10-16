@@ -2820,7 +2820,7 @@ static void rna_def_mesh(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_paint_mask", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "editflag", ME_EDIT_PAINT_FACE_SEL);
 	RNA_def_property_ui_text(prop, "Paint Mask", "Face selection masking for painting");
-	RNA_def_property_ui_icon(prop, ICON_FACESEL_HLT, 0);
+	RNA_def_property_ui_icon(prop, ICON_FACESEL, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_Mesh_update_facemask");
 
 	prop = RNA_def_property(srna, "use_paint_mask_vertex", PROP_BOOLEAN, PROP_NONE);
