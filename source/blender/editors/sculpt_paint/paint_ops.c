@@ -349,7 +349,11 @@ static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
 	*(((char *)brush) + tool_offset) = tool;
 }
 
-/* generic functions for setting the active brush based on the tool */
+/* Generic functions for setting the active brush based on the tool.
+ * Replaced by tool system currently, but may come back once active
+ * tools and brushes are decoupled and brush cycling without changing
+ * the tool is needed again.. */
+#if 0
 static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
 {
 	Brush *brush, *first_brush;
@@ -442,6 +446,7 @@ static int brush_generic_tool_set(
 		return OPERATOR_CANCELLED;
 	}
 }
+#endif
 
 /* used in the PAINT_OT_brush_select operator */
 #define OB_MODE_ACTIVE 0
@@ -449,11 +454,9 @@ static int brush_generic_tool_set(
 static int brush_select_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	ToolSettings *toolsettings = CTX_data_tool_settings(C);
-	Paint *paint = NULL;
 	int tool, paint_mode = RNA_enum_get(op->ptr, "paint_mode");
 	const bool create_missing = RNA_boolean_get(op->ptr, "create_missing");
-	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
+	/* const bool toggle = RNA_boolean_get(op->ptr, "toggle"); */
 	const char *tool_name = "Brush";
 	size_t tool_offset;
 
@@ -470,26 +473,22 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 
 	switch (paint_mode) {
 		case OB_MODE_SCULPT:
-			paint = &toolsettings->sculpt->paint;
 			tool_offset = offsetof(Brush, sculpt_tool);
 			tool = RNA_enum_get(op->ptr, "sculpt_tool");
 			RNA_enum_name_from_value(rna_enum_brush_sculpt_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_VERTEX_PAINT:
-			paint = &toolsettings->vpaint->paint;
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "vertex_paint_tool");
 			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_WEIGHT_PAINT:
-			paint = &toolsettings->wpaint->paint;
 			/* vertexpaint_tool is used for weight paint mode */
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "weight_paint_tool");
 			RNA_enum_name_from_value(rna_enum_brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_TEXTURE_PAINT:
-			paint = &toolsettings->imapaint.paint;
 			tool_offset = offsetof(Brush, imagepaint_tool);
 			tool = RNA_enum_get(op->ptr, "texture_paint_tool");
 			RNA_enum_name_from_value(rna_enum_brush_image_tool_items, tool, &tool_name);
@@ -499,21 +498,42 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 	}
 
-	/* TODO(campbell): Use the toolsystem for now, ideally the toolsystem will display brushes directly
-	 * so we don't need to sync between tools and brushes. */
-	int ret = brush_generic_tool_set(
+	/* TODO: old brush setting code disabled, replaced by tool system. */
+#if 0
+	Paint *paint = BKE_paint_get_active_from_context(C);
+	return brush_generic_tool_set(
 	        bmain, paint, tool, tool_offset,
 	        paint_mode, tool_name, create_missing,
 	        toggle);
-
-	if ((ret == OPERATOR_FINISHED) && (paint->brush != NULL)) {
-		Brush *brush = paint->brush;
-		WorkSpace *workspace = CTX_wm_workspace(C);
-		if (WM_toolsystem_ref_set_by_name(C, workspace, NULL, brush->id.name + 2, true)) {
-			/* ok */
+#else
+	/* Find matching brush. */
+	Brush *brush;
+	for (brush = bmain->brush.first; brush; brush = brush->id.next) {
+		if ((brush->ob_mode & paint_mode) &&
+		    (brush_tool(brush, tool_offset) == tool))
+		{
+			break;
 		}
 	}
-	return ret;
+
+	/* Create missing brush if needed. */
+	if (!brush) {
+		if (create_missing) {
+			brush = BKE_brush_add(bmain, tool_name, paint_mode);
+			id_us_min(&brush->id);  /* fake user only */
+			brush_tool_set(brush, tool_offset, tool);
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Let tool system cycle through brushes. */
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	WM_toolsystem_ref_set_by_name(C, workspace, NULL, brush->id.name + 2, true);
+
+	return OPERATOR_FINISHED;
+#endif
 }
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
