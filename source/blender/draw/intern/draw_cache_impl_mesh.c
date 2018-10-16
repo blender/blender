@@ -4354,7 +4354,9 @@ static GPUIndexBuf *mesh_batch_cache_get_loose_edges(MeshRenderData *rdata, Mesh
 				BMIter eiter;
 				BMEdge *eed;
 				BM_ITER_MESH(eed, &eiter, bm, BM_EDGES_OF_MESH) {
-					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && !bm_edge_has_visible_face(eed)) {
+					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) &&
+					    (eed->l == NULL || !bm_edge_has_visible_face(eed)))
+					{
 						GPU_indexbuf_add_line_verts(&elb, BM_elem_index_get(eed->v1),  BM_elem_index_get(eed->v2));
 					}
 				}
