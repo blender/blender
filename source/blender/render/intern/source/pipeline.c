@@ -2349,7 +2349,7 @@ static void re_movie_free_all(Render *re, bMovieHandle *mh, int totvideos)
 }
 
 /* saves images to disk */
-void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override,
+void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, ViewLayer *single_layer, Object *camera_override,
                     int sfra, int efra, int tfra)
 {
 	RenderData rd = scene->r;
@@ -2364,7 +2364,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
 	/* do not fully call for each frame, it initializes & pops output window */
-	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, 0, 1))
+	if (!render_initialize_from_main(re, &rd, bmain, scene, single_layer, camera_override, 0, 1))
 		return;
 
 	if (is_movie) {
@@ -2451,7 +2451,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 
 			/* only border now, todo: camera lens. (ton) */
 			render_initialize_from_main(re, &rd, bmain, scene,
-			                            NULL, camera_override, 1, 0);
+			                            single_layer, camera_override, 1, 0);
 
 			if (nfra != scene->r.cfra) {
 				/* Skip this frame, but could update for physics and particles system. */
