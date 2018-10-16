@@ -27,93 +27,31 @@
  *  \ingroup spview3d
  */
 
-#include "MEM_guardedalloc.h"
-
-#include "DNA_camera_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_constraint_types.h"  /* for drawing constraint */
-#include "DNA_lamp_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meta_types.h"
-#include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_smoke_types.h"
-#include "DNA_world_types.h"
 #include "DNA_object_types.h"
 
-#include "BLI_listbase.h"
-#include "BLI_link_utils.h"
-#include "BLI_string.h"
 #include "BLI_math.h"
-#include "BLI_memarena.h"
 
-#include "BKE_anim.h"  /* for the where_on_path function */
-#include "BKE_armature.h"
-#include "BKE_camera.h"
-#include "BKE_colortools.h"
-#include "BKE_constraint.h"  /* for the get_constraint_target function */
-#include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_deform.h"
-#include "BKE_displist.h"
-#include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_image.h"
-#include "BKE_key.h"
-#include "BKE_layer.h"
-#include "BKE_lattice.h"
-#include "BKE_main.h"
-#include "BKE_mesh.h"
-#include "BKE_mesh_runtime.h"
-#include "BKE_material.h"
-#include "BKE_mball.h"
-#include "BKE_modifier.h"
-#include "BKE_movieclip.h"
-#include "BKE_object.h"
-#include "BKE_paint.h"
-#include "BKE_particle.h"
-#include "BKE_pointcache.h"
-#include "BKE_scene.h"
-#include "BKE_subsurf.h"
-#include "BKE_unit.h"
-#include "BKE_tracking.h"
-#include "BKE_gpencil.h"
 
 #include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "IMB_imbuf.h"
-#include "IMB_imbuf_types.h"
-
-#include "BIF_gl.h"
-#include "BIF_glutil.h"
-
 #include "GPU_draw.h"
-#include "GPU_select.h"
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
-#include "GPU_immediate_util.h"
 #include "GPU_batch.h"
 #include "GPU_matrix.h"
 #include "GPU_state.h"
 #include "GPU_framebuffer.h"
 
 #include "ED_mesh.h"
-#include "ED_particle.h"
-#include "ED_screen.h"
-#include "ED_sculpt.h"
-#include "ED_types.h"
 
 #include "UI_resources.h"
-#include "UI_interface_icons.h"
-
-#include "WM_api.h"
-#include "BLF_api.h"
 
 #include "view3d_intern.h"  /* bad level include */
 

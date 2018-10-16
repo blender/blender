@@ -105,8 +105,8 @@ void VIEW3D_OT_clear_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 void VIEW3D_OT_toggle_shading(struct wmOperatorType *ot);
 
-void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
-void view3d_boxview_sync(ScrArea *sa, ARegion *ar);
+void view3d_boxview_copy(struct ScrArea *sa, struct ARegion *ar);
+void view3d_boxview_sync(struct ScrArea *sa, struct ARegion *ar);
 
 void view3d_orbit_apply_dyn_ofs(
         float r_ofs[3], const float ofs_old[3], const float viewquat_old[4],
@@ -149,14 +149,14 @@ void ED_view3d_draw_depth(
         struct ARegion *ar, View3D *v3d, bool alphaoverride);
 
 /* view3d_draw_legacy.c */
-void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph, Scene *scene, ARegion *ar, View3D *v3d);
+void ED_view3d_draw_depth_gpencil(struct Depsgraph *depsgraph, Scene *scene, struct ARegion *ar, View3D *v3d);
 
 void ED_view3d_draw_select_loop(
-        struct Depsgraph *depsgraph, ViewContext *vc, Scene *scene, struct ViewLayer *view_layer, View3D *v3d, ARegion *ar,
+        struct Depsgraph *depsgraph, ViewContext *vc, Scene *scene, struct ViewLayer *view_layer, View3D *v3d, struct ARegion *ar,
         bool use_obedit_skip, bool use_nearest);
 
 void ED_view3d_draw_depth_loop(
-        struct Depsgraph *depsgraph, Scene *scene, ARegion *ar, View3D *v3d);
+        struct Depsgraph *depsgraph, Scene *scene, struct ARegion *ar, View3D *v3d);
 
 void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 
@@ -202,7 +202,7 @@ void ED_view3d_smooth_view_force_finish(
 
 void view3d_winmatrix_set(
         struct Depsgraph *depsgraph,
-        ARegion *ar, const View3D *v3d, const rcti *rect);
+        struct ARegion *ar, const View3D *v3d, const rcti *rect);
 void view3d_viewmatrix_set(
         struct Depsgraph *depsgraph, Scene *scene,
         const View3D *v3d, RegionView3D *rv3d, const float rect_scale[2]);
@@ -248,8 +248,8 @@ void VIEW3D_OT_snap_cursor_to_selected(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_cursor_to_active(struct wmOperatorType *ot);
 
 /* space_view3d.c */
-ARegion *view3d_has_buttons_region(ScrArea *sa);
-ARegion *view3d_has_tools_region(ScrArea *sa);
+struct ARegion *view3d_has_buttons_region(struct ScrArea *sa);
+struct ARegion *view3d_has_tools_region(struct ScrArea *sa);
 
 extern const char *view3d_context_dir[]; /* doc access */
 
