@@ -460,93 +460,85 @@ void ED_draw_object_facemap(
 
 	glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW);
 
-#if 0
-	DM_update_materials(dm, ob);
-
-	/* add polygon offset so we draw above the original surface */
-	glPolygonOffset(1.0, 1.0);
-
-	GPU_facemap_setup(dm);
-
-	glColor4fv(col);
-
-	gpuPushAttrib(GL_ENABLE_BIT);
-	GPU_blend(true);
-	glDisable(GL_LIGHTING);
-
-	/* always draw using backface culling */
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	if (dm->drawObject->facemapindices) {
-		glDrawElements(GL_TRIANGLES, dm->drawObject->facemap_count[facemap] * 3, GL_UNSIGNED_INT,
-		               (int *)NULL + dm->drawObject->facemap_start[facemap] * 3);
-	}
-	gpuPopAttrib();
-
-	GPU_buffers_unbind();
-
-	glPolygonOffset(0.0, 0.0);
-
-#else
-
 	/* Just to create the data to pass to immediate mode, grr! */
 	const int *facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 	if (facemap_data) {
-		GPUVertFormat *format = immVertexFormat();
-		uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-
-		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-		immUniformColor4fv(col);
-
-		/* XXX, alpha isn't working yet, not sure why. */
 		GPU_blend_set_func_separate(GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 		GPU_blend(true);
 
-		MVert *mvert;
+		const MVert *mvert = me->mvert;
+		const MPoly *mpoly = me->mpoly;
+		const MLoop *mloop = me->mloop;
 
-		MPoly *mpoly;
-		int    mpoly_len;
-
-		MLoop *mloop;
-		int    mloop_len;
-
-		mvert = me->mvert;
-		mpoly = me->mpoly;
-		mloop = me->mloop;
-
-		mpoly_len = me->totpoly;
-		mloop_len = me->totloop;
+		int mpoly_len = me->totpoly;
+		int mloop_len = me->totloop;
 
 		facemap_data = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 
 		/* use gawain immediate mode fore now */
 		const int looptris_len = poly_to_tri_count(mpoly_len, mloop_len);
-		immBeginAtMost(GPU_PRIM_TRIS, looptris_len * 3);
+		const int vbo_len_capacity = looptris_len * 3;
+		int vbo_len_used = 0;
 
-		MPoly *mp;
+		GPUVertFormat format_pos = { 0 };
+		const uint pos_id = GPU_vertformat_attr_add(&format_pos, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
+
+		GPUVertBuf *vbo_pos = GPU_vertbuf_create_with_format(&format_pos);
+		GPU_vertbuf_data_alloc(vbo_pos, vbo_len_capacity);
+
+		GPUVertBufRaw pos_step;
+		GPU_vertbuf_attr_get_raw_data(vbo_pos, pos_id, &pos_step);
+
+		const MPoly *mp;
 		int i;
-		for (mp = mpoly, i = 0; i < mpoly_len; i++, mp++) {
-			if (facemap_data[i] == facemap) {
-				/* Weak, fan-fill, use until we have derived-mesh replaced. */
-				const MLoop *ml_start = &mloop[mp->loopstart];
-				const MLoop *ml_a = ml_start + 1;
-				const MLoop *ml_b = ml_start + 2;
-				for (int j = 2; j < mp->totloop; j++) {
-					immVertex3fv(pos, mvert[ml_start->v].co);
-					immVertex3fv(pos, mvert[ml_a->v].co);
-					immVertex3fv(pos, mvert[ml_b->v].co);
-
-					ml_a++;
-					ml_b++;
+		if (me->runtime.looptris.array) {
+			MLoopTri *mlt = me->runtime.looptris.array;
+			for (mp = mpoly, i = 0; i < mpoly_len; i++, mp++) {
+				if (facemap_data[i] == facemap) {
+					for (int j = 2; j < mp->totloop; j++) {
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[0]].v].co);
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[1]].v].co);
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[mloop[mlt->tri[2]].v].co);
+						vbo_len_used += 3;
+						mlt++;
+					}
+				}
+				else {
+					mlt += mp->totloop - 2;
 				}
 			}
 		}
-		immEnd();
+		else {
+			/* No tessellation data, fan-fill. */
+			for (mp = mpoly, i = 0; i < mpoly_len; i++, mp++) {
+				if (facemap_data[i] == facemap) {
+					const MLoop *ml_start = &mloop[mp->loopstart];
+					const MLoop *ml_a = ml_start + 1;
+					const MLoop *ml_b = ml_start + 2;
+					for (int j = 2; j < mp->totloop; j++) {
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_start->v].co);
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_a->v].co);
+						copy_v3_v3(GPU_vertbuf_raw_step(&pos_step), mvert[ml_b->v].co);
+						vbo_len_used += 3;
 
-		immUnbindProgram();
+						ml_a++;
+						ml_b++;
+					}
+				}
+			}
+		}
+
+		if (vbo_len_capacity != vbo_len_used) {
+			GPU_vertbuf_data_resize(vbo_pos, vbo_len_used);
+		}
+
+		GPUBatch *draw_batch = GPU_batch_create(GPU_PRIM_TRIS, vbo_pos, NULL);
+		GPU_batch_program_set_builtin(draw_batch, GPU_SHADER_3D_UNIFORM_COLOR);
+		GPU_batch_uniform_4fv(draw_batch, "color", col);
+		GPU_batch_draw(draw_batch);
+		GPU_batch_discard(draw_batch);
+		GPU_vertbuf_discard(vbo_pos);
 
 		GPU_blend(false);
 	}
-#endif
 }
