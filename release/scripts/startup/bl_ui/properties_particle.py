@@ -1226,6 +1226,10 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                 col.prop(part, "material_slot", text="Material")
                 col.prop(psys, "parent", text="Coordinate System")
 
+        if context.object:
+            layout.separator()
+            layout.prop(context.object, "show_duplicator_for_render", text="Show Emitter")
+
 
 class PARTICLE_PT_render_extra(ParticleButtonsPanel, Panel):
     bl_label = "Extra"
@@ -1618,7 +1622,7 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
                 if phystype != 'NO' and phystype != 'KEYED' and psys.point_cache.is_baked is False:
                     layout.row().label(text="Display percentage makes dynamics inaccurate without baking")
         else:
-            layout.row().label(text="")
+            layout.separator()
 
         col = layout.column()
         col.prop(part, "show_guide_hairs", text="Guide Hairs")
@@ -1627,6 +1631,10 @@ class PARTICLE_PT_draw(ParticleButtonsPanel, Panel):
         col.prop(part, "show_number")
         if part.physics_type == 'BOIDS':
             col.prop(part, "show_health")
+
+        if context.object:
+            layout.separator()
+            layout.prop(context.object, "show_duplicator_for_viewport", text="Show Emitter")
 
 
 class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
