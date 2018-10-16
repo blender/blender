@@ -155,6 +155,7 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
         cscene = scene.cycles
 
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         layout.prop(cscene, "progressive")
 
@@ -162,51 +163,54 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
             col = layout.column(align=True)
             col.prop(cscene, "samples", text="Render")
             col.prop(cscene, "preview_samples", text="Viewport")
-            col.separator()
-            col.prop(cscene, "use_square_samples")  # Duplicate below.
 
-
-class CYCLES_RENDER_PT_sampling_aa_samples(CyclesButtonsPanel, Panel):
-    bl_label = "AA Samples"
-    bl_parent_id = "CYCLES_RENDER_PT_sampling"
-
-    @classmethod
-    def poll(self, context):
-        scene = context.scene
-        cscene = scene.cycles
-        if cscene.progressive == 'PATH' or use_branched_path(context) is False:
-            return False
+            draw_samples_info(layout, context)
         else:
-            return True
+            col = layout.column(align=True)
+            col.prop(cscene, "aa_samples", text="Render")
+            col.prop(cscene, "preview_aa_samples", text="Viewport")
+
+
+class CYCLES_RENDER_PT_sampling_light(CyclesButtonsPanel, Panel):
+    bl_label = "Light"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
 
         col = layout.column(align=True)
-        col.prop(cscene, "aa_samples", text="Render")
-        col.prop(cscene, "preview_aa_samples", text="Preview")
+        col.prop(cscene, "light_sampling_threshold", text="Light Threshold")
+
+        if cscene.progressive != 'PATH' and use_branched_path(context):
+            col = layout.column(align=True)
+            col.prop(cscene, "sample_all_lights_direct")
+            col.prop(cscene, "sample_all_lights_indirect")
+
+        col = layout.column(align=True)
+        col.prop(cscene, "sample_clamp_direct")
+        col.prop(cscene, "sample_clamp_indirect")
 
 
-class CYCLES_RENDER_PT_sampling_samples(CyclesButtonsPanel, Panel):
-    bl_label = "Samples"
+class CYCLES_RENDER_PT_sampling_sub_samples(CyclesButtonsPanel, Panel):
+    bl_label = "Sub Samples"
     bl_parent_id = "CYCLES_RENDER_PT_sampling"
 
     @classmethod
     def poll(self, context):
         scene = context.scene
         cscene = scene.cycles
-        if cscene.progressive == 'PATH' or use_branched_path(context) is False:
-            return False
-        else:
-            return True
+        return cscene.progressive != 'PATH' and use_branched_path(context)
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -222,12 +226,22 @@ class CYCLES_RENDER_PT_sampling_samples(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
         col.prop(cscene, "subsurface_samples", text="Subsurface")
         col.prop(cscene, "volume_samples", text="Volume")
-        col.separator()
-        col.prop(cscene, "use_square_samples")  # Duplicate above.
 
-        col = layout.column(align=True)
-        col.prop(cscene, "sample_all_lights_direct")
-        col.prop(cscene, "sample_all_lights_indirect")
+        draw_samples_info(layout, context)
+
+
+class CYCLES_RENDER_PT_sampling_advanced(CyclesButtonsPanel, Panel):
+    bl_label = "Advanced"
+    bl_parent_id = "CYCLES_RENDER_PT_sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        cscene = scene.cycles
 
         row = layout.row(align=True)
         row.prop(cscene, "seed")
@@ -235,27 +249,63 @@ class CYCLES_RENDER_PT_sampling_samples(CyclesButtonsPanel, Panel):
 
         layout.prop(cscene, "sampling_pattern", text="Pattern")
 
+        layout.prop(cscene, "use_square_samples")
 
-class CYCLES_RENDER_PT_sampling_light(CyclesButtonsPanel, Panel):
-    bl_label = "Light"
+
+class CYCLES_RENDER_PT_sampling_total(CyclesButtonsPanel, Panel):
+    bl_label = "Total Samples"
     bl_parent_id = "CYCLES_RENDER_PT_sampling"
-    bl_options = {'DEFAULT_CLOSED'}
 
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
+    @classmethod
+    def poll(self, context):
         scene = context.scene
         cscene = scene.cycles
 
-        col = layout.column(align=True)
-        col.prop(cscene, "light_sampling_threshold", text="Light Threshold")
+        if cscene.use_square_samples:
+            return True
+
+        return cscene.progressive != 'PATH' and use_branched_path(context)
+
+    def draw(self, context):
+        layout = self.layout
+        cscene = context.scene.cycles
+        integrator = cscene.progressive
+
+        # Calculate sample values
+        if integrator == 'PATH':
+            aa = cscene.samples
+            if cscene.use_square_samples:
+                aa = aa * aa
+        else:
+            aa = cscene.aa_samples
+            d = cscene.diffuse_samples
+            g = cscene.glossy_samples
+            t = cscene.transmission_samples
+            ao = cscene.ao_samples
+            ml = cscene.mesh_light_samples
+            sss = cscene.subsurface_samples
+            vol = cscene.volume_samples
+
+            if cscene.use_square_samples:
+                aa = aa * aa
+                d = d * d
+                g = g * g
+                t = t * t
+                ao = ao * ao
+                ml = ml * ml
+                sss = sss * sss
+                vol = vol * vol
 
         col = layout.column(align=True)
-        col.prop(cscene, "sample_clamp_direct")
-        col.prop(cscene, "sample_clamp_indirect")
-
-        draw_samples_info(layout, context)
+        col.scale_y = 0.6
+        if integrator == 'PATH':
+            col.label(text="%s AA" % aa)
+        else:
+            col.label(text="%s AA, %s Diffuse, %s Glossy, %s Transmission" %
+                      (aa, d * aa, g * aa, t * aa))
+            col.separator()
+            col.label(text="%s AO, %s Mesh Light, %s Subsurface, %s Volume" %
+                      (ao * aa, ml * aa, sss * aa, vol * aa))
 
 
 class CYCLES_RENDER_PT_geometry(CyclesButtonsPanel, Panel):
@@ -277,6 +327,7 @@ class CYCLES_RENDER_PT_geometry_subdivision(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -301,6 +352,7 @@ class CYCLES_RENDER_PT_geometry_volume(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -314,7 +366,6 @@ class CYCLES_RENDER_PT_geometry_volume(CyclesButtonsPanel, Panel):
 class CYCLES_RENDER_PT_geometry_hair(CyclesButtonsPanel, Panel):
     bl_label = "Hair"
     bl_parent_id = "CYCLES_RENDER_PT_geometry"
-    bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
         layout = self.layout
@@ -327,6 +378,7 @@ class CYCLES_RENDER_PT_geometry_hair(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -366,6 +418,7 @@ class CYCLES_RENDER_PT_light_paths_max_bounces(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -389,6 +442,7 @@ class CYCLES_RENDER_PT_light_paths_caustics(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -411,6 +465,7 @@ class CYCLES_RENDER_PT_motion_blur(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -435,6 +490,7 @@ class CYCLES_RENDER_PT_motion_blur_curve(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -462,6 +518,7 @@ class CYCLES_RENDER_PT_film(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         scene = context.scene
         cscene = scene.cycles
 
@@ -485,6 +542,7 @@ class CYCLES_RENDER_PT_film_transparency(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         scene = context.scene
         cscene = scene.cycles
 
@@ -506,6 +564,7 @@ class CYCLES_RENDER_PT_film_pixel_filter(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
         scene = context.scene
         cscene = scene.cycles
 
@@ -522,6 +581,7 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -543,6 +603,7 @@ class CYCLES_RENDER_PT_performance_threads(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -563,6 +624,7 @@ class CYCLES_RENDER_PT_performance_tiles(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -591,6 +653,7 @@ class CYCLES_RENDER_PT_performance_acceleration_structure(CyclesButtonsPanel, Pa
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -613,6 +676,7 @@ class CYCLES_RENDER_PT_performance_final_render(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -632,6 +696,7 @@ class CYCLES_RENDER_PT_performance_viewport(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -649,6 +714,7 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         with_freestyle = bpy.app.build_options.freestyle
 
@@ -768,6 +834,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -845,6 +912,7 @@ class CYCLES_PT_post_processing(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         rd = context.scene.render
 
@@ -1066,6 +1134,7 @@ class CYCLES_OBJECT_PT_cycles_settings_ray_visibility(CyclesButtonsPanel, Panel)
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -1109,6 +1178,7 @@ class CYCLES_OBJECT_PT_cycles_settings_performance(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         cscene = scene.cycles
@@ -1206,6 +1276,7 @@ class CYCLES_LIGHT_PT_light(CyclesButtonsPanel, Panel):
         layout.prop(light, "type", expand=True)
 
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         col = layout.column()
 
@@ -1272,6 +1343,7 @@ class CYCLES_LIGHT_PT_spot(CyclesButtonsPanel, Panel):
         layout = self.layout
         light = context.light
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         col = layout.column()
         col.prop(light, "spot_size", text="Size")
@@ -1342,6 +1414,7 @@ class CYCLES_WORLD_PT_ambient_occlusion(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         light = context.world.light_settings
         scene = context.scene
@@ -1416,6 +1489,7 @@ class CYCLES_WORLD_PT_settings(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         world = context.world
         cworld = world.cycles
@@ -1436,6 +1510,7 @@ class CYCLES_WORLD_PT_settings_surface(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         world = context.world
         cworld = world.cycles
@@ -1467,6 +1542,7 @@ class CYCLES_WORLD_PT_settings_volume(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         world = context.world
         cworld = world.cycles
@@ -1556,6 +1632,7 @@ class CYCLES_MATERIAL_PT_settings(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         mat = context.material
         cmat = mat.cycles
@@ -1575,6 +1652,7 @@ class CYCLES_MATERIAL_PT_settings_surface(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         mat = context.material
         cmat = mat.cycles
@@ -1597,6 +1675,7 @@ class CYCLES_MATERIAL_PT_settings_volume(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         mat = context.material
         cmat = mat.cycles
@@ -1770,6 +1849,7 @@ class CYCLES_SCENE_PT_simplify_viewport(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -1793,6 +1873,7 @@ class CYCLES_SCENE_PT_simplify_render(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -1818,6 +1899,7 @@ class CYCLES_SCENE_PT_simplify_culling(CyclesButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
@@ -1842,6 +1924,7 @@ def draw_device(self, context):
     scene = context.scene
     layout = self.layout
     layout.use_property_split = True
+    layout.use_property_decorate = False
 
     if context.engine == 'CYCLES':
         from . import engine
@@ -1892,9 +1975,9 @@ classes = (
     CYCLES_MT_sampling_presets,
     CYCLES_MT_integrator_presets,
     CYCLES_RENDER_PT_sampling,
-    CYCLES_RENDER_PT_sampling_aa_samples,
-    CYCLES_RENDER_PT_sampling_samples,
     CYCLES_RENDER_PT_sampling_light,
+    CYCLES_RENDER_PT_sampling_sub_samples,
+    CYCLES_RENDER_PT_sampling_advanced,
     CYCLES_RENDER_PT_geometry,
     CYCLES_RENDER_PT_geometry_subdivision,
     CYCLES_RENDER_PT_geometry_volume,
