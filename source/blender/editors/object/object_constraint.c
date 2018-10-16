@@ -1421,13 +1421,19 @@ void CONSTRAINT_OT_move_up(wmOperatorType *ot)
 static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *prev_ob = NULL;
 
 	/* free constraints for all selected bones */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, selected_pose_bones, Object *, ob)
 	{
 		BKE_constraints_free(&pchan->constraints);
 		pchan->constflag &= ~(PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK | PCHAN_HAS_CONST);
+
+		if (prev_ob != ob) {
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
+			prev_ob = ob;
+		}
 	}
 	CTX_DATA_END;
 
@@ -1435,10 +1441,6 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	DEG_relations_tag_update(bmain);
 
 	/* note, calling BIK_clear_data() isn't needed here */
-
-	/* do updates */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, ob);
 
 	return OPERATOR_FINISHED;
 }
