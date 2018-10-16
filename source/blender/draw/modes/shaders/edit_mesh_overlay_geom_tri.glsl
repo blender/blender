@@ -179,28 +179,37 @@ void main()
 	/* Remember that we are assuming the last vertex
 	 * of a triangle is the provoking vertex (decide what flat attribs are). */
 
-	/* Do 0 -> 1 edge strip */
-	faceColor = vec4(fcol.rgb, 0.0);
-	mask_edge_flag(0, eflag);
-	doVertexOfs(0, fixvec[0]);
-	doVertexOfs(1, fixvecaf[0]);
+	if ((eflag[2] & EDGE_EXISTS) != 0) {
+		/* Do 0 -> 1 edge strip */
+		faceColor = vec4(fcol.rgb, 0.0);
+		mask_edge_flag(0, eflag);
+		doVertexOfs(0, fixvec[0]);
+		doVertexOfs(1, fixvecaf[0]);
+	}
 	doVertex(0);
 	doVertex(1);
+
 	/* Do face triangle */
 	faceColor = fcol;
 	flag = eflag;
 	doVertex(2);
 	faceColor.a = 0.0; /* to not let face color bleed */
-	/* Do 1 -> 2 edge strip */
-	mask_edge_flag(1, eflag);
-	doVertexOfs(1, fixvec[1]);
-	doVertexOfs(2, fixvecaf[1]);
+
+	if ((eflag[0] & EDGE_EXISTS) != 0) {
+		/* Do 1 -> 2 edge strip */
+		mask_edge_flag(1, eflag);
+		doVertexOfs(1, fixvec[1]);
+		doVertexOfs(2, fixvecaf[1]);
+	}
 	EndPrimitive();
-	/* Do 2 -> 0 edge strip */
-	mask_edge_flag(2, eflag);
-	doVertex(2);
-	doVertex(0);
-	doVertexOfs(2, fixvec[2]);
-	doVertexOfs(0, fixvecaf[2]);
-	EndPrimitive();
+
+	if ((eflag[1] & EDGE_EXISTS) != 0) {
+		/* Do 2 -> 0 edge strip */
+		mask_edge_flag(2, eflag);
+		doVertex(2);
+		doVertex(0);
+		doVertexOfs(2, fixvec[2]);
+		doVertexOfs(0, fixvecaf[2]);
+		EndPrimitive();
+	}
 }
