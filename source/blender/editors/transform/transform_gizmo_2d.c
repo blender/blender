@@ -303,33 +303,33 @@ void ED_widgetgroup_gizmo2d_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 	}
 
 	if (show_cage) {
-		wmGizmoOpElem *mpop;
+		wmGizmoOpElem *gzop;
 		float mid[2];
 		const float *min = ggd->min;
 		const float *max = ggd->max;
 		mid_v2_v2v2(mid, min, max);
 
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X);
-		PropertyRNA *prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], mid[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], mid[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], min[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X);
+		PropertyRNA *prop_center_override = RNA_struct_find_property(&gzop->ptr, "center_override");
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){max[0], mid[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){min[0], mid[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){mid[0], max[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){mid[0], min[1], 0.0f});
 
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){max[0], min[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], max[1], 0.0f});
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){min[0], min[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MIN_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){max[0], max[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MIN_X_MAX_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){max[0], min[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MIN_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){min[0], max[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_SCALE_MAX_X_MAX_Y);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){min[0], min[1], 0.0f});
 
-		mpop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_ROTATE);
-		RNA_property_float_set_array(&mpop->ptr, prop_center_override, (float[3]){mid[0], mid[1], 0.0f});
+		gzop = WM_gizmo_operator_get(ggd->cage, ED_GIZMO_CAGE2D_PART_ROTATE);
+		RNA_property_float_set_array(&gzop->ptr, prop_center_override, (float[3]){mid[0], mid[1], 0.0f});
 	}
 }
 

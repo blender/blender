@@ -351,20 +351,20 @@ static bool gizmo_tweak_start(
 static bool gizmo_tweak_start_and_finish(
         bContext *C, wmGizmoMap *gzmap, wmGizmo *gz, const wmEvent *event, bool *r_is_modal)
 {
-	wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, gz->highlight_part);
+	wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
 	if (r_is_modal) {
 		*r_is_modal = false;
 	}
-	if (mpop && mpop->type) {
+	if (gzop && gzop->type) {
 
 		/* Undo/Redo */
-		if (mpop->is_redo) {
+		if (gzop->is_redo) {
 			wmWindowManager *wm = CTX_wm_manager(C);
 			wmOperator *op = WM_operator_last_redo(C);
 
 			/* We may want to enable this, for now the gizmo can manage it's own properties. */
 #if 0
-			IDP_MergeGroup(mpop->ptr.data, op->properties, false);
+			IDP_MergeGroup(gzop->ptr.data, op->properties, false);
 #endif
 
 			WM_operator_free_all_after(wm, op);
@@ -373,7 +373,7 @@ static bool gizmo_tweak_start_and_finish(
 
 		/* XXX temporary workaround for modal gizmo operator
 		 * conflicting with modal operator attached to gizmo */
-		if (mpop->type->modal) {
+		if (gzop->type->modal) {
 			/* activate highlighted gizmo */
 			wm_gizmomap_modal_set(gzmap, C, gz, event, true);
 			if (r_is_modal) {
@@ -385,7 +385,7 @@ static bool gizmo_tweak_start_and_finish(
 				gz->parent_gzgroup->type->invoke_prepare(C, gz->parent_gzgroup, gz);
 			}
 			/* Allow for 'button' gizmos, single click to run an action. */
-			WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
+			WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
 		}
 		return true;
 	}
@@ -548,9 +548,9 @@ static int gizmo_tweak_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	bool use_drag_detect = false;
 #ifdef USE_DRAG_DETECT
 	if (use_drag_fallback) {
-		wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, gz->highlight_part);
-		if (mpop && mpop->type) {
-			if (mpop->type->modal == NULL) {
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
+		if (gzop && gzop->type) {
+			if (gzop->type->modal == NULL) {
 				use_drag_detect = true;
 			}
 		}

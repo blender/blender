@@ -258,19 +258,19 @@ PointerRNA *WM_gizmo_operator_set(
 		gz->op_data_len = part_index + 1;
 		gz->op_data = MEM_recallocN(gz->op_data, sizeof(*gz->op_data) * gz->op_data_len);
 	}
-	wmGizmoOpElem *mpop = &gz->op_data[part_index];
-	mpop->type = ot;
+	wmGizmoOpElem *gzop = &gz->op_data[part_index];
+	gzop->type = ot;
 
-	if (mpop->ptr.data) {
-		WM_operator_properties_free(&mpop->ptr);
+	if (gzop->ptr.data) {
+		WM_operator_properties_free(&gzop->ptr);
 	}
-	WM_operator_properties_create_ptr(&mpop->ptr, ot);
+	WM_operator_properties_create_ptr(&gzop->ptr, ot);
 
 	if (properties) {
-		mpop->ptr.data = properties;
+		gzop->ptr.data = properties;
 	}
 
-	return &mpop->ptr;
+	return &gzop->ptr;
 }
 
 static void wm_gizmo_set_matrix_rotation_from_z_axis__internal(

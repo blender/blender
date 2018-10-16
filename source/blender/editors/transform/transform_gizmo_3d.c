@@ -1919,12 +1919,12 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmGizmoGroup *gzgr
 				center[1] = (float)(1 - y) * dims[1];
 				for (int z = 0; z < 3; z++) {
 					center[2] = (float)(1 - z) * dims[2];
-					struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, i);
+					struct wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, i);
 					if (prop_center_override == NULL) {
-						prop_center_override = RNA_struct_find_property(&mpop->ptr, "center_override");
+						prop_center_override = RNA_struct_find_property(&gzop->ptr, "center_override");
 					}
 					mul_v3_m4v3(center_global, matrix_offset_global, center);
-					RNA_property_float_set_array(&mpop->ptr, prop_center_override, center_global);
+					RNA_property_float_set_array(&gzop->ptr, prop_center_override, center_global);
 					i++;
 				}
 			}

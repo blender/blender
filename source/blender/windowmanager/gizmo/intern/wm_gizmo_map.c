@@ -718,8 +718,8 @@ void wm_gizmomaps_handled_modal_update(
 
 	/* regular update for running operator */
 	if (modal_running) {
-		wmGizmoOpElem *mpop = gz ? WM_gizmo_operator_get(gz, gz->highlight_part) : NULL;
-		if (gz && mpop && (mpop->type != NULL) && (mpop->type == handler->op->type)) {
+		wmGizmoOpElem *gzop = gz ? WM_gizmo_operator_get(gz, gz->highlight_part) : NULL;
+		if (gz && gzop && (gzop->type != NULL) && (gzop->type == handler->op->type)) {
 			wmGizmoFnModal modal_fn = gz->custom_modal ? gz->custom_modal : gz->type->modal;
 			if (modal_fn != NULL) {
 				int retval = modal_fn(C, gz, event, 0);
@@ -971,9 +971,9 @@ void wm_gizmomap_modal_set(
 			gzmap->gzmap_context.event_xy[0] = INT_MAX;
 		}
 
-		struct wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, gz->highlight_part);
-		if (mpop && mpop->type) {
-			const int retval = WM_operator_name_call_ptr(C, mpop->type, WM_OP_INVOKE_DEFAULT, &mpop->ptr);
+		struct wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, gz->highlight_part);
+		if (gzop && gzop->type) {
+			const int retval = WM_operator_name_call_ptr(C, gzop->type, WM_OP_INVOKE_DEFAULT, &gzop->ptr);
 			if ((retval & OPERATOR_RUNNING_MODAL) == 0) {
 				wm_gizmomap_modal_set(gzmap, C, gz, event, false);
 			}

@@ -192,8 +192,8 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmGizmoGroup *
 		int gz_ids[] = {MPR_MOVE, MPR_ROTATE, MPR_ZOOM};
 		for (int i = 0; i < ARRAY_SIZE(gz_ids); i++) {
 			wmGizmo *gz = navgroup->gz_array[gz_ids[i]];
-			wmGizmoOpElem *mpop = WM_gizmo_operator_get(gz, 0);
-			RNA_boolean_set(&mpop->ptr, "use_mouse_init", false);
+			wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
+			RNA_boolean_set(&gzop->ptr, "use_mouse_init", false);
 		}
 	}
 

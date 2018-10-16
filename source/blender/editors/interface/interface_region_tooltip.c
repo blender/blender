@@ -872,7 +872,7 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 		const struct {
 			int part;
 			const char *prefix;
-		} mpop_actions[] = {
+		} gzop_actions[] = {
 			{
 				.part = gz->highlight_part,
 				.prefix = use_drag ? TIP_("Click") : NULL,
@@ -882,19 +882,19 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 			},
 		};
 
-		for (int i = 0; i < ARRAY_SIZE(mpop_actions); i++) {
-			wmGizmoOpElem *mpop = (mpop_actions[i].part != -1) ? WM_gizmo_operator_get(gz, mpop_actions[i].part) : NULL;
-			if (mpop != NULL) {
+		for (int i = 0; i < ARRAY_SIZE(gzop_actions); i++) {
+			wmGizmoOpElem *gzop = (gzop_actions[i].part != -1) ? WM_gizmo_operator_get(gz, gzop_actions[i].part) : NULL;
+			if (gzop != NULL) {
 				/* Description */
-				const char *info = RNA_struct_ui_description(mpop->type->srna);
+				const char *info = RNA_struct_ui_description(gzop->type->srna);
 				if (!(info && info[0])) {
-					info  = RNA_struct_ui_name(mpop->type->srna);
+					info  = RNA_struct_ui_name(gzop->type->srna);
 				}
 
 				if (info && info[0]) {
 					char *text = NULL;
-					if (mpop_actions[i].prefix != NULL) {
-						text = BLI_sprintfN("%s: %s", mpop_actions[i].prefix, info);
+					if (gzop_actions[i].prefix != NULL) {
+						text = BLI_sprintfN("%s: %s", gzop_actions[i].prefix, info);
 					}
 					else {
 						text = BLI_strdup(info);
@@ -914,10 +914,10 @@ static uiTooltipData *ui_tooltip_data_from_gizmo(bContext *C, wmGizmo *gz)
 				/* Shortcut */
 				{
 					bool found = false;
-					IDProperty *prop = mpop->ptr.data;
+					IDProperty *prop = gzop->ptr.data;
 					char buf[128];
 					if (WM_key_event_operator_string(
-					            C, mpop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true,
+					            C, gzop->type->idname, WM_OP_INVOKE_DEFAULT, prop, true,
 					            buf, ARRAY_SIZE(buf)))
 					{
 						found = true;

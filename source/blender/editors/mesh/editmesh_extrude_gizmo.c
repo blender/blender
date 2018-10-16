@@ -187,8 +187,8 @@ static void gizmo_mesh_extrude_setup(const bContext *UNUSED(C), wmGizmoGroup *gz
 			RNA_boolean_set(&macroptr, "release_confirm", true);
 			RNA_boolean_set_array(&macroptr, "constraint_axis", constraint);
 		}
-		wmGizmoOpElem *mpop = WM_gizmo_operator_get(ggd->adjust_xyz_no[i], 0);
-		mpop->is_redo = true;
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust_xyz_no[i], 0);
+		gzop->is_redo = true;
 	}
 }
 
@@ -280,8 +280,8 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 
 	/* Operator properties. */
 	if (use_normal) {
-		wmGizmoOpElem *mpop = WM_gizmo_operator_get(ggd->invoke_xyz_no[3], 0);
-		PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
+		wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->invoke_xyz_no[3], 0);
+		PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
 		RNA_enum_set(&macroptr, "constraint_orientation", V3D_MANIP_NORMAL);
 	}
 
@@ -300,9 +300,9 @@ static void gizmo_mesh_extrude_refresh(const bContext *C, wmGizmoGroup *gzgroup)
 			    (orientation_type == ggd->data.orientation_type && constraint_axis[i]) :
 			    (orientation_type == V3D_MANIP_NORMAL && constraint_axis[2]))
 			{
-				wmGizmoOpElem *mpop = WM_gizmo_operator_get(ggd->adjust_xyz_no[i], 0);
+				wmGizmoOpElem *gzop = WM_gizmo_operator_get(ggd->adjust_xyz_no[i], 0);
 
-				PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
+				PointerRNA macroptr = RNA_pointer_get(&gzop->ptr, "TRANSFORM_OT_translate");
 
 				RNA_float_set_array(&macroptr, "value", value);
 				RNA_boolean_set_array(&macroptr, "constraint_axis", constraint_axis);
