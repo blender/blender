@@ -94,7 +94,8 @@ class ShaderWrapper():
     def __init__(self, material, is_readonly=True, use_nodes=True):
         self.is_readonly = is_readonly
         self.material = material
-        self.use_nodes = use_nodes
+        if not is_readonly:
+            self.use_nodes = use_nodes
         self.update()
 
     def update(self):  # Should be re-implemented by children classes...
@@ -651,6 +652,16 @@ class ShaderImageTextureWrapper():
         links.new(socket_src, node_dst.inputs["Vector"])
 
     texcoords = property(texcoords_get, texcoords_set)
+
+
+    def extension_get(self):
+        return self.node_image.extension if self.node_image is not None else 'REPEAT'
+
+    @_set_check
+    def extension_set(self, extension):
+        self.node_image.extension = extension
+
+    extension = property(extension_get, extension_set)
 
 
     # --------------------------------------------------------------------
