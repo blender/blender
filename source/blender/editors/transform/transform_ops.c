@@ -552,6 +552,14 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_property_ui_text(prop, "Axis", "The axis around which the transformation occurs");
 	}
 
+	if (flags & P_AXIS_ORTHO) {
+		prop = RNA_def_property(ot->srna, "axis_ortho", PROP_FLOAT, PROP_DIRECTION);
+		RNA_def_property_array(prop, 3);
+		/* Make this not hidden when there's a nice axis selection widget */
+		RNA_def_property_flag(prop, PROP_HIDDEN);
+		RNA_def_property_ui_text(prop, "Axis", "The orthogonal axis around which the transformation occurs");
+	}
+
 	if (flags & P_CONSTRAINT) {
 		RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
 		prop = RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
@@ -834,8 +842,7 @@ static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 
 	WM_operatortype_props_advanced_begin(ot);
 
-	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT);
-	// XXX Shear axis?
+	Transform_Properties(ot, P_PROPORTIONAL | P_MIRROR | P_SNAP | P_GPENCIL_EDIT | P_AXIS | P_AXIS_ORTHO);
 }
 
 static void TRANSFORM_OT_push_pull(struct wmOperatorType *ot)

@@ -2174,6 +2174,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		RNA_property_float_set_array(op->ptr, prop, t->axis);
 	}
 
+	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho"))) {
+		RNA_property_float_set_array(op->ptr, prop, t->axis_ortho);
+	}
+
 	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
 		RNA_property_boolean_set(op->ptr, prop, (t->flag & T_MIRROR) != 0);
 	}
@@ -2392,6 +2396,11 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		RNA_property_float_get_array(op->ptr, prop, t->axis);
 		normalize_v3(t->axis);
 		copy_v3_v3(t->axis_orig, t->axis);
+	}
+
+	if ((prop = RNA_struct_find_property(op->ptr, "axis_ortho")) && RNA_property_is_set(op->ptr, prop)) {
+		RNA_property_float_get_array(op->ptr, prop, t->axis_ortho);
+		normalize_v3(t->axis_ortho);
 	}
 
 	/* Constraint init from operator */
@@ -3328,6 +3337,15 @@ static void initShear(TransInfo *t)
 	t->num.unit_type[0] = B_UNIT_NONE;  /* Don't think we have any unit here? */
 
 	t->flag |= T_NO_CONSTRAINT;
+
+	if (is_zero_v3(t->axis)) {
+		negate_v3_v3(t->axis, t->viewinv[2]);
+		normalize_v3(t->axis);
+	}
+	if (is_zero_v3(t->axis_ortho)) {
+		copy_v3_v3(t->axis_ortho, t->viewinv[0]);
+		normalize_v3(t->axis_ortho);
+	}
 }
 
 static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
@@ -3367,14 +3385,11 @@ static eRedrawFlag handleEventShear(TransInfo *t, const wmEvent *event)
 static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 {
 	float vec[3];
-	float smat[3][3], tmat[3][3], totmat[3][3], persmat[3][3], persinv[3][3];
+	float smat[3][3], tmat[3][3], totmat[3][3], axismat[3][3], axismat_inv[3][3];
 	float value;
 	int i;
 	char str[UI_MAX_DRAW_STR];
 	const bool is_local_center = transdata_check_local_center(t, t->around);
-
-	copy_m3_m4(persmat, t->viewmat);
-	invert_m3_m3(persinv, persmat);
 
 	value = t->values[0];
 
@@ -3405,8 +3420,13 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	else
 		smat[0][1] = value;
 
-	mul_m3_m3m3(tmat, smat, persmat);
-	mul_m3_m3m3(totmat, persinv, tmat);
+	copy_v3_v3(axismat_inv[0], t->axis_ortho);
+	copy_v3_v3(axismat_inv[2], t->axis);
+	cross_v3_v3v3(axismat_inv[1], axismat_inv[0], axismat_inv[2]);
+	invert_m3_m3(axismat, axismat_inv);
+
+	mul_m3_m3m3(tmat, smat, axismat);
+	mul_m3_m3m3(totmat, axismat_inv, tmat);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		TransData *td = tc->data;

@@ -516,6 +516,7 @@ typedef struct TransInfo {
 	float		auto_values[4];
 	float		axis[3];
 	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */
+	float		axis_ortho[3];
 
 	bool		remove_on_cancel; /* remove elements if operator is canceled */
 
