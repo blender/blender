@@ -449,8 +449,11 @@ static void drw_shgroup_bone_ik_spline_lines(const float start[3], const float e
 		g_data.lines_ik_spline = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, fcolor);
 	}
 	/* reverse order to have less stipple overlap */
-	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, end);
-	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, start);
+	float v[3];
+	mul_v3_m4v3(v, g_data.ob->obmat, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, v);
+	mul_v3_m4v3(v, g_data.ob->obmat, start);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, v);
 }
 
 /** \} */
