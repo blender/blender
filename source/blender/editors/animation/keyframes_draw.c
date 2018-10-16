@@ -1033,7 +1033,7 @@ void gpencil_to_keylist(bDopeSheet *ads, bGPdata *gpd, DLRBT_Tree *keys, const b
 
 	if (gpd && keys) {
 		/* for now, just aggregate out all the frames, but only for visible layers */
-		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		for (gpl = gpd->layers.last; gpl; gpl = gpl->prev) {
 			if ((gpl->flag & GP_LAYER_HIDE) == 0) {
 				if ((!active) || ((active) && (gpl->flag & GP_LAYER_SELECT))) {
 					gpl_to_keylist(ads, gpl, keys);
