@@ -2078,12 +2078,20 @@ static void WIDGETGROUP_xform_shear_refresh(const bContext *C, wmGizmoGroup *gzg
 				WM_gizmo_set_flag(gz, WM_GIZMO_MOVE_CURSOR, true);
 
 				wmGizmoOpElem *gzop = WM_gizmo_operator_get(gz, 0);
-				const int i_ortho = (i + j + 1) % 3;
-				WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho], rv3d->twmat[i]);
+				const int i_ortho_a = (i + j + 1) % 3;
+				const int i_ortho_b = (i + (1 - j) + 1) % 3;
+				WM_gizmo_set_matrix_rotation_from_yz_axis(gz, rv3d->twmat[i_ortho_a], rv3d->twmat[i]);
 				WM_gizmo_set_matrix_location(gz, rv3d->twmat[3]);
 
-				RNA_float_set_array(&gzop->ptr, "axis", tbounds.axis[i]);
-				RNA_float_set_array(&gzop->ptr, "axis_ortho", tbounds.axis[i_ortho]);
+				float axis[3];
+				if (j == 0) {
+					copy_v3_v3(axis, tbounds.axis[i_ortho_b]);
+				}
+				else {
+					negate_v3_v3(axis, tbounds.axis[i_ortho_b]);
+				}
+				RNA_float_set_array(&gzop->ptr, "axis", axis);
+				RNA_float_set_array(&gzop->ptr, "axis_ortho", tbounds.axis[i_ortho_a]);
 				mul_v3_fl(gz->matrix_basis[0], 0.5f);
 				mul_v3_fl(gz->matrix_basis[1], 6.0f);
 			}
