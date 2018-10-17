@@ -466,7 +466,7 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
 
     def normalmap_texture_get(self):
-        if not self.use_nodes or self.node_normalmap is None or self.node_normalmap == ...:
+        if not self.use_nodes or self.node_normalmap is None:
             return None
         return ShaderImageTextureWrapper(
             self, self.node_normalmap,
