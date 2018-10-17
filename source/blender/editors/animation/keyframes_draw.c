@@ -328,6 +328,29 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int be
 
 		/* Insert real blocks. */
 		for (int v = 1; col != NULL && v < bezt_len; v++, bezt++) {
+			/* Wrong order of bezier keys: resync position. */
+			if (is_cfra_lt(bezt[1].vec[1][0], bezt[0].vec[1][0])) {
+				/* Backtrack to find the right location. */
+				if (is_cfra_lt(bezt[1].vec[1][0], col->cfra)) {
+					ActKeyColumn *newcol = (ActKeyColumn*)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &bezt[1].vec[1][0]);
+
+					if (newcol != NULL) {
+						col = newcol;
+
+						/* The previous keyblock is garbage too. */
+						if (col->prev != NULL) {
+							add_keyblock_info(col->prev, &dummy_keyblock);
+						}
+					}
+					else {
+						BLI_assert(false);
+					}
+				}
+
+				continue;
+			}
+
+			/* Normal sequence */
 			BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
 
 			compute_keyblock_data(&block, bezt, bezt + 1);
