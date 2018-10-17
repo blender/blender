@@ -332,11 +332,11 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 			break;
 		case INPUT_CUSTOM_RATIO:
 			mi->apply = InputCustomRatio;
-			t->helpline = HLP_NONE;
+			t->helpline = HLP_CARROW;
 			break;
 		case INPUT_CUSTOM_RATIO_FLIP:
 			mi->apply = InputCustomRatioFlip;
-			t->helpline = HLP_NONE;
+			t->helpline = HLP_CARROW;
 			break;
 		case INPUT_NONE:
 		default:
@@ -360,6 +360,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		case HLP_TRACKBALL:
 		case HLP_HARROW:
 		case HLP_VARROW:
+		case HLP_CARROW:
 			if (t->flag & T_MODAL) {
 				t->flag |= T_MODAL_CURSOR_SET;
 				WM_cursor_modal_set(win, CURSOR_NONE);

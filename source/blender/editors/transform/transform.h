@@ -633,7 +633,8 @@ typedef struct TransInfo {
 #define HLP_ANGLE		2
 #define HLP_HARROW		3
 #define HLP_VARROW		4
-#define HLP_TRACKBALL	5
+#define HLP_CARROW		5
+#define HLP_TRACKBALL	6
 
 /* transinfo->con->mode */
 #define CON_APPLY		1

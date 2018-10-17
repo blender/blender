@@ -1926,6 +1926,29 @@ static void drawHelpline(bContext *C, int x, int y, void *customdata)
 				drawArrow(UP, 5, 10, 5);
 				drawArrow(DOWN, 5, 10, 5);
 				break;
+			case HLP_CARROW:
+			{
+				/* Draw arrow based on direction defined by custom-points. */
+				immUniformThemeColor(TH_VIEW_OVERLAY);
+
+				GPU_matrix_translate_3fv(mval);
+
+				GPU_line_width(3.0f);
+
+				const int *data = t->mouse.data;
+				const float dx = data[2] - data[0], dy = data[3] - data[1];
+				const float angle = -atan2f(dx, dy);
+
+				GPU_matrix_push();
+
+				GPU_matrix_rotate_axis(RAD2DEGF(angle), 'Z');
+
+				drawArrow(UP, 5, 10, 5);
+				drawArrow(DOWN, 5, 10, 5);
+
+				GPU_matrix_pop();
+				break;
+			}
 			case HLP_ANGLE:
 			{
 				float dx = tmval[0] - cent[0], dy = tmval[1] - cent[1];
