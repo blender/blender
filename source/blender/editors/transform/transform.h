@@ -825,6 +825,7 @@ eRedrawFlag handleMouseInput(struct TransInfo *t, struct MouseInput *mi, const s
 void applyMouseInput(struct TransInfo *t, struct MouseInput *mi, const int mval[2], float output[3]);
 
 void setCustomPoints(TransInfo *t, MouseInput *mi, const int start[2], const int end[2]);
+void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2]);
 void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float values[3]));
 
 /*********************** Generics ********************************/
