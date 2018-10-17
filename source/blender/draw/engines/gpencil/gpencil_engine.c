@@ -523,7 +523,7 @@ static void gpencil_add_draw_data(void *vedata, Object *ob)
 	/* FX passses */
 	cache_ob->has_fx = false;
 	if ((!stl->storage->simplify_fx) &&
-		(BKE_shaderfx_has_gpencil(ob)))
+	    (BKE_shaderfx_has_gpencil(ob)))
 	{
 		cache_ob->has_fx = true;
 		if ((!stl->storage->simplify_fx) && (!is_multiedit)) {

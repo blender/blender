@@ -67,11 +67,13 @@
 
 /* ActKeyColumns (Keyframe Columns) ------------------------------------------ */
 
-BLI_INLINE bool is_cfra_eq(float a, float b) {
+BLI_INLINE bool is_cfra_eq(float a, float b)
+{
 	return IS_EQT(a, b, BEZT_BINARYSEARCH_THRESH);
 }
 
-BLI_INLINE bool is_cfra_lt(float a, float b) {
+BLI_INLINE bool is_cfra_lt(float a, float b)
+{
 	return (b - a) > BEZT_BINARYSEARCH_THRESH;
 }
 
@@ -255,7 +257,7 @@ static const ActKeyBlockInfo dummy_keyblock = { 0 };
 
 static void compute_keyblock_data(ActKeyBlockInfo *info, BezTriple *prev, BezTriple *beztn)
 {
-	memset(info, 0, sizeof (ActKeyBlockInfo));
+	memset(info, 0, sizeof(ActKeyBlockInfo));
 
 	if (BEZKEYTYPE(beztn) == BEZT_KEYTYPE_MOVEHOLD) {
 		/* Animator tagged a "moving hold"
