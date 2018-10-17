@@ -6690,6 +6690,14 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			}
 		}
 	}
+	else if (t->flag & T_POSE && (t->mode == TFM_BONESIZE)) {
+		/* Handle the exception where for TFM_BONESIZE in edit mode we pretend to be
+		 * in pose mode (to use bone orientation matrix), in that case we don't do operations like autokeyframing. */
+		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+			ob = tc->poseobj;
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		}
+	}
 	else if (t->flag & T_POSE) {
 		GSet *motionpath_updates = BLI_gset_ptr_new("motionpath updates");
 
