@@ -48,12 +48,15 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_layer.h"
 #include "BKE_undo_system.h"
 #include "BKE_workspace.h"
 #include "BKE_paint.h"
+
+#include "BLO_writefile.h"
 
 #include "ED_gpencil.h"
 #include "ED_render.h"
@@ -108,7 +111,7 @@ void ED_undo_push(bContext *C, const char *str)
 }
 
 /* note: also check undo_history_exec() in bottom if you change notifiers */
-static int ed_undo_step(bContext *C, int step, const char *undoname)
+static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList *reports)
 {
 	CLOG_INFO(&LOG, 1, "name='%s', step=%d", undoname, step);
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -118,6 +121,14 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 	/* undo during jobs are running can easily lead to freeing data using by jobs,
 	 * or they can just lead to freezing job in some other cases */
 	WM_jobs_kill_all(wm);
+
+	if (G.debug & G_DEBUG_IO) {
+		Main *bmain = CTX_data_main(C);
+		if (bmain->lock != NULL) {
+			BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* undo step.");
+			BLO_main_validate_libraries(bmain, reports);
+		}
+	}
 
 	/* TODO(campbell): undo_system: use undo system */
 	/* grease pencil can be can be used in plenty of spaces, so check it first */
@@ -192,6 +203,14 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		wm->op_undo_depth--;
 	}
 
+	if (G.debug & G_DEBUG_IO) {
+		Main *bmain = CTX_data_main(C);
+		if (bmain->lock != NULL) {
+			BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* undo step.");
+			BLO_main_validate_libraries(bmain, reports);
+		}
+	}
+
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
 
@@ -216,11 +235,11 @@ void ED_undo_grouped_push(bContext *C, const char *str)
 
 void ED_undo_pop(bContext *C)
 {
-	ed_undo_step(C, 1, NULL);
+	ed_undo_step(C, 1, NULL, NULL);
 }
 void ED_undo_redo(bContext *C)
 {
-	ed_undo_step(C, -1, NULL);
+	ed_undo_step(C, -1, NULL, NULL);
 }
 
 void ED_undo_push_op(bContext *C, wmOperator *op)
@@ -242,7 +261,7 @@ void ED_undo_grouped_push_op(bContext *C, wmOperator *op)
 void ED_undo_pop_op(bContext *C, wmOperator *op)
 {
 	/* search back a couple of undo's, in case something else added pushes */
-	ed_undo_step(C, 0, op->type->name);
+	ed_undo_step(C, 0, op->type->name, op->reports);
 }
 
 /* name optionally, function used to check for operator redo panel */
@@ -271,11 +290,11 @@ UndoStack *ED_undo_stack_get(void)
 /** \name Undo, Undo Push & Redo Operators
  * \{ */
 
-static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
+static int ed_undo_exec(bContext *C, wmOperator *op)
 {
 	/* "last operator" should disappear, later we can tie this with undo stack nicer */
 	WM_operator_stack_clear(CTX_wm_manager(C));
-	int ret = ed_undo_step(C, 1, NULL);
+	int ret = ed_undo_step(C, 1, NULL, op->reports);
 	if (ret & OPERATOR_FINISHED) {
 		/* Keep button under the cursor active. */
 		WM_event_add_mousemove(C);
@@ -291,9 +310,9 @@ static int ed_undo_push_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-static int ed_redo_exec(bContext *C, wmOperator *UNUSED(op))
+static int ed_redo_exec(bContext *C, wmOperator *op)
 {
-	int ret = ed_undo_step(C, -1, NULL);
+	int ret = ed_undo_step(C, -1, NULL, op->reports);
 	if (ret & OPERATOR_FINISHED) {
 		/* Keep button under the cursor active. */
 		WM_event_add_mousemove(C);

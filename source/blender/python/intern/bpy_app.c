@@ -374,6 +374,7 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug_depsgraph_pretty", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_DEPSGRAPH_PRETTY},
 	{(char *)"debug_simdata",   bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_SIMDATA},
 	{(char *)"debug_gpumem",    bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_GPU_MEM},
+	{(char *)"debug_io",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_IO},
 
 	{(char *)"binary_path_python", bpy_app_binary_path_python_get, NULL, (char *)bpy_app_binary_path_python_doc, NULL},
 
