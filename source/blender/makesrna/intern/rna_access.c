@@ -2070,7 +2070,7 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 				prop->update(bmain, scene, ptr);
 		}
 
-#if 1
+#if 0
 		/* TODO(campbell): Should eventually be replaced entirely by message bus (below)
 		 * for now keep since COW, bugs are hard to track when we have other missing updates. */
 		if (prop->noteflag) {
