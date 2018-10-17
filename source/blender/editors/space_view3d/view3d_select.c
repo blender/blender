@@ -1535,7 +1535,7 @@ Object *ED_view3d_give_object_under_cursor(bContext *C, const int mval[2])
 	return NULL;
 }
 
-bool ED_view3d_there_is_an_object_under_cursor(bContext *C, const int mval[2])
+bool ED_view3d_is_object_under_cursor(bContext *C, const int mval[2])
 {
 	return ED_view3d_give_object_under_cursor(C, mval) != NULL;
 }

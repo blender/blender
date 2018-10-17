@@ -601,7 +601,7 @@ static bool view3d_ima_bg_drop_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 		return false;
 	}
 
-	if (ED_view3d_there_is_an_object_under_cursor(C, event->mval)) {
+	if (ED_view3d_is_object_under_cursor(C, event->mval)) {
 		return false;
 	}
 
