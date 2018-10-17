@@ -2802,6 +2802,13 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		DRW_shgroup_forcefield(sgl, ob, view_layer);
 	}
 
+	if (ob->dt == OB_BOUNDBOX) {
+		if (theme_id == TH_UNDEFINED) {
+			theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+		}
+		DRW_shgroup_bounds(sgl, ob, theme_id);
+	}
+
 	/* don't show object extras in set's */
 	if ((ob->base_flag & (BASE_FROM_SET | BASE_FROMDUPLI)) == 0) {
 		if ((draw_ctx->object_mode & (OB_MODE_ALL_PAINT | OB_MODE_ALL_PAINT_GPENCIL)) == 0) {
@@ -2812,7 +2819,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_relationship_lines(sgl, draw_ctx->depsgraph, scene, ob);
 		}
 
-		const bool draw_extra = (ob->dtx != 0 || ob->dt == OB_BOUNDBOX);
+		const bool draw_extra = (ob->dtx != 0);
 		if (draw_extra && (theme_id == TH_UNDEFINED)) {
 			theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 		}
@@ -2833,7 +2840,8 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_texture_space(sgl, ob, theme_id);
 		}
 
-		if (ob->dtx & OB_DRAWBOUNDOX || ob->dt == OB_BOUNDBOX) {
+		/* Don't draw bounding box again if draw type is bound box. */
+		if (ob->dtx & OB_DRAWBOUNDOX && ob->dt != OB_BOUNDBOX) {
 			DRW_shgroup_bounds(sgl, ob, theme_id);
 		}
 
