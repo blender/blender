@@ -3410,44 +3410,16 @@ static void calchandleNurb_intern(
 			}
 			if (leftviolate || rightviolate) { /* align left handle */
 				BLI_assert(is_fcurve);
-#if 0
-				if (is_fcurve)
-#endif
-				{
-					/* simple 2d calculation */
-					float h1_x = p2_h1[0] - p2[0];
-					float h2_x = p2[0] - p2_h2[0];
+				/* simple 2d calculation */
+				float h1_x = p2_h1[0] - p2[0];
+				float h2_x = p2[0] - p2_h2[0];
 
-					if (leftviolate) {
-						p2_h2[1] = p2[1] + ((p2[1] - p2_h1[1]) / h1_x) * h2_x;
-					}
-					else {
-						p2_h1[1] = p2[1] + ((p2[1] - p2_h2[1]) / h2_x) * h1_x;
-					}
+				if (leftviolate) {
+					p2_h2[1] = p2[1] + ((p2[1] - p2_h1[1]) / h1_x) * h2_x;
 				}
-#if 0
 				else {
-					float h1[3], h2[3];
-					float dot;
-
-					sub_v3_v3v3(h1, p2_h1, p2);
-					sub_v3_v3v3(h2, p2, p2_h2);
-
-					len_a = normalize_v3(h1);
-					len_b = normalize_v3(h2);
-
-					dot = dot_v3v3(h1, h2);
-
-					if (leftviolate) {
-						mul_v3_fl(h1, dot * len_b);
-						sub_v3_v3v3(p2_h2, p2, h1);
-					}
-					else {
-						mul_v3_fl(h2, dot * len_a);
-						add_v3_v3v3(p2_h1, p2, h2);
-					}
+					p2_h1[1] = p2[1] + ((p2[1] - p2_h2[1]) / h2_x) * h1_x;
 				}
-#endif
 			}
 		}
 	}
@@ -4867,11 +4839,6 @@ bool BKE_nurb_type_convert(Nurb *nu, const short type, const bool use_handles)
 			nu->orderv = 1;
 			nu->type = type;
 
-#if 0       /* UNUSED */
-			if (nu->flagu & CU_NURB_CYCLIC) c = nu->orderu - 1;
-			else c = 0;
-#endif
-
 			if (type == CU_NURBS) {
 				nu->flagu &= CU_NURB_CYCLIC; /* disable all flags except for cyclic */
 				nu->flagu |= CU_NURB_BEZIER;
@@ -5013,12 +4980,6 @@ bool BKE_curve_nurb_vert_active_get(Curve *cu, Nurb **r_nu, void **r_vert)
 				vert = &nu->bp[cu->actvert];
 			}
 		}
-		/* get functions should never set! */
-#if 0
-		else {
-			cu->actnu = cu->actvert = CU_ACT_NONE;
-		}
-#endif
 	}
 
 	*r_nu = nu;

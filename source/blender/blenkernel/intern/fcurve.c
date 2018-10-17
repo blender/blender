@@ -1292,31 +1292,6 @@ bool driver_get_variable_property(
 	return true;
 }
 
-#if 0
-/* Helper function to obtain a pointer to a Pose Channel (for evaluating drivers) */
-static bPoseChannel *dtar_get_pchan_ptr(ChannelDriver *driver, DriverTarget *dtar)
-{
-	ID *id;
-	/* sanity check */
-	if (ELEM(NULL, driver, dtar))
-		return NULL;
-
-	id = dtar_id_ensure_proxy_from(dtar->id);
-
-	/* check if the ID here is a valid object */
-	if (id && GS(id->name)) {
-		Object *ob = (Object *)id;
-
-		/* get pose, and subsequently, posechannel */
-		return BKE_pose_channel_find_name(ob->pose, dtar->pchan_name);
-	}
-	else {
-		/* cannot find a posechannel this way */
-		return NULL;
-	}
-}
-#endif
-
 static short driver_check_valid_targets(ChannelDriver *driver, DriverVar *dvar)
 {
 	short valid_targets = 0;
@@ -2306,24 +2281,6 @@ static void berekeny(float f1, float f2, float f3, float f4, float *o, int b)
 		o[a] = c0 + t * c1 + t * t * c2 + t * t * t * c3;
 	}
 }
-
-#if 0
-static void berekenx(float *f, float *o, int b)
-{
-	float t, c0, c1, c2, c3;
-	int a;
-
-	c0 = f[0];
-	c1 = 3.0f * (f[3] - f[0]);
-	c2 = 3.0f * (f[0] - 2.0f * f[3] + f[6]);
-	c3 = f[9] - f[0] + 3.0f * (f[3] - f[6]);
-
-	for (a = 0; a < b; a++) {
-		t = o[a];
-		o[a] = c0 + t * c1 + t * t * c2 + t * t * t * c3;
-	}
-}
-#endif
 
 
 /* -------------------------- */

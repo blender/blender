@@ -112,10 +112,6 @@ bool	txt_cursor_is_line_end(struct Text *text);
 int txt_calc_tab_left(struct TextLine *line, int ch);
 int txt_calc_tab_right(struct TextLine *line, int ch);
 
-#if 0
-void	txt_print_undo		(struct Text *text);
-#endif
-
 /* utility functions, could be moved somewhere more generic but are python/text related  */
 int  text_check_bracket(const char ch);
 bool text_check_delim(const char ch);

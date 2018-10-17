@@ -1467,14 +1467,6 @@ void BKE_keyingsets_free(ListBase *list)
  */
 static bool animsys_remap_path(AnimMapper *UNUSED(remap), char *path, char **dst)
 {
-	/* is there a valid remapping table to use? */
-#if 0
-	if (remap) {
-		/* find a matching entry... to use to remap */
-		/* ...TODO... */
-	}
-#endif
-
 	/* nothing suitable found, so just set dst to look at path (i.e. no alloc/free needed) */
 	*dst = path;
 	return false;
@@ -1669,26 +1661,6 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 			/* nothing can be done here... so it is unsuccessful? */
 			return false;
 	}
-
-	/* RNA property update disabled for now - [#28525] [#28690] [#28774] [#28777] */
-#if 0
-	/* buffer property update for later flushing */
-	if (written && RNA_property_update_check(prop)) {
-		short skip_updates_hack = 0;
-
-		/* optimization hacks: skip property updates for those properties
-		 * for we know that which the updates in RNA were really just for
-		 * flushing property editing via UI/Py
-		 */
-		if (new_ptr.type == &RNA_PoseBone) {
-			/* bone transforms - update pose (i.e. tag depsgraph) */
-			skip_updates_hack = 1;
-		}
-
-		if (skip_updates_hack == 0)
-			RNA_property_update_cache_add(ptr, prop);
-	}
-#endif
 
 	/* successful */
 	return true;
@@ -2688,19 +2660,6 @@ static void animsys_calculate_nla(Depsgraph *depsgraph, PointerRNA *ptr, AnimDat
 
 /* ***************************************** */
 /* Overrides System - Public API */
-
-/* Clear all overrides */
-
-/* Add or get existing Override for given setting */
-#if 0
-AnimOverride *BKE_animsys_validate_override(PointerRNA *UNUSED(ptr), char *UNUSED(path), int UNUSED(array_index))
-{
-	/* FIXME: need to define how to get overrides */
-	return NULL;
-}
-#endif
-
-/* -------------------- */
 
 /* Evaluate Overrides */
 static void animsys_evaluate_overrides(PointerRNA *ptr, AnimData *adt)

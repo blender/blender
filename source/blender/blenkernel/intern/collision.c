@@ -1370,48 +1370,6 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 	*r_lambda = (nor_p1p2 != 0.0f ? nor_v0p2 / nor_p1p2 : 0.0f);
 
 	return r_w[1] >= 0.0f && r_w[2] >= 0.0f && r_w[1] + r_w[2] <= 1.0f;
-
-#if 0 /* XXX this method uses the intersection point, but is broken and doesn't work well in general */
-	float p[3], vec1[3], line[3], edge1[3], edge2[3], q[3];
-	float a, f, u, v;
-
-	sub_v3_v3v3(edge1, v1, v0);
-	sub_v3_v3v3(edge2, v2, v0);
-	sub_v3_v3v3(line, p2, p1);
-
-	cross_v3_v3v3(p, line, edge2);
-	a = dot_v3v3(edge1, p);
-	if (a == 0.0f) return 0;
-	f = 1.0f / a;
-
-	sub_v3_v3v3(vec1, p1, v0);
-
-	u = f * dot_v3v3(vec1, p);
-	if ((u < 0.0f) || (u > 1.0f))
-		return false;
-
-	cross_v3_v3v3(q, vec1, edge1);
-
-	v = f * dot_v3v3(line, q);
-	if ((v < 0.0f) || ((u + v) > 1.0f))
-		return false;
-
-	*r_lambda = f * dot_v3v3(edge2, q);
-	/* don't care about 0..1 lambda range here */
-	/*if ((*r_lambda < 0.0f) || (*r_lambda > 1.0f))
-	 *	return 0;
-	 */
-
-	r_w[0] = 1.0f - u - v;
-	r_w[1] = u;
-	r_w[2] = v;
-	r_w[3] = 0.0f;
-
-	cross_v3_v3v3(r_nor, edge1, edge2);
-	normalize_v3(r_nor);
-
-	return true;
-#endif
 }
 
 static CollPair *cloth_point_collpair(

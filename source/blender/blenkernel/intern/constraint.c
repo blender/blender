@@ -1326,21 +1326,7 @@ static void followpath_get_tarmat(struct Depsgraph *UNUSED(depsgraph),
 				unit_m4(totmat);
 
 				if (data->followflag & FOLLOWPATH_FOLLOW) {
-#if 0
-					float x1, q[4];
-					vec_to_quat(quat, dir, (short)data->trackflag, (short)data->upflag);
-
-					normalize_v3(dir);
-					q[0] = cosf(0.5 * vec[3]);
-					x1 = sinf(0.5 * vec[3]);
-					q[1] = -x1 * dir[0];
-					q[2] = -x1 * dir[1];
-					q[3] = -x1 * dir[2];
-					mul_qt_qtqt(quat, q, quat);
-#else
 					quat_apply_track(quat, data->trackflag, data->upflag);
-#endif
-
 					quat_to_mat4(totmat, quat);
 				}
 
@@ -2089,15 +2075,6 @@ static void pycon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targe
 
 	/* only evaluate in python if we're allowed to do so */
 	if ((G.f & G_SCRIPT_AUTOEXEC) == 0) return;
-
-/* currently removed, until I this can be re-implemented for multiple targets */
-#if 0
-	/* Firstly, run the 'driver' function which has direct access to the objects involved
-	 * Technically, this is potentially dangerous as users may abuse this and cause dependency-problems,
-	 * but it also allows certain 'clever' rigging hacks to work.
-	 */
-	BPY_pyconstraint_driver(data, cob, targets);
-#endif
 
 	/* Now, run the actual 'constraint' function, which should only access the matrices */
 	BPY_pyconstraint_exec(data, cob, targets);

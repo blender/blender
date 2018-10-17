@@ -648,39 +648,6 @@ struct ImportJobData {
 	bool import_ok;
 };
 
-#if 0
-ABC_INLINE bool is_mesh_and_strands(const IObject &object)
-{
-	bool has_mesh = false;
-	bool has_curve = false;
-
-	for (int i = 0; i < object.getNumChildren(); ++i) {
-		const IObject &child = object.getChild(i);
-
-		if (!child.valid()) {
-			continue;
-		}
-
-		const MetaData &md = child.getMetaData();
-
-		if (IPolyMesh::matches(md)) {
-			has_mesh = true;
-		}
-		else if (ISubD::matches(md)) {
-			has_mesh = true;
-		}
-		else if (ICurves::matches(md)) {
-			has_curve = true;
-		}
-		else if (IPoints::matches(md)) {
-			has_curve = true;
-		}
-	}
-
-	return has_mesh && has_curve;
-}
-#endif
-
 static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
 {
 	SCOPE_TIMER("Alembic import, objects reading and creation");

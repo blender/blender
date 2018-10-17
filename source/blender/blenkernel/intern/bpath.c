@@ -478,13 +478,6 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		}                                                                      \
 	} (void)0
 
-			/* do via modifiers instead */
-#if 0
-			if (ob->fluidsimSettings) {
-				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
-			}
-#endif
-
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Fluidsim) {
 					FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;

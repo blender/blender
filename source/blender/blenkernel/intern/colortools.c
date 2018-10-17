@@ -1489,17 +1489,6 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, const ColorManagedViewSettings *
 	                        scopes_update_cb,
 	                        &settings);
 
-	/* test for nicer distribution even - non standard, leave it out for a while */
-#if 0
-	for (a = 0; a < 256; a++) {
-		bin_lum[a] = sqrt (bin_lum[a]);
-		bin_r[a] = sqrt(bin_r[a]);
-		bin_g[a] = sqrt(bin_g[a]);
-		bin_b[a] = sqrt(bin_b[a]);
-		bin_a[a] = sqrt(bin_a[a]);
-	}
-#endif
-
 	/* convert hist data to float (proportional to max count) */
 	nl = na = nr = nb = ng = 0;
 	for (a = 0; a < 256; a++) {

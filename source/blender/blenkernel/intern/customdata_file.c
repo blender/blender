@@ -110,16 +110,6 @@ static int cdf_endian(void)
 		return CDF_ENDIAN_BIG;
 }
 
-#if 0
-static int cdf_data_type_size(int datatype)
-{
-	if (datatype == CDF_DATA_FLOAT)
-		return sizeof(float);
-
-	return 0;
-}
-#endif
-
 CDataFile *cdf_create(int type)
 {
 	CDataFile *cdf = MEM_callocN(sizeof(CDataFile), "CDataFile");

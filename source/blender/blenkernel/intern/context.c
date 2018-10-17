@@ -94,13 +94,6 @@ struct bContext {
 		int py_init; /* true if python is initialized */
 		void *py_context;
 	} data;
-
-	/* data evaluation */
-#if 0
-	struct {
-		int render;
-	} eval;
-#endif
 };
 
 /* context */

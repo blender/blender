@@ -835,27 +835,6 @@ static FModifierTypeInfo FMI_NOISE = {
 	NULL /* evaluate with storage */
 };
 
-/* Filter F-Curve Modifier --------------------------- */
-
-#if 0 // XXX not yet implemented
-static FModifierTypeInfo FMI_FILTER = {
-	FMODIFIER_TYPE_FILTER, /* type */
-	sizeof(FMod_Filter), /* size */
-	FMI_TYPE_REPLACE_VALUES, /* action type */
-	0, /* requirements */
-	N_("Filter"), /* name */
-	"FMod_Filter", /* struct name */
-	NULL, /* free data */
-	NULL, /* copy data */
-	NULL, /* new data */
-	NULL /*fcm_filter_verify*/, /* verify */
-	NULL, /* evaluate time */
-	fcm_filter_evaluate, /* evaluate */
-	NULL, /* evaluate time with storage */
-	NULL /* evaluate with storage */
-};
-#endif // XXX not yet implemented
-
 
 /* Python F-Curve Modifier --------------------------- */
 

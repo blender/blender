@@ -200,35 +200,6 @@ AviError AVI_print_error(AviError in_error)
 
 	return in_error;
 }
-#if 0
-void AVI_set_debug(int mode)
-{
-	AVI_DEBUG = mode;
-}
-
-bool AVI_is_avi(char *name)
-{
-	FILE *fp;
-	int ret;
-
-	fp = BLI_fopen(name, "rb");
-	if (fp == NULL)
-		return 0;
-
-	if (GET_FCC(fp) != FCC("RIFF") ||
-	    !GET_FCC(fp) ||
-	    GET_FCC(fp) != FCC("AVI "))
-	{
-		ret = 0;
-	}
-	else {
-		ret = 1;
-	}
-
-	fclose(fp);
-	return ret;
-}
-#endif
 
 bool AVI_is_avi(const char *name)
 {
@@ -850,14 +821,6 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 		movie->streams[i].sh.bottom = 0;
 
 		if (movie->streams[i].sh.Type == FCC("vids")) {
-#if 0
-			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
-				movie->streams[i].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader) +
-				                                   sizeof(AviMJPEGUnknown), "moviestreamformatL");
-				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
-			}
-			else {
-#endif
 			movie->streams[i].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader),  "moviestreamformatS");
 			movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader);
 
@@ -874,26 +837,6 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->YPelsPerMeter = 0;
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->ClrUsed = 0;
 			((AviBitmapInfoHeader *) movie->streams[i].sf)->ClrImportant = 0;
-
-#if 0
-			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
-				AviMJPEGUnknown *tmp;
-
-				tmp = (AviMJPEGUnknown *)((char *) movie->streams[i].sf + sizeof(AviBitmapInfoHeader));
-
-				tmp->a = 44;
-				tmp->b = 24;
-				tmp->c = 0;
-				tmp->d = 2;
-				tmp->e = 8;
-				tmp->f = 2;
-				tmp->g = 1;
-			}
-		}
-		else if (movie->streams[i].sh.Type == FCC("auds")) {
-			/* pass */
-		}
-#endif
 		}
 	}
 

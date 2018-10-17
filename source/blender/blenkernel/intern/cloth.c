@@ -990,24 +990,6 @@ static void cloth_hair_update_bending_targets(ClothModifierData *clmd)
 		sub_v3_v3v3(dir_new, cloth->verts[spring->mn].x, cloth->verts[spring->kl].x);
 		normalize_v3(dir_new);
 
-#if 0
-		if (clmd->debug_data && (spring->ij == 0 || spring->ij == 1)) {
-			float a[3], b[3];
-
-			copy_v3_v3(a, cloth->verts[spring->kl].x);
-//			BKE_sim_debug_data_add_dot(clmd->debug_data, cloth_vert ? cloth_vert->x : key->co, 1, 1, 0, "frames", 8246, p, k);
-
-			mul_v3_v3fl(b, hair_frame[0], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 1, 0, 0, "frames", 8247, spring->kl, spring->mn);
-
-			mul_v3_v3fl(b, hair_frame[1], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 1, 0, "frames", 8248, spring->kl, spring->mn);
-
-			mul_v3_v3fl(b, hair_frame[2], clmd->sim_parms->avg_spring_len);
-			BKE_sim_debug_data_add_vector(clmd->debug_data, a, b, 0, 0, 1, "frames", 8249, spring->kl, spring->mn);
-		}
-#endif
-
 		/* get local targets for kl/mn vertices by putting rest targets into the current frame,
 		 * then multiply with the rest length to get the actual goals
 		 */

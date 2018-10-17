@@ -139,15 +139,10 @@ float BKE_camera_object_dof_distance(Object *ob)
 	if (ob->type != OB_CAMERA)
 		return 0.0f;
 	if (cam->dof_ob) {
-#if 0
-		/* too simple, better to return the distance on the view axis only */
-		return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]);
-#else
 		float view_dir[3], dof_dir[3];
 		normalize_v3_v3(view_dir, ob->obmat[2]);
 		sub_v3_v3v3(dof_dir, ob->obmat[3], cam->dof_ob->obmat[3]);
 		return fabsf(dot_v3v3(view_dir, dof_dir));
-#endif
 	}
 	return cam->YF_dofdist;
 }

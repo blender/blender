@@ -154,32 +154,6 @@ char *blf_dir_search(const char *file)
 	return s;
 }
 
-#if 0 /* UNUSED */
-int blf_dir_split(const char *str, char *file, int *size)
-{
-	int i, len;
-	char *s;
-
-	/* Window, Linux or Mac, this is always / */
-	s = strrchr(str, '/');
-	if (s) {
-		len = s - str;
-		for (i = 0; i < len; i++)
-			file[i] = str[i];
-
-		file[i] = '.';
-		file[i + 1] = 't';
-		file[i + 2] = 't';
-		file[i + 3] = 'f';
-		file[i + 4] = '\0';
-		s++;
-		*size = atoi(s);
-		return 1;
-	}
-	return 0;
-}
-#endif
-
 /* Some font have additional file with metrics information,
  * in general, the extension of the file is: .afm or .pfm
  */

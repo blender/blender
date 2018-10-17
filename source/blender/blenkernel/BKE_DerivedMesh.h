@@ -491,16 +491,8 @@ void DM_interp_poly_data(
         int *src_indices,
         float *weights, int count, int dest_index);
 
-/* UNUSED */
-#if 0
-/** Simple function to get me->totvert amount of vertices/normals,
- * correctly deformed and subsurfered. Needed especially when vertexgroups are involved.
- * In use now by vertex/weight paint and particles */
-DMCoNo *mesh_get_mapped_verts_nors(struct Scene *scene, struct Object *ob);
-#endif
-void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
-/* */
+void mesh_get_mapped_verts_coords(struct Mesh *me_eval, float (*r_cos)[3], const int totcos);
 
 DerivedMesh *mesh_create_derived_for_modifier(
         struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,

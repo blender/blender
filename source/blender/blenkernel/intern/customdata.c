@@ -471,11 +471,7 @@ static void layerInterp_origspace_face(
 		}
 	}
 
-	/* delay writing to the destination incase dest is in sources */
-
-#if 0 /* no need, this ONLY contains UV's */
-	*osf = *(OrigSpaceFace *)(*sources);
-#endif
+	/* delay writing to the destination in case dest is in sources */
 	memcpy(osf->uv, uv, sizeof(osf->uv));
 }
 
@@ -3746,19 +3742,6 @@ void CustomData_external_remove(CustomData *data, ID *id, int type, int totelem)
 			CustomData_external_read(data, id, CD_TYPE_AS_MASK(layer->type), totelem);
 
 		layer->flag &= ~CD_FLAG_EXTERNAL;
-
-#if 0
-		remove_file = 1;
-		for (i = 0; i < data->totlayer; i++)
-			if (data->layers[i].flag & CD_FLAG_EXTERNAL)
-				remove_file = 0;
-
-		if (remove_file) {
-			customdata_external_filename(filename, id, external);
-			cdf_remove(filename);
-			CustomData_external_free(data);
-		}
-#endif
 	}
 }
 
@@ -3773,21 +3756,6 @@ bool CustomData_external_test(CustomData *data, int type)
 	layer = &data->layers[layer_index];
 	return (layer->flag & CD_FLAG_EXTERNAL) != 0;
 }
-
-#if 0
-void CustomData_external_remove_object(CustomData *data, ID *id)
-{
-	CustomDataExternal *external = data->external;
-	char filename[FILE_MAX];
-
-	if (!external)
-		return;
-
-	customdata_external_filename(filename, id, external);
-	cdf_remove(filename);
-	CustomData_external_free(data);
-}
-#endif
 
 /* ********** Mesh-to-mesh data transfer ********** */
 static void copy_bit_flag(void *dst, const void *src, const size_t data_size, const uint64_t flag)
