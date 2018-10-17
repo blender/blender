@@ -17,4 +17,14 @@ void main()
 	gl_Position = vec4(pos, 1.0, 1.0);
 	varposition = viewPosition = vec3(pos, -1.0);
 	varnormal = normalize(-varposition);
+
+#ifndef VOLUMETRICS
+	/* Not used in practice but needed to avoid compilation errors. */
+	worldPosition = viewPosition;
+	worldNormal = viewNormal = varnormal;
+#endif
+
+#ifdef ATTRIB
+	pass_attrib(viewPosition);
+#endif
 }
