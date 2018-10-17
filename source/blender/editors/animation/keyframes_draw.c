@@ -312,11 +312,11 @@ static void add_keyblock_info(ActKeyColumn *col, const ActKeyBlockInfo *block)
 	}
 }
 
-static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int num_bezt)
+static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
 {
 	ActKeyColumn *col = keys->first;
 
-	if (bezt && num_bezt >= 2) {
+	if (bezt && bezt_len >= 2) {
 		ActKeyBlockInfo block;
 
 		/* Find the first key column while inserting dummy blocks. */
@@ -327,7 +327,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int nu
 		BLI_assert(col != NULL);
 
 		/* Insert real blocks. */
-		for (int v = 1; col != NULL && v < num_bezt; v++, bezt++) {
+		for (int v = 1; col != NULL && v < bezt_len; v++, bezt++) {
 			BLI_assert(is_cfra_eq(col->cfra, bezt[0].vec[1][0]));
 
 			compute_keyblock_data(&block, bezt, bezt + 1);
@@ -351,7 +351,7 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int nu
  * This must be called even by animation sources that don't generate
  * keyblocks to keep the data structure consistent after adding columns.
  */
-static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int num_bezt)
+static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
 {
 	/* Recompute the prev/next linked list. */
 	BLI_dlrbTree_linkedlist_sync(keys);
@@ -381,7 +381,7 @@ static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int num_bezt)
 	}
 
 	/* Add blocks on top */
-	add_bezt_to_keyblocks_list(keys, bezt, num_bezt);
+	add_bezt_to_keyblocks_list(keys, bezt, bezt_len);
 }
 
 /* --------- */
