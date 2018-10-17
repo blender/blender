@@ -1046,7 +1046,7 @@ DRWShadingGroup *DRW_shgroup_create_sub(DRWShadingGroup *shgroup)
 
 	BLI_LINKS_INSERT_AFTER(&shgroup->pass_parent->shgroups, shgroup, shgroup_new);
 
-	return shgroup;
+	return shgroup_new;
 }
 
 /** \} */
