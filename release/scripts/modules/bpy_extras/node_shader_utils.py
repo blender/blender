@@ -230,29 +230,28 @@ class PrincipledBSDFWrapper(ShaderWrapper):
 
 
     def node_normalmap_get(self):
-        if not self.use_nodes:
+        if not self.use_nodes or self.node_principled_bsdf is None:
             return None
-        if self.node_principled_bsdf is not None:
-            node_principled = self.node_principled_bsdf
+        node_principled = self.node_principled_bsdf
+        if self._node_normalmap is ...:
+            # Running only once, trying to find a valid normalmap node.
+            if node_principled.inputs["Normal"].is_linked:
+                node_normalmap = node_principled.inputs["Normal"].links[0].from_node
+                if node_normalmap.bl_idname == 'ShaderNodeNormalMap':
+                    self._node_normalmap = node_normalmap
+                    self._grid_to_location(0, 0, ref_node=node_normalmap)
             if self._node_normalmap is ...:
-                # Running only once, trying to find a valid normalmap node.
-                if node_principled.inputs["Normal"].is_linked:
-                    node_normalmap = node_principled.inputs["Normal"].links[0].from_node
-                    if node_normalmap.bl_idname == 'ShaderNodeNormalMap':
-                        self._node_normalmap = node_normalmap
-                        self._grid_to_location(0, 0, ref_node=node_normalmap)
-                if self._node_normalmap is ...:
-                    self._node_normalmap = None
-            if self._node_normalmap is None and not self.is_readonly:
-                tree = self.material.node_tree
-                nodes = tree.nodes
-                links = tree.links
+                self._node_normalmap = None
+        if self._node_normalmap is None and not self.is_readonly:
+            tree = self.material.node_tree
+            nodes = tree.nodes
+            links = tree.links
 
-                node_normalmap = nodes.new(type='ShaderNodeNormalMap')
-                node_normalmap.label = "Normal/Map"
-                self._grid_to_location(-1, -2, dst_node=node_normalmap, ref_node=node_principled)
-                # Link
-                links.new(node_normalmap.outputs["Normal"], node_principled.inputs["Normal"])
+            node_normalmap = nodes.new(type='ShaderNodeNormalMap')
+            node_normalmap.label = "Normal/Map"
+            self._grid_to_location(-1, -2, dst_node=node_normalmap, ref_node=node_principled)
+            # Link
+            links.new(node_normalmap.outputs["Normal"], node_principled.inputs["Normal"])
         return self._node_normalmap
 
     node_normalmap = property(node_normalmap_get)
