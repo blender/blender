@@ -121,14 +121,14 @@ typedef struct Global {
 
 /* G.debug */
 enum {
-	G_DEBUG =           (1 << 0), /* general debug flag, print more info in unexpected cases */
+	G_DEBUG =           (1 << 0),  /* general debug flag, print more info in unexpected cases */
 	G_DEBUG_FFMPEG =    (1 << 1),
-	G_DEBUG_PYTHON =    (1 << 2), /* extra python info */
-	G_DEBUG_EVENTS =    (1 << 3), /* input/window/screen events */
-	G_DEBUG_HANDLERS =  (1 << 4), /* events handling */
-	G_DEBUG_WM =        (1 << 5), /* operator, undo */
-	G_DEBUG_JOBS =      (1 << 6), /* jobs time profiling */
-	G_DEBUG_FREESTYLE = (1 << 7), /* freestyle messages */
+	G_DEBUG_PYTHON =    (1 << 2),  /* extra python info */
+	G_DEBUG_EVENTS =    (1 << 3),  /* input/window/screen events */
+	G_DEBUG_HANDLERS =  (1 << 4),  /* events handling */
+	G_DEBUG_WM =        (1 << 5),  /* operator, undo */
+	G_DEBUG_JOBS =      (1 << 6),  /* jobs time profiling */
+	G_DEBUG_FREESTYLE = (1 << 7),  /* freestyle messages */
 	G_DEBUG_DEPSGRAPH_BUILD      = (1 << 8),   /* depsgraph construction messages */
 	G_DEBUG_DEPSGRAPH_EVAL       = (1 << 9),   /* depsgraph evaluation messages */
 	G_DEBUG_DEPSGRAPH_TAG        = (1 << 10),  /* depsgraph tagging messages */
@@ -139,11 +139,11 @@ enum {
 	                     G_DEBUG_DEPSGRAPH_EVAL |
 	                     G_DEBUG_DEPSGRAPH_TAG |
 	                     G_DEBUG_DEPSGRAPH_TIME),
-	G_DEBUG_SIMDATA =   (1 << 14), /* sim debug data display */
-	G_DEBUG_GPU_MEM =   (1 << 15), /* gpu memory in status bar */
-	G_DEBUG_GPU =       (1 << 16), /* gpu debug */
-	G_DEBUG_IO = (1 << 17),   /* IO Debugging (for Collada, ...)*/
-	G_DEBUG_GPU_SHADERS = (1 << 18),   /* GLSL shaders */
+	G_DEBUG_SIMDATA =   (1 << 14),  /* sim debug data display */
+	G_DEBUG_GPU_MEM =   (1 << 15),  /* gpu memory in status bar */
+	G_DEBUG_GPU =       (1 << 16),  /* gpu debug */
+	G_DEBUG_IO =        (1 << 17),  /* IO Debugging (for Collada, ...)*/
+	G_DEBUG_GPU_SHADERS = (1 << 18),  /* GLSL shaders */
 };
 
 #define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
