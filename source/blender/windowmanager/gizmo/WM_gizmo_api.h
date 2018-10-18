@@ -240,6 +240,9 @@ struct wmKeyMap *WM_gizmogroup_keymap_common(
 struct wmKeyMap *WM_gizmogroup_keymap_common_select(
         const struct wmGizmoGroupType *gzgt, struct wmKeyConfig *config);
 
+/* Sort utilities for use with 'BLI_listbase_sort'. */
+int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr);
+int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr);
 
 /* -------------------------------------------------------------------- */
 /* wmGizmoMap */

@@ -147,6 +147,24 @@ void wm_gizmogroup_gizmo_register(wmGizmoGroup *gzgroup, wmGizmo *gz)
 	gz->parent_gzgroup = gzgroup;
 }
 
+int WM_gizmo_cmp_temp_fl(const void *gz_a_ptr, const void *gz_b_ptr)
+{
+	const wmGizmo *gz_a = gz_a_ptr;
+	const wmGizmo *gz_b = gz_b_ptr;
+	if      (gz_a->temp.f < gz_b->temp.f) return -1;
+	else if (gz_a->temp.f > gz_b->temp.f) return  1;
+	else                                  return  0;
+}
+
+int WM_gizmo_cmp_temp_fl_reverse(const void *gz_a_ptr, const void *gz_b_ptr)
+{
+	const wmGizmo *gz_a = gz_a_ptr;
+	const wmGizmo *gz_b = gz_b_ptr;
+	if      (gz_a->temp.f < gz_b->temp.f) return  1;
+	else if (gz_a->temp.f > gz_b->temp.f) return -1;
+	else                                  return  0;
+}
+
 wmGizmo *wm_gizmogroup_find_intersected_gizmo(
         const wmGizmoGroup *gzgroup, bContext *C, const wmEvent *event,
         int *r_part)
