@@ -413,6 +413,45 @@ static bool pbvh_bmesh_node_limit_ensure(PBVH *bvh, int node_index)
 
 /**********************************************************************/
 
+#if 0
+static int pbvh_bmesh_node_offset_from_elem(PBVH *bvh, BMElem *ele)
+{
+	switch (ele->head.htype) {
+		case BM_VERT:
+			return bvh->cd_vert_node_offset;
+		default:
+			BLI_assert(ele->head.htype == BM_FACE);
+			return bvh->cd_face_node_offset;
+	}
+
+}
+
+static int pbvh_bmesh_node_index_from_elem(PBVH *bvh, void *key)
+{
+	const int cd_node_offset = pbvh_bmesh_node_offset_from_elem(bvh, key);
+	const int node_index = BM_ELEM_CD_GET_INT((BMElem *)key, cd_node_offset);
+
+	BLI_assert(node_index != DYNTOPO_NODE_NONE);
+	BLI_assert(node_index < bvh->totnode);
+	(void)bvh;
+
+	return node_index;
+}
+
+static PBVHNode *pbvh_bmesh_node_from_elem(PBVH *bvh, void *key)
+{
+	return &bvh->nodes[pbvh_bmesh_node_index_from_elem(bvh, key)];
+}
+
+/* typecheck */
+#define pbvh_bmesh_node_index_from_elem(bvh, key) ( \
+	CHECK_TYPE_ANY(key, BMFace *, BMVert *), \
+	pbvh_bmesh_node_index_from_elem(bvh, key))
+#define pbvh_bmesh_node_from_elem(bvh, key) ( \
+	CHECK_TYPE_ANY(key, BMFace *, BMVert *), \
+	pbvh_bmesh_node_from_elem(bvh, key))
+#endif
+
 BLI_INLINE int pbvh_bmesh_node_index_from_vert(PBVH *bvh, const BMVert *key)
 {
 	const int node_index = BM_ELEM_CD_GET_INT((const BMElem *)key, bvh->cd_vert_node_offset);
@@ -495,6 +534,25 @@ static BMFace *pbvh_bmesh_face_create(
 
 	return f;
 }
+
+/* Return the number of faces in 'node' that use vertex 'v' */
+#if 0
+static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
+{
+	BMFace *f;
+	int count = 0;
+
+	BM_FACES_OF_VERT_ITER_BEGIN(f, v) {
+		PBVHNode *f_node = pbvh_bmesh_node_from_face(bvh, f);
+		if (f_node == node) {
+			count++;
+		}
+	}
+	BM_FACES_OF_VERT_ITER_END;
+
+	return count;
+}
+#endif
 
 #define pbvh_bmesh_node_vert_use_count_is_equal(bvh, node, v, n) \
 	(pbvh_bmesh_node_vert_use_count_at_most(bvh, node, v, (n) + 1) == n)
@@ -1197,7 +1255,12 @@ static bool pbvh_bmesh_subdivide_long_edges(
 
 		/* At the moment edges never get shorter (subdiv will make new edges)
 		 * unlike collapse where edges can become longer. */
+#if 0
+		if (len_squared_v3v3(v1->co, v2->co) <= eq_ctx->q->limit_len_squared)
+			continue;
+#else
 		BLI_assert(len_squared_v3v3(v1->co, v2->co) > eq_ctx->q->limit_len_squared);
+#endif
 
 		/* Check that the edge's vertices are still in the PBVH. It's
 		 * possible that an edge collapse has deleted adjacent faces
@@ -1273,12 +1336,25 @@ static void pbvh_bmesh_collapse_edge(
 		/* Get vertices, replace use of v_del with v_conn */
 		// BM_iter_as_array(NULL, BM_VERTS_OF_FACE, f, (void **)v_tri, 3);
 		BMFace *f = l->f;
+#if 0
+		BMVert *v_tri[3];
+		BM_face_as_array_vert_tri(f, v_tri);
+		for (int i = 0; i < 3; i++) {
+			if (v_tri[i] == v_del) {
+				v_tri[i] = v_conn;
+			}
+		}
+#endif
 
 		/* Check if a face using these vertices already exists. If so,
 		 * skip adding this face and mark the existing one for
 		 * deletion as well. Prevents extraneous "flaps" from being
 		 * created. */
+#if 0
+		if (UNLIKELY(existing_face = BM_face_exists(v_tri, 3)))
+#else
 		if (UNLIKELY(existing_face = bm_face_exists_tri_from_loop_vert(l->next, v_conn)))
+#endif
 		{
 			BLI_buffer_append(deleted_faces, BMFace *, existing_face);
 		}
@@ -1967,7 +2043,17 @@ void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node)
 		if (BM_elem_flag_test(f, BM_ELEM_HIDDEN))
 			continue;
 
+#if 0
+		BMIter bm_iter;
+		BMVert *v;
+		int j = 0;
+		BM_ITER_ELEM (v, &bm_iter, f, BM_VERTS_OF_FACE) {
+			node->bm_ortri[i][j] = BM_elem_index_get(v);
+			j++;
+		}
+#else
 		bm_face_as_array_index_tri(f, node->bm_ortri[i]);
+#endif
 		i++;
 	}
 	node->bm_tot_ortri = i;
@@ -2189,6 +2275,24 @@ static void pbvh_bmesh_verify(PBVH *bvh)
 #endif
 		}
 	}
+
+#if 0
+	/* check that every vert belongs somewhere */
+	/* Slow */
+	BM_ITER_MESH (vi, &iter, bvh->bm, BM_VERTS_OF_MESH) {
+		bool has_unique = false;
+		for (int i = 0; i < bvh->totnode; i++) {
+			PBVHNode *n = &bvh->nodes[i];
+			if ((n->bm_unique_verts != NULL) && BLI_gset_haskey(n->bm_unique_verts, vi))
+				has_unique = true;
+		}
+		BLI_assert(has_unique);
+		vert_count++;
+	}
+
+	/* if totvert differs from number of verts inside the hash. hash-totvert is checked above  */
+	BLI_assert(vert_count == bvh->bm->totvert);
+#endif
 
 	/* Check that node elements are recorded in the top level */
 	for (int i = 0; i < bvh->totnode; i++) {

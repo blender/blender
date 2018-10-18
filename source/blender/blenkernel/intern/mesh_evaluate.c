@@ -982,6 +982,10 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 	const MLoop *ml_curr = data->ml_curr;
 	const MLoop *ml_prev = data->ml_prev;
 	const int ml_curr_index = data->ml_curr_index;
+#if 0  /* Not needed for 'single' loop. */
+	const int ml_prev_index = data->ml_prev_index;
+	const int *e2l_prev = data->e2l_prev;
+#endif
 	const int mp_index = data->mp_index;
 
 	/* Simple case (both edges around that vertex are sharp in current polygon),
@@ -1032,6 +1036,9 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 	const float (*polynors)[3] = common_data->polynors;
 
 	MLoopNorSpace *lnor_space = data->lnor_space;
+#if 0  /* Not needed for 'fan' loops. */
+	float (*lnor)[3] = data->lnor;
+#endif
 	const MLoop *ml_curr = data->ml_curr;
 	const MLoop *ml_prev = data->ml_prev;
 	const int ml_curr_index = data->ml_curr_index;
@@ -1416,6 +1423,10 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 					data->ml_curr = ml_curr;
 					data->ml_prev = ml_prev;
 					data->ml_curr_index = ml_curr_index;
+#if 0  /* Not needed for 'single' loop. */
+					data->ml_prev_index = ml_prev_index;
+					data->e2l_prev = NULL;  /* Tag as 'single' task. */
+#endif
 					data->mp_index = mp_index;
 					if (lnors_spacearr) {
 						data->lnor_space = BKE_lnor_space_create(lnors_spacearr);
@@ -1430,6 +1441,9 @@ static void loop_split_generator(TaskPool *pool, LoopSplitTaskDataCommon *common
 				 * All this due/thanks to link between normals and loop ordering (i.e. winding).
 				 */
 				else {
+#if 0  /* Not needed for 'fan' loops. */
+					data->lnor = lnors;
+#endif
 					data->ml_curr = ml_curr;
 					data->ml_prev = ml_prev;
 					data->ml_curr_index = ml_curr_index;

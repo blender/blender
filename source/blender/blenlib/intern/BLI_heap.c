@@ -87,6 +87,11 @@ struct Heap {
 
 BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 {
+
+#if 0
+	SWAP(uint,  heap->tree[i]->index, heap->tree[j]->index);
+	SWAP(HeapNode *,    heap->tree[i],        heap->tree[j]);
+#else
 	HeapNode **tree = heap->tree;
 	union {
 		uint  index;
@@ -94,6 +99,7 @@ BLI_INLINE void heap_swap(Heap *heap, const uint i, const uint j)
 	} tmp;
 	SWAP_TVAL(tmp.index, tree[i]->index, tree[j]->index);
 	SWAP_TVAL(tmp.node,  tree[i],        tree[j]);
+#endif
 }
 
 static void heap_down(Heap *heap, uint i)

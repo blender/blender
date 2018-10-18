@@ -120,6 +120,19 @@ ListBase seqbase_clipboard;
 int seqbase_clipboard_frame;
 SequencerDrawView sequencer_view3d_cb = NULL; /* NULL in background mode */
 
+#if 0  /* unused function */
+static void printf_strip(Sequence *seq)
+{
+	fprintf(stderr, "name: '%s', len:%d, start:%d, (startofs:%d, endofs:%d), "
+	        "(startstill:%d, endstill:%d), machine:%d, (startdisp:%d, enddisp:%d)\n",
+	        seq->name, seq->len, seq->start, seq->startofs, seq->endofs, seq->startstill, seq->endstill, seq->machine,
+	        seq->startdisp, seq->enddisp);
+
+	fprintf(stderr, "\tseq_tx_set_final_left: %d %d\n\n", seq_tx_get_final_left(seq, 0),
+	        seq_tx_get_final_right(seq, 0));
+}
+#endif
+
 static void sequencer_state_init(SeqRenderState *state)
 {
 	state->scene_parents = NULL;
@@ -3732,6 +3745,14 @@ static ImBuf *seq_render_strip_stack(
 		return NULL;
 	}
 
+#if 0 /* commentind since this breaks keyframing, since it resets the value on draw */
+	if (scene->r.cfra != cfra) {
+		/* XXX for prefetch and overlay offset!..., very bad!!! */
+		AnimData *adt = BKE_animdata_from_id(&scene->id);
+		BKE_animsys_evaluate_animdata(scene, &scene->id, adt, cfra, ADT_RECALC_ANIM);
+	}
+#endif
+
 	out = BKE_sequencer_cache_get(context, seq_arr[count - 1],  cfra, SEQ_STRIPELEM_IBUF_COMP);
 
 	if (out) {
@@ -4350,6 +4371,16 @@ void BKE_sequence_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 			if (BKE_sequence_tx_get_final_left(seq, false) >= seq_tx_get_end(seq)) {
 				BKE_sequence_tx_set_final_left(seq, seq_tx_get_end(seq) - 1);
 			}
+
+			/* dosnt work now - TODO */
+#if 0
+			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq, 0)) {
+				int ofs;
+				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq, 0);
+				seq->start -= ofs;
+				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq, 0) + ofs);
+			}
+#endif
 		}
 	}
 

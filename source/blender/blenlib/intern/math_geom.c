@@ -534,11 +534,19 @@ float dist_signed_squared_to_corner_v3v3v3(
 	cross_v3_v3v3(plane_a, dir_a, axis);
 	cross_v3_v3v3(plane_b, axis, dir_b);
 
+#if 0
+	plane_from_point_normal_v3(plane_a, v2, plane_a);
+	plane_from_point_normal_v3(plane_b, v2, plane_b);
+
+	dist_a = dist_signed_squared_to_plane_v3(p, plane_a);
+	dist_b = dist_signed_squared_to_plane_v3(p, plane_b);
+#else
 	/* calculate without the planes 4th component to avoid float precision issues */
 	sub_v3_v3v3(s_p_v2, p, v2);
 
 	dist_a = dist_signed_squared_to_plane3_v3(s_p_v2, plane_a);
 	dist_b = dist_signed_squared_to_plane3_v3(s_p_v2, plane_b);
+#endif
 
 	if (flip) {
 		return min_ff(dist_a, dist_b);

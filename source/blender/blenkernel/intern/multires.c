@@ -2373,6 +2373,19 @@ int mdisp_rot_face_to_crn(struct MVert *UNUSED(mvert), struct MPoly *mpoly, stru
 		 * the barycentric coordinates and finally find the closest vertex
 		 * should work reliably for convex cases only but better than nothing */
 
+#if 0
+		int minS, i;
+		float mindist = FLT_MAX;
+
+		for (i = 0; i < mpoly->totloop; i++) {
+			float len = len_v3v3(NULL, mvert[mloop[mpoly->loopstart + i].v].co);
+			if (len < mindist) {
+				mindist = len;
+				minS = i;
+			}
+		}
+		S = minS;
+#endif
 		/* temp not implemented yet and also not working properly in current master.
 		 * (was worked around by subdividing once) */
 		S = 0;
