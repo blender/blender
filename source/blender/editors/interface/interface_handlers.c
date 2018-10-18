@@ -2214,11 +2214,17 @@ static void ui_but_paste_color(bContext *C, uiBut *but, char *buf_paste)
 {
 	float rgba[4];
 	if (parse_float_array(buf_paste, rgba, 4)) {
-		/* assume linear colors in buffer */
-		if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-			linearrgb_to_srgb_v3_v3(rgba, rgba);
+		if (but->rnaprop) {
+			/* Assume linear colors in buffer. */
+			if (RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
+				linearrgb_to_srgb_v3_v3(rgba, rgba);
+			}
+
+			/* Some color properties are RGB, not RGBA. */
+			int array_len = get_but_property_array_length(but);
+			BLI_assert(ELEM(array_len, 3, 4));
+			ui_but_set_float_array(C, but, NULL, rgba, array_len);
 		}
-		ui_but_set_float_array(C, but, NULL, rgba, 4);
 	}
 	else {
 		WM_report(RPT_ERROR, "Paste expected 4 numbers, formatted: '[n, n, n, n]'");
