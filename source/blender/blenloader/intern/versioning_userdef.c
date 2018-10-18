@@ -65,6 +65,18 @@ static void do_versions_theme(UserDef *userdef, bTheme *btheme)
 		copy_v4_v4_char(btheme->tui.icon_modifier, U_theme_default.tui.icon_modifier);
 		copy_v4_v4_char(btheme->tui.icon_shading, U_theme_default.tui.icon_shading);
 	}
+
+	if (!USER_VERSION_ATLEAST(280, 27)) {
+		copy_v4_v4_char(btheme->tact.shade2, U_theme_default.tact.shade2);
+		copy_v4_v4_char(btheme->tact.hilite, U_theme_default.tact.hilite);
+		copy_v4_v4_char(btheme->tact.group, U_theme_default.tact.group);
+		copy_v4_v4_char(btheme->tact.group_active, U_theme_default.tact.group_active);
+		copy_v4_v4_char(btheme->tact.strip_select, U_theme_default.tact.strip_select);
+		copy_v4_v4_char(btheme->tact.ds_channel, U_theme_default.tact.ds_channel);
+		copy_v4_v4_char(btheme->tact.ds_subchannel, U_theme_default.tact.ds_subchannel);
+		copy_v4_v4_char(btheme->tact.keytype_movehold, U_theme_default.tact.keytype_movehold);
+		copy_v4_v4_char(btheme->tact.keytype_movehold_select, U_theme_default.tact.keytype_movehold_select);
+	}
 #undef USER_VERSION_ATLEAST
 
 }

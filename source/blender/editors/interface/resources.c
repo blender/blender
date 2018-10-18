@@ -381,6 +381,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->keytype_jitter; break;
 				case TH_KEYTYPE_JITTER_SELECT:
 					cp = ts->keytype_jitter_select; break;
+				case TH_KEYTYPE_MOVEHOLD:
+					cp = ts->keytype_movehold; break;
+				case TH_KEYTYPE_MOVEHOLD_SELECT:
+					cp = ts->keytype_movehold_select; break;
 				case TH_KEYBORDER:
 					cp = ts->keyborder; break;
 				case TH_KEYBORDER_SELECT:

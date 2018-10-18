@@ -471,10 +471,7 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 				UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_JITTER_SELECT : TH_KEYTYPE_JITTER, fill_col);
 				break;
 			case BEZT_KEYTYPE_MOVEHOLD: /* similar to traditional keyframes, but different... */
-				/* XXX: Should these get their own theme options instead? */
-				if (sel) UI_GetThemeColorShade3ubv(TH_STRIP_SELECT, 35, fill_col);
-				else UI_GetThemeColorShade3ubv(TH_STRIP, 50, fill_col);
-				fill_col[3] = 255; /* full opacity, to avoid problems with visual glitches */
+				UI_GetThemeColor4ubv(sel ? TH_KEYTYPE_MOVEHOLD_SELECT : TH_KEYTYPE_MOVEHOLD, fill_col);
 				break;
 			case BEZT_KEYTYPE_KEYFRAME: /* traditional yellowish frames (default theme) */
 			default:

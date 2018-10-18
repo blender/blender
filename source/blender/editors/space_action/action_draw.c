@@ -171,22 +171,22 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 
 	float act_start, act_end, y;
 
-	unsigned char col1[3], col2[3];
-	unsigned char col1a[3], col2a[3];
-	unsigned char col1b[3], col2b[3];
+	unsigned char col1[4], col2[4];
+	unsigned char col1a[4], col2a[4];
+	unsigned char col1b[4], col2b[4];
 
 	const bool show_group_colors = !(saction->flag & SACTION_NODRAWGCOLORS);
 
 
 	/* get theme colors */
-	UI_GetThemeColor3ubv(TH_BACK, col2);
-	UI_GetThemeColor3ubv(TH_HILITE, col1);
+	UI_GetThemeColor4ubv(TH_SHADE2, col2);
+	UI_GetThemeColor4ubv(TH_HILITE, col1);
 
-	UI_GetThemeColor3ubv(TH_GROUP, col2a);
-	UI_GetThemeColor3ubv(TH_GROUP_ACTIVE, col1a);
+	UI_GetThemeColor4ubv(TH_GROUP, col2a);
+	UI_GetThemeColor4ubv(TH_GROUP_ACTIVE, col1a);
 
-	UI_GetThemeColor3ubv(TH_DOPESHEET_CHANNELOB, col1b);
-	UI_GetThemeColor3ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
+	UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELOB, col1b);
+	UI_GetThemeColor4ubv(TH_DOPESHEET_CHANNELSUBOB, col2b);
 
 	/* set view-mapping rect (only used for x-axis), for NLA-scaling mapping with less calculation */
 
@@ -246,14 +246,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						case ANIMTYPE_SCENE:
 						case ANIMTYPE_OBJECT:
 						{
-							immUniformColor3ubvAlpha(col1b, sel ? 0x45 : 0x22);
+							immUniformColor3ubvAlpha(col1b, sel ? col1[3] : col1b[3]);
 							break;
 						}
 						case ANIMTYPE_FILLACTD:
 						case ANIMTYPE_DSSKEY:
 						case ANIMTYPE_DSWOR:
 						{
-							immUniformColor3ubvAlpha(col2b, sel ? 0x45 : 0x22);
+							immUniformColor3ubvAlpha(col2b, sel ? col1[3] : col2b[3]);
 							break;
 						}
 						case ANIMTYPE_GROUP:
@@ -261,14 +261,14 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 							bActionGroup *agrp = ale->data;
 							if (show_group_colors && agrp->customCol) {
 								if (sel) {
-									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.select, 0x45);
+									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.select, col1a[3]);
 								}
 								else {
-									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.solid, 0x1D);
+									immUniformColor3ubvAlpha((unsigned char *)agrp->cs.solid, col2a[3]);
 								}
 							}
 							else {
-								immUniformColor3ubvAlpha(sel ? col1a : col2a, 0x22);
+								immUniformColor4ubv(sel ? col1a : col2a);
 							}
 							break;
 						}
@@ -276,16 +276,16 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						{
 							FCurve *fcu = ale->data;
 							if (show_group_colors && fcu->grp && fcu->grp->customCol) {
-								immUniformColor3ubvAlpha((unsigned char *)fcu->grp->cs.active, sel ? 0x65 : 0x0B);
+								immUniformColor3ubvAlpha((unsigned char *)fcu->grp->cs.active, sel ? col1[3] : col2[3]);
 							}
 							else {
-								immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
+								immUniformColor4ubv(sel ? col1 : col2);
 							}
 							break;
 						}
 						default:
 						{
-							immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
+							immUniformColor4ubv(sel ? col1 : col2);
 						}
 					}
 
@@ -297,21 +297,23 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				}
 				else if (ac->datatype == ANIMCONT_GPENCIL) {
 					/* frames less than one get less saturated background */
-					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
+					unsigned char *color = sel ? col1 : col2;
+					immUniformColor4ubv(color);
 					immRectf(pos, 0.0f, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmin, (float)y + ACHANNEL_HEIGHT_HALF(ac));
 
 					/* frames one and higher get a saturated background */
-					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x44);
+					immUniformColor3ubvAlpha(color, MIN2(255, color[3]*2));
 					immRectf(pos, v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
 				}
 				else if (ac->datatype == ANIMCONT_MASK) {
 					/* TODO --- this is a copy of gpencil */
 					/* frames less than one get less saturated background */
-					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x22);
+					unsigned char *color = sel ? col1 : col2;
+					immUniformColor4ubv(color);
 					immRectf(pos, 0.0f, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmin, (float)y + ACHANNEL_HEIGHT_HALF(ac));
 
 					/* frames one and higher get a saturated background */
-					immUniformColor3ubvAlpha(sel ? col1 : col2, 0x44);
+					immUniformColor3ubvAlpha(color, MIN2(255, color[3]*2));
 					immRectf(pos, v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF(ac), v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF(ac));
 				}
 			}
