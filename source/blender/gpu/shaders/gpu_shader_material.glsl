@@ -1859,9 +1859,7 @@ void node_tex_checker(vec3 co, vec4 color1, vec4 color2, float scale, out vec4 c
 	vec3 p = co * scale;
 
 	/* Prevent precision issues on unit coordinates. */
-	p.x = (p.x + 0.000001) * 0.999999;
-	p.y = (p.y + 0.000001) * 0.999999;
-	p.z = (p.z + 0.000001) * 0.999999;
+	p = (p + 0.000001) * 0.999999;
 
 	int xi = int(abs(floor(p.x)));
 	int yi = int(abs(floor(p.y)));
