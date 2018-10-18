@@ -765,7 +765,7 @@ class TOPBAR_MT_help(Menu):
         ).url = "https://store.blender.org"
         layout.operator(
             "wm.url_open", text="Development Fund", icon='URL'
-        ).url = "https://www.blender.org/foundation/development-fund/"
+        ).url = "https://fund.blender.org"
         layout.operator(
             "wm.url_open", text="Donate", icon='URL',
         ).url = "https://www.blender.org/foundation/donation-payment/"

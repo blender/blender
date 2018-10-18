@@ -2665,11 +2665,11 @@ class WM_MT_splash(Menu):
             ).url = "https://www.blender.org/download/releases/%d-%d/" % bpy.app.version[:2]
             col2.operator(
                 "wm.url_open", text="Development Fund", icon='URL'
-            ).url = "https://www.blender.org/foundation/development-fund/"
+            ).url = "https://fund.blender.org"
         else:
             col2.operator(
                 "wm.url_open", text="Development Fund", icon='URL'
-            ).url = "https://www.blender.org/foundation/development-fund/"
+            ).url = "https://fund.blender.org"
             col2.operator(
                 "wm.url_open", text="Donate", icon='URL'
             ).url = "https://www.blender.org/foundation/donation-payment/"
