@@ -348,8 +348,7 @@ class ToolSelectPanelHelper:
             for item in cls._tools_flatten_with_keymap(tools):
                 keymap_data = item.keymap
                 if callable(keymap_data[0]):
-                    text = item.text
-                    cls._km_action_simple(kc, context_descr, text, keymap_data)
+                    cls._km_action_simple(kc, context_descr, item.text, keymap_data)
 
     @classmethod
     def keymap_ui_hierarchy(cls, context_mode):
