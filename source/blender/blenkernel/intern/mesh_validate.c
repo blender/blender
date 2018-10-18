@@ -618,62 +618,6 @@ bool BKE_mesh_validate_arrays(
 			}
 
 			/* Test same polys. */
-#if 0
-			{
-				bool p1_sub = true, p2_sub = true;
-
-				/* NOTE: This performs a sub-set test. */
-				/* XXX This (and the sort of verts list) is better than systematic
-				 *     search of all verts of one list into the other if lists have
-				 *     a fair amount of elements.
-				 *     Not sure however it's worth it in this case?
-				 *     But as we also need sorted vert list to check verts multi-used
-				 *     (in first pass of checks)... */
-				/* XXX If we consider only "equal" polys (i.e. using exactly same set of verts)
-				 *     as invalid, better to replace this by a simple memory cmp... */
-				while ((p1_nv && p2_nv) && (p1_sub || p2_sub)) {
-					if (*p1_v < *p2_v) {
-						if (p1_sub)
-							p1_sub = false;
-						p1_nv--;
-						p1_v++;
-					}
-					else if (*p2_v < *p1_v) {
-						if (p2_sub)
-							p2_sub = false;
-						p2_nv--;
-						p2_v++;
-					}
-					else {
-						/* Equality, both next verts. */
-						p1_nv--;
-						p2_nv--;
-						p1_v++;
-						p2_v++;
-					}
-				}
-				if (p1_nv && p1_sub)
-					p1_sub = false;
-				else if (p2_nv && p2_sub)
-					p2_sub = false;
-
-				if (p1_sub && p2_sub) {
-					PRINT("\tPolys %u and %u use same vertices, considering poly %u as invalid.\n",
-						  prev_sp->index, sp->index, sp->index);
-					sp->invalid = true;
-				}
-				/* XXX In fact, these might be valid? :/ */
-				else if (p1_sub) {
-					PRINT("\t%u is a sub-poly of %u, considering it as invalid.\n", sp->index, prev_sp->index);
-					sp->invalid = true;
-				}
-				else if (p2_sub) {
-					PRINT("\t%u is a sub-poly of %u, considering it as invalid.\n", prev_sp->index, sp->index);
-					prev_sp->invalid = true;
-					prev_sp = sp; /* sp is new reference poly. */
-				}
-			}
-#else
 			if ((p1_nv == p2_nv) && (memcmp(p1_v, p2_v, p1_nv * sizeof(*p1_v)) == 0)) {
 				if (do_verbose) {
 					PRINT_ERR("\tPolys %u and %u use same vertices (%d",
@@ -687,7 +631,6 @@ bool BKE_mesh_validate_arrays(
 				}
 				sp->invalid = true;
 			}
-#endif
 			else {
 				prev_sp = sp;
 			}

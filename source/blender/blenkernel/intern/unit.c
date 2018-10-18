@@ -412,17 +412,6 @@ static size_t unit_as_string(char *str, int len_max, double value, int prec, con
 		while (unit->name_short[j] && (i < len_max)) {
 			str[i++] = unit->name_short[j++];
 		}
-#if 0
-		if (pad) {
-			/* this loop only runs if so many zeros were removed that
-			 * the unit name only used padded chars,
-			 * In that case add padding for the name. */
-
-			while (i <= len + j && (i < len_max)) {
-				str[i++] = pad;
-			}
-		}
-#endif
 	}
 
 	/* terminate no matter what's done with padding above */

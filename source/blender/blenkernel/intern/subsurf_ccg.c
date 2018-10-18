@@ -1045,43 +1045,6 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 		int gridSideEdges;
 		int gridInternalEdges;
 
-		/* code added in bmesh but works correctly without, commenting - campbell */
-#if 0
-		int lasti, previ;
-		i = lastface;
-		lasti = 0;
-		while (1) {
-			previ = i;
-			if (ccgdm->faceMap[i].startEdge >= edgeNum) {
-				i -= fabsf(i - lasti) / 2.0f;
-			}
-			else if (ccgdm->faceMap[i].startEdge < edgeNum) {
-				i += fabsf(i - lasti) / 2.0f;
-			}
-			else {
-				break;
-			}
-
-			if (i < 0) {
-				i = 0;
-				break;
-			}
-
-			if (i > lastface) {
-				i = lastface;
-				break;
-
-			}
-
-			if (i == lasti)
-				break;
-
-			lasti = previ;
-		}
-
-		i = i > 0 ? i - 1 : i;
-#endif
-
 		i = 0;
 		while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge) {
 			i++;
@@ -2554,14 +2517,6 @@ static void set_ccgdm_all_geometry(CCGDerivedMesh *ccgdm,
 	polyOrigIndex = DM_get_poly_data_layer(&ccgdm->dm, CD_ORIGINDEX);
 
 	has_edge_cd = ((ccgdm->dm.edgeData.totlayer - (edgeOrigIndex ? 1 : 0)) != 0);
-
-#if 0
-	/* this is not in trunk, can gives problems because colors initialize
-	 * as black, just don't do it!, it works fine - campbell */
-	if (!CustomData_has_layer(&ccgdm->dm.faceData, CD_MCOL))
-		DM_add_tessface_layer(&ccgdm->dm, CD_MCOL, CD_CALLOC, NULL);
-	mcol = DM_get_tessface_data_layer(&ccgdm->dm, CD_MCOL);
-#endif
 
 	loopindex = loopindex2 = 0; /* current loop index */
 	for (index = 0; index < totface; index++) {

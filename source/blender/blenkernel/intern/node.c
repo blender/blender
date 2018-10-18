@@ -1642,54 +1642,6 @@ void BKE_node_preview_set_pixel(bNodePreview *preview, const float col[4], int x
 	}
 }
 
-#if 0
-static void nodeClearPreview(bNode *node)
-{
-	if (node->preview && node->preview->rect)
-		memset(node->preview->rect, 0, MEM_allocN_len(node->preview->rect));
-}
-
-/* use it to enforce clear */
-void ntreeClearPreview(bNodeTree *ntree)
-{
-	bNode *node;
-
-	if (ntree == NULL)
-		return;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->typeinfo->flag & NODE_PREVIEW)
-			nodeClearPreview(node);
-		if (node->type == NODE_GROUP)
-			ntreeClearPreview((bNodeTree *)node->id);
-	}
-}
-
-/* hack warning! this function is only used for shader previews, and
- * since it gets called multiple times per pixel for Ztransp we only
- * add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, const float col[4], int x, int y, int do_manage)
-{
-	bNodePreview *preview = node->preview;
-	if (preview) {
-		if (x >= 0 && y >= 0) {
-			if (x < preview->xsize && y < preview->ysize) {
-				unsigned char *tar = preview->rect + 4 * ((preview->xsize * y) + x);
-
-				if (do_manage) {
-					linearrgb_to_srgb_uchar4(tar, col);
-				}
-				else {
-					rgba_float_to_uchar(tar, col);
-				}
-			}
-			//else printf("prv out bound x y %d %d\n", x, y);
-		}
-		//else printf("prv out bound x y %d %d\n", x, y);
-	}
-}
-#endif
-
 /* ************** Free stuff ********** */
 
 /* goes over entire tree */

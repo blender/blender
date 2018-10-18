@@ -607,14 +607,6 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		}
 	}
 
-#if 0
-	/* this options are not set in ffmpeg.c and leads to artifacts with MPEG-4
-	 * see #33586: Encoding to mpeg4 makes first frame(s) blocky
-	 */
-	c->rc_initial_buffer_occupancy = rd->ffcodecdata.rc_buffer_size * 3 / 4;
-	c->rc_buffer_aggressivity = 1.0;
-#endif
-
 	/* Deprecated and not doing anything since July 2015, deleted in recent ffmpeg */
 	//c->me_method = ME_EPZS;
 
@@ -670,14 +662,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		}
 	}
 
-	if ((of->oformat->flags & AVFMT_GLOBALHEADER)
-#if 0
-	    || STREQ(of->oformat->name, "mp4")
-	    || STREQ(of->oformat->name, "mov")
-	    || STREQ(of->oformat->name, "3gp")
-#endif
-	    )
-	{
+	if ((of->oformat->flags & AVFMT_GLOBALHEADER)) {
 		PRINT("Using global header\n");
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
@@ -1294,12 +1279,6 @@ int BKE_ffmpeg_append(void *context_v, RenderData *rd, int start_frame, int fram
 static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
 {
 	PRINT("Closing ffmpeg...\n");
-
-#if 0
-	if (context->audio_stream) { /* SEE UPPER */
-		write_audio_frames(context);
-	}
-#endif
 
 #ifdef WITH_AUDASPACE
 	if (is_autosplit == false) {

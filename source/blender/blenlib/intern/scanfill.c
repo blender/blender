@@ -811,38 +811,6 @@ unsigned int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const int flag, const
 	}
 #endif
 
-#if 0
-	if (flag & BLI_SCANFILL_CALC_QUADTRI_FASTPATH) {
-		const int totverts = BLI_listbase_count(&sf_ctx->fillvertbase);
-
-		if (totverts == 3) {
-			eve = sf_ctx->fillvertbase.first;
-
-			addfillface(sf_ctx, eve, eve->next, eve->next->next);
-			return 1;
-		}
-		else if (totverts == 4) {
-			float vec1[3], vec2[3];
-
-			eve = sf_ctx->fillvertbase.first;
-			/* no need to check 'eve->next->next->next' is valid, already counted */
-			/* use shortest diagonal for quad */
-			sub_v3_v3v3(vec1, eve->co, eve->next->next->co);
-			sub_v3_v3v3(vec2, eve->next->co, eve->next->next->next->co);
-
-			if (dot_v3v3(vec1, vec1) < dot_v3v3(vec2, vec2)) {
-				addfillface(sf_ctx, eve, eve->next, eve->next->next);
-				addfillface(sf_ctx, eve->next->next, eve->next->next->next, eve);
-			}
-			else {
-				addfillface(sf_ctx, eve->next, eve->next->next, eve->next->next->next);
-				addfillface(sf_ctx, eve->next->next->next, eve, eve->next);
-			}
-			return 2;
-		}
-	}
-#endif
-
 	/* first test vertices if they are in edges */
 	/* including resetting of flags */
 	for (eed = sf_ctx->filledgebase.first; eed; eed = eed->next) {

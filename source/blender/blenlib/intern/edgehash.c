@@ -659,49 +659,6 @@ void BLI_edgehashIterator_free(EdgeHashIterator *ehi)
 	MEM_freeN(ehi);
 }
 
-/* inline functions now */
-#if 0
-/**
- * Retrieve the key from an iterator.
- */
-void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, uint *r_v0, uint *r_v1)
-{
-	*r_v0 = ehi->curEntry->v0;
-	*r_v1 = ehi->curEntry->v1;
-}
-
-/**
- * Retrieve the value from an iterator.
- */
-void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
-{
-	return ehi->curEntry->val;
-}
-
-/**
- * Retrieve the pointer to the value from an iterator.
- */
-void **BLI_edgehashIterator_getValue_p(EdgeHashIterator *ehi)
-{
-	return &ehi->curEntry->val;
-}
-
-/**
- * Set the value for an iterator.
- */
-void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)
-{
-	ehi->curEntry->val = val;
-}
-
-/**
- * Determine if an iterator is done.
- */
-bool BLI_edgehashIterator_isDone(EdgeHashIterator *ehi)
-{
-	return (ehi->curEntry == NULL);
-}
-#endif
 
 /** \} */
 

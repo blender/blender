@@ -839,27 +839,6 @@ static void vnormal(PROCESS *process, const float point[3], float r_no[3])
 	r_no[0] = metaball(process, point[0] + delta, point[1], point[2]) - f;
 	r_no[1] = metaball(process, point[0], point[1] + delta, point[2]) - f;
 	r_no[2] = metaball(process, point[0], point[1], point[2] + delta) - f;
-
-#if 0
-	f = normalize_v3(r_no);
-
-	if (0) {
-		float tvec[3];
-
-		delta *= 2.0f;
-
-		f = process->function(process, point[0], point[1], point[2]);
-
-		tvec[0] = process->function(process, point[0] + delta, point[1], point[2]) - f;
-		tvec[1] = process->function(process, point[0], point[1] + delta, point[2]) - f;
-		tvec[2] = process->function(process, point[0], point[1], point[2] + delta) - f;
-
-		if (normalize_v3(tvec) != 0.0f) {
-			add_v3_v3(r_no, tvec);
-			normalize_v3(r_no);
-		}
-	}
-#endif
 }
 #endif  /* USE_ACCUM_NORMAL */
 

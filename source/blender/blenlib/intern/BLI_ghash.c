@@ -1108,57 +1108,6 @@ void BLI_ghashIterator_free(GHashIterator *ghi)
 	MEM_freeN(ghi);
 }
 
-/* inline functions now */
-#if 0
-/**
- * Retrieve the key from an iterator.
- *
- * \param ghi The iterator.
- * \return The key at the current index, or NULL if the
- * iterator is done.
- */
-void *BLI_ghashIterator_getKey(GHashIterator *ghi)
-{
-	return ghi->curEntry->key;
-}
-
-/**
- * Retrieve the value from an iterator.
- *
- * \param ghi The iterator.
- * \return The value at the current index, or NULL if the
- * iterator is done.
- */
-void *BLI_ghashIterator_getValue(GHashIterator *ghi)
-{
-	return ghi->curEntry->val;
-}
-
-/**
- * Retrieve the value from an iterator.
- *
- * \param ghi The iterator.
- * \return The value at the current index, or NULL if the
- * iterator is done.
- */
-void **BLI_ghashIterator_getValue_p(GHashIterator *ghi)
-{
-	return &ghi->curEntry->val;
-}
-
-/**
- * Determine if an iterator is done (has reached the end of
- * the hash table).
- *
- * \param ghi The iterator.
- * \return True if done, False otherwise.
- */
-bool BLI_ghashIterator_done(GHashIterator *ghi)
-{
-	return ghi->curEntry == NULL;
-}
-#endif
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

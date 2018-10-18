@@ -57,19 +57,6 @@ static float P(float k)
 	return (float)(1.0f / 6.0f) * (p1 * p1 * p1 - 4.0f * p2 * p2 * p2 + 6.0f * p3 * p3 * p3 - 4.0f * p4 * p4 * p4);
 }
 
-
-#if 0
-/* older, slower function, works the same as above */
-static float P(float k)
-{
-	return (float)(1.0f / 6.0f) *
-	        (pow(MAX2(k + 2.0f, 0), 3.0f) - 4.0f *
-	         pow(MAX2(k + 1.0f, 0), 3.0f) + 6.0f *
-	         pow(MAX2(k, 0), 3.0f) - 4.0f *
-	         pow(MAX2(k - 1.0f, 0), 3.0f));
-}
-#endif
-
 static void vector_from_float(const float *data, float vector[4], int components)
 {
 	if (components == 1) {
@@ -178,45 +165,6 @@ BLI_INLINE void bicubic_interpolation(const unsigned char *byte_buffer, const fl
 	}
 
 /* Done with optimized part */
-
-#if 0
-	/* older, slower function, works the same as above */
-	for (n = -1; n <= 2; n++) {
-		for (m = -1; m <= 2; m++) {
-			x1 = i + n;
-			y1 = j + m;
-			if (x1 > 0 && x1 < width && y1 > 0 && y1 < height) {
-				float data[4];
-
-				if (float_output) {
-					const float *float_data = float_buffer + width * y1 * components + components * x1;
-
-					vector_from_float(float_data, data, components);
-				}
-				else {
-					const unsigned char *byte_data = byte_buffer + width * y1 * components + components * x1;
-
-					vector_from_byte(byte_data, data, components);
-				}
-
-				if (components == 1) {
-					out[0] += data[0] * P(n - a) * P(b - m);
-				}
-				else if (components == 3) {
-					out[0] += data[0] * P(n - a) * P(b - m);
-					out[1] += data[1] * P(n - a) * P(b - m);
-					out[2] += data[2] * P(n - a) * P(b - m);
-				}
-				else {
-					out[0] += data[0] * P(n - a) * P(b - m);
-					out[1] += data[1] * P(n - a) * P(b - m);
-					out[2] += data[2] * P(n - a) * P(b - m);
-					out[3] += data[3] * P(n - a) * P(b - m);
-				}
-			}
-		}
-	}
-#endif
 
 	if (float_output) {
 		if (components == 1) {

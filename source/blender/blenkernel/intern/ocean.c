@@ -242,14 +242,6 @@ static void init_complex(fftw_complex cmpl, float real, float image)
 	cmpl[1] = image;
 }
 
-#if 0   /* unused */
-static void add_complex_f(fftw_complex res, fftw_complex cmpl, float f)
-{
-	res[0] = cmpl[0] + f;
-	res[1] = cmpl[1];
-}
-#endif
-
 static void add_comlex_c(fftw_complex res, fftw_complex cmpl1, fftw_complex cmpl2)
 {
 	res[0] = cmpl1[0] + cmpl2[0];
@@ -775,15 +767,6 @@ void BKE_ocean_simulate(struct Ocean *o, float t, float scale, float chop_amount
 	if (o->_do_normals) {
 		BLI_task_pool_push(pool, ocean_compute_normal_x, NULL, false, TASK_PRIORITY_HIGH);
 		BLI_task_pool_push(pool, ocean_compute_normal_z, NULL, false, TASK_PRIORITY_HIGH);
-
-#if 0
-		for (i = 0; i < o->_M; ++i) {
-			for (j = 0; j < o->_N; ++j) {
-				o->_N_y[i * o->_N + j] = 1.0f / scale;
-			}
-		}
-		(MEM01)
-#endif
 		o->_N_y = 1.0f / scale;
 	}
 
@@ -1257,30 +1240,12 @@ void BKE_ocean_simulate_cache(struct OceanCache *och, int frame)
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_DISPLACE);
 	och->ibufs_disp[f] = IMB_loadiffname(string, 0, NULL);
-#if 0
-	if (och->ibufs_disp[f] == NULL)
-		printf("error loading %s\n", string);
-	else
-		printf("loaded cache %s\n", string);
-#endif
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_FOAM);
 	och->ibufs_foam[f] = IMB_loadiffname(string, 0, NULL);
-#if 0
-	if (och->ibufs_foam[f] == NULL)
-		printf("error loading %s\n", string);
-	else
-		printf("loaded cache %s\n", string);
-#endif
 
 	cache_filename(string, och->bakepath, och->relbase, frame, CACHE_TYPE_NORMAL);
 	och->ibufs_norm[f] = IMB_loadiffname(string, 0, NULL);
-#if 0
-	if (och->ibufs_norm[f] == NULL)
-		printf("error loading %s\n", string);
-	else
-		printf("loaded cache %s\n", string);
-#endif
 }
 
 
@@ -1355,28 +1320,12 @@ void BKE_ocean_bake(struct Ocean *o, struct OceanCache *och, void (*update_cb)(v
 					 * break up the foam where height (Y) is low (wave valley), and X and Z displacement is greatest
 					 */
 
-#if 0
-					vec[0] = ocr.disp[0];
-					vec[1] = ocr.disp[2];
-					hor_stretch = len_v2(vec);
-					CLAMP(hor_stretch, 0.0, 1.0);
-#endif
-
 					neg_disp = ocr.disp[1] < 0.0f ? 1.0f + ocr.disp[1] : 1.0f;
 					neg_disp = neg_disp < 0.0f ? 0.0f : neg_disp;
 
 					/* foam, 'ocr.Eplus' only initialized with do_jacobian */
 					neg_eplus = ocr.Eplus[2] < 0.0f ? 1.0f + ocr.Eplus[2] : 1.0f;
 					neg_eplus = neg_eplus < 0.0f ? 0.0f : neg_eplus;
-
-#if 0
-					if (ocr.disp[1] < 0.0 || r > och->foam_fade)
-						pr *= och->foam_fade;
-
-
-					pr = pr * (1.0 - hor_stretch) * ocr.disp[1];
-					pr = pr * neg_disp * neg_eplus;
-#endif
 
 					if (pr < 1.0f)
 						pr *= pr;

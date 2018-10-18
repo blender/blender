@@ -213,74 +213,6 @@ MINLINE axis_t max_axis(axis_t a, axis_t b)
 }
 #endif
 
-#if 0
-
-/*
- * Generic push and pop heap
- */
-#define PUSH_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)                  \
-	{                                                                         \
-		HEAP_TYPE element = heap[heap_size - 1];                              \
-		int child = heap_size - 1;                                            \
-		while (child != 0) {                                                  \
-			int parent = (child - 1) / 2;                                     \
-			if (PRIORITY(element, heap[parent])) {                            \
-				heap[child] = heap[parent];                                   \
-				child = parent;                                               \
-			}                                                                 \
-			else {                                                            \
-				break;                                                        \
-			}                                                                 \
-		}                                                                     \
-		heap[child] = element;                                                \
-	} (void)0
-
-#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)                   \
-	{                                                                         \
-		HEAP_TYPE element = heap[heap_size - 1];                              \
-		int parent = 0;                                                       \
-		while (parent < (heap_size - 1) / 2) {                                \
-			int child2 = (parent + 1) * 2;                                    \
-			if (PRIORITY(heap[child2 - 1], heap[child2])) {                   \
-				child2--;                                                     \
-			}                                                                 \
-			if (PRIORITY(element, heap[child2])) {                            \
-				break;                                                        \
-			}                                                                 \
-			heap[parent] = heap[child2];                                      \
-			parent = child2;                                                  \
-		}                                                                     \
-		heap[parent] = element;                                               \
-	} (void)0
-
-static bool ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
-{
-	int new_max_size = *max_size * 2;
-	void *new_memblock = NULL;
-
-	if (new_size <= *max_size) {
-		return true;
-	}
-
-	if (*memblock == local_memblock) {
-		new_memblock = malloc(size_per_item * new_max_size);
-		memcpy(new_memblock, *memblock, size_per_item * *max_size);
-	}
-	else {
-		new_memblock = realloc(*memblock, size_per_item * new_max_size);
-	}
-
-	if (new_memblock) {
-		*memblock = new_memblock;
-		*max_size = new_max_size;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-#endif
-
 /**
  * Introsort
  * with permission deriven from the following Java code:
@@ -288,17 +220,7 @@ static bool ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, i
  * and he derived it from the SUN STL
  */
 
-//static int size_threshold = 16;
 
-#if 0
-/**
- * Common methods for all algorithms
- */
-static int floor_lg(int a)
-{
-	return (int)(floor(log(a) / log(2)));
-}
-#endif
 
 static void node_minmax_init(const BVHTree *tree, BVHNode *node)
 {
@@ -356,39 +278,6 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode *x, int axis)
 	}
 }
 
-#if 0
-/**
- * Heapsort algorithm
- */
-static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
-{
-	BVHNode *d = a[lo + i - 1];
-	int child;
-	while (i <= n / 2) {
-		child = 2 * i;
-		if ((child < n) && ((a[lo + child - 1])->bv[axis] < (a[lo + child])->bv[axis])) {
-			child++;
-		}
-		if (!(d->bv[axis] < (a[lo + child - 1])->bv[axis])) break;
-		a[lo + i - 1] = a[lo + child - 1];
-		i = child;
-	}
-	a[lo + i - 1] = d;
-}
-
-static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
-{
-	int n = hi - lo, i;
-	for (i = n / 2; i >= 1; i = i - 1) {
-		bvh_downheap(a, i, n, lo, axis);
-	}
-	for (i = n; i > 1; i = i - 1) {
-		SWAP(BVHNode *, a[lo], a[lo + i - 1]);
-		bvh_downheap(a, 1, i - 1, lo, axis);
-	}
-}
-#endif
-
 static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis)  /* returns Sortable */
 {
 	if ((a[mid])->bv[axis] < (a[lo])->bv[axis]) {
@@ -412,41 +301,6 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis)  /
 			return a[mid];
 	}
 }
-
-#if 0
-/*
- * Quicksort algorithm modified for Introsort
- */
-static void bvh_introsort_loop(BVHNode **a, int lo, int hi, int depth_limit, int axis)
-{
-	int p;
-
-	while (hi - lo > size_threshold) {
-		if (depth_limit == 0) {
-			bvh_heapsort(a, lo, hi, axis);
-			return;
-		}
-		depth_limit = depth_limit - 1;
-		p = bvh_partition(a, lo, hi, bvh_medianof3(a, lo, lo + ((hi - lo) / 2) + 1, hi - 1, axis), axis);
-		bvh_introsort_loop(a, p, hi, depth_limit, axis);
-		hi = p;
-	}
-}
-
-static void sort(BVHNode **a0, int begin, int end, int axis)
-{
-	if (begin < end) {
-		BVHNode **a = a0;
-		bvh_introsort_loop(a, begin, end, 2 * floor_lg(end - begin), axis);
-		bvh_insertionsort(a, begin, end, axis);
-	}
-}
-
-static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
-{
-	sort(tree->nodes, start, end, axis);
-}
-#endif
 
 /**
  * \note after a call to this function you can expect one of:
@@ -1420,23 +1274,6 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
 			nearest[i] = proj[i];
 	}
 
-#if 0
-	/* nearest on a general hull */
-	copy_v3_v3(nearest, data->co);
-	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv += 2) {
-		float proj = dot_v3v3(nearest, bvhtree_kdop_axes[i]);
-		float dl = bv[0] - proj;
-		float du = bv[1] - proj;
-
-		if (dl > 0) {
-			madd_v3_v3fl(nearest, bvhtree_kdop_axes[i], dl);
-		}
-		else if (du < 0) {
-			madd_v3_v3fl(nearest, bvhtree_kdop_axes[i], du);
-		}
-	}
-#endif
-
 	return len_squared_v3v3(proj, nearest);
 }
 
@@ -1483,101 +1320,6 @@ static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 	}
 	dfs_find_nearest_dfs(data, node);
 }
-
-
-#if 0
-
-typedef struct NodeDistance {
-	BVHNode *node;
-	float dist;
-
-} NodeDistance;
-
-#define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024
-
-#define NodeDistance_priority(a, b) ((a).dist < (b).dist)
-
-static void NodeDistance_push_heap(NodeDistance *heap, int heap_size)
-PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
-
-static void NodeDistance_pop_heap(NodeDistance *heap, int heap_size)
-POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size)
-
-/* NN function that uses an heap.. this functions leads to an optimal number of min-distance
- * but for normal tri-faces and BV 6-dop.. a simple dfs with local heuristics (as implemented
- * in source/blender/blenkernel/intern/shrinkwrap.c) works faster.
- *
- * It may make sense to use this function if the callback queries are very slow.. or if its impossible
- * to get a nice heuristic
- *
- * this function uses "malloc/free" instead of the MEM_* because it intends to be thread safe */
-static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
-{
-	int i;
-	NodeDistance default_heap[DEFAULT_FIND_NEAREST_HEAP_SIZE];
-	NodeDistance *heap = default_heap, current;
-	int heap_size = 0, max_heap_size = sizeof(default_heap) / sizeof(default_heap[0]);
-	float nearest[3];
-
-	int callbacks = 0, push_heaps = 0;
-
-	if (node->totnode == 0) {
-		dfs_find_nearest_dfs(data, node);
-		return;
-	}
-
-	current.node = node;
-	current.dist = calc_nearest_point(data->proj, node, nearest);
-
-	while (current.dist < data->nearest.dist) {
-//		printf("%f : %f\n", current.dist, data->nearest.dist);
-		for (i = 0; i < current.node->totnode; i++) {
-			BVHNode *child = current.node->children[i];
-			if (child->totnode == 0) {
-				callbacks++;
-				dfs_find_nearest_dfs(data, child);
-			}
-			else {
-				/* adjust heap size */
-				if ((heap_size >= max_heap_size) &&
-				    ADJUST_MEMORY(default_heap, (void **)&heap,
-				                  heap_size + 1, &max_heap_size, sizeof(heap[0])) == false)
-				{
-					printf("WARNING: bvh_find_nearest got out of memory\n");
-
-					if (heap != default_heap)
-						free(heap);
-
-					return;
-				}
-
-				heap[heap_size].node = current.node->children[i];
-				heap[heap_size].dist = calc_nearest_point(data->proj, current.node->children[i], nearest);
-
-				if (heap[heap_size].dist >= data->nearest.dist) continue;
-				heap_size++;
-
-				NodeDistance_push_heap(heap, heap_size);
-				//			PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
-				push_heaps++;
-			}
-		}
-
-		if (heap_size == 0) break;
-
-		current = heap[0];
-		NodeDistance_pop_heap(heap, heap_size);
-//		POP_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
-		heap_size--;
-	}
-
-//	printf("hsize=%d, callbacks=%d, pushs=%d\n", heap_size, callbacks, push_heaps);
-
-	if (heap != default_heap)
-		free(heap);
-}
-#endif
-
 
 int BLI_bvhtree_find_nearest(
         BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
@@ -1767,35 +1509,6 @@ static void dfs_raycast_all(BVHRayCastData *data, BVHNode *node)
 		}
 	}
 }
-
-#if 0
-static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
-{
-	while (node) {
-		float dist = fast_ray_nearest_hit(data, node);
-		if (dist >= data->hit.dist) {
-			node = node->skip[1];
-			continue;
-		}
-
-		if (node->totnode == 0) {
-			if (data->callback) {
-				data->callback(data->userdata, node->index, &data->ray, &data->hit);
-			}
-			else {
-				data->hit.index = node->index;
-				data->hit.dist  = dist;
-				madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
-			}
-
-			node = node->skip[1];
-		}
-		else {
-			node = node->children[0];
-		}
-	}
-}
-#endif
 
 static void bvhtree_ray_cast_data_precalc(BVHRayCastData *data, int flag)
 {

@@ -4068,9 +4068,7 @@ static void system_step(ParticleSimulationData *sim, float cfra, const bool use_
 				sim->courant_num = 0.0f;
 				dynamics_step(sim, cfra+dframe+t_frac - 1.f);
 				psys->cfra = cfra+dframe+t_frac - 1.f;
-#if 0
-				printf("%f,%f,%f,%f\n", cfra+dframe+t_frac - 1.f, t_frac, dt_frac, sim->courant_num);
-#endif
+
 				if (part->time_flag & PART_TIME_AUTOSF)
 					update_timestep(psys, sim);
 				/* Even without AUTOSF dt_frac may not add up to 1.0 due to float precision. */

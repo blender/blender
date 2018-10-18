@@ -51,12 +51,6 @@ void BLI_covariance_m3_v3n(
         const float (*cos_v3)[3], const int nbr_cos_v3, const bool use_sample_correction,
         float r_covmat[3][3], float r_center[3]);
 
-/**************************** Inline Definitions ******************************/
-#if 0  /* None so far. */
-#  if BLI_MATH_DO_INLINE
-#    include "intern/math_geom_inline.c"
-#  endif
-#endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA
 #  pragma GCC diagnostic pop

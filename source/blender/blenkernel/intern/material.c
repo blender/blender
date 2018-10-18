@@ -653,14 +653,6 @@ void assign_material_id(Main *bmain, ID *id, Material *ma, short act)
 	if (act > MAXMAT) return;
 	if (act < 1) act = 1;
 
-	/* this is needed for Python overrides,
-	 * we just have to take care that the UI can't do this */
-#if 0
-	/* prevent crashing when using accidentally */
-	BLI_assert(id->lib == NULL);
-	if (id->lib) return;
-#endif
-
 	/* test arraylens */
 
 	totcolp = give_totcolp_id(id);

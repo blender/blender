@@ -264,33 +264,6 @@ void packAll(Main *bmain, ReportList *reports, bool verbose)
 		BKE_report(reports, RPT_INFO, "No new files have been packed");
 }
 
-
-#if 0
-
-// attempt to create a function that generates an unique filename
-// this will work when all functions in fileops.c understand relative filenames...
-
-static char *find_new_name(char *name)
-{
-	char tempname[FILE_MAX];
-	char *newname;
-	size_t len;
-
-	if (fop_exists(name)) {
-		for (number = 1; number <= 999; number++) {
-			BLI_snprintf(tempname, sizeof(tempname), "%s.%03d", name, number);
-			if (!fop_exists(tempname)) {
-				break;
-			}
-		}
-	}
-	len = strlen(tempname) + 1;
-	newname = MEM_mallocN(len, "find_new_name");
-	memcpy(newname, tempname, len * sizeof(char));
-	return newname;
-}
-#endif
-
 int writePackedFile(
         ReportList *reports, const char *ref_file_name, const char *filename, PackedFile *pf, const bool guimode)
 {

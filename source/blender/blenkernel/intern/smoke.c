@@ -2608,15 +2608,6 @@ static void step(
 	float gravity[3] = {0.0f, 0.0f, -1.0f};
 	float gravity_mag;
 
-#if 0  /* UNUSED */
-	   /* get max velocity and lower the dt value if it is too high */
-	size_t size = sds->res[0] * sds->res[1] * sds->res[2];
-	float *velX = smoke_get_velocity_x(sds->fluid);
-	float *velY = smoke_get_velocity_y(sds->fluid);
-	float *velZ = smoke_get_velocity_z(sds->fluid);
-	size_t i;
-#endif
-
 	/* update object state */
 	invert_m4_m4(sds->imat, ob->obmat);
 	copy_m4_m4(sds->obmat, ob->obmat);
@@ -2638,14 +2629,6 @@ static void step(
 	dt = DT_DEFAULT * (25.0f / fps);
 	// maximum timestep/"CFL" constraint: dt < 5.0 *dx / maxVel
 	maxVel = (sds->dx * 5.0f);
-
-#if 0
-	for (i = 0; i < size; i++) {
-		float vtemp = (velX[i] * velX[i] + velY[i] * velY[i] + velZ[i] * velZ[i]);
-		if (vtemp > maxVelMag)
-			maxVelMag = vtemp;
-	}
-#endif
 
 	maxVelMag = sqrtf(maxVelMag) * dt * sds->time_scale;
 	totalSubsteps = (int)((maxVelMag / maxVel) + 1.0f); /* always round up */

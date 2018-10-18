@@ -90,9 +90,4 @@ void _bli_array_grow_func(
 	}
 
 	*arr_p = arr_tmp;
-
-	/* caller must do */
-#if 0
-	arr_len += num;
-#endif
 }

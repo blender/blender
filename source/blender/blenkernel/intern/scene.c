@@ -1126,12 +1126,6 @@ int BKE_scene_base_iter_next(Depsgraph *depsgraph, SceneBaseIter *iter,
 		}
 	}
 
-#if 0
-	if (ob && *ob) {
-		printf("Scene: '%s', '%s'\n", (*scene)->id.name + 2, (*ob)->id.name + 2);
-	}
-#endif
-
 	return iter->phase;
 }
 

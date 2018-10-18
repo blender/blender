@@ -47,13 +47,7 @@
 /** \name Generic Key Hash & Comparison Functions
  * \{ */
 
-#if 0
-/* works but slower */
-uint BLI_ghashutil_ptrhash(const void *key)
-{
-	return (uint)(intptr_t)key;
-}
-#else
+
 /* based python3.3's pointer hashing function */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
@@ -63,7 +57,7 @@ uint BLI_ghashutil_ptrhash(const void *key)
 	y = (y >> 4) | (y << (8 * sizeof(void *) - 4));
 	return (uint)y;
 }
-#endif
+
 bool BLI_ghashutil_ptrcmp(const void *a, const void *b)
 {
 	return (a != b);

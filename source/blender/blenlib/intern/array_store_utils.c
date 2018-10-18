@@ -43,9 +43,6 @@ BArrayStore *BLI_array_store_at_size_ensure(
 	BArrayStore **bs_p = &bs_stride->stride_table[stride - 1];
 
 	if ((*bs_p) == NULL) {
-#if 0
-		unsigned int chunk_count = chunk_size;
-#else
 		/* calculate best chunk-count to fit a power of two */
 		unsigned int chunk_count = chunk_size;
 		{
@@ -54,7 +51,6 @@ BArrayStore *BLI_array_store_at_size_ensure(
 			size = MEM_SIZE_OPTIMAL(size);
 			chunk_count = size / stride;
 		}
-#endif
 
 		(*bs_p) = BLI_array_store_create(stride, chunk_count);
 	}

@@ -1976,21 +1976,7 @@ static bool ob_parcurve(Depsgraph *depsgraph, Scene *UNUSED(scene), Object *ob, 
 	if (where_on_path(par, ctime, vec, dir, (cu->flag & CU_FOLLOW) ? quat : NULL, &radius, NULL)) {
 
 		if (cu->flag & CU_FOLLOW) {
-#if 0
-			float si, q[4];
-			vec_to_quat(quat, dir, ob->trackflag, ob->upflag);
-
-			/* the tilt */
-			normalize_v3(dir);
-			q[0] = cosf(0.5 * vec[3]);
-			si = sinf(0.5 * vec[3]);
-			q[1] = -si * dir[0];
-			q[2] = -si * dir[1];
-			q[3] = -si * dir[2];
-			mul_qt_qtqt(quat, q, quat);
-#else
 			quat_apply_track(quat, ob->trackflag, ob->upflag);
-#endif
 			normalize_qt(quat);
 			quat_to_mat4(mat, quat);
 		}

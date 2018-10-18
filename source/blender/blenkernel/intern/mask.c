@@ -1419,34 +1419,6 @@ void BKE_mask_evaluate(Mask *mask, const float ctime, const bool do_newframe)
  * for now re-evaluate all. eventually this might work differently */
 void BKE_mask_update_display(Mask *mask, float ctime)
 {
-#if 0
-	MaskLayer *masklay;
-
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline;
-
-		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			if (spline->points_deform) {
-				int i = 0;
-
-				for (i = 0; i < spline->tot_point; i++) {
-					MaskSplinePoint *point;
-
-					if (spline->points_deform) {
-						point = &spline->points_deform[i];
-						BKE_mask_point_free(point);
-					}
-				}
-				if (spline->points_deform) {
-					MEM_freeN(spline->points_deform);
-				}
-
-				spline->points_deform = NULL;
-			}
-		}
-	}
-#endif
-
 	BKE_mask_evaluate(mask, ctime, false);
 }
 
@@ -1656,19 +1628,6 @@ MaskLayerShape *BKE_mask_layer_shape_verify_frame(MaskLayer *masklay, const int 
 		BLI_addtail(&masklay->splines_shapes, masklay_shape);
 		BKE_mask_layer_shape_sort(masklay);
 	}
-
-#if 0
-	{
-		MaskLayerShape *masklay_shape;
-		int i = 0;
-		for (masklay_shape = masklay->splines_shapes.first;
-		     masklay_shape;
-		     masklay_shape = masklay_shape->next)
-		{
-			printf("mask %d, %d\n", i++, masklay_shape->frame);
-		}
-	}
-#endif
 
 	return masklay_shape;
 }

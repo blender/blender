@@ -1064,14 +1064,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 			return (ELEM(id_type_used, ID_OB, ID_WO, ID_SCE, ID_MC, ID_MA, ID_GR, ID_TXT,
 			                           ID_LS, ID_MSK, ID_SO, ID_GD, ID_BR, ID_PAL, ID_IM, ID_NT));
 		case ID_OB:
-			/* Could be the following, but simpler to just always say 'yes' here. */
-#if 0
-			return ELEM(id_type_used, ID_ME, ID_CU, ID_MB, ID_LT, ID_SPK, ID_AR, ID_LA, ID_CA,  /* obdata */
-			                          ID_OB, ID_MA, ID_GD, ID_GR, ID_TE, ID_PA, ID_TXT, ID_SO, ID_MC, ID_IM, ID_AC
-			                          /* + constraints and modifiers ... */);
-#else
+			/* Could be more specific, but simpler to just always say 'yes' here. */
 			return true;
-#endif
 		case ID_ME:
 			return ELEM(id_type_used, ID_ME, ID_KE, ID_MA, ID_IM);
 		case ID_CU:
@@ -1099,12 +1093,8 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 		case ID_GR:
 			return ELEM(id_type_used, ID_OB, ID_GR);
 		case ID_NT:
-			/* Could be the following, but node.id has no type restriction... */
-#if 0
-			return ELEM(id_type_used, ID_GD /* + node.id types... */);
-#else
+			/* Could be more specific, but node.id has no type restriction... */
 			return true;
-#endif
 		case ID_BR:
 			return ELEM(id_type_used, ID_BR, ID_IM, ID_PC, ID_TE, ID_MA);
 		case ID_PA:

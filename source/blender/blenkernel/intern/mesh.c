@@ -503,11 +503,6 @@ void BKE_mesh_init(Mesh *me)
 	me->size[0] = me->size[1] = me->size[2] = 1.0;
 	me->smoothresh = DEG2RADF(30);
 	me->texflag = ME_AUTOSPACE;
-
-	/* disable because its slow on many GPU's, see [#37518] */
-#if 0
-	me->flag = ME_TWOSIDED;
-#endif
 	me->drawflag = 0;
 
 	CustomData_reset(&me->vdata);
@@ -1253,10 +1248,6 @@ int poly_get_adj_loops_from_vert(
 	        vert);
 
 	if (corner != -1) {
-#if 0	/* unused - this loop */
-		const MLoop *ml = &mloop[poly->loopstart + corner];
-#endif
-
 		/* vertex was found */
 		r_adj[0] = ME_POLY_LOOP_PREV(mloop, poly, corner)->v;
 		r_adj[1] = ME_POLY_LOOP_NEXT(mloop, poly, corner)->v;

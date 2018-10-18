@@ -212,14 +212,11 @@ static void whiteBalance_apply_threaded(int width, int height, unsigned char *re
 			}
 
 			copy_v4_v4(result, rgba);
-#if 0
-			mul_v3_v3(result, multiplier);
-#else
+
 			/* similar to division without the clipping */
 			for (int i = 0; i < 3; i++) {
 				result[i] = 1.0f - powf(1.0f - rgba[i], multiplier[i]);
 			}
-#endif
 
 			if (mask_rect_float) {
 				copy_v3_v3(mask, mask_rect_float + pixel_index);
