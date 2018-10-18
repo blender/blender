@@ -2255,6 +2255,12 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	if ((prop = RNA_struct_find_property(op->ptr, "correct_uv"))) {
 		RNA_property_boolean_set(op->ptr, prop, (t->settings->uvcalc_flag & UVCALC_TRANSFORM_CORRECT) != 0);
 	}
+
+	if (t->mode == TFM_SHEAR) {
+		prop = RNA_struct_find_property(op->ptr, "shear_axis");
+		t->custom.mode.data = POINTER_FROM_INT(RNA_property_enum_get(op->ptr, prop));
+		RNA_property_enum_set(op->ptr, prop, POINTER_AS_INT(t->custom.mode.data));
+	}
 }
 
 /**
@@ -2477,6 +2483,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			initToSphere(t);
 			break;
 		case TFM_SHEAR:
+			prop = RNA_struct_find_property(op->ptr, "shear_axis");
+			t->custom.mode.data = POINTER_FROM_INT(RNA_property_enum_get(op->ptr, prop));
 			initShear(t);
 			break;
 		case TFM_BEND:

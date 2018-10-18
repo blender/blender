@@ -2003,6 +2003,7 @@ static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGrou
 			interp_v3_v3v3(gz->color, axis_color[i_ortho_a], axis_color[i_ortho_b], 0.75f);
 			gz->color[3] = 0.5f;
 			PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, NULL);
+			RNA_enum_set(ptr, "shear_axis", 0);
 			RNA_boolean_set(ptr, "release_confirm", 1);
 			xgzgroup->gizmo[i][j] = gz;
 		}

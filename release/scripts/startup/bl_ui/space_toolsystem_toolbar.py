@@ -831,6 +831,10 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def shear():
+        def draw_settings(context, layout, tool):
+            props = tool.operator_properties("transform.shear")
+            layout.label(text="View Axis:")
+            layout.prop(props, "shear_axis", expand=True)
         return dict(
             text="Shear",
             icon="ops.transform.shear",
@@ -839,6 +843,7 @@ class _defs_edit_mesh:
                 ("transform.shear", dict(release_confirm=True),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn

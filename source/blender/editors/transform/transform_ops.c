@@ -839,6 +839,7 @@ static void TRANSFORM_OT_shear(struct wmOperatorType *ot)
 	ot->poll_property = transform_poll_property;
 
 	RNA_def_float(ot->srna, "value", 0, -FLT_MAX, FLT_MAX, "Offset", "", -FLT_MAX, FLT_MAX);
+	RNA_def_enum(ot->srna, "shear_axis", rna_enum_axis_xy_items, 0, "Shear Axis", "");
 
 	WM_operatortype_props_advanced_begin(ot);
 
