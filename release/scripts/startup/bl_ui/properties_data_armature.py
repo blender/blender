@@ -68,6 +68,7 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -100,6 +101,7 @@ class DATA_MT_bone_group_specials(Menu):
 
 class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
     bl_label = "Bone Groups"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
@@ -295,6 +297,7 @@ from .properties_animviz import (
 
 class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
     #bl_label = "Bones Motion Paths"
+    bl_options = {'DEFAULT_CLOSED'}
     bl_context = "data"
 
     @classmethod

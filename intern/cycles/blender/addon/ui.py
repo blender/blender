@@ -709,6 +709,7 @@ class CYCLES_RENDER_PT_performance_viewport(CyclesButtonsPanel, Panel):
 
 class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
     bl_label = "Filter"
+    bl_options = {'DEFAULT_CLOSED'}
     bl_context = "view_layer"
 
     def draw(self, context):
@@ -1830,6 +1831,7 @@ class CYCLES_RENDER_PT_debug(CyclesButtonsPanel, Panel):
 class CYCLES_SCENE_PT_simplify(CyclesButtonsPanel, Panel):
     bl_label = "Simplify"
     bl_context = "scene"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'CYCLES'}
 
     def draw_header(self, context):

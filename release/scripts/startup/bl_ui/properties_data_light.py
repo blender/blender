@@ -107,6 +107,7 @@ class DATA_PT_EEVEE_light(DataButtonsPanel, Panel):
 
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
     bl_label = "Shadow"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod

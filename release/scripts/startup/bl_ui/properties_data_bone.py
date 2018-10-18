@@ -123,7 +123,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
 
 class BONE_PT_curved(BoneButtonsPanel, Panel):
     bl_label = "Bendy Bones"
-    #bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         ob = context.object
@@ -195,6 +195,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):
+    bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Relations"
 
     def draw(self, context):
@@ -240,6 +241,7 @@ class BONE_PT_relations(BoneButtonsPanel, Panel):
 
 class BONE_PT_display(BoneButtonsPanel, Panel):
     bl_label = "Display"
+    bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):

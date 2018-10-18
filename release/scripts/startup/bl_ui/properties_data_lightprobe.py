@@ -112,6 +112,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
     bl_label = "Custom Parallax"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     @classmethod
@@ -141,7 +142,8 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
 
 
 class DATA_PT_lightprobe_display(DataButtonsPanel, Panel):
-    bl_label = "Display"
+    bl_label = "Viewport Display"
+    bl_options = {'DEFAULT_CLOSED'}
     COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
     def draw(self, context):
