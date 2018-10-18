@@ -60,7 +60,7 @@ static int node_shader_gpu_tex_musgrave(GPUMaterial *mat, bNode *node, bNodeExec
 {
 	if (!in[0].link) {
 		in[0].link = GPU_attribute(CD_ORCO, "");
-		GPU_link(mat, "generated_from_orco", in[0].link, &in[0].link);
+		GPU_link(mat, "generated_texco", GPU_builtin(GPU_VIEW_POSITION), in[0].link, &in[0].link);
 	}
 
 	node_shader_gpu_tex_mapping(mat, node, in, out);

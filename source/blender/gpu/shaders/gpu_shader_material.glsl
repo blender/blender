@@ -1749,6 +1749,19 @@ void node_geometry(
 	pointiness = 0.5;
 }
 
+void generated_texco(vec3 I, vec3 attr_orco, out vec3 generated)
+{
+	vec4 v = (ProjectionMatrix[3][3] == 0.0) ? vec4(I, 1.0) : vec4(0.0, 0.0, 1.0, 1.0);
+	vec4 co_homogenous = (ProjectionMatrixInverse * v);
+	vec4 co = vec4(co_homogenous.xyz / co_homogenous.w, 0.0);
+	co.xyz = normalize(co.xyz);
+#if defined(WORLD_BACKGROUND) || defined(PROBE_CAPTURE)
+	generated = (ViewMatrixInverse * co).xyz;
+#else
+	generated_from_orco(attr_orco, generated);
+#endif
+}
+
 void node_tex_coord(
         vec3 I, vec3 N, mat4 viewinvmat, mat4 obinvmat, vec4 camerafac,
         vec3 attr_orco, vec3 attr_uv,
