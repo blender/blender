@@ -332,7 +332,8 @@ static void add_bezt_to_keyblocks_list(DLRBT_Tree *keys, BezTriple *bezt, int be
 			if (is_cfra_lt(bezt[1].vec[1][0], bezt[0].vec[1][0])) {
 				/* Backtrack to find the right location. */
 				if (is_cfra_lt(bezt[1].vec[1][0], col->cfra)) {
-					ActKeyColumn *newcol = (ActKeyColumn*)BLI_dlrbTree_search_exact(keys, compare_ak_cfraPtr, &bezt[1].vec[1][0]);
+					ActKeyColumn *newcol = (ActKeyColumn *)BLI_dlrbTree_search_exact(
+					        keys, compare_ak_cfraPtr, &bezt[1].vec[1][0]);
 
 					if (newcol != NULL) {
 						col = newcol;

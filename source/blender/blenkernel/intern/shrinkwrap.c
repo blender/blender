@@ -377,15 +377,17 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 		if (aux_tree) {
 			if (BKE_shrinkwrap_project_normal(
-			        0, tmp_co, tmp_no, 0.0,
-			        local2aux, aux_tree, hit)) {
+			            0, tmp_co, tmp_no, 0.0,
+			            local2aux, aux_tree, hit))
+			{
 				is_aux = true;
 			}
 		}
 
 		if (BKE_shrinkwrap_project_normal(
-		        calc->smd->shrinkOpts, tmp_co, tmp_no, 0.0,
-		        &calc->local2target, tree, hit)) {
+		            calc->smd->shrinkOpts, tmp_co, tmp_no, 0.0,
+		            &calc->local2target, tree, hit))
+		{
 			is_aux = false;
 		}
 	}
@@ -403,15 +405,17 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 
 		if (aux_tree) {
 			if (BKE_shrinkwrap_project_normal(
-			        0, tmp_co, inv_no, 0.0,
-			        local2aux, aux_tree, hit)) {
+			            0, tmp_co, inv_no, 0.0,
+			            local2aux, aux_tree, hit))
+			{
 				is_aux = true;
 			}
 		}
 
 		if (BKE_shrinkwrap_project_normal(
-		        options, tmp_co, inv_no, 0.0,
-		        &calc->local2target, tree, hit)) {
+		            options, tmp_co, inv_no, 0.0,
+		            &calc->local2target, tree, hit))
+		{
 			is_aux = false;
 		}
 	}
@@ -427,13 +431,13 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	if (hit->index != -1) {
 		if (is_aux) {
 			BKE_shrinkwrap_snap_point_to_surface(
-			            aux_tree, local2aux, calc->smd->shrinkMode,
-			            hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
+			        aux_tree, local2aux, calc->smd->shrinkMode,
+			        hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
 		}
 		else {
 			BKE_shrinkwrap_snap_point_to_surface(
-			            tree, &calc->local2target, calc->smd->shrinkMode,
-			            hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
+			        tree, &calc->local2target, calc->smd->shrinkMode,
+			        hit->index, hit->co, hit->no, calc->keepDist, tmp_co, hit->co);
 		}
 
 		interp_v3_v3v3(co, co, hit->co, weight);
@@ -571,8 +575,8 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(
 	/* Found the nearest vertex */
 	if (nearest->index != -1) {
 		BKE_shrinkwrap_snap_point_to_surface(
-		            data->tree, NULL, calc->smd->shrinkMode,
-		            nearest->index, nearest->co, nearest->no, calc->keepDist, tmp_co, tmp_co);
+		        data->tree, NULL, calc->smd->shrinkMode,
+		        nearest->index, nearest->co, nearest->no, calc->keepDist, tmp_co, tmp_co);
 
 		/* Convert the coordinates back to mesh coordinates */
 		BLI_space_transform_invert(&calc->local2target, tmp_co);
@@ -583,9 +587,9 @@ static void shrinkwrap_calc_nearest_surface_point_cb_ex(
 /**
  * Compute a smooth normal of the target (if applicable) at the hit location.
  *
- * tree: information about the mesh
- * transform: transform from the hit coordinate space to the object space; may be null
- * r_no: output in hit coordinate space; may be shared with inputs
+ * \param tree: information about the mesh
+ * \param transform: transform from the hit coordinate space to the object space; may be null
+ * \param r_no: output in hit coordinate space; may be shared with inputs
  */
 void BKE_shrinkwrap_compute_smooth_normal(
         const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
@@ -669,9 +673,9 @@ static void shrinkwrap_snap_with_side(float r_point_co[3], const float point_co[
 /**
  * Apply the shrink to surface modes to the given original coordinates and nearest point.
  *
- * tree: mesh data for smooth normals
- * transform: transform from the hit coordinate space to the object space; may be null
- * r_point_co: may be the same memory location as point_co, hit_co, or hit_no.
+ * \param tree: mesh data for smooth normals
+ * \param transform: transform from the hit coordinate space to the object space; may be null
+ * \param r_point_co: may be the same memory location as point_co, hit_co, or hit_no.
  */
 void BKE_shrinkwrap_snap_point_to_surface(
         const struct ShrinkwrapTreeData *tree, const struct SpaceTransform *transform,
