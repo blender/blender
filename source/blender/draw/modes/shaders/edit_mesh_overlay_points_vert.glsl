@@ -3,7 +3,7 @@ uniform mat3 NormalMatrix;
 uniform mat4 ProjectionMatrix;
 uniform mat4 ModelViewMatrix;
 uniform mat4 ModelViewProjectionMatrix;
-uniform float ofs = 1e-3;
+uniform float ofs = 1e-4;
 
 in vec3 pos;
 in ivec4 data;
