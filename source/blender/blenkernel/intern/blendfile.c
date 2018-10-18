@@ -590,10 +590,6 @@ bool BKE_blendfile_write_partial(
 	 * (otherwise main->name will not be set at read time). */
 	BLI_strncpy(bmain_dst->name, bmain_src->name, sizeof(bmain_dst->name));
 
-	if (write_flags & G_FILE_RELATIVE_REMAP) {
-		path_list_backup = BKE_bpath_list_backup(bmain_src, path_list_flag);
-	}
-
 	BLO_main_expander(blendfile_write_partial_cb);
 	BLO_expand_main(NULL, bmain_src);
 
@@ -613,9 +609,26 @@ bool BKE_blendfile_write_partial(
 		}
 	}
 
+	/* Backup paths because remap relative will overwrite them.
+	 *
+	 * NOTE: we do this only on the list of datablocks that we are writing
+	 * because the restored full list is not guaranteed to be in the same
+	 * order as before, as expected by BKE_bpath_list_restore.
+	 *
+	 * This happens because id_sort_by_name does not take into account
+	 * string case or the library name, so the order is not strictly
+	 * defined for two linked datablocks with the same name! */
+	if (write_flags & G_FILE_RELATIVE_REMAP) {
+		path_list_backup = BKE_bpath_list_backup(bmain_dst, path_list_flag);
+	}
 
 	/* save the buffer */
 	retval = BLO_write_file(bmain_dst, filepath, write_flags, reports, NULL);
+
+	if (path_list_backup) {
+		BKE_bpath_list_restore(bmain_dst, path_list_flag, path_list_backup);
+		BKE_bpath_list_free(path_list_backup);
+	}
 
 	/* move back the main, now sorted again */
 	set_listbasepointers(bmain_src, lbarray_dst);
@@ -631,11 +644,6 @@ bool BKE_blendfile_write_partial(
 	}
 
 	MEM_freeN(bmain_dst);
-
-	if (path_list_backup) {
-		BKE_bpath_list_restore(bmain_src, path_list_flag, path_list_backup);
-		BKE_bpath_list_free(path_list_backup);
-	}
 
 	return retval;
 }
