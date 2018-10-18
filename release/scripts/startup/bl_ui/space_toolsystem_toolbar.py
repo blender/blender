@@ -837,7 +837,7 @@ class _defs_edit_mesh:
             widget="VIEW3D_GGT_xform_shear",
             keymap=(
                 ("transform.shear", dict(release_confirm=True),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
