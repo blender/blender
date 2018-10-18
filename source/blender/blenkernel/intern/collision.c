@@ -1360,12 +1360,12 @@ BLI_INLINE bool cloth_point_face_collision_params(const float p1[3], const float
 	cross_v3_v3v3(r_nor, edge1, edge2);
 	normalize_v3(r_nor);
 
+	sub_v3_v3v3(v0p2, p2, v0);
 	nor_v0p2 = dot_v3v3(v0p2, r_nor);
 	madd_v3_v3v3fl(p2face, p2, r_nor, -nor_v0p2);
 	interp_weights_tri_v3(r_w, v0, v1, v2, p2face);
 
 	sub_v3_v3v3(p1p2, p2, p1);
-	sub_v3_v3v3(v0p2, p2, v0);
 	nor_p1p2 = dot_v3v3(p1p2, r_nor);
 	*r_lambda = (nor_p1p2 != 0.0f ? nor_v0p2 / nor_p1p2 : 0.0f);
 
