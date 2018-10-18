@@ -1262,11 +1262,11 @@ void drawDial3d(const TransInfo *t)
 				axis_idx = MAN_AXIS_ROT_Y;
 				negate_v3_v3(mat_basis[2], tc->mtx[1]);
 			}
-			else if (tc->mode &  CON_AXIS2) {
+			else {
+				BLI_assert((tc->mode & CON_AXIS2) != 0);
 				axis_idx = MAN_AXIS_ROT_Z;
 				negate_v3_v3(mat_basis[2], tc->mtx[2]);
 			}
-			else BLI_assert(0);
 		}
 		else {
 			axis_idx = MAN_AXIS_ROT_C;

@@ -1028,7 +1028,7 @@ static GPUTexture *create_density_texture(SmokeDomainSettings *sds, int highres)
 
 	GPUTexture *tex = GPU_texture_create_nD(
 	               dim[0], dim[1], dim[2], 3,
-	               (data) ? data : source,
+	               (has_color) ? data : source,
 	               format, GPU_DATA_FLOAT, 0, true, NULL);
 	if (data) {
 		MEM_freeN(data);
