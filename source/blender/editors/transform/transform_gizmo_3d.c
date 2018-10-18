@@ -2035,8 +2035,9 @@ static void WIDGETGROUP_xform_shear_setup(const bContext *UNUSED(C), wmGizmoGrou
 		for (int j = 0; j < 2; j++) {
 			wmGizmo *gz = WM_gizmo_new_ptr(gzt_arrow, gzgroup, NULL);
 			RNA_enum_set(gz->ptr, "draw_style", ED_GIZMO_ARROW_STYLE_BOX);
-			const int i_ortho = (i + j + 1) % 3;
-			interp_v3_v3v3(gz->color, axis_color[i], axis_color[i_ortho], 0.33f);
+			const int i_ortho_a = (i + j + 1) % 3;
+			const int i_ortho_b = (i + (1 - j) + 1) % 3;
+			interp_v3_v3v3(gz->color, axis_color[i_ortho_a], axis_color[i_ortho_b], 0.75f);
 			gz->color[3] = 0.5f;
 			PointerRNA *ptr = WM_gizmo_operator_set(gz, 0, ot_shear, NULL);
 			RNA_boolean_set(ptr, "release_confirm", 1);
@@ -2131,6 +2132,14 @@ static void WIDGETGROUP_xform_shear_draw_prepare(const bContext *C, wmGizmoGroup
 				break;
 			}
 		}
+	}
+
+	/* Basic ordering for drawing only. */
+	{
+		LISTBASE_FOREACH (wmGizmo *, gz, &gzgroup->gizmos) {
+			gz->temp.f = dot_v3v3(rv3d->viewinv[2], gz->matrix_basis[2]);
+		}
+		BLI_listbase_sort(&gzgroup->gizmos, WM_gizmo_cmp_temp_fl_reverse);
 	}
 }
 
