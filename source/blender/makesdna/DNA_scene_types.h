@@ -2074,8 +2074,6 @@ enum {
 	SCE_GIZMO_SHOW_TRANSLATE = (1 << 0),
 	SCE_GIZMO_SHOW_ROTATE    = (1 << 1),
 	SCE_GIZMO_SHOW_SCALE     = (1 << 2),
-
-	SCE_GIZMO_DISABLE_APRON  = (1 << 3),
 };
 
 /* ToolSettings.gpencil_flags */

@@ -320,56 +320,41 @@ class _defs_transform:
 
     @ToolDef.from_fn
     def translate():
-        def draw_settings(context, layout, tool):
-            tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo_apron")
         return dict(
             text="Move",
             # cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.translate",
-            # TODO, implement as optional fallback gizmo
-            # keymap=(
-            #     ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            # ),
-            draw_settings=draw_settings,
+            keymap=(
+                ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
         )
 
     @ToolDef.from_fn
     def rotate():
-        def draw_settings(context, layout, tool):
-            tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo_apron")
         return dict(
             text="Rotate",
             # cursor='SCROLL_XY',
             icon="ops.transform.rotate",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.rotate",
-            # TODO, implement as optional fallback gizmo
-            # keymap=(
-            #     ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            # ),
-            draw_settings=draw_settings,
+            keymap=(
+                ("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
         )
 
     @ToolDef.from_fn
     def scale():
-        def draw_settings(context, layout, tool):
-            tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo_apron")
         return dict(
             text="Scale",
             # cursor='SCROLL_XY',
             icon="ops.transform.resize",
             widget="TRANSFORM_GGT_gizmo",
             operator="transform.resize",
-            # TODO, implement as optional fallback gizmo
-            # keymap=(
-            #     ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-            # ),
-            draw_settings=draw_settings,
+            keymap=(
+                ("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
         )
 
     @ToolDef.from_fn
@@ -385,7 +370,6 @@ class _defs_transform:
     def transform():
         def draw_settings(context, layout, tool):
             tool_settings = context.tool_settings
-            layout.prop(tool_settings, "use_gizmo_apron")
             layout.prop(tool_settings, "use_gizmo_mode")
         return dict(
             text="Transform",
