@@ -334,12 +334,13 @@ static void dial_ghostarc_draw_with_helplines(
 }
 
 static void dial_draw_intern(
-        wmGizmo *gz,
+        const bContext *C, wmGizmo *gz,
         const bool select, const bool highlight, float clip_plane[4])
 {
 	float matrix_final[4][4];
 	float color[4];
 
+	(void)C;
 	BLI_assert(CTX_wm_area(C)->spacetype == SPACE_VIEW3D);
 
 	gizmo_color_get(gz, highlight, color);
@@ -403,7 +404,7 @@ static void gizmo_dial_draw_select(const bContext *C, wmGizmo *gz, int select_id
 	}
 
 	GPU_select_load_id(select_id);
-	dial_draw_intern(gz, true, false, clip_plane);
+	dial_draw_intern(C, gz, true, false, clip_plane);
 
 	if (clip_plane) {
 		glDisable(GL_CLIP_DISTANCE0);
@@ -428,7 +429,7 @@ static void gizmo_dial_draw(const bContext *C, wmGizmo *gz)
 	}
 
 	GPU_blend(true);
-	dial_draw_intern(gz, false, is_highlight, clip_plane);
+	dial_draw_intern(C, gz, false, is_highlight, clip_plane);
 	GPU_blend(false);
 }
 
