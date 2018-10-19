@@ -2627,10 +2627,10 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	}
 
 	/* populate tree with keyframe nodes */
-	scene_to_keylist(&ads, scene, &keys);
+	scene_to_keylist(&ads, scene, &keys, 0);
 
 	if (ob) {
-		ob_to_keylist(&ads, ob, &keys);
+		ob_to_keylist(&ads, ob, &keys, 0);
 
 		if (ob->type == OB_GPENCIL) {
 			const bool active = !(scene->flag & SCE_KEYS_NO_SELONLY);

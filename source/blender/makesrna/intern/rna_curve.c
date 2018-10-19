@@ -57,11 +57,11 @@ static const EnumPropertyItem beztriple_handle_type_items[] = {
 #endif
 
 const EnumPropertyItem rna_enum_keyframe_handle_type_items[] = {
-	{HD_FREE, "FREE", 0, "Free", ""},
-	{HD_VECT, "VECTOR", 0, "Vector", ""},
-	{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-	{HD_AUTO, "AUTO", 0, "Automatic", ""},
-	{HD_AUTO_ANIM, "AUTO_CLAMPED", 0, "Auto Clamped", "Auto handles clamped to not overshoot"},
+	{HD_FREE, "FREE", ICON_HANDLETYPE_FREE_VEC, "Free", "Completely independent manually set handle"},
+	{HD_ALIGN, "ALIGNED", ICON_HANDLETYPE_ALIGNED_VEC, "Aligned", "Manually set handle with rotation locked together with its pair"},
+	{HD_VECT, "VECTOR", ICON_HANDLETYPE_VECTOR_VEC, "Vector", "Automatic handles that create straight lines"},
+	{HD_AUTO, "AUTO", ICON_HANDLETYPE_AUTO_VEC, "Automatic", "Automatic handles that create smooth curves"},
+	{HD_AUTO_ANIM, "AUTO_CLAMPED", ICON_HANDLETYPE_AUTO_CLAMP_VEC, "Auto Clamped", "Automatic handles that create smooth curves which only change direction at keyframes"},
 	{0, NULL, 0, NULL, NULL}
 };
 

@@ -312,7 +312,7 @@ static int poselib_sanitize_exec(bContext *C, wmOperator *op)
 
 	/* determine which frames have keys */
 	BLI_dlrbTree_init(&keys);
-	action_to_keylist(NULL, act, &keys);
+	action_to_keylist(NULL, act, &keys, 0);
 
 	/* for each key, make sure there is a corresponding pose */
 	for (ak = keys.first; ak; ak = ak->next) {

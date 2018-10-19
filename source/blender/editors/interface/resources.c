@@ -548,6 +548,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_DOPESHEET_CHANNELSUBOB:
 					cp = ts->ds_subchannel;
 					break;
+				case TH_DOPESHEET_IPOLINE:
+					cp = ts->ds_ipoline;
+					break;
 
 				case TH_PREVIEW_BACK:
 					cp = ts->preview_back;

@@ -512,6 +512,7 @@ const bTheme U_theme_default = {
 		.cframe = RGBA(0x5680c2ff),
 		.ds_channel = RGBA(0x547ca624),
 		.ds_subchannel = RGBA(0x748da624),
+		.ds_ipoline = RGBA(0x94e575cc),
 		.keytype_keyframe = RGBA(0xe8e8e8ff),
 		.keytype_extreme = RGBA(0xe8b3ccff),
 		.keytype_breakdown = RGBA(0xb3dbe8ff),

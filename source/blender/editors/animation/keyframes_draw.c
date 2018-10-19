@@ -42,6 +42,7 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_rect.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_cachefile_types.h"
@@ -96,24 +97,108 @@ short compare_ak_cfraPtr(void *node, void *data)
 
 /* --------------- */
 
-/* Comparator callback used for ActKeyColumns and BezTriple */
-static short compare_ak_bezt(void *node, void *data)
-{
-	BezTriple *bezt = (BezTriple *)data;
+/* Set of references to three logically adjacent keys. */
+typedef struct BezTripleChain {
+	/* Current keyframe. */
+	BezTriple *cur;
 
-	return compare_ak_cfraPtr(node, &bezt->vec[1][0]);
+	/* Logical neighbors. May be NULL. */
+	BezTriple *prev, *next;
+} BezTripleChain;
+
+/* Categorize the interpolation & handle type of the keyframe. */
+static eKeyframeHandleDrawOpts bezt_handle_type(BezTriple *bezt)
+{
+	if (bezt->h1 == HD_AUTO_ANIM && bezt->h2 == HD_AUTO_ANIM) {
+		return KEYFRAME_HANDLE_AUTO_CLAMP;
+	}
+	else if (ELEM(bezt->h1, HD_AUTO_ANIM, HD_AUTO) && ELEM(bezt->h2, HD_AUTO_ANIM, HD_AUTO)) {
+		return KEYFRAME_HANDLE_AUTO;
+	}
+	else if (bezt->h1 == HD_VECT && bezt->h2 == HD_VECT) {
+		return KEYFRAME_HANDLE_VECTOR;
+	}
+	else if (ELEM(HD_FREE, bezt->h1, bezt->h2)) {
+		return KEYFRAME_HANDLE_FREE;
+	}
+	else {
+		return KEYFRAME_HANDLE_ALIGNED;
+	}
 }
 
-/* New node callback used for building ActKeyColumns from BezTriples */
+/* Determine if the keyframe is an extreme by comparing with neighbors.
+ * Ends of fixed-value sections and of the whole curve are also marked.
+ */
+static eKeyframeExtremeDrawOpts bezt_extreme_type(BezTripleChain *chain)
+{
+	if (chain->prev == NULL && chain->next == NULL) {
+		return KEYFRAME_EXTREME_NONE;
+	}
+
+	/* Keyframe values for the current one and neighbors. */
+	float cur_y = chain->cur->vec[1][1];
+	float prev_y = cur_y, next_y = cur_y;
+
+	if (chain->prev && !IS_EQF(cur_y, chain->prev->vec[1][1])) {
+		prev_y = chain->prev->vec[1][1];
+	}
+	if (chain->next && !IS_EQF(cur_y, chain->next->vec[1][1])) {
+		next_y = chain->next->vec[1][1];
+	}
+
+	/* Static hold. */
+	if (prev_y == cur_y && next_y == cur_y) {
+		return KEYFRAME_EXTREME_FLAT;
+	}
+
+	/* Middle of an incline. */
+	if ((prev_y < cur_y && next_y > cur_y) || (prev_y > cur_y && next_y < cur_y)) {
+		return KEYFRAME_EXTREME_NONE;
+	}
+
+	/* Bezier handle values for the overshoot check. */
+	bool l_bezier = chain->prev && chain->prev->ipo == BEZT_IPO_BEZ;
+	bool r_bezier = chain->next && chain->cur->ipo == BEZT_IPO_BEZ;
+	float handle_l = l_bezier ? chain->cur->vec[0][1] : cur_y;
+	float handle_r = r_bezier ? chain->cur->vec[2][1] : cur_y;
+
+	/* Detect extremes. One of the neighbors is allowed to be equal to current. */
+	if (prev_y < cur_y || next_y < cur_y) {
+		bool is_overshoot = (handle_l > cur_y || handle_r > cur_y);
+
+		return KEYFRAME_EXTREME_MAX | (is_overshoot ? KEYFRAME_EXTREME_MIXED : 0);
+	}
+
+	if (prev_y > cur_y || next_y > cur_y) {
+		bool is_overshoot = (handle_l < cur_y || handle_r < cur_y);
+
+		return KEYFRAME_EXTREME_MIN | (is_overshoot ? KEYFRAME_EXTREME_MIXED : 0);
+	}
+
+	return KEYFRAME_EXTREME_NONE;
+}
+
+/* Comparator callback used for ActKeyColumns and BezTripleChain */
+static short compare_ak_bezt(void *node, void *data)
+{
+	BezTripleChain *chain = (BezTripleChain*)data;
+
+	return compare_ak_cfraPtr(node, &chain->cur->vec[1][0]);
+}
+
+/* New node callback used for building ActKeyColumns from BezTripleChain */
 static DLRBT_Node *nalloc_ak_bezt(void *data)
 {
 	ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-	BezTriple *bezt = (BezTriple *)data;
+	BezTripleChain *chain = (BezTripleChain*)data;
+	BezTriple *bezt = chain->cur;
 
 	/* store settings based on state of BezTriple */
 	ak->cfra = bezt->vec[1][0];
 	ak->sel = BEZT_ISSEL_ANY(bezt) ? SELECT : 0;
 	ak->key_type = BEZKEYTYPE(bezt);
+	ak->handle_type = bezt_handle_type(bezt);
+	ak->extreme_type = bezt_extreme_type(chain);
 
 	/* count keyframes in this column */
 	ak->totkey = 1;
@@ -121,11 +206,12 @@ static DLRBT_Node *nalloc_ak_bezt(void *data)
 	return (DLRBT_Node *)ak;
 }
 
-/* Node updater callback used for building ActKeyColumns from BezTriples */
+/* Node updater callback used for building ActKeyColumns from BezTripleChain */
 static void nupdate_ak_bezt(void *node, void *data)
 {
 	ActKeyColumn *ak = (ActKeyColumn *)node;
-	BezTriple *bezt = (BezTriple *)data;
+	BezTripleChain *chain = (BezTripleChain*)data;
+	BezTriple *bezt = chain->cur;
 
 	/* set selection status and 'touched' status */
 	if (BEZT_ISSEL_ANY(bezt)) ak->sel = SELECT;
@@ -136,6 +222,22 @@ static void nupdate_ak_bezt(void *node, void *data)
 	/* for keyframe type, 'proper' keyframes have priority over breakdowns (and other types for now) */
 	if (BEZKEYTYPE(bezt) == BEZT_KEYTYPE_KEYFRAME)
 		ak->key_type = BEZT_KEYTYPE_KEYFRAME;
+
+	/* For interpolation type, select the highest value (enum is sorted). */
+	ak->handle_type = MAX2(ak->handle_type, bezt_handle_type(bezt));
+
+	/* For extremes, detect when combining different states. */
+	char new_extreme = bezt_extreme_type(chain);
+
+	if (new_extreme != ak->extreme_type) {
+		/* Replace the flat status without adding mixed. */
+		if (ak->extreme_type == KEYFRAME_EXTREME_FLAT) {
+			ak->extreme_type = new_extreme;
+		}
+		else if (new_extreme != KEYFRAME_EXTREME_FLAT) {
+			ak->extreme_type |= (new_extreme | KEYFRAME_EXTREME_MIXED);
+		}
+	}
 }
 
 /* ......... */
@@ -225,7 +327,7 @@ static void nupdate_ak_masklayshape(void *node, void *data)
 /* --------------- */
 
 /* Add the given BezTriple to the given 'list' of Keyframes */
-static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTriple *bezt)
+static void add_bezt_to_keycolumns_list(DLRBT_Tree *keys, BezTripleChain *bezt)
 {
 	if (ELEM(NULL, keys, bezt))
 		return;
@@ -289,6 +391,11 @@ static void compute_keyblock_data(ActKeyBlockInfo *info, BezTriple *prev, BezTri
 		if (hold) {
 			info->flag |= ACTKEYBLOCK_FLAG_STATIC_HOLD | ACTKEYBLOCK_FLAG_ANY_HOLD;
 		}
+	}
+
+	/* Remember non-bezier interpolation info. */
+	if (prev->ipo != BEZT_IPO_BEZ) {
+		info->flag |= ACTKEYBLOCK_FLAG_NON_BEZIER;
 	}
 
 	info->sel = BEZT_ISSEL_ANY(prev) || BEZT_ISSEL_ANY(beztn);
@@ -410,11 +517,16 @@ static void update_keyblocks(DLRBT_Tree *keys, BezTriple *bezt, int bezt_len)
 
 /* --------- */
 
+bool actkeyblock_is_valid(ActKeyColumn *ac)
+{
+	return ac != NULL && ac->next != NULL && ac->totblock > 0;
+}
+
 /* Checks if ActKeyBlock should exist... */
 int actkeyblock_get_valid_hold(ActKeyColumn *ac)
 {
 	/* check that block is valid */
-	if (ac == NULL || ac->next == NULL || ac->totblock == 0)
+	if (!actkeyblock_is_valid(ac))
 		return 0;
 
 	const int hold_mask = (ACTKEYBLOCK_FLAG_ANY_HOLD | ACTKEYBLOCK_FLAG_STATIC_HOLD | ACTKEYBLOCK_FLAG_ANY_HOLD);
@@ -424,7 +536,8 @@ int actkeyblock_get_valid_hold(ActKeyColumn *ac)
 /* *************************** Keyframe Drawing *************************** */
 
 void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type, short mode, float alpha,
-                         unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id)
+                         unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id,
+                         unsigned int flags_id, short handle_type, short extreme_type)
 {
 	bool draw_fill = ELEM(mode, KEYFRAME_SHAPE_INSIDE, KEYFRAME_SHAPE_BOTH);
 	bool draw_outline = ELEM(mode, KEYFRAME_SHAPE_FRAME, KEYFRAME_SHAPE_BOTH);
@@ -456,6 +569,7 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 
 	unsigned char fill_col[4];
 	unsigned char outline_col[4];
+	unsigned int flags = 0;
 
 	/* draw! */
 	if (draw_fill) {
@@ -504,19 +618,44 @@ void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type,
 			fill_col[2] = outline_col[2];
 			fill_col[3] = 0;
 		}
+
+		/* Handle type to outline shape. */
+		switch (handle_type) {
+			case KEYFRAME_HANDLE_AUTO_CLAMP: flags = 0x2; break; /* circle */
+			case KEYFRAME_HANDLE_AUTO: flags = 0x12; break; /* circle with dot */
+			case KEYFRAME_HANDLE_VECTOR: flags = 0xC; break; /* square */
+			case KEYFRAME_HANDLE_ALIGNED: flags = 0x5; break; /* clipped diamond */
+
+			case KEYFRAME_HANDLE_FREE:
+			default:
+			    flags = 1; /* diamond */
+		}
+
+		/* Extreme type to arrow-like shading. */
+		if (extreme_type & KEYFRAME_EXTREME_MAX) {
+			flags |= 0x100;
+		}
+		if (extreme_type & KEYFRAME_EXTREME_MIN) {
+			flags |= 0x200;
+		}
+		if (extreme_type & KEYFRAME_EXTREME_MIXED) {
+			flags |= 0x400;
+		}
 	}
 
 	immAttr1f(size_id, size);
 	immAttr4ubv(color_id, fill_col);
 	immAttr4ubv(outline_color_id, outline_col);
+	immAttr1u(flags_id, flags);
 	immVertex2f(pos_id, x, y);
 }
 
-static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale_fac, bool channelLocked)
+static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale_fac, bool channelLocked, int saction_flag)
 {
 	const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
 	const float half_icon_sz = 0.5f * icon_sz;
 	const float smaller_sz = 0.35f * icon_sz;
+	const float ipo_sz = 0.1f * icon_sz;
 
 	GPU_blend(true);
 
@@ -524,26 +663,37 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale
 	/* TODO: allow this opacity factor to be themed? */
 	float alpha = channelLocked ? 0.25f : 1.0f;
 
+	/* Show interpolation and handle type? */
+	bool show_ipo = (saction_flag & SACTION_SHOW_INTERPOLATION) != 0;
+
 	/* draw keyblocks */
 	if (keys) {
 		float sel_color[4], unsel_color[4];
 		float sel_mhcol[4], unsel_mhcol[4];
+		float ipo_color[4], ipo_color_mix[4];
 
 		/* cache colours first */
 		UI_GetThemeColor4fv(TH_STRIP_SELECT, sel_color);
 		UI_GetThemeColor4fv(TH_STRIP, unsel_color);
+		UI_GetThemeColor4fv(TH_DOPESHEET_IPOLINE, ipo_color);
 
 		sel_color[3]   *= alpha;
 		unsel_color[3] *= alpha;
+		ipo_color[3]   *= alpha;
 
 		copy_v4_v4(sel_mhcol, sel_color);
 		sel_mhcol[3]   *= 0.8f;
 		copy_v4_v4(unsel_mhcol, unsel_color);
 		unsel_mhcol[3] *= 0.8f;
+		copy_v4_v4(ipo_color_mix, ipo_color);
+		ipo_color_mix[3] *= 0.5f;
 
 		uint block_len = 0;
 		for (ActKeyColumn *ab = keys->first; ab; ab = ab->next) {
 			if (actkeyblock_get_valid_hold(ab)) {
+				block_len++;
+			}
+			if (show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
 				block_len++;
 			}
 		}
@@ -571,6 +721,12 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale
 						                         (ab->block.sel) ? sel_color : unsel_color);
 					}
 				}
+				if (show_ipo && actkeyblock_is_valid(ab) && (ab->block.flag & ACTKEYBLOCK_FLAG_NON_BEZIER)) {
+					/* draw an interpolation line */
+					immRectf_fast_with_color(pos_id, color_id,
+					                         ab->cfra, ypos - ipo_sz, ab->next->cfra, ypos + ipo_sz,
+					                         (ab->block.conflict & ACTKEYBLOCK_FLAG_NON_BEZIER) ? ipo_color_mix : ipo_color);
+				}
 			}
 			immEnd();
 			immUnbindProgram();
@@ -595,14 +751,25 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale
 			uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 			uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 			uint outline_color_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+			uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 			immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 			GPU_enable_program_point_size();
+			immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
 			immBegin(GPU_PRIM_POINTS, key_len);
+
+			short handle_type = KEYFRAME_HANDLE_NONE, extreme_type = KEYFRAME_EXTREME_NONE;
 
 			for (ActKeyColumn *ak = keys->first; ak; ak = ak->next) {
 				if (IN_RANGE_INCL(ak->cfra, v2d->cur.xmin, v2d->cur.xmax)) {
+					if (show_ipo) {
+						handle_type = ak->handle_type;
+					}
+					if (saction_flag & SACTION_SHOW_EXTREMES) {
+						extreme_type = ak->extreme_type;
+					}
+
 					draw_keyframe_shape(ak->cfra, ypos, icon_sz, (ak->sel & SELECT), ak->key_type, KEYFRAME_SHAPE_BOTH, alpha,
-					                    pos_id, size_id, color_id, outline_color_id);
+					                    pos_id, size_id, color_id, outline_color_id, flags_id, handle_type, extreme_type);
 				}
 			}
 
@@ -617,46 +784,52 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, float ypos, float yscale
 
 /* *************************** Channel Drawing Funcs *************************** */
 
-void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos, float yscale_fac)
+void draw_summary_channel(View2D *v2d, bAnimContext *ac, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
+	saction_flag &= ~SACTION_SHOW_EXTREMES;
+
 	BLI_dlrbTree_init(&keys);
 
-	summary_to_keylist(ac, &keys);
+	summary_to_keylist(ac, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, false);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos, float yscale_fac)
+void draw_scene_channel(View2D *v2d, bDopeSheet *ads, Scene *sce, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
+	saction_flag &= ~SACTION_SHOW_EXTREMES;
+
 	BLI_dlrbTree_init(&keys);
 
-	scene_to_keylist(ads, sce, &keys);
+	scene_to_keylist(ads, sce, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, false);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos, float yscale_fac)
+void draw_object_channel(View2D *v2d, bDopeSheet *ads, Object *ob, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
+	saction_flag &= ~SACTION_SHOW_EXTREMES;
+
 	BLI_dlrbTree_init(&keys);
 
-	ob_to_keylist(ads, ob, &keys);
+	ob_to_keylist(ads, ob, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, false);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, float yscale_fac)
+void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
@@ -666,14 +839,14 @@ void draw_fcurve_channel(View2D *v2d, AnimData *adt, FCurve *fcu, float ypos, fl
 
 	BLI_dlrbTree_init(&keys);
 
-	fcurve_to_keylist(adt, fcu, &keys);
+	fcurve_to_keylist(adt, fcu, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, locked);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos, float yscale_fac)
+void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
@@ -682,42 +855,46 @@ void draw_agroup_channel(View2D *v2d, AnimData *adt, bActionGroup *agrp, float y
 
 	BLI_dlrbTree_init(&keys);
 
-	agroup_to_keylist(adt, agrp, &keys);
+	agroup_to_keylist(adt, agrp, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, locked);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos, float yscale_fac)
+void draw_action_channel(View2D *v2d, AnimData *adt, bAction *act, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
 	bool locked = (act && ID_IS_LINKED(act));
 
+	saction_flag &= ~SACTION_SHOW_EXTREMES;
+
 	BLI_dlrbTree_init(&keys);
 
-	action_to_keylist(adt, act, &keys);
+	action_to_keylist(adt, act, &keys, saction_flag);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, locked);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_gpencil_channel(View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos, float yscale_fac)
+void draw_gpencil_channel(View2D *v2d, bDopeSheet *ads, bGPdata *gpd, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
+
+	saction_flag &= ~SACTION_SHOW_EXTREMES;
 
 	BLI_dlrbTree_init(&keys);
 
 	gpencil_to_keylist(ads, gpd, &keys, false);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, false);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, false, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, float yscale_fac)
+void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
@@ -727,12 +904,12 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos, 
 
 	gpl_to_keylist(ads, gpl, &keys);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, locked);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
-void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, float ypos, float yscale_fac)
+void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, float ypos, float yscale_fac, int saction_flag)
 {
 	DLRBT_Tree keys;
 
@@ -742,14 +919,14 @@ void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, floa
 
 	mask_to_keylist(ads, masklay, &keys);
 
-	draw_keylist(v2d, &keys, ypos, yscale_fac, locked);
+	draw_keylist(v2d, &keys, ypos, yscale_fac, locked, saction_flag);
 
 	BLI_dlrbTree_free(&keys);
 }
 
 /* *************************** Keyframe List Conversions *************************** */
 
-void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys)
+void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys, int saction_flag)
 {
 	if (ac) {
 		ListBase anim_data = {NULL, NULL};
@@ -769,7 +946,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys)
 
 			switch (ale->datatype) {
 				case ALE_FCURVE:
-					fcurve_to_keylist(ale->adt, ale->data, keys);
+					fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
 					break;
 				case ALE_MASKLAY:
 					mask_to_keylist(ac->ads, ale->data, keys);
@@ -787,7 +964,7 @@ void summary_to_keylist(bAnimContext *ac, DLRBT_Tree *keys)
 	}
 }
 
-void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys)
+void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys, int saction_flag)
 {
 	bAnimContext ac = {NULL};
 	ListBase anim_data = {NULL, NULL};
@@ -815,12 +992,12 @@ void scene_to_keylist(bDopeSheet *ads, Scene *sce, DLRBT_Tree *keys)
 
 	/* loop through each F-Curve, grabbing the keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next)
-		fcurve_to_keylist(ale->adt, ale->data, keys);
+		fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
 
 	ANIM_animdata_freelist(&anim_data);
 }
 
-void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys)
+void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys, int saction_flag)
 {
 	bAnimContext ac = {NULL};
 	ListBase anim_data = {NULL, NULL};
@@ -851,12 +1028,12 @@ void ob_to_keylist(bDopeSheet *ads, Object *ob, DLRBT_Tree *keys)
 
 	/* loop through each F-Curve, grabbing the keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next)
-		fcurve_to_keylist(ale->adt, ale->data, keys);
+		fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
 
 	ANIM_animdata_freelist(&anim_data);
 }
 
-void cachefile_to_keylist(bDopeSheet *ads, CacheFile *cache_file, DLRBT_Tree *keys)
+void cachefile_to_keylist(bDopeSheet *ads, CacheFile *cache_file, DLRBT_Tree *keys, int saction_flag)
 {
 	if (cache_file == NULL) {
 		return;
@@ -881,25 +1058,36 @@ void cachefile_to_keylist(bDopeSheet *ads, CacheFile *cache_file, DLRBT_Tree *ke
 
 	/* loop through each F-Curve, grabbing the keyframes */
 	for (bAnimListElem *ale = anim_data.first; ale; ale = ale->next) {
-		fcurve_to_keylist(ale->adt, ale->data, keys);
+		fcurve_to_keylist(ale->adt, ale->data, keys, saction_flag);
 	}
 
 	ANIM_animdata_freelist(&anim_data);
 }
 
-void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys)
+void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys, int saction_flag)
 {
-	BezTriple *bezt;
-	unsigned int v;
-
 	if (fcu && fcu->totvert && fcu->bezt) {
 		/* apply NLA-mapping (if applicable) */
 		if (adt)
 			ANIM_nla_mapping_apply_fcurve(adt, fcu, 0, 0);
 
+		/* Check if the curve is cyclic. */
+		bool is_cyclic = BKE_fcurve_is_cyclic(fcu) && (fcu->totvert >= 2);
+		bool do_extremes = (saction_flag & SACTION_SHOW_EXTREMES) != 0;
+
 		/* loop through beztriples, making ActKeysColumns */
-		for (v = 0, bezt = fcu->bezt; v < fcu->totvert; v++, bezt++) {
-			add_bezt_to_keycolumns_list(keys, bezt);
+		BezTripleChain chain = { 0 };
+
+		for (int v = 0; v < fcu->totvert; v++) {
+			chain.cur = &fcu->bezt[v];
+
+			/* Neighbor keys, accounting for being cyclic. */
+			if (do_extremes) {
+				chain.prev = (v > 0) ? &fcu->bezt[v - 1] : is_cyclic ? &fcu->bezt[fcu->totvert - 2] : NULL;
+				chain.next = (v + 1 < fcu->totvert) ? &fcu->bezt[v + 1] : is_cyclic ? &fcu->bezt[1] : NULL;
+			}
+
+			add_bezt_to_keycolumns_list(keys, &chain);
 		}
 
 		/* Update keyblocks. */
@@ -911,26 +1099,26 @@ void fcurve_to_keylist(AnimData *adt, FCurve *fcu, DLRBT_Tree *keys)
 	}
 }
 
-void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, DLRBT_Tree *keys)
+void agroup_to_keylist(AnimData *adt, bActionGroup *agrp, DLRBT_Tree *keys, int saction_flag)
 {
 	FCurve *fcu;
 
 	if (agrp) {
 		/* loop through F-Curves */
 		for (fcu = agrp->channels.first; fcu && fcu->grp == agrp; fcu = fcu->next) {
-			fcurve_to_keylist(adt, fcu, keys);
+			fcurve_to_keylist(adt, fcu, keys, saction_flag);
 		}
 	}
 }
 
-void action_to_keylist(AnimData *adt, bAction *act, DLRBT_Tree *keys)
+void action_to_keylist(AnimData *adt, bAction *act, DLRBT_Tree *keys, int saction_flag)
 {
 	FCurve *fcu;
 
 	if (act) {
 		/* loop through F-Curves */
 		for (fcu = act->curves.first; fcu; fcu = fcu->next) {
-			fcurve_to_keylist(adt, fcu, keys);
+			fcurve_to_keylist(adt, fcu, keys, saction_flag);
 		}
 	}
 }

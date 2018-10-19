@@ -789,7 +789,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 		/* do this for each F-Curve */
 		for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 			FCurve *fcu = (FCurve *)ld->data;
-			fcurve_to_keylist(pfl->ob->adt, fcu, &pso->keys);
+			fcurve_to_keylist(pfl->ob->adt, fcu, &pso->keys, 0);
 		}
 	}
 
@@ -1350,7 +1350,7 @@ static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float st
 
 	for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 		FCurve *fcu = (FCurve *)ld->data;
-		fcurve_to_keylist(adt, fcu, &keys);
+		fcurve_to_keylist(adt, fcu, &keys, 0);
 	}
 
 	/* find the long keyframe (i.e. hold), and hence obtain the endFrame value

@@ -286,7 +286,7 @@ static void vicon_small_tri_right_draw(int x, int y, int w, int UNUSED(h), float
 	immUnbindProgram();
 }
 
-static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, short key_type)
+static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, short key_type, short handle_type)
 {
 	/* init dummy theme state for Action Editor - where these colors are defined
 	 * (since we're doing this offscreen, free from any particular space_id)
@@ -300,25 +300,30 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	 * while the draw_keyframe_shape() function needs the midpoint for
 	 * the keyframe
 	 */
-	int xco = x + w / 2;
-	int yco = y + h / 2;
+	float xco = x + w / 2 + 0.5f;
+	float yco = y + h / 2 + 0.5f;
 
 	GPUVertFormat *format = immVertexFormat();
 	uint pos_id = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
 	uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 	uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 	uint outline_color_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+	uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 
 	immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 	GPU_enable_program_point_size();
+	immUniform2f("ViewportSize", -1.0f, -1.0f);
 	immBegin(GPU_PRIM_POINTS, 1);
 
 	/* draw keyframe
-	 * - size: 0.6 * h (found out experimentally... dunno why!)
-	 * - sel: true (so that "keyframe" state shows the iconic yellow icon)
+	 * - size: (default icon size == 16, default dopesheet icon size == 10)
+	 * - sel: true unless in handletype icons (so that "keyframe" state shows the iconic yellow icon)
 	 */
-	draw_keyframe_shape(xco, yco, 0.6f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha,
-	                    pos_id, size_id, color_id, outline_color_id);
+	bool sel = (handle_type == KEYFRAME_HANDLE_NONE);
+
+	draw_keyframe_shape(xco, yco, (10.0f / 16.0f) * h, sel, key_type, KEYFRAME_SHAPE_BOTH, alpha,
+	                    pos_id, size_id, color_id, outline_color_id,
+	                    flags_id, handle_type, KEYFRAME_EXTREME_NONE);
 
 	immEnd();
 	GPU_disable_program_point_size();
@@ -329,27 +334,52 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 
 static void vicon_keytype_keyframe_draw(int x, int y, int w, int h, float alpha)
 {
-	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME);
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_NONE);
 }
 
 static void vicon_keytype_breakdown_draw(int x, int y, int w, int h, float alpha)
 {
-	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_BREAKDOWN);
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_BREAKDOWN, KEYFRAME_HANDLE_NONE);
 }
 
 static void vicon_keytype_extreme_draw(int x, int y, int w, int h, float alpha)
 {
-	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_EXTREME);
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_EXTREME, KEYFRAME_HANDLE_NONE);
 }
 
 static void vicon_keytype_jitter_draw(int x, int y, int w, int h, float alpha)
 {
-	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_JITTER);
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_JITTER, KEYFRAME_HANDLE_NONE);
 }
 
 static void vicon_keytype_moving_hold_draw(int x, int y, int w, int h, float alpha)
 {
-	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD);
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_MOVEHOLD, KEYFRAME_HANDLE_NONE);
+}
+
+static void vicon_handletype_free_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_FREE);
+}
+
+static void vicon_handletype_aligned_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_ALIGNED);
+}
+
+static void vicon_handletype_vector_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_VECTOR);
+}
+
+static void vicon_handletype_auto_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO);
+}
+
+static void vicon_handletype_auto_clamp_draw(int x, int y, int w, int h, float alpha)
+{
+	vicon_keytype_draw_wrapper(x, y, w, h, alpha, BEZT_KEYTYPE_KEYFRAME, KEYFRAME_HANDLE_AUTO_CLAMP);
 }
 
 static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNUSED(alpha))
@@ -769,6 +799,12 @@ static void init_internal_icons(void)
 	def_internal_vicon(ICON_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
 	def_internal_vicon(ICON_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
 	def_internal_vicon(ICON_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
+
+	def_internal_vicon(ICON_HANDLETYPE_FREE_VEC, vicon_handletype_free_draw);
+	def_internal_vicon(ICON_HANDLETYPE_ALIGNED_VEC, vicon_handletype_aligned_draw);
+	def_internal_vicon(ICON_HANDLETYPE_VECTOR_VEC, vicon_handletype_vector_draw);
+	def_internal_vicon(ICON_HANDLETYPE_AUTO_VEC, vicon_handletype_auto_draw);
+	def_internal_vicon(ICON_HANDLETYPE_AUTO_CLAMP_VEC, vicon_handletype_auto_clamp_draw);
 
 	def_internal_vicon(ICON_COLORSET_01_VEC, vicon_colorset_draw_01);
 	def_internal_vicon(ICON_COLORSET_02_VEC, vicon_colorset_draw_02);

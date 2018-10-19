@@ -101,12 +101,12 @@ void nla_action_get_color(AnimData *adt, bAction *act, float color[4])
 }
 
 /* draw the keyframes in the specified Action */
-static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, float ymin, float ymax)
+static void nla_action_draw_keyframes(View2D *v2d, AnimData *adt, bAction *act, float y, float ymin, float ymax)
 {
 	/* get a list of the keyframes with NLA-scaling applied */
 	DLRBT_Tree keys;
 	BLI_dlrbTree_init(&keys);
-	action_to_keylist(adt, act, &keys);
+	action_to_keylist(adt, act, &keys, 0);
 
 	if (ELEM(NULL, act, keys.first))
 		return;
@@ -145,8 +145,10 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 		uint size_id = GPU_vertformat_attr_add(format, "size", GPU_COMP_F32, 1, GPU_FETCH_FLOAT);
 		uint color_id = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
 		uint outline_color_id = GPU_vertformat_attr_add(format, "outlineColor", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+		uint flags_id = GPU_vertformat_attr_add(format, "flags", GPU_COMP_U32, 1, GPU_FETCH_INT);
 		immBindBuiltinProgram(GPU_SHADER_KEYFRAME_DIAMOND);
 		GPU_enable_program_point_size();
+		immUniform2f("ViewportSize", BLI_rcti_size_x(&v2d->mask) + 1, BLI_rcti_size_y(&v2d->mask) + 1);
 		immBegin(GPU_PRIM_POINTS, key_len);
 
 		/* - disregard the selection status of keyframes so they draw a certain way
@@ -154,7 +156,8 @@ static void nla_action_draw_keyframes(AnimData *adt, bAction *act, float y, floa
 		 */
 		for (ActKeyColumn *ak = keys.first; ak; ak = ak->next) {
 			draw_keyframe_shape(ak->cfra, y, 6.0f, false, ak->key_type, KEYFRAME_SHAPE_FRAME, 1.0f,
-			                    pos_id, size_id, color_id, outline_color_id);
+			                    pos_id, size_id, color_id, outline_color_id,
+			                    flags_id, KEYFRAME_HANDLE_NONE, KEYFRAME_EXTREME_NONE);
 		}
 
 		immEnd();
@@ -750,7 +753,7 @@ void draw_nla_main_data(bAnimContext *ac, SpaceNla *snla, ARegion *ar)
 					immUnbindProgram();
 
 					/* draw keyframes in the action */
-					nla_action_draw_keyframes(adt, ale->data, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
+					nla_action_draw_keyframes(v2d, adt, ale->data, y, yminc + NLACHANNEL_SKIP, ymaxc - NLACHANNEL_SKIP);
 
 					GPU_blend(false);
 					break;

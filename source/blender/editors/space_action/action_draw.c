@@ -357,28 +357,28 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 				/* draw 'keyframes' for each specific datatype */
 				switch (ale->datatype) {
 					case ALE_ALL:
-						draw_summary_channel(v2d, ale->data, y, ac->yscale_fac);
+						draw_summary_channel(v2d, ale->data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_SCE:
-						draw_scene_channel(v2d, ads, ale->key_data, y, ac->yscale_fac);
+						draw_scene_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_OB:
-						draw_object_channel(v2d, ads, ale->key_data, y, ac->yscale_fac);
+						draw_object_channel(v2d, ads, ale->key_data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_ACT:
-						draw_action_channel(v2d, adt, ale->key_data, y, ac->yscale_fac);
+						draw_action_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_GROUP:
-						draw_agroup_channel(v2d, adt, ale->data, y, ac->yscale_fac);
+						draw_agroup_channel(v2d, adt, ale->data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_FCURVE:
-						draw_fcurve_channel(v2d, adt, ale->key_data, y, ac->yscale_fac);
+						draw_fcurve_channel(v2d, adt, ale->key_data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_GPFRAME:
-						draw_gpl_channel(v2d, ads, ale->data, y, ac->yscale_fac);
+						draw_gpl_channel(v2d, ads, ale->data, y, ac->yscale_fac, saction->flag);
 						break;
 					case ALE_MASKLAY:
-						draw_masklay_channel(v2d, ads, ale->data, y, ac->yscale_fac);
+						draw_masklay_channel(v2d, ads, ale->data, y, ac->yscale_fac, saction->flag);
 						break;
 				}
 			}

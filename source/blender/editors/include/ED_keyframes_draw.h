@@ -73,6 +73,8 @@ typedef struct ActKeyColumn {
 
 	/* keyframe info */
 	char key_type;                      /* eBezTripe_KeyframeType */
+	char handle_type;                   /* eKeyframeHandleDrawOpts */
+	char extreme_type;                  /* eKeyframeExtremeDrawOpts */
 	short sel;
 	float cfra;
 
@@ -91,6 +93,8 @@ typedef enum eActKeyBlock_Hold {
 	ACTKEYBLOCK_FLAG_STATIC_HOLD     = (1 << 1),
 	/* Key block represents any kind of hold */
 	ACTKEYBLOCK_FLAG_ANY_HOLD        = (1 << 2),
+	/* The curve segment uses non-bezier interpolation */
+	ACTKEYBLOCK_FLAG_NON_BEZIER      = (1 << 3),
 } eActKeyBlock_Flag;
 
 /* *********************** Keyframe Drawing ****************************** */
@@ -105,48 +109,73 @@ typedef enum eKeyframeShapeDrawOpts {
 	KEYFRAME_SHAPE_BOTH
 } eKeyframeShapeDrawOpts;
 
+/* Handle type. */
+typedef enum eKeyframeHandleDrawOpts {
+	/* Don't draw */
+	KEYFRAME_HANDLE_NONE = 0,
+	/* Various marks in order of increasing display priority. */
+	KEYFRAME_HANDLE_AUTO_CLAMP,
+	KEYFRAME_HANDLE_AUTO,
+	KEYFRAME_HANDLE_VECTOR,
+	KEYFRAME_HANDLE_ALIGNED,
+	KEYFRAME_HANDLE_FREE,
+} eKeyframeHandleDrawOpts;
+
+/* Extreme type. */
+typedef enum eKeyframeExtremeDrawOpts {
+	KEYFRAME_EXTREME_NONE  = 0,
+	/* Minimum/maximum present. */
+	KEYFRAME_EXTREME_MIN   = (1 << 0),
+	KEYFRAME_EXTREME_MAX   = (1 << 1),
+	/* Grouped keys have different states. */
+	KEYFRAME_EXTREME_MIXED = (1 << 2),
+	/* Both neigbors are equal to this key. */
+	KEYFRAME_EXTREME_FLAT  = (1 << 3),
+} eKeyframeExtremeDrawOpts;
+
 /* draw simple diamond-shape keyframe */
 /* caller should set up vertex format, bind GPU_SHADER_KEYFRAME_DIAMOND, immBegin(GPU_PRIM_POINTS, n), then call this n times */
 void draw_keyframe_shape(float x, float y, float size, bool sel, short key_type, short mode, float alpha,
-                         unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id);
+                         unsigned int pos_id, unsigned int size_id, unsigned int color_id, unsigned int outline_color_id,
+                         unsigned int linemask_id, short ipo_type, short extreme_type);
 
 /* ******************************* Methods ****************************** */
 
 /* Channel Drawing ------------------ */
 /* F-Curve */
-void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos, float yscale_fac);
+void draw_fcurve_channel(struct View2D *v2d, struct AnimData *adt, struct FCurve *fcu, float ypos, float yscale_fac, int saction_flag);
 /* Action Group Summary */
-void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos, float yscale_fac);
+void draw_agroup_channel(struct View2D *v2d, struct AnimData *adt, struct bActionGroup *agrp, float ypos, float yscale_fac, int saction_flag);
 /* Action Summary */
-void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos, float yscale_fac);
+void draw_action_channel(struct View2D *v2d, struct AnimData *adt, struct bAction *act, float ypos, float yscale_fac, int saction_flag);
 /* Object Summary */
-void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos, float yscale_fac);
+void draw_object_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Object *ob, float ypos, float yscale_fac, int saction_flag);
 /* Scene Summary */
-void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos, float yscale_fac);
+void draw_scene_channel(struct View2D *v2d, struct bDopeSheet *ads, struct Scene *sce, float ypos, float yscale_fac, int saction_flag);
 /* DopeSheet Summary */
-void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos, float yscale_fac);
+void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypos, float yscale_fac, int saction_flag);
 /* Grease Pencil datablock summary */
-void draw_gpencil_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPdata *gpd, float ypos, float yscale_fac);
+void draw_gpencil_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPdata *gpd, float ypos, float yscale_fac, int saction_flag);
 /* Grease Pencil Layer */
-void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos, float yscale_fac);
+void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos, float yscale_fac, int saction_flag);
 /* Mask Layer */
-void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos, float yscale_fac);
+void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos, float yscale_fac, int saction_flag);
 
 /* Keydata Generation --------------- */
 /* F-Curve */
-void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys);
+void fcurve_to_keylist(struct AnimData *adt, struct FCurve *fcu, struct DLRBT_Tree *keys, int saction_flag);
 /* Action Group */
-void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys);
+void agroup_to_keylist(struct AnimData *adt, struct bActionGroup *agrp, struct DLRBT_Tree *keys, int saction_flag);
 /* Action */
-void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys);
+void action_to_keylist(struct AnimData *adt, struct bAction *act, struct DLRBT_Tree *keys, int saction_flag);
 /* Object */
-void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys);
+void ob_to_keylist(struct bDopeSheet *ads, struct Object *ob, struct DLRBT_Tree *keys, int saction_flag);
 /* Cache File */
-void cachefile_to_keylist(struct bDopeSheet *ads, struct CacheFile *cache_file, struct DLRBT_Tree *keys);
+void cachefile_to_keylist(struct bDopeSheet *ads, struct CacheFile *cache_file, struct DLRBT_Tree *keys, int saction_flag);
 /* Scene */
-void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys);
+void scene_to_keylist(struct bDopeSheet *ads, struct Scene *sce, struct DLRBT_Tree *keys, int saction_flag);
 /* DopeSheet Summary */
-void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys);
+void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, int saction_flag);
 /* Grease Pencil datablock summary */
 void gpencil_to_keylist(struct bDopeSheet *ads, struct bGPdata *gpd, struct DLRBT_Tree *keys, const bool active);
 /* Grease Pencil Layer */
@@ -159,6 +188,9 @@ void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */
 short compare_ak_cfraPtr(void *node, void *data);
+
+/* Checks if ActKeyColumn has any block data */
+bool actkeyblock_is_valid(ActKeyColumn *ab);
 
 /* Checks if ActKeyColumn can be used as a block (i.e. drawn/used to detect "holds") */
 int actkeyblock_get_valid_hold(ActKeyColumn *ab);

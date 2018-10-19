@@ -286,10 +286,11 @@ typedef struct ThemeSpace {
 	char handle_free[4], handle_auto[4], handle_vect[4], handle_align[4], handle_auto_clamped[4];
 	char handle_sel_free[4], handle_sel_auto[4], handle_sel_vect[4], handle_sel_align[4], handle_sel_auto_clamped[4];
 
-	char ds_channel[4], ds_subchannel[4]; /* dopesheet */
+	char ds_channel[4], ds_subchannel[4], ds_ipoline[4]; /* dopesheet */
 	char keytype_keyframe[4], keytype_extreme[4], keytype_breakdown[4], keytype_jitter[4], keytype_movehold[4]; /* keytypes */
 	char keytype_keyframe_select[4], keytype_extreme_select[4], keytype_breakdown_select[4], keytype_jitter_select[4], keytype_movehold_select[4]; /* keytypes */
 	char keyborder[4], keyborder_select[4];
+	char pad[4];
 
 	char console_output[4], console_input[4], console_info[4], console_error[4];
 	char console_cursor[4], console_select[4];
