@@ -2576,7 +2576,10 @@ static int uv_mouse_select_multi(
 #endif
 	}
 
-	uv_select_tag_update_for_object(depsgraph, ts, obedit);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obiter = objects[ob_index];
+		uv_select_tag_update_for_object(depsgraph, ts, obiter);
+	}
 
 	return OPERATOR_PASS_THROUGH | OPERATOR_FINISHED;
 }
