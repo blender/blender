@@ -856,14 +856,12 @@ cleanup:
 	return changed;
 }
 
-static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object *ob, bool extend)
+static bool pose_select_same_keyingset(bContext *C, ReportList *reports, bool extend)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	bool changed_multi = false;
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
 	KS_Path *ksp;
-
-	bArmature *arm = (ob) ? ob->data : NULL;
-	bPose *pose = (ob) ? ob->pose : NULL;
-	bool changed = false;
 
 	/* sanity checks: validate Keying Set and object */
 	if (ks == NULL) {
@@ -884,9 +882,6 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object 
 		return false;
 	}
 
-	if (ELEM(NULL, ob, pose, arm))
-		return false;
-
 	/* if not extending selection, deselect all selected first */
 	if (extend == false) {
 		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
@@ -897,34 +892,54 @@ static bool pose_select_same_keyingset(bContext *C, ReportList *reports, Object 
 		CTX_DATA_END;
 	}
 
-	/* iterate over elements in the Keying Set, setting selection depending on whether
-	 * that bone is visible or not...
-	 */
-	for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
-		/* only items related to this object will be relevant */
-		if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
-			if (strstr(ksp->rna_path, "bones")) {
-				char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
+		bArmature *arm = (ob) ? ob->data : NULL;
+		bPose *pose = (ob) ? ob->pose : NULL;
+		bool changed = false;
 
-				if (boneName) {
-					bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
+		/* Sanity checks. */
+		if (ELEM(NULL, ob, pose, arm)) {
+			continue;
+		}
 
-					if (pchan) {
-						/* select if bone is visible and can be affected */
-						if (PBONE_SELECTABLE(arm, pchan->bone)) {
-							pchan->bone->flag |= BONE_SELECTED;
-							changed = true;
+		/* iterate over elements in the Keying Set, setting selection depending on whether
+		 * that bone is visible or not...
+		 */
+		for (ksp = ks->paths.first; ksp; ksp = ksp->next) {
+			/* only items related to this object will be relevant */
+			if ((ksp->id == &ob->id) && (ksp->rna_path != NULL)) {
+				if (strstr(ksp->rna_path, "bones")) {
+					char *boneName = BLI_str_quoted_substrN(ksp->rna_path, "bones[");
+
+					if (boneName) {
+						bPoseChannel *pchan = BKE_pose_channel_find_name(pose, boneName);
+
+						if (pchan) {
+							/* select if bone is visible and can be affected */
+							if (PBONE_SELECTABLE(arm, pchan->bone)) {
+								pchan->bone->flag |= BONE_SELECTED;
+								changed = true;
+							}
 						}
-					}
 
-					/* free temp memory */
-					MEM_freeN(boneName);
+						/* free temp memory */
+						MEM_freeN(boneName);
+					}
 				}
 			}
 		}
-	}
 
-	return changed;
+		if (changed || !extend) {
+			ED_pose_bone_select_tag_update(ob);
+			changed_multi = true;
+		}
+	}
+	MEM_freeN(objects);
+
+	return changed_multi;
 }
 
 static int pose_select_grouped_exec(bContext *C, wmOperator *op)
@@ -933,11 +948,6 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	const ePose_SelectSame_Mode type = RNA_enum_get(op->ptr, "type");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool changed = false;
-
-	if (type == POSE_SEL_SAME_KEYINGSET) {
-		BKE_report(op->reports, RPT_ERROR, "Mode not supported at the moment");
-		return OPERATOR_CANCELLED;
-	}
 
 	/* sanity check */
 	if (ob->pose == NULL)
@@ -954,7 +964,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 			break;
 
 		case POSE_SEL_SAME_KEYINGSET: /* Keying Set */
-			changed = pose_select_same_keyingset(C, op->reports, ob, extend);
+			changed = pose_select_same_keyingset(C, op->reports, extend);
 			break;
 
 		default:
