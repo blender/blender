@@ -2013,30 +2013,3 @@ void BKE_nla_tweakmode_exit(AnimData *adt)
 	adt->actstrip = NULL;
 	adt->flag &= ~ADT_NLA_EDIT_ON;
 }
-
-/* Baking Tools ------------------------------------------- */
-
-static void UNUSED_FUNCTION(BKE_nla_bake) (Scene *scene, ID *UNUSED(id), AnimData *adt, int UNUSED(flag))
-{
-
-	/* verify that data is valid
-	 *	1) Scene and AnimData must be provided
-	 *	2) there must be tracks to merge...
-	 */
-	if (ELEM(NULL, scene, adt, adt->nla_tracks.first))
-		return;
-
-	/* if animdata currently has an action, 'push down' this onto the stack first */
-	if (adt->action)
-		BKE_nla_action_pushdown(adt);
-
-	/* get range of motion to bake, and the channels involved... */
-
-	/* temporarily mute the action, and start keying to it */
-
-	/* start keying... */
-
-	/* unmute the action */
-}
-
-/* *************************************************** */

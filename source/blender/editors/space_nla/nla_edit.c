@@ -1345,60 +1345,6 @@ void NLA_OT_split(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ******************** Bake Strips Operator ***************************** */
-/* Bakes the NLA Strips for the active AnimData blocks */
-
-static int nlaedit_bake_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	bAnimContext ac;
-
-	ListBase anim_data = {NULL, NULL};
-	bAnimListElem *ale;
-	int filter;
-//	int flag = 0;
-
-	/* get editor data */
-	if (ANIM_animdata_get_context(C, &ac) == 0)
-		return OPERATOR_CANCELLED;
-
-	/* get a list of the editable tracks being shown in the NLA */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_ANIMDATA | ANIMFILTER_FOREDIT);
-	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
-
-	/* for each AnimData block, bake strips to animdata... */
-	for (ale = anim_data.first; ale; ale = ale->next) {
-		//BKE_nla_bake(ac.scene, ale->id, ale->data, flag);
-	}
-
-	/* free temp data */
-	ANIM_animdata_freelist(&anim_data);
-
-	/* refresh auto strip properties */
-	ED_nla_postop_refresh(&ac);
-
-	/* set notifier that things have changed */
-	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_EDITED, NULL);
-
-	/* done */
-	return OPERATOR_FINISHED;
-}
-
-/* why isn't this used? */
-static void UNUSED_FUNCTION(NLA_OT_bake)(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Bake Strips";
-	ot->idname = "NLA_OT_bake";
-	ot->description = "Bake all strips of selected AnimData blocks";
-
-	/* api callbacks */
-	ot->exec = nlaedit_bake_exec;
-	ot->poll = nlaop_poll_tweakmode_off;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
 /* *********************************************** */
 /* NLA Editing Operations (Modifying) */
 
