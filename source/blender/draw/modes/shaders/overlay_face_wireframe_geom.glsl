@@ -50,11 +50,11 @@ vec3 get_barycentric(bvec3 do_edge, const int v)
 	int v_n = v;
 	int v_n1 = (v + 1) % 3;
 	int v_n2 = (v + 2) % 3;
-	vec3 barycentric;
-	barycentric[v_n] = do_edge[v_n] ? 0.0 : 1.0;
-	barycentric[v_n1] = 1.0;
-	barycentric[v_n2] = do_edge[v_n2] ? 0.0 : 1.0;
-	return barycentric;
+	vec3 bary;
+	bary[v_n] = do_edge[v_n] ? 0.0 : 1.0;
+	bary[v_n1] = 1.0;
+	bary[v_n2] = do_edge[v_n2] ? 0.0 : 1.0;
+	return bary;
 }
 
 void main(void)
