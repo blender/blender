@@ -1127,7 +1127,7 @@ void EEVEE_lightbake_filter_glossy(
 	for (int i = 0; i < maxlevel + 1; i++) {
 		float bias = (i == 0) ? -1.0f : 1.0f;
 		pinfo->texel_size = 1.0f / (float)mipsize;
-		pinfo->padding_size = (float)(1 << (maxlevel - i - 1));
+		pinfo->padding_size = (i == maxlevel) ? 0 : (float)(1 << (maxlevel - i - 1));
 		pinfo->padding_size *= pinfo->texel_size;
 		pinfo->layer = probe_idx;
 		pinfo->roughness = i / (float)maxlevel;
