@@ -509,8 +509,7 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 	Report *report;
 	ReportTimerInfo *rti;
 	float progress = 0.0, color_progress = 0.0;
-	float neutral_col[3] = {0.35, 0.35, 0.35};
-	float neutral_gray = 0.6;
+	float neutral_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float timeout = 0.0, color_timeout = 0.0;
 	int send_note = 0;
 
@@ -541,34 +540,33 @@ static int update_reports_display_invoke(bContext *C, wmOperator *UNUSED(op), co
 	if (rti->widthfac == 0.0f) {
 		/* initialize colors based on report type */
 		if (report->type & RPT_ERROR_ALL) {
-			rti->col[0] = 1.0;
-			rti->col[1] = 0.2;
-			rti->col[2] = 0.0;
+			rti->col[0] = 1.0f;
+			rti->col[1] = 0.2f;
+			rti->col[2] = 0.0f;
 		}
 		else if (report->type & RPT_WARNING_ALL) {
-			rti->col[0] = 1.0;
-			rti->col[1] = 1.0;
-			rti->col[2] = 0.0;
+			rti->col[0] = 1.0f;
+			rti->col[1] = 1.0f;
+			rti->col[2] = 0.0f;
 		}
 		else if (report->type & RPT_INFO_ALL) {
-			rti->col[0] = 0.3;
-			rti->col[1] = 0.45;
-			rti->col[2] = 0.7;
+			rti->col[0] = 0.3f;
+			rti->col[1] = 0.45f;
+			rti->col[2] = 0.7f;
 		}
-		rti->grayscale = 0.75;
-		rti->widthfac = 1.0;
+		rti->col[3] = 0.65f;
+		rti->widthfac = 1.0f;
 	}
 
-	progress = (float)reports->reporttimer->duration / timeout;
-	color_progress = (float)reports->reporttimer->duration / color_timeout;
+	progress = powf((float)reports->reporttimer->duration / timeout, 2.0f);
+	color_progress = powf((float)reports->reporttimer->duration / color_timeout, 2.0);
 
 	/* save us from too many draws */
 	if (color_progress <= 1.0f) {
 		send_note = 1;
 
 		/* fade colors out sharply according to progress through fade-out duration */
-		interp_v3_v3v3(rti->col, rti->col, neutral_col, color_progress);
-		rti->grayscale = interpf(neutral_gray, rti->grayscale, color_progress);
+		interp_v4_v4v4(rti->col, rti->col, neutral_col, color_progress);
 	}
 
 	/* collapse report at end of timeout */

@@ -3669,6 +3669,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 		wcol->inner[0] = but->col[0];
 		wcol->inner[1] = but->col[1];
 		wcol->inner[2] = but->col[2];
+		wcol->inner[3] = but->col[3];
 	}
 
 	rad = wcol->roundness * U.widget_unit;

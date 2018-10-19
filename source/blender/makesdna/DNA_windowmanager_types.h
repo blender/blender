@@ -118,8 +118,7 @@ typedef struct ReportList {
 #
 #
 typedef struct ReportTimerInfo {
-	float col[3];
-	float grayscale;
+	float col[4];
 	float widthfac;
 } ReportTimerInfo;
 
