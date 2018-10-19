@@ -498,7 +498,12 @@ def reset_all(*, reload_scripts=False):
 
 def disable_all():
     import sys
-    for mod_name, mod in sys.modules.items():
+    # Collect modules to disable first because dict can be modified as we disable.
+    addon_modules = [
+        item for item in sys.modules.items()
+        if getattr(item[1], "__addon_enabled__", False)
+    ]
+    for mod_name, mod in addon_modules:
         if getattr(mod, "__addon_enabled__", False):
             disable(mod_name)
 
