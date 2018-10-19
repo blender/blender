@@ -338,26 +338,24 @@ void CLOSURE_NAME(
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; ACCUM.a < 0.999 && i < prbNumRenderCube && i < MAX_PROBE; ++i) {
-		CubeData cd = probes_data[i];
-
-		float fade = probe_attenuation_cube(cd, worldPosition);
+		float fade = probe_attenuation_cube(i, worldPosition);
 
 		if (fade > 0.0) {
 
 	#ifdef CLOSURE_GLOSSY
 			if (!(ssrToggle && ssr_id == outputSsrId)) {
-				vec3 spec = probe_evaluate_cube(float(i), cd, worldPosition, spec_dir, roughness);
+				vec3 spec = probe_evaluate_cube(i, worldPosition, spec_dir, roughness);
 				accumulate_light(spec, fade, spec_accum);
 			}
 	#endif
 
 	#ifdef CLOSURE_CLEARCOAT
-			vec3 C_spec = probe_evaluate_cube(float(i), cd, worldPosition, C_spec_dir, C_roughness);
+			vec3 C_spec = probe_evaluate_cube(i, worldPosition, C_spec_dir, C_roughness);
 			accumulate_light(C_spec, fade, C_spec_accum);
 	#endif
 
 	#ifdef CLOSURE_REFRACTION
-			vec3 trans = probe_evaluate_cube(float(i), cd, refr_pos, refr_dir, roughnessSquared);
+			vec3 trans = probe_evaluate_cube(i, refr_pos, refr_dir, roughnessSquared);
 			accumulate_light(trans, fade, refr_accum);
 	#endif
 		}
@@ -458,7 +456,7 @@ void CLOSURE_NAME(
 		GridData gd = grids_data[i];
 
 		vec3 localpos;
-		float fade = probe_attenuation_grid(gd, worldPosition, localpos);
+		float fade = probe_attenuation_grid(gd, grids_data[i].localmat, worldPosition, localpos);
 
 		if (fade > 0.0) {
 			vec3 diff = probe_evaluate_grid(gd, worldPosition, bent_normal, localpos);

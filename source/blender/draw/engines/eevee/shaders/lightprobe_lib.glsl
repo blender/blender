@@ -93,17 +93,18 @@ layout(std140) uniform planar_block {
 
 /* ----------- Functions --------- */
 
-float probe_attenuation_cube(CubeData pd, vec3 W)
+float probe_attenuation_cube(int pd_id, vec3 W)
 {
-	vec3 localpos = transform_point(pd.influencemat, W);
+	vec3 localpos = transform_point(probes_data[pd_id].influencemat, W);
 
+	float probe_atten_fac = probes_data[pd_id].p_atten_fac;
 	float fac;
-	if (pd.p_atten_type == PROBE_ATTENUATION_BOX) {
-		vec3 axes_fac = saturate(pd.p_atten_fac - pd.p_atten_fac * abs(localpos));
+	if (probes_data[pd_id].p_atten_type == PROBE_ATTENUATION_BOX) {
+		vec3 axes_fac = saturate(probe_atten_fac - probe_atten_fac * abs(localpos));
 		fac = min_v3(axes_fac);
 	}
 	else {
-		fac = saturate(pd.p_atten_fac - pd.p_atten_fac * length(localpos));
+		fac = saturate(probe_atten_fac - probe_atten_fac * length(localpos));
 	}
 
 	return fac;
@@ -130,22 +131,22 @@ float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
 	return fac;
 }
 
-float probe_attenuation_grid(GridData gd, vec3 W, out vec3 localpos)
+float probe_attenuation_grid(GridData gd, mat4 localmat, vec3 W, out vec3 localpos)
 {
-	localpos = transform_point(gd.localmat, W);
+	localpos = transform_point(localmat, W);
 
 	float fade = min(1.0, min_v3(1.0 - abs(localpos)));
 	return saturate(fade * gd.g_atten_scale + gd.g_atten_bias);
 }
 
-vec3 probe_evaluate_cube(float id, CubeData cd, vec3 W, vec3 R, float roughness)
+vec3 probe_evaluate_cube(int pd_id, vec3 W, vec3 R, float roughness)
 {
 	/* Correct reflection ray using parallax volume intersection. */
-	vec3 localpos = transform_point(cd.parallaxmat, W);
-	vec3 localray = transform_direction(cd.parallaxmat, R);
+	vec3 localpos = transform_point(probes_data[pd_id].parallaxmat, W);
+	vec3 localray = transform_direction(probes_data[pd_id].parallaxmat, R);
 
 	float dist;
-	if (cd.p_parallax_type == PROBE_PARALLAX_BOX) {
+	if (probes_data[pd_id].p_parallax_type == PROBE_PARALLAX_BOX) {
 		dist = line_unit_box_intersect_dist(localpos, localray);
 	}
 	else {
@@ -153,7 +154,7 @@ vec3 probe_evaluate_cube(float id, CubeData cd, vec3 W, vec3 R, float roughness)
 	}
 
 	/* Use Distance in WS directly to recover intersection */
-	vec3 intersection = W + R * dist - cd.p_position;
+	vec3 intersection = W + R * dist - probes_data[pd_id].p_position;
 
 	/* From Frostbite PBR Course
 	 * Distance based roughness
@@ -167,7 +168,7 @@ vec3 probe_evaluate_cube(float id, CubeData cd, vec3 W, vec3 R, float roughness)
 	float fac = saturate(original_roughness * 2.0 - 1.0);
 	R = mix(intersection, R, fac * fac);
 
-	return textureLod_octahedron(probeCubes, vec4(R, id), roughness * prbLodCubeMax, prbLodCubeMax).rgb;
+	return textureLod_octahedron(probeCubes, vec4(R, float(pd_id)), roughness * prbLodCubeMax, prbLodCubeMax).rgb;
 }
 
 vec3 probe_evaluate_world_spec(vec3 R, float roughness)
@@ -221,12 +222,10 @@ void fallback_cubemap(
 
 	/* Starts at 1 because 0 is world probe */
 	for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; ++i) {
-		CubeData cd = probes_data[i];
-
-		float fade = probe_attenuation_cube(cd, W);
+		float fade = probe_attenuation_cube(i, W);
 
 		if (fade > 0.0) {
-			vec3 spec = final_ao * probe_evaluate_cube(float(i), cd, W, spec_dir, roughness);
+			vec3 spec = final_ao * probe_evaluate_cube(i, W, spec_dir, roughness);
 			accumulate_light(spec, fade, spec_accum);
 		}
 	}
