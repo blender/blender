@@ -467,6 +467,11 @@ Collection *BKE_collection_object_find(Main *bmain, Collection *collection, Obje
 	return NULL;
 }
 
+bool BKE_collection_is_empty(Collection *collection)
+{
+	return BLI_listbase_is_empty(&collection->gobject) && BLI_listbase_is_empty(&collection->children);
+}
+
 /********************** Collection Objects *********************/
 
 static bool collection_object_add(Main *bmain, Collection *collection, Object *ob, int flag, const bool add_us)

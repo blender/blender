@@ -75,6 +75,7 @@ struct Collection *BKE_collection_master_add(void);
 bool               BKE_collection_has_object(struct Collection *collection, struct Object *ob);
 bool               BKE_collection_has_object_recursive(struct Collection *collection, struct Object *ob);
 struct Collection *BKE_collection_object_find(struct Main *bmain, struct Collection *collection, struct Object *ob);
+bool               BKE_collection_is_empty(struct Collection *collection);
 
 bool BKE_collection_object_add(struct Main *bmain, struct Collection *collection, struct Object *ob);
 void BKE_collection_object_add_from(struct Main *bmain, struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);
