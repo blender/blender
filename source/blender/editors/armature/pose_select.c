@@ -773,41 +773,85 @@ static bool pose_select_same_group(bContext *C, bool extend)
 	return changed;
 }
 
-static bool pose_select_same_layer(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_layer(bContext *C, bool extend)
 {
-	bPose *pose = (ob) ? ob->pose : NULL;
-	bArmature *arm = (ob) ? ob->data : NULL;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	int *layers_array, *layers;
+	Object *ob_prev = NULL;
+	uint ob_index;
 	bool changed = false;
-	int layers = 0;
 
-	if (ELEM(NULL, ob, pose, arm))
-		return 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		ob->id.tag &= ~LIB_TAG_DOIT;
+	}
 
-	/* figure out what bones are selected */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+	layers_array = MEM_callocN(objects_len * sizeof(*layers_array), "pose_select_same_layer");
+
+	/* Figure out what bones are selected. */
+	ob_prev = NULL;
+	ob_index = -1;
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
 	{
-		/* keep track of layers to use later? */
-		if (pchan->bone->flag & BONE_SELECTED)
-			layers |= pchan->bone->layer;
+		if (ob != ob_prev) {
+			layers = &layers_array[++ob_index];
+			ob_prev = ob;
+		}
 
-		/* deselect all bones before selecting new ones? */
+		/* Keep track of layers to use later? */
+		if (pchan->bone->flag & BONE_SELECTED)
+			*layers |= pchan->bone->layer;
+
+		/* Deselect all bones before selecting new ones? */
 		if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
 			pchan->bone->flag &= ~BONE_SELECTED;
 	}
 	CTX_DATA_END;
-	if (layers == 0)
-		return 0;
 
-	/* select bones that are on same layers as layers flag */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+	bool any_layer = false;
+	for (ob_index = 0; ob_index < objects_len; ob_index++) {
+		if (layers_array[ob_index]) {
+			any_layer = true;
+			break;
+		}
+	}
+
+	if (!any_layer) {
+		goto cleanup;
+	}
+
+	/* Select bones that are on same layers as layers flag. */
+	ob_prev = NULL;
+	ob_index = -1;
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
 	{
+		if (ob != ob_prev) {
+			layers = &layers_array[++ob_index];
+			ob_prev = ob;
+		}
+
 		/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
-		if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
+		if ((*layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag |= BONE_SELECTED;
-			changed = true;
+			ob->id.tag |= LIB_TAG_DOIT;
 		}
 	}
 	CTX_DATA_END;
+
+	for (ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		if (ob->id.tag & LIB_TAG_DOIT) {
+			ED_pose_bone_select_tag_update(ob);
+			changed = true;
+		}
+	}
+
+cleanup:
+	/* Cleanup. */
+	MEM_freeN(layers_array);
+	MEM_freeN(objects);
 
 	return changed;
 }
@@ -890,7 +934,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool changed = false;
 
-	if (ELEM(type, POSE_SEL_SAME_LAYER, POSE_SEL_SAME_KEYINGSET)) {
+	if (type == POSE_SEL_SAME_KEYINGSET) {
 		BKE_report(op->reports, RPT_ERROR, "Mode not supported at the moment");
 		return OPERATOR_CANCELLED;
 	}
@@ -902,7 +946,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	/* selection types */
 	switch (type) {
 		case POSE_SEL_SAME_LAYER: /* layer */
-			changed = pose_select_same_layer(C, ob, extend);
+			changed = pose_select_same_layer(C, extend);
 			break;
 
 		case POSE_SEL_SAME_GROUP: /* group */
