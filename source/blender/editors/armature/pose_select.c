@@ -504,9 +504,8 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 {
 	bConstraint *con;
 	int found = 0;
-	Object *ob_prev = NULL;
 
-	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
 	{
 		if (pchan->bone->flag & BONE_SELECTED) {
 			for (con = pchan->constraints.first; con; con = con->next) {
@@ -518,16 +517,19 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 					cti->get_constraint_targets(con, &targets);
 
 					for (ct = targets.first; ct; ct = ct->next) {
-						if ((ct->tar == ob) && (ct->subtarget[0])) {
+						Object *ob = ct->tar;
+
+						/* Any armature that is also in pose mode should be selected. */
+						if ((ct->subtarget[0] != '\0') &&
+						    (ob != NULL) &&
+						    (ob->type == OB_ARMATURE) &&
+						    (ob->mode == OB_MODE_POSE))
+						{
 							bPoseChannel *pchanc = BKE_pose_channel_find_name(ob->pose, ct->subtarget);
 							if ((pchanc) && !(pchanc->bone->flag & BONE_UNSELECTABLE)) {
 								pchanc->bone->flag |= BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL;
+								ED_pose_bone_select_tag_update(ob);
 								found = 1;
-
-								if (ob != ob_prev) {
-									ED_pose_bone_select_tag_update(ob);
-									ob_prev = ob;
-								}
 							}
 						}
 					}
