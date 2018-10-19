@@ -58,8 +58,8 @@ struct RenderLayer;
 
  /* used to save gpencil object data for drawing */
 typedef struct tGPencilObjectCache {
+	struct Object *ob;
 	struct bGPdata *gpd;
-	char ob_name[64];
 	int init_grp, end_grp;
 	int idx;  /*original index, can change after sort */
 
@@ -82,7 +82,8 @@ typedef struct tGPencilObjectCache {
 	float obmat[4][4];
 	float zdepth;  /* z-depth value to sort gp object */
 	bool is_dup_ob;  /* flag to tag duplicate objects */
-	bool is_dup_onion; /* other object display onion already */
+	bool is_dup_data; /* other object uses datablock already */
+	int  data_idx;    /* derived data index */
 } tGPencilObjectCache;
 
   /* *********** LISTS *********** */

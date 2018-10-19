@@ -235,9 +235,11 @@ typedef enum eGPDframe_Flag {
 
 /* Runtime temp data for bGPDlayer */
 typedef struct bGPDlayer_Runtime {
-	struct GHash *derived_data;     /* runtime data created by modifiers */
+	struct bGPDframe *derived_array;/* runtime data created by modifiers */
 	int icon_id;                    /* id for dynamic icon used to show annotation color preview for layer */
 	int batch_index;                /* batch used for dupli instances */
+	int len_derived;                /* len of the derived array */
+	char pad_[4];
 } bGPDlayer_Runtime;
 
 /* Grease-Pencil Annotations - 'Layer' */
@@ -304,8 +306,6 @@ typedef enum eGPDlayer_OnionFlag {
 
 /* Runtime temp data for bGPdata */
 typedef struct bGPdata_Runtime {
-	/* Drawing Manager cache */
-	struct GHash *batch_cache_data;
 	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
 
 	/* GP Object drawing */

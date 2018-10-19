@@ -1218,6 +1218,24 @@ void DRW_gpencil_populate_multiedit(
 	cache->is_dirty = false;
 }
 
+void static gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
+{
+	derived_gpf->prev = gpf->prev;
+	derived_gpf->next = gpf->next;
+	derived_gpf->framenum = gpf->framenum;
+	derived_gpf->flag = gpf->flag;
+	derived_gpf->key_type = gpf->key_type;
+	derived_gpf->runtime = gpf->runtime;
+
+	/* copy strokes */
+	BLI_listbase_clear(&derived_gpf->strokes);
+	for (bGPDstroke *gps_src = gpf->strokes.first; gps_src; gps_src = gps_src->next) {
+		/* make copy of source stroke */
+		bGPDstroke *gps_dst = BKE_gpencil_stroke_duplicate(gps_src);
+		BLI_addtail(&derived_gpf->strokes, gps_dst);
+	}
+}
+
 /* helper for populate a complete grease pencil datablock */
 void DRW_gpencil_populate_datablock(
         GPENCIL_e_data *e_data, void *vedata,
@@ -1226,7 +1244,9 @@ void DRW_gpencil_populate_datablock(
 {
 	GPENCIL_StorageList *stl = ((GPENCIL_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	bGPdata *gpd = (bGPdata *)ob->data;
+	bGPdata *gpd_eval = (bGPdata *)ob->data;
+	bGPdata *gpd = (bGPdata *)DEG_get_original_id(&gpd_eval->id);
+
 	View3D *v3d = draw_ctx->v3d;
 	int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 	ToolSettings *ts = scene->toolsettings;
@@ -1235,6 +1255,7 @@ void DRW_gpencil_populate_datablock(
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && main_onion;
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
 	float opacity;
+	bGPDframe *p = NULL;
 
 	/* check if playing animation */
 	bool playing = stl->storage->is_playing;
@@ -1260,7 +1281,7 @@ void DRW_gpencil_populate_datablock(
 
 		/* if pose mode, maybe the overlay to fade geometry is enabled */
 		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
-		    (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
+			(v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
 		{
 			opacity = gpl->opacity * v3d->overlay.bone_select_alpha;
 		}
@@ -1268,53 +1289,42 @@ void DRW_gpencil_populate_datablock(
 			opacity = gpl->opacity;
 		}
 
-		/* create GHash if need */
-		if (gpl->runtime.derived_data == NULL) {
-			gpl->runtime.derived_data = (GHash *)BLI_ghash_str_new(gpl->info);
-		}
-
-		if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-			derived_gpf = BLI_ghash_lookup(gpl->runtime.derived_data, ob->id.name);
-		}
-		else {
-			/* verify we have frame duplicated already */
-			if (cache_ob->is_dup_ob) {
-				continue;
-			}
-			derived_gpf = NULL;
-		}
-
-		if (derived_gpf == NULL) {
-			cache->is_dirty = true;
-		}
-		if ((!cache_ob->is_dup_ob) && (cache->is_dirty)) {
-			if (derived_gpf != NULL) {
-				/* first clear temp data */
-				if (BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-					BLI_ghash_remove(gpl->runtime.derived_data, ob->id.name, NULL, NULL);
-				}
-
-				BKE_gpencil_free_frame_runtime_data(derived_gpf);
-			}
-			/* create new data */
-			derived_gpf = BKE_gpencil_frame_duplicate(gpf);
-			if (!BLI_ghash_haskey(gpl->runtime.derived_data, ob->id.name)) {
-				BLI_ghash_insert(gpl->runtime.derived_data, ob->id.name, derived_gpf);
+		/* create derived array data or expand */
+		if (cache_ob->data_idx + 1 > gpl->runtime.len_derived) {
+			if ((gpl->runtime.len_derived == 0) ||
+				(gpl->runtime.derived_array == NULL))
+			{
+				p = MEM_callocN(sizeof(struct bGPDframe), "bGPDframe array");
+				gpl->runtime.len_derived = 1;
 			}
 			else {
-				BLI_ghash_reinsert(gpl->runtime.derived_data, ob->id.name, derived_gpf, NULL, NULL);
+				gpl->runtime.len_derived++;
+				p = MEM_recallocN(gpl->runtime.derived_array, sizeof(struct bGPDframe) * gpl->runtime.len_derived);
 			}
+			gpl->runtime.derived_array = p;
+
+			derived_gpf = &gpl->runtime.derived_array[cache_ob->data_idx];
 		}
+
+		derived_gpf = &gpl->runtime.derived_array[cache_ob->data_idx];
+
+		/* if no derived frame or dirty cache, create a new one */
+		if ((derived_gpf == NULL) || (cache->is_dirty)) {
+			if (derived_gpf != NULL) {
+				/* first clear temp data */
+				BKE_gpencil_free_frame_runtime_data(derived_gpf);
+			}
+			/* create new data (do not assign new memory)*/
+			gpencil_copy_frame(gpf, derived_gpf);
+		}
+
 		/* draw onion skins */
 		if (!ID_IS_LINKED(&gpd->id)) {
-			ID *orig_id = gpd->id.orig_id;
-			/* GPXX: Now only a datablock with one use is allowed to be compatible
-			 * with instances
-			 */
-			if ((!cache_ob->is_dup_onion) && (gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
+			if ((!cache_ob->is_dup_data) &&
+				(gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
 			    (do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
 			    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&
-			    (!cache_ob->is_dup_ob) && (orig_id->us <= 1))
+			    (!cache_ob->is_dup_ob) && (gpd->id.us <= 1))
 			{
 				if (((!stl->storage->is_render) && (overlay)) ||
 				    ((stl->storage->is_render) && (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)))

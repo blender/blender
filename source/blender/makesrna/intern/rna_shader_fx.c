@@ -161,7 +161,7 @@ static char *rna_ShaderFx_path(PointerRNA *ptr)
 static void rna_ShaderFx_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NC_GPENCIL, ptr->id.data);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ptr->id.data);
 }
 
 static void rna_ShaderFx_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)

@@ -6574,9 +6574,6 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 		}
 	}
 
-	/* clear drawing cache */
-	gpd->runtime.batch_cache_data = NULL;
-
 	/* materials */
 	gpd->mat = newdataadr(fd, gpd->mat);
 	test_pointer_array(fd, (void **)&gpd->mat);
@@ -6590,7 +6587,8 @@ static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
 
 		gpl->actframe = newdataadr(fd, gpl->actframe);
 
-		gpl->runtime.derived_data = NULL;
+		gpl->runtime.derived_array = NULL;
+		gpl->runtime.len_derived = 0;
 		gpl->runtime.icon_id = 0;
 
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {

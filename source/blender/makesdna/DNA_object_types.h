@@ -58,7 +58,7 @@ struct DerivedMesh;
 struct SculptSession;
 struct bGPdata;
 struct RigidBodyOb;
-
+struct GpencilBatchCache;
 
 /* Vertex Groups - Name Info */
 typedef struct bDeformGroup {
@@ -146,6 +146,9 @@ typedef struct Object_Runtime {
 
 	/* Runtime evaluated curve-specific data, not stored in the file. */
 	struct CurveCache *curve_cache;
+
+	/* Runtime grease pencil drawing data */
+	struct GpencilBatchCache *gpencil_cache;
 } Object_Runtime;
 
 typedef struct Object {

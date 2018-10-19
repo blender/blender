@@ -481,6 +481,9 @@ void BKE_object_free_derived_caches(Object *ob)
 	}
 
 	BKE_object_free_curve_cache(ob);
+
+	/* clear grease pencil data */
+	DRW_gpencil_freecache(ob);
 }
 
 void BKE_object_free_derived_mesh_caches(struct Object *ob)
@@ -1405,10 +1408,6 @@ void BKE_object_copy_data(Main *bmain, Object *ob_dst, const Object *ob_src, con
 
 	BLI_listbase_clear((ListBase *)&ob_dst->drawdata);
 	BLI_listbase_clear(&ob_dst->pc_ids);
-
-	/* grease pencil: clean derived data */
-	if (ob_dst->type == OB_GPENCIL)
-		BKE_gpencil_free_derived_frames(ob_dst->data);
 
 	ob_dst->avs = ob_src->avs;
 	ob_dst->mpath = animviz_copy_motionpath(ob_src->mpath);
