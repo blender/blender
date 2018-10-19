@@ -980,6 +980,7 @@ static bool unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
+			BLI_assert(vc->em->selectmode == em->selectmode);
 			ED_view3d_backbuf_validate(vc);
 			BMFace *efa_zbuf = NULL;
 			BMFace *efa_test = EDBM_face_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf);
@@ -2518,6 +2519,7 @@ bool EDBM_selectmode_toggle(
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *ob_iter = objects[ob_index];
 			BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+			em_iter->selectmode = ts->selectmode;
 			EDBM_selectmode_set(em_iter);
 			DEG_id_tag_update(ob_iter->data, DEG_TAG_COPY_ON_WRITE | DEG_TAG_SELECT_UPDATE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
