@@ -262,7 +262,7 @@ static void construct_param_handle_face_add(ParamHandle *handle, Scene *scene,
 		select[i] = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
 	}
 
-	param_face_add(handle, key, i, vkeys, co, uv, pin, select, efa->no);
+	param_face_add(handle, key, i, vkeys, co, uv, pin, select);
 }
 
 /* See: construct_param_handle_multi to handle multiple objects at once. */
@@ -571,7 +571,7 @@ static ParamHandle *construct_param_handle_subsurfed(Scene *scene, Object *ob, B
 		texface_from_original_index(origFace, origVertIndices[mloop[2].v], &uv[2], &pin[2], &select[2], scene, cd_loop_uv_offset);
 		texface_from_original_index(origFace, origVertIndices[mloop[3].v], &uv[3], &pin[3], &select[3], scene, cd_loop_uv_offset);
 
-		param_face_add(handle, key, 4, vkeys, co, uv, pin, select, NULL);
+		param_face_add(handle, key, 4, vkeys, co, uv, pin, select);
 	}
 
 	/* these are calculated from original mesh too */
