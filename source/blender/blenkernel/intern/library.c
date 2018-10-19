@@ -1982,6 +1982,15 @@ bool new_id(ListBase *lb, ID *id, const char *tname)
 	result = check_for_dupid(lb, id, name);
 	strcpy(id->name + 2, name);
 
+	/* This was in 2.43 and previous releases
+	 * however all data in blender should be sorted, not just duplicate names
+	 * sorting should not hurt, but noting just incase it alters the way other
+	 * functions work, so sort every time */
+#if 0
+	if (result)
+		id_sort_by_name(lb, id);
+#endif
+
 	id_sort_by_name(lb, id);
 
 	return result;
