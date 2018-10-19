@@ -672,61 +672,103 @@ typedef enum ePose_SelectSame_Mode {
 	POSE_SEL_SAME_KEYINGSET  = 2,
 } ePose_SelectSame_Mode;
 
-static bool pose_select_same_group(bContext *C, Object *ob, bool extend)
+static bool pose_select_same_group(bContext *C, bool extend)
 {
-	bArmature *arm = (ob) ? ob->data : NULL;
-	bPose *pose = (ob) ? ob->pose : NULL;
-	char *group_flags;
-	int numGroups = 0;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	bool *group_flags_array;
+	bool *group_flags;
+	int groups_len = 0;
 	bool changed = false, tagged = false;
+	Object *ob_prev = NULL;
+	uint ob_index;
 
-	/* sanity checks */
-	if (ELEM(NULL, ob, pose, arm))
-		return 0;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(view_layer, &objects_len, OB_MODE_POSE);
+	for (ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = BKE_object_pose_armature_get(objects[ob_index]);
+		bArmature *arm = (ob) ? ob->data : NULL;
+		bPose *pose = (ob) ? ob->pose : NULL;
 
-	/* count the number of groups */
-	numGroups = BLI_listbase_count(&pose->agroups);
-	if (numGroups == 0)
-		return 0;
+		/* Sanity checks. */
+		if (ELEM(NULL, ob, pose, arm)) {
+			continue;
+		}
+
+		ob->id.tag &= ~LIB_TAG_DOIT;
+		groups_len = MAX2(groups_len, BLI_listbase_count(&pose->agroups));
+	}
+
+	/* Nothing to do here. */
+	if (groups_len == 0) {
+		MEM_freeN(objects);
+		return false;
+	}
 
 	/* alloc a small array to keep track of the groups to use
 	 *  - each cell stores on/off state for whether group should be used
-	 *	- size is (numGroups + 1), since (index = 0) is used for no-group
+	 *	- size is (groups_len + 1), since (index = 0) is used for no-group
 	 */
-	group_flags = MEM_callocN(numGroups + 1, "pose_select_same_group");
+	groups_len++;
+	group_flags_array = MEM_callocN(objects_len * groups_len * sizeof(bool), "pose_select_same_group");
 
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+	ob_index = -1;
+	ob_prev = NULL;
+	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object, *ob)
 	{
+		if (ob != ob_prev) {
+			ob_index++;
+			group_flags = group_flags_array + (ob_index * groups_len);
+			ob_prev = ob;
+		}
+
 		/* keep track of group as group to use later? */
 		if (pchan->bone->flag & BONE_SELECTED) {
-			group_flags[pchan->agrp_index] = 1;
+			group_flags[pchan->agrp_index] = true;
 			tagged = true;
 		}
 
 		/* deselect all bones before selecting new ones? */
-		if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0)
+		if ((extend == false) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			pchan->bone->flag &= ~BONE_SELECTED;
+		}
 	}
 	CTX_DATA_END;
 
 	/* small optimization: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
+		ob_index = -1;
+		ob_prev = NULL;
 		/* only if group matches (and is not selected or current bone) */
-		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+		CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
 		{
+			if (ob != ob_prev) {
+				ob_index++;
+				group_flags = group_flags_array + (ob_index * groups_len);
+				ob_prev = ob;
+			}
+
 			if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 				/* check if the group used by this bone is counted */
 				if (group_flags[pchan->agrp_index]) {
 					pchan->bone->flag |= BONE_SELECTED;
-					changed = true;
+					ob->id.tag |= LIB_TAG_DOIT;
 				}
 			}
 		}
 		CTX_DATA_END;
 	}
 
-	/* free temp info */
-	MEM_freeN(group_flags);
+	for (ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *ob = objects[ob_index];
+		if (ob->id.tag & LIB_TAG_DOIT) {
+			ED_pose_bone_select_tag_update(ob);
+			changed = true;
+		}
+	}
+
+	/* Cleanup. */
+	MEM_freeN(group_flags_array);
+	MEM_freeN(objects);
 
 	return changed;
 }
@@ -848,6 +890,11 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	bool changed = false;
 
+	if (ELEM(type, POSE_SEL_SAME_LAYER, POSE_SEL_SAME_KEYINGSET)) {
+		BKE_report(op->reports, RPT_ERROR, "Mode not supported at the moment");
+		return OPERATOR_CANCELLED;
+	}
+
 	/* sanity check */
 	if (ob->pose == NULL)
 		return OPERATOR_CANCELLED;
@@ -859,7 +906,7 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 			break;
 
 		case POSE_SEL_SAME_GROUP: /* group */
-			changed = pose_select_same_group(C, ob, extend);
+			changed = pose_select_same_group(C, extend);
 			break;
 
 		case POSE_SEL_SAME_KEYINGSET: /* Keying Set */
@@ -869,11 +916,6 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 		default:
 			printf("pose_select_grouped() - Unknown selection type %u\n", type);
 			break;
-	}
-
-	/* notifiers for updates */
-	if (changed) {
-		ED_pose_bone_select_tag_update(ob);
 	}
 
 	/* report done status */
