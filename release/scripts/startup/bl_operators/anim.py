@@ -197,7 +197,7 @@ class ANIM_OT_keying_set_export(Operator):
         return {'RUNNING_MODAL'}
 
 
-class BakeAction(Operator):
+class NLA_OT_bake(Operator):
     """Bake all selected objects loc/scale/rotation animation to an action"""
     bl_idname = "nla.bake"
     bl_label = "Bake Action"
@@ -420,7 +420,7 @@ class UpdateAnimatedTransformConstraint(Operator):
 
 classes = (
     ANIM_OT_keying_set_export,
-    BakeAction,
+    NLA_OT_bake,
     ClearUselessActions,
     UpdateAnimatedTransformConstraint,
 )
