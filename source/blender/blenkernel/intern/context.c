@@ -1198,6 +1198,11 @@ int CTX_data_selected_pose_bones(const bContext *C, ListBase *list)
 	return ctx_data_collection_get(C, "selected_pose_bones", list);
 }
 
+int CTX_data_selected_pose_bones_from_active_object(const bContext *C, ListBase *list)
+{
+	return ctx_data_collection_get(C, "selected_pose_bones_from_active_object", list);
+}
+
 int CTX_data_visible_pose_bones(const bContext *C, ListBase *list)
 {
 	return ctx_data_collection_get(C, "visible_pose_bones", list);
