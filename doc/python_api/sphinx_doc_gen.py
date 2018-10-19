@@ -979,6 +979,7 @@ def pymodule2sphinx(basepath, module_name, module, title):
 
 # Changes in Blender will force errors here
 context_type_map = {
+    # context_member: (RNA type, is_collection)
     "active_base": ("ObjectBase", False),
     "active_bone": ("EditBone", False),
     "active_gpencil_brush": ("GPencilSculptBrush", False),
@@ -1040,6 +1041,7 @@ context_type_map = {
     "selected_nodes": ("Node", True),
     "selected_objects": ("Object", True),
     "selected_pose_bones": ("PoseBone", True),
+    "selected_pose_bones_from_active_object": ("PoseBone", True),
     "selected_sequences": ("Sequence", True),
     "sequences": ("Sequence", True),
     "smoke": ("SmokeModifier", False),
@@ -1049,6 +1051,7 @@ context_type_map = {
     "texture_slot": ("MaterialTextureSlot", False),
     "texture_user": ("ID", False),
     "texture_user_property": ("Property", False),
+    "uv_sculpt_object": ("Object", False),
     "vertex_paint_object": ("Object", False),
     "visible_bases": ("ObjectBase", True),
     "visible_bones": ("EditBone", True),
