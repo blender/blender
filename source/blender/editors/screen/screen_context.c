@@ -437,7 +437,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 				if (ED_uvedit_test(obedit)) {
 					WorkSpace *workspace = CTX_wm_workspace(C);
 					if ((workspace->tools_space_type == SPACE_IMAGE) &&
-					    (workspace->tools_mode == SI_MODE_VIEW))
+					    (workspace->tools_mode == SI_MODE_UV))
 					{
 						CTX_data_id_pointer_set(result, &obact->id);
 					}

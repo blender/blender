@@ -168,7 +168,8 @@ const EnumPropertyItem rna_enum_space_action_mode_items[] = {
 #undef SACT_ITEM_CACHEFILE
 
 const EnumPropertyItem rna_enum_space_image_mode_items[] = {
-	{SI_MODE_VIEW, "VIEW", ICON_FILE_IMAGE, "View", "View the image and UV edit in mesh editmode"},
+	{SI_MODE_VIEW, "VIEW", ICON_FILE_IMAGE, "View", "View the image"},
+	{SI_MODE_UV, "UV", ICON_GROUP_UVS, "UV Edit", "UV edit in mesh editmode"},
 	{SI_MODE_PAINT, "PAINT", ICON_TPAINT_HLT, "Paint", "2D image painting mode"},
 	{SI_MODE_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask editing"},
 	{0, NULL, 0, NULL, NULL}

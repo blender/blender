@@ -102,6 +102,21 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				BKE_workspace_tool_remove(workspace, workspace->tools.first);
 			}
 		}
+
+		{
+			/* 'UV Editing' should use UV mode. */
+			bScreen *screen = BLI_findstring(&bmain->screen, "Default.005", offsetof(ID, name) + 2);
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_IMAGE) {
+						SpaceImage *sima = (SpaceImage *)sl;
+						if (sima->mode == SI_MODE_VIEW) {
+							sima->mode = SI_MODE_UV;
+						}
+					}
+				}
+			}
+		}
 	}
 
 	/* For 2D animation template. */

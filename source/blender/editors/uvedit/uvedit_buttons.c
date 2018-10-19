@@ -210,6 +210,10 @@ static void do_uvedit_vertex(bContext *C, void *UNUSED(arg), int event)
 
 static bool image_panel_uv_poll(const bContext *C, PanelType *UNUSED(pt))
 {
+	SpaceImage *sima = CTX_wm_space_image(C);
+	if (sima->mode != SI_MODE_UV) {
+		return false;
+	}
 	Object *obedit = CTX_data_edit_object(C);
 	return ED_uvedit_test(obedit);
 }

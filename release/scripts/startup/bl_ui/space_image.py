@@ -585,7 +585,8 @@ class IMAGE_HT_header(Header):
             sub.active = toolsettings.proportional_edit != 'DISABLED'
             sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
-        layout.prop(sima, "pivot_point", icon_only=True)
+        if show_uvedit or show_maskedit:
+            layout.prop(sima, "pivot_point", icon_only=True)
 
         row = layout.row()
         row.popover(

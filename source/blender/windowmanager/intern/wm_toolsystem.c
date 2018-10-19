@@ -214,7 +214,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 			}
 		}
 		if ((tref->space_type == SPACE_IMAGE) &&
-		    (tref->mode == SI_MODE_VIEW))
+		    (tref->mode == SI_MODE_UV))
 		{
 			/* Note that switching uv-sculpt boolean is a hack at the moment.
 			 * It would be best to make this either an operator or a higher level mode (like mesh-object sculpt mode). */
@@ -259,7 +259,7 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 	else {
 		/* XXX, this part is weak, disables uv_sculpt when non uv-tool set. */
 		if ((tref->space_type == SPACE_IMAGE) &&
-		    (tref->mode == SI_MODE_VIEW))
+		    (tref->mode == SI_MODE_UV))
 		{
 			Main *bmain = CTX_data_main(C);
 			wmWindowManager *wm = bmain->wm.first;

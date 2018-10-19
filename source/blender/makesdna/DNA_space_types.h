@@ -943,7 +943,8 @@ typedef enum eSpaceImage_UVDT_Stretch {
 typedef enum eSpaceImage_Mode {
 	SI_MODE_VIEW  = 0,
 	SI_MODE_PAINT = 1,
-	SI_MODE_MASK  = 2   /* note: mesh edit mode overrides mask */
+	SI_MODE_MASK  = 2,
+	SI_MODE_UV    = 3,
 } eSpaceImage_Mode;
 
 /* SpaceImage.sticky

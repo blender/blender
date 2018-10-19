@@ -361,8 +361,14 @@ bool ED_space_image_show_paint(SpaceImage *sima)
 
 bool ED_space_image_show_uvedit(SpaceImage *sima, Object *obedit)
 {
-	if (sima && (ED_space_image_show_render(sima) || ED_space_image_show_paint(sima)))
-		return false;
+	if (sima) {
+		if (ED_space_image_show_render(sima)) {
+			return false;
+		}
+		if (sima->mode != SI_MODE_UV) {
+			return false;
+		}
+	}
 
 	if (obedit && obedit->type == OB_MESH) {
 		struct BMEditMesh *em = BKE_editmesh_from_object(obedit);

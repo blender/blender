@@ -103,8 +103,9 @@ static void rna_WorkspaceTool_refresh_from_context(
 				}
 			}
 			else if ((tref->space_type == SPACE_IMAGE) &&
-			         (tref->mode == SI_MODE_VIEW) &&
-			         (ob->mode & OB_MODE_EDIT))
+			         (tref->mode == SI_MODE_UV) &&
+			         (ob->mode &
+			          OB_MODE_EDIT))
 			{
 				const EnumPropertyItem *items = rna_enum_uv_sculpt_tool_items;
 				const int i = RNA_enum_from_value(items, ts->uv_sculpt_tool);

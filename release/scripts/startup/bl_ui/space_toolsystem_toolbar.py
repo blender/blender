@@ -1810,6 +1810,8 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             # for all modes
         ],
         'VIEW': [
+        ],
+        'UV': [
             _defs_image_generic.cursor,
             *_tools_select,
             None,
