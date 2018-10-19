@@ -7976,6 +7976,10 @@ eRNAOverrideStatus RNA_property_static_override_status(PointerRNA *ptr, Property
 {
 	int override_status = 0;
 
+	if (!BKE_override_static_is_enabled()) {
+		return override_status;
+	}
+
 	if (!ptr || !prop || !ptr->id.data || !((ID *)ptr->id.data)->override_static) {
 		return override_status;
 	}

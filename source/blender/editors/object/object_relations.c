@@ -2404,7 +2404,8 @@ static bool make_override_static_poll(bContext *C)
 	Object *obact = CTX_data_active_object(C);
 
 	/* Object must be directly linked to be overridable. */
-	return (ED_operator_objectmode(C) && obact != NULL &&
+	return (BKE_override_static_is_enabled() &&
+	        ED_operator_objectmode(C) && obact != NULL &&
 	        ((ID_IS_LINKED(obact) && obact->id.tag & LIB_TAG_EXTERN) ||
 	         (!ID_IS_LINKED(obact) && obact->dup_group != NULL && ID_IS_LINKED(obact->dup_group))));
 }

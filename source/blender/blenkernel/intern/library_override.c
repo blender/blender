@@ -59,6 +59,19 @@ static void bke_override_property_operation_copy(IDOverrideStaticPropertyOperati
 static void bke_override_property_clear(IDOverrideStaticProperty *op);
 static void bke_override_property_operation_clear(IDOverrideStaticPropertyOperation *opop);
 
+/* Temp, for until static override is ready and tested enough to go 'public', we hide it by default in UI and such. */
+static bool _override_static_enabled = false;
+
+void BKE_override_static_enable(const bool do_enable)
+{
+	_override_static_enabled = do_enable;
+}
+
+bool BKE_override_static_is_enabled()
+{
+	return _override_static_enabled;
+}
+
 /** Initialize empty overriding of \a reference_id by \a local_id. */
 IDOverrideStatic *BKE_override_static_init(ID *local_id, ID *reference_id)
 {

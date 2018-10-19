@@ -355,7 +355,7 @@ static ID *rna_ID_copy(ID *id, Main *bmain)
 
 static ID *rna_ID_override_create(ID *id, Main *bmain)
 {
-	if (id->lib == NULL) {
+	if (!BKE_override_static_is_enabled() || id->lib == NULL) {
 		return NULL;
 	}
 

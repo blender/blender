@@ -55,6 +55,7 @@
 #include "BKE_appdir.h"
 #include "BKE_blender_version.h"
 #include "BKE_global.h"
+#include "BKE_library_override.h"
 
 #include "DNA_ID.h"
 
@@ -358,6 +359,29 @@ static PyObject *bpy_app_autoexec_fail_message_get(PyObject *UNUSED(self), void 
 }
 
 
+PyDoc_STRVAR(bpy_app_use_static_override_doc,
+"Boolean, whether static override is exposed in UI or not."
+);
+static PyObject *bpy_app_use_static_override_get(PyObject *UNUSED(self), void *UNUSED(closure))
+{
+	return PyBool_FromLong((long)BKE_override_static_is_enabled());
+}
+
+static int bpy_app_use_static_override_set(PyObject *UNUSED(self), PyObject *value, void *UNUSED(closure))
+{
+	const int param = PyC_Long_AsBool(value);
+
+	if (param == -1 && PyErr_Occurred()) {
+		PyErr_SetString(PyExc_TypeError, "bpy.app.use_static_override must be a boolean");
+		return -1;
+	}
+
+	BKE_override_static_enable((const bool)param);
+
+	return 0;
+}
+
+
 static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug",           bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG},
 	{(char *)"debug_ffmpeg",    bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_FFMPEG},
@@ -375,6 +399,8 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug_simdata",   bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_SIMDATA},
 	{(char *)"debug_gpumem",    bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_GPU_MEM},
 	{(char *)"debug_io",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_IO},
+
+	{(char *)"use_static_override", bpy_app_use_static_override_get, bpy_app_use_static_override_set, (char *)bpy_app_use_static_override_doc, NULL},
 
 	{(char *)"binary_path_python", bpy_app_binary_path_python_get, NULL, (char *)bpy_app_binary_path_python_doc, NULL},
 

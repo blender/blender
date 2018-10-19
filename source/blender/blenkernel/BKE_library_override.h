@@ -38,6 +38,9 @@ struct IDOverrideStaticProperty;
 struct IDOverrideStaticPropertyOperation;
 struct Main;
 
+void BKE_override_static_enable(const bool do_enable);
+bool BKE_override_static_is_enabled(void);
+
 struct IDOverrideStatic *BKE_override_static_init(struct ID *local_id, struct ID *reference_id);
 void BKE_override_static_copy(struct ID *dst_id, const struct ID *src_id);
 void BKE_override_static_clear(struct IDOverrideStatic *override);
