@@ -39,6 +39,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_object_types.h"
 #include "DNA_workspace_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BKE_colortools.h"
 #include "BKE_layer.h"
@@ -103,9 +104,20 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 			}
 		}
 
+		/* Name all screens by their workspaces (avoids 'Default.###' names). */
+		{
+			/* Default only has one window. */
+			wmWindow *win = ((wmWindowManager *)bmain->wm.first)->windows.first;
+			for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
+				WorkSpaceLayout *layout = BKE_workspace_hook_layout_for_workspace_get(win->workspace_hook, workspace);
+				bScreen *screen = layout->screen;
+				BLI_strncpy(screen->id.name + 2, workspace->id.name + 2, sizeof(screen->id.name) - 2);
+			}
+		}
+
 		{
 			/* 'UV Editing' should use UV mode. */
-			bScreen *screen = BLI_findstring(&bmain->screen, "Default.005", offsetof(ID, name) + 2);
+			bScreen *screen = BLI_findstring(&bmain->screen, "UV Editing", offsetof(ID, name) + 2);
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_IMAGE) {
