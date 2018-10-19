@@ -44,8 +44,6 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-#include "RNA_access.h"
-
 #include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -81,6 +79,9 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
+#include "RNA_access.h"
+#include "RNA_define.h"
 
 /* local module include */
 #include "transform.h"
@@ -1762,6 +1763,15 @@ void TRANSFORM_GGT_gizmo(wmGizmoGroupType *gzgt)
 	gzgt->refresh = WIDGETGROUP_gizmo_refresh;
 	gzgt->message_subscribe = WIDGETGROUP_gizmo_message_subscribe;
 	gzgt->draw_prepare = WIDGETGROUP_gizmo_draw_prepare;
+
+	static const EnumPropertyItem rna_enum_gizmo_items[] = {
+		{SCE_GIZMO_SHOW_TRANSLATE, "TRANSLATE", 0, "Move", ""},
+		{SCE_GIZMO_SHOW_ROTATE, "ROTATE", 0, "Rotate", ""},
+		{SCE_GIZMO_SHOW_SCALE, "SCALE", 0, "Scale", ""},
+		{0, "NONE", 0, "None", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+	RNA_def_enum(gzgt->srna, "drag_action", rna_enum_gizmo_items, SCE_GIZMO_SHOW_TRANSLATE, "Drag Action", "");
 }
 
 /** \} */

@@ -47,6 +47,7 @@
 #include "WM_api.h"
 #include "WM_message.h"
 #include "WM_types.h"
+#include "WM_toolsystem.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -1119,6 +1120,57 @@ static void TRANSFORM_OT_transform(struct wmOperatorType *ot)
 	        ot, P_AXIS | P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_GPENCIL_EDIT | P_CENTER);
 }
 
+static int transform_from_gizmo_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *UNUSED(event))
+{
+	bToolRef *tref = WM_toolsystem_ref_from_context(C);
+	if (tref) {
+		ARegion *ar = CTX_wm_region(C);
+		wmGizmoMap *gzmap = ar->gizmo_map;
+		wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "TRANSFORM_GGT_gizmo") : NULL;
+		if (gzgroup != NULL) {
+			PointerRNA gzg_ptr;
+			WM_toolsystem_ref_properties_ensure_from_gizmo_group(tref, gzgroup->type, &gzg_ptr);
+			const int drag_action = RNA_enum_get(&gzg_ptr, "drag_action");
+			const char *op_id = NULL;
+			switch (drag_action) {
+				case SCE_GIZMO_SHOW_TRANSLATE:
+					op_id = "TRANSFORM_OT_translate";
+					break;
+				case SCE_GIZMO_SHOW_ROTATE:
+					op_id = "TRANSFORM_OT_rotate";
+					break;
+				case SCE_GIZMO_SHOW_SCALE:
+					op_id = "TRANSFORM_OT_resize";
+					break;
+				default:
+					break;
+			}
+			if (op_id) {
+				wmOperatorType *ot = WM_operatortype_find(op_id, true);
+				PointerRNA op_ptr;
+				WM_operator_properties_create_ptr(&op_ptr, ot);
+				RNA_boolean_set(&op_ptr, "release_confirm", true);
+				WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &op_ptr);
+				WM_operator_properties_free(&op_ptr);
+				return OPERATOR_FINISHED;
+			}
+		}
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+/* Use with 'TRANSFORM_GGT_gizmo'. */
+static void TRANSFORM_OT_from_gizmo(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Transform From Gizmo";
+	ot->idname = "TRANSFORM_OT_from_gizmo";
+	ot->flag = 0;
+
+	/* api callbacks */
+	ot->invoke = transform_from_gizmo_invoke;
+}
+
 void transform_operatortypes(void)
 {
 	TransformModeItem *tmode;
@@ -1132,6 +1184,8 @@ void transform_operatortypes(void)
 	WM_operatortype_append(TRANSFORM_OT_select_orientation);
 	WM_operatortype_append(TRANSFORM_OT_create_orientation);
 	WM_operatortype_append(TRANSFORM_OT_delete_orientation);
+
+	WM_operatortype_append(TRANSFORM_OT_from_gizmo);
 }
 
 void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spaceid)

@@ -369,8 +369,13 @@ class _defs_transform:
     @ToolDef.from_fn
     def transform():
         def draw_settings(context, layout, tool):
+            layout.label(text="Gizmos:")
             tool_settings = context.tool_settings
             layout.prop(tool_settings, "use_gizmo_mode")
+
+            props = tool.gizmo_group_properties("TRANSFORM_GGT_gizmo")
+            layout.prop(props, "drag_action")
+
         return dict(
             text="Transform",
             description=(
@@ -378,7 +383,9 @@ class _defs_transform:
             ),
             icon="ops.transform.transform",
             widget="TRANSFORM_GGT_gizmo",
-            # No keymap default action, only for gizmo!
+            keymap=(
+                ("transform.from_gizmo", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
             draw_settings=draw_settings,
         )
 
