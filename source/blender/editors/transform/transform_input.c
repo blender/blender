@@ -140,7 +140,7 @@ void setCustomPoints(TransInfo *UNUSED(t), MouseInput *mi, const int mval_start[
 void setCustomPointsFromDirection(TransInfo *t, MouseInput *mi, const float dir[2])
 {
 	BLI_ASSERT_UNIT_V2(dir);
-	const int win_axis = t->ar ? ((abs(t->ar->winx * dir[0]) + abs(t->ar->winy * dir[1])) / 2) : 1;
+	const int win_axis = t->ar ? ((abs((int)(t->ar->winx * dir[0])) + abs((int)(t->ar->winy * dir[1]))) / 2) : 1;
 	const int mval_start[2] = {
 		mi->imval[0] + dir[0] * win_axis,
 		mi->imval[1] + dir[1] * win_axis,

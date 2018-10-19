@@ -77,7 +77,7 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 	        RNA_boolean_get(op->ptr, "use_auto_merge") &&
 	        (dupli == false) &&
 	        (steps >= 3) &&
-	        fabsf((fabsf(angle) - (M_PI * 2))) <= 1e-6f);
+	        fabsf((fabsf(angle) - (float)(M_PI * 2))) <= 1e-6f);
 
 	if (is_zero_v3(axis)) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");

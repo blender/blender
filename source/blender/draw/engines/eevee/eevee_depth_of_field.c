@@ -59,7 +59,7 @@ static struct {
 	struct GPUShader *dof_downsample_sh[2];
 	struct GPUShader *dof_scatter_sh[2];
 	struct GPUShader *dof_resolve_sh[2];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{NULL}}; /* Engine data */
 
 extern char datatoc_effect_dof_vert_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
