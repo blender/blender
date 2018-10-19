@@ -875,7 +875,12 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *UNUSED(op), c
 
 	if (ELEM(GS(data.drag_id->name), ID_OB, ID_GR)) {
 		/* For collections and objects we cheat and drag all selected. */
-		TREESTORE(te)->flag |= TSE_SELECTED;
+
+		/* Only drag element under mouse if it was not selected before. */
+		if ((TREESTORE(te)->flag & TSE_SELECTED) == 0) {
+			outliner_flag_set(&soops->tree, TSE_SELECTED, 0);
+			TREESTORE(te)->flag |= TSE_SELECTED;
+		}
 
 		/* Gather all selected elements. */
 		struct IDsSelectedData selected = {
