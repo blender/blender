@@ -42,6 +42,7 @@
 #include "BKE_nla.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_unit.h"
@@ -89,19 +90,15 @@ typedef struct tPoseSlideOp {
 	Scene *scene;       /* current scene */
 	ScrArea *sa;        /* area that we're operating in (needed for modal()) */
 	ARegion *ar;        /* region that we're operating in (needed for modal()) */
-	Object *ob;         /* active object that Pose Info comes from */
-	bArmature *arm;     /* armature for pose */
+	uint objects_len;   /* len of the PoseSlideObject array. */
 
-	ListBase pfLinks;   /* links between posechannels and f-curves  */
+	ListBase pfLinks;   /* links between posechannels and f-curves for all the pose objects. */
 	DLRBT_Tree keys;    /* binary tree for quicker searching for keyframes (when applicable) */
 
 	int cframe;         /* current frame number - global time */
 
 	int prevFrame;      /* frame before current frame (blend-from) - global time */
 	int nextFrame;      /* frame after current frame (blend-to)    - global time */
-
-	float prevFrameF;   /* prevFrame, but in local action time (for F-Curve lookups to work) */
-	float nextFrameF;   /* nextFrame, but in local action time (for F-Curve lookups to work) */
 
 	short mode;         /* sliding mode (ePoseSlide_Modes) */
 	short flag;         /* unused for now, but can later get used for storing runtime settings.... */
@@ -112,7 +109,16 @@ typedef struct tPoseSlideOp {
 	float percentage;   /* 0-1 value for determining the influence of whatever is relevant */
 
 	NumInput num;       /* numeric input */
+
+	struct tPoseSlideObject *ob_data_array;
 } tPoseSlideOp;
+
+typedef struct tPoseSlideObject {
+	Object *ob;         /* active object that Pose Info comes from */
+	float prevFrameF;   /* prevFrame, but in local action time (for F-Curve lookups to work) */
+	float nextFrameF;   /* nextFrame, but in local action time (for F-Curve lookups to work) */
+	bool valid;
+} tPoseSlideObject;
 
 /* Pose Sliding Modes */
 typedef enum ePoseSlide_Modes {
@@ -167,18 +173,15 @@ static const EnumPropertyItem prop_axis_lock_types[] = {
 /* ------------------------------------ */
 
 /* operator init */
-static int pose_slide_init(bContext *C, wmOperator *op, short mode)
+static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
 {
 	tPoseSlideOp *pso;
-	bAction *act = NULL;
 
 	/* init slide-op data */
 	pso = op->customdata = MEM_callocN(sizeof(tPoseSlideOp), "tPoseSlideOp");
 
 	/* get info from context */
 	pso->scene = CTX_data_scene(C);
-	pso->ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	pso->arm = (pso->ob) ? pso->ob->data : NULL;
 	pso->sa = CTX_wm_area(C); /* only really needed when doing modal() */
 	pso->ar = CTX_wm_region(C); /* only really needed when doing modal() */
 
@@ -194,25 +197,38 @@ static int pose_slide_init(bContext *C, wmOperator *op, short mode)
 	pso->channels = RNA_enum_get(op->ptr, "channels");
 	pso->axislock = RNA_enum_get(op->ptr, "axis_lock");
 
-	/* ensure validity of the settings from the context */
-	if (ELEM(NULL, pso->ob, pso->arm, pso->ob->adt, pso->ob->adt->action))
-		return 0;
-
-	act = pso->ob->adt->action;
-
-	/* apply NLA mapping corrections so the frame lookups work */
-	pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
-	pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
-
 	/* for each Pose-Channel which gets affected, get the F-Curves for that channel
-	 * and set the relevant transform flags...
-	 */
-	poseAnim_mapping_get(C, &pso->pfLinks, pso->ob, act);
+	* and set the relevant transform flags...
+	*/
+	poseAnim_mapping_get(C, &pso->pfLinks);
 
-	/* set depsgraph flags */
-	/* make sure the lock is set OK, unlock can be accidentally saved? */
-	pso->ob->pose->flag |= POSE_LOCKED;
-	pso->ob->pose->flag &= ~POSE_DO_UNLOCK;
+	Object **objects = BKE_view_layer_array_from_objects_in_mode_unique_data(CTX_data_view_layer(C),
+	                                                                         &pso->objects_len,
+	                                                                         OB_MODE_POSE);
+	pso->ob_data_array = MEM_callocN(pso->objects_len * sizeof(tPoseSlideObject), "pose slide objects data");
+
+	for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+		tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+		Object *ob_iter = poseAnim_object_get(objects[ob_index]);
+
+		/* Ensure validity of the settings from the context. */
+		if (ob_iter == NULL) {
+			continue;
+		}
+
+		ob_data->ob = ob_iter;
+		ob_data->valid = true;
+
+		/* apply NLA mapping corrections so the frame lookups work */
+		ob_data->prevFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
+		ob_data->nextFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
+
+		/* set depsgraph flags */
+		/* make sure the lock is set OK, unlock can be accidentally saved? */
+		ob_data->ob->pose->flag |= POSE_LOCKED;
+		ob_data->ob->pose->flag &= ~POSE_DO_UNLOCK;
+	}
+	MEM_freeN(objects);
 
 	/* do basic initialize of RB-BST used for finding keyframes, but leave the filling of it up
 	 * to the caller of this (usually only invoke() will do it, to make things more efficient).
@@ -242,6 +258,10 @@ static void pose_slide_exit(wmOperator *op)
 		/* free RB-BST for keyframes (if it contained data) */
 		BLI_dlrbTree_free(&pso->keys);
 
+		if (pso->ob_data_array != NULL) {
+			MEM_freeN(pso->ob_data_array);
+		}
+
 		/* free data itself */
 		MEM_freeN(pso);
 	}
@@ -256,21 +276,50 @@ static void pose_slide_exit(wmOperator *op)
 static void pose_slide_refresh(bContext *C, tPoseSlideOp *pso)
 {
 	/* wrapper around the generic version, allowing us to add some custom stuff later still */
-	poseAnim_mapping_refresh(C, pso->scene, pso->ob);
+	for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+		tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+		if (ob_data->valid) {
+			poseAnim_mapping_refresh(C, pso->scene, ob_data->ob);
+		}
+	}
+}
+
+/** Although this lookup is not ideal, we won't be dealing with a lot of objects at a given time.
+  * But if it comes to that we can instead store prev/next frme in the tPChanFCurveLink. */
+static bool pose_frame_range_from_object_get(tPoseSlideOp *pso, Object *ob, float *prevFrameF, float *nextFrameF)
+{
+	for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+		tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+		Object *ob_iter = ob_data->ob;
+
+		if (ob_iter == ob) {
+			*prevFrameF = ob_data->prevFrameF;
+			*nextFrameF = ob_data->nextFrameF;
+			return true;
+		}
+	}
+	return false;
 }
 
 /* helper for apply() - perform sliding for some value */
-static void pose_slide_apply_val(tPoseSlideOp *pso, FCurve *fcu, float *val)
+static void pose_slide_apply_val(
+        tPoseSlideOp *pso,
+        FCurve *fcu,
+        Object *ob,
+        float *val)
 {
+	float prevFrameF, nextFrameF;
 	float cframe = (float)pso->cframe;
 	float sVal, eVal;
 	float w1, w2;
 
+	pose_frame_range_from_object_get(pso, ob, &prevFrameF, &nextFrameF);
+
 	/* get keyframe values for endpoint poses to blend with */
 	/* previous/start */
-	sVal = evaluate_fcurve(fcu, pso->prevFrameF);
+	sVal = evaluate_fcurve(fcu, prevFrameF);
 	/* next/end */
-	eVal = evaluate_fcurve(fcu, pso->nextFrameF);
+	eVal = evaluate_fcurve(fcu, nextFrameF);
 
 	/* if both values are equal, don't do anything */
 	if (IS_EQF(sVal, eVal)) {
@@ -364,7 +413,7 @@ static void pose_slide_apply_vec3(tPoseSlideOp *pso, tPChanFCurveLink *pfl, floa
 		    ((lock & PS_LOCK_Z) && (idx == 2)))
 		{
 			/* just work on these channels one by one... there's no interaction between values */
-			pose_slide_apply_val(pso, fcu, &vec[fcu->array_index]);
+			pose_slide_apply_val(pso, fcu, pfl->ob, &vec[fcu->array_index]);
 		}
 	}
 
@@ -413,14 +462,14 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl, con
 					case PROP_FLOAT:
 					{
 						float tval = RNA_property_float_get(&ptr, prop);
-						pose_slide_apply_val(pso, fcu, &tval);
+						pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
 						RNA_property_float_set(&ptr, prop, tval);
 						break;
 					}
 					case PROP_INT:
 					{
 						float tval = (float)RNA_property_int_get(&ptr, prop);
-						pose_slide_apply_val(pso, fcu, &tval);
+						pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
 						RNA_property_int_set(&ptr, prop, (int)tval);
 						break;
 					}
@@ -429,7 +478,7 @@ static void pose_slide_apply_props(tPoseSlideOp *pso, tPChanFCurveLink *pfl, con
 					case PROP_BOOLEAN:
 					{
 						float tval = (float)RNA_property_boolean_get(&ptr, prop);
-						pose_slide_apply_val(pso, fcu, &tval);
+						pose_slide_apply_val(pso, fcu, pfl->ob, &tval);
 						RNA_property_boolean_set(&ptr, prop, (int)tval); // XXX: do we need threshold clamping here?
 						break;
 					}
@@ -459,6 +508,12 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 	LinkData *ld = NULL;
 	char *path = NULL;
 	float cframe;
+	float prevFrameF, nextFrameF;
+
+	if (!pose_frame_range_from_object_get(pso, pfl->ob, &prevFrameF, &nextFrameF)) {
+		BLI_assert(!"Invalid pfl data");
+		return;
+	}
 
 	/* get the path to use - this should be quaternion rotations only (needs care) */
 	path = BLI_sprintfN("%s.%s", pfl->pchan_path, "rotation_quaternion");
@@ -492,15 +547,15 @@ static void pose_slide_apply_quat(tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 		float quat_prev[4], quat_next[4];
 
 		/* get 2 quats */
-		quat_prev[0] = evaluate_fcurve(fcu_w, pso->prevFrameF);
-		quat_prev[1] = evaluate_fcurve(fcu_x, pso->prevFrameF);
-		quat_prev[2] = evaluate_fcurve(fcu_y, pso->prevFrameF);
-		quat_prev[3] = evaluate_fcurve(fcu_z, pso->prevFrameF);
+		quat_prev[0] = evaluate_fcurve(fcu_w, prevFrameF);
+		quat_prev[1] = evaluate_fcurve(fcu_x, prevFrameF);
+		quat_prev[2] = evaluate_fcurve(fcu_y, prevFrameF);
+		quat_prev[3] = evaluate_fcurve(fcu_z, prevFrameF);
 
-		quat_next[0] = evaluate_fcurve(fcu_w, pso->nextFrameF);
-		quat_next[1] = evaluate_fcurve(fcu_x, pso->nextFrameF);
-		quat_next[2] = evaluate_fcurve(fcu_y, pso->nextFrameF);
-		quat_next[3] = evaluate_fcurve(fcu_z, pso->nextFrameF);
+		quat_next[0] = evaluate_fcurve(fcu_w, nextFrameF);
+		quat_next[1] = evaluate_fcurve(fcu_x, nextFrameF);
+		quat_next[2] = evaluate_fcurve(fcu_y, nextFrameF);
+		quat_next[3] = evaluate_fcurve(fcu_z, nextFrameF);
 
 		/* perform blending */
 		if (pso->mode == POSESLIDE_BREAKDOWN) {
@@ -553,9 +608,21 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 		pso->prevFrame--;
 		pso->nextFrame++;
 
-		/* apply NLA mapping corrections so the frame lookups work */
-		pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
-		pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
+		for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+			tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+
+			if (!ob_data->valid) {
+				continue;
+			}
+
+			/* apply NLA mapping corrections so the frame lookups work */
+			ob_data->prevFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
+			                                              ob_data->prevFrameF,
+			                                              NLATIME_CONVERT_UNMAP);
+			ob_data->nextFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
+			                                              ob_data->nextFrameF,
+			                                              NLATIME_CONVERT_UNMAP);
+		}
 	}
 
 	/* for each link, handle each set of transforms */
@@ -613,7 +680,7 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 static void pose_slide_autoKeyframe(bContext *C, tPoseSlideOp *pso)
 {
 	/* wrapper around the generic call */
-	poseAnim_mapping_autoKeyframe(C, pso->scene, pso->ob, &pso->pfLinks, (float)pso->cframe);
+	poseAnim_mapping_autoKeyframe(C, pso->scene, &pso->pfLinks, (float)pso->cframe);
 }
 
 /* reset changes made to current pose */
@@ -712,7 +779,6 @@ static void pose_slide_draw_status(tPoseSlideOp *pso)
 static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *pso)
 {
 	tPChanFCurveLink *pfl;
-	AnimData *adt = pso->ob->adt;
 	wmWindow *win = CTX_wm_window(C);
 
 	/* for each link, add all its keyframes to the search tree */
@@ -722,7 +788,7 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 		/* do this for each F-Curve */
 		for (ld = pfl->fcurves.first; ld; ld = ld->next) {
 			FCurve *fcu = (FCurve *)ld->data;
-			fcurve_to_keylist(adt, fcu, &pso->keys);
+			fcurve_to_keylist(pfl->ob->adt, fcu, &pso->keys);
 		}
 	}
 
@@ -758,8 +824,17 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 		}
 
 		/* apply NLA mapping corrections so the frame lookups work */
-		pso->prevFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->prevFrame, NLATIME_CONVERT_UNMAP);
-		pso->nextFrameF = BKE_nla_tweakedit_remap(pso->ob->adt, pso->nextFrame, NLATIME_CONVERT_UNMAP);
+		for (uint ob_index = 0; ob_index < pso->objects_len; ob_index++) {
+			tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
+			if (ob_data->valid) {
+				ob_data->prevFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
+				                                              ob_data->prevFrameF,
+				                                              NLATIME_CONVERT_UNMAP);
+				ob_data->nextFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
+				                                              ob_data->nextFrameF,
+				                                              NLATIME_CONVERT_UNMAP);
+			}
+		}
 	}
 	else {
 		BKE_report(op->reports, RPT_ERROR, "No keyframes to slide between");
@@ -1260,10 +1335,11 @@ typedef union tPosePropagate_ModeData {
  *      if this happens to be a major issue, scrap this, and just make this happen
  *		independently per F-Curve
  */
-static float pose_propagate_get_boneHoldEndFrame(Object *ob, tPChanFCurveLink *pfl, float startFrame)
+static float pose_propagate_get_boneHoldEndFrame(tPChanFCurveLink *pfl, float startFrame)
 {
 	DLRBT_Tree keys;
 
+	Object *ob = pfl->ob;
 	AnimData *adt = ob->adt;
 	LinkData *ld;
 	float endFrame = startFrame;
@@ -1489,8 +1565,7 @@ static void pose_propagate_fcurve(wmOperator *op, Object *ob, FCurve *fcu,
 static int pose_propagate_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bAction *act = (ob && ob->adt) ? ob->adt->action : NULL;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	ListBase pflinks = {NULL, NULL};
 	tPChanFCurveLink *pfl;
@@ -1498,18 +1573,15 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 	tPosePropagate_ModeData modeData;
 	const int mode = RNA_enum_get(op->ptr, "mode");
 
-	/* sanity checks */
-	if (ob == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No object to propagate poses for");
-		return OPERATOR_CANCELLED;
-	}
-	if (act == NULL) {
+	/* isolate F-Curves related to the selected bones */
+	poseAnim_mapping_get(C, &pflinks);
+
+	if (BLI_listbase_is_empty(&pflinks)) {
+		/* There is a change the reason the list is empty is that there is no valid object to propagate poses for.
+		 * This is very unlikely though, so we focus on the most likely issue. */
 		BKE_report(op->reports, RPT_ERROR, "No keyframed poses to propagate to");
 		return OPERATOR_CANCELLED;
 	}
-
-	/* isolate F-Curves related to the selected bones */
-	poseAnim_mapping_get(C, &pflinks, ob, act);
 
 	/* mode-specific data preprocessing (requiring no access to curves) */
 	if (mode == POSE_PROPAGATE_SELECTED_MARKERS) {
@@ -1530,12 +1602,13 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 			/* we store in endFrame the end frame of the "long keyframe" (i.e. a held value) starting
 			 * from the keyframe that occurs after the current frame
 			 */
-			modeData.end_frame = pose_propagate_get_boneHoldEndFrame(ob, pfl, (float)CFRA);
+			modeData.end_frame = pose_propagate_get_boneHoldEndFrame(pfl, (float)CFRA);
 		}
 
 		/* go through propagating pose to keyframes, curve by curve */
-		for (ld = pfl->fcurves.first; ld; ld = ld->next)
-			pose_propagate_fcurve(op, ob, (FCurve *)ld->data, (float)CFRA, modeData);
+		for (ld = pfl->fcurves.first; ld; ld = ld->next) {
+			pose_propagate_fcurve(op, pfl->ob, (FCurve *)ld->data, (float)CFRA, modeData);
+		}
 	}
 
 	/* free temp data */
@@ -1545,7 +1618,9 @@ static int pose_propagate_exec(bContext *C, wmOperator *op)
 		BLI_freelistN(&modeData.sel_markers);
 
 	/* updates + notifiers */
-	poseAnim_mapping_refresh(C, scene, ob);
+	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob) {
+		poseAnim_mapping_refresh(C, scene, ob);
+	} FOREACH_OBJECT_IN_MODE_END;
 
 	return OPERATOR_FINISHED;
 }

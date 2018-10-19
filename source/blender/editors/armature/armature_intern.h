@@ -147,6 +147,8 @@ void POSE_OT_bone_layers(struct wmOperatorType *ot);
 typedef struct tPChanFCurveLink {
 	struct tPChanFCurveLink *next, *prev;
 
+	struct Object *ob;              /* Object this Pose Channel belongs to. */
+
 	ListBase fcurves;               /* F-Curves for this PoseChannel (wrapped with LinkData) */
 	struct bPoseChannel *pchan;     /* Pose Channel which data is attached to */
 
@@ -170,12 +172,13 @@ typedef struct tPChanFCurveLink {
 
 /* ----------- */
 
-void poseAnim_mapping_get(struct bContext *C, ListBase *pfLinks, struct Object *ob, struct bAction *act);
+struct Object *poseAnim_object_get(struct Object *ob_);
+void poseAnim_mapping_get(struct bContext *C, ListBase *pfLinks);
 void poseAnim_mapping_free(ListBase *pfLinks);
 
 void poseAnim_mapping_refresh(struct bContext *C, struct Scene *scene, struct Object *ob);
 void poseAnim_mapping_reset(ListBase *pfLinks);
-void poseAnim_mapping_autoKeyframe(struct bContext *C, struct Scene *scene, struct Object *ob, ListBase *pfLinks, float cframe);
+void poseAnim_mapping_autoKeyframe(struct bContext *C, struct Scene *scene, ListBase *pfLinks, float cframe);
 
 LinkData *poseAnim_mapping_getNextFCurve(ListBase *fcuLinks, LinkData *prev, const char *path);
 
