@@ -158,6 +158,18 @@ static int rna_WorkspaceTool_has_datablock_get(PointerRNA *ptr)
 	return (tref->runtime) ? (tref->runtime->data_block[0] != '\0') : false;
 }
 
+static void rna_WorkspaceTool_widget_get(PointerRNA *ptr, char *value)
+{
+	bToolRef *tref = ptr->data;
+	strcpy(value, tref->runtime ? tref->runtime->gizmo_group : "");
+}
+
+static int rna_WorkspaceTool_widget_length(PointerRNA *ptr)
+{
+	bToolRef *tref = ptr->data;
+	return tref->runtime ? strlen(tref->runtime->gizmo_group) : 0;
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_workspace_owner(BlenderRNA *brna)
@@ -248,6 +260,12 @@ static void rna_def_workspace_tool(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Has Datablock", "");
 	RNA_def_property_boolean_funcs(prop, "rna_WorkspaceTool_has_datablock_get", NULL);
+	RNA_define_verify_sdna(1);
+
+	prop = RNA_def_property(srna, "widget", PROP_STRING, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Widget", "");
+	RNA_def_property_string_funcs(prop, "rna_WorkspaceTool_widget_get", "rna_WorkspaceTool_widget_length", NULL);
 	RNA_define_verify_sdna(1);
 
 	RNA_api_workspace_tool(srna);
