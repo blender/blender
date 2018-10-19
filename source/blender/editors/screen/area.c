@@ -3014,7 +3014,7 @@ void ED_region_message_subscribe(
 		WM_gizmomap_message_subscribe(C, ar->gizmo_map, ar, mbus);
 	}
 
-	if (BLI_listbase_is_empty(&ar->uiblocks)) {
+	if (!BLI_listbase_is_empty(&ar->uiblocks)) {
 		UI_region_message_subscribe(ar, mbus);
 	}
 
