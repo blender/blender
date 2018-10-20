@@ -1270,6 +1270,21 @@ int BKE_mesh_edge_other_vert(const MEdge *e, int v)
 		return -1;
 }
 
+/**
+ * Sets each output array element to the edge index if it is a real edge, or -1.
+ */
+void BKE_mesh_looptri_get_real_edges(const Mesh *mesh, const MLoopTri *looptri, int r_edges[3])
+{
+	for (int i = 2, i_next = 0; i_next < 3; i = i_next++) {
+		const MLoop *l1 = &mesh->mloop[looptri->tri[i]], *l2 = &mesh->mloop[looptri->tri[i_next]];
+		const MEdge *e = &mesh->medge[l1->e];
+
+		bool is_real = (l1->v == e->v1 && l2->v == e->v2) || (l1->v == e->v2 && l2->v == e->v1);
+
+		r_edges[i] = is_real ? l1->e : -1;
+	}
+}
+
 /* basic vertex data functions */
 bool BKE_mesh_minmax(const Mesh *me, float r_min[3], float r_max[3])
 {

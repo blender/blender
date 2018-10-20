@@ -105,6 +105,7 @@ int poly_get_adj_loops_from_vert(
         unsigned int r_adj[2]);
 
 int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
+void BKE_mesh_looptri_get_real_edges(const struct Mesh *mesh, const struct MLoopTri *looptri, int r_edges[3]);
 
 void BKE_mesh_free(struct Mesh *me);
 void BKE_mesh_init(struct Mesh *me);
