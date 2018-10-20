@@ -56,6 +56,7 @@
 #include "BLI_kdopbvh.h"
 #include "BLI_math.h"
 #include "BLI_task.h"
+#include "BLI_heap_simple.h"
 
 #include "BLI_strict_flags.h"
 
@@ -1277,7 +1278,7 @@ static float calc_nearest_point_squared(const float proj[3], BVHNode *node, floa
 	return len_squared_v3v3(proj, nearest);
 }
 
-/* TODO: use a priority queue to reduce the number of nodes looked on */
+/* Depth first search method */
 static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 {
 	if (node->totnode == 0) {
@@ -1321,9 +1322,53 @@ static void dfs_find_nearest_begin(BVHNearestData *data, BVHNode *node)
 	dfs_find_nearest_dfs(data, node);
 }
 
-int BLI_bvhtree_find_nearest(
+/* Priority queue method */
+static void heap_find_nearest_inner(BVHNearestData *data, HeapSimple *heap, BVHNode *node)
+{
+	if (node->totnode == 0) {
+		if (data->callback)
+			data->callback(data->userdata, node->index, data->co, &data->nearest);
+		else {
+			data->nearest.index = node->index;
+			data->nearest.dist_sq = calc_nearest_point_squared(data->proj, node, data->nearest.co);
+		}
+	}
+	else {
+		float nearest[3];
+
+		for (int i = 0; i != node->totnode; i++) {
+			float dist_sq = calc_nearest_point_squared(data->proj, node->children[i], nearest);
+
+			if (dist_sq < data->nearest.dist_sq) {
+				BLI_heapsimple_insert(heap, dist_sq, node->children[i]);
+			}
+		}
+	}
+}
+
+static void heap_find_nearest_begin(BVHNearestData *data, BVHNode *root)
+{
+	float nearest[3];
+	float dist_sq = calc_nearest_point_squared(data->proj, root, nearest);
+
+	if (dist_sq < data->nearest.dist_sq) {
+		HeapSimple *heap = BLI_heapsimple_new_ex(32);
+
+		heap_find_nearest_inner(data, heap, root);
+
+		while (!BLI_heapsimple_is_empty(heap) && BLI_heapsimple_top_value(heap) < data->nearest.dist_sq) {
+			BVHNode *node = BLI_heapsimple_pop_min(heap);
+			heap_find_nearest_inner(data, heap, node);
+		}
+
+		BLI_heapsimple_free(heap, NULL);
+	}
+}
+
+int BLI_bvhtree_find_nearest_ex(
         BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
-        BVHTree_NearestPointCallback callback, void *userdata)
+        BVHTree_NearestPointCallback callback, void *userdata,
+        int flag)
 {
 	axis_t axis_iter;
 
@@ -1350,8 +1395,14 @@ int BLI_bvhtree_find_nearest(
 	}
 
 	/* dfs search */
-	if (root)
-		dfs_find_nearest_begin(&data, root);
+	if (root) {
+		if (flag & BVH_NEAREST_OPTIMAL_ORDER) {
+			heap_find_nearest_begin(&data, root);
+		}
+		else {
+			dfs_find_nearest_begin(&data, root);
+		}
+	}
 
 	/* copy back results */
 	if (nearest) {
@@ -1359,6 +1410,13 @@ int BLI_bvhtree_find_nearest(
 	}
 
 	return data.nearest.index;
+}
+
+int BLI_bvhtree_find_nearest(
+        BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
+        BVHTree_NearestPointCallback callback, void *userdata)
+{
+	return BLI_bvhtree_find_nearest_ex(tree, co, nearest, callback, userdata, 0);
 }
 
 /** \} */

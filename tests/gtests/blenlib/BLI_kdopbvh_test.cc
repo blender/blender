@@ -52,11 +52,23 @@ TEST(kdopbvh, Single)
 	BLI_bvhtree_free(tree);
 }
 
+void optimal_check_callback(void *userdata, int index, const float co[3], BVHTreeNearest *nearest)
+{
+	float (*points)[3] = (float (*)[3])userdata;
+
+	/* BVH_NEAREST_OPTIMAL_ORDER should hit the right node on the first try */
+	EXPECT_EQ(nearest->index, -1);
+	EXPECT_EQ_ARRAY(co, points[index], 3);
+
+	nearest->index = index;
+	nearest->dist_sq = len_squared_v3v3(co, points[index]);
+}
+
 /**
  * Note that a small epsilon is added to the BVH nodes bounds, even if we pass in zero.
  * Use rounding to ensure very close nodes don't cause the wrong node to be found as nearest.
  */
-static void find_nearest_points_test(int points_len, float scale, int round, int random_seed)
+static void find_nearest_points_test(int points_len, float scale, int round, int random_seed, bool optimal = false)
 {
 	struct RNG *rng = BLI_rng_new(random_seed);
 	BVHTree *tree = BLI_bvhtree_new(points_len, 0.0, 8, 8);
@@ -69,9 +81,13 @@ static void find_nearest_points_test(int points_len, float scale, int round, int
 		BLI_bvhtree_insert(tree, i, points[i], 1);
 	}
 	BLI_bvhtree_balance(tree);
+
 	/* first find each point */
+	BVHTree_NearestPointCallback callback = optimal ? optimal_check_callback : NULL;
+	int flags = optimal ? BVH_NEAREST_OPTIMAL_ORDER : 0;
+
 	for (int i = 0; i < points_len; i++) {
-		const int j = BLI_bvhtree_find_nearest(tree, points[i], NULL, NULL, NULL);
+		const int j = BLI_bvhtree_find_nearest_ex(tree, points[i], NULL, callback, points, flags);
 		if (j != i) {
 #if 0
 			const float dist = len_v3v3(points[i], points[j]);
@@ -95,3 +111,7 @@ static void find_nearest_points_test(int points_len, float scale, int round, int
 TEST(kdopbvh, FindNearest_1)		{ find_nearest_points_test(1, 1.0, 1000, 1234); }
 TEST(kdopbvh, FindNearest_2)		{ find_nearest_points_test(2, 1.0, 1000, 123); }
 TEST(kdopbvh, FindNearest_500)		{ find_nearest_points_test(500, 1.0, 1000, 12); }
+
+TEST(kdopbvh, OptimalFindNearest_1)		{ find_nearest_points_test(1, 1.0, 1000, 1234, true); }
+TEST(kdopbvh, OptimalFindNearest_2)		{ find_nearest_points_test(2, 1.0, 1000, 123, true); }
+TEST(kdopbvh, OptimalFindNearest_500)		{ find_nearest_points_test(500, 1.0, 1000, 12, true); }

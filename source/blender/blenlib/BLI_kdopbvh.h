@@ -85,6 +85,10 @@ typedef struct BVHTreeRayHit {
 } BVHTreeRayHit;
 
 enum {
+	/* Use a priority queue to process nodes in the optimal order (for slow callbacks) */
+	BVH_NEAREST_OPTIMAL_ORDER   = (1 << 0),
+};
+enum {
 	/* calculate IsectRayPrecalc data */
 	BVH_RAYCAST_WATERTIGHT		= (1 << 0),
 };
@@ -144,6 +148,10 @@ float BLI_bvhtree_get_epsilon(const BVHTree *tree);
 
 /* find nearest node to the given coordinates
  * (if nearest is given it will only search nodes where square distance is smaller than nearest->dist) */
+int BLI_bvhtree_find_nearest_ex(
+        BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
+        BVHTree_NearestPointCallback callback, void *userdata,
+        int flag);
 int BLI_bvhtree_find_nearest(
         BVHTree *tree, const float co[3], BVHTreeNearest *nearest,
         BVHTree_NearestPointCallback callback, void *userdata);
