@@ -1875,6 +1875,9 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 	/* lock axis */
 	p->lock_axis = ts->gp_sculpt.lock_axis;
 
+	/* region where paint was originated */
+	p->gpd->runtime.ar = CTX_wm_region(C);
+
 	return 1;
 }
 

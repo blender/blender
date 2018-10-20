@@ -579,8 +579,12 @@ void GPENCIL_cache_populate(void *vedata, Object *ob)
 			gpencil_add_draw_data(vedata, ob);
 		}
 
-		/* draw current painting strokes */
-		if (draw_ctx->obact == ob) {
+		/* draw current painting strokes
+		* (only if region is equal to originated paint region)
+		*/
+		if ((draw_ctx->obact == ob) &&
+			((gpd->runtime.ar == NULL) || (gpd->runtime.ar == draw_ctx->ar)))
+		{
 			DRW_gpencil_populate_buffer_strokes(&e_data, vedata, ts, ob);
 		}
 

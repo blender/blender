@@ -34,6 +34,7 @@
 #include "DNA_ID.h"
 #include "DNA_brush_types.h"
 
+struct ARegion;
 struct AnimData;
 struct CurveMapping;
 struct GHash;
@@ -306,6 +307,7 @@ typedef enum eGPDlayer_OnionFlag {
 
 /* Runtime temp data for bGPdata */
 typedef struct bGPdata_Runtime {
+	struct ARegion *ar;         /* last region where drawing was originated */
 	void *sbuffer;				/* stroke buffer (can hold GP_STROKE_BUFFER_MAX) */
 
 	/* GP Object drawing */
