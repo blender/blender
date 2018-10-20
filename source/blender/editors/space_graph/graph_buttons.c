@@ -891,7 +891,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *f
 		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ADD, IFACE_("Add Input Variable"),
 		                       0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
 		                       NULL, 0.0, 0.0, 0, 0,
-		                       TIP_("Driver variables ensure that all dependencies will be accounted for, eusuring that drivers will update correctly"));
+		                       TIP_("Driver variables ensure that all dependencies will be accounted for, ensuring that drivers will update correctly"));
 		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 
 		/* copy/paste (as sub-row) */
