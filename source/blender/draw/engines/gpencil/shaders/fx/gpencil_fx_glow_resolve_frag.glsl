@@ -30,17 +30,17 @@ void main()
 			outcolor = src_pixel;
 		}
 	}
-	
+
 	if (src_pixel.a < glow_pixel.a) {
 		gl_FragDepth = glow_depth;
 	}
 	else {
 		gl_FragDepth = stroke_depth;
 	}
-	
+
 	if (outcolor.a < 0.001) {
 		discard;
 	}
-	
+
 	FragColor = outcolor;
 }

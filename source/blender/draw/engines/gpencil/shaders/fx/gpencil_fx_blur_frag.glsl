@@ -42,11 +42,11 @@ void main()
 	/* round to avoid shift when add more samples */
 	dx = floor(dx) + 1.0;
 	dy = floor(dy) + 1.0;
-	
+
 	/* apply blurring, using a 9-tap filter with predefined gaussian weights */
 	/* depth (get the value of the surrounding pixels) */
     float outdepth = 0.0;
-	
+
     outdepth += get_zdepth(ivec2(uv.x - 1.0 * dx, uv.y + 1.0 * dy)) * 0.0947416;
     outdepth += get_zdepth(ivec2(uv.x - 0.0 * dx, uv.y + 1.0 * dy)) * 0.118318;
     outdepth += get_zdepth(ivec2(uv.x + 1.0 * dx, uv.y + 1.0 * dy)) * 0.0947416;
@@ -76,7 +76,7 @@ void main()
     outcolor += texelFetch(strokeColor, ivec2(uv.x + 1.0 * dx, uv.y - 1.0 * dy), 0) * 0.0947416;
 
 	FragColor = clamp(outcolor, 0, 1.0);
-	
+
 	/* discar extreme values */
 	if (outcolor.a < 0.02f) {
 		discard;

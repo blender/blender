@@ -364,4 +364,3 @@ void DRW_gpencil_freecache(struct Object *ob)
 		}
 	}
 }
-

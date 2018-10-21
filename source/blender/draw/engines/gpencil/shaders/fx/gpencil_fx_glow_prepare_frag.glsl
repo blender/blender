@@ -28,7 +28,7 @@ bool check_color(vec3 color_a, vec3 color_b)
  /* need round the number to avoid precision errors */
 	if ((floor(color_a.r * 100) == floor(color_b.r * 100)) &&
 		(floor(color_a.g * 100) == floor(color_b.g * 100)) &&
-		(floor(color_a.b * 100) == floor(color_b.b * 100))) 
+		(floor(color_a.b * 100) == floor(color_b.b * 100)))
 		{
 		return true;
 		}
@@ -62,7 +62,7 @@ void main()
 	else {
 		discard;
 	}
-	
+
 	gl_FragDepth = stroke_depth;
 	FragColor = vec4(glow_color.rgb, 1.0);
 }
