@@ -1218,7 +1218,7 @@ void DRW_gpencil_populate_multiedit(
 	cache->is_dirty = false;
 }
 
-void static gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
+static void gpencil_copy_frame(bGPDframe *gpf, bGPDframe *derived_gpf)
 {
 	derived_gpf->prev = gpf->prev;
 	derived_gpf->next = gpf->next;

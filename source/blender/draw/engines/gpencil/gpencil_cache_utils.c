@@ -23,6 +23,7 @@
  *  \ingroup draw
  */
 
+#include "DRW_engine.h"
 #include "DRW_render.h"
 
 #include "BKE_global.h"
@@ -346,7 +347,7 @@ void DRW_gpencil_batch_cache_dirty_tag(bGPdata *gpd)
 }
 
 /* free batch cache */
-void DRW_gpencil_batch_cache_free(bGPdata *gpd)
+void DRW_gpencil_batch_cache_free(bGPdata *UNUSED(gpd))
 {
 	return;
 }
