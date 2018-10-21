@@ -959,7 +959,7 @@ class _defs_edit_curve:
         return dict(
             text="Draw",
             cursor='PAINT_BRUSH',
-            icon=None,
+            icon="ops.curve.draw",
             widget=None,
             keymap=(
                 ("curve.draw", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -971,7 +971,7 @@ class _defs_edit_curve:
     def extrude():
         return dict(
             text="Extrude",
-            icon=None,
+            icon="ops.curve.extrude_move",
             widget=None,
             keymap=(
                 ("curve.extrude_move",
@@ -984,7 +984,7 @@ class _defs_edit_curve:
     def extrude_cursor():
         return dict(
             text="Extrude Cursor",
-            icon=None,
+            icon="ops.curve.extrude_cursor",
             widget=None,
             keymap=(
                 ("curve.vertex_add", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -1468,19 +1468,6 @@ class _defs_gpencil_edit:
         )
 
     @ToolDef.from_fn
-    def mirror():
-        return dict(
-            text="Mirror",
-            icon="ops.gpencil.edit_mirror",
-            widget=None,
-            keymap=(
-                ("transform.mirror",
-                 dict(release_confirm=True),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
-        )
-
-    @ToolDef.from_fn
     def shear():
         return dict(
             text="Shear",
@@ -1497,7 +1484,7 @@ class _defs_gpencil_edit:
     def tosphere():
         return dict(
             text="To Sphere",
-            icon="ops.gpencil.edit_to_sphere",
+            icon="ops.transform.tosphere",
             widget=None,
             keymap=(
                 ("transform.tosphere",
@@ -2056,7 +2043,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_edit.lasso_select,
             None,
             _defs_gpencil_edit.bend,
-            _defs_gpencil_edit.mirror,
             _defs_gpencil_edit.shear,
             _defs_gpencil_edit.tosphere,
         ],
