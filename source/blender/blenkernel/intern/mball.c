@@ -312,6 +312,11 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
 
+	if (ob1->id.name[2] != ob2->id.name[2]) {
+		/* Quick return in case first char of both ID's names is not the same... */
+		return false;
+	}
+
 	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name + 2, '.');
 	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name + 2, '.');
 
