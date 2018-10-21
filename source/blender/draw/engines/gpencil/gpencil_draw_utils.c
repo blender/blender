@@ -1281,7 +1281,7 @@ void DRW_gpencil_populate_datablock(
 
 		/* if pose mode, maybe the overlay to fade geometry is enabled */
 		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
-			(v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
+		    (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
 		{
 			opacity = gpl->opacity * v3d->overlay.bone_select_alpha;
 		}
@@ -1292,7 +1292,7 @@ void DRW_gpencil_populate_datablock(
 		/* create derived array data or expand */
 		if (cache_ob->data_idx + 1 > gpl->runtime.len_derived) {
 			if ((gpl->runtime.len_derived == 0) ||
-				(gpl->runtime.derived_array == NULL))
+			    (gpl->runtime.derived_array == NULL))
 			{
 				p = MEM_callocN(sizeof(struct bGPDframe), "bGPDframe array");
 				gpl->runtime.len_derived = 1;
@@ -1321,7 +1321,7 @@ void DRW_gpencil_populate_datablock(
 		/* draw onion skins */
 		if (!ID_IS_LINKED(&gpd->id)) {
 			if ((!cache_ob->is_dup_data) &&
-				(gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
+			    (gpd->flag & GP_DATA_SHOW_ONIONSKINS) &&
 			    (do_onion) && (gpl->onion_flag & GP_LAYER_ONIONSKIN) &&
 			    ((!playing) || (gpd->onion_flag & GP_ONION_GHOST_ALWAYS)) &&
 			    (!cache_ob->is_dup_ob) && (gpd->id.us <= 1))

@@ -4189,7 +4189,7 @@ static void p_add_ngon(ParamHandle *handle, ParamKey key, int nverts,
 	float normal[3];
 	zero_v3(normal);
 
-	const float *co_curr, *co_prev = co[nverts-1];
+	const float *co_curr, *co_prev = co[nverts - 1];
 	for (int j = 0; j < nverts; j++) {
 		co_curr = co[j];
 		add_newell_cross_v3_v3v3(normal, co_prev, co_curr);

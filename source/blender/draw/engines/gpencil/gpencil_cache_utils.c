@@ -89,8 +89,8 @@ static int gpencil_len_datablock_duplicated(
 	for (int i = 0; i < gp_cache_used; i++) {
 		tGPencilObjectCache *cache_elem = &cache_array[i];
 		if ((cache_elem->ob != ob) &&
-			(cache_elem->gpd == gpd) &&
-			(!cache_elem->is_dup_ob))
+		    (cache_elem->gpd == gpd) &&
+		    (!cache_elem->is_dup_ob))
 		{
 			tot++;
 		}
@@ -134,9 +134,10 @@ tGPencilObjectCache *gpencil_object_cache_add(
 	cache_elem->idx = *gp_cache_used;
 
 	/* check if object is duplicated */
-	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(cache_array,
-									*gp_cache_used, ob_orig,
-									&cache_elem->data_idx);
+	cache_elem->is_dup_ob = gpencil_check_ob_duplicated(
+	        cache_array,
+	        *gp_cache_used, ob_orig,
+	        &cache_elem->data_idx);
 
 	if (!cache_elem->is_dup_ob) {
 		/* check if object reuse datablock */
