@@ -291,33 +291,52 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 	}
 }
 
+/* Can be called with both old_ob and new_ob being NULL, this means we have to check whole Main database then. */
 static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *old_ob, Object *new_ob)
 {
 	if (new_ob == NULL) {
-		 /* In case we unlinked old_ob (new_ob is NULL), the object has already
-		  * been removed from the scenes and their collections. We still have
-		  * to remove the NULL children from collections not used in any scene. */
+		/* In case we unlinked old_ob (new_ob is NULL), the object has already
+		 * been removed from the scenes and their collections. We still have
+		 * to remove the NULL children from collections not used in any scene. */
 		BKE_collections_object_remove_nulls(bmain);
 	}
 
 	BKE_main_collection_sync_remap(bmain);
 
-	if (old_ob->type == OB_MBALL) {
-		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+	if (old_ob == NULL) {
+		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
+			if (ob->type == OB_MBALL && BKE_mball_is_basis(ob)) {
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+		}
+	}
+	else {
+		for (Object *ob = bmain->object.first; ob != NULL; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				break;  /* There is only one basis... */
 			}
 		}
 	}
 }
 
-static void libblock_remap_data_postprocess_collection_update(Main *bmain, Collection *old_collection, Collection *new_collection)
+/* Can be called with both old_collection and new_collection being NULL,
+ * this means we have to check whole Main database then. */
+static void libblock_remap_data_postprocess_collection_update(
+        Main *bmain, Collection *old_collection, Collection *new_collection)
 {
 	if (new_collection == NULL) {
 		 /* In case we unlinked old_collection (new_collection is NULL), we need
 		  * to remove any collection children that have been set to NULL in the
 		  * because of pointer replacement. */
-		BKE_collections_child_remove_nulls(bmain, old_collection);
+		if (old_collection != NULL) {
+			BKE_collections_child_remove_nulls(bmain, old_collection);
+		}
+		else {
+			for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+				BKE_collections_child_remove_nulls(bmain, collection);
+			}
+		}
 	}
 
 	BKE_main_collection_sync_remap(bmain);
@@ -604,10 +623,8 @@ void BKE_libblock_relink_ex(
 			if (old_id) {
 				switch (GS(old_id->name)) {
 					case ID_OB:
-					{
 						libblock_remap_data_postprocess_object_update(bmain, (Object *)old_id, (Object *)new_id);
 						break;
-					}
 					case ID_GR:
 						libblock_remap_data_postprocess_collection_update(bmain, (Collection *)old_id, (Collection *)new_id);
 						break;
@@ -617,12 +634,8 @@ void BKE_libblock_relink_ex(
 			}
 			else {
 				/* No choice but to check whole objects/collections. */
-				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
-					libblock_remap_data_postprocess_object_update(bmain, ob, NULL);
-				}
-				for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
-					libblock_remap_data_postprocess_collection_update(bmain, collection, NULL);
-				}
+				libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
+				libblock_remap_data_postprocess_collection_update(bmain, NULL, NULL);
 			}
 			break;
 		}
