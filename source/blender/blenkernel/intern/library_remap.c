@@ -634,8 +634,8 @@ void BKE_libblock_relink_ex(
 			}
 			else {
 				/* No choice but to check whole objects/collections. */
-				libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
 				libblock_remap_data_postprocess_collection_update(bmain, NULL, NULL);
+				libblock_remap_data_postprocess_object_update(bmain, NULL, NULL);
 			}
 			break;
 		}
