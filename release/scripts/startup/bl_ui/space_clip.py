@@ -320,6 +320,7 @@ class CLIP_MT_masking_editor_menus(Menu):
         if clip:
             layout.menu("MASK_MT_select")
             layout.menu("CLIP_MT_clip")  # XXX - remove?
+            layout.menu("MASK_MT_add")
             layout.menu("MASK_MT_mask")
         else:
             layout.menu("CLIP_MT_clip")  # XXX - remove?
@@ -1121,9 +1122,7 @@ from .properties_mask_common import (
     MASK_PT_spline,
     MASK_PT_point,
     MASK_PT_display,
-    MASK_PT_tools,
     MASK_PT_transforms,
-    MASK_PT_add,
 )
 
 
@@ -1152,19 +1151,10 @@ class CLIP_PT_mask(MASK_PT_mask, Panel):
     bl_region_type = 'UI'
 
 
-class CLIP_PT_tools_mask_add(MASK_PT_add, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
-
-
 class CLIP_PT_tools_mask_transforms(MASK_PT_transforms, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
 
-
-class CLIP_PT_tools_mask(MASK_PT_tools, Panel):
-    bl_space_type = 'CLIP_EDITOR'
-    bl_region_type = 'TOOLS'
 
 # --- end mask ---
 
@@ -1553,8 +1543,6 @@ classes = (
     CLIP_PT_mask_display,
     CLIP_PT_active_mask_spline,
     CLIP_PT_active_mask_point,
-    CLIP_PT_tools_mask,
-    CLIP_PT_tools_mask_add,
     CLIP_PT_tools_mask_transforms,
     CLIP_PT_footage,
     CLIP_PT_tools_scenesetup,

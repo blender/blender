@@ -646,6 +646,7 @@ class MASK_MT_editor_menus(Menu):
         if show_uvedit:
             layout.menu("IMAGE_MT_uvs")
         if show_maskedit:
+            layout.menu("MASK_MT_add")
             layout.menu("MASK_MT_mask")
 
 
@@ -659,8 +660,6 @@ from .properties_mask_common import (
     MASK_PT_spline,
     MASK_PT_point,
     MASK_PT_display,
-    MASK_PT_tools,
-    MASK_PT_add,
 )
 
 
@@ -687,18 +686,6 @@ class IMAGE_PT_active_mask_spline(MASK_PT_spline, Panel):
 class IMAGE_PT_active_mask_point(MASK_PT_point, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'UI'
-
-
-class IMAGE_PT_tools_mask(MASK_PT_tools, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = 'Mask'
-
-
-class IMAGE_PT_tools_mask_add(MASK_PT_add, Panel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = 'Mask'
 
 
 # --- end mask ---
@@ -1381,7 +1368,6 @@ classes = (
     IMAGE_HT_header,
     MASK_MT_editor_menus,
     IMAGE_PT_mask,
-    IMAGE_PT_tools_mask_add,
     IMAGE_PT_mask_layers,
     IMAGE_PT_mask_display,
     IMAGE_PT_active_mask_spline,
@@ -1395,7 +1381,6 @@ classes = (
     IMAGE_PT_paint,
     IMAGE_PT_tools_brush_overlay,
     IMAGE_PT_tools_brush_texture,
-    IMAGE_PT_tools_mask,
     IMAGE_PT_tools_mask_texture,
     IMAGE_PT_tools_brush_tool,
     IMAGE_PT_paint_stroke,
