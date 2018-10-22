@@ -1197,6 +1197,7 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = graph_panel_drivers_popover;
 	pt->poll = graph_panel_drivers_popover_poll;
+	BLI_addtail(&art->paneltypes, pt);
 	WM_paneltype_add(pt); /* This panel isn't used in this region. Add explicitly to global list (so popovers work). */
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
