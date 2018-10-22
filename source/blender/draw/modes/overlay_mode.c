@@ -191,19 +191,15 @@ static void overlay_cache_init(void *vedata)
 		psl->face_wireframe_full_pass = DRW_pass_create("All Face Wires", state);
 
 		stl->g_data->sculpt_wires_full = DRW_shgroup_create(e_data.face_wireframe_sculpt_sh, psl->face_wireframe_full_pass);
-		DRW_shgroup_uniform_vec2(stl->g_data->sculpt_wires_full, "viewportSize", DRW_viewport_size_get(), 1);
 
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.face_wireframe_sh, psl->face_wireframe_full_pass);
-		DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 
 		psl->face_wireframe_pass = DRW_pass_create("Face Wires", state);
 
 		stl->g_data->sculpt_wires = DRW_shgroup_create(e_data.face_wireframe_sculpt_pretty_sh, psl->face_wireframe_pass);
-		DRW_shgroup_uniform_vec2(stl->g_data->sculpt_wires, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_vec2(stl->g_data->sculpt_wires, "wireStepParam", stl->g_data->wire_step_param, 1);
 
 		shgrp = DRW_shgroup_create(e_data.face_wireframe_pretty_sh, psl->face_wireframe_pass);
-		DRW_shgroup_uniform_vec2(shgrp, "viewportSize", DRW_viewport_size_get(), 1);
 		DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", stl->g_data->wire_step_param, 1);
 
 		/**

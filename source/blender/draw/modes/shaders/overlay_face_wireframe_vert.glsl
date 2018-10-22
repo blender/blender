@@ -5,7 +5,6 @@ uniform mat4 ProjectionMatrix;
 uniform mat3 NormalMatrix;
 
 uniform vec2 wireStepParam;
-uniform vec2 viewportSize;
 uniform float nearDist;
 
 uniform samplerBuffer vertData;
