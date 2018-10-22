@@ -106,11 +106,7 @@ static bool wm_link_append_poll(bContext *C)
 
 static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	if (RNA_struct_property_is_set(op->ptr, "filepath")) {
-		return WM_operator_call_notest(C, op);
-	}
-	else {
-		/* XXX TODO solve where to get last linked library from */
+	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		if (G.lib[0] != '\0') {
 			RNA_string_set(op->ptr, "filepath", G.lib);
 		}
@@ -120,9 +116,10 @@ static int wm_link_append_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 			BLI_parent_dir(path);
 			RNA_string_set(op->ptr, "filepath", path);
 		}
-		WM_event_add_fileselect(C, op);
-		return OPERATOR_RUNNING_MODAL;
 	}
+
+	WM_event_add_fileselect(C, op);
+	return OPERATOR_RUNNING_MODAL;
 }
 
 static short wm_link_append_flag(wmOperator *op)

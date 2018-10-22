@@ -4855,7 +4855,7 @@ static void keymap_modal_set(wmKeyConfig *keyconf)
 
 }
 
-static bool open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
+static bool blend_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
 	if (drag->type == WM_DRAG_PATH) {
 		if (drag->icon == ICON_FILE_BLEND)
@@ -4864,11 +4864,10 @@ static bool open_file_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent
 	return 0;
 }
 
-static void open_file_drop_copy(wmDrag *drag, wmDropBox *drop)
+static void blend_file_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	/* copy drag path to properties */
 	RNA_string_set(drop->ptr, "filepath", drag->path);
-	drop->opcontext = WM_OP_EXEC_DEFAULT;
 }
 
 
@@ -5055,7 +5054,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 
 	/* dropbox for entire window */
 	lb = WM_dropboxmap_find("Window", 0, 0);
-	WM_dropbox_add(lb, "WM_OT_open_mainfile", open_file_drop_poll, open_file_drop_copy);
+	WM_dropbox_add(lb, "WM_OT_drop_blend_file", blend_file_drop_poll, blend_file_drop_copy);
 	WM_dropbox_add(lb, "UI_OT_drop_color", UI_drop_color_poll, UI_drop_color_copy);
 
 	keymap_modal_set(keyconf);

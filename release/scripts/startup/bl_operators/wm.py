@@ -2677,6 +2677,30 @@ class WM_MT_splash(Menu):
         layout.separator()
 
 
+class WM_OT_drop_blend_file(Operator):
+    bl_idname = "wm.drop_blend_file"
+    bl_label = "Handle dropped .blend file"
+    bl_options = {'INTERNAL'}
+
+    filepath: StringProperty()
+
+    def invoke(self, context, event):
+        context.window_manager.popup_menu(self.draw_menu, title=bpy.path.basename(self.filepath), icon='QUESTION')
+        return {"FINISHED"}
+
+    def draw_menu(self, menu, context):
+        layout = menu.layout
+
+        col = layout.column()
+        col.operator_context = 'EXEC_DEFAULT'
+        col.operator("wm.open_mainfile", text="Open", icon='FILE_FOLDER').filepath = self.filepath
+
+        layout.separator()
+        col = layout.column()
+        col.operator_context = 'INVOKE_DEFAULT'
+        col.operator("wm.link", text="Link...", icon='LINK_BLEND').filepath = self.filepath
+        col.operator("wm.append", text="Append...", icon='APPEND_BLEND').filepath = self.filepath
+
 classes = (
     BRUSH_OT_active_index_set,
     WM_OT_addon_disable,
@@ -2710,6 +2734,7 @@ classes = (
     WM_OT_copy_prev_settings,
     WM_OT_doc_view,
     WM_OT_doc_view_manual,
+    WM_OT_drop_blend_file,
     WM_OT_keyconfig_activate,
     WM_OT_keyconfig_export,
     WM_OT_keyconfig_import,
