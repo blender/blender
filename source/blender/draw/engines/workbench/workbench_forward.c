@@ -469,6 +469,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
+	const bool is_wire = (ob->dt == OB_WIRE);
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -487,7 +488,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		return; /* Do not draw solid in this case. */
 	}
 
-	if (!DRW_object_is_visible_in_active_context(ob) || (ob->dt < OB_SOLID)) {
+	if (!DRW_object_is_visible_in_active_context(ob) || (ob->dt < OB_WIRE)) {
 		return;
 	}
 
@@ -540,11 +541,15 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					material = get_or_create_material_data(vedata, ob, NULL, NULL, wpd->shading.color_type);
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
-						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+						if (!is_wire) {
+							DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+						}
 					}
 					else {
 						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
-						DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+						if (!is_wire) {
+							DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+						}
 					}
 				}
 			}
@@ -567,11 +572,15 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 						material = get_or_create_material_data(vedata, ob, mat, NULL, V3D_SHADING_MATERIAL_COLOR);
 						if (is_sculpt_mode) {
 							DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
-							DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+							if (!is_wire) {
+								DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+							}
 						}
 						else {
 							DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
-							DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+							if (!is_wire) {
+								DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+							}
 						}
 					}
 				}
