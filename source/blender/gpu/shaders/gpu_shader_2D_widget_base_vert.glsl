@@ -47,7 +47,11 @@ const vec2 jit[9] = vec2[9](
 
 /* We can reuse the CORNER_* bits for tria */
 #define TRIA_VEC_RANGE BIT_RANGE(6)
-const vec2 triavec[43] = vec2[43](
+
+/* Some GPUs have performanse issues with this array being const (Doesn't fit in the registers?).
+ * To resolve this issue, store the array as a uniform buffer.
+ * (The array is still stored in the registry, but indexing is done in the uniform buffer.) */
+uniform vec2 triavec[43] = vec2[43](
 
 	/* ROUNDBOX_TRIA_ARROWS */
 	vec2(-0.170000, 0.400000), vec2(-0.050000, 0.520000), vec2( 0.250000, 0.000000), vec2( 0.470000, -0.000000), vec2(-0.170000, -0.400000), vec2(-0.050000, -0.520000),
