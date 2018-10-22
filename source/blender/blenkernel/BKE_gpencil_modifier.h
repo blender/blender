@@ -83,6 +83,8 @@ typedef enum {
 
 	/* can't be added manually by user */
 	eGpencilModifierTypeFlag_NoUserAdd = (1 << 5),
+	/* can't be applied */
+	eGpencilModifierTypeFlag_NoApply = (1 << 6),
 } GpencilModifierTypeFlag;
 
 /* IMPORTANT! Keep ObjectWalkFunc and IDWalkFunc signatures compatible. */
@@ -150,7 +152,17 @@ typedef struct GpencilModifierTypeInfo {
 	void (*bakeModifier)(struct Main *bmain, struct Depsgraph *depsgraph,
                            struct GpencilModifierData *md, struct Object *ob);
 
+
 	/********************* Optional functions *********************/
+
+	/* Callback for GP "time" modifiers that offset keyframe time
+	 * Returns the frame number to be used after apply the modifier. This is
+	 * usually an offset of the animation for duplicated datablocks.
+	 *
+	 * This function is optional.
+	 */
+	int (*remapTime)(struct GpencilModifierData *md, struct Depsgraph *depsgraph,
+		struct Scene *scene, struct Object *ob, struct bGPDlayer *gpl, int cfra);
 
 	/* Initialize new instance data for this modifier type, this function
 	 * should set modifier variables to their default values.
@@ -242,6 +254,7 @@ void BKE_gpencil_modifiers_foreachIDLink(struct Object *ob, GreasePencilIDWalkFu
 void BKE_gpencil_modifiers_foreachTexLink(struct Object *ob, GreasePencilTexWalkFunc walk, void *userData);
 
 bool BKE_gpencil_has_geometry_modifiers(struct Object *ob);
+bool BKE_gpencil_has_time_modifiers(struct Object *ob);
 
 void BKE_gpencil_stroke_modifiers(
 	struct Depsgraph *depsgraph, struct Object *ob,
@@ -249,6 +262,9 @@ void BKE_gpencil_stroke_modifiers(
 void BKE_gpencil_geometry_modifiers(
 	struct Depsgraph *depsgraph, struct Object *ob,
 	struct bGPDlayer *gpl, struct bGPDframe *gpf, bool is_render);
+int BKE_gpencil_time_modifier(
+	struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
+	struct bGPDlayer *gpl, int cfra, bool is_render);
 
 void BKE_gpencil_lattice_init(struct Object *ob);
 void BKE_gpencil_lattice_clear(struct Object *ob);

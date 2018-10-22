@@ -243,6 +243,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Instance = {
 	/* deformStroke */      NULL,
 	/* generateStrokes */   generateStrokes,
 	/* bakeModifier */      bakeModifier,
+	/* remapTime */         NULL,
 
 	/* initData */          initData,
 	/* freeData */          NULL,

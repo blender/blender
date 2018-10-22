@@ -207,7 +207,7 @@ int ED_object_gpencil_modifier_move_down(ReportList *UNUSED(reports), Object *ob
 }
 
 static int gpencil_modifier_apply_obdata(
-        ReportList *reports, Main *bmain, Depsgraph *depsgraph, Object *ob, GpencilModifierData *md)
+        ReportList *reports, Main *bmain, Depsgraph *depsgraph,	Object *ob, GpencilModifierData *md)
 {
 	const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
 
@@ -269,9 +269,18 @@ int ED_object_gpencil_modifier_apply(
 	return 1;
 }
 
-int ED_object_gpencil_modifier_copy(ReportList *UNUSED(reports), Object *ob, GpencilModifierData *md)
+int ED_object_gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md)
 {
 	GpencilModifierData *nmd;
+	const GpencilModifierTypeInfo *mti = BKE_gpencil_modifierType_getInfo(md->type);
+	GpencilModifierType type = md->type;
+
+	if (mti->flags & eGpencilModifierTypeFlag_Single) {
+		if (BKE_gpencil_modifiers_findByType(ob, type)) {
+			BKE_report(reports, RPT_WARNING, "Only one modifier of this type is allowed");
+			return 0;
+		}
+	}
 
 	nmd = BKE_gpencil_modifier_new(md->type);
 	BKE_gpencil_modifier_copyData(md, nmd);

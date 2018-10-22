@@ -1250,12 +1250,16 @@ void DRW_gpencil_populate_datablock(
 	View3D *v3d = draw_ctx->v3d;
 	int cfra_eval = (int)DEG_get_ctime(draw_ctx->depsgraph);
 	ToolSettings *ts = scene->toolsettings;
+
 	bGPDframe *derived_gpf = NULL;
 	const bool main_onion = v3d != NULL ? (v3d->gp_flag & V3D_GP_SHOW_ONION_SKIN) : true;
 	const bool do_onion = (bool)((gpd->flag & GP_DATA_STROKE_WEIGHTMODE) == 0) && main_onion;
 	const bool overlay = v3d != NULL ? (bool)((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) : true;
+	const bool time_remap = BKE_gpencil_has_time_modifiers(ob);
+
 	float opacity;
 	bGPDframe *p = NULL;
+	bGPDframe *gpf = NULL;
 
 	/* check if playing animation */
 	bool playing = stl->storage->is_playing;
@@ -1274,8 +1278,16 @@ void DRW_gpencil_populate_datablock(
 		/* don't draw layer if hidden */
 		if (gpl->flag & GP_LAYER_HIDE)
 			continue;
+		if ((!time_remap) || (stl->storage->simplify_modif)) {
+			gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
+		}
+		else {
+			int remap_cfra = BKE_gpencil_time_modifier(
+											draw_ctx->depsgraph, scene,ob, gpl, cfra_eval,
+											stl->storage->is_render);
 
-		bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, cfra_eval, GP_GETFRAME_USE_PREV);
+			gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
+		}
 		if (gpf == NULL)
 			continue;
 

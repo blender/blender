@@ -1657,9 +1657,13 @@ static uiLayout *gpencil_draw_modifier(
 		UI_block_lock_set(block, BKE_object_obdata_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 		uiLayoutSetOperatorContext(row, WM_OP_INVOKE_DEFAULT);
-		uiItemEnumO(row, "OBJECT_OT_gpencil_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-			0, "apply_as", MODIFIER_APPLY_DATA);
 
+		sub = uiLayoutRow(row, false);
+		if (mti->flags & eGpencilModifierTypeFlag_NoApply) {
+			uiLayoutSetEnabled(sub, false);
+		}
+		uiItemEnumO(sub, "OBJECT_OT_gpencil_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
+				0, "apply_as", MODIFIER_APPLY_DATA);
 		uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
 			"OBJECT_OT_gpencil_modifier_copy");
 

@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software  Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2017, Blender Foundation
+ * The Original Code is Copyright (C) 2018, Blender Foundation
  * This is a new part of Blender
  *
  * Contributor(s): Antonio Vazquez
@@ -24,13 +24,14 @@
  *
  */
 
- /** \file blender/gpencil_modifiers/intern/MOD_gpencilsubdiv.c
-  *  \ingroup modifiers
-  */
+/** \file blender/gpencil_modifiers/intern/MOD_gpenciltime.c
+ *  \ingroup modifiers
+ */
 
 #include <stdio.h>
+#include <string.h>
 
-#include "MEM_guardedalloc.h"
+#include "BLI_utildefines.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_scene_types.h"
@@ -38,10 +39,9 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_gpencil_modifier_types.h"
 
-#include "BLI_math.h"
-#include "BLI_utildefines.h"
-
+#include "BKE_colortools.h"
 #include "BKE_context.h"
+#include "BKE_deform.h"
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
 
@@ -52,10 +52,10 @@
 
 static void initData(GpencilModifierData *md)
 {
-	SubdivGpencilModifierData *gpmd = (SubdivGpencilModifierData *)md;
-	gpmd->pass_index = 0;
-	gpmd->level = 1;
+	TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
 	gpmd->layername[0] = '\0';
+	gpmd->offset = 1;
+	gpmd->flag |= GP_TIME_KEEP_LOOP;
 }
 
 static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
@@ -63,52 +63,58 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 	BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
-/* subdivide stroke to get more control points */
-static void deformStroke(
-	GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
-	Object *ob, bGPDlayer *gpl, bGPDstroke *gps)
+static int remapTime(struct GpencilModifierData *md, struct Depsgraph *UNUSED(depsgraph),
+	struct Scene *scene, struct Object *ob, struct bGPDlayer *gpl, int cfra)
 {
-	SubdivGpencilModifierData *mmd = (SubdivGpencilModifierData *)md;
+	TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
+	const int sfra = scene->r.sfra;
+	const int efra = scene->r.efra;
+	const int nfra = cfra + mmd->offset;
 
-	if (!is_stroke_affected_by_modifier(
-	            ob,
-	            mmd->layername, mmd->pass_index, 3, gpl, gps,
-	            mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS))
-	{
-		return;
-	}
+	const bool invgpl = mmd->flag & GP_SIMPLIFY_INVERT_LAYER;
 
-	BKE_gpencil_subdivide(gps, mmd->level, mmd->flag);
-}
-
-static void bakeModifier(
-	struct Main *UNUSED(bmain), Depsgraph *depsgraph,
-	GpencilModifierData *md, Object *ob)
-{
-	bGPdata *gpd = ob->data;
-
-	for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		for (bGPDframe *gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			for (bGPDstroke *gps = gpf->strokes.first; gps; gps = gps->next) {
-				deformStroke(md, depsgraph, ob, gpl, gps);
+	/* omit if filter by layer */
+	if (mmd->layername[0] != '\0') {
+		if (invgpl == false) {
+			if (!STREQ(mmd->layername, gpl->info)) {
+				return cfra;
+			}
+		}
+		else {
+			if (STREQ(mmd->layername, gpl->info)) {
+				return cfra;
 			}
 		}
 	}
+
+	if (mmd->flag & GP_TIME_KEEP_LOOP) {
+		/* if the sum of the cfra is out scene frame range, recalc */
+		if (cfra + mmd->offset < sfra) {
+			const int delta = abs(sfra - nfra);
+			return efra - delta + 1;
+		}
+		else if (cfra + mmd->offset > efra) {
+			return nfra - efra + sfra - 1;
+		}
+	}
+
+	return cfra + mmd->offset;
 }
 
-GpencilModifierTypeInfo modifierType_Gpencil_Subdiv = {
-	/* name */              "Subdivision",
-	/* structName */        "SubdivGpencilModifierData",
-	/* structSize */        sizeof(SubdivGpencilModifierData),
+GpencilModifierTypeInfo modifierType_Gpencil_Time = {
+	/* name */              "Time",
+	/* structName */        "TimeGpencilModifierData",
+	/* structSize */        sizeof(TimeGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_SupportsEditmode,
+	/* flags */             eGpencilModifierTypeFlag_Single |
+							eGpencilModifierTypeFlag_NoApply,
 
 	/* copyData */          copyData,
 
-	/* deformStroke */      deformStroke,
+	/* deformStroke */      NULL,
 	/* generateStrokes */   NULL,
-	/* bakeModifier */      bakeModifier,
-	/* remapTime */         NULL,
+	/* bakeModifier */      NULL,
+	/* remapTime */         remapTime,
 
 	/* initData */          initData,
 	/* freeData */          NULL,

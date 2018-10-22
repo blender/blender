@@ -340,7 +340,8 @@ GpencilModifierTypeInfo modifierType_Gpencil_Hook = {
 
 	/* deformStroke */      deformStroke,
 	/* generateStrokes */   NULL,
-	/* bakeModifier */    bakeModifier,
+	/* bakeModifier */      bakeModifier,
+	/* remapTime */         NULL,
 
 	/* initData */          initData,
 	/* freeData */          freeData,

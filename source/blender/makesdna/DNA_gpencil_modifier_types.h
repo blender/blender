@@ -51,6 +51,7 @@ typedef enum GpencilModifierType {
 	eGpencilModifierType_Offset    = 13,
 	eGpencilModifierType_Mirror    = 14,
 	eGpencilModifierType_Armature  = 15,
+	eGpencilModifierType_Time      = 16,
 	NUM_GREASEPENCIL_MODIFIER_TYPES
 } GpencilModifierType;
 
@@ -138,6 +139,18 @@ typedef enum eThickGpencil_Flag {
 	GP_THICK_CUSTOM_CURVE   = (1 << 3),
 	GP_THICK_NORMALIZE      = (1 << 4),
 } eThickGpencil_Flag;
+
+typedef struct TimeGpencilModifierData {
+	GpencilModifierData modifier;
+	char layername[64];          /* layer name */
+	int flag;                    /* flags */
+	int offset;
+} TimeGpencilModifierData;
+
+typedef enum eTimeGpencil_Flag {
+	GP_TIME_INVERT_LAYER = (1 << 0),
+	GP_TIME_KEEP_LOOP    = (1 << 1),
+} eTimeGpencil_Flag;
 
 typedef enum eModifyColorGpencil_Flag {
 	GP_MODIFY_COLOR_BOTH = 0,

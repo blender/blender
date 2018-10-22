@@ -156,9 +156,10 @@ GpencilModifierTypeInfo modifierType_Gpencil_Thick = {
 
 	/* copyData */          copyData,
 
-	/* deformStroke */    deformStroke,
-	/* generateStrokes */ NULL,
-	/* bakeModifier */    bakeModifier,
+	/* deformStroke */      deformStroke,
+	/* generateStrokes */   NULL,
+	/* bakeModifier */      bakeModifier,
+	/* remapTime */         NULL,
 
 	/* initData */          initData,
 	/* freeData */          freeData,

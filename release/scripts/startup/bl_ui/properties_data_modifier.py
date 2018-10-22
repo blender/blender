@@ -1790,6 +1790,21 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "create_materials")
         row.prop(md, "modify_color")
 
+    def GP_TIME(self, layout, ob, md):
+        gpd = ob.data
+
+        row = layout.row()
+        row.prop(md, "offset")
+
+        row = layout.row()
+        row.label(text="Layer:")
+        row = layout.row(align=True)
+        row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
+        row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
+
+        row = layout.row()
+        row.prop(md, "use_keep_loop")
+
     def GP_COLOR(self, layout, ob, md):
         gpd = ob.data
         split = layout.split()
