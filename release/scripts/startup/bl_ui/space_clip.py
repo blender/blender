@@ -143,34 +143,34 @@ class CLIP_HT_header(Header):
             row.template_ID(sc, "clip", open="clip.open")
         else:
             row = layout.row(align=True)
-            props = row.operator("clip.refine_markers", text="", icon='LOOP_BACK')
+            props = row.operator("clip.refine_markers", text="", icon='TRACKING_REFINE_BACKWARDS')
             props.backwards = True
             row.separator()
 
-            props = row.operator("clip.clear_track_path", text="", icon='BACK')
+            props = row.operator("clip.clear_track_path", text="", icon='TRACKING_CLEAR_BACKWARDS')
             props.action = 'UPTO'
             row.separator()
 
-            props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
+            props = row.operator("clip.track_markers", text="", icon='TRACKING_BACKWARDS_SINGLE')
             props.backwards = True
             props.sequence = False
             props = row.operator("clip.track_markers", text="",
-                                 icon='PLAY_REVERSE')
+                                 icon='TRACKING_BACKWARDS')
             props.backwards = True
             props.sequence = True
-            props = row.operator("clip.track_markers", text="", icon='PLAY')
+            props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS')
             props.backwards = False
             props.sequence = True
-            props = row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+            props = row.operator("clip.track_markers", text="", icon='TRACKING_FORWARDS_SINGLE')
             props.backwards = False
             props.sequence = False
             row.separator()
 
-            props = row.operator("clip.clear_track_path", text="", icon='FORWARD')
+            props = row.operator("clip.clear_track_path", text="", icon='TRACKING_CLEAR_FORWARDS')
             props.action = 'REMAINED'
             row.separator()
 
-            props = row.operator("clip.refine_markers", text="", icon='LOOP_FORWARDS')
+            props = row.operator("clip.refine_markers", text="", icon='TRACKING_REFINE_FORWARDS')
             props.backwards = False
 
         layout.separator_spacer()

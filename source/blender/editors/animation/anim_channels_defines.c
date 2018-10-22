@@ -4255,11 +4255,12 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 	void *ptr;
 	const char *tooltip;
 	uiBut *but = NULL;
+	bool enabled;
 
 	/* get the flag and the pointer to that flag */
 	flag = acf->setting_flag(ac, setting, &negflag);
 	ptr = acf->setting_ptr(ale, setting, &ptrsize);
-	/* enabled = ANIM_channel_setting_get(ac, ale, setting); */ /* UNUSED */
+	enabled = ANIM_channel_setting_get(ac, ale, setting);
 
 	/* get the base icon for the setting */
 	switch (setting) {
@@ -4312,8 +4313,8 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 			break;
 
 		case ACHANNEL_SETTING_MUTE: /* muted speaker */
-			//icon = ((enabled) ? ICON_MUTE_IPO_ON : ICON_MUTE_IPO_OFF);
-			icon = ICON_MUTE_IPO_OFF;
+			icon = ((enabled) ? ICON_CHECKBOX_DEHLT : ICON_CHECKBOX_HLT);
+			usetoggle = false;
 
 			if (ELEM(ale->type, ANIMTYPE_FCURVE, ANIMTYPE_NLACURVE)) {
 				tooltip = TIP_("Does F-Curve contribute to result");
