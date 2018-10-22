@@ -606,3 +606,40 @@ if(WITH_CYCLES_OSL)
 		set(WITH_CYCLES_OSL OFF)
 	endif()
 endif()
+
+if (WINDOWS_PYTHON_DEBUG)
+	# Include the system scripts in the blender_python_system_scripts project.
+	FILE(GLOB_RECURSE inFiles "${CMAKE_SOURCE_DIR}/release/scripts/*.*" )
+	ADD_CUSTOM_TARGET(blender_python_system_scripts SOURCES ${inFiles})
+	foreach(_source IN ITEMS ${inFiles})
+		get_filename_component(_source_path "${_source}" PATH)
+		string(REPLACE "${CMAKE_SOURCE_DIR}/release/scripts/" "" _source_path "${_source_path}")
+		string(REPLACE "/" "\\" _group_path "${_source_path}")
+		source_group("${_group_path}" FILES "${_source}")
+	endforeach()
+	# Include the user scripts from the profile folder in the blender_python_user_scripts project.
+	set(USER_SCRIPTS_ROOT "$ENV{appdata}/blender foundation/blender/${BLENDER_VERSION}")
+	file(TO_CMAKE_PATH ${USER_SCRIPTS_ROOT} USER_SCRIPTS_ROOT)
+	FILE(GLOB_RECURSE inFiles "${USER_SCRIPTS_ROOT}/scripts/*.*" )
+	ADD_CUSTOM_TARGET(blender_python_user_scripts SOURCES ${inFiles})
+	foreach(_source IN ITEMS ${inFiles})
+		get_filename_component(_source_path "${_source}" PATH)
+		string(REPLACE "${USER_SCRIPTS_ROOT}/scripts" "" _source_path "${_source_path}")
+		string(REPLACE "/" "\\" _group_path "${_source_path}")
+		source_group("${_group_path}" FILES "${_source}")
+	endforeach()
+	set_target_properties(blender_python_system_scripts PROPERTIES FOLDER "scripts")
+	set_target_properties(blender_python_user_scripts PROPERTIES FOLDER "scripts")
+	# Set the default debugging options for the project, only write this file once so the user
+	# is free to override them at their own perril.
+	set(USER_PROPS_FILE "${CMAKE_CURRENT_BINARY_DIR}/source/creator/blender.Cpp.user.props")
+	if(NOT EXISTS ${USER_PROPS_FILE})
+		# Layout below is messy, because otherwise the generated file will look messy.
+		file(WRITE ${USER_PROPS_FILE} "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<Project DefaultTargets=\"Build\" xmlns=\"http://schemas.microsoft.com/developer/msbuild/2003\">
+	<PropertyGroup>
+		<LocalDebuggerCommandArguments>-con --env-system-scripts \"${CMAKE_SOURCE_DIR}/release/scripts\" </LocalDebuggerCommandArguments>
+	</PropertyGroup>
+</Project>")
+	endif()
+endif()
