@@ -1116,11 +1116,6 @@ static bool edbm_connect_vert_pair(BMEditMesh *em, wmOperator *op)
 	BMVert **verts;
 	bool checks_succeded = true;
 
-	/* sanity check */
-	if (!is_pair) {
-		return false;
-	}
-
 	verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
 	{
 		BMIter iter;
