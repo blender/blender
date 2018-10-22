@@ -344,7 +344,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 	/* scrollers */
 	// FIXME: args for scrollers depend on the type of data being shown...
-	scrollers = UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
+	scrollers = UI_view2d_scrollers_calc(C, v2d, NULL, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 
@@ -397,7 +397,7 @@ static void graph_channel_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 
 	/* scrollers */
-	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers = UI_view2d_scrollers_calc(C, v2d, NULL, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }

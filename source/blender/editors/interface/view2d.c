@@ -116,15 +116,28 @@ static int view2d_scroll_mapped(int scroll)
 	return scroll;
 }
 
-/* called each time cur changes, to dynamically update masks */
-static void view2d_masks(View2D *v2d, bool check_scrollers)
+void UI_view2d_mask_from_win(const View2D *v2d, rcti *r_mask)
+{
+	r_mask->xmin = 0;
+	r_mask->ymin = 0;
+	r_mask->xmax = v2d->winx - 1; /* -1 yes! masks are pixels */
+	r_mask->ymax = v2d->winy - 1;
+}
+
+/**
+ * Called each time #View2D.cur changes, to dynamically update masks.
+ *
+ * \param mask_scroll: Optionally clamp scrollbars by this region.
+ */
+static void view2d_masks(View2D *v2d, bool check_scrollers, const rcti *mask_scroll)
 {
 	int scroll;
 
 	/* mask - view frame */
-	v2d->mask.xmin = v2d->mask.ymin = 0;
-	v2d->mask.xmax = v2d->winx - 1; /* -1 yes! masks are pixels */
-	v2d->mask.ymax = v2d->winy - 1;
+	UI_view2d_mask_from_win(v2d, &v2d->mask);
+	if (mask_scroll == NULL) {
+		mask_scroll = &v2d->mask;
+	}
 
 	if (check_scrollers) {
 		/* check size if hiding flag is set: */
@@ -161,12 +174,12 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 		/* vertical scroller */
 		if (scroll & V2D_SCROLL_LEFT) {
 			/* on left-hand edge of region */
-			v2d->vert = v2d->mask;
+			v2d->vert = *mask_scroll;
 			v2d->vert.xmax = scroll_width;
 		}
 		else if (scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
-			v2d->vert = v2d->mask;
+			v2d->vert = *mask_scroll;
 			v2d->vert.xmax++; /* one pixel extra... was leaving a minor gap... */
 			v2d->vert.xmin = v2d->vert.xmax - scroll_width;
 		}
@@ -174,12 +187,12 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 		/* horizontal scroller */
 		if (scroll & (V2D_SCROLL_BOTTOM)) {
 			/* on bottom edge of region */
-			v2d->hor = v2d->mask;
+			v2d->hor = *mask_scroll;
 			v2d->hor.ymax = scroll_height;
 		}
 		else if (scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
-			v2d->hor = v2d->mask;
+			v2d->hor = *mask_scroll;
 			v2d->hor.ymin = v2d->hor.ymax - scroll_height;
 		}
 
@@ -356,7 +369,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 	v2d->winy = winy;
 
 	/* set masks (always do), but leave scroller scheck to totrect_set */
-	view2d_masks(v2d, 0);
+	view2d_masks(v2d, 0, NULL);
 
 	if (do_init) {
 		/* Visible by default. */
@@ -780,7 +793,7 @@ static void ui_view2d_curRect_validate_resize(View2D *v2d, bool resize, bool mas
 	}
 
 	/* set masks */
-	view2d_masks(v2d, mask_scrollers);
+	view2d_masks(v2d, mask_scrollers, NULL);
 }
 
 void UI_view2d_curRect_validate(View2D *v2d)
@@ -1635,7 +1648,7 @@ struct View2DScrollers {
 
 /* Calculate relevant scroller properties */
 View2DScrollers *UI_view2d_scrollers_calc(
-        const bContext *C, View2D *v2d,
+        const bContext *C, View2D *v2d, const rcti *mask_custom,
         short xunits, short xclamp, short yunits, short yclamp)
 {
 	View2DScrollers *scrollers;
@@ -1648,7 +1661,7 @@ View2DScrollers *UI_view2d_scrollers_calc(
 	scrollers = MEM_callocN(sizeof(View2DScrollers), "View2DScrollers");
 
 	/* Always update before drawing (for dynamically sized scrollers). */
-	view2d_masks(v2d, false);
+	view2d_masks(v2d, false, mask_custom);
 
 	vert = v2d->vert;
 	hor = v2d->hor;

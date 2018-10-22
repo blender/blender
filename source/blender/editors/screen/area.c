@@ -2289,8 +2289,15 @@ void ED_region_panels_draw(const bContext *C, ARegion *ar)
 	}
 
 	/* scrollers */
+	const rcti *mask = NULL;
+	rcti        mask_buf;
+	if (ar->runtime.category && (ar->alignment == RGN_ALIGN_RIGHT)) {
+		UI_view2d_mask_from_win(v2d, &mask_buf);
+		mask_buf.xmax -= UI_PANEL_CATEGORY_MARGIN_WIDTH;
+		mask = &mask_buf;
+	}
 	View2DScrollers *scrollers = UI_view2d_scrollers_calc(
-	        C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	        C, v2d, mask, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 }
