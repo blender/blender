@@ -605,9 +605,13 @@ void GPU_framebuffer_blit(
 	if (fb_write == prev_fb) {
 		GPU_framebuffer_bind(fb_write); /* To update drawbuffers */
 	}
-	else {
+	else if (prev_fb) {
 		glBindFramebuffer(GL_FRAMEBUFFER, prev_fb->object);
 		gpu_framebuffer_current_set(prev_fb);
+	}
+	else {
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gpu_framebuffer_current_set(NULL);
 	}
 }
 
