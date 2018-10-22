@@ -188,7 +188,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 	ED_node_init_butfuncs();
 
 	BLF_init(); /* Please update source/gamengine/GamePlayer/GPG_ghost.cpp if you change this */
+
 	BLT_lang_init();
+	/* Must call first before doing any .blend file reading, since versionning code may create new IDs... See T57066. */
+	BLT_lang_set(NULL);
 
 	/* reports cant be initialized before the wm,
 	 * but keep before file reading, since that may report errors */
@@ -197,6 +200,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	/* get the default database, plus a wm */
 	wm_homefile_read(C, NULL, G.factory_startup, false, true, NULL, WM_init_state_app_template_get());
 
+	/* Call again to set from userpreferences... */
 	BLT_lang_set(NULL);
 
 	if (!G.background) {
