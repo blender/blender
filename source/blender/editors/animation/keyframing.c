@@ -157,10 +157,14 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 		 */
 		adt->action->idroot = GS(id->name);
 
-		/* tag depsgraph to be rebuilt to include time dependency */
-		DEG_relations_tag_update(bmain);
 	}
 
+	/* Tag depsgraph to be rebuilt to include time dependency.
+	 *
+	 * NOTE: Do it for all animation data modification, since existing animation
+	 * data might not include relations to the newly animated components.
+	 */
+	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
 
 	/* return the action */
