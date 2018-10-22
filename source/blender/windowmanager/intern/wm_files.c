@@ -2167,6 +2167,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	char path[FILE_MAX];
 	int fileflags, orig_fileflags;
+	const bool is_save_as = (op->type->invoke == wm_save_as_mainfile_invoke);
 
 	save_set_compress(op);
 
@@ -2209,11 +2210,9 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
 
-#if 0 /* XXX: Remove? This is not currently defined as a valid property */
-	if (RNA_boolean_get(op->ptr, "exit")) {
+	if (!is_save_as && RNA_boolean_get(op->ptr, "exit")) {
 		wm_exit_schedule_delayed(C);
 	}
-#endif
 
 	return OPERATOR_FINISHED;
 }
