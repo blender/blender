@@ -916,12 +916,13 @@ GPUTexture *GPU_texture_create_cube(
 	const int channels = gpu_get_component_count(tex_format);
 
 	if (fpixels) {
-		fpixels_px = fpixels + 0 * w * w * channels;
-		fpixels_nx = fpixels + 1 * w * w * channels;
-		fpixels_py = fpixels + 2 * w * w * channels;
-		fpixels_ny = fpixels + 3 * w * w * channels;
-		fpixels_pz = fpixels + 4 * w * w * channels;
-		fpixels_nz = fpixels + 5 * w * w * channels;
+		int face_ofs = w * w * channels;
+		fpixels_px = fpixels + 0 * face_ofs;
+		fpixels_nx = fpixels + 1 * face_ofs;
+		fpixels_py = fpixels + 2 * face_ofs;
+		fpixels_ny = fpixels + 3 * face_ofs;
+		fpixels_pz = fpixels + 4 * face_ofs;
+		fpixels_nz = fpixels + 5 * face_ofs;
 	}
 	else {
 		fpixels_px = fpixels_py = fpixels_pz = fpixels_nx = fpixels_ny = fpixels_nz = NULL;
@@ -1099,6 +1100,7 @@ void *GPU_texture_read(GPUTexture *tex, GPUDataFormat gpu_data_format, int miplv
 	samples_count *= size[0];
 	samples_count *= max_ii(1, size[1]);
 	samples_count *= max_ii(1, size[2]);
+	samples_count *= (GPU_texture_cube(tex)) ? 6 : 1;
 
 	switch (gpu_data_format) {
 		case GPU_DATA_FLOAT:
@@ -1123,7 +1125,16 @@ void *GPU_texture_read(GPUTexture *tex, GPUDataFormat gpu_data_format, int miplv
 
 	glBindTexture(tex->target, tex->bindcode);
 
-	glGetTexImage(tex->target, miplvl, data_format, data_type, buf);
+	if (GPU_texture_cube(tex)) {
+		int cube_face_size = buf_size / 6;
+		for (int i = 0; i < 6; ++i) {
+			glGetTexImage(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, miplvl, data_format, data_type,
+			              ((char *)buf) + cube_face_size * i);
+		}
+	}
+	else {
+		glGetTexImage(tex->target, miplvl, data_format, data_type, buf);
+	}
 
 	glBindTexture(tex->target, 0);
 

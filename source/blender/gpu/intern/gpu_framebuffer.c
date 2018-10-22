@@ -640,11 +640,15 @@ void GPU_framebuffer_recursive_downsample(
 
 		for (GPUAttachmentType type = 0; type < GPU_FB_MAX_ATTACHEMENT; ++type) {
 			if (fb->attachments[type].tex != NULL) {
+				/* Some Intel HDXXX have issue with rendering to a mipmap that is below
+				 * the texture GL_TEXTURE_MAX_LEVEL. So even if it not correct, in this case
+				 * we allow GL_TEXTURE_MAX_LEVEL to be one level lower. In practice it does work! */
+				int next_lvl = (GPU_mip_render_workaround()) ? i : i - 1;
 				/* bind next level for rendering but first restrict fetches only to previous level */
 				GPUTexture *tex = fb->attachments[type].tex;
 				GPU_texture_bind(tex, 0);
 				glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_BASE_LEVEL, i - 1);
-				glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, i - 1);
+				glTexParameteri(GPU_texture_target(tex), GL_TEXTURE_MAX_LEVEL, next_lvl);
 				GPU_texture_unbind(tex);
 				/* copy attachment and replace miplevel. */
 				GPUAttachment attachment = fb->attachments[type];
