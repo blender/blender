@@ -572,15 +572,15 @@ static PyObject *bpygpu_shader_attr_from_name(
 		return NULL;
 	}
 
-	int attrib = GPU_shader_get_attribute(self->shader, name);
+	int attr = GPU_shader_get_attribute(self->shader, name);
 
-	if (attrib == -1) {
+	if (attr == -1) {
 		PyErr_Format(PyExc_ValueError,
 		             "GPUShader.attr_from_name: attribute %.32s not found", name);
 		return NULL;
 	}
 
-	return PyLong_FromLong(attrib);
+	return PyLong_FromLong(attr);
 }
 
 PyDoc_STRVAR(bpygpu_shader_calc_format_doc,

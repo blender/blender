@@ -189,7 +189,7 @@ finally:
 	return ok;
 }
 
-static int bpygpu_fill_attribute(GPUVertBuf *buf, int id, PyObject *py_seq_data, const char *error_prefix)
+static int bpygpu_attr_fill(GPUVertBuf *buf, int id, PyObject *py_seq_data, const char *error_prefix)
 {
 	if (id < 0 || id >= buf->format.attr_len) {
 		PyErr_Format(PyExc_ValueError,
@@ -265,8 +265,8 @@ static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, 
 	return BPyGPUVertBuf_CreatePyObject(vbo);
 }
 
-PyDoc_STRVAR(bpygpu_VertBuf_fill_attribute_doc,
-"fill_attribute(identifier, data)\n"
+PyDoc_STRVAR(bpygpu_VertBuf_attr_fill_doc,
+"attr_fill(identifier, data)\n"
 "\n"
 "   Insert data into the buffer for a single attribute.\n"
 "\n"
@@ -275,13 +275,13 @@ PyDoc_STRVAR(bpygpu_VertBuf_fill_attribute_doc,
 "   :param data: Sequence of data that should be stored in the buffer\n"
 "   :type data: sequence of individual values or tuples\n"
 );
-static PyObject *bpygpu_VertBuf_fill_attribute(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
+static PyObject *bpygpu_VertBuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, PyObject *kwds)
 {
 	PyObject *data;
 	PyObject *identifier;
 
 	static const char *_keywords[] = {"identifier", "data", NULL};
-	static _PyArg_Parser _parser = {"OO:fill_attribute", _keywords, 0};
+	static _PyArg_Parser _parser = {"OO:attr_fill", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &identifier, &data))
@@ -310,7 +310,7 @@ static PyObject *bpygpu_VertBuf_fill_attribute(BPyGPUVertBuf *self, PyObject *ar
 	}
 
 
-	if (!bpygpu_fill_attribute(self->buf, id, data, "GPUVertBuf.fill_attribute")) {
+	if (!bpygpu_attr_fill(self->buf, id, data, "GPUVertBuf.attr_fill")) {
 		return NULL;
 	}
 
@@ -319,8 +319,8 @@ static PyObject *bpygpu_VertBuf_fill_attribute(BPyGPUVertBuf *self, PyObject *ar
 
 
 static struct PyMethodDef bpygpu_VertBuf_methods[] = {
-	{"fill_attribute", (PyCFunction) bpygpu_VertBuf_fill_attribute,
-	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_fill_attribute_doc},
+	{"attr_fill", (PyCFunction) bpygpu_VertBuf_attr_fill,
+	 METH_VARARGS | METH_KEYWORDS, bpygpu_VertBuf_attr_fill_doc},
 	{NULL, NULL, 0, NULL}
 };
 
