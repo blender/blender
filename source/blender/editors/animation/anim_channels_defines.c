@@ -4186,7 +4186,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 		/* find or create new F-Curve */
 		// XXX is the group name for this ok?
 		bAction *act = verify_adt_action(bmain, (ID *)key, 1);
-		FCurve *fcu = verify_fcurve(act, NULL, &ptr, rna_path, 0, 1);
+		FCurve *fcu = verify_fcurve(bmain, act, NULL, &ptr, rna_path, 0, 1);
 
 		/* set the special 'replace' flag if on a keyframe */
 		if (fcurve_frame_has_keyframe(fcu, cfra, 0))

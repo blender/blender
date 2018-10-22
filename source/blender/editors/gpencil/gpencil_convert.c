@@ -483,7 +483,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 
 	/* Ensure we have an F-Curve to add keyframes to */
 	act = verify_adt_action(bmain, (ID *)cu, true);
-	fcu = verify_fcurve(act, NULL, &ptr, "eval_time", 0, true);
+	fcu = verify_fcurve(bmain, act, NULL, &ptr, "eval_time", 0, true);
 
 	if (G.debug & G_DEBUG) {
 		printf("%s: tot len: %f\t\ttot time: %f\n", __func__, gtd->tot_dist, gtd->tot_time);

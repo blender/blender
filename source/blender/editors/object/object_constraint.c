@@ -998,7 +998,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 		{
 			/* create F-Curve for path animation */
 			act = verify_adt_action(bmain, &cu->id, 1);
-			fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
+			fcu = verify_fcurve(bmain, act, NULL, NULL, "eval_time", 0, 1);
 
 			/* standard vertical range - 1:1 = 100 frames */
 			standardRange = 100.0f;
@@ -1023,7 +1023,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 
 		/* create F-Curve for constraint */
 		act = verify_adt_action(bmain, &ob->id, 1);
-		fcu = verify_fcurve(act, NULL, NULL, path, 0, 1);
+		fcu = verify_fcurve(bmain, act, NULL, NULL, path, 0, 1);
 
 		/* standard vertical range - 0.0 to 1.0 */
 		standardRange = 1.0f;

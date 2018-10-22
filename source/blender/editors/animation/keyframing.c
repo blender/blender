@@ -157,14 +157,10 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 		 */
 		adt->action->idroot = GS(id->name);
 
+		/* Tag depsgraph to be rebuilt to include time dependency. */
+		DEG_relations_tag_update(bmain);
 	}
 
-	/* Tag depsgraph to be rebuilt to include time dependency.
-	 *
-	 * NOTE: Do it for all animation data modification, since existing animation
-	 * data might not include relations to the newly animated components.
-	 */
-	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
 
 	/* return the action */
@@ -174,7 +170,7 @@ bAction *verify_adt_action(Main *bmain, ID *id, short add)
 /* Get (or add relevant data to be able to do so) F-Curve from the Active Action,
  * for the given Animation Data block. This assumes that all the destinations are valid.
  */
-FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
+FCurve *verify_fcurve(Main *bmain, bAction *act, const char group[], PointerRNA *ptr,
                       const char rna_path[], const int array_index, short add)
 {
 	bActionGroup *agrp;
@@ -235,6 +231,11 @@ FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr,
 			/* just add F-Curve to end of Action's list */
 			BLI_addtail(&act->curves, fcu);
 		}
+
+		/* New f-curve was added, meaning it's possible that it affects
+		 * dependency graph component which wasn't previously animated.
+		 */
+		DEG_relations_tag_update(bmain);
 	}
 
 	/* return the F-Curve */
@@ -1086,7 +1087,7 @@ short insert_keyframe(
 		 *	- if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
 		 *	  but still try to get the F-Curve if it exists...
 		 */
-		fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, (flag & INSERTKEY_REPLACE) == 0);
+		fcu = verify_fcurve(bmain, act, group, &ptr, rna_path, array_index, (flag & INSERTKEY_REPLACE) == 0);
 
 		/* we may not have a F-Curve when we're replacing only... */
 		if (fcu) {
@@ -1159,7 +1160,9 @@ static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
 	return false;
 }
 
-short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eInsertKeyFlags UNUSED(flag))
+short delete_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *act,
+                      const char group[], const char rna_path[], int array_index, float cfra,
+                      eInsertKeyFlags UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1217,7 +1220,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
-		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
+		FCurve *fcu = verify_fcurve(bmain, act, group, &ptr, rna_path, array_index, 0);
 
 		/* check if F-Curve exists and/or whether it can be edited */
 		if (fcu == NULL)
@@ -1248,7 +1251,9 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
-static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, eInsertKeyFlags UNUSED(flag))
+static short clear_keyframe(Main *bmain, ReportList *reports, ID *id, bAction *act,
+                            const char group[], const char rna_path[], int array_index,
+                            eInsertKeyFlags UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1303,7 +1308,7 @@ static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const cha
 
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
-		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
+		FCurve *fcu = verify_fcurve(bmain, act, group, &ptr, rna_path, array_index, 0);
 
 		/* check if F-Curve exists and/or whether it can be edited */
 		if (fcu == NULL)
@@ -1932,6 +1937,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
+	Main *bmain = CTX_data_main(C);
 	char *path;
 	float cfra = (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	short success = 0;
@@ -1988,7 +1994,7 @@ static int delete_key_button_exec(bContext *C, wmOperator *op)
 					index = -1;
 				}
 
-				success = delete_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index, cfra, 0);
+				success = delete_keyframe(bmain, op->reports, ptr.id.data, NULL, NULL, path, index, cfra, 0);
 				MEM_freeN(path);
 			}
 			else if (G.debug & G_DEBUG)
@@ -2036,6 +2042,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 {
 	PointerRNA ptr = {{NULL}};
 	PropertyRNA *prop = NULL;
+	Main *bmain = CTX_data_main(C);
 	char *path;
 	short success = 0;
 	int index;
@@ -2056,7 +2063,7 @@ static int clear_key_button_exec(bContext *C, wmOperator *op)
 				index = -1;
 			}
 
-			success += clear_keyframe(op->reports, ptr.id.data, NULL, NULL, path, index, 0);
+			success += clear_keyframe(bmain, op->reports, ptr.id.data, NULL, NULL, path, index, 0);
 			MEM_freeN(path);
 		}
 		else if (G.debug & G_DEBUG)

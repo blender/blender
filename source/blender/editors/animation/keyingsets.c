@@ -1042,7 +1042,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 			if (mode == MODIFYKEY_MODE_INSERT)
 				success += insert_keyframe(bmain, depsgraph, reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, keytype, kflag2);
 			else if (mode == MODIFYKEY_MODE_DELETE)
-				success += delete_keyframe(reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
+				success += delete_keyframe(bmain, reports, ksp->id, act, groupname, ksp->rna_path, i, cfra, kflag2);
 		}
 
 		/* set recalc-flags */

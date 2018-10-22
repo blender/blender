@@ -102,7 +102,7 @@ static void rna_Action_groups_remove(bAction *act, ReportList *reports, PointerR
 	RNA_POINTER_INVALIDATE(agrp_ptr);
 }
 
-static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const char *data_path,
+static FCurve *rna_Action_fcurve_new(bAction *act, Main *bmain, ReportList *reports, const char *data_path,
                                      int index, const char *group)
 {
 	if (group && group[0] == '\0') group = NULL;
@@ -113,12 +113,12 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const ch
 	}
 
 	/* annoying, check if this exists */
-	if (verify_fcurve(act, group, NULL, data_path, index, 0)) {
+	if (verify_fcurve(bmain, act, group, NULL, data_path, index, 0)) {
 		BKE_reportf(reports, RPT_ERROR, "F-Curve '%s[%d]' already exists in action '%s'", data_path,
 		            index, act->id.name + 2);
 		return NULL;
 	}
-	return verify_fcurve(act, group, NULL, data_path, index, 1);
+	return verify_fcurve(bmain, act, group, NULL, data_path, index, 1);
 }
 
 static FCurve *rna_Action_fcurve_find(bAction *act, ReportList *reports, const char *data_path, int index)
@@ -598,7 +598,7 @@ static void rna_def_action_fcurves(BlenderRNA *brna, PropertyRNA *cprop)
 	/* Action.fcurves.new(...) */
 	func = RNA_def_function(srna, "new", "rna_Action_fcurve_new");
 	RNA_def_function_ui_description(func, "Add an F-Curve to the action");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_MAIN);
 	parm = RNA_def_string(func, "data_path", NULL, 0, "Data Path", "F-Curve data path to use");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Array index", 0, INT_MAX);
