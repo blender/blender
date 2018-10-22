@@ -251,6 +251,9 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 			const bool all_wires = (stl->g_data->overlay.wireframe_threshold == 1.0f) ||
 			                       (ob->dtx & OB_DRAW_ALL_EDGES);
+			const bool is_wire = (ob->dt < OB_SOLID);
+			const int stencil_mask = (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF;
+			DRWShadingGroup *shgrp = NULL;
 
 			/* This fixes only the biggest case which is a plane in ortho view. */
 			int flat_axis = 0;
@@ -259,17 +262,20 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 			                                       DRW_object_axis_orthogonal_to_view(ob, flat_axis);
 
 			if (is_sculpt_mode) {
-				DRWShadingGroup *shgrp = (all_wires || DRW_object_is_flat_normal(ob))
+				shgrp = (all_wires || DRW_object_is_flat_normal(ob))
 				                         ? stl->g_data->sculpt_wires_full
 				                         : stl->g_data->sculpt_wires;
+				if (is_wire) {
+					shgrp = DRW_shgroup_create_sub(shgrp);
+				}
 				DRW_shgroup_call_sculpt_add(shgrp, ob, ob->obmat);
 			}
 			else if (is_flat_object_viewed_from_side) {
 				/* Avoid losing flat objects when in ortho views (see T56549) */
 				struct GPUBatch *geom = DRW_cache_object_wire_outline_get(ob);
 				GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
-				DRWShadingGroup *shgrp = DRW_shgroup_create(sh, psl->flat_wireframe_pass);
-				DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
+				shgrp = DRW_shgroup_create(sh, psl->flat_wireframe_pass);
+				DRW_shgroup_stencil_mask(shgrp, stencil_mask);
 				DRW_shgroup_uniform_vec4(shgrp, "color", ts.colorWire, 1);
 				DRW_shgroup_call_object_add(shgrp, geom, ob);
 			}
@@ -289,7 +295,7 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 						static float params[2] = {1.2f, 1.0f}; /* Parameters for all wires */
 
 						sh = e_data.select_wireframe_sh;
-						DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
+						shgrp = DRW_shgroup_create(sh, pass);
 						DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", (all_wires)
 						                                                 ? params
 						                                                 : stl->g_data->wire_step_param, 1);
@@ -298,8 +304,8 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 						DRW_shgroup_call_object_procedural_triangles_culled_add(shgrp, tri_count, ob);
 					}
 					else {
-						DRWShadingGroup *shgrp = DRW_shgroup_create(sh, pass);
-						DRW_shgroup_stencil_mask(shgrp, (ob->dtx & OB_DRAWXRAY) ? 0x00 : 0xFF);
+						shgrp = DRW_shgroup_create(sh, pass);
+						DRW_shgroup_stencil_mask(shgrp, stencil_mask);
 						DRW_shgroup_uniform_texture(shgrp, "vertData", verts);
 						DRW_shgroup_uniform_texture(shgrp, "faceIds", faceids);
 						DRW_shgroup_uniform_vec3(shgrp, "wireColor", ts.colorWire, 1);
@@ -308,11 +314,19 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 					}
 				}
 			}
-		}
-	}
 
-	if (ob->dtx & OB_DRAWXRAY) {
-		stl->g_data->ghost_stencil_test = true;
+			if (is_wire && shgrp != NULL) {
+				/* If object is wireframe, don't try to use stencil test. */
+				DRW_shgroup_state_disable(shgrp, DRW_STATE_STENCIL_EQUAL);
+
+				if (ob->dtx & OB_DRAWXRAY) {
+					DRW_shgroup_state_disable(shgrp, DRW_STATE_DEPTH_LESS_EQUAL);
+				}
+			}
+			else if ((ob->dtx & OB_DRAWXRAY) && shgrp != NULL) {
+				stl->g_data->ghost_stencil_test = true;
+			}
+		}
 	}
 }
 
