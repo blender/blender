@@ -63,8 +63,9 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 	BKE_gpencil_modifier_copyData_generic(md, target);
 }
 
-static int remapTime(struct GpencilModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-	struct Scene *scene, struct Object *ob, struct bGPDlayer *gpl, int cfra)
+static int remapTime(
+        struct GpencilModifierData *md, struct Depsgraph *UNUSED(depsgraph),
+        struct Scene *scene, struct Object *UNUSED(ob), struct bGPDlayer *gpl, int cfra)
 {
 	TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
 	const int sfra = scene->r.sfra;
@@ -107,7 +108,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Time = {
 	/* structSize */        sizeof(TimeGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
 	/* flags */             eGpencilModifierTypeFlag_Single |
-							eGpencilModifierTypeFlag_NoApply,
+	                        eGpencilModifierTypeFlag_NoApply,
 
 	/* copyData */          copyData,
 

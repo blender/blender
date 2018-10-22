@@ -253,8 +253,8 @@ static bool parent_drop_allowed(SpaceOops *soops, TreeElement *te, Object *poten
 		*/
 	if (scene) {
 		for (ViewLayer *view_layer = scene->view_layers.first;
-				view_layer;
-				view_layer = view_layer->next)
+		     view_layer;
+		     view_layer = view_layer->next)
 		{
 			if (BKE_view_layer_base_find(view_layer, potential_child)) {
 				return true;

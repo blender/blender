@@ -1283,8 +1283,8 @@ void DRW_gpencil_populate_datablock(
 		}
 		else {
 			int remap_cfra = BKE_gpencil_time_modifier(
-											draw_ctx->depsgraph, scene,ob, gpl, cfra_eval,
-											stl->storage->is_render);
+			        draw_ctx->depsgraph, scene, ob, gpl, cfra_eval,
+			        stl->storage->is_render);
 
 			gpf = BKE_gpencil_layer_getframe(gpl, remap_cfra, GP_GETFRAME_USE_PREV);
 		}

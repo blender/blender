@@ -746,13 +746,13 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, -INT_MAX, INT_MAX);
 	RNA_def_property_ui_text(prop, "Offset",
-			"Number of frames to offset original keyframe number");
+	                         "Number of frames to offset original keyframe number");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
 	prop = RNA_def_property(srna, "use_keep_loop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TIME_KEEP_LOOP);
 	RNA_def_property_ui_text(prop, "Keep Loop",
-		"Retiming end frames and move to start of animation to keep loop");
+	                         "Retiming end frames and move to start of animation to keep loop");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 }
 

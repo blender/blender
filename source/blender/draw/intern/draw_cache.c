@@ -698,7 +698,7 @@ void DRW_cache_object_face_wireframe_get(
 {
 	switch (ob->type) {
 		case OB_MESH:
-			DRW_mesh_batch_cache_get_wireframes_face_texbuf((Mesh *)ob->data, r_vert_tx, r_faceid_tx, r_tri_count);
+			DRW_mesh_batch_cache_get_wireframes_face_texbuf(ob->data, r_vert_tx, r_faceid_tx, r_tri_count);
 
 		/* TODO, should match 'DRW_cache_object_surface_get' */
 	}

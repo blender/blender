@@ -1663,7 +1663,7 @@ static uiLayout *gpencil_draw_modifier(
 			uiLayoutSetEnabled(sub, false);
 		}
 		uiItemEnumO(sub, "OBJECT_OT_gpencil_modifier_apply", CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Apply"),
-				0, "apply_as", MODIFIER_APPLY_DATA);
+		            0, "apply_as", MODIFIER_APPLY_DATA);
 		uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Copy"), ICON_NONE,
 			"OBJECT_OT_gpencil_modifier_copy");
 
