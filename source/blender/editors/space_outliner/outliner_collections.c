@@ -81,7 +81,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 	TreeStoreElem *tselem = TREESTORE(te);
 
 	if (!tselem) {
-		return false;
+		return NULL;
 	}
 
 	if (tselem->type == TSE_LAYER_COLLECTION) {

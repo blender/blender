@@ -156,6 +156,7 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "OUTLINER_OT_operation", RIGHTMOUSE, KM_PRESS, 0, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_item_drag_drop", EVT_TWEAK_L, KM_ANY, 0, 0);
+	WM_keymap_add_item(keymap, "OUTLINER_OT_item_drag_drop", EVT_TWEAK_L, KM_ANY, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "OUTLINER_OT_show_hierarchy", HOMEKEY, KM_PRESS, 0, 0);
 

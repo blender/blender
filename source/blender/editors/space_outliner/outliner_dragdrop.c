@@ -50,6 +50,7 @@
 #include "BKE_material.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
@@ -192,18 +193,32 @@ static TreeElement *outliner_drop_insert_find(
 	}
 }
 
+static Collection *outliner_collection_from_tree_element_and_parents(TreeElement *te, TreeElement **r_te)
+{
+	while (te != NULL) {
+		Collection *collection = outliner_collection_from_tree_element(te);
+		if (collection) {
+			*r_te = te;
+			return collection;
+		}
+		te = te->parent;
+	}
+	return NULL;
+}
+
 static TreeElement *outliner_drop_insert_collection_find(
         bContext *C, const wmEvent *event,
         TreeElementInsertType *r_insert_type)
 {
 	TreeElement *te = outliner_drop_insert_find(C, event, r_insert_type);
-	if (!te) {
-		return NULL;
-	}
+	if (!te) return NULL;
 
-	Collection *collection = outliner_collection_from_tree_element(te);
-	if (!collection) {
-		return NULL;
+	TreeElement *collection_te;
+	Collection *collection = outliner_collection_from_tree_element_and_parents(te, &collection_te);
+	if (!collection) return NULL;
+
+	if (collection_te != te) {
+		*r_insert_type = TE_INSERT_INTO;
 	}
 
 	/* We can't insert before/after master collection. */
@@ -211,54 +226,80 @@ static TreeElement *outliner_drop_insert_collection_find(
 		*r_insert_type = TE_INSERT_INTO;
 	}
 
-	return te;
+	return collection_te;
 }
 
 /* ******************** Parent Drop Operator *********************** */
 
-static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
+static bool parent_drop_allowed(SpaceOops *soops, TreeElement *te, Object *potential_child)
 {
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
-	if (!ob) {
+	TreeStoreElem *tselem = TREESTORE(te);
+	if (te->idcode != ID_OB || tselem->type != 0) {
 		return false;
 	}
 
-	/* Ensure item under cursor is valid drop target */
-	TreeElement *te = outliner_drop_find(C, event);
-	TreeStoreElem *tselem = te ? TREESTORE(te) : NULL;
+	Object *potential_parent = (Object *)tselem->id;
 
-	if (!te) {
-		/* pass */
-	}
-	else if (te->idcode == ID_OB && tselem->type == 0) {
-		Scene *scene;
-		ID *te_id = tselem->id;
+	if (potential_parent == potential_child) return false;
+	if (BKE_object_is_child_recursive(potential_child, potential_parent)) return false;
+	if (potential_parent == potential_child->parent) return false;
 
-		/* check if dropping self or parent */
-		if (te_id == &ob->id || (Object *)te_id == ob->parent)
-			return false;
+	/* check that parent/child are both in the same scene */
+	Scene *scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
-		/* check that parent/child are both in the same scene */
-		scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
-
-		/* currently outliner organized in a way that if there's no parent scene
-		 * element for object it means that all displayed objects belong to
-		 * active scene and parenting them is allowed (sergey)
-		 */
-		if (!scene) {
-			return true;
-		}
-		else {
-			for (ViewLayer *view_layer = scene->view_layers.first;
-			     view_layer;
-			     view_layer = view_layer->next)
-			{
-				if (BKE_view_layer_base_find(view_layer, ob)) {
-					return true;
-				}
+	/* currently outliner organized in a way that if there's no parent scene
+		* element for object it means that all displayed objects belong to
+		* active scene and parenting them is allowed (sergey)
+		*/
+	if (scene) {
+		for (ViewLayer *view_layer = scene->view_layers.first;
+				view_layer;
+				view_layer = view_layer->next)
+		{
+			if (BKE_view_layer_base_find(view_layer, potential_child)) {
+				return true;
 			}
 		}
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+static bool allow_parenting_without_modifier_key(SpaceOops *soops)
+{
+	switch (soops->outlinevis) {
+		case SO_VIEW_LAYER:
+			return soops->filter & SO_FILTER_NO_COLLECTION;
+		case SO_SCENES:
+			return true;
+		default:
+			return false;
+	}
+}
+
+static bool parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
+	bool changed = outliner_flag_set(&soops->tree, TSE_DRAG_ANY, false);
+	if (changed) ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
+
+	Object *potential_child = (Object *)WM_drag_ID(drag, ID_OB);
+	if (!potential_child) return false;
+
+	if (!allow_parenting_without_modifier_key(soops)) {
+		if (!event->shift) return false;
+	}
+
+	TreeElement *te = outliner_drop_find(C, event);
+	if (!te) return false;
+
+	if (parent_drop_allowed(soops, te, potential_child)) {
+		TREESTORE(te)->flag |= TSE_DRAG_INTO;
+		ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
+		return true;
 	}
 
 	return false;
@@ -436,52 +477,38 @@ void OUTLINER_OT_parent_drop(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", prop_make_parent_types, 0, "Type", "");
 }
 
-static bool parenting_poll(bContext *C)
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-
-	if (soops) {
-		if (soops->outlinevis == SO_SCENES) {
-			return true;
-		}
-		else if ((soops->outlinevis == SO_VIEW_LAYER) &&
-		         (soops->filter & SO_FILTER_NO_COLLECTION))
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 /* ******************** Parent Clear Operator *********************** */
 
 static bool parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *event, const char **UNUSED(tooltip))
 {
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 
-	if (!ELEM(soops->outlinevis, SO_VIEW_LAYER)) {
-		return false;
+	if (!allow_parenting_without_modifier_key(soops)) {
+		if (!event->shift) return false;
 	}
 
 	Object *ob = (Object *)WM_drag_ID(drag, ID_OB);
-	if (!(ob && ob->parent)) {
-		return false;
-	}
+	if (!ob) return false;
+	if (!ob->parent) return false;
 
 	TreeElement *te = outliner_drop_find(C, event);
 	if (te) {
 		TreeStoreElem *tselem = TREESTORE(te);
+		ID *id = tselem->id;
+		if (!id) return true;
 
-		switch (te->idcode) {
-			case ID_SCE:
-				return (ELEM(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER));
+		switch (GS(id->name)) {
 			case ID_OB:
-				return (ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE));
-			/* Other codes to ignore? */
+				return ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE);
+			case ID_GR:
+				return event->shift;
+			default:
+				return true;
 		}
 	}
-	return (te == NULL);
+	else {
+		return true;
+	}
 }
 
 static int parent_clear_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
@@ -511,7 +538,7 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = parent_clear_invoke;
 
-	ot->poll = parenting_poll;
+	ot->poll = ED_operator_outliner_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
@@ -655,6 +682,8 @@ static Collection *collection_parent_from_ID(ID *id)
 
 static bool collection_drop_init(bContext *C, wmDrag *drag, const wmEvent *event, CollectionDrop *data)
 {
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+
 	/* Get collection to drop into. */
 	TreeElementInsertType insert_type;
 	TreeElement *te = outliner_drop_insert_collection_find(C, event, &insert_type);
@@ -685,7 +714,7 @@ static bool collection_drop_init(bContext *C, wmDrag *drag, const wmEvent *event
 	/* Get collection to drag out of. */
 	ID *parent = drag_id->from_parent;
 	Collection *from_collection = collection_parent_from_ID(parent);
-	if (event->ctrl) {
+	if (event->ctrl || soops->outlinevis == SO_SCENES) {
 		from_collection = NULL;
 	}
 
@@ -714,14 +743,15 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 	bool changed = outliner_flag_set(&soops->tree, TSE_HIGHLIGHTED | TSE_DRAG_ANY, false);
 
 	CollectionDrop data;
-	if (collection_drop_init(C, drag, event, &data)) {
+	if (!event->shift && collection_drop_init(C, drag, event, &data)) {
+		TreeElement *te = data.te;
+		TreeStoreElem *tselem = TREESTORE(te);
 		if (!data.from || event->ctrl) {
+			tselem->flag |= TSE_DRAG_INTO;
+			changed = true;
 			*tooltip = IFACE_("Link inside Collection");
 		}
 		else {
-			TreeElement *te = data.te;
-			TreeStoreElem *tselem = TREESTORE(te);
-
 			switch (data.insert_type) {
 				case TE_INSERT_BEFORE:
 					tselem->flag |= TSE_DRAG_BEFORE;
@@ -746,17 +776,17 @@ static bool collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event
 				case TE_INSERT_INTO:
 					tselem->flag |= TSE_DRAG_INTO;
 					changed = true;
-					*tooltip = TIP_("Move inside collection (Ctrl to link)");
+					*tooltip = TIP_("Move inside collection (Ctrl to link, Shift to parent)");
 					break;
 			}
 		}
+		if (changed) ED_region_tag_redraw_no_rebuild(ar);
+		return true;
 	}
-
-	if (changed) {
-		ED_region_tag_redraw_no_rebuild(ar);
+	else {
+		if (changed) ED_region_tag_redraw_no_rebuild(ar);
+		return false;
 	}
-
-	return true;
 }
 
 static int collection_drop_invoke(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
