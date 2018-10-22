@@ -115,7 +115,7 @@ static PyObject *py_blf_aspect(PyObject *UNUSED(self), PyObject *args)
 
 
 PyDoc_STRVAR(py_blf_color_doc,
-".. function:: color(fontid, level, r, g, b, a)\n"
+".. function:: color(fontid, r, g, b, a)\n"
 "\n"
 "   Set the color for drawing text.\n"
 "\n"
