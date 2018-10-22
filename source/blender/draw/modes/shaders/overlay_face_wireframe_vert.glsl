@@ -139,9 +139,9 @@ void main()
 	pos[v_n] = get_vertex_pos(v_id[v_n]);
 	gl_Position = p_pos[v_n] = ModelViewProjectionMatrix * vec4(pos[v_n], 1.0);
 
-	barycentric[v_n] = do_edge[v_n] ? 0.0 : 1.0;
-	barycentric[v_n1] = 1.0;
-	barycentric[v_n2] = do_edge[v_n2] ? 0.0 : 1.0;
+	bvec3 bary = equal(ivec3(0, 1, 2), ivec3(v_n1));
+	/* This is equivalent to component wise : (do_edge ? bary : 1.0) */
+	barycentric = vec3(lessThanEqual(ivec3(do_edge), ivec3(bary)));
 
 #  ifndef LIGHT_EDGES
 	vec3 nor = get_vertex_nor(v_id[v_n]);
