@@ -729,7 +729,7 @@ static PyObject *bpygpu_shader_unbind(BPyGPUShader *UNUSED(self))
 }
 
 PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
-".. function:: shader_from_builtin(shader_name)\n"
+".. function:: from_builtin(shader_name)\n"
 "\n"
 "   :param shader_name: One of these builtin shader names: {\n"
 "       '2D_UNIFORM_COLOR',\n"
@@ -740,6 +740,8 @@ PyDoc_STRVAR(bpygpu_shader_from_builtin_doc,
 "       '3D_FLAT_COLOR',\n"
 "       '3D_SMOOTH_COLOR'}\n"
 "   :type shader_name: str\n"
+"   :return: the shader object\n"
+"   :rtype: bpy.types.GPUShader\n"
 );
 static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *arg)
 {
@@ -755,7 +757,7 @@ static PyObject *bpygpu_shader_from_builtin(PyObject *UNUSED(self), PyObject *ar
 }
 
 PyDoc_STRVAR(bpygpu_shader_code_from_builtin_doc,
-".. function:: shader_code_from_builtin(shader_name)\n"
+".. function:: code_from_builtin(shader_name)\n"
 "\n"
 "   :param shader_name: One of these builtin shader names: {\n"
 "       '2D_UNIFORM_COLOR',\n"
