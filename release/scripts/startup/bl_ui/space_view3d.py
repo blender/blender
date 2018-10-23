@@ -1188,6 +1188,11 @@ class VIEW3D_MT_select_edit_lattice(Menu):
 
         layout.separator()
 
+        layout.operator("lattice.select_more")
+        layout.operator("lattice.select_less")
+
+        layout.separator()
+
         layout.operator("lattice.select_ungrouped", text="Ungrouped Verts")
 
 
