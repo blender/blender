@@ -2042,6 +2042,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_gpencil_edit.circle_select,
             _defs_gpencil_edit.lasso_select,
             None,
+            *_tools_transform,
+            None,
             _defs_gpencil_edit.bend,
             _defs_gpencil_edit.shear,
             _defs_gpencil_edit.tosphere,
