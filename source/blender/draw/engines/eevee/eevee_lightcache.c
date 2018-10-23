@@ -226,7 +226,7 @@ static bool EEVEE_lightcache_validate(
 		if ((irr_size[0] == light_cache->grid_tx.tex_size[0]) &&
 		    (irr_size[1] == light_cache->grid_tx.tex_size[1]) &&
 		    (irr_size[2] == light_cache->grid_tx.tex_size[2]) &&
-		    (grid_len != light_cache->grid_len))
+		    (grid_len == light_cache->grid_len))
 		{
 			int mip_len = (int)(floorf(log2f(cube_res)) - MIN_CUBE_LOD_LEVEL);
 			if ((cube_res == light_cache->cube_tx.tex_size[0]) &&
@@ -472,8 +472,7 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 	lbake->lcache = eevee->light_cache;
 
 	/* TODO validate irradiance and reflection cache independently... */
-	if (lbake->lcache != NULL &&
-	    !EEVEE_lightcache_validate(lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
+	if (!EEVEE_lightcache_validate(lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
 	{
 		eevee->light_cache = lbake->lcache = NULL;
 	}
@@ -611,11 +610,6 @@ static void eevee_lightbake_delete_resources(EEVEE_LightBake *lbake)
 	}
 	else if (!lbake->resource_only) {
 		DRW_opengl_context_enable();
-	}
-
-	if (lbake->own_light_cache) {
-		EEVEE_lightcache_free(lbake->lcache);
-		lbake->lcache = NULL;
 	}
 
 	/* XXX Free the resources contained in the viewlayer data
