@@ -209,13 +209,15 @@ void BM_mesh_bm_from_me(
 	BMFace *f, **ftable = NULL;
 	float (*keyco)[3] = NULL;
 	int totloops, i;
+	const int64_t mask = CD_MASK_BMESH | params->cd_mask_extra;
+	const int64_t mask_loop_only = mask & ~CD_MASK_ORIGINDEX;
 
 	if (!me || !me->totvert) {
 		if (me && is_new) { /*no verts? still copy customdata layout*/
-			CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_ASSIGN, 0);
-			CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_ASSIGN, 0);
-			CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_ASSIGN, 0);
-			CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_ASSIGN, 0);
+			CustomData_copy(&me->vdata, &bm->vdata, mask, CD_ASSIGN, 0);
+			CustomData_copy(&me->edata, &bm->edata, mask, CD_ASSIGN, 0);
+			CustomData_copy(&me->ldata, &bm->ldata, mask_loop_only, CD_ASSIGN, 0);
+			CustomData_copy(&me->pdata, &bm->pdata, mask, CD_ASSIGN, 0);
 
 			CustomData_bmesh_init_pool(&bm->vdata, me->totvert, BM_VERT);
 			CustomData_bmesh_init_pool(&bm->edata, me->totedge, BM_EDGE);
@@ -226,10 +228,10 @@ void BM_mesh_bm_from_me(
 	}
 
 	if (is_new) {
-		CustomData_copy(&me->vdata, &bm->vdata, CD_MASK_BMESH, CD_CALLOC, 0);
-		CustomData_copy(&me->edata, &bm->edata, CD_MASK_BMESH, CD_CALLOC, 0);
-		CustomData_copy(&me->ldata, &bm->ldata, CD_MASK_BMESH, CD_CALLOC, 0);
-		CustomData_copy(&me->pdata, &bm->pdata, CD_MASK_BMESH, CD_CALLOC, 0);
+		CustomData_copy(&me->vdata, &bm->vdata, mask, CD_CALLOC, 0);
+		CustomData_copy(&me->edata, &bm->edata, mask, CD_CALLOC, 0);
+		CustomData_copy(&me->ldata, &bm->ldata, mask_loop_only, CD_CALLOC, 0);
+		CustomData_copy(&me->pdata, &bm->pdata, mask, CD_CALLOC, 0);
 	}
 
 	/* -------------------------------------------------------------------- */

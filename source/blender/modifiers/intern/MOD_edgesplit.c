@@ -69,6 +69,7 @@ static Mesh *doEdgeSplit(Mesh *mesh, EdgeSplitModifierData *emd, const ModifierE
 	            .add_key_index = false,
 	            .use_shapekey = true,
 	            .active_shapekey = ctx->object->shapenr,
+	            .cd_mask_extra = CD_MASK_ORIGINDEX,
 	        });
 
 	if (emd->flags & MOD_EDGESPLIT_FROMANGLE) {

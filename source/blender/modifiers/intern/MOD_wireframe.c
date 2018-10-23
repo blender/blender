@@ -76,6 +76,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 	            .add_key_index = false,
 	            .use_shapekey = true,
 	            .active_shapekey = ob->shapenr,
+	            .cd_mask_extra = CD_MASK_ORIGINDEX,
 	        });
 
 	BM_mesh_wireframe(
