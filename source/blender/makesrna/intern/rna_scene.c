@@ -1443,9 +1443,10 @@ static char *rna_SceneRenderView_path(PointerRNA *ptr)
 static void rna_Scene_use_nodes_update(bContext *C, PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->data;
-
-	if (scene->use_nodes && scene->nodetree == NULL)
+	if (scene->use_nodes && scene->nodetree == NULL) {
 		ED_node_composit_default(C, scene);
+	}
+	DEG_relations_tag_update(CTX_data_main(C));
 }
 
 static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
