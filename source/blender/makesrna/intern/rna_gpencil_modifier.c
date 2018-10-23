@@ -749,6 +749,12 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	                         "Number of frames to offset original keyframe number");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
+	prop = RNA_def_property(srna, "frame_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "frame_scale");
+	RNA_def_property_range(prop, 0.001f, 100.0f);
+	RNA_def_property_ui_text(prop, "Frame Scale", "Evaluation time in seconds");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
 	prop = RNA_def_property(srna, "use_keep_loop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_TIME_KEEP_LOOP);
 	RNA_def_property_ui_text(prop, "Keep Loop",

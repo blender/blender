@@ -145,6 +145,8 @@ typedef struct TimeGpencilModifierData {
 	char layername[64];          /* layer name */
 	int flag;                    /* flags */
 	int offset;
+	float frame_scale;           /* animation scale */
+	char pad[4];
 } TimeGpencilModifierData;
 
 typedef enum eTimeGpencil_Flag {

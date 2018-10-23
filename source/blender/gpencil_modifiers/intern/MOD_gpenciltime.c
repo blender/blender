@@ -55,6 +55,7 @@ static void initData(GpencilModifierData *md)
 	TimeGpencilModifierData *gpmd = (TimeGpencilModifierData *)md;
 	gpmd->layername[0] = '\0';
 	gpmd->offset = 1;
+	gpmd->frame_scale = 1.0f;
 	gpmd->flag |= GP_TIME_KEEP_LOOP;
 }
 
@@ -86,6 +87,12 @@ static int remapTime(
 				return cfra;
 			}
 		}
+	}
+
+	/* apply frame scale */
+	cfra *= mmd->frame_scale;
+	if (cfra > efra) {
+		cfra = sfra + (cfra - ((cfra / efra) * efra));
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
