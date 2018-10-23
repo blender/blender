@@ -451,35 +451,51 @@ void LATTICE_OT_select_all(wmOperatorType *ot)
 
 static int lattice_select_ungrouped_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
-	MDeformVert *dv;
-	BPoint *bp;
-	int a, tot;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len;
+	const bool is_extend = RNA_boolean_get(op->ptr, "extend");
+	bool changed = false;
 
-	if (BLI_listbase_is_empty(&obedit->defbase) || lt->dvert == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "No weights/vertex groups on object");
-		return OPERATOR_CANCELLED;
-	}
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+		MDeformVert *dv;
+		BPoint *bp;
+		int a, tot;
 
-	if (!RNA_boolean_get(op->ptr, "extend")) {
-		ED_lattice_flags_set(obedit, 0);
-	}
+		if (BLI_listbase_is_empty(&obedit->defbase) || lt->dvert == NULL) {
+			continue;
+		}
 
-	dv = lt->dvert;
-	tot = lt->pntsu * lt->pntsv * lt->pntsw;
+		if (!is_extend) {
+			ED_lattice_flags_set(obedit, 0);
+		}
 
-	for (a = 0, bp = lt->def; a < tot; a++, bp++, dv++) {
-		if (bp->hide == 0) {
-			if (dv->dw == NULL) {
-				bp->f1 |= SELECT;
+		dv = lt->dvert;
+		tot = lt->pntsu * lt->pntsv * lt->pntsw;
+
+		for (a = 0, bp = lt->def; a < tot; a++, bp++, dv++) {
+			if (bp->hide == 0) {
+				if (dv->dw == NULL) {
+					bp->f1 |= SELECT;
+				}
 			}
 		}
+
+		changed = true;
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
+	MEM_freeN(objects);
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
+	if (!changed) {
+		BKE_report(op->reports,
+		           RPT_ERROR,
+		           objects_len > 1 ? "No weights/vertex groups on objects" :
+		                             "No weights/vertex groups on object");
+		return OPERATOR_CANCELLED;
+	}
 	return OPERATOR_FINISHED;
 }
 
