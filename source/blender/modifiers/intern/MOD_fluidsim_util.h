@@ -46,6 +46,6 @@ void fluidsim_free(struct FluidsimModifierData *fluidmd);
 struct Mesh *fluidsimModifier_do(
         struct FluidsimModifierData *fluidmd,
         const struct ModifierEvalContext *ctx,
-        struct Mesh *dm);
+        struct Mesh *me);
 
 #endif

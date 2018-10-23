@@ -505,10 +505,10 @@ void AbcMeshWriter::writeSubD(struct Mesh *mesh)
 }
 
 template <typename Schema>
-void AbcMeshWriter::writeFaceSets(struct Mesh *dm, Schema &schema)
+void AbcMeshWriter::writeFaceSets(struct Mesh *me, Schema &schema)
 {
 	std::map< std::string, std::vector<int32_t> > geo_groups;
-	getGeoGroups(dm, geo_groups);
+	getGeoGroups(me, geo_groups);
 
 	std::map< std::string, std::vector<int32_t>  >::iterator it;
 	for (it = geo_groups.begin(); it != geo_groups.end(); ++it) {
@@ -563,7 +563,7 @@ Mesh *AbcMeshWriter::getFinalMesh(bool &r_needsfree)
 	return mesh;
 }
 
-void AbcMeshWriter::writeArbGeoParams(struct Mesh *dm)
+void AbcMeshWriter::writeArbGeoParams(struct Mesh *me)
 {
 	if (m_is_liquid) {
 		/* We don't need anything more for liquid meshes. */
@@ -572,10 +572,10 @@ void AbcMeshWriter::writeArbGeoParams(struct Mesh *dm)
 
 	if (m_first_frame && m_settings.export_vcols) {
 		if (m_subdiv_schema.valid()) {
-			write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &dm->ldata, CD_MLOOPCOL);
+			write_custom_data(m_subdiv_schema.getArbGeomParams(), m_custom_data_config, &me->ldata, CD_MLOOPCOL);
 		}
 		else {
-			write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &dm->ldata, CD_MLOOPCOL);
+			write_custom_data(m_mesh_schema.getArbGeomParams(), m_custom_data_config, &me->ldata, CD_MLOOPCOL);
 		}
 	}
 }
