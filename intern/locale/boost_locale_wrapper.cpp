@@ -112,13 +112,17 @@ const char *bl_locale_pgettext(const char *msgctxt, const char *msgid)
 			return r;
 		return msgid;
 	}
-	catch(std::bad_cast const &e) { /* if std::has_facet<char_message_facet>(l) == false, LC_ALL = "C" case */
-//		std::cout << "bl_locale_pgettext(" << msgid << "): " << e.what() << " \n";
+	catch(const std::bad_cast &e) { /* if std::has_facet<char_message_facet>(l) == false, LC_ALL = "C" case */
+#ifndef NDEBUG
+		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
+#endif
 		(void)e;
 		return msgid;
 	}
-	catch(std::exception const &e) {
-//		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
+	catch(const std::exception &e) {
+#ifndef NDEBUG
+		std::cout << "bl_locale_pgettext(" << msgctxt << ", " << msgid << "): " << e.what() << " \n";
+#endif
 		(void)e;
 		return msgid;
 	}
