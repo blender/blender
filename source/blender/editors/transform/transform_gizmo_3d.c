@@ -48,6 +48,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_editmesh.h"
@@ -819,19 +820,46 @@ int ED_transform_calc_gizmo_stats(
 				totsel = 1;
 			}
 			else {
-				BMesh *bm = em->bm;
-				BMVert *eve;
+				uint objects_len = 0;
+				Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
 
-				BMIter iter;
+				float mat_local[4][4];
+				invert_m4_m4(obedit->imat, obedit->obmat);
 
-				BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-						if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-							totsel++;
-							calc_tw_center(tbounds, eve->co);
+				for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+					Object *ob_iter = objects[ob_index];
+					BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
+					BMesh *bm = em_iter->bm;
+
+					if (bm->totvertsel == 0) {
+						continue;
+					}
+
+					BMVert *eve;
+					BMIter iter;
+
+					const bool use_mat_local = (ob_iter != obedit);
+					if (use_mat_local) {
+						mul_m4_m4m4(mat_local, obedit->imat, ob_iter->obmat);
+					}
+
+					BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+						if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+							if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+								float co[3];
+								if (use_mat_local) {
+									mul_v3_m4v3(co, mat_local, eve->co);
+								}
+								else {
+									copy_v3_v3(co, eve->co);
+								}
+								calc_tw_center(tbounds, co);
+								totsel++;
+							}
 						}
 					}
 				}
+				MEM_freeN(objects);
 			}
 		} /* end editmesh */
 		else if (obedit->type == OB_ARMATURE) {
@@ -853,6 +881,7 @@ int ED_transform_calc_gizmo_stats(
 				protectflag_to_drawflags_ebone(rv3d, ebo);
 			}
 			else {
+				/* TODO: multi-object support. */
 				for (ebo = arm->edbo->first; ebo; ebo = ebo->next) {
 					if (EBONE_VISIBLE(arm, ebo)) {
 						if (ebo->flag & BONE_TIPSEL) {
@@ -885,6 +914,7 @@ int ED_transform_calc_gizmo_stats(
 				totsel++;
 			}
 			else {
+				/* TODO: multi-object support. */
 				Nurb *nu;
 				BezTriple *bezt;
 				BPoint *bp;
@@ -949,6 +979,7 @@ int ED_transform_calc_gizmo_stats(
 				totsel++;
 			}
 			else {
+				/* TODO: multi-object support. */
 				for (ml = mb->editelems->first; ml; ml = ml->next) {
 					if (ml->flag & SELECT) {
 						calc_tw_center(tbounds, &ml->x);
@@ -966,6 +997,7 @@ int ED_transform_calc_gizmo_stats(
 				totsel++;
 			}
 			else {
+				/* TODO: multi-object support. */
 				bp = lt->def;
 				a = lt->pntsu * lt->pntsv * lt->pntsw;
 				while (a--) {
