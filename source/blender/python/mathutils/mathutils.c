@@ -136,7 +136,9 @@ int mathutils_array_parse(float *array, int array_min, int array_max, PyObject *
 	if ((size = VectorObject_Check(value)     ? ((VectorObject *)value)->size : 0) ||
 	    (size = EulerObject_Check(value)      ? 3 : 0) ||
 	    (size = QuaternionObject_Check(value) ? 4 : 0) ||
-	    (size = ColorObject_Check(value)      ? 3 : 0))
+	    (size = ColorObject_Check(value)      ? 3 : 0) ||
+	    (size = MatrixObject_Check(value)     ?   ((MatrixObject *)value)->num_col
+	                                            * ((MatrixObject *)value)->num_row : 0))
 	{
 		if (BaseMath_ReadCallback((BaseMathObject *)value) == -1) {
 			return -1;
