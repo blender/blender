@@ -711,6 +711,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
 	groups_len++;
 	group_flags_array = MEM_callocN(objects_len * groups_len * sizeof(bool), "pose_select_same_group");
 
+	group_flags = NULL;
 	ob_index = -1;
 	ob_prev = NULL;
 	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object, *ob)
@@ -736,6 +737,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
 
 	/* small optimization: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
+		group_flags = NULL;
 		ob_index = -1;
 		ob_prev = NULL;
 		/* only if group matches (and is not selected or current bone) */
@@ -791,6 +793,7 @@ static bool pose_select_same_layer(bContext *C, bool extend)
 	layers_array = MEM_callocN(objects_len * sizeof(*layers_array), "pose_select_same_layer");
 
 	/* Figure out what bones are selected. */
+	layers = NULL;
 	ob_prev = NULL;
 	ob_index = -1;
 	CTX_DATA_BEGIN_WITH_ID (C, bPoseChannel *, pchan, visible_pose_bones, Object *, ob)
