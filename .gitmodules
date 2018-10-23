@@ -6,7 +6,7 @@
 [submodule "release/scripts/addons_contrib"]
 	path = release/scripts/addons_contrib
 	url = ../blender-addons-contrib.git
-	branch = master
+	branch = blender2.8
 	ignore = all
 [submodule "release/datafiles/locale"]
 	path = release/datafiles/locale
