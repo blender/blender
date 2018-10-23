@@ -114,7 +114,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	DRW_viewport_matrix_override_set(g_data->viewinv, DRW_MAT_VIEWINV);
 
 	/* EEVEE_effects_init needs to go first for TAA */
-	EEVEE_effects_init(sldata, vedata, ob_camera_eval);
+	EEVEE_effects_init(sldata, vedata, ob_camera_eval, false);
 	EEVEE_materials_init(sldata, stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);

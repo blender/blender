@@ -96,7 +96,7 @@ static void eevee_engine_init(void *ved)
 	}
 
 	/* EEVEE_effects_init needs to go first for TAA */
-	EEVEE_effects_init(sldata, vedata, camera);
+	EEVEE_effects_init(sldata, vedata, camera, false);
 	EEVEE_materials_init(sldata, stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);

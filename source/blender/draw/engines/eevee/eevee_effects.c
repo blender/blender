@@ -144,7 +144,7 @@ static void eevee_create_shader_downsample(void)
 	GPU_FRAMEBUFFER_FREE_SAFE(fb_color); \
 }
 
-void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera)
+void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object *camera, const bool minimal)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -181,7 +181,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	effects->enabled_effects |= EEVEE_volumes_init(sldata, vedata);
 
 	/* Force normal buffer creation. */
-	if (DRW_state_is_image_render() &&
+	if (DRW_state_is_image_render() && !minimal &&
 	    (view_layer->passflag & SCE_PASS_NORMAL) != 0)
 	{
 		effects->enabled_effects |= EFFECT_NORMAL_BUFFER;

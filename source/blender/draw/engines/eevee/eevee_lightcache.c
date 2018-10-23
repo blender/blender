@@ -669,7 +669,7 @@ static void eevee_lightbake_cache_create(EEVEE_Data *vedata, EEVEE_LightBake *lb
 	};
 	DRW_render_viewport_size_set(viewport_size);
 
-	EEVEE_effects_init(sldata, vedata, NULL);
+	EEVEE_effects_init(sldata, vedata, NULL, true);
 	EEVEE_materials_init(sldata, stl, fbl);
 	EEVEE_lights_init(sldata);
 	EEVEE_lightprobes_init(sldata, vedata);
