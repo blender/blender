@@ -103,7 +103,7 @@ static int remapTime(
 }
 
 GpencilModifierTypeInfo modifierType_Gpencil_Time = {
-	/* name */              "Time",
+	/* name */              "Time Offset",
 	/* structName */        "TimeGpencilModifierData",
 	/* structSize */        sizeof(TimeGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,

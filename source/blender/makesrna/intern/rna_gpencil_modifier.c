@@ -74,7 +74,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 	{eGpencilModifierType_Offset, "GP_OFFSET", ICON_MOD_DISPLACE, "Offset", "Change stroke location, rotation or scale"},
 	{eGpencilModifierType_Smooth, "GP_SMOOTH", ICON_MOD_SMOOTH, "Smooth", "Smooth stroke"},
 	{eGpencilModifierType_Thick, "GP_THICK", ICON_MAN_ROT, "Thickness", "Change stroke thickness"},
-	{eGpencilModifierType_Time, "GP_TIME", ICON_MOD_DISPLACE, "Time", "Offset keyframes"},
+	{eGpencilModifierType_Time, "GP_TIME", ICON_MOD_DISPLACE, "Time Offset", "Offset keyframes"},
 	{0, "", 0, N_("Color"), "" },
 	{eGpencilModifierType_Color, "GP_COLOR", ICON_GROUP_VCOL, "Hue/Saturation", "Apply changes to stroke colors"},
 	{eGpencilModifierType_Opacity, "GP_OPACITY", ICON_MOD_MASK, "Opacity", "Opacity of the strokes"},
@@ -728,7 +728,7 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "TimeGpencilModifier", "GpencilModifier");
-	RNA_def_struct_ui_text(srna, "Time Modifier", "Time modifier");
+	RNA_def_struct_ui_text(srna, "Time Offset Modifier", "Time offset modifier");
 	RNA_def_struct_sdna(srna, "TimeGpencilModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
 
