@@ -231,7 +231,7 @@ Collection *BKE_collection_copy(Main *bmain, Collection *parent, Collection *col
 
 	Collection *collection_new;
 	BKE_id_copy_ex(bmain, &collection->id, (ID **)&collection_new, 0, false);
-	id_us_min(collection_new);  /* Copying add one user by default, need to get rid of that one. */
+	id_us_min(&collection_new->id);  /* Copying add one user by default, need to get rid of that one. */
 
 	/* Optionally add to parent. */
 	if (parent) {
