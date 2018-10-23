@@ -454,7 +454,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		ARegion *ar = CTX_wm_region(C);
 		wmGizmoMap *gzmap = ar->gizmo_map;
 		wmGizmoGroup *gzgroup = gzmap ? WM_gizmomap_group_find(gzmap, "VIEW3D_GGT_mesh_preselect_edgering") : NULL;
-		if (gzgroup != NULL) {
+		if ((gzgroup != NULL) && gzgroup->gizmos.first) {
 			wmGizmo *gz = gzgroup->gizmos.first;
 			const int object_index = RNA_int_get(gz->ptr, "object_index");
 			const int edge_index = RNA_int_get(gz->ptr, "edge_index");
