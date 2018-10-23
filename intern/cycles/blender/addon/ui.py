@@ -27,7 +27,7 @@ from bpy.types import (
 )
 
 
-class CYCLES_MT_sampling_presets(PresetMenu):
+class CYCLES_PT_sampling_presets(PresetMenu):
     bl_label = "Sampling Presets"
     preset_subdir = "cycles/sampling"
     preset_operator = "script.execute_preset"
@@ -35,7 +35,7 @@ class CYCLES_MT_sampling_presets(PresetMenu):
     COMPAT_ENGINES = {'CYCLES'}
 
 
-class CYCLES_MT_integrator_presets(PresetMenu):
+class CYCLES_PT_integrator_presets(PresetMenu):
     bl_label = "Integrator Presets"
     preset_subdir = "cycles/integrator"
     preset_operator = "script.execute_preset"
@@ -146,7 +146,7 @@ class CYCLES_RENDER_PT_sampling(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header_preset(self, context):
-        CYCLES_MT_sampling_presets.draw_panel_header(self.layout)
+        CYCLES_PT_sampling_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         layout = self.layout
@@ -405,7 +405,7 @@ class CYCLES_RENDER_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header_preset(self, context):
-        CYCLES_MT_integrator_presets.draw_panel_header(self.layout)
+        CYCLES_PT_integrator_presets.draw_panel_header(self.layout)
 
     def draw(self, context):
         pass
@@ -1974,8 +1974,8 @@ def get_panels():
 
 
 classes = (
-    CYCLES_MT_sampling_presets,
-    CYCLES_MT_integrator_presets,
+    CYCLES_PT_sampling_presets,
+    CYCLES_PT_integrator_presets,
     CYCLES_RENDER_PT_sampling,
     CYCLES_RENDER_PT_sampling_light,
     CYCLES_RENDER_PT_sampling_sub_samples,
