@@ -266,43 +266,53 @@ static bool lattice_test_bitmap_uvw(Lattice *lt, BLI_bitmap *selpoints, int u, i
 
 static int lattice_select_more_less(bContext *C, const bool select)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
-	BPoint *bp;
-	const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-	int u, v, w;
-	BLI_bitmap *selpoints;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len;
+	bool changed = false;
 
-	lt->actbp = LT_ACTBP_NONE;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+		BPoint *bp;
+		const int tot = lt->pntsu * lt->pntsv * lt->pntsw;
+		int u, v, w;
+		BLI_bitmap *selpoints;
 
-	selpoints = BLI_BITMAP_NEW(tot, __func__);
-	BKE_lattice_bitmap_from_flag(lt, selpoints, SELECT, false, false);
+		lt->actbp = LT_ACTBP_NONE;
 
-	bp = lt->def;
-	for (w = 0; w < lt->pntsw; w++) {
-		for (v = 0; v < lt->pntsv; v++) {
-			for (u = 0; u < lt->pntsu; u++) {
-				if ((bp->hide == 0) && (((bp->f1 & SELECT) == 0) == select)) {
-					if (lattice_test_bitmap_uvw(lt, selpoints, u + 1, v, w, select) ||
-					    lattice_test_bitmap_uvw(lt, selpoints, u - 1, v, w, select) ||
-					    lattice_test_bitmap_uvw(lt, selpoints, u, v + 1, w, select) ||
-					    lattice_test_bitmap_uvw(lt, selpoints, u, v - 1, w, select) ||
-					    lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
-					    lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
-					{
-						SET_FLAG_FROM_TEST(bp->f1, select, SELECT);
+		selpoints = BLI_BITMAP_NEW(tot, __func__);
+		BKE_lattice_bitmap_from_flag(lt, selpoints, SELECT, false, false);
+
+		bp = lt->def;
+		for (w = 0; w < lt->pntsw; w++) {
+			for (v = 0; v < lt->pntsv; v++) {
+				for (u = 0; u < lt->pntsu; u++) {
+					if ((bp->hide == 0) && (((bp->f1 & SELECT) == 0) == select)) {
+						if (lattice_test_bitmap_uvw(lt, selpoints, u + 1, v, w, select) ||
+							lattice_test_bitmap_uvw(lt, selpoints, u - 1, v, w, select) ||
+							lattice_test_bitmap_uvw(lt, selpoints, u, v + 1, w, select) ||
+							lattice_test_bitmap_uvw(lt, selpoints, u, v - 1, w, select) ||
+							lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
+							lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
+						{
+							SET_FLAG_FROM_TEST(bp->f1, select, SELECT);
+						}
 					}
+					bp++;
 				}
-				bp++;
 			}
 		}
+
+		MEM_freeN(selpoints);
+
+		changed = true;
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
+	MEM_freeN(objects);
 
-	MEM_freeN(selpoints);
-
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-	return OPERATOR_FINISHED;
+	return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int lattice_select_more_exec(bContext *C, wmOperator *UNUSED(op))
