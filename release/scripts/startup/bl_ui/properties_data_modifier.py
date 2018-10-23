@@ -1794,7 +1794,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         gpd = ob.data
 
         row = layout.row()
-        row.prop(md, "offset")
+        row.prop(md, "offset", text="Frame Offset")
         row = layout.row()
         row.prop(md, "frame_scale")
 
