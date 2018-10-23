@@ -4427,7 +4427,10 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			BMFace **ftable = bm_mapped->ftable;
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
-				if ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)) {
+				/* TODO(campbell): fix origindex layer. */
+				if ((p_orig >= bm_mapped->totface) ||
+				    ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)))
+				{
 					const MPoly *mp = &rdata->mpoly[i]; ;
 					const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
 					mat_tri_len[ma_id] += (mp->totloop - 2);
@@ -4473,7 +4476,10 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
 				const MPoly *mp = &rdata->mpoly[i]; ;
-				if ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)) {
+				/* TODO(campbell): fix origindex layer. */
+				if ((p_orig >= bm_mapped->totface) ||
+				    ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)))
+				{
 					const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
 					for (int j = 2; j < mp->totloop; j++) {
 						GPU_indexbuf_add_tri_verts(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
