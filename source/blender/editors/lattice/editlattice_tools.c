@@ -40,6 +40,7 @@
 
 #include "BKE_context.h"
 #include "BKE_lattice.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -191,126 +192,134 @@ static void lattice_swap_point_pairs(Lattice *lt, int u, int v, int w, float mid
 
 static int lattice_flip_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len;
+	bool changed = false;
+	const eLattice_FlipAxes axis = RNA_enum_get(op->ptr, "axis");
 
-	eLattice_FlipAxes axis = RNA_enum_get(op->ptr, "axis");
-	int numU, numV, numW;
-	int totP;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Lattice *lt;
 
-	float mid = 0.0f;
-	short isOdd = 0;
+		int numU, numV, numW;
+		int totP;
 
-	/* get lattice - we need the "edit lattice" from the lattice... confusing... */
-	lt = (Lattice *)obedit->data;
-	lt = lt->editlatt->latt;
+		float mid = 0.0f;
+		short isOdd = 0;
 
-	numU = lt->pntsu;
-	numV = lt->pntsv;
-	numW = lt->pntsw;
-	totP = numU * numV * numW;
+		/* get lattice - we need the "edit lattice" from the lattice... confusing... */
+		lt = (Lattice *)obedit->data;
+		lt = lt->editlatt->latt;
 
-	/* First Pass: determine midpoint - used for flipping center verts if there are odd number of points on axis */
-	switch (axis) {
-		case LATTICE_FLIP_U:
-			isOdd = numU & 1;
-			break;
-		case LATTICE_FLIP_V:
-			isOdd = numV & 1;
-			break;
-		case LATTICE_FLIP_W:
-			isOdd = numW & 1;
-			break;
+		numU = lt->pntsu;
+		numV = lt->pntsv;
+		numW = lt->pntsw;
+		totP = numU * numV * numW;
 
-		default:
-			printf("lattice_flip(): Unknown flipping axis (%u)\n", axis);
-			return OPERATOR_CANCELLED;
-	}
+		/* First Pass: determine midpoint - used for flipping center verts if there are odd number of points on axis */
+		switch (axis) {
+			case LATTICE_FLIP_U:
+				isOdd = numU & 1;
+				break;
+			case LATTICE_FLIP_V:
+				isOdd = numV & 1;
+				break;
+			case LATTICE_FLIP_W:
+				isOdd = numW & 1;
+				break;
 
-	if (isOdd) {
-		BPoint *bp;
-		float avgInv = 1.0f / (float)totP;
-		int i;
-
-		/* midpoint calculation - assuming that u/v/w are axis-aligned */
-		for (i = 0, bp = lt->def; i < totP; i++, bp++) {
-			mid += bp->vec[axis] * avgInv;
+			default:
+				printf("lattice_flip(): Unknown flipping axis (%u)\n", axis);
+				return OPERATOR_CANCELLED;
 		}
-	}
 
-	/* Second Pass: swap pairs of vertices per axis, assuming they are all sorted */
-	switch (axis) {
-		case LATTICE_FLIP_U:
-		{
-			int u, v, w;
+		if (isOdd) {
+			BPoint *bp;
+			float avgInv = 1.0f / (float)totP;
+			int i;
 
-			/* v/w strips - front to back, top to bottom */
-			for (w = 0; w < numW; w++) {
+			/* midpoint calculation - assuming that u/v/w are axis-aligned */
+			for (i = 0, bp = lt->def; i < totP; i++, bp++) {
+				mid += bp->vec[axis] * avgInv;
+			}
+		}
+
+		/* Second Pass: swap pairs of vertices per axis, assuming they are all sorted */
+		switch (axis) {
+			case LATTICE_FLIP_U:
+			{
+				int u, v, w;
+
+				/* v/w strips - front to back, top to bottom */
+				for (w = 0; w < numW; w++) {
+					for (v = 0; v < numV; v++) {
+						/* swap coordinates of pairs of vertices on u */
+						for (u = 0; u < (numU / 2); u++) {
+							lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+						}
+
+						/* flip u-coordinate of midpoint (i.e. unpaired point on u) */
+						if (isOdd) {
+							u = (numU / 2);
+							lattice_flip_point_value(lt, u, v, w, mid, axis);
+						}
+					}
+				}
+				break;
+			}
+			case LATTICE_FLIP_V:
+			{
+				int u, v, w;
+
+				/* u/w strips - front to back, left to right */
+				for (w = 0; w < numW; w++) {
+					for (u = 0; u < numU; u++) {
+						/* swap coordinates of pairs of vertices on v */
+						for (v = 0; v < (numV / 2); v++) {
+							lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+						}
+
+						/* flip v-coordinate of midpoint (i.e. unpaired point on v) */
+						if (isOdd) {
+							v = (numV / 2);
+							lattice_flip_point_value(lt, u, v, w, mid, axis);
+						}
+					}
+				}
+				break;
+			}
+			case LATTICE_FLIP_W:
+			{
+				int u, v, w;
+
 				for (v = 0; v < numV; v++) {
-					/* swap coordinates of pairs of vertices on u */
-					for (u = 0; u < (numU / 2); u++) {
-						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
-					}
+					for (u = 0; u < numU; u++) {
+						/* swap coordinates of pairs of vertices on w */
+						for (w = 0; w < (numW / 2); w++) {
+							lattice_swap_point_pairs(lt, u, v, w, mid, axis);
+						}
 
-					/* flip u-coordinate of midpoint (i.e. unpaired point on u) */
-					if (isOdd) {
-						u = (numU / 2);
-						lattice_flip_point_value(lt, u, v, w, mid, axis);
+						/* flip w-coordinate of midpoint (i.e. unpaired point on w) */
+						if (isOdd) {
+							w = (numW / 2);
+							lattice_flip_point_value(lt, u, v, w, mid, axis);
+						}
 					}
 				}
+				break;
 			}
-			break;
+			default: /* shouldn't happen, but just in case */
+				break;
 		}
-		case LATTICE_FLIP_V:
-		{
-			int u, v, w;
 
-			/* u/w strips - front to back, left to right */
-			for (w = 0; w < numW; w++) {
-				for (u = 0; u < numU; u++) {
-					/* swap coordinates of pairs of vertices on v */
-					for (v = 0; v < (numV / 2); v++) {
-						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
-					}
-
-					/* flip v-coordinate of midpoint (i.e. unpaired point on v) */
-					if (isOdd) {
-						v = (numV / 2);
-						lattice_flip_point_value(lt, u, v, w, mid, axis);
-					}
-				}
-			}
-			break;
-		}
-		case LATTICE_FLIP_W:
-		{
-			int u, v, w;
-
-			for (v = 0; v < numV; v++) {
-				for (u = 0; u < numU; u++) {
-					/* swap coordinates of pairs of vertices on w */
-					for (w = 0; w < (numW / 2); w++) {
-						lattice_swap_point_pairs(lt, u, v, w, mid, axis);
-					}
-
-					/* flip w-coordinate of midpoint (i.e. unpaired point on w) */
-					if (isOdd) {
-						w = (numW / 2);
-						lattice_flip_point_value(lt, u, v, w, mid, axis);
-					}
-				}
-			}
-			break;
-		}
-		default: /* shouldn't happen, but just in case */
-			break;
+		/* updates */
+		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		changed = true;
 	}
 
-	/* updates */
-	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-
-	return OPERATOR_FINISHED;
+	return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void LATTICE_OT_flip(wmOperatorType *ot)
