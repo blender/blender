@@ -480,6 +480,7 @@ int BKE_gpencil_time_modifier(Depsgraph *depsgraph, Scene *scene, Object *ob,
 	GpencilModifierData *md;
 	bGPdata *gpd = ob->data;
 	const bool is_edit = GPENCIL_ANY_EDIT_MODE(gpd);
+	int nfra = cfra;
 
 	for (md = ob->greasepencil_modifiers.first; md; md = md->next) {
 		if (GPENCIL_MODIFIER_ACTIVE(md, is_render)) {
@@ -490,13 +491,17 @@ int BKE_gpencil_time_modifier(Depsgraph *depsgraph, Scene *scene, Object *ob,
 			}
 
 			if (mti->remapTime) {
-				return mti->remapTime(md, depsgraph, scene, ob, gpl, cfra);
+				nfra = mti->remapTime(md, depsgraph, scene, ob, gpl, cfra);
+				/* if the frame number changed, don't evaluate more and return */
+				if (nfra != cfra) {
+					return nfra;
+				}
 			}
 		}
 	}
 
 	/* if no time modifier, return original frame number */
-	return cfra;
+	return nfra;
 }
 /* *************************************************** */
 

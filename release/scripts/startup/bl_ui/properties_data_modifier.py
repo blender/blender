@@ -1794,8 +1794,17 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         gpd = ob.data
 
         row = layout.row()
-        row.prop(md, "offset", text="Frame Offset")
+        row.prop(md, "mode", text="Mode")
+
         row = layout.row()
+        if md.mode == 'FIX':
+            txt = "Frame"
+        else:
+            txt = "Frame Offset"
+        row.prop(md, "offset", text=txt)
+
+        row = layout.row()
+        row.enabled = md.mode != 'FIX'
         row.prop(md, "frame_scale")
 
         row = layout.row()
@@ -1805,6 +1814,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
         row = layout.row()
+        row.enabled = md.mode != 'FIX'
         row.prop(md, "use_keep_loop")
 
     def GP_COLOR(self, layout, ob, md):

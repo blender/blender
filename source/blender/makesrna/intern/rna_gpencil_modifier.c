@@ -110,6 +110,13 @@ static const EnumPropertyItem rna_enum_gpencil_lockshift_items[] = {
 	{ 0, NULL, 0, NULL, NULL }
 };
 
+static const EnumPropertyItem rna_enum_time_mode_items[] = {
+	{ GP_TIME_MODE_NORMAL, "NORMAL", 0, "Normal", "Apply offset in normal animation direction" },
+	{ GP_TIME_MODE_REVERSE, "REVERSE", 0, "Reverse", "Apply offset in reverse animation direction" },
+	{ GP_TIME_MODE_FIX, "FIX", 0, "Fix", "Keep frame and do not change with time" },
+	{ 0, NULL, 0, NULL, NULL }
+};
+
 #endif
 
 #ifdef RNA_RUNTIME
@@ -732,6 +739,12 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "TimeGpencilModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
 
+	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mode");
+	RNA_def_property_enum_items(prop, rna_enum_time_mode_items);
+	RNA_def_property_ui_text(prop, "Mode", "");
+	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
+
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "layername");
 	RNA_def_property_ui_text(prop, "Layer", "Layer name");
@@ -745,8 +758,8 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "offset", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "offset");
 	RNA_def_property_range(prop, -INT_MAX, INT_MAX);
-	RNA_def_property_ui_text(prop, "Offset",
-	                         "Number of frames to offset original keyframe number");
+	RNA_def_property_ui_text(prop, "Frame Offset",
+	                         "Number of frames to offset original keyframe number or frame to fix");
 	RNA_def_property_update(prop, 0, "rna_GpencilModifier_update");
 
 	prop = RNA_def_property(srna, "frame_scale", PROP_FLOAT, PROP_NONE);

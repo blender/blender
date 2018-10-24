@@ -71,8 +71,6 @@ static int remapTime(
 	TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
 	const int sfra = scene->r.sfra;
 	const int efra = scene->r.efra;
-	const int nfra = cfra + mmd->offset;
-
 	const bool invgpl = mmd->flag & GP_SIMPLIFY_INVERT_LAYER;
 
 	/* omit if filter by layer */
@@ -89,6 +87,16 @@ static int remapTime(
 		}
 	}
 
+	/* if fix mode, return predefined frame number */
+	if (mmd->mode == GP_TIME_MODE_FIX) {
+		return mmd->offset;
+	}
+
+	/* invert current frame number */
+	if (mmd->mode == GP_TIME_MODE_REVERSE) {
+		cfra = efra - cfra + sfra;
+	}
+
 	/* apply frame scale */
 	cfra *= mmd->frame_scale;
 	if (cfra > efra) {
@@ -96,6 +104,8 @@ static int remapTime(
 	}
 
 	if (mmd->flag & GP_TIME_KEEP_LOOP) {
+		const int nfra = cfra + mmd->offset;
+
 		/* if the sum of the cfra is out scene frame range, recalc */
 		if (cfra + mmd->offset < sfra) {
 			const int delta = abs(sfra - nfra);
@@ -114,8 +124,7 @@ GpencilModifierTypeInfo modifierType_Gpencil_Time = {
 	/* structName */        "TimeGpencilModifierData",
 	/* structSize */        sizeof(TimeGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
-	/* flags */             eGpencilModifierTypeFlag_Single |
-	                        eGpencilModifierTypeFlag_NoApply,
+	/* flags */             eGpencilModifierTypeFlag_NoApply,
 
 	/* copyData */          copyData,
 
