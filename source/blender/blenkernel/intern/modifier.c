@@ -839,19 +839,6 @@ struct Mesh *modwrap_applyModifier(
 	return mti->applyModifier(md, ctx, me);
 }
 
-struct Mesh *modwrap_applyModifierEM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        struct BMEditMesh *em, Mesh *me)
-{
-	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	BLI_assert(CustomData_has_layer(&me->pdata, CD_NORMAL) == false);
-
-	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
-		BKE_mesh_calc_normals(me);
-	}
-	return mti->applyModifierEM(md, ctx, em, me);
-}
-
 void modwrap_deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
         Mesh *me, float (*vertexCos)[3], int numVerts)

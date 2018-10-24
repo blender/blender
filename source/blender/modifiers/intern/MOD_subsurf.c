@@ -267,7 +267,6 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
-	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
@@ -278,7 +277,6 @@ ModifierTypeInfo modifierType_Subsurf = {
 #else
 	/* applyModifier */     applyModifier,
 #endif
-	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,

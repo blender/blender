@@ -172,7 +172,6 @@ typedef struct ModifierTypeInfo {
 	/********************* Non-deform modifier functions *********************/ /* DEPRECATED */
 
 	void (*applyModifier_DM_removed)(void);
-	void (*applyModifierEM_DM_removed)(void);
 
 	/********************* Deform modifier functions *********************/
 
@@ -212,17 +211,6 @@ typedef struct ModifierTypeInfo {
 	 */
 	struct Mesh *(*applyModifier)(struct ModifierData *md, const struct ModifierEvalContext *ctx,
 	                              struct Mesh *mesh);
-
-	/* Like applyModifier but called during editmode (for supporting
-	 * modifiers).
-	 *
-	 * The mesh object that is returned must support the operations that
-	 * are expected from editmode objects. The same qualifications regarding
-	 * mesh apply as for applyModifier.
-	 */
-	struct Mesh *(*applyModifierEM)(struct ModifierData *md, const struct ModifierEvalContext *ctx,
-	                                struct BMEditMesh *editData,
-	                                struct Mesh *mesh);
 
 
 	/********************* Optional functions *********************/
@@ -427,10 +415,6 @@ const char *modifier_path_relbase_from_global(struct Object *ob);
 struct Mesh *modwrap_applyModifier(
         ModifierData *md, const struct ModifierEvalContext *ctx,
         struct Mesh *me);
-
-struct Mesh *modwrap_applyModifierEM(
-        ModifierData *md, const struct ModifierEvalContext *ctx,
-        struct BMEditMesh *em, struct Mesh *me);
 
 void modwrap_deformVerts(
         ModifierData *md, const struct ModifierEvalContext *ctx,
