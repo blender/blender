@@ -117,7 +117,7 @@ static PyObject *bpygpu_IndexBuf_new(PyTypeObject *UNUSED(type), PyObject *args,
 			GPU_indexbuf_add_generic_vert(&builder, *buf);
 		}
 #else
-		memcpy(builder.data, pybuffer.buf, index_len * sizeof(builder.data));
+		memcpy(builder.data, pybuffer.buf, index_len * sizeof(*builder.data));
 		builder.index_len = index_len;
 #endif
 		PyBuffer_Release(&pybuffer);
