@@ -497,6 +497,7 @@ void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
 void BKE_mesh_calc_edges_legacy(struct Mesh *me, const bool use_old);
+void BKE_mesh_calc_edges_loose(struct Mesh *mesh);
 void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);
 void BKE_mesh_calc_edges_tessface(struct Mesh *mesh);
 

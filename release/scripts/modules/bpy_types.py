@@ -454,6 +454,8 @@ class Mesh(bpy_types.ID):
         # if no edges - calculate them
         if faces and (not edges):
             self.update(calc_edges=True)
+        elif edges:
+            self.update(calc_edges_loose=True)
 
     @property
     def edge_keys(self):

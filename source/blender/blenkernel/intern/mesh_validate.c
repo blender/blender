@@ -1445,6 +1445,18 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 	BLI_edgehash_free(eh, NULL);
 }
 
+void BKE_mesh_calc_edges_loose(Mesh *mesh)
+{
+	MEdge *med = mesh->medge;
+	for (int i = 0; i < mesh->totedge; i++, med++) {
+		med->flag |= ME_LOOSEEDGE;
+	}
+	MLoop *ml = mesh->mloop;
+	for (int i = 0; i < mesh->totloop; i++, ml++) {
+		mesh->medge[ml->e].flag &= ~ME_LOOSEEDGE;
+	}
+}
+
 /**
  * Calculate/create edges from tessface data
  *

@@ -319,7 +319,7 @@ void ED_mesh_edges_remove(struct Mesh *mesh, struct ReportList *reports, int cou
 void ED_mesh_vertices_remove(struct Mesh *mesh, struct ReportList *reports, int count);
 
 void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly);
-void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_tessface);
+void ED_mesh_update(struct Mesh *mesh, struct bContext *C, bool calc_edges, bool calc_edges_loose, bool calc_tessface);
 
 void ED_mesh_uv_texture_ensure(struct Mesh *me, const char *name);
 int  ED_mesh_uv_texture_add(struct Mesh *me, const char *name, const bool active_set);
