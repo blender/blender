@@ -131,11 +131,11 @@ void DEG_add_object_relation(DepsNodeHandle *handle,
 	                                              description);
 }
 
-void DEG_add_object_customdata_relation(DepsNodeHandle *handle,
-                             Object *object,
-                             eDepsObjectComponentType component,
-                             uint64_t customdata_mask,
-                             const char *description)
+void DEG_add_object_relation_with_customdata(DepsNodeHandle *handle,
+                                             Object *object,
+                                             eDepsObjectComponentType component,
+                                             uint64_t customdata_mask,
+                                             const char *description)
 {
 	DEG::eDepsNode_Type type = deg_build_object_component_type(component);
 	DEG::ComponentKey comp_key(&object->id, type);
@@ -178,26 +178,17 @@ void DEG_add_bone_relation(DepsNodeHandle *handle,
 	                                              description);
 }
 
+void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, ID *id, short flag)
+{
+	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
+	deg_handle->builder->add_special_eval_flag(id, flag);
+}
+
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *handle)
 {
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	DEG::DepsgraphRelationBuilder *relation_builder = deg_handle->builder;
 	return reinterpret_cast<Depsgraph *>(relation_builder->getGraph());
-}
-
-void DEG_add_special_eval_flag(Depsgraph *graph, ID *id, short flag)
-{
-	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	if (graph == NULL) {
-		BLI_assert(!"Graph should always be valid");
-		return;
-	}
-	DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
-	if (id_node == NULL) {
-		BLI_assert(!"ID should always be valid");
-		return;
-	}
-	id_node->eval_flags |= flag;
 }
 
 /* ******************** */

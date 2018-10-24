@@ -286,6 +286,17 @@ void DepsgraphRelationBuilder::add_customdata_mask(const ComponentKey &key, uint
 	}
 }
 
+void DepsgraphRelationBuilder::add_special_eval_flag(ID *id, short flag)
+{
+	DEG::IDDepsNode *id_node = graph_->find_id_node(id);
+	if (id_node == NULL) {
+		BLI_assert(!"ID should always be valid");
+	}
+	else {
+		id_node->eval_flags |= flag;
+	}
+}
+
 DepsRelation *DepsgraphRelationBuilder::add_time_relation(
         TimeSourceDepsNode *timesrc,
         DepsNode *node_to,
@@ -670,6 +681,15 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		case OB_GPENCIL:
 		{
 			build_object_data_geometry(object);
+			/* TODO(sergey): Only for until we support granular
+			 * update of curves.
+			 */
+			if (object->type == OB_FONT) {
+				Curve *curve = (Curve *)object->data;
+				if (curve->textoncurve) {
+					add_special_eval_flag(&curve->textoncurve->id, DAG_EVAL_NEED_CURVE_PATH);
+				}
+			}
 			break;
 		}
 		case OB_ARMATURE:

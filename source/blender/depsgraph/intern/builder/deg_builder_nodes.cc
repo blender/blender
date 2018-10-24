@@ -667,7 +667,6 @@ void DepsgraphNodeBuilder::build_object_data(
 	if (object->data == NULL) {
 		return;
 	}
-	IDDepsNode *id_node = graph_->find_id_node(&object->id);
 	/* type-specific data. */
 	switch (object->type) {
 		case OB_MESH:
@@ -678,15 +677,6 @@ void DepsgraphNodeBuilder::build_object_data(
 		case OB_LATTICE:
 		case OB_GPENCIL:
 			build_object_data_geometry(object, is_object_visible);
-			/* TODO(sergey): Only for until we support granular
-			 * update of curves.
-			 */
-			if (object->type == OB_FONT) {
-				Curve *curve = (Curve *)object->data;
-				if (curve->textoncurve) {
-					id_node->eval_flags |= DAG_EVAL_NEED_CURVE_PATH;
-				}
-			}
 			break;
 		case OB_ARMATURE:
 			if (ID_IS_LINKED(object) && object->proxy_from != NULL) {
