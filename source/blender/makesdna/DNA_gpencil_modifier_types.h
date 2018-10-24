@@ -143,15 +143,18 @@ typedef enum eThickGpencil_Flag {
 typedef struct TimeGpencilModifierData {
 	GpencilModifierData modifier;
 	char layername[64];          /* layer name */
+	int pass_index;               /* custom index for passes */
 	int flag;                    /* flags */
 	int offset;
 	float frame_scale;           /* animation scale */
 	int mode;
+	char pad_[4];
 } TimeGpencilModifierData;
 
 typedef enum eTimeGpencil_Flag {
 	GP_TIME_INVERT_LAYER = (1 << 0),
 	GP_TIME_KEEP_LOOP    = (1 << 1),
+	GP_TIME_INVERT_PASS  = (1 << 2),
 } eTimeGpencil_Flag;
 
 typedef enum eTimeGpencil_Mode {

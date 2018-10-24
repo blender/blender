@@ -1813,6 +1813,10 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop_search(md, "layer", gpd, "layers", text="", icon='GREASEPENCIL')
         row.prop(md, "invert_layers", text="", icon='ARROW_LEFTRIGHT')
 
+        row = layout.row(align=True)
+        row.prop(md, "pass_index", text="Pass")
+        row.prop(md, "invert_pass", text="", icon='ARROW_LEFTRIGHT')
+
         row = layout.row()
         row.enabled = md.mode != 'FIX'
         row.prop(md, "use_keep_loop")

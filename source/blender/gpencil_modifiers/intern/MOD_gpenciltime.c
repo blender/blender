@@ -71,7 +71,8 @@ static int remapTime(
 	TimeGpencilModifierData *mmd = (TimeGpencilModifierData *)md;
 	const int sfra = scene->r.sfra;
 	const int efra = scene->r.efra;
-	const bool invgpl = mmd->flag & GP_SIMPLIFY_INVERT_LAYER;
+	const bool invgpl = mmd->flag & GP_TIME_INVERT_LAYER;
+	const bool invpass = mmd->flag & GP_TIME_INVERT_PASS;
 
 	/* omit if filter by layer */
 	if (mmd->layername[0] != '\0') {
@@ -82,6 +83,19 @@ static int remapTime(
 		}
 		else {
 			if (STREQ(mmd->layername, gpl->info)) {
+				return cfra;
+			}
+		}
+	}
+	/* verify pass */
+	if (mmd->pass_index > 0) {
+		if (invpass == false) {
+			if (gpl->pass_index != mmd->pass_index) {
+				return cfra;
+			}
+		}
+		else {
+			if (gpl->pass_index == mmd->pass_index) {
 				return cfra;
 			}
 		}

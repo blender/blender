@@ -188,6 +188,9 @@ class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
         col.prop(gpl, "line_change", text="Stroke Thickness")
 
         col = layout.row(align=True)
+        col.prop(gpl, "pass_index")
+
+        col = layout.row(align=True)
         col.prop(gpl, "lock_material")
 
 
