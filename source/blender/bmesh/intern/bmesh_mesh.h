@@ -91,9 +91,24 @@ void           BM_mesh_elem_table_ensure(BMesh *bm, const char htype);
 void           BM_mesh_elem_table_init(BMesh *bm, const char htype);
 void           BM_mesh_elem_table_free(BMesh *bm, const char htype);
 
-BMVert *BM_vert_at_index(BMesh *bm, const int index);
-BMEdge *BM_edge_at_index(BMesh *bm, const int index);
-BMFace *BM_face_at_index(BMesh *bm, const int index);
+BLI_INLINE BMVert *BM_vert_at_index(BMesh *bm, const int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totvert));
+	BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
+	return bm->vtable[index];
+}
+BLI_INLINE BMEdge *BM_edge_at_index(BMesh *bm, const int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totedge));
+	BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
+	return bm->etable[index];
+}
+BLI_INLINE BMFace *BM_face_at_index(BMesh *bm, const int index)
+{
+	BLI_assert((index >= 0) && (index < bm->totface));
+	BLI_assert((bm->elem_table_dirty & BM_FACE) == 0);
+	return bm->ftable[index];
+}
 
 BMVert *BM_vert_at_index_find(BMesh *bm, const int index);
 BMEdge *BM_edge_at_index_find(BMesh *bm, const int index);
