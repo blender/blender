@@ -100,7 +100,7 @@ bool DEG_id_type_any_updated(const Depsgraph *graph)
 	return false;
 }
 
-short DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
+uint32_t DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 {
 	if (graph == NULL) {
 		/* Happens when converting objects to mesh from a python script
@@ -113,7 +113,7 @@ short DEG_get_eval_flags_for_id(const Depsgraph *graph, ID *id)
 	}
 
 	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-	const DEG::IDDepsNode *id_node = deg_graph->find_id_node(id);
+	const DEG::IDDepsNode *id_node = deg_graph->find_id_node(DEG_get_original_id(id));
 	if (id_node == NULL) {
 		/* TODO(sergey): Does it mean we need to check set scene? */
 		return 0;

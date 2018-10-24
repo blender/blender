@@ -78,7 +78,8 @@ struct IDDepsNode : public DepsNode {
 	 * TODO(sergey): Only needed for until really granular updates
 	 * of all the entities.
 	 */
-	int eval_flags;
+	uint32_t eval_flags;
+	uint32_t previous_eval_flags;
 
 	eDepsNode_LinkedState_Type linked_state;
 

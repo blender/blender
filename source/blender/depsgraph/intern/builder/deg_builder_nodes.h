@@ -231,6 +231,8 @@ struct DepsgraphNodeBuilder {
 		 * dependency graph.
 		 */
 		IDComponentsMask previously_visible_components_mask;
+		/* Special evaluation flag mask from the previous depsgraph. */
+		uint32_t previous_eval_flags;
 	};
 
 protected:

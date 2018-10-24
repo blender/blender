@@ -178,7 +178,7 @@ void DEG_add_bone_relation(DepsNodeHandle *handle,
 	                                              description);
 }
 
-void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, ID *id, short flag)
+void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, ID *id, uint32_t flag)
 {
 	DEG::DepsNodeHandle *deg_handle = get_handle(handle);
 	deg_handle->builder->add_special_eval_flag(id, flag);

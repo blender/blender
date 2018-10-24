@@ -156,7 +156,7 @@ void DEG_add_object_cache_relation(struct DepsNodeHandle *handle,
                                    eDepsObjectComponentType component,
                                    const char *description);
 
-void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, struct ID *id, short flag);
+void DEG_add_special_eval_flag(struct DepsNodeHandle *handle, struct ID *id, uint32_t flag);
 
 struct Depsgraph *DEG_get_graph_from_handle(struct DepsNodeHandle *handle);
 

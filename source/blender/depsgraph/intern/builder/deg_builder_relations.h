@@ -201,7 +201,7 @@ struct DepsgraphRelationBuilder
 	                                       bool check_unique = false);
 
 	void add_customdata_mask(const ComponentKey &key, uint64_t mask);
-	void add_special_eval_flag(ID *object, short flag);
+	void add_special_eval_flag(ID *object, uint32_t flag);
 
 	void build_id(ID *id);
 	void build_layer_collections(ListBase *lb);

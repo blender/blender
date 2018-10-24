@@ -286,7 +286,7 @@ void DepsgraphRelationBuilder::add_customdata_mask(const ComponentKey &key, uint
 	}
 }
 
-void DepsgraphRelationBuilder::add_special_eval_flag(ID *id, short flag)
+void DepsgraphRelationBuilder::add_special_eval_flag(ID *id, uint32_t flag)
 {
 	DEG::IDDepsNode *id_node = graph_->find_id_node(id);
 	if (id_node == NULL) {

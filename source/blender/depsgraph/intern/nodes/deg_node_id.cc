@@ -103,6 +103,7 @@ void IDDepsNode::init(const ID *id, const char *UNUSED(subdata))
 	/* Store ID-pointer. */
 	id_orig = (ID *)id;
 	eval_flags = 0;
+	previous_eval_flags = 0;
 	linked_state = DEG_ID_LINKED_INDIRECTLY;
 	is_directly_visible = true;
 
