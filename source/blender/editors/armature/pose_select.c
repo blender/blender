@@ -676,7 +676,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	bool *group_flags_array;
-	bool *group_flags;
+	bool *group_flags = NULL;
 	int groups_len = 0;
 	bool changed = false, tagged = false;
 	Object *ob_prev = NULL;
@@ -776,7 +776,7 @@ static bool pose_select_same_group(bContext *C, bool extend)
 static bool pose_select_same_layer(bContext *C, bool extend)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	int *layers_array, *layers;
+	int *layers_array, *layers = NULL;
 	Object *ob_prev = NULL;
 	uint ob_index;
 	bool changed = false;

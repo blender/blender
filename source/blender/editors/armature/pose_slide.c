@@ -298,6 +298,7 @@ static bool pose_frame_range_from_object_get(tPoseSlideOp *pso, Object *ob, floa
 			return true;
 		}
 	}
+	*prevFrameF = *nextFrameF = 0.0f;
 	return false;
 }
 
