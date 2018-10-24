@@ -450,8 +450,24 @@ static PyObject *bpygpu_shader_uniform_float(
 		values[0] = (float)PyLong_AsDouble(params.seq);
 		length = 1;
 	}
+	else if (MatrixObject_Check(params.seq)) {
+		MatrixObject *mat = (MatrixObject *)params.seq;
+		if (BaseMath_ReadCallback(mat) == -1) {
+			return NULL;
+		}
+		if ((mat->num_row != mat->num_col) || !ELEM(mat->num_row, 3, 4)) {
+			PyErr_SetString(PyExc_ValueError,
+			                "Expected 3x3 or 4x4 matrix");
+			return NULL;
+		}
+		length = mat->num_row * mat->num_col;
+		memcpy(values, mat->matrix, sizeof(float) * length);
+	}
 	else {
 		length = mathutils_array_parse(values, 2, 16, params.seq, "");
+		if (length == -1) {
+			return NULL;
+		}
 	}
 
 	if (!ELEM(length, 1, 2, 3, 4, 9, 16)) {
