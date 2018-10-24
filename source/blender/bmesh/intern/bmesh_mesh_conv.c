@@ -985,6 +985,14 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const int64_t cd_mask_extra)
 	CustomData_add_layer(&me->ldata, CD_MLOOP, CD_CALLOC, NULL, bm->totloop);
 	CustomData_add_layer(&me->pdata, CD_MPOLY, CD_CALLOC, NULL, bm->totface);
 
+	/* don't process shapekeys, we only feed them through the modifier stack as needed,
+	 * e.g. for applying modifiers or the like*/
+	const CustomDataMask mask = (CD_MASK_DERIVEDMESH | cd_mask_extra) & ~CD_MASK_SHAPEKEY;
+	CustomData_merge(&bm->vdata, &me->vdata, mask, CD_CALLOC, me->totvert);
+	CustomData_merge(&bm->edata, &me->edata, mask, CD_CALLOC, me->totedge);
+	CustomData_merge(&bm->ldata, &me->ldata, mask, CD_CALLOC, me->totloop);
+	CustomData_merge(&bm->pdata, &me->pdata, mask, CD_CALLOC, me->totpoly);
+
 	BKE_mesh_update_customdata_pointers(me, false);
 
 	BMIter iter;
@@ -1006,14 +1014,6 @@ void BM_mesh_bm_to_me_for_eval(BMesh *bm, Mesh *me, const int64_t cd_mask_extra)
 
 	/* don't add origindex layer if one already exists */
 	add_orig = !CustomData_has_layer(&bm->pdata, CD_ORIGINDEX);
-
-	/* don't process shapekeys, we only feed them through the modifier stack as needed,
-	 * e.g. for applying modifiers or the like*/
-	const CustomDataMask mask = (CD_MASK_DERIVEDMESH | cd_mask_extra) & ~CD_MASK_SHAPEKEY;
-	CustomData_merge(&bm->vdata, &me->vdata, mask, CD_CALLOC, me->totvert);
-	CustomData_merge(&bm->edata, &me->edata, mask, CD_CALLOC, me->totedge);
-	CustomData_merge(&bm->ldata, &me->ldata, mask, CD_CALLOC, me->totloop);
-	CustomData_merge(&bm->pdata, &me->pdata, mask, CD_CALLOC, me->totpoly);
 
 	index = CustomData_get_layer(&me->vdata, CD_ORIGINDEX);
 
