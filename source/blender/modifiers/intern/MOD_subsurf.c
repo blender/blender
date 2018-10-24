@@ -139,35 +139,6 @@ applyModifier_DM_wrapper(applyModifier, applyModifier_DM)
 
 #endif
 
-static DerivedMesh *applyModifierEM_DM(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        struct BMEditMesh *UNUSED(editData),
-        DerivedMesh *derivedData)
-{
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
-	struct Scene *scene = DEG_get_evaluated_scene(ctx->depsgraph);
-	DerivedMesh *result;
-	/* 'orco' using editmode flags would cause cache to be used twice in editbmesh_calc_modifiers */
-	SubsurfFlags ss_flags = (ctx->flag & MOD_APPLY_ORCO) ? 0 : (SUBSURF_FOR_EDIT_MODE | SUBSURF_IN_EDIT_MODE);
-
-	result = subsurf_make_derived_from_derived(derivedData, smd, scene, NULL, ss_flags);
-	return result;
-}
-
-static Mesh *applyModifierEM(
-        struct ModifierData *md, const struct ModifierEvalContext *ctx,
-        struct BMEditMesh *editData,
-        struct Mesh *mesh)
-{
-	DerivedMesh *dm = CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_EVERYTHING);
-	DerivedMesh *ndm = applyModifierEM_DM(md, ctx, editData, dm);
-	if (ndm != dm) {
-		dm->release(dm);
-	}
-	DM_to_mesh(ndm, mesh, ctx->object, CD_MASK_EVERYTHING, true);
-	return mesh;
-}
-
 #ifdef WITH_OPENSUBDIV_MODIFIER
 static int subdiv_levels_for_modifier_get(const SubsurfModifierData *smd,
                                           const ModifierEvalContext *ctx)
@@ -307,7 +278,7 @@ ModifierTypeInfo modifierType_Subsurf = {
 #else
 	/* applyModifier */     applyModifier,
 #endif
-	/* applyModifierEM */   applyModifierEM,
+	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
