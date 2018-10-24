@@ -2148,9 +2148,9 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
 
         layout.separator()
 
-        split = layout.split()
-
-        row = split.row(align=True)
+        row = layout.row(align=True)
+        row.label(text="Vertex Group:")
+        row = layout.row(align=True)
         row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
         sub = row.row(align=True)
         sub.active = bool(md.vertex_group)
