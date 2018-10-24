@@ -149,6 +149,14 @@ void BKE_object_eval_done(Depsgraph *depsgraph, Object *ob)
 		copy_m4_m4(ob_orig->constinv, ob->constinv);
 		ob_orig->transflag = ob->transflag;
 		ob_orig->flag = ob->flag;
+
+		BoundBox *bb = BKE_object_boundbox_get(ob);
+		if (bb != NULL) {
+			if (ob_orig->bb == NULL) {
+				ob_orig->bb = MEM_mallocN(sizeof(*ob_orig->bb), __func__);
+			}
+			*ob_orig->bb = *bb;
+		}
 	}
 }
 
