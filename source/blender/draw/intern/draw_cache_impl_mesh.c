@@ -545,9 +545,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 			{
 				int *lverts = MEM_mallocN(rdata->vert_len * sizeof(int), __func__);
 				BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
-				BMVert **vtable = bm->vtable;
 				for (int i = 0; i < bm->totvert; i++) {
-					const BMVert *eve = vtable[i];
+					const BMVert *eve = BM_vert_at_index(bm, i);
 					if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
 						/* Loose vert */
 						if (eve->e == NULL || !bm_vert_has_visible_edge(eve)) {
@@ -561,9 +560,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 			{
 				int *ledges = MEM_mallocN(rdata->edge_len * sizeof(int), __func__);
 				BLI_assert((bm->elem_table_dirty & BM_EDGE) == 0);
-				BMEdge **etable = bm->etable;
 				for (int i = 0; i < bm->totedge; i++) {
-					const BMEdge *eed = etable[i];
+					const BMEdge *eed = BM_edge_at_index(bm, i);
 					if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
 						/* Loose edge */
 						if (eed->l == NULL || !bm_edge_has_visible_face(eed)) {
@@ -705,9 +703,8 @@ static MeshRenderData *mesh_render_data_create_ex(
 					BMesh *bm = me->edit_btmesh->bm;
 					rdata->orco = MEM_mallocN(sizeof(*rdata->orco) * rdata->vert_len, "orco mesh");
 					BLI_assert((bm->elem_table_dirty & BM_VERT) == 0);
-					BMVert **vtable = bm->vtable;
 					for (int i = 0; i < bm->totvert; i++) {
-						copy_v3_v3(rdata->orco[i], vtable[i]->co);
+						copy_v3_v3(rdata->orco[i], BM_vert_at_index(bm, i)->co);
 					}
 					BKE_mesh_orco_verts_transform(me, rdata->orco, rdata->vert_len, 0);
 				}
@@ -4424,10 +4421,11 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 		}
 		else {
 			BM_mesh_elem_table_ensure(bm_mapped, BM_FACE);
-			BMFace **ftable = bm_mapped->ftable;
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
-				if ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)) {
+				if ((p_orig != ORIGINDEX_NONE) &&
+				    !BM_elem_flag_test(BM_face_at_index(bm_mapped, p_orig), BM_ELEM_HIDDEN))
+				{
 					const MPoly *mp = &rdata->mpoly[i]; ;
 					const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
 					mat_tri_len[ma_id] += (mp->totloop - 2);
@@ -4469,11 +4467,12 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			}
 		}
 		else {
-			BMFace **ftable = bm_mapped->ftable;
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
-				const MPoly *mp = &rdata->mpoly[i]; ;
-				if ((p_orig != ORIGINDEX_NONE) && !BM_elem_flag_test(ftable[p_orig], BM_ELEM_HIDDEN)) {
+				const MPoly *mp = &rdata->mpoly[i];
+				if ((p_orig != ORIGINDEX_NONE) &&
+				    !BM_elem_flag_test(BM_face_at_index(bm_mapped, p_orig), BM_ELEM_HIDDEN))
+				{
 					const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
 					for (int j = 2; j < mp->totloop; j++) {
 						GPU_indexbuf_add_tri_verts(&elb[ma_id], nidx + 0, nidx + 1, nidx + 2);
