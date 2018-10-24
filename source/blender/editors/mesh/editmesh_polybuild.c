@@ -292,8 +292,10 @@ static int edbm_polybuild_face_at_cursor_invoke(
 		EDBM_mesh_normals_update(em);
 		EDBM_update_generic(em, true, true);
 
-		if (vc.view_layer->basact != basact) {
-			ED_object_base_activate(C, basact);
+		if (basact != NULL) {
+			if (vc.view_layer->basact != basact) {
+				ED_object_base_activate(C, basact);
+			}
 		}
 
 		WM_event_add_mousemove(C);
