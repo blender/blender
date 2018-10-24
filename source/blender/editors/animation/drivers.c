@@ -944,6 +944,7 @@ static int add_driver_button_invoke(bContext *C, wmOperator *op, const wmEvent *
 		if (success) {
 			/* send updates */
 			UI_context_update_anim_flag(C);
+			DEG_id_tag_update(ptr.id.data, DEG_TAG_COPY_ON_WRITE);
 			DEG_relations_tag_update(CTX_data_main(C));
 			WM_event_add_notifier(C, NC_ANIMATION | ND_FCURVES_ORDER, NULL);
 		}
