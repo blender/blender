@@ -4423,7 +4423,7 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			BM_mesh_elem_table_ensure(bm_mapped, BM_FACE);
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
-				if ((p_orig != ORIGINDEX_NONE) &&
+				if ((p_orig == ORIGINDEX_NONE) ||
 				    !BM_elem_flag_test(BM_face_at_index(bm_mapped, p_orig), BM_ELEM_HIDDEN))
 				{
 					const MPoly *mp = &rdata->mpoly[i]; ;
@@ -4470,7 +4470,7 @@ static GPUIndexBuf **mesh_batch_cache_get_triangles_in_order_split_by_material(
 			for (uint i = 0; i < poly_len; i++) {
 				const int p_orig = p_origindex_mapped[i];
 				const MPoly *mp = &rdata->mpoly[i];
-				if ((p_orig != ORIGINDEX_NONE) &&
+				if ((p_orig == ORIGINDEX_NONE) ||
 				    !BM_elem_flag_test(BM_face_at_index(bm_mapped, p_orig), BM_ELEM_HIDDEN))
 				{
 					const short ma_id = mp->mat_nr < mat_len ? mp->mat_nr : 0;
