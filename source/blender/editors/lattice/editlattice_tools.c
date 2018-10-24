@@ -27,6 +27,9 @@
  *  \ingroup edlattice
  */
 
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -318,6 +321,7 @@ static int lattice_flip_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 		changed = true;
 	}
+	MEM_freeN(objects);
 
 	return changed ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
