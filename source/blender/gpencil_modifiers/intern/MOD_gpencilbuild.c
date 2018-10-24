@@ -439,12 +439,12 @@ static void generateStrokes(
 	if (mmd->layer_pass > 0) {
 		if ((mmd->flag & GP_BUILD_INVERT_LAYERPASS) == 0) {
 			if (gpl->pass_index != mmd->layer_pass) {
-				return false;
+				return;
 			}
 		}
 		else {
 			if (gpl->pass_index == mmd->layer_pass) {
-				return false;
+				return;
 			}
 		}
 	}
