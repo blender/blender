@@ -435,6 +435,19 @@ static void generateStrokes(
 			}
 		}
 	}
+	/* verify layer pass */
+	if (mmd->layer_pass > 0) {
+		if ((mmd->flag & GP_BUILD_INVERT_LAYERPASS) == 0) {
+			if (gpl->pass_index != mmd->layer_pass) {
+				return false;
+			}
+		}
+		else {
+			if (gpl->pass_index == mmd->layer_pass) {
+				return false;
+			}
+		}
+	}
 
 	/* Early exit if outside of the frame range for this modifier
 	 * (e.g. to have one forward, and one backwards modifier)

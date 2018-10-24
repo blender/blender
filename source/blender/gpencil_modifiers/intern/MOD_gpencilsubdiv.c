@@ -72,8 +72,9 @@ static void deformStroke(
 
 	if (!is_stroke_affected_by_modifier(
 	            ob,
-	            mmd->layername, mmd->pass_index, 3, gpl, gps,
-	            mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS))
+	            mmd->layername, mmd->pass_index, mmd->layer_pass, 3, gpl, gps,
+	            mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS,
+				mmd->flag & GP_SUBDIV_INVERT_LAYERPASS))
 	{
 		return;
 	}

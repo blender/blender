@@ -82,8 +82,9 @@ static void deformStroke(
 	const int def_nr = defgroup_name_index(ob, mmd->vgname);
 
 	if (!is_stroke_affected_by_modifier(ob,
-	        mmd->layername, mmd->pass_index, 3, gpl, gps,
-	        mmd->flag & GP_LATTICE_INVERT_LAYER, mmd->flag & GP_LATTICE_INVERT_PASS))
+	        mmd->layername, mmd->pass_index, mmd->layer_pass, 3, gpl, gps,
+	        mmd->flag & GP_LATTICE_INVERT_LAYER, mmd->flag & GP_LATTICE_INVERT_PASS,
+			mmd->flag & GP_LATTICE_INVERT_LAYERPASS))
 	{
 		return;
 	}

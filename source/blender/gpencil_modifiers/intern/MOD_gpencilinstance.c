@@ -114,8 +114,9 @@ static void generate_geometry(
 		 * ATTENTION: The logic here is the inverse of what's used everywhere else!
 		 */
 		if (is_stroke_affected_by_modifier(ob,
-		        mmd->layername, mmd->pass_index, 1, gpl, gps,
-		        mmd->flag & GP_INSTANCE_INVERT_LAYER, mmd->flag & GP_INSTANCE_INVERT_PASS))
+		        mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
+		        mmd->flag & GP_INSTANCE_INVERT_LAYER, mmd->flag & GP_INSTANCE_INVERT_PASS,
+				mmd->flag & GP_INSTANCE_INVERT_LAYERPASS))
 		{
 			valid_strokes[idx] = true;
 			num_valid++;

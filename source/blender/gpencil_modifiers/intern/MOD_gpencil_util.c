@@ -84,8 +84,8 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 
 /* verify if valid layer and pass index */
 bool is_stroke_affected_by_modifier(
-        Object *ob, char *mlayername, int mpassindex, int minpoints,
-        bGPDlayer *gpl, bGPDstroke *gps, bool inv1, bool inv2)
+        Object *ob, char *mlayername, int mpassindex, int gpl_passindex, int minpoints,
+        bGPDlayer *gpl, bGPDstroke *gps, bool inv1, bool inv2, bool inv3)
 {
 	MaterialGPencilStyle *gp_style = BKE_material_gpencil_settings_get(ob, gps->mat_nr + 1);
 
@@ -102,7 +102,20 @@ bool is_stroke_affected_by_modifier(
 			}
 		}
 	}
-	/* verify pass */
+	/* verify layer pass */
+	if (gpl_passindex > 0) {
+		if (inv3 == false) {
+			if (gpl->pass_index != gpl_passindex) {
+				return false;
+			}
+		}
+		else {
+			if (gpl->pass_index == gpl_passindex) {
+				return false;
+			}
+		}
+	}
+	/* verify material pass */
 	if (mpassindex > 0) {
 		if (inv2 == false) {
 			if (gp_style->index != mpassindex) {

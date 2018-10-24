@@ -72,7 +72,7 @@ static int remapTime(
 	const int sfra = scene->r.sfra;
 	const int efra = scene->r.efra;
 	const bool invgpl = mmd->flag & GP_TIME_INVERT_LAYER;
-	const bool invpass = mmd->flag & GP_TIME_INVERT_PASS;
+	const bool invpass = mmd->flag & GP_TIME_INVERT_LAYERPASS;
 
 	/* omit if filter by layer */
 	if (mmd->layername[0] != '\0') {
@@ -88,14 +88,14 @@ static int remapTime(
 		}
 	}
 	/* verify pass */
-	if (mmd->pass_index > 0) {
+	if (mmd->layer_pass > 0) {
 		if (invpass == false) {
-			if (gpl->pass_index != mmd->pass_index) {
+			if (gpl->pass_index != mmd->layer_pass) {
 				return cfra;
 			}
 		}
 		else {
-			if (gpl->pass_index == mmd->pass_index) {
+			if (gpl->pass_index == mmd->layer_pass) {
 				return cfra;
 			}
 		}

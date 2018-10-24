@@ -42,8 +42,10 @@ struct Material;
 struct GHash;
 
 bool is_stroke_affected_by_modifier(
-        struct Object *ob, char *mlayername, int mpassindex, int minpoints,
-        bGPDlayer *gpl, bGPDstroke *gps, bool inv1, bool inv2);
+        struct Object *ob, char *mlayername, int mpassindex,
+		int gpl_passindex, int minpoints,
+        bGPDlayer *gpl, bGPDstroke *gps,
+		bool inv1, bool inv2, bool inv3);
 
 float get_modifier_point_weight(struct MDeformVert *dvert, bool inverse, int def_nr);
 
