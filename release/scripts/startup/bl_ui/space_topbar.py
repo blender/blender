@@ -229,13 +229,13 @@ class _draw_left_context_mode:
         def PAINT_TEXTURE(context, layout, tool):
             if (tool is None) or (not tool.has_datablock):
                 return
-            brush = context.tool_settings.vertex_paint.brush
+            brush = context.tool_settings.image_paint.brush
             if brush is None:
                 return
 
             from .properties_paint_common import UnifiedPaintPanel
 
-            layout.prop(brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
@@ -248,7 +248,7 @@ class _draw_left_context_mode:
 
             from .properties_paint_common import UnifiedPaintPanel
 
-            layout.prop(brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
             UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
             UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
