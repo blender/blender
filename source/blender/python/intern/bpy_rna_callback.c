@@ -33,6 +33,7 @@
 #include "RNA_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 
 #include "bpy_rna.h"
 #include "bpy_rna_callback.h"
@@ -387,12 +388,18 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		}
 		bContext *C = BPy_GetContext();
 		struct wmWindowManager *wm = CTX_wm_manager(C);
-		customdata = WM_paint_cursor_customdata_get(handle);
-		if (!WM_paint_cursor_end(wm, handle)) {
-			PyErr_SetString(PyExc_ValueError, "draw_cursor_remove(handler): cursor wasn't found");
-			return NULL;
+
+		if (BLI_findindex(&wm->paintcursors, handle) == -1) {
+			/* FIXME(campbell): window manager has freed cursor, need to resolve refcount leak. */
 		}
-		Py_DECREF((PyObject *)customdata);
+		else {
+			customdata = WM_paint_cursor_customdata_get(handle);
+			if (!WM_paint_cursor_end(wm, handle)) {
+				PyErr_SetString(PyExc_ValueError, "draw_cursor_remove(handler): cursor wasn't found");
+				return NULL;
+			}
+			Py_DECREF((PyObject *)customdata);
+		}
 	}
 	else if (RNA_struct_is_a(srna, &RNA_Space)) {
 		const char *error_prefix = "Space.draw_handler_remove";
