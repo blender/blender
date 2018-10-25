@@ -196,10 +196,11 @@ static bool bpygpu_vertformat_attr_add_from_tuple(
 
 static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	PyListObject *format_list;
+	const char *error_prefix = "GPUVertFormat.__new__";
+	PyListObject *format_list = NULL;
 
 	static const char *_keywords[] = {"format", NULL};
-	static _PyArg_Parser _parser = {"O!:VertFormat.__new__", _keywords, 0};
+	static _PyArg_Parser _parser = {"|O!:GPUVertFormat.__new__", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
 	        &PyList_Type, &format_list))
@@ -209,7 +210,7 @@ static PyObject *bpygpu_VertFormat_new(PyTypeObject *UNUSED(type), PyObject *arg
 
 	BPyGPUVertFormat *ret = (BPyGPUVertFormat *)BPyGPUVertFormat_CreatePyObject(NULL);
 
-	if (!bpygpu_vertformat_from_PyList(format_list, "VertFormat.__new__", &ret->fmt)) {
+	if (format_list && !bpygpu_vertformat_from_PyList(format_list, error_prefix, &ret->fmt)) {
 		Py_DECREF(ret);
 		return NULL;
 	}
