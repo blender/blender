@@ -99,6 +99,8 @@ ToolDef = namedtuple(
         "operator",
         # Optional draw settings (operator options, toolsettings).
         "draw_settings",
+        # Optional draw cursor.
+        "draw_cursor",
     )
 )
 del namedtuple
@@ -119,6 +121,7 @@ def from_dict(kw_args):
         "data_block": None,
         "operator": None,
         "draw_settings": None,
+        "draw_cursor": None,
     }
     kw.update(kw_args)
 
@@ -613,6 +616,20 @@ def _activate_by_item(context, space_type, item, index):
         operator=item.operator or "",
         index=index,
     )
+
+    WindowManager = bpy.types.WindowManager
+
+    handle_map = _activate_by_item._cursor_draw_handle
+    handle = handle_map.pop(space_type, None)
+    if (handle is not None):
+        WindowManager.draw_cursor_remove(handle)
+    if item.draw_cursor is not None:
+        def handle_fn(context, item, tool, xy):
+            item.draw_cursor(context, tool, xy)
+        handle = WindowManager.draw_cursor_add(handle_fn, (context, item, tool), space_type)
+        handle_map[space_type] = handle
+
+_activate_by_item._cursor_draw_handle = {}
 
 
 def activate_by_name(context, space_type, text):
