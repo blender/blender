@@ -143,9 +143,9 @@ def island2Edge(island):
     unique_points = {}
 
     for f in island:
-        f_uvkey = map(tuple, f.uv)
+        f_uvkey = list(map(tuple, f.uv))
 
-        for vIdx, edkey in enumerate(f.edge_keys):
+        for vIdx in range(len(f_uvkey)):
             unique_points[f_uvkey[vIdx]] = f.uv[vIdx]
 
             if f.v[vIdx].index > f.v[vIdx - 1].index:
@@ -158,18 +158,14 @@ def island2Edge(island):
             try:
                 edges[f_uvkey[i1], f_uvkey[i2]] *= 0  # sets any edge with more than 1 user to 0 are not returned.
             except:
-                edges[f_uvkey[i1], f_uvkey[i2]] = (f.uv[i1] - f.uv[i2]).length,
+                edges[f_uvkey[i1], f_uvkey[i2]] = (f.uv[i1] - f.uv[i2]).length
 
     # If 2 are the same then they will be together, but full [a,b] order is not correct.
 
     # Sort by length
-
     length_sorted_edges = [(Vector(key[0]), Vector(key[1]), value) for key, value in edges.items() if value != 0]
 
-    try:
-        length_sorted_edges.sort(key=lambda A: -A[2])  # largest first
-    except:
-        length_sorted_edges.sort(lambda A, B: cmp(B[2], A[2]))
+    length_sorted_edges.sort(key=lambda a: -a[2])  # largest first
 
     # Its okay to leave the length in there.
     # for e in length_sorted_edges:

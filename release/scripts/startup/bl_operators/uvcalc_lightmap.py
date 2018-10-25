@@ -77,9 +77,9 @@ class prettyface:
             # f, (len_min, len_mid, len_max)
             self.uv = data
 
-            f1, lens1, lens1ord = data[0]
+            _f1, lens1, lens1ord = data[0]
             if data[1]:
-                f2, lens2, lens2ord = data[1]
+                _f2, lens2, lens2ord = data[1]
                 self.width = (lens1[lens1ord[0]] + lens2[lens2ord[0]]) / 2.0
                 self.height = (lens1[lens1ord[1]] + lens2[lens2ord[1]]) / 2.0
             else:  # 1 tri :/
@@ -205,12 +205,12 @@ class prettyface:
                     fuv[I[0]][:] = p2
                     fuv[I[1]][:] = p3
 
-            f, lens, lensord = uv[0]
+            f = uv[0][0]
 
             set_uv(f, (x1, y1), (x1, y2 - margin_h), (x2 - margin_w, y1))
 
             if uv[1]:
-                f, lens, lensord = uv[1]
+                f = uv[1][0]
                 set_uv(f, (x2, y2), (x2, y1 + margin_h), (x1 + margin_w, y2))
 
         else:  # 1 QUAD
