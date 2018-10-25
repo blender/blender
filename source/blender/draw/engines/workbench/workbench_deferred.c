@@ -106,6 +106,8 @@ extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
+extern char datatoc_gpu_shader_depth_only_frag_glsl[];
+
 static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 {
 	char *str = NULL;
@@ -296,7 +298,7 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 #ifdef DEBUG_SHADOW_VOLUME
 		const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
 #else
-		const char *shadow_frag = NULL;
+		const char *shadow_frag = datatoc_gpu_shader_depth_only_frag_glsl;
 #endif
 		e_data.shadow_pass_sh = DRW_shader_create(
 		        datatoc_workbench_shadow_vert_glsl,
