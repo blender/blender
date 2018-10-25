@@ -970,23 +970,19 @@ void BlenderSession::update_status_progress()
 
 		if(b_rview_name != "")
 			scene += ", " + b_rview_name;
-	}
-	else {
-		BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), total_time);
-		timestatus = "Time:" + string(time_str) + " | ";
-	}
 
-	if(remaining_time > 0) {
-		BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), remaining_time);
-		timestatus += "Remaining:" + string(time_str) + " | ";
+		if(remaining_time > 0) {
+			BLI_timecode_string_from_time_simple(time_str, sizeof(time_str), remaining_time);
+			timestatus += "Remaining:" + string(time_str) + " | ";
+		}
+
+		timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
+
+		if(status.size() > 0)
+			status = " | " + status;
+		if(substatus.size() > 0)
+			status += " | " + substatus;
 	}
-
-	timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
-
-	if(status.size() > 0)
-		status = " | " + status;
-	if(substatus.size() > 0)
-		status += " | " + substatus;
 
 	double current_time = time_dt();
 	/* When rendering in a window, redraw the status at least once per second to keep the elapsed and remaining time up-to-date.

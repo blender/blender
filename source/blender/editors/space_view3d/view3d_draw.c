@@ -1077,7 +1077,7 @@ static const char *view3d_get_name(View3D *v3d, RegionView3D *rv3d)
 	return name;
 }
 
-static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
+static void draw_viewport_name(ARegion *ar, View3D *v3d, int xoffset, int *yoffset)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const char *name = view3d_get_name(v3d, rv3d);
@@ -1100,10 +1100,13 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
 	}
 
 	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+
+	*yoffset -= U.widget_unit;
+
 #ifdef WITH_INTERNATIONAL
-	BLF_draw_default(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+	BLF_draw_default(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
 #else
-	BLF_draw_default_ascii(U.widget_unit + rect->xmin,  rect->ymax - U.widget_unit, 0.0f, name, sizeof(tmpstr));
+	BLF_draw_default_ascii(xoffset, *yoffset, 0.0f, name, sizeof(tmpstr));
 #endif
 
 	BLF_disable(font_id, BLF_SHADOW);
@@ -1114,7 +1117,7 @@ static void draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect)
  * framenum, object name, bone name (if available), marker name (if available)
  */
 
-static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
+static void draw_selected_name(Scene *scene, Object *ob, int xoffset, int *yoffset)
 {
 	const int cfra = CFRA;
 	const char *msg_pin = " (Pinned)";
@@ -1218,7 +1221,8 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
 	BLF_shadow_offset(font_id, 1, -1);
 
-	BLF_draw_default(rect->xmin + UI_UNIT_X, rect->ymax - (2 * U.widget_unit), 0.0f, info, sizeof(info));
+	*yoffset -= U.widget_unit;
+	BLF_draw_default(xoffset, *yoffset, 0.0f, info, sizeof(info));
 
 	BLF_disable(font_id, BLF_SHADOW);
 }
@@ -1228,7 +1232,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 /**
  * Information drawn on top of the solid plates and composed data
  */
-void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(offset))
+void view3d_draw_region_info(const bContext *C, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -1259,20 +1263,23 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 		draw_view_axis(rv3d, &rect);
 	}
 
+	int xoffset = rect.xmin + U.widget_unit;
+	int yoffset = rect.ymax;
+
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0 &&
 	    (v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0)
 	{
 		if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
-			ED_scene_draw_fps(scene, &rect);
+			ED_scene_draw_fps(scene, xoffset, &yoffset);
 		}
 		else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {
-			draw_viewport_name(ar, v3d, &rect);
+			draw_viewport_name(ar, v3d, xoffset, &yoffset);
 		}
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
 			ViewLayer *view_layer = CTX_data_view_layer(C);
 			Object *ob = OBACT(view_layer);
-			draw_selected_name(scene, ob, &rect);
+			draw_selected_name(scene, ob, xoffset, &yoffset);
 		}
 
 #if 0 /* TODO */
@@ -1284,12 +1291,14 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int UNUSED(of
 				BLI_snprintf(numstr, sizeof(numstr), "%s x %.4g", grid_unit, v3d->grid);
 			}
 
-			BLF_draw_default_ascii(
-			        rect.xmin + U.widget_unit,
-			        rect.ymax - (USER_SHOW_VIEWPORTNAME ? 2 * U.widget_unit : U.widget_unit), 0.0f,
-			        numstr[0] ? numstr : grid_unit, sizeof(numstr));
+			*yoffset -= U.widget_unit;
+			BLF_draw_default_ascii(xoffset, *yoffset, numstr[0] ? numstr : grid_unit, sizeof(numstr));
 		}
 #endif
+	}
+
+	if ((v3d->overlay.flag & V3D_OVERLAY_HIDE_TEXT) == 0) {
+		DRW_draw_region_engine_info(xoffset, yoffset);
 	}
 
 	BLF_batch_draw_end();

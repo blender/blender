@@ -142,7 +142,7 @@ int view3d_effective_drawtype(const struct View3D *v3d);
 
 /* view3d_draw.c */
 void view3d_main_region_draw(const struct bContext *C, struct ARegion *ar);
-void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar, const int offset);
+void view3d_draw_region_info(const struct bContext *C, struct ARegion *ar);
 
 void ED_view3d_draw_depth(
         struct Depsgraph *depsgraph,

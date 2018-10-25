@@ -921,10 +921,10 @@ void Session::update_status_time(bool show_pause, bool show_done)
 		                          num_samples);
 
 	if(show_pause) {
-		status = "Paused";
+		status = "Rendering Paused";
 	}
 	else if(show_done) {
-		status = "Done";
+		status = "Rendering Done";
 		progress.set_end_time(); /* Save end time so that further calls to get_time are accurate. */
 	}
 	else {

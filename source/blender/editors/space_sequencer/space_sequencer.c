@@ -653,7 +653,9 @@ static void sequencer_preview_region_draw(const bContext *C, ARegion *ar)
 	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_no_scrub(wm)) {
 		rcti rect;
 		ED_region_visible_rect(ar, &rect);
-		ED_scene_draw_fps(scene, &rect);
+		int xoffset = rect.xmin + U.widget_unit;
+		int yoffset = rect.xmax;
+		ED_scene_draw_fps(scene, xoffset, &yoffset);
 	}
 }
 

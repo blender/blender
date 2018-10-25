@@ -965,7 +965,7 @@ void ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixSto
  * \note The info that this uses is updated in #ED_refresh_viewport_fps,
  * which currently gets called during #SCREEN_OT_animation_step.
  */
-void ED_scene_draw_fps(Scene *scene, const rcti *rect)
+void ED_scene_draw_fps(Scene *scene, int xoffset, int *yoffset)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
 	char printable[16];
@@ -1012,11 +1012,19 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 		BLI_snprintf(printable, sizeof(printable), IFACE_("fps: %i"), (int)(fps + 0.5f));
 	}
 
+	BLF_enable(font_id, BLF_SHADOW);
+	BLF_shadow(font_id, 5, (const float[4]){0.0f, 0.0f, 0.0f, 1.0f});
+	BLF_shadow_offset(font_id, 1, -1);
+
+	*yoffset -= U.widget_unit;
+
 #ifdef WITH_INTERNATIONAL
-	BLF_draw_default(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+	BLF_draw_default(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 #else
-	BLF_draw_default_ascii(rect->xmin + U.widget_unit,  rect->ymax - U.widget_unit, 0.0f, printable, sizeof(printable));
+	BLF_draw_default_ascii(xoffset, *yoffset, 0.0f, printable, sizeof(printable));
 #endif
+
+	BLF_disable(font_id, BLF_SHADOW);
 }
 
 static bool view3d_main_region_do_render_draw(const Scene *scene)

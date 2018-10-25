@@ -525,7 +525,7 @@ float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char *
 float ED_view3d_grid_view_scale(
         struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d, const char **grid_unit);
 
-void ED_scene_draw_fps(struct Scene *scene, const struct rcti *rect);
+void ED_scene_draw_fps(struct Scene *scene, int xoffset, int *yoffset);
 
 /* view matrix properties utilities */
 /* unused */
