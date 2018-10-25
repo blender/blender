@@ -361,8 +361,6 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 	void *handle;
 	void *customdata;
 	StructRNA *srna;
-	const char *cb_regiontype_str;
-	int cb_regiontype;
 
 	if (PyTuple_GET_SIZE(args) < 2) {
 		PyErr_SetString(PyExc_ValueError, "callback_remove(handler): expected at least 2 args");
@@ -381,8 +379,9 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 	}
 
 	if (srna == &RNA_WindowManager) {
-		if (!PyArg_ParseTuple(args, "OO!:WindowManager.draw_cursor_remove",
-		                      &cls, &PyCapsule_Type, &py_handle))
+		if (!PyArg_ParseTuple(
+		            args, "OO!:WindowManager.draw_cursor_remove",
+		            &cls, &PyCapsule_Type, &py_handle))
 		{
 			return NULL;
 		}
@@ -396,9 +395,17 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		Py_DECREF((PyObject *)customdata);
 	}
 	else if (RNA_struct_is_a(srna, &RNA_Space)) {
-		if (!PyArg_ParseTuple(args, "OO!s:Space.draw_handler_remove",
-		                      &cls, &PyCapsule_Type, &py_handle,  /* already assigned, no matter */
-		                      &cb_regiontype_str))
+		const char *error_prefix = "Space.draw_handler_remove";
+		struct {
+			const char *region_type_str;
+
+			int region_type;
+		} params;
+
+		if (!PyArg_ParseTuple(
+		            args, "OO!s:Space.draw_handler_remove",
+		            &cls, &PyCapsule_Type, &py_handle,  /* already assigned, no matter */
+		            &params.region_type_str))
 		{
 			return NULL;
 		}
@@ -407,8 +414,8 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		Py_DECREF((PyObject *)customdata);
 
 		if (pyrna_enum_value_from_id(
-		            rna_enum_region_type_items, cb_regiontype_str,
-		            &cb_regiontype, "bpy_struct.callback_remove()") == -1)
+		            rna_enum_region_type_items, params.region_type_str,
+		            &params.region_type, error_prefix) == -1)
 		{
 			return NULL;
 		}
@@ -420,9 +427,9 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 			}
 			else {
 				SpaceType *st = BKE_spacetype_from_id(spaceid);
-				ARegionType *art = BKE_regiontype_from_id(st, cb_regiontype);
+				ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
 				if (art == NULL) {
-					PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", cb_regiontype_str);
+					PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
 					return NULL;
 				}
 				ED_region_draw_cb_exit(art, handle);
