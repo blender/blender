@@ -270,6 +270,7 @@ typedef struct bGPDlayer {
 	short line_change;      /* Thickness adjustment */
 	float tintcolor[4];     /* Color used to tint layer, alpha value is used as factor */
 	float opacity;          /* Opacity of the layer */
+	char viewlayername[64]; /* Name of the layer used to filter render output */
 
 	bGPDlayer_Runtime runtime;
 } bGPDlayer;

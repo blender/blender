@@ -172,6 +172,7 @@ class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        scene = context.scene
 
         gpl = context.active_gpencil_layer
         layout.active = not gpl.lock
@@ -189,6 +190,9 @@ class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
 
         col = layout.row(align=True)
         col.prop(gpl, "pass_index")
+
+        col = layout.row(align=True)
+        col.prop_search(gpl, "viewlayer_render", scene, "view_layers", text="View Layer")
 
         col = layout.row(align=True)
         col.prop(gpl, "lock_material")

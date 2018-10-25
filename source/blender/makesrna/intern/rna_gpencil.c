@@ -1100,6 +1100,11 @@ static void rna_def_gpencil_layer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pass Index", "Index number for the \"Layer Index\" pass");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
 
+	prop = RNA_def_property(srna, "viewlayer_render", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "viewlayername");
+	RNA_def_property_ui_text(prop, "ViewLayer",
+		"Only include Layer in this View Layer render output (leave blank to include always)");
+
 	/* Flags */
 	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_LAYER_HIDE);
