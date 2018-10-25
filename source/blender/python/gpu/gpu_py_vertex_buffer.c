@@ -266,12 +266,12 @@ static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, 
 }
 
 PyDoc_STRVAR(bpygpu_VertBuf_attr_fill_doc,
-"attr_fill(identifier, data)\n"
+"attr_fill(id, data)\n"
 "\n"
 "   Insert data into the buffer for a single attribute.\n"
 "\n"
-"   :param identifier: Either the name or the id of the attribute.\n"
-"   :type identifier: int or str\n"
+"   :param id: Either the name or the id of the attribute.\n"
+"   :type id: int or str\n"
 "   :param data: Sequence of data that should be stored in the buffer\n"
 "   :type data: sequence of individual values or tuples\n"
 );
@@ -280,7 +280,7 @@ static PyObject *bpygpu_VertBuf_attr_fill(BPyGPUVertBuf *self, PyObject *args, P
 	PyObject *data;
 	PyObject *identifier;
 
-	static const char *_keywords[] = {"identifier", "data", NULL};
+	static const char *_keywords[] = {"id", "data", NULL};
 	static _PyArg_Parser _parser = {"OO:attr_fill", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
