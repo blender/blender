@@ -158,6 +158,9 @@ struct uiLayout {
 	bContextStore *context;
 	ListBase items;
 
+	/* Sub layout to add child items, if not the layout itself. */
+	uiLayout *child_items_layout;
+
 	int x, y, w, h;
 	float scale[2];
 	short space;
@@ -1628,6 +1631,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	}
 
 	/* Split the label / property. */
+	uiLayout *layout_parent = layout;
 	if (use_prop_sep) {
 		uiLayout *layout_row = NULL;
 #ifdef UI_PROP_DECORATE
@@ -1691,6 +1695,13 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 					but->drawflag |= UI_BUT_TEXT_RIGHT;
 					but->drawflag &= ~UI_BUT_TEXT_LEFT;
 				}
+			}
+
+			/* Hack to add further items in a row into the second part of
+			 * the split layout, so the label part keeps a fixed size. */
+			if (layout_parent && layout_parent->item.type == ITEM_LAYOUT_ROW) {
+				layout_split = uiLayoutRow(layout_split, true);
+				layout_parent->child_items_layout = layout_split;
 			}
 
 			/* Watch out! We can only write into the new layout now. */
@@ -3608,7 +3619,13 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
 	litem->w = layout->w;
 	litem->emboss = layout->emboss;
 	litem->item.flag = (layout->item.flag & (UI_ITEM_PROP_SEP | UI_ITEM_PROP_DECORATE));
-	BLI_addtail(&layout->items, litem);
+
+	if (layout->child_items_layout) {
+		BLI_addtail(&layout->child_items_layout->items, litem);
+	}
+	else {
+		BLI_addtail(&layout->items, litem);
+	}
 }
 
 /* layout create functions */
@@ -4286,7 +4303,12 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 		bitem->item.flag |= UI_ITEM_MIN;
 	}
 
-	BLI_addtail(&layout->items, bitem);
+	if (layout->child_items_layout) {
+		BLI_addtail(&layout->child_items_layout->items, bitem);
+	}
+	else {
+		BLI_addtail(&layout->items, bitem);
+	}
 
 	if (layout->context) {
 		but->context = layout->context;

@@ -67,6 +67,7 @@ def draw_vpaint_symmetry(layout, vpaint):
 
     col = layout.column()
     col.use_property_split = True
+    col.use_property_decorate = False
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
 # Most of these panels should not be visible in GP edit modes
@@ -571,6 +572,7 @@ class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         toolsettings = context.tool_settings
         ipaint = toolsettings.image_paint
@@ -746,6 +748,7 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
         settings = self.paint_settings(context)
         brush = settings.brush
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         col = layout.column()
 
@@ -779,16 +782,12 @@ class VIEW3D_PT_tools_brush_stroke(Panel, View3DPaintPanel):
             if brush.sculpt_capabilities.has_jitter:
                 col.separator()
 
-                colsub = col.split(factor=0.5)
-                row = colsub.row(align=True)
-                row.alignment = 'RIGHT'
-                row.label(text="Jitter")
-                row = colsub.row(align=True)
-                row.prop(brush, "use_relative_jitter", icon_only=True)
+                row = col.row(align=True)
                 if brush.use_relative_jitter:
-                    row.prop(brush, "jitter", slider=True, text="")
+                    row.prop(brush, "jitter", slider=True)
                 else:
-                    row.prop(brush, "jitter_absolute", text="")
+                    row.prop(brush, "jitter_absolute")
+                row.prop(brush, "use_relative_jitter", icon_only=True)
                 row.prop(brush, "use_pressure_jitter", toggle=True, text="")
 
             if brush.sculpt_capabilities.has_smooth_stroke:
@@ -1002,6 +1001,7 @@ class VIEW3D_PT_sculpt_symmetry(Panel, View3DPaintPanel):
         row.prop(sculpt, "tile_z", text="Z", toggle=True)
 
         layout.use_property_split = True
+        layout.use_property_decorate = False
 
         layout.prop(sculpt, "use_symmetry_feather", text="Feather")
         layout.column().prop(sculpt, "radial_symmetry", text="Radial")
