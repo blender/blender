@@ -512,6 +512,12 @@ GPUTexture *GPU_texture_create_nD(
 		CLAMP_MAX(samples, GPU_max_color_texture_samples());
 	}
 
+	if ((tex_format == GPU_DEPTH24_STENCIL8) && GPU_depth_blitting_workaround()) {
+		/* MacOS + Radeon Pro fails to blit depth on GPU_DEPTH24_STENCIL8
+		 * but works on GPU_DEPTH32F_STENCIL8. */
+		tex_format = GPU_DEPTH32F_STENCIL8;
+	}
+
 	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
 	tex->w = w;
 	tex->h = h;

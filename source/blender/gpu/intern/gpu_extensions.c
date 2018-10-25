@@ -89,6 +89,11 @@ static struct GPUGlobal {
 	 * GL_TEXTURE_MAX_LEVEL is higher than the target mip.
 	 * We need a workaround in this cases. */
 	bool mip_render_workaround;
+	/* There is an issue with the glBlitFramebuffer on MacOS with radeon pro graphics.
+	 * Blitting depth with GL_DEPTH24_STENCIL8 is buggy so the workaround is to use
+	 * GPU_DEPTH32F_STENCIL8. Then Blitting depth will work but blitting stencil will
+	 * still be broken. */
+	bool depth_blitting_workaround;
 } GG = {1, 0};
 
 
@@ -195,6 +200,11 @@ bool GPU_mip_render_workaround(void)
 	return GG.mip_render_workaround;
 }
 
+bool GPU_depth_blitting_workaround(void)
+{
+	return GG.depth_blitting_workaround;
+}
+
 void gpu_extensions_init(void)
 {
 	/* during 2.8 development each platform has its own OpenGL minimum requirements
@@ -243,6 +253,12 @@ void gpu_extensions_init(void)
 	if (strstr(vendor, "ATI") || strstr(vendor, "AMD")) {
 		GG.device = GPU_DEVICE_ATI;
 		GG.driver = GPU_DRIVER_OFFICIAL;
+
+#if defined(__APPLE__)
+		if (strstr(vendor, "AMD Radeon Pro")) {
+			GG.depth_blitting_workaround = true;
+		}
+#endif
 	}
 	else if (strstr(vendor, "NVIDIA")) {
 		GG.device = GPU_DEVICE_NVIDIA;
