@@ -1813,7 +1813,7 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
  * - draw(bContext): drawing callback for paint cursor
  */
 
-void *WM_paint_cursor_activate(
+wmPaintCursor *WM_paint_cursor_activate(
         wmWindowManager *wm, bool (*poll)(bContext *C),
         wmPaintCursorDraw draw, void *customdata)
 {
@@ -1828,7 +1828,7 @@ void *WM_paint_cursor_activate(
 	return pc;
 }
 
-void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
+bool WM_paint_cursor_end(wmWindowManager *wm, wmPaintCursor *handle)
 {
 	wmPaintCursor *pc;
 
@@ -1836,9 +1836,15 @@ void WM_paint_cursor_end(wmWindowManager *wm, void *handle)
 		if (pc == (wmPaintCursor *)handle) {
 			BLI_remlink(&wm->paintcursors, pc);
 			MEM_freeN(pc);
-			return;
+			return true;
 		}
 	}
+	return false;
+}
+
+void *WM_paint_cursor_customdata_get(wmPaintCursor *pc)
+{
+	return pc->customdata;
 }
 
 /* *********************** radial control ****************** */
