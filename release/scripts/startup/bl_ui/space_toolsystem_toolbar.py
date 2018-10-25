@@ -417,6 +417,13 @@ class _defs_view3d_select:
         def draw_settings(context, layout, tool):
             props = tool.operator_properties("view3d.select_circle")
             layout.prop(props, "radius")
+
+        def draw_cursor(context, tool, xy):
+            from gpu_extras.presets import draw_circle_2d
+            props = tool.operator_properties("view3d.select_circle")
+            radius = props.radius
+            draw_circle_2d(xy, (1.0,) * 4, radius, 32)
+
         return dict(
             text="Select Circle",
             icon="ops.generic.select_circle",
@@ -430,6 +437,7 @@ class _defs_view3d_select:
                  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
             ),
             draw_settings=draw_settings,
+            draw_cursor=draw_cursor,
         )
 
     @ToolDef.from_fn
