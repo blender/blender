@@ -58,6 +58,7 @@ struct wmMsgSubscribeKey;
 struct wmMsgSubscribeValue;
 struct wmOperatorType;
 struct wmOperator;
+struct wmPaintCursor;
 struct rcti;
 struct PointerRNA;
 struct PropertyRNA;
@@ -170,14 +171,16 @@ void		WM_cursor_grab_enable(struct wmWindow *win, bool wrap, bool hide, int boun
 void		WM_cursor_grab_disable(struct wmWindow *win, const int mouse_ungrab_xy[2]);
 void		WM_cursor_time		(struct wmWindow *win, int nr);
 
-void *WM_paint_cursor_activate(
+struct wmPaintCursor *WM_paint_cursor_activate(
         struct wmWindowManager *wm,
         bool (*poll)(struct bContext *C),
         void (*draw)(struct bContext *C, int, int, void *customdata),
         void *customdata);
 
-void		WM_paint_cursor_end(struct wmWindowManager *wm, void *handle);
+bool		WM_paint_cursor_end(struct wmWindowManager *wm, struct wmPaintCursor *handle);
+void       *WM_paint_cursor_customdata_get(struct wmPaintCursor *pc);
 void		WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *ar);
+
 
 void		WM_cursor_warp		(struct wmWindow *win, int x, int y);
 void		WM_cursor_compatible_xy(wmWindow *win, int *x, int *y);
