@@ -179,7 +179,6 @@ struct wmPaintCursor *WM_paint_cursor_activate(
         void *customdata);
 
 bool		WM_paint_cursor_end(struct wmWindowManager *wm, struct wmPaintCursor *handle);
-void       *WM_paint_cursor_customdata_get(struct wmPaintCursor *pc);
 void		WM_paint_cursor_tag_redraw(struct wmWindow *win, struct ARegion *ar);
 
 

@@ -1878,11 +1878,6 @@ bool WM_paint_cursor_end(wmWindowManager *wm, wmPaintCursor *handle)
 	return false;
 }
 
-void *WM_paint_cursor_customdata_get(wmPaintCursor *pc)
-{
-	return pc->customdata;
-}
-
 /* *********************** radial control ****************** */
 
 #define WM_RADIAL_CONTROL_DISPLAY_SIZE (200 * UI_DPI_FAC)

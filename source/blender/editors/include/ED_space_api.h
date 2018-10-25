@@ -75,7 +75,6 @@ void *ED_region_draw_cb_activate(struct ARegionType *,
                                  void *custumdata, int type);
 void ED_region_draw_cb_draw(const struct bContext *, struct ARegion *, int);
 void ED_region_draw_cb_exit(struct ARegionType *, void *);
-void *ED_region_draw_cb_customdata(void *handle);
 /* generic callbacks */
 /* ed_util.c */
 void ED_region_draw_mouse_line_cb(const struct bContext *C, struct ARegion *ar, void *arg_info);
