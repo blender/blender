@@ -47,7 +47,11 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
+#include "WM_api.h"
+
 #include "ED_space_api.h"
+
+#include "../generic/python_utildefines.h"
 
 /* use this to stop other capsules from being mis-used */
 #define RNA_CAPSULE_ID "RNA_HANDLE"
@@ -70,6 +74,53 @@ static void cb_region_draw(const bContext *C, ARegion *UNUSED(ar), void *customd
 	cb_func = PyTuple_GET_ITEM((PyObject *)customdata, 1);
 	cb_args = PyTuple_GET_ITEM((PyObject *)customdata, 2);
 	result = PyObject_CallObject(cb_func, cb_args);
+
+	if (result) {
+		Py_DECREF(result);
+	}
+	else {
+		PyErr_Print();
+		PyErr_Clear();
+	}
+
+	bpy_context_clear((bContext *)C, &gilstate);
+}
+
+/* We could make generic utility */
+static PyObject *PyC_Tuple_CopySized(PyObject *src, int len_dst)
+{
+	PyObject *dst = PyTuple_New(len_dst);
+	int len_src = PyTuple_GET_SIZE(src);
+	BLI_assert(len_src <= len_dst);
+	for (int i = 0; i < len_src; i++) {
+		PyObject *item = PyTuple_GET_ITEM(src, i);
+		PyTuple_SET_ITEM(dst, i, item);
+		Py_INCREF(item);
+	}
+	return dst;
+}
+
+static void cb_wm_cursor_draw(bContext *C, int x, int y, void *customdata)
+{
+	PyObject *cb_func, *cb_args, *result;
+	PyGILState_STATE gilstate;
+
+	bpy_context_set((bContext *)C, &gilstate);
+
+	cb_func = PyTuple_GET_ITEM((PyObject *)customdata, 1);
+	cb_args = PyTuple_GET_ITEM((PyObject *)customdata, 2);
+
+	const int cb_args_len = PyTuple_GET_SIZE(cb_args);
+
+	PyObject *cb_args_xy = PyTuple_New(2);
+	PyTuple_SET_ITEMS(cb_args_xy, PyLong_FromLong(x), PyLong_FromLong(y));
+
+	PyObject *cb_args_with_xy = PyC_Tuple_CopySized(cb_args, cb_args_len + 1);
+	PyTuple_SET_ITEM(cb_args_with_xy, cb_args_len, cb_args_xy);
+
+	result = PyObject_CallObject(cb_func, cb_args_with_xy);
+
+	Py_DECREF(cb_args_with_xy);
 
 	if (result) {
 		Py_DECREF(result);
@@ -205,7 +256,20 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 	}
 
 	/* class specific callbacks */
-	if (RNA_struct_is_a(srna, &RNA_Space)) {
+
+	if (srna == &RNA_WindowManager) {
+		if (!PyArg_ParseTuple(args, "OOO!:WindowManager.draw_cursor_add",
+		                      &cls, &cb_func,  /* already assigned, no matter */
+		                      &PyTuple_Type, &cb_args))
+		{
+			return NULL;
+		}
+		bContext *C = BPy_GetContext();
+		struct wmWindowManager *wm = CTX_wm_manager(C);
+		handle = WM_paint_cursor_activate(wm, NULL, cb_wm_cursor_draw, (void *)args);
+		Py_INCREF(args);
+	}
+	else if (RNA_struct_is_a(srna, &RNA_Space)) {
 		if (!PyArg_ParseTuple(args, "OOO!ss:Space.draw_handler_add",
 		                      &cls, &cb_func,  /* already assigned, no matter */
 		                      &PyTuple_Type, &cb_args, &cb_regiontype_str, &cb_event_str))
@@ -277,7 +341,22 @@ PyObject *pyrna_callback_classmethod_remove(PyObject *UNUSED(self), PyObject *ar
 		return NULL;
 	}
 
-	if (RNA_struct_is_a(srna, &RNA_Space)) {
+	if (srna == &RNA_WindowManager) {
+		if (!PyArg_ParseTuple(args, "OO!:WindowManager.draw_cursor_remove",
+		                      &cls, &PyCapsule_Type, &py_handle))
+		{
+			return NULL;
+		}
+		bContext *C = BPy_GetContext();
+		struct wmWindowManager *wm = CTX_wm_manager(C);
+		customdata = WM_paint_cursor_customdata_get(handle);
+		if (!WM_paint_cursor_end(wm, handle)) {
+			PyErr_SetString(PyExc_ValueError, "draw_cursor_remove(handler): cursor wasn't found");
+			return NULL;
+		}
+		Py_DECREF((PyObject *)customdata);
+	}
+	else if (RNA_struct_is_a(srna, &RNA_Space)) {
 		if (!PyArg_ParseTuple(args, "OO!s:Space.draw_handler_remove",
 		                      &cls, &PyCapsule_Type, &py_handle,  /* already assigned, no matter */
 		                      &cb_regiontype_str))
