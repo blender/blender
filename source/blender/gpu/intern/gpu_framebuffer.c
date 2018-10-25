@@ -101,6 +101,7 @@ static GPUAttachmentType attachment_type_from_tex(GPUTexture *tex, int slot)
 		case GPU_DEPTH_COMPONENT16:
 			return GPU_FB_DEPTH_ATTACHMENT;
 		case GPU_DEPTH24_STENCIL8:
+		case GPU_DEPTH32F_STENCIL8:
 			return GPU_FB_DEPTH_STENCIL_ATTACHMENT;
 		default:
 			return GPU_FB_COLOR_ATTACHMENT0 + slot;

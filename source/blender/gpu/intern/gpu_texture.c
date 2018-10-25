@@ -170,7 +170,10 @@ static void gpu_validate_data_format(GPUTextureFormat tex_format, GPUDataFormat 
 	{
 		BLI_assert(data_format == GPU_DATA_FLOAT);
 	}
-	else if (tex_format == GPU_DEPTH24_STENCIL8) {
+	else if (ELEM(tex_format,
+	              GPU_DEPTH24_STENCIL8,
+	              GPU_DEPTH32F_STENCIL8))
+	{
 		BLI_assert(data_format == GPU_DATA_UNSIGNED_INT_24_8);
 	}
 	else {
@@ -207,7 +210,10 @@ static GPUDataFormat gpu_get_data_format_from_tex_format(GPUTextureFormat tex_fo
 	{
 		return GPU_DATA_FLOAT;
 	}
-	else if (tex_format == GPU_DEPTH24_STENCIL8) {
+	else if (ELEM(tex_format,
+	              GPU_DEPTH24_STENCIL8,
+	              GPU_DEPTH32F_STENCIL8))
+	{
 		return GPU_DATA_UNSIGNED_INT_24_8;
 	}
 	else {
@@ -245,7 +251,10 @@ static GLenum gpu_get_gl_dataformat(GPUTextureFormat data_type, GPUTextureFormat
 		*format_flag |= GPU_FORMAT_DEPTH;
 		return GL_DEPTH_COMPONENT;
 	}
-	else if (data_type == GPU_DEPTH24_STENCIL8) {
+	else if (ELEM(data_type,
+	              GPU_DEPTH24_STENCIL8,
+	              GPU_DEPTH32F_STENCIL8))
+	{
 		*format_flag |= GPU_FORMAT_DEPTH | GPU_FORMAT_STENCIL;
 		return GL_DEPTH_STENCIL;
 	}
@@ -293,6 +302,8 @@ static uint gpu_get_bytesize(GPUTextureFormat data_type)
 			return 16;
 		case GPU_RGB16F:
 			return 12;
+		case GPU_DEPTH32F_STENCIL8:
+			return 8;
 		case GPU_RG16F:
 		case GPU_RG16I:
 		case GPU_RG16UI:
@@ -350,6 +361,7 @@ static GLenum gpu_get_gl_internalformat(GPUTextureFormat format)
 		/* Special formats texture & renderbuffer */
 		case GPU_R11F_G11F_B10F: return GL_R11F_G11F_B10F;
 		case GPU_DEPTH24_STENCIL8: return GL_DEPTH24_STENCIL8;
+		case GPU_DEPTH32F_STENCIL8: return GL_DEPTH32F_STENCIL8;
 		/* Texture only format */
 		/* ** Add Format here **/
 		/* Special formats texture only */
