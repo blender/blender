@@ -272,6 +272,7 @@ typedef struct EEVEE_FramebufferList {
 	struct GPUFrameBuffer *bloom_down_fb[MAX_BLOOM_STEP];
 	struct GPUFrameBuffer *bloom_accum_fb[MAX_BLOOM_STEP - 1];
 	struct GPUFrameBuffer *sss_blur_fb;
+	struct GPUFrameBuffer *sss_blit_fb;
 	struct GPUFrameBuffer *sss_resolve_fb;
 	struct GPUFrameBuffer *sss_clear_fb;
 	struct GPUFrameBuffer *sss_accum_fb;

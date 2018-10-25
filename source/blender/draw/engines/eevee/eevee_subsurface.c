@@ -33,6 +33,7 @@
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
+#include "GPU_extensions.h"
 
 static struct {
 	struct GPUShader *sss_sh[4];
@@ -67,6 +68,7 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects = stl->effects;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	const float *viewport_size = DRW_viewport_size_get();
 	const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
@@ -99,13 +101,27 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		effects->sss_data =    DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA16F,
 		                                                 &draw_engine_eevee_type);
 
+		GPUTexture *stencil_tex = effects->sss_stencil;
+
+		if (GPU_depth_blitting_workaround()) {
+			/* Blitting stencil buffer does not work on macOS + Radeon Pro.
+			 * Blit depth instead and use sss_stencil's depth as depth texture,
+			 * and dtxl->depth as stencil mask. */
+			GPU_framebuffer_ensure_config(&fbl->sss_blit_fb, {
+				GPU_ATTACHMENT_TEXTURE(effects->sss_stencil),
+				GPU_ATTACHMENT_NONE
+			});
+
+			stencil_tex = dtxl->depth;
+		}
+
 		GPU_framebuffer_ensure_config(&fbl->sss_blur_fb, {
-			GPU_ATTACHMENT_TEXTURE(effects->sss_stencil),
+			GPU_ATTACHMENT_TEXTURE(stencil_tex),
 			GPU_ATTACHMENT_TEXTURE(effects->sss_blur)
 		});
 
 		GPU_framebuffer_ensure_config(&fbl->sss_resolve_fb, {
-			GPU_ATTACHMENT_TEXTURE(effects->sss_stencil),
+			GPU_ATTACHMENT_TEXTURE(stencil_tex),
 			GPU_ATTACHMENT_TEXTURE(txl->color)
 		});
 
@@ -147,6 +163,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
@@ -154,8 +171,17 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_dir_accum, GPU_RGBA16F, 0);
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_col_accum, GPU_RGBA16F, 0);
 
+		GPUTexture *stencil_tex = effects->sss_stencil;
+
+		if (GPU_depth_blitting_workaround()) {
+			/* Blitting stencil buffer does not work on macOS + Radeon Pro.
+			 * Blit depth instead and use sss_stencil's depth as depth texture,
+			 * and dtxl->depth as stencil mask. */
+			stencil_tex = dtxl->depth;
+		}
+
 		GPU_framebuffer_ensure_config(&fbl->sss_accum_fb, {
-			GPU_ATTACHMENT_TEXTURE(effects->sss_stencil),
+			GPU_ATTACHMENT_TEXTURE(stencil_tex),
 			GPU_ATTACHMENT_TEXTURE(txl->sss_dir_accum),
 			GPU_ATTACHMENT_TEXTURE(txl->sss_col_accum)
 		});
@@ -205,10 +231,11 @@ void EEVEE_subsurface_add_pass(
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 	struct GPUBatch *quad = DRW_cache_fullscreen_quad_get();
+	GPUTexture **depth_src = GPU_depth_blitting_workaround() ? &effects->sss_stencil : &dtxl->depth;
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
 	DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_data);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -218,7 +245,7 @@ void EEVEE_subsurface_add_pass(
 	struct GPUShader *sh = (effects->sss_separate_albedo) ? e_data.sss_sh[2] : e_data.sss_sh[1];
 	grp = DRW_shgroup_create(sh, psl->sss_resolve_ps);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
 	DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_blur);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -232,7 +259,7 @@ void EEVEE_subsurface_add_pass(
 	if (DRW_state_is_image_render()) {
 		grp = DRW_shgroup_create(e_data.sss_sh[3], psl->sss_accum_ps);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", depth_src);
 		DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_blur);
 		DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
 		DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
@@ -292,8 +319,14 @@ void EEVEE_subsurface_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 		DRW_stats_group_start("SSS");
 
-		/* Copy stencil channel, could be avoided (see EEVEE_subsurface_init) */
-		GPU_framebuffer_blit(fbl->main_fb, 0, fbl->sss_blur_fb, 0, GPU_STENCIL_BIT);
+		if (GPU_depth_blitting_workaround()) {
+			/* Copy depth channel */
+			GPU_framebuffer_blit(fbl->main_fb, 0, fbl->sss_blit_fb, 0, GPU_DEPTH_BIT);
+		}
+		else {
+			/* Copy stencil channel, could be avoided (see EEVEE_subsurface_init) */
+			GPU_framebuffer_blit(fbl->main_fb, 0, fbl->sss_blur_fb, 0, GPU_STENCIL_BIT);
+		}
 
 		/* 1. horizontal pass */
 		GPU_framebuffer_bind(fbl->sss_blur_fb);
