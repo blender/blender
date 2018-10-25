@@ -373,6 +373,7 @@ void DepsgraphNodeBuilder::begin_build()
 		entry_tag.id_orig = id_node->id_orig;
 		entry_tag.component_type = comp_node->type;
 		entry_tag.opcode = op_node->opcode;
+		entry_tag.name = op_node->name;
 		saved_entry_tags_.push_back(entry_tag);
 	};
 	GSET_FOREACH_END();
@@ -395,7 +396,7 @@ void DepsgraphNodeBuilder::end_build()
 		if (comp_node == NULL) {
 			continue;
 		}
-		OperationDepsNode *op_node = comp_node->find_operation(entry_tag.opcode);
+		OperationDepsNode *op_node = comp_node->find_operation(entry_tag.opcode, entry_tag.name, -1);
 		if (op_node == NULL) {
 			continue;
 		}
