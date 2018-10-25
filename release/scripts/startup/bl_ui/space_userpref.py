@@ -1441,7 +1441,7 @@ class USERPREF_PT_addons(Panel):
                                 "wm.addon_remove", text="Remove", icon='CANCEL',
                             ).module = mod.__name__
 
-                        for i in range(4 - tot_row):
+                        for _ in range(4 - tot_row):
                             split.separator()
 
                     # Show addon user preferences

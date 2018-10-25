@@ -515,7 +515,6 @@ class IMAGE_HT_header(Header):
         ima = sima.image
         iuser = sima.image_user
         toolsettings = context.tool_settings
-        mode = sima.mode
 
         show_render = sima.show_render
         show_uvedit = sima.show_uvedit

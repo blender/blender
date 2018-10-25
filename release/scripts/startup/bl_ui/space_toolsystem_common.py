@@ -584,7 +584,7 @@ class WM_MT_toolsystem_submenu(Menu):
         layout = self.layout
         layout.scale_y = 2.0
 
-        cls, item_group = self._tool_group_from_button(context)
+        _cls, item_group = self._tool_group_from_button(context)
         if item_group is None:
             # Should never happen, just in case
             layout.label(text="Unable to find toolbar group")
@@ -616,7 +616,7 @@ def _activate_by_item(context, space_type, item, index):
 
 
 def activate_by_name(context, space_type, text):
-    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    _cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
     if item is None:
         return False
     _activate_by_item(context, space_type, item, index)
@@ -626,7 +626,7 @@ def activate_by_name(context, space_type, text):
 def activate_by_name_or_cycle(context, space_type, text, offset=1):
 
     # Only cycle when the active tool is activated again.
-    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    cls, item, _index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
     if item is None:
         return False
 
@@ -637,7 +637,7 @@ def activate_by_name_or_cycle(context, space_type, text, offset=1):
     for item_group in cls.tools_from_context(context):
         if type(item_group) is tuple:
             index_current = cls._tool_group_active.get(item_group[0].text, 0)
-            for i, sub_item in enumerate(item_group):
+            for sub_item in item_group:
                 if sub_item.text == text:
                     text_current = item_group[index_current].text
                     break
@@ -660,7 +660,7 @@ def activate_by_name_or_cycle(context, space_type, text, offset=1):
 
 def description_from_name(context, space_type, text, *, use_operator=True):
     # Used directly for tooltips.
-    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    _cls, item, _index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
     if item is None:
         return False
 
@@ -685,7 +685,7 @@ def description_from_name(context, space_type, text, *, use_operator=True):
 
 def keymap_from_name(context, space_type, text):
     # Used directly for tooltips.
-    cls, item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
+    _cls, item, _index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
     if item is None:
         return False
 

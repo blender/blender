@@ -624,7 +624,7 @@ class CLIP_OT_setup_tracking_scene(Operator):
             fg.use_sky = True
 
         if not view_layers.get("Background"):
-            bg = view_layers.new("Background")
+            _bg = view_layers.new("Background")
 
     @staticmethod
     def createCollection(context, collection_name):
@@ -969,8 +969,6 @@ class CLIP_OT_setup_tracking_scene(Operator):
             setup_shadow_catcher_objects(bg_coll)
 
     def execute(self, context):
-        scene = context.scene
-
         self._setupScene(context)
         self._setupWorld(context)
         self._setupCamera(context)

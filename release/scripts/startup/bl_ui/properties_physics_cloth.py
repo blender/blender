@@ -64,7 +64,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         layout.use_property_split = True
 
         md = context.cloth
-        ob = context.object
         cloth = md.settings
 
         layout.active = cloth_panel_enabled(md)
@@ -236,7 +235,6 @@ class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
 
         cloth = context.cloth.collision_settings
         md = context.cloth
-        ob = context.object
 
         layout.active = (cloth.use_collision or cloth.use_self_collision) and cloth_panel_enabled(md)
 
