@@ -2951,7 +2951,6 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 {
 	/* if something changed in the button */
 	double value = UI_BUT_VALUE_UNSET;
-//	float okwidth; // UNUSED
 
 	ui_but_update_select_flag(but, &value);
 
@@ -2987,8 +2986,7 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 		case UI_BTYPE_ICON_TOGGLE:
 		case UI_BTYPE_ICON_TOGGLE_N:
 			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
-				if (but->flag & UI_SELECT) but->iconadd = 1;
-				else but->iconadd = 0;
+				but->iconadd = (but->flag & UI_SELECT) ? 1 : 0;
 			}
 			break;
 
