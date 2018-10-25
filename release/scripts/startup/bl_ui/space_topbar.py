@@ -146,7 +146,10 @@ class TOPBAR_HT_lower_bar(Header):
             elif tool_mode == 'GPENCIL_WEIGHT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".greasepencil_weight", category="")
         elif tool_space_type == 'IMAGE_EDITOR':
-            if context.uv_sculpt_object is not None:
+            if tool_mode == 'PAINT':
+                if (tool is not None) and tool.has_datablock:
+                    layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".paint_common_2d", category="")
+            elif context.uv_sculpt_object is not None:
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".uv_sculpt", category="")
 
     def draw_center(self, context):
@@ -155,59 +158,66 @@ class TOPBAR_HT_lower_bar(Header):
     def draw_right(self, context):
         layout = self.layout
 
-        # General options, note, these _could_ display at the RHS of the draw_left callback.
-        # we just want them not to be confused with tool options.
-        mode = context.mode
+        # Active Tool
+        # -----------
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        tool = ToolSelectPanelHelper.tool_active_from_context(context)
+        tool_space_type = 'VIEW_3D' if tool is None else tool.space_type
+        tool_mode = context.mode if tool is None else tool.mode
 
-        if mode == 'SCULPT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
-        elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".vertexpaint", category="")
-        elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".weightpaint", category="")
-        elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint", category="")
-        elif mode == 'EDIT_TEXT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".text_edit", category="")
-        elif mode == 'EDIT_ARMATURE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".armature_edit", category="")
-        elif mode == 'EDIT_METABALL':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mball_edit", category="")
-        elif mode == 'EDIT_LATTICE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".lattice_edit", category="")
-        elif mode == 'EDIT_CURVE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".curve_edit", category="")
-        elif mode == 'EDIT_MESH':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mesh_edit", category="")
-        elif mode == 'POSE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
-        elif mode == 'PARTICLE':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
-        elif mode == 'OBJECT':
-            layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
-        elif mode in {'GPENCIL_PAINT', 'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
-            # Grease pencil layer.
-            gpl = context.active_gpencil_layer
-            if gpl and gpl.info is not None:
-                text = gpl.info
-                maxw = 25
-                if len(text) > maxw:
-                    text = text[:maxw - 5] + '..' + text[-3:]
-            else:
-                text = ""
+        if tool_space_type == 'VIEW_3D':
+            if tool_mode == 'SCULPT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".sculpt_mode", category="")
+            elif tool_mode == 'PAINT_VERTEX':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".vertexpaint", category="")
+            elif tool_mode == 'PAINT_WEIGHT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".weightpaint", category="")
+            elif tool_mode == 'PAINT_TEXTURE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint", category="")
+            elif tool_mode == 'EDIT_TEXT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".text_edit", category="")
+            elif tool_mode == 'EDIT_ARMATURE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".armature_edit", category="")
+            elif tool_mode == 'EDIT_METABALL':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mball_edit", category="")
+            elif tool_mode == 'EDIT_LATTICE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".lattice_edit", category="")
+            elif tool_mode == 'EDIT_CURVE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".curve_edit", category="")
+            elif tool_mode == 'EDIT_MESH':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".mesh_edit", category="")
+            elif tool_mode == 'POSE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".posemode", category="")
+            elif tool_mode == 'PARTICLE':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".particlemode", category="")
+            elif tool_mode == 'OBJECT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".objectmode", category="")
+            elif tool_mode in {'GPENCIL_PAINT', 'GPENCIL_EDIT', 'GPENCIL_SCULPT', 'GPENCIL_WEIGHT'}:
+                # Grease pencil layer.
+                gpl = context.active_gpencil_layer
+                if gpl and gpl.info is not None:
+                    text = gpl.info
+                    maxw = 25
+                    if len(text) > maxw:
+                        text = text[:maxw - 5] + '..' + text[-3:]
+                else:
+                    text = ""
 
-            layout.label(text="Layer:")
-            sub = layout.row()
-            sub.ui_units_x = 8
-            sub.popover(
-                panel="TOPBAR_PT_gpencil_layers",
-                text=text,
-            )
-            if mode == 'GPENCIL_PAINT':
-                tool_settings = context.tool_settings
-                layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='XRAY')
-                layout.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
-                layout.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+                layout.label(text="Layer:")
+                sub = layout.row()
+                sub.ui_units_x = 8
+                sub.popover(
+                    panel="TOPBAR_PT_gpencil_layers",
+                    text=text,
+                )
+                if tool_mode == 'GPENCIL_PAINT':
+                    tool_settings = context.tool_settings
+                    layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='XRAY')
+                    layout.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
+                    layout.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+        elif tool_space_type == 'IMAGE_EDITOR':
+            if tool_mode == 'PAINT':
+                layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint_2d", category="")
 
 
 class _draw_left_context_mode:
@@ -313,6 +323,19 @@ class _draw_left_context_mode:
                         row = layout.row(align=True)
                         UnifiedPaintPanel.prop_unified_strength(row, context, brush, "strength", slider=True, text="Strength")
                         UnifiedPaintPanel.prop_unified_strength(row, context, brush, "use_pressure_strength")
+
+        def PAINT(context, layout, tool):
+            if (tool is None) or (not tool.has_datablock):
+                return
+            brush = context.tool_settings.image_paint.brush
+            if brush is None:
+                return
+
+            from .properties_paint_common import UnifiedPaintPanel
+
+            UnifiedPaintPanel.prop_unified_color(layout, context, brush, "color", text="")
+            UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+            UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
 
 class TOPBAR_PT_gpencil_layers(Panel):

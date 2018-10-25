@@ -533,6 +533,14 @@ class ToolSelectPanelHelper:
         self.draw_cls(self.layout, context)
 
     @staticmethod
+    def tool_active_from_context(context):
+        # BAD DESIGN WARNING: last used tool
+        workspace = context.workspace
+        space_type = workspace.tools_space_type
+        mode = workspace.tools_mode
+        return ToolSelectPanelHelper._tool_active_from_context(context, space_type, mode)
+
+    @staticmethod
     def draw_active_tool_header(
             context, layout,
             *,

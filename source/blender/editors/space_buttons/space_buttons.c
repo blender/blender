@@ -260,9 +260,19 @@ static void buttons_main_region_layout_tool(const bContext *C, ARegion *ar)
 		}
 	}
 	else if (workspace->tools_space_type == SPACE_IMAGE) {
-		switch (mode) {
-			case CTX_MODE_EDIT_MESH:
-				ARRAY_SET_ITEMS(contexts, ".uv_sculpt");
+		switch (workspace->tools_mode) {
+			case SI_MODE_VIEW:
+				break;
+			case SI_MODE_PAINT:
+				ARRAY_SET_ITEMS(contexts, ".paint_common_2d", ".imagepaint_2d");
+				break;
+			case SI_MODE_MASK:
+				break;
+			case SI_MODE_UV:
+				if (mode == CTX_MODE_EDIT_MESH) {
+					ARRAY_SET_ITEMS(contexts, ".uv_sculpt");
+				}
+				break;
 		}
 	}
 

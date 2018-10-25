@@ -39,30 +39,18 @@ from bpy.app.translations import pgettext_iface as iface_
 
 
 class ImagePaintPanel(UnifiedPaintPanel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
 
 class BrushButtonsPanel(UnifiedPaintPanel):
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
 
     @classmethod
     def poll(cls, context):
-        sima = context.space_data
         toolsettings = context.tool_settings.image_paint
-        return sima.show_paint and toolsettings.brush
-
-
-class UVToolsPanel:
-    bl_space_type = 'IMAGE_EDITOR'
-    bl_region_type = 'TOOLS'
-    bl_category = "Tools"
-
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_uvedit and not context.tool_settings.use_uv_sculpt
+        return toolsettings.brush
 
 
 class IMAGE_MT_view(Menu):
@@ -846,7 +834,8 @@ class IMAGE_PT_render_slots(Panel):
 
 
 class IMAGE_PT_paint(Panel, ImagePaintPanel):
-    bl_label = "Paint"
+    bl_label = "Brush"
+    bl_context = ".paint_common_2d"
     bl_category = "Tools"
 
     def draw(self, context):
@@ -861,14 +850,10 @@ class IMAGE_PT_paint(Panel, ImagePaintPanel):
         if brush:
             brush_texpaint_common(self, context, layout, brush, settings)
 
-    @classmethod
-    def poll(cls, context):
-        sima = context.space_data
-        return sima.show_paint
-
 
 class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
     bl_label = "Overlay"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Options"
 
@@ -932,6 +917,7 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
 
 class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
 
@@ -949,6 +935,7 @@ class IMAGE_PT_tools_brush_texture(BrushButtonsPanel, Panel):
 
 class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
     bl_label = "Texture Mask"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
 
@@ -964,27 +951,9 @@ class IMAGE_PT_tools_mask_texture(BrushButtonsPanel, Panel):
         brush_mask_texture_settings(col, brush)
 
 
-class IMAGE_PT_tools_brush_tool(BrushButtonsPanel, Panel):
-    bl_label = "Tool"
-    bl_options = {'DEFAULT_CLOSED'}
-    bl_category = "Options"
-
-    def draw(self, context):
-        layout = self.layout
-        toolsettings = context.tool_settings.image_paint
-        brush = toolsettings.brush
-
-        layout.prop(brush, "image_tool", text="")
-
-        row = layout.row(align=True)
-        row.prop(brush, "use_paint_sculpt", text="", icon='SCULPTMODE_HLT')
-        row.prop(brush, "use_paint_vertex", text="", icon='VPAINT_HLT')
-        row.prop(brush, "use_paint_weight", text="", icon='WPAINT_HLT')
-        row.prop(brush, "use_paint_image", text="", icon='TPAINT_HLT')
-
-
 class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
-    bl_label = "Paint Stroke"
+    bl_label = "Stroke"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
 
@@ -1052,7 +1021,8 @@ class IMAGE_PT_paint_stroke(BrushButtonsPanel, Panel):
 
 
 class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
-    bl_label = "Paint Curve"
+    bl_label = "Curve"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Tools"
 
@@ -1076,7 +1046,7 @@ class IMAGE_PT_paint_curve(BrushButtonsPanel, Panel):
 
 class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
     bl_category = "Tools"
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint_2d"
     bl_label = "Tiling"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1094,8 +1064,10 @@ class IMAGE_PT_tools_imagepaint_symmetry(BrushButtonsPanel, Panel):
 
 class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
     bl_label = "Appearance"
+    bl_context = ".paint_common_2d"
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Options"
+    bl_parent_id = "IMAGE_PT_tools_brush_overlay"
 
     def draw(self, context):
         layout = self.layout
@@ -1120,26 +1092,6 @@ class IMAGE_PT_tools_brush_appearance(BrushButtonsPanel, Panel):
         sub = col.column()
         sub.active = brush.use_custom_icon
         sub.prop(brush, "icon_filepath", text="")
-
-
-class IMAGE_PT_tools_paint_options(BrushButtonsPanel, Panel):
-    bl_label = "Image Paint"
-    bl_category = "Options"
-
-    def draw(self, context):
-        layout = self.layout
-
-        toolsettings = context.tool_settings
-        # brush = toolsettings.image_paint.brush
-        ups = toolsettings.unified_paint_settings
-
-        col = layout.column(align=True)
-        col.label(text="Unified Settings:")
-
-        row = col.row()
-        row.prop(ups, "use_unified_size", text="Size")
-        row.prop(ups, "use_unified_strength", text="Strength")
-        col.prop(ups, "use_unified_color", text="Color")
 
 
 class IMAGE_PT_uv_sculpt_curve(Panel):
@@ -1382,12 +1334,10 @@ classes = (
     IMAGE_PT_tools_brush_overlay,
     IMAGE_PT_tools_brush_texture,
     IMAGE_PT_tools_mask_texture,
-    IMAGE_PT_tools_brush_tool,
     IMAGE_PT_paint_stroke,
     IMAGE_PT_paint_curve,
     IMAGE_PT_tools_imagepaint_symmetry,
     IMAGE_PT_tools_brush_appearance,
-    IMAGE_PT_tools_paint_options,
     IMAGE_PT_uv_sculpt,
     IMAGE_PT_uv_sculpt_curve,
     IMAGE_PT_view_scopes,
