@@ -1602,6 +1602,13 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
     bl_label = "Modifiers"
 
+    def check_conflicts(self, layout, ob):
+        for md in ob.grease_pencil_modifiers:
+            if md.type == 'GP_TIME':
+                row = layout.row()
+                row.label(text="Build and Time Offset modifier not compatible", icon='ERROR')
+                break
+
     @classmethod
     def poll(cls, context):
         ob = context.object
@@ -1971,6 +1978,8 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
+        self.check_conflicts(col, ob)
+
         col.prop(md, "mode")
         if md.mode == 'CONCURRENT':
             col.prop(md, "concurrent_time_alignment")
