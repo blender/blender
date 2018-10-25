@@ -234,10 +234,6 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 	void *handle;
 	PyObject *cls;
 	PyObject *cb_func, *cb_args;
-	const char *cb_regiontype_str;
-	const char *cb_event_str;
-	int cb_event;
-	int cb_regiontype;
 	StructRNA *srna;
 
 	if (PyTuple_GET_SIZE(args) < 2) {
@@ -258,37 +254,77 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 	/* class specific callbacks */
 
 	if (srna == &RNA_WindowManager) {
-		if (!PyArg_ParseTuple(args, "OOO!:WindowManager.draw_cursor_add",
-		                      &cls, &cb_func,  /* already assigned, no matter */
-		                      &PyTuple_Type, &cb_args))
+		const char *error_prefix = "WindowManager.draw_cursor_add";
+		struct {
+			const char *space_type_str;
+			const char *region_type_str;
+
+			int space_type;
+			int region_type;
+		} params = {
+			.space_type_str = NULL,
+			.region_type_str = NULL,
+			.space_type = SPACE_TYPE_ANY,
+			.region_type = RGN_TYPE_ANY,
+		};
+
+		if (!PyArg_ParseTuple(
+		            args, "OOO!|ss:WindowManager.draw_cursor_add",
+		            &cls, &cb_func,  /* already assigned, no matter */
+		            &PyTuple_Type, &cb_args, &params.space_type_str, &params.region_type_str))
 		{
 			return NULL;
 		}
+
+		if (params.space_type_str && pyrna_enum_value_from_id(
+		            rna_enum_space_type_items, params.space_type_str,
+		            &params.space_type, error_prefix) == -1)
+		{
+			return NULL;
+		}
+		else if (params.region_type_str && pyrna_enum_value_from_id(
+		            rna_enum_region_type_items, params.region_type_str,
+		            &params.region_type, error_prefix) == -1)
+		{
+			return NULL;
+		}
+
 		bContext *C = BPy_GetContext();
 		struct wmWindowManager *wm = CTX_wm_manager(C);
 		handle = WM_paint_cursor_activate(
 		        wm,
-		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        params.space_type, params.region_type,
 		        NULL, cb_wm_cursor_draw, (void *)args);
 		Py_INCREF(args);
 	}
 	else if (RNA_struct_is_a(srna, &RNA_Space)) {
-		if (!PyArg_ParseTuple(args, "OOO!ss:Space.draw_handler_add",
-		                      &cls, &cb_func,  /* already assigned, no matter */
-		                      &PyTuple_Type, &cb_args, &cb_regiontype_str, &cb_event_str))
+		const char *error_prefix = "Space.draw_handler_add";
+		struct {
+			const char *region_type_str;
+			const char *event_str;
+
+			int region_type;
+			int event;
+		} params;
+
+		if (!PyArg_ParseTuple(
+		            args, "OOO!ss:Space.draw_handler_add",
+		            &cls, &cb_func,  /* already assigned, no matter */
+		            &PyTuple_Type, &cb_args,
+		            &params.region_type_str, &params.event_str))
 		{
 			return NULL;
 		}
 
 		if (pyrna_enum_value_from_id(
-		            region_draw_mode_items, cb_event_str,
-		            &cb_event, "bpy_struct.callback_add()") == -1)
+		            region_draw_mode_items, params.event_str,
+		            &params.event, error_prefix) == -1)
 		{
 			return NULL;
 		}
 		else if (pyrna_enum_value_from_id(
-		                 rna_enum_region_type_items, cb_regiontype_str,
-		                 &cb_regiontype, "bpy_struct.callback_add()") == -1)
+		                 rna_enum_region_type_items, params.region_type_str,
+		                 &params.region_type, error_prefix) == -1)
 		{
 			return NULL;
 		}
@@ -300,12 +336,12 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 			}
 			else {
 				SpaceType *st = BKE_spacetype_from_id(spaceid);
-				ARegionType *art = BKE_regiontype_from_id(st, cb_regiontype);
+				ARegionType *art = BKE_regiontype_from_id(st, params.region_type);
 				if (art == NULL) {
-					PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", cb_regiontype_str);
+					PyErr_Format(PyExc_TypeError, "region type '%.200s' not in space", params.region_type_str);
 					return NULL;
 				}
-				handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, cb_event);
+				handle = ED_region_draw_cb_activate(art, cb_region_draw, (void *)args, params.event);
 				Py_INCREF(args);
 			}
 		}
