@@ -1845,7 +1845,9 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
  */
 
 wmPaintCursor *WM_paint_cursor_activate(
-        wmWindowManager *wm, bool (*poll)(bContext *C),
+        wmWindowManager *wm,
+        short space_type, short region_type,
+        bool (*poll)(bContext *C),
         wmPaintCursorDraw draw, void *customdata)
 {
 	wmPaintCursor *pc = MEM_callocN(sizeof(wmPaintCursor), "paint cursor");
@@ -1855,6 +1857,9 @@ wmPaintCursor *WM_paint_cursor_activate(
 	pc->customdata = customdata;
 	pc->poll = poll;
 	pc->draw = draw;
+
+	pc->space_type = space_type;
+	pc->region_type = region_type;
 
 	return pc;
 }
@@ -2443,8 +2448,11 @@ static int radial_control_invoke(bContext *C, wmOperator *op, const wmEvent *eve
 	BLI_listbase_clear(&wm->paintcursors);
 
 	/* add radial control paint cursor */
-	rc->cursor = WM_paint_cursor_activate(wm, op->type->poll,
-	                                      radial_control_paint_cursor, rc);
+	rc->cursor = WM_paint_cursor_activate(
+	        wm,
+	        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+	        op->type->poll,
+	        radial_control_paint_cursor, rc);
 
 	WM_event_add_modal_handler(C, op);
 

@@ -2209,9 +2209,10 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 		ED_gpencil_toggle_brush_cursor(p->C, false, NULL);
 		/* enable cursor */
 		p->erasercursor = WM_paint_cursor_activate(
-			CTX_wm_manager(C),
-			NULL, /* XXX */
-			gpencil_draw_eraser, p);
+		        CTX_wm_manager(C),
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        NULL, /* XXX */
+		        gpencil_draw_eraser, p);
 	}
 }
 

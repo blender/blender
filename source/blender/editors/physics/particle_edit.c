@@ -2945,7 +2945,12 @@ static void toggle_particle_cursor(bContext *C, int enable)
 		pset->paintcursor = NULL;
 	}
 	else if (enable)
-		pset->paintcursor = WM_paint_cursor_activate(CTX_wm_manager(C), PE_poll_view3d, brush_drawcursor, NULL);
+		pset->paintcursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        SPACE_VIEW3D, RGN_TYPE_WINDOW,
+		        PE_poll_view3d,
+		        brush_drawcursor,
+		        NULL);
 }
 
 /*************************** delete operator **************************/

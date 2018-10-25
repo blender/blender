@@ -1458,6 +1458,7 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 		/* enable cursor */
 		p->erasercursor = WM_paint_cursor_activate(
 		        CTX_wm_manager(C),
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
 		        NULL, /* XXX */
 		        gpencil_draw_eraser, p);
 	}

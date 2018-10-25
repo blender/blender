@@ -85,7 +85,7 @@
 
 /* ******************* paint cursor *************** */
 
-static void wm_paintcursor_draw(bContext *C, ARegion *ar)
+static void wm_paintcursor_draw(bContext *C, ScrArea *sa, ARegion *ar)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
@@ -94,6 +94,15 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 
 	if (ar->visible && ar == screen->active_region) {
 		for (pc = wm->paintcursors.first; pc; pc = pc->next) {
+
+			if ((pc->space_type != SPACE_TYPE_ANY) && (sa->spacetype != pc->space_type)) {
+				continue;
+			}
+
+			if ((pc->region_type != RGN_TYPE_ANY) && (ar->regiontype != pc->region_type)) {
+				continue;
+			}
+
 			if (pc->poll == NULL || pc->poll(C)) {
 				/* Prevent drawing outside region. */
 				glEnable(GL_SCISSOR_TEST);
@@ -612,7 +621,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					wm_paintcursor_draw(C, ar);
+					wm_paintcursor_draw(C, sa, ar);
 
 					CTX_wm_region_set(C, NULL);
 					CTX_wm_area_set(C, NULL);

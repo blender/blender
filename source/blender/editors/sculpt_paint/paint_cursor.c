@@ -41,6 +41,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
@@ -1153,8 +1154,14 @@ void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
 {
 	Paint *p = BKE_paint_get_active_from_context(C);
 
-	if (p && !p->paint_cursor)
-		p->paint_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), poll, paint_draw_cursor, NULL);
+	if (p && !p->paint_cursor) {
+		p->paint_cursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        poll,
+		        paint_draw_cursor,
+		        NULL);
+	}
 
 	/* invalidate the paint cursors */
 	BKE_paint_invalidate_overlay_all();
@@ -1162,6 +1169,12 @@ void paint_cursor_start(bContext *C, bool (*poll)(bContext *C))
 
 void paint_cursor_start_explicit(Paint *p, wmWindowManager *wm, bool (*poll)(bContext *C))
 {
-	if (p && !p->paint_cursor)
-		p->paint_cursor = WM_paint_cursor_activate(wm, poll, paint_draw_cursor, NULL);
+	if (p && !p->paint_cursor) {
+		p->paint_cursor = WM_paint_cursor_activate(
+		        wm,
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        poll,
+		        paint_draw_cursor,
+		        NULL);
+	}
 }

@@ -173,6 +173,7 @@ void		WM_cursor_time		(struct wmWindow *win, int nr);
 
 struct wmPaintCursor *WM_paint_cursor_activate(
         struct wmWindowManager *wm,
+        short space_type, short region_type,
         bool (*poll)(struct bContext *C),
         void (*draw)(struct bContext *C, int, int, void *customdata),
         void *customdata);

@@ -44,6 +44,9 @@ typedef struct wmPaintCursor {
 
 	bool (*poll)(struct bContext *C);
 	void (*draw)(bContext *C, int, int, void *customdata);
+
+	short space_type;
+	short region_type;
 } wmPaintCursor;
 
 

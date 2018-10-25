@@ -1201,8 +1201,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_FINISHED;
 
 		if (paint_supports_smooth_stroke(br, mode))
-			stroke->stroke_cursor =
-			    WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_smooth_cursor, stroke);
+			stroke->stroke_cursor = WM_paint_cursor_activate(
+			        CTX_wm_manager(C),
+			        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+			        paint_poll, paint_draw_smooth_cursor, stroke);
 
 		stroke->stroke_init = true;
 		first_modal = true;
@@ -1220,8 +1222,10 @@ int paint_stroke_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				stroke->timer = WM_event_add_timer(CTX_wm_manager(C), CTX_wm_window(C), TIMER, stroke->brush->rate);
 
 			if (br->flag & BRUSH_LINE) {
-				stroke->stroke_cursor =
-					WM_paint_cursor_activate(CTX_wm_manager(C), paint_poll, paint_draw_line_cursor, stroke);
+				stroke->stroke_cursor = WM_paint_cursor_activate(
+				        CTX_wm_manager(C),
+				        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+				        paint_poll, paint_draw_line_cursor, stroke);
 			}
 
 			first_dab = true;

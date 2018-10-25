@@ -266,7 +266,10 @@ PyObject *pyrna_callback_classmethod_add(PyObject *UNUSED(self), PyObject *args)
 		}
 		bContext *C = BPy_GetContext();
 		struct wmWindowManager *wm = CTX_wm_manager(C);
-		handle = WM_paint_cursor_activate(wm, NULL, cb_wm_cursor_draw, (void *)args);
+		handle = WM_paint_cursor_activate(
+		        wm,
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        NULL, cb_wm_cursor_draw, (void *)args);
 		Py_INCREF(args);
 	}
 	else if (RNA_struct_is_a(srna, &RNA_Space)) {

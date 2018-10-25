@@ -1684,6 +1684,7 @@ void ED_gpencil_toggle_brush_cursor(bContext *C, bool enable, void *customdata)
 		/* enable cursor */
 		gset->paintcursor = WM_paint_cursor_activate(
 		        CTX_wm_manager(C),
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
 		        NULL,
 		        gp_brush_drawcursor,
 		        (lastpost) ? customdata : NULL);

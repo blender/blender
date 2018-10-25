@@ -485,7 +485,11 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 	}
 
 	if ((brush->imagepaint_tool == PAINT_TOOL_FILL) && (brush->flag & BRUSH_USE_GRADIENT)) {
-		pop->cursor = WM_paint_cursor_activate(CTX_wm_manager(C), image_paint_poll, gradient_draw_line, pop);
+		pop->cursor = WM_paint_cursor_activate(
+		        CTX_wm_manager(C),
+		        SPACE_TYPE_ANY, RGN_TYPE_ANY,
+		        image_paint_poll, gradient_draw_line,
+		        pop);
 	}
 
 	settings->imapaint.flag |= IMAGEPAINT_DRAWING;
