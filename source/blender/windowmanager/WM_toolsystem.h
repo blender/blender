@@ -44,6 +44,11 @@ struct StructRNA;
 
 /* wm_toolsystem.c  */
 
+#define WM_TOOLSYSTEM_SPACE_MASK ( \
+	(1 << SPACE_VIEW3D) | \
+	(1 << SPACE_IMAGE) \
+)
+
 /* Values that define a categoey of active tool. */
 typedef struct bToolKey { int space_type; int mode; } bToolKey;
 

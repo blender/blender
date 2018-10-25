@@ -4474,7 +4474,9 @@ void WM_window_cursor_keymap_status_refresh(bContext *C, wmWindow *win)
 	/* Detect changes to the state. */
 	{
 		bToolRef *tref = NULL;
-		if (ar->regiontype == RGN_TYPE_WINDOW) {
+		if ((ar->regiontype == RGN_TYPE_WINDOW) &&
+		    ((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK))
+		{
 			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 			WorkSpace *workspace = WM_window_get_active_workspace(win);
 			const bToolKey tkey = {
