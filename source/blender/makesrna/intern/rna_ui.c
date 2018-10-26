@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BLT_translation.h"
 
@@ -41,6 +42,7 @@
 #include "UI_interface.h"
 
 #include "WM_types.h"
+#include "WM_toolsystem.h"
 
 /* see WM_types.h */
 const EnumPropertyItem rna_enum_operator_context_items[] = {
@@ -243,9 +245,20 @@ static StructRNA *rna_Panel_register(
 		return NULL;
 	}
 
-	if ((dummypt.category[0] == '\0') && (dummypt.region_type == RGN_TYPE_TOOLS)) {
-		/* Use a fallback, otherwise an empty value will draw the panel in every category. */
-		strcpy(dummypt.category, PNL_CATEGORY_FALLBACK);
+	if ((1 << dummypt.region_type) & RGN_TYPE_HAS_CATEGORY_MASK) {
+		if (dummypt.category[0] == '\0') {
+			/* Use a fallback, otherwise an empty value will draw the panel in every category. */
+			strcpy(dummypt.category, PNL_CATEGORY_FALLBACK);
+		}
+	}
+	else {
+		if (dummypt.category[0] != '\0') {
+			if ((1 << dummypt.space_type) & WM_TOOLSYSTEM_SPACE_MASK) {
+				BKE_reportf(reports, RPT_ERROR, "Registering panel class: '%s' has category '%s' ",
+				            dummypt.idname, dummypt.category);
+				return NULL;
+			}
+		}
 	}
 
 	if (!(art = region_type_find(reports, dummypt.space_type, dummypt.region_type)))

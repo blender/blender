@@ -1753,7 +1753,6 @@ class TOPBAR_PT_gpencil_materials(Panel):
 class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'IMAGE_EDITOR'
     bl_region_type = 'TOOLS'
-    bl_category = "Tools"
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 
@@ -1832,7 +1831,6 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
 class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
-    bl_category = "Tools"
     bl_label = "Tools"  # not visible
     bl_options = {'HIDE_HEADER'}
 

@@ -477,6 +477,9 @@ enum {
 /* use for function args */
 #define RGN_TYPE_ANY -1
 
+/* Region supports panel tabs (categories). */
+#define RGN_TYPE_HAS_CATEGORY_MASK (1 << RGN_TYPE_UI)
+
 /* region alignment */
 #define RGN_ALIGN_NONE		0
 #define RGN_ALIGN_TOP		1
