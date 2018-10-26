@@ -84,8 +84,8 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
 
         try:
             offscreen = gpu.types.GPUOffScreen(512, int(512 / aspect_ratio))
-        except Exception as e:
-            print(e)
+        except Exception as ex:
+            print(ex)
             offscreen = None
 
         return offscreen
@@ -145,7 +145,9 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
         bgl.glActiveTexture(bgl.GL_TEXTURE0)
         bgl.glBindTexture(bgl.GL_TEXTURE_2D, texture)
 
-        shader.uniform_int(VIEW3D_OT_draw_offscreen.uniform_image, 0)
+        # # TODO, support passing ints
+        # shader.uniform_int(VIEW3D_OT_draw_offscreen.uniform_image, 0)
+        shader.uniform_int("image", 0)
         batch_plane.draw()
 
         # restoring settings
@@ -163,22 +165,23 @@ class VIEW3D_OT_draw_offscreen(bpy.types.Operator):
             format = gpu.types.GPUVertFormat()
             pos_id = format.attr_add(
                 id="pos",
-                comp_type="F32",
+                comp_type='F32',
                 len=2,
-                fetch_mode="FLOAT")
-
+                fetch_mode='FLOAT',
+            )
             uv_id = format.attr_add(
                 id="texCoord",
-                comp_type="F32",
+                comp_type='F32',
                 len=2,
-                fetch_mode="FLOAT")
-
+                fetch_mode='FLOAT',
+            )
             vbo = gpu.types.GPUVertBuf(
                 len=len(g_plane_vertices),
-                format=format)
+                format=format,
+            )
 
-            vbo.fill(id=pos_id, data=g_plane_vertices["pos"])
-            vbo.fill(id=uv_id, data=g_plane_vertices["uv"])
+            vbo.attr_fill(id=pos_id, data=g_plane_vertices["pos"])
+            vbo.attr_fill(id=uv_id, data=g_plane_vertices["uv"])
 
             batch_plane = gpu.types.GPUBatch(type="TRIS", buf=vbo)
             shader = self.global_shader
