@@ -2697,7 +2697,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_LATTICE:
 		{
-			if (ob != draw_ctx->object_edit) {
+			if (ob != draw_ctx->object_edit && !BKE_object_is_in_editmode(ob)) {
 				if (hide_object_extra) {
 					break;
 				}
