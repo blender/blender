@@ -705,15 +705,13 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 
 		ED_armature_edit_sync_selection(arm->edbo);
 
-		if (nearBone) {
-			/* then now check for active status */
-			if (ebone_select_flag(nearBone)) {
-				arm->act_edbone = nearBone;
-			}
+		/* then now check for active status */
+		if (ebone_select_flag(nearBone)) {
+			arm->act_edbone = nearBone;
+		}
 
-			if (vc.view_layer->basact != basact) {
-				ED_object_base_activate(C, basact);
-			}
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, basact->object);
