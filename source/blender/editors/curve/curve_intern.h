@@ -135,8 +135,9 @@ struct GHash *ED_curve_keyindex_hash_duplicate(struct GHash *keyindex);
 void          ED_curve_keyindex_update_nurb(struct EditNurb *editnurb, struct Nurb *nu, struct Nurb *newnu);
 
 bool ED_curve_pick_vert(
-        struct ViewContext *vc, short sel, const int mval[2],
-        struct Nurb **r_nurb, struct BezTriple **r_bezt, struct BPoint **r_bp, short *r_handle);
+        struct ViewContext *vc, short sel,
+        struct Nurb **r_nurb, struct BezTriple **r_bezt, struct BPoint **r_bp, short *r_handle,
+        struct Base **r_base);
 
 /* helper functions */
 void ed_editnurb_translate_flag(struct ListBase *editnurb, short flag, const float vec[3]);

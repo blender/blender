@@ -3437,7 +3437,7 @@ void CURVE_OT_subdivide(wmOperatorType *ot)
 
 static void ED_curve_pick_vert__doClosest(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, const float screen_co[2])
 {
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } *data = userData;
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; bool is_changed; } *data = userData;
 
 	short flag;
 	float dist_test;
@@ -3468,26 +3468,41 @@ static void ED_curve_pick_vert__doClosest(void *userData, Nurb *nu, BPoint *bp, 
 		data->bezt = bezt;
 		data->nurb = nu;
 		data->hpoint = bezt ? beztindex : 0;
+		data->is_changed = true;
 	}
 }
 
 bool ED_curve_pick_vert(
-        ViewContext *vc, short sel, const int mval[2],
-        Nurb **r_nurb, BezTriple **r_bezt, BPoint **r_bp, short *r_handle)
+        ViewContext *vc, short sel,
+        Nurb **r_nurb, BezTriple **r_bezt, BPoint **r_bp, short *r_handle,
+        Base **r_base)
 {
 	/* (sel == 1): selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; } data = {NULL};
+	struct { BPoint *bp; BezTriple *bezt; Nurb *nurb; float dist; int hpoint, select; float mval_fl[2]; bool is_changed; } data = {NULL};
 
 	data.dist = ED_view3d_select_dist_px();
 	data.hpoint = 0;
 	data.select = sel;
-	data.mval_fl[0] = mval[0];
-	data.mval_fl[1] = mval[1];
+	data.mval_fl[0] = vc->mval[0];
+	data.mval_fl[1] = vc->mval[1];
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-	nurbs_foreachScreenVert(vc, ED_curve_pick_vert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+	uint bases_len;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc->view_layer, &bases_len);
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Base *base = bases[base_index];
+		data.is_changed = false;
+
+		ED_view3d_viewcontext_init_object(vc, base->object);
+		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
+		nurbs_foreachScreenVert(vc, ED_curve_pick_vert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+		if (r_base && data.is_changed) {
+			*r_base = base;
+		}
+	}
+	MEM_freeN(bases);
 
 	*r_nurb = data.nurb;
 	*r_bezt = data.bezt;
@@ -4323,24 +4338,37 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
-	ListBase *editnurb = object_editcurve_get(obedit);
 	ViewContext vc;
 	Nurb *nu;
 	BezTriple *bezt = NULL;
 	BPoint *bp = NULL;
-	const void *vert = BKE_curve_vert_active_get(cu);
-	int location[2];
+	Base *basact = NULL;
 	short hand;
 
 	view3d_operator_needs_opengl(C);
 	ED_view3d_viewcontext_init(C, &vc);
+	copy_v2_v2_int(vc.mval, mval);
 
-	location[0] = mval[0];
-	location[1] = mval[1];
+	if (ED_curve_pick_vert(&vc, 1, &nu, &bezt, &bp, &hand, &basact)) {
+		Object *obedit = basact->object;
+		Curve *cu = obedit->data;
+		ListBase *editnurb = object_editcurve_get(obedit);
+		const void *vert = BKE_curve_vert_active_get(cu);
 
-	if (ED_curve_pick_vert(&vc, 1, location, &nu, &bezt, &bp, &hand)) {
+		if (!extend && !deselect && !toggle) {
+			uint objects_len = 0;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
+			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+				Object *ob_iter = objects[ob_index];
+
+				ED_curve_deselect_all(((Curve *)ob_iter->data)->editnurb);
+
+				DEG_id_tag_update(ob_iter->data, DEG_TAG_SELECT_UPDATE);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
+			}
+			MEM_freeN(objects);
+		}
+
 		if (extend) {
 			if (bezt) {
 				if (hand == 1) {
@@ -4428,6 +4456,10 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 		if (nu != BKE_curve_nurb_active_get(cu)) {
 			cu->actvert = CU_ACT_NONE;
 			BKE_curve_nurb_active_set(cu, nu);
+		}
+
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
 		}
 
 		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
