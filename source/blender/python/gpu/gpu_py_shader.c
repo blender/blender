@@ -518,7 +518,12 @@ static PyObject *bpygpu_shader_uniform_int(
 	int values[4];
 	int length;
 	int ret;
-	{
+
+	if (PyLong_Check(params.seq)) {
+		values[0] = PyC_Long_AsI32(params.seq);
+		length = 1;
+	}
+	else {
 		PyObject *seq_fast = PySequence_Fast(params.seq, error_prefix);
 		if (seq_fast == NULL) {
 			PyErr_Format(PyExc_TypeError,
