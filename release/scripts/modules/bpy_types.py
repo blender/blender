@@ -595,6 +595,7 @@ class Gizmo(StructRNA):
             matrix = self.matrix_world
 
         batch, shader = shape
+        shader.bind()
 
         if select_id is not None:
             gpu.select.load_id(select_id)
@@ -603,7 +604,6 @@ class Gizmo(StructRNA):
                 color = (*self.color_highlight, self.alpha_highlight)
             else:
                 color = (*self.color, self.alpha)
-            batch.program_set(shader)
             shader.uniform_float("color", color)
 
         with gpu.matrix.push_pop():
@@ -639,6 +639,7 @@ class Gizmo(StructRNA):
         vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type=type, buf=vbo)
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
+        batch.program_set(shader)
         return (batch, shader)
 
 
