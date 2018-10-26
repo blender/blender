@@ -52,6 +52,7 @@
 #include "BKE_report.h"
 #include "BKE_layer.h"
 
+#include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_select_utils.h"
 #include "ED_lattice.h"
@@ -539,7 +540,7 @@ void LATTICE_OT_select_ungrouped(wmOperatorType *ot)
 
 static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const float screen_co[2])
 {
-	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } *data = userData;
+	struct { BPoint *bp; float dist; int select; float mval_fl[2]; bool is_changed; } *data = userData;
 	float dist_test = len_manhattan_v2v2(data->mval_fl, screen_co);
 
 	if ((bp->f1 & SELECT) && data->select)
@@ -547,26 +548,38 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, const flo
 
 	if (dist_test < data->dist) {
 		data->dist = dist_test;
-
 		data->bp = bp;
+		data->is_changed = true;
 	}
 }
 
-static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
+static BPoint *findnearestLattvert(ViewContext *vc, int sel, Base **r_base)
 {
 	/* (sel == 1): selected gets a disadvantage */
 	/* in nurb and bezt or bp the nearest is written */
 	/* return 0 1 2: handlepunt */
-	struct { BPoint *bp; float dist; int select; float mval_fl[2]; } data = {NULL};
+	struct { BPoint *bp; float dist; int select; float mval_fl[2]; bool is_changed; } data = {NULL};
 
 	data.dist = ED_view3d_select_dist_px();
 	data.select = sel;
-	data.mval_fl[0] = mval[0];
-	data.mval_fl[1] = mval[1];
+	data.mval_fl[0] = vc->mval[0];
+	data.mval_fl[1] = vc->mval[1];
 
-	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-	lattice_foreachScreenVert(vc, findnearestLattvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+	uint bases_len;
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc->view_layer, &bases_len);
+	for (uint base_index = 0; base_index < bases_len; base_index++) {
+		Base *base = bases[base_index];
+		data.is_changed = false;
 
+		ED_view3d_viewcontext_init_object(vc, base->object);
+		ED_view3d_init_mats_rv3d(base->object, vc->rv3d);
+		lattice_foreachScreenVert(vc, findnearestLattvert__doClosest, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+
+		if (data.is_changed) {
+			*r_base = base;
+		}
+	}
+	MEM_freeN(bases);
 	return data.bp;
 }
 
@@ -574,13 +587,30 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 {
 	ViewContext vc;
 	BPoint *bp = NULL;
-	Lattice *lt;
+	Base *basact = NULL;
 
 	ED_view3d_viewcontext_init(C, &vc);
-	lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
-	bp = findnearestLattvert(&vc, mval, true);
+	vc.mval[0] = mval[0];
+	vc.mval[1] = mval[1];
 
+	bp = findnearestLattvert(&vc, true, &basact);
 	if (bp) {
+		ED_view3d_viewcontext_init_object(&vc, basact->object);
+		Lattice *lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
+
+		if (!extend && !deselect && !toggle) {
+			uint objects_len = 0;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
+			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+				Object *ob = objects[ob_index];
+				ED_lattice_flags_set(ob, 0);
+
+				DEG_id_tag_update(ob->data, DEG_TAG_SELECT_UPDATE);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob->data);
+			}
+			MEM_freeN(objects);
+		}
+
 		if (extend) {
 			bp->f1 |= SELECT;
 		}
@@ -600,6 +630,10 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 		}
 		else {
 			lt->actbp = LT_ACTBP_NONE;
+		}
+
+		if (vc.view_layer->basact != basact) {
+			ED_object_base_activate(C, basact);
 		}
 
 		DEG_id_tag_update(vc.obedit->data, DEG_TAG_SELECT_UPDATE);
