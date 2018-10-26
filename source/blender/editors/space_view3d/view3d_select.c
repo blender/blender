@@ -716,7 +716,7 @@ static void do_lasso_select_curve(ViewContext *vc, const int mcords[][2], short 
 static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, const float screen_co[2])
 {
 	LassoSelectUserData *data = userData;
-	const bool is_select = bp->f1 | SELECT;
+	const bool is_select = bp->f1 & SELECT;
 	const bool is_inside = (
 	        BLI_rctf_isect_pt_v(data->rect_fl, screen_co) &&
 	        BLI_lasso_is_point_inside(data->mcords, data->moves, screen_co[0], screen_co[1], IS_CLIPPED));
