@@ -608,45 +608,27 @@ void BKE_object_free(Object *ob)
 /* actual check for internal data, not context or flags */
 bool BKE_object_is_in_editmode(const Object *ob)
 {
-	if (ob->data == NULL)
+	if (ob->data == NULL) {
 		return false;
-
-	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		if (me->edit_btmesh)
-			return true;
 	}
-	else if (ob->type == OB_ARMATURE) {
-		bArmature *arm = ob->data;
 
-		if (arm->edbo)
-			return true;
+	switch (ob->type) {
+		case OB_MESH:
+			return ((Mesh *)ob->data)->edit_btmesh != NULL;
+		case OB_ARMATURE:
+			return ((bArmature *)ob->data)->edbo != NULL;
+		case OB_FONT:
+			return ((Curve *)ob->data)->editfont != NULL;
+		case OB_MBALL:
+			return ((MetaBall *)ob->data)->editelems != NULL;
+		case OB_LATTICE:
+			return ((Lattice *)ob->data)->editlatt != NULL;
+		case OB_SURF:
+		case OB_CURVE:
+			return ((Curve *)ob->data)->editnurb != NULL;
+		default:
+			return false;
 	}
-	else if (ob->type == OB_FONT) {
-		Curve *cu = ob->data;
-
-		if (cu->editfont)
-			return true;
-	}
-	else if (ob->type == OB_MBALL) {
-		MetaBall *mb = ob->data;
-
-		if (mb->editelems)
-			return true;
-	}
-	else if (ob->type == OB_LATTICE) {
-		Lattice *lt = ob->data;
-
-		if (lt->editlatt)
-			return true;
-	}
-	else if (ob->type == OB_SURF || ob->type == OB_CURVE) {
-		Curve *cu = ob->data;
-
-		if (cu->editnurb)
-			return true;
-	}
-	return false;
 }
 
 bool BKE_object_is_in_editmode_vgroup(const Object *ob)
