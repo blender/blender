@@ -17,5 +17,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 __all__ = (
+    "batch",
     "presets",
 )
