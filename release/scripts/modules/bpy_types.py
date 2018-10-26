@@ -594,10 +594,7 @@ class Gizmo(StructRNA):
         if matrix is None:
             matrix = self.matrix_world
 
-        batch, dims = shape
-
-        # XXX, can we avoid setting the shader every time?
-        batch.program_set_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
+        batch, shader, dims = shape
 
         if select_id is not None:
             gpu.select.load_id(select_id)
@@ -606,7 +603,8 @@ class Gizmo(StructRNA):
                 color = (*self.color_highlight, self.alpha_highlight)
             else:
                 color = (*self.color, self.alpha)
-            batch.uniform_f32("color", *color)
+            batch.program_set(shader)
+            shader.uniform_float("color", color)
 
         with gpu.matrix.push_pop():
             gpu.matrix.multiply_matrix(matrix)
@@ -626,6 +624,7 @@ class Gizmo(StructRNA):
         :return: The newly created shape.
         :rtype: Undefined (it may change).
         """
+        import gpu
         from gpu.types import (
             GPUBatch,
             GPUVertBuf,
@@ -637,9 +636,10 @@ class Gizmo(StructRNA):
         fmt = GPUVertFormat()
         pos_id = fmt.attr_add(id="pos", comp_type='F32', len=dims, fetch_mode='FLOAT')
         vbo = GPUVertBuf(len=len(verts), format=fmt)
-        vbo.fill(id=pos_id, data=verts)
+        vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type=type, buf=vbo)
-        return (batch, dims)
+        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
+        return (batch, shader, dims)
 
 
 # Only defined so operators members can be used by accessing self.order
