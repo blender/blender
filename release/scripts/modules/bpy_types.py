@@ -594,7 +594,7 @@ class Gizmo(StructRNA):
         if matrix is None:
             matrix = self.matrix_world
 
-        batch, shader, dims = shape
+        batch, shader = shape
 
         if select_id is not None:
             gpu.select.load_id(select_id)
@@ -639,7 +639,7 @@ class Gizmo(StructRNA):
         vbo.attr_fill(id=pos_id, data=verts)
         batch = GPUBatch(type=type, buf=vbo)
         shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR' if dims == 3 else '2D_UNIFORM_COLOR')
-        return (batch, shader, dims)
+        return (batch, shader)
 
 
 # Only defined so operators members can be used by accessing self.order
