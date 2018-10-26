@@ -72,22 +72,40 @@ static bool make_regular_poll(bContext *C)
 
 static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = CTX_data_edit_object(C);
-	Lattice *lt;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const bool is_editmode = CTX_data_edit_object(C) != NULL;
 
-	if (ob) {
-		lt = ob->data;
-		BKE_lattice_resize(lt->editlatt->latt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+	if (is_editmode) {
+		uint objects_len;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob = objects[ob_index];
+			Lattice *lt = ob->data;
+
+			if (lt->editlatt->latt == NULL) {
+				continue;
+			}
+
+			BKE_lattice_resize(lt->editlatt->latt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+		}
+		MEM_freeN(objects);
 	}
 	else {
-		ob = CTX_data_active_object(C);
-		lt = ob->data;
-		BKE_lattice_resize(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+		FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob) {
+			if (ob->type != OB_LATTICE) {
+				continue;
+			}
+
+			Lattice *lt = ob->data;
+			BKE_lattice_resize(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+
+			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
+		} FOREACH_SELECTED_OBJECT_END;
 	}
-
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob->data);
-
 	return OPERATOR_FINISHED;
 }
 
