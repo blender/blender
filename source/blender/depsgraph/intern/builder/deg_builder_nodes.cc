@@ -1443,6 +1443,9 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 		else if (id_type == ID_TXT) {
 			/* Ignore script nodes. */
 		}
+		else if (id_type == ID_MSK) {
+			build_mask((Mask *)id);
+		}
 		else if (id_type == ID_MC) {
 			build_movieclip((MovieClip *)id);
 		}
