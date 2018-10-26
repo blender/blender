@@ -93,6 +93,10 @@ public:
 	bool getmessage(OSL::ShaderGlobals *sg, ustring source, ustring name,
 	                TypeDesc type, void *val, bool derivatives);
 
+	TextureSystem::TextureHandle *get_texture_handle(ustring filename);
+
+	bool good(TextureSystem::TextureHandle *texture_handle);
+
 	bool texture(ustring filename,
 	             TextureSystem::TextureHandle *texture_handle,
 	             TexturePerthread *texture_thread_info,
@@ -103,7 +107,8 @@ public:
 	             int nchannels,
 	             float *result,
 	             float *dresultds,
-	             float *dresultdt);
+	             float *dresultdt,
+	             ustring *errormessage);
 
 	bool texture3d(ustring filename,
 	               TextureHandle *texture_handle,
