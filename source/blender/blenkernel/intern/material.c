@@ -57,6 +57,7 @@
 #include "BLI_array_utils.h"
 
 #include "BKE_animsys.h"
+#include "BKE_brush.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
@@ -167,8 +168,10 @@ Material *BKE_material_add_gpencil(Main *bmain, const char *name)
 	ma = BKE_material_add(bmain, name);
 
 	/* grease pencil settings */
-	BKE_material_init_gpencil_settings(ma);
-
+	if (ma != NULL) {
+		BKE_material_init_gpencil_settings(ma);
+		BKE_brush_update_material(bmain, ma, NULL);
+	}
 	return ma;
 }
 
