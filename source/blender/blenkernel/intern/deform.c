@@ -56,6 +56,7 @@
 #include "BKE_deform.h"  /* own include */
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
+#include "BKE_object.h"
 #include "BKE_object_deform.h"
 
 #include "data_transfer_intern.h"
@@ -74,9 +75,7 @@ bDeformGroup *BKE_defgroup_new(Object *ob, const char *name)
 	BLI_addtail(&ob->defbase, defgroup);
 	defgroup_unique_name(defgroup, ob);
 
-	if (ob->type != OB_GPENCIL) {
-		BKE_mesh_batch_cache_dirty_tag(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
-	}
+	BKE_object_batch_cache_dirty_tag(ob);
 
 	return defgroup;
 }
