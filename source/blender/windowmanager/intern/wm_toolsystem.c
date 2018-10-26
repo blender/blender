@@ -338,6 +338,10 @@ void WM_toolsystem_reinit_all(struct bContext *C, wmWindow *win)
 	bScreen *screen = WM_window_get_active_screen(win);
 	ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+		if (((1 << sa->spacetype) & WM_TOOLSYSTEM_SPACE_MASK) == 0) {
+			continue;
+		}
+
 		WorkSpace *workspace = WM_window_get_active_workspace(win);
 		const bToolKey tkey = {
 			.space_type = sa->spacetype,
