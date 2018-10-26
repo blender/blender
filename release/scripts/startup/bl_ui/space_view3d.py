@@ -4993,6 +4993,7 @@ class VIEW3D_PT_grease_pencil(AnnotationDataPanel, Panel):
 class VIEW3D_PT_view3d_stereo(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_category = "View"
     bl_label = "Stereoscopy"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -5033,6 +5034,7 @@ class VIEW3D_PT_view3d_stereo(Panel):
 class VIEW3D_PT_context_properties(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
+    bl_category = "View"
     bl_label = "Properties"
     bl_options = {'DEFAULT_CLOSED'}
 
