@@ -1243,6 +1243,66 @@ static void UI_OT_reloadtranslation(wmOperatorType *ot)
 	ot->exec = reloadtranslation_exec;
 }
 
+
+static ARegion *region_event_inside_for_screen(bContext *C, const int xy[2])
+{
+	bScreen *sc = CTX_wm_screen(C);
+	if (sc) {
+		for (ARegion *ar = sc->regionbase.first; ar; ar = ar->next) {
+			if (BLI_rcti_isect_pt_v(&ar->winrct, xy)) {
+				return ar;
+			}
+		}
+	}
+	return NULL;
+}
+
+static int ui_button_press_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	const bool skip_depressed = RNA_boolean_get(op->ptr, "skip_depressed");
+	ARegion *ar_prev = CTX_wm_region(C);
+	ARegion *ar = region_event_inside_for_screen(C, &event->x);
+
+	if (ar == NULL) {
+		ar = ar_prev;
+	}
+
+	CTX_wm_region_set(C, ar);
+	uiBut *but = UI_context_active_but_get(C);
+	CTX_wm_region_set(C, ar_prev);
+
+	if (but == NULL) {
+		return OPERATOR_PASS_THROUGH;
+	}
+	if (skip_depressed && (but->flag & (UI_SELECT | UI_SELECT_DRAW))) {
+		return OPERATOR_PASS_THROUGH;
+	}
+
+	/* Weak, this is a workaround for 'UI_but_is_tool', which checks the operator type,
+	 * having this avoids a minor drawing glitch. */
+	void *but_optype = but->optype;
+
+	UI_but_execute(C, but);
+
+	but->optype = but_optype;
+
+	WM_event_add_mousemove(C);
+
+	return OPERATOR_FINISHED;
+}
+
+static void UI_OT_button_execute(wmOperatorType *ot)
+{
+	ot->name = "Press Button";
+	ot->idname = "UI_OT_button_execute";
+	ot->description = "Presses active button";
+
+	ot->invoke = ui_button_press_invoke;
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_boolean(ot->srna, "skip_depressed", 0, "Skip Depressed", "");
+}
+
 bool UI_drop_color_poll(struct bContext *C, wmDrag *drag, const wmEvent *UNUSED(event), const char **UNUSED(tooltip))
 {
 	/* should only return true for regions that include buttons, for now
@@ -1356,6 +1416,7 @@ void ED_operatortypes_ui(void)
 	WM_operatortype_append(UI_OT_edittranslation_init);
 #endif
 	WM_operatortype_append(UI_OT_reloadtranslation);
+	WM_operatortype_append(UI_OT_button_execute);
 
 	/* external */
 	WM_operatortype_append(UI_OT_eyedropper_color);
