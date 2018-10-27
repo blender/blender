@@ -738,6 +738,9 @@ def keymap_from_context(context, space_type):
 
     use_simple_keymap = False
 
+    # Pie-menu style release to activate.
+    use_release_confirm = True
+
     # Generate items when no keys are mapped.
     use_auto_keymap = True
 
@@ -772,6 +775,11 @@ def keymap_from_context(context, space_type):
 
         kmi_hack_brush_select = keymap.keymap_items.new("paint.brush_select", 'A', 'PRESS')
         kmi_hack_brush_select_properties = kmi_hack_brush_select.properties
+
+    if use_release_confirm:
+        kmi_toolbar = wm.keyconfigs.find_item_from_operator(idname="wm.toolbar")[1]
+        kmi_toolbar_type = None if not kmi_toolbar else kmi_toolbar.type
+        del kmi_toolbar
 
     if use_simple_keymap:
         # Simply assign a key from A-Z.
@@ -973,6 +981,14 @@ def keymap_from_context(context, space_type):
                 value='PRESS',
                 **modifier_keywords_from_item(kmi_search),
             )
+
+    if use_release_confirm:
+        kmi = keymap.keymap_items.new(
+            "ui.button_execute",
+            type=kmi_toolbar_type,
+            value='RELEASE',
+        )
+        kmi.properties.skip_depressed = True
 
     wm.keyconfigs.update()
     return keymap
