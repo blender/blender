@@ -817,7 +817,7 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "pass_debug_bvh_intersections")
             col.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
-        layout.label("Cryptomatte:")
+        layout.label(text="Cryptomatte:")
         row = layout.row(align=True)
         row.prop(cycles_view_layer, "use_pass_crypto_object", text="Object", toggle=True)
         row.prop(cycles_view_layer, "use_pass_crypto_material", text="Material", toggle=True)
