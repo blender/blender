@@ -50,7 +50,7 @@ public:
 	int full_height;
 
 	/* passes */
-	array<Pass> passes;
+	vector<Pass> passes;
 	bool denoising_data_pass;
 	/* If only some light path types should be denoised, an additional pass is needed. */
 	bool denoising_clean_pass;
@@ -84,7 +84,7 @@ public:
 	void zero();
 
 	bool copy_from_device();
-	bool get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels);
+	bool get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels, const string &name);
 	bool get_denoising_pass_rect(int offset, float exposure, int sample, int components, float *pixels);
 };
 

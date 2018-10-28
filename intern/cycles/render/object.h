@@ -48,6 +48,7 @@ public:
 	BoundBox bounds;
 	uint random_id;
 	int pass_id;
+	ustring asset_name;
 	vector<ParamValue> attributes;
 	uint visibility;
 	array<Transform> motion;

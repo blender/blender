@@ -233,7 +233,7 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 	return true;
 }
 
-bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels, const string &name)
 {
 	if(buffer.data() == NULL) {
 		return false;
@@ -247,6 +247,14 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 		if(pass.type != type) {
 			pass_offset += pass.components;
 			continue;
+		}
+
+		/* Tell Cryptomatte passes apart by their name. */
+		if(pass.type == PASS_CRYPTOMATTE) {
+			if(pass.name != name) {
+				pass_offset += pass.components;
+				continue;
+			}
 		}
 
 		float *in = buffer.data() + pass_offset;
@@ -383,6 +391,17 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 					pixels[1] = f.y*invw;
 					pixels[2] = f.z*invw;
 					pixels[3] = f.w*invw;
+				}
+			}
+			else if(type == PASS_CRYPTOMATTE) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					/* x and z contain integer IDs, don't rescale them.
+					   y and w contain matte weights, they get scaled. */
+					pixels[0] = f.x;
+					pixels[1] = f.y * scale;
+					pixels[2] = f.z;
+					pixels[3] = f.w * scale;
 				}
 			}
 			else {

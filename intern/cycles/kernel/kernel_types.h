@@ -53,6 +53,7 @@ CCL_NAMESPACE_BEGIN
 #define OBJECT_NONE				(~0)
 #define PRIM_NONE				(~0)
 #define LAMP_NONE				(~0)
+#define ID_NONE					(0.0f)
 
 #define VOLUME_STACK_SIZE		32
 
@@ -415,6 +416,7 @@ typedef enum PassType {
 	PASS_RAY_BOUNCES,
 #endif
 	PASS_RENDER_TIME,
+	PASS_CRYPTOMATTE,
 	PASS_CATEGORY_MAIN_END = 31,
 
 	PASS_MIST = 32,
@@ -442,6 +444,14 @@ typedef enum PassType {
 } PassType;
 
 #define PASS_ANY (~0)
+
+typedef enum CryptomatteType {
+	CRYPT_NONE = 0,
+	CRYPT_OBJECT = (1 << 0),
+	CRYPT_MATERIAL = (1 << 1),
+	CRYPT_ASSET = (1 << 2),
+	CRYPT_ACCURATE = (1 << 3),
+} CryptomatteType;
 
 typedef enum DenoisingPassOffsets {
 	DENOISING_PASS_NORMAL             = 0,
@@ -1260,17 +1270,20 @@ typedef struct KernelFilm {
 	int pass_shadow;
 	float pass_shadow_scale;
 	int filter_table_offset;
+	int cryptomatte_passes;
+	int cryptomatte_depth;
+	int pass_cryptomatte;
 
 	int pass_mist;
 	float mist_start;
 	float mist_inv_depth;
 	float mist_falloff;
-
+	
 	int pass_denoising_data;
 	int pass_denoising_clean;
 	int denoising_flags;
 
-	int pad1, pad2, pad3;
+	int pad1, pad2;
 
 	/* XYZ to rendering color space transform. float4 instead of float3 to
 	 * ensure consistent padding/alignment across devices. */
@@ -1460,7 +1473,11 @@ typedef struct KernelObject {
 	uint patch_map_offset;
 	uint attribute_map_offset;
 	uint motion_offset;
-	uint pad;
+	uint pad1;
+
+	float cryptomatte_object;
+	float cryptomatte_asset;
+	float pad2, pad3;
 } KernelObject;
 static_assert_align(KernelObject, 16);
 
@@ -1540,7 +1557,7 @@ static_assert_align(KernelParticle, 16);
 
 typedef struct KernelShader {
 	float constant_emission[3];
-	float pad1;
+	float cryptomatte_id;
 	int flags;
 	int pass_id;
 	int pad2, pad3;

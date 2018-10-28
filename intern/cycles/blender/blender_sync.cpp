@@ -40,6 +40,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+static const char *cryptomatte_prefix = "Crypto";
+
 /* Constructor */
 
 BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
@@ -517,6 +519,9 @@ PassType BlenderSync::get_pass_type(BL::RenderPass& b_pass)
 	MAP_PASS("Debug Ray Bounces", PASS_RAY_BOUNCES);
 #endif
 	MAP_PASS("Debug Render Time", PASS_RENDER_TIME);
+	if(string_startswith(name, cryptomatte_prefix)) {
+		return PASS_CRYPTOMATTE;
+	}
 #undef MAP_PASS
 
 	return PASS_NONE;
@@ -549,11 +554,11 @@ int BlenderSync::get_denoising_pass(BL::RenderPass& b_pass)
 	return -1;
 }
 
-array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
-                                            BL::SceneRenderLayer& b_srlay,
-                                            const SessionParams &session_params)
+vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
+                                             BL::SceneRenderLayer& b_srlay,
+                                             const SessionParams &session_params)
 {
-	array<Pass> passes;
+	vector<Pass> passes;
 	Pass::add(PASS_COMBINED, passes);
 
 	if(!session_params.device.advanced_shading) {
@@ -634,6 +639,39 @@ array<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 	if(get_boolean(crp, "use_pass_volume_indirect")) {
 		b_engine.add_pass("VolumeInd", 3, "RGB", b_srlay.name().c_str());
 		Pass::add(PASS_VOLUME_INDIRECT, passes);
+	}
+
+	/* Cryptomatte stores two ID/weight pairs per RGBA layer.
+	 * User facing paramter is the number of pairs. */
+	int crypto_depth = min(16, get_int(crp, "pass_crypto_depth")) / 2;
+	scene->film->cryptomatte_depth = crypto_depth;
+	scene->film->cryptomatte_passes = CRYPT_NONE;
+	if(get_boolean(crp, "use_pass_crypto_object")) {
+		for(int i = 0; i < crypto_depth; ++i) {
+			string passname = cryptomatte_prefix + string_printf("Object%02d", i);
+			b_engine.add_pass(passname.c_str(), 4, "RGBA", b_srlay.name().c_str());
+			Pass::add(PASS_CRYPTOMATTE, passes, passname.c_str());
+		}
+		scene->film->cryptomatte_passes = (CryptomatteType)(scene->film->cryptomatte_passes | CRYPT_OBJECT);
+	}
+	if(get_boolean(crp, "use_pass_crypto_material")) {
+		for(int i = 0; i < crypto_depth; ++i) {
+			string passname = cryptomatte_prefix + string_printf("Material%02d", i);
+			b_engine.add_pass(passname.c_str(), 4, "RGBA", b_srlay.name().c_str());
+			Pass::add(PASS_CRYPTOMATTE, passes, passname.c_str());
+		}
+		scene->film->cryptomatte_passes = (CryptomatteType)(scene->film->cryptomatte_passes | CRYPT_MATERIAL);
+	}
+	if(get_boolean(crp, "use_pass_crypto_asset")) {
+		for(int i = 0; i < crypto_depth; ++i) {
+			string passname = cryptomatte_prefix + string_printf("Asset%02d", i);
+			b_engine.add_pass(passname.c_str(), 4, "RGBA", b_srlay.name().c_str());
+			Pass::add(PASS_CRYPTOMATTE, passes, passname.c_str());
+		}
+		scene->film->cryptomatte_passes = (CryptomatteType)(scene->film->cryptomatte_passes | CRYPT_ASSET);
+	}
+	if(get_boolean(crp, "pass_crypto_accurate") && scene->film->cryptomatte_passes != CRYPT_NONE) {
+		scene->film->cryptomatte_passes = (CryptomatteType)(scene->film->cryptomatte_passes | CRYPT_ACCURATE);
 	}
 
 	return passes;

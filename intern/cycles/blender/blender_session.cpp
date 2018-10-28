@@ -405,7 +405,7 @@ void BlenderSession::render()
 		BL::RenderLayer b_rlay = *b_single_rlay;
 
 		/* add passes */
-		array<Pass> passes = sync->sync_render_passes(b_rlay, *b_layer_iter, session_params);
+		vector<Pass> passes = sync->sync_render_passes(b_rlay, *b_layer_iter, session_params);
 		buffer_params.passes = passes;
 
 		PointerRNA crl = RNA_pointer_get(&b_layer_iter->ptr, "cycles");
@@ -700,7 +700,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
 			bool read = false;
 			if(pass_type != PASS_NONE) {
 				/* copy pixels */
-				read = buffers->get_pass_rect(pass_type, exposure, sample, components, &pixels[0]);
+				read = buffers->get_pass_rect(pass_type, exposure, sample, components, &pixels[0], b_pass.name());
 			}
 			else {
 				int denoising_offset = BlenderSync::get_denoising_pass(b_pass);
@@ -719,7 +719,7 @@ void BlenderSession::do_write_update_render_result(BL::RenderResult& b_rr,
 	else {
 		/* copy combined pass */
 		BL::RenderPass b_combined_pass(b_rlay.passes.find_by_name("Combined", b_rview_name.c_str()));
-		if(buffers->get_pass_rect(PASS_COMBINED, exposure, sample, 4, &pixels[0]))
+		if(buffers->get_pass_rect(PASS_COMBINED, exposure, sample, 4, &pixels[0], "Combined"))
 			b_combined_pass.rect(&pixels[0]);
 	}
 
