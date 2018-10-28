@@ -24,7 +24,7 @@
  *
  */
 
-/** \file blender/gpencil_modifiers/intern/MOD_gpencilinstance.c
+/** \file blender/gpencil_modifiers/intern/MOD_gpencilarray.c
  *  \ingroup modifiers
  */
 
@@ -60,10 +60,6 @@
 
 #include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
-
-#include "DEG_depsgraph.h"
-#include "DEG_depsgraph_build.h"
-#include "DEG_depsgraph_query.h"
 
 static void initData(GpencilModifierData *md)
 {
@@ -177,10 +173,11 @@ static void generate_geometry(
 		/* Record whether this stroke can be used
 		 * ATTENTION: The logic here is the inverse of what's used everywhere else!
 		 */
-		if (is_stroke_affected_by_modifier(ob,
-		        mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-		        mmd->flag & GP_ARRAY_INVERT_LAYER, mmd->flag & GP_ARRAY_INVERT_PASS,
-				mmd->flag & GP_ARRAY_INVERT_LAYERPASS))
+		if (is_stroke_affected_by_modifier(
+		            ob,
+		            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
+		            mmd->flag & GP_ARRAY_INVERT_LAYER, mmd->flag & GP_ARRAY_INVERT_PASS,
+		            mmd->flag & GP_ARRAY_INVERT_LAYERPASS))
 		{
 			valid_strokes[idx] = true;
 			num_valid++;

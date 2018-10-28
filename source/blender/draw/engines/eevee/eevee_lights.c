@@ -691,7 +691,7 @@ static void sample_ball(int sample_ofs, float radius, float rsample[3])
 
 	rsample[2] = ht_point[0] * 2.0f - 1.0f; /* cos theta */
 
-	float r = sqrtf(fmaxf(0.0f, 1.0f - rsample[2]*rsample[2])); /* sin theta */
+	float r = sqrtf(fmaxf(0.0f, 1.0f - rsample[2] * rsample[2])); /* sin theta */
 
 	rsample[0] = r * cosf(omega);
 	rsample[1] = r * sinf(omega);
@@ -742,7 +742,7 @@ static void sample_ellipse(
 
 
 static void shadow_cube_random_position_set(
-		EEVEE_Light *evli, Lamp *la,
+        EEVEE_Light *evli, Lamp *la,
         int sample_ofs,
         float ws_sample_pos[3])
 {

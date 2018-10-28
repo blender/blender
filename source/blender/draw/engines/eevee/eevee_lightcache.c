@@ -472,17 +472,19 @@ static void eevee_lightbake_create_resources(EEVEE_LightBake *lbake)
 	lbake->lcache = eevee->light_cache;
 
 	/* TODO validate irradiance and reflection cache independently... */
-	if (!EEVEE_lightcache_validate(lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
+	if (!EEVEE_lightcache_validate(
+	            lbake->lcache, lbake->cube_len, lbake->ref_cube_res, lbake->grid_len, lbake->irr_size))
 	{
 		eevee->light_cache = lbake->lcache = NULL;
 	}
 
 	if (lbake->lcache == NULL) {
-		lbake->lcache = EEVEE_lightcache_create(lbake->grid_len,
-		                                        lbake->cube_len,
-		                                        lbake->ref_cube_res,
-		                                        lbake->vis_res,
-		                                        lbake->irr_size);
+		lbake->lcache = EEVEE_lightcache_create(
+		        lbake->grid_len,
+		        lbake->cube_len,
+		        lbake->ref_cube_res,
+		        lbake->vis_res,
+		        lbake->irr_size);
 		lbake->lcache->flag = LIGHTCACHE_UPDATE_WORLD | LIGHTCACHE_UPDATE_CUBE | LIGHTCACHE_UPDATE_GRID;
 		lbake->lcache->vis_res = lbake->vis_res;
 		lbake->own_light_cache = true;

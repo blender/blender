@@ -291,11 +291,11 @@ static int lattice_select_more_less(bContext *C, const bool select)
 				for (u = 0; u < lt->pntsu; u++) {
 					if ((bp->hide == 0) && (((bp->f1 & SELECT) == 0) == select)) {
 						if (lattice_test_bitmap_uvw(lt, selpoints, u + 1, v, w, select) ||
-							lattice_test_bitmap_uvw(lt, selpoints, u - 1, v, w, select) ||
-							lattice_test_bitmap_uvw(lt, selpoints, u, v + 1, w, select) ||
-							lattice_test_bitmap_uvw(lt, selpoints, u, v - 1, w, select) ||
-							lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
-							lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
+						    lattice_test_bitmap_uvw(lt, selpoints, u - 1, v, w, select) ||
+						    lattice_test_bitmap_uvw(lt, selpoints, u, v + 1, w, select) ||
+						    lattice_test_bitmap_uvw(lt, selpoints, u, v - 1, w, select) ||
+						    lattice_test_bitmap_uvw(lt, selpoints, u, v, w + 1, select) ||
+						    lattice_test_bitmap_uvw(lt, selpoints, u, v, w - 1, select))
 						{
 							SET_FLAG_FROM_TEST(bp->f1, select, SELECT);
 						}
