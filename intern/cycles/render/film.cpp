@@ -38,11 +38,14 @@ static bool compare_pass_order(const Pass& a, const Pass& b)
 	return (a.components > b.components);
 }
 
-void Pass::add(PassType type, array<Pass>& passes)
+void Pass::add(PassType type, vector<Pass>& passes, const char *name)
 {
-	for(size_t i = 0; i < passes.size(); i++)
-		if(passes[i].type == type)
+	for(size_t i = 0; i < passes.size(); i++) {
+		if(passes[i].type == type &&
+		   (name ? (passes[i].name == name) : passes[i].name.empty())) {
 			return;
+		}
+	}
 
 	Pass pass;
 
@@ -50,6 +53,9 @@ void Pass::add(PassType type, array<Pass>& passes)
 	pass.filter = true;
 	pass.exposure = false;
 	pass.divide_type = PASS_NONE;
+	if(name) {
+		pass.name = name;
+	}
 
 	switch(type) {
 		case PASS_NONE:
@@ -155,13 +161,15 @@ void Pass::add(PassType type, array<Pass>& passes)
 			pass.components = 4;
 			pass.exposure = true;
 			break;
-
+		case PASS_CRYPTOMATTE:
+			pass.components = 4;
+			break;
 		default:
 			assert(false);
 			break;
 	}
 
-	passes.push_back_slow(pass);
+	passes.push_back(pass);
 
 	/* order from by components, to ensure alignment so passes with size 4
 	 * come first and then passes with size 1 */
@@ -171,19 +179,19 @@ void Pass::add(PassType type, array<Pass>& passes)
 		Pass::add(pass.divide_type, passes);
 }
 
-bool Pass::equals(const array<Pass>& A, const array<Pass>& B)
+bool Pass::equals(const vector<Pass>& A, const vector<Pass>& B)
 {
 	if(A.size() != B.size())
 		return false;
 
 	for(int i = 0; i < A.size(); i++)
-		if(A[i].type != B[i].type)
+		if(A[i].type != B[i].type || A[i].name != B[i].name)
 			return false;
 
 	return true;
 }
 
-bool Pass::contains(const array<Pass>& passes, PassType type)
+bool Pass::contains(const vector<Pass>& passes, PassType type)
 {
 	for(size_t i = 0; i < passes.size(); i++)
 		if(passes[i].type == type)
@@ -290,6 +298,7 @@ Film::Film()
 
 	use_light_visibility = false;
 	filter_table_offset = TABLE_OFFSET_INVALID;
+	cryptomatte_passes = CRYPT_NONE;
 
 	need_update = true;
 }
@@ -313,6 +322,8 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kfilm->light_pass_flag = 0;
 	kfilm->pass_stride = 0;
 	kfilm->use_light_pass = use_light_visibility || use_sample_clamp;
+
+	bool have_cryptomatte = false;
 
 	for(size_t i = 0; i < passes.size(); i++) {
 		Pass& pass = passes[i];
@@ -434,7 +445,10 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 #endif
 			case PASS_RENDER_TIME:
 				break;
-
+			case PASS_CRYPTOMATTE:
+				kfilm->pass_cryptomatte = have_cryptomatte ? min(kfilm->pass_cryptomatte, kfilm->pass_stride) : kfilm->pass_stride;
+				have_cryptomatte = true;
+				break;
 			default:
 				assert(false);
 				break;
@@ -471,6 +485,9 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kfilm->mist_inv_depth = (mist_depth > 0.0f)? 1.0f/mist_depth: 0.0f;
 	kfilm->mist_falloff = mist_falloff;
 
+	kfilm->cryptomatte_passes = cryptomatte_passes;
+	kfilm->cryptomatte_depth = cryptomatte_depth;
+
 	pass_stride = kfilm->pass_stride;
 	denoising_data_offset = kfilm->pass_denoising_data;
 	denoising_clean_offset = kfilm->pass_denoising_clean;
@@ -490,7 +507,7 @@ bool Film::modified(const Film& film)
 	return !Node::equals(film) || !Pass::equals(passes, film.passes);
 }
 
-void Film::tag_passes_update(Scene *scene, const array<Pass>& passes_)
+void Film::tag_passes_update(Scene *scene, const vector<Pass>& passes_)
 {
 	if(Pass::contains(passes, PASS_UV) != Pass::contains(passes_, PASS_UV)) {
 		scene->mesh_manager->tag_update(scene);

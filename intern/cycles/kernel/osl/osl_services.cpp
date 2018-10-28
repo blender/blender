@@ -884,6 +884,23 @@ bool OSLRenderServices::has_userdata(ustring name, TypeDesc type, OSL::ShaderGlo
 	return false; /* never called by OSL */
 }
 
+TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(ustring filename)
+{
+	if (filename.length() && filename[0] == '@') {
+		/* Dummy, we don't use texture handles for builtin textures but need
+		 * to tell the OSL runtime optimizer that this is a valid texture. */
+		return NULL;
+	}
+	else {
+		return texturesys()->get_texture_handle(filename);
+	}
+}
+
+bool OSLRenderServices::good(TextureSystem::TextureHandle *texture_handle)
+{
+	return texturesys()->good(texture_handle);
+}
+
 bool OSLRenderServices::texture(ustring filename,
                                 TextureHandle *texture_handle,
                                 TexturePerthread *texture_thread_info,
@@ -894,7 +911,8 @@ bool OSLRenderServices::texture(ustring filename,
                                 int nchannels,
                                 float *result,
                                 float *dresultds,
-                                float *dresultdt)
+                                float *dresultdt,
+                                ustring *errormessage)
 {
 	OSL::TextureSystem *ts = osl_ts;
 	ShaderData *sd = (ShaderData *)(sg->renderstate);
@@ -1156,7 +1174,13 @@ bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *sg, ustring filenam
                                          TypeDesc datatype, void *data)
 {
 	OSL::TextureSystem *ts = osl_ts;
-	return ts->get_texture_info(filename, subimage, dataname, datatype, data);
+	if (filename.length() && filename[0] == '@') {
+		/* Special builtin textures. */
+		return false;
+	}
+	else {
+		return ts->get_texture_info(filename, subimage, dataname, datatype, data);
+	}
 }
 
 int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg, ustring filename, const OSL::Vec3 &center,

@@ -1276,4 +1276,9 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 }
 #endif  /* __TRANSPARENT_SHADOWS__ */
 
+ccl_device float shader_cryptomatte_id(KernelGlobals *kg, int shader)
+{
+	return kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).cryptomatte_id;
+}
+
 CCL_NAMESPACE_END

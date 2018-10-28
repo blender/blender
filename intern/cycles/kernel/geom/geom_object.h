@@ -304,6 +304,24 @@ ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 	return kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).pass_id;
 }
 
+/* Cryptomatte ID */
+
+ccl_device_inline float object_cryptomatte_id(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0.0f;
+
+	return kernel_tex_fetch(__objects, object).cryptomatte_object;
+}
+
+ccl_device_inline float object_cryptomatte_asset_id(KernelGlobals *kg, int object)
+{
+	if(object == OBJECT_NONE)
+		return 0;
+
+	return kernel_tex_fetch(__objects, object).cryptomatte_asset;
+}
+
 /* Particle data from which object was instanced */
 
 ccl_device_inline uint particle_index(KernelGlobals *kg, int particle)

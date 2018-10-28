@@ -23,6 +23,7 @@
 #include "atomic_ops.h"
 
 #define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
+#define atomic_compare_and_swap_float(p, old_val, new_val) atomic_cas_float((p), (old_val), (new_val))
 
 #define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
 #define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_add_uint32((p), -1)
@@ -57,6 +58,20 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *so
 	return new_value.float_value;
 }
 
+ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float *dest,
+                                                      const float old_val, const float new_val)
+{
+	union {
+		unsigned int int_value;
+		float float_value;
+	} new_value, prev_value, result;
+	prev_value.float_value = old_val;
+	new_value.float_value = new_val;
+	result.int_value = atomic_cmpxchg((volatile ccl_global unsigned int *)dest,
+                                       prev_value.int_value, new_value.int_value);
+	return result.float_value;
+}
+
 #define atomic_fetch_and_add_uint32(p, x) atomic_add((p), (x))
 #define atomic_fetch_and_inc_uint32(p) atomic_inc((p))
 #define atomic_fetch_and_dec_uint32(p) atomic_dec((p))
@@ -74,6 +89,19 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *so
 #define atomic_fetch_and_sub_uint32(p, x) atomicSub((unsigned int*)(p), (unsigned int)(x))
 #define atomic_fetch_and_inc_uint32(p) atomic_fetch_and_add_uint32((p), 1)
 #define atomic_fetch_and_dec_uint32(p) atomic_fetch_and_sub_uint32((p), 1)
+
+ccl_device_inline float atomic_compare_and_swap_float(volatile float *dest,
+                                                      const float old_val, const float new_val)
+{
+	union {
+		unsigned int int_value;
+		float float_value;
+	} new_value, prev_value, result;
+	prev_value.float_value = old_val;
+	new_value.float_value = new_val;
+	result.int_value = atomicCAS((unsigned int *)dest, prev_value.int_value,new_value.int_value);
+	return result.float_value;
+}
 
 #define CCL_LOCAL_MEM_FENCE
 #define ccl_barrier(flags) __syncthreads()

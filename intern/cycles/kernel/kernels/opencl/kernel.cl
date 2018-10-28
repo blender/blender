@@ -66,9 +66,17 @@ __kernel void kernel_ocl_path_trace(
 
 	int x = sx + ccl_global_id(0);
 	int y = sy + ccl_global_id(1);
-
-	if(x < sx + sw && y < sy + sh)
+	bool thread_is_active = x < sx + sw && y < sy + sh;
+	if(thread_is_active) {
 		kernel_path_trace(kg, buffer, sample, x, y, offset, stride);
+	}
+	if(kernel_data.film.cryptomatte_passes) {
+		/* Make sure no thread is writing to the buffers. */
+		ccl_barrier(CCL_LOCAL_MEM_FENCE);
+		if(thread_is_active) {
+			kernel_cryptomatte_post(kg, buffer, sample, x, y, offset, stride);
+		}
+	}
 }
 
 #else  /* __COMPILE_ONLY_MEGAKERNEL__ */

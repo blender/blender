@@ -160,11 +160,12 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 	                (offset == DENOISING_PASS_DEPTH_VAR) ||
 	                (offset == DENOISING_PASS_COLOR_VAR);
 
+	float scale_exposure = scale;
 	if(offset == DENOISING_PASS_COLOR || offset == DENOISING_PASS_CLEAN) {
-		scale *= exposure;
+		scale_exposure *= exposure;
 	}
 	else if(offset == DENOISING_PASS_COLOR_VAR) {
-		scale *= exposure*exposure;
+		scale_exposure *= exposure*exposure;
 	}
 
 	offset += params.get_denoising_offset();
@@ -181,14 +182,14 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 
 		if(components == 1) {
 			for(int i = 0; i < size; i++, mean += pass_stride, var += pass_stride, pixels++) {
-				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale;
+				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale_exposure;
 			}
 		}
 		else if(components == 3) {
 			for(int i = 0; i < size; i++, mean += pass_stride, var += pass_stride, pixels += 3) {
-				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale;
-				pixels[1] = max(0.0f, var[1] - mean[1]*mean[1]*invsample)*scale;
-				pixels[2] = max(0.0f, var[2] - mean[2]*mean[2]*invsample)*scale;
+				pixels[0] = max(0.0f, var[0] - mean[0]*mean[0]*invsample)*scale_exposure;
+				pixels[1] = max(0.0f, var[1] - mean[1]*mean[1]*invsample)*scale_exposure;
+				pixels[2] = max(0.0f, var[2] - mean[2]*mean[2]*invsample)*scale_exposure;
 			}
 		}
 		else {
@@ -200,14 +201,28 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 
 		if(components == 1) {
 			for(int i = 0; i < size; i++, in += pass_stride, pixels++) {
-				pixels[0] = in[0]*scale;
+				pixels[0] = in[0]*scale_exposure;
 			}
 		}
 		else if(components == 3) {
 			for(int i = 0; i < size; i++, in += pass_stride, pixels += 3) {
-				pixels[0] = in[0]*scale;
-				pixels[1] = in[1]*scale;
-				pixels[2] = in[2]*scale;
+				pixels[0] = in[0]*scale_exposure;
+				pixels[1] = in[1]*scale_exposure;
+				pixels[2] = in[2]*scale_exposure;
+			}
+		}
+		else if(components == 4) {
+			assert(offset == DENOISING_PASS_COLOR);
+
+			/* Since the alpha channel is not involved in denoising, output the Combined alpha channel. */
+			assert(params.passes[0].type == PASS_COMBINED);
+			float *in_combined = buffer.data();
+
+			for(int i = 0; i < size; i++, in += pass_stride, in_combined += pass_stride, pixels += 4) {
+				pixels[0] = in[0]*scale_exposure;
+				pixels[1] = in[1]*scale_exposure;
+				pixels[2] = in[2]*scale_exposure;
+				pixels[3] = saturate(in_combined[3]*scale);
 			}
 		}
 		else {
@@ -218,7 +233,7 @@ bool RenderBuffers::get_denoising_pass_rect(int offset, float exposure, int samp
 	return true;
 }
 
-bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels)
+bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int components, float *pixels, const string &name)
 {
 	if(buffer.data() == NULL) {
 		return false;
@@ -232,6 +247,14 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 		if(pass.type != type) {
 			pass_offset += pass.components;
 			continue;
+		}
+
+		/* Tell Cryptomatte passes apart by their name. */
+		if(pass.type == PASS_CRYPTOMATTE) {
+			if(pass.name != name) {
+				pass_offset += pass.components;
+				continue;
+			}
 		}
 
 		float *in = buffer.data() + pass_offset;
@@ -368,6 +391,17 @@ bool RenderBuffers::get_pass_rect(PassType type, float exposure, int sample, int
 					pixels[1] = f.y*invw;
 					pixels[2] = f.z*invw;
 					pixels[3] = f.w*invw;
+				}
+			}
+			else if(type == PASS_CRYPTOMATTE) {
+				for(int i = 0; i < size; i++, in += pass_stride, pixels += 4) {
+					float4 f = make_float4(in[0], in[1], in[2], in[3]);
+					/* x and z contain integer IDs, don't rescale them.
+					   y and w contain matte weights, they get scaled. */
+					pixels[0] = f.x;
+					pixels[1] = f.y * scale;
+					pixels[2] = f.z;
+					pixels[3] = f.w * scale;
 				}
 			}
 			else {

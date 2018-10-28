@@ -80,8 +80,10 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 	PathRadiance *L = &kernel_split_state.path_radiance[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
+	bool ray_was_updated = false;
 
 	if(IS_STATE(ray_state, ray_index, RAY_UPDATE_BUFFER)) {
+		ray_was_updated = true;
 		uint sample = state->sample;
 		uint buffer_offset = kernel_split_state.buffer_offset[ray_index];
 		ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
@@ -90,6 +92,17 @@ ccl_device void kernel_buffer_update(KernelGlobals *kg,
 		kernel_write_result(kg, buffer, sample, L);
 
 		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_TO_REGENERATE);
+	}
+
+	if(kernel_data.film.cryptomatte_passes) {
+		/* Make sure no thread is writing to the buffers. */
+		ccl_barrier(CCL_LOCAL_MEM_FENCE);
+		if(ray_was_updated && state->sample - 1 == kernel_data.integrator.aa_samples) {
+			uint buffer_offset = kernel_split_state.buffer_offset[ray_index];
+			ccl_global float *buffer = kernel_split_params.tile.buffer + buffer_offset;
+			ccl_global float *cryptomatte_buffer = buffer + kernel_data.film.pass_cryptomatte;
+			kernel_sort_id_slots(cryptomatte_buffer, 2 * kernel_data.film.cryptomatte_depth);
+		}
 	}
 
 	if(IS_STATE(ray_state, ray_index, RAY_TO_REGENERATE)) {

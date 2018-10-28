@@ -45,10 +45,11 @@ public:
 	bool filter;
 	bool exposure;
 	PassType divide_type;
+	string name;
 
-	static void add(PassType type, array<Pass>& passes);
-	static bool equals(const array<Pass>& A, const array<Pass>& B);
-	static bool contains(const array<Pass>& passes, PassType);
+	static void add(PassType type, vector<Pass>& passes, const char* name = NULL);
+	static bool equals(const vector<Pass>& A, const vector<Pass>& B);
+	static bool contains(const vector<Pass>& passes, PassType);
 };
 
 class Film : public Node {
@@ -56,7 +57,7 @@ public:
 	NODE_DECLARE
 
 	float exposure;
-	array<Pass> passes;
+	vector<Pass> passes;
 	bool denoising_data_pass;
 	bool denoising_clean_pass;
 	int denoising_flags;
@@ -76,6 +77,8 @@ public:
 
 	bool use_light_visibility;
 	bool use_sample_clamp;
+	CryptomatteType cryptomatte_passes;
+	int cryptomatte_depth;
 
 	bool need_update;
 
@@ -86,7 +89,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene, Scene *scene);
 
 	bool modified(const Film& film);
-	void tag_passes_update(Scene *scene, const array<Pass>& passes_);
+	void tag_passes_update(Scene *scene, const vector<Pass>& passes_);
 	void tag_update(Scene *scene);
 };
 

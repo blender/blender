@@ -817,6 +817,17 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "pass_debug_bvh_intersections")
             col.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
+        layout.label("Cryptomatte:")
+        row = layout.row(align=True)
+        row.prop(cycles_view_layer, "use_pass_crypto_object", text="Object", toggle=True)
+        row.prop(cycles_view_layer, "use_pass_crypto_material", text="Material", toggle=True)
+        row.prop(cycles_view_layer, "use_pass_crypto_asset", text="Asset", toggle=True)
+        row = layout.row(align=True)
+        row.prop(cycles_view_layer, "pass_crypto_depth")
+        row = layout.row(align=True)
+        row.active = use_cpu(context)
+        row.prop(cycles_view_layer, "pass_crypto_accurate", text="Accurate Mode")
+
 
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     bl_label = "Denoising"

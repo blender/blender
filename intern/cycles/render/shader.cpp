@@ -30,6 +30,7 @@
 #include "render/tables.h"
 
 #include "util/util_foreach.h"
+#include "util/util_murmurhash.h"
 
 #ifdef WITH_OCIO
 #  include <OpenColorIO/OpenColorIO.h>
@@ -524,12 +525,15 @@ void ShaderManager::device_update_common(Device *device,
 		if(shader->is_constant_emission(&constant_emission))
 			flag |= SD_HAS_CONSTANT_EMISSION;
 
+		uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
+		
 		/* regular shader */
 		kshader->flags = flag;
 		kshader->pass_id = shader->pass_id;
 		kshader->constant_emission[0] = constant_emission.x;
 		kshader->constant_emission[1] = constant_emission.y;
 		kshader->constant_emission[2] = constant_emission.z;
+		kshader->cryptomatte_id = util_hash_to_float(cryptomatte_id);
 		kshader++;
 
 		has_transparent_shadow |= (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;

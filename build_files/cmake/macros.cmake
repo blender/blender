@@ -672,10 +672,10 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_intern_mikktspace
 		bf_intern_dualcon
 		bf_intern_cycles
+		cycles_device
 		cycles_render
 		cycles_graph
 		cycles_bvh
-		cycles_device
 		cycles_kernel
 		cycles_util
 		cycles_subd

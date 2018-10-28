@@ -284,33 +284,63 @@ point rotate (point p, float angle, point a, point b)
 
 normal ensure_valid_reflection(normal Ng, vector I, normal N)
 {
+    /* The implementation here mirrors the one in kernel_montecarlo.h,
+     * check there for an explanation of the algorithm. */
+
     float sqr(float x) { return x*x; }
 
     vector R = 2*dot(N, I)*N - I;
-    if (dot(Ng, R) >= 0.05) {
+
+    float threshold = min(0.9*dot(Ng, I), 0.01);
+    if(dot(Ng, R) >= threshold) {
         return N;
     }
 
-    /* Form coordinate system with Ng as the Z axis and N inside the X-Z-plane.
-     * The X axis is found by normalizing the component of N that's orthogonal to Ng.
-     * The Y axis isn't actually needed.
-     */
-    vector X = normalize(N - dot(N, Ng)*Ng);
+    float NdotNg = dot(N, Ng);
+    vector X = normalize(N - NdotNg*Ng);
 
-    /* Calculate N.z and N.x in the local coordinate system. */
     float Ix = dot(I, X), Iz = dot(I, Ng);
-    float Ix2 = sqr(dot(I, X)), Iz2 = sqr(dot(I, Ng));
-    float Ix2Iz2 = Ix2 + Iz2;
+    float Ix2 = sqr(Ix), Iz2 = sqr(Iz);
+    float a = Ix2 + Iz2;
 
-    float a = sqrt(Ix2*(Ix2Iz2 - sqr(0.05)));
-    float b = Iz*0.05 + Ix2Iz2;
-    float c = (a + b > 0.0)? (a + b) : (-a + b);
+    float b = sqrt(Ix2*(a - sqr(threshold)));
+    float c = Iz*threshold + a;
 
-    float Nz = sqrt(0.5 * c * (1.0 / Ix2Iz2));
-    float Nx = sqrt(1.0 - sqr(Nz));
+    float fac = 0.5/a;
+    float N1_z2 = fac*(b+c), N2_z2 = fac*(-b+c);
+    int valid1 = (N1_z2 > 1e-5) && (N1_z2 <= (1.0 + 1e-5));
+    int valid2 = (N2_z2 > 1e-5) && (N2_z2 <= (1.0 + 1e-5));
 
-    /* Transform back into global coordinates. */
-    return Nx*X + Nz*Ng;
+    float N_new_x, N_new_z;
+    if(valid1 && valid2) {
+        float N1_x = sqrt(1.0 - N1_z2), N1_z = sqrt(N1_z2);
+        float N2_x = sqrt(1.0 - N2_z2), N2_z = sqrt(N2_z2);
+
+        float R1 = 2*(N1_x*Ix + N1_z*Iz)*N1_z - Iz;
+        float R2 = 2*(N2_x*Ix + N2_z*Iz)*N2_z - Iz;
+
+        valid1 = (R1 >= 1e-5);
+        valid2 = (R2 >= 1e-5);
+        if(valid1 && valid2) {
+            N_new_x = (R1 < R2)? N1_x : N2_x;
+            N_new_z = (R1 < R2)? N1_z : N2_z;
+        }
+        else {
+            N_new_x = (R1 > R2)? N1_x : N2_x;
+            N_new_z = (R1 > R2)? N1_z : N2_z;
+        }
+
+    }
+    else if(valid1 || valid2) {
+        float Nz2 = valid1? N1_z2 : N2_z2;
+        N_new_x = sqrt(1.0 - Nz2);
+        N_new_z = sqrt(Nz2);
+    }
+    else {
+        return Ng;
+    }
+
+    return N_new_x*X + N_new_z*Ng;
 }
 
 

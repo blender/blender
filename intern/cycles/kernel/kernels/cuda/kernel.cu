@@ -40,13 +40,20 @@ CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_MAX_REGISTERS)
 kernel_cuda_path_trace(WorkTile *tile, uint total_work_size)
 {
 	int work_index = ccl_global_id(0);
-
-	if(work_index < total_work_size) {
-		uint x, y, sample;
+	bool thread_is_active = work_index < total_work_size;
+	uint x, y, sample;
+	KernelGlobals kg;
+	if(thread_is_active) {
 		get_work_pixel(tile, work_index, &x, &y, &sample);
 
-		KernelGlobals kg;
 		kernel_path_trace(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
+	}
+
+	if(kernel_data.film.cryptomatte_passes) {
+		__syncthreads();
+		if(thread_is_active) {
+			kernel_cryptomatte_post(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
+		}
 	}
 }
 
@@ -56,13 +63,20 @@ CUDA_LAUNCH_BOUNDS(CUDA_THREADS_BLOCK_WIDTH, CUDA_KERNEL_BRANCHED_MAX_REGISTERS)
 kernel_cuda_branched_path_trace(WorkTile *tile, uint total_work_size)
 {
 	int work_index = ccl_global_id(0);
-
-	if(work_index < total_work_size) {
-		uint x, y, sample;
+	bool thread_is_active = work_index < total_work_size;
+	uint x, y, sample;
+	KernelGlobals kg;
+	if(thread_is_active) {
 		get_work_pixel(tile, work_index, &x, &y, &sample);
 
-		KernelGlobals kg;
 		kernel_branched_path_trace(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
+	}
+	
+	if(kernel_data.film.cryptomatte_passes) {
+		__syncthreads();
+		if(thread_is_active) {
+			kernel_cryptomatte_post(&kg, tile->buffer, sample, x, y, tile->offset, tile->stride);
+		}
 	}
 }
 #endif

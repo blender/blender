@@ -603,6 +603,8 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 					/* not sure if this is right, but seems to give the relevant mnts */
 					if (!STREQLEN(mnt->mnt_fsname, "/dev", 4))
 						continue;
+					if (STREQLEN(mnt->mnt_fsname, "/dev/loop", 9))
+						continue;
 
 					len = strlen(mnt->mnt_dir);
 					if (len && mnt->mnt_dir[len - 1] != '/') {
