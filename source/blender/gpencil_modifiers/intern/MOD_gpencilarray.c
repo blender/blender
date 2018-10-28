@@ -44,12 +44,14 @@
 
 #include "BKE_gpencil.h"
 #include "BKE_gpencil_modifier.h"
+#include "BKE_modifier.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_object.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_layer.h"
+#include "BKE_library_query.h"
 #include "BKE_collection.h"
 
 #include "DEG_depsgraph.h"
@@ -59,15 +61,17 @@
 #include "MOD_gpencil_util.h"
 #include "MOD_gpencil_modifiertypes.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
+
 static void initData(GpencilModifierData *md)
 {
-	InstanceGpencilModifierData *gpmd = (InstanceGpencilModifierData *)md;
-	gpmd->count[0] = 1;
-	gpmd->count[1] = 1;
-	gpmd->count[2] = 1;
+	ArrayGpencilModifierData *gpmd = (ArrayGpencilModifierData *)md;
+	gpmd->count = 2;
 	gpmd->offset[0] = 1.0f;
-	gpmd->offset[1] = 1.0f;
-	gpmd->offset[2] = 1.0f;
+	gpmd->offset[1] = 0.0f;
+	gpmd->offset[2] = 0.0f;
 	gpmd->shift[0] = 0.0f;
 	gpmd->shift[1] = 0.0f;
 	gpmd->shift[2] = 0.0f;
@@ -76,7 +80,7 @@ static void initData(GpencilModifierData *md)
 	gpmd->scale[2] = 1.0f;
 	gpmd->rnd_rot = 0.5f;
 	gpmd->rnd_size = 0.5f;
-	gpmd->lock_axis |= GP_LOCKAXIS_X;
+	gpmd->object = NULL;
 
 	/* fill random values */
 	BLI_array_frand(gpmd->rnd, 20, 1);
@@ -89,14 +93,74 @@ static void copyData(const GpencilModifierData *md, GpencilModifierData *target)
 }
 
 /* -------------------------------- */
+/* helper function for per-instance positioning */
+static void BKE_gpencil_instance_modifier_instance_tfm(
+	Object *ob, ArrayGpencilModifierData *mmd, const int elem_idx,
+	float r_mat[4][4], float r_offset[4][4])
+{
+	float offset[3], rot[3], scale[3];
+	int ri = mmd->rnd[0];
+	float factor;
+
+	offset[0] = mmd->offset[0] * elem_idx;
+	offset[1] = mmd->offset[1] * elem_idx;
+	offset[2] = mmd->offset[2] * elem_idx;
+
+	/* rotation */
+	if (mmd->flag & GP_ARRAY_RANDOM_ROT) {
+		factor = mmd->rnd_rot * mmd->rnd[ri];
+		mul_v3_v3fl(rot, mmd->rot, factor);
+		add_v3_v3(rot, mmd->rot);
+	}
+	else {
+		copy_v3_v3(rot, mmd->rot);
+	}
+
+	/* scale */
+	if (mmd->flag & GP_ARRAY_RANDOM_SIZE) {
+		factor = mmd->rnd_size * mmd->rnd[ri];
+		mul_v3_v3fl(scale, mmd->scale, factor);
+		add_v3_v3(scale, mmd->scale);
+	}
+	else {
+		copy_v3_v3(scale, mmd->scale);
+	}
+
+	/* advance random index */
+	mmd->rnd[0]++;
+	if (mmd->rnd[0] > 19) {
+		mmd->rnd[0] = 1;
+	}
+
+	/* calculate matrix */
+	loc_eul_size_to_mat4(r_mat, offset, rot, scale);
+
+	copy_m4_m4(r_offset, r_mat);
+
+	/* offset object */
+	if (mmd->object) {
+		float mat_offset[4][4];
+		float obinv[4][4];
+
+		unit_m4(mat_offset);
+		add_v3_v3(mat_offset[3], mmd->offset);
+		invert_m4_m4(obinv, ob->obmat);
+
+		mul_m4_series(r_offset, mat_offset,
+			obinv, mmd->object->obmat);
+		copy_m4_m4(mat_offset, r_offset);
+
+		/* clear r_mat locations to avoid double transform */
+		zero_v3(r_mat[3]);
+	}
+}
 
 /* array modifier - generate geometry callback (for viewport/rendering) */
-/* TODO: How to skip this for the simplify options?   -->  !GP_SIMPLIFY_MODIF(ts, playing) */
 static void generate_geometry(
         GpencilModifierData *md, Depsgraph *UNUSED(depsgraph),
         Object *ob, bGPDlayer *gpl, bGPDframe *gpf)
 {
-	InstanceGpencilModifierData *mmd = (InstanceGpencilModifierData *)md;
+	ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
 	ListBase stroke_cache = {NULL, NULL};
 	bGPDstroke *gps;
 	int idx;
@@ -115,8 +179,8 @@ static void generate_geometry(
 		 */
 		if (is_stroke_affected_by_modifier(ob,
 		        mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-		        mmd->flag & GP_INSTANCE_INVERT_LAYER, mmd->flag & GP_INSTANCE_INVERT_PASS,
-				mmd->flag & GP_INSTANCE_INVERT_LAYERPASS))
+		        mmd->flag & GP_ARRAY_INVERT_LAYER, mmd->flag & GP_ARRAY_INVERT_PASS,
+				mmd->flag & GP_ARRAY_INVERT_LAYERPASS))
 		{
 			valid_strokes[idx] = true;
 			num_valid++;
@@ -138,66 +202,69 @@ static void generate_geometry(
 	 * keeping each instance together so they maintain
 	 * the correct ordering relative to each other
 	 */
-	for (int x = 0; x < mmd->count[0]; x++) {
-		for (int y = 0; y < mmd->count[1]; y++) {
-			for (int z = 0; z < mmd->count[2]; z++) {
-				/* original strokes are at index = 0,0,0 */
-				if ((x == 0) && (y == 0) && (z == 0)) {
-					continue;
+	float current_offset[4][4];
+	unit_m4(current_offset);
+
+	for (int x = 0; x < mmd->count; x++) {
+		/* original strokes are at index = 0 */
+		if (x == 0) {
+			continue;
+		}
+
+		/* Compute transforms for this instance */
+		float mat[4][4];
+		float mat_offset[4][4];
+		BKE_gpencil_instance_modifier_instance_tfm(ob, mmd, x, mat, mat_offset);
+
+		if (mmd->object) {
+			/* recalculate cumulative offset here */
+			mul_m4_m4m4(current_offset, current_offset, mat_offset);
+		}
+		else {
+			copy_m4_m4(current_offset, mat);
+		}
+		/* apply shift */
+		madd_v3_v3fl(current_offset[3], mmd->shift, x);
+
+		/* Duplicate original strokes to create this instance */
+		for (gps = gpf->strokes.first, idx = 0; gps; gps = gps->next, idx++) {
+			/* check if stroke can be duplicated */
+			if (valid_strokes[idx]) {
+				/* Duplicate stroke */
+				bGPDstroke *gps_dst = MEM_dupallocN(gps);
+				gps_dst->points = MEM_dupallocN(gps->points);
+				if (gps->dvert) {
+					gps_dst->dvert = MEM_dupallocN(gps->dvert);
+					BKE_gpencil_stroke_weights_duplicate(gps, gps_dst);
 				}
+				gps_dst->triangles = MEM_dupallocN(gps->triangles);
 
-				/* Compute transforms for this instance */
-				const int elem_idx[3] = {x, y, z};
-				float mat[4][4];
-
-				BKE_gpencil_instance_modifier_instance_tfm(mmd, elem_idx, mat);
-
-				/* apply shift */
-				int sh = x;
-				if (mmd->lock_axis == GP_LOCKAXIS_Y) {
-					sh = y;
-				}
-				if (mmd->lock_axis == GP_LOCKAXIS_Z) {
-					sh = z;
-				}
-				madd_v3_v3fl(mat[3], mmd->shift, sh);
-
-				/* Duplicate original strokes to create this instance */
-				for (gps = gpf->strokes.first, idx = 0; gps; gps = gps->next, idx++) {
-					/* check if stroke can be duplicated */
-					if (valid_strokes[idx]) {
-						/* Duplicate stroke */
-						bGPDstroke *gps_dst = MEM_dupallocN(gps);
-						gps_dst->points = MEM_dupallocN(gps->points);
-						if (gps->dvert) {
-							gps_dst->dvert = MEM_dupallocN(gps->dvert);
-							BKE_gpencil_stroke_weights_duplicate(gps, gps_dst);
-						}
-						gps_dst->triangles = MEM_dupallocN(gps->triangles);
-
-						/* Move points */
-						for (int i = 0; i < gps->totpoints; i++) {
-							bGPDspoint *pt = &gps_dst->points[i];
-							mul_m4_v3(mat, &pt->x);
-						}
-
-						/* if replace material, use new one */
-						if ((mmd->mat_rpl > 0) && (mmd->mat_rpl <= ob->totcol)) {
-							gps_dst->mat_nr = mmd->mat_rpl - 1;
-						}
-
-						/* Add new stroke to cache, to be added to the frame once
-						 * all duplicates have been made
-						 */
-						BLI_addtail(&stroke_cache, gps_dst);
+				/* Move points */
+				for (int i = 0; i < gps->totpoints; i++) {
+					bGPDspoint *pt = &gps_dst->points[i];
+					if (mmd->object) {
+						/* apply local changes (rot/scale) */
+						mul_m4_v3(mat, &pt->x);
 					}
+					/* global changes */
+					mul_m4_v3(current_offset, &pt->x);
 				}
+
+				/* if replace material, use new one */
+				if ((mmd->mat_rpl > 0) && (mmd->mat_rpl <= ob->totcol)) {
+					gps_dst->mat_nr = mmd->mat_rpl - 1;
+				}
+
+				/* Add new stroke to cache, to be added to the frame once
+				 * all duplicates have been made
+				 */
+				BLI_addtail(&stroke_cache, gps_dst);
 			}
 		}
 	}
 
 	/* merge newly created stroke instances back into the main stroke list */
-	if (mmd->flag & GP_INSTANCE_KEEP_ONTOP) {
+	if (mmd->flag & GP_ARRAY_KEEP_ONTOP) {
 		BLI_movelisttolist_reverse(&gpf->strokes, &stroke_cache);
 	}
 	else {
@@ -232,10 +299,30 @@ static void generateStrokes(
 	generate_geometry(md, depsgraph, ob, gpl, gpf);
 }
 
-GpencilModifierTypeInfo modifierType_Gpencil_Instance = {
-	/* name */              "Instance",
-	/* structName */        "InstanceGpencilModifierData",
-	/* structSize */        sizeof(InstanceGpencilModifierData),
+static void updateDepsgraph(GpencilModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
+{
+	ArrayGpencilModifierData *lmd = (ArrayGpencilModifierData *)md;
+	if (lmd->object != NULL) {
+		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Array Modifier");
+		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Array Modifier");
+	}
+	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Array Modifier");
+}
+
+static void foreachObjectLink(
+	GpencilModifierData *md, Object *ob,
+	ObjectWalkFunc walk, void *userData)
+{
+	ArrayGpencilModifierData *mmd = (ArrayGpencilModifierData *)md;
+
+	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
+}
+
+
+GpencilModifierTypeInfo modifierType_Gpencil_Array = {
+	/* name */              "Array",
+	/* structName */        "ArrayGpencilModifierData",
+	/* structSize */        sizeof(ArrayGpencilModifierData),
 	/* type */              eGpencilModifierTypeType_Gpencil,
 	/* flags */             0,
 
@@ -249,9 +336,9 @@ GpencilModifierTypeInfo modifierType_Gpencil_Instance = {
 	/* initData */          initData,
 	/* freeData */          NULL,
 	/* isDisabled */        NULL,
-	/* updateDepsgraph */   NULL,
+	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     NULL,
-	/* foreachObjectLink */ NULL,
+	/* foreachObjectLink */ foreachObjectLink,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
 };

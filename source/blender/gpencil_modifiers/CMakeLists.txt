@@ -50,7 +50,7 @@ set(SRC
 	intern/MOD_gpencilthick.c
 	intern/MOD_gpenciltint.c
 	intern/MOD_gpencilcolor.c
-	intern/MOD_gpencilinstance.c
+	intern/MOD_gpencilarray.c
 	intern/MOD_gpencilbuild.c
 	intern/MOD_gpencilopacity.c
 	intern/MOD_gpencillattice.c

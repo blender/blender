@@ -69,7 +69,7 @@ void gpencil_modifier_type_init(GpencilModifierTypeInfo *types[])
 	INIT_GP_TYPE(Thick);
 	INIT_GP_TYPE(Tint);
 	INIT_GP_TYPE(Color);
-	INIT_GP_TYPE(Instance);
+	INIT_GP_TYPE(Array);
 	INIT_GP_TYPE(Build);
 	INIT_GP_TYPE(Opacity);
 	INIT_GP_TYPE(Lattice);

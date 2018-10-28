@@ -50,7 +50,7 @@ struct Brush;
 struct Object;
 struct bDeformGroup;
 struct SimplifyGpencilModifierData;
-struct InstanceGpencilModifierData;
+struct ArrayGpencilModifierData;
 struct LatticeGpencilModifierData;
 
 struct MDeformVert;

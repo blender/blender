@@ -234,8 +234,6 @@ typedef struct GpencilModifierTypeInfo {
 	                       GreasePencilTexWalkFunc walk, void *userData);
 } GpencilModifierTypeInfo;
 
-void BKE_gpencil_instance_modifier_instance_tfm(struct InstanceGpencilModifierData *mmd, const int elem_idx[3], float r_mat[4][4]);
-
 /* Initialize modifier's global data (type info and some common global storages). */
 void BKE_gpencil_modifier_init(void);
 

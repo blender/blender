@@ -1919,7 +1919,7 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         row.prop(md, "layer_pass", text="Pass")
         row.prop(md, "invert_layer_pass", text="", icon='ARROW_LEFTRIGHT')
 
-    def GP_INSTANCE(self, layout, ob, md):
+    def GP_ARRAY(self, layout, ob, md):
         gpd = ob.data
 
         col = layout.column()
@@ -1929,12 +1929,11 @@ class DATA_PT_gpencil_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.label(text="Offset:")
         col.prop(md, "offset", text="")
+        col.prop(md, "offset_object", text="Object")
 
         col = split.column()
         col.label(text="Shift:")
         col.prop(md, "shift", text="")
-        row = col.row(align=True)
-        row.prop(md, "lock_axis", expand=True)
 
         split = layout.split()
         col = split.column()

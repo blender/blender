@@ -1064,7 +1064,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 						case eGpencilModifierType_Tint:
 							data.icon = ICON_COLOR;
 							break;
-						case eGpencilModifierType_Instance:
+						case eGpencilModifierType_Array:
 							data.icon = ICON_MOD_ARRAY;
 							break;
 						case eGpencilModifierType_Build:

@@ -40,7 +40,7 @@ typedef enum GpencilModifierType {
 	eGpencilModifierType_Subdiv    = 2,
 	eGpencilModifierType_Thick     = 3,
 	eGpencilModifierType_Tint      = 4,
-	eGpencilModifierType_Instance  = 5,
+	eGpencilModifierType_Array     = 5,
 	eGpencilModifierType_Build     = 6,
 	eGpencilModifierType_Opacity   = 7,
 	eGpencilModifierType_Color     = 8,
@@ -235,9 +235,10 @@ typedef enum eOpacityGpencil_Flag {
 	GP_OPACITY_INVERT_LAYERPASS = (1 << 4),
 } eOpacityGpencil_Flag;
 
-typedef struct InstanceGpencilModifierData {
+typedef struct ArrayGpencilModifierData {
 	GpencilModifierData modifier;
-	int count[3];                /* number of elements in array */
+	struct Object *object;
+	int count;                   /* number of elements in array */
 	int flag;                    /* several flags */
 	float offset[3];             /* Location increments */
 	float shift[3];              /* shift increment */
@@ -246,22 +247,22 @@ typedef struct InstanceGpencilModifierData {
 	float rot[3];                /* Rotation changes */
 	float scale[3];              /* Scale changes */
 	float rnd[20];               /* (first element is the index) random values */
-	int  lock_axis;              /* lock shift to one axis */
+	char pad_[4];
 
 	int pass_index;              /* custom index for passes */
 	char layername[64];          /* layer name */
 	int mat_rpl;                 /* material replace (0 keep default) */
 	int layer_pass;              /* custom index for passes */
-} InstanceGpencilModifierData;
+} ArrayGpencilModifierData;
 
-typedef enum eInstanceGpencil_Flag {
-	GP_INSTANCE_RANDOM_SIZE   = (1 << 0),
-	GP_INSTANCE_RANDOM_ROT    = (1 << 1),
-	GP_INSTANCE_INVERT_LAYER  = (1 << 2),
-	GP_INSTANCE_INVERT_PASS   = (1 << 3),
-	GP_INSTANCE_KEEP_ONTOP    = (1 << 4),
-	GP_INSTANCE_INVERT_LAYERPASS = (1 << 5),
-} eInstanceGpencil_Flag;
+typedef enum eArrayGpencil_Flag {
+	GP_ARRAY_RANDOM_SIZE   = (1 << 0),
+	GP_ARRAY_RANDOM_ROT    = (1 << 1),
+	GP_ARRAY_INVERT_LAYER  = (1 << 2),
+	GP_ARRAY_INVERT_PASS   = (1 << 3),
+	GP_ARRAY_KEEP_ONTOP    = (1 << 4),
+	GP_ARRAY_INVERT_LAYERPASS = (1 << 5),
+} eArrayGpencil_Flag;
 
 typedef struct BuildGpencilModifierData {
 	GpencilModifierData modifier;

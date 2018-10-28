@@ -720,47 +720,6 @@ GpencilModifierData *BKE_gpencil_modifiers_findByName(Object *ob, const char *na
 	return BLI_findstring(&(ob->greasepencil_modifiers), name, offsetof(GpencilModifierData, name));
 }
 
-/* helper function for per-instance positioning */
-void BKE_gpencil_instance_modifier_instance_tfm(InstanceGpencilModifierData *mmd, const int elem_idx[3], float r_mat[4][4])
-{
-	float offset[3], rot[3], scale[3];
-	int ri = mmd->rnd[0];
-	float factor;
-
-	offset[0] = mmd->offset[0] * elem_idx[0];
-	offset[1] = mmd->offset[1] * elem_idx[1];
-	offset[2] = mmd->offset[2] * elem_idx[2];
-
-	/* rotation */
-	if (mmd->flag & GP_INSTANCE_RANDOM_ROT) {
-		factor = mmd->rnd_rot * mmd->rnd[ri];
-		mul_v3_v3fl(rot, mmd->rot, factor);
-		add_v3_v3(rot, mmd->rot);
-	}
-	else {
-		copy_v3_v3(rot, mmd->rot);
-	}
-
-	/* scale */
-	if (mmd->flag & GP_INSTANCE_RANDOM_SIZE) {
-		factor = mmd->rnd_size * mmd->rnd[ri];
-		mul_v3_v3fl(scale, mmd->scale, factor);
-		add_v3_v3(scale, mmd->scale);
-	}
-	else {
-		copy_v3_v3(scale, mmd->scale);
-	}
-
-	/* advance random index */
-	mmd->rnd[0]++;
-	if (mmd->rnd[0] > 19) {
-		mmd->rnd[0] = 1;
-	}
-
-	/* calculate matrix */
-	loc_eul_size_to_mat4(r_mat, offset, rot, scale);
-}
-
 void BKE_gpencil_subdivide(bGPDstroke *gps, int level, int flag)
 {
 	bGPDspoint *temp_points;

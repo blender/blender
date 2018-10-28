@@ -607,7 +607,7 @@ extern StructRNA RNA_ThickGpencilModifier;
 extern StructRNA RNA_TintGpencilModifier;
 extern StructRNA RNA_TimeGpencilModifier;
 extern StructRNA RNA_ColorGpencilModifier;
-extern StructRNA RNA_InstanceGpencilModifier;
+extern StructRNA RNA_ArrayGpencilModifier;
 extern StructRNA RNA_DupliGpencilModifier;
 extern StructRNA RNA_OpacityGpencilModifier;
 extern StructRNA RNA_LatticeGpencilModifier;
