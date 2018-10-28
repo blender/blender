@@ -325,23 +325,23 @@ static void ui_block_align_but_to_region(uiBut *but, const ARegion *region)
 	rctf *rect = &but->rect;
 	const float but_width = BLI_rctf_size_x(rect);
 	const float but_height = BLI_rctf_size_y(rect);
-	const float outline_with = U.pixelsize; /* This may have to be made more variable. */
+	const float outline_px = U.pixelsize; /* This may have to be made more variable. */
 
 	switch (but->drawflag & UI_BUT_ALIGN) {
 		case UI_BUT_ALIGN_TOP:
-			rect->ymax = region->winy + outline_with;
+			rect->ymax = region->winy + outline_px;
 			rect->ymin = but->rect.ymax - but_height;
 			break;
 		case UI_BUT_ALIGN_DOWN:
-			rect->ymin = -outline_with;
+			rect->ymin = -outline_px;
 			rect->ymax = rect->ymin + but_height;
 			break;
 		case UI_BUT_ALIGN_LEFT:
-			rect->xmin = -outline_with;
+			rect->xmin = -outline_px;
 			rect->xmax = rect->xmin + but_width;
 			break;
 		case UI_BUT_ALIGN_RIGHT:
-			rect->xmax = region->winx + outline_with;
+			rect->xmax = region->winx + outline_px;
 			rect->xmin = rect->xmax - but_width;
 			break;
 		default:
