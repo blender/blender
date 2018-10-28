@@ -760,7 +760,7 @@ bool ANIM_driver_vars_paste(ReportList *reports, FCurve *fcu, bool replace)
 /* NOTE: Used by ANIM_OT_driver_button_add and UI_OT_eyedropper_driver */
 // XXX: These names need reviewing
 EnumPropertyItem prop_driver_create_mapping_types[] = {
-	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", ICON_UI, "All from Target",
+	{CREATEDRIVER_MAPPING_1_N, "SINGLE_MANY", 0, "All from Target",
 	 "Drive all components of this property using the target picked"},
 	{CREATEDRIVER_MAPPING_1_1, "DIRECT", 0, "Single from Target",
 	 "Drive this component of this property using the target picked"},

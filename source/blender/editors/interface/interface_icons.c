@@ -1798,7 +1798,7 @@ int UI_rnaptr_icon_get(bContext *C, PointerRNA *ptr, int rnaicon, const bool big
 		DynamicPaintSurface *surface = ptr->data;
 
 		if (surface->format == MOD_DPAINT_SURFACE_F_PTEX)
-			return ICON_TEXTURE_SHADED;
+			return ICON_SHADING_TEXTURE;
 		else if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX)
 			return ICON_OUTLINER_DATA_MESH;
 		else if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)

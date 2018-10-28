@@ -7094,7 +7094,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Node Socket", "Input or output socket of a node");
 	RNA_def_struct_sdna(srna, "bNodeSocket");
 	RNA_def_struct_refine_func(srna, "rna_NodeSocket_refine");
-	RNA_def_struct_ui_icon(srna, ICON_PLUG);
+	RNA_def_struct_ui_icon(srna, ICON_PLUGIN);
 	RNA_def_struct_path_func(srna, "rna_NodeSocket_path");
 	RNA_def_struct_register_funcs(srna, "rna_NodeSocket_register", "rna_NodeSocket_unregister", NULL);
 	RNA_def_struct_idprops_func(srna, "rna_NodeSocket_idprops");

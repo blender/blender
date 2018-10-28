@@ -64,21 +64,21 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 	{eGpencilModifierType_Array, "GP_ARRAY", ICON_MOD_ARRAY, "Array", "Create array of duplicate instances"},
 	{eGpencilModifierType_Build, "GP_BUILD", ICON_MOD_BUILD, "Build", "Create duplication of strokes"},
 	{eGpencilModifierType_Mirror, "GP_MIRROR", ICON_MOD_MIRROR, "Mirror", "Duplicate strokes like a mirror"},
-	{eGpencilModifierType_Simplify, "GP_SIMPLIFY", ICON_MOD_DECIM, "Simplify", "Simplify stroke reducing number of points"},
+	{eGpencilModifierType_Simplify, "GP_SIMPLIFY", ICON_MOD_SIMPLIFY, "Simplify", "Simplify stroke reducing number of points"},
 	{eGpencilModifierType_Subdiv, "GP_SUBDIV", ICON_MOD_SUBSURF, "Subdivide", "Subdivide stroke adding more control points"},
 	{0, "", 0, N_("Deform"), "" },
 	{eGpencilModifierType_Armature, "GP_ARMATURE", ICON_MOD_ARMATURE, "Armature", "Deform stroke points using armature object"},
 	{eGpencilModifierType_Hook, "GP_HOOK", ICON_HOOK, "Hook", "Deform stroke points using objects"},
 	{eGpencilModifierType_Lattice, "GP_LATTICE", ICON_MOD_LATTICE, "Lattice", "Deform strokes using lattice"},
-	{eGpencilModifierType_Noise, "GP_NOISE", ICON_RNDCURVE, "Noise", "Add noise to strokes"},
-	{eGpencilModifierType_Offset, "GP_OFFSET", ICON_MOD_DISPLACE, "Offset", "Change stroke location, rotation or scale"},
+	{eGpencilModifierType_Noise, "GP_NOISE", ICON_MOD_NOISE, "Noise", "Add noise to strokes"},
+	{eGpencilModifierType_Offset, "GP_OFFSET", ICON_MOD_OFFSET, "Offset", "Change stroke location, rotation or scale"},
 	{eGpencilModifierType_Smooth, "GP_SMOOTH", ICON_MOD_SMOOTH, "Smooth", "Smooth stroke"},
-	{eGpencilModifierType_Thick, "GP_THICK", ICON_MAN_ROT, "Thickness", "Change stroke thickness"},
-	{eGpencilModifierType_Time, "GP_TIME", ICON_MOD_DISPLACE, "Time Offset", "Offset keyframes"},
+	{eGpencilModifierType_Thick, "GP_THICK", ICON_MOD_THICKNESS, "Thickness", "Change stroke thickness"},
+	{eGpencilModifierType_Time, "GP_TIME", ICON_MOD_TIME, "Time Offset", "Offset keyframes"},
 	{0, "", 0, N_("Color"), "" },
-	{eGpencilModifierType_Color, "GP_COLOR", ICON_GROUP_VCOL, "Hue/Saturation", "Apply changes to stroke colors"},
-	{eGpencilModifierType_Opacity, "GP_OPACITY", ICON_MOD_MASK, "Opacity", "Opacity of the strokes"},
-	{eGpencilModifierType_Tint, "GP_TINT", ICON_COLOR, "Tint", "Tint strokes with new color"},
+	{eGpencilModifierType_Color, "GP_COLOR", ICON_MOD_TINT, "Hue/Saturation", "Apply changes to stroke colors"},
+	{eGpencilModifierType_Opacity, "GP_OPACITY", ICON_MOD_OPACITY, "Opacity", "Opacity of the strokes"},
+	{eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -283,7 +283,7 @@ static void rna_def_modifier_gpencilnoise(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "NoiseGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Noise Modifier", "Noise effect modifier");
 	RNA_def_struct_sdna(srna, "NoiseGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_RNDCURVE);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_NOISE);
 
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "layername");
@@ -532,7 +532,7 @@ static void rna_def_modifier_gpencilsimplify(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "SimplifyGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Simplify Modifier", "Simplify Stroke modifier");
 	RNA_def_struct_sdna(srna, "SimplifyGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_DECIM);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SIMPLIFY);
 
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "layername");
@@ -594,7 +594,7 @@ static void rna_def_modifier_gpencilthick(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ThickGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Thick Modifier", "Subdivide and Smooth Stroke modifier");
 	RNA_def_struct_sdna(srna, "ThickGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MAN_ROT);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_THICKNESS);
 
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "layername");
@@ -669,7 +669,7 @@ static void rna_def_modifier_gpenciloffset(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "OffsetGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Offset Modifier", "Offset Stroke modifier");
 	RNA_def_struct_sdna(srna, "OffsetGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_OFFSET);
 
 	prop = RNA_def_property(srna, "layer", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "layername");
@@ -807,7 +807,7 @@ static void rna_def_modifier_gpenciltime(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "TimeGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Time Offset Modifier", "Time offset modifier");
 	RNA_def_struct_sdna(srna, "TimeGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_DISPLACE);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_TIME);
 
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
@@ -864,7 +864,7 @@ static void rna_def_modifier_gpencilcolor(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ColorGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Hue/Saturation Modifier", "Change Hue/Saturation modifier");
 	RNA_def_struct_sdna(srna, "ColorGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_GROUP_VCOL);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_TINT);
 
 	prop = RNA_def_property(srna, "modify_color", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, modifier_modify_color_items);  /* share the enum */
@@ -938,7 +938,7 @@ static void rna_def_modifier_gpencilopacity(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "OpacityGpencilModifier", "GpencilModifier");
 	RNA_def_struct_ui_text(srna, "Opacity Modifier", "Opacity of Strokes modifier");
 	RNA_def_struct_sdna(srna, "OpacityGpencilModifierData");
-	RNA_def_struct_ui_icon(srna, ICON_MOD_MASK);
+	RNA_def_struct_ui_icon(srna, ICON_MOD_OPACITY);
 
 	prop = RNA_def_property(srna, "modify_color", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, modifier_modify_color_items);  /* share the enum */

@@ -81,7 +81,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
 	{ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
 	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
-	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
+	{ID_WM, "WINDOWMANAGER", ICON_WORKSPACE, "Window Manager", ""},
 	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
 	{ID_WS, "WORKSPACE", ICON_WORKSPACE, "Workspace", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -1173,6 +1173,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fake_user", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_FAKEUSER);
 	RNA_def_property_ui_text(prop, "Fake User", "Save this data-block even if it has no users");
+    RNA_def_property_ui_icon(prop, ICON_FAKE_USER_OFF, true);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
 
 	prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);

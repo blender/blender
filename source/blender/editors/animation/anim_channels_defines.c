@@ -4282,8 +4282,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, const bAni
 			break;
 
 		case ACHANNEL_SETTING_MOD_OFF:  /* modifiers disabled */
-			icon = ICON_MODIFIER;
-			usetoggle = false;
+			icon = ICON_MODIFIER_OFF;
 			tooltip = TIP_("F-Curve modifiers are disabled");
 			break;
 

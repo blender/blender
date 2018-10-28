@@ -4846,10 +4846,10 @@ class VIEW3D_PT_snapping(Panel):
                 if object_mode == 'EDIT':
                     col.prop(toolsettings, "use_snap_self")
                 if object_mode in {'OBJECT', 'POSE', 'EDIT'}:
-                    col.prop(toolsettings, "use_snap_align_rotation", text="Align Rotation")
+                    col.prop(toolsettings, "use_snap_align_rotation")
 
             if 'FACE' in snap_elements:
-                col.prop(toolsettings, "use_snap_project", text="Project Elements")
+                col.prop(toolsettings, "use_snap_project")
 
             if 'VOLUME' in snap_elements:
                 col.prop(toolsettings, "use_snap_peel_object")

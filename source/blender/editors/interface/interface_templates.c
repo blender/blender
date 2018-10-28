@@ -748,7 +748,7 @@ static void template_ID(
 		if (user_alert) UI_but_flag_enable(but, UI_BUT_REDALERT);
 
 		if (id->lib == NULL && !(ELEM(GS(id->name), ID_GR, ID_SCE, ID_SCR, ID_TXT, ID_OB, ID_WS))) {
-			uiDefButR(block, UI_BTYPE_TOGGLE, 0, "F", 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
+			uiDefIconButR(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_FAKE_USER_OFF, 0, 0, UI_UNIT_X, UI_UNIT_Y, &idptr, "use_fake_user", -1, 0, 0, -1, -1, NULL);
 		}
 	}
 
@@ -2010,7 +2010,7 @@ static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 		UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
 		/* draw a ghost icon (for proxy) and also a lock beside it, to show that constraint is "proxy locked" */
-		uiDefIconBut(block, UI_BTYPE_BUT, B_CONSTRAINT_TEST, ICON_GHOST, xco + 12.2f * UI_UNIT_X, yco, 0.95f * UI_UNIT_X, 0.95f * UI_UNIT_Y,
+		uiDefIconBut(block, UI_BTYPE_BUT, B_CONSTRAINT_TEST, ICON_GHOST_ENABLED, xco + 12.2f * UI_UNIT_X, yco, 0.95f * UI_UNIT_X, 0.95f * UI_UNIT_Y,
 		             NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Proxy Protected"));
 		uiDefIconBut(block, UI_BTYPE_BUT, B_CONSTRAINT_TEST, ICON_LOCKED, xco + 13.1f * UI_UNIT_X, yco, 0.95f * UI_UNIT_X, 0.95f * UI_UNIT_Y,
 		             NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Proxy Protected"));
@@ -3063,14 +3063,14 @@ static void curvemap_buttons_layout(
 	UI_but_func_set(bt, curvemap_buttons_zoom_out, cumap, NULL);
 
 	if (brush)
-		bt = uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_MODIFIER, 0, 0, dx, dx, TIP_("Tools"));
+		bt = uiDefIconBlockBut(block, curvemap_brush_tools_func, cumap, 0, ICON_DOWNARROW_HLT, 0, 0, dx, dx, TIP_("Tools"));
 	else if (neg_slope)
 		bt = uiDefIconBlockBut(
-		        block, curvemap_tools_negslope_func, cumap, 0, ICON_MODIFIER,
+		        block, curvemap_tools_negslope_func, cumap, 0, ICON_DOWNARROW_HLT,
 		        0, 0, dx, dx, TIP_("Tools"));
 	else
 		bt = uiDefIconBlockBut(
-		        block, curvemap_tools_posslope_func, cumap, 0, ICON_MODIFIER,
+		        block, curvemap_tools_posslope_func, cumap, 0, ICON_DOWNARROW_HLT,
 		        0, 0, dx, dx, TIP_("Tools"));
 
 	UI_but_funcN_set(bt, rna_update_cb, MEM_dupallocN(cb), NULL);

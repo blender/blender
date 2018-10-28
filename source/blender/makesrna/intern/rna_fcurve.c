@@ -1554,7 +1554,7 @@ static void rna_def_drivervar(BlenderRNA *brna)
 
 	static const EnumPropertyItem prop_type_items[] = {
 		{DVAR_TYPE_SINGLE_PROP, "SINGLE_PROP", ICON_RNA, "Single Property", "Use the value from some RNA property (Default)"},
-		{DVAR_TYPE_TRANSFORM_CHAN, "TRANSFORMS", ICON_MANIPUL, "Transform Channel",
+		{DVAR_TYPE_TRANSFORM_CHAN, "TRANSFORMS", ICON_ORIENTATION_GLOBAL, "Transform Channel",
 		                           "Final transformation value of object or bone"},
 		{DVAR_TYPE_ROT_DIFF, "ROTATION_DIFF", ICON_PARTICLE_TIP, "Rotational Difference", "Use the angle between two bones"},  /* XXX: Icon... */
 		{DVAR_TYPE_LOC_DIFF, "LOC_DIFF", ICON_FULLSCREEN_ENTER, "Distance", "Distance between two bones or objects"},          /* XXX: Icon... */

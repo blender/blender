@@ -3802,19 +3802,19 @@ static void rna_def_space_text(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "wordwrap", 0);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_SpaceTextEditor_word_wrap_set");
 	RNA_def_property_ui_text(prop, "Word Wrap", "Wrap words if there is not enough horizontal space");
-	RNA_def_property_ui_icon(prop, ICON_WORDWRAP_OFF, 1);
+	RNA_def_property_ui_icon(prop, ICON_WORDWRAP_ON, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
 	prop = RNA_def_property(srna, "show_line_numbers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "showlinenrs", 0);
 	RNA_def_property_ui_text(prop, "Line Numbers", "Show line numbers next to the text");
-	RNA_def_property_ui_icon(prop, ICON_LINENUMBERS_OFF, 1);
+	RNA_def_property_ui_icon(prop, ICON_LINENUMBERS_ON, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
 	prop = RNA_def_property(srna, "show_syntax_highlight", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "showsyntax", 0);
 	RNA_def_property_ui_text(prop, "Syntax Highlight", "Syntax highlight for scripting");
-	RNA_def_property_ui_icon(prop, ICON_SYNTAX_OFF, 1);
+	RNA_def_property_ui_icon(prop, ICON_SYNTAX_ON, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_TEXT, NULL);
 
 	prop = RNA_def_property(srna, "show_line_highlight", PROP_BOOLEAN, PROP_NONE);

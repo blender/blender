@@ -200,14 +200,6 @@ static void restrictbutton_r_lay_cb(bContext *C, void *poin, void *UNUSED(poin2)
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, poin);
 }
 
-static void restrictbutton_modifier_cb(bContext *C, void *UNUSED(poin), void *poin2)
-{
-	Object *ob = (Object *)poin2;
-
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
-}
-
 static void restrictbutton_bone_visibility_cb(bContext *C, void *UNUSED(poin), void *poin2)
 {
 	Bone *bone = (Bone *)poin2;
@@ -483,25 +475,30 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 static void outliner_draw_restrictbuts(
         uiBlock *block, Scene *scene, ViewLayer *view_layer, ARegion *ar, SpaceOops *soops, ListBase *lb)
 {
+	/* Get RNA properties (once for speed). */
+	static struct RestrictProperties {
+		bool initialized;
+
+		PropertyRNA *object_hide_viewport, *object_hide_select, *object_hide_render;
+		PropertyRNA *collection_hide_viewport, *collection_hide_select, *collection_hide_render;
+		PropertyRNA *modifier_show_viewport, *modifier_show_render;
+	} props = {false};
+
+	if (!props.initialized) {
+		props.object_hide_viewport = RNA_struct_type_find_property(&RNA_Object, "hide_viewport");
+		props.object_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
+		props.object_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
+		props.collection_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
+		props.collection_hide_viewport = RNA_struct_type_find_property(&RNA_Collection, "hide_viewport");
+		props.collection_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
+		props.modifier_show_viewport = RNA_struct_type_find_property(&RNA_Modifier, "show_viewport");
+		props.modifier_show_render = RNA_struct_type_find_property(&RNA_Modifier, "show_render");
+
+		props.initialized = true;
+	}
+
+	/* Create buttons. */
 	uiBut *bt;
-
-	/* get RNA properties (once for speed) */
-	PropertyRNA *object_prop_hide_viewport, *object_prop_hide_select, *object_prop_hide_render;
-	PropertyRNA *collection_prop_hide_viewport, *collection_prop_hide_select, *collection_prop_hide_render;
-
-	object_prop_hide_viewport = RNA_struct_type_find_property(&RNA_Object, "hide_viewport");
-	object_prop_hide_select = RNA_struct_type_find_property(&RNA_Object, "hide_select");
-	object_prop_hide_render = RNA_struct_type_find_property(&RNA_Object, "hide_render");
-	collection_prop_hide_select = RNA_struct_type_find_property(&RNA_Collection, "hide_select");
-	collection_prop_hide_viewport = RNA_struct_type_find_property(&RNA_Collection, "hide_viewport");
-	collection_prop_hide_render = RNA_struct_type_find_property(&RNA_Collection, "hide_render");
-
-	BLI_assert(object_prop_hide_viewport &&
-	           object_prop_hide_select &&
-	           object_prop_hide_render &&
-	           collection_prop_hide_viewport &&
-	           collection_prop_hide_select &&
-	           collection_prop_hide_render);
 
 	for (TreeElement *te = lb->first; te; te = te->next) {
 		TreeStoreElem *tselem = TREESTORE(te);
@@ -511,11 +508,12 @@ static void outliner_draw_restrictbuts(
 				ViewLayer *layer = te->directdata;
 
 				bt = uiDefIconButBitS(
-				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &layer->flag, 0, 0, 0, 0, TIP_("Use view layer for rendering"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 			}
 			else if (tselem->type == 0 && te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
@@ -523,53 +521,50 @@ static void outliner_draw_restrictbuts(
 
 				if (base) {
 					bt = uiDefIconButBitS(
-					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_OFF,
+					        block, UI_BTYPE_ICON_TOGGLE, BASE_HIDDEN, 0, ICON_HIDE_ON,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
 					        UI_UNIT_Y, &base->flag, 0, 0, 0, 0,
 					        TIP_("Hide object in viewport (Ctrl to isolate)"));
 					UI_but_func_set(bt, hidebutton_base_flag_cb, view_layer, base);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+					UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 				}
 
 				PointerRNA ptr;
-				RNA_pointer_create((ID *)ob, &RNA_Object, ob, &ptr);
+				RNA_pointer_create(&ob->id, &RNA_Object, ob, &ptr);
 
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_VIEW_OFF,
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide_viewport, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict viewport visibility"));
+				                        &ptr, props.object_hide_viewport, -1, 0, 0, -1, -1, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_SELECT_OFF,
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide_select, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict viewport selection"));
+				                        &ptr, props.object_hide_select, -1, 0, 0, -1, -1, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
-				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_RENDER_OFF,
+				bt = uiDefIconButR_prop(block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 				                        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
-				                        &ptr, object_prop_hide_render, -1, 0, 0, -1, -1,
-				                        TIP_("Restrict render visibility"));
+				                        &ptr, props.object_hide_render, -1, 0, 0, -1, -1, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 			}
 			else if (tselem->type == TSE_MODIFIER) {
 				ModifierData *md = (ModifierData *)te->directdata;
-				Object *ob = (Object *)tselem->id;
 
-				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE_N, eModifierMode_Realtime, 0, ICON_RESTRICT_VIEW_OFF,
-				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
-				        UI_UNIT_Y, &(md->mode), 0, 0, 0, 0,
-				        TIP_("Restrict/Allow visibility in the 3D View"));
-				UI_but_func_set(bt, restrictbutton_modifier_cb, scene, ob);
+				PointerRNA ptr;
+				RNA_pointer_create(tselem->id, &RNA_Modifier, md, &ptr);
+
+				bt = uiDefIconButR_prop(
+				        block, UI_BTYPE_ICON_TOGGLE, 0, 0,
+				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				        &ptr, props.modifier_show_viewport, -1, 0, 0, -1, -1, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
-				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE_N, eModifierMode_Render, 0, ICON_RESTRICT_RENDER_OFF,
-				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
-				        UI_UNIT_Y, &(md->mode), 0, 0, 0, 0, TIP_("Restrict/Allow renderability"));
-				UI_but_func_set(bt, restrictbutton_modifier_cb, scene, ob);
+				bt = uiDefIconButR_prop(
+				        block, UI_BTYPE_ICON_TOGGLE, 0, 0,
+				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X, UI_UNIT_Y,
+				        &ptr, props.modifier_show_render, -1, 0, 0, -1, -1, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 			}
 			else if (tselem->type == TSE_POSE_CHANNEL) {
@@ -578,50 +573,55 @@ static void outliner_draw_restrictbuts(
 				Object *ob = (Object *)tselem->id;
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_HIDE_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_HIDE_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_bone_visibility_cb, ob->data, bone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow selection in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_bone_select_cb, ob->data, bone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 			}
 			else if (tselem->type == TSE_EBONE) {
 				EditBone *ebone = (EditBone *)te->directdata;
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_A, 0, ICON_RESTRICT_VIEW_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_ebone_visibility_cb, NULL, ebone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_UNSELECTABLE, 0, ICON_RESTRICT_SELECT_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(ebone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow selection in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_ebone_select_cb, NULL, ebone);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 			}
 			else if (tselem->type == TSE_GP_LAYER) {
 				bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
 				bt = uiDefIconButBitS(
-				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_HIDE_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_HIDE_ON,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &gpl->flag, 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
 				UI_but_func_set(bt, restrictbutton_gp_layer_flag_cb, NULL, gpl);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 
 				bt = uiDefIconButBitS(
 				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_LOCKED, 0, ICON_UNLOCKED,
@@ -642,33 +642,34 @@ static void outliner_draw_restrictbuts(
 				{
 					if (lc && (lc->runtime_flag & LAYER_COLLECTION_HAS_ENABLED_OBJECTS)) {
 						bt = uiDefIconButBitS(
-						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_OFF,
+						        block, UI_BTYPE_ICON_TOGGLE_N, LAYER_COLLECTION_HAS_VISIBLE_OBJECTS, 0, ICON_HIDE_ON,
 						        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
 						        UI_UNIT_Y, &lc->runtime_flag, 0, 0, 0, 0,
 						        TIP_("Hide collection in viewport (Ctrl to isolate)"));
 						UI_but_func_set(bt, hidebutton_layer_collection_flag_cb, view_layer, lc);
 						UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+						UI_but_drawflag_enable(bt, UI_BUT_ICON_REVERSE);
 					}
 
 					PointerRNA collection_ptr;
 					RNA_id_pointer_create(&collection->id, &collection_ptr);
 
 					bt = uiDefIconButR_prop(
-					        block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_VIEW_OFF,
+					        block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
-					        UI_UNIT_Y, &collection_ptr, collection_prop_hide_viewport, -1, 0, 0, 0, 0, NULL);
+					        UI_UNIT_Y, &collection_ptr, props.collection_hide_viewport, -1, 0, 0, 0, 0, NULL);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 					bt = uiDefIconButR_prop(
-					        block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_RENDER_OFF,
+					        block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
-					        UI_UNIT_Y, &collection_ptr, collection_prop_hide_render, -1, 0, 0, 0, 0, NULL);
+					        UI_UNIT_Y, &collection_ptr, props.collection_hide_render, -1, 0, 0, 0, 0, NULL);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 
 					bt = uiDefIconButR_prop(
-					        block, UI_BTYPE_ICON_TOGGLE, 0, ICON_RESTRICT_SELECT_OFF,
+					        block, UI_BTYPE_ICON_TOGGLE, 0, 0,
 					        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX), te->ys, UI_UNIT_X,
-					        UI_UNIT_Y, &collection_ptr, collection_prop_hide_select, -1, 0, 0, 0, 0, NULL);
+					        UI_UNIT_Y, &collection_ptr, props.collection_hide_select, -1, 0, 0, 0, 0, NULL);
 					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
 				}
 			}
@@ -1059,10 +1060,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_MOD_SUBSURF;
 							break;
 						case eGpencilModifierType_Thick:
-							data.icon = ICON_MAN_ROT;
+							data.icon = ICON_MOD_THICKNESS;
 							break;
 						case eGpencilModifierType_Tint:
-							data.icon = ICON_COLOR;
+							data.icon = ICON_MOD_TINT;
 							break;
 						case eGpencilModifierType_Array:
 							data.icon = ICON_MOD_ARRAY;
@@ -1074,7 +1075,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_MOD_MASK;
 							break;
 						case eGpencilModifierType_Color:
-							data.icon = ICON_GROUP_VCOL;
+							data.icon = ICON_MOD_TINT;
 							break;
 						case eGpencilModifierType_Lattice:
 							data.icon = ICON_MOD_LATTICE;
@@ -1083,7 +1084,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_MOD_MIRROR;
 							break;
 						case eGpencilModifierType_Simplify:
-							data.icon = ICON_MOD_DECIM;
+							data.icon = ICON_MOD_SIMPLIFY;
 							break;
 						case eGpencilModifierType_Smooth:
 							data.icon = ICON_MOD_SMOOTH;
@@ -1092,7 +1093,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_HOOK;
 							break;
 						case eGpencilModifierType_Offset:
-							data.icon = ICON_MOD_DISPLACE;
+							data.icon = ICON_MOD_OFFSET;
 							break;
 						case eGpencilModifierType_Armature:
 							data.icon = ICON_MOD_ARMATURE;
@@ -1113,7 +1114,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 				data.icon = ICON_BONE_DATA;
 				break;
 			case TSE_PROXY:
-				data.icon = ICON_GHOST;
+				data.icon = ICON_GHOST_ENABLED;
 				break;
 			case TSE_R_LAYER_BASE:
 				data.icon = ICON_RENDERLAYERS;

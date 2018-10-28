@@ -109,27 +109,14 @@ class DopesheetFilterPopoverBase:
     def draw_standard_filters(cls, context, layout):
         dopesheet = context.space_data.dopesheet
 
-        # Object Data Filters
-        layout.label(text="Include Sub-Object Data:")
-        split = layout.split()
-
-        # TODO: Add per-channel/axis convenience toggles?
-        col = split.column()
-        col.prop(dopesheet, "show_transforms", text="Transforms")
-
-        col = split.column()
-        col.prop(dopesheet, "show_modifiers", text="Modifiers")
-
-        layout.separator()
-
         # datablock filters
-        layout.label(text="Include From Types:")
+        layout.label(text="Filter by Type:")
         flow = layout.grid_flow(row_major=True, columns=2, even_rows=False, align=False)
 
         flow.prop(dopesheet, "show_scenes", text="Scenes")
-        flow.prop(dopesheet, "show_worlds", text="Worlds")
         flow.prop(dopesheet, "show_nodes", text="Node Trees")
 
+        # object types
         if bpy.data.armatures:
             flow.prop(dopesheet, "show_armatures", text="Armatures")
         if bpy.data.cameras:
@@ -138,27 +125,43 @@ class DopesheetFilterPopoverBase:
             flow.prop(dopesheet, "show_gpencil", text="Grease Pencil Objects")
         if bpy.data.lights:
             flow.prop(dopesheet, "show_lights", text="Lights")
+        if bpy.data.meshes:
+            flow.prop(dopesheet, "show_meshes", text="Meshes")
+        if bpy.data.curves:
+            flow.prop(dopesheet, "show_curves", text="Curves")
+        if bpy.data.lattices:
+            flow.prop(dopesheet, "show_lattices", text="Lattices")
+        if bpy.data.metaballs:
+            flow.prop(dopesheet, "show_metaballs", text="Metaballs")
+
+        # data types
+        flow.prop(dopesheet, "show_worlds", text="Worlds")
+        if bpy.data.particles:
+            flow.prop(dopesheet, "show_particles", text="Particles")
+        if bpy.data.linestyles:
+            flow.prop(dopesheet, "show_linestyles", text="Line Styles")
+        if bpy.data.speakers:
+            flow.prop(dopesheet, "show_speakers", text="Speakers")
         if bpy.data.materials:
             flow.prop(dopesheet, "show_materials", text="Materials")
         if bpy.data.textures:
             flow.prop(dopesheet, "show_textures", text="Textures")
-        if bpy.data.meshes:
-            flow.prop(dopesheet, "show_meshes", text="Meshes")
         if bpy.data.shape_keys:
             flow.prop(dopesheet, "show_shapekeys", text="Shape Keys")
-        if bpy.data.curves:
-            flow.prop(dopesheet, "show_curves", text="Curves")
-        if bpy.data.particles:
-            flow.prop(dopesheet, "show_particles", text="Particles")
-        if bpy.data.lattices:
-            flow.prop(dopesheet, "show_lattices", text="Lattices")
-        if bpy.data.linestyles:
-            flow.prop(dopesheet, "show_linestyles", text="Line Styles")
-        if bpy.data.metaballs:
-            flow.prop(dopesheet, "show_metaballs", text="Metas")
-        if bpy.data.speakers:
-            flow.prop(dopesheet, "show_speakers", text="Speakers")
 
+        layout.separator()
+        
+        # Object Data Filters
+
+        # TODO: Add per-channel/axis convenience toggles?
+        split = layout.split()
+
+        col = split.column()
+        col.prop(dopesheet, "show_transforms", text="Transforms")
+        
+        col = split.column()
+        col.prop(dopesheet, "show_modifiers", text="Modifiers")
+        
         layout.separator()
 
         # performance-related options (users will mostly have these enabled)
