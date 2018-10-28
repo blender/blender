@@ -1519,9 +1519,7 @@ void DRW_draw_render_loop_ex(
 
 	/* annotations - temporary drawing buffer (3d space) */
 	/* XXX: Or should we use a proper draw/overlay engine for this case? */
-	if (((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
-	    (do_annotations))
-	{
+	if (do_annotations) {
 		glDisable(GL_DEPTH_TEST);
 		/* XXX: as scene->gpd is not copied for COW yet */
 		ED_gpencil_draw_view3d_annotations(DEG_get_input_scene(depsgraph), depsgraph, v3d, ar, true);
