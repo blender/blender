@@ -3595,7 +3595,7 @@ static bool region_flip_poll(bContext *C)
 	ScrArea *area = CTX_wm_area(C);
 
 	/* don't flip anything around in topbar */
-	if (area->spacetype == SPACE_TOPBAR) {
+	if (area && area->spacetype == SPACE_TOPBAR) {
 		CTX_wm_operator_poll_msg_set(C, "Flipping regions in the Top-bar is not allowed");
 		return 0;
 	}
