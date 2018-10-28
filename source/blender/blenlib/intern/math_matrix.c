@@ -1011,6 +1011,11 @@ int compare_m4m4(const float mat1[4][4], const float mat2[4][4], float limit)
 	return 0;
 }
 
+/**
+ * Make an orthonormal matrix around the selected axis of the given matrix.
+ *
+ * \param axis: Axis to build the orthonormal basis around.
+ */
 void orthogonalize_m3(float mat[3][3], int axis)
 {
 	float size[3];
@@ -1095,6 +1100,11 @@ void orthogonalize_m3(float mat[3][3], int axis)
 	mul_v3_fl(mat[2], size[2]);
 }
 
+/**
+ * Make an orthonormal matrix around the selected axis of the given matrix.
+ *
+ * \param axis: Axis to build the orthonormal basis around.
+ */
 void orthogonalize_m4(float mat[4][4], int axis)
 {
 	float size[3];
