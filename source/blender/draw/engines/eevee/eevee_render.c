@@ -433,7 +433,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 	/* FINISH CACHE */
 	EEVEE_materials_cache_finish(vedata);
-	EEVEE_lights_cache_finish(sldata);
+	EEVEE_lights_cache_finish(sldata, vedata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 
 	/* Sort transparents before the loop. */
@@ -507,7 +507,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		RE_engine_update_stats(engine, NULL, info);
 
 		/* Refresh Shadows */
-		EEVEE_draw_shadows(sldata, psl);
+		EEVEE_lights_update(sldata, vedata);
+		EEVEE_draw_shadows(sldata, vedata);
 
 		GPU_framebuffer_bind(fbl->main_fb);
 		GPU_framebuffer_clear_color_depth_stencil(fbl->main_fb, clear_col, clear_depth, clear_stencil);

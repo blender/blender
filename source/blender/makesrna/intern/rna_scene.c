@@ -6014,6 +6014,12 @@ static void rna_def_scene_eevee(BlenderRNA *brna)
 	RNA_def_property_boolean_default(prop, 0);
 	RNA_def_property_ui_text(prop, "High Bitdepth", "Use 32bit shadows");
 	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
+
+	prop = RNA_def_property(srna, "use_soft_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_EEVEE_SHADOW_SOFT);
+	RNA_def_property_boolean_default(prop, 0);
+	RNA_def_property_ui_text(prop, "Soft Shadows", "Randomize shadowmaps origin to create soft shadows");
+	RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_STATIC);
 }
 
 void RNA_def_scene(BlenderRNA *brna)

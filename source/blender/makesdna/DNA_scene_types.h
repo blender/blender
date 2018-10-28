@@ -2191,6 +2191,7 @@ enum {
 	SCE_EEVEE_SHOW_IRRADIANCE		= (1 << 17),
 	SCE_EEVEE_SHOW_CUBEMAPS			= (1 << 18),
 	SCE_EEVEE_GI_AUTOBAKE			= (1 << 19),
+	SCE_EEVEE_SHADOW_SOFT			= (1 << 20),
 };
 
 /* SceneEEVEE->shadow_method */

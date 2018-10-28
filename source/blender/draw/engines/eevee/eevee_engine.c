@@ -168,7 +168,7 @@ static void eevee_cache_finish(void *vedata)
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	EEVEE_materials_cache_finish(vedata);
-	EEVEE_lights_cache_finish(sldata);
+	EEVEE_lights_cache_finish(sldata, vedata);
 	EEVEE_lightprobes_cache_finish(sldata, vedata);
 }
 
@@ -249,7 +249,7 @@ static void eevee_draw_background(void *vedata)
 
 		/* Refresh shadows */
 		DRW_stats_group_start("Shadows");
-		EEVEE_draw_shadows(sldata, psl);
+		EEVEE_draw_shadows(sldata, vedata);
 		DRW_stats_group_end();
 
 		GPU_framebuffer_bind(fbl->main_fb);

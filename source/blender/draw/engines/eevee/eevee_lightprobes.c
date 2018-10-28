@@ -972,7 +972,7 @@ static void lightbake_render_scene_face(int face, EEVEE_BakeRenderData *user_dat
 	struct GPUFrameBuffer **face_fb = user_data->face_fb;
 
 	/* Be sure that cascaded shadow maps are updated. */
-	EEVEE_draw_shadows(sldata, psl);
+	EEVEE_draw_shadows(sldata, user_data->vedata);
 
 	GPU_framebuffer_bind(face_fb[face]);
 	GPU_framebuffer_clear_depth(face_fb[face], 1.0f);
@@ -1028,7 +1028,7 @@ static void lightbake_render_scene_reflected(int layer, EEVEE_BakeRenderData *us
 	DRW_stats_group_start("Planar Reflection");
 
 	/* Be sure that cascaded shadow maps are updated. */
-	EEVEE_draw_shadows(sldata, psl);
+	EEVEE_draw_shadows(sldata, vedata);
 	/* Since we are rendering with an inverted view matrix, we need
 	 * to invert the facing for backface culling to be the same. */
 	DRW_state_invert_facing();
