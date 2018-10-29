@@ -731,7 +731,7 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 				adt->flag &= ~ADT_NLA_SOLO_TRACK;
 
 			/* call delete on this track - deletes all strips too */
-			BKE_nlatrack_free(&adt->nla_tracks, nlt);
+			BKE_nlatrack_free(&adt->nla_tracks, nlt, true);
 		}
 	}
 

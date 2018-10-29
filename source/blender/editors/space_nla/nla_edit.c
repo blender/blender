@@ -1160,14 +1160,14 @@ static int nlaedit_delete_exec(bContext *C, wmOperator *UNUSED(op))
 			if (strip->flag & NLASTRIP_FLAG_SELECT) {
 				/* if a strip either side of this was a transition, delete those too */
 				if ((strip->prev) && (strip->prev->type == NLASTRIP_TYPE_TRANSITION))
-					BKE_nlastrip_free(&nlt->strips, strip->prev);
+					BKE_nlastrip_free(&nlt->strips, strip->prev, true);
 				if ((nstrip) && (nstrip->type == NLASTRIP_TYPE_TRANSITION)) {
 					nstrip = nstrip->next;
-					BKE_nlastrip_free(&nlt->strips, strip->next);
+					BKE_nlastrip_free(&nlt->strips, strip->next, true);
 				}
 
 				/* finally, delete this strip */
-				BKE_nlastrip_free(&nlt->strips, strip);
+				BKE_nlastrip_free(&nlt->strips, strip, true);
 			}
 		}
 	}

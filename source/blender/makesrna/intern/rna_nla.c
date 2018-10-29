@@ -383,7 +383,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
 		BKE_report(reports, RPT_ERROR,
 		           "Unable to add strip (the track does not have any space to accommodate this new strip)");
-		BKE_nlastrip_free(NULL, strip);
+		BKE_nlastrip_free(NULL, strip, true);
 		return NULL;
 	}
 
@@ -424,7 +424,7 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 		return;
 	}
 
-	BKE_nlastrip_free(&track->strips, strip);
+	BKE_nlastrip_free(&track->strips, strip, true);
 	RNA_POINTER_INVALIDATE(strip_ptr);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);

@@ -246,7 +246,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 			}
 
 			/* free nla data */
-			BKE_nla_tracks_free(&adt->nla_tracks);
+			BKE_nla_tracks_free(&adt->nla_tracks, do_id_user);
 
 			/* free drivers - stored as a list of F-Curves */
 			free_fcurves(&adt->drivers);

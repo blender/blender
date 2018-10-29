@@ -76,7 +76,7 @@
 /* Remove the given NLA strip from the NLA track it occupies, free the strip's data,
  * and the strip itself.
  */
-void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip)
+void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip, bool do_id_user)
 {
 	NlaStrip *cs, *csn;
 
@@ -87,12 +87,13 @@ void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip)
 	/* free child-strips */
 	for (cs = strip->strips.first; cs; cs = csn) {
 		csn = cs->next;
-		BKE_nlastrip_free(&strip->strips, cs);
+		BKE_nlastrip_free(&strip->strips, cs, do_id_user);
 	}
 
 	/* remove reference to action */
-	if (strip->act)
+	if (strip->act != NULL && do_id_user) {
 		id_us_min(&strip->act->id);
+	}
 
 	/* free remapping info */
 	//if (strip->remap)
@@ -114,7 +115,7 @@ void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip)
 /* Remove the given NLA track from the set of NLA tracks, free the track's data,
  * and the track itself.
  */
-void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt)
+void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt, bool do_id_user)
 {
 	NlaStrip *strip, *stripn;
 
@@ -125,7 +126,7 @@ void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt)
 	/* free strips */
 	for (strip = nlt->strips.first; strip; strip = stripn) {
 		stripn = strip->next;
-		BKE_nlastrip_free(&nlt->strips, strip);
+		BKE_nlastrip_free(&nlt->strips, strip, do_id_user);
 	}
 
 	/* free NLA track itself now */
@@ -138,7 +139,7 @@ void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt)
 /* Free the elements of type NLA Tracks provided in the given list, but do not free
  * the list itself since that is not free-standing
  */
-void BKE_nla_tracks_free(ListBase *tracks)
+void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user)
 {
 	NlaTrack *nlt, *nltn;
 
@@ -149,7 +150,7 @@ void BKE_nla_tracks_free(ListBase *tracks)
 	/* free tracks one by one */
 	for (nlt = tracks->first; nlt; nlt = nltn) {
 		nltn = nlt->next;
-		BKE_nlatrack_free(tracks, nlt);
+		BKE_nlatrack_free(tracks, nlt, do_id_user);
 	}
 
 	/* clear the list's pointers to be safe */
@@ -752,7 +753,7 @@ void BKE_nlastrips_clear_metastrip(ListBase *strips, NlaStrip *strip)
 	}
 
 	/* free the meta-strip now */
-	BKE_nlastrip_free(strips, strip);
+	BKE_nlastrip_free(strips, strip, true);
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips

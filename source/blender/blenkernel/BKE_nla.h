@@ -47,9 +47,9 @@ struct PropertyRNA;
 /* ----------------------------- */
 /* Data Management */
 
-void BKE_nlastrip_free(ListBase *strips, struct NlaStrip *strip);
-void BKE_nlatrack_free(ListBase *tracks, struct NlaTrack *nlt);
-void BKE_nla_tracks_free(ListBase *tracks);
+void BKE_nlastrip_free(ListBase *strips, struct NlaStrip *strip, bool do_id_user);
+void BKE_nlatrack_free(ListBase *tracks, struct NlaTrack *nlt, bool do_id_user);
+void BKE_nla_tracks_free(ListBase *tracks, bool do_id_user);
 
 struct NlaStrip *BKE_nlastrip_copy(struct Main *bmain, struct NlaStrip *strip, const bool use_same_action);
 struct NlaTrack *BKE_nlatrack_copy(struct Main *bmain, struct NlaTrack *nlt, const bool use_same_actions);

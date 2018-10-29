@@ -536,7 +536,7 @@ static void rna_NlaTrack_remove(AnimData *adt, bContext *C, ReportList *reports,
 		return;
 	}
 
-	BKE_nlatrack_free(&adt->nla_tracks, track);
+	BKE_nlatrack_free(&adt->nla_tracks, track, true);
 	RNA_POINTER_INVALIDATE(track_ptr);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
