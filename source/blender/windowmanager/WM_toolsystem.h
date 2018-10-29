@@ -106,6 +106,8 @@ void WM_toolsystem_ref_properties_ensure_ex(
 void WM_toolsystem_ref_properties_init_for_keymap(
         struct bToolRef *tref, struct PointerRNA *dst_ptr, struct PointerRNA *src_ptr, struct wmOperatorType *ot);
 
+void WM_toolsystem_refresh_active(struct bContext *C);
+
 void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace, struct ViewLayer *view_layer, struct ScrArea *sa);
 void WM_toolsystem_refresh_screen_all(struct Main *bmain);
 

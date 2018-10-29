@@ -484,6 +484,50 @@ bool WM_toolsystem_key_from_context(
 	return false;
 }
 
+/**
+ * Use to update the active tool (shown in the top bar) in the least disruptive way.
+ *
+ * This is a little involved since there may be multiple valid active tools depending on the mode and space type.
+ *
+ * Used when undoing since the active mode may have changed.
+ */
+void WM_toolsystem_refresh_active(bContext *C)
+{
+	Main *bmain = CTX_data_main(C);
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			bScreen *screen = WM_window_get_active_screen(win);
+			ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+			int mode_other = 0;
+			enum { UNSET = -1, CHANGE = 0, MATCH = 1 } mode_match = UNSET;
+			/* Could skip loop for modes that don't depend on space type. */
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				/* Don't change the space type of the active tool, only update it's mode. */
+				if (sa->spacetype == workspace->tools_space_type) {
+					const int mode = WM_toolsystem_mode_from_spacetype(view_layer, sa, sa->spacetype);
+					if (workspace->tools_mode == mode) {
+						mode_match = MATCH;
+						break;
+					}
+					else if (mode_match == -1) {
+						mode_match = CHANGE;
+						mode_other = mode;
+					}
+				}
+			}
+
+			if (mode_match == CHANGE) {
+				const bToolKey tkey = {
+					.space_type = workspace->tools_space_type,
+					.mode = mode_other,
+				};
+				toolsystem_reinit_ensure_toolref(C, workspace, &tkey, NULL);
+			}
+		}
+	}
+}
+
 void WM_toolsystem_refresh_screen_area(WorkSpace *workspace, ViewLayer *view_layer, ScrArea *sa)
 {
 	sa->runtime.tool = NULL;

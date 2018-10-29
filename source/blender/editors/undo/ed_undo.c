@@ -214,6 +214,8 @@ static int ed_undo_step(bContext *C, int step, const char *undoname, ReportList 
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
 	WM_event_add_notifier(C, NC_WM | ND_UNDO, NULL);
 
+	WM_toolsystem_refresh_active(C);
+
 	Main *bmain = CTX_data_main(C);
 	WM_toolsystem_refresh_screen_all(bmain);
 
