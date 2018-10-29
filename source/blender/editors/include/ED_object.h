@@ -217,6 +217,7 @@ bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, eObjectMode mode, struct ReportList *reports);
 void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
 void ED_object_mode_set(struct bContext *C, eObjectMode mode);
+void ED_object_mode_exit(struct bContext *C);
 
 bool ED_object_mode_generic_enter(
         struct bContext *C,
@@ -228,10 +229,6 @@ void ED_object_mode_generic_exit(
 bool ED_object_mode_generic_has_data(
         struct Depsgraph *depsgraph,
         struct Object *ob);
-
-bool ED_object_mode_generic_exists(
-        struct wmWindowManager *wm, struct Object *ob,
-        eObjectMode object_mode);
 
 /* object_modifier.c */
 enum {

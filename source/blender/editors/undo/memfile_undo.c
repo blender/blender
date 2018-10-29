@@ -83,7 +83,7 @@ static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
 {
 	/* Loading the content will correctly switch into compatible non-object modes. */
-	ED_object_mode_set(C, OB_MODE_OBJECT);
+	ED_object_mode_exit(C);
 
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 	BKE_memfile_undo_decode(us->data, C);
