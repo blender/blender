@@ -2497,20 +2497,29 @@ BoundBox *BKE_object_boundbox_get(Object *ob)
 {
 	BoundBox *bb = NULL;
 
-	if (ob->type == OB_MESH) {
-		bb = BKE_mesh_boundbox_get(ob);
-	}
-	else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-		bb = BKE_curve_boundbox_get(ob);
-	}
-	else if (ob->type == OB_MBALL) {
-		bb = BKE_mball_boundbox_get(ob);
-	}
-	else if (ob->type == OB_LATTICE) {
-		bb = BKE_lattice_boundbox_get(ob);
-	}
-	else if (ob->type == OB_ARMATURE) {
-		bb = BKE_armature_boundbox_get(ob);
+	switch (ob->type) {
+		case OB_MESH:
+			bb = BKE_mesh_boundbox_get(ob);
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+		case OB_FONT:
+			bb = BKE_curve_boundbox_get(ob);
+			break;
+		case OB_MBALL:
+			bb = BKE_mball_boundbox_get(ob);
+			break;
+		case OB_LATTICE:
+			bb = BKE_lattice_boundbox_get(ob);
+			break;
+		case OB_ARMATURE:
+			bb = BKE_armature_boundbox_get(ob);
+			break;
+		case OB_GPENCIL:
+			bb = BKE_gpencil_boundbox_get(ob);
+			break;
+		default:
+			break;
 	}
 	return bb;
 }
