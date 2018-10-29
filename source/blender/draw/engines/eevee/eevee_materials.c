@@ -385,7 +385,7 @@ static void add_standard_uniforms(
 		DRW_shgroup_uniform_texture_ref(shgrp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
 		DRW_shgroup_uniform_texture_ref(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
 	}
-	if ((use_diffuse || use_glossy) && !use_refract) {
+	if ((use_diffuse || use_glossy) && !use_ssrefraction) {
 		if ((vedata->stl->effects->enabled_effects & EFFECT_GTAO) != 0) {
 			DRW_shgroup_uniform_texture_ref(shgrp, "horizonBuffer", &vedata->stl->effects->gtao_horizons);
 		}
