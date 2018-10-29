@@ -523,6 +523,9 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             sub.active = bool(md.vertex_group)
             sub.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
 
+        col = layout.column()
+        col.prop(md, "threshold")
+
     def MESH_DEFORM(self, layout, ob, md):
         split = layout.split()
 
