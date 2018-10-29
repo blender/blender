@@ -618,10 +618,10 @@ static void pose_slide_apply(bContext *C, tPoseSlideOp *pso)
 
 			/* apply NLA mapping corrections so the frame lookups work */
 			ob_data->prevFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
-			                                              ob_data->prevFrameF,
+			                                              pso->prevFrame,
 			                                              NLATIME_CONVERT_UNMAP);
 			ob_data->nextFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
-			                                              ob_data->nextFrameF,
+			                                              pso->nextFrame,
 			                                              NLATIME_CONVERT_UNMAP);
 		}
 	}
