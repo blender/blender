@@ -80,6 +80,7 @@ struct OperationDepsNode : public DepsNode {
 
 	/* Identifier for the operation being performed. */
 	eDepsOperation_Code opcode;
+	int name_tag;
 
 	/* (eDepsOperation_Flag) extra settings affecting evaluation. */
 	int flag;

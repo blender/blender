@@ -172,9 +172,9 @@ OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 		node = (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
 	}
 	else {
-		BLI_assert(key.name_tag == -1);
 		foreach (OperationDepsNode *op_node, operations) {
 			if (op_node->opcode == key.opcode &&
+			    op_node->name_tag == key.name_tag &&
 			    STREQ(op_node->name, key.name))
 			{
 				node = op_node;
@@ -253,6 +253,7 @@ OperationDepsNode *ComponentDepsNode::add_operation(const DepsEvalOperationCb& o
 	op_node->evaluate = op;
 	op_node->opcode = opcode;
 	op_node->name = name;
+	op_node->name_tag = name_tag;
 
 	return op_node;
 }

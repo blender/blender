@@ -245,6 +245,7 @@ protected:
 		eDepsNode_Type component_type;
 		eDepsOperation_Code opcode;
 		const char *name;
+		int name_tag;
 	};
 	vector<SavedEntryTag> saved_entry_tags_;
 
