@@ -4614,12 +4614,6 @@ static void SCREEN_OT_region_blend(wmOperatorType *ot)
 /** \name Space Context Cycle Operator
  * \{ */
 
-/* SCREEN_OT_space_context_cycle direction */
-enum {
-	SPACE_CONTEXT_CYCLE_PREV,
-	SPACE_CONTEXT_CYCLE_NEXT,
-};
-
 static const EnumPropertyItem space_context_cycle_direction[] = {
 	{SPACE_CONTEXT_CYCLE_PREV, "PREV", 0, "Previous", ""},
 	{SPACE_CONTEXT_CYCLE_NEXT, "NEXT", 0, "Next", ""},

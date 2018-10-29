@@ -351,8 +351,14 @@ static void buttons_operatortypes(void)
 static void buttons_keymap(struct wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_ensure(keyconf, "Property Editor", SPACE_BUTS, 0);
+	wmKeyMapItem *kmi;
 
 	WM_keymap_add_item(keymap, "BUTTONS_OT_context_menu", RIGHTMOUSE, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_PREV);
+	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_space_context_cycle", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "direction", SPACE_CONTEXT_CYCLE_NEXT);
 }
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -410,7 +416,11 @@ static void buttons_header_region_message_subscribe(
 
 static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *ar)
 {
+	wmKeyMap *keymap = WM_keymap_ensure(wm->defaultconf, "Property Editor", SPACE_BUTS, 0);
+	WM_event_add_keymap_handler(&ar->handlers, keymap);
+
 	ar->flag |= RGN_FLAG_PREFSIZE_OR_HIDDEN;
+
 	ED_region_panels_init(wm, ar);
 	ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
 }

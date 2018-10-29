@@ -364,4 +364,10 @@ void ED_area_type_hud_ensure(struct bContext *C, struct ScrArea *sa);
 #define ED_KEYMAP_GPENCIL   32
 #define ED_KEYMAP_HEADER    64
 
+/* SCREEN_OT_space_context_cycle direction */
+enum {
+	SPACE_CONTEXT_CYCLE_PREV,
+	SPACE_CONTEXT_CYCLE_NEXT,
+};
+
 #endif /* __ED_SCREEN_H__ */
