@@ -45,6 +45,9 @@ struct bNodeTree;
 struct uiLayout;
 struct wmOperatorType;
 
+/* Display the context path in the header instead of the main window */
+#define USE_HEADER_CONTEXT_PATH
+
 /* context data */
 
 typedef struct ButsContextPath {

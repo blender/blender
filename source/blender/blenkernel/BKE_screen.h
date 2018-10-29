@@ -266,6 +266,7 @@ typedef struct HeaderType {
 	int space_type;
 	int region_type;
 
+	bool (*poll)(const struct bContext *C, struct HeaderType *ht);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Header *header);
 

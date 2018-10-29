@@ -358,6 +358,13 @@ static void buttons_keymap(struct wmKeyConfig *keyconf)
 /* add handlers, stuff you only do once or on area/region changes */
 static void buttons_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 {
+#ifdef USE_HEADER_CONTEXT_PATH
+	/* Reinsert context buttons header-type at the end of the list so it's drawn last. */
+	HeaderType *context_ht = BLI_findstring(&ar->type->headertypes, "BUTTONS_HT_context", offsetof(HeaderType, idname));
+	BLI_remlink(&ar->type->headertypes, context_ht);
+	BLI_addtail(&ar->type->headertypes, context_ht);
+#endif
+
 	ED_region_header_init(ar);
 }
 
@@ -395,6 +402,10 @@ static void buttons_header_region_message_subscribe(
 	if (sbuts->mainb == BCONTEXT_TOOL) {
 		WM_msg_subscribe_rna_anon_prop(mbus, WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 	}
+
+#ifdef USE_HEADER_CONTEXT_PATH
+	WM_msg_subscribe_rna_anon_prop(mbus, SpaceProperties, context, &msg_sub_value_region_tag_redraw);
+#endif
 }
 
 static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *ar)
@@ -687,9 +698,10 @@ void ED_spacetype_buttons(void)
 	art->draw = ED_region_panels_draw;
 	art->listener = buttons_main_region_listener;
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
-	BLI_addhead(&st->regiontypes, art);
-
+#ifndef USE_HEADER_CONTEXT_PATH
 	buttons_context_register(art);
+#endif
+	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype buttons region");
@@ -700,6 +712,9 @@ void ED_spacetype_buttons(void)
 	art->init = buttons_header_region_init;
 	art->draw = buttons_header_region_draw;
 	art->message_subscribe = buttons_header_region_message_subscribe;
+#ifdef USE_HEADER_CONTEXT_PATH
+	buttons_context_register(art);
+#endif
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: navigation bar */

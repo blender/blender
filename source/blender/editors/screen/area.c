@@ -2367,6 +2367,10 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 
 	/* draw all headers types */
 	for (ht = ar->type->headertypes.first; ht; ht = ht->next) {
+		if (ht->poll && !ht->poll(C, ht)) {
+			continue;
+		}
+
 		block = UI_block_begin(C, ar, ht->idname, UI_EMBOSS);
 		layout = UI_block_layout(block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER, xco, yco, buttony, 1, 0, style);
 
@@ -2378,6 +2382,9 @@ void ED_region_header_layout(const bContext *C, ARegion *ar)
 			header.type = ht;
 			header.layout = layout;
 			ht->draw(C, &header);
+			if (ht->next) {
+				uiItemS(layout);
+			}
 
 			/* for view2d */
 			xco = uiLayoutGetWidth(layout);
