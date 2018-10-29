@@ -82,8 +82,8 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 {
 	/* For all startup.blend files. */
 	for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
-		for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-			for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
+		for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 				/* Remove all stored panels, we want to use defaults (order, open/closed) as defined by UI code here! */
 				BKE_area_region_panels_free(&ar->panels);
 
@@ -91,6 +91,16 @@ void BLO_update_defaults_startup_blend(Main *bmain, const char *app_template)
 				 * we don't want them to have odd zoom-level or scrolling set, see: T47047 */
 				if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS)) {
 					ar->v2d.flag &= ~V2D_IS_INITIALISED;
+				}
+			}
+
+			for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+				switch (sl->spacetype) {
+					case SPACE_VIEW3D:
+					{
+						View3D *v3d = (View3D *)sl;
+						v3d->overlay.weight_paint_mode_opacity = 1.0f;
+					}
 				}
 			}
 		}

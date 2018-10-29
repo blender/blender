@@ -1786,9 +1786,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 						if (sl->spacetype == SPACE_VIEW3D) {
 							View3D *v3d = (View3D *)sl;
 							float alpha = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE ? 0.0f : 0.8f;
+							float alpha_full = v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE ? 0.0f : 1.0f;
 							v3d->overlay.texture_paint_mode_opacity = alpha;
 							v3d->overlay.vertex_paint_mode_opacity = alpha;
-							v3d->overlay.weight_paint_mode_opacity = alpha;
+							v3d->overlay.weight_paint_mode_opacity = alpha_full;
 						}
 					}
 				}
