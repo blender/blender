@@ -751,7 +751,7 @@ static void shadow_cube_random_position_set(
 #ifndef DEBUG_SHADOW_DISTRIBUTION
 	int i = sample_ofs;
 #else
-	for (int i = 1; i <= sample_ofs; ++i) {
+	for (int i = 0; i <= sample_ofs; ++i) {
 #endif
 		switch (la->type) {
 			case LA_AREA:
@@ -811,7 +811,7 @@ static void shadow_cascade_random_matrix_set(float mat[4][4], float radius, int 
 #ifndef DEBUG_SHADOW_DISTRIBUTION
 	int i = sample_ofs;
 #else
-	for (int i = 1; i <= sample_ofs; ++i) {
+	for (int i = 0; i <= sample_ofs; ++i) {
 #endif
 		sample_ellipse(i, mat[0], mat[1], radius, radius, jitter);
 #ifdef DEBUG_SHADOW_DISTRIBUTION
@@ -1340,7 +1340,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		float (*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
 		float (*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
 
-		eevee_shadow_cascade_setup(ob, linfo, led, &saved_mats, near, far, effects->taa_current_sample);
+		eevee_shadow_cascade_setup(ob, linfo, led, &saved_mats, near, far, effects->taa_current_sample - 1);
 
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
