@@ -813,6 +813,7 @@ void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *a
 
 /* interface_align.c */
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
+int  ui_but_align_opposite_to_area_align_get(const ARegion *ar) ATTR_WARN_UNUSED_RESULT;
 void ui_block_align_calc(uiBlock *block, const ARegion *region);
 
 /* interface_anim.c */

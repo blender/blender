@@ -1206,6 +1206,7 @@ void uiItemMenuEnumO_ptr(uiLayout *layout, struct bContext *C, struct wmOperator
 void uiItemMenuEnumO(uiLayout *layout, struct bContext *C, const char *opname, const char *propname, const char *name, int icon);
 void uiItemMenuEnumR_prop(uiLayout *layout, struct PointerRNA *ptr, PropertyRNA *prop, const char *name, int icon);
 void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *name, int icon);
+void uiItemTabsEnumR_prop(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, PropertyRNA *prop, bool icon_only);
 
 /* UI Operators */
 typedef struct uiDragColorHandle {

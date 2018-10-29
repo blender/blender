@@ -1582,17 +1582,8 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 				break;
 			case UI_BTYPE_ROW:
 			case UI_BTYPE_LISTROW:
-				UI_GET_BUT_VALUE_INIT(but, *value);
-				/* support for rna enum buts */
-				if (but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
-					if ((int)*value & (int)but->hardmax) is_push = true;
-				}
-				else {
-					if (*value == (double)but->hardmax) is_push = true;
-				}
-				break;
 			case UI_BTYPE_TAB:
-				if (but->rnaprop && but->custom_data) {
+				if ((but->type == UI_BTYPE_TAB) && but->rnaprop && but->custom_data) {
 					/* uiBut.custom_data points to data this tab represents (e.g. workspace).
 					 * uiBut.rnapoin/prop store an active value (e.g. active workspace). */
 					if (RNA_property_type(but->rnaprop) == PROP_POINTER) {
@@ -1601,6 +1592,19 @@ int ui_but_is_pushed_ex(uiBut *but, double *value)
 							is_push = true;
 						}
 					}
+					break;
+				}
+				else if (but->optype) {
+					break;
+				}
+
+				UI_GET_BUT_VALUE_INIT(but, *value);
+				/* support for rna enum buts */
+				if (but->rnaprop && (RNA_property_flag(but->rnaprop) & PROP_ENUM_FLAG)) {
+					if ((int)*value & (int)but->hardmax) is_push = true;
+				}
+				else {
+					if (*value == (double)but->hardmax) is_push = true;
 				}
 				break;
 			default:

@@ -140,6 +140,25 @@ static void rna_uiItemMenuEnumR(
 	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
 }
 
+static void rna_uiItemTabsEnumR(
+        uiLayout *layout, bContext *C,
+        struct PointerRNA *ptr, const char *propname,
+        bool icon_only)
+{
+	PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+
+	if (!prop) {
+		RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+	if (RNA_property_type(prop) != PROP_ENUM) {
+		RNA_warning("property is not an enum: %s.%s", RNA_struct_identifier(ptr->type), propname);
+		return;
+	}
+
+	uiItemTabsEnumR_prop(layout, C, ptr, prop, icon_only);
+}
+
 static void rna_uiItemEnumR_string(
         uiLayout *layout, struct PointerRNA *ptr, const char *propname, const char *value,
         const char *name, const char *text_ctxt, bool translate, int icon)
@@ -616,6 +635,11 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "prop_menu_enum", "rna_uiItemMenuEnumR");
 	api_ui_item_rna_common(func);
 	api_ui_item_common(func);
+
+	func = RNA_def_function(srna, "prop_tabs_enum", "rna_uiItemTabsEnumR");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	RNA_def_boolean(func, "icon_only", false, "", "Draw only icons in tabs, no text");
 
 	func = RNA_def_function(srna, "prop_enum", "rna_uiItemEnumR_string");
 	api_ui_item_rna_common(func);

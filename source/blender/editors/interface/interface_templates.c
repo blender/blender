@@ -847,7 +847,7 @@ static void template_ID_tabs(
 	const PointerRNA active_ptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	MenuType *mt = WM_menutype_find(menu, false);
 
-	const int but_align = (region->alignment == RGN_ALIGN_TOP) ? UI_BUT_ALIGN_DOWN : UI_BUT_ALIGN_TOP;
+	const int but_align = ui_but_align_opposite_to_area_align_get(region);
 	const int but_height = UI_UNIT_Y * 1.1;
 
 	uiBlock *block = uiLayoutGetBlock(layout);

@@ -639,9 +639,9 @@ static void ui_item_enum_expand_handle(bContext *C, void *arg1, void *arg2)
 		RNA_property_enum_set(&but->rnapoin, but->rnaprop, current_value);
 	}
 }
-static void ui_item_enum_expand(
+static void ui_item_enum_expand_exec(
         uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop,
-        const char *uiname, int h, bool icon_only)
+        const char *uiname, int h, int but_type, bool icon_only)
 {
 	/* XXX The way this function currently handles uiname parameter is insane and inconsistent with general UI API:
 	 *     * uiname is the *enum property* label.
@@ -658,6 +658,8 @@ static void ui_item_enum_expand(
 	int itemw, icon, value;
 	bool free;
 	bool radial = (layout->root->type == UI_LAYOUT_PIEMENU);
+
+	BLI_assert(RNA_property_type(prop) == PROP_ENUM);
 
 	if (radial)
 		RNA_property_enum_items_gettexted_all(block->evil_C, ptr, prop, &item_array, NULL, &free);
@@ -704,11 +706,11 @@ static void ui_item_enum_expand(
 		itemw = ui_text_icon_width(block->curlayout, icon_only ? "" : name, icon, 0);
 
 		if (icon && name[0] && !icon_only)
-			but = uiDefIconTextButR_prop(block, UI_BTYPE_ROW, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefIconTextButR_prop(block, but_type, 0, icon, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else if (icon)
-			but = uiDefIconButR_prop(block, UI_BTYPE_ROW, 0, icon, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefIconButR_prop(block, but_type, 0, icon, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 		else
-			but = uiDefButR_prop(block, UI_BTYPE_ROW, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
+			but = uiDefButR_prop(block, but_type, 0, name, 0, 0, itemw, h, ptr, prop, -1, 0, value, -1, -1, NULL);
 
 		if (RNA_property_flag(prop) & PROP_ENUM_FLAG) {
 			UI_but_func_set(but, ui_item_enum_expand_handle, but, POINTER_FROM_INT(value));
@@ -721,6 +723,24 @@ static void ui_item_enum_expand(
 
 	if (free) {
 		MEM_freeN((void *)item_array);
+	}
+}
+static void ui_item_enum_expand(
+        uiLayout *layout, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop,
+        const char *uiname, int h, bool icon_only)
+{
+	ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_ROW, icon_only);
+}
+static void ui_item_enum_expand_tabs(
+        uiLayout *layout, bContext *C, uiBlock *block, PointerRNA *ptr, PropertyRNA *prop,
+        const char *uiname, int h, bool icon_only)
+{
+	uiBut *last = block->buttons.last;
+
+	ui_item_enum_expand_exec(layout, block, ptr, prop, uiname, h, UI_BTYPE_TAB, icon_only);
+	BLI_assert(last != block->buttons.last);
+	for (uiBut *tab = last ? last->next : block->buttons.first; tab; tab = tab->next) {
+		UI_but_drawflag_enable(tab, ui_but_align_opposite_to_area_align_get(CTX_wm_region(C)));
 	}
 }
 
@@ -2548,6 +2568,14 @@ void uiItemMenuEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propn
 	}
 
 	uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
+}
+
+void uiItemTabsEnumR_prop(uiLayout *layout, bContext *C, PointerRNA *ptr, PropertyRNA *prop, bool icon_only)
+{
+	uiBlock *block = layout->root->block;
+
+	UI_block_layout_set_current(block, layout);
+	ui_item_enum_expand_tabs(layout, C, block, ptr, prop, NULL, UI_UNIT_Y, icon_only);
 }
 
 /**************************** Layout Items ***************************/
