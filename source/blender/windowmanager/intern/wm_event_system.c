@@ -314,27 +314,24 @@ void wm_event_do_depsgraph(bContext *C)
 		Scene *scene = WM_window_get_active_scene(win);
 		ViewLayer *view_layer = WM_window_get_active_view_layer(win);
 
-		/* XXX make lock in future, or separated derivedmesh users in scene */
-		if (G.is_rendering == false) {
-			/* depsgraph & animation: update tagged datablocks */
-			Main *bmain = CTX_data_main(C);
+		/* depsgraph & animation: update tagged datablocks */
+		Main *bmain = CTX_data_main(C);
 
-			/* copied to set's in scene_update_tagged_recursive() */
-			scene->customdata_mask = win_combine_v3d_datamask;
+		/* copied to set's in scene_update_tagged_recursive() */
+		scene->customdata_mask = win_combine_v3d_datamask;
 
-			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
-			scene->customdata_mask |= scene->customdata_mask_modal;
+		/* XXX, hack so operators can enforce datamasks [#26482], gl render */
+		scene->customdata_mask |= scene->customdata_mask_modal;
 
-			/* TODO(sergey): For now all dependency graphs which are evaluated from
-			 * workspace are considered active. This will work all fine with "locked"
-			 * view layer and time across windows. This is to be granted separately,
-			 * and for until then we have to accept ambiguities when object is shared
-			 * across visible view layers and has overrides on it.
-			 */
-			Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-			DEG_make_active(depsgraph);
-			BKE_scene_graph_update_tagged(depsgraph, bmain);
-		}
+		/* TODO(sergey): For now all dependency graphs which are evaluated from
+			* workspace are considered active. This will work all fine with "locked"
+			* view layer and time across windows. This is to be granted separately,
+			* and for until then we have to accept ambiguities when object is shared
+			* across visible view layers and has overrides on it.
+			*/
+		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+		DEG_make_active(depsgraph);
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
 	}
 }
 
