@@ -1686,7 +1686,14 @@ static void animsys_write_orig_anim_rna(
         FCurve *fcu,
         float value)
 {
-	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed. */
+	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed.
+	 *
+	 * NOTE: It is possible to have animation data on NLA strip, see T57360.
+	 * TODO(sergey): Find solution for those cases.
+	 */
+	if (ptr->id.data == NULL) {
+		return;
+	}
 	PointerRNA orig_ptr = *ptr;
 	orig_ptr.id.data = ((ID *)orig_ptr.id.data)->orig_id;
 	orig_ptr.data = orig_ptr.id.data;
