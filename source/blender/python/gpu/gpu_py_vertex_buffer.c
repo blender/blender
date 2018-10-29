@@ -222,43 +222,23 @@ static int bpygpu_attr_fill(GPUVertBuf *buf, int id, PyObject *py_seq_data, cons
 
 static PyObject *bpygpu_VertBuf_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
 {
-	const char *error_prefix = "GPUVertBuf.__new__";
-
 	struct {
 		PyObject *py_fmt;
 		uint len;
 	} params;
 
 	static const char *_keywords[] = {"format", "len", NULL};
-	static _PyArg_Parser _parser = {"OI:GPUVertBuf.__new__", _keywords, 0};
+	static _PyArg_Parser _parser = {"O!I:GPUVertBuf.__new__", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
 	        args, kwds, &_parser,
-	        &params.py_fmt,
+	        &BPyGPUVertFormat_Type, &params.py_fmt,
 	        &params.len))
 	{
 		return NULL;
 	}
 
-	GPUVertFormat *fmt, fmt_stack;
-
-	if (BPyGPUVertFormat_Check(params.py_fmt)) {
-		fmt = &((BPyGPUVertFormat *)params.py_fmt)->fmt;
-	}
-	else if (PyList_Check(params.py_fmt)) {
-		fmt = &fmt_stack;
-		GPU_vertformat_clear(fmt);
-		if (!bpygpu_vertformat_from_PyList(
-		        (PyListObject *)params.py_fmt, error_prefix, fmt))
-		{
-			return NULL;
-		}
-	}
-	else {
-		PyErr_SetString(PyExc_TypeError, "format not understood");
-		return NULL;
-	}
-
-	struct GPUVertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
+	const GPUVertFormat *fmt = &((BPyGPUVertFormat *)params.py_fmt)->fmt;
+	GPUVertBuf *vbo = GPU_vertbuf_create_with_format(fmt);
 
 	GPU_vertbuf_data_alloc(vbo, params.len);
 

@@ -37,7 +37,5 @@ typedef struct BPyGPUVertFormat {
 } BPyGPUVertFormat;
 
 PyObject *BPyGPUVertFormat_CreatePyObject(struct GPUVertFormat *fmt);
-bool bpygpu_vertformat_from_PyList(
-        const PyListObject *list, const char *error_prefix, GPUVertFormat *r_fmt);
 
 #endif /* __GPU_PY_VERTEX_FORMAT_H__ */
