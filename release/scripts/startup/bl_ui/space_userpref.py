@@ -1506,7 +1506,7 @@ class StudioLightPanelMixin():
         userpref = context.user_preferences
         lights = self._get_lights(userpref)
         if lights:
-            flow = layout.column_flow(4)
+            flow = layout.column_flow(columns=4)
             for studio_light in lights:
                 self.draw_studio_light(flow, studio_light)
         else:
@@ -1517,7 +1517,7 @@ class StudioLightPanelMixin():
         row = box.row()
 
         row.template_icon(layout.icon(studio_light), scale=6.0)
-        op = row.operator('wm.studiolight_uninstall', text="", icon='ZOOMOUT')
+        op = row.operator('wm.studiolight_uninstall', text="", icon='REMOVE')
         op.index = studio_light.index
 
         box.label(text=studio_light.name)
