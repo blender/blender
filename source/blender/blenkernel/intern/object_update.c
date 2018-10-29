@@ -170,8 +170,7 @@ void BKE_object_handle_data_update(
 	Key *key;
 	float ctime = BKE_scene_frame_get(scene);
 
-	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL)
-		printf("recalcdata %s\n", ob->id.name + 2);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
 	/* TODO(sergey): Only used by legacy depsgraph. */
 	if (adt) {
