@@ -2985,7 +2985,11 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 
 		case UI_BTYPE_ICON_TOGGLE:
 		case UI_BTYPE_ICON_TOGGLE_N:
-			if (!but->rnaprop || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
+			if ((but->rnaprop == NULL) || (RNA_property_flag(but->rnaprop) & PROP_ICONS_CONSECUTIVE)) {
+				if (but->rnaprop && RNA_property_flag(but->rnaprop) & PROP_ICONS_REVERSE) {
+					but->drawflag |= UI_BUT_ICON_REVERSE;
+				}
+
 				but->iconadd = (but->flag & UI_SELECT) ? 1 : 0;
 			}
 			break;

@@ -184,6 +184,7 @@ typedef enum PropertyFlag {
 
 	/* icon */
 	PROP_ICONS_CONSECUTIVE       = (1 << 12),
+	PROP_ICONS_REVERSE           = (1 << 8),
 
 	/* hidden in  the user interface */
 	PROP_HIDDEN                  = (1 << 19),
