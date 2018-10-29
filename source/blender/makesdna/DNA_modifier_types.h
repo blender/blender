@@ -219,8 +219,9 @@ typedef struct MaskModifierData {
 	struct Object *ob_arm;  /* armature to use to in place of hardcoded vgroup */
 	char vgroup[64];        /* name of vertex group to use to mask, MAX_VGROUP_NAME */
 
-	int mode;               /* using armature or hardcoded vgroup */
-	int flag;               /* flags for various things */
+	short mode;               /* using armature or hardcoded vgroup */
+	short flag;               /* flags for various things */
+	float threshold;
 } MaskModifierData;
 
 /* Mask Modifier -> mode */

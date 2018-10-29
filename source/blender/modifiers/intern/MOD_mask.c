@@ -183,7 +183,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 			for (j = 0; j < dv->totweight; j++, dw++) {
 				if (dw->def_nr < defbase_tot) {
 					if (bone_select_array[dw->def_nr]) {
-						if (dw->weight != 0.0f) {
+						if (dw->weight > mmd->threshold) {
 							found = true;
 							break;
 						}
@@ -216,7 +216,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
-			const bool found = defvert_find_weight(dv, defgrp_index) != 0.0f;
+			const bool found = defvert_find_weight(dv, defgrp_index) > mmd->threshold;
 			if (found_test != found) {
 				continue;
 			}

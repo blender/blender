@@ -3336,6 +3336,13 @@ static void rna_def_modifier_mask(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_MASK_INV);
 	RNA_def_property_ui_text(prop, "Invert", "Use vertices that are not part of region defined");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "threshold");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_range(prop, 0, 1, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Threshold", "Weights over this threshold remain");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_simpledeform(BlenderRNA *brna)
