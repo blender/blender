@@ -1341,31 +1341,31 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         )
         cls.use_pass_crypto_object = BoolProperty(
                 name="Cryptomatte Object",
-                description="Cryptomatte Object pass",
+                description="Render cryptomatte object pass, for isolating objects in compositing",
                 default=False,
                 update=update_render_passes,
                 )
         cls.use_pass_crypto_material = BoolProperty(
                 name="Cryptomatte Material",
-                description="Cryptomatte Material pass",
+                description="Render cryptomatte material pass, for isolating materials in compositing",
                 default=False,
                 update=update_render_passes,
                 )
         cls.use_pass_crypto_asset = BoolProperty(
                 name="Cryptomatte Asset",
-                description="Cryptomatte Asset pass",
+                description="Render cryptomatte asset pass, for isolating groups of objects with the same parent",
                 default=False,
                 update=update_render_passes,
                 )
         cls.pass_crypto_depth = IntProperty(
                 name="Cryptomatte Levels",
-                description="Describes how many unique IDs per pixel are written to Cryptomatte",
+                description="Sets how many unique objects can be distinguished per pixel",
                 default=6, min=2, max=16, step=2,
                 update=update_render_passes,
                 )
         cls.pass_crypto_accurate = BoolProperty(
                 name="Cryptomatte Accurate",
-                description="Gerenate a more accurate Cryptomatte pass, CPU only, may render slower and use more memory",
+                description="Gerenate a more accurate Cryptomatte pass. CPU only, may render slower and use more memory",
                 default=True,
                 update=update_render_passes,
                 )
