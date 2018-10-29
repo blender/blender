@@ -3411,7 +3411,7 @@ static void shrinkwrap_flush_tars(bConstraint *con, ListBase *list, bool no_copy
 }
 
 
-static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
+static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float UNUSED(ctime))
 {
 	bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *) con->data;
 
@@ -3423,7 +3423,7 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *depsgraph, bConstraint *con,
 		float track_no[3] = {0.0f, 0.0f, 0.0f};
 
 		SpaceTransform transform;
-		Mesh *target_eval = mesh_get_eval_final(depsgraph, DEG_get_input_scene(depsgraph), ct->tar, CD_MASK_BAREMESH);
+		Mesh *target_eval = ct->tar->runtime.mesh_eval;
 
 		copy_m4_m4(ct->matrix, cob->matrix);
 
@@ -4156,8 +4156,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 			if (data->depth_ob) {
 				Object *depth_ob = data->depth_ob;
-				Mesh *target_eval = mesh_get_eval_final(
-				                        depsgraph, DEG_get_input_scene(depsgraph), depth_ob, CD_MASK_BAREMESH);
+				Mesh *target_eval = depth_ob->runtime.mesh_eval;
 				if (target_eval) {
 					BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 					BVHTreeRayHit hit;
