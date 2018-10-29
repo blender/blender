@@ -764,9 +764,8 @@ void CURVE_OT_select_previous(wmOperatorType *ot)
 
 /***************** select more operator **********************/
 
-static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
+static void curve_select_more(Object *obedit)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp, *tempbp;
@@ -829,10 +828,20 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 		select_adjacent_cp(editnurb, 1, 0, SELECT);
 		select_adjacent_cp(editnurb, -1, 0, SELECT);
 	}
+}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
+static int curve_select_more_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		curve_select_more(obedit);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
@@ -844,7 +853,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 	ot->description = "Select control points directly linked to already selected ones";
 
 	/* api callbacks */
-	ot->exec = select_more_exec;
+	ot->exec = curve_select_more_exec;
 	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
@@ -854,9 +863,8 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 /******************** select less operator *****************/
 
 /* basic method: deselect if control point doesn't have all neighbors selected */
-static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
+static void curve_select_less(Object *obedit)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	BPoint *bp;
@@ -1017,11 +1025,20 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 	}
+}
 
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-	BKE_curve_nurb_vert_active_validate(obedit->data);
-
+static int curve_select_less_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		curve_select_less(obedit);
+		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
@@ -1033,7 +1050,7 @@ void CURVE_OT_select_less(wmOperatorType *ot)
 	ot->description = "Reduce current selection by deselecting boundary elements";
 
 	/* api callbacks */
-	ot->exec = select_less_exec;
+	ot->exec = curve_select_less_exec;
 	ot->poll = ED_operator_editsurfcurve;
 
 	/* flags */
