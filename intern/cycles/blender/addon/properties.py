@@ -1373,7 +1373,7 @@ class CyclesRenderLayerSettings(bpy.types.PropertyGroup):
         )
     pass_crypto_accurate: BoolProperty(
         name="Cryptomatte Accurate",
-        description="Gerenate a more accurate Cryptomatte pass. CPU only, may render slower and use more memory",
+        description="Generate a more accurate Cryptomatte pass. CPU only, may render slower and use more memory",
         default=True,
         update=update_render_passes,
         )
