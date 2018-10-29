@@ -829,10 +829,10 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, tPoseSlideOp *p
 			tPoseSlideObject *ob_data = &pso->ob_data_array[ob_index];
 			if (ob_data->valid) {
 				ob_data->prevFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
-				                                              ob_data->prevFrameF,
+				                                              pso->prevFrame,
 				                                              NLATIME_CONVERT_UNMAP);
 				ob_data->nextFrameF = BKE_nla_tweakedit_remap(ob_data->ob->adt,
-				                                              ob_data->nextFrameF,
+				                                              pso->nextFrame,
 				                                              NLATIME_CONVERT_UNMAP);
 			}
 		}
