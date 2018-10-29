@@ -64,7 +64,7 @@ typedef struct bToolRef_Runtime {
 	char data_block[64];
 
 	/** Use to infer primary operator to use when setting accelerator keys. */
-	char operator[64];
+	char op[64];
 
 	/** Index when a tool is a member of a group. */
 	int index;
