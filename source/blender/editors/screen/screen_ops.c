@@ -3585,6 +3585,7 @@ static int region_flip_exec(bContext *C, wmOperator *UNUSED(op))
 		ar->alignment = RGN_ALIGN_LEFT;
 
 	ED_area_tag_redraw(CTX_wm_area(C));
+	WM_event_add_mousemove(C);
 	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 
 	return OPERATOR_FINISHED;

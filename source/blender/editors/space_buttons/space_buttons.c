@@ -75,6 +75,13 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 	ar->regiontype = RGN_TYPE_HEADER;
 	ar->alignment = RGN_ALIGN_TOP;
 
+	/* navigation bar */
+	ar = MEM_callocN(sizeof(ARegion), "navigation bar for buts");
+
+	BLI_addtail(&sbuts->regionbase, ar);
+	ar->regiontype = RGN_TYPE_NAV_BAR;
+	ar->alignment = RGN_ALIGN_LEFT;
+
 #if 0
 	/* context region */
 	ar = MEM_callocN(sizeof(ARegion), "context region for buts");
@@ -390,6 +397,21 @@ static void buttons_header_region_message_subscribe(
 	}
 }
 
+static void buttons_navigation_bar_region_init(wmWindowManager *wm, ARegion *ar)
+{
+	ar->flag |= RGN_FLAG_PREFSIZE_OR_HIDDEN;
+	ED_region_panels_init(wm, ar);
+	ar->v2d.keepzoom |= V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y;
+}
+
+static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *ar)
+{
+	for (PanelType *pt = ar->type->paneltypes.first; pt; pt = pt->next) {
+		pt->flag |= PNL_LAYOUT_VERT_BAR;
+	}
+	ED_region_panels(C, ar);
+}
+
 /* draw a certain button set only if properties area is currently
  * showing that button set, to reduce unnecessary drawing. */
 static void buttons_area_redraw(ScrArea *sa, short buttons)
@@ -678,6 +700,15 @@ void ED_spacetype_buttons(void)
 	art->init = buttons_header_region_init;
 	art->draw = buttons_header_region_draw;
 	art->message_subscribe = buttons_header_region_message_subscribe;
+	BLI_addhead(&st->regiontypes, art);
+
+	/* regions: navigation bar */
+	art = MEM_callocN(sizeof(ARegionType), "spacetype nav buttons region");
+	art->regionid = RGN_TYPE_NAV_BAR;
+	art->prefsizex = AREAMINX - 3; /* XXX Works and looks best, should we update AREAMINX accordingly? */
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
+	art->init = buttons_navigation_bar_region_init;
+	art->draw = buttons_navigation_bar_region_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	BKE_spacetype_register(st);

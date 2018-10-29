@@ -420,6 +420,7 @@ enum {
 /* paneltype flag */
 #define PNL_DEFAULT_CLOSED		1
 #define PNL_NO_HEADER			2
+#define PNL_LAYOUT_VERT_BAR		4
 
 /* Fallback panel category (only for old scripts which need updating) */
 #define PNL_CATEGORY_FALLBACK "Misc"
@@ -473,6 +474,8 @@ enum {
 	RGN_TYPE_TOOL_PROPS = 6,
 	RGN_TYPE_PREVIEW = 7,
 	RGN_TYPE_HUD = 8,
+	/* Region to navigate the main region from (RGN_TYPE_WINDOW). */
+	RGN_TYPE_NAV_BAR = 9,
 };
 /* use for function args */
 #define RGN_TYPE_ANY -1
@@ -503,6 +506,8 @@ enum {
 	RGN_FLAG_DYNAMIC_SIZE       = (1 << 2),
 	/* Region data is NULL'd on read, never written. */
 	RGN_FLAG_TEMP_REGIONDATA    = (1 << 3),
+	/* The region must either use its prefsizex/y or be hidden. */
+	RGN_FLAG_PREFSIZE_OR_HIDDEN = (1 << 4),
 };
 
 /* region do_draw */

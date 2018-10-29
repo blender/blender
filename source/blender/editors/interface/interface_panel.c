@@ -134,7 +134,7 @@ static int panel_aligned(ScrArea *sa, ARegion *ar)
 		return BUT_VERTICAL;
 	else if (sa->spacetype == SPACE_IMAGE && ar->regiontype == RGN_TYPE_PREVIEW)
 		return BUT_VERTICAL;
-	else if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS, RGN_TYPE_HUD))
+	else if (ELEM(ar->regiontype, RGN_TYPE_UI, RGN_TYPE_TOOLS, RGN_TYPE_TOOL_PROPS, RGN_TYPE_HUD, RGN_TYPE_NAV_BAR))
 		return BUT_VERTICAL;
 
 	return 0;

@@ -4260,7 +4260,7 @@ uiLayout *UI_block_layout(uiBlock *block, int dir, int type, int x, int y, int s
 	root->opcontext = WM_OP_INVOKE_REGION_WIN;
 
 	layout = MEM_callocN(sizeof(uiLayout), "uiLayout");
-	layout->item.type = ITEM_LAYOUT_ROOT;
+	layout->item.type = (type == UI_LAYOUT_VERT_BAR) ? ITEM_LAYOUT_COLUMN : ITEM_LAYOUT_ROOT;
 
 	/* Only used when 'UI_ITEM_PROP_SEP' is set. */
 	layout->item.flag = UI_ITEM_PROP_DECORATE;

@@ -1159,7 +1159,11 @@ static void region_rect_recursive(ScrArea *sa, ARegion *ar, rcti *remainder, rct
 	int prefsizex = UI_DPI_FAC * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
 	int prefsizey;
 
-	if (ar->regiontype == RGN_TYPE_HEADER) {
+	if (ar->flag & RGN_FLAG_PREFSIZE_OR_HIDDEN) {
+		prefsizex = UI_DPI_FAC * ar->type->prefsizex;
+		prefsizey = UI_DPI_FAC * ar->type->prefsizey;
+	}
+	else if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
 	}
 	else if (ED_area_is_global(sa)) {
@@ -2020,14 +2024,21 @@ static void ed_panel_draw(
 		short panelContext;
 
 		/* panel context can either be toolbar region or normal panels region */
-		if (ar->regiontype == RGN_TYPE_TOOLS)
+		if (pt->flag & PNL_LAYOUT_VERT_BAR) {
+			panelContext = UI_LAYOUT_VERT_BAR;
+		}
+		else if (ar->regiontype == RGN_TYPE_TOOLS) {
 			panelContext = UI_LAYOUT_TOOLBAR;
-		else
+		}
+		else {
 			panelContext = UI_LAYOUT_PANEL;
+		}
 
 		panel->layout = UI_block_layout(
 		        block, UI_LAYOUT_VERTICAL, panelContext,
-		        style->panelspace, 0, w - 2 * style->panelspace, em, 0, style);
+		        (pt->flag & PNL_LAYOUT_VERT_BAR) ? 0 : style->panelspace, 0,
+		        (pt->flag & PNL_LAYOUT_VERT_BAR) ? 0 : w - 2 * style->panelspace,
+		        em, 0, style);
 
 		pt->draw(C, panel);
 

@@ -915,6 +915,7 @@ void UI_exit(void);
 #define UI_LAYOUT_MENU          2
 #define UI_LAYOUT_TOOLBAR       3
 #define UI_LAYOUT_PIEMENU       4
+#define UI_LAYOUT_VERT_BAR      5
 
 #define UI_UNIT_X               ((void)0, U.widget_unit)
 #define UI_UNIT_Y               ((void)0, U.widget_unit)

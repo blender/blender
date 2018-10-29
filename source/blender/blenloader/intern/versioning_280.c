@@ -2179,4 +2179,30 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(bmain, 280, 29)) {
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_BUTS) {
+						ListBase *regionbase = (sl == sa->spacedata.first) ? &sa->regionbase : &sl->regionbase;
+						ARegion *ar = MEM_callocN(sizeof(ARegion), "navigation bar for properties");
+						ARegion *ar_header = NULL;
+
+						for (ar_header = regionbase->first; ar_header; ar_header = ar_header->next) {
+							if (ar_header->regiontype == RGN_TYPE_HEADER) {
+								break;
+							}
+						}
+						BLI_assert(ar_header);
+
+						BLI_insertlinkafter(regionbase, ar_header, ar);
+
+						ar->regiontype = RGN_TYPE_NAV_BAR;
+						ar->alignment = RGN_ALIGN_LEFT;
+					}
+				}
+			}
+		}
+	}
 }

@@ -243,6 +243,10 @@ typedef struct ThemeSpace {
 	char list_text[4];
 	char list_text_hi[4];
 
+	/* navigation bar regions */
+	char navigation_bar[4];			/* region background */
+	int pad2;
+
 	/* float panel */
 /*	char panel[4];			unused */
 /*	char panel_title[4];	unused */
