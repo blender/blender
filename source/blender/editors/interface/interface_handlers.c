@@ -3883,9 +3883,10 @@ static bool ui_but_is_mouse_over_icon_extra(const ARegion *region, uiBut *but, c
 static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		const int rna_type = RNA_property_type(but->rnaprop);
+		const int rna_type = but->rnaprop ? RNA_property_type(but->rnaprop) : 0;
 
-		if (ELEM(rna_type, PROP_POINTER, PROP_STRING) &&
+		if (but->rnaprop &&
+		    ELEM(rna_type, PROP_POINTER, PROP_STRING) &&
 		    (but->custom_data != NULL) &&
 		    (event->type == LEFTMOUSE) &&
 		    ((event->val == KM_DBL_CLICK) || event->ctrl))
