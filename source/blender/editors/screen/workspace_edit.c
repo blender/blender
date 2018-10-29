@@ -517,7 +517,7 @@ static int workspace_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUS
 		BLI_path_to_display_name(display_name, sizeof(display_name), template);
 
 		/* Steals ownership of link data string. */
-		uiItemMenuF(layout, display_name, ICON_NONE, workspace_add_menu, template);
+		uiItemMenuFN(layout, display_name, ICON_NONE, workspace_add_menu, template);
 	}
 
 	BLI_freelistN(&templates);
