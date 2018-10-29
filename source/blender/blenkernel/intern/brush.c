@@ -167,7 +167,7 @@ Brush *BKE_brush_add(Main *bmain, const char *name, const eObjectMode ob_mode)
 	return brush;
 }
 
-/* add grese pencil settings */
+/* add grease pencil settings */
 void BKE_brush_init_gpencil_settings(Brush *brush)
 {
 	if (brush->gpencil_settings == NULL) {
