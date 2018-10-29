@@ -646,13 +646,7 @@ void buttons_context_compute(const bContext *C, SpaceButs *sbuts)
 					sbuts->dataicon = RNA_struct_ui_icon(ptr->type);
 				}
 				else {
-					Object *ob = CTX_data_active_object(C);
-					if (ob->type == OB_GPENCIL) {
-						sbuts->dataicon = ICON_GREASEPENCIL;
-					}
-					else {
-						sbuts->dataicon = ICON_EMPTY_DATA;
-					}
+					sbuts->dataicon = ICON_EMPTY_DATA;
 				}
 			}
 		}
