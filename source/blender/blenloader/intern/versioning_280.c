@@ -2162,7 +2162,21 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			gpd->grid.lines = GP_DEFAULT_GRID_LINES; // Number of lines
 			gpd->grid.axis = GP_GRID_AXIS_Y;
 		}
+	}
 
-
+	{
+		for (bScreen *screen = bmain->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						if (v3d->flag2 & V3D_OCCLUDE_WIRE) {
+							v3d->overlay.edit_flag |= V3D_OVERLAY_EDIT_OCCLUDE_WIRE;
+							v3d->flag2 &= ~V3D_OCCLUDE_WIRE;
+						}
+					}
+				}
+			}
+		}
 	}
 }

@@ -361,7 +361,7 @@ typedef struct View3D {
 #define V3D_RENDER_BORDER		(1 << 11)
 #define V3D_SOLID_MATCAP		(1 << 12)	/* user flag */
 #define V3D_SHOW_SOLID_MATCAP	(1 << 13)	/* runtime flag */
-#define V3D_OCCLUDE_WIRE		(1 << 14)
+#define V3D_OCCLUDE_WIRE		(1 << 14)   /* XXX: DNA deprecated */
 #define V3D_SHOW_MODE_SHADE_OVERRIDE (1 << 15) /* XXX: DNA deprecated */
 
 /* View3d->gp_flag (short) */
