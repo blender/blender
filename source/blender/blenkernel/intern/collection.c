@@ -650,28 +650,67 @@ void BKE_collections_object_remove_nulls(Main *bmain)
 	}
 }
 
-/*
- * Remove all NULL children from parent objects of changed old_collection.
+static void collection_null_children_remove(Collection *collection)
+{
+	for (CollectionChild *child = collection->children.first, *child_next = NULL; child; child = child_next) {
+		child_next = child->next;
+
+		if (child->collection == NULL) {
+			BLI_freelinkN(&collection->children, child);
+		}
+	}
+}
+
+static void collection_missing_parents_remove(Collection *collection)
+{
+	for (CollectionParent *parent = collection->parents.first, *parent_next; parent != NULL; parent = parent_next) {
+		parent_next = parent->next;
+
+		if (!collection_find_child(parent->collection, collection)) {
+			BLI_freelinkN(&collection->parents, parent);
+		}
+	}
+}
+
+/**
+ * Remove all NULL children from parent collections of changed \a collection.
  * This is used for library remapping, where these pointers have been set to NULL.
  * Otherwise this should never happen.
- * Note: caller must ensure BKE_main_collection_sync_remap() is called afterwards!
+ *
+ * \note caller must ensure BKE_main_collection_sync_remap() is called afterwards!
+ *
+ * \param collection may be \a NULL, in which case whole \a bmain database of collections is checked.
  */
-void BKE_collections_child_remove_nulls(Main *bmain, Collection *old_collection)
+void BKE_collections_child_remove_nulls(Main *bmain, Collection *collection)
 {
-	for (CollectionParent *cparent = old_collection->parents.first, *cnext; cparent; cparent = cnext) {
-		Collection *parent = cparent->collection;
-		cnext = cparent->next;
-
-		for (CollectionChild *child = parent->children.first, *child_next = NULL; child; child = child_next) {
-			child_next = child->next;
-
-			if (child->collection == NULL) {
-				BLI_freelinkN(&parent->children, child);
-			}
+	if (collection == NULL) {
+		/* We need to do the checks in two steps when more than one collection may be involved,
+		 * otherwise we can miss some cases...
+		 * Also, master collections are not in bmain, so we also need to loop over scenes.
+		 */
+		for (collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+			collection_null_children_remove(collection);
+		}
+		for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+			collection_null_children_remove(BKE_collection_master(scene));
 		}
 
-		if (!collection_find_child(parent, old_collection)) {
-			BLI_freelinkN(&old_collection->parents, cparent);
+		for (collection = bmain->collection.first; collection != NULL; collection = collection->id.next) {
+			collection_missing_parents_remove(collection);
+		}
+		for (Scene *scene = bmain->scene.first; scene != NULL; scene = scene->id.next) {
+			collection_missing_parents_remove(BKE_collection_master(scene));
+		}
+	}
+	else {
+		for (CollectionParent *parent = collection->parents.first, *parent_next; parent; parent = parent_next) {
+			parent_next = parent->next;
+
+			collection_null_children_remove(parent->collection);
+
+			if (!collection_find_child(parent->collection, collection)) {
+				BLI_freelinkN(&collection->parents, parent);
+			}
 		}
 	}
 }

@@ -326,17 +326,7 @@ static void libblock_remap_data_postprocess_collection_update(
         Main *bmain, Collection *old_collection, Collection *new_collection)
 {
 	if (new_collection == NULL) {
-		/* In case we unlinked old_collection (new_collection is NULL), we need
-		 * to remove any collection children that have been set to NULL in the
-		 * because of pointer replacement. */
-		if (old_collection != NULL) {
-			BKE_collections_child_remove_nulls(bmain, old_collection);
-		}
-		else {
-			for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
-				BKE_collections_child_remove_nulls(bmain, collection);
-			}
-		}
+		BKE_collections_child_remove_nulls(bmain, old_collection);
 	}
 
 	BKE_main_collection_sync_remap(bmain);
