@@ -654,11 +654,10 @@ void BKE_collections_object_remove_nulls(Main *bmain)
  * Remove all NULL children from parent objects of changed old_collection.
  * This is used for library remapping, where these pointers have been set to NULL.
  * Otherwise this should never happen.
+ * Note: caller must ensure BKE_main_collection_sync_remap() is called afterwards!
  */
 void BKE_collections_child_remove_nulls(Main *bmain, Collection *old_collection)
 {
-	bool changed = false;
-
 	for (CollectionParent *cparent = old_collection->parents.first, *cnext; cparent; cparent = cnext) {
 		Collection *parent = cparent->collection;
 		cnext = cparent->next;
@@ -668,18 +667,12 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *old_collection)
 
 			if (child->collection == NULL) {
 				BLI_freelinkN(&parent->children, child);
-				changed = true;
 			}
 		}
 
 		if (!collection_find_child(parent, old_collection)) {
 			BLI_freelinkN(&old_collection->parents, cparent);
-			changed = true;
 		}
-	}
-
-	if (changed) {
-		BKE_main_collection_sync_remap(bmain);
 	}
 }
 
