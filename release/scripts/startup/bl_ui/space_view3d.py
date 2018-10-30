@@ -4013,7 +4013,7 @@ class VIEW3D_PT_object_type_visibility(Panel):
             attr_v = "show_object_viewport_" f"{attr:s}"
             attr_s = "show_object_select_" f"{attr:s}"
 
-            icon_s = 'RESTRICT_SELECT_OFF' if getattr(view, attr_s) else 'RESTRICT_SELECT_ON'
+            icon_s = 'RESTRICT_SELECT_ON' if getattr(view, attr_s) else 'RESTRICT_SELECT_OFF'
 
             row = col.row(align=True)
             row.prop(view, attr_v)
