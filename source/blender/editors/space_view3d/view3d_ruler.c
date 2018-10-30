@@ -432,7 +432,7 @@ static void ruler_info_draw_pixel(const struct bContext *C, ARegion *ar, void *a
 
 	/* anti-aliased lines for more consistent appearance */
 	GPU_line_smooth(true);
-	GPU_line_width(1.0f * U.pixelsize);
+	GPU_line_width(1.0f);
 
 	BLF_enable(blf_mono_font, BLF_ROTATION);
 	BLF_size(blf_mono_font, 14 * U.pixelsize, U.dpi);
