@@ -133,7 +133,7 @@ static void BRUSH_OT_add_gpencil(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Drawing Brush";
-	ot->description = "Add brush for grease pencil";
+	ot->description = "Add brush for Grease Pencil";
 	ot->idname = "BRUSH_OT_add_gpencil";
 
 	/* api callbacks */

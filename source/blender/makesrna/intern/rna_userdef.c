@@ -4025,7 +4025,7 @@ static void rna_def_userdef_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grease_pencil_default_color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "gpencil_new_layer_col");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_ui_text(prop, "Grease Pencil Default Color", "Color of new Grease Pencil layers");
+	RNA_def_property_ui_text(prop, "Annotation Default Color", "Color of new annotation layers");
 
 	/* sculpt and paint */
 

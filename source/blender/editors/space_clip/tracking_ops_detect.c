@@ -131,10 +131,10 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 	static const EnumPropertyItem placement_items[] = {
 		{0, "FRAME",            0, "Whole Frame",
 		 "Place markers across the whole frame"},
-		{1, "INSIDE_GPENCIL",   0, "Inside grease pencil",
-		 "Place markers only inside areas outlined with grease pencil"},
-		{2, "OUTSIDE_GPENCIL",  0, "Outside grease pencil",
-		 "Place markers only outside areas outlined with grease pencil"},
+		{1, "INSIDE_GPENCIL",   0, "Inside Grease Pencil",
+		 "Place markers only inside areas outlined with Grease Pencil"},
+		{2, "OUTSIDE_GPENCIL",  0, "Outside Grease Pencil",
+		 "Place markers only outside areas outlined with Grease Pencil"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

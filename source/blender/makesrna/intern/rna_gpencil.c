@@ -60,15 +60,15 @@ static const EnumPropertyItem parent_type_items[] = {
 #ifndef RNA_RUNTIME
 static EnumPropertyItem rna_enum_gpencil_xraymodes_items[] = {
 	{ GP_XRAY_FRONT, "FRONT", 0, "Front", "Draw all strokes in front" },
-	{ GP_XRAY_3DSPACE, "3DSPACE", 0, "3DSpace", "Draw strokes relative to other objects in 3D space" },
-	{ GP_XRAY_BACK, "BACK", 0, "Back", "Draw all strokes on back" },
+	{ GP_XRAY_3DSPACE, "3DSPACE", 0, "3D Space", "Draw strokes relative to other objects in 3D space" },
+	{ GP_XRAY_BACK, "BACK", 0, "Back", "Draw all strokes last" },
 	{ 0, NULL, 0, NULL, NULL }
 };
 
 static EnumPropertyItem rna_enum_gpencil_onion_modes_items[] = {
-	{ GP_ONION_MODE_ABSOLUTE, "ABSOLUTE", 0, "Frames", "Frames in absolute range of scene frame number" },
-	{ GP_ONION_MODE_RELATIVE, "RELATIVE", 0, "Keyframes", "Frames in relative range of grease pencil keyframes" },
-	{ GP_ONION_MODE_SELECTED, "SELECTED", 0, "Selected", "Only Selected Frames" },
+	{ GP_ONION_MODE_ABSOLUTE, "ABSOLUTE", 0, "Frames", "Frames in absolute range of the scene frame" },
+	{ GP_ONION_MODE_RELATIVE, "RELATIVE", 0, "Keyframes", "Frames in relative range of the Grease Pencil keyframes" },
+	{ GP_ONION_MODE_SELECTED, "SELECTED", 0, "Selected", "Only selected keyframes" },
 	{ 0, NULL, 0, NULL, NULL }
 };
 
@@ -1374,7 +1374,7 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "use_onion_skinning", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_SHOW_ONIONSKINS);
-	RNA_def_property_ui_text(prop, "Onion Skins", "Show ghosts of the frames before and after the current frame");
+	RNA_def_property_ui_text(prop, "Onion Skins", "Show ghosts of the keyframes before and after the current frame");
 	RNA_def_property_update(prop, NC_SCREEN | NC_SCENE | ND_TOOLSETTINGS | ND_DATA | NC_GPENCIL, "rna_GPencil_update");
 
 	prop = RNA_def_property(srna, "show_stroke_direction", PROP_BOOLEAN, PROP_NONE);
@@ -1501,13 +1501,13 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "grid", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
 	RNA_def_property_struct_type(prop, "GreasePencilGrid");
-	RNA_def_property_ui_text(prop, "Grid Settings", "Settings for grid and canvas settings in the 3D viewport");
+	RNA_def_property_ui_text(prop, "Grid Settings", "Settings for grid and canvas in the 3D viewport");
 
 	rna_def_gpencil_grid(brna);
 
 	/* API Functions */
 	func = RNA_def_function(srna, "clear", "rna_GPencil_clear");
-	RNA_def_function_ui_description(func, "Remove all the grease pencil data");
+	RNA_def_function_ui_description(func, "Remove all the Grease Pencil data");
 }
 
 /* --- */
