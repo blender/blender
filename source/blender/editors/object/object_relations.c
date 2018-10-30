@@ -1630,6 +1630,10 @@ static void libblock_relink_collection(Collection *collection)
 {
 	BKE_libblock_relink_to_newid(&collection->id);
 
+	for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
+		BKE_libblock_relink_to_newid(&cob->ob->id);
+	}
+
 	for (CollectionChild *child = collection->children.first; child; child = child->next) {
 		libblock_relink_collection(child->collection);
 	}
