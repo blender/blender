@@ -5375,15 +5375,15 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 
 static int duplicate_exec(bContext *C, wmOperator *op)
 {
-	ViewLayer * view_layer = CTX_data_view_layer(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	int ok = -1;
 
 	uint objects_len = 0;
-	Object * *objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-		Object * obedit = objects[ob_index];
-		Curve * cu = obedit->data;
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
 
 		if (!ED_curve_select_check(v3d, cu->editnurb)) {
 			ok = MAX2(ok, 0);
@@ -5399,8 +5399,8 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 
 		ok = 1;
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
-		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		DEG_id_tag_update(&cu->id, DEG_TAG_SELECT_UPDATE);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, &cu->id);
 	}
 	MEM_freeN(objects);
 
