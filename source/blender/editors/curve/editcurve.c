@@ -5375,22 +5375,39 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 
 static int duplicate_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer * view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	ListBase newnurb = {NULL, NULL};
+	int ok = -1;
 
-	adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
+	uint objects_len = 0;
+	Object * *objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * obedit = objects[ob_index];
+		Curve * cu = obedit->data;
 
-	if (BLI_listbase_is_empty(&newnurb) == false) {
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			ok = MAX2(ok, 0);
+			continue;
+		}
+
+		ListBase newnurb = {NULL, NULL};
+		adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
+
+		if (BLI_listbase_is_empty(&newnurb)) {
+			continue;
+		}
+
+		ok = 1;
 		BLI_movelisttolist(object_editcurve_get(obedit), &newnurb);
 		DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
-	else {
+	MEM_freeN(objects);
+
+	if (ok == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot duplicate current selection");
 		return OPERATOR_CANCELLED;
 	}
-
 	return OPERATOR_FINISHED;
 }
 
