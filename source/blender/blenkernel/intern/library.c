@@ -2531,7 +2531,7 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
  */
 void BKE_id_ui_prefix(char name[MAX_ID_NAME + 1], const ID *id)
 {
-	name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ' ';
+	name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_STATIC_OVERRIDE(id) ? 'O' : ' ';
 	name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
 	name[2] = ' ';
 
