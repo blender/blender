@@ -766,9 +766,16 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but)
 
 	/* Show header tools for header buttons. */
 	if (ui_block_is_popup_any(but->block) == false) {
-		ARegion *ar = CTX_wm_region(C);
-		if (ar && (ar->regiontype == RGN_TYPE_HEADER)) {
+		const ARegion *ar = CTX_wm_region(C);
+
+		if (!ar) {
+			/* skip */
+		}
+		else if (ar->regiontype == RGN_TYPE_HEADER) {
 			uiItemMenuF(layout, IFACE_("Header"), ICON_NONE, ED_screens_header_tools_menu_create, NULL);
+		}
+		else if (ar->regiontype == RGN_TYPE_NAV_BAR) {
+			uiItemMenuF(layout, IFACE_("Navigation Bar"), ICON_NONE, ED_screens_navigation_bar_tools_menu_create, NULL);
 		}
 	}
 

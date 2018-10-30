@@ -3757,6 +3757,23 @@ static void SCREEN_OT_header_context_menu(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Navigation Bar Tools Menu
+ * \{ */
+
+void ED_screens_navigation_bar_tools_menu_create(bContext *C, uiLayout *layout, void *UNUSED(arg))
+{
+	const ARegion *ar = CTX_wm_region(C);
+	const char *but_flip_str = (ar->alignment == RGN_ALIGN_LEFT) ? IFACE_("Flip to Right") : IFACE_("Flip to Left");
+
+	/* default is WM_OP_INVOKE_REGION_WIN, which we don't want here. */
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
+
+	uiItemO(layout, but_flip_str, ICON_NONE, "SCREEN_OT_region_flip");
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Animation Step Operator
  *
  * Animation Step.
