@@ -4553,33 +4553,51 @@ bool ed_editnurb_spin(float viewmat[4][4], View3D *v3d, Object *obedit, const fl
 
 static int spin_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
 	float cent[3], axis[3], viewmat[4][4];
+	int ok = -1;
 
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
-
-	invert_m4_m4(obedit->imat, obedit->obmat);
-	mul_m4_v3(obedit->imat, cent);
 
 	if (rv3d)
 		copy_m4_m4(viewmat, rv3d->viewmat);
 	else
 		unit_m4(viewmat);
 
-	if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
-		BKE_report(op->reports, RPT_ERROR, "Cannot spin");
-		return OPERATOR_CANCELLED;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = (Curve *)obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		invert_m4_m4(obedit->imat, obedit->obmat);
+		mul_m4_v3(obedit->imat, cent);
+
+		if (!ed_editnurb_spin(viewmat, v3d, obedit, axis, cent)) {
+			ok = MAX2(ok, 0);
+			continue;
+		}
+
+		ok = 1;
+		if (ED_curve_updateAnimPaths(cu)) {
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, 0);
 	}
+	MEM_freeN(objects);
 
-	if (ED_curve_updateAnimPaths(obedit->data))
-		WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
-
+	if (ok == 0) {
+		BKE_report(op->reports, RPT_ERROR, "Cannot spin");
+	}
 	return OPERATOR_FINISHED;
 }
 
