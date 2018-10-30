@@ -2985,6 +2985,13 @@ static void OBJECT_draw_scene(void *vedata)
 			GPU_framebuffer_bind(fbl->ghost_fb);
 			GPU_framebuffer_clear_depth(fbl->ghost_fb, 1.0f);
 		}
+		else if (DRW_state_is_select()) {
+			/* XXX `GPU_depth_range` is not a perfect solution
+			 * since very distant geometries can still be occluded.
+			 * Also the depth test precision of these geometries is impaired.
+			 * However solves the selection for the vast majority of cases. */
+			GPU_depth_range(0.0f, 0.01f);
+		}
 
 		DRW_draw_pass(stl->g_data->sgl_ghost.spot_shapes);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_solid);
@@ -2992,6 +2999,10 @@ static void OBJECT_draw_scene(void *vedata)
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_outline);
 		DRW_draw_pass(stl->g_data->sgl_ghost.non_meshes);
 		DRW_draw_pass(stl->g_data->sgl_ghost.bone_axes);
+
+		if (DRW_state_is_select()) {
+			GPU_depth_range(0.0f, 1.0f);
+		}
 	}
 
 	batch_camera_path_free(&stl->g_data->sgl_ghost.camera_path);

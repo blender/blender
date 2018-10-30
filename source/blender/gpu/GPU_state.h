@@ -47,6 +47,7 @@ void GPU_blend_set_func(GPUBlendFunction sfactor, GPUBlendFunction dfactor);
 void GPU_blend_set_func_separate(
         GPUBlendFunction src_rgb, GPUBlendFunction dst_rgb,
         GPUBlendFunction src_alpha, GPUBlendFunction dst_alpha);
+void GPU_depth_range(float near, float far);
 void GPU_depth_test(bool enable);
 bool GPU_depth_test_enabled(void);
 void GPU_line_smooth(bool enable);

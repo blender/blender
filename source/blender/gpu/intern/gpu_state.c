@@ -75,6 +75,12 @@ void GPU_blend_set_func_separate(
 	        gpu_get_gl_blendfunction(dst_alpha));
 }
 
+void GPU_depth_range(float near, float far)
+{
+	/* glDepthRangef is only for OpenGL 4.1 or higher */
+	glDepthRange(near, far);
+}
+
 void GPU_depth_test(bool enable)
 {
 	if (enable) {
