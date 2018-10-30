@@ -1361,7 +1361,7 @@ class _defs_gpencil_paint:
             icon_value=icon_id,
         )
 
-        row.prop(gp_settings, "pin_material", text="")
+        row.prop(gp_settings, "use_material_pin", text="")
 
     @staticmethod
     def draw_settings_common(context, layout, tool):
@@ -1388,7 +1388,7 @@ class _defs_gpencil_paint:
 
                 row = layout.row(align=True)
                 row.prop(gp_settings, "fill_draw_mode", text="")
-                row.prop(gp_settings, "fill_show_boundary", text="", icon='GRID')
+                row.prop(gp_settings, "show_fill_boundary", text="", icon='GRID')
 
             else:  # bgpsettings.tool == 'DRAW':
                 row = layout.row(align=True)

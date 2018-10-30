@@ -1217,10 +1217,10 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
-	prop = RNA_def_property(srna, "use_stabilizer", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_settings_stabilizer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_STABILIZE_MOUSE);
 	RNA_def_property_boolean_default(prop, true);
-	RNA_def_property_ui_text(prop, "Stabilizer",
+	RNA_def_property_ui_text(prop, "Use Stabilizer",
 		"Draw lines with a delay to allow smooth strokes. Press Shift key to override while drawing");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
@@ -1258,19 +1258,19 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_Brush_material_update");
 
-	prop = RNA_def_property(srna, "fill_show_boundary", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_fill_boundary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_SHOW_HELPLINES);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_ui_text(prop, "Show Lines", "Show help lines for filling to see boundaries");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "fill_hide", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_HIDE);
+	prop = RNA_def_property(srna, "show_fill", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_FILL_HIDE);
 	RNA_def_property_boolean_default(prop, true);
-	RNA_def_property_ui_text(prop, "Hide", "Hide transparent lines to use as boundary for filling");
+	RNA_def_property_ui_text(prop, "Show Fill", "Show transparent lines to use as boundary for filling");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "default_eraser", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_default_eraser", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_DEFAULT_ERASER);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
@@ -1278,25 +1278,25 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_default_eraser_update");
 
-	prop = RNA_def_property(srna, "enable_settings", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_settings_postprocess", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_GROUP_SETTINGS);
-	RNA_def_property_ui_text(prop, "Settings", "Enable additional post processing options for new strokes");
+	RNA_def_property_ui_text(prop, "Use Post-Process Settings", "Additional post processing options for new strokes");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "enable_random", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_settings_random", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_GROUP_RANDOM);
-	RNA_def_property_ui_text(prop, "Random Settings", "Enable random settings for brush");
+	RNA_def_property_ui_text(prop, "Random Settings", "Random brush settings");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "pin_material", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_material_pin", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_MATERIAL_PINNED);
 	RNA_def_property_ui_icon(prop, ICON_UNPINNED, 1);
 	RNA_def_property_ui_text(prop, "Pin Material", "Keep material assigned to brush");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "disable_lasso", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_DISSABLE_LASSO);
-	RNA_def_property_ui_text(prop, "Disable Lasso", "Do not draw fill color while drawing the stroke");
+	prop = RNA_def_property(srna, "show_lasso", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", GP_BRUSH_DISSABLE_LASSO);
+	RNA_def_property_ui_text(prop, "Show Lasso", "Do not draw fill color while drawing the stroke");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 }
 
