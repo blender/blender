@@ -16,7 +16,7 @@ float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v3(vec3 v) { return max(v.x, max(v.y, v.z)); }
 
 /* In pixels */
-const float wire_size = 0.0; /* Expands the core of the wire (part that is 100% wire color) */
+uniform float wireSize = 0.0; /* Expands the core of the wire (part that is 100% wire color) */
 const float wire_smooth = 1.2; /* Smoothing distance after the 100% core. */
 
 /* Alpha constants could be exposed in the future. */
@@ -41,7 +41,7 @@ void main()
 	float fac = min_v3(abs(dist_to_edge));
 #  endif
 
-	fac = smoothstep(wire_size + wire_smooth, wire_size, fac);
+	fac = smoothstep(wireSize + wire_smooth, wireSize, fac);
 
 	float facing_clamped = clamp((gl_FrontFacing) ? facing : -facing, 0.0, 1.0);
 

@@ -185,22 +185,27 @@ static void overlay_cache_init(void *vedata)
 	{
 		/* Wireframe */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND;
+		float wire_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
 
 		psl->flat_wireframe_pass = DRW_pass_create("Flat Object Wires", state | DRW_STATE_WRITE_DEPTH);
 
 		psl->face_wireframe_full_pass = DRW_pass_create("All Face Wires", state);
 
 		stl->g_data->sculpt_wires_full = DRW_shgroup_create(e_data.face_wireframe_sculpt_sh, psl->face_wireframe_full_pass);
+		DRW_shgroup_uniform_float_copy(stl->g_data->sculpt_wires_full, "wireSize", wire_size);
 
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.face_wireframe_sh, psl->face_wireframe_full_pass);
+		DRW_shgroup_uniform_float_copy(shgrp, "wireSize", wire_size);
 
 		psl->face_wireframe_pass = DRW_pass_create("Face Wires", state);
 
 		stl->g_data->sculpt_wires = DRW_shgroup_create(e_data.face_wireframe_sculpt_pretty_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_vec2(stl->g_data->sculpt_wires, "wireStepParam", stl->g_data->wire_step_param, 1);
+		DRW_shgroup_uniform_float_copy(stl->g_data->sculpt_wires, "wireSize", wire_size);
 
 		shgrp = DRW_shgroup_create(e_data.face_wireframe_pretty_sh, psl->face_wireframe_pass);
 		DRW_shgroup_uniform_vec2(shgrp, "wireStepParam", stl->g_data->wire_step_param, 1);
+		DRW_shgroup_uniform_float_copy(shgrp, "wireSize", wire_size);
 
 		/**
 		 * The wireframe threshold ranges from 0.0 to 1.0
