@@ -708,12 +708,11 @@ static short gp_stroke_addpoint(
 			gp_get_3d_reference(p, origin);
 			/* reproject current */
 			ED_gpencil_tpoint_to_point(p->ar, origin, pt, &spt);
-			ED_gp_project_point_to_plane(obact, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &spt);
+			ED_gp_project_point_to_plane(obact, rv3d, origin, p->lock_axis - 1, &spt);
 
 			/* reproject previous */
 			ED_gpencil_tpoint_to_point(p->ar, origin, ptb, &spt2);
-			ED_gp_project_point_to_plane(obact, rv3d, origin, ts->gp_sculpt.lock_axis - 1, &spt2);
-
+			ED_gp_project_point_to_plane(obact, rv3d, origin, p->lock_axis - 1, &spt2);
 			p->totpixlen += len_v3v3(&spt.x, &spt2.x) / pixsize;
 			pt->uv_fac = p->totpixlen;
 			if ((gp_style) && (gp_style->sima)) {
@@ -1042,26 +1041,30 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			}
 			else {
 				if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) {
-					/* remove all info between the valid endpoints */
 					int first_valid = 0;
 					int last_valid = 0;
 
+					/* find first valid contact point */
 					for (i = 0; i < gpd->runtime.sbuffer_size; i++) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
 					first_valid = i;
 
+					/* find last valid contact point */
 					for (i = gpd->runtime.sbuffer_size - 1; i >= 0; i--) {
 						if (depth_arr[i] != FLT_MAX)
 							break;
 					}
 					last_valid = i;
 
-					/* invalidate non-endpoints, so only blend between first and last */
-					for (i = first_valid + 1; i < last_valid; i++)
-						depth_arr[i] = FLT_MAX;
-
+					/* invalidate any point other point, to interpolate between
+					 * first and last contact in an imaginary line between them */
+					for (i = 0; i < gpd->runtime.sbuffer_size; i++) {
+						if ((i != first_valid) && (i != last_valid)) {
+							depth_arr[i] = FLT_MAX;
+						}
+					}
 					interp_depth = true;
 				}
 
@@ -1872,8 +1875,15 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 		gp_init_colors(p);
 	}
 
-	/* lock axis */
-	p->lock_axis = ts->gp_sculpt.lock_axis;
+	/* lock axis (in some modes, disable) */
+	if (((*p->align_flag & GP_PROJECT_DEPTH_VIEW) == 0) &&
+		((*p->align_flag & GP_PROJECT_DEPTH_STROKE) == 0))
+	{
+		p->lock_axis = ts->gp_sculpt.lock_axis;
+	}
+	else {
+		p->lock_axis = 0;
+	}
 
 	/* region where paint was originated */
 	p->gpd->runtime.ar = CTX_wm_region(C);

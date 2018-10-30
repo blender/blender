@@ -233,7 +233,9 @@ class VIEW3D_HT_header(Header):
 
             lk_icon = getattr(gp_lock, "icon", "BLANK1")
             lk_name = getattr(gp_lock, "name", "None")
-            layout.popover(
+            row = layout.row()
+            row.enabled = tool_settings.gpencil_stroke_placement_view3d in {'ORIGIN', 'CURSOR'}
+            row.popover(
                 panel="VIEW3D_PT_gpencil_lock",
                 text=lk_name,
                 icon=lk_icon,

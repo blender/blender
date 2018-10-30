@@ -269,6 +269,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Scene *scene = oglrender->scene;
 	ARegion *ar = oglrender->ar;
 	View3D *v3d = oglrender->v3d;
@@ -329,7 +330,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			GPU_matrix_translate_2f(sizex / 2, sizey / 2);
 
 			G.f |= G_RENDER_OGL;
-			ED_gpencil_draw_ex(rv3d, scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
+			ED_gpencil_draw_ex(
+				view_layer, rv3d, scene, gpd, sizex, sizey, scene->r.cfra, SPACE_SEQ);
 			G.f &= ~G_RENDER_OGL;
 
 			gp_rect = MEM_mallocN(sizex * sizey * sizeof(unsigned char) * 4, "offscreen rect");

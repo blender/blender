@@ -215,6 +215,8 @@ class TOPBAR_HT_lower_bar(Header):
                     layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='XRAY')
                     layout.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
                     layout.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+                    if tool_settings.gpencil_stroke_placement_view3d == 'STROKE':
+                        layout.prop(tool_settings, "use_gpencil_stroke_endpoints", text="", icon='CURVE_DATA')
         elif tool_space_type == 'IMAGE_EDITOR':
             if tool_mode == 'PAINT':
                 layout.popover_group(space_type='PROPERTIES', region_type='WINDOW', context=".imagepaint_2d", category="")

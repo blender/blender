@@ -750,7 +750,7 @@ static void gp_draw_stroke_3d(tGPDdraw *tgpw, short thickness, const float ink[4
 	immBindBuiltinProgram(GPU_SHADER_GPENCIL_STROKE);
 	immUniform2fv("Viewport", viewport);
 	immUniform1f("pixsize", tgpw->rv3d->pixsize);
-	float obj_scale = (tgpw->ob->size[0] + tgpw->ob->size[1] + tgpw->ob->size[2]) / 3.0f;
+	float obj_scale = tgpw->ob ? (tgpw->ob->size[0] + tgpw->ob->size[1] + tgpw->ob->size[2]) / 3.0f : 1.0f;
 
 	immUniform1f("objscale", obj_scale);
 	int keep_size = (int)((tgpw->gpd) && (tgpw->gpd->flag & GP_DATA_STROKE_KEEPTHICKNESS));
@@ -1674,12 +1674,14 @@ static void gp_draw_data(RegionView3D *rv3d,
 /* if we have strokes for scenes (3d view)/clips (movie clip editor)
  * and objects/tracks, multiple data blocks have to be drawn */
 static void gp_draw_data_all(
-        RegionView3D *rv3d, Scene *scene, bGPdata *gpd, int offsx, int offsy, int winx, int winy,
+		ViewLayer *view_layer, RegionView3D *rv3d, Scene *scene, bGPdata *gpd,
+		int offsx, int offsy, int winx, int winy,
         int cfra, int dflag, const char UNUSED(spacetype))
 {
 	bGPdata *gpd_source = NULL;
 	ToolSettings *ts = NULL;
 	Brush *brush = NULL;
+	Object *ob = OBACT(view_layer);
 	if (scene) {
 		ts = scene->toolsettings;
 		brush = BKE_brush_getactive_gpencil(ts);
@@ -1687,7 +1689,7 @@ static void gp_draw_data_all(
 		if (gpd_source) {
 			if (brush != NULL) {
 				gp_draw_data(
-				        rv3d, brush, 1.0f, NULL, gpd_source,
+				        rv3d, brush, 1.0f, ob, gpd_source,
 				        offsx, offsy, winx, winy, cfra, dflag);
 			}
 		}
@@ -1698,7 +1700,7 @@ static void gp_draw_data_all(
 	if (gpd_source == NULL || (gpd_source && gpd_source != gpd)) {
 		if (brush != NULL) {
 			gp_draw_data(
-			        rv3d, brush, 1.0f, NULL, gpd,
+			        rv3d, brush, 1.0f, ob, gpd,
 			        offsx, offsy, winx, winy, cfra, dflag);
 		}
 	}
@@ -1768,7 +1770,7 @@ void ED_gpencil_draw_view3d(
 	}
 
 	/* draw it! */
-	gp_draw_data_all(rv3d, scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
+	gp_draw_data_all(view_layer, rv3d, scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
 /* draw grease-pencil sketches to specified 3d-view for gp object
@@ -1832,9 +1834,11 @@ void ED_gpencil_draw_view3d_object(wmWindowManager *wm, Scene *scene, Depsgraph 
 	}
 }
 
-void ED_gpencil_draw_ex(RegionView3D *rv3d, Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
+void ED_gpencil_draw_ex(
+	ViewLayer *view_layer, RegionView3D *rv3d, Scene *scene,
+	bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
 {
 	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
 
-	gp_draw_data_all(rv3d, scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
+	gp_draw_data_all(view_layer, rv3d, scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
 }
