@@ -1165,7 +1165,8 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont_, const char *identifier
 		case PROP_STRING:
 		{
 			StringPropertyRNA *sprop = (StringPropertyRNA *)prop;
-
+			/* By default don't allow NULL string args, callers may clear. */
+			RNA_def_property_flag(prop, PROP_NEVER_NULL);
 			sprop->defaultvalue = "";
 			break;
 		}

@@ -1729,7 +1729,25 @@ static int pyrna_py_to_prop(
 				const int subtype = RNA_property_subtype(prop);
 				const char *param;
 
-				if (subtype == PROP_BYTESTRING) {
+				if (value == Py_None) {
+					if ((RNA_property_flag(prop) & PROP_NEVER_NULL) == 0) {
+						if (data) {
+							*((char **)data) = (char *)NULL;
+						}
+						else {
+							RNA_property_string_set(ptr, prop, NULL);
+						}
+					}
+					else {
+						PyC_Err_Format_Prefix(
+						        PyExc_TypeError,
+						        "%.200s %.200s.%.200s doesn't support None from string types",
+						        error_prefix, RNA_struct_identifier(ptr->type),
+						        RNA_property_identifier(prop));
+						return -1;
+					}
+				}
+				else if (subtype == PROP_BYTESTRING) {
 
 					/* Byte String */
 
