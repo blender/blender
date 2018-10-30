@@ -430,7 +430,10 @@ static void buttons_navigation_bar_region_draw(const bContext *C, ARegion *ar)
 	for (PanelType *pt = ar->type->paneltypes.first; pt; pt = pt->next) {
 		pt->flag |= PNL_LAYOUT_VERT_BAR;
 	}
-	ED_region_panels(C, ar);
+
+	ED_region_panels_layout(C, ar);
+	ar->v2d.scroll &= ~V2D_SCROLL_VERTICAL; /* ED_region_panels_layout adds vertical scrollbars, we don't want them. */
+	ED_region_panels_draw(C, ar);
 }
 
 /* draw a certain button set only if properties area is currently
