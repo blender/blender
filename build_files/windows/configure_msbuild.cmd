@@ -45,7 +45,7 @@ if "%NOBUILD%"=="1" set MUST_CONFIGURE=1
 if "%MUST_CONFIGURE%"=="1" (
 
 	if NOT "%verbose%" == "" (
-		echo %CMAKE% %BUILD_CMAKE_ARGS% -H%BLENDER_DIR% -B%BUILD_DIR% 
+		echo "%CMAKE% %BUILD_CMAKE_ARGS% -H%BLENDER_DIR% -B%BUILD_DIR%"
 	)
 
 	cmake ^
