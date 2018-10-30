@@ -2959,6 +2959,12 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 		"Display a grid over grease pencil paper");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "use_gpencil_fade_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gp_flag", V3D_GP_FADE_NOACTIVE_LAYERS);
+	RNA_def_property_ui_text(prop, "Fade Layers",
+		"Toggle fading of Grease Pencil layers except the active one");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
+
 	prop = RNA_def_property(srna, "gpencil_grid_opacity", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_grid_opacity");
 	RNA_def_property_range(prop, 0.1f, 1.0f);
@@ -2973,6 +2979,15 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_ui_text(prop, "Opacity", "Paper opacity");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* Paper opacity factor */
+	prop = RNA_def_property(srna, "gpencil_fade_layer", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "overlay.gpencil_fade_layer");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_ui_text(prop, "Opacity",
+		"Fade layer opacity for Grease Pencil layers except the active one");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPencil_update");
 
 	/* show edit lines */
 	prop = RNA_def_property(srna, "use_gpencil_edit_lines", PROP_BOOLEAN, PROP_NONE);

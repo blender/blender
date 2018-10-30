@@ -340,6 +340,10 @@ static void rna_GPencil_active_layer_index_set(PointerRNA *ptr, int value)
 	bGPDlayer *gpl = BLI_findlink(&gpd->layers, value);
 
 	BKE_gpencil_layer_setactive(gpd, gpl);
+
+	/* Now do standard updates... */
+	DEG_id_tag_update(&gpd->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
 static void rna_GPencil_active_layer_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)

@@ -196,7 +196,7 @@ typedef struct View3DOverlay {
 	/* grease pencil settings */
 	float gpencil_paper_opacity;
 	float gpencil_grid_opacity;
-	char _pad1[4];
+	float gpencil_fade_layer;
 
 } View3DOverlay;
 
@@ -370,6 +370,7 @@ typedef struct View3D {
 #define V3D_GP_SHOW_EDIT_LINES       (1 << 2)
 #define V3D_GP_SHOW_MULTIEDIT_LINES  (1 << 3)
 #define V3D_GP_SHOW_ONION_SKIN       (1 << 4) /* main switch at view level */
+#define V3D_GP_FADE_NOACTIVE_LAYERS  (1 << 5) /* fade layers not active */
 
 /* View3DShading->light */
 enum {

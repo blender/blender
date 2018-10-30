@@ -1262,6 +1262,7 @@ void DRW_gpencil_populate_datablock(
 	float opacity;
 	bGPDframe *p = NULL;
 	bGPDframe *gpf = NULL;
+	bGPDlayer *gpl_active = BKE_gpencil_layer_getactive(gpd);
 
 	/* check if playing animation */
 	bool playing = stl->storage->is_playing;
@@ -1301,14 +1302,20 @@ void DRW_gpencil_populate_datablock(
 		if (gpf == NULL)
 			continue;
 
+		opacity = gpl->opacity;
 		/* if pose mode, maybe the overlay to fade geometry is enabled */
 		if ((draw_ctx->obact) && (draw_ctx->object_mode == OB_MODE_POSE) &&
 		    (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECT))
 		{
-			opacity = gpl->opacity * v3d->overlay.bone_select_alpha;
+			opacity = opacity * v3d->overlay.bone_select_alpha;
 		}
-		else {
-			opacity = gpl->opacity;
+		/* fade no active layers */
+		if ((overlay) && (draw_ctx->object_mode == OB_MODE_GPENCIL_PAINT) &&
+			(v3d->gp_flag & V3D_GP_FADE_NOACTIVE_LAYERS) &&
+			(draw_ctx->obact) && (draw_ctx->obact == ob) &&
+			(gpl != gpl_active))
+		{
+			opacity = opacity * v3d->overlay.gpencil_fade_layer;
 		}
 
 		/* create derived array data or expand */
