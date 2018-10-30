@@ -5897,11 +5897,19 @@ static bool test_bezt_is_sel_any(const void *bezt_v, void *user_data)
 
 static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Curve *cu = (Curve *)obedit->data;
 
-	{
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = (Curve *)obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
 		ListBase *editnurb = object_editcurve_get(obedit);
 		Nurb *nu;
 
@@ -5968,11 +5976,9 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 			}
 		}
-	}
 
-	ed_curve_delete_selected(obedit, v3d);
+		ed_curve_delete_selected(obedit, v3d);
 
-	{
 		cu->actnu = cu->actvert = CU_ACT_NONE;
 
 		if (ED_curve_updateAnimPaths(obedit->data)) WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
@@ -5980,7 +5986,7 @@ static int curve_dissolve_exec(bContext *C, wmOperator *UNUSED(op))
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 		DEG_id_tag_update(obedit->data, 0);
 	}
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
