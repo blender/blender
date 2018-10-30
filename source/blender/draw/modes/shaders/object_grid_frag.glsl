@@ -12,6 +12,7 @@ uniform vec3 eye;
 uniform vec4 gridSettings;
 uniform vec2 viewportSize;
 uniform vec4 screenvecs[3];
+uniform float lineKernel = 0.0;
 uniform float gridOneOverLogSubdiv;
 uniform sampler2D depthBuffer;
 
@@ -31,7 +32,8 @@ uniform int gridFlag;
 #define PLANE_YZ  (1 << 6)
 #define GRID_BACK (1 << 9) /* grid is behind objects */
 
-#define GRID_LINE_SMOOTH 1.15
+#define GRID_LINE_SMOOTH_START -0.1
+#define GRID_LINE_SMOOTH_END 1.05
 
 float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
 {
@@ -42,10 +44,10 @@ float get_grid(vec2 co, vec2 fwidthCos, float grid_size)
 	 * (make lines have the same width under perspective) */
 	grid_domain /= fwidthCos;
 
-	/* collapse waves and normalize */
-	grid_domain.x = min(grid_domain.x, grid_domain.y) / half_size;
+	/* collapse waves */
+	float line_dist = min(grid_domain.x, grid_domain.y);
 
-	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH / grid_size, grid_domain.x * 0.5);
+	return 1.0 - smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, line_dist - lineKernel);
 }
 
 vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
@@ -55,7 +57,7 @@ vec3 get_axes(vec3 co, vec3 fwidthCos, float line_size)
 	 * (make line have the same width under perspective) */
 	axes_domain /= fwidthCos;
 
-	return 1.0 - smoothstep(0.0, GRID_LINE_SMOOTH, axes_domain - line_size);
+	return 1.0 - smoothstep(GRID_LINE_SMOOTH_START, GRID_LINE_SMOOTH_END, axes_domain - (line_size + lineKernel));
 }
 
 vec3 get_floor_pos(vec2 uv, out vec3 wPos)

@@ -1044,6 +1044,7 @@ static void OBJECT_cache_init(void *vedata)
 		psl->grid = DRW_pass_create("Infinite Grid Pass", state);
 
 		struct GPUBatch *geom = DRW_cache_grid_get();
+		float grid_line_size = max_ff(0.0f, U.pixelsize - 1.0f) * 0.5f;
 		static float mat[4][4];
 		unit_m4(mat);
 
@@ -1055,6 +1056,7 @@ static void OBJECT_cache_init(void *vedata)
 		DRW_shgroup_uniform_vec3(grp, "cameraPos", e_data.camera_pos, 1);
 		DRW_shgroup_uniform_vec4(grp, "screenvecs[0]", e_data.screenvecs[0], 3);
 		DRW_shgroup_uniform_vec4(grp, "gridSettings", e_data.grid_settings, 1);
+		DRW_shgroup_uniform_float_copy(grp, "lineKernel", grid_line_size);
 		DRW_shgroup_uniform_float(grp, "gridOneOverLogSubdiv", &e_data.grid_settings[4], 1);
 		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
