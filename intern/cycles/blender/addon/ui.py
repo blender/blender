@@ -726,37 +726,44 @@ class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
         flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
 
         col = flow.column()
-        col.prop(view_layer, "use_sky", text="Use Environment")
+        col.prop(view_layer, "use_sky", text="Environment")
         col = flow.column()
-        col.prop(view_layer, "use_ao", text="Use Ambient Occlusion")
+        col.prop(view_layer, "use_ao", text="Ambient Occlusion")
         col = flow.column()
-        col.prop(view_layer, "use_solid", text="Use Surfaces")
+        col.prop(view_layer, "use_solid", text="Surfaces")
         col = flow.column()
-        col.prop(view_layer, "use_strand", text="Use Hair")
+        col.prop(view_layer, "use_strand", text="Hair")
         if with_freestyle:
             col = flow.column()
-            col.prop(view_layer, "use_freestyle", text="Use Freestyle")
+            col.prop(view_layer, "use_freestyle", text="Freestyle")
             col.active = rd.use_freestyle
 
 
-class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
+class CYCLES_RENDER_PT_passes(CyclesButtonsPanel, Panel):
     bl_label = "Passes"
     bl_context = "view_layer"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
-        import _cycles
+        pass
 
+
+class CYCLES_RENDER_PT_passes_data(CyclesButtonsPanel, Panel):
+    bl_label = "Data"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+    def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
 
         scene = context.scene
         rd = scene.render
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
-        split = layout.split()
-
-        col = split.column()
+        col = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         col.prop(view_layer, "use_pass_combined")
         col.prop(view_layer, "use_pass_z")
         col.prop(view_layer, "use_pass_mist")
@@ -767,62 +774,126 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_uv")
         col.prop(view_layer, "use_pass_object_index")
         col.prop(view_layer, "use_pass_material_index")
+
         col.separator()
-        col.prop(view_layer, "use_pass_shadow")
-        col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
-        col.separator()
+
+        col = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
         col.prop(cycles_view_layer, "denoising_store_passes", text="Denoising Data")
+        col.prop(cycles_view_layer, "pass_debug_render_time", text="Render Time")
+
         col.separator()
+
         col.prop(view_layer, "pass_alpha_threshold")
 
-        col = split.column()
-        col.label(text="Diffuse:")
-        row = col.row(align=True)
+
+class CYCLES_RENDER_PT_passes_light(CyclesButtonsPanel, Panel):
+    bl_label = "Light"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        scene = context.scene
+        view_layer = context.view_layer
+        cycles_view_layer = view_layer.cycles
+
+        split = layout.split(factor=0.35)
+        split.use_property_split = False
+        split.label(text="Diffuse")
+        row = split.row(align=True)
         row.prop(view_layer, "use_pass_diffuse_direct", text="Direct", toggle=True)
         row.prop(view_layer, "use_pass_diffuse_indirect", text="Indirect", toggle=True)
         row.prop(view_layer, "use_pass_diffuse_color", text="Color", toggle=True)
-        col.label(text="Glossy:")
-        row = col.row(align=True)
+
+        split = layout.split(factor=0.35)
+        split.use_property_split = False
+        split.label(text="Glossy")
+        row = split.row(align=True)
         row.prop(view_layer, "use_pass_glossy_direct", text="Direct", toggle=True)
         row.prop(view_layer, "use_pass_glossy_indirect", text="Indirect", toggle=True)
         row.prop(view_layer, "use_pass_glossy_color", text="Color", toggle=True)
-        col.label(text="Transmission:")
-        row = col.row(align=True)
+
+        split = layout.split(factor=0.35)
+        split.use_property_split = False
+        split.label(text="Transmission")
+        row = split.row(align=True)
         row.prop(view_layer, "use_pass_transmission_direct", text="Direct", toggle=True)
         row.prop(view_layer, "use_pass_transmission_indirect", text="Indirect", toggle=True)
         row.prop(view_layer, "use_pass_transmission_color", text="Color", toggle=True)
-        col.label(text="Subsurface:")
-        row = col.row(align=True)
+
+        split = layout.split(factor=0.35)
+        split.use_property_split = False
+        split.label(text="Subsurface")
+        row = split.row(align=True)
         row.prop(view_layer, "use_pass_subsurface_direct", text="Direct", toggle=True)
         row.prop(view_layer, "use_pass_subsurface_indirect", text="Indirect", toggle=True)
         row.prop(view_layer, "use_pass_subsurface_color", text="Color", toggle=True)
-        col.label(text="Volume:")
-        row = col.row(align=True)
+
+        split = layout.split(factor=0.35)
+        split.use_property_split = False
+        split.label(text="Volume")
+        row = split.row(align=True)
         row.prop(cycles_view_layer, "use_pass_volume_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "use_pass_volume_indirect", text="Indirect", toggle=True)
 
-        col.separator()
+        col = layout.column(align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
+        col.prop(view_layer, "use_pass_shadow")
+        col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
 
-        col = layout.column()
-        col.prop(cycles_view_layer, "pass_debug_render_time")
-        if _cycles.with_cycles_debug:
-            col.prop(cycles_view_layer, "pass_debug_bvh_traversed_nodes")
-            col.prop(cycles_view_layer, "pass_debug_bvh_traversed_instances")
-            col.prop(cycles_view_layer, "pass_debug_bvh_intersections")
-            col.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
-        layout.label(text="Cryptomatte:")
+class CYCLES_RENDER_PT_passes_crypto(CyclesButtonsPanel, Panel):
+    bl_label = "Cryptomatte"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+    def draw(self, context):
+        import _cycles
+
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        cycles_view_layer = context.view_layer.cycles
+
         row = layout.row(align=True)
+        row.use_property_split = False
         row.prop(cycles_view_layer, "use_pass_crypto_object", text="Object", toggle=True)
         row.prop(cycles_view_layer, "use_pass_crypto_material", text="Material", toggle=True)
         row.prop(cycles_view_layer, "use_pass_crypto_asset", text="Asset", toggle=True)
-        row = layout.row(align=True)
-        row.prop(cycles_view_layer, "pass_crypto_depth")
+
+        layout.prop(cycles_view_layer, "pass_crypto_depth", text="Levels")
+
         row = layout.row(align=True)
         row.active = use_cpu(context)
         row.prop(cycles_view_layer, "pass_crypto_accurate", text="Accurate Mode")
+
+
+class CYCLES_RENDER_PT_passes_debug(CyclesButtonsPanel, Panel):
+    bl_label = "Debug"
+    bl_context = "view_layer"
+    bl_parent_id = "CYCLES_RENDER_PT_passes"
+
+    @classmethod
+    def poll(cls, context):
+        import _cycles
+        return _cycles.with_cycles_debug
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        cycles_view_layer = context.view_layer.cycles
+
+        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_nodes")
+        layout.prop(cycles_view_layer, "pass_debug_bvh_traversed_instances")
+        layout.prop(cycles_view_layer, "pass_debug_bvh_intersections")
+        layout.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
 
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
@@ -1980,7 +2051,11 @@ classes = (
     CYCLES_RENDER_PT_performance_final_render,
     CYCLES_RENDER_PT_performance_viewport,
     CYCLES_RENDER_PT_filter,
-    CYCLES_RENDER_PT_layer_passes,
+    CYCLES_RENDER_PT_passes,
+    CYCLES_RENDER_PT_passes_data,
+    CYCLES_RENDER_PT_passes_light,
+    CYCLES_RENDER_PT_passes_crypto,
+    CYCLES_RENDER_PT_passes_debug,
     CYCLES_RENDER_PT_denoising,
     CYCLES_PT_post_processing,
     CYCLES_CAMERA_PT_dof,
