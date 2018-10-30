@@ -5386,7 +5386,6 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		Curve *cu = obedit->data;
 
 		if (!ED_curve_select_check(v3d, cu->editnurb)) {
-			ok = MAX2(ok, 0);
 			continue;
 		}
 
@@ -5394,6 +5393,7 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 		adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, false);
 
 		if (BLI_listbase_is_empty(&newnurb)) {
+			ok = MAX2(ok, 0);
 			continue;
 		}
 
