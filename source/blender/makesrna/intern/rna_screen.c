@@ -332,8 +332,9 @@ static void rna_def_area_api(StructRNA *srna)
 
 	func = RNA_def_function(srna, "header_text_set", "ED_area_status_text");
 	RNA_def_function_ui_description(func, "Set the header status text");
-	parm = RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, empty string clears the text");
+	parm = RNA_def_string(func, "text", NULL, 0, "Text", "New string for the header, None clears the text");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_property_clear_flag(parm, PROP_NEVER_NULL);
 }
 
 static void rna_def_area(BlenderRNA *brna)

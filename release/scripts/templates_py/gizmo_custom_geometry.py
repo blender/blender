@@ -96,7 +96,7 @@ class MyCustomShapeWidget(Gizmo):
         return {'RUNNING_MODAL'}
 
     def exit(self, context, cancel):
-        context.area.header_text_set("")
+        context.area.header_text_set(None)
         if cancel:
             self.target_set_value("offset", self.init_value)
 

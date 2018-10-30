@@ -176,8 +176,9 @@ void RNA_api_workspace(StructRNA *srna)
 	func = RNA_def_function(srna, "status_text_set", "ED_workspace_status_text");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Set the status bar text, typically key shortcuts for modal operators");
-	parm = RNA_def_string(func, "text", NULL, 0, "Text", "New string for the status bar, empty string clears the text");
+	parm = RNA_def_string(func, "text", NULL, 0, "Text", "New string for the status bar, None clears the text");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_property_clear_flag(parm, PROP_NEVER_NULL);
 }
 
 void RNA_api_workspace_tool(StructRNA *srna)
