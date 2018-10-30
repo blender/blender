@@ -297,8 +297,8 @@ static bool id_search_add(
 		}
 
 		if (*str == '\0' || BLI_strcasestr(id->name + 2, str)) {
-			/* +1 is needed because BKE_id_ui_prefix used 3 letter prefix
-			 * followed by ID_NAME-2 characters from id->name
+			/* +1 is needed because BKE_id_ui_prefix uses 3 letter prefix
+			 * followed by ID_NAME-2 characters from id->name.
 			 */
 			char name_ui[MAX_ID_NAME + 1];
 			BKE_id_ui_prefix(name_ui, id);
