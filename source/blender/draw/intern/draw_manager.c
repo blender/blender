@@ -1202,7 +1202,6 @@ static void drw_engines_enable_from_paint_mode(int mode)
 			use_drw_engine(&draw_engine_sculpt_type);
 			break;
 		case CTX_MODE_PAINT_WEIGHT:
-			use_drw_engine(&draw_engine_pose_type);
 			use_drw_engine(&draw_engine_paint_weight_type);
 			break;
 		case CTX_MODE_PAINT_VERTEX:
@@ -1238,20 +1237,21 @@ static void drw_engines_enable_from_mode(int mode)
 		case CTX_MODE_EDIT_LATTICE:
 			use_drw_engine(&draw_engine_edit_lattice_type);
 			break;
-		case CTX_MODE_POSE:
-			use_drw_engine(&draw_engine_pose_type);
-			break;
 		case CTX_MODE_PARTICLE:
 			use_drw_engine(&draw_engine_particle_type);
 			break;
-		case CTX_MODE_SCULPT:
+		case CTX_MODE_POSE:
 		case CTX_MODE_PAINT_WEIGHT:
+			/* The pose engine clears the depth of the default framebuffer
+			 * to draw an object with `OB_DRAWXRAY`.
+			 * (different of workbench that has its own framebuffer).
+			 * So make sure you call its `draw_scene` after all the other engines. */
+			use_drw_engine(&draw_engine_pose_type);
+			break;
+		case CTX_MODE_SCULPT:
 		case CTX_MODE_PAINT_VERTEX:
 		case CTX_MODE_PAINT_TEXTURE:
-			/* Should have already been enabled */
-			break;
 		case CTX_MODE_OBJECT:
-			break;
 		case CTX_MODE_GPENCIL_PAINT:
 		case CTX_MODE_GPENCIL_EDIT:
 		case CTX_MODE_GPENCIL_SCULPT:
