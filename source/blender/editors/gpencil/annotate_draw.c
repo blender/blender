@@ -1050,15 +1050,4 @@ void ED_gpencil_draw_view3d_annotations(
 	gp_draw_data_all(scene, gpd, offsx, offsy, winx, winy, CFRA, dflag, v3d->spacetype);
 }
 
-#if 0 // XXX: Reinstate, after renaming the functions
-
-void ED_gpencil_draw_ex(Scene *scene, bGPdata *gpd, int winx, int winy, const int cfra, const char spacetype)
-{
-	int dflag = GP_DRAWDATA_NOSTATUS | GP_DRAWDATA_ONLYV2D;
-
-	gp_draw_data_all(scene, gpd, 0, 0, winx, winy, cfra, dflag, spacetype);
-}
-
-#endif
-
 /* ************************************************** */
