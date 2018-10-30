@@ -1372,32 +1372,50 @@ void CURVE_OT_separate(wmOperatorType *ot)
 
 static int curve_split_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
-	ListBase newnurb = {NULL, NULL};
+	int ok = -1;
 
-	adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
-
-	if (BLI_listbase_is_empty(&newnurb) == false) {
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
 		Curve *cu = obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		ListBase newnurb = {NULL, NULL};
+
+		adduplicateflagNurb(obedit, v3d, &newnurb, SELECT, true);
+
+		if (BLI_listbase_is_empty(&newnurb)) {
+			ok = MAX2(ok, 0);
+			continue;
+		}
+
+		ListBase *editnurb = object_editcurve_get(obedit);
 		const int len_orig = BLI_listbase_count(editnurb);
 
 		curve_delete_segments(obedit, v3d, true);
 		cu->actnu -= len_orig - BLI_listbase_count(editnurb);
 		BLI_movelisttolist(editnurb, &newnurb);
 
-		if (ED_curve_updateAnimPaths(obedit->data))
+		if (ED_curve_updateAnimPaths(obedit->data)) {
 			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		}
 
+		ok = 1;
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 		DEG_id_tag_update(obedit->data, 0);
 	}
-	else {
+	MEM_freeN(objects);
+
+	if (ok == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot split current selection");
 		return OPERATOR_CANCELLED;
 	}
-
 	return OPERATOR_FINISHED;
 }
 
