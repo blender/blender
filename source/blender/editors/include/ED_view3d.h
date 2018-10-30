@@ -522,6 +522,8 @@ void  ED_view3d_distance_set(struct RegionView3D *rv3d, const float dist);
 
 float ED_scene_grid_scale(struct Scene *scene, const char **grid_unit);
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit);
+float ED_view3d_grid_view_scale(
+        struct Scene *scene, struct View3D *v3d, struct RegionView3D *rv3d, const char **grid_unit);
 
 void ED_scene_draw_fps(struct Scene *scene, const struct rcti *rect);
 
