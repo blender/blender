@@ -1101,8 +1101,8 @@ void RENDER_OT_opengl(wmOperatorType *ot)
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "OpenGL Render";
-	ot->description = "OpenGL render active viewport";
+	ot->name = "Viewport Render";
+	ot->description = "Take a snapshot of the active viewport";
 	ot->idname = "RENDER_OT_opengl";
 
 	/* api callbacks */
