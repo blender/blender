@@ -1227,25 +1227,47 @@ static bool ed_curve_select_nth(Curve *cu, const struct CheckerIntervalParams *p
 
 static int select_nth_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	struct CheckerIntervalParams op_params;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object *obact = CTX_data_edit_object(C);
+	View3D *v3d = CTX_wm_view3d(C);
+	bool changed = false;
 
+	struct CheckerIntervalParams op_params;
 	WM_operator_properties_checker_interval_from_op(op, &op_params);
 
-	if (!ed_curve_select_nth(obedit->data, &op_params)) {
-		if (obedit->type == OB_SURF) {
-			BKE_report(op->reports, RPT_ERROR, "Surface has not got active point");
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		if (ed_curve_select_nth(obedit->data, &op_params) == true) {
+			changed = true;
+			DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		}
+	}
+	MEM_freeN(objects);
+
+	if (!changed) {
+		if (obact->type == OB_SURF) {
+			BKE_report(op->reports, RPT_ERROR,
+			           (objects_len == 1 ?
+			            "Surface has no active point" :
+			            "Surfaces have no active point"));
 		}
 		else {
-			BKE_report(op->reports, RPT_ERROR, "Curve has not got active point");
+			BKE_report(op->reports, RPT_ERROR,
+			           (objects_len == 1 ?
+			            "Curve has no active point" :
+			            "Curves have no active point"));
 		}
-
 		return OPERATOR_CANCELLED;
 	}
-
-	DEG_id_tag_update(obedit->data, DEG_TAG_SELECT_UPDATE);
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
 	return OPERATOR_FINISHED;
 }
 
