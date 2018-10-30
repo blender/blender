@@ -537,12 +537,9 @@ static void sequencer_main_region_listener(
 static void sequencer_main_region_message_subscribe(
         const struct bContext *UNUSED(C),
         struct WorkSpace *UNUSED(workspace), struct Scene *scene,
-        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
-	PointerRNA ptr;
-	RNA_pointer_create(&screen->id, &RNA_SpaceSequenceEditor, sa->spacedata.first, &ptr);
-
 	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
 		.owner = ar,
 		.user_data = ar,
@@ -570,6 +567,24 @@ static void sequencer_main_region_message_subscribe(
 
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
+		}
+	}
+
+	{
+		StructRNA *type_array[] = {
+			&RNA_SequenceEditor,
+
+			&RNA_Sequence,
+			/* Members of 'Sequence'. */
+			&RNA_SequenceCrop,
+			&RNA_SequenceTransform,
+			&RNA_SequenceModifier,
+			&RNA_SequenceColorBalanceData,
+		};
+		wmMsgParams_RNA msg_key_params = {{{0}}};
+		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
+			msg_key_params.ptr.type = type_array[i];
+			WM_msg_subscribe_rna_params(mbus, &msg_key_params, &msg_sub_value_region_tag_redraw, __func__);
 		}
 	}
 }

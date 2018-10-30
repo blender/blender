@@ -125,7 +125,6 @@ static void rna_Sequence_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 		Sequence *seq = (Sequence *) ptr->data;
 
 		BKE_sequence_invalidate_cache(scene, seq);
-		WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 	}
 }
 
