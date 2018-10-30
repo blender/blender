@@ -268,7 +268,7 @@ def register_passes(engine, scene, srl):
         for i in range(0, srl.cycles.pass_crypto_depth, 2):
             engine.register_pass(scene, srl, "CryptoAsset" + '{:02d}'.format(i), 4, "RGBA", 'COLOR')
 
-    if crl.use_denoising:
+    if crl.use_denoising or crl.denoising_store_passes:
         engine.register_pass(scene, srl, "Noisy Image", 3, "RGBA", 'COLOR')
         if crl.denoising_store_passes:
             engine.register_pass(scene, srl, "Denoising Normal",          3, "XYZ", 'VECTOR')

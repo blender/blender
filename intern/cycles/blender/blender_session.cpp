@@ -412,12 +412,14 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 
 	PointerRNA crl = RNA_pointer_get(&b_view_layer.ptr, "cycles");
 	bool use_denoising = get_boolean(crl, "use_denoising");
+	bool denoising_passes = use_denoising || get_boolean(crl, "denoising_store_passes");
 
 	session->tile_manager.schedule_denoising = use_denoising;
-	buffer_params.denoising_data_pass = use_denoising;
+	buffer_params.denoising_data_pass = denoising_passes;
 	buffer_params.denoising_clean_pass = (scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES);
 
 	session->params.use_denoising = use_denoising;
+	session->params.denoising_passes = denoising_passes;
 	session->params.denoising_radius = get_int(crl, "denoising_radius");
 	session->params.denoising_strength = get_float(crl, "denoising_strength");
 	session->params.denoising_feature_strength = get_float(crl, "denoising_feature_strength");

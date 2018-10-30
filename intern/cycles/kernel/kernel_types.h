@@ -1278,12 +1278,10 @@ typedef struct KernelFilm {
 	float mist_start;
 	float mist_inv_depth;
 	float mist_falloff;
-	
+
 	int pass_denoising_data;
 	int pass_denoising_clean;
 	int denoising_flags;
-
-	int pad1, pad2;
 
 	/* XYZ to rendering color space transform. float4 instead of float3 to
 	 * ensure consistent padding/alignment across devices. */

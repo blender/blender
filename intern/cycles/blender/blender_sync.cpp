@@ -510,9 +510,11 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 			Pass::add(pass_type, passes);
 	}
 
-	scene->film->denoising_flags = 0;
 	PointerRNA crp = RNA_pointer_get(&b_view_layer.ptr, "cycles");
-	if(get_boolean(crp, "use_denoising")) {
+	bool use_denoising = get_boolean(crp, "use_denoising");
+	bool store_denoising_passes = get_boolean(crp, "denoising_store_passes");
+	scene->film->denoising_flags = 0;
+	if(use_denoising || store_denoising_passes) {
 #define MAP_OPTION(name, flag) if(!get_boolean(crp, name)) scene->film->denoising_flags |= flag;
 		MAP_OPTION("denoising_diffuse_direct",        DENOISING_CLEAN_DIFFUSE_DIR);
 		MAP_OPTION("denoising_diffuse_indirect",      DENOISING_CLEAN_DIFFUSE_IND);
@@ -523,22 +525,22 @@ vector<Pass> BlenderSync::sync_render_passes(BL::RenderLayer& b_rlay,
 		MAP_OPTION("denoising_subsurface_direct",     DENOISING_CLEAN_SUBSURFACE_DIR);
 		MAP_OPTION("denoising_subsurface_indirect",   DENOISING_CLEAN_SUBSURFACE_IND);
 #undef MAP_OPTION
-
 		b_engine.add_pass("Noisy Image", 4, "RGBA", b_view_layer.name().c_str());
-		if(get_boolean(crp, "denoising_store_passes")) {
-			b_engine.add_pass("Denoising Normal",          3, "XYZ", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Albedo",          3, "RGB", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Depth",           1, "Z",   b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_view_layer.name().c_str());
-			b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_view_layer.name().c_str());
+	}
 
-			if(scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
-				b_engine.add_pass("Denoising Clean",   3, "RGB", b_view_layer.name().c_str());
-			}
+	if(store_denoising_passes) {
+		b_engine.add_pass("Denoising Normal",          3, "XYZ", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Normal Variance", 3, "XYZ", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Albedo",          3, "RGB", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Albedo Variance", 3, "RGB", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Depth",           1, "Z",   b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Depth Variance",  1, "Z",   b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Shadow A",        3, "XYV", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Shadow B",        3, "XYV", b_view_layer.name().c_str());
+		b_engine.add_pass("Denoising Image Variance",  3, "RGB", b_view_layer.name().c_str());
+
+		if(scene->film->denoising_flags & DENOISING_CLEAN_ALL_PASSES) {
+			b_engine.add_pass("Denoising Clean",   3, "RGB", b_view_layer.name().c_str());
 		}
 	}
 #ifdef __KERNEL_DEBUG__

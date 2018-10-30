@@ -771,6 +771,8 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.prop(view_layer, "use_pass_shadow")
         col.prop(view_layer, "use_pass_ambient_occlusion", text="Ambient Occlusion")
         col.separator()
+        col.prop(cycles_view_layer, "denoising_store_passes", text="Denoising Data")
+        col.separator()
         col.prop(view_layer, "pass_alpha_threshold")
 
         col = split.column()
@@ -802,12 +804,6 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
         col.separator()
         col.prop(view_layer, "use_pass_emit", text="Emission")
         col.prop(view_layer, "use_pass_environment")
-
-        if context.scene.cycles.feature_set == 'EXPERIMENTAL':
-            col.separator()
-            sub = col.column()
-            sub.active = cycles_view_layer.use_denoising
-            sub.prop(cycles_view_layer, "denoising_store_passes", text="Denoising")
 
         col = layout.column()
         col.prop(cycles_view_layer, "pass_debug_render_time")
@@ -853,66 +849,40 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
         view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
-        layout.active = cycles_view_layer.use_denoising
+        split = layout.split()
+        split.active = cycles_view_layer.use_denoising
 
-        col = layout.column()
-        sub = col.column()
-        sub.prop(cycles_view_layer, "denoising_radius", text="Radius")
-        sub.prop(cycles_view_layer, "denoising_strength", slider=True, text="Strength")
+        layout = layout.column(align=True)
+        layout.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
+        layout.prop(cycles_view_layer, "denoising_relative_pca")
 
-        sub = col.column(align=True)
-        sub.prop(cycles_view_layer, "denoising_feature_strength", slider=True, text="Feature Strength")
-        sub.prop(cycles_view_layer, "denoising_relative_pca")
-
-#        layout.use_property_split = False
-
-        """
         layout.separator()
 
-        col = layout.column(align=True)
-        col.prop(cycles_view_layer, "denoising_diffuse_direct", text="Diffuse Direct")
-        col.prop(cycles_view_layer, "denoising_diffuse_indirect", text="Indirect")
-
-        col = layout.column(align=True)
-        col.prop(cycles_view_layer, "denoising_glossy_direct", text="Glossy Direct")
-        col.prop(cycles_view_layer, "denoising_glossy_indirect", text="Indirect")
-
-        col = layout.column(align=True)
-        col.prop(cycles_view_layer, "denoising_transmission_direct", text="Transmission Direct")
-        col.prop(cycles_view_layer, "denoising_transmission_indirect", text="Indirect")
-
-        col = layout.column(align=True)
-        col.prop(cycles_view_layer, "denoising_subsurface_direct", text="Subsurface Direct")
-        col.prop(cycles_view_layer, "denoising_subsurface_indirect", text="Indirect")
-        """
-
-        layout.use_property_split = False
-
-        split = layout.split(factor=0.5)
-        split.label(text="Diffuse")
-        col = split.column()
-        row = col.row(align=True)
+        row = layout.row(align=True)
+        row.active = cycles_view_layer.use_denoising or cycles_view_layer.denoising_store_passes
+        row.label(text="Diffuse")
+        row.use_property_split = False
         row.prop(cycles_view_layer, "denoising_diffuse_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_diffuse_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(factor=0.5)
-        split.label(text="Glossy")
-        col = split.column()
-        row = col.row(align=True)
+        row = layout.row(align=True)
+        row.active = cycles_view_layer.use_denoising or cycles_view_layer.denoising_store_passes
+        row.label(text="Glossy")
+        row.use_property_split = False
         row.prop(cycles_view_layer, "denoising_glossy_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_glossy_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(factor=0.5)
-        split.label(text="Transmission")
-        col = split.column()
-        row = col.row(align=True)
+        row = layout.row(align=True)
+        row.active = cycles_view_layer.use_denoising or cycles_view_layer.denoising_store_passes
+        row.label(text="Transmission")
+        row.use_property_split = False
         row.prop(cycles_view_layer, "denoising_transmission_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_transmission_indirect", text="Indirect", toggle=True)
 
-        split = layout.split(factor=0.5)
-        split.label(text="Subsurface")
-        col = split.column()
-        row = col.row(align=True)
+        row = layout.row(align=True)
+        row.active = cycles_view_layer.use_denoising or cycles_view_layer.denoising_store_passes
+        row.label(text="Subsurface")
+        row.use_property_split = False
         row.prop(cycles_view_layer, "denoising_subsurface_direct", text="Direct", toggle=True)
         row.prop(cycles_view_layer, "denoising_subsurface_indirect", text="Indirect", toggle=True)
 
