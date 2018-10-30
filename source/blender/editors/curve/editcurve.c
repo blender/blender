@@ -86,7 +86,8 @@
 
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
 static void adduplicateflagNurb(Object *obedit, View3D *v3d, ListBase *newnurb, const short flag, const bool split);
-static int curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
+static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split);
+static bool curve_delete_vertices(Object *obedit, View3D *v3d);
 
 ListBase *object_editcurve_get(Object *ob)
 {
@@ -5382,7 +5383,7 @@ void CURVE_OT_duplicate(wmOperatorType *ot)
 
 /********************** delete operator *********************/
 
-static int curve_delete_vertices(Object *obedit, View3D *v3d)
+static bool curve_delete_vertices(Object *obedit, View3D *v3d)
 {
 	if (obedit->type == OB_SURF) {
 		ed_surf_delete_selected(obedit);
@@ -5391,10 +5392,10 @@ static int curve_delete_vertices(Object *obedit, View3D *v3d)
 		ed_curve_delete_selected(obedit, v3d);
 	}
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
-static int curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
+static bool curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
 {
 	Curve *cu = obedit->data;
 	EditNurb *editnurb = cu->editnurb;
@@ -5787,33 +5788,57 @@ static int curve_delete_segments(Object *obedit, View3D *v3d, const bool split)
 	BKE_nurbList_free(nubase);
 	BLI_movelisttolist(nubase, &newnurb);
 
-	return OPERATOR_FINISHED;
+	return true;
 }
 
 static int curve_delete_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Curve *cu = (Curve *)obedit->data;
 	eCurveElem_Types type = RNA_enum_get(op->ptr, "type");
-	int retval = OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	bool changed_multi = false;
 
-	if (type == CURVE_VERTEX) retval = curve_delete_vertices(obedit, v3d);
-	else if (type == CURVE_SEGMENT) retval = curve_delete_segments(obedit, v3d, false);
-	else BLI_assert(0);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = (Curve *)obedit->data;
+		bool changed = false;
 
-	if (retval == OPERATOR_FINISHED) {
-		cu->actnu = cu->actvert = CU_ACT_NONE;
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
 
-		if (ED_curve_updateAnimPaths(obedit->data)) WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		if (type == CURVE_VERTEX) {
+			changed = curve_delete_vertices(obedit, v3d);
+		}
+		else if (type == CURVE_SEGMENT) {
+			changed = curve_delete_segments(obedit, v3d, false);
+		}
+		else {
+			BLI_assert(0);
+		}
 
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-		DEG_id_tag_update(obedit->data, 0);
+		if (changed) {
+			changed_multi = true;
+			cu->actnu = cu->actvert = CU_ACT_NONE;
 
-		return retval;
+			if (ED_curve_updateAnimPaths(obedit->data)) {
+				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+			}
+
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			DEG_id_tag_update(obedit->data, 0);
+		}
 	}
+	MEM_freeN(objects);
 
-	return retval;
+	if (changed_multi) {
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 static const EnumPropertyItem curve_delete_type_items[] = {
