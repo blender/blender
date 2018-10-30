@@ -9,6 +9,7 @@ const vec4 dither_mat[4] = vec4[4](
 );
 
 uniform float threshold = 0.5;
+uniform float offset = 0.0;
 
 /* Noise dithering pattern
  * 0 - Bayer matrix
@@ -24,7 +25,7 @@ void main()
 #elif NOISE == 1
 	/* Interlieved gradient noise by Jorge Jimenez
 	 * http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare */
-	float noise = fract(52.9829189 * fract(0.06711056 * gl_FragCoord.x + 0.00583715 * gl_FragCoord.y));
+	float noise = fract(offset + 52.9829189 * fract(0.06711056 * gl_FragCoord.x + 0.00583715 * gl_FragCoord.y));
 #else
 #error
 #endif

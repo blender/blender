@@ -363,7 +363,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
 	/* Checker Depth */
 	{
+		static float noise_offset = 0.0f;
 		float blend_threshold = 0.0f;
+
+		if (DRW_state_is_image_render()) {
+			/* TODO: Should be based on the number of samples used for render. */
+			noise_offset = fmodf(noise_offset + 1.0f/8.0f, 1.0f);
+		}
 
 		if (wpd->shading.flag & XRAY_FLAG(wpd)) {
 			blend_threshold = 0.75f - XRAY_ALPHA(wpd) * 0.5f;
@@ -379,6 +385,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 		DRW_shgroup_uniform_float_copy(grp, "threshold", blend_threshold);
+		DRW_shgroup_uniform_float_copy(grp, "offset", noise_offset);
 	}
 }
 
