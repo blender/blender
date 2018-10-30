@@ -5174,42 +5174,52 @@ void CURVE_OT_vertex_add(wmOperatorType *ot)
 
 static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Curve *cu = obedit->data;
-	EditNurb *editnurb = cu->editnurb;
-	bool changed = false;
-	bool as_curve = false;
 
-	/* first test: curve? */
-	if (obedit->type != OB_CURVE) {
-		Nurb *nu;
-		for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
-			if ((nu->pntsv == 1) &&
-			    (ED_curve_nurb_select_count(v3d, nu) == 1))
-			{
-				as_curve = true;
-				break;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		EditNurb *editnurb = cu->editnurb;
+		bool changed = false;
+		bool as_curve = false;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		/* First test: curve? */
+		if (obedit->type != OB_CURVE) {
+			Nurb *nu;
+			for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
+				if ((nu->pntsv == 1) &&
+					(ED_curve_nurb_select_count(v3d, nu) == 1))
+				{
+					as_curve = true;
+					break;
+				}
 			}
 		}
-	}
 
-	if (obedit->type == OB_CURVE || as_curve) {
-		changed = ed_editcurve_extrude(cu, editnurb, v3d);
-	}
-	else {
-		changed = ed_editnurb_extrude_flag(editnurb, SELECT);
-	}
-
-	if (changed) {
-		if (ED_curve_updateAnimPaths(obedit->data)) {
-			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+		if (obedit->type == OB_CURVE || as_curve) {
+			changed = ed_editcurve_extrude(cu, editnurb, v3d);
+		}
+		else {
+			changed = ed_editnurb_extrude_flag(editnurb, SELECT);
 		}
 
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-		DEG_id_tag_update(obedit->data, 0);
-	}
+		if (changed) {
+			if (ED_curve_updateAnimPaths(obedit->data)) {
+				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+			}
 
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			DEG_id_tag_update(obedit->data, 0);
+		}
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
