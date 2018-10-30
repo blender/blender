@@ -1370,11 +1370,11 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
 
         if brush is not None:
             # XXX: Items in "sub" currently show up beside the brush selector in a separate column
-            if gp_settings.gpencil_brush_type == 'ERASE':
+            if gp_settings.tool == 'ERASE':
                 sub.prop(gp_settings, "default_eraser", text="")
 
             # Brush details
-            if gp_settings.gpencil_brush_type == 'ERASE':
+            if gp_settings.tool == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1387,27 +1387,27 @@ class VIEW3D_PT_tools_grease_pencil_brush(View3DPanel, Panel):
                     row.prop(gp_settings, "eraser_strength_factor")
                     row = layout.row(align=True)
                     row.prop(gp_settings, "eraser_thickness_factor")
-            elif gp_settings.gpencil_brush_type == 'FILL':
+            elif gp_settings.tool == 'FILL':
                 col = layout.column(align=True)
-                col.prop(gp_settings, "gpencil_fill_leak", text="Leak Size")
+                col.prop(gp_settings, "fill_leak", text="Leak Size")
                 col.separator()
                 col.prop(brush, "size", text="Thickness")
-                col.prop(gp_settings, "gpencil_fill_simplyfy_level", text="Simplify")
+                col.prop(gp_settings, "fill_simplify_level", text="Simplify")
 
                 col = layout.row(align=True)
                 col.template_ID(gp_settings, "material")
 
                 row = layout.row(align=True)
-                row.prop(gp_settings, "gpencil_fill_draw_mode", text="Boundary Draw Mode")
-                row.prop(gp_settings, "gpencil_fill_show_boundary", text="", icon='GRID')
+                row.prop(gp_settings, "fill_draw_mode", text="Boundary Draw Mode")
+                row.prop(gp_settings, "fill_show_boundary", text="", icon='GRID')
 
                 col = layout.column(align=True)
-                col.enabled = gp_settings.gpencil_fill_draw_mode != 'STROKE'
-                col.prop(gp_settings, "gpencil_fill_hide", text="Ignore Transparent Strokes")
+                col.enabled = gp_settings.fill_draw_mode != 'STROKE'
+                col.prop(gp_settings, "fill_hide", text="Ignore Transparent Strokes")
                 sub = col.row(align=True)
-                sub.enabled = gp_settings.gpencil_fill_hide
-                sub.prop(gp_settings, "gpencil_fill_threshold", text="Threshold")
-            else:  # bgpsettings.gpencil_brush_type == 'DRAW':
+                sub.enabled = gp_settings.fill_hide
+                sub.prop(gp_settings, "fill_threshold", text="Threshold")
+            else:  # bgpsettings.tool == 'DRAW':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1430,7 +1430,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_option(View3DPanel, Panel):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
+        return brush is not None and gp_settings.tool != 'ERASE'
 
     def draw_header_preset(self, context):
         VIEW3D_PT_gpencil_brush_presets.draw_panel_header(self.layout)
@@ -1468,7 +1468,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_stabilizer(View3DPanel, Panel):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        return brush is not None and gp_settings.gpencil_brush_type == 'DRAW'
+        return brush is not None and gp_settings.tool == 'DRAW'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1500,7 +1500,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_settings(View3DPanel, Panel):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
+        return brush is not None and gp_settings.tool != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1541,7 +1541,7 @@ class VIEW3D_PT_tools_grease_pencil_brush_random(View3DPanel, Panel):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
+        return brush is not None and gp_settings.tool != 'ERASE'
 
     def draw_header(self, context):
         brush = context.active_gpencil_brush
@@ -1578,7 +1578,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(View3DPanel, Panel):
         brush = context.active_gpencil_brush
         gp_settings = brush.gpencil_settings
 
-        return brush is not None and gp_settings.gpencil_brush_type != 'ERASE'
+        return brush is not None and gp_settings.tool != 'ERASE'
 
     @staticmethod
     def draw(self, context):

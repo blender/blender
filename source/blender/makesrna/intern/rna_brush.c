@@ -1121,7 +1121,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* fill threshold for transparence */
-	prop = RNA_def_property(srna, "gpencil_fill_threshold", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "fill_threshold", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "fill_threshold");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Threshold",
@@ -1130,7 +1130,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* fill leak size */
-	prop = RNA_def_property(srna, "gpencil_fill_leak", PROP_INT, PROP_PIXEL);
+	prop = RNA_def_property(srna, "fill_leak", PROP_INT, PROP_PIXEL);
 	RNA_def_property_int_sdna(prop, NULL, "fill_leak");
 	RNA_def_property_range(prop, 0, 100);
 	RNA_def_property_ui_text(prop, "Leak Size",
@@ -1139,7 +1139,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	/* fill simplify steps */
-	prop = RNA_def_property(srna, "gpencil_fill_simplyfy_level", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, "fill_simplify_level", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "fill_simplylvl");
 	RNA_def_property_range(prop, 0, 10);
 	RNA_def_property_ui_text(prop, "Simplify",
@@ -1230,7 +1230,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Enable Cursor", "Enable cursor on screen");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "gpencil_brush_type", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "tool", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "brush_type");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_brush_types_items);
 	RNA_def_property_ui_text(prop, "Type", "Category of the brush");
@@ -1243,7 +1243,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_eraser_mode_update");
 
-	prop = RNA_def_property(srna, "gpencil_fill_draw_mode", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "fill_draw_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "fill_draw_mode");
 	RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_draw_modes_items);
 	RNA_def_property_ui_text(prop, "Mode", "Mode to draw boundary limits");
@@ -1258,13 +1258,13 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_Brush_material_update");
 
-	prop = RNA_def_property(srna, "gpencil_fill_show_boundary", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "fill_show_boundary", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_SHOW_HELPLINES);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_ui_text(prop, "Show Lines", "Show help lines for filling to see boundaries");
 	RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, 0);
 
-	prop = RNA_def_property(srna, "gpencil_fill_hide", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "fill_hide", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_BRUSH_FILL_HIDE);
 	RNA_def_property_boolean_default(prop, true);
 	RNA_def_property_ui_text(prop, "Hide", "Hide transparent lines to use as boundary for filling");

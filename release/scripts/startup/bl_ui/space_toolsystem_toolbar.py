@@ -1370,7 +1370,7 @@ class _defs_gpencil_paint:
             brush = context.active_gpencil_brush
             gp_settings = brush.gpencil_settings
 
-            if gp_settings.gpencil_brush_type == 'ERASE':
+            if gp_settings.tool == 'ERASE':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
@@ -1378,19 +1378,19 @@ class _defs_gpencil_paint:
                     row = layout.row(align=True)
                     row.prop(gp_settings, "pen_strength", slider=True)
                     row.prop(gp_settings, "use_strength_pressure", text="", icon='STYLUS_PRESSURE')
-            elif gp_settings.gpencil_brush_type == 'FILL':
+            elif gp_settings.tool == 'FILL':
                 row = layout.row()
-                row.prop(gp_settings, "gpencil_fill_leak", text="Leak Size")
+                row.prop(gp_settings, "fill_leak", text="Leak Size")
                 row.prop(brush, "size", text="Thickness")
-                row.prop(gp_settings, "gpencil_fill_simplyfy_level", text="Simplify")
+                row.prop(gp_settings, "fill_simplify_level", text="Simplify")
 
                 _defs_gpencil_paint.draw_color_selector(context, layout)
 
                 row = layout.row(align=True)
-                row.prop(gp_settings, "gpencil_fill_draw_mode", text="")
-                row.prop(gp_settings, "gpencil_fill_show_boundary", text="", icon='GRID')
+                row.prop(gp_settings, "fill_draw_mode", text="")
+                row.prop(gp_settings, "fill_show_boundary", text="", icon='GRID')
 
-            else:  # bgpsettings.gpencil_brush_type == 'DRAW':
+            else:  # bgpsettings.tool == 'DRAW':
                 row = layout.row(align=True)
                 row.prop(brush, "size", text="Radius")
                 row.prop(gp_settings, "use_pressure", text="", icon='STYLUS_PRESSURE')
