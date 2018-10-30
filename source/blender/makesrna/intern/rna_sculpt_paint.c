@@ -373,7 +373,7 @@ static char *rna_UvSculpt_path(PointerRNA *UNUSED(ptr))
 
 static char *rna_GpPaint_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_strdup("tool_settings.gp_paint");
+	return BLI_strdup("tool_settings.gpencil_paint");
 }
 
 static char *rna_ParticleBrush_path(PointerRNA *UNUSED(ptr))
