@@ -129,10 +129,10 @@ typedef enum {
 /* size constants */
 #define OL_Y_OFFSET 2
 
-#define OL_TOG_HIDEX            (UI_UNIT_X * 4.0f)
-#define OL_TOG_RESTRICT_SELECTX (UI_UNIT_X * 3.0f)
-#define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 2.0f)
-#define OL_TOG_RESTRICT_RENDERX UI_UNIT_X
+#define OL_TOG_HIDEX            (UI_UNIT_X * 4.0f + V2D_SCROLL_WIDTH)
+#define OL_TOG_RESTRICT_SELECTX (UI_UNIT_X * 3.0f + V2D_SCROLL_WIDTH)
+#define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 2.0f + V2D_SCROLL_WIDTH)
+#define OL_TOG_RESTRICT_RENDERX (UI_UNIT_X + V2D_SCROLL_WIDTH)
 
 #define OL_TOGW OL_TOG_HIDEX
 
