@@ -365,7 +365,7 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 			if (la->type == LA_SUN) {
 				int cascade_nbr = la->cascade_count;
 
-				if ((linfo->gpu_cascade_len + sh_nbr) <= MAX_SHADOW_CASCADE) {
+				if ((linfo->gpu_cascade_len + 1) <= MAX_SHADOW_CASCADE) {
 					/* Save Light object. */
 					linfo->shadow_cascade_ref[linfo->cpu_cascade_len] = ob;
 
