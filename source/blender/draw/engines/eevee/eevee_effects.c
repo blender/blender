@@ -127,7 +127,8 @@ static void eevee_create_shader_downsample(void)
 }
 
 #define SETUP_BUFFER(tex, fb, fb_color) { \
-	DRW_texture_ensure_fullscreen_2D(&tex, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP); \
+	GPUTextureFormat format = (DRW_state_is_scene_render()) ? GPU_RGBA32F : GPU_RGBA16F; \
+	DRW_texture_ensure_fullscreen_2D(&tex, format, DRW_TEX_FILTER | DRW_TEX_MIPMAP); \
 	GPU_framebuffer_ensure_config(&fb, { \
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth), \
 		GPU_ATTACHMENT_TEXTURE(tex), \
