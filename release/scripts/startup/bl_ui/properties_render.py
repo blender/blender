@@ -511,6 +511,62 @@ class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
             row.prop(rv, "camera_suffix", text="")
 
 
+class RENDER_PT_color_management(RenderButtonsPanel, Panel):
+    bl_label = "Color Management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        view = scene.view_settings
+
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
+
+        col = flow.column()
+        col.prop(scene.display_settings, "display_device")
+
+        col.separator()
+
+        col.prop(view, "view_transform")
+        col.prop(view, "look")
+
+        col = flow.column()
+        col.prop(view, "exposure")
+        col.prop(view, "gamma")
+
+        col.separator()
+
+        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
+
+
+class RENDER_PT_color_management_curves(RenderButtonsPanel, Panel):
+    bl_label = "Use Curves"
+    bl_parent_id = "RENDER_PT_color_management"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw_header(self, context):
+
+        scene = context.scene
+        view = scene.view_settings
+
+        self.layout.prop(view, "use_curve_mapping", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        view = scene.view_settings
+
+        layout.use_property_split = False
+        layout.enabled = view.use_curve_mapping
+
+        layout.template_curve_mapping(view, "curve_mapping", levels=True)
+
+
 class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
     bl_label = "Ambient Occlusion"
     bl_options = {'DEFAULT_CLOSED'}
@@ -943,6 +999,8 @@ classes = (
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
+    RENDER_PT_color_management,
+    RENDER_PT_color_management_curves,
     RENDER_PT_eevee_hair,
     RENDER_PT_eevee_sampling,
     RENDER_PT_eevee_film,

@@ -290,62 +290,6 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, SceneKeyingSetsPanel, Panel):
                 col.prop(ksp, "group")
 
 
-class SCENE_PT_color_management(SceneButtonsPanel, Panel):
-    bl_label = "Color Management"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw(self, context):
-        layout = self.layout
-        layout.use_property_split = True
-
-        scene = context.scene
-        view = scene.view_settings
-
-        flow = layout.grid_flow(row_major=True, columns=0, even_columns=False, even_rows=False, align=True)
-
-        col = flow.column()
-        col.prop(scene.display_settings, "display_device")
-
-        col.separator()
-
-        col.prop(view, "view_transform")
-        col.prop(view, "look")
-
-        col = flow.column()
-        col.prop(view, "exposure")
-        col.prop(view, "gamma")
-
-        col.separator()
-
-        col.prop(scene.sequencer_colorspace_settings, "name", text="Sequencer")
-
-
-class SCENE_PT_color_management_curves(SceneButtonsPanel, Panel):
-    bl_label = "Use Curves"
-    bl_parent_id = "SCENE_PT_color_management"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
-
-    def draw_header(self, context):
-
-        scene = context.scene
-        view = scene.view_settings
-
-        self.layout.prop(view, "use_curve_mapping", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        view = scene.view_settings
-
-        layout.use_property_split = False
-        layout.enabled = view.use_curve_mapping
-
-        layout.template_curve_mapping(view, "curve_mapping", levels=True)
-
-
 class SCENE_PT_audio(SceneButtonsPanel, Panel):
     bl_label = "Audio"
     bl_options = {'DEFAULT_CLOSED'}
@@ -607,8 +551,6 @@ classes = (
     SCENE_PT_keying_sets,
     SCENE_PT_keying_set_paths,
     SCENE_PT_keyframing_settings,
-    SCENE_PT_color_management,
-    SCENE_PT_color_management_curves,
     SCENE_PT_audio,
     SCENE_PT_physics,
     SCENE_PT_rigid_body_world,
