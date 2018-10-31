@@ -72,6 +72,7 @@ class GPENCIL_MT_layer_specials(Menu):
 
     def draw(self, context):
         layout = self.layout
+        gpd = context.gpencil_data
 
         layout.operator("gpencil.layer_duplicate", icon='ADD')  # XXX: needs a dedicated icon
 
@@ -84,6 +85,7 @@ class GPENCIL_MT_layer_specials(Menu):
 
         layout.operator("gpencil.lock_all", icon='LOCKED', text="Lock All")
         layout.operator("gpencil.unlock_all", icon='UNLOCKED', text="UnLock All")
+        layout.prop(gpd, "use_autolock_layers", text="Autolock Inactive Layers")
 
         layout.separator()
 
@@ -159,10 +161,6 @@ class DATA_PT_gpencil_datapanel(Panel):
         row = layout.row(align=True)
         if gpl:
             row.prop(gpl, "opacity", text="Opacity", slider=True)
-
-            # autolock layers
-            row = layout.row(align=True)
-            row.prop(gpd, "use_autolock_layers", text="Autolock Inactive Layers")
 
 
 class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
