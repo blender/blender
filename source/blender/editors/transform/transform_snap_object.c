@@ -756,9 +756,7 @@ static bool raycastObj(
 					        ray_depth, r_loc, r_no, r_index, r_hit_list);
 					break;
 				}
-				else if (em->mesh_eval_final &&
-				         (em->mesh_eval_final->runtime.deformed_only == false))
-				{
+				else if (em->mesh_eval_final) {
 					me = em->mesh_eval_final;
 				}
 			}
@@ -2269,9 +2267,7 @@ static short snapObject(
 					        r_loc, r_no, r_index);
 					break;
 				}
-				else if (em->mesh_eval_final &&
-				         (em->mesh_eval_final->runtime.deformed_only == false))
-				{
+				else if (em->mesh_eval_final) {
 					me = em->mesh_eval_final;
 				}
 			}
