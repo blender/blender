@@ -197,11 +197,13 @@ class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
 
         rd = context.scene.render
 
-        col = layout.column(align=True)
+        flow = layout.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+        col = flow.column()
         col.prop(rd, "use_compositing")
+        col = flow.column()
         col.prop(rd, "use_sequencer")
 
-        col.prop(rd, "dither_intensity", text="Dither", slider=True)
+        layout.prop(rd, "dither_intensity", text="Dither", slider=True)
 
 
 class RENDER_PT_stamp(RenderButtonsPanel, Panel):
@@ -252,11 +254,26 @@ class RENDER_PT_stamp(RenderButtonsPanel, Panel):
             col = flow.column()
             col.prop(rd, "use_stamp_strip_meta", text="Use Strip Metadata")
 
-        row = layout.split(factor=0.3)
-        row.prop(rd, "use_stamp_note", text="Note")
-        sub = row.row()
-        sub.active = rd.use_stamp_note
-        sub.prop(rd, "stamp_note_text", text="")
+
+class RENDER_PT_stamp_note(RenderButtonsPanel, Panel):
+    bl_label = "Note"
+    bl_parent_id = "RENDER_PT_stamp"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE', 'BLENDER_OPENGL'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+
+        self.layout.prop(rd, "use_stamp_note", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        rd = context.scene.render
+
+        layout.active = rd.use_stamp_note
+        layout.prop(rd, "stamp_note_text", text="")
+
 
 
 class RENDER_PT_stamp_burn(RenderButtonsPanel, Panel):
@@ -589,12 +606,11 @@ class RENDER_PT_eevee_ambient_occlusion(RenderButtonsPanel, Panel):
 
         layout.active = props.use_gtao
         col = layout.column()
-        col.prop(props, "use_gtao_bent_normals")
-        col.prop(props, "use_gtao_bounce")
         col.prop(props, "gtao_distance")
         col.prop(props, "gtao_factor")
         col.prop(props, "gtao_quality")
-
+        col.prop(props, "use_gtao_bent_normals")
+        col.prop(props, "use_gtao_bounce")
 
 class RENDER_PT_eevee_motion_blur(RenderButtonsPanel, Panel):
     bl_label = "Motion Blur"
@@ -701,25 +717,57 @@ class RENDER_PT_eevee_volumetric(RenderButtonsPanel, Panel):
         props = scene.eevee
 
         layout.active = props.use_volumetric
-        col = layout.column()
-        sub = col.column(align=True)
-        sub.prop(props, "volumetric_start")
-        sub.prop(props, "volumetric_end")
-        col.prop(props, "volumetric_tile_size")
-        col.separator()
-        col.prop(props, "volumetric_samples")
-        sub.prop(props, "volumetric_sample_distribution")
-        col.separator()
-        col.prop(props, "use_volumetric_lights")
 
-        sub = col.column()
-        sub.active = props.use_volumetric_lights
-        sub.prop(props, "volumetric_light_clamp", text="Light Clamping")
-        col.separator()
-        col.prop(props, "use_volumetric_shadows")
-        sub = col.column()
-        sub.active = props.use_volumetric_shadows
-        sub.prop(props, "volumetric_shadow_samples", text="Shadow Samples")
+        col = layout.column(align=True)
+        col.prop(props, "volumetric_start")
+        col.prop(props, "volumetric_end")
+
+        col = layout.column()
+        col.prop(props, "volumetric_tile_size")
+        col.prop(props, "volumetric_samples")
+        col.prop(props, "volumetric_sample_distribution")
+
+
+class RENDER_PT_eevee_volumetric_lighting(RenderButtonsPanel, Panel):
+    bl_label = "Volumetric Lighting"
+    bl_parent_id = "RENDER_PT_eevee_volumetric"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+        scene = context.scene
+        props = scene.eevee
+        self.layout.prop(props, "use_volumetric_lights", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        props = scene.eevee
+
+        layout.active = props.use_volumetric_lights
+        layout.prop(props, "volumetric_light_clamp", text="Light Clamping")
+
+
+class RENDER_PT_eevee_volumetric_shadows(RenderButtonsPanel, Panel):
+    bl_label = "Volumetric Shadows"
+    bl_parent_id = "RENDER_PT_eevee_volumetric"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
+
+    def draw_header(self, context):
+        scene = context.scene
+        props = scene.eevee
+        self.layout.prop(props, "use_volumetric_shadows", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        scene = context.scene
+        props = scene.eevee
+
+        layout.active = props.use_volumetric_shadows
+        layout.prop(props, "volumetric_shadow_samples", text="Shadow Samples")
 
 
 class RENDER_PT_eevee_subsurface_scattering(RenderButtonsPanel, Panel):
@@ -862,28 +910,36 @@ class RENDER_PT_eevee_indirect_lighting(RenderButtonsPanel, Panel):
         col.prop(props, "gi_cubemap_resolution")
         col.prop(props, "gi_visibility_resolution", text="Diffuse Occlusion")
 
-        layout.use_property_split = False
-        row = layout.split(factor=0.5)
-        row.alignment = 'RIGHT'
-        row.label(text="Cubemap Display")
+class RENDER_PT_eevee_indirect_lighting_display(RenderButtonsPanel, Panel):
+    bl_label = "Display"
+    bl_parent_id = "RENDER_PT_eevee_indirect_lighting"
+    COMPAT_ENGINES = {'BLENDER_EEVEE'}
 
-        sub = row.row(align=True)
-        sub.prop(props, "gi_cubemap_display_size", text="Size")
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False  # No animation.
+
+        scene = context.scene
+        props = scene.eevee
+
+        row = layout.row(align=True)
+        row.prop(props, "gi_cubemap_display_size", text="Cubemap Size")
         if props.gi_show_cubemaps:
-            sub.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_OFF')
+            row.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_OFF')
         else:
-            sub.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_ON')
+            row.prop(props, "gi_show_cubemaps", text="", toggle=True, icon='HIDE_ON')
 
-        row = layout.split(factor=0.5)
-        row.alignment = 'RIGHT'
-        row.label(text="Irradiance Display")
-
-        sub = row.row(align=True)
-        sub.prop(props, "gi_irradiance_display_size", text="Size")
+        row = layout.row(align=True)
+        row.prop(props, "gi_irradiance_display_size", text="Irradiance Size")
         if props.gi_show_irradiance:
-            sub.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_OFF')
+            row.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_OFF')
         else:
-            sub.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_ON')
+            row.prop(props, "gi_show_irradiance", text="", toggle=True, icon='HIDE_ON')
 
 
 class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
@@ -921,10 +977,9 @@ class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
         scene = context.scene
         rd = scene.render
 
-        row = layout.row()
-        row.prop(rd, "hair_type", expand=True)
-
         layout.use_property_split = True
+
+        layout.prop(rd, "hair_type", expand=True)
         layout.prop(rd, "hair_subdiv")
 
 
@@ -996,6 +1051,7 @@ classes = (
     RENDER_PT_encoding_video,
     RENDER_PT_encoding_audio,
     RENDER_PT_stamp,
+    RENDER_PT_stamp_note,
     RENDER_PT_stamp_burn,
     RENDER_UL_renderviews,
     RENDER_PT_stereoscopy,
@@ -1006,10 +1062,13 @@ classes = (
     RENDER_PT_eevee_film,
     RENDER_PT_eevee_shadows,
     RENDER_PT_eevee_indirect_lighting,
+    RENDER_PT_eevee_indirect_lighting_display,
     RENDER_PT_eevee_subsurface_scattering,
     RENDER_PT_eevee_screen_space_reflections,
     RENDER_PT_eevee_ambient_occlusion,
     RENDER_PT_eevee_volumetric,
+    RENDER_PT_eevee_volumetric_lighting,
+    RENDER_PT_eevee_volumetric_shadows,
     RENDER_PT_eevee_motion_blur,
     RENDER_PT_eevee_depth_of_field,
     RENDER_PT_eevee_bloom,

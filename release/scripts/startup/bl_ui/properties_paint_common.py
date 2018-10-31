@@ -48,16 +48,22 @@ class UnifiedPaintPanel:
     @staticmethod
     def unified_paint_settings(parent, context):
         ups = context.tool_settings.unified_paint_settings
-        parent.label(text="Unified Settings:")
-        row = parent.row()
-        row.prop(ups, "use_unified_size", text="Size")
-        row.prop(ups, "use_unified_strength", text="Strength")
+
+        flow = parent.grid_flow(row_major=True, columns=0, even_columns=True, even_rows=False, align=False)
+
+        col = flow.column()
+        col.prop(ups, "use_unified_size", text="Size")
+        col = flow.column()
+        col.prop(ups, "use_unified_strength", text="Strength")
         if context.weight_paint_object:
-            parent.prop(ups, "use_unified_weight", text="Weight")
+            col = flow.column()
+            col.prop(ups, "use_unified_weight", text="Weight")
         elif context.vertex_paint_object or context.image_paint_object:
-            parent.prop(ups, "use_unified_color", text="Color")
+            col = flow.column()
+            col.prop(ups, "use_unified_color", text="Color")
         else:
-            parent.prop(ups, "use_unified_color", text="Color")
+            col = flow.column()
+            col.prop(ups, "use_unified_color", text="Color")
 
     @staticmethod
     def prop_unified_size(parent, context, brush, prop_name, icon='NONE', text="", slider=False):
@@ -230,15 +236,16 @@ def brush_texpaint_common(panel, context, layout, brush, settings, projpaint=Fal
 def brush_texture_settings(layout, brush, sculpt):
     tex_slot = brush.texture_slot
 
-    layout.label(text="Brush Mapping:")
+    layout.use_property_split = True
+    layout.use_property_decorate = False
 
     # map_mode
     if sculpt:
-        layout.row().prop(tex_slot, "map_mode", text="")
-        layout.separator()
+        layout.prop(tex_slot, "map_mode", text="Mapping")
     else:
-        layout.row().prop(tex_slot, "tex_paint_map_mode", text="")
-        layout.separator()
+        layout.prop(tex_slot, "tex_paint_map_mode", text="Mapping")
+
+    layout.separator()
 
     if tex_slot.map_mode == 'STENCIL':
         if brush.texture and brush.texture.type == 'IMAGE':
@@ -248,8 +255,7 @@ def brush_texture_settings(layout, brush, sculpt):
     # angle and texture_angle_source
     if tex_slot.has_texture_angle:
         col = layout.column()
-        col.label(text="Angle:")
-        col.prop(tex_slot, "angle", text="")
+        col.prop(tex_slot, "angle", text="Angle")
         if tex_slot.has_texture_angle_source:
             col.prop(tex_slot, "use_rake", text="Rake")
 
@@ -258,32 +264,29 @@ def brush_texture_settings(layout, brush, sculpt):
                     if brush.sculpt_capabilities.has_random_texture_angle:
                         col.prop(tex_slot, "use_random", text="Random")
                         if tex_slot.use_random:
-                            col.prop(tex_slot, "random_angle", text="")
+                            col.prop(tex_slot, "random_angle", text="Raandom Angle")
                 else:
                     col.prop(tex_slot, "use_random", text="Random")
                     if tex_slot.use_random:
-                        col.prop(tex_slot, "random_angle", text="")
+                        col.prop(tex_slot, "random_angle", text="Random Angle")
 
     # scale and offset
-    split = layout.split()
-    split.prop(tex_slot, "offset")
-    split.prop(tex_slot, "scale")
+    layout.prop(tex_slot, "offset")
+    layout.prop(tex_slot, "scale")
 
     if sculpt:
         # texture_sample_bias
-        col = layout.column(align=True)
-        col.label(text="Sample Bias:")
-        col.prop(brush, "texture_sample_bias", slider=True, text="")
+        layout.prop(brush, "texture_sample_bias", slider=True, text="Sample Bias")
 
 
 def brush_mask_texture_settings(layout, brush):
     mask_tex_slot = brush.mask_texture_slot
 
-    layout.label(text="Mask Mapping:")
+    layout.use_property_split = True
+    layout.use_property_decorate = False
 
     # map_mode
-    layout.row().prop(mask_tex_slot, "mask_map_mode", text="")
-    layout.separator()
+    layout.row().prop(mask_tex_slot, "mask_map_mode", text="Mask Mapping")
 
     if mask_tex_slot.map_mode == 'STENCIL':
         if brush.mask_texture and brush.mask_texture.type == 'IMAGE':
@@ -291,25 +294,22 @@ def brush_mask_texture_settings(layout, brush):
         layout.operator("brush.stencil_reset_transform").mask = True
 
     col = layout.column()
-    col.prop(brush, "use_pressure_masking", text="")
+    col.prop(brush, "use_pressure_masking", text="Pressure Masking")
     # angle and texture_angle_source
     if mask_tex_slot.has_texture_angle:
         col = layout.column()
-        col.label(text="Angle:")
-        col.prop(mask_tex_slot, "angle", text="")
+        col.prop(mask_tex_slot, "angle", text="Angle")
         if mask_tex_slot.has_texture_angle_source:
             col.prop(mask_tex_slot, "use_rake", text="Rake")
 
             if brush.brush_capabilities.has_random_texture_angle and mask_tex_slot.has_random_texture_angle:
                 col.prop(mask_tex_slot, "use_random", text="Random")
                 if mask_tex_slot.use_random:
-                    col.prop(mask_tex_slot, "random_angle", text="")
+                    col.prop(mask_tex_slot, "random_angle", text="Random Angle")
 
     # scale and offset
-    split = layout.split()
-    split.prop(mask_tex_slot, "offset")
-    split.prop(mask_tex_slot, "scale")
-
+    col.prop(mask_tex_slot, "offset")
+    col.prop(mask_tex_slot, "scale")
 
 classes = (
     VIEW3D_MT_tools_projectpaint_clone,
