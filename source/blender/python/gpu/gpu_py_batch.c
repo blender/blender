@@ -71,7 +71,7 @@ static bool bpygpu_batch_is_program_or_error(BPyGPUBatch *self)
 
 
 /* -------------------------------------------------------------------- */
-/** \name VertBatch Type
+/** \name GPUBatch Type
  * \{ */
 
 static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, PyObject *kwds)
@@ -130,10 +130,10 @@ static PyObject *bpygpu_Batch_new(PyTypeObject *UNUSED(type), PyObject *args, Py
 	return (PyObject *)ret;
 }
 
-PyDoc_STRVAR(bpygpu_VertBatch_vertbuf_add_doc,
+PyDoc_STRVAR(bpygpu_Batch_vertbuf_add_doc,
 "TODO"
 );
-static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
+static PyObject *bpygpu_Batch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *py_buf)
 {
 	if (!BPyGPUVertBuf_Check(py_buf)) {
 		PyErr_Format(PyExc_TypeError,
@@ -165,10 +165,10 @@ static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpygpu_VertBatch_program_set_doc,
+PyDoc_STRVAR(bpygpu_Batch_program_set_doc,
 "TODO"
 );
-static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
+static PyObject *bpygpu_Batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_shader)
 {
 	if (!BPyGPUShader_Check(py_shader)) {
 		PyErr_Format(PyExc_TypeError,
@@ -204,7 +204,7 @@ static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *p
 	Py_RETURN_NONE;
 }
 
-PyDoc_STRVAR(bpygpu_VertBatch_draw_doc,
+PyDoc_STRVAR(bpygpu_Batch_draw_doc,
 ".. method:: draw(program=None)\n"
 "\n"
 "   Run the drawing program with the parameters assigned to the batch.\n"
@@ -213,7 +213,7 @@ PyDoc_STRVAR(bpygpu_VertBatch_draw_doc,
 "      If ``None`` is passed, the last program setted to this batch will run.\n"
 "   :type program: :class:`gpu.types.GPUShader`\n"
 );
-static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
+static PyObject *bpygpu_Batch_draw(BPyGPUBatch *self, PyObject *args)
 {
 	BPyGPUShader *py_program = NULL;
 
@@ -239,7 +239,7 @@ static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
+static PyObject *bpygpu_Batch_program_use_begin(BPyGPUBatch *self)
 {
 	if (!bpygpu_batch_is_program_or_error(self)) {
 		return NULL;
@@ -248,7 +248,7 @@ static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 	Py_RETURN_NONE;
 }
 
-static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
+static PyObject *bpygpu_Batch_program_use_end(BPyGPUBatch *self)
 {
 	if (!bpygpu_batch_is_program_or_error(self)) {
 		return NULL;
@@ -257,16 +257,16 @@ static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 	Py_RETURN_NONE;
 }
 
-static struct PyMethodDef bpygpu_VertBatch_methods[] = {
-	{"vertbuf_add", (PyCFunction)bpygpu_VertBatch_vertbuf_add,
-	 METH_O, bpygpu_VertBatch_vertbuf_add_doc},
-	{"program_set", (PyCFunction)bpygpu_VertBatch_program_set,
-	 METH_O, bpygpu_VertBatch_program_set_doc},
-	{"draw", (PyCFunction) bpygpu_VertBatch_draw,
-	 METH_VARARGS, bpygpu_VertBatch_draw_doc},
-	{"__program_use_begin", (PyCFunction)bpygpu_VertBatch_program_use_begin,
+static struct PyMethodDef bpygpu_Batch_methods[] = {
+	{"vertbuf_add", (PyCFunction)bpygpu_Batch_vertbuf_add,
+	 METH_O, bpygpu_Batch_vertbuf_add_doc},
+	{"program_set", (PyCFunction)bpygpu_Batch_program_set,
+	 METH_O, bpygpu_Batch_program_set_doc},
+	{"draw", (PyCFunction) bpygpu_Batch_draw,
+	 METH_VARARGS, bpygpu_Batch_draw_doc},
+	{"_program_use_begin", (PyCFunction)bpygpu_Batch_program_use_begin,
 	 METH_NOARGS, ""},
-	{"__program_use_end", (PyCFunction)bpygpu_VertBatch_program_use_end,
+	{"_program_use_end", (PyCFunction)bpygpu_Batch_program_use_end,
 	 METH_NOARGS, ""},
 	{NULL, NULL, 0, NULL}
 };
@@ -337,7 +337,7 @@ PyTypeObject BPyGPUBatch_Type = {
 #else
 	.tp_flags = Py_TPFLAGS_DEFAULT,
 #endif
-	.tp_methods = bpygpu_VertBatch_methods,
+	.tp_methods = bpygpu_Batch_methods,
 	.tp_new = bpygpu_Batch_new,
 };
 
