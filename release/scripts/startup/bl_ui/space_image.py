@@ -874,7 +874,7 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
             "use_cursor_overlay",
             text="",
             toggle=True,
-            icon='RESTRICT_VIEW_OFF' if brush.use_cursor_overlay else 'RESTRICT_VIEW_ON',
+            icon='RESTRICT_VIEW_ON' if brush.use_cursor_overlay else 'RESTRICT_VIEW_OFF',
         )
 
         sub = row.row(align=True)
@@ -890,7 +890,7 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
                 "use_primary_overlay",
                 text="",
                 toggle=True,
-                icon='RESTRICT_VIEW_OFF' if brush.use_primary_overlay else 'RESTRICT_VIEW_ON',
+                icon='RESTRICT_VIEW_ON' if brush.use_primary_overlay else 'RESTRICT_VIEW_OFF',
             )
 
         sub = row.row(align=True)
@@ -906,7 +906,7 @@ class IMAGE_PT_tools_brush_overlay(BrushButtonsPanel, Panel):
                 "use_secondary_overlay",
                 text="",
                 toggle=True,
-                icon='RESTRICT_VIEW_OFF' if brush.use_secondary_overlay else 'RESTRICT_VIEW_ON',
+                icon='RESTRICT_VIEW_ON' if brush.use_secondary_overlay else 'RESTRICT_VIEW_OFF',
             )
 
         sub = row.row(align=True)
