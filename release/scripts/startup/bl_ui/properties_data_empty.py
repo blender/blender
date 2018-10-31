@@ -56,6 +56,10 @@ class DATA_PT_empty(DataButtonsPanel, Panel):
         layout.separator()
 
         layout.prop(ob, "empty_display_size", text="Size")
+        layout.prop(ob, "empty_image_depth", text="Depth", expand=True)
+
+        layout.prop(ob, "show_empty_image_orthographic", text="Display Orthographic")
+        layout.prop(ob, "show_empty_image_perspective", text="Display Perspective")
 
 
 classes = (

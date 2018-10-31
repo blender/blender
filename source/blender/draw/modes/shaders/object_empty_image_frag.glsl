@@ -11,6 +11,8 @@ out vec4 fragColor;
 uniform sampler2D image;
 #endif
 
+uniform int depthMode;
+
 void main()
 {
 #ifdef USE_WIRE
@@ -18,4 +20,14 @@ void main()
 #else
 	fragColor = finalColor * texture(image, texCoord_interp);
 #endif
+
+	if (depthMode == DEPTH_BACK) {
+		gl_FragDepth = 0.999999;
+	}
+	else if (depthMode == DEPTH_FRONT) {
+		gl_FragDepth = 0.000001;
+	}
+	else if (depthMode == DEPTH_UNCHANGED) {
+		gl_FragDepth = gl_FragCoord.z;
+	}
 }

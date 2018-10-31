@@ -110,6 +110,13 @@ const EnumPropertyItem rna_enum_object_empty_drawtype_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+const EnumPropertyItem rna_enum_object_empty_image_depth_items[] = {
+	{OB_EMPTY_IMAGE_DEPTH_DEFAULT, "DEFAULT", 0, "Default", ""},
+	{OB_EMPTY_IMAGE_DEPTH_FRONT, "FRONT", 0, "Front", ""},
+	{OB_EMPTY_IMAGE_DEPTH_BACK, "BACK", 0, "Back", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 const EnumPropertyItem rna_enum_object_gpencil_type_items[] = {
 	{GP_EMPTY, "EMPTY", ICON_GP_EMPTY, "Blank", "Create an empty grease pencil object"},
 	{GP_STROKE, "STROKE", ICON_GP_STROKE, "Stroke", "Create a simple stroke with basic colors"},
@@ -2486,6 +2493,21 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
 	RNA_def_property_ui_text(prop, "Image User",
 	                         "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "empty_image_depth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, rna_enum_object_empty_image_depth_items);
+	RNA_def_property_ui_text(prop, "Empty Image Depth", "Determine which other objects will occlude the image");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "show_empty_image_perspective", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "empty_image_visibility_flag", OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE);
+	RNA_def_property_ui_text(prop, "Display in Perspective Mode", "Display image in perspective mode");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+
+	prop = RNA_def_property(srna, "show_empty_image_orthographic", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "empty_image_visibility_flag", OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
+	RNA_def_property_ui_text(prop, "Display in Orthographic Mode", "Display image in orthographic mode");
 	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
 
 	/* render */

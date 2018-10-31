@@ -419,14 +419,23 @@ static void OBJECT_engine_init(void *vedata)
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 
 		/* Empty images */
+#		define EMPTY_IMAGE_SHADER_DEFINES \
+		        "#define DEPTH_UNCHANGED " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_DEFAULT) "\n" \
+		        "#define DEPTH_FRONT " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_FRONT) "\n" \
+		        "#define DEPTH_BACK " STRINGIFY(OB_EMPTY_IMAGE_DEPTH_BACK) "\n"
+
 		e_data.object_empty_image_sh = DRW_shader_create(
-		           datatoc_object_empty_image_vert_glsl, NULL,
-		           datatoc_object_empty_image_frag_glsl, NULL);
+		            datatoc_object_empty_image_vert_glsl, NULL,
+		            datatoc_object_empty_image_frag_glsl,
+		            EMPTY_IMAGE_SHADER_DEFINES);
 
 		e_data.object_empty_image_wire_sh = DRW_shader_create(
-		           datatoc_object_empty_image_vert_glsl, NULL,
-		           datatoc_object_empty_image_frag_glsl,
-		           "#define USE_WIRE\n");
+		            datatoc_object_empty_image_vert_glsl, NULL,
+		            datatoc_object_empty_image_frag_glsl,
+		            EMPTY_IMAGE_SHADER_DEFINES
+		            "#define USE_WIRE\n");
+
+#		undef EMPTY_IMAGE_SHADER_DEFINES
 
 		/* Grid */
 		e_data.grid_sh = DRW_shader_create_with_lib(
@@ -847,6 +856,17 @@ static void image_calc_aspect(Image *ima, ImageUser *iuser, float r_image_aspect
 	}
 }
 
+static bool is_image_empty_visible(Object *ob, RegionView3D *rv3d)
+{
+	int visibility_flag = ob->empty_image_visibility_flag;
+	if (rv3d->is_persp) {
+		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE;
+	}
+	else {
+		return visibility_flag & OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC;
+	}
+}
+
 /* per-image shading groups for image-type empty objects */
 struct EmptyImageShadingGroupData {
 	DRWShadingGroup *shgrp_image;
@@ -855,9 +875,11 @@ struct EmptyImageShadingGroupData {
 };
 
 static void DRW_shgroup_empty_image(
-        OBJECT_ShadingGroupList *sgl, Object *ob, const float color[3])
+        OBJECT_ShadingGroupList *sgl, Object *ob, const float color[3], RegionView3D *rv3d)
 {
 	/* TODO: 'StereoViews', see draw_empty_image. */
+
+	if (!is_image_empty_visible(ob, rv3d)) return;
 
 	if (sgl->image_plane_map == NULL) {
 		sgl->image_plane_map = BLI_ghash_ptr_new(__func__);
@@ -891,6 +913,7 @@ static void DRW_shgroup_empty_image(
 			        e_data.object_empty_image_sh, sgl->non_meshes, geom, e_data.empty_image_format);
 			DRW_shgroup_uniform_texture(grp, "image", tex);
 			DRW_shgroup_uniform_vec2(grp, "aspect", empty_image_data->image_aspect, 1);
+			DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
 
 			empty_image_data->shgrp_image = grp;
 		}
@@ -910,6 +933,7 @@ static void DRW_shgroup_empty_image(
 			DRWShadingGroup *grp = DRW_shgroup_instance_create(
 			        e_data.object_empty_image_wire_sh, sgl->non_meshes, geom, e_data.empty_image_wire_format);
 			DRW_shgroup_uniform_vec2(grp, "aspect", empty_image_data->image_aspect, 1);
+			DRW_shgroup_uniform_int_copy(grp, "depthMode", ob->empty_image_depth);
 
 			empty_image_data->shgrp_wire = grp;
 		}
@@ -1853,7 +1877,7 @@ static void DRW_shgroup_empty_ex(
 	}
 }
 
-static void DRW_shgroup_empty(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer)
+static void DRW_shgroup_empty(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLayer *view_layer, RegionView3D *rv3d)
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
@@ -1869,7 +1893,7 @@ static void DRW_shgroup_empty(OBJECT_ShadingGroupList *sgl, Object *ob, ViewLaye
 			DRW_shgroup_empty_ex(sgl, ob->obmat, &ob->empty_drawsize, ob->empty_drawtype, color);
 			break;
 		case OB_EMPTY_IMAGE:
-			DRW_shgroup_empty_image(sgl, ob, color);
+			DRW_shgroup_empty_image(sgl, ob, color, rv3d);
 			break;
 	}
 }
@@ -2756,7 +2780,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (hide_object_extra) {
 				break;
 			}
-			DRW_shgroup_empty(sgl, ob, view_layer);
+			DRW_shgroup_empty(sgl, ob, view_layer, rv3d);
 			break;
 		case OB_GPENCIL:
 			if (hide_object_extra) {
