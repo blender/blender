@@ -701,6 +701,10 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("gimbal"));
 			setConstraint(t, t->spacemtx, mode, text);
 			break;
+		case V3D_MANIP_CUSTOM_MATRIX:
+			BLI_snprintf(text, sizeof(text), ftext, IFACE_("custom matrix"));
+			setConstraint(t, t->spacemtx, mode, text);
+			break;
 		case V3D_MANIP_CUSTOM:
 		{
 			char orientation_str[128];

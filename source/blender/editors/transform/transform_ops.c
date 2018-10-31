@@ -563,9 +563,15 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 
 	if (flags & P_CONSTRAINT) {
 		RNA_def_boolean_vector(ot->srna, "constraint_axis", 3, NULL, "Constraint Axis", "");
+
+		/* Set by 'constraint_orientation' or gizmo which acts on non-standard orientation. */
+		prop = RNA_def_float_matrix(ot->srna, "constraint_matrix", 3, 3, NULL, 0.0f, 0.0f, "Matrix", "", 0.0f, 0.0f);
+		RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
+
 		prop = RNA_def_property(ot->srna, "constraint_orientation", PROP_ENUM, PROP_NONE);
 		RNA_def_property_ui_text(prop, "Orientation", "Transformation orientation");
 		RNA_def_enum_funcs(prop, rna_TransformOrientation_itemf);
+
 	}
 
 	if (flags & P_MIRROR) {

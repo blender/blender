@@ -2218,7 +2218,13 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			orientation = V3D_MANIP_CUSTOM + orientation_index_custom;
 			BLI_assert(orientation >= V3D_MANIP_CUSTOM);
 		}
-		RNA_enum_set(op->ptr, "constraint_orientation", orientation);
+
+		RNA_float_set_array(op->ptr, "constraint_matrix", &t->spacemtx[0][0]);
+
+		/* Use 'constraint_matrix' instead. */
+		if (orientation != V3D_MANIP_CUSTOM_MATRIX) {
+			RNA_enum_set(op->ptr, "constraint_orientation", orientation);
+		}
 
 		if (t->con.mode & CON_APPLY) {
 			if (t->con.mode & CON_AXIS0) {

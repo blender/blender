@@ -1486,8 +1486,15 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		t->around = V3D_AROUND_CENTER_BOUNDS;
 	}
 
-	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+	if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_matrix")) &&
 	           RNA_property_is_set(op->ptr, prop)))
+	{
+		RNA_property_float_get_array(op->ptr, prop, &t->spacemtx[0][0]);
+		t->current_orientation = V3D_MANIP_CUSTOM_MATRIX;
+		t->custom_orientation = 0;
+	}
+	else if (op && ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+	                RNA_property_is_set(op->ptr, prop)))
 	{
 		short orientation = RNA_property_enum_get(op->ptr, prop);
 		TransformOrientation *custom_orientation = NULL;

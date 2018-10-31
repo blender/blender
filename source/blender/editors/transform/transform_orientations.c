@@ -487,6 +487,10 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 			ED_view3d_cursor3d_calc_mat3(t->scene, CTX_wm_view3d(C), t->spacemtx);
 			break;
 		}
+		case V3D_MANIP_CUSTOM_MATRIX:
+			/* Already set. */
+			BLI_strncpy(t->spacename, IFACE_("custom"), sizeof(t->spacename));
+			break;
 		case V3D_MANIP_CUSTOM:
 			BLI_strncpy(t->spacename, t->custom_orientation->name, sizeof(t->spacename));
 

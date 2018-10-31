@@ -507,6 +507,7 @@ enum {
 #define V3D_MANIP_VIEW			3
 #define V3D_MANIP_GIMBAL		4
 #define V3D_MANIP_CURSOR		5
+#define V3D_MANIP_CUSTOM_MATRIX	(V3D_MANIP_CUSTOM - 1)  /* Runtime only, never saved to DNA. */
 #define V3D_MANIP_CUSTOM		1024
 
 /* View3d.mpr_flag (also) */
