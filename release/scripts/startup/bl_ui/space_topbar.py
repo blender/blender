@@ -212,7 +212,7 @@ class TOPBAR_HT_lower_bar(Header):
                 )
                 if tool_mode == 'GPENCIL_PAINT':
                     tool_settings = context.tool_settings
-                    layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='XRAY')
+                    layout.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
                     layout.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
                     layout.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
                     if tool_settings.gpencil_stroke_placement_view3d == 'STROKE':
