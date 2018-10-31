@@ -797,6 +797,8 @@ typedef struct EEVEE_PrivateData {
 	float viewmat[4][4], viewinv[4][4];
 	float winmat[4][4], wininv[4][4];
 	float studiolight_matrix[3][3];
+	float overscan, overscan_pixels;
+	float size_orig[2];
 
 	/* Mist Settings */
 	float mist_start, mist_inv_dist, mist_falloff;

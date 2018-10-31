@@ -195,6 +195,25 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, flo
 	copy_m4_m4(mat, re->winmat);
 }
 
+/* Must be called after RE_GetCameraWindow(), does not change re->winmat. */
+void RE_GetCameraWindowWithOverscan(struct Render *re, float mat[4][4], float overscan)
+{
+	CameraParams params;
+	params.is_ortho = re->winmat[3][3] != 0.0f;
+	params.clipsta = re->clipsta;
+	params.clipend = re->clipend;
+	params.viewplane = re->viewplane;
+
+	overscan *= max_ff(BLI_rctf_size_x(&params.viewplane), BLI_rctf_size_y(&params.viewplane));
+
+	params.viewplane.xmin -= overscan;
+	params.viewplane.xmax += overscan;
+	params.viewplane.ymin -= overscan;
+	params.viewplane.ymax += overscan;
+	BKE_camera_params_compute_matrix(&params);
+	copy_m4_m4(mat, params.winmat);
+}
+
 void RE_GetCameraModelMatrix(Render *re, struct Object *camera, float r_mat[4][4])
 {
 	BKE_camera_multiview_model_matrix(&re->r, camera, re->viewname, r_mat);

@@ -33,6 +33,8 @@
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_camera.h"
+
 #include "BLI_rand.h"
 #include "BLI_rect.h"
 
@@ -54,6 +56,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	const float *size_orig = DRW_viewport_size_get();
 
 	/* Init default FB and render targets:
 	 * In render mode the default framebuffer is not generated
@@ -61,6 +64,28 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	 * not use it. For code clarity we just allocate it make use of it. */
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+	/* Alloc transient data. */
+	if (!stl->g_data) {
+		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
+	}
+	EEVEE_PrivateData *g_data = stl->g_data;
+	g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
+	g_data->valid_double_buffer = 0;
+	copy_v2_v2(g_data->size_orig, size_orig);
+
+	if (scene->eevee.flag & SCE_EEVEE_OVERSCAN) {
+		g_data->overscan = scene->eevee.overscan / 100.0f;
+		g_data->overscan_pixels = roundf(max_ff(size_orig[0], size_orig[1]) * g_data->overscan);
+	}
+	else {
+		g_data->overscan = 0.0f;
+		g_data->overscan_pixels = 0.0f;
+	}
+
+	/* XXX overiding viewport size. Simplify things but is not really 100% safe. */
+	DRW_render_viewport_size_set((int[2]){size_orig[0] + g_data->overscan_pixels * 2.0f,
+	                                      size_orig[1] + g_data->overscan_pixels * 2.0f});
 
 	/* TODO 32 bit depth */
 	DRW_texture_ensure_fullscreen_2D(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
@@ -79,14 +104,6 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 		GPU_ATTACHMENT_TEXTURE(txl->color)
 	});
 
-	/* Alloc transient data. */
-	if (!stl->g_data) {
-		stl->g_data = MEM_callocN(sizeof(*stl->g_data), __func__);
-	}
-	EEVEE_PrivateData *g_data = stl->g_data;
-	g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
-	g_data->valid_double_buffer = 0;
-
 	/* Alloc common ubo data. */
 	if (sldata->common_ubo == NULL) {
 		sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), &sldata->common_data);
@@ -101,6 +118,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	float frame = BKE_scene_frame_get(scene);
 	RE_GetCameraWindow(engine->re, ob_camera_eval, frame, g_data->winmat);
 	RE_GetCameraModelMatrix(engine->re, ob_camera_eval, g_data->viewinv);
+
+	RE_GetCameraWindowWithOverscan(engine->re, g_data->winmat, g_data->overscan);
 
 	invert_m4_m4(g_data->viewmat, g_data->viewinv);
 	mul_m4_m4m4(g_data->persmat, g_data->winmat, g_data->viewmat);
@@ -189,7 +208,8 @@ static void eevee_render_result_combined(
 
 	GPU_framebuffer_bind(vedata->stl->effects->final_fb);
 	GPU_framebuffer_read_color(vedata->stl->effects->final_fb,
-	                           rect->xmin, rect->ymin,
+	                           vedata->stl->g_data->overscan_pixels + rect->xmin,
+	                           vedata->stl->g_data->overscan_pixels + rect->ymin,
 	                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 	                           4, 0, rp->rect);
 
@@ -217,7 +237,8 @@ static void eevee_render_result_subsurface(
 
 		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
 		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
-		                           rect->xmin, rect->ymin,
+		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
+		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           3, 1, rp->rect);
 
@@ -232,7 +253,8 @@ static void eevee_render_result_subsurface(
 
 		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
 		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
-		                           rect->xmin, rect->ymin,
+		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
+		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           3, 0, rp->rect);
 
@@ -266,7 +288,8 @@ static void eevee_render_result_normal(
 
 		GPU_framebuffer_bind(vedata->fbl->main_fb);
 		GPU_framebuffer_read_color(vedata->fbl->main_fb,
-		                           rect->xmin, rect->ymin,
+		                           g_data->overscan_pixels + rect->xmin,
+		                           g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           3, 1, rp->rect);
 
@@ -312,7 +335,8 @@ static void eevee_render_result_z(
 
 		GPU_framebuffer_bind(vedata->fbl->main_fb);
 		GPU_framebuffer_read_depth(vedata->fbl->main_fb,
-		                           rect->xmin, rect->ymin,
+		                           g_data->overscan_pixels + rect->xmin,
+		                           g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           rp->rect);
 
@@ -348,7 +372,8 @@ static void eevee_render_result_mist(
 
 		GPU_framebuffer_bind(vedata->fbl->mist_accum_fb);
 		GPU_framebuffer_read_color(vedata->fbl->mist_accum_fb,
-		                           rect->xmin, rect->ymin,
+		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
+		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           1, 0, rp->rect);
 
@@ -376,7 +401,8 @@ static void eevee_render_result_occlusion(
 
 		GPU_framebuffer_bind(vedata->fbl->ao_accum_fb);
 		GPU_framebuffer_read_color(vedata->fbl->ao_accum_fb,
-		                           rect->xmin, rect->ymin,
+		                           vedata->stl->g_data->overscan_pixels + rect->xmin,
+		                           vedata->stl->g_data->overscan_pixels + rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
 		                           3, 0, rp->rect);
 
@@ -561,6 +587,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	eevee_render_result_subsurface(rl, viewname, rect, vedata, sldata, render_samples);
 	eevee_render_result_mist(rl, viewname, rect, vedata, sldata, render_samples);
 	eevee_render_result_occlusion(rl, viewname, rect, vedata, sldata, render_samples);
+
+	/* Restore original viewport size. */
+	DRW_render_viewport_size_set((int[2]){g_data->size_orig[0], g_data->size_orig[1]});
 }
 
 void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)

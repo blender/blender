@@ -2226,4 +2226,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *bmain)
 			        | OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
 		}
 	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneEEVEE", "float", "overscan")) {
+			for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
+				scene->eevee.overscan = 3.0f;
+			}
+		}
+	}
 }

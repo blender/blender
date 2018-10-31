@@ -956,11 +956,19 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         layout.use_property_split = True
 
         scene = context.scene
+        props = scene.eevee
         rd = scene.render
+
+        split = layout.split()
+        split.prop(props, "use_overscan")
+        row = split.row()
+        row.active = props.use_overscan
+        row.prop(props, "overscan_size", text="")
 
         col = layout.column()
         col.prop(rd, "filter_size")
         col.prop(rd, "alpha_mode", text="Alpha")
+
 
 
 class RENDER_PT_eevee_hair(RenderButtonsPanel, Panel):
