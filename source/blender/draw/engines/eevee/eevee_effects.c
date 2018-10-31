@@ -34,6 +34,7 @@
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_extensions.h"
+#include "GPU_state.h"
 
 static struct {
 	/* Downsample Depth */
@@ -470,6 +471,13 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 	/* Restore */
 	GPU_framebuffer_bind(fbl->main_fb);
+
+	if (GPU_mip_render_workaround()) {
+		/* Fix dot corruption on intel HD5XX/HD6XX series.
+		 * It seems affected drivers are the same that needs
+		 * GPU_mip_render_workaround. */
+		GPU_flush();
+	}
 }
 
 /**

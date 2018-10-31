@@ -37,6 +37,9 @@
 
 #include "eevee_private.h"
 
+#include "GPU_extensions.h"
+#include "GPU_state.h"
+
 static struct {
 	/* Ground Truth Ambient Occlusion */
 	struct GPUShader *gtao_sh;
@@ -248,6 +251,13 @@ void EEVEE_occlusion_compute(
 		}
 		else {
 			DRW_draw_pass(psl->ao_horizon_search);
+		}
+
+		if (GPU_mip_render_workaround()) {
+			/* Fix dot corruption on intel HD5XX/HD6XX series.
+			 * It seems affected drivers are the same that needs
+			 * GPU_mip_render_workaround. */
+			GPU_flush();
 		}
 
 		/* Restore */
