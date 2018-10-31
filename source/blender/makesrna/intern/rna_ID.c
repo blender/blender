@@ -36,6 +36,7 @@
 #include "BLI_math_base.h"
 
 #include "BKE_icons.h"
+#include "BKE_library.h"
 #include "BKE_object.h"
 
 #include "RNA_access.h"
@@ -95,7 +96,6 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 
 #include "BKE_font.h"
 #include "BKE_idprop.h"
-#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_library_override.h"
 #include "BKE_library_remap.h"
@@ -166,6 +166,20 @@ static int rna_ID_name_editable(PointerRNA *ptr, const char **UNUSED(r_info))
 	}
 
 	return PROP_EDITABLE;
+}
+
+void rna_ID_name_full_get(PointerRNA *ptr, char *value)
+{
+	ID *id = (ID *)ptr->data;
+	BKE_id_full_name_get(value, id);
+}
+
+int rna_ID_name_full_length(PointerRNA *ptr)
+{
+	ID *id = (ID *)ptr->data;
+	char name[MAX_ID_FULL_NAME];
+	BKE_id_full_name_get(name, id);
+	return strlen(name);
 }
 
 static int rna_ID_is_evaluated_get(PointerRNA *ptr)
@@ -1151,6 +1165,12 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_editable_func(prop, "rna_ID_name_editable");
 	RNA_def_property_update(prop, NC_ID | NA_RENAME, NULL);
 	RNA_def_struct_name_property(srna, prop);
+
+	prop = RNA_def_property(srna, "name_full", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Full Name", "Unique data-block ID name, including library one is any");
+	RNA_def_property_string_funcs(prop, "rna_ID_name_full_get", "rna_ID_name_full_length", NULL);
+	RNA_def_property_string_maxlength(prop, MAX_ID_FULL_NAME);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_evaluated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Is Evaluated",
