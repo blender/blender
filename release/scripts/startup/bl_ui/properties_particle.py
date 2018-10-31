@@ -72,7 +72,7 @@ class PARTICLE_MT_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        props = layout.operator("particle.copy_particle_systems", text="Copy Active to Selected Objects")
+        props = layout.operator("particle.copy_particle_systems", text="Copy Active to Selected Objects", icon="COPYDOWN")
         props.use_active = True
         props.remove_target_particles = False
 
@@ -80,7 +80,9 @@ class PARTICLE_MT_specials(Menu):
         props.use_active = False
         props.remove_target_particles = True
 
-        layout.operator("particle.duplicate_particle_system")
+        layout.separator()
+
+        layout.operator("particle.duplicate_particle_system", icon="DUPLICATE")
 
 
 class PARTICLE_PT_hair_dynamics_presets(PresetMenu):
@@ -160,11 +162,14 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             row = layout.row()
 
             row.template_list("PARTICLE_UL_particle_systems", "particle_systems", ob, "particle_systems",
-                              ob.particle_systems, "active_index", rows=2)
+                              ob.particle_systems, "active_index", rows=3)
 
             col = row.column(align=True)
             col.operator("object.particle_system_add", icon='ADD', text="")
             col.operator("object.particle_system_remove", icon='REMOVE', text="")
+
+            col.separator()
+
             col.menu("PARTICLE_MT_specials", icon='DOWNARROW_HLT', text="")
 
         if psys is None:
@@ -184,23 +189,12 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
             layout.prop(part, "type", text="Type")
 
         elif not psys.settings:
-            split = layout.split(factor=0.32)
-
-            col = split.column()
-            col.label(text="Settings:")
-
-            col = split.column()
             col.template_ID(psys, "settings", new="particle.new")
         else:
             part = psys.settings
 
-            split = layout.split(factor=0.32)
-            col = split.column()
-            if part.is_fluid is False:
-                col.label(text="Settings:")
-                col.label(text="Type:")
+            col = layout.column()
 
-            col = split.column()
             if part.is_fluid is False:
                 row = col.row()
                 row.enabled = particle_panel_enabled(context, psys)
@@ -210,13 +204,12 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                 layout.label(text=iface_("%d fluid particles for this frame") % part.count, translate=False)
                 return
 
-            row = col.row()
+            row = layout.row()
             row.enabled = particle_panel_enabled(context, psys)
-            row.prop(part, "type", text="")
-            row.prop(psys, "seed")
+            row.prop(part, "type", expand=True)
 
         if part:
-            split = layout.split(factor=0.65)
+            split = layout.split()
             if part.type == 'HAIR':
                 if psys is not None and psys.is_edited:
                     split.operator("particle.edited_clear", text="Free Edit")
@@ -225,9 +218,7 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
                     row.enabled = particle_panel_enabled(context, psys)
                     row.prop(part, "regrow_hair")
                     row.prop(part, "use_advanced_hair")
-                row = split.row()
-                row.enabled = particle_panel_enabled(context, psys)
-                row.prop(part, "hair_step")
+
                 if psys is not None and psys.is_edited:
                     if psys.is_global_hair:
                         row = layout.row(align=True)
@@ -273,11 +264,13 @@ class PARTICLE_PT_emission(ParticleButtonsPanel, Panel):
         col = layout.column()
         col.active = part.emit_from == 'VERT' or part.distribution != 'GRID'
         col.prop(part, "count")
+        col.prop(psys, "seed")
 
         if part.type == 'HAIR':
             col.prop(part, "hair_length")
+            col.prop(part, "hair_step")
+
             if not part.use_advanced_hair:
-                layout.row()  # is this needed?
                 col.prop(part, "use_modifier_stack")
                 return
 

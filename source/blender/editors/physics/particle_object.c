@@ -1268,7 +1268,7 @@ static int duplicate_particle_systems_exec(bContext *C, wmOperator *op)
 
 void PARTICLE_OT_duplicate_particle_system(wmOperatorType *ot)
 {
-	ot->name = "Duplicate Particle Systems";
+	ot->name = "Duplicate Particle System";
 	ot->description = "Duplicate particle system within the active object";
 	ot->idname = "PARTICLE_OT_duplicate_particle_system";
 
@@ -1279,5 +1279,5 @@ void PARTICLE_OT_duplicate_particle_system(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "use_duplicate_settings", false, "Duplicate Settings",
-	                "Duplicate settings as well, so new particle system uses own settings");
+	                "Duplicate settings as well, so the new particle system uses its own settings");
 }
