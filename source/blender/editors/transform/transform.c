@@ -3677,7 +3677,8 @@ static void ElementResize(TransInfo *t, TransDataContainer *tc, TransData *td, f
 		copy_v3_v3(center, tc->center_local);
 	}
 
-	if (td->ext) {
+	/* Size checked needed since the 3D cursor only uses rotation fields. */
+	if (td->ext && td->ext->size) {
 		float fsize[3];
 
 		if (t->flag & (T_OBJECT | T_TEXTURE | T_POSE)) {
