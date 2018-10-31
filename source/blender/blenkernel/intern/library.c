@@ -2526,35 +2526,58 @@ void BKE_libblock_rename(Main *bmain, ID *id, const char *name)
 }
 
 /**
- * Returns in name the name of the block, with a 3-character prefix prepended
- * indicating whether it comes from a library, has a fake user, or no users.
+ * Generate full name of the data-block (without ID code, but with library is any)
+ *
+ * \note Result is unique to a given ID type in a given Main database.
+ *
+ * \param name An allocated string of minimal length MAX_ID_FULL_NAME, will be filled with generated string.
  */
-void BKE_id_ui_prefix(char name[MAX_ID_NAME + 1], const ID *id)
+void BKE_id_full_name_get(char name[MAX_ID_FULL_NAME], const ID *id)
+{
+	strcpy(name, id->name + 2);
+
+	if (id->lib != NULL) {
+		const size_t idname_len = strlen(id->name + 2);
+		const size_t libname_len = strlen(id->lib->id.name + 2);
+
+		name[idname_len] = ' ';
+		name[idname_len + 1] = '[';
+		strcpy(name + idname_len + 2, id->lib->id.name + 2);
+		name[idname_len + 2 + libname_len] = ']';
+		name[idname_len + 2 + libname_len + 1] = '\0';
+	}
+}
+
+/**
+ * Generate full name of the data-block (without ID code, but with library is any), with a 3-character prefix prepended
+ * indicating whether it comes from a library, is overriding, has a fake or no user, etc.
+ *
+ * \note Result is unique to a given ID type in a given Main database.
+ *
+ * \param name An allocated string of minimal length MAX_ID_FULL_NAME_UI, will be filled with generated string.
+ */
+void BKE_id_full_name_ui_prefix_get(char name[MAX_ID_FULL_NAME_UI], const ID *id)
 {
 	name[0] = id->lib ? (ID_MISSING(id) ? 'M' : 'L') : ID_IS_STATIC_OVERRIDE(id) ? 'O' : ' ';
 	name[1] = (id->flag & LIB_FAKEUSER) ? 'F' : ((id->us == 0) ? '0' : ' ');
 	name[2] = ' ';
 
-	strcpy(name + 3, id->name + 2);
+	BKE_id_full_name_get(name + 3, id);
 }
 
 /**
- * Returns an allocated string concatenating ID name (including two-chars type code) and its lib name if any,
- * which is expected to be unique in a given Main database..
+ * Generate a concatenation of ID name (including two-chars type code) and its lib name, if any.
+ *
+ * \return A unique allocated string key for any ID in the whole Main database.
  */
 char *BKE_id_to_unique_string_key(const struct ID *id)
 {
-	const size_t key_len_base = strlen(id->name) + 1;
-	const size_t key_len_ext = ((id->lib != NULL) ? strlen(id->lib->name) : 0) + 1;
-	const size_t key_len = key_len_base + key_len_ext - 1;
-	char *key = MEM_mallocN(key_len, __func__);
+	char name[MAX_ID_FULL_NAME + 2];
+	name[0] = id->name[0];
+	name[1] = id->name[1];
+	BKE_id_full_name_get(name + 2, id);
 
-	BLI_strncpy(key, id->name, key_len_base);
-	if (id->lib != NULL) {
-		BLI_strncpy(key + key_len_base - 1, id->lib->name, key_len_ext);
-	}
-
-	return key;
+	return BLI_strdup(name);
 }
 
 void BKE_library_filepath_set(Main *bmain, Library *lib, const char *filepath)

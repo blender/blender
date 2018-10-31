@@ -310,15 +310,14 @@ static int rna_ID_lookup_string(ListBase *lb, const char *key, PointerRNA *r_ptr
 {
 	ID *id;
 	for (id = lb->first; id != NULL; id = id->next) {
-		printf("%s vs %s\n", id->name, key);
 		if (STREQ(id->name + 2, key)) {
 			break;
 		}
 		else if (strstr(key, id->name + 2) != NULL) {
-			char uiname[MAX_ID_NAME * 3];
-			BKE_id_ui_prefix(uiname, id);
-			printf("second chance: %s vs %s\n", uiname, key);
-			if (STREQ(uiname, key)) {
+			char full_name_ui[MAX_ID_FULL_NAME_UI];
+			BKE_id_full_name_ui_prefix_get(full_name_ui, id);
+			/* Second check skips the three 'UI keycode letters' prefix. */
+			if (STREQ(full_name_ui, key) || STREQ(full_name_ui + 3, key)) {
 				break;
 			}
 		}

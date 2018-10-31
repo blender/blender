@@ -273,8 +273,8 @@ void ui_rna_collection_search_cb(const struct bContext *C, void *arg, const char
 
 		iconid = 0;
 		if (itemptr.type && RNA_struct_is_ID(itemptr.type)) {
-			name = MEM_malloc_arrayN(MAX_ID_NAME + 1, sizeof(*name), __func__);
-			BKE_id_ui_prefix(name, itemptr.data);
+			name = MEM_malloc_arrayN(MAX_ID_FULL_NAME, sizeof(*name), __func__);
+			BKE_id_full_name_ui_prefix_get(name, itemptr.data);
 			iconid = ui_id_icon_get(C, itemptr.data, false);
 		}
 		else {
