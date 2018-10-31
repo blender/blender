@@ -919,7 +919,7 @@ void BKE_scene_init(Scene *sce)
 
 	sce->eevee.light_cache = NULL;
 
-	sce->eevee.overscan = 0.3f;
+	sce->eevee.overscan = 3.0f;
 
 	sce->eevee.flag =
 	        SCE_EEVEE_VOLUMETRIC_LIGHTS |
