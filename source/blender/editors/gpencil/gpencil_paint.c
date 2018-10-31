@@ -1877,7 +1877,7 @@ static bool gp_session_initdata(bContext *C, wmOperator *op, tGPsdata *p)
 
 	/* lock axis (in some modes, disable) */
 	if (((*p->align_flag & GP_PROJECT_DEPTH_VIEW) == 0) &&
-		((*p->align_flag & GP_PROJECT_DEPTH_STROKE) == 0))
+	    ((*p->align_flag & GP_PROJECT_DEPTH_STROKE) == 0))
 	{
 		p->lock_axis = ts->gp_sculpt.lock_axis;
 	}

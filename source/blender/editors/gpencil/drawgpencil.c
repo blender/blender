@@ -1674,8 +1674,8 @@ static void gp_draw_data(RegionView3D *rv3d,
 /* if we have strokes for scenes (3d view)/clips (movie clip editor)
  * and objects/tracks, multiple data blocks have to be drawn */
 static void gp_draw_data_all(
-		ViewLayer *view_layer, RegionView3D *rv3d, Scene *scene, bGPdata *gpd,
-		int offsx, int offsy, int winx, int winy,
+        ViewLayer *view_layer, RegionView3D *rv3d, Scene *scene, bGPdata *gpd,
+        int offsx, int offsy, int winx, int winy,
         int cfra, int dflag, const char UNUSED(spacetype))
 {
 	bGPdata *gpd_source = NULL;

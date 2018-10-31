@@ -5213,7 +5213,7 @@ static int curve_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 			Nurb *nu;
 			for (nu = editnurb->nurbs.first; nu; nu = nu->next) {
 				if ((nu->pntsv == 1) &&
-					(ED_curve_nurb_select_count(v3d, nu) == 1))
+				    (ED_curve_nurb_select_count(v3d, nu) == 1))
 				{
 					as_curve = true;
 					break;

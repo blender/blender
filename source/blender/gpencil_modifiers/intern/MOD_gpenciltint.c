@@ -75,10 +75,11 @@ static void deformStroke(
 {
 	TintGpencilModifierData *mmd = (TintGpencilModifierData *)md;
 
-	if (!is_stroke_affected_by_modifier(ob,
-	        mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	        mmd->flag & GP_TINT_INVERT_LAYER, mmd->flag & GP_TINT_INVERT_PASS,
-			mmd->flag & GP_TINT_INVERT_LAYERPASS))
+	if (!is_stroke_affected_by_modifier(
+	            ob,
+	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
+	            mmd->flag & GP_TINT_INVERT_LAYER, mmd->flag & GP_TINT_INVERT_PASS,
+	            mmd->flag & GP_TINT_INVERT_LAYERPASS))
 	{
 		return;
 	}

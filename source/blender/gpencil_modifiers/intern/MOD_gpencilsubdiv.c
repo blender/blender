@@ -74,7 +74,7 @@ static void deformStroke(
 	            ob,
 	            mmd->layername, mmd->pass_index, mmd->layer_pass, 3, gpl, gps,
 	            mmd->flag & GP_SUBDIV_INVERT_LAYER, mmd->flag & GP_SUBDIV_INVERT_PASS,
-				mmd->flag & GP_SUBDIV_INVERT_LAYERPASS))
+	            mmd->flag & GP_SUBDIV_INVERT_LAYERPASS))
 	{
 		return;
 	}

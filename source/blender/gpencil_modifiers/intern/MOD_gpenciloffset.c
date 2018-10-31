@@ -77,10 +77,11 @@ static void deformStroke(
 	float mat[4][4];
 	float loc[3], rot[3], scale[3];
 
-	if (!is_stroke_affected_by_modifier(ob,
-	        mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
-	        mmd->flag & GP_OFFSET_INVERT_LAYER, mmd->flag & GP_OFFSET_INVERT_PASS,
-			mmd->flag & GP_OFFSET_INVERT_LAYERPASS))
+	if (!is_stroke_affected_by_modifier(
+	            ob,
+	            mmd->layername, mmd->pass_index, mmd->layer_pass, 1, gpl, gps,
+	            mmd->flag & GP_OFFSET_INVERT_LAYER, mmd->flag & GP_OFFSET_INVERT_PASS,
+	            mmd->flag & GP_OFFSET_INVERT_LAYERPASS))
 	{
 		return;
 	}

@@ -163,7 +163,7 @@ void ED_gpencil_draw_view3d_object(
         bool only3d);
 void ED_gpencil_draw_ex(
         struct ViewLayer *view_layer, struct RegionView3D *rv3d, struct Scene *scene,
-		struct bGPdata *gpd, int winx, int winy,
+        struct bGPdata *gpd, int winx, int winy,
         const int cfra, const char spacetype);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */

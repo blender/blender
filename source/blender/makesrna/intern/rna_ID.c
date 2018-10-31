@@ -1173,7 +1173,7 @@ static void rna_def_ID(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fake_user", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", LIB_FAKEUSER);
 	RNA_def_property_ui_text(prop, "Fake User", "Save this data-block even if it has no users");
-    RNA_def_property_ui_icon(prop, ICON_FAKE_USER_OFF, true);
+	RNA_def_property_ui_icon(prop, ICON_FAKE_USER_OFF, true);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_ID_fake_user_set");
 
 	prop = RNA_def_property(srna, "tag", PROP_BOOLEAN, PROP_NONE);

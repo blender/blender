@@ -368,7 +368,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
 		if (DRW_state_is_image_render()) {
 			/* TODO: Should be based on the number of samples used for render. */
-			noise_offset = fmodf(noise_offset + 1.0f/8.0f, 1.0f);
+			noise_offset = fmodf(noise_offset + 1.0f / 8.0f, 1.0f);
 		}
 
 		if (wpd->shading.flag & XRAY_FLAG(wpd)) {

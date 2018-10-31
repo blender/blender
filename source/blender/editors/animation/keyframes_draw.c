@@ -181,7 +181,7 @@ static eKeyframeExtremeDrawOpts bezt_extreme_type(BezTripleChain *chain)
 /* Comparator callback used for ActKeyColumns and BezTripleChain */
 static short compare_ak_bezt(void *node, void *data)
 {
-	BezTripleChain *chain = (BezTripleChain*)data;
+	BezTripleChain *chain = data;
 
 	return compare_ak_cfraPtr(node, &chain->cur->vec[1][0]);
 }
@@ -190,7 +190,7 @@ static short compare_ak_bezt(void *node, void *data)
 static DLRBT_Node *nalloc_ak_bezt(void *data)
 {
 	ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
-	BezTripleChain *chain = (BezTripleChain*)data;
+	BezTripleChain *chain = data;
 	BezTriple *bezt = chain->cur;
 
 	/* store settings based on state of BezTriple */
@@ -209,8 +209,8 @@ static DLRBT_Node *nalloc_ak_bezt(void *data)
 /* Node updater callback used for building ActKeyColumns from BezTripleChain */
 static void nupdate_ak_bezt(void *node, void *data)
 {
-	ActKeyColumn *ak = (ActKeyColumn *)node;
-	BezTripleChain *chain = (BezTripleChain*)data;
+	ActKeyColumn *ak = node;
+	BezTripleChain *chain = data;
 	BezTriple *bezt = chain->cur;
 
 	/* set selection status and 'touched' status */

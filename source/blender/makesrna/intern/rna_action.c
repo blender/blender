@@ -414,7 +414,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_cameras", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOCAM);
 	RNA_def_property_ui_text(prop, "Display Camera", "Include visualization of camera related animation data");
-    RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_CAMERA, 0);
+	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_CAMERA, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_materials", PROP_BOOLEAN, PROP_NONE);
@@ -486,7 +486,7 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_speakers", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filterflag", ADS_FILTER_NOSPK);
 	RNA_def_property_ui_text(prop, "Display Speaker", "Include visualization of speaker related animation data");
-    RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_SPEAKER, 0);
+	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_SPEAKER, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_gpencil", PROP_BOOLEAN, PROP_NONE);
