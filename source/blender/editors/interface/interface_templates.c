@@ -623,13 +623,14 @@ static uiBut *template_id_def_new_but(
 
 	if (newop) {
 		but = uiDefIconTextButO(
-		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, (id) ? ICON_DUPLICATE : ICON_ADD,
+		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, (id && !use_tab_but) ? ICON_DUPLICATE : ICON_ADD,
 		        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, but_height, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}
 	else {
 		but = uiDefIconTextBut(
-		        block, but_type, 0, (id) ? ICON_DUPLICATE : ICON_ADD, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
+		        block, but_type, 0, (id && !use_tab_but) ? ICON_DUPLICATE : ICON_ADD,
+		        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
 		        0, 0, w, but_height, NULL, 0, 0, 0, 0, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}
@@ -1164,7 +1165,7 @@ static void template_search_buttons(
 
 	template_search_add_button_searchmenu(C, layout, block, template_search, editable, false);
 	template_search_add_button_name(block, &active_ptr, type);
-	template_search_add_button_operator(block, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD, editable);
+	template_search_add_button_operator(block, newop, WM_OP_INVOKE_DEFAULT, ICON_DUPLICATE, editable);
 	template_search_add_button_operator(block, unlinkop, WM_OP_INVOKE_REGION_WIN, ICON_X, editable);
 
 	UI_block_align_end(block);
