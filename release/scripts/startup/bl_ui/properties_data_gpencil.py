@@ -160,6 +160,10 @@ class DATA_PT_gpencil_datapanel(Panel):
         if gpl:
             row.prop(gpl, "opacity", text="Opacity", slider=True)
 
+            # autolock layers
+            row = layout.row(align=True)
+            row.prop(gpd, "use_autolock_layers", text="Autolock Inactive Layers")
+
 
 class DATA_PT_gpencil_layer_optionpanel(LayerDataButtonsPanel, Panel):
     bl_space_type = 'PROPERTIES'

@@ -101,6 +101,38 @@ static void rna_GPencil_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	WM_main_add_notifier(NC_GPENCIL | NA_EDITED, NULL);
 }
 
+static void rna_GPencil_autolock(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bGPdata *gpd = (bGPdata *)ptr->id.data;
+	bGPDlayer *gpl = NULL;
+
+	if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
+		bGPDlayer *layer = BKE_gpencil_layer_getactive(gpd);
+
+		/* Lock all other layers */
+		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			/* unlock active layer */
+			if (gpl == layer) {
+				gpl->flag &= ~GP_LAYER_LOCKED;
+			}
+			else {
+				gpl->flag |= GP_LAYER_LOCKED;
+			}
+		}
+	}
+	else {
+		/* If disable is better unlock all layers by default or it looks there is
+		 * a problem in the UI because the user expects all layers will be unlocked
+		 */
+		for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			gpl->flag &= ~GP_LAYER_LOCKED;
+		}
+	}
+
+	/* standard update */
+	rna_GPencil_update(bmain, scene, ptr);
+}
+
 static void rna_GPencil_editmode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	bGPdata *gpd = (bGPdata *)ptr->id.data;
@@ -1409,6 +1441,12 @@ static void rna_def_gpencil_data(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_UV_ADAPTATIVE);
 	RNA_def_property_ui_text(prop, "Adaptative UV", "Automatic UVs are calculated depending of the stroke size");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_update");
+
+	prop = RNA_def_property(srna, "use_autolock_layers", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", GP_DATA_AUTOLOCK_LAYERS);
+	RNA_def_property_ui_text(prop, "Autolock Layers",
+		"Lock automatically all layers except active one to avoid accidental changes");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_GPencil_autolock");
 
 	prop = RNA_def_property(srna, "edit_line_color", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "line_color");

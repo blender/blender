@@ -448,6 +448,8 @@ typedef enum eGPdata_Flag {
 	GP_DATA_STROKE_POLYGON = (1 << 18),
 	/* Use adaptative UV scales */
 	GP_DATA_UV_ADAPTATIVE = (1 << 19),
+	/* Autolock not active layers */
+	GP_DATA_AUTOLOCK_LAYERS = (1 << 20),
 } eGPdata_Flag;
 
 /* gpd->onion_flag */

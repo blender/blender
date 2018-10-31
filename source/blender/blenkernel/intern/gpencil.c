@@ -996,11 +996,18 @@ void BKE_gpencil_layer_setactive(bGPdata *gpd, bGPDlayer *active)
 		return;
 
 	/* loop over layers deactivating all */
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next)
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
 		gpl->flag &= ~GP_LAYER_ACTIVE;
+		if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
+			gpl->flag |= GP_LAYER_LOCKED;
+		}
+	}
 
 	/* set as active one */
 	active->flag |= GP_LAYER_ACTIVE;
+	if (gpd->flag & GP_DATA_AUTOLOCK_LAYERS) {
+		active->flag &= ~GP_LAYER_LOCKED;
+	}
 }
 
 /* delete the active gp-layer */
