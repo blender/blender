@@ -53,7 +53,24 @@
 
 
 /* -------------------------------------------------------------------- */
+/** \name Utility Functions
+ * \{ */
 
+static bool bpygpu_batch_is_program_or_error(BPyGPUBatch *self)
+{
+	if (!glIsProgram(self->batch->program)) {
+		PyErr_SetString(
+		        PyExc_RuntimeError,
+		        "batch does not have any program assigned to it");
+		return false;
+	}
+	return true;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
 /** \name VertBatch Type
  * \{ */
 
@@ -180,20 +197,19 @@ static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 	BPyGPUShader *py_program = NULL;
 
 	if (!PyArg_ParseTuple(
-	        args, "|O!:GPUShader.__exit__",
+	        args, "|O!:GPUBatch.draw",
 	        &BPyGPUShader_Type, &py_program))
 	{
 		return NULL;
 	}
 	else if (py_program == NULL) {
-		if (!glIsProgram(self->batch->program)) {
-			PyErr_SetString(PyExc_RuntimeError,
-			                "batch does not have any program assigned to it");
+		if (!bpygpu_batch_is_program_or_error(self)) {
 			return NULL;
 		}
 	}
 	else if (self->batch->program != GPU_shader_get_program(py_program->shader)) {
-		GPU_batch_program_set(self->batch,
+		GPU_batch_program_set(
+		        self->batch,
 		        GPU_shader_get_program(py_program->shader),
 		        GPU_shader_get_interface(py_program->shader));
 	}
@@ -204,9 +220,7 @@ static PyObject *bpygpu_VertBatch_draw(BPyGPUBatch *self, PyObject *args)
 
 static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 {
-	if (!glIsProgram(self->batch->program)) {
-		PyErr_SetString(PyExc_RuntimeError,
-		                "batch does not have any program assigned to it");
+	if (!bpygpu_batch_is_program_or_error(self)) {
 		return NULL;
 	}
 	GPU_batch_program_use_begin(self->batch);
@@ -215,9 +229,7 @@ static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 
 static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 {
-	if (!glIsProgram(self->batch->program)) {
-		PyErr_SetString(PyExc_RuntimeError,
-		                "batch does not have any program assigned to it");
+	if (!bpygpu_batch_is_program_or_error(self)) {
 		return NULL;
 	}
 	GPU_batch_program_use_end(self->batch);
@@ -312,7 +324,6 @@ PyTypeObject BPyGPUBatch_Type = {
 
 
 /* -------------------------------------------------------------------- */
-
 /** \name Public API
 * \{ */
 
