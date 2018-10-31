@@ -6084,47 +6084,59 @@ static bool nurb_bezt_flag_any(const Nurb *nu, const char flag_test)
 
 static int curve_decimate_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = (Curve *)obedit->data;
-	bool all_supported = true;
-	bool changed = false;
+	const float error_sq_max = FLT_MAX;
+	float ratio = RNA_float_get(op->ptr, "ratio");
+	bool all_supported_multi = true;
 
-	{
-		const float error_sq_max = FLT_MAX;
-		float ratio = RNA_float_get(op->ptr, "ratio");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = (Curve *)obedit->data;
+		bool all_supported = true;
+		bool changed = false;
 
-		ListBase *editnurb = object_editcurve_get(obedit);
-		Nurb *nu;
+		{
+			ListBase *editnurb = object_editcurve_get(obedit);
+			Nurb *nu;
 
-		for (nu = editnurb->first; nu; nu = nu->next) {
-			if (nu->type == CU_BEZIER) {
-				if ((nu->pntsu > 2) && nurb_bezt_flag_any(nu, SELECT)) {
-					const int error_target_len = max_ii(2, nu->pntsu * ratio);
-					if (error_target_len != nu->pntsu) {
-						BKE_curve_decimate_nurb(nu, cu->resolu, error_sq_max, error_target_len);
-						changed = true;
+			for (nu = editnurb->first; nu; nu = nu->next) {
+				if (nu->type == CU_BEZIER) {
+					if ((nu->pntsu > 2) && nurb_bezt_flag_any(nu, SELECT)) {
+						const int error_target_len = max_ii(2, nu->pntsu * ratio);
+						if (error_target_len != nu->pntsu) {
+							BKE_curve_decimate_nurb(nu, cu->resolu, error_sq_max, error_target_len);
+							changed = true;
+						}
 					}
 				}
+				else {
+					all_supported = false;
+				}
 			}
-			else {
-				all_supported = false;
+		}
+
+		if (all_supported == false) {
+			all_supported_multi = false;
+		}
+
+		if (changed) {
+			cu->actnu = cu->actvert = CU_ACT_NONE;
+			if (ED_curve_updateAnimPaths(obedit->data)) {
+				WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
 			}
+
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			DEG_id_tag_update(obedit->data, 0);
 		}
 	}
 
-	if (all_supported == false) {
+	if (all_supported_multi == false) {
 		BKE_report(op->reports, RPT_WARNING, "Only bezier curves are supported");
 	}
 
-	if (changed) {
-		cu->actnu = cu->actvert = CU_ACT_NONE;
-		if (ED_curve_updateAnimPaths(obedit->data)) {
-			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
-		}
-
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-		DEG_id_tag_update(obedit->data, 0);
-	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
