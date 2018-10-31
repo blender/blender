@@ -623,13 +623,13 @@ static uiBut *template_id_def_new_but(
 
 	if (newop) {
 		but = uiDefIconTextButO(
-		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, ICON_ADD,
+		        block, but_type, newop, WM_OP_INVOKE_DEFAULT, (id) ? ICON_DUPLICATE : ICON_ADD,
 		        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, but_height, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}
 	else {
 		but = uiDefIconTextBut(
-		        block, but_type, 0, ICON_ADD, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
+		        block, but_type, 0, (id) ? ICON_DUPLICATE : ICON_ADD, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
 		        0, 0, w, but_height, NULL, 0, 0, 0, 0, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), POINTER_FROM_INT(UI_ID_ADD_NEW));
 	}

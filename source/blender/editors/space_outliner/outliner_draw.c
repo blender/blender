@@ -1075,7 +1075,7 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
 							data.icon = ICON_MOD_MASK;
 							break;
 						case eGpencilModifierType_Color:
-							data.icon = ICON_MOD_TINT;
+							data.icon = ICON_MOD_HUE_SATURATION;
 							break;
 						case eGpencilModifierType_Lattice:
 							data.icon = ICON_MOD_LATTICE;

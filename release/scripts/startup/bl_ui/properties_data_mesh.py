@@ -30,7 +30,7 @@ class MESH_MT_vertex_group_specials(Menu):
 
         layout.operator("object.vertex_group_sort", icon='SORTALPHA', text="Sort by Name").sort_type = 'NAME'
         layout.operator("object.vertex_group_sort", icon='ARMATURE_DATA', text="Sort by Bone Hierarchy").sort_type = 'BONE_HIERARCHY'
-        layout.operator("object.vertex_group_copy", icon='ADD')
+        layout.operator("object.vertex_group_copy", icon='DUPLICATE')
         layout.operator("object.vertex_group_copy_to_linked", icon='LINKED')
         layout.operator("object.vertex_group_copy_to_selected", icon='RESTRICT_SELECT_ON')
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False

@@ -76,7 +76,7 @@ const EnumPropertyItem rna_enum_object_greasepencil_modifier_type_items[] = {
 	{eGpencilModifierType_Thick, "GP_THICK", ICON_MOD_THICKNESS, "Thickness", "Change stroke thickness"},
 	{eGpencilModifierType_Time, "GP_TIME", ICON_MOD_TIME, "Time Offset", "Offset keyframes"},
 	{0, "", 0, N_("Color"), "" },
-	{eGpencilModifierType_Color, "GP_COLOR", ICON_MOD_TINT, "Hue/Saturation", "Apply changes to stroke colors"},
+	{eGpencilModifierType_Color, "GP_COLOR", ICON_MOD_HUE_SATURATION, "Hue/Saturation", "Apply changes to stroke colors"},
 	{eGpencilModifierType_Opacity, "GP_OPACITY", ICON_MOD_OPACITY, "Opacity", "Opacity of the strokes"},
 	{eGpencilModifierType_Tint, "GP_TINT", ICON_MOD_TINT, "Tint", "Tint strokes with new color"},
 	{0, NULL, 0, NULL, NULL}
