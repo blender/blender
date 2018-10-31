@@ -190,20 +190,14 @@ float light_visibility(LightData ld, vec3 W,
 		ShadowData data = shadows_data[int(ld.l_shadowid)];
 
 		if (ld.l_type == SUN) {
-			/* TODO : MSM */
-			// for (int i = 0; i < MAX_MULTI_SHADOW; ++i) {
-				vis *= shadow_cascade(
-					data, int(data.sh_data_start),
-					data.sh_tex_start, W);
-			// }
+			vis *= shadow_cascade(
+				data, int(data.sh_data_start),
+				data.sh_tex_start, W);
 		}
 		else {
-			/* TODO : MSM */
-			// for (int i = 0; i < MAX_MULTI_SHADOW; ++i) {
-				vis *= shadow_cubemap(
-					data, shadows_cube_data[int(data.sh_data_start)],
-					data.sh_tex_start, W);
-			// }
+			vis *= shadow_cubemap(
+				data, shadows_cube_data[int(data.sh_data_start)],
+				data.sh_tex_start, W);
 		}
 
 #ifndef VOLUMETRICS

@@ -363,7 +363,6 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 		if (la->mode & LA_SHADOW) {
 			if (la->type == LA_SUN) {
-				int sh_nbr = 1; /* TODO : MSM */
 				int cascade_nbr = la->cascade_count;
 
 				if ((linfo->gpu_cascade_len + sh_nbr) <= MAX_SHADOW_CASCADE) {
@@ -378,16 +377,14 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 					/* Increment indices. */
 					linfo->gpu_shadow_len += 1;
-					linfo->gpu_cascade_len += sh_nbr;
-					linfo->num_cascade_layer += sh_nbr * cascade_nbr;
+					linfo->gpu_cascade_len += 1;
+					linfo->num_cascade_layer += cascade_nbr;
 
 					linfo->cpu_cascade_len += 1;
 				}
 			}
 			else if (la->type == LA_SPOT || la->type == LA_LOCAL || la->type == LA_AREA) {
-				int sh_nbr = 1; /* TODO : MSM */
-
-				if ((linfo->gpu_cube_len + sh_nbr) <= MAX_SHADOW_CUBE) {
+				if ((linfo->gpu_cube_len + 1) <= MAX_SHADOW_CUBE) {
 					/* Save Light object. */
 					linfo->shadow_cube_ref[linfo->cpu_cube_len] = ob;
 
@@ -412,8 +409,8 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 					/* Increment indices. */
 					linfo->gpu_shadow_len += 1;
-					linfo->gpu_cube_len += sh_nbr;
-					linfo->num_cube_layer += sh_nbr;
+					linfo->gpu_cube_len += 1;
+					linfo->num_cube_layer += 1;
 
 					linfo->cpu_cube_len += 1;
 				}
