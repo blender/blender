@@ -149,6 +149,13 @@ static PyObject *bpygpu_VertBatch_vertbuf_add(BPyGPUBatch *self, BPyGPUVertBuf *
 		return NULL;
 	}
 
+	if (self->batch->verts[GPU_BATCH_VBO_MAX_LEN - 1] != NULL) {
+		PyErr_SetString(
+		        PyExc_RuntimeError,
+		        "Maximum number of vertex buffers exceeded: " STRINGIFY(GPU_BATCH_VBO_MAX_LEN));
+		return NULL;
+	}
+
 #ifdef USE_GPU_PY_REFERENCES
 	/* Hold user */
 	PyList_Append(self->references, (PyObject *)py_buf);
@@ -171,7 +178,8 @@ static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *p
 	}
 
 	GPUShader *shader = py_shader->shader;
-	GPU_batch_program_set(self->batch,
+	GPU_batch_program_set(
+	        self->batch,
 	        GPU_shader_get_program(shader),
 	        GPU_shader_get_interface(shader));
 
