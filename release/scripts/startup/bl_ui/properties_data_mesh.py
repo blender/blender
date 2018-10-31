@@ -29,20 +29,23 @@ class MESH_MT_vertex_group_specials(Menu):
         layout = self.layout
 
         layout.operator("object.vertex_group_sort", icon='SORTALPHA', text="Sort by Name").sort_type = 'NAME'
-        layout.operator("object.vertex_group_sort", icon='ARMATURE_DATA', text="Sort by Bone Hierarchy").sort_type = 'BONE_HIERARCHY'
+        layout.operator("object.vertex_group_sort", icon='BONE_DATA', text="Sort by Bone Hierarchy").sort_type = 'BONE_HIERARCHY'
+        layout.separator()
         layout.operator("object.vertex_group_copy", icon='DUPLICATE')
-        layout.operator("object.vertex_group_copy_to_linked", icon='LINKED')
-        layout.operator("object.vertex_group_copy_to_selected", icon='RESTRICT_SELECT_ON')
+        layout.operator("object.vertex_group_copy_to_linked")
+        layout.operator("object.vertex_group_copy_to_selected")
+        layout.separator()
         layout.operator("object.vertex_group_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
-        layout.operator("object.vertex_group_mirror", text="Mirror Vertex Group (Topology)", icon='ARROW_LEFTRIGHT').use_topology = True
+        layout.operator("object.vertex_group_mirror", text="Mirror Vertex Group (Topology)").use_topology = True
+        layout.separator()
         layout.operator("object.vertex_group_remove_from", icon='X', text="Remove from All Groups").use_all_groups = True
-        layout.operator("object.vertex_group_remove_from", icon='X', text="Clear Active Group").use_all_verts = True
-        layout.operator("object.vertex_group_remove", icon='X', text="Delete All Unlocked Groups").all_unlocked = True
-        layout.operator("object.vertex_group_remove", icon='X', text="Delete All Groups").all = True
+        layout.operator("object.vertex_group_remove_from", text="Clear Active Group").use_all_verts = True
+        layout.operator("object.vertex_group_remove", text="Delete All Unlocked Groups").all_unlocked = True
+        layout.operator("object.vertex_group_remove", text="Delete All Groups").all = True
         layout.separator()
         layout.operator("object.vertex_group_lock", icon='LOCKED', text="Lock All").action = 'LOCK'
         layout.operator("object.vertex_group_lock", icon='UNLOCKED', text="UnLock All").action = 'UNLOCK'
-        layout.operator("object.vertex_group_lock", icon='LOCKED', text="Lock Invert All").action = 'INVERT'
+        layout.operator("object.vertex_group_lock", text="Lock Invert All").action = 'INVERT'
 
 
 class MESH_MT_shape_key_specials(Menu):
@@ -51,12 +54,16 @@ class MESH_MT_shape_key_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.shape_key_transfer")
-        layout.operator("object.join_shapes")
-        layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
-        layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)", icon='ARROW_LEFTRIGHT').use_topology = True
         layout.operator("object.shape_key_add", icon='ADD', text="New Shape From Mix").from_mix = True
-        layout.operator("object.shape_key_remove", icon='REMOVE', text="Delete All Shapes").all = True
+        layout.separator()
+        layout.operator("object.shape_key_mirror", icon='ARROW_LEFTRIGHT').use_topology = False
+        layout.operator("object.shape_key_mirror", text="Mirror Shape Key (Topology)").use_topology = True
+        layout.separator()
+        layout.operator("object.join_shapes")
+        layout.operator("object.shape_key_transfer")
+        layout.separator()
+        layout.operator("object.shape_key_remove", icon='X', text="Delete All Shape Keys").all = True
+        layout.separator()
         layout.operator("object.shape_key_move", icon='TRIA_UP_BAR', text="Move To Top").type = 'TOP'
         layout.operator("object.shape_key_move", icon='TRIA_DOWN_BAR', text="Move To Bottom").type = 'BOTTOM'
 
@@ -219,18 +226,23 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         ob = context.object
         group = ob.vertex_groups.active
 
-        rows = 2
+        rows = 3
         if group:
-            rows = 4
+            rows = 5
 
         row = layout.row()
         row.template_list("MESH_UL_vgroups", "", ob, "vertex_groups", ob.vertex_groups, "active_index", rows=rows)
 
         col = row.column(align=True)
+
         col.operator("object.vertex_group_add", icon='ADD', text="")
         props = col.operator("object.vertex_group_remove", icon='REMOVE', text="")
         props.all_unlocked = props.all = False
+
+        col.separator()
+
         col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
+
         if group:
             col.separator()
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
@@ -276,6 +288,7 @@ class DATA_PT_face_maps(MeshButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("object.face_map_add", icon='ADD', text="")
         col.operator("object.face_map_remove", icon='REMOVE', text="")
+
         if facemap:
             col.separator()
             col.operator("object.face_map_move", icon='TRIA_UP', text="").direction = 'UP'
@@ -319,17 +332,20 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
         row = layout.row()
 
-        rows = 2
+        rows = 3
         if kb:
-            rows = 4
+            rows = 5
+
         row.template_list("MESH_UL_shape_keys", "", key, "key_blocks", ob, "active_shape_key_index", rows=rows)
 
-        col = row.column()
+        col = row.column(align=True)
 
-        sub = col.column(align=True)
-        sub.operator("object.shape_key_add", icon='ADD', text="").from_mix = False
-        sub.operator("object.shape_key_remove", icon='REMOVE', text="").all = False
-        sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
+        col.operator("object.shape_key_add", icon='ADD', text="").from_mix = False
+        col.operator("object.shape_key_remove", icon='REMOVE', text="").all = False
+
+        col.separator()
+
+        col.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 
         if kb:
             col.separator()
@@ -361,11 +377,11 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
 
             if key.use_relative:
                 if ob.active_shape_key_index != 0:
+                    layout.use_property_split = True
+
                     row = layout.row()
                     row.active = enable_edit_value
                     row.prop(kb, "value")
-
-                    layout.use_property_split = True
 
                     col = layout.column()
                     sub.active = enable_edit_value
@@ -396,7 +412,7 @@ class DATA_PT_uv_texture(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_uvmaps", "uvmaps", me, "uv_layers", me.uv_layers, "active_index", rows=1)
+        col.template_list("MESH_UL_uvmaps", "uvmaps", me, "uv_layers", me.uv_layers, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.uv_texture_add", icon='ADD', text="")
@@ -416,7 +432,7 @@ class DATA_PT_vertex_colors(MeshButtonsPanel, Panel):
         row = layout.row()
         col = row.column()
 
-        col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=1)
+        col.template_list("MESH_UL_vcols", "vcols", me, "vertex_colors", me.vertex_colors, "active_index", rows=2)
 
         col = row.column(align=True)
         col.operator("mesh.vertex_color_add", icon='ADD', text="")
