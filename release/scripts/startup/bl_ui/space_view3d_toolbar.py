@@ -1073,6 +1073,9 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
     def draw(self, context):
         layout = self.layout
 
+        settings = self.paint_settings(context)
+        brush = settings.brush
+
         if brush is None:  # unlikely but can happen
             layout.label(text="Brush Unset")
             return
