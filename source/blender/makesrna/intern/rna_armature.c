@@ -43,6 +43,7 @@
 
 #ifdef RNA_RUNTIME
 
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
@@ -449,6 +450,26 @@ static void rna_EditBone_matrix_set(PointerRNA *ptr, const float *values)
 	ED_armature_ebone_from_mat4(ebone, (float(*)[4])values);
 }
 
+static void rna_Bone_bbone_handle_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bArmature *arm = (bArmature *)ptr->id.data;
+	Bone *bone = (Bone *)ptr->data;
+
+	/* Update all users of this armature after changing B-Bone handles. */
+	for (Object *obt = bmain->object.first; obt; obt = obt->id.next) {
+		if (obt->data == arm && obt->pose) {
+			bPoseChannel *pchan = BKE_pose_channel_find_name(obt->pose, bone->name);
+
+			if (pchan && pchan->bone == bone) {
+				BKE_pchan_rebuild_bbone_handles(obt->pose, pchan);
+				DEG_id_tag_update(&obt->id, DEG_TAG_COPY_ON_WRITE);
+			}
+		}
+	}
+
+	rna_Armature_dependency_update(bmain, scene, ptr);
+}
+
 static PointerRNA rna_EditBone_bbone_prev_get(PointerRNA *ptr)
 {
 	EditBone *data = (EditBone *)(ptr->data);
@@ -466,6 +487,17 @@ static void rna_EditBone_bbone_prev_set(PointerRNA *ptr, PointerRNA value)
 	}
 }
 
+static void rna_Bone_bbone_prev_set(PointerRNA *ptr, PointerRNA value)
+{
+	Bone *bone = (Bone *)ptr->data;
+	Bone *hbone = (Bone *)value.data;
+
+	/* Within the same armature? */
+	if (hbone == NULL || value.id.data == ptr->id.data) {
+		bone->bbone_prev = hbone;
+	}
+}
+
 static PointerRNA rna_EditBone_bbone_next_get(PointerRNA *ptr)
 {
 	EditBone *data = (EditBone *)(ptr->data);
@@ -480,6 +512,17 @@ static void rna_EditBone_bbone_next_set(PointerRNA *ptr, PointerRNA value)
 	/* Within the same armature? */
 	if (hbone == NULL || value.id.data == ptr->id.data) {
 		ebone->bbone_next = hbone;
+	}
+}
+
+static void rna_Bone_bbone_next_set(PointerRNA *ptr, PointerRNA value)
+{
+	Bone *bone = (Bone *)ptr->data;
+	Bone *hbone = (Bone *)value.data;
+
+	/* Within the same armature? */
+	if (hbone == NULL || value.id.data == ptr->id.data) {
+		bone->bbone_next = hbone;
 	}
 }
 
@@ -799,13 +842,16 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_pointer_sdna(prop, NULL, "bbone_prev");
 	RNA_def_property_struct_type(prop, editbone ? "EditBone" : "Bone");
 	if (editbone) {
-		RNA_def_property_flag(prop, PROP_EDITABLE);
 		RNA_def_property_pointer_funcs(prop, "rna_EditBone_bbone_prev_get", "rna_EditBone_bbone_prev_set", NULL, NULL);
+		RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 	}
-	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+	else {
+		RNA_def_property_pointer_funcs(prop, NULL, "rna_Bone_bbone_prev_set", NULL, NULL);
+		RNA_def_property_update(prop, 0, "rna_Bone_bbone_handle_update");
+	}
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_ui_text(prop, "B-Bone Start Handle",
 	                         "Bone that serves as the start handle for the B-Bone curve");
-	RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 
 	prop = RNA_def_property(srna, "bbone_handle_type_end", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "bbone_next_type");
@@ -818,13 +864,16 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	RNA_def_property_pointer_sdna(prop, NULL, "bbone_next");
 	RNA_def_property_struct_type(prop, editbone ? "EditBone" : "Bone");
 	if (editbone) {
-		RNA_def_property_flag(prop, PROP_EDITABLE);
 		RNA_def_property_pointer_funcs(prop, "rna_EditBone_bbone_next_get", "rna_EditBone_bbone_next_set", NULL, NULL);
+		RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 	}
-	RNA_def_property_flag(prop, PROP_PTR_NO_OWNERSHIP);
+	else {
+		RNA_def_property_pointer_funcs(prop, NULL, "rna_Bone_bbone_next_set", NULL, NULL);
+		RNA_def_property_update(prop, 0, "rna_Bone_bbone_handle_update");
+	}
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_ui_text(prop, "B-Bone End Handle",
 	                         "Bone that serves as the end handle for the B-Bone curve");
-	RNA_def_property_update(prop, 0, "rna_Armature_dependency_update");
 }
 
 /* err... bones should not be directly edited (only editbones should be...) */

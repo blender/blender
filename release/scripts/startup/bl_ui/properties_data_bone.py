@@ -130,7 +130,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         bone = context.bone
         # arm = context.armature
         pchan = None
-        edit = False
+        bone_list = "bones"
 
         if ob and bone:
             pchan = ob.pose.bones[bone.name]
@@ -138,7 +138,7 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
         elif bone is None:
             bone = context.edit_bone
             bbone = bone
-            edit = True
+            bone_list = "edit_bones"
         else:
             bbone = bone
 
@@ -176,22 +176,14 @@ class BONE_PT_curved(BoneButtonsPanel, Panel):
 
         col = col.column(align=True)
         col.active = (bone.bbone_handle_type_start != "AUTO")
-        if edit:
-            col.prop_search(bone, "bbone_custom_handle_start", ob.data, "edit_bones", text="Custom")
-        else:
-            # read-only
-            col.prop(bbone, "bbone_custom_handle_start", text="Custom")
+        col.prop_search(bone, "bbone_custom_handle_start", ob.data, bone_list, text="Custom")
 
         col = topcol.column(align=True)
         col.prop(bone, "bbone_handle_type_end", text="End Handle")
 
         col = col.column(align=True)
         col.active = (bone.bbone_handle_type_end != "AUTO")
-        if edit:
-            col.prop_search(bone, "bbone_custom_handle_end", ob.data, "edit_bones", text="Custom")
-        else:
-            # read-only
-            col.prop(bbone, "bbone_custom_handle_end", text="Custom")
+        col.prop_search(bone, "bbone_custom_handle_end", ob.data, bone_list, text="Custom")
 
 
 class BONE_PT_relations(BoneButtonsPanel, Panel):

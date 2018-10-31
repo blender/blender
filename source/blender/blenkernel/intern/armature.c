@@ -1953,6 +1953,8 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.parent = pchan->parent;
 			pchanw.child = pchan->child;
 			pchanw.custom_tx = pchan->custom_tx;
+			pchanw.bbone_prev = pchan->bbone_prev;
+			pchanw.bbone_next = pchan->bbone_next;
 
 			pchanw.mpath = pchan->mpath;
 			pchan->mpath = NULL;
@@ -2077,6 +2079,19 @@ void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
 	BLI_ghash_free(bone_hash, NULL, NULL);
 }
 
+/** Find the matching pose channel using the bone name, if not NULL. */
+static bPoseChannel *pose_channel_find_bone(bPose *pose, Bone *bone)
+{
+	return (bone != NULL) ? BKE_pose_channel_find_name(pose, bone->name) : NULL;
+}
+
+/** Update the links for the B-Bone handles from Bone data. */
+void BKE_pchan_rebuild_bbone_handles(bPose *pose, bPoseChannel *pchan)
+{
+	pchan->bbone_prev = pose_channel_find_bone(pose, pchan->bone->bbone_prev);
+	pchan->bbone_next = pose_channel_find_bone(pose, pchan->bone->bbone_next);
+}
+
 /**
  * Only after leave editmode, duplicating, validating older files, library syncing.
  *
@@ -2117,23 +2132,15 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 			BKE_pose_channels_hash_free(pose);
 			BLI_freelinkN(&pose->chanbase, pchan);
 		}
-		else {
-			/* Find the custom B-Bone handles. */
-			if (pchan->bone->bbone_prev) {
-				pchan->bbone_prev = BKE_pose_channel_find_name(pose, pchan->bone->bbone_prev->name);
-			}
-			else {
-				pchan->bbone_prev = NULL;
-			}
-
-			if (pchan->bone->bbone_next) {
-				pchan->bbone_next = BKE_pose_channel_find_name(pose, pchan->bone->bbone_next->name);
-			}
-			else {
-				pchan->bbone_next = NULL;
-			}
-		}
 	}
+
+	BKE_pose_channels_hash_make(pose);
+
+	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		/* Find the custom B-Bone handles. */
+		BKE_pchan_rebuild_bbone_handles(pose, pchan);
+	}
+
 	/* printf("rebuild pose %s, %d bones\n", ob->id.name, counter); */
 
 	/* synchronize protected layers with proxy */
@@ -2149,8 +2156,6 @@ void BKE_pose_rebuild(Main *bmain, Object *ob, bArmature *arm, const bool do_id_
 
 	pose->flag &= ~POSE_RECALC;
 	pose->flag |= POSE_WAS_REBUILT;
-
-	BKE_pose_channels_hash_make(pose);
 
 	/* Rebuilding poses forces us to also rebuild the dependency graph, since there is one node per pose/bone... */
 	if (bmain != NULL) {
