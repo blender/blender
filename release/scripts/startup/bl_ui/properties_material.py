@@ -30,8 +30,8 @@ class MATERIAL_MT_specials(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.material_slot_copy")
         layout.operator("material.copy", icon='COPYDOWN')
+        layout.operator("object.material_slot_copy")
         layout.operator("material.paste", icon='PASTEDOWN')
 
 
@@ -102,9 +102,9 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
         if ob:
             is_sortable = len(ob.material_slots) > 1
-            rows = 2
+            rows = 3
             if (is_sortable):
-                rows = 4
+                rows = 5
 
             row = layout.row()
 
@@ -113,6 +113,8 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             col = row.column(align=True)
             col.operator("object.material_slot_add", icon='ADD', text="")
             col.operator("object.material_slot_remove", icon='REMOVE', text="")
+
+            col.separator()
 
             col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 
