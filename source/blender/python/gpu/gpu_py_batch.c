@@ -184,8 +184,21 @@ static PyObject *bpygpu_VertBatch_program_set(BPyGPUBatch *self, BPyGPUShader *p
 	        GPU_shader_get_interface(shader));
 
 #ifdef USE_GPU_PY_REFERENCES
-	/* Hold user */
-	PyList_Append(self->references, (PyObject *)py_shader);
+	/* Remove existing user (if any), hold new user. */
+	int i = PyList_GET_SIZE(self->references);
+	while (--i != -1) {
+		PyObject *py_shader_test = PyList_GET_ITEM(self->references, i);
+		if (BPyGPUShader_Check(py_shader_test)) {
+			PyList_SET_ITEM(self->references, i, (PyObject *)py_shader);
+			Py_INCREF(py_shader);
+			Py_DECREF(py_shader_test);
+			/* Only ever reference one shader. */
+			break;
+		}
+	}
+	if (i != -1) {
+		PyList_Append(self->references, (PyObject *)py_shader);
+	}
 #endif
 
 	Py_RETURN_NONE;
