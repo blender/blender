@@ -207,6 +207,7 @@ static PyObject *bpygpu_VertBatch_program_use_begin(BPyGPUBatch *self)
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_RuntimeError,
 		                "batch does not have any program assigned to it");
+		return NULL;
 	}
 	GPU_batch_program_use_begin(self->batch);
 	Py_RETURN_NONE;
@@ -217,6 +218,7 @@ static PyObject *bpygpu_VertBatch_program_use_end(BPyGPUBatch *self)
 	if (!glIsProgram(self->batch->program)) {
 		PyErr_SetString(PyExc_RuntimeError,
 		                "batch does not have any program assigned to it");
+		return NULL;
 	}
 	GPU_batch_program_use_end(self->batch);
 	Py_RETURN_NONE;
