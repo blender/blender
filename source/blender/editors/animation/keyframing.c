@@ -322,7 +322,7 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
 		return FCU_CYCLE_NONE;
 	}
 
-	BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert-1];
+	BezTriple *first = &fcu->bezt[0], *last = &fcu->bezt[fcu->totvert - 1];
 	float start = first->vec[1][0], end = last->vec[1][0];
 
 	if (start >= end) {
@@ -336,7 +336,7 @@ static eFCU_Cycle_Type remap_cyclic_keyframe_location(FCurve *fcu, float *px, fl
 
 		if (type == FCU_CYCLE_OFFSET) {
 			/* Nasty check to handle the case when the modes are different better. */
-			FMod_Cycles *data = (FMod_Cycles *)((FModifier*)fcu->modifiers.first)->data;
+			FMod_Cycles *data = ((FModifier *)fcu->modifiers.first)->data;
 			short mode = (step >= 0) ? data->after_mode : data->before_mode;
 
 			if (mode == FCM_EXTRAPOLATE_CYCLIC_OFFSET) {

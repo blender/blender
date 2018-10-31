@@ -911,7 +911,8 @@ eFCU_Cycle_Type BKE_fcurve_get_cycle_type(FCurve *fcu)
 		}
 
 		if (ELEM(data->before_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET) &&
-		    ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET)) {
+		    ELEM(data->after_mode, FCM_EXTRAPOLATE_CYCLIC, FCM_EXTRAPOLATE_CYCLIC_OFFSET))
+		{
 			return FCU_CYCLE_OFFSET;
 		}
 	}

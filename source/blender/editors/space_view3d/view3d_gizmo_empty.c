@@ -132,7 +132,7 @@ static bool WIDGETGROUP_empty_image_poll(const bContext *C, wmGizmoGroupType *UN
 	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->type == OB_EMPTY) {
-		if (ob->empty_drawtype == OB_EMPTY_IMAGE){
+		if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
 			return is_image_empty_visible(ob, rv3d);
 		}
 	}

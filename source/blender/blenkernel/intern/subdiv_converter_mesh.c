@@ -88,7 +88,7 @@ static OpenSubdiv_SchemeType get_scheme_type(
 }
 
 static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
-        const struct OpenSubdiv_Converter* converter) {
+        const struct OpenSubdiv_Converter *converter) {
 	ConverterStorage *storage = converter->user_data;
 	return BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(
 	        &storage->settings);

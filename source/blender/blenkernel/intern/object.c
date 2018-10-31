@@ -834,8 +834,8 @@ void BKE_object_init(Object *ob)
 	ob->empty_drawsize = 1.0;
 	ob->empty_image_depth = OB_EMPTY_IMAGE_DEPTH_DEFAULT;
 	ob->empty_image_visibility_flag = (
-	          OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE
-	        | OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
+	        OB_EMPTY_IMAGE_VISIBLE_PERSPECTIVE |
+	        OB_EMPTY_IMAGE_VISIBLE_ORTHOGRAPHIC);
 	if (ob->type == OB_EMPTY) {
 		copy_v2_fl(ob->ima_ofs, -0.5f);
 	}
