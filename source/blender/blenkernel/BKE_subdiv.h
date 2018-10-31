@@ -43,7 +43,16 @@ struct OpenSubdiv_TopologyRefiner;
 struct Subdiv;
 struct SubdivToMeshSettings;
 
-typedef enum {
+typedef enum eSubdivVtxBoundaryInterpolation {
+  /* Do not interpolate boundaries. */
+  SUBDIV_VTX_BOUNDARY_NONE,
+  /* Sharpen edges. */
+  SUBDIV_VTX_BOUNDARY_EDGE_ONLY,
+  /* sharpen edges and corners, */
+  SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER,
+} eSubdivVtxBoundaryInterpolation;
+
+typedef enum eSubdivFVarLinearInterpolation {
 	SUBDIV_FVAR_LINEAR_INTERPOLATION_NONE,
 	SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,
 	SUBDIV_FVAR_LINEAR_INTERPOLATION_CORNERS_AND_JUNCTIONS,
@@ -56,6 +65,7 @@ typedef struct SubdivSettings {
 	bool is_simple;
 	bool is_adaptive;
 	int level;
+	eSubdivVtxBoundaryInterpolation vtx_boundary_interpolation;
 	eSubdivFVarLinearInterpolation fvar_linear_interpolation;
 } SubdivSettings;
 

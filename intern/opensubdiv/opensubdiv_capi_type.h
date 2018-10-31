@@ -40,6 +40,15 @@ typedef enum OpenSubdiv_SchemeType {
   OSD_SCHEME_LOOP,
 } OpenSubdiv_SchemeType;
 
+typedef enum OpenSubdiv_VtxBoundaryInterpolation {
+  // Do not interpolate boundaries
+  OSD_VTX_BOUNDARY_NONE,
+  // Sharpen edges.
+  OSD_VTX_BOUNDARY_EDGE_ONLY,
+  // sharpen edges and corners,
+  OSD_VTX_BOUNDARY_EDGE_AND_CORNER,
+} OpenSubdiv_VtxBoundaryInterpolation;
+
 typedef enum OpenSubdiv_FVarLinearInterpolation {
   OSD_FVAR_LINEAR_INTERPOLATION_NONE,
   OSD_FVAR_LINEAR_INTERPOLATION_CORNERS_ONLY,

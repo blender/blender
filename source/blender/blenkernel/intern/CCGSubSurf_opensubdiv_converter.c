@@ -84,6 +84,13 @@ static OpenSubdiv_SchemeType conv_dm_get_type(
 		return OSD_SCHEME_CATMARK;
 }
 
+static OpenSubdiv_VtxBoundaryInterpolation
+conv_dm_get_vtx_boundary_interpolation(
+        const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return OSD_VTX_BOUNDARY_EDGE_ONLY;
+}
+
 static OpenSubdiv_FVarLinearInterpolation conv_dm_get_fvar_linear_interpolation(
         const OpenSubdiv_Converter *converter)
 {
@@ -448,6 +455,8 @@ void ccgSubSurf_converter_setup_from_derivedmesh(
 
 	converter->getSchemeType = conv_dm_get_type;
 
+	converter->getVtxBoundaryInterpolation =
+	        conv_dm_get_vtx_boundary_interpolation;
 	converter->getFVarLinearInterpolation =
 	        conv_dm_get_fvar_linear_interpolation;
 	converter->specifiesFullTopology = conv_dm_specifies_full_topology;
@@ -544,6 +553,13 @@ static OpenSubdiv_SchemeType conv_ccg_get_bilinear_type(
 	else {
 		return OSD_SCHEME_CATMARK;
 	}
+}
+
+static OpenSubdiv_VtxBoundaryInterpolation
+conv_ccg_get_vtx_boundary_interpolation(
+        const OpenSubdiv_Converter *UNUSED(converter))
+{
+	return OSD_VTX_BOUNDARY_EDGE_ONLY;
 }
 
 static OpenSubdiv_FVarLinearInterpolation
@@ -750,6 +766,8 @@ void ccgSubSurf_converter_setup_from_ccg(CCGSubSurf *ss,
 {
 	converter->getSchemeType = conv_ccg_get_bilinear_type;
 
+	converter->getVtxBoundaryInterpolation =
+	        conv_ccg_get_vtx_boundary_interpolation;
 	converter->getFVarLinearInterpolation =
 	        conv_ccg_get_fvar_linear_interpolation;
 	converter->specifiesFullTopology = conv_ccg_specifies_full_topology;

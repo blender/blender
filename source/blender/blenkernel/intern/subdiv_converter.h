@@ -52,6 +52,12 @@ void BKE_subdiv_converter_free(struct OpenSubdiv_Converter *converter);
 
 /* ============================ INTERNAL HELPERS ============================ */
 
+/* TODO(sergey): Find a way to make it OpenSubdiv_VtxBoundaryInterpolation,
+ * without breaking compilation without OpenSubdiv.
+ */
+int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(
+        const SubdivSettings *settings);
+
 /* TODO(sergey): Find a way to make it OpenSubdiv_FVarLinearInterpolation,
  * without breaking compilation without OpenSubdiv.
  */

@@ -48,6 +48,7 @@ void BKE_multires_subdiv_settings_init(
 	settings->is_simple = (mmd->simple != 0);
 	settings->is_adaptive = !settings->is_simple;
 	settings->level = mmd->quality;
+	settings->vtx_boundary_interpolation = SUBDIV_VTX_BOUNDARY_EDGE_ONLY;
 	settings->fvar_linear_interpolation =
 	        BKE_subdiv_fvar_interpolation_from_uv_smooth(mmd->uv_smooth);
 }

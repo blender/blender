@@ -31,6 +31,8 @@ typedef struct OpenSubdiv_Converter {
   OpenSubdiv_SchemeType (*getSchemeType)(
       const struct OpenSubdiv_Converter* converter);
 
+  OpenSubdiv_VtxBoundaryInterpolation (*getVtxBoundaryInterpolation)(
+      const struct OpenSubdiv_Converter* converter);
   OpenSubdiv_FVarLinearInterpolation (*getFVarLinearInterpolation)(
       const struct OpenSubdiv_Converter* converter);
 

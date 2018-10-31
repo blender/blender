@@ -40,6 +40,21 @@ void BKE_subdiv_converter_free(struct OpenSubdiv_Converter *converter)
 	}
 }
 
+int BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(
+        const SubdivSettings *settings)
+{
+	switch (settings->vtx_boundary_interpolation) {
+		case SUBDIV_VTX_BOUNDARY_NONE:
+			return OSD_VTX_BOUNDARY_NONE;
+		case SUBDIV_VTX_BOUNDARY_EDGE_ONLY:
+			return OSD_VTX_BOUNDARY_EDGE_ONLY;
+		case SUBDIV_VTX_BOUNDARY_EDGE_AND_CORNER:
+			return OSD_VTX_BOUNDARY_EDGE_AND_CORNER;
+	}
+	BLI_assert(!"Unknown vtx boundary interpolation");
+	return OSD_VTX_BOUNDARY_EDGE_ONLY;
+}
+
 /*OpenSubdiv_FVarLinearInterpolation*/ int
 BKE_subdiv_converter_fvar_linear_from_settings(const SubdivSettings *settings)
 {

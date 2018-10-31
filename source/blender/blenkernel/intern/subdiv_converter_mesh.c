@@ -87,6 +87,13 @@ static OpenSubdiv_SchemeType get_scheme_type(
 	}
 }
 
+static OpenSubdiv_VtxBoundaryInterpolation get_vtx_boundary_interpolation(
+        const struct OpenSubdiv_Converter* converter) {
+	ConverterStorage *storage = converter->user_data;
+	return BKE_subdiv_converter_vtx_boundary_interpolation_from_settings(
+	        &storage->settings);
+}
+
 static OpenSubdiv_FVarLinearInterpolation get_fvar_linear_interpolation(
         const OpenSubdiv_Converter *converter)
 {
@@ -264,6 +271,7 @@ static void free_user_data(const OpenSubdiv_Converter *converter)
 static void init_functions(OpenSubdiv_Converter *converter)
 {
 	converter->getSchemeType = get_scheme_type;
+	converter->getVtxBoundaryInterpolation = get_vtx_boundary_interpolation;
 	converter->getFVarLinearInterpolation = get_fvar_linear_interpolation;
 	converter->specifiesFullTopology = specifies_full_topology;
 
