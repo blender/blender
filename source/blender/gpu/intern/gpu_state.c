@@ -160,3 +160,13 @@ void GPU_viewport_size_get_i(int coords[4])
 {
 	glGetIntegerv(GL_VIEWPORT, coords);
 }
+
+void GPU_flush(void)
+{
+	glFlush();
+}
+
+void GPU_finish(void)
+{
+	glFinish();
+}

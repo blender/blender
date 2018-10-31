@@ -61,4 +61,7 @@ void GPU_scissor_get_i(int coords[4]);
 void GPU_viewport_size_get_f(float coords[4]);
 void GPU_viewport_size_get_i(int coords[4]);
 
+void GPU_flush(void);
+void GPU_finish(void);
+
 #endif  /* __GPU_STATE_H__ */

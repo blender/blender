@@ -40,6 +40,7 @@
 
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
+#include "GPU_state.h"
 
 #include "RE_pipeline.h"
 
@@ -551,7 +552,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		EEVEE_draw_effects(sldata, vedata);
 
 		/* XXX Seems to fix TDR issue with NVidia drivers on linux. */
-		glFinish();
+		GPU_finish();
 
 		RE_engine_update_progress(engine, (float)(render_samples++) / (float)tot_sample);
 	}
