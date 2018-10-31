@@ -103,6 +103,14 @@ public:
 		return devices.front().device->show_samples();
 	}
 
+	virtual BVHLayoutMask get_bvh_layout_mask() const {
+		BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
+		foreach(const SubDevice& sub_device, devices) {
+			bvh_layout_mask &= sub_device.device->get_bvh_layout_mask();
+		}
+		return bvh_layout_mask;
+	}
+
 	bool load_kernels(const DeviceRequestedFeatures& requested_features)
 	{
 		foreach(SubDevice& sub, devices)

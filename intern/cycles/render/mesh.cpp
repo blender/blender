@@ -1068,7 +1068,7 @@ void Mesh::compute_bvh(Device *device,
 			bparams.use_spatial_split = params->use_bvh_spatial_split;
 			bparams.bvh_layout = BVHParams::best_bvh_layout(
 			        params->bvh_layout,
-			        device->info.bvh_layout_mask);
+			        device->get_bvh_layout_mask());
 			bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 			                              params->use_bvh_unaligned_nodes;
 			bparams.num_motion_triangle_steps = params->num_bvh_time_steps;
@@ -1855,7 +1855,7 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	bparams.top_level = true;
 	bparams.bvh_layout = BVHParams::best_bvh_layout(
 	        scene->params.bvh_layout,
-	        device->info.bvh_layout_mask);
+	        device->get_bvh_layout_mask());
 	bparams.use_spatial_split = scene->params.use_bvh_spatial_split;
 	bparams.use_unaligned_nodes = dscene->data.bvh.have_curves &&
 	                              scene->params.use_bvh_unaligned_nodes;

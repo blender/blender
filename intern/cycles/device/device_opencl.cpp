@@ -136,7 +136,6 @@ void device_opencl_info(vector<DeviceInfo>& devices)
 		info.use_split_kernel = OpenCLInfo::kernel_use_split(platform_name,
 		                                                     device_type);
 		info.has_volume_decoupled = false;
-		info.bvh_layout_mask = BVH_LAYOUT_BVH2;
 		info.id = id;
 
 		/* Check OpenCL extensions */
