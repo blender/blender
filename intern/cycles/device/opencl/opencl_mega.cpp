@@ -43,6 +43,10 @@ public:
 		return true;
 	}
 
+	virtual BVHLayoutMask get_bvh_layout_mask() const {
+		return BVH_LAYOUT_BVH2;
+	}
+
 	virtual bool load_kernels(const DeviceRequestedFeatures& /*requested_features*/,
 	                          vector<OpenCLProgram*> &programs)
 	{

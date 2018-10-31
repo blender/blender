@@ -87,6 +87,10 @@ public:
 		snd.write();
 	}
 
+	virtual BVHLayoutMask get_bvh_layout_mask() const {
+		return BVH_LAYOUT_BVH2;
+	}
+
 	void mem_alloc(device_memory& mem)
 	{
 		if(mem.name) {
@@ -306,7 +310,6 @@ void device_network_info(vector<DeviceInfo>& devices)
 	/* todo: get this info from device */
 	info.advanced_shading = true;
 	info.has_volume_decoupled = false;
-	info.bvh_layout_mask = BVH_LAYOUT_BVH2;
 	info.has_osl = false;
 
 	devices.push_back(info);

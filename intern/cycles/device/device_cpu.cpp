@@ -278,6 +278,17 @@ public:
 		return (info.cpu_threads == 1);
 	}
 
+	virtual BVHLayoutMask get_bvh_layout_mask() const {
+		BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_BVH2;
+		if(DebugFlags().cpu.has_sse2() && system_cpu_support_sse2()) {
+			bvh_layout_mask |= BVH_LAYOUT_BVH4;
+		}
+		if(DebugFlags().cpu.has_avx2() && system_cpu_support_avx2()) {
+			bvh_layout_mask |= BVH_LAYOUT_BVH8;
+		}
+		return bvh_layout_mask;
+	}
+
 	void load_texture_info()
 	{
 		if(need_texture_info) {
@@ -1041,13 +1052,6 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.id = "CPU";
 	info.num = 0;
 	info.advanced_shading = true;
-	info.bvh_layout_mask = BVH_LAYOUT_BVH2;
-	if(system_cpu_support_sse2()) {
-		info.bvh_layout_mask |= BVH_LAYOUT_BVH4;
-	}
-	if(system_cpu_support_avx2()) {
-		info.bvh_layout_mask |= BVH_LAYOUT_BVH8;
-	}
 	info.has_volume_decoupled = true;
 	info.has_osl = true;
 	info.has_half_images = true;
