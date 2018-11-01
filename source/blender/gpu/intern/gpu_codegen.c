@@ -1409,19 +1409,11 @@ static GPUNodeLink *gpu_uniformbuffer_link(
 {
 	bNodeSocket *socket;
 
-	/* Some nodes can have been create on the fly and does
-	 * not have an original to point to. (i.e. the bump from
-	 * ntree_shader_relink_displacement). In this case just
-	 * revert to static constant folding. */
-	if (node->original == NULL) {
-		return NULL;
-	}
-
 	if (in_out == SOCK_IN) {
-		socket = BLI_findlink(&node->original->inputs, index);
+		socket = BLI_findlink(&node->inputs, index);
 	}
 	else {
-		socket = BLI_findlink(&node->original->outputs, index);
+		socket = BLI_findlink(&node->outputs, index);
 	}
 
 	BLI_assert(socket != NULL);

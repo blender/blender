@@ -283,6 +283,90 @@ static bNodeSocket *ntree_shader_node_find_output(bNode *node,
 	return ntree_shader_node_find_socket(&node->outputs, identifier);
 }
 
+static void ntree_shader_unlink_hidden_value_sockets(bNode *group_node, bNodeSocket *isock)
+{
+	bNodeTree *group_ntree = (bNodeTree *)group_node->id;
+	bNode *node;
+	bool removed_link = false;
+
+	for (node = group_ntree->nodes.first; node; node = node->next) {
+		for (bNodeSocket *sock = node->inputs.first; sock; sock = sock->next) {
+			if ((sock->flag & SOCK_HIDE_VALUE) == 0)
+				continue;
+			/* If socket is linked to a group input node and sockets id match. */
+			if (sock && sock->link && sock->link->fromnode->type == NODE_GROUP_INPUT) {
+				if (STREQ(isock->identifier, sock->link->fromsock->identifier)) {
+					nodeRemLink(group_ntree, sock->link);
+					removed_link = true;
+				}
+			}
+		}
+	}
+
+	if (removed_link) {
+		ntreeUpdateTree(G.main, group_ntree);
+	}
+}
+
+/* Node groups once expanded looses their input sockets values.
+ * To fix this, link value/rgba nodes into the sockets and copy the group sockets values. */
+static void ntree_shader_groups_expand_inputs(bNodeTree *localtree)
+{
+	bNode *value_node, *group_node;
+	bNodeSocket *value_socket;
+	bNodeSocketValueRGBA *src_rgba, *dst_rgba;
+	bNodeSocketValueFloat *src_float, *dst_float;
+	bool link_added = false;
+
+	for (group_node = localtree->nodes.first; group_node; group_node = group_node->next) {
+
+		if (group_node->type != NODE_GROUP || group_node->id == NULL)
+			continue;
+
+		bNodeSocket *group_socket = group_node->inputs.first;
+		for (; group_socket; group_socket = group_socket->next) {
+			if (group_socket->link != NULL)
+				continue;
+
+			/* Detect the case where an input is plugged into a hidden value socket.
+			 * In this case we should just remove the link to trigger the socket default override. */
+			ntree_shader_unlink_hidden_value_sockets(group_node, group_socket);
+
+			switch (group_socket->type) {
+				case SOCK_VECTOR:
+				case SOCK_RGBA:
+					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_RGB);
+					value_socket = ntree_shader_node_find_output(value_node, "Color");
+					BLI_assert(value_socket != NULL);
+					src_rgba = group_socket->default_value;
+					dst_rgba = value_socket->default_value;
+					copy_v4_v4(dst_rgba->value, src_rgba->value);
+					break;
+				case SOCK_FLOAT:
+					value_node = nodeAddStaticNode(NULL, localtree, SH_NODE_VALUE);
+					value_socket = ntree_shader_node_find_output(value_node, "Value");
+					BLI_assert(value_socket != NULL);
+					src_float = group_socket->default_value;
+					dst_float = value_socket->default_value;
+					dst_float->value = src_float->value;
+					break;
+				default:
+					continue;
+			}
+
+			nodeAddLink(localtree,
+			            value_node, value_socket,
+			            group_node, group_socket);
+
+			link_added = true;
+		}
+	}
+
+	if (link_added) {
+		ntreeUpdateTree(G.main, localtree);
+	}
+}
+
 /* Check whether shader has a displacement.
  *
  * Will also return a node and it's socket which is connected to a displacement
@@ -588,6 +672,8 @@ void ntreeGPUMaterialNodes(bNodeTree *localtree, GPUMaterial *mat, bool *has_sur
 {
 	bNode *output = ntreeShaderOutputNode(localtree, SHD_OUTPUT_EEVEE);
 	bNodeTreeExec *exec;
+
+	ntree_shader_groups_expand_inputs(localtree);
 
 	/* Perform all needed modifications on the tree in order to support
 	 * displacement/bump mapping.
