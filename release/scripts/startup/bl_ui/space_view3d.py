@@ -65,7 +65,12 @@ class VIEW3D_HT_header(Header):
             gpd = context.gpencil_data
 
             if gpd.is_stroke_paint_mode:
-                row = layout.row(align=True)
+                row = layout.row()
+                sub = row.row(align=True)
+                sub.prop(tool_settings, "use_gpencil_draw_onback", text="", icon='MOD_OPACITY')
+                sub.prop(tool_settings, "use_gpencil_weight_data_add", text="", icon='WPAINT_HLT')
+                sub.prop(tool_settings, "use_gpencil_additive_drawing", text="", icon='FREEZE')
+
                 row.popover(
                     panel="VIEW3D_PT_tools_grease_pencil_shapes",
                     text="Shapes"
@@ -4888,11 +4893,26 @@ class VIEW3D_PT_gpencil_origin(Panel):
 
     def draw(self, context):
         layout = self.layout
+        ts = context.tool_settings
+        gpd = context.gpencil_data
+
         layout.label(text="Stroke Placement")
 
         row = layout.row()
         col = row.column()
-        col.prop(context.tool_settings, "gpencil_stroke_placement_view3d", expand=True)
+        col.prop(ts, "gpencil_stroke_placement_view3d", expand=True)
+
+        if ts.gpencil_stroke_placement_view3d == 'SURFACE':
+            row = layout.row()
+            row.label(text="Offset")
+            row = layout.row()
+            row.prop(gpd, "zdepth_offset", text="")
+
+        if ts.gpencil_stroke_placement_view3d == 'STROKE':
+            row = layout.row()
+            row.label(text="Target")
+            row = layout.row()
+            row.prop(ts, "gpencil_stroke_snap_mode", expand=True)
 
 
 class VIEW3D_PT_gpencil_lock(Panel):

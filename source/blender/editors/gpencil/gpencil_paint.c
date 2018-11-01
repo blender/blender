@@ -1040,7 +1040,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 					depth_arr[i] = 0.9999f;
 			}
 			else {
-				if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) {
+				if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
+					(ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))
+				{
 					int first_valid = 0;
 					int last_valid = 0;
 
@@ -1052,12 +1054,16 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 					first_valid = i;
 
 					/* find last valid contact point */
-					for (i = gpd->runtime.sbuffer_size - 1; i >= 0; i--) {
-						if (depth_arr[i] != FLT_MAX)
-							break;
+					if (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST) {
+						last_valid = first_valid;
 					}
-					last_valid = i;
-
+					else {
+						for (i = gpd->runtime.sbuffer_size - 1; i >= 0; i--) {
+							if (depth_arr[i] != FLT_MAX)
+								break;
+						}
+						last_valid = i;
+					}
 					/* invalidate any point other point, to interpolate between
 					 * first and last contact in an imaginary line between them */
 					for (i = 0; i < gpd->runtime.sbuffer_size; i++) {

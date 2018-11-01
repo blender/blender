@@ -2122,6 +2122,7 @@ typedef enum eGPencil_Placement_Flags {
 	/* "Use Endpoints" */
 	GP_PROJECT_DEPTH_STROKE_ENDPOINTS = (1 << 4),
 	GP_PROJECT_CURSOR = (1 << 5),
+	GP_PROJECT_DEPTH_STROKE_FIRST = (1 << 6),
 } eGPencil_Placement_Flags;
 
 /* ToolSettings.gpencil_selectmode */

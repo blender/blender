@@ -2229,6 +2229,13 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem gpencil_stroke_snap_items[] = {
+		{0, "NONE", 0, "All points", "No snap"},
+		{GP_PROJECT_DEPTH_STROKE_ENDPOINTS, "ENDS", 0, "End points", "Snap to first and last points and interpolate" },
+		{GP_PROJECT_DEPTH_STROKE_FIRST, "FIRST", 0, "First point", "Snap to first point" },
+		{0, NULL, 0, NULL, NULL}
+	};
+	
 	static const EnumPropertyItem gpencil_selectmode_items[] = {
 		{GP_SELECTMODE_POINT, "POINT", ICON_GP_SELECT_POINTS, "Point", "Select only points"},
 		{GP_SELECTMODE_STROKE, "STROKE", ICON_GP_SELECT_STROKES, "Stroke", "Select all stroke points" },
@@ -2520,6 +2527,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v3d_align");
 	RNA_def_property_enum_items(prop, gpencil_stroke_placement_items);
 	RNA_def_property_ui_text(prop, "Stroke Placement (3D View)", "");
+	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
+
+	prop = RNA_def_property(srna, "gpencil_stroke_snap_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "gpencil_v3d_align");
+	RNA_def_property_enum_items(prop, gpencil_stroke_snap_items);
+	RNA_def_property_ui_text(prop, "Stroke Snap", "");
 	RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, NULL);
 
 	prop = RNA_def_property(srna, "use_gpencil_stroke_endpoints", PROP_BOOLEAN, PROP_NONE);
