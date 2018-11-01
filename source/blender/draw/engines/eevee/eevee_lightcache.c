@@ -187,6 +187,11 @@ void EEVEE_lightcache_info_update(SceneEEVEE *eevee)
 	LightCache *lcache = eevee->light_cache;
 
 	if (lcache != NULL) {
+		if (lcache->flag & LIGHTCACHE_BAKING) {
+			BLI_strncpy(eevee->light_cache_info, IFACE_("Baking light cache."), sizeof(eevee->light_cache_info));
+			return;
+		}
+
 		char formatted_mem[15];
 		BLI_str_format_byte_unit(formatted_mem, eevee_lightcache_memsize_get(lcache), true);
 
