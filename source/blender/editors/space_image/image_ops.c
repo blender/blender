@@ -2488,7 +2488,7 @@ static int image_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 
 	/* Better for user feedback. */
 	RNA_string_set(op->ptr, "name", DATA_(IMA_DEF_NAME));
-	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
+	return WM_operator_props_dialog_popup(C, op, 300, 100);
 }
 
 static void image_new_draw(bContext *UNUSED(C), wmOperator *op)

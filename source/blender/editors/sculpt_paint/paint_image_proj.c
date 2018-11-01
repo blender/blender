@@ -5881,7 +5881,7 @@ static int texture_paint_add_texture_paint_slot_invoke(bContext *C, wmOperator *
 	get_default_texture_layer_name_for_object(ob, type, (char *)&imagename, sizeof(imagename));
 	RNA_string_set(op->ptr, "name", imagename);
 
-	return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, 5 * UI_UNIT_Y);
+	return WM_operator_props_dialog_popup(C, op, 300, 100);
 }
 
 #define IMA_DEF_NAME N_("Untitled")

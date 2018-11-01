@@ -1241,7 +1241,7 @@ static int wm_operator_props_popup_ex(bContext *C, wmOperator *op,
 	/* if we don't have global undo, we can't do undo push for automatic redo,
 	 * so we require manual OK clicking in this popup */
 	if (!do_redo || !(U.uiflag & USER_GLOBALUNDO))
-		return WM_operator_props_dialog_popup(C, op, 15 * UI_UNIT_X, UI_UNIT_Y);
+		return WM_operator_props_dialog_popup(C, op, 300, 20);
 
 	UI_popup_block_ex(C, wm_block_create_redo, NULL, wm_block_redo_cancel_cb, op, op);
 
@@ -1280,8 +1280,8 @@ int WM_operator_props_dialog_popup(bContext *C, wmOperator *op, int width, int h
 	wmOpPopUp *data = MEM_callocN(sizeof(wmOpPopUp), "WM_operator_props_dialog_popup");
 
 	data->op = op;
-	data->width = width;
-	data->height = height;
+	data->width = width * U.dpi_fac;
+	data->height = height * U.dpi_fac;
 	data->free_op = true; /* if this runs and gets registered we may want not to free it */
 
 	/* op is not executed until popup OK but is clicked */
@@ -1322,7 +1322,7 @@ static int wm_debug_menu_exec(bContext *C, wmOperator *op)
 static int wm_debug_menu_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
 	RNA_int_set(op->ptr, "debug_value", G.debug_value);
-	return WM_operator_props_dialog_popup(C, op, 9 * UI_UNIT_X, UI_UNIT_Y);
+	return WM_operator_props_dialog_popup(C, op, 180, 20);
 }
 
 static void WM_OT_debug_menu(wmOperatorType *ot)

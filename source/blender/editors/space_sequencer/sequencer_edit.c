@@ -3525,7 +3525,7 @@ void SEQUENCER_OT_rebuild_proxy(wmOperatorType *ot)
 
 static int sequencer_enable_proxies_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-	return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
+	return WM_operator_props_dialog_popup(C, op, 200, 100);
 }
 
 static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
