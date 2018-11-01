@@ -2371,6 +2371,10 @@ static uiBut *uiItemL_(uiLayout *layout, const char *name, int icon)
 		but->flag |= UI_BUT_LIST_ITEM;
 	}
 
+	if (layout->redalert) {
+		UI_but_flag_enable(but, UI_BUT_REDALERT);
+	}
+
 	return but;
 }
 

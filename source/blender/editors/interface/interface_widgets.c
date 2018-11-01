@@ -2281,7 +2281,12 @@ static void widget_state(uiWidgetType *wt, int state)
 
 	if (state & UI_BUT_REDALERT) {
 		char red[4] = {255, 0, 0};
-		widget_state_blend(wt->wcol.inner, red, 0.4f);
+		if (wt->draw) {
+			widget_state_blend(wt->wcol.inner, red, 0.4f);
+		}
+		else {
+			widget_state_blend(wt->wcol.text, red, 0.4f);
+		}
 	}
 
 	if (state & UI_BUT_DRAG_MULTI) {
@@ -3653,6 +3658,11 @@ static void widget_state_label(uiWidgetType *wt, int state)
 			UI_GetThemeColor3ubv(TH_TEXT_HI, (unsigned char *)wt->wcol.text);
 		else
 			UI_GetThemeColor3ubv(TH_TEXT, (unsigned char *)wt->wcol.text);
+	}
+
+	if (state & UI_BUT_REDALERT) {
+		char red[4] = {255, 0, 0};
+		widget_state_blend(wt->wcol.text, red, 0.4f);
 	}
 }
 
