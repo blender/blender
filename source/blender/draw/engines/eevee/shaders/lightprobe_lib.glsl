@@ -280,7 +280,7 @@ vec3 probe_evaluate_grid(GridData gd, vec3 W, vec3 N, vec3 localpos)
 		weight *= load_visibility_cell(cell, ws_light, ws_dist_point_to_cell, gd.g_vis_bias, gd.g_vis_bleed, gd.g_vis_range);
 
 		/* Smooth backface test */
-		weight *= sqrt(max(0.002, dot(ws_light, N)));
+		weight *= dot(ws_light, N);
 
 		/* Avoid zero weight */
 		weight = max(0.00001, weight);
