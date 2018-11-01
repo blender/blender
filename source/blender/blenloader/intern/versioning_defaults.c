@@ -73,6 +73,9 @@ void BLO_update_defaults_userpref_blend(void)
 		bTheme *theme = U.themes.first;
 		memcpy(theme, &U_theme_default, sizeof(bTheme));
 	}
+
+	/* Leave temp directory empty, will then get appropriate value per OS. */
+	U.tempdir[0] = '\0';
 }
 
 /**
