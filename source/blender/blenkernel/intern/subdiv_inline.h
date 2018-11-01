@@ -27,8 +27,8 @@
  *  \ingroup bke
  */
 
-#ifndef __BKE_SUBDIV_INLINE_H__
-#define __BKE_SUBDIV_INLINE_H__
+#ifndef __SUBDIV_INLINE_H__
+#define __SUBDIV_INLINE_H__
 
 #include "BKE_subdiv.h"
 #include "BLI_utildefines.h"
@@ -75,4 +75,4 @@ BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
 	return corner;
 }
 
-#endif  /* __BKE_SUBDIV_INLINE_H__ */
+#endif  /* __SUBDIV_INLINE_H__ */

@@ -27,8 +27,8 @@
  *  \ingroup bke
  */
 
-#ifndef __BKE_MULTIRES_INLINE_H__
-#define __BKE_MULTIRES_INLINE_H__
+#ifndef __MULTIRES_INLINE_H__
+#define __MULTIRES_INLINE_H__
 
 #include "BKE_multires.h"
 #include "BLI_math_vector.h"
@@ -65,4 +65,4 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(
 	normalize_v3(tangent_matrix[2]);
 }
 
-#endif  /* __BKE_MULTIRES_INLINE_H__ */
+#endif  /* __MULTIRES_INLINE_H__ */

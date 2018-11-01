@@ -1041,7 +1041,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			}
 			else {
 				if ((ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_ENDPOINTS) ||
-					(ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))
+				    (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE_FIRST))
 				{
 					int first_valid = 0;
 					int last_valid = 0;
