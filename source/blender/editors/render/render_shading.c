@@ -383,9 +383,9 @@ static int material_slot_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_material_slot_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Copy Material to Others";
+	ot->name = "Copy Material to Selected";
 	ot->idname = "OBJECT_OT_material_slot_copy";
-	ot->description = "Copies materials to other selected objects";
+	ot->description = "Copy material to selected objects";
 
 	/* api callbacks */
 	ot->exec = material_slot_copy_exec;
