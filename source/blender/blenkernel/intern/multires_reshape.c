@@ -141,9 +141,8 @@ typedef struct MultiresReshapeContext {
 	const Mesh *coarse_mesh;
 	MDisps *mdisps;
 	GridPaintMask *grid_paint_mask;
-	/* NOTE: This is a grid size on the top level, same for level. */
-	int grid_size;
-	int level;
+	int top_grid_size;
+	int top_level;
 } MultiresReshapeContext;
 
 static void multires_reshape_allocate_displacement_grid(
@@ -218,7 +217,7 @@ static void multires_reshape_vertex_copy_to_next(
         const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
-	const int grid_size = ctx->grid_size;
+	const int grid_size = ctx->top_grid_size;
 	const int next_current_corner = (current_corner + 1) % coarse_poly->totloop;
 	const int next_grid_x = 0;
 	const int next_grid_y = current_grid_x;
@@ -249,7 +248,7 @@ static void multires_reshape_vertex_copy_to_prev(
         const GridPaintMask *current_mask_grid,
         const int current_grid_x, const int current_grid_y)
 {
-	const int grid_size = ctx->grid_size;
+	const int grid_size = ctx->top_grid_size;
 	const int prev_current_corner =
 	        (current_corner - 1 + coarse_poly->totloop) % coarse_poly->totloop;
 	const int prev_grid_x = current_grid_y;
@@ -328,7 +327,7 @@ static void multires_reshape_vertex_from_final_data(
         const float final_P[3], const float final_mask)
 {
 	Subdiv *subdiv = ctx->subdiv;
-	const int grid_size = ctx->grid_size;
+	const int grid_size = ctx->top_grid_size;
 	const Mesh *coarse_mesh = ctx->coarse_mesh;
 	const MPoly *coarse_mpoly = coarse_mesh->mpoly;
 	const MPoly *coarse_poly = &coarse_mpoly[coarse_poly_index];
@@ -808,8 +807,8 @@ static bool multires_reshape_from_vertcos(
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps = mdisps,
 	                .grid_paint_mask = NULL,
-	                .grid_size = BKE_subdiv_grid_size_from_level(top_level),
-	                .level = top_level,
+	                .top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
+	                .top_level = top_level,
 	        },
 	        .deformed_verts = deformed_verts,
 	        .num_deformed_verts = num_deformed_verts,
@@ -1100,8 +1099,8 @@ bool multiresModifier_reshapeFromCCG(
 	                .coarse_mesh = coarse_mesh,
 	                .mdisps  = mdisps,
 	                .grid_paint_mask = grid_paint_mask,
-	                .grid_size = BKE_subdiv_grid_size_from_level(top_level),
-	                .level = top_level},
+	                .top_grid_size = BKE_subdiv_grid_size_from_level(top_level),
+	                .top_level = top_level},
 	        .face_ptex_offset = BKE_subdiv_face_ptex_offset_get(subdiv),
 	        .key = &key,
 	        .grids = subdiv_ccg->grids};
