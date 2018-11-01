@@ -398,6 +398,8 @@ static PyGetSetDef bpy_app_getsets[] = {
 
 	{(char *)"render_icon_size", bpy_app_preview_render_size_get, NULL, (char *)bpy_app_preview_render_size_doc, (void *)ICON_SIZE_ICON},
 	{(char *)"render_preview_size", bpy_app_preview_render_size_get, NULL, (char *)bpy_app_preview_render_size_doc, (void *)ICON_SIZE_PREVIEW},
+
+	{NULL, NULL, NULL, NULL, NULL}
 };
 
 static void py_struct_seq_getset_init(void)
