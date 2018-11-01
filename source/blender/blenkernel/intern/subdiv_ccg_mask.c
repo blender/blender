@@ -38,6 +38,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
+#include "BKE_subdiv.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -58,16 +59,6 @@ typedef struct GridPaintMaskData {
 	 */
 	PolyCornerIndex *ptex_poly_corner;
 } GridPaintMaskData;
-
-/* Coordinates within grid has different convention from PTex coordinates.
- * This function converts the latter ones to former.
- */
-BLI_INLINE void ptex_uv_to_grid_uv(const float ptex_u, const float ptex_v,
-                                   float *r_grid_u, float *r_grid_v)
-{
-	*r_grid_u = 1.0f - ptex_v;
-	*r_grid_v = 1.0f - ptex_u;
-}
 
 /* Simplified version of mdisp_rot_face_to_crn, only handles quad and
  * works in normalized coordinates.
@@ -119,12 +110,12 @@ static int mask_get_grid_and_coord(
 		corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
 		*r_mask_grid =
 		        &data->grid_paint_mask[start_grid_index + corner];
-		ptex_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
+		BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
 	}
 	else {
 		*r_mask_grid =
 		        &data->grid_paint_mask[start_grid_index];
-		ptex_uv_to_grid_uv(u, v, grid_u, grid_v);
+		BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
 	}
 	return corner;
 }
@@ -135,7 +126,7 @@ BLI_INLINE float read_mask_grid(const GridPaintMask *mask_grid,
 	if (mask_grid->data == NULL) {
 		return 0;
 	}
-	const int grid_size = (1 << (mask_grid->level - 1)) + 1;
+	const int grid_size = BKE_subdiv_grid_size_from_level(mask_grid->level);
 	const int x = (grid_u * (grid_size - 1) + 0.5f);
 	const int y = (grid_v * (grid_size - 1) + 0.5f);
 	return mask_grid->data[y * grid_size + x];

@@ -50,17 +50,6 @@
  * Generally useful internal helpers.
  */
 
-/* For a given subdivision level (NOT the refinement level) get resolution
- * of grid.
- */
-static int grid_size_for_level_get(const SubdivCCG *subdiv_ccg, int level)
-{
-	BLI_assert(level >= 1);
-	BLI_assert(level <= subdiv_ccg->level);
-	UNUSED_VARS_NDEBUG(subdiv_ccg);
-	return (1 << (level - 1)) + 1;
-}
-
 /* Number of floats in per-vertex elements.  */
 static int num_element_float_get(const SubdivCCG *subdiv_ccg)
 {
@@ -139,8 +128,7 @@ static void subdiv_ccg_alloc_elements(SubdivCCG *subdiv_ccg, Subdiv *subdiv)
 	/* Allocate memory for surface grids. */
 	const int num_faces = topology_refiner->getNumFaces(topology_refiner);
 	const int num_grids = topology_refiner_count_face_corners(topology_refiner);
-	const int grid_size = grid_size_for_level_get(
-	        subdiv_ccg, subdiv_ccg->level);
+	const int grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
 	const int grid_area = grid_size * grid_size;
 	subdiv_ccg->num_grids = num_grids;
 	subdiv_ccg->grids =
@@ -644,8 +632,7 @@ SubdivCCG *BKE_subdiv_to_ccg(
 	SubdivCCG *subdiv_ccg = MEM_callocN(sizeof(SubdivCCG), "subdiv ccg");
 	subdiv_ccg->subdiv = subdiv;
 	subdiv_ccg->level = bitscan_forward_i(settings->resolution - 1);
-	subdiv_ccg->grid_size =
-	        grid_size_for_level_get(subdiv_ccg, subdiv_ccg->level);
+	subdiv_ccg->grid_size = BKE_subdiv_grid_size_from_level(subdiv_ccg->level);
 	subdiv_ccg_init_layers(subdiv_ccg, settings);
 	subdiv_ccg_alloc_elements(subdiv_ccg, subdiv);
 	subdiv_ccg_init_faces(subdiv_ccg);
@@ -736,7 +723,7 @@ void BKE_subdiv_ccg_key(CCGKey *key, const SubdivCCG *subdiv_ccg, int level)
 {
 	key->level = level;
 	key->elem_size = element_size_bytes_get(subdiv_ccg);
-	key->grid_size = grid_size_for_level_get(subdiv_ccg, level);
+	key->grid_size = BKE_subdiv_grid_size_from_level(level);
 	key->grid_area = key->grid_size * key->grid_size;
 	key->grid_bytes = key->elem_size * key->grid_area;
 

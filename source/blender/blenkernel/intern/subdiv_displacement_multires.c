@@ -69,16 +69,6 @@ typedef enum eAverageWith {
 	AVERAGE_WITH_NEXT,
 } eAverageWith;
 
-/* Coordinates within grid has different convention from PTex coordinates.
- * This function converts the latter ones to former.
- */
-BLI_INLINE void ptex_uv_to_grid_uv(const float ptex_u, const float ptex_v,
-                                   float *r_grid_u, float *r_grid_v)
-{
-	*r_grid_u = 1.0f - ptex_v;
-	*r_grid_v = 1.0f - ptex_u;
-}
-
 /* Simplified version of mdisp_rot_face_to_crn, only handles quad and
  * works in normalized coordinates.
  *
@@ -128,11 +118,11 @@ static int displacement_get_grid_and_coord(
 		float corner_u, corner_v;
 		corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
 		*r_displacement_grid = &data->mdisps[start_grid_index + corner];
-		ptex_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
+		BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
 	}
 	else {
 		*r_displacement_grid = &data->mdisps[start_grid_index];
-		ptex_uv_to_grid_uv(u, v, grid_u, grid_v);
+		BKE_subdiv_ptex_face_uv_to_grid_uv(u, v, grid_u, grid_v);
 	}
 	return corner;
 }
@@ -401,7 +391,7 @@ static void displacement_init_data(SubdivDisplacement *displacement,
                                    const MultiresModifierData *mmd)
 {
 	MultiresDisplacementData *data = displacement->user_data;
-	data->grid_size = (1 << (mmd->totlvl - 1)) + 1;
+	data->grid_size = BKE_subdiv_grid_size_from_level(mmd->totlvl);
 	data->mpoly = mesh->mpoly;
 	data->mdisps = CustomData_get_layer(&mesh->ldata, CD_MDISPS);
 	displacement_data_init_mapping(displacement, mesh);
