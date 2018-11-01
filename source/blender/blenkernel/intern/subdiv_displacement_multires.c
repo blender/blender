@@ -38,6 +38,7 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_customdata.h"
+#include "BKE_multires.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -154,38 +155,6 @@ static const MDisps *displacement_get_prev_grid(
 	const int prev_corner =
 	        (effective_corner - 1 + poly->totloop) % poly->totloop;
 	return &data->mdisps[poly->loopstart + prev_corner];
-}
-
-/* NOTE: Derivatives are in ptex face space. */
-BLI_INLINE void construct_tangent_matrix(float tangent_matrix[3][3],
-                                         const float dPdu[3],
-                                         const float dPdv[3],
-                                         const int corner)
-{
-	if (corner == 0) {
-		copy_v3_v3(tangent_matrix[0], dPdv);
-		copy_v3_v3(tangent_matrix[1], dPdu);
-		mul_v3_fl(tangent_matrix[0], -1.0f);
-		mul_v3_fl(tangent_matrix[1], -1.0f);
-	}
-	else if (corner == 1) {
-		copy_v3_v3(tangent_matrix[0], dPdu);
-		copy_v3_v3(tangent_matrix[1], dPdv);
-		mul_v3_fl(tangent_matrix[1], -1.0f);
-	}
-	else if (corner == 2) {
-		copy_v3_v3(tangent_matrix[0], dPdv);
-		copy_v3_v3(tangent_matrix[1], dPdu);
-	}
-	else if (corner == 3) {
-		copy_v3_v3(tangent_matrix[0], dPdu);
-		copy_v3_v3(tangent_matrix[1], dPdv);
-		mul_v3_fl(tangent_matrix[0], -1.0f);
-	}
-	cross_v3_v3v3(tangent_matrix[2], dPdu, dPdv);
-	normalize_v3(tangent_matrix[0]);
-	normalize_v3(tangent_matrix[1]);
-	normalize_v3(tangent_matrix[2]);
 }
 
 BLI_INLINE eAverageWith read_displacement_grid(
@@ -331,7 +300,7 @@ static void eval_displacement(SubdivDisplacement *displacement,
 	                     tangent_D);
 	/* Convert it to the object space. */
 	float tangent_matrix[3][3];
-	construct_tangent_matrix(tangent_matrix, dPdu, dPdv, corner);
+	BKE_multires_construct_tangent_matrix(tangent_matrix, dPdu, dPdv, corner);
 	mul_v3_m3v3(r_D, tangent_matrix, tangent_D);
 }
 

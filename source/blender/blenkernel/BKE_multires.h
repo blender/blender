@@ -32,6 +32,8 @@
  *  \ingroup bke
  */
 
+#include "BLI_compiler_compat.h"
+
 enum MultiresModifiedFlags;
 
 struct Depsgraph;
@@ -151,4 +153,18 @@ void BKE_multires_subdiv_mesh_settings_init(
         const bool use_render_params,
         const bool ignore_simplify);
 
+/* General helpers. */
+
+/* For a given partial derivatives of a ptex face get tangent matrix for
+ * displacement.
+ * Corner needs to be known to properly "rotate" partial derivatives.
+ */
+BLI_INLINE void BKE_multires_construct_tangent_matrix(
+        float tangent_matrix[3][3],
+        const float dPdu[3],
+        const float dPdv[3],
+        const int corner);
+
 #endif  /* __BKE_MULTIRES_H__ */
+
+#include "intern/multires_inline.h"
