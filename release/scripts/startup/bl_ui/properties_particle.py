@@ -126,14 +126,12 @@ class PARTICLE_UL_particle_systems(bpy.types.UIList):
                     "show_render",
                     emboss=False,
                     icon_only=True,
-                    icon='RESTRICT_RENDER_OFF' if md.show_render else 'RESTRICT_RENDER_ON',
                 )
                 layout.prop(
                     md,
                     "show_viewport",
                     emboss=False,
                     icon_only=True,
-                    icon='RESTRICT_VIEW_OFF' if md.show_viewport else 'RESTRICT_VIEW_ON',
                 )
 
         elif self.layout_type == 'GRID':
