@@ -410,7 +410,7 @@ const EnumPropertyItem rna_enum_stereo3d_interlace_type_items[] = {
 
 const EnumPropertyItem rna_enum_bake_pass_filter_type_items[] = {
 	{R_BAKE_PASS_FILTER_NONE, "NONE", 0, "None", ""},
-	{R_BAKE_PASS_FILTER_AO, "AO", 0, "AO", ""},
+	{R_BAKE_PASS_FILTER_AO, "AO", 0, "Ambient Occlusion", ""},
 	{R_BAKE_PASS_FILTER_EMIT, "EMIT", 0, "Emit", ""},
 	{R_BAKE_PASS_FILTER_DIRECT, "DIRECT", 0, "Direct", ""},
 	{R_BAKE_PASS_FILTER_INDIRECT, "INDIRECT", 0, "Indirect", ""},
@@ -3115,7 +3115,7 @@ void rna_def_view_layer_common(StructRNA *srna, int scene)
 
 	prop = RNA_def_property(srna, "use_ao", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "layflag", SCE_LAY_AO);
-	RNA_def_property_ui_text(prop, "AO", "Render AO in this Layer");
+	RNA_def_property_ui_text(prop, "Ambient Occlusion", "Render Ambient Occlusion in this Layer");
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -3194,7 +3194,7 @@ void rna_def_view_layer_common(StructRNA *srna, int scene)
 
 	prop = RNA_def_property(srna, "use_pass_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "passflag", SCE_PASS_AO);
-	RNA_def_property_ui_text(prop, "AO", "Deliver AO pass");
+	RNA_def_property_ui_text(prop, "Ambient Occlusion", "Deliver Ambient Occlusion pass");
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_ViewLayer_pass_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
@@ -3839,7 +3839,7 @@ static void rna_def_bake_data(BlenderRNA *brna)
 	/* custom passes flags */
 	prop = RNA_def_property(srna, "use_pass_ambient_occlusion", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_filter", R_BAKE_PASS_FILTER_AO);
-	RNA_def_property_ui_text(prop, "AO", "Add ambient occlusion contribution");
+	RNA_def_property_ui_text(prop, "Ambient Occlusion", "Add ambient occlusion contribution");
 
 	prop = RNA_def_property(srna, "use_pass_emit", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "pass_filter", R_BAKE_PASS_FILTER_EMIT);

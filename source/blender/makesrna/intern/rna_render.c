@@ -56,7 +56,7 @@ const EnumPropertyItem rna_enum_render_pass_type_items[] = {
 	{SCE_PASS_DIFFUSE, "DIFFUSE", 0, "Diffuse", ""},
 	{SCE_PASS_SPEC, "SPECULAR", 0, "Specular", ""},
 	{SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
-	{SCE_PASS_AO, "AO", 0, "AO", ""},
+	{SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
 	{SCE_PASS_REFLECT, "REFLECTION", 0, "Reflection", ""},
 	{SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SCE_PASS_VECTOR, "VECTOR", 0, "Vector", ""},
@@ -87,7 +87,7 @@ const EnumPropertyItem rna_enum_render_pass_type_items[] = {
 
 const EnumPropertyItem rna_enum_bake_pass_type_items[] = {
 	{SCE_PASS_COMBINED, "COMBINED", 0, "Combined", ""},
-	{SCE_PASS_AO, "AO", 0, "AO", ""},
+	{SCE_PASS_AO, "AO", 0, "Ambient Occlusion", ""},
 	{SCE_PASS_SHADOW, "SHADOW", 0, "Shadow", ""},
 	{SCE_PASS_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SCE_PASS_UV, "UV", 0, "UV", ""},
