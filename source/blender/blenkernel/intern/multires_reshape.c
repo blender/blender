@@ -698,9 +698,10 @@ static void multires_reshape_vertex_every_edge(
 	        subdiv_vertex_index);
 }
 
-static Subdiv *multires_subdiv_for_reshape(struct Depsgraph *depsgraph,
-                                           /*const*/ Object *object,
-                                           const MultiresModifierData *mmd)
+static Subdiv *multires_create_subdiv_for_reshape(
+        struct Depsgraph *depsgraph,
+        /*const*/ Object *object,
+        const MultiresModifierData *mmd)
 {
 	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
@@ -757,7 +758,7 @@ static bool multires_reshape_from_vertcos(
 	        .user_data = &reshape_deformed_verts_ctx,
 	};
 	/* Initialize subdivision surface. */
-	Subdiv *subdiv = multires_subdiv_for_reshape(depsgraph, object, mmd);
+	Subdiv *subdiv = multires_create_subdiv_for_reshape(depsgraph, object, mmd);
 	if (subdiv == NULL) {
 		return false;
 	}
