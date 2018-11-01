@@ -239,6 +239,15 @@ void ED_curve_deselect_all(EditNurb *editnurb)
 	}
 }
 
+void ED_curve_deselect_all_multi(Object **objects, int objects_len)
+{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		ED_curve_deselect_all(cu->editnurb);
+	}
+}
+
 void ED_curve_select_swap(EditNurb *editnurb, bool hide_handles)
 {
 	Nurb *nu;

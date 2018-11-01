@@ -36,6 +36,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -791,7 +792,14 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 	}
 
-	ED_curve_deselect_all(cu->editnurb);
+	/* Deselect all existing curves. */
+	{
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		ED_curve_deselect_all_multi(objects, objects_len);
+		MEM_freeN(objects);
+	}
 
 	const float radius_min = cps->radius_min;
 	const float radius_max = cps->radius_max;
