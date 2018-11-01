@@ -615,7 +615,7 @@ class GPENCIL_MT_snap(Menu):
         layout.separator()
 
         layout.operator("gpencil.snap_cursor_to_selected", text="Cursor to Selected")
-        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
 
 

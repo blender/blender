@@ -524,7 +524,7 @@ class VIEW3D_MT_snap(Menu):
         layout.separator()
 
         layout.operator("view3d.snap_cursor_to_selected", text="Cursor to Selected")
-        layout.operator("view3d.snap_cursor_to_center", text="Cursor to Center")
+        layout.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin")
         layout.operator("view3d.snap_cursor_to_grid", text="Cursor to Grid")
         layout.operator("view3d.snap_cursor_to_active", text="Cursor to Active")
 
@@ -3866,7 +3866,7 @@ class VIEW3D_MT_snap_pie(Menu):
         pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor", icon='RESTRICT_SELECT_OFF').use_offset = False
         pie.operator("view3d.snap_selected_to_cursor", text="Selection to Cursor (Keep Offset)", icon='RESTRICT_SELECT_OFF').use_offset = True
         pie.operator("view3d.snap_selected_to_active", text="Selection to Active", icon='RESTRICT_SELECT_OFF')
-        pie.operator("view3d.snap_cursor_to_center", text="Cursor to Center", icon='PIVOT_CURSOR')
+        pie.operator("view3d.snap_cursor_to_center", text="Cursor to World Origin", icon='PIVOT_CURSOR')
         pie.operator("view3d.snap_cursor_to_active", text="Cursor to Active", icon='PIVOT_CURSOR')
 
 

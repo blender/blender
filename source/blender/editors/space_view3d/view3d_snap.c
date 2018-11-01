@@ -856,7 +856,7 @@ static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Snap Cursor to Center";
+	ot->name = "Snap Cursor to World Origin";
 	ot->description = "Snap 3D cursor to the world origin";
 	ot->idname = "VIEW3D_OT_snap_cursor_to_center";
 
