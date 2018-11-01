@@ -180,6 +180,14 @@ static void topbar_header_listener(wmWindow *UNUSED(win), ScrArea *UNUSED(sa), A
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_WM:
+			if (wmn->data == ND_JOB)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SPACE:
+			if (wmn->data == ND_SPACE_INFO)
+				ED_region_tag_redraw(ar);
+			break;
 		case NC_SCREEN:
 			if (wmn->data == ND_LAYER)
 				ED_region_tag_redraw(ar);

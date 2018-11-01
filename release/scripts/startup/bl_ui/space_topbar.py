@@ -64,7 +64,13 @@ class TOPBAR_HT_upper_bar(Header):
         layout = self.layout
 
         window = context.window
+        screen = context.screen
         scene = window.scene
+
+        # If statusbar is hidden, still show messages at the top
+        if not screen.show_statusbar:
+            layout.template_reports_banner()
+            layout.template_running_jobs()
 
         # Active workspace view-layer is retrieved through window, not through workspace.
         layout.template_ID(window, "scene", new="scene.new", unlink="scene.delete")
