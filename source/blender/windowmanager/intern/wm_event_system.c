@@ -521,6 +521,9 @@ void wm_event_do_notifiers(bContext *C)
 		WM_window_cursor_keymap_status_refresh(C, win);
 		CTX_wm_window_set(C, NULL);
 	}
+
+	/* Autorun warning */
+	wm_test_autorun_warning(C);
 }
 
 static int wm_event_always_pass(const wmEvent *event)

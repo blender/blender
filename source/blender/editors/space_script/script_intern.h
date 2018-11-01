@@ -40,6 +40,5 @@ void script_keymap(struct wmKeyConfig *keyconf);
 /* script_edit.c */
 void SCRIPT_OT_reload(struct wmOperatorType *ot);
 void SCRIPT_OT_python_file_run(struct wmOperatorType *ot);
-void SCRIPT_OT_autoexec_warn_clear(struct wmOperatorType *ot);
 
 #endif /* __SCRIPT_INTERN_H__ */
