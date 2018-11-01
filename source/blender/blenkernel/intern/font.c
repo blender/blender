@@ -1232,13 +1232,13 @@ makebreak:
 		}
 	}
 
-	if (mode == FO_CURSUP || mode == FO_CURSDOWN || mode == FO_PAGEUP || mode == FO_PAGEDOWN) {
+	if (ELEM(mode, FO_CURSUP, FO_CURSDOWN, FO_PAGEUP, FO_PAGEDOWN)) {
 		ct = &chartransdata[ef->pos];
 
-		if ((mode == FO_CURSUP || mode == FO_PAGEUP) && ct->linenr == 0) {
+		if (ELEM(mode, FO_CURSUP, FO_PAGEUP) && ct->linenr == 0) {
 			/* pass */
 		}
-		else if ((mode == FO_CURSDOWN || mode == FO_PAGEDOWN) && ct->linenr == lnr) {
+		else if (ELEM(mode, FO_CURSDOWN, FO_PAGEDOWN) && ct->linenr == lnr) {
 			/* pass */
 		}
 		else {
