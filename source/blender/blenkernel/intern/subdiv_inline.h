@@ -31,6 +31,7 @@
 #define __BKE_SUBDIV_INLINE_H__
 
 #include "BKE_subdiv.h"
+#include "BLI_utildefines.h"
 
 BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
         const float ptex_u, const float ptex_v,
@@ -43,6 +44,35 @@ BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
 BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level)
 {
 	return (1 << (level - 1)) + 1;
+}
+
+BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
+        const float u, const float v,
+        float *r_u, float *r_v)
+{
+	int corner;
+	if (u <= 0.5f && v <= 0.5f) {
+		corner = 0;
+		*r_u = 2.0f * u;
+		*r_v = 2.0f * v;
+	}
+	else if (u > 0.5f  && v <= 0.5f) {
+		corner = 1;
+		*r_u = 2.0f * v;
+		*r_v = 2.0f * (1.0f - u);
+	}
+	else if (u > 0.5f  && v > 0.5f) {
+		corner = 2;
+		*r_u = 2.0f * (1.0f - u);
+		*r_v = 2.0f * (1.0f - v);
+	}
+	else {
+		BLI_assert(u <= 0.5f && v >= 0.5f);
+		corner = 3;
+		*r_u = 2.0f * (1.0f - v);
+		*r_v = 2.0f * u;
+	}
+	return corner;
 }
 
 #endif  /* __BKE_SUBDIV_INLINE_H__ */

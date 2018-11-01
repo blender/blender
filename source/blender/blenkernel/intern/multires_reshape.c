@@ -51,41 +51,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-/* TODO(sergey): De-duplicate with subdiv_displacement_multires.c. */
-
-/* Simplified version of mdisp_rot_face_to_crn, only handles quad and
- * works in normalized coordinates.
- *
- * NOTE: Output coordinates are in ptex coordinates.
- */
-BLI_INLINE int rotate_quad_to_corner(const float u, const float v,
-                                     float *r_u, float *r_v)
-{
-	int corner;
-	if (u <= 0.5f && v <= 0.5f) {
-		corner = 0;
-		*r_u = 2.0f * u;
-		*r_v = 2.0f * v;
-	}
-	else if (u > 0.5f  && v <= 0.5f) {
-		corner = 1;
-		*r_u = 2.0f * v;
-		*r_v = 2.0f * (1.0f - u);
-	}
-	else if (u > 0.5f  && v > 0.5f) {
-		corner = 2;
-		*r_u = 2.0f * (1.0f - u);
-		*r_v = 2.0f * (1.0f - v);
-	}
-	else {
-		BLI_assert(u <= 0.5f && v >= 0.5f);
-		corner = 3;
-		*r_u = 2.0f * (1.0f - v);
-		*r_v = 2.0f * u;
-	}
-	return corner;
-}
-
 static void multires_reshape_init_mmd(
         MultiresModifierData *reshape_mmd,
         const MultiresModifierData *mmd)
@@ -314,7 +279,8 @@ static void multires_reshape_vertex_from_final_data(
 	int grid_index;
 	if (coarse_poly->totloop == 4) {
 		float corner_u, corner_v;
-		face_corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
+		face_corner = BKE_subdiv_rotate_quad_to_corner(
+		        u, v, &corner_u, &corner_v);
 		grid_corner = face_corner;
 		grid_index = loop_index + face_corner;
 		BKE_subdiv_ptex_face_uv_to_grid_uv(
@@ -948,7 +914,7 @@ static void reshape_from_ccg_regular_face(ReshapeFromCCGTaskData *data,
 			const float u = x * resolution_1_inv;
 			float corner_u, corner_v;
 			float grid_u, grid_v;
-			const int face_corner = rotate_quad_to_corner(
+			const int face_corner = BKE_subdiv_rotate_quad_to_corner(
 			        u, v, &corner_u, &corner_v);
 			BKE_subdiv_ptex_face_uv_to_grid_uv(
 			        corner_u, corner_v, &grid_u, &grid_v);

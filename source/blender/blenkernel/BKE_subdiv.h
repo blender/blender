@@ -223,6 +223,15 @@ BLI_INLINE void BKE_subdiv_ptex_face_uv_to_grid_uv(
  */
 BLI_INLINE int BKE_subdiv_grid_size_from_level(const int level);
 
+/* Simplified version of mdisp_rot_face_to_crn, only handles quad and
+ * works in normalized coordinates.
+ *
+ * NOTE: Output coordinates are in ptex coordinates.
+ */
+BLI_INLINE int BKE_subdiv_rotate_quad_to_corner(
+        const float u, const float v,
+        float *r_u, float *r_v);
+
 #endif  /* __BKE_SUBDIV_H__ */
 
 #include "intern/subdiv_inline.h"

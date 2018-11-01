@@ -60,39 +60,6 @@ typedef struct GridPaintMaskData {
 	PolyCornerIndex *ptex_poly_corner;
 } GridPaintMaskData;
 
-/* Simplified version of mdisp_rot_face_to_crn, only handles quad and
- * works in normalized coordinates.
- *
- * NOTE: Output coordinates are in ptex coordinates.
- */
-BLI_INLINE int rotate_quad_to_corner(const float u, const float v,
-                                     float *r_u, float *r_v)
-{
-	int corner;
-	if (u <= 0.5f && v <= 0.5f) {
-		corner = 0;
-		*r_u = 2.0f * u;
-		*r_v = 2.0f * v;
-	}
-	else if (u > 0.5f  && v <= 0.5f) {
-		corner = 1;
-		*r_u = 2.0f * v;
-		*r_v = 2.0f * (1.0f - u);
-	}
-	else if (u > 0.5f  && v > 0.5f) {
-		corner = 2;
-		*r_u = 2.0f * (1.0f - u);
-		*r_v = 2.0f * (1.0f - v);
-	}
-	else {
-		BLI_assert(u <= 0.5f && v >= 0.5f);
-		corner = 3;
-		*r_u = 2.0f * (1.0f - v);
-		*r_v = 2.0f * u;
-	}
-	return corner;
-}
-
 static int mask_get_grid_and_coord(
         SubdivCCGMask *mask_evaluator,
         const int ptex_face_index, const float u, const float v,
@@ -107,7 +74,7 @@ static int mask_get_grid_and_coord(
 	int corner = 0;
 	if (poly->totloop == 4) {
 		float corner_u, corner_v;
-		corner = rotate_quad_to_corner(u, v, &corner_u, &corner_v);
+		corner = BKE_subdiv_rotate_quad_to_corner(u, v, &corner_u, &corner_v);
 		*r_mask_grid =
 		        &data->grid_paint_mask[start_grid_index + corner];
 		BKE_subdiv_ptex_face_uv_to_grid_uv(corner_u, corner_v, grid_u, grid_v);
