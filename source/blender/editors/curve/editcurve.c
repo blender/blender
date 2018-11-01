@@ -5261,15 +5261,13 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 
 /***************** make cyclic operator **********************/
 
-static int toggle_cyclic_exec(bContext *C, wmOperator *op)
+static bool curve_toggle_cyclic(View3D *v3d, ListBase *editnurb, int direction)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	ListBase *editnurb = object_editcurve_get(obedit);
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
-	int a, direction = RNA_enum_get(op->ptr, "direction");
+	int a;
+	bool changed = false;
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
 		if (nu->pntsu > 1 || nu->pntsv > 1) {
@@ -5279,6 +5277,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				while (a--) {
 					if (bp->f1 & SELECT) {
 						nu->flagu ^= CU_NURB_CYCLIC;
+						changed = true;
 						break;
 					}
 					bp++;
@@ -5290,6 +5289,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 				while (a--) {
 					if (BEZT_ISSEL_ANY_HIDDENHANDLES(v3d, bezt)) {
 						nu->flagu ^= CU_NURB_CYCLIC;
+						changed = true;
 						break;
 					}
 					bezt++;
@@ -5304,6 +5304,7 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 						if (bp->f1 & SELECT) {
 							nu->flagu ^= CU_NURB_CYCLIC;
 							BKE_nurb_knot_calc_u(nu);   /* 1==u  type is ignored for cyclic curves */
+							changed = true;
 							break;
 						}
 						bp++;
@@ -5319,24 +5320,50 @@ static int toggle_cyclic_exec(bContext *C, wmOperator *op)
 						if (direction == 0 && nu->pntsu > 1) {
 							nu->flagu ^= CU_NURB_CYCLIC;
 							BKE_nurb_knot_calc_u(nu);   /* 1==u  type is ignored for cyclic curves */
+							changed = true;
 						}
 						if (direction == 1 && nu->pntsv > 1) {
 							nu->flagv ^= CU_NURB_CYCLIC;
 							BKE_nurb_knot_calc_v(nu);   /* 2==v  type is ignored for cyclic curves */
+							changed = true;
 						}
 						break;
 					}
 					bp++;
 				}
-
 			}
 		}
 	}
+	return changed;
+}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
+static int toggle_cyclic_exec(bContext *C, wmOperator *op)
+{
+	const int direction = RNA_enum_get(op->ptr, "direction");
+	View3D *v3d = CTX_wm_view3d(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	bool changed_multi = false;
 
-	return OPERATOR_FINISHED;
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		if (!ED_curve_select_check(v3d, cu->editnurb)) {
+			continue;
+		}
+
+		ListBase *editnurb = object_editcurve_get(obedit);
+		if (curve_toggle_cyclic(v3d, editnurb, direction)) {
+			changed_multi = true;
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			DEG_id_tag_update(obedit->data, 0);
+		}
+	}
+	MEM_freeN(objects);
+
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static int toggle_cyclic_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
