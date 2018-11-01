@@ -120,6 +120,11 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 			BKE_view_layer_base_select(view_layer, base);
 			break;
 	}
+
+	Scene *scene = CTX_data_scene(C);
+	DEG_id_tag_update(&scene->id, DEG_TAG_SELECT_UPDATE);
+	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
+	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
 
 static bool rna_Object_select_get(Object *ob, bContext *C, ReportList *reports)
